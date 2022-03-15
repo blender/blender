@@ -38,6 +38,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "GPU_framebuffer.h"
 #include "GPU_matrix.h"

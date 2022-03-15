@@ -116,8 +116,6 @@ static void gizmo2d_pivot_point_message_subscribe(struct wmGizmoGroup *gzgroup,
       PointerRNA ptr;
       RNA_pointer_create(&screen->id, &RNA_SpaceImageEditor, sima, &ptr);
       {
-        extern PropertyRNA rna_SpaceImageEditor_pivot_point;
-        extern PropertyRNA rna_SpaceImageEditor_cursor_location;
         const PropertyRNA *props[] = {
             &rna_SpaceImageEditor_pivot_point,
             (sima->around == V3D_AROUND_CURSOR) ? &rna_SpaceImageEditor_cursor_location : NULL,

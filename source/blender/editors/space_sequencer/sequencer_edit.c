@@ -50,6 +50,7 @@
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 /* For menu, popup, icons, etc. */
 #include "ED_keyframing.h"

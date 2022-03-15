@@ -1152,7 +1152,7 @@ def km_node_editor(params):
         ("node.move_detach_links_release", {"type": params.action_mouse, "value": 'CLICK_DRAG', "alt": True}, None),
         ("node.move_detach_links", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "alt": True}, None),
         ("wm.context_toggle", {"type": 'X', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_snap')]}),
+         {"properties": [("data_path", 'tool_settings.use_snap_node')]}),
     ])
 
     return keymap

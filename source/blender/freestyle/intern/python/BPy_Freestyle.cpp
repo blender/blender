@@ -43,6 +43,7 @@ extern "C" {
 #include "DNA_scene_types.h"
 #include "FRS_freestyle.h"
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 #include "bpy_rna.h" /* pyrna_struct_CreatePyObject() */
 
 static char Freestyle_getCurrentScene___doc__[] =

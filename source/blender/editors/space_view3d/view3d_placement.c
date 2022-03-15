@@ -1153,7 +1153,7 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
             RNA_float_set(&op_props, "radius2", 0.0f);
           }
 
-          WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &op_props);
+          WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &op_props, NULL);
           WM_operator_properties_free(&op_props);
         }
         else {

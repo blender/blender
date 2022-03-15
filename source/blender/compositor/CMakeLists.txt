@@ -26,6 +26,8 @@ set(INC
 
   # dna_type_offsets.h
   ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -666,3 +668,5 @@ endif()
 
 # Needed so we can use dna_type_offsets.h for defaults initialization.
 add_dependencies(bf_compositor bf_dna)
+# RNA_prototypes.h
+add_dependencies(bf_compositor bf_rna)

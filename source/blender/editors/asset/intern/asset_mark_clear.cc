@@ -18,6 +18,7 @@
 #include "UI_interface_icons.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "ED_asset_list.h"
 #include "ED_asset_mark_clear.h"

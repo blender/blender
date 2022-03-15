@@ -270,7 +270,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
         view_pan_exit(op);
         WM_cursor_modal_restore(CTX_wm_window(C));
-        WM_operator_name_call(C, "VIEW2D_OT_zoom", WM_OP_INVOKE_DEFAULT, NULL);
+        WM_operator_name_call(C, "VIEW2D_OT_zoom", WM_OP_INVOKE_DEFAULT, NULL, event);
         return OPERATOR_FINISHED;
       }
 #endif

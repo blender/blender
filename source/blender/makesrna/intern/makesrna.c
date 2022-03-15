@@ -2362,7 +2362,12 @@ static void rna_def_struct_function_prototype_cpp(FILE *f,
     pout = (flag_parameter & PARM_OUTPUT);
 
     if (flag & PROP_DYNAMIC) {
-      ptrstr = pout ? "**" : "*";
+      if (type == PROP_STRING) {
+        ptrstr = pout ? "*" : "";
+      }
+      else {
+        ptrstr = pout ? "**" : "*";
+      }
     }
     else if (type == PROP_POINTER) {
       ptrstr = pout ? "*" : "";
@@ -2853,7 +2858,12 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
       /* XXX only arrays and strings are allowed to be dynamic, is this checked anywhere? */
     }
     else if (cptr || (flag & PROP_DYNAMIC)) {
-      ptrstr = pout ? "**" : "*";
+      if (type == PROP_STRING) {
+        ptrstr = pout ? "*" : "";
+      }
+      else {
+        ptrstr = pout ? "**" : "*";
+      }
       /* Fixed size arrays and RNA pointers are pre-allocated on the ParameterList stack,
        * pass a pointer to it. */
     }
@@ -2933,8 +2943,14 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
     else {
       const char *data_str;
       if (cptr || (flag & PROP_DYNAMIC)) {
-        ptrstr = "**";
-        valstr = "*";
+        if (type == PROP_STRING) {
+          ptrstr = "*";
+          valstr = "";
+        }
+        else {
+          ptrstr = "**";
+          valstr = "*";
+        }
       }
       else if ((type == PROP_POINTER) && !(flag & PROP_THICK_WRAP)) {
         ptrstr = "**";
@@ -3288,12 +3304,12 @@ static const char *rna_property_subtype_unit(PropertySubType type)
   }
 }
 
-static void rna_generate_prototypes(BlenderRNA *brna, FILE *f)
+static void rna_generate_struct_rna_prototypes(BlenderRNA *brna, FILE *f)
 {
   StructRNA *srna;
 
   for (srna = brna->structs.first; srna; srna = srna->cont.next) {
-    fprintf(f, "extern StructRNA RNA_%s;\n", srna->identifier);
+    fprintf(f, "extern struct StructRNA RNA_%s;\n", srna->identifier);
   }
   fprintf(f, "\n");
 }
@@ -3327,7 +3343,21 @@ static void rna_generate_blender(BlenderRNA *brna, FILE *f)
           "};\n\n");
 }
 
-static void rna_generate_property_prototypes(BlenderRNA *UNUSED(brna), StructRNA *srna, FILE *f)
+static void rna_generate_external_property_prototypes(BlenderRNA *brna, FILE *f)
+{
+  rna_generate_struct_rna_prototypes(brna, f);
+
+  for (StructRNA *srna = brna->structs.first; srna; srna = srna->cont.next) {
+    for (PropertyRNA *prop = srna->cont.properties.first; prop; prop = prop->next) {
+      fprintf(f, "extern struct PropertyRNA rna_%s_%s;\n", srna->identifier, prop->identifier);
+    }
+    fprintf(f, "\n");
+  }
+}
+
+static void rna_generate_internal_property_prototypes(BlenderRNA *UNUSED(brna),
+                                                      StructRNA *srna,
+                                                      FILE *f)
 {
   PropertyRNA *prop;
   StructRNA *base;
@@ -3531,7 +3561,12 @@ static void rna_generate_static_parameter_prototypes(FILE *f,
     }
 
     if (cptr || (flag & PROP_DYNAMIC)) {
-      ptrstr = pout ? "**" : "*";
+      if (type == PROP_STRING) {
+        ptrstr = pout ? "*" : "";
+      }
+      else {
+        ptrstr = pout ? "**" : "*";
+      }
     }
     else if (type == PROP_POINTER || dparm->prop->arraydimension) {
       ptrstr = "*";
@@ -4478,7 +4513,7 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
 
   for (ds = DefRNA.structs.first; ds; ds = ds->cont.next) {
     if (!filename || ds->filename == filename) {
-      rna_generate_property_prototypes(brna, ds->srna, f);
+      rna_generate_internal_property_prototypes(brna, ds->srna, f);
       rna_generate_function_prototypes(brna, ds->srna, f);
     }
   }
@@ -5107,7 +5142,11 @@ static void make_bad_file(const char *file, int line)
   fclose(fp);
 }
 
-static int rna_preprocess(const char *outfile)
+/**
+ * \param extern_outfile: Directory to put public headers into. Can be NULL, in which case
+ *                        everything is put into \a outfile.
+ */
+static int rna_preprocess(const char *outfile, const char *public_header_outfile)
 {
   BlenderRNA *brna;
   StructDefRNA *ds;
@@ -5115,6 +5154,10 @@ static int rna_preprocess(const char *outfile)
   char deffile[4096];
   int i, status;
   const char *deps[3]; /* expand as needed */
+
+  if (!public_header_outfile) {
+    public_header_outfile = outfile;
+  }
 
   /* define rna */
   brna = RNA_create();
@@ -5140,7 +5183,36 @@ static int rna_preprocess(const char *outfile)
 
   status = (DefRNA.error != 0);
 
-  /* create rna prototype header file */
+  /* Create external rna struct prototype header file RNA_prototypes.h. */
+  strcpy(deffile, public_header_outfile);
+  strcat(deffile, "RNA_prototypes.h" TMP_EXT);
+  if (status) {
+    make_bad_file(deffile, __LINE__);
+  }
+  file = fopen(deffile, "w");
+  if (!file) {
+    fprintf(stderr, "Unable to open file: %s\n", deffile);
+    status = 1;
+  }
+  else {
+    fprintf(file,
+            "/* Automatically generated RNA property declarations, to statically reference \n"
+            " * properties as `rna_[struct-name]_[property-name]`.\n"
+            " *\n"
+            " * DO NOT EDIT MANUALLY, changes will be overwritten.\n"
+            " */\n\n");
+
+    fprintf(file, "#pragma once\n\n");
+    fprintf(file, "#ifdef __cplusplus\n  extern \"C\" {\n#endif\n\n");
+    rna_generate_external_property_prototypes(brna, file);
+    fprintf(file, "#ifdef __cplusplus\n  }\n#endif\n");
+    fclose(file);
+    status = (DefRNA.error != 0);
+
+    replace_if_different(deffile, NULL);
+  }
+
+  /* create internal rna struct prototype header file */
   strcpy(deffile, outfile);
   strcat(deffile, "rna_prototypes_gen.h");
   if (status) {
@@ -5155,7 +5227,7 @@ static int rna_preprocess(const char *outfile)
     fprintf(file,
             "/* Automatically generated function declarations for the Data API.\n"
             " * Do not edit manually, changes will be overwritten.              */\n\n");
-    rna_generate_prototypes(brna, file);
+    rna_generate_struct_rna_prototypes(brna, file);
     fclose(file);
     status = (DefRNA.error != 0);
   }
@@ -5267,7 +5339,7 @@ int main(int argc, char **argv)
   CLG_level_set(debugSRNA);
 
   if (argc < 2) {
-    fprintf(stderr, "Usage: %s outdirectory/\n", argv[0]);
+    fprintf(stderr, "Usage: %s outdirectory [public header outdirectory]/\n", argv[0]);
     return_status = 1;
   }
   else {
@@ -5275,7 +5347,7 @@ int main(int argc, char **argv)
       fprintf(stderr, "Running makesrna\n");
     }
     makesrna_path = argv[0];
-    return_status = rna_preprocess(argv[1]);
+    return_status = rna_preprocess(argv[1], (argc > 2) ? argv[2] : NULL);
   }
 
   CLG_exit();

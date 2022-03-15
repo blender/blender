@@ -43,6 +43,7 @@
 #include "DNA_world_types.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"

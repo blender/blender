@@ -400,28 +400,28 @@ static bool rna_idproperty_verify_valid(PointerRNA *ptr, PropertyRNA *prop, IDPr
 }
 
 static PropertyRNA *typemap[IDP_NUMTYPES] = {
-    (PropertyRNA *)&rna_PropertyGroupItem_string,
-    (PropertyRNA *)&rna_PropertyGroupItem_int,
-    (PropertyRNA *)&rna_PropertyGroupItem_float,
+    &rna_PropertyGroupItem_string,
+    &rna_PropertyGroupItem_int,
+    &rna_PropertyGroupItem_float,
     NULL,
     NULL,
     NULL,
-    (PropertyRNA *)&rna_PropertyGroupItem_group,
-    (PropertyRNA *)&rna_PropertyGroupItem_id,
-    (PropertyRNA *)&rna_PropertyGroupItem_double,
-    (PropertyRNA *)&rna_PropertyGroupItem_idp_array,
+    &rna_PropertyGroupItem_group,
+    &rna_PropertyGroupItem_id,
+    &rna_PropertyGroupItem_double,
+    &rna_PropertyGroupItem_idp_array,
 };
 
 static PropertyRNA *arraytypemap[IDP_NUMTYPES] = {
     NULL,
-    (PropertyRNA *)&rna_PropertyGroupItem_int_array,
-    (PropertyRNA *)&rna_PropertyGroupItem_float_array,
+    &rna_PropertyGroupItem_int_array,
+    &rna_PropertyGroupItem_float_array,
     NULL,
     NULL,
     NULL,
-    (PropertyRNA *)&rna_PropertyGroupItem_collection,
+    &rna_PropertyGroupItem_collection,
     NULL,
-    (PropertyRNA *)&rna_PropertyGroupItem_double_array,
+    &rna_PropertyGroupItem_double_array,
 };
 
 void rna_property_rna_or_id_get(PropertyRNA *prop,

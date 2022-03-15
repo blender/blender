@@ -1400,11 +1400,11 @@ inline void WOEdge::setVecAndAngle()
     if (_paFace && _pbFace) {
       float sine = (_pbFace->GetNormal() ^ _paFace->GetNormal()) * _vec / _vec.norm();
       if (sine >= 1.0) {
-        _angle = M_PI / 2.0;
+        _angle = M_PI_2;
         return;
       }
       if (sine <= -1.0) {
-        _angle = -M_PI / 2.0;
+        _angle = -M_PI_2;
         return;
       }
       _angle = ::asin(sine);

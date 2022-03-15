@@ -100,7 +100,7 @@ static SplinePtr poly_to_nurbs(const Spline &input)
   output->set_resolution(12);
   output->set_order(4);
   Spline::copy_base_settings(input, *output);
-  output->knots_mode = NURBSpline::KnotsMode::Bezier;
+  output->knots_mode = NURBS_KNOT_MODE_BEZIER;
   output->attributes = input.attributes;
   return output;
 }
@@ -128,7 +128,7 @@ static SplinePtr bezier_to_nurbs(const Spline &input)
   output->set_resolution(12);
   output->set_order(4);
   output->set_cyclic(input.is_cyclic());
-  output->knots_mode = NURBSpline::KnotsMode::Bezier;
+  output->knots_mode = NURBS_KNOT_MODE_BEZIER;
   output->attributes.reallocate(output->size());
   copy_attributes(input, *output, [](GSpan src, GMutableSpan dst) {
     attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {

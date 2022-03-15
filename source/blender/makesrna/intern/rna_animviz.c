@@ -36,27 +36,6 @@ const EnumPropertyItem rna_enum_motionpath_bake_location_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-const EnumPropertyItem rna_enum_motionpath_display_type_items[] = {
-    {MOTIONPATH_TYPE_ACFRA,
-     "CURRENT_FRAME",
-     0,
-     "Around Frame",
-     "Display Paths of poses within a fixed number of frames around the current frame"},
-    {MOTIONPATH_TYPE_RANGE,
-     "RANGE",
-     0,
-     "In Range",
-     "Display Paths of poses within specified range"},
-    {0, NULL, 0, NULL, NULL},
-};
-
-const EnumPropertyItem rna_enum_motionpath_range_items[] = {
-    {MOTIONPATH_RANGE_KEYS_ALL, "KEYS_ALL", 0, "All keys range", ""},
-    {MOTIONPATH_RANGE_KEYS_SELECTED, "KEYS_SELECTED", 0, "Selected keys range", ""},
-    {MOTIONPATH_RANGE_SCENE, "SCENE", 0, "Scene frame range", ""},
-    {0, NULL, 0, NULL, NULL},
-};
-
 #ifdef RNA_RUNTIME
 
 static PointerRNA rna_AnimViz_motion_paths_get(PointerRNA *ptr)
@@ -194,6 +173,20 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
+  static const EnumPropertyItem prop_type_items[] = {
+      {MOTIONPATH_TYPE_ACFRA,
+       "CURRENT_FRAME",
+       0,
+       "Around Frame",
+       "Display Paths of poses within a fixed number of frames around the current frame"},
+      {MOTIONPATH_TYPE_RANGE,
+       "RANGE",
+       0,
+       "In Range",
+       "Display Paths of poses within specified range"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "AnimVizMotionPaths", NULL);
   RNA_def_struct_sdna(srna, "bAnimVizSettings");
   RNA_def_struct_nested(brna, srna, "AnimViz");
@@ -205,14 +198,8 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
   /* Enums */
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "path_type");
-  RNA_def_property_enum_items(prop, rna_enum_motionpath_display_type_items);
+  RNA_def_property_enum_items(prop, prop_type_items);
   RNA_def_property_ui_text(prop, "Paths Type", "Type of range to show for Motion Paths");
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW_ANIMVIZ, NULL);
-
-  prop = RNA_def_property(srna, "range", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "path_range");
-  RNA_def_property_enum_items(prop, rna_enum_motionpath_range_items);
-  RNA_def_property_ui_text(prop, "Paths Range", "Type of range to calculate for Motion Paths");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW_ANIMVIZ, NULL);
 
   prop = RNA_def_property(srna, "bake_location", PROP_ENUM, PROP_NONE);

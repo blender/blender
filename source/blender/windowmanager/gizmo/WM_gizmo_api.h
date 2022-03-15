@@ -92,7 +92,10 @@ struct PointerRNA *WM_gizmo_operator_set(struct wmGizmo *gz,
                                          int part_index,
                                          struct wmOperatorType *ot,
                                          struct IDProperty *properties);
-int WM_gizmo_operator_invoke(struct bContext *C, struct wmGizmo *gz, struct wmGizmoOpElem *gzop);
+int WM_gizmo_operator_invoke(struct bContext *C,
+                             struct wmGizmo *gz,
+                             struct wmGizmoOpElem *gzop,
+                             const struct wmEvent *event);
 
 /* Callbacks. */
 

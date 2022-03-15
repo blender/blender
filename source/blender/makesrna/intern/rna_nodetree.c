@@ -4520,6 +4520,43 @@ static void rna_CompositorNodeScale_update(Main *bmain, Scene *scene, PointerRNA
   rna_Node_update(bmain, scene, ptr);
 }
 
+static void rna_ShaderNode_is_active_output_set(PointerRNA *ptr, bool value)
+{
+  bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
+  bNode *node = ptr->data;
+  if (value) {
+    /* If this node becomes the active output, the others of the same type can't be the active
+     * output anymore. */
+    LISTBASE_FOREACH (bNode *, other_node, &ntree->nodes) {
+      if (other_node->type == node->type) {
+        other_node->flag &= ~NODE_DO_OUTPUT;
+      }
+    }
+    node->flag |= NODE_DO_OUTPUT;
+  }
+  else {
+    node->flag &= ~NODE_DO_OUTPUT;
+  }
+}
+
+static void rna_GroupOutput_is_active_output_set(PointerRNA *ptr, bool value)
+{
+  bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
+  bNode *node = ptr->data;
+  if (value) {
+    /* Make sure that no other group output is active at the same time. */
+    LISTBASE_FOREACH (bNode *, other_node, &ntree->nodes) {
+      if (other_node->type == NODE_GROUP_OUTPUT) {
+        other_node->flag &= ~NODE_DO_OUTPUT;
+      }
+    }
+    node->flag |= NODE_DO_OUTPUT;
+  }
+  else {
+    node->flag &= ~NODE_DO_OUTPUT;
+  }
+}
+
 static PointerRNA rna_ShaderNodePointDensity_psys_get(PointerRNA *ptr)
 {
   bNode *node = ptr->data;
@@ -4898,6 +4935,7 @@ static void def_group_output(StructRNA *srna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_DO_OUTPUT);
   RNA_def_property_ui_text(
       prop, "Active Output", "True if this node is used as the active group output");
+  RNA_def_property_boolean_funcs(prop, NULL, "rna_GroupOutput_is_active_output_set");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -5288,6 +5326,7 @@ static void def_sh_output(StructRNA *srna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_DO_OUTPUT);
   RNA_def_property_ui_text(
       prop, "Active Output", "True if this node is used as the active output");
+  RNA_def_property_boolean_funcs(prop, NULL, "rna_ShaderNode_is_active_output_set");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "target", PROP_ENUM, PROP_NONE);
@@ -11240,6 +11279,40 @@ static void def_geo_curve_fill(StructRNA *srna)
   RNA_def_property_enum_items(prop, mode_items);
   RNA_def_property_ui_text(prop, "Mode", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_geo_store_named_attribute(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryStoreNamedAttribute", "storage");
+
+  prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_attribute_type_items);
+  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_GeometryNodeAttributeFill_type_itemf");
+  RNA_def_property_enum_default(prop, CD_PROP_FLOAT);
+  RNA_def_property_ui_text(prop, "Data Type", "Type of data stored in attribute");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
+
+  prop = RNA_def_property(srna, "domain", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_attribute_domain_items);
+  RNA_def_property_enum_default(prop, ATTR_DOMAIN_POINT);
+  RNA_def_property_ui_text(prop, "Domain", "Which domain to store the data in");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_geo_input_named_attribute(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryInputNamedAttribute", "storage");
+
+  prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_attribute_type_items);
+  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_GeometryNodeAttributeFill_type_itemf");
+  RNA_def_property_enum_default(prop, CD_PROP_FLOAT);
+  RNA_def_property_ui_text(prop, "Data Type", "The data type used to read the attribute values");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
 }
 
 static void def_geo_attribute_capture(StructRNA *srna)

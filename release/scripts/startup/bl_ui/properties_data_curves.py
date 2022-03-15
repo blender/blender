@@ -43,6 +43,8 @@ class DATA_PT_curves_surface(DataButtonsPanel, Panel):
         layout = self.layout
         ob = context.object
 
+        layout.use_property_split = True
+
         layout.prop(ob.data, "surface")
 
 

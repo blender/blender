@@ -14,8 +14,8 @@
 
 UnitConverter::UnitConverter() : up_axis(COLLADAFW::FileInfo::Z_UP)
 {
-  axis_angle_to_mat4_single(x_up_mat4, 'Y', -0.5 * M_PI);
-  axis_angle_to_mat4_single(y_up_mat4, 'X', 0.5 * M_PI);
+  axis_angle_to_mat4_single(x_up_mat4, 'Y', -M_PI_2);
+  axis_angle_to_mat4_single(y_up_mat4, 'X', M_PI_2);
 
   unit_m4(z_up_mat4);
   unit_m4(scale_mat4);

@@ -173,7 +173,6 @@ static void WIDGETGROUP_gizmo_message_subscribe(const bContext *C,
   };
 
   {
-    extern PropertyRNA rna_ToolSettings_workspace_tool_type;
     const PropertyRNA *props[] = {
         &rna_ToolSettings_workspace_tool_type,
     };

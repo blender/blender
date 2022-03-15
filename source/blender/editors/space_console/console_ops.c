@@ -469,10 +469,10 @@ static int console_indent_or_autocomplete_exec(bContext *C, wmOperator *UNUSED(o
   }
 
   if (text_before_cursor) {
-    WM_operator_name_call(C, "CONSOLE_OT_autocomplete", WM_OP_INVOKE_DEFAULT, NULL);
+    WM_operator_name_call(C, "CONSOLE_OT_autocomplete", WM_OP_INVOKE_DEFAULT, NULL, NULL);
   }
   else {
-    WM_operator_name_call(C, "CONSOLE_OT_indent", WM_OP_EXEC_DEFAULT, NULL);
+    WM_operator_name_call(C, "CONSOLE_OT_indent", WM_OP_EXEC_DEFAULT, NULL, NULL);
   }
   return OPERATOR_FINISHED;
 }
@@ -1070,7 +1070,7 @@ static int console_paste_exec(bContext *C, wmOperator *UNUSED(op))
     }
 
     if (buf_next != buf_str) {
-      WM_operator_name_call(C, "CONSOLE_OT_execute", WM_OP_EXEC_DEFAULT, NULL);
+      WM_operator_name_call(C, "CONSOLE_OT_execute", WM_OP_EXEC_DEFAULT, NULL, NULL);
       ci = console_history_verify(C);
     }
 

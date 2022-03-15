@@ -43,6 +43,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "ED_node.h"
 #include "ED_space_api.h"

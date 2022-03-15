@@ -55,6 +55,7 @@ struct OBJExportParams {
 
   /* File Write Options. */
   bool export_selected_objects;
+  bool apply_modifiers;
   eEvaluationMode export_eval_mode;
   bool export_uv;
   bool export_normals;

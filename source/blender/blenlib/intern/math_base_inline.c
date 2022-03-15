@@ -95,10 +95,10 @@ MINLINE float saacos(float fac)
 MINLINE float saasin(float fac)
 {
   if (UNLIKELY(fac <= -1.0f)) {
-    return (float)-M_PI / 2.0f;
+    return (float)-M_PI_2;
   }
   else if (UNLIKELY(fac >= 1.0f)) {
-    return (float)M_PI / 2.0f;
+    return (float)M_PI_2;
   }
   else {
     return asinf(fac);
@@ -131,10 +131,10 @@ MINLINE float saacosf(float fac)
 MINLINE float saasinf(float fac)
 {
   if (UNLIKELY(fac <= -1.0f)) {
-    return (float)-M_PI / 2.0f;
+    return (float)-M_PI_2;
   }
   else if (UNLIKELY(fac >= 1.0f)) {
-    return (float)M_PI / 2.0f;
+    return (float)M_PI_2;
   }
   else {
     return asinf(fac);

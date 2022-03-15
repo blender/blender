@@ -64,6 +64,7 @@
 #include "UI_view2d.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "NOD_geometry_nodes_eval_log.hh"
 #include "NOD_node_declaration.hh"
@@ -1193,7 +1194,7 @@ static void node_toggle_button_cb(struct bContext *C, void *node_argv, void *op_
   /* Select & activate only the button's node. */
   node_select_single(*C, *node);
 
-  WM_operator_name_call(C, opname, WM_OP_INVOKE_DEFAULT, nullptr);
+  WM_operator_name_call(C, opname, WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
 }
 
 static void node_draw_shadow(const SpaceNode &snode,

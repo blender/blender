@@ -1321,7 +1321,8 @@ static int view3d_ruler_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
   /* This is a little weak, but there is no real good way to tweak directly. */
   WM_gizmo_highlight_set(gzmap, &ruler_item->gz);
-  if (WM_operator_name_call(C, "GIZMOGROUP_OT_gizmo_tweak", WM_OP_INVOKE_REGION_WIN, NULL) ==
+  if (WM_operator_name_call(
+          C, "GIZMOGROUP_OT_gizmo_tweak", WM_OP_INVOKE_REGION_WIN, NULL, event) ==
       OPERATOR_RUNNING_MODAL) {
     RulerInfo *ruler_info = gzgroup->customdata;
     RulerInteraction *inter = ruler_item->gz.interaction_data;

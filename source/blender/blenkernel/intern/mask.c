@@ -609,7 +609,7 @@ float BKE_mask_spline_project_co(MaskSpline *spline,
 
         if (len_squared_v2(v1) > proj_eps_sq) {
           ang1 = angle_v2v2(v1, n1);
-          if (ang1 > (float)M_PI / 2.0f) {
+          if (ang1 > (float)M_PI_2) {
             ang1 = (float)M_PI - ang1;
           }
 
@@ -635,7 +635,7 @@ float BKE_mask_spline_project_co(MaskSpline *spline,
 
         if (len_squared_v2(v2) > proj_eps_sq) {
           ang2 = angle_v2v2(v2, n2);
-          if (ang2 > (float)M_PI / 2.0f) {
+          if (ang2 > (float)M_PI_2) {
             ang2 = (float)M_PI - ang2;
           }
 

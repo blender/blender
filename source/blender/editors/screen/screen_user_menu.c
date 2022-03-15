@@ -34,6 +34,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities

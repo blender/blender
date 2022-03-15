@@ -42,6 +42,7 @@
 #include "BKE_armature.h"
 #include "BKE_asset.h"
 #include "BKE_collection.h"
+#include "BKE_curve.h"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
@@ -55,6 +56,7 @@
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "BLO_readfile.h"
 #include "MEM_guardedalloc.h"
@@ -525,7 +527,7 @@ static void version_geometry_nodes_add_realize_instance_nodes(bNodeTree *ntree)
              GEO_NODE_TRIM_CURVE,
              GEO_NODE_REPLACE_MATERIAL,
              GEO_NODE_SUBDIVIDE_MESH,
-             GEO_NODE_ATTRIBUTE_REMOVE,
+             GEO_NODE_LEGACY_ATTRIBUTE_REMOVE,
              GEO_NODE_TRIANGULATE)) {
       bNodeSocket *geometry_socket = node->inputs.first;
       add_realize_instances_before_socket(ntree, node, geometry_socket);
@@ -997,7 +999,7 @@ static bool geometry_node_is_293_legacy(const short node_type)
     /* Maybe legacy: Might need special attribute handling, depending on design. */
     case GEO_NODE_SWITCH:
     case GEO_NODE_JOIN_GEOMETRY:
-    case GEO_NODE_ATTRIBUTE_REMOVE:
+    case GEO_NODE_LEGACY_ATTRIBUTE_REMOVE:
     case GEO_NODE_OBJECT_INFO:
     case GEO_NODE_COLLECTION_INFO:
       return false;
@@ -1481,6 +1483,10 @@ static void version_liboverride_rnacollections_insertion_animdata(ID *id)
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
+  /* The #SCE_SNAP_SEQ flag has been removed in favor of the #SCE_SNAP which can be used for each
+   * snap_flag member individually. */
+  enum { SCE_SNAP_SEQ = (1 << 7) };
+
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 1)) {
     /* Set default value for the new bisect_threshold parameter in the mirror modifier. */
     if (!DNA_struct_elem_find(fd->filesdna, "MirrorModifierData", "float", "bisect_threshold")) {
@@ -2567,6 +2573,59 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 302, 6)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *ts = scene->toolsettings;
+      if (ts->uv_relax_method == 0) {
+        ts->uv_relax_method = UV_SCULPT_TOOL_RELAX_LAPLACIAN;
+      }
+    }
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *tool_settings = scene->toolsettings;
+      tool_settings->snap_flag_seq = tool_settings->snap_flag & ~(SCE_SNAP | SCE_SNAP_SEQ);
+      if (tool_settings->snap_flag & SCE_SNAP_SEQ) {
+        tool_settings->snap_flag_seq |= SCE_SNAP;
+        tool_settings->snap_flag &= ~SCE_SNAP_SEQ;
+      }
+
+      tool_settings->snap_flag_node = tool_settings->snap_flag;
+      tool_settings->snap_uv_flag |= tool_settings->snap_flag & SCE_SNAP;
+    }
+
+    /* Alter NURBS knot mode flags to fit new modes. */
+    LISTBASE_FOREACH (Curve *, curve, &bmain->curves) {
+      LISTBASE_FOREACH (Nurb *, nurb, &curve->nurb) {
+        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
+        if (nurb->flagu & CU_NURB_CYCLIC) {
+          nurb->flagu = CU_NURB_CYCLIC;
+        }
+        /* CU_NURB_BEZIER and CU_NURB_ENDPOINT were ignored if combined. */
+        else if (nurb->flagu & CU_NURB_BEZIER && nurb->flagu & CU_NURB_ENDPOINT) {
+          nurb->flagu &= ~(CU_NURB_BEZIER | CU_NURB_ENDPOINT);
+          BKE_nurb_knot_calc_u(nurb);
+        }
+        /* Bezier NURBS of order 3 were clamped to first control point. */
+        else if (nurb->orderu == 3 && (nurb->flagu & CU_NURB_BEZIER)) {
+          nurb->flagu |= CU_NURB_ENDPOINT;
+        }
+
+        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
+        if (nurb->flagv & CU_NURB_CYCLIC) {
+          nurb->flagv = CU_NURB_CYCLIC;
+        }
+        /* CU_NURB_BEZIER and CU_NURB_ENDPOINT were ignored if used together. */
+        else if (nurb->flagv & CU_NURB_BEZIER && nurb->flagv & CU_NURB_ENDPOINT) {
+          nurb->flagv &= ~(CU_NURB_BEZIER | CU_NURB_ENDPOINT);
+          BKE_nurb_knot_calc_v(nurb);
+        }
+        /* Bezier NURBS of order 3 were clamped to first control point. */
+        else if (nurb->orderv == 3 && (nurb->flagv & CU_NURB_BEZIER)) {
+          nurb->flagv |= CU_NURB_ENDPOINT;
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -2579,10 +2638,12 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
   {
     /* Keep this block, even when empty. */
 
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      ToolSettings *ts = scene->toolsettings;
-      if (ts->uv_relax_method == 0) {
-        ts->uv_relax_method = UV_SCULPT_TOOL_RELAX_LAPLACIAN;
+    /* Deprecate the attribute remove node. It was hidden and is replaced by a version without a
+     * multi-input socket. */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_node_id(
+            ntree, GEO_NODE_LEGACY_ATTRIBUTE_REMOVE, "GeometryNodeLegacyAttributeRemove");
       }
     }
   }

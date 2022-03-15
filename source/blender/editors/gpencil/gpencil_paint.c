@@ -64,6 +64,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1114,7 +1115,8 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       }
 
       if (found_depth == false) {
-        /* eeh... not much we can do.. :/, ignore depth in this case, use the 3D cursor */
+        /* Unfortunately there is not much we can do when the depth isn't found,
+         * ignore depth in this case, use the 3D cursor. */
         for (i = gpd->runtime.sbuffer_used - 1; i >= 0; i--) {
           depth_arr[i] = 0.9999f;
         }

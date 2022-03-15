@@ -244,7 +244,7 @@ class Spline {
 };
 
 /**
- * A Bézier spline is made up of a many curve segments, possibly achieving continuity of curvature
+ * A Bezier spline is made up of a many curve segments, possibly achieving continuity of curvature
  * by constraining the alignment of curve handles. Evaluation stores the positions and a map of
  * factors and indices in a list of floats, which is then used to interpolate any other data.
  */
@@ -449,22 +449,19 @@ class BezierSpline final : public Spline {
  */
 class NURBSpline final : public Spline {
  public:
-  enum class KnotsMode {
-    Normal,
-    EndPoint,
-    Bezier,
-  };
-
   /** Method used to recalculate the knots vector when points are added or removed. */
   KnotsMode knots_mode;
 
   struct BasisCache {
-    /** The influence at each control point `i + #start_index`. */
+    /**
+     * For each evaluated point, the weight for all control points that influences it.
+     * The vector's size is the evaluated point count multiplied by the spline's order.
+     */
     blender::Vector<float> weights;
     /**
      * An offset for the start of #weights: the first control point index with a non-zero weight.
      */
-    int start_index;
+    blender::Vector<int> start_indices;
   };
 
  private:
@@ -490,7 +487,7 @@ class NURBSpline final : public Spline {
   mutable bool knots_dirty_ = true;
 
   /** Cache of control point influences on each evaluated point. */
-  mutable blender::Vector<BasisCache> basis_cache_;
+  mutable BasisCache basis_cache_;
   mutable std::mutex basis_cache_mutex_;
   mutable bool basis_cache_dirty_ = true;
 
@@ -553,11 +550,11 @@ class NURBSpline final : public Spline {
   void reverse_impl() override;
 
   void calculate_knots() const;
-  blender::Span<BasisCache> calculate_basis_cache() const;
+  const BasisCache &calculate_basis_cache() const;
 };
 
 /**
- * A Poly spline is like a Bézier spline with a resolution of one. The main reason to distinguish
+ * A Poly spline is like a Bezier spline with a resolution of one. The main reason to distinguish
  * the two is for reduced complexity and increased performance, since interpolating data to control
  * points does not change it.
  *

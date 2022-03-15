@@ -193,7 +193,7 @@ void IK_QJacobian::InvertSDLS()
   // DLS. The SDLS damps individual singular values, instead of using a single
   // damping term.
 
-  double max_angle_change = M_PI / 4.0;
+  double max_angle_change = M_PI_4;
   double epsilon = 1e-10;
   int i, j;
 

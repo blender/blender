@@ -80,6 +80,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -383,7 +384,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
  *   since there is no convenient way to calculate partial RNA paths.
  *
  * \note While the path to the ID is typically sufficient to calculate the remainder of the path,
- * in practice this would cause #WM_context_path_resolve_property_full to crate a path such as:
+ * in practice this would cause #WM_context_path_resolve_property_full to create a path such as:
  * `object.data.bones["Bones"].use_deform` such paths are not useful for key-shortcuts,
  * so this function supports returning data-paths directly to context members that aren't ID types.
  */
@@ -3597,8 +3598,11 @@ static int doc_view_manual_ui_context_exec(bContext *C, wmOperator *UNUSED(op))
     WM_operator_properties_create(&ptr_props, "WM_OT_doc_view_manual");
     RNA_string_set(&ptr_props, "doc_id", buf);
 
-    retval = WM_operator_name_call_ptr(
-        C, WM_operatortype_find("WM_OT_doc_view_manual", false), WM_OP_EXEC_DEFAULT, &ptr_props);
+    retval = WM_operator_name_call_ptr(C,
+                                       WM_operatortype_find("WM_OT_doc_view_manual", false),
+                                       WM_OP_EXEC_DEFAULT,
+                                       &ptr_props,
+                                       NULL);
 
     WM_operator_properties_free(&ptr_props);
   }

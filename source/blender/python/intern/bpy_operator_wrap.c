@@ -18,6 +18,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "bpy_intern_string.h"
 #include "bpy_operator_wrap.h" /* own include */

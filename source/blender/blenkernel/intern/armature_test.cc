@@ -285,7 +285,7 @@ TEST(vec_roll_to_mat3_normalized, Roll1)
   const float expected_roll_mat[3][3] = {{0.211324856f, 0.577350259f, -0.788675129f},
                                          {0.577350259f, 0.577350259f, 0.577350259f},
                                          {0.788675129f, -0.577350259f, -0.211324856f}};
-  test_vec_roll_to_mat3_normalized(input, float(M_PI * 0.5), expected_roll_mat);
+  test_vec_roll_to_mat3_normalized(input, float(M_PI_2), expected_roll_mat);
 }
 
 /** Test that the matrix is orthogonal for an input close to -Y. */

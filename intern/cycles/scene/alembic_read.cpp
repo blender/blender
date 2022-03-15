@@ -543,7 +543,7 @@ static void read_subd_geometry(CachedData &cached_data, const SubDSchemaData &da
 
   add_positions(data.positions.getValue(iss), time, cached_data);
 
-  if (data.topology_variance != kHomogenousTopology || cached_data.shader.size() == 0) {
+  if (data.topology_variance != kHomogeneousTopology || cached_data.shader.size() == 0) {
     add_subd_polygons(cached_data, data, time);
     add_subd_edge_creases(cached_data, data, time);
     add_subd_vertex_creases(cached_data, data, time);
@@ -582,7 +582,7 @@ static void read_curves_data(CachedData &cached_data, const CurvesSchemaData &da
   array<int> curve_first_key;
   array<int> curve_shader;
 
-  const bool is_homogenous = data.topology_variance == kHomogenousTopology;
+  const bool is_homogeneous = data.topology_variance == kHomogeneousTopology;
 
   curve_keys.reserve(position->size());
   curve_radius.reserve(position->size());
@@ -605,7 +605,7 @@ static void read_curves_data(CachedData &cached_data, const CurvesSchemaData &da
       curve_radius.push_back_slow(radius * data.radius_scale);
     }
 
-    if (!is_homogenous || cached_data.curve_first_key.size() == 0) {
+    if (!is_homogeneous || cached_data.curve_first_key.size() == 0) {
       curve_first_key.push_back_reserved(offset);
       curve_shader.push_back_reserved(0);
     }
@@ -616,7 +616,7 @@ static void read_curves_data(CachedData &cached_data, const CurvesSchemaData &da
   cached_data.curve_keys.add_data(curve_keys, time);
   cached_data.curve_radius.add_data(curve_radius, time);
 
-  if (!is_homogenous || cached_data.curve_first_key.size() == 0) {
+  if (!is_homogeneous || cached_data.curve_first_key.size() == 0) {
     cached_data.curve_first_key.add_data(curve_first_key, time);
     cached_data.curve_shader.add_data(curve_shader, time);
   }

@@ -391,8 +391,6 @@ void outliner_collection_delete(
   BLI_gset_free(data.collections_to_edit, nullptr);
 }
 
-/* FIXME: See comment above #WM_msg_publish_rna_prop(). */
-extern "C" {
 static int collection_hierarchy_delete_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -415,7 +413,6 @@ static int collection_hierarchy_delete_exec(bContext *C, wmOperator *op)
   ED_outliner_select_sync_from_object_tag(C);
 
   return OPERATOR_FINISHED;
-}
 }
 
 void OUTLINER_OT_collection_hierarchy_delete(wmOperatorType *ot)

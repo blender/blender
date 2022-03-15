@@ -21,6 +21,7 @@
 #include "BKE_main.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "bpy_rna.h"
 #include "bpy_rna_data.h"

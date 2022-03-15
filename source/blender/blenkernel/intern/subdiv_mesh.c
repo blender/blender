@@ -415,8 +415,6 @@ static void subdiv_mesh_tls_free(void *tls_v)
 
 /** \} */
 
-/** \} */
-
 /* -------------------------------------------------------------------- */
 /** \name Accumulation helpers
  * \{ */

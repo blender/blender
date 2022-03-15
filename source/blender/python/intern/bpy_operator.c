@@ -29,6 +29,7 @@
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -313,7 +314,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
         return NULL;
       }
 
-      WM_operator_name_call(C, opname, WM_OP_EXEC_DEFAULT, NULL);
+      WM_operator_name_call(C, opname, WM_OP_EXEC_DEFAULT, NULL, NULL);
     }
 #endif
   }

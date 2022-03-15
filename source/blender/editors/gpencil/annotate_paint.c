@@ -52,6 +52,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -981,7 +982,8 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
       }
 
       if (found_depth == false) {
-        /* eeh... not much we can do.. :/, ignore depth in this case, use the 3D cursor */
+        /* Unfortunately there is not much we can do when the depth isn't found,
+         * ignore depth in this case, use the 3D cursor. */
         for (i = gpd->runtime.sbuffer_used - 1; i >= 0; i--) {
           depth_arr[i] = 0.9999f;
         }
@@ -2484,7 +2486,7 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
        * - Since this operator is non-modal, we can just call it here, and keep going...
        * - This operator is especially useful when animating
        */
-      WM_operator_name_call(C, "GPENCIL_OT_blank_frame_add", WM_OP_EXEC_DEFAULT, NULL);
+      WM_operator_name_call(C, "GPENCIL_OT_blank_frame_add", WM_OP_EXEC_DEFAULT, NULL, event);
       estate = OPERATOR_RUNNING_MODAL;
     }
     else {

@@ -7,6 +7,7 @@
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
+#include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
@@ -67,6 +68,7 @@ bool CURVES_SCULPT_mode_poll_view3d(bContext *C)
 namespace blender::ed::sculpt_paint {
 
 using blender::bke::CurvesGeometry;
+using blender::fn::CPPType;
 
 /* -------------------------------------------------------------------- */
 /** \name * SCULPT_CURVES_OT_brush_stroke
@@ -134,14 +136,7 @@ class DeleteOperation : public CurvesSculptStrokeOperation {
           return false;
         });
 
-    /* Just reset positions instead of actually removing the curves. This is just a prototype. */
-    threading::parallel_for(curves_to_remove.index_range(), 512, [&](const IndexRange range) {
-      for (const int curve_i : curves_to_remove.slice(range)) {
-        for (const int point_i : curves.range_for_curve(curve_i)) {
-          positions[point_i] = {0.0f, 0.0f, 0.0f};
-        }
-      }
-    });
+    curves.remove_curves(curves_to_remove);
 
     curves.tag_positions_changed();
     DEG_id_tag_update(&curves_id.id, ID_RECALC_GEOMETRY);
@@ -1127,9 +1122,9 @@ static void CURVES_OT_sculptmode_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
 }
 
-}  // namespace blender::ed::sculpt_paint
-
 /** \} */
+
+}  // namespace blender::ed::sculpt_paint
 
 /* -------------------------------------------------------------------- */
 /** \name * Registration

@@ -26,6 +26,7 @@
 #include "BKE_tracking.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "libmv-capi.h"
 #include "tracking_private.h"

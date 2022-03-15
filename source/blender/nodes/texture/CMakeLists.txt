@@ -15,6 +15,8 @@ set(INC
   ../../render
   ../../windowmanager
   ../../../../intern/guardedalloc
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 
@@ -68,3 +70,6 @@ endif()
 
 
 blender_add_lib(bf_nodes_texture "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+# RNA_prototypes.h
+add_dependencies(bf_nodes_texture bf_rna)

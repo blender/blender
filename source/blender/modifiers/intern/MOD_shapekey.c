@@ -17,6 +17,7 @@
 #include "BKE_particle.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "MOD_modifiertypes.h"
 

@@ -22,7 +22,7 @@
 namespace blender::gpu::shader {
 
 #ifndef GPU_SHADER_CREATE_INFO
-/* Helps intelisense / auto-completion. */
+/* Helps intellisense / auto-completion. */
 #  define GPU_SHADER_INTERFACE_INFO(_interface, _inst_name) \
     StageInterfaceInfo _interface(#_interface, _inst_name); \
     _interface

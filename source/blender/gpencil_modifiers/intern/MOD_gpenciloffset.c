@@ -152,7 +152,7 @@ static void deformStroke(GpencilModifierData *md,
     loc_eul_size_to_mat4(mat, loc, rot, scale);
 
     /* Apply scale to thickness. */
-    float unit_scale = (scale[0] + scale[1] + scale[2]) / 3.0f;
+    float unit_scale = (fabsf(scale[0]) + fabsf(scale[1]) + fabsf(scale[2])) / 3.0f;
     pt->pressure *= unit_scale;
 
     mul_m4_v3(mat, &pt->x);
@@ -166,15 +166,7 @@ static void bakeModifier(struct Main *UNUSED(bmain),
                          GpencilModifierData *md,
                          Object *ob)
 {
-  bGPdata *gpd = ob->data;
-
-  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-        deformStroke(md, depsgraph, ob, gpl, gpf, gps);
-      }
-    }
-  }
+  generic_bake_deform_stroke(depsgraph, md, ob, false, deformStroke);
 }
 
 static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)

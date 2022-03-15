@@ -58,21 +58,22 @@ static void scale_output_assign(const Span<T> input,
 template<class T>
 static void nurbs_to_bezier_assign(const Span<T> input,
                                    const MutableSpan<T> r_output,
-                                   const NURBSpline::KnotsMode knotsMode)
+                                   const KnotsMode knotsMode)
 {
   const int input_size = input.size();
   const int output_size = r_output.size();
 
   switch (knotsMode) {
-    case NURBSpline::KnotsMode::Bezier:
+    case NURBS_KNOT_MODE_BEZIER:
       scale_input_assign<T>(input, 3, 1, r_output);
       break;
-    case NURBSpline::KnotsMode::Normal:
+    case NURBS_KNOT_MODE_NORMAL:
       for (const int i : IndexRange(output_size)) {
         r_output[i] = input[(i + 1) % input_size];
       }
       break;
-    case NURBSpline::KnotsMode::EndPoint:
+    case NURBS_KNOT_MODE_ENDPOINT_BEZIER:
+    case NURBS_KNOT_MODE_ENDPOINT:
       for (const int i : IndexRange(1, output_size - 2)) {
         r_output[i] = input[i + 1];
       }
@@ -107,11 +108,11 @@ static void copy_attributes(const Spline &input_spline, Spline &output_spline, C
 }
 
 static Vector<float3> create_nurbs_to_bezier_handles(const Span<float3> nurbs_positions,
-                                                     const NURBSpline::KnotsMode knots_mode)
+                                                     const KnotsMode knots_mode)
 {
   const int nurbs_positions_size = nurbs_positions.size();
   Vector<float3> handle_positions;
-  if (knots_mode == NURBSpline::KnotsMode::Bezier) {
+  if (knots_mode == NURBS_KNOT_MODE_BEZIER) {
     for (const int i : IndexRange(nurbs_positions_size)) {
       if (i % 3 == 1) {
         continue;
@@ -127,7 +128,7 @@ static Vector<float3> create_nurbs_to_bezier_handles(const Span<float3> nurbs_po
     }
   }
   else {
-    const bool is_periodic = knots_mode == NURBSpline::KnotsMode::Normal;
+    const bool is_periodic = knots_mode == NURBS_KNOT_MODE_NORMAL;
     if (is_periodic) {
       handle_positions.append(nurbs_positions[1] +
                               ((nurbs_positions[0] - nurbs_positions[1]) / 3));
@@ -169,9 +170,9 @@ static Vector<float3> create_nurbs_to_bezier_handles(const Span<float3> nurbs_po
 
 static Array<float3> create_nurbs_to_bezier_positions(const Span<float3> nurbs_positions,
                                                       const Span<float3> handle_positions,
-                                                      const NURBSpline::KnotsMode knots_mode)
+                                                      const KnotsMode knots_mode)
 {
-  if (knots_mode == NURBSpline::KnotsMode::Bezier) {
+  if (knots_mode == NURBS_KNOT_MODE_BEZIER) {
     /* Every third NURBS position (starting from index 1) should be converted to Bezier position */
     const int scale = 3;
     const int offset = 1;
@@ -211,7 +212,7 @@ static SplinePtr poly_to_nurbs(const Spline &input)
   output->set_resolution(12);
   output->set_order(4);
   Spline::copy_base_settings(input, *output);
-  output->knots_mode = NURBSpline::KnotsMode::Bezier;
+  output->knots_mode = NURBS_KNOT_MODE_BEZIER;
   output->attributes = input.attributes;
   return output;
 }
@@ -239,7 +240,7 @@ static SplinePtr bezier_to_nurbs(const Spline &input)
   output->set_resolution(12);
   output->set_order(4);
   output->set_cyclic(input.is_cyclic());
-  output->knots_mode = NURBSpline::KnotsMode::Bezier;
+  output->knots_mode = NURBS_KNOT_MODE_BEZIER;
   output->attributes.reallocate(output->size());
   copy_attributes(input, *output, [](GSpan src, GMutableSpan dst) {
     attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
@@ -272,13 +273,13 @@ static SplinePtr nurbs_to_bezier(const Spline &input)
   const NURBSpline &nurbs_spline = static_cast<const NURBSpline &>(input);
   Span<float3> nurbs_positions;
   Vector<float3> nurbs_positions_vector;
-  NURBSpline::KnotsMode knots_mode;
+  KnotsMode knots_mode;
   if (nurbs_spline.is_cyclic()) {
     nurbs_positions_vector = nurbs_spline.positions();
     nurbs_positions_vector.append(nurbs_spline.positions()[0]);
     nurbs_positions_vector.append(nurbs_spline.positions()[1]);
     nurbs_positions = nurbs_positions_vector;
-    knots_mode = NURBSpline::KnotsMode::Normal;
+    knots_mode = NURBS_KNOT_MODE_NORMAL;
   }
   else {
     nurbs_positions = nurbs_spline.positions();

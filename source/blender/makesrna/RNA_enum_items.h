@@ -87,8 +87,6 @@ DEF_ENUM(rna_enum_keying_flag_items_api)
 DEF_ENUM(rna_enum_fmodifier_type_items)
 
 DEF_ENUM(rna_enum_motionpath_bake_location_items)
-DEF_ENUM(rna_enum_motionpath_display_type_items)
-DEF_ENUM(rna_enum_motionpath_range_items)
 
 DEF_ENUM(rna_enum_event_value_items)
 DEF_ENUM(rna_enum_event_direction_items)

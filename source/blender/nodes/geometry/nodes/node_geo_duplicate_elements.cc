@@ -1095,6 +1095,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Geometry", geometry_set);
 }
 
+/** \} */
+
 }  // namespace blender::nodes::node_geo_duplicate_elements_cc
 
 void register_node_type_geo_duplicate_elements()
@@ -1115,5 +1117,3 @@ void register_node_type_geo_duplicate_elements()
   ntype.declare = file_ns::node_declare;
   nodeRegisterType(&ntype);
 }
-
-/** \} */

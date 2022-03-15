@@ -30,6 +30,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "DEG_depsgraph.h"
 
@@ -52,10 +53,6 @@
 #include "node_intern.hh" /* own include */
 
 using namespace blender::nodes::node_tree_ref_types;
-
-/* -------------------------------------------------------------------- */
-/** \name Add Node
- * \{ */
 
 struct bNodeListItem {
   struct bNodeListItem *next, *prev;
@@ -81,6 +78,10 @@ static void clear_picking_highlight(ListBase *links)
 }
 
 namespace blender::ed::space_node {
+
+/* -------------------------------------------------------------------- */
+/** \name Add Node
+ * \{ */
 
 static bNodeLink *create_drag_link(bNode &node, bNodeSocket &sock)
 {
@@ -426,11 +427,11 @@ static void snode_autoconnect(SpaceNode &snode, const bool allow_multiple, const
 
 /** \} */
 
+namespace viewer_linking {
+
 /* -------------------------------------------------------------------- */
 /** \name Link Viewer Operator
  * \{ */
-
-namespace viewer_linking {
 
 /* Depending on the node tree type, different socket types are supported by viewer nodes. */
 static bool socket_can_be_viewed(const OutputSocketRef &socket)
@@ -697,7 +698,13 @@ static int node_link_viewer(const bContext &C, bNode &bnode_to_view)
   return link_socket_to_viewer(C, viewer_bnode, bnode_to_view, bsocket_to_view);
 }
 
+/** \} */
+
 }  // namespace viewer_linking
+
+/* -------------------------------------------------------------------- */
+/** \name Link to Viewer Node Operator
+ * \{ */
 
 static int node_active_link_viewer_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1925,7 +1932,13 @@ static bool ed_node_link_conditions(ScrArea *area,
   return true;
 }
 
+/** \} */
+
 }  // namespace blender::ed::space_node
+
+/* -------------------------------------------------------------------- */
+/** \name Node Line Intersection Test
+ * \{ */
 
 void ED_node_link_intersect_test(ScrArea *area, int test)
 {
@@ -1990,9 +2003,9 @@ void ED_node_link_intersect_test(ScrArea *area, int test)
   }
 }
 
-namespace blender::ed::space_node {
-
 /** \} */
+
+namespace blender::ed::space_node {
 
 /* -------------------------------------------------------------------- */
 /** \name Node Insert Offset Operator

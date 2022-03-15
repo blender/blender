@@ -54,6 +54,8 @@
 
 #include "BIF_glutil.h"
 
+#include "RNA_prototypes.h"
+
 #include "SEQ_effects.h"
 #include "SEQ_iterator.h"
 #include "SEQ_prefetch.h"
@@ -2690,12 +2692,7 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   GPU_depth_test(GPU_DEPTH_NONE);
 
   UI_GetThemeColor3fv(TH_BACK, col);
-  if (ed && ed->metastack.first) {
-    GPU_clear_color(col[0], col[1], col[2] - 0.1f, 0.0f);
-  }
-  else {
-    GPU_clear_color(col[0], col[1], col[2], 0.0f);
-  }
+  GPU_clear_color(col[0], col[1], col[2], 0.0f);
 
   UI_view2d_view_ortho(v2d);
   draw_seq_timeline_channels(v2d);

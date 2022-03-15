@@ -6,6 +6,7 @@
 #define M_PI 3.14159265358979323846      /* pi */
 #define M_2PI 6.28318530717958647692     /* 2*pi */
 #define M_PI_2 1.57079632679489661923    /* pi/2 */
+#define M_PI_4 0.78539816339744830962    /* pi/4 */
 #define M_1_PI 0.318309886183790671538   /* 1/pi */
 #define M_1_2PI 0.159154943091895335768  /* 1/(2*pi) */
 #define M_1_PI2 0.101321183642337771443  /* 1/(pi^2) */
@@ -93,7 +94,7 @@ vec2 sqr(vec2 a) { return a * a; }
 vec3 sqr(vec3 a) { return a * a; }
 vec4 sqr(vec4 a) { return a * a; }
 
-/* Use manual powers for fixed powers. pow() can have unpredicatble results on some implementations.
+/* Use manual powers for fixed powers. pow() can have unpredictable results on some implementations.
  * (see T87369, T87541) */
 float pow6(float x) { return sqr(sqr(x) * x); }
 float pow8(float x) { return sqr(sqr(sqr(x))); }

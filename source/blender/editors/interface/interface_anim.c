@@ -299,13 +299,13 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 void ui_but_anim_copy_driver(bContext *C)
 {
   /* this operator calls UI_context_active_but_prop_get */
-  WM_operator_name_call(C, "ANIM_OT_copy_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
+  WM_operator_name_call(C, "ANIM_OT_copy_driver_button", WM_OP_INVOKE_DEFAULT, NULL, NULL);
 }
 
 void ui_but_anim_paste_driver(bContext *C)
 {
   /* this operator calls UI_context_active_but_prop_get */
-  WM_operator_name_call(C, "ANIM_OT_paste_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
+  WM_operator_name_call(C, "ANIM_OT_paste_driver_button", WM_OP_INVOKE_DEFAULT, NULL, NULL);
 }
 
 void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy))
@@ -331,7 +331,7 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy)
     wmOperatorType *ot = WM_operatortype_find("ANIM_OT_keyframe_delete_button", false);
     WM_operator_properties_create_ptr(&props_ptr, ot);
     RNA_boolean_set(&props_ptr, "all", but_anim->rnaindex == -1);
-    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
+    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, NULL);
     WM_operator_properties_free(&props_ptr);
   }
   else {
@@ -339,7 +339,7 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy)
     wmOperatorType *ot = WM_operatortype_find("ANIM_OT_keyframe_insert_button", false);
     WM_operator_properties_create_ptr(&props_ptr, ot);
     RNA_boolean_set(&props_ptr, "all", but_anim->rnaindex == -1);
-    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
+    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, NULL);
     WM_operator_properties_free(&props_ptr);
   }
 

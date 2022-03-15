@@ -201,6 +201,8 @@ def geometry_input_node_items(context):
     yield NodeItem("ShaderNodeValue")
     yield NodeItem("FunctionNodeInputVector")
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+    if named_attribute_poll(context):
+        yield NodeItem("GeometryNodeInputNamedAttribute")
     yield NodeItem("GeometryNodeInputID")
     yield NodeItem("GeometryNodeInputIndex")
     yield NodeItem("GeometryNodeInputNormal")
@@ -356,6 +358,10 @@ def object_eevee_cycles_shader_nodes_poll(context):
 
 def geometry_nodes_legacy_poll(context):
     return context.preferences.experimental.use_geometry_nodes_legacy
+
+
+def named_attribute_poll(context):
+    return context.preferences.experimental.use_named_attribute_nodes
 
 
 # All standard node categories currently used in nodes.
@@ -683,6 +689,8 @@ geometry_node_categories = [
         NodeItem("GeometryNodeAttributeDomainSize"),
         NodeItem("GeometryNodeAttributeStatistic"),
         NodeItem("GeometryNodeAttributeTransfer"),
+        NodeItem("GeometryNodeStoreNamedAttribute", poll=named_attribute_poll),
+        NodeItem("GeometryNodeRemoveAttribute", poll=named_attribute_poll),
     ]),
     GeometryNodeCategory("GEO_COLOR", "Color", items=[
         NodeItem("ShaderNodeMixRGB"),

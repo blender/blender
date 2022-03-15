@@ -251,16 +251,6 @@ static void WIDGETGROUP_camera_message_subscribe(const bContext *C,
   };
 
   {
-    extern PropertyRNA rna_CameraDOFSettings_focus_distance;
-    extern PropertyRNA rna_Camera_display_size;
-    extern PropertyRNA rna_Camera_ortho_scale;
-    extern PropertyRNA rna_Camera_sensor_fit;
-    extern PropertyRNA rna_Camera_sensor_width;
-    extern PropertyRNA rna_Camera_sensor_height;
-    extern PropertyRNA rna_Camera_shift_x;
-    extern PropertyRNA rna_Camera_shift_y;
-    extern PropertyRNA rna_Camera_type;
-    extern PropertyRNA rna_Camera_lens;
     const PropertyRNA *props[] = {
         &rna_CameraDOFSettings_focus_distance,
         &rna_Camera_display_size,

@@ -2032,7 +2032,7 @@ void BKE_gpencil_stroke_simplify_adaptive(bGPdata *gpd, bGPDstroke *gps, float e
 
 void BKE_gpencil_stroke_simplify_fixed(bGPdata *gpd, bGPDstroke *gps)
 {
-  if (gps->totpoints < 5) {
+  if (gps->totpoints < 4) {
     return;
   }
 
@@ -2047,7 +2047,7 @@ void BKE_gpencil_stroke_simplify_fixed(bGPdata *gpd, bGPDstroke *gps)
 
   /* resize gps */
   int newtot = (gps->totpoints - 2) / 2;
-  if (((gps->totpoints - 2) % 2) > 0) {
+  if ((gps->totpoints % 2) != 0) {
     newtot++;
   }
   newtot += 2;

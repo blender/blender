@@ -45,6 +45,7 @@
 #include "IMB_metadata.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"

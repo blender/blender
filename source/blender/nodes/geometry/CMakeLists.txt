@@ -19,6 +19,8 @@ set(INC
   ../../render
   ../../windowmanager
   ../../../../intern/guardedalloc
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 
@@ -36,6 +38,7 @@ set(SRC
   nodes/legacy/node_geo_legacy_attribute_mix.cc
   nodes/legacy/node_geo_legacy_attribute_proximity.cc
   nodes/legacy/node_geo_legacy_attribute_randomize.cc
+  nodes/legacy/node_geo_legacy_attribute_remove.cc
   nodes/legacy/node_geo_legacy_attribute_sample_texture.cc
   nodes/legacy/node_geo_legacy_attribute_separate_xyz.cc
   nodes/legacy/node_geo_legacy_attribute_transfer.cc
@@ -67,7 +70,6 @@ set(SRC
   nodes/node_geo_accumulate_field.cc
   nodes/node_geo_attribute_capture.cc
   nodes/node_geo_attribute_domain_size.cc
-  nodes/node_geo_attribute_remove.cc
   nodes/node_geo_attribute_statistic.cc
   nodes/node_geo_boolean.cc
   nodes/node_geo_bounding_box.cc
@@ -121,6 +123,7 @@ set(SRC
   nodes/node_geo_input_mesh_face_neighbors.cc
   nodes/node_geo_input_mesh_island.cc
   nodes/node_geo_input_mesh_vertex_neighbors.cc
+  nodes/node_geo_input_named_attribute.cc
   nodes/node_geo_input_normal.cc
   nodes/node_geo_input_position.cc
   nodes/node_geo_input_radius.cc
@@ -154,6 +157,7 @@ set(SRC
   nodes/node_geo_proximity.cc
   nodes/node_geo_raycast.cc
   nodes/node_geo_realize_instances.cc
+  nodes/node_geo_remove_attribute.cc
   nodes/node_geo_rotate_instances.cc
   nodes/node_geo_scale_elements.cc
   nodes/node_geo_scale_instances.cc
@@ -170,6 +174,7 @@ set(SRC
   nodes/node_geo_set_shade_smooth.cc
   nodes/node_geo_set_spline_cyclic.cc
   nodes/node_geo_set_spline_resolution.cc
+  nodes/node_geo_store_named_attribute.cc
   nodes/node_geo_string_join.cc
   nodes/node_geo_string_to_curves.cc
   nodes/node_geo_subdivision_surface.cc
@@ -270,3 +275,6 @@ if(WITH_UNITY_BUILD)
   set_target_properties(bf_nodes_geometry PROPERTIES UNITY_BUILD ON)
   set_target_properties(bf_nodes_geometry PROPERTIES UNITY_BUILD_BATCH_SIZE 10)
 endif()
+
+# RNA_prototypes.h
+add_dependencies(bf_nodes_geometry bf_rna)

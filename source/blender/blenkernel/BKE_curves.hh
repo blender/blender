@@ -62,7 +62,9 @@ class CurvesGeometry : public ::CurvesGeometry {
    */
   CurvesGeometry(int point_size, int curve_size);
   CurvesGeometry(const CurvesGeometry &other);
+  CurvesGeometry(CurvesGeometry &&other);
   CurvesGeometry &operator=(const CurvesGeometry &other);
+  CurvesGeometry &operator=(CurvesGeometry &&other);
   ~CurvesGeometry();
 
   static CurvesGeometry &wrap(::CurvesGeometry &dna_struct)
@@ -95,6 +97,7 @@ class CurvesGeometry : public ::CurvesGeometry {
    * Access a range of indices of point data for a specific curve.
    */
   IndexRange range_for_curve(int index) const;
+  IndexRange range_for_curves(IndexRange curves) const;
 
   /** The type (#CurveType) of each curve, or potentially a single if all are the same type. */
   VArray<int8_t> curve_types() const;
@@ -146,6 +149,8 @@ class CurvesGeometry : public ::CurvesGeometry {
   void transform(const float4x4 &matrix);
 
   void update_customdata_pointers();
+
+  void remove_curves(IndexMask curves_to_delete);
 
   /* --------------------------------------------------------------------
    * Attributes.

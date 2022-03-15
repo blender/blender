@@ -26,6 +26,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "BLI_float4x4.hh"
 #include "BLI_math_vector.h"

@@ -552,6 +552,9 @@ set(INC
   ../render/intern
   ../../../extern/glew/include
   ../../../intern/guardedalloc
+
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -577,3 +580,6 @@ blender_add_lib(bf_freestyle "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 if(COMMAND target_precompile_headers)
   target_precompile_headers(bf_freestyle PRIVATE FRS_precomp.h)
 endif()
+
+# RNA_prototypes.h
+add_dependencies(bf_freestyle bf_rna)

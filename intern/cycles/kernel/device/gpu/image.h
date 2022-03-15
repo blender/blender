@@ -186,7 +186,7 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, int id, float x, flo
   const int texture_type = info.data_type;
   if (texture_type == IMAGE_DATA_TYPE_FLOAT4 || texture_type == IMAGE_DATA_TYPE_BYTE4 ||
       texture_type == IMAGE_DATA_TYPE_HALF4 || texture_type == IMAGE_DATA_TYPE_USHORT4) {
-    if (info.interpolation == INTERPOLATION_CUBIC) {
+    if (info.interpolation == INTERPOLATION_CUBIC || info.interpolation == INTERPOLATION_SMART) {
       return kernel_tex_image_interp_bicubic<float4>(info, x, y);
     }
     else {
@@ -198,7 +198,7 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, int id, float x, flo
   else {
     float f;
 
-    if (info.interpolation == INTERPOLATION_CUBIC) {
+    if (info.interpolation == INTERPOLATION_CUBIC || info.interpolation == INTERPOLATION_SMART) {
       f = kernel_tex_image_interp_bicubic<float>(info, x, y);
     }
     else {
@@ -241,7 +241,7 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
 #endif
   if (texture_type == IMAGE_DATA_TYPE_FLOAT4 || texture_type == IMAGE_DATA_TYPE_BYTE4 ||
       texture_type == IMAGE_DATA_TYPE_HALF4 || texture_type == IMAGE_DATA_TYPE_USHORT4) {
-    if (interpolation == INTERPOLATION_CUBIC) {
+    if (interpolation == INTERPOLATION_CUBIC || interpolation == INTERPOLATION_SMART) {
       return kernel_tex_image_interp_tricubic<float4>(info, x, y, z);
     }
     else {
@@ -252,7 +252,7 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
   else {
     float f;
 
-    if (interpolation == INTERPOLATION_CUBIC) {
+    if (interpolation == INTERPOLATION_CUBIC || interpolation == INTERPOLATION_SMART) {
       f = kernel_tex_image_interp_tricubic<float>(info, x, y, z);
     }
     else {

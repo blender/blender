@@ -41,6 +41,7 @@
 #include "ED_screen.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -951,7 +952,7 @@ static void menu_search_exec_fn(bContext *C, void *UNUSED(arg1), void *arg2)
     case MenuSearch_Item::Type::Operator: {
       CTX_store_set(C, item->op.context);
       WM_operator_name_call_ptr_with_depends_on_cursor(
-          C, item->op.type, item->op.opcontext, item->op.opptr, item->drawstr);
+          C, item->op.type, item->op.opcontext, item->op.opptr, nullptr, item->drawstr);
       CTX_store_set(C, nullptr);
       break;
     }

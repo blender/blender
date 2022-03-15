@@ -35,6 +35,7 @@
 #include "RE_texture.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "BLI_math_vector.h"
 

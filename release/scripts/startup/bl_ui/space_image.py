@@ -724,7 +724,7 @@ class IMAGE_HT_header(Header):
             act_snap_uv_element = tool_settings.bl_rna.properties['snap_uv_element'].enum_items[snap_uv_element]
 
             row = layout.row(align=True)
-            row.prop(tool_settings, "use_snap", text="")
+            row.prop(tool_settings, "use_snap_uv", text="")
 
             sub = row.row(align=True)
             sub.popover(

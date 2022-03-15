@@ -14,6 +14,8 @@ set(INC
   ../../../../intern/clog
   ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 
@@ -51,6 +53,9 @@ endif()
 
 
 blender_add_lib(bf_editor_animation "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+# RNA_prototypes.h
+add_dependencies(bf_editor_animation bf_rna)
 
 if(WITH_GTESTS)
   set(TEST_SRC

@@ -326,7 +326,7 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
       ORIENTATION ort = pkt.pkOrientation;
 
       /* Convert raw fixed point data to radians. */
-      float altRad = (float)((fabs((float)ort.orAltitude) / (float)m_maxAltitude) * M_PI / 2.0);
+      float altRad = (float)((fabs((float)ort.orAltitude) / (float)m_maxAltitude) * M_PI_2);
       float azmRad = (float)(((float)ort.orAzimuth / (float)m_maxAzimuth) * M_PI * 2.0);
 
       /* Find length of the stylus' projected vector on the XY plane. */
@@ -334,7 +334,7 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
 
       /* From there calculate X and Y components based on azimuth. */
       out.tabletData.Xtilt = sin(azmRad) * vecLen;
-      out.tabletData.Ytilt = (float)(sin(M_PI / 2.0 - azmRad) * vecLen);
+      out.tabletData.Ytilt = (float)(sin(M_PI_2 - azmRad) * vecLen);
     }
 
     out.time = pkt.pkTime;

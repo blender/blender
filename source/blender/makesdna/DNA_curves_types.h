@@ -40,6 +40,14 @@ typedef enum HandleType {
   BEZIER_HANDLE_ALIGN = 3,
 } HandleType;
 
+/** Method used to calculate a NURBS curve's knot vector. */
+typedef enum KnotsMode {
+  NURBS_KNOT_MODE_NORMAL = 0,
+  NURBS_KNOT_MODE_ENDPOINT = 1,
+  NURBS_KNOT_MODE_BEZIER = 2,
+  NURBS_KNOT_MODE_ENDPOINT_BEZIER = 3,
+} KnotsMode;
+
 /**
  * A reusable data structure for geometry consisting of many curves. All control point data is
  * stored contiguously for better efficiency. Data for each curve is stored as a slice of the
@@ -69,7 +77,8 @@ typedef struct CurvesGeometry {
   /**
    * The start index of each curve in the point data. The size of each curve can be calculated by
    * subtracting the offset from the next offset. That is valid even for the last curve because
-   * this array is allocated with a length one larger than the number of splines.
+   * this array is allocated with a length one larger than the number of splines. This is allowed
+   * to be null when there are no curves.
    *
    * \note This is *not* stored in #CustomData because its size is one larger than #curve_data.
    */
@@ -77,6 +86,7 @@ typedef struct CurvesGeometry {
 
   /**
    * All attributes stored on control points (#ATTR_DOMAIN_POINT).
+   * This might not contain a layer for positions if there are no points.
    */
   CustomData point_data;
 

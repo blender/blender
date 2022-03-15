@@ -101,7 +101,7 @@ static int report_replay_exec(bContext *C, wmOperator *UNUSED(op))
     if ((report->type & report_mask) && (report->type & RPT_OPERATOR_ALL | RPT_PROPERTY_ALL) &&
         (report->flag & SELECT)) {
       console_history_add_str(sc, report->message, 0);
-      WM_operator_name_call(C, "CONSOLE_OT_execute", WM_OP_EXEC_DEFAULT, NULL);
+      WM_operator_name_call(C, "CONSOLE_OT_execute", WM_OP_EXEC_DEFAULT, NULL, NULL);
 
       ED_area_tag_redraw(CTX_wm_area(C));
     }

@@ -283,7 +283,7 @@ static void limit_radii(FilletData &fd, const bool cyclic)
 
   /* Assign the max_radii to the fillet data's radii. */
   for (const int i : IndexRange(size)) {
-    radii[i] = max_radii[i];
+    radii[i] = std::min(radii[i], max_radii[i]);
   }
 }
 
