@@ -1082,7 +1082,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
   }
 
   BLI_assert((restrict_column_offset * UI_UNIT_X + V2D_SCROLL_WIDTH) ==
-             outliner_restrict_columns_width(space_outliner));
+             outliner_right_columns_width(space_outliner));
 
   /* Create buttons. */
   uiBut *bt;
@@ -1779,11 +1779,65 @@ static void outliner_draw_userbuts(uiBlock *block,
   }
 }
 
-static bool outliner_draw_overrides_buts(uiBlock *block,
-                                         ARegion *region,
-                                         SpaceOutliner *space_outliner,
-                                         ListBase *lb,
-                                         const bool is_open)
+static void outliner_draw_overrides_rna_buts(uiBlock *block,
+                                             const ARegion *region,
+                                             const SpaceOutliner *space_outliner,
+                                             const ListBase *lb,
+                                             const int x)
+{
+  LISTBASE_FOREACH (const TreeElement *, te, lb) {
+    const TreeStoreElem *tselem = TREESTORE(te);
+    if (TSELEM_OPEN(tselem, space_outliner)) {
+      outliner_draw_overrides_rna_buts(block, region, space_outliner, &te->subtree, x);
+    }
+
+    if (!outliner_is_element_in_view(te, &region->v2d)) {
+      continue;
+    }
+    if (tselem->type != TSE_LIBRARY_OVERRIDE) {
+      continue;
+    }
+
+    TreeElementOverridesProperty &override_elem = *tree_element_cast<TreeElementOverridesProperty>(
+        te);
+
+    PointerRNA *ptr = &override_elem.override_rna_ptr;
+    PropertyRNA *prop = &override_elem.override_rna_prop;
+    const PropertyType prop_type = RNA_property_type(prop);
+
+    const float pad_x = 1 * UI_DPI_FAC;
+    const float max_width = OL_RNA_COL_SIZEX - 2 * pad_x;
+    const float height = UI_UNIT_Y - U.pixelsize;
+
+    uiBut *auto_but = uiDefAutoButR(block,
+                                    ptr,
+                                    prop,
+                                    -1,
+                                    (prop_type == PROP_ENUM) ? nullptr : "",
+                                    ICON_NONE,
+                                    x + pad_x,
+                                    te->ys,
+                                    max_width,
+                                    height);
+    /* Added the button successfully, nothing else to do. Otherwise, cases for multiple buttons
+     * need to be handled. */
+    if (auto_but) {
+      continue;
+    }
+
+    if (!auto_but) {
+      /* TODO what if the array is longer, and doesn't fit nicely? What about multi-dimension
+       * arrays? */
+      uiDefAutoButsArrayR(block, ptr, prop, ICON_NONE, x, te->ys, max_width, height);
+    }
+  }
+}
+
+static bool outliner_draw_overrides_warning_buts(uiBlock *block,
+                                                 ARegion *region,
+                                                 SpaceOutliner *space_outliner,
+                                                 ListBase *lb,
+                                                 const bool is_open)
 {
   bool any_item_has_warnings = false;
 
@@ -1829,7 +1883,7 @@ static bool outliner_draw_overrides_buts(uiBlock *block,
         break;
     }
 
-    const bool any_child_has_warnings = outliner_draw_overrides_buts(
+    const bool any_child_has_warnings = outliner_draw_overrides_warning_buts(
         block,
         region,
         space_outliner,
@@ -1863,14 +1917,9 @@ static bool outliner_draw_overrides_buts(uiBlock *block,
   return any_item_has_warnings;
 }
 
-static void outliner_draw_rnacols(ARegion *region, int sizex)
+static void outliner_draw_separator(ARegion *region, const int x)
 {
   View2D *v2d = &region->v2d;
-
-  float miny = v2d->cur.ymin;
-  if (miny < v2d->tot.ymin) {
-    miny = v2d->tot.ymin;
-  }
 
   GPU_line_width(1.0f);
 
@@ -1878,13 +1927,10 @@ static void outliner_draw_rnacols(ARegion *region, int sizex)
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
   immUniformThemeColorShadeAlpha(TH_BACK, -15, -200);
 
-  immBegin(GPU_PRIM_LINES, 4);
+  immBegin(GPU_PRIM_LINES, 2);
 
-  immVertex2f(pos, sizex, v2d->cur.ymax);
-  immVertex2f(pos, sizex, miny);
-
-  immVertex2f(pos, sizex + OL_RNA_COL_SIZEX, v2d->cur.ymax);
-  immVertex2f(pos, sizex + OL_RNA_COL_SIZEX, miny);
+  immVertex2f(pos, x, v2d->cur.ymax);
+  immVertex2f(pos, x, v2d->cur.ymin);
 
   immEnd();
 
@@ -3637,7 +3683,7 @@ static void outliner_draw_tree(bContext *C,
                                const TreeViewContext *tvc,
                                ARegion *region,
                                SpaceOutliner *space_outliner,
-                               const float restrict_column_width,
+                               const float right_column_width,
                                const bool use_mode_column,
                                const bool use_warning_column,
                                TreeElement **te_edit)
@@ -3672,8 +3718,8 @@ static void outliner_draw_tree(bContext *C,
 
   /* Set scissor so tree elements or lines can't overlap restriction icons. */
   int scissor[4] = {0};
-  if (restrict_column_width > 0.0f) {
-    int mask_x = BLI_rcti_size_x(&region->v2d.mask) - (int)restrict_column_width + 1;
+  if (right_column_width > 0.0f) {
+    int mask_x = BLI_rcti_size_x(&region->v2d.mask) - (int)right_column_width + 1;
     CLAMP_MIN(mask_x, 0);
 
     GPU_scissor_get(scissor);
@@ -3699,11 +3745,11 @@ static void outliner_draw_tree(bContext *C,
                                (te->flag & TE_DRAGGING) != 0,
                                startx,
                                &starty,
-                               restrict_column_width,
+                               right_column_width,
                                te_edit);
   }
 
-  if (restrict_column_width > 0.0f) {
+  if (right_column_width > 0.0f) {
     /* Reset scissor. */
     GPU_scissor(UNPACK4(scissor));
   }
@@ -3754,21 +3800,21 @@ static int outliner_data_api_buttons_start_x(int max_tree_width)
 
 static int outliner_width(SpaceOutliner *space_outliner,
                           int max_tree_width,
-                          float restrict_column_width)
+                          float right_column_width)
 {
   if (space_outliner->outlinevis == SO_DATA_API) {
     return outliner_data_api_buttons_start_x(max_tree_width) + OL_RNA_COL_SIZEX + 10 * UI_DPI_FAC;
   }
-  return max_tree_width + restrict_column_width;
+  return max_tree_width + right_column_width;
 }
 
 static void outliner_update_viewable_area(ARegion *region,
                                           SpaceOutliner *space_outliner,
                                           int tree_width,
                                           int tree_height,
-                                          float restrict_column_width)
+                                          float right_column_width)
 {
-  int sizex = outliner_width(space_outliner, tree_width, restrict_column_width);
+  int sizex = outliner_width(space_outliner, tree_width, right_column_width);
   int sizey = tree_height;
 
   /* Extend size to allow for horizontal scrollbar and extra offset. */
@@ -3829,7 +3875,7 @@ void draw_outliner(const bContext *C)
                                   space_outliner->runtime->tree_display->hasWarnings();
 
   /* Draw outliner stuff (background, hierarchy lines and names). */
-  const float restrict_column_width = outliner_restrict_columns_width(space_outliner);
+  const float right_column_width = outliner_right_columns_width(space_outliner);
   outliner_back(region);
   block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   outliner_draw_tree((bContext *)C,
@@ -3837,7 +3883,7 @@ void draw_outliner(const bContext *C)
                      &tvc,
                      region,
                      space_outliner,
-                     restrict_column_width,
+                     right_column_width,
                      use_mode_column,
                      use_warning_column,
                      &te_edit);
@@ -3852,7 +3898,8 @@ void draw_outliner(const bContext *C)
   if (space_outliner->outlinevis == SO_DATA_API) {
     int buttons_start_x = outliner_data_api_buttons_start_x(tree_width);
     /* draw rna buttons */
-    outliner_draw_rnacols(region, buttons_start_x);
+    outliner_draw_separator(region, buttons_start_x);
+    outliner_draw_separator(region, buttons_start_x + OL_RNA_COL_SIZEX);
 
     UI_block_emboss_set(block, UI_EMBOSS);
     outliner_draw_rnabuts(block, region, space_outliner, buttons_start_x, &space_outliner->tree);
@@ -3864,9 +3911,16 @@ void draw_outliner(const bContext *C)
   }
   else if (space_outliner->outlinevis == SO_OVERRIDES_LIBRARY) {
     /* Draw overrides status columns. */
-    outliner_draw_overrides_buts(block, region, space_outliner, &space_outliner->tree, true);
+    outliner_draw_overrides_warning_buts(
+        block, region, space_outliner, &space_outliner->tree, true);
+
+    UI_block_emboss_set(block, UI_EMBOSS);
+    const int x = region->v2d.cur.xmax - OL_RNA_COL_SIZEX;
+    outliner_draw_separator(region, x);
+    outliner_draw_overrides_rna_buts(block, region, space_outliner, &space_outliner->tree, x);
+    UI_block_emboss_set(block, UI_EMBOSS_NONE_OR_STATUS);
   }
-  else if (restrict_column_width > 0.0f) {
+  else if (right_column_width > 0.0f) {
     /* draw restriction columns */
     RestrictPropertiesActive props_active;
     memset(&props_active, 1, sizeof(RestrictPropertiesActive));
@@ -3893,7 +3947,7 @@ void draw_outliner(const bContext *C)
 
   /* Draw edit buttons if necessary. */
   if (te_edit) {
-    outliner_buttons(C, block, region, restrict_column_width, te_edit);
+    outliner_buttons(C, block, region, right_column_width, te_edit);
   }
 
   UI_block_end(C, block);
@@ -3901,7 +3955,7 @@ void draw_outliner(const bContext *C)
 
   /* Update total viewable region. */
   outliner_update_viewable_area(
-      region, space_outliner, tree_width, tree_height, restrict_column_width);
+      region, space_outliner, tree_width, tree_height, right_column_width);
 }
 
 /** \} */
