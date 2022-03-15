@@ -211,6 +211,8 @@ static void track_markers_startjob(
   TrackMarkersJob *tmj = (TrackMarkersJob *)tmv;
   int framenr = tmj->sfra;
 
+  BKE_autotrack_context_start(tmj->context);
+
   while (framenr != tmj->efra) {
     if (tmj->delay > 0) {
       /* Tracking should happen with fixed fps. Calculate time
