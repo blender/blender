@@ -260,7 +260,7 @@ static GVArray adapt_mesh_domain_point_to_corner(const Mesh &mesh, const GVArray
   attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
     new_varray = VArray<T>::ForFunc(mesh.totloop,
-                                    [mesh, varray = varray.typed<T>()](const int64_t loop_index) {
+                                    [&mesh, varray = varray.typed<T>()](const int64_t loop_index) {
                                       const int vertex_index = mesh.mloop[loop_index].v;
                                       return varray[vertex_index];
                                     });
@@ -276,7 +276,7 @@ static GVArray adapt_mesh_domain_corner_to_face(const Mesh &mesh, const GVArray 
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       if constexpr (std::is_same_v<T, bool>) {
         new_varray = VArray<T>::ForFunc(
-            mesh.totpoly, [mesh, varray = varray.typed<bool>()](const int face_index) {
+            mesh.totpoly, [&mesh, varray = varray.typed<bool>()](const int face_index) {
               /* A face is selected if all of its corners were selected. */
               const MPoly &poly = mesh.mpoly[face_index];
               for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
@@ -289,7 +289,7 @@ static GVArray adapt_mesh_domain_corner_to_face(const Mesh &mesh, const GVArray 
       }
       else {
         new_varray = VArray<T>::ForFunc(
-            mesh.totpoly, [mesh, varray = varray.typed<T>()](const int face_index) {
+            mesh.totpoly, [&mesh, varray = varray.typed<T>()](const int face_index) {
               T return_value;
               attribute_math::DefaultMixer<T> mixer({&return_value, 1});
               const MPoly &poly = mesh.mpoly[face_index];
@@ -530,7 +530,7 @@ static GVArray adapt_mesh_domain_point_to_face(const Mesh &mesh, const GVArray &
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       if constexpr (std::is_same_v<T, bool>) {
         new_varray = VArray<T>::ForFunc(
-            mesh.totpoly, [mesh, varray = varray.typed<bool>()](const int face_index) {
+            mesh.totpoly, [&mesh, varray = varray.typed<bool>()](const int face_index) {
               /* A face is selected if all of its vertices were selected. */
               const MPoly &poly = mesh.mpoly[face_index];
               for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
@@ -544,7 +544,7 @@ static GVArray adapt_mesh_domain_point_to_face(const Mesh &mesh, const GVArray &
       }
       else {
         new_varray = VArray<T>::ForFunc(
-            mesh.totpoly, [mesh, varray = varray.typed<T>()](const int face_index) {
+            mesh.totpoly, [&mesh, varray = varray.typed<T>()](const int face_index) {
               T return_value;
               attribute_math::DefaultMixer<T> mixer({&return_value, 1});
               const MPoly &poly = mesh.mpoly[face_index];
@@ -571,14 +571,14 @@ static GVArray adapt_mesh_domain_point_to_edge(const Mesh &mesh, const GVArray &
       if constexpr (std::is_same_v<T, bool>) {
         /* An edge is selected if both of its vertices were selected. */
         new_varray = VArray<bool>::ForFunc(
-            mesh.totedge, [mesh, varray = varray.typed<bool>()](const int edge_index) {
+            mesh.totedge, [&mesh, varray = varray.typed<bool>()](const int edge_index) {
               const MEdge &edge = mesh.medge[edge_index];
               return varray[edge.v1] && varray[edge.v2];
             });
       }
       else {
         new_varray = VArray<T>::ForFunc(
-            mesh.totedge, [mesh, varray = varray.typed<T>()](const int edge_index) {
+            mesh.totedge, [&mesh, varray = varray.typed<T>()](const int edge_index) {
               T return_value;
               attribute_math::DefaultMixer<T> mixer({&return_value, 1});
               const MEdge &edge = mesh.medge[edge_index];
@@ -713,7 +713,7 @@ static GVArray adapt_mesh_domain_edge_to_face(const Mesh &mesh, const GVArray &v
       if constexpr (std::is_same_v<T, bool>) {
         /* A face is selected if all of its edges are selected. */
         new_varray = VArray<bool>::ForFunc(
-            mesh.totpoly, [mesh, varray = varray.typed<T>()](const int face_index) {
+            mesh.totpoly, [&mesh, varray = varray.typed<T>()](const int face_index) {
               const MPoly &poly = mesh.mpoly[face_index];
               for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
                 const MLoop &loop = mesh.mloop[loop_index];
@@ -726,7 +726,7 @@ static GVArray adapt_mesh_domain_edge_to_face(const Mesh &mesh, const GVArray &v
       }
       else {
         new_varray = VArray<T>::ForFunc(
-            mesh.totpoly, [mesh, varray = varray.typed<T>()](const int face_index) {
+            mesh.totpoly, [&mesh, varray = varray.typed<T>()](const int face_index) {
               T return_value;
               attribute_math::DefaultMixer<T> mixer({&return_value, 1});
               const MPoly &poly = mesh.mpoly[face_index];
