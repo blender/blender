@@ -2,6 +2,7 @@
 
 #include "node_geometry_util.hh"
 
+#include "BKE_curves.hh"
 #include "BKE_spline.hh"
 
 namespace blender::nodes::node_geo_input_spline_length_cc {
@@ -82,16 +83,16 @@ static VArray<int> construct_spline_count_gvarray(const CurveComponent &componen
   if (!component.has_curves()) {
     return {};
   }
-  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*component.get_for_read());
+  const Curves &curves_id = *component.get_for_read();
+  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
 
-  Span<SplinePtr> splines = curve->splines();
-  auto count_fn = [splines](int i) { return splines[i]->size(); };
+  auto count_fn = [curves](int64_t i) { return curves.range_for_curve(i).size(); };
 
   if (domain == ATTR_DOMAIN_CURVE) {
-    return VArray<int>::ForFunc(splines.size(), count_fn);
+    return VArray<int>::ForFunc(curves.curves_size(), count_fn);
   }
   if (domain == ATTR_DOMAIN_POINT) {
-    VArray<int> count = VArray<int>::ForFunc(splines.size(), count_fn);
+    VArray<int> count = VArray<int>::ForFunc(curves.curves_size(), count_fn);
     return component.attribute_try_adapt_domain<int>(
         std::move(count), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
   }
