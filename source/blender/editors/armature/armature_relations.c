@@ -393,6 +393,15 @@ int ED_armature_join_objects_exec(bContext *C, wmOperator *op)
         BKE_pose_channels_hash_free(pose);
       }
 
+      /* Armature ID itself is not freed below, however it has been modified (and is now completely
+       * empty). This needs to be told to the depsgraph, it will also ensure that the global
+       * memfile undo system properly detects the change.
+       *
+       * FIXME: Modifying an existing obdata because we are joining an object using it into another
+       * object is a very questionable behavior, which also does not match with other object types
+       * joining. */
+      DEG_id_tag_update_ex(bmain, &curarm->id, ID_RECALC_GEOMETRY);
+
       /* Fix all the drivers (and animation data) */
       BKE_fcurves_main_cb(bmain, joined_armature_fix_animdata_cb, &afd);
       BLI_ghash_free(afd.names_map, MEM_freeN, NULL);
