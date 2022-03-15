@@ -1491,6 +1491,8 @@ void OBJECT_OT_paths_range_update(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Object Shade Smooth/Flat Operator
  * \{ */

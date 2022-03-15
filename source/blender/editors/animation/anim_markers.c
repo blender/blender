@@ -1650,11 +1650,11 @@ static void MARKER_OT_make_links_scene(wmOperatorType *ot)
 
 /** \} */
 
-#ifdef DURIAN_CAMERA_SWITCH
-
 /* -------------------------------------------------------------------- */
 /** \name Camera Bind Marker
  * \{ */
+
+#ifdef DURIAN_CAMERA_SWITCH
 
 static int ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
 {
@@ -1718,6 +1718,7 @@ static void MARKER_OT_camera_bind(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
 #endif
 
 /** \} */

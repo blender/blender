@@ -43,11 +43,11 @@
 
 #include "node_intern.hh" /* own include */
 
+namespace blender::ed::space_node {
+
 /* -------------------------------------------------------------------- */
 /** \name Utilities
  * \{ */
-
-namespace blender::ed::space_node {
 
 bNode *node_add_node(const bContext &C, const char *idname, int type, float locx, float locy)
 {

@@ -1122,9 +1122,9 @@ static void CURVES_OT_sculptmode_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
 }
 
-}  // namespace blender::ed::sculpt_paint
-
 /** \} */
+
+}  // namespace blender::ed::sculpt_paint
 
 /* -------------------------------------------------------------------- */
 /** \name * Registration

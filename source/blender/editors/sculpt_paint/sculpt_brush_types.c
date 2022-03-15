@@ -277,6 +277,8 @@ static void sculpt_project_v3_normal_align(SculptSession *ss,
       grab_delta, ss->cache->sculpt_normal_symm, (len_signed * normal_weight) * len_view_scale);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Draw Brush
  * \{ */
@@ -357,6 +359,10 @@ void SCULPT_do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sculpt Fill Brush
+ * \{ */
 
 static void do_fill_brush_task_cb_ex(void *__restrict userdata,
                                      const int n,
@@ -730,6 +736,10 @@ void SCULPT_do_clay_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sculpt Flatten Brush
+ * \{ */
 
 static void do_flatten_brush_task_cb_ex(void *__restrict userdata,
                                         const int n,
@@ -1704,6 +1714,8 @@ void SCULPT_do_nudge_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   BLI_task_parallel_range(0, totnode, &data, do_nudge_brush_task_cb_ex, &settings);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Crease & Blob Brush
  * \{ */
@@ -2131,7 +2143,12 @@ void SCULPT_do_elastic_deform_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_elastic_deform_brush_task_cb_ex, &settings);
 }
+
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sculpt Draw Sharp Brush
+ * \{ */
 
 static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
                                            const int n,
@@ -2211,6 +2228,8 @@ void SCULPT_do_draw_sharp_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, do_draw_sharp_brush_task_cb_ex, &settings);
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Topology Brush
@@ -2447,6 +2466,7 @@ void SCULPT_do_slide_relax_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
     BLI_task_parallel_range(0, totnode, &data, do_topology_slide_task_cb_ex, &settings);
   }
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

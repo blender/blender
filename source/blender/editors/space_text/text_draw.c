@@ -147,11 +147,10 @@ static void format_draw_color(const TextDrawContext *tdc, char formatchar)
 
 /* -------------------------------------------------------------------- */
 /** \name Draw Text
- * \{ */
-
-/**
- * Notes on word-wrap
- * --
+ *
+ * Notes on Word-Wrap
+ * ==================
+ *
  * All word-wrap functions follow the algorithm below to maintain consistency:
  * - line:
  *   The line to wrap (tabs converted to spaces)
@@ -176,7 +175,8 @@ static void format_draw_color(const TextDrawContext *tdc, char formatchar)
  *         pos += 1
  *     print line[draw_start:]
  * \encode
- */
+ *
+ * \{ */
 
 int wrap_width(const SpaceText *st, ARegion *region)
 {
@@ -1031,6 +1031,7 @@ static void draw_textscroll(const SpaceText *st, rcti *scroll, rcti *back)
  * \{ */
 
 #if 0
+
 static void draw_documentation(const SpaceText *st, ARegion *region)
 {
   TextDrawContext tdc = {0};
@@ -1138,6 +1139,7 @@ static void draw_documentation(const SpaceText *st, ARegion *region)
     }
   }
 }
+
 #endif
 
 /** \} */

@@ -219,5 +219,3 @@ ModifierTypeInfo modifierType_Weld = {
     /* blendWrite */ nullptr,
     /* blendRead */ nullptr,
 };
-
-/** \} */

@@ -73,6 +73,8 @@ static void ui_drop_name_copy(wmDrag *drag, wmDropBox *drop)
   RNA_string_set(drop->ptr, "string", id->name + 2);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Material Drag/Drop Callbacks
  * \{ */
