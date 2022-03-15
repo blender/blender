@@ -13,6 +13,7 @@ extern "C" {
 
 struct Base;
 struct Object;
+struct SelectPick_Params;
 struct UndoType;
 struct wmKeyConfig;
 
@@ -24,8 +25,12 @@ void ED_keymap_lattice(struct wmKeyConfig *keyconf);
 /* editlattice_select.c */
 
 bool ED_lattice_flags_set(struct Object *obedit, int flag);
-bool ED_lattice_select_pick(
-    struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
+/**
+ * \return True when pick finds an element or the selection changed.
+ */
+bool ED_lattice_select_pick(struct bContext *C,
+                            const int mval[2],
+                            const struct SelectPick_Params *params);
 
 bool ED_lattice_deselect_all_multi_ex(struct Base **bases, uint bases_len);
 bool ED_lattice_deselect_all_multi(struct bContext *C);

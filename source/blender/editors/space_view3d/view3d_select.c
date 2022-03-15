@@ -1554,9 +1554,7 @@ static Base *object_mouse_select_menu(bContext *C,
                                       const GPUSelectResult *buffer,
                                       const int hits,
                                       const int mval[2],
-                                      bool extend,
-                                      bool deselect,
-                                      bool toggle)
+                                      const struct SelectPick_Params *params)
 {
   short baseCount = 0;
   bool ok;
@@ -1625,9 +1623,9 @@ static Base *object_mouse_select_menu(bContext *C,
   PointerRNA ptr;
 
   WM_operator_properties_create_ptr(&ptr, ot);
-  RNA_boolean_set(&ptr, "extend", extend);
-  RNA_boolean_set(&ptr, "deselect", deselect);
-  RNA_boolean_set(&ptr, "toggle", toggle);
+  RNA_boolean_set(&ptr, "extend", params->sel_op == SEL_OP_ADD);
+  RNA_boolean_set(&ptr, "deselect", params->sel_op == SEL_OP_SUB);
+  RNA_boolean_set(&ptr, "toggle", params->sel_op == SEL_OP_XOR);
   WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, NULL);
   WM_operator_properties_free(&ptr);
 
@@ -1638,9 +1636,12 @@ static Base *object_mouse_select_menu(bContext *C,
 static int bone_select_menu_exec(bContext *C, wmOperator *op)
 {
   const int name_index = RNA_enum_get(op->ptr, "name");
-  const bool extend = RNA_boolean_get(op->ptr, "extend");
-  const bool deselect = RNA_boolean_get(op->ptr, "deselect");
-  const bool toggle = RNA_boolean_get(op->ptr, "toggle");
+
+  const struct SelectPick_Params params = {
+      .sel_op = ED_select_op_from_booleans(RNA_boolean_get(op->ptr, "extend"),
+                                           RNA_boolean_get(op->ptr, "deselect"),
+                                           RNA_boolean_get(op->ptr, "toggle")),
+  };
 
   View3D *v3d = CTX_wm_view3d(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1656,12 +1657,11 @@ static int bone_select_menu_exec(bContext *C, wmOperator *op)
 
   if (basact->object->mode == OB_MODE_EDIT) {
     EditBone *ebone = (EditBone *)object_mouse_select_menu_data[name_index].item_ptr;
-    ED_armature_edit_select_pick_bone(C, basact, ebone, BONE_SELECTED, extend, deselect, toggle);
+    ED_armature_edit_select_pick_bone(C, basact, ebone, BONE_SELECTED, &params);
   }
   else {
     bPoseChannel *pchan = (bPoseChannel *)object_mouse_select_menu_data[name_index].item_ptr;
-    ED_armature_pose_select_pick_bone(
-        view_layer, v3d, basact->object, pchan->bone, extend, deselect, toggle);
+    ED_armature_pose_select_pick_bone(view_layer, v3d, basact->object, pchan->bone, &params);
   }
 
   /* Weak but ensures we activate the menu again before using the enum. */
@@ -1730,9 +1730,7 @@ static bool bone_mouse_select_menu(bContext *C,
                                    const GPUSelectResult *buffer,
                                    const int hits,
                                    const bool is_editmode,
-                                   const bool extend,
-                                   const bool deselect,
-                                   const bool toggle)
+                                   const struct SelectPick_Params *params)
 {
   BLI_assert(buffer);
 
@@ -1848,9 +1846,9 @@ static bool bone_mouse_select_menu(bContext *C,
   PointerRNA ptr;
 
   WM_operator_properties_create_ptr(&ptr, ot);
-  RNA_boolean_set(&ptr, "extend", extend);
-  RNA_boolean_set(&ptr, "deselect", deselect);
-  RNA_boolean_set(&ptr, "toggle", toggle);
+  RNA_boolean_set(&ptr, "extend", params->sel_op == SEL_OP_ADD);
+  RNA_boolean_set(&ptr, "deselect", params->sel_op == SEL_OP_SUB);
+  RNA_boolean_set(&ptr, "toggle", params->sel_op == SEL_OP_XOR);
   WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, NULL);
   WM_operator_properties_free(&ptr);
 
@@ -2238,12 +2236,9 @@ static void deselect_all_tracks(MovieTracking *tracking)
   }
 }
 
-/* mval is region coords */
 static bool ed_object_select_pick(bContext *C,
                                   const int mval[2],
-                                  bool extend,
-                                  bool deselect,
-                                  bool toggle,
+                                  const struct SelectPick_Params *params,
                                   bool obcenter,
                                   bool enumerate,
                                   bool object)
@@ -2290,7 +2285,7 @@ static bool ed_object_select_pick(bContext *C,
 
     /* NOTE: shift+alt goes to group-flush-selecting. */
     if (enumerate) {
-      basact = object_mouse_select_menu(C, &vc, NULL, 0, mval, extend, deselect, toggle);
+      basact = object_mouse_select_menu(C, &vc, NULL, 0, mval, params);
     }
     else {
       base = startbase;
@@ -2356,12 +2351,11 @@ static bool ed_object_select_pick(bContext *C,
 
       /* NOTE: shift+alt goes to group-flush-selecting. */
       if (enumerate) {
-        if (has_bones &&
-            bone_mouse_select_menu(C, buffer, hits, false, extend, deselect, toggle)) {
+        if (has_bones && bone_mouse_select_menu(C, buffer, hits, false, params)) {
           basact = NULL;
         }
         else {
-          basact = object_mouse_select_menu(C, &vc, buffer, hits, mval, extend, deselect, toggle);
+          basact = object_mouse_select_menu(C, &vc, buffer, hits, mval, params);
         }
       }
       else {
@@ -2388,6 +2382,7 @@ static bool ed_object_select_pick(bContext *C,
                * in height word, this buffer value belongs to camera. not to bundle
                */
               if (hitresult & 0xFFFF0000) {
+                const bool extend = params->sel_op == SEL_OP_ADD;
                 MovieTracking *tracking = &clip->tracking;
                 ListBase *tracksbase;
                 MovieTrackingTrack *track;
@@ -2432,15 +2427,8 @@ static bool ed_object_select_pick(bContext *C,
             }
           }
         }
-        else if (ED_armature_pose_select_pick_with_buffer(view_layer,
-                                                          v3d,
-                                                          basact,
-                                                          buffer,
-                                                          hits,
-                                                          extend,
-                                                          deselect,
-                                                          toggle,
-                                                          do_nearest)) {
+        else if (ED_armature_pose_select_pick_with_buffer(
+                     view_layer, v3d, basact, buffer, hits, params, do_nearest)) {
           /* then bone is found */
 
           /* we make the armature selected:
@@ -2502,6 +2490,22 @@ static bool ed_object_select_pick(bContext *C,
   /* Ensure code above doesn't change the active base. */
   BLI_assert(oldbasact == (vc.obact ? BASACT(view_layer) : NULL));
 
+  if (vc.obedit) {
+    /* Edit-mode, pass. */
+  }
+  else if (is_pose_mode && (basact && (basact->object->mode & OB_MODE_POSE))) {
+    /* Pose-mode, pass (or moved into pose mode). */
+  }
+  else {
+    /* Object-mode. */
+    const bool found = (basact != NULL);
+    if ((params->sel_op == SEL_OP_SET) && (found || params->deselect_all)) {
+      /* `basact` may be NULL. */
+      retval |= object_deselect_all_except(view_layer, basact);
+      DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+    }
+  }
+
   /* so, do we have something selected? */
   if (basact) {
     retval = true;
@@ -2514,28 +2518,39 @@ static bool ed_object_select_pick(bContext *C,
     /* also prevent making it active on mouse selection */
     else if (BASE_SELECTABLE(v3d, basact)) {
       const bool use_activate_selected_base = (oldbasact != basact) && (is_obedit == false);
-      if (extend) {
-        ED_object_base_select(basact, BA_SELECT);
-      }
-      else if (deselect) {
-        ED_object_base_select(basact, BA_DESELECT);
-      }
-      else if (toggle) {
-        if (basact->flag & BASE_SELECTED) {
-          /* Keep selected if the base is to be activated. */
-          if (use_activate_selected_base == false) {
-            ED_object_base_select(basact, BA_DESELECT);
+
+      switch (params->sel_op) {
+        case SEL_OP_ADD: {
+          ED_object_base_select(basact, BA_SELECT);
+          break;
+        }
+        case SEL_OP_SUB: {
+          ED_object_base_select(basact, BA_DESELECT);
+          break;
+        }
+        case SEL_OP_XOR: {
+          if (basact->flag & BASE_SELECTED) {
+            /* Keep selected if the base is to be activated. */
+            if (use_activate_selected_base == false) {
+              ED_object_base_select(basact, BA_DESELECT);
+            }
           }
+          else {
+            ED_object_base_select(basact, BA_SELECT);
+          }
+          break;
         }
-        else {
-          ED_object_base_select(basact, BA_SELECT);
+        case SEL_OP_SET: {
+          /* When enabled, this puts other objects out of multi pose-mode. */
+          if (is_pose_mode == false || (basact->object->mode & OB_MODE_POSE) == 0) {
+            object_deselect_all_except(view_layer, basact);
+            ED_object_base_select(basact, BA_SELECT);
+          }
+          break;
         }
-      }
-      else {
-        /* When enabled, this puts other objects out of multi pose-mode. */
-        if (is_pose_mode == false || (basact->object->mode & OB_MODE_POSE) == 0) {
-          object_deselect_all_except(view_layer, basact);
-          ED_object_base_select(basact, BA_SELECT);
+        case SEL_OP_AND: {
+          BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+          break;
         }
       }
 
@@ -2571,13 +2586,28 @@ static bool ed_object_select_pick(bContext *C,
     WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
   }
 
+  if (retval) {
+    if (vc.obact && vc.obact->mode & OB_MODE_POSE) {
+      ED_outliner_select_sync_from_pose_bone_tag(C);
+    }
+    else {
+      ED_outliner_select_sync_from_object_tag(C);
+    }
+  }
+
   return retval;
 }
 
-/* mouse selection in weight paint */
-/* gets called via generic mouse select operator */
-static bool ed_wpaint_vertex_select_pick(
-    bContext *C, const int mval[2], bool extend, bool deselect, bool toggle, Object *obact)
+/**
+ * Mouse selection in weight paint.
+ * Called via generic mouse select operator.
+ *
+ * \return True when pick finds an element or the selection changed.
+ */
+static bool ed_wpaint_vertex_select_pick(bContext *C,
+                                         const int mval[2],
+                                         const struct SelectPick_Params *params,
+                                         Object *obact)
 {
   View3D *v3d = CTX_wm_view3d(C);
   const bool use_zbuf = !XRAY_ENABLED(v3d);
@@ -2585,21 +2615,38 @@ static bool ed_wpaint_vertex_select_pick(
   Mesh *me = obact->data; /* already checked for NULL */
   uint index = 0;
   MVert *mv;
+  bool changed = false;
 
-  if (ED_mesh_pick_vert(C, obact, mval, ED_MESH_PICK_DEFAULT_VERT_DIST, use_zbuf, &index)) {
+  bool found = ED_mesh_pick_vert(C, obact, mval, ED_MESH_PICK_DEFAULT_VERT_DIST, use_zbuf, &index);
+
+  if ((params->sel_op == SEL_OP_SET) && (found || params->deselect_all)) {
+    changed |= paintface_deselect_all_visible(C, obact, SEL_DESELECT, false);
+  }
+
+  if (found) {
     mv = &me->mvert[index];
-    if (extend) {
-      mv->flag |= SELECT;
-    }
-    else if (deselect) {
-      mv->flag &= ~SELECT;
-    }
-    else if (toggle) {
-      mv->flag ^= SELECT;
-    }
-    else {
-      paintvert_deselect_all_visible(obact, SEL_DESELECT, false);
-      mv->flag |= SELECT;
+    switch (params->sel_op) {
+      case SEL_OP_ADD: {
+        mv->flag |= SELECT;
+        break;
+      }
+      case SEL_OP_SUB: {
+        mv->flag &= ~SELECT;
+        break;
+      }
+      case SEL_OP_XOR: {
+        mv->flag ^= SELECT;
+        break;
+      }
+      case SEL_OP_SET: {
+        paintvert_deselect_all_visible(obact, SEL_DESELECT, false);
+        mv->flag |= SELECT;
+        break;
+      }
+      case SEL_OP_AND: {
+        BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+        break;
+      }
     }
 
     /* update mselect */
@@ -2611,10 +2658,15 @@ static bool ed_wpaint_vertex_select_pick(
     }
 
     paintvert_flush_flags(obact);
-    paintvert_tag_select_update(C, obact);
-    return true;
+
+    changed = true;
   }
-  return false;
+
+  if (changed) {
+    paintvert_tag_select_update(C, obact);
+  }
+
+  return changed || found;
 }
 
 static int view3d_select_exec(bContext *C, wmOperator *op)
@@ -2622,10 +2674,13 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Object *obedit = CTX_data_edit_object(C);
   Object *obact = CTX_data_active_object(C);
-  bool extend = RNA_boolean_get(op->ptr, "extend");
-  bool deselect = RNA_boolean_get(op->ptr, "deselect");
-  bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
-  bool toggle = RNA_boolean_get(op->ptr, "toggle");
+  const struct SelectPick_Params params = {
+      .sel_op = ED_select_op_from_booleans(RNA_boolean_get(op->ptr, "extend"),
+                                           RNA_boolean_get(op->ptr, "deselect"),
+                                           RNA_boolean_get(op->ptr, "toggle")),
+      .deselect_all = RNA_boolean_get(op->ptr, "deselect_all"),
+
+  };
   bool center = RNA_boolean_get(op->ptr, "center");
   bool enumerate = RNA_boolean_get(op->ptr, "enumerate");
   /* Only force object select for edit-mode to support vertex parenting,
@@ -2656,10 +2711,7 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
 
   if (obedit && object == false) {
     if (obedit->type == OB_MESH) {
-      retval = EDBM_select_pick(C, location, extend, deselect, toggle);
-      if (!retval && deselect_all) {
-        retval = EDBM_mesh_deselect_all_multi(C);
-      }
+      retval = EDBM_select_pick(C, location, &params);
     }
     else if (obedit->type == OB_ARMATURE) {
       if (enumerate) {
@@ -2676,90 +2728,36 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
                                                          false,
                                                          true,
                                                          false);
-        retval = bone_mouse_select_menu(C, buffer, hits, true, extend, deselect, toggle);
+        retval = bone_mouse_select_menu(C, buffer, hits, true, &params);
       }
       if (!retval) {
-        retval = ED_armature_edit_select_pick(C, location, extend, deselect, toggle);
-      }
-
-      if (!retval && deselect_all) {
-        retval = ED_armature_edit_deselect_all_visible_multi(C);
-      }
-      if (retval) {
-        ED_outliner_select_sync_from_edit_bone_tag(C);
+        retval = ED_armature_edit_select_pick(C, location, &params);
       }
     }
     else if (obedit->type == OB_LATTICE) {
-      retval = ED_lattice_select_pick(C, location, extend, deselect, toggle);
-      if (!retval && deselect_all) {
-        retval = ED_lattice_deselect_all_multi(C);
-      }
+      retval = ED_lattice_select_pick(C, location, &params);
     }
     else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
-      retval = ED_curve_editnurb_select_pick(C, location, extend, deselect, toggle);
-      if (!retval && deselect_all) {
-        retval = ED_curve_deselect_all_multi(C);
-      }
+      retval = ED_curve_editnurb_select_pick(C, location, &params);
     }
     else if (obedit->type == OB_MBALL) {
-      retval = ED_mball_select_pick(C, location, extend, deselect, toggle);
-      if (!retval && deselect_all) {
-        retval = ED_mball_deselect_all_multi(C);
-      }
+      retval = ED_mball_select_pick(C, location, &params);
     }
     else if (obedit->type == OB_FONT) {
-      retval = ED_curve_editfont_select_pick(C, location, extend, deselect, toggle);
-      if (!retval && deselect_all) {
-        /* pass */
-      }
-    }
-    if (retval) {
-      WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+      retval = ED_curve_editfont_select_pick(C, location, &params);
     }
   }
   else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
-    retval = PE_mouse_particles(C, location, extend, deselect, toggle);
-    if (!retval && deselect_all) {
-      retval = PE_deselect_all_visible(C);
-    }
+    retval = PE_mouse_particles(C, location, &params);
   }
   else if (obact && BKE_paint_select_face_test(obact)) {
-    retval = paintface_mouse_select(C, obact, location, extend, deselect, toggle);
-    if (!retval && deselect_all) {
-      retval = paintface_deselect_all_visible(C, CTX_data_active_object(C), SEL_DESELECT, true);
-    }
+    retval = paintface_mouse_select(C, location, &params, obact);
   }
   else if (BKE_paint_select_vert_test(obact)) {
-    retval = ed_wpaint_vertex_select_pick(C, location, extend, deselect, toggle, obact);
-    if (!retval && deselect_all) {
-      retval = paintvert_deselect_all_visible(obact, SEL_DESELECT, false);
-      if (retval) {
-        paintvert_tag_select_update(C, obact);
-      }
-    }
+    retval = ed_wpaint_vertex_select_pick(C, location, &params, obact);
   }
   else {
-    retval = ed_object_select_pick(
-        C, location, extend, deselect, toggle, center, enumerate, object);
-    if (!retval && deselect_all) {
-      if (ED_pose_object_from_context(C)) {
-        retval = ED_pose_deselect_all_multi(C, SEL_DESELECT, false);
-      }
-      else {
-        retval = ED_object_base_deselect_all(
-            CTX_data_view_layer(C), CTX_wm_view3d(C), SEL_DESELECT);
-        DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-      }
-    }
-
-    if (retval) {
-      if (obact && obact->mode & OB_MODE_POSE) {
-        ED_outliner_select_sync_from_pose_bone_tag(C);
-      }
-      else {
-        ED_outliner_select_sync_from_object_tag(C);
-      }
-    }
+    retval = ed_object_select_pick(C, location, &params, center, enumerate, object);
   }
 
   /* Pass-through allows tweaks

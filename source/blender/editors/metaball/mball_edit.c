@@ -736,7 +736,7 @@ void MBALL_OT_reveal_metaelems(wmOperatorType *ot)
 /** \name Select Pick Utility
  * \{ */
 
-bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
+bool ED_mball_select_pick(bContext *C, const int mval[2], const struct SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   static MetaElem *startelem = NULL;
@@ -744,6 +744,8 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
   int a, hits;
   GPUSelectResult buffer[MAXPICKELEMS];
   rcti rect;
+  bool changed = false;
+  bool found = false;
 
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
@@ -822,7 +824,9 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
 
       /* When some metaelem was found, then it is necessary to select or deselect it. */
       if (ml_act) {
-        if (!extend && !deselect && !toggle) {
+        found = true;
+
+        if (params->sel_op == SEL_OP_SET) {
           uint objects_len;
           Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
               vc.view_layer, vc.v3d, &objects_len);
@@ -840,26 +844,36 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
           MEM_freeN(objects);
         }
 
-        if (extend) {
-          ml_act->flag |= SELECT;
-        }
-        else if (deselect) {
-          ml_act->flag &= ~SELECT;
-        }
-        else if (toggle) {
-          if (ml_act->flag & SELECT) {
-            ml_act->flag &= ~SELECT;
-          }
-          else {
+        switch (params->sel_op) {
+          case SEL_OP_ADD: {
             ml_act->flag |= SELECT;
+            break;
           }
-        }
-        else {
-          /* Deselect all existing metaelems */
-          BKE_mball_deselect_all(mb);
+          case SEL_OP_SUB: {
+            ml_act->flag &= ~SELECT;
+            break;
+          }
+          case SEL_OP_XOR: {
+            if (ml_act->flag & SELECT) {
+              ml_act->flag &= ~SELECT;
+            }
+            else {
+              ml_act->flag |= SELECT;
+            }
+            break;
+          }
+          case SEL_OP_SET: {
+            /* Deselect all existing metaelems */
+            BKE_mball_deselect_all(mb);
 
-          /* Select only metaelem clicked on */
-          ml_act->flag |= SELECT;
+            /* Select only metaelem clicked on */
+            ml_act->flag |= SELECT;
+            break;
+          }
+          case SEL_OP_AND: {
+            BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+            break;
+          }
         }
 
         mb->lastelem = ml_act;
@@ -871,13 +885,18 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
           ED_object_base_activate(C, base);
         }
 
-        return true;
+        changed = true;
       }
     }
   }
   FOREACH_BASE_IN_EDIT_MODE_END;
 
-  return false;
+  if (params->deselect_all && !found) {
+    ED_mball_deselect_all_multi(C);
+    changed = true;
+  }
+
+  return changed || found;
 }
 
 /** \} */

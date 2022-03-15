@@ -112,3 +112,17 @@ bool ED_select_similar_compare_float_tree(const KDTree_1d *tree,
 
   return false;
 }
+
+eSelectOp ED_select_op_from_booleans(const bool extend, const bool deselect, const bool toggle)
+{
+  if (extend) {
+    return SEL_OP_ADD;
+  }
+  if (deselect) {
+    return SEL_OP_SUB;
+  }
+  if (toggle) {
+    return SEL_OP_XOR;
+  }
+  return SEL_OP_SET;
+}

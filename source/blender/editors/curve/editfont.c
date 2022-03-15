@@ -2184,7 +2184,10 @@ void FONT_OT_unlink(wmOperatorType *ot)
 }
 
 bool ED_curve_editfont_select_pick(
-    bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
+    bContext *C,
+    const int mval[2],
+    /* NOTE: `params->deselect_all` is ignored as only one text-box is active at once. */
+    const struct SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obedit = CTX_data_edit_object(C);
@@ -2203,9 +2206,7 @@ bool ED_curve_editfont_select_pick(
   ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
   /* currently only select active */
-  (void)extend;
-  (void)deselect;
-  (void)toggle;
+  (void)params;
 
   for (i_iter = 0; i_iter < cu->totbox; i_iter++) {
     int i = (i_iter + i_actbox) % cu->totbox;

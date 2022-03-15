@@ -57,6 +57,7 @@
 #include "ED_object.h"
 #include "ED_outliner.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 #include "ED_transform.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
@@ -8540,7 +8541,10 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
       case EDBM_CLNOR_MODAL_POINTTO_SET_USE_SELECTED:
         new_mode = EDBM_CLNOR_POINTTO_MODE_COORDINATES;
         view3d_operator_needs_opengl(C);
-        if (EDBM_select_pick(C, event->mval, false, false, false)) {
+        const struct SelectPick_Params params = {
+            .sel_op = SEL_OP_SET,
+        };
+        if (EDBM_select_pick(C, event->mval, &params)) {
           /* Point to newly selected active. */
           ED_object_calc_active_center_for_editmode(obedit, false, target);
 
