@@ -575,7 +575,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
     /* try to add to dictionary */
     /* if (PyDict_SetItemString(driver_vars, dvar->name, driver_arg)) { */
     if (PyDict_SetItem(driver_vars, PyTuple_GET_ITEM(expr_vars, i++), driver_arg) != -1) {
-      Py_DECREF(driver_arg);
+      /* Pass. */
     }
     else {
       /* this target failed - bad name */
@@ -591,6 +591,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
       PyErr_Print();
       PyErr_Clear();
     }
+    Py_DECREF(driver_arg);
   }
 
 #ifdef USE_BYTECODE_WHITELIST
