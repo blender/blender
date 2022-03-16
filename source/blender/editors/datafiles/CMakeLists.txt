@@ -595,9 +595,9 @@ set(ICON_NAMES
   axis_top
   layer_used
   layer_active
-  outliner_ob_hair
-  outliner_data_hair
-  hair_data
+  outliner_ob_curves
+  outliner_data_curves
+  curves_data
   outliner_ob_pointcloud
   outliner_data_pointcloud
   pointcloud_data
@@ -652,7 +652,7 @@ set(ICON_NAMES
   matsphere
   matcube
   monkey
-  hair
+  curves
   aliased
   antialiased
   mat_sphere_sky
