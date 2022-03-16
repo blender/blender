@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "GPU_texture.h"
 #include "GPU_vertex_buffer.h"
 
 #ifdef __cplusplus
@@ -39,6 +40,12 @@ void GPU_storagebuf_update(GPUStorageBuf *ssbo, const void *data);
 void GPU_storagebuf_bind(GPUStorageBuf *ssbo, int slot);
 void GPU_storagebuf_unbind(GPUStorageBuf *ssbo);
 void GPU_storagebuf_unbind_all(void);
+
+void GPU_storagebuf_clear(GPUStorageBuf *ssbo,
+                          eGPUTextureFormat internal_format,
+                          eGPUDataFormat data_format,
+                          void *data);
+void GPU_storagebuf_clear_to_zero(GPUStorageBuf *ssbo);
 
 #ifdef __cplusplus
 }

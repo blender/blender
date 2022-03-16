@@ -89,4 +89,18 @@ void GPU_storagebuf_unbind_all()
   /* FIXME */
 }
 
+void GPU_storagebuf_clear(GPUStorageBuf *ssbo,
+                          eGPUTextureFormat internal_format,
+                          eGPUDataFormat data_format,
+                          void *data)
+{
+  unwrap(ssbo)->clear(internal_format, data_format, data);
+}
+
+void GPU_storagebuf_clear_to_zero(GPUStorageBuf *ssbo)
+{
+  uint32_t data = 0u;
+  GPU_storagebuf_clear(ssbo, GPU_R32UI, GPU_DATA_UINT, &data);
+}
+
 /** \} */

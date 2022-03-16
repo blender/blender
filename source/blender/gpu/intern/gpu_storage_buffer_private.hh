@@ -40,6 +40,9 @@ class StorageBuf {
   virtual void update(const void *data) = 0;
   virtual void bind(int slot) = 0;
   virtual void unbind() = 0;
+  virtual void clear(eGPUTextureFormat internal_format,
+                     eGPUDataFormat data_format,
+                     void *data) = 0;
 };
 
 /* Syntactic sugar. */

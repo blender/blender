@@ -112,6 +112,31 @@ void GLStorageBuf::unbind()
   slot_ = 0;
 }
 
+void GLStorageBuf::clear(eGPUTextureFormat internal_format, eGPUDataFormat data_format, void *data)
+{
+  if (ssbo_id_ == 0) {
+    this->init();
+  }
+
+  if (GLContext::direct_state_access_support) {
+    glClearNamedBufferData(ssbo_id_,
+                           to_gl_internal_format(internal_format),
+                           to_gl_data_format(internal_format),
+                           to_gl(data_format),
+                           data);
+  }
+  else {
+    /* WATCH(@fclem): This should be ok since we only use clear outside of drawing functions. */
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_id_);
+    glClearBufferData(GL_SHADER_STORAGE_BUFFER,
+                      to_gl_internal_format(internal_format),
+                      to_gl_data_format(internal_format),
+                      to_gl(data_format),
+                      data);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+  }
+}
+
 /** \} */
 
 }  // namespace blender::gpu
