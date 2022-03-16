@@ -5268,7 +5268,7 @@ static int image_get_multiview_index(Image *ima, ImageUser *iuser)
   }
   if (is_backdrop) {
     if (BKE_image_is_stereo(ima)) {
-      /* backdrop hackaround (since there is no iuser */
+      /* Backdrop hack / workaround (since there is no `iuser`). */
       return ima->eye;
     }
   }

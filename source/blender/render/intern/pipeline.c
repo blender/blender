@@ -711,11 +711,9 @@ static void re_init_resolution(Render *re, Render *source, int winx, int winy, r
   re->winx = winx;
   re->winy = winy;
   if (source && (source->r.mode & R_BORDER)) {
-    /* eeh, doesn't seem original bordered disprect is storing anywhere
-     * after insertion on black happening in do_render_engine(),
-     * so for now simply re-calculate disprect using border from source
-     * renderer (sergey)
-     */
+    /* NOTE(@sergey): doesn't seem original bordered `disprect` is storing anywhere
+     * after insertion on black happening in #do_render_engine(),
+     * so for now simply re-calculate `disprect` using border from source renderer. */
 
     re->disprect.xmin = source->r.border.xmin * winx;
     re->disprect.xmax = source->r.border.xmax * winx;

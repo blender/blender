@@ -143,7 +143,7 @@ static void text_copy_data(Main *UNUSED(bmain),
 /** Free (or release) any data used by this text (does not free the text itself). */
 static void text_free_data(ID *id)
 {
-  /* No animdata here. */
+  /* No animation-data here. */
   Text *text = (Text *)id;
 
   BKE_text_free_lines(text);

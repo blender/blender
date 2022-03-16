@@ -459,11 +459,11 @@ static Scene *preview_prepare_scene(
   if (sce) {
     ViewLayer *view_layer = static_cast<ViewLayer *>(sce->view_layers.first);
 
-    /* Only enable the combined renderpass */
+    /* Only enable the combined render-pass. */
     view_layer->passflag = SCE_PASS_COMBINED;
     view_layer->eevee.render_passes = 0;
 
-    /* this flag tells render to not execute depsgraph or ipos etc */
+    /* This flag tells render to not execute depsgraph or F-Curves etc. */
     sce->r.scemode |= R_BUTS_PREVIEW;
     BLI_strncpy(sce->r.engine, scene->r.engine, sizeof(sce->r.engine));
 

@@ -782,7 +782,7 @@ typedef struct FileSelectParams {
   char _pad1[2];
 
   /* short */
-  /** XXXXX for now store type here, should be moved to the operator. */
+  /** XXX: for now store type here, should be moved to the operator. */
   short type; /* eFileSelectType */
   /** Settings for filter, hiding dots files. */
   short flag;
@@ -797,7 +797,7 @@ typedef struct FileSelectParams {
   /** Filter when (flags & FILE_FILTER) is true. */
   int filter;
 
-  /** Max number of levels in dirtree to show at once, 0 to disable recursion. */
+  /** Max number of levels in directory tree to show at once, 0 to disable recursion. */
   short recursion_level;
 
   char _pad4[2];

@@ -40,7 +40,7 @@ namespace curves::nurbs {
 
 struct BasisCache {
   /**
-   * For each evaluated point, the weight for alls control points that influences it.
+   * For each evaluated point, the weight for all control points that influences it.
    * The vector's size is the evaluated point count multiplied by the spline's order.
    */
   Vector<float> weights;
@@ -343,7 +343,7 @@ void evaluate_segment(const float3 &point_0,
  * Calculate all evaluated points for the Bezier curve.
  *
  * \param evaluated_offsets: The index in the evaluated points array for each control point,
- * including the points from the corresponding segment. Used to varry the number of evaluated
+ * including the points from the corresponding segment. Used to vary the number of evaluated
  * points per segment, i.e. to make vector segment only have one edge. This is expected to be
  * calculated by #calculate_evaluated_offsets, and is the reason why this function doesn't need
  * arguments like "cyclic" and "resolution".
@@ -428,7 +428,7 @@ void calculate_basis_cache(int size,
  *
  * \param control_weights: An optional span of control point weights, which must have the same size
  * as the number of control points in the curve if provided. Using this argument gives a NURBS
- * curve the "Rational" behavior that's part of its acryonym; otherwise it is a NUBS.
+ * curve the "Rational" behavior that's part of its acronym; otherwise it is a NUBS.
  */
 void interpolate_to_evaluated(const BasisCache &basis_cache,
                               int8_t order,
