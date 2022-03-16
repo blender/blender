@@ -663,7 +663,7 @@ static void *ml_addview_cb(void *base, const char *str)
 
 static int order_render_passes(const void *a, const void *b)
 {
-  // 1 if a is after b
+  /* 1 if `a` is after `b`. */
   RenderPass *rpa = (RenderPass *)a;
   RenderPass *rpb = (RenderPass *)b;
   unsigned int passtype_a = passtype_from_name(rpa->name);

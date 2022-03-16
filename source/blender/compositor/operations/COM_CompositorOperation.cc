@@ -114,7 +114,7 @@ void CompositorOperation::deinit_execution()
 
 void CompositorOperation::execute_region(rcti *rect, unsigned int /*tile_number*/)
 {
-  float color[8];  // 7 is enough
+  float color[8]; /* 7 is enough. */
   float *buffer = output_buffer_;
   float *zbuffer = depth_buffer_;
 

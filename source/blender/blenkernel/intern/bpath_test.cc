@@ -77,7 +77,7 @@ class BPathTest : public testing::Test {
 
 TEST_F(BPathTest, rebase_on_relative)
 {
-  // Test on relative paths, should be modified.
+  /* Test on relative paths, should be modified. */
   Text *text = reinterpret_cast<Text *>(bmain->texts.first);
   text->filepath = BLI_strdup(TEXT_PATH_RELATIVE);
 
@@ -92,7 +92,7 @@ TEST_F(BPathTest, rebase_on_relative)
 
 TEST_F(BPathTest, rebase_on_absolute)
 {
-  // Test on absolute paths, should not be modified.
+  /* Test on absolute paths, should not be modified. */
   Text *text = reinterpret_cast<Text *>(bmain->texts.first);
   text->filepath = BLI_strdup(TEXT_PATH_ABSOLUTE);
 
@@ -115,9 +115,9 @@ TEST_F(BPathTest, convert_to_relative)
 
   BKE_bpath_relative_convert(bmain, BASE_DIR, nullptr);
 
-  // Already relative path should not be modified.
+  /* Already relative path should not be modified. */
   EXPECT_STREQ(text->filepath, TEXT_PATH_RELATIVE);
-  // Absolute path should be modified.
+  /* Absolute path should be modified. */
   EXPECT_STREQ(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE_MADE_RELATIVE);
 }
 
@@ -131,9 +131,9 @@ TEST_F(BPathTest, convert_to_absolute)
 
   BKE_bpath_absolute_convert(bmain, BASE_DIR, nullptr);
 
-  // Relative path should be modified.
+  /* Relative path should be modified. */
   EXPECT_STREQ(text->filepath, TEXT_PATH_RELATIVE_MADE_ABSOLUTE);
-  // Already absolute path should not be modified.
+  /* Already absolute path should not be modified. */
   EXPECT_STREQ(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE);
 }
 

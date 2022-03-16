@@ -134,7 +134,7 @@ static void extract_uv_init_subdiv(const DRWSubdivCache *subdiv_cache,
   uint uv_layers;
   if (!mesh_extract_uv_format_init(
           &format, cache, &coarse_mesh->ldata, MR_EXTRACT_MESH, uv_layers)) {
-    // TODO(kevindietrich): handle this more gracefully.
+    /* TODO(kevindietrich): handle this more gracefully. */
     v_len = 1;
   }
 
