@@ -2126,9 +2126,9 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const struct SelectPick_Pa
           break;
         }
         case SEL_OP_SET: {
-          if (!BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-            BM_select_history_store(vc.em->bm, eve);
-            BM_vert_select_set(vc.em->bm, eve, true);
+          if (!BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+            BM_select_history_store(vc.em->bm, eed);
+            BM_edge_select_set(vc.em->bm, eed, true);
           }
           break;
         }
