@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 struct Base;
+struct MetaElem;
 struct Object;
 struct SelectPick_Params;
 struct UndoType;
@@ -31,6 +32,11 @@ struct MetaElem *ED_mball_add_primitive(struct bContext *C,
                                         float mat[4][4],
                                         float dia,
                                         int type);
+
+struct Base *ED_mball_base_and_elem_from_select_buffer(struct Base **bases,
+                                                       uint bases_len,
+                                                       const uint select_id,
+                                                       struct MetaElem **r_ml);
 
 /**
  * Select meta-element with mouse click (user can select radius circle or stiffness circle).
