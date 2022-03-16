@@ -550,6 +550,12 @@ void GPU_texture_swizzle_set(GPUTexture *tex, const char swizzle[4])
   reinterpret_cast<Texture *>(tex)->swizzle_set(swizzle);
 }
 
+void GPU_texture_stencil_texture_mode_set(GPUTexture *tex, bool use_stencil)
+{
+  BLI_assert(GPU_texture_stencil(tex) || !use_stencil);
+  reinterpret_cast<Texture *>(tex)->stencil_texture_mode_set(use_stencil);
+}
+
 void GPU_texture_free(GPUTexture *tex_)
 {
   Texture *tex = reinterpret_cast<Texture *>(tex_);

@@ -299,6 +299,11 @@ void GPU_texture_filter_mode(GPUTexture *tex, bool use_filter);
 void GPU_texture_mipmap_mode(GPUTexture *tex, bool use_mipmap, bool use_filter);
 void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat, bool use_clamp);
 void GPU_texture_swizzle_set(GPUTexture *tex, const char swizzle[4]);
+/**
+ * Set depth stencil texture sampling behavior. Can work on texture views.
+ * If stencil sampling is enabled, an unsigned integer sampler is required.
+ */
+void GPU_texture_stencil_texture_mode_set(GPUTexture *tex, bool use_stencil);
 
 /**
  * Return the number of dimensions of the texture ignoring dimension of layers (1, 2 or 3).

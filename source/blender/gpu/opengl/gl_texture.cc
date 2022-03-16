@@ -453,6 +453,19 @@ void GLTexture::swizzle_set(const char swizzle[4])
   }
 }
 
+void GLTexture::stencil_texture_mode_set(bool use_stencil)
+{
+  BLI_assert(GLContext::stencil_texturing_support);
+  GLint value = use_stencil ? GL_STENCIL_INDEX : GL_DEPTH_COMPONENT;
+  if (GLContext::direct_state_access_support) {
+    glTextureParameteri(tex_id_, GL_DEPTH_STENCIL_TEXTURE_MODE, value);
+  }
+  else {
+    GLContext::state_manager_active_get()->texture_bind_temp(this);
+    glTexParameteri(target_, GL_DEPTH_STENCIL_TEXTURE_MODE, value);
+  }
+}
+
 void GLTexture::mip_range_set(int min, int max)
 {
   BLI_assert(min <= max && min >= 0 && max <= mipmaps_);
