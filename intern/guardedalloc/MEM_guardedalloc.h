@@ -279,6 +279,24 @@ template<typename T> inline T *MEM_cnew(const char *allocation_name)
 }
 
 /**
+ * Allocate memory for an object of type #T and copy construct an object from `other`.
+ * Only applicable for a trivial types.
+ *
+ * This function works around problem of copy-constructing DNA structs which contains deprecated
+ * fields: some compilers will generate access deprecated field in implicitly defined copy
+ * constructors.
+ *
+ * This is a better alternative to #MEM_dupallocN.
+ */
+template<typename T> inline T *MEM_cnew(const char *allocation_name, const T &other)
+{
+  static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new should be used.");
+  T *new_object = static_cast<T *>(MEM_mallocN(sizeof(T), allocation_name));
+  memcpy(new_object, &other, sizeof(T));
+  return new_object;
+}
+
+/**
  * Destructs and deallocates an object previously allocated with any `MEM_*` function.
  * Passing in null does nothing.
  */
