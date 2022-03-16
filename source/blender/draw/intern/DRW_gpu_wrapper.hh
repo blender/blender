@@ -16,39 +16,39 @@
  *
  * All types are not copyable and Buffers are not Movable.
  *
- * `drw::UniformArrayBuffer<T, len>`
+ * `draw::UniformArrayBuffer<T, len>`
  *   Uniform buffer object containing an array of T with len elements.
  *   Data can be accessed using the [] operator.
  *
- * `drw::UniformBuffer<T>`
+ * `draw::UniformBuffer<T>`
  *   A uniform buffer object class inheriting from T.
  *   Data can be accessed just like a normal T object.
  *
- * `drw::StorageArrayBuffer<T, len>`
+ * `draw::StorageArrayBuffer<T, len>`
  *   Storage buffer object containing an array of T with len elements.
  *   The item count can be changed after creation using `resize()`.
  *   However, this requires the invalidation of the whole buffer and
  *   discarding all data inside it.
  *   Data can be accessed using the [] operator.
  *
- * `drw::StorageBuffer<T>`
+ * `draw::StorageBuffer<T>`
  *   A storage buffer object class inheriting from T.
  *   Data can be accessed just like a normal T object.
  *
- * `drw::Texture`
- *   A simple wrapper to #GPUTexture. A #drw::Texture can be created without allocation.
+ * `draw::Texture`
+ *   A simple wrapper to #GPUTexture. A #draw::Texture can be created without allocation.
  *   The `ensure_[1d|2d|3d|cube][_array]()` method is here to make sure the underlying texture
  *   will meet the requirements and create (or recreate) the #GPUTexture if needed.
  *
- * `drw::TextureFromPool`
+ * `draw::TextureFromPool`
  *   A GPUTexture from the viewport texture pool. This texture can be shared with other engines
  *   and its content is undefined when acquiring it.
- *   A #drw::TextureFromPool is acquired for rendering using `acquire()` and released once the
+ *   A #draw::TextureFromPool is acquired for rendering using `acquire()` and released once the
  *   rendering is done using `release()`. The same texture can be acquired & released multiple
  *   time in one draw loop.
  *   The `sync()` method *MUST* be called once during the cache populate (aka: Sync) phase.
  *
- * `drw::Framebuffer`
+ * `draw::Framebuffer`
  *   Simple wrapper to #GPUFramebuffer that can be moved.
  *
  */
@@ -648,7 +648,7 @@ class Texture : NonCopyable {
   }
 
   /**
-   * Free the internal texture but not the #drw::Texture itself.
+   * Free the internal texture but not the #draw::Texture itself.
    */
   void free()
   {
@@ -744,7 +744,7 @@ class TextureFromPool : public Texture, NonMovable {
  public:
   TextureFromPool(const char *name = "gpu::Texture") : Texture(name){};
 
-  /* Always use `release()` after rendering. */
+  /* Always use `release()` after rendering and `sync()` in sync phase. */
   void acquire(int2 extent, eGPUTextureFormat format, void *owner_)
   {
     if (this->tx_ == nullptr) {
