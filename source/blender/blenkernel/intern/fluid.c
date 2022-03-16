@@ -1754,7 +1754,7 @@ static void update_distances(int index,
     /* Count ray mesh misses (i.e. no face hit) and cases where the ray direction matches the face
      * normal direction. From this information it can be derived whether a cell is inside or
      * outside the mesh. */
-    int miss_cnt = 0, dir_cnt = 0;
+    int miss_count = 0, dir_count = 0;
 
     for (int i = 0; i < ARRAY_SIZE(ray_dirs); i++) {
       BVHTreeRayHit hit_tree = {0};
@@ -1773,14 +1773,14 @@ static void update_distances(int index,
       /* Ray did not hit mesh.
        * Current point definitely not inside mesh. Inside mesh as all rays have to hit. */
       if (hit_tree.index == -1) {
-        miss_cnt++;
+        miss_count++;
         /* Skip this ray since nothing was hit. */
         continue;
       }
 
       /* Ray and normal are pointing in opposite directions. */
       if (dot_v3v3(ray_dirs[i], hit_tree.no) <= 0) {
-        dir_cnt++;
+        dir_count++;
       }
 
       if (hit_tree.dist < min_dist) {
@@ -1790,7 +1790,7 @@ static void update_distances(int index,
 
     /* Point lies inside mesh. Use negative sign for distance value.
      * This "if statement" has 2 conditions that can be true for points outside mesh. */
-    if (!(miss_cnt > 0 || dir_cnt == ARRAY_SIZE(ray_dirs))) {
+    if (!(miss_count > 0 || dir_count == ARRAY_SIZE(ray_dirs))) {
       min_dist = (-1.0f) * fabsf(min_dist);
     }
 

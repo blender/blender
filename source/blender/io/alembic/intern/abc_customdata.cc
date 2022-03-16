@@ -61,7 +61,7 @@ static void get_uvs(const CDStreamConfig &config,
   MLoop *mloop = config.mloop;
 
   if (!config.pack_uvs) {
-    int cnt = 0;
+    int count = 0;
     uvidx.resize(config.totloop);
     uvs.resize(config.totloop);
 
@@ -70,12 +70,12 @@ static void get_uvs(const CDStreamConfig &config,
       MPoly &current_poly = polygons[i];
       MLoopUV *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
 
-      for (int j = 0; j < current_poly.totloop; j++, cnt++) {
+      for (int j = 0; j < current_poly.totloop; j++, count++) {
         loopuv--;
 
-        uvidx[cnt] = cnt;
-        uvs[cnt][0] = loopuv->uv[0];
-        uvs[cnt][1] = loopuv->uv[1];
+        uvidx[count] = count;
+        uvs[count][0] = loopuv->uv[0];
+        uvs[count][1] = loopuv->uv[1];
       }
     }
   }

@@ -270,7 +270,7 @@ bool Scene::initialize()
 
   m_ytask.resize(m_ncTotal);
   bool toggle = true;
-  int cnt = 0;
+  int count = 0;
   // Initialize all ConstraintSets:
   for (ConstraintMap::iterator it = constraints.begin(); it != constraints.end(); ++it) {
     // Calculate the external pose:
@@ -279,8 +279,8 @@ bool Scene::initialize()
     getConstraintPose(cs->task, cs, external_pose);
     result &= cs->task->initialise(external_pose);
     cs->task->initCache(m_cache);
-    for (int i = 0; i < cs->constraintrange.count; i++, cnt++) {
-      m_ytask[cnt] = toggle;
+    for (int i = 0; i < cs->constraintrange.count; i++, count++) {
+      m_ytask[count] = toggle;
     }
     toggle = !toggle;
     project(m_Cf, cs->constraintrange, cs->featurerange) = cs->task->getCf();

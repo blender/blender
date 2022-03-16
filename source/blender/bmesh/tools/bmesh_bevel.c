@@ -571,7 +571,7 @@ static EdgeHalf *next_bev(BevVert *bv, EdgeHalf *from_e)
 /* Return the count of edges between e1 and e2 when going around bv CCW. */
 static int count_ccw_edges_between(EdgeHalf *e1, EdgeHalf *e2)
 {
-  int cnt = 0;
+  int count = 0;
   EdgeHalf *e = e1;
 
   do {
@@ -579,9 +579,9 @@ static int count_ccw_edges_between(EdgeHalf *e1, EdgeHalf *e2)
       break;
     }
     e = e->next;
-    cnt++;
+    count++;
   } while (e != e1);
-  return cnt;
+  return count;
 }
 
 /* Assume bme1 and bme2 both share some vert. Do they share a face?
