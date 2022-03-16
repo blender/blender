@@ -987,9 +987,7 @@ static void action_preview_render(IconPreview *preview, IconPreviewSize *preview
  * \{ */
 
 /* inside thread, called by renderer, sets job update value */
-static void shader_preview_update(void *spv,
-                                  RenderResult *UNUSED(rr),
-                                  volatile struct rcti *UNUSED(rect))
+static void shader_preview_update(void *spv, RenderResult *UNUSED(rr), struct rcti *UNUSED(rect))
 {
   ShaderPreview *sp = static_cast<ShaderPreview *>(spv);
 

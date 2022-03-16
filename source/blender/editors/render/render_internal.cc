@@ -101,7 +101,7 @@ struct RenderJob {
 /* called inside thread! */
 static bool image_buffer_calc_tile_rect(const RenderResult *rr,
                                         const ImBuf *ibuf,
-                                        volatile rcti *renrect,
+                                        rcti *renrect,
                                         rcti *r_ibuf_rect,
                                         int *r_offset_x,
                                         int *r_offset_y)
@@ -556,7 +556,7 @@ static void render_image_update_pass_and_layer(RenderJob *rj, RenderResult *rr, 
   }
 }
 
-static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrect)
+static void image_rect_update(void *rjv, RenderResult *rr, rcti *renrect)
 {
   RenderJob *rj = static_cast<RenderJob *>(rjv);
   Image *ima = rj->image;

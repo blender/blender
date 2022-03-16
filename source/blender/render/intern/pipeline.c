@@ -166,7 +166,7 @@ static void result_nothing(void *UNUSED(arg), RenderResult *UNUSED(rr))
 }
 static void result_rcti_nothing(void *UNUSED(arg),
                                 RenderResult *UNUSED(rr),
-                                volatile struct rcti *UNUSED(rect))
+                                struct rcti *UNUSED(rect))
 {
 }
 static void current_scene_nothing(void *UNUSED(arg), Scene *UNUSED(scene))
@@ -262,7 +262,7 @@ void RE_FreeRenderResult(RenderResult *rr)
   render_result_free(rr);
 }
 
-float *RE_RenderLayerGetPass(volatile RenderLayer *rl, const char *name, const char *viewname)
+float *RE_RenderLayerGetPass(RenderLayer *rl, const char *name, const char *viewname)
 {
   RenderPass *rpass = RE_pass_find_by_name(rl, name, viewname);
   return rpass ? rpass->rect : NULL;
@@ -890,7 +890,7 @@ void RE_display_clear_cb(Render *re, void *handle, void (*f)(void *handle, Rende
 }
 void RE_display_update_cb(Render *re,
                           void *handle,
-                          void (*f)(void *handle, RenderResult *rr, volatile rcti *rect))
+                          void (*f)(void *handle, RenderResult *rr, rcti *rect))
 {
   re->display_update = f;
   re->duh = handle;
@@ -2743,7 +2743,7 @@ bool RE_passes_have_name(struct RenderLayer *rl)
   return false;
 }
 
-RenderPass *RE_pass_find_by_name(volatile RenderLayer *rl, const char *name, const char *viewname)
+RenderPass *RE_pass_find_by_name(RenderLayer *rl, const char *name, const char *viewname)
 {
   RenderPass *rp = NULL;
 
@@ -2760,7 +2760,7 @@ RenderPass *RE_pass_find_by_name(volatile RenderLayer *rl, const char *name, con
   return rp;
 }
 
-RenderPass *RE_pass_find_by_type(volatile RenderLayer *rl, int passtype, const char *viewname)
+RenderPass *RE_pass_find_by_type(RenderLayer *rl, int passtype, const char *viewname)
 {
 #define CHECK_PASS(NAME) \
   if (passtype == SCE_PASS_##NAME) { \

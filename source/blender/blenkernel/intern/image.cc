@@ -5105,31 +5105,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
     RE_AcquireResultImage(re, &rres, actview);
   }
   else if ((slot = BKE_image_get_renderslot(ima, ima->render_slot))->render) {
-    /* Unfortunately each field needs to be set individually because RenderResult
-     * contains volatile fields and using memcpy would invoke undefined behavior with c++. */
-    rres.next = slot->render->next;
-    rres.prev = slot->render->prev;
-    rres.rectx = slot->render->rectx;
-    rres.recty = slot->render->recty;
-    rres.sample_nr = slot->render->sample_nr;
-    rres.rect32 = slot->render->rect32;
-    rres.rectf = slot->render->rectf;
-    rres.rectz = slot->render->rectz;
-    rres.tilerect = slot->render->tilerect;
-    rres.xof = slot->render->xof;
-    rres.yof = slot->render->yof;
-    rres.layers = slot->render->layers;
-    rres.views = slot->render->views;
-    rres.renrect.xmin = slot->render->renrect.xmin;
-    rres.renrect.xmax = slot->render->renrect.xmax;
-    rres.renrect.ymin = slot->render->renrect.ymin;
-    rres.renrect.ymax = slot->render->renrect.ymax;
-    rres.renlay = slot->render->renlay;
-    rres.framenr = slot->render->framenr;
-    rres.text = slot->render->text;
-    rres.error = slot->render->error;
-    rres.stamp_data = slot->render->stamp_data;
-    rres.passes_allocated = slot->render->passes_allocated;
+    rres = *(slot->render);
     rres.have_combined = ((RenderView *)rres.views.first)->rectf != nullptr;
   }
 
