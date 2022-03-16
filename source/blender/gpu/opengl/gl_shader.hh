@@ -72,6 +72,11 @@ class GLShader : public Shader {
   /** DEPRECATED: Kept only because of BGL API. */
   int program_handle_get() const override;
 
+  bool is_compute() const
+  {
+    return compute_shader_ != 0;
+  }
+
  private:
   char *glsl_patch_get(GLenum gl_stage);
 

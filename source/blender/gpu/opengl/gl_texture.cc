@@ -688,6 +688,11 @@ void GLTexture::check_feedback_loop()
   if (GPU_mip_render_workaround()) {
     return;
   }
+  /* Do not check if using compute shader. */
+  GLShader *sh = dynamic_cast<GLShader *>(Context::get()->shader);
+  if (sh && sh->is_compute()) {
+    return;
+  }
   GLFrameBuffer *fb = static_cast<GLFrameBuffer *>(GLContext::get()->active_fb);
   for (int i = 0; i < ARRAY_SIZE(fb_); i++) {
     if (fb_[i] == fb) {
