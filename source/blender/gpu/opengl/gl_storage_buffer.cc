@@ -100,6 +100,13 @@ void GLStorageBuf::bind(int slot)
 #endif
 }
 
+void GLStorageBuf::bind_as(GLenum target)
+{
+  BLI_assert_msg(ssbo_id_ != 0,
+                 "Trying to use storage buf as indirect buffer but buffer was never filled.");
+  glBindBuffer(target, ssbo_id_);
+}
+
 void GLStorageBuf::unbind()
 {
 #ifdef DEBUG

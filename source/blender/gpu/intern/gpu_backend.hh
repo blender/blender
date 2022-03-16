@@ -35,6 +35,7 @@ class GPUBackend {
 
   virtual void samplers_update() = 0;
   virtual void compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len) = 0;
+  virtual void compute_dispatch_indirect(StorageBuf *indirect_buf) = 0;
 
   virtual Context *context_alloc(void *ghost_window) = 0;
 

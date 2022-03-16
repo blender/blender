@@ -123,6 +123,19 @@ class GLBackend : public GPUBackend {
     GLCompute::dispatch(groups_x_len, groups_y_len, groups_z_len);
   }
 
+  void compute_dispatch_indirect(StorageBuf *indirect_buf) override
+  {
+    GLContext::get()->state_manager_active_get()->apply_state();
+
+    dynamic_cast<GLStorageBuf *>(indirect_buf)->bind_as(GL_DISPATCH_INDIRECT_BUFFER);
+    /* This barrier needs to be here as it only work on the currently bound indirect buffer. */
+    glMemoryBarrier(GL_DRAW_INDIRECT_BUFFER);
+
+    glDispatchComputeIndirect((GLintptr)0);
+    /* Unbind. */
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+  }
+
  private:
   static void platform_init();
   static void platform_exit();
