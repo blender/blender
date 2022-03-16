@@ -155,6 +155,7 @@ set(LIB
   bf_bmesh
   bf_functions
   bf_geometry
+  bf_nodes
 )
 
 if(WITH_BULLET)

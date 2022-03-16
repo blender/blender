@@ -127,6 +127,7 @@ set(SRC
 set(LIB
   bf_functions
   bf_intern_sky
+  bf_nodes
 )
 
 if(WITH_PYTHON)
