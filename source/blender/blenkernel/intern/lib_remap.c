@@ -8,6 +8,7 @@
 
 #include "CLG_log.h"
 
+#include "BLI_linklist.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_collection_types.h"
@@ -681,6 +682,126 @@ void BKE_libblock_unlink(Main *bmain,
  *     ... sigh
  */
 
+typedef struct LibblockRelinkMultipleUserData {
+  Main *bmain;
+  LinkNode *ids;
+} LibBlockRelinkMultipleUserData;
+
+static void libblock_relink_foreach_idpair_cb(ID *old_id, ID *new_id, void *user_data)
+{
+  LibBlockRelinkMultipleUserData *data = user_data;
+  Main *bmain = data->bmain;
+  LinkNode *ids = data->ids;
+
+  BLI_assert(old_id != NULL);
+  BLI_assert((new_id == NULL) || GS(old_id->name) == GS(new_id->name));
+  BLI_assert(old_id != new_id);
+
+  bool is_object_update_processed = false;
+  for (LinkNode *ln_iter = ids; ln_iter != NULL; ln_iter = ln_iter->next) {
+    ID *id_iter = ln_iter->link;
+
+    /* Some after-process updates.
+     * This is a bit ugly, but cannot see a way to avoid it.
+     * Maybe we should do a per-ID callback for this instead?
+     */
+    switch (GS(id_iter->name)) {
+      case ID_SCE:
+      case ID_GR: {
+        /* NOTE: here we know which collection we have affected, so at lest for NULL children
+         * detection we can only process that one.
+         * This is also a required fix in case `id` would not be in Main anymore, which can happen
+         * e.g. when called from `id_delete`. */
+        Collection *owner_collection = (GS(id_iter->name) == ID_GR) ?
+                                           (Collection *)id_iter :
+                                           ((Scene *)id_iter)->master_collection;
+        switch (GS(old_id->name)) {
+          case ID_OB:
+            if (!is_object_update_processed) {
+              libblock_remap_data_postprocess_object_update(
+                  bmain, (Object *)old_id, (Object *)new_id);
+              is_object_update_processed = true;
+            }
+            break;
+          case ID_GR:
+            libblock_remap_data_postprocess_collection_update(
+                bmain, owner_collection, (Collection *)old_id, (Collection *)new_id);
+            break;
+          default:
+            break;
+        }
+        break;
+      }
+      case ID_OB:
+        if (new_id != NULL) { /* Only affects us in case obdata was relinked (changed). */
+          libblock_remap_data_postprocess_obdata_relink(bmain, (Object *)id_iter, new_id);
+        }
+        break;
+      default:
+        break;
+    }
+  }
+}
+
+void BKE_libblock_relink_multiple(Main *bmain,
+                                  LinkNode *ids,
+                                  const eIDRemapType remap_type,
+                                  struct IDRemapper *id_remapper,
+                                  const short remap_flags)
+{
+  BLI_assert(remap_type == ID_REMAP_TYPE_REMAP || BKE_id_remapper_is_empty(id_remapper));
+
+  for (LinkNode *ln_iter = ids; ln_iter != NULL; ln_iter = ln_iter->next) {
+    ID *id_iter = ln_iter->link;
+    libblock_remap_data(bmain, id_iter, remap_type, id_remapper, remap_flags);
+  }
+
+  switch (remap_type) {
+    case ID_REMAP_TYPE_REMAP: {
+      LibBlockRelinkMultipleUserData user_data = {0};
+      user_data.bmain = bmain;
+      user_data.ids = ids;
+
+      BKE_id_remapper_iter(id_remapper, libblock_relink_foreach_idpair_cb, &user_data);
+      break;
+    }
+    case ID_REMAP_TYPE_CLEANUP: {
+      bool is_object_update_processed = false;
+      for (LinkNode *ln_iter = ids; ln_iter != NULL; ln_iter = ln_iter->next) {
+        ID *id_iter = ln_iter->link;
+
+        switch (GS(id_iter->name)) {
+          case ID_SCE:
+          case ID_GR: {
+            /* NOTE: here we know which collection we have affected, so at lest for NULL children
+             * detection we can only process that one.
+             * This is also a required fix in case `id` would not be in Main anymore, which can
+             * happen e.g. when called from `id_delete`. */
+            Collection *owner_collection = (GS(id_iter->name) == ID_GR) ?
+                                               (Collection *)id_iter :
+                                               ((Scene *)id_iter)->master_collection;
+            /* No choice but to check whole objects once, and all children collections. */
+            libblock_remap_data_postprocess_collection_update(bmain, owner_collection, NULL, NULL);
+            if (!is_object_update_processed) {
+              libblock_remap_data_postprocess_object_update(bmain, NULL, NULL);
+              is_object_update_processed = true;
+            }
+            break;
+          }
+          default:
+            break;
+        }
+      }
+
+      break;
+    }
+    default:
+      BLI_assert_unreachable();
+  }
+
+  DEG_relations_tag_update(bmain);
+}
+
 void BKE_libblock_relink_ex(
     Main *bmain, void *idv, void *old_idv, void *new_idv, const short remap_flags)
 {
@@ -690,13 +811,15 @@ void BKE_libblock_relink_ex(
   ID *id = idv;
   ID *old_id = old_idv;
   ID *new_id = new_idv;
+  LinkNode ids = {.next = NULL, .link = idv};
 
   /* No need to lock here, we are only affecting given ID, not bmain database. */
   struct IDRemapper *id_remapper = BKE_id_remapper_create();
   eIDRemapType remap_type = ID_REMAP_TYPE_REMAP;
 
-  BLI_assert(id);
-  if (old_id) {
+  BLI_assert(id != NULL);
+  UNUSED_VARS_NDEBUG(id);
+  if (old_id != NULL) {
     BLI_assert((new_id == NULL) || GS(old_id->name) == GS(new_id->name));
     BLI_assert(old_id != new_id);
     BKE_id_remapper_add(id_remapper, old_id, new_id);
@@ -706,53 +829,9 @@ void BKE_libblock_relink_ex(
     remap_type = ID_REMAP_TYPE_CLEANUP;
   }
 
-  libblock_remap_data(bmain, id, remap_type, id_remapper, remap_flags);
+  BKE_libblock_relink_multiple(bmain, &ids, remap_type, id_remapper, remap_flags);
+
   BKE_id_remapper_free(id_remapper);
-
-  /* Some after-process updates.
-   * This is a bit ugly, but cannot see a way to avoid it.
-   * Maybe we should do a per-ID callback for this instead?
-   */
-  switch (GS(id->name)) {
-    case ID_SCE:
-    case ID_GR: {
-      /* NOTE: here we know which collection we have affected, so at lest for NULL children
-       * detection we can only process that one.
-       * This is also a required fix in case `id` would not be in Main anymore, which can happen
-       * e.g. when called from `id_delete`. */
-      Collection *owner_collection = (GS(id->name) == ID_GR) ? (Collection *)id :
-                                                               ((Scene *)id)->master_collection;
-      if (old_id) {
-        switch (GS(old_id->name)) {
-          case ID_OB:
-            libblock_remap_data_postprocess_object_update(
-                bmain, (Object *)old_id, (Object *)new_id);
-            break;
-          case ID_GR:
-            libblock_remap_data_postprocess_collection_update(
-                bmain, owner_collection, (Collection *)old_id, (Collection *)new_id);
-            break;
-          default:
-            break;
-        }
-      }
-      else {
-        /* No choice but to check whole objects/collections. */
-        libblock_remap_data_postprocess_collection_update(bmain, owner_collection, NULL, NULL);
-        libblock_remap_data_postprocess_object_update(bmain, NULL, NULL);
-      }
-      break;
-    }
-    case ID_OB:
-      if (new_id) { /* Only affects us in case obdata was relinked (changed). */
-        libblock_remap_data_postprocess_obdata_relink(bmain, (Object *)id, new_id);
-      }
-      break;
-    default:
-      break;
-  }
-
-  DEG_relations_tag_update(bmain);
 }
 
 static void libblock_relink_to_newid(Main *bmain, ID *id, const int remap_flag);

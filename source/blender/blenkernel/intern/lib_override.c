@@ -417,6 +417,39 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
     }
     BLI_assert(id_hierarchy_root != NULL);
 
+    LinkNode *relinked_ids = NULL;
+    /* Still checking the whole Main, that way we can tag other local IDs as needing to be
+     * remapped to use newly created overriding IDs, if needed. */
+    ID *id;
+    FOREACH_MAIN_ID_BEGIN (bmain, id) {
+      ID *other_id;
+      /* In case we created new overrides as 'no main', they are not accessible directly in this
+       * loop, but we can get to them through their reference's `newid` pointer. */
+      if (do_no_main && id->lib == id_root_reference->lib && id->newid != NULL) {
+        other_id = id->newid;
+        /* Otherwise we cannot properly distinguish between IDs that are actually from the
+         * linked library (and should not be remapped), and IDs that are overrides re-generated
+         * from the reference from the linked library, and must therefore be remapped.
+         *
+         * This is reset afterwards at the end of this loop. */
+        other_id->lib = NULL;
+      }
+      else {
+        other_id = id;
+      }
+
+      /* If other ID is a linked one, but not from the same library as our reference, then we
+       * consider we should also relink it, as part of recursive resync. */
+      if ((other_id->tag & LIB_TAG_DOIT) != 0 && other_id->lib != id_root_reference->lib) {
+        BLI_linklist_prepend(&relinked_ids, other_id);
+      }
+      if (other_id != id) {
+        other_id->lib = id_root_reference->lib;
+      }
+    }
+    FOREACH_MAIN_ID_END;
+
+    struct IDRemapper *id_remapper = BKE_id_remapper_create();
     for (todo_id_iter = todo_ids.first; todo_id_iter != NULL; todo_id_iter = todo_id_iter->next) {
       reference_id = todo_id_iter->data;
       ID *local_id = reference_id->newid;
@@ -427,55 +460,25 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
 
       local_id->override_library->hierarchy_root = id_hierarchy_root;
 
+      BKE_id_remapper_add(id_remapper, reference_id, local_id);
+
       Key *reference_key, *local_key = NULL;
       if ((reference_key = BKE_key_from_id(reference_id)) != NULL) {
         local_key = BKE_key_from_id(reference_id->newid);
         BLI_assert(local_key != NULL);
-      }
 
-      /* Still checking the whole Main, that way we can tag other local IDs as needing to be
-       * remapped to use newly created overriding IDs, if needed. */
-      ID *id;
-      FOREACH_MAIN_ID_BEGIN (bmain, id) {
-        ID *other_id;
-        /* In case we created new overrides as 'no main', they are not accessible directly in this
-         * loop, but we can get to them through their reference's `newid` pointer. */
-        if (do_no_main && id->lib == reference_id->lib && id->newid != NULL) {
-          other_id = id->newid;
-          /* Otherwise we cannot properly distinguish between IDs that are actually from the
-           * linked library (and should not be remapped), and IDs that are overrides re-generated
-           * from the reference from the linked library, and must therefore be remapped.
-           *
-           * This is reset afterwards at the end of this loop. */
-          other_id->lib = NULL;
-        }
-        else {
-          other_id = id;
-        }
-
-        /* If other ID is a linked one, but not from the same library as our reference, then we
-         * consider we should also remap it, as part of recursive resync. */
-        if ((other_id->tag & LIB_TAG_DOIT) != 0 && other_id->lib != reference_id->lib &&
-            other_id != local_id) {
-          BKE_libblock_relink_ex(bmain,
-                                 other_id,
-                                 reference_id,
-                                 local_id,
-                                 ID_REMAP_SKIP_OVERRIDE_LIBRARY | ID_REMAP_FORCE_USER_REFCOUNT);
-          if (reference_key != NULL) {
-            BKE_libblock_relink_ex(bmain,
-                                   other_id,
-                                   &reference_key->id,
-                                   &local_key->id,
-                                   ID_REMAP_SKIP_OVERRIDE_LIBRARY | ID_REMAP_FORCE_USER_REFCOUNT);
-          }
-        }
-        if (other_id != id) {
-          other_id->lib = reference_id->lib;
-        }
+        BKE_id_remapper_add(id_remapper, &reference_key->id, &local_key->id);
       }
-      FOREACH_MAIN_ID_END;
     }
+
+    BKE_libblock_relink_multiple(bmain,
+                                 relinked_ids,
+                                 ID_REMAP_TYPE_REMAP,
+                                 id_remapper,
+                                 ID_REMAP_SKIP_OVERRIDE_LIBRARY | ID_REMAP_FORCE_USER_REFCOUNT);
+
+    BKE_id_remapper_free(id_remapper);
+    BLI_linklist_free(relinked_ids, NULL);
   }
   else {
     /* We need to cleanup potentially already created data. */
@@ -1353,8 +1356,9 @@ static void lib_override_library_remap(Main *bmain,
 {
   ID *id;
   struct IDRemapper *remapper = BKE_id_remapper_create();
-  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+  LinkNode *nomain_ids = NULL;
 
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (id->tag & LIB_TAG_DOIT && id->newid != NULL && id->lib == id_root_reference->lib) {
       ID *id_override_new = id->newid;
       ID *id_override_old = BLI_ghash_lookup(linkedref_to_old_override, id);
@@ -1363,26 +1367,28 @@ static void lib_override_library_remap(Main *bmain,
       }
 
       BKE_id_remapper_add(remapper, id_override_old, id_override_new);
-      /* Remap no-main override IDs we just created too. */
-      GHashIterator linkedref_to_old_override_iter;
-      GHASH_ITER (linkedref_to_old_override_iter, linkedref_to_old_override) {
-        ID *id_override_old_iter = BLI_ghashIterator_getValue(&linkedref_to_old_override_iter);
-        if ((id_override_old_iter->tag & LIB_TAG_NO_MAIN) == 0) {
-          continue;
-        }
-
-        BKE_libblock_relink_ex(bmain,
-                               id_override_old_iter,
-                               id_override_old,
-                               id_override_new,
-                               ID_REMAP_FORCE_USER_REFCOUNT | ID_REMAP_FORCE_NEVER_NULL_USAGE);
-      }
     }
   }
   FOREACH_MAIN_ID_END;
 
+  /* Remap no-main override IDs we just created too. */
+  GHashIterator linkedref_to_old_override_iter;
+  GHASH_ITER (linkedref_to_old_override_iter, linkedref_to_old_override) {
+    ID *id_override_old_iter = BLI_ghashIterator_getValue(&linkedref_to_old_override_iter);
+    if ((id_override_old_iter->tag & LIB_TAG_NO_MAIN) == 0) {
+      continue;
+    }
+
+    BLI_linklist_prepend(&nomain_ids, id_override_old_iter);
+  }
+
   /* Remap all IDs to use the new override. */
   BKE_libblock_remap_multiple(bmain, remapper, 0);
+  BKE_libblock_relink_multiple(bmain,
+                               nomain_ids,
+                               ID_REMAP_TYPE_REMAP,
+                               remapper,
+                               ID_REMAP_FORCE_USER_REFCOUNT | ID_REMAP_FORCE_NEVER_NULL_USAGE);
   BKE_id_remapper_free(remapper);
 }
 
@@ -1641,6 +1647,8 @@ static bool lib_override_library_resync(Main *bmain,
 
   BKE_main_collection_sync(bmain);
 
+  LinkNode *id_override_old_list = NULL;
+
   /* We need to apply override rules in a separate loop, after all ID pointers have been properly
    * remapped, and all new local override IDs have gotten their proper original names, otherwise
    * override operations based on those ID names would fail. */
@@ -1690,18 +1698,26 @@ static bool lib_override_library_resync(Main *bmain,
                                       RNA_OVERRIDE_APPLY_FLAG_NOP);
       }
 
-      /* Once overrides have been properly 'transferred' from old to new ID, we can clear ID usages
-       * of the old one.
-       * This is necessary in case said old ID is not in Main anymore. */
-      BKE_libblock_relink_ex(bmain,
-                             id_override_old,
-                             NULL,
-                             NULL,
-                             ID_REMAP_FORCE_USER_REFCOUNT | ID_REMAP_FORCE_NEVER_NULL_USAGE);
-      id_override_old->tag |= LIB_TAG_NO_USER_REFCOUNT;
+      BLI_linklist_prepend(&id_override_old_list, id_override_old);
     }
   }
   FOREACH_MAIN_ID_END;
+
+  /* Once overrides have been properly 'transferred' from old to new ID, we can clear ID usages
+   * of the old one.
+   * This is necessary in case said old ID is not in Main anymore. */
+  struct IDRemapper *id_remapper = BKE_id_remapper_create();
+  BKE_libblock_relink_multiple(bmain,
+                               id_override_old_list,
+                               ID_REMAP_TYPE_CLEANUP,
+                               id_remapper,
+                               ID_REMAP_FORCE_USER_REFCOUNT | ID_REMAP_FORCE_NEVER_NULL_USAGE);
+  for (LinkNode *ln_iter = id_override_old_list; ln_iter != NULL; ln_iter = ln_iter->next) {
+    ID *id_override_old = ln_iter->link;
+    id_override_old->tag |= LIB_TAG_NO_USER_REFCOUNT;
+  }
+  BKE_id_remapper_free(id_remapper);
+  BLI_linklist_free(id_override_old_list, NULL);
 
   /* Delete old override IDs.
    * Note that we have to use tagged group deletion here, since ID deletion also uses
