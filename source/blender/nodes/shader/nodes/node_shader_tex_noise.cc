@@ -232,7 +232,7 @@ class NoiseFunction : public fn::MultiFunction {
   }
 };
 
-static void sh_node_noise_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void sh_node_noise_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const NodeTexNoise &storage = node_storage(builder.node());
   builder.construct_and_set_matching_fn<NoiseFunction>(storage.dimensions);

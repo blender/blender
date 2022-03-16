@@ -259,7 +259,7 @@ class BrickFunction : public fn::MultiFunction {
   }
 };
 
-static void sh_node_brick_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void sh_node_brick_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   bNode &node = builder.node();
   NodeTexBrick *tex = (NodeTexBrick *)node.storage;

@@ -223,7 +223,7 @@ static float3 clamp_range(const float3 value, const float3 min, const float3 max
                 clamp_range(value.z, min.z, max.z));
 }
 
-static void map_range_vector_signature(blender::fn::MFSignatureBuilder *signature, bool use_steps)
+static void map_range_vector_signature(fn::MFSignatureBuilder *signature, bool use_steps)
 {
   signature->single_input<float3>("Vector");
   signature->single_input<float3>("From Min");
@@ -236,34 +236,32 @@ static void map_range_vector_signature(blender::fn::MFSignatureBuilder *signatur
   signature->single_output<float3>("Vector");
 }
 
-class MapRangeVectorFunction : public blender::fn::MultiFunction {
+class MapRangeVectorFunction : public fn::MultiFunction {
  private:
   bool clamp_;
 
  public:
   MapRangeVectorFunction(bool clamp) : clamp_(clamp)
   {
-    static blender::fn::MFSignature signature = create_signature();
+    static fn::MFSignature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static blender::fn::MFSignature create_signature()
+  static fn::MFSignature create_signature()
   {
-    blender::fn::MFSignatureBuilder signature{"Vector Map Range"};
+    fn::MFSignatureBuilder signature{"Vector Map Range"};
     map_range_vector_signature(&signature, false);
     return signature.build();
   }
 
-  void call(blender::IndexMask mask,
-            blender::fn::MFParams params,
-            blender::fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
-    const blender::VArray<float3> &values = params.readonly_single_input<float3>(0, "Vector");
-    const blender::VArray<float3> &from_min = params.readonly_single_input<float3>(1, "From Min");
-    const blender::VArray<float3> &from_max = params.readonly_single_input<float3>(2, "From Max");
-    const blender::VArray<float3> &to_min = params.readonly_single_input<float3>(3, "To Min");
-    const blender::VArray<float3> &to_max = params.readonly_single_input<float3>(4, "To Max");
-    blender::MutableSpan<float3> results = params.uninitialized_single_output<float3>(5, "Vector");
+    const VArray<float3> &values = params.readonly_single_input<float3>(0, "Vector");
+    const VArray<float3> &from_min = params.readonly_single_input<float3>(1, "From Min");
+    const VArray<float3> &from_max = params.readonly_single_input<float3>(2, "From Max");
+    const VArray<float3> &to_min = params.readonly_single_input<float3>(3, "To Min");
+    const VArray<float3> &to_max = params.readonly_single_input<float3>(4, "To Max");
+    MutableSpan<float3> results = params.uninitialized_single_output<float3>(5, "Vector");
 
     for (int64_t i : mask) {
       float3 factor = math::safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
@@ -278,35 +276,33 @@ class MapRangeVectorFunction : public blender::fn::MultiFunction {
   }
 };
 
-class MapRangeSteppedVectorFunction : public blender::fn::MultiFunction {
+class MapRangeSteppedVectorFunction : public fn::MultiFunction {
  private:
   bool clamp_;
 
  public:
   MapRangeSteppedVectorFunction(bool clamp) : clamp_(clamp)
   {
-    static blender::fn::MFSignature signature = create_signature();
+    static fn::MFSignature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static blender::fn::MFSignature create_signature()
+  static fn::MFSignature create_signature()
   {
-    blender::fn::MFSignatureBuilder signature{"Vector Map Range Stepped"};
+    fn::MFSignatureBuilder signature{"Vector Map Range Stepped"};
     map_range_vector_signature(&signature, true);
     return signature.build();
   }
 
-  void call(blender::IndexMask mask,
-            blender::fn::MFParams params,
-            blender::fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
-    const blender::VArray<float3> &values = params.readonly_single_input<float3>(0, "Vector");
-    const blender::VArray<float3> &from_min = params.readonly_single_input<float3>(1, "From Min");
-    const blender::VArray<float3> &from_max = params.readonly_single_input<float3>(2, "From Max");
-    const blender::VArray<float3> &to_min = params.readonly_single_input<float3>(3, "To Min");
-    const blender::VArray<float3> &to_max = params.readonly_single_input<float3>(4, "To Max");
-    const blender::VArray<float3> &steps = params.readonly_single_input<float3>(5, "Steps");
-    blender::MutableSpan<float3> results = params.uninitialized_single_output<float3>(6, "Vector");
+    const VArray<float3> &values = params.readonly_single_input<float3>(0, "Vector");
+    const VArray<float3> &from_min = params.readonly_single_input<float3>(1, "From Min");
+    const VArray<float3> &from_max = params.readonly_single_input<float3>(2, "From Max");
+    const VArray<float3> &to_min = params.readonly_single_input<float3>(3, "To Min");
+    const VArray<float3> &to_max = params.readonly_single_input<float3>(4, "To Max");
+    const VArray<float3> &steps = params.readonly_single_input<float3>(5, "Steps");
+    MutableSpan<float3> results = params.uninitialized_single_output<float3>(6, "Vector");
 
     for (int64_t i : mask) {
       float3 factor = math::safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
@@ -322,31 +318,29 @@ class MapRangeSteppedVectorFunction : public blender::fn::MultiFunction {
   }
 };
 
-class MapRangeSmoothstepVectorFunction : public blender::fn::MultiFunction {
+class MapRangeSmoothstepVectorFunction : public fn::MultiFunction {
  public:
   MapRangeSmoothstepVectorFunction()
   {
-    static blender::fn::MFSignature signature = create_signature();
+    static fn::MFSignature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static blender::fn::MFSignature create_signature()
+  static fn::MFSignature create_signature()
   {
-    blender::fn::MFSignatureBuilder signature{"Vector Map Range Smoothstep"};
+    fn::MFSignatureBuilder signature{"Vector Map Range Smoothstep"};
     map_range_vector_signature(&signature, false);
     return signature.build();
   }
 
-  void call(blender::IndexMask mask,
-            blender::fn::MFParams params,
-            blender::fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
-    const blender::VArray<float3> &values = params.readonly_single_input<float3>(0, "Vector");
-    const blender::VArray<float3> &from_min = params.readonly_single_input<float3>(1, "From Min");
-    const blender::VArray<float3> &from_max = params.readonly_single_input<float3>(2, "From Max");
-    const blender::VArray<float3> &to_min = params.readonly_single_input<float3>(3, "To Min");
-    const blender::VArray<float3> &to_max = params.readonly_single_input<float3>(4, "To Max");
-    blender::MutableSpan<float3> results = params.uninitialized_single_output<float3>(5, "Vector");
+    const VArray<float3> &values = params.readonly_single_input<float3>(0, "Vector");
+    const VArray<float3> &from_min = params.readonly_single_input<float3>(1, "From Min");
+    const VArray<float3> &from_max = params.readonly_single_input<float3>(2, "From Max");
+    const VArray<float3> &to_min = params.readonly_single_input<float3>(3, "To Min");
+    const VArray<float3> &to_max = params.readonly_single_input<float3>(4, "To Max");
+    MutableSpan<float3> results = params.uninitialized_single_output<float3>(5, "Vector");
 
     for (int64_t i : mask) {
       float3 factor = math::safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
@@ -357,31 +351,29 @@ class MapRangeSmoothstepVectorFunction : public blender::fn::MultiFunction {
   }
 };
 
-class MapRangeSmootherstepVectorFunction : public blender::fn::MultiFunction {
+class MapRangeSmootherstepVectorFunction : public fn::MultiFunction {
  public:
   MapRangeSmootherstepVectorFunction()
   {
-    static blender::fn::MFSignature signature = create_signature();
+    static fn::MFSignature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static blender::fn::MFSignature create_signature()
+  static fn::MFSignature create_signature()
   {
-    blender::fn::MFSignatureBuilder signature{"Vector Map Range Smoothstep"};
+    fn::MFSignatureBuilder signature{"Vector Map Range Smoothstep"};
     map_range_vector_signature(&signature, false);
     return signature.build();
   }
 
-  void call(blender::IndexMask mask,
-            blender::fn::MFParams params,
-            blender::fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
-    const blender::VArray<float3> &values = params.readonly_single_input<float3>(0, "Vector");
-    const blender::VArray<float3> &from_min = params.readonly_single_input<float3>(1, "From Min");
-    const blender::VArray<float3> &from_max = params.readonly_single_input<float3>(2, "From Max");
-    const blender::VArray<float3> &to_min = params.readonly_single_input<float3>(3, "To Min");
-    const blender::VArray<float3> &to_max = params.readonly_single_input<float3>(4, "To Max");
-    blender::MutableSpan<float3> results = params.uninitialized_single_output<float3>(5, "Vector");
+    const VArray<float3> &values = params.readonly_single_input<float3>(0, "Vector");
+    const VArray<float3> &from_min = params.readonly_single_input<float3>(1, "From Min");
+    const VArray<float3> &from_max = params.readonly_single_input<float3>(2, "From Max");
+    const VArray<float3> &to_min = params.readonly_single_input<float3>(3, "To Min");
+    const VArray<float3> &to_max = params.readonly_single_input<float3>(4, "To Max");
+    MutableSpan<float3> results = params.uninitialized_single_output<float3>(5, "Vector");
 
     for (int64_t i : mask) {
       float3 factor = math::safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
@@ -392,7 +384,7 @@ class MapRangeSmootherstepVectorFunction : public blender::fn::MultiFunction {
   }
 };
 
-static void map_range_signature(blender::fn::MFSignatureBuilder *signature, bool use_steps)
+static void map_range_signature(fn::MFSignatureBuilder *signature, bool use_steps)
 {
   signature->single_input<float>("Value");
   signature->single_input<float>("From Min");
@@ -405,34 +397,32 @@ static void map_range_signature(blender::fn::MFSignatureBuilder *signature, bool
   signature->single_output<float>("Result");
 }
 
-class MapRangeFunction : public blender::fn::MultiFunction {
+class MapRangeFunction : public fn::MultiFunction {
  private:
   bool clamp_;
 
  public:
   MapRangeFunction(bool clamp) : clamp_(clamp)
   {
-    static blender::fn::MFSignature signature = create_signature();
+    static fn::MFSignature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static blender::fn::MFSignature create_signature()
+  static fn::MFSignature create_signature()
   {
-    blender::fn::MFSignatureBuilder signature{"Map Range"};
+    fn::MFSignatureBuilder signature{"Map Range"};
     map_range_signature(&signature, false);
     return signature.build();
   }
 
-  void call(blender::IndexMask mask,
-            blender::fn::MFParams params,
-            blender::fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
-    const blender::VArray<float> &values = params.readonly_single_input<float>(0, "Value");
-    const blender::VArray<float> &from_min = params.readonly_single_input<float>(1, "From Min");
-    const blender::VArray<float> &from_max = params.readonly_single_input<float>(2, "From Max");
-    const blender::VArray<float> &to_min = params.readonly_single_input<float>(3, "To Min");
-    const blender::VArray<float> &to_max = params.readonly_single_input<float>(4, "To Max");
-    blender::MutableSpan<float> results = params.uninitialized_single_output<float>(5, "Result");
+    const VArray<float> &values = params.readonly_single_input<float>(0, "Value");
+    const VArray<float> &from_min = params.readonly_single_input<float>(1, "From Min");
+    const VArray<float> &from_max = params.readonly_single_input<float>(2, "From Max");
+    const VArray<float> &to_min = params.readonly_single_input<float>(3, "To Min");
+    const VArray<float> &to_max = params.readonly_single_input<float>(4, "To Max");
+    MutableSpan<float> results = params.uninitialized_single_output<float>(5, "Result");
 
     for (int64_t i : mask) {
       float factor = safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
@@ -447,35 +437,33 @@ class MapRangeFunction : public blender::fn::MultiFunction {
   }
 };
 
-class MapRangeSteppedFunction : public blender::fn::MultiFunction {
+class MapRangeSteppedFunction : public fn::MultiFunction {
  private:
   bool clamp_;
 
  public:
   MapRangeSteppedFunction(bool clamp) : clamp_(clamp)
   {
-    static blender::fn::MFSignature signature = create_signature();
+    static fn::MFSignature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static blender::fn::MFSignature create_signature()
+  static fn::MFSignature create_signature()
   {
-    blender::fn::MFSignatureBuilder signature{"Map Range Stepped"};
+    fn::MFSignatureBuilder signature{"Map Range Stepped"};
     map_range_signature(&signature, true);
     return signature.build();
   }
 
-  void call(blender::IndexMask mask,
-            blender::fn::MFParams params,
-            blender::fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
-    const blender::VArray<float> &values = params.readonly_single_input<float>(0, "Value");
-    const blender::VArray<float> &from_min = params.readonly_single_input<float>(1, "From Min");
-    const blender::VArray<float> &from_max = params.readonly_single_input<float>(2, "From Max");
-    const blender::VArray<float> &to_min = params.readonly_single_input<float>(3, "To Min");
-    const blender::VArray<float> &to_max = params.readonly_single_input<float>(4, "To Max");
-    const blender::VArray<float> &steps = params.readonly_single_input<float>(5, "Steps");
-    blender::MutableSpan<float> results = params.uninitialized_single_output<float>(6, "Result");
+    const VArray<float> &values = params.readonly_single_input<float>(0, "Value");
+    const VArray<float> &from_min = params.readonly_single_input<float>(1, "From Min");
+    const VArray<float> &from_max = params.readonly_single_input<float>(2, "From Max");
+    const VArray<float> &to_min = params.readonly_single_input<float>(3, "To Min");
+    const VArray<float> &to_max = params.readonly_single_input<float>(4, "To Max");
+    const VArray<float> &steps = params.readonly_single_input<float>(5, "Steps");
+    MutableSpan<float> results = params.uninitialized_single_output<float>(6, "Result");
 
     for (int64_t i : mask) {
       float factor = safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
@@ -491,31 +479,29 @@ class MapRangeSteppedFunction : public blender::fn::MultiFunction {
   }
 };
 
-class MapRangeSmoothstepFunction : public blender::fn::MultiFunction {
+class MapRangeSmoothstepFunction : public fn::MultiFunction {
  public:
   MapRangeSmoothstepFunction()
   {
-    static blender::fn::MFSignature signature = create_signature();
+    static fn::MFSignature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static blender::fn::MFSignature create_signature()
+  static fn::MFSignature create_signature()
   {
-    blender::fn::MFSignatureBuilder signature{"Map Range Smoothstep"};
+    fn::MFSignatureBuilder signature{"Map Range Smoothstep"};
     map_range_signature(&signature, false);
     return signature.build();
   }
 
-  void call(blender::IndexMask mask,
-            blender::fn::MFParams params,
-            blender::fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
-    const blender::VArray<float> &values = params.readonly_single_input<float>(0, "Value");
-    const blender::VArray<float> &from_min = params.readonly_single_input<float>(1, "From Min");
-    const blender::VArray<float> &from_max = params.readonly_single_input<float>(2, "From Max");
-    const blender::VArray<float> &to_min = params.readonly_single_input<float>(3, "To Min");
-    const blender::VArray<float> &to_max = params.readonly_single_input<float>(4, "To Max");
-    blender::MutableSpan<float> results = params.uninitialized_single_output<float>(5, "Result");
+    const VArray<float> &values = params.readonly_single_input<float>(0, "Value");
+    const VArray<float> &from_min = params.readonly_single_input<float>(1, "From Min");
+    const VArray<float> &from_max = params.readonly_single_input<float>(2, "From Max");
+    const VArray<float> &to_min = params.readonly_single_input<float>(3, "To Min");
+    const VArray<float> &to_max = params.readonly_single_input<float>(4, "To Max");
+    MutableSpan<float> results = params.uninitialized_single_output<float>(5, "Result");
 
     for (int64_t i : mask) {
       float factor = safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
@@ -526,31 +512,29 @@ class MapRangeSmoothstepFunction : public blender::fn::MultiFunction {
   }
 };
 
-class MapRangeSmootherstepFunction : public blender::fn::MultiFunction {
+class MapRangeSmootherstepFunction : public fn::MultiFunction {
  public:
   MapRangeSmootherstepFunction()
   {
-    static blender::fn::MFSignature signature = create_signature();
+    static fn::MFSignature signature = create_signature();
     this->set_signature(&signature);
   }
 
-  static blender::fn::MFSignature create_signature()
+  static fn::MFSignature create_signature()
   {
-    blender::fn::MFSignatureBuilder signature{"Map Range Smoothstep"};
+    fn::MFSignatureBuilder signature{"Map Range Smoothstep"};
     map_range_signature(&signature, false);
     return signature.build();
   }
 
-  void call(blender::IndexMask mask,
-            blender::fn::MFParams params,
-            blender::fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
-    const blender::VArray<float> &values = params.readonly_single_input<float>(0, "Value");
-    const blender::VArray<float> &from_min = params.readonly_single_input<float>(1, "From Min");
-    const blender::VArray<float> &from_max = params.readonly_single_input<float>(2, "From Max");
-    const blender::VArray<float> &to_min = params.readonly_single_input<float>(3, "To Min");
-    const blender::VArray<float> &to_max = params.readonly_single_input<float>(4, "To Max");
-    blender::MutableSpan<float> results = params.uninitialized_single_output<float>(5, "Result");
+    const VArray<float> &values = params.readonly_single_input<float>(0, "Value");
+    const VArray<float> &from_min = params.readonly_single_input<float>(1, "From Min");
+    const VArray<float> &from_max = params.readonly_single_input<float>(2, "From Max");
+    const VArray<float> &to_min = params.readonly_single_input<float>(3, "To Min");
+    const VArray<float> &to_max = params.readonly_single_input<float>(4, "To Max");
+    MutableSpan<float> results = params.uninitialized_single_output<float>(5, "Result");
 
     for (int64_t i : mask) {
       float factor = safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
@@ -561,8 +545,7 @@ class MapRangeSmootherstepFunction : public blender::fn::MultiFunction {
   }
 };
 
-static void sh_node_map_range_build_multi_function(
-    blender::nodes::NodeMultiFunctionBuilder &builder)
+static void sh_node_map_range_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const NodeMapRange &storage = node_storage(builder.node());
   bool clamp = storage.clamp != 0;

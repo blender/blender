@@ -225,17 +225,25 @@ static void node_shader_update_vector_math(bNodeTree *ntree, bNode *node)
   }
 }
 
-static const blender::fn::MultiFunction *get_multi_function(bNode &node)
+static const fn::MultiFunction *get_multi_function(bNode &node)
 {
-  using blender::float3;
-
   NodeVectorMathOperation operation = NodeVectorMathOperation(node.custom1);
 
-  const blender::fn::MultiFunction *multi_fn = nullptr;
+  const fn::MultiFunction *multi_fn = nullptr;
 
-  blender::nodes::try_dispatch_float_math_fl3_fl3_to_fl3(
-      operation, [&](auto function, const blender::nodes::FloatMathOperationInfo &info) {
-        static blender::fn::CustomMF_SI_SI_SO<float3, float3, float3> fn{
+  try_dispatch_float_math_fl3_fl3_to_fl3(operation,
+                                         [&](auto function, const FloatMathOperationInfo &info) {
+                                           static fn::CustomMF_SI_SI_SO<float3, float3, float3> fn{
+                                               info.title_case_name.c_str(), function};
+                                           multi_fn = &fn;
+                                         });
+  if (multi_fn != nullptr) {
+    return multi_fn;
+  }
+
+  try_dispatch_float_math_fl3_fl3_fl3_to_fl3(
+      operation, [&](auto function, const FloatMathOperationInfo &info) {
+        static fn::CustomMF_SI_SI_SI_SO<float3, float3, float3, float3> fn{
             info.title_case_name.c_str(), function};
         multi_fn = &fn;
       });
@@ -243,9 +251,9 @@ static const blender::fn::MultiFunction *get_multi_function(bNode &node)
     return multi_fn;
   }
 
-  blender::nodes::try_dispatch_float_math_fl3_fl3_fl3_to_fl3(
-      operation, [&](auto function, const blender::nodes::FloatMathOperationInfo &info) {
-        static blender::fn::CustomMF_SI_SI_SI_SO<float3, float3, float3, float3> fn{
+  try_dispatch_float_math_fl3_fl3_fl_to_fl3(
+      operation, [&](auto function, const FloatMathOperationInfo &info) {
+        static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
             info.title_case_name.c_str(), function};
         multi_fn = &fn;
       });
@@ -253,50 +261,38 @@ static const blender::fn::MultiFunction *get_multi_function(bNode &node)
     return multi_fn;
   }
 
-  blender::nodes::try_dispatch_float_math_fl3_fl3_fl_to_fl3(
-      operation, [&](auto function, const blender::nodes::FloatMathOperationInfo &info) {
-        static blender::fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
-            info.title_case_name.c_str(), function};
+  try_dispatch_float_math_fl3_fl3_to_fl(operation,
+                                        [&](auto function, const FloatMathOperationInfo &info) {
+                                          static fn::CustomMF_SI_SI_SO<float3, float3, float> fn{
+                                              info.title_case_name.c_str(), function};
+                                          multi_fn = &fn;
+                                        });
+  if (multi_fn != nullptr) {
+    return multi_fn;
+  }
+
+  try_dispatch_float_math_fl3_fl_to_fl3(operation,
+                                        [&](auto function, const FloatMathOperationInfo &info) {
+                                          static fn::CustomMF_SI_SI_SO<float3, float, float3> fn{
+                                              info.title_case_name.c_str(), function};
+                                          multi_fn = &fn;
+                                        });
+  if (multi_fn != nullptr) {
+    return multi_fn;
+  }
+
+  try_dispatch_float_math_fl3_to_fl3(
+      operation, [&](auto function, const FloatMathOperationInfo &info) {
+        static fn::CustomMF_SI_SO<float3, float3> fn{info.title_case_name.c_str(), function};
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
     return multi_fn;
   }
 
-  blender::nodes::try_dispatch_float_math_fl3_fl3_to_fl(
-      operation, [&](auto function, const blender::nodes::FloatMathOperationInfo &info) {
-        static blender::fn::CustomMF_SI_SI_SO<float3, float3, float> fn{
-            info.title_case_name.c_str(), function};
-        multi_fn = &fn;
-      });
-  if (multi_fn != nullptr) {
-    return multi_fn;
-  }
-
-  blender::nodes::try_dispatch_float_math_fl3_fl_to_fl3(
-      operation, [&](auto function, const blender::nodes::FloatMathOperationInfo &info) {
-        static blender::fn::CustomMF_SI_SI_SO<float3, float, float3> fn{
-            info.title_case_name.c_str(), function};
-        multi_fn = &fn;
-      });
-  if (multi_fn != nullptr) {
-    return multi_fn;
-  }
-
-  blender::nodes::try_dispatch_float_math_fl3_to_fl3(
-      operation, [&](auto function, const blender::nodes::FloatMathOperationInfo &info) {
-        static blender::fn::CustomMF_SI_SO<float3, float3> fn{info.title_case_name.c_str(),
-                                                              function};
-        multi_fn = &fn;
-      });
-  if (multi_fn != nullptr) {
-    return multi_fn;
-  }
-
-  blender::nodes::try_dispatch_float_math_fl3_to_fl(
-      operation, [&](auto function, const blender::nodes::FloatMathOperationInfo &info) {
-        static blender::fn::CustomMF_SI_SO<float3, float> fn{info.title_case_name.c_str(),
-                                                             function};
+  try_dispatch_float_math_fl3_to_fl(
+      operation, [&](auto function, const FloatMathOperationInfo &info) {
+        static fn::CustomMF_SI_SO<float3, float> fn{info.title_case_name.c_str(), function};
         multi_fn = &fn;
       });
   if (multi_fn != nullptr) {
@@ -306,10 +302,9 @@ static const blender::fn::MultiFunction *get_multi_function(bNode &node)
   return nullptr;
 }
 
-static void sh_node_vector_math_build_multi_function(
-    blender::nodes::NodeMultiFunctionBuilder &builder)
+static void sh_node_vector_math_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  const blender::fn::MultiFunction *fn = get_multi_function(builder.node());
+  const fn::MultiFunction *fn = get_multi_function(builder.node());
   builder.set_matching_fn(fn);
 }
 
