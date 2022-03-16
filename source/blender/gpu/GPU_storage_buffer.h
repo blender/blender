@@ -48,12 +48,12 @@ GPUStorageBuf *GPU_storagebuf_create_ex(size_t size,
 #define GPU_storagebuf_create(size) \
   GPU_storagebuf_create_ex(size, NULL, GPU_USAGE_DYNAMIC, __func__);
 
-void GPU_storagebuf_free(GPUStorageBuf *ubo);
+void GPU_storagebuf_free(GPUStorageBuf *ssbo);
 
-void GPU_storagebuf_update(GPUStorageBuf *ubo, const void *data);
+void GPU_storagebuf_update(GPUStorageBuf *ssbo, const void *data);
 
-void GPU_storagebuf_bind(GPUStorageBuf *ubo, int slot);
-void GPU_storagebuf_unbind(GPUStorageBuf *ubo);
+void GPU_storagebuf_bind(GPUStorageBuf *ssbo, int slot);
+void GPU_storagebuf_unbind(GPUStorageBuf *ssbo);
 void GPU_storagebuf_unbind_all(void);
 
 #ifdef __cplusplus

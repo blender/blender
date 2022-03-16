@@ -72,32 +72,32 @@ GPUStorageBuf *GPU_storagebuf_create_ex(size_t size,
                                         GPUUsageType usage,
                                         const char *name)
 {
-  StorageBuf *ubo = GPUBackend::get()->storagebuf_alloc(size, usage, name);
+  StorageBuf *ssbo = GPUBackend::get()->storagebuf_alloc(size, usage, name);
   /* Direct init. */
   if (data != nullptr) {
-    ubo->update(data);
+    ssbo->update(data);
   }
-  return wrap(ubo);
+  return wrap(ssbo);
 }
 
-void GPU_storagebuf_free(GPUStorageBuf *ubo)
+void GPU_storagebuf_free(GPUStorageBuf *ssbo)
 {
-  delete unwrap(ubo);
+  delete unwrap(ssbo);
 }
 
-void GPU_storagebuf_update(GPUStorageBuf *ubo, const void *data)
+void GPU_storagebuf_update(GPUStorageBuf *ssbo, const void *data)
 {
-  unwrap(ubo)->update(data);
+  unwrap(ssbo)->update(data);
 }
 
-void GPU_storagebuf_bind(GPUStorageBuf *ubo, int slot)
+void GPU_storagebuf_bind(GPUStorageBuf *ssbo, int slot)
 {
-  unwrap(ubo)->bind(slot);
+  unwrap(ssbo)->bind(slot);
 }
 
-void GPU_storagebuf_unbind(GPUStorageBuf *ubo)
+void GPU_storagebuf_unbind(GPUStorageBuf *ssbo)
 {
-  unwrap(ubo)->unbind();
+  unwrap(ssbo)->unbind();
 }
 
 void GPU_storagebuf_unbind_all()
