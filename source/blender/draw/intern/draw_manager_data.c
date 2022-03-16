@@ -820,6 +820,12 @@ static void drw_command_compute_ref(DRWShadingGroup *shgroup, int groups_ref[3])
   cmd->groups_ref = groups_ref;
 }
 
+static void drw_command_compute_indirect(DRWShadingGroup *shgroup, GPUStorageBuf *indirect_buf)
+{
+  DRWCommandComputeIndirect *cmd = drw_command_create(shgroup, DRW_CMD_COMPUTE_INDIRECT);
+  cmd->indirect_buf = indirect_buf;
+}
+
 static void drw_command_barrier(DRWShadingGroup *shgroup, eGPUBarrier type)
 {
   DRWCommandBarrier *cmd = drw_command_create(shgroup, DRW_CMD_BARRIER);
@@ -958,6 +964,12 @@ void DRW_shgroup_call_compute_ref(DRWShadingGroup *shgroup, int groups_ref[3])
   drw_command_compute_ref(shgroup, groups_ref);
 }
 
+void DRW_shgroup_call_compute_indirect(DRWShadingGroup *shgroup, GPUStorageBuf *indirect_buf)
+{
+  BLI_assert(GPU_compute_shader_support());
+
+  drw_command_compute_indirect(shgroup, indirect_buf);
+}
 void DRW_shgroup_barrier(DRWShadingGroup *shgroup, eGPUBarrier type)
 {
   BLI_assert(GPU_compute_shader_support());

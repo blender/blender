@@ -467,6 +467,10 @@ void DRW_shgroup_call_compute(DRWShadingGroup *shgroup,
  * \warning this keeps the ref to groups_ref until it actually dispatch.
  */
 void DRW_shgroup_call_compute_ref(DRWShadingGroup *shgroup, int groups_ref[3]);
+/**
+ * \note No need for a barrier. \a indirect_buf is internally synchronized.
+ */
+void DRW_shgroup_call_compute_indirect(DRWShadingGroup *shgroup, GPUStorageBuf *indirect_buf);
 void DRW_shgroup_call_procedural_points(DRWShadingGroup *sh, Object *ob, uint point_count);
 void DRW_shgroup_call_procedural_lines(DRWShadingGroup *sh, Object *ob, uint line_count);
 void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *sh, Object *ob, uint tri_count);

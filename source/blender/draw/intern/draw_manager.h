@@ -191,6 +191,7 @@ typedef enum {
   /* Compute Commands. */
   DRW_CMD_COMPUTE = 8,
   DRW_CMD_COMPUTE_REF = 9,
+  DRW_CMD_COMPUTE_INDIRECT = 10,
 
   /* Other Commands */
   DRW_CMD_BARRIER = 11,
@@ -240,6 +241,10 @@ typedef struct DRWCommandComputeRef {
   int *groups_ref;
 } DRWCommandComputeRef;
 
+typedef struct DRWCommandComputeIndirect {
+  GPUStorageBuf *indirect_buf;
+} DRWCommandComputeIndirect;
+
 typedef struct DRWCommandBarrier {
   eGPUBarrier type;
 } DRWCommandBarrier;
@@ -282,6 +287,7 @@ typedef union DRWCommand {
   DRWCommandDrawProcedural procedural;
   DRWCommandCompute compute;
   DRWCommandComputeRef compute_ref;
+  DRWCommandComputeIndirect compute_indirect;
   DRWCommandBarrier barrier;
   DRWCommandSetMutableState state;
   DRWCommandSetStencil stencil;

@@ -1051,6 +1051,9 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
                                cmd->compute_ref.groups_ref[1],
                                cmd->compute_ref.groups_ref[2]);
           break;
+        case DRW_CMD_COMPUTE_INDIRECT:
+          GPU_compute_dispatch_indirect(shgroup->shader, cmd->compute_indirect.indirect_buf);
+          break;
         case DRW_CMD_BARRIER:
           GPU_memory_barrier(cmd->barrier.type);
           break;
