@@ -115,9 +115,19 @@ typedef int (*LibraryIDLinkCallback)(LibraryIDLinkCallbackData *cb_data);
 /* Flags for the foreach function itself. */
 enum {
   IDWALK_NOP = 0,
+  /** The callback will never modify the ID pointers it processes. */
   IDWALK_READONLY = (1 << 0),
-  IDWALK_RECURSE = (1 << 1),    /* Also implies IDWALK_READONLY. */
-  IDWALK_INCLUDE_UI = (1 << 2), /* Include UI pointers (from WM and screens editors). */
+  /** Recurse into 'descendant' IDs.
+   * Each ID is only processed once. Order of ID processing is not guaranteed.
+   *
+   * Also implies IDWALK_READONLY, and excludes IDWALK_DO_INTERNAL_RUNTIME_POINTERS.
+   *
+   * NOTE: When enabled, embedded IDs are processed separately from their owner, as if they were
+   * regular IDs. Owner ID is not available then in the #LibraryForeachIDData callback data.
+   */
+  IDWALK_RECURSE = (1 << 1),
+  /** Include UI pointers (from WM and screens editors). */
+  IDWALK_INCLUDE_UI = (1 << 2),
   /** Do not process ID pointers inside embedded IDs. Needed by depsgraph processing e.g. */
   IDWALK_IGNORE_EMBEDDED_ID = (1 << 3),
 
