@@ -1050,8 +1050,6 @@ void GHOST_SystemCocoa::notifyExternalEventProcessed()
 GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType,
                                                     GHOST_WindowCocoa *window)
 {
-  NSArray *windowsList;
-  windowsList = [NSApp orderedWindows];
   if (!validWindow(window)) {
     return GHOST_kFailure;
   }

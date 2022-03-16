@@ -43,7 +43,6 @@ static std::vector<std::string> exr_channel_names_for_passes(const BufferParams 
   static const char *component_suffixes[] = {"R", "G", "B", "A"};
 
   int pass_index = 0;
-  int num_channels = 0;
   std::vector<std::string> channel_names;
   for (const BufferPass &pass : buffer_params.passes) {
     if (pass.offset == PASS_UNUSED) {
@@ -51,7 +50,6 @@ static std::vector<std::string> exr_channel_names_for_passes(const BufferParams 
     }
 
     const PassInfo pass_info = pass.get_info();
-    num_channels += pass_info.num_components;
 
     /* EXR canonically expects first part of channel names to be sorted alphabetically, which is
      * not guaranteed to be the case with passes names. Assign a prefix based on the pass index

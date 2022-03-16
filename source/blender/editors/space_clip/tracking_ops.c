@@ -271,7 +271,6 @@ static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
   const int framenr = ED_space_clip_get_clip_frame_number(sc);
-  bool has_selection = false;
   bool changed = false;
 
   ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
@@ -281,7 +280,6 @@ static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
     if (TRACK_VIEW_SELECTED(sc, track)) {
       MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, framenr);
       if (marker != NULL) {
-        has_selection |= track->markersnr > 1;
         clip_delete_marker(C, clip, track, marker);
         changed = true;
       }

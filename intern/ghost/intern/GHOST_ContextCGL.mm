@@ -7,6 +7,12 @@
  * Definition of GHOST_ContextCGL class.
  */
 
+/* Don't generate OpenGL deprecation warning. This is a known thing, and is not something easily
+ * solvable in a short term. */
+#ifdef __clang__
+#  pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 #include "GHOST_ContextCGL.h"
 
 #include <Cocoa/Cocoa.h>

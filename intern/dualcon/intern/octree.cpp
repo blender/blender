@@ -242,6 +242,10 @@ void Octree::printMemUsage()
 
   dc_printf("Total allocated bytes on disk: %d \n", totalbytes);
   dc_printf("Total leaf nodes: %d\n", totalLeafs);
+
+  /* Unused when not debuggining. */
+  (void)totalbytes;
+  (void)totalLeafs;
 }
 
 void Octree::resetMinimalEdges()

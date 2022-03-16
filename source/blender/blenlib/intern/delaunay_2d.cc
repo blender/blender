@@ -2202,7 +2202,6 @@ void add_face_constraints(CDT_state<T> *cdt_state,
 {
   int nv = input.vert.size();
   int nf = input.face.size();
-  int fstart = 0;
   SymEdge<T> *face_symedge0 = nullptr;
   CDTArrangement<T> *cdt = &cdt_state->cdt;
   int maxflen = 0;
@@ -2221,7 +2220,6 @@ void add_face_constraints(CDT_state<T> *cdt_state,
     int flen = input.face[f].size();
     if (flen <= 2) {
       /* Ignore faces with fewer than 3 vertices. */
-      fstart += flen;
       continue;
     }
     int fedge_start = (f + 1) * cdt_state->face_edge_offset;
@@ -2266,7 +2264,6 @@ void add_face_constraints(CDT_state<T> *cdt_state,
         add_face_ids(cdt_state, face_symedge0, f, fedge_start, fedge_end);
       }
     }
-    fstart += flen;
   }
 }
 

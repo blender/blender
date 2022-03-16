@@ -1897,7 +1897,6 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
   PyObject *item;
   const Py_ssize_t seq_len = PySequence_Fast_GET_SIZE(seq_fast);
   PyObject **seq_fast_items = PySequence_Fast_ITEMS(seq_fast);
-  Py_ssize_t totbuf = 0;
   int i;
   short default_used = 0;
   const char *default_str_cmp = NULL;
@@ -1987,9 +1986,6 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
       }
 
       items[i] = tmp;
-
-      /* calculate combine string length */
-      totbuf += id_str_size + name_str_size + desc_str_size + 3; /* 3 is for '\0's */
     }
     else if (item == Py_None) {
       /* Only set since the rest is cleared. */

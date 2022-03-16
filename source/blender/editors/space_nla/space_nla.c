@@ -216,7 +216,6 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
   Scene *scene = CTX_data_scene(C);
   bAnimContext ac;
   View2D *v2d = &region->v2d;
-  short cfra_flag = 0;
 
   /* clear and setup matrix */
   UI_ThemeClearColor(TH_BACK);
@@ -238,11 +237,6 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
 
     /* text draw cached, in pixelspace now */
     UI_view2d_text_cache_draw(region);
-  }
-
-  /* current frame */
-  if (snla->flag & SNLA_DRAWTIME) {
-    cfra_flag |= DRAWCFRA_UNIT_SECONDS;
   }
 
   /* markers */

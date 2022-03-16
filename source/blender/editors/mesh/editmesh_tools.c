@@ -2302,7 +2302,7 @@ static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
   BMIter iter;
   const bool use_ccw = RNA_boolean_get(op->ptr, "use_ccw");
 
-  int tot_rotate_all = 0, tot_failed_all = 0;
+  int tot_failed_all = 0;
   bool no_selected_edges = true, invalid_selected_edges = true;
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -2360,7 +2360,6 @@ static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
     const int tot_rotate = BMO_slot_buffer_len(bmop.slots_out, "edges.out");
     const int tot_failed = tot - tot_rotate;
 
-    tot_rotate_all += tot_rotate;
     tot_failed_all += tot_failed;
 
     if (tot_failed != 0) {
