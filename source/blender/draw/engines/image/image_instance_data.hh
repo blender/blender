@@ -21,7 +21,7 @@
 /**
  * \brief max allowed textures to use by the ScreenSpaceDrawingMode.
  *
- * 4 textures are used to reduce uploading screen space textures when translating the image.
+ * 1 texture is used to reduce uploading screen space textures when translating the image.
  */
 constexpr int SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN = 1;
 

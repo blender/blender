@@ -129,7 +129,6 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
   {
     GPUShader *shader = IMAGE_shader_depth_get();
     DRWShadingGroup *shgrp = DRW_shgroup_create(shader, instance_data.passes.depth_pass);
-
     float image_mat[4][4];
     unit_m4(image_mat);
 

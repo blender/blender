@@ -199,6 +199,9 @@ typedef struct Image {
   char eye;
   char views_format;
 
+  /** Displayed offset in backdrop for viewer nodes in pixel space. */
+  int display_offset_x, display_offset_y;
+
   /* ImageTile list for UDIMs. */
   int active_tile_index;
   ListBase tiles;

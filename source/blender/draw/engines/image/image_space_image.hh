@@ -148,20 +148,29 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
   }
 
   void init_ss_to_texture_matrix(const ARegion *region,
-                                 const float UNUSED(image_resolution[2]),
+                                 const float image_display_offset[2],
+                                 const float image_resolution[2],
                                  float r_uv_to_texture[4][4]) const override
   {
-    unit_m4(r_uv_to_texture);
-    float scale_x = 1.0 / BLI_rctf_size_x(&region->v2d.cur);
-    float scale_y = 1.0 / BLI_rctf_size_y(&region->v2d.cur);
-    float translate_x = scale_x * -region->v2d.cur.xmin;
-    float translate_y = scale_y * -region->v2d.cur.ymin;
+     float zoom_x = image_resolution[0] * sima->zoom;
+     float zoom_y = image_resolution[1] * sima ->zoom;
+     float image_offset_x = (region->winx - zoom_x) / 2 + sima->xof + image_display_offset[0];
+     float image_offset_y = (region->winy - zoom_y) / 2 + sima->yof + image_display_offset[1];
 
-    r_uv_to_texture[0][0] = scale_x;
-    r_uv_to_texture[1][1] = scale_y;
-    r_uv_to_texture[3][0] = translate_x;
-    r_uv_to_texture[3][1] = translate_y;
-  }
+     unit_m4(r_uv_to_texture);
+     float scale_x = 1.0 / BLI_rctf_size_x(&region->v2d.cur);
+     float scale_y = 1.0 / BLI_rctf_size_y(&region->v2d.cur);
+     float offset_x = 1.0 / image_resolution[0] * image_offset_x;
+     float offset_y = 1.0 / image_resolution[1] * image_offset_y;
+
+     float translate_x = scale_x * (-region->v2d.cur.xmin + offset_x);
+     float translate_y = scale_y * (-region->v2d.cur.ymin + offset_y);
+
+     r_uv_to_texture[0][0] = scale_x;
+     r_uv_to_texture[1][1] = scale_y;
+     r_uv_to_texture[3][0] = translate_x;
+     r_uv_to_texture[3][1] = translate_y;
+   }
 };
 
 }  // namespace blender::draw::image_engine
