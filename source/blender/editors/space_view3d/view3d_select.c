@@ -2493,8 +2493,15 @@ static bool ed_object_select_pick(bContext *C,
   if (vc.obedit) {
     /* Edit-mode, pass. */
   }
-  else if (is_pose_mode && (basact && (basact->object->mode & OB_MODE_POSE))) {
+  else if (is_pose_mode && (basact == NULL || (basact->object->mode & OB_MODE_POSE))) {
     /* Pose-mode, pass (or moved into pose mode). */
+    if (changed == false) {
+      /* Pose selection handles this but it wont run if there are no bones under the cursor. */
+      const bool found = false;
+      if ((params->sel_op == SEL_OP_SET) && (found || params->deselect_all)) {
+        changed |= ED_pose_deselect_all_multi(C, SEL_DESELECT, false);
+      }
+    }
   }
   else {
     /* Object-mode. */
