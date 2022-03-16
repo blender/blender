@@ -358,6 +358,7 @@ class StorageBuffer : public T, public detail::StorageCommon<T, 1, device_only> 
 class Texture : NonCopyable {
  protected:
   GPUTexture *tx_ = nullptr;
+  GPUTexture *stencil_view_ = nullptr;
   Vector<GPUTexture *, 0> mip_views_;
   Vector<GPUTexture *, 0> layer_views_;
   const char *name_;
@@ -559,6 +560,16 @@ class Texture : NonCopyable {
     return layer_views_[layer];
   }
 
+  GPUTexture *stencil_view()
+  {
+    if (stencil_view_ == nullptr) {
+      eGPUTextureFormat format = GPU_texture_format(tx_);
+      stencil_view_ = GPU_texture_create_view(name_, tx_, format, 0, 9999, 0, 9999);
+      GPU_texture_stencil_texture_mode_set(stencil_view_, true);
+    }
+    return stencil_view_;
+  }
+
   /**
    * Returns true if the texture has been allocated or acquired from the pool.
    */
@@ -659,6 +670,7 @@ class Texture : NonCopyable {
     for (GPUTexture *&view : layer_views_) {
       GPU_TEXTURE_FREE_SAFE(view);
     }
+    GPU_TEXTURE_FREE_SAFE(stencil_view_);
     mip_views_.clear();
   }
 
