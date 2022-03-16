@@ -2258,7 +2258,7 @@ static bool ed_object_select_pick(bContext *C,
   const eObjectMode object_mode = oldbasact ? oldbasact->object->mode : OB_MODE_OBJECT;
   bool is_obedit;
   float dist = ED_view3d_select_dist_px() * 1.3333f;
-  bool retval = false;
+  bool changed = false;
   int hits;
   const float mval_fl[2] = {(float)mval[0], (float)mval[1]};
 
@@ -2367,7 +2367,7 @@ static bool ed_object_select_pick(bContext *C,
         if (basact->object->type == OB_CAMERA) {
           MovieClip *clip = BKE_object_movieclip_get(scene, basact->object, false);
           if (clip != NULL && oldbasact == basact) {
-            bool changed = false;
+            bool track_changed = false;
 
             for (int i = 0; i < hits; i++) {
               const int hitresult = buffer[i].id;
@@ -2391,7 +2391,7 @@ static bool ed_object_select_pick(bContext *C,
                     &clip->tracking, hitresult >> 16, &tracksbase);
 
                 if (TRACK_SELECTED(track) && extend) {
-                  changed = false;
+                  track_changed = false;
                   BKE_tracking_track_deselect(track, TRACK_AREA_ALL);
                 }
                 else {
@@ -2403,13 +2403,13 @@ static bool ed_object_select_pick(bContext *C,
                   BKE_tracking_track_select(tracksbase, track, TRACK_AREA_ALL, extend);
 
                   if (oldsel != (TRACK_SELECTED(track) ? 1 : 0)) {
-                    changed = true;
+                    track_changed = true;
                   }
                 }
 
                 ED_object_base_select(basact, BA_SELECT);
 
-                retval = true;
+                changed = true;
 
                 DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
                 DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
@@ -2420,7 +2420,7 @@ static bool ed_object_select_pick(bContext *C,
               }
             }
 
-            if (!changed) {
+            if (!track_changed) {
               /* fallback to regular object selection if no new bundles were selected,
                * allows to select object parented to reconstruction object */
               basact = mouse_select_eval_buffer(&vc, buffer, hits, startbase, 0, do_nearest, NULL);
@@ -2435,7 +2435,7 @@ static bool ed_object_select_pick(bContext *C,
            * not-selected active object in posemode won't work well for tools */
           ED_object_base_select(basact, BA_SELECT);
 
-          retval = true;
+          changed = true;
           WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, basact->object);
           WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, basact->object);
           DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
@@ -2501,14 +2501,14 @@ static bool ed_object_select_pick(bContext *C,
     const bool found = (basact != NULL);
     if ((params->sel_op == SEL_OP_SET) && (found || params->deselect_all)) {
       /* `basact` may be NULL. */
-      retval |= object_deselect_all_except(view_layer, basact);
+      changed |= object_deselect_all_except(view_layer, basact);
       DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
     }
   }
 
   /* so, do we have something selected? */
   if (basact) {
-    retval = true;
+    changed = true;
 
     if (vc.obedit) {
       /* only do select */
@@ -2586,7 +2586,7 @@ static bool ed_object_select_pick(bContext *C,
     WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
   }
 
-  if (retval) {
+  if (changed) {
     if (vc.obact && vc.obact->mode & OB_MODE_POSE) {
       ED_outliner_select_sync_from_pose_bone_tag(C);
     }
@@ -2595,7 +2595,7 @@ static bool ed_object_select_pick(bContext *C,
     }
   }
 
-  return retval;
+  return changed;
 }
 
 /**
@@ -2691,10 +2691,13 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
                   (obact && (obact->mode & OB_MODE_ALL_WEIGHT_PAINT) &&
                    BKE_object_pose_armature_get(obact))));
 
-  bool retval = false;
-  int location[2];
+  /* This could be called "changed_or_found" since this is true when there is an element
+   * under the cursor to select, even if it happens that the selection & active state doesn't
+   * actually change. This is important so undo pushes are predictable. */
+  bool changed = false;
+  int mval[2];
 
-  RNA_int_get_array(op->ptr, "location", location);
+  RNA_int_get_array(op->ptr, "location", mval);
 
   view3d_operator_needs_opengl(C);
   BKE_object_update_select_id(CTX_data_main(C));
@@ -2711,7 +2714,7 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
 
   if (obedit && object == false) {
     if (obedit->type == OB_MESH) {
-      retval = EDBM_select_pick(C, location, &params);
+      changed = EDBM_select_pick(C, mval, &params);
     }
     else if (obedit->type == OB_ARMATURE) {
       if (enumerate) {
@@ -2720,49 +2723,43 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
         ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
         GPUSelectResult buffer[MAXPICKELEMS];
-        const int hits = mixed_bones_object_selectbuffer(&vc,
-                                                         buffer,
-                                                         ARRAY_SIZE(buffer),
-                                                         location,
-                                                         VIEW3D_SELECT_FILTER_NOP,
-                                                         false,
-                                                         true,
-                                                         false);
-        retval = bone_mouse_select_menu(C, buffer, hits, true, &params);
+        const int hits = mixed_bones_object_selectbuffer(
+            &vc, buffer, ARRAY_SIZE(buffer), mval, VIEW3D_SELECT_FILTER_NOP, false, true, false);
+        changed = bone_mouse_select_menu(C, buffer, hits, true, &params);
       }
-      if (!retval) {
-        retval = ED_armature_edit_select_pick(C, location, &params);
+      if (!changed) {
+        changed = ED_armature_edit_select_pick(C, mval, &params);
       }
     }
     else if (obedit->type == OB_LATTICE) {
-      retval = ED_lattice_select_pick(C, location, &params);
+      changed = ED_lattice_select_pick(C, mval, &params);
     }
     else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
-      retval = ED_curve_editnurb_select_pick(C, location, &params);
+      changed = ED_curve_editnurb_select_pick(C, mval, &params);
     }
     else if (obedit->type == OB_MBALL) {
-      retval = ED_mball_select_pick(C, location, &params);
+      changed = ED_mball_select_pick(C, mval, &params);
     }
     else if (obedit->type == OB_FONT) {
-      retval = ED_curve_editfont_select_pick(C, location, &params);
+      changed = ED_curve_editfont_select_pick(C, mval, &params);
     }
   }
   else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
-    retval = PE_mouse_particles(C, location, &params);
+    changed = PE_mouse_particles(C, mval, &params);
   }
   else if (obact && BKE_paint_select_face_test(obact)) {
-    retval = paintface_mouse_select(C, location, &params, obact);
+    changed = paintface_mouse_select(C, mval, &params, obact);
   }
   else if (BKE_paint_select_vert_test(obact)) {
-    retval = ed_wpaint_vertex_select_pick(C, location, &params, obact);
+    changed = ed_wpaint_vertex_select_pick(C, mval, &params, obact);
   }
   else {
-    retval = ed_object_select_pick(C, location, &params, center, enumerate, object);
+    changed = ed_object_select_pick(C, mval, &params, center, enumerate, object);
   }
 
   /* Pass-through allows tweaks
    * FINISHED to signal one operator worked */
-  if (retval) {
+  if (changed) {
     WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
     return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
   }
