@@ -556,15 +556,18 @@ void LATTICE_OT_select_ungrouped(wmOperatorType *ot)
  * Gets called via generic mouse select operator.
  * \{ */
 
-static void findnearestLattvert__doClosest(void *userData, BPoint *bp, const float screen_co[2])
+struct NearestLatticeVert_UserData {
+  BPoint *bp;
+  float dist;
+  /** When true, the existing selection gets a disadvantage. */
+  bool select;
+  float mval_fl[2];
+  bool is_changed;
+};
+
+static void findnearestLattvert__doClosest(void *user_data, BPoint *bp, const float screen_co[2])
 {
-  struct {
-    BPoint *bp;
-    float dist;
-    int select;
-    float mval_fl[2];
-    bool is_changed;
-  } *data = userData;
+  struct NearestLatticeVert_UserData *data = user_data;
   float dist_test = len_manhattan_v2v2(data->mval_fl, screen_co);
 
   if ((bp->f1 & SELECT) && data->select) {
@@ -578,21 +581,12 @@ static void findnearestLattvert__doClosest(void *userData, BPoint *bp, const flo
   }
 }
 
-static BPoint *findnearestLattvert(ViewContext *vc, int sel, Base **r_base)
+static BPoint *findnearestLattvert(ViewContext *vc, bool select, Base **r_base)
 {
-  /* (sel == 1): selected gets a disadvantage */
-  /* in nurb and bezt or bp the nearest is written */
-  /* return 0 1 2: handlepunt */
-  struct {
-    BPoint *bp;
-    float dist;
-    int select;
-    float mval_fl[2];
-    bool is_changed;
-  } data = {NULL};
+  struct NearestLatticeVert_UserData data = {NULL};
 
   data.dist = ED_view3d_select_dist_px();
-  data.select = sel;
+  data.select = select;
   data.mval_fl[0] = vc->mval[0];
   data.mval_fl[1] = vc->mval[1];
 
