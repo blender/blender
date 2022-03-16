@@ -103,7 +103,7 @@ void calculate_evaluated_positions(const Span<float3> positions,
                    evaluated_positions.take_front(evaluated_offsets.first()));
 
   /* Give each task fewer segments as the resolution gets larger. */
-  const int grain_size = std::max(evaluated_positions.size() / positions.size() * 32, 1L);
+  const int grain_size = std::max<int>(evaluated_positions.size() / positions.size() * 32, 1);
   threading::parallel_for(
       positions.index_range().drop_back(1).drop_front(1), grain_size, [&](IndexRange range) {
         for (const int i : range) {
