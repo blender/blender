@@ -144,7 +144,6 @@ enum class NodeWarningType {
   Error,
   Warning,
   Info,
-  Legacy,
 };
 
 struct NodeWarning {

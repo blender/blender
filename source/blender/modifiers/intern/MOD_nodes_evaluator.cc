@@ -980,15 +980,11 @@ class GeometryNodesEvaluator {
 
   void execute_geometry_node(const DNode node, NodeState &node_state, NodeTaskRunState *run_state)
   {
+    using Clock = std::chrono::steady_clock;
     const bNode &bnode = *node->bnode();
 
     NodeParamsProvider params_provider{*this, node, node_state, run_state};
     GeoNodeExecParams params{params_provider};
-    if (node->idname().find("Legacy") != StringRef::not_found) {
-      params.error_message_add(geo_log::NodeWarningType::Legacy,
-                               TIP_("Legacy node will be removed before Blender 4.0"));
-    }
-    using Clock = std::chrono::steady_clock;
     Clock::time_point begin = Clock::now();
     bnode.typeinfo->geometry_node_execute(params);
     Clock::time_point end = Clock::now();
@@ -1004,14 +1000,6 @@ class GeometryNodesEvaluator {
                                    NodeState &node_state,
                                    NodeTaskRunState *run_state)
   {
-    if (node->idname().find("Legacy") != StringRef::not_found) {
-      /* Create geometry nodes params just for creating an error message. */
-      NodeParamsProvider params_provider{*this, node, node_state, run_state};
-      GeoNodeExecParams params{params_provider};
-      params.error_message_add(geo_log::NodeWarningType::Legacy,
-                               TIP_("Legacy node will be removed before Blender 4.0"));
-    }
-
     LinearAllocator<> &allocator = local_allocators_.local();
 
     bool any_input_is_field = false;

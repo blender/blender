@@ -12,19 +12,6 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
-void curve_create_default_rotation_attribute(Span<float3> tangents,
-                                             Span<float3> normals,
-                                             MutableSpan<float3> rotations)
-{
-  threading::parallel_for(IndexRange(rotations.size()), 512, [&](IndexRange range) {
-    for (const int i : range) {
-      rotations[i] =
-          float4x4::from_normalized_axis_data({0, 0, 0}, normals[i], tangents[i]).to_euler();
-    }
-  });
-}
-}  // namespace blender::nodes
 
 namespace blender::nodes::node_geo_curve_to_points_cc {
 
@@ -75,6 +62,19 @@ static void node_update(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, count_socket, mode == GEO_NODE_CURVE_RESAMPLE_COUNT);
   nodeSetSocketAvailability(ntree, length_socket, mode == GEO_NODE_CURVE_RESAMPLE_LENGTH);
 }
+
+static void curve_create_default_rotation_attribute(Span<float3> tangents,
+                                             Span<float3> normals,
+                                             MutableSpan<float3> rotations)
+{
+  threading::parallel_for(IndexRange(rotations.size()), 512, [&](IndexRange range) {
+    for (const int i : range) {
+      rotations[i] =
+          float4x4::from_normalized_axis_data({0, 0, 0}, normals[i], tangents[i]).to_euler();
+    }
+  });
+}
+
 
 static Array<int> calculate_spline_point_offsets(GeoNodeExecParams &params,
                                                  const GeometryNodeCurveResampleMode mode,

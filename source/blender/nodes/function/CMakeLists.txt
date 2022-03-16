@@ -18,8 +18,6 @@ set(INC
 
 
 set(SRC
-  nodes/legacy/node_fn_random_float.cc
-
   nodes/node_fn_align_euler_to_vector.cc
   nodes/node_fn_boolean_math.cc
   nodes/node_fn_compare.cc

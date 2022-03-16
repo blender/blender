@@ -532,13 +532,6 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
           ELEM(node->type, SH_NODE_CURVE_VEC, SH_NODE_CURVE_RGB, SH_NODE_CURVE_FLOAT)) {
         BKE_curvemapping_blend_write(writer, (const CurveMapping *)node->storage);
       }
-      else if ((ntree->type == NTREE_GEOMETRY) &&
-               (node->type == GEO_NODE_LEGACY_ATTRIBUTE_CURVE_MAP)) {
-        BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
-        NodeAttributeCurveMap *data = (NodeAttributeCurveMap *)node->storage;
-        BKE_curvemapping_blend_write(writer, (const CurveMapping *)data->curve_vec);
-        BKE_curvemapping_blend_write(writer, (const CurveMapping *)data->curve_rgb);
-      }
       else if (ntree->type == NTREE_SHADER && (node->type == SH_NODE_SCRIPT)) {
         NodeShaderScript *nss = (NodeShaderScript *)node->storage;
         if (nss->bytecode) {
@@ -713,18 +706,6 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
         case TEX_NODE_CURVE_RGB:
         case TEX_NODE_CURVE_TIME: {
           BKE_curvemapping_blend_read(reader, (CurveMapping *)node->storage);
-          break;
-        }
-        case GEO_NODE_LEGACY_ATTRIBUTE_CURVE_MAP: {
-          NodeAttributeCurveMap *data = (NodeAttributeCurveMap *)node->storage;
-          BLO_read_data_address(reader, &data->curve_vec);
-          if (data->curve_vec) {
-            BKE_curvemapping_blend_read(reader, data->curve_vec);
-          }
-          BLO_read_data_address(reader, &data->curve_rgb);
-          if (data->curve_rgb) {
-            BKE_curvemapping_blend_read(reader, data->curve_rgb);
-          }
           break;
         }
         case SH_NODE_SCRIPT: {
@@ -3616,15 +3597,13 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
   LISTBASE_FOREACH (bNode *, tnode, &ntree->nodes) {
     tnode->flag &= ~NODE_ACTIVE;
 
-    if ((node->typeinfo->nclass == NODE_CLASS_TEXTURE) ||
-        (node->typeinfo->type == GEO_NODE_LEGACY_ATTRIBUTE_SAMPLE_TEXTURE)) {
+    if ((node->typeinfo->nclass == NODE_CLASS_TEXTURE)) {
       tnode->flag &= ~NODE_ACTIVE_TEXTURE;
     }
   }
 
   node->flag |= NODE_ACTIVE;
-  if ((node->typeinfo->nclass == NODE_CLASS_TEXTURE) ||
-      (node->typeinfo->type == GEO_NODE_LEGACY_ATTRIBUTE_SAMPLE_TEXTURE)) {
+  if ((node->typeinfo->nclass == NODE_CLASS_TEXTURE)) {
     node->flag |= NODE_ACTIVE_TEXTURE;
   }
 }
@@ -4692,45 +4671,10 @@ static void registerGeometryNodes()
 {
   register_node_type_geo_group();
 
-  register_node_type_geo_legacy_attribute_proximity();
-  register_node_type_geo_legacy_attribute_randomize();
-  register_node_type_geo_legacy_attribute_remove();
-  register_node_type_geo_legacy_attribute_transfer();
-  register_node_type_geo_legacy_curve_endpoints();
-  register_node_type_geo_legacy_curve_reverse();
-  register_node_type_geo_legacy_curve_set_handles();
-  register_node_type_geo_legacy_curve_spline_type();
-  register_node_type_geo_legacy_curve_subdivide();
-  register_node_type_geo_legacy_curve_to_points();
-  register_node_type_geo_legacy_delete_geometry();
-  register_node_type_geo_legacy_edge_split();
-  register_node_type_geo_legacy_material_assign();
-  register_node_type_geo_legacy_mesh_to_curve();
-  register_node_type_geo_legacy_points_to_volume();
-  register_node_type_geo_legacy_raycast();
-  register_node_type_geo_legacy_select_by_handle_type();
-  register_node_type_geo_legacy_select_by_material();
-  register_node_type_geo_legacy_subdivision_surface();
-  register_node_type_geo_legacy_volume_to_mesh();
-
   register_node_type_geo_accumulate_field();
-  register_node_type_geo_align_rotation_to_vector();
   register_node_type_geo_attribute_capture();
-  register_node_type_geo_attribute_clamp();
-  register_node_type_geo_attribute_color_ramp();
-  register_node_type_geo_attribute_combine_xyz();
-  register_node_type_geo_attribute_compare();
-  register_node_type_geo_attribute_convert();
-  register_node_type_geo_attribute_curve_map();
   register_node_type_geo_attribute_domain_size();
-  register_node_type_geo_attribute_fill();
-  register_node_type_geo_attribute_map_range();
-  register_node_type_geo_attribute_math();
-  register_node_type_geo_attribute_mix();
-  register_node_type_geo_attribute_separate_xyz();
   register_node_type_geo_attribute_statistic();
-  register_node_type_geo_attribute_vector_math();
-  register_node_type_geo_attribute_vector_rotate();
   register_node_type_geo_boolean();
   register_node_type_geo_bounding_box();
   register_node_type_geo_collection_info();
@@ -4811,12 +4755,6 @@ static void registerGeometryNodes()
   register_node_type_geo_mesh_to_curve();
   register_node_type_geo_mesh_to_points();
   register_node_type_geo_object_info();
-  register_node_type_geo_point_distribute();
-  register_node_type_geo_point_instance();
-  register_node_type_geo_point_rotate();
-  register_node_type_geo_point_scale();
-  register_node_type_geo_point_separate();
-  register_node_type_geo_point_translate();
   register_node_type_geo_points_to_vertices();
   register_node_type_geo_points_to_volume();
   register_node_type_geo_proximity();
@@ -4824,7 +4762,6 @@ static void registerGeometryNodes()
   register_node_type_geo_realize_instances();
   register_node_type_geo_remove_attribute();
   register_node_type_geo_rotate_instances();
-  register_node_type_geo_sample_texture();
   register_node_type_geo_scale_elements();
   register_node_type_geo_scale_instances();
   register_node_type_geo_separate_components();
@@ -4855,8 +4792,6 @@ static void registerGeometryNodes()
 
 static void registerFunctionNodes()
 {
-  register_node_type_fn_legacy_random_float();
-
   register_node_type_fn_align_euler_to_vector();
   register_node_type_fn_boolean_math();
   register_node_type_fn_compare();

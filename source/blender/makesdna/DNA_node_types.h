@@ -1210,53 +1210,6 @@ typedef struct NodeMapRange {
   char _pad[5];
 } NodeMapRange;
 
-typedef struct NodeAttributeClamp {
-  /* CustomDataType. */
-  uint8_t data_type;
-
-  /* NodeClampOperation. */
-  uint8_t operation;
-} NodeAttributeClamp;
-
-typedef struct NodeAttributeCompare {
-  /* FloatCompareOperation. */
-  uint8_t operation;
-
-  /* GeometryNodeAttributeInputMode */
-  uint8_t input_type_a;
-  uint8_t input_type_b;
-
-  char _pad[5];
-} NodeAttributeCompare;
-
-typedef struct NodeAttributeMapRange {
-  /* GeometryNodeAttributeDataType */
-  uint8_t data_type;
-
-  /* NodeMapRangeType. */
-  uint8_t interpolation_type;
-} NodeAttributeMapRange;
-
-typedef struct NodeAttributeMath {
-  /* NodeMathOperation. */
-  uint8_t operation;
-
-  /* GeometryNodeAttributeInputMode */
-  uint8_t input_type_a;
-  uint8_t input_type_b;
-  uint8_t input_type_c;
-} NodeAttributeMath;
-
-typedef struct NodeAttributeMix {
-  /* e.g. MA_RAMP_BLEND. */
-  uint8_t blend_type;
-
-  /* GeometryNodeAttributeInputMode */
-  uint8_t input_type_factor;
-  uint8_t input_type_a;
-  uint8_t input_type_b;
-} NodeAttributeMix;
-
 typedef struct NodeRandomValue {
   /* CustomDataType. */
   uint8_t data_type;
@@ -1268,51 +1221,6 @@ typedef struct NodeAccumulateField {
   /* AttributeDomain. */
   uint8_t domain;
 } NodeAccumulateField;
-
-typedef struct NodeAttributeRandomize {
-  /* CustomDataType. */
-  uint8_t data_type;
-  /* AttributeDomain. */
-  uint8_t domain;
-  /* GeometryNodeAttributeRandomizeMode. */
-  uint8_t operation;
-  char _pad[1];
-} NodeAttributeRandomize;
-
-typedef struct NodeAttributeVectorMath {
-  /* NodeVectorMathOperation */
-  uint8_t operation;
-
-  /* GeometryNodeAttributeInputMode */
-  uint8_t input_type_a;
-  uint8_t input_type_b;
-  uint8_t input_type_c;
-} NodeAttributeVectorMath;
-
-typedef struct NodeAttributeVectorRotate {
-  /* GeometryNodeAttributeVectorRotateMode */
-  uint8_t mode;
-
-  /* GeometryNodeAttributeInputMode */
-  uint8_t input_type_vector;
-  uint8_t input_type_center;
-  uint8_t input_type_axis;
-  uint8_t input_type_angle;
-  uint8_t input_type_rotation;
-  char _pad[2];
-} NodeAttributeVectorRotate;
-
-typedef struct NodeAttributeColorRamp {
-  ColorBand color_ramp;
-} NodeAttributeColorRamp;
-
-typedef struct NodeAttributeCurveMap {
-  /* CustomDataType. */
-  uint8_t data_type;
-  char _pad[7];
-  CurveMapping *curve_vec;
-  CurveMapping *curve_rgb;
-} NodeAttributeCurveMap;
 
 typedef struct NodeInputBool {
   uint8_t boolean;
@@ -1334,40 +1242,6 @@ typedef struct NodeInputString {
   char *string;
 } NodeInputString;
 
-typedef struct NodeGeometryRotatePoints {
-  /* GeometryNodeRotatePointsType */
-  uint8_t type;
-  /* GeometryNodeRotatePointsSpace */
-  uint8_t space;
-
-  /* GeometryNodeAttributeInputMode */
-  uint8_t input_type_axis;
-  uint8_t input_type_angle;
-  uint8_t input_type_rotation;
-  char _pad[3];
-} NodeGeometryRotatePoints;
-
-typedef struct NodeGeometryAlignRotationToVector {
-  /* GeometryNodeAlignRotationToVectorAxis */
-  uint8_t axis;
-  /* GeometryNodeAlignRotationToVectorPivotAxis */
-  uint8_t pivot_axis;
-
-  /* GeometryNodeAttributeInputMode */
-  uint8_t input_type_factor;
-  uint8_t input_type_vector;
-} NodeGeometryAlignRotationToVector;
-
-typedef struct NodeGeometryPointScale {
-  /* GeometryNodeAttributeInputMode */
-  uint8_t input_type;
-} NodeGeometryPointScale;
-
-typedef struct NodeGeometryPointTranslate {
-  /* GeometryNodeAttributeInputMode */
-  uint8_t input_type;
-} NodeGeometryPointTranslate;
-
 typedef struct NodeGeometryExtrudeMesh {
   /* GeometryNodeExtrudeMeshMode */
   uint8_t mode;
@@ -1377,13 +1251,6 @@ typedef struct NodeGeometryObjectInfo {
   /* GeometryNodeTransformSpace. */
   uint8_t transform_space;
 } NodeGeometryObjectInfo;
-
-typedef struct NodeGeometryPointInstance {
-  /* GeometryNodePointInstanceType. */
-  uint8_t instance_type;
-  /* GeometryNodePointInstanceFlag. */
-  uint8_t flag;
-} NodeGeometryPointInstance;
 
 typedef struct NodeGeometryPointsToVolume {
   /* GeometryNodePointsToVolumeResolutionMode */
@@ -1397,11 +1264,6 @@ typedef struct NodeGeometryCollectionInfo {
   uint8_t transform_space;
 } NodeGeometryCollectionInfo;
 
-typedef struct NodeGeometryAttributeProximity {
-  /* GeometryNodeAttributeProximityTargetType. */
-  uint8_t target_geometry_element;
-} NodeGeometryAttributeProximity;
-
 typedef struct NodeGeometryProximity {
   /* GeometryNodeProximityTargetType. */
   uint8_t target_element;
@@ -1411,27 +1273,6 @@ typedef struct NodeGeometryVolumeToMesh {
   /* VolumeToMeshResolutionMode */
   uint8_t resolution_mode;
 } NodeGeometryVolumeToMesh;
-
-typedef struct NodeAttributeCombineXYZ {
-  /* GeometryNodeAttributeInputMode. */
-  uint8_t input_type_x;
-  uint8_t input_type_y;
-  uint8_t input_type_z;
-
-  char _pad[1];
-} NodeAttributeCombineXYZ;
-
-typedef struct NodeAttributeSeparateXYZ {
-  /* GeometryNodeAttributeInputMode. */
-  uint8_t input_type;
-} NodeAttributeSeparateXYZ;
-
-typedef struct NodeAttributeConvert {
-  /* CustomDataType. */
-  int8_t data_type;
-  /* AttributeDomain. */
-  int8_t domain;
-} NodeAttributeConvert;
 
 typedef struct NodeGeometrySubdivisionSurface {
   /* eSubsurfUVSmooth. */
@@ -1521,11 +1362,6 @@ typedef struct NodeGeometryCurveResample {
   uint8_t mode;
 } NodeGeometryCurveResample;
 
-typedef struct NodeGeometryCurveSubdivide {
-  /* GeometryNodeAttributeInputMode (integer or attribute). */
-  uint8_t cuts_type;
-} NodeGeometryCurveSubdivide;
-
 typedef struct NodeGeometryCurveFillet {
   /* GeometryNodeCurveFilletMode. */
   uint8_t mode;
@@ -1545,13 +1381,6 @@ typedef struct NodeGeometryCurveSample {
   /* GeometryNodeCurveSampleMode. */
   uint8_t mode;
 } NodeGeometryCurveSample;
-
-typedef struct NodeGeometryAttributeTransfer {
-  /* AttributeDomain. */
-  int8_t domain;
-  /* GeometryNodeAttributeTransferMapMode. */
-  uint8_t mapping;
-} NodeGeometryAttributeTransfer;
 
 typedef struct NodeGeometryTransferAttribute {
   /* CustomDataType. */
@@ -2080,12 +1909,6 @@ typedef enum NodeShaderOutputTarget {
 
 /* Geometry Nodes */
 
-typedef enum GeometryNodeAttributeProximityTargetType {
-  GEO_NODE_PROXIMITY_TARGET_POINTS = 0,
-  GEO_NODE_PROXIMITY_TARGET_EDGES = 1,
-  GEO_NODE_PROXIMITY_TARGET_FACES = 2,
-} GeometryNodeAttributeProximityTargetType;
-
 typedef enum GeometryNodeProximityTargetType {
   GEO_NODE_PROX_TARGET_POINTS = 0,
   GEO_NODE_PROX_TARGET_EDGES = 1,
@@ -2134,30 +1957,6 @@ typedef enum GeometryNodeTriangulateQuads {
   GEO_NODE_TRIANGULATE_QUAD_LONGEDGE = 4,
 } GeometryNodeTriangulateQuads;
 
-typedef enum GeometryNodePointInstanceType {
-  GEO_NODE_POINT_INSTANCE_TYPE_OBJECT = 0,
-  GEO_NODE_POINT_INSTANCE_TYPE_COLLECTION = 1,
-  GEO_NODE_POINT_INSTANCE_TYPE_GEOMETRY = 2,
-} GeometryNodePointInstanceType;
-
-typedef enum GeometryNodePointInstanceFlag {
-  GEO_NODE_POINT_INSTANCE_WHOLE_COLLECTION = (1 << 0),
-} GeometryNodePointInstanceFlag;
-
-typedef enum GeometryNodeAttributeInputMode {
-  GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE = 0,
-  GEO_NODE_ATTRIBUTE_INPUT_FLOAT = 1,
-  GEO_NODE_ATTRIBUTE_INPUT_VECTOR = 2,
-  GEO_NODE_ATTRIBUTE_INPUT_COLOR = 3,
-  GEO_NODE_ATTRIBUTE_INPUT_BOOLEAN = 4,
-  GEO_NODE_ATTRIBUTE_INPUT_INTEGER = 5,
-} GeometryNodeAttributeInputMode;
-
-typedef enum GeometryNodePointDistributeMode {
-  GEO_NODE_POINT_DISTRIBUTE_RANDOM = 0,
-  GEO_NODE_POINT_DISTRIBUTE_POISSON = 1,
-} GeometryNodePointDistributeMode;
-
 typedef enum GeometryNodeDistributePointsOnFacesMode {
   GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_RANDOM = 0,
   GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON = 1,
@@ -2169,53 +1968,15 @@ typedef enum GeometryNodeExtrudeMeshMode {
   GEO_NODE_EXTRUDE_MESH_FACES = 2,
 } GeometryNodeExtrudeMeshMode;
 
-typedef enum GeometryNodeRotatePointsType {
-  GEO_NODE_POINT_ROTATE_TYPE_EULER = 0,
-  GEO_NODE_POINT_ROTATE_TYPE_AXIS_ANGLE = 1,
-} GeometryNodeRotatePointsType;
-
-typedef enum FunctionNodeRotatePointsType {
+typedef enum FunctionNodeRotateEulerType {
   FN_NODE_ROTATE_EULER_TYPE_EULER = 0,
   FN_NODE_ROTATE_EULER_TYPE_AXIS_ANGLE = 1,
-} FunctionNodeRotatePointsType;
-
-typedef enum GeometryNodeAttributeVectorRotateMode {
-  GEO_NODE_VECTOR_ROTATE_TYPE_AXIS = 0,
-  GEO_NODE_VECTOR_ROTATE_TYPE_AXIS_X = 1,
-  GEO_NODE_VECTOR_ROTATE_TYPE_AXIS_Y = 2,
-  GEO_NODE_VECTOR_ROTATE_TYPE_AXIS_Z = 3,
-  GEO_NODE_VECTOR_ROTATE_TYPE_EULER_XYZ = 4,
-} GeometryNodeAttributeVectorRotateMode;
-
-typedef enum GeometryNodeAttributeRandomizeMode {
-  GEO_NODE_ATTRIBUTE_RANDOMIZE_REPLACE_CREATE = 0,
-  GEO_NODE_ATTRIBUTE_RANDOMIZE_ADD = 1,
-  GEO_NODE_ATTRIBUTE_RANDOMIZE_SUBTRACT = 2,
-  GEO_NODE_ATTRIBUTE_RANDOMIZE_MULTIPLY = 3,
-} GeometryNodeAttributeRandomizeMode;
-
-typedef enum GeometryNodeRotatePointsSpace {
-  GEO_NODE_POINT_ROTATE_SPACE_OBJECT = 0,
-  GEO_NODE_POINT_ROTATE_SPACE_POINT = 1,
-} GeometryNodeRotatePointsSpace;
+} FunctionNodeRotateEulerType;
 
 typedef enum FunctionNodeRotateEulerSpace {
   FN_NODE_ROTATE_EULER_SPACE_OBJECT = 0,
   FN_NODE_ROTATE_EULER_SPACE_LOCAL = 1,
 } FunctionNodeRotateEulerSpace;
-
-typedef enum GeometryNodeAlignRotationToVectorAxis {
-  GEO_NODE_ALIGN_ROTATION_TO_VECTOR_AXIS_X = 0,
-  GEO_NODE_ALIGN_ROTATION_TO_VECTOR_AXIS_Y = 1,
-  GEO_NODE_ALIGN_ROTATION_TO_VECTOR_AXIS_Z = 2,
-} GeometryNodeAlignRotationToVectorAxis;
-
-typedef enum GeometryNodeAlignRotationToVectorPivotAxis {
-  GEO_NODE_ALIGN_ROTATION_TO_VECTOR_PIVOT_AXIS_AUTO = 0,
-  GEO_NODE_ALIGN_ROTATION_TO_VECTOR_PIVOT_AXIS_X = 1,
-  GEO_NODE_ALIGN_ROTATION_TO_VECTOR_PIVOT_AXIS_Y = 2,
-  GEO_NODE_ALIGN_ROTATION_TO_VECTOR_PIVOT_AXIS_Z = 3,
-} GeometryNodeAlignRotationToVectorPivotAxis;
 
 typedef enum NodeAlignEulerToVectorAxis {
   FN_NODE_ALIGN_EULER_TO_VECTOR_AXIS_X = 0,
@@ -2294,11 +2055,6 @@ typedef enum GeometryNodeCurveFilletMode {
   GEO_NODE_CURVE_FILLET_BEZIER = 0,
   GEO_NODE_CURVE_FILLET_POLY = 1,
 } GeometryNodeCurveFilletMode;
-
-typedef enum GeometryNodeAttributeTransferMapMode {
-  GEO_NODE_LEGACY_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED = 0,
-  GEO_NODE_LEGACY_ATTRIBUTE_TRANSFER_NEAREST = 1,
-} GeometryNodeAttributeTransferMapMode;
 
 typedef enum GeometryNodeAttributeTransferMode {
   GEO_NODE_ATTRIBUTE_TRANSFER_NEAREST_FACE_INTERPOLATED = 0,

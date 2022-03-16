@@ -1607,27 +1607,15 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   /* Draw node warnings. */
-  bool has_legacy_node = false;
   if (nmd->runtime_eval_log != nullptr) {
     const geo_log::ModifierLog &log = *static_cast<geo_log::ModifierLog *>(nmd->runtime_eval_log);
     log.foreach_node_log([&](const geo_log::NodeLog &node_log) {
       for (const geo_log::NodeWarning &warning : node_log.warnings()) {
-        if (warning.type == geo_log::NodeWarningType::Legacy) {
-          has_legacy_node = true;
-        }
-        else if (warning.type != geo_log::NodeWarningType::Info) {
+        if (warning.type != geo_log::NodeWarningType::Info) {
           uiItemL(layout, warning.message.c_str(), ICON_ERROR);
         }
       }
     });
-  }
-
-  if (has_legacy_node) {
-    uiLayout *row = uiLayoutRow(layout, false);
-    uiItemL(row, TIP_("Node tree has legacy node"), ICON_ERROR);
-    uiLayout *sub = uiLayoutRow(row, false);
-    uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
-    uiItemO(sub, "", ICON_VIEWZOOM, "NODE_OT_geometry_node_view_legacy");
   }
 
   modifier_panel_end(layout, ptr);
