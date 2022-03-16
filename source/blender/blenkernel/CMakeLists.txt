@@ -107,10 +107,13 @@ set(SRC
   intern/curves.cc
   intern/curves_geometry.cc
   intern/curve_bevel.c
+  intern/curve_bezier.cc
+  intern/curve_catmull_rom.cc
   intern/curve_convert.c
   intern/curve_decimate.c
   intern/curve_deform.c
   intern/curve_eval.cc
+  intern/curve_nurbs.cc
   intern/curve_to_mesh_convert.cc
   intern/curveprofile.cc
   intern/customdata.cc

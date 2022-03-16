@@ -4,9 +4,12 @@
  * \ingroup bke
  */
 
+#include <mutex>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bounds.hh"
+#include "BLI_index_mask_ops.hh"
 
 #include "DNA_curves_types.h"
 
@@ -19,6 +22,14 @@ static const std::string ATTR_POSITION = "position";
 static const std::string ATTR_RADIUS = "radius";
 static const std::string ATTR_CURVE_TYPE = "curve_type";
 static const std::string ATTR_CYCLIC = "cyclic";
+static const std::string ATTR_RESOLUTION = "resolution";
+static const std::string ATTR_HANDLE_TYPE_LEFT = "handle_type_left";
+static const std::string ATTR_HANDLE_TYPE_RIGHT = "handle_type_right";
+static const std::string ATTR_HANDLE_POSITION_LEFT = "handle_left";
+static const std::string ATTR_HANDLE_POSITION_RIGHT = "handle_right";
+static const std::string ATTR_NURBS_ORDER = "nurbs_order";
+static const std::string ATTR_NURBS_WEIGHT = "nurbs_weight";
+static const std::string ATTR_NURBS_KNOTS_MODE = "knots_mode";
 
 /* -------------------------------------------------------------------- */
 /** \name Constructors/Destructor
@@ -152,12 +163,6 @@ IndexRange CurvesGeometry::curves_range() const
   return IndexRange(this->curves_size());
 }
 
-int CurvesGeometry::evaluated_points_size() const
-{
-  /* TODO: Implement when there are evaluated points. */
-  return 0;
-}
-
 IndexRange CurvesGeometry::range_for_curve(const int index) const
 {
   BLI_assert(this->curve_size > 0);
@@ -210,6 +215,22 @@ static VArray<T> get_varray_attribute(const CurvesGeometry &curves,
 }
 
 template<typename T>
+static Span<T> get_span_attribute(const CurvesGeometry &curves,
+                                  const AttributeDomain domain,
+                                  const StringRefNull name)
+{
+  const int size = domain_size(curves, domain);
+  const CustomData &custom_data = domain_custom_data(curves, domain);
+  const CustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
+
+  T *data = (T *)CustomData_get_layer_named(&custom_data, type, name.c_str());
+  if (data == nullptr) {
+    return {};
+  }
+  return {data, size};
+}
+
+template<typename T>
 static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
                                             const AttributeDomain domain,
                                             const StringRefNull name)
@@ -237,6 +258,20 @@ VArray<int8_t> CurvesGeometry::curve_types() const
 MutableSpan<int8_t> CurvesGeometry::curve_types()
 {
   return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_CURVE_TYPE);
+}
+
+bool CurvesGeometry::has_curve_with_type(const CurveType type) const
+{
+  const VArray<int8_t> curve_types = this->curve_types();
+  if (curve_types.is_single()) {
+    return curve_types.get_internal_single() == type;
+  }
+  if (curve_types.is_span()) {
+    return curve_types.get_internal_span().contains(type);
+  }
+  /* The curves types array should be a single value or a span. */
+  BLI_assert_unreachable();
+  return false;
 }
 
 MutableSpan<float3> CurvesGeometry::positions()
@@ -269,6 +304,324 @@ MutableSpan<bool> CurvesGeometry::cyclic()
   return get_mutable_attribute<bool>(*this, ATTR_DOMAIN_CURVE, ATTR_CYCLIC);
 }
 
+VArray<int> CurvesGeometry::resolution() const
+{
+  return get_varray_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_RESOLUTION, 12);
+}
+
+MutableSpan<int> CurvesGeometry::resolution()
+{
+  return get_mutable_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_RESOLUTION);
+}
+
+VArray<int8_t> CurvesGeometry::handle_types_left() const
+{
+  return get_varray_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_LEFT, 0);
+}
+MutableSpan<int8_t> CurvesGeometry::handle_types_left()
+{
+  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_LEFT);
+}
+
+VArray<int8_t> CurvesGeometry::handle_types_right() const
+{
+  return get_varray_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_RIGHT, 0);
+}
+MutableSpan<int8_t> CurvesGeometry::handle_types_right()
+{
+  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_RIGHT);
+}
+
+Span<float3> CurvesGeometry::handle_positions_left() const
+{
+  return get_span_attribute<float3>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_POSITION_LEFT);
+}
+MutableSpan<float3> CurvesGeometry::handle_positions_left()
+{
+  return get_mutable_attribute<float3>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_POSITION_LEFT);
+}
+
+Span<float3> CurvesGeometry::handle_positions_right() const
+{
+  return get_span_attribute<float3>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_POSITION_RIGHT);
+}
+MutableSpan<float3> CurvesGeometry::handle_positions_right()
+{
+  return get_mutable_attribute<float3>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_POSITION_RIGHT);
+}
+
+VArray<int8_t> CurvesGeometry::nurbs_orders() const
+{
+  return get_varray_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_ORDER, 4);
+}
+MutableSpan<int8_t> CurvesGeometry::nurbs_orders()
+{
+  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_ORDER);
+}
+
+Span<float> CurvesGeometry::nurbs_weights() const
+{
+  return get_span_attribute<float>(*this, ATTR_DOMAIN_POINT, ATTR_NURBS_WEIGHT);
+}
+MutableSpan<float> CurvesGeometry::nurbs_weights()
+{
+  return get_mutable_attribute<float>(*this, ATTR_DOMAIN_POINT, ATTR_NURBS_WEIGHT);
+}
+
+VArray<int8_t> CurvesGeometry::nurbs_knots_modes() const
+{
+  return get_varray_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_KNOTS_MODE, 0);
+}
+MutableSpan<int8_t> CurvesGeometry::nurbs_knots_modes()
+{
+  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_KNOTS_MODE);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Evaluation
+ * \{ */
+
+template<typename SizeFn> void build_offsets(MutableSpan<int> offsets, const SizeFn &size_fn)
+{
+  int offset = 0;
+  for (const int i : offsets.drop_back(1).index_range()) {
+    offsets[i] = offset;
+    offset += size_fn(i);
+  }
+  offsets.last() = offset;
+}
+
+static void calculate_evaluated_offsets(const CurvesGeometry &curves,
+                                        MutableSpan<int> offsets,
+                                        MutableSpan<int> bezier_evaluated_offsets)
+{
+  VArray<int8_t> types = curves.curve_types();
+  VArray<int> resolution = curves.resolution();
+  VArray<bool> cyclic = curves.cyclic();
+
+  VArray_Span<int8_t> handle_types_left{curves.handle_types_left()};
+  VArray_Span<int8_t> handle_types_right{curves.handle_types_right()};
+
+  VArray<int8_t> nurbs_orders = curves.nurbs_orders();
+  VArray<int8_t> nurbs_knots_modes = curves.nurbs_knots_modes();
+
+  build_offsets(offsets, [&](const int curve_index) -> int {
+    const IndexRange points = curves.range_for_curve(curve_index);
+    switch (types[curve_index]) {
+      case CURVE_TYPE_CATMULL_ROM:
+        return curves::catmull_rom::calculate_evaluated_size(
+            points.size(), cyclic[curve_index], resolution[curve_index]);
+      case CURVE_TYPE_POLY:
+        return points.size();
+      case CURVE_TYPE_BEZIER:
+        curves::bezier::calculate_evaluated_offsets(handle_types_left.slice(points),
+                                                    handle_types_right.slice(points),
+                                                    cyclic[curve_index],
+                                                    resolution[curve_index],
+                                                    bezier_evaluated_offsets.slice(points));
+        return bezier_evaluated_offsets[points.last()];
+      case CURVE_TYPE_NURBS:
+        return curves::nurbs::calculate_evaluated_size(points.size(),
+                                                       nurbs_orders[curve_index],
+                                                       cyclic[curve_index],
+                                                       resolution[curve_index],
+                                                       KnotsMode(nurbs_knots_modes[curve_index]));
+    }
+    BLI_assert_unreachable();
+    return 0;
+  });
+}
+
+int CurvesGeometry::evaluated_points_size() const
+{
+  /* This could avoid calculating offsets in the future in simple circumstances. */
+  return this->evaluated_offsets().last();
+}
+
+IndexRange CurvesGeometry::evaluated_range_for_curve(int index) const
+{
+  BLI_assert(!this->runtime->offsets_cache_dirty);
+  return offsets_to_range(this->runtime->evaluated_offsets_cache.as_span(), index);
+}
+
+Span<int> CurvesGeometry::evaluated_offsets() const
+{
+  if (!this->runtime->offsets_cache_dirty) {
+    return this->runtime->evaluated_offsets_cache;
+  }
+
+  /* A double checked lock. */
+  std::scoped_lock lock{this->runtime->offsets_cache_mutex};
+  if (!this->runtime->offsets_cache_dirty) {
+    return this->runtime->evaluated_offsets_cache;
+  }
+
+  threading::isolate_task([&]() {
+    this->runtime->evaluated_offsets_cache.resize(this->curves_size() + 1);
+
+    if (this->has_curve_with_type(CURVE_TYPE_BEZIER)) {
+      this->runtime->bezier_evaluated_offsets.resize(this->points_size());
+    }
+    else {
+      this->runtime->bezier_evaluated_offsets.clear_and_make_inline();
+    }
+
+    calculate_evaluated_offsets(
+        *this, this->runtime->evaluated_offsets_cache, this->runtime->bezier_evaluated_offsets);
+  });
+
+  this->runtime->offsets_cache_dirty = false;
+  return this->runtime->evaluated_offsets_cache;
+}
+
+IndexMask CurvesGeometry::indices_for_curve_type(const CurveType type,
+                                                 Vector<int64_t> &r_indices) const
+{
+
+  VArray<int8_t> types = this->curve_types();
+  if (types.is_single()) {
+    if (types.get_internal_single() == type) {
+      return IndexMask(types.size());
+    }
+    return {};
+  }
+  Span<int8_t> types_span = types.get_internal_span();
+  return index_mask_ops::find_indices_based_on_predicate(
+      IndexMask(types.size()), 1024, r_indices, [&](const int index) {
+        return types_span[index] == type;
+      });
+}
+
+void CurvesGeometry::ensure_nurbs_basis_cache() const
+{
+  if (!this->runtime->nurbs_basis_cache_dirty) {
+    return;
+  }
+
+  /* A double checked lock. */
+  std::scoped_lock lock{this->runtime->nurbs_basis_cache_mutex};
+  if (!this->runtime->nurbs_basis_cache_dirty) {
+    return;
+  }
+
+  threading::isolate_task([&]() {
+    Vector<int64_t> nurbs_indices;
+    const IndexMask nurbs_mask = this->indices_for_curve_type(CURVE_TYPE_NURBS, nurbs_indices);
+    if (nurbs_mask.is_empty()) {
+      return;
+    }
+
+    this->runtime->nurbs_basis_cache.resize(this->curves_size());
+    MutableSpan<curves::nurbs::BasisCache> basis_caches(this->runtime->nurbs_basis_cache);
+
+    VArray<bool> cyclic = this->cyclic();
+    VArray<int8_t> orders = this->nurbs_orders();
+    VArray<int8_t> knots_modes = this->nurbs_knots_modes();
+
+    threading::parallel_for(nurbs_mask.index_range(), 64, [&](const IndexRange range) {
+      for (const int curve_index : nurbs_mask.slice(range)) {
+        const IndexRange points = this->range_for_curve(curve_index);
+        const IndexRange evaluated_points = this->evaluated_range_for_curve(curve_index);
+
+        const int8_t order = orders[curve_index];
+        const bool is_cyclic = cyclic[curve_index];
+        const KnotsMode mode = KnotsMode(knots_modes[curve_index]);
+
+        const int knots_size = curves::nurbs::knots_size(points.size(), order, is_cyclic);
+        Array<float> knots(knots_size);
+        curves::nurbs::calculate_knots(points.size(), mode, order, is_cyclic, knots);
+        curves::nurbs::calculate_basis_cache(points.size(),
+                                             evaluated_points.size(),
+                                             order,
+                                             is_cyclic,
+                                             knots,
+                                             basis_caches[curve_index]);
+      }
+    });
+  });
+}
+
+Span<float3> CurvesGeometry::evaluated_positions() const
+{
+  if (!this->runtime->position_cache_dirty) {
+    return this->runtime->evaluated_position_cache;
+  }
+
+  /* A double checked lock. */
+  std::scoped_lock lock{this->runtime->position_cache_mutex};
+  if (!this->runtime->position_cache_dirty) {
+    return this->runtime->evaluated_position_cache;
+  }
+
+  threading::isolate_task([&]() {
+    this->runtime->evaluated_position_cache.resize(this->evaluated_points_size());
+    MutableSpan<float3> evaluated_positions = this->runtime->evaluated_position_cache;
+
+    VArray<int8_t> types = this->curve_types();
+    VArray<bool> cyclic = this->cyclic();
+    VArray<int> resolution = this->resolution();
+    Span<float3> positions = this->positions();
+
+    Span<float3> handle_positions_left = this->handle_positions_left();
+    Span<float3> handle_positions_right = this->handle_positions_right();
+    Span<int> bezier_evaluated_offsets = this->runtime->bezier_evaluated_offsets;
+
+    VArray<int8_t> nurbs_orders = this->nurbs_orders();
+    Span<float> nurbs_weights = this->nurbs_weights();
+
+    this->ensure_nurbs_basis_cache();
+
+    threading::parallel_for(this->curves_range(), 128, [&](IndexRange curves_range) {
+      for (const int curve_index : curves_range) {
+        const IndexRange points = this->range_for_curve(curve_index);
+        const IndexRange evaluated_points = this->evaluated_range_for_curve(curve_index);
+
+        switch (types[curve_index]) {
+          case CURVE_TYPE_CATMULL_ROM:
+            curves::catmull_rom::interpolate_to_evaluated(
+                positions.slice(points),
+                cyclic[curve_index],
+                resolution[curve_index],
+                evaluated_positions.slice(evaluated_points));
+            break;
+          case CURVE_TYPE_POLY:
+            evaluated_positions.slice(evaluated_points).copy_from(positions.slice(points));
+            break;
+          case CURVE_TYPE_BEZIER:
+            curves::bezier::calculate_evaluated_positions(
+                positions.slice(points),
+                handle_positions_left.slice(points),
+                handle_positions_right.slice(points),
+                bezier_evaluated_offsets.slice(points),
+                evaluated_positions.slice(evaluated_points));
+            break;
+          case CURVE_TYPE_NURBS: {
+            curves::nurbs::interpolate_to_evaluated(this->runtime->nurbs_basis_cache[curve_index],
+                                                    nurbs_orders[curve_index],
+                                                    nurbs_weights.slice(points),
+                                                    positions.slice(points),
+                                                    evaluated_positions.slice(evaluated_points));
+            break;
+          }
+          default:
+            BLI_assert_unreachable();
+            break;
+        }
+      }
+    });
+  });
+
+  return this->runtime->evaluated_position_cache;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operations
+ * \{ */
+
 void CurvesGeometry::resize(const int point_size, const int curve_size)
 {
   if (point_size != this->point_size) {
@@ -295,6 +648,8 @@ void CurvesGeometry::tag_topology_changed()
   this->runtime->position_cache_dirty = true;
   this->runtime->tangent_cache_dirty = true;
   this->runtime->normal_cache_dirty = true;
+  this->runtime->offsets_cache_dirty = true;
+  this->runtime->nurbs_basis_cache_dirty = true;
 }
 void CurvesGeometry::tag_normals_changed()
 {
