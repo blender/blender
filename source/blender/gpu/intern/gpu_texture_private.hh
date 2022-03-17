@@ -111,7 +111,8 @@ class Texture {
                  int mip_start,
                  int mip_len,
                  int layer_start,
-                 int layer_len);
+                 int layer_len,
+                 bool cube_as_array);
 
   virtual void generate_mipmap() = 0;
   virtual void copy_to(Texture *tex) = 0;

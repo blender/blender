@@ -514,7 +514,7 @@ class Texture : NonCopyable {
    * Ensure the availability of mipmap views.
    * Mip view covers all layers of array textures.
    */
-  bool ensure_mip_views()
+  bool ensure_mip_views(bool cube_as_array = false)
   {
     int mip_len = GPU_texture_mip_count(tx_);
     if (mip_views_.size() != mip_len) {
@@ -523,7 +523,8 @@ class Texture : NonCopyable {
       }
       eGPUTextureFormat format = GPU_texture_format(tx_);
       for (auto i : IndexRange(mip_len)) {
-        mip_views_.append(GPU_texture_create_view(name_, tx_, format, i, 1, 0, 9999));
+        mip_views_.append(
+            GPU_texture_create_view(name_, tx_, format, i, 1, 0, 9999, cube_as_array));
       }
       return true;
     }
@@ -539,7 +540,7 @@ class Texture : NonCopyable {
    * Ensure the availability of mipmap views.
    * Layer views covers all layers of array textures.
    */
-  bool ensure_layer_views()
+  bool ensure_layer_views(bool cube_as_array = false)
   {
     int layer_len = GPU_texture_layer_count(tx_);
     if (layer_views_.size() != layer_len) {
@@ -548,7 +549,8 @@ class Texture : NonCopyable {
       }
       eGPUTextureFormat format = GPU_texture_format(tx_);
       for (auto i : IndexRange(layer_len)) {
-        layer_views_.append(GPU_texture_create_view(name_, tx_, format, 0, 9999, i, 1));
+        layer_views_.append(
+            GPU_texture_create_view(name_, tx_, format, 0, 9999, i, 1, cube_as_array));
       }
       return true;
     }
@@ -560,11 +562,11 @@ class Texture : NonCopyable {
     return layer_views_[layer];
   }
 
-  GPUTexture *stencil_view()
+  GPUTexture *stencil_view(bool cube_as_array = false)
   {
     if (stencil_view_ == nullptr) {
       eGPUTextureFormat format = GPU_texture_format(tx_);
-      stencil_view_ = GPU_texture_create_view(name_, tx_, format, 0, 9999, 0, 9999);
+      stencil_view_ = GPU_texture_create_view(name_, tx_, format, 0, 9999, 0, 9999, cube_as_array);
       GPU_texture_stencil_texture_mode_set(stencil_view_, true);
     }
     return stencil_view_;

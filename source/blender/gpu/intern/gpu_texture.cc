@@ -136,7 +136,8 @@ bool Texture::init_view(const GPUTexture *src_,
                         int mip_start,
                         int mip_len,
                         int layer_start,
-                        int layer_len)
+                        int layer_len,
+                        bool cube_as_array)
 {
   const Texture *src = unwrap(src_);
   w_ = src->w_;
@@ -165,6 +166,10 @@ bool Texture::init_view(const GPUTexture *src_,
   format_flag_ = to_format_flag(format);
   /* For now always copy the target. Target aliasing could be exposed later. */
   type_ = src->type_;
+  if (cube_as_array) {
+    BLI_assert(type_ & GPU_TEXTURE_CUBE);
+    type_ = (type_ & ~GPU_TEXTURE_CUBE) | GPU_TEXTURE_2D_ARRAY;
+  }
   sampler_state = src->sampler_state;
   return this->init_internal(src_, mip_start, layer_start);
 }
@@ -387,12 +392,13 @@ GPUTexture *GPU_texture_create_view(const char *name,
                                     int mip_start,
                                     int mip_len,
                                     int layer_start,
-                                    int layer_len)
+                                    int layer_len,
+                                    bool cube_as_array)
 {
   BLI_assert(mip_len > 0);
   BLI_assert(layer_len > 0);
   Texture *view = GPUBackend::get()->texture_alloc(name);
-  view->init_view(src, format, mip_start, mip_len, layer_start, layer_len);
+  view->init_view(src, format, mip_start, mip_len, layer_start, layer_len, cube_as_array);
   return wrap(view);
 }
 
