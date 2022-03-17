@@ -2490,9 +2490,19 @@ static bool ed_object_select_pick(bContext *C,
            * not-selected active object in pose-mode won't work well for tools */
           ED_object_base_select(basact, BA_SELECT);
 
-          /* Don't set `handled` here as the object selection may be necessary
-           * when starting out in object mode and moving into pose mode. */
-          changed = true;
+          if (is_pose_mode && (basact->object->mode & OB_MODE_POSE)) {
+            /* Within pose-mode, keep the current selection when switching pose bones,
+             * this is noticeable when in pose mode with multiple objects at once.
+             * Where selecting the bone of a different object would de-select this one.
+             * After that, exiting pose-mode would only have the active armature selected.
+             * This matches multi-object edit-mode behavior. */
+            handled = true;
+          }
+          else {
+            /* Don't set `handled` here as the object selection may be necessary
+             * when starting out in object-mode and moving into pose-mode,
+             * when moving from pose to object-mode using object selection also makes sense. */
+          }
 
           WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, basact->object);
           WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, basact->object);
