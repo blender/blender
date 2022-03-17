@@ -32,7 +32,7 @@ static void copy_with_map(const VArray<T> &src, Span<int> map, MutableSpan<T> ds
 static Curves *create_curve_from_vert_indices(const MeshComponent &mesh_component,
                                               const Span<int> vert_indices,
                                               const Span<int> curve_offsets,
-                                              const IndexRange cyclic_splines)
+                                              const IndexRange cyclic_curves)
 {
   Curves *curves_id = bke::curves_new_nomain(vert_indices.size(), curve_offsets.size());
   bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
@@ -41,7 +41,7 @@ static Curves *create_curve_from_vert_indices(const MeshComponent &mesh_componen
   curves.curve_types().fill(CURVE_TYPE_POLY);
 
   curves.cyclic().fill(false);
-  curves.cyclic().slice(cyclic_splines).fill(true);
+  curves.cyclic().slice(cyclic_curves).fill(true);
 
   Set<bke::AttributeIDRef> source_attribute_ids = mesh_component.attribute_ids();
 
@@ -67,7 +67,7 @@ static Curves *create_curve_from_vert_indices(const MeshComponent &mesh_componen
       continue;
     }
 
-    /* Copy attribute based on the map for this spline. */
+    /* Copy attribute based on the map for this curve. */
     attribute_math::convert_to_static_type(mesh_attribute.type(), [&](auto dummy) {
       using T = decltype(dummy);
       bke::OutputAttribute_Typed<T> attribute =
@@ -81,12 +81,12 @@ static Curves *create_curve_from_vert_indices(const MeshComponent &mesh_componen
 }
 
 struct CurveFromEdgesOutput {
-  /** The indices in the mesh for each control point of each result splines. */
+  /** The indices in the mesh for each control point of each result curves. */
   Vector<int> vert_indices;
   /** The first index of each curve in the result. */
   Vector<int> curve_offsets;
-  /** A subset of splines that should be set cyclic. */
-  IndexRange cyclic_splines;
+  /** A subset of curves that should be set cyclic. */
+  IndexRange cyclic_curves;
 };
 
 static CurveFromEdgesOutput edges_to_curve_point_indices(Span<MVert> verts,
@@ -128,7 +128,7 @@ static CurveFromEdgesOutput edges_to_curve_point_indices(Span<MVert> verts,
   Array<int> unused_edges = std::move(used_slots);
 
   for (const int start_vert : verts.index_range()) {
-    /* The vertex will be part of a cyclic spline. */
+    /* The vertex will be part of a cyclic curve. */
     if (neighbor_count[start_vert] == 2) {
       continue;
     }
@@ -171,10 +171,10 @@ static CurveFromEdgesOutput edges_to_curve_point_indices(Span<MVert> verts,
     }
   }
 
-  /* All splines added after this are cyclic. */
+  /* All curves added after this are cyclic. */
   const int cyclic_start = curve_offsets.size();
 
-  /* All remaining edges are part of cyclic splines (we skipped vertices with two edges before). */
+  /* All remaining edges are part of cyclic curves (we skipped vertices with two edges before). */
   for (const int start_vert : verts.index_range()) {
     if (unused_edges[start_vert] != 2) {
       continue;
@@ -230,7 +230,7 @@ Curves *mesh_to_curve_convert(const MeshComponent &mesh_component, const IndexMa
                                                              selected_edges);
 
   return create_curve_from_vert_indices(
-      mesh_component, output.vert_indices, output.curve_offsets, output.cyclic_splines);
+      mesh_component, output.vert_indices, output.curve_offsets, output.cyclic_curves);
 }
 
 }  // namespace blender::geometry

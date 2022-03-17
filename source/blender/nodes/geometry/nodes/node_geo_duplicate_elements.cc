@@ -224,20 +224,20 @@ static void copy_point_attributes_without_id(GeometrySet &geometry_set,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Duplicate Splines
+/** \name Duplicate Curves
  * \{ */
 
 /**
- * Copies the attributes for spline duplicates. If copying the spline domain, the attributes are
+ * Copies the attributes for curve duplicates. If copying the curve domain, the attributes are
  * copied with an offset fill, otherwise a mapping is used.
  */
-static void copy_spline_attributes_without_id(const GeometrySet &geometry_set,
-                                              const CurveComponent &src_component,
-                                              const bke::CurvesGeometry &src_curves,
-                                              const IndexMask selection,
-                                              const Span<int> curve_offsets,
-                                              bke::CurvesGeometry &dst_curves,
-                                              CurveComponent &dst_component)
+static void copy_curve_attributes_without_id(const GeometrySet &geometry_set,
+                                             const CurveComponent &src_component,
+                                             const bke::CurvesGeometry &src_curves,
+                                             const IndexMask selection,
+                                             const Span<int> curve_offsets,
+                                             bke::CurvesGeometry &dst_curves,
+                                             CurveComponent &dst_component)
 {
   Map<AttributeIDRef, AttributeKind> gathered_attributes;
   gather_attributes_without_id(
@@ -290,16 +290,16 @@ static void copy_spline_attributes_without_id(const GeometrySet &geometry_set,
 
 /**
  * Copy the stable ids to the first duplicate and create new ids based on a hash of the original id
- * and the duplicate number. In the spline case, copy the entire spline's points to the
+ * and the duplicate number. In the curve case, copy the entire curve's points to the
  * destination,
  * then loop over the remaining ones point by point, hashing their ids to the new ids.
  */
-static void copy_stable_id_splines(const bke::CurvesGeometry &src_curves,
-                                   const IndexMask selection,
-                                   const Span<int> curve_offsets,
-                                   const CurveComponent &src_component,
-                                   bke::CurvesGeometry &dst_curves,
-                                   CurveComponent &dst_component)
+static void copy_stable_id_curves(const bke::CurvesGeometry &src_curves,
+                                  const IndexMask selection,
+                                  const Span<int> curve_offsets,
+                                  const CurveComponent &src_component,
+                                  bke::CurvesGeometry &dst_curves,
+                                  CurveComponent &dst_component)
 {
   ReadAttributeLookup src_attribute = src_component.attribute_try_get_for_read("id");
   if (!src_attribute) {
@@ -329,10 +329,10 @@ static void copy_stable_id_splines(const bke::CurvesGeometry &src_curves,
   dst_attribute.save();
 }
 
-static void duplicate_splines(GeometrySet &geometry_set,
-                              const Field<int> &count_field,
-                              const Field<bool> &selection_field,
-                              const IndexAttributes &attributes)
+static void duplicate_curves(GeometrySet &geometry_set,
+                             const Field<int> &count_field,
+                             const Field<bool> &selection_field,
+                             const IndexAttributes &attributes)
 {
   if (!geometry_set.has_curves()) {
     geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
@@ -356,19 +356,19 @@ static void duplicate_splines(GeometrySet &geometry_set,
   Array<int> curve_offsets(selection.size() + 1);
   Array<int> point_offsets(selection.size() + 1);
 
-  int dst_splines_size = 0;
+  int dst_curves_size = 0;
   int dst_points_size = 0;
-  for (const int i_spline : selection.index_range()) {
-    const int count = std::max(counts[selection[i_spline]], 0);
-    curve_offsets[i_spline] = dst_splines_size;
-    point_offsets[i_spline] = dst_points_size;
-    dst_splines_size += count;
-    dst_points_size += count * curves.range_for_curve(selection[i_spline]).size();
+  for (const int i_curve : selection.index_range()) {
+    const int count = std::max(counts[selection[i_curve]], 0);
+    curve_offsets[i_curve] = dst_curves_size;
+    point_offsets[i_curve] = dst_points_size;
+    dst_curves_size += count;
+    dst_points_size += count * curves.range_for_curve(selection[i_curve]).size();
   }
-  curve_offsets.last() = dst_splines_size;
+  curve_offsets.last() = dst_curves_size;
   point_offsets.last() = dst_points_size;
 
-  Curves *new_curves_id = bke::curves_new_nomain(dst_points_size, dst_splines_size);
+  Curves *new_curves_id = bke::curves_new_nomain(dst_points_size, dst_curves_size);
   bke::CurvesGeometry &new_curves = bke::CurvesGeometry::wrap(new_curves_id->geometry);
   MutableSpan<int> all_dst_offsets = new_curves.offsets();
 
@@ -389,10 +389,10 @@ static void duplicate_splines(GeometrySet &geometry_set,
   CurveComponent dst_component;
   dst_component.replace(new_curves_id, GeometryOwnershipType::Editable);
 
-  copy_spline_attributes_without_id(
+  copy_curve_attributes_without_id(
       geometry_set, src_component, curves, selection, curve_offsets, new_curves, dst_component);
 
-  copy_stable_id_splines(
+  copy_stable_id_curves(
       curves, selection, curve_offsets, src_component, new_curves, dst_component);
 
   if (attributes.duplicate_index) {
@@ -1099,7 +1099,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
       switch (duplicate_domain) {
         case ATTR_DOMAIN_CURVE:
-          duplicate_splines(geometry_set, count_field, selection_field, attributes);
+          duplicate_curves(geometry_set, count_field, selection_field, attributes);
           break;
         case ATTR_DOMAIN_FACE:
           duplicate_faces(geometry_set, count_field, selection_field, attributes);

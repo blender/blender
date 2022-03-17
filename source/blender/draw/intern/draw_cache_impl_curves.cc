@@ -140,18 +140,18 @@ static void curves_batch_cache_fill_segments_proc_pos(Curves *curves,
   for (const int i : IndexRange(curve_size)) {
     const IndexRange curve_range = geometry.range_for_curve(i);
 
-    Span<float3> spline_positions = positions.slice(curve_range);
+    Span<float3> curve_positions = positions.slice(curve_range);
     float total_len = 0.0f;
     float *seg_data_first;
-    for (const int i_spline : spline_positions.index_range()) {
+    for (const int i_curve : curve_positions.index_range()) {
       float *seg_data = (float *)GPU_vertbuf_raw_step(attr_step);
-      copy_v3_v3(seg_data, spline_positions[i_spline]);
-      if (i_spline == 0) {
+      copy_v3_v3(seg_data, curve_positions[i_curve]);
+      if (i_curve == 0) {
         seg_data_first = seg_data;
       }
       else {
-        total_len += blender::math::distance(spline_positions[i_spline - 1],
-                                             spline_positions[i_spline]);
+        total_len += blender::math::distance(curve_positions[i_curve - 1],
+                                             curve_positions[i_curve]);
       }
       seg_data[3] = total_len;
     }
@@ -159,7 +159,7 @@ static void curves_batch_cache_fill_segments_proc_pos(Curves *curves,
     *(float *)GPU_vertbuf_raw_step(length_step) = total_len;
     if (total_len > 0.0f) {
       /* Divide by total length to have a [0-1] number. */
-      for ([[maybe_unused]] const int i_spline : spline_positions.index_range()) {
+      for ([[maybe_unused]] const int i_curve : curve_positions.index_range()) {
         seg_data_first[3] /= total_len;
         seg_data_first += 4;
       }
