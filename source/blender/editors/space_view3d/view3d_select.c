@@ -2237,6 +2237,69 @@ static void deselect_all_tracks(MovieTracking *tracking)
   }
 }
 
+static bool ed_object_select_pick_camera_track(bContext *C,
+                                               Scene *scene,
+                                               Base *basact,
+                                               MovieClip *clip,
+                                               const struct GPUSelectResult *buffer,
+                                               const short hits,
+                                               const struct SelectPick_Params *params)
+{
+  const bool extend = params->sel_op == SEL_OP_ADD;
+  bool changed = false;
+
+  bool found = false;
+
+  MovieTracking *tracking = &clip->tracking;
+  ListBase *tracksbase = NULL;
+  MovieTrackingTrack *track = NULL;
+
+  for (int i = 0; i < hits; i++) {
+    const int hitresult = buffer[i].id;
+
+    /* If there's bundles in buffer select bundles first,
+     * so non-camera elements should be ignored in buffer. */
+    if (basact->object->runtime.select_id != (hitresult & 0xFFFF)) {
+      continue;
+    }
+    /* Index of bundle is 1<<16-based. if there's no "bone" index
+     * in height word, this buffer value belongs to camera. not to bundle. */
+    if ((hitresult & 0xFFFF0000) == 0) {
+      continue;
+    }
+
+    track = BKE_tracking_track_get_indexed(&clip->tracking, hitresult >> 16, &tracksbase);
+    found = true;
+    break;
+  }
+
+  if (found) {
+    if (TRACK_SELECTED(track) && extend) {
+      changed = false;
+      BKE_tracking_track_deselect(track, TRACK_AREA_ALL);
+    }
+    else {
+      int oldsel = TRACK_SELECTED(track) ? 1 : 0;
+      if (!extend) {
+        deselect_all_tracks(tracking);
+      }
+
+      BKE_tracking_track_select(tracksbase, track, TRACK_AREA_ALL, extend);
+
+      if (oldsel != (TRACK_SELECTED(track) ? 1 : 0)) {
+        changed = true;
+      }
+    }
+
+    DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+    DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
+    WM_event_add_notifier(C, NC_MOVIECLIP | ND_SELECT, track);
+    WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+  }
+
+  return changed || found;
+}
+
 static bool ed_object_select_pick(bContext *C,
                                   const int mval[2],
                                   const struct SelectPick_Params *params,
@@ -2372,63 +2435,15 @@ static bool ed_object_select_pick(bContext *C,
 
       if (basact && (has_bones && (basact->object->type == OB_CAMERA))) {
         MovieClip *clip = BKE_object_movieclip_get(scene, basact->object, false);
-        if (clip != NULL && oldbasact == basact) {
-          bool track_changed = false;
+        if (clip != NULL) {
+          if (ed_object_select_pick_camera_track(C, scene, basact, clip, buffer, hits, params)) {
+            ED_object_base_select(basact, BA_SELECT);
 
-          for (int i = 0; i < hits; i++) {
-            const int hitresult = buffer[i].id;
-
-            /* if there's bundles in buffer select bundles first,
-             * so non-camera elements should be ignored in buffer */
-            if (basact->object->runtime.select_id != (hitresult & 0xFFFF)) {
-              continue;
-            }
-
-            /* index of bundle is 1<<16-based. if there's no "bone" index
-             * in height word, this buffer value belongs to camera. not to bundle
-             */
-            if (hitresult & 0xFFFF0000) {
-              const bool extend = params->sel_op == SEL_OP_ADD;
-              MovieTracking *tracking = &clip->tracking;
-              ListBase *tracksbase;
-              MovieTrackingTrack *track;
-
-              track = BKE_tracking_track_get_indexed(
-                  &clip->tracking, hitresult >> 16, &tracksbase);
-
-              if (TRACK_SELECTED(track) && extend) {
-                track_changed = false;
-                BKE_tracking_track_deselect(track, TRACK_AREA_ALL);
-              }
-              else {
-                int oldsel = TRACK_SELECTED(track) ? 1 : 0;
-                if (!extend) {
-                  deselect_all_tracks(tracking);
-                }
-
-                BKE_tracking_track_select(tracksbase, track, TRACK_AREA_ALL, extend);
-
-                if (oldsel != (TRACK_SELECTED(track) ? 1 : 0)) {
-                  track_changed = true;
-                }
-              }
-
-              ED_object_base_select(basact, BA_SELECT);
-
-              changed = true;
-
-              DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-              DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
-              WM_event_add_notifier(C, NC_MOVIECLIP | ND_SELECT, track);
-              WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
-
-              break;
-            }
+            changed = true;
           }
-
-          if (!track_changed) {
-            /* fallback to regular object selection if no new bundles were selected,
-             * allows to select object parented to reconstruction object */
+          else {
+            /* Fallback to regular object selection if no new bundles were selected,
+             * allows to select object parented to reconstruction object. */
             basact = mouse_select_eval_buffer(&vc, buffer, hits, startbase, 0, do_nearest, NULL);
           }
         }
