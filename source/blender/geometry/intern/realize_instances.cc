@@ -18,7 +18,6 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_pointcloud.h"
-#include "BKE_spline.hh"
 #include "BKE_type_conversions.hh"
 
 namespace blender::geometry {

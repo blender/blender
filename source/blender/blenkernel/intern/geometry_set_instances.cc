@@ -7,7 +7,6 @@
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_pointcloud.h"
-#include "BKE_spline.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_layer_types.h"
