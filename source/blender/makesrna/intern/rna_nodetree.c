@@ -12025,12 +12025,12 @@ static void rna_def_node_link(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "is_valid", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_LINK_VALID);
-  RNA_def_struct_ui_text(srna, "Valid", "Link is valid");
+  RNA_def_property_ui_text(prop, "Valid", "Link is valid");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, NULL);
 
   prop = RNA_def_property(srna, "is_muted", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_LINK_MUTED);
-  RNA_def_struct_ui_text(srna, "Muted", "Link is muted and can be ignored");
+  RNA_def_property_ui_text(prop, "Muted", "Link is muted and can be ignored");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, NULL);
 
   prop = RNA_def_property(srna, "from_node", PROP_POINTER, PROP_NONE);
