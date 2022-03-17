@@ -451,6 +451,10 @@ bool BKE_gpencil_stroke_sample(bGPdata *gpd,
   }
   /* TODO: Implement feature point preservation. */
   int count = stroke_march_count(gps, dist, sharp_threshold);
+  const bool is_cyclic = (gps->flag & GP_STROKE_CYCLIC) != 0;
+  if (is_cyclic) {
+    count--;
+  }
 
   bGPDspoint *new_pt = (bGPDspoint *)MEM_callocN(sizeof(bGPDspoint) * count,
                                                  "gp_stroke_points_sampled");
@@ -499,6 +503,9 @@ bool BKE_gpencil_stroke_sample(bGPdata *gpd,
                                                      &ratio_result,
                                                      &index_from,
                                                      &index_to)) > -1) {
+    if (is_cyclic && next_point_index == 0) {
+      break; /* last point finished */
+    }
     pt2 = &new_pt[i];
     copy_v3_v3(&pt2->x, last_coord);
     new_pt[i].pressure = pressure;
@@ -533,9 +540,8 @@ bool BKE_gpencil_stroke_sample(bGPdata *gpd,
     gps->dvert = new_dv;
   }
 
+  BLI_assert(i == count);
   gps->totpoints = i;
-
-  gps->flag &= (~GP_STROKE_CYCLIC);
 
   /* Calc geometry data. */
   BKE_gpencil_stroke_geometry_update(gpd, gps);
