@@ -1,8 +1,8 @@
-/*
- * CopyPose.h
- *
- *  Created on: Mar 17, 2009
- *      Author: benoit bolsee
+/* SPDX-License-Identifier: LGPL-2.1-or-later
+ * Copyright 2009 Benoit Bolsee. */
+
+/** \file
+ * \ingroup intern_itasc
  */
 
 #ifndef COPYPOSE_H_

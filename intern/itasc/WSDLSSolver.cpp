@@ -1,11 +1,8 @@
+/* SPDX-License-Identifier: LGPL-2.1-or-later
+ * Copyright 2009 Ruben Smits. */
+
 /** \file itasc/WSDLSSolver.cpp
  * \ingroup intern_itasc
- */
-/*
- * WDLSSolver.hpp.cpp
- *
- *  Created on: Jan 8, 2009
- *      Author: rubensmits
  */
 
 #include "WSDLSSolver.hpp"

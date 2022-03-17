@@ -1,11 +1,8 @@
-/** \file itasc/Scene.cpp
+/* SPDX-License-Identifier: LGPL-2.1-or-later
+ * Copyright 2009 Ruben Smits. */
+
+/** \file
  * \ingroup intern_itasc
- */
-/*
- * Scene.cpp
- *
- *  Created on: Jan 5, 2009
- *      Author: rubensmits
  */
 
 #include "Scene.hpp"

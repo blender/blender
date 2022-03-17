@@ -1,8 +1,8 @@
-/*
- * WSDLSSolver.hpp
- *
- *  Created on: Mar 26, 2009
- *      Author: benoit bolsee
+/* SPDX-License-Identifier: LGPL-2.1-or-later
+ * Copyright 2009 Benoit Bolsee. */
+
+/** \file
+ * \ingroup intern_itasc
  */
 
 #ifndef WSDLSSOLVER_HPP_
