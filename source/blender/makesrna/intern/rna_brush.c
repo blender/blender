@@ -33,7 +33,7 @@ static const EnumPropertyItem prop_direction_items[] = {
 
 #ifdef RNA_RUNTIME
 static const EnumPropertyItem prop_smooth_direction_items[] = {
-    {0, "SMOOTH", ICON_ADD, "Smooth", "Smooth the surfae"},
+    {0, "SMOOTH", ICON_ADD, "Smooth", "Smooth the surface"},
     {BRUSH_DIR_IN,
      "ENHANCE_DETAILS",
      ICON_REMOVE,
