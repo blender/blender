@@ -165,7 +165,7 @@ class UniformCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
 #ifdef DEBUG
   const char *name_ = typeid(T).name();
 #else
-  constexpr static const char *name_ = "UniformBuffer";
+  const char *name_ = "UniformBuffer";
 #endif
 
  public:
@@ -205,7 +205,7 @@ class StorageCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
 #ifdef DEBUG
   const char *name_ = typeid(T).name();
 #else
-  constexpr static const char *name_ = "StorageBuffer";
+  const char *name_ = "StorageBuffer";
 #endif
 
  public:
