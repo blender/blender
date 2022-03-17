@@ -2832,13 +2832,16 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
     changed = ed_object_select_pick(C, mval, &params, center, enumerate, object);
   }
 
+  /* Pass-through flag may be cleared, see #WM_operator_flag_only_pass_through_on_press. */
+
   /* Pass-through allows tweaks
    * FINISHED to signal one operator worked */
   if (changed) {
     WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
     return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
   }
-  return OPERATOR_PASS_THROUGH; /* nothing selected, just passthrough */
+  /* Nothing selected, just passthrough. */
+  return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;
 }
 
 static int view3d_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
