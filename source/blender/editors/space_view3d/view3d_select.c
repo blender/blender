@@ -2410,6 +2410,8 @@ static bool ed_object_select_pick(bContext *C,
       basact = object_mouse_select_menu(C, &vc, NULL, 0, mval, params);
     }
     else {
+      /* Put the active object at a disadvantage to cycle through other objects. */
+      const float penalty_dist = 10.0f * U.dpi_fac;
       base = startbase;
       while (base) {
         if (BASE_SELECTABLE(v3d, base)) {
@@ -2417,12 +2419,12 @@ static bool ed_object_select_pick(bContext *C,
           if (ED_view3d_project_float_global(
                   region, base->object->obmat[3], screen_co, V3D_PROJ_TEST_CLIP_DEFAULT) ==
               V3D_PROJ_RET_OK) {
-            float dist_temp = len_manhattan_v2v2(mval_fl, screen_co);
+            float dist_test = len_manhattan_v2v2(mval_fl, screen_co);
             if (base == oldbasact) {
-              dist_temp += 10.0f;
+              dist_test += penalty_dist;
             }
-            if (dist_temp < dist) {
-              dist = dist_temp;
+            if (dist_test < dist) {
+              dist = dist_test;
               basact = base;
             }
           }
