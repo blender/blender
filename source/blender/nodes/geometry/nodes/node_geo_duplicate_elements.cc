@@ -10,9 +10,9 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_attribute_math.hh"
+#include "BKE_curves.hh"
 #include "BKE_mesh.h"
 #include "BKE_pointcloud.h"
-#include "BKE_spline.hh"
 
 #include "node_geometry_util.hh"
 
@@ -112,6 +112,13 @@ static void threaded_mapped_copy(const Span<int> mapping, const Span<T> src, Mut
       dst[i] = src[mapping[i]];
     }
   });
+}
+
+static void copy_hashed_ids(const Span<int> src, const int hash, MutableSpan<int> dst)
+{
+  for (const int i : src.index_range()) {
+    dst[i] = noise::hash(src[i], hash);
+  }
 }
 
 static void threaded_id_offset_copy(const Span<int> offsets,
@@ -275,11 +282,12 @@ static void copy_stable_id_faces(const Mesh &mesh,
  * destination,
  * then loop over the remaining ones point by point, hashing their ids to the new ids.
  */
-static void copy_stable_id_splines(const CurveEval &curve,
+static void copy_stable_id_splines(const bke::CurvesGeometry &src_curves,
                                    const IndexMask selection,
                                    const Span<int> curve_offsets,
-                                   const GeometryComponent &src_component,
-                                   GeometryComponent &dst_component)
+                                   const CurveComponent &src_component,
+                                   bke::CurvesGeometry &dst_curves,
+                                   CurveComponent &dst_component)
 {
   ReadAttributeLookup src_attribute = src_component.attribute_try_get_for_read("id");
   if (!src_attribute) {
@@ -291,33 +299,18 @@ static void copy_stable_id_splines(const CurveEval &curve,
     return;
   }
 
-  Array<int> control_point_offsets = curve.control_point_offsets();
   VArray_Span<int> src{src_attribute.varray.typed<int>()};
   MutableSpan<int> dst = dst_attribute.as_span<int>();
 
-  Array<int> curve_point_offsets(selection.size() + 1);
-  int dst_point_size = 0;
-  for (const int i_curve : selection.index_range()) {
-    const int spline_size = curve.splines()[i_curve]->size();
-    const IndexRange curve_range = range_for_offsets_index(curve_offsets, i_curve);
-
-    curve_point_offsets[i_curve] = dst_point_size;
-    dst_point_size += curve_range.size() * spline_size;
-  }
-  curve_point_offsets.last() = dst_point_size;
-
-  threading::parallel_for(IndexRange(curve_point_offsets.size() - 1), 512, [&](IndexRange range) {
-    for (const int i_curve : range) {
-      const int spline_size = curve.splines()[i_curve]->size();
-      const IndexRange curve_range = range_for_offsets_index(curve_offsets, i_curve);
-
-      dst.slice(curve_point_offsets[i_curve], spline_size)
-          .copy_from(src.slice(control_point_offsets[i_curve], spline_size));
-      for (const int i_duplicate : IndexRange(1, curve_range.size() - 1)) {
-        for (const int i_point : IndexRange(spline_size)) {
-          dst[curve_point_offsets[i_curve] + i_duplicate * spline_size + i_point] = noise::hash(
-              src[control_point_offsets[i_curve] + i_point], i_duplicate);
-        }
+  threading::parallel_for(selection.index_range(), 512, [&](IndexRange range) {
+    for (const int i_selection : range) {
+      const int i_src_curve = selection[i_selection];
+      const Span<int> curve_src = src.slice(src_curves.range_for_curve(i_src_curve));
+      const IndexRange duplicates_range = range_for_offsets_index(curve_offsets, i_selection);
+      for (const int i_duplicate : IndexRange(duplicates_range.size()).drop_front(1)) {
+        const int i_dst_curve = duplicates_range[i_duplicate];
+        copy_hashed_ids(
+            curve_src, i_duplicate, dst.slice(dst_curves.range_for_curve(i_dst_curve)));
       }
     }
   });
@@ -369,15 +362,16 @@ static void copy_point_attributes_without_id(GeometrySet &geometry_set,
  * copied with an offset fill, otherwise a mapping is used.
  */
 static void copy_spline_attributes_without_id(const GeometrySet &geometry_set,
-                                              const Span<int> point_mapping,
-                                              const Span<int> offsets,
-                                              const Span<std::string> attributes_to_ignore,
-                                              const GeometryComponent &src_component,
-                                              GeometryComponent &dst_component)
+                                              const CurveComponent &src_component,
+                                              const bke::CurvesGeometry &src_curves,
+                                              const IndexMask selection,
+                                              const Span<int> curve_offsets,
+                                              bke::CurvesGeometry &dst_curves,
+                                              CurveComponent &dst_component)
 {
   Map<AttributeIDRef, AttributeKind> gathered_attributes;
   gather_attributes_without_id(
-      geometry_set, GEO_COMPONENT_TYPE_CURVE, attributes_to_ignore, false, gathered_attributes);
+      geometry_set, GEO_COMPONENT_TYPE_CURVE, {}, false, gathered_attributes);
 
   for (const Map<AttributeIDRef, AttributeKind>::Item entry : gathered_attributes.items()) {
 
@@ -403,10 +397,18 @@ static void copy_spline_attributes_without_id(const GeometrySet &geometry_set,
 
       switch (out_domain) {
         case ATTR_DOMAIN_CURVE:
-          threaded_slice_fill<T>(offsets, src, dst);
+          threaded_slice_fill<T>(curve_offsets, src, dst);
           break;
         case ATTR_DOMAIN_POINT:
-          threaded_mapped_copy<T>(point_mapping, src, dst);
+          threading::parallel_for(selection.index_range(), 512, [&](IndexRange range) {
+            for (const int i_selection : range) {
+              const int i_src_curve = selection[i_selection];
+              const Span<T> curve_src = src.slice(src_curves.range_for_curve(i_src_curve));
+              for (const int i_dst_curve : range_for_offsets_index(curve_offsets, i_selection)) {
+                dst.slice(dst_curves.range_for_curve(i_dst_curve)).copy_from(curve_src);
+              }
+            }
+          });
           break;
         default:
           break;
@@ -540,65 +542,67 @@ static void duplicate_splines(GeometrySet &geometry_set,
   }
   geometry_set.keep_only({GEO_COMPONENT_TYPE_CURVE, GEO_COMPONENT_TYPE_INSTANCES});
 
-  const GeometryComponent &src_component = *geometry_set.get_component_for_read(
-      GEO_COMPONENT_TYPE_CURVE);
-  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
-      *geometry_set.get_curves_for_read());
-  const int domain_size = src_component.attribute_domain_size(ATTR_DOMAIN_CURVE);
+  const CurveComponent &src_component = *geometry_set.get_component_for_read<CurveComponent>();
+  const Curves &curves_id = *src_component.get_for_read();
+  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+
   GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_CURVE};
-  FieldEvaluator evaluator{field_context, domain_size};
+  FieldEvaluator evaluator{field_context, curves.curves_size()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
   const VArray<int> counts = evaluator.get_evaluated<int>(0);
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
+  /* The offset in the result curve domain at every selected input curve. */
   Array<int> curve_offsets(selection.size() + 1);
+  Array<int> point_offsets(selection.size() + 1);
 
   int dst_splines_size = 0;
   int dst_points_size = 0;
   for (const int i_spline : selection.index_range()) {
     const int count = std::max(counts[selection[i_spline]], 0);
     curve_offsets[i_spline] = dst_splines_size;
+    point_offsets[i_spline] = dst_points_size;
     dst_splines_size += count;
-    dst_points_size += count * curve->splines()[selection[i_spline]]->size();
+    dst_points_size += count * curves.range_for_curve(selection[i_spline]).size();
   }
   curve_offsets.last() = dst_splines_size;
+  point_offsets.last() = dst_points_size;
 
-  Array<int> control_point_offsets = curve->control_point_offsets();
-  Array<int> point_mapping(dst_points_size);
+  Curves *new_curves_id = bke::curves_new_nomain(dst_points_size, dst_splines_size);
+  bke::CurvesGeometry &new_curves = bke::CurvesGeometry::wrap(new_curves_id->geometry);
+  MutableSpan<int> all_dst_offsets = new_curves.offsets();
 
-  std::unique_ptr<CurveEval> new_curve = std::make_unique<CurveEval>();
-  int point_index = 0;
-  for (const int i_spline : selection.index_range()) {
-    const IndexRange spline_range = range_for_offsets_index(curve_offsets, i_spline);
-    for ([[maybe_unused]] const int i_duplicate : IndexRange(spline_range.size())) {
-      SplinePtr spline = curve->splines()[selection[i_spline]]->copy();
-      for (const int i_point : IndexRange(curve->splines()[selection[i_spline]]->size())) {
-        point_mapping[point_index++] = control_point_offsets[selection[i_spline]] + i_point;
+  threading::parallel_for(selection.index_range(), 512, [&](IndexRange range) {
+    for (const int i_selection : range) {
+      const int i_src_curve = selection[i_selection];
+      const IndexRange src_curve_range = curves.range_for_curve(i_src_curve);
+      const IndexRange dst_curves_range = range_for_offsets_index(curve_offsets, i_selection);
+      MutableSpan<int> dst_offsets = all_dst_offsets.slice(dst_curves_range);
+      for (const int i_duplicate : IndexRange(dst_curves_range.size())) {
+        dst_offsets[i_duplicate] = point_offsets[i_selection] +
+                                   src_curve_range.size() * i_duplicate;
       }
-      new_curve->add_spline(std::move(spline));
     }
-  }
-  new_curve->attributes.reallocate(new_curve->splines().size());
+  });
+  all_dst_offsets.last() = dst_points_size;
 
   CurveComponent dst_component;
-  dst_component.replace(curve_eval_to_curves(*new_curve), GeometryOwnershipType::Editable);
-
-  Vector<std::string> skip(
-      {"position", "radius", "resolution", "cyclic", "tilt", "handle_left", "handle_right"});
+  dst_component.replace(new_curves_id, GeometryOwnershipType::Editable);
 
   copy_spline_attributes_without_id(
-      geometry_set, point_mapping, curve_offsets, skip, src_component, dst_component);
+      geometry_set, src_component, curves, selection, curve_offsets, new_curves, dst_component);
 
-  copy_stable_id_splines(*curve, selection, curve_offsets, src_component, dst_component);
+  copy_stable_id_splines(
+      curves, selection, curve_offsets, src_component, new_curves, dst_component);
 
   if (attributes.duplicate_index) {
     create_duplicate_index_attribute(
         dst_component, ATTR_DOMAIN_CURVE, selection, attributes, curve_offsets);
   }
 
-  geometry_set.replace_curves(dst_component.get_for_write());
+  geometry_set.replace_curves(new_curves_id);
 }
 
 static void duplicate_faces(GeometrySet &geometry_set,
@@ -776,13 +780,14 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
                                    const IndexAttributes &attributes)
 {
   const CurveComponent &src_component = *geometry_set.get_component_for_read<CurveComponent>();
-  const int domain_size = src_component.attribute_domain_size(ATTR_DOMAIN_POINT);
-  if (domain_size == 0) {
+  const Curves &src_curves_id = *src_component.get_for_read();
+  const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(src_curves_id.geometry);
+  if (src_curves.points_size() == 0) {
     return;
   }
 
   GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_POINT};
-  FieldEvaluator evaluator{field_context, domain_size};
+  FieldEvaluator evaluator{field_context, src_curves.points_size()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
@@ -790,60 +795,71 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
   Array<int> offsets = accumulate_counts_to_offsets(selection, counts);
+  const int dst_size = offsets.last();
 
-  CurveComponent &curve_component = geometry_set.get_component_for_write<CurveComponent>();
-  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
-      *geometry_set.get_curves_for_read());
-  Array<int> control_point_offsets = curve->control_point_offsets();
-  std::unique_ptr<CurveEval> new_curve = std::make_unique<CurveEval>();
-
-  Array<int> parent(domain_size);
-  int spline = 0;
-  for (const int i_spline : IndexRange(domain_size)) {
-    if (i_spline == control_point_offsets[spline + 1]) {
-      spline++;
+  Array<int> point_to_curve_map(src_curves.points_size());
+  threading::parallel_for(src_curves.curves_range(), 1024, [&](const IndexRange range) {
+    for (const int i_curve : range) {
+      const IndexRange point_range = src_curves.range_for_curve(i_curve);
+      point_to_curve_map.as_mutable_span().slice(point_range).fill(i_curve);
     }
-    parent[i_spline] = spline;
-  }
+  });
 
-  for (const int i_point : selection) {
-    const IndexRange point_range = range_for_offsets_index(offsets, i_point);
-    for ([[maybe_unused]] const int i_duplicate : IndexRange(point_range.size())) {
-      const SplinePtr &parent_spline = curve->splines()[parent[i_point]];
-      switch (parent_spline->type()) {
-        case CurveType::CURVE_TYPE_BEZIER: {
-          std::unique_ptr<BezierSpline> spline = std::make_unique<BezierSpline>();
-          spline->resize(1);
-          spline->set_resolution(2);
-          new_curve->add_spline(std::move(spline));
-          break;
-        }
-        case CurveType::CURVE_TYPE_NURBS: {
-          std::unique_ptr<NURBSpline> spline = std::make_unique<NURBSpline>();
-          spline->resize(1);
-          spline->set_resolution(2);
-          new_curve->add_spline(std::move(spline));
-          break;
-        }
-        case CurveType::CURVE_TYPE_POLY: {
-          std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();
-          spline->resize(1);
-          new_curve->add_spline(std::move(spline));
-          break;
-        }
-        case CurveType::CURVE_TYPE_CATMULL_ROM: {
-          /* Catmull Rom curves are not supported yet. */
-          break;
-        }
-      }
-    }
+  Curves *new_curves_id = bke::curves_new_nomain(dst_size, dst_size);
+  bke::CurvesGeometry &new_curves = bke::CurvesGeometry::wrap(new_curves_id->geometry);
+  MutableSpan<int> new_curve_offsets = new_curves.offsets();
+  for (const int i : new_curves.curves_range()) {
+    new_curve_offsets[i] = i;
   }
-  new_curve->attributes.reallocate(new_curve->splines().size());
+  new_curve_offsets.last() = dst_size;
+
   CurveComponent dst_component;
-  dst_component.replace(curve_eval_to_curves(*new_curve), GeometryOwnershipType::Editable);
+  dst_component.replace(new_curves_id, GeometryOwnershipType::Editable);
 
-  copy_point_attributes_without_id(
-      geometry_set, GEO_COMPONENT_TYPE_CURVE, false, offsets, src_component, dst_component);
+  Map<AttributeIDRef, AttributeKind> gathered_attributes;
+  gather_attributes_without_id(
+      geometry_set, GEO_COMPONENT_TYPE_CURVE, {}, false, gathered_attributes);
+
+  for (const Map<AttributeIDRef, AttributeKind>::Item entry : gathered_attributes.items()) {
+    const AttributeIDRef attribute_id = entry.key;
+    ReadAttributeLookup src_attribute = src_component.attribute_try_get_for_read(attribute_id);
+    if (!src_attribute) {
+      continue;
+    }
+
+    AttributeDomain domain = src_attribute.domain;
+    const CustomDataType data_type = bke::cpp_type_to_custom_data_type(
+        src_attribute.varray.type());
+    OutputAttribute dst_attribute = dst_component.attribute_try_get_for_output_only(
+        attribute_id, domain, data_type);
+    if (!dst_attribute) {
+      continue;
+    }
+
+    attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+      using T = decltype(dummy);
+      VArray_Span<T> src{src_attribute.varray.typed<T>()};
+      MutableSpan<T> dst = dst_attribute.as_span<T>();
+
+      switch (domain) {
+        case ATTR_DOMAIN_CURVE:
+          threading::parallel_for(selection.index_range(), 512, [&](IndexRange range) {
+            for (const int i_selection : range) {
+              const T &src_value = src[point_to_curve_map[selection[i_selection]]];
+              const IndexRange duplicate_range = range_for_offsets_index(offsets, i_selection);
+              dst.slice(duplicate_range).fill(src_value);
+            }
+          });
+          break;
+        case ATTR_DOMAIN_POINT:
+          threaded_slice_fill(offsets, src, dst);
+          break;
+        default:
+          break;
+      }
+    });
+    dst_attribute.save();
+  }
 
   copy_stable_id_point(offsets, src_component, dst_component);
 
@@ -852,7 +868,7 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
         dst_component, ATTR_DOMAIN_POINT, selection, attributes, offsets.as_span());
   }
 
-  curve_component.replace(dst_component.get_for_write());
+  geometry_set.replace_curves(new_curves_id);
 }
 
 static void duplicate_points_mesh(GeometrySet &geometry_set,
