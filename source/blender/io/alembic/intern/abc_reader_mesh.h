@@ -15,8 +15,6 @@ namespace blender::io::alembic {
 class AbcMeshReader final : public AbcObjectReader {
   Alembic::AbcGeom::IPolyMeshSchema m_schema;
 
-  CDStreamConfig m_mesh_data;
-
  public:
   AbcMeshReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
 
@@ -48,8 +46,6 @@ class AbcMeshReader final : public AbcObjectReader {
 
 class AbcSubDReader final : public AbcObjectReader {
   Alembic::AbcGeom::ISubDSchema m_schema;
-
-  CDStreamConfig m_mesh_data;
 
  public:
   AbcSubDReader(const Alembic::Abc::IObject &object, ImportSettings &settings);
