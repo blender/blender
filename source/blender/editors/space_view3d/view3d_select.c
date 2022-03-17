@@ -2346,8 +2346,11 @@ static bool ed_object_select_pick(bContext *C,
   const eObjectMode object_mode = oldbasact ? oldbasact->object->mode : OB_MODE_OBJECT;
   const bool is_obedit = (vc.obedit != NULL);
   float dist = ED_view3d_select_dist_px() * 1.3333f;
-  bool changed = false;
   const float mval_fl[2] = {(float)mval[0], (float)mval[1]};
+
+  /* When enabled, don't attempt any further selection. */
+  bool handled = false;
+  bool changed = false;
 
   if (object) {
     /* Signal for #view3d_opengl_select to skip edit-mode objects. */
@@ -2461,6 +2464,7 @@ static bool ed_object_select_pick(bContext *C,
           if (ed_object_select_pick_camera_track(C, scene, basact, clip, buffer, hits, params)) {
             ED_object_base_select(basact, BA_SELECT);
 
+            /* Don't set `handled` here as the object activation may be necessary. */
             changed = true;
           }
           else {
@@ -2486,7 +2490,10 @@ static bool ed_object_select_pick(bContext *C,
            * not-selected active object in pose-mode won't work well for tools */
           ED_object_base_select(basact, BA_SELECT);
 
+          /* Don't set `handled` here as the object selection may be necessary
+           * when starting out in object mode and moving into pose mode. */
           changed = true;
+
           WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, basact->object);
           WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, basact->object);
           DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
@@ -2500,18 +2507,18 @@ static bool ed_object_select_pick(bContext *C,
              * For now, de-select all other pose objects deforming this mesh. */
             ED_armature_pose_select_in_wpaint_mode(view_layer, basact);
 
-            basact = NULL;
+            handled = true;
           }
         }
-        /* prevent bone selecting to pass on to object selecting */
-        if (basact == oldbasact) {
-          basact = NULL;
-        }
+      }
+      /* Prevent bone/track selecting to pass on to object selecting. */
+      if (basact == oldbasact) {
+        handled = true;
       }
     }
 
     if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
-      if (is_obedit == false) {
+      if ((handled == false) && (is_obedit == false)) {
         if (basact && !BKE_object_is_mode_compat(basact->object, object_mode)) {
           if (object_mode == OB_MODE_OBJECT) {
             struct Main *bmain = CTX_data_main(C);
@@ -2528,7 +2535,7 @@ static bool ed_object_select_pick(bContext *C,
   if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
     /* Disallow switching modes,
      * special exception for edit-mode - vertex-parent operator. */
-    if (is_obedit == false) {
+    if ((handled == false) && (is_obedit == false)) {
       if (oldbasact && basact) {
         if ((oldbasact->object->mode != basact->object->mode) &&
             (oldbasact->object->mode & basact->object->mode) == 0) {
@@ -2542,15 +2549,8 @@ static bool ed_object_select_pick(bContext *C,
   BLI_assert(oldbasact == (vc.obact ? BASACT(view_layer) : NULL));
 
   bool found = (basact != NULL);
-  if (vc.obedit) {
-    /* Edit-mode, pass. */
-  }
-  else if (is_pose_mode && (basact == NULL || (basact->object->mode & OB_MODE_POSE))) {
-    /* Pose-mode, pass (or moved into pose mode). */
-  }
-  else {
-    /* Object-mode. */
-
+  if ((handled == false) && (vc.obedit == NULL)) {
+    /* Object-mode (pose mode will have been handled already). */
     if (params->sel_op == SEL_OP_SET) {
       if ((found && params->select_passthrough) && (basact->flag & BASE_SELECTED)) {
         found = false;
@@ -2565,7 +2565,7 @@ static bool ed_object_select_pick(bContext *C,
   }
 
   /* so, do we have something selected? */
-  if (found) {
+  if ((handled == false) && found) {
     changed = true;
 
     if (vc.obedit) {
