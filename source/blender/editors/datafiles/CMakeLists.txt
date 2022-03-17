@@ -770,6 +770,11 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.curve.extrude_move
   ops.curve.radius
   ops.curve.vertex_random
+  ops.curves.sculpt_add
+  ops.curves.sculpt_comb
+  ops.curves.sculpt_cut
+  ops.curves.sculpt_delete
+  ops.curves.sculpt_grow
   ops.generic.cursor
   ops.generic.select
   ops.generic.select_box
