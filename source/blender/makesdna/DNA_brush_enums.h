@@ -602,10 +602,10 @@ typedef enum eBlurKernelType {
 } eBlurKernelType;
 
 /* Brush.falloff_shape */
-enum {
+typedef enum eBrushFalloffShape {
   PAINT_FALLOFF_SHAPE_SPHERE = 0,
   PAINT_FALLOFF_SHAPE_TUBE = 1,
-};
+} eBrushFalloffShape;
 
 #define MAX_BRUSH_PIXEL_RADIUS 500
 #define GP_MAX_BRUSH_PIXEL_RADIUS 1000
