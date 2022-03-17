@@ -2245,9 +2245,7 @@ static bool ed_object_select_pick_camera_track(bContext *C,
                                                const short hits,
                                                const struct SelectPick_Params *params)
 {
-  const bool extend = params->sel_op == SEL_OP_ADD;
   bool changed = false;
-
   bool found = false;
 
   MovieTracking *tracking = &clip->tracking;
@@ -2273,21 +2271,45 @@ static bool ed_object_select_pick_camera_track(bContext *C,
     break;
   }
 
-  if (found) {
-    if (TRACK_SELECTED(track) && extend) {
-      changed = false;
-      BKE_tracking_track_deselect(track, TRACK_AREA_ALL);
+  /* Note `params->deselect_all` is ignored for tracks as in this case
+   * all objects will be de-selected (not tracks). */
+  if (params->sel_op == SEL_OP_SET) {
+    if ((found && params->select_passthrough) && TRACK_SELECTED(track)) {
+      found = false;
     }
-    else {
-      int oldsel = TRACK_SELECTED(track) ? 1 : 0;
-      if (!extend) {
-        deselect_all_tracks(tracking);
+    else if (found /* `|| params->deselect_all` */) {
+      /* Deselect everything. */
+      deselect_all_tracks(tracking);
+      changed = true;
+    }
+  }
+
+  if (found) {
+    switch (params->sel_op) {
+      case SEL_OP_ADD: {
+        BKE_tracking_track_select(tracksbase, track, TRACK_AREA_ALL, true);
+        break;
       }
-
-      BKE_tracking_track_select(tracksbase, track, TRACK_AREA_ALL, extend);
-
-      if (oldsel != (TRACK_SELECTED(track) ? 1 : 0)) {
-        changed = true;
+      case SEL_OP_SUB: {
+        BKE_tracking_track_deselect(track, TRACK_AREA_ALL);
+        break;
+      }
+      case SEL_OP_XOR: {
+        if (TRACK_SELECTED(track)) {
+          BKE_tracking_track_deselect(track, TRACK_AREA_ALL);
+        }
+        else {
+          BKE_tracking_track_select(tracksbase, track, TRACK_AREA_ALL, true);
+        }
+        break;
+      }
+      case SEL_OP_SET: {
+        BKE_tracking_track_select(tracksbase, track, TRACK_AREA_ALL, false);
+        break;
+      }
+      case SEL_OP_AND: {
+        BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+        break;
       }
     }
 
@@ -2295,6 +2317,8 @@ static bool ed_object_select_pick_camera_track(bContext *C,
     DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_MOVIECLIP | ND_SELECT, track);
     WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+
+    changed = true;
   }
 
   return changed || found;
