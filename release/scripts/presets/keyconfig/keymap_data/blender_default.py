@@ -4716,7 +4716,7 @@ def _template_uv_select(*, type, value, legacy):
         ("uv.select", {"type": type, "value": value},
          {"properties": [("deselect_all", not legacy)]}),
         ("uv.select", {"type": type, "value": value, "shift": True},
-         {"properties": [("extend", True)]}),
+         {"properties": [("toggle", True)]}),
     ]
 
 
@@ -6306,7 +6306,7 @@ def km_image_editor_tool_uv_select(params, *, fallback):
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
-                params, "uv.select", "uv.cursor_set", fallback, extend="extend")),
+                params, "uv.select", "uv.cursor_set", fallback, extend="toggle")),
             *([] if (not params.use_fallback_tool_rmb) else _template_uv_select(
                 type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
         ]},
