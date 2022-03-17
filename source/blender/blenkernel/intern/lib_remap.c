@@ -834,7 +834,14 @@ void BKE_libblock_relink_ex(
   BKE_id_remapper_free(id_remapper);
 }
 
-static void libblock_relink_to_newid(Main *bmain, ID *id, const int remap_flag);
+typedef struct RelinkToNewIDData {
+  LinkNode *ids;
+  struct IDRemapper *id_remapper;
+} RelinkToNewIDData;
+
+static void libblock_relink_to_newid_prepare_data(Main *bmain,
+                                                  ID *id,
+                                                  RelinkToNewIDData *relink_data);
 static int id_relink_to_newid_looper(LibraryIDLinkCallbackData *cb_data)
 {
   const int cb_flag = cb_data->cb_flag;
@@ -843,35 +850,34 @@ static int id_relink_to_newid_looper(LibraryIDLinkCallbackData *cb_data)
   }
 
   Main *bmain = cb_data->bmain;
-  ID *id_owner = cb_data->id_owner;
   ID **id_pointer = cb_data->id_pointer;
   ID *id = *id_pointer;
+  RelinkToNewIDData *relink_data = (RelinkToNewIDData *)cb_data->user_data;
+
   if (id) {
-    const int remap_flag = POINTER_AS_INT(cb_data->user_data);
     /* See: NEW_ID macro */
     if (id->newid != NULL) {
-      const int remap_flag_final = remap_flag | ID_REMAP_SKIP_INDIRECT_USAGE |
-                                   ID_REMAP_SKIP_OVERRIDE_LIBRARY;
-      BKE_libblock_relink_ex(bmain, id_owner, id, id->newid, (short)remap_flag_final);
+      BKE_id_remapper_add(relink_data->id_remapper, id, id->newid);
       id = id->newid;
     }
     if (id->tag & LIB_TAG_NEW) {
-      id->tag &= ~LIB_TAG_NEW;
-      libblock_relink_to_newid(bmain, id, remap_flag);
+      libblock_relink_to_newid_prepare_data(bmain, id, relink_data);
     }
   }
   return IDWALK_RET_NOP;
 }
 
-static void libblock_relink_to_newid(Main *bmain, ID *id, const int remap_flag)
+static void libblock_relink_to_newid_prepare_data(Main *bmain,
+                                                  ID *id,
+                                                  RelinkToNewIDData *relink_data)
 {
   if (ID_IS_LINKED(id)) {
     return;
   }
 
   id->tag &= ~LIB_TAG_NEW;
-  BKE_library_foreach_ID_link(
-      bmain, id, id_relink_to_newid_looper, POINTER_FROM_INT(remap_flag), 0);
+  BLI_linklist_prepend(&relink_data->ids, id);
+  BKE_library_foreach_ID_link(bmain, id, id_relink_to_newid_looper, relink_data, 0);
 }
 
 void BKE_libblock_relink_to_newid(Main *bmain, ID *id, const int remap_flag)
@@ -882,8 +888,15 @@ void BKE_libblock_relink_to_newid(Main *bmain, ID *id, const int remap_flag)
   /* We do not want to have those cached relationship data here. */
   BLI_assert(bmain->relations == NULL);
 
-  BKE_layer_collection_resync_forbid();
-  libblock_relink_to_newid(bmain, id, remap_flag);
-  BKE_layer_collection_resync_allow();
-  BKE_main_collection_sync_remap(bmain);
+  RelinkToNewIDData relink_data = {.ids = NULL, .id_remapper = BKE_id_remapper_create()};
+
+  libblock_relink_to_newid_prepare_data(bmain, id, &relink_data);
+
+  const short remap_flag_final = remap_flag | ID_REMAP_SKIP_INDIRECT_USAGE |
+                                 ID_REMAP_SKIP_OVERRIDE_LIBRARY;
+  BKE_libblock_relink_multiple(
+      bmain, relink_data.ids, ID_REMAP_TYPE_REMAP, relink_data.id_remapper, remap_flag_final);
+
+  BKE_id_remapper_free(relink_data.id_remapper);
+  BLI_linklist_free(relink_data.ids, NULL);
 }
