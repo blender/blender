@@ -2052,7 +2052,7 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
 
   if (do_nearest) {
     uint min = 0xFFFFFFFF;
-    int selcol = 0, notcol = 0;
+    int selcol = 0;
 
     if (has_bones) {
       /* we skip non-bone hits */
@@ -2065,17 +2065,50 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
       }
     }
     else {
-      /* only exclude active object when it is selected... */
+      int select_id_exclude = 0;
+      /* Only exclude active object when it is selected. */
       if (BASACT(view_layer) && (BASACT(view_layer)->flag & BASE_SELECTED) && hits > 1) {
-        notcol = BASACT(view_layer)->object->runtime.select_id;
+        select_id_exclude = BASACT(view_layer)->object->runtime.select_id;
       }
 
+      /* Find the best active & non-active hits.
+       * NOTE(@campbellbarton): Checking if `hits > 1` isn't a reliable way to know
+       * if there are multiple objects selected since it's possible the same object
+       * generates multiple hits, either from:
+       * - Multiple sub-components (bones & camera tracks).
+       * - Multiple selectable elements such as the object center and the geometry.
+       *
+       * For this reason, keep track of the best hit as well as the best hit that
+       * excludes the selected & active object, using this value when it's valid. */
+
+      uint min_not_active = min;
+      int hit_index = -1, hit_index_not_active = -1;
+
       for (a = 0; a < hits; a++) {
-        if (min > buffer[a].depth && notcol != (buffer[a].id & 0xFFFF)) {
+        /* Any object. */
+        if (min > buffer[a].depth) {
           min = buffer[a].depth;
-          selcol = buffer[a].id & 0xFFFF;
-          sub_selection_id = (buffer[a].id & 0xFFFF0000) >> 16;
+          hit_index = a;
         }
+        /* Any object other than the active-selected. */
+        if (select_id_exclude != 0) {
+          if (min_not_active > buffer[a].depth && select_id_exclude != (buffer[a].id & 0xFFFF)) {
+            min_not_active = buffer[a].depth;
+            hit_index_not_active = a;
+          }
+        }
+      }
+
+      /* When the active was selected, first try to use the index
+       * for the best non-active hit that was found. */
+      if (hit_index_not_active != -1) {
+        hit_index = hit_index_not_active;
+      }
+
+      if (hit_index != -1) {
+        selcol = buffer[hit_index].id & 0xFFFF;
+        sub_selection_id = (buffer[hit_index].id & 0xFFFF0000) >> 16;
+        /* No need to set `min` to `buffer[hit_index].depth`, it's not used from now on. */
       }
     }
 
