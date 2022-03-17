@@ -374,6 +374,15 @@ void RandomNumberGenerator::seed_random(uint32_t seed)
   this->seed(seed + hash[seed & 255]);
 }
 
+int RandomNumberGenerator::round_probabilistic(float x)
+{
+  /* Support for negative values can be added when necessary. */
+  BLI_assert(x >= 0.0f);
+  const float round_up_probability = fractf(x);
+  const bool round_up = round_up_probability > this->get_float();
+  return (int)x + (int)round_up;
+}
+
 float2 RandomNumberGenerator::get_unit_float2()
 {
   float a = (float)(M_PI * 2.0) * this->get_float();

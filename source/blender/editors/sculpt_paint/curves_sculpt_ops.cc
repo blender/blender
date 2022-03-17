@@ -378,13 +378,6 @@ class AddOperation : public CurvesSculptStrokeOperation {
     return kdtree;
   }
 
-  int float_to_int_amount(float amount_f, RandomNumberGenerator &rng)
-  {
-    const float add_probability = fractf(amount_f);
-    const bool add_point = add_probability > rng.get_float();
-    return (int)amount_f + (int)add_point;
-  }
-
   bool is_too_close_to_existing_point(const float3 position, const float minimum_distance) const
   {
     if (old_kdtree_ == nullptr) {
@@ -439,7 +432,7 @@ class AddOperation : public CurvesSculptStrokeOperation {
          * the triangle directly. If the triangle is larger than the brush, distribute new points
          * in a circle on the triangle plane. */
         if (looptri_area < area_threshold) {
-          const int amount = this->float_to_int_amount(looptri_area * density, looptri_rng);
+          const int amount = looptri_rng.round_probabilistic(looptri_area * density);
 
           threading::parallel_for(IndexRange(amount), 512, [&](const IndexRange amount_range) {
             RandomNumberGenerator point_rng{rng_base_seed + looptri_index * 1000 +
@@ -476,7 +469,7 @@ class AddOperation : public CurvesSculptStrokeOperation {
           const float radius_proj = std::sqrt(radius_proj_sq);
           const float circle_area = M_PI * radius_proj_sq;
 
-          const int amount = this->float_to_int_amount(circle_area * density, rng);
+          const int amount = rng.round_probabilistic(circle_area * density);
 
           const float3 axis_1 = math::normalize(v1 - v0) * radius_proj;
           const float3 axis_2 = math::normalize(
