@@ -4740,23 +4740,29 @@ bool ED_curve_editnurb_select_pick(bContext *C,
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
   copy_v2_v2_int(vc.mval, mval);
 
-  const bool found = ED_curve_pick_vert(&vc, 1, &nu, &bezt, &bp, &hand, &basact);
+  bool found = ED_curve_pick_vert(&vc, 1, &nu, &bezt, &bp, &hand, &basact);
 
-  if ((params->sel_op == SEL_OP_SET) && (found || params->deselect_all)) {
-    /* Deselect everything. */
-    uint objects_len = 0;
-    Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-        vc.view_layer, vc.v3d, &objects_len);
-    for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-      Object *ob_iter = objects[ob_index];
-
-      ED_curve_deselect_all(((Curve *)ob_iter->data)->editnurb);
-
-      DEG_id_tag_update(ob_iter->data, ID_RECALC_SELECT | ID_RECALC_COPY_ON_WRITE);
-      WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
+  if (params->sel_op == SEL_OP_SET) {
+    if ((found && params->select_passthrough) &&
+        (((bezt ? (&bezt->f1)[hand] : bp->f1) & SELECT) != 0)) {
+      found = false;
     }
-    MEM_freeN(objects);
-    changed = true;
+    else if (found || params->deselect_all) {
+      /* Deselect everything. */
+      uint objects_len = 0;
+      Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+          vc.view_layer, vc.v3d, &objects_len);
+      for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+        Object *ob_iter = objects[ob_index];
+
+        ED_curve_deselect_all(((Curve *)ob_iter->data)->editnurb);
+
+        DEG_id_tag_update(ob_iter->data, ID_RECALC_SELECT | ID_RECALC_COPY_ON_WRITE);
+        WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
+      }
+      MEM_freeN(objects);
+      changed = true;
+    }
   }
 
   if (found) {

@@ -82,6 +82,12 @@ struct SelectPick_Params {
   eSelectOp sel_op;
   /** Deselect all, even when there is nothing found at the cursor location. */
   bool deselect_all;
+  /**
+   * When selecting an element that is already selected, do nothing (passthrough).
+   * don't even make it active.
+   * Use to implement tweaking to move the selection without first de-selecting.
+   */
+  bool select_passthrough;
 };
 
 /**

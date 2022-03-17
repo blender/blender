@@ -623,22 +623,27 @@ bool ED_lattice_select_pick(bContext *C, const int mval[2], const struct SelectP
   vc.mval[1] = mval[1];
 
   bp = findnearestLattvert(&vc, true, &basact);
-  const bool found = (bp != NULL);
+  bool found = (bp != NULL);
 
-  if ((params->sel_op == SEL_OP_SET) && (found || params->deselect_all)) {
-    /* Deselect everything. */
-    uint objects_len = 0;
-    Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-        vc.view_layer, vc.v3d, &objects_len);
-    for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-      Object *ob = objects[ob_index];
-      if (ED_lattice_flags_set(ob, 0)) {
-        DEG_id_tag_update(ob->data, ID_RECALC_SELECT);
-        WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
-      }
+  if (params->sel_op == SEL_OP_SET) {
+    if ((found && params->select_passthrough) && (bp->f1 & SELECT)) {
+      found = false;
     }
-    MEM_freeN(objects);
-    changed = true;
+    else if (found || params->deselect_all) {
+      /* Deselect everything. */
+      uint objects_len = 0;
+      Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+          vc.view_layer, vc.v3d, &objects_len);
+      for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+        Object *ob = objects[ob_index];
+        if (ED_lattice_flags_set(ob, 0)) {
+          DEG_id_tag_update(ob->data, ID_RECALC_SELECT);
+          WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
+        }
+      }
+      MEM_freeN(objects);
+      changed = true;
+    }
   }
 
   if (found) {

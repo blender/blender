@@ -518,6 +518,14 @@ void WM_operator_properties_mouse_select(wmOperatorType *ot)
                          "Deselect On Nothing",
                          "Deselect all when nothing under the cursor");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  /* TODO: currently only used for the 3D viewport. */
+  prop = RNA_def_boolean(ot->srna,
+                         "select_passthrough",
+                         false,
+                         "Only Select Unselected",
+                         "Ignore the select action when the element is already selected");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 void WM_operator_properties_checker_interval(wmOperatorType *ot, bool nth_can_disable)

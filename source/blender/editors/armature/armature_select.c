@@ -965,14 +965,20 @@ bool ED_armature_edit_select_pick_bone(bContext *C,
     }
   }
 
-  if ((params->sel_op == SEL_OP_SET) && (found || params->deselect_all)) {
-    /* Deselect everything. */
-    uint bases_len = 0;
-    Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
-        view_layer, v3d, &bases_len);
-    ED_armature_edit_deselect_all_multi_ex(bases, bases_len);
-    MEM_freeN(bases);
-    changed = true;
+  if (params->sel_op == SEL_OP_SET) {
+    if ((found && params->select_passthrough) &&
+        (ED_armature_ebone_selectflag_get(ebone) & selmask)) {
+      found = false;
+    }
+    else if (found || params->deselect_all) {
+      /* Deselect everything. */
+      uint bases_len = 0;
+      Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
+          view_layer, v3d, &bases_len);
+      ED_armature_edit_deselect_all_multi_ex(bases, bases_len);
+      MEM_freeN(bases);
+      changed = true;
+    }
   }
 
   if (found) {

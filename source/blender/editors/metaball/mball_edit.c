@@ -854,9 +854,14 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], const struct SelectPic
 
   bool found = ed_mball_findnearest_metaelem(C, mval, true, &base, &ml, &selmask);
 
-  if ((params->sel_op == SEL_OP_SET) && (found || params->deselect_all)) {
-    /* Deselect everything. */
-    changed |= ED_mball_deselect_all_multi(C);
+  if (params->sel_op == SEL_OP_SET) {
+    if ((found && params->select_passthrough) && (ml->flag & SELECT)) {
+      found = false;
+    }
+    else if (found || params->deselect_all) {
+      /* Deselect everything. */
+      changed |= ED_mball_deselect_all_multi(C);
+    }
   }
 
   if (found) {

@@ -389,8 +389,14 @@ bool paintface_mouse_select(struct bContext *C,
     }
   }
 
-  if ((params->sel_op == SEL_OP_SET) && (found || params->deselect_all)) {
-    changed |= paintface_deselect_all_visible(C, ob, SEL_DESELECT, false);
+  if (params->sel_op == SEL_OP_SET) {
+    if ((found && params->select_passthrough) && (mpoly_sel->flag & ME_FACE_SEL)) {
+      found = false;
+    }
+    else if (found || params->deselect_all) {
+      /* Deselect everything. */
+      changed |= paintface_deselect_all_visible(C, ob, SEL_DESELECT, false);
+    }
   }
 
   if (found) {

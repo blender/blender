@@ -136,19 +136,25 @@ bool ED_armature_pose_select_pick_bone(ViewLayer *view_layer,
     }
   }
 
-  if ((params->sel_op == SEL_OP_SET) && (found || params->deselect_all)) {
-    /* Don't use 'BKE_object_pose_base_array_get_unique'
-     * because we may be selecting from object mode. */
-    FOREACH_VISIBLE_BASE_BEGIN (view_layer, v3d, base_iter) {
-      Object *ob_iter = base_iter->object;
-      if ((ob_iter->type == OB_ARMATURE) && (ob_iter->mode & OB_MODE_POSE)) {
-        if (ED_pose_deselect_all(ob_iter, SEL_DESELECT, true)) {
-          ED_pose_bone_select_tag_update(ob_iter);
+  if (params->sel_op == SEL_OP_SET) {
+    if ((found && params->select_passthrough) && (bone->flag & BONE_SELECTED)) {
+      found = false;
+    }
+    else if (found || params->deselect_all) {
+      /* Deselect everything. */
+      /* Don't use 'BKE_object_pose_base_array_get_unique'
+       * because we may be selecting from object mode. */
+      FOREACH_VISIBLE_BASE_BEGIN (view_layer, v3d, base_iter) {
+        Object *ob_iter = base_iter->object;
+        if ((ob_iter->type == OB_ARMATURE) && (ob_iter->mode & OB_MODE_POSE)) {
+          if (ED_pose_deselect_all(ob_iter, SEL_DESELECT, true)) {
+            ED_pose_bone_select_tag_update(ob_iter);
+          }
         }
       }
+      FOREACH_VISIBLE_BASE_END;
+      changed = true;
     }
-    FOREACH_VISIBLE_BASE_END;
-    changed = true;
   }
 
   if (found) {

@@ -1879,10 +1879,16 @@ bool PE_mouse_particles(bContext *C, const int mval[2], const struct SelectPick_
   PTCacheEditKey *key;
 
   bool changed = false;
-  const bool found = pe_nearest_point_and_key(C, mval, &point, &key);
+  bool found = pe_nearest_point_and_key(C, mval, &point, &key);
 
-  if ((params->sel_op == SEL_OP_SET) && (found || params->deselect_all)) {
-    changed |= PE_deselect_all_visible_ex(edit);
+  if (params->sel_op == SEL_OP_SET) {
+    if ((found && params->select_passthrough) && (key->flag & PEK_SELECT)) {
+      found = false;
+    }
+    else if (found || params->deselect_all) {
+      /* Deselect everything. */
+      changed |= PE_deselect_all_visible_ex(edit);
+    }
   }
 
   if (found) {
