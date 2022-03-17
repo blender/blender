@@ -34,8 +34,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(N_("The number of duplicates to create for each element"));
 
   b.add_output<decl::Geometry>(N_("Geometry"))
-      .description(
-          N_("The duplicated geometry only. The output does not contain the original geometry"));
+      .description(N_("The duplicated geometry, not including the original geometry"));
   b.add_output<decl::Int>(N_("Duplicate Index"))
       .field_source()
       .description(N_("The indices of the duplicates for each element"));
@@ -100,7 +99,7 @@ static void threaded_slice_fill(Span<int> offsets, Span<T> src, MutableSpan<T> d
   BLI_assert(offsets.last() == dst.size());
   threading::parallel_for(IndexRange(offsets.size() - 1), 512, [&](IndexRange range) {
     for (const int i : range) {
-      dst.slice(offsets[i], offsets[i + 1] - offsets[i]).fill(src[i]);
+      dst.slice(range_for_offsets_index(offsets, i)).fill(src[i]);
     }
   });
 }
@@ -182,8 +181,8 @@ static void copy_stable_id_point(const Span<int> offsets,
 static void copy_stable_id_edges(const Mesh &mesh,
                                  const IndexMask selection,
                                  const Span<int> edge_offsets,
-                                 const GeometryComponent &src_component,
-                                 GeometryComponent &dst_component)
+                                 const MeshComponent &src_component,
+                                 MeshComponent &dst_component)
 {
   ReadAttributeLookup src_attribute = src_component.attribute_try_get_for_read("id");
   if (!src_attribute) {
@@ -230,8 +229,8 @@ static void copy_stable_id_faces(const Mesh &mesh,
                                  const IndexMask selection,
                                  const Span<int> poly_offsets,
                                  const Span<int> vert_mapping,
-                                 const GeometryComponent &src_component,
-                                 GeometryComponent &dst_component)
+                                 const MeshComponent &src_component,
+                                 MeshComponent &dst_component)
 {
   ReadAttributeLookup src_attribute = src_component.attribute_try_get_for_read("id");
   if (!src_attribute) {
@@ -533,7 +532,7 @@ static void copy_face_attributes_without_id(GeometrySet &geometry_set,
 static void duplicate_splines(GeometrySet &geometry_set,
                               const Field<int> &count_field,
                               const Field<bool> &selection_field,
-                              IndexAttributes &attributes)
+                              const IndexAttributes &attributes)
 {
   if (!geometry_set.has_curves()) {
     geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
@@ -559,7 +558,7 @@ static void duplicate_splines(GeometrySet &geometry_set,
   int dst_splines_size = 0;
   int dst_points_size = 0;
   for (const int i_spline : selection.index_range()) {
-    int count = std::max(counts[selection[i_spline]], 0);
+    const int count = std::max(counts[selection[i_spline]], 0);
     curve_offsets[i_spline] = dst_splines_size;
     dst_splines_size += count;
     dst_points_size += count * curve->splines()[selection[i_spline]]->size();
@@ -605,7 +604,7 @@ static void duplicate_splines(GeometrySet &geometry_set,
 static void duplicate_faces(GeometrySet &geometry_set,
                             const Field<int> &count_field,
                             const Field<bool> &selection_field,
-                            IndexAttributes &attributes)
+                            const IndexAttributes &attributes)
 {
   if (!geometry_set.has_mesh()) {
     geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
@@ -613,24 +612,20 @@ static void duplicate_faces(GeometrySet &geometry_set,
   }
   geometry_set.keep_only({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_INSTANCES});
 
-  GeometryComponent &component = geometry_set.get_component_for_write(GEO_COMPONENT_TYPE_MESH);
-  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_FACE);
+  const MeshComponent &src_component = *geometry_set.get_component_for_read<MeshComponent>();
+  const Mesh &mesh = *src_component.get_for_read();
+  Span<MVert> verts(mesh.mvert, mesh.totvert);
+  Span<MEdge> edges(mesh.medge, mesh.totedge);
+  Span<MPoly> polys(mesh.mpoly, mesh.totpoly);
+  Span<MLoop> loops(mesh.mloop, mesh.totloop);
 
-  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_FACE};
-  FieldEvaluator evaluator(field_context, domain_size);
-
+  GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_FACE};
+  FieldEvaluator evaluator(field_context, polys.size());
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
   const VArray<int> counts = evaluator.get_evaluated<int>(0);
-
-  MeshComponent &mesh_component = static_cast<MeshComponent &>(component);
-  const Mesh &mesh = *mesh_component.get_for_read();
-  Span<MVert> verts(mesh.mvert, mesh.totvert);
-  Span<MEdge> edges(mesh.medge, mesh.totedge);
-  Span<MPoly> polys(mesh.mpoly, mesh.totpoly);
-  Span<MLoop> loops(mesh.mloop, mesh.totloop);
 
   int total_polys = 0;
   int total_loops = 0;
@@ -643,16 +638,15 @@ static void duplicate_faces(GeometrySet &geometry_set,
   }
   offsets[selection.size()] = total_polys;
 
-  Array<int> vert_mapping(total_loops);
-  Array<int> edge_mapping(total_loops);
-  Array<int> loop_mapping(total_loops);
-
   Mesh *new_mesh = BKE_mesh_new_nomain(total_loops, total_loops, 0, total_loops, total_polys);
-
   MutableSpan<MVert> new_verts(new_mesh->mvert, new_mesh->totvert);
   MutableSpan<MEdge> new_edges(new_mesh->medge, new_mesh->totedge);
   MutableSpan<MLoop> new_loops(new_mesh->mloop, new_mesh->totloop);
   MutableSpan<MPoly> new_poly(new_mesh->mpoly, new_mesh->totpoly);
+
+  Array<int> vert_mapping(new_verts.size());
+  Array<int> edge_mapping(new_edges.size());
+  Array<int> loop_mapping(new_loops.size());
 
   int poly_index = 0;
   int loop_index = 0;
@@ -684,6 +678,7 @@ static void duplicate_faces(GeometrySet &geometry_set,
       poly_index++;
     }
   }
+
   MeshComponent dst_component;
   dst_component.replace(new_mesh, GeometryOwnershipType::Editable);
 
@@ -692,33 +687,35 @@ static void duplicate_faces(GeometrySet &geometry_set,
                                   vert_mapping,
                                   loop_mapping,
                                   offsets,
-                                  mesh_component,
+                                  src_component,
                                   dst_component);
 
-  copy_stable_id_faces(mesh, selection, offsets, vert_mapping, mesh_component, dst_component);
-  mesh_component.replace(dst_component.get_for_write());
+  copy_stable_id_faces(mesh, selection, offsets, vert_mapping, src_component, dst_component);
 
   if (attributes.duplicate_index) {
     create_duplicate_index_attribute(
         dst_component, ATTR_DOMAIN_FACE, selection, attributes, offsets);
   }
+
+  geometry_set.replace_mesh(new_mesh);
 }
 
 static void duplicate_edges(GeometrySet &geometry_set,
                             const Field<int> &count_field,
                             const Field<bool> &selection_field,
-                            IndexAttributes &attributes)
+                            const IndexAttributes &attributes)
 {
   if (!geometry_set.has_mesh()) {
     geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
     return;
   };
-  const GeometryComponent &src_component = *geometry_set.get_component_for_read(
-      GEO_COMPONENT_TYPE_MESH);
-  const int domain_size = src_component.attribute_domain_size(ATTR_DOMAIN_EDGE);
+  const MeshComponent &src_component = *geometry_set.get_component_for_read<MeshComponent>();
+  const Mesh &mesh = *src_component.get_for_read();
+  Span<MVert> verts(mesh.mvert, mesh.totvert);
+  Span<MEdge> edges(mesh.medge, mesh.totedge);
 
   GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_EDGE};
-  FieldEvaluator evaluator{field_context, domain_size};
+  FieldEvaluator evaluator{field_context, edges.size()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
@@ -726,10 +723,6 @@ static void duplicate_edges(GeometrySet &geometry_set,
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
   Array<int> edge_offsets = accumulate_counts_to_offsets(selection, counts);
-
-  const Mesh *mesh = geometry_set.get_mesh_for_read();
-  Span<MVert> verts(mesh->mvert, mesh->totvert);
-  Span<MEdge> edges(mesh->medge, mesh->totedge);
 
   Mesh *new_mesh = BKE_mesh_new_nomain(edge_offsets.last() * 2, edge_offsets.last(), 0, 0, 0);
   MutableSpan<MVert> new_verts(new_mesh->mvert, new_mesh->totvert);
@@ -767,24 +760,22 @@ static void duplicate_edges(GeometrySet &geometry_set,
   copy_edge_attributes_without_id(
       geometry_set, vert_orig_indices, edge_offsets, src_component, dst_component);
 
-  copy_stable_id_edges(*mesh, selection, edge_offsets, src_component, dst_component);
+  copy_stable_id_edges(mesh, selection, edge_offsets, src_component, dst_component);
 
   if (attributes.duplicate_index) {
     create_duplicate_index_attribute(
         dst_component, ATTR_DOMAIN_EDGE, selection, attributes, edge_offsets);
   }
 
-  MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-  mesh_component.replace(dst_component.get_for_write());
+  geometry_set.replace_mesh(new_mesh);
 }
 
-static void duplicate_points_curve(const GeometryComponentType component_type,
+static void duplicate_points_curve(GeometrySet &geometry_set,
                                    const Field<int> &count_field,
                                    const Field<bool> &selection_field,
-                                   GeometrySet &geometry_set,
-                                   IndexAttributes &attributes)
+                                   const IndexAttributes &attributes)
 {
-  const GeometryComponent &src_component = *geometry_set.get_component_for_read(component_type);
+  const CurveComponent &src_component = *geometry_set.get_component_for_read<CurveComponent>();
   const int domain_size = src_component.attribute_domain_size(ATTR_DOMAIN_POINT);
   if (domain_size == 0) {
     return;
@@ -864,17 +855,17 @@ static void duplicate_points_curve(const GeometryComponentType component_type,
   curve_component.replace(dst_component.get_for_write());
 }
 
-static void duplicate_points_mesh(const GeometryComponentType component_type,
+static void duplicate_points_mesh(GeometrySet &geometry_set,
                                   const Field<int> &count_field,
                                   const Field<bool> &selection_field,
-                                  GeometrySet &geometry_set,
-                                  IndexAttributes &attributes)
+                                  const IndexAttributes &attributes)
 {
-  const GeometryComponent &src_component = *geometry_set.get_component_for_read(component_type);
-  const int domain_size = src_component.attribute_domain_size(ATTR_DOMAIN_POINT);
+  const MeshComponent &src_component = *geometry_set.get_component_for_read<MeshComponent>();
+  const Mesh &mesh = *geometry_set.get_mesh_for_read();
+  Span<MVert> src_verts(mesh.mvert, mesh.totvert);
 
   GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_POINT};
-  FieldEvaluator evaluator{field_context, domain_size};
+  FieldEvaluator evaluator{field_context, src_verts.size()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
@@ -883,13 +874,10 @@ static void duplicate_points_mesh(const GeometryComponentType component_type,
 
   Array<int> offsets = accumulate_counts_to_offsets(selection, counts);
 
-  const Mesh *mesh = geometry_set.get_mesh_for_read();
-  Span<MVert> src_verts(mesh->mvert, mesh->totvert);
-
   Mesh *new_mesh = BKE_mesh_new_nomain(offsets.last(), 0, 0, 0, 0);
   MutableSpan<MVert> dst_verts(new_mesh->mvert, new_mesh->totvert);
 
-  threaded_slice_fill<MVert>(offsets.as_span(), src_verts, dst_verts);
+  threaded_slice_fill(offsets.as_span(), src_verts, dst_verts);
 
   MeshComponent dst_component;
   dst_component.replace(new_mesh, GeometryOwnershipType::Editable);
@@ -903,21 +891,20 @@ static void duplicate_points_mesh(const GeometryComponentType component_type,
         dst_component, ATTR_DOMAIN_POINT, selection, attributes, offsets.as_span());
   }
 
-  MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-  mesh_component.replace(dst_component.get_for_write());
+  geometry_set.replace_mesh(new_mesh);
 }
 
-static void duplicate_points_pointcloud(const GeometryComponentType component_type,
+static void duplicate_points_pointcloud(GeometrySet &geometry_set,
                                         const Field<int> &count_field,
                                         const Field<bool> &selection_field,
-                                        GeometrySet &geometry_set,
-                                        IndexAttributes &attributes)
+                                        const IndexAttributes &attributes)
 {
-  const GeometryComponent &src_component = *geometry_set.get_component_for_read(component_type);
-  const int domain_size = src_component.attribute_domain_size(ATTR_DOMAIN_POINT);
+  const PointCloudComponent &src_points =
+      *geometry_set.get_component_for_read<PointCloudComponent>();
+  const int point_size = src_points.attribute_domain_size(ATTR_DOMAIN_POINT);
 
-  GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_POINT};
-  FieldEvaluator evaluator{field_context, domain_size};
+  GeometryComponentFieldContext field_context{src_points, ATTR_DOMAIN_POINT};
+  FieldEvaluator evaluator{field_context, point_size};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
@@ -931,9 +918,9 @@ static void duplicate_points_pointcloud(const GeometryComponentType component_ty
   dst_component.replace(pointcloud, GeometryOwnershipType::Editable);
 
   copy_point_attributes_without_id(
-      geometry_set, GEO_COMPONENT_TYPE_POINT_CLOUD, false, offsets, src_component, dst_component);
+      geometry_set, GEO_COMPONENT_TYPE_POINT_CLOUD, false, offsets, src_points, dst_component);
 
-  copy_stable_id_point(offsets, src_component, dst_component);
+  copy_stable_id_point(offsets, src_points, dst_component);
 
   if (attributes.duplicate_index) {
     create_duplicate_index_attribute(
@@ -945,44 +932,38 @@ static void duplicate_points_pointcloud(const GeometryComponentType component_ty
 static void duplicate_points(GeometrySet &geometry_set,
                              const Field<int> &count_field,
                              const Field<bool> &selection_field,
-                             IndexAttributes &attributes)
+                             const IndexAttributes &attributes)
 {
-  if (!geometry_set.has_mesh() && !geometry_set.has_curves() && !geometry_set.has_pointcloud()) {
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
-    return;
-  }
-
   Vector<GeometryComponentType> component_types = geometry_set.gather_component_types(true, true);
-  Vector<GeometryComponentType> types_to_keep;
   for (const GeometryComponentType component_type : component_types) {
     switch (component_type) {
       case GEO_COMPONENT_TYPE_POINT_CLOUD:
-        types_to_keep.append(component_type);
-        duplicate_points_pointcloud(
-            component_type, count_field, selection_field, geometry_set, attributes);
+        if (geometry_set.has_pointcloud()) {
+          duplicate_points_pointcloud(geometry_set, count_field, selection_field, attributes);
+        }
         break;
       case GEO_COMPONENT_TYPE_MESH:
-        types_to_keep.append(component_type);
-        duplicate_points_mesh(
-            component_type, count_field, selection_field, geometry_set, attributes);
+        if (geometry_set.has_mesh()) {
+          duplicate_points_mesh(geometry_set, count_field, selection_field, attributes);
+        }
         break;
       case GEO_COMPONENT_TYPE_CURVE:
-        types_to_keep.append(component_type);
-        duplicate_points_curve(
-            component_type, count_field, selection_field, geometry_set, attributes);
+        if (geometry_set.has_curves()) {
+          duplicate_points_curve(geometry_set, count_field, selection_field, attributes);
+        }
         break;
       default:
         break;
     }
   }
-  types_to_keep.append(GEO_COMPONENT_TYPE_INSTANCES);
-  geometry_set.keep_only(types_to_keep);
+  component_types.append(GEO_COMPONENT_TYPE_INSTANCES);
+  geometry_set.keep_only(component_types);
 }
 
 static void duplicate_instances(GeometrySet &geometry_set,
                                 const Field<int> &count_field,
                                 const Field<bool> &selection_field,
-                                IndexAttributes &attributes)
+                                const IndexAttributes &attributes)
 {
   if (!geometry_set.has_instances()) {
     geometry_set.clear();
@@ -992,9 +973,8 @@ static void duplicate_instances(GeometrySet &geometry_set,
   const InstancesComponent &src_instances =
       *geometry_set.get_component_for_read<InstancesComponent>();
 
-  const int domain_size = src_instances.attribute_domain_size(ATTR_DOMAIN_INSTANCE);
   GeometryComponentFieldContext field_context{src_instances, ATTR_DOMAIN_INSTANCE};
-  FieldEvaluator evaluator{field_context, domain_size};
+  FieldEvaluator evaluator{field_context, src_instances.instances_amount()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
@@ -1002,27 +982,25 @@ static void duplicate_instances(GeometrySet &geometry_set,
   const VArray<int> counts = evaluator.get_evaluated<int>(0);
 
   Array<int> offsets = accumulate_counts_to_offsets(selection, counts);
-
   if (offsets.last() == 0) {
     geometry_set.clear();
     return;
   }
 
-  GeometrySet instances_geometry;
-  InstancesComponent &dst_instances =
-      instances_geometry.get_component_for_write<InstancesComponent>();
+  GeometrySet dst_geometry;
+  InstancesComponent &dst_instances = dst_geometry.get_component_for_write<InstancesComponent>();
   dst_instances.resize(offsets.last());
   for (const int i_selection : selection.index_range()) {
-    const int count = offsets[i_selection + 1] - offsets[i_selection];
-    if (count == 0) {
+    const IndexRange range = range_for_offsets_index(offsets, i_selection);
+    if (range.size() == 0) {
       continue;
     }
     const int old_handle = src_instances.instance_reference_handles()[i_selection];
     const InstanceReference reference = src_instances.references()[old_handle];
     const int new_handle = dst_instances.add_reference(reference);
     const float4x4 transform = src_instances.instance_transforms()[i_selection];
-    dst_instances.instance_transforms().slice(offsets[i_selection], count).fill(transform);
-    dst_instances.instance_reference_handles().slice(offsets[i_selection], count).fill(new_handle);
+    dst_instances.instance_transforms().slice(range).fill(transform);
+    dst_instances.instance_reference_handles().slice(range).fill(new_handle);
   }
 
   copy_point_attributes_without_id(
@@ -1033,8 +1011,7 @@ static void duplicate_instances(GeometrySet &geometry_set,
         dst_instances, ATTR_DOMAIN_INSTANCE, selection, attributes, offsets);
   }
 
-  geometry_set.remove(GEO_COMPONENT_TYPE_INSTANCES);
-  geometry_set.add(dst_instances);
+  geometry_set = std::move(dst_geometry);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -1052,14 +1029,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   if (duplicate_domain == ATTR_DOMAIN_INSTANCE) {
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
     duplicate_instances(geometry_set, count_field, selection_field, attributes);
   }
   else {
-    if (geometry_set.is_empty()) {
-      params.set_default_remaining_outputs();
-      return;
-    }
     geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
       switch (duplicate_domain) {
         case ATTR_DOMAIN_CURVE:
@@ -1092,7 +1064,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         AnonymousAttributeFieldInput::Create<int>(std::move(attributes.duplicate_index),
                                                   params.attribute_producer_name()));
   }
-  params.set_output("Geometry", geometry_set);
+  params.set_output("Geometry", std::move(geometry_set));
 }
 
 /** \} */
