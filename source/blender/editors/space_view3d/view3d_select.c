@@ -1669,7 +1669,7 @@ static int bone_select_menu_exec(bContext *C, wmOperator *op)
   memset(object_mouse_select_menu_data, 0, sizeof(object_mouse_select_menu_data));
 
   /* We make the armature selected:
-   * Not-selected active object in posemode won't work well for tools. */
+   * Not-selected active object in pose-mode won't work well for tools. */
   ED_object_base_select(basact, BA_SELECT);
 
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, basact->object);
@@ -2333,7 +2333,7 @@ static bool ed_object_select_pick(bContext *C,
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
-  /* setup view context for argument to callbacks */
+  /* Setup view context for argument to callbacks. */
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
   const ARegion *region = CTX_wm_region(C);
@@ -2344,22 +2344,20 @@ static bool ed_object_select_pick(bContext *C,
   const Base *oldbasact = vc.obact ? BASACT(view_layer) : NULL;
   Base *base, *startbase = NULL, *basact = NULL;
   const eObjectMode object_mode = oldbasact ? oldbasact->object->mode : OB_MODE_OBJECT;
-  bool is_obedit;
+  const bool is_obedit = (vc.obedit != NULL);
   float dist = ED_view3d_select_dist_px() * 1.3333f;
   bool changed = false;
-  int hits;
   const float mval_fl[2] = {(float)mval[0], (float)mval[1]};
 
-  is_obedit = (vc.obedit != NULL);
   if (object) {
     /* Signal for #view3d_opengl_select to skip edit-mode objects. */
     vc.obedit = NULL;
   }
 
-  /* In pose mode we don't want to mess with object selection. */
+  /* In pose-mode we don't want to change the object selection (unless exiting pose mode). */
   const bool is_pose_mode = (vc.obact && vc.obact->mode & OB_MODE_POSE);
 
-  /* always start list from basact in wire mode */
+  /* Always start list from `basact` when cycling the selection. */
   startbase = FIRSTBASE(view_layer);
   if (oldbasact && oldbasact->next) {
     startbase = oldbasact->next;
@@ -2423,12 +2421,12 @@ static bool ed_object_select_pick(bContext *C,
 
     // TIMEIT_START(select_time);
 
-    /* if objects have posemode set, the bones are in the same selection buffer */
+    /* if objects have pose-mode set, the bones are in the same selection buffer */
     const eV3DSelectObjectFilter select_filter = ((object == false) ?
                                                       ED_view3d_select_filter_from_mode(scene,
                                                                                         vc.obact) :
                                                       VIEW3D_SELECT_FILTER_NOP);
-    hits = mixed_bones_object_selectbuffer_extended(
+    const int hits = mixed_bones_object_selectbuffer_extended(
         &vc, buffer, ARRAY_SIZE(buffer), mval, select_filter, true, enumerate, &do_nearest);
 
     // TIMEIT_END(select_time);
@@ -2468,7 +2466,8 @@ static bool ed_object_select_pick(bContext *C,
           else {
             /* Fallback to regular object selection if no new bundles were selected,
              * allows to select object parented to reconstruction object. */
-            basact = mouse_select_eval_buffer(&vc, buffer, hits, startbase, 0, do_nearest, NULL);
+            basact = mouse_select_eval_buffer(
+                &vc, buffer, hits, startbase, false, do_nearest, NULL);
           }
         }
       }
@@ -2484,7 +2483,7 @@ static bool ed_object_select_pick(bContext *C,
         if (basact != NULL) {
           /* then bone is found */
           /* we make the armature selected:
-           * not-selected active object in posemode won't work well for tools */
+           * not-selected active object in pose-mode won't work well for tools */
           ED_object_base_select(basact, BA_SELECT);
 
           changed = true;
@@ -2570,11 +2569,11 @@ static bool ed_object_select_pick(bContext *C,
     changed = true;
 
     if (vc.obedit) {
-      /* only do select */
+      /* Only do the select (use for setting vertex parents & hooks). */
       object_deselect_all_except(view_layer, basact);
       ED_object_base_select(basact, BA_SELECT);
     }
-    /* also prevent making it active on mouse selection */
+    /* Also prevent making it active on mouse selection. */
     else if (BASE_SELECTABLE(v3d, basact)) {
       const bool use_activate_selected_base = (oldbasact != basact) && (is_obedit == false);
 
@@ -2623,7 +2622,7 @@ static bool ed_object_select_pick(bContext *C,
       /* Set special modes for grease pencil
        * The grease pencil modes are not real modes, but a hack to make the interface
        * consistent, so need some tricks to keep UI synchronized */
-      /* XXX: This stuff needs reviewing (Aligorith) */
+      /* XXX(@aligorith): This stuff needs reviewing. */
       if (false && (((oldbasact) && oldbasact->object->type == OB_GPENCIL) ||
                     (basact->object->type == OB_GPENCIL))) {
         /* set cursor */
@@ -2635,7 +2634,7 @@ static bool ed_object_select_pick(bContext *C,
           ED_gpencil_toggle_brush_cursor(C, true, NULL);
         }
         else {
-          /* TODO: maybe is better use restore */
+          /* TODO: maybe is better use restore. */
           ED_gpencil_toggle_brush_cursor(C, false, NULL);
         }
       }
