@@ -78,6 +78,7 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 }
 #include "BLI_blenlib.h"
 #include "BLI_math_color.h"
+#include "BLI_string_utils.h"
 #include "BLI_threads.h"
 
 #include "BKE_idprop.h"
@@ -1489,6 +1490,35 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
   }
 
   return 1;
+}
+
+void IMB_exr_channel_name(char *fullname,
+                          const char *layname,
+                          const char *passname,
+                          const char *viewname,
+                          const char *chan_id,
+                          const int channel)
+{
+  const char *strings[4];
+  int strings_len = 0;
+
+  if (layname && layname[0]) {
+    strings[strings_len++] = layname;
+  }
+  if (passname && passname[0]) {
+    strings[strings_len++] = passname;
+  }
+  if (viewname && viewname[0]) {
+    strings[strings_len++] = viewname;
+  }
+
+  char token[2];
+  if (channel >= 0) {
+    ARRAY_SET_ITEMS(token, chan_id[channel], '\0');
+    strings[strings_len++] = token;
+  }
+
+  BLI_string_join_array_by_sep_char(fullname, EXR_PASS_MAXNAME, '.', strings, strings_len);
 }
 
 static ExrLayer *imb_exr_get_layer(ListBase *lb, char *layname)

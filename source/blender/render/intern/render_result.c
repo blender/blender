@@ -162,37 +162,6 @@ void render_result_views_shallowdelete(RenderResult *rr)
   }
 }
 
-static char *set_pass_name(char *outname, const char *name, int channel, const char *chan_id)
-{
-  const char *strings[2];
-  int strings_len = 0;
-  strings[strings_len++] = name;
-  char token[2];
-  if (channel >= 0) {
-    ARRAY_SET_ITEMS(token, chan_id[channel], '\0');
-    strings[strings_len++] = token;
-  }
-  BLI_string_join_array_by_sep_char(outname, EXR_PASS_MAXNAME, '.', strings, strings_len);
-  return outname;
-}
-
-static void set_pass_full_name(
-    char *fullname, const char *name, int channel, const char *view, const char *chan_id)
-{
-  const char *strings[3];
-  int strings_len = 0;
-  strings[strings_len++] = name;
-  if (view && view[0]) {
-    strings[strings_len++] = view;
-  }
-  char token[2];
-  if (channel >= 0) {
-    ARRAY_SET_ITEMS(token, chan_id[channel], '\0');
-    strings[strings_len++] = token;
-  }
-  BLI_string_join_array_by_sep_char(fullname, EXR_PASS_MAXNAME, '.', strings, strings_len);
-}
-
 /********************************** New **************************************/
 
 static void render_layer_allocate_pass(RenderResult *rr, RenderPass *rp)
@@ -238,20 +207,14 @@ RenderPass *render_layer_add_pass(RenderResult *rr,
   BLI_strncpy(rpass->name, name, sizeof(rpass->name));
   BLI_strncpy(rpass->chan_id, chan_id, sizeof(rpass->chan_id));
   BLI_strncpy(rpass->view, viewname, sizeof(rpass->view));
-  set_pass_full_name(rpass->fullname, rpass->name, -1, rpass->view, rpass->chan_id);
+  IMB_exr_channel_name(rpass->fullname, NULL, rpass->name, rpass->view, rpass->chan_id, -1);
 
   if (rl->exrhandle) {
     int a;
     for (a = 0; a < channels; a++) {
       char passname[EXR_PASS_MAXNAME];
-      IMB_exr_add_channel(rl->exrhandle,
-                          rl->name,
-                          set_pass_name(passname, rpass->name, a, rpass->chan_id),
-                          viewname,
-                          0,
-                          0,
-                          NULL,
-                          false);
+      IMB_exr_channel_name(passname, NULL, rpass->name, NULL, rpass->chan_id, a);
+      IMB_exr_add_channel(rl->exrhandle, rl->name, passname, viewname, 0, 0, NULL, false);
     }
   }
 
@@ -620,7 +583,7 @@ static void ml_addpass_cb(void *base,
   rpass->rect = rect;
   BLI_strncpy(rpass->name, name, EXR_PASS_MAXNAME);
   BLI_strncpy(rpass->view, view, sizeof(rpass->view));
-  set_pass_full_name(rpass->fullname, name, -1, view, rpass->chan_id);
+  IMB_exr_channel_name(rpass->fullname, NULL, name, view, rpass->chan_id, -1);
 
   if (view[0] != '\0') {
     rpass->view_id = BLI_findstringindex(&rr->views, view, offsetof(RenderView, name));
@@ -899,7 +862,7 @@ bool RE_WriteRenderResult(ReportList *reports,
         const char *chan_id = "RGBA";
 
         if (multi_layer) {
-          set_pass_name(passname, "Combined", a, chan_id);
+          IMB_exr_channel_name(passname, NULL, "Combined", NULL, chan_id, a);
           BLI_strncpy(layname, "Composite", sizeof(layname));
         }
         else {
@@ -961,7 +924,7 @@ bool RE_WriteRenderResult(ReportList *reports,
         char layname[EXR_PASS_MAXNAME];
 
         if (multi_layer) {
-          set_pass_name(passname, rp->name, a, rp->chan_id);
+          IMB_exr_channel_name(passname, NULL, rp->name, NULL, rp->chan_id, a);
           BLI_strncpy(layname, rl->name, sizeof(layname));
         }
         else {
@@ -1097,12 +1060,12 @@ int render_result_exr_file_read_path(RenderResult *rr,
       char fullname[EXR_PASS_MAXNAME];
 
       for (a = 0; a < xstride; a++) {
-        set_pass_full_name(fullname, rpass->name, a, rpass->view, rpass->chan_id);
+        IMB_exr_channel_name(fullname, NULL, rpass->name, rpass->view, rpass->chan_id, a);
         IMB_exr_set_channel(
             exrhandle, rl->name, fullname, xstride, xstride * rectx, rpass->rect + a);
       }
 
-      set_pass_full_name(rpass->fullname, rpass->name, -1, rpass->view, rpass->chan_id);
+      IMB_exr_channel_name(rpass->fullname, NULL, rpass->name, rpass->view, rpass->chan_id, -1);
     }
   }
 
