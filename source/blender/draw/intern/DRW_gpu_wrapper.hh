@@ -209,8 +209,11 @@ class StorageCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
 #endif
 
  public:
-  StorageCommon()
+  StorageCommon(const char *name = nullptr)
   {
+    if (name) {
+      name_ = name;
+    }
     init(len);
   }
 
@@ -318,7 +321,7 @@ template<
     bool device_only = false>
 class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
  public:
-  StorageArrayBuffer()
+  StorageArrayBuffer(const char *name = nullptr) : detail::StorageCommon<T, len, device_only>(name)
   {
     /* TODO(@fclem): We should map memory instead. */
     this->data_ = (T *)MEM_mallocN_aligned(len * sizeof(T), 16, this->name_);
@@ -336,7 +339,7 @@ template<
     bool device_only = false>
 class StorageBuffer : public T, public detail::StorageCommon<T, 1, device_only> {
  public:
-  StorageBuffer()
+  StorageBuffer(const char *name = nullptr) : detail::StorageCommon<T, 1, device_only>(name)
   {
     /* TODO(@fclem): How could we map this? */
     this->data_ = static_cast<T *>(this);
@@ -761,20 +764,32 @@ class TextureFromPool : public Texture, NonMovable {
   /* Always use `release()` after rendering and `sync()` in sync phase. */
   void acquire(int2 extent, eGPUTextureFormat format, void *owner_)
   {
-    if (this->tx_ == nullptr) {
-      if (tx_tmp_saved_ != nullptr) {
+    BLI_assert(this->tx_ == nullptr);
+    if (this->tx_ != nullptr) {
+      return;
+    }
+    if (tx_tmp_saved_ != nullptr) {
+      if (GPU_texture_width(tx_tmp_saved_) != extent.x ||
+          GPU_texture_height(tx_tmp_saved_) != extent.y ||
+          GPU_texture_format(tx_tmp_saved_) != format) {
+        this->tx_tmp_saved_ = nullptr;
+      }
+      else {
         this->tx_ = tx_tmp_saved_;
         return;
       }
-      DrawEngineType *owner = (DrawEngineType *)owner_;
-      this->tx_ = DRW_texture_pool_query_2d(UNPACK2(extent), format, owner);
     }
+    DrawEngineType *owner = (DrawEngineType *)owner_;
+    this->tx_ = DRW_texture_pool_query_2d(UNPACK2(extent), format, owner);
   }
 
   void release(void)
   {
-    tx_tmp_saved_ = this->tx_;
-    this->tx_ = nullptr;
+    /* Allows multiple release. */
+    if (this->tx_ != nullptr) {
+      tx_tmp_saved_ = this->tx_;
+      this->tx_ = nullptr;
+    }
   }
 
   /**
@@ -796,6 +811,9 @@ class TextureFromPool : public Texture, NonMovable {
   bool ensure_cube_array(int, int, int, eGPUTextureFormat, float *) = delete;
   void filter_mode(bool) = delete;
   void free() = delete;
+  GPUTexture *mip_view(int) = delete;
+  GPUTexture *layer_view(int) = delete;
+  GPUTexture *stencil_view() = delete;
 };
 
 /** \} */
