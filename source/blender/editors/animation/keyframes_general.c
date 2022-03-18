@@ -382,6 +382,68 @@ void blend_to_neighbor_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const
 
 /* ---------------- */
 
+float get_default_rna_value(FCurve *fcu, PropertyRNA *prop, PointerRNA *ptr)
+{
+  const int len = RNA_property_array_length(ptr, prop);
+
+  float default_value = 0;
+  /* Find the default value of that property. */
+  switch (RNA_property_type(prop)) {
+    case PROP_BOOLEAN:
+      if (len) {
+        default_value = RNA_property_boolean_get_default_index(ptr, prop, fcu->array_index);
+      }
+      else {
+        default_value = RNA_property_boolean_get_default(ptr, prop);
+      }
+      break;
+    case PROP_INT:
+      if (len) {
+        default_value = RNA_property_int_get_default_index(ptr, prop, fcu->array_index);
+      }
+      else {
+        default_value = RNA_property_int_get_default(ptr, prop);
+      }
+      break;
+    case PROP_FLOAT:
+      if (len) {
+        default_value = RNA_property_float_get_default_index(ptr, prop, fcu->array_index);
+      }
+      else {
+        default_value = RNA_property_float_get_default(ptr, prop);
+      }
+      break;
+
+    default:
+      break;
+  }
+  return default_value;
+}
+
+/* This function blends the selected keyframes to the default value of the property the fcurve
+ * drives. */
+void blend_to_default_fcurve(PointerRNA *id_ptr, FCurve *fcu, const float factor)
+{
+  PointerRNA ptr;
+  PropertyRNA *prop;
+
+  /* Check if path is valid. */
+  if (!RNA_path_resolve_property(id_ptr, fcu->rna_path, &ptr, &prop)) {
+    return;
+  }
+
+  const float default_value = get_default_rna_value(fcu, prop, &ptr);
+
+  /* Blend selected keys to default */
+  for (int i = 0; i < fcu->totvert; i++) {
+    if (fcu->bezt[i].f2 & SELECT) {
+      fcu->bezt[i].vec[1][1] = interpf(default_value, fcu->bezt[i].vec[1][1], factor);
+    }
+  }
+}
+
+/* ---------------- */
+
 void breakdown_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
 {
   BezTriple left_bezt = fcurve_segment_start_get(fcu, segment->start_index);
