@@ -28,7 +28,7 @@ enum eObject_Hook_Add_Mode {
 
 /* internal exports only */
 
-/* object_transform.c */
+/* object_transform.cc */
 
 void OBJECT_OT_location_clear(struct wmOperatorType *ot);
 void OBJECT_OT_rotation_clear(struct wmOperatorType *ot);

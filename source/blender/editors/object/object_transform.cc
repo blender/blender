@@ -5,8 +5,8 @@
  * \ingroup edobj
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -19,10 +19,12 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_array.h"
+#include "BLI_array.hh"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_math_vector.hh"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "BKE_armature.h"
 #include "BKE_context.h"
@@ -63,6 +65,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "object_intern.h"
+
+using blender::Array;
+using blender::float2;
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Clear Transformation Utilities
@@ -283,25 +289,20 @@ static int object_clear_transform_generic_exec(bContext *C,
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  /* May be NULL. */
+  /* May be null. */
   View3D *v3d = CTX_wm_view3d(C);
   KeyingSet *ks;
   const bool clear_delta = RNA_boolean_get(op->ptr, "clear_delta");
 
-  BLI_assert(!ELEM(NULL, clear_func, default_ksName));
+  BLI_assert(!ELEM(nullptr, clear_func, default_ksName));
 
-  Object **objects = NULL;
-  uint objects_len = 0;
-  {
-    BLI_array_declare(objects);
-    FOREACH_SELECTED_EDITABLE_OBJECT_BEGIN (view_layer, v3d, ob) {
-      BLI_array_append(objects, ob);
-    }
-    FOREACH_SELECTED_EDITABLE_OBJECT_END;
-    objects_len = BLI_array_len(objects);
+  Vector<Object *> objects;
+  FOREACH_SELECTED_EDITABLE_OBJECT_BEGIN (view_layer, v3d, ob) {
+    objects.append(ob);
   }
+  FOREACH_SELECTED_EDITABLE_OBJECT_END;
 
-  if (objects == NULL) {
+  if (objects.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
@@ -310,14 +311,14 @@ static int object_clear_transform_generic_exec(bContext *C,
                                             SCE_XFORM_SKIP_CHILDREN);
   const bool use_transform_data_origin = (scene->toolsettings->transform_flag &
                                           SCE_XFORM_DATA_ORIGIN);
-  struct XFormObjectSkipChild_Container *xcs = NULL;
-  struct XFormObjectData_Container *xds = NULL;
+  struct XFormObjectSkipChild_Container *xcs = nullptr;
+  struct XFormObjectData_Container *xds = nullptr;
 
   if (use_transform_skip_children) {
     BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
     xcs = ED_object_xform_skip_child_container_create();
     ED_object_xform_skip_child_container_item_ensure_from_array(
-        xcs, view_layer, objects, objects_len);
+        xcs, view_layer, objects.data(), objects.size());
   }
   if (use_transform_data_origin) {
     BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
@@ -327,9 +328,7 @@ static int object_clear_transform_generic_exec(bContext *C,
   /* get KeyingSet to use */
   ks = ANIM_get_keyingset_for_autokeying(scene, default_ksName);
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob = objects[ob_index];
-
+  for (Object *ob : objects) {
     if (use_transform_data_origin) {
       ED_object_data_xform_container_item_ensure(xds, ob);
     }
@@ -342,7 +341,6 @@ static int object_clear_transform_generic_exec(bContext *C,
     /* tag for updates */
     DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
   }
-  MEM_freeN(objects);
 
   if (use_transform_skip_children) {
     ED_object_xform_skip_child_container_update_all(xcs, bmain, depsgraph);
@@ -355,7 +353,7 @@ static int object_clear_transform_generic_exec(bContext *C,
   }
 
   /* this is needed so children are also updated */
-  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -488,7 +486,7 @@ static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
   }
   CTX_DATA_END;
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -519,12 +517,11 @@ void OBJECT_OT_origin_clear(wmOperatorType *ot)
 static void ignore_parent_tx(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   Object workob;
-  Object *ob_child;
 
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 
   /* a change was made, adjust the children to compensate */
-  for (ob_child = bmain->objects.first; ob_child; ob_child = ob_child->id.next) {
+  LISTBASE_FOREACH (Object *, ob_child, &bmain->objects) {
     if (ob_child->parent == ob) {
       Object *ob_child_eval = DEG_get_evaluated_object(depsgraph, ob_child);
       BKE_object_apply_mat4(ob_child_eval, ob_child_eval->obmat, true, false);
@@ -549,7 +546,7 @@ static void append_sorted_object_parent_hierarchy(Object *root_object,
                                                   Object **sorted_objects,
                                                   int *object_index)
 {
-  if (!ELEM(object->parent, NULL, root_object)) {
+  if (!ELEM(object->parent, nullptr, root_object)) {
     append_sorted_object_parent_hierarchy(
         root_object, object->parent, sorted_objects, object_index);
   }
@@ -560,7 +557,7 @@ static void append_sorted_object_parent_hierarchy(Object *root_object,
   }
 }
 
-static Object **sorted_selected_editable_objects(bContext *C, int *r_num_objects)
+static Array<Object *> sorted_selected_editable_objects(bContext *C)
 {
   Main *bmain = CTX_data_main(C);
 
@@ -573,22 +570,19 @@ static Object **sorted_selected_editable_objects(bContext *C, int *r_num_objects
   }
   CTX_DATA_END;
   if (num_objects == 0) {
-    *r_num_objects = 0;
-    return NULL;
+    return {};
   }
 
   /* Append all the objects. */
-  Object **sorted_objects = MEM_malloc_arrayN(num_objects, sizeof(Object *), "sorted objects");
+  Array<Object *> sorted_objects(num_objects);
   int object_index = 0;
   CTX_DATA_BEGIN (C, Object *, object, selected_editable_objects) {
     if ((object->id.tag & LIB_TAG_DOIT) == 0) {
       continue;
     }
-    append_sorted_object_parent_hierarchy(object, object, sorted_objects, &object_index);
+    append_sorted_object_parent_hierarchy(object, object, sorted_objects.data(), &object_index);
   }
   CTX_DATA_END;
-
-  *r_num_objects = num_objects;
 
   return sorted_objects;
 }
@@ -617,11 +611,11 @@ static int apply_objects_internal(bContext *C,
              OB_SURF,
              OB_FONT,
              OB_GPENCIL)) {
-      ID *obdata = ob->data;
+      ID *obdata = static_cast<ID *>(ob->data);
       if (ID_REAL_USERS(obdata) > 1) {
         BKE_reportf(reports,
                     RPT_ERROR,
-                    "Cannot apply to a multi user: Object \"%s\", %s \"%s\", aborting",
+                    R"(Cannot apply to a multi user: Object "%s", %s "%s", aborting)",
                     ob->id.name + 2,
                     BKE_idtype_idcode_to_name(GS(obdata->name)),
                     obdata->name + 2);
@@ -631,7 +625,7 @@ static int apply_objects_internal(bContext *C,
       if (ID_IS_LINKED(obdata)) {
         BKE_reportf(reports,
                     RPT_ERROR,
-                    "Cannot apply to library data: Object \"%s\", %s \"%s\", aborting",
+                    R"(Cannot apply to library data: Object "%s", %s "%s", aborting)",
                     ob->id.name + 2,
                     BKE_idtype_idcode_to_name(GS(obdata->name)),
                     obdata->name + 2);
@@ -640,16 +634,14 @@ static int apply_objects_internal(bContext *C,
     }
 
     if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
-      ID *obdata = ob->data;
-      Curve *cu;
-
-      cu = ob->data;
+      ID *obdata = static_cast<ID *>(ob->data);
+      Curve *cu = static_cast<Curve *>(ob->data);
 
       if (((ob->type == OB_CURVES_LEGACY) && !(cu->flag & CU_3D)) && (apply_rot || apply_loc)) {
         BKE_reportf(
             reports,
             RPT_ERROR,
-            "Rotation/Location can't apply to a 2D curve: Object \"%s\", %s \"%s\", aborting",
+            R"(Rotation/Location can't apply to a 2D curve: Object "%s", %s "%s", aborting)",
             ob->id.name + 2,
             BKE_idtype_idcode_to_name(GS(obdata->name)),
             obdata->name + 2);
@@ -658,7 +650,7 @@ static int apply_objects_internal(bContext *C,
       if (cu->key) {
         BKE_reportf(reports,
                     RPT_ERROR,
-                    "Can't apply to a curve with shape-keys: Object \"%s\", %s \"%s\", aborting",
+                    R"(Can't apply to a curve with shape-keys: Object "%s", %s "%s", aborting)",
                     ob->id.name + 2,
                     BKE_idtype_idcode_to_name(GS(obdata->name)),
                     obdata->name + 2);
@@ -675,7 +667,7 @@ static int apply_objects_internal(bContext *C,
     }
 
     if (ob->type == OB_GPENCIL) {
-      bGPdata *gpd = ob->data;
+      bGPdata *gpd = static_cast<bGPdata *>(ob->data);
       if (gpd) {
         if (gpd->layers.first) {
           /* Unsupported configuration */
@@ -684,7 +676,7 @@ static int apply_objects_internal(bContext *C,
           LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
             /* Parented layers aren't supported as we can't easily re-evaluate
              * the scene to sample parent movement */
-            if (gpl->parent == NULL) {
+            if (gpl->parent == nullptr) {
               has_unparented_layers = true;
               break;
             }
@@ -706,7 +698,7 @@ static int apply_objects_internal(bContext *C,
           BKE_reportf(
               reports,
               RPT_ERROR,
-              "Can't apply to GP data-block with no layers: Object \"%s\", %s \"%s\", aborting",
+              R"(Can't apply to GP data-block with no layers: Object "%s", %s "%s", aborting)",
               ob->id.name + 2,
               BKE_idtype_idcode_to_name(ID_GD),
               gpd->id.name + 2);
@@ -715,7 +707,7 @@ static int apply_objects_internal(bContext *C,
     }
 
     if (ob->type == OB_LAMP) {
-      Light *la = ob->data;
+      Light *la = static_cast<Light *>(ob->data);
       if (la->type == LA_AREA) {
         if (apply_rot || apply_loc) {
           BKE_reportf(reports,
@@ -736,15 +728,12 @@ static int apply_objects_internal(bContext *C,
   changed = false;
 
   /* now execute */
-  int num_objects;
-  Object **objects = sorted_selected_editable_objects(C, &num_objects);
-  if (objects == NULL) {
+  Array<Object *> objects = sorted_selected_editable_objects(C);
+  if (objects.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
-  for (int object_index = 0; object_index < num_objects; object_index++) {
-    Object *ob = objects[object_index];
-
+  for (Object *ob : objects) {
     /* calculate rotation/scale matrix */
     if (apply_scale && apply_rot) {
       BKE_object_to_mat3(ob, rsmat);
@@ -786,7 +775,7 @@ static int apply_objects_internal(bContext *C,
 
     /* apply to object data */
     if (ob->type == OB_MESH) {
-      Mesh *me = ob->data;
+      Mesh *me = static_cast<Mesh *>(ob->data);
 
       if (apply_scale) {
         multiresModifier_scale_disp(depsgraph, scene, ob);
@@ -799,25 +788,25 @@ static int apply_objects_internal(bContext *C,
       BKE_mesh_normals_tag_dirty(me);
     }
     else if (ob->type == OB_ARMATURE) {
-      bArmature *arm = ob->data;
+      bArmature *arm = static_cast<bArmature *>(ob->data);
       BKE_armature_transform(arm, mat, do_props);
     }
     else if (ob->type == OB_LATTICE) {
-      Lattice *lt = ob->data;
+      Lattice *lt = static_cast<Lattice *>(ob->data);
 
       BKE_lattice_transform(lt, mat, true);
     }
     else if (ob->type == OB_MBALL) {
-      MetaBall *mb = ob->data;
+      MetaBall *mb = static_cast<MetaBall *>(ob->data);
       BKE_mball_transform(mb, mat, do_props);
     }
     else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
-      Curve *cu = ob->data;
+      Curve *cu = static_cast<Curve *>(ob->data);
       scale = mat3_to_scale(rsmat);
       BKE_curve_transform_ex(cu, mat, true, do_props, scale);
     }
     else if (ob->type == OB_FONT) {
-      Curve *cu = ob->data;
+      Curve *cu = static_cast<Curve *>(ob->data);
 
       scale = mat3_to_scale(rsmat);
 
@@ -834,7 +823,7 @@ static int apply_objects_internal(bContext *C,
       }
     }
     else if (ob->type == OB_GPENCIL) {
-      bGPdata *gpd = ob->data;
+      bGPdata *gpd = static_cast<bGPdata *>(ob->data);
       BKE_gpencil_transform(gpd, mat);
     }
     else if (ob->type == OB_CAMERA) {
@@ -870,7 +859,7 @@ static int apply_objects_internal(bContext *C,
       }
     }
     else if (ob->type == OB_LAMP) {
-      Light *la = ob->data;
+      Light *la = static_cast<Light *>(ob->data);
       if (la->type != LA_AREA) {
         continue;
       }
@@ -911,7 +900,8 @@ static int apply_objects_internal(bContext *C,
     BKE_object_where_is_calc(depsgraph, scene, ob_eval);
     if (ob->type == OB_ARMATURE) {
       /* needed for bone parents */
-      BKE_armature_copy_bone_transforms(ob_eval->data, ob->data);
+      BKE_armature_copy_bone_transforms(static_cast<bArmature *>(ob_eval->data),
+                                        static_cast<bArmature *>(ob->data));
       BKE_pose_where_is(depsgraph, scene, ob_eval);
     }
 
@@ -922,14 +912,12 @@ static int apply_objects_internal(bContext *C,
     changed = true;
   }
 
-  MEM_freeN(objects);
-
   if (!changed) {
     BKE_report(reports, RPT_WARNING, "Objects have no data to transform");
     return OPERATOR_CANCELLED;
   }
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, nullptr);
   return OPERATOR_FINISHED;
 }
 
@@ -956,7 +944,7 @@ static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
     return OPERATOR_CANCELLED;
   }
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, nullptr);
   return OPERATOR_FINISHED;
 }
 
@@ -1034,7 +1022,6 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
   Object *obact = CTX_data_active_object(C);
   Object *obedit = CTX_data_edit_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Object *tob;
   float cent[3], cent_neg[3], centn[3];
   const float *cursor = scene->cursor.location;
   int centermode = RNA_enum_get(op->ptr, "type");
@@ -1068,7 +1055,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
   if (obedit) {
     if (obedit->type == OB_MESH) {
-      Mesh *me = obedit->data;
+      Mesh *me = static_cast<Mesh *>(obedit->data);
       BMEditMesh *em = me->edit_mesh;
       BMVert *eve;
       BMIter iter;
@@ -1107,25 +1094,24 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
     }
   }
 
-  int num_objects;
-  Object **objects = sorted_selected_editable_objects(C, &num_objects);
-  if (objects == NULL) {
+  Array<Object *> objects = sorted_selected_editable_objects(C);
+  if (objects.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
   /* reset flags */
-  for (int object_index = 0; object_index < num_objects; object_index++) {
+  for (int object_index = 0; object_index < objects.size(); object_index++) {
     Object *ob = objects[object_index];
     ob->flag &= ~OB_DONE;
 
     /* move active first */
     if (ob == obact) {
-      memmove(&objects[1], objects, object_index * sizeof(Object *));
+      memmove(&objects[1], objects.data(), object_index * sizeof(Object *));
       objects[0] = ob;
     }
   }
 
-  for (tob = bmain->objects.first; tob; tob = tob->id.next) {
+  LISTBASE_FOREACH (Object *, tob, &bmain->objects) {
     if (tob->data) {
       ((ID *)tob->data)->tag &= ~LIB_TAG_DOIT;
     }
@@ -1134,8 +1120,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
     }
   }
 
-  for (int object_index = 0; object_index < num_objects; object_index++) {
-    Object *ob = objects[object_index];
+  for (Object *ob : objects) {
     if (ob->flag & OB_DONE) {
       continue;
     }
@@ -1149,7 +1134,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       mul_m4_v3(ob->imat, cent);
     }
 
-    if (ob->data == NULL) {
+    if (ob->data == nullptr) {
       /* special support for dupligroups */
       if ((ob->transflag & OB_DUPLICOLLECTION) && ob->instance_collection &&
           (ob->instance_collection->id.tag & LIB_TAG_DOIT) == 0) {
@@ -1182,8 +1167,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       tot_lib_error++;
     }
     else if (ob->type == OB_MESH) {
-      if (obedit == NULL) {
-        Mesh *me = ob->data;
+      if (obedit == nullptr) {
+        Mesh *me = static_cast<Mesh *>(ob->data);
 
         if (centermode == ORIGIN_TO_CURSOR) {
           /* done */
@@ -1202,7 +1187,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         }
 
         negate_v3_v3(cent_neg, cent);
-        BKE_mesh_translate(me, cent_neg, 1);
+        BKE_mesh_translate(me, cent_neg, true);
 
         tot_change++;
         me->id.tag |= LIB_TAG_DOIT;
@@ -1210,7 +1195,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       }
     }
     else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
-      Curve *cu = ob->data;
+      Curve *cu = static_cast<Curve *>(ob->data);
 
       if (centermode == ORIGIN_TO_CURSOR) {
         /* done */
@@ -1228,7 +1213,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       }
 
       negate_v3_v3(cent_neg, cent);
-      BKE_curve_translate(cu, cent_neg, 1);
+      BKE_curve_translate(cu, cent_neg, true);
 
       tot_change++;
       cu->id.tag |= LIB_TAG_DOIT;
@@ -1244,9 +1229,9 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
     else if (ob->type == OB_FONT) {
       /* Get from bounding-box. */
 
-      Curve *cu = ob->data;
+      Curve *cu = static_cast<Curve *>(ob->data);
 
-      if (ob->runtime.bb == NULL && (centermode != ORIGIN_TO_CURSOR)) {
+      if (ob->runtime.bb == nullptr && (centermode != ORIGIN_TO_CURSOR)) {
         /* Do nothing. */
       }
       else {
@@ -1270,7 +1255,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       }
     }
     else if (ob->type == OB_ARMATURE) {
-      bArmature *arm = ob->data;
+      bArmature *arm = static_cast<bArmature *>(ob->data);
 
       if (ID_REAL_USERS(arm) > 1) {
 #if 0
@@ -1291,7 +1276,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
         Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
         BKE_object_transform_copy(ob_eval, ob);
-        BKE_armature_copy_bone_transforms(ob_eval->data, ob->data);
+        BKE_armature_copy_bone_transforms(static_cast<bArmature *>(ob_eval->data),
+                                          static_cast<bArmature *>(ob->data));
         BKE_object_where_is_calc(depsgraph, scene, ob_eval);
         BKE_pose_where_is(depsgraph, scene, ob_eval); /* needed for bone parents */
 
@@ -1303,7 +1289,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       }
     }
     else if (ob->type == OB_MBALL) {
-      MetaBall *mb = ob->data;
+      MetaBall *mb = static_cast<MetaBall *>(ob->data);
 
       if (centermode == ORIGIN_TO_CURSOR) {
         /* done */
@@ -1330,7 +1316,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       }
     }
     else if (ob->type == OB_LATTICE) {
-      Lattice *lt = ob->data;
+      Lattice *lt = static_cast<Lattice *>(ob->data);
 
       if (centermode == ORIGIN_TO_CURSOR) {
         /* done */
@@ -1343,14 +1329,14 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       }
 
       negate_v3_v3(cent_neg, cent);
-      BKE_lattice_translate(lt, cent_neg, 1);
+      BKE_lattice_translate(lt, cent_neg, true);
 
       tot_change++;
       lt->id.tag |= LIB_TAG_DOIT;
       do_inverse_offset = true;
     }
     else if (ob->type == OB_GPENCIL) {
-      bGPdata *gpd = ob->data;
+      bGPdata *gpd = static_cast<bGPdata *>(ob->data);
       float gpcenter[3];
       if (gpd) {
         if (centermode == ORIGIN_TO_GEOMETRY) {
@@ -1394,7 +1380,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
                 }
 
                 /* Apply transform to edit-curve. */
-                if (gps->editcurve != NULL) {
+                if (gps->editcurve != nullptr) {
                   for (i = 0; i < gps->editcurve->tot_curve_points; i++) {
                     BezTriple *bezt = &gps->editcurve->curve_points[i].bezt;
                     for (int j = 0; j < 3; j++) {
@@ -1444,7 +1430,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       BKE_object_where_is_calc(depsgraph, scene, ob_eval);
       if (ob->type == OB_ARMATURE) {
         /* needed for bone parents */
-        BKE_armature_copy_bone_transforms(ob_eval->data, ob->data);
+        BKE_armature_copy_bone_transforms(static_cast<bArmature *>(ob_eval->data),
+                                          static_cast<bArmature *>(ob->data));
         BKE_pose_where_is(depsgraph, scene, ob_eval);
       }
 
@@ -1455,9 +1442,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       //{
 
       /* use existing context looper */
-      for (int other_object_index = 0; other_object_index < num_objects; other_object_index++) {
-        Object *ob_other = objects[other_object_index];
-
+      for (Object *ob_other : objects) {
         if ((ob_other->flag & OB_DONE) == 0 &&
             ((ob->data && (ob->data == ob_other->data)) ||
              (ob->instance_collection == ob_other->instance_collection &&
@@ -1473,7 +1458,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
           BKE_object_where_is_calc(depsgraph, scene, ob_other_eval);
           if (ob_other->type == OB_ARMATURE) {
             /* needed for bone parents */
-            BKE_armature_copy_bone_transforms(ob_eval->data, ob->data);
+            BKE_armature_copy_bone_transforms(static_cast<bArmature *>(ob_eval->data),
+                                              static_cast<bArmature *>(ob->data));
             BKE_pose_where_is(depsgraph, scene, ob_other_eval);
           }
           ignore_parent_tx(bmain, depsgraph, scene, ob_other);
@@ -1482,9 +1468,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       // CTX_DATA_END;
     }
   }
-  MEM_freeN(objects);
 
-  for (tob = bmain->objects.first; tob; tob = tob->id.next) {
+  LISTBASE_FOREACH (Object *, tob, &bmain->objects) {
     if (tob->data && (((ID *)tob->data)->tag & LIB_TAG_DOIT)) {
       BKE_object_batch_cache_dirty_tag(tob);
       DEG_id_tag_update(&tob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
@@ -1497,7 +1482,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
   }
 
   if (tot_change) {
-    WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+    WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, nullptr);
   }
 
   /* Warn if any errors occurred */
@@ -1550,13 +1535,13 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
        "Origin to Center of Mass (Volume)",
        "Calculate the center of mass from the volume (must be manifold geometry with consistent "
        "normals)"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const EnumPropertyItem prop_set_bounds_types[] = {
       {V3D_AROUND_CENTER_MEDIAN, "MEDIAN", 0, "Median Center", ""},
       {V3D_AROUND_CENTER_BOUNDS, "BOUNDS", 0, "Bounds Center", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */
@@ -1622,26 +1607,23 @@ struct XFormAxisData {
     bool is_normal_valid;
   } prev;
 
-  struct XFormAxisItem *object_data;
-  uint object_data_len;
+  Vector<XFormAxisItem> object_data;
   bool is_translate;
 
   int init_event;
 };
 
 #ifdef USE_FAKE_DEPTH_INIT
-static void object_transform_axis_target_calc_depth_init(struct XFormAxisData *xfd,
-                                                         const int mval[2])
+static void object_transform_axis_target_calc_depth_init(XFormAxisData *xfd, const int mval[2])
 {
-  struct XFormAxisItem *item = xfd->object_data;
   float view_co_a[3], view_co_b[3];
-  const float mval_fl[2] = {UNPACK2(mval)};
+  const float2 mval_fl = {static_cast<float>(mval[0]), static_cast<float>(mval[1])};
   ED_view3d_win_to_ray(xfd->vc.region, mval_fl, view_co_a, view_co_b);
   add_v3_v3(view_co_b, view_co_a);
   float center[3] = {0.0f};
   int center_tot = 0;
-  for (int i = 0; i < xfd->object_data_len; i++, item++) {
-    const Object *ob = item->ob;
+  for (XFormAxisItem &item : xfd->object_data) {
+    const Object *ob = item.ob;
     const float *ob_co_a = ob->obmat[3];
     float ob_co_b[3];
     add_v3_v3v3(ob_co_b, ob->obmat[3], ob->obmat[2]);
@@ -1664,7 +1646,7 @@ static void object_transform_axis_target_calc_depth_init(struct XFormAxisData *x
 static bool object_is_target_compat(const Object *ob)
 {
   if (ob->type == OB_LAMP) {
-    const Light *la = ob->data;
+    const Light *la = static_cast<Light *>(ob->data);
     if (ELEM(la->type, LA_SUN, LA_SPOT, LA_AREA)) {
       return true;
     }
@@ -1680,8 +1662,7 @@ static bool object_is_target_compat(const Object *ob)
 
 static void object_transform_axis_target_free_data(wmOperator *op)
 {
-  struct XFormAxisData *xfd = op->customdata;
-  struct XFormAxisItem *item = xfd->object_data;
+  XFormAxisData *xfd = static_cast<XFormAxisData *>(op->customdata);
 
 #ifdef USE_RENDER_OVERRIDE
   if (xfd->depths) {
@@ -1689,12 +1670,11 @@ static void object_transform_axis_target_free_data(wmOperator *op)
   }
 #endif
 
-  for (int i = 0; i < xfd->object_data_len; i++, item++) {
-    MEM_freeN(item->obtfm);
+  for (XFormAxisItem &item : xfd->object_data) {
+    MEM_freeN(item.obtfm);
   }
-  MEM_freeN(xfd->object_data);
-  MEM_freeN(xfd);
-  op->customdata = NULL;
+  MEM_delete(xfd);
+  op->customdata = nullptr;
 }
 
 /* We may want to expose as alternative to: BKE_object_apply_rotation */
@@ -1755,12 +1735,11 @@ static bool object_orient_to_location(Object *ob,
 
 static void object_transform_axis_target_cancel(bContext *C, wmOperator *op)
 {
-  struct XFormAxisData *xfd = op->customdata;
-  struct XFormAxisItem *item = xfd->object_data;
-  for (int i = 0; i < xfd->object_data_len; i++, item++) {
-    BKE_object_tfm_restore(item->ob, item->obtfm);
-    DEG_id_tag_update(&item->ob->id, ID_RECALC_TRANSFORM);
-    WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, item->ob);
+  XFormAxisData *xfd = static_cast<XFormAxisData *>(op->customdata);
+  for (XFormAxisItem &item : xfd->object_data) {
+    BKE_object_tfm_restore(item.ob, item.obtfm);
+    DEG_id_tag_update(&item.ob->id, ID_RECALC_TRANSFORM);
+    WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, item.ob);
   }
 
   object_transform_axis_target_free_data(op);
@@ -1772,7 +1751,7 @@ static int object_transform_axis_target_invoke(bContext *C, wmOperator *op, cons
   ViewContext vc;
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
-  if (vc.obact == NULL || !object_is_target_compat(vc.obact)) {
+  if (vc.obact == nullptr || !object_is_target_compat(vc.obact)) {
     /* Falls back to texture space transform. */
     return OPERATOR_PASS_THROUGH;
   }
@@ -1782,22 +1761,23 @@ static int object_transform_axis_target_invoke(bContext *C, wmOperator *op, cons
   vc.v3d->flag2 |= V3D_HIDE_OVERLAYS;
 #endif
 
-  ViewDepths *depths = NULL;
-  ED_view3d_depth_override(vc.depsgraph, vc.region, vc.v3d, NULL, V3D_DEPTH_NO_GPENCIL, &depths);
+  ViewDepths *depths = nullptr;
+  ED_view3d_depth_override(
+      vc.depsgraph, vc.region, vc.v3d, nullptr, V3D_DEPTH_NO_GPENCIL, &depths);
 
 #ifdef USE_RENDER_OVERRIDE
   vc.v3d->flag2 = flag2_prev;
 #endif
 
-  if (depths == NULL) {
+  if (depths == nullptr) {
     BKE_report(op->reports, RPT_WARNING, "Unable to access depth buffer, using view plane");
     return OPERATOR_CANCELLED;
   }
 
   ED_region_tag_redraw(vc.region);
 
-  struct XFormAxisData *xfd;
-  xfd = op->customdata = MEM_callocN(sizeof(struct XFormAxisData), __func__);
+  XFormAxisData *xfd = MEM_new<XFormAxisData>(__func__);
+  op->customdata = xfd;
 
   /* Don't change this at runtime. */
   xfd->vc = vc;
@@ -1812,41 +1792,25 @@ static int object_transform_axis_target_invoke(bContext *C, wmOperator *op, cons
 
   xfd->init_event = WM_userdef_event_type_from_keymap_type(event->type);
 
-  {
-    struct XFormAxisItem *object_data = NULL;
-    BLI_array_declare(object_data);
+  xfd->object_data.append({});
+  xfd->object_data.last().ob = xfd->vc.obact;
 
-    struct XFormAxisItem *item = BLI_array_append_ret(object_data);
-    item->ob = xfd->vc.obact;
-
-    CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
-      if ((ob != xfd->vc.obact) && object_is_target_compat(ob)) {
-        item = BLI_array_append_ret(object_data);
-        item->ob = ob;
-      }
-    }
-    CTX_DATA_END;
-
-    xfd->object_data = object_data;
-    xfd->object_data_len = BLI_array_len(object_data);
-
-    if (xfd->object_data_len != BLI_array_len(object_data)) {
-      xfd->object_data = MEM_reallocN(xfd->object_data,
-                                      xfd->object_data_len * sizeof(*xfd->object_data));
+  CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
+    if ((ob != xfd->vc.obact) && object_is_target_compat(ob)) {
+      xfd->object_data.append({});
+      xfd->object_data.last().ob = ob;
     }
   }
+  CTX_DATA_END;
 
-  {
-    struct XFormAxisItem *item = xfd->object_data;
-    for (int i = 0; i < xfd->object_data_len; i++, item++) {
-      item->obtfm = BKE_object_tfm_backup(item->ob);
-      BKE_object_rot_to_mat3(item->ob, item->rot_mat, true);
+  for (XFormAxisItem &item : xfd->object_data) {
+    item.obtfm = BKE_object_tfm_backup(item.ob);
+    BKE_object_rot_to_mat3(item.ob, item.rot_mat, true);
 
-      /* Detect negative scale matrix. */
-      float full_mat3[3][3];
-      BKE_object_to_mat3(item->ob, full_mat3);
-      item->is_z_flip = dot_v3v3(item->rot_mat[2], full_mat3[2]) < 0.0f;
-    }
+    /* Detect negative scale matrix. */
+    float full_mat3[3][3];
+    BKE_object_to_mat3(item.ob, full_mat3);
+    item.is_z_flip = dot_v3v3(item.rot_mat[2], full_mat3[2]) < 0.0f;
   }
 
   WM_event_add_modal_handler(C, op);
@@ -1856,7 +1820,7 @@ static int object_transform_axis_target_invoke(bContext *C, wmOperator *op, cons
 
 static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  struct XFormAxisData *xfd = op->customdata;
+  XFormAxisData *xfd = static_cast<XFormAxisData *>(op->customdata);
   ARegion *region = xfd->vc.region;
 
   view3d_operator_needs_opengl(C);
@@ -1922,36 +1886,35 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
 
             {
 #ifdef USE_RELATIVE_ROTATION
-              if (is_translate_init && xfd->object_data_len > 1) {
+              if (is_translate_init && xfd->object_data.size() > 1) {
                 float xform_rot_offset_inv_first[3][3];
-                struct XFormAxisItem *item = xfd->object_data;
-                for (int i = 0; i < xfd->object_data_len; i++, item++) {
-                  copy_m3_m4(item->xform_rot_offset, item->ob->obmat);
-                  normalize_m3(item->xform_rot_offset);
+                for (const int i : xfd->object_data.index_range()) {
+                  XFormAxisItem &item = xfd->object_data[i];
+                  copy_m3_m4(item.xform_rot_offset, item.ob->obmat);
+                  normalize_m3(item.xform_rot_offset);
 
                   if (i == 0) {
                     invert_m3_m3(xform_rot_offset_inv_first, xfd->object_data[0].xform_rot_offset);
                   }
                   else {
-                    mul_m3_m3m3(item->xform_rot_offset,
-                                item->xform_rot_offset,
-                                xform_rot_offset_inv_first);
+                    mul_m3_m3m3(
+                        item.xform_rot_offset, item.xform_rot_offset, xform_rot_offset_inv_first);
                   }
                 }
               }
 
 #endif
 
-              struct XFormAxisItem *item = xfd->object_data;
-              for (int i = 0; i < xfd->object_data_len; i++, item++) {
+              for (const int i : xfd->object_data.index_range()) {
+                XFormAxisItem &item = xfd->object_data[i];
                 if (is_translate_init) {
                   float ob_axis[3];
-                  item->xform_dist = len_v3v3(item->ob->obmat[3], location_world);
-                  normalize_v3_v3(ob_axis, item->ob->obmat[2]);
+                  item.xform_dist = len_v3v3(item.ob->obmat[3], location_world);
+                  normalize_v3_v3(ob_axis, item.ob->obmat[2]);
                   /* Scale to avoid adding distance when moving between surfaces. */
                   if (normal_found) {
                     float scale = fabsf(dot_v3v3(ob_axis, normal));
-                    item->xform_dist *= scale;
+                    item.xform_dist *= scale;
                   }
                 }
 
@@ -1961,13 +1924,13 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
                   copy_v3_v3(target_normal, normal);
                 }
                 else {
-                  normalize_v3_v3(target_normal, item->ob->obmat[2]);
+                  normalize_v3_v3(target_normal, item.ob->obmat[2]);
                 }
 
 #ifdef USE_RELATIVE_ROTATION
                 if (normal_found) {
                   if (i != 0) {
-                    mul_m3_v3(item->xform_rot_offset, target_normal);
+                    mul_m3_v3(item.xform_rot_offset, target_normal);
                   }
                 }
 #endif
@@ -1975,17 +1938,17 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
                   float loc[3];
 
                   copy_v3_v3(loc, location_world);
-                  madd_v3_v3fl(loc, target_normal, item->xform_dist);
-                  object_apply_location(item->ob, loc);
+                  madd_v3_v3fl(loc, target_normal, item.xform_dist);
+                  object_apply_location(item.ob, loc);
                   /* so orient behaves as expected */
-                  copy_v3_v3(item->ob->obmat[3], loc);
+                  copy_v3_v3(item.ob->obmat[3], loc);
                 }
 
                 object_orient_to_location(
-                    item->ob, item->rot_mat, item->rot_mat[2], location_world, item->is_z_flip);
+                    item.ob, item.rot_mat, item.rot_mat[2], location_world, item.is_z_flip);
 
-                DEG_id_tag_update(&item->ob->id, ID_RECALC_TRANSFORM);
-                WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, item->ob);
+                DEG_id_tag_update(&item.ob->id, ID_RECALC_TRANSFORM);
+                WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, item.ob);
               }
               if (normal_found) {
                 copy_v3_v3(xfd->prev.normal, normal);
@@ -1994,15 +1957,11 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
             }
           }
           else {
-            struct XFormAxisItem *item = xfd->object_data;
-            for (int i = 0; i < xfd->object_data_len; i++, item++) {
-              if (object_orient_to_location(item->ob,
-                                            item->rot_mat,
-                                            item->rot_mat[2],
-                                            location_world,
-                                            item->is_z_flip)) {
-                DEG_id_tag_update(&item->ob->id, ID_RECALC_TRANSFORM);
-                WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, item->ob);
+            for (XFormAxisItem &item : xfd->object_data) {
+              if (object_orient_to_location(
+                      item.ob, item.rot_mat, item.rot_mat[2], location_world, item.is_z_flip)) {
+                DEG_id_tag_update(&item.ob->id, ID_RECALC_TRANSFORM);
+                WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, item.ob);
               }
             }
             xfd->prev.is_normal_valid = false;
