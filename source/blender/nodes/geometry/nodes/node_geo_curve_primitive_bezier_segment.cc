@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_spline.hh"
+#include "BKE_curves.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -55,30 +55,26 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-static std::unique_ptr<CurveEval> create_bezier_segment_curve(
-    const float3 start,
-    const float3 start_handle_right,
-    const float3 end,
-    const float3 end_handle_left,
-    const int resolution,
-    const GeometryNodeCurvePrimitiveBezierSegmentMode mode)
+static Curves *create_bezier_segment_curve(const float3 start,
+                                           const float3 start_handle_right,
+                                           const float3 end,
+                                           const float3 end_handle_left,
+                                           const int resolution,
+                                           const GeometryNodeCurvePrimitiveBezierSegmentMode mode)
 {
-  std::unique_ptr<CurveEval> curve = std::make_unique<CurveEval>();
-  std::unique_ptr<BezierSpline> spline = std::make_unique<BezierSpline>();
-  spline->set_resolution(resolution);
+  Curves *curves_id = bke::curves_new_nomain_single(2, CURVE_TYPE_BEZIER);
+  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+  curves.resolution().fill(resolution);
 
-  spline->resize(2);
-  MutableSpan<float3> positions = spline->positions();
-  spline->handle_types_left().fill(BEZIER_HANDLE_ALIGN);
-  spline->handle_types_right().fill(BEZIER_HANDLE_ALIGN);
-  spline->radii().fill(1.0f);
-  spline->tilts().fill(0.0f);
+  MutableSpan<float3> positions = curves.positions();
+  curves.handle_types_left().fill(BEZIER_HANDLE_ALIGN);
+  curves.handle_types_right().fill(BEZIER_HANDLE_ALIGN);
 
   positions.first() = start;
   positions.last() = end;
 
-  MutableSpan<float3> handles_right = spline->handle_positions_right();
-  MutableSpan<float3> handles_left = spline->handle_positions_left();
+  MutableSpan<float3> handles_right = curves.handle_positions_right();
+  MutableSpan<float3> handles_left = curves.handle_positions_left();
 
   if (mode == GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT_POSITION) {
     handles_left.first() = 2.0f * start - start_handle_right;
@@ -95,9 +91,7 @@ static std::unique_ptr<CurveEval> create_bezier_segment_curve(
     handles_right.last() = end - end_handle_left;
   }
 
-  curve->add_spline(std::move(spline));
-  curve->attributes.reallocate(1);
-  return curve;
+  return curves_id;
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -106,14 +100,14 @@ static void node_geo_exec(GeoNodeExecParams params)
   const GeometryNodeCurvePrimitiveBezierSegmentMode mode =
       (const GeometryNodeCurvePrimitiveBezierSegmentMode)storage.mode;
 
-  std::unique_ptr<CurveEval> curve = create_bezier_segment_curve(
+  Curves *curves = create_bezier_segment_curve(
       params.extract_input<float3>("Start"),
       params.extract_input<float3>("Start Handle"),
       params.extract_input<float3>("End"),
       params.extract_input<float3>("End Handle"),
       std::max(params.extract_input<int>("Resolution"), 1),
       mode);
-  params.set_output("Curve", GeometrySet::create_with_curves(curve_eval_to_curves(*curve)));
+  params.set_output("Curve", GeometrySet::create_with_curves(curves));
 }
 
 }  // namespace blender::nodes::node_geo_curve_primitive_bezier_segment_cc
