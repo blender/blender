@@ -897,19 +897,15 @@ struct NodeSizeWidget {
   int directions;
 };
 
-static void node_resize_init(bContext *C,
-                             wmOperator *op,
-                             const wmEvent *UNUSED(event),
-                             const bNode *node,
-                             NodeResizeDirection dir)
+static void node_resize_init(
+    bContext *C, wmOperator *op, const float cursor[2], const bNode *node, NodeResizeDirection dir)
 {
-  SpaceNode *snode = CTX_wm_space_node(C);
-
   NodeSizeWidget *nsw = MEM_cnew<NodeSizeWidget>(__func__);
 
   op->customdata = nsw;
-  nsw->mxstart = snode->runtime->cursor[0] * UI_DPI_FAC;
-  nsw->mystart = snode->runtime->cursor[1] * UI_DPI_FAC;
+
+  nsw->mxstart = cursor[0];
+  nsw->mystart = cursor[1];
 
   /* store old */
   nsw->oldlocx = node->locx;
@@ -1068,7 +1064,7 @@ static int node_resize_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
-  node_resize_init(C, op, event, node, dir);
+  node_resize_init(C, op, cursor, node, dir);
   return OPERATOR_RUNNING_MODAL;
 }
 
