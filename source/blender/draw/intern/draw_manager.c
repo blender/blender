@@ -85,6 +85,7 @@
 
 #include "engines/basic/basic_engine.h"
 #include "engines/eevee/eevee_engine.h"
+#include "engines/eevee_next/eevee_engine.h"
 #include "engines/external/external_engine.h"
 #include "engines/gpencil/gpencil_engine.h"
 #include "engines/image/image_engine.h"
@@ -2896,6 +2897,13 @@ void DRW_engine_register(DrawEngineType *draw_engine_type)
 
   BLI_addtail(&g_registered_engines.engines, draw_engine);
   g_registered_engines.len = BLI_listbase_count(&g_registered_engines.engines);
+}
+
+void DRW_engines_register_experimental(void)
+{
+  if (U.experimental.enable_eevee_next) {
+    RE_engines_register(&DRW_engine_viewport_eevee_next_type);
+  }
 }
 
 void DRW_engines_register(void)

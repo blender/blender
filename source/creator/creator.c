@@ -488,6 +488,9 @@ int main(int argc,
 
   WM_init(C, argc, (const char **)argv);
 
+  /* Need to be after WM init so that userpref are loaded. */
+  RE_engines_init_experimental();
+
 #ifndef WITH_PYTHON
   printf(
       "\n* WARNING * - Blender compiled without Python!\n"

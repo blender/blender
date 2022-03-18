@@ -59,6 +59,11 @@ void RE_engines_init(void)
   DRW_engines_register();
 }
 
+void RE_engines_init_experimental()
+{
+  DRW_engines_register_experimental();
+}
+
 void RE_engines_exit(void)
 {
   RenderEngineType *type, *next;

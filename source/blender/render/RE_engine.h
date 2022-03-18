@@ -253,6 +253,7 @@ void RE_engine_render_context_disable(struct RenderEngine *engine);
 /* Engine Types */
 
 void RE_engines_init(void);
+void RE_engines_init_experimental(void);
 void RE_engines_exit(void);
 void RE_engines_register(RenderEngineType *render_type);
 

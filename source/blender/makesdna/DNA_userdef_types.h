@@ -650,7 +650,8 @@ typedef struct UserDef_Experimental {
   char use_extended_asset_browser;
   char use_override_templates;
   char use_named_attribute_nodes;
-  char _pad[2];
+  char enable_eevee_next;
+  char _pad[1];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
