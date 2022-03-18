@@ -277,6 +277,12 @@ class CurvesGeometry : public ::CurvesGeometry {
 
   void remove_curves(IndexMask curves_to_delete);
 
+  /**
+   * Change the direction of selected curves (switch the start and end) without changing their
+   * shape.
+   */
+  void reverse_curves(IndexMask curves_to_reverse);
+
   /* --------------------------------------------------------------------
    * Attributes.
    */

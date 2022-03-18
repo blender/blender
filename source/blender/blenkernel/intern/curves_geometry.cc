@@ -860,6 +860,106 @@ void CurvesGeometry::remove_curves(const IndexMask curves_to_delete)
   *this = copy_with_removed_curves(*this, curves_to_delete);
 }
 
+template<typename T>
+static void reverse_curve_point_data(const CurvesGeometry &curves,
+                                     const IndexMask curve_selection,
+                                     MutableSpan<T> data)
+{
+  threading::parallel_for(curve_selection.index_range(), 256, [&](IndexRange range) {
+    for (const int curve_i : curve_selection.slice(range)) {
+      data.slice(curves.range_for_curve(curve_i)).reverse();
+    }
+  });
+}
+
+template<typename T>
+static void reverse_swap_curve_point_data(const CurvesGeometry &curves,
+                                          const IndexMask curve_selection,
+                                          MutableSpan<T> data_a,
+                                          MutableSpan<T> data_b)
+{
+  threading::parallel_for(curve_selection.index_range(), 256, [&](IndexRange range) {
+    for (const int curve_i : curve_selection.slice(range)) {
+      const IndexRange points = curves.range_for_curve(curve_i);
+      MutableSpan<T> a = data_a.slice(points);
+      MutableSpan<T> b = data_b.slice(points);
+      for (const int i : IndexRange(points.size() / 2)) {
+        const int end_index = points.size() - 1 - i;
+        std::swap(a[end_index], b[i]);
+        std::swap(b[end_index], a[i]);
+      }
+    }
+  });
+}
+
+static bool layer_matches_name_and_type(const CustomDataLayer &layer,
+                                        const StringRef name,
+                                        const CustomDataType type)
+{
+  if (layer.type != type) {
+    return false;
+  }
+  return layer.name == name;
+}
+
+void CurvesGeometry::reverse_curves(const IndexMask curves_to_reverse)
+{
+  CustomData_duplicate_referenced_layers(&this->point_data, this->points_size());
+
+  /* Collect the Bezier handle attributes while iterating through the point custom data layers;
+   * they need special treatment later. */
+  MutableSpan<float3> positions_left;
+  MutableSpan<float3> positions_right;
+  MutableSpan<int8_t> types_left;
+  MutableSpan<int8_t> types_right;
+
+  for (const int layer_i : IndexRange(this->point_data.totlayer)) {
+    CustomDataLayer &layer = this->point_data.layers[layer_i];
+
+    if (positions_left.is_empty() &&
+        layer_matches_name_and_type(layer, ATTR_HANDLE_POSITION_LEFT, CD_PROP_FLOAT3)) {
+      positions_left = {static_cast<float3 *>(layer.data), this->points_size()};
+      continue;
+    }
+    if (positions_right.is_empty() &&
+        layer_matches_name_and_type(layer, ATTR_HANDLE_POSITION_RIGHT, CD_PROP_FLOAT3)) {
+      positions_right = {static_cast<float3 *>(layer.data), this->points_size()};
+      continue;
+    }
+    if (types_left.is_empty() &&
+        layer_matches_name_and_type(layer, ATTR_HANDLE_TYPE_LEFT, CD_PROP_INT8)) {
+      types_left = {static_cast<int8_t *>(layer.data), this->points_size()};
+      continue;
+    }
+    if (types_right.is_empty() &&
+        layer_matches_name_and_type(layer, ATTR_HANDLE_TYPE_RIGHT, CD_PROP_INT8)) {
+      types_right = {static_cast<int8_t *>(layer.data), this->points_size()};
+      continue;
+    }
+
+    const CustomDataType data_type = static_cast<CustomDataType>(layer.type);
+    attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+      using T = decltype(dummy);
+      reverse_curve_point_data<T>(
+          *this, curves_to_reverse, {static_cast<T *>(layer.data), this->points_size()});
+    });
+  }
+
+  /* In order to maintain the shape of Bezier curves, handle attributes must reverse, but also the
+   * values for the left and right must swap. Use a utility to swap and reverse at the same time,
+   * to avoid loading the attribute twice. Generally we can expect the right layer to exist when
+   * the left does, but there's no need to count on it, so check for both attributes. */
+
+  if (!positions_left.is_empty() && !positions_right.is_empty()) {
+    reverse_swap_curve_point_data(*this, curves_to_reverse, positions_left, positions_right);
+  }
+  if (!types_left.is_empty() && !types_right.is_empty()) {
+    reverse_swap_curve_point_data(*this, curves_to_reverse, types_left, types_right);
+  }
+
+  this->tag_topology_changed();
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
