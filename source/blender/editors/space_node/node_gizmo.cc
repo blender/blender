@@ -38,39 +38,25 @@ namespace blender::ed::space_node {
 
 static void node_gizmo_calc_matrix_space(const SpaceNode *snode,
                                          const ARegion *region,
-                                         const float image_offset[2],
                                          float matrix_space[4][4])
 {
   unit_m4(matrix_space);
   mul_v3_fl(matrix_space[0], snode->zoom);
   mul_v3_fl(matrix_space[1], snode->zoom);
-  const float offset_x = snode->xof + image_offset[0];
-  const float offset_y = snode->yof + image_offset[1];
-  matrix_space[3][0] = (region->winx / 2) + offset_x;
-  matrix_space[3][1] = (region->winy / 2) + offset_y;
+  matrix_space[3][0] = (region->winx / 2) + snode->xof;
+  matrix_space[3][1] = (region->winy / 2) + snode->yof;
 }
 
 static void node_gizmo_calc_matrix_space_with_image_dims(const SpaceNode *snode,
                                                          const ARegion *region,
-                                                         const float image_offset[2],
                                                          const float image_dims[2],
                                                          float matrix_space[4][4])
 {
   unit_m4(matrix_space);
   mul_v3_fl(matrix_space[0], snode->zoom * image_dims[0]);
   mul_v3_fl(matrix_space[1], snode->zoom * image_dims[1]);
-  const float offset_x = snode->xof + image_offset[0];
-  const float offset_y = snode->yof + image_offset[1];
-  matrix_space[3][0] = ((region->winx / 2) + offset_x) - ((image_dims[0] / 2.0f) * snode->zoom);
-  matrix_space[3][1] = ((region->winy / 2) + offset_y) - ((image_dims[1] / 2.0f) * snode->zoom);
-}
-
-static void get_viewer_image_offset(const bContext *C, float r_offset[2])
-{
-  Main *bmain = CTX_data_main(C);
-  const Image *image = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
-  r_offset[0] = image->display_offset_x;
-  r_offset[1] = image->display_offset_y;
+  matrix_space[3][0] = ((region->winx / 2) + snode->xof) - ((image_dims[0] / 2.0f) * snode->zoom);
+  matrix_space[3][1] = ((region->winy / 2) + snode->yof) - ((image_dims[1] / 2.0f) * snode->zoom);
 }
 
 /** \} */
@@ -141,13 +127,11 @@ static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmGizmoGroup *
   Main *bmain = CTX_data_main(C);
   wmGizmo *cage = ((wmGizmoWrapper *)gzgroup->customdata)->gizmo;
   const ARegion *region = CTX_wm_region(C);
-
-  Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
-  /* Center is always at the origin. */
-  const float origin[3] ={ (region->winx / 2) + (float)ima->display_offset_x,
-                           (region->winy / 2) + (float)ima->display_offset_y};
+  /* center is always at the origin */
+  const float origin[3] = {float(region->winx / 2), float(region->winy / 2), 0.0f};
 
   void *lock;
+  Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
 
   if (ibuf) {
@@ -356,9 +340,7 @@ static void WIDGETGROUP_node_crop_draw_prepare(const bContext *C, wmGizmoGroup *
 
   SpaceNode *snode = CTX_wm_space_node(C);
 
-  float image_offset[2];
-  get_viewer_image_offset(C, image_offset);
-  node_gizmo_calc_matrix_space(snode, region, image_offset, gz->matrix_space);
+  node_gizmo_calc_matrix_space(snode, region, gz->matrix_space);
 }
 
 static void WIDGETGROUP_node_crop_refresh(const bContext *C, wmGizmoGroup *gzgroup)
@@ -471,10 +453,8 @@ static void WIDGETGROUP_node_sbeam_draw_prepare(const bContext *C, wmGizmoGroup 
 
   SpaceNode *snode = CTX_wm_space_node(C);
 
-  float image_offset[2];
-  get_viewer_image_offset(C, image_offset);
   node_gizmo_calc_matrix_space_with_image_dims(
-      snode, region, image_offset, sbeam_group->state.dims, gz->matrix_space);
+      snode, region, sbeam_group->state.dims, gz->matrix_space);
 }
 
 static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmGizmoGroup *gzgroup)
@@ -580,12 +560,9 @@ static void WIDGETGROUP_node_corner_pin_draw_prepare(const bContext *C, wmGizmoG
 
   SpaceNode *snode = CTX_wm_space_node(C);
 
-  float image_offset[2];
-  get_viewer_image_offset(C, image_offset);
-
   float matrix_space[4][4];
   node_gizmo_calc_matrix_space_with_image_dims(
-      snode, region, image_offset, cpin_group->state.dims, matrix_space);
+      snode, region, cpin_group->state.dims, matrix_space);
 
   for (int i = 0; i < 4; i++) {
     wmGizmo *gz = cpin_group->gizmos[i];

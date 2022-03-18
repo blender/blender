@@ -1499,10 +1499,8 @@ void draw_nodespace_back_pix(const bContext &C,
   if (ibuf) {
     /* somehow the offset has to be calculated inverse */
     wmOrtho2_region_pixelspace(&region);
-    const float offset_x = snode.xof + ima->display_offset_x;
-    const float offset_y = snode.yof + ima->display_offset_y;
-    const float x = (region.winx - snode.zoom * ibuf->x) / 2 + offset_x;
-    const float y = (region.winy - snode.zoom * ibuf->y) / 2 + offset_y;
+    const float x = (region.winx - snode.zoom * ibuf->x) / 2 + snode.xof;
+    const float y = (region.winy - snode.zoom * ibuf->y) / 2 + snode.yof;
 
     /** \note draw selected info on backdrop */
     if (snode.edittree) {

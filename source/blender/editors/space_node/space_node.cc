@@ -352,14 +352,9 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
         case ND_FRAME:
           ED_area_tag_refresh(area);
           break;
-        case ND_COMPO_RESULT: {
+        case ND_COMPO_RESULT:
           ED_area_tag_redraw(area);
-          /* Backdrop image offset is calculated during compositing so gizmos need to be updated
-           * afterwards. */
-          const ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
-          WM_gizmomap_tag_refresh(region->gizmo_map);
           break;
-        }
         case ND_TRANSFORM_DONE:
           if (ED_node_is_compositor(snode)) {
             if (snode->flag & SNODE_AUTO_RENDER) {
