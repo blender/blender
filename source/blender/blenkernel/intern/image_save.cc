@@ -138,15 +138,15 @@ static bool image_save_single(ReportList *reports,
 {
   void *lock;
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
-  RenderResult *rr = NULL;
+  RenderResult *rr = nullptr;
   bool ok = false;
 
-  if (ibuf == NULL || (ibuf->rect == NULL && ibuf->rect_float == NULL)) {
+  if (ibuf == nullptr || (ibuf->rect == nullptr && ibuf->rect_float == nullptr)) {
     BKE_image_release_ibuf(ima, ibuf, lock);
-    goto cleanup;
+    return ok;
   }
 
-  ImBuf *colormanaged_ibuf = NULL;
+  ImBuf *colormanaged_ibuf = nullptr;
   const bool save_copy = opts->save_copy;
   const bool save_as_render = opts->save_as_render;
   ImageFormatData *imf = &opts->im_format;
@@ -180,11 +180,11 @@ static bool image_save_single(ReportList *reports,
   int layer = (iuser && !is_multilayer) ? iuser->layer : -1;
 
   /* error handling */
-  if (!rr) {
+  if (rr == nullptr) {
     if (imf->imtype == R_IMF_IMTYPE_MULTILAYER) {
       BKE_report(reports, RPT_ERROR, "Did not write, no Multilayer Image");
       BKE_image_release_ibuf(ima, ibuf, lock);
-      goto cleanup;
+      return ok;
     }
   }
   else {
@@ -196,19 +196,21 @@ static bool image_save_single(ReportList *reports,
                     STEREO_LEFT_NAME,
                     STEREO_RIGHT_NAME);
         BKE_image_release_ibuf(ima, ibuf, lock);
-        goto cleanup;
+        BKE_image_release_renderresult(opts->scene, ima);
+        return ok;
       }
 
       /* It shouldn't ever happen. */
-      if ((BLI_findstring(&rr->views, STEREO_LEFT_NAME, offsetof(RenderView, name)) == NULL) ||
-          (BLI_findstring(&rr->views, STEREO_RIGHT_NAME, offsetof(RenderView, name)) == NULL)) {
+      if ((BLI_findstring(&rr->views, STEREO_LEFT_NAME, offsetof(RenderView, name)) == nullptr) ||
+          (BLI_findstring(&rr->views, STEREO_RIGHT_NAME, offsetof(RenderView, name)) == nullptr)) {
         BKE_reportf(reports,
                     RPT_ERROR,
                     "Did not write, the image doesn't have a \"%s\" and \"%s\" views",
                     STEREO_LEFT_NAME,
                     STEREO_RIGHT_NAME);
         BKE_image_release_ibuf(ima, ibuf, lock);
-        goto cleanup;
+        BKE_image_release_renderresult(opts->scene, ima);
+        return ok;
       }
     }
     BKE_imbuf_stamp_info(rr, ibuf);
@@ -217,14 +219,14 @@ static bool image_save_single(ReportList *reports,
   /* fancy multiview OpenEXR */
   if (imf->views_format == R_IMF_VIEWS_MULTIVIEW && is_exr_rr) {
     /* save render result */
-    ok = RE_WriteRenderResult(reports, rr, opts->filepath, imf, NULL, layer);
+    ok = RE_WriteRenderResult(reports, rr, opts->filepath, imf, nullptr, layer);
     image_save_post(reports, ima, ibuf, ok, opts, true, opts->filepath, r_colorspace_changed);
     BKE_image_release_ibuf(ima, ibuf, lock);
   }
   /* regular mono pipeline */
   else if (is_mono) {
     if (is_exr_rr) {
-      ok = RE_WriteRenderResult(reports, rr, opts->filepath, imf, NULL, layer);
+      ok = RE_WriteRenderResult(reports, rr, opts->filepath, imf, nullptr, layer);
     }
     else {
       colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(
@@ -306,18 +308,19 @@ static bool image_save_single(ReportList *reports,
   /* stereo (multiview) images */
   else if (opts->im_format.views_format == R_IMF_VIEWS_STEREO_3D) {
     if (imf->imtype == R_IMF_IMTYPE_MULTILAYER) {
-      ok = RE_WriteRenderResult(reports, rr, opts->filepath, imf, NULL, layer);
+      ok = RE_WriteRenderResult(reports, rr, opts->filepath, imf, nullptr, layer);
       image_save_post(reports, ima, ibuf, ok, opts, true, opts->filepath, r_colorspace_changed);
       BKE_image_release_ibuf(ima, ibuf, lock);
     }
     else {
-      ImBuf *ibuf_stereo[2] = {NULL};
+      ImBuf *ibuf_stereo[2] = {nullptr};
 
       unsigned char planes = ibuf->planes;
       const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
 
       /* we need to get the specific per-view buffers */
       BKE_image_release_ibuf(ima, ibuf, lock);
+      bool stereo_ok = true;
 
       for (int i = 0; i < 2; i++) {
         ImageUser view_iuser;
@@ -343,10 +346,12 @@ static bool image_save_single(ReportList *reports,
 
         ibuf = BKE_image_acquire_ibuf(ima, &view_iuser, &lock);
 
-        if (ibuf == NULL) {
+        if (ibuf == nullptr) {
           BKE_report(
               reports, RPT_ERROR, "Did not write, unexpected error when saving stereo image");
-          goto cleanup;
+          BKE_image_release_ibuf(ima, ibuf, lock);
+          stereo_ok = false;
+          break;
         }
 
         ibuf->planes = planes;
@@ -362,25 +367,23 @@ static bool image_save_single(ReportList *reports,
         ibuf_stereo[i] = IMB_dupImBuf(colormanaged_ibuf);
 
         imbuf_save_post(ibuf, colormanaged_ibuf);
+
         BKE_image_release_ibuf(ima, ibuf, lock);
       }
 
-      ibuf = IMB_stereo3d_ImBuf(imf, ibuf_stereo[0], ibuf_stereo[1]);
+      if (stereo_ok) {
+        ibuf = IMB_stereo3d_ImBuf(imf, ibuf_stereo[0], ibuf_stereo[1]);
 
-      /* save via traditional path */
-      ok = BKE_imbuf_write_as(ibuf, opts->filepath, imf, save_copy);
+        /* save via traditional path */
+        ok = BKE_imbuf_write_as(ibuf, opts->filepath, imf, save_copy);
 
-      IMB_freeImBuf(ibuf);
+        IMB_freeImBuf(ibuf);
+      }
 
       for (int i = 0; i < 2; i++) {
         IMB_freeImBuf(ibuf_stereo[i]);
       }
     }
-  }
-
-cleanup:
-  if (rr) {
-    BKE_image_release_renderresult(opts->scene, ima);
   }
 
   return ok;
@@ -395,7 +398,7 @@ bool BKE_image_save(
   bool colorspace_changed = false;
 
   eUDIM_TILE_FORMAT tile_format;
-  char *udim_pattern = NULL;
+  char *udim_pattern = nullptr;
 
   if (ima->source == IMA_SRC_TILED) {
     /* Verify filepath for tiled images contains a valid UDIM marker. */
@@ -408,8 +411,9 @@ bool BKE_image_save(
       return false;
     }
 
-    /* For saving a tiled image we need an iuser, so use a local one if there isn't already one. */
-    if (iuser == NULL) {
+    /* For saving a tiled image we need an iuser, so use a local one if there isn't already one.
+     */
+    if (iuser == nullptr) {
       iuser = &save_iuser;
     }
   }
@@ -440,7 +444,7 @@ bool BKE_image_save(
   }
 
   if (colorspace_changed) {
-    BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_COLORMANAGE);
+    BKE_image_signal(bmain, ima, nullptr, IMA_SIGNAL_COLORMANAGE);
   }
 
   return ok;

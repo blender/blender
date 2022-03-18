@@ -160,7 +160,7 @@ set(SRC
   intern/image_partial_update.cc
   intern/image_gen.c
   intern/image_gpu.cc
-  intern/image_save.c
+  intern/image_save.cc
   intern/ipo.c
   intern/kelvinlet.c
   intern/key.c
