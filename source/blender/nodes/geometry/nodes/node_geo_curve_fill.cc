@@ -40,10 +40,10 @@ static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-static blender::meshintersect::CDT_result<double> do_cdt(const bke::CurvesGeometry &curves,
-                                                         const CDT_output_type output_type)
+static meshintersect::CDT_result<double> do_cdt(const bke::CurvesGeometry &curves,
+                                                const CDT_output_type output_type)
 {
-  blender::meshintersect::CDT_input<double> input;
+  meshintersect::CDT_input<double> input;
   input.need_ids = false;
   input.vert.reinitialize(curves.evaluated_points_size());
   input.face.reinitialize(curves.curves_size());
@@ -65,18 +65,17 @@ static blender::meshintersect::CDT_result<double> do_cdt(const bke::CurvesGeomet
       face_verts[i] = points[i];
     }
   }
-  blender::meshintersect::CDT_result<double> result = delaunay_2d_calc(input, output_type);
+  meshintersect::CDT_result<double> result = delaunay_2d_calc(input, output_type);
   return result;
 }
 
 /* Converts the CDT result into a Mesh. */
-static Mesh *cdt_to_mesh(const blender::meshintersect::CDT_result<double> &result)
+static Mesh *cdt_to_mesh(const meshintersect::CDT_result<double> &result)
 {
-  int vert_len = result.vert.size();
-  int edge_len = result.edge.size();
-  int poly_len = result.face.size();
+  const int vert_len = result.vert.size();
+  const int edge_len = result.edge.size();
+  const int poly_len = result.face.size();
   int loop_len = 0;
-
   for (const Vector<int> &face : result.face) {
     loop_len += face.size();
   }
@@ -128,7 +127,7 @@ static void curve_fill_calculate(GeometrySet &geometry_set, const GeometryNodeCu
                                           CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES :
                                           CDT_INSIDE_WITH_HOLES;
 
-  const blender::meshintersect::CDT_result<double> results = do_cdt(curves, output_type);
+  const meshintersect::CDT_result<double> results = do_cdt(curves, output_type);
   Mesh *mesh = cdt_to_mesh(results);
 
   geometry_set.replace_mesh(mesh);
