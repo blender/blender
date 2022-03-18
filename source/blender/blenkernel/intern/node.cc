@@ -3597,13 +3597,13 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
   LISTBASE_FOREACH (bNode *, tnode, &ntree->nodes) {
     tnode->flag &= ~NODE_ACTIVE;
 
-    if ((node->typeinfo->nclass == NODE_CLASS_TEXTURE)) {
+    if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
       tnode->flag &= ~NODE_ACTIVE_TEXTURE;
     }
   }
 
   node->flag |= NODE_ACTIVE;
-  if ((node->typeinfo->nclass == NODE_CLASS_TEXTURE)) {
+  if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
     node->flag |= NODE_ACTIVE_TEXTURE;
   }
 }
