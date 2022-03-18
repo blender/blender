@@ -3123,7 +3123,9 @@ int BKE_scene_multiview_view_id_get(const RenderData *rd, const char *viewname)
   return 0;
 }
 
-void BKE_scene_multiview_filepath_get(SceneRenderView *srv, const char *filepath, char *r_filepath)
+void BKE_scene_multiview_filepath_get(const SceneRenderView *srv,
+                                      const char *filepath,
+                                      char *r_filepath)
 {
   BLI_strncpy(r_filepath, filepath, FILE_MAX);
   BLI_path_suffix(r_filepath, FILE_MAX, srv->suffix, "");

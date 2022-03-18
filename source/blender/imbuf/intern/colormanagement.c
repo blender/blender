@@ -2433,7 +2433,7 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
                                            bool allocate_result,
                                            const ColorManagedViewSettings *view_settings,
                                            const ColorManagedDisplaySettings *display_settings,
-                                           ImageFormatData *image_format_data)
+                                           const ImageFormatData *image_format_data)
 {
   ImBuf *colormanaged_ibuf = ibuf;
   bool do_colormanagement;

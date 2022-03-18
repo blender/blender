@@ -64,7 +64,7 @@ struct StampData *BKE_stamp_info_from_scene_static(const struct Scene *scene);
  * Check whether the given metadata field name translates to a known field of a stamp.
  */
 bool BKE_stamp_is_known_field(const char *field_name);
-void BKE_imbuf_stamp_info(struct RenderResult *rr, struct ImBuf *ibuf);
+void BKE_imbuf_stamp_info(const struct RenderResult *rr, struct ImBuf *ibuf);
 void BKE_stamp_info_from_imbuf(struct RenderResult *rr, struct ImBuf *ibuf);
 void BKE_stamp_info_callback(void *data,
                              struct StampData *stamp_data,
@@ -82,8 +82,8 @@ void BKE_image_stamp_buf(struct Scene *scene,
                          int height,
                          int channels);
 bool BKE_imbuf_alpha_test(struct ImBuf *ibuf);
-int BKE_imbuf_write_stamp(struct Scene *scene,
-                          struct RenderResult *rr,
+int BKE_imbuf_write_stamp(const struct Scene *scene,
+                          const struct RenderResult *rr,
                           struct ImBuf *ibuf,
                           const char *name,
                           const struct ImageFormatData *imf);

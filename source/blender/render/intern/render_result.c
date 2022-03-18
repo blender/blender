@@ -27,6 +27,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
+#include "BKE_image_save.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
@@ -749,12 +750,6 @@ void render_result_views_new(RenderResult *rr, const RenderData *rd)
   }
 }
 
-bool render_result_has_views(const RenderResult *rr)
-{
-  const RenderView *rv = rr->views.first;
-  return (rv && (rv->next || rv->name[0]));
-}
-
 /*********************************** Merge ***********************************/
 
 static void do_merge_tile(
@@ -807,162 +802,6 @@ void render_result_merge(RenderResult *rr, RenderResult *rrpart)
       }
     }
   }
-}
-
-bool RE_WriteRenderResult(ReportList *reports,
-                          RenderResult *rr,
-                          const char *filename,
-                          ImageFormatData *imf,
-                          const char *view,
-                          int layer)
-{
-  void *exrhandle = IMB_exr_get_handle();
-  const bool half_float = (imf && imf->depth == R_IMF_CHAN_DEPTH_16);
-  const bool multi_layer = !(imf && imf->imtype == R_IMF_IMTYPE_OPENEXR);
-  const bool write_z = !multi_layer && (imf && (imf->flag & R_IMF_FLAG_ZBUF));
-
-  /* Write first layer if not multilayer and no layer was specified. */
-  if (!multi_layer && layer == -1) {
-    layer = 0;
-  }
-
-  /* First add views since IMB_exr_add_channel checks number of views. */
-  if (render_result_has_views(rr)) {
-    LISTBASE_FOREACH (RenderView *, rview, &rr->views) {
-      if (!view || STREQ(view, rview->name)) {
-        IMB_exr_add_view(exrhandle, rview->name);
-      }
-    }
-  }
-
-  /* Compositing result. */
-  if (rr->have_combined) {
-    LISTBASE_FOREACH (RenderView *, rview, &rr->views) {
-      if (!rview->rectf) {
-        continue;
-      }
-
-      const char *viewname = rview->name;
-      if (view) {
-        if (!STREQ(view, viewname)) {
-          continue;
-        }
-
-        viewname = "";
-      }
-
-      /* Skip compositing if only a single other layer is requested. */
-      if (!multi_layer && layer != 0) {
-        continue;
-      }
-
-      for (int a = 0; a < 4; a++) {
-        char passname[EXR_PASS_MAXNAME];
-        char layname[EXR_PASS_MAXNAME];
-        const char *chan_id = "RGBA";
-
-        if (multi_layer) {
-          IMB_exr_channel_name(passname, NULL, "Combined", NULL, chan_id, a);
-          BLI_strncpy(layname, "Composite", sizeof(layname));
-        }
-        else {
-          passname[0] = chan_id[a];
-          passname[1] = '\0';
-          layname[0] = '\0';
-        }
-
-        IMB_exr_add_channel(exrhandle,
-                            layname,
-                            passname,
-                            viewname,
-                            4,
-                            4 * rr->rectx,
-                            rview->rectf + a,
-                            half_float);
-      }
-
-      if (write_z && rview->rectz) {
-        const char *layname = (multi_layer) ? "Composite" : "";
-        IMB_exr_add_channel(exrhandle, layname, "Z", viewname, 1, rr->rectx, rview->rectz, false);
-      }
-    }
-  }
-
-  /* Other render layers. */
-  int nr = (rr->have_combined) ? 1 : 0;
-  for (RenderLayer *rl = rr->layers.first; rl; rl = rl->next, nr++) {
-    /* Skip other render layers if requested. */
-    if (!multi_layer && nr != layer) {
-      continue;
-    }
-
-    LISTBASE_FOREACH (RenderPass *, rp, &rl->passes) {
-      /* Skip non-RGBA and Z passes if not using multi layer. */
-      if (!multi_layer && !(STREQ(rp->name, RE_PASSNAME_COMBINED) || STREQ(rp->name, "") ||
-                            (STREQ(rp->name, RE_PASSNAME_Z) && write_z))) {
-        continue;
-      }
-
-      /* Skip pass if it does not match the requested view(s). */
-      const char *viewname = rp->view;
-      if (view) {
-        if (!STREQ(view, viewname)) {
-          continue;
-        }
-
-        viewname = "";
-      }
-
-      /* We only store RGBA passes as half float, for
-       * others precision loss can be problematic. */
-      bool pass_half_float = half_float &&
-                             (STR_ELEM(rp->chan_id, "RGB", "RGBA", "R", "G", "B", "A"));
-
-      for (int a = 0; a < rp->channels; a++) {
-        /* Save Combined as RGBA if single layer save. */
-        char passname[EXR_PASS_MAXNAME];
-        char layname[EXR_PASS_MAXNAME];
-
-        if (multi_layer) {
-          IMB_exr_channel_name(passname, NULL, rp->name, NULL, rp->chan_id, a);
-          BLI_strncpy(layname, rl->name, sizeof(layname));
-        }
-        else {
-          passname[0] = rp->chan_id[a];
-          passname[1] = '\0';
-          layname[0] = '\0';
-        }
-
-        IMB_exr_add_channel(exrhandle,
-                            layname,
-                            passname,
-                            viewname,
-                            rp->channels,
-                            rp->channels * rr->rectx,
-                            rp->rect + a,
-                            pass_half_float);
-      }
-    }
-  }
-
-  errno = 0;
-
-  BLI_make_existing_file(filename);
-
-  int compress = (imf ? imf->exr_codec : 0);
-  bool success = IMB_exr_begin_write(
-      exrhandle, filename, rr->rectx, rr->recty, compress, rr->stamp_data);
-  if (success) {
-    IMB_exr_write_channels(exrhandle);
-  }
-  else {
-    /* TODO: get the error from openexr's exception. */
-    BKE_reportf(
-        reports, RPT_ERROR, "Error writing render result, %s (see console)", strerror(errno));
-  }
-
-  IMB_exr_close(exrhandle);
-  return success;
 }
 
 /**************************** Single Layer Rendering *************************/
@@ -1117,7 +956,7 @@ void render_result_exr_file_cache_write(Render *re)
   render_result_exr_file_cache_path(re->scene, root, str);
   printf("Caching exr file, %dx%d, %s\n", rr->rectx, rr->recty, str);
 
-  RE_WriteRenderResult(NULL, rr, str, NULL, NULL, -1);
+  BKE_image_render_write_exr(NULL, rr, str, NULL, NULL, -1);
 }
 
 bool render_result_exr_file_cache_read(Render *re)
@@ -1153,9 +992,12 @@ bool render_result_exr_file_cache_read(Render *re)
 
 /*************************** Combined Pixel Rect *****************************/
 
-ImBuf *render_result_rect_to_ibuf(RenderResult *rr, const RenderData *rd, const int view_id)
+ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
+                                     const ImageFormatData *imf,
+                                     const float dither,
+                                     const int view_id)
 {
-  ImBuf *ibuf = IMB_allocImBuf(rr->rectx, rr->recty, rd->im_format.planes, 0);
+  ImBuf *ibuf = IMB_allocImBuf(rr->rectx, rr->recty, imf->planes, 0);
   RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
   /* if not exists, BKE_imbuf_write makes one */
@@ -1164,15 +1006,15 @@ ImBuf *render_result_rect_to_ibuf(RenderResult *rr, const RenderData *rd, const 
   ibuf->zbuf_float = rv->rectz;
 
   /* float factor for random dither, imbuf takes care of it */
-  ibuf->dither = rd->dither_intensity;
+  ibuf->dither = dither;
 
   /* prepare to gamma correct to sRGB color space
    * note that sequence editor can generate 8bpc render buffers
    */
   if (ibuf->rect) {
-    if (BKE_imtype_valid_depths(rd->im_format.imtype) &
+    if (BKE_imtype_valid_depths(imf->imtype) &
         (R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_24 | R_IMF_CHAN_DEPTH_32)) {
-      if (rd->im_format.depth == R_IMF_CHAN_DEPTH_8) {
+      if (imf->depth == R_IMF_CHAN_DEPTH_8) {
         /* Higher depth bits are supported but not needed for current file output. */
         ibuf->rect_float = NULL;
       }
@@ -1188,7 +1030,7 @@ ImBuf *render_result_rect_to_ibuf(RenderResult *rr, const RenderData *rd, const 
 
   /* Color -> gray-scale. */
   /* editing directly would alter the render view */
-  if (rd->im_format.planes == R_IMF_PLANES_BW) {
+  if (imf->planes == R_IMF_PLANES_BW) {
     ImBuf *ibuf_bw = IMB_dupImBuf(ibuf);
     IMB_color_to_bw(ibuf_bw);
     IMB_freeImBuf(ibuf);
@@ -1198,10 +1040,7 @@ ImBuf *render_result_rect_to_ibuf(RenderResult *rr, const RenderData *rd, const 
   return ibuf;
 }
 
-void RE_render_result_rect_from_ibuf(RenderResult *rr,
-                                     RenderData *UNUSED(rd),
-                                     ImBuf *ibuf,
-                                     const int view_id)
+void RE_render_result_rect_from_ibuf(RenderResult *rr, const ImBuf *ibuf, const int view_id)
 {
   RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
@@ -1278,15 +1117,13 @@ void render_result_rect_get_pixels(RenderResult *rr,
 
 /*************************** multiview functions *****************************/
 
-bool RE_HasCombinedLayer(RenderResult *rr)
+bool RE_HasCombinedLayer(const RenderResult *rr)
 {
-  RenderView *rv;
-
   if (rr == NULL) {
     return false;
   }
 
-  rv = rr->views.first;
+  const RenderView *rv = rr->views.first;
   if (rv == NULL) {
     return false;
   }
@@ -1294,11 +1131,9 @@ bool RE_HasCombinedLayer(RenderResult *rr)
   return (rv->rect32 || rv->rectf);
 }
 
-bool RE_HasFloatPixels(RenderResult *rr)
+bool RE_HasFloatPixels(const RenderResult *rr)
 {
-  RenderView *rview;
-
-  for (rview = rr->views.first; rview; rview = rview->next) {
+  for (const RenderView *rview = rr->views.first; rview; rview = rview->next) {
     if (rview->rect32 && !rview->rectf) {
       return false;
     }
@@ -1307,7 +1142,7 @@ bool RE_HasFloatPixels(RenderResult *rr)
   return true;
 }
 
-bool RE_RenderResult_is_stereo(RenderResult *rr)
+bool RE_RenderResult_is_stereo(const RenderResult *rr)
 {
   if (!BLI_findstring(&rr->views, STEREO_LEFT_NAME, offsetof(RenderView, name))) {
     return false;

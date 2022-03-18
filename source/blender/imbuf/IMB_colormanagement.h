@@ -244,7 +244,7 @@ struct ImBuf *IMB_colormanagement_imbuf_for_write(
     bool allocate_result,
     const struct ColorManagedViewSettings *view_settings,
     const struct ColorManagedDisplaySettings *display_settings,
-    struct ImageFormatData *image_format_data);
+    const struct ImageFormatData *image_format_data);
 
 void IMB_colormanagement_buffer_make_display_space(
     float *buffer,

@@ -242,10 +242,13 @@ void RE_AcquiredResultGet32(struct Render *re,
                             unsigned int *rect,
                             int view_id);
 
+struct ImBuf *RE_render_result_rect_to_ibuf(struct RenderResult *rr,
+                                            const struct ImageFormatData *imf,
+                                            const float dither,
+                                            const int view_id);
 void RE_render_result_rect_from_ibuf(struct RenderResult *rr,
-                                     struct RenderData *rd,
-                                     struct ImBuf *ibuf,
-                                     int view_id);
+                                     const struct ImBuf *ibuf,
+                                     const int view_id);
 
 struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name);
 float *RE_RenderLayerGetPass(struct RenderLayer *rl, const char *name, const char *viewname);
@@ -305,11 +308,6 @@ void RE_GetViewPlane(struct Render *re, rctf *r_viewplane, rcti *r_disprect);
  */
 void RE_init_threadcount(Render *re);
 
-bool RE_WriteRenderViewsImage(struct ReportList *reports,
-                              struct RenderResult *rr,
-                              struct Scene *scene,
-                              bool stamp,
-                              char *name);
 bool RE_WriteRenderViewsMovie(struct ReportList *reports,
                               struct RenderResult *rr,
                               struct Scene *scene,
@@ -372,16 +370,7 @@ void RE_PreviewRender(struct Render *re, struct Main *bmain, struct Scene *scene
  * Only the temp file!
  */
 bool RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
-/**
- * Called from the UI and render pipeline, to save multi-layer and multi-view
- * images, optionally isolating a specific, view, layer or RGBA/Z pass.
- */
-bool RE_WriteRenderResult(struct ReportList *reports,
-                          RenderResult *rr,
-                          const char *filename,
-                          struct ImageFormatData *imf,
-                          const char *view,
-                          int layer);
+
 struct RenderResult *RE_MultilayerConvert(
     void *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
 
@@ -463,9 +452,9 @@ bool RE_allow_render_generic_object(struct Object *ob);
 
 /******* defined in render_result.c *********/
 
-bool RE_HasCombinedLayer(RenderResult *res);
-bool RE_HasFloatPixels(RenderResult *res);
-bool RE_RenderResult_is_stereo(RenderResult *res);
+bool RE_HasCombinedLayer(const RenderResult *res);
+bool RE_HasFloatPixels(const RenderResult *res);
+bool RE_RenderResult_is_stereo(const RenderResult *res);
 struct RenderView *RE_RenderViewGetById(struct RenderResult *rr, int view_id);
 struct RenderView *RE_RenderViewGetByName(struct RenderResult *rr, const char *viewname);
 

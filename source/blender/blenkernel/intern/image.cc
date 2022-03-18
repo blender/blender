@@ -2343,9 +2343,9 @@ static void metadata_get_field(void *data, const char *propname, char *propvalue
   IMB_metadata_get_field(imbuf->metadata, propname, propvalue, len);
 }
 
-void BKE_imbuf_stamp_info(RenderResult *rr, struct ImBuf *ibuf)
+void BKE_imbuf_stamp_info(const RenderResult *rr, ImBuf *ibuf)
 {
-  struct StampData *stamp_data = rr->stamp_data;
+  StampData *stamp_data = const_cast<StampData *>(rr->stamp_data);
   IMB_metadata_ensure(&ibuf->metadata);
   BKE_stamp_info_callback(ibuf, stamp_data, metadata_set_field, false);
 }
@@ -2359,12 +2359,12 @@ static void metadata_copy_custom_fields(const char *field, const char *value, vo
   BKE_render_result_stamp_data(rr, field, value);
 }
 
-void BKE_stamp_info_from_imbuf(RenderResult *rr, struct ImBuf *ibuf)
+void BKE_stamp_info_from_imbuf(RenderResult *rr, ImBuf *ibuf)
 {
   if (rr->stamp_data == nullptr) {
     rr->stamp_data = MEM_cnew<StampData>("RenderResult.stamp_data");
   }
-  struct StampData *stamp_data = rr->stamp_data;
+  StampData *stamp_data = rr->stamp_data;
   IMB_metadata_ensure(&ibuf->metadata);
   BKE_stamp_info_callback(ibuf, stamp_data, metadata_get_field, true);
   /* Copy render engine specific settings. */
@@ -2428,8 +2428,8 @@ int BKE_imbuf_write_as(ImBuf *ibuf, const char *name, ImageFormatData *imf, cons
   return ok;
 }
 
-int BKE_imbuf_write_stamp(Scene *scene,
-                          struct RenderResult *rr,
+int BKE_imbuf_write_stamp(const Scene *scene,
+                          const struct RenderResult *rr,
                           ImBuf *ibuf,
                           const char *name,
                           const struct ImageFormatData *imf)

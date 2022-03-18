@@ -16,6 +16,9 @@ struct Image;
 struct Main;
 struct ReportList;
 struct Scene;
+struct RenderResult;
+
+/* Image datablock saving. */
 
 typedef struct ImageSaveOptions {
   /* Context within which image is saved. */
@@ -43,6 +46,23 @@ bool BKE_image_save(struct ReportList *reports,
                     struct Image *ima,
                     struct ImageUser *iuser,
                     struct ImageSaveOptions *opts);
+
+/* Lower level image writing. */
+
+/* Save single or multilayer OpenEXR files from the render result.
+ * Optionally saves only a specific view or layer. */
+bool BKE_image_render_write_exr(struct ReportList *reports,
+                                const struct RenderResult *rr,
+                                const char *filename,
+                                const struct ImageFormatData *imf,
+                                const char *view,
+                                int layer);
+
+bool BKE_image_render_write(struct ReportList *reports,
+                            struct RenderResult *rr,
+                            const struct Scene *scene,
+                            const bool stamp,
+                            const char *name);
 
 #ifdef __cplusplus
 }
