@@ -1455,6 +1455,16 @@ class NodeTreeMainUpdater {
             socket_hash = noise::hash(socket_hash, input_socket_hash);
           }
         }
+        /* The Image Texture node has a special case. The behavior of the color output changes
+         * depending on whether the Alpha output is linked. */
+        if (node.bnode()->type == SH_NODE_TEX_IMAGE && socket.index() == 0) {
+          BLI_assert(socket.name() == "Color");
+          const OutputSocketRef &alpha_socket = node.output(1);
+          BLI_assert(alpha_socket.name() == "Alpha");
+          if (alpha_socket.is_directly_linked()) {
+            socket_hash = noise::hash(socket_hash);
+          }
+        }
         hash_by_socket_id[socket.id()] = socket_hash;
         sockets_to_check.pop();
       }
