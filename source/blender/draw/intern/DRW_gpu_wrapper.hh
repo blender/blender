@@ -63,9 +63,9 @@
 #include "BLI_utility_mixins.hh"
 
 #include "GPU_framebuffer.h"
+#include "GPU_storage_buffer.h"
 #include "GPU_texture.h"
 #include "GPU_uniform_buffer.h"
-#include "GPU_vertex_buffer.h"
 
 namespace blender::draw {
 
@@ -200,8 +200,7 @@ class UniformCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
 template<typename T, int64_t len, bool device_only>
 class StorageCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable {
  protected:
-  /* Use vertex buffer for now. Until there is a complete GPUStorageBuf implementation. */
-  GPUVertBuf *ssbo_;
+  GPUStorageBuf *ssbo_;
 
 #ifdef DEBUG
   const char *name_ = typeid(T).name();
@@ -217,24 +216,30 @@ class StorageCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
 
   ~StorageCommon()
   {
-    GPU_vertbuf_discard(ssbo_);
+    GPU_storagebuf_free(ssbo_);
   }
 
   void resize(int64_t new_size)
   {
     BLI_assert(new_size > 0);
     if (new_size != this->len_) {
-      GPU_vertbuf_discard(ssbo_);
+      GPU_storagebuf_free(ssbo_);
       this->init(new_size);
     }
   }
 
-  operator GPUVertBuf *() const
+  void push_update(void)
+  {
+    BLI_assert(device_only == false);
+    GPU_storagebuf_update(ssbo_, this->data_);
+  }
+
+  operator GPUStorageBuf *() const
   {
     return ssbo_;
   }
   /* To be able to use it with DRW_shgroup_*_ref(). */
-  GPUVertBuf **operator&()
+  GPUStorageBuf **operator&()
   {
     return &ssbo_;
   }
@@ -243,17 +248,8 @@ class StorageCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
   void init(int64_t new_size)
   {
     this->len_ = new_size;
-
-    GPUVertFormat format = {0};
-    GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-
     GPUUsageType usage = device_only ? GPU_USAGE_DEVICE_ONLY : GPU_USAGE_DYNAMIC;
-    ssbo_ = GPU_vertbuf_create_with_format_ex(&format, usage);
-    GPU_vertbuf_data_alloc(ssbo_, divide_ceil_u(sizeof(T) * this->len_, 4));
-    if (!device_only) {
-      this->data_ = (T *)GPU_vertbuf_get_data(ssbo_);
-      GPU_vertbuf_use(ssbo_);
-    }
+    ssbo_ = GPU_storagebuf_create_ex(sizeof(T) * this->len_, nullptr, usage, this->name_);
   }
 };
 
@@ -322,13 +318,14 @@ template<
     bool device_only = false>
 class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
  public:
-  void push_update(void)
+  StorageArrayBuffer()
   {
-    BLI_assert(!device_only);
-    /* Get the data again to tag for update. The actual pointer should not
-     * change. */
-    this->data_ = (T *)GPU_vertbuf_get_data(this->ssbo_);
-    GPU_vertbuf_use(this->ssbo_);
+    /* TODO(@fclem): We should map memory instead. */
+    this->data_ = (T *)MEM_mallocN_aligned(len * sizeof(T), 16, this->name_);
+  }
+  ~StorageArrayBuffer()
+  {
+    MEM_freeN(this->data_);
   }
 };
 
@@ -339,14 +336,10 @@ template<
     bool device_only = false>
 class StorageBuffer : public T, public detail::StorageCommon<T, 1, device_only> {
  public:
-  void push_update(void)
+  StorageBuffer()
   {
-    BLI_assert(!device_only);
-    /* TODO(fclem): Avoid a full copy. */
-    T &vert_data = *(T *)GPU_vertbuf_get_data(this->ssbo_);
-    vert_data = *this;
-
-    GPU_vertbuf_use(this->ssbo_);
+    /* TODO(@fclem): How could we map this? */
+    this->data_ = static_cast<T *>(this);
   }
 
   StorageBuffer<T> &operator=(const T &other)
