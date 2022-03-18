@@ -5,6 +5,7 @@
  */
 
 #include <mutex>
+#include <utility>
 
 #include "MEM_guardedalloc.h"
 
@@ -656,9 +657,8 @@ void CurvesGeometry::tag_normals_changed()
   this->runtime->normal_cache_dirty = true;
 }
 
-void CurvesGeometry::translate(const float3 &translation)
+static void translate_positions(MutableSpan<float3> positions, const float3 &translation)
 {
-  MutableSpan<float3> positions = this->positions();
   threading::parallel_for(positions.index_range(), 2048, [&](const IndexRange range) {
     for (float3 &position : positions.slice(range)) {
       position += translation;
@@ -666,14 +666,39 @@ void CurvesGeometry::translate(const float3 &translation)
   });
 }
 
-void CurvesGeometry::transform(const float4x4 &matrix)
+static void transform_positions(MutableSpan<float3> positions, const float4x4 &matrix)
 {
-  MutableSpan<float3> positions = this->positions();
   threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
     for (float3 &position : positions.slice(range)) {
       position = matrix * position;
     }
   });
+}
+
+void CurvesGeometry::translate(const float3 &translation)
+{
+  /* Use `as_const` because the non-const functions can add the handle attributes. */
+  translate_positions(this->positions(), translation);
+  if (!std::as_const(*this).handle_positions_left().is_empty()) {
+    translate_positions(this->handle_positions_left(), translation);
+  }
+  if (!std::as_const(*this).handle_positions_right().is_empty()) {
+    translate_positions(this->handle_positions_right(), translation);
+  }
+  this->tag_positions_changed();
+}
+
+void CurvesGeometry::transform(const float4x4 &matrix)
+{
+  /* Use `as_const` because the non-const functions can add the handle attributes. */
+  transform_positions(this->positions(), matrix);
+  if (!std::as_const(*this).handle_positions_left().is_empty()) {
+    transform_positions(this->handle_positions_left(), matrix);
+  }
+  if (!std::as_const(*this).handle_positions_right().is_empty()) {
+    transform_positions(this->handle_positions_right(), matrix);
+  }
+  this->tag_positions_changed();
 }
 
 static std::optional<bounds::MinMaxResult<float3>> curves_bounds(const CurvesGeometry &curves)
