@@ -21,7 +21,6 @@ class OutputAttribute;
 
 namespace blender::bke::mesh_surface_sample {
 
-using fn::CPPType;
 using fn::GMutableSpan;
 using fn::GSpan;
 using fn::GVArray;

@@ -89,6 +89,7 @@
 
 using blender::Array;
 using blender::ColorGeometry4f;
+using blender::CPPType;
 using blender::destruct_ptr;
 using blender::float3;
 using blender::FunctionRef;

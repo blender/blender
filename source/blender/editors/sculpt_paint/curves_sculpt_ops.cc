@@ -69,7 +69,6 @@ bool CURVES_SCULPT_mode_poll_view3d(bContext *C)
 namespace blender::ed::sculpt_paint {
 
 using blender::bke::CurvesGeometry;
-using blender::fn::CPPType;
 
 /* -------------------------------------------------------------------- */
 /** \name * SCULPT_CURVES_OT_brush_stroke

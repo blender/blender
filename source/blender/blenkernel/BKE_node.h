@@ -99,6 +99,7 @@ typedef struct bNodeSocketTemplate {
  * However, achieving this requires quite a few changes currently. */
 #ifdef __cplusplus
 namespace blender {
+class CPPType;
 namespace nodes {
 class NodeMultiFunctionBuilder;
 class GeoNodeExecParams;
@@ -106,12 +107,11 @@ class NodeDeclarationBuilder;
 class GatherLinkSearchOpParams;
 }  // namespace nodes
 namespace fn {
-class CPPType;
 class MFDataType;
 }  // namespace fn
 }  // namespace blender
 
-using CPPTypeHandle = blender::fn::CPPType;
+using CPPTypeHandle = blender::CPPType;
 using NodeMultiFunctionBuildFunction = void (*)(blender::nodes::NodeMultiFunctionBuilder &builder);
 using NodeGeometryExecFunction = void (*)(blender::nodes::GeoNodeExecParams params);
 using NodeDeclareFunction = void (*)(blender::nodes::NodeDeclarationBuilder &builder);

@@ -6,8 +6,6 @@
 
 namespace blender::bke {
 
-using fn::CPPType;
-
 struct ConversionFunctions {
   const fn::MultiFunction *multi_function;
   void (*convert_single_to_initialized)(const void *src, void *dst);

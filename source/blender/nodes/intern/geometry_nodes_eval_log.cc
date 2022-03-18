@@ -15,7 +15,6 @@
 
 namespace blender::nodes::geometry_nodes_eval_log {
 
-using fn::CPPType;
 using fn::FieldCPPType;
 using fn::FieldInput;
 using fn::GField;

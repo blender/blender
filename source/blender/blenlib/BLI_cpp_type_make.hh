@@ -3,13 +3,13 @@
 #pragma once
 
 /** \file
- * \ingroup fn
+ * \ingroup bli
  */
 
+#include "BLI_cpp_type.hh"
 #include "BLI_utildefines.h"
-#include "FN_cpp_type.hh"
 
-namespace blender::fn::cpp_type_util {
+namespace blender::cpp_type_util {
 
 template<typename T> void default_construct_cb(void *ptr)
 {
@@ -169,9 +169,9 @@ template<typename T> uint64_t hash_cb(const void *value)
   return get_default_hash(value_);
 }
 
-}  // namespace blender::fn::cpp_type_util
+}  // namespace blender::cpp_type_util
 
-namespace blender::fn {
+namespace blender {
 
 template<typename T, CPPTypeFlags Flags>
 CPPType::CPPType(CPPTypeParam<T, Flags> /* unused */, StringRef debug_name)
@@ -240,12 +240,11 @@ CPPType::CPPType(CPPTypeParam<T, Flags> /* unused */, StringRef debug_name)
                                    move_construct_ && move_assign_ && destruct_);
 }
 
-}  // namespace blender::fn
+}  // namespace blender
 
-#define MAKE_CPP_TYPE(IDENTIFIER, TYPE_NAME, FLAGS) \
-  template<> const blender::fn::CPPType &blender::fn::CPPType::get_impl<TYPE_NAME>() \
+#define BLI_CPP_TYPE_MAKE(IDENTIFIER, TYPE_NAME, FLAGS) \
+  template<> const blender::CPPType &blender::CPPType::get_impl<TYPE_NAME>() \
   { \
-    static CPPType cpp_type{blender::fn::CPPTypeParam<TYPE_NAME, FLAGS>(), \
-                            STRINGIFY(IDENTIFIER)}; \
+    static CPPType cpp_type{blender::CPPTypeParam<TYPE_NAME, FLAGS>(), STRINGIFY(IDENTIFIER)}; \
     return cpp_type; \
   }

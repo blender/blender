@@ -50,6 +50,7 @@ set(SRC
   intern/boxpack_2d.c
   intern/buffer.c
   intern/convexhull_2d.c
+  intern/cpp_type.cc
   intern/delaunay_2d.cc
   intern/dot_export.cc
   intern/dynlib.c
@@ -170,6 +171,8 @@ set(SRC
   BLI_compiler_typecheck.h
   BLI_console.h
   BLI_convexhull_2d.h
+  BLI_cpp_type_make.hh
+  BLI_cpp_type.hh
   BLI_delaunay_2d.h
   BLI_dial_2d.h
   BLI_disjoint_set.hh
@@ -403,6 +406,7 @@ if(WITH_GTESTS)
     tests/BLI_array_utils_test.cc
     tests/BLI_bounds_test.cc
     tests/BLI_color_test.cc
+    tests/BLI_cpp_type_test.cc
     tests/BLI_delaunay_2d_test.cc
     tests/BLI_disjoint_set_test.cc
     tests/BLI_edgehash_test.cc

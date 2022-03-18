@@ -67,7 +67,7 @@ class GenericValueLog : public ValueLog {
 class GFieldValueLog : public ValueLog {
  private:
   fn::GField field_;
-  const fn::CPPType &type_;
+  const CPPType &type_;
   Vector<std::string> input_tooltips_;
 
  public:
@@ -83,7 +83,7 @@ class GFieldValueLog : public ValueLog {
     return input_tooltips_;
   }
 
-  const fn::CPPType &type() const
+  const CPPType &type() const
   {
     return type_;
   }

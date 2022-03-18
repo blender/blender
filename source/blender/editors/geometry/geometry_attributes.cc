@@ -36,7 +36,6 @@
 
 namespace blender::ed::geometry {
 
-using fn::CPPType;
 using fn::GArray;
 using fn::GVArray;
 

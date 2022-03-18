@@ -4,7 +4,6 @@
 
 #include <mutex>
 
-#include "FN_cpp_type.hh"
 #include "FN_generic_span.hh"
 #include "FN_generic_virtual_array.hh"
 
@@ -166,7 +165,6 @@ using AttributeForeachCallback = blender::FunctionRef<bool(
 
 namespace blender::bke {
 
-using fn::CPPType;
 using fn::GVArray;
 using fn::GVMutableArray;
 
@@ -390,7 +388,7 @@ class CustomDataAttributes {
   template<typename T>
   blender::VArray<T> get_for_read(const AttributeIDRef &attribute_id, const T &default_value) const
   {
-    const blender::fn::CPPType &cpp_type = blender::fn::CPPType::get<T>();
+    const blender::CPPType &cpp_type = blender::CPPType::get<T>();
     const CustomDataType type = blender::bke::cpp_type_to_custom_data_type(cpp_type);
     GVArray varray = this->get_for_read(attribute_id, type, &default_value);
     return varray.typed<T>();

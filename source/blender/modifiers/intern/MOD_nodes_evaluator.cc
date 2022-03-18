@@ -26,7 +26,6 @@
 
 namespace blender::modifiers::geometry_nodes {
 
-using fn::CPPType;
 using fn::Field;
 using fn::GField;
 using fn::GValueMap;

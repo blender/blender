@@ -32,7 +32,6 @@ using bke::ReadAttributeLookup;
 using bke::StrongAnonymousAttributeID;
 using bke::WeakAnonymousAttributeID;
 using bke::WriteAttributeLookup;
-using fn::CPPType;
 using fn::Field;
 using fn::FieldContext;
 using fn::FieldEvaluator;

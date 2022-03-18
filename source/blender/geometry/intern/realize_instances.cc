@@ -29,7 +29,6 @@ using blender::bke::object_get_evaluated_geometry_set;
 using blender::bke::OutputAttribute;
 using blender::bke::OutputAttribute_Typed;
 using blender::bke::ReadAttributeLookup;
-using blender::fn::CPPType;
 using blender::fn::GArray;
 using blender::fn::GMutableSpan;
 using blender::fn::GSpan;

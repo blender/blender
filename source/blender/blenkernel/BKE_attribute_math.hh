@@ -4,16 +4,13 @@
 
 #include "BLI_array.hh"
 #include "BLI_color.hh"
+#include "BLI_cpp_type.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 
 #include "DNA_customdata_types.h"
 
-#include "FN_cpp_type.hh"
-
 namespace blender::attribute_math {
-
-using fn::CPPType;
 
 /**
  * Utility function that simplifies calling a templated function based on a custom data type.
@@ -50,7 +47,7 @@ inline void convert_to_static_type(const CustomDataType data_type, const Func &f
 }
 
 template<typename Func>
-inline void convert_to_static_type(const fn::CPPType &cpp_type, const Func &func)
+inline void convert_to_static_type(const CPPType &cpp_type, const Func &func)
 {
   if (cpp_type.is<float>()) {
     func(float());

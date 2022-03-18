@@ -6,9 +6,8 @@
  * \ingroup fn
  */
 
+#include "BLI_cpp_type.hh"
 #include "BLI_span.hh"
-
-#include "FN_cpp_type.hh"
 
 namespace blender::fn {
 

@@ -12,7 +12,7 @@ namespace blender::ed::spreadsheet {
 
 struct CellDrawParams;
 
-eSpreadsheetColumnValueType cpp_type_to_column_type(const fn::CPPType &type);
+eSpreadsheetColumnValueType cpp_type_to_column_type(const CPPType &type);
 
 /**
  * This represents a column in a spreadsheet. It has a name and provides a value for all the cells

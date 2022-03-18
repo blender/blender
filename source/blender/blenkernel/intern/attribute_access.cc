@@ -54,7 +54,7 @@ std::ostream &operator<<(std::ostream &stream, const AttributeIDRef &attribute_i
   return stream;
 }
 
-const blender::fn::CPPType *custom_data_type_to_cpp_type(const CustomDataType type)
+const blender::CPPType *custom_data_type_to_cpp_type(const CustomDataType type)
 {
   switch (type) {
     case CD_PROP_FLOAT:
@@ -77,7 +77,7 @@ const blender::fn::CPPType *custom_data_type_to_cpp_type(const CustomDataType ty
   return nullptr;
 }
 
-CustomDataType cpp_type_to_custom_data_type(const blender::fn::CPPType &type)
+CustomDataType cpp_type_to_custom_data_type(const blender::CPPType &type)
 {
   if (type.is<float>()) {
     return CD_PROP_FLOAT;
@@ -1102,7 +1102,7 @@ std::optional<AttributeMetaData> GeometryComponent::attribute_get_meta_data(
 }
 
 static blender::fn::GVArray try_adapt_data_type(blender::fn::GVArray varray,
-                                                const blender::fn::CPPType &to_type)
+                                                const blender::CPPType &to_type)
 {
   const blender::bke::DataTypeConversions &conversions =
       blender::bke::get_implicit_type_conversions();
@@ -1127,7 +1127,7 @@ blender::fn::GVArray GeometryComponent::attribute_try_get_for_read(
     }
   }
 
-  const blender::fn::CPPType *cpp_type = blender::bke::custom_data_type_to_cpp_type(data_type);
+  const blender::CPPType *cpp_type = blender::bke::custom_data_type_to_cpp_type(data_type);
   BLI_assert(cpp_type != nullptr);
   if (varray.type() != *cpp_type) {
     varray = try_adapt_data_type(std::move(varray), *cpp_type);
@@ -1165,7 +1165,7 @@ blender::bke::ReadAttributeLookup GeometryComponent::attribute_try_get_for_read(
   if (!attribute) {
     return {};
   }
-  const blender::fn::CPPType *type = blender::bke::custom_data_type_to_cpp_type(data_type);
+  const blender::CPPType *type = blender::bke::custom_data_type_to_cpp_type(data_type);
   BLI_assert(type != nullptr);
   if (attribute.varray.type() == *type) {
     return attribute;
@@ -1184,7 +1184,7 @@ blender::fn::GVArray GeometryComponent::attribute_get_for_read(const AttributeID
   if (varray) {
     return varray;
   }
-  const blender::fn::CPPType *type = blender::bke::custom_data_type_to_cpp_type(data_type);
+  const blender::CPPType *type = blender::bke::custom_data_type_to_cpp_type(data_type);
   if (default_value == nullptr) {
     default_value = type->default_value();
   }

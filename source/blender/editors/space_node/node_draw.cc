@@ -73,7 +73,6 @@
 
 #include "node_intern.hh" /* own include */
 
-using blender::fn::CPPType;
 using blender::fn::FieldCPPType;
 using blender::fn::FieldInput;
 using blender::fn::GField;

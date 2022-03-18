@@ -14,8 +14,8 @@
  */
 
 #include "BLI_allocator.hh"
+#include "BLI_cpp_type.hh"
 
-#include "FN_cpp_type.hh"
 #include "FN_generic_span.hh"
 
 namespace blender::fn {
