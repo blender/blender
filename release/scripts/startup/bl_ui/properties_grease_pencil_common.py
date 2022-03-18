@@ -677,7 +677,7 @@ class GreasePencilSimplifyPanel:
 
         rd = context.scene.render
 
-        layout.active = rd.simplify_gpencil
+        layout.active = rd.use_simplify and rd.simplify_gpencil
 
         col = layout.column()
         col.prop(rd, "simplify_gpencil_onplay")
