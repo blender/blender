@@ -3,17 +3,16 @@
 #pragma once
 
 /** \file
- * \ingroup fn
+ * \ingroup bli
  *
- * A generic virtual vector array is essentially the same as a virtual vector array from blenlib,
- * but its data type is only known at runtime.
+ * A generic virtual vector array is essentially the same as a virtual vector array, but its data
+ * type is only known at runtime.
  */
 
-#include "FN_generic_virtual_array.hh"
-
+#include "BLI_generic_virtual_array.hh"
 #include "BLI_virtual_vector_array.hh"
 
-namespace blender::fn {
+namespace blender {
 
 /* A generically typed version of `VVectorArray`. */
 class GVVectorArray {
@@ -171,4 +170,4 @@ template<typename T> class VVectorArray_For_GVVectorArray : public VVectorArray<
   }
 };
 
-}  // namespace blender::fn
+}  // namespace blender

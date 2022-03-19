@@ -96,10 +96,10 @@ static void interpolate_to_evaluated(const Span<T> src,
   });
 }
 
-void interpolate_to_evaluated(const fn::GSpan src,
+void interpolate_to_evaluated(const GSpan src,
                               const bool cyclic,
                               const int resolution,
-                              fn::GMutableSpan dst)
+                              GMutableSpan dst)
 {
   attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
     using T = decltype(dummy);

@@ -3,7 +3,7 @@
 #pragma once
 
 /** \file
- * \ingroup fn
+ * \ingroup bli
  *
  * A`GVectorArray` is a container for a fixed amount of dynamically growing vectors with a generic
  * data type. Its main use case is to store many small vectors with few separate allocations. Using
@@ -11,11 +11,10 @@
  */
 
 #include "BLI_array.hh"
+#include "BLI_generic_virtual_vector_array.hh"
 #include "BLI_linear_allocator.hh"
 
-#include "FN_generic_virtual_vector_array.hh"
-
-namespace blender::fn {
+namespace blender {
 
 /* An array of vectors containing elements of a generic type. */
 class GVectorArray : NonCopyable, NonMovable {
@@ -145,4 +144,4 @@ class GVVectorArray_For_GVectorArray : public GVVectorArray {
   }
 };
 
-}  // namespace blender::fn
+}  // namespace blender

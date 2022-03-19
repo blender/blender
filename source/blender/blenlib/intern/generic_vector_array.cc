@@ -1,10 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "FN_generic_vector_array.hh"
-#include "FN_multi_function_params.hh"
-#include "FN_multi_function_signature.hh"
+#include "BLI_generic_vector_array.hh"
 
-namespace blender::fn {
+namespace blender {
 
 GVectorArray::GVectorArray(const CPPType &type, const int64_t array_size)
     : type_(type), element_size_(type.size()), items_(array_size)
@@ -95,4 +93,4 @@ void GVectorArray::realloc_to_at_least(Item &item, int64_t min_capacity)
   item.capacity = new_capacity;
 }
 
-}  // namespace blender::fn
+}  // namespace blender

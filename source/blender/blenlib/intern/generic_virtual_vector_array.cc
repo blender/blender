@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "FN_generic_virtual_vector_array.hh"
+#include "BLI_generic_virtual_vector_array.hh"
 
-namespace blender::fn {
+namespace blender {
 
 void GVArray_For_GVVectorArrayIndex::get(const int64_t index_in_vector, void *r_value) const
 {
@@ -50,4 +50,4 @@ bool GVVectorArray_For_SingleGSpan::is_single_vector_impl() const
   return true;
 }
 
-}  // namespace blender::fn
+}  // namespace blender

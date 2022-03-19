@@ -230,8 +230,8 @@ static void interpolate_to_evaluated_rational(const BasisCache &basis_cache,
 void interpolate_to_evaluated(const BasisCache &basis_cache,
                               const int8_t order,
                               const Span<float> control_weights,
-                              const fn::GSpan src,
-                              fn::GMutableSpan dst)
+                              const GSpan src,
+                              GMutableSpan dst)
 {
   BLI_assert(dst.size() == basis_cache.start_indices.size());
 

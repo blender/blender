@@ -3,7 +3,7 @@
 #pragma once
 
 /** \file
- * \ingroup fn
+ * \ingroup bli
  *
  * This is a generic counterpart to #blender::Array, used when the type is not known at runtime.
  *
@@ -15,10 +15,9 @@
 
 #include "BLI_allocator.hh"
 #include "BLI_cpp_type.hh"
+#include "BLI_generic_span.hh"
 
-#include "FN_generic_span.hh"
-
-namespace blender::fn {
+namespace blender {
 
 template<
     /**
@@ -253,4 +252,4 @@ class GArray {
   }
 };
 
-}  // namespace blender::fn
+}  // namespace blender

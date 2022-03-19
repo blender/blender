@@ -33,11 +33,11 @@
  */
 
 #include "BLI_function_ref.hh"
+#include "BLI_generic_virtual_array.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
-#include "FN_generic_virtual_array.hh"
 #include "FN_multi_function_builder.hh"
 
 namespace blender::fn {

@@ -65,6 +65,9 @@ set(SRC
   intern/filereader_memory.c
   intern/filereader_zstd.c
   intern/fnmatch.c
+  intern/generic_vector_array.cc
+  intern/generic_virtual_array.cc
+  intern/generic_virtual_vector_array.cc
   intern/gsqueue.c
   intern/hash_md5.c
   intern/hash_mm2a.c
@@ -195,6 +198,13 @@ set(SRC
   BLI_float4x4.hh
   BLI_fnmatch.h
   BLI_function_ref.hh
+  BLI_generic_array.hh
+  BLI_generic_pointer.hh
+  BLI_generic_span.hh
+  BLI_generic_value_map.hh
+  BLI_generic_vector_array.hh
+  BLI_generic_virtual_array.hh
+  BLI_generic_virtual_vector_array.hh
   BLI_ghash.h
   BLI_gsqueue.h
   BLI_hash.h
@@ -413,6 +423,9 @@ if(WITH_GTESTS)
     tests/BLI_expr_pylike_eval_test.cc
     tests/BLI_fileops_test.cc
     tests/BLI_function_ref_test.cc
+    tests/BLI_generic_array_test.cc
+    tests/BLI_generic_span_test.cc
+    tests/BLI_generic_vector_array_test.cc
     tests/BLI_ghash_test.cc
     tests/BLI_hash_mm2a_test.cc
     tests/BLI_heap_simple_test.cc

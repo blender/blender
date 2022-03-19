@@ -11,12 +11,12 @@
 
 #include "FN_field.hh"
 #include "FN_field_cpp_type.hh"
-#include "FN_generic_value_map.hh"
 #include "FN_multi_function.hh"
 
 #include "BLT_translation.h"
 
 #include "BLI_enumerable_thread_specific.hh"
+#include "BLI_generic_value_map.hh"
 #include "BLI_stack.hh"
 #include "BLI_task.h"
 #include "BLI_task.hh"
@@ -28,8 +28,6 @@ namespace blender::modifiers::geometry_nodes {
 
 using fn::Field;
 using fn::GField;
-using fn::GValueMap;
-using fn::GVArray;
 using fn::ValueOrField;
 using fn::ValueOrFieldCPPType;
 using nodes::GeoNodeExecParams;

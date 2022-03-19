@@ -59,8 +59,8 @@ static Curves *create_curve_from_vert_indices(const MeshComponent &mesh_componen
       continue;
     }
 
-    const fn::GVArray mesh_attribute = mesh_component.attribute_try_get_for_read(
-        attribute_id, ATTR_DOMAIN_POINT);
+    const GVArray mesh_attribute = mesh_component.attribute_try_get_for_read(attribute_id,
+                                                                             ATTR_DOMAIN_POINT);
     /* Some attributes might not exist if they were builtin attribute on domains that don't
      * have any elements, i.e. a face attribute on the output of the line primitive node. */
     if (!mesh_attribute) {

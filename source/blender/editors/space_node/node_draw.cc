@@ -73,10 +73,10 @@
 
 #include "node_intern.hh" /* own include */
 
+using blender::GPointer;
 using blender::fn::FieldCPPType;
 using blender::fn::FieldInput;
 using blender::fn::GField;
-using blender::fn::GPointer;
 namespace geo_log = blender::nodes::geometry_nodes_eval_log;
 
 extern "C" {

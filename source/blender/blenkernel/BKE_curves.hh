@@ -12,6 +12,7 @@
 #include <mutex>
 
 #include "BLI_float4x4.hh"
+#include "BLI_generic_virtual_array.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_math_vec_types.hh"
 #include "BLI_span.hh"
@@ -20,8 +21,6 @@
 #include "BLI_virtual_array.hh"
 
 #include "BKE_attribute_access.hh"
-
-#include "FN_generic_virtual_array.hh"
 
 namespace blender::bke {
 
@@ -287,9 +286,7 @@ class CurvesGeometry : public ::CurvesGeometry {
    * Attributes.
    */
 
-  fn::GVArray adapt_domain(const fn::GVArray &varray,
-                           AttributeDomain from,
-                           AttributeDomain to) const;
+  GVArray adapt_domain(const GVArray &varray, AttributeDomain from, AttributeDomain to) const;
 };
 
 namespace curves {
@@ -375,7 +372,7 @@ int calculate_evaluated_size(int size, bool cyclic, int resolution);
  * Evaluate the Catmull Rom curve. The length of the #dst span should be calculated with
  * #calculate_evaluated_size and is expected to divide evenly by the #src span's segment size.
  */
-void interpolate_to_evaluated(fn::GSpan src, bool cyclic, int resolution, fn::GMutableSpan dst);
+void interpolate_to_evaluated(GSpan src, bool cyclic, int resolution, GMutableSpan dst);
 
 }  // namespace catmull_rom
 
@@ -439,8 +436,8 @@ void calculate_basis_cache(int size,
 void interpolate_to_evaluated(const BasisCache &basis_cache,
                               int8_t order,
                               Span<float> control_weights,
-                              fn::GSpan src,
-                              fn::GMutableSpan dst);
+                              GSpan src,
+                              GMutableSpan dst);
 
 }  // namespace nurbs
 

@@ -28,14 +28,14 @@
 static CLG_LogRef LOG = {"bke.attribute_access"};
 
 using blender::float3;
+using blender::GMutableSpan;
+using blender::GSpan;
+using blender::GVArrayImpl_For_GSpan;
 using blender::Set;
 using blender::StringRef;
 using blender::StringRefNull;
 using blender::bke::AttributeIDRef;
 using blender::bke::OutputAttribute;
-using blender::fn::GMutableSpan;
-using blender::fn::GSpan;
-using blender::fn::GVArrayImpl_For_GSpan;
 
 namespace blender::bke {
 
@@ -191,14 +191,14 @@ AttributeDomain attribute_domain_highest_priority(Span<AttributeDomain> domains)
   return highest_priority_domain;
 }
 
-fn::GMutableSpan OutputAttribute::as_span()
+GMutableSpan OutputAttribute::as_span()
 {
   if (!optional_span_varray_) {
     const bool materialize_old_values = !ignore_old_values_;
-    optional_span_varray_ = std::make_unique<fn::GVMutableArray_GSpan>(varray_,
-                                                                       materialize_old_values);
+    optional_span_varray_ = std::make_unique<GVMutableArray_GSpan>(varray_,
+                                                                   materialize_old_values);
   }
-  fn::GVMutableArray_GSpan &span_varray = *optional_span_varray_;
+  GVMutableArray_GSpan &span_varray = *optional_span_varray_;
   return span_varray;
 }
 
@@ -917,8 +917,8 @@ blender::bke::ReadAttributeLookup GeometryComponent::attribute_try_get_for_read(
   return {};
 }
 
-blender::fn::GVArray GeometryComponent::attribute_try_adapt_domain_impl(
-    const blender::fn::GVArray &varray,
+blender::GVArray GeometryComponent::attribute_try_adapt_domain_impl(
+    const blender::GVArray &varray,
     const AttributeDomain from_domain,
     const AttributeDomain to_domain) const
 {
@@ -1101,15 +1101,15 @@ std::optional<AttributeMetaData> GeometryComponent::attribute_get_meta_data(
   return result;
 }
 
-static blender::fn::GVArray try_adapt_data_type(blender::fn::GVArray varray,
-                                                const blender::CPPType &to_type)
+static blender::GVArray try_adapt_data_type(blender::GVArray varray,
+                                            const blender::CPPType &to_type)
 {
   const blender::bke::DataTypeConversions &conversions =
       blender::bke::get_implicit_type_conversions();
   return conversions.try_convert(std::move(varray), to_type);
 }
 
-blender::fn::GVArray GeometryComponent::attribute_try_get_for_read(
+blender::GVArray GeometryComponent::attribute_try_get_for_read(
     const AttributeIDRef &attribute_id,
     const AttributeDomain domain,
     const CustomDataType data_type) const
@@ -1119,7 +1119,7 @@ blender::fn::GVArray GeometryComponent::attribute_try_get_for_read(
     return {};
   }
 
-  blender::fn::GVArray varray = std::move(attribute.varray);
+  blender::GVArray varray = std::move(attribute.varray);
   if (!ELEM(domain, ATTR_DOMAIN_AUTO, attribute.domain)) {
     varray = this->attribute_try_adapt_domain(std::move(varray), attribute.domain, domain);
     if (!varray) {
@@ -1139,8 +1139,8 @@ blender::fn::GVArray GeometryComponent::attribute_try_get_for_read(
   return varray;
 }
 
-blender::fn::GVArray GeometryComponent::attribute_try_get_for_read(
-    const AttributeIDRef &attribute_id, const AttributeDomain domain) const
+blender::GVArray GeometryComponent::attribute_try_get_for_read(const AttributeIDRef &attribute_id,
+                                                               const AttributeDomain domain) const
 {
   if (!this->attribute_domain_supported(domain)) {
     return {};
@@ -1175,12 +1175,12 @@ blender::bke::ReadAttributeLookup GeometryComponent::attribute_try_get_for_read(
   return {conversions.try_convert(std::move(attribute.varray), *type), attribute.domain};
 }
 
-blender::fn::GVArray GeometryComponent::attribute_get_for_read(const AttributeIDRef &attribute_id,
-                                                               const AttributeDomain domain,
-                                                               const CustomDataType data_type,
-                                                               const void *default_value) const
+blender::GVArray GeometryComponent::attribute_get_for_read(const AttributeIDRef &attribute_id,
+                                                           const AttributeDomain domain,
+                                                           const CustomDataType data_type,
+                                                           const void *default_value) const
 {
-  blender::fn::GVArray varray = this->attribute_try_get_for_read(attribute_id, domain, data_type);
+  blender::GVArray varray = this->attribute_try_get_for_read(attribute_id, domain, data_type);
   if (varray) {
     return varray;
   }
@@ -1189,10 +1189,10 @@ blender::fn::GVArray GeometryComponent::attribute_get_for_read(const AttributeID
     default_value = type->default_value();
   }
   const int domain_size = this->attribute_domain_size(domain);
-  return blender::fn::GVArray::ForSingle(*type, domain_size, default_value);
+  return blender::GVArray::ForSingle(*type, domain_size, default_value);
 }
 
-class GVMutableAttribute_For_OutputAttribute : public blender::fn::GVArrayImpl_For_GSpan {
+class GVMutableAttribute_For_OutputAttribute : public blender::GVArrayImpl_For_GSpan {
  public:
   GeometryComponent *component;
   std::string attribute_name;
@@ -1201,7 +1201,7 @@ class GVMutableAttribute_For_OutputAttribute : public blender::fn::GVArrayImpl_F
   GVMutableAttribute_For_OutputAttribute(GMutableSpan data,
                                          GeometryComponent &component,
                                          const AttributeIDRef &attribute_id)
-      : blender::fn::GVArrayImpl_For_GSpan(data), component(&component)
+      : blender::GVArrayImpl_For_GSpan(data), component(&component)
   {
     if (attribute_id.is_named()) {
       this->attribute_name = attribute_id.name();

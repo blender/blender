@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "FN_generic_virtual_array.hh"
+#include "BLI_generic_virtual_array.hh"
 
-namespace blender::fn {
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name #GVArrayImpl
@@ -721,4 +721,4 @@ GMutableSpan GVMutableArray::get_internal_span() const
 
 /** \} */
 
-}  // namespace blender::fn
+}  // namespace blender

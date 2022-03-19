@@ -38,14 +38,6 @@ using fn::FieldEvaluator;
 using fn::FieldInput;
 using fn::FieldOperation;
 using fn::GField;
-using fn::GMutablePointer;
-using fn::GMutableSpan;
-using fn::GPointer;
-using fn::GSpan;
-using fn::GVArray;
-using fn::GVArray_GSpan;
-using fn::GVMutableArray;
-using fn::GVMutableArray_GSpan;
 using fn::ValueOrField;
 using geometry_nodes_eval_log::NodeWarningType;
 

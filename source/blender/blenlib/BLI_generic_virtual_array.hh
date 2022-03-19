@@ -3,19 +3,18 @@
 #pragma once
 
 /** \file
- * \ingroup fn
+ * \ingroup bli
  *
- * A generic virtual array is the same as a virtual array from blenlib, except for the fact that
- * the data type is only known at runtime.
+ * A generic virtual array is the same as a virtual array, except for the fact that the data type
+ * is only known at runtime.
  */
 
+#include "BLI_generic_array.hh"
+#include "BLI_generic_span.hh"
 #include "BLI_timeit.hh"
 #include "BLI_virtual_array.hh"
 
-#include "FN_generic_array.hh"
-#include "FN_generic_span.hh"
-
-namespace blender::fn {
+namespace blender {
 
 /* -------------------------------------------------------------------- */
 /** \name #GVArrayImpl and #GVMutableArrayImpl.
@@ -875,4 +874,4 @@ template<typename T> inline VMutableArray<T> GVMutableArray::typed() const
 
 /** \} */
 
-}  // namespace blender::fn
+}  // namespace blender

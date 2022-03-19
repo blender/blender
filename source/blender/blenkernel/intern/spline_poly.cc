@@ -6,9 +6,9 @@
 #include "BKE_spline.hh"
 
 using blender::float3;
+using blender::GVArray;
 using blender::MutableSpan;
 using blender::Span;
-using blender::fn::GVArray;
 
 void PolySpline::copy_settings(Spline &UNUSED(dst)) const
 {

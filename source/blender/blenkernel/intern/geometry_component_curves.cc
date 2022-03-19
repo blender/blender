@@ -15,7 +15,7 @@
 
 #include "attribute_access_intern.hh"
 
-using blender::fn::GVArray;
+using blender::GVArray;
 
 /* -------------------------------------------------------------------- */
 /** \name Geometry Component Implementation

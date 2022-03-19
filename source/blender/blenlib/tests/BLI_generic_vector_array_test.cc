@@ -2,9 +2,9 @@
 
 #include "testing/testing.h"
 
-#include "FN_generic_vector_array.hh"
+#include "BLI_generic_vector_array.hh"
 
-namespace blender::fn::tests {
+namespace blender::tests {
 
 TEST(generic_vector_array, Construct)
 {
@@ -40,4 +40,4 @@ TEST(generic_vector_array, Extend)
   EXPECT_EQ(vector_array[2].size(), 0);
 }
 
-}  // namespace blender::fn::tests
+}  // namespace blender::tests

@@ -8,11 +8,10 @@
 
 #include <mutex>
 
-#include "FN_generic_virtual_array.hh"
-
 #include "DNA_curves_types.h"
 
 #include "BLI_float4x4.hh"
+#include "BLI_generic_virtual_array.hh"
 #include "BLI_math_vec_types.hh"
 #include "BLI_vector.hh"
 
@@ -205,16 +204,16 @@ class Spline {
    * points) to arbitrary parameters in between the evaluated points. The interpolation is quite
    * simple, but this handles the cyclic and end point special cases.
    */
-  void sample_with_index_factors(const blender::fn::GVArray &src,
+  void sample_with_index_factors(const blender::GVArray &src,
                                  blender::Span<float> index_factors,
-                                 blender::fn::GMutableSpan dst) const;
+                                 blender::GMutableSpan dst) const;
   template<typename T>
   void sample_with_index_factors(const blender::VArray<T> &src,
                                  blender::Span<float> index_factors,
                                  blender::MutableSpan<T> dst) const
   {
     this->sample_with_index_factors(
-        blender::fn::GVArray(src), index_factors, blender::fn::GMutableSpan(dst));
+        blender::GVArray(src), index_factors, blender::GMutableSpan(dst));
   }
   template<typename T>
   void sample_with_index_factors(blender::Span<T> src,
@@ -229,11 +228,11 @@ class Spline {
    * evaluated points. For poly splines, the lifetime of the returned virtual array must not
    * exceed the lifetime of the input data.
    */
-  virtual blender::fn::GVArray interpolate_to_evaluated(const blender::fn::GVArray &src) const = 0;
-  blender::fn::GVArray interpolate_to_evaluated(blender::fn::GSpan data) const;
+  virtual blender::GVArray interpolate_to_evaluated(const blender::GVArray &src) const = 0;
+  blender::GVArray interpolate_to_evaluated(blender::GSpan data) const;
   template<typename T> blender::VArray<T> interpolate_to_evaluated(blender::Span<T> data) const
   {
-    return this->interpolate_to_evaluated(blender::fn::GSpan(data)).typed<T>();
+    return this->interpolate_to_evaluated(blender::GSpan(data)).typed<T>();
   }
 
  protected:
@@ -386,8 +385,7 @@ class BezierSpline final : public Spline {
    */
   InterpolationData interpolation_data_from_index_factor(float index_factor) const;
 
-  virtual blender::fn::GVArray interpolate_to_evaluated(
-      const blender::fn::GVArray &src) const override;
+  virtual blender::GVArray interpolate_to_evaluated(const blender::GVArray &src) const override;
 
   void evaluate_segment(int index,
                         int next_index,
@@ -541,7 +539,7 @@ class NURBSpline final : public Spline {
 
   blender::Span<blender::float3> evaluated_positions() const final;
 
-  blender::fn::GVArray interpolate_to_evaluated(const blender::fn::GVArray &src) const final;
+  blender::GVArray interpolate_to_evaluated(const blender::GVArray &src) const final;
 
  protected:
   void correct_end_tangents() const final;
@@ -599,7 +597,7 @@ class PolySpline final : public Spline {
    * the original data. Therefore the lifetime of the returned virtual array must not be longer
    * than the source data.
    */
-  blender::fn::GVArray interpolate_to_evaluated(const blender::fn::GVArray &src) const final;
+  blender::GVArray interpolate_to_evaluated(const blender::GVArray &src) const final;
 
  protected:
   void correct_end_tangents() const final;

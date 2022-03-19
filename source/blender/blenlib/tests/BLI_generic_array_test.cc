@@ -5,10 +5,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
+#include "BLI_generic_array.hh"
 
-#include "FN_generic_array.hh"
-
-namespace blender::fn::tests {
+namespace blender::tests {
 
 TEST(generic_array, TypeConstructor)
 {
@@ -115,4 +114,4 @@ TEST(generic_array, InContainer)
   }
 }
 
-}  // namespace blender::fn::tests
+}  // namespace blender::tests

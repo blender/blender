@@ -20,6 +20,8 @@
 using blender::Array;
 using blender::float3;
 using blender::float4x4;
+using blender::GVArray;
+using blender::GVArray_GSpan;
 using blender::IndexRange;
 using blender::Map;
 using blender::MutableSpan;
@@ -32,8 +34,6 @@ using blender::bke::AttributeIDRef;
 using blender::bke::OutputAttribute;
 using blender::bke::OutputAttribute_Typed;
 using blender::bke::ReadAttributeLookup;
-using blender::fn::GVArray;
-using blender::fn::GVArray_GSpan;
 
 blender::Span<SplinePtr> CurveEval::splines() const
 {

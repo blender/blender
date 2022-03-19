@@ -1055,9 +1055,9 @@ static GVArray adapt_curve_domain_curve_to_point(const CurvesGeometry &curves,
   return new_varray;
 }
 
-fn::GVArray CurvesGeometry::adapt_domain(const fn::GVArray &varray,
-                                         const AttributeDomain from,
-                                         const AttributeDomain to) const
+GVArray CurvesGeometry::adapt_domain(const GVArray &varray,
+                                     const AttributeDomain from,
+                                     const AttributeDomain to) const
 {
   if (!varray) {
     return {};

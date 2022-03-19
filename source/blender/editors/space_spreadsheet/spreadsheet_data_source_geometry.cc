@@ -53,11 +53,11 @@ void ExtraColumns::foreach_default_column_ids(
 std::unique_ptr<ColumnValues> ExtraColumns::get_column_values(
     const SpreadsheetColumnID &column_id) const
 {
-  const fn::GSpan *values = columns_.lookup_ptr(column_id.name);
+  const GSpan *values = columns_.lookup_ptr(column_id.name);
   if (values == nullptr) {
     return {};
   }
-  return std::make_unique<ColumnValues>(column_id.name, fn::GVArray::ForSpan(*values));
+  return std::make_unique<ColumnValues>(column_id.name, GVArray::ForSpan(*values));
 }
 
 void GeometryDataSource::foreach_default_column_ids(
@@ -199,7 +199,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
   if (!attribute) {
     return {};
   }
-  fn::GVArray varray = std::move(attribute.varray);
+  GVArray varray = std::move(attribute.varray);
   if (attribute.domain != domain_) {
     return {};
   }
@@ -462,7 +462,7 @@ static void find_fields_to_evaluate(const SpaceSpreadsheet *sspreadsheet,
     }
     if (const geo_log::GenericValueLog *generic_value_log =
             dynamic_cast<const geo_log::GenericValueLog *>(value_log)) {
-      fn::GPointer value = generic_value_log->value();
+      GPointer value = generic_value_log->value();
       r_fields.add("Viewer", fn::make_constant_field(*value.type(), value.get()));
     }
   }
@@ -508,7 +508,7 @@ class GeometryComponentCacheValue : public SpreadsheetCache::Value {
  public:
   /* Stores the result of fields evaluated on a geometry component. Without this, fields would have
    * to be reevaluated on every redraw. */
-  Map<std::pair<AttributeDomain, GField>, fn::GArray<>> arrays;
+  Map<std::pair<AttributeDomain, GField>, GArray<>> arrays;
 };
 
 static void add_fields_as_extra_columns(SpaceSpreadsheet *sspreadsheet,
@@ -529,8 +529,8 @@ static void add_fields_as_extra_columns(SpaceSpreadsheet *sspreadsheet,
     const GField &field = item.value;
 
     /* Use the cached evaluated array if it exists, otherwise evaluate the field now. */
-    fn::GArray<> &evaluated_array = cache.arrays.lookup_or_add_cb({domain, field}, [&]() {
-      fn::GArray<> evaluated_array(field.cpp_type(), domain_size);
+    GArray<> &evaluated_array = cache.arrays.lookup_or_add_cb({domain, field}, [&]() {
+      GArray<> evaluated_array(field.cpp_type(), domain_size);
 
       bke::GeometryComponentFieldContext field_context{component, domain};
       fn::FieldEvaluator field_evaluator{field_context, domain_size};

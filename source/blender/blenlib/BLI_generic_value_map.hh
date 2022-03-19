@@ -2,12 +2,11 @@
 
 #pragma once
 
+#include "BLI_generic_pointer.hh"
 #include "BLI_linear_allocator.hh"
 #include "BLI_map.hh"
 
-#include "FN_generic_pointer.hh"
-
-namespace blender::fn {
+namespace blender {
 
 /**
  * This is a map that stores key-value-pairs. What makes it special is that the type of values does
@@ -109,4 +108,4 @@ template<typename Key> class GValueMap {
   }
 };
 
-}  // namespace blender::fn
+}  // namespace blender

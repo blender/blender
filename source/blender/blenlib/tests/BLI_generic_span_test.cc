@@ -2,9 +2,9 @@
 
 #include "testing/testing.h"
 
-#include "FN_generic_span.hh"
+#include "BLI_generic_span.hh"
 
-namespace blender::fn::tests {
+namespace blender::tests {
 
 TEST(generic_span, TypeConstructor)
 {
@@ -50,4 +50,4 @@ TEST(generic_mutable_span, BufferAndSizeConstructor)
   EXPECT_EQ(values[2], 20);
 }
 
-}  // namespace blender::fn::tests
+}  // namespace blender::tests
