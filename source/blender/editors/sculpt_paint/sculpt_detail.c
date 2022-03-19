@@ -206,7 +206,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
   SCULPT_undo_push_end(ob);
 
   /* Force rebuild of PBVH for better BB placement. */
-  SCULPT_pbvh_clear(ob);
+  SCULPT_pbvh_clear(ob, false);
   /* Redraw. */
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 

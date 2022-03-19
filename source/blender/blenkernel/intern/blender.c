@@ -34,6 +34,7 @@
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_pbvh.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -76,6 +77,7 @@ void BKE_blender_free(void)
   DEG_free_node_types();
 
   BKE_brush_system_exit();
+  BKE_pbvh_system_exit();
   RE_texture_rng_exit();
 
   BKE_callback_global_finalize();

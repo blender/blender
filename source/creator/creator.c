@@ -47,6 +47,7 @@
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_particle.h"
+#include "BKE_pbvh.h"
 #include "BKE_shader_fx.h"
 #include "BKE_sound.h"
 #include "BKE_vfont.h"
@@ -407,6 +408,7 @@ int main(int argc,
   DEG_register_node_types();
 
   BKE_brush_system_init();
+  BKE_pbvh_system_init();
   RE_texture_rng_init();
 
   BKE_callback_global_init();

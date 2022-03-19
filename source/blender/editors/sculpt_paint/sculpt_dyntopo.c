@@ -467,19 +467,28 @@ void SCULPT_dynamic_topology_triangulate(SculptSession *ss, BMesh *bm)
   //      NULL);
 }
 
-void SCULPT_pbvh_clear(Object *ob)
+void SCULPT_pbvh_clear(Object *ob, bool cache_pbvh)
 {
   SculptSession *ss = ob->sculpt;
 
   /* Clear out any existing DM and PBVH. */
   if (ss->pbvh) {
-    BKE_pbvh_free(ss->pbvh);
+    if (cache_pbvh) {
+      BKE_pbvh_set_cached(ob, ss->pbvh);
+    }
+    else {
+      BKE_pbvh_cache_remove(ss->pbvh);
+      BKE_pbvh_free(ss->pbvh);
+    }
+
     ss->pbvh = NULL;
+    ss->pmap = NULL;
+    ss->pmap_mem = NULL;
   }
-
-  MEM_SAFE_FREE(ss->pmap);
-
-  MEM_SAFE_FREE(ss->pmap_mem);
+  else {
+    MEM_SAFE_FREE(ss->pmap);
+    MEM_SAFE_FREE(ss->pmap_mem);
+  }
 
   BKE_object_free_derived_caches(ob);
 
@@ -578,17 +587,55 @@ BMesh *BM_mesh_bm_from_me_threaded(BMesh *bm,
                                    const Mesh *me,
                                    const struct BMeshFromMeshParams *params);
 
+static void customdata_strip_templayers(CustomData *cdata, int totelem)
+{
+  for (int i = 0; i < cdata->totlayer; i++) {
+    CustomDataLayer *layer = cdata->layers + i;
+
+    if (layer->flag & CD_FLAG_TEMPORARY) {
+      CustomData_free_layer(cdata, layer->type, totelem, i);
+      i--;
+    }
+  }
+}
+
 void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *me = ob->data;
+
+  void BKE_pbvh_clear_cache(PBVH * preserve);
+
+  customdata_strip_templayers(&me->vdata, me->totvert);
+  customdata_strip_templayers(&me->pdata, me->totpoly);
+
+  /* clear any non-dyntopo PBVH cache */
+  if (ss->pbvh) {
+    // pmap is freed by pbvh
+    ss->pmap = NULL;
+    ss->pmap_mem = NULL;
+
+    /* Remove existing pbvh so we can free it ourselves. */
+    BKE_pbvh_cache_remove(ss->pbvh);
+
+    /* Free any other pbvhs */
+    BKE_pbvh_clear_cache(NULL);
+  }
 
   if (ss->bm) {
     bool ok = ss->bm->totvert == me->totvert && ss->bm->totedge == me->totedge &&
               ss->bm->totloop == me->totloop && ss->bm->totface == me->totpoly;
 
     if (!ok) {
-      BM_mesh_free(ss->bm);
+      /* Ensure ss->pbvh is in the cache so it can be destroyed in BKE_pbvh_free_bmesh. */
+      if (ss->pbvh) {
+        BKE_pbvh_set_cached(ob, ss->pbvh);
+      }
+
+      /* Destroy all cached PBVHs with this bmesh. */
+      BKE_pbvh_free_bmesh(NULL, ss->bm);
+
+      ss->pbvh = NULL;
       ss->bm = NULL;
     }
   }
@@ -600,7 +647,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   SCULPT_clear_scl_pointers(ss);
 
   if (!ss->bm || !ss->pbvh || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
-    SCULPT_pbvh_clear(ob);
+    SCULPT_pbvh_clear(ob, false);
   }
   else {
     /*sculpt session was set up by paint.c. just call SCULPT_update_customdata_refs to be safe*/
@@ -614,6 +661,19 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
     return;
   }
 
+  PBVH *pbvh = BKE_pbvh_get_or_free_cached(ob, BKE_object_get_original_mesh(ob), PBVH_BMESH);
+  if (pbvh) {
+    BMesh *bm = BKE_pbvh_get_bmesh(pbvh);
+
+    if (!ss->bm) {
+      ss->bm = bm;
+    }
+    else if (ss->bm != bm) {
+      printf("%s: bmesh differed!\n");
+      SCULPT_pbvh_clear(ob, false);
+    }
+  }
+
   const BMAllocTemplate allocsize = {
       .totvert = 2048 * 16, .totface = 2048 * 16, .totloop = 4196 * 16, .totedge = 2048 * 16};
 
@@ -622,6 +682,11 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   if (ss->mdyntopo_verts) {
     MEM_freeN(ss->mdyntopo_verts);
     ss->mdyntopo_verts = NULL;
+  }
+
+  if (ss->face_areas) {
+    MEM_freeN(ss->face_areas);
+    ss->face_areas = NULL;
   }
 
   /* Dynamic topology doesn't ensure selection state is valid, so remove T36280. */
@@ -722,7 +787,7 @@ static void SCULPT_dynamic_topology_disable_ex(
   SculptSession *ss = ob->sculpt;
   Mesh *me = ob->data;
 
-  SCULPT_pbvh_clear(ob);
+  SCULPT_pbvh_clear(ob, true);
 
   /* destroy non-customdata temporary layers (which are rarely (never?) used for PBVH_BMESH) */
   SCULPT_release_attributes(ss, ob, true);
@@ -747,7 +812,8 @@ static void SCULPT_dynamic_topology_disable_ex(
 
   /* Typically valid but with global-undo they can be NULL, see: T36234. */
   if (ss->bm) {
-    BM_mesh_free(ss->bm);
+    // PBVH now frees this
+    // BM_mesh_free(ss->bm);
     ss->bm = NULL;
   }
 

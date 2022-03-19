@@ -1044,7 +1044,12 @@ bool SCULPT_vertex_colors_poll(struct bContext *C);
 void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags);
 void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType update_flags);
 
-void SCULPT_pbvh_clear(Object *ob);
+typedef enum PBVHClearFlags {
+  PBVH_CLEAR_CACHE_PBVH = 1<<1,
+  PBVH_CLEAR_FREE_BMESH = 1 << 2,
+} PBVHClearFlags;
+
+void SCULPT_pbvh_clear(Object *ob, bool cache_pbvh);
 
 /**
  * Flush displacement from deformed PBVH to original layer.

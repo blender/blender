@@ -80,8 +80,8 @@ BLI_INLINE SculptFaceRef BKE_pbvh_make_fref(intptr_t i)
 
 typedef struct PBVHTri {
   int v[3];       // references into PBVHTriBuf->verts
-  intptr_t l[3];  // loops
   int eflag;      // bitmask of which edges in the tri are real edges in the mesh
+  intptr_t l[3];  // loops
 
   float no[3];
   SculptFaceRef f;
@@ -323,6 +323,7 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
 void BKE_pbvh_free(PBVH *pbvh);
 
 void BKE_pbvh_set_bm_log(PBVH *pbvh, struct BMLog *log);
+struct BMLog *BKE_pbvh_get_bm_log(PBVH *pbvh);
 
 /* update MSculptVerts, doesn't take pbvh argument to allow usage if pbvh doesn't currently exist
  */
@@ -1127,3 +1128,17 @@ void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
 void BKE_pbvh_set_vemap(PBVH *pbvh, struct MeshElemMap *vemap);
 
 void BKE_pbvh_ignore_uvs_set(PBVH *pbvh, bool value);
+bool BKE_pbvh_cache_is_valid(const struct Object *ob, const struct Mesh *me, const PBVH *old, int pbvh_type);
+bool BKE_pbvh_cache(const struct Mesh *me, PBVH *pbvh);
+PBVH *BKE_pbvh_get_or_free_cached(struct Object *ob, struct Mesh *me, PBVHType pbvh_type);
+void BKE_pbvh_set_cached(struct Object *ob, PBVH *pbvh);
+void BKE_pbvh_set_face_areas(PBVH *pbvh, float *face_areas);
+void BKE_pbvh_set_sculpt_verts(PBVH *pbvh, struct MSculptVert *sverts);
+void BKE_pbvh_set_pmap(PBVH *pbvh, struct MeshElemMap *pmap, void *pmap_mem);
+struct MeshElemMap *BKE_pbvh_get_pmap(PBVH *pbvh);
+struct MeshElemMap *BKE_pbvh_get_pmap_ex(PBVH *pbvh, int **r_mem);
+void BKE_pbvh_cache_remove(PBVH *pbvh);
+void BKE_pbvh_set_bmesh(PBVH *pbvh, struct BMesh *bm);
+void BKE_pbvh_free_bmesh(PBVH *pbvh, struct BMesh *bm);
+void BKE_pbvh_system_init();
+void BKE_pbvh_system_exit();

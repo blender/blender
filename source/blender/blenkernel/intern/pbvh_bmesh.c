@@ -2390,8 +2390,15 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
   pbvh->depth_limit = 28;
 
+  int tottri = poly_to_tri_count(bm->totface, bm->totloop);
+
   /* TODO: choose leaf limit better */
-  pbvh->leaf_limit = 1000;
+  if (tottri > 4 * 1000 * 1000) {
+    pbvh->leaf_limit = 10000;
+  }
+  else {
+    pbvh->leaf_limit = 1000;
+  }
 
   BMIter iter;
   BMVert *v;
@@ -2603,7 +2610,7 @@ ATTR_NO_OPT bool BKE_pbvh_bmesh_update_topology_nodes(PBVH *pbvh,
                                             updatePBVH,
                                             mask_cb,
                                             mask_cb_data,
-                                            0, //is_snake_hook ? 40960 : 0,
+                                            0,  // is_snake_hook ? 40960 : 0,
                                             disable_surface_relax,
                                             is_snake_hook);
 

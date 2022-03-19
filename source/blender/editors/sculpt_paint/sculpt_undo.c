@@ -743,7 +743,7 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
   }
   else {
     printf("undo triggered pbvh rebuild");
-    SCULPT_pbvh_clear(ob);
+    SCULPT_pbvh_clear(ob, false);
   }
 }
 
@@ -753,7 +753,7 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
   SculptSession *ss = ob->sculpt;
   Mesh *me = ob->data;
 
-  SCULPT_pbvh_clear(ob);
+  SCULPT_pbvh_clear(ob, false);
   SCULPT_clear_scl_pointers(ss);
 
   ss->active_face_index.i = ss->active_vertex_index.i = 0;
@@ -977,7 +977,7 @@ static void sculpt_undo_geometry_free_data(SculptUndoNodeGeometry *geometry)
 static void sculpt_undo_geometry_restore(SculptUndoNode *unode, Object *object)
 {
   if (unode->geometry_clear_pbvh) {
-    SCULPT_pbvh_clear(object);
+    SCULPT_pbvh_clear(object, false);
   }
 
   if (unode->applied) {
@@ -1165,7 +1165,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       }
 
       // PBVH is corrupted at this point, destroy it
-      SCULPT_pbvh_clear(ob);
+      SCULPT_pbvh_clear(ob, false);
     }
 #endif
 
@@ -2277,6 +2277,10 @@ void sculpt_undo_push_begin_ex(Object *ob, const char *name, bool no_first_entry
     if (ss->pbvh) {
       BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
     }
+  }
+
+  if (ss->pbvh) {
+    BKE_pbvh_set_cached(ob, ss->pbvh);
   }
 }
 

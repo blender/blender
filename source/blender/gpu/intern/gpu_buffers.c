@@ -240,6 +240,9 @@ static bool gpu_pbvh_is_looptri_visible(const MLoopTri *lt,
 
 void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const MVert *mvert,
+                                  const MLoop *mloop,
+                                  const MPoly *mpoly,
+                                  const MLoopTri *looptri,
                                   const CustomData *vdata,
                                   const CustomData *ldata,
                                   const float *vmask,
@@ -254,6 +257,11 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
 {
   GPUAttrRef vcol_refs[MAX_GPU_ATTR];
   GPUAttrRef cd_uvs[MAX_GPU_ATTR];
+
+  buffers->mvert = mvert;
+  buffers->mloop = mloop;
+  buffers->mpoly = mpoly;
+  buffers->looptri = looptri;
 
   int totcol = gpu_pbvh_make_attr_offs(ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER,
                                        CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL,

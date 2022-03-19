@@ -767,6 +767,8 @@ typedef struct SculptSession {
 
   /* PBVH acceleration structure */
   struct PBVH *pbvh;
+  struct PBVH *last_pbvh;
+
   bool show_mask;
   bool show_face_sets;
 

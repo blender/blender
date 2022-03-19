@@ -34,6 +34,7 @@ struct Ipo;
 struct Material;
 struct Mesh;
 struct Object;
+struct PBVH;
 struct PartDeflect;
 struct Path;
 struct RigidBodyOb;
@@ -206,6 +207,9 @@ typedef struct Object_Runtime {
   int crazyspace_num_verts;
 
   int _pad3[3];
+
+  struct PBVH *cached_pbvh;
+  void *_pad4;
 } Object_Runtime;
 
 typedef struct ObjectLineArt {
@@ -433,7 +437,8 @@ typedef struct Object {
   ObjectLineArt lineart;
 
   /** Runtime evaluation data (keep last). */
-  void *_pad9;
+  //void *_pad9;
+  struct PBVH *cached_pbvh2;
   Object_Runtime runtime;
 } Object;
 

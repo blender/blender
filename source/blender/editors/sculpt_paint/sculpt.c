@@ -3550,7 +3550,7 @@ typedef struct AreaNormalCenterTLSData {
   int count_co[2];
 } AreaNormalCenterTLSData;
 
-static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
+ATTR_NO_OPT static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
                                                 const int n,
                                                 const TaskParallelTLS *__restrict tls)
 {
@@ -3816,7 +3816,7 @@ void SCULPT_calc_area_normal(
   SCULPT_pbvh_calc_area_normal(brush, ob, nodes, totnode, true, r_area_no);
 }
 
-bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
+ATTR_NO_OPT bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
                                   Object *ob,
                                   PBVHNode **nodes,
                                   int totnode,
@@ -5604,7 +5604,7 @@ static void SCULPT_run_command(
     BKE_ptcache_object_reset(CTX_data_scene(C), ob, PTCACHE_RESET_OUTDATED);
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     BKE_scene_graph_update_tagged(CTX_data_ensure_evaluated_depsgraph(C), CTX_data_main(C));
-    SCULPT_pbvh_clear(ob);
+    SCULPT_pbvh_clear(ob, false);
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
     if (cmd->tool == SCULPT_TOOL_ARRAY) {
@@ -7468,7 +7468,7 @@ float SCULPT_raycast_init(ViewContext *vc,
  * also updates the active vertex and cursor related data of the SculptSession using the mouse
  * position
  */
-bool SCULPT_cursor_geometry_info_update(bContext *C,
+ATTR_NO_OPT bool SCULPT_cursor_geometry_info_update(bContext *C,
                                         SculptCursorGeometryInfo *out,
                                         const float mouse[2],
                                         bool use_sampled_normal,
@@ -8236,7 +8236,7 @@ static void sculpt_stroke_update_step(bContext *C,
 
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     BKE_scene_graph_update_tagged(CTX_data_ensure_evaluated_depsgraph(C), CTX_data_main(C));
-    SCULPT_pbvh_clear(ob);
+    SCULPT_pbvh_clear(ob, false);
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 
@@ -8678,6 +8678,11 @@ void ED_object_sculptmode_exit_ex(Main *bmain, Depsgraph *depsgraph, Scene *scen
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
 
+  /* Leave sculpt mode. We do this here to prevent
+   * the depsgraph spawning a PBVH_FACES after disabling
+   * dynamic topology below. */
+  ob->mode &= ~mode_flag;
+
   if (me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) {
     /* Dynamic topology must be disabled before exiting sculpt
      * mode to ensure the undo stack stays in a consistent
@@ -8687,9 +8692,6 @@ void ED_object_sculptmode_exit_ex(Main *bmain, Depsgraph *depsgraph, Scene *scen
     /* Store so we know to re-enable when entering sculpt mode. */
     me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
   }
-
-  /* Leave sculpt mode. */
-  ob->mode &= ~mode_flag;
 
   BKE_sculptsession_free(ob);
 

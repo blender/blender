@@ -528,9 +528,18 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
     ob->mode &= ~OB_MODE_EDIT;
   }
 
+  PBVH *cached_pbvh = ob->cached_pbvh2;
+  if (!is_undo) {
+    ob->cached_pbvh2 = NULL;
+  }
+
   /* write LibData */
   BLO_write_id_struct(writer, Object, id_address, &ob->id);
   BKE_id_blend_write(writer, &ob->id);
+
+  if (!is_undo) {
+    ob->cached_pbvh2 = cached_pbvh;
+  }
 
   if (ob->adt) {
     BKE_animdata_blend_write(writer, ob->adt);
@@ -4959,6 +4968,8 @@ void BKE_object_runtime_reset_on_copy(Object *object, const int UNUSED(flag))
 
   runtime->crazyspace_deform_imats = nullptr;
   runtime->crazyspace_deform_cos = nullptr;
+
+  object->cached_pbvh2 = runtime->cached_pbvh = NULL;
 }
 
 void BKE_object_runtime_free_data(Object *object)

@@ -146,6 +146,7 @@ struct PBVH {
 
   /* Mesh data */
   struct MeshElemMap *pmap, *vemap;
+  void *pmap_mem;
   const struct Mesh *mesh;
 
   /* Note: Normals are not const because they can be updated for drawing by sculpt code. */
@@ -220,6 +221,16 @@ struct PBVH {
 
   int balance_counter;
   int stroke_id;  // used to keep origdata up to date in PBVH_BMESH
+
+  bool is_cached;
+
+  /* This data is for validating cached PBVHs;
+   * it is not guaranteed to be valid in any way! */
+  struct { 
+    CustomData vdata, edata, ldata, pdata;
+    int totvert, totedge, totloop, totpoly;
+    struct BMesh *bm;
+  } cached_data;
 };
 
 /* pbvh.c */

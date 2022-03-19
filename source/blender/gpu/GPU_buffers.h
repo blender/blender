@@ -106,6 +106,9 @@ enum {
  */
 void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const struct MVert *mvert,
+                                  const struct MLoop *mloop,
+                                  const struct MPoly *mpoly,
+                                  const struct MLoopTri *looptri,
                                   const CustomData *vdata,
                                   const CustomData *ldata,
                                   const float *vmask,
