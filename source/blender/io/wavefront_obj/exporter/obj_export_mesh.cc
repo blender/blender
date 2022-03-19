@@ -246,8 +246,8 @@ float3 OBJMesh::calc_vertex_coords(const int vert_index, const float scaling_fac
 {
   float3 r_coords;
   copy_v3_v3(r_coords, export_mesh_eval_->mvert[vert_index].co);
-  mul_v3_fl(r_coords, scaling_factor);
   mul_m4_v3(world_and_axes_transform_, r_coords);
+  mul_v3_fl(r_coords, scaling_factor);
   return r_coords;
 }
 
