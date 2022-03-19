@@ -135,7 +135,8 @@ class OBJWriter : NonMovable, NonCopyable {
  private:
   using func_vert_uv_normal_indices = void (OBJWriter::*)(Span<int> vert_indices,
                                                           Span<int> uv_indices,
-                                                          Span<int> normal_indices) const;
+                                                          Span<int> normal_indices,
+                                                          bool flip) const;
   /**
    * \return Writer function with appropriate polygon-element syntax.
    */
@@ -146,25 +147,29 @@ class OBJWriter : NonMovable, NonCopyable {
    */
   void write_vert_uv_normal_indices(Span<int> vert_indices,
                                     Span<int> uv_indices,
-                                    Span<int> normal_indices) const;
+                                    Span<int> normal_indices,
+                                    bool flip) const;
   /**
    * Write one line of polygon indices as "f v1//vn1 v2//vn2 ...".
    */
   void write_vert_normal_indices(Span<int> vert_indices,
                                  Span<int> /*uv_indices*/,
-                                 Span<int> normal_indices) const;
+                                 Span<int> normal_indices,
+                                 bool flip) const;
   /**
    * Write one line of polygon indices as "f v1/vt1 v2/vt2 ...".
    */
   void write_vert_uv_indices(Span<int> vert_indices,
                              Span<int> uv_indices,
-                             Span<int> /*normal_indices*/) const;
+                             Span<int> /*normal_indices*/,
+                             bool flip) const;
   /**
    * Write one line of polygon indices as "f v1 v2 ...".
    */
   void write_vert_indices(Span<int> vert_indices,
                           Span<int> /*uv_indices*/,
-                          Span<int> /*normal_indices*/) const;
+                          Span<int> /*normal_indices*/,
+                          bool flip) const;
 };
 
 /**
