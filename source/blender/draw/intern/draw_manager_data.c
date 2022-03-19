@@ -1825,7 +1825,7 @@ static void draw_frustum_bound_sphere_calc(const BoundBox *bbox,
   }
 }
 
-static void draw_view_matrix_state_update(DRWViewUboStorage *storage,
+static void draw_view_matrix_state_update(ViewInfos *storage,
                                           const float viewmat[4][4],
                                           const float winmat[4][4])
 {
@@ -2037,7 +2037,7 @@ void DRW_view_clip_planes_set(DRWView *view, float (*planes)[4], int plane_len)
   BLI_assert(plane_len <= MAX_CLIP_PLANES);
   view->clip_planes_len = plane_len;
   if (plane_len > 0) {
-    memcpy(view->storage.clipplanes, planes, sizeof(float[4]) * plane_len);
+    memcpy(view->storage.clip_planes, planes, sizeof(float[4]) * plane_len);
   }
 }
 
@@ -2089,21 +2089,21 @@ float DRW_view_far_distance_get(const DRWView *view)
 void DRW_view_viewmat_get(const DRWView *view, float mat[4][4], bool inverse)
 {
   view = (view) ? view : DST.view_default;
-  const DRWViewUboStorage *storage = &view->storage;
+  const ViewInfos *storage = &view->storage;
   copy_m4_m4(mat, (inverse) ? storage->viewinv : storage->viewmat);
 }
 
 void DRW_view_winmat_get(const DRWView *view, float mat[4][4], bool inverse)
 {
   view = (view) ? view : DST.view_default;
-  const DRWViewUboStorage *storage = &view->storage;
+  const ViewInfos *storage = &view->storage;
   copy_m4_m4(mat, (inverse) ? storage->wininv : storage->winmat);
 }
 
 void DRW_view_persmat_get(const DRWView *view, float mat[4][4], bool inverse)
 {
   view = (view) ? view : DST.view_default;
-  const DRWViewUboStorage *storage = &view->storage;
+  const ViewInfos *storage = &view->storage;
   copy_m4_m4(mat, (inverse) ? storage->persinv : storage->persmat);
 }
 
