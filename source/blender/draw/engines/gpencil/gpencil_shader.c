@@ -218,8 +218,7 @@ GPUShader *GPENCIL_shader_depth_merge_get(void)
 GPUShader *GPENCIL_shader_fx_blur_get(void)
 {
   if (!g_shaders.fx_blur_sh) {
-    g_shaders.fx_blur_sh = DRW_shader_create_fullscreen(datatoc_gpencil_vfx_frag_glsl,
-                                                        "#define BLUR\n");
+    g_shaders.fx_blur_sh = GPU_shader_create_from_info_name("gpencil_fx_blur");
   }
   return g_shaders.fx_blur_sh;
 }
@@ -227,8 +226,7 @@ GPUShader *GPENCIL_shader_fx_blur_get(void)
 GPUShader *GPENCIL_shader_fx_colorize_get(void)
 {
   if (!g_shaders.fx_colorize_sh) {
-    g_shaders.fx_colorize_sh = DRW_shader_create_fullscreen(datatoc_gpencil_vfx_frag_glsl,
-                                                            "#define COLORIZE\n");
+    g_shaders.fx_colorize_sh = GPU_shader_create_from_info_name("gpencil_fx_colorize");
   }
   return g_shaders.fx_colorize_sh;
 }
@@ -236,8 +234,7 @@ GPUShader *GPENCIL_shader_fx_colorize_get(void)
 GPUShader *GPENCIL_shader_fx_composite_get(void)
 {
   if (!g_shaders.fx_composite_sh) {
-    g_shaders.fx_composite_sh = DRW_shader_create_fullscreen(datatoc_gpencil_vfx_frag_glsl,
-                                                             "#define COMPOSITE\n");
+    g_shaders.fx_composite_sh = GPU_shader_create_from_info_name("gpencil_fx_composite");
   }
   return g_shaders.fx_composite_sh;
 }
@@ -245,24 +242,7 @@ GPUShader *GPENCIL_shader_fx_composite_get(void)
 GPUShader *GPENCIL_shader_fx_glow_get(void)
 {
   if (!g_shaders.fx_glow_sh) {
-    g_shaders.fx_glow_sh = GPU_shader_create_from_arrays({
-        .vert =
-            (const char *[]){
-                datatoc_common_fullscreen_vert_glsl,
-                NULL,
-            },
-        .frag =
-            (const char *[]){
-                datatoc_gpencil_common_lib_glsl,
-                datatoc_gpencil_vfx_frag_glsl,
-                NULL,
-            },
-        .defs =
-            (const char *[]){
-                "#define GLOW\n",
-                NULL,
-            },
-    });
+    g_shaders.fx_glow_sh = GPU_shader_create_from_info_name("gpencil_fx_glow");
   }
   return g_shaders.fx_glow_sh;
 }
@@ -270,8 +250,7 @@ GPUShader *GPENCIL_shader_fx_glow_get(void)
 GPUShader *GPENCIL_shader_fx_pixelize_get(void)
 {
   if (!g_shaders.fx_pixel_sh) {
-    g_shaders.fx_pixel_sh = DRW_shader_create_fullscreen(datatoc_gpencil_vfx_frag_glsl,
-                                                         "#define PIXELIZE\n");
+    g_shaders.fx_pixel_sh = GPU_shader_create_from_info_name("gpencil_fx_pixelize");
   }
   return g_shaders.fx_pixel_sh;
 }
@@ -279,24 +258,7 @@ GPUShader *GPENCIL_shader_fx_pixelize_get(void)
 GPUShader *GPENCIL_shader_fx_rim_get(void)
 {
   if (!g_shaders.fx_rim_sh) {
-    g_shaders.fx_rim_sh = GPU_shader_create_from_arrays({
-        .vert =
-            (const char *[]){
-                datatoc_common_fullscreen_vert_glsl,
-                NULL,
-            },
-        .frag =
-            (const char *[]){
-                datatoc_gpencil_common_lib_glsl,
-                datatoc_gpencil_vfx_frag_glsl,
-                NULL,
-            },
-        .defs =
-            (const char *[]){
-                "#define RIM\n",
-                NULL,
-            },
-    });
+    g_shaders.fx_rim_sh = GPU_shader_create_from_info_name("gpencil_fx_rim");
   }
   return g_shaders.fx_rim_sh;
 }
@@ -304,8 +266,7 @@ GPUShader *GPENCIL_shader_fx_rim_get(void)
 GPUShader *GPENCIL_shader_fx_shadow_get(void)
 {
   if (!g_shaders.fx_shadow_sh) {
-    g_shaders.fx_shadow_sh = DRW_shader_create_fullscreen(datatoc_gpencil_vfx_frag_glsl,
-                                                          "#define SHADOW\n");
+    g_shaders.fx_shadow_sh = GPU_shader_create_from_info_name("gpencil_fx_shadow");
   }
   return g_shaders.fx_shadow_sh;
 }
@@ -313,8 +274,7 @@ GPUShader *GPENCIL_shader_fx_shadow_get(void)
 GPUShader *GPENCIL_shader_fx_transform_get(void)
 {
   if (!g_shaders.fx_transform_sh) {
-    g_shaders.fx_transform_sh = DRW_shader_create_fullscreen(datatoc_gpencil_vfx_frag_glsl,
-                                                             "#define TRANSFORM\n");
+    g_shaders.fx_transform_sh = GPU_shader_create_from_info_name("gpencil_fx_transform");
   }
   return g_shaders.fx_transform_sh;
 }
