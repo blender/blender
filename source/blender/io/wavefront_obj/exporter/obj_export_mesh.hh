@@ -59,6 +59,8 @@ class OBJMesh : NonCopyable {
    * object's world transform matrix.
    */
   float world_and_axes_transform_[4][4];
+  float world_and_axes_normal_transform_[3][3];
+  bool mirrored_transform_;
 
   /**
    * Total UV vertices in a mesh's texture map.
@@ -110,6 +112,10 @@ class OBJMesh : NonCopyable {
   int tot_uv_vertices() const;
   int tot_normal_indices() const;
   int tot_edges() const;
+  bool is_mirrored_transform() const
+  {
+    return mirrored_transform_;
+  }
 
   /**
    * \return Total materials in the object.

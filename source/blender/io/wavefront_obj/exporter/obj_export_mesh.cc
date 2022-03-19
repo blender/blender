@@ -123,6 +123,13 @@ void OBJMesh::set_world_axes_transform(const eTransformAxisForward forward,
   /* mul_m4_m3m4 does not transform last row of obmat, i.e. location data. */
   mul_v3_m3v3(world_and_axes_transform_[3], axes_transform, export_object_eval_.obmat[3]);
   world_and_axes_transform_[3][3] = export_object_eval_.obmat[3][3];
+
+  /* Normals need inverse transpose of the regular matrix to handle non-uniform scale. */
+  float normal_matrix[3][3];
+  copy_m3_m4(normal_matrix, world_and_axes_transform_);
+  invert_m3_m3(world_and_axes_normal_transform_, normal_matrix);
+  transpose_m3(world_and_axes_normal_transform_);
+  mirrored_transform_ = determinant_m3_array(world_and_axes_normal_transform_) < 0;
 }
 
 int OBJMesh::tot_vertices() const
@@ -319,7 +326,8 @@ float3 OBJMesh::calc_poly_normal(const int poly_index) const
   const MLoop &mloop = export_mesh_eval_->mloop[poly.loopstart];
   const MVert &mvert = *(export_mesh_eval_->mvert);
   BKE_mesh_calc_poly_normal(&poly, &mloop, &mvert, r_poly_normal);
-  mul_mat3_m4_v3(world_and_axes_transform_, r_poly_normal);
+  mul_m3_v3(world_and_axes_normal_transform_, r_poly_normal);
+  normalize_v3(r_poly_normal);
   return r_poly_normal;
 }
 
@@ -364,7 +372,8 @@ void OBJMesh::store_normal_coords_and_indices()
         int loop_index = mpoly.loopstart + loop_of_poly;
         BLI_assert(loop_index < export_mesh_eval_->totloop);
         copy_v3_v3(loop_normal, lnors[loop_index]);
-        mul_mat3_m4_v3(world_and_axes_transform_, loop_normal);
+        mul_m3_v3(world_and_axes_normal_transform_, loop_normal);
+        normalize_v3(loop_normal);
         float3 rounded_loop_normal = round_float3_to_n_digits(loop_normal, round_digits);
         int loop_norm_index = normal_to_index.lookup_default(rounded_loop_normal, -1);
         if (loop_norm_index == -1) {

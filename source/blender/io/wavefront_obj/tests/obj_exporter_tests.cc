@@ -405,6 +405,16 @@ TEST_F(obj_exporter_regression_test, vertices)
       "io_tests/blend_geometry/vertices.blend", "io_tests/obj/vertices.obj", "", _export.params);
 }
 
+TEST_F(obj_exporter_regression_test, non_uniform_scale)
+{
+  OBJExportParamsDefault _export;
+  _export.params.export_materials = false;
+  compare_obj_export_to_golden("io_tests/blend_geometry/non_uniform_scale.blend",
+                               "io_tests/obj/non_uniform_scale.obj",
+                               "",
+                               _export.params);
+}
+
 TEST_F(obj_exporter_regression_test, nurbs_as_nurbs)
 {
   OBJExportParamsDefault _export;
