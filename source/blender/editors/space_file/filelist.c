@@ -851,6 +851,20 @@ static bool is_filtered_file_relpath(const FileListInternEntry *file, const File
   return fnmatch(filter->filter_search, file->relpath, FNM_CASEFOLD) == 0;
 }
 
+/**
+ * Apply the filter string as matching pattern on file name.
+ * \return true when the file should be in the result set, false if it should be filtered out.
+ */
+static bool is_filtered_file_name(const FileListInternEntry *file, const FileListFilter *filter)
+{
+  if (filter->filter_search[0] == '\0') {
+    return true;
+  }
+
+  /* If there's a filter string, apply it as filter even if FLF_DO_FILTER is not set. */
+  return fnmatch(filter->filter_search, file->name, FNM_CASEFOLD) == 0;
+}
+
 /** \return true when the file should be in the result set, false if it should be filtered out. */
 static bool is_filtered_file_type(const FileListInternEntry *file, const FileListFilter *filter)
 {
@@ -890,7 +904,8 @@ static bool is_filtered_file(FileListInternEntry *file,
                              const char *UNUSED(root),
                              FileListFilter *filter)
 {
-  return is_filtered_file_type(file, filter) && is_filtered_file_relpath(file, filter);
+  return is_filtered_file_type(file, filter) &&
+         (is_filtered_file_relpath(file, filter) || is_filtered_file_name(file, filter));
 }
 
 static bool is_filtered_id_file_type(const FileListInternEntry *file,
