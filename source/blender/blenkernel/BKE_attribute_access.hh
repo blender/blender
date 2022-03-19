@@ -164,8 +164,6 @@ using AttributeForeachCallback = blender::FunctionRef<bool(
 
 namespace blender::bke {
 
-const CPPType *custom_data_type_to_cpp_type(const CustomDataType type);
-CustomDataType cpp_type_to_custom_data_type(const CPPType &type);
 CustomDataType attribute_data_type_highest_complexity(Span<CustomDataType> data_types);
 /**
  * Domains with a higher "information density" have a higher priority,

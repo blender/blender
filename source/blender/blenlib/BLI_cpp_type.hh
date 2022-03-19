@@ -22,6 +22,7 @@
  *   - If the code is not performance sensitive, it usually makes sense to use #CPPType instead.
  * - Sometimes a combination can make sense. Optimized code can be be generated at compile-time for
  *   some types, while there is a fallback code path using #CPPType for all other types.
+ *   #CPPType::to_static_type allows dispatching between both versions based on the type.
  *
  * Under some circumstances, #CPPType serves a similar role as #std::type_info. However, #CPPType
  * has much more utility because it contains methods for actually working with instances of the
@@ -71,6 +72,7 @@
 
 #include "BLI_hash.hh"
 #include "BLI_index_mask.hh"
+#include "BLI_map.hh"
 #include "BLI_math_base.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
@@ -642,6 +644,77 @@ class CPPType : NonCopyable, NonMovable {
   template<typename T> bool is() const
   {
     return this == &CPPType::get<std::decay_t<T>>();
+  }
+
+  /**
+   * Convert a #CPPType that is only known at run-time, to a static type that is known at
+   * compile-time. This allows the compiler to optimize a function for specific types, while all
+   * other types can still use a generic fallback function.
+   *
+   * \param Types The types that code should be generated for.
+   * \param fn The function object to call. This is expected to have a templated `operator()` and a
+   *   non-templated `operator()`. The templated version will be called if the current #CPPType
+   *   matches any of the given types. Otherwise, the non-templated function is called.
+   */
+  template<typename... Types, typename Fn> void to_static_type(const Fn &fn) const
+  {
+    using Callback = void (*)(const Fn &fn);
+
+    /* Build a lookup table to avoid having to compare the current #CPPType with every type in
+     * #Types one after another. */
+    static const Map<const CPPType *, Callback> callback_map = []() {
+      Map<const CPPType *, Callback> callback_map;
+      /* This adds an entry in the map for every type in #Types. */
+      (callback_map.add_new(&CPPType::get<Types>(),
+                            [](const Fn &fn) {
+                              /* Call the templated `operator()` of the given function object. */
+                              fn.template operator()<Types>();
+                            }),
+       ...);
+      return callback_map;
+    }();
+
+    const Callback callback = callback_map.lookup_default(this, nullptr);
+    if (callback != nullptr) {
+      callback(fn);
+    }
+    else {
+      /* Call the non-templated `operator()` of the given function object. */
+      fn();
+    }
+  }
+
+  template<typename T> struct type_tag {
+    using type = T;
+  };
+
+ private:
+  template<typename Fn> struct TypeTagExecutor {
+    const Fn &fn;
+
+    template<typename T> void operator()() const
+    {
+      fn(type_tag<T>{});
+    }
+
+    void operator()() const
+    {
+      fn(type_tag<void>{});
+    }
+  };
+
+ public:
+  /**
+   * Similar to #to_static_type but is easier to use with a lambda function. The function is
+   * expected to take a single `auto type_tag` parameter. To extract the static type, use:
+   * `using T = typename decltype(type_tag)::type;`
+   *
+   * If the current #CPPType is not in #Types, the type tag is `void`.
+   */
+  template<typename... Types, typename Fn> void to_static_type_tag(const Fn &fn) const
+  {
+    TypeTagExecutor<Fn> executor{fn};
+    this->to_static_type<Types...>(executor);
   }
 };
 

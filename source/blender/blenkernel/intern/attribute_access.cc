@@ -54,55 +54,6 @@ std::ostream &operator<<(std::ostream &stream, const AttributeIDRef &attribute_i
   return stream;
 }
 
-const blender::CPPType *custom_data_type_to_cpp_type(const CustomDataType type)
-{
-  switch (type) {
-    case CD_PROP_FLOAT:
-      return &CPPType::get<float>();
-    case CD_PROP_FLOAT2:
-      return &CPPType::get<float2>();
-    case CD_PROP_FLOAT3:
-      return &CPPType::get<float3>();
-    case CD_PROP_INT32:
-      return &CPPType::get<int>();
-    case CD_PROP_COLOR:
-      return &CPPType::get<ColorGeometry4f>();
-    case CD_PROP_BOOL:
-      return &CPPType::get<bool>();
-    case CD_PROP_INT8:
-      return &CPPType::get<int8_t>();
-    default:
-      return nullptr;
-  }
-  return nullptr;
-}
-
-CustomDataType cpp_type_to_custom_data_type(const blender::CPPType &type)
-{
-  if (type.is<float>()) {
-    return CD_PROP_FLOAT;
-  }
-  if (type.is<float2>()) {
-    return CD_PROP_FLOAT2;
-  }
-  if (type.is<float3>()) {
-    return CD_PROP_FLOAT3;
-  }
-  if (type.is<int>()) {
-    return CD_PROP_INT32;
-  }
-  if (type.is<ColorGeometry4f>()) {
-    return CD_PROP_COLOR;
-  }
-  if (type.is<bool>()) {
-    return CD_PROP_BOOL;
-  }
-  if (type.is<int8_t>()) {
-    return CD_PROP_INT8;
-  }
-  return static_cast<CustomDataType>(-1);
-}
-
 static int attribute_data_type_complexity(const CustomDataType data_type)
 {
   switch (data_type) {

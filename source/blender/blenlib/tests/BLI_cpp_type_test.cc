@@ -323,4 +323,28 @@ TEST(cpp_type, DebugPrint)
   EXPECT_EQ(text, "42");
 }
 
+TEST(cpp_type, ToStaticType)
+{
+  Vector<const CPPType *> types;
+  bool found_unsupported_type = false;
+  auto fn = [&](auto type_tag) {
+    using T = typename decltype(type_tag)::type;
+    if constexpr (!std::is_same_v<T, void>) {
+      types.append(&CPPType::get<T>());
+    }
+    else {
+      found_unsupported_type = true;
+    }
+  };
+  CPPType::get<std::string>().to_static_type_tag<int, float, std::string>(fn);
+  CPPType::get<float>().to_static_type_tag<int, float, std::string>(fn);
+  EXPECT_FALSE(found_unsupported_type);
+  CPPType::get<int64_t>().to_static_type_tag<int, float, std::string>(fn);
+  EXPECT_TRUE(found_unsupported_type);
+
+  EXPECT_EQ(types.size(), 2);
+  EXPECT_EQ(types[0], &CPPType::get<std::string>());
+  EXPECT_EQ(types[1], &CPPType::get<float>());
+}
+
 }  // namespace blender::tests
