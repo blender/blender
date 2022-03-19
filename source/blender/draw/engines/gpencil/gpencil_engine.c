@@ -276,7 +276,7 @@ void GPENCIL_cache_init(void *ved)
     GPUShader *sh = GPENCIL_shader_depth_merge_get();
     grp = DRW_shgroup_create(sh, psl->merge_depth_ps);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuf", &pd->depth_tx);
-    DRW_shgroup_uniform_bool(grp, "strokeOrder3d", &pd->is_stroke_order_3d, 1);
+    DRW_shgroup_uniform_bool(grp, "gpStrokeOrder3d", &pd->is_stroke_order_3d, 1);
     DRW_shgroup_uniform_vec4(grp, "gpModelMatrix", pd->object_bound_mat[0], 4);
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
   }
@@ -405,8 +405,8 @@ static void gpencil_sbuffer_cache_populate(gpIterPopulateData *iter)
    * Remember, sbuffer stroke indices start from 0. So we add last index to avoid
    * masking issues. */
   iter->grp = DRW_shgroup_create_sub(iter->grp);
-  DRW_shgroup_uniform_block(iter->grp, "gpMaterialBlock", iter->ubo_mat);
-  DRW_shgroup_uniform_float_copy(iter->grp, "strokeIndexOffset", iter->stroke_index_last);
+  DRW_shgroup_uniform_block(iter->grp, "materials", iter->ubo_mat);
+  DRW_shgroup_uniform_float_copy(iter->grp, "gpStrokeIndexOffset", iter->stroke_index_last);
 
   const DRWContextState *ctx = DRW_context_state_get();
   ToolSettings *ts = ctx->scene->toolsettings;
@@ -453,12 +453,12 @@ static void gpencil_layer_cache_populate(bGPDlayer *gpl,
 
   /* Iterator dependent uniforms. */
   DRWShadingGroup *grp = iter->grp = tgp_layer->base_shgrp;
-  DRW_shgroup_uniform_block(grp, "gpLightBlock", iter->ubo_lights);
-  DRW_shgroup_uniform_block(grp, "gpMaterialBlock", iter->ubo_mat);
+  DRW_shgroup_uniform_block(grp, "lights", iter->ubo_lights);
+  DRW_shgroup_uniform_block(grp, "materials", iter->ubo_mat);
   DRW_shgroup_uniform_texture(grp, "gpFillTexture", iter->tex_fill);
   DRW_shgroup_uniform_texture(grp, "gpStrokeTexture", iter->tex_stroke);
   DRW_shgroup_uniform_int_copy(grp, "gpMaterialOffset", iter->mat_ofs);
-  DRW_shgroup_uniform_float_copy(grp, "strokeIndexOffset", iter->stroke_index_offset);
+  DRW_shgroup_uniform_float_copy(grp, "gpStrokeIndexOffset", iter->stroke_index_offset);
 }
 
 static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
@@ -500,7 +500,7 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
 
     iter->grp = DRW_shgroup_create_sub(iter->grp);
     if (iter->ubo_mat != ubo_mat) {
-      DRW_shgroup_uniform_block(iter->grp, "gpMaterialBlock", ubo_mat);
+      DRW_shgroup_uniform_block(iter->grp, "materials", ubo_mat);
       iter->ubo_mat = ubo_mat;
     }
     if (tex_fill) {

@@ -364,6 +364,7 @@ set(GLSL_SRC
 
   intern/shaders/common_colormanagement_lib.glsl
   intern/shaders/common_globals_lib.glsl
+  intern/shaders/common_gpencil_lib.glsl
   intern/shaders/common_pointcloud_lib.glsl
   intern/shaders/common_hair_lib.glsl
   intern/shaders/common_hair_refine_vert.glsl
@@ -401,6 +402,9 @@ set(GLSL_SRC
   engines/gpencil/shaders/gpencil_depth_merge_frag.glsl
   engines/gpencil/shaders/gpencil_depth_merge_vert.glsl
   engines/gpencil/shaders/gpencil_vfx_frag.glsl
+
+  engines/gpencil/gpencil_defines.h
+  engines/gpencil/gpencil_shader_shared.h
 
   engines/select/shaders/selection_id_3D_vert.glsl
   engines/select/shaders/selection_id_frag.glsl

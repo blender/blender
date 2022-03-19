@@ -268,7 +268,7 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
                                               !BLI_listbase_is_empty(&gpl->mask_layers);
 
   float vert_col_opacity = (override_vertcol) ?
-                                           (is_vert_col_mode ? pd->vertex_paint_opacity : 0.0f) :
+                               (is_vert_col_mode ? pd->vertex_paint_opacity : 0.0f) :
                            pd->is_render ? gpl->vertex_paint_opacity :
                                            pd->vertex_paint_opacity;
   /* Negate thickness sign to tag that strokes are in screen space.
@@ -388,13 +388,11 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
     DRW_shgroup_uniform_texture(grp, "gpSceneDepthTexture", depth_tex);
     DRW_shgroup_uniform_texture_ref(grp, "gpMaskTexture", mask_tex);
     DRW_shgroup_uniform_vec3_copy(grp, "gpNormal", tgp_ob->plane_normal);
-    DRW_shgroup_uniform_bool_copy(grp, "strokeOrder3d", tgp_ob->is_drawmode3d);
-    DRW_shgroup_uniform_float_copy(grp, "thicknessScale", tgp_ob->object_scale);
-    DRW_shgroup_uniform_vec2_copy(grp, "sizeViewportInv", DRW_viewport_invert_size_get());
-    DRW_shgroup_uniform_vec2_copy(grp, "sizeViewport", DRW_viewport_size_get());
-    DRW_shgroup_uniform_float_copy(grp, "thicknessOffset", (float)gpl->line_change);
-    DRW_shgroup_uniform_float_copy(grp, "thicknessWorldScale", thickness_scale);
-    DRW_shgroup_uniform_float_copy(grp, "vertexColorOpacity", vert_col_opacity);
+    DRW_shgroup_uniform_bool_copy(grp, "gpStrokeOrder3d", tgp_ob->is_drawmode3d);
+    DRW_shgroup_uniform_float_copy(grp, "gpThicknessScale", tgp_ob->object_scale);
+    DRW_shgroup_uniform_float_copy(grp, "gpThicknessOffset", (float)gpl->line_change);
+    DRW_shgroup_uniform_float_copy(grp, "gpThicknessWorldScale", thickness_scale);
+    DRW_shgroup_uniform_float_copy(grp, "gpVertexColorOpacity", vert_col_opacity);
 
     /* If random color type, need color by layer. */
     float gpl_color[4];
@@ -403,9 +401,9 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
       gpencil_layer_random_color_get(ob, gpl, gpl_color);
       gpl_color[3] = 1.0f;
     }
-    DRW_shgroup_uniform_vec4_copy(grp, "layerTint", gpl_color);
+    DRW_shgroup_uniform_vec4_copy(grp, "gpLayerTint", gpl_color);
 
-    DRW_shgroup_uniform_float_copy(grp, "layerOpacity", layer_alpha);
+    DRW_shgroup_uniform_float_copy(grp, "gpLayerOpacity", layer_alpha);
     DRW_shgroup_stencil_mask(grp, 0xFF);
   }
 

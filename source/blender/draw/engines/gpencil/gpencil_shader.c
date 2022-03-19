@@ -46,18 +46,6 @@ static struct {
   GPUShader *fx_rim_sh;
   GPUShader *fx_shadow_sh;
   GPUShader *fx_transform_sh;
-  /* general drawing shaders */
-  GPUShader *gpencil_fill_sh;
-  GPUShader *gpencil_stroke_sh;
-  GPUShader *gpencil_point_sh;
-  GPUShader *gpencil_edit_point_sh;
-  GPUShader *gpencil_line_sh;
-  GPUShader *gpencil_drawing_fill_sh;
-  GPUShader *gpencil_fullscreen_sh;
-  GPUShader *gpencil_simple_fullscreen_sh;
-  GPUShader *gpencil_blend_fullscreen_sh;
-  GPUShader *gpencil_background_sh;
-  GPUShader *gpencil_paper_sh;
 } g_shaders = {{NULL}};
 
 void GPENCIL_shader_free(void)
@@ -78,17 +66,6 @@ void GPENCIL_shader_free(void)
   DRW_SHADER_FREE_SAFE(g_shaders.fx_rim_sh);
   DRW_SHADER_FREE_SAFE(g_shaders.fx_shadow_sh);
   DRW_SHADER_FREE_SAFE(g_shaders.fx_transform_sh);
-  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_fill_sh);
-  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_stroke_sh);
-  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_point_sh);
-  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_edit_point_sh);
-  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_line_sh);
-  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_drawing_fill_sh);
-  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_fullscreen_sh);
-  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_simple_fullscreen_sh);
-  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_blend_fullscreen_sh);
-  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_background_sh);
-  DRW_SHADER_FREE_SAFE(g_shaders.gpencil_paper_sh);
 }
 
 GPUShader *GPENCIL_shader_antialiasing(int stage)
@@ -106,29 +83,7 @@ GPUShader *GPENCIL_shader_antialiasing(int stage)
 GPUShader *GPENCIL_shader_geometry_get(void)
 {
   if (!g_shaders.gpencil_sh) {
-    g_shaders.gpencil_sh = GPU_shader_create_from_arrays({
-        .vert =
-            (const char *[]){
-                datatoc_common_view_lib_glsl,
-                datatoc_gpencil_common_lib_glsl,
-                datatoc_gpencil_vert_glsl,
-                NULL,
-            },
-        .frag =
-            (const char *[]){
-                datatoc_common_colormanagement_lib_glsl,
-                datatoc_gpencil_common_lib_glsl,
-                datatoc_gpencil_frag_glsl,
-                NULL,
-            },
-        .defs =
-            (const char *[]){
-                "#define GP_MATERIAL_BUFFER_LEN " STRINGIFY(GP_MATERIAL_BUFFER_LEN) "\n",
-                "#define GPENCIL_LIGHT_BUFFER_LEN " STRINGIFY(GPENCIL_LIGHT_BUFFER_LEN) "\n",
-                "#define UNIFORM_RESOURCE_ID\n",
-                NULL,
-            },
-    });
+    g_shaders.gpencil_sh = GPU_shader_create_from_info_name("gpencil_geometry");
   }
   return g_shaders.gpencil_sh;
 }

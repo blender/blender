@@ -3,6 +3,50 @@
 #include "gpu_shader_create_info.hh"
 
 /* -------------------------------------------------------------------- */
+/** \name GPencil Object rendering
+ * \{ */
+
+GPU_SHADER_INTERFACE_INFO(gpencil_geometry_iface, "gp_interp")
+    .smooth(Type::VEC4, "color_mul")
+    .smooth(Type::VEC4, "color_add")
+    .smooth(Type::VEC3, "pos")
+    .smooth(Type::VEC2, "uv")
+    .no_perspective(Type::VEC2, "thickness")
+    .no_perspective(Type::FLOAT, "hardness")
+    .flat(Type::VEC2, "aspect")
+    .flat(Type::VEC4, "sspos")
+    .flat(Type::UINT, "mat_flag")
+    .flat(Type::FLOAT, "depth");
+
+GPU_SHADER_CREATE_INFO(gpencil_geometry)
+    .do_static_compilation(true)
+    .typedef_source("gpencil_defines.h")
+    .typedef_source("gpencil_shader_shared.h")
+    .sampler(0, ImageType::FLOAT_2D, "gpFillTexture")
+    .sampler(1, ImageType::FLOAT_2D, "gpStrokeTexture")
+    .sampler(2, ImageType::DEPTH_2D, "gpSceneDepthTexture")
+    .sampler(3, ImageType::FLOAT_2D, "gpMaskTexture")
+    .uniform_buf(2, "gpMaterial", "materials[GPENCIL_MATERIAL_BUFFER_LEN]", Frequency::BATCH)
+    .uniform_buf(3, "gpLight", "lights[GPENCIL_LIGHT_BUFFER_LEN]", Frequency::BATCH)
+    /* Per Object */
+    .push_constant(Type::VEC3, "gpNormal")
+    .push_constant(Type::BOOL, "gpStrokeOrder3d")
+    .push_constant(Type::INT, "gpMaterialOffset")
+    /* Per Layer */
+    .push_constant(Type::FLOAT, "gpVertexColorOpacity")
+    .push_constant(Type::VEC4, "gpLayerTint")
+    .push_constant(Type::FLOAT, "gpLayerOpacity")
+    .push_constant(Type::FLOAT, "gpStrokeIndexOffset")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .fragment_out(1, Type::VEC4, "revealColor")
+    .vertex_out(gpencil_geometry_iface)
+    .vertex_source("gpencil_vert.glsl")
+    .fragment_source("gpencil_frag.glsl")
+    .additional_info("draw_gpencil");
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Fullscreen shaders
  * \{ */
 
