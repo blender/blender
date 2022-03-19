@@ -136,19 +136,7 @@ GPUShader *GPENCIL_shader_geometry_get(void)
 GPUShader *GPENCIL_shader_layer_blend_get(void)
 {
   if (!g_shaders.layer_blend_sh) {
-    g_shaders.layer_blend_sh = GPU_shader_create_from_arrays({
-        .vert =
-            (const char *[]){
-                datatoc_common_fullscreen_vert_glsl,
-                NULL,
-            },
-        .frag =
-            (const char *[]){
-                datatoc_gpencil_common_lib_glsl,
-                datatoc_gpencil_layer_blend_frag_glsl,
-                NULL,
-            },
-    });
+    g_shaders.layer_blend_sh = GPU_shader_create_from_info_name("gpencil_layer_blend");
   }
   return g_shaders.layer_blend_sh;
 }
@@ -156,8 +144,7 @@ GPUShader *GPENCIL_shader_layer_blend_get(void)
 GPUShader *GPENCIL_shader_mask_invert_get(void)
 {
   if (!g_shaders.mask_invert_sh) {
-    g_shaders.mask_invert_sh = DRW_shader_create_fullscreen(datatoc_gpencil_mask_invert_frag_glsl,
-                                                            NULL);
+    g_shaders.mask_invert_sh = GPU_shader_create_from_info_name("gpencil_mask_invert");
   }
   return g_shaders.mask_invert_sh;
 }
@@ -165,19 +152,7 @@ GPUShader *GPENCIL_shader_mask_invert_get(void)
 GPUShader *GPENCIL_shader_depth_merge_get(void)
 {
   if (!g_shaders.depth_merge_sh) {
-    g_shaders.depth_merge_sh = GPU_shader_create_from_arrays({
-        .vert =
-            (const char *[]){
-                datatoc_common_view_lib_glsl,
-                datatoc_gpencil_depth_merge_vert_glsl,
-                NULL,
-            },
-        .frag =
-            (const char *[]){
-                datatoc_gpencil_depth_merge_frag_glsl,
-                NULL,
-            },
-    });
+    g_shaders.depth_merge_sh = GPU_shader_create_from_info_name("gpencil_depth_merge");
   }
   return g_shaders.depth_merge_sh;
 }

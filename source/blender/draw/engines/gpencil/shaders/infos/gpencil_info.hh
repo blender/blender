@@ -3,6 +3,42 @@
 #include "gpu_shader_create_info.hh"
 
 /* -------------------------------------------------------------------- */
+/** \name Fullscreen shaders
+ * \{ */
+
+GPU_SHADER_CREATE_INFO(gpencil_layer_blend)
+    .do_static_compilation(true)
+    .sampler(0, ImageType::FLOAT_2D, "colorBuf")
+    .sampler(1, ImageType::FLOAT_2D, "revealBuf")
+    .sampler(2, ImageType::FLOAT_2D, "maskBuf")
+    .push_constant(Type::INT, "blendMode")
+    .push_constant(Type::FLOAT, "blendOpacity")
+    /* Reminder: This is considered SRC color in blend equations.
+     * Same operation on all buffers. */
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .fragment_out(1, Type::VEC4, "fragRevealage")
+    .fragment_source("gpencil_layer_blend_frag.glsl")
+    .additional_info("draw_fullscreen");
+
+GPU_SHADER_CREATE_INFO(gpencil_mask_invert)
+    .do_static_compilation(true)
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .fragment_out(1, Type::VEC4, "fragRevealage")
+    .fragment_source("gpencil_mask_invert_frag.glsl")
+    .additional_info("draw_fullscreen");
+
+GPU_SHADER_CREATE_INFO(gpencil_depth_merge)
+    .do_static_compilation(true)
+    .push_constant(Type::VEC4, "gpModelMatrix", 4)
+    .push_constant(Type::BOOL, "strokeOrder3d")
+    .sampler(0, ImageType::DEPTH_2D, "depthBuf")
+    .vertex_source("gpencil_depth_merge_vert.glsl")
+    .fragment_source("gpencil_depth_merge_frag.glsl")
+    .additional_info("draw_view");
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Anti-Aliasing
  * \{ */
 

@@ -1,6 +1,4 @@
 
-uniform vec4 gpModelMatrix[4];
-
 void main()
 {
   mat4 model_matrix = mat4(gpModelMatrix[0], gpModelMatrix[1], gpModelMatrix[2], gpModelMatrix[3]);
