@@ -189,7 +189,7 @@ struct GPUSource {
   {
     const StringRefNull input = source;
     std::string output;
-    int64_t cursor = 0;
+    int64_t cursor = -1;
     int64_t last_pos = 0;
     const bool is_cpp = filename.endswith(".hh");
 
@@ -204,9 +204,13 @@ struct GPUSource {
   }
 
     while (true) {
-      cursor = find_keyword(input, "enum ", cursor);
+      cursor = find_keyword(input, "enum ", cursor + 1);
       if (cursor == -1) {
         break;
+      }
+      /* Skip matches like `typedef enum myEnum myType;` */
+      if (cursor >= 8 && input.substr(cursor - 8, 8) == "typedef ") {
+        continue;
       }
       /* Output anything between 2 enums blocks. */
       output += input.substr(last_pos, cursor - last_pos);
