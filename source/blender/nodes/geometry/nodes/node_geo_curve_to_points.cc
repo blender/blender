@@ -12,7 +12,6 @@
 
 #include "node_geometry_util.hh"
 
-
 namespace blender::nodes::node_geo_curve_to_points_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryCurveToPoints)
@@ -64,8 +63,8 @@ static void node_update(bNodeTree *ntree, bNode *node)
 }
 
 static void curve_create_default_rotation_attribute(Span<float3> tangents,
-                                             Span<float3> normals,
-                                             MutableSpan<float3> rotations)
+                                                    Span<float3> normals,
+                                                    MutableSpan<float3> rotations)
 {
   threading::parallel_for(IndexRange(rotations.size()), 512, [&](IndexRange range) {
     for (const int i : range) {
@@ -74,7 +73,6 @@ static void curve_create_default_rotation_attribute(Span<float3> tangents,
     }
   });
 }
-
 
 static Array<int> calculate_spline_point_offsets(GeoNodeExecParams &params,
                                                  const GeometryNodeCurveResampleMode mode,

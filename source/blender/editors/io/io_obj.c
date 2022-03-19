@@ -293,11 +293,8 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
                 0.01,
                 1000.0f);
   /* File Writer options. */
-  RNA_def_boolean(ot->srna,
-                  "apply_modifiers",
-                  true,
-                  "Apply Modifiers",
-                  "Apply modifiers to exported meshes");
+  RNA_def_boolean(
+      ot->srna, "apply_modifiers", true, "Apply Modifiers", "Apply modifiers to exported meshes");
   RNA_def_enum(ot->srna,
                "export_eval_mode",
                io_obj_export_evaluation_mode,

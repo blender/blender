@@ -1711,7 +1711,6 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
-
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 293, 10)) {
