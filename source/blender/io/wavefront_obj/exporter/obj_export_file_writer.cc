@@ -178,31 +178,13 @@ void OBJWriter::write_mtllib_name(const StringRefNull mtl_filepath) const
   file_handler_->write<eOBJSyntaxElement::mtllib>(mtl_file_name);
 }
 
-void OBJWriter::write_object_group(const OBJMesh &obj_mesh_data) const
-{
-  /* "o object_name" is not mandatory. A valid .OBJ file may contain neither
-   * "o name" nor "g group_name". */
-  BLI_assert(export_params_.export_object_groups);
-  if (!export_params_.export_object_groups) {
-    return;
-  }
-  const std::string object_name = obj_mesh_data.get_object_name();
-  const char *object_mesh_name = obj_mesh_data.get_object_mesh_name();
-  const char *object_material_name = obj_mesh_data.get_object_material_name(0);
-  if (export_params_.export_materials && export_params_.export_material_groups &&
-      object_material_name) {
-    file_handler_->write<eOBJSyntaxElement::object_group>(object_name + "_" + object_mesh_name +
-                                                          "_" + object_material_name);
-    return;
-  }
-  file_handler_->write<eOBJSyntaxElement::object_group>(object_name + "_" + object_mesh_name);
-}
-
 void OBJWriter::write_object_name(const OBJMesh &obj_mesh_data) const
 {
   const char *object_name = obj_mesh_data.get_object_name();
   if (export_params_.export_object_groups) {
-    write_object_group(obj_mesh_data);
+    const std::string object_name = obj_mesh_data.get_object_name();
+    const char *mesh_name = obj_mesh_data.get_object_mesh_name();
+    file_handler_->write<eOBJSyntaxElement::object_group>(object_name + "_" + mesh_name);
     return;
   }
   file_handler_->write<eOBJSyntaxElement::object_name>(object_name);
@@ -278,12 +260,13 @@ int16_t OBJWriter::write_poly_material(const OBJMesh &obj_mesh_data,
     file_handler_->write<eOBJSyntaxElement::poly_usemtl>(MATERIAL_GROUP_DISABLED);
     return current_mat_nr;
   }
-  if (export_params_.export_object_groups) {
-    write_object_group(obj_mesh_data);
-  }
   const char *mat_name = matname_fn(current_mat_nr);
   if (!mat_name) {
     mat_name = MATERIAL_GROUP_DISABLED;
+  }
+  if (export_params_.export_material_groups) {
+    const std::string object_name = obj_mesh_data.get_object_name();
+    file_handler_->write<eOBJSyntaxElement::object_group>(object_name + "_" + mat_name);
   }
   file_handler_->write<eOBJSyntaxElement::poly_usemtl>(mat_name);
 

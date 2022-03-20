@@ -66,10 +66,6 @@ class OBJWriter : NonMovable, NonCopyable {
    */
   void write_object_name(const OBJMesh &obj_mesh_data) const;
   /**
-   * Write an object's group with mesh and/or material name appended conditionally.
-   */
-  void write_object_group(const OBJMesh &obj_mesh_data) const;
-  /**
    * Write file name of Material Library in .OBJ file.
    */
   void write_mtllib_name(const StringRefNull mtl_filepath) const;
