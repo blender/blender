@@ -74,6 +74,13 @@ static const pxr::TfToken varname("varname", pxr::TfToken::Immortal);
 static const pxr::TfToken raw("raw", pxr::TfToken::Immortal);
 static const pxr::TfToken RAW("RAW", pxr::TfToken::Immortal);
 
+/* Wrap mode names. */
+static const pxr::TfToken black("black", pxr::TfToken::Immortal);
+static const pxr::TfToken clamp("clamp", pxr::TfToken::Immortal);
+static const pxr::TfToken repeat("repeat", pxr::TfToken::Immortal);
+static const pxr::TfToken wrapS("wrapS", pxr::TfToken::Immortal);
+static const pxr::TfToken wrapT("wrapT", pxr::TfToken::Immortal);
+
 /* USD shader names. */
 static const pxr::TfToken UsdPreviewSurface("UsdPreviewSurface", pxr::TfToken::Immortal);
 static const pxr::TfToken UsdPrimvarReader_float2("UsdPrimvarReader_float2",
@@ -311,6 +318,40 @@ static pxr::TfToken get_source_color_space(const pxr::UsdShadeShader &usd_shader
   }
 
   return pxr::TfToken();
+}
+
+static int get_image_extension(const pxr::UsdShadeShader &usd_shader, const int default_value)
+{
+  pxr::UsdShadeInput wrap_input = usd_shader.GetInput(usdtokens::wrapS);
+
+  if (!wrap_input) {
+    wrap_input = usd_shader.GetInput(usdtokens::wrapT);
+  }
+
+  if (!wrap_input) {
+    return default_value;
+  }
+
+  pxr::VtValue wrap_input_val;
+  if (!(wrap_input.Get(&wrap_input_val) && wrap_input_val.IsHolding<pxr::TfToken>())) {
+    return default_value;
+  }
+
+  pxr::TfToken wrap_val = wrap_input_val.Get<pxr::TfToken>();
+
+  if (wrap_val == usdtokens::repeat) {
+    return SHD_IMAGE_EXTENSION_REPEAT;
+  }
+
+  if (wrap_val == usdtokens::clamp) {
+    return SHD_IMAGE_EXTENSION_EXTEND;
+  }
+
+  if (wrap_val == usdtokens::black) {
+    return SHD_IMAGE_EXTENSION_CLIP;
+  }
+
+  return default_value;
 }
 
 /* Attempts to return in r_preview_surface the UsdPreviewSurface shader source
@@ -843,6 +884,9 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
   if (ELEM(color_space, usdtokens::RAW, usdtokens::raw)) {
     STRNCPY(image->colorspace_settings.name, "Raw");
   }
+
+  NodeTexImage *storage = static_cast<NodeTexImage *>(tex_image->storage);
+  storage->extension = get_image_extension(usd_shader, storage->extension);
 }
 
 /* This function creates a Blender UV Map node, under the simplifying assumption that

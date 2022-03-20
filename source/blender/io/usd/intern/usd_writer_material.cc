@@ -78,6 +78,11 @@ static const pxr::TfToken raw("raw", pxr::TfToken::Immortal);
 static const pxr::TfToken sRGB("sRGB", pxr::TfToken::Immortal);
 static const pxr::TfToken sourceColorSpace("sourceColorSpace", pxr::TfToken::Immortal);
 static const pxr::TfToken Shader("Shader", pxr::TfToken::Immortal);
+static const pxr::TfToken black("black", pxr::TfToken::Immortal);
+static const pxr::TfToken clamp("clamp", pxr::TfToken::Immortal);
+static const pxr::TfToken repeat("repeat", pxr::TfToken::Immortal);
+static const pxr::TfToken wrapS("wrapS", pxr::TfToken::Immortal);
+static const pxr::TfToken wrapT("wrapT", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
 /* Cycles specific tokens (Blender Importer and HdCycles) */
@@ -711,6 +716,36 @@ static pxr::TfToken get_node_tex_image_color_space(bNode *node)
   return color_space;
 }
 
+static pxr::TfToken get_node_tex_image_wrap(bNode *node)
+{
+  if (node->type != SH_NODE_TEX_IMAGE) {
+    std::cout << "get_node_tex_image_wrap() called with unexpected type.\n";
+    return pxr::TfToken();
+  }
+
+  if (node->storage == nullptr) {
+    return pxr::TfToken();
+  }
+
+  NodeTexImage *tex_image = static_cast<NodeTexImage *>(node->storage);
+
+  pxr::TfToken wrap;
+
+  switch (tex_image->extension) {
+    case SHD_IMAGE_EXTENSION_REPEAT:
+      wrap = usdtokens::repeat;
+      break;
+    case SHD_IMAGE_EXTENSION_EXTEND:
+      wrap = usdtokens::clamp;
+      break;
+    case SHD_IMAGE_EXTENSION_CLIP:
+      wrap = usdtokens::black;
+      break;
+  }
+
+  return wrap;
+}
+
 static const int HD_CYCLES_CURVE_EXPORT_RES = 256;
 
 /**
@@ -1187,6 +1222,12 @@ pxr::UsdShadeShader create_usd_preview_shader_node(const USDExporterContext &usd
       if (!colorSpace.IsEmpty()) {
         shader.CreateInput(usdtokens::sourceColorSpace, pxr::SdfValueTypeNames->Token)
             .Set(colorSpace);
+      }
+
+      pxr::TfToken wrap = get_node_tex_image_wrap(node);
+      if (!wrap.IsEmpty()) {
+        shader.CreateInput(usdtokens::wrapS, pxr::SdfValueTypeNames->Token).Set(wrap);
+        shader.CreateInput(usdtokens::wrapT, pxr::SdfValueTypeNames->Token).Set(wrap);
       }
 
       if (usd_export_context.export_params.export_textures) {

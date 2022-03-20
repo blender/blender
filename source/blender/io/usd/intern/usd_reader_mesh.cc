@@ -494,10 +494,10 @@ void USDMeshReader::read_colors(Mesh *mesh, const double motionSampleTime)
     return;
   }
 
-  void *cd_ptr = add_customdata_cb(mesh, "displayColors", CD_MLOOPCOL);
+  void *cd_ptr = add_customdata_cb(mesh, "displayColor", CD_MLOOPCOL);
 
   if (!cd_ptr) {
-    std::cerr << "WARNING: Couldn't add displayColors custom data.\n";
+    std::cerr << "WARNING: Couldn't add displayColor custom data.\n";
     return;
   }
 

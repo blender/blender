@@ -283,13 +283,13 @@ void USDGenericMeshWriter::write_vertex_colors(const Mesh *mesh,
   pxr::UsdGeomPrimvar vertex_colors_pv = pvApi.CreatePrimvar(
       primvar_name, pxr::SdfValueTypeNames->Color3fArray, pxr::UsdGeomTokens->faceVarying);
 
-  MCol *vertCol = static_cast<MCol *>(layer->data);
+  MLoopCol *vertCol = static_cast<MLoopCol *>(layer->data);
   pxr::VtArray<pxr::GfVec3f> vertex_colors;
 
-  for (int loop_idx = 0; loop_idx < mesh->totloop; loop_idx++) {
-    pxr::GfVec3f col = pxr::GfVec3f((int)vertCol[loop_idx].b * cscale,
-                                    (int)vertCol[loop_idx].g * cscale,
-                                    (int)vertCol[loop_idx].r * cscale);
+  for (int loop_idx = 0; loop_idx < mesh->totloop; ++loop_idx) {
+    pxr::GfVec3f col = pxr::GfVec3f(vertCol[loop_idx].r * cscale,
+                                    vertCol[loop_idx].g * cscale,
+                                    vertCol[loop_idx].b * cscale);
     vertex_colors.push_back(col);
   }
 
