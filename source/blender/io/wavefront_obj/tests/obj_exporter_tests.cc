@@ -511,4 +511,17 @@ TEST_F(obj_exporter_regression_test, all_objects)
                                _export.params);
 }
 
+TEST_F(obj_exporter_regression_test, all_objects_mat_groups)
+{
+  OBJExportParamsDefault _export;
+  _export.params.forward_axis = OBJ_AXIS_Y_FORWARD;
+  _export.params.up_axis = OBJ_AXIS_Z_UP;
+  _export.params.export_smooth_groups = true;
+  _export.params.export_material_groups = true;
+  compare_obj_export_to_golden("io_tests/blend_scene/all_objects.blend",
+                               "io_tests/obj/all_objects_mat_groups.obj",
+                               "io_tests/obj/all_objects_mat_groups.mtl",
+                               _export.params);
+}
+
 }  // namespace blender::io::obj

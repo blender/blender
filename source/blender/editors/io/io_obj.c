@@ -342,7 +342,7 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
                   "export_material_groups",
                   false,
                   "Export Material Groups",
-                  "Append mesh name and material name to object name, separated by a '_'");
+                  "Generate an OBJ group for each part of a geometry using a different material");
   RNA_def_boolean(
       ot->srna,
       "export_vertex_groups",

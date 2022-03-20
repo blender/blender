@@ -203,11 +203,6 @@ const Material *OBJMesh::get_object_material(const int16_t mat_nr) const
    */
   Object *obj = const_cast<Object *>(&export_object_eval_);
   const Material *r_mat = BKE_object_material_get(obj, mat_nr + 1);
-#ifdef DEBUG
-  if (!r_mat) {
-    std::cerr << "Material not found for mat_nr = " << mat_nr << std::endl;
-  }
-#endif
   return r_mat;
 }
 
