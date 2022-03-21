@@ -397,8 +397,10 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
   Object *start_cap_ob = amd->start_cap;
   if (start_cap_ob && start_cap_ob != ctx->object) {
-    vgroup_start_cap_remap = BKE_object_defgroup_index_map_create(
-        start_cap_ob, ctx->object, &vgroup_start_cap_remap_len);
+    if (start_cap_ob->type == OB_MESH && ctx->object->type == OB_MESH) {
+      vgroup_start_cap_remap = BKE_object_defgroup_index_map_create(
+          start_cap_ob, ctx->object, &vgroup_start_cap_remap_len);
+    }
 
     start_cap_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(start_cap_ob, false);
     if (start_cap_mesh) {
@@ -410,8 +412,10 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   }
   Object *end_cap_ob = amd->end_cap;
   if (end_cap_ob && end_cap_ob != ctx->object) {
-    vgroup_end_cap_remap = BKE_object_defgroup_index_map_create(
-        end_cap_ob, ctx->object, &vgroup_end_cap_remap_len);
+    if (start_cap_ob->type == OB_MESH && ctx->object->type == OB_MESH) {
+      vgroup_end_cap_remap = BKE_object_defgroup_index_map_create(
+          end_cap_ob, ctx->object, &vgroup_end_cap_remap_len);
+    }
 
     end_cap_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(end_cap_ob, false);
     if (end_cap_mesh) {
