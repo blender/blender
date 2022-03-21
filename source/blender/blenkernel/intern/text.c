@@ -1501,7 +1501,8 @@ char *txt_sel_to_buf(Text *text, size_t *r_buf_strlen)
   if (linef == linel) {
     length = charl - charf;
     buf = MEM_mallocN(length + 1, "sel buffer");
-    memcpy(buf, linef->line + charf, length + 1);
+    memcpy(buf, linef->line + charf, length);
+    buf[length] = '\0';
   }
   else {
     /* Add 1 for the '\n' */
