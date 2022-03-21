@@ -544,7 +544,7 @@ void GLTexture::samplers_update()
   float max_anisotropy = 1.0f;
   glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
 
-  float aniso_filter = max_ff(max_anisotropy, U.anisotropic_filter);
+  float aniso_filter = min_ff(max_anisotropy, U.anisotropic_filter);
 
   for (int i = 0; i <= GPU_SAMPLER_ICON - 1; i++) {
     eGPUSamplerState state = static_cast<eGPUSamplerState>(i);
