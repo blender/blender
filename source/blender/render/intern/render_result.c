@@ -208,13 +208,14 @@ RenderPass *render_layer_add_pass(RenderResult *rr,
   BLI_strncpy(rpass->name, name, sizeof(rpass->name));
   BLI_strncpy(rpass->chan_id, chan_id, sizeof(rpass->chan_id));
   BLI_strncpy(rpass->view, viewname, sizeof(rpass->view));
-  IMB_exr_channel_name(rpass->fullname, NULL, rpass->name, rpass->view, rpass->chan_id, -1);
+  RE_render_result_full_channel_name(
+      rpass->fullname, NULL, rpass->name, rpass->view, rpass->chan_id, -1);
 
   if (rl->exrhandle) {
     int a;
     for (a = 0; a < channels; a++) {
       char passname[EXR_PASS_MAXNAME];
-      IMB_exr_channel_name(passname, NULL, rpass->name, NULL, rpass->chan_id, a);
+      RE_render_result_full_channel_name(passname, NULL, rpass->name, NULL, rpass->chan_id, a);
       IMB_exr_add_channel(rl->exrhandle, rl->name, passname, viewname, 0, 0, NULL, false);
     }
   }
@@ -508,6 +509,36 @@ void RE_create_render_pass(RenderResult *rr,
   }
 }
 
+void RE_render_result_full_channel_name(char *fullname,
+                                        const char *layname,
+                                        const char *passname,
+                                        const char *viewname,
+                                        const char *chan_id,
+                                        const int channel)
+{
+  /* OpenEXR compatible full channel name. */
+  const char *strings[4];
+  int strings_len = 0;
+
+  if (layname && layname[0]) {
+    strings[strings_len++] = layname;
+  }
+  if (passname && passname[0]) {
+    strings[strings_len++] = passname;
+  }
+  if (viewname && viewname[0]) {
+    strings[strings_len++] = viewname;
+  }
+
+  char token[2];
+  if (channel >= 0) {
+    ARRAY_SET_ITEMS(token, chan_id[channel], '\0');
+    strings[strings_len++] = token;
+  }
+
+  BLI_string_join_array_by_sep_char(fullname, EXR_PASS_MAXNAME, '.', strings, strings_len);
+}
+
 static int passtype_from_name(const char *name)
 {
   const char delim[] = {'.', '\0'};
@@ -584,7 +615,7 @@ static void ml_addpass_cb(void *base,
   rpass->rect = rect;
   BLI_strncpy(rpass->name, name, EXR_PASS_MAXNAME);
   BLI_strncpy(rpass->view, view, sizeof(rpass->view));
-  IMB_exr_channel_name(rpass->fullname, NULL, name, view, rpass->chan_id, -1);
+  RE_render_result_full_channel_name(rpass->fullname, NULL, name, view, rpass->chan_id, -1);
 
   if (view[0] != '\0') {
     rpass->view_id = BLI_findstringindex(&rr->views, view, offsetof(RenderView, name));
@@ -899,12 +930,14 @@ int render_result_exr_file_read_path(RenderResult *rr,
       char fullname[EXR_PASS_MAXNAME];
 
       for (a = 0; a < xstride; a++) {
-        IMB_exr_channel_name(fullname, NULL, rpass->name, rpass->view, rpass->chan_id, a);
+        RE_render_result_full_channel_name(
+            fullname, NULL, rpass->name, rpass->view, rpass->chan_id, a);
         IMB_exr_set_channel(
             exrhandle, rl->name, fullname, xstride, xstride * rectx, rpass->rect + a);
       }
 
-      IMB_exr_channel_name(rpass->fullname, NULL, rpass->name, rpass->view, rpass->chan_id, -1);
+      RE_render_result_full_channel_name(
+          rpass->fullname, NULL, rpass->name, rpass->view, rpass->chan_id, -1);
     }
   }
 

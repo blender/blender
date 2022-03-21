@@ -242,6 +242,13 @@ void RE_AcquiredResultGet32(struct Render *re,
                             unsigned int *rect,
                             int view_id);
 
+void RE_render_result_full_channel_name(char *fullname,
+                                        const char *layname,
+                                        const char *passname,
+                                        const char *viewname,
+                                        const char *chan_id,
+                                        const int channel);
+
 struct ImBuf *RE_render_result_rect_to_ibuf(struct RenderResult *rr,
                                             const struct ImageFormatData *imf,
                                             const float dither,

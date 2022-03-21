@@ -510,7 +510,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
         const char *chan_id = "RGBA";
 
         if (multi_layer) {
-          IMB_exr_channel_name(passname, nullptr, "Combined", nullptr, chan_id, a);
+          RE_render_result_full_channel_name(passname, nullptr, "Combined", nullptr, chan_id, a);
           BLI_strncpy(layname, "Composite", sizeof(layname));
         }
         else {
@@ -568,7 +568,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
         char layname[EXR_PASS_MAXNAME];
 
         if (multi_layer) {
-          IMB_exr_channel_name(passname, nullptr, rp->name, nullptr, rp->chan_id, a);
+          RE_render_result_full_channel_name(passname, nullptr, rp->name, nullptr, rp->chan_id, a);
           BLI_strncpy(layname, rl->name, sizeof(layname));
         }
         else {
