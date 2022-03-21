@@ -119,10 +119,12 @@ void EEVEE_motion_blur_data_free(EEVEE_MotionBlurData *mb)
   for (int i = 0; i < 2; i++) {
     if (mb->position_vbo_cache[i]) {
       BLI_ghash_free(mb->position_vbo_cache[i], NULL, (GHashValFreeFP)GPU_vertbuf_discard);
+      mb->position_vbo_cache[i] = NULL;
     }
     if (mb->hair_motion_step_cache[i]) {
       BLI_ghash_free(
           mb->hair_motion_step_cache[i], NULL, (GHashValFreeFP)EEVEE_motion_hair_step_free);
+      mb->hair_motion_step_cache[i] = NULL;
     }
   }
 }
