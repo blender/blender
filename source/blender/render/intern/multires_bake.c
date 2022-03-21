@@ -66,7 +66,7 @@ typedef struct {
   MLoopUV *mloopuv;
   const MLoopTri *mlooptri;
   float *pvtangent;
-  const float *precomputed_normals;
+  const float (*precomputed_normals)[3];
   int w, h;
   int tri_index;
   DerivedMesh *lores_dm, *hires_dm;
@@ -116,7 +116,7 @@ static void multiresbake_get_normal(const MResolvePixelData *data,
 
   if (!smoothnormal) { /* flat */
     if (data->precomputed_normals) {
-      copy_v3_v3(norm, &data->precomputed_normals[poly_index]);
+      copy_v3_v3(norm, data->precomputed_normals[poly_index]);
     }
     else {
       BKE_mesh_calc_poly_normal(mp, &data->mloop[mp->loopstart], data->mvert, norm);
@@ -542,7 +542,7 @@ static void do_multires_bake(MultiresBakeRender *bkr,
       handle->data.mlooptri = mlooptri;
       handle->data.mloop = mloop;
       handle->data.pvtangent = pvtangent;
-      handle->data.precomputed_normals = (float *)poly_normals; /* don't strictly need this */
+      handle->data.precomputed_normals = poly_normals; /* don't strictly need this */
       handle->data.w = ibuf->x;
       handle->data.h = ibuf->y;
       handle->data.lores_dm = dm;
