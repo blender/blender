@@ -2428,5 +2428,23 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Initialize brush curves sculpt settings. */
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->ob_mode != OB_MODE_SCULPT_CURVES) {
+        continue;
+      }
+      if (brush->curves_sculpt_settings != NULL) {
+        continue;
+      }
+      brush->curves_sculpt_settings = MEM_callocN(sizeof(BrushCurvesSculptSettings), __func__);
+      brush->curves_sculpt_settings->add_amount = 1;
+    }
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->toolsettings && scene->toolsettings->curves_sculpt &&
+          scene->toolsettings->curves_sculpt->curve_length == 0.0f) {
+        scene->toolsettings->curves_sculpt->curve_length = 0.3f;
+      }
+    }
   }
 }

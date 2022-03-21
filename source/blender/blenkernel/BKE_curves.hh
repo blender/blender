@@ -203,6 +203,24 @@ class CurvesGeometry : public ::CurvesGeometry {
   MutableSpan<float> nurbs_weights();
 
   /**
+   * The index of a triangle (#MLoopTri) that a curve is attached to.
+   * The index is -1, if the curve is not attached.
+   */
+  VArray<int> surface_triangle_indices() const;
+  MutableSpan<int> surface_triangle_indices();
+
+  /**
+   * Barycentric coordinates of the attachment point within a triangle.
+   * Only the first two coordinates are stored. The third coordinate can be derived because the sum
+   * of the three coordinates is 1.
+   *
+   * When the triangle index is -1, this coordinate should be ignored.
+   * The span can be empty, when all triangle indices are -1.
+   */
+  Span<float2> surface_triangle_coords() const;
+  MutableSpan<float2> surface_triangle_coords();
+
+  /**
    * Calculate the largest and smallest position values, only including control points
    * (rather than evaluated points). The existing values of `min` and `max` are taken into account.
    *

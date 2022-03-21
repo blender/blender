@@ -137,6 +137,11 @@ typedef struct BrushGpencilSettings {
   struct Material *material;
 } BrushGpencilSettings;
 
+typedef struct BrushCurvesSculptSettings {
+  /* Number of curves added by the add brush.  */
+  int add_amount;
+} BrushCurvesSculptSettings;
+
 typedef struct Brush {
   ID id;
 
@@ -360,7 +365,7 @@ typedef struct Brush {
   float mask_stencil_dimension[2];
 
   struct BrushGpencilSettings *gpencil_settings;
-
+  struct BrushCurvesSculptSettings *curves_sculpt_settings;
 } Brush;
 
 /* Struct to hold palette colors for sorting. */

@@ -186,7 +186,7 @@ class ShrinkOperation : public CurvesSculptStrokeOperation {
   }
 };
 
-class AddOperation : public CurvesSculptStrokeOperation {
+class DensityAddOperation : public CurvesSculptStrokeOperation {
  private:
   /** Contains the root points of the curves that existed before this operation started. */
   KDTree_3d *old_kdtree_ = nullptr;
@@ -207,7 +207,7 @@ class AddOperation : public CurvesSculptStrokeOperation {
   };
 
  public:
-  ~AddOperation() override
+  ~DensityAddOperation() override
   {
     if (old_kdtree_ != nullptr) {
       BLI_kdtree_3d_free(old_kdtree_);
@@ -624,8 +624,10 @@ static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(bConte
       return new_delete_operation();
     case CURVES_SCULPT_TOOL_SNAKE_HOOK:
       return new_snake_hook_operation();
+    case CURVES_SCULPT_TOOL_ADD:
+      return new_add_operation();
     case CURVES_SCULPT_TOOL_TEST1:
-      return std::make_unique<AddOperation>();
+      return std::make_unique<DensityAddOperation>();
     case CURVES_SCULPT_TOOL_TEST2:
       return std::make_unique<ShrinkOperation>();
   }

@@ -31,6 +31,8 @@ static const std::string ATTR_HANDLE_POSITION_RIGHT = "handle_right";
 static const std::string ATTR_NURBS_ORDER = "nurbs_order";
 static const std::string ATTR_NURBS_WEIGHT = "nurbs_weight";
 static const std::string ATTR_NURBS_KNOTS_MODE = "knots_mode";
+static const std::string ATTR_SURFACE_TRIANGLE_INDEX = "surface_triangle_index";
+static const std::string ATTR_SURFACE_TRIANGLE_COORDINATE = "surface_triangle_coordinate";
 
 /* -------------------------------------------------------------------- */
 /** \name Constructors/Destructor
@@ -376,6 +378,26 @@ VArray<int8_t> CurvesGeometry::nurbs_knots_modes() const
 MutableSpan<int8_t> CurvesGeometry::nurbs_knots_modes()
 {
   return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_KNOTS_MODE);
+}
+
+VArray<int> CurvesGeometry::surface_triangle_indices() const
+{
+  return get_varray_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_TRIANGLE_INDEX, -1);
+}
+
+MutableSpan<int> CurvesGeometry::surface_triangle_indices()
+{
+  return get_mutable_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_TRIANGLE_INDEX);
+}
+
+Span<float2> CurvesGeometry::surface_triangle_coords() const
+{
+  return get_span_attribute<float2>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_TRIANGLE_COORDINATE);
+}
+
+MutableSpan<float2> CurvesGeometry::surface_triangle_coords()
+{
+  return get_mutable_attribute<float2>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_TRIANGLE_COORDINATE);
 }
 
 /** \} */

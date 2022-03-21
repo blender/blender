@@ -986,6 +986,11 @@ static void stroke_done(bContext *C, wmOperator *op, PaintStroke *stroke)
   paint_stroke_free(C, op, stroke);
 }
 
+static bool curves_sculpt_brush_uses_spacing(const eBrushCurvesSculptTool tool)
+{
+  return ELEM(tool, CURVES_SCULPT_TOOL_ADD);
+}
+
 bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
 {
   if ((br->flag & BRUSH_SPACE) == 0) {
@@ -1000,7 +1005,8 @@ bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
     return true;
   }
 
-  if (mode == PAINT_MODE_SCULPT_CURVES) {
+  if (mode == PAINT_MODE_SCULPT_CURVES &&
+      !curves_sculpt_brush_uses_spacing(br->curves_sculpt_tool)) {
     return false;
   }
 
