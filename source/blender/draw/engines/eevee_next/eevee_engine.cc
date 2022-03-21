@@ -11,14 +11,14 @@
 
 #include "DRW_render.h"
 
-typedef struct EEVEE_Data {
+struct EEVEE_Data {
   DrawEngineType *engine_type;
   DRWViewportEmptyList *fbl;
   DRWViewportEmptyList *txl;
   DRWViewportEmptyList *psl;
   DRWViewportEmptyList *stl;
   void *instance;
-} EEVEE_Data;
+};
 
 static void eevee_engine_init(void *vedata)
 {
@@ -45,7 +45,7 @@ static void eevee_cache_finish(void *vedata)
   UNUSED_VARS(vedata);
 }
 
-static void eevee_engine_free(void)
+static void eevee_engine_free()
 {
 }
 

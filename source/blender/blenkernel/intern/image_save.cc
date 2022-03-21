@@ -5,8 +5,8 @@
  * \ingroup bke
  */
 
-#include <errno.h>
-#include <string.h>
+#include <cerrno>
+#include <cstring>
 
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
@@ -194,7 +194,7 @@ static bool image_save_single(ReportList *reports,
       if (!BKE_image_is_stereo(ima)) {
         BKE_reportf(reports,
                     RPT_ERROR,
-                    "Did not write, the image doesn't have a \"%s\" and \"%s\" views",
+                    R"(Did not write, the image doesn't have a "%s" and "%s" views)",
                     STEREO_LEFT_NAME,
                     STEREO_RIGHT_NAME);
         BKE_image_release_ibuf(ima, ibuf, lock);
@@ -207,7 +207,7 @@ static bool image_save_single(ReportList *reports,
           (BLI_findstring(&rr->views, STEREO_RIGHT_NAME, offsetof(RenderView, name)) == nullptr)) {
         BKE_reportf(reports,
                     RPT_ERROR,
-                    "Did not write, the image doesn't have a \"%s\" and \"%s\" views",
+                    R"(Did not write, the image doesn't have a "%s" and "%s" views)",
                     STEREO_LEFT_NAME,
                     STEREO_RIGHT_NAME);
         BKE_image_release_ibuf(ima, ibuf, lock);
@@ -221,14 +221,14 @@ static bool image_save_single(ReportList *reports,
   /* fancy multiview OpenEXR */
   if (imf->views_format == R_IMF_VIEWS_MULTIVIEW && is_exr_rr) {
     /* save render result */
-    ok = BKE_image_render_write_exr(reports, rr, opts->filepath, imf, NULL, layer);
+    ok = BKE_image_render_write_exr(reports, rr, opts->filepath, imf, nullptr, layer);
     image_save_post(reports, ima, ibuf, ok, opts, true, opts->filepath, r_colorspace_changed);
     BKE_image_release_ibuf(ima, ibuf, lock);
   }
   /* regular mono pipeline */
   else if (is_mono) {
     if (is_exr_rr) {
-      ok = BKE_image_render_write_exr(reports, rr, opts->filepath, imf, NULL, layer);
+      ok = BKE_image_render_write_exr(reports, rr, opts->filepath, imf, nullptr, layer);
     }
     else {
       colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(
@@ -310,7 +310,7 @@ static bool image_save_single(ReportList *reports,
   /* stereo (multiview) images */
   else if (opts->im_format.views_format == R_IMF_VIEWS_STEREO_3D) {
     if (imf->imtype == R_IMF_IMTYPE_MULTILAYER) {
-      ok = BKE_image_render_write_exr(reports, rr, opts->filepath, imf, NULL, layer);
+      ok = BKE_image_render_write_exr(reports, rr, opts->filepath, imf, nullptr, layer);
       image_save_post(reports, ima, ibuf, ok, opts, true, opts->filepath, r_colorspace_changed);
       BKE_image_release_ibuf(ima, ibuf, lock);
     }
@@ -510,7 +510,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
         const char *chan_id = "RGBA";
 
         if (multi_layer) {
-          IMB_exr_channel_name(passname, NULL, "Combined", NULL, chan_id, a);
+          IMB_exr_channel_name(passname, nullptr, "Combined", nullptr, chan_id, a);
           BLI_strncpy(layname, "Composite", sizeof(layname));
         }
         else {
@@ -568,7 +568,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
         char layname[EXR_PASS_MAXNAME];
 
         if (multi_layer) {
-          IMB_exr_channel_name(passname, NULL, rp->name, NULL, rp->chan_id, a);
+          IMB_exr_channel_name(passname, nullptr, rp->name, nullptr, rp->chan_id, a);
           BLI_strncpy(layname, rl->name, sizeof(layname));
         }
         else {
@@ -667,7 +667,7 @@ bool BKE_image_render_write(ReportList *reports,
   const float dither = scene->r.dither_intensity;
 
   if (rd->im_format.views_format == R_IMF_VIEWS_MULTIVIEW && is_exr_rr) {
-    ok = BKE_image_render_write_exr(reports, rr, filename, &rd->im_format, NULL, -1);
+    ok = BKE_image_render_write_exr(reports, rr, filename, &rd->im_format, nullptr, -1);
     image_render_print_save_message(reports, filename, ok, errno);
   }
 
@@ -732,7 +732,7 @@ bool BKE_image_render_write(ReportList *reports,
       printf("Stereo 3D not supported for MultiLayer image: %s\n", filepath);
     }
     else {
-      ImBuf *ibuf_arr[3] = {NULL};
+      ImBuf *ibuf_arr[3] = {nullptr};
       const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
       int i;
 
