@@ -550,7 +550,7 @@ void GRAPH_OT_decimate(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Blend To Neighbor Operator
+/** \name Blend to Neighbor Operator
  * \{ */
 
 static void blend_to_neighbor_graph_keys(bAnimContext *ac, float factor)
@@ -584,7 +584,7 @@ static void blend_to_neighbor_draw_status_header(bContext *C, tGraphSliderOp *gs
 
   ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
 
-  strcpy(mode_str, TIP_("Blend To Neighbor"));
+  strcpy(mode_str, TIP_("Blend to Neighbor"));
 
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
@@ -652,7 +652,7 @@ static int blend_to_neighbor_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_blend_to_neighbor(wmOperatorType *ot)
 {
   /* Identifiers. */
-  ot->name = "Blend To Neighbor";
+  ot->name = "Blend to Neighbor";
   ot->idname = "GRAPH_OT_blend_to_neighbor";
   ot->description = "Blend selected keyframes to their left or right neighbor";
 
@@ -804,7 +804,7 @@ void GRAPH_OT_breakdown(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Blend To Default Value Operator
+/** \name Blend to Default Value Operator
  * \{ */
 
 static void blend_to_default_graph_keys(bAnimContext *ac, const float factor)
@@ -839,7 +839,7 @@ static void blend_to_default_draw_status_header(bContext *C, tGraphSliderOp *gso
 
   ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
 
-  strcpy(mode_str, TIP_("Blend To Default Value"));
+  strcpy(mode_str, TIP_("Blend to Default Value"));
 
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
@@ -906,7 +906,7 @@ static int blend_to_default_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_blend_to_default(wmOperatorType *ot)
 {
   /* Identifiers. */
-  ot->name = "Blend To Default Value";
+  ot->name = "Blend to Default Value";
   ot->idname = "GRAPH_OT_blend_to_default";
   ot->description = "Blend selected keys to their default value from their current position";
 

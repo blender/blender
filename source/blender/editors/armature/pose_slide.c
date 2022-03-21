@@ -896,7 +896,7 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
       strcpy(mode_str, TIP_("Breakdown"));
       break;
     case POSESLIDE_BLEND:
-      strcpy(mode_str, TIP_("Blend To Neighbor"));
+      strcpy(mode_str, TIP_("Blend to Neighbor"));
       break;
 
     default:
@@ -1722,7 +1722,7 @@ static int pose_slide_blend_to_neighbors_exec(bContext *C, wmOperator *op)
 void POSE_OT_blend_to_neighbors(wmOperatorType *ot)
 {
   /* Identifiers. */
-  ot->name = "Blend To Neighbor";
+  ot->name = "Blend to Neighbor";
   ot->idname = "POSE_OT_blend_to_neighbor";
   ot->description = "Blend from current position to previous or next keyframe";
 
