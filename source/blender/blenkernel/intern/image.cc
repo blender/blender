@@ -29,10 +29,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_metadata.h"
 #include "IMB_moviecache.h"
-
-#ifdef WITH_OPENEXR
-#  include "intern/openexr/openexr_multi.h"
-#endif
+#include "IMB_openexr.h"
 
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW

@@ -57,6 +57,7 @@ set(SRC
   IMB_imbuf_types.h
   IMB_metadata.h
   IMB_moviecache.h
+  IMB_openexr.h
   IMB_thumbs.h
   intern/IMB_allocimbuf.h
   intern/IMB_anim.h

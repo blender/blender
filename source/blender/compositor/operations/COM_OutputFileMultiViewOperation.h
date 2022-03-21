@@ -11,7 +11,7 @@
 
 #include "DNA_color_types.h"
 
-#include "intern/openexr/openexr_multi.h"
+#include "IMB_openexr.h"
 
 namespace blender::compositor {
 

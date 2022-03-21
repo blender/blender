@@ -62,8 +62,8 @@ typedef struct RenderView {
 typedef struct RenderPass {
   struct RenderPass *next, *prev;
   int channels;
-  char name[64];   /* amount defined in openexr_multi.h */
-  char chan_id[8]; /* amount defined in openexr_multi.h */
+  char name[64];   /* amount defined in IMB_openexr.h */
+  char chan_id[8]; /* amount defined in IMB_openexr.h */
   float *rect;
   int rectx, recty;
 

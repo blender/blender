@@ -6,7 +6,8 @@
  */
 
 #include "openexr_api.h"
-#include "openexr_multi.h"
+
+#include "IMB_openexr.h"
 
 void *IMB_exr_get_handle(void)
 {

@@ -22,9 +22,9 @@
 
 #include "WM_api.h"
 
-#include "node_composite_util.hh"
+#include "IMB_openexr.h"
 
-#include "intern/openexr/openexr_multi.h"
+#include "node_composite_util.hh"
 
 /* **************** OUTPUT FILE ******************** */
 

@@ -2,12 +2,12 @@
  * Copyright 2006 Blender Foundation. All rights reserved. */
 
 /** \file
- * \ingroup openexr
+ * \ingroup imbuf
  */
 
 #pragma once
 
-/* Experiment with more advanced EXR API. */
+/* API for reading and writing multilayer EXR files. */
 
 /* XXX layer+pass name max 64? */
 /* This api also supports max 8 channels per pass now. easy to fix! */

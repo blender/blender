@@ -25,12 +25,11 @@
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+#include "IMB_openexr.h"
 
 #include "GPU_texture.h"
 
 #include "MEM_guardedalloc.h"
-
-#include "intern/openexr/openexr_multi.h"
 
 /* Statics */
 static ListBase studiolights;
