@@ -27,6 +27,10 @@
 
 #include "obj_export_mesh.hh"
 
+#ifdef WITH_TBB
+#  include <tbb/parallel_sort.h>
+#endif
+
 namespace blender::io::obj {
 OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Object *mesh_object)
 {
@@ -76,6 +80,7 @@ void OBJMesh::clear()
   uv_coords_.clear_and_make_inline();
   loop_to_normal_index_.clear_and_make_inline();
   normal_coords_.clear_and_make_inline();
+  poly_order_.clear_and_make_inline();
   if (poly_smooth_groups_) {
     MEM_freeN(poly_smooth_groups_);
     poly_smooth_groups_ = nullptr;
@@ -191,6 +196,26 @@ void OBJMesh::calc_smooth_groups(const bool use_bitflags)
                                                    export_mesh_eval_->totloop,
                                                    &tot_smooth_groups_,
                                                    use_bitflags);
+}
+
+void OBJMesh::calc_poly_order()
+{
+  const int tot_polys = tot_polygons();
+  poly_order_.resize(tot_polys);
+  for (int i = 0; i < tot_polys; ++i) {
+    poly_order_[i] = i;
+  }
+  const MPoly *mpolys = export_mesh_eval_->mpoly;
+  /* Sort polygons by their material index. */
+#ifdef WITH_TBB
+  tbb::parallel_sort(poly_order_.begin(), poly_order_.end(), [&](int a, int b) {
+#else
+  std::sort(poly_order_.begin(), poly_order_.end(), [&](const Vert *a, const Vert *b) {
+#endif
+    int mat_a = mpolys[a].mat_nr;
+    int mat_b = mpolys[b].mat_nr;
+    return mat_a < mat_b;
+  });
 }
 
 const Material *OBJMesh::get_object_material(const int16_t mat_nr) const
