@@ -325,7 +325,12 @@ void OBJWriter::write_poly_elements(const OBJMesh &obj_mesh_data,
       obj_mesh_data.tot_uv_vertices());
 
   const int tot_polygons = obj_mesh_data.tot_polygons();
-  for (int i = 0; i < tot_polygons; i++) {
+  for (int idx = 0; idx < tot_polygons; idx++) {
+    /* Polygon order for writing into the file is not necessarily the same
+     * as order in the mesh; it will be sorted by material indices. Remap current
+     * index here according to the order. */
+    int i = obj_mesh_data.remap_poly_index(idx);
+
     Vector<int> poly_vertex_indices = obj_mesh_data.calc_poly_vertex_indices(i);
     Span<int> poly_uv_indices = obj_mesh_data.calc_poly_uv_indices(i);
     Vector<int> poly_normal_indices = obj_mesh_data.calc_poly_normal_indices(i);

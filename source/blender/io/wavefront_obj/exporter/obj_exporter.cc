@@ -171,6 +171,9 @@ static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_me
       if (export_params.export_smooth_groups) {
         obj_mesh->calc_smooth_groups(export_params.smooth_groups_bitflags);
       }
+      if (export_params.export_materials) {
+        obj_mesh->calc_poly_order();
+      }
       if (export_params.export_normals) {
         obj_writer.write_poly_normals(*obj_mesh);
       }

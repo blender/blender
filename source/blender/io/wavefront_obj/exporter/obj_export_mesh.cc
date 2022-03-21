@@ -195,6 +195,25 @@ void OBJMesh::calc_smooth_groups(const bool use_bitflags)
                                                    use_bitflags);
 }
 
+void OBJMesh::calc_poly_order()
+{
+  const int tot_polys = tot_polygons();
+  poly_order_.resize(tot_polys);
+  for (int i = 0; i < tot_polys; ++i) {
+    poly_order_[i] = i;
+  }
+  const MPoly *mpolys = export_mesh_eval_->mpoly;
+  /* Sort polygons by their material index. */
+  std::sort(poly_order_.begin(), poly_order_.end(), [&](int a, int b) {
+    int mat_a = mpolys[a].mat_nr;
+    int mat_b = mpolys[b].mat_nr;
+    if (mat_a != mat_b) {
+      return mat_a < mat_b;
+    }
+    return a < b;
+  });
+}
+
 const Material *OBJMesh::get_object_material(const int16_t mat_nr) const
 {
   /**
