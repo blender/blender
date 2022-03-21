@@ -1215,6 +1215,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
         wmEvent event;
         wm_event_init_from_window(win, &event);
         event.type = MOUSEMOVE;
+        event.val = KM_NOTHING;
         copy_v2_v2_int(event.prev_xy, event.xy);
         event.flag = 0;
 
@@ -1346,6 +1347,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 
         /* activate region */
         event.type = MOUSEMOVE;
+        event.val = KM_NOTHING;
         copy_v2_v2_int(event.prev_xy, event.xy);
         event.flag = 0;
 

@@ -194,6 +194,10 @@ void wm_event_free(wmEvent *event)
     printf("%s: 'is_repeat=true' for non-keyboard event, this should not happen.\n", __func__);
     WM_event_print(event);
   }
+  if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) && (event->val != KM_NOTHING)) {
+    printf("%s: 'val != NOTHING' for a cursor motion event, this should not happen.\n", __func__);
+    WM_event_print(event);
+  }
 #endif
 
   wm_event_custom_free(event);
@@ -3879,6 +3883,7 @@ void wm_event_do_handlers(bContext *C)
       wmEvent tevent = *(win->eventstate);
       // printf("adding MOUSEMOVE %d %d\n", tevent.xy[0], tevent.xy[1]);
       tevent.type = MOUSEMOVE;
+      tevent.val = KM_NOTHING;
       tevent.prev_xy[0] = tevent.xy[0];
       tevent.prev_xy[1] = tevent.xy[1];
       tevent.flag = 0;
@@ -4822,6 +4827,7 @@ static wmEvent *wm_event_add_mousemove_to_head(wmWindow *win)
   }
 
   tevent.type = MOUSEMOVE;
+  tevent.val = KM_NOTHING;
   copy_v2_v2_int(tevent.prev_xy, tevent.xy);
 
   wmEvent *event_new = wm_event_add(win, &tevent);
@@ -4956,6 +4962,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       wm_tablet_data_from_ghost(&cd->tablet, &event.tablet);
 
       event.type = MOUSEMOVE;
+      event.val = KM_NOTHING;
       {
         wmEvent *event_new = wm_event_add_mousemove(win, &event);
         copy_v2_v2_int(event_state->xy, event_new->xy);
@@ -4974,6 +4981,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
 
         copy_v2_v2_int(event_other.xy, event.xy);
         event_other.type = MOUSEMOVE;
+        event_other.val = KM_NOTHING;
         {
           wmEvent *event_new = wm_event_add_mousemove(win_other, &event_other);
           copy_v2_v2_int(win_other->eventstate->xy, event_new->xy);
