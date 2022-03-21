@@ -35,11 +35,21 @@ void OutputFileNode::map_input_sockets(NodeConverter &converter,
   }
 }
 
+void OutputFileNode::add_preview_to_first_linked_input(NodeConverter &converter) const
+{
+  NodeInput *first_socket = this->get_input_socket(0);
+  if (first_socket->is_linked()) {
+    converter.add_node_input_preview(first_socket);
+  }
+}
+
 void OutputFileNode::convert_to_operations(NodeConverter &converter,
                                            const CompositorContext &context) const
 {
   NodeImageMultiFile *storage = (NodeImageMultiFile *)this->get_bnode()->storage;
   const bool is_multiview = (context.get_render_data()->scemode & R_MULTIVIEW) != 0;
+
+  add_preview_to_first_linked_input(converter);
 
   if (!context.is_rendering()) {
     /* only output files when rendering a sequence -
@@ -81,7 +91,6 @@ void OutputFileNode::convert_to_operations(NodeConverter &converter,
     map_input_sockets(converter, *output_operation);
   }
   else { /* single layer format */
-    bool preview_added = false;
     for (NodeInput *input : inputs_) {
       if (input->is_linked()) {
         NodeImageMultiFileSocket *sockdata =
@@ -133,11 +142,6 @@ void OutputFileNode::convert_to_operations(NodeConverter &converter,
 
         converter.add_operation(output_operation);
         converter.map_input_socket(input, output_operation->get_input_socket(0));
-
-        if (!preview_added) {
-          converter.add_node_input_preview(input);
-          preview_added = true;
-        }
       }
     }
   }
