@@ -88,7 +88,7 @@ void WM_event_print(const wmEvent *event)
 
     char modifier_id[128];
     {
-      struct FlagIdentifierPair flag_data[4] = {
+      struct FlagIdentifierPair flag_data[] = {
           {"SHIFT", KM_SHIFT},
           {"CTRL", KM_CTRL},
           {"ALT", KM_ALT},
@@ -100,7 +100,7 @@ void WM_event_print(const wmEvent *event)
 
     char flag_id[128];
     {
-      struct FlagIdentifierPair flag_data[4] = {
+      struct FlagIdentifierPair flag_data[] = {
           {"SCROLL_INVERT", WM_EVENT_SCROLL_INVERT},
           {"IS_REPEAT", WM_EVENT_IS_REPEAT},
           {"FORCE_DRAG_THRESHOLD", WM_EVENT_FORCE_DRAG_THRESHOLD},
