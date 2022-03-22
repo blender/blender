@@ -318,7 +318,7 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
 
   /* Initialise Capabilities. */
   MTLBackend::capabilities.supports_argument_buffers_tier2 = ([device argumentBuffersSupport] ==
-                                                                MTLArgumentBuffersTier2);
+                                                              MTLArgumentBuffersTier2);
   MTLBackend::capabilities.supports_family_mac1 = [device supportsFamily:MTLGPUFamilyMac1];
   MTLBackend::capabilities.supports_family_mac2 = [device supportsFamily:MTLGPUFamilyMac2];
   MTLBackend::capabilities.supports_family_mac_catalyst1 = [device
@@ -347,7 +347,7 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
 
   /* Conservative uniform data limit is 4KB per-stage -- This is the limit of setBytes.
    * MTLBuffer path is also supported but not as efficient. */
-  GCaps.max_uniforms_vert = 1024; 
+  GCaps.max_uniforms_vert = 1024;
   GCaps.max_uniforms_frag = 1024;
 
   GCaps.max_batch_indices = 1 << 31;
@@ -364,7 +364,7 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   GCaps.shader_storage_buffer_objects_support =
       false; /* TODO(Metal): implement Storage Buffer support.*/
 
-  /* Maximum buffer bindings: 31. Consider required slot for uniforms/UBOs/Vertex attributes. 
+  /* Maximum buffer bindings: 31. Consider required slot for uniforms/UBOs/Vertex attributes.
    * Can use argument buffers if a higher limit is required. */
   GCaps.max_shader_storage_buffer_bindings = 24;
 
@@ -373,11 +373,13 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
     GCaps.max_work_group_count[1] = 65535;
     GCaps.max_work_group_count[2] = 65535;
 
-    /* In Metal, total_thread_count is 512 or 1024, such that 
+    /* In Metal, total_thread_count is 512 or 1024, such that
      * threadgroup `width*height*depth <= total_thread_count` */
-    unsigned int max_threads_per_threadgroup_per_dim = 
-        ([device supportsFamily:MTLGPUFamilyApple4] || 
-          MTLBackend::capabilities.supports_family_mac1) ? 1024 : 512;
+    unsigned int max_threads_per_threadgroup_per_dim =
+        ([device supportsFamily:MTLGPUFamilyApple4] ||
+         MTLBackend::capabilities.supports_family_mac1) ?
+            1024 :
+            512;
     GCaps.max_work_group_size[0] = max_threads_per_threadgroup_per_dim;
     GCaps.max_work_group_size[1] = max_threads_per_threadgroup_per_dim;
     GCaps.max_work_group_size[2] = max_threads_per_threadgroup_per_dim;
@@ -394,7 +396,8 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   GCaps.broken_amd_driver = false;
 
   /* Metal related workarounds. */
-  /* Minimum per-vertex stride is 4 bytes in Metal. A bound vertex buffer must contribute atleast 4 bytes per vertex. */
+  /* Minimum per-vertex stride is 4 bytes in Metal. A bound vertex buffer must contribute atleast 4
+   * bytes per vertex. */
   GCaps.minimum_per_vertex_stride = 4;
 }
 

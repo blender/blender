@@ -34,7 +34,7 @@ void main()
 {
   fragColor = texture(image_texture, texCoord_interp.xy);
   vec4 overlay_col = texture(overlays_texture, texCoord_interp.xy);
-  
+
   if (overlay) {
     fragColor = clamp(fragColor, 0.0, 1.0);
     fragColor *= 1.0 - overlay_col.a;

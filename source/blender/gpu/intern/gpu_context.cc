@@ -14,7 +14,7 @@
 
 /* TODO: Create cmake option. */
 #if WITH_OPENGL
-  #define WITH_OPENGL_BACKEND 1
+#  define WITH_OPENGL_BACKEND 1
 #endif
 
 #include "BLI_assert.h"
@@ -152,18 +152,21 @@ void GPU_context_main_unlock()
  * Used for global autoreleasepool flushing in Metal
  * \{ */
 
-void GPU_render_begin() {
-  GPUBackend* backend = GPUBackend::get();
+void GPU_render_begin()
+{
+  GPUBackend *backend = GPUBackend::get();
   BLI_assert(backend);
   backend->render_begin();
 }
-void GPU_render_end() {
-  GPUBackend* backend = GPUBackend::get();
+void GPU_render_end()
+{
+  GPUBackend *backend = GPUBackend::get();
   BLI_assert(backend);
   backend->render_end();
 }
-void GPU_render_step() {
-  GPUBackend* backend = GPUBackend::get();
+void GPU_render_step()
+{
+  GPUBackend *backend = GPUBackend::get();
   BLI_assert(backend);
   backend->render_step();
 }
@@ -229,7 +232,7 @@ void GPU_backend_exit()
 
 eGPUBackendType GPU_backend_get_type()
 {
-  
+
 #ifdef WITH_OPENGL_BACKEND
   if (g_backend && dynamic_cast<GLBackend *>(g_backend) != nullptr) {
     return GPU_BACKEND_OPENGL;

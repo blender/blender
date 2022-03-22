@@ -47,11 +47,12 @@ void GPU_context_main_lock(void);
 void GPU_context_main_unlock(void);
 
 /* GPU Begin/end work blocks */
-void GPU_render_begin();
-void GPU_render_end();
+void GPU_render_begin(void);
+void GPU_render_end(void);
 
-/* For operations which need to run exactly once per frame -- even if there are no render updates. */
-void GPU_render_step();
+/* For operations which need to run exactly once per frame -- even if there are no render updates.
+ */
+void GPU_render_step(void);
 
 #ifdef __cplusplus
 }

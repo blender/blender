@@ -148,10 +148,14 @@ bool GPU_type_matches(eGPUDeviceType device, eGPUOSType os, eGPUDriverType drive
   return GPU_type_matches_ex(device, os, driver, GPU_BACKEND_ANY);
 }
 
-bool GPU_type_matches_ex(eGPUDeviceType device, eGPUOSType os, eGPUDriverType driver, eGPUBackendType backend)
+bool GPU_type_matches_ex(eGPUDeviceType device,
+                         eGPUOSType os,
+                         eGPUDriverType driver,
+                         eGPUBackendType backend)
 {
   BLI_assert(GPG.initialized);
-  return (GPG.device & device) && (GPG.os & os) && (GPG.driver & driver) && (GPG.backend & backend);
+  return (GPG.device & device) && (GPG.os & os) && (GPG.driver & driver) &&
+         (GPG.backend & backend);
 }
 
 /** \} */

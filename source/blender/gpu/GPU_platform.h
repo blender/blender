@@ -58,10 +58,13 @@ extern "C" {
 #endif
 
 /* GPU Types */
-/* TODO: Verify all use-cases of GPU_type_matches to determine which graphics API it should apply to, and replace
- * with `GPU_type_matches_ex` where appropriate. */
+/* TODO: Verify all use-cases of GPU_type_matches to determine which graphics API it should apply
+ * to, and replace with `GPU_type_matches_ex` where appropriate. */
 bool GPU_type_matches(eGPUDeviceType device, eGPUOSType os, eGPUDriverType driver);
-bool GPU_type_matches_ex(eGPUDeviceType device, eGPUOSType os, eGPUDriverType driver, eGPUBackendType backend);
+bool GPU_type_matches_ex(eGPUDeviceType device,
+                         eGPUOSType os,
+                         eGPUDriverType driver,
+                         eGPUBackendType backend);
 
 eGPUSupportLevel GPU_platform_support_level(void);
 const char *GPU_platform_vendor(void);
