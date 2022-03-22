@@ -106,10 +106,12 @@ static void set_position_in_component(const GeometryNodeCurveHandleMode mode,
       for (const int i : bezier.positions().index_range()) {
         if (current_mask < selection.size() && selection[current_mask] == current_point) {
           if (mode & GEO_NODE_CURVE_HANDLE_LEFT) {
-            bezier.set_handle_position_left(i, positions_input[i] + offsets_input[i]);
+            bezier.set_handle_position_left(
+                i, positions_input[current_point] + offsets_input[current_point]);
           }
           else {
-            bezier.set_handle_position_right(i, positions_input[i] + offsets_input[i]);
+            bezier.set_handle_position_right(
+                i, positions_input[current_point] + offsets_input[current_point]);
           }
           current_mask++;
         }
