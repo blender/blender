@@ -496,7 +496,7 @@ static void iter_snap_objects(SnapObjectContext *sctx,
     return;
   }
 
-  const bool is_in_object_mode = base_act && base_act->object->mode == OB_MODE_OBJECT;
+  const bool is_in_object_mode = !base_act || base_act->object->mode == OB_MODE_OBJECT;
   for (Base *base = view_layer->object_bases.first; base != NULL; base = base->next) {
     if (!snap_object_is_snappable(sctx, snap_select, base_act, base, is_in_object_mode)) {
       continue;
