@@ -52,6 +52,14 @@ add_dependencies(
   external_boost
 )
 
+# Since USD 21.11 the libraries are prefixed with "usd_", i.e. "libusd_m.a" became "libusd_usd_m.a".
+# See https://github.com/PixarAnimationStudios/USD/blob/release/CHANGELOG.md#2111---2021-11-01
+if (USD_VERSION VERSION_LESS 21.11)
+  set(PXR_LIB_PREFIX "")
+else()
+  set(PXR_LIB_PREFIX "usd_")
+endif()
+
 if(WIN32)
   # USD currently demands python be available at build time
   # and then proceeds not to use it, but still checks that the
@@ -65,14 +73,14 @@ if(WIN32)
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_usd after_install
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/usd/ ${HARVEST_TARGET}/usd
-      COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/usd/src/external_usd-build/pxr/Release/usd_m.lib ${HARVEST_TARGET}/usd/lib/libusd_m.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/usd/src/external_usd-build/pxr/Release/${PXR_LIB_PREFIX}usd_m.lib ${HARVEST_TARGET}/usd/lib/lib${PXR_LIB_PREFIX}usd_m.lib
       DEPENDEES install
     )
   endif()
   if(BUILD_MODE STREQUAL Debug)
     ExternalProject_Add_Step(external_usd after_install
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/usd/lib ${HARVEST_TARGET}/usd/lib
-      COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/usd/src/external_usd-build/pxr/Debug/usd_m_d.lib ${HARVEST_TARGET}/usd/lib/libusd_m_d.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/usd/src/external_usd-build/pxr/Debug/${PXR_LIB_PREFIX}usd_m_d.lib ${HARVEST_TARGET}/usd/lib/lib${PXR_LIB_PREFIX}usd_m_d.lib
       DEPENDEES install
     )
   endif()
@@ -84,7 +92,7 @@ else()
   # case (only the shared library). As a result, we need to grab the `libusd_m.a`
   # file from the build directory instead of from the install directory.
   ExternalProject_Add_Step(external_usd after_install
-    COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/usd/src/external_usd-build/pxr/libusd_m.a ${HARVEST_TARGET}/usd/lib/libusd_m.a
+    COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/usd/src/external_usd-build/pxr/lib${PXR_LIB_PREFIX}usd_m.a ${HARVEST_TARGET}/usd/lib/lib${PXR_LIB_PREFIX}usd_m.a
     DEPENDEES install
   )
 endif()
