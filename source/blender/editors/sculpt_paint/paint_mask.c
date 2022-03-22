@@ -962,6 +962,7 @@ static void sculpt_gesture_trim_normals_update(SculptGestureContext *sgcontext)
                      trim_mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
+                         .calc_vert_normal = true,
                      }));
   BM_mesh_elem_hflag_enable_all(bm, BM_FACE, BM_ELEM_TAG, false);
   BMO_op_callf(bm,
@@ -1214,12 +1215,14 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
                      trim_mesh,
                      &((struct BMeshFromMeshParams){
                          .calc_face_normal = true,
+                         .calc_vert_normal = true,
                      }));
 
   BM_mesh_bm_from_me(bm,
                      sculpt_mesh,
                      &((struct BMeshFromMeshParams){
                          .calc_face_normal = true,
+                         .calc_vert_normal = true,
                      }));
 
   const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);

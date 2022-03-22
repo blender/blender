@@ -111,6 +111,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                             &(struct BMeshCreateParams){0},
                             &(struct BMeshFromMeshParams){
                                 .calc_face_normal = true,
+                                .calc_vert_normal = true,
                                 .add_key_index = false,
                                 .use_shapekey = false,
                                 .active_shapekey = 0,

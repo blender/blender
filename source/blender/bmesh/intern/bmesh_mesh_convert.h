@@ -19,6 +19,7 @@ char BM_mesh_cd_flag_from_bmesh(BMesh *bm);
 
 struct BMeshFromMeshParams {
   uint calc_face_normal : 1;
+  uint calc_vert_normal : 1;
   /* add a vertex CD_SHAPE_KEYINDEX layer */
   uint add_key_index : 1;
   /* set vertex coordinates from the shapekey */
