@@ -24,7 +24,7 @@ using namespace blender;
 using namespace blender::gpu;
 using namespace blender::gpu::shader;
 
-extern char datatoc_glsl_shader_defines_glsl[];
+extern "C" extern char datatoc_glsl_shader_defines_glsl[];
 
 /* -------------------------------------------------------------------- */
 /** \name Creation / Destruction
