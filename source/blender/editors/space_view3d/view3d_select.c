@@ -2452,9 +2452,6 @@ static bool ed_object_select_pick(bContext *C,
     vc.obedit = NULL;
   }
 
-  /* In pose-mode we don't want to change the object selection (unless exiting pose mode). */
-  const bool is_pose_mode = (vc.obact && vc.obact->mode & OB_MODE_POSE);
-
   /* Always start list from `basact` when cycling the selection. */
   startbase = FIRSTBASE(view_layer);
   if (oldbasact && oldbasact->next) {
@@ -2527,7 +2524,7 @@ static bool ed_object_select_pick(bContext *C,
 
     if (((hits > 0) && has_bones) ||
         /* Special case, even when there are no hits, pose logic may de-select all bones. */
-        ((hits == 0) && is_pose_mode)) {
+        ((hits == 0) && (object_mode & OB_MODE_POSE))) {
 
       if (basact && (has_bones && (basact->object->type == OB_CAMERA))) {
         MovieClip *clip = BKE_object_movieclip_get(scene, basact->object, false);
@@ -2577,7 +2574,7 @@ static bool ed_object_select_pick(bContext *C,
 
               handled = true;
             }
-            else if (is_pose_mode && (basact->object->mode & OB_MODE_POSE)) {
+            else if ((object_mode & OB_MODE_POSE) && (basact->object->mode & OB_MODE_POSE)) {
               /* Within pose-mode, keep the current selection when switching pose bones,
                * this is noticeable when in pose mode with multiple objects at once.
                * Where selecting the bone of a different object would de-select this one.
@@ -2684,11 +2681,8 @@ static bool ed_object_select_pick(bContext *C,
           break;
         }
         case SEL_OP_SET: {
-          /* When enabled, this puts other objects out of multi pose-mode. */
-          if (is_pose_mode == false || (basact->object->mode & OB_MODE_POSE) == 0) {
-            object_deselect_all_except(view_layer, basact);
-            ED_object_base_select(basact, BA_SELECT);
-          }
+          object_deselect_all_except(view_layer, basact);
+          ED_object_base_select(basact, BA_SELECT);
           break;
         }
         case SEL_OP_AND: {
@@ -2711,28 +2705,6 @@ static bool ed_object_select_pick(bContext *C,
   }
 
   if (changed) {
-    if (use_activate_selected_base) {
-      /* Set special modes for grease pencil
-       * The grease pencil modes are not real modes, but a hack to make the interface
-       * consistent, so need some tricks to keep UI synchronized */
-      /* XXX(@aligorith): This stuff needs reviewing. */
-      if (false && (((oldbasact) && oldbasact->object->type == OB_GPENCIL) ||
-                    (basact->object->type == OB_GPENCIL))) {
-        /* set cursor */
-        if (ELEM(basact->object->mode,
-                 OB_MODE_PAINT_GPENCIL,
-                 OB_MODE_SCULPT_GPENCIL,
-                 OB_MODE_WEIGHT_GPENCIL,
-                 OB_MODE_VERTEX_GPENCIL)) {
-          ED_gpencil_toggle_brush_cursor(C, true, NULL);
-        }
-        else {
-          /* TODO: maybe is better use restore. */
-          ED_gpencil_toggle_brush_cursor(C, false, NULL);
-        }
-      }
-    }
-
     if (vc.obact && vc.obact->mode & OB_MODE_POSE) {
       ED_outliner_select_sync_from_pose_bone_tag(C);
     }
