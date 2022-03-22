@@ -285,6 +285,7 @@ set(SRC
   BLI_simd.h
   BLI_smallhash.h
   BLI_sort.h
+  BLI_sort.hh
   BLI_sort_utils.h
   BLI_span.hh
   BLI_stack.h

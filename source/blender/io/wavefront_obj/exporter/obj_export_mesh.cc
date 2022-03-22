@@ -17,6 +17,7 @@
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_math.h"
+#include "BLI_sort.hh"
 
 #include "DEG_depsgraph_query.h"
 
@@ -26,10 +27,6 @@
 #include "DNA_object_types.h"
 
 #include "obj_export_mesh.hh"
-
-#ifdef WITH_TBB
-#  include <tbb/parallel_sort.h>
-#endif
 
 namespace blender::io::obj {
 OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Object *mesh_object)
@@ -207,11 +204,7 @@ void OBJMesh::calc_poly_order()
   }
   const MPoly *mpolys = export_mesh_eval_->mpoly;
   /* Sort polygons by their material index. */
-#ifdef WITH_TBB
-  tbb::parallel_sort(poly_order_.begin(), poly_order_.end(), [&](int a, int b) {
-#else
-  std::sort(poly_order_.begin(), poly_order_.end(), [&](const Vert *a, const Vert *b) {
-#endif
+  blender::parallel_sort(poly_order_.begin(), poly_order_.end(), [&](int a, int b) {
     int mat_a = mpolys[a].mat_nr;
     int mat_b = mpolys[b].mat_nr;
     return mat_a < mat_b;
