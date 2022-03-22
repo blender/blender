@@ -150,7 +150,7 @@ vec4 step_blit(void)
   float br = max_v3(m);
 
   /* Under-threshold part: quadratic curve */
-  float rq = clamp(br - curveThreshold.x, 0, curveThreshold.y);
+  float rq = clamp(br - curveThreshold.x, 0.0, curveThreshold.y);
   rq = curveThreshold.z * rq * rq;
 
   /* Combine and apply the brightness response curve. */

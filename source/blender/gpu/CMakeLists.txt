@@ -210,6 +210,7 @@ endif()
 
 set(GLSL_SRC
   GPU_shader_shared.h
+  shaders/opengl/glsl_shader_defines.glsl
 
   shaders/gpu_shader_depth_only_frag.glsl
   shaders/gpu_shader_uniform_color_frag.glsl

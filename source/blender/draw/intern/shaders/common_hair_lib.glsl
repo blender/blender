@@ -158,7 +158,7 @@ float hair_shaperadius(float shape, float root, float tip, float time)
   return (radius * (root - tip)) + tip;
 }
 
-#  ifdef OS_MAC
+#  if defined(OS_MAC) && defined(GPU_OPENGL)
 in float dummy;
 #  endif
 
@@ -178,7 +178,7 @@ void hair_get_pos_tan_binor_time(bool is_persp,
   wpos = data.point_position;
   time = data.point_time;
 
-#  ifdef OS_MAC
+#  if defined(OS_MAC) && defined(GPU_OPENGL)
   /* Generate a dummy read to avoid the driver bug with shaders having no
    * vertex reads on macOS (T60171) */
   wpos.y += dummy * 0.0;

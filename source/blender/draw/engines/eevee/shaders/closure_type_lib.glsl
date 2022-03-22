@@ -32,8 +32,10 @@ struct Closure {
 #endif
 };
 
+#ifndef GPU_METAL
 /* Prototype */
 Closure nodetree_exec(void);
+#endif
 
 /* clang-format off */
 /* Avoid multi-line defines. */

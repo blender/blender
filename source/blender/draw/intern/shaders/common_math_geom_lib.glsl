@@ -86,7 +86,7 @@ float line_unit_box_intersect_dist(vec3 lineorigin, vec3 linedirection)
 float line_unit_box_intersect_dist_safe(vec3 lineorigin, vec3 linedirection)
 {
   vec3 safe_linedirection = max(vec3(1e-8), abs(linedirection)) *
-                            mix(vec3(1.0), -vec3(1.0), lessThan(linedirection, vec3(0.0)));
+                            select(vec3(1.0), -vec3(1.0), lessThan(linedirection, vec3(0.0)));
   return line_unit_box_intersect_dist(lineorigin, safe_linedirection);
 }
 

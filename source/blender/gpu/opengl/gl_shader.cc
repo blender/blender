@@ -24,6 +24,8 @@ using namespace blender;
 using namespace blender::gpu;
 using namespace blender::gpu::shader;
 
+extern char datatoc_glsl_shader_defines_glsl[];
+
 /* -------------------------------------------------------------------- */
 /** \name Creation / Destruction
  * \{ */
@@ -760,7 +762,7 @@ bool GLShader::do_geometry_shader_injection(const shader::ShaderCreateInfo *info
 static char *glsl_patch_default_get()
 {
   /** Used for shader patching. Init once. */
-  static char patch[1024] = "\0";
+  static char patch[2048] = "\0";
   if (patch[0] != '\0') {
     return patch;
   }
@@ -826,6 +828,9 @@ static char *glsl_patch_default_get()
   /* Derivative sign can change depending on implementation. */
   STR_CONCATF(patch, slen, "#define DFDX_SIGN %1.1f\n", GLContext::derivative_signs[0]);
   STR_CONCATF(patch, slen, "#define DFDY_SIGN %1.1f\n", GLContext::derivative_signs[1]);
+
+  /* GLSL Backend Lib. */
+  STR_CONCAT(patch, slen, datatoc_glsl_shader_defines_glsl);
 
   BLI_assert(slen < sizeof(patch));
   return patch;
