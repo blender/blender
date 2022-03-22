@@ -1557,7 +1557,7 @@ static Base *object_mouse_select_menu(bContext *C,
                                       const int mval[2],
                                       const struct SelectPick_Params *params)
 {
-  short baseCount = 0;
+  int base_count = 0;
   bool ok;
   LinkNodePair linklist = {NULL, NULL};
 
@@ -1586,20 +1586,20 @@ static Base *object_mouse_select_menu(bContext *C,
     }
 
     if (ok) {
-      baseCount++;
+      base_count++;
       BLI_linklist_append(&linklist, base);
 
-      if (baseCount == SEL_MENU_SIZE) {
+      if (base_count == SEL_MENU_SIZE) {
         break;
       }
     }
   }
   CTX_DATA_END;
 
-  if (baseCount == 0) {
+  if (base_count == 0) {
     return NULL;
   }
-  if (baseCount == 1) {
+  if (base_count == 1) {
     Base *base = (Base *)linklist.list->link;
     BLI_linklist_free(linklist.list, NULL);
     return base;
@@ -1735,7 +1735,7 @@ static bool bone_mouse_select_menu(bContext *C,
 {
   BLI_assert(buffer);
 
-  short baseCount = 0;
+  int bone_count = 0;
   LinkNodePair base_list = {NULL, NULL};
   LinkNodePair bone_list = {NULL, NULL};
   GSet *added_bones = BLI_gset_ptr_new("Bone mouse select menu");
@@ -1794,12 +1794,12 @@ static bool bone_mouse_select_menu(bContext *C,
     const bool is_duplicate_bone = BLI_gset_haskey(added_bones, bone_ptr);
 
     if (!is_duplicate_bone) {
-      baseCount++;
+      bone_count++;
       BLI_linklist_append(&base_list, bone_base);
       BLI_linklist_append(&bone_list, bone_ptr);
       BLI_gset_insert(added_bones, bone_ptr);
 
-      if (baseCount == SEL_MENU_SIZE) {
+      if (bone_count == SEL_MENU_SIZE) {
         break;
       }
     }
@@ -1807,10 +1807,10 @@ static bool bone_mouse_select_menu(bContext *C,
 
   BLI_gset_free(added_bones, NULL);
 
-  if (baseCount == 0) {
+  if (bone_count == 0) {
     return false;
   }
-  if (baseCount == 1) {
+  if (bone_count == 1) {
     BLI_linklist_free(base_list.list, NULL);
     BLI_linklist_free(bone_list.list, NULL);
     return false;
