@@ -2450,19 +2450,6 @@ static bool ed_object_select_pick(bContext *C,
         }
       }
     }
-    if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
-      if (is_obedit == false) {
-        if (basact && !BKE_object_is_mode_compat(basact->object, object_mode)) {
-          if (object_mode == OB_MODE_OBJECT) {
-            struct Main *bmain = CTX_data_main(C);
-            ED_object_mode_generic_exit(bmain, vc.depsgraph, scene, basact->object);
-          }
-          if (!BKE_object_is_mode_compat(basact->object, object_mode)) {
-            basact = NULL;
-          }
-        }
-      }
-    }
   }
   else {
     GPUSelectResult buffer[MAXPICKELEMS];
@@ -2578,31 +2565,30 @@ static bool ed_object_select_pick(bContext *C,
         handled = true;
       }
     }
-
-    if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
-      if ((handled == false) && (is_obedit == false)) {
-        if (basact && !BKE_object_is_mode_compat(basact->object, object_mode)) {
-          if (object_mode == OB_MODE_OBJECT) {
-            struct Main *bmain = CTX_data_main(C);
-            ED_object_mode_generic_exit(bmain, vc.depsgraph, scene, basact->object);
-          }
-          if (!BKE_object_is_mode_compat(basact->object, object_mode)) {
-            basact = NULL;
-          }
-        }
-      }
-    }
   }
 
-  if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
+  if ((scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) &&
+      /* No further selection should take place. */
+      (handled == false) &&
+      /* No special logic in edit-mode. */
+      (is_obedit == false)) {
+
+    if (basact && !BKE_object_is_mode_compat(basact->object, object_mode)) {
+      if (object_mode == OB_MODE_OBJECT) {
+        struct Main *bmain = CTX_data_main(C);
+        ED_object_mode_generic_exit(bmain, vc.depsgraph, scene, basact->object);
+      }
+      if (!BKE_object_is_mode_compat(basact->object, object_mode)) {
+        basact = NULL;
+      }
+    }
+
     /* Disallow switching modes,
      * special exception for edit-mode - vertex-parent operator. */
-    if ((handled == false) && (is_obedit == false)) {
-      if (oldbasact && basact) {
-        if ((oldbasact->object->mode != basact->object->mode) &&
-            (oldbasact->object->mode & basact->object->mode) == 0) {
-          basact = NULL;
-        }
+    if (basact && oldbasact) {
+      if ((oldbasact->object->mode != basact->object->mode) &&
+          (oldbasact->object->mode & basact->object->mode) == 0) {
+        basact = NULL;
       }
     }
   }
