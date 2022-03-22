@@ -531,6 +531,19 @@ mark_as_advanced(
   WITH_GPU_SHADER_BUILDER
 )
 
+# Metal
+
+if (APPLE)
+  option(WITH_METAL_BACKEND "Use Metal for graphics instead of (or as well as) OpenGL on macOS." OFF)
+  mark_as_advanced(WITH_METAL_BACKEND)
+else()
+  set(WITH_METAL_BACKEND OFF)
+endif()
+
+if (WITH_METAL_BACKEND)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version" FORCE)
+endif()
+
 if(WIN32)
   option(WITH_GL_ANGLE "Link with the ANGLE library, an OpenGL ES 2.0 implementation based on Direct3D, instead of the system OpenGL library." OFF)
   mark_as_advanced(WITH_GL_ANGLE)
@@ -1272,6 +1285,16 @@ if(WITH_GL_PROFILE_ES20)
   list(APPEND GL_DEFINITIONS -DWITH_GL_PROFILE_ES20)
 else()
   list(APPEND GL_DEFINITIONS -DWITH_GL_PROFILE_CORE)
+endif()
+
+#-----------------------------------------------------------------------------
+# Configure Metal.
+if (WITH_METAL_BACKEND)
+  add_definitions(-DWITH_METAL_BACKEND)
+
+  # No need to add frameworks here, all the ones we need for Metal and
+  # Metal-OpenGL Interop are already being added by
+  # build_files/cmake/platform/platform_apple.cmake
 endif()
 
 #-----------------------------------------------------------------------------

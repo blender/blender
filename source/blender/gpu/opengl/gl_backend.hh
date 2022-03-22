@@ -136,6 +136,11 @@ class GLBackend : public GPUBackend {
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
   }
 
+  /* Render Frame Coordination */
+  void render_begin(void) override{};
+  void render_end(void) override{};
+  void render_step(void) override{};
+
  private:
   static void platform_init();
   static void platform_exit();

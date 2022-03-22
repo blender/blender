@@ -5,7 +5,7 @@
 # to more easily highlight codepadths in other libraries that need to be refactored,
 # bf_gpu is allowed to have opengl regardless of this option.
 
-if(NOT WITH_OPENGL)
+if(NOT WITH_OPENGL AND NOT WITH_METAL_BACKEND)
   add_definitions(-DWITH_OPENGL)
 endif()
 
@@ -13,6 +13,7 @@ set(INC
   .
   intern
   opengl
+  metal
   ../blenkernel
   ../blenlib
   ../bmesh
@@ -78,27 +79,6 @@ set(SRC
   intern/gpu_vertex_format.cc
   intern/gpu_viewport.c
 
-  opengl/gl_backend.cc
-  opengl/gl_batch.cc
-  opengl/gl_compute.cc
-  opengl/gl_context.cc
-  opengl/gl_debug.cc
-  opengl/gl_debug_layer.cc
-  opengl/gl_drawlist.cc
-  opengl/gl_framebuffer.cc
-  opengl/gl_immediate.cc
-  opengl/gl_index_buffer.cc
-  opengl/gl_query.cc
-  opengl/gl_shader.cc
-  opengl/gl_shader_interface.cc
-  opengl/gl_shader_log.cc
-  opengl/gl_state.cc
-  opengl/gl_storage_buffer.cc
-  opengl/gl_texture.cc
-  opengl/gl_uniform_buffer.cc
-  opengl/gl_vertex_array.cc
-  opengl/gl_vertex_buffer.cc
-
   GPU_batch.h
   GPU_batch_presets.h
   GPU_batch_utils.h
@@ -157,6 +137,30 @@ set(SRC
   intern/gpu_uniform_buffer_private.hh
   intern/gpu_vertex_buffer_private.hh
   intern/gpu_vertex_format_private.h
+)
+
+set(OPENGL_SRC
+
+  opengl/gl_backend.cc
+  opengl/gl_batch.cc
+  opengl/gl_compute.cc
+  opengl/gl_context.cc
+  opengl/gl_debug.cc
+  opengl/gl_debug_layer.cc
+  opengl/gl_drawlist.cc
+  opengl/gl_framebuffer.cc
+  opengl/gl_immediate.cc
+  opengl/gl_index_buffer.cc
+  opengl/gl_query.cc
+  opengl/gl_shader.cc
+  opengl/gl_shader_interface.cc
+  opengl/gl_shader_log.cc
+  opengl/gl_state.cc
+  opengl/gl_storage_buffer.cc
+  opengl/gl_texture.cc
+  opengl/gl_uniform_buffer.cc
+  opengl/gl_vertex_array.cc
+  opengl/gl_vertex_buffer.cc
 
   opengl/gl_backend.hh
   opengl/gl_batch.hh
@@ -177,6 +181,22 @@ set(SRC
   opengl/gl_vertex_array.hh
   opengl/gl_vertex_buffer.hh
 )
+
+set(METAL_SRC
+  metal/mtl_backend.mm
+
+  metal/mtl_backend.hh
+  metal/mtl_capabilities.hh
+)
+
+# Select Backend source based on availability
+if(WITH_OPENGL)
+  list(APPEND SRC ${OPENGL_SRC})
+endif()
+
+if(WITH_METAL_BACKEND)
+  list(APPEND SRC ${METAL_SRC})
+endif()
 
 set(LIB
   ${BLENDER_GL_LIBRARIES}

@@ -49,6 +49,12 @@ class GPUBackend {
   virtual UniformBuf *uniformbuf_alloc(int size, const char *name) = 0;
   virtual StorageBuf *storagebuf_alloc(int size, GPUUsageType usage, const char *name) = 0;
   virtual VertBuf *vertbuf_alloc() = 0;
+
+  /* Render Frame Coordination --
+   * Used for performing per-frame actions globally */
+  virtual void render_begin() = 0;
+  virtual void render_end() = 0;
+  virtual void render_step() = 0;
 };
 
 }  // namespace gpu

@@ -140,7 +140,7 @@ void GLBackend::platform_init()
     }
   }
 
-  GPG.init(device, os, driver, support_level, vendor, renderer, version);
+  GPG.init(device, os, driver, support_level, GPU_BACKEND_OPENGL, vendor, renderer, version);
 }
 
 void GLBackend::platform_exit()
@@ -418,6 +418,12 @@ static void detect_workarounds()
       (strstr(renderer, "HD Graphics 4400") || strstr(renderer, "HD Graphics 4600"))) {
     GCaps.shader_storage_buffer_objects_support = false;
   }
+
+  /* Metal-related Workarounds. */
+
+  /* Minimum Per-Vertex stride is 1 byte for OpenGL. */
+  GCaps.minimum_per_vertex_stride = 1;
+
 }  // namespace blender::gpu
 
 /** Internal capabilities. */
