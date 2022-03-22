@@ -1550,12 +1550,16 @@ void VIEW3D_OT_select_menu(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-static Base *object_mouse_select_menu(bContext *C,
-                                      ViewContext *vc,
-                                      const GPUSelectResult *buffer,
-                                      const int hits,
-                                      const int mval[2],
-                                      const struct SelectPick_Params *params)
+/**
+ * \return True when a menu was activated.
+ */
+static bool object_mouse_select_menu(bContext *C,
+                                     ViewContext *vc,
+                                     const GPUSelectResult *buffer,
+                                     const int hits,
+                                     const int mval[2],
+                                     const struct SelectPick_Params *params,
+                                     Base **r_basact)
 {
   int base_count = 0;
   bool ok;
@@ -1596,13 +1600,16 @@ static Base *object_mouse_select_menu(bContext *C,
   }
   CTX_DATA_END;
 
+  *r_basact = NULL;
+
   if (base_count == 0) {
-    return NULL;
+    return false;
   }
   if (base_count == 1) {
     Base *base = (Base *)linklist.list->link;
     BLI_linklist_free(linklist.list, NULL);
-    return base;
+    *r_basact = base;
+    return false;
   }
 
   /* UI, full in static array values that we later use in an enum function */
@@ -1631,7 +1638,7 @@ static Base *object_mouse_select_menu(bContext *C,
   WM_operator_properties_free(&ptr);
 
   BLI_linklist_free(linklist.list, NULL);
-  return NULL;
+  return true;
 }
 
 static int bone_select_menu_exec(bContext *C, wmOperator *op)
@@ -1735,6 +1742,10 @@ void VIEW3D_OT_bone_select_menu(wmOperatorType *ot)
   prop = RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
+
+/**
+ * \return True when a menu was activated.
+ */
 static bool bone_mouse_select_menu(bContext *C,
                                    const GPUSelectResult *buffer,
                                    const int hits,
@@ -2189,6 +2200,49 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
   return basact;
 }
 
+static Base *mouse_select_object_center(ViewContext *vc, Base *startbase, const int mval[2])
+{
+  ARegion *region = vc->region;
+  ViewLayer *view_layer = vc->view_layer;
+  View3D *v3d = vc->v3d;
+
+  Base *oldbasact = BASACT(view_layer);
+
+  const float mval_fl[2] = {(float)mval[0], (float)mval[1]};
+  float dist = ED_view3d_select_dist_px() * 1.3333f;
+  Base *basact = NULL;
+
+  /* Put the active object at a disadvantage to cycle through other objects. */
+  const float penalty_dist = 10.0f * UI_DPI_FAC;
+  Base *base = startbase;
+  while (base) {
+    if (BASE_SELECTABLE(v3d, base)) {
+      float screen_co[2];
+      if (ED_view3d_project_float_global(
+              region, base->object->obmat[3], screen_co, V3D_PROJ_TEST_CLIP_DEFAULT) ==
+          V3D_PROJ_RET_OK) {
+        float dist_test = len_manhattan_v2v2(mval_fl, screen_co);
+        if (base == oldbasact) {
+          dist_test += penalty_dist;
+        }
+        if (dist_test < dist) {
+          dist = dist_test;
+          basact = base;
+        }
+      }
+    }
+    base = base->next;
+
+    if (base == NULL) {
+      base = FIRSTBASE(view_layer);
+    }
+    if (base == startbase) {
+      break;
+    }
+  }
+  return basact;
+}
+
 static Base *ed_view3d_give_base_under_cursor_ex(bContext *C,
                                                  const int mval[2],
                                                  int *r_material_slot)
@@ -2377,17 +2431,14 @@ static bool ed_object_select_pick(bContext *C,
   /* Setup view context for argument to callbacks. */
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
-  const ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
   /* Don't set when the context has no active object (hidden), see: T60807. */
   const Base *oldbasact = vc.obact ? BASACT(view_layer) : NULL;
-  Base *base, *startbase = NULL, *basact = NULL;
+  Base *startbase = NULL, *basact = NULL, *basact_override = NULL;
   const eObjectMode object_mode = oldbasact ? oldbasact->object->mode : OB_MODE_OBJECT;
   const bool is_obedit = (vc.obedit != NULL);
-  float dist = ED_view3d_select_dist_px() * 1.3333f;
-  const float mval_fl[2] = {(float)mval[0], (float)mval[1]};
 
   /* Handle setting the new base active */
   bool use_activate_selected_base = false;
@@ -2410,87 +2461,73 @@ static bool ed_object_select_pick(bContext *C,
     startbase = oldbasact->next;
   }
 
+  GPUSelectResult buffer[MAXPICKELEMS];
+  int hits = 0;
+  bool do_nearest = false;
+  bool has_bones = false;
+
+  if (obcenter == false) {
+    /* If objects have pose-mode set, the bones are in the same selection buffer. */
+    const eV3DSelectObjectFilter select_filter = ((object == false) ?
+                                                      ED_view3d_select_filter_from_mode(scene,
+                                                                                        vc.obact) :
+                                                      VIEW3D_SELECT_FILTER_NOP);
+    hits = mixed_bones_object_selectbuffer_extended(
+        &vc, buffer, ARRAY_SIZE(buffer), mval, select_filter, true, enumerate, &do_nearest);
+    has_bones = (object && hits > 0) ? false : selectbuffer_has_bones(buffer, hits);
+  }
+
+  /* First handle menu selection, early exit when a menu was opened.
+   * Otherwise fall through to regular selection. */
+  if (enumerate) {
+    bool has_menu = false;
+    if (obcenter) {
+      if (object_mouse_select_menu(C, &vc, NULL, 0, mval, params, &basact_override)) {
+        has_menu = true;
+      }
+    }
+    else {
+      if (hits != 0) {
+        if (has_bones && bone_mouse_select_menu(C, buffer, hits, false, params)) {
+          has_menu = true;
+        }
+        else if (object_mouse_select_menu(C, &vc, buffer, hits, mval, params, &basact_override)) {
+          has_menu = true;
+        }
+      }
+    }
+
+    /* Let the menu handle any further actions. */
+    if (has_menu) {
+      return false;
+    }
+  }
+
   /* This block uses the control key to make the object selected
    * by its center point rather than its contents */
 
   /* In edit-mode do not activate. */
   if (obcenter) {
-
-    /* NOTE: shift+alt goes to group-flush-selecting. */
-    if (enumerate) {
-      basact = object_mouse_select_menu(C, &vc, NULL, 0, mval, params);
+    if (basact_override) {
+      basact = basact_override;
     }
     else {
-      /* Put the active object at a disadvantage to cycle through other objects. */
-      const float penalty_dist = 10.0f * U.dpi_fac;
-      base = startbase;
-      while (base) {
-        if (BASE_SELECTABLE(v3d, base)) {
-          float screen_co[2];
-          if (ED_view3d_project_float_global(
-                  region, base->object->obmat[3], screen_co, V3D_PROJ_TEST_CLIP_DEFAULT) ==
-              V3D_PROJ_RET_OK) {
-            float dist_test = len_manhattan_v2v2(mval_fl, screen_co);
-            if (base == oldbasact) {
-              dist_test += penalty_dist;
-            }
-            if (dist_test < dist) {
-              dist = dist_test;
-              basact = base;
-            }
-          }
-        }
-        base = base->next;
-
-        if (base == NULL) {
-          base = FIRSTBASE(view_layer);
-        }
-        if (base == startbase) {
-          break;
-        }
-      }
+      basact = mouse_select_object_center(&vc, startbase, mval);
     }
   }
   else {
-    GPUSelectResult buffer[MAXPICKELEMS];
-    bool do_nearest;
-
-    // TIMEIT_START(select_time);
-
-    /* if objects have pose-mode set, the bones are in the same selection buffer */
-    const eV3DSelectObjectFilter select_filter = ((object == false) ?
-                                                      ED_view3d_select_filter_from_mode(scene,
-                                                                                        vc.obact) :
-                                                      VIEW3D_SELECT_FILTER_NOP);
-    const int hits = mixed_bones_object_selectbuffer_extended(
-        &vc, buffer, ARRAY_SIZE(buffer), mval, select_filter, true, enumerate, &do_nearest);
-
-    // TIMEIT_END(select_time);
-
-    const bool has_bones = (object && hits > 0) ? false : selectbuffer_has_bones(buffer, hits);
-
-    if (hits > 0) {
-      /* NOTE: bundles are handling in the same way as bones. */
-
-      /* NOTE: shift+alt goes to group-flush-selecting. */
-      if (enumerate) {
-        if (has_bones && bone_mouse_select_menu(C, buffer, hits, false, params)) {
-          handled = true;
-        }
-        else {
-          basact = object_mouse_select_menu(C, &vc, buffer, hits, mval, params);
-        }
-      }
-      else {
-        basact = mouse_select_eval_buffer(
-            &vc, buffer, hits, startbase, has_bones, do_nearest, NULL);
-      }
+    if (basact_override) {
+      basact = basact_override;
+    }
+    else {
+      basact = (hits > 0) ? mouse_select_eval_buffer(
+                                &vc, buffer, hits, startbase, has_bones, do_nearest, NULL) :
+                            NULL;
     }
 
-    if ((handled == false) &&
-        (((hits > 0) && has_bones) ||
-         /* Special case, even when there are no hits, pose logic may de-select all bones. */
-         ((hits == 0) && is_pose_mode))) {
+    if (((hits > 0) && has_bones) ||
+        /* Special case, even when there are no hits, pose logic may de-select all bones. */
+        ((hits == 0) && is_pose_mode)) {
 
       if (basact && (has_bones && (basact->object->type == OB_CAMERA))) {
         MovieClip *clip = BKE_object_movieclip_get(scene, basact->object, false);
