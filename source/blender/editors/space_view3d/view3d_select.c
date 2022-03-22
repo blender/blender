@@ -1656,7 +1656,7 @@ static int bone_select_menu_exec(bContext *C, wmOperator *op)
 
   BLI_assert(BASE_SELECTABLE(v3d, basact));
 
-  if (basact->object->mode == OB_MODE_EDIT) {
+  if (basact->object->mode & OB_MODE_EDIT) {
     EditBone *ebone = (EditBone *)object_mouse_select_menu_data[name_index].item_ptr;
     ED_armature_edit_select_pick_bone(C, basact, ebone, BONE_SELECTED, &params);
   }
@@ -1677,14 +1677,22 @@ static int bone_select_menu_exec(bContext *C, wmOperator *op)
 
   /* In weight-paint, we use selected bone to select vertex-group,
    * so don't switch to new active object. */
-  if (oldbasact && (oldbasact->object->mode & OB_MODE_ALL_WEIGHT_PAINT)) {
-    /* Prevent activating.
-     * Selection causes this to be considered the 'active' pose in weight-paint mode.
-     * Eventually this limitation may be removed.
-     * For now, de-select all other pose objects deforming this mesh. */
-    ED_armature_pose_select_in_wpaint_mode(view_layer, basact);
-
-    basact = NULL;
+  if (oldbasact) {
+    if (basact->object->mode & OB_MODE_EDIT) {
+      /* Pass. */
+    }
+    else if (oldbasact->object->mode & OB_MODE_ALL_WEIGHT_PAINT) {
+      /* Prevent activating.
+       * Selection causes this to be considered the 'active' pose in weight-paint mode.
+       * Eventually this limitation may be removed.
+       * For now, de-select all other pose objects deforming this mesh. */
+      ED_armature_pose_select_in_wpaint_mode(view_layer, basact);
+    }
+    else {
+      if (oldbasact != basact) {
+        ED_object_base_activate(C, basact);
+      }
+    }
   }
 
   /* Undo? */
