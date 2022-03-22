@@ -207,7 +207,10 @@ void OBJMesh::calc_poly_order()
   blender::parallel_sort(poly_order_.begin(), poly_order_.end(), [&](int a, int b) {
     int mat_a = mpolys[a].mat_nr;
     int mat_b = mpolys[b].mat_nr;
-    return mat_a < mat_b;
+    if (mat_a != mat_b) {
+      return mat_a < mat_b;
+    }
+    return a < b;
   });
 }
 
