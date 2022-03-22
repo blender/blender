@@ -412,7 +412,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   }
   Object *end_cap_ob = amd->end_cap;
   if (end_cap_ob && end_cap_ob != ctx->object) {
-    if (start_cap_ob->type == OB_MESH && ctx->object->type == OB_MESH) {
+    if (end_cap_ob->type == OB_MESH && ctx->object->type == OB_MESH) {
       vgroup_end_cap_remap = BKE_object_defgroup_index_map_create(
           end_cap_ob, ctx->object, &vgroup_end_cap_remap_len);
     }
