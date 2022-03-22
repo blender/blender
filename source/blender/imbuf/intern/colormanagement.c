@@ -504,7 +504,16 @@ static void colormanage_load_config(OCIO_ConstConfigRcPtr *config)
     is_invertible = OCIO_colorSpaceIsInvertible(ocio_colorspace);
     is_data = OCIO_colorSpaceIsData(ocio_colorspace);
 
-    colormanage_colorspace_add(name, description, is_invertible, is_data);
+    ColorSpace *colorspace = colormanage_colorspace_add(name, description, is_invertible, is_data);
+
+    colorspace->num_aliases = OCIO_colorSpaceGetNumAliases(ocio_colorspace);
+    if (colorspace->num_aliases > 0) {
+      colorspace->aliases = MEM_callocN(sizeof(*colorspace->aliases) * colorspace->num_aliases,
+                                        "ColorSpace aliases");
+      for (int i = 0; i < colorspace->num_aliases; i++) {
+        STRNCPY(colorspace->aliases[i], OCIO_colorSpaceGetAlias(ocio_colorspace, i));
+      }
+    }
 
     OCIO_colorSpaceRelease(ocio_colorspace);
   }
@@ -587,6 +596,7 @@ static void colormanage_free_config(void)
     }
 
     /* free color space itself */
+    MEM_SAFE_FREE(colorspace->aliases);
     MEM_freeN(colorspace);
 
     colorspace = colorspace_next;
@@ -3052,6 +3062,12 @@ ColorSpace *colormanage_colorspace_get_named(const char *name)
   for (colorspace = global_colorspaces.first; colorspace; colorspace = colorspace->next) {
     if (STREQ(colorspace->name, name)) {
       return colorspace;
+    }
+
+    for (int i = 0; i < colorspace->num_aliases; i++) {
+      if (STREQ(colorspace->aliases[i], name)) {
+        return colorspace;
+      }
     }
   }
 

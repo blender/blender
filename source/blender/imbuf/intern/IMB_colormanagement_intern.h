@@ -33,6 +33,9 @@ typedef struct ColorSpace {
   struct OCIO_ConstCPUProcessorRcPtr *to_scene_linear;
   struct OCIO_ConstCPUProcessorRcPtr *from_scene_linear;
 
+  char (*aliases)[MAX_COLORSPACE_NAME];
+  int num_aliases;
+
   bool is_invertible;
   bool is_data;
 
