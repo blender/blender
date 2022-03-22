@@ -579,6 +579,10 @@ void ShaderManager::device_update_common(Device * /*device*/,
   kfilm->xyz_to_g = float3_to_float4(xyz_to_g);
   kfilm->xyz_to_b = float3_to_float4(xyz_to_b);
   kfilm->rgb_to_y = float3_to_float4(rgb_to_y);
+  kfilm->rec709_to_r = float3_to_float4(rec709_to_r);
+  kfilm->rec709_to_g = float3_to_float4(rec709_to_g);
+  kfilm->rec709_to_b = float3_to_float4(rec709_to_b);
+  kfilm->is_rec709 = is_rec709;
 }
 
 void ShaderManager::device_free_common(Device *, DeviceScene *dscene, Scene *scene)
@@ -740,6 +744,11 @@ float ShaderManager::linear_rgb_to_gray(float3 c)
   return dot(c, rgb_to_y);
 }
 
+float3 ShaderManager::rec709_to_scene_linear(float3 c)
+{
+  return make_float3(dot(rec709_to_r, c), dot(rec709_to_g, c), dot(rec709_to_b, c));
+}
+
 string ShaderManager::get_cryptomatte_materials(Scene *scene)
 {
   string manifest = "{";
@@ -802,10 +811,28 @@ void ShaderManager::init_xyz_transforms()
 {
   /* Default to ITU-BT.709 in case no appropriate transform found.
    * Note XYZ here is defined as having a D65 white point. */
-  xyz_to_r = make_float3(3.2404542f, -1.5371385f, -0.4985314f);
-  xyz_to_g = make_float3(-0.9692660f, 1.8760108f, 0.0415560f);
-  xyz_to_b = make_float3(0.0556434f, -0.2040259f, 1.0572252f);
+  const Transform xyz_to_rec709 = make_transform(3.2404542f,
+                                                 -1.5371385f,
+                                                 -0.4985314f,
+                                                 0.0f,
+                                                 -0.9692660f,
+                                                 1.8760108f,
+                                                 0.0415560f,
+                                                 0.0f,
+                                                 0.0556434f,
+                                                 -0.2040259f,
+                                                 1.0572252f,
+                                                 0.0f);
+
+  xyz_to_r = float4_to_float3(xyz_to_rec709.x);
+  xyz_to_g = float4_to_float3(xyz_to_rec709.y);
+  xyz_to_b = float4_to_float3(xyz_to_rec709.z);
   rgb_to_y = make_float3(0.2126729f, 0.7151522f, 0.0721750f);
+
+  rec709_to_r = make_float3(1.0f, 0.0f, 0.0f);
+  rec709_to_g = make_float3(0.0f, 1.0f, 0.0f);
+  rec709_to_b = make_float3(0.0f, 0.0f, 1.0f);
+  is_rec709 = true;
 
 #ifdef WITH_OCIO
   /* Get from OpenColorO config if it has the required roles. */
@@ -857,6 +884,12 @@ void ShaderManager::init_xyz_transforms()
 
   const Transform rgb_to_xyz = transform_inverse(xyz_to_rgb);
   rgb_to_y = float4_to_float3(rgb_to_xyz.y);
+
+  const Transform rec709_to_rgb = xyz_to_rgb * transform_inverse(xyz_to_rec709);
+  rec709_to_r = float4_to_float3(rec709_to_rgb.x);
+  rec709_to_g = float4_to_float3(rec709_to_rgb.y);
+  rec709_to_b = float4_to_float3(rec709_to_rgb.z);
+  is_rec709 = transform_equal_threshold(xyz_to_rgb, xyz_to_rec709, 0.0001f);
 #endif
 }
 

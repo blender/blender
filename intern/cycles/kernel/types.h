@@ -1117,13 +1117,18 @@ typedef struct KernelFilm {
   float4 xyz_to_g;
   float4 xyz_to_b;
   float4 rgb_to_y;
+  /* Rec709 to rendering color space. */
+  float4 rec709_to_r;
+  float4 rec709_to_g;
+  float4 rec709_to_b;
+  int is_rec709;
 
   int pass_bake_primitive;
   int pass_bake_differential;
 
   int use_approximate_shadow_catcher;
 
-  int pad1, pad2;
+  int pad1;
 } KernelFilm;
 static_assert_align(KernelFilm, 16);
 
