@@ -1785,6 +1785,11 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
                                              const ListBase *lb,
                                              const int x)
 {
+  const float pad_x = 2.0f * UI_DPI_FAC;
+  const float pad_y = 0.5f * U.pixelsize;
+  const float item_max_width = round_fl_to_int(OL_RNA_COL_SIZEX - 2 * pad_x);
+  const float item_height = round_fl_to_int(UI_UNIT_Y - 2.0f * pad_y);
+
   LISTBASE_FOREACH (const TreeElement *, te, lb) {
     const TreeStoreElem *tselem = TREESTORE(te);
     if (TSELEM_OPEN(tselem, space_outliner)) {
@@ -1805,10 +1810,6 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
     PropertyRNA *prop = &override_elem.override_rna_prop;
     const PropertyType prop_type = RNA_property_type(prop);
 
-    const float pad_x = 1 * UI_DPI_FAC;
-    const float max_width = OL_RNA_COL_SIZEX - 2 * pad_x;
-    const float height = UI_UNIT_Y - U.pixelsize;
-
     uiBut *auto_but = uiDefAutoButR(block,
                                     ptr,
                                     prop,
@@ -1816,9 +1817,9 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
                                     (prop_type == PROP_ENUM) ? nullptr : "",
                                     ICON_NONE,
                                     x + pad_x,
-                                    te->ys,
-                                    max_width,
-                                    height);
+                                    te->ys + pad_y,
+                                    item_max_width,
+                                    item_height);
     /* Added the button successfully, nothing else to do. Otherwise, cases for multiple buttons
      * need to be handled. */
     if (auto_but) {
@@ -1828,7 +1829,8 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
     if (!auto_but) {
       /* TODO what if the array is longer, and doesn't fit nicely? What about multi-dimension
        * arrays? */
-      uiDefAutoButsArrayR(block, ptr, prop, ICON_NONE, x, te->ys, max_width, height);
+      uiDefAutoButsArrayR(
+          block, ptr, prop, ICON_NONE, x + pad_x, te->ys + pad_y, item_max_width, item_height);
     }
   }
 }
@@ -3915,7 +3917,7 @@ void draw_outliner(const bContext *C)
         block, region, space_outliner, &space_outliner->tree, true);
 
     UI_block_emboss_set(block, UI_EMBOSS);
-    const int x = region->v2d.cur.xmax - OL_RNA_COL_SIZEX;
+    const int x = region->v2d.cur.xmax - right_column_width;
     outliner_draw_separator(region, x);
     outliner_draw_overrides_rna_buts(block, region, space_outliner, &space_outliner->tree, x);
     UI_block_emboss_set(block, UI_EMBOSS_NONE_OR_STATUS);
