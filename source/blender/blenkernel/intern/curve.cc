@@ -62,6 +62,14 @@ using blender::IndexRange;
 /* local */
 // static CLG_LogRef LOG = {"bke.curve"};
 
+enum class NURBSValidationStatus {
+  Valid,
+  AtLeastTwoPointsRequired,
+  MorePointsThanOrderRequired,
+  MoreRowsForBezierRequired,
+  MorePointsForBezierRequired
+};
+
 static void curve_init_data(ID *id)
 {
   Curve *curve = (Curve *)id;
@@ -4700,56 +4708,94 @@ void BKE_curve_nurbs_key_vert_tilts_apply(ListBase *lb, const float *key)
   }
 }
 
-bool BKE_nurb_valid_message(const int pnts,
-                            const short order,
-                            const short flag,
-                            const short type,
-                            const bool is_surf,
-                            const char *dir,
-                            char *message_dst,
-                            const size_t maxncpy)
+static NURBSValidationStatus nurb_check_valid(const int pnts,
+                                              const short order,
+                                              const short flag,
+                                              const short type,
+                                              const bool is_surf,
+                                              int *r_points_needed)
 {
-  const char *msg_template = "";
-  uint16_t points_needed = 0;
-
   if (pnts <= 1) {
-    msg_template = TIP_("At least two points required.");
+    return NURBSValidationStatus::AtLeastTwoPointsRequired;
   }
   else if (type == CU_NURBS) {
     if (pnts < order) {
-      msg_template = TIP_("Must have more control points than Order");
+      return NURBSValidationStatus::MorePointsThanOrderRequired;
     }
     else if (flag & CU_NURB_BEZIER) {
+      int points_needed = 0;
       if (flag & CU_NURB_CYCLIC) {
-        const uint16_t remainder = pnts % (order - 1);
+        const int remainder = pnts % (order - 1);
         points_needed = remainder > 0 ? order - 1 - remainder : 0;
       }
       else if (((flag & CU_NURB_ENDPOINT) == 0) && pnts <= order) {
         points_needed = order + 1 - pnts;
       }
       if (points_needed) {
-        msg_template = is_surf ? TIP_("%d more %s row(s) needed for Bezier") :
-                                 TIP_("%d more point(s) needed for Bezier");
+        *r_points_needed = points_needed;
+        return is_surf ? NURBSValidationStatus::MoreRowsForBezierRequired :
+                         NURBSValidationStatus::MorePointsForBezierRequired;
       }
     }
   }
+  return NURBSValidationStatus::Valid;
+}
 
-  if (message_dst) {
-    BLI_snprintf(message_dst, maxncpy, msg_template, points_needed, dir);
+bool BKE_nurb_valid_message(const int pnts,
+                            const short order,
+                            const short flag,
+                            const short type,
+                            const bool is_surf,
+                            const int dir,
+                            char *message_dst,
+                            const size_t maxncpy)
+{
+  int points_needed;
+  NURBSValidationStatus status = nurb_check_valid(
+      pnts, order, flag, type, is_surf, &points_needed);
+
+  const char *msg_template = nullptr;
+  switch (status) {
+    case NURBSValidationStatus::Valid:
+      message_dst[0] = 0;
+      return false;
+    case NURBSValidationStatus::AtLeastTwoPointsRequired:
+      if (dir == 1) {
+        /* Exception made for curves as their pntsv == 1. */
+        message_dst[0] = 0;
+        return false;
+      }
+      msg_template = TIP_("At least two points required.");
+      break;
+    case NURBSValidationStatus::MorePointsThanOrderRequired:
+      msg_template = TIP_("Must have more control points than Order");
+      break;
+    case NURBSValidationStatus::MoreRowsForBezierRequired:
+      msg_template = TIP_("%d more %s row(s) needed for Bezier");
+      break;
+    case NURBSValidationStatus::MorePointsForBezierRequired:
+      msg_template = TIP_("%d more point(s) needed for Bezier");
+      break;
   }
-  return msg_template[0];
+
+  BLI_snprintf(message_dst, maxncpy, msg_template, points_needed, dir == 0 ? "U" : "V");
+  return true;
 }
 
 bool BKE_nurb_check_valid_u(const Nurb *nu)
 {
-  return !BKE_nurb_valid_message(
-      nu->pntsu, nu->orderu, nu->flagu, nu->type, nu->pntsv > 1, "U", nullptr, 0);
+  int points_needed;
+  return NURBSValidationStatus::Valid ==
+         nurb_check_valid(
+             nu->pntsu, nu->orderu, nu->flagu, nu->type, nu->pntsv > 1, &points_needed);
 }
 
 bool BKE_nurb_check_valid_v(const Nurb *nu)
 {
-  return !BKE_nurb_valid_message(
-      nu->pntsv, nu->orderv, nu->flagv, nu->type, nu->pntsv > 1, "V", nullptr, 0);
+  int points_needed;
+  return NURBSValidationStatus::Valid ==
+         nurb_check_valid(
+             nu->pntsv, nu->orderv, nu->flagv, nu->type, nu->pntsv > 1, &points_needed);
 }
 
 bool BKE_nurb_check_valid_uv(const Nurb *nu)
