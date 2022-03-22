@@ -26,17 +26,35 @@ namespace blender::nodes::node_geo_distribute_points_on_faces_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  auto enable_random = [](bNode &node) {
+    node.custom1 = GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_RANDOM;
+  };
+  auto enable_poisson = [](bNode &node) {
+    node.custom1 = GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON;
+  };
+
   b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
-  b.add_input<decl::Float>(N_("Distance Min")).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_input<decl::Float>(N_("Density Max")).default_value(10.0f).min(0.0f);
-  b.add_input<decl::Float>(N_("Density")).default_value(10.0f).min(0.0f).supports_field();
+  b.add_input<decl::Float>(N_("Distance Min"))
+      .min(0.0f)
+      .subtype(PROP_DISTANCE)
+      .make_available(enable_poisson);
+  b.add_input<decl::Float>(N_("Density Max"))
+      .default_value(10.0f)
+      .min(0.0f)
+      .make_available(enable_poisson);
+  b.add_input<decl::Float>(N_("Density"))
+      .default_value(10.0f)
+      .min(0.0f)
+      .supports_field()
+      .make_available(enable_random);
   b.add_input<decl::Float>(N_("Density Factor"))
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .supports_field();
+      .supports_field()
+      .make_available(enable_poisson);
   b.add_input<decl::Int>(N_("Seed"));
 
   b.add_output<decl::Geometry>(N_("Points"));

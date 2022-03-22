@@ -17,9 +17,15 @@ static void sh_node_vector_rotate_declare(NodeDeclarationBuilder &b)
   b.is_function_node();
   b.add_input<decl::Vector>(N_("Vector")).min(0.0f).max(1.0f).hide_value();
   b.add_input<decl::Vector>(N_("Center"));
-  b.add_input<decl::Vector>(N_("Axis")).min(-1.0f).max(1.0f).default_value({0.0f, 0.0f, 1.0f});
+  b.add_input<decl::Vector>(N_("Axis"))
+      .min(-1.0f)
+      .max(1.0f)
+      .default_value({0.0f, 0.0f, 1.0f})
+      .make_available([](bNode &node) { node.custom1 = NODE_VECTOR_ROTATE_TYPE_AXIS; });
   b.add_input<decl::Float>(N_("Angle")).subtype(PROP_ANGLE);
-  b.add_input<decl::Vector>(N_("Rotation")).subtype(PROP_EULER);
+  b.add_input<decl::Vector>(N_("Rotation")).subtype(PROP_EULER).make_available([](bNode &node) {
+    node.custom1 = NODE_VECTOR_ROTATE_TYPE_EULER_XYZ;
+  });
   b.add_output<decl::Vector>(N_("Vector"));
 }
 

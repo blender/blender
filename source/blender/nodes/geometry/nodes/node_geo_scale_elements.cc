@@ -31,7 +31,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>(N_("Axis"))
       .default_value({1.0f, 0.0f, 0.0f})
       .supports_field()
-      .description(N_("Direction in which to scale the element"));
+      .description(N_("Direction in which to scale the element"))
+      .make_available([](bNode &node) { node.custom2 = GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS; });
   b.add_output<decl::Geometry>(N_("Geometry"));
 };
 

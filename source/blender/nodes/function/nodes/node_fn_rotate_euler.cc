@@ -15,11 +15,20 @@ namespace blender::nodes::node_fn_rotate_euler_cc {
 
 static void fn_node_rotate_euler_declare(NodeDeclarationBuilder &b)
 {
+  auto enable_axis_angle = [](bNode &node) {
+    node.custom1 = FN_NODE_ROTATE_EULER_TYPE_AXIS_ANGLE;
+  };
+
   b.is_function_node();
   b.add_input<decl::Vector>(N_("Rotation")).subtype(PROP_EULER).hide_value();
-  b.add_input<decl::Vector>(N_("Rotate By")).subtype(PROP_EULER);
-  b.add_input<decl::Vector>(N_("Axis")).default_value({0.0, 0.0, 1.0}).subtype(PROP_XYZ);
-  b.add_input<decl::Float>(N_("Angle")).subtype(PROP_ANGLE);
+  b.add_input<decl::Vector>(N_("Rotate By")).subtype(PROP_EULER).make_available([](bNode &node) {
+    node.custom1 = FN_NODE_ROTATE_EULER_TYPE_EULER;
+  });
+  b.add_input<decl::Vector>(N_("Axis"))
+      .default_value({0.0, 0.0, 1.0})
+      .subtype(PROP_XYZ)
+      .make_available(enable_axis_angle);
+  b.add_input<decl::Float>(N_("Angle")).subtype(PROP_ANGLE).make_available(enable_axis_angle);
   b.add_output<decl::Vector>(N_("Rotation"));
 }
 
