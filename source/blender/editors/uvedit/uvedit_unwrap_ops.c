@@ -2985,6 +2985,7 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
                      me,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
+                         .calc_vert_normal = true,
                      }));
   /* select all uv loops first - pack parameters needs this to make sure charts are registered */
   ED_uvedit_select_all(bm);

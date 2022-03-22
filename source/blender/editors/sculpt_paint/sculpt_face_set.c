@@ -395,6 +395,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
                        mesh,
                        (&(struct BMeshFromMeshParams){
                            .calc_face_normal = true,
+                           .calc_vert_normal = true,
                        }));
 
     BMIter iter;
@@ -590,6 +591,7 @@ static void sculpt_face_sets_init_flood_fill(Object *ob,
                      mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
+                         .calc_vert_normal = true,
                      }));
 
   BLI_bitmap *visited_faces = BLI_BITMAP_NEW(mesh->totpoly, "visited faces");
@@ -668,6 +670,7 @@ static void sculpt_face_sets_init_loop(Object *ob, const int mode)
                      mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
+                         .calc_vert_normal = true,
                      }));
   BMIter iter;
   BMFace *f;
@@ -1200,6 +1203,7 @@ static void sculpt_face_set_delete_geometry(Object *ob,
                      mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
+                         .calc_vert_normal = true,
                      }));
 
   BM_mesh_elem_table_init(bm, BM_FACE);
