@@ -2477,7 +2477,7 @@ static bool ed_object_select_pick(bContext *C,
       /* NOTE: shift+alt goes to group-flush-selecting. */
       if (enumerate) {
         if (has_bones && bone_mouse_select_menu(C, buffer, hits, false, params)) {
-          basact = NULL;
+          handled = true;
         }
         else {
           basact = object_mouse_select_menu(C, &vc, buffer, hits, mval, params);
@@ -2489,9 +2489,10 @@ static bool ed_object_select_pick(bContext *C,
       }
     }
 
-    if (((hits > 0) && has_bones) ||
-        /* Special case, even when there are no hits, pose logic may de-select all bones. */
-        ((hits == 0) && is_pose_mode)) {
+    if ((handled == false) &&
+        (((hits > 0) && has_bones) ||
+         /* Special case, even when there are no hits, pose logic may de-select all bones. */
+         ((hits == 0) && is_pose_mode))) {
 
       if (basact && (has_bones && (basact->object->type == OB_CAMERA))) {
         MovieClip *clip = BKE_object_movieclip_get(scene, basact->object, false);
