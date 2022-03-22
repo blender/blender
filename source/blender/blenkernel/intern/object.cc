@@ -4630,9 +4630,11 @@ bool BKE_object_shapekey_remove(Main *bmain, Object *ob, KeyBlock *kb)
     if (key->refkey) {
       /* apply new basis key on original data */
       switch (ob->type) {
-        case OB_MESH:
-          BKE_keyblock_convert_to_mesh(key->refkey, (Mesh *)ob->data);
+        case OB_MESH: {
+          Mesh *mesh = (Mesh *)ob->data;
+          BKE_keyblock_convert_to_mesh(key->refkey, mesh->mvert, mesh->totvert);
           break;
+        }
         case OB_CURVES_LEGACY:
         case OB_SURF:
           BKE_keyblock_convert_to_curve(

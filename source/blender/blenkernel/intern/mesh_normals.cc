@@ -306,14 +306,14 @@ static void mesh_calc_normals_poly_and_vertex_finalize_fn(
   }
 }
 
-static void mesh_calc_normals_poly_and_vertex(const MVert *mvert,
-                                              const int mvert_len,
-                                              const MLoop *mloop,
-                                              const int UNUSED(mloop_len),
-                                              const MPoly *mpoly,
-                                              const int mpoly_len,
-                                              float (*r_poly_normals)[3],
-                                              float (*r_vert_normals)[3])
+void BKE_mesh_calc_normals_poly_and_vertex(const MVert *mvert,
+                                           const int mvert_len,
+                                           const MLoop *mloop,
+                                           const int UNUSED(mloop_len),
+                                           const MPoly *mpoly,
+                                           const int mpoly_len,
+                                           float (*r_poly_normals)[3],
+                                           float (*r_vert_normals)[3])
 {
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
@@ -372,14 +372,14 @@ const float (*BKE_mesh_vertex_normals_ensure(const Mesh *mesh))[3]
     vert_normals = BKE_mesh_vertex_normals_for_write(&mesh_mutable);
     poly_normals = BKE_mesh_poly_normals_for_write(&mesh_mutable);
 
-    mesh_calc_normals_poly_and_vertex(mesh_mutable.mvert,
-                                      mesh_mutable.totvert,
-                                      mesh_mutable.mloop,
-                                      mesh_mutable.totloop,
-                                      mesh_mutable.mpoly,
-                                      mesh_mutable.totpoly,
-                                      poly_normals,
-                                      vert_normals);
+    BKE_mesh_calc_normals_poly_and_vertex(mesh_mutable.mvert,
+                                          mesh_mutable.totvert,
+                                          mesh_mutable.mloop,
+                                          mesh_mutable.totloop,
+                                          mesh_mutable.mpoly,
+                                          mesh_mutable.totpoly,
+                                          poly_normals,
+                                          vert_normals);
 
     BKE_mesh_vertex_normals_clear_dirty(&mesh_mutable);
     BKE_mesh_poly_normals_clear_dirty(&mesh_mutable);

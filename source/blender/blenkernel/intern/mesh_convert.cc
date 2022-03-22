@@ -1308,7 +1308,7 @@ Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
 
   if (build_shapekey_layers && me->key &&
       (kb = (KeyBlock *)BLI_findlink(&me->key->block, ob_eval->shapenr - 1))) {
-    BKE_keyblock_convert_to_mesh(kb, me);
+    BKE_keyblock_convert_to_mesh(kb, me->mvert, me->totvert);
   }
 
   Mesh *mesh_temp = (Mesh *)BKE_id_copy_ex(nullptr, &me->id, nullptr, LIB_ID_COPY_LOCALIZE);
