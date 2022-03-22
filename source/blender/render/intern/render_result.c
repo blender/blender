@@ -414,6 +414,11 @@ RenderResult *render_result_new(Render *re,
   rr->xof = re->disprect.xmin + BLI_rcti_cent_x(&re->disprect) - (re->winx / 2);
   rr->yof = re->disprect.ymin + BLI_rcti_cent_y(&re->disprect) - (re->winy / 2);
 
+  /* Preview does not support deferred render result allocation. */
+  if (re->r.scemode & R_BUTS_PREVIEW) {
+    render_result_passes_allocated_ensure(rr);
+  }
+
   return rr;
 }
 
