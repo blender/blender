@@ -4565,9 +4565,28 @@ static int convert_key(GHOST_TKey key)
     case GHOST_kKeyMediaLast:
       return EVT_MEDIALAST;
 
-    default:
+    case GHOST_kKeyUnknown:
       return EVT_UNKNOWNKEY;
+
+#if defined(__GNUC__) || defined(__clang__)
+      /* Ensure all members of this enum are handled, otherwise generate a compiler warning.
+       * Note that these members have been handled, these ranges are to satisfy the compiler. */
+    case GHOST_kKeyF1 ... GHOST_kKeyF24:
+    case GHOST_kKeyA ... GHOST_kKeyZ:
+    case GHOST_kKeyNumpad0 ... GHOST_kKeyNumpad9:
+    case GHOST_kKey0 ... GHOST_kKey9: {
+      BLI_assert_unreachable();
+      break;
+    }
+#else
+    default: {
+      break;
+    }
+#endif
   }
+
+  CLOG_WARN(WM_LOG_EVENTS, "unknown event type %d from ghost", (int)key);
+  return EVENT_NONE;
 }
 
 static void wm_eventemulation(wmEvent *event, bool test_only)
