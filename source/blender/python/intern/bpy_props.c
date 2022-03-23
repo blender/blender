@@ -36,6 +36,11 @@
 #include "../generic/py_capi_rna.h"
 #include "../generic/py_capi_utils.h"
 
+/* Disabled duplicating strings because the array can still be freed and
+ * the strings from it referenced, for now we can't support dynamically
+ * created strings from Python. */
+// #define USE_ENUM_COPY_STRINGS
+
 /* -------------------------------------------------------------------- */
 /** \name Shared Enums & Doc-Strings
  * \{ */
@@ -1855,7 +1860,7 @@ static bool py_long_as_int(PyObject *py_long, int *r_int)
   return false;
 }
 
-#if 0
+#ifdef USE_ENUM_COPY_STRINGS
 /* copies orig to buf, then sets orig to buf, returns copy length */
 static size_t strswapbufcpy(char *buf, const char **orig)
 {
@@ -1898,6 +1903,9 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
   const Py_ssize_t seq_len = PySequence_Fast_GET_SIZE(seq_fast);
   PyObject **seq_fast_items = PySequence_Fast_ITEMS(seq_fast);
   int i;
+#ifdef USE_ENUM_COPY_STRINGS
+  Py_ssize_t totbuf = 0;
+#endif
   short default_used = 0;
   const char *default_str_cmp = NULL;
   int default_int_cmp = 0;
@@ -1986,6 +1994,11 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
       }
 
       items[i] = tmp;
+
+#ifdef USE_ENUM_COPY_STRINGS
+      /* Calculate combine string length. */
+      totbuf += id_str_size + name_str_size + desc_str_size + 3; /* 3 is for '\0's */
+#endif
     }
     else if (item == Py_None) {
       /* Only set since the rest is cleared. */
@@ -2030,13 +2043,9 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
     }
   }
 
-  /* disabled duplicating strings because the array can still be freed and
-   * the strings from it referenced, for now we can't support dynamically
-   * created strings from python. */
-#if 0
-  /* this would all work perfectly _but_ the python strings may be freed
-   * immediately after use, so we need to duplicate them, ugh.
-   * annoying because it works most of the time without this. */
+#ifdef USE_ENUM_COPY_STRINGS
+  /* This would all work perfectly _but_ the python strings may be freed immediately after use,
+   * so we need to duplicate them, ugh. annoying because it works most of the time without this. */
   {
     EnumPropertyItem *items_dup = MEM_mallocN((sizeof(EnumPropertyItem) * (seq_len + 1)) +
                                                   (sizeof(char) * totbuf),
