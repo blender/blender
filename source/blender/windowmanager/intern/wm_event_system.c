@@ -4865,7 +4865,7 @@ static void wm_event_state_update_and_click_set(const GHOST_TEventType type,
                                                 wmEvent *event,
                                                 wmEvent *event_state)
 {
-  BLI_assert(ISKEYBOARD_OR_BUTTON(event->type));
+  BLI_assert(ISKEYBOARD_OR_BUTTON(event->type) || (event->type == EVENT_NONE));
   BLI_assert(ELEM(event->val, KM_PRESS, KM_RELEASE));
 
   /* Only copy these flags into the `event_state`. */
