@@ -461,6 +461,7 @@ class USERPREF_PT_edit_weight_paint(EditingPanel, CenterAlignMixIn, Panel):
         col.active = view.use_weight_color_range
         col.template_color_ramp(view, "weight_color_range", expand=True)
 
+
 class USERPREF_PT_edit_text_editor(EditingPanel, CenterAlignMixIn, Panel):
     bl_label = "Text Editor"
     bl_options = {'DEFAULT_CLOSED'}

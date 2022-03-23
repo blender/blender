@@ -492,7 +492,7 @@ class _draw_tool_settings_context_mode:
             header=True
         )
 
-        if brush.curves_sculpt_tool not in ("ADD", "DELETE"):
+        if brush.curves_sculpt_tool not in {'ADD', 'DELETE'}:
             UnifiedPaintPanel.prop_unified(
                 layout,
                 context,
@@ -502,7 +502,7 @@ class _draw_tool_settings_context_mode:
                 header=True
             )
 
-        if brush.curves_sculpt_tool == "ADD":
+        if brush.curves_sculpt_tool == 'ADD':
             layout.prop(brush, "use_frontface")
             layout.prop(brush, "falloff_shape", expand=True)
             layout.prop(brush.curves_sculpt_settings, "add_amount")
@@ -510,9 +510,8 @@ class _draw_tool_settings_context_mode:
             layout.prop(tool_settings.curves_sculpt, "interpolate_length")
             layout.prop(tool_settings.curves_sculpt, "interpolate_shape")
 
-        if brush.curves_sculpt_tool == "TEST1":
+        if brush.curves_sculpt_tool == 'TEST1':
             layout.prop(tool_settings.curves_sculpt, "distance")
-
 
 
 class VIEW3D_HT_header(Header):
