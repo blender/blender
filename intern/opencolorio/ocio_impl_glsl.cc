@@ -192,6 +192,11 @@ static bool createGPUShader(OCIO_GPUShader &shader,
   info.fragment_source("gpu_shader_display_transform_frag.glsl");
   info.fragment_source_generated = source;
 
+  /* T96502: Work around for incorrect OCIO GLSL code generation when using
+   * GradingPrimaryTransform. Should be reevaluated when changing to a next version of OCIO.
+   * (currently v2.1.1). */
+  info.define("inf 1e32");
+
   if (use_curve_mapping) {
     info.define("USE_CURVE_MAPPING");
     info.uniform_buf(UNIFORMBUF_SLOT_CURVEMAP, "OCIO_GPUCurveMappingParameters", "curve_mapping");
