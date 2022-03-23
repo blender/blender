@@ -3946,7 +3946,7 @@ bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
       /* pass */
     }
     else {
-      Object temp_ob = *dob->ob;
+      Object temp_ob = blender::dna::shallow_copy(*dob->ob);
       /* Do not modify the original boundbox. */
       temp_ob.runtime.bb = nullptr;
       BKE_object_replace_data_on_shallow_copy(&temp_ob, dob->ob_data);

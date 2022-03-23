@@ -910,7 +910,8 @@ static void curve_to_mesh_eval_ensure(Object &object)
    *
    * So we create temporary copy of the object which will use same data as the original bevel, but
    * will have no modifiers. */
-  Object bevel_object = {{nullptr}};
+  Object bevel_object;
+  memset(&bevel_object, 0, sizeof(bevel_object));
   if (curve.bevobj != nullptr) {
     memcpy(&bevel_object, curve.bevobj, sizeof(bevel_object));
     BLI_listbase_clear(&bevel_object.modifiers);
@@ -919,7 +920,8 @@ static void curve_to_mesh_eval_ensure(Object &object)
   }
 
   /* Same thing for taper. */
-  Object taper_object = {{nullptr}};
+  Object taper_object;
+  memset(&taper_object, 0, sizeof(taper_object));
   if (curve.taperobj != nullptr) {
     memcpy(&taper_object, curve.taperobj, sizeof(taper_object));
     BLI_listbase_clear(&taper_object.modifiers);
