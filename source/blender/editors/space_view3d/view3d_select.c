@@ -2536,7 +2536,13 @@ static bool ed_object_select_pick(bContext *C,
 
   /* When enabled, don't attempt any further selection. */
   bool handled = false;
-  bool changed = false;
+
+  /* Split `changed` into data-types so their associated updates can be properly performed.
+   * This is also needed as multiple changes may happen at once.
+   * Selecting a pose-bone or track can also select the object for e.g. */
+  bool changed_object = false;
+  bool changed_pose = false;
+  bool changed_track = false;
 
   /* Handle setting the new base active (even when `handled == true`). */
   bool use_activate_selected_base = false;
@@ -2572,9 +2578,10 @@ static bool ed_object_select_pick(bContext *C,
           if (ed_object_select_pick_camera_track(
                   C, scene, basact, clip, gpu->buffer, gpu->hits, params)) {
             ED_object_base_select(basact, BA_SELECT);
-
             /* Don't set `handled` here as the object activation may be necessary. */
-            changed = true;
+            changed_object = true;
+
+            changed_track = true;
           }
           else {
             /* Fallback to regular object selection if no new bundles were selected,
@@ -2591,6 +2598,9 @@ static bool ed_object_select_pick(bContext *C,
                                                         gpu->hits,
                                                         params,
                                                         gpu->do_nearest)) {
+
+        changed_pose = true;
+
         /* When there is no `baseact` this will have operated on `oldbasact`,
          * allowing #SelectPick_Params.deselect_all work in pose-mode.
          * In this case no object operations are needed. */
@@ -2599,10 +2609,10 @@ static bool ed_object_select_pick(bContext *C,
            * While leaving it unselected will work, leaving pose-mode would leave the object
            * active + unselected which isn't ideal when performing other actions on the object. */
           ED_object_base_select(basact, BA_SELECT);
+          changed_object = true;
 
           WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, basact->object);
           WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, basact->object);
-          DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 
           /* In weight-paint, we use selected bone to select vertex-group.
            * In this case the active object mustn't change as it would leave weight-paint mode. */
@@ -2683,20 +2693,22 @@ static bool ed_object_select_pick(bContext *C,
       else if (found || params->deselect_all) {
         /* Deselect everything. */
         /* `basact` may be NULL. */
-        changed |= object_deselect_all_except(view_layer, basact);
-        DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+        if (object_deselect_all_except(view_layer, basact)) {
+          changed_object = true;
+        }
       }
     }
   }
 
   if ((handled == false) && found) {
-    changed = true;
 
     if (vc.obedit) {
       /* Only do the select (use for setting vertex parents & hooks).
        * In edit-mode do not activate. */
       object_deselect_all_except(view_layer, basact);
       ED_object_base_select(basact, BA_SELECT);
+
+      changed_object = true;
     }
     /* Also prevent making it active on mouse selection. */
     else if (BASE_SELECTABLE(v3d, basact)) {
@@ -2733,36 +2745,37 @@ static bool ed_object_select_pick(bContext *C,
           break;
         }
       }
-    }
 
-    DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-    WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+      changed_object = true;
+    }
   }
 
   /* Perform the activation even when 'handled', since this is used to ensure
    * the object from the pose-bone selected is also activated. */
   if (use_activate_selected_base && (basact != NULL)) {
-    changed = true;
+    changed_object = true;
     ED_object_base_activate(C, basact); /* adds notifier */
     if ((scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) == 0) {
       WM_toolsystem_update_from_context_view3d(C);
     }
   }
 
-  if (changed) {
-    if (vc.obact && vc.obact->mode & OB_MODE_POSE) {
-      ED_outliner_select_sync_from_pose_bone_tag(C);
-    }
-    else {
-      ED_outliner_select_sync_from_object_tag(C);
-    }
+  if (changed_object) {
+    DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+    WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+
+    ED_outliner_select_sync_from_object_tag(C);
+  }
+
+  if (changed_pose) {
+    ED_outliner_select_sync_from_pose_bone_tag(C);
   }
 
   if (gpu != NULL) {
     MEM_freeN(gpu);
   }
 
-  return changed;
+  return (changed_object || changed_pose || changed_track);
 }
 
 /**
