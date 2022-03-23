@@ -214,6 +214,7 @@ set(SRC
   engines/eevee_next/eevee_engine.h
   engines/external/external_engine.h
   engines/image/image_batches.hh
+  engines/image/image_buffer_cache.hh
   engines/image/image_drawing_mode.hh
   engines/image/image_engine.h
   engines/image/image_instance_data.hh

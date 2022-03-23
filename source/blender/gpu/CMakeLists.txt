@@ -2,7 +2,7 @@
 # Copyright 2006 Blender Foundation. All rights reserved.
 
 # WITH_OPENGL limits the visibility of the opengl headers to just GPU and bg_gpu,
-# to more easily highlight codepadths in other libraries that need to be refactored,
+# to more easily highlight code-paths in other libraries that need to be refactored,
 # bf_gpu is allowed to have opengl regardless of this option.
 
 if(NOT WITH_OPENGL AND NOT WITH_METAL_BACKEND)
@@ -109,6 +109,7 @@ set(SRC
   GPU_vertex_buffer.h
   GPU_vertex_format.h
   GPU_viewport.h
+  GPU_storage_buffer.h
 
   intern/gpu_backend.hh
   intern/gpu_batch_private.hh
@@ -133,6 +134,7 @@ set(SRC
   intern/gpu_shader_interface.hh
   intern/gpu_shader_private.hh
   intern/gpu_state_private.hh
+  intern/gpu_storage_buffer_private.hh
   intern/gpu_texture_private.hh
   intern/gpu_uniform_buffer_private.hh
   intern/gpu_vertex_buffer_private.hh
@@ -176,6 +178,7 @@ set(OPENGL_SRC
   opengl/gl_shader.hh
   opengl/gl_shader_interface.hh
   opengl/gl_state.hh
+  opengl/gl_storage_buffer.hh
   opengl/gl_texture.hh
   opengl/gl_uniform_buffer.hh
   opengl/gl_vertex_array.hh
