@@ -16,6 +16,7 @@
 
 #if TBB_INTERFACE_VERSION_MAJOR >= 10
 #  define WITH_TBB_GLOBAL_CONTROL
+#  define TBB_PREVIEW_GLOBAL_CONTROL 1
 #  include <tbb/global_control.h>
 #endif
 

@@ -39,12 +39,12 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang")
     set(WITH_WINDOWS_STRIPPED_PDB OFF)
   endif()
 else()
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.28.29921) # MSVC 2019 16.9.16
+  if(WITH_BLENDER AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 19.28.29921) # MSVC 2019 16.9.16
     message(FATAL_ERROR "Compiler is unsupported, MSVC 2019 16.9.16 or newer is required for building blender.")
   endif()
 endif()
 
-if(NOT WITH_PYTHON_MODULE)
+if(WITH_BLENDER AND NOT WITH_PYTHON_MODULE)
   set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT blender)
 endif()
 
@@ -238,7 +238,6 @@ else()
 endif()
 
 if(NOT DEFINED LIBDIR)
-
   # Setup 64bit and 64bit windows systems
   if(CMAKE_CL_64)
     message(STATUS "64 bit compiler detected.")
@@ -251,6 +250,9 @@ if(NOT DEFINED LIBDIR)
     set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_BASE}_vc15)
   elseif(MSVC_VERSION GREATER 1919)
     message(STATUS "Visual Studio 2019 detected.")
+    set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_BASE}_vc15)
+  elseif(MSVC_VERSION GREATER 1909)
+    message(STATUS "Visual Studio 2017 detected.")
     set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_BASE}_vc15)
   endif()
 else()
@@ -300,9 +302,8 @@ set(ZLIB_INCLUDE_DIR ${LIBDIR}/zlib/include)
 set(ZLIB_LIBRARY ${LIBDIR}/zlib/lib/libz_st.lib)
 set(ZLIB_DIR ${LIBDIR}/zlib)
 
-windows_find_package(zlib) # we want to find before finding things that depend on it like png
-windows_find_package(png)
-
+windows_find_package(ZLIB) # we want to find before finding things that depend on it like png
+windows_find_package(PNG)
 if(NOT PNG_FOUND)
   warn_hardcoded_paths(libpng)
   set(PNG_PNG_INCLUDE_DIR ${LIBDIR}/png/include)
@@ -313,9 +314,9 @@ if(NOT PNG_FOUND)
 endif()
 
 set(JPEG_NAMES ${JPEG_NAMES} libjpeg)
-windows_find_package(jpeg REQUIRED)
+windows_find_package(JPEG REQUIRED)
 if(NOT JPEG_FOUND)
-  warn_hardcoded_paths(jpeg)
+  warn_hardcoded_paths(libjpeg)
   set(JPEG_INCLUDE_DIR ${LIBDIR}/jpeg/include)
   set(JPEG_LIBRARIES ${LIBDIR}/jpeg/lib/libjpeg.lib)
 endif()
@@ -333,7 +334,7 @@ set(FREETYPE_LIBRARIES
   ${LIBDIR}/brotli/lib/brotlidec-static.lib
   ${LIBDIR}/brotli/lib/brotlicommon-static.lib
 )
-windows_find_package(freetype REQUIRED)
+windows_find_package(Freetype REQUIRED)
 
 if(WITH_FFTW3)
   set(FFTW3 ${LIBDIR}/fftw3)
@@ -389,9 +390,9 @@ if(WITH_CODEC_FFMPEG)
     ${LIBDIR}/ffmpeg/include
     ${LIBDIR}/ffmpeg/include/msvc
   )
-  windows_find_package(FFMPEG)
+  windows_find_package(FFmpeg)
   if(NOT FFMPEG_FOUND)
-    warn_hardcoded_paths(ffmpeg)
+    warn_hardcoded_paths(FFmpeg)
     set(FFMPEG_LIBRARIES
       ${LIBDIR}/ffmpeg/lib/avcodec.lib
       ${LIBDIR}/ffmpeg/lib/avformat.lib
@@ -403,10 +404,10 @@ if(WITH_CODEC_FFMPEG)
 endif()
 
 if(WITH_IMAGE_OPENEXR)
-  set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
-  set(OPENEXR_VERSION "2.1")
-  windows_find_package(OPENEXR REQUIRED)
+  windows_find_package(OpenEXR REQUIRED)
   if(NOT OPENEXR_FOUND)
+    set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
+    set(OPENEXR_VERSION "2.1")
     warn_hardcoded_paths(OpenEXR)
     set(OPENEXR ${LIBDIR}/openexr)
     set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
@@ -624,21 +625,23 @@ if(WITH_IMAGE_OPENJPEG)
 endif()
 
 if(WITH_OPENSUBDIV)
-  set(OPENSUBDIV_INCLUDE_DIRS ${LIBDIR}/opensubdiv/include)
-  set(OPENSUBDIV_LIBPATH ${LIBDIR}/opensubdiv/lib)
-  set(OPENSUBDIV_LIBRARIES
-    optimized ${OPENSUBDIV_LIBPATH}/osdCPU.lib
-    optimized ${OPENSUBDIV_LIBPATH}/osdGPU.lib
-    debug ${OPENSUBDIV_LIBPATH}/osdCPU_d.lib
-    debug ${OPENSUBDIV_LIBPATH}/osdGPU_d.lib
-  )
-  set(OPENSUBDIV_HAS_OPENMP TRUE)
-  set(OPENSUBDIV_HAS_TBB FALSE)
-  set(OPENSUBDIV_HAS_OPENCL TRUE)
-  set(OPENSUBDIV_HAS_CUDA FALSE)
-  set(OPENSUBDIV_HAS_GLSL_TRANSFORM_FEEDBACK TRUE)
-  set(OPENSUBDIV_HAS_GLSL_COMPUTE TRUE)
   windows_find_package(OpenSubdiv)
+  if (NOT OpenSubdiv_FOUND)
+    set(OPENSUBDIV_INCLUDE_DIRS ${LIBDIR}/opensubdiv/include)
+    set(OPENSUBDIV_LIBPATH ${LIBDIR}/opensubdiv/lib)
+    set(OPENSUBDIV_LIBRARIES
+      optimized ${OPENSUBDIV_LIBPATH}/osdCPU.lib
+      optimized ${OPENSUBDIV_LIBPATH}/osdGPU.lib
+      debug ${OPENSUBDIV_LIBPATH}/osdCPU_d.lib
+      debug ${OPENSUBDIV_LIBPATH}/osdGPU_d.lib
+    )
+    set(OPENSUBDIV_HAS_OPENMP TRUE)
+    set(OPENSUBDIV_HAS_TBB FALSE)
+    set(OPENSUBDIV_HAS_OPENCL TRUE)
+    set(OPENSUBDIV_HAS_CUDA FALSE)
+    set(OPENSUBDIV_HAS_GLSL_TRANSFORM_FEEDBACK TRUE)
+    set(OPENSUBDIV_HAS_GLSL_COMPUTE TRUE)
+  endif()
 endif()
 
 if(WITH_SDL)
@@ -659,12 +662,15 @@ if(WITH_SYSTEM_AUDASPACE)
 endif()
 
 if(WITH_TBB)
-  set(TBB_LIBRARIES optimized ${LIBDIR}/tbb/lib/tbb.lib debug ${LIBDIR}/tbb/lib/tbb_debug.lib)
-  set(TBB_INCLUDE_DIR ${LIBDIR}/tbb/include)
-  set(TBB_INCLUDE_DIRS ${TBB_INCLUDE_DIR})
-  if(WITH_TBB_MALLOC_PROXY)
-    set(TBB_MALLOC_LIBRARIES optimized ${LIBDIR}/tbb/lib/tbbmalloc.lib debug ${LIBDIR}/tbb/lib/tbbmalloc_debug.lib)
-    add_definitions(-DWITH_TBB_MALLOC)
+  windows_find_package(TBB)
+  if (NOT TBB_FOUND)
+    set(TBB_LIBRARIES optimized ${LIBDIR}/tbb/lib/tbb.lib debug ${LIBDIR}/tbb/lib/tbb_debug.lib)
+    set(TBB_INCLUDE_DIR ${LIBDIR}/tbb/include)
+    set(TBB_INCLUDE_DIRS ${TBB_INCLUDE_DIR})
+    if(WITH_TBB_MALLOC_PROXY)
+      set(TBB_MALLOC_LIBRARIES optimized ${LIBDIR}/tbb/lib/tbbmalloc.lib debug ${LIBDIR}/tbb/lib/tbbmalloc_debug.lib)
+      add_definitions(-DWITH_TBB_MALLOC)
+    endif()
   endif()
 endif()
 

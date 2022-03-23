@@ -36,7 +36,7 @@ FIND_PATH(USD_INCLUDE_DIR
 # See https://github.com/PixarAnimationStudios/USD/blob/release/CHANGELOG.md#2111---2021-11-01
 FIND_LIBRARY(USD_LIBRARY
   NAMES
-    usd_usd_m usd_usd_ms usd_m usd_ms
+    usd_usd_m usd_usd_ms usd_m usd_ms ${USD_LIBRARY_PREFIX}usd
   NAMES_PER_DIR
   HINTS
     ${_usd_SEARCH_DIRS}

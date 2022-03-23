@@ -142,8 +142,8 @@ NODE_DEFINE(Mesh)
   SOCKET_INT(num_ngons, "NGons Number", 0);
 
   /* Subdivisions parameters */
-  SOCKET_FLOAT(subd_dicing_rate, "Subdivision Dicing Rate", 0.0f)
-  SOCKET_INT(subd_max_level, "Subdivision Dicing Rate", 0);
+  SOCKET_FLOAT(subd_dicing_rate, "Subdivision Dicing Rate", 1.0f)
+  SOCKET_INT(subd_max_level, "Max Subdivision Level", 1);
   SOCKET_TRANSFORM(subd_objecttoworld, "Subdivision Object Transform", transform_identity());
 
   return type;
@@ -357,7 +357,7 @@ void Mesh::add_triangle(int v0, int v1, int v2, int shader_, bool smooth_)
   }
 }
 
-void Mesh::add_subd_face(int *corners, int num_corners, int shader_, bool smooth_)
+void Mesh::add_subd_face(const int *corners, int num_corners, int shader_, bool smooth_)
 {
   int start_corner = subd_face_corners.size();
 
@@ -411,8 +411,6 @@ void Mesh::add_edge_crease(int v0, int v1, float weight)
 
 void Mesh::add_vertex_crease(int v, float weight)
 {
-  assert(v < verts.size());
-
   subd_vert_creases.push_back_slow(v);
   subd_vert_creases_weight.push_back_slow(weight);
 

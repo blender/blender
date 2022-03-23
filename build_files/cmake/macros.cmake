@@ -879,7 +879,7 @@ function(delayed_install
   destination)
 
   foreach(f ${files})
-    if(IS_ABSOLUTE ${f})
+    if(IS_ABSOLUTE ${f} OR "${base}" STREQUAL "")
       set_property(GLOBAL APPEND PROPERTY DELAYED_INSTALL_FILES ${f})
     else()
       set_property(GLOBAL APPEND PROPERTY DELAYED_INSTALL_FILES ${base}/${f})

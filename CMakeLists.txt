@@ -408,6 +408,8 @@ option(WITH_CYCLES_DEBUG             "Build Cycles with options useful for debug
 option(WITH_CYCLES_STANDALONE        "Build Cycles standalone application" OFF)
 option(WITH_CYCLES_STANDALONE_GUI    "Build Cycles standalone with GUI" OFF)
 
+option(WITH_CYCLES_HYDRA_RENDER_DELEGATE "Build Cycles Hydra render delegate" OFF)
+
 option(WITH_CYCLES_DEBUG_NAN         "Build Cycles with additional asserts for detecting NaNs and invalid values" OFF)
 option(WITH_CYCLES_NATIVE_ONLY       "Build Cycles with native kernel only (which fits current CPU, use for development only)" OFF)
 option(WITH_CYCLES_KERNEL_ASAN       "Build Cycles kernels with address sanitizer when WITH_COMPILER_ASAN is on, even if it's very slow" OFF)
@@ -742,9 +744,10 @@ endif()
 #-----------------------------------------------------------------------------
 # Check for conflicting/unsupported configurations
 
-if(NOT WITH_BLENDER AND NOT WITH_CYCLES_STANDALONE)
+if(NOT WITH_BLENDER AND NOT WITH_CYCLES_STANDALONE AND NOT WITH_CYCLES_HYDRA_RENDER_DELEGATE)
   message(FATAL_ERROR
     "At least one of WITH_BLENDER or WITH_CYCLES_STANDALONE "
+    "or WITH_CYCLES_HYDRA_RENDER_DELEGATE "
     "must be enabled, nothing to do!"
   )
 endif()
@@ -1907,14 +1910,13 @@ if(WITH_BLENDER)
   # source after intern and extern to gather all
   # internal and external library information first, for test linking
   add_subdirectory(source)
-elseif(WITH_CYCLES_STANDALONE)
+elseif(WITH_CYCLES_STANDALONE OR WITH_CYCLES_HYDRA_RENDER_DELEGATE)
   add_subdirectory(intern/glew-mx)
   add_subdirectory(intern/guardedalloc)
   add_subdirectory(intern/libc_compat)
   add_subdirectory(intern/sky)
 
   add_subdirectory(intern/cycles)
-  add_subdirectory(extern/clew)
   if(WITH_CYCLES_LOGGING)
     if(NOT WITH_SYSTEM_GFLAGS)
       add_subdirectory(extern/gflags)
