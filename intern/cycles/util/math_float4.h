@@ -90,13 +90,13 @@ ccl_device_inline float4 zero_float4()
 #ifdef __KERNEL_SSE__
   return float4(_mm_setzero_ps());
 #else
-  return make_float4(0.0f);
+  return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 #endif
 }
 
 ccl_device_inline float4 one_float4()
 {
-  return make_float4(1.0f);
+  return make_float4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 #if !defined(__KERNEL_METAL__)
@@ -149,7 +149,7 @@ ccl_device_inline float4 operator/(const float4 &a, const float4 &b)
 
 ccl_device_inline float4 operator+(const float4 &a, const float f)
 {
-  return a + make_float4(f);
+  return a + make_float4(f, f, f, f);
 }
 
 ccl_device_inline float4 operator+(const float4 &a, const float4 &b)
@@ -163,7 +163,7 @@ ccl_device_inline float4 operator+(const float4 &a, const float4 &b)
 
 ccl_device_inline float4 operator-(const float4 &a, const float f)
 {
-  return a - make_float4(f);
+  return a - make_float4(f, f, f, f);
 }
 
 ccl_device_inline float4 operator-(const float4 &a, const float4 &b)
@@ -317,7 +317,7 @@ ccl_device_inline float4 reduce_add(const float4 &a)
 #    endif
 #  else
   float sum = (a.x + a.y) + (a.z + a.w);
-  return make_float4(sum);
+  return make_float4(sum, sum, sum, sum);
 #  endif
 }
 

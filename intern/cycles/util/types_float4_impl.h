@@ -89,11 +89,6 @@ ccl_device_inline void print_float4(const char *label, const float4 &a)
 {
   printf("%s: %.8f %.8f %.8f %.8f\n", label, (double)a.x, (double)a.y, (double)a.z, (double)a.w);
 }
-#else
-ccl_device_inline float4 make_float4(float f)
-{
-  return make_float4(f, f, f, f);
-}
 #endif /* __KERNEL_GPU__ */
 
 CCL_NAMESPACE_END

@@ -31,19 +31,17 @@ ccl_device_inline float frac(float x, int *ix)
   return x - (float)i;
 }
 
-template<typename ZeroT> ccl_always_inline ZeroT zero();
-
-template<> ccl_always_inline float zero<float>()
-{
-  return 0.0f;
-}
-
-template<> ccl_always_inline float4 zero<float4>()
-{
-  return zero_float4();
-}
-
 template<typename TexT, typename OutT = float4> struct TextureInterpolator {
+
+  static ccl_always_inline OutT zero()
+  {
+    if constexpr (std::is_same<OutT, float4>::value) {
+      return zero_float4();
+    }
+    else {
+      return 0.0f;
+    }
+  }
 
   static ccl_always_inline float4 read(float4 r)
   {
@@ -99,7 +97,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
   static ccl_always_inline OutT read_clip(const TexT *data, int x, int y, int width, int height)
   {
     if (x < 0 || x >= width || y < 0 || y >= height) {
-      return zero<OutT>();
+      return zero();
     }
     return read(data[y * width + x]);
   }
@@ -118,7 +116,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
   read_clip(const TexT *data, int x, int y, int z, int width, int height, int depth)
   {
     if (x < 0 || x >= width || y < 0 || y >= height || z < 0 || z >= depth) {
-      return zero<OutT>();
+      return zero();
     }
     return read(data[x + y * width + z * width * height]);
   }
@@ -221,7 +219,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
       case EXTENSION_CLIP:
         /* No samples are inside the clip region. */
         if (ix < 0 || ix >= width || iy < 0 || iy >= height) {
-          return zero<OutT>();
+          return zero();
         }
         break;
       case EXTENSION_EXTEND:
@@ -230,7 +228,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
         break;
       default:
         kernel_assert(0);
-        return zero<OutT>();
+        return zero();
     }
 
     const TexT *data = (const TexT *)info.data;
@@ -259,7 +257,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
       case EXTENSION_CLIP:
         /* No linear samples are inside the clip region. */
         if (ix < -1 || ix >= width || iy < -1 || iy >= height) {
-          return zero<OutT>();
+          return zero();
         }
         nix = ix + 1;
         niy = iy + 1;
@@ -272,7 +270,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
         break;
       default:
         kernel_assert(0);
-        return zero<OutT>();
+        return zero();
     }
 
     const TexT *data = (const TexT *)info.data;
@@ -311,7 +309,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
       case EXTENSION_CLIP:
         /* No cubic samples are inside the clip region. */
         if (ix < -2 || ix > width || iy < -2 || iy > height) {
-          return zero<OutT>();
+          return zero();
         }
 
         pix = ix - 1;
@@ -335,7 +333,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
         break;
       default:
         kernel_assert(0);
-        return zero<OutT>();
+        return zero();
     }
 
     const TexT *data = (const TexT *)info.data;
@@ -397,7 +395,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
       case EXTENSION_CLIP:
         /* No samples are inside the clip region. */
         if (ix < 0 || ix >= width || iy < 0 || iy >= height || iz < 0 || iz >= depth) {
-          return zero<OutT>();
+          return zero();
         }
         break;
       case EXTENSION_EXTEND:
@@ -407,7 +405,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
         break;
       default:
         kernel_assert(0);
-        return zero<OutT>();
+        return zero();
     }
 
     const TexT *data = (const TexT *)info.data;
@@ -444,7 +442,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
       case EXTENSION_CLIP:
         /* No linear samples are inside the clip region. */
         if (ix < -1 || ix >= width || iy < -1 || iy >= height || iz < -1 || iz >= depth) {
-          return zero<OutT>();
+          return zero();
         }
 
         nix = ix + 1;
@@ -484,7 +482,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
         break;
       default:
         kernel_assert(0);
-        return zero<OutT>();
+        return zero();
     }
 
     return trilinear_lookup((const TexT *)info.data,
@@ -553,7 +551,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
       case EXTENSION_CLIP: {
         /* No cubic samples are inside the clip region. */
         if (ix < -2 || ix > width || iy < -2 || iy > height || iz < -2 || iz > depth) {
-          return zero<OutT>();
+          return zero();
         }
 
         pix = ix - 1;
@@ -599,7 +597,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
         break;
       default:
         kernel_assert(0);
-        return zero<OutT>();
+        return zero();
     }
     const int xc[4] = {pix, ix, nix, nnix};
     const int yc[4] = {piy, iy, niy, nniy};
