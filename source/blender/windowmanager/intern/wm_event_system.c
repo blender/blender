@@ -4428,6 +4428,9 @@ void WM_event_add_mousemove(wmWindow *win)
 /** \name Ghost Event Conversion
  * \{ */
 
+/**
+ * \return The WM enum for key or #EVENT_NONE (which should be ignored).
+ */
 static int convert_key(GHOST_TKey key)
 {
   if (key >= GHOST_kKeyA && key <= GHOST_kKeyZ) {
@@ -4451,7 +4454,7 @@ static int convert_key(GHOST_TKey key)
     case GHOST_kKeyLinefeed:
       return EVT_LINEFEEDKEY;
     case GHOST_kKeyClear:
-      return 0;
+      return EVENT_NONE;
     case GHOST_kKeyEnter:
       return EVT_RETKEY;
 
@@ -4506,9 +4509,9 @@ static int convert_key(GHOST_TKey key)
     case GHOST_kKeyCapsLock:
       return EVT_CAPSLOCKKEY;
     case GHOST_kKeyNumLock:
-      return 0;
+      return EVENT_NONE;
     case GHOST_kKeyScrollLock:
-      return 0;
+      return EVENT_NONE;
 
     case GHOST_kKeyLeftArrow:
       return EVT_LEFTARROWKEY;
@@ -4520,7 +4523,7 @@ static int convert_key(GHOST_TKey key)
       return EVT_DOWNARROWKEY;
 
     case GHOST_kKeyPrintScreen:
-      return 0;
+      return EVENT_NONE;
     case GHOST_kKeyPause:
       return EVT_PAUSEKEY;
 
@@ -4563,7 +4566,7 @@ static int convert_key(GHOST_TKey key)
       return EVT_MEDIALAST;
 
     default:
-      return EVT_UNKNOWNKEY; /* #GHOST_kKeyUnknown (this could be asserted). */
+      return EVT_UNKNOWNKEY;
   }
 }
 
@@ -4865,7 +4868,7 @@ static void wm_event_state_update_and_click_set(const GHOST_TEventType type,
                                                 wmEvent *event,
                                                 wmEvent *event_state)
 {
-  BLI_assert(ISKEYBOARD_OR_BUTTON(event->type) || (event->type == EVENT_NONE));
+  BLI_assert(ISKEYBOARD_OR_BUTTON(event->type));
   BLI_assert(ELEM(event->val, KM_PRESS, KM_RELEASE));
 
   /* Only copy these flags into the `event_state`. */
@@ -5087,6 +5090,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
     case GHOST_kEventKeyUp: {
       GHOST_TEventKeyData *kd = customdata;
       event.type = convert_key(kd->key);
+      if (UNLIKELY(event.type == EVENT_NONE)) {
+        break;
+      }
+
       event.ascii = kd->ascii;
       /* Might be not NULL terminated. */
       memcpy(event.utf8_buf, kd->utf8_buf, sizeof(event.utf8_buf));
