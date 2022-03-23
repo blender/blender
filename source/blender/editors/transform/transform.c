@@ -845,6 +845,10 @@ int transformEvent(TransInfo *t, const wmEvent *event)
     handled = true;
   }
   else if (event->type == MOUSEMOVE) {
+    if (t->modifiers & (MOD_CONSTRAINT_SELECT_AXIS | MOD_CONSTRAINT_SELECT_PLANE)) {
+      t->con.mode |= CON_SELECT;
+    }
+
     copy_v2_v2_int(t->mval, event->mval);
 
     /* Use this for soft redraw. Might cause flicker in object mode */
@@ -1112,8 +1116,10 @@ int transformEvent(TransInfo *t, const wmEvent *event)
               if (t->con.mode & CON_APPLY) {
                 stopConstraint(t);
               }
-
-              initSelectConstraint(t);
+              else {
+                initSelectConstraint(t);
+                postSelectConstraint(t);
+              }
             }
           }
           t->redraw |= TREDRAW_HARD;
