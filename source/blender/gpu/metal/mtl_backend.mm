@@ -108,8 +108,7 @@ void MTLBackend::render_begin()
 void MTLBackend::render_end()
 {
   /* If call-count reaches zero, drain auto release pool.
-   * Esures temporary objects are freed within a frame's
-   * lifetime. */
+   * Ensures temporary objects are freed within a frame's lifetime. */
   BLI_assert(g_autoreleasepool != nil);
   g_autoreleasepool_depth--;
   BLI_assert(g_autoreleasepool_depth >= 0);
@@ -136,7 +135,7 @@ bool MTLBackend::is_inside_render_boundary()
 /** \name Platform
  * \{ */
 
-/* For Metal, platform_init needs to be called after MTLContext initialisation. */
+/* For Metal, platform_init needs to be called after MTLContext initialization. */
 void MTLBackend::platform_init(MTLContext *ctx)
 {
   if (GPG.initialized) {
@@ -318,7 +317,7 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   id<MTLDevice> device = nil; /*ctx->device TODO(Metal): Implement MTLContext. */
   BLI_assert(device);
 
-  /* Initialise Capabilities. */
+  /* Initialize Capabilities. */
   MTLBackend::capabilities.supports_argument_buffers_tier2 = ([device argumentBuffersSupport] ==
                                                               MTLArgumentBuffersTier2);
   MTLBackend::capabilities.supports_family_mac1 = [device supportsFamily:MTLGPUFamilyMac1];
@@ -398,8 +397,8 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   GCaps.broken_amd_driver = false;
 
   /* Metal related workarounds. */
-  /* Minimum per-vertex stride is 4 bytes in Metal. A bound vertex buffer must contribute atleast 4
-   * bytes per vertex. */
+  /* Minimum per-vertex stride is 4 bytes in Metal.
+   * A bound vertex buffer must contribute at least 4 bytes per vertex. */
   GCaps.minimum_per_vertex_stride = 4;
 }
 

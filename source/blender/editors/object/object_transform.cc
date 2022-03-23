@@ -1135,7 +1135,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
     }
 
     if (ob->data == nullptr) {
-      /* special support for dupligroups */
+      /* Special support for instanced collections. */
       if ((ob->transflag & OB_DUPLICOLLECTION) && ob->instance_collection &&
           (ob->instance_collection->id.tag & LIB_TAG_DOIT) == 0) {
         if (ID_IS_LINKED(ob->instance_collection)) {

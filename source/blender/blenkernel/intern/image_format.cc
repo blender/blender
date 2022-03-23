@@ -733,7 +733,7 @@ void BKE_image_format_to_imbuf(ImBuf *ibuf, const ImageFormatData *imf)
   }
 #endif
   else {
-    /* R_IMF_IMTYPE_JPEG90, etc. default we save jpegs */
+    /* #R_IMF_IMTYPE_JPEG90, etc. default to JPEG. */
     if (quality < 10) {
       quality = 90;
     }

@@ -515,7 +515,7 @@ class Texture : NonCopyable {
 
   /**
    * Ensure the availability of mipmap views.
-   * Mip view covers all layers of array textures.
+   * MIP view covers all layers of array textures.
    */
   bool ensure_mip_views(bool cube_as_array = false)
   {

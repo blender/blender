@@ -432,7 +432,7 @@ struct DRWView {
   struct DRWView *parent;
 
   ViewInfos storage;
-  /** Number of active clipplanes. */
+  /** Number of active clip planes. */
   int clip_planes_len;
   /** Does culling result needs to be updated. */
   bool is_dirty;

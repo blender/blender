@@ -27,7 +27,7 @@ GLStorageBuf::GLStorageBuf(size_t size, GPUUsageType usage, const char *name)
     : StorageBuf(size, name)
 {
   usage_ = usage;
-  /* Do not create ubo GL buffer here to allow allocation from any thread. */
+  /* Do not create UBO GL buffer here to allow allocation from any thread. */
   BLI_assert(size <= GLContext::max_ssbo_size);
 }
 

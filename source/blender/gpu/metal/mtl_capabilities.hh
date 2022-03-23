@@ -21,7 +21,7 @@ namespace gpu {
 /* Context-specific limits -- populated in 'MTLBackend::platform_init' */
 typedef struct MTLCapabilities {
 
-  /* Variable Limits & faeture sets */
+  /* Variable Limits & feature sets. */
   int max_color_render_targets = 4;          /* Minimum = 4 */
   int buffer_alignment_for_textures = 256;   /* Upper bound = 256 bytes */
   int minimum_buffer_offset_alignment = 256; /* Upper bound = 256 bytes */
