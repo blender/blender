@@ -30,7 +30,7 @@ class AbcMeshReader final : public AbcObjectReader {
                          const char *velocity_name,
                          float velocity_scale,
                          const char **err_str) override;
-  bool topology_changed(Mesh *existing_mesh,
+  bool topology_changed(const Mesh *existing_mesh,
                         const Alembic::Abc::ISampleSelector &sample_sel) override;
 
  private:
