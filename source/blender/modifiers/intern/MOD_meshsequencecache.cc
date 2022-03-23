@@ -60,11 +60,11 @@
 
 static void initData(ModifierData *md)
 {
-  MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)md;
+  MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
 
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mcmd, modifier));
 
-  mcmd->cache_file = NULL;
+  mcmd->cache_file = nullptr;
   mcmd->object_path[0] = '\0';
   mcmd->read_flag = MOD_MESHSEQ_READ_ALL;
 
@@ -80,13 +80,13 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
 
   BKE_modifier_copydata_generic(md, target, flag);
 
-  tmcmd->reader = NULL;
+  tmcmd->reader = nullptr;
   tmcmd->reader_object_path[0] = '\0';
 }
 
 static void freeData(ModifierData *md)
 {
-  MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)md;
+  MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
 
   if (mcmd->reader) {
     mcmd->reader_object_path[0] = '\0';
@@ -98,10 +98,10 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
                        ModifierData *md,
                        bool UNUSED(useRenderParams))
 {
-  MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)md;
+  MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
 
   /* leave it up to the modifier to check the file is valid on calculation */
-  return (mcmd->cache_file == NULL) || (mcmd->object_path[0] == '\0');
+  return (mcmd->cache_file == nullptr) || (mcmd->object_path[0] == '\0');
 }
 
 static Mesh *generate_bounding_box_mesh(Object *object, Mesh *org_mesh)
@@ -145,17 +145,17 @@ static Mesh *generate_bounding_box_mesh(Object *object, Mesh *org_mesh)
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
 #if defined(WITH_USD) || defined(WITH_ALEMBIC)
-  MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)md;
+  MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
 
   /* Only used to check whether we are operating on org data or not... */
-  Mesh *me = (ctx->object->type == OB_MESH) ? ctx->object->data : NULL;
+  Mesh *me = (ctx->object->type == OB_MESH) ? static_cast<Mesh *>(ctx->object->data) : nullptr;
   Mesh *org_mesh = mesh;
 
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   CacheFile *cache_file = mcmd->cache_file;
   const float frame = DEG_get_ctime(ctx->depsgraph);
   const float time = BKE_cachefile_time_offset(cache_file, frame, FPS);
-  const char *err_str = NULL;
+  const char *err_str = nullptr;
 
   if (!mcmd->reader || !STREQ(mcmd->reader_object_path, mcmd->object_path)) {
     STRNCPY(mcmd->reader_object_path, mcmd->object_path);
@@ -196,7 +196,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     }
   }
 
-  if (me != NULL) {
+  if (me != nullptr) {
     MVert *mvert = mesh->mvert;
     MEdge *medge = mesh->medge;
     MPoly *mpoly = mesh->mpoly;
@@ -205,15 +205,16 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
      * flags) and duplicate those too. */
     if ((me->mvert == mvert) || (me->medge == medge) || (me->mpoly == mpoly)) {
       /* We need to duplicate data here, otherwise we'll modify org mesh, see T51701. */
-      mesh = (Mesh *)BKE_id_copy_ex(NULL,
-                                    &mesh->id,
-                                    NULL,
-                                    LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT |
-                                        LIB_ID_CREATE_NO_DEG_TAG | LIB_ID_COPY_NO_PREVIEW);
+      mesh = reinterpret_cast<Mesh *>(
+          BKE_id_copy_ex(nullptr,
+                         &mesh->id,
+                         nullptr,
+                         LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT |
+                             LIB_ID_CREATE_NO_DEG_TAG | LIB_ID_COPY_NO_PREVIEW));
     }
   }
 
-  Mesh *result = NULL;
+  Mesh *result = nullptr;
 
   switch (cache_file->type) {
     case CACHEFILE_TYPE_ALEMBIC: {
@@ -250,8 +251,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     BKE_modifier_set_error(ctx->object, md, "%s", err_str);
   }
 
-  if (!ELEM(result, NULL, mesh) && (mesh != org_mesh)) {
-    BKE_id_free(NULL, mesh);
+  if (!ELEM(result, nullptr, mesh) && (mesh != org_mesh)) {
+    BKE_id_free(nullptr, mesh);
     mesh = org_mesh;
   }
 
@@ -265,9 +266,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 static bool dependsOnTime(Scene *scene, ModifierData *md, const int dag_eval_mode)
 {
 #if defined(WITH_USD) || defined(WITH_ALEMBIC)
-  MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)md;
+  MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
   /* Do not evaluate animations if using the render engine procedural. */
-  return (mcmd->cache_file != NULL) &&
+  return (mcmd->cache_file != nullptr) &&
          !BKE_cache_file_uses_render_procedural(mcmd->cache_file, scene, dag_eval_mode);
 #else
   UNUSED_VARS(scene, md, dag_eval_mode);
@@ -277,16 +278,16 @@ static bool dependsOnTime(Scene *scene, ModifierData *md, const int dag_eval_mod
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
-  MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)md;
+  MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
 
-  walk(userData, ob, (ID **)&mcmd->cache_file, IDWALK_CB_USER);
+  walk(userData, ob, reinterpret_cast<ID **>(&mcmd->cache_file), IDWALK_CB_USER);
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)md;
+  MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
 
-  if (mcmd->cache_file != NULL) {
+  if (mcmd->cache_file != nullptr) {
     DEG_add_object_cache_relation(
         ctx->node, mcmd->cache_file, DEG_OB_COMP_CACHE, "Mesh Cache File");
   }
@@ -307,12 +308,13 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiTemplateCacheFile(layout, C, ptr, "cache_file");
 
   if (has_cache_file) {
-    uiItemPointerR(layout, ptr, "object_path", &cache_file_ptr, "object_paths", NULL, ICON_NONE);
+    uiItemPointerR(
+        layout, ptr, "object_path", &cache_file_ptr, "object_paths", nullptr, ICON_NONE);
   }
 
   if (RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
-    uiItemR(layout, ptr, "read_data", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-    uiItemR(layout, ptr, "use_vertex_interpolation", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "read_data", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "use_vertex_interpolation", 0, nullptr, ICON_NONE);
   }
 
   modifier_panel_end(layout, ptr);
@@ -332,7 +334,7 @@ static void velocity_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
   uiTemplateCacheFileVelocity(layout, &fileptr);
-  uiItemR(layout, ptr, "velocity_scale", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "velocity_scale", 0, nullptr, ICON_NONE);
 }
 
 static void time_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -387,15 +389,15 @@ static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(
       region_type, eModifierType_MeshSequenceCache, panel_draw);
-  modifier_subpanel_register(region_type, "time", "Time", NULL, time_panel_draw, panel_type);
+  modifier_subpanel_register(region_type, "time", "Time", nullptr, time_panel_draw, panel_type);
   modifier_subpanel_register(region_type,
                              "render_procedural",
                              "Render Procedural",
-                             NULL,
+                             nullptr,
                              render_procedural_panel_draw,
                              panel_type);
   modifier_subpanel_register(
-      region_type, "velocity", "Velocity", NULL, velocity_panel_draw, panel_type);
+      region_type, "velocity", "Velocity", nullptr, velocity_panel_draw, panel_type);
   modifier_subpanel_register(region_type,
                              "override_layers",
                              "Override Layers",
@@ -406,8 +408,8 @@ static void panelRegister(ARegionType *region_type)
 
 static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
 {
-  MeshSeqCacheModifierData *msmcd = (MeshSeqCacheModifierData *)md;
-  msmcd->reader = NULL;
+  MeshSeqCacheModifierData *msmcd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
+  msmcd->reader = nullptr;
   msmcd->reader_object_path[0] = '\0';
 }
 
@@ -417,29 +419,30 @@ ModifierTypeInfo modifierType_MeshSequenceCache = {
     /* structSize */ sizeof(MeshSeqCacheModifierData),
     /* srna */ &RNA_MeshSequenceCacheModifier,
     /* type */ eModifierTypeType_Constructive,
-    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs,
+    /* flags */
+    static_cast<ModifierTypeFlag>(eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs),
     /* icon */ ICON_MOD_MESHDEFORM, /* TODO: Use correct icon. */
 
     /* copyData */ copyData,
 
-    /* deformVerts */ NULL,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ NULL,
-    /* deformMatricesEM */ NULL,
+    /* deformVerts */ nullptr,
+    /* deformMatrices */ nullptr,
+    /* deformVertsEM */ nullptr,
+    /* deformMatricesEM */ nullptr,
     /* modifyMesh */ modifyMesh,
-    /* modifyGeometrySet */ NULL,
+    /* modifyGeometrySet */ nullptr,
 
     /* initData */ initData,
-    /* requiredDataMask */ NULL,
+    /* requiredDataMask */ nullptr,
     /* freeData */ freeData,
     /* isDisabled */ isDisabled,
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ dependsOnTime,
-    /* dependsOnNormals */ NULL,
+    /* dependsOnNormals */ nullptr,
     /* foreachIDLink */ foreachIDLink,
-    /* foreachTexLink */ NULL,
-    /* freeRuntimeData */ NULL,
+    /* foreachTexLink */ nullptr,
+    /* freeRuntimeData */ nullptr,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
+    /* blendWrite */ nullptr,
     /* blendRead */ blendRead,
 };
