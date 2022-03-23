@@ -376,7 +376,7 @@ ccl_device void math_matrix_jacobi_eigendecomposition(ccl_private float *A,
 ccl_device_inline void math_vector_zero_sse(float4 *A, int n)
 {
   for (int i = 0; i < n; i++) {
-    A[i] = make_float4(0.0f);
+    A[i] = zero_float4();
   }
 }
 
@@ -384,7 +384,7 @@ ccl_device_inline void math_matrix_zero_sse(float4 *A, int n)
 {
   for (int row = 0; row < n; row++) {
     for (int col = 0; col <= row; col++) {
-      MAT(A, n, row, col) = make_float4(0.0f);
+      MAT(A, n, row, col) = zero_float4();
     }
   }
 }

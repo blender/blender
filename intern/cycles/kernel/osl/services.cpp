@@ -595,8 +595,8 @@ static bool set_attribute_float4(float4 f, TypeDesc type, bool derivatives, void
   float4 fv[3];
 
   fv[0] = f;
-  fv[1] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-  fv[2] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+  fv[1] = zero_float4();
+  fv[2] = zero_float4();
 
   return set_attribute_float4(fv, type, derivatives, val);
 }

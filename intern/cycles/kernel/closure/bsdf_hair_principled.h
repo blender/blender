@@ -220,7 +220,7 @@ ccl_device_inline void hair_attenuation(KernelGlobals kg,
                                         ccl_private float4 *Ap)
 {
   /* Primary specular (R). */
-  Ap[0] = make_float4(f, f, f, f);
+  Ap[0] = make_float4(f);
 
   /* Transmission (TT). */
   float3 col = sqr(1.0f - f) * T;

@@ -90,13 +90,13 @@ ccl_device_inline float4 zero_float4()
 #ifdef __KERNEL_SSE__
   return float4(_mm_setzero_ps());
 #else
-  return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+  return make_float4(0.0f);
 #endif
 }
 
 ccl_device_inline float4 one_float4()
 {
-  return make_float4(1.0f, 1.0f, 1.0f, 1.0f);
+  return make_float4(1.0f);
 }
 
 #if !defined(__KERNEL_METAL__)
@@ -149,7 +149,7 @@ ccl_device_inline float4 operator/(const float4 &a, const float4 &b)
 
 ccl_device_inline float4 operator+(const float4 &a, const float f)
 {
-  return a + make_float4(f, f, f, f);
+  return a + make_float4(f);
 }
 
 ccl_device_inline float4 operator+(const float4 &a, const float4 &b)
@@ -163,7 +163,7 @@ ccl_device_inline float4 operator+(const float4 &a, const float4 &b)
 
 ccl_device_inline float4 operator-(const float4 &a, const float f)
 {
-  return a - make_float4(f, f, f, f);
+  return a - make_float4(f);
 }
 
 ccl_device_inline float4 operator-(const float4 &a, const float4 &b)
@@ -297,7 +297,7 @@ ccl_device_inline float4 cross(const float4 &a, const float4 &b)
 ccl_device_inline bool is_zero(const float4 &a)
 {
 #  ifdef __KERNEL_SSE__
-  return a == make_float4(0.0f);
+  return a == zero_float4();
 #  else
   return (a.x == 0.0f && a.y == 0.0f && a.z == 0.0f && a.w == 0.0f);
 #  endif
@@ -317,7 +317,7 @@ ccl_device_inline float4 reduce_add(const float4 &a)
 #    endif
 #  else
   float sum = (a.x + a.y) + (a.z + a.w);
-  return make_float4(sum, sum, sum, sum);
+  return make_float4(sum);
 #  endif
 }
 
@@ -458,7 +458,7 @@ ccl_device_inline float4 select(const int4 &mask, const float4 &a, const float4 
 ccl_device_inline float4 mask(const int4 &mask, const float4 &a)
 {
   /* Replace elements of x with zero where mask isn't set. */
-  return select(mask, a, make_float4(0.0f));
+  return select(mask, a, zero_float4());
 }
 
 ccl_device_inline float4 reduce_min(const float4 &a)
