@@ -6457,7 +6457,7 @@ def km_node_editor_tool_select_circle(params, *, fallback):
                 # Why circle select should be used on tweak?
                 # So that RMB or Shift-RMB is still able to set an element as active.
                 type=params.select_tweak if (fallback and params.use_fallback_tool_select_mouse) else params.tool_mouse,
-                value='ANY' if fallback else 'PRESS',
+                value='ANY' if (fallback and params.use_fallback_tool_select_mouse) else 'PRESS',
                 properties=[("wait_for_input", False)])),
         ]},
     )
@@ -6526,7 +6526,7 @@ def km_3d_view_tool_select_circle(params, *, fallback):
                 # Why circle select should be used on tweak?
                 # So that RMB or Shift-RMB is still able to set an element as active.
                 type=params.select_tweak if (fallback and params.use_fallback_tool_select_mouse) else params.tool_mouse,
-                value='ANY' if fallback else 'PRESS',
+                value='ANY' if (fallback and params.use_fallback_tool_select_mouse) else 'PRESS',
                 properties=[("wait_for_input", False)])),
         ]},
     )
