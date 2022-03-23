@@ -393,7 +393,15 @@ char *rna_TextureSlot_path(struct PointerRNA *ptr);
 char *rna_Node_ImageUser_path(struct PointerRNA *ptr);
 
 /* Set U.is_dirty and redraw. */
+
+/**
+ * Use single function so we can more easily break-point it.
+ */
 void rna_userdef_is_dirty_update_impl(void);
+/**
+ * Use as a fallback update handler to ensure #U.runtime.is_dirty is set.
+ * So the preferences are saved when modified.
+ */
 void rna_userdef_is_dirty_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 
 /* API functions */

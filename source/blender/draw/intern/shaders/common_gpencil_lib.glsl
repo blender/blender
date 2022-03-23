@@ -119,7 +119,7 @@ float gpencil_clamp_small_stroke_thickness(float thickness, vec4 ndc_pos)
  *
  * WARNING: Max attribute count is actually 14 because OSX OpenGL implementation
  * considers gl_VertexID and gl_InstanceID as vertex attribute. (see T74536)
- **/
+ */
 vec4 gpencil_vertex(ivec4 ma,
                     ivec4 ma1,
                     ivec4 ma2,

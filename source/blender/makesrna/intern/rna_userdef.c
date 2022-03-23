@@ -208,7 +208,6 @@ static void rna_userdef_version_get(PointerRNA *ptr, int *value)
 /** Mark the preferences as being changed so they are saved on exit. */
 #  define USERDEF_TAG_DIRTY rna_userdef_is_dirty_update_impl()
 
-/** Use single function so we can more easily break-point it. */
 void rna_userdef_is_dirty_update_impl(void)
 {
   /* We can't use 'ptr->data' because this update function
@@ -219,14 +218,11 @@ void rna_userdef_is_dirty_update_impl(void)
   }
 }
 
-/**
- * Use as a fallback update handler,
- * never use 'ptr' unless its type is checked.
- */
 void rna_userdef_is_dirty_update(Main *UNUSED(bmain),
                                  Scene *UNUSED(scene),
                                  PointerRNA *UNUSED(ptr))
 {
+  /* WARNING: never use 'ptr' unless its type is checked. */
   rna_userdef_is_dirty_update_impl();
 }
 

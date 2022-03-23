@@ -202,7 +202,7 @@ float dist_to_line_v3(const float p[3], const float l1[3], const float l2[3]);
  * \return the lowest squared distance to either of the planes.
  * where `(return < 0.0)` is outside.
  *
- * <pre>
+ * \code{.unparsed}
  *            v1
  *            +
  *           /
@@ -211,7 +211,7 @@ float dist_to_line_v3(const float p[3], const float l1[3], const float l2[3]);
  *        +----+
  *        v2   v3
  *           x - also outside
- * </pre>
+ * \endcode
  */
 float dist_signed_squared_to_corner_v3v3v3(const float p[3],
                                            const float v1[3],
