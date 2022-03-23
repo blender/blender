@@ -511,7 +511,9 @@ static void colormanage_load_config(OCIO_ConstConfigRcPtr *config)
       colorspace->aliases = MEM_callocN(sizeof(*colorspace->aliases) * colorspace->num_aliases,
                                         "ColorSpace aliases");
       for (int i = 0; i < colorspace->num_aliases; i++) {
-        STRNCPY(colorspace->aliases[i], OCIO_colorSpaceGetAlias(ocio_colorspace, i));
+        BLI_strncpy(colorspace->aliases[i],
+                    OCIO_colorSpaceGetAlias(ocio_colorspace, i),
+                    MAX_COLORSPACE_NAME);
       }
     }
 
