@@ -502,6 +502,10 @@ class _draw_tool_settings_context_mode:
                 header=True
             )
 
+        if brush.curves_sculpt_tool == 'COMB':
+            layout.prop(brush, "falloff_shape", expand=True)
+            layout.prop(brush, "curve_preset")
+
         if brush.curves_sculpt_tool == 'ADD':
             layout.prop(brush, "use_frontface")
             layout.prop(brush, "falloff_shape", expand=True)

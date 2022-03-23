@@ -322,18 +322,22 @@ double closest_to_line_v2_db(double r_close[2],
 float closest_to_line_v3(float r_close[3], const float p[3], const float l1[3], const float l2[3]);
 /**
  * Point closest to v1 on line v2-v3 in 2D.
+ *
+ * \return A value in [0, 1] that corresponds to the position of #r_close on the line segment.
  */
-void closest_to_line_segment_v2(float r_close[2],
-                                const float p[2],
-                                const float l1[2],
-                                const float l2[2]);
+float closest_to_line_segment_v2(float r_close[2],
+                                 const float p[2],
+                                 const float l1[2],
+                                 const float l2[2]);
 /**
  * Point closest to v1 on line v2-v3 in 3D.
+ *
+ * \return A value in [0, 1] that corresponds to the position of #r_close on the line segment.
  */
-void closest_to_line_segment_v3(float r_close[3],
-                                const float p[3],
-                                const float l1[3],
-                                const float l2[3]);
+float closest_to_line_segment_v3(float r_close[3],
+                                 const float p[3],
+                                 const float l1[3],
+                                 const float l2[3]);
 void closest_to_plane_normalized_v3(float r_close[3], const float plane[4], const float pt[3]);
 /**
  * Find the closest point on a plane.
