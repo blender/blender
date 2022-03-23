@@ -6161,7 +6161,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "hair_subdiv", PROP_INT, PROP_NONE);
   RNA_def_property_range(prop, 0, 3);
-  RNA_def_property_ui_text(prop, "Additional Subdiv", "Additional subdivision along the hair");
+  RNA_def_property_ui_text(prop, "Additional Subdivision", "Additional subdivision along the hair");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 
   /* Performance */
