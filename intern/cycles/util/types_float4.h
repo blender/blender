@@ -45,6 +45,7 @@ ccl_device_inline float4 make_float4(const int4 &i);
 ccl_device_inline void print_float4(const char *label, const float4 &a);
 #endif /* __KERNEL_GPU__ */
 
+ccl_device_inline float4 make_float4(float f);
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_TYPES_FLOAT4_H__ */
