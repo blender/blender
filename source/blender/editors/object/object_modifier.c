@@ -2219,7 +2219,7 @@ static int multires_unsubdivide_exec(bContext *C, wmOperator *op)
 
   int new_levels = multiresModifier_rebuild_subdiv(depsgraph, object, mmd, 1, true);
   if (new_levels == 0) {
-    BKE_report(op->reports, RPT_ERROR, "Not valid subdivisions found to rebuild a lower level");
+    BKE_report(op->reports, RPT_ERROR, "No valid subdivisions found to rebuild a lower level");
     return OPERATOR_CANCELLED;
   }
 
