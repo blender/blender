@@ -419,7 +419,7 @@ static void extract_edituv_points_init_subdiv(const DRWSubdivCache *subdiv_cache
 }
 
 static void extract_edituv_points_iter_subdiv_bm(const DRWSubdivCache *subdiv_cache,
-                                                 const MeshRenderData *mr,
+                                                 const MeshRenderData *UNUSED(mr),
                                                  void *_data,
                                                  uint subdiv_quad_index,
                                                  const BMFace *coarse_quad)
@@ -431,11 +431,8 @@ static void extract_edituv_points_iter_subdiv_bm(const DRWSubdivCache *subdiv_ca
   uint end_loop_idx = (subdiv_quad_index + 1) * 4;
   for (uint i = start_loop_idx; i < end_loop_idx; i++) {
     const int vert_origindex = subdiv_loop_vert_index[i];
-    const bool real_vert = (mr->extract_type == MR_EXTRACT_MAPPED && (mr->v_origindex) &&
-                            vert_origindex != -1 &&
-                            mr->v_origindex[vert_origindex] != ORIGINDEX_NONE);
     edituv_point_add(data,
-                     (BM_elem_flag_test(coarse_quad, BM_ELEM_HIDDEN)) || !real_vert,
+                     (BM_elem_flag_test(coarse_quad, BM_ELEM_HIDDEN) || vert_origindex == -1),
                      BM_elem_flag_test(coarse_quad, BM_ELEM_SELECT) != 0,
                      i);
   }

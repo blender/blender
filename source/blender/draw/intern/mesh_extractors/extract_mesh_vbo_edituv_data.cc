@@ -137,7 +137,7 @@ static void extract_edituv_data_iter_subdiv_bm(const DRWSubdivCache *subdiv_cach
   uint end_loop_idx = (subdiv_quad_index + 1) * 4;
   for (uint i = start_loop_idx; i < end_loop_idx; i++) {
     const int vert_origindex = subdiv_loop_vert_index[i];
-    const int edge_origindex = subdiv_loop_edge_index[i];
+    int edge_origindex = subdiv_loop_edge_index[i];
 
     EditLoopData *edit_loop_data = &data->vbo_data[i];
     memset(edit_loop_data, 0, sizeof(EditLoopData));
@@ -149,6 +149,22 @@ static void extract_edituv_data_iter_subdiv_bm(const DRWSubdivCache *subdiv_cach
       mesh_render_data_loop_flag(mr, l, data->cd_ofs, edit_loop_data);
       mesh_render_data_loop_edge_flag(mr, l, data->cd_ofs, edit_loop_data);
     }
+    else {
+      if (edge_origindex == -1) {
+        /* Find if the loop's vert is not part of an edit edge.
+         * For this, we check if the previous loop was on an edge. */
+        const uint loop_index_last = (i == start_loop_idx) ? end_loop_idx - 1 : i - 1;
+        edge_origindex = subdiv_loop_edge_index[loop_index_last];
+      }
+      if (edge_origindex != -1) {
+        /* Mapped points on an edge between two edit verts. */
+        BMEdge *eed = BM_edge_at_index(mr->bm, edge_origindex);
+        BMLoop *l = BM_face_edge_share_loop(const_cast<BMFace *>(coarse_quad), eed);
+        mesh_render_data_loop_edge_flag(mr, l, data->cd_ofs, edit_loop_data);
+      }
+    }
+
+    mesh_render_data_face_flag(mr, coarse_quad, data->cd_ofs, edit_loop_data);
   }
 }
 
