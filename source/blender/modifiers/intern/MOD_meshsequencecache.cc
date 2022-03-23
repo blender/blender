@@ -401,7 +401,7 @@ static void panelRegister(ARegionType *region_type)
   modifier_subpanel_register(region_type,
                              "override_layers",
                              "Override Layers",
-                             NULL,
+                             nullptr,
                              override_layers_panel_draw,
                              panel_type);
 }
