@@ -31,18 +31,19 @@ ccl_device_inline float frac(float x, int *ix)
   return x - (float)i;
 }
 
+template<typename ZeroT> ccl_always_inline ZeroT zero();
+
+template<> ccl_always_inline float zero<float>()
+{
+  return 0.0f;
+}
+
+template<> ccl_always_inline float4 zero<float4>()
+{
+  return zero_float4();
+}
+
 template<typename TexT, typename OutT = float4> struct TextureInterpolator {
-  template<typename ZeroT> static ccl_always_inline ZeroT zero();
-
-  template<> static ccl_always_inline float zero()
-  {
-    return 0.0f;
-  }
-
-  template<> static ccl_always_inline float4 zero()
-  {
-    return zero_float4();
-  }
 
   static ccl_always_inline float4 read(float4 r)
   {
