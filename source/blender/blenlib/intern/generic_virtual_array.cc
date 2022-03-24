@@ -391,10 +391,7 @@ void GVMutableArray_GSpan::save()
   if (data_ != owned_data_) {
     return;
   }
-  const int64_t element_size = type_->size();
-  for (int64_t i : IndexRange(size_)) {
-    varray_.set_by_copy(i, POINTER_OFFSET(owned_data_, element_size * i));
-  }
+  varray_.set_all(owned_data_);
 }
 
 void GVMutableArray_GSpan::disable_not_applied_warning()

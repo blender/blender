@@ -944,20 +944,71 @@ class VArrayImpl_For_VertexWeights final : public VMutableArrayImpl<float> {
     if (dverts_ == nullptr) {
       return 0.0f;
     }
-    const MDeformVert &dvert = dverts_[index];
-    for (const MDeformWeight &weight : Span(dvert.dw, dvert.totweight)) {
-      if (weight.def_nr == dvert_index_) {
-        return weight.weight;
-      }
+    if (const MDeformWeight *weight = this->find_weight_at_index(index)) {
+      return weight->weight;
     }
     return 0.0f;
-    ;
   }
 
   void set(const int64_t index, const float value) override
   {
-    MDeformWeight *weight = BKE_defvert_ensure_index(&dverts_[index], dvert_index_);
-    weight->weight = value;
+    MDeformVert &dvert = dverts_[index];
+    if (value == 0.0f) {
+      if (MDeformWeight *weight = this->find_weight_at_index(index)) {
+        weight->weight = 0.0f;
+      }
+    }
+    else {
+      MDeformWeight *weight = BKE_defvert_ensure_index(&dvert, dvert_index_);
+      weight->weight = value;
+    }
+  }
+
+  void set_all(Span<float> src) override
+  {
+    for (const int64_t index : src.index_range()) {
+      this->set(index, src[index]);
+    }
+  }
+
+  void materialize(IndexMask mask, MutableSpan<float> r_span) const override
+  {
+    if (dverts_ == nullptr) {
+      return r_span.fill_indices(mask, 0.0f);
+    }
+    for (const int64_t index : mask) {
+      if (const MDeformWeight *weight = this->find_weight_at_index(index)) {
+        r_span[index] = weight->weight;
+      }
+      else {
+        r_span[index] = 0.0f;
+      }
+    }
+  }
+
+  void materialize_to_uninitialized(IndexMask mask, MutableSpan<float> r_span) const override
+  {
+    this->materialize(mask, r_span);
+  }
+
+ private:
+  MDeformWeight *find_weight_at_index(const int64_t index)
+  {
+    for (MDeformWeight &weight : MutableSpan(dverts_[index].dw, dverts_[index].totweight)) {
+      if (weight.def_nr == dvert_index_) {
+        return &weight;
+      }
+    }
+    return nullptr;
+  }
+  const MDeformWeight *find_weight_at_index(const int64_t index) const
+  {
+    for (const MDeformWeight &weight : Span(dverts_[index].dw, dverts_[index].totweight)) {
+      if (weight.def_nr == dvert_index_) {
+        return &weight;
+      }
+    }
+    return nullptr;
   }
 };
 
