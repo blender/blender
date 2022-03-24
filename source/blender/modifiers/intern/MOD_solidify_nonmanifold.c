@@ -1990,7 +1990,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     /* delete all vertex creases in the result if a rim is used. */
     if (do_rim) {
       CustomData_free_layers(&result->vdata, CD_CREASE, result->totvert);
-      result->cd_flag &= ~ME_CDFLAG_VERT_CREASE;
+      result->cd_flag &= (char)(~ME_CDFLAG_VERT_CREASE);
     }
   }
 
