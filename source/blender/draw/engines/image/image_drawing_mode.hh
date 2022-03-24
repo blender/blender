@@ -154,16 +154,15 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
          * bug or a feature. For now we just acquire to determine if there is a texture. */
         void *lock;
         ImBuf *tile_buffer = BKE_image_acquire_ibuf(image, &tile_user, &lock);
-        if (tile_buffer == nullptr) {
-          continue;
-        }
-        instance_data.float_buffers.mark_used(tile_buffer);
-        BKE_image_release_ibuf(image, tile_buffer, lock);
+        if (tile_buffer != nullptr) {
+          instance_data.float_buffers.mark_used(tile_buffer);
 
-        DRWShadingGroup *shsub = DRW_shgroup_create_sub(shgrp);
-        float4 min_max_uv(tile_x, tile_y, tile_x + 1, tile_y + 1);
-        DRW_shgroup_uniform_vec4_copy(shsub, "min_max_uv", min_max_uv);
-        DRW_shgroup_call_obmat(shsub, info.batch, image_mat);
+          DRWShadingGroup *shsub = DRW_shgroup_create_sub(shgrp);
+          float4 min_max_uv(tile_x, tile_y, tile_x + 1, tile_y + 1);
+          DRW_shgroup_uniform_vec4_copy(shsub, "min_max_uv", min_max_uv);
+          DRW_shgroup_call_obmat(shsub, info.batch, image_mat);
+        }
+        BKE_image_release_ibuf(image, tile_buffer, lock);
       }
     }
   }
@@ -186,16 +185,21 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
       case ePartialUpdateCollectResult::FullUpdateNeeded:
         instance_data.mark_all_texture_slots_dirty();
         instance_data.float_buffers.clear();
+        printf("full\n");
         break;
       case ePartialUpdateCollectResult::NoChangesDetected:
+      printf("no changes\n,");
         break;
       case ePartialUpdateCollectResult::PartialChangesDetected:
+      printf("partial changes\n");
         /* Partial update when wrap repeat is enabled is not supported. */
         if (instance_data.flags.do_tile_drawing) {
+      printf("A\n");
           instance_data.float_buffers.clear();
           instance_data.mark_all_texture_slots_dirty();
         }
         else {
+      printf("B\n");
           do_partial_update(changes, instance_data);
         }
         break;
@@ -237,10 +241,12 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     while (iterator.get_next_change() == ePartialUpdateIterResult::ChangeAvailable) {
       /* Quick exit when tile_buffer isn't available. */
       if (iterator.tile_data.tile_buffer == nullptr) {
+        printf("no tile buffer\n");
         continue;
       }
       ImBuf *tile_buffer = ensure_float_buffer(instance_data, iterator.tile_data.tile_buffer);
       if (tile_buffer != iterator.tile_data.tile_buffer) {
+        printf("float buffer partial\n");
         do_partial_update_float_buffer(tile_buffer, iterator);
       }
 
@@ -251,9 +257,11 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
         const TextureInfo &info = instance_data.texture_infos[i];
         /* Dirty images will receive a full update. No need to do a partial one now. */
         if (info.dirty) {
+          printf("dirty skip\n");
           continue;
         }
         if (!info.visible) {
+          printf("invisible skip\n");
           continue;
         }
         GPUTexture *texture = info.texture;
@@ -283,6 +291,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                                                    &changed_region_in_uv_space,
                                                    &changed_overlapping_region_in_uv_space);
         if (!region_overlap) {
+          printf("region overlap skip\n");
           continue;
         }
         /* Convert the overlapping region to texel space and to ss_pixel space...
@@ -337,6 +346,12 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
           }
         }
 
+        printf("update sub %d %d %d %d\n",
+                                       gpu_texture_region_to_update.xmin,
+                               gpu_texture_region_to_update.ymin,
+                                                              extracted_buffer.x,
+                               extracted_buffer.y
+        );
         GPU_texture_update_sub(texture,
                                GPU_DATA_FLOAT,
                                extracted_buffer.rect_float,
@@ -387,11 +402,9 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
       tile_user.tile = image_tile.get_tile_number();
 
       ImBuf *tile_buffer = BKE_image_acquire_ibuf(image, &tile_user, &lock);
-      if (tile_buffer == nullptr) {
-        /* Couldn't load the image buffer of the tile. */
-        continue;
+      if (tile_buffer != nullptr) {
+        do_full_update_texture_slot(instance_data, info, texture_buffer, *tile_buffer, image_tile);
       }
-      do_full_update_texture_slot(instance_data, info, texture_buffer, *tile_buffer, image_tile);
       BKE_image_release_ibuf(image, tile_buffer, lock);
     }
     GPU_texture_update(info.texture, GPU_DATA_FLOAT, texture_buffer.rect_float);
