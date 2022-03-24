@@ -46,13 +46,13 @@ static meshintersect::CDT_result<double> do_cdt(const bke::CurvesGeometry &curve
   meshintersect::CDT_input<double> input;
   input.need_ids = false;
   input.vert.reinitialize(curves.evaluated_points_size());
-  input.face.reinitialize(curves.curves_size());
+  input.face.reinitialize(curves.num_curves());
 
   VArray<bool> cyclic = curves.cyclic();
   Span<float3> positions = curves.evaluated_positions();
 
   for (const int i_curve : curves.curves_range()) {
-    const IndexRange points = curves.evaluated_range_for_curve(i_curve);
+    const IndexRange points = curves.evaluated_points_for_curve(i_curve);
     const int segment_size = bke::curves::curve_segment_size(points.size(), cyclic[i_curve]);
 
     for (const int i : points) {
@@ -118,7 +118,7 @@ static void curve_fill_calculate(GeometrySet &geometry_set, const GeometryNodeCu
 
   const Curves &curves_id = *geometry_set.get_curves_for_read();
   const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
-  if (curves.curves_size() == 0) {
+  if (curves.num_curves() == 0) {
     geometry_set.replace_curves(nullptr);
     return;
   }

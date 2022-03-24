@@ -46,7 +46,7 @@ TEST(curves_geometry, Move)
   CurvesGeometry other = std::move(curves);
 
   /* The old curves should be empty, and the offsets are expected to be null. */
-  EXPECT_EQ(curves.points_size(), 0);       /* NOLINT: bugprone-use-after-move */
+  EXPECT_EQ(curves.num_points(), 0);        /* NOLINT: bugprone-use-after-move */
   EXPECT_EQ(curves.curve_offsets, nullptr); /* NOLINT: bugprone-use-after-move */
 
   /* Just a basic check that the new curves work okay. */

@@ -93,7 +93,7 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
         BrushPositionCandidate best_candidate = init;
 
         for (const int curve_i : curves_range) {
-          const IndexRange points = curves.range_for_curve(curve_i);
+          const IndexRange points = curves.points_for_curve(curve_i);
           const int tot_segments = points.size() - 1;
 
           for (const int segment_i : IndexRange(tot_segments)) {

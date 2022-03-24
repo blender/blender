@@ -398,7 +398,7 @@ std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves)
   VArray<int8_t> curve_types = geometry.curve_types();
   std::unique_ptr<CurveEval> curve_eval = std::make_unique<CurveEval>();
   for (const int curve_index : curve_types.index_range()) {
-    const IndexRange point_range = geometry.range_for_curve(curve_index);
+    const IndexRange point_range = geometry.points_for_curve(curve_index);
 
     std::unique_ptr<Spline> spline;
     switch (curve_types[curve_index]) {
@@ -489,7 +489,7 @@ Curves *curve_eval_to_curves(const CurveEval &curve_eval)
     const Spline &spline = *curve_eval.splines()[curve_index];
     curve_types[curve_index] = curve_eval.splines()[curve_index]->type();
 
-    const IndexRange point_range = geometry.range_for_curve(curve_index);
+    const IndexRange point_range = geometry.points_for_curve(curve_index);
 
     switch (spline.type()) {
       case CURVE_TYPE_POLY:

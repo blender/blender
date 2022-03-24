@@ -86,13 +86,13 @@ static VArray<int> construct_spline_count_gvarray(const CurveComponent &componen
   const Curves &curves_id = *component.get_for_read();
   const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
 
-  auto count_fn = [curves](int64_t i) { return curves.range_for_curve(i).size(); };
+  auto count_fn = [curves](int64_t i) { return curves.points_for_curve(i).size(); };
 
   if (domain == ATTR_DOMAIN_CURVE) {
-    return VArray<int>::ForFunc(curves.curves_size(), count_fn);
+    return VArray<int>::ForFunc(curves.num_curves(), count_fn);
   }
   if (domain == ATTR_DOMAIN_POINT) {
-    VArray<int> count = VArray<int>::ForFunc(curves.curves_size(), count_fn);
+    VArray<int> count = VArray<int>::ForFunc(curves.num_curves(), count_fn);
     return component.attribute_try_adapt_domain<int>(
         std::move(count), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
   }

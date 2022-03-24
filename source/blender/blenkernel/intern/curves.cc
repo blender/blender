@@ -366,19 +366,19 @@ void BKE_curves_batch_cache_free(Curves *curves)
 
 namespace blender::bke {
 
-Curves *curves_new_nomain(const int point_size, const int curves_size)
+Curves *curves_new_nomain(const int num_points, const int num_curves)
 {
   Curves *curves = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
   CurvesGeometry &geometry = CurvesGeometry::wrap(curves->geometry);
-  geometry.resize(point_size, curves_size);
+  geometry.resize(num_points, num_curves);
   return curves;
 }
 
-Curves *curves_new_nomain_single(const int point_size, const CurveType type)
+Curves *curves_new_nomain_single(const int num_points, const CurveType type)
 {
-  Curves *curves = curves_new_nomain(point_size, 1);
+  Curves *curves = curves_new_nomain(num_points, 1);
   CurvesGeometry &geometry = CurvesGeometry::wrap(curves->geometry);
-  geometry.offsets().last() = point_size;
+  geometry.offsets().last() = num_points;
   geometry.curve_types().first() = type;
   return curves;
 }

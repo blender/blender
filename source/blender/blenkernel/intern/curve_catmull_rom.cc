@@ -9,11 +9,11 @@
 
 namespace blender::bke::curves::catmull_rom {
 
-int calculate_evaluated_size(const int size, const bool cyclic, const int resolution)
+int calculate_evaluated_size(const int num_points, const bool cyclic, const int resolution)
 {
-  const int eval_size = resolution * curve_segment_size(size, cyclic);
+  const int eval_size = resolution * curve_segment_size(num_points, cyclic);
   /* If the curve isn't cyclic, one last point is added to the final point. */
-  return (cyclic && size > 2) ? eval_size : eval_size + 1;
+  return (cyclic && num_points > 2) ? eval_size : eval_size + 1;
 }
 
 /* Adapted from Cycles #catmull_rom_basis_eval function. */

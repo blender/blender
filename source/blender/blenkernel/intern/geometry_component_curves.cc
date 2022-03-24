@@ -236,10 +236,10 @@ int CurveComponent::attribute_domain_size(const AttributeDomain domain) const
   const blender::bke::CurvesGeometry &geometry = blender::bke::CurvesGeometry::wrap(
       curves_->geometry);
   if (domain == ATTR_DOMAIN_POINT) {
-    return geometry.points_size();
+    return geometry.num_points();
   }
   if (domain == ATTR_DOMAIN_CURVE) {
-    return geometry.curves_size();
+    return geometry.num_curves();
   }
   return 0;
 }

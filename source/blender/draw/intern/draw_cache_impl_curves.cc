@@ -138,7 +138,7 @@ static void curves_batch_cache_fill_segments_proc_pos(Curves *curves,
   Span<float3> positions = geometry.positions();
 
   for (const int i : IndexRange(curve_size)) {
-    const IndexRange curve_range = geometry.range_for_curve(i);
+    const IndexRange curve_range = geometry.points_for_curve(i);
 
     Span<float3> curve_positions = positions.slice(curve_range);
     float total_len = 0.0f;
@@ -218,8 +218,8 @@ static void curves_batch_cache_fill_strands_data(Curves *curves,
   const blender::bke::CurvesGeometry &geometry = blender::bke::CurvesGeometry::wrap(
       curves->geometry);
 
-  for (const int i : IndexRange(geometry.curves_size())) {
-    const IndexRange curve_range = geometry.range_for_curve(i);
+  for (const int i : IndexRange(geometry.num_curves())) {
+    const IndexRange curve_range = geometry.points_for_curve(i);
 
     *(uint *)GPU_vertbuf_raw_step(data_step) = curve_range.start();
     *(ushort *)GPU_vertbuf_raw_step(seg_step) = curve_range.size() - 1;

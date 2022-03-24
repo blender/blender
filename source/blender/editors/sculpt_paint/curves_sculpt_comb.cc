@@ -202,7 +202,7 @@ struct CombOperationExecutor {
       Vector<int> &local_changed_curves = r_changed_curves.local();
       for (const int curve_i : curves_range) {
         bool curve_changed = false;
-        const IndexRange points = curves_->range_for_curve(curve_i);
+        const IndexRange points = curves_->points_for_curve(curve_i);
         for (const int point_i : points.drop_front(1)) {
           const float3 old_pos_cu = positions_cu[point_i];
 
@@ -274,7 +274,7 @@ struct CombOperationExecutor {
       Vector<int> &local_changed_curves = r_changed_curves.local();
       for (const int curve_i : curves_range) {
         bool curve_changed = false;
-        const IndexRange points = curves_->range_for_curve(curve_i);
+        const IndexRange points = curves_->points_for_curve(curve_i);
         for (const int point_i : points.drop_front(1)) {
           const float3 pos_old_cu = positions_cu[point_i];
 
@@ -324,10 +324,10 @@ struct CombOperationExecutor {
   void initialize_segment_lengths()
   {
     const Span<float3> positions_cu = curves_->positions();
-    self_->segment_lengths_cu_.reinitialize(curves_->points_size());
+    self_->segment_lengths_cu_.reinitialize(curves_->num_points());
     threading::parallel_for(curves_->curves_range(), 128, [&](const IndexRange range) {
       for (const int curve_i : range) {
-        const IndexRange points = curves_->range_for_curve(curve_i);
+        const IndexRange points = curves_->points_for_curve(curve_i);
         for (const int point_i : points.drop_back(1)) {
           const float3 &p1_cu = positions_cu[point_i];
           const float3 &p2_cu = positions_cu[point_i + 1];
@@ -349,7 +349,7 @@ struct CombOperationExecutor {
     threading::parallel_for_each(changed_curves, [&](const Vector<int> &changed_curves) {
       threading::parallel_for(changed_curves.index_range(), 256, [&](const IndexRange range) {
         for (const int curve_i : changed_curves.as_span().slice(range)) {
-          const IndexRange points = curves_->range_for_curve(curve_i);
+          const IndexRange points = curves_->points_for_curve(curve_i);
           for (const int segment_i : IndexRange(points.size() - 1)) {
             const float3 &p1_cu = positions_cu[points[segment_i]];
             float3 &p2_cu = positions_cu[points[segment_i] + 1];

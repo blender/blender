@@ -83,7 +83,7 @@ class SnakeHookOperation : public CurvesSculptStrokeOperation {
 
     threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange curves_range) {
       for (const int curve_i : curves_range) {
-        const IndexRange curve_points = curves.range_for_curve(curve_i);
+        const IndexRange curve_points = curves.points_for_curve(curve_i);
         const int last_point_i = curve_points.last();
 
         const float3 old_position = positions[last_point_i];
