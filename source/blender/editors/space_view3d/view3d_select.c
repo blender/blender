@@ -2092,8 +2092,9 @@ static int gpu_select_buffer_depth_id_cmp(const void *sel_a_p, const void *sel_b
 static Base *mouse_select_eval_buffer(ViewContext *vc,
                                       const GPUSelectResult *buffer,
                                       int hits,
-                                      bool has_bones,
                                       bool do_nearest,
+                                      bool has_bones,
+                                      bool do_bones_get_priotity,
                                       int *r_select_id_subelem)
 {
   ViewLayer *view_layer = vc->view_layer;
@@ -2108,7 +2109,7 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
     uint min = 0xFFFFFFFF;
     int hit_index = -1;
 
-    if (has_bones) {
+    if (has_bones && do_bones_get_priotity) {
       /* we skip non-bone hits */
       for (a = 0; a < hits; a++) {
         if (min > buffer[a].depth && (buffer[a].id & 0xFFFF0000)) {
@@ -2152,6 +2153,14 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
         }
       }
 
+      /* Special case, cycling away from the active object should only be done if the active
+       * object doesn't have a bone selection, otherwise selecting sub-elements is difficult. */
+      if (has_bones && (hit_index != -1)) {
+        if (buffer[hit_index].id & 0xFFFF0000) {
+          hit_index_not_active = -1;
+        }
+      }
+
       /* When the active was selected, first try to use the index
        * for the best non-active hit that was found. */
       if (hit_index_not_active != -1) {
@@ -2172,7 +2181,7 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
       GPUSelectResult *buffer_sorted = MEM_mallocN(sizeof(*buffer_sorted) * hits, __func__);
       memcpy(buffer_sorted, buffer, sizeof(*buffer_sorted) * hits);
       /* Remove non-bone objects. */
-      if (has_bones) {
+      if (has_bones && do_bones_get_priotity) {
         /* Loop backwards to reduce re-ordering. */
         for (a = hits - 1; a >= 0; a--) {
           if ((buffer_sorted[a].id & 0xFFFF0000) == 0) {
@@ -2305,7 +2314,8 @@ static Base *ed_view3d_give_base_under_cursor_ex(bContext *C,
 
   if (hits > 0) {
     const bool has_bones = (r_material_slot == NULL) && selectbuffer_has_bones(buffer, hits);
-    basact = mouse_select_eval_buffer(&vc, buffer, hits, has_bones, do_nearest, r_material_slot);
+    basact = mouse_select_eval_buffer(
+        &vc, buffer, hits, do_nearest, has_bones, true, r_material_slot);
   }
 
   return basact;
@@ -2588,10 +2598,27 @@ static bool ed_object_select_pick(bContext *C,
       basact = basact_override;
     }
     else {
-      basact = (gpu->hits > 0) ?
-                   mouse_select_eval_buffer(
-                       &vc, gpu->buffer, gpu->hits, gpu->has_bones, gpu->do_nearest, NULL) :
-                   NULL;
+      /* Regarding bone priority.
+       *
+       * - When in pose-bone, it's useful that any selection containing a bone
+       *   gets priority over other geometry (background scenery for example).
+       *
+       * - When in object-mode, don't prioritize bones as it would cause
+       *   pose-objects behind other objects to get priority
+       *   (mainly noticeable when #SCE_OBJECT_MODE_LOCK is disabled).
+       *
+       * This way prioritizing based on pose-mode has a bias to stay in pose-mode
+       * without having to enforce this through locking the object mode. */
+      bool do_bones_get_priotity = (object_mode & OB_MODE_POSE) != 0;
+
+      basact = (gpu->hits > 0) ? mouse_select_eval_buffer(&vc,
+                                                          gpu->buffer,
+                                                          gpu->hits,
+                                                          gpu->do_nearest,
+                                                          gpu->has_bones,
+                                                          do_bones_get_priotity,
+                                                          NULL) :
+                                 NULL;
     }
 
     /* Select pose-bones or camera-tracks. */
@@ -2614,7 +2641,7 @@ static bool ed_object_select_pick(bContext *C,
             /* Fallback to regular object selection if no new bundles were selected,
              * allows to select object parented to reconstruction object. */
             basact = mouse_select_eval_buffer(
-                &vc, gpu->buffer, gpu->hits, false, gpu->do_nearest, NULL);
+                &vc, gpu->buffer, gpu->hits, gpu->do_nearest, false, false, NULL);
           }
         }
       }
