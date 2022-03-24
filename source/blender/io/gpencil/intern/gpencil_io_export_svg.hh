@@ -20,7 +20,7 @@ namespace blender::io::gpencil {
 class GpencilExporterSVG : public GpencilExporter {
 
  public:
-  GpencilExporterSVG(const char *filename, const struct GpencilIOParams *iparams);
+  GpencilExporterSVG(const char *filepath, const struct GpencilIOParams *iparams);
   bool add_newpage();
   bool add_body();
   bool write();

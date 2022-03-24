@@ -25,7 +25,7 @@ char *blf_dir_search(const char *file);
  * Some font have additional file with metrics information,
  * in general, the extension of the file is: `.afm` or `.pfm`
  */
-char *blf_dir_metrics_search(const char *filename);
+char *blf_dir_metrics_search(const char *filepath);
 /* int blf_dir_split(const char *str, char *file, int *size); */ /* UNUSED */
 
 int blf_font_init(void);
@@ -36,7 +36,7 @@ bool blf_font_id_is_valid(int fontid);
 void blf_draw_buffer__start(struct FontBLF *font);
 void blf_draw_buffer__end(void);
 
-struct FontBLF *blf_font_new(const char *name, const char *filename);
+struct FontBLF *blf_font_new(const char *name, const char *filepath);
 struct FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, int mem_size);
 void blf_font_attach_from_mem(struct FontBLF *font, const unsigned char *mem, int mem_size);
 

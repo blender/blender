@@ -49,21 +49,26 @@ bool BKE_image_save(struct ReportList *reports,
 
 /* Render saving. */
 
-/* Save single or multilayer OpenEXR files from the render result.
- * Optionally saves only a specific view or layer. */
+/**
+ * Save single or multi-layer OpenEXR files from the render result.
+ * Optionally saves only a specific view or layer.
+ */
 bool BKE_image_render_write_exr(struct ReportList *reports,
                                 const struct RenderResult *rr,
-                                const char *filename,
+                                const char *filepath,
                                 const struct ImageFormatData *imf,
                                 const bool save_as_render,
                                 const char *view,
                                 int layer);
 
+/**
+ * \param filepath_basis: May be used as-is, or used as a basis for multi-view images.
+ */
 bool BKE_image_render_write(struct ReportList *reports,
                             struct RenderResult *rr,
                             const struct Scene *scene,
                             const bool stamp,
-                            const char *name);
+                            const char *filepath_basis);
 
 #ifdef __cplusplus
 }

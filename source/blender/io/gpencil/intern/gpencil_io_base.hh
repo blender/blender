@@ -40,7 +40,7 @@ class GpencilIO {
 
   bool invert_axis_[2];
   float4x4 diff_mat_;
-  char filename_[FILE_MAX];
+  char filepath_[FILE_MAX];
 
   /* Used for sorting objects. */
   struct ObjectZ {
@@ -94,9 +94,9 @@ class GpencilIO {
   void selected_objects_boundbox_get(rctf *boundbox);
   /**
    * Set file input_text full path.
-   * \param filename: Path of the file provided by save dialog.
+   * \param filepath: Path of the file provided by save dialog.
    */
-  void filename_set(const char *filename);
+  void filepath_set(const char *filepath);
 
  private:
   float avg_opacity_;

@@ -486,7 +486,7 @@ static float *image_exr_from_scene_linear_to_output(float *rect,
 
 bool BKE_image_render_write_exr(ReportList *reports,
                                 const RenderResult *rr,
-                                const char *filename,
+                                const char *filepath,
                                 const ImageFormatData *imf,
                                 const bool save_as_render,
                                 const char *view,
@@ -630,11 +630,11 @@ bool BKE_image_render_write_exr(ReportList *reports,
 
   errno = 0;
 
-  BLI_make_existing_file(filename);
+  BLI_make_existing_file(filepath);
 
   int compress = (imf ? imf->exr_codec : 0);
   bool success = IMB_exr_begin_write(
-      exrhandle, filename, rr->rectx, rr->recty, compress, rr->stamp_data);
+      exrhandle, filepath, rr->rectx, rr->recty, compress, rr->stamp_data);
   if (success) {
     IMB_exr_write_channels(exrhandle);
   }
@@ -693,7 +693,7 @@ bool BKE_image_render_write(ReportList *reports,
                             RenderResult *rr,
                             const Scene *scene,
                             const bool stamp,
-                            const char *filename)
+                            const char *filepath_basis)
 {
   bool ok = true;
 
@@ -711,8 +711,8 @@ bool BKE_image_render_write(ReportList *reports,
   const float dither = scene->r.dither_intensity;
 
   if (image_format.views_format == R_IMF_VIEWS_MULTIVIEW && is_exr_rr) {
-    ok = BKE_image_render_write_exr(reports, rr, filename, &image_format, true, nullptr, -1);
-    image_render_print_save_message(reports, filename, ok, errno);
+    ok = BKE_image_render_write_exr(reports, rr, filepath_basis, &image_format, true, nullptr, -1);
+    image_render_print_save_message(reports, filepath_basis, ok, errno);
   }
 
   /* mono, legacy code */
@@ -722,10 +722,10 @@ bool BKE_image_render_write(ReportList *reports,
          rv = rv->next, view_id++) {
       char filepath[FILE_MAX];
       if (is_mono) {
-        STRNCPY(filepath, filename);
+        STRNCPY(filepath, filepath_basis);
       }
       else {
-        BKE_scene_multiview_view_filepath_get(&scene->r, filename, rv->name, filepath);
+        BKE_scene_multiview_view_filepath_get(&scene->r, filepath_basis, rv->name, filepath);
       }
 
       if (is_exr_rr) {
@@ -768,7 +768,7 @@ bool BKE_image_render_write(ReportList *reports,
     BLI_assert(image_format.views_format == R_IMF_VIEWS_STEREO_3D);
 
     char filepath[FILE_MAX];
-    STRNCPY(filepath, filename);
+    STRNCPY(filepath, filepath_basis);
 
     if (image_format.imtype == R_IMF_IMTYPE_MULTILAYER) {
       printf("Stereo 3D not supported for MultiLayer image: %s\n", filepath);

@@ -29,7 +29,7 @@ void IMB_exr_add_channel(void * /*handle*/,
 }
 
 bool IMB_exr_begin_read(void * /*handle*/,
-                        const char * /*filename*/,
+                        const char * /*filepath*/,
                         int * /*width*/,
                         int * /*height*/,
                         const bool /*add_channels*/)
@@ -37,7 +37,7 @@ bool IMB_exr_begin_read(void * /*handle*/,
   return false;
 }
 bool IMB_exr_begin_write(void * /*handle*/,
-                         const char * /*filename*/,
+                         const char * /*filepath*/,
                          int /*width*/,
                          int /*height*/,
                          int /*compress*/,
@@ -46,7 +46,7 @@ bool IMB_exr_begin_write(void * /*handle*/,
   return false;
 }
 void IMB_exrtile_begin_write(void * /*handle*/,
-                             const char * /*filename*/,
+                             const char * /*filepath*/,
                              int /*mipmap*/,
                              int /*width*/,
                              int /*height*/,

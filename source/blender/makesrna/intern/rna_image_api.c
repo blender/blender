@@ -102,14 +102,14 @@ static void rna_Image_save(Image *image, Main *bmain, bContext *C, ReportList *r
 
   ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
   if (ibuf) {
-    char filename[FILE_MAX];
-    BLI_strncpy(filename, image->filepath, sizeof(filename));
-    BLI_path_abs(filename, ID_BLEND_PATH(bmain, &image->id));
+    char filepath[FILE_MAX];
+    BLI_strncpy(filepath, image->filepath, sizeof(filepath));
+    BLI_path_abs(filepath, ID_BLEND_PATH(bmain, &image->id));
 
     /* NOTE: we purposefully ignore packed files here,
      * developers need to explicitly write them via 'packed_files' */
 
-    if (IMB_saveiff(ibuf, filename, ibuf->flags)) {
+    if (IMB_saveiff(ibuf, filepath, ibuf->flags)) {
       image->type = IMA_TYPE_IMAGE;
 
       if (image->source == IMA_SRC_GENERATED) {

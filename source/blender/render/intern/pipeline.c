@@ -2480,10 +2480,10 @@ bool RE_ReadRenderResult(Scene *scene, Scene *scenode)
 }
 
 void RE_layer_load_from_file(
-    RenderLayer *layer, ReportList *reports, const char *filename, int x, int y)
+    RenderLayer *layer, ReportList *reports, const char *filepath, int x, int y)
 {
   /* OCIO_TODO: assume layer was saved in default color space */
-  ImBuf *ibuf = IMB_loadiffname(filename, IB_rect, NULL);
+  ImBuf *ibuf = IMB_loadiffname(filepath, IB_rect, NULL);
   RenderPass *rpass = NULL;
 
   /* multiview: since the API takes no 'view', we use the first combined pass found */
@@ -2498,7 +2498,7 @@ void RE_layer_load_from_file(
                 RPT_ERROR,
                 "%s: no Combined pass found in the render layer '%s'",
                 __func__,
-                filename);
+                filepath);
   }
 
   if (ibuf && (ibuf->rect || ibuf->rect_float)) {
@@ -2527,7 +2527,7 @@ void RE_layer_load_from_file(
         }
         else {
           BKE_reportf(
-              reports, RPT_ERROR, "%s: failed to allocate clip buffer '%s'", __func__, filename);
+              reports, RPT_ERROR, "%s: failed to allocate clip buffer '%s'", __func__, filepath);
         }
       }
       else {
@@ -2535,21 +2535,21 @@ void RE_layer_load_from_file(
                     RPT_ERROR,
                     "%s: incorrect dimensions for partial copy '%s'",
                     __func__,
-                    filename);
+                    filepath);
       }
     }
 
     IMB_freeImBuf(ibuf);
   }
   else {
-    BKE_reportf(reports, RPT_ERROR, "%s: failed to load '%s'", __func__, filename);
+    BKE_reportf(reports, RPT_ERROR, "%s: failed to load '%s'", __func__, filepath);
   }
 }
 
-void RE_result_load_from_file(RenderResult *result, ReportList *reports, const char *filename)
+void RE_result_load_from_file(RenderResult *result, ReportList *reports, const char *filepath)
 {
-  if (!render_result_exr_file_read_path(result, NULL, filename)) {
-    BKE_reportf(reports, RPT_ERROR, "%s: failed to load '%s'", __func__, filename);
+  if (!render_result_exr_file_read_path(result, NULL, filepath)) {
+    BKE_reportf(reports, RPT_ERROR, "%s: failed to load '%s'", __func__, filepath);
     return;
   }
 }

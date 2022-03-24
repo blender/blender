@@ -169,10 +169,10 @@ void RE_engine_free(RenderEngine *engine);
  * x/y offsets are only used on a partial copy when dimensions don't match.
  */
 void RE_layer_load_from_file(
-    struct RenderLayer *layer, struct ReportList *reports, const char *filename, int x, int y);
+    struct RenderLayer *layer, struct ReportList *reports, const char *filepath, int x, int y);
 void RE_result_load_from_file(struct RenderResult *result,
                               struct ReportList *reports,
-                              const char *filename);
+                              const char *filepath);
 
 struct RenderResult *RE_engine_begin_result(
     RenderEngine *engine, int x, int y, int w, int h, const char *layername, const char *viewname);

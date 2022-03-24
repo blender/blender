@@ -29,7 +29,7 @@
 
 #include "BLI_strict_flags.h"
 
-void BLF_thumb_preview(const char *filename,
+void BLF_thumb_preview(const char *filepath,
                        const char **draw_str,
                        const char **i18n_draw_str,
                        const unsigned char draw_str_lines,
@@ -49,9 +49,9 @@ void BLF_thumb_preview(const char *filename,
   FontBLF *font;
 
   /* Create a new blender font obj and fill it with default values */
-  font = blf_font_new("thumb_font", filename);
+  font = blf_font_new("thumb_font", filepath);
   if (!font) {
-    printf("Info: Can't load font '%s', no preview possible\n", filename);
+    printf("Info: Can't load font '%s', no preview possible\n", filepath);
     return;
   }
 
