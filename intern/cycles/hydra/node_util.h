@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "hydra/config.h"
 #include "graph/node.h"
+#include "hydra/config.h"
 
 #include <pxr/base/vt/value.h>
 
