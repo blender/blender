@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <ctime>
 #include <fcntl.h>
 #ifndef WIN32
 #  include <unistd.h>
@@ -16,7 +17,8 @@
 #  include <io.h>
 #endif
 
-#include <ctime>
+#include <regex>
+#include <string>
 
 #include "BLI_array.hh"
 
@@ -3316,69 +3318,24 @@ void BKE_image_ensure_tile_token(char *filename)
     return;
   }
 
-  /* Is there a sequence of digits in the filename? */
-  ushort digits;
-  char head[FILE_MAX], tail[FILE_MAX];
-  BLI_path_sequence_decode(filename, head, tail, &digits);
-  if (digits == 4) {
-    sprintf(filename, "%s<UDIM>%s", head, tail);
+  std::string path(filename);
+  std::smatch match;
+
+  /* General 4-digit "udim" pattern. As this format is susceptible to ambiguity
+   * with other digit sequences, we can leverage the supported range of roughly
+   * 1000 through 2000 to provide better detection.
+   */
+  std::regex pattern("(^|.*?\\D)([12]\\d{3})(\\D.*)");
+  if (std::regex_search(path, match, pattern)) {
+    BLI_strncpy(filename, match.format("$1<UDIM>$3").c_str(), FILE_MAX);
     return;
   }
 
-  /* Is there a sequence like u##_v#### in the filename? */
-  uint cur = 0;
-  uint name_end = strlen(filename);
-  uint u_digits = 0;
-  uint v_digits = 0;
-  uint u_start = (uint)-1;
-  bool u_found = false;
-  bool v_found = false;
-  bool sep_found = false;
-  while (cur < name_end) {
-    if (filename[cur] == 'u') {
-      u_found = true;
-      u_digits = 0;
-      u_start = cur;
-    }
-    else if (filename[cur] == 'v') {
-      v_found = true;
-      v_digits = 0;
-    }
-    else if (u_found && !v_found) {
-      if (isdigit(filename[cur]) && u_digits < 2) {
-        u_digits++;
-      }
-      else if (filename[cur] == '_') {
-        sep_found = true;
-      }
-      else {
-        u_found = false;
-      }
-    }
-    else if (u_found && u_digits > 0 && v_found) {
-      if (isdigit(filename[cur])) {
-        if (v_digits < 4) {
-          v_digits++;
-        }
-        else {
-          u_found = false;
-          v_found = false;
-        }
-      }
-      else if (v_digits > 0) {
-        break;
-      }
-    }
-
-    cur++;
-  }
-
-  if (u_found && sep_found && v_found && (u_digits + v_digits > 1)) {
-    const char *token = "<UVTILE>";
-    const size_t token_length = strlen(token);
-    memmove(filename + u_start + token_length, filename + cur, name_end - cur);
-    memcpy(filename + u_start, token, token_length);
-    filename[u_start + token_length + (name_end - cur)] = '\0';
+  /* General u##_v### "uvtile" pattern. */
+  pattern = std::regex("(.*)(u\\d{1,2}_v\\d{1,3})(\\D.*)");
+  if (std::regex_search(path, match, pattern)) {
+    BLI_strncpy(filename, match.format("$1<UVTILE>$3").c_str(), FILE_MAX);
+    return;
   }
 }
 
