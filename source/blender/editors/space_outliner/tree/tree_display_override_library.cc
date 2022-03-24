@@ -104,6 +104,13 @@ ListBase TreeDisplayOverrideLibrary::add_library_contents(Main &mainvar)
     }
   }
 
+  /* Remove ID base elements that turn out to be empty. */
+  LISTBASE_FOREACH_MUTABLE (TreeElement *, te, &tree) {
+    if (BLI_listbase_is_empty(&te->subtree)) {
+      outliner_free_tree_element(te, &tree);
+    }
+  }
+
   return tree;
 }
 
