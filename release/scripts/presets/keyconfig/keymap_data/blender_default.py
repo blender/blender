@@ -31,6 +31,7 @@ class Params:
         "context_menu_event",
         "cursor_set_event",
         "cursor_tweak_event",
+        "use_tweak_select_passthrough",
         "use_tweak_tool_lmb_interaction",
         "use_mouse_emulate_3_button",
 
@@ -103,6 +104,7 @@ class Params:
             use_gizmo_drag=True,
             use_fallback_tool=False,
             use_fallback_tool_rmb=False,
+            use_tweak_select_passthrough=False,
             use_tweak_tool_lmb_interaction=False,
             use_v3d_tab_menu=False,
             use_v3d_shade_ex_pie=False,
@@ -188,6 +190,8 @@ class Params:
         self.use_pie_click_drag = use_pie_click_drag
 
         self.use_file_single_click = use_file_single_click
+
+        self.use_tweak_select_passthrough = use_tweak_select_passthrough
 
         self.use_fallback_tool = use_fallback_tool
         self.use_fallback_tool_rmb = use_fallback_tool_rmb
@@ -1185,7 +1189,12 @@ def km_uv_editor(params):
     items.extend([
         # Selection modes.
         *_template_items_uv_select_mode(params),
-        *_template_uv_select(type=params.select_mouse, value=params.select_mouse_value_fallback, legacy=params.legacy),
+        *_template_uv_select(
+            type=params.select_mouse,
+            value=params.select_mouse_value_fallback,
+            select_passthrough=params.use_tweak_select_passthrough,
+            legacy=params.legacy,
+        ),
         ("uv.mark_seam", {"type": 'E', "value": 'PRESS', "ctrl": True}, None),
         ("uv.select_loop",
          {"type": params.select_mouse, "value": params.select_mouse_value, "alt": True}, None),
@@ -1513,6 +1522,7 @@ def km_view3d(params):
             type=params.select_mouse,
             value=params.select_mouse_value_fallback,
             legacy=params.legacy,
+            select_passthrough=params.use_tweak_select_passthrough,
         ),
         op_tool_optional(
             ("view3d.select_box", {"type": 'B', "value": 'PRESS'}, None),
@@ -4677,7 +4687,7 @@ def _template_paint_radial_control(paint, rotation=False, secondary_rotation=Fal
     return items
 
 
-def _template_view3d_select(*, type, value, legacy, exclude_mod=None):
+def _template_view3d_select(*, type, value, legacy, select_passthrough, exclude_mod=None):
     # NOTE: `exclude_mod` is needed since we don't want this tool to exclude Control-RMB actions when this is used
     # as a tool key-map with RMB-select and `use_fallback_tool_rmb` is enabled. See T92467.
     return [(
@@ -4685,7 +4695,8 @@ def _template_view3d_select(*, type, value, legacy, exclude_mod=None):
         {"type": type, "value": value, **{m: True for m in mods}},
         {"properties": [(c, True) for c in props]},
     ) for props, mods in (
-        (("deselect_all",) if not legacy else (), ()),
+        ((("deselect_all", "select_passthrough") if select_passthrough else
+          ("deselect_all",)) if not legacy else (), ()),
         (("toggle",), ("shift",)),
         (("center", "object"), ("ctrl",)),
         (("enumerate",), ("alt",)),
@@ -4711,10 +4722,13 @@ def _template_view3d_gpencil_select(*, type, value, legacy, use_select_mouse=Tru
     ]
 
 
-def _template_uv_select(*, type, value, legacy):
+def _template_uv_select(*, type, value, select_passthrough, legacy):
     return [
         ("uv.select", {"type": type, "value": value},
-         {"properties": [("deselect_all", not legacy)]}),
+         {"properties": [
+             *((("deselect_all", True),) if not legacy else ()),
+             *((("select_passthrough", True),) if select_passthrough else ()),
+         ]}),
         ("uv.select", {"type": type, "value": value, "shift": True},
          {"properties": [("toggle", True)]}),
     ]
@@ -6308,7 +6322,11 @@ def km_image_editor_tool_uv_select(params, *, fallback):
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
                 params, "uv.select", "uv.cursor_set", fallback)),
             *([] if (not params.use_fallback_tool_rmb) else _template_uv_select(
-                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy)),
+                type=params.select_mouse,
+                value=params.select_mouse_value,
+                select_passthrough=params.use_tweak_select_passthrough,
+                legacy=params.legacy,
+            )),
         ]},
     )
 
@@ -6515,7 +6533,12 @@ def km_3d_view_tool_select(params, *, fallback):
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
                 params, "view3d.select", "view3d.cursor3d", fallback)),
             *([] if (not params.use_fallback_tool_rmb) else _template_view3d_select(
-                type=params.select_mouse, value=params.select_mouse_value, legacy=params.legacy, exclude_mod="ctrl")),
+                type=params.select_mouse,
+                value=params.select_mouse_value,
+                legacy=params.legacy,
+                select_passthrough=params.use_tweak_select_passthrough,
+                exclude_mod="ctrl",
+            )),
         ]},
     )
 
