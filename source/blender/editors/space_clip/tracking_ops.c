@@ -877,14 +877,23 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
         else if (data->action == SLIDE_ACTION_TILT_SIZE) {
           const float mouse_delta[2] = {dx, dy};
-          float start[2], end[2];
-          float scale = 1.0f, angle = 0.0f;
 
+          /* Vector which connects marker position with tilt/scale sliding area before sliding
+           * began. */
+          float start[2];
           sub_v2_v2v2(start, data->spos, data->old_pos);
+          start[0] *= data->width;
+          start[1] *= data->height;
 
+          /* Vector which connects marker position with tilt/scale sliding area with the sliding
+           * delta applied. */
+          float end[2];
           add_v2_v2v2(end, data->spos, mouse_delta);
           sub_v2_v2(end, data->old_pos);
+          end[0] *= data->width;
+          end[1] *= data->height;
 
+          float scale = 1.0f;
           if (len_squared_v2(start) != 0.0f) {
             scale = len_v2(end) / len_v2(start);
 
@@ -893,7 +902,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
             }
           }
 
-          angle = -angle_signed_v2v2(start, end);
+          const float angle = -angle_signed_v2v2(start, end);
 
           for (int a = 0; a < 4; a++) {
             float vec[2];
