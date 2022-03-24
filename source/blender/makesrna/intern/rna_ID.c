@@ -762,7 +762,8 @@ static void rna_ID_override_library_reset(ID *id,
                                           IDOverrideLibrary *UNUSED(override_library),
                                           Main *bmain,
                                           ReportList *reports,
-                                          bool do_hierarchy)
+                                          bool do_hierarchy,
+                                          bool set_system_override)
 {
   if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
     BKE_reportf(reports, RPT_ERROR, "ID '%s' isn't an override", id->name);
@@ -770,10 +771,10 @@ static void rna_ID_override_library_reset(ID *id,
   }
 
   if (do_hierarchy) {
-    BKE_lib_override_library_id_hierarchy_reset(bmain, id);
+    BKE_lib_override_library_id_hierarchy_reset(bmain, id, set_system_override);
   }
   else {
-    BKE_lib_override_library_id_reset(bmain, id);
+    BKE_lib_override_library_id_reset(bmain, id, set_system_override);
   }
 
   WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
@@ -1869,6 +1870,11 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
       true,
       "",
       "Also reset all the dependencies of this override to match their reference linked IDs");
+  RNA_def_boolean(func,
+                  "set_system_override",
+                  false,
+                  "",
+                  "Reset all user-editable overrides as (non-editable) system overrides");
 
   func = RNA_def_function(srna, "destroy", "rna_ID_override_library_destroy");
   RNA_def_function_ui_description(

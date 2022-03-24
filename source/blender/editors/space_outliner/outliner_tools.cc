@@ -47,6 +47,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_override.h"
 #include "BKE_lib_query.h"
+#include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -1008,6 +1009,23 @@ static void id_override_library_create_hierarchy_post_process(bContext *C,
   FOREACH_MAIN_ID_END;
 }
 
+static void id_override_library_toggle_flag_fn(bContext *UNUSED(C),
+                                               ReportList *UNUSED(reports),
+                                               Scene *UNUSED(scene),
+                                               TreeElement *UNUSED(te),
+                                               TreeStoreElem *UNUSED(tsep),
+                                               TreeStoreElem *tselem,
+                                               void *user_data)
+{
+  BLI_assert(TSE_IS_REAL_ID(tselem));
+  ID *id = tselem->id;
+
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    const uint flag = POINTER_AS_UINT(user_data);
+    id->override_library->flag ^= flag;
+  }
+}
+
 static void id_override_library_reset_fn(bContext *C,
                                          ReportList *UNUSED(reports),
                                          Scene *UNUSED(scene),
@@ -1025,10 +1043,10 @@ static void id_override_library_reset_fn(bContext *C,
     Main *bmain = CTX_data_main(C);
 
     if (do_hierarchy) {
-      BKE_lib_override_library_id_hierarchy_reset(bmain, id_root);
+      BKE_lib_override_library_id_hierarchy_reset(bmain, id_root, false);
     }
     else {
-      BKE_lib_override_library_id_reset(bmain, id_root);
+      BKE_lib_override_library_id_reset(bmain, id_root, false);
     }
 
     WM_event_add_notifier(C, NC_WM | ND_DATACHANGED, nullptr);
@@ -1080,40 +1098,76 @@ static void id_override_library_resync_fn(bContext *C,
   }
 }
 
-static void id_override_library_delete_fn(bContext *C,
-                                          ReportList *UNUSED(reports),
-                                          Scene *UNUSED(scene),
-                                          TreeElement *te,
-                                          TreeStoreElem *UNUSED(tsep),
-                                          TreeStoreElem *tselem,
-                                          void *UNUSED(user_data))
+static void id_override_library_clear_hierarchy_fn(bContext *C,
+                                                   ReportList *UNUSED(reports),
+                                                   Scene *UNUSED(scene),
+                                                   TreeElement *te,
+                                                   TreeStoreElem *UNUSED(tsep),
+                                                   TreeStoreElem *tselem,
+                                                   void *UNUSED(user_data))
 {
   BLI_assert(TSE_IS_REAL_ID(tselem));
   ID *id_root = tselem->id;
 
-  if (ID_IS_OVERRIDE_LIBRARY_REAL(id_root)) {
-    Main *bmain = CTX_data_main(C);
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id_root)) {
+    CLOG_WARN(&LOG, "Could not delete library override of data block '%s'", id_root->name);
+    return;
+  }
 
-    id_root->tag |= LIB_TAG_DOIT;
+  Main *bmain = CTX_data_main(C);
 
-    /* Tag all linked parents in tree hierarchy to be also overridden. */
-    while ((te = te->parent) != nullptr) {
-      if (!TSE_IS_REAL_ID(te->store_elem)) {
-        continue;
-      }
-      if (!ID_IS_OVERRIDE_LIBRARY_REAL(te->store_elem->id)) {
-        break;
-      }
-      te->store_elem->id->tag |= LIB_TAG_DOIT;
+  id_root->tag |= LIB_TAG_DOIT;
+
+  /* Tag all override parents in tree hierarchy to be also processed. */
+  while ((te = te->parent) != nullptr) {
+    if (!TSE_IS_REAL_ID(te->store_elem)) {
+      continue;
     }
+    if (!ID_IS_OVERRIDE_LIBRARY_REAL(te->store_elem->id)) {
+      break;
+    }
+    te->store_elem->id->tag |= LIB_TAG_DOIT;
+  }
 
-    BKE_lib_override_library_delete(bmain, id_root);
+  BKE_lib_override_library_delete(bmain, id_root);
 
-    WM_event_add_notifier(C, NC_WINDOW, nullptr);
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
+}
+
+static void id_override_library_clear_single_fn(bContext *C,
+                                                ReportList *reports,
+                                                Scene *UNUSED(scene),
+                                                TreeElement *UNUSED(te),
+                                                TreeStoreElem *UNUSED(tsep),
+                                                TreeStoreElem *tselem,
+                                                void *UNUSED(user_data))
+{
+  BLI_assert(TSE_IS_REAL_ID(tselem));
+  Main *bmain = CTX_data_main(C);
+  ID *id = tselem->id;
+
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "Cannot clear embedded library override id '%s', only overrides of real "
+                "data-blocks can be directly deleted",
+                id->name);
+    return;
+  }
+
+  /* If given ID is not using any other override (it's a 'leaf' in the override hierarchy),
+   * delete it and remap its usages to its linked reference. Otherwise, keep it as a reset system
+   * override. */
+  if (BKE_lib_override_library_is_hierarchy_leaf(bmain, id)) {
+    BKE_libblock_remap(bmain, id, id->override_library->reference, ID_REMAP_SKIP_INDIRECT_USAGE);
+    BKE_id_delete(bmain, id);
   }
   else {
-    CLOG_WARN(&LOG, "Could not delete library override of data block '%s'", id_root->name);
+    BKE_lib_override_library_id_reset(bmain, id, true);
   }
+
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
+  return;
 }
 
 static void id_fake_user_set_fn(bContext *UNUSED(C),
@@ -1911,11 +1965,13 @@ enum eOutlinerIdOpTypes {
   OUTLINER_IDOP_LOCAL,
   OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE,
   OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE_HIERARCHY,
+  OUTLINER_IDOP_OVERRIDE_LIBRARY_MAKE_EDITABLE,
   OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET,
   OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET_HIERARCHY,
   OUTLINER_IDOP_OVERRIDE_LIBRARY_RESYNC_HIERARCHY,
   OUTLINER_IDOP_OVERRIDE_LIBRARY_RESYNC_HIERARCHY_ENFORCE,
-  OUTLINER_IDOP_OVERRIDE_LIBRARY_DELETE_HIERARCHY,
+  OUTLINER_IDOP_OVERRIDE_LIBRARY_CLEAR_HIERARCHY,
+  OUTLINER_IDOP_OVERRIDE_LIBRARY_CLEAR_SINGLE,
   OUTLINER_IDOP_SINGLE,
   OUTLINER_IDOP_DELETE,
   OUTLINER_IDOP_REMAP,
@@ -1954,6 +2010,11 @@ static const EnumPropertyItem prop_id_op_types[] = {
      "Make Library Override Hierarchy",
      "Make a local override of this linked data-block, and its hierarchy of dependencies - only "
      "applies to active Outliner item"},
+    {OUTLINER_IDOP_OVERRIDE_LIBRARY_MAKE_EDITABLE,
+     "OVERRIDE_LIBRARY_MAKE_EDITABLE",
+     0,
+     "Make Library Override Editable",
+     "Make the library override data-block editable"},
     {OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET,
      "OVERRIDE_LIBRARY_RESET",
      0,
@@ -1977,12 +2038,18 @@ static const EnumPropertyItem prop_id_op_types[] = {
      "Rebuild this local override from its linked reference, as well as its hierarchy of "
      "dependencies, enforcing that hierarchy to match the linked data (i.e. ignoring exiting "
      "overrides on data-blocks pointer properties)"},
-    {OUTLINER_IDOP_OVERRIDE_LIBRARY_DELETE_HIERARCHY,
-     "OVERRIDE_LIBRARY_DELETE_HIERARCHY",
+    {OUTLINER_IDOP_OVERRIDE_LIBRARY_CLEAR_HIERARCHY,
+     "OVERRIDE_LIBRARY_CLEAR_HIERARCHY",
      0,
-     "Delete Library Override Hierarchy",
+     "Clear Library Override Hierarchy",
      "Delete this local override (including its hierarchy of override dependencies) and relink "
      "its usages to the linked data-blocks"},
+    {OUTLINER_IDOP_OVERRIDE_LIBRARY_CLEAR_SINGLE,
+     "OVERRIDE_LIBRARY_CLEAR_SINGLE",
+     0,
+     "Clear Single Library Override",
+     "Delete this local override if possible, else reset it and mark it as non editable, and "
+     "relink its usages to the linked data-blocks"},
     {0, "", 0, nullptr, nullptr},
     {OUTLINER_IDOP_COPY, "COPY", ICON_COPYDOWN, "Copy", ""},
     {OUTLINER_IDOP_PASTE, "PASTE", ICON_PASTEDOWN, "Paste", ""},
@@ -2026,11 +2093,19 @@ static bool outliner_id_operation_item_poll(bContext *C,
         return true;
       }
       return false;
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY_MAKE_EDITABLE:
+      if (ID_IS_OVERRIDE_LIBRARY_REAL(tselem->id) && !ID_IS_LINKED(tselem->id)) {
+        if (tselem->id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED) {
+          return true;
+        }
+      }
+      return false;
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET:
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET_HIERARCHY:
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESYNC_HIERARCHY:
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESYNC_HIERARCHY_ENFORCE:
-    case OUTLINER_IDOP_OVERRIDE_LIBRARY_DELETE_HIERARCHY:
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY_CLEAR_HIERARCHY:
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY_CLEAR_SINGLE:
       if (ID_IS_OVERRIDE_LIBRARY_REAL(tselem->id) && !ID_IS_LINKED(tselem->id)) {
         return true;
       }
@@ -2211,6 +2286,18 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       ED_undo_push(C, "Overridden Data Hierarchy");
       break;
     }
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY_MAKE_EDITABLE: {
+      outliner_do_libdata_operation(C,
+                                    op->reports,
+                                    scene,
+                                    space_outliner,
+                                    &space_outliner->tree,
+                                    id_override_library_toggle_flag_fn,
+                                    POINTER_FROM_UINT(IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED));
+
+      ED_undo_push(C, "Make Overridden Data Editable");
+      break;
+    }
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET: {
       OutlinerLibOverrideData override_data{};
       outliner_do_libdata_operation(C,
@@ -2263,17 +2350,26 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       ED_undo_push(C, "Resync Overridden Data Hierarchy");
       break;
     }
-    case OUTLINER_IDOP_OVERRIDE_LIBRARY_DELETE_HIERARCHY: {
-      OutlinerLibOverrideData override_data{};
-      override_data.do_hierarchy = true;
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY_CLEAR_HIERARCHY: {
       outliner_do_libdata_operation(C,
                                     op->reports,
                                     scene,
                                     space_outliner,
                                     &space_outliner->tree,
-                                    id_override_library_delete_fn,
-                                    &override_data);
-      ED_undo_push(C, "Delete Overridden Data Hierarchy");
+                                    id_override_library_clear_hierarchy_fn,
+                                    nullptr);
+      ED_undo_push(C, "Clear Overridden Data Hierarchy");
+      break;
+    }
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY_CLEAR_SINGLE: {
+      outliner_do_libdata_operation(C,
+                                    op->reports,
+                                    scene,
+                                    space_outliner,
+                                    &space_outliner->tree,
+                                    id_override_library_clear_single_fn,
+                                    nullptr);
+      ED_undo_push(C, "Clear Overridden Data Hierarchy");
       break;
     }
     case OUTLINER_IDOP_SINGLE: {
