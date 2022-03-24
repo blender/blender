@@ -83,12 +83,12 @@ static Array<int> accumulate_counts_to_offsets(const IndexMask selection,
                                                const VArray<int> &counts)
 {
   Array<int> offsets(selection.size() + 1);
-  int dst_points_size = 0;
-  for (const int i_point : selection.index_range()) {
-    offsets[i_point] = dst_points_size;
-    dst_points_size += std::max(counts[selection[i_point]], 0);
+  int total = 0;
+  for (const int i : selection.index_range()) {
+    offsets[i] = total;
+    total += std::max(counts[selection[i]], 0);
   }
-  offsets.last() = dst_points_size;
+  offsets.last() = total;
   return offsets;
 }
 

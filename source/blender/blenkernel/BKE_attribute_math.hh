@@ -22,7 +22,7 @@ inline void convert_to_static_type(const CPPType &cpp_type, const Func &func)
       [&](auto type_tag) {
         using T = typename decltype(type_tag)::type;
         if constexpr (std::is_same_v<T, void>) {
-          /* It's expected that the given cpp type is one of the supported once. */
+          /* It's expected that the given cpp type is one of the supported ones. */
           BLI_assert_unreachable();
         }
         else {
