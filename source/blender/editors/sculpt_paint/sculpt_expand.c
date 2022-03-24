@@ -746,8 +746,8 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const SculptVer
       }
     }
     else {
-      for (int j = 0; j < ss->pmap[v_next_i].count; j++) {
-        MPoly *p = &ss->mpoly[ss->pmap[v_next_i].indices[j]];
+      for (int j = 0; j < ss->pmap->pmap[v_next_i].count; j++) {
+        MPoly *p = &ss->mpoly[ss->pmap->pmap[v_next_i].indices[j]];
         for (int l = 0; l < p->totloop; l++) {
           const int neighbor_v = mesh->mloop[p->loopstart + l].v;
 
@@ -2226,7 +2226,7 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
   }
 
   const int totface = ss->totfaces;
-  MeshElemMap *pmap = ss->pmap;
+  MeshElemMap *pmap = ss->pmap->pmap;
 
   /* Check that all the face sets IDs in the mesh are not equal to `delete_id`
    * before attempting to delete it. */

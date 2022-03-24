@@ -415,9 +415,9 @@ bool SCULPT_vertex_color_get(const SculptSession *ss, SculptVertRef vertex, floa
       if (ss->vcol_domain == ATTR_DOMAIN_CORNER) {
         zero_v4(out);
 
-        int count = ss->pmap[vertex.i].count;
+        int count = ss->pmap->pmap[vertex.i].count;
         for (int i = 0; i < count; i++) {
-          MPoly *mp = ss->mpoly + ss->pmap[vertex.i].indices[i];
+          MPoly *mp = ss->mpoly + ss->pmap->pmap[vertex.i].indices[i];
           MLoop *ml = ss->mloop + mp->loopstart;
           int li = mp->loopstart;
 
@@ -555,9 +555,9 @@ void SCULPT_vertex_color_set(const SculptSession *ss, SculptVertRef vertex, floa
       }
 
       if (ss->vcol_domain == ATTR_DOMAIN_CORNER) {
-        int count = ss->pmap[vertex.i].count;
+        int count = ss->pmap->pmap[vertex.i].count;
         for (int i = 0; i < count; i++) {
-          MPoly *mp = ss->mpoly + ss->pmap[vertex.i].indices[i];
+          MPoly *mp = ss->mpoly + ss->pmap->pmap[vertex.i].indices[i];
           MLoop *ml = ss->mloop + mp->loopstart;
           int li = mp->loopstart;
 
@@ -1137,8 +1137,8 @@ bool SCULPT_vertex_any_face_set_visible_get(SculptSession *ss, SculptVertRef ind
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
-      MeshElemMap *vert_map = &ss->pmap[index.i];
-      for (int j = 0; j < ss->pmap[index.i].count; j++) {
+      MeshElemMap *vert_map = &ss->pmap->pmap[index.i];
+      for (int j = 0; j < ss->pmap->pmap[index.i].count; j++) {
         if (ss->face_sets[vert_map->indices[j]] > 0) {
           return true;
         }
@@ -1169,8 +1169,8 @@ bool SCULPT_vertex_all_face_sets_visible_get(const SculptSession *ss, SculptVert
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
-      MeshElemMap *vert_map = &ss->pmap[index.i];
-      for (int j = 0; j < ss->pmap[index.i].count; j++) {
+      MeshElemMap *vert_map = &ss->pmap->pmap[index.i];
+      for (int j = 0; j < ss->pmap->pmap[index.i].count; j++) {
         if (ss->face_sets[vert_map->indices[j]] < 0) {
           return false;
         }
@@ -1205,12 +1205,12 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, SculptVertRef index, int face
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
-      MeshElemMap *vert_map = &ss->pmap[index.i];
+      MeshElemMap *vert_map = &ss->pmap->pmap[index.i];
       MSculptVert *mv = ss->mdyntopo_verts + index.i;
 
       MV_ADD_FLAG(mv, SCULPTVERT_NEED_BOUNDARY);
 
-      for (int j = 0; j < ss->pmap[index.i].count; j++) {
+      for (int j = 0; j < ss->pmap->pmap[index.i].count; j++) {
         MPoly *mp = ss->mpoly + vert_map->indices[j];
         MLoop *ml = ss->mloop + mp->loopstart;
 
@@ -1261,8 +1261,8 @@ void SCULPT_vertex_face_set_increase(SculptSession *ss, SculptVertRef vertex, co
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       int index = (int)vertex.i;
-      MeshElemMap *vert_map = &ss->pmap[index];
-      for (int j = 0; j < ss->pmap[index].count; j++) {
+      MeshElemMap *vert_map = &ss->pmap->pmap[index];
+      for (int j = 0; j < ss->pmap->pmap[index].count; j++) {
         if (ss->face_sets[vert_map->indices[j]] > 0) {
           ss->face_sets[vert_map->indices[j]] += increase;
         }
@@ -1303,9 +1303,9 @@ int SCULPT_vertex_face_set_get(SculptSession *ss, SculptVertRef index)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
-      MeshElemMap *vert_map = &ss->pmap[index.i];
+      MeshElemMap *vert_map = &ss->pmap->pmap[index.i];
       int face_set = 0;
-      for (int i = 0; i < ss->pmap[index.i].count; i++) {
+      for (int i = 0; i < ss->pmap->pmap[index.i].count; i++) {
         if (ss->face_sets[vert_map->indices[i]] > face_set) {
           face_set = abs(ss->face_sets[vert_map->indices[i]]);
         }
@@ -1343,8 +1343,8 @@ bool SCULPT_vertex_has_face_set(SculptSession *ss, SculptVertRef index, int face
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
-      MeshElemMap *vert_map = &ss->pmap[index.i];
-      for (int i = 0; i < ss->pmap[index.i].count; i++) {
+      MeshElemMap *vert_map = &ss->pmap->pmap[index.i];
+      for (int i = 0; i < ss->pmap->pmap[index.i].count; i++) {
         if (ss->face_sets[vert_map->indices[i]] == face_set) {
           return true;
         }
@@ -1504,10 +1504,10 @@ static void UNUSED_FUNCTION(sculpt_visibility_sync_vertex_to_face_sets)(SculptSe
                                                                         SculptVertRef vertex)
 {
   int index = (int)vertex.i;
-  MeshElemMap *vert_map = &ss->pmap[index];
+  MeshElemMap *vert_map = &ss->pmap->pmap[index];
   const bool visible = SCULPT_vertex_visible_get(ss, vertex);
 
-  for (int i = 0; i < ss->pmap[index].count; i++) {
+  for (int i = 0; i < ss->pmap->pmap[index].count; i++) {
     if (visible) {
       ss->face_sets[vert_map->indices[i]] = abs(ss->face_sets[vert_map->indices[i]]);
     }
@@ -1584,19 +1584,19 @@ static SculptCornerType sculpt_check_corner_in_base_mesh(const SculptSession *ss
 {
   int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, vertex);
 
-  MeshElemMap *vert_map = &ss->pmap[index];
+  MeshElemMap *vert_map = &ss->pmap->pmap[index];
   int face_set = -1;
   int last1 = -1;
   int last2 = -1;
 
   int ret = 0;
 
-  if (sculpt_check_boundary_vertex_in_base_mesh(ss, vertex) && ss->pmap[index].count < 4) {
+  if (sculpt_check_boundary_vertex_in_base_mesh(ss, vertex) && ss->pmap->pmap[index].count < 4) {
     ret |= SCULPT_CORNER_MESH;
   }
 
   if (check_facesets) {
-    for (int i = 0; i < ss->pmap[index].count; i++) {
+    for (int i = 0; i < ss->pmap->pmap[index].count; i++) {
       if (check_facesets) {
         if (last2 != last1) {
           last2 = last1;
@@ -1624,9 +1624,9 @@ static bool sculpt_check_unique_face_set_in_base_mesh(const SculptSession *ss,
 {
   int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, vertex);
 
-  MeshElemMap *vert_map = &ss->pmap[index];
+  MeshElemMap *vert_map = &ss->pmap->pmap[index];
   int face_set = -1;
-  for (int i = 0; i < ss->pmap[index].count; i++) {
+  for (int i = 0; i < ss->pmap->pmap[index].count; i++) {
     if (face_set == -1) {
       face_set = abs(ss->face_sets[vert_map->indices[i]]);
     }
@@ -1647,9 +1647,9 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(const SculptSessi
                                                                int v1,
                                                                int v2)
 {
-  MeshElemMap *vert_map = &ss->pmap[v1];
+  MeshElemMap *vert_map = &ss->pmap->pmap[v1];
   int p1 = -1, p2 = -1;
-  for (int i = 0; i < ss->pmap[v1].count; i++) {
+  for (int i = 0; i < ss->pmap->pmap[v1].count; i++) {
     MPoly *p = &ss->mpoly[vert_map->indices[i]];
     for (int l = 0; l < p->totloop; l++) {
       MLoop *loop = &ss->mloop[p->loopstart + l];
@@ -1877,7 +1877,7 @@ static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
     MEM_freeN(edges);
   }
 #if 0
-  for (int i = 0; i < ss->pmap[index].count; i++) {
+  for (int i = 0; i < ss->pmap->pmap[index].count; i++) {
     if (ss->face_sets[vert_map->indices[i]] < 0) {
       /* Skip connectivity from hidden faces. */
       continue;
@@ -2393,7 +2393,7 @@ static void faces_update_boundary_flags(const SculptSession *ss, const SculptVer
                                       ss->mloop,
                                       ss->mpoly,
                                       ss->mdyntopo_verts,
-                                      ss->pmap,
+                                      ss->pmap->pmap,
                                       vertex);
   // have to handle boundary here
   MSculptVert *mv = ss->mdyntopo_verts + vertex.i;
@@ -2403,11 +2403,11 @@ static void faces_update_boundary_flags(const SculptSession *ss, const SculptVer
   if (sculpt_check_boundary_vertex_in_base_mesh(ss, vertex)) {
     mv->flag |= SCULPTVERT_BOUNDARY;
 
-    if (ss->pmap[vertex.i].count < 4) {
+    if (ss->pmap->pmap[vertex.i].count < 4) {
       bool ok = true;
 
-      for (int i = 0; i < ss->pmap[vertex.i].count; i++) {
-        MPoly *mp = ss->mpoly + ss->pmap[vertex.i].indices[i];
+      for (int i = 0; i < ss->pmap->pmap[vertex.i].count; i++) {
+        MPoly *mp = ss->mpoly + ss->pmap->pmap[vertex.i].indices[i];
         if (mp->totloop < 4) {
           ok = false;
         }

@@ -145,8 +145,9 @@ struct PBVH {
   int depth_limit;
 
   /* Mesh data */
-  struct MeshElemMap *pmap, *vemap;
-  void *pmap_mem;
+  struct MeshElemMap *vemap;
+  SculptPMap *pmap;
+
   const struct Mesh *mesh;
 
   /* Note: Normals are not const because they can be updated for drawing by sculpt code. */
@@ -231,6 +232,8 @@ struct PBVH {
     int totvert, totedge, totloop, totpoly;
     struct BMesh *bm;
   } cached_data;
+
+  bool invalid;
 };
 
 /* pbvh.c */

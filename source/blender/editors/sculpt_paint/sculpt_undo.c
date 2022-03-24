@@ -359,16 +359,7 @@ static bool sculpt_undo_restore_color(bContext *C, SculptUndoNode *unode)
   if (!ss->pmap) {
     Mesh *me = BKE_object_get_original_mesh(ob);
 
-    BKE_mesh_vert_poly_map_create(&ss->pmap,
-                                  &ss->pmap_mem,
-                                  me->mvert,
-                                  me->medge,
-                                  me->mpoly,
-                                  me->mloop,
-                                  me->totvert,
-                                  me->totpoly,
-                                  me->totloop,
-                                  false);
+    ss->pmap = BKE_pbvh_make_pmap(me);
   }
 
   if (unode->maxvert) {

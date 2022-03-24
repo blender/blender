@@ -402,8 +402,8 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
-      MeshElemMap *vert_map = &ss->pmap[vd.index];
-      for (int j = 0; j < ss->pmap[vd.index].count; j++) {
+      MeshElemMap *vert_map = &ss->pmap->pmap[vd.index];
+      for (int j = 0; j < ss->pmap->pmap[vd.index].count; j++) {
         const MPoly *p = &ss->mpoly[vert_map->indices[j]];
 
         float poly_center[3];
@@ -1680,7 +1680,7 @@ static void sculpt_face_set_grow(Object *ob,
     const MPoly *c_poly = &mesh->mpoly[p];
     for (int l = 0; l < c_poly->totloop; l++) {
       const MLoop *c_loop = &mesh->mloop[c_poly->loopstart + l];
-      const MeshElemMap *vert_map = &ss->pmap[c_loop->v];
+      const MeshElemMap *vert_map = &ss->pmap->pmap[c_loop->v];
       for (int i = 0; i < vert_map->count; i++) {
         const int neighbor_face_index = vert_map->indices[i];
         if (neighbor_face_index == p) {
@@ -1803,7 +1803,7 @@ static void sculpt_face_set_shrink(Object *ob,
       const MPoly *c_poly = &mesh->mpoly[p];
       for (int l = 0; l < c_poly->totloop; l++) {
         const MLoop *c_loop = &mesh->mloop[c_poly->loopstart + l];
-        const MeshElemMap *vert_map = &ss->pmap[c_loop->v];
+        const MeshElemMap *vert_map = &ss->pmap->pmap[c_loop->v];
         for (int i = 0; i < vert_map->count; i++) {
           const int neighbor_face_index = vert_map->indices[i];
           if (neighbor_face_index == p) {

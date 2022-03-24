@@ -663,7 +663,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
                          int looptri_num,
                          bool fast_draw,
                          float *face_areas,
-                         struct MeshElemMap *pmap)
+                         SculptPMap *pmap)
 {
   BBC *prim_bbc = NULL;
   BB cb;
@@ -794,6 +794,8 @@ PBVH *BKE_pbvh_new(void)
 
 ATTR_NO_OPT void BKE_pbvh_free(PBVH *pbvh)
 {
+  BKE_pbvh_cache_remove(pbvh);
+
   for (int i = 0; i < pbvh->totnode; i++) {
     PBVHNode *node = &pbvh->nodes[i];
 
@@ -832,6 +834,8 @@ ATTR_NO_OPT void BKE_pbvh_free(PBVH *pbvh)
 
       MEM_freeN((void *)pbvh->verts);
     }
+
+    pbvh->verts = NULL;
   }
 
   if (pbvh->looptri) {
@@ -848,8 +852,10 @@ ATTR_NO_OPT void BKE_pbvh_free(PBVH *pbvh)
 
   MEM_SAFE_FREE(pbvh->vert_bitmap);
 
-  MEM_SAFE_FREE(pbvh->pmap);
-  MEM_SAFE_FREE(pbvh->pmap_mem);
+  BKE_pbvh_pmap_release(pbvh->pmap);
+  pbvh->pmap = NULL;
+
+  pbvh->invalid = true;
 
   MEM_freeN(pbvh);
 }
@@ -4420,7 +4426,7 @@ void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
                             bool *r_heap_alloc,
                             int **r_polys)
 {
-  MeshElemMap *map = pbvh->pmap + vertex.i;
+  MeshElemMap *map = pbvh->pmap->pmap + vertex.i;
   int len = 0;
 
   for (int i = 0; i < map->count; i++) {
@@ -4793,6 +4799,11 @@ bool BKE_pbvh_cache(const struct Mesh *me, PBVH *pbvh)
 {
   memset(&pbvh->cached_data, 0, sizeof(pbvh->cached_data));
 
+  if (pbvh->invalid) {
+    printf("invalid pbvh!\n");
+    return false;
+  }
+
   switch (pbvh->type) {
     case PBVH_BMESH:
       if (!pbvh->bm) {
@@ -4850,6 +4861,10 @@ ATTR_NO_OPT bool BKE_pbvh_cache_is_valid(const Object *ob,
                                          const PBVH *pbvh,
                                          PBVHType pbvh_type)
 {
+  if (pbvh->invalid) {
+    printf("pbvh invalid!\n");
+  }
+
   if (pbvh->type != pbvh_type) {
     return false;
   }
@@ -4968,7 +4983,10 @@ ATTR_NO_OPT PBVH *BKE_pbvh_get_or_free_cached(Object *ob, Mesh *me, PBVHType pbv
       case PBVH_FACES:
         pbvh->vert_normals = BKE_mesh_vertex_normals_for_write(me);
       case PBVH_GRIDS:
-        pbvh->verts = me->mvert;
+        if (!pbvh->deformed) {
+          pbvh->verts = me->mvert;
+        }
+
         pbvh->mloop = me->mloop;
         pbvh->mpoly = me->mpoly;
         pbvh->vdata = &me->vdata;
@@ -4993,6 +5011,14 @@ ATTR_NO_OPT void BKE_pbvh_set_cached(Object *ob, PBVH *pbvh)
 
   PBVH *exist = BLI_ghash_lookup(cached_pbvhs, ob_orig->id.name);
 
+  if (pbvh->invalid) {
+    printf("pbvh invalid!");
+  }
+
+  if (exist && exist->invalid) {
+    printf("pbvh invalid!");
+  }
+
   if (!exist || exist != pbvh) {
     pbvh_clear_cached_pbvhs(pbvh);
     BLI_ghash_insert(cached_pbvhs, BLI_strdup(ob_orig->id.name), pbvh);
@@ -5001,24 +5027,18 @@ ATTR_NO_OPT void BKE_pbvh_set_cached(Object *ob, PBVH *pbvh)
   BKE_pbvh_cache(BKE_object_get_original_mesh(ob_orig), pbvh);
 }
 
-struct MeshElemMap *BKE_pbvh_get_pmap(PBVH *pbvh)
+struct SculptPMap *BKE_pbvh_get_pmap(PBVH *pbvh)
 {
   return pbvh->pmap;
 }
 
-struct MeshElemMap *BKE_pbvh_get_pmap_ex(PBVH *pbvh, int **r_mem)
+void BKE_pbvh_set_pmap(PBVH *pbvh, SculptPMap *pmap)
 {
-  if (r_mem) {
-    *r_mem = (int *)pbvh->pmap_mem;
+  if (pbvh->pmap != pmap) {
+    BKE_pbvh_pmap_aquire(pmap);
   }
 
-  return pbvh->pmap;
-}
-
-void BKE_pbvh_set_pmap(PBVH *pbvh, struct MeshElemMap *pmap, void *pmap_mem)
-{
   pbvh->pmap = pmap;
-  pbvh->pmap_mem = pmap_mem;
 }
 
 /** Does not free pbvh itself. */
@@ -5096,4 +5116,44 @@ void BKE_pbvh_system_exit()
 {
   pbvh_clear_cached_pbvhs(NULL);
   BLI_ghash_free(cached_pbvhs, NULL, NULL);
+}
+
+SculptPMap *BKE_pbvh_make_pmap(const struct Mesh *me)
+{
+  SculptPMap *pmap = MEM_callocN(sizeof(*pmap), "SculptPMap");
+
+  BKE_mesh_vert_poly_map_create(&pmap->pmap,
+                            &pmap->pmap_mem,
+                            me->mvert,
+                            me->medge,
+                            me->mpoly,
+                            me->mloop,
+                            me->totvert,
+                            me->totpoly,
+                            me->totloop,
+                            false);
+
+  pmap->refcount = 1;
+
+  return pmap;
+}
+
+void BKE_pbvh_pmap_aquire(SculptPMap *pmap)
+{
+  pmap->refcount++;
+}
+
+bool BKE_pbvh_pmap_release(SculptPMap *pmap)
+{
+  pmap->refcount--;
+
+  if (pmap->refcount == 0) {
+    MEM_SAFE_FREE(pmap->pmap);
+    MEM_SAFE_FREE(pmap->pmap_mem);
+    MEM_SAFE_FREE(pmap);
+
+    return true;
+  }
+
+  return false;
 }

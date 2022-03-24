@@ -722,8 +722,7 @@ typedef struct SculptSession {
 
   /* Mesh connectivity maps. */
   /* Vertices to adjacent polys. */
-  struct MeshElemMap *pmap;
-  int *pmap_mem;
+  SculptPMap *pmap;
 
   /* Edges to adjacent polys. */
   struct MeshElemMap *epmap;

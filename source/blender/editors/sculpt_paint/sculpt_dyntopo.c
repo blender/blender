@@ -471,6 +471,9 @@ void SCULPT_pbvh_clear(Object *ob, bool cache_pbvh)
 {
   SculptSession *ss = ob->sculpt;
 
+  BKE_pbvh_pmap_release(ss->pmap);
+  ss->pmap = NULL;
+
   /* Clear out any existing DM and PBVH. */
   if (ss->pbvh) {
     if (cache_pbvh) {
@@ -482,12 +485,6 @@ void SCULPT_pbvh_clear(Object *ob, bool cache_pbvh)
     }
 
     ss->pbvh = NULL;
-    ss->pmap = NULL;
-    ss->pmap_mem = NULL;
-  }
-  else {
-    MEM_SAFE_FREE(ss->pmap);
-    MEM_SAFE_FREE(ss->pmap_mem);
   }
 
   BKE_object_free_derived_caches(ob);
@@ -611,9 +608,9 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 
   /* clear any non-dyntopo PBVH cache */
   if (ss->pbvh) {
-    // pmap is freed by pbvh
-    ss->pmap = NULL;
-    ss->pmap_mem = NULL;
+    if (ss->pmap) {
+      BKE_pbvh_pmap_release(ss->pmap);
+    }
 
     /* Remove existing pbvh so we can free it ourselves. */
     BKE_pbvh_cache_remove(ss->pbvh);

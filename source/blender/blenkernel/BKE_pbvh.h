@@ -50,6 +50,12 @@ typedef struct SculptFaceRef {
 
 #define SCULPT_REF_NONE ((intptr_t)-1)
 
+typedef struct SculptPMap {
+  struct MeshElemMap *pmap;
+  int *pmap_mem;
+  int refcount;
+} SculptPMap;
+
 #if 0
 typedef struct SculptLoopRef {
   intptr_t i;
@@ -288,7 +294,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
                          int looptri_num,
                          bool fast_draw,
                          float *face_areas,
-                         struct MeshElemMap *pmap);
+                         SculptPMap *pmap);
 /**
  * Do a full rebuild with on Grids data structure.
  */
@@ -1128,17 +1134,23 @@ void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
 void BKE_pbvh_set_vemap(PBVH *pbvh, struct MeshElemMap *vemap);
 
 void BKE_pbvh_ignore_uvs_set(PBVH *pbvh, bool value);
-bool BKE_pbvh_cache_is_valid(const struct Object *ob, const struct Mesh *me, const PBVH *old, int pbvh_type);
+bool BKE_pbvh_cache_is_valid(const struct Object *ob,
+                             const struct Mesh *me,
+                             const PBVH *old,
+                             int pbvh_type);
 bool BKE_pbvh_cache(const struct Mesh *me, PBVH *pbvh);
 PBVH *BKE_pbvh_get_or_free_cached(struct Object *ob, struct Mesh *me, PBVHType pbvh_type);
 void BKE_pbvh_set_cached(struct Object *ob, PBVH *pbvh);
 void BKE_pbvh_set_face_areas(PBVH *pbvh, float *face_areas);
 void BKE_pbvh_set_sculpt_verts(PBVH *pbvh, struct MSculptVert *sverts);
-void BKE_pbvh_set_pmap(PBVH *pbvh, struct MeshElemMap *pmap, void *pmap_mem);
-struct MeshElemMap *BKE_pbvh_get_pmap(PBVH *pbvh);
-struct MeshElemMap *BKE_pbvh_get_pmap_ex(PBVH *pbvh, int **r_mem);
+void BKE_pbvh_set_pmap(PBVH *pbvh, SculptPMap *pmap);
+SculptPMap *BKE_pbvh_get_pmap(PBVH *pbvh);
 void BKE_pbvh_cache_remove(PBVH *pbvh);
 void BKE_pbvh_set_bmesh(PBVH *pbvh, struct BMesh *bm);
 void BKE_pbvh_free_bmesh(PBVH *pbvh, struct BMesh *bm);
 void BKE_pbvh_system_init();
 void BKE_pbvh_system_exit();
+
+SculptPMap *BKE_pbvh_make_pmap(const struct Mesh *me);
+void BKE_pbvh_pmap_aquire(SculptPMap *pmap);
+bool BKE_pbvh_pmap_release(SculptPMap *pmap);

@@ -1451,10 +1451,6 @@ static void sculptsession_free_pbvh(Object *object)
     BKE_pbvh_set_cached(object, ss->pbvh);
     ss->pbvh = NULL;
   }
-  else {
-    MEM_SAFE_FREE(ss->pmap);
-    MEM_SAFE_FREE(ss->pmap_mem);
-  }
 
   MEM_SAFE_FREE(ss->face_areas);
 
@@ -1525,8 +1521,7 @@ void BKE_sculptsession_free(Object *ob)
     CustomData_free(&ss->temp_pdata, ss->temp_pdata_elems);
 
     if (!ss->pbvh) {
-      MEM_SAFE_FREE(ss->pmap);
-      MEM_SAFE_FREE(ss->pmap_mem);
+      BKE_pbvh_pmap_release(ss->pmap);
     }
 
     sculptsession_free_pbvh(ob);
@@ -1827,23 +1822,18 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
   if (need_pmap && ob->type == OB_MESH && !ss->pmap) {
     if (!ss->pmap && ss->pbvh) {
-      ss->pmap = BKE_pbvh_get_pmap_ex(ss->pbvh, &ss->pmap_mem);
+      ss->pmap = BKE_pbvh_get_pmap(ss->pbvh);
+
+      if (ss->pmap) {
+        BKE_pbvh_pmap_aquire(ss->pmap);
+      }
     }
 
     if (!ss->pmap) {
-      BKE_mesh_vert_poly_map_create(&ss->pmap,
-                                    &ss->pmap_mem,
-                                    me->mvert,
-                                    me->medge,
-                                    me->mpoly,
-                                    me->mloop,
-                                    me->totvert,
-                                    me->totpoly,
-                                    me->totloop,
-                                    false);
+      ss->pmap = BKE_pbvh_make_pmap(me);
 
       if (ss->pbvh) {
-        BKE_pbvh_set_pmap(ss->pbvh, ss->pmap, ss->pmap_mem);
+        BKE_pbvh_set_pmap(ss->pbvh, ss->pmap);
       }
     }
   }
@@ -2471,23 +2461,13 @@ ATTR_NO_OPT static PBVH *build_pbvh_from_regular_mesh(Object *ob,
 
   PBVH *pbvh = BKE_pbvh_get_or_free_cached(ob, me, PBVH_FACES);
 
-  struct MeshElemMap *BKE_pbvh_get_pmap_ex(PBVH * pbvh, int **r_mem);
-
   if (!ss->pmap && pbvh) {
-    ss->pmap = BKE_pbvh_get_pmap_ex(pbvh, &ss->pmap_mem);
+    ss->pmap = BKE_pbvh_get_pmap(pbvh);
+    BKE_pbvh_pmap_aquire(ss->pmap);
   }
 
   if (!ss->pmap) {
-    BKE_mesh_vert_poly_map_create(&ss->pmap,
-                                  &ss->pmap_mem,
-                                  me->mvert,
-                                  me->medge,
-                                  me->mpoly,
-                                  me->mloop,
-                                  me->totvert,
-                                  me->totpoly,
-                                  me->totloop,
-                                  false);
+    ss->pmap = BKE_pbvh_make_pmap(me);
   }
 
   if (!pbvh) {
@@ -2519,7 +2499,7 @@ ATTR_NO_OPT static PBVH *build_pbvh_from_regular_mesh(Object *ob,
     pbvh_show_face_sets_set(pbvh, ob->sculpt->show_face_sets);
   }
 
-  BKE_pbvh_set_pmap(pbvh, ss->pmap, ss->pmap_mem);
+  BKE_pbvh_set_pmap(pbvh, ss->pmap);
   BKE_sculptsession_check_sculptverts(ob->sculpt, pbvh, me->totvert);
 
   MEM_SAFE_FREE(ss->face_areas);
@@ -2632,7 +2612,7 @@ static void init_mdyntopo_layer_faces(SculptSession *ss, PBVH *pbvh, int totvert
                                         ss->mloop,
                                         ss->mpoly,
                                         ss->mdyntopo_verts,
-                                        ss->pmap,
+                                        ss->pmap->pmap,
                                         vertex);
 
     // can't fully update boundary here, so still flag for update
