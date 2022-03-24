@@ -2119,10 +2119,13 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
       }
     }
     else {
-      int select_id_exclude = 0;
-      /* Only exclude active object when it is selected. */
-      if (BASACT(view_layer) && (BASACT(view_layer)->flag & BASE_SELECTED) && hits > 1) {
-        select_id_exclude = BASACT(view_layer)->object->runtime.select_id;
+
+      for (a = 0; a < hits; a++) {
+        /* Any object. */
+        if (min > buffer[a].depth) {
+          min = buffer[a].depth;
+          hit_index = a;
+        }
       }
 
       /* Find the best active & non-active hits.
@@ -2134,37 +2137,36 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
        *
        * For this reason, keep track of the best hit as well as the best hit that
        * excludes the selected & active object, using this value when it's valid. */
+      if ((hit_index != -1) &&
+          /* Special case, cycling away from the active object should only be done when it
+           * doesn't have a bone selection, otherwise selecting sub-elements is difficult. */
+          ((buffer[hit_index].id & 0xFFFF0000) == 0) &&
+          /* Only exclude active object when it is selected. */
+          (BASACT(view_layer) && (BASACT(view_layer)->flag & BASE_SELECTED))) {
 
-      uint min_not_active = min;
-      int hit_index_not_active = -1;
+        const int select_id_active = BASACT(view_layer)->object->runtime.select_id;
 
-      for (a = 0; a < hits; a++) {
-        /* Any object. */
-        if (min > buffer[a].depth) {
-          min = buffer[a].depth;
-          hit_index = a;
-        }
-        /* Any object other than the active-selected. */
-        if (select_id_exclude != 0) {
-          if (min_not_active > buffer[a].depth && select_id_exclude != (buffer[a].id & 0xFFFF)) {
-            min_not_active = buffer[a].depth;
-            hit_index_not_active = a;
+        /* Check if `hit_index` is the current active object. */
+        if ((buffer[hit_index].id & 0xFFFF) == select_id_active) {
+          uint min_not_active = 0xFFFFFFFF;
+          int hit_index_not_active = -1;
+          for (a = 0; a < hits; a++) {
+            /* Any object other than the active-selected. */
+            if (select_id_active == (buffer[a].id & 0xFFFF)) {
+              continue;
+            }
+            if (min_not_active > buffer[a].depth) {
+              min_not_active = buffer[a].depth;
+              hit_index_not_active = a;
+            }
+          }
+
+          /* When the active was selected, first try to use the index
+           * for the best non-active hit that was found. */
+          if (hit_index_not_active != -1) {
+            hit_index = hit_index_not_active;
           }
         }
-      }
-
-      /* Special case, cycling away from the active object should only be done if the active
-       * object doesn't have a bone selection, otherwise selecting sub-elements is difficult. */
-      if (has_bones && (hit_index != -1)) {
-        if (buffer[hit_index].id & 0xFFFF0000) {
-          hit_index_not_active = -1;
-        }
-      }
-
-      /* When the active was selected, first try to use the index
-       * for the best non-active hit that was found. */
-      if (hit_index_not_active != -1) {
-        hit_index = hit_index_not_active;
       }
     }
 
