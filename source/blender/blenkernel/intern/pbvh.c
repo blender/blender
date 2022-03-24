@@ -5007,6 +5007,10 @@ ATTR_NO_OPT PBVH *BKE_pbvh_get_or_free_cached(Object *ob, Mesh *me, PBVHType pbv
 
 ATTR_NO_OPT void BKE_pbvh_set_cached(Object *ob, PBVH *pbvh)
 {
+  if (!pbvh) {
+    return;
+  }
+
   Object *ob_orig = DEG_get_original_object(ob);
 
   PBVH *exist = BLI_ghash_lookup(cached_pbvhs, ob_orig->id.name);
@@ -5069,7 +5073,7 @@ void BKE_pbvh_set_bmesh(PBVH *pbvh, BMesh *bm)
   pbvh->bm = bm;
 }
 
-void BKE_pbvh_free_bmesh(PBVH *pbvh, BMesh *bm)
+ATTR_NO_OPT void BKE_pbvh_free_bmesh(PBVH *pbvh, BMesh *bm)
 {
   if (pbvh) {
     pbvh->bm = NULL;
@@ -5081,6 +5085,9 @@ void BKE_pbvh_free_bmesh(PBVH *pbvh, BMesh *bm)
   char **keys = NULL;
   BLI_array_staticdeclare(keys, 32);
 
+  PBVH **pbvhs = NULL;
+  BLI_array_staticdeclare(pbvhs, 8);
+
   GHASH_ITER (iter, cached_pbvhs) {
     PBVH *pbvh2 = BLI_ghashIterator_getValue(&iter);
 
@@ -5088,7 +5095,17 @@ void BKE_pbvh_free_bmesh(PBVH *pbvh, BMesh *bm)
       pbvh2->bm = NULL;
 
       if (pbvh2 != pbvh) {
-        BKE_pbvh_free(pbvh2);
+        bool ok = true;
+
+        for (int i = 0; i < BLI_array_len(pbvhs); i++) {
+          if (pbvhs[i] == pbvh2) {
+            ok = false;
+          }
+        }
+
+        if (ok) {
+          BLI_array_append(pbvhs, pbvh2);
+        }
       }
 
       BLI_array_append(keys, BLI_ghashIterator_getKey(&iter));
@@ -5099,6 +5116,11 @@ void BKE_pbvh_free_bmesh(PBVH *pbvh, BMesh *bm)
     BLI_ghash_remove(cached_pbvhs, keys[i], MEM_freeN, NULL);
   }
 
+  for (int i = 0; i < BLI_array_len(pbvhs); i++) {
+    BKE_pbvh_free(pbvhs[i]);
+  }
+
+  BLI_array_free(pbvhs);
   BLI_array_free(keys);
 }
 
