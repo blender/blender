@@ -1340,7 +1340,7 @@ bool blf_font_size(FontBLF *font, float size, unsigned int dpi)
   size = (float)ft_size / 64.0f;
 
   if (font->size != size || font->dpi != dpi) {
-    if (FT_Set_Char_Size(font->face, 0, ft_size, dpi, dpi) == 0) {
+    if (FT_Set_Char_Size(font->face, 0, ft_size, dpi, dpi) == FT_Err_Ok) {
       font->size = size;
       font->dpi = dpi;
     }
