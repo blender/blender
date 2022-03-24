@@ -1677,6 +1677,12 @@ void OUTLINER_OT_object_operation(wmOperatorType *ot)
 
 using OutlinerDeleteFn = void (*)(bContext *C, ReportList *reports, Scene *scene, Object *ob);
 
+typedef struct ObjectEditData {
+  GSet *objects_set;
+  bool is_liboverride_allowed;
+  bool is_liboverride_hierarchy_root_allowed;
+} ObjectEditData;
+
 static void outliner_do_object_delete(bContext *C,
                                       ReportList *reports,
                                       Scene *scene,
@@ -1693,7 +1699,8 @@ static void outliner_do_object_delete(bContext *C,
 
 static TreeTraversalAction outliner_find_objects_to_delete(TreeElement *te, void *customdata)
 {
-  GSet *objects_to_delete = (GSet *)customdata;
+  ObjectEditData *data = reinterpret_cast<ObjectEditData *>(customdata);
+  GSet *objects_to_delete = data->objects_set;
   TreeStoreElem *tselem = TREESTORE(te);
 
   if (outliner_is_collection_tree_element(te)) {
@@ -1708,9 +1715,15 @@ static TreeTraversalAction outliner_find_objects_to_delete(TreeElement *te, void
   ID *id = tselem->id;
 
   if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
-    if (!ID_IS_OVERRIDE_LIBRARY_HIERARCHY_ROOT(id)) {
-      /* Only allow deletion of liboverride objects if they are root overrides. */
-      return TRAVERSE_SKIP_CHILDS;
+    if (ID_IS_OVERRIDE_LIBRARY_HIERARCHY_ROOT(id)) {
+      if (!(data->is_liboverride_hierarchy_root_allowed || data->is_liboverride_allowed)) {
+        return TRAVERSE_SKIP_CHILDS;
+      }
+    }
+    else {
+      if (!data->is_liboverride_allowed) {
+        return TRAVERSE_SKIP_CHILDS;
+      }
     }
   }
 
@@ -1732,27 +1745,31 @@ static int outliner_delete_exec(bContext *C, wmOperator *op)
 
   /* Get selected objects skipping duplicates to prevent deleting objects linked to multiple
    * collections twice */
-  GSet *objects_to_delete = BLI_gset_ptr_new(__func__);
+  ObjectEditData object_delete_data = {};
+  object_delete_data.objects_set = BLI_gset_ptr_new(__func__);
+  object_delete_data.is_liboverride_allowed = false;
+  object_delete_data.is_liboverride_hierarchy_root_allowed = delete_hierarchy;
   outliner_tree_traverse(space_outliner,
                          &space_outliner->tree,
                          0,
                          TSE_SELECTED,
                          outliner_find_objects_to_delete,
-                         objects_to_delete);
+                         &object_delete_data);
 
   if (delete_hierarchy) {
     BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
     outliner_do_object_delete(
-        C, op->reports, scene, objects_to_delete, object_batch_delete_hierarchy_fn);
+        C, op->reports, scene, object_delete_data.objects_set, object_batch_delete_hierarchy_fn);
 
     BKE_id_multi_tagged_delete(bmain);
   }
   else {
-    outliner_do_object_delete(C, op->reports, scene, objects_to_delete, outliner_object_delete_fn);
+    outliner_do_object_delete(
+        C, op->reports, scene, object_delete_data.objects_set, outliner_object_delete_fn);
   }
 
-  BLI_gset_free(objects_to_delete, nullptr);
+  BLI_gset_free(object_delete_data.objects_set, nullptr);
 
   outliner_collection_delete(C, bmain, scene, op->reports, delete_hierarchy);
 

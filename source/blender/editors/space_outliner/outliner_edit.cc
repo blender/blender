@@ -447,6 +447,17 @@ static void id_delete(bContext *C, ReportList *reports, TreeElement *te, TreeSto
              (tselem->type == TSE_LAYER_COLLECTION));
   UNUSED_VARS_NDEBUG(te);
 
+  if (ID_IS_OVERRIDE_LIBRARY(id)) {
+    if (!ID_IS_OVERRIDE_LIBRARY_REAL(id) ||
+        (id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY) == 0) {
+      BKE_reportf(reports,
+                  RPT_WARNING,
+                  "Cannot delete library override id '%s', it is part of an override hierarchy",
+                  id->name);
+      return;
+    }
+  }
+
   if (te->idcode == ID_LI && ((Library *)id)->parent != nullptr) {
     BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked library '%s'", id->name);
     return;
