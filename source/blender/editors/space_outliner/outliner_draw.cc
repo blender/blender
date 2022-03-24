@@ -3917,6 +3917,7 @@ void draw_outliner(const bContext *C)
         block, region, space_outliner, &space_outliner->tree, true);
 
     UI_block_emboss_set(block, UI_EMBOSS);
+    UI_block_flag_enable(block, UI_BLOCK_NO_DRAW_OVERRIDDEN_STATE);
     const int x = region->v2d.cur.xmax - right_column_width;
     outliner_draw_separator(region, x);
     outliner_draw_overrides_rna_buts(block, region, space_outliner, &space_outliner->tree, x);
