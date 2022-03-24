@@ -65,7 +65,7 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
         /* New candidate is in inner radius while old one is not. */
         return true;
       }
-      else if (b.depth_sq_cu < a.depth_sq_cu) {
+      if (b.depth_sq_cu < a.depth_sq_cu) {
         /* Both candidates are in inner radius, but new one is closer to the camera. */
         return true;
       }

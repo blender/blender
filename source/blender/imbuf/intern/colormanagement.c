@@ -2449,12 +2449,12 @@ void IMB_colormanagement_imbuf_make_display_space(
 ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
                                            bool save_as_render,
                                            bool allocate_result,
-                                           const ImageFormatData *imf)
+                                           const ImageFormatData *image_format)
 {
   ImBuf *colormanaged_ibuf = ibuf;
-  const bool is_movie = BKE_imtype_is_movie(imf->imtype);
-  const bool requires_linear_float = BKE_imtype_requires_linear_float(imf->imtype);
-  const bool do_alpha_under = imf->planes != R_IMF_PLANES_RGBA;
+  const bool is_movie = BKE_imtype_is_movie(image_format->imtype);
+  const bool requires_linear_float = BKE_imtype_requires_linear_float(image_format->imtype);
+  const bool do_alpha_under = image_format->planes != R_IMF_PLANES_RGBA;
 
   if (ibuf->rect_float && ibuf->rect &&
       (ibuf->userflags & (IB_DISPLAY_BUFFER_INVALID | IB_RECT_INVALID)) != 0) {
@@ -2464,9 +2464,9 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
 
   const bool do_colormanagement_display = save_as_render && (is_movie || !requires_linear_float);
   const bool do_colormanagement_linear = save_as_render && requires_linear_float &&
-                                         imf->linear_colorspace_settings.name[0] &&
+                                         image_format->linear_colorspace_settings.name[0] &&
                                          !IMB_colormanagement_space_name_is_scene_linear(
-                                             imf->linear_colorspace_settings.name);
+                                             image_format->linear_colorspace_settings.name);
 
   if (do_colormanagement_display || do_colormanagement_linear || do_alpha_under) {
     if (allocate_result) {
@@ -2529,7 +2529,8 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
      * should be pretty safe since this image buffer is supposed to be used for
      * saving only and ftype would be overwritten a bit later by BKE_imbuf_write
      */
-    colormanaged_ibuf->ftype = BKE_imtype_to_ftype(imf->imtype, &colormanaged_ibuf->foptions);
+    colormanaged_ibuf->ftype = BKE_imtype_to_ftype(image_format->imtype,
+                                                   &colormanaged_ibuf->foptions);
 
     /* if file format isn't able to handle float buffer itself,
      * we need to allocate byte buffer and store color managed
@@ -2543,8 +2544,10 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
     }
 
     /* perform color space conversions */
-    colormanagement_imbuf_make_display_space(
-        colormanaged_ibuf, &imf->view_settings, &imf->display_settings, make_byte);
+    colormanagement_imbuf_make_display_space(colormanaged_ibuf,
+                                             &image_format->view_settings,
+                                             &image_format->display_settings,
+                                             make_byte);
 
     if (colormanaged_ibuf->rect_float) {
       /* float buffer isn't linear anymore,
@@ -2552,7 +2555,7 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
        * no space conversion should happen if ibuf->float_colorspace != NULL
        */
       colormanaged_ibuf->float_colorspace = display_transform_get_colorspace(
-          &imf->view_settings, &imf->display_settings);
+          &image_format->view_settings, &image_format->display_settings);
     }
   }
   else if (do_colormanagement_linear) {
@@ -2565,7 +2568,7 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
     if (colormanaged_ibuf->rect_float) {
       const char *from_colorspace = (ibuf->float_colorspace) ? ibuf->float_colorspace->name :
                                                                global_role_scene_linear;
-      const char *to_colorspace = imf->linear_colorspace_settings.name;
+      const char *to_colorspace = image_format->linear_colorspace_settings.name;
 
       IMB_colormanagement_transform(colormanaged_ibuf->rect_float,
                                     colormanaged_ibuf->x,

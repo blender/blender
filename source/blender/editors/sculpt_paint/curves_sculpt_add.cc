@@ -55,7 +55,7 @@ class AddOperation : public CurvesSculptStrokeOperation {
   friend struct AddOperationExecutor;
 
  public:
-  ~AddOperation()
+  ~AddOperation() override
   {
     if (curve_roots_kdtree_ != nullptr) {
       BLI_kdtree_3d_free(curve_roots_kdtree_);

@@ -4,7 +4,7 @@
  * \ingroup modifiers
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_math_vector.h"
 #include "BLI_string.h"

@@ -239,7 +239,7 @@ static void image_foreach_cache(ID *id,
 
   auto gputexture_offset = [image](int target, int eye, int resolution) {
     constexpr size_t base_offset = offsetof(Image, gputexture);
-    const auto first = &image->gputexture[0][0][0];
+    struct GPUTexture **first = &image->gputexture[0][0][0];
     const size_t array_offset = sizeof(*first) *
                                 (&image->gputexture[target][eye][resolution] - first);
     return base_offset + array_offset;
@@ -489,9 +489,9 @@ static void image_add_view(Image *ima, const char *viewname, const char *filepat
 /** \name Image Cache
  * \{ */
 
-typedef struct ImageCacheKey {
+struct ImageCacheKey {
   int index;
-} ImageCacheKey;
+};
 
 static unsigned int imagecache_hashhash(const void *key_v)
 {
@@ -3325,14 +3325,14 @@ void BKE_image_ensure_tile_token(char *filename)
    * with other digit sequences, we can leverage the supported range of roughly
    * 1000 through 2000 to provide better detection.
    */
-  std::regex pattern("(^|.*?\\D)([12]\\d{3})(\\D.*)");
+  std::regex pattern(R"((^|.*?\D)([12]\d{3})(\D.*))");
   if (std::regex_search(path, match, pattern)) {
     BLI_strncpy(filename, match.format("$1<UDIM>$3").c_str(), FILE_MAX);
     return;
   }
 
   /* General u##_v### "uvtile" pattern. */
-  pattern = std::regex("(.*)(u\\d{1,2}_v\\d{1,3})(\\D.*)");
+  pattern = std::regex(R"((.*)(u\d{1,2}_v\d{1,3})(\D.*))");
   if (std::regex_search(path, match, pattern)) {
     BLI_strncpy(filename, match.format("$1<UVTILE>$3").c_str(), FILE_MAX);
     return;
@@ -5053,7 +5053,7 @@ void BKE_image_user_file_path_ex(ImageUser *iuser, Image *ima, char *filepath, b
 bool BKE_image_has_alpha(Image *image)
 {
   void *lock;
-  ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
+  ImBuf *ibuf = BKE_image_acquire_ibuf(image, nullptr, &lock);
   const int planes = (ibuf ? ibuf->planes : 0);
   BKE_image_release_ibuf(image, ibuf, lock);
 

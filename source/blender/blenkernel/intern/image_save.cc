@@ -486,7 +486,7 @@ static float *image_exr_from_scene_linear_to_output(float *rect,
 
 bool BKE_image_render_write_exr(ReportList *reports,
                                 const RenderResult *rr,
-                                const char *filepath,
+                                const char *filename,
                                 const ImageFormatData *imf,
                                 const bool save_as_render,
                                 const char *view,
@@ -630,11 +630,11 @@ bool BKE_image_render_write_exr(ReportList *reports,
 
   errno = 0;
 
-  BLI_make_existing_file(filepath);
+  BLI_make_existing_file(filename);
 
   int compress = (imf ? imf->exr_codec : 0);
   bool success = IMB_exr_begin_write(
-      exrhandle, filepath, rr->rectx, rr->recty, compress, rr->stamp_data);
+      exrhandle, filename, rr->rectx, rr->recty, compress, rr->stamp_data);
   if (success) {
     IMB_exr_write_channels(exrhandle);
   }

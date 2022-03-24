@@ -1679,19 +1679,19 @@ class PreviewLoadJob {
   PreviewLoadJob();
   ~PreviewLoadJob();
 
-  static PreviewLoadJob &ensure_job(wmWindowManager *, wmWindow *);
-  static void load_jobless(PreviewImage *, eIconSizes);
+  static PreviewLoadJob &ensure_job(wmWindowManager *wm, wmWindow *win);
+  static void load_jobless(PreviewImage *preview, eIconSizes icon_size);
 
-  void push_load_request(PreviewImage *, eIconSizes);
+  void push_load_request(PreviewImage *preview, eIconSizes icon_size);
 
  private:
-  static void run_fn(void *, short *, short *, float *);
-  static void update_fn(void *);
-  static void end_fn(void *);
-  static void free_fn(void *);
+  static void run_fn(void *customdata, short *stop, short *do_update, float *progress);
+  static void update_fn(void *customdata);
+  static void end_fn(void *customdata);
+  static void free_fn(void *customdata);
 
   /** Mark a single requested preview as being done, remove the request. */
-  static void finish_request(RequestedPreview &);
+  static void finish_request(RequestedPreview &request);
 };
 
 PreviewLoadJob::PreviewLoadJob() : todo_queue_(BLI_thread_queue_init())

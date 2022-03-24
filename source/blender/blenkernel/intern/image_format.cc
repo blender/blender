@@ -5,7 +5,7 @@
  * \ingroup bke
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_defaults.h"
 #include "DNA_scene_types.h"
