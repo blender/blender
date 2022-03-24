@@ -391,6 +391,10 @@ static bool image_save_single(ReportList *reports,
     }
   }
 
+  if (rr) {
+    BKE_image_release_renderresult(opts->scene, ima);
+  }
+
   return ok;
 }
 
