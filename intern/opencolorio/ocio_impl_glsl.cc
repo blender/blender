@@ -177,6 +177,7 @@ static bool createGPUShader(OCIO_GPUShader &shader,
 
   ShaderCreateInfo info("OCIO_Display");
   /* Work around OpenColorIO not supporting latest GLSL yet. */
+  info.define("texture1D", "texture");
   info.define("texture2D", "texture");
   info.define("texture3D", "texture");
   info.typedef_source("ocio_shader_shared.hh");
@@ -206,8 +207,11 @@ static bool createGPUShader(OCIO_GPUShader &shader,
   /* Set LUT textures. */
   int slot = TEXTURE_SLOT_LUTS_OFFSET;
   for (OCIO_GPULutTexture &texture : textures.luts) {
-    ImageType type = GPU_texture_dimensions(texture.texture) == 2 ? ImageType::FLOAT_2D :
-                                                                    ImageType::FLOAT_3D;
+    const int dimensions = GPU_texture_dimensions(texture.texture);
+    ImageType type = (dimensions == 1) ? ImageType::FLOAT_1D :
+                     (dimensions == 2) ? ImageType::FLOAT_2D :
+                                         ImageType::FLOAT_3D;
+
     info.sampler(slot++, type, texture.sampler_name.c_str());
   }
 
@@ -305,9 +309,9 @@ static bool addGPUUniform(OCIO_GPUTextures &textures,
   return true;
 }
 
-static bool addGPULut2D(OCIO_GPUTextures &textures,
-                        const GpuShaderDescRcPtr &shader_desc,
-                        int index)
+static bool addGPULut1D2D(OCIO_GPUTextures &textures,
+                          const GpuShaderDescRcPtr &shader_desc,
+                          int index)
 {
   const char *texture_name = nullptr;
   const char *sampler_name = nullptr;
@@ -329,7 +333,15 @@ static bool addGPULut2D(OCIO_GPUTextures &textures,
                                                                                   GPU_R16F;
 
   OCIO_GPULutTexture lut;
-  lut.texture = GPU_texture_create_2d(texture_name, width, height, 1, format, values);
+  /* There does not appear to be an explicit way to check if a texture is 1D or 2D.
+   * It depends on more than height. So check instead by looking at the source. */
+  std::string sampler1D_name = std::string("sampler1D ") + sampler_name;
+  if (strstr(shader_desc->getShaderText(), sampler1D_name.c_str()) != nullptr) {
+    lut.texture = GPU_texture_create_1d(texture_name, width, 1, format, values);
+  }
+  else {
+    lut.texture = GPU_texture_create_2d(texture_name, width, height, 1, format, values);
+  }
   if (lut.texture == nullptr) {
     return false;
   }
@@ -390,7 +402,7 @@ static bool createGPUTextures(OCIO_GPUTextures &textures,
     }
   }
   for (int index = 0; index < shaderdesc_to_scene_linear->getNumTextures(); index++) {
-    if (!addGPULut2D(textures, shaderdesc_to_scene_linear, index)) {
+    if (!addGPULut1D2D(textures, shaderdesc_to_scene_linear, index)) {
       return false;
     }
   }
@@ -405,7 +417,7 @@ static bool createGPUTextures(OCIO_GPUTextures &textures,
     }
   }
   for (int index = 0; index < shaderdesc_to_display->getNumTextures(); index++) {
-    if (!addGPULut2D(textures, shaderdesc_to_display, index)) {
+    if (!addGPULut1D2D(textures, shaderdesc_to_display, index)) {
       return false;
     }
   }
