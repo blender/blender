@@ -4945,19 +4945,29 @@ ATTR_NO_OPT bool BKE_pbvh_cache_is_valid(const Object *ob,
 GHash *cached_pbvhs = NULL;
 static void pbvh_clear_cached_pbvhs(PBVH *exclude)
 {
+  PBVH **pbvhs = NULL;
+  BLI_array_staticdeclare(pbvhs, 8);
+
   GHashIterator iter;
   GHASH_ITER (iter, cached_pbvhs) {
     PBVH *pbvh = BLI_ghashIterator_getValue(&iter);
 
     if (pbvh != exclude) {
-      if (pbvh->bm) {
-        BM_mesh_free(pbvh->bm);
-      }
-
-      BKE_pbvh_free(pbvh);
+      BLI_array_append(pbvhs, pbvh);
     }
   }
 
+  for (int i = 0; i < BLI_array_len(pbvhs); i++) {
+    PBVH *pbvh = pbvhs[i];
+
+    if (pbvh->bm) {
+      BM_mesh_free(pbvh->bm);
+    }
+
+    BKE_pbvh_free(pbvh);
+  }
+
+  BLI_array_free(pbvhs);
   BLI_ghash_clear(cached_pbvhs, MEM_freeN, NULL);
 }
 
