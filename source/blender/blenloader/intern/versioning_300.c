@@ -2446,5 +2446,16 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         scene->toolsettings->curves_sculpt->curve_length = 0.3f;
       }
     }
+
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_OUTLINER) {
+            SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+            space_outliner->filter &= ~SO_FILTER_CLEARED_1;
+          }
+        }
+      }
+    }
   }
 }

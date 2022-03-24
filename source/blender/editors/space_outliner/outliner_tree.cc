@@ -900,7 +900,6 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
     /* ID types not (fully) ported to new design yet. */
     if (te->abstract_element->expandPoll(*space_outliner)) {
       outliner_add_id_contents(space_outliner, te, tselem, id);
-      te->abstract_element->postExpand(*space_outliner);
     }
   }
   else if (ELEM(type,

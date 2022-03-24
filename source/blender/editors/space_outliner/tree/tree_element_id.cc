@@ -93,17 +93,6 @@ TreeElementID::TreeElementID(TreeElement &legacy_te, ID &id)
   legacy_te_.idcode = GS(id.name);
 }
 
-void TreeElementID::postExpand(SpaceOutliner &space_outliner) const
-{
-  const bool lib_overrides_visible = !SUPPORT_FILTER_OUTLINER(&space_outliner) ||
-                                     ((space_outliner.filter & SO_FILTER_NO_LIB_OVERRIDE) == 0);
-
-  if (lib_overrides_visible && ID_IS_OVERRIDE_LIBRARY_REAL(&id_)) {
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, &id_, &legacy_te_, TSE_LIBRARY_OVERRIDE_BASE, 0);
-  }
-}
-
 bool TreeElementID::expandPoll(const SpaceOutliner &space_outliner) const
 {
   const TreeStoreElem *tsepar = legacy_te_.parent ? TREESTORE(legacy_te_.parent) : nullptr;

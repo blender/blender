@@ -24,7 +24,6 @@ class TreeElementID : public AbstractTreeElement {
 
   static std::unique_ptr<TreeElementID> createFromID(TreeElement &legacy_te, ID &id);
 
-  void postExpand(SpaceOutliner &) const override;
   bool expandPoll(const SpaceOutliner &) const override;
 
   /**
