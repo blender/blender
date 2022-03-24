@@ -330,6 +330,13 @@ const EnumPropertyItem rna_enum_curve_fit_method_items[] = {
 #  define R_IMF_ENUM_TIFF
 #endif
 
+#ifdef WITH_WEBP
+#  define R_IMF_ENUM_WEBP \
+    {R_IMF_IMTYPE_WEBP, "WEBP", ICON_FILE_IMAGE, "WebP", "Output image in WebP format"},
+#else
+#  define R_IMF_ENUM_WEBP
+#endif
+
 #define IMAGE_TYPE_ITEMS_IMAGE_ONLY \
   R_IMF_ENUM_BMP \
   /* DDS save not supported yet R_IMF_ENUM_DDS */ \
@@ -340,7 +347,7 @@ const EnumPropertyItem rna_enum_curve_fit_method_items[] = {
   R_IMF_ENUM_TAGA \
   R_IMF_ENUM_TAGA_RAW{0, "", 0, " ", NULL}, \
       R_IMF_ENUM_CINEON R_IMF_ENUM_DPX R_IMF_ENUM_EXR_MULTILAYER R_IMF_ENUM_EXR R_IMF_ENUM_HDR \
-          R_IMF_ENUM_TIFF
+          R_IMF_ENUM_TIFF R_IMF_ENUM_WEBP
 
 #ifdef RNA_RUNTIME
 static const EnumPropertyItem image_only_type_items[] = {

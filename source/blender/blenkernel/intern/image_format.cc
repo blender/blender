@@ -120,6 +120,12 @@ int BKE_imtype_to_ftype(const char imtype, ImbFormatOptions *r_options)
     return IMB_FTYPE_JP2;
   }
 #endif
+#ifdef WITH_WEBP
+  if (imtype == R_IMF_IMTYPE_WEBP) {
+    r_options->quality = 90;
+    return IMB_FTYPE_WEBP;
+  }
+#endif
 
   r_options->quality = 90;
   return IMB_FTYPE_JPG;
@@ -177,6 +183,11 @@ char BKE_ftype_to_imtype(const int ftype, const ImbFormatOptions *options)
     return R_IMF_IMTYPE_JP2;
   }
 #endif
+#ifdef WITH_WEBP
+  if (ftype == IMB_FTYPE_WEBP) {
+    return R_IMF_IMTYPE_WEBP;
+  }
+#endif
 
   return R_IMF_IMTYPE_JPEG90;
 }
@@ -220,6 +231,7 @@ bool BKE_imtype_supports_quality(const char imtype)
     case R_IMF_IMTYPE_JPEG90:
     case R_IMF_IMTYPE_JP2:
     case R_IMF_IMTYPE_AVIJPEG:
+    case R_IMF_IMTYPE_WEBP:
       return true;
   }
   return false;
@@ -259,6 +271,7 @@ char BKE_imtype_valid_channels(const char imtype, bool write_file)
     case R_IMF_IMTYPE_DDS:
     case R_IMF_IMTYPE_JP2:
     case R_IMF_IMTYPE_DPX:
+    case R_IMF_IMTYPE_WEBP:
       chan_flag |= IMA_CHAN_FLAG_ALPHA;
       break;
   }
@@ -379,6 +392,11 @@ char BKE_imtype_from_arg(const char *imtype_arg)
     return R_IMF_IMTYPE_JP2;
   }
 #endif
+#ifdef WITH_WEBP
+  if (STREQ(imtype_arg, "WEBP")) {
+    return R_IMF_IMTYPE_WEBP;
+  }
+#endif
 
   return R_IMF_IMTYPE_INVALID;
 }
@@ -492,6 +510,12 @@ static bool do_add_image_extension(char *string,
         extension = extension_test;
       }
     }
+  }
+#endif
+#ifdef WITH_WEBP
+  else if (imtype == R_IMF_IMTYPE_WEBP) {
+    if (!BLI_path_extension_check(string, extension_test = ".webp"))
+      extension = extension_test;
   }
 #endif
   else {  //   R_IMF_IMTYPE_AVIRAW, R_IMF_IMTYPE_AVIJPEG, R_IMF_IMTYPE_JPEG90 etc
@@ -732,6 +756,12 @@ void BKE_image_format_to_imbuf(ImBuf *ibuf, const ImageFormatData *imf)
     }
   }
 #endif
+#ifdef WITH_WEBP
+  else if (imtype == R_IMF_IMTYPE_WEBP) {
+    ibuf->ftype = IMB_FTYPE_WEBP;
+    ibuf->foptions.quality = quality;
+  }
+#endif
   else {
     /* #R_IMF_IMTYPE_JPEG90, etc. default to JPEG. */
     if (quality < 10) {
@@ -862,6 +892,12 @@ void BKE_image_format_from_imbuf(ImageFormatData *im_format, const ImBuf *imbuf)
     else {
       BLI_assert_msg(0, "Unsupported jp2 codec was specified in file type");
     }
+  }
+#endif
+#ifdef WITH_WEBP
+  else if (ftype == IMB_FTYPE_WEBP) {
+    im_format->imtype = R_IMF_IMTYPE_WEBP;
+    im_format->quality = quality;
   }
 #endif
 

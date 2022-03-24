@@ -368,6 +368,14 @@ if(WITH_PUGIXML)
   endif()
 endif()
 
+if(WITH_IMAGE_WEBP)
+  set(WEBP_ROOT_DIR ${LIBDIR}/webp)
+  find_package_wrapper(WebP)
+  if(NOT WEBP_FOUND)
+    set(WITH_IMAGE_WEBP OFF)
+  endif()
+endif()
+
 if(WITH_OPENIMAGEIO)
   find_package_wrapper(OpenImageIO)
   set(OPENIMAGEIO_LIBRARIES

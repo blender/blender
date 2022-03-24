@@ -343,6 +343,14 @@ if(WITH_FFTW3)
   set(FFTW3_LIBPATH ${FFTW3}/lib)
 endif()
 
+windows_find_package(WebP)
+if(NOT WEBP_FOUND)
+  set(WEBP_INCLUDE_DIRS ${LIBDIR}/webp/include)
+  set(WEBP_ROOT_DIR ${LIBDIR}/webp)
+  set(WEBP_LIBRARIES ${LIBDIR}/webp/lib/webp.lib ${LIBDIR}/webp/lib/webpdemux.lib ${LIBDIR}/webp/lib/webpmux.lib)
+  set(WEBP_FOUND ON)
+endif()
+
 if(WITH_OPENCOLLADA)
   set(OPENCOLLADA ${LIBDIR}/opencollada)
 
