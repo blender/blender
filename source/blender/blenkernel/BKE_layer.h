@@ -301,7 +301,7 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter);
 
 #define FOREACH_SELECTED_OBJECT_BEGIN(_view_layer, _v3d, _instance) \
   { \
-    struct ObjectsVisibleIteratorData data_ = {}; \
+    struct ObjectsVisibleIteratorData data_ = {NULL}; \
     data_.view_layer = _view_layer; \
     data_.v3d = _v3d; \
     ITER_BEGIN (BKE_view_layer_selected_objects_iterator_begin, \
@@ -318,7 +318,7 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter);
 
 #define FOREACH_SELECTED_EDITABLE_OBJECT_BEGIN(_view_layer, _v3d, _instance) \
   { \
-    struct ObjectsVisibleIteratorData data_ = {}; \
+    struct ObjectsVisibleIteratorData data_ = {NULL}; \
     data_.view_layer = _view_layer; \
     data_.v3d = _v3d; \
     ITER_BEGIN (BKE_view_layer_selected_editable_objects_iterator_begin, \
@@ -335,7 +335,7 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter);
 
 #define FOREACH_VISIBLE_OBJECT_BEGIN(_view_layer, _v3d, _instance) \
   { \
-    struct ObjectsVisibleIteratorData data_ = {}; \
+    struct ObjectsVisibleIteratorData data_ = {NULL}; \
     data_.view_layer = _view_layer; \
     data_.v3d = _v3d; \
     ITER_BEGIN (BKE_view_layer_visible_objects_iterator_begin, \
@@ -404,7 +404,7 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter);
 
 #define FOREACH_VISIBLE_BASE_BEGIN(_view_layer, _v3d, _instance) \
   { \
-    struct ObjectsVisibleIteratorData data_ = {}; \
+    struct ObjectsVisibleIteratorData data_ = {NULL}; \
     data_.view_layer = _view_layer; \
     data_.v3d = _v3d; \
     ITER_BEGIN (BKE_view_layer_visible_bases_iterator_begin, \
@@ -436,7 +436,7 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter);
     IteratorBeginCb func_begin; \
     IteratorCb func_next, func_end; \
     void *data_in; \
-    struct ObjectsVisibleIteratorData data_ = {}; \
+    struct ObjectsVisibleIteratorData data_ = {NULL}; \
     data_.view_layer = _view_layer; \
     data_.v3d = _v3d; \
 \
