@@ -200,21 +200,16 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
       case ePartialUpdateCollectResult::FullUpdateNeeded:
         instance_data.mark_all_texture_slots_dirty();
         instance_data.float_buffers.clear();
-        printf("full\n");
         break;
       case ePartialUpdateCollectResult::NoChangesDetected:
-      printf("no changes\n,");
         break;
       case ePartialUpdateCollectResult::PartialChangesDetected:
-      printf("partial changes\n");
         /* Partial update when wrap repeat is enabled is not supported. */
         if (instance_data.flags.do_tile_drawing) {
-      printf("A\n");
           instance_data.float_buffers.clear();
           instance_data.mark_all_texture_slots_dirty();
         }
         else {
-      printf("B\n");
           do_partial_update(changes, instance_data);
         }
         break;
@@ -256,12 +251,10 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
     while (iterator.get_next_change() == ePartialUpdateIterResult::ChangeAvailable) {
       /* Quick exit when tile_buffer isn't availble. */
       if (iterator.tile_data.tile_buffer == nullptr) {
-        printf("no tile buffer\n");
         continue;
       }
       ImBuf *tile_buffer = ensure_float_buffer(instance_data, iterator.tile_data.tile_buffer);
       if (tile_buffer != iterator.tile_data.tile_buffer) {
-        printf("float buffer partial\n");
         do_partial_update_float_buffer(tile_buffer, iterator);
       }
 
@@ -272,11 +265,9 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
         const TextureInfo &info = instance_data.texture_infos[i];
         /* Dirty images will receive a full update. No need to do a partial one now. */
         if (info.dirty) {
-          printf("dirty skip\n");
           continue;
         }
         if (!info.visible) {
-          printf("invisible skip\n");
           continue;
         }
         GPUTexture *texture = info.texture;
@@ -307,7 +298,6 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                                                    &changed_region_in_uv_space,
                                                    &changed_overlapping_region_in_uv_space);
         if (!region_overlap) {
-          printf("region overlap skip\n");
           continue;
         }
         // convert the overlapping region to texel space and to ss_pixel space...
@@ -362,12 +352,6 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
           }
         }
 
-        printf("update sub %d %d %d %d\n",
-                                       gpu_texture_region_to_update.xmin,
-                               gpu_texture_region_to_update.ymin,
-                                                              extracted_buffer.x,
-                               extracted_buffer.y
-        );
         GPU_texture_update_sub(texture,
                                GPU_DATA_FLOAT,
                                extracted_buffer.rect_float,
