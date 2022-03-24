@@ -5167,6 +5167,10 @@ void BKE_pbvh_pmap_aquire(SculptPMap *pmap)
 
 bool BKE_pbvh_pmap_release(SculptPMap *pmap)
 {
+  if (!pmap) {
+    return false;
+  }
+
   pmap->refcount--;
 
   if (pmap->refcount == 0) {
