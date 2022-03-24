@@ -3676,7 +3676,7 @@ static void rna_def_modifier_gpencildash(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "gap", PROP_INT, PROP_NONE);
-  RNA_def_property_range(prop, 1, INT16_MAX);
+  RNA_def_property_range(prop, 0, INT16_MAX);
   RNA_def_property_ui_text(prop, "Gap", "The number of points skipped after this segment");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
