@@ -386,8 +386,8 @@ class USERPREF_PT_edit_objects_duplicate_data(EditingPanel, CenterAlignMixIn, Pa
         col.prop(edit, "use_duplicate_curve", text="Curve")
         # col.prop(edit, "use_duplicate_fcurve", text="F-Curve")  # Not implemented.
         col.prop(edit, "use_duplicate_grease_pencil", text="Grease Pencil")
-        if hasattr(edit, "use_duplicate_hair"):
-            col.prop(edit, "use_duplicate_hair", text="Hair")
+        if hasattr(edit, "use_duplicate_curves"):
+            col.prop(edit, "use_duplicate_curves", text="Curves")
 
         col = flow.column()
         col.prop(edit, "use_duplicate_lattice", text="Lattice")
