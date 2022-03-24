@@ -524,7 +524,6 @@ static void rna_def_shader_fx_glow(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "glow_color[3]");
   RNA_def_property_range(prop, 0.0, 1.0f);
   RNA_def_property_ui_text(prop, "Opacity", "Effect Opacity");
-  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
   RNA_def_property_update(prop, NC_OBJECT | ND_SHADERFX, "rna_ShaderFx_update");
 
   prop = RNA_def_property(srna, "select_color", PROP_FLOAT, PROP_COLOR);
