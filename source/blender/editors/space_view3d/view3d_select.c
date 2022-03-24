@@ -2142,7 +2142,9 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
            * doesn't have a bone selection, otherwise selecting sub-elements is difficult. */
           ((buffer[hit_index].id & 0xFFFF0000) == 0) &&
           /* Only exclude active object when it is selected. */
-          (BASACT(view_layer) && (BASACT(view_layer)->flag & BASE_SELECTED))) {
+          (BASACT(view_layer) && (BASACT(view_layer)->flag & BASE_SELECTED)) &&
+          /* Allow disabling this behavior entirely. */
+          (U.experimental.use_select_nearest_on_first_click == false)) {
 
         const int select_id_active = BASACT(view_layer)->object->runtime.select_id;
 

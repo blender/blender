@@ -6439,6 +6439,12 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
                            "Named Attribute Nodes",
                            "Enable named attribute nodes in the geometry nodes add menu");
 
+  prop = RNA_def_property(srna, "use_select_nearest_on_first_click", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_select_nearest_on_first_click", 1);
+  RNA_def_property_ui_text(prop,
+                           "Object Select Nearest on First Click",
+                           "When enabled, always select the front-most object on the first click");
+
   prop = RNA_def_property(srna, "enable_eevee_next", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "enable_eevee_next", 1);
   RNA_def_property_ui_text(prop, "EEVEE Next", "Enable the new EEVEE codebase, requires restart");
