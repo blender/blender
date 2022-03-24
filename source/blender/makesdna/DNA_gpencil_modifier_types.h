@@ -46,6 +46,7 @@ typedef enum GpencilModifierType {
   eGpencilModifierType_Dash = 22,
   eGpencilModifierType_WeightAngle = 23,
   eGpencilModifierType_Shrinkwrap = 24,
+  eGpencilModifierType_Envelope = 25,
   /* Keep last. */
   NUM_GREASEPENCIL_MODIFIER_TYPES,
 } GpencilModifierType;
@@ -1126,6 +1127,46 @@ typedef enum eShrinkwrapGpencil_Flag {
   /* Keep next bit as is to be equals to mesh modifier flag to reuse functions. */
   GP_SHRINKWRAP_INVERT_VGROUP = (1 << 6),
 } eShrinkwrapGpencil_Flag;
+
+typedef struct EnvelopeGpencilModifierData {
+  GpencilModifierData modifier;
+  /** Material for filtering. */
+  struct Material *material;
+  /** Layer name. */
+  char layername[64];
+  /** Optional vertexgroup name, MAX_VGROUP_NAME. */
+  char vgname[64];
+  /** Custom index for passes. */
+  int pass_index;
+  /** Several flags. */
+  int flag;
+  int mode;
+  /** Material for the new strokes. */
+  int mat_nr;
+  /** Thickness multiplier for the new strokes. */
+  float thickness;
+  /** Strength multiplier for the new strokes. */
+  float strength;
+  /** Custom index for passes. */
+  int layer_pass;
+  /* Length of the envelope effect. */
+  int spread;
+} EnvelopeGpencilModifierData;
+
+typedef enum eEnvelopeGpencil_Flag {
+  GP_ENVELOPE_INVERT_LAYER = (1 << 0),
+  GP_ENVELOPE_INVERT_PASS = (1 << 1),
+  GP_ENVELOPE_INVERT_VGROUP = (1 << 2),
+  GP_ENVELOPE_INVERT_LAYERPASS = (1 << 3),
+  GP_ENVELOPE_INVERT_MATERIAL = (1 << 4),
+} eEnvelopeGpencil_Flag;
+
+/* Texture->mode */
+typedef enum eEnvelopeGpencil_Mode {
+  GP_ENVELOPE_DEFORM = 0,
+  GP_ENVELOPE_SEGMENTS = 1,
+  GP_ENVELOPE_FILLS = 2,
+} eEnvelopeGpencil_Mode;
 
 #ifdef __cplusplus
 }

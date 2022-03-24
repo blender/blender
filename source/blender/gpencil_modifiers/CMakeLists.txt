@@ -37,6 +37,7 @@ set(SRC
   intern/MOD_gpencilbuild.c
   intern/MOD_gpencilcolor.c
   intern/MOD_gpencildash.c
+  intern/MOD_gpencilenvelope.c
   intern/MOD_gpencilhook.c
   intern/MOD_gpencillattice.c
   intern/MOD_gpencillength.c
