@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2017 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #ifndef __UTIL_MATH_MATRIX_H__
 #define __UTIL_MATH_MATRIX_H__
@@ -116,7 +103,7 @@ ccl_device_inline void math_vec3_add_strided(
 }
 
 /* Elementary matrix operations.
- * Note: TriMatrix refers to a square matrix that is symmetric,
+ * NOTE: TriMatrix refers to a square matrix that is symmetric,
  * and therefore its upper-triangular part isn't stored. */
 
 ccl_device_inline void math_trimatrix_add_diagonal(ccl_global float *A,
@@ -162,7 +149,7 @@ ccl_device_inline void math_trimatrix_add_gramian(ccl_global float *A,
 {
   for (int row = 0; row < n; row++) {
     for (int col = 0; col <= row; col++) {
-      MATHS(A, row, col, 1) += v[row] * v[col] * weight;
+      atomic_add_and_fetch_float(&MATHS(A, row, col, 1), v[row] * v[col] * weight);
     }
   }
 }

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2020, Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -53,8 +37,9 @@ void GLQueryPool::begin_query()
   /* TODO: add assert about expected usage. */
   while (query_issued_ >= query_ids_.size()) {
     int64_t prev_size = query_ids_.size();
-    query_ids_.resize(prev_size + QUERY_CHUNCK_LEN);
-    glGenQueries(QUERY_CHUNCK_LEN, &query_ids_[prev_size]);
+    int64_t chunk_size = prev_size == 0 ? query_ids_.capacity() : QUERY_CHUNCK_LEN;
+    query_ids_.resize(prev_size + chunk_size);
+    glGenQueries(chunk_size, &query_ids_[prev_size]);
   }
   glBeginQuery(gl_type_, query_ids_[query_issued_++]);
 }

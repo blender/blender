@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2016 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup wm
@@ -40,37 +24,63 @@ extern "C" {
 #endif
 
 /* -------------------------------------------------------------------- */
-/* wmGizmo */
+/** \name #wmGizmo
+ * \{ */
 
 /* wm_gizmo_type.c, for init/exit */
+
 void wm_gizmotype_free(void);
+/**
+ * Called on initialize #WM_init().
+ */
 void wm_gizmotype_init(void);
 
 /* wm_gizmogroup_type.c, for init/exit */
+
 void wm_gizmogrouptype_free(void);
+/**
+ * Called on initialize #WM_init().
+ */
 void wm_gizmogrouptype_init(void);
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* wmGizmoGroup */
+/** \name #wmGizmoGroup
+ * \{ */
 
 void GIZMOGROUP_OT_gizmo_select(struct wmOperatorType *ot);
 void GIZMOGROUP_OT_gizmo_tweak(struct wmOperatorType *ot);
 
 bool wm_gizmogroup_is_any_selected(const struct wmGizmoGroup *gzgroup);
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* wmGizmoMap */
+/** \name #wmGizmoMap
+ * \{ */
 
 void wm_gizmomap_remove(struct wmGizmoMap *gzmap);
 
+/**
+ * Initialize key-maps for all existing gizmo-groups
+ */
 void wm_gizmos_keymap(struct wmKeyConfig *keyconf);
 
 void wm_gizmomaps_handled_modal_update(bContext *C,
                                        struct wmEvent *event,
                                        struct wmEventHandler_Op *handler);
+/**
+ * Prepare context for gizmo handling (but only if area/region is
+ * part of screen). Version of #wm_handler_op_context for gizmos.
+ */
 void wm_gizmomap_handler_context_op(bContext *C, struct wmEventHandler_Op *handler);
 void wm_gizmomap_handler_context_gizmo(bContext *C, struct wmEventHandler_Gizmo *handler);
 
+/**
+ * Try to find a gizmo under the mouse position. 2D intersections have priority over
+ * 3D ones (could check for smallest screen-space distance but not needed right now).
+ */
 struct wmGizmo *wm_gizmomap_highlight_find(struct wmGizmoMap *gzmap,
                                            bContext *C,
                                            const struct wmEvent *event,
@@ -80,6 +90,9 @@ bool wm_gizmomap_highlight_set(struct wmGizmoMap *gzmap,
                                struct wmGizmo *gz,
                                int part);
 struct wmGizmo *wm_gizmomap_highlight_get(struct wmGizmoMap *gzmap);
+/**
+ * Caller should call exit when (enable == False).
+ */
 void wm_gizmomap_modal_set(struct wmGizmoMap *gzmap,
                            bContext *C,
                            struct wmGizmo *gz,
@@ -90,10 +103,15 @@ struct wmGizmo *wm_gizmomap_modal_get(struct wmGizmoMap *gzmap);
 struct wmGizmo **wm_gizmomap_selected_get(wmGizmoMap *gzmap, int *r_selected_len);
 struct ListBase *wm_gizmomap_groups_get(wmGizmoMap *gzmap);
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* wmGizmoMapType */
+/** \name #wmGizmoMapType
+ * \{ */
 
 void wm_gizmomaptypes_free(void);
+
+/** \} */
 
 #ifdef __cplusplus
 }

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edinterface
@@ -340,12 +324,6 @@ int UI_popover_panel_invoke(bContext *C, const char *idname, bool keep_open, Rep
 /** \name Popup Menu API with begin & end
  * \{ */
 
-/**
- * Only return handler, and set optional title.
- *
- * \param from_active_button: Use the active button for positioning,
- * use when the popover is activated from an operator instead of directly from the button.
- */
 uiPopover *UI_popover_begin(bContext *C, int ui_menu_width, bool from_active_button)
 {
   uiPopover *pup = MEM_callocN(sizeof(uiPopover), "popover menu");
@@ -383,7 +361,6 @@ static void popover_keymap_fn(wmKeyMap *UNUSED(keymap), wmKeyMapItem *UNUSED(kmi
   pup->block->handle->menuretval = UI_RETURN_OK;
 }
 
-/* set the whole structure to work */
 void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
 {
   wmWindow *window = CTX_wm_window(C);

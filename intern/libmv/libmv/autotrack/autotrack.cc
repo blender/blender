@@ -178,7 +178,7 @@ bool AutoTrack::TrackMarker(Marker* tracked_marker,
     return false;
   }
 
-  // Store original position befoer tracking, so we can claculate offset later.
+  // Store original position before tracking, so we can claculate offset later.
   Vec2f original_center = tracked_marker->center;
 
   // Do the tracking!

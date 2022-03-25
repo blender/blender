@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edinterface
@@ -115,8 +99,6 @@ void ui_color_picker_hsv_to_rgb(const float r_cp[3], float rgb[3])
   }
 }
 
-/* Returns true if the button is for a color with gamma baked in,
- * or if it's a color picker for such a button. */
 bool ui_but_is_color_gamma(uiBut *but)
 {
   if (but->rnaprop) {
@@ -183,7 +165,6 @@ static void ui_color_picker_update_hsv(ColorPicker *cpicker,
   cpicker->is_init = true;
 }
 
-/* for picker, while editing hsv */
 void ui_but_hsv_set(uiBut *but)
 {
   float rgb_perceptual[3];

@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "node_ramp_util.h"
 #include "stdcycles.h"
@@ -20,13 +7,15 @@
 shader node_float_curve(float ramp[] = {0.0},
                         float min_x = 0.0,
                         float max_x = 1.0,
+                        int extrapolate = 1,
+
                         float ValueIn = 0.0,
                         float Factor = 0.0,
                         output float ValueOut = 0.0)
 {
   float c = (ValueIn - min_x) / (max_x - min_x);
 
-  ValueOut = rgb_ramp_lookup(ramp, c, 1, 1);
+  ValueOut = rgb_ramp_lookup(ramp, c, 1, extrapolate);
 
   ValueOut = mix(ValueIn, ValueOut, Factor);
 }

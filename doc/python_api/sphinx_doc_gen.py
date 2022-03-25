@@ -1,20 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8 compliant>
 
@@ -417,7 +401,8 @@ MODULE_GROUPING = {
 BLENDER_REVISION = str(bpy.app.build_hash, 'utf_8')
 
 # '2.83.0 Beta' or '2.83.0' or '2.83.1'
-BLENDER_VERSION_DOTS = bpy.app.version_string
+BLENDER_VERSION_STRING = bpy.app.version_string
+BLENDER_VERSION_DOTS = "%d.%d" % (bpy.app.version[0], bpy.app.version[1])
 
 if BLENDER_REVISION != "Unknown":
     # SHA1 Git hash
@@ -1077,7 +1062,7 @@ context_type_map = {
     "gpencil": ("GreasePencil", False),
     "gpencil_data": ("GreasePencil", False),
     "gpencil_data_owner": ("ID", False),
-    "hair": ("Hair", False),
+    "curves": ("Hair Curves", False),
     "id": ("ID", False),
     "image_paint_object": ("Object", False),
     "lattice": ("Lattice", False),
@@ -1103,6 +1088,7 @@ context_type_map = {
     "selectable_objects": ("Object", True),
     "selected_asset_files": ("FileSelectEntry", True),
     "selected_bones": ("EditBone", True),
+    "selected_editable_actions": ("Action", True),
     "selected_editable_bones": ("EditBone", True),
     "selected_editable_fcurves": ("FCurve", True),
     "selected_editable_keyframes": ("Keyframe", True),
@@ -1118,12 +1104,13 @@ context_type_map = {
     "selected_pose_bones": ("PoseBone", True),
     "selected_pose_bones_from_active_object": ("PoseBone", True),
     "selected_sequences": ("Sequence", True),
+    "selected_visible_actions": ("Action", True),
     "selected_visible_fcurves": ("FCurve", True),
     "sequences": ("Sequence", True),
     "soft_body": ("SoftBodyModifier", False),
     "speaker": ("Speaker", False),
     "texture": ("Texture", False),
-    "texture_slot": ("MaterialTextureSlot", False),
+    "texture_slot": ("TextureSlot", False),
     "texture_user": ("ID", False),
     "texture_user_property": ("Property", False),
     "ui_list": ("UIList", False),
@@ -1722,11 +1709,11 @@ def write_sphinx_conf_py(basepath):
     fw("import sys, os\n\n")
     fw("extensions = ['sphinx.ext.intersphinx']\n\n")
     fw("intersphinx_mapping = {'blender_manual': ('https://docs.blender.org/manual/en/dev/', None)}\n\n")
-    fw("project = 'Blender %s Python API'\n" % BLENDER_VERSION_DOTS)
+    fw("project = 'Blender %s Python API'\n" % BLENDER_VERSION_STRING)
     fw("master_doc = 'index'\n")
     fw("copyright = u'Blender Foundation'\n")
-    fw("version = '%s'\n" % BLENDER_VERSION_HASH)
-    fw("release = '%s'\n" % BLENDER_VERSION_HASH)
+    fw("version = '%s'\n" % BLENDER_VERSION_DOTS)
+    fw("release = '%s'\n" % BLENDER_VERSION_DOTS)
 
     # Quiet file not in table-of-contents warnings.
     fw("exclude_patterns = [\n")
@@ -1747,6 +1734,7 @@ except ModuleNotFoundError:
 
     fw("if html_theme == 'sphinx_rtd_theme':\n")
     fw("    html_theme_options = {\n")
+    fw("        'display_version': False,\n")
     # fw("        'analytics_id': '',\n")
     # fw("        'collapse_navigation': True,\n")
     fw("        'sticky_navigation': False,\n")
@@ -1760,12 +1748,18 @@ except ModuleNotFoundError:
     fw("html_show_sphinx = False\n")
     fw("html_baseurl = 'https://docs.blender.org/api/current/'\n")
     fw("html_use_opensearch = 'https://docs.blender.org/api/current'\n")
+    fw("html_show_search_summary = True\n")
     fw("html_split_index = True\n")
     fw("html_static_path = ['static']\n")
+    fw("templates_path = ['templates']\n")
+    fw("html_context = {'commit': '%s'}\n" % BLENDER_VERSION_HASH)
     fw("html_extra_path = ['static/favicon.ico', 'static/blender_logo.svg']\n")
     fw("html_favicon = 'static/favicon.ico'\n")
     fw("html_logo = 'static/blender_logo.svg'\n")
     fw("html_last_updated_fmt = '%m/%d/%Y'\n\n")
+    fw("if html_theme == 'sphinx_rtd_theme':\n")
+    fw("    html_css_files = ['css/version_switch.css']\n")
+    fw("    html_js_files = ['js/version_switch.js']\n")
 
     # needed for latex, pdf gen
     fw("latex_elements = {\n")
@@ -2121,6 +2115,9 @@ def copy_handwritten_extra(basepath):
 def copy_theme_assets(basepath):
     shutil.copytree(os.path.join(SCRIPT_DIR, "static"),
                     os.path.join(basepath, "static"),
+                    copy_function=shutil.copy)
+    shutil.copytree(os.path.join(SCRIPT_DIR, "templates"),
+                    os.path.join(basepath, "templates"),
                     copy_function=shutil.copy)
 
 

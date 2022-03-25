@@ -1,22 +1,5 @@
 #!/usr/bin/env python3
-
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8 compliant>
 
@@ -43,8 +26,8 @@ if sys.platform[:3] == "win":
     env["SystemDrive"] = os.environ.get("SystemDrive", "")
     env["SystemRoot"] = os.environ.get("SystemRoot", "")
 
-inkscape_bin = os.environ.get("INKSCAPE_BIN", "inkscape")
-blender_bin = os.environ.get("BLENDER_BIN", "blender")
+inkscape_bin = "inkscape"
+blender_bin = "blender"
 
 if sys.platform == 'darwin':
     inkscape_app_path = '/Applications/Inkscape.app/Contents/MacOS/inkscape'
@@ -53,6 +36,11 @@ if sys.platform == 'darwin':
     blender_app_path = '/Applications/Blender.app/Contents/MacOS/Blender'
     if os.path.exists(blender_app_path):
         blender_bin = blender_app_path
+    else:
+        blender_bin = "Blender"
+
+inkscape_bin = os.environ.get("INKSCAPE_BIN", inkscape_bin)
+blender_bin = os.environ.get("BLENDER_BIN", blender_bin)
 
 cmd = (
     inkscape_bin,

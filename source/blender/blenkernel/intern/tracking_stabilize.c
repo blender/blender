@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2011 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -29,6 +13,7 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
@@ -1252,24 +1237,6 @@ static StabContext *init_stabilizer(MovieClip *clip, int size, float aspect)
 
 /* === public interface functions === */
 
-/* Get stabilization data (translation, scaling and angle) for a given frame.
- * Returned data describes how to compensate the detected movement, but with any
- * chosen scale factor already applied and any target frame position already
- * compensated. In case stabilization fails or is disabled, neutral values are
- * returned.
- *
- * framenr is a frame number, relative to the clip (not relative to the scene
- *         timeline)
- * width is an effective width of the canvas (square pixels), used to scale the
- *       determined translation
- *
- * Outputs:
- * - translation of the lateral shift, absolute canvas coordinates
- *   (square pixels).
- * - scale of the scaling to apply
- * - angle of the rotation angle, relative to the frame center
- */
-/* TODO(sergey): Use r_ prefix for output parameters here. */
 void BKE_tracking_stabilization_data_get(MovieClip *clip,
                                          int framenr,
                                          int width,
@@ -1307,7 +1274,7 @@ void BKE_tracking_stabilization_data_get(MovieClip *clip,
   discard_stabilization_working_context(ctx);
 }
 
-typedef void (*interpolation_func)(struct ImBuf *, struct ImBuf *, float, float, int, int);
+typedef void (*interpolation_func)(const struct ImBuf *, struct ImBuf *, float, float, int, int);
 
 typedef struct TrackingStabilizeFrameInterpolationData {
   ImBuf *ibuf;
@@ -1336,12 +1303,6 @@ static void tracking_stabilize_frame_interpolation_cb(
   }
 }
 
-/* Stabilize given image buffer using stabilization data for a specified
- * frame number.
- *
- * NOTE: frame number should be in clip space, not scene space.
- */
-/* TODO(sergey): Use r_ prefix for output parameters here. */
 ImBuf *BKE_tracking_stabilize_frame(
     MovieClip *clip, int framenr, ImBuf *ibuf, float translation[2], float *scale, float *angle)
 {
@@ -1449,16 +1410,6 @@ ImBuf *BKE_tracking_stabilize_frame(
   return tmpibuf;
 }
 
-/* Build a 4x4 transformation matrix based on the given 2D stabilization data.
- * mat is a 4x4 matrix in homogeneous coordinates, adapted to the
- *     final image buffer size and compensated for pixel aspect ratio,
- *     ready for direct OpenGL drawing.
- *
- * TODO(sergey): The signature of this function should be changed. we actually
- *               don't need the dimensions of the image buffer. Instead we
- *               should consider to provide the pivot point of the rotation as a
- *               further stabilization data parameter.
- */
 void BKE_tracking_stabilization_data_to_mat4(int buffer_width,
                                              int buffer_height,
                                              float pixel_aspect,

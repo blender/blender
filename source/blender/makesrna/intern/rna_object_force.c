@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -705,7 +691,7 @@ static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, Point
 
     rna_FieldSettings_shape_update(bmain, scene, ptr);
 
-    if (ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE) {
+    if (ob->type == OB_CURVES_LEGACY && ob->pd->forcefield == PFIELD_GUIDE) {
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
     }
     else {
@@ -913,7 +899,7 @@ static const EnumPropertyItem *rna_Effector_shape_itemf(bContext *UNUSED(C),
 
   ob = (Object *)ptr->owner_id;
 
-  if (ob->type == OB_CURVE) {
+  if (ob->type == OB_CURVES_LEGACY) {
     if (ob->pd->forcefield == PFIELD_VORTEX) {
       return curve_vortex_shape_items;
     }
@@ -1128,6 +1114,8 @@ static void rna_def_collision(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "Collision Settings", "Collision settings for object in physics simulation");
 
+  RNA_define_lib_overridable(true);
+
   prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "deflect", 1);
   RNA_def_property_ui_text(
@@ -1230,6 +1218,8 @@ static void rna_def_collision(BlenderRNA *brna)
                            "Cloth collision impulses act in the direction of the collider normals "
                            "(more reliable in some cases)");
   RNA_def_property_update(prop, 0, "rna_CollisionSettings_update");
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_effector_weight(BlenderRNA *brna)
@@ -1242,6 +1232,8 @@ static void rna_def_effector_weight(BlenderRNA *brna)
   RNA_def_struct_path_func(srna, "rna_EffectorWeight_path");
   RNA_def_struct_ui_text(srna, "Effector Weights", "Effector weights for physics simulation");
   RNA_def_struct_ui_icon(srna, ICON_PHYSICS);
+
+  RNA_define_lib_overridable(true);
 
   /* Flags */
   prop = RNA_def_property(srna, "apply_to_hair_growing", PROP_BOOLEAN, PROP_NONE);
@@ -1362,6 +1354,8 @@ static void rna_def_effector_weight(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
   RNA_def_property_ui_text(prop, "Fluid Flow", "Fluid Flow effector weight");
   RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_field(BlenderRNA *brna)
@@ -1471,6 +1465,8 @@ static void rna_def_field(BlenderRNA *brna)
       srna, "Field Settings", "Field settings for an object in physics simulation");
   RNA_def_struct_ui_icon(srna, ICON_PHYSICS);
 
+  RNA_define_lib_overridable(true);
+
   /* Enums */
 
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -1514,34 +1510,34 @@ static void rna_def_field(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "f_strength");
-  RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 10, 3);
   RNA_def_property_ui_text(prop, "Strength", "Strength of force field");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
   /* different ui range to above */
   prop = RNA_def_property(srna, "linear_drag", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "f_strength");
-  RNA_def_property_range(prop, -2.0f, 2.0f);
+  RNA_def_property_ui_range(prop, -2.0f, 2.0f, 10, 3);
   RNA_def_property_ui_text(prop, "Linear Drag", "Drag component proportional to velocity");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
   prop = RNA_def_property(srna, "harmonic_damping", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "f_damp");
-  RNA_def_property_range(prop, 0.0f, 10.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 10.0f, 10, 3);
   RNA_def_property_ui_text(prop, "Harmonic Damping", "Damping of the harmonic force");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
   /* different ui range to above */
   prop = RNA_def_property(srna, "quadratic_drag", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "f_damp");
-  RNA_def_property_range(prop, -2.0f, 2.0f);
+  RNA_def_property_ui_range(prop, -2.0f, 2.0f, 10, 3);
   RNA_def_property_ui_text(
       prop, "Quadratic Drag", "Drag component proportional to the square of velocity");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
   prop = RNA_def_property(srna, "flow", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "f_flow");
-  RNA_def_property_range(prop, 0.0f, 10.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 10.0f, 10, 3);
   RNA_def_property_ui_text(prop, "Flow", "Convert effector force into air flow velocity");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
@@ -1557,7 +1553,7 @@ static void rna_def_field(BlenderRNA *brna)
   /* different ui range to above */
   prop = RNA_def_property(srna, "inflow", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "f_flow");
-  RNA_def_property_range(prop, -10.0f, 10.0f);
+  RNA_def_property_ui_range(prop, -10.0f, 10.0f, 10, 3);
   RNA_def_property_ui_text(prop, "Inflow", "Inwards component of the vortex force");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
@@ -1570,7 +1566,8 @@ static void rna_def_field(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "rest_length", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "f_size");
-  RNA_def_property_range(prop, 0.0f, 1000.0f);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0f, 1000.0f, 10, 3);
   RNA_def_property_ui_text(prop, "Rest Length", "Rest length of the harmonic force");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
@@ -1728,7 +1725,7 @@ static void rna_def_field(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "guide_minimum", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "f_strength");
-  RNA_def_property_range(prop, 0.0f, 1000.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 1000.0f, 10, 3);
   RNA_def_property_ui_text(
       prop, "Minimum Distance", "The distance from which particles are affected fully");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
@@ -1799,6 +1796,8 @@ static void rna_def_field(BlenderRNA *brna)
 
   /* Variables used for Curve Guide, already wrapped, used for other fields too */
   /* falloff_power, use_max_distance, maximum_distance */
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_softbody(BlenderRNA *brna)
@@ -2134,6 +2133,7 @@ static void rna_def_softbody(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "effector_weights");
   RNA_def_property_struct_type(prop, "EffectorWeights");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Effector Weights", "");
 }
 

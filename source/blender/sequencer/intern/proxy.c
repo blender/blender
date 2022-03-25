@@ -1,24 +1,7 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * - Blender Foundation, 2003-2009
- * - Peter Schlaile <peter [at] schlaile [dot] de> 2005/2006
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved.
+ *           2003-2009 Blender Foundation.
+ *           2005-2006 Peter Schlaile <peter [at] schlaile [dot] de> */
 
 /** \file
  * \ingroup bke
@@ -34,6 +17,7 @@
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
+#include "BLI_session_uuid.h"
 #include "BLI_string.h"
 
 #ifdef WIN32
@@ -54,6 +38,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_metadata.h"
 
+#include "SEQ_iterator.h"
 #include "SEQ_proxy.h"
 #include "SEQ_relations.h"
 #include "SEQ_render.h"
@@ -79,6 +64,7 @@ typedef struct SeqIndexBuildContext {
   Depsgraph *depsgraph;
   Scene *scene;
   Sequence *seq, *orig_seq;
+  SessionUUID orig_seq_uuid;
 } SeqIndexBuildContext;
 
 int SEQ_rendersize_to_proxysize(int render_size)
@@ -412,7 +398,8 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
                                Scene *scene,
                                Sequence *seq,
                                struct GSet *file_list,
-                               ListBase *queue)
+                               ListBase *queue,
+                               bool build_only_on_bad_performance)
 {
   SeqIndexBuildContext *context;
   Sequence *nseq;
@@ -458,6 +445,7 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
     context->depsgraph = depsgraph;
     context->scene = scene;
     context->orig_seq = seq;
+    context->orig_seq_uuid = seq->runtime.session_uuid;
     context->seq = nseq;
 
     context->view_id = i; /* only for images */
@@ -472,7 +460,8 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
                                                                 context->size_flags,
                                                                 context->quality,
                                                                 context->overwrite,
-                                                                file_list);
+                                                                file_list,
+                                                                build_only_on_bad_performance);
       }
       if (!context->index_context) {
         MEM_freeN(context);
@@ -569,14 +558,10 @@ void SEQ_proxy_rebuild_finish(SeqIndexBuildContext *context, bool stop)
       IMB_close_anim_proxies(sanim->anim);
     }
 
-    for (sanim = context->orig_seq->anims.first; sanim; sanim = sanim->next) {
-      IMB_close_anim_proxies(sanim->anim);
-    }
-
     IMB_anim_index_rebuild_finish(context->index_context, stop);
   }
 
-  seq_free_sequence_recurse(NULL, context->seq, true, true);
+  seq_free_sequence_recurse(NULL, context->seq, true);
 
   MEM_freeN(context);
 }
@@ -586,10 +571,7 @@ void SEQ_proxy_set(struct Sequence *seq, bool value)
   if (value) {
     seq->flag |= SEQ_USE_PROXY;
     if (seq->strip->proxy == NULL) {
-      seq->strip->proxy = MEM_callocN(sizeof(struct StripProxy), "StripProxy");
-      seq->strip->proxy->quality = 50;
-      seq->strip->proxy->build_tc_flags = SEQ_PROXY_TC_ALL;
-      seq->strip->proxy->build_size_flags = SEQ_PROXY_IMAGE_SIZE_25;
+      seq->strip->proxy = seq_strip_proxy_alloc();
     }
   }
   else {

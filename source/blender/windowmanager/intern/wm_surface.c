@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -45,9 +31,22 @@ static wmSurface *g_drawable = NULL;
 
 void wm_surfaces_iter(bContext *C, void (*cb)(bContext *C, wmSurface *))
 {
-  LISTBASE_FOREACH (wmSurface *, surf, &global_surface_list) {
+  /* Mutable iterator in case a surface is freed. */
+  LISTBASE_FOREACH_MUTABLE (wmSurface *, surf, &global_surface_list) {
     cb(C, surf);
   }
+}
+
+static void wm_surface_do_depsgraph_fn(bContext *C, wmSurface *surface)
+{
+  if (surface->do_depsgraph) {
+    surface->do_depsgraph(C);
+  }
+}
+
+void wm_surfaces_do_depsgraph(bContext *C)
+{
+  wm_surfaces_iter(C, wm_surface_do_depsgraph_fn);
 }
 
 void wm_surface_clear_drawable(void)
@@ -107,6 +106,9 @@ void wm_surface_add(wmSurface *surface)
 
 void wm_surface_remove(wmSurface *surface)
 {
+  if (surface == g_drawable) {
+    wm_surface_clear_drawable();
+  }
   BLI_remlink(&global_surface_list, surface);
   surface->free_data(surface);
   MEM_freeN(surface);

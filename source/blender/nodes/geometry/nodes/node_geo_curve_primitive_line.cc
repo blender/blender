@@ -1,29 +1,17 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_spline.hh"
+#include "BKE_curves.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_curve_primitive_line_cc {
 
-static void geo_node_curve_primitive_line_declare(NodeDeclarationBuilder &b)
+NODE_STORAGE_FUNCS(NodeGeometryCurvePrimitiveLine)
+
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Vector>(N_("Start"))
       .subtype(PROP_TRANSLATION)
@@ -43,110 +31,94 @@ static void geo_node_curve_primitive_line_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
-static void geo_node_curve_primitive_line_layout(uiLayout *layout,
-                                                 bContext *UNUSED(C),
-                                                 PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static void geo_node_curve_primitive_line_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometryCurvePrimitiveLine *data = (NodeGeometryCurvePrimitiveLine *)MEM_callocN(
-      sizeof(NodeGeometryCurvePrimitiveLine), __func__);
+  NodeGeometryCurvePrimitiveLine *data = MEM_cnew<NodeGeometryCurvePrimitiveLine>(__func__);
 
   data->mode = GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS;
   node->storage = data;
 }
 
-static void geo_node_curve_primitive_line_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
-  const NodeGeometryCurvePrimitiveLine *node_storage = (NodeGeometryCurvePrimitiveLine *)
-                                                           node->storage;
-  const GeometryNodeCurvePrimitiveLineMode mode = (const GeometryNodeCurvePrimitiveLineMode)
-                                                      node_storage->mode;
+  const NodeGeometryCurvePrimitiveLine &storage = node_storage(*node);
+  const GeometryNodeCurvePrimitiveLineMode mode = (GeometryNodeCurvePrimitiveLineMode)storage.mode;
 
   bNodeSocket *p2_socket = ((bNodeSocket *)node->inputs.first)->next;
   bNodeSocket *direction_socket = p2_socket->next;
   bNodeSocket *length_socket = direction_socket->next;
 
-  nodeSetSocketAvailability(p2_socket, mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS);
-  nodeSetSocketAvailability(direction_socket,
-                            mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION);
-  nodeSetSocketAvailability(length_socket, mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION);
+  nodeSetSocketAvailability(ntree, p2_socket, mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS);
+  nodeSetSocketAvailability(
+      ntree, direction_socket, mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION);
+  nodeSetSocketAvailability(
+      ntree, length_socket, mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION);
 }
 
-static std::unique_ptr<CurveEval> create_point_line_curve(const float3 start, const float3 end)
+static Curves *create_point_line_curve(const float3 start, const float3 end)
 {
-  std::unique_ptr<CurveEval> curve = std::make_unique<CurveEval>();
-  std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();
+  Curves *curves_id = bke::curves_new_nomain_single(2, CURVE_TYPE_POLY);
+  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
 
-  spline->resize(2);
-  MutableSpan<float3> positions = spline->positions();
-  positions[0] = start;
-  positions[1] = end;
-  spline->radii().fill(1.0f);
-  spline->tilts().fill(0.0f);
-  curve->add_spline(std::move(spline));
-  curve->attributes.reallocate(curve->splines().size());
-  return curve;
+  curves.positions().first() = start;
+  curves.positions().last() = end;
+
+  return curves_id;
 }
 
-static std::unique_ptr<CurveEval> create_direction_line_curve(const float3 start,
-                                                              const float3 direction,
-                                                              const float length)
+static Curves *create_direction_line_curve(const float3 start,
+                                           const float3 direction,
+                                           const float length)
 {
-  std::unique_ptr<CurveEval> curve = std::make_unique<CurveEval>();
-  std::unique_ptr<PolySpline> spline = std::make_unique<PolySpline>();
+  Curves *curves_id = bke::curves_new_nomain_single(2, CURVE_TYPE_POLY);
+  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
 
-  spline->resize(2);
-  MutableSpan<float3> positions = spline->positions();
-  positions[0] = start;
-  positions[1] = direction.normalized() * length + start;
+  curves.positions().first() = start;
+  curves.positions().last() = math::normalize(direction) * length + start;
 
-  spline->radii().fill(1.0f);
-  spline->tilts().fill(0.0f);
-  curve->add_spline(std::move(spline));
-  curve->attributes.reallocate(curve->splines().size());
-  return curve;
+  return curves_id;
 }
 
-static void geo_node_curve_primitive_line_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
+  const NodeGeometryCurvePrimitiveLine &storage = node_storage(params.node());
+  const GeometryNodeCurvePrimitiveLineMode mode = (GeometryNodeCurvePrimitiveLineMode)storage.mode;
 
-  const NodeGeometryCurvePrimitiveLine *node_storage =
-      (NodeGeometryCurvePrimitiveLine *)params.node().storage;
-
-  GeometryNodeCurvePrimitiveLineMode mode = (GeometryNodeCurvePrimitiveLineMode)node_storage->mode;
-
-  std::unique_ptr<CurveEval> curve;
+  Curves *curves = nullptr;
   if (mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_POINTS) {
-    curve = create_point_line_curve(params.extract_input<float3>("Start"),
-                                    params.extract_input<float3>("End"));
+    curves = create_point_line_curve(params.extract_input<float3>("Start"),
+                                     params.extract_input<float3>("End"));
   }
   else if (mode == GEO_NODE_CURVE_PRIMITIVE_LINE_MODE_DIRECTION) {
-    curve = create_direction_line_curve(params.extract_input<float3>("Start"),
-                                        params.extract_input<float3>("Direction"),
-                                        params.extract_input<float>("Length"));
+    curves = create_direction_line_curve(params.extract_input<float3>("Start"),
+                                         params.extract_input<float3>("Direction"),
+                                         params.extract_input<float>("Length"));
   }
 
-  params.set_output("Curve", GeometrySet::create_with_curve(curve.release()));
+  params.set_output("Curve", GeometrySet::create_with_curves(curves));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_primitive_line_cc
 
 void register_node_type_geo_curve_primitive_line()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_primitive_line_cc;
+
   static bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_LINE, "Curve Line", NODE_CLASS_GEOMETRY, 0);
-  node_type_init(&ntype, blender::nodes::geo_node_curve_primitive_line_init);
-  node_type_update(&ntype, blender::nodes::geo_node_curve_primitive_line_update);
+  geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_LINE, "Curve Line", NODE_CLASS_GEOMETRY);
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
   node_type_storage(&ntype,
                     "NodeGeometryCurvePrimitiveLine",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.declare = blender::nodes::geo_node_curve_primitive_line_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_curve_primitive_line_exec;
-  ntype.draw_buttons = blender::nodes::geo_node_curve_primitive_line_layout;
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.draw_buttons = file_ns::node_layout;
   nodeRegisterType(&ntype);
 }

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 #include "BKE_appdir.h"
 #include "BKE_asset_catalog.hh"
@@ -26,6 +10,8 @@
 
 #include "DNA_asset_types.h"
 #include "DNA_userdef_types.h"
+
+#include "CLG_log.h"
 
 #include "testing/testing.h"
 
@@ -92,6 +78,18 @@ class AssetCatalogTest : public testing::Test {
  protected:
   CatalogFilePath asset_library_root_;
   CatalogFilePath temp_library_path_;
+
+  static void SetUpTestSuite()
+  {
+    testing::Test::SetUpTestSuite();
+    CLG_init();
+  }
+
+  static void TearDownTestSuite()
+  {
+    CLG_exit();
+    testing::Test::TearDownTestSuite();
+  }
 
   void SetUp() override
   {
@@ -225,7 +223,7 @@ class AssetCatalogTest : public testing::Test {
     }
 
     /* Create an empty CDF to add complexity. It should not save to this, but to the top-level
-     * one.*/
+     * one. */
     ASSERT_TRUE(BLI_file_touch(cdf_in_subdir.c_str()));
     ASSERT_EQ(0, BLI_file_size(cdf_in_subdir.c_str()));
 
@@ -547,6 +545,30 @@ TEST_F(AssetCatalogTest, write_single_file)
   EXPECT_EQ(nullptr, loaded_service.find_catalog(UUID_ID_WITHOUT_PATH));
 
   /* TODO(@sybren): test ordering of catalogs in the file. */
+}
+
+TEST_F(AssetCatalogTest, read_write_unicode_filepath)
+{
+  TestableAssetCatalogService service(asset_library_root_);
+  const CatalogFilePath load_from_path = asset_library_root_ + "/новый/" +
+                                         AssetCatalogService::DEFAULT_CATALOG_FILENAME;
+  service.load_from_disk(load_from_path);
+
+  const CatalogFilePath save_to_path = use_temp_path() + "новый.cats.txt";
+  AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
+  ASSERT_NE(nullptr, cdf) << "unable to load " << load_from_path;
+  EXPECT_TRUE(cdf->write_to_disk(save_to_path));
+
+  AssetCatalogService loaded_service(save_to_path);
+  loaded_service.load_from_disk();
+
+  /* Test that the file was loaded correctly. */
+  const bUUID materials_uuid("a2151dff-dead-4f29-b6bc-b2c7d6cccdb4");
+  const AssetCatalog *cat = loaded_service.find_catalog(materials_uuid);
+  ASSERT_NE(nullptr, cat);
+  EXPECT_EQ(materials_uuid, cat->catalog_id);
+  EXPECT_EQ(AssetCatalogPath("Материалы"), cat->path);
+  EXPECT_EQ("Russian Materials", cat->simple_name);
 }
 
 TEST_F(AssetCatalogTest, no_writing_empty_files)

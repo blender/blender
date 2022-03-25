@@ -1,24 +1,7 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * - Blender Foundation, 2003-2009
- * - Peter Schlaile <peter [at] schlaile [dot] de> 2005/2006
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved.
+ *           2003-2009 Blender Foundation.
+ *           2005-2006 Peter Schlaile <peter [at] schlaile [dot] de> */
 
 /** \file
  * \ingroup bke
@@ -35,10 +18,12 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_animsys.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
 
+#include "SEQ_animation.h"
 #include "SEQ_edit.h"
 #include "SEQ_iterator.h"
 #include "SEQ_relations.h"
@@ -55,13 +40,6 @@
 #include "proxy.h"
 #include "utils.h"
 
-/**
- * Sort strips in provided seqbase. Effect strips are trailing the list and they are sorted by
- * channel position as well.
- * This is important for SEQ_time_update_sequence to work properly
- *
- * \param seqbase: ListBase with strips
- */
 void SEQ_sort(ListBase *seqbase)
 {
   if (seqbase == NULL) {
@@ -432,7 +410,6 @@ const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
   return best_seq;
 }
 
-/* in cases where we don't know the sequence's listbase */
 ListBase *SEQ_get_seqbase_by_seq(ListBase *seqbase, Sequence *seq)
 {
   Sequence *iseq;
@@ -454,7 +431,7 @@ Sequence *SEQ_get_meta_by_seqbase(ListBase *seqbase_main, ListBase *meta_seqbase
 {
   SeqCollection *strips = SEQ_query_all_strips_recursive(seqbase_main);
 
-  Sequence *seq;
+  Sequence *seq = NULL;
   SEQ_ITERATOR_FOREACH (seq, strips) {
     if (seq->type == SEQ_TYPE_META && &seq->seqbase == meta_seqbase) {
       break;
@@ -465,10 +442,6 @@ Sequence *SEQ_get_meta_by_seqbase(ListBase *seqbase_main, ListBase *meta_seqbase
   return seq;
 }
 
-/**
- * Only use as last resort when the StripElem is available but no the Sequence.
- * (needed for RNA)
- */
 Sequence *SEQ_sequence_from_strip_elem(ListBase *seqbase, StripElem *se)
 {
   Sequence *iseq;
@@ -525,10 +498,10 @@ void SEQ_alpha_mode_from_file_extension(Sequence *seq)
   }
 }
 
-/* called on draw, needs to be fast,
- * we could cache and use a flag if we want to make checks for file paths resolving for eg. */
 bool SEQ_sequence_has_source(const Sequence *seq)
 {
+  /* Called on draw, needs to be fast,
+   * we could cache and use a flag if we want to make checks for file paths resolving for eg. */
   switch (seq->type) {
     case SEQ_TYPE_MASK:
       return (seq->mask != NULL);
@@ -589,20 +562,14 @@ void SEQ_set_scale_to_fit(const Sequence *seq,
   }
 }
 
-/**
- * Ensure, that provided Sequence has unique name. If animation data exists for this Sequence, it
- * will be duplicated and mapped onto new name
- *
- * \param seq: Sequence which name will be ensured to be unique
- * \param scene: Scene in which name must be unique
- */
 void SEQ_ensure_unique_name(Sequence *seq, Scene *scene)
 {
   char name[SEQ_NAME_MAXSTR];
 
   BLI_strncpy_utf8(name, seq->name + 2, sizeof(name));
   SEQ_sequence_base_unique_name_recursive(scene, &scene->ed->seqbase, seq);
-  SEQ_dupe_animdata(scene, name, seq->name + 2);
+  BKE_animdata_fix_paths_rename(
+      &scene->id, scene->adt, NULL, "sequence_editor.sequences_all", name, seq->name + 2, 0, 0, 0);
 
   if (seq->type == SEQ_TYPE_META) {
     LISTBASE_FOREACH (Sequence *, seq_child, &seq->seqbase) {

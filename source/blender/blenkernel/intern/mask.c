@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2012 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2012 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -38,6 +22,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mask_types.h"
 
 #include "BKE_animsys.h"
@@ -255,6 +240,7 @@ IDTypeInfo IDType_ID_MSK = {
     .name_plural = "masks",
     .translation_context = BLT_I18NCONTEXT_ID_MASK,
     .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = NULL,
     .copy_data = mask_copy_data,
@@ -262,6 +248,7 @@ IDTypeInfo IDType_ID_MSK = {
     .make_local = NULL,
     .foreach_id = mask_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = mask_blend_write,
@@ -371,7 +358,6 @@ MaskLayer *BKE_mask_layer_new(Mask *mask, const char *name)
   return masklay;
 }
 
-/* NOTE: may still be hidden, caller needs to check. */
 MaskLayer *BKE_mask_layer_active(Mask *mask)
 {
   return BLI_findlink(&mask->masklayers, mask->masklay_act);
@@ -623,7 +609,7 @@ float BKE_mask_spline_project_co(MaskSpline *spline,
 
         if (len_squared_v2(v1) > proj_eps_sq) {
           ang1 = angle_v2v2(v1, n1);
-          if (ang1 > (float)M_PI / 2.0f) {
+          if (ang1 > (float)M_PI_2) {
             ang1 = (float)M_PI - ang1;
           }
 
@@ -649,7 +635,7 @@ float BKE_mask_spline_project_co(MaskSpline *spline,
 
         if (len_squared_v2(v2) > proj_eps_sq) {
           ang2 = angle_v2v2(v2, n2);
-          if (ang2 > (float)M_PI / 2.0f) {
+          if (ang2 > (float)M_PI_2) {
             ang2 = (float)M_PI - ang2;
           }
 
@@ -787,12 +773,11 @@ BLI_INLINE void orthogonal_direction_get(const float vec[2], float result[2])
   normalize_v2(result);
 }
 
-/* TODO(sergey): This function will re-calculate loads of stuff again and again
- *               when differentiating feather points. This might be easily cached
- *               in the callee function for this case.
- */
 void BKE_mask_point_normal(MaskSpline *spline, MaskSplinePoint *point, float u, float n[2])
 {
+  /* TODO(sergey): This function will re-calculate loads of stuff again and again
+   *               when differentiating feather points. This might be easily cached
+   *               in the callee function for this case. */
 
   MaskSplinePoint *point_prev, *point_next;
 
@@ -1132,7 +1117,6 @@ MaskSpline *BKE_mask_spline_copy(const MaskSpline *spline)
   return nspline;
 }
 
-/* NOTE: Does NOT add to the list. */
 MaskLayerShape *BKE_mask_layer_shape_alloc(MaskLayer *masklay, const int frame)
 {
   MaskLayerShape *masklay_shape;
@@ -1156,8 +1140,6 @@ void BKE_mask_layer_shape_free(MaskLayerShape *masklay_shape)
   MEM_freeN(masklay_shape);
 }
 
-/** \brief Free all animation keys for a mask layer
- */
 void BKE_mask_layer_free_shapes(MaskLayer *masklay)
 {
   MaskLayerShape *masklay_shape;
@@ -1245,7 +1227,6 @@ void BKE_mask_coord_from_image(Image *image, ImageUser *iuser, float r_co[2], co
   BKE_mask_coord_from_frame(r_co, co, frame_size);
 }
 
-/* as above but divide */
 void BKE_mask_coord_to_frame(float r_co[2], const float co[2], const float frame_size[2])
 {
   if (frame_size[0] == frame_size[1]) {
@@ -1312,7 +1293,7 @@ void BKE_mask_point_parent_matrix_get(MaskSplinePoint *point,
       MovieTrackingObject *ob = BKE_tracking_object_get_named(tracking, parent->parent);
 
       if (ob) {
-        MovieClipUser user = {0};
+        MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
         float clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, ctime);
         BKE_movieclip_user_set_frame(&user, ctime);
 
@@ -1393,7 +1374,7 @@ static void mask_calc_point_handle(MaskSplinePoint *point,
   else if (handle_type == HD_AUTO) {
     BKE_nurb_handle_calc(bezt, bezt_prev, bezt_next, 0, 0);
   }
-  else if (handle_type == HD_ALIGN || handle_type == HD_ALIGN_DOUBLESIDE) {
+  else if (ELEM(handle_type, HD_ALIGN, HD_ALIGN_DOUBLESIDE)) {
     float v1[3], v2[3];
     float vec[3], h[3];
 
@@ -1428,8 +1409,6 @@ void BKE_mask_get_handle_point_adjacent(MaskSpline *spline,
   *r_point_next = mask_spline_point_next(spline, points_array, point);
 }
 
-/* calculates the tangent of a point by its previous and next
- * (ignoring handles - as if its a poly line) */
 void BKE_mask_calc_tangent_polyline(MaskSpline *spline, MaskSplinePoint *point, float t[2])
 {
   float tvec_a[2], tvec_b[2];
@@ -1513,11 +1492,6 @@ void BKE_mask_calc_handle_adjacent_interp(MaskSpline *spline,
   }
 }
 
-/**
- * \brief Resets auto handles even for non-auto bezier points
- *
- * Useful for giving sane defaults.
- */
 void BKE_mask_calc_handle_point_auto(MaskSpline *spline,
                                      MaskSplinePoint *point,
                                      const bool do_recalc_length)
@@ -1640,7 +1614,6 @@ static void mask_layer_shape_to_mask_point(BezTriple *bezt,
   bezt->radius = fp[7];
 }
 
-/* these functions match. copy is swapped */
 void BKE_mask_layer_shape_from_mask(MaskLayer *masklay, MaskLayerShape *masklay_shape)
 {
   int tot = BKE_mask_layer_shape_totvert(masklay);
@@ -1696,7 +1669,6 @@ BLI_INLINE void interp_v2_v2v2_flfl(
   target[1] = s * a[1] + t * b[1];
 }
 
-/* linear interpolation only */
 void BKE_mask_layer_shape_to_mask_interp(MaskLayer *masklay,
                                          MaskLayerShape *masklay_shape_a,
                                          MaskLayerShape *masklay_shape_b,
@@ -1757,9 +1729,6 @@ MaskLayerShape *BKE_mask_layer_shape_find_frame(MaskLayer *masklay, const int fr
   return NULL;
 }
 
-/**
- * When returning 2 - the frame isn't found but before/after frames are.
- */
 int BKE_mask_layer_shape_find_frame_range(MaskLayer *masklay,
                                           const float frame,
                                           MaskLayerShape **r_masklay_shape_a,
@@ -1922,7 +1891,6 @@ static void interp_weights_uv_v2_apply(const float uv[2],
   r_pt[1] += dvec[0] * uv[1];
 }
 
-/* When a new points added - resize all shape-key array. */
 void BKE_mask_layer_shape_changed_add(MaskLayer *masklay,
                                       int index,
                                       bool do_init,
@@ -2017,7 +1985,6 @@ void BKE_mask_layer_shape_changed_add(MaskLayer *masklay,
   }
 }
 
-/* move array to account for removed point */
 void BKE_mask_layer_shape_changed_remove(MaskLayer *masklay, int index, int count)
 {
   MaskLayerShape *masklay_shape;
@@ -2079,13 +2046,11 @@ static void mask_clipboard_free_ex(bool final_free)
   }
 }
 
-/* Free the clipboard. */
 void BKE_mask_clipboard_free(void)
 {
   mask_clipboard_free_ex(true);
 }
 
-/* Copy selected visible splines from the given layer to clipboard. */
 void BKE_mask_clipboard_copy_from_layer(MaskLayer *mask_layer)
 {
   MaskSpline *spline;
@@ -2120,13 +2085,11 @@ void BKE_mask_clipboard_copy_from_layer(MaskLayer *mask_layer)
   }
 }
 
-/* Check clipboard is empty. */
 bool BKE_mask_clipboard_is_empty(void)
 {
   return BLI_listbase_is_empty(&mask_clipboard.splines);
 }
 
-/* Paste the contents of clipboard to given mask layer */
 void BKE_mask_clipboard_paste_to_layer(Main *bmain, MaskLayer *mask_layer)
 {
   MaskSpline *spline;

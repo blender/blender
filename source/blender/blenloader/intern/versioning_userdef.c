@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -47,6 +33,7 @@
 
 #include "readfile.h" /* Own include. */
 
+#include "WM_types.h"
 #include "wm_event_types.h"
 
 /* Don't use translation strings in versioning!
@@ -334,6 +321,9 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     memcpy(btheme, &U_theme_default, sizeof(*btheme));
   }
 
+  if (!USER_VERSION_ATLEAST(301, 2)) {
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.mask);
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -374,10 +364,12 @@ static void do_version_select_mouse(UserDef *userdef, wmKeyMapItem *kmi)
       kmi->type = (left) ? RIGHTMOUSE : LEFTMOUSE;
       break;
     case EVT_TWEAK_S:
-      kmi->type = (left) ? EVT_TWEAK_L : EVT_TWEAK_R;
+      kmi->type = (left) ? LEFTMOUSE : RIGHTMOUSE;
+      kmi->val = KM_CLICK_DRAG;
       break;
     case EVT_TWEAK_A:
-      kmi->type = (left) ? EVT_TWEAK_R : EVT_TWEAK_L;
+      kmi->type = (left) ? RIGHTMOUSE : LEFTMOUSE;
+      kmi->val = KM_CLICK_DRAG;
       break;
     default:
       break;
@@ -396,7 +388,40 @@ static bool keymap_item_has_invalid_wm_context_data_path(wmKeyMapItem *kmi,
   return false;
 }
 
-/* patching UserDef struct and Themes */
+/** Tweak event types have been removed, replace with click-drag. */
+static bool keymap_item_update_tweak_event(wmKeyMapItem *kmi, void *UNUSED(user_data))
+{
+  /* Tweak events for L M R mouse-buttons. */
+  enum {
+    EVT_TWEAK_L = 0x5002,
+    EVT_TWEAK_M = 0x5003,
+    EVT_TWEAK_R = 0x5004,
+  };
+  switch (kmi->type) {
+    case EVT_TWEAK_L:
+      kmi->type = LEFTMOUSE;
+      break;
+    case EVT_TWEAK_M:
+      kmi->type = MIDDLEMOUSE;
+      break;
+    case EVT_TWEAK_R:
+      kmi->type = RIGHTMOUSE;
+      break;
+    default:
+      kmi->direction = KM_ANY;
+      return false;
+  }
+
+  if (kmi->val >= KM_DIRECTION_N && kmi->val <= KM_DIRECTION_NW) {
+    kmi->direction = kmi->val;
+  }
+  else {
+    kmi->direction = KM_ANY;
+  }
+  kmi->val = KM_CLICK_DRAG;
+  return false;
+}
+
 void blo_do_versions_userdef(UserDef *userdef)
 {
   /* #UserDef & #Main happen to have the same struct member. */
@@ -567,8 +592,8 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(257, 0)) {
-    /* clear "AUTOKEY_FLAG_ONLYKEYINGSET" flag from userprefs,
-     * so that it doesn't linger around from old configs like a ghost */
+    /* Clear #AUTOKEY_FLAG_ONLYKEYINGSET flag from user-preferences,
+     * so that it doesn't linger around from old configurations like a ghost. */
     userdef->autokey_flag &= ~AUTOKEY_FLAG_ONLYKEYINGSET;
   }
 
@@ -958,6 +983,20 @@ void blo_do_versions_userdef(UserDef *userdef)
       style->paneltitle.points = default_title_points;
       style->grouplabel.points = default_title_points;
     }
+  }
+
+  if (!USER_VERSION_ATLEAST(300, 43)) {
+    userdef->ndof_flag |= NDOF_CAMERA_PAN_ZOOM;
+  }
+
+  if (!USER_VERSION_ATLEAST(302, 5)) {
+    BKE_keyconfig_pref_filter_items(userdef,
+                                    &((struct wmKeyConfigFilterItemParams){
+                                        .check_item = true,
+                                        .check_diff_item_add = true,
+                                    }),
+                                    keymap_item_update_tweak_event,
+                                    NULL);
   }
 
   /**

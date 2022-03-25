@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -45,7 +29,7 @@ void GPU_debug_group_begin(const char *name)
   ctx->debug_group_begin(name, stack.size());
 }
 
-void GPU_debug_group_end(void)
+void GPU_debug_group_end()
 {
   if (!(G.debug & G_DEBUG_GPU)) {
     return;
@@ -55,10 +39,6 @@ void GPU_debug_group_end(void)
   ctx->debug_group_end();
 }
 
-/**
- * Return a formatted string showing the current group hierarchy in this format:
- * "Group1 > Group 2 > Group3 > ... > GroupN : "
- */
 void GPU_debug_get_groups_names(int name_buf_len, char *r_name_buf)
 {
   Context *ctx = Context::get();
@@ -77,7 +57,6 @@ void GPU_debug_get_groups_names(int name_buf_len, char *r_name_buf)
   r_name_buf[sz - 3] = '\0';
 }
 
-/* Return true if inside a debug group with the same name. */
 bool GPU_debug_group_match(const char *ref)
 {
   /* Otherwise there will be no names. */

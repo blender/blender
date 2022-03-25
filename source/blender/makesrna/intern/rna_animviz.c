@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -207,6 +193,8 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "Motion Path Settings", "Motion Path settings for animation visualization");
 
+  RNA_define_lib_overridable(true);
+
   /* Enums */
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "path_type");
@@ -301,6 +289,8 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
       prop, "Has Motion Paths", "Are there any bone paths that will need updating (read-only)");
+
+  RNA_define_lib_overridable(false);
 }
 
 /* --- */
@@ -312,6 +302,7 @@ void rna_def_animviz_common(StructRNA *srna)
   prop = RNA_def_property(srna, "animation_visualization", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_pointer_sdna(prop, NULL, "avs");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Animation Visualization", "Animation data for this data-block");
 }
 
@@ -328,6 +319,7 @@ static void rna_def_animviz(BlenderRNA *brna)
   /* motion path settings (nested struct) */
   prop = RNA_def_property(srna, "motion_path", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_struct_type(prop, "AnimVizMotionPaths");
   RNA_def_property_pointer_funcs(prop, "rna_AnimViz_motion_paths_get", NULL, NULL, NULL);
   RNA_def_property_ui_text(prop, "Motion Paths", "Motion Path settings for visualization");

@@ -1,22 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- * allocimbuf.c
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup imbuf
@@ -372,7 +355,6 @@ MINLINE void premul_ushort_to_straight_uchar(unsigned char *result, const unsign
   }
 }
 
-/* result in ibuf2, scaling should be done correctly */
 void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 {
   int x, y;
@@ -912,7 +894,7 @@ static ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 {
   const int do_rect = (ibuf->rect != NULL);
   const int do_float = (ibuf->rect_float != NULL);
-  const size_t rect_size = ibuf->x * ibuf->y * 4;
+  const size_t rect_size = IMB_get_rect_len(ibuf) * 4;
 
   uchar *rect, *_newrect, *newrect;
   float *rectf, *_newrectf, *newrectf;
@@ -1053,7 +1035,7 @@ static ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 {
   const int do_rect = (ibuf->rect != NULL);
   const int do_float = (ibuf->rect_float != NULL);
-  const size_t rect_size = ibuf->x * ibuf->y * 4;
+  const size_t rect_size = IMB_get_rect_len(ibuf) * 4;
 
   uchar *rect, *_newrect, *newrect;
   float *rectf, *_newrectf, *newrectf;
@@ -1661,9 +1643,6 @@ static void scalefast_Z_ImBuf(ImBuf *ibuf, int newx, int newy)
   }
 }
 
-/**
- * Return true if \a ibuf is modified.
- */
 bool IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
 {
   BLI_assert_msg(newx > 0 && newy > 0, "Images must be at least 1 on both dimensions!");
@@ -1709,9 +1688,6 @@ struct imbufRGBA {
   float r, g, b, a;
 };
 
-/**
- * Return true if \a ibuf is modified.
- */
 bool IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
 {
   BLI_assert_msg(newx > 0 && newy > 0, "Images must be at least 1 on both dimensions!");

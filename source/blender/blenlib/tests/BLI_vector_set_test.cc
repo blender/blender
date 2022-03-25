@@ -1,4 +1,4 @@
-/* Apache License, Version 2.0 */
+/* SPDX-License-Identifier: Apache-2.0 */
 
 #include "BLI_exception_safety_test_utils.hh"
 #include "BLI_strict_flags.h"
@@ -269,6 +269,16 @@ TEST(vector_set, LookupKey)
   EXPECT_EQ(set.lookup_key_ptr_as("d"), nullptr);
   EXPECT_EQ(set.lookup_key_ptr_as("b")->size(), 1);
   EXPECT_EQ(set.lookup_key_ptr("a"), set.lookup_key_ptr_as("a"));
+}
+
+TEST(vector_set, GrowWhenEmpty)
+{
+  /* Tests that the internal keys array is freed correctly when growing an empty set. */
+  VectorSet<int> set;
+  set.add(4);
+  set.remove(4);
+  EXPECT_TRUE(set.is_empty());
+  set.reserve(100);
 }
 
 }  // namespace blender::tests

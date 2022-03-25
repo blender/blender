@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup balembic
@@ -76,10 +62,13 @@ static void get_topology(struct Mesh *mesh,
                          std::vector<int32_t> &poly_verts,
                          std::vector<int32_t> &loop_counts,
                          bool &r_has_flat_shaded_poly);
-static void get_creases(struct Mesh *mesh,
-                        std::vector<int32_t> &indices,
-                        std::vector<int32_t> &lengths,
-                        std::vector<float> &sharpnesses);
+static void get_edge_creases(struct Mesh *mesh,
+                             std::vector<int32_t> &indices,
+                             std::vector<int32_t> &lengths,
+                             std::vector<float> &sharpnesses);
+static void get_vert_creases(struct Mesh *mesh,
+                             std::vector<int32_t> &indices,
+                             std::vector<float> &sharpnesses);
 static void get_loop_normals(struct Mesh *mesh,
                              std::vector<Imath::V3f> &normals,
                              bool has_flat_shaded_poly);
@@ -283,15 +272,16 @@ void ABCGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
 
 void ABCGenericMeshWriter::write_subd(HierarchyContext &context, struct Mesh *mesh)
 {
-  std::vector<float> crease_sharpness;
+  std::vector<float> edge_crease_sharpness, vert_crease_sharpness;
   std::vector<Imath::V3f> points;
   std::vector<int32_t> poly_verts, loop_counts;
-  std::vector<int32_t> crease_indices, crease_lengths;
+  std::vector<int32_t> edge_crease_indices, edge_crease_lengths, vert_crease_indices;
   bool has_flat_poly = false;
 
   get_vertices(mesh, points);
   get_topology(mesh, poly_verts, loop_counts, has_flat_poly);
-  get_creases(mesh, crease_indices, crease_lengths, crease_sharpness);
+  get_edge_creases(mesh, edge_crease_indices, edge_crease_lengths, edge_crease_sharpness);
+  get_vert_creases(mesh, vert_crease_indices, vert_crease_sharpness);
 
   if (!frame_has_been_written_ && args_.export_params->face_sets) {
     write_face_sets(context.object, mesh, abc_subdiv_schema_);
@@ -319,13 +309,18 @@ void ABCGenericMeshWriter::write_subd(HierarchyContext &context, struct Mesh *me
   }
 
   if (args_.export_params->orcos) {
-    write_generated_coordinates(abc_poly_mesh_schema_.getArbGeomParams(), m_custom_data_config);
+    write_generated_coordinates(abc_subdiv_schema_.getArbGeomParams(), m_custom_data_config);
   }
 
-  if (!crease_indices.empty()) {
-    subdiv_sample.setCreaseIndices(Int32ArraySample(crease_indices));
-    subdiv_sample.setCreaseLengths(Int32ArraySample(crease_lengths));
-    subdiv_sample.setCreaseSharpnesses(FloatArraySample(crease_sharpness));
+  if (!edge_crease_indices.empty()) {
+    subdiv_sample.setCreaseIndices(Int32ArraySample(edge_crease_indices));
+    subdiv_sample.setCreaseLengths(Int32ArraySample(edge_crease_lengths));
+    subdiv_sample.setCreaseSharpnesses(FloatArraySample(edge_crease_sharpness));
+  }
+
+  if (!vert_crease_indices.empty()) {
+    subdiv_sample.setCornerIndices(Int32ArraySample(vert_crease_indices));
+    subdiv_sample.setCornerSharpnesses(FloatArraySample(vert_crease_sharpness));
   }
 
   update_bounding_box(context.object);
@@ -477,10 +472,10 @@ static void get_topology(struct Mesh *mesh,
   }
 }
 
-static void get_creases(struct Mesh *mesh,
-                        std::vector<int32_t> &indices,
-                        std::vector<int32_t> &lengths,
-                        std::vector<float> &sharpnesses)
+static void get_edge_creases(struct Mesh *mesh,
+                             std::vector<int32_t> &indices,
+                             std::vector<int32_t> &lengths,
+                             std::vector<float> &sharpnesses)
 {
   const float factor = 1.0f / 255.0f;
 
@@ -501,6 +496,29 @@ static void get_creases(struct Mesh *mesh,
   }
 
   lengths.resize(sharpnesses.size(), 2);
+}
+
+static void get_vert_creases(struct Mesh *mesh,
+                             std::vector<int32_t> &indices,
+                             std::vector<float> &sharpnesses)
+{
+  indices.clear();
+  sharpnesses.clear();
+
+  const float *creases = static_cast<const float *>(CustomData_get_layer(&mesh->vdata, CD_CREASE));
+
+  if (!creases) {
+    return;
+  }
+
+  for (int i = 0, v = mesh->totvert; i < v; i++) {
+    const float sharpness = creases[i];
+
+    if (sharpness != 0.0f) {
+      indices.push_back(i);
+      sharpnesses.push_back(sharpness);
+    }
+  }
 }
 
 static void get_loop_normals(struct Mesh *mesh,

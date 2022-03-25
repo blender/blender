@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -30,6 +16,7 @@
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "BKE_screen.h"
 
@@ -255,6 +242,9 @@ static eSpace_Type rna_Space_refine_reverse(StructRNA *srna)
   if (srna == &RNA_SpaceClipEditor) {
     return SPACE_CLIP;
   }
+  if (srna == &RNA_SpaceSpreadsheet) {
+    return SPACE_SPREADSHEET;
+  }
   return SPACE_EMPTY;
 }
 
@@ -380,6 +370,7 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
   void *handle;
   StructRNA *srna;
   bool capsule_clear = false;
+  bool handle_removed = false;
 
   if (PyTuple_GET_SIZE(args) < 2) {
     PyErr_SetString(PyExc_ValueError, "callback_remove(handler): expected at least 2 args");
@@ -403,7 +394,7 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
             args, "OO!:WindowManager.draw_cursor_remove", &cls, &PyCapsule_Type, &py_handle)) {
       return NULL;
     }
-    WM_paint_cursor_end(handle);
+    handle_removed = WM_paint_cursor_end(handle);
     capsule_clear = true;
   }
   else if (RNA_struct_is_a(srna, &RNA_Space)) {
@@ -442,7 +433,7 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
                    params.region_type_enum.value_orig);
       return NULL;
     }
-    ED_region_draw_cb_exit(art, handle);
+    handle_removed = ED_region_draw_cb_exit(art, handle);
     capsule_clear = true;
   }
   else {
@@ -450,9 +441,14 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
     return NULL;
   }
 
-  /* The handle has been removed, so decrement its customdata. */
-  PyObject *handle_args = PyCapsule_GetContext(py_handle);
-  Py_DECREF(handle_args);
+  /* When `handle_removed == false`: Blender has already freed the data
+   * (freeing screen data when loading a new file for example).
+   * This will have already decremented the user, so don't decrement twice. */
+  if (handle_removed == true) {
+    /* The handle has been removed, so decrement its custom-data. */
+    PyObject *handle_args = PyCapsule_GetContext(py_handle);
+    Py_DECREF(handle_args);
+  }
 
   /* don't allow reuse */
   if (capsule_clear) {

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup render
@@ -47,6 +31,7 @@
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_lattice.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
@@ -368,19 +353,11 @@ static void pointdensity_cache_vertex_weight(PointDensity *pd,
   }
 }
 
-static void pointdensity_cache_vertex_normal(PointDensity *pd,
-                                             Object *UNUSED(ob),
-                                             Mesh *mesh,
-                                             float *data_color)
+static void pointdensity_cache_vertex_normal(Mesh *mesh, float *data_color)
 {
-  MVert *mvert = mesh->mvert, *mv;
-  int i;
-
   BLI_assert(data_color);
-
-  for (i = 0, mv = mvert; i < pd->totpoints; i++, mv++, data_color += 3) {
-    normal_short_to_float_v3(data_color, mv->no);
-  }
+  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+  memcpy(data_color, vert_normals, sizeof(float[3]) * mesh->totvert);
 }
 
 static void pointdensity_cache_object(PointDensity *pd, Object *ob)
@@ -442,7 +419,7 @@ static void pointdensity_cache_object(PointDensity *pd, Object *ob)
       pointdensity_cache_vertex_weight(pd, ob, mesh, data_color);
       break;
     case TEX_PD_COLOR_VERTNOR:
-      pointdensity_cache_vertex_normal(pd, ob, mesh, data_color);
+      pointdensity_cache_vertex_normal(mesh, data_color);
       break;
   }
 
@@ -694,7 +671,7 @@ static int pointdensity(PointDensity *pd,
 static void pointdensity_color(
     PointDensity *pd, TexResult *texres, float age, const float vec[3], const float col[3])
 {
-  texres->tr = texres->tg = texres->tb = texres->ta = 1.0f;
+  copy_v4_fl(texres->trgba, 1.0f);
 
   if (pd->source == TEX_PD_PSYS) {
     float rgba[4];
@@ -704,9 +681,9 @@ static void pointdensity_color(
         if (pd->coba) {
           if (BKE_colorband_evaluate(pd->coba, age, rgba)) {
             texres->talpha = true;
-            copy_v3_v3(&texres->tr, rgba);
+            copy_v3_v3(texres->trgba, rgba);
             texres->tin *= rgba[3];
-            texres->ta = texres->tin;
+            texres->trgba[3] = texres->tin;
           }
         }
         break;
@@ -716,17 +693,17 @@ static void pointdensity_color(
         if (pd->coba) {
           if (BKE_colorband_evaluate(pd->coba, speed, rgba)) {
             texres->talpha = true;
-            copy_v3_v3(&texres->tr, rgba);
+            copy_v3_v3(texres->trgba, rgba);
             texres->tin *= rgba[3];
-            texres->ta = texres->tin;
+            texres->trgba[3] = texres->tin;
           }
         }
         break;
       }
       case TEX_PD_COLOR_PARTVEL:
         texres->talpha = true;
-        mul_v3_v3fl(&texres->tr, vec, pd->speed_scale);
-        texres->ta = texres->tin;
+        mul_v3_v3fl(texres->trgba, vec, pd->speed_scale);
+        texres->trgba[3] = texres->tin;
         break;
       case TEX_PD_COLOR_CONSTANT:
       default:
@@ -739,24 +716,24 @@ static void pointdensity_color(
     switch (pd->ob_color_source) {
       case TEX_PD_COLOR_VERTCOL:
         texres->talpha = true;
-        copy_v3_v3(&texres->tr, col);
-        texres->ta = texres->tin;
+        copy_v3_v3(texres->trgba, col);
+        texres->trgba[3] = texres->tin;
         break;
       case TEX_PD_COLOR_VERTWEIGHT:
         texres->talpha = true;
         if (pd->coba && BKE_colorband_evaluate(pd->coba, col[0], rgba)) {
-          copy_v3_v3(&texres->tr, rgba);
+          copy_v3_v3(texres->trgba, rgba);
           texres->tin *= rgba[3];
         }
         else {
-          copy_v3_v3(&texres->tr, col);
+          copy_v3_v3(texres->trgba, col);
         }
-        texres->ta = texres->tin;
+        texres->trgba[3] = texres->tin;
         break;
       case TEX_PD_COLOR_VERTNOR:
         texres->talpha = true;
-        copy_v3_v3(&texres->tr, col);
-        texres->ta = texres->tin;
+        copy_v3_v3(texres->trgba, col);
+        texres->trgba[3] = texres->tin;
         break;
       case TEX_PD_COLOR_CONSTANT:
       default:
@@ -922,15 +899,12 @@ static void point_density_sample_func(void *__restrict data_v,
       pointdensity(pd, texvec, &texres, vec, &age, col);
       pointdensity_color(pd, &texres, age, vec, col);
 
-      copy_v3_v3(&values[index * 4 + 0], &texres.tr);
+      copy_v3_v3(&values[index * 4 + 0], texres.trgba);
       values[index * 4 + 3] = texres.tin;
     }
   }
 }
 
-/* NOTE 1: Requires RE_point_density_cache() to be called first.
- * NOTE 2: Frees point density structure after sampling.
- */
 void RE_point_density_sample(Depsgraph *depsgraph,
                              PointDensity *pd,
                              const int resolution,

@@ -6,6 +6,8 @@
  * Dashed is performed in screen space.
  */
 
+#ifndef USE_GPU_SHADER_CREATE_INFO
+
 uniform float dash_width;
 
 /* Simple mode, discarding non-dash parts (so no need for blending at all). */
@@ -13,7 +15,7 @@ uniform float dash_factor; /* if > 1.0, solid line. */
 
 /* More advanced mode, allowing for complex, multi-colored patterns.
  * Enabled when colors_len > 0. */
-/* Note: max number of steps/colors in pattern is 32! */
+/* NOTE: max number of steps/colors in pattern is 32! */
 uniform int colors_len; /* Enabled if > 0, 1 for solid line. */
 uniform vec4 colors[32];
 
@@ -23,6 +25,7 @@ noperspective in vec2 stipple_pos;
 flat in vec2 stipple_start;
 
 out vec4 fragColor;
+#endif
 
 void main()
 {

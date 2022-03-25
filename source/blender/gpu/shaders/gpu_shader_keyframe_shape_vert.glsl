@@ -11,14 +11,15 @@
 #define GPU_KEYFRAME_SHAPE_SQUARE \
   (GPU_KEYFRAME_SHAPE_CLIPPED_VERTICAL | GPU_KEYFRAME_SHAPE_CLIPPED_HORIZONTAL)
 
-uniform mat4 ModelViewProjectionMatrix;
-uniform vec2 ViewportSize = vec2(-1, -1);
-uniform float outline_scale = 1.0;
-
 const float line_falloff = 1.0;
 const float circle_scale = sqrt(2.0 / 3.1416);
 const float square_scale = sqrt(0.5);
 const float diagonal_scale = sqrt(0.5);
+
+#ifndef USE_GPU_SHADER_CREATE_INFO
+uniform mat4 ModelViewProjectionMatrix;
+uniform vec2 ViewportSize = vec2(-1, -1);
+uniform float outline_scale = 1.0;
 
 in vec2 pos;
 in float size;
@@ -33,6 +34,7 @@ flat out int finalFlags;
 
 flat out vec4 radii;
 flat out vec4 thresholds;
+#endif
 
 bool test(int bit)
 {

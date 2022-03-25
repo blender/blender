@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #ifdef WITH_OPTIX
 
@@ -47,7 +34,9 @@ static bool is_optix_specific_kernel(DeviceKernel kernel)
           kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK);
 }
 
-bool OptiXDeviceQueue::enqueue(DeviceKernel kernel, const int work_size, void *args[])
+bool OptiXDeviceQueue::enqueue(DeviceKernel kernel,
+                               const int work_size,
+                               DeviceKernelArguments const &args)
 {
   if (!is_optix_specific_kernel(kernel)) {
     return CUDADeviceQueue::enqueue(kernel, work_size, args);
@@ -69,7 +58,7 @@ bool OptiXDeviceQueue::enqueue(DeviceKernel kernel, const int work_size, void *a
   cuda_device_assert(
       cuda_device_,
       cuMemcpyHtoDAsync(launch_params_ptr + offsetof(KernelParamsOptiX, path_index_array),
-                        args[0],  // &d_path_index
+                        args.values[0],  // &d_path_index
                         sizeof(device_ptr),
                         cuda_stream_));
 
@@ -78,7 +67,7 @@ bool OptiXDeviceQueue::enqueue(DeviceKernel kernel, const int work_size, void *a
     cuda_device_assert(
         cuda_device_,
         cuMemcpyHtoDAsync(launch_params_ptr + offsetof(KernelParamsOptiX, render_buffer),
-                          args[1],  // &d_render_buffer
+                          args.values[1],  // &d_render_buffer
                           sizeof(device_ptr),
                           cuda_stream_));
   }

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2011 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spclip
@@ -23,6 +7,8 @@
 
 #include <stdio.h>
 #include <string.h>
+
+#include "DNA_defaults.h"
 
 #include "DNA_mask_types.h"
 #include "DNA_movieclip_types.h"
@@ -37,6 +23,7 @@
 
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_remap.h"
 #include "BKE_movieclip.h"
 #include "BKE_screen.h"
 #include "BKE_tracking.h"
@@ -239,14 +226,7 @@ static SpaceLink *clip_create(const ScrArea *area, const Scene *scene)
   ARegion *region;
   SpaceClip *sc;
 
-  sc = MEM_callocN(sizeof(SpaceClip), "initclip");
-  sc->spacetype = SPACE_CLIP;
-  sc->flag = SC_SHOW_MARKER_PATTERN | SC_SHOW_TRACK_PATH | SC_SHOW_GRAPH_TRACKS_MOTION |
-             SC_SHOW_GRAPH_FRAMES | SC_SHOW_ANNOTATION;
-  sc->zoom = 1.0f;
-  sc->path_length = 20;
-  sc->scopes.track_preview_height = 120;
-  sc->around = V3D_AROUND_CENTER_MEDIAN;
+  sc = DNA_struct_default_alloc(SpaceClip);
 
   /* header */
   region = MEM_callocN(sizeof(ARegion), "header for clip");
@@ -1079,6 +1059,9 @@ static void graph_region_draw(const bContext *C, ARegion *region)
   /* time-scrubbing */
   ED_time_scrub_draw(region, scene, sc->flag & SC_SHOW_SECONDS, true);
 
+  /* current frame indicator */
+  ED_time_scrub_draw_current_frame(region, scene, sc->flag & SC_SHOW_SECONDS);
+
   /* scrollers */
   UI_view2d_scrollers_draw(v2d, NULL);
 
@@ -1125,6 +1108,9 @@ static void dopesheet_region_draw(const bContext *C, ARegion *region)
 
   /* time-scrubbing */
   ED_time_scrub_draw(region, scene, sc->flag & SC_SHOW_SECONDS, true);
+
+  /* current frame indicator */
+  ED_time_scrub_draw_current_frame(region, scene, sc->flag & SC_SHOW_SECONDS);
 
   /* scrollers */
   UI_view2d_scrollers_draw(v2d, NULL);
@@ -1316,26 +1302,20 @@ static void clip_properties_region_listener(const wmRegionListenerParams *params
 
 /********************* registration ********************/
 
-static void clip_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
+static void clip_id_remap(ScrArea *UNUSED(area),
+                          SpaceLink *slink,
+                          const struct IDRemapper *mappings)
 {
   SpaceClip *sclip = (SpaceClip *)slink;
 
-  if (!ELEM(GS(old_id->name), ID_MC, ID_MSK)) {
+  if (!BKE_id_remapper_has_mapping_for(mappings, FILTER_ID_MC | FILTER_ID_MSK)) {
     return;
   }
 
-  if ((ID *)sclip->clip == old_id) {
-    sclip->clip = (MovieClip *)new_id;
-    id_us_ensure_real(new_id);
-  }
-
-  if ((ID *)sclip->mask_info.mask == old_id) {
-    sclip->mask_info.mask = (Mask *)new_id;
-    id_us_ensure_real(new_id);
-  }
+  BKE_id_remapper_apply(mappings, (ID **)&sclip->clip, ID_REMAP_APPLY_ENSURE_REAL);
+  BKE_id_remapper_apply(mappings, (ID **)&sclip->mask_info.mask, ID_REMAP_APPLY_ENSURE_REAL);
 }
 
-/* only called once, from space/spacetypes.c */
 void ED_spacetype_clip(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype clip");

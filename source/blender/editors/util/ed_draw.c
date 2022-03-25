@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edutil
@@ -397,17 +381,11 @@ tSlider *ED_slider_create(struct bContext *C)
   return slider;
 }
 
-/**
- * For modal operations so the percentage doesn't pop on the first mouse movement.
- */
 void ED_slider_init(struct tSlider *slider, const wmEvent *event)
 {
   copy_v2fl_v2i(slider->last_cursor, event->xy);
 }
 
-/**
- * Calculate slider factor based on mouse position.
- */
 bool ED_slider_modal(tSlider *slider, const wmEvent *event)
 {
   bool event_handled = true;
@@ -441,9 +419,6 @@ bool ED_slider_modal(tSlider *slider, const wmEvent *event)
   return event_handled;
 }
 
-/**
- * Return string based on the current state of the slider.
- */
 void ED_slider_status_string_get(const struct tSlider *slider,
                                  char *status_string,
                                  const size_t size_of_status_string)
@@ -523,9 +498,6 @@ void ED_slider_allow_overshoot_set(struct tSlider *slider, const bool value)
 
 /** \} */
 
-/**
- * Callback that draws a line between the mouse and a position given as the initial argument.
- */
 void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *region, void *arg_info)
 {
   wmWindow *win = CTX_wm_window(C);
@@ -611,9 +583,9 @@ static void metadata_custom_draw_fields(const char *field, const char *value, vo
   }
   MetadataCustomDrawContext *ctx = (MetadataCustomDrawContext *)ctx_v;
   char temp_str[MAX_METADATA_STR];
-  BLI_snprintf(temp_str, MAX_METADATA_STR, "%s: %s", field, value);
+  SNPRINTF(temp_str, "%s: %s", field, value);
   BLF_position(ctx->fontid, ctx->xmin, ctx->ymin + ctx->current_y, 0.0f);
-  BLF_draw(ctx->fontid, temp_str, BLF_DRAW_STR_DUMMY_MAX);
+  BLF_draw(ctx->fontid, temp_str, sizeof(temp_str));
   ctx->current_y += ctx->vertical_offset;
 }
 
@@ -637,18 +609,18 @@ static void metadata_draw_imbuf(ImBuf *ibuf, const rctf *rect, int fontid, const
       /* first line */
       if (i == 0) {
         bool do_newline = false;
-        int len = BLI_snprintf_rlen(temp_str, MAX_METADATA_STR, "%s: ", meta_data_list[0]);
+        int len = SNPRINTF_RLEN(temp_str, "%s: ", meta_data_list[0]);
         if (metadata_is_valid(ibuf, temp_str, 0, len)) {
           BLF_position(fontid, xmin, ymax - vertical_offset, 0.0f);
-          BLF_draw(fontid, temp_str, BLF_DRAW_STR_DUMMY_MAX);
+          BLF_draw(fontid, temp_str, sizeof(temp_str));
           do_newline = true;
         }
 
-        len = BLI_snprintf_rlen(temp_str, MAX_METADATA_STR, "%s: ", meta_data_list[1]);
+        len = SNPRINTF_RLEN(temp_str, "%s: ", meta_data_list[1]);
         if (metadata_is_valid(ibuf, temp_str, 1, len)) {
-          int line_width = BLF_width(fontid, temp_str, BLF_DRAW_STR_DUMMY_MAX);
+          int line_width = BLF_width(fontid, temp_str, sizeof(temp_str));
           BLF_position(fontid, xmax - line_width, ymax - vertical_offset, 0.0f);
-          BLF_draw(fontid, temp_str, BLF_DRAW_STR_DUMMY_MAX);
+          BLF_draw(fontid, temp_str, sizeof(temp_str));
           do_newline = true;
         }
 
@@ -657,32 +629,32 @@ static void metadata_draw_imbuf(ImBuf *ibuf, const rctf *rect, int fontid, const
         }
       } /* Strip */
       else if (ELEM(i, 1, 2)) {
-        int len = BLI_snprintf_rlen(temp_str, MAX_METADATA_STR, "%s: ", meta_data_list[i + 1]);
+        int len = SNPRINTF_RLEN(temp_str, "%s: ", meta_data_list[i + 1]);
         if (metadata_is_valid(ibuf, temp_str, i + 1, len)) {
           BLF_position(fontid, xmin, ymax - vertical_offset - ofs_y, 0.0f);
-          BLF_draw(fontid, temp_str, BLF_DRAW_STR_DUMMY_MAX);
+          BLF_draw(fontid, temp_str, sizeof(temp_str));
           ofs_y += vertical_offset;
         }
       } /* Note (wrapped) */
       else if (i == 3) {
-        int len = BLI_snprintf_rlen(temp_str, MAX_METADATA_STR, "%s: ", meta_data_list[i + 1]);
+        int len = SNPRINTF_RLEN(temp_str, "%s: ", meta_data_list[i + 1]);
         if (metadata_is_valid(ibuf, temp_str, i + 1, len)) {
           struct ResultBLF info;
           BLF_enable(fontid, BLF_WORD_WRAP);
           BLF_wordwrap(fontid, ibuf->x - (margin * 2));
           BLF_position(fontid, xmin, ymax - vertical_offset - ofs_y, 0.0f);
-          BLF_draw_ex(fontid, temp_str, BLF_DRAW_STR_DUMMY_MAX, &info);
+          BLF_draw_ex(fontid, temp_str, sizeof(temp_str), &info);
           BLF_wordwrap(fontid, 0);
           BLF_disable(fontid, BLF_WORD_WRAP);
           ofs_y += vertical_offset * info.lines;
         }
       }
       else {
-        int len = BLI_snprintf_rlen(temp_str, MAX_METADATA_STR, "%s: ", meta_data_list[i + 1]);
+        int len = SNPRINTF_RLEN(temp_str, "%s: ", meta_data_list[i + 1]);
         if (metadata_is_valid(ibuf, temp_str, i + 1, len)) {
-          int line_width = BLF_width(fontid, temp_str, BLF_DRAW_STR_DUMMY_MAX);
+          int line_width = BLF_width(fontid, temp_str, sizeof(temp_str));
           BLF_position(fontid, xmax - line_width, ymax - vertical_offset - ofs_y, 0.0f);
-          BLF_draw(fontid, temp_str, BLF_DRAW_STR_DUMMY_MAX);
+          BLF_draw(fontid, temp_str, sizeof(temp_str));
           ofs_y += vertical_offset;
         }
       }
@@ -699,12 +671,12 @@ static void metadata_draw_imbuf(ImBuf *ibuf, const rctf *rect, int fontid, const
     int ofs_x = 0;
     ofs_y = ctx.current_y;
     for (int i = 5; i < 10; i++) {
-      int len = BLI_snprintf_rlen(temp_str, MAX_METADATA_STR, "%s: ", meta_data_list[i]);
+      int len = SNPRINTF_RLEN(temp_str, "%s: ", meta_data_list[i]);
       if (metadata_is_valid(ibuf, temp_str, i, len)) {
         BLF_position(fontid, xmin + ofs_x, ymin + ofs_y, 0.0f);
-        BLF_draw(fontid, temp_str, BLF_DRAW_STR_DUMMY_MAX);
+        BLF_draw(fontid, temp_str, sizeof(temp_str));
 
-        ofs_x += BLF_width(fontid, temp_str, BLF_DRAW_STR_DUMMY_MAX) + UI_UNIT_X;
+        ofs_x += BLF_width(fontid, temp_str, sizeof(temp_str)) + UI_UNIT_X;
       }
     }
   }
@@ -776,9 +748,6 @@ static float metadata_box_height_get(ImBuf *ibuf, int fontid, const bool is_top)
   return 0;
 }
 
-/**
- * \note Keep in sync with #BKE_image_stamp_buf.
- */
 void ED_region_image_metadata_draw(
     int x, int y, ImBuf *ibuf, const rctf *frame, float zoomx, float zoomy)
 {
@@ -791,7 +760,7 @@ void ED_region_image_metadata_draw(
   /* find window pixel coordinates of origin */
   GPU_matrix_push();
 
-  /* offset and zoom using ogl */
+  /* Offset and zoom using GPU viewport. */
   GPU_matrix_translate_2f(x, y);
   GPU_matrix_scale_2f(zoomx, zoomy);
 

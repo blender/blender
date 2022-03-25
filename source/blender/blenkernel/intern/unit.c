@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -1091,22 +1077,6 @@ double BKE_unit_apply_preferred_unit(const struct UnitSettings *settings, int ty
   return value * scalar + bias;
 }
 
-/**
- * Make a copy of the string that replaces the units with numbers.
- *
- * This is only used when evaluating user input and can afford to be a bit slower
- *
- * This is to be used before python evaluation so..
- * 10.1km -> 10.1*1000.0
- * ...will be resolved by python.
- *
- * Values will be split by an add sign.
- * 5'2" -> 5*0.3048 + 2*0.0254
- *
- * \param str_prev: is optional, when valid it is used to get a base unit when none is set.
- *
- * \return True of a change was made.
- */
 bool BKE_unit_replace_string(
     char *str, int len_max, const char *str_prev, double scale_pref, int system, int type)
 {
@@ -1196,7 +1166,6 @@ bool BKE_unit_replace_string(
   return changed;
 }
 
-/* 45µm --> 45um */
 void BKE_unit_name_to_alt(char *str, int len_max, const char *orig_str, int system, int type)
 {
   const bUnitCollection *usys = unit_get_system(system, type);

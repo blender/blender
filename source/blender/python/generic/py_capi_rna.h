@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * \file
@@ -25,13 +11,28 @@
 
 struct EnumPropertyItem;
 
+/**
+ * Convert all items into a single comma separated string.
+ * Use for creating useful error messages.
+ */
 char *pyrna_enum_repr(const struct EnumPropertyItem *item);
 
+/**
+ * Same as #RNA_enum_value_from_id, but raises an exception.
+ */
 int pyrna_enum_value_from_id(const struct EnumPropertyItem *item,
                              const char *identifier,
                              int *value,
                              const char *error_prefix);
 
+/**
+ * Takes a set of strings and map it to and array of booleans.
+ *
+ * Useful when the values aren't flags.
+ *
+ * \param type_convert_sign: Maps signed to unsigned range,
+ * needed when we want to use the full range of a signed short/char.
+ */
 unsigned int *pyrna_enum_bitmap_from_set(const struct EnumPropertyItem *items,
                                          PyObject *value,
                                          int type_size,
@@ -39,6 +40,9 @@ unsigned int *pyrna_enum_bitmap_from_set(const struct EnumPropertyItem *items,
                                          int bitmap_size,
                                          const char *error_prefix);
 
+/**
+ * 'value' _must_ be a set type, error check before calling.
+ */
 int pyrna_enum_bitfield_from_set(const struct EnumPropertyItem *items,
                                  PyObject *value,
                                  int *r_value,
@@ -62,5 +66,11 @@ struct BPy_EnumProperty_Parse {
   int value;
   bool is_set;
 };
+/**
+ * Use with #PyArg_ParseTuple's `O&` formatting.
+ */
 int pyrna_enum_value_parse_string(PyObject *o, void *p);
+/**
+ * Use with #PyArg_ParseTuple's `O&` formatting.
+ */
 int pyrna_enum_bitfield_parse_set(PyObject *o, void *p);

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -39,7 +25,7 @@
 
 using namespace blender;
 
-AssetMetaData *BKE_asset_metadata_create(void)
+AssetMetaData *BKE_asset_metadata_create()
 {
   AssetMetaData *asset_data = (AssetMetaData *)MEM_callocN(sizeof(*asset_data), __func__);
   memcpy(asset_data, DNA_struct_default_get(AssetMetaData), sizeof(*asset_data));
@@ -78,9 +64,6 @@ AssetTag *BKE_asset_metadata_tag_add(AssetMetaData *asset_data, const char *name
   return tag;
 }
 
-/**
- * Make sure there is a tag with name \a name, create one if needed.
- */
 struct AssetTagEnsureResult BKE_asset_metadata_tag_ensure(AssetMetaData *asset_data,
                                                           const char *name)
 {

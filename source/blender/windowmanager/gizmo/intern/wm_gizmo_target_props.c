@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -319,10 +305,6 @@ void WM_gizmo_do_msg_notify_tag_refresh(bContext *UNUSED(C),
   WM_gizmomap_tag_refresh(gzmap);
 }
 
-/**
- * Runs on the "prepare draw" pass,
- * drawing the region clears.
- */
 void WM_gizmo_target_property_subscribe_all(wmGizmo *gz, struct wmMsgBus *mbus, ARegion *region)
 {
   if (gz->type->target_property_defs_len) {
@@ -355,9 +337,6 @@ void WM_gizmo_target_property_subscribe_all(wmGizmo *gz, struct wmMsgBus *mbus, 
   }
 }
 
-/**
- * Auto-key function if auto-key is enabled.
- */
 void WM_gizmo_target_property_anim_autokey(bContext *C,
                                            const wmGizmo *UNUSED(gz),
                                            wmGizmoProperty *gz_prop)

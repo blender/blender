@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -444,8 +430,8 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
   int nSamples = 0;
   vector<WFace *> wFaces;
   WFace *wFace = nullptr;
-  unsigned cnt = 0;
-  unsigned cntStep = (unsigned)ceil(0.01f * vedges.size());
+  unsigned count = 0;
+  unsigned count_step = (unsigned)ceil(0.01f * vedges.size());
   unsigned tmpQI = 0;
   unsigned qiClasses[256];
   unsigned maxIndex, maxCard;
@@ -455,13 +441,13 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
       if (iRenderMonitor->testBreak()) {
         break;
       }
-      if (cnt % cntStep == 0) {
+      if (count % count_step == 0) {
         stringstream ss;
-        ss << "Freestyle: Visibility computations " << (100 * cnt / vedges.size()) << "%";
+        ss << "Freestyle: Visibility computations " << (100 * count / vedges.size()) << "%";
         iRenderMonitor->setInfo(ss.str());
-        iRenderMonitor->progress((float)cnt / vedges.size());
+        iRenderMonitor->progress((float)count / vedges.size());
       }
-      cnt++;
+      count++;
     }
 #if LOGGING
     if (_global.debug & G_DEBUG_FREESTYLE) {
@@ -635,9 +621,9 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
   }
   if (iRenderMonitor && !vedges.empty()) {
     stringstream ss;
-    ss << "Freestyle: Visibility computations " << (100 * cnt / vedges.size()) << "%";
+    ss << "Freestyle: Visibility computations " << (100 * count / vedges.size()) << "%";
     iRenderMonitor->setInfo(ss.str());
-    iRenderMonitor->progress((float)cnt / vedges.size());
+    iRenderMonitor->progress((float)count / vedges.size());
   }
 }
 

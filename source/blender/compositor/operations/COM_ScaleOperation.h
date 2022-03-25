@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2011, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. */
 
 #pragma once
 
@@ -90,8 +75,8 @@ class ScaleOperation : public BaseScaleOperation {
   static void scale_area(rcti &area, float relative_scale_x, float relative_scale_y);
   static void get_scale_area_of_interest(const rcti &input_canvas,
                                          const rcti &scale_canvas,
-                                         const float relative_scale_x,
-                                         const float relative_scale_y,
+                                         float relative_scale_x,
+                                         float relative_scale_y,
                                          const rcti &output_area,
                                          rcti &r_input_area);
   static void clamp_area_size_max(rcti &area, Size2f max_size);
@@ -173,6 +158,7 @@ class ScaleFixedSizeOperation : public BaseScaleOperation {
   bool is_offset_;
 
  public:
+  /** Absolute fixed size. */
   ScaleFixedSizeOperation();
   bool determine_depending_area_of_interest(rcti *input,
                                             ReadBufferOperation *read_operation,

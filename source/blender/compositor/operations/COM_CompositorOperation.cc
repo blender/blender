@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2011, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. */
 
 #include "COM_CompositorOperation.h"
 
@@ -105,11 +90,10 @@ void CompositorOperation::deinit_execution()
       re = nullptr;
     }
 
+    Image *image = BKE_image_ensure_viewer(G.main, IMA_TYPE_R_RESULT, "Render Result");
+    BKE_image_partial_update_mark_full_update(image);
     BLI_thread_lock(LOCK_DRAW_IMAGE);
-    BKE_image_signal(G.main,
-                     BKE_image_ensure_viewer(G.main, IMA_TYPE_R_RESULT, "Render Result"),
-                     nullptr,
-                     IMA_SIGNAL_FREE);
+    BKE_image_signal(G.main, image, nullptr, IMA_SIGNAL_FREE);
     BLI_thread_unlock(LOCK_DRAW_IMAGE);
   }
   else {
@@ -130,7 +114,7 @@ void CompositorOperation::deinit_execution()
 
 void CompositorOperation::execute_region(rcti *rect, unsigned int /*tile_number*/)
 {
-  float color[8];  // 7 is enough
+  float color[8]; /* 7 is enough. */
   float *buffer = output_buffer_;
   float *zbuffer = depth_buffer_;
 
@@ -155,7 +139,7 @@ void CompositorOperation::execute_region(rcti *rect, unsigned int /*tile_number*
   if (rd->mode & R_BORDER && rd->mode & R_CROP) {
     /**
      * When using cropped render result, need to re-position area of interest,
-     * so it'll natch bounds of render border within frame. By default, canvas
+     * so it'll match bounds of render border within frame. By default, canvas
      * will be centered between full frame and cropped frame, so we use such
      * scheme to map cropped coordinates to full-frame coordinates
      *

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -165,46 +149,77 @@ typedef struct NlaKeyframingContext {
 
 /* --------------- NLA Functions (not to be used as a proper API) ----------------------- */
 
-/* convert from strip time <-> global time */
+/**
+ * Convert non clipped mapping for strip-time <-> global time:
+ * `mode = eNlaTime_ConvertModes[] -> NLATIME_CONVERT_*`
+ *
+ * Only secure for 'internal' (i.e. within AnimSys evaluation) operations,
+ * but should not be directly relied on for stuff which interacts with editors.
+ */
 float nlastrip_get_frame(NlaStrip *strip, float cframe, short mode);
 
 /* --------------- NLA Evaluation (very-private stuff) ----------------------- */
 /* these functions are only defined here to avoid problems with the order
  * in which they get defined. */
 
+/**
+ * Gets the strip active at the current time for a list of strips for evaluation purposes.
+ */
 NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list,
                                         ListBase *strips,
                                         short index,
                                         const struct AnimationEvalContext *anim_eval_context,
-                                        const bool flush_to_original);
+                                        bool flush_to_original);
+/**
+ * Evaluates the given evaluation strip.
+ */
 void nlastrip_evaluate(PointerRNA *ptr,
                        NlaEvalData *channels,
                        ListBase *modifiers,
                        NlaEvalStrip *nes,
                        NlaEvalSnapshot *snapshot,
                        const struct AnimationEvalContext *anim_eval_context,
-                       const bool flush_to_original);
+                       bool flush_to_original);
+/**
+ * write the accumulated settings to.
+ */
 void nladata_flush_channels(PointerRNA *ptr,
                             NlaEvalData *channels,
                             NlaEvalSnapshot *snapshot,
-                            const bool flush_to_original);
+                            bool flush_to_original);
 
 void nlasnapshot_enable_all_blend_domain(NlaEvalSnapshot *snapshot);
 
 void nlasnapshot_ensure_channels(NlaEvalData *eval_data, NlaEvalSnapshot *snapshot);
 
+/**
+ * Blends the \a lower_snapshot with the \a upper_snapshot into \a r_blended_snapshot according
+ * to the given \a upper_blendmode and \a upper_influence.
+ *
+ * For \a upper_snapshot, blending limited to values in the \a blend_domain.
+ * For Replace blend-mode, this allows the upper snapshot to have a location XYZ channel
+ * where only a subset of values are blended.
+ */
 void nlasnapshot_blend(NlaEvalData *eval_data,
                        NlaEvalSnapshot *lower_snapshot,
                        NlaEvalSnapshot *upper_snapshot,
-                       const short upper_blendmode,
-                       const float upper_influence,
+                       short upper_blendmode,
+                       float upper_influence,
                        NlaEvalSnapshot *r_blended_snapshot);
 
+/**
+ * Using \a blended_snapshot and \a lower_snapshot, we can solve for the \a r_upper_snapshot.
+ *
+ * Only channels that exist within \a blended_snapshot are inverted.
+ *
+ * For \a r_upper_snapshot, disables \a NlaEvalChannelSnapshot->remap_domain for failed inversions.
+ * Only values within the \a remap_domain are processed.
+ */
 void nlasnapshot_blend_get_inverted_upper_snapshot(NlaEvalData *eval_data,
                                                    NlaEvalSnapshot *lower_snapshot,
                                                    NlaEvalSnapshot *blended_snapshot,
-                                                   const short upper_blendmode,
-                                                   const float upper_influence,
+                                                   short upper_blendmode,
+                                                   float upper_influence,
                                                    NlaEvalSnapshot *r_upper_snapshot);
 
 #ifdef __cplusplus

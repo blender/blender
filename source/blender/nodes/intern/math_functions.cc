@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "NOD_math_functions.hh"
 
@@ -127,17 +113,17 @@ const FloatMathOperationInfo *get_float_compare_operation_info(const int operati
   ((void)0)
 
   switch (operation) {
-    case NODE_FLOAT_COMPARE_LESS_THAN:
+    case NODE_COMPARE_LESS_THAN:
       RETURN_OPERATION_INFO("Less Than", "math_less_than");
-    case NODE_FLOAT_COMPARE_LESS_EQUAL:
+    case NODE_COMPARE_LESS_EQUAL:
       RETURN_OPERATION_INFO("Less Than or Equal", "math_less_equal");
-    case NODE_FLOAT_COMPARE_GREATER_THAN:
+    case NODE_COMPARE_GREATER_THAN:
       RETURN_OPERATION_INFO("Greater Than", "math_greater_than");
-    case NODE_FLOAT_COMPARE_GREATER_EQUAL:
+    case NODE_COMPARE_GREATER_EQUAL:
       RETURN_OPERATION_INFO("Greater Than or Equal", "math_greater_equal");
-    case NODE_FLOAT_COMPARE_EQUAL:
+    case NODE_COMPARE_EQUAL:
       RETURN_OPERATION_INFO("Equal", "math_equal");
-    case NODE_FLOAT_COMPARE_NOT_EQUAL:
+    case NODE_COMPARE_NOT_EQUAL:
       RETURN_OPERATION_INFO("Not Equal", "math_not_equal");
   }
 

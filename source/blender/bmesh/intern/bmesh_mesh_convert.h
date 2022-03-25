@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2004 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2004 Blender Foundation. All rights reserved. */
 
 #pragma once
 
@@ -29,8 +13,8 @@ struct CustomData_MeshMasks;
 struct Main;
 struct Mesh;
 
-void BM_mesh_cd_flag_ensure(BMesh *bm, struct Mesh *mesh, const char cd_flag);
-void BM_mesh_cd_flag_apply(BMesh *bm, const char cd_flag);
+void BM_mesh_cd_flag_ensure(BMesh *bm, struct Mesh *mesh, char cd_flag);
+void BM_mesh_cd_flag_apply(BMesh *bm, char cd_flag);
 char BM_mesh_cd_flag_from_bmesh(BMesh *bm);
 
 struct BMeshFromMeshParams {
@@ -43,6 +27,16 @@ struct BMeshFromMeshParams {
   int active_shapekey;
   struct CustomData_MeshMasks cd_mask_extra;
 };
+/**
+ * \brief Mesh -> BMesh
+ * \param bm: The mesh to write into, while this is typically a newly created BMesh,
+ * merging into existing data is supported.
+ * Note the custom-data layout isn't used.
+ * If more comprehensive merging is needed we should move this into a separate function
+ * since this should be kept fast for edit-mode switching and storing undo steps.
+ *
+ * \warning This function doesn't calculate face normals.
+ */
 void BM_mesh_bm_from_me(BMesh *bm, const struct Mesh *me, const struct BMeshFromMeshParams *params)
     ATTR_NONNULL(1, 3);
 
@@ -59,13 +53,39 @@ struct BMeshToMeshParams {
    * that have become invalid from updating the shape-key, see T71865.
    */
   uint update_shapekey_indices : 1;
+  /**
+   * Instead of copying the basis shape-key into the #MVert array,
+   * copy the #BMVert.co directly to #MVert.co (used for reading undo data).
+   */
+  uint active_shapekey_to_mvert : 1;
   struct CustomData_MeshMasks cd_mask_extra;
 };
+/**
+ *
+ * \param bmain: May be NULL in case \a calc_object_remap parameter option is not set.
+ */
 void BM_mesh_bm_to_me(struct Main *bmain,
                       BMesh *bm,
                       struct Mesh *me,
                       const struct BMeshToMeshParams *params) ATTR_NONNULL(2, 3, 4);
 
+/**
+ * A version of #BM_mesh_bm_to_me intended for getting the mesh
+ * to pass to the modifier stack for evaluation,
+ * instead of mode switching (where we make sure all data is kept
+ * and do expensive lookups to maintain shape keys).
+ *
+ * Key differences:
+ *
+ * - Don't support merging with existing mesh.
+ * - Ignore shape-keys.
+ * - Ignore vertex-parents.
+ * - Ignore selection history.
+ * - Uses simpler method to calculate #ME_EDGEDRAW
+ * - Uses #CD_MASK_DERIVEDMESH instead of #CD_MASK_MESH.
+ *
+ * \note Was `cddm_from_bmesh_ex` in 2.7x, removed `MFace` support.
+ */
 void BM_mesh_bm_to_me_for_eval(BMesh *bm,
                                struct Mesh *me,
                                const struct CustomData_MeshMasks *cd_mask_extra)

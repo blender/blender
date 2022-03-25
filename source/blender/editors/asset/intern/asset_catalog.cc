@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edasset
@@ -122,7 +108,7 @@ void ED_asset_catalog_rename(::AssetLibrary *library,
 
 void ED_asset_catalog_move(::AssetLibrary *library,
                            const CatalogID src_catalog_id,
-                           const CatalogID dst_parent_catalog_id)
+                           const std::optional<CatalogID> dst_parent_catalog_id)
 {
   bke::AssetCatalogService *catalog_service = BKE_asset_library_get_catalog_service(library);
   if (!catalog_service) {
@@ -131,9 +117,24 @@ void ED_asset_catalog_move(::AssetLibrary *library,
   }
 
   AssetCatalog *src_catalog = catalog_service->find_catalog(src_catalog_id);
-  AssetCatalog *dst_catalog = catalog_service->find_catalog(dst_parent_catalog_id);
+  if (!src_catalog) {
+    BLI_assert_unreachable();
+    return;
+  }
+  AssetCatalog *dst_catalog = dst_parent_catalog_id ?
+                                  catalog_service->find_catalog(*dst_parent_catalog_id) :
+                                  nullptr;
+  if (!dst_catalog && dst_parent_catalog_id) {
+    BLI_assert_unreachable();
+    return;
+  }
 
-  const AssetCatalogPath new_path = dst_catalog->path / StringRef(src_catalog->path.name());
+  std::string unique_name = catalog_name_ensure_unique(
+      *catalog_service, src_catalog->path.name(), dst_catalog ? dst_catalog->path.c_str() : "");
+  /* If a destination catalog was given, construct the path using that. Otherwise, the path is just
+   * the name of the catalog to be moved, which means it ends up at the root level. */
+  const AssetCatalogPath new_path = dst_catalog ? (dst_catalog->path / unique_name) :
+                                                  AssetCatalogPath{unique_name};
   const AssetCatalogPath clean_new_path = new_path.cleanup();
 
   if (new_path == src_catalog->path || clean_new_path == src_catalog->path) {
@@ -158,7 +159,7 @@ void ED_asset_catalogs_save_from_main_path(::AssetLibrary *library, const Main *
   /* Since writing to disk also means loading any on-disk changes, it may be a good idea to store
    * an undo step. */
   catalog_service->undo_push();
-  catalog_service->write_to_disk(bmain->name);
+  catalog_service->write_to_disk(bmain->filepath);
 }
 
 void ED_asset_catalogs_set_save_catalogs_when_file_is_saved(const bool should_save)

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2019 by Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2019 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -117,7 +101,8 @@ static bool subdiv_mesh_topology_info(const SubdivForeachContext *foreach_contex
                                       const int UNUSED(num_vertices),
                                       const int UNUSED(num_edges),
                                       const int UNUSED(num_loops),
-                                      const int UNUSED(num_polygons))
+                                      const int UNUSED(num_polygons),
+                                      const int *UNUSED(subdiv_polygon_offset))
 {
   SubdivDeformContext *subdiv_context = foreach_context->user_data;
   subdiv_mesh_prepare_accumulator(subdiv_context, subdiv_context->coarse_mesh->totvert);
@@ -202,7 +187,8 @@ void BKE_subdiv_deform_coarse_vertices(struct Subdiv *subdiv,
   BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
   /* Make sure evaluator is up to date with possible new topology, and that
    * is refined for the new positions of coarse vertices. */
-  if (!BKE_subdiv_eval_begin_from_mesh(subdiv, coarse_mesh, vertex_cos)) {
+  if (!BKE_subdiv_eval_begin_from_mesh(
+          subdiv, coarse_mesh, vertex_cos, SUBDIV_EVALUATOR_TYPE_CPU, NULL)) {
     /* This could happen in two situations:
      * - OpenSubdiv is disabled.
      * - Something totally bad happened, and OpenSubdiv rejected our

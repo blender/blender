@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 #pragma once
 
 /** \file
@@ -38,13 +22,34 @@ struct bPoseChannel;
 /* ---------------------------------------------------- */
 /* Animation Visualization */
 
+/**
+ * Initialize the default settings for animation visualization.
+ */
 void animviz_settings_init(struct bAnimVizSettings *avs);
 
+/**
+ * Make a copy of motion-path data, so that viewing with copy on write works.
+ */
 struct bMotionPath *animviz_copy_motionpath(const struct bMotionPath *mpath_src);
 
+/**
+ * Free the given motion path's cache.
+ */
 void animviz_free_motionpath_cache(struct bMotionPath *mpath);
+/**
+ * Free the given motion path instance and its data.
+ * \note this frees the motion path given!
+ */
 void animviz_free_motionpath(struct bMotionPath *mpath);
 
+/**
+ * Setup motion paths for the given data.
+ * \note Only used when explicitly calculating paths on bones which may/may not be consider already
+ *
+ * \param scene: Current scene (for frame ranges, etc.)
+ * \param ob: Object to add paths for (must be provided)
+ * \param pchan: Posechannel to add paths for (optional; if not provided, object-paths are assumed)
+ */
 struct bMotionPath *animviz_verify_motionpaths(struct ReportList *reports,
                                                struct Scene *scene,
                                                struct Object *ob,

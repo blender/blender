@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -553,7 +539,7 @@ static int wm_xr_navigation_grab_modal(bContext *C, wmOperator *op, const wmEven
 
   wm_xr_navigation_grab_bimanual_state_update(actiondata, data);
 
-  /* Note: KM_PRESS and KM_RELEASE are the only two values supported by XR events during event
+  /* NOTE: #KM_PRESS and #KM_RELEASE are the only two values supported by XR events during event
    * dispatching (see #wm_xr_session_action_states_interpret()). For modal XR operators, modal
    * handling starts when an input is "pressed" (action state exceeds the action threshold) and
    * ends when the input is "released" (state falls below the threshold). */
@@ -881,7 +867,7 @@ static void wm_xr_fly_compute_turn(eXrFlyMode mode,
                                    const float nav_inv[4][4],
                                    float r_delta[4][4])
 {
-  BLI_assert(mode == XR_FLY_TURNLEFT || mode == XR_FLY_TURNRIGHT);
+  BLI_assert(ELEM(mode, XR_FLY_TURNLEFT, XR_FLY_TURNRIGHT));
 
   float z_axis[3], m[3][3], prev[4][4], curr[4][4];
 
@@ -956,7 +942,7 @@ static int wm_xr_navigation_fly_modal(bContext *C, wmOperator *op, const wmEvent
   const double time_now = PIL_check_seconds_timer();
 
   mode = (eXrFlyMode)RNA_enum_get(op->ptr, "mode");
-  turn = (mode == XR_FLY_TURNLEFT || mode == XR_FLY_TURNRIGHT);
+  turn = (ELEM(mode, XR_FLY_TURNLEFT, XR_FLY_TURNRIGHT));
 
   locz_lock = RNA_boolean_get(op->ptr, "lock_location_z");
   dir_lock = RNA_boolean_get(op->ptr, "lock_direction");

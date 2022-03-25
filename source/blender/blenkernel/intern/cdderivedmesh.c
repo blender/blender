@@ -1,27 +1,10 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2006 Blender Foundation.
- * All rights reserved.
- * Implementation of CDDerivedMesh.
- *
- * BKE_cdderivedmesh.h contains the function prototypes for this file.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2006 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
+ * Implementation of #CDDerivedMesh.
+ * BKE_cdderivedmesh.h contains the function prototypes for this file.
  */
 
 #include "atomic_ops.h"
@@ -56,6 +39,7 @@ typedef struct {
   /* these point to data in the DerivedMesh custom data layers,
    * they are only here for efficiency and convenience */
   MVert *mvert;
+  const float (*vert_normals)[3];
   MEdge *medge;
   MFace *mface;
   MLoop *mloop;
@@ -115,12 +99,6 @@ static void cdDM_copyEdgeArray(DerivedMesh *dm, MEdge *r_edge)
   memcpy(r_edge, cddm->medge, sizeof(*r_edge) * dm->numEdgeData);
 }
 
-static void cdDM_copyTessFaceArray(DerivedMesh *dm, MFace *r_face)
-{
-  CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  memcpy(r_face, cddm->mface, sizeof(*r_face) * dm->numTessFaceData);
-}
-
 static void cdDM_copyLoopArray(DerivedMesh *dm, MLoop *r_loop)
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
@@ -143,21 +121,7 @@ static void cdDM_getVertCo(DerivedMesh *dm, int index, float r_co[3])
 static void cdDM_getVertNo(DerivedMesh *dm, int index, float r_no[3])
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-  normal_short_to_float_v3(r_no, cddm->mvert[index].no);
-}
-
-static const MeshElemMap *cdDM_getPolyMap(Object *ob, DerivedMesh *dm)
-{
-  CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-
-  if (!cddm->pmap && ob->type == OB_MESH) {
-    Mesh *me = ob->data;
-
-    BKE_mesh_vert_poly_map_create(
-        &cddm->pmap, &cddm->pmap_mem, me->mpoly, me->mloop, me->totvert, me->totpoly, me->totloop);
-  }
-
-  return cddm->pmap;
+  copy_v3_v3(r_no, cddm->vert_normals[index]);
 }
 
 static void cdDM_recalc_looptri(DerivedMesh *dm)
@@ -215,23 +179,16 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 
   dm->copyVertArray = cdDM_copyVertArray;
   dm->copyEdgeArray = cdDM_copyEdgeArray;
-  dm->copyTessFaceArray = cdDM_copyTessFaceArray;
   dm->copyLoopArray = cdDM_copyLoopArray;
   dm->copyPolyArray = cdDM_copyPolyArray;
 
-  dm->getVertData = DM_get_vert_data;
-  dm->getEdgeData = DM_get_edge_data;
-  dm->getTessFaceData = DM_get_tessface_data;
   dm->getVertDataArray = DM_get_vert_data_layer;
   dm->getEdgeDataArray = DM_get_edge_data_layer;
-  dm->getTessFaceDataArray = DM_get_tessface_data_layer;
 
   dm->recalcLoopTri = cdDM_recalc_looptri;
 
   dm->getVertCo = cdDM_getVertCo;
   dm->getVertNo = cdDM_getVertNo;
-
-  dm->getPolyMap = cdDM_getPolyMap;
 
   dm->release = cdDM_release;
 
@@ -264,12 +221,6 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
   dm->deformedOnly = 1;
   dm->cd_flag = mesh->cd_flag;
 
-  if (mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) {
-    dm->dirty |= DM_DIRTY_NORMALS;
-  }
-  /* TODO: DM_DIRTY_TESS_CDLAYERS ? Maybe not though,
-   * since we probably want to switch to looptris? */
-
   CustomData_merge(&mesh->vdata, &dm->vertData, cddata_masks.vmask, alloctype, mesh->totvert);
   CustomData_merge(&mesh->edata, &dm->edgeData, cddata_masks.emask, alloctype, mesh->totedge);
   CustomData_merge(&mesh->fdata,
@@ -281,6 +232,9 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh,
   CustomData_merge(&mesh->pdata, &dm->polyData, cddata_masks.pmask, alloctype, mesh->totpoly);
 
   cddm->mvert = CustomData_get_layer(&dm->vertData, CD_MVERT);
+  /* Though this may be an unnecessary calculation, simply retrieving the layer may return nothing
+   * or dirty normals. */
+  cddm->vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
   cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
   cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
   cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
@@ -325,12 +279,6 @@ DerivedMesh *CDDM_copy(DerivedMesh *source)
   DM_from_template(dm, source, DM_TYPE_CDDM, numVerts, numEdges, numTessFaces, numLoops, numPolys);
   dm->deformedOnly = source->deformedOnly;
   dm->cd_flag = source->cd_flag;
-  dm->dirty = source->dirty;
-
-  /* Tessellation data is never copied, so tag it here.
-   * Only tag dirty layers if we really ignored tessellation faces.
-   */
-  dm->dirty |= DM_DIRTY_TESS_CDLAYERS;
 
   CustomData_copy_data(&source->vertData, &dm->vertData, 0, 0, numVerts);
   CustomData_copy_data(&source->edgeData, &dm->edgeData, 0, 0, numEdges);

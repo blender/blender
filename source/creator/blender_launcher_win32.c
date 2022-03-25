@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <Windows.h>
 #include <strsafe.h>
@@ -79,7 +65,26 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
   BOOL success = CreateProcess(
       path, buffer, NULL, NULL, TRUE, CREATE_NEW_CONSOLE, NULL, NULL, &siStartInfo, &procInfo);
 
+  DWORD returnValue = success ? 0 : -1;
+
   if (success) {
+    /* If blender-launcher is called with background command line flag,
+     * wait for the blender process to exit and return its return value. */
+    BOOL background = FALSE;
+    int argc = 0;
+    LPWSTR *argv = CommandLineToArgvW(pCmdLine, &argc);
+    for (int i = 0; i < argc; i++) {
+      if ((wcscmp(argv[i], L"-b") == 0) || (wcscmp(argv[i], L"--background") == 0)) {
+        background = TRUE;
+        break;
+      }
+    }
+
+    if (background) {
+      WaitForSingleObject(procInfo.hProcess, INFINITE);
+      GetExitCodeProcess(procInfo.hProcess, &returnValue);
+    }
+
     /* Handles in PROCESS_INFORMATION must be closed with CloseHandle when they are no longer
      * needed - MSDN. Closing the handles will NOT terminate the thread/process that we just
      * started. */
@@ -88,5 +93,5 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
   }
 
   free(buffer);
-  return success ? 0 : -1;
+  return returnValue;
 }

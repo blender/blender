@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -22,12 +8,15 @@
 
 #include <string.h>
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
@@ -42,25 +31,32 @@
 #include "DNA_listBase.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_text_types.h"
 #include "DNA_workspace_types.h"
 
 #include "BKE_action.h"
+#include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_asset.h"
 #include "BKE_collection.h"
+#include "BKE_curve.h"
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_idprop.h"
+#include "BKE_image.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_override.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "BLO_readfile.h"
 #include "MEM_guardedalloc.h"
@@ -68,10 +64,13 @@
 
 #include "SEQ_iterator.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 
 #include "RNA_access.h"
 
 #include "versioning_common.h"
+
+static CLG_LogRef LOG = {"blo.readfile.doversion"};
 
 static IDProperty *idproperty_find_ui_container(IDProperty *idprop_group)
 {
@@ -528,7 +527,6 @@ static void version_geometry_nodes_add_realize_instance_nodes(bNodeTree *ntree)
              GEO_NODE_TRIM_CURVE,
              GEO_NODE_REPLACE_MATERIAL,
              GEO_NODE_SUBDIVIDE_MESH,
-             GEO_NODE_ATTRIBUTE_REMOVE,
              GEO_NODE_TRIANGULATE)) {
       bNodeSocket *geometry_socket = node->inputs.first;
       add_realize_instances_before_socket(ntree, node, geometry_socket);
@@ -585,7 +583,7 @@ static bNodeTree *add_realize_node_tree(Main *bmain)
     nodeSetSelected(node, false);
   }
 
-  ntreeUpdateTree(bmain, node_tree);
+  version_socket_update_is_used(node_tree);
   return node_tree;
 }
 
@@ -601,30 +599,6 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 3)) {
-    /* Use new texture socket in Attribute Sample Texture node. */
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      if (ntree->type != NTREE_GEOMETRY) {
-        continue;
-      }
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type != GEO_NODE_LEGACY_ATTRIBUTE_SAMPLE_TEXTURE) {
-          continue;
-        }
-        if (node->id == NULL) {
-          continue;
-        }
-        LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-          if (socket->type == SOCK_TEXTURE) {
-            bNodeSocketValueTexture *socket_value = (bNodeSocketValueTexture *)
-                                                        socket->default_value;
-            socket_value->value = (Tex *)node->id;
-            break;
-          }
-        }
-        node->id = NULL;
-      }
-    }
-
     sort_linked_ids(bmain);
     assert_sorted_ids(bmain);
   }
@@ -767,6 +741,42 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
             add_realize_instances_before_socket(ntree, node, geometry_socket);
           }
         }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 301, 6)) {
+    { /* Ensure driver variable names are unique within the driver. */
+      ID *id;
+      FOREACH_MAIN_ID_BEGIN (bmain, id) {
+        AnimData *adt = BKE_animdata_from_id(id);
+        if (adt == NULL) {
+          continue;
+        }
+        LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
+          ChannelDriver *driver = fcu->driver;
+          /* Ensure the uniqueness front to back. Given a list of identically
+           * named variables, the last one gets to keep its original name. This
+           * matches the evaluation order, and thus shouldn't change the evaluated
+           * value of the driver expression. */
+          LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
+            BLI_uniquename(&driver->variables,
+                           dvar,
+                           dvar->name,
+                           '_',
+                           offsetof(DriverVar, name),
+                           sizeof(dvar->name));
+          }
+        }
+      }
+      FOREACH_MAIN_ID_END;
+    }
+
+    /* Ensure tiled image sources contain a UDIM token. */
+    LISTBASE_FOREACH (Image *, ima, &bmain->images) {
+      if (ima->source == IMA_SRC_TILED) {
+        char *filename = (char *)BLI_path_basename(ima->filepath);
+        BKE_image_ensure_tile_token(filename);
       }
     }
   }
@@ -916,146 +926,20 @@ static bNodeSocket *do_version_replace_float_size_with_vector(bNodeTree *ntree,
   return new_socket;
 }
 
-static bool geometry_node_is_293_legacy(const short node_type)
-{
-  switch (node_type) {
-    /* Not legacy: No attribute inputs or outputs. */
-    case GEO_NODE_TRIANGULATE:
-    case GEO_NODE_TRANSFORM:
-    case GEO_NODE_MESH_BOOLEAN:
-    case GEO_NODE_IS_VIEWPORT:
-    case GEO_NODE_SUBDIVIDE_MESH:
-    case GEO_NODE_MESH_PRIMITIVE_CUBE:
-    case GEO_NODE_MESH_PRIMITIVE_CIRCLE:
-    case GEO_NODE_MESH_PRIMITIVE_UV_SPHERE:
-    case GEO_NODE_MESH_PRIMITIVE_CYLINDER:
-    case GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE:
-    case GEO_NODE_MESH_PRIMITIVE_CONE:
-    case GEO_NODE_MESH_PRIMITIVE_LINE:
-    case GEO_NODE_MESH_PRIMITIVE_GRID:
-    case GEO_NODE_BOUNDING_BOX:
-    case GEO_NODE_RESAMPLE_CURVE:
-    case GEO_NODE_INPUT_MATERIAL:
-    case GEO_NODE_REPLACE_MATERIAL:
-    case GEO_NODE_CURVE_LENGTH:
-    case GEO_NODE_CONVEX_HULL:
-    case GEO_NODE_SEPARATE_COMPONENTS:
-    case GEO_NODE_CURVE_PRIMITIVE_STAR:
-    case GEO_NODE_CURVE_PRIMITIVE_SPIRAL:
-    case GEO_NODE_CURVE_PRIMITIVE_QUADRATIC_BEZIER:
-    case GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT:
-    case GEO_NODE_CURVE_PRIMITIVE_CIRCLE:
-    case GEO_NODE_VIEWER:
-    case GEO_NODE_CURVE_PRIMITIVE_LINE:
-    case GEO_NODE_CURVE_PRIMITIVE_QUADRILATERAL:
-    case GEO_NODE_FILL_CURVE:
-    case GEO_NODE_TRIM_CURVE:
-    case GEO_NODE_CURVE_TO_MESH:
-      return false;
-
-    /* Not legacy: Newly added with fields patch. */
-    case GEO_NODE_INPUT_POSITION:
-    case GEO_NODE_SET_POSITION:
-    case GEO_NODE_INPUT_INDEX:
-    case GEO_NODE_INPUT_NORMAL:
-    case GEO_NODE_CAPTURE_ATTRIBUTE:
-      return false;
-
-    /* Maybe legacy: Might need special attribute handling, depending on design. */
-    case GEO_NODE_SWITCH:
-    case GEO_NODE_JOIN_GEOMETRY:
-    case GEO_NODE_ATTRIBUTE_REMOVE:
-    case GEO_NODE_OBJECT_INFO:
-    case GEO_NODE_COLLECTION_INFO:
-      return false;
-
-    /* Maybe legacy: Special case for grid names? Or finish patch from level set branch to
-     * generate a mesh for all grids in the volume. */
-    case GEO_NODE_LEGACY_VOLUME_TO_MESH:
-      return false;
-
-    /* Legacy: Transferred *all* attributes before, will not transfer all built-ins now. */
-    case GEO_NODE_LEGACY_CURVE_ENDPOINTS:
-    case GEO_NODE_LEGACY_CURVE_TO_POINTS:
-      return true;
-
-    /* Legacy: Attribute operation completely replaced by field nodes. */
-    case GEO_NODE_LEGACY_ATTRIBUTE_RANDOMIZE:
-    case GEO_NODE_LEGACY_ATTRIBUTE_MATH:
-    case GEO_NODE_LEGACY_ATTRIBUTE_FILL:
-    case GEO_NODE_LEGACY_ATTRIBUTE_MIX:
-    case GEO_NODE_LEGACY_ATTRIBUTE_COLOR_RAMP:
-    case GEO_NODE_LEGACY_ATTRIBUTE_COMPARE:
-    case GEO_NODE_LEGACY_POINT_ROTATE:
-    case GEO_NODE_LEGACY_ALIGN_ROTATION_TO_VECTOR:
-    case GEO_NODE_LEGACY_POINT_SCALE:
-    case GEO_NODE_LEGACY_ATTRIBUTE_SAMPLE_TEXTURE:
-    case GEO_NODE_LEGACY_ATTRIBUTE_VECTOR_ROTATE:
-    case GEO_NODE_LEGACY_ATTRIBUTE_CURVE_MAP:
-    case GEO_NODE_LEGACY_ATTRIBUTE_MAP_RANGE:
-    case GEO_NODE_LEGACY_ATTRIBUTE_CLAMP:
-    case GEO_NODE_LEGACY_ATTRIBUTE_VECTOR_MATH:
-    case GEO_NODE_LEGACY_ATTRIBUTE_COMBINE_XYZ:
-    case GEO_NODE_LEGACY_ATTRIBUTE_SEPARATE_XYZ:
-      return true;
-
-    /* Legacy: Replaced by field node depending on another geometry. */
-    case GEO_NODE_LEGACY_RAYCAST:
-    case GEO_NODE_LEGACY_ATTRIBUTE_TRANSFER:
-    case GEO_NODE_LEGACY_ATTRIBUTE_PROXIMITY:
-      return true;
-
-    /* Legacy: Simple selection attribute input. */
-    case GEO_NODE_LEGACY_MESH_TO_CURVE:
-    case GEO_NODE_LEGACY_POINT_SEPARATE:
-    case GEO_NODE_LEGACY_CURVE_SELECT_HANDLES:
-    case GEO_NODE_LEGACY_CURVE_SPLINE_TYPE:
-    case GEO_NODE_LEGACY_CURVE_REVERSE:
-    case GEO_NODE_LEGACY_MATERIAL_ASSIGN:
-    case GEO_NODE_LEGACY_CURVE_SET_HANDLES:
-      return true;
-
-      /* Legacy: More complex attribute inputs or outputs. */
-    case GEO_NODE_LEGACY_SUBDIVISION_SURFACE: /* Used "crease" attribute. */
-    case GEO_NODE_LEGACY_EDGE_SPLIT:          /* Needs selection input version. */
-    case GEO_NODE_LEGACY_DELETE_GEOMETRY:     /* Needs field input, domain drop-down. */
-    case GEO_NODE_LEGACY_CURVE_SUBDIVIDE:     /* Needs field count input. */
-    case GEO_NODE_LEGACY_POINTS_TO_VOLUME:    /* Needs field radius input. */
-    case GEO_NODE_LEGACY_SELECT_BY_MATERIAL:  /* Output anonymous attribute. */
-    case GEO_NODE_LEGACY_POINT_TRANSLATE:     /* Needs field inputs. */
-    case GEO_NODE_LEGACY_POINT_INSTANCE:      /* Needs field inputs. */
-    case GEO_NODE_LEGACY_POINT_DISTRIBUTE:    /* Needs field input, remove max for random mode. */
-    case GEO_NODE_LEGACY_ATTRIBUTE_CONVERT:   /* Attribute Capture, Store Attribute. */
-      return true;
-  }
-  return false;
-}
-
-static void version_geometry_nodes_change_legacy_names(bNodeTree *ntree)
-{
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (geometry_node_is_293_legacy(node->type)) {
-      if (strstr(node->idname, "Legacy")) {
-        /* Make sure we haven't changed this idname already, better safe than sorry. */
-        continue;
-      }
-
-      char temp_idname[sizeof(node->idname)];
-      BLI_strncpy(temp_idname, node->idname, sizeof(node->idname));
-
-      BLI_snprintf(node->idname,
-                   sizeof(node->idname),
-                   "GeometryNodeLegacy%s",
-                   temp_idname + strlen("GeometryNode"));
-    }
-  }
-}
-
 static bool seq_transform_origin_set(Sequence *seq, void *UNUSED(user_data))
 {
   StripTransform *transform = seq->strip->transform;
   if (seq->strip->transform != NULL) {
     transform->origin[0] = transform->origin[1] = 0.5f;
+  }
+  return true;
+}
+
+static bool seq_transform_filter_set(Sequence *seq, void *UNUSED(user_data))
+{
+  StripTransform *transform = seq->strip->transform;
+  if (seq->strip->transform != NULL) {
+    transform->filter = SEQ_TRANSFORM_FILTER_BILINEAR;
   }
   return true;
 }
@@ -1129,7 +1013,7 @@ static void legacy_vec_roll_to_mat3_normalized(const float nor[3],
   const float z = nor[2];
 
   const float theta = 1.0f + y;          /* remapping Y from [-1,+1] to [0,2]. */
-  const float theta_alt = x * x + z * z; /* Helper value for matrix calculations.*/
+  const float theta_alt = x * x + z * z; /* Helper value for matrix calculations. */
   float rMatrix[3][3], bMatrix[3][3];
 
   BLI_ASSERT_UNIT_V3(nor);
@@ -1284,9 +1168,165 @@ static void version_node_tree_socket_id_delim(bNodeTree *ntree)
   }
 }
 
+static bool version_fix_seq_meta_range(Sequence *seq, void *user_data)
+{
+  Scene *scene = (Scene *)user_data;
+  if (seq->type == SEQ_TYPE_META) {
+    SEQ_time_update_meta_strip_range(scene, seq);
+  }
+  return true;
+}
+
+/* Those `version_liboverride_rnacollections_*` functions mimic the old, pre-3.0 code to find
+ * anchor and source items in the given list of modifiers, constraints etc., using only the
+ * `subitem_local` data of the override property operation.
+ *
+ * Then they convert it into the new, proper `subitem_reference` data for the anchor, and
+ * `subitem_local` for the source.
+ *
+ * NOTE: Here only the stored override ID is available, unlike in the `override_apply` functions.
+ */
+
+static void version_liboverride_rnacollections_insertion_object_constraints(
+    ListBase *constraints, IDOverrideLibraryProperty *op)
+{
+  LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+    if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
+      continue;
+    }
+    bConstraint *constraint_anchor = BLI_listbase_string_or_index_find(constraints,
+                                                                       opop->subitem_local_name,
+                                                                       offsetof(bConstraint, name),
+                                                                       opop->subitem_local_index);
+    bConstraint *constraint_src = constraint_anchor != NULL ? constraint_anchor->next :
+                                                              constraints->first;
+
+    if (constraint_src == NULL) {
+      /* Invalid case, just remove that override property operation. */
+      CLOG_ERROR(&LOG, "Could not find source constraint in stored override data");
+      BKE_lib_override_library_property_operation_delete(op, opop);
+      continue;
+    }
+
+    opop->subitem_reference_name = opop->subitem_local_name;
+    opop->subitem_local_name = BLI_strdup(constraint_src->name);
+    opop->subitem_reference_index = opop->subitem_local_index;
+    opop->subitem_local_index++;
+  }
+}
+
+static void version_liboverride_rnacollections_insertion_object(Object *object)
+{
+  IDOverrideLibrary *liboverride = object->id.override_library;
+  IDOverrideLibraryProperty *op;
+
+  op = BKE_lib_override_library_property_find(liboverride, "modifiers");
+  if (op != NULL) {
+    LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+      if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
+        continue;
+      }
+      ModifierData *mod_anchor = BLI_listbase_string_or_index_find(&object->modifiers,
+                                                                   opop->subitem_local_name,
+                                                                   offsetof(ModifierData, name),
+                                                                   opop->subitem_local_index);
+      ModifierData *mod_src = mod_anchor != NULL ? mod_anchor->next : object->modifiers.first;
+
+      if (mod_src == NULL) {
+        /* Invalid case, just remove that override property operation. */
+        CLOG_ERROR(&LOG, "Could not find source modifier in stored override data");
+        BKE_lib_override_library_property_operation_delete(op, opop);
+        continue;
+      }
+
+      opop->subitem_reference_name = opop->subitem_local_name;
+      opop->subitem_local_name = BLI_strdup(mod_src->name);
+      opop->subitem_reference_index = opop->subitem_local_index;
+      opop->subitem_local_index++;
+    }
+  }
+
+  op = BKE_lib_override_library_property_find(liboverride, "grease_pencil_modifiers");
+  if (op != NULL) {
+    LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+      if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
+        continue;
+      }
+      GpencilModifierData *gp_mod_anchor = BLI_listbase_string_or_index_find(
+          &object->greasepencil_modifiers,
+          opop->subitem_local_name,
+          offsetof(GpencilModifierData, name),
+          opop->subitem_local_index);
+      GpencilModifierData *gp_mod_src = gp_mod_anchor != NULL ?
+                                            gp_mod_anchor->next :
+                                            object->greasepencil_modifiers.first;
+
+      if (gp_mod_src == NULL) {
+        /* Invalid case, just remove that override property operation. */
+        CLOG_ERROR(&LOG, "Could not find source GP modifier in stored override data");
+        BKE_lib_override_library_property_operation_delete(op, opop);
+        continue;
+      }
+
+      opop->subitem_reference_name = opop->subitem_local_name;
+      opop->subitem_local_name = BLI_strdup(gp_mod_src->name);
+      opop->subitem_reference_index = opop->subitem_local_index;
+      opop->subitem_local_index++;
+    }
+  }
+
+  op = BKE_lib_override_library_property_find(liboverride, "constraints");
+  if (op != NULL) {
+    version_liboverride_rnacollections_insertion_object_constraints(&object->constraints, op);
+  }
+
+  if (object->pose != NULL) {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
+      char rna_path[FILE_MAXFILE];
+      BLI_snprintf(rna_path, sizeof(rna_path), "pose.bones[\"%s\"].constraints", pchan->name);
+      op = BKE_lib_override_library_property_find(liboverride, rna_path);
+      if (op != NULL) {
+        version_liboverride_rnacollections_insertion_object_constraints(&pchan->constraints, op);
+      }
+    }
+  }
+}
+
+static void version_liboverride_rnacollections_insertion_animdata(ID *id)
+{
+  AnimData *anim_data = BKE_animdata_from_id(id);
+  if (anim_data == NULL) {
+    return;
+  }
+
+  IDOverrideLibrary *liboverride = id->override_library;
+  IDOverrideLibraryProperty *op;
+
+  op = BKE_lib_override_library_property_find(liboverride, "animation_data.nla_tracks");
+  if (op != NULL) {
+    LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+      if (opop->operation != IDOVERRIDE_LIBRARY_OP_INSERT_AFTER) {
+        continue;
+      }
+      /* NLA tracks are only referenced by index, which limits possibilities, basically they are
+       * always added at the end of the list, see #rna_NLA_tracks_override_apply.
+       *
+       * This makes things simple here. */
+      opop->subitem_reference_name = opop->subitem_local_name;
+      opop->subitem_local_name = NULL;
+      opop->subitem_reference_index = opop->subitem_local_index;
+      opop->subitem_local_index++;
+    }
+  }
+}
+
 /* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
+  /* The #SCE_SNAP_SEQ flag has been removed in favor of the #SCE_SNAP which can be used for each
+   * snap_flag member individually. */
+  enum { SCE_SNAP_SEQ = (1 << 7) };
+
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 1)) {
     /* Set default value for the new bisect_threshold parameter in the mirror modifier. */
     if (!DNA_struct_elem_find(fd->filesdna, "MirrorModifierData", "float", "bisect_threshold")) {
@@ -1673,24 +1713,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 19)) {
-    /* Add node storage for subdivision surface node. */
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (ntree->type == NTREE_GEOMETRY) {
-        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == GEO_NODE_LEGACY_SUBDIVISION_SURFACE) {
-            if (node->storage == NULL) {
-              NodeGeometrySubdivisionSurface *data = MEM_callocN(
-                  sizeof(NodeGeometrySubdivisionSurface), __func__);
-              data->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES;
-              data->boundary_smooth = SUBSURF_BOUNDARY_SMOOTH_ALL;
-              node->storage = data;
-            }
-          }
-        }
-      }
-    }
-    FOREACH_NODETREE_END;
-
     /* Disable Fade Inactive Overlay by default as it is redundant after introducing flash on
      * mode transfer. */
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
@@ -1876,7 +1898,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
               SpaceFile *sfile = (SpaceFile *)sl;
               if (sfile->params) {
                 sfile->params->flag &= ~(FILE_PARAMS_FLAG_UNUSED_1 | FILE_PARAMS_FLAG_UNUSED_2 |
-                                         FILE_PARAMS_FLAG_UNUSED_3 | FILE_PARAMS_FLAG_UNUSED_4);
+                                         FILE_PARAMS_FLAG_UNUSED_3 | FILE_PATH_TOKENS_ALLOW);
               }
 
               /* New default import type: Append with reuse. */
@@ -1889,30 +1911,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
               break;
           }
         }
-      }
-    }
-
-    /* Deprecate the random float node in favor of the random value node. */
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      if (ntree->type != NTREE_GEOMETRY) {
-        continue;
-      }
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type != FN_NODE_LEGACY_RANDOM_FLOAT) {
-          continue;
-        }
-        if (strstr(node->idname, "Legacy")) {
-          /* Make sure we haven't changed this idname already. */
-          continue;
-        }
-
-        char temp_idname[sizeof(node->idname)];
-        BLI_strncpy(temp_idname, node->idname, sizeof(node->idname));
-
-        BLI_snprintf(node->idname,
-                     sizeof(node->idname),
-                     "FunctionNodeLegacy%s",
-                     temp_idname + strlen("FunctionNode"));
       }
     }
   }
@@ -1939,12 +1937,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             }
           }
         }
-      }
-    }
-
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      if (ntree->type == NTREE_GEOMETRY) {
-        version_geometry_nodes_change_legacy_names(ntree);
       }
     }
   }
@@ -2032,7 +2024,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       if (ntree->type != NTREE_GEOMETRY) {
         continue;
       }
-      version_node_id(ntree, FN_NODE_COMPARE_FLOATS, "FunctionNodeCompareFloats");
+      version_node_id(ntree, FN_NODE_COMPARE, "FunctionNodeCompareFloats");
       version_node_id(ntree, GEO_NODE_CAPTURE_ATTRIBUTE, "GeometryNodeCaptureAttribute");
       version_node_id(ntree, GEO_NODE_MESH_BOOLEAN, "GeometryNodeMeshBoolean");
       version_node_id(ntree, GEO_NODE_FILL_CURVE, "GeometryNodeFillCurve");
@@ -2104,7 +2096,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
       version_node_id(ntree, FN_NODE_SLICE_STRING, "FunctionNodeSliceString");
       version_geometry_nodes_set_position_node_offset(ntree);
-      version_node_id(ntree, GEO_NODE_LEGACY_VOLUME_TO_MESH, "GeometryNodeLegacyVolumeToMesh");
     }
 
     /* Add storage to viewer node. */
@@ -2160,6 +2151,272 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 42)) {
+    /* Use consistent socket identifiers for the math node.
+     * The code to make unique identifiers from the names was inconsistent. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_CUSTOM) {
+        version_node_tree_socket_id_delim(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_SEQ) {
+            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                   &sl->regionbase;
+            LISTBASE_FOREACH (ARegion *, region, regionbase) {
+              if (region->regiontype == RGN_TYPE_WINDOW) {
+                region->v2d.min[1] = 1.0f;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    /* Change minimum zoom to 0.05f in the node editor. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_NODE) {
+            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                   &sl->regionbase;
+            LISTBASE_FOREACH (ARegion *, region, regionbase) {
+              if (region->regiontype == RGN_TYPE_WINDOW) {
+                if (region->v2d.minzoom > 0.05f) {
+                  region->v2d.minzoom = 0.05f;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      /* Make sure range of meta strips is correct.
+       * It was possible to save .blend file with incorrect state of meta strip
+       * range. The root cause is expected to be fixed, but need to ensure files
+       * with invalid meta strip range are corrected. */
+      if (ed != NULL) {
+        SEQ_for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
+      }
+    }
+  }
+
+  /* Special case to handle older in-development 3.1 files, before change from 3.0 branch gets
+   * merged in master. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 300, 42) ||
+      (bmain->versionfile == 301 && !MAIN_VERSION_ATLEAST(bmain, 301, 3))) {
+    /* Update LibOverride operations regarding insertions in RNA collections (i.e. modifiers,
+     * constraints and NLA tracks). */
+    ID *id_iter;
+    FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+      if (ID_IS_OVERRIDE_LIBRARY_REAL(id_iter)) {
+        version_liboverride_rnacollections_insertion_animdata(id_iter);
+        if (GS(id_iter->name) == ID_OB) {
+          version_liboverride_rnacollections_insertion_object((Object *)id_iter);
+        }
+      }
+    }
+    FOREACH_MAIN_ID_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 301, 4)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      version_node_id(ntree, GEO_NODE_CURVE_SPLINE_PARAMETER, "GeometryNodeSplineParameter");
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type == GEO_NODE_CURVE_SPLINE_PARAMETER) {
+          version_node_add_socket_if_not_exist(
+              ntree, node, SOCK_OUT, SOCK_INT, PROP_NONE, "Index", "Index");
+        }
+
+        /* Convert float compare into a more general compare node. */
+        if (node->type == FN_NODE_COMPARE) {
+          if (node->storage == NULL) {
+            NodeFunctionCompare *data = (NodeFunctionCompare *)MEM_callocN(
+                sizeof(NodeFunctionCompare), __func__);
+            data->data_type = SOCK_FLOAT;
+            data->operation = node->custom1;
+            strcpy(node->idname, "FunctionNodeCompare");
+            node->storage = data;
+          }
+        }
+      }
+    }
+
+    /* Add a toggle for the breadcrumbs overlay in the node editor. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+          if (space->spacetype == SPACE_NODE) {
+            SpaceNode *snode = (SpaceNode *)space;
+            snode->overlay.flag |= SN_OVERLAY_SHOW_PATH;
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 301, 5)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type != NTREE_GEOMETRY) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type != GEO_NODE_REALIZE_INSTANCES) {
+          continue;
+        }
+        node->custom1 |= GEO_NODE_REALIZE_INSTANCES_LEGACY_BEHAVIOR;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 301, 6)) {
+    /* Add node storage for map range node. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type == SH_NODE_MAP_RANGE) {
+          if (node->storage == NULL) {
+            NodeMapRange *data = MEM_callocN(sizeof(NodeMapRange), __func__);
+            data->clamp = node->custom1;
+            data->data_type = CD_PROP_FLOAT;
+            data->interpolation_type = node->custom2;
+            node->storage = data;
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+
+    /* Update spreadsheet data set region type. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_SPREADSHEET) {
+            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                   &sl->regionbase;
+            LISTBASE_FOREACH (ARegion *, region, regionbase) {
+              if (region->regiontype == RGN_TYPE_CHANNELS) {
+                region->regiontype = RGN_TYPE_TOOLS;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    /* Initialize the bone wireframe opacity setting. */
+    if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "bone_wire_alpha")) {
+      for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+            if (sl->spacetype == SPACE_VIEW3D) {
+              View3D *v3d = (View3D *)sl;
+              v3d->overlay.bone_wire_alpha = 1.0f;
+            }
+          }
+        }
+      }
+    }
+
+    /* Rename sockets on multiple nodes */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_node_output_socket_name(
+            ntree, GEO_NODE_STRING_TO_CURVES, "Curves", "Curve Instances");
+        version_node_output_socket_name(
+            ntree, GEO_NODE_INPUT_MESH_EDGE_ANGLE, "Angle", "Unsigned Angle");
+        version_node_output_socket_name(
+            ntree, GEO_NODE_INPUT_MESH_ISLAND, "Index", "Island Index");
+        version_node_input_socket_name(ntree, GEO_NODE_TRANSFER_ATTRIBUTE, "Target", "Source");
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 301, 7) ||
+      (bmain->versionfile == 302 && !MAIN_VERSION_ATLEAST(bmain, 302, 4))) {
+    /* Duplicate value for two flags that mistakenly had the same numeric value. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_WeightVGProximity) {
+          WeightVGProximityModifierData *wpmd = (WeightVGProximityModifierData *)md;
+          if (wpmd->proximity_flags & MOD_WVG_PROXIMITY_INVERT_VGROUP_MASK) {
+            wpmd->proximity_flags |= MOD_WVG_PROXIMITY_WEIGHTS_NORMALIZE;
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 302, 2)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->ed != NULL) {
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_transform_filter_set, NULL);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 302, 6)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *ts = scene->toolsettings;
+      if (ts->uv_relax_method == 0) {
+        ts->uv_relax_method = UV_SCULPT_TOOL_RELAX_LAPLACIAN;
+      }
+    }
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *tool_settings = scene->toolsettings;
+      tool_settings->snap_flag_seq = tool_settings->snap_flag & ~(SCE_SNAP | SCE_SNAP_SEQ);
+      if (tool_settings->snap_flag & SCE_SNAP_SEQ) {
+        tool_settings->snap_flag_seq |= SCE_SNAP;
+        tool_settings->snap_flag &= ~SCE_SNAP_SEQ;
+      }
+
+      tool_settings->snap_flag_node = tool_settings->snap_flag;
+      tool_settings->snap_uv_flag |= tool_settings->snap_flag & SCE_SNAP;
+    }
+
+    /* Alter NURBS knot mode flags to fit new modes. */
+    LISTBASE_FOREACH (Curve *, curve, &bmain->curves) {
+      LISTBASE_FOREACH (Nurb *, nurb, &curve->nurb) {
+        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
+        if (nurb->flagu & CU_NURB_CYCLIC) {
+          nurb->flagu = CU_NURB_CYCLIC;
+        }
+        /* CU_NURB_BEZIER and CU_NURB_ENDPOINT were ignored if combined. */
+        else if (nurb->flagu & CU_NURB_BEZIER && nurb->flagu & CU_NURB_ENDPOINT) {
+          nurb->flagu &= ~(CU_NURB_BEZIER | CU_NURB_ENDPOINT);
+          BKE_nurb_knot_calc_u(nurb);
+        }
+        /* Bezier NURBS of order 3 were clamped to first control point. */
+        else if (nurb->orderu == 3 && (nurb->flagu & CU_NURB_BEZIER)) {
+          nurb->flagu |= CU_NURB_ENDPOINT;
+        }
+
+        /* Previously other flags were ignored if CU_NURB_CYCLIC is set. */
+        if (nurb->flagv & CU_NURB_CYCLIC) {
+          nurb->flagv = CU_NURB_CYCLIC;
+        }
+        /* CU_NURB_BEZIER and CU_NURB_ENDPOINT were ignored if used together. */
+        else if (nurb->flagv & CU_NURB_BEZIER && nurb->flagv & CU_NURB_ENDPOINT) {
+          nurb->flagv &= ~(CU_NURB_BEZIER | CU_NURB_ENDPOINT);
+          BKE_nurb_knot_calc_v(nurb);
+        }
+        /* Bezier NURBS of order 3 were clamped to first control point. */
+        else if (nurb->orderv == 3 && (nurb->flagv & CU_NURB_BEZIER)) {
+          nurb->flagv |= CU_NURB_ENDPOINT;
+        }
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -2172,11 +2429,22 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
   {
     /* Keep this block, even when empty. */
 
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (ntree->type != NTREE_CUSTOM) {
-        version_node_tree_socket_id_delim(ntree);
+    /* Initialize brush curves sculpt settings. */
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->ob_mode != OB_MODE_SCULPT_CURVES) {
+        continue;
+      }
+      if (brush->curves_sculpt_settings != NULL) {
+        continue;
+      }
+      brush->curves_sculpt_settings = MEM_callocN(sizeof(BrushCurvesSculptSettings), __func__);
+      brush->curves_sculpt_settings->add_amount = 1;
+    }
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->toolsettings && scene->toolsettings->curves_sculpt &&
+          scene->toolsettings->curves_sculpt->curve_length == 0.0f) {
+        scene->toolsettings->curves_sculpt->curve_length = 0.3f;
       }
     }
-    FOREACH_NODETREE_END;
   }
 }

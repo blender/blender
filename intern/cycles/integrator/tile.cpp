@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "integrator/tile.h"
 
@@ -46,7 +33,8 @@ ccl_device_inline uint round_up_to_power_of_two(uint x)
   return next_power_of_two(x);
 }
 
-TileSize tile_calculate_best_size(const int2 &image_size,
+TileSize tile_calculate_best_size(const bool accel_rt,
+                                  const int2 &image_size,
                                   const int num_samples,
                                   const int max_num_path_states,
                                   const float scrambling_distance)
@@ -73,7 +61,7 @@ TileSize tile_calculate_best_size(const int2 &image_size,
 
   TileSize tile_size;
   const int num_path_states_per_sample = max_num_path_states / num_samples;
-  if (scrambling_distance < 0.9f) {
+  if (scrambling_distance < 0.9f && accel_rt) {
     /* Prefer large tiles for scrambling distance, bounded by max num path states. */
     tile_size.width = min(image_size.x, max_num_path_states);
     tile_size.height = min(image_size.y, max(max_num_path_states / tile_size.width, 1));

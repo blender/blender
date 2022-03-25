@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -27,6 +11,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_edgehash.h"
 #include "BLI_ghash.h"
 #include "BLI_utildefines.h"
@@ -204,38 +189,6 @@ static bool poly_gset_compare_fn(const void *k1, const void *k2)
   return true;
 }
 
-/**
- * Merge Verts
- *
- * This frees the given mesh and returns a new mesh.
- *
- * \param vtargetmap: The table that maps vertices to target vertices.  a value of -1
- * indicates a vertex is a target, and is to be kept.
- * This array is aligned with 'mesh->totvert'
- * \warning \a vtargetmap must **not** contain any chained mapping (v1 -> v2 -> v3 etc.),
- * this is not supported and will likely generate corrupted geometry.
- *
- * \param tot_vtargetmap: The number of non '-1' values in vtargetmap. (not the size)
- *
- * \param merge_mode: enum with two modes.
- * - #MESH_MERGE_VERTS_DUMP_IF_MAPPED
- * When called by the Mirror Modifier,
- * In this mode it skips any faces that have all vertices merged (to avoid creating pairs
- * of faces sharing the same set of vertices)
- * - #MESH_MERGE_VERTS_DUMP_IF_EQUAL
- * When called by the Array Modifier,
- * In this mode, faces where all vertices are merged are double-checked,
- * to see whether all target vertices actually make up a poly already.
- * Indeed it could be that all of a poly's vertices are merged,
- * but merged to vertices that do not make up a single poly,
- * in which case the original poly should not be dumped.
- * Actually this later behavior could apply to the Mirror Modifier as well,
- * but the additional checks are costly and not necessary in the case of mirror,
- * because each vertex is only merged to its own mirror.
- *
- * \note #BKE_mesh_tessface_calc_ex has to run on the returned DM
- * if you want to access tessfaces.
- */
 Mesh *BKE_mesh_merge_verts(Mesh *mesh,
                            const int *vtargetmap,
                            const int tot_vtargetmap,
@@ -383,6 +336,8 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
         &poly_map, &poly_map_mem, mesh->mpoly, mesh->mloop, totvert, totpoly, totloop);
   } /* done preparing for fast poly compare */
 
+  BLI_bitmap *vert_tag = BLI_BITMAP_NEW(mesh->totvert, __func__);
+
   mp = mesh->mpoly;
   mv = mesh->mvert;
   for (i = 0; i < totpoly; i++, mp++) {
@@ -397,11 +352,11 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
       if (vtargetmap[ml->v] == -1) {
         all_vertices_merged = false;
         /* This will be used to check for poly using several time the same vert. */
-        mv[ml->v].flag &= ~ME_VERT_TMP_TAG;
+        BLI_BITMAP_DISABLE(vert_tag, ml->v);
       }
       else {
         /* This will be used to check for poly using several time the same vert. */
-        mv[vtargetmap[ml->v]].flag &= ~ME_VERT_TMP_TAG;
+        BLI_BITMAP_DISABLE(vert_tag, vtargetmap[ml->v]);
       }
     }
 
@@ -489,8 +444,8 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
 #endif
       /* A loop is only valid if its matching edge is,
        * and it's not reusing a vertex already used by this poly. */
-      if (LIKELY((newe[ml->e] != -1) && ((mv[mlv].flag & ME_VERT_TMP_TAG) == 0))) {
-        mv[mlv].flag |= ME_VERT_TMP_TAG;
+      if (LIKELY((newe[ml->e] != -1) && !BLI_BITMAP_TEST(vert_tag, mlv))) {
+        BLI_BITMAP_ENABLE(vert_tag, mlv);
 
         if (UNLIKELY(last_valid_ml != NULL && need_edge_from_last_valid_ml)) {
           /* We need to create a new edge between last valid loop and this one! */
@@ -647,10 +602,18 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
   }
 
   /* Copy over data. #CustomData_add_layer can do this, need to look it up. */
-  memcpy(result->mvert, mvert, sizeof(MVert) * STACK_SIZE(mvert));
-  memcpy(result->medge, medge, sizeof(MEdge) * STACK_SIZE(medge));
-  memcpy(result->mloop, mloop, sizeof(MLoop) * STACK_SIZE(mloop));
-  memcpy(result->mpoly, mpoly, sizeof(MPoly) * STACK_SIZE(mpoly));
+  if (STACK_SIZE(mvert)) {
+    memcpy(result->mvert, mvert, sizeof(MVert) * STACK_SIZE(mvert));
+  }
+  if (STACK_SIZE(medge)) {
+    memcpy(result->medge, medge, sizeof(MEdge) * STACK_SIZE(medge));
+  }
+  if (STACK_SIZE(mloop)) {
+    memcpy(result->mloop, mloop, sizeof(MLoop) * STACK_SIZE(mloop));
+  }
+  if (STACK_SIZE(mpoly)) {
+    memcpy(result->mpoly, mpoly, sizeof(MPoly) * STACK_SIZE(mpoly));
+  }
 
   MEM_freeN(mvert);
   MEM_freeN(medge);
@@ -667,6 +630,8 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
   MEM_freeN(olde);
   MEM_freeN(oldl);
   MEM_freeN(oldp);
+
+  MEM_freeN(vert_tag);
 
   BLI_edgehash_free(ehash, NULL);
 

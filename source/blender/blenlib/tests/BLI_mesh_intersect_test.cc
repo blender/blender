@@ -1,4 +1,4 @@
-/* Apache License, Version 2.0 */
+/* SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
@@ -10,8 +10,8 @@
 
 #include "BLI_array.hh"
 #include "BLI_math_mpq.hh"
+#include "BLI_math_vec_mpq_types.hh"
 #include "BLI_mesh_intersect.hh"
-#include "BLI_mpq3.hh"
 #include "BLI_task.h"
 #include "BLI_vector.hh"
 
@@ -42,11 +42,13 @@ class IMeshBuilder {
     return std::pair<int, int>(e_index / MAX_FACE_LEN, e_index % MAX_FACE_LEN);
   }
 
-  /*
+  /**
    * Spec should have form:
-   *  #verts #faces
-   *  mpq_class mpq_class mpq_clas [#verts lines]
-   *  int int int ... [#faces lines; indices into verts for given face]
+   * <pre>
+   * #verts #faces
+   * mpq_class mpq_class mpq_clas [#verts lines]
+   * int int int ... [#faces lines; indices into verts for given face]
+   * </pre>
    */
   IMeshBuilder(const char *spec)
   {

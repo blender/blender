@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2004 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2004 Blender Foundation. All rights reserved. */
 
 #pragma once
 
@@ -64,50 +48,148 @@ typedef struct SeqLoadData {
   bool use_multiview;
   char views_format;
   struct Stereo3dFormat *stereo3d_format;
-  bool allow_invalid_file; /* Used by RNA API to create placeholder strips. */
+  bool allow_invalid_file;     /* Used by RNA API to create placeholder strips. */
+  double r_video_stream_start; /* For AV synchronization. Set by `SEQ_add_movie_strip`. */
 } SeqLoadData;
 
+/**
+ * Initialize common SeqLoadData members
+ *
+ * \param load_data: SeqLoadData to be initialized
+ * \param name: strip name (can be NULL)
+ * \param path: path to file that is used as strip input (can be NULL)
+ * \param start_frame: timeline frame where strip will be created
+ * \param channel: timeline channel where strip will be created
+ */
 void SEQ_add_load_data_init(struct SeqLoadData *load_data,
                             const char *name,
                             const char *path,
-                            const int start_frame,
-                            const int channel);
+                            int start_frame,
+                            int channel);
+/**
+ * Add image strip.
+ * \note Use #SEQ_add_image_set_directory() and #SEQ_add_image_load_file() to load image sequences
+ *
+ * \param bmain: Main reference
+ * \param scene: Scene where strips will be added
+ * \param seqbase: ListBase where strips will be added
+ * \param load_data: SeqLoadData with information necessary to create strip
+ * \return created strip
+ */
 struct Sequence *SEQ_add_image_strip(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ListBase *seqbase,
                                      struct SeqLoadData *load_data);
+/**
+ * Add sound strip.
+ * \note Use SEQ_add_image_set_directory() and SEQ_add_image_load_file() to load image sequences
+ *
+ * \param bmain: Main reference
+ * \param scene: Scene where strips will be added
+ * \param seqbase: ListBase where strips will be added
+ * \param load_data: SeqLoadData with information necessary to create strip
+ * \return created strip
+ */
 struct Sequence *SEQ_add_sound_strip(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ListBase *seqbase,
-                                     struct SeqLoadData *load_data,
-                                     const double audio_offset);
+                                     struct SeqLoadData *load_data);
+/**
+ * Add meta strip.
+ *
+ * \param scene: Scene where strips will be added
+ * \param seqbase: ListBase where strips will be added
+ * \param load_data: SeqLoadData with information necessary to create strip
+ * \return created strip
+ */
 struct Sequence *SEQ_add_meta_strip(struct Scene *scene,
                                     struct ListBase *seqbase,
                                     struct SeqLoadData *load_data);
+/**
+ * Add movie strip.
+ *
+ * \param bmain: Main reference
+ * \param scene: Scene where strips will be added
+ * \param seqbase: ListBase where strips will be added
+ * \param load_data: SeqLoadData with information necessary to create strip
+ * \return created strip
+ */
 struct Sequence *SEQ_add_movie_strip(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ListBase *seqbase,
-                                     struct SeqLoadData *load_data,
-                                     double *r_start_offset);
+                                     struct SeqLoadData *load_data);
+/**
+ * Add scene strip.
+ *
+ * \param scene: Scene where strips will be added
+ * \param seqbase: ListBase where strips will be added
+ * \param load_data: SeqLoadData with information necessary to create strip
+ * \return created strip
+ */
 struct Sequence *SEQ_add_scene_strip(struct Scene *scene,
                                      struct ListBase *seqbase,
                                      struct SeqLoadData *load_data);
+/**
+ * Add movieclip strip.
+ *
+ * \param scene: Scene where strips will be added
+ * \param seqbase: ListBase where strips will be added
+ * \param load_data: SeqLoadData with information necessary to create strip
+ * \return created strip
+ */
 struct Sequence *SEQ_add_movieclip_strip(struct Scene *scene,
                                          struct ListBase *seqbase,
                                          struct SeqLoadData *load_data);
+/**
+ * Add mask strip.
+ *
+ * \param scene: Scene where strips will be added
+ * \param seqbase: ListBase where strips will be added
+ * \param load_data: SeqLoadData with information necessary to create strip
+ * \return created strip
+ */
 struct Sequence *SEQ_add_mask_strip(struct Scene *scene,
                                     struct ListBase *seqbase,
                                     struct SeqLoadData *load_data);
+/**
+ * Add effect strip.
+ *
+ * \param scene: Scene where strips will be added
+ * \param seqbase: ListBase where strips will be added
+ * \param load_data: SeqLoadData with information necessary to create strip
+ * \return created strip
+ */
 struct Sequence *SEQ_add_effect_strip(struct Scene *scene,
                                       struct ListBase *seqbase,
                                       struct SeqLoadData *load_data);
+/**
+ * Set directory used by image strip.
+ *
+ * \param seq: image strip to be changed
+ * \param path: directory path
+ */
 void SEQ_add_image_set_directory(struct Sequence *seq, char *path);
+/**
+ * Set directory used by image strip.
+ *
+ * \param seq: image strip to be changed
+ * \param strip_frame: frame index of strip to be changed
+ * \param filename: image filename (only filename, not complete path)
+ */
 void SEQ_add_image_load_file(struct Sequence *seq, size_t strip_frame, char *filename);
+/**
+ * Set image strip alpha mode
+ *
+ * \param seq: image strip to be changed
+ */
 void SEQ_add_image_init_alpha_mode(struct Sequence *seq);
+/**
+ * \note caller should run `SEQ_time_update_sequence(scene, seq)` after..
+ */
 void SEQ_add_reload_new_file(struct Main *bmain,
                              struct Scene *scene,
                              struct Sequence *seq,
-                             const bool lock_range);
+                             bool lock_range);
 void SEQ_add_movie_reload_if_needed(struct Main *bmain,
                                     struct Scene *scene,
                                     struct Sequence *seq,

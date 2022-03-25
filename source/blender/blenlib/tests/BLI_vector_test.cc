@@ -1,4 +1,4 @@
-/* Apache License, Version 2.0 */
+/* SPDX-License-Identifier: Apache-2.0 */
 
 #include "BLI_exception_safety_test_utils.hh"
 #include "BLI_strict_flags.h"
@@ -447,6 +447,9 @@ TEST(vector, Last)
 {
   Vector<int> a{3, 5, 7};
   EXPECT_EQ(a.last(), 7);
+  EXPECT_EQ(a.last(0), 7);
+  EXPECT_EQ(a.last(1), 5);
+  EXPECT_EQ(a.last(2), 3);
 }
 
 TEST(vector, AppendNTimes)
@@ -706,6 +709,17 @@ TEST(vector, Prepend)
   vec.prepend({7, 8});
   EXPECT_EQ(vec.size(), 5);
   EXPECT_EQ_ARRAY(vec.data(), Span({7, 8, 1, 2, 3}).data(), 5);
+}
+
+TEST(vector, PrependString)
+{
+  std::string s = "test";
+  Vector<std::string> vec;
+  vec.prepend(s);
+  vec.prepend(std::move(s));
+  EXPECT_EQ(vec.size(), 2);
+  EXPECT_EQ(vec[0], "test");
+  EXPECT_EQ(vec[1], "test");
 }
 
 TEST(vector, ReverseIterator)

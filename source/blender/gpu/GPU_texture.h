@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -32,7 +16,8 @@ struct GPUVertBuf;
 /** Opaque type hiding blender::gpu::Texture. */
 typedef struct GPUTexture GPUTexture;
 
-/* GPU Samplers state
+/**
+ * GPU Samplers state
  * - Specify the sampler state to bind a texture with.
  * - Internally used by textures.
  * - All states are created at startup to avoid runtime costs.
@@ -60,8 +45,9 @@ typedef enum eGPUSamplerState {
     } \
   } while (0)
 
-/* `GPU_SAMPLER_MAX` is not a valid enum value, but only a limit.
- * It also creates a bad mask for the `NOT` operator in `ENUM_OPERATORS`.
+/**
+ * #GPU_SAMPLER_MAX is not a valid enum value, but only a limit.
+ * It also creates a bad mask for the `NOT` operator in #ENUM_OPERATORS.
  */
 static const int GPU_SAMPLER_MAX = (GPU_SAMPLER_ICON + 1);
 ENUM_OPERATORS(eGPUSamplerState, GPU_SAMPLER_ICON)
@@ -70,6 +56,9 @@ ENUM_OPERATORS(eGPUSamplerState, GPU_SAMPLER_ICON)
 extern "C" {
 #endif
 
+/**
+ * Update user defined sampler states.
+ */
 void GPU_samplers_update(void);
 
 /* GPU Texture
@@ -84,11 +73,13 @@ void GPU_samplers_update(void);
  * - if created with from_blender, will not free the texture
  */
 
-/* Wrapper to supported OpenGL/Vulkan texture internal storage
+/**
+ * Wrapper to supported OpenGL/Vulkan texture internal storage
  * If you need a type just un-comment it. Be aware that some formats
  * are not supported by render-buffers. All of the following formats
  * are part of the OpenGL 3.3 core
- * specification. */
+ * specification.
+ */
 typedef enum eGPUTextureFormat {
   /* Formats texture & render-buffer. */
   GPU_RGBA8UI,
@@ -221,19 +212,44 @@ GPUTexture *GPU_texture_create_cube_array(
     const char *name, int w, int d, int mip_len, eGPUTextureFormat format, const float *data);
 
 /* Special textures. */
+
 GPUTexture *GPU_texture_create_from_vertbuf(const char *name, struct GPUVertBuf *vert);
 /**
  * \a data should hold all the data for all mipmaps.
  */
+/**
+ * DDS texture loading. Return NULL if support is not available.
+ */
 GPUTexture *GPU_texture_create_compressed_2d(
     const char *name, int w, int h, int miplen, eGPUTextureFormat format, const void *data);
+/**
+ * Create an error texture that will bind an invalid texture (pink) at draw time.
+ */
 GPUTexture *GPU_texture_create_error(int dimension, bool array);
+/**
+ * Create an alias of the source texture data.
+ * If \a src is freed, the texture view will continue to be valid.
+ * If \a mip_start or \a mip_len is bigger than available mips they will be clamped.
+ * If \a cube_as_array is true, then the texture cube (array) becomes a 2D array texture.
+ * TODO(@fclem): Target conversion is not implemented yet.
+ */
+GPUTexture *GPU_texture_create_view(const char *name,
+                                    const GPUTexture *src,
+                                    eGPUTextureFormat format,
+                                    int mip_start,
+                                    int mip_len,
+                                    int layer_start,
+                                    int layer_len,
+                                    bool cube_as_array);
 
 void GPU_texture_update_mipmap(GPUTexture *tex,
                                int miplvl,
                                eGPUDataFormat gpu_data_format,
                                const void *pixels);
 
+/**
+ * \note Updates only mip 0.
+ */
 void GPU_texture_update(GPUTexture *tex, eGPUDataFormat data_format, const void *data);
 void GPU_texture_update_sub(GPUTexture *tex,
                             eGPUDataFormat data_format,
@@ -244,16 +260,28 @@ void GPU_texture_update_sub(GPUTexture *tex,
                             int width,
                             int height,
                             int depth);
+/**
+ * Makes data interpretation aware of the source layout.
+ * Skipping pixels correctly when changing rows when doing partial update.
+ */
 void GPU_unpack_row_length_set(uint len);
 
 void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat data_format, int miplvl);
+/**
+ * Fills the whole texture with the same data for all pixels.
+ * \warning Only work for 2D texture for now.
+ * \warning Only clears the mip 0 of the texture.
+ * \param data_format: data format of the pixel data.
+ * \note The format is float for unorm textures.
+ * \param data: 1 pixel worth of data to fill the texture with.
+ */
 void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat data_format, const void *data);
 
 void GPU_texture_free(GPUTexture *tex);
 
 void GPU_texture_ref(GPUTexture *tex);
 void GPU_texture_bind(GPUTexture *tex, int unit);
-void GPU_texture_bind_ex(GPUTexture *tex, eGPUSamplerState state, int unit, const bool set_number);
+void GPU_texture_bind_ex(GPUTexture *tex, eGPUSamplerState state, int unit, bool set_number);
 void GPU_texture_unbind(GPUTexture *tex);
 void GPU_texture_unbind_all(void);
 
@@ -261,6 +289,9 @@ void GPU_texture_image_bind(GPUTexture *tex, int unit);
 void GPU_texture_image_unbind(GPUTexture *tex);
 void GPU_texture_image_unbind_all(void);
 
+/**
+ * Copy a texture content to a similar texture. Only MIP 0 is copied.
+ */
 void GPU_texture_copy(GPUTexture *dst, GPUTexture *src);
 
 void GPU_texture_generate_mipmap(GPUTexture *tex);
@@ -270,9 +301,22 @@ void GPU_texture_filter_mode(GPUTexture *tex, bool use_filter);
 void GPU_texture_mipmap_mode(GPUTexture *tex, bool use_mipmap, bool use_filter);
 void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat, bool use_clamp);
 void GPU_texture_swizzle_set(GPUTexture *tex, const char swizzle[4]);
+/**
+ * Set depth stencil texture sampling behavior. Can work on texture views.
+ * If stencil sampling is enabled, an unsigned integer sampler is required.
+ */
+void GPU_texture_stencil_texture_mode_set(GPUTexture *tex, bool use_stencil);
+
+/**
+ * Return the number of dimensions of the texture ignoring dimension of layers (1, 2 or 3).
+ * Cube textures are considered 2D.
+ */
+int GPU_texture_dimensions(const GPUTexture *tex);
 
 int GPU_texture_width(const GPUTexture *tex);
 int GPU_texture_height(const GPUTexture *tex);
+int GPU_texture_layer_count(const GPUTexture *tex);
+int GPU_texture_mip_count(const GPUTexture *tex);
 int GPU_texture_orig_width(const GPUTexture *tex);
 int GPU_texture_orig_height(const GPUTexture *tex);
 void GPU_texture_orig_size_set(GPUTexture *tex, int w, int h);
@@ -292,7 +336,8 @@ int GPU_texture_opengl_bindcode(const GPUTexture *tex);
 
 void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *size);
 
-/* utilities */
+/* Utilities. */
+
 size_t GPU_texture_component_len(eGPUTextureFormat format);
 size_t GPU_texture_dataformat_size(eGPUDataFormat data_format);
 

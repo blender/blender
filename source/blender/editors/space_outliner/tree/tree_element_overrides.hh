@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spoutliner
@@ -20,18 +6,27 @@
 
 #pragma once
 
+#include "RNA_types.h"
+
 #include "tree_element.hh"
+
+struct ID;
+struct IDOverrideLibraryProperty;
 
 namespace blender::ed::outliner {
 
 struct TreeElementOverridesData {
   ID &id;
   IDOverrideLibraryProperty &override_property;
+  PointerRNA &override_rna_ptr;
+  PropertyRNA &override_rna_prop;
+
   bool is_rna_path_valid;
 };
 
 class TreeElementOverridesBase final : public AbstractTreeElement {
-  ID &id_;
+ public:
+  ID &id;
 
  public:
   TreeElementOverridesBase(TreeElement &legacy_te, ID &id);
@@ -40,7 +35,9 @@ class TreeElementOverridesBase final : public AbstractTreeElement {
 };
 
 class TreeElementOverridesProperty final : public AbstractTreeElement {
-  IDOverrideLibraryProperty &override_prop_;
+ public:
+  PointerRNA override_rna_ptr;
+  PropertyRNA &override_rna_prop;
 
  public:
   TreeElementOverridesProperty(TreeElement &legacy_te, TreeElementOverridesData &override_data);

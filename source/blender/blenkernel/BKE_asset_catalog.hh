@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -98,6 +84,15 @@ class AssetCatalogService {
   bool write_to_disk(const CatalogFilePath &blend_file_path);
 
   /**
+   * Ensure that the next call to #on_blend_save_post() will choose a new location for the CDF
+   * suitable for the location of the blend file (regardless of where the current catalogs come
+   * from), and that catalogs will be merged with already-existing ones in that location.
+   *
+   * Use this for a "Save as..." that has to write the catalogs to the new blend file location,
+   * instead of updating the previously read CDF. */
+  void prepare_to_merge_on_write();
+
+  /**
    * Merge on-disk changes into the in-memory asset catalogs.
    * This should be called before writing the asset catalogs to disk.
    *
@@ -132,7 +127,7 @@ class AssetCatalogService {
   AssetCatalogFilter create_catalog_filter(CatalogID active_catalog_id) const;
 
   /** Create a catalog with some sensible auto-generated catalog ID.
-   * The catalog will be saved to the default catalog file.*/
+   * The catalog will be saved to the default catalog file. */
   AssetCatalog *create_catalog(const AssetCatalogPath &catalog_path);
 
   /**
@@ -237,6 +232,11 @@ class AssetCatalogService {
    * For every catalog, ensure that its parent path also has a known catalog.
    */
   void create_missing_catalogs();
+
+  /**
+   * For every catalog, mark it as "dirty".
+   */
+  void tag_all_catalogs_as_unsaved_changes();
 
   /* For access by subclasses, as those will not be marked as friend by #AssetCatalogCollection. */
   AssetCatalogDefinitionFile *get_catalog_definition_file();
@@ -363,6 +363,9 @@ class AssetCatalogDefinitionFile {
   /* For now this is the only version of the catalog definition files that is supported.
    * Later versioning code may be added to handle older files. */
   const static int SUPPORTED_VERSION;
+  /* String that's matched in the catalog definition file to know that the line is the version
+   * declaration. It has to start with a space to ensure it won't match any hypothetical future
+   * field that starts with "VERSION". */
   const static std::string VERSION_MARKER;
   const static std::string HEADER;
 

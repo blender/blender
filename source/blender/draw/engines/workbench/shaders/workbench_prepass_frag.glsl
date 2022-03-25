@@ -1,20 +1,13 @@
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(workbench_shader_interface_lib.glsl)
 #pragma BLENDER_REQUIRE(workbench_common_lib.glsl)
 #pragma BLENDER_REQUIRE(workbench_image_lib.glsl)
-
-layout(location = 0) out vec4 materialData;
-layout(location = 1) out WB_Normal normalData;
-layout(location = 2) out uint objectId;
-
-uniform bool useMatcap = false;
 
 void main()
 {
   normalData = workbench_normal_encode(gl_FrontFacing, normal_interp);
 
-  materialData = vec4(color_interp, packed_rough_metal);
+  materialData = vec4(color_interp, workbench_float_pair_encode(roughness, metallic));
 
   objectId = uint(object_id);
 

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spnode
@@ -37,11 +23,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "node_intern.hh"
+
+namespace blender::ed::space_node {
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
@@ -292,7 +281,11 @@ static void gizmo_node_crop_prop_matrix_set(const wmGizmo *gz,
   const bool ny = rct.ymin > rct.ymax;
   BLI_rctf_resize(&rct, fabsf(matrix[0][0]), fabsf(matrix[1][1]));
   BLI_rctf_recenter(&rct, (matrix[3][0] / dims[0]) + 0.5f, (matrix[3][1] / dims[1]) + 0.5f);
-  const rctf rct_isect{0, 0, 1, 1};
+  rctf rct_isect{};
+  rct_isect.xmin = 0;
+  rct_isect.xmax = 1;
+  rct_isect.ymin = 0;
+  rct_isect.ymax = 1;
   BLI_rctf_isect(&rct_isect, &rct, &rct);
   if (nx) {
     SWAP(float, rct.xmin, rct.xmax);
@@ -380,7 +373,7 @@ static void WIDGETGROUP_node_crop_refresh(const bContext *C, wmGizmoGroup *gzgro
     params.value_get_fn = gizmo_node_crop_prop_matrix_get;
     params.value_set_fn = gizmo_node_crop_prop_matrix_set;
     params.range_get_fn = nullptr;
-    params.user_data = snode;
+    params.user_data = node;
     WM_gizmo_target_property_def_func(gz, "matrix", &params);
   }
   else {
@@ -632,3 +625,5 @@ void NODE_GGT_backdrop_corner_pin(wmGizmoGroupType *gzgt)
 }
 
 /** \} */
+
+}  // namespace blender::ed::space_node

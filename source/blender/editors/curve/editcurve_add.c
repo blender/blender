@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edcurve
@@ -69,25 +53,25 @@ static const char *get_curve_defname(int type)
   if ((type & CU_TYPE) == CU_BEZIER) {
     switch (stype) {
       case CU_PRIM_CURVE:
-        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "BezierCurve");
+        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "BezierCurve");
       case CU_PRIM_CIRCLE:
-        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "BezierCircle");
+        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "BezierCircle");
       case CU_PRIM_PATH:
-        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "CurvePath");
+        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "CurvePath");
       default:
-        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "Curve");
+        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "Curve");
     }
   }
   else {
     switch (stype) {
       case CU_PRIM_CURVE:
-        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "NurbsCurve");
+        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "NurbsCurve");
       case CU_PRIM_CIRCLE:
-        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "NurbsCircle");
+        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "NurbsCircle");
       case CU_PRIM_PATH:
-        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "NurbsPath");
+        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "NurbsPath");
       default:
-        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "Curve");
+        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "Curve");
     }
   }
 }
@@ -98,17 +82,17 @@ static const char *get_surf_defname(int type)
 
   switch (stype) {
     case CU_PRIM_CURVE:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "SurfCurve");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "SurfCurve");
     case CU_PRIM_CIRCLE:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "SurfCircle");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "SurfCircle");
     case CU_PRIM_PATCH:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "SurfPatch");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "SurfPatch");
     case CU_PRIM_SPHERE:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "SurfSphere");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "SurfSphere");
     case CU_PRIM_DONUT:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "SurfTorus");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "SurfTorus");
     default:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE, "Surface");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "Surface");
   }
 }
 
@@ -306,9 +290,9 @@ Nurb *ED_curve_add_nurbs_primitive(
       else if (cutype == CU_NURBS) { /* nurb */
         nu->pntsu = 8;
         nu->pntsv = 1;
-        nu->orderu = 4;
+        nu->orderu = 3;
         nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * nu->pntsu, "addNurbprim6");
-        nu->flagu = CU_NURB_CYCLIC;
+        nu->flagu = CU_NURB_CYCLIC | CU_NURB_BEZIER | CU_NURB_ENDPOINT;
         bp = nu->bp;
 
         for (a = 0; a < 8; a++) {
@@ -322,7 +306,7 @@ Nurb *ED_curve_add_nurbs_primitive(
             bp->vec[2] += 0.25f * nurbcircle[a][1] * grid;
           }
           if (a & 1) {
-            bp->vec[3] = 0.25 * M_SQRT2;
+            bp->vec[3] = 0.5 * M_SQRT2;
           }
           else {
             bp->vec[3] = 1.0;
@@ -423,7 +407,7 @@ Nurb *ED_curve_add_nurbs_primitive(
           mul_m4_v3(mat, bp->vec);
           bp++;
         }
-        nu->flagu = CU_NURB_BEZIER;
+        nu->flagu = CU_NURB_BEZIER | CU_NURB_ENDPOINT;
         BKE_nurb_knot_calc_u(nu);
 
         BLI_addtail(editnurb, nu); /* temporal for spin */
@@ -526,11 +510,11 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
   }
 
   if (!isSurf) { /* adding curve */
-    if (obedit == NULL || obedit->type != OB_CURVE) {
+    if (obedit == NULL || obedit->type != OB_CURVES_LEGACY) {
       const char *name = get_curve_defname(type);
       Curve *cu;
 
-      obedit = ED_object_add_type(C, OB_CURVE, name, loc, rot, true, local_view_bits);
+      obedit = ED_object_add_type(C, OB_CURVES_LEGACY, name, loc, rot, true, local_view_bits);
       newob = true;
 
       cu = (Curve *)obedit->data;

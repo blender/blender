@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2017 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #ifndef __UTIL_TYPES_FLOAT3_H__
 #define __UTIL_TYPES_FLOAT3_H__
@@ -54,6 +41,41 @@ ccl_device_inline float3 make_float3(float f);
 ccl_device_inline float3 make_float3(float x, float y, float z);
 ccl_device_inline void print_float3(const char *label, const float3 &a);
 #endif /* __KERNEL_GPU__ */
+
+/* Smaller float3 for storage. For math operations this must be converted to float3, so that on the
+ * CPU SIMD instructions can be used. */
+#if defined(__KERNEL_METAL__)
+/* Metal has native packed_float3. */
+#elif defined(__KERNEL_CUDA__)
+/* CUDA float3 is already packed. */
+typedef float3 packed_float3;
+#else
+/* HIP float3 is not packed (https://github.com/ROCm-Developer-Tools/HIP/issues/706). */
+struct packed_float3 {
+  ccl_device_inline_method packed_float3(){};
+
+  ccl_device_inline_method packed_float3(const float3 &a) : x(a.x), y(a.y), z(a.z)
+  {
+  }
+
+  ccl_device_inline_method operator float3() const
+  {
+    return make_float3(x, y, z);
+  }
+
+  ccl_device_inline_method packed_float3 &operator=(const float3 &a)
+  {
+    x = a.x;
+    y = a.y;
+    z = a.z;
+    return *this;
+  }
+
+  float x, y, z;
+};
+#endif
+
+static_assert(sizeof(packed_float3) == 12, "packed_float3 expected to be exactly 12 bytes");
 
 CCL_NAMESPACE_END
 

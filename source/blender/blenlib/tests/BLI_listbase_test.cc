@@ -1,4 +1,4 @@
-/* Apache License, Version 2.0 */
+/* SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
@@ -80,18 +80,109 @@ TEST(listbase, FindLinkOrIndex)
   EXPECT_EQ(BLI_rfindlink(&lb, 0), (void *)nullptr);
   EXPECT_EQ(BLI_rfindlink(&lb, 1), (void *)nullptr);
   EXPECT_EQ(BLI_findindex(&lb, link1), -1);
+  EXPECT_EQ(BLI_findlinkfrom((Link *)lb.first, -1), (void *)nullptr);
+  EXPECT_EQ(BLI_findlinkfrom((Link *)lb.first, 0), (void *)nullptr);
+  EXPECT_EQ(BLI_findlinkfrom((Link *)lb.first, 1), (void *)nullptr);
 
   /* One link */
   BLI_addtail(&lb, link1);
   EXPECT_EQ(BLI_findlink(&lb, 0), link1);
   EXPECT_EQ(BLI_rfindlink(&lb, 0), link1);
   EXPECT_EQ(BLI_findindex(&lb, link1), 0);
+  EXPECT_EQ(BLI_findlinkfrom((Link *)lb.first, 0), link1);
 
   /* Two links */
   BLI_addtail(&lb, link2);
   EXPECT_EQ(BLI_findlink(&lb, 1), link2);
   EXPECT_EQ(BLI_rfindlink(&lb, 0), link2);
   EXPECT_EQ(BLI_findindex(&lb, link2), 1);
+  EXPECT_EQ(BLI_findlinkfrom((Link *)lb.first, 1), link2);
+
+  /* After end of list */
+  EXPECT_EQ(BLI_findlinkfrom((Link *)lb.first, 2), (void *)nullptr);
+
+  BLI_freelistN(&lb);
+}
+
+TEST(listbase, FindLinkFromStringOrPointer)
+{
+  struct TestLink {
+    struct TestLink *prev, *next;
+    char name[64];
+    const void *ptr;
+  };
+
+  const char *const link1_name = "Link1";
+  const char *const link2_name = "Link2";
+  const void *const link1_ptr = nullptr;
+  const void *const link2_ptr = link2_name;
+
+  const size_t name_offset = offsetof(struct TestLink, name);
+  const size_t ptr_offset = offsetof(struct TestLink, ptr);
+
+  ListBase lb;
+  struct TestLink *link1 = (struct TestLink *)MEM_callocN(sizeof(TestLink), "link1");
+  BLI_strncpy(link1->name, link1_name, sizeof(link1->name));
+  link1->ptr = link1_ptr;
+  struct TestLink *link2 = (struct TestLink *)MEM_callocN(sizeof(TestLink), "link2");
+  BLI_strncpy(link2->name, link2_name, sizeof(link2->name));
+  link2->ptr = link2_ptr;
+
+  /* Empty list */
+  BLI_listbase_clear(&lb);
+  EXPECT_EQ(BLI_findptr(&lb, link1_ptr, ptr_offset), (void *)nullptr);
+  EXPECT_EQ(BLI_findstring(&lb, link1_name, name_offset), (void *)nullptr);
+  EXPECT_EQ(BLI_rfindptr(&lb, link1_ptr, ptr_offset), (void *)nullptr);
+  EXPECT_EQ(BLI_rfindstring(&lb, link1_name, name_offset), (void *)nullptr);
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, link1_name, name_offset, 0), (void *)nullptr);
+
+  /* One link */
+  BLI_addtail(&lb, link1);
+  EXPECT_EQ(BLI_findptr(&lb, link1_ptr, ptr_offset), (void *)link1);
+  EXPECT_EQ(BLI_findstring(&lb, link1_name, name_offset), (void *)link1);
+  EXPECT_EQ(BLI_rfindptr(&lb, link1_ptr, ptr_offset), (void *)link1);
+  EXPECT_EQ(BLI_rfindstring(&lb, link1_name, name_offset), (void *)link1);
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, link1_name, name_offset, 0), (void *)link1);
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, "", name_offset, 0), (void *)link1);
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, nullptr, name_offset, 0), (void *)link1);
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, nullptr, name_offset, 1), (void *)nullptr);
+
+  /* Two links */
+  BLI_addtail(&lb, link2);
+  EXPECT_EQ(BLI_findptr(&lb, link1_ptr, ptr_offset), (void *)link1);
+  EXPECT_EQ(BLI_findstring(&lb, link1_name, name_offset), (void *)link1);
+  EXPECT_EQ(BLI_rfindptr(&lb, link1_ptr, ptr_offset), (void *)link1);
+  EXPECT_EQ(BLI_rfindstring(&lb, link1_name, name_offset), (void *)link1);
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, link1_name, name_offset, 0), (void *)link1);
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, link2_name, name_offset, 0), (void *)link2);
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, nullptr, name_offset, 0), (void *)link1);
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, nullptr, name_offset, 1), (void *)link2);
+  EXPECT_EQ(BLI_listbase_string_or_index_find(&lb, nullptr, name_offset, -1), (void *)nullptr);
+
+  BLI_freelistN(&lb);
+}
+
+TEST(listbase, FromLink)
+{
+  ListBase lb = {nullptr, nullptr};
+  Link *link1 = static_cast<Link *>(MEM_callocN(sizeof(Link), "link1"));
+  Link *link2 = static_cast<Link *>(MEM_callocN(sizeof(Link), "link2"));
+  Link *link3 = static_cast<Link *>(MEM_callocN(sizeof(Link), "link3"));
+
+  /* NULL safety. */
+  EXPECT_EQ(lb, BLI_listbase_from_link(nullptr));
+
+  /* One link. */
+  BLI_addtail(&lb, link1);
+  EXPECT_EQ(lb, BLI_listbase_from_link(link1));
+
+  /* Two links. */
+  BLI_addtail(&lb, link2);
+  EXPECT_EQ(lb, BLI_listbase_from_link(link2));
+
+  /* Three links, search from middle. */
+  BLI_addtail(&lb, link3);
+  EXPECT_EQ(lb, BLI_listbase_from_link(link2));
 
   BLI_freelistN(&lb);
 }

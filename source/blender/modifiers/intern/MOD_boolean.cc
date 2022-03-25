@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 by the Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup modifiers
@@ -56,6 +40,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "MOD_ui_common.h"
 #include "MOD_util.h"
@@ -248,9 +233,14 @@ static BMesh *BMD_mesh_bm_create(
   BMeshCreateParams bmesh_create_params{};
   BMesh *bm = BM_mesh_create(&allocsize, &bmesh_create_params);
 
-  /* Needed so active layers are set based on `mesh` not `mesh_operand_ob`,
-   * otherwise the wrong active render layer is used, see T92384. */
-  BM_mesh_copy_init_customdata_from_mesh(bm, mesh, &allocsize);
+  /* Keep `mesh` first, needed so active layers are set based on `mesh` not `mesh_operand_ob`,
+   * otherwise the wrong active render layer is used, see T92384.
+   *
+   * NOTE: while initializing customer data layers the is not essential,
+   * it avoids the overhead of having to re-allocate #BMHeader.data when the 2nd mesh is added
+   * (if it contains additional custom-data layers). */
+  const Mesh *mesh_array[2] = {mesh, mesh_operand_ob};
+  BM_mesh_copy_init_customdata_from_mesh_array(bm, mesh_array, ARRAY_SIZE(mesh_array), &allocsize);
 
   BMeshFromMeshParams bmesh_from_mesh_params{};
   bmesh_from_mesh_params.calc_face_normal = true;
@@ -636,7 +626,6 @@ ModifierTypeInfo modifierType_Boolean = {
     /* deformVertsEM */ nullptr,
     /* deformMatricesEM */ nullptr,
     /* modifyMesh */ modifyMesh,
-    /* modifyHair */ nullptr,
     /* modifyGeometrySet */ nullptr,
 
     /* initData */ initData,

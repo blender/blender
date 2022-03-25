@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -47,7 +33,7 @@ static wmXrData *rna_XrSession_wm_xr_data_get(PointerRNA *ptr)
   /* Callers could also get XrSessionState pointer through ptr->data, but prefer if we just
    * consistently pass wmXrData pointers to the WM_xr_xxx() API. */
 
-  BLI_assert((ptr->type == &RNA_XrSessionSettings) || (ptr->type == &RNA_XrSessionState));
+  BLI_assert(ELEM(ptr->type, &RNA_XrSessionSettings, &RNA_XrSessionState));
 
   wmWindowManager *wm = (wmWindowManager *)ptr->owner_id;
   BLI_assert(wm && (GS(wm->id.name) == ID_WM));
@@ -59,6 +45,43 @@ static wmXrData *rna_XrSession_wm_xr_data_get(PointerRNA *ptr)
 /* -------------------------------------------------------------------- */
 /** \name XR Action Map
  * \{ */
+
+static XrComponentPath *rna_XrComponentPath_new(XrActionMapBinding *amb, const char *path_str)
+{
+#  ifdef WITH_XR_OPENXR
+  XrComponentPath *component_path = MEM_callocN(sizeof(XrComponentPath), __func__);
+  BLI_strncpy(component_path->path, path_str, sizeof(component_path->path));
+  BLI_addtail(&amb->component_paths, component_path);
+  return component_path;
+#  else
+  UNUSED_VARS(amb, path_str);
+  return NULL;
+#  endif
+}
+
+static void rna_XrComponentPath_remove(XrActionMapBinding *amb, PointerRNA *component_path_ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  XrComponentPath *component_path = component_path_ptr->data;
+  int idx = BLI_findindex(&amb->component_paths, component_path);
+  if (idx != -1) {
+    BLI_freelinkN(&amb->component_paths, component_path);
+  }
+  RNA_POINTER_INVALIDATE(component_path_ptr);
+#  else
+  UNUSED_VARS(amb, component_path_ptr);
+#  endif
+}
+
+static XrComponentPath *rna_XrComponentPath_find(XrActionMapBinding *amb, const char *path_str)
+{
+#  ifdef WITH_XR_OPENXR
+  return BLI_findstring(&amb->component_paths, path_str, offsetof(XrComponentPath, path));
+#  else
+  UNUSED_VARS(amb, path_str);
+  return NULL;
+#  endif
+}
 
 static XrActionMapBinding *rna_XrActionMapBinding_new(XrActionMapItem *ami,
                                                       const char *name,
@@ -110,6 +133,28 @@ static XrActionMapBinding *rna_XrActionMapBinding_find(XrActionMapItem *ami, con
 #  else
   UNUSED_VARS(ami, name);
   return NULL;
+#  endif
+}
+
+static void rna_XrActionMapBinding_component_paths_begin(CollectionPropertyIterator *iter,
+                                                         PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  XrActionMapBinding *amb = (XrActionMapBinding *)ptr->data;
+  rna_iterator_listbase_begin(iter, &amb->component_paths, NULL);
+#  else
+  UNUSED_VARS(iter, ptr);
+#  endif
+}
+
+static int rna_XrActionMapBinding_component_paths_length(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  XrActionMapBinding *amb = (XrActionMapBinding *)ptr->data;
+  return BLI_listbase_count(&amb->component_paths);
+#  else
+  UNUSED_VARS(ptr);
+  return 0;
 #  endif
 }
 
@@ -188,6 +233,43 @@ static void rna_XrActionMapBinding_name_update(Main *bmain, Scene *UNUSED(scene)
 #  endif
 }
 
+static XrUserPath *rna_XrUserPath_new(XrActionMapItem *ami, const char *path_str)
+{
+#  ifdef WITH_XR_OPENXR
+  XrUserPath *user_path = MEM_callocN(sizeof(XrUserPath), __func__);
+  BLI_strncpy(user_path->path, path_str, sizeof(user_path->path));
+  BLI_addtail(&ami->user_paths, user_path);
+  return user_path;
+#  else
+  UNUSED_VARS(ami, path_str);
+  return NULL;
+#  endif
+}
+
+static void rna_XrUserPath_remove(XrActionMapItem *ami, PointerRNA *user_path_ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  XrUserPath *user_path = user_path_ptr->data;
+  int idx = BLI_findindex(&ami->user_paths, user_path);
+  if (idx != -1) {
+    BLI_freelinkN(&ami->user_paths, user_path);
+  }
+  RNA_POINTER_INVALIDATE(user_path_ptr);
+#  else
+  UNUSED_VARS(ami, user_path_ptr);
+#  endif
+}
+
+static XrUserPath *rna_XrUserPath_find(XrActionMapItem *ami, const char *path_str)
+{
+#  ifdef WITH_XR_OPENXR
+  return BLI_findstring(&ami->user_paths, path_str, offsetof(XrUserPath, path));
+#  else
+  UNUSED_VARS(ami, path_str);
+  return NULL;
+#  endif
+}
+
 static XrActionMapItem *rna_XrActionMapItem_new(XrActionMap *am,
                                                 const char *name,
                                                 bool replace_existing)
@@ -233,6 +315,27 @@ static XrActionMapItem *rna_XrActionMapItem_find(XrActionMap *am, const char *na
 #  else
   UNUSED_VARS(am, name);
   return NULL;
+#  endif
+}
+
+static void rna_XrActionMapItem_user_paths_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  XrActionMapItem *ami = (XrActionMapItem *)ptr->data;
+  rna_iterator_listbase_begin(iter, &ami->user_paths, NULL);
+#  else
+  UNUSED_VARS(iter, ptr);
+#  endif
+}
+
+static int rna_XrActionMapItem_user_paths_length(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  XrActionMapItem *ami = (XrActionMapItem *)ptr->data;
+  return BLI_listbase_count(&ami->user_paths);
+#  else
+  UNUSED_VARS(ptr);
+  return 0;
 #  endif
 }
 
@@ -409,6 +512,27 @@ static void rna_XrActionMapItem_pose_is_controller_aim_set(PointerRNA *ptr, bool
 #  endif
 }
 
+static void rna_XrActionMapItem_bindings_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  XrActionMapItem *ami = (XrActionMapItem *)ptr->data;
+  rna_iterator_listbase_begin(iter, &ami->bindings, NULL);
+#  else
+  UNUSED_VARS(iter, ptr);
+#  endif
+}
+
+static int rna_XrActionMapItem_bindings_length(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  XrActionMapItem *ami = (XrActionMapItem *)ptr->data;
+  return BLI_listbase_count(&ami->bindings);
+#  else
+  UNUSED_VARS(ptr);
+  return 0;
+#  endif
+}
+
 static void rna_XrActionMapItem_name_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 #  ifdef WITH_XR_OPENXR
@@ -482,6 +606,27 @@ static XrActionMap *rna_XrActionMap_find(PointerRNA *ptr, const char *name)
 #  else
   UNUSED_VARS(ptr, name);
   return NULL;
+#  endif
+}
+
+static void rna_XrActionMap_items_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  XrActionMap *actionmap = (XrActionMap *)ptr->data;
+  rna_iterator_listbase_begin(iter, &actionmap->items, NULL);
+#  else
+  UNUSED_VARS(iter, ptr);
+#  endif
+}
+
+static int rna_XrActionMap_items_length(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  XrActionMap *actionmap = (XrActionMap *)ptr->data;
+  return BLI_listbase_count(&actionmap->items);
+#  else
+  UNUSED_VARS(ptr);
+  return 0;
 #  endif
 }
 
@@ -590,29 +735,11 @@ static bool rna_XrSessionState_action_create(bContext *C,
 {
 #  ifdef WITH_XR_OPENXR
   wmWindowManager *wm = CTX_wm_manager(C);
-  unsigned int count_subaction_paths = 0;
-  const char *subaction_paths[2];
-
-  if (ami->user_path0[0]) {
-    subaction_paths[0] = ami->user_path0;
-    ++count_subaction_paths;
-
-    if (ami->user_path1[0]) {
-      subaction_paths[1] = ami->user_path1;
-      ++count_subaction_paths;
-    }
-  }
-  else {
-    if (ami->user_path1[0]) {
-      subaction_paths[0] = ami->user_path1;
-      ++count_subaction_paths;
-    }
-    else {
-      return false;
-    }
+  if (BLI_listbase_is_empty(&ami->user_paths)) {
+    return false;
   }
 
-  const bool is_float_action = (ami->type == XR_FLOAT_INPUT || ami->type == XR_VECTOR2F_INPUT);
+  const bool is_float_action = ELEM(ami->type, XR_FLOAT_INPUT, XR_VECTOR2F_INPUT);
   const bool is_button_action = (is_float_action || ami->type == XR_BOOLEAN_INPUT);
   wmOperatorType *ot = NULL;
   IDProperty *op_properties = NULL;
@@ -635,8 +762,7 @@ static bool rna_XrSessionState_action_create(bContext *C,
                              actionmap->name,
                              ami->name,
                              ami->type,
-                             count_subaction_paths,
-                             subaction_paths,
+                             &ami->user_paths,
                              ot,
                              op_properties,
                              is_button_action ? ami->haptic_name : NULL,
@@ -659,33 +785,13 @@ static bool rna_XrSessionState_action_binding_create(bContext *C,
 {
 #  ifdef WITH_XR_OPENXR
   wmWindowManager *wm = CTX_wm_manager(C);
-  unsigned int count_subaction_paths = 0;
-  const char *subaction_paths[2];
-  const char *component_paths[2];
-
-  if (ami->user_path0[0]) {
-    subaction_paths[0] = ami->user_path0;
-    component_paths[0] = amb->component_path0;
-    ++count_subaction_paths;
-
-    if (ami->user_path1[0]) {
-      subaction_paths[1] = ami->user_path1;
-      component_paths[1] = amb->component_path1;
-      ++count_subaction_paths;
-    }
-  }
-  else {
-    if (ami->user_path1[0]) {
-      subaction_paths[0] = ami->user_path1;
-      component_paths[0] = amb->component_path1;
-      ++count_subaction_paths;
-    }
-    else {
-      return false;
-    }
+  const int count_user_paths = BLI_listbase_count(&ami->user_paths);
+  const int count_component_paths = BLI_listbase_count(&amb->component_paths);
+  if (count_user_paths < 1 || (count_user_paths != count_component_paths)) {
+    return false;
   }
 
-  const bool is_float_action = (ami->type == XR_FLOAT_INPUT || ami->type == XR_VECTOR2F_INPUT);
+  const bool is_float_action = ELEM(ami->type, XR_FLOAT_INPUT, XR_VECTOR2F_INPUT);
   const bool is_button_action = (is_float_action || ami->type == XR_BOOLEAN_INPUT);
   const bool is_pose_action = (ami->type == XR_POSE_INPUT);
   float float_thresholds[2];
@@ -709,9 +815,8 @@ static bool rna_XrSessionState_action_binding_create(bContext *C,
                                      actionmap->name,
                                      ami->name,
                                      amb->profile,
-                                     count_subaction_paths,
-                                     subaction_paths,
-                                     component_paths,
+                                     &ami->user_paths,
+                                     &amb->component_paths,
                                      is_float_action ? float_thresholds : NULL,
                                      is_button_action ? axis_flags : NULL,
                                      is_pose_action ? poses : NULL);
@@ -965,6 +1070,18 @@ static void rna_XrSessionState_actionmaps_begin(CollectionPropertyIterator *iter
   rna_iterator_listbase_begin(iter, lb, NULL);
 #  else
   UNUSED_VARS(iter, ptr);
+#  endif
+}
+
+static int rna_XrSessionState_actionmaps_length(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
+  ListBase *lb = WM_xr_actionmaps_get(xr->runtime);
+  return BLI_listbase_count(lb);
+#  else
+  UNUSED_VARS(ptr);
+  return 0;
 #  endif
 }
 
@@ -1254,6 +1371,42 @@ static const EnumPropertyItem rna_enum_xr_axis1_flags[] = {
 /** \name XR Action Map
  * \{ */
 
+static void rna_def_xr_component_paths(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  RNA_def_property_srna(cprop, "XrComponentPaths");
+  srna = RNA_def_struct(brna, "XrComponentPaths", NULL);
+  RNA_def_struct_sdna(srna, "XrActionMapBinding");
+  RNA_def_struct_ui_text(srna, "XR Component Paths", "Collection of OpenXR component paths");
+
+  func = RNA_def_function(srna, "new", "rna_XrComponentPath_new");
+  parm = RNA_def_string(
+      func, "path", NULL, XR_MAX_COMPONENT_PATH_LENGTH, "Path", "OpenXR component path");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_pointer(
+      func, "component_path", "XrComponentPath", "Component Path", "Added component path");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "remove", "rna_XrComponentPath_remove");
+  parm = RNA_def_pointer(func, "component_path", "XrComponentPath", "Component Path", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
+
+  func = RNA_def_function(srna, "find", "rna_XrComponentPath_find");
+  parm = RNA_def_string(
+      func, "path", NULL, XR_MAX_COMPONENT_PATH_LENGTH, "Path", "OpenXR component path");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_pointer(func,
+                         "component_path",
+                         "XrComponentPath",
+                         "Component Path",
+                         "The component path with the given path");
+  RNA_def_function_return(func, parm);
+}
+
 static void rna_def_xr_actionmap_bindings(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
@@ -1300,6 +1453,36 @@ static void rna_def_xr_actionmap_bindings(BlenderRNA *brna, PropertyRNA *cprop)
                          "XrActionMapBinding",
                          "Binding",
                          "The action map binding with the given name");
+  RNA_def_function_return(func, parm);
+}
+
+static void rna_def_xr_user_paths(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  RNA_def_property_srna(cprop, "XrUserPaths");
+  srna = RNA_def_struct(brna, "XrUserPaths", NULL);
+  RNA_def_struct_sdna(srna, "XrActionMapItem");
+  RNA_def_struct_ui_text(srna, "XR User Paths", "Collection of OpenXR user paths");
+
+  func = RNA_def_function(srna, "new", "rna_XrUserPath_new");
+  parm = RNA_def_string(func, "path", NULL, XR_MAX_USER_PATH_LENGTH, "Path", "OpenXR user path");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_pointer(func, "user_path", "XrUserPath", "User Path", "Added user path");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "remove", "rna_XrUserPath_remove");
+  parm = RNA_def_pointer(func, "user_path", "XrUserPath", "User Path", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
+
+  func = RNA_def_function(srna, "find", "rna_XrUserPath_find");
+  parm = RNA_def_string(func, "path", NULL, XR_MAX_USER_PATH_LENGTH, "Path", "OpenXR user path");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_pointer(
+      func, "user_path", "XrUserPath", "User Path", "The user path with the given path");
   RNA_def_function_return(func, parm);
 }
 
@@ -1418,6 +1601,15 @@ static void rna_def_xr_actionmap(BlenderRNA *brna)
   prop = RNA_def_property(srna, "actionmap_items", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "items", NULL);
   RNA_def_property_struct_type(prop, "XrActionMapItem");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_XrActionMap_items_begin",
+                                    "rna_iterator_listbase_next",
+                                    "rna_iterator_listbase_end",
+                                    "rna_iterator_listbase_get",
+                                    "rna_XrActionMap_items_length",
+                                    NULL,
+                                    NULL,
+                                    NULL);
   RNA_def_property_ui_text(
       prop,
       "Items",
@@ -1427,6 +1619,15 @@ static void rna_def_xr_actionmap(BlenderRNA *brna)
   prop = RNA_def_property(srna, "selected_item", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "selitem");
   RNA_def_property_ui_text(prop, "Selected Item", "");
+
+  /* XrUserPath */
+  srna = RNA_def_struct(brna, "XrUserPath", NULL);
+  RNA_def_struct_sdna(srna, "XrUserPath");
+  RNA_def_struct_ui_text(srna, "XR User Path", "");
+
+  prop = RNA_def_property(srna, "path", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_maxlength(prop, XR_MAX_USER_PATH_LENGTH);
+  RNA_def_property_ui_text(prop, "Path", "OpenXR user path");
 
   /* XrActionMapItem */
   srna = RNA_def_struct(brna, "XrActionMapItem", NULL);
@@ -1443,13 +1644,19 @@ static void rna_def_xr_actionmap(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Type", "Action type");
   RNA_def_property_update(prop, 0, "rna_XrActionMapItem_update");
 
-  prop = RNA_def_property(srna, "user_path0", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_maxlength(prop, 64);
-  RNA_def_property_ui_text(prop, "User Path 0", "OpenXR user path");
-
-  prop = RNA_def_property(srna, "user_path1", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_maxlength(prop, 64);
-  RNA_def_property_ui_text(prop, "User Path 1", "OpenXR user path");
+  prop = RNA_def_property(srna, "user_paths", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "XrUserPath");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_XrActionMapItem_user_paths_begin",
+                                    "rna_iterator_listbase_next",
+                                    "rna_iterator_listbase_end",
+                                    "rna_iterator_listbase_get",
+                                    "rna_XrActionMapItem_user_paths_length",
+                                    NULL,
+                                    NULL,
+                                    NULL);
+  RNA_def_property_ui_text(prop, "User Paths", "OpenXR user paths");
+  rna_def_xr_user_paths(brna, prop);
 
   prop = RNA_def_property(srna, "op", PROP_STRING, PROP_NONE);
   RNA_def_property_string_maxlength(prop, OP_MAX_TYPENAME);
@@ -1534,6 +1741,15 @@ static void rna_def_xr_actionmap(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "bindings", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "XrActionMapBinding");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_XrActionMapItem_bindings_begin",
+                                    "rna_iterator_listbase_next",
+                                    "rna_iterator_listbase_end",
+                                    "rna_iterator_listbase_get",
+                                    "rna_XrActionMapItem_bindings_length",
+                                    NULL,
+                                    NULL,
+                                    NULL);
   RNA_def_property_ui_text(
       prop, "Bindings", "Bindings for the action map item, mapping the action to an XR input");
   rna_def_xr_actionmap_bindings(brna, prop);
@@ -1541,6 +1757,15 @@ static void rna_def_xr_actionmap(BlenderRNA *brna)
   prop = RNA_def_property(srna, "selected_binding", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "selbinding");
   RNA_def_property_ui_text(prop, "Selected Binding", "Currently selected binding");
+
+  /* XrComponentPath */
+  srna = RNA_def_struct(brna, "XrComponentPath", NULL);
+  RNA_def_struct_sdna(srna, "XrComponentPath");
+  RNA_def_struct_ui_text(srna, "XR Component Path", "");
+
+  prop = RNA_def_property(srna, "path", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_maxlength(prop, XR_MAX_COMPONENT_PATH_LENGTH);
+  RNA_def_property_ui_text(prop, "Path", "OpenXR component path");
 
   /* XrActionMapBinding */
   srna = RNA_def_struct(brna, "XrActionMapBinding", NULL);
@@ -1556,13 +1781,19 @@ static void rna_def_xr_actionmap(BlenderRNA *brna)
   RNA_def_property_string_maxlength(prop, 256);
   RNA_def_property_ui_text(prop, "Profile", "OpenXR interaction profile path");
 
-  prop = RNA_def_property(srna, "component_path0", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_maxlength(prop, 192);
-  RNA_def_property_ui_text(prop, "Component Path 0", "OpenXR component path");
-
-  prop = RNA_def_property(srna, "component_path1", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_maxlength(prop, 192);
-  RNA_def_property_ui_text(prop, "Component Path 1", "OpenXR component path");
+  prop = RNA_def_property(srna, "component_paths", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "XrComponentPath");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_XrActionMapBinding_component_paths_begin",
+                                    "rna_iterator_listbase_next",
+                                    "rna_iterator_listbase_end",
+                                    "rna_iterator_listbase_get",
+                                    "rna_XrActionMapBinding_component_paths_length",
+                                    NULL,
+                                    NULL,
+                                    NULL);
+  RNA_def_property_ui_text(prop, "Component Paths", "OpenXR component paths");
+  rna_def_xr_component_paths(brna, prop);
 
   prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "float_threshold");
@@ -1826,7 +2057,7 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_NO_SELF);
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_string(func, "action_set", NULL, 64, "Action Set", "Action set name");
+  parm = RNA_def_string(func, "action_set", NULL, MAX_NAME, "Action Set", "Action set name");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_boolean(func, "result", 0, "Result", "");
   RNA_def_function_return(func, parm);
@@ -1837,19 +2068,19 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_NO_SELF);
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_string(func, "action_set", NULL, 64, "Action Set", "Action set name");
+  parm = RNA_def_string(func, "action_set", NULL, MAX_NAME, "Action Set", "Action set name");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_string(func,
                         "grip_action",
                         NULL,
-                        64,
+                        MAX_NAME,
                         "Grip Action",
                         "Name of the action representing the controller grips");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_string(func,
                         "aim_action",
                         NULL,
-                        64,
+                        MAX_NAME,
                         "Aim Action",
                         "Name of the action representing the controller aims");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
@@ -1861,11 +2092,12 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_NO_SELF);
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_string(func, "action_set_name", NULL, 64, "Action Set", "Action set name");
+  parm = RNA_def_string(func, "action_set_name", NULL, MAX_NAME, "Action Set", "Action set name");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_string(func, "action_name", NULL, 64, "Action", "Action name");
+  parm = RNA_def_string(func, "action_name", NULL, MAX_NAME, "Action", "Action name");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_string(func, "user_path", NULL, 64, "User Path", "OpenXR user path");
+  parm = RNA_def_string(
+      func, "user_path", NULL, XR_MAX_USER_PATH_LENGTH, "User Path", "OpenXR user path");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_float_array(
       func,
@@ -1885,15 +2117,15 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_NO_SELF);
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_string(func, "action_set_name", NULL, 64, "Action Set", "Action set name");
+  parm = RNA_def_string(func, "action_set_name", NULL, MAX_NAME, "Action Set", "Action set name");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_string(func, "action_name", NULL, 64, "Action", "Action name");
+  parm = RNA_def_string(func, "action_name", NULL, MAX_NAME, "Action", "Action name");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_string(
       func,
       "user_path",
       NULL,
-      64,
+      XR_MAX_USER_PATH_LENGTH,
       "User Path",
       "Optional OpenXR user path. If not set, the action will be applied to all paths");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
@@ -1936,15 +2168,15 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_NO_SELF);
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_string(func, "action_set_name", NULL, 64, "Action Set", "Action set name");
+  parm = RNA_def_string(func, "action_set_name", NULL, MAX_NAME, "Action Set", "Action set name");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_string(func, "action_name", NULL, 64, "Action", "Action name");
+  parm = RNA_def_string(func, "action_name", NULL, MAX_NAME, "Action", "Action name");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_string(
       func,
       "user_path",
       NULL,
-      64,
+      XR_MAX_USER_PATH_LENGTH,
       "User Path",
       "Optional OpenXR user path. If not set, the action will be stopped for all paths");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
@@ -2082,16 +2314,16 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
       "Additional scale multiplier to apply to base scale when determining viewer scale");
 
   prop = RNA_def_property(srna, "actionmaps", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "XrActionMap");
   RNA_def_property_collection_funcs(prop,
                                     "rna_XrSessionState_actionmaps_begin",
                                     "rna_iterator_listbase_next",
                                     "rna_iterator_listbase_end",
                                     "rna_iterator_listbase_get",
-                                    NULL,
+                                    "rna_XrSessionState_actionmaps_length",
                                     NULL,
                                     NULL,
                                     NULL);
-  RNA_def_property_struct_type(prop, "XrActionMap");
   RNA_def_property_ui_text(prop, "XR Action Maps", "");
   rna_def_xr_actionmaps(brna, prop);
 

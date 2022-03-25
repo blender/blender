@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -39,7 +25,7 @@ TempLibraryContext *BLO_library_temp_load_id(struct Main *real_main,
   temp_lib_ctx->bf_reports.reports = reports;
 
   /* Copy the file path so any path remapping is performed properly. */
-  STRNCPY(temp_lib_ctx->bmain_base->name, real_main->name);
+  STRNCPY(temp_lib_ctx->bmain_base->filepath, real_main->filepath);
 
   temp_lib_ctx->blendhandle = BLO_blendhandle_from_file(blend_file_path,
                                                         &temp_lib_ctx->bf_reports);

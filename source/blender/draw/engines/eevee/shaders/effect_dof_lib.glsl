@@ -66,7 +66,7 @@ float dof_hdr_color_weight(vec4 color)
 {
   /* From UE4. Very fast "luma" weighting. */
   float luma = (color.g * 2.0) + (color.r + color.b);
-  /* TODO(fclem) Pass correct exposure. */
+  /* TODO(@fclem): Pass correct exposure. */
   const float exposure = 1.0;
   return 1.0 / (luma * exposure + 4.0);
 }
@@ -92,7 +92,7 @@ vec4 dof_downsample_bilateral_coc_weights(vec4 cocs)
 {
   float chosen_coc = dof_coc_select(cocs);
 
-  const float scale = 4.0; /* TODO(fclem) revisit. */
+  const float scale = 4.0; /* TODO(@fclem): revisit. */
   /* NOTE: The difference between the cocs should be inside a abs() function,
    * but we follow UE4 implementation to improve how dithered transparency looks (see slide 19). */
   return saturate(1.0 - (chosen_coc - cocs) * scale);
@@ -373,7 +373,7 @@ void dof_gather_accumulate_sample_pair(DofGatherData pair_data[2],
 
 #if 0
   const float mirroring_threshold = -layer_threshold - layer_offset;
-  /* TODO(fclem) Promote to parameter? dither with Noise? */
+  /* TODO(@fclem): Promote to parameter? dither with Noise? */
   const float mirroring_min_distance = 15.0;
   if (pair_data[0].coc < mirroring_threshold &&
       (pair_data[1].coc - mirroring_min_distance) > pair_data[0].coc) {
@@ -487,7 +487,8 @@ void dof_gather_accumulate_sample_ring(DofGatherData ring_data,
   }
 }
 
-/* FIXME(fclem) Seems to be wrong since it needs ringcount+1 as input for slightfocus gather. */
+/* FIXME(@fclem): Seems to be wrong since it needs `ringcount + 1` as input for slightfocus gather.
+ */
 int dof_gather_total_sample_count(const int ring_count, const int ring_density)
 {
   return (ring_count * ring_count - ring_count) * ring_density + 1;

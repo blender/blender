@@ -1,24 +1,11 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spoutliner
  */
 
 #include "DNA_ID.h"
+#include "DNA_space_types.h"
 
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_utildefines.h"
@@ -29,8 +16,8 @@
 
 #include "RNA_access.h"
 
-#include "../outliner_intern.h"
-#include "tree_display.h"
+#include "../outliner_intern.hh"
+#include "common.hh"
 #include "tree_element_id_library.hh"
 #include "tree_element_id_scene.hh"
 
@@ -38,16 +25,16 @@
 
 namespace blender::ed::outliner {
 
-TreeElementID *TreeElementID::createFromID(TreeElement &legacy_te, ID &id)
+std::unique_ptr<TreeElementID> TreeElementID::createFromID(TreeElement &legacy_te, ID &id)
 {
   switch (ID_Type type = GS(id.name); type) {
     case ID_LI:
-      return new TreeElementIDLibrary(legacy_te, (Library &)id);
+      return std::make_unique<TreeElementIDLibrary>(legacy_te, (Library &)id);
     case ID_SCE:
-      return new TreeElementIDScene(legacy_te, (Scene &)id);
+      return std::make_unique<TreeElementIDScene>(legacy_te, (Scene &)id);
     case ID_OB:
     case ID_ME:
-    case ID_CU:
+    case ID_CU_LEGACY:
     case ID_MB:
     case ID_MA:
     case ID_TE:
@@ -68,7 +55,7 @@ TreeElementID *TreeElementID::createFromID(TreeElement &legacy_te, ID &id)
     case ID_LP:
     case ID_GD:
     case ID_WS:
-    case ID_HA:
+    case ID_CV:
     case ID_PT:
     case ID_VO:
     case ID_SIM:
@@ -82,7 +69,7 @@ TreeElementID *TreeElementID::createFromID(TreeElement &legacy_te, ID &id)
     case ID_PAL:
     case ID_PC:
     case ID_CF:
-      return new TreeElementID(legacy_te, id);
+      return std::make_unique<TreeElementID>(legacy_te, id);
       /* Deprecated */
     case ID_IP:
       BLI_assert_msg(0, "Outliner trying to build tree-element for deprecated ID type");

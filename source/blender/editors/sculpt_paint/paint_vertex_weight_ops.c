@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -408,10 +394,11 @@ static int weight_sample_group_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-/* TODO: we could make this a menu into OBJECT_OT_vertex_group_set_active
- * rather than its own operator */
 void PAINT_OT_weight_sample_group(wmOperatorType *ot)
 {
+  /* TODO: we could make this a menu into #OBJECT_OT_vertex_group_set_active
+   * rather than its own operator */
+
   PropertyRNA *prop = NULL;
 
   /* identifiers */
@@ -427,9 +414,9 @@ void PAINT_OT_weight_sample_group(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_UNDO;
 
-  /* keyingset to use (dynamic enum) */
+  /* Group to use (dynamic enum). */
   prop = RNA_def_enum(
-      ot->srna, "group", DummyRNA_DEFAULT_items, 0, "Keying Set", "The Keying Set to use");
+      ot->srna, "group", DummyRNA_NULL_items, 0, "Group", "Vertex group to set as active");
   RNA_def_enum_funcs(prop, weight_paint_sample_enum_itemf);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;
@@ -664,8 +651,7 @@ static void gradientVert_update(WPGradient_userData *grad_data, int index)
 static void gradientVertUpdate__mapFunc(void *userData,
                                         int index,
                                         const float UNUSED(co[3]),
-                                        const float UNUSED(no_f[3]),
-                                        const short UNUSED(no_s[3]))
+                                        const float UNUSED(no[3]))
 {
   WPGradient_userData *grad_data = userData;
   WPGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
@@ -680,8 +666,7 @@ static void gradientVertUpdate__mapFunc(void *userData,
 static void gradientVertInit__mapFunc(void *userData,
                                       int index,
                                       const float co[3],
-                                      const float UNUSED(no_f[3]),
-                                      const short UNUSED(no_s[3]))
+                                      const float UNUSED(no[3]))
 {
   WPGradient_userData *grad_data = userData;
   Mesh *me = grad_data->me;

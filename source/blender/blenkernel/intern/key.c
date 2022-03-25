@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -62,6 +46,7 @@
 #include "BKE_scene.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "BLO_read_write.h"
 
@@ -213,6 +198,7 @@ IDTypeInfo IDType_ID_KE = {
     .name_plural = "shape_keys",
     .translation_context = BLT_I18NCONTEXT_ID_SHAPEKEY,
     .flags = IDTYPE_FLAGS_NO_LIBLINKING,
+    .asset_type_info = NULL,
 
     .init_data = NULL,
     .copy_data = shapekey_copy_data,
@@ -220,7 +206,8 @@ IDTypeInfo IDType_ID_KE = {
     .make_local = NULL,
     .foreach_id = shapekey_foreach_id,
     .foreach_cache = NULL,
-    /* A bit weird, due to shapekeys not being strictly speaking embedded data... But they also
+    .foreach_path = NULL,
+    /* A bit weird, due to shape-keys not being strictly speaking embedded data... But they also
      * share a lot with those (non linkable, only ever used by one owner ID, etc.). */
     .owner_get = shapekey_owner_get,
 
@@ -244,7 +231,6 @@ typedef struct WeightsArrayCache {
   float **defgroup_weights;
 } WeightsArrayCache;
 
-/** Free (or release) any data used by this shapekey (does not free the key itself). */
 void BKE_key_free_data(Key *key)
 {
   shapekey_free_data(&key->id);
@@ -296,7 +282,7 @@ Key *BKE_key_add(Main *bmain, ID *id) /* common function */
       key->elemsize = sizeof(float[KEYELEM_FLOAT_LEN_COORD]);
 
       break;
-    case ID_CU:
+    case ID_CU_LEGACY:
       el = key->elemstr;
 
       el[0] = KEYELEM_ELEM_SIZE_CURVE;
@@ -314,11 +300,6 @@ Key *BKE_key_add(Main *bmain, ID *id) /* common function */
   return key;
 }
 
-/**
- * Sort shape keys after a change.
- * This assumes that at most one key was moved,
- * which is a valid assumption for the places it's currently being called.
- */
 void BKE_key_sort(Key *key)
 {
   KeyBlock *kb;
@@ -392,7 +373,6 @@ void key_curve_position_weights(float t, float data[4], int type)
   }
 }
 
-/* first derivative */
 void key_curve_tangent_weights(float t, float data[4], int type)
 {
   float t2, fc;
@@ -431,7 +411,6 @@ void key_curve_tangent_weights(float t, float data[4], int type)
   }
 }
 
-/* second derivative */
 void key_curve_normal_weights(float t, float data[4], int type)
 {
   float fc;
@@ -681,7 +660,7 @@ static bool key_pointer_size(const Key *key, const int mode, int *poinsize, int 
       *ofs = sizeof(float[KEYELEM_FLOAT_LEN_COORD]);
       *poinsize = *ofs;
       break;
-    case ID_CU:
+    case ID_CU_LEGACY:
       if (mode == KEY_MODE_BPOINT) {
         *ofs = sizeof(float[KEYELEM_FLOAT_LEN_BPOINT]);
         *step = KEYELEM_ELEM_LEN_BPOINT;
@@ -1522,7 +1501,6 @@ static void do_latt_key(Object *ob, Key *key, char *out, const int tot)
   }
 }
 
-/* returns key coordinates (+ tilt) when key applied, NULL otherwise */
 float *BKE_key_evaluate_object_ex(Object *ob, int *r_totelem, float *arr, size_t arr_size)
 {
   Key *key = BKE_key_from_object(ob);
@@ -1547,7 +1525,7 @@ float *BKE_key_evaluate_object_ex(Object *ob, int *r_totelem, float *arr, size_t
     tot = lt->pntsu * lt->pntsv * lt->pntsw;
     size = tot * sizeof(float[KEYELEM_FLOAT_LEN_COORD]);
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = ob->data;
 
     tot = BKE_keyblock_curve_element_count(&cu->nurb);
@@ -1593,7 +1571,7 @@ float *BKE_key_evaluate_object_ex(Object *ob, int *r_totelem, float *arr, size_t
         MEM_freeN(weights);
       }
     }
-    else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+    else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
       cp_cu_key(ob->data, key, actkb, kb, 0, tot, out, tot);
     }
   }
@@ -1605,7 +1583,7 @@ float *BKE_key_evaluate_object_ex(Object *ob, int *r_totelem, float *arr, size_t
     else if (ob->type == OB_LATTICE) {
       do_latt_key(ob, key, out, tot);
     }
-    else if (ob->type == OB_CURVE) {
+    else if (ob->type == OB_CURVES_LEGACY) {
       do_curve_key(ob, key, out, tot);
     }
     else if (ob->type == OB_SURF) {
@@ -1624,9 +1602,6 @@ float *BKE_key_evaluate_object(Object *ob, int *r_totelem)
   return BKE_key_evaluate_object_ex(ob, r_totelem, NULL, 0);
 }
 
-/**
- * \param shape_index: The index to use or all (when -1).
- */
 int BKE_keyblock_element_count_from_shape(const Key *key, const int shape_index)
 {
   int result = 0;
@@ -1644,9 +1619,6 @@ int BKE_keyblock_element_count(const Key *key)
   return BKE_keyblock_element_count_from_shape(key, -1);
 }
 
-/**
- * \param shape_index: The index to use or all (when -1).
- */
 size_t BKE_keyblock_element_calc_size_from_shape(const Key *key, const int shape_index)
 {
   return (size_t)BKE_keyblock_element_count_from_shape(key, shape_index) * key->elemsize;
@@ -1664,9 +1636,6 @@ size_t BKE_keyblock_element_calc_size(const Key *key)
  * use #BKE_keyblock_element_calc_size to allocate the size of the data needed.
  * \{ */
 
-/**
- * \param shape_index: The index to use or all (when -1).
- */
 void BKE_keyblock_data_get_from_shape(const Key *key, float (*arr)[3], const int shape_index)
 {
   uint8_t *elements = (uint8_t *)arr;
@@ -1685,9 +1654,6 @@ void BKE_keyblock_data_get(const Key *key, float (*arr)[3])
   BKE_keyblock_data_get_from_shape(key, arr, -1);
 }
 
-/**
- * Set the data to all key-blocks (or shape_index if != -1).
- */
 void BKE_keyblock_data_set_with_mat4(Key *key,
                                      const int shape_index,
                                      const float (*coords)[3],
@@ -1715,10 +1681,6 @@ void BKE_keyblock_data_set_with_mat4(Key *key,
   }
 }
 
-/**
- * Set the data for all key-blocks (or shape_index if != -1),
- * transforming by \a mat.
- */
 void BKE_keyblock_curve_data_set_with_mat4(
     Key *key, const ListBase *nurb, const int shape_index, const void *data, const float mat[4][4])
 {
@@ -1734,9 +1696,6 @@ void BKE_keyblock_curve_data_set_with_mat4(
   }
 }
 
-/**
- * Set the data for all key-blocks (or shape_index if != -1).
- */
 void BKE_keyblock_data_set(Key *key, const int shape_index, const void *data)
 {
   const uint8_t *elements = data;
@@ -1756,7 +1715,7 @@ bool BKE_key_idtype_support(const short id_type)
 {
   switch (id_type) {
     case ID_ME:
-    case ID_CU:
+    case ID_CU_LEGACY:
     case ID_LT:
       return true;
     default:
@@ -1771,7 +1730,7 @@ Key **BKE_key_from_id_p(ID *id)
       Mesh *me = (Mesh *)id;
       return &me->key;
     }
-    case ID_CU: {
+    case ID_CU_LEGACY: {
       Curve *cu = (Curve *)id;
       if (cu->vfont == NULL) {
         return &cu->key;
@@ -1868,14 +1827,6 @@ KeyBlock *BKE_keyblock_add(Key *key, const char *name)
   return kb;
 }
 
-/**
- * \note sorting is a problematic side effect in some cases,
- * better only do this explicitly by having its own function,
- *
- * \param key: The key datablock to add to.
- * \param name: Optional name for the new keyblock.
- * \param do_force: always use ctime even for relative keys.
- */
 KeyBlock *BKE_keyblock_add_ctime(Key *key, const char *name, const bool do_force)
 {
   KeyBlock *kb = BKE_keyblock_add(key, name);
@@ -1904,7 +1855,6 @@ KeyBlock *BKE_keyblock_add_ctime(Key *key, const char *name, const bool do_force
   return kb;
 }
 
-/* Only the active key-block. */
 KeyBlock *BKE_keyblock_from_object(Object *ob)
 {
   Key *key = BKE_key_from_object(ob);
@@ -1928,7 +1878,6 @@ KeyBlock *BKE_keyblock_from_object_reference(Object *ob)
   return NULL;
 }
 
-/* get the appropriate KeyBlock given an index */
 KeyBlock *BKE_keyblock_from_key(Key *key, int index)
 {
   if (key) {
@@ -1946,15 +1895,11 @@ KeyBlock *BKE_keyblock_from_key(Key *key, int index)
   return NULL;
 }
 
-/* get the appropriate KeyBlock given a name to search for */
 KeyBlock *BKE_keyblock_find_name(Key *key, const char name[])
 {
   return BLI_findstring(&key->block, name, offsetof(KeyBlock, name));
 }
 
-/**
- * \brief copy shape-key attributes, but not key data.or name/uid
- */
 void BKE_keyblock_copy_settings(KeyBlock *kb_dst, const KeyBlock *kb_src)
 {
   kb_dst->pos = kb_src->pos;
@@ -1966,9 +1911,6 @@ void BKE_keyblock_copy_settings(KeyBlock *kb_dst, const KeyBlock *kb_src)
   kb_dst->slidermax = kb_src->slidermax;
 }
 
-/* Get RNA-Path for 'value' setting of the given ShapeKey
- * NOTE: the user needs to free the returned string once they're finish with it
- */
 char *BKE_keyblock_curval_rnapath_get(Key *key, KeyBlock *kb)
 {
   PointerRNA ptr;
@@ -1991,6 +1933,7 @@ char *BKE_keyblock_curval_rnapath_get(Key *key, KeyBlock *kb)
 /* conversion functions */
 
 /************************* Lattice ************************/
+
 void BKE_keyblock_update_from_lattice(Lattice *lt, KeyBlock *kb)
 {
   BPoint *bp;
@@ -2191,6 +2134,7 @@ void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nu
 }
 
 /************************* Mesh ************************/
+
 void BKE_keyblock_update_from_mesh(Mesh *me, KeyBlock *kb)
 {
   MVert *mvert;
@@ -2243,15 +2187,6 @@ void BKE_keyblock_convert_to_mesh(KeyBlock *kb, Mesh *me)
   }
 }
 
-/**
- * Computes normals (vertices, polygons and/or loops ones) of given mesh for given shape key.
- *
- * \param kb: the KeyBlock to use to compute normals.
- * \param mesh: the Mesh to apply key-block to.
- * \param r_vertnors: if non-NULL, an array of vectors, same length as number of vertices.
- * \param r_polynors: if non-NULL, an array of vectors, same length as number of polygons.
- * \param r_loopnors: if non-NULL, an array of vectors, same length as number of loops.
- */
 void BKE_keyblock_mesh_calc_normals(struct KeyBlock *kb,
                                     struct Mesh *mesh,
                                     float (*r_vertnors)[3],
@@ -2280,13 +2215,20 @@ void BKE_keyblock_mesh_calc_normals(struct KeyBlock *kb,
     r_polynors = MEM_mallocN(sizeof(float[3]) * me.totpoly, __func__);
     free_polynors = true;
   }
-  BKE_mesh_calc_normals_poly_and_vertex(
-      me.mvert, me.totvert, me.mloop, me.totloop, me.mpoly, me.totpoly, r_polynors, r_vertnors);
+
+  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
+  if (r_vertnors) {
+    memcpy(r_vertnors, vert_normals, sizeof(float[3]) * me.totvert);
+  }
+
+  const float(*face_normals)[3] = BKE_mesh_poly_normals_ensure(mesh);
+  memcpy(r_polynors, face_normals, sizeof(float[3]) * me.totpoly);
 
   if (r_loopnors) {
     short(*clnors)[2] = CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL); /* May be NULL. */
 
     BKE_mesh_normals_loop_split(me.mvert,
+                                vert_normals,
                                 me.totvert,
                                 me.medge,
                                 me.totedge,
@@ -2294,7 +2236,7 @@ void BKE_keyblock_mesh_calc_normals(struct KeyBlock *kb,
                                 r_loopnors,
                                 me.totloop,
                                 me.mpoly,
-                                r_polynors,
+                                face_normals,
                                 me.totpoly,
                                 (me.flag & ME_AUTOSMOOTH) != 0,
                                 me.smoothresh,
@@ -2316,6 +2258,7 @@ void BKE_keyblock_mesh_calc_normals(struct KeyBlock *kb,
 }
 
 /************************* raw coords ************************/
+
 void BKE_keyblock_update_from_vertcos(Object *ob, KeyBlock *kb, const float (*vertCos)[3])
 {
   const float(*co)[3] = vertCos;
@@ -2327,7 +2270,7 @@ void BKE_keyblock_update_from_vertcos(Object *ob, KeyBlock *kb, const float (*ve
     Lattice *lt = ob->data;
     BLI_assert((lt->pntsu * lt->pntsv * lt->pntsw) == kb->totelem);
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = ob->data;
     BLI_assert(BKE_keyblock_curve_element_count(&cu->nurb) == kb->totelem);
   }
@@ -2351,7 +2294,7 @@ void BKE_keyblock_update_from_vertcos(Object *ob, KeyBlock *kb, const float (*ve
       copy_v3_v3(fp, *co);
     }
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = (Curve *)ob->data;
     Nurb *nu;
     BezTriple *bezt;
@@ -2393,7 +2336,7 @@ void BKE_keyblock_convert_from_vertcos(Object *ob, KeyBlock *kb, const float (*v
     tot = lt->pntsu * lt->pntsv * lt->pntsw;
     elemsize = lt->key->elemsize;
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = (Curve *)ob->data;
     elemsize = cu->key->elemsize;
     tot = BKE_keyblock_curve_element_count(&cu->nurb);
@@ -2424,7 +2367,7 @@ float (*BKE_keyblock_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
     Lattice *lt = (Lattice *)ob->data;
     tot = lt->pntsu * lt->pntsv * lt->pntsw;
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = (Curve *)ob->data;
     tot = BKE_nurbList_verts_count(&cu->nurb);
   }
@@ -2441,7 +2384,7 @@ float (*BKE_keyblock_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
       copy_v3_v3(*co, fp);
     }
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = (Curve *)ob->data;
     Nurb *nu;
     BezTriple *bezt;
@@ -2469,6 +2412,7 @@ float (*BKE_keyblock_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
 }
 
 /************************* raw coord offsets ************************/
+
 void BKE_keyblock_update_from_offset(Object *ob, KeyBlock *kb, const float (*ofs)[3])
 {
   int a;
@@ -2479,7 +2423,7 @@ void BKE_keyblock_update_from_offset(Object *ob, KeyBlock *kb, const float (*ofs
       add_v3_v3(fp, *ofs);
     }
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     Curve *cu = (Curve *)ob->data;
     Nurb *nu;
     BezTriple *bezt;
@@ -2506,15 +2450,6 @@ void BKE_keyblock_update_from_offset(Object *ob, KeyBlock *kb, const float (*ofs
 
 /* ==========================================================*/
 
-/**
- * Move shape key from org_index to new_index. Safe, clamps index to valid range,
- * updates reference keys, the object's active shape index,
- * the 'frame' value in case of absolute keys, etc.
- * Note indices are expected in real values (not 'fake' shapenr +1 ones).
- *
- * \param org_index: if < 0, current object's active shape will be used as skey to move.
- * \return true if something was done, else false.
- */
 bool BKE_keyblock_move(Object *ob, int org_index, int new_index)
 {
   Key *key = BKE_key_from_object(ob);
@@ -2593,9 +2528,6 @@ bool BKE_keyblock_move(Object *ob, int org_index, int new_index)
   return true;
 }
 
-/**
- * Check if given key-block (as index) is used as basis by others in given key.
- */
 bool BKE_keyblock_is_basis(Key *key, const int index)
 {
   KeyBlock *kb;

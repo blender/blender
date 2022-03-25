@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2017, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2017 Blender Foundation. */
 
 /** \file
  * \ingroup draw
@@ -291,7 +276,7 @@ void GPENCIL_cache_init(void *ved)
     GPUShader *sh = GPENCIL_shader_depth_merge_get();
     grp = DRW_shgroup_create(sh, psl->merge_depth_ps);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuf", &pd->depth_tx);
-    DRW_shgroup_uniform_bool(grp, "strokeOrder3d", &pd->is_stroke_order_3d, 1);
+    DRW_shgroup_uniform_bool(grp, "gpStrokeOrder3d", &pd->is_stroke_order_3d, 1);
     DRW_shgroup_uniform_vec4(grp, "gpModelMatrix", pd->object_bound_mat[0], 4);
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
   }
@@ -420,8 +405,8 @@ static void gpencil_sbuffer_cache_populate(gpIterPopulateData *iter)
    * Remember, sbuffer stroke indices start from 0. So we add last index to avoid
    * masking issues. */
   iter->grp = DRW_shgroup_create_sub(iter->grp);
-  DRW_shgroup_uniform_block(iter->grp, "gpMaterialBlock", iter->ubo_mat);
-  DRW_shgroup_uniform_float_copy(iter->grp, "strokeIndexOffset", iter->stroke_index_last);
+  DRW_shgroup_uniform_block(iter->grp, "materials", iter->ubo_mat);
+  DRW_shgroup_uniform_float_copy(iter->grp, "gpStrokeIndexOffset", iter->stroke_index_last);
 
   const DRWContextState *ctx = DRW_context_state_get();
   ToolSettings *ts = ctx->scene->toolsettings;
@@ -468,12 +453,12 @@ static void gpencil_layer_cache_populate(bGPDlayer *gpl,
 
   /* Iterator dependent uniforms. */
   DRWShadingGroup *grp = iter->grp = tgp_layer->base_shgrp;
-  DRW_shgroup_uniform_block(grp, "gpLightBlock", iter->ubo_lights);
-  DRW_shgroup_uniform_block(grp, "gpMaterialBlock", iter->ubo_mat);
+  DRW_shgroup_uniform_block(grp, "lights", iter->ubo_lights);
+  DRW_shgroup_uniform_block(grp, "materials", iter->ubo_mat);
   DRW_shgroup_uniform_texture(grp, "gpFillTexture", iter->tex_fill);
   DRW_shgroup_uniform_texture(grp, "gpStrokeTexture", iter->tex_stroke);
   DRW_shgroup_uniform_int_copy(grp, "gpMaterialOffset", iter->mat_ofs);
-  DRW_shgroup_uniform_float_copy(grp, "strokeIndexOffset", iter->stroke_index_offset);
+  DRW_shgroup_uniform_float_copy(grp, "gpStrokeIndexOffset", iter->stroke_index_offset);
 }
 
 static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
@@ -515,7 +500,7 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
 
     iter->grp = DRW_shgroup_create_sub(iter->grp);
     if (iter->ubo_mat != ubo_mat) {
-      DRW_shgroup_uniform_block(iter->grp, "gpMaterialBlock", ubo_mat);
+      DRW_shgroup_uniform_block(iter->grp, "materials", ubo_mat);
       iter->ubo_mat = ubo_mat;
     }
     if (tex_fill) {
@@ -788,7 +773,7 @@ static void gpencil_draw_mask(GPENCIL_Data *vedata, GPENCIL_tObject *ob, GPENCIL
   const float clear_col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   float clear_depth = ob->is_drawmode3d ? 1.0f : 0.0f;
   bool inverted = false;
-  /* OPTI(fclem) we could optimize by only clearing if the new mask_bits does not contain all
+  /* OPTI(@fclem): we could optimize by only clearing if the new mask_bits does not contain all
    * the masks already rendered in the buffer, and drawing only the layers not already drawn. */
   bool cleared = false;
 
@@ -990,6 +975,7 @@ DrawEngineType draw_engine_gpencil_type = {
     &GPENCIL_data_size,
     &GPENCIL_engine_init,
     &GPENCIL_engine_free,
+    NULL, /* instance_free */
     &GPENCIL_cache_init,
     &GPENCIL_cache_populate,
     &GPENCIL_cache_finish,

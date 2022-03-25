@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbdds
@@ -25,6 +11,21 @@
 
 static const char *msg_error_seek = "DDS: trying to seek beyond end of stream (corrupt file?)";
 static const char *msg_error_read = "DDS: trying to read beyond end of stream (corrupt file?)";
+
+inline bool is_read_within_bounds(const Stream &mem, unsigned int count)
+{
+  if (mem.pos >= mem.size) {
+    /* No more data remained in the memory buffer. */
+    return false;
+  }
+
+  if (count > mem.size - mem.pos) {
+    /* Reading past the memory bounds. */
+    return false;
+  }
+
+  return true;
+}
 
 unsigned int Stream::seek(unsigned int p)
 {
@@ -40,7 +41,7 @@ unsigned int Stream::seek(unsigned int p)
 
 unsigned int mem_read(Stream &mem, unsigned long long &i)
 {
-  if (mem.pos + 8 > mem.size) {
+  if (!is_read_within_bounds(mem, 8)) {
     mem.set_failed(msg_error_seek);
     return 0;
   }
@@ -51,7 +52,7 @@ unsigned int mem_read(Stream &mem, unsigned long long &i)
 
 unsigned int mem_read(Stream &mem, unsigned int &i)
 {
-  if (mem.pos + 4 > mem.size) {
+  if (!is_read_within_bounds(mem, 4)) {
     mem.set_failed(msg_error_read);
     return 0;
   }
@@ -62,7 +63,7 @@ unsigned int mem_read(Stream &mem, unsigned int &i)
 
 unsigned int mem_read(Stream &mem, unsigned short &i)
 {
-  if (mem.pos + 2 > mem.size) {
+  if (!is_read_within_bounds(mem, 2)) {
     mem.set_failed(msg_error_read);
     return 0;
   }
@@ -73,7 +74,7 @@ unsigned int mem_read(Stream &mem, unsigned short &i)
 
 unsigned int mem_read(Stream &mem, unsigned char &i)
 {
-  if (mem.pos + 1 > mem.size) {
+  if (!is_read_within_bounds(mem, 1)) {
     mem.set_failed(msg_error_read);
     return 0;
   }
@@ -82,15 +83,15 @@ unsigned int mem_read(Stream &mem, unsigned char &i)
   return 1;
 }
 
-unsigned int mem_read(Stream &mem, unsigned char *i, unsigned int cnt)
+unsigned int mem_read(Stream &mem, unsigned char *i, unsigned int count)
 {
-  if (mem.pos + cnt > mem.size) {
+  if (!is_read_within_bounds(mem, count)) {
     mem.set_failed(msg_error_read);
     return 0;
   }
-  memcpy(i, mem.mem + mem.pos, cnt);
-  mem.pos += cnt;
-  return cnt;
+  memcpy(i, mem.mem + mem.pos, count);
+  mem.pos += count;
+  return count;
 }
 
 void Stream::set_failed(const char *msg)

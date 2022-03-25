@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -50,7 +36,7 @@
 static CLG_LogRef LOG = {"bke.mesh"};
 
 /* -------------------------------------------------------------------- */
-/** \name Some generic helpers.
+/** \name Some Generic Helpers
  * \{ */
 
 static bool mesh_remap_bvhtree_query_nearest(BVHTreeFromMesh *treedata,
@@ -117,22 +103,12 @@ static bool mesh_remap_bvhtree_query_raycast(BVHTreeFromMesh *treedata,
 
 /** \} */
 
-/**
- * \name Auto-match.
+/* -------------------------------------------------------------------- */
+/** \name Auto-match.
  *
  * Find transform of a mesh to get best match with another.
  * \{ */
 
-/**
- * Compute a value of the difference between both given meshes.
- * The smaller the result, the better the match.
- *
- * We return the inverse of the average of the inversed
- * shortest distance from each dst vertex to src ones.
- * In other words, beyond a certain (relatively small) distance, all differences have more or less
- * the same weight in final result, which allows to reduce influence of a few high differences,
- * in favor of a global good matching.
- */
 float BKE_mesh_remap_calc_difference_from_mesh(const SpaceTransform *space_transform,
                                                const MVert *verts_dst,
                                                const int numverts_dst,
@@ -268,9 +244,6 @@ static void mesh_calc_eigen_matrix(const MVert *verts,
   copy_v3_v3(r_mat[3], center);
 }
 
-/**
- * Set r_space_transform so that best bbox of dst matches best bbox of src.
- */
 void BKE_mesh_remap_find_best_match_from_mesh(const MVert *verts_dst,
                                               const int numverts_dst,
                                               Mesh *me_src,
@@ -328,7 +301,7 @@ void BKE_mesh_remap_find_best_match_from_mesh(const MVert *verts_dst,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Mesh to mesh mapping
+/** \name Mesh to Mesh Mapping
  * \{ */
 
 void BKE_mesh_remap_calc_source_cddata_masks_from_map_modes(const int UNUSED(vert_mode),
@@ -607,6 +580,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
       MPoly *polys_src = me_src->mpoly;
       MLoop *loops_src = me_src->mloop;
       float(*vcos_src)[3] = BKE_mesh_vert_coords_alloc(me_src, NULL);
+      const float(*vert_normals_src)[3] = BKE_mesh_vertex_normals_ensure(me_src);
 
       size_t tmp_buff_size = MREMAP_DEFAULT_BUFSIZE;
       float(*vcos)[3] = MEM_mallocN(sizeof(*vcos) * tmp_buff_size, __func__);
@@ -618,7 +592,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
       if (mode == MREMAP_MODE_VERT_POLYINTERP_VNORPROJ) {
         for (i = 0; i < numverts_dst; i++) {
           copy_v3_v3(tmp_co, verts_dst[i].co);
-          normal_short_to_float_v3(tmp_no, verts_dst[i].no);
+          copy_v3_v3(tmp_no, vert_normals_src[i]);
 
           /* Convert the vertex to tree coordinates, if needed. */
           if (space_transform) {
@@ -964,6 +938,8 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
 
       BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_EDGES, 2);
 
+      const float(*vert_normals_dst)[3] = BKE_mesh_vertex_normals_ensure(me_src);
+
       for (i = 0; i < numedges_dst; i++) {
         /* For each dst edge, we sample some rays from it (interpolated from its vertices)
          * and use their hits to interpolate from source edges. */
@@ -983,8 +959,8 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
         copy_v3_v3(v1_co, verts_dst[me->v1].co);
         copy_v3_v3(v2_co, verts_dst[me->v2].co);
 
-        normal_short_to_float_v3(v1_no, verts_dst[me->v1].no);
-        normal_short_to_float_v3(v2_no, verts_dst[me->v2].no);
+        copy_v3_v3(v1_no, vert_normals_dst[me->v1]);
+        copy_v3_v3(v2_no, vert_normals_dst[me->v2]);
 
         /* We do our transform here, allows to interpolate from normals already in src space. */
         if (space_transform) {
@@ -1255,6 +1231,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                          const SpaceTransform *space_transform,
                                          const float max_dist,
                                          const float ray_radius,
+                                         Mesh *mesh_dst,
                                          MVert *verts_dst,
                                          const int numverts_dst,
                                          MEdge *edges_dst,
@@ -1264,7 +1241,6 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                          MPoly *polys_dst,
                                          const int numpolys_dst,
                                          CustomData *ldata_dst,
-                                         CustomData *pdata_dst,
                                          const bool use_split_nors_dst,
                                          const float split_angle_dst,
                                          const bool dirty_nors_dst,
@@ -1310,9 +1286,9 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                            1) :
                                     0);
 
-    float(*poly_nors_src)[3] = NULL;
-    float(*loop_nors_src)[3] = NULL;
-    float(*poly_nors_dst)[3] = NULL;
+    const float(*poly_nors_src)[3] = NULL;
+    const float(*loop_nors_src)[3] = NULL;
+    const float(*poly_nors_dst)[3] = NULL;
     float(*loop_nors_dst)[3] = NULL;
 
     float(*poly_cents_src)[3] = NULL;
@@ -1369,23 +1345,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
       const bool need_pnors_dst = need_lnors_dst || need_pnors_src;
 
       if (need_pnors_dst) {
-        /* Cache poly nors into a temp CDLayer. */
-        poly_nors_dst = CustomData_get_layer(pdata_dst, CD_NORMAL);
-        const bool do_poly_nors_dst = (poly_nors_dst == NULL);
-        if (!poly_nors_dst) {
-          poly_nors_dst = CustomData_add_layer(
-              pdata_dst, CD_NORMAL, CD_CALLOC, NULL, numpolys_dst);
-          CustomData_set_layer_flag(pdata_dst, CD_NORMAL, CD_FLAG_TEMPORARY);
-        }
-        if (dirty_nors_dst || do_poly_nors_dst) {
-          BKE_mesh_calc_normals_poly(verts_dst,
-                                     numverts_dst,
-                                     loops_dst,
-                                     numloops_dst,
-                                     polys_dst,
-                                     numpolys_dst,
-                                     poly_nors_dst);
-        }
+        poly_nors_dst = BKE_mesh_poly_normals_ensure(mesh_dst);
       }
       if (need_lnors_dst) {
         short(*custom_nors_dst)[2] = CustomData_get_layer(ldata_dst, CD_CUSTOMLOOPNORMAL);
@@ -1400,6 +1360,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
         }
         if (dirty_nors_dst || do_loop_nors_dst) {
           BKE_mesh_normals_loop_split(verts_dst,
+                                      BKE_mesh_vertex_normals_ensure(mesh_dst),
                                       numverts_dst,
                                       edges_dst,
                                       numedges_dst,
@@ -1407,7 +1368,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                       loop_nors_dst,
                                       numloops_dst,
                                       polys_dst,
-                                      (const float(*)[3])poly_nors_dst,
+                                      poly_nors_dst,
                                       numpolys_dst,
                                       use_split_nors_dst,
                                       split_angle_dst,
@@ -1418,8 +1379,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
       }
       if (need_pnors_src || need_lnors_src) {
         if (need_pnors_src) {
-          poly_nors_src = CustomData_get_layer(&me_src->pdata, CD_NORMAL);
-          BLI_assert(poly_nors_src != NULL);
+          poly_nors_src = BKE_mesh_poly_normals_ensure(me_src);
         }
         if (need_lnors_src) {
           loop_nors_src = CustomData_get_layer(&me_src->ldata, CD_NORMAL);
@@ -1661,7 +1621,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
             if (mesh_remap_bvhtree_query_nearest(
                     tdata, &nearest, tmp_co, max_dist_sq, &hit_dist)) {
               float(*nor_dst)[3];
-              float(*nors_src)[3];
+              const float(*nors_src)[3];
               float best_nor_dot = -2.0f;
               float best_sqdist_fallback = FLT_MAX;
               int best_index_src = -1;
@@ -2201,41 +2161,24 @@ void BKE_mesh_remap_calc_polys_from_mesh(const int mode,
                                          const SpaceTransform *space_transform,
                                          const float max_dist,
                                          const float ray_radius,
+                                         Mesh *mesh_dst,
                                          MVert *verts_dst,
-                                         const int numverts_dst,
                                          MLoop *loops_dst,
-                                         const int numloops_dst,
                                          MPoly *polys_dst,
                                          const int numpolys_dst,
-                                         CustomData *pdata_dst,
-                                         const bool dirty_nors_dst,
                                          Mesh *me_src,
                                          MeshPairRemap *r_map)
 {
   const float full_weight = 1.0f;
   const float max_dist_sq = max_dist * max_dist;
-  float(*poly_nors_dst)[3] = NULL;
+  const float(*poly_nors_dst)[3] = NULL;
   float tmp_co[3], tmp_no[3];
   int i;
 
   BLI_assert(mode & MREMAP_MODE_POLY);
 
   if (mode & (MREMAP_USE_NORMAL | MREMAP_USE_NORPROJ)) {
-    /* Cache poly nors into a temp CDLayer. */
-    poly_nors_dst = CustomData_get_layer(pdata_dst, CD_NORMAL);
-    if (!poly_nors_dst) {
-      poly_nors_dst = CustomData_add_layer(pdata_dst, CD_NORMAL, CD_CALLOC, NULL, numpolys_dst);
-      CustomData_set_layer_flag(pdata_dst, CD_NORMAL, CD_FLAG_TEMPORARY);
-    }
-    if (dirty_nors_dst) {
-      BKE_mesh_calc_normals_poly(verts_dst,
-                                 numverts_dst,
-                                 loops_dst,
-                                 numloops_dst,
-                                 polys_dst,
-                                 numpolys_dst,
-                                 poly_nors_dst);
-    }
+    poly_nors_dst = BKE_mesh_poly_normals_ensure(mesh_dst);
   }
 
   BKE_mesh_remap_init(r_map, numpolys_dst);

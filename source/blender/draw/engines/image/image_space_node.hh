@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2021, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2021 Blender Foundation. */
 
 /** \file
  * \ingroup draw_engine
@@ -54,23 +39,7 @@ class SpaceNodeAccessor : public AbstractSpaceAccessor {
     BKE_image_release_ibuf(image, ibuf, lock);
   }
 
-  bool has_view_override() const override
-  {
-    return true;
-  }
-
-  DRWView *create_view_override(const ARegion *region) override
-  {
-    /* Setup a screen pixel view. The backdrop of the node editor doesn't follow the region. */
-    float winmat[4][4], viewmat[4][4];
-    orthographic_m4(viewmat, 0.0, region->winx, 0.0, region->winy, 0.0, 1.0);
-    unit_m4(winmat);
-    return DRW_view_create(viewmat, winmat, nullptr, nullptr, nullptr);
-  }
-
-  void get_shader_parameters(ShaderParameters &r_shader_parameters,
-                             ImBuf *ibuf,
-                             bool UNUSED(is_tiled)) override
+  void get_shader_parameters(ShaderParameters &r_shader_parameters, ImBuf *ibuf) override
   {
     if ((snode->flag & SNODE_USE_ALPHA) != 0) {
       /* Show RGBA */
@@ -120,18 +89,33 @@ class SpaceNodeAccessor : public AbstractSpaceAccessor {
     *r_tex_tile_data = nullptr;
   }
 
-  void get_image_mat(const ImBuf *image_buffer,
-                     const ARegion *region,
-                     float r_mat[4][4]) const override
+  bool use_tile_drawing() const override
   {
-    unit_m4(r_mat);
-    const float ibuf_width = image_buffer->x;
-    const float ibuf_height = image_buffer->y;
+    return false;
+  }
 
-    r_mat[0][0] = ibuf_width * snode->zoom;
-    r_mat[1][1] = ibuf_height * snode->zoom;
-    r_mat[3][0] = (region->winx - snode->zoom * ibuf_width) / 2 + snode->xof;
-    r_mat[3][1] = (region->winy - snode->zoom * ibuf_height) / 2 + snode->yof;
+  /**
+   * The backdrop of the node editor isn't drawn in screen space UV space. But is locked with the
+   * screen.
+   */
+  void init_ss_to_texture_matrix(const ARegion *region,
+                                 const float image_resolution[2],
+                                 float r_uv_to_texture[4][4]) const override
+  {
+    unit_m4(r_uv_to_texture);
+    float display_resolution[2];
+    mul_v2_v2fl(display_resolution, image_resolution, snode->zoom);
+    const float scale_x = display_resolution[0] / region->winx;
+    const float scale_y = display_resolution[1] / region->winy;
+    const float translate_x = ((region->winx - display_resolution[0]) * 0.5f + snode->xof) /
+                              region->winx;
+    const float translate_y = ((region->winy - display_resolution[1]) * 0.5f + snode->yof) /
+                              region->winy;
+
+    r_uv_to_texture[0][0] = scale_x;
+    r_uv_to_texture[1][1] = scale_y;
+    r_uv_to_texture[3][0] = translate_x;
+    r_uv_to_texture[3][1] = translate_y;
   }
 };
 

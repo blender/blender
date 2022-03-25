@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) Blender Foundation
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup sim
@@ -633,9 +617,6 @@ BLI_INLINE void hair_volume_eval_grid_vertex_sample(HairGridVert *vert,
   }
 }
 
-/* XXX simplified test implementation using a series of discrete sample along the segment,
- * instead of finding the closest point for all affected grid vertices.
- */
 void SIM_hair_volume_add_segment(HairGrid *grid,
                                  const float UNUSED(x1[3]),
                                  const float UNUSED(v1[3]),
@@ -649,6 +630,9 @@ void SIM_hair_volume_add_segment(HairGrid *grid,
                                  const float UNUSED(dir2[3]),
                                  const float UNUSED(dir3[3]))
 {
+  /* XXX simplified test implementation using a series of discrete sample along the segment,
+   * instead of finding the closest point for all affected grid vertices. */
+
   const float radius = 1.5f;
   const float dist_scale = grid->inv_cellsize;
 
@@ -842,8 +826,8 @@ bool SIM_hair_volume_solve_divergence(HairGrid *grid,
   }
 
   /* Main Poisson equation system:
-   * This is derived from the discretezation of the Poisson equation
-   *   div(grad(p)) = div(v)
+   * This is derived from the discretization of the Poisson equation:
+   *   `div(grad(p)) = div(v)`
    *
    * The finite difference approximation yields the linear equation system described here:
    * https://en.wikipedia.org/wiki/Discrete_Poisson_equation
@@ -1160,7 +1144,7 @@ HairGrid *SIM_hair_volume_create_vertex_grid(float cellsize,
   }
   size = hair_grid_size(res);
 
-  grid = (HairGrid *)MEM_callocN(sizeof(HairGrid), "hair grid");
+  grid = MEM_cnew<HairGrid>("hair grid");
   grid->res[0] = res[0];
   grid->res[1] = res[1];
   grid->res[2] = res[2];

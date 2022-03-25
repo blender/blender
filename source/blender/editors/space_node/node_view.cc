@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spnode
@@ -24,7 +8,6 @@
 #include "DNA_node_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
@@ -56,31 +39,27 @@
 
 #include "node_intern.hh" /* own include */
 
-using blender::StringRef;
+namespace blender::ed::space_node {
 
 /* -------------------------------------------------------------------- */
 /** \name View All Operator
  * \{ */
 
-int space_node_view_flag(
-    bContext *C, SpaceNode *snode, ARegion *region, const int node_flag, const int smooth_viewtx)
+bool space_node_view_flag(
+    bContext &C, SpaceNode &snode, ARegion &region, const int node_flag, const int smooth_viewtx)
 {
-  bNode *node;
+  const float oldwidth = BLI_rctf_size_x(&region.v2d.cur);
+  const float oldheight = BLI_rctf_size_y(&region.v2d.cur);
+
+  const float old_aspect = oldwidth / oldheight;
+
   rctf cur_new;
-  float oldwidth, oldheight, width, height;
-  float oldasp, asp;
-  int tot = 0;
-  bool has_frame = false;
-
-  oldwidth = BLI_rctf_size_x(&region->v2d.cur);
-  oldheight = BLI_rctf_size_y(&region->v2d.cur);
-
-  oldasp = oldwidth / oldheight;
-
   BLI_rctf_init_minmax(&cur_new);
 
-  if (snode->edittree) {
-    for (node = (bNode *)snode->edittree->nodes.first; node; node = node->next) {
+  int tot = 0;
+  bool has_frame = false;
+  if (snode.edittree) {
+    LISTBASE_FOREACH (const bNode *, node, &snode.edittree->nodes) {
       if ((node->flag & node_flag) == node_flag) {
         BLI_rctf_union(&cur_new, &node->totr);
         tot++;
@@ -92,37 +71,39 @@ int space_node_view_flag(
     }
   }
 
-  if (tot) {
-    width = BLI_rctf_size_x(&cur_new);
-    height = BLI_rctf_size_y(&cur_new);
-    asp = width / height;
-
-    /* for single non-frame nodes, don't zoom in, just pan view,
-     * but do allow zooming out, this allows for big nodes to be zoomed out */
-    if ((tot == 1) && (has_frame == false) && ((oldwidth * oldheight) > (width * height))) {
-      /* center, don't zoom */
-      BLI_rctf_resize(&cur_new, oldwidth, oldheight);
-    }
-    else {
-      if (oldasp < asp) {
-        const float height_new = width / oldasp;
-        cur_new.ymin = cur_new.ymin - height_new / 2.0f;
-        cur_new.ymax = cur_new.ymax + height_new / 2.0f;
-      }
-      else {
-        const float width_new = height * oldasp;
-        cur_new.xmin = cur_new.xmin - width_new / 2.0f;
-        cur_new.xmax = cur_new.xmax + width_new / 2.0f;
-      }
-
-      /* add some padding */
-      BLI_rctf_scale(&cur_new, 1.1f);
-    }
-
-    UI_view2d_smooth_view(C, region, &cur_new, smooth_viewtx);
+  if (tot == 0) {
+    return false;
   }
 
-  return (tot != 0);
+  const float width = BLI_rctf_size_x(&cur_new);
+  const float height = BLI_rctf_size_y(&cur_new);
+  const float new_aspect = width / height;
+
+  /* for single non-frame nodes, don't zoom in, just pan view,
+   * but do allow zooming out, this allows for big nodes to be zoomed out */
+  if ((tot == 1) && (has_frame == false) && ((oldwidth * oldheight) > (width * height))) {
+    /* center, don't zoom */
+    BLI_rctf_resize(&cur_new, oldwidth, oldheight);
+  }
+  else {
+    if (old_aspect < new_aspect) {
+      const float height_new = width / old_aspect;
+      cur_new.ymin = cur_new.ymin - height_new / 2.0f;
+      cur_new.ymax = cur_new.ymax + height_new / 2.0f;
+    }
+    else {
+      const float width_new = height * old_aspect;
+      cur_new.xmin = cur_new.xmin - width_new / 2.0f;
+      cur_new.xmax = cur_new.xmax + width_new / 2.0f;
+    }
+
+    /* add some padding */
+    BLI_rctf_scale(&cur_new, 1.1f);
+  }
+
+  UI_view2d_smooth_view(&C, &region, &cur_new, smooth_viewtx);
+
+  return true;
 }
 
 static int node_view_all_exec(bContext *C, wmOperator *op)
@@ -135,7 +116,7 @@ static int node_view_all_exec(bContext *C, wmOperator *op)
   snode->xof = 0;
   snode->yof = 0;
 
-  if (space_node_view_flag(C, snode, region, 0, smooth_viewtx)) {
+  if (space_node_view_flag(*C, *snode, *region, 0, smooth_viewtx)) {
     return OPERATOR_FINISHED;
   }
   return OPERATOR_CANCELLED;
@@ -168,7 +149,7 @@ static int node_view_selected_exec(bContext *C, wmOperator *op)
   SpaceNode *snode = CTX_wm_space_node(C);
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
-  if (space_node_view_flag(C, snode, region, NODE_SELECT, smooth_viewtx)) {
+  if (space_node_view_flag(*C, *snode, *region, NODE_SELECT, smooth_viewtx)) {
     return OPERATOR_FINISHED;
   }
   return OPERATOR_CANCELLED;
@@ -258,7 +239,7 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *
     return OPERATOR_CANCELLED;
   }
 
-  nvm = (NodeViewMove *)MEM_callocN(sizeof(NodeViewMove), "NodeViewMove struct");
+  nvm = MEM_cnew<NodeViewMove>("NodeViewMove struct");
   op->customdata = nvm;
   nvm->mvalo[0] = event->mval[0];
   nvm->mvalo[1] = event->mval[1];
@@ -447,7 +428,8 @@ static void sample_draw(const bContext *C, ARegion *region, void *arg_info)
   }
 }
 
-/* Returns mouse position in image space. */
+}  // namespace blender::ed::space_node
+
 bool ED_space_node_get_position(
     Main *bmain, SpaceNode *snode, struct ARegion *region, const int mval[2], float fpos[2])
 {
@@ -475,9 +457,6 @@ bool ED_space_node_get_position(
   return true;
 }
 
-/* Returns color in linear space, matching ED_space_image_color_sample().
- * And here we've got recursion in the comments tips...
- */
 bool ED_space_node_color_sample(
     Main *bmain, SpaceNode *snode, ARegion *region, const int mval[2], float r_col[3])
 {
@@ -532,6 +511,8 @@ bool ED_space_node_color_sample(
 
   return ret;
 }
+
+namespace blender::ed::space_node {
 
 static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -650,7 +631,7 @@ static int sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  info = (ImageSampleInfo *)MEM_callocN(sizeof(ImageSampleInfo), "ImageSampleInfo");
+  info = MEM_cnew<ImageSampleInfo>("ImageSampleInfo");
   info->art = region->type;
   info->draw_handle = ED_region_draw_cb_activate(
       region->type, sample_draw, info, REGION_DRAW_POST_PIXEL);
@@ -705,88 +686,4 @@ void NODE_OT_backimage_sample(wmOperatorType *ot)
 
 /** \} */
 
-/* -------------------------------------------------------------------- */
-/** \name View Geometry Nodes Legacy Operator
- *
- *  This operator should be removed when the 2.93 legacy nodes are removed.
- * \{ */
-
-static int space_node_view_geometry_nodes_legacy(bContext *C, SpaceNode *snode, wmOperator *op)
-{
-  ARegion *region = CTX_wm_region(C);
-
-  /* Only use the node editor's active node tree. Otherwise this will be too complicated. */
-  bNodeTree *node_tree = snode->nodetree;
-  if (node_tree == nullptr || node_tree->type != NTREE_GEOMETRY) {
-    return OPERATOR_CANCELLED;
-  }
-
-  bool found_legacy_node = false;
-  LISTBASE_FOREACH_BACKWARD (bNode *, node, &node_tree->nodes) {
-    StringRef idname{node->idname};
-    if (idname.find("Legacy") == StringRef::not_found) {
-      node->flag &= ~NODE_SELECT;
-    }
-    else {
-      found_legacy_node = true;
-      node->flag |= NODE_SELECT;
-    }
-  }
-
-  if (!found_legacy_node) {
-    WM_report(RPT_INFO, "Legacy node not found, may be in nested node group");
-  }
-
-  const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-  if (space_node_view_flag(C, snode, region, NODE_SELECT, smooth_viewtx)) {
-    return OPERATOR_FINISHED;
-  }
-  return OPERATOR_CANCELLED;
-}
-
-static int geometry_node_view_legacy_exec(bContext *C, wmOperator *op)
-{
-  /* Allow running this operator directly in a specific node editor. */
-  if (SpaceNode *snode = CTX_wm_space_node(C)) {
-    return space_node_view_geometry_nodes_legacy(C, snode, op);
-  }
-
-  /* Since the operator is meant to be called from a button in the modifier panel, the node tree
-   * must be found from the screen, using the largest node editor if there is more than one. */
-  if (ScrArea *area = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_NODE, 0)) {
-    if (SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first)) {
-      ScrArea *old_area = CTX_wm_area(C);
-      ARegion *old_region = CTX_wm_region(C);
-
-      /* Override the context since it is used by the View2D panning code. */
-      CTX_wm_area_set(C, area);
-      CTX_wm_region_set(C, static_cast<ARegion *>(area->regionbase.last));
-      const int result = space_node_view_geometry_nodes_legacy(C, snode, op);
-      CTX_wm_area_set(C, old_area);
-      CTX_wm_region_set(C, old_region);
-      return result;
-    }
-  }
-
-  return OPERATOR_CANCELLED;
-}
-
-static bool geometry_node_view_legacy_poll(bContext *C)
-{
-  /* Allow direct execution in a node editor, but also affecting any visible node editor. */
-  return ED_operator_node_active(C) || BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_NODE, 0);
-}
-
-void NODE_OT_geometry_node_view_legacy(wmOperatorType *ot)
-{
-  ot->name = "View Deprecated Geometry Nodes";
-  ot->idname = "NODE_OT_geometry_node_view_legacy";
-  ot->description = "Select and view legacy geometry nodes in the node editor";
-
-  ot->exec = geometry_node_view_legacy_exec;
-  ot->poll = geometry_node_view_legacy_poll;
-
-  ot->flag = OPTYPE_INTERNAL;
-}
-
-/** \} */
+}  // namespace blender::ed::space_node

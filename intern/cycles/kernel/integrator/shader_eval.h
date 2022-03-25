@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 /* Functions to evaluate shaders and use the resulting shader closures. */
 
@@ -122,23 +109,20 @@ ccl_device_inline void shader_prepare_surface_closures(KernelGlobals kg,
       for (int i = 0; i < sd->num_closure; i++) {
         ccl_private ShaderClosure *sc = &sd->closure[i];
 
-        if (CLOSURE_IS_BSDF_DIFFUSE(sc->type)) {
-          if (kernel_data.integrator.filter_closures & FILTER_CLOSURE_DIFFUSE) {
-            sc->type = CLOSURE_NONE_ID;
-            sc->sample_weight = 0.0f;
-          }
+        if ((CLOSURE_IS_BSDF_DIFFUSE(sc->type) &&
+             (kernel_data.integrator.filter_closures & FILTER_CLOSURE_DIFFUSE)) ||
+            (CLOSURE_IS_BSDF_GLOSSY(sc->type) &&
+             (kernel_data.integrator.filter_closures & FILTER_CLOSURE_GLOSSY)) ||
+            (CLOSURE_IS_BSDF_TRANSMISSION(sc->type) &&
+             (kernel_data.integrator.filter_closures & FILTER_CLOSURE_TRANSMISSION))) {
+          sc->type = CLOSURE_NONE_ID;
+          sc->sample_weight = 0.0f;
         }
-        else if (CLOSURE_IS_BSDF_GLOSSY(sc->type)) {
-          if (kernel_data.integrator.filter_closures & FILTER_CLOSURE_GLOSSY) {
-            sc->type = CLOSURE_NONE_ID;
-            sc->sample_weight = 0.0f;
-          }
-        }
-        else if (CLOSURE_IS_BSDF_TRANSMISSION(sc->type)) {
-          if (kernel_data.integrator.filter_closures & FILTER_CLOSURE_TRANSMISSION) {
-            sc->type = CLOSURE_NONE_ID;
-            sc->sample_weight = 0.0f;
-          }
+        else if ((CLOSURE_IS_BSDF_TRANSPARENT(sc->type) &&
+                  (kernel_data.integrator.filter_closures & FILTER_CLOSURE_TRANSPARENT))) {
+          sc->type = CLOSURE_HOLDOUT_ID;
+          sc->sample_weight = 0.0f;
+          sd->flag |= SD_HOLDOUT;
         }
       }
     }

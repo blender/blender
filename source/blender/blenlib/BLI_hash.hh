@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -162,6 +148,13 @@ template<> struct DefaultHash<float> {
   }
 };
 
+template<> struct DefaultHash<double> {
+  uint64_t operator()(double value) const
+  {
+    return *reinterpret_cast<uint64_t *>(&value);
+  }
+};
+
 template<> struct DefaultHash<bool> {
   uint64_t operator()(bool value) const
   {
@@ -241,6 +234,16 @@ uint64_t get_default_hash_3(const T1 &v1, const T2 &v2, const T3 &v3)
   const uint64_t h2 = get_default_hash(v2);
   const uint64_t h3 = get_default_hash(v3);
   return h1 ^ (h2 * 19349669) ^ (h3 * 83492791);
+}
+
+template<typename T1, typename T2, typename T3, typename T4>
+uint64_t get_default_hash_4(const T1 &v1, const T2 &v2, const T3 &v3, const T4 &v4)
+{
+  const uint64_t h1 = get_default_hash(v1);
+  const uint64_t h2 = get_default_hash(v2);
+  const uint64_t h3 = get_default_hash(v3);
+  const uint64_t h4 = get_default_hash(v4);
+  return h1 ^ (h2 * 19349669) ^ (h3 * 83492791) ^ (h4 * 3632623);
 }
 
 template<typename T> struct DefaultHash<std::unique_ptr<T>> {

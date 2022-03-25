@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2012 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2012 Blender Foundation. All rights reserved. */
 
 #include "MEM_guardedalloc.h"
 
@@ -23,7 +7,7 @@
 
 static IOCIOImpl *impl = NULL;
 
-void OCIO_init(void)
+void OCIO_init()
 {
 #ifdef WITH_OCIO
   impl = new OCIOImpl();
@@ -32,18 +16,18 @@ void OCIO_init(void)
 #endif
 }
 
-void OCIO_exit(void)
+void OCIO_exit()
 {
   delete impl;
   impl = NULL;
 }
 
-OCIO_ConstConfigRcPtr *OCIO_getCurrentConfig(void)
+OCIO_ConstConfigRcPtr *OCIO_getCurrentConfig()
 {
   return impl->getCurrentConfig();
 }
 
-OCIO_ConstConfigRcPtr *OCIO_configCreateFallback(void)
+OCIO_ConstConfigRcPtr *OCIO_configCreateFallback()
 {
   delete impl;
   impl = new FallbackImpl();
@@ -56,7 +40,7 @@ void OCIO_setCurrentConfig(const OCIO_ConstConfigRcPtr *config)
   impl->setCurrentConfig(config);
 }
 
-OCIO_ConstConfigRcPtr *OCIO_configCreateFromEnv(void)
+OCIO_ConstConfigRcPtr *OCIO_configCreateFromEnv()
 {
   return impl->configCreateFromEnv();
 }
@@ -308,22 +292,22 @@ bool OCIO_gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,
                                     use_overlay);
 }
 
-void OCIO_gpuDisplayShaderUnbind(void)
+void OCIO_gpuDisplayShaderUnbind()
 {
   impl->gpuDisplayShaderUnbind();
 }
 
-void OCIO_gpuCacheFree(void)
+void OCIO_gpuCacheFree()
 {
   impl->gpuCacheFree();
 }
 
-const char *OCIO_getVersionString(void)
+const char *OCIO_getVersionString()
 {
   return impl->getVersionString();
 }
 
-int OCIO_getVersionHex(void)
+int OCIO_getVersionHex()
 {
   return impl->getVersionHex();
 }

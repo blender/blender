@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #pragma once
 
@@ -81,6 +68,7 @@ typedef enum ShaderNodeType {
   NODE_OBJECT_INFO,
   NODE_PARTICLE_INFO,
   NODE_HAIR_INFO,
+  NODE_POINT_INFO,
   NODE_TEXTURE_MAPPING,
   NODE_MAPPING,
   NODE_MIN_MAX,
@@ -114,6 +102,7 @@ typedef enum ShaderNodeType {
   NODE_WAVELENGTH,
   NODE_BLACKBODY,
   NODE_MAP_RANGE,
+  NODE_VECTOR_MAP_RANGE,
   NODE_CLAMP,
   NODE_BEVEL,
   NODE_AMBIENT_OCCLUSION,
@@ -123,7 +112,7 @@ typedef enum ShaderNodeType {
   NODE_AOV_VALUE,
   NODE_FLOAT_CURVE,
   /* NOTE: for best OpenCL performance, item definition in the enum must
-   * match the switch case order in svm.h. */
+   * match the switch case order in `svm.h`. */
 } ShaderNodeType;
 
 typedef enum NodeAttributeOutputType {
@@ -153,6 +142,7 @@ typedef enum NodeGeometry {
 typedef enum NodeObjectInfo {
   NODE_INFO_OB_LOCATION,
   NODE_INFO_OB_COLOR,
+  NODE_INFO_OB_ALPHA,
   NODE_INFO_OB_INDEX,
   NODE_INFO_MAT_INDEX,
   NODE_INFO_OB_RANDOM
@@ -175,11 +165,15 @@ typedef enum NodeHairInfo {
   NODE_INFO_CURVE_INTERCEPT,
   NODE_INFO_CURVE_LENGTH,
   NODE_INFO_CURVE_THICKNESS,
-  /* Fade for minimum hair width transiency. */
-  // NODE_INFO_CURVE_FADE,
   NODE_INFO_CURVE_TANGENT_NORMAL,
   NODE_INFO_CURVE_RANDOM,
 } NodeHairInfo;
+
+typedef enum NodePointInfo {
+  NODE_INFO_POINT_POSITION,
+  NODE_INFO_POINT_RADIUS,
+  NODE_INFO_POINT_RANDOM,
+} NodePointInfo;
 
 typedef enum NodeLightPath {
   NODE_LP_camera = 0,

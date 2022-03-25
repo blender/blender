@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
 
 /** \file
  * \ingroup edanimation
@@ -80,7 +64,7 @@ struct AnimKeylist {
   ListBase /* ActKeyColumn */ key_columns;
   /* Last accessed column in the key_columns list base. Inserting columns are typically done in
    * order. The last accessed column is used as starting point to search for a location to add or
-   * update the next column.*/
+   * update the next column. */
   std::optional<ActKeyColumn *> last_accessed_column = std::nullopt;
 
   struct {
@@ -109,7 +93,7 @@ struct AnimKeylist {
 #endif
 };
 
-AnimKeylist *ED_keylist_create(void)
+AnimKeylist *ED_keylist_create()
 {
   AnimKeylist *keylist = new AnimKeylist();
   return keylist;
@@ -789,8 +773,11 @@ static void add_bezt_to_keyblocks_list(AnimKeylist *keylist, BezTriple *bezt, co
         continue;
       }
 
-      /* Normal sequence */
-      BLI_assert(is_cfra_eq(col->cfra, bezt[0].vec[1][0]));
+      /* In normal situations all keyframes are sorted. However, while keys are transformed, they
+       * may change order and then this assertion no longer holds. The effect is that the drawing
+       * isn't perfect during the transform; the "constant value" bars aren't updated until the
+       * transformation is confirmed. */
+      // BLI_assert(is_cfra_eq(col->cfra, bezt[0].vec[1][0]));
 
       compute_keyblock_data(&block, bezt, bezt + 1);
 
@@ -850,7 +837,6 @@ bool actkeyblock_is_valid(const ActKeyColumn *ac)
   return ac != nullptr && ac->next != nullptr && ac->totblock > 0;
 }
 
-/* Checks if ActKeyBlock should exist... */
 int actkeyblock_get_valid_hold(const ActKeyColumn *ac)
 {
   /* check that block is valid */

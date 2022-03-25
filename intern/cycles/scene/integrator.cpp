@@ -1,24 +1,13 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
-#include "scene/integrator.h"
 #include "device/device.h"
+
 #include "scene/background.h"
+#include "scene/bake.h"
 #include "scene/camera.h"
 #include "scene/film.h"
+#include "scene/integrator.h"
 #include "scene/jitter.h"
 #include "scene/light.h"
 #include "scene/object.h"
@@ -51,6 +40,18 @@ NODE_DEFINE(Integrator)
 
   SOCKET_INT(transparent_min_bounce, "Transparent Min Bounce", 0);
   SOCKET_INT(transparent_max_bounce, "Transparent Max Bounce", 7);
+
+#ifdef WITH_CYCLES_DEBUG
+  static NodeEnum direct_light_sampling_type_enum;
+  direct_light_sampling_type_enum.insert("multiple_importance_sampling",
+                                         DIRECT_LIGHT_SAMPLING_MIS);
+  direct_light_sampling_type_enum.insert("forward_path_tracing", DIRECT_LIGHT_SAMPLING_FORWARD);
+  direct_light_sampling_type_enum.insert("next_event_estimation", DIRECT_LIGHT_SAMPLING_NEE);
+  SOCKET_ENUM(direct_light_sampling_type,
+              "Direct Light Sampling Type",
+              direct_light_sampling_type_enum,
+              DIRECT_LIGHT_SAMPLING_MIS);
+#endif
 
   SOCKET_INT(ao_bounces, "AO Bounces", 0);
   SOCKET_FLOAT(ao_factor, "AO Factor", 0.0f);
@@ -166,10 +167,16 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   kintegrator->transparent_min_bounce = transparent_min_bounce + 1;
   kintegrator->transparent_max_bounce = transparent_max_bounce + 1;
 
-  kintegrator->ao_bounces = ao_bounces;
+  kintegrator->ao_bounces = (ao_factor != 0.0f) ? ao_bounces : 0;
   kintegrator->ao_bounces_distance = ao_distance;
   kintegrator->ao_bounces_factor = ao_factor;
   kintegrator->ao_additive_factor = ao_additive_factor;
+
+#ifdef WITH_CYCLES_DEBUG
+  kintegrator->direct_light_sampling_type = direct_light_sampling_type;
+#else
+  kintegrator->direct_light_sampling_type = DIRECT_LIGHT_SAMPLING_MIS;
+#endif
 
   /* Transparent Shadows
    * We only need to enable transparent shadows, if we actually have
@@ -211,6 +218,11 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   }
   if (!use_emission) {
     kintegrator->filter_closures |= FILTER_CLOSURE_EMISSION;
+  }
+  if (scene->bake_manager->get_baking()) {
+    /* Baking does not need to trace through transparency, we only want to bake
+     * the object itself. */
+    kintegrator->filter_closures |= FILTER_CLOSURE_TRANSPARENT;
   }
 
   kintegrator->seed = seed;

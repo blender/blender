@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -130,8 +116,7 @@ GHOST_Wintab *GHOST_Wintab::loadWintab(HWND hwnd)
     }
   }
 
-  return new GHOST_Wintab(hwnd,
-                          std::move(handle),
+  return new GHOST_Wintab(std::move(handle),
                           info,
                           get,
                           set,
@@ -174,8 +159,7 @@ void GHOST_Wintab::extractCoordinates(LOGCONTEXT &lc, Coord &tablet, Coord &syst
   system.y.ext = -lc.lcSysExtY;
 }
 
-GHOST_Wintab::GHOST_Wintab(HWND hwnd,
-                           unique_hmodule handle,
+GHOST_Wintab::GHOST_Wintab(unique_hmodule handle,
                            GHOST_WIN32_WTInfo info,
                            GHOST_WIN32_WTGet get,
                            GHOST_WIN32_WTSet set,
@@ -298,14 +282,12 @@ GHOST_TabletData GHOST_Wintab::getLastTabletData()
 void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
 {
   const int numPackets = m_fpPacketsGet(m_context.get(), m_pkts.size(), m_pkts.data());
-  outWintabInfo.resize(numPackets);
-  size_t outExtent = 0;
+  outWintabInfo.reserve(numPackets);
 
   for (int i = 0; i < numPackets; i++) {
     PACKET pkt = m_pkts[i];
-    GHOST_WintabInfoWin32 &out = outWintabInfo[i + outExtent];
+    GHOST_WintabInfoWin32 out;
 
-    out.tabletData = GHOST_TABLET_DATA_NONE;
     /* % 3 for multiple devices ("DualTrack"). */
     switch (pkt.pkCursor % 3) {
       case 0:
@@ -328,12 +310,7 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
     }
 
     if ((m_maxAzimuth > 0) && (m_maxAltitude > 0)) {
-      ORIENTATION ort = pkt.pkOrientation;
-      float vecLen;
-      float altRad, azmRad; /* In radians. */
-
-      /*
-       * From the wintab spec:
+      /* From the wintab spec:
        * orAzimuth: Specifies the clockwise rotation of the cursor about the z axis through a
        * full circular range.
        * orAltitude: Specifies the angle with the x-y plane through a signed, semicircular range.
@@ -346,29 +323,26 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
        * value.
        */
 
+      ORIENTATION ort = pkt.pkOrientation;
+
       /* Convert raw fixed point data to radians. */
-      altRad = (float)((fabs((float)ort.orAltitude) / (float)m_maxAltitude) * M_PI / 2.0);
-      azmRad = (float)(((float)ort.orAzimuth / (float)m_maxAzimuth) * M_PI * 2.0);
+      float altRad = (float)((fabs((float)ort.orAltitude) / (float)m_maxAltitude) * M_PI_2);
+      float azmRad = (float)(((float)ort.orAzimuth / (float)m_maxAzimuth) * M_PI * 2.0);
 
       /* Find length of the stylus' projected vector on the XY plane. */
-      vecLen = cos(altRad);
+      float vecLen = cos(altRad);
 
       /* From there calculate X and Y components based on azimuth. */
       out.tabletData.Xtilt = sin(azmRad) * vecLen;
-      out.tabletData.Ytilt = (float)(sin(M_PI / 2.0 - azmRad) * vecLen);
+      out.tabletData.Ytilt = (float)(sin(M_PI_2 - azmRad) * vecLen);
     }
 
     out.time = pkt.pkTime;
 
     /* Some Wintab libraries don't handle relative button input, so we track button presses
      * manually. */
-    out.button = GHOST_kButtonMaskNone;
-    out.type = GHOST_kEventCursorMove;
-
     DWORD buttonsChanged = m_buttons ^ pkt.pkButtons;
     WORD buttonIndex = 0;
-    GHOST_WintabInfoWin32 buttonRef = out;
-    int buttons = 0;
 
     while (buttonsChanged) {
       if (buttonsChanged & 1) {
@@ -376,23 +350,14 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
         GHOST_TButtonMask button = mapWintabToGhostButton(pkt.pkCursor, buttonIndex);
 
         if (button != GHOST_kButtonMaskNone) {
-          /* Extend output if multiple buttons are pressed. We don't extend input until we confirm
-           * a Wintab buttons maps to a system button. */
-          if (buttons > 0) {
-            outWintabInfo.resize(outWintabInfo.size() + 1);
-            outExtent++;
-            GHOST_WintabInfoWin32 &out = outWintabInfo[i + outExtent];
-            out = buttonRef;
+          /* If this is not the first button found, push info for the prior Wintab button. */
+          if (out.button != GHOST_kButtonMaskNone) {
+            outWintabInfo.push_back(out);
           }
-          buttons++;
 
           out.button = button;
-          if (buttonsChanged & pkt.pkButtons) {
-            out.type = GHOST_kEventButtonDown;
-          }
-          else {
-            out.type = GHOST_kEventButtonUp;
-          }
+          out.type = buttonsChanged & pkt.pkButtons ? GHOST_kEventButtonDown :
+                                                      GHOST_kEventButtonUp;
         }
 
         m_buttons ^= 1 << buttonIndex;
@@ -401,6 +366,8 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
       buttonsChanged >>= 1;
       buttonIndex++;
     }
+
+    outWintabInfo.push_back(out);
   }
 
   if (!outWintabInfo.empty()) {

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -1465,7 +1451,7 @@ static int rna_property_override_diff_propptr(Main *bmain,
         *r_override_changed = true;
       }
 
-      if (extended_rna_path != extended_rna_path_buffer && extended_rna_path != rna_path) {
+      if (!ELEM(extended_rna_path, extended_rna_path_buffer, rna_path)) {
         MEM_freeN(extended_rna_path);
       }
 
@@ -1916,16 +1902,21 @@ int rna_property_override_diff_default(Main *bmain,
 
           /* Collections do not support replacement of their data (except for collections of ID
            * pointers), since they do not support removing, only in *some* cases, insertion. We
-           * also assume then that _a data is the one where things are inserted. */
+           * also assume then that _a data is the one where things are inserted.
+           *
+           * NOTE: In insertion case, both 'local' and 'reference' (aka anchor) sub-item
+           * identifiers refer to collection items in the local override. The 'reference' may match
+           * an item in the linked reference data, but it can also be another local-only item added
+           * by a previous INSERT operation. */
           if (is_valid_for_insertion && use_collection_insertion) {
             op = BKE_lib_override_library_property_get(override, rna_path, &created);
 
             BKE_lib_override_library_property_operation_get(op,
                                                             IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
-                                                            NULL,
                                                             no_prop_name ? NULL : prev_propname_a,
-                                                            -1,
+                                                            no_prop_name ? NULL : propname_a,
                                                             idx_a - 1,
+                                                            idx_a,
                                                             true,
                                                             NULL,
                                                             NULL);
@@ -1936,6 +1927,8 @@ int rna_property_override_diff_default(Main *bmain,
                    idx_a - 1);
 #  endif
             op = NULL;
+
+            equals = false;
           }
           else if (is_id || is_valid_for_diffing) {
             if (equals || do_create) {
@@ -2977,14 +2970,14 @@ static void rna_def_function(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "No Self",
-      "Function does not pass its self as an argument (becomes a static method in python)");
+      "Function does not pass itself as an argument (becomes a static method in python)");
 
   prop = RNA_def_property(srna, "use_self_type", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_boolean_funcs(prop, "rna_Function_use_self_type_get", NULL);
   RNA_def_property_ui_text(prop,
                            "Use Self Type",
-                           "Function passes its self type as an argument (becomes a class method "
+                           "Function passes itself type as an argument (becomes a class method "
                            "in python if use_self is false)");
 }
 
@@ -3110,7 +3103,11 @@ static void rna_def_number_property(StructRNA *srna, PropertyType type)
     prop = RNA_def_property(srna, "precision", PROP_INT, PROP_UNSIGNED);
     RNA_def_property_clear_flag(prop, PROP_EDITABLE);
     RNA_def_property_int_funcs(prop, "rna_FloatProperty_precision_get", NULL, NULL);
-    RNA_def_property_ui_text(prop, "Precision", "Number of digits after the dot used by buttons");
+    RNA_def_property_ui_text(prop,
+                             "Precision",
+                             "Number of digits after the dot used by buttons. Fraction is "
+                             "automatically hidden for exact integer values of fields with unit "
+                             "'NONE' or 'TIME' (frame count) and step divisible by 100");
   }
 }
 

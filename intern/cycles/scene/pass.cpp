@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "scene/pass.h"
 
@@ -101,6 +88,7 @@ const NodeEnum *Pass::get_type_enum()
     pass_type_enum.insert("denoising_normal", PASS_DENOISING_NORMAL);
     pass_type_enum.insert("denoising_albedo", PASS_DENOISING_ALBEDO);
     pass_type_enum.insert("denoising_depth", PASS_DENOISING_DEPTH);
+    pass_type_enum.insert("denoising_previous", PASS_DENOISING_PREVIOUS);
 
     pass_type_enum.insert("shadow_catcher", PASS_SHADOW_CATCHER);
     pass_type_enum.insert("shadow_catcher_sample_count", PASS_SHADOW_CATCHER_SAMPLE_COUNT);
@@ -298,6 +286,10 @@ PassInfo Pass::get_info(const PassType type, const bool include_albedo)
       break;
     case PASS_DENOISING_DEPTH:
       pass_info.num_components = 1;
+      break;
+    case PASS_DENOISING_PREVIOUS:
+      pass_info.num_components = 3;
+      pass_info.use_exposure = true;
       break;
 
     case PASS_SHADOW_CATCHER:

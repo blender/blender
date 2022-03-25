@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -63,13 +49,6 @@ static Lattice *object_defgroup_lattice_get(ID *id)
   return (lt->editlatt) ? lt->editlatt->latt : lt;
 }
 
-/**
- * Update users of vgroups from this object, according to given map.
- *
- * Use it when you remove or reorder vgroups in the object.
- *
- * \param map: an array mapping old indices to new indices.
- */
 void BKE_object_defgroup_remap_update_users(Object *ob, const int *map)
 {
   ModifierData *md;
@@ -106,15 +85,13 @@ void BKE_object_defgroup_remap_update_users(Object *ob, const int *map)
     }
   }
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Group creation
  * \{ */
 
-/**
- * Add a vgroup of given name to object. *Does not* handle MDeformVert data at all!
- */
 bDeformGroup *BKE_object_defgroup_add_name(Object *ob, const char *name)
 {
   bDeformGroup *defgroup;
@@ -129,17 +106,11 @@ bDeformGroup *BKE_object_defgroup_add_name(Object *ob, const char *name)
   return defgroup;
 }
 
-/**
- * Add a vgroup of default name to object. *Does not* handle MDeformVert data at all!
- */
 bDeformGroup *BKE_object_defgroup_add(Object *ob)
 {
   return BKE_object_defgroup_add_name(ob, DATA_("Group"));
 }
 
-/**
- * Create MDeformVert data for given ID. Work in Object mode only.
- */
 MDeformVert *BKE_object_defgroup_data_create(ID *id)
 {
   if (GS(id->name) == ID_ME) {
@@ -156,18 +127,13 @@ MDeformVert *BKE_object_defgroup_data_create(ID *id)
 
   return NULL;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Group clearing
  * \{ */
 
-/**
- * Remove all verts (or only selected ones) from given vgroup. Work in Object and Edit modes.
- *
- * \param use_selection: Only operate on selection.
- * \return True if any vertex was removed, false otherwise.
- */
 bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_selection)
 {
   MDeformVert *dv;
@@ -239,12 +205,6 @@ bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_sele
   return changed;
 }
 
-/**
- * Remove all verts (or only selected ones) from all vgroups. Work in Object and Edit modes.
- *
- * \param use_selection: Only operate on selection.
- * \return True if any vertex was removed, false otherwise.
- */
 bool BKE_object_defgroup_clear_all(Object *ob, const bool use_selection)
 {
   bDeformGroup *dg;
@@ -260,6 +220,7 @@ bool BKE_object_defgroup_clear_all(Object *ob, const bool use_selection)
 
   return changed;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -406,9 +367,6 @@ static void object_defgroup_remove_edit_mode(Object *ob, bDeformGroup *dg)
   object_defgroup_remove_common(ob, dg, def_nr);
 }
 
-/**
- * Remove given vgroup from object. Work in Object and Edit modes.
- */
 void BKE_object_defgroup_remove(Object *ob, bDeformGroup *defgroup)
 {
   if (ob->type == OB_GPENCIL) {
@@ -426,10 +384,6 @@ void BKE_object_defgroup_remove(Object *ob, bDeformGroup *defgroup)
   }
 }
 
-/**
- * Remove all vgroups from object. Work in Object and Edit modes.
- * When only_unlocked=true, locked vertex groups are not removed.
- */
 void BKE_object_defgroup_remove_all_ex(struct Object *ob, bool only_unlocked)
 {
   ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
@@ -469,19 +423,11 @@ void BKE_object_defgroup_remove_all_ex(struct Object *ob, bool only_unlocked)
   }
 }
 
-/**
- * Remove all vgroups from object. Work in Object and Edit modes.
- */
 void BKE_object_defgroup_remove_all(struct Object *ob)
 {
   BKE_object_defgroup_remove_all_ex(ob, false);
 }
 
-/**
- * Compute mapping for vertex groups with matching name, -1 is used for no remapping.
- * Returns null if no remapping is required.
- * The returned array has to be freed.
- */
 int *BKE_object_defgroup_index_map_create(Object *ob_src, Object *ob_dst, int *r_map_len)
 {
   const ListBase *src_defbase = BKE_object_defgroup_list(ob_src);
@@ -549,11 +495,6 @@ void BKE_object_defgroup_index_map_apply(MDeformVert *dvert,
   }
 }
 
-/**
- * Get MDeformVert vgroup data from given object. Should only be used in Object mode.
- *
- * \return True if the id type supports weights.
- */
 bool BKE_object_defgroup_array_get(ID *id, MDeformVert **dvert_arr, int *dvert_tot)
 {
   if (id) {
@@ -579,14 +520,11 @@ bool BKE_object_defgroup_array_get(ID *id, MDeformVert **dvert_arr, int *dvert_t
   *dvert_tot = 0;
   return false;
 }
+
 /** \} */
 
 /* --- functions for getting vgroup aligned maps --- */
 
-/**
- * gets the status of "flag" for each bDeformGroup
- * in the object data's vertex group list and returns an array containing them
- */
 bool *BKE_object_defgroup_lock_flags_get(Object *ob, const int defbase_tot)
 {
   bool is_locked = false;
@@ -675,8 +613,6 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
   return defgroup_validmap;
 }
 
-/* Returns total selected vgroups,
- * wpi.defbase_sel is assumed malloc'd, all values are set */
 bool *BKE_object_defgroup_selected_get(Object *ob, int defbase_tot, int *r_dg_flags_sel_tot)
 {
   bool *dg_selection = MEM_mallocN(defbase_tot * sizeof(bool), __func__);
@@ -708,11 +644,6 @@ bool *BKE_object_defgroup_selected_get(Object *ob, int defbase_tot, int *r_dg_fl
   return dg_selection;
 }
 
-/**
- * Checks if the lock relative mode is applicable.
- *
- * \return true if an unlocked deform group is active.
- */
 bool BKE_object_defgroup_check_lock_relative(const bool *lock_flags,
                                              const bool *validmap,
                                              int index)
@@ -720,11 +651,6 @@ bool BKE_object_defgroup_check_lock_relative(const bool *lock_flags,
   return validmap && validmap[index] && !(lock_flags && lock_flags[index]);
 }
 
-/**
- * Additional check for whether the lock relative mode is applicable in multi-paint mode.
- *
- * \return true if none of the selected groups are locked.
- */
 bool BKE_object_defgroup_check_lock_relative_multi(int defbase_tot,
                                                    const bool *lock_flags,
                                                    const bool *selected,
@@ -747,11 +673,6 @@ bool BKE_object_defgroup_check_lock_relative_multi(int defbase_tot,
   return true;
 }
 
-/**
- * Takes a pair of boolean masks of all locked and all deform groups, and computes
- * a pair of masks for locked deform and unlocked deform groups. Output buffers may
- * reuse the input ones.
- */
 void BKE_object_defgroup_split_locked_validmap(
     int defbase_tot, const bool *locked, const bool *deform, bool *r_locked, bool *r_unlocked)
 {
@@ -774,11 +695,6 @@ void BKE_object_defgroup_split_locked_validmap(
   }
 }
 
-/**
- * Marks mirror vgroups in output and counts them.
- * Output and counter assumed to be already initialized.
- * Designed to be usable after BKE_object_defgroup_selected_get to extend selection to mirror.
- */
 void BKE_object_defgroup_mirror_selection(struct Object *ob,
                                           int defbase_tot,
                                           const bool *dg_selection,
@@ -808,9 +724,6 @@ void BKE_object_defgroup_mirror_selection(struct Object *ob,
   }
 }
 
-/**
- * Return the subset type of the Vertex Group Selection
- */
 bool *BKE_object_defgroup_subset_from_select_type(Object *ob,
                                                   eVGroupSelect subset_type,
                                                   int *r_defgroup_tot,
@@ -873,9 +786,6 @@ bool *BKE_object_defgroup_subset_from_select_type(Object *ob,
   return defgroup_validmap;
 }
 
-/**
- * store indices from the defgroup_validmap (faster lookups in some cases)
- */
 void BKE_object_defgroup_subset_to_index_array(const bool *defgroup_validmap,
                                                const int defgroup_tot,
                                                int *r_defgroup_subset_map)

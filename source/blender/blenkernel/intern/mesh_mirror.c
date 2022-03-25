@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -130,14 +114,11 @@ void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
   BM_mesh_free(bm);
 }
 
-/**
- * \warning This should _not_ be used to modify original meshes since
- * it doesn't handle shape-keys, use #BKE_mesh_mirror_apply_mirror_on_axis instead.
- */
 Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
                                                         Object *ob,
                                                         const Mesh *mesh,
-                                                        const int axis)
+                                                        const int axis,
+                                                        const bool use_correct_order_on_merge)
 {
   const float tolerance_sq = mmd->tolerance * mmd->tolerance;
   const bool do_vtargetmap = (mmd->flag & MOD_MIR_NO_MERGE) == 0;
@@ -239,7 +220,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   }
 
   /* Copy custom-data to new geometry,
-   * copy from its self because this data may have been created in the checks above. */
+   * copy from itself because this data may have been created in the checks above. */
   CustomData_copy_data(&result->vdata, &result->vdata, 0, maxVerts, maxVerts);
   CustomData_copy_data(&result->edata, &result->edata, 0, maxEdges, maxEdges);
   /* loops are copied later */
@@ -266,22 +247,45 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
        * Always merge from the copied into the original vertices so it's possible to
        * generate a 1:1 mapping by scanning vertices from the beginning of the array
        * as is done in #BKE_editmesh_vert_coords_when_deformed. Without this,
-       * the coordinates returned will sometimes point to the copied vertex locations, see: T91444.
+       * the coordinates returned will sometimes point to the copied vertex locations, see:
+       * T91444.
+       *
+       * However, such a change also affects non-versionable things like some modifiers binding, so
+       * we cannot enforce that behavior on existing modifiers, in which case we keep using the
+       * old, incorrect behavior of merging the source vertex into its copy.
        */
-      if (UNLIKELY(len_squared_v3v3(mv_prev->co, mv->co) < tolerance_sq)) {
-        *vtmap_b = i;
-        tot_vtargetmap++;
+      if (use_correct_order_on_merge) {
+        if (UNLIKELY(len_squared_v3v3(mv_prev->co, mv->co) < tolerance_sq)) {
+          *vtmap_b = i;
+          tot_vtargetmap++;
 
-        /* average location */
-        mid_v3_v3v3(mv->co, mv_prev->co, mv->co);
-        copy_v3_v3(mv_prev->co, mv->co);
+          /* average location */
+          mid_v3_v3v3(mv->co, mv_prev->co, mv->co);
+          copy_v3_v3(mv_prev->co, mv->co);
+        }
+        else {
+          *vtmap_b = -1;
+        }
+
+        /* Fill here to avoid 2x loops. */
+        *vtmap_a = -1;
       }
       else {
+        if (UNLIKELY(len_squared_v3v3(mv_prev->co, mv->co) < tolerance_sq)) {
+          *vtmap_a = maxVerts + i;
+          tot_vtargetmap++;
+
+          /* average location */
+          mid_v3_v3v3(mv->co, mv_prev->co, mv->co);
+          copy_v3_v3(mv_prev->co, mv->co);
+        }
+        else {
+          *vtmap_a = -1;
+        }
+
+        /* Fill here to avoid 2x loops. */
         *vtmap_b = -1;
       }
-
-      /* Fill here to avoid 2x loops. */
-      *vtmap_a = -1;
 
       vtmap_a++;
       vtmap_b++;
@@ -390,7 +394,6 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     CustomData *ldata = &result->ldata;
     short(*clnors)[2] = CustomData_get_layer(ldata, CD_CUSTOMLOOPNORMAL);
     MLoopNorSpaceArray lnors_spacearr = {NULL};
-    float(*poly_normals)[3] = MEM_mallocN(sizeof(*poly_normals) * totpoly, __func__);
 
     /* The transform matrix of a normal must be
      * the transpose of inverse of transform matrix of the geometry... */
@@ -400,16 +403,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
     /* calculate custom normals into loop_normals, then mirror first half into second half */
 
-    BKE_mesh_calc_normals_poly_and_vertex(result->mvert,
-                                          result->totvert,
-                                          result->mloop,
-                                          totloop,
-                                          result->mpoly,
-                                          totpoly,
-                                          poly_normals,
-                                          NULL);
-
     BKE_mesh_normals_loop_split(result->mvert,
+                                BKE_mesh_vertex_normals_ensure(result),
                                 result->totvert,
                                 result->medge,
                                 result->totedge,
@@ -417,7 +412,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
                                 loop_normals,
                                 totloop,
                                 result->mpoly,
-                                poly_normals,
+                                BKE_mesh_poly_normals_ensure(result),
                                 totpoly,
                                 true,
                                 mesh->smoothresh,
@@ -443,7 +438,6 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
       }
     }
 
-    MEM_freeN(poly_normals);
     MEM_freeN(loop_normals);
     BKE_lnor_spacearr_free(&lnors_spacearr);
   }

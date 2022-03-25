@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -139,12 +125,6 @@ static void wm_xr_draw_viewport_buffers_to_active_framebuffer(
   GPU_viewport_draw_to_screen_ex(vp->viewport, 0, &rect, draw_view->expects_srgb_buffer, true);
 }
 
-/**
- * \brief Draw a viewport for a single eye.
- *
- * This is the main viewport drawing function for VR sessions. It's assigned to Ghost-XR as a
- * callback (see GHOST_XrDrawViewFunc()) and executed for each view (read: eye).
- */
 void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
 {
   wmXrDrawData *draw_data = customdata;

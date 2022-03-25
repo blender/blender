@@ -31,7 +31,7 @@ void main()
 {
   vec4 rand = texelfetch_noise_tex(gl_FragCoord.xy);
   /* Decorrelate from AA. */
-  /* TODO(fclem) we should use a more general approach for more random number dimensions. */
+  /* TODO(@fclem): we should use a more general approach for more random number dimensions. */
   vec2 random_px = floor(fract(rand.xy * 2.2074408460575947536) * 1.99999) - 0.5;
   rand.xy = fract(rand.xy * 3.2471795724474602596);
 

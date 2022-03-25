@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2014 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2014 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -43,24 +27,33 @@
  * \{ */
 
 /* Internal algorithm used */
-enum {
+typedef enum eGPUSelectAlgo {
   /** glBegin/EndQuery(GL_SAMPLES_PASSED... ), `gpu_select_query.c`
    * Only sets 4th component (ID) correctly. */
   ALGO_GL_QUERY = 1,
   /** Read depth buffer for every drawing pass and extract depths, `gpu_select_pick.c`
    * Only sets 4th component (ID) correctly. */
   ALGO_GL_PICK = 2,
-};
+} eGPUSelectAlgo;
 
 typedef struct GPUSelectState {
   /* To ignore selection id calls when not initialized */
   bool select_is_active;
   /* mode of operation */
-  char mode;
+  eGPUSelectMode mode;
   /* internal algorithm for selection */
-  char algorithm;
+  eGPUSelectAlgo algorithm;
   /* allow GPU_select_begin/end without drawing */
   bool use_cache;
+  /**
+   * Signifies that #GPU_select_cache_begin has been called,
+   * future calls to #GPU_select_begin should initialize the cache.
+   *
+   * \note #GPU_select_cache_begin could perform initialization but doesn't as it's inconvenient
+   * for callers making the cache begin/end calls outside lower level selection logic
+   * where the `mode` to pass to #GPU_select_begin yet isn't known.
+   */
+  bool use_cache_needs_init;
 } GPUSelectState;
 
 static GPUSelectState g_select_state = {0};
@@ -71,10 +64,11 @@ static GPUSelectState g_select_state = {0};
 /** \name Public API
  * \{ */
 
-/**
- * initialize and provide buffer for results
- */
-void GPU_select_begin(uint *buffer, uint bufsize, const rcti *input, char mode, int oldhits)
+void GPU_select_begin(GPUSelectResult *buffer,
+                      const uint buffer_len,
+                      const rcti *input,
+                      eGPUSelectMode mode,
+                      int oldhits)
 {
   if (mode == GPU_SELECT_NEAREST_SECOND_PASS) {
     /* In the case hits was '-1',
@@ -93,28 +87,37 @@ void GPU_select_begin(uint *buffer, uint bufsize, const rcti *input, char mode, 
     g_select_state.algorithm = ALGO_GL_QUERY;
   }
 
+  /* This function is called when cache has already been initialized,
+   * so only manipulate cache values when cache is pending. */
+  if (g_select_state.use_cache_needs_init) {
+    g_select_state.use_cache_needs_init = false;
+
+    switch (g_select_state.algorithm) {
+      case ALGO_GL_QUERY: {
+        g_select_state.use_cache = false;
+        break;
+      }
+      default: {
+        g_select_state.use_cache = true;
+        gpu_select_pick_cache_begin();
+        break;
+      }
+    }
+  }
+
   switch (g_select_state.algorithm) {
     case ALGO_GL_QUERY: {
-      g_select_state.use_cache = false;
-      gpu_select_query_begin((uint(*)[4])buffer, bufsize / 4, input, mode, oldhits);
+      gpu_select_query_begin(buffer, buffer_len, input, mode, oldhits);
       break;
     }
     default: /* ALGO_GL_PICK */
     {
-      gpu_select_pick_begin((uint(*)[4])buffer, bufsize / 4, input, mode);
+      gpu_select_pick_begin(buffer, buffer_len, input, mode);
       break;
     }
   }
 }
 
-/**
- * loads a new selection id and ends previous query, if any.
- * In second pass of selection it also returns
- * if id has been hit on the first pass already.
- * Thus we can skip drawing un-hit objects.
- *
- * \warning We rely on the order of object rendering on passes to be the same for this to work.
- */
 bool GPU_select_load_id(uint id)
 {
   /* if no selection mode active, ignore */
@@ -133,11 +136,6 @@ bool GPU_select_load_id(uint id)
   }
 }
 
-/**
- * Cleanup and flush selection results to buffer.
- * Return number of hits and hits in buffer.
- * if \a dopass is true, we will do a second pass with occlusion queries to get the closest hit.
- */
 uint GPU_select_end(void)
 {
   uint hits = 0;
@@ -170,12 +168,13 @@ uint GPU_select_end(void)
 
 void GPU_select_cache_begin(void)
 {
-  /* validate on GPU_select_begin, clear if not supported */
-  BLI_assert(g_select_state.use_cache == false);
-  g_select_state.use_cache = true;
-  if (g_select_state.algorithm == ALGO_GL_PICK) {
-    gpu_select_pick_cache_begin();
-  }
+  BLI_assert(g_select_state.select_is_active == false);
+  /* Ensure #GPU_select_cache_end is always called. */
+  BLI_assert(g_select_state.use_cache_needs_init == false);
+
+  /* Signal that cache should be used, instead of calling the algorithms cache-begin function.
+   * This is more convenient as the exact method of selection may not be known by the caller. */
+  g_select_state.use_cache_needs_init = true;
 }
 
 void GPU_select_cache_load_id(void)
@@ -189,9 +188,12 @@ void GPU_select_cache_load_id(void)
 void GPU_select_cache_end(void)
 {
   if (g_select_state.algorithm == ALGO_GL_PICK) {
+    BLI_assert(g_select_state.use_cache == true);
     gpu_select_pick_cache_end();
   }
   g_select_state.use_cache = false;
+  /* Paranoid assignment, should already be false. */
+  g_select_state.use_cache_needs_init = false;
 }
 
 bool GPU_select_is_cached(void)
@@ -205,46 +207,39 @@ bool GPU_select_is_cached(void)
 /** \name Utilities
  * \{ */
 
-/**
- * Helper function, nothing special but avoids doing inline since hits aren't sorted by depth
- * and purpose of 4x buffer indices isn't so clear.
- *
- * Note that comparing depth as uint is fine.
- */
-const uint *GPU_select_buffer_near(const uint *buffer, int hits)
+const GPUSelectResult *GPU_select_buffer_near(const GPUSelectResult *buffer, int hits)
 {
-  const uint *buffer_near = NULL;
+  const GPUSelectResult *buffer_near = NULL;
   uint depth_min = (uint)-1;
   for (int i = 0; i < hits; i++) {
-    if (buffer[1] < depth_min) {
-      BLI_assert(buffer[3] != -1);
-      depth_min = buffer[1];
+    if (buffer->depth < depth_min) {
+      BLI_assert(buffer->id != -1);
+      depth_min = buffer->depth;
       buffer_near = buffer;
     }
-    buffer += 4;
+    buffer++;
   }
   return buffer_near;
 }
 
-uint GPU_select_buffer_remove_by_id(uint *buffer, int hits, uint select_id)
+uint GPU_select_buffer_remove_by_id(GPUSelectResult *buffer, int hits, uint select_id)
 {
-  uint *buffer_src = buffer;
-  uint *buffer_dst = buffer;
+  GPUSelectResult *buffer_src = buffer;
+  GPUSelectResult *buffer_dst = buffer;
   int hits_final = 0;
   for (int i = 0; i < hits; i++) {
-    if (buffer_src[3] != select_id) {
+    if (buffer_src->id != select_id) {
       if (buffer_dst != buffer_src) {
-        memcpy(buffer_dst, buffer_src, sizeof(int[4]));
+        memcpy(buffer_dst, buffer_src, sizeof(GPUSelectResult));
       }
-      buffer_dst += 4;
+      buffer_dst++;
       hits_final += 1;
     }
-    buffer_src += 4;
+    buffer_src++;
   }
   return hits_final;
 }
 
-/* Part of the solution copied from `rect_subregion_stride_calc`. */
 void GPU_select_buffer_stride_realign(const rcti *src, const rcti *dst, uint *r_buf)
 {
   const int x = dst->xmin - src->xmin;

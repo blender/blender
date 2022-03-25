@@ -1,22 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2006 Blender Foundation.
- * All rights reserved.
- * Dalai Felinto
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2006 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup cmpnodes
@@ -25,9 +8,15 @@
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 
-#include "../node_composite_util.hh"
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "node_composite_util.hh"
 
 /* **************** SWITCH VIEW ******************** */
+
+namespace blender::nodes::node_composite_switchview_cc {
+
 static bNodeSocketTemplate cmp_node_switch_view_out[] = {
     {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
     {-1, ""},
@@ -137,16 +126,33 @@ static void init_switch_view(const bContext *C, PointerRNA *ptr)
   cmp_node_switch_view_sanitycheck(ntree, node);
 }
 
-void register_node_type_cmp_switch_view(void)
+static void node_composit_buts_switch_view_ex(uiLayout *layout,
+                                              bContext *UNUSED(C),
+                                              PointerRNA *UNUSED(ptr))
 {
+  uiItemFullO(layout,
+              "NODE_OT_switch_view_update",
+              "Update Views",
+              ICON_FILE_REFRESH,
+              nullptr,
+              WM_OP_INVOKE_DEFAULT,
+              0,
+              nullptr);
+}
+
+}  // namespace blender::nodes::node_composite_switchview_cc
+
+void register_node_type_cmp_switch_view()
+{
+  namespace file_ns = blender::nodes::node_composite_switchview_cc;
+
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SWITCH_VIEW, "Switch View", NODE_CLASS_CONVERTER, 0);
-  node_type_socket_templates(&ntype, nullptr, cmp_node_switch_view_out);
-
-  ntype.initfunc_api = init_switch_view;
-
-  node_type_update(&ntype, cmp_node_switch_view_update);
+  cmp_node_type_base(&ntype, CMP_NODE_SWITCH_VIEW, "Switch View", NODE_CLASS_CONVERTER);
+  node_type_socket_templates(&ntype, nullptr, file_ns::cmp_node_switch_view_out);
+  ntype.draw_buttons_ex = file_ns::node_composit_buts_switch_view_ex;
+  ntype.initfunc_api = file_ns::init_switch_view;
+  node_type_update(&ntype, file_ns::cmp_node_switch_view_update);
 
   nodeRegisterType(&ntype);
 }

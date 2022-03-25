@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "scene/constant_fold.h"
 #include "scene/shader_graph.h"
@@ -441,9 +428,13 @@ void ConstantFolder::fold_mapping(NodeMappingType type) const
   if (is_zero(scale_in)) {
     make_zero();
   }
-  else if ((is_zero(location_in) || type == NODE_MAPPING_TYPE_VECTOR ||
-            type == NODE_MAPPING_TYPE_NORMAL) &&
-           is_zero(rotation_in) && is_one(scale_in)) {
+  else if (
+      /* Can't constant fold since we always need to normalize the output. */
+      (type != NODE_MAPPING_TYPE_NORMAL) &&
+      /* Check all use values are zero, note location is not used by vector and normal types. */
+      (is_zero(location_in) || type == NODE_MAPPING_TYPE_VECTOR ||
+       type == NODE_MAPPING_TYPE_NORMAL) &&
+      is_zero(rotation_in) && is_one(scale_in)) {
     try_bypass_or_make_constant(vector_in);
   }
 }

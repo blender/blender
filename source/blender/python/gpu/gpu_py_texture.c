@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bpygpu
@@ -237,7 +223,7 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject *UNUSED(self), PyObject *arg
                                   1,
                                   pygpu_textureformat.value_found,
                                   GPU_DATA_FLOAT,
-                                  NULL);
+                                  data);
     }
     else if (len == 2) {
       tex = GPU_texture_create_2d(
@@ -527,6 +513,7 @@ PyTypeObject BPyGPUTexture_Type = {
 /* -------------------------------------------------------------------- */
 /** \name GPU Texture module
  * \{ */
+
 PyDoc_STRVAR(pygpu_texture_from_image_doc,
              ".. function:: from_image(image)\n"
              "\n"
@@ -558,11 +545,11 @@ static struct PyMethodDef pygpu_texture__m_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-PyDoc_STRVAR(pygpu_texure__m_doc, "This module provides utils for textures.");
+PyDoc_STRVAR(pygpu_texture__m_doc, "This module provides utils for textures.");
 static PyModuleDef pygpu_texture_module_def = {
     PyModuleDef_HEAD_INIT,
     .m_name = "gpu.texture",
-    .m_doc = pygpu_texure__m_doc,
+    .m_doc = pygpu_texture__m_doc,
     .m_methods = pygpu_texture__m_methods,
 };
 

@@ -1,22 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2004 Blender Foundation
- * All rights reserved.
- * .blend file reading entry point
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2004 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup blenloader
@@ -55,7 +38,6 @@
 
 /* **************** support for memory-write, for undo buffers *************** */
 
-/* not memfile itself */
 void BLO_memfile_free(MemFile *memfile)
 {
   MemFileChunk *chunk;
@@ -69,8 +51,6 @@ void BLO_memfile_free(MemFile *memfile)
   memfile->size = 0;
 }
 
-/* to keep list of memfiles consistent, 'first' is always first in list */
-/* result is that 'first' is being freed */
 void BLO_memfile_merge(MemFile *first, MemFile *second)
 {
   /* We use this mapping to store the memory buffers from second memfile chunks which are not owned
@@ -106,7 +86,6 @@ void BLO_memfile_merge(MemFile *first, MemFile *second)
   BLO_memfile_free(first);
 }
 
-/* Clear is_identical_future before adding next memfile. */
 void BLO_memfile_clear_future(MemFile *memfile)
 {
   LISTBASE_FOREACH (MemFileChunk *, chunk, &memfile->chunks) {
@@ -216,11 +195,6 @@ struct Main *BLO_memfile_main_get(struct MemFile *memfile,
   return bmain_undo;
 }
 
-/**
- * Saves .blend using undo buffer.
- *
- * \return success.
- */
 bool BLO_memfile_write_file(struct MemFile *memfile, const char *filename)
 {
   MemFileChunk *chunk;

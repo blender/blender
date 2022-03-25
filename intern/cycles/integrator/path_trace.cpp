@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "integrator/path_trace.h"
 
@@ -67,14 +54,7 @@ PathTrace::PathTrace(Device *device,
 
 PathTrace::~PathTrace()
 {
-  /* Destroy any GPU resource which was used for graphics interop.
-   * Need to have access to the PathTraceDisplay as it is the only source of drawing context which
-   * is used for interop. */
-  if (display_) {
-    for (auto &&path_trace_work : path_trace_works_) {
-      path_trace_work->destroy_gpu_resources(display_.get());
-    }
-  }
+  destroy_gpu_resources();
 }
 
 void PathTrace::load_kernels()
@@ -115,7 +95,9 @@ bool PathTrace::ready_to_reset()
   return false;
 }
 
-void PathTrace::reset(const BufferParams &full_params, const BufferParams &big_tile_params)
+void PathTrace::reset(const BufferParams &full_params,
+                      const BufferParams &big_tile_params,
+                      const bool reset_rendering)
 {
   if (big_tile_params_.modified(big_tile_params)) {
     big_tile_params_ = big_tile_params;
@@ -128,7 +110,7 @@ void PathTrace::reset(const BufferParams &full_params, const BufferParams &big_t
    * It is requires to inform about reset whenever it happens, so that the redraw state tracking is
    * properly updated. */
   if (display_) {
-    display_->reset(full_params);
+    display_->reset(big_tile_params, reset_rendering);
   }
 
   render_state_.has_denoised_result = false;
@@ -482,7 +464,11 @@ void PathTrace::set_denoiser_params(const DenoiseParams &params)
   }
 
   denoiser_ = Denoiser::create(device_, params);
-  denoiser_->is_cancelled_cb = [this]() { return is_cancel_requested(); };
+
+  /* Only take into account the "immediate" cancel to have interactive rendering responding to
+   * navigation as quickly as possible, but allow to run denoiser after user hit Escape key while
+   * doing offline rendering. */
+  denoiser_->is_cancelled_cb = [this]() { return render_cancel_.is_requested; };
 }
 
 void PathTrace::set_adaptive_sampling(const AdaptiveSampling &adaptive_sampling)
@@ -566,6 +552,11 @@ void PathTrace::set_output_driver(unique_ptr<OutputDriver> driver)
 
 void PathTrace::set_display_driver(unique_ptr<DisplayDriver> driver)
 {
+  /* The display driver is the source of the drawing context which might be used by
+   * path trace works. Make sure there is no graphics interop using resources from
+   * the old display, as it might no longer be available after this call. */
+  destroy_gpu_resources();
+
   if (driver) {
     display_ = make_unique<PathTraceDisplay>(move(driver));
   }
@@ -588,6 +579,15 @@ void PathTrace::draw()
   }
 
   did_draw_after_reset_ |= display_->draw();
+}
+
+void PathTrace::flush_display()
+{
+  if (!display_) {
+    return;
+  }
+
+  display_->flush();
 }
 
 void PathTrace::update_display(const RenderWork &render_work)
@@ -618,9 +618,8 @@ void PathTrace::update_display(const RenderWork &render_work)
   if (display_) {
     VLOG(3) << "Perform copy to GPUDisplay work.";
 
-    const int resolution_divider = render_work.resolution_divider;
-    const int texture_width = max(1, full_params_.width / resolution_divider);
-    const int texture_height = max(1, full_params_.height / resolution_divider);
+    const int texture_width = render_state_.effective_big_tile_params.window_width;
+    const int texture_height = render_state_.effective_big_tile_params.window_height;
     if (!display_->update_begin(texture_width, texture_height)) {
       LOG(ERROR) << "Error beginning GPUDisplay update.";
       return;
@@ -806,8 +805,15 @@ void PathTrace::tile_buffer_read()
     return;
   }
 
+  /* Read buffers back from device. */
+  tbb::parallel_for_each(path_trace_works_, [&](unique_ptr<PathTraceWork> &path_trace_work) {
+    path_trace_work->copy_render_buffers_from_device();
+  });
+
+  /* Read (subset of) passes from output driver. */
   PathTraceTile tile(*this);
   if (output_driver_->read_render_tile(tile)) {
+    /* Copy buffers to device again. */
     tbb::parallel_for_each(path_trace_works_, [](unique_ptr<PathTraceWork> &path_trace_work) {
       path_trace_work->copy_render_buffers_to_device();
     });
@@ -1067,6 +1073,18 @@ bool PathTrace::has_denoised_result() const
   return render_state_.has_denoised_result;
 }
 
+void PathTrace::destroy_gpu_resources()
+{
+  /* Destroy any GPU resource which was used for graphics interop.
+   * Need to have access to the PathTraceDisplay as it is the only source of drawing context which
+   * is used for interop. */
+  if (display_) {
+    for (auto &&path_trace_work : path_trace_works_) {
+      path_trace_work->destroy_gpu_resources(display_.get());
+    }
+  }
+}
+
 /* --------------------------------------------------------------------
  * Report generation.
  */
@@ -1089,6 +1107,8 @@ static const char *device_type_for_description(const DeviceType type)
       return "Dummy";
     case DEVICE_MULTI:
       return "Multi";
+    case DEVICE_METAL:
+      return "Metal";
   }
 
   return "UNKNOWN";

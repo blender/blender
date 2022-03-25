@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2010 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2010 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup render
@@ -33,7 +17,8 @@ extern "C" {
 typedef struct MultiresBakeRender {
   Scene *scene;
   DerivedMesh *lores_dm, *hires_dm;
-  int bake_filter; /* Bake-filter, aka margin */
+  int bake_margin;
+  char bake_margin_type;
   int lvl, tot_lvl;
   short mode;
   bool use_lores_mesh; /* Use low-resolution mesh when baking displacement maps */

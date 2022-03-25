@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -82,6 +68,7 @@ typedef struct GizmoExtrudeGroup {
     float orient_matrix[3][3];
     bool constraint_axis[3];
     float value[4];
+    int orient_type;
   } redo_xform;
 
   /* Depends on object type. */
@@ -166,7 +153,7 @@ static void gizmo_mesh_extrude_setup(const bContext *C, wmGizmoGroup *gzgroup)
       op_idname = "ARMATURE_OT_extrude_move";
       ggd->normal_axis = 1;
     }
-    else if (obact->type == OB_CURVE) {
+    else if (obact->type == OB_CURVES_LEGACY) {
       op_idname = "CURVE_OT_extrude_move";
       ggd->normal_axis = 2;
     }
@@ -310,6 +297,7 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     RNA_float_get_array(op_xform->ptr, "orient_matrix", &ggd->redo_xform.orient_matrix[0][0]);
     RNA_boolean_get_array(op_xform->ptr, "constraint_axis", ggd->redo_xform.constraint_axis);
     RNA_float_get_array(op_xform->ptr, "value", ggd->redo_xform.value);
+    ggd->redo_xform.orient_type = RNA_enum_get(op_xform->ptr, "orient_type");
 
     /* Set properties for redo. */
     for (int i = 0; i < 3; i++) {
@@ -435,7 +423,8 @@ static void gizmo_mesh_extrude_invoke_prepare(const bContext *UNUSED(C),
     if (gz == ggd->adjust[0]) {
       RNA_boolean_set_array(&macroptr, "constraint_axis", ggd->redo_xform.constraint_axis);
       RNA_float_set_array(&macroptr, "orient_matrix", &ggd->redo_xform.orient_matrix[0][0]);
-      RNA_enum_set(&macroptr, "orient_type", V3D_ORIENT_NORMAL);
+      RNA_enum_set(&macroptr, "orient_matrix_type", ggd->redo_xform.orient_type);
+      RNA_enum_set(&macroptr, "orient_type", ggd->redo_xform.orient_type);
     }
     RNA_float_set_array(&macroptr, "value", ggd->redo_xform.value);
   }
@@ -496,7 +485,6 @@ static void gizmo_mesh_extrude_message_subscribe(const bContext *C,
     Scene *scene = CTX_data_scene(C);
     PointerRNA toolsettings_ptr;
     RNA_pointer_create(&scene->id, &RNA_ToolSettings, scene->toolsettings, &toolsettings_ptr);
-    extern PropertyRNA rna_ToolSettings_workspace_tool_type;
     const PropertyRNA *props[] = {
         &rna_ToolSettings_workspace_tool_type,
     };

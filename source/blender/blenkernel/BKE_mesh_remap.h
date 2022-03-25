@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -50,10 +36,10 @@ typedef struct MeshPairRemap {
 } MeshPairRemap;
 
 /* Helpers! */
-void BKE_mesh_remap_init(MeshPairRemap *map, const int items_num);
+void BKE_mesh_remap_init(MeshPairRemap *map, int items_num);
 void BKE_mesh_remap_free(MeshPairRemap *map);
 
-void BKE_mesh_remap_item_define_invalid(MeshPairRemap *map, const int index);
+void BKE_mesh_remap_item_define_invalid(MeshPairRemap *map, int index);
 
 /* TODO:
  * Add other 'from/to' mapping sources, like e.g. using an UVMap, etc.
@@ -155,78 +141,88 @@ enum {
 };
 
 void BKE_mesh_remap_calc_source_cddata_masks_from_map_modes(
-    const int vert_mode,
-    const int edge_mode,
-    const int loop_mode,
-    const int poly_mode,
+    int vert_mode,
+    int edge_mode,
+    int loop_mode,
+    int poly_mode,
     struct CustomData_MeshMasks *cddata_mask);
 
+/**
+ * Compute a value of the difference between both given meshes.
+ * The smaller the result, the better the match.
+ *
+ * We return the inverse of the average of the inversed
+ * shortest distance from each dst vertex to src ones.
+ * In other words, beyond a certain (relatively small) distance, all differences have more or less
+ * the same weight in final result, which allows to reduce influence of a few high differences,
+ * in favor of a global good matching.
+ */
 float BKE_mesh_remap_calc_difference_from_mesh(const struct SpaceTransform *space_transform,
                                                const struct MVert *verts_dst,
-                                               const int numverts_dst,
+                                               int numverts_dst,
                                                struct Mesh *me_src);
 
+/**
+ * Set r_space_transform so that best bbox of dst matches best bbox of src.
+ */
 void BKE_mesh_remap_find_best_match_from_mesh(const struct MVert *verts_dst,
-                                              const int numverts_dst,
+                                              int numverts_dst,
                                               struct Mesh *me_src,
                                               struct SpaceTransform *r_space_transform);
 
-void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
+void BKE_mesh_remap_calc_verts_from_mesh(int mode,
                                          const struct SpaceTransform *space_transform,
-                                         const float max_dist,
-                                         const float ray_radius,
+                                         float max_dist,
+                                         float ray_radius,
                                          const struct MVert *verts_dst,
-                                         const int numverts_dst,
-                                         const bool dirty_nors_dst,
+                                         int numverts_dst,
+                                         bool dirty_nors_dst,
                                          struct Mesh *me_src,
                                          MeshPairRemap *r_map);
 
-void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
+void BKE_mesh_remap_calc_edges_from_mesh(int mode,
                                          const struct SpaceTransform *space_transform,
-                                         const float max_dist,
-                                         const float ray_radius,
+                                         float max_dist,
+                                         float ray_radius,
                                          const struct MVert *verts_dst,
-                                         const int numverts_dst,
+                                         int numverts_dst,
                                          const struct MEdge *edges_dst,
-                                         const int numedges_dst,
-                                         const bool dirty_nors_dst,
+                                         int numedges_dst,
+                                         bool dirty_nors_dst,
                                          struct Mesh *me_src,
                                          MeshPairRemap *r_map);
 
-void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
+void BKE_mesh_remap_calc_loops_from_mesh(int mode,
                                          const struct SpaceTransform *space_transform,
-                                         const float max_dist,
-                                         const float ray_radius,
+                                         float max_dist,
+                                         float ray_radius,
+                                         struct Mesh *mesh_dst,
                                          struct MVert *verts_dst,
-                                         const int numverts_dst,
+                                         int numverts_dst,
                                          struct MEdge *edges_dst,
-                                         const int numedges_dst,
+                                         int numedges_dst,
                                          struct MLoop *loops_dst,
-                                         const int numloops_dst,
+                                         int numloops_dst,
                                          struct MPoly *polys_dst,
-                                         const int numpolys_dst,
+                                         int numpolys_dst,
                                          struct CustomData *ldata_dst,
-                                         struct CustomData *pdata_dst,
-                                         const bool use_split_nors_dst,
-                                         const float split_angle_dst,
-                                         const bool dirty_nors_dst,
+                                         bool use_split_nors_dst,
+                                         float split_angle_dst,
+                                         bool dirty_nors_dst,
                                          struct Mesh *me_src,
                                          MeshRemapIslandsCalc gen_islands_src,
-                                         const float islands_precision_src,
+                                         float islands_precision_src,
                                          struct MeshPairRemap *r_map);
 
-void BKE_mesh_remap_calc_polys_from_mesh(const int mode,
+void BKE_mesh_remap_calc_polys_from_mesh(int mode,
                                          const struct SpaceTransform *space_transform,
-                                         const float max_dist,
-                                         const float ray_radius,
+                                         float max_dist,
+                                         float ray_radius,
+                                         struct Mesh *mesh_dst,
                                          struct MVert *verts_dst,
-                                         const int numverts_dst,
                                          struct MLoop *loops_dst,
-                                         const int numloops_dst,
                                          struct MPoly *polys_dst,
-                                         const int numpolys_dst,
-                                         struct CustomData *pdata_dst,
-                                         const bool dirty_nors_dst,
+                                         int numpolys_dst,
                                          struct Mesh *me_src,
                                          struct MeshPairRemap *r_map);
 

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2013 by Campbell Barton.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2013 by Campbell Barton. All rights reserved. */
 
 /** \file
  * \ingroup bmesh
@@ -121,9 +105,6 @@ static bool bm_loop_build(BMEdgeLoopStore *el_store, BMVert *v_prev, BMVert *v, 
   return true;
 }
 
-/**
- * \return listbase of listbases, each linking to a vertex.
- */
 int BM_mesh_edgeloops_find(BMesh *bm,
                            ListBase *r_eloops,
                            bool (*test_fn)(BMEdge *, void *user_data),
@@ -506,7 +487,6 @@ void BM_mesh_edgeloops_calc_order(BMesh *UNUSED(bm), ListBase *eloops, const boo
 /* -------------------------------------------------------------------- */
 /* BM_edgeloop_*** functions */
 
-/* return new edgeloops */
 BMEdgeLoopStore *BM_edgeloop_copy(BMEdgeLoopStore *el_store)
 {
   BMEdgeLoopStore *el_store_copy = MEM_mallocN(sizeof(*el_store), __func__);
@@ -565,9 +545,6 @@ const float *BM_edgeloop_center_get(struct BMEdgeLoopStore *el_store)
 #define NODE_AS_V(n) ((BMVert *)((LinkData *)n)->data)
 #define NODE_AS_CO(n) ((BMVert *)((LinkData *)n)->data)->co
 
-/**
- * edges are assigned to one vert -> the next.
- */
 void BM_edgeloop_edges_get(struct BMEdgeLoopStore *el_store, BMEdge **e_arr)
 {
   LinkData *node;
@@ -653,12 +630,6 @@ bool BM_edgeloop_calc_normal(BMesh *UNUSED(bm), BMEdgeLoopStore *el_store)
   return true;
 }
 
-/**
- * For open loops that are straight lines,
- * calculating the normal as if it were a polygon is meaningless.
- *
- * Instead use an alignment vector and calculate the normal based on that.
- */
 bool BM_edgeloop_calc_normal_aligned(BMesh *UNUSED(bm),
                                      BMEdgeLoopStore *el_store,
                                      const float no_align[3])

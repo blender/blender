@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -64,41 +50,79 @@ typedef struct PaintWavePoint {
   short state;
 } PaintWavePoint;
 
+/**
+ * Modifier call. Processes dynamic paint modifier step.
+ */
 struct Mesh *dynamicPaint_Modifier_do(struct DynamicPaintModifierData *pmd,
                                       struct Depsgraph *depsgraph,
                                       struct Scene *scene,
                                       struct Object *ob,
                                       struct Mesh *me);
+/**
+ * Free whole dynamic-paint modifier.
+ */
 void dynamicPaint_Modifier_free(struct DynamicPaintModifierData *pmd);
 void dynamicPaint_Modifier_free_runtime(struct DynamicPaintRuntime *runtime);
 void dynamicPaint_Modifier_copy(const struct DynamicPaintModifierData *pmd,
                                 struct DynamicPaintModifierData *tpmd,
                                 int flag);
 
+/**
+ * Initialize modifier data.
+ */
 bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, struct Scene *scene);
+/**
+ * Creates a new surface and adds it to the list
+ * If scene is null, frame range of 1-250 is used
+ * A pointer to this surface is returned.
+ */
 struct DynamicPaintSurface *dynamicPaint_createNewSurface(
     struct DynamicPaintCanvasSettings *canvas, struct Scene *scene);
+/**
+ * Clears surface data back to zero.
+ */
 void dynamicPaint_clearSurface(const struct Scene *scene, struct DynamicPaintSurface *surface);
+/**
+ * Completely (re)initializes surface (only for point cache types).
+ */
 bool dynamicPaint_resetSurface(const struct Scene *scene, struct DynamicPaintSurface *surface);
 void dynamicPaint_freeSurface(const struct DynamicPaintModifierData *pmd,
                               struct DynamicPaintSurface *surface);
+/**
+ * Free canvas data.
+ */
 void dynamicPaint_freeCanvas(struct DynamicPaintModifierData *pmd);
+/* Free brush data */
 void dynamicPaint_freeBrush(struct DynamicPaintModifierData *pmd);
 void dynamicPaint_freeSurfaceData(struct DynamicPaintSurface *surface);
 
+/**
+ * Update cache frame range.
+ */
 void dynamicPaint_cacheUpdateFrames(struct DynamicPaintSurface *surface);
 bool dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface,
                                     struct Object *ob,
                                     int output);
+/**
+ * Change surface data to defaults on new type.
+ */
 void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface);
 void dynamicPaintSurface_setUniqueName(struct DynamicPaintSurface *surface, const char *basename);
+/**
+ * Get currently active surface (in user interface).
+ */
 struct DynamicPaintSurface *get_activeSurface(struct DynamicPaintCanvasSettings *canvas);
 
-/* image sequence baking */
+/**
+ * Image sequence baking.
+ */
 int dynamicPaint_createUVSurface(struct Scene *scene,
                                  struct DynamicPaintSurface *surface,
                                  float *progress,
                                  short *do_update);
+/**
+ * Calculate a single frame and included sub-frames for surface.
+ */
 int dynamicPaint_calculateFrame(struct DynamicPaintSurface *surface,
                                 struct Depsgraph *depsgraph,
                                 struct Scene *scene,

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2015 by Blender Foundation
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2015 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup imbuf
@@ -44,8 +28,10 @@
 
 /* prototypes */
 struct Stereo3DData;
-static void imb_stereo3d_write_doit(struct Stereo3DData *s3d_data, struct Stereo3dFormat *s3d);
-static void imb_stereo3d_read_doit(struct Stereo3DData *s3d_data, struct Stereo3dFormat *s3d);
+static void imb_stereo3d_write_doit(struct Stereo3DData *s3d_data,
+                                    const struct Stereo3dFormat *s3d);
+static void imb_stereo3d_read_doit(struct Stereo3DData *s3d_data,
+                                   const struct Stereo3dFormat *s3d);
 
 typedef struct Stereo3DData {
   struct {
@@ -62,7 +48,7 @@ typedef struct Stereo3DData {
 /** \name Local Functions
  * \{ */
 
-static void imb_stereo3d_write_anaglyph(Stereo3DData *s3d, enum eStereo3dAnaglyphType mode)
+static void imb_stereo3d_write_anaglyph(const Stereo3DData *s3d, enum eStereo3dAnaglyphType mode)
 {
   int x, y;
   size_t width = s3d->x;
@@ -160,7 +146,7 @@ static void imb_stereo3d_write_anaglyph(Stereo3DData *s3d, enum eStereo3dAnaglyp
   }
 }
 
-static void imb_stereo3d_write_interlace(Stereo3DData *s3d,
+static void imb_stereo3d_write_interlace(const Stereo3DData *s3d,
                                          enum eStereo3dInterlaceType mode,
                                          const bool swap)
 {
@@ -418,7 +404,7 @@ static void imb_stereo3d_write_interlace(Stereo3DData *s3d,
 }
 
 /* stereo3d output (s3d->rectf.stereo) is always unsqueezed */
-static void imb_stereo3d_write_sidebyside(Stereo3DData *s3d, const bool crosseyed)
+static void imb_stereo3d_write_sidebyside(const Stereo3DData *s3d, const bool crosseyed)
 {
   int y;
   size_t width = s3d->x;
@@ -466,7 +452,7 @@ static void imb_stereo3d_write_sidebyside(Stereo3DData *s3d, const bool crosseye
 }
 
 /* stereo3d output (s3d->rectf.stereo) is always unsqueezed */
-static void imb_stereo3d_write_topbottom(Stereo3DData *s3d)
+static void imb_stereo3d_write_topbottom(const Stereo3DData *s3d)
 {
   int y;
   size_t width = s3d->x;
@@ -581,7 +567,7 @@ void IMB_stereo3d_read_dimensions(const char mode,
  * \{ */
 
 static void imb_stereo3d_squeeze_ImBuf(ImBuf *ibuf,
-                                       Stereo3dFormat *s3d,
+                                       const Stereo3dFormat *s3d,
                                        const size_t x,
                                        const size_t y)
 {
@@ -597,7 +583,7 @@ static void imb_stereo3d_squeeze_ImBuf(ImBuf *ibuf,
 }
 
 static void imb_stereo3d_unsqueeze_ImBuf(ImBuf *ibuf,
-                                         Stereo3dFormat *s3d,
+                                         const Stereo3dFormat *s3d,
                                          const size_t x,
                                          const size_t y)
 {
@@ -613,7 +599,7 @@ static void imb_stereo3d_unsqueeze_ImBuf(ImBuf *ibuf,
 }
 
 static void imb_stereo3d_squeeze_rectf(
-    float *rectf, Stereo3dFormat *s3d, const size_t x, const size_t y, const size_t channels)
+    float *rectf, const Stereo3dFormat *s3d, const size_t x, const size_t y, const size_t channels)
 {
   ImBuf *ibuf;
   size_t width, height;
@@ -647,7 +633,7 @@ static void imb_stereo3d_squeeze_rectf(
 }
 
 static void imb_stereo3d_squeeze_rect(
-    int *rect, Stereo3dFormat *s3d, const size_t x, const size_t y, const size_t channels)
+    int *rect, const Stereo3dFormat *s3d, const size_t x, const size_t y, const size_t channels)
 {
   ImBuf *ibuf;
   size_t width, height;
@@ -709,7 +695,7 @@ static void imb_stereo3d_data_init(Stereo3DData *s3d_data,
   s3d_data->rectf.stereo = rectf_stereo;
 }
 
-int *IMB_stereo3d_from_rect(ImageFormatData *im_format,
+int *IMB_stereo3d_from_rect(const ImageFormatData *im_format,
                             const size_t x,
                             const size_t y,
                             const size_t channels,
@@ -733,7 +719,7 @@ int *IMB_stereo3d_from_rect(ImageFormatData *im_format,
   return r_rect;
 }
 
-float *IMB_stereo3d_from_rectf(ImageFormatData *im_format,
+float *IMB_stereo3d_from_rectf(const ImageFormatData *im_format,
                                const size_t x,
                                const size_t y,
                                const size_t channels,
@@ -757,8 +743,7 @@ float *IMB_stereo3d_from_rectf(ImageFormatData *im_format,
   return r_rectf;
 }
 
-/* left/right are always float */
-ImBuf *IMB_stereo3d_ImBuf(ImageFormatData *im_format, ImBuf *ibuf_left, ImBuf *ibuf_right)
+ImBuf *IMB_stereo3d_ImBuf(const ImageFormatData *im_format, ImBuf *ibuf_left, ImBuf *ibuf_right)
 {
   ImBuf *ibuf_stereo = NULL;
   Stereo3DData s3d_data = {{NULL}};
@@ -793,7 +778,7 @@ ImBuf *IMB_stereo3d_ImBuf(ImageFormatData *im_format, ImBuf *ibuf_left, ImBuf *i
   return ibuf_stereo;
 }
 
-static void imb_stereo3d_write_doit(Stereo3DData *s3d_data, Stereo3dFormat *s3d)
+static void imb_stereo3d_write_doit(Stereo3DData *s3d_data, const Stereo3dFormat *s3d)
 {
   switch (s3d->display_mode) {
     case S3D_DISPLAY_ANAGLYPH:
@@ -820,7 +805,7 @@ static void imb_stereo3d_write_doit(Stereo3DData *s3d_data, Stereo3dFormat *s3d)
 /** \name Reading Stereo ImBuf's
  * \{ */
 
-static void imb_stereo3d_read_anaglyph(Stereo3DData *s3d, enum eStereo3dAnaglyphType mode)
+static void imb_stereo3d_read_anaglyph(const Stereo3DData *s3d, enum eStereo3dAnaglyphType mode)
 {
   int x, y;
   size_t width = s3d->x;
@@ -918,7 +903,7 @@ static void imb_stereo3d_read_anaglyph(Stereo3DData *s3d, enum eStereo3dAnaglyph
   }
 }
 
-static void imb_stereo3d_read_interlace(Stereo3DData *s3d,
+static void imb_stereo3d_read_interlace(const Stereo3DData *s3d,
                                         enum eStereo3dInterlaceType mode,
                                         const bool swap)
 {
@@ -1176,7 +1161,7 @@ static void imb_stereo3d_read_interlace(Stereo3DData *s3d,
 }
 
 /* stereo input (s3d->rectf.stereo) is always unsqueezed */
-static void imb_stereo3d_read_sidebyside(Stereo3DData *s3d, const bool crosseyed)
+static void imb_stereo3d_read_sidebyside(const Stereo3DData *s3d, const bool crosseyed)
 {
   int y;
   size_t width = s3d->x;
@@ -1225,7 +1210,7 @@ static void imb_stereo3d_read_sidebyside(Stereo3DData *s3d, const bool crosseyed
 }
 
 /* stereo input (s3d->rectf.stereo) is always unsqueezed */
-static void imb_stereo3d_read_topbottom(Stereo3DData *s3d)
+static void imb_stereo3d_read_topbottom(const Stereo3DData *s3d)
 {
   int y;
   size_t width = s3d->x;
@@ -1275,8 +1260,7 @@ static void imb_stereo3d_read_topbottom(Stereo3DData *s3d)
 /** \name Preparing To Call The Read Functions
  * \{ */
 
-/* reading a stereo encoded ibuf (*left) and generating two ibufs from it (*left and *right) */
-void IMB_ImBufFromStereo3d(Stereo3dFormat *s3d,
+void IMB_ImBufFromStereo3d(const Stereo3dFormat *s3d,
                            ImBuf *ibuf_stereo3d,
                            ImBuf **r_ibuf_left,
                            ImBuf **r_ibuf_right)
@@ -1355,7 +1339,7 @@ void IMB_ImBufFromStereo3d(Stereo3dFormat *s3d,
   *r_ibuf_right = ibuf_right;
 }
 
-static void imb_stereo3d_read_doit(Stereo3DData *s3d_data, Stereo3dFormat *s3d)
+static void imb_stereo3d_read_doit(Stereo3DData *s3d_data, const Stereo3dFormat *s3d)
 {
   switch (s3d->display_mode) {
     case S3D_DISPLAY_ANAGLYPH:

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 by the Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup modifiers
@@ -44,6 +28,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
@@ -84,14 +69,17 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 static Mesh *mirrorModifier__doMirror(MirrorModifierData *mmd, Object *ob, Mesh *mesh)
 {
   Mesh *result = mesh;
+  const bool use_correct_order_on_merge = mmd->use_correct_order_on_merge;
 
   /* check which axes have been toggled and mirror accordingly */
   if (mmd->flag & MOD_MIR_AXIS_X) {
-    result = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(mmd, ob, result, 0);
+    result = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(
+        mmd, ob, result, 0, use_correct_order_on_merge);
   }
   if (mmd->flag & MOD_MIR_AXIS_Y) {
     Mesh *tmp = result;
-    result = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(mmd, ob, result, 1);
+    result = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(
+        mmd, ob, result, 1, use_correct_order_on_merge);
     if (tmp != mesh) {
       /* free intermediate results */
       BKE_id_free(NULL, tmp);
@@ -99,7 +87,8 @@ static Mesh *mirrorModifier__doMirror(MirrorModifierData *mmd, Object *ob, Mesh 
   }
   if (mmd->flag & MOD_MIR_AXIS_Z) {
     Mesh *tmp = result;
-    result = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(mmd, ob, result, 2);
+    result = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(
+        mmd, ob, result, 2, use_correct_order_on_merge);
     if (tmp != mesh) {
       /* free intermediate results */
       BKE_id_free(NULL, tmp);
@@ -116,9 +105,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   result = mirrorModifier__doMirror(mmd, ctx->object, mesh);
 
-  if (result != mesh) {
-    BKE_mesh_normals_tag_dirty(result);
-  }
   return result;
 }
 
@@ -237,7 +223,6 @@ ModifierTypeInfo modifierType_Mirror = {
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ modifyMesh,
-    /* modifyHair */ NULL,
     /* modifyGeometrySet */ NULL,
 
     /* initData */ initData,

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2019 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2019 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup editors
@@ -571,6 +555,57 @@ static void lineart_bounding_area_link_chain(LineartRenderBuffer *rb, LineartEdg
   }
 }
 
+static bool lineart_chain_fix_ambiguous_segments(LineartEdgeChain *ec,
+                                                 LineartEdgeChainItem *last_matching_eci,
+                                                 float distance_threshold,
+                                                 bool preserve_details,
+                                                 LineartEdgeChainItem **r_next_eci)
+{
+  float dist_accum = 0;
+
+  int fixed_occ = last_matching_eci->occlusion;
+  unsigned char fixed_mask = last_matching_eci->material_mask_bits;
+
+  LineartEdgeChainItem *can_skip_to = NULL;
+  LineartEdgeChainItem *last_eci = last_matching_eci;
+  for (LineartEdgeChainItem *eci = last_matching_eci->next; eci; eci = eci->next) {
+    dist_accum += len_v2v2(last_eci->pos, eci->pos);
+    if (dist_accum > distance_threshold) {
+      break;
+    }
+    last_eci = eci;
+    /* The reason for this is because we don't want visible segments to be "skipped" into
+     * connecting with invisible segments. */
+    if (eci->occlusion < fixed_occ) {
+      break;
+    }
+    if (eci->material_mask_bits == fixed_mask && eci->occlusion == fixed_occ) {
+      can_skip_to = eci;
+    }
+  }
+  if (can_skip_to) {
+    /* Either mark all in-between segments with the same occlusion and mask or delete those
+     * different ones. */
+    LineartEdgeChainItem *next_eci;
+    for (LineartEdgeChainItem *eci = last_matching_eci->next; eci != can_skip_to; eci = next_eci) {
+      next_eci = eci->next;
+      if (eci->material_mask_bits == fixed_mask && eci->occlusion == fixed_occ) {
+        continue;
+      }
+      if (preserve_details) {
+        eci->material_mask_bits = fixed_mask;
+        eci->occlusion = fixed_occ;
+      }
+      else {
+        BLI_remlink(&ec->chain, eci);
+      }
+    }
+    *r_next_eci = can_skip_to;
+    return true;
+  }
+  return false;
+}
+
 void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb)
 {
   LineartEdgeChain *ec, *new_ec;
@@ -595,6 +630,13 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb)
       if (eci->occlusion != fixed_occ || eci->material_mask_bits != fixed_mask) {
         if (next_eci) {
           if (lineart_point_overlapping(next_eci, eci->pos[0], eci->pos[1], 1e-5)) {
+            continue;
+          }
+          if (lineart_chain_fix_ambiguous_segments(ec,
+                                                   eci->prev,
+                                                   rb->chaining_image_threshold,
+                                                   rb->chain_preserve_details,
+                                                   &next_eci)) {
             continue;
           }
         }
@@ -634,6 +676,8 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb)
       }
     }
   }
+  /* Get rid of those very short "zig-zag" lines that jumps around visibility. */
+  MOD_lineart_chain_discard_short(rb, DBL_EDGE_LIM);
   LISTBASE_FOREACH (LineartEdgeChain *, iec, &rb->chains) {
     lineart_bounding_area_link_chain(rb, iec);
   }
@@ -792,11 +836,6 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartRenderBuf
   return closest_cre;
 }
 
-/**
- * This function only connects two different chains. It will not do any clean up or smart chaining.
- * So no: removing overlapping chains, removal of short isolated segments, and no loop reduction is
- * implemented yet.
- */
 void MOD_lineart_chain_connect(LineartRenderBuffer *rb)
 {
   LineartEdgeChain *ec;
@@ -879,9 +918,6 @@ void MOD_lineart_chain_connect(LineartRenderBuffer *rb)
   }
 }
 
-/**
- * Length is in image space.
- */
 float MOD_lineart_chain_compute_length(LineartEdgeChain *ec)
 {
   LineartEdgeChainItem *eci;
@@ -890,6 +926,9 @@ float MOD_lineart_chain_compute_length(LineartEdgeChain *ec)
   float last_point[2];
 
   eci = ec->chain.first;
+  if (!eci) {
+    return 0;
+  }
   copy_v2_v2(last_point, eci->pos);
   for (eci = ec->chain.first; eci; eci = eci->next) {
     dist = len_v2v2(eci->pos, last_point);
@@ -1067,10 +1106,6 @@ void MOD_lineart_chain_clip_at_border(LineartRenderBuffer *rb)
   }
 }
 
-/**
- * This should always be the last stage!, see the end of
- * #MOD_lineart_chain_split_for_fixed_occlusion().
- */
 void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshold_rad)
 {
   LineartEdgeChain *ec, *new_ec;

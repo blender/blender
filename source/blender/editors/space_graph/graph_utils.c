@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spgraph
@@ -43,6 +27,7 @@
 #include "UI_interface.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "graph_intern.h" /* own include */
 
@@ -50,9 +35,6 @@
 /** \name Set Up Drivers Editor
  * \{ */
 
-/* Set up UI configuration for Drivers Editor */
-/* NOTE: Currently called from window-manager
- * (new drivers editor window) and RNA (mode switching) */
 void ED_drivers_editor_init(bContext *C, ScrArea *area)
 {
   SpaceGraph *sipo = (SpaceGraph *)area->spacedata.first;
@@ -96,15 +78,6 @@ void ED_drivers_editor_init(bContext *C, ScrArea *area)
 /** \name Active F-Curve
  * \{ */
 
-/**
- * Find 'active' F-Curve.
- * It must be editable, since that's the purpose of these buttons (subject to change).
- * We return the 'wrapper' since it contains valuable context info (about hierarchy),
- * which will need to be freed when the caller is done with it.
- *
- * \note curve-visible flag isn't included,
- * otherwise selecting a curve via list to edit is too cumbersome.
- */
 bAnimListElem *get_active_fcurve_channel(bAnimContext *ac)
 {
   ListBase anim_data = {NULL, NULL};
@@ -134,7 +107,6 @@ bAnimListElem *get_active_fcurve_channel(bAnimContext *ac)
 /** \name Operator Polling Callbacks
  * \{ */
 
-/* Check if there are any visible keyframes (for selection tools) */
 bool graphop_visible_keyframes_poll(bContext *C)
 {
   bAnimContext ac;
@@ -187,7 +159,6 @@ bool graphop_visible_keyframes_poll(bContext *C)
   return found;
 }
 
-/* Check if there are any visible + editable keyframes (for editing tools) */
 bool graphop_editable_keyframes_poll(bContext *C)
 {
   bAnimContext ac;
@@ -215,6 +186,7 @@ bool graphop_editable_keyframes_poll(bContext *C)
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
   items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
   if (items == 0) {
+    CTX_wm_operator_poll_msg_set(C, "There is no animation data to operate on");
     return found;
   }
 
@@ -242,7 +214,6 @@ bool graphop_editable_keyframes_poll(bContext *C)
   return found;
 }
 
-/* has active F-Curve that's editable */
 bool graphop_active_fcurve_poll(bContext *C)
 {
   bAnimContext ac;
@@ -286,7 +257,6 @@ bool graphop_active_fcurve_poll(bContext *C)
   return has_fcurve;
 }
 
-/* has active F-Curve in the context that's editable */
 bool graphop_active_editable_fcurve_ctx_poll(bContext *C)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "active_editable_fcurve", &RNA_FCurve);
@@ -294,7 +264,6 @@ bool graphop_active_editable_fcurve_ctx_poll(bContext *C)
   return ptr.data != NULL;
 }
 
-/* has selected F-Curve that's editable */
 bool graphop_selected_fcurve_poll(bContext *C)
 {
   bAnimContext ac;

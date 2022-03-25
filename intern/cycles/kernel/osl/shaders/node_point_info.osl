@@ -1,0 +1,13 @@
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
+
+#include "stdcycles.h"
+
+shader node_point_info(output point Position = point(0.0, 0.0, 0.0),
+                       output float Radius = 0.0,
+                       output float Random = 0.0)
+{
+  getattribute("geom:point_position", Position);
+  getattribute("geom:point_radius", Radius);
+  getattribute("geom:point_random", Random);
+}

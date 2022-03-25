@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -1187,12 +1173,14 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
       vlen = BLI_array_len(loops);
 
       /* find the boundary of one of the split edges */
-      for (a = 1; a < vlen; a++) {
-        if (!BMO_vert_flag_test(bm, loops[a - 1]->v, ELE_INNER) &&
+      for (a = 0; a < vlen; a++) {
+        if (!BMO_vert_flag_test(bm, loops[a ? (a - 1) : (vlen - 1)]->v, ELE_INNER) &&
             BMO_vert_flag_test(bm, loops[a]->v, ELE_INNER)) {
           break;
         }
       }
+      /* Failure to break means there is an internal error. */
+      BLI_assert(a < vlen);
 
       if (BMO_vert_flag_test(bm, loops[(a + numcuts + 1) % vlen]->v, ELE_INNER)) {
         b = (a + numcuts + 1) % vlen;

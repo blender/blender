@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2013, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2013 Blender Foundation. */
 
 #pragma once
 
@@ -169,6 +154,7 @@ class NodeOperationBuilder {
  private:
   PreviewOperation *make_preview_operation() const;
   void unlink_inputs_and_relink_outputs(NodeOperation *unlinked_op, NodeOperation *linked_op);
+  /** Merge operations with same type, inputs and parameters that produce the same result. */
   void merge_equal_operations();
   void merge_equal_operations(NodeOperation *from, NodeOperation *into);
   void save_graphviz(StringRefNull name = "");
@@ -177,6 +163,7 @@ class NodeOperationBuilder {
 #endif
 };
 
+/** Create a graphviz representation of the NodeOperationBuilder. */
 std::ostream &operator<<(std::ostream &os, const NodeOperationBuilder &builder);
 std::ostream &operator<<(std::ostream &os, const NodeOperationBuilder::Link &link);
 

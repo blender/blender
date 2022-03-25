@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #ifdef WITH_CUDA
 
@@ -44,12 +31,6 @@ bool CUDADevice::have_precompiled_kernels()
 {
   string cubins_path = path_get("lib");
   return path_exists(cubins_path);
-}
-
-bool CUDADevice::show_samples() const
-{
-  /* The CUDADevice only processes one tile at a time, so showing samples is fine. */
-  return true;
 }
 
 BVHLayoutMask CUDADevice::get_bvh_layout_mask() const
@@ -240,6 +221,10 @@ string CUDADevice::compile_kernel_get_common_cflags(const uint kernel_features)
 
 #  ifdef WITH_NANOVDB
   cflags += " -DWITH_NANOVDB";
+#  endif
+
+#  ifdef WITH_CYCLES_DEBUG
+  cflags += " -DWITH_CYCLES_DEBUG";
 #  endif
 
   return cflags;
@@ -479,10 +464,10 @@ void CUDADevice::reserve_local_memory(const uint kernel_features)
      * still to make it faster. */
     CUDADeviceQueue queue(this);
 
-    void *d_path_index = nullptr;
-    void *d_render_buffer = nullptr;
+    device_ptr d_path_index = 0;
+    device_ptr d_render_buffer = 0;
     int d_work_size = 0;
-    void *args[] = {&d_path_index, &d_render_buffer, &d_work_size};
+    DeviceKernelArguments args(&d_path_index, &d_render_buffer, &d_work_size);
 
     queue.init_execution();
     queue.enqueue(test_kernel, 1, args);
@@ -680,7 +665,7 @@ CUDADevice::CUDAMem *CUDADevice::generic_alloc(device_memory &mem, size_t pitch_
 
   void *shared_pointer = 0;
 
-  if (mem_alloc_result != CUDA_SUCCESS && can_map_host) {
+  if (mem_alloc_result != CUDA_SUCCESS && can_map_host && mem.type != MEM_DEVICE_ONLY) {
     if (mem.shared_pointer) {
       /* Another device already allocated host memory. */
       mem_alloc_result = CUDA_SUCCESS;
@@ -703,8 +688,14 @@ CUDADevice::CUDAMem *CUDADevice::generic_alloc(device_memory &mem, size_t pitch_
   }
 
   if (mem_alloc_result != CUDA_SUCCESS) {
-    status = " failed, out of device and host memory";
-    set_error("System is out of GPU and shared host memory");
+    if (mem.type == MEM_DEVICE_ONLY) {
+      status = " failed, out of device memory";
+      set_error("System is out of GPU memory");
+    }
+    else {
+      status = " failed, out of device and host memory";
+      set_error("System is out of GPU and shared host memory");
+    }
   }
 
   if (mem.name) {
@@ -777,6 +768,7 @@ void CUDADevice::generic_free(device_memory &mem)
   if (mem.device_pointer) {
     CUDAContextScope scope(this);
     thread_scoped_lock lock(cuda_mem_map_mutex);
+    DCHECK(cuda_mem_map.find(&mem) != cuda_mem_map.end());
     const CUDAMem &cmem = cuda_mem_map[&mem];
 
     /* If cmem.use_mapped_host is true, reference counting is used
@@ -1143,6 +1135,7 @@ void CUDADevice::tex_free(device_texture &mem)
   if (mem.device_pointer) {
     CUDAContextScope scope(this);
     thread_scoped_lock lock(cuda_mem_map_mutex);
+    DCHECK(cuda_mem_map.find(&mem) != cuda_mem_map.end());
     const CUDAMem &cmem = cuda_mem_map[&mem];
 
     if (cmem.texobject) {

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 by Nicholas Bishop
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 by Nicholas Bishop. All rights reserved. */
 
 /** \file
  * \ingroup edsculpt
@@ -521,16 +505,13 @@ static bool paint_stroke_use_jitter(ePaintMode mode, Brush *brush, bool invert)
 }
 
 /* Put the location of the next stroke dot into the stroke RNA and apply it to the mesh */
-static void paint_brush_stroke_add_step(bContext *C,
-                                        wmOperator *op,
-                                        const float mouse_in[2],
-                                        float pressure)
+static void paint_brush_stroke_add_step(
+    bContext *C, wmOperator *op, PaintStroke *stroke, const float mouse_in[2], float pressure)
 {
   Scene *scene = CTX_data_scene(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
-  PaintStroke *stroke = op->customdata;
   UnifiedPaintSettings *ups = stroke->ups;
   float mouse_out[2];
   PointerRNA itemptr;
@@ -630,7 +611,7 @@ static void paint_brush_stroke_add_step(bContext *C,
     RNA_float_set(&itemptr, "x_tilt", stroke->x_tilt);
     RNA_float_set(&itemptr, "y_tilt", stroke->y_tilt);
 
-    stroke->update_step(C, stroke, &itemptr);
+    stroke->update_step(C, op, stroke, &itemptr);
 
     /* don't record this for now, it takes up a lot of memory when doing long
      * strokes with small brush size, and operators have register disabled */
@@ -801,17 +782,17 @@ static float paint_space_stroke_spacing_variable(bContext *C,
  * towards the final mouse location. */
 static int paint_space_stroke(bContext *C,
                               wmOperator *op,
+                              PaintStroke *stroke,
                               const float final_mouse[2],
                               float final_pressure)
 {
   const Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
-  PaintStroke *stroke = op->customdata;
   UnifiedPaintSettings *ups = stroke->ups;
   Paint *paint = BKE_paint_get_active_from_context(C);
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
-  int cnt = 0;
+  int count = 0;
 
   const bool use_scene_spacing = paint_stroke_use_scene_spacing(brush, mode);
   float d_world_space_position[3] = {0.0f};
@@ -868,20 +849,20 @@ static int paint_space_stroke(bContext *C,
                                                            spacing / no_pressure_spacing);
 
       stroke->stroke_distance += spacing / stroke->zoom_2d;
-      paint_brush_stroke_add_step(C, op, mouse, pressure);
+      paint_brush_stroke_add_step(C, op, stroke, mouse, pressure);
 
       length -= spacing;
       pressure = stroke->last_pressure;
       dpressure = final_pressure - stroke->last_pressure;
 
-      cnt++;
+      count++;
     }
     else {
       break;
     }
   }
 
-  return cnt;
+  return count;
 }
 
 /**** Public API ****/
@@ -945,7 +926,7 @@ PaintStroke *paint_stroke_new(bContext *C,
   return stroke;
 }
 
-void paint_stroke_free(bContext *C, wmOperator *op)
+void paint_stroke_free(bContext *C, wmOperator *UNUSED(op), PaintStroke *stroke)
 {
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   if (rv3d) {
@@ -954,7 +935,6 @@ void paint_stroke_free(bContext *C, wmOperator *op)
 
   BKE_paint_set_overlay_override(0);
 
-  PaintStroke *stroke = op->customdata;
   if (stroke == NULL) {
     return;
   }
@@ -977,12 +957,11 @@ void paint_stroke_free(bContext *C, wmOperator *op)
 
   BLI_freelistN(&stroke->line);
 
-  MEM_SAFE_FREE(op->customdata);
+  MEM_SAFE_FREE(stroke);
 }
 
-static void stroke_done(bContext *C, wmOperator *op)
+static void stroke_done(bContext *C, wmOperator *op, PaintStroke *stroke)
 {
-  PaintStroke *stroke = op->customdata;
   UnifiedPaintSettings *ups = stroke->ups;
 
   /* reset rotation here to avoid doing so in cursor display */
@@ -1004,10 +983,14 @@ static void stroke_done(bContext *C, wmOperator *op)
     }
   }
 
-  paint_stroke_free(C, op);
+  paint_stroke_free(C, op, stroke);
 }
 
-/* Returns zero if the stroke dots should not be spaced, non-zero otherwise */
+static bool curves_sculpt_brush_uses_spacing(const eBrushCurvesSculptTool tool)
+{
+  return ELEM(tool, CURVES_SCULPT_TOOL_ADD);
+}
+
 bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
 {
   if ((br->flag & BRUSH_SPACE) == 0) {
@@ -1020,6 +1003,11 @@ bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
      * whether the simulation runs constantly or only when the brush moves when using the cloth
      * grab brushes. */
     return true;
+  }
+
+  if (mode == PAINT_MODE_SCULPT_CURVES &&
+      !curves_sculpt_brush_uses_spacing(br->curves_sculpt_tool)) {
+    return false;
   }
 
   return paint_supports_dynamic_size(br, mode);
@@ -1041,7 +1029,6 @@ static bool sculpt_is_grab_tool(Brush *br)
               SCULPT_TOOL_SNAKE_HOOK);
 }
 
-/* return true if the brush size can change during paint (normally used for pressure) */
 bool paint_supports_dynamic_size(Brush *br, ePaintMode mode)
 {
   if (br->flag & BRUSH_ANCHORED) {
@@ -1094,7 +1081,6 @@ bool paint_supports_texture(ePaintMode mode)
       mode, PAINT_MODE_SCULPT, PAINT_MODE_VERTEX, PAINT_MODE_TEXTURE_3D, PAINT_MODE_TEXTURE_2D);
 }
 
-/* return true if the brush size can change during paint (normally used for pressure) */
 bool paint_supports_dynamic_tex_coords(Brush *br, ePaintMode mode)
 {
   if (br->flag & BRUSH_ANCHORED) {
@@ -1115,7 +1101,6 @@ bool paint_supports_dynamic_tex_coords(Brush *br, ePaintMode mode)
 
 #define PAINT_STROKE_MODAL_CANCEL 1
 
-/* Called in paint_ops.c, on each regeneration of key-maps. */
 struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf)
 {
   static struct EnumPropertyItem modal_items[] = {
@@ -1250,7 +1235,7 @@ static void paint_line_strokes_spacing(bContext *C,
       ups->overlap_factor = paint_stroke_integrate_overlap(stroke->brush, 1.0);
 
       stroke->stroke_distance += spacing / stroke->zoom_2d;
-      paint_brush_stroke_add_step(C, op, mouse, 1.0);
+      paint_brush_stroke_add_step(C, op, stroke, mouse, 1.0);
 
       length -= spacing;
       spacing_final = spacing;
@@ -1272,8 +1257,8 @@ static void paint_stroke_line_end(bContext *C,
   if (stroke->stroke_started && (br->flag & BRUSH_LINE)) {
     stroke->ups->overlap_factor = paint_stroke_integrate_overlap(br, 1.0);
 
-    paint_brush_stroke_add_step(C, op, stroke->last_mouse_position, 1.0);
-    paint_space_stroke(C, op, mouse, 1.0);
+    paint_brush_stroke_add_step(C, op, stroke, stroke->last_mouse_position, 1.0);
+    paint_space_stroke(C, op, stroke, mouse, 1.0);
   }
 }
 
@@ -1351,7 +1336,7 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
           stroke->stroke_started = stroke->test_start(C, op, stroke->last_mouse_position);
 
           if (stroke->stroke_started) {
-            paint_brush_stroke_add_step(C, op, data + 2 * j, 1.0);
+            paint_brush_stroke_add_step(C, op, stroke, data + 2 * j, 1.0);
             paint_line_strokes_spacing(
                 C, op, stroke, spacing, &length_residue, data + 2 * j, data + 2 * (j + 1));
           }
@@ -1363,7 +1348,7 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
       }
     }
 
-    stroke_done(C, op);
+    stroke_done(C, op, stroke);
 
 #ifdef DEBUG_TIME
     TIMEIT_END_AVERAGED(whole_stroke);
@@ -1404,11 +1389,10 @@ static void paint_stroke_line_constrain(PaintStroke *stroke, float mouse[2])
   }
 }
 
-int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
+int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintStroke *stroke)
 {
   Paint *p = BKE_paint_get_active_from_context(C);
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
-  PaintStroke *stroke = op->customdata;
   Brush *br = stroke->brush = BKE_paint_brush(p);
   PaintSample sample_average;
   float mouse[2];
@@ -1502,7 +1486,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
       op->type->cancel(C, op);
     }
     else {
-      paint_stroke_cancel(C, op);
+      paint_stroke_cancel(C, op, stroke);
     }
     return OPERATOR_CANCELLED;
   }
@@ -1512,17 +1496,17 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
       copy_v2_fl2(mouse, event->mval[0], event->mval[1]);
       paint_stroke_line_constrain(stroke, mouse);
       paint_stroke_line_end(C, op, stroke, mouse);
-      stroke_done(C, op);
+      stroke_done(C, op, stroke);
       return OPERATOR_FINISHED;
     }
   }
   else if (ELEM(event->type, EVT_RETKEY, EVT_SPACEKEY)) {
     paint_stroke_line_end(C, op, stroke, sample_average.mouse);
-    stroke_done(C, op);
+    stroke_done(C, op, stroke);
     return OPERATOR_FINISHED;
   }
   else if (br->flag & BRUSH_LINE) {
-    if (event->alt) {
+    if (event->modifier & KM_ALT) {
       stroke->constrain_line = true;
     }
     else {
@@ -1550,7 +1534,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
     if (paint_smooth_stroke(stroke, &sample_average, mode, mouse, &pressure)) {
       if (stroke->stroke_started) {
         if (paint_space_stroke_enabled(br, mode)) {
-          if (paint_space_stroke(C, op, mouse, pressure)) {
+          if (paint_space_stroke(C, op, stroke, mouse, pressure)) {
             redraw = true;
           }
         }
@@ -1558,7 +1542,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
           float dmouse[2];
           sub_v2_v2v2(dmouse, mouse, stroke->last_mouse_position);
           stroke->stroke_distance += len_v2(dmouse);
-          paint_brush_stroke_add_step(C, op, mouse, pressure);
+          paint_brush_stroke_add_step(C, op, stroke, mouse, pressure);
           redraw = true;
         }
       }
@@ -1569,7 +1553,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
    * instead of waiting till we have moved the space distance */
   if (first_dab && paint_space_stroke_enabled(br, mode) && !(br->flag & BRUSH_SMOOTH_STROKE)) {
     stroke->ups->overlap_factor = paint_stroke_integrate_overlap(br, 1.0);
-    paint_brush_stroke_add_step(C, op, sample_average.mouse, sample_average.pressure);
+    paint_brush_stroke_add_step(C, op, stroke, sample_average.mouse, sample_average.pressure);
     redraw = true;
   }
 
@@ -1592,10 +1576,8 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-int paint_stroke_exec(bContext *C, wmOperator *op)
+int paint_stroke_exec(bContext *C, wmOperator *op, PaintStroke *stroke)
 {
-  PaintStroke *stroke = op->customdata;
-
   /* only when executed for the first time */
   if (stroke->stroke_started == 0) {
     PropertyRNA *strokeprop;
@@ -1612,21 +1594,21 @@ int paint_stroke_exec(bContext *C, wmOperator *op)
 
   if (stroke->stroke_started) {
     RNA_BEGIN (op->ptr, itemptr, "stroke") {
-      stroke->update_step(C, stroke, &itemptr);
+      stroke->update_step(C, op, stroke, &itemptr);
     }
     RNA_END;
   }
 
   bool ok = (stroke->stroke_started != 0);
 
-  stroke_done(C, op);
+  stroke_done(C, op, stroke);
 
   return ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-void paint_stroke_cancel(bContext *C, wmOperator *op)
+void paint_stroke_cancel(bContext *C, wmOperator *op, PaintStroke *stroke)
 {
-  stroke_done(C, op);
+  stroke_done(C, op, stroke);
 }
 
 ViewContext *paint_stroke_view_context(PaintStroke *stroke)

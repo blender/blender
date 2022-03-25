@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -39,22 +23,27 @@ class GLVertBuf : public VertBuf {
  private:
   /** OpenGL buffer handle. Init on first upload. Immutable after that. */
   GLuint vbo_id_ = 0;
+  /** Defines whether the buffer handle is wrapped by this GLVertBuf, i.e. we do not own it and
+   * should not free it. */
+  bool is_wrapper_ = false;
   /** Size on the GPU. */
   size_t vbo_size_ = 0;
 
  public:
-  void bind(void);
+  void bind();
 
-  void update_sub(uint start, uint len, void *data) override;
+  void update_sub(uint start, uint len, const void *data) override;
 
   const void *read() const override;
   void *unmap(const void *mapped_data) const override;
 
+  void wrap_handle(uint64_t handle) override;
+
  protected:
-  void acquire_data(void) override;
-  void resize_data(void) override;
-  void release_data(void) override;
-  void upload_data(void) override;
+  void acquire_data() override;
+  void resize_data() override;
+  void release_data() override;
+  void upload_data() override;
   void duplicate_data(VertBuf *dst) override;
   void bind_as_ssbo(uint binding) override;
 

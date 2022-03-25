@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2016 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "bvh/unaligned.h"
 
@@ -69,7 +56,7 @@ bool BVHUnaligned::compute_aligned_space(const BVHReference &ref, Transform *ali
   const int packed_type = ref.prim_type();
   const int type = (packed_type & PRIMITIVE_ALL);
   /* No motion blur curves here, we can't fit them to aligned boxes well. */
-  if (type & (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_CURVE_THICK)) {
+  if ((type & PRIMITIVE_CURVE) && !(type & PRIMITIVE_MOTION)) {
     const int curve_index = ref.prim_index();
     const int segment = PRIMITIVE_UNPACK_SEGMENT(packed_type);
     const Hair *hair = static_cast<const Hair *>(object->get_geometry());
@@ -95,7 +82,7 @@ BoundBox BVHUnaligned::compute_aligned_prim_boundbox(const BVHReference &prim,
   const int packed_type = prim.prim_type();
   const int type = (packed_type & PRIMITIVE_ALL);
   /* No motion blur curves here, we can't fit them to aligned boxes well. */
-  if (type & (PRIMITIVE_CURVE_RIBBON | PRIMITIVE_CURVE_THICK)) {
+  if ((type & PRIMITIVE_CURVE) && !(type & PRIMITIVE_MOTION)) {
     const int curve_index = prim.prim_index();
     const int segment = PRIMITIVE_UNPACK_SEGMENT(packed_type);
     const Hair *hair = static_cast<const Hair *>(object->get_geometry());

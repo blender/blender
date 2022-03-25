@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -952,7 +938,7 @@ class ViewEdge : public Interface1D {
   FEdge *_FEdgeB;              // last edge of the embedded fedges chain
   Id _Id;
   unsigned _ChainingTimeStamp;
-  // The silhouette view edge separates 2 2D spaces. The one on the left is necessarly the Shape
+  // The silhouette view edge separates two 2D spaces. The one on the left is necessarily the Shape
   // _Shape (the one to which this edge belongs to) and _aShape is the one on its right NOT HANDLED
   // BY THE COPY CONSTRUCTOR
   ViewShape *_aShape;

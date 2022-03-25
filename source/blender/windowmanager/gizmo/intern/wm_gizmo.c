@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2014 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2014 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup wm
@@ -32,6 +16,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -106,11 +91,6 @@ wmGizmo *WM_gizmo_new_ptr(const wmGizmoType *gzt, wmGizmoGroup *gzgroup, Pointer
   return gz;
 }
 
-/**
- * \param idname: Must be a valid gizmo type name,
- * if you need to check it exists use #WM_gizmo_new_ptr
- * because callers of this function don't NULL check the return value.
- */
 wmGizmo *WM_gizmo_new(const char *idname, wmGizmoGroup *gzgroup, PointerRNA *properties)
 {
   const wmGizmoType *gzt = WM_gizmotype_find(idname, false);
@@ -143,11 +123,6 @@ static void wm_gizmo_register(wmGizmoGroup *gzgroup, wmGizmo *gz)
   wm_gizmogroup_gizmo_register(gzgroup, gz);
 }
 
-/**
- * \warning this doesn't check #wmGizmoMap (highlight, selection etc).
- * Typical use is when freeing the windowing data,
- * where caller can manage clearing selection, highlight... etc.
- */
 void WM_gizmo_free(wmGizmo *gz)
 {
   if (gz->type->free != NULL) {
@@ -187,10 +162,6 @@ void WM_gizmo_free(wmGizmo *gz)
   MEM_freeN(gz);
 }
 
-/**
- * Free \a gizmo and unlink from \a gizmolist.
- * \a gizmolist is allowed to be NULL.
- */
 void WM_gizmo_unlink(ListBase *gizmolist, wmGizmoMap *gzmap, wmGizmo *gz, bContext *C)
 {
   if (gz->state & WM_GIZMO_STATE_HIGHLIGHT) {
@@ -255,7 +226,7 @@ PointerRNA *WM_gizmo_operator_set(wmGizmo *gz,
   return &gzop->ptr;
 }
 
-int WM_gizmo_operator_invoke(bContext *C, wmGizmo *gz, wmGizmoOpElem *gzop)
+int WM_gizmo_operator_invoke(bContext *C, wmGizmo *gz, wmGizmoOpElem *gzop, const wmEvent *event)
 {
   if (gz->flag & WM_GIZMO_OPERATOR_TOOL_INIT) {
     /* Merge toolsettings into the gizmo properties. */
@@ -269,7 +240,7 @@ int WM_gizmo_operator_invoke(bContext *C, wmGizmo *gz, wmGizmoOpElem *gzop)
       IDP_MergeGroup(gzop->ptr.data, tref_ptr.data, false);
     }
   }
-  return WM_operator_name_call_ptr(C, gzop->type, WM_OP_INVOKE_DEFAULT, &gzop->ptr);
+  return WM_operator_name_call_ptr(C, gzop->type, WM_OP_INVOKE_DEFAULT, &gzop->ptr, event);
 }
 
 static void wm_gizmo_set_matrix_rotation_from_z_axis__internal(float matrix[4][4],
@@ -300,9 +271,6 @@ static void wm_gizmo_set_matrix_rotation_from_yz_axis__internal(float matrix[4][
   normalize_v3(matrix[0]);
 }
 
-/**
- * wmGizmo.matrix utils.
- */
 void WM_gizmo_set_matrix_rotation_from_z_axis(wmGizmo *gz, const float z_axis[3])
 {
   wm_gizmo_set_matrix_rotation_from_z_axis__internal(gz->matrix_basis, z_axis);
@@ -318,9 +286,6 @@ void WM_gizmo_set_matrix_location(wmGizmo *gz, const float origin[3])
   copy_v3_v3(gz->matrix_basis[3], origin);
 }
 
-/**
- * wmGizmo.matrix_offset utils.
- */
 void WM_gizmo_set_matrix_offset_rotation_from_z_axis(wmGizmo *gz, const float z_axis[3])
 {
   wm_gizmo_set_matrix_rotation_from_z_axis__internal(gz->matrix_offset, z_axis);
@@ -388,12 +353,7 @@ void WM_gizmo_set_fn_custom_modal(struct wmGizmo *gz, wmGizmoFnModal fn)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/**
- * Add/Remove \a gizmo to selection.
- * Reallocates memory for selected gizmos so better not call for selecting multiple ones.
- *
- * \return if the selection has changed.
- */
+
 bool wm_gizmo_select_set_ex(
     wmGizmoMap *gzmap, wmGizmo *gz, bool select, bool use_array, bool use_callback)
 {
@@ -429,7 +389,6 @@ bool wm_gizmo_select_set_ex(
   return changed;
 }
 
-/* Remove from selection array without running callbacks. */
 bool WM_gizmo_select_unlink(wmGizmoMap *gzmap, wmGizmo *gz)
 {
   return wm_gizmo_select_set_ex(gzmap, gz, false, true, false);
@@ -454,12 +413,6 @@ bool wm_gizmo_select_and_highlight(bContext *C, wmGizmoMap *gzmap, wmGizmo *gz)
   return false;
 }
 
-/**
- * Special function to run from setup so gizmos start out interactive.
- *
- * We could do this when linking them,
- * but this complicates things since the window update code needs to run first.
- */
 void WM_gizmo_modal_set_from_setup(struct wmGizmoMap *gzmap,
                                    struct bContext *C,
                                    struct wmGizmo *gz,
@@ -473,7 +426,7 @@ void WM_gizmo_modal_set_from_setup(struct wmGizmoMap *gzmap,
   }
   else {
     /* WEAK: but it works. */
-    WM_operator_name_call(C, "GIZMOGROUP_OT_gizmo_tweak", WM_OP_INVOKE_DEFAULT, NULL);
+    WM_operator_name_call(C, "GIZMOGROUP_OT_gizmo_tweak", WM_OP_INVOKE_DEFAULT, NULL, event);
   }
 }
 
@@ -634,8 +587,6 @@ void WM_gizmo_properties_create(PointerRNA *ptr, const char *gtstring)
   }
 }
 
-/* similar to the function above except its uses ID properties
- * used for keymaps and macros */
 void WM_gizmo_properties_alloc(PointerRNA **ptr, IDProperty **properties, const char *gtstring)
 {
   if (*properties == NULL) {
@@ -680,14 +631,6 @@ void WM_gizmo_properties_sanitize(PointerRNA *ptr, const bool no_context)
   RNA_STRUCT_END;
 }
 
-/**
- * Set all props to their default.
- *
- * \param do_update: Only update un-initialized props.
- *
- * \note There's nothing specific to gizmos here.
- * This could be made a general function.
- */
 bool WM_gizmo_properties_default(PointerRNA *ptr, const bool do_update)
 {
   bool changed = false;
@@ -715,7 +658,6 @@ bool WM_gizmo_properties_default(PointerRNA *ptr, const bool do_update)
   return changed;
 }
 
-/* remove all props without PROP_SKIP_SAVE */
 void WM_gizmo_properties_reset(wmGizmo *gz)
 {
   if (gz->ptr->data) {

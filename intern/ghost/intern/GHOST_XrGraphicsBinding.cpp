@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -84,16 +70,26 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
 #endif
     static PFN_xrGetOpenGLGraphicsRequirementsKHR s_xrGetOpenGLGraphicsRequirementsKHR_fn =
         nullptr;
+    // static XrInstance s_instance = XR_NULL_HANDLE;
     XrGraphicsRequirementsOpenGLKHR gpu_requirements = {XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_KHR};
     const XrVersion gl_version = XR_MAKE_VERSION(
         ctx_gl.m_contextMajorVersion, ctx_gl.m_contextMinorVersion, 0);
 
+    /* Although it would seem reasonable that the proc address would not change if the instance was
+     * the same, in testing, repeated calls to #xrGetInstanceProcAddress() with the same instance
+     * can still result in changes so the workaround is to simply set the function pointer every
+     * time (trivializing its 'static' designation). */
+    // if (instance != s_instance) {
+    // s_instance = instance;
+    s_xrGetOpenGLGraphicsRequirementsKHR_fn = nullptr;
+    //}
     if (!s_xrGetOpenGLGraphicsRequirementsKHR_fn &&
         XR_FAILED(xrGetInstanceProcAddr(
             instance,
             "xrGetOpenGLGraphicsRequirementsKHR",
             (PFN_xrVoidFunction *)&s_xrGetOpenGLGraphicsRequirementsKHR_fn))) {
       s_xrGetOpenGLGraphicsRequirementsKHR_fn = nullptr;
+      return false;
     }
 
     s_xrGetOpenGLGraphicsRequirementsKHR_fn(instance, system_id, &gpu_requirements);
@@ -165,11 +161,18 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
                                                bool &r_is_srgb_format) const override
   {
     std::vector<int64_t> gpu_binding_formats = {
+#if 0 /* RGB10A2, RGBA16 don't seem to work with Oculus head-sets, \
+       * so move them after RGBA16F for the time being. */
         GL_RGB10_A2,
         GL_RGBA16,
-        GL_RGBA16F,
-        GL_RGBA8,
-        GL_SRGB8_ALPHA8,
+#endif
+      GL_RGBA16F,
+#if 1
+      GL_RGB10_A2,
+      GL_RGBA16,
+#endif
+      GL_RGBA8,
+      GL_SRGB8_ALPHA8,
     };
 
     std::optional result = choose_swapchain_format_from_candidates(gpu_binding_formats,
@@ -305,14 +308,24 @@ class GHOST_XrGraphicsBindingD3D : public GHOST_IXrGraphicsBinding {
       std::string *r_requirement_info) const override
   {
     static PFN_xrGetD3D11GraphicsRequirementsKHR s_xrGetD3D11GraphicsRequirementsKHR_fn = nullptr;
+    // static XrInstance s_instance = XR_NULL_HANDLE;
     XrGraphicsRequirementsD3D11KHR gpu_requirements = {XR_TYPE_GRAPHICS_REQUIREMENTS_D3D11_KHR};
 
+    /* Although it would seem reasonable that the proc address would not change if the instance was
+     * the same, in testing, repeated calls to #xrGetInstanceProcAddress() with the same instance
+     * can still result in changes so the workaround is to simply set the function pointer every
+     * time (trivializing its 'static' designation). */
+    // if (instance != s_instance) {
+    // s_instance = instance;
+    s_xrGetD3D11GraphicsRequirementsKHR_fn = nullptr;
+    //}
     if (!s_xrGetD3D11GraphicsRequirementsKHR_fn &&
         XR_FAILED(xrGetInstanceProcAddr(
             instance,
             "xrGetD3D11GraphicsRequirementsKHR",
             (PFN_xrVoidFunction *)&s_xrGetD3D11GraphicsRequirementsKHR_fn))) {
       s_xrGetD3D11GraphicsRequirementsKHR_fn = nullptr;
+      return false;
     }
 
     s_xrGetD3D11GraphicsRequirementsKHR_fn(instance, system_id, &gpu_requirements);
@@ -341,14 +354,15 @@ class GHOST_XrGraphicsBindingD3D : public GHOST_IXrGraphicsBinding {
                                                bool &r_is_srgb_format) const override
   {
     std::vector<int64_t> gpu_binding_formats = {
-#  if 0 /* RGB10A2 doesn't seem to work with Oculus head-sets, \
-         * so move it after RGB16AF for the time being. */
+#  if 0 /* RGB10A2, RGBA16 don't seem to work with Oculus head-sets, \
+         * so move them after RGBA16F for the time being. */
         DXGI_FORMAT_R10G10B10A2_UNORM,
+        DXGI_FORMAT_R16G16B16A16_UNORM,
 #  endif
-      DXGI_FORMAT_R16G16B16A16_UNORM,
       DXGI_FORMAT_R16G16B16A16_FLOAT,
 #  if 1
       DXGI_FORMAT_R10G10B10A2_UNORM,
+      DXGI_FORMAT_R16G16B16A16_UNORM,
 #  endif
       DXGI_FORMAT_R8G8B8A8_UNORM,
       DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,

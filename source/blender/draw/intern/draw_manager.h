@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2016, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 Blender Foundation. */
 
 /** \file
  * \ingroup draw
@@ -42,6 +27,7 @@
 #include "GPU_viewport.h"
 
 #include "draw_instance_data.h"
+#include "draw_shader_shared.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -205,8 +191,11 @@ typedef enum {
 
   /* Compute Commands. */
   DRW_CMD_COMPUTE = 8,
+  DRW_CMD_COMPUTE_REF = 9,
+  DRW_CMD_COMPUTE_INDIRECT = 10,
 
   /* Other Commands */
+  DRW_CMD_BARRIER = 11,
   DRW_CMD_CLEAR = 12,
   DRW_CMD_DRWSTATE = 13,
   DRW_CMD_STENCIL = 14,
@@ -249,6 +238,18 @@ typedef struct DRWCommandCompute {
   int groups_z_len;
 } DRWCommandCompute;
 
+typedef struct DRWCommandComputeRef {
+  int *groups_ref;
+} DRWCommandComputeRef;
+
+typedef struct DRWCommandComputeIndirect {
+  GPUStorageBuf *indirect_buf;
+} DRWCommandComputeIndirect;
+
+typedef struct DRWCommandBarrier {
+  eGPUBarrier type;
+} DRWCommandBarrier;
+
 typedef struct DRWCommandDrawProcedural {
   GPUBatch *batch;
   DRWResourceHandle handle;
@@ -286,6 +287,9 @@ typedef union DRWCommand {
   DRWCommandDrawInstanceRange instance_range;
   DRWCommandDrawProcedural procedural;
   DRWCommandCompute compute;
+  DRWCommandComputeRef compute_ref;
+  DRWCommandComputeIndirect compute_indirect;
+  DRWCommandBarrier barrier;
   DRWCommandSetMutableState state;
   DRWCommandSetStencil stencil;
   DRWCommandSetSelectID select_id;
@@ -300,7 +304,7 @@ struct DRWCallBuffer {
 };
 
 /** Used by #DRWUniform.type */
-/* TODO(jbakker): rename to DRW_RESOURCE/DRWResourceType. */
+/* TODO(@jbakker): rename to DRW_RESOURCE/DRWResourceType. */
 typedef enum {
   DRW_UNIFORM_INT = 0,
   DRW_UNIFORM_INT_COPY,
@@ -312,8 +316,11 @@ typedef enum {
   DRW_UNIFORM_IMAGE_REF,
   DRW_UNIFORM_BLOCK,
   DRW_UNIFORM_BLOCK_REF,
+  DRW_UNIFORM_STORAGE_BLOCK,
+  DRW_UNIFORM_STORAGE_BLOCK_REF,
   DRW_UNIFORM_TFEEDBACK_TARGET,
   DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE,
+  DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE_REF,
   /** Per drawcall uniforms/UBO */
   DRW_UNIFORM_BLOCK_OBMATS,
   DRW_UNIFORM_BLOCK_OBINFOS,
@@ -344,6 +351,16 @@ struct DRWUniform {
     union {
       GPUUniformBuf *block;
       GPUUniformBuf **block_ref;
+    };
+    /* DRW_UNIFORM_STORAGE_BLOCK */
+    union {
+      GPUStorageBuf *ssbo;
+      GPUStorageBuf **ssbo_ref;
+    };
+    /* DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE */
+    union {
+      GPUVertBuf *vertbuf;
+      GPUVertBuf **vertbuf_ref;
     };
     /* DRW_UNIFORM_FLOAT_COPY */
     float fvalue[4];
@@ -408,31 +425,13 @@ struct DRWPass {
   char name[MAX_PASS_NAME];
 };
 
-/* keep in sync with viewBlock */
-typedef struct DRWViewUboStorage {
-  /* View matrices */
-  float persmat[4][4];
-  float persinv[4][4];
-  float viewmat[4][4];
-  float viewinv[4][4];
-  float winmat[4][4];
-  float wininv[4][4];
-
-  float clipplanes[6][4];
-  float viewvecs[2][4];
-  /* Should not be here. Not view dependent (only main view). */
-  float viewcamtexcofac[4];
-} DRWViewUboStorage;
-
-BLI_STATIC_ASSERT_ALIGN(DRWViewUboStorage, 16)
-
 #define MAX_CULLED_VIEWS 32
 
 struct DRWView {
   /** Parent view if this is a sub view. NULL otherwise. */
   struct DRWView *parent;
 
-  DRWViewUboStorage storage;
+  ViewInfos storage;
   /** Number of active clipplanes. */
   int clip_planes_len;
   /** Does culling result needs to be updated. */
@@ -529,7 +528,7 @@ typedef struct DRWData {
   struct GHash *obattrs_ubo_pool;
   uint ubo_len;
   /** Texture pool to reuse temp texture across engines. */
-  /* TODO(fclem) the pool could be shared even between viewports. */
+  /* TODO(@fclem): The pool could be shared even between view-ports. */
   struct DRWTexturePool *texture_pool;
   /** Per stereo view data. Contains engine data and default framebuffers. */
   struct DRWViewData *view_data[2];
@@ -549,7 +548,7 @@ typedef struct DupliKey {
 typedef struct DRWManager {
   /* TODO: clean up this struct a bit. */
   /* Cache generation */
-  /* TODO(fclem) Rename to data. */
+  /* TODO(@fclem): Rename to data. */
   DRWData *vmempool;
   /** Active view data structure for one of the 2 stereo view. Not related to DRWView. */
   struct DRWViewData *view_data_active;
@@ -570,9 +569,9 @@ typedef struct DRWManager {
   struct Object *dupli_origin;
   /** Object-data referenced by the current dupli object. */
   struct ID *dupli_origin_data;
-  /** Ghash: #DupliKey -> void pointer for each enabled engine. */
+  /** Hash-map: #DupliKey -> void pointer for each enabled engine. */
   struct GHash *dupli_ghash;
-  /** TODO(fclem): try to remove usage of this. */
+  /** TODO(@fclem): try to remove usage of this. */
   DRWInstanceData *object_instance_data[MAX_INSTANCE_DATA_SIZE];
   /* Dupli data for the current dupli for each enabled engine. */
   void **dupli_datas;
@@ -615,9 +614,9 @@ typedef struct DRWManager {
   DRWView *view_active;
   DRWView *view_previous;
   uint primary_view_ct;
-  /** TODO(fclem): Remove this. Only here to support
+  /** TODO(@fclem): Remove this. Only here to support
    * shaders without common_view_lib.glsl */
-  DRWViewUboStorage view_storage_cpy;
+  ViewInfos view_storage_cpy;
 
 #ifdef USE_GPU_SELECT
   uint select_id;
@@ -640,7 +639,7 @@ typedef struct DRWManager {
   GPUDrawList *draw_list;
 
   struct {
-    /* TODO(fclem): optimize: use chunks. */
+    /* TODO(@fclem): optimize: use chunks. */
     DRWDebugLine *lines;
     DRWDebugSphere *spheres;
   } debug;
@@ -663,7 +662,12 @@ eDRWCommandType command_type_get(const uint64_t *command_type_bits, int index);
 
 void drw_batch_cache_validate(Object *ob);
 void drw_batch_cache_generate_requested(struct Object *ob);
+
+/**
+ * \warning Only evaluated mesh data is handled by this delayed generation.
+ */
 void drw_batch_cache_generate_requested_delayed(Object *ob);
+void drw_batch_cache_generate_requested_evaluated_mesh(Object *ob);
 
 void drw_resource_buffer_finish(DRWData *vmempool);
 

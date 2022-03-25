@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -85,9 +71,6 @@ static XrActionMapBinding *wm_xr_actionmap_binding_find_except(XrActionMapItem *
   return NULL;
 }
 
-/**
- * Ensure unique name among all action map bindings.
- */
 void WM_xr_actionmap_binding_ensure_unique(XrActionMapItem *ami, XrActionMapBinding *amb)
 {
   char name[MAX_NAME];
@@ -118,8 +101,13 @@ void WM_xr_actionmap_binding_ensure_unique(XrActionMapItem *ami, XrActionMapBind
 static XrActionMapBinding *wm_xr_actionmap_binding_copy(XrActionMapBinding *amb_src)
 {
   XrActionMapBinding *amb_dst = MEM_dupallocN(amb_src);
-
   amb_dst->prev = amb_dst->next = NULL;
+
+  BLI_listbase_clear(&amb_dst->component_paths);
+  LISTBASE_FOREACH (XrComponentPath *, path, &amb_src->component_paths) {
+    XrComponentPath *path_new = MEM_dupallocN(path);
+    BLI_addtail(&amb_dst->component_paths, path_new);
+  }
 
   return amb_dst;
 }
@@ -136,11 +124,17 @@ XrActionMapBinding *WM_xr_actionmap_binding_add_copy(XrActionMapItem *ami,
   return amb_dst;
 }
 
+static void wm_xr_actionmap_binding_clear(XrActionMapBinding *amb)
+{
+  BLI_freelistN(&amb->component_paths);
+}
+
 bool WM_xr_actionmap_binding_remove(XrActionMapItem *ami, XrActionMapBinding *amb)
 {
   int idx = BLI_findindex(&ami->bindings, amb);
 
   if (idx != -1) {
+    wm_xr_actionmap_binding_clear(amb);
     BLI_freelinkN(&ami->bindings, amb);
 
     if (idx <= ami->selbinding) {
@@ -173,12 +167,6 @@ XrActionMapBinding *WM_xr_actionmap_binding_find(XrActionMapItem *ami, const cha
  * Item in an XR action map, that maps an XR event to an operator, pose, or haptic output.
  * \{ */
 
-static void wm_xr_actionmap_item_bindings_clear(XrActionMapItem *ami)
-{
-  BLI_freelistN(&ami->bindings);
-  ami->selbinding = 0;
-}
-
 static void wm_xr_actionmap_item_properties_set(XrActionMapItem *ami)
 {
   WM_operator_properties_alloc(&(ami->op_properties_ptr), &(ami->op_properties), ami->op);
@@ -198,10 +186,19 @@ static void wm_xr_actionmap_item_properties_free(XrActionMapItem *ami)
   }
 }
 
-/**
- * Similar to #wm_xr_actionmap_item_properties_set()
- * but checks for the #eXrActionType and #wmOperatorType having changed.
- */
+static void wm_xr_actionmap_item_clear(XrActionMapItem *ami)
+{
+  LISTBASE_FOREACH (XrActionMapBinding *, amb, &ami->bindings) {
+    wm_xr_actionmap_binding_clear(amb);
+  }
+  BLI_freelistN(&ami->bindings);
+  ami->selbinding = 0;
+
+  wm_xr_actionmap_item_properties_free(ami);
+
+  BLI_freelistN(&ami->user_paths);
+}
+
 void WM_xr_actionmap_item_properties_update_ot(XrActionMapItem *ami)
 {
   switch (ami->type) {
@@ -278,9 +275,6 @@ static XrActionMapItem *wm_xr_actionmap_item_find_except(XrActionMap *actionmap,
   return NULL;
 }
 
-/**
- * Ensure unique name among all action map items.
- */
 void WM_xr_actionmap_item_ensure_unique(XrActionMap *actionmap, XrActionMapItem *ami)
 {
   char name[MAX_NAME];
@@ -308,25 +302,35 @@ void WM_xr_actionmap_item_ensure_unique(XrActionMap *actionmap, XrActionMapItem 
   BLI_strncpy(ami->name, name, MAX_NAME);
 }
 
-static XrActionMapItem *wm_xr_actionmap_item_copy(XrActionMapItem *ami)
+static XrActionMapItem *wm_xr_actionmap_item_copy(XrActionMapItem *ami_src)
 {
-  XrActionMapItem *amin = MEM_dupallocN(ami);
+  XrActionMapItem *ami_dst = MEM_dupallocN(ami_src);
+  ami_dst->prev = ami_dst->next = NULL;
 
-  amin->prev = amin->next = NULL;
+  BLI_listbase_clear(&ami_dst->bindings);
+  LISTBASE_FOREACH (XrActionMapBinding *, amb, &ami_src->bindings) {
+    XrActionMapBinding *amb_new = wm_xr_actionmap_binding_copy(amb);
+    BLI_addtail(&ami_dst->bindings, amb_new);
+  }
 
-  if (amin->op_properties) {
-    amin->op_properties_ptr = MEM_callocN(sizeof(PointerRNA), "wmOpItemPtr");
-    WM_operator_properties_create(amin->op_properties_ptr, amin->op);
-
-    amin->op_properties = IDP_CopyProperty(amin->op_properties);
-    amin->op_properties_ptr->data = amin->op_properties;
+  if (ami_dst->op_properties) {
+    ami_dst->op_properties_ptr = MEM_callocN(sizeof(PointerRNA), "wmOpItemPtr");
+    WM_operator_properties_create(ami_dst->op_properties_ptr, ami_dst->op);
+    ami_dst->op_properties = IDP_CopyProperty(ami_src->op_properties);
+    ami_dst->op_properties_ptr->data = ami_dst->op_properties;
   }
   else {
-    amin->op_properties = NULL;
-    amin->op_properties_ptr = NULL;
+    ami_dst->op_properties = NULL;
+    ami_dst->op_properties_ptr = NULL;
   }
 
-  return amin;
+  BLI_listbase_clear(&ami_dst->user_paths);
+  LISTBASE_FOREACH (XrUserPath *, path, &ami_src->user_paths) {
+    XrUserPath *path_new = MEM_dupallocN(path);
+    BLI_addtail(&ami_dst->user_paths, path_new);
+  }
+
+  return ami_dst;
 }
 
 XrActionMapItem *WM_xr_actionmap_item_add_copy(XrActionMap *actionmap, XrActionMapItem *ami_src)
@@ -345,8 +349,7 @@ bool WM_xr_actionmap_item_remove(XrActionMap *actionmap, XrActionMapItem *ami)
   int idx = BLI_findindex(&actionmap->items, ami);
 
   if (idx != -1) {
-    wm_xr_actionmap_item_bindings_clear(ami);
-    wm_xr_actionmap_item_properties_free(ami);
+    wm_xr_actionmap_item_clear(ami);
     BLI_freelinkN(&actionmap->items, ami);
 
     if (idx <= actionmap->selitem) {
@@ -411,9 +414,6 @@ static XrActionMap *wm_xr_actionmap_find_except(wmXrRuntimeData *runtime,
   return NULL;
 }
 
-/**
- * Ensure unique name among all action maps.
- */
 void WM_xr_actionmap_ensure_unique(wmXrRuntimeData *runtime, XrActionMap *actionmap)
 {
   char name[MAX_NAME];
@@ -444,10 +444,9 @@ void WM_xr_actionmap_ensure_unique(wmXrRuntimeData *runtime, XrActionMap *action
 static XrActionMap *wm_xr_actionmap_copy(XrActionMap *am_src)
 {
   XrActionMap *am_dst = MEM_dupallocN(am_src);
-
   am_dst->prev = am_dst->next = NULL;
-  BLI_listbase_clear(&am_dst->items);
 
+  BLI_listbase_clear(&am_dst->items);
   LISTBASE_FOREACH (XrActionMapItem *, ami, &am_src->items) {
     XrActionMapItem *ami_new = wm_xr_actionmap_item_copy(ami);
     BLI_addtail(&am_dst->items, ami_new);
@@ -505,12 +504,9 @@ XrActionMap *WM_xr_actionmap_find(wmXrRuntimeData *runtime, const char *name)
 void WM_xr_actionmap_clear(XrActionMap *actionmap)
 {
   LISTBASE_FOREACH (XrActionMapItem *, ami, &actionmap->items) {
-    wm_xr_actionmap_item_bindings_clear(ami);
-    wm_xr_actionmap_item_properties_free(ami);
+    wm_xr_actionmap_item_clear(ami);
   }
-
   BLI_freelistN(&actionmap->items);
-
   actionmap->selitem = 0;
 }
 
@@ -519,9 +515,7 @@ void WM_xr_actionmaps_clear(wmXrRuntimeData *runtime)
   LISTBASE_FOREACH (XrActionMap *, am, &runtime->actionmaps) {
     WM_xr_actionmap_clear(am);
   }
-
   BLI_freelistN(&runtime->actionmaps);
-
   runtime->actactionmap = runtime->selactionmap = 0;
 }
 

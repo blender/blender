@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2019 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2019 Blender Foundation. All rights reserved. */
 
 #include "IO_types.h"
 #include "usd.h"
@@ -269,7 +253,7 @@ static void convert_to_z_up(pxr::UsdStageRefPtr stage, ImportSettings *r_setting
   /* Rotate 90 degrees about the X-axis. */
   float rmat[3][3];
   float axis[3] = {1.0f, 0.0f, 0.0f};
-  axis_angle_normalized_to_mat3(rmat, axis, M_PI / 2.0f);
+  axis_angle_normalized_to_mat3(rmat, axis, M_PI_2);
 
   unit_m4(r_settings->conversion_mat);
   copy_m4_m3(r_settings->conversion_mat, rmat);
@@ -772,6 +756,7 @@ CacheArchiveHandle *USD_create_handle(struct Main * /*bmain*/,
                                       const char *filename,
                                       ListBase *object_paths)
 {
+  /* Must call this so that USD file format plugins are loaded. */
   ensure_usd_plugin_path_registered();
 
   pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(filename);

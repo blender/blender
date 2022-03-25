@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup editors
@@ -35,6 +19,7 @@ struct EditNurb;
 struct Main;
 struct Nurb;
 struct Object;
+struct SelectPick_Params;
 struct Text;
 struct UndoType;
 struct View3D;
@@ -43,19 +28,31 @@ struct wmKeyConfig;
 struct wmOperator;
 
 /* curve_ops.c */
+
 void ED_operatortypes_curve(void);
 void ED_operatormacros_curve(void);
 void ED_keymap_curve(struct wmKeyConfig *keyconf);
 
 /* editcurve.c */
+
 struct ListBase *object_editcurve_get(struct Object *ob);
 
+/**
+ * Load editNurb in object.
+ */
 void ED_curve_editnurb_load(struct Main *bmain, struct Object *obedit);
+/**
+ * Make copy in `cu->editnurb`.
+ */
 void ED_curve_editnurb_make(struct Object *obedit);
 void ED_curve_editnurb_free(struct Object *obedit);
 
-bool ED_curve_editnurb_select_pick(
-    struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
+/**
+ * \return True when pick finds an element or the selection changed.
+ */
+bool ED_curve_editnurb_select_pick(struct bContext *C,
+                                   const int mval[2],
+                                   const struct SelectPick_Params *params);
 
 struct Nurb *ED_curve_add_nurbs_primitive(
     struct bContext *C, struct Object *obedit, float mat[4][4], int type, int newob);
@@ -65,9 +62,14 @@ int ED_curve_nurb_select_count(const struct View3D *v3d, const struct Nurb *nu);
 bool ED_curve_nurb_select_all(const struct Nurb *nu);
 bool ED_curve_nurb_deselect_all(const struct Nurb *nu);
 
+/**
+ * This is used externally, by #OBJECT_OT_join.
+ * TODO: shape keys - as with meshes.
+ */
 int ED_curve_join_objects_exec(struct bContext *C, struct wmOperator *op);
 
 /* editcurve_select.c */
+
 bool ED_curve_select_check(const struct View3D *v3d, const struct EditNurb *editnurb);
 bool ED_curve_deselect_all(struct EditNurb *editnurb);
 bool ED_curve_deselect_all_multi_ex(struct Base **bases, int bases_len);
@@ -77,14 +79,17 @@ bool ED_curve_select_swap(struct EditNurb *editnurb, bool hide_handles);
 int ED_curve_select_count(const struct View3D *v3d, const struct EditNurb *editnurb);
 
 /* editcurve_undo.c */
+
+/** Export for ED_undo_sys */
 void ED_curve_undosys_type(struct UndoType *ut);
 
 /* editfont.c */
+
 void ED_curve_editfont_load(struct Object *obedit);
 void ED_curve_editfont_make(struct Object *obedit);
 void ED_curve_editfont_free(struct Object *obedit);
 
-void ED_text_to_object(struct bContext *C, const struct Text *text, const bool split_lines);
+void ED_text_to_object(struct bContext *C, const struct Text *text, bool split_lines);
 
 void ED_curve_beztcpy(struct EditNurb *editnurb,
                       struct BezTriple *dst,
@@ -92,14 +97,25 @@ void ED_curve_beztcpy(struct EditNurb *editnurb,
                       int count);
 void ED_curve_bpcpy(struct EditNurb *editnurb, struct BPoint *dst, struct BPoint *src, int count);
 
+/**
+ * Return 0 if animation data wasn't changed, 1 otherwise.
+ */
 int ED_curve_updateAnimPaths(struct Main *bmain, struct Curve *cu);
 
 bool ED_curve_active_center(struct Curve *cu, float center[3]);
 
-bool ED_curve_editfont_select_pick(
-    struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
+/**
+ * Text box selection.
+ *
+ * \return True when pick finds an element or the selection changed.
+ */
+bool ED_curve_editfont_select_pick(struct bContext *C,
+                                   const int mval[2],
+                                   const struct SelectPick_Params *params);
 
 /* editfont_undo.c */
+
+/** Export for ED_undo_sys. */
 void ED_font_undosys_type(struct UndoType *ut);
 
 #if 0

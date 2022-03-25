@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -51,7 +37,6 @@
 /** \name Weight Paint Sanity Checks
  * \{ */
 
-/* ensure we have data on wpaint start, add if needed */
 bool ED_wpaint_ensure_data(bContext *C,
                            struct ReportList *reports,
                            enum eWPaintFlag flag,
@@ -131,9 +116,9 @@ bool ED_wpaint_ensure_data(bContext *C,
 
   return true;
 }
+
 /** \} */
 
-/* mirror_vgroup is set to -1 when invalid */
 int ED_wpaint_mirror_vgroup_ensure(Object *ob, const int vgroup_active)
 {
   const ListBase *defbase = BKE_object_defgroup_list(ob);
@@ -277,14 +262,6 @@ BLI_INLINE float wval_exclusion(float weight, float paintval, float fac)
   return temp * fac + weight * mfac;
 }
 
-/**
- * \param weight: Typically the current weight: #MDeformWeight.weight
- *
- * \return The final weight, note that this is _not_ clamped from [0-1].
- * Clamping must be done on the final #MDeformWeight.weight
- *
- * \note vertex-paint has an equivalent function: #ED_vpaint_blend_tool
- */
 float ED_wpaint_blend_tool(const int tool,
                            const float weight,
                            const float paintval,

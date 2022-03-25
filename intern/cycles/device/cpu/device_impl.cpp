@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "device/cpu/device_impl.h"
 
@@ -72,7 +59,7 @@ CPUDevice::CPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_
           << " CPU kernels.";
 
   if (info.cpu_threads == 0) {
-    info.cpu_threads = TaskScheduler::num_threads();
+    info.cpu_threads = TaskScheduler::max_concurrency();
   }
 
 #ifdef WITH_OSL
@@ -91,11 +78,6 @@ CPUDevice::~CPUDevice()
 #endif
 
   texture_info.free();
-}
-
-bool CPUDevice::show_samples() const
-{
-  return (info.cpu_threads == 1);
 }
 
 BVHLayoutMask CPUDevice::get_bvh_layout_mask() const
@@ -134,8 +116,7 @@ void CPUDevice::mem_alloc(device_memory &mem)
               << string_human_readable_size(mem.memory_size()) << ")";
     }
 
-    if (mem.type == MEM_DEVICE_ONLY) {
-      assert(!mem.host_pointer);
+    if (mem.type == MEM_DEVICE_ONLY || !mem.host_pointer) {
       size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES;
       void *data = util_aligned_malloc(mem.memory_size(), alignment);
       mem.device_pointer = (device_ptr)data;
@@ -194,7 +175,7 @@ void CPUDevice::mem_free(device_memory &mem)
     tex_free((device_texture &)mem);
   }
   else if (mem.device_pointer) {
-    if (mem.type == MEM_DEVICE_ONLY) {
+    if (mem.type == MEM_DEVICE_ONLY || !mem.host_pointer) {
       util_aligned_free((void *)mem.device_pointer);
     }
     mem.device_pointer = 0;
@@ -210,7 +191,7 @@ device_ptr CPUDevice::mem_alloc_sub_ptr(device_memory &mem, size_t offset, size_
 
 void CPUDevice::const_copy_to(const char *name, void *host, size_t size)
 {
-#if WITH_EMBREE
+#ifdef WITH_EMBREE
   if (strcmp(name, "__data") == 0) {
     assert(size <= sizeof(KernelData));
 
@@ -279,7 +260,8 @@ void CPUDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 {
 #ifdef WITH_EMBREE
   if (bvh->params.bvh_layout == BVH_LAYOUT_EMBREE ||
-      bvh->params.bvh_layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE) {
+      bvh->params.bvh_layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE ||
+      bvh->params.bvh_layout == BVH_LAYOUT_MULTI_METAL_EMBREE) {
     BVHEmbree *const bvh_embree = static_cast<BVHEmbree *>(bvh);
     if (refit) {
       bvh_embree->refit(progress);

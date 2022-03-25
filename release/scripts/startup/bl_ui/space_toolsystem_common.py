@@ -1,20 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8 compliant>
 import bpy
@@ -71,7 +55,7 @@ ToolDef = namedtuple(
         # Description (for tool-tip), when not set, use the description of 'operator',
         # may be a string or a 'function(context, item, key-map) -> string'.
         "description",
-        # The name of the icon to use (found in ``release/datafiles/icons``) or None for no icon.
+        # The name of the icon to use (found in `release/datafiles/icons`) or None for no icon.
         "icon",
         # An optional cursor to use when this tool is active.
         "cursor",
@@ -81,12 +65,12 @@ ToolDef = namedtuple(
         "widget",
         # Optional key-map for tool, possible values are:
         #
-        # - ``None`` when the tool doesn't have a key-map.
+        # - `None` when the tool doesn't have a key-map.
         #   Also the default value when no key-map value is defined.
         #
         # - A string literal for the key-map name, the key-map items are located in the default key-map.
         #
-        # - ``()`` an empty tuple for a default name.
+        # - `()` an empty tuple for a default name.
         #   This is convenience functionality for generating a key-map name.
         #   So if a tool name is "Bone Size", in "Edit Armature" mode for the "3D View",
         #   All of these values are combined into an id, e.g:
@@ -98,7 +82,7 @@ ToolDef = namedtuple(
         # - A function that populates a key-maps passed in as an argument.
         #
         # - A tuple filled with triple's of:
-        #   ``(operator_id, operator_properties, keymap_item_args)``.
+        #   `(operator_id, operator_properties, keymap_item_args)`.
         #
         #   Use this to define the key-map in-line.
         #
@@ -1054,9 +1038,6 @@ def _activate_by_item(context, space_type, item, index, *, as_fallback=False):
         if props is None:
             print("Error:", gizmo_group, "could not access properties!")
         else:
-            for key in props.bl_rna.properties.keys():
-                props.property_unset(key)
-
             gizmo_properties = item.widget_properties
             if gizmo_properties is not None:
                 if not isinstance(gizmo_properties, list):

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edtransform
@@ -62,27 +46,28 @@ static void headerTimeTranslate(TransInfo *t, char str[UI_MAX_DRAW_STR])
     float ival = TRANS_DATA_CONTAINER_FIRST_OK(t)->data->ival;
     float val = ival + t->values_final[0];
 
-    float snap_val = val;
-    snapFrameTransform(t, autosnap, ival, val, &snap_val);
+    snapFrameTransform(t, autosnap, ival, val, &val);
+    float delta_x = val - ival;
 
     if (ELEM(autosnap, SACTSNAP_SECOND, SACTSNAP_TSTEP)) {
       /* Convert to seconds. */
       const Scene *scene = t->scene;
       const double secf = FPS;
-      snap_val /= secf;
+      delta_x /= secf;
+      val /= secf;
     }
 
     if (autosnap == SACTSNAP_FRAME) {
-      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.2f (%.4f)", snap_val, val);
+      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.2f (%.4f)", delta_x, val);
     }
     else if (autosnap == SACTSNAP_SECOND) {
-      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.2f sec (%.4f)", snap_val, val);
+      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.2f sec (%.4f)", delta_x, val);
     }
     else if (autosnap == SACTSNAP_TSTEP) {
-      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f sec", snap_val);
+      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f sec", delta_x);
     }
     else {
-      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", snap_val);
+      BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", delta_x);
     }
   }
 
@@ -144,17 +129,18 @@ void initTimeTranslate(TransInfo *t)
 
   initMouseInputMode(t, &t->mouse, INPUT_NONE);
 
-  /* num-input has max of (n-1) */
+  /* Numeric-input has max of (n-1). */
   t->idx_max = 0;
   t->num.flag = 0;
   t->num.idx_max = t->idx_max;
 
-  /* initialize snap like for everything else */
+  /* Initialize snap like for everything else. */
   t->snap[0] = t->snap[1] = 1.0f;
 
   copy_v3_fl(t->num.val_inc, t->snap[0]);
   t->num.unit_sys = t->scene->unit.system;
-  /* No time unit supporting frames currently... */
+  /* No time unit supporting frames currently. */
   t->num.unit_type[0] = B_UNIT_NONE;
 }
+
 /** \} */

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -32,11 +18,11 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_fluid_types.h"
 #include "DNA_genfile.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_light_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -715,8 +701,10 @@ static void panels_remove_x_closed_flag_recursive(Panel *panel)
 static void do_versions_point_attributes(CustomData *pdata)
 {
   /* Change to generic named float/float3 attributes. */
-  const int CD_LOCATION = 43;
-  const int CD_RADIUS = 44;
+  enum {
+    CD_LOCATION = 43,
+    CD_RADIUS = 44,
+  };
 
   for (int i = 0; i < pdata->totlayer; i++) {
     CustomDataLayer *layer = &pdata->layers[i];
@@ -1120,10 +1108,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Hair and PointCloud attributes. */
-    for (Hair *hair = bmain->hairs.first; hair != NULL; hair = hair->id.next) {
-      do_versions_point_attributes(&hair->pdata);
-    }
+    /* PointCloud attributes. */
     for (PointCloud *pointcloud = bmain->pointclouds.first; pointcloud != NULL;
          pointcloud = pointcloud->id.next) {
       do_versions_point_attributes(&pointcloud->pdata);
@@ -1422,10 +1407,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Hair and PointCloud attributes names. */
-    LISTBASE_FOREACH (Hair *, hair, &bmain->hairs) {
-      do_versions_point_attribute_names(&hair->pdata);
-    }
+    /* PointCloud attributes names. */
     LISTBASE_FOREACH (PointCloud *, pointcloud, &bmain->pointclouds) {
       do_versions_point_attribute_names(&pointcloud->pdata);
     }
@@ -1435,6 +1417,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
           view_layer->cryptomatte_levels = 6;
+          view_layer->cryptomatte_flag = VIEW_LAYER_CRYPTOMATTE_ACCURATE;
         }
       }
     }
@@ -1527,27 +1510,6 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 292, 9)) {
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (ntree->type == NTREE_GEOMETRY) {
-        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == GEO_NODE_LEGACY_ATTRIBUTE_MATH && node->storage == NULL) {
-            const int old_use_attibute_a = (1 << 0);
-            const int old_use_attibute_b = (1 << 1);
-            NodeAttributeMath *data = MEM_callocN(sizeof(NodeAttributeMath), "NodeAttributeMath");
-            data->operation = NODE_MATH_ADD;
-            data->input_type_a = (node->custom2 & old_use_attibute_a) ?
-                                     GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE :
-                                     GEO_NODE_ATTRIBUTE_INPUT_FLOAT;
-            data->input_type_b = (node->custom2 & old_use_attibute_b) ?
-                                     GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE :
-                                     GEO_NODE_ATTRIBUTE_INPUT_FLOAT;
-            node->storage = data;
-          }
-        }
-      }
-    }
-    FOREACH_NODETREE_END;
-
     /* Default properties editors to auto outliner sync. */
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
@@ -1685,39 +1647,6 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 293, 3)) {
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (ntree->type != NTREE_GEOMETRY) {
-        continue;
-      }
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type == GEO_NODE_LEGACY_POINT_INSTANCE && node->storage == NULL) {
-          NodeGeometryPointInstance *data = (NodeGeometryPointInstance *)MEM_callocN(
-              sizeof(NodeGeometryPointInstance), __func__);
-          data->instance_type = node->custom1;
-          data->flag = (node->custom2 ? 0 : GEO_NODE_POINT_INSTANCE_WHOLE_COLLECTION);
-          node->storage = data;
-        }
-      }
-    }
-    FOREACH_NODETREE_END;
-  }
-
-  if (!MAIN_VERSION_ATLEAST(bmain, 293, 4)) {
-    /* Add support for all operations to the "Attribute Math" node. */
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (ntree->type == NTREE_GEOMETRY) {
-        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == GEO_NODE_LEGACY_ATTRIBUTE_MATH) {
-            NodeAttributeMath *data = (NodeAttributeMath *)node->storage;
-            data->input_type_c = GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE;
-          }
-        }
-      }
-    }
-    FOREACH_NODETREE_END;
-  }
-
   if (!MAIN_VERSION_ATLEAST(bmain, 293, 5)) {
     /* Change Nishita sky model Altitude unit. */
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
@@ -1761,24 +1690,6 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     FOREACH_NODETREE_END;
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 293, 8)) {
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (ntree->type != NTREE_GEOMETRY) {
-        continue;
-      }
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type == GEO_NODE_LEGACY_ATTRIBUTE_RANDOMIZE && node->storage == NULL) {
-          NodeAttributeRandomize *data = (NodeAttributeRandomize *)MEM_callocN(
-              sizeof(NodeAttributeRandomize), __func__);
-          data->data_type = node->custom1;
-          data->operation = GEO_NODE_ATTRIBUTE_RANDOMIZE_REPLACE_CREATE;
-          node->storage = data;
-        }
-      }
-    }
-    FOREACH_NODETREE_END;
-  }
-
   if (!MAIN_VERSION_ATLEAST(bmain, 293, 9)) {
     if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "bokeh_overblur")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
@@ -1800,24 +1711,9 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
-
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (ntree->type == NTREE_GEOMETRY) {
-        version_node_socket_name(ntree, GEO_NODE_LEGACY_ATTRIBUTE_PROXIMITY, "Result", "Distance");
-      }
-    }
-    FOREACH_NODETREE_END;
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 293, 10)) {
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (ntree->type == NTREE_GEOMETRY) {
-        version_node_socket_name(
-            ntree, GEO_NODE_LEGACY_ATTRIBUTE_PROXIMITY, "Location", "Position");
-      }
-    }
-    FOREACH_NODETREE_END;
-
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       /* Fix old scene with too many samples that were not being used.
        * Now they are properly used and might produce a huge slowdown.
@@ -1903,16 +1799,6 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         light->volume_fac = 1.0f;
       }
     }
-
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      if (ntree->type == NTREE_GEOMETRY) {
-        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == GEO_NODE_LEGACY_ATTRIBUTE_FILL) {
-            node->custom2 = ATTR_DOMAIN_AUTO;
-          }
-        }
-      }
-    }
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 293, 15)) {
@@ -1957,13 +1843,6 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 293, 18)) {
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (ntree->type == NTREE_GEOMETRY) {
-        version_node_socket_name(ntree, GEO_NODE_LEGACY_VOLUME_TO_MESH, "Grid", "Density");
-      }
-    }
-    FOREACH_NODETREE_END;
-
     if (!DNA_struct_elem_find(fd->filesdna, "bArmature", "float", "axes_position")) {
       /* Convert the axes draw position to its old default (tip of bone). */
       LISTBASE_FOREACH (struct bArmature *, arm, &bmain->armatures) {

@@ -1,42 +1,19 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
  */
 
-#include "BLI_double2.hh"
-#include "BLI_double3.hh"
-#include "BLI_float2.hh"
-#include "BLI_float3.hh"
 #include "BLI_hash.hh"
 #include "BLI_math_boolean.hh"
 #include "BLI_math_mpq.hh"
-#include "BLI_mpq2.hh"
-#include "BLI_mpq3.hh"
+#include "BLI_math_vec_types.hh"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
 namespace blender {
 
 #ifdef WITH_GMP
-/**
- * Return +1 if a, b, c are in CCW order around a circle in the plane.
- * Return -1 if they are in CW order, and 0 if they are in line.
- */
 int orient2d(const mpq2 &a, const mpq2 &b, const mpq2 &c)
 {
   mpq_class detleft = (a[0] - c[0]) * (b[1] - c[1]);
@@ -45,11 +22,6 @@ int orient2d(const mpq2 &a, const mpq2 &b, const mpq2 &c)
   return sgn(det);
 }
 
-/**
-   Return +1 if d is in the oriented circle through a, b, and c.
- * The oriented circle goes CCW through a, b, and c.
- * Return -1 if d is outside, and 0 if it is on the circle.
- */
 int incircle(const mpq2 &a, const mpq2 &b, const mpq2 &c, const mpq2 &d)
 {
   mpq_class adx = a[0] - d[0];
@@ -76,12 +48,6 @@ int incircle(const mpq2 &a, const mpq2 &b, const mpq2 &c, const mpq2 &d)
   return sgn(det);
 }
 
-/**
- * Return +1 if d is below the plane containing a, b, c (which appear
- * CCW when viewed from above the plane).
- * Return -1 if d is above the plane.
- * Return 0 if it is on the plane.
- */
 int orient3d(const mpq3 &a, const mpq3 &b, const mpq3 &c, const mpq3 &d)
 {
   mpq_class adx = a[0] - d[0];

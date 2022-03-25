@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) Blender Foundation
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -326,6 +310,7 @@ static int do_step_cloth(
 /************************************************
  * clothModifier_do - main simulation function
  ************************************************/
+
 void clothModifier_do(ClothModifierData *clmd,
                       Depsgraph *depsgraph,
                       Scene *scene,
@@ -433,7 +418,6 @@ void clothModifier_do(ClothModifierData *clmd,
   clmd->clothObject->last_frame = framenr;
 }
 
-/* frees all */
 void cloth_free_modifier(ClothModifierData *clmd)
 {
   Cloth *cloth = NULL;
@@ -504,7 +488,6 @@ void cloth_free_modifier(ClothModifierData *clmd)
   }
 }
 
-/* frees all */
 void cloth_free_modifier_extern(ClothModifierData *clmd)
 {
   Cloth *cloth = NULL;
@@ -1401,8 +1384,7 @@ static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
   float radius;
 
   copy_v3_v3(co, treedata->vert[v_idx].co);
-  normal_short_to_float_v3(no, treedata->vert[v_idx].no);
-  negate_v3(no);
+  negate_v3_v3(no, treedata->vert_normals[v_idx]);
 
   float vec_len = sin(max_diversion);
   float offset[3];
@@ -1843,7 +1825,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
     else {
       /* bending springs for hair strands
        * The current algorithm only goes through the edges in order of the mesh edges list
-       * and makes springs between the outer vert of edges sharing a vertice. This works just
+       * and makes springs between the outer vert of edges sharing a vertex. This works just
        * fine for hair, but not for user generated string meshes. This could/should be later
        * extended to work with non-ordered edges so that it can be used for general "rope
        * dynamics" without the need for the vertices or edges to be ordered through the length

@@ -699,7 +699,7 @@ static void set_shader_properties(const USDExporterContext &usd_export_context,
         if (PyUnicode_Check(item0) && PyUnicode_Check(item1)) {
           const char *asset = PyUnicode_AsUTF8(item0);
 
-          std::string asset_path = get_texture_filepath(
+          std::string asset_path = get_tex_image_asset_path(
               asset, usd_export_context.stage, usd_export_context.export_params);
 
           const char *color_space = PyUnicode_AsUTF8(item1);

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -180,10 +166,6 @@ void ui_but_anim_decorate_update_from_flag(uiButDecorator *decorator_but)
   but->flag = (but->flag & ~flag_copy) | (flag & flag_copy);
 }
 
-/**
- * \a str can be NULL to only perform check if \a but has an expression at all.
- * \return if button has an expression.
- */
 bool ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen)
 {
   FCurve *fcu;
@@ -241,7 +223,6 @@ bool ui_but_anim_expression_set(uiBut *but, const char *str)
   return false;
 }
 
-/* create new expression for button (i.e. a "scripted driver"), if it can be created... */
 bool ui_but_anim_expression_create(uiBut *but, const char *str)
 {
   bContext *C = but->block->evil_C;
@@ -318,13 +299,13 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 void ui_but_anim_copy_driver(bContext *C)
 {
   /* this operator calls UI_context_active_but_prop_get */
-  WM_operator_name_call(C, "ANIM_OT_copy_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
+  WM_operator_name_call(C, "ANIM_OT_copy_driver_button", WM_OP_INVOKE_DEFAULT, NULL, NULL);
 }
 
 void ui_but_anim_paste_driver(bContext *C)
 {
   /* this operator calls UI_context_active_but_prop_get */
-  WM_operator_name_call(C, "ANIM_OT_paste_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
+  WM_operator_name_call(C, "ANIM_OT_paste_driver_button", WM_OP_INVOKE_DEFAULT, NULL, NULL);
 }
 
 void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy))
@@ -350,7 +331,7 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy)
     wmOperatorType *ot = WM_operatortype_find("ANIM_OT_keyframe_delete_button", false);
     WM_operator_properties_create_ptr(&props_ptr, ot);
     RNA_boolean_set(&props_ptr, "all", but_anim->rnaindex == -1);
-    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
+    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, NULL);
     WM_operator_properties_free(&props_ptr);
   }
   else {
@@ -358,7 +339,7 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy)
     wmOperatorType *ot = WM_operatortype_find("ANIM_OT_keyframe_insert_button", false);
     WM_operator_properties_create_ptr(&props_ptr, ot);
     RNA_boolean_set(&props_ptr, "all", but_anim->rnaindex == -1);
-    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
+    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, NULL);
     WM_operator_properties_free(&props_ptr);
   }
 

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2014 by Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2014 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -76,8 +60,6 @@ typedef struct LibraryForeachIDData {
   BLI_LINKSTACK_DECLARE(ids_todo, ID *);
 } LibraryForeachIDData;
 
-/** Check whether current iteration over ID usages should be stopped or not.
- * \return true if the iteration should be stopped, false otherwise. */
 bool BKE_lib_query_foreachid_iter_stop(LibraryForeachIDData *data)
 {
   return (data->status & IDWALK_STOP) != 0;
@@ -162,10 +144,6 @@ void BKE_lib_query_idpropertiesForeachIDLink_callback(IDProperty *id_prop, void 
   BKE_LIB_FOREACHID_PROCESS_ID(data, id_prop->data.pointer, cb_flag);
 }
 
-/** Process embedded ID pointers (root nodetrees, master collections, ...).
- *
- * Those require specific care, since they are technically sub-data of their owner, yet in some
- * cases they still behave as regular IDs. */
 void BKE_library_foreach_ID_embedded(LibraryForeachIDData *data, ID **id_pp)
 {
   /* Needed e.g. for callbacks handling relationships. This call shall be absolutely read-only. */
@@ -329,6 +307,8 @@ static bool library_foreach_ID_link(Main *bmain,
                          IDWALK_CB_USER | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE);
       CALLBACK_INVOKE_ID(id->override_library->storage,
                          IDWALK_CB_USER | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE);
+
+      CALLBACK_INVOKE_ID(id->override_library->hierarchy_root, IDWALK_CB_LOOPBACK);
     }
 
     IDP_foreach_property(id->properties,
@@ -367,18 +347,12 @@ static bool library_foreach_ID_link(Main *bmain,
 #undef CALLBACK_INVOKE
 }
 
-/**
- * Loop over all of the ID's this data-block links to.
- */
 void BKE_library_foreach_ID_link(
     Main *bmain, ID *id, LibraryIDLinkCallback callback, void *user_data, int flag)
 {
   library_foreach_ID_link(bmain, NULL, id, callback, user_data, flag, NULL);
 }
 
-/**
- * re-usable function, use when replacing ID's
- */
 void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, const int cb_flag)
 {
   if (cb_flag & IDWALK_CB_USER) {
@@ -390,115 +364,99 @@ void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, const int cb_flag)
   }
 }
 
-/**
- * Say whether given \a id_owner may use (in any way) a data-block of \a id_type_used.
- *
- * This is a 'simplified' abstract version of #BKE_library_foreach_ID_link() above,
- * quite useful to reduce useless iterations in some cases.
- */
-bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
+uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner)
 {
   /* any type of ID can be used in custom props. */
   if (id_owner->properties) {
-    return true;
+    return FILTER_ID_ALL;
   }
-
   const short id_type_owner = GS(id_owner->name);
 
   /* IDProps of armature bones and nodes, and bNode->id can use virtually any type of ID. */
   if (ELEM(id_type_owner, ID_NT, ID_AR)) {
-    return true;
+    return FILTER_ID_ALL;
   }
 
-  if (ntreeFromID(id_owner)) {
-    return true;
+  /* Casting to non const.
+   * TODO(jbakker): We should introduce a ntree_id_has_tree function as we are actually not
+   * interested in the result. */
+  if (ntreeFromID((ID *)id_owner)) {
+    return FILTER_ID_ALL;
   }
 
   if (BKE_animdata_from_id(id_owner)) {
     /* AnimationData can use virtually any kind of data-blocks, through drivers especially. */
-    return true;
+    return FILTER_ID_ALL;
   }
 
   switch ((ID_Type)id_type_owner) {
     case ID_LI:
-      return ELEM(id_type_used, ID_LI);
+      /* ID_LI doesn't exist as filter_id. */
+      return 0;
     case ID_SCE:
-      return (ELEM(id_type_used,
-                   ID_OB,
-                   ID_WO,
-                   ID_SCE,
-                   ID_MC,
-                   ID_MA,
-                   ID_GR,
-                   ID_TXT,
-                   ID_LS,
-                   ID_MSK,
-                   ID_SO,
-                   ID_GD,
-                   ID_BR,
-                   ID_PAL,
-                   ID_IM,
-                   ID_NT));
+      return FILTER_ID_OB | FILTER_ID_WO | FILTER_ID_SCE | FILTER_ID_MC | FILTER_ID_MA |
+             FILTER_ID_GR | FILTER_ID_TXT | FILTER_ID_LS | FILTER_ID_MSK | FILTER_ID_SO |
+             FILTER_ID_GD | FILTER_ID_BR | FILTER_ID_PAL | FILTER_ID_IM | FILTER_ID_NT;
     case ID_OB:
       /* Could be more specific, but simpler to just always say 'yes' here. */
-      return true;
+      return FILTER_ID_ALL;
     case ID_ME:
-      return ELEM(id_type_used, ID_ME, ID_KE, ID_MA, ID_IM);
-    case ID_CU:
-      return ELEM(id_type_used, ID_OB, ID_KE, ID_MA, ID_VF);
+      return FILTER_ID_ME | FILTER_ID_MA | FILTER_ID_IM;
+    case ID_CU_LEGACY:
+      return FILTER_ID_OB | FILTER_ID_MA | FILTER_ID_VF;
     case ID_MB:
-      return ELEM(id_type_used, ID_MA);
+      return FILTER_ID_MA;
     case ID_MA:
-      return (ELEM(id_type_used, ID_TE, ID_GR));
+      return FILTER_ID_TE | FILTER_ID_GR;
     case ID_TE:
-      return (ELEM(id_type_used, ID_IM, ID_OB));
+      return FILTER_ID_IM | FILTER_ID_OB;
     case ID_LT:
-      return ELEM(id_type_used, ID_KE);
+      return 0;
     case ID_LA:
-      return (ELEM(id_type_used, ID_TE));
+      return FILTER_ID_TE;
     case ID_CA:
-      return ELEM(id_type_used, ID_OB);
+      return FILTER_ID_OB | FILTER_ID_IM;
     case ID_KE:
       /* Warning! key->from, could be more types in future? */
-      return ELEM(id_type_used, ID_ME, ID_CU, ID_LT);
+      return FILTER_ID_ME | FILTER_ID_CU_LEGACY | FILTER_ID_LT;
     case ID_SCR:
-      return ELEM(id_type_used, ID_SCE);
+      return FILTER_ID_SCE;
     case ID_WO:
-      return (ELEM(id_type_used, ID_TE));
+      return FILTER_ID_TE;
     case ID_SPK:
-      return ELEM(id_type_used, ID_SO);
+      return FILTER_ID_SO;
     case ID_GR:
-      return ELEM(id_type_used, ID_OB, ID_GR);
+      return FILTER_ID_OB | FILTER_ID_GR;
     case ID_NT:
       /* Could be more specific, but node.id has no type restriction... */
-      return true;
+      return FILTER_ID_ALL;
     case ID_BR:
-      return ELEM(id_type_used, ID_BR, ID_IM, ID_PC, ID_TE, ID_MA);
+      return FILTER_ID_BR | FILTER_ID_IM | FILTER_ID_PC | FILTER_ID_TE | FILTER_ID_MA;
     case ID_PA:
-      return ELEM(id_type_used, ID_OB, ID_GR, ID_TE);
+      return FILTER_ID_OB | FILTER_ID_GR | FILTER_ID_TE;
     case ID_MC:
-      return ELEM(id_type_used, ID_GD, ID_IM);
+      return FILTER_ID_GD | FILTER_ID_IM;
     case ID_MSK:
       /* WARNING! mask->parent.id, not typed. */
-      return ELEM(id_type_used, ID_MC);
+      return FILTER_ID_MC;
     case ID_LS:
-      return (ELEM(id_type_used, ID_TE, ID_OB));
+      return FILTER_ID_TE | FILTER_ID_OB;
     case ID_LP:
-      return ELEM(id_type_used, ID_IM);
+      return FILTER_ID_IM;
     case ID_GD:
-      return ELEM(id_type_used, ID_MA);
+      return FILTER_ID_MA;
     case ID_WS:
-      return ELEM(id_type_used, ID_SCR, ID_SCE);
-    case ID_HA:
-      return ELEM(id_type_used, ID_MA);
+      return FILTER_ID_SCE;
+    case ID_CV:
+      return FILTER_ID_MA | FILTER_ID_OB;
     case ID_PT:
-      return ELEM(id_type_used, ID_MA);
+      return FILTER_ID_MA;
     case ID_VO:
-      return ELEM(id_type_used, ID_MA);
+      return FILTER_ID_MA;
     case ID_SIM:
-      return ELEM(id_type_used, ID_OB, ID_IM);
+      return FILTER_ID_OB | FILTER_ID_IM;
     case ID_WM:
-      return ELEM(id_type_used, ID_SCE, ID_WS);
+      return FILTER_ID_SCE | FILTER_ID_WS;
     case ID_IM:
     case ID_VF:
     case ID_TXT:
@@ -509,12 +467,40 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
     case ID_PC:
     case ID_CF:
       /* Those types never use/reference other IDs... */
-      return false;
+      return 0;
     case ID_IP:
       /* Deprecated... */
-      return false;
+      return 0;
   }
-  return false;
+  return 0;
+}
+
+bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
+{
+  /* any type of ID can be used in custom props. */
+  if (id_owner->properties) {
+    return true;
+  }
+
+  const short id_type_owner = GS(id_owner->name);
+  /* Exception for ID_LI as they don't exist as a filter. */
+  if (id_type_used == ID_LI) {
+    return id_type_owner == ID_LI;
+  }
+
+  /* Exception: ID_KE aren't available as filter_id. */
+  if (id_type_used == ID_KE) {
+    return ELEM(id_type_owner, ID_ME, ID_CU_LEGACY, ID_LT);
+  }
+
+  /* Exception: ID_SCR aren't available as filter_id. */
+  if (id_type_used == ID_SCR) {
+    return ELEM(id_type_owner, ID_WS);
+  }
+
+  const uint64_t filter_id_type_used = BKE_idtype_idcode_to_idfilter(id_type_used);
+  const uint64_t can_be_used = BKE_library_id_can_use_filter_id(id_owner);
+  return (can_be_used & filter_id_type_used) != 0;
 }
 
 /* ***** ID users iterator. ***** */
@@ -535,7 +521,7 @@ static int foreach_libblock_id_users_callback(LibraryIDLinkCallbackData *cb_data
   IDUsersIter *iter = cb_data->user_data;
 
   if (*id_p) {
-    /* 'Loopback' ID pointers (the ugly 'from' ones, Object->proxy_from and Key->from).
+    /* 'Loopback' ID pointers (the ugly 'from' ones, like Key->from).
      * Those are not actually ID usage, we can ignore them here.
      */
     if (cb_flag & IDWALK_CB_LOOPBACK) {
@@ -567,16 +553,6 @@ static int foreach_libblock_id_users_callback(LibraryIDLinkCallbackData *cb_data
   return IDWALK_RET_NOP;
 }
 
-/**
- * Return the number of times given \a id_user uses/references \a id_used.
- *
- * \note This only checks for pointer references of an ID, shallow usages
- * (like e.g. by RNA paths, as done for FCurves) are not detected at all.
- *
- * \param id_user: the ID which is supposed to use (reference) \a id_used.
- * \param id_used: the ID which is supposed to be used (referenced) by \a id_user.
- * \return the number of direct usages/references of \a id_used by \a id_user.
- */
 int BKE_library_ID_use_ID(ID *id_user, ID *id_used)
 {
   IDUsersIter iter;
@@ -625,26 +601,16 @@ static bool library_ID_is_used(Main *bmain, void *idv, const bool check_linked)
   return is_defined;
 }
 
-/**
- * Check whether given ID is used locally (i.e. by another non-linked ID).
- */
 bool BKE_library_ID_is_locally_used(Main *bmain, void *idv)
 {
   return library_ID_is_used(bmain, idv, false);
 }
 
-/**
- * Check whether given ID is used indirectly (i.e. by another linked ID).
- */
 bool BKE_library_ID_is_indirectly_used(Main *bmain, void *idv)
 {
   return library_ID_is_used(bmain, idv, true);
 }
 
-/**
- * Combine #BKE_library_ID_is_locally_used() and #BKE_library_ID_is_indirectly_used()
- * in a single call.
- */
 void BKE_library_ID_test_usages(Main *bmain, void *idv, bool *is_used_local, bool *is_used_linked)
 {
   IDUsersIter iter;
@@ -759,21 +725,6 @@ static void lib_query_unused_ids_tag_recurse(Main *bmain,
   }
 }
 
-/**
- * Tag all unused IDs (a.k.a 'orphaned').
- *
- * By default only tag IDs with `0` user count.
- * If `do_tag_recursive` is set, it will check dependencies to detect all IDs that are not actually
- * used in current file, including 'archipelagos` (i.e. set of IDs referencing each other in
- * loops, but without any 'external' valid usages.
- *
- * Valid usages here are defined as ref-counting usages, which are not towards embedded or
- * loop-back data.
- *
- * \param r_num_tagged: If non-NULL, must be a zero-initialized array of #INDEX_ID_MAX integers.
- * Number of tagged-as-unused IDs is then set for each type, and as total in
- * #INDEX_ID_NULL item.
- */
 void BKE_lib_query_unused_ids_tag(Main *bmain,
                                   const int tag,
                                   const bool do_local_ids,
@@ -821,7 +772,7 @@ static int foreach_libblock_used_linked_data_tag_clear_cb(LibraryIDLinkCallbackD
   bool *is_changed = cb_data->user_data;
 
   if (*id_p) {
-    /* The infamous 'from' pointers (Key.from, Object.proxy_from, ...).
+    /* The infamous 'from' pointers (Key.from, ...).
      * those are not actually ID usage, so we ignore them here. */
     if (cb_flag & IDWALK_CB_LOOPBACK) {
       return IDWALK_RET_NOP;
@@ -838,15 +789,6 @@ static int foreach_libblock_used_linked_data_tag_clear_cb(LibraryIDLinkCallbackD
   return IDWALK_RET_NOP;
 }
 
-/**
- * Detect orphaned linked data blocks (i.e. linked data not used (directly or indirectly)
- * in any way by any local data), including complex cases like 'linked archipelagoes', i.e.
- * linked data-blocks that use each other in loops,
- * which prevents their deletion by 'basic' usage checks.
- *
- * \param do_init_tag: if \a true, all linked data are checked, if \a false,
- * only linked data-blocks already tagged with #LIB_TAG_DOIT are checked.
- */
 void BKE_library_unused_linked_data_set_tag(Main *bmain, const bool do_init_tag)
 {
   ID *id;
@@ -876,14 +818,6 @@ void BKE_library_unused_linked_data_set_tag(Main *bmain, const bool do_init_tag)
   }
 }
 
-/**
- * Untag linked data blocks used by other untagged linked data-blocks.
- * Used to detect data-blocks that we can forcefully make local
- * (instead of copying them to later get rid of original):
- * All data-blocks we want to make local are tagged by caller,
- * after this function has ran caller knows data-blocks still tagged can directly be made local,
- * since they are only used by other data-blocks that will also be made fully local.
- */
 void BKE_library_indirectly_used_data_tag_clear(Main *bmain)
 {
   ListBase *lb_array[INDEX_ID_MAX];

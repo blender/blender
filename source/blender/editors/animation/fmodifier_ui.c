@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edanimation
@@ -49,6 +33,7 @@
 #include "WM_types.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -427,7 +412,7 @@ static void generator_panel_draw(const bContext *C, Panel *panel)
       uiLayout *first_row = uiLayoutRow(col, true);
       uiItemFullR(first_row, ptr, prop, 0, 0, 0, IFACE_("y = (Ax + B)"), ICON_NONE);
       uiItemFullR(first_row, ptr, prop, 1, 0, 0, "", ICON_NONE);
-      for (int i = 2; i < data->arraysize - 1; i++) {
+      for (int i = 2; i < data->arraysize - 1; i += 2) {
         /* \u2715 is the multiplication symbol. */
         uiLayout *row = uiLayoutRow(col, true);
         uiItemFullR(row, ptr, prop, i, 0, 0, IFACE_("\u2715 (Ax + B)"), ICON_NONE);
@@ -891,9 +876,6 @@ static void panel_register_stepped(ARegionType *region_type,
 /** \name Panel Creation
  * \{ */
 
-/**
- * Checks if the panels match the active strip / curve, rebuilds them if they don't.
- */
 void ANIM_fmodifier_panels(const bContext *C,
                            ID *owner_id,
                            ListBase *fmodifiers,
@@ -969,17 +951,12 @@ static ListBase fmodifier_copypaste_buf = {NULL, NULL};
 
 /* ---------- */
 
-/* free the copy/paste buffer */
 void ANIM_fmodifiers_copybuf_free(void)
 {
   /* just free the whole buffer */
   free_fmodifiers(&fmodifier_copypaste_buf);
 }
 
-/* copy the given F-Modifiers to the buffer, returning whether anything was copied or not
- * assuming that the buffer has been cleared already with ANIM_fmodifiers_copybuf_free()
- * - active: only copy the active modifier
- */
 bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active)
 {
   bool ok = true;
@@ -1009,9 +986,6 @@ bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active)
   return ok;
 }
 
-/* 'Paste' the F-Modifier(s) from the buffer to the specified list
- * - replace: free all the existing modifiers to leave only the pasted ones
- */
 bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace, FCurve *curve)
 {
   FModifier *fcm;

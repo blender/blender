@@ -111,7 +111,7 @@ class MeshTopology {
   // Pipeline related.
 
   // This function is to be called when number of vertices, edges, faces, and
-  // face-verticies are known.
+  // face-vertices are known.
   //
   // Usually is called from the end of topology refiner factory's
   // resizeComponentTopology().
@@ -162,7 +162,7 @@ class MeshTopology {
 
   int num_faces_;
 
-  // Continuous array of all verticies of all faces:
+  // Continuous array of all vertices of all faces:
   //  [vertex indices of face 0][vertex indices of face 1] .. [vertex indices of face n].
   vector<int> face_vertex_indices_;
 

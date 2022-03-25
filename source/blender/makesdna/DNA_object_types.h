@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup DNA
@@ -57,7 +41,7 @@ struct SculptSession;
 struct SoftBody;
 struct bGPdata;
 
-/* Vertex Groups - Name Info */
+/** Vertex Groups - Name Info */
 typedef struct bDeformGroup {
   struct bDeformGroup *next, *prev;
   /** MAX_VGROUP_NAME. */
@@ -66,7 +50,7 @@ typedef struct bDeformGroup {
   char flag, _pad0[7];
 } bDeformGroup;
 
-/* Face Maps. */
+/** Face Maps. */
 typedef struct bFaceMap {
   struct bFaceMap *next, *prev;
   /** MAX_VGROUP_NAME. */
@@ -107,7 +91,7 @@ typedef struct BoundBox {
   char _pad0[4];
 } BoundBox;
 
-/* boundbox flag */
+/** #BoundBox.flag */
 enum {
   BOUNDBOX_DISABLED = (1 << 0),
   BOUNDBOX_DIRTY = (1 << 1),
@@ -115,7 +99,7 @@ enum {
 
 struct CustomData_MeshMasks;
 
-/* Not saved in file! */
+/** Not saved in file! */
 typedef struct Object_Runtime {
   /**
    * The custom data layer mask that was last used
@@ -126,7 +110,12 @@ typedef struct Object_Runtime {
   /** Did last modifier stack generation need mapping support? */
   char last_need_mapping;
 
-  char _pad0[3];
+  /** Opaque data reserved for management of objects in collection context.
+   *  E.g. used currently to check for potential duplicates of objects in a collection, after
+   * remapping process. */
+  char collection_management;
+
+  char _pad0[2];
 
   /** Only used for drawing the parent/child help-line. */
   float parent_display_origin[3];
@@ -147,7 +136,7 @@ typedef struct Object_Runtime {
   /** Start time of the mode transfer overlay animation. */
   double overlay_mode_transfer_start_time;
 
-  /** Axis aligned boundbox (in localspace). */
+  /** Axis aligned bound-box (in local-space). */
   struct BoundBox *bb;
 
   /**
@@ -175,6 +164,12 @@ typedef struct Object_Runtime {
    * It has deformation only modifiers applied on it.
    */
   struct Mesh *mesh_deform_eval;
+
+  /* Evaluated mesh cage in edit mode. */
+  struct Mesh *editmesh_eval_cage;
+
+  /** Cached cage bounding box of `editmesh_eval_cage` for selection. */
+  struct BoundBox *editmesh_bb_cage;
 
   /**
    * Original grease pencil bGPdata pointer, before object->data was changed to point
@@ -205,6 +200,12 @@ typedef struct Object_Runtime {
 
   unsigned short local_collections_bits;
   short _pad2[3];
+
+  float (*crazyspace_deform_imats)[3][3];
+  float (*crazyspace_deform_cos)[3];
+  int crazyspace_num_verts;
+
+  int _pad3[3];
 } Object_Runtime;
 
 typedef struct ObjectLineArt {
@@ -246,9 +247,10 @@ typedef struct Object {
   /** String describing subobject info, MAX_ID_NAME-2. */
   char parsubstr[64];
   struct Object *parent, *track;
-  /* if ob->proxy (or proxy_group), this object is proxy for object ob->proxy */
-  /* proxy_from is set in target back to the proxy. */
-  struct Object *proxy, *proxy_group, *proxy_from;
+  /* Proxy pointer are deprecated, only kept for conversion to liboverrides. */
+  struct Object *proxy DNA_DEPRECATED;
+  struct Object *proxy_group DNA_DEPRECATED;
+  struct Object *proxy_from DNA_DEPRECATED;
   /** Old animation system, deprecated for 2.5. */
   struct Ipo *ipo DNA_DEPRECATED;
   /* struct Path *path; */
@@ -322,8 +324,7 @@ typedef struct Object {
    * Inverse matrix of 'obmat' for any other use than rendering!
    *
    * \note this isn't assured to be valid as with 'obmat',
-   * before using this value you should do...
-   * invert_m4_m4(ob->imat, ob->obmat);
+   * before using this value you should do: `invert_m4_m4(ob->imat, ob->obmat)`
    */
   float imat[4][4];
 
@@ -436,7 +437,7 @@ typedef struct Object {
   Object_Runtime runtime;
 } Object;
 
-/* Warning, this is not used anymore because hooks are now modifiers */
+/** DEPRECATED: this is not used anymore because hooks are now modifiers. */
 typedef struct ObHook {
   struct ObHook *next, *prev;
 
@@ -466,11 +467,12 @@ typedef struct ObHook {
 /* used many places, should be specialized. */
 #define SELECT 1
 
-/* type */
+/** #Object.type */
 enum {
   OB_EMPTY = 0,
   OB_MESH = 1,
-  OB_CURVE = 2,
+  /** Curve object is still used but replaced by "Curves" for the future (see T95355). */
+  OB_CURVES_LEGACY = 2,
   OB_SURF = 3,
   OB_FONT = 4,
   OB_MBALL = 5,
@@ -488,7 +490,7 @@ enum {
   /** Grease Pencil object used in 3D view but not used for annotation in 2D. */
   OB_GPENCIL = 26,
 
-  OB_HAIR = 27,
+  OB_CURVES = 27,
 
   OB_POINTCLOUD = 28,
 
@@ -503,20 +505,37 @@ enum {
   (((_type) >= OB_MESH && (_type) <= OB_MBALL) || ((_type) >= OB_GPENCIL && (_type) <= OB_VOLUME))
 /** Does the object have some render-able geometry (unlike empties, cameras, etc.). */
 #define OB_TYPE_IS_GEOMETRY(_type) \
-  (ELEM(_type, OB_MESH, OB_SURF, OB_FONT, OB_MBALL, OB_GPENCIL, OB_HAIR, OB_POINTCLOUD, OB_VOLUME))
+  (ELEM(_type, \
+        OB_MESH, \
+        OB_SURF, \
+        OB_FONT, \
+        OB_MBALL, \
+        OB_GPENCIL, \
+        OB_CURVES, \
+        OB_POINTCLOUD, \
+        OB_VOLUME))
 #define OB_TYPE_SUPPORT_VGROUP(_type) (ELEM(_type, OB_MESH, OB_LATTICE, OB_GPENCIL))
 #define OB_TYPE_SUPPORT_EDITMODE(_type) \
-  (ELEM(_type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE))
-#define OB_TYPE_SUPPORT_PARVERT(_type) (ELEM(_type, OB_MESH, OB_SURF, OB_CURVE, OB_LATTICE))
+  (ELEM(_type, \
+        OB_MESH, \
+        OB_FONT, \
+        OB_CURVES_LEGACY, \
+        OB_SURF, \
+        OB_MBALL, \
+        OB_LATTICE, \
+        OB_ARMATURE, \
+        OB_CURVES))
+#define OB_TYPE_SUPPORT_PARVERT(_type) \
+  (ELEM(_type, OB_MESH, OB_SURF, OB_CURVES_LEGACY, OB_LATTICE))
 
 /** Matches #OB_TYPE_SUPPORT_EDITMODE. */
-#define OB_DATA_SUPPORT_EDITMODE(_type) (ELEM(_type, ID_ME, ID_CU, ID_MB, ID_LT, ID_AR))
+#define OB_DATA_SUPPORT_EDITMODE(_type) (ELEM(_type, ID_ME, ID_CU_LEGACY, ID_MB, ID_LT, ID_AR))
 
 /* is this ID type used as object data */
 #define OB_DATA_SUPPORT_ID(_id_type) \
   (ELEM(_id_type, \
         ID_ME, \
-        ID_CU, \
+        ID_CU_LEGACY, \
         ID_MB, \
         ID_LA, \
         ID_SPK, \
@@ -525,13 +544,13 @@ enum {
         ID_LT, \
         ID_GD, \
         ID_AR, \
-        ID_HA, \
+        ID_CV, \
         ID_PT, \
         ID_VO))
 
 #define OB_DATA_SUPPORT_ID_CASE \
   ID_ME: \
-  case ID_CU: \
+  case ID_CU_LEGACY: \
   case ID_MB: \
   case ID_LA: \
   case ID_SPK: \
@@ -540,11 +559,11 @@ enum {
   case ID_LT: \
   case ID_GD: \
   case ID_AR: \
-  case ID_HA: \
+  case ID_CV: \
   case ID_PT: \
   case ID_VO
 
-/* partype: first 4 bits: type */
+/** #Object.partype: first 4 bits: type. */
 enum {
   PARTYPE = (1 << 4) - 1,
   PAROBJECT = 0,
@@ -555,7 +574,7 @@ enum {
 
 };
 
-/* (short) transflag */
+/** #Object.transflag (short) */
 enum {
   OB_TRANSFORM_ADJUST_ROOT_PARENT_FOR_VIEW_LOCK = 1 << 0,
   OB_TRANSFLAG_UNUSED_1 = 1 << 1, /* cleared */
@@ -577,7 +596,7 @@ enum {
   OB_DUPLI = OB_DUPLIVERTS | OB_DUPLICOLLECTION | OB_DUPLIFACES | OB_DUPLIPARTS,
 };
 
-/* (short) trackflag / upflag */
+/** #Object.trackflag / #Object.upflag (short) */
 enum {
   OB_POSX = 0,
   OB_POSY = 1,
@@ -587,7 +606,7 @@ enum {
   OB_NEGZ = 5,
 };
 
-/* dtx: flags (short) */
+/** #Object.dtx draw type extra flags (short) */
 enum {
   OB_DRAWBOUNDOX = 1 << 0,
   OB_AXIS = 1 << 1,
@@ -606,7 +625,7 @@ enum {
   OB_USE_GPENCIL_LIGHTS = 1 << 10,
 };
 
-/* empty_drawtype: no flags */
+/** #Object.empty_drawtype: no flags */
 enum {
   OB_ARROWS = 1,
   OB_PLAINAXES = 2,
@@ -618,7 +637,10 @@ enum {
   OB_EMPTY_IMAGE = 8,
 };
 
-/* gpencil add types */
+/**
+ * Grease-pencil add types.
+ * TODO: doesn't need to be DNA, local to `OBJECT_OT_gpencil_add`.
+ */
 enum {
   GP_EMPTY = 0,
   GP_STROKE = 1,
@@ -628,7 +650,7 @@ enum {
   GP_LRT_COLLECTION = 5,
 };
 
-/* boundtype */
+/** #Object.boundtype */
 enum {
   OB_BOUND_BOX = 0,
   OB_BOUND_SPHERE = 1,
@@ -642,7 +664,7 @@ enum {
 
 /* **************** BASE ********************* */
 
-/* base->flag_legacy */
+/** #Base.flag_legacy */
 enum {
   BA_WAS_SEL = (1 << 1),
   /* NOTE: BA_HAS_RECALC_DATA can be re-used later if freed in readfile.c. */
@@ -671,7 +693,7 @@ enum {
 #  define OB_FLAG_UNUSED_12 (1 << 12) /* cleared */
 #endif
 
-/* ob->visibility_flag */
+/** #Object.visibility_flag */
 enum {
   OB_HIDE_VIEWPORT = 1 << 0,
   OB_HIDE_SELECT = 1 << 1,
@@ -686,7 +708,7 @@ enum {
   OB_SHADOW_CATCHER = 1 << 10
 };
 
-/* ob->shapeflag */
+/** #Object.shapeflag */
 enum {
   OB_SHAPE_LOCK = 1 << 0,
 #ifdef DNA_DEPRECATED_ALLOW
@@ -695,7 +717,7 @@ enum {
   OB_SHAPE_EDIT_MODE = 1 << 2,
 };
 
-/* ob->nlaflag */
+/** #Object.nlaflag */
 enum {
   OB_ADS_UNUSED_1 = 1 << 0, /* cleared */
   OB_ADS_UNUSED_2 = 1 << 1, /* cleared */
@@ -711,7 +733,7 @@ enum {
   /* OB_ADS_SHOWPARTS = 1 << 14, */ /* UNUSED */
 };
 
-/* ob->protectflag */
+/** #Object.protectflag */
 enum {
   OB_LOCK_LOCX = 1 << 0,
   OB_LOCK_LOCY = 1 << 1,
@@ -729,13 +751,13 @@ enum {
   OB_LOCK_ROT4D = 1 << 10,
 };
 
-/* ob->duplicator_visibility_flag */
+/** #Object.duplicator_visibility_flag */
 enum {
   OB_DUPLI_FLAG_VIEWPORT = 1 << 0,
   OB_DUPLI_FLAG_RENDER = 1 << 1,
 };
 
-/* ob->empty_image_depth */
+/** #Object.empty_image_depth */
 #define OB_EMPTY_IMAGE_DEPTH_DEFAULT 0
 #define OB_EMPTY_IMAGE_DEPTH_FRONT 1
 #define OB_EMPTY_IMAGE_DEPTH_BACK 2

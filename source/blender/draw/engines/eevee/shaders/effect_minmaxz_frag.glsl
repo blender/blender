@@ -4,7 +4,7 @@
  * Adapted from http://rastergrid.com/blog/2010/10/hierarchical-z-map-based-occlusion-culling/
  *
  * Major simplification has been made since we pad the buffer to always be bigger than input to
- * avoid mipmapping misalignement.
+ * avoid mipmapping misalignment.
  */
 
 #ifdef LAYERED

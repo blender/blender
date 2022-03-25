@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 by the Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup modifiers
@@ -52,6 +36,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -177,6 +162,7 @@ typedef struct DisplaceUserdata {
   float (*vertexCos)[3];
   float local_mat[4][4];
   MVert *mvert;
+  const float (*vert_normals)[3];
   float (*vert_clnors)[3];
 } DisplaceUserdata;
 
@@ -194,7 +180,6 @@ static void displaceModifier_do_task(void *__restrict userdata,
   bool use_global_direction = data->use_global_direction;
   float(*tex_co)[3] = data->tex_co;
   float(*vertexCos)[3] = data->vertexCos;
-  MVert *mvert = data->mvert;
   float(*vert_clnors)[3] = data->vert_clnors;
 
   const float delta_fixed = 1.0f -
@@ -262,9 +247,9 @@ static void displaceModifier_do_task(void *__restrict userdata,
       }
       break;
     case MOD_DISP_DIR_RGB_XYZ:
-      local_vec[0] = texres.tr - dmd->midlevel;
-      local_vec[1] = texres.tg - dmd->midlevel;
-      local_vec[2] = texres.tb - dmd->midlevel;
+      local_vec[0] = texres.trgba[0] - dmd->midlevel;
+      local_vec[1] = texres.trgba[1] - dmd->midlevel;
+      local_vec[2] = texres.trgba[2] - dmd->midlevel;
       if (use_global_direction) {
         mul_transposed_mat3_m4_v3(data->local_mat, local_vec);
       }
@@ -272,9 +257,7 @@ static void displaceModifier_do_task(void *__restrict userdata,
       add_v3_v3(vertexCos[iter], local_vec);
       break;
     case MOD_DISP_DIR_NOR:
-      vertexCos[iter][0] += delta * (mvert[iter].no[0] / 32767.0f);
-      vertexCos[iter][1] += delta * (mvert[iter].no[1] / 32767.0f);
-      vertexCos[iter][2] += delta * (mvert[iter].no[2] / 32767.0f);
+      madd_v3_v3fl(vertexCos[iter], data->vert_normals[iter], delta);
       break;
     case MOD_DISP_DIR_CLNOR:
       madd_v3_v3fl(vertexCos[iter], vert_clnors[iter], delta);
@@ -331,8 +314,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
     if (CustomData_has_layer(ldata, CD_CUSTOMLOOPNORMAL)) {
       float(*clnors)[3] = NULL;
 
-      if ((mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) ||
-          !CustomData_has_layer(ldata, CD_NORMAL)) {
+      if (!CustomData_has_layer(ldata, CD_NORMAL)) {
         BKE_mesh_calc_normals_split(mesh);
       }
 
@@ -363,6 +345,9 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   data.vertexCos = vertexCos;
   copy_m4_m4(data.local_mat, local_mat);
   data.mvert = mvert;
+  if (direction == MOD_DISP_DIR_NOR) {
+    data.vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
+  }
   data.vert_clnors = vert_clnors;
   if (tex_target != NULL) {
     data.pool = BKE_image_pool_new();
@@ -507,7 +492,6 @@ ModifierTypeInfo modifierType_Displace = {
     /* deformVertsEM */ deformVertsEM,
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ NULL,
-    /* modifyHair */ NULL,
     /* modifyGeometrySet */ NULL,
 
     /* initData */ initData,

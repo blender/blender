@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edasset
@@ -88,12 +74,13 @@ AssetTempIDConsumer *ED_asset_temp_id_consumer_create(const AssetHandle *handle)
   }
   BLI_assert(handle->file_data->asset_data != nullptr);
   return reinterpret_cast<AssetTempIDConsumer *>(
-      OBJECT_GUARDED_NEW(AssetTemporaryIDConsumer, *handle));
+      MEM_new<AssetTemporaryIDConsumer>(__func__, *handle));
 }
 
 void ED_asset_temp_id_consumer_free(AssetTempIDConsumer **consumer)
 {
-  OBJECT_GUARDED_SAFE_DELETE(*consumer, AssetTemporaryIDConsumer);
+  MEM_delete(reinterpret_cast<AssetTemporaryIDConsumer *>(*consumer));
+  *consumer = nullptr;
 }
 
 ID *ED_asset_temp_id_consumer_ensure_local_id(AssetTempIDConsumer *consumer_,

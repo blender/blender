@@ -1,5 +1,5 @@
 /** \file itasc/kdl/utilities/utility.cpp
- * \ingroup itasc
+ * \ingroup intern_itasc
  */
 /** @file   utility.cpp
  *  @author Erwin Aertbelien, Div. PMA, Dep. of Mech. Eng., K.U.Leuven

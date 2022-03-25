@@ -14,7 +14,7 @@ void main()
   float n = normalize(normalView).z;
   if (isDistance) {
     n = 1.0 - clamp(-n, 0.0, 1.0);
-    fragColor = vec4(1.0, 1.0, 1.0, 0.2) * n;
+    fragColor = vec4(1.0, 1.0, 1.0, 0.33 * alpha) * n;
   }
   else {
     /* Smooth lighting factor. */

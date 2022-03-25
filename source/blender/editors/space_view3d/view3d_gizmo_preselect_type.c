@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -119,8 +105,8 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
   MeshElemGizmo3D *gz_ele = (MeshElemGizmo3D *)gz;
 
   /* Hack: Switch action mode based on key input */
-  const bool is_ctrl_pressed = WM_event_modifier_flag(event) & KM_CTRL;
-  const bool is_shift_pressed = WM_event_modifier_flag(event) & KM_SHIFT;
+  const bool is_ctrl_pressed = (event->modifier & KM_CTRL) != 0;
+  const bool is_shift_pressed = (event->modifier & KM_SHIFT) != 0;
   EDBM_preselect_action_set(gz_ele->psel, PRESELECT_ACTION_TRANSFORM);
   if (is_ctrl_pressed && !is_shift_pressed) {
     EDBM_preselect_action_set(gz_ele->psel, PRESELECT_ACTION_CREATE);

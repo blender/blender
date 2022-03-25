@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup spgraph
@@ -44,6 +28,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "BLT_translation.h"
 
@@ -586,7 +571,7 @@ static char *graphkeys_paste_description(bContext *UNUSED(C),
 {
   /* Custom description if the 'flipped' option is used. */
   if (RNA_boolean_get(ptr, "flipped")) {
-    return BLI_strdup("Paste keyframes from mirrored bones if they exist");
+    return BLI_strdup(TIP_("Paste keyframes from mirrored bones if they exist"));
   }
 
   /* Use the default description in the other cases. */
@@ -1540,6 +1525,7 @@ void GRAPH_OT_interpolation_type(wmOperatorType *ot)
   /* Id-props */
   ot->prop = RNA_def_enum(
       ot->srna, "type", rna_enum_beztriple_interpolation_mode_items, 0, "Type", "");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_ACTION);
 }
 
 /** \} */
@@ -2348,6 +2334,103 @@ void GRAPH_OT_snap(wmOperatorType *ot)
 
   /* Id-props */
   ot->prop = RNA_def_enum(ot->srna, "type", prop_graphkeys_snap_types, 0, "Type", "");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Equalize Handles Operator
+ * \{ */
+
+/* Defines for equalize handles tool. */
+static const EnumPropertyItem prop_graphkeys_equalize_handles_sides[] = {
+    {GRAPHKEYS_EQUALIZE_LEFT, "LEFT", 0, "Left", "Equalize selected keyframes' left handles"},
+    {GRAPHKEYS_EQUALIZE_RIGHT, "RIGHT", 0, "Right", "Equalize selected keyframes' right handles"},
+    {GRAPHKEYS_EQUALIZE_BOTH, "BOTH", 0, "Both", "Equalize both of a keyframe's handles"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+/* ------------------- */
+
+/* Equalize selected keyframes' bezier handles. */
+static void equalize_graph_keys(bAnimContext *ac, int mode, float handle_length, bool flatten)
+{
+  /* Filter data. */
+  const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT |
+                      ANIMFILTER_NODUPLIS);
+  ListBase anim_data = {NULL, NULL};
+  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+
+  /* Equalize keyframes. */
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    ANIM_fcurve_equalize_keyframes_loop(ale->key_data, mode, handle_length, flatten);
+    ale->update |= ANIM_UPDATE_DEFAULT;
+  }
+
+  ANIM_animdata_update(ac, &anim_data);
+  ANIM_animdata_freelist(&anim_data);
+}
+
+static int graphkeys_equalize_handles_exec(bContext *C, wmOperator *op)
+{
+  bAnimContext ac;
+
+  /* Get editor data. */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Get equalize mode. */
+  int mode = RNA_enum_get(op->ptr, "side");
+  float handle_length = RNA_float_get(op->ptr, "handle_length");
+  bool flatten = RNA_boolean_get(op->ptr, "flatten");
+
+  /* Equalize graph keyframes. */
+  equalize_graph_keys(&ac, mode, handle_length, flatten);
+
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+void GRAPH_OT_equalize_handles(wmOperatorType *ot)
+{
+  /* Identifiers */
+  ot->name = "Equalize Handles";
+  ot->idname = "GRAPH_OT_equalize_handles";
+  ot->description =
+      "Ensure selected keyframes' handles have equal length, optionally making them horizontal";
+
+  /* API callbacks */
+  ot->invoke = WM_menu_invoke;
+  ot->exec = graphkeys_equalize_handles_exec;
+  ot->poll = graphop_editable_keyframes_poll;
+
+  /* Flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* Properties */
+  ot->prop = RNA_def_enum(ot->srna,
+                          "side",
+                          prop_graphkeys_equalize_handles_sides,
+                          0,
+                          "Side",
+                          "Side of the keyframes' bezier handles to affect");
+  RNA_def_float(ot->srna,
+                "handle_length",
+                5.0f,
+                0.1f,
+                FLT_MAX,
+                "Handle Length",
+                "Length to make selected keyframes' bezier handles",
+                1.0f,
+                50.0f);
+  RNA_def_boolean(
+      ot->srna,
+      "flatten",
+      false,
+      "Flatten",
+      "Make the values of the selected keyframes' handles the same as their respective keyframes");
 }
 
 /** \} */

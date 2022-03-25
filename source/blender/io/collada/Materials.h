@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -45,6 +31,7 @@ class MaterialNode {
   bNode *shader_node;
   bNode *output_node;
 
+  /** Returns null if material already has a node tree. */
   bNodeTree *prepare_material_nodetree();
   bNode *add_node(int node_type, int locx, int locy, std::string label);
   void add_link(bNode *from_node, int from_index, bNode *to_node, int to_index);

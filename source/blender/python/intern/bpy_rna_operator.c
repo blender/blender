@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -103,7 +89,7 @@ PyDoc_STRVAR(BPY_rna_operator_poll_message_set_doc,
 
 static PyObject *BPY_rna_operator_poll_message_set(PyObject *UNUSED(self), PyObject *args)
 {
-  const ssize_t args_len = PyTuple_GET_SIZE(args);
+  const Py_ssize_t args_len = PyTuple_GET_SIZE(args);
   if (args_len == 0) {
     PyErr_SetString(PyExc_ValueError,
                     "poll_message_set(message, ...): requires a message argument");

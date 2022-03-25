@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. */
 
 /** \file
  * \ingroup edanimation
@@ -67,10 +52,6 @@
 
 /* --------------------------- Base Functions ------------------------------------ */
 
-/* This function is used to loop over BezTriples in the given F-Curve, applying a given
- * operation on them, and optionally applies an F-Curve validation function afterwards.
- */
-/* TODO: make this function work on samples too. */
 short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked,
                                  FCurve *fcu,
                                  KeyframeEditFunc key_ok,
@@ -378,7 +359,6 @@ static short summary_keyframes_loop(KeyframeEditData *ked,
 
 /* --- */
 
-/* This function is used to apply operation to all keyframes, regardless of the type */
 short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked,
                                       bDopeSheet *ads,
                                       bAnimListElem *ale,
@@ -416,8 +396,6 @@ short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked,
   return 0;
 }
 
-/* This function is used to apply operation to all keyframes,
- * regardless of the type without needed an AnimListElem wrapper */
 short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked,
                                           bDopeSheet *ads,
                                           void *data,
@@ -477,8 +455,6 @@ void ANIM_animdata_keyframe_callback(bAnimContext *ac,
 /* ************************************************************************** */
 /* Keyframe Integrity Tools */
 
-/* Rearrange keyframes if some are out of order */
-/* used to be recalc_*_ipos() where * was object or action */
 void ANIM_editkeyframes_refresh(bAnimContext *ac)
 {
   ListBase anim_data = {NULL, NULL};
@@ -620,9 +596,6 @@ static short ok_bezier_region(KeyframeEditData *ked, BezTriple *bezt)
   return 0;
 }
 
-/**
- * Called from #ok_bezier_region_lasso and #ok_bezier_channel_lasso
- */
 bool keyframe_region_lasso_test(const KeyframeEdit_LassoData *data_lasso, const float xy[2])
 {
   if (BLI_rctf_isect_pt_v(data_lasso->rectf_scaled, xy)) {
@@ -683,9 +656,6 @@ static short ok_bezier_channel_lasso(KeyframeEditData *ked, BezTriple *bezt)
   return 0;
 }
 
-/**
- * Called from #ok_bezier_region_circle and #ok_bezier_channel_circle
- */
 bool keyframe_region_circle_test(const KeyframeEdit_CircleData *data_circle, const float xy[2])
 {
   if (BLI_rctf_isect_pt_v(data_circle->rectf_scaled, xy)) {
@@ -787,10 +757,6 @@ KeyframeEditFunc ANIM_editkeyframes_ok(short mode)
 /* ******************************************* */
 /* Assorted Utility Functions */
 
-/**
- * Helper callback for <animeditor>_cfrasnap_exec() ->
- * used to help get the average time of all selected beztriples
- */
 short bezt_calc_average(KeyframeEditData *ked, BezTriple *bezt)
 {
   /* only if selected */
@@ -810,8 +776,6 @@ short bezt_calc_average(KeyframeEditData *ked, BezTriple *bezt)
   return 0;
 }
 
-/* helper callback for columnselect_<animeditor>_keys() -> populate
- * list CfraElems with frame numbers from selected beztriples */
 short bezt_to_cfraelem(KeyframeEditData *ked, BezTriple *bezt)
 {
   /* only if selected */
@@ -825,9 +789,6 @@ short bezt_to_cfraelem(KeyframeEditData *ked, BezTriple *bezt)
   return 0;
 }
 
-/* used to remap times from one range to another
- * requires:  ked->data = KeyframeEditCD_Remap
- */
 void bezt_remap_times(KeyframeEditData *ked, BezTriple *bezt)
 {
   KeyframeEditCD_Remap *rmap = (KeyframeEditCD_Remap *)ked->data;
@@ -1024,8 +985,6 @@ static short mirror_bezier_value(KeyframeEditData *ked, BezTriple *bezt)
   return 0;
 }
 
-/* NOTE: for markers and 'value', the values to use must be supplied as the first float value. */
-/* calchandles_fcurve */
 KeyframeEditFunc ANIM_editkeyframes_mirror(short mode)
 {
   switch (mode) {
@@ -1183,8 +1142,6 @@ static short set_bezier_free(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
   return 0;
 }
 
-/* Set all selected Bezier Handles to a single type */
-/* calchandles_fcurve */
 KeyframeEditFunc ANIM_editkeyframes_handles(short mode)
 {
   switch (mode) {
@@ -1311,8 +1268,61 @@ static short set_bezt_sine(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
   return 0;
 }
 
-/* Set the interpolation type of the selected BezTriples in each F-Curve to the specified one */
-/* ANIM_editkeyframes_ipocurve_ipotype() ! */
+static void handle_flatten(float vec[3][3], const int idx, const float direction[2])
+{
+  BLI_assert_msg(idx == 0 || idx == 2, "handle_flatten() expects a handle index");
+
+  add_v2_v2v2(vec[idx], vec[1], direction);
+}
+
+static void handle_set_length(float vec[3][3], const int idx, const float handle_length)
+{
+  BLI_assert_msg(idx == 0 || idx == 2, "handle_set_length() expects a handle index");
+
+  float handle_direction[2];
+  sub_v2_v2v2(handle_direction, vec[idx], vec[1]);
+  normalize_v2_length(handle_direction, handle_length);
+  add_v2_v2v2(vec[idx], vec[1], handle_direction);
+}
+
+void ANIM_fcurve_equalize_keyframes_loop(FCurve *fcu,
+                                         const eEditKeyframes_Equalize mode,
+                                         const float handle_length,
+                                         const bool flatten)
+{
+  uint i;
+  BezTriple *bezt;
+  const float flat_direction_left[2] = {-handle_length, 0.f};
+  const float flat_direction_right[2] = {handle_length, 0.f};
+
+  /* Loop through an F-Curves keyframes. */
+  for (bezt = fcu->bezt, i = 0; i < fcu->totvert; bezt++, i++) {
+    if ((bezt->f2 & SELECT) == 0) {
+      continue;
+    }
+
+    /* Perform handle equalization if mode is 'Both' or 'Left'. */
+    if (mode & EQUALIZE_HANDLES_LEFT) {
+      if (flatten) {
+        handle_flatten(bezt->vec, 0, flat_direction_left);
+      }
+      else {
+        handle_set_length(bezt->vec, 0, handle_length);
+      }
+    }
+
+    /* Perform handle equalization if mode is 'Both' or 'Right'. */
+    if (mode & EQUALIZE_HANDLES_RIGHT) {
+      if (flatten) {
+        handle_flatten(bezt->vec, 2, flat_direction_right);
+      }
+      else {
+        handle_set_length(bezt->vec, 2, handle_length);
+      }
+    }
+  }
+}
+
 KeyframeEditFunc ANIM_editkeyframes_ipo(short mode)
 {
   switch (mode) {
@@ -1391,7 +1401,6 @@ static short set_keytype_moving_hold(KeyframeEditData *UNUSED(ked), BezTriple *b
   return 0;
 }
 
-/* Set the interpolation type of the selected BezTriples in each F-Curve to the specified one */
 KeyframeEditFunc ANIM_editkeyframes_keytype(short mode)
 {
   switch (mode) {
@@ -1447,7 +1456,6 @@ static short set_easingtype_easeauto(KeyframeEditData *UNUSED(ked), BezTriple *b
   return 0;
 }
 
-/* Set the easing type of the selected BezTriples in each F-Curve to the specified one */
 KeyframeEditFunc ANIM_editkeyframes_easing(short mode)
 {
   switch (mode) {
@@ -1638,7 +1646,6 @@ static short selmap_build_bezier_less(KeyframeEditData *ked, BezTriple *bezt)
   return 0;
 }
 
-/* Get callback for building selection map */
 KeyframeEditFunc ANIM_editkeyframes_buildselmap(short mode)
 {
   switch (mode) {
@@ -1653,7 +1660,6 @@ KeyframeEditFunc ANIM_editkeyframes_buildselmap(short mode)
 
 /* ----------- */
 
-/* flush selection map values to the given beztriple */
 short bezt_selmap_flush(KeyframeEditData *ked, BezTriple *bezt)
 {
   const char *map = ked->data;

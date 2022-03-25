@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -66,6 +50,8 @@
 #include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
+
+#include "NOD_texture.h"
 
 #include "RE_texture.h"
 
@@ -211,6 +197,7 @@ IDTypeInfo IDType_ID_TE = {
     .name_plural = "textures",
     .translation_context = BLT_I18NCONTEXT_ID_TEXTURE,
     .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = texture_init_data,
     .copy_data = texture_copy_data,
@@ -218,6 +205,7 @@ IDTypeInfo IDType_ID_TE = {
     .make_local = NULL,
     .foreach_id = texture_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = texture_blend_write,
@@ -230,7 +218,6 @@ IDTypeInfo IDType_ID_TE = {
     .lib_override_apply_post = NULL,
 };
 
-/* Utils for all IDs using those texture slots. */
 void BKE_texture_mtex_foreach_id(LibraryForeachIDData *data, MTex *mtex)
 {
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, mtex->object, IDWALK_CB_NOP);
@@ -412,7 +399,6 @@ MTex *BKE_texture_mtex_add(void)
   return mtex;
 }
 
-/* slot -1 for first free ID */
 MTex *BKE_texture_mtex_add_id(ID *id, int slot)
 {
   MTex **mtex_ar;
@@ -670,9 +656,6 @@ void BKE_texture_pointdensity_free(PointDensity *pd)
 }
 /* ------------------------------------------------------------------------- */
 
-/**
- * \returns true if this texture can use its #Texture.ima (even if its NULL)
- */
 bool BKE_texture_is_image_user(const struct Tex *tex)
 {
   switch (tex->type) {
@@ -684,7 +667,6 @@ bool BKE_texture_is_image_user(const struct Tex *tex)
   return false;
 }
 
-/* ------------------------------------------------------------------------- */
 bool BKE_texture_dependsOnTime(const struct Tex *texture)
 {
   if (texture->ima && BKE_image_is_animated(texture->ima)) {
@@ -725,10 +707,10 @@ void BKE_texture_get_value_ex(const Scene *scene,
    * if the texture didn't give an RGB value, copy the intensity across
    */
   if (result_type & TEX_RGB) {
-    texres->tin = (1.0f / 3.0f) * (texres->tr + texres->tg + texres->tb);
+    texres->tin = (1.0f / 3.0f) * (texres->trgba[0] + texres->trgba[1] + texres->trgba[2]);
   }
   else {
-    copy_v3_fl(&texres->tr, texres->tin);
+    copy_v3_fl(texres->trgba, texres->tin);
   }
 }
 
@@ -758,7 +740,6 @@ static void texture_nodes_fetch_images_for_pool(Tex *texture,
   }
 }
 
-/* Make sure all images used by texture are loaded into pool. */
 void BKE_texture_fetch_images_for_pool(Tex *texture, struct ImagePool *pool)
 {
   if (texture->nodetree != NULL) {

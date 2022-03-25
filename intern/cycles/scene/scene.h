@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #ifndef __SCENE_H__
 #define __SCENE_H__
@@ -54,6 +41,7 @@ class Object;
 class ObjectManager;
 class ParticleSystemManager;
 class ParticleSystem;
+class PointCloud;
 class Procedural;
 class ProceduralManager;
 class CurveSystemManager;
@@ -81,9 +69,9 @@ class DeviceScene {
   device_vector<float2> prim_time;
 
   /* mesh */
-  device_vector<float4> tri_verts;
+  device_vector<packed_float3> tri_verts;
   device_vector<uint> tri_shader;
-  device_vector<float4> tri_vnormal;
+  device_vector<packed_float3> tri_vnormal;
   device_vector<uint4> tri_vindex;
   device_vector<uint> tri_patch;
   device_vector<float2> tri_patch_uv;
@@ -94,12 +82,17 @@ class DeviceScene {
 
   device_vector<uint> patches;
 
+  /* pointcloud */
+  device_vector<float4> points;
+  device_vector<uint> points_shader;
+
   /* objects */
   device_vector<KernelObject> objects;
   device_vector<Transform> object_motion_pass;
   device_vector<DecomposedTransform> object_motion;
   device_vector<uint> object_flag;
   device_vector<float> object_volume_step;
+  device_vector<uint> object_prim_offset;
 
   /* cameras */
   device_vector<DecomposedTransform> camera_motion;
@@ -108,7 +101,8 @@ class DeviceScene {
   device_vector<uint4> attributes_map;
   device_vector<float> attributes_float;
   device_vector<float2> attributes_float2;
-  device_vector<float4> attributes_float3;
+  device_vector<packed_float3> attributes_float3;
+  device_vector<float4> attributes_float4;
   device_vector<uchar4> attributes_uchar4;
 
   /* lights */
@@ -153,6 +147,7 @@ class SceneParams {
 
   BVHType bvh_type;
   bool use_bvh_spatial_split;
+  bool use_bvh_compact_structure;
   bool use_bvh_unaligned_nodes;
   int num_bvh_time_steps;
   int hair_subdivisions;
@@ -167,6 +162,7 @@ class SceneParams {
     bvh_layout = BVH_LAYOUT_BVH2;
     bvh_type = BVH_TYPE_DYNAMIC;
     use_bvh_spatial_split = false;
+    use_bvh_compact_structure = true;
     use_bvh_unaligned_nodes = true;
     num_bvh_time_steps = 0;
     hair_subdivisions = 3;
@@ -180,6 +176,7 @@ class SceneParams {
     return !(shadingsystem == params.shadingsystem && bvh_layout == params.bvh_layout &&
              bvh_type == params.bvh_type &&
              use_bvh_spatial_split == params.use_bvh_spatial_split &&
+             use_bvh_compact_structure == params.use_bvh_compact_structure &&
              use_bvh_unaligned_nodes == params.use_bvh_unaligned_nodes &&
              num_bvh_time_steps == params.num_bvh_time_steps &&
              hair_subdivisions == params.hair_subdivisions && hair_shape == params.hair_shape &&
@@ -363,6 +360,8 @@ template<> Hair *Scene::create_node<Hair>();
 
 template<> Volume *Scene::create_node<Volume>();
 
+template<> PointCloud *Scene::create_node<PointCloud>();
+
 template<> ParticleSystem *Scene::create_node<ParticleSystem>();
 
 template<> Shader *Scene::create_node<Shader>();
@@ -376,6 +375,8 @@ template<> void Scene::delete_node_impl(Light *node);
 template<> void Scene::delete_node_impl(Mesh *node);
 
 template<> void Scene::delete_node_impl(Volume *node);
+
+template<> void Scene::delete_node_impl(PointCloud *node);
 
 template<> void Scene::delete_node_impl(Hair *node);
 

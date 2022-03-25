@@ -1,6 +1,7 @@
-/* Apache License, Version 2.0 */
+/* SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
+#include <atomic>
 #include <cstring>
 
 #include "atomic_ops.h"
@@ -12,6 +13,7 @@
 #include "BLI_listbase.h"
 #include "BLI_mempool.h"
 #include "BLI_task.h"
+#include "BLI_task.hh"
 
 #define NUM_ITEMS 10000
 
@@ -89,7 +91,7 @@ TEST(task, MempoolIter)
 
   int i;
 
-  /* 'Randomly' add and remove some items from mempool, to create a non-homogenous one. */
+  /* 'Randomly' add and remove some items from mempool, to create a non-homogeneous one. */
   int num_items = 0;
   for (i = 0; i < NUM_ITEMS; i++) {
     data[i] = (int *)BLI_mempool_alloc(mempool);
@@ -154,7 +156,7 @@ static void task_mempool_iter_tls_func(void *UNUSED(userdata),
 
   EXPECT_TRUE(data != nullptr);
   if (task_data->accumulate_items == nullptr) {
-    task_data->accumulate_items = (ListBase *)MEM_callocN(sizeof(ListBase), __func__);
+    task_data->accumulate_items = MEM_cnew<ListBase>(__func__);
   }
 
   /* Flip to prove this has been touched. */
@@ -172,7 +174,7 @@ static void task_mempool_iter_tls_reduce(const void *__restrict UNUSED(userdata)
 
   if (data_chunk->accumulate_items != nullptr) {
     if (join_chunk->accumulate_items == nullptr) {
-      join_chunk->accumulate_items = (ListBase *)MEM_callocN(sizeof(ListBase), __func__);
+      join_chunk->accumulate_items = MEM_cnew<ListBase>(__func__);
     }
     BLI_movelisttolist(join_chunk->accumulate_items, data_chunk->accumulate_items);
   }
@@ -279,4 +281,16 @@ TEST(task, ListBaseIter)
 
   MEM_freeN(items_buffer);
   BLI_threadapi_exit();
+}
+
+TEST(task, ParallelInvoke)
+{
+  std::atomic<int> counter = 0;
+  blender::threading::parallel_invoke([&]() { counter++; },
+                                      [&]() { counter++; },
+                                      [&]() { counter++; },
+                                      [&]() { counter++; },
+                                      [&]() { counter++; },
+                                      [&]() { counter++; });
+  EXPECT_EQ(counter, 6);
 }

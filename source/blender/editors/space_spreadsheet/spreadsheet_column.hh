@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -44,7 +30,7 @@ void spreadsheet_column_id_free(SpreadsheetColumnID *column_id);
 SpreadsheetColumn *spreadsheet_column_new(SpreadsheetColumnID *column_id);
 SpreadsheetColumn *spreadsheet_column_copy(const SpreadsheetColumn *src_column);
 void spreadsheet_column_assign_runtime_data(SpreadsheetColumn *column,
-                                            const eSpreadsheetColumnValueType data_type,
+                                            eSpreadsheetColumnValueType data_type,
                                             const StringRefNull display_name);
 void spreadsheet_column_free(SpreadsheetColumn *column);
 

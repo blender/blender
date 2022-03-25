@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #pragma once
 
@@ -20,7 +7,6 @@
 #include "kernel/integrator/shader_eval.h"
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"
-#include "kernel/sample/mis.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -81,8 +67,7 @@ ccl_device float3 integrator_eval_background_shader(KernelGlobals kg,
     /* multiple importance sampling, get background light pdf for ray
      * direction, and compute weight with respect to BSDF pdf */
     const float pdf = background_light_pdf(kg, ray_P - ray_D * mis_ray_t, ray_D);
-    const float mis_weight = power_heuristic(mis_ray_pdf, pdf);
-
+    const float mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, pdf);
     L *= mis_weight;
   }
 #  endif
@@ -169,7 +154,7 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
         /* multiple importance sampling, get regular light pdf,
          * and compute weight with respect to BSDF pdf */
         const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
-        const float mis_weight = power_heuristic(mis_ray_pdf, ls.pdf);
+        const float mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, ls.pdf);
         light_eval *= mis_weight;
       }
 

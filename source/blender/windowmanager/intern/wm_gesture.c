@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup wm
@@ -50,7 +34,6 @@
 
 #include "BIF_glutil.h"
 
-/* context checked on having screen, window and area */
 wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent *event, int type)
 {
   wmGesture *gesture = MEM_callocN(sizeof(wmGesture), "new gesture");
@@ -59,28 +42,32 @@ wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent
 
   gesture->type = type;
   gesture->event_type = event->type;
+  gesture->event_modifier = event->modifier;
+  gesture->event_keymodifier = event->keymodifier;
   gesture->winrct = region->winrct;
   gesture->user_data.use_free = true; /* Free if userdata is set. */
   gesture->modal_state = GESTURE_MODAL_NOP;
   gesture->move = false;
 
+  int xy[2];
+  WM_event_drag_start_xy(event, xy);
+
   if (ELEM(type,
            WM_GESTURE_RECT,
            WM_GESTURE_CROSS_RECT,
-           WM_GESTURE_TWEAK,
            WM_GESTURE_CIRCLE,
            WM_GESTURE_STRAIGHTLINE)) {
     rcti *rect = MEM_callocN(sizeof(rcti), "gesture rect new");
 
     gesture->customdata = rect;
-    rect->xmin = event->xy[0] - gesture->winrct.xmin;
-    rect->ymin = event->xy[1] - gesture->winrct.ymin;
+    rect->xmin = xy[0] - gesture->winrct.xmin;
+    rect->ymin = xy[1] - gesture->winrct.ymin;
     if (type == WM_GESTURE_CIRCLE) {
       /* caller is responsible for initializing 'xmax' to radius. */
     }
     else {
-      rect->xmax = event->xy[0] - gesture->winrct.xmin;
-      rect->ymax = event->xy[1] - gesture->winrct.ymin;
+      rect->xmax = xy[0] - gesture->winrct.xmin;
+      rect->ymax = xy[1] - gesture->winrct.ymin;
     }
   }
   else if (ELEM(type, WM_GESTURE_LINES, WM_GESTURE_LASSO)) {
@@ -88,8 +75,8 @@ wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent
     gesture->points_alloc = 1024;
     gesture->customdata = lasso = MEM_mallocN(sizeof(short[2]) * gesture->points_alloc,
                                               "lasso points");
-    lasso[0] = event->xy[0] - gesture->winrct.xmin;
-    lasso[1] = event->xy[1] - gesture->winrct.ymin;
+    lasso[0] = xy[0] - gesture->winrct.xmin;
+    lasso[1] = xy[1] - gesture->winrct.ymin;
     gesture->points = 1;
   }
 
@@ -98,9 +85,6 @@ wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent
 
 void WM_gesture_end(wmWindow *win, wmGesture *gesture)
 {
-  if (win->tweak == gesture) {
-    win->tweak = NULL;
-  }
   BLI_remlink(&win->gesture, gesture);
   MEM_freeN(gesture->customdata);
   WM_generic_user_data_free(&gesture->user_data);
@@ -127,75 +111,6 @@ bool WM_gesture_is_modal_first(const wmGesture *gesture)
     return true;
   }
   return (gesture->is_active_prev == false);
-}
-
-/* tweak and line gestures */
-int wm_gesture_evaluate(wmGesture *gesture, const wmEvent *event)
-{
-  if (gesture->type == WM_GESTURE_TWEAK) {
-    rcti *rect = gesture->customdata;
-    const int delta[2] = {
-        BLI_rcti_size_x(rect),
-        BLI_rcti_size_y(rect),
-    };
-
-    if (WM_event_drag_test_with_delta(event, delta)) {
-      int theta = round_fl_to_int(4.0f * atan2f((float)delta[1], (float)delta[0]) / (float)M_PI);
-      int val = EVT_GESTURE_W;
-
-      if (theta == 0) {
-        val = EVT_GESTURE_E;
-      }
-      else if (theta == 1) {
-        val = EVT_GESTURE_NE;
-      }
-      else if (theta == 2) {
-        val = EVT_GESTURE_N;
-      }
-      else if (theta == 3) {
-        val = EVT_GESTURE_NW;
-      }
-      else if (theta == -1) {
-        val = EVT_GESTURE_SE;
-      }
-      else if (theta == -2) {
-        val = EVT_GESTURE_S;
-      }
-      else if (theta == -3) {
-        val = EVT_GESTURE_SW;
-      }
-
-#if 0
-      /* debug */
-      if (val == 1) {
-        printf("tweak north\n");
-      }
-      if (val == 2) {
-        printf("tweak north-east\n");
-      }
-      if (val == 3) {
-        printf("tweak east\n");
-      }
-      if (val == 4) {
-        printf("tweak south-east\n");
-      }
-      if (val == 5) {
-        printf("tweak south\n");
-      }
-      if (val == 6) {
-        printf("tweak south-west\n");
-      }
-      if (val == 7) {
-        printf("tweak west\n");
-      }
-      if (val == 8) {
-        printf("tweak north-west\n");
-      }
-#endif
-      return val;
-    }
-  }
-  return 0;
 }
 
 /* ******************* gesture draw ******************* */
@@ -414,7 +329,7 @@ static void draw_filled_lasso(wmGesture *gt)
     GPU_shader_uniform_vector(
         state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, red);
 
-    immDrawPixelsTex(
+    immDrawPixelsTexTiled(
         &state, rect.xmin, rect.ymin, w, h, GPU_R8, false, pixel_buf, 1.0f, 1.0f, NULL);
 
     GPU_shader_unbind();
@@ -515,7 +430,6 @@ static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
   immUnbindProgram();
 }
 
-/* called in wm_draw.c */
 void wm_gesture_draw(wmWindow *win)
 {
   wmGesture *gt = (wmGesture *)win->gesture.first;
@@ -528,11 +442,6 @@ void wm_gesture_draw(wmWindow *win)
     if (gt->type == WM_GESTURE_RECT) {
       wm_gesture_draw_rect(gt);
     }
-#if 0
-    else if (gt->type == WM_GESTURE_TWEAK) {
-      wm_gesture_draw_line(gt);
-    }
-#endif
     else if (gt->type == WM_GESTURE_CIRCLE) {
       wm_gesture_draw_circle(gt);
     }

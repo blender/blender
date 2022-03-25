@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edsculpt
@@ -102,8 +86,6 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss, float result[3],
   mul_v3_v3fl(result, avg, 1.0f / total);
 }
 
-/* For bmesh: Average surrounding verts based on an orthogonality measure.
- * Naturally converges to a quad-like structure. */
 void SCULPT_bmesh_four_neighbor_average(float avg[3], float direction[3], BMVert *v)
 {
 
@@ -249,7 +231,7 @@ static void do_enhance_details_brush_task_cb_ex(void *__restrict userdata,
     SCULPT_clip(sd, ss, vd.co, disp);
 
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -339,7 +321,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
       SCULPT_clip(sd, ss, vd.co, val);
     }
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -496,7 +478,7 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
         ss, disp, vd.co, ss->cache->surface_smooth_laplacian_disp, vd.index, orig_data.co, alpha);
     madd_v3_v3fl(vd.co, disp, clamp_f(fade, 0.0f, 1.0f));
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -540,13 +522,6 @@ static void SCULPT_do_surface_smooth_brush_displace_task_cb_ex(
 void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
-  SculptSession *ss = ob->sculpt;
-
-  if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
-    BLI_assert(ss->cache->surface_smooth_laplacian_disp == NULL);
-    ss->cache->surface_smooth_laplacian_disp = MEM_callocN(
-        sizeof(float[3]) * SCULPT_vertex_count_get(ss), "HC smooth laplacian b");
-  }
 
   /* Threaded loop over nodes. */
   SculptThreadedTaskData data = {

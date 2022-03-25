@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2007 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2007 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edmesh
@@ -210,7 +194,7 @@ typedef struct KnifeBVH {
 typedef struct KnifeTool_OpData {
   ARegion *region;   /* Region that knifetool was activated in. */
   void *draw_handle; /* For drawing preview loop. */
-  ViewContext vc;    /* Note: _don't_ use 'mval', instead use the one we define below. */
+  ViewContext vc;    /* NOTE: _don't_ use 'mval', instead use the one we define below. */
   float mval[2];     /* Mouse value with snapping applied. */
 
   Scene *scene;
@@ -2605,6 +2589,7 @@ static bool knife_ray_intersect_face(KnifeTool_OpData *kcd,
 
 /**
  * Calculate the center and maximum excursion of mesh.
+ * (Considers all meshes in multi-object edit mode)
  */
 static void calc_ortho_extent(KnifeTool_OpData *kcd)
 {
@@ -2613,6 +2598,7 @@ static void calc_ortho_extent(KnifeTool_OpData *kcd)
   BMIter iter;
   BMVert *v;
   float min[3], max[3];
+  float ws[3];
   INIT_MINMAX(min, max);
 
   for (uint b = 0; b < kcd->objects_len; b++) {
@@ -2620,11 +2606,17 @@ static void calc_ortho_extent(KnifeTool_OpData *kcd)
     em = BKE_editmesh_from_object(ob);
 
     if (kcd->cagecos[b]) {
-      minmax_v3v3_v3_array(min, max, kcd->cagecos[b], em->bm->totvert);
+      for (int i = 0; i < em->bm->totvert; i++) {
+        copy_v3_v3(ws, kcd->cagecos[b][i]);
+        mul_m4_v3(ob->obmat, ws);
+        minmax_v3v3_v3(min, max, ws);
+      }
     }
     else {
       BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
-        minmax_v3v3_v3(min, max, v->co);
+        copy_v3_v3(ws, v->co);
+        mul_m4_v3(ob->obmat, ws);
+        minmax_v3v3_v3(min, max, ws);
       }
     }
   }
@@ -3008,6 +3000,12 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   /* Now edge hits; don't add if a vertex at end of edge should have hit. */
   for (val = BLI_smallhash_iternew(&kfes, &hiter, (uintptr_t *)&kfe); val;
        val = BLI_smallhash_iternext(&hiter, (uintptr_t *)&kfe)) {
+
+    /* If we intersect any of the vertices, don't attempt to intersect the edge. */
+    if (BLI_smallhash_lookup(&kfvs, (intptr_t)kfe->v1) ||
+        BLI_smallhash_lookup(&kfvs, (intptr_t)kfe->v2)) {
+      continue;
+    }
 
     knife_project_v2(kcd, kfe->v1->cageco, se1);
     knife_project_v2(kcd, kfe->v2->cageco, se2);
@@ -4143,7 +4141,7 @@ static void knifetool_exit_ex(KnifeTool_OpData *kcd)
   for (int i = 0; i < kcd->objects_len; i++) {
     knifetool_free_cagecos(kcd, i);
   }
-  MEM_freeN(kcd->cagecos);
+  MEM_freeN((void *)kcd->cagecos);
   knife_bvh_free(kcd);
 
   /* Line-hits cleanup. */
@@ -4866,9 +4864,6 @@ static bool edbm_mesh_knife_point_isect(LinkNode *polys, const float cent_ss[2])
   return false;
 }
 
-/**
- * \param use_tag: When set, tag all faces inside the polylines.
- */
 void EDBM_mesh_knife(bContext *C, ViewContext *vc, LinkNode *polys, bool use_tag, bool cut_through)
 {
   KnifeTool_OpData *kcd;

@@ -1,22 +1,5 @@
-/*
- * Copyright 2017, Blender Foundation.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Contributor: IRIE Shinsuke
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2017 Blender Foundation. */
 
 #pragma once
 
@@ -111,8 +94,14 @@ class SMAABlendingWeightCalculationOperation : public MultiThreadedOperation {
 
  private:
   /* Diagonal Search Functions */
+  /**
+   * These functions allows to perform diagonal pattern searches.
+   */
   int search_diag1(int x, int y, int dir, bool *found);
   int search_diag2(int x, int y, int dir, bool *found);
+  /**
+   * This searches for diagonal patterns and returns the corresponding weights.
+   */
   void calculate_diag_weights(int x, int y, const float edges[2], float weights[2]);
   bool is_vertical_search_unneeded(int x, int y);
 

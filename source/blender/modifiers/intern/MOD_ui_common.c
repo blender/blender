@@ -1,17 +1,4 @@
-/* This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -41,6 +28,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -76,7 +64,7 @@ static void modifier_reorder(bContext *C, Panel *panel, int new_index)
   WM_operator_properties_create_ptr(&props_ptr, ot);
   RNA_string_set(&props_ptr, "modifier", md->name);
   RNA_int_set(&props_ptr, "index", new_index);
-  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
+  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, NULL);
   WM_operator_properties_free(&props_ptr);
 }
 
@@ -100,9 +88,6 @@ static void set_modifier_expand_flag(const bContext *UNUSED(C), Panel *panel, sh
 /** \name Modifier Panel Layouts
  * \{ */
 
-/**
- * Draw modifier error message.
- */
 void modifier_panel_end(uiLayout *layout, PointerRNA *ptr)
 {
   ModifierData *md = ptr->data;
@@ -132,14 +117,11 @@ PointerRNA *modifier_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_
   uiBlock *block = uiLayoutGetBlock(panel->layout);
   UI_block_lock_set(block, ID_IS_LINKED((Object *)ptr->owner_id), ERROR_LIBDATA_MESSAGE);
 
-  uiLayoutSetContextPointer(panel->layout, "modifier", ptr);
+  UI_panel_context_pointer_set(panel, "modifier", ptr);
 
   return ptr;
 }
 
-/**
- * Helper function for modifier layouts to draw vertex group settings.
- */
 void modifier_vgroup_ui(uiLayout *layout,
                         PointerRNA *ptr,
                         PointerRNA *ob_ptr,
@@ -304,7 +286,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
   ModifierData *md = (ModifierData *)ptr->data;
   Object *ob = (Object *)ptr->owner_id;
 
-  uiLayoutSetContextPointer(panel->layout, "modifier", ptr);
+  UI_panel_context_pointer_set(panel, "modifier", ptr);
 
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
   Scene *scene = CTX_data_scene(C);
@@ -343,7 +325,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
       buttons_number++;
     }
   } /* Tessellation point for curve-typed objects. */
-  else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
     /* Some modifiers can work with pre-tessellated curves only. */
     if (ELEM(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
       /* Add button (appearing to be ON) and add tip why this can't be changed. */
@@ -429,9 +411,6 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
 /** \name Modifier Registration Helpers
  * \{ */
 
-/**
- * Create a panel in the context's region
- */
 PanelType *modifier_panel_register(ARegionType *region_type, ModifierType type, PanelDrawFn draw)
 {
   PanelType *panel_type = MEM_callocN(sizeof(PanelType), __func__);
@@ -458,12 +437,6 @@ PanelType *modifier_panel_register(ARegionType *region_type, ModifierType type, 
   return panel_type;
 }
 
-/**
- * Add a child panel to the parent.
- *
- * \note To create the panel type's idname, it appends the \a name argument to the \a parent's
- * idname.
- */
 PanelType *modifier_subpanel_register(ARegionType *region_type,
                                       const char *name,
                                       const char *label,

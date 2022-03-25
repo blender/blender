@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edinterface
@@ -31,6 +15,7 @@
 #include "GPU_batch_presets.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_shader_shared.h"
 #include "GPU_state.h"
 #include "GPU_texture.h"
 
@@ -51,6 +36,7 @@
 #include "DNA_space_types.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "BKE_appdir.h"
 #include "BKE_context.h"
@@ -588,18 +574,6 @@ int UI_icon_from_event_type(short event_type, short event_value)
   else if (event_type == EVT_RIGHTALTKEY) {
     event_type = EVT_LEFTALTKEY;
   }
-  else if (event_type == EVT_TWEAK_L) {
-    event_type = LEFTMOUSE;
-    event_value = KM_CLICK_DRAG;
-  }
-  else if (event_type == EVT_TWEAK_M) {
-    event_type = MIDDLEMOUSE;
-    event_value = KM_CLICK_DRAG;
-  }
-  else if (event_type == EVT_TWEAK_R) {
-    event_type = RIGHTMOUSE;
-    event_value = KM_CLICK_DRAG;
-  }
 
   DrawInfo *di = g_di_event_list;
   do {
@@ -830,8 +804,6 @@ static void free_icons_textures(void)
   }
 }
 
-/* Reload the textures for internal icons.
- * This function will release the previous textures. */
 void UI_icons_reload_internal_textures(void)
 {
   bTheme *btheme = UI_GetTheme();
@@ -1182,7 +1154,6 @@ static DrawInfo *icon_ensure_drawinfo(Icon *icon)
   return di;
 }
 
-/* NOTE:, returns unscaled by DPI. */
 int UI_icon_get_width(int icon_id)
 {
   Icon *icon = BKE_icon_get(icon_id);
@@ -1242,8 +1213,6 @@ void UI_icons_init()
 #endif
 }
 
-/* Render size for preview images and icons
- */
 int UI_icon_preview_to_render_size(enum eIconSizes size)
 {
   switch (size) {
@@ -1270,7 +1239,7 @@ static void icon_create_rect(struct PreviewImage *prv_img, enum eIconSizes size)
   else if (!prv_img->rect[size]) {
     prv_img->w[size] = render_size;
     prv_img->h[size] = render_size;
-    prv_img->flag[size] |= (PRV_CHANGED | PRV_UNFINISHED);
+    prv_img->flag[size] |= PRV_CHANGED;
     prv_img->changed_timestamp[size] = 0;
     prv_img->rect[size] = MEM_callocN(render_size * render_size * sizeof(uint), "prv_rect");
   }
@@ -1422,15 +1391,14 @@ static void icon_set_image(const bContext *C,
 
   if (use_job && (!id || BKE_previewimg_id_supports_jobs(id))) {
     /* Job (background) version */
-    ED_preview_icon_job(
-        C, prv_img, id, prv_img->rect[size], prv_img->w[size], prv_img->h[size], delay);
+    ED_preview_icon_job(C, prv_img, id, size, delay);
   }
   else {
     if (!scene) {
       scene = CTX_data_scene(C);
     }
     /* Immediate version */
-    ED_preview_icon_render(C, scene, id, prv_img->rect[size], prv_img->w[size], prv_img->h[size]);
+    ED_preview_icon_render(C, scene, prv_img, id, size);
   }
 }
 
@@ -1482,24 +1450,16 @@ PreviewImage *UI_icon_to_preview(int icon_id)
   return NULL;
 }
 
-/**
- * Version of #icon_draw_rect() that uses the GPU for scaling. This is only used for
- * #ICON_TYPE_IMBUF because it's a back-ported fix for performance issues, see T92922. Only
- * File/Asset Browser use #ICON_TYPE_IMBUF right now, which makes implications more predictable.
- *
- * TODO(Julian): This code is mostly duplicated. #icon_draw_rect() should be ported to use the GPU
- *               instead (D13144).
- */
-static void icon_draw_rect_fast(float x,
-                                float y,
-                                int w,
-                                int h,
-                                float UNUSED(aspect),
-                                int rw,
-                                int rh,
-                                uint *rect,
-                                float alpha,
-                                const float desaturate)
+static void icon_draw_rect(float x,
+                           float y,
+                           int w,
+                           int h,
+                           float UNUSED(aspect),
+                           int rw,
+                           int rh,
+                           uint *rect,
+                           float alpha,
+                           const float desaturate)
 {
   int draw_w = w;
   int draw_h = h;
@@ -1550,79 +1510,8 @@ static void icon_draw_rect_fast(float x,
     immUniform1f("factor", desaturate);
   }
 
-  immDrawPixelsTexScaled(
+  immDrawPixelsTexScaledFullSize(
       &state, draw_x, draw_y, rw, rh, GPU_RGBA8, true, rect, scale_x, scale_y, 1.0f, 1.0f, col);
-}
-
-static void icon_draw_rect(float x,
-                           float y,
-                           int w,
-                           int h,
-                           float UNUSED(aspect),
-                           int rw,
-                           int rh,
-                           uint *rect,
-                           float alpha,
-                           const float desaturate)
-{
-  ImBuf *ima = NULL;
-  int draw_w = w;
-  int draw_h = h;
-  int draw_x = x;
-  /* We need to round y, to avoid the icon jittering in some cases. */
-  int draw_y = round_fl_to_int(y);
-
-  /* sanity check */
-  if (w <= 0 || h <= 0 || w > 2000 || h > 2000) {
-    printf("%s: icons are %i x %i pixels?\n", __func__, w, h);
-    BLI_assert_msg(0, "invalid icon size");
-    return;
-  }
-  /* modulate color */
-  const float col[4] = {alpha, alpha, alpha, alpha};
-
-  /* rect contains image in 'rendersize', we only scale if needed */
-  if (rw != w || rh != h) {
-    /* preserve aspect ratio and center */
-    if (rw > rh) {
-      draw_w = w;
-      draw_h = (int)(((float)rh / (float)rw) * (float)w);
-      draw_y += (h - draw_h) / 2;
-    }
-    else if (rw < rh) {
-      draw_w = (int)(((float)rw / (float)rh) * (float)h);
-      draw_h = h;
-      draw_x += (w - draw_w) / 2;
-    }
-    /* If the image is squared, the `draw_*` initialization values are good. */
-
-    /* first allocate imbuf for scaling and copy preview into it */
-    ima = IMB_allocImBuf(rw, rh, 32, IB_rect);
-    memcpy(ima->rect, rect, rw * rh * sizeof(uint));
-    IMB_scaleImBuf(ima, draw_w, draw_h); /* scale it */
-    rect = ima->rect;
-  }
-
-  /* draw */
-  eGPUBuiltinShader shader;
-  if (desaturate != 0.0f) {
-    shader = GPU_SHADER_2D_IMAGE_DESATURATE_COLOR;
-  }
-  else {
-    shader = GPU_SHADER_2D_IMAGE_COLOR;
-  }
-  IMMDrawPixelsTexState state = immDrawPixelsTexSetup(shader);
-
-  if (shader == GPU_SHADER_2D_IMAGE_DESATURATE_COLOR) {
-    immUniform1f("factor", desaturate);
-  }
-
-  immDrawPixelsTex(
-      &state, draw_x, draw_y, draw_w, draw_h, GPU_RGBA8, false, rect, 1.0f, 1.0f, col);
-
-  if (ima) {
-    IMB_freeImBuf(ima);
-  }
 }
 
 /* High enough to make a difference, low enough so that
@@ -1665,18 +1554,21 @@ static void icon_draw_cache_texture_flush_ex(GPUTexture *texture,
   GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR);
   GPU_shader_bind(shader);
 
-  const int img_binding = GPU_shader_get_texture_binding(shader, "image");
-  const int data_loc = GPU_shader_get_uniform(shader, "calls_data");
+  const int data_loc = GPU_shader_get_uniform_block(shader, "multi_rect_data");
+  GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(
+      sizeof(struct MultiRectCallData), texture_draw_calls->drawcall_cache, __func__);
+  GPU_uniformbuf_bind(ubo, data_loc);
 
+  const int img_binding = GPU_shader_get_texture_binding(shader, "image");
   GPU_texture_bind_ex(texture, GPU_SAMPLER_ICON, img_binding, false);
-  GPU_shader_uniform_vector(
-      shader, data_loc, 4, ICON_DRAW_CACHE_SIZE * 3, (float *)texture_draw_calls->drawcall_cache);
 
   GPUBatch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, shader);
   GPU_batch_draw_instanced(quad, texture_draw_calls->calls);
 
   GPU_texture_unbind(texture);
+  GPU_uniformbuf_unbind(ubo);
+  GPU_uniformbuf_free(ubo);
 
   texture_draw_calls->calls = 0;
 }
@@ -1878,9 +1770,7 @@ static void icon_draw_size(float x,
     ImBuf *ibuf = icon->obj;
 
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
-    /* These icons are only used by the File/Asset Browser currently. Without this `_fast()`
-     * version, there may be performance issues, see T92922. */
-    icon_draw_rect_fast(x, y, w, h, aspect, ibuf->x, ibuf->y, ibuf->rect, alpha, desaturate);
+    icon_draw_rect(x, y, w, h, aspect, ibuf->x, ibuf->y, ibuf->rect, alpha, desaturate);
     GPU_blend(GPU_BLEND_ALPHA);
   }
   else if (di->type == ICON_TYPE_VECTOR) {
@@ -2030,19 +1920,39 @@ static void ui_id_preview_image_render_size(
   }
 }
 
-/**
- * Note that if an ID doesn't support jobs for preview creation, \a use_job will be ignored.
- */
+void UI_icon_render_id_ex(const bContext *C,
+                          Scene *scene,
+                          ID *id_to_render,
+                          const enum eIconSizes size,
+                          const bool use_job,
+                          PreviewImage *r_preview_image)
+{
+  ui_id_preview_image_render_size(C, scene, id_to_render, r_preview_image, size, use_job);
+}
+
 void UI_icon_render_id(
     const bContext *C, Scene *scene, ID *id, const enum eIconSizes size, const bool use_job)
 {
   PreviewImage *pi = BKE_previewimg_id_ensure(id);
-
   if (pi == NULL) {
     return;
   }
 
-  ui_id_preview_image_render_size(C, scene, id, pi, size, use_job);
+  ID *id_to_render = id;
+
+  /* For objects, first try if a preview can created via the object data. */
+  if (GS(id->name) == ID_OB) {
+    Object *ob = (Object *)id;
+    if (ED_preview_id_is_supported(ob->data)) {
+      id_to_render = ob->data;
+    }
+  }
+
+  if (!ED_preview_id_is_supported(id_to_render)) {
+    return;
+  }
+
+  UI_icon_render_id_ex(C, scene, id_to_render, size, use_job, pi);
 }
 
 static void ui_id_icon_render(const bContext *C, ID *id, bool use_jobs)
@@ -2348,7 +2258,7 @@ int UI_icon_from_idcode(const int idcode)
       return ICON_CAMERA_DATA;
     case ID_CF:
       return ICON_FILE;
-    case ID_CU:
+    case ID_CU_LEGACY:
       return ICON_CURVE_DATA;
     case ID_GD:
       return ICON_OUTLINER_DATA_GREASEPENCIL;
@@ -2396,8 +2306,8 @@ int UI_icon_from_idcode(const int idcode)
       return ICON_TEXT;
     case ID_VF:
       return ICON_FONT_DATA;
-    case ID_HA:
-      return ICON_HAIR_DATA;
+    case ID_CV:
+      return ICON_CURVES_DATA;
     case ID_PT:
       return ICON_POINTCLOUD_DATA;
     case ID_VO:
@@ -2431,6 +2341,7 @@ int UI_icon_from_object_mode(const int mode)
       return ICON_EDITMODE_HLT;
     case OB_MODE_SCULPT:
     case OB_MODE_SCULPT_GPENCIL:
+    case OB_MODE_SCULPT_CURVES:
       return ICON_SCULPTMODE_HLT;
     case OB_MODE_VERTEX_PAINT:
     case OB_MODE_VERTEX_GPENCIL:
@@ -2461,7 +2372,6 @@ int UI_icon_color_from_collection(const Collection *collection)
   return icon;
 }
 
-/* draws icon with dpi scale factor */
 void UI_icon_draw(float x, float y, int icon_id)
 {
   UI_icon_draw_ex(x, y, icon_id, U.inv_dpi_fac, 1.0f, 0.0f, NULL, false);

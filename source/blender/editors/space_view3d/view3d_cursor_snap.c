@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup wm
@@ -79,7 +63,7 @@ typedef struct SnapCursorDataIntern {
     int x;
     int y;
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
-    short shift, ctrl, alt, oskey;
+    uint8_t modifier;
 #endif
   } last_eventstate;
 
@@ -94,7 +78,7 @@ typedef struct SnapCursorDataIntern {
 } SnapCursorDataIntern;
 
 static SnapCursorDataIntern g_data_intern = {
-    .state_default = {.prevpoint = NULL,
+    .state_default = {.flag = V3D_SNAPCURSOR_SNAP_EDIT_GEOM_FINAL,
                       .snap_elem_force = SCE_SNAP_MODE_GEOM,
                       .plane_axis = 2,
                       .color_point = {255, 255, 255, 255},
@@ -102,6 +86,12 @@ static SnapCursorDataIntern g_data_intern = {
                       .color_box = {255, 255, 255, 128},
                       .box_dimensions = {1.0f, 1.0f, 1.0f},
                       .draw_point = true}};
+
+/**
+ * Dot products below this will be considered view aligned.
+ * In this case we can't usefully project the mouse cursor onto the plane.
+ */
+static const float eps_view_align = 1e-2f;
 
 /**
  * Calculate a 3x3 orientation matrix from the surface under the cursor.
@@ -488,10 +478,7 @@ static bool v3d_cursor_eventstate_has_changed(SnapCursorDataIntern *data_intern,
     }
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
     if (!(state && (state->flag & V3D_SNAPCURSOR_TOGGLE_ALWAYS_TRUE))) {
-      if ((event->ctrl != data_intern->last_eventstate.ctrl) ||
-          (event->shift != data_intern->last_eventstate.shift) ||
-          (event->alt != data_intern->last_eventstate.alt) ||
-          (event->oskey != data_intern->last_eventstate.oskey)) {
+      if (event->modifier != data_intern->last_eventstate.modifier) {
         return true;
       }
     }
@@ -517,19 +504,13 @@ static bool v3d_cursor_is_snap_invert(SnapCursorDataIntern *data_intern, const w
   }
 
   const wmEvent *event = wm->winactive->eventstate;
-  if ((event->ctrl == data_intern->last_eventstate.ctrl) &&
-      (event->shift == data_intern->last_eventstate.shift) &&
-      (event->alt == data_intern->last_eventstate.alt) &&
-      (event->oskey == data_intern->last_eventstate.oskey)) {
+  if (event->modifier == data_intern->last_eventstate.modifier) {
     /* Nothing has changed. */
     return data_intern->snap_data.is_snap_invert;
   }
 
   /* Save new eventstate. */
-  data_intern->last_eventstate.ctrl = event->ctrl;
-  data_intern->last_eventstate.shift = event->shift;
-  data_intern->last_eventstate.alt = event->alt;
-  data_intern->last_eventstate.oskey = event->oskey;
+  data_intern->last_eventstate.modifier = event->modifier;
 
   const int snap_on = data_intern->snap_on;
 
@@ -540,10 +521,10 @@ static bool v3d_cursor_is_snap_invert(SnapCursorDataIntern *data_intern, const w
     }
 
     if (kmi->propvalue == snap_on) {
-      if ((ELEM(kmi->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY) && event->ctrl) ||
-          (ELEM(kmi->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY) && event->shift) ||
-          (ELEM(kmi->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY) && event->alt) ||
-          ((kmi->type == EVT_OSKEY) && event->oskey)) {
+      if ((ELEM(kmi->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY) && (event->modifier & KM_CTRL)) ||
+          (ELEM(kmi->type, EVT_LEFTSHIFTKEY, EVT_RIGHTSHIFTKEY) && (event->modifier & KM_SHIFT)) ||
+          (ELEM(kmi->type, EVT_LEFTALTKEY, EVT_RIGHTALTKEY) && (event->modifier & KM_ALT)) ||
+          ((kmi->type == EVT_OSKEY) && (event->modifier & KM_OSKEY))) {
         return true;
       }
     }
@@ -714,14 +695,19 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
   float *co_depth = snap_elem ? co : scene->cursor.location;
   snap_elem &= ~data_intern->snap_elem_hidden;
   if (snap_elem == 0) {
-    float plane[4];
-    if (state->plane_depth != V3D_PLACE_DEPTH_CURSOR_VIEW) {
-      const float *plane_normal = omat[state->plane_axis];
+    RegionView3D *rv3d = region->regiondata;
+    const float *plane_normal = omat[state->plane_axis];
+    bool do_plane_isect = (state->plane_depth != V3D_PLACE_DEPTH_CURSOR_VIEW) &&
+                          (rv3d->is_persp ||
+                           (fabsf(dot_v3v3(plane_normal, rv3d->viewinv[2])) > eps_view_align));
+
+    if (do_plane_isect) {
+      float plane[4];
       plane_from_point_normal_v3(plane, co_depth, plane_normal);
+      do_plane_isect = ED_view3d_win_to_3d_on_plane(region, plane, mval_fl, rv3d->is_persp, co);
     }
 
-    if ((state->plane_depth == V3D_PLACE_DEPTH_CURSOR_VIEW) ||
-        !ED_view3d_win_to_3d_on_plane(region, plane, mval_fl, true, co)) {
+    if (!do_plane_isect) {
       ED_view3d_win_to_3d(v3d, region, co_depth, mval_fl, co);
     }
 
@@ -919,6 +905,14 @@ static void v3d_cursor_snap_free(void)
 void ED_view3d_cursor_snap_state_default_set(V3DSnapCursorState *state)
 {
   g_data_intern.state_default = *state;
+
+  /* These values are temporarily set by the tool.
+   * They are not convenient as default values.
+   * So reset to null. */
+  g_data_intern.state_default.gzgrp_type = NULL;
+  g_data_intern.state_default.prevpoint = NULL;
+  g_data_intern.state_default.draw_plane = false;
+  g_data_intern.state_default.draw_box = false;
 }
 
 V3DSnapCursorState *ED_view3d_cursor_snap_active(void)

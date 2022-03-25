@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -147,16 +133,6 @@ void WM_msgbus_handle(struct wmMsgBus *mbus, struct bContext *C)
   // printf("msgbus: keys=%u values=%u\n", a, b);
 }
 
-/**
- * \param msg_key_test: Needs following #wmMsgSubscribeKey fields filled in:
- * - msg.params
- * - msg.head.type
- * - msg.head.id
- * .. other values should be zeroed.
- *
- * \return The key for this subscription.
- * note that this is only needed in rare cases when the key needs further manipulation.
- */
 wmMsgSubscribeKey *WM_msg_subscribe_with_key(struct wmMsgBus *mbus,
                                              const wmMsgSubscribeKey *msg_key_test,
                                              const wmMsgSubscribeValue *msg_val_params)
@@ -239,9 +215,6 @@ void WM_msg_id_remove(struct wmMsgBus *mbus, const struct ID *id)
  * \note While we could have a separate type for ID's, use RNA since there is enough overlap.
  * \{ */
 
-/**
- * \note #wmMsgBus.messages_tag_count isn't updated, caller must handle.
- */
 void wm_msg_subscribe_value_free(wmMsgSubscribeKey *msg_key, wmMsgSubscribeValueLink *msg_lnk)
 {
   if (msg_lnk->params.free_data) {

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bpygpu
@@ -48,7 +34,14 @@ typedef struct BPyGPUBuffer {
 } BPyGPUBuffer;
 
 size_t bpygpu_Buffer_size(BPyGPUBuffer *buffer);
-BPyGPUBuffer *BPyGPU_Buffer_CreatePyObject(const int format,
+/**
+ * Create a buffer object
+ *
+ * \param shape: An array of `shape_len` integers representing the size of each dimension.
+ * \param buffer: When not NULL holds a contiguous buffer
+ * with the correct format from which the buffer will be initialized
+ */
+BPyGPUBuffer *BPyGPU_Buffer_CreatePyObject(int format,
                                            const Py_ssize_t *shape,
-                                           const int shape_len,
+                                           int shape_len,
                                            void *buffer);

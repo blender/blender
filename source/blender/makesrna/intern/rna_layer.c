@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -52,6 +38,8 @@
 #  include "BKE_mesh.h"
 #  include "BKE_node.h"
 #  include "BKE_scene.h"
+
+#  include "NOD_composite.h"
 
 #  include "BLI_listbase.h"
 
@@ -110,13 +98,24 @@ static void rna_LayerObjects_active_object_set(PointerRNA *ptr,
   }
 }
 
+size_t rna_ViewLayer_path_buffer_get(ViewLayer *view_layer,
+                                     char *r_rna_path,
+                                     const size_t rna_path_buffer_size)
+{
+  char name_esc[sizeof(view_layer->name) * 2];
+  BLI_str_escape(name_esc, view_layer->name, sizeof(name_esc));
+
+  return BLI_snprintf_rlen(r_rna_path, rna_path_buffer_size, "view_layers[\"%s\"]", name_esc);
+}
+
 static char *rna_ViewLayer_path(PointerRNA *ptr)
 {
-  ViewLayer *srl = (ViewLayer *)ptr->data;
-  char name_esc[sizeof(srl->name) * 2];
+  ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  char rna_path[sizeof(view_layer->name) * 3];
 
-  BLI_str_escape(name_esc, srl->name, sizeof(name_esc));
-  return BLI_sprintfN("view_layers[\"%s\"]", name_esc);
+  rna_ViewLayer_path_buffer_get(view_layer, rna_path, sizeof(rna_path));
+
+  return BLI_strdup(rna_path);
 }
 
 static IDProperty **rna_ViewLayer_idprops(PointerRNA *ptr)

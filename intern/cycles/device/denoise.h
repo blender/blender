@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #pragma once
 
@@ -72,6 +59,9 @@ class DenoiseParams : public Node {
   bool use_pass_albedo = true;
   bool use_pass_normal = true;
 
+  /* Configure the denoiser to use motion vectors, previous image and a temporally stable model. */
+  bool temporally_stable = false;
+
   DenoiserPrefilter prefilter = DENOISER_PREFILTER_FAST;
 
   static const NodeEnum *get_type_enum();
@@ -83,7 +73,8 @@ class DenoiseParams : public Node {
   {
     return !(use == other.use && type == other.type && start_sample == other.start_sample &&
              use_pass_albedo == other.use_pass_albedo &&
-             use_pass_normal == other.use_pass_normal && prefilter == other.prefilter);
+             use_pass_normal == other.use_pass_normal &&
+             temporally_stable == other.temporally_stable && prefilter == other.prefilter);
   }
 };
 

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2011 Blender Foundation.
+
 # - Find Fftw3 library
 # Find the native Fftw3 includes and library
 # This module defines
@@ -10,13 +13,6 @@
 #
 # also defined, but not for general use are
 #  FFTW3_LIBRARY, where to find the Fftw3 library.
-
-#=============================================================================
-# Copyright 2011 Blender Foundation.
-#
-# Distributed under the OSI-approved BSD 3-Clause License,
-# see accompanying file BSD-3-Clause-license.txt for details.
-#=============================================================================
 
 # If FFTW3_ROOT_DIR was defined in the environment, use it.
 IF(NOT FFTW3_ROOT_DIR AND NOT $ENV{FFTW3_ROOT_DIR} STREQUAL "")

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup mathutils
@@ -1180,10 +1166,8 @@ static PyObject *C_BVHTree_FromObject(PyObject *UNUSED(cls), PyObject *args, PyO
     tree = BLI_bvhtree_new((int)tris_len, epsilon, PY_BVH_TREE_TYPE_DEFAULT, PY_BVH_AXIS_DEFAULT);
     if (tree) {
       orig_index = MEM_mallocN(sizeof(*orig_index) * (size_t)tris_len, __func__);
-      CustomData *pdata = &mesh->pdata;
-      orig_normal = CustomData_get_layer(pdata, CD_NORMAL); /* can be NULL */
-      if (orig_normal) {
-        orig_normal = MEM_dupallocN(orig_normal);
+      if (!BKE_mesh_poly_normals_are_dirty(mesh)) {
+        orig_normal = MEM_dupallocN(BKE_mesh_poly_normals_ensure(mesh));
       }
 
       for (i = 0; i < tris_len; i++, lt++) {

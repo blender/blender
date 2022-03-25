@@ -1,19 +1,6 @@
-/*
+/* SPDX-License-Identifier: Apache-2.0
  * Copyright 2019, NVIDIA Corporation.
- * Copyright 2019, Blender Foundation.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * Copyright 2019-2022 Blender Foundation. */
 
 #pragma once
 
@@ -21,6 +8,7 @@
 #include <optix.h>
 
 #define __KERNEL_GPU__
+#define __KERNEL_GPU_RAYTRACING__
 #define __KERNEL_CUDA__ /* OptiX kernels are implicitly CUDA kernels too */
 #define __KERNEL_OPTIX__
 #define CCL_NAMESPACE_BEGIN
@@ -49,10 +37,11 @@ typedef unsigned long long uint64_t;
   __device__ __forceinline__  // Function calls are bad for OptiX performance, so inline everything
 #define ccl_device_inline ccl_device
 #define ccl_device_forceinline ccl_device
+#define ccl_device_inline_method ccl_device
 #define ccl_device_noinline __device__ __noinline__
 #define ccl_device_noinline_cpu ccl_device
 #define ccl_global
-#define ccl_static_constant __constant__
+#define ccl_inline_constant __constant__
 #define ccl_device_constant __constant__ __device__
 #define ccl_constant const
 #define ccl_gpu_shared __shared__
@@ -85,8 +74,6 @@ typedef unsigned long long uint64_t;
 
 #define ccl_gpu_syncthreads() __syncthreads()
 #define ccl_gpu_ballot(predicate) __ballot_sync(0xFFFFFFFF, predicate)
-#define ccl_gpu_shfl_down_sync(mask, var, detla) __shfl_down_sync(mask, var, detla)
-#define ccl_gpu_popc(x) __popc(x)
 
 /* GPU texture objects */
 

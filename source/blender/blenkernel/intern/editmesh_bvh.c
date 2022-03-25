@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2010 by Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2010 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -565,9 +549,6 @@ static bool bmbvh_overlap_cb(void *userdata, int index_a, int index_b, int UNUSE
           ((verts_shared == 0) || (len_squared_v3v3(ix_pair[0], ix_pair[1]) > data->epsilon)));
 }
 
-/**
- * Overlap indices reference the looptri's
- */
 BVHTreeOverlap *BKE_bmbvh_overlap(const BMBVHTree *bmtree_a,
                                   const BMBVHTree *bmtree_b,
                                   unsigned int *r_overlap_tot)
@@ -591,9 +572,6 @@ static bool bmbvh_overlap_self_cb(void *userdata, int index_a, int index_b, int 
   return false;
 }
 
-/**
- * Overlap indices reference the looptri's
- */
 BVHTreeOverlap *BKE_bmbvh_overlap_self(const BMBVHTree *bmtree, unsigned int *r_overlap_tot)
 {
   struct BMBVHTree_OverlapData data;

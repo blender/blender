@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #ifndef __ATTRIBUTE_H__
 #define __ATTRIBUTE_H__
@@ -47,12 +34,7 @@ struct Transform;
  *
  * The values of this enumeration are also used as flags to detect changes in AttributeSet. */
 
-enum AttrKernelDataType {
-  FLOAT = 0,
-  FLOAT2 = 1,
-  FLOAT3 = 2,
-  UCHAR4 = 3,
-};
+enum AttrKernelDataType { FLOAT = 0, FLOAT2 = 1, FLOAT3 = 2, FLOAT4 = 3, UCHAR4 = 4, NUM = 5 };
 
 /* Attribute
  *

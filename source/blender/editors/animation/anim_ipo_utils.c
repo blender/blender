@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edanimation
@@ -38,19 +22,12 @@
 #include "DNA_anim_types.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "ED_anim_api.h"
 
 /* ----------------------- Getter functions ----------------------- */
 
-/**
- * Write into "name" buffer, the name of the property
- * (retrieved using RNA from the curve's settings),
- * and return the icon used for the struct that this property refers to
- *
- * \warning name buffer we're writing to cannot exceed 256 chars
- * (check anim_channels_defines.c for details).
- */
 int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 {
   int icon = 0;

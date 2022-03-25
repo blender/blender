@@ -1,4 +1,4 @@
-/* Apache License, Version 2.0 */
+/* SPDX-License-Identifier: Apache-2.0 */
 
 #include "BLI_array.hh"
 #include "BLI_exception_safety_test_utils.hh"
@@ -231,9 +231,11 @@ TEST(array, Last)
 {
   Array<int> array = {5, 7, 8, 9};
   EXPECT_EQ(array.last(), 9);
+  EXPECT_EQ(array.last(1), 8);
   array.last() = 1;
   EXPECT_EQ(array[3], 1);
   EXPECT_EQ(const_cast<const Array<int> &>(array).last(), 1);
+  EXPECT_EQ(const_cast<const Array<int> &>(array).last(2), 7);
 }
 
 TEST(array, Reinitialize)

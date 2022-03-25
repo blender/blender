@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2016, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 Blender Foundation. */
 
 /** \file
  * \ingroup draw
@@ -81,47 +66,70 @@ typedef struct SELECTID_Context {
 } SELECTID_Context;
 
 /* draw_select_buffer.c */
-bool DRW_select_buffer_elem_get(const uint sel_id,
-                                uint *r_elem,
-                                uint *r_base_index,
-                                char *r_elem_type);
+
+bool DRW_select_buffer_elem_get(uint sel_id, uint *r_elem, uint *r_base_index, char *r_elem_type);
 uint DRW_select_buffer_context_offset_for_object_elem(struct Depsgraph *depsgraph,
                                                       struct Object *object,
                                                       char elem_type);
+/**
+ * Main function to read a block of pixels from the select frame buffer.
+ */
 uint *DRW_select_buffer_read(struct Depsgraph *depsgraph,
                              struct ARegion *region,
                              struct View3D *v3d,
                              const rcti *rect,
                              uint *r_buf_len);
+/**
+ * \param rect: The rectangle to sample indices from (min/max inclusive).
+ * \returns a #BLI_bitmap the length of \a bitmap_len or NULL on failure.
+ */
 uint *DRW_select_buffer_bitmap_from_rect(struct Depsgraph *depsgraph,
                                          struct ARegion *region,
                                          struct View3D *v3d,
                                          const struct rcti *rect,
                                          uint *r_bitmap_len);
+/**
+ * \param center: Circle center.
+ * \param radius: Circle radius.
+ * \param r_bitmap_len: Number of indices in the selection id buffer.
+ * \returns a #BLI_bitmap the length of \a r_bitmap_len or NULL on failure.
+ */
 uint *DRW_select_buffer_bitmap_from_circle(struct Depsgraph *depsgraph,
                                            struct ARegion *region,
                                            struct View3D *v3d,
                                            const int center[2],
-                                           const int radius,
+                                           int radius,
                                            uint *r_bitmap_len);
+/**
+ * \param poly: The polygon coordinates.
+ * \param poly_len: Length of the polygon.
+ * \param rect: Polygon boundaries.
+ * \returns a #BLI_bitmap.
+ */
 uint *DRW_select_buffer_bitmap_from_poly(struct Depsgraph *depsgraph,
                                          struct ARegion *region,
                                          struct View3D *v3d,
                                          const int poly[][2],
-                                         const int poly_len,
+                                         int poly_len,
                                          const struct rcti *rect,
                                          uint *r_bitmap_len);
+/**
+ * Samples a single pixel.
+ */
 uint DRW_select_buffer_sample_point(struct Depsgraph *depsgraph,
                                     struct ARegion *region,
                                     struct View3D *v3d,
                                     const int center[2]);
+/**
+ * Find the selection id closest to \a center.
+ * \param dist: Use to initialize the distance,
+ * when found, this value is set to the distance of the selection that's returned.
+ */
 uint DRW_select_buffer_find_nearest_to_point(struct Depsgraph *depsgraph,
                                              struct ARegion *region,
                                              struct View3D *v3d,
                                              const int center[2],
-                                             const uint id_min,
-                                             const uint id_max,
+                                             uint id_min,
+                                             uint id_max,
                                              uint *dist);
-void DRW_select_buffer_context_create(struct Base **bases,
-                                      const uint bases_len,
-                                      short select_mode);
+void DRW_select_buffer_context_create(struct Base **bases, uint bases_len, short select_mode);

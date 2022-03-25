@@ -1,22 +1,5 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# The Original Code is Copyright (C) 2006, Blender Foundation
-# All rights reserved.
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright 2006 Blender Foundation. All rights reserved.
 
 set(INC
   .
@@ -26,6 +9,7 @@ set(INC
   ../depsgraph
   ../makesdna
   ../../../intern/atomic
+  ../../../intern/clog
   ../../../intern/eigen
   ../../../intern/guardedalloc
   ../../../extern/rangetree
@@ -98,8 +82,10 @@ set(SRC
   intern/bmesh_marking.h
   intern/bmesh_mesh.c
   intern/bmesh_mesh.h
-  intern/bmesh_mesh_convert.c
+  intern/bmesh_mesh_convert.cc
   intern/bmesh_mesh_convert.h
+  intern/bmesh_mesh_debug.c
+  intern/bmesh_mesh_debug.h
   intern/bmesh_mesh_duplicate.c
   intern/bmesh_mesh_duplicate.h
   intern/bmesh_mesh_normals.c
@@ -191,7 +177,7 @@ set(LIB
 if(WITH_BULLET)
   list(APPEND INC_SYS
     ${BULLET_INCLUDE_DIRS}
-    "../../../intern/rigidbody/"
+    ../../../intern/rigidbody
   )
   if(NOT WITH_SYSTEM_BULLET)
   list(APPEND LIB
@@ -203,10 +189,6 @@ if(WITH_BULLET)
     ${BULLET_LIBRARIES}
   )
   add_definitions(-DWITH_BULLET)
-endif()
-
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 if(WITH_FREESTYLE)

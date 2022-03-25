@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2004 by Blender Foundation
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2004 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edmesh
@@ -153,22 +137,22 @@ static void join_mesh_single(Depsgraph *depsgraph,
         mul_m4_v3(cmat, mvert->co);
       }
 
-      /* For each shapekey in destination mesh:
+      /* For each shape-key in destination mesh:
        * - if there's a matching one, copy it across
        *   (will need to transform vertices into new space...).
        * - otherwise, just copy own coordinates of mesh
        *   (no need to transform vertex coordinates into new space).
        */
       if (key) {
-        /* if this mesh has any shapekeys, check first, otherwise just copy coordinates */
+        /* if this mesh has any shape-keys, check first, otherwise just copy coordinates */
         LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-          /* get pointer to where to write data for this mesh in shapekey's data array */
+          /* get pointer to where to write data for this mesh in shape-key's data array */
           float(*cos)[3] = ((float(*)[3])kb->data) + *vertofs;
 
-          /* check if this mesh has such a shapekey */
+          /* Check if this mesh has such a shape-key. */
           KeyBlock *okb = me->key ? BKE_keyblock_find_name(me->key, kb->name) : NULL;
           if (okb) {
-            /* copy this mesh's shapekey to the destination shapekey
+            /* copy this mesh's shape-key to the destination shape-key
              * (need to transform first) */
             float(*ocos)[3] = okb->data;
             for (a = 0; a < me->totvert; a++, cos++, ocos++) {
@@ -177,7 +161,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
             }
           }
           else {
-            /* copy this mesh's vertex coordinates to the destination shapekey */
+            /* Copy this mesh's vertex coordinates to the destination shape-key. */
             for (a = 0, mvert = *mvert_pp; a < me->totvert; a++, cos++, mvert++) {
               copy_v3_v3(*cos, mvert->co);
             }
@@ -186,26 +170,26 @@ static void join_mesh_single(Depsgraph *depsgraph,
       }
     }
     else {
-      /* for each shapekey in destination mesh:
+      /* for each shape-key in destination mesh:
        * - if it was an 'original', copy the appropriate data from nkey
        * - otherwise, copy across plain coordinates (no need to transform coordinates)
        */
       if (key) {
         LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-          /* get pointer to where to write data for this mesh in shapekey's data array */
+          /* get pointer to where to write data for this mesh in shape-key's data array */
           float(*cos)[3] = ((float(*)[3])kb->data) + *vertofs;
 
-          /* check if this was one of the original shapekeys */
+          /* Check if this was one of the original shape-keys. */
           KeyBlock *okb = nkey ? BKE_keyblock_find_name(nkey, kb->name) : NULL;
           if (okb) {
-            /* copy this mesh's shapekey to the destination shapekey */
+            /* copy this mesh's shape-key to the destination shape-key */
             float(*ocos)[3] = okb->data;
             for (a = 0; a < me->totvert; a++, cos++, ocos++) {
               copy_v3_v3(*cos, *ocos);
             }
           }
           else {
-            /* copy base-coordinates to the destination shapekey */
+            /* Copy base-coordinates to the destination shape-key. */
             for (a = 0, mvert = *mvert_pp; a < me->totvert; a++, cos++, mvert++) {
               copy_v3_v3(*cos, mvert->co);
             }
@@ -381,7 +365,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
         join_parent = true;
       }
 
-      /* check for shapekeys */
+      /* Check for shape-keys. */
       if (me->key) {
         haskey++;
       }
@@ -428,6 +412,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
    * Even though this mesh wont typically have run-time data, the Python API can for e.g.
    * create loop-triangle cache here, which is confusing when left in the mesh, see: T90798. */
   BKE_mesh_runtime_clear_geometry(me);
+  BKE_mesh_clear_derived_normals(me);
 
   /* new material indices and material array */
   if (totmat) {
@@ -443,10 +428,10 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
     /* increase id->us : will be lowered later */
   }
 
-  /* - if destination mesh had shapekeys, move them somewhere safe, and set up placeholders
-   *   with arrays that are large enough to hold shapekey data for all meshes
-   * - if destination mesh didn't have shapekeys, but we encountered some in the meshes we're
-   *   joining, set up a new keyblock and assign to the mesh
+  /* - If destination mesh had shape-keys, move them somewhere safe, and set up placeholders
+   *   with arrays that are large enough to hold shape-key data for all meshes.
+   * - If destination mesh didn't have shape-keys, but we encountered some in the meshes we're
+   *   joining, set up a new key-block and assign to the mesh.
    */
   if (key) {
     /* make a duplicate copy that will only be used here... (must remember to free it!) */
@@ -533,8 +518,8 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
           }
         }
 
-        /* if this mesh has shapekeys,
-         * check if destination mesh already has matching entries too */
+        /* If this mesh has shape-keys,
+         * check if destination mesh already has matching entries too. */
         if (me->key && key) {
           /* for remapping KeyBlock.relative */
           int *index_map = MEM_mallocN(sizeof(int) * me->key->totkey, __func__);
@@ -728,7 +713,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   /* other mesh users */
   BKE_objects_materials_test_all(bmain, (ID *)me);
 
-  /* free temp copy of destination shapekeys (if applicable) */
+  /* Free temporary copy of destination shape-keys (if applicable). */
   if (nkey) {
     /* We can assume nobody is using that ID currently. */
     BKE_id_free_ex(bmain, nkey, LIB_ID_FREE_NO_UI_USER, false);
@@ -755,10 +740,9 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
 /* -------------------------------------------------------------------- */
 /** \name Join as Shapes
+ *
+ * Append selected meshes vertex locations as shapes of the active mesh.
  * \{ */
-
-/* Append selected meshes vertex locations as shapes of the active mesh,
- * return 0 if no join is made (error) and 1 of the join is done */
 
 int ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op)
 {
@@ -876,12 +860,6 @@ BLI_INLINE void mesh_mirror_topo_table_get_meshes(Object *ob,
   *r_em_mirror = em_mirror;
 }
 
-/**
- * Mode is 's' start, or 'e' end, or 'u' use
- * if end, ob can be NULL.
- * \note This is supposed return -1 on error,
- * which callers are currently checking for, but is not used so far.
- */
 void ED_mesh_mirror_topo_table_begin(Object *ob, Mesh *me_eval)
 {
   Mesh *me_mirror;
@@ -1012,11 +990,6 @@ BMVert *editbmesh_get_x_mirror_vert(Object *ob,
   return editbmesh_get_x_mirror_vert_spatial(ob, em, co);
 }
 
-/**
- * Wrapper for object-mode/edit-mode.
- *
- * call #BM_mesh_elem_table_ensure first for editmesh.
- */
 int ED_mesh_mirror_get_vert(Object *ob, int index)
 {
   Mesh *me = ob->data;
@@ -1146,7 +1119,6 @@ static bool mirror_facecmp(const void *a, const void *b)
   return (mirror_facerotation((MFace *)a, (MFace *)b) == -1);
 }
 
-/* This is a Mesh-based copy of mesh_get_x_mirror_faces() */
 int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
 {
   Mesh *me = ob->data;
@@ -1209,15 +1181,8 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
   return mirrorfaces;
 }
 
-/* selection, vertex and face */
-/* returns 0 if not found, otherwise 1 */
+/* Selection (vertex and face). */
 
-/**
- * Face selection in object mode,
- * currently only weight-paint and vertex-paint use this.
- *
- * \return boolean true == Found
- */
 bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], uint dist_px, uint *r_index)
 {
   ViewContext vc;
@@ -1280,10 +1245,6 @@ static void ed_mesh_pick_face_vert__mpoly_find(
     }
   }
 }
-/**
- * Use when the back buffer stores face index values. but we want a vert.
- * This gets the face then finds the closest vertex to mval.
- */
 bool ED_mesh_pick_face_vert(
     bContext *C, Object *ob, const int mval[2], uint dist_px, uint *r_index)
 {
@@ -1387,8 +1348,7 @@ typedef struct VertPickData {
 static void ed_mesh_pick_vert__mapFunc(void *userData,
                                        int index,
                                        const float co[3],
-                                       const float UNUSED(no_f[3]),
-                                       const short UNUSED(no_s[3]))
+                                       const float UNUSED(no[3]))
 {
   VertPickData *data = userData;
   if ((data->mvert[index].flag & ME_HIDE) == 0) {

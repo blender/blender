@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup DNA
@@ -77,7 +61,7 @@ typedef struct Bone {
   /** dist, weight: for non-deformgroup deforms. */
   float dist, weight;
   /**
-   * The width for block bones.
+   * The width for block bones. The final X/Z bone widths are double these values.
    *
    * \note keep in this order for transform code which stores a pointer to `xwidth`,
    * accessing length and `zwidth` as offsets.
@@ -124,11 +108,11 @@ typedef struct bArmature {
 
   ListBase bonebase;
 
-  /** Ghash for quicker lookups of bones by name. */
+  /** Use a hash-table for quicker lookups of bones by name. */
   struct GHash *bonehash;
   void *_pad1;
 
-  /** Editbone listbase, we use pointer so we can check state. */
+  /** #EditBone list (use an allocated pointer so the state can be checked). */
   ListBase *edbo;
 
   /* active bones should work like active object where possible

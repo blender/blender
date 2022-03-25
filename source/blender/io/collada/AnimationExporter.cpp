@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup collada
@@ -126,7 +112,6 @@ bool AnimationExporter::exportAnimations()
   return animation_count;
 }
 
-/* called for each exported object */
 void AnimationExporter::exportAnimation(Object *ob, BCAnimationSampler &sampler)
 {
   bool container_is_open = false;
@@ -165,16 +150,6 @@ void AnimationExporter::exportAnimation(Object *ob, BCAnimationSampler &sampler)
   close_animation_container(container_is_open);
 }
 
-/*
- * Export all animation FCurves of an Object.
- *
- * NOTE: This uses the keyframes as sample points,
- * and exports "baked keyframes" while keeping the tangent information
- * of the FCurves intact. This works for simple cases, but breaks
- * especially when negative scales are involved in the animation.
- * And when parent inverse matrices are involved (when exporting
- * object hierarchies)
- */
 void AnimationExporter::export_curve_animation_set(Object *ob,
                                                    BCAnimationSampler &sampler,
                                                    bool export_as_matrix)
@@ -254,7 +229,6 @@ BC_global_rotation_type AnimationExporter::get_global_rotation_type(Object *ob)
   return (apply_global_rotation) ? BC_DATA_ROTATION : BC_OBJECT_ROTATION;
 }
 
-/* Write bone animations in transform matrix sources. */
 void AnimationExporter::export_bone_animations_recursive(Object *ob,
                                                          Bone *bone,
                                                          BCAnimationSampler &sampler)
@@ -277,14 +251,6 @@ void AnimationExporter::export_bone_animations_recursive(Object *ob,
   }
 }
 
-/**
- * In some special cases the exported Curve needs to be replaced
- * by a modified curve (for collada purposes)
- * This method checks if a conversion is necessary and if applicable
- * returns a pointer to the modified BCAnimationCurve.
- * IMPORTANT: the modified curve must be deleted by the caller when no longer needed
- * if no conversion is needed this method returns a NULL;
- */
 BCAnimationCurve *AnimationExporter::get_modified_export_curve(Object *ob,
                                                                BCAnimationCurve &curve,
                                                                BCAnimationCurveMap &curves)
@@ -549,7 +515,7 @@ void AnimationExporter::add_source_parameters(COLLADASW::SourceBase::ParameterNa
           param.push_back("TRANSFORM");
         }
         else {
-          /* assumes if axis isn't specified all axises are added */
+          /* assumes if axis isn't specified all axes are added */
           param.push_back("X");
           param.push_back("Y");
           param.push_back("Z");
@@ -657,9 +623,6 @@ std::string AnimationExporter::collada_source_from_values(
   return source_id;
 }
 
-/*
- * Create a collada matrix source for a set of samples
- */
 std::string AnimationExporter::collada_source_from_values(
     BCMatrixSampleMap &samples,
     const std::string &anim_id,
@@ -823,10 +786,6 @@ std::string AnimationExporter::get_collada_name(std::string channel_type) const
   return tm_name;
 }
 
-/*
- * Assign sid of the animated parameter or transform for rotation,
- * axis name is always appended and the value of append_axis is ignored
- */
 std::string AnimationExporter::get_collada_sid(const BCAnimationCurve &curve,
                                                const std::string axis_name)
 {

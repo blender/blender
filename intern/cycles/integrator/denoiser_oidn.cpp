@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "integrator/denoiser_oidn.h"
 
@@ -37,8 +24,6 @@ OIDNDenoiser::OIDNDenoiser(Device *path_trace_device, const DenoiseParams &param
     : Denoiser(path_trace_device, params)
 {
   DCHECK_EQ(params.type, DENOISER_OPENIMAGEDENOISE);
-
-  DCHECK(openimagedenoise_supported()) << "OpenImageDenoiser is not supported on this platform.";
 }
 
 #ifdef WITH_OPENIMAGEDENOISE
@@ -47,9 +32,6 @@ static bool oidn_progress_monitor_function(void *user_ptr, double /*n*/)
   OIDNDenoiser *oidn_denoiser = reinterpret_cast<OIDNDenoiser *>(user_ptr);
   return !oidn_denoiser->is_cancelled();
 }
-#endif
-
-#ifdef WITH_OPENIMAGEDENOISE
 
 class OIDNPass {
  public:
@@ -547,7 +529,6 @@ class OIDNDenoiseContext {
    * the fake values and denoising of passes which do need albedo can no longer happen. */
   bool albedo_replaced_with_fake_ = false;
 };
-#endif
 
 static unique_ptr<DeviceQueue> create_device_queue(const RenderBuffers *render_buffers)
 {
@@ -582,18 +563,23 @@ static void copy_render_buffers_to_device(unique_ptr<DeviceQueue> &queue,
   }
 }
 
+#endif
+
 bool OIDNDenoiser::denoise_buffer(const BufferParams &buffer_params,
                                   RenderBuffers *render_buffers,
                                   const int num_samples,
                                   bool allow_inplace_modification)
 {
+  DCHECK(openimagedenoise_supported())
+      << "OpenImageDenoiser is not supported on this platform or build.";
+
+#ifdef WITH_OPENIMAGEDENOISE
   thread_scoped_lock lock(mutex_);
 
   /* Make sure the host-side data is available for denoising. */
   unique_ptr<DeviceQueue> queue = create_device_queue(render_buffers);
   copy_render_buffers_from_device(queue, render_buffers);
 
-#ifdef WITH_OPENIMAGEDENOISE
   OIDNDenoiseContext context(
       this, params_, buffer_params, render_buffers, num_samples, allow_inplace_modification);
 
@@ -620,6 +606,11 @@ bool OIDNDenoiser::denoise_buffer(const BufferParams &buffer_params,
      * copies data from the device it doesn't overwrite the denoiser buffers. */
     copy_render_buffers_to_device(queue, render_buffers);
   }
+#else
+  (void)buffer_params;
+  (void)render_buffers;
+  (void)num_samples;
+  (void)allow_inplace_modification;
 #endif
 
   /* This code is not supposed to run when compiled without OIDN support, so can assume if we made
@@ -630,6 +621,22 @@ bool OIDNDenoiser::denoise_buffer(const BufferParams &buffer_params,
 uint OIDNDenoiser::get_device_type_mask() const
 {
   return DEVICE_MASK_CPU;
+}
+
+Device *OIDNDenoiser::ensure_denoiser_device(Progress *progress)
+{
+#ifndef WITH_OPENIMAGEDENOISE
+  path_trace_device_->set_error("Build without OpenImageDenoiser");
+  return nullptr;
+#else
+  if (!openimagedenoise_supported()) {
+    path_trace_device_->set_error(
+        "OpenImageDenoiser is not supported on this CPU: missing SSE 4.1 support");
+    return nullptr;
+  }
+
+  return Denoiser::ensure_denoiser_device(progress);
+#endif
 }
 
 CCL_NAMESPACE_END

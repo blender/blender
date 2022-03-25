@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -35,8 +21,9 @@ class Geometry : public SocketDeclaration {
  public:
   using Builder = GeometryBuilder;
 
-  bNodeSocket &build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const override;
+  bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
   bool matches(const bNodeSocket &socket) const override;
+  bool can_connect(const bNodeSocket &socket) const override;
 
   Span<GeometryComponentType> supported_types() const;
   bool only_realized_data() const;
@@ -52,7 +39,3 @@ class GeometryBuilder : public SocketDeclarationBuilder<Geometry> {
 };
 
 }  // namespace blender::nodes::decl
-
-namespace blender::nodes {
-MAKE_EXTERN_SOCKET_DECLARATION(decl::Geometry)
-}

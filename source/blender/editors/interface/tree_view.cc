@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -39,8 +25,8 @@ namespace blender::ui {
 /* ---------------------------------------------------------------------- */
 
 /**
- * Add a tree-item to the container. This is the only place where items should be added, it handles
- * important invariants!
+ * Add a tree-item to the container. This is the only place where items should be added, it
+ * handles important invariants!
  */
 AbstractTreeViewItem &TreeViewItemContainer::add_tree_item(
     std::unique_ptr<AbstractTreeViewItem> item)
@@ -87,19 +73,6 @@ bool AbstractTreeView::is_renaming() const
   return rename_buffer_ != nullptr;
 }
 
-void AbstractTreeView::build_layout_from_tree(const TreeViewLayoutBuilder &builder)
-{
-  uiLayout *prev_layout = builder.current_layout();
-
-  uiLayout *box = uiLayoutBox(prev_layout);
-  uiLayoutColumn(box, false);
-
-  foreach_item([&builder](AbstractTreeViewItem &item) { builder.build_row(item); },
-               IterOptions::SkipCollapsed);
-
-  UI_block_layout_set_current(&builder.block(), prev_layout);
-}
-
 void AbstractTreeView::update_from_old(uiBlock &new_block)
 {
   uiBlock *old_block = new_block.oldblock;
@@ -111,7 +84,10 @@ void AbstractTreeView::update_from_old(uiBlock &new_block)
 
   uiTreeViewHandle *old_view_handle = ui_block_view_find_matching_in_old_block(
       &new_block, reinterpret_cast<uiTreeViewHandle *>(this));
-  BLI_assert(old_view_handle);
+  if (old_view_handle == nullptr) {
+    is_reconstructed_ = true;
+    return;
+  }
 
   AbstractTreeView &old_view = reinterpret_cast<AbstractTreeView &>(*old_view_handle);
 
@@ -127,8 +103,8 @@ void AbstractTreeView::update_from_old(uiBlock &new_block)
   is_reconstructed_ = true;
 }
 
-void AbstractTreeView::update_children_from_old_recursive(const TreeViewItemContainer &new_items,
-                                                          const TreeViewItemContainer &old_items)
+void AbstractTreeView::update_children_from_old_recursive(const TreeViewOrItem &new_items,
+                                                          const TreeViewOrItem &old_items)
 {
   for (const auto &new_item : new_items.children_) {
     AbstractTreeViewItem *matching_old_item = find_matching_child(*new_item, old_items);
@@ -144,7 +120,7 @@ void AbstractTreeView::update_children_from_old_recursive(const TreeViewItemCont
 }
 
 AbstractTreeViewItem *AbstractTreeView::find_matching_child(
-    const AbstractTreeViewItem &lookup_item, const TreeViewItemContainer &items)
+    const AbstractTreeViewItem &lookup_item, const TreeViewOrItem &items)
 {
   for (const auto &iter_item : items.children_) {
     if (lookup_item.matches(*iter_item)) {
@@ -180,6 +156,9 @@ void AbstractTreeViewItem::tree_row_click_fn(struct bContext * /*C*/,
       *tree_row_but->tree_item);
 
   tree_item.activate();
+  /* Not only activate the item, also show its children. Maybe this should be optional, or
+   * controlled by the specific tree-view. */
+  tree_item.set_collapsed(false);
 }
 
 void AbstractTreeViewItem::add_treerow_button(uiBlock &block)
@@ -350,9 +329,14 @@ void AbstractTreeViewItem::on_activate()
   /* Do nothing by default. */
 }
 
-void AbstractTreeViewItem::is_active(IsActiveFn is_active_fn)
+std::optional<bool> AbstractTreeViewItem::should_be_active() const
 {
-  is_active_fn_ = is_active_fn;
+  return std::nullopt;
+}
+
+bool AbstractTreeViewItem::supports_collapsing() const
+{
+  return true;
 }
 
 std::unique_ptr<AbstractTreeViewItemDragController> AbstractTreeViewItem::create_drag_controller()
@@ -369,7 +353,7 @@ std::unique_ptr<AbstractTreeViewItemDropController> AbstractTreeViewItem::create
   return nullptr;
 }
 
-bool AbstractTreeViewItem::can_rename() const
+bool AbstractTreeViewItem::supports_renaming() const
 {
   /* No renaming by default. */
   return false;
@@ -403,7 +387,7 @@ bool AbstractTreeViewItem::matches(const AbstractTreeViewItem &other) const
 void AbstractTreeViewItem::begin_renaming()
 {
   AbstractTreeView &tree_view = get_tree_view();
-  if (tree_view.is_renaming() || !can_rename()) {
+  if (tree_view.is_renaming() || !supports_renaming()) {
     return;
   }
 
@@ -433,7 +417,7 @@ AbstractTreeView &AbstractTreeViewItem::get_tree_view() const
 int AbstractTreeViewItem::count_parents() const
 {
   int i = 0;
-  for (TreeViewItemContainer *parent = parent_; parent; parent = parent->parent_) {
+  for (AbstractTreeViewItem *parent = parent_; parent; parent = parent->parent_) {
     i++;
   }
   return i;
@@ -504,7 +488,10 @@ void AbstractTreeViewItem::set_collapsed(bool collapsed)
 
 bool AbstractTreeViewItem::is_collapsible() const
 {
-  return !children_.is_empty();
+  if (children_.is_empty()) {
+    return false;
+  }
+  return this->supports_collapsing();
 }
 
 bool AbstractTreeViewItem::is_renaming() const
@@ -546,10 +533,24 @@ uiButTreeRow *AbstractTreeViewItem::tree_row_button()
 
 void AbstractTreeViewItem::change_state_delayed()
 {
-  if (is_active_fn_()) {
+  const std::optional<bool> should_be_active = this->should_be_active();
+  if (should_be_active.has_value() && *should_be_active) {
     activate();
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+AbstractTreeViewItemDragController::AbstractTreeViewItemDragController(AbstractTreeView &tree_view)
+    : tree_view_(tree_view)
+{
+}
+
+void AbstractTreeViewItemDragController::on_drag_start()
+{
+  /* Do nothing by default. */
+}
+
 /* ---------------------------------------------------------------------- */
 
 AbstractTreeViewItemDropController::AbstractTreeViewItemDropController(AbstractTreeView &tree_view)
@@ -559,30 +560,42 @@ AbstractTreeViewItemDropController::AbstractTreeViewItemDropController(AbstractT
 
 /* ---------------------------------------------------------------------- */
 
-TreeViewBuilder::TreeViewBuilder(uiBlock &block) : block_(block)
-{
-}
+class TreeViewLayoutBuilder {
+  uiBlock &block_;
 
-void TreeViewBuilder::build_tree_view(AbstractTreeView &tree_view)
-{
-  tree_view.build_tree();
-  tree_view.update_from_old(block_);
-  tree_view.change_state_delayed();
-  tree_view.build_layout_from_tree(TreeViewLayoutBuilder(block_));
-}
+  friend TreeViewBuilder;
 
-/* ---------------------------------------------------------------------- */
+ public:
+  void build_from_tree(const AbstractTreeView &tree_view);
+  void build_row(AbstractTreeViewItem &item) const;
+
+  uiBlock &block() const;
+  uiLayout *current_layout() const;
+
+ private:
+  /* Created through #TreeViewBuilder. */
+  TreeViewLayoutBuilder(uiBlock &block);
+
+  static void polish_layout(const uiBlock &block);
+};
 
 TreeViewLayoutBuilder::TreeViewLayoutBuilder(uiBlock &block) : block_(block)
 {
 }
 
-/**
- * Moves the button following the last added chevron closer to the list item.
- *
- * Iterates backwards over buttons until finding the tree-row button, which is assumed to be the
- * first button added for the row, and can act as a delimiter that way.
- */
+void TreeViewLayoutBuilder::build_from_tree(const AbstractTreeView &tree_view)
+{
+  uiLayout *prev_layout = current_layout();
+
+  uiLayout *box = uiLayoutBox(prev_layout);
+  uiLayoutColumn(box, false);
+
+  tree_view.foreach_item([this](AbstractTreeViewItem &item) { build_row(item); },
+                         AbstractTreeView::IterOptions::SkipCollapsed);
+
+  UI_block_layout_set_current(&block(), prev_layout);
+}
+
 void TreeViewLayoutBuilder::polish_layout(const uiBlock &block)
 {
   LISTBASE_FOREACH_BACKWARD (uiBut *, but, &block.buttons) {
@@ -642,6 +655,22 @@ uiLayout *TreeViewLayoutBuilder::current_layout() const
 
 /* ---------------------------------------------------------------------- */
 
+TreeViewBuilder::TreeViewBuilder(uiBlock &block) : block_(block)
+{
+}
+
+void TreeViewBuilder::build_tree_view(AbstractTreeView &tree_view)
+{
+  tree_view.build_tree();
+  tree_view.update_from_old(block_);
+  tree_view.change_state_delayed();
+
+  TreeViewLayoutBuilder builder(block_);
+  builder.build_from_tree(tree_view);
+}
+
+/* ---------------------------------------------------------------------- */
+
 BasicTreeViewItem::BasicTreeViewItem(StringRef label, BIFIconID icon_) : icon(icon_)
 {
   label_ = label;
@@ -670,12 +699,109 @@ void BasicTreeViewItem::on_activate()
   }
 }
 
-void BasicTreeViewItem::on_activate(ActivateFn fn)
+void BasicTreeViewItem::set_on_activate_fn(ActivateFn fn)
 {
   activate_fn_ = fn;
 }
 
+void BasicTreeViewItem::set_is_active_fn(IsActiveFn is_active_fn)
+{
+  is_active_fn_ = is_active_fn;
+}
+
+std::optional<bool> BasicTreeViewItem::should_be_active() const
+{
+  if (is_active_fn_) {
+    return is_active_fn_();
+  }
+  return std::nullopt;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/**
+ * Helper for a public (C-)API, presenting higher level functionality. Has access to internal
+ * data/functionality (friend of #AbstractTreeViewItem), which is sometimes needed when
+ * functionality of the API needs to be constructed from multiple internal conditions and/or
+ * functions that on their own shouldn't be part of the API.
+ */
+class TreeViewItemAPIWrapper {
+ public:
+  static bool matches(const AbstractTreeViewItem &a, const AbstractTreeViewItem &b)
+  {
+    /* TODO should match the tree-view as well. */
+    return a.matches_including_parents(b);
+  }
+
+  static bool drag_start(bContext &C, const AbstractTreeViewItem &item)
+  {
+    const std::unique_ptr<AbstractTreeViewItemDragController> drag_controller =
+        item.create_drag_controller();
+    if (!drag_controller) {
+      return false;
+    }
+
+    WM_event_start_drag(&C,
+                        ICON_NONE,
+                        drag_controller->get_drag_type(),
+                        drag_controller->create_drag_data(),
+                        0,
+                        WM_DRAG_FREE_DATA);
+    drag_controller->on_drag_start();
+
+    return true;
+  }
+
+  static bool can_drop(const AbstractTreeViewItem &item,
+                       const wmDrag &drag,
+                       const char **r_disabled_hint)
+  {
+    const std::unique_ptr<AbstractTreeViewItemDropController> drop_controller =
+        item.create_drop_controller();
+    if (!drop_controller) {
+      return false;
+    }
+
+    return drop_controller->can_drop(drag, r_disabled_hint);
+  }
+
+  static std::string drop_tooltip(const AbstractTreeViewItem &item, const wmDrag &drag)
+  {
+    const std::unique_ptr<AbstractTreeViewItemDropController> drop_controller =
+        item.create_drop_controller();
+    if (!drop_controller) {
+      return {};
+    }
+
+    return drop_controller->drop_tooltip(drag);
+  }
+
+  static bool drop_handle(bContext &C, const AbstractTreeViewItem &item, const ListBase &drags)
+  {
+    std::unique_ptr<AbstractTreeViewItemDropController> drop_controller =
+        item.create_drop_controller();
+
+    const char *disabled_hint_dummy = nullptr;
+    LISTBASE_FOREACH (const wmDrag *, drag, &drags) {
+      if (drop_controller->can_drop(*drag, &disabled_hint_dummy)) {
+        return drop_controller->on_drop(&C, *drag);
+      }
+    }
+
+    return false;
+  }
+
+  static bool can_rename(const AbstractTreeViewItem &item)
+  {
+    const AbstractTreeView &tree_view = item.get_tree_view();
+    return !tree_view.is_renaming() && item.supports_renaming();
+  }
+};
+
 }  // namespace blender::ui
+
+/* ---------------------------------------------------------------------- */
+/* C-API */
 
 using namespace blender::ui;
 
@@ -690,31 +816,13 @@ bool UI_tree_view_item_matches(const uiTreeViewItemHandle *a_handle,
 {
   const AbstractTreeViewItem &a = reinterpret_cast<const AbstractTreeViewItem &>(*a_handle);
   const AbstractTreeViewItem &b = reinterpret_cast<const AbstractTreeViewItem &>(*b_handle);
-  /* TODO should match the tree-view as well. */
-  return a.matches_including_parents(b);
+  return TreeViewItemAPIWrapper::matches(a, b);
 }
 
-/**
- * Attempt to start dragging the tree-item \a item_. This will not work if the tree item doesn't
- * support dragging, i.e. it won't create a drag-controller upon request.
- * \return True if dragging started successfully, otherwise false.
- */
 bool UI_tree_view_item_drag_start(bContext *C, uiTreeViewItemHandle *item_)
 {
   const AbstractTreeViewItem &item = reinterpret_cast<const AbstractTreeViewItem &>(*item_);
-  const std::unique_ptr<AbstractTreeViewItemDragController> drag_controller =
-      item.create_drag_controller();
-  if (!drag_controller) {
-    return false;
-  }
-
-  WM_event_start_drag(C,
-                      ICON_NONE,
-                      drag_controller->get_drag_type(),
-                      drag_controller->create_drag_data(),
-                      0,
-                      WM_DRAG_FREE_DATA);
-  return true;
+  return TreeViewItemAPIWrapper::drag_start(*C, item);
 }
 
 bool UI_tree_view_item_can_drop(const uiTreeViewItemHandle *item_,
@@ -722,57 +830,29 @@ bool UI_tree_view_item_can_drop(const uiTreeViewItemHandle *item_,
                                 const char **r_disabled_hint)
 {
   const AbstractTreeViewItem &item = reinterpret_cast<const AbstractTreeViewItem &>(*item_);
-  const std::unique_ptr<AbstractTreeViewItemDropController> drop_controller =
-      item.create_drop_controller();
-  if (!drop_controller) {
-    return false;
-  }
-
-  return drop_controller->can_drop(*drag, r_disabled_hint);
+  return TreeViewItemAPIWrapper::can_drop(item, *drag, r_disabled_hint);
 }
 
 char *UI_tree_view_item_drop_tooltip(const uiTreeViewItemHandle *item_, const wmDrag *drag)
 {
   const AbstractTreeViewItem &item = reinterpret_cast<const AbstractTreeViewItem &>(*item_);
-  const std::unique_ptr<AbstractTreeViewItemDropController> drop_controller =
-      item.create_drop_controller();
-  if (!drop_controller) {
-    return nullptr;
-  }
 
-  return BLI_strdup(drop_controller->drop_tooltip(*drag).c_str());
+  const std::string tooltip = TreeViewItemAPIWrapper::drop_tooltip(item, *drag);
+  return tooltip.empty() ? nullptr : BLI_strdup(tooltip.c_str());
 }
 
-/**
- * Let a tree-view item handle a drop event.
- * \return True if the drop was handled by the tree-view item.
- */
-bool UI_tree_view_item_drop_handle(uiTreeViewItemHandle *item_, const ListBase *drags)
+bool UI_tree_view_item_drop_handle(bContext *C,
+                                   const uiTreeViewItemHandle *item_,
+                                   const ListBase *drags)
 {
-  AbstractTreeViewItem &item = reinterpret_cast<AbstractTreeViewItem &>(*item_);
-  std::unique_ptr<AbstractTreeViewItemDropController> drop_controller =
-      item.create_drop_controller();
-
-  const char *disabled_hint_dummy = nullptr;
-  LISTBASE_FOREACH (const wmDrag *, drag, drags) {
-    if (drop_controller->can_drop(*drag, &disabled_hint_dummy)) {
-      return drop_controller->on_drop(*drag);
-    }
-  }
-
-  return false;
+  const AbstractTreeViewItem &item = reinterpret_cast<const AbstractTreeViewItem &>(*item_);
+  return TreeViewItemAPIWrapper::drop_handle(*C, item, *drags);
 }
 
-/**
- * Can \a item_handle be renamed right now? Not that this isn't just a mere wrapper around
- * #AbstractTreeViewItem::can_rename(). This also checks if there is another item being renamed,
- * and returns false if so.
- */
 bool UI_tree_view_item_can_rename(const uiTreeViewItemHandle *item_handle)
 {
   const AbstractTreeViewItem &item = reinterpret_cast<const AbstractTreeViewItem &>(*item_handle);
-  const AbstractTreeView &tree_view = item.get_tree_view();
-  return !tree_view.is_renaming() && item.can_rename();
+  return TreeViewItemAPIWrapper::can_rename(item);
 }
 
 void UI_tree_view_item_begin_rename(uiTreeViewItemHandle *item_handle)

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -37,7 +23,6 @@ void OVERLAY_volume_cache_init(OVERLAY_Data *vedata)
     GPUShader *sh = OVERLAY_shader_depth_only();
     DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->volume_ps);
     pd->volume_selection_surface_grp = grp;
-    DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
   }
   else {
     psl->volume_ps = NULL;

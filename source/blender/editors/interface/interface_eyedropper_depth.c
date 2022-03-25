@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edinterface
@@ -42,6 +26,7 @@
 #include "BKE_unit.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "UI_interface.h"
 
@@ -81,7 +66,7 @@ static void depthdropper_draw_cb(const struct bContext *UNUSED(C),
                                  void *arg)
 {
   DepthDropper *ddr = arg;
-  eyedropper_draw_cursor_text_region(UNPACK2(ddr->name_pos), ddr->name);
+  eyedropper_draw_cursor_text_region(ddr->name_pos, ddr->name);
 }
 
 static int depthdropper_init(bContext *C, wmOperator *op)
@@ -152,12 +137,14 @@ static void depthdropper_exit(bContext *C, wmOperator *op)
 /**
  * \brief get the ID from the screen.
  */
-static void depthdropper_depth_sample_pt(
-    bContext *C, DepthDropper *ddr, int mx, int my, float *r_depth)
+static void depthdropper_depth_sample_pt(bContext *C,
+                                         DepthDropper *ddr,
+                                         const int m_xy[2],
+                                         float *r_depth)
 {
   /* we could use some clever */
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, mx, my);
+  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, m_xy);
   Scene *scene = CTX_data_scene(C);
 
   ScrArea *area_prev = CTX_wm_area(C);
@@ -167,14 +154,14 @@ static void depthdropper_depth_sample_pt(
 
   if (area) {
     if (area->spacetype == SPACE_VIEW3D) {
-      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mx, my);
+      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, m_xy);
       if (region) {
         struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
         View3D *v3d = area->spacedata.first;
         RegionView3D *rv3d = region->regiondata;
         /* weak, we could pass in some reference point */
         const float *view_co = v3d->camera ? v3d->camera->obmat[3] : rv3d->viewinv[3];
-        const int mval[2] = {mx - region->winrct.xmin, my - region->winrct.ymin};
+        const int mval[2] = {m_xy[0] - region->winrct.xmin, m_xy[1] - region->winrct.ymin};
         copy_v2_v2_int(ddr->name_pos, mval);
 
         float co[3];
@@ -234,19 +221,19 @@ static void depthdropper_depth_set_accum(bContext *C, DepthDropper *ddr)
 }
 
 /* single point sample & set */
-static void depthdropper_depth_sample(bContext *C, DepthDropper *ddr, int mx, int my)
+static void depthdropper_depth_sample(bContext *C, DepthDropper *ddr, const int m_xy[2])
 {
   float depth = -1.0f;
   if (depth != -1.0f) {
-    depthdropper_depth_sample_pt(C, ddr, mx, my, &depth);
+    depthdropper_depth_sample_pt(C, ddr, m_xy, &depth);
     depthdropper_depth_set(C, ddr, depth);
   }
 }
 
-static void depthdropper_depth_sample_accum(bContext *C, DepthDropper *ddr, int mx, int my)
+static void depthdropper_depth_sample_accum(bContext *C, DepthDropper *ddr, const int m_xy[2])
 {
   float depth = -1.0f;
-  depthdropper_depth_sample_pt(C, ddr, mx, my, &depth);
+  depthdropper_depth_sample_pt(C, ddr, m_xy, &depth);
   if (depth != -1.0f) {
     ddr->accum_depth += depth;
     ddr->accum_tot++;
@@ -276,7 +263,7 @@ static int depthdropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case EYE_MODAL_SAMPLE_CONFIRM: {
         const bool is_undo = ddr->is_undo;
         if (ddr->accum_tot == 0) {
-          depthdropper_depth_sample(C, ddr, event->xy[0], event->xy[1]);
+          depthdropper_depth_sample(C, ddr, event->xy);
         }
         else {
           depthdropper_depth_set_accum(C, ddr);
@@ -288,12 +275,12 @@ static int depthdropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case EYE_MODAL_SAMPLE_BEGIN:
         /* enable accum and make first sample */
         ddr->accum_start = true;
-        depthdropper_depth_sample_accum(C, ddr, event->xy[0], event->xy[1]);
+        depthdropper_depth_sample_accum(C, ddr, event->xy);
         break;
       case EYE_MODAL_SAMPLE_RESET:
         ddr->accum_tot = 0;
         ddr->accum_depth = 0.0f;
-        depthdropper_depth_sample_accum(C, ddr, event->xy[0], event->xy[1]);
+        depthdropper_depth_sample_accum(C, ddr, event->xy);
         depthdropper_depth_set_accum(C, ddr);
         break;
     }
@@ -301,7 +288,7 @@ static int depthdropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
   else if (event->type == MOUSEMOVE) {
     if (ddr->accum_start) {
       /* button is pressed so keep sampling */
-      depthdropper_depth_sample_accum(C, ddr, event->xy[0], event->xy[1]);
+      depthdropper_depth_sample_accum(C, ddr, event->xy);
       depthdropper_depth_set_accum(C, ddr);
     }
   }

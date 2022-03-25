@@ -1,25 +1,9 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_shader_tex_checker_cc {
 
 static void sh_node_tex_checker_declare(NodeDeclarationBuilder &b)
 {
@@ -34,13 +18,11 @@ static void sh_node_tex_checker_declare(NodeDeclarationBuilder &b)
       .no_muted_links();
   b.add_output<decl::Color>(N_("Color"));
   b.add_output<decl::Float>(N_("Fac"));
-};
-
-}  // namespace blender::nodes
+}
 
 static void node_shader_init_tex_checker(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeTexChecker *tex = (NodeTexChecker *)MEM_callocN(sizeof(NodeTexChecker), "NodeTexChecker");
+  NodeTexChecker *tex = MEM_cnew<NodeTexChecker>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
 
@@ -58,8 +40,6 @@ static int node_shader_gpu_tex_checker(GPUMaterial *mat,
 
   return GPU_stack_link(mat, node, "node_tex_checker", in, out);
 }
-
-namespace blender::nodes {
 
 class NodeTexChecker : public fn::MultiFunction {
  public:
@@ -81,9 +61,7 @@ class NodeTexChecker : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(blender::IndexMask mask,
-            fn::MFParams params,
-            fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<ColorGeometry4f> &color1 = params.readonly_single_input<ColorGeometry4f>(
@@ -114,26 +92,27 @@ class NodeTexChecker : public fn::MultiFunction {
   }
 };
 
-static void sh_node_tex_checker_build_multi_function(
-    blender::nodes::NodeMultiFunctionBuilder &builder)
+static void sh_node_tex_checker_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   static NodeTexChecker fn;
   builder.set_matching_fn(fn);
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_shader_tex_checker_cc
 
-void register_node_type_sh_tex_checker(void)
+void register_node_type_sh_tex_checker()
 {
+  namespace file_ns = blender::nodes::node_shader_tex_checker_cc;
+
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_TEX_CHECKER, "Checker Texture", NODE_CLASS_TEXTURE, 0);
-  ntype.declare = blender::nodes::sh_node_tex_checker_declare;
-  node_type_init(&ntype, node_shader_init_tex_checker);
+  sh_fn_node_type_base(&ntype, SH_NODE_TEX_CHECKER, "Checker Texture", NODE_CLASS_TEXTURE);
+  ntype.declare = file_ns::sh_node_tex_checker_declare;
+  node_type_init(&ntype, file_ns::node_shader_init_tex_checker);
   node_type_storage(
       &ntype, "NodeTexChecker", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, node_shader_gpu_tex_checker);
-  ntype.build_multi_function = blender::nodes::sh_node_tex_checker_build_multi_function;
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_checker);
+  ntype.build_multi_function = file_ns::sh_node_tex_checker_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

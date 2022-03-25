@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2018 Blender Foundation.
+
 # - Find Embree library
 # Find the native Embree includes and library
 # This module defines
@@ -7,13 +10,6 @@
 #  EMBREE_ROOT_DIR, The base directory to search for Embree.
 #                        This can also be an environment variable.
 #  EMBREEFOUND, If false, do not try to use Embree.
-
-#=============================================================================
-# Copyright 2018 Blender Foundation.
-#
-# Distributed under the OSI-approved BSD 3-Clause License,
-# see accompanying file BSD-3-Clause-license.txt for details.
-#=============================================================================
 
 # If EMBREE_ROOT_DIR was defined in the environment, use it.
 IF(NOT EMBREE_ROOT_DIR AND NOT $ENV{EMBREE_ROOT_DIR} STREQUAL "")

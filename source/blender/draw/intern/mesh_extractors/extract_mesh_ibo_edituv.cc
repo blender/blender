@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2021 by Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2021 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup draw
@@ -26,6 +10,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "extract_mesh.h"
+
+#include "draw_subdivision.h"
 
 namespace blender::draw {
 /* ---------------------------------------------------------------------- */
@@ -94,6 +80,79 @@ static void extract_edituv_tris_finish(const MeshRenderData *UNUSED(mr),
   GPU_indexbuf_build_in_place(&data->elb, ibo);
 }
 
+static void extract_edituv_tris_init_subdiv(const DRWSubdivCache *subdiv_cache,
+                                            const MeshRenderData *mr,
+                                            MeshBatchCache *UNUSED(cache),
+                                            void *UNUSED(buf),
+                                            void *tls_data)
+{
+  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(tls_data);
+  GPU_indexbuf_init(&data->elb,
+                    GPU_PRIM_TRIS,
+                    subdiv_cache->num_subdiv_triangles,
+                    subdiv_cache->num_subdiv_loops);
+  data->sync_selection = (mr->toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
+}
+
+static void extract_edituv_tris_iter_subdiv_bm(const DRWSubdivCache *UNUSED(subdiv_cache),
+                                               const MeshRenderData *UNUSED(mr),
+                                               void *_data,
+                                               uint subdiv_quad_index,
+                                               const BMFace *coarse_quad)
+{
+  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
+  const uint loop_idx = subdiv_quad_index * 4;
+
+  edituv_tri_add(data,
+                 BM_elem_flag_test(coarse_quad, BM_ELEM_HIDDEN) != 0,
+                 BM_elem_flag_test(coarse_quad, BM_ELEM_SELECT) != 0,
+                 loop_idx,
+                 loop_idx + 1,
+                 loop_idx + 2);
+
+  edituv_tri_add(data,
+                 BM_elem_flag_test(coarse_quad, BM_ELEM_HIDDEN) != 0,
+                 BM_elem_flag_test(coarse_quad, BM_ELEM_SELECT) != 0,
+                 loop_idx,
+                 loop_idx + 2,
+                 loop_idx + 3);
+}
+
+static void extract_edituv_tris_iter_subdiv_mesh(const DRWSubdivCache *UNUSED(subdiv_cache),
+                                                 const MeshRenderData *UNUSED(mr),
+                                                 void *_data,
+                                                 uint subdiv_quad_index,
+                                                 const MPoly *coarse_quad)
+{
+  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
+  const uint loop_idx = subdiv_quad_index * 4;
+
+  edituv_tri_add(data,
+                 (coarse_quad->flag & ME_HIDE) != 0,
+                 (coarse_quad->flag & ME_FACE_SEL) != 0,
+                 loop_idx,
+                 loop_idx + 1,
+                 loop_idx + 2);
+
+  edituv_tri_add(data,
+                 (coarse_quad->flag & ME_HIDE) != 0,
+                 (coarse_quad->flag & ME_FACE_SEL) != 0,
+                 loop_idx,
+                 loop_idx + 2,
+                 loop_idx + 3);
+}
+
+static void extract_edituv_tris_finish_subdiv(const struct DRWSubdivCache *UNUSED(subdiv_cache),
+                                              const MeshRenderData *UNUSED(mr),
+                                              struct MeshBatchCache *UNUSED(cache),
+                                              void *buf,
+                                              void *_data)
+{
+  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
+  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  GPU_indexbuf_build_in_place(&data->elb, ibo);
+}
+
 constexpr MeshExtract create_extractor_edituv_tris()
 {
   MeshExtract extractor = {nullptr};
@@ -101,6 +160,10 @@ constexpr MeshExtract create_extractor_edituv_tris()
   extractor.iter_looptri_bm = extract_edituv_tris_iter_looptri_bm;
   extractor.iter_looptri_mesh = extract_edituv_tris_iter_looptri_mesh;
   extractor.finish = extract_edituv_tris_finish;
+  extractor.init_subdiv = extract_edituv_tris_init_subdiv;
+  extractor.iter_subdiv_bm = extract_edituv_tris_iter_subdiv_bm;
+  extractor.iter_subdiv_mesh = extract_edituv_tris_iter_subdiv_mesh;
+  extractor.finish_subdiv = extract_edituv_tris_finish_subdiv;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_EditUvElem_Data);
   extractor.use_threading = false;
@@ -184,6 +247,77 @@ static void extract_edituv_lines_finish(const MeshRenderData *UNUSED(mr),
   GPU_indexbuf_build_in_place(&data->elb, ibo);
 }
 
+static void extract_edituv_lines_init_subdiv(const DRWSubdivCache *subdiv_cache,
+                                             const MeshRenderData *mr,
+                                             MeshBatchCache *UNUSED(cache),
+                                             void *UNUSED(buf),
+                                             void *tls_data)
+{
+  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(tls_data);
+  GPU_indexbuf_init(
+      &data->elb, GPU_PRIM_LINES, subdiv_cache->num_subdiv_loops, subdiv_cache->num_subdiv_loops);
+  data->sync_selection = (mr->toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
+}
+
+static void extract_edituv_lines_iter_subdiv_bm(const DRWSubdivCache *subdiv_cache,
+                                                const MeshRenderData *mr,
+                                                void *_data,
+                                                uint subdiv_quad_index,
+                                                const BMFace *coarse_poly)
+{
+  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
+  int *subdiv_loop_edge_index = (int *)GPU_vertbuf_get_data(subdiv_cache->edges_orig_index);
+
+  uint start_loop_idx = subdiv_quad_index * 4;
+  uint end_loop_idx = (subdiv_quad_index + 1) * 4;
+  for (uint loop_idx = start_loop_idx; loop_idx < end_loop_idx; loop_idx++) {
+    const int edge_origindex = subdiv_loop_edge_index[loop_idx];
+    const bool real_edge = (edge_origindex != -1 &&
+                            (mr->e_origindex == nullptr ||
+                             mr->e_origindex[edge_origindex] != ORIGINDEX_NONE));
+    edituv_edge_add(data,
+                    BM_elem_flag_test_bool(coarse_poly, BM_ELEM_HIDDEN) != 0 || !real_edge,
+                    BM_elem_flag_test_bool(coarse_poly, BM_ELEM_SELECT) != 0,
+                    loop_idx,
+                    (loop_idx + 1 == end_loop_idx) ? start_loop_idx : (loop_idx + 1));
+  }
+}
+
+static void extract_edituv_lines_iter_subdiv_mesh(const DRWSubdivCache *subdiv_cache,
+                                                  const MeshRenderData *mr,
+                                                  void *_data,
+                                                  uint subdiv_quad_index,
+                                                  const MPoly *coarse_poly)
+{
+  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
+  int *subdiv_loop_edge_index = (int *)GPU_vertbuf_get_data(subdiv_cache->edges_orig_index);
+
+  uint start_loop_idx = subdiv_quad_index * 4;
+  uint end_loop_idx = (subdiv_quad_index + 1) * 4;
+  for (uint loop_idx = start_loop_idx; loop_idx < end_loop_idx; loop_idx++) {
+    const int edge_origindex = subdiv_loop_edge_index[loop_idx];
+    const bool real_edge = (edge_origindex != -1 &&
+                            (mr->e_origindex == nullptr ||
+                             mr->e_origindex[edge_origindex] != ORIGINDEX_NONE));
+    edituv_edge_add(data,
+                    (coarse_poly->flag & ME_HIDE) != 0 || !real_edge,
+                    (coarse_poly->flag & ME_FACE_SEL) != 0,
+                    loop_idx,
+                    (loop_idx + 1 == end_loop_idx) ? start_loop_idx : (loop_idx + 1));
+  }
+}
+
+static void extract_edituv_lines_finish_subdiv(const struct DRWSubdivCache *UNUSED(subdiv_cache),
+                                               const MeshRenderData *UNUSED(mr),
+                                               struct MeshBatchCache *UNUSED(cache),
+                                               void *buf,
+                                               void *_data)
+{
+  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
+  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  GPU_indexbuf_build_in_place(&data->elb, ibo);
+}
+
 constexpr MeshExtract create_extractor_edituv_lines()
 {
   MeshExtract extractor = {nullptr};
@@ -191,6 +325,10 @@ constexpr MeshExtract create_extractor_edituv_lines()
   extractor.iter_poly_bm = extract_edituv_lines_iter_poly_bm;
   extractor.iter_poly_mesh = extract_edituv_lines_iter_poly_mesh;
   extractor.finish = extract_edituv_lines_finish;
+  extractor.init_subdiv = extract_edituv_lines_init_subdiv;
+  extractor.iter_subdiv_bm = extract_edituv_lines_iter_subdiv_bm;
+  extractor.iter_subdiv_mesh = extract_edituv_lines_iter_subdiv_mesh;
+  extractor.finish_subdiv = extract_edituv_lines_finish_subdiv;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_EditUvElem_Data);
   extractor.use_threading = false;
@@ -268,6 +406,75 @@ static void extract_edituv_points_finish(const MeshRenderData *UNUSED(mr),
   GPU_indexbuf_build_in_place(&data->elb, ibo);
 }
 
+static void extract_edituv_points_init_subdiv(const DRWSubdivCache *subdiv_cache,
+                                              const MeshRenderData *mr,
+                                              MeshBatchCache *UNUSED(cache),
+                                              void *UNUSED(buf),
+                                              void *tls_data)
+{
+  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(tls_data);
+  GPU_indexbuf_init(
+      &data->elb, GPU_PRIM_POINTS, subdiv_cache->num_subdiv_loops, subdiv_cache->num_subdiv_loops);
+  data->sync_selection = (mr->toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
+}
+
+static void extract_edituv_points_iter_subdiv_bm(const DRWSubdivCache *subdiv_cache,
+                                                 const MeshRenderData *mr,
+                                                 void *_data,
+                                                 uint subdiv_quad_index,
+                                                 const BMFace *coarse_quad)
+{
+  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
+  int *subdiv_loop_vert_index = (int *)GPU_vertbuf_get_data(subdiv_cache->verts_orig_index);
+
+  uint start_loop_idx = subdiv_quad_index * 4;
+  uint end_loop_idx = (subdiv_quad_index + 1) * 4;
+  for (uint i = start_loop_idx; i < end_loop_idx; i++) {
+    const int vert_origindex = subdiv_loop_vert_index[i];
+    const bool real_vert = (mr->extract_type == MR_EXTRACT_MAPPED && (mr->v_origindex) &&
+                            vert_origindex != -1 &&
+                            mr->v_origindex[vert_origindex] != ORIGINDEX_NONE);
+    edituv_point_add(data,
+                     (BM_elem_flag_test(coarse_quad, BM_ELEM_HIDDEN)) || !real_vert,
+                     BM_elem_flag_test(coarse_quad, BM_ELEM_SELECT) != 0,
+                     i);
+  }
+}
+
+static void extract_edituv_points_iter_subdiv_mesh(const DRWSubdivCache *subdiv_cache,
+                                                   const MeshRenderData *mr,
+                                                   void *_data,
+                                                   uint subdiv_quad_index,
+                                                   const MPoly *coarse_quad)
+{
+  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
+  int *subdiv_loop_vert_index = (int *)GPU_vertbuf_get_data(subdiv_cache->verts_orig_index);
+
+  uint start_loop_idx = subdiv_quad_index * 4;
+  uint end_loop_idx = (subdiv_quad_index + 1) * 4;
+  for (uint i = start_loop_idx; i < end_loop_idx; i++) {
+    const int vert_origindex = subdiv_loop_vert_index[i];
+    const bool real_vert = (mr->extract_type == MR_EXTRACT_MAPPED && (mr->v_origindex) &&
+                            vert_origindex != -1 &&
+                            mr->v_origindex[vert_origindex] != ORIGINDEX_NONE);
+    edituv_point_add(data,
+                     ((coarse_quad->flag & ME_HIDE) != 0) || !real_vert,
+                     (coarse_quad->flag & ME_FACE_SEL) != 0,
+                     i);
+  }
+}
+
+static void extract_edituv_points_finish_subdiv(const struct DRWSubdivCache *UNUSED(subdiv_cache),
+                                                const MeshRenderData *UNUSED(mr),
+                                                struct MeshBatchCache *UNUSED(cache),
+                                                void *buf,
+                                                void *_data)
+{
+  MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
+  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  GPU_indexbuf_build_in_place(&data->elb, ibo);
+}
+
 constexpr MeshExtract create_extractor_edituv_points()
 {
   MeshExtract extractor = {nullptr};
@@ -275,6 +482,10 @@ constexpr MeshExtract create_extractor_edituv_points()
   extractor.iter_poly_bm = extract_edituv_points_iter_poly_bm;
   extractor.iter_poly_mesh = extract_edituv_points_iter_poly_mesh;
   extractor.finish = extract_edituv_points_finish;
+  extractor.init_subdiv = extract_edituv_points_init_subdiv;
+  extractor.iter_subdiv_bm = extract_edituv_points_iter_subdiv_bm;
+  extractor.iter_subdiv_mesh = extract_edituv_points_iter_subdiv_mesh;
+  extractor.finish_subdiv = extract_edituv_points_finish_subdiv;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_EditUvElem_Data);
   extractor.use_threading = false;
@@ -388,5 +599,3 @@ const MeshExtract extract_edituv_lines = blender::draw::create_extractor_edituv_
 const MeshExtract extract_edituv_points = blender::draw::create_extractor_edituv_points();
 const MeshExtract extract_edituv_fdots = blender::draw::create_extractor_edituv_fdots();
 }
-
-/** \} */

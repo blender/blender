@@ -1,20 +1,4 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8 compliant>
 
@@ -122,7 +106,7 @@ def rna2xml(
         if issubclass(value_type, skip_classes):
             return
 
-        # XXX, fixme, pointcache has eternal nested pointer to its self.
+        # XXX, fixme, pointcache has eternal nested pointer to itself.
         if value == parent:
             return
 
@@ -266,19 +250,19 @@ def xml2rna(
                 value_xml = xml_node.attributes[attr].value
 
                 subvalue_type = type(subvalue)
-                tp_name = 'UNKNOWN'
+                # tp_name = 'UNKNOWN'
                 if subvalue_type == float:
                     value_xml_coerce = float(value_xml)
-                    tp_name = 'FLOAT'
+                    # tp_name = 'FLOAT'
                 elif subvalue_type == int:
                     value_xml_coerce = int(value_xml)
-                    tp_name = 'INT'
+                    # tp_name = 'INT'
                 elif subvalue_type == bool:
                     value_xml_coerce = {'TRUE': True, 'FALSE': False}[value_xml]
-                    tp_name = 'BOOL'
+                    # tp_name = 'BOOL'
                 elif subvalue_type == str:
                     value_xml_coerce = value_xml
-                    tp_name = 'STR'
+                    # tp_name = 'STR'
                 elif hasattr(subvalue, "__len__"):
                     if value_xml.startswith("#"):
                         # read hexadecimal value as float array
@@ -296,9 +280,9 @@ def xml2rna(
                             except ValueError:  # bool vector property
                                 value_xml_coerce = [{'TRUE': True, 'FALSE': False}[v] for v in value_xml_split]
                         del value_xml_split
-                    tp_name = 'ARRAY'
+                    # tp_name = 'ARRAY'
 
-#                print("  %s.%s (%s) --- %s" % (type(value).__name__, attr, tp_name, subvalue_type))
+                    # print("  %s.%s (%s) --- %s" % (type(value).__name__, attr, tp_name, subvalue_type))
                 try:
                     setattr(value, attr, value_xml_coerce)
                 except ValueError:
@@ -340,7 +324,6 @@ def xml2rna(
 
                     else:
                         # print(elems)
-
                         if len(elems) == 1:
                             # sub node named by its type
                             child_xml_real, = elems
@@ -376,7 +359,6 @@ def _get_context_val(context, path):
 
 
 def xml_file_run(context, filepath, rna_map):
-
     import xml.dom.minidom
 
     xml_nodes = xml.dom.minidom.parse(filepath)
@@ -391,27 +373,25 @@ def xml_file_run(context, filepath, rna_map):
         value = _get_context_val(context, rna_path)
 
         if value is not Ellipsis and value is not None:
-            print("  loading XML: %r -> %r" % (filepath, rna_path))
+            # print("  loading XML: %r -> %r" % (filepath, rna_path))
             xml2rna(xml_node, root_rna=value)
 
 
 def xml_file_write(context, filepath, rna_map, *, skip_typemap=None):
+    with open(filepath, "w", encoding="utf-8") as file:
+        fw = file.write
+        fw("<bpy>\n")
 
-    file = open(filepath, "w", encoding="utf-8")
-    fw = file.write
-
-    fw("<bpy>\n")
-
-    for rna_path, _xml_tag in rna_map:
-        # xml_tag is ignored, we get this from the rna
-        value = _get_context_val(context, rna_path)
-        rna2xml(fw,
+        for rna_path, _xml_tag in rna_map:
+            # xml_tag is ignored, we get this from the rna
+            value = _get_context_val(context, rna_path)
+            rna2xml(
+                fw=fw,
                 root_rna=value,
                 method='ATTR',
                 root_ident="  ",
                 ident_val="  ",
                 skip_typemap=skip_typemap,
-                )
+            )
 
-    fw("</bpy>\n")
-    file.close()
+        fw("</bpy>\n")

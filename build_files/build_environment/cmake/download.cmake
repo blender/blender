@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 function(download_source dep)
   set(TARGET_FILE ${${dep}_FILE})
   set(TARGET_HASH_TYPE ${${dep}_HASH_TYPE})
@@ -94,3 +96,4 @@ download_source(POTRACE)
 download_source(HARU)
 download_source(ZSTD)
 download_source(FLEX)
+download_source(BROTLI)

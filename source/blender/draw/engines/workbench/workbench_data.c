@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2018, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2018 Blender Foundation. */
 
 /** \file
  * \ingroup draw_engine
@@ -290,7 +275,7 @@ void workbench_update_world_ubo(WORKBENCH_PrivateData *wpd)
   copy_v2_v2(wd.viewport_size_inv, DRW_viewport_invert_size_get());
   copy_v3_v3(wd.object_outline_color, wpd->shading.object_outline_color);
   wd.object_outline_color[3] = 1.0f;
-  wd.ui_scale = G_draw.block.sizePixel;
+  wd.ui_scale = DRW_state_is_image_render() ? 1.0f : G_draw.block.sizePixel;
   wd.matcap_orientation = (wpd->shading.flag & V3D_SHADING_MATCAP_FLIP_X) != 0;
 
   workbench_studiolight_data_update(wpd, &wd);

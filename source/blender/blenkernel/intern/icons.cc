@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2006-2007 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2006-2007 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -210,7 +194,7 @@ void BKE_icons_init(int first_dyn_id)
   }
 }
 
-void BKE_icons_free(void)
+void BKE_icons_free()
 {
   BLI_assert(BLI_thread_is_main());
 
@@ -227,7 +211,7 @@ void BKE_icons_free(void)
   BLI_linklist_lockfree_free(&g_icon_delete_queue, MEM_freeN);
 }
 
-void BKE_icons_deferred_free(void)
+void BKE_icons_deferred_free()
 {
   std::scoped_lock lock(gIconMutex);
 
@@ -251,7 +235,7 @@ static PreviewImage *previewimg_create_ex(size_t deferred_data_size)
   }
 
   for (int i = 0; i < NUM_ICON_SIZES; i++) {
-    prv_img->flag[i] |= (PRV_CHANGED | PRV_UNFINISHED);
+    prv_img->flag[i] |= PRV_CHANGED;
     prv_img->changed_timestamp[i] = 0;
   }
   return prv_img;
@@ -271,7 +255,7 @@ static PreviewImage *previewimg_deferred_create(const char *path, int source)
   return prv;
 }
 
-PreviewImage *BKE_previewimg_create(void)
+PreviewImage *BKE_previewimg_create()
 {
   return previewimg_create_ex(0);
 }
@@ -308,7 +292,7 @@ void BKE_previewimg_clear_single(struct PreviewImage *prv, enum eIconSizes size)
     GPU_texture_free(prv->gputexture[size]);
   }
   prv->h[size] = prv->w[size] = 0;
-  prv->flag[size] |= (PRV_CHANGED | PRV_UNFINISHED);
+  prv->flag[size] |= PRV_CHANGED;
   prv->flag[size] &= ~PRV_USER_EDITED;
   prv->changed_timestamp[size] = 0;
 }
@@ -336,10 +320,6 @@ PreviewImage *BKE_previewimg_copy(const PreviewImage *prv)
   return prv_img;
 }
 
-/**
- * Duplicate preview image from \a id and clear icon_id,
- * to be used by datablock copy functions.
- */
 void BKE_previewimg_id_copy(ID *new_id, const ID *old_id)
 {
   PreviewImage **old_prv_p = BKE_previewimg_id_get_p(old_id);
@@ -360,31 +340,23 @@ void BKE_previewimg_id_copy(ID *new_id, const ID *old_id)
 PreviewImage **BKE_previewimg_id_get_p(const ID *id)
 {
   switch (GS(id->name)) {
-    case ID_OB: {
-      Object *ob = (Object *)id;
-      /* Currently, only object types with real geometry can be rendered as preview. */
-      if (!OB_TYPE_IS_GEOMETRY(ob->type)) {
-        return nullptr;
-      }
-      return &ob->preview;
-    }
-
 #define ID_PRV_CASE(id_code, id_struct) \
   case id_code: { \
     return &((id_struct *)id)->preview; \
   } \
     ((void)0)
-      ID_PRV_CASE(ID_MA, Material);
-      ID_PRV_CASE(ID_TE, Tex);
-      ID_PRV_CASE(ID_WO, World);
-      ID_PRV_CASE(ID_LA, Light);
-      ID_PRV_CASE(ID_IM, Image);
-      ID_PRV_CASE(ID_BR, Brush);
-      ID_PRV_CASE(ID_GR, Collection);
-      ID_PRV_CASE(ID_SCE, Scene);
-      ID_PRV_CASE(ID_SCR, bScreen);
-      ID_PRV_CASE(ID_AC, bAction);
-      ID_PRV_CASE(ID_NT, bNodeTree);
+    ID_PRV_CASE(ID_OB, Object);
+    ID_PRV_CASE(ID_MA, Material);
+    ID_PRV_CASE(ID_TE, Tex);
+    ID_PRV_CASE(ID_WO, World);
+    ID_PRV_CASE(ID_LA, Light);
+    ID_PRV_CASE(ID_IM, Image);
+    ID_PRV_CASE(ID_BR, Brush);
+    ID_PRV_CASE(ID_GR, Collection);
+    ID_PRV_CASE(ID_SCE, Scene);
+    ID_PRV_CASE(ID_SCR, bScreen);
+    ID_PRV_CASE(ID_AC, bAction);
+    ID_PRV_CASE(ID_NT, bNodeTree);
 #undef ID_PRV_CASE
     default:
       break;
@@ -468,9 +440,6 @@ PreviewImage *BKE_previewimg_cached_get(const char *name)
   return (PreviewImage *)BLI_ghash_lookup(gCachedPreviews, name);
 }
 
-/**
- * Generate an empty PreviewImage, if not yet existing.
- */
 PreviewImage *BKE_previewimg_cached_ensure(const char *name)
 {
   BLI_assert(BLI_thread_is_main());
@@ -488,10 +457,6 @@ PreviewImage *BKE_previewimg_cached_ensure(const char *name)
   return prv;
 }
 
-/**
- * Generate a PreviewImage from given file path, using thumbnails management, if not yet existing.
- * Does not actually generate the preview, #BKE_previewimg_ensure() must be called for that.
- */
 PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
                                                    const char *path,
                                                    const int source,
@@ -546,10 +511,6 @@ void BKE_previewimg_cached_release(const char *name)
   BKE_previewimg_deferred_release(prv);
 }
 
-/**
- * Handle deferred (lazy) loading/generation of preview image, if needed.
- * For now, only used with file thumbnails.
- */
 void BKE_previewimg_ensure(PreviewImage *prv, const int size)
 {
   if ((prv->tag & PRV_TAG_DEFFERED) != 0) {
@@ -573,7 +534,7 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
           prv->w[ICON_SIZE_PREVIEW] = thumb->x;
           prv->h[ICON_SIZE_PREVIEW] = thumb->y;
           prv->rect[ICON_SIZE_PREVIEW] = (uint *)MEM_dupallocN(thumb->rect);
-          prv->flag[ICON_SIZE_PREVIEW] &= ~(PRV_CHANGED | PRV_USER_EDITED | PRV_UNFINISHED);
+          prv->flag[ICON_SIZE_PREVIEW] &= ~(PRV_CHANGED | PRV_USER_EDITED | PRV_RENDERING);
         }
         if (do_icon) {
           if (thumb->x > thumb->y) {
@@ -592,7 +553,7 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
           prv->w[ICON_SIZE_ICON] = icon_w;
           prv->h[ICON_SIZE_ICON] = icon_h;
           prv->rect[ICON_SIZE_ICON] = (uint *)MEM_dupallocN(thumb->rect);
-          prv->flag[ICON_SIZE_ICON] &= ~(PRV_CHANGED | PRV_USER_EDITED | PRV_UNFINISHED);
+          prv->flag[ICON_SIZE_ICON] &= ~(PRV_CHANGED | PRV_USER_EDITED | PRV_RENDERING);
         }
         IMB_freeImBuf(thumb);
       }
@@ -600,10 +561,6 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
   }
 }
 
-/**
- * Create an #ImBuf holding a copy of the preview image buffer in \a prv.
- * \note The returned image buffer has to be free'd (#IMB_freeImBuf()).
- */
 ImBuf *BKE_previewimg_to_imbuf(PreviewImage *prv, const int size)
 {
   const unsigned int w = prv->w[size];
@@ -624,12 +581,12 @@ ImBuf *BKE_previewimg_to_imbuf(PreviewImage *prv, const int size)
 void BKE_previewimg_finish(PreviewImage *prv, const int size)
 {
   /* Previews may be calculated on a thread. */
-  atomic_fetch_and_and_int16(&prv->flag[size], ~PRV_UNFINISHED);
+  atomic_fetch_and_and_int16(&prv->flag[size], ~PRV_RENDERING);
 }
 
 bool BKE_previewimg_is_finished(const PreviewImage *prv, const int size)
 {
-  return (prv->flag[size] & PRV_UNFINISHED) == 0;
+  return (prv->flag[size] & PRV_RENDERING) == 0;
 }
 
 void BKE_previewimg_blend_write(BlendWriter *writer, const PreviewImage *prv)
@@ -663,16 +620,11 @@ void BKE_previewimg_blend_read(BlendDataReader *reader, PreviewImage *prv)
       BLO_read_data_address(reader, &prv->rect[i]);
     }
     prv->gputexture[i] = nullptr;
-    /* For now consider previews read from file as finished to not confuse File Browser preview
-     * loading. That could be smarter and check if there's a preview job running instead.
-     * If the preview is tagged as changed, it needs to be updated anyway, so don't remove the tag.
-     */
-    if ((prv->flag[i] & PRV_CHANGED) == 0) {
-      BKE_previewimg_finish(prv, i);
-    }
-    else {
-      /* Only for old files that didn't write the flag. */
-      prv->flag[i] |= PRV_UNFINISHED;
+
+    /* PRV_RENDERING is a runtime only flag currently, but don't mess with it on undo! It gets
+     * special handling in #memfile_undosys_restart_unfinished_id_previews() then. */
+    if (!BLO_read_data_is_undo(reader)) {
+      prv->flag[i] &= ~PRV_RENDERING;
     }
   }
   prv->icon_id = 0;
@@ -702,7 +654,7 @@ void BKE_icon_changed(const int icon_id)
     /* If we have previews, they all are now invalid changed. */
     if (p_prv && *p_prv) {
       for (int i = 0; i < NUM_ICON_SIZES; i++) {
-        (*p_prv)->flag[i] |= (PRV_CHANGED | PRV_UNFINISHED);
+        (*p_prv)->flag[i] |= PRV_CHANGED;
         (*p_prv)->changed_timestamp[i]++;
       }
     }
@@ -809,9 +761,6 @@ int BKE_icon_gplayer_color_ensure(bGPDlayer *gpl)
   return icon_gplayer_color_ensure_create_icon(gpl);
 }
 
-/**
- * Return icon id of given preview, or create new icon if not found.
- */
 int BKE_icon_preview_ensure(ID *id, PreviewImage *preview)
 {
   if (!preview || G.background) {
@@ -852,11 +801,6 @@ int BKE_icon_preview_ensure(ID *id, PreviewImage *preview)
   return preview->icon_id;
 }
 
-/**
- * Create an icon as owner or \a ibuf. The icon-ID is not stored in \a ibuf, it needs to be stored
- * separately.
- * \note Transforms ownership of \a ibuf to the newly created icon.
- */
 int BKE_icon_imbuf_create(ImBuf *ibuf)
 {
   int icon_id = get_next_free_id();
@@ -938,9 +882,6 @@ void BKE_icon_id_delete(struct ID *id)
   BLI_ghash_remove(gIcons, POINTER_FROM_INT(icon_id), nullptr, icon_free);
 }
 
-/**
- * Remove icon and free data.
- */
 bool BKE_icon_delete(const int icon_id)
 {
   if (icon_id == 0) {
@@ -1065,4 +1006,5 @@ int BKE_icon_ensure_studio_light(struct StudioLight *sl, int id_type)
   icon->id_type = id_type;
   return icon_id;
 }
+
 /** \} */

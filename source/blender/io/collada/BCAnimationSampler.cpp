@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 #include <algorithm> /* std::find */
 #include <map>
@@ -418,11 +402,6 @@ void BCAnimationSampler::generate_transforms(Object *ob, Bone *bone, BCAnimation
   }
 }
 
-/**
- * Collect all keyframes from all animation curves related to the object.
- * The bc_get... functions check for NULL and correct object type.
- * The #add_keyframes_from() function checks for NULL.
- */
 void BCAnimationSampler::initialize_keyframes(BCFrameSet &frameset, Object *ob)
 {
   frameset.clear();
@@ -517,7 +496,6 @@ BCSample &BCSampleFrame::add(Object *ob)
   return *sample;
 }
 
-/* Get the matrix for the given key, returns Unity when the key does not exist */
 const BCSample *BCSampleFrame::get_sample(Object *ob) const
 {
   BCSampleMap::const_iterator it = sampleMap.find(ob);
@@ -537,7 +515,6 @@ const BCMatrix *BCSampleFrame::get_sample_matrix(Object *ob) const
   return &sample->get_matrix();
 }
 
-/* Get the matrix for the given Bone, returns Unity when the Object is not sampled. */
 const BCMatrix *BCSampleFrame::get_sample_matrix(Object *ob, Bone *bone) const
 {
   BCSampleMap::const_iterator it = sampleMap.find(ob);
@@ -550,13 +527,11 @@ const BCMatrix *BCSampleFrame::get_sample_matrix(Object *ob, Bone *bone) const
   return bc_bone;
 }
 
-/* Check if the key is in this BCSampleFrame */
 bool BCSampleFrame::has_sample_for(Object *ob) const
 {
   return sampleMap.find(ob) != sampleMap.end();
 }
 
-/* Check if the Bone is in this BCSampleFrame */
 bool BCSampleFrame::has_sample_for(Object *ob, Bone *bone) const
 {
   const BCMatrix *bc_bone = get_sample_matrix(ob, bone);
@@ -575,7 +550,6 @@ BCSample &BCSampleFrameContainer::add(Object *ob, int frame_index)
 /* Below are the getters which we need to export the data */
 /* ====================================================== */
 
-/* Return either the BCSampleFrame or NULL if frame does not exist. */
 BCSampleFrame *BCSampleFrameContainer::get_frame(int frame_index)
 {
   BCSampleFrameMap::iterator it = sample_frames.find(frame_index);
@@ -583,7 +557,6 @@ BCSampleFrame *BCSampleFrameContainer::get_frame(int frame_index)
   return frame;
 }
 
-/* Return a list of all frames that need to be sampled */
 int BCSampleFrameContainer::get_frames(std::vector<int> &frames) const
 {
   frames.clear(); /* safety; */

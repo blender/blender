@@ -1,25 +1,9 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- * Pose Mode API's and Operators for Pose Mode armatures
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edarmature
+ * Pose Mode API's and Operators for Pose Mode armatures.
  */
 
 #include "MEM_guardedalloc.h"
@@ -50,6 +34,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -72,9 +57,10 @@
 #  include "PIL_time_utildefines.h"
 #endif
 
-/* matches logic with ED_operator_posemode_context() */
 Object *ED_pose_object_from_context(bContext *C)
 {
+  /* NOTE: matches logic with #ED_operator_posemode_context(). */
+
   ScrArea *area = CTX_wm_area(C);
   Object *ob;
 
@@ -90,7 +76,6 @@ Object *ED_pose_object_from_context(bContext *C)
   return ob;
 }
 
-/* This function is used to process the necessary updates for */
 bool ED_object_posemode_enter_ex(struct Main *bmain, Object *ob)
 {
   BLI_assert(!ID_IS_LINKED(ob));
@@ -149,36 +134,6 @@ bool ED_object_posemode_exit(bContext *C, Object *ob)
   return ok;
 }
 
-/* if a selected or active bone is protected, throw error (only if warn == 1) and return 1 */
-/* only_selected == 1: the active bone is allowed to be protected */
-#if 0 /* UNUSED 2.5 */
-static bool pose_has_protected_selected(Object *ob, short warn)
-{
-  /* check protection */
-  if (ob->proxy) {
-    bPoseChannel *pchan;
-    bArmature *arm = ob->data;
-
-    for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-      if (pchan->bone && (pchan->bone->layer & arm->layer)) {
-        if (pchan->bone->layer & arm->layer_protected) {
-          if (pchan->bone->flag & BONE_SELECTED) {
-            break;
-          }
-        }
-      }
-    }
-    if (pchan) {
-      if (warn) {
-        error("Cannot change Proxy protected bones");
-      }
-      return 1;
-    }
-  }
-  return 0;
-}
-#endif
-
 /* ********************************************** */
 /* Motion Paths */
 
@@ -195,11 +150,6 @@ static eAnimvizCalcRange pose_path_convert_range(ePosePathCalcRange range)
   return ANIMVIZ_CALC_RANGE_FULL;
 }
 
-/* For the object with pose/action: update paths for those that have got them
- * This should selectively update paths that exist...
- *
- * To be called from various tools that do incremental updates
- */
 void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, ePosePathCalcRange range)
 {
   /* Transform doesn't always have context available to do update. */
@@ -478,7 +428,7 @@ static int pose_clear_paths_exec(bContext *C, wmOperator *op)
 /* operator callback/wrapper */
 static int pose_clear_paths_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  if ((event->shift) && !RNA_struct_property_is_set(op->ptr, "only_selected")) {
+  if ((event->modifier & KM_SHIFT) && !RNA_struct_property_is_set(op->ptr, "only_selected")) {
     RNA_boolean_set(op->ptr, "only_selected", true);
   }
   return pose_clear_paths_exec(C, op);
@@ -1060,10 +1010,6 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob_iter = objects[ob_index];
     bArmature *arm = ob_iter->data;
-
-    if (ob_iter->proxy != NULL) {
-      BKE_report(op->reports, RPT_INFO, "Undo of hiding can only be done with Reveal Selected");
-    }
 
     bool changed = bone_looper(ob_iter, arm->bonebase.first, hide_select_p, hide_pose_bone_fn) !=
                    0;

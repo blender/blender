@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2007 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2007 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup nodes
@@ -28,20 +12,19 @@
 
 #include "BKE_global.h"
 #include "BKE_node.h"
+#include "BKE_node_tree_update.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "node_exec.h"
 #include "node_util.h"
 
-/* supported socket types in old nodes */
-int node_exec_socket_use_stack(bNodeSocket *sock)
+static int node_exec_socket_use_stack(bNodeSocket *sock)
 {
   /* NOTE: INT supported as FLOAT. Only for EEVEE. */
   return ELEM(sock->type, SOCK_INT, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_SHADER);
 }
 
-/* for a given socket, find the actual stack entry */
 bNodeStack *node_get_socket_stack(bNodeStack *stack, bNodeSocket *sock)
 {
   if (stack && sock && sock->stack_index >= 0) {
@@ -172,13 +155,13 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
   /* Using global main here is likely totally wrong, not sure what to do about that one though...
    * We cannot even check ntree is in global main,
    * since most of the time it won't be (thanks to ntree design)!!! */
-  ntreeUpdateTree(G.main, ntree);
+  BKE_ntree_update_main_tree(G.main, ntree, nullptr);
 
   /* get a dependency-sorted list of nodes */
   ntreeGetDependencyList(ntree, &nodelist, &totnodes);
 
   /* XXX could let callbacks do this for specialized data */
-  exec = (bNodeTreeExec *)MEM_callocN(sizeof(bNodeTreeExec), "node tree execution data");
+  exec = MEM_cnew<bNodeTreeExec>("node tree execution data");
   /* backpointer to node tree */
   exec->nodetree = ntree;
 
@@ -276,61 +259,4 @@ void ntree_exec_end(bNodeTreeExec *exec)
   }
 
   MEM_freeN(exec);
-}
-
-/**** Material/Texture trees ****/
-
-bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
-{
-  ListBase *lb = &exec->threadstack[thread];
-  bNodeThreadStack *nts;
-
-  for (nts = (bNodeThreadStack *)lb->first; nts; nts = nts->next) {
-    if (!nts->used) {
-      nts->used = true;
-      break;
-    }
-  }
-
-  if (!nts) {
-    nts = (bNodeThreadStack *)MEM_callocN(sizeof(bNodeThreadStack), "bNodeThreadStack");
-    nts->stack = (bNodeStack *)MEM_dupallocN(exec->stack);
-    nts->used = true;
-    BLI_addtail(lb, nts);
-  }
-
-  return nts;
-}
-
-void ntreeReleaseThreadStack(bNodeThreadStack *nts)
-{
-  nts->used = false;
-}
-
-bool ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *callerdata, int thread)
-{
-  bNodeStack *nsin[MAX_SOCKET] = {nullptr};  /* arbitrary... watch this */
-  bNodeStack *nsout[MAX_SOCKET] = {nullptr}; /* arbitrary... watch this */
-  bNodeExec *nodeexec;
-  bNode *node;
-  int n;
-
-  /* nodes are presorted, so exec is in order of list */
-
-  for (n = 0, nodeexec = exec->nodeexec; n < exec->totnodes; n++, nodeexec++) {
-    node = nodeexec->node;
-    if (node->need_exec) {
-      node_get_stack(node, nts->stack, nsin, nsout);
-      /* Handle muted nodes...
-       * If the mute func is not set, assume the node should never be muted,
-       * and hence execute it!
-       */
-      if (node->typeinfo->exec_fn && !(node->flag & NODE_MUTED)) {
-        node->typeinfo->exec_fn(callerdata, thread, node, &nodeexec->data, nsin, nsout);
-      }
-    }
-  }
-
-  /* signal to that all went OK, for render */
-  return true;
 }

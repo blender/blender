@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bli
@@ -47,7 +31,7 @@ typedef ssize_t (*FileReaderReadFn)(struct FileReader *reader, void *buffer, siz
 typedef off64_t (*FileReaderSeekFn)(struct FileReader *reader, off64_t offset, int whence);
 typedef void (*FileReaderCloseFn)(struct FileReader *reader);
 
-/* General structure for all FileReaders, implementations add custom fields at the end. */
+/** General structure for all #FileReaders, implementations add custom fields at the end. */
 typedef struct FileReader {
   FileReaderReadFn read;
   FileReaderSeekFn seek;
@@ -64,16 +48,16 @@ typedef struct FileReader {
  * take over the base FileReader and will clean it up when their clean() is called.
  */
 
-/* Create FileReader from raw file descriptor. */
+/** Create #FileReader from raw file descriptor. */
 FileReader *BLI_filereader_new_file(int filedes) ATTR_WARN_UNUSED_RESULT;
-/* Create FileReader from raw file descriptor using memory-mapped IO. */
+/** Create #FileReader from raw file descriptor using memory-mapped IO. */
 FileReader *BLI_filereader_new_mmap(int filedes) ATTR_WARN_UNUSED_RESULT;
-/* Create FileReader from a region of memory. */
+/** Create #FileReader from a region of memory. */
 FileReader *BLI_filereader_new_memory(const void *data, size_t len) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
-/* Create FileReader from applying `Zstd` decompression on an underlying file. */
+/** Create #FileReader from applying `Zstd` decompression on an underlying file. */
 FileReader *BLI_filereader_new_zstd(FileReader *base) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-/* Create FileReader from applying `Gzip` decompression on an underlying file. */
+/** Create #FileReader from applying `Gzip` decompression on an underlying file. */
 FileReader *BLI_filereader_new_gzip(FileReader *base) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 #ifdef __cplusplus

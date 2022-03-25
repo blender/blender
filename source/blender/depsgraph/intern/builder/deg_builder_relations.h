@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2013 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2013 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup depsgraph
@@ -71,8 +55,8 @@ struct Scene;
 struct Simulation;
 struct Speaker;
 struct Tex;
-struct ViewLayer;
 struct VFont;
+struct ViewLayer;
 struct World;
 struct bAction;
 struct bArmature;
@@ -216,8 +200,6 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
                                 Object *object,
                                 Collection *collection);
   virtual void build_object(Object *object);
-  virtual void build_object_proxy_from(Object *object);
-  virtual void build_object_proxy_group(Object *object);
   virtual void build_object_from_layer_relations(Object *object);
   virtual void build_object_data(Object *object);
   virtual void build_object_data_camera(Object *object);
@@ -273,7 +255,6 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
                                      const bPoseChannel *rootchan,
                                      const RootPChanMap *root_map);
   virtual void build_rig(Object *object);
-  virtual void build_proxy_rig(Object *object);
   virtual void build_shapekeys(Key *key);
   virtual void build_armature(bArmature *armature);
   virtual void build_armature_bones(ListBase *bones);
@@ -299,7 +280,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_scene_speakers(Scene *scene, ViewLayer *view_layer);
   virtual void build_vfont(VFont *vfont);
 
-  virtual void build_nested_datablock(ID *owner, ID *id);
+  virtual void build_nested_datablock(ID *owner, ID *id, bool flush_cow_changes);
   virtual void build_nested_nodetree(ID *owner, bNodeTree *ntree);
   virtual void build_nested_shapekey(ID *owner, Key *key);
 
@@ -336,6 +317,11 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
                               Node *node_to,
                               const char *description,
                               int flags = 0);
+
+  /* Add relation which ensures visibility of `id_from` when `id_to` is visible.
+   * For the more detailed explanation see comment for `NodeType::VISIBILITY`. */
+  void add_visibility_relation(ID *id_from, ID *id_to);
+
   Relation *add_operation_relation(OperationNode *node_from,
                                    OperationNode *node_to,
                                    const char *description,

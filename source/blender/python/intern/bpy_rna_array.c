@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -126,7 +112,7 @@ static int validate_array_type(PyObject *seq,
         ok = 0;
       }
       else if ((item_seq_size = PySequence_Size(item)) == -1) {
-        /* BLI_snprintf(error_str, error_str_size, "expected a sequence of %s", item_type_str); */
+        // BLI_snprintf(error_str, error_str_size, "expected a sequence of %s", item_type_str);
         PyErr_Format(PyExc_TypeError,
                      "%s expected a sequence of %s, not %s",
                      error_prefix,
@@ -990,9 +976,10 @@ PyObject *pyrna_py_from_array(PointerRNA *ptr, PropertyRNA *prop)
   return pyrna_prop_CreatePyObject(ptr, prop);
 }
 
-/* TODO: multi-dimensional arrays. */
 int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 {
+  /* TODO: multi-dimensional arrays. */
+
   const int len = RNA_property_array_length(ptr, prop);
   int type;
   int i;

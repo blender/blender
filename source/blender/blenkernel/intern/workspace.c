@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -187,6 +173,7 @@ IDTypeInfo IDType_ID_WS = {
     .name_plural = "workspaces",
     .translation_context = BLT_I18NCONTEXT_ID_WORKSPACE,
     .flags = IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_ONLY_APPEND | IDTYPE_FLAGS_NO_ANIMDATA,
+    .asset_type_info = NULL,
 
     .init_data = workspace_init_data,
     .copy_data = NULL,
@@ -194,6 +181,7 @@ IDTypeInfo IDType_ID_WS = {
     .make_local = NULL,
     .foreach_id = workspace_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = workspace_blend_write,
@@ -319,13 +307,6 @@ WorkSpace *BKE_workspace_add(Main *bmain, const char *name)
   return new_workspace;
 }
 
-/**
- * Remove \a workspace by freeing itself and its data. This is a higher-level wrapper that
- * calls #workspace_free_data (through #BKE_id_free) to free the workspace data, and frees
- * other data-blocks owned by \a workspace and its layouts (currently that is screens only).
- *
- * Always use this to remove (and free) workspaces. Don't free non-ID workspace members here.
- */
 void BKE_workspace_remove(Main *bmain, WorkSpace *workspace)
 {
   for (WorkSpaceLayout *layout = workspace->layouts.first, *layout_next; layout;
@@ -369,9 +350,6 @@ void BKE_workspace_instance_hook_free(const Main *bmain, WorkSpaceInstanceHook *
   MEM_freeN(hook);
 }
 
-/**
- * Add a new layout to \a workspace for \a screen.
- */
 WorkSpaceLayout *BKE_workspace_layout_add(Main *bmain,
                                           WorkSpace *workspace,
                                           bScreen *screen,
@@ -434,13 +412,6 @@ WorkSpaceLayout *BKE_workspace_layout_find(const WorkSpace *workspace, const bSc
   return NULL;
 }
 
-/**
- * Find the layout for \a screen without knowing which workspace to look in.
- * Can also be used to find the workspace that contains \a screen.
- *
- * \param r_workspace: Optionally return the workspace that contains the
- * looked up layout (if found).
- */
 WorkSpaceLayout *BKE_workspace_layout_find_global(const Main *bmain,
                                                   const bScreen *screen,
                                                   WorkSpace **r_workspace)
@@ -464,15 +435,6 @@ WorkSpaceLayout *BKE_workspace_layout_find_global(const Main *bmain,
   return NULL;
 }
 
-/**
- * Circular workspace layout iterator.
- *
- * \param callback: Custom function which gets executed for each layout.
- * Can return false to stop iterating.
- * \param arg: Custom data passed to each \a callback call.
- *
- * \return the layout at which \a callback returned false.
- */
 WorkSpaceLayout *BKE_workspace_layout_iter_circular(const WorkSpace *workspace,
                                                     WorkSpaceLayout *start,
                                                     bool (*callback)(const WorkSpaceLayout *layout,
@@ -564,18 +526,11 @@ void BKE_workspace_active_set(WorkSpaceInstanceHook *hook, WorkSpace *workspace)
   }
 }
 
-/**
- * Get the layout that is active for \a hook (which is the visible layout for the active workspace
- * in \a hook).
- */
 WorkSpaceLayout *BKE_workspace_active_layout_get(const WorkSpaceInstanceHook *hook)
 {
   return hook->act_layout;
 }
 
-/**
- * Get the layout to be activated should \a workspace become or be the active workspace in \a hook.
- */
 WorkSpaceLayout *BKE_workspace_active_layout_for_workspace_get(const WorkSpaceInstanceHook *hook,
                                                                const WorkSpace *workspace)
 {
@@ -588,17 +543,6 @@ WorkSpaceLayout *BKE_workspace_active_layout_for_workspace_get(const WorkSpaceIn
   return workspace_relation_get_data_matching_parent(&workspace->hook_layout_relations, hook);
 }
 
-/**
- * \brief Activate a layout
- *
- * Sets \a layout as active for \a workspace when activated through or already active in \a hook.
- * So when the active workspace of \a hook is \a workspace, \a layout becomes the active layout of
- * \a hook too. See #BKE_workspace_active_set().
- *
- * \a workspace does not need to be active for this.
- *
- * WorkSpaceInstanceHook.act_layout should only be modified directly to update the layout pointer.
- */
 void BKE_workspace_active_layout_set(WorkSpaceInstanceHook *hook,
                                      const int winid,
                                      WorkSpace *workspace,

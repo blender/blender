@@ -1,27 +1,11 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * Based on original code by Drew Whitehouse / Houdini Ocean Toolkit
- * OpenMP hints by Christian Schnellhammer
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bke
+ *
+ * Based on original code by Drew Whitehouse / Houdini Ocean Toolkit
+ * OpenMP hints by Christian Schnellhammer
  */
 
 #include <math.h>
@@ -41,6 +25,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_ocean.h"
 #include "ocean_intern.h"
 
@@ -270,7 +255,6 @@ void BKE_ocean_eval_uv(struct Ocean *oc, struct OceanResult *ocr, float u, float
   BLI_rw_mutex_unlock(&oc->oceanmutex);
 }
 
-/* use catmullrom interpolation rather than linear */
 void BKE_ocean_eval_uv_catrom(struct Ocean *oc, struct OceanResult *ocr, float u, float v)
 {
   int i0, i1, i2, i3, j0, j1, j2, j3;
@@ -378,8 +362,6 @@ void BKE_ocean_eval_xz_catrom(struct Ocean *oc, struct OceanResult *ocr, float x
   BKE_ocean_eval_uv_catrom(oc, ocr, x / oc->_Lx, z / oc->_Lz);
 }
 
-/* note that this doesn't wrap properly for i, j < 0, but its not really meant for that being
- * just a way to get the raw data out to save in some image format. */
 void BKE_ocean_eval_ij(struct Ocean *oc, struct OceanResult *ocr, int i, int j)
 {
   BLI_rw_mutex_lock(&oc->oceanmutex, THREAD_LOCK_READ);
@@ -650,9 +632,6 @@ static void ocean_compute_normal_z(TaskPool *__restrict pool, void *UNUSED(taskd
   fftw_execute(o->_N_z_plan);
 }
 
-/**
- * Return true if the ocean is valid and can be used.
- */
 bool BKE_ocean_is_valid(const struct Ocean *o)
 {
   return o->_k != NULL;
@@ -777,9 +756,6 @@ bool BKE_ocean_ensure(struct OceanModifierData *omd, const int resolution)
   return true;
 }
 
-/**
- * Return true if the ocean data is valid and can be used.
- */
 bool BKE_ocean_init_from_modifier(struct Ocean *ocean,
                                   struct OceanModifierData const *omd,
                                   const int resolution)
@@ -818,9 +794,6 @@ bool BKE_ocean_init_from_modifier(struct Ocean *ocean,
                         omd->seed);
 }
 
-/**
- * Return true if the ocean data is valid and can be used.
- */
 bool BKE_ocean_init(struct Ocean *o,
                     int M,
                     int N,

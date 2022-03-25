@@ -1,16 +1,5 @@
-# Copyright 2011-2020 Blender Foundation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2011-2022 Blender Foundation
 
 remove_extra_strict_flags()
 
@@ -61,7 +50,6 @@ set(SRC_KERNEL_DEVICE_GPU_HEADERS
   device/gpu/kernel.h
   device/gpu/parallel_active_index.h
   device/gpu/parallel_prefix_sum.h
-  device/gpu/parallel_reduce.h
   device/gpu/parallel_sorted_index.h
   device/gpu/work_stealing.h
 )
@@ -179,11 +167,14 @@ set(SRC_KERNEL_GEOM_HEADERS
   geom/curve.h
   geom/curve_intersect.h
   geom/motion_curve.h
+  geom/motion_point.h
   geom/motion_triangle.h
   geom/motion_triangle_intersect.h
   geom/motion_triangle_shader.h
   geom/object.h
   geom/patch.h
+  geom/point.h
+  geom/point_intersect.h
   geom/primitive.h
   geom/shader_data.h
   geom/subd_triangle.h
@@ -207,6 +198,7 @@ set(SRC_KERNEL_BVH_HEADERS
   bvh/volume.h
   bvh/volume_all.h
   bvh/embree.h
+  bvh/metal.h
 )
 
 set(SRC_KERNEL_CAMERA_HEADERS
@@ -273,6 +265,7 @@ set(SRC_KERNEL_UTIL_HEADERS
 )
 
 set(SRC_KERNEL_TYPES_HEADERS
+  tables.h
   textures.h
   types.h
 )
@@ -410,17 +403,17 @@ if(WITH_CYCLES_CUDA_BINARIES)
       -I ${CMAKE_CURRENT_SOURCE_DIR}/..
       -I ${CMAKE_CURRENT_SOURCE_DIR}/device/cuda
       --use_fast_math
-      -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_file})
-
-    if(${experimental})
-      set(cuda_flags ${cuda_flags} -D __KERNEL_EXPERIMENTAL__)
-      set(name ${name}_experimental)
-    endif()
+      -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_file}
+      -Wno-deprecated-gpu-targets)
 
     if(WITH_NANOVDB)
       set(cuda_flags ${cuda_flags}
         -D WITH_NANOVDB
         -I "${NANOVDB_INCLUDE_DIR}")
+    endif()
+
+    if(WITH_CYCLES_DEBUG)
+      set(cuda_flags ${cuda_flags} -D WITH_CYCLES_DEBUG)
     endif()
 
     if(WITH_CYCLES_CUBIN_COMPILER)
@@ -571,13 +564,14 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
       -ffast-math
       -o ${CMAKE_CURRENT_BINARY_DIR}/${hip_file})
 
-    if(${experimental})
-      set(hip_flags ${hip_flags} -D __KERNEL_EXPERIMENTAL__)
-      set(name ${name}_experimental)
+    if(WITH_NANOVDB)
+      set(hip_flags ${hip_flags}
+        -D WITH_NANOVDB
+        -I "${NANOVDB_INCLUDE_DIR}")
     endif()
 
     if(WITH_CYCLES_DEBUG)
-      set(hip_flags ${hip_flags} -D __KERNEL_DEBUG__)
+      set(hip_flags ${hip_flags} -D WITH_CYCLES_DEBUG)
     endif()
 
     add_custom_command(
@@ -616,6 +610,10 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
       set(cuda_flags ${cuda_flags}
         -D WITH_NANOVDB
         -I "${NANOVDB_INCLUDE_DIR}")
+    endif()
+
+    if(WITH_CYCLES_DEBUG)
+      set(cuda_flags ${cuda_flags} -D WITH_CYCLES_DEBUG)
     endif()
 
     if(WITH_CYCLES_CUBIN_COMPILER)
@@ -706,7 +704,7 @@ if(WITH_COMPILER_ASAN)
     string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-sanitize=all")
     string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-sanitize=vptr")
   elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
-    # With OSL, Cycles disables rtti in some modules, wich then breaks at linking
+    # With OSL, Cycles disables rtti in some modules, which then breaks at linking
     # when trying to use vptr sanitizer (included into 'undefined' general option).
     string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-sanitize=vptr")
     string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-sanitize=vptr")

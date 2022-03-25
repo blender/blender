@@ -1,3 +1,8 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2009 Kitware, Inc.
+#           2009 Will Dicharry <wdicharry@stellarscience.com>
+#           2005-2009 Kitware, Inc.
+
 # select_library_configurations( basename )
 #
 # This macro takes a library base name as an argument, and will choose good
@@ -14,18 +19,6 @@
 # or the generator in use does not support configuration types, then
 # basename_LIBRARY and basename_LIBRARIES will take only the release values.
 
-#=============================================================================
-# Copyright 2009 Kitware, Inc.
-# Copyright 2009 Will Dicharry <wdicharry@stellarscience.com>
-# Copyright 2005-2009 Kitware, Inc.
-#
-# Distributed under the OSI-approved BSD License (the "License");
-# see accompanying file Copyright.txt for details.
-#
-# This software is distributed WITHOUT ANY WARRANTY; without even the
-# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the License for more information.
-#=============================================================================
 # (To distribute this file outside of CMake, substitute the full
 #  License text for the above reference.)
 

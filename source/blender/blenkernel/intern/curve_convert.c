@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -41,7 +27,7 @@ static Curve *curve_from_font_object(Object *object, Depsgraph *depsgraph)
   Object *evaluated_object = DEG_get_evaluated_object(depsgraph, object);
   BKE_vfont_to_curve_nubase(evaluated_object, FO_EDIT, &new_curve->nurb);
 
-  new_curve->type = OB_CURVE;
+  new_curve->type = OB_CURVES_LEGACY;
 
   new_curve->flag &= ~CU_3D;
   BKE_curve_dimension_update(new_curve);
@@ -69,7 +55,7 @@ static Curve *curve_from_curve_object(Object *object, Depsgraph *depsgraph, bool
 
 Curve *BKE_curve_new_from_object(Object *object, Depsgraph *depsgraph, bool apply_modifiers)
 {
-  if (!ELEM(object->type, OB_FONT, OB_CURVE)) {
+  if (!ELEM(object->type, OB_FONT, OB_CURVES_LEGACY)) {
     return NULL;
   }
 

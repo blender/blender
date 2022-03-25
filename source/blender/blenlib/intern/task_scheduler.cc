@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -50,8 +36,8 @@ void BLI_task_scheduler_init()
   if (num_threads_override > 0) {
     /* Override number of threads. This settings is used within the lifetime
      * of tbb::global_control, so we allocate it on the heap. */
-    task_scheduler_global_control = OBJECT_GUARDED_NEW(
-        tbb::global_control, tbb::global_control::max_allowed_parallelism, num_threads_override);
+    task_scheduler_global_control = MEM_new<tbb::global_control>(
+        __func__, tbb::global_control::max_allowed_parallelism, num_threads_override);
     task_scheduler_num_threads = num_threads_override;
   }
   else {
@@ -69,7 +55,7 @@ void BLI_task_scheduler_init()
 void BLI_task_scheduler_exit()
 {
 #ifdef WITH_TBB_GLOBAL_CONTROL
-  OBJECT_GUARDED_DELETE(task_scheduler_global_control, tbb::global_control);
+  MEM_delete(task_scheduler_global_control);
 #endif
 }
 

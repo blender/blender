@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edtransform
@@ -225,11 +209,12 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
     if (t->spacetype == SPACE_GRAPH) {
       /* WORKAROUND:
        * Special case where snapping is done in #recalData.
-       * Update the header based on the first element. */
+       * Update the header based on the #center_local. */
       const short autosnap = getAnimEdit_SnapMode(t);
-      float ival = TRANS_DATA_CONTAINER_FIRST_OK(t)->data->ival;
+      float ival = TRANS_DATA_CONTAINER_FIRST_OK(t)->center_local[0];
       float val = ival + dvec[0];
-      snapFrameTransform(t, autosnap, ival, val, &dvec[0]);
+      snapFrameTransform(t, autosnap, ival, val, &val);
+      dvec[0] = val - ival;
     }
 
     if (t->con.mode & CON_APPLY) {
@@ -579,4 +564,5 @@ void initTranslation(TransInfo *t)
   t->custom.mode.data = custom_data;
   t->custom.mode.use_free = true;
 }
+
 /** \} */

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -360,7 +346,7 @@ static void rna_def_light_shadow(StructRNA *srna, bool sun)
   RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_SHAD_CONTACT);
   RNA_def_property_ui_text(prop,
                            "Contact Shadow",
-                           "Use screen space raytracing to have correct shadowing "
+                           "Use screen space ray-tracing to have correct shadowing "
                            "near occluder, or for small features that does not appear "
                            "in shadow maps");
   RNA_def_property_update(prop, 0, "rna_Light_update");

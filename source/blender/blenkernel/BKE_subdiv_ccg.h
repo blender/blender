@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2018 by Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2018 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -46,9 +30,9 @@ struct Subdiv;
 /* Functor which evaluates mask value at a given (u, v) of given ptex face. */
 typedef struct SubdivCCGMaskEvaluator {
   float (*eval_mask)(struct SubdivCCGMaskEvaluator *mask_evaluator,
-                     const int ptex_face_index,
-                     const float u,
-                     const float v);
+                     int ptex_face_index,
+                     float u,
+                     float v);
 
   /* Free the data, not the evaluator itself. */
   void (*free)(struct SubdivCCGMaskEvaluator *mask_evaluator);
@@ -67,8 +51,7 @@ bool BKE_subdiv_ccg_mask_init_from_paint(SubdivCCGMaskEvaluator *mask_evaluator,
 /* Functor which evaluates material and flags of a given coarse face. */
 typedef struct SubdivCCGMaterialFlagsEvaluator {
   DMFlagMat (*eval_material_flags)(
-      struct SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator,
-      const int coarse_face_index);
+      struct SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator, int coarse_face_index);
 
   /* Free the data, not the evaluator itself. */
   void (*free)(struct SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator);
@@ -307,10 +290,10 @@ bool BKE_subdiv_ccg_check_coord_valid(const SubdivCCG *subdiv_ccg, const SubdivC
  * the current vertex are added at the end of the coords array. */
 void BKE_subdiv_ccg_neighbor_coords_get(const SubdivCCG *subdiv_ccg,
                                         const SubdivCCGCoord *coord,
-                                        const bool include_duplicates,
+                                        bool include_duplicates,
                                         SubdivCCGNeighbors *r_neighbors);
 
-int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG *subdiv_ccg, const int grid_index);
+int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG *subdiv_ccg, int grid_index);
 void BKE_subdiv_ccg_eval_limit_point(const SubdivCCG *subdiv_ccg,
                                      const SubdivCCGCoord *coord,
                                      float r_point[3]);

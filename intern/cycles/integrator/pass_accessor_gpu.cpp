@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "integrator/pass_accessor_gpu.h"
 
@@ -54,30 +41,30 @@ void PassAccessorGPU::run_film_convert_kernels(DeviceKernel kernel,
   if (destination.d_pixels) {
     DCHECK_EQ(destination.stride, 0) << "Custom stride for float destination is not implemented.";
 
-    void *args[] = {const_cast<KernelFilmConvert *>(&kfilm_convert),
-                    const_cast<device_ptr *>(&destination.d_pixels),
-                    const_cast<device_ptr *>(&render_buffers->buffer.device_pointer),
-                    const_cast<int *>(&work_size),
-                    const_cast<int *>(&buffer_params.window_width),
-                    const_cast<int *>(&offset),
-                    const_cast<int *>(&buffer_params.stride),
-                    const_cast<int *>(&destination.offset),
-                    const_cast<int *>(&destination_stride)};
+    DeviceKernelArguments args(&kfilm_convert,
+                               &destination.d_pixels,
+                               &render_buffers->buffer.device_pointer,
+                               &work_size,
+                               &buffer_params.window_width,
+                               &offset,
+                               &buffer_params.stride,
+                               &destination.offset,
+                               &destination_stride);
 
     queue_->enqueue(kernel, work_size, args);
   }
   if (destination.d_pixels_half_rgba) {
     const DeviceKernel kernel_half_float = static_cast<DeviceKernel>(kernel + 1);
 
-    void *args[] = {const_cast<KernelFilmConvert *>(&kfilm_convert),
-                    const_cast<device_ptr *>(&destination.d_pixels_half_rgba),
-                    const_cast<device_ptr *>(&render_buffers->buffer.device_pointer),
-                    const_cast<int *>(&work_size),
-                    const_cast<int *>(&buffer_params.window_width),
-                    const_cast<int *>(&offset),
-                    const_cast<int *>(&buffer_params.stride),
-                    const_cast<int *>(&destination.offset),
-                    const_cast<int *>(&destination_stride)};
+    DeviceKernelArguments args(&kfilm_convert,
+                               &destination.d_pixels_half_rgba,
+                               &render_buffers->buffer.device_pointer,
+                               &work_size,
+                               &buffer_params.window_width,
+                               &offset,
+                               &buffer_params.stride,
+                               &destination.offset,
+                               &destination_stride);
 
     queue_->enqueue(kernel_half_float, work_size, args);
   }

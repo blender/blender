@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2007 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2007 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup wm
@@ -185,11 +169,11 @@ static bool wm_keymap_item_equals(wmKeyMapItem *a, wmKeyMapItem *b)
   return (wm_keymap_item_equals_result(a, b) && a->type == b->type && a->val == b->val &&
           a->shift == b->shift && a->ctrl == b->ctrl && a->alt == b->alt && a->oskey == b->oskey &&
           a->keymodifier == b->keymodifier && a->maptype == b->maptype &&
+          ((a->val != KM_CLICK_DRAG) || (a->direction == b->direction)) &&
           ((ISKEYBOARD(a->type) == 0) ||
            (a->flag & KMI_REPEAT_IGNORE) == (b->flag & KMI_REPEAT_IGNORE)));
 }
 
-/* properties can be NULL, otherwise the arg passed is used and ownership is given to the kmi */
 void WM_keymap_item_properties_reset(wmKeyMapItem *kmi, struct IDProperty *properties)
 {
   if (LIKELY(kmi->ptr)) {
@@ -211,9 +195,6 @@ int WM_keymap_item_map_type_get(const wmKeyMapItem *kmi)
   }
   if (ISKEYBOARD(kmi->type)) {
     return KMI_TYPE_KEYBOARD;
-  }
-  if (ISTWEAK(kmi->type)) {
-    return KMI_TYPE_TWEAK;
   }
   if (ISMOUSE(kmi->type)) {
     return KMI_TYPE_MOUSE;
@@ -476,11 +457,12 @@ bool WM_keymap_poll(bContext *C, wmKeyMap *keymap)
 }
 
 static void keymap_event_set(
-    wmKeyMapItem *kmi, short type, short val, int modifier, short keymodifier)
+    wmKeyMapItem *kmi, short type, short val, int modifier, short keymodifier, int direction)
 {
   kmi->type = type;
   kmi->val = val;
   kmi->keymodifier = keymodifier;
+  kmi->direction = direction;
 
   if (modifier == KM_ANY) {
     kmi->shift = kmi->ctrl = kmi->alt = kmi->oskey = KM_ANY;
@@ -514,16 +496,20 @@ static void keymap_item_set_id(wmKeyMap *keymap, wmKeyMapItem *kmi)
   }
 }
 
-/* always add item */
-wmKeyMapItem *WM_keymap_add_item(
-    wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier)
+wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap,
+                                 const char *idname,
+                                 int type,
+                                 int val,
+                                 int modifier,
+                                 int keymodifier,
+                                 int direction)
 {
   wmKeyMapItem *kmi = MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
 
   BLI_addtail(&keymap->items, kmi);
   BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
 
-  keymap_event_set(kmi, type, val, modifier, keymodifier);
+  keymap_event_set(kmi, type, val, modifier, keymodifier, direction);
   wm_keymap_item_properties_set(kmi);
 
   keymap_item_set_id(keymap, kmi);
@@ -937,14 +923,14 @@ wmKeyMap *WM_modalkeymap_find(wmKeyConfig *keyconf, const char *idname)
 }
 
 wmKeyMapItem *WM_modalkeymap_add_item(
-    wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value)
+    wmKeyMap *km, int type, int val, int modifier, int keymodifier, int direction, int value)
 {
   wmKeyMapItem *kmi = MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
 
   BLI_addtail(&km->items, kmi);
   kmi->propvalue = value;
 
-  keymap_event_set(kmi, type, val, modifier, keymodifier);
+  keymap_event_set(kmi, type, val, modifier, keymodifier, direction);
 
   keymap_item_set_id(km, kmi);
 
@@ -953,15 +939,20 @@ wmKeyMapItem *WM_modalkeymap_add_item(
   return kmi;
 }
 
-wmKeyMapItem *WM_modalkeymap_add_item_str(
-    wmKeyMap *km, int type, int val, int modifier, int keymodifier, const char *value)
+wmKeyMapItem *WM_modalkeymap_add_item_str(wmKeyMap *km,
+                                          int type,
+                                          int val,
+                                          int modifier,
+                                          int keymodifier,
+                                          int direction,
+                                          const char *value)
 {
   wmKeyMapItem *kmi = MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
 
   BLI_addtail(&km->items, kmi);
   BLI_strncpy(kmi->propvalue_str, value, sizeof(kmi->propvalue_str));
 
-  keymap_event_set(kmi, type, val, modifier, keymodifier);
+  keymap_event_set(kmi, type, val, modifier, keymodifier, direction);
 
   keymap_item_set_id(km, kmi);
 
@@ -1150,7 +1141,6 @@ const char *WM_key_event_string(const short type, const bool compact)
   return CTX_IFACE_(BLT_I18NCONTEXT_UI_EVENTS, it->name);
 }
 
-/* TODO: also support (some) value, like e.g. double-click? */
 int WM_keymap_item_raw_to_string(const short shift,
                                  const short ctrl,
                                  const short alt,
@@ -1162,6 +1152,8 @@ int WM_keymap_item_raw_to_string(const short shift,
                                  char *result,
                                  const int result_len)
 {
+  /* TODO: also support (some) value, like e.g. double-click? */
+
 #define ADD_SEP \
   if (p != buf) { \
     *p++ = ' '; \
@@ -1306,6 +1298,10 @@ char *WM_modalkeymap_operator_items_to_string_buf(wmOperatorType *ot,
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Keymap Finding Utilities
+ * \{ */
 
 static wmKeyMapItem *wm_keymap_item_find_in_keymap(wmKeyMap *keymap,
                                                    const char *opname,
@@ -1676,10 +1672,6 @@ static bool kmi_filter_is_visible_type_mask(const wmKeyMap *km,
           kmi_filter_is_visible(km, kmi, user_data));
 }
 
-/**
- * \param include_mask, exclude_mask:
- * Event types to include/exclude when looking up keys (#eEventType_Mask).
- */
 wmKeyMapItem *WM_key_event_operator(const bContext *C,
                                     const char *opname,
                                     wmOperatorCallContext opcontext,
@@ -1745,6 +1737,9 @@ bool WM_keymap_item_compare(const wmKeyMapItem *k1, const wmKeyMapItem *k2)
       return 0;
     }
     if (k1->val != k2->val) {
+      return 0;
+    }
+    if (k1->val == KM_CLICK_DRAG && (k1->direction != k2->direction)) {
       return 0;
     }
   }

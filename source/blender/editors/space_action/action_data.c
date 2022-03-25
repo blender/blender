@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2015 Blender Foundation
- * This is a new part of Blender
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2015 Blender Foundation. */
 
 /** \file
  * \ingroup spaction
@@ -40,6 +24,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "BKE_action.h"
 #include "BKE_context.h"
@@ -70,8 +55,7 @@
 /* ************************************************************************** */
 /* ACTION CREATION */
 
-/* Helper function to find the active AnimData block from the Action Editor context */
-AnimData *ED_actedit_animdata_from_context(bContext *C, ID **r_adt_id_owner)
+AnimData *ED_actedit_animdata_from_context(const bContext *C, ID **r_adt_id_owner)
 {
   SpaceAction *saction = (SpaceAction *)CTX_wm_space_data(C);
   Object *ob = CTX_data_active_object(C);
@@ -676,7 +660,7 @@ static int action_unlink_invoke(bContext *C, wmOperator *op, const wmEvent *even
 {
   /* NOTE: this is hardcoded to match the behavior for the unlink button
    * (in interface_templates.c). */
-  RNA_boolean_set(op->ptr, "force_delete", event->shift != 0);
+  RNA_boolean_set(op->ptr, "force_delete", event->modifier & KM_SHIFT);
   return action_unlink_exec(C, op);
 }
 

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -181,7 +165,7 @@ static const char *gpu_uniform_set_function_from_type(eNodeSocketDatatype type)
 
 /**
  * Link stack uniform buffer.
- * This is called for the input/output sockets that are note connected.
+ * This is called for the input/output sockets that are not connected.
  */
 static GPUNodeLink *gpu_uniformbuffer_link(GPUMaterial *mat,
                                            bNode *node,
@@ -439,7 +423,10 @@ static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
   if (tex == NULL) {
     tex = MEM_callocN(sizeof(*tex), __func__);
     tex->ima = ima;
-    tex->iuser = iuser;
+    if (iuser != NULL) {
+      tex->iuser = *iuser;
+      tex->iuser_available = true;
+    }
     tex->colorband = colorband;
     tex->sampler_state = sampler_state;
     BLI_snprintf(tex->sampler_name, sizeof(tex->sampler_name), "samp%d", num_textures);
@@ -791,7 +778,6 @@ static void gpu_node_free(GPUNode *node)
   MEM_freeN(node);
 }
 
-/* Free intermediate node graph. */
 void gpu_node_graph_free_nodes(GPUNodeGraph *graph)
 {
   GPUNode *node;
@@ -803,7 +789,6 @@ void gpu_node_graph_free_nodes(GPUNodeGraph *graph)
   graph->outlink = NULL;
 }
 
-/* Free both node graph and requested attributes and textures. */
 void gpu_node_graph_free(GPUNodeGraph *graph)
 {
   BLI_freelistN(&graph->outlink_aovs);

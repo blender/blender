@@ -1,11 +1,8 @@
-/** \file itasc/UncontrolledObject.cpp
- * \ingroup itasc
- */
-/*
- * UncontrolledObject.cpp
- *
- *  Created on: Jan 5, 2009
- *      Author: rubensmits
+/* SPDX-License-Identifier: LGPL-2.1-or-later
+ * Copyright 2009 Ruben Smits. */
+
+/** \file
+ * \ingroup intern_itasc
  */
 
 #include "UncontrolledObject.hpp"

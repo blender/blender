@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pymathutils
@@ -77,11 +63,6 @@ static int mathutils_array_parse_fast(float *array,
   return size;
 }
 
-/**
- * helper function that returns a Python `__hash__`.
- *
- * \note consistent with the equivalent tuple of floats (CPython's 'tuplehash')
- */
 Py_hash_t mathutils_array_hash(const float *array, size_t array_len)
 {
   int i;
@@ -95,11 +76,7 @@ Py_hash_t mathutils_array_hash(const float *array, size_t array_len)
   x = 0x345678UL;
   i = 0;
   while (--len >= 0) {
-#if PY_VERSION_HEX >= 0x30a0000 /* Version: 3.10. */
     y = _Py_HashDouble(NULL, (double)(array[i++]));
-#else
-    y = _Py_HashDouble((double)(array[i++]));
-#endif
     if (y == -1) {
       return -1;
     }
@@ -114,7 +91,6 @@ Py_hash_t mathutils_array_hash(const float *array, size_t array_len)
   return x;
 }
 
-/* helper function returns length of the 'value', -1 on error */
 int mathutils_array_parse(
     float *array, int array_min, int array_max, PyObject *value, const char *error_prefix)
 {
@@ -211,7 +187,6 @@ int mathutils_array_parse(
   return size;
 }
 
-/* on error, -1 is returned and no allocation is made */
 int mathutils_array_parse_alloc(float **array,
                                 int array_min,
                                 PyObject *value,
@@ -279,7 +254,6 @@ int mathutils_array_parse_alloc(float **array,
   return ret;
 }
 
-/* parse an array of vectors */
 int mathutils_array_parse_alloc_v(float **array,
                                   int array_dim,
                                   PyObject *value,
@@ -321,7 +295,6 @@ int mathutils_array_parse_alloc_v(float **array,
   return size;
 }
 
-/* Parse an sequence array_dim integers into array. */
 int mathutils_int_array_parse(int *array, int array_dim, PyObject *value, const char *error_prefix)
 {
   int size, i;
@@ -357,7 +330,6 @@ int mathutils_int_array_parse(int *array, int array_dim, PyObject *value, const 
   return size;
 }
 
-/* Parse sequence of array_dim sequences of integers and return allocated result. */
 int mathutils_array_parse_alloc_vi(int **array,
                                    int array_dim,
                                    PyObject *value,
@@ -395,12 +367,6 @@ int mathutils_array_parse_alloc_vi(int **array,
   return size;
 }
 
-/* Parse sequence of variable-length sequences of int and return allocated
- * triple of arrays to represent the result:
- * The flattened sequences are put into *array.
- * The start index of each sequence goes into start_table.
- * The length of each index goes into len_table.
- */
 int mathutils_array_parse_alloc_viseq(
     int **array, int **start_table, int **len_table, PyObject *value, const char *error_prefix)
 {
@@ -560,7 +526,6 @@ int EXPP_VectorsAreEqual(const float *vecA, const float *vecB, int size, int flo
 }
 
 #ifndef MATH_STANDALONE
-/* dynstr as python string utility functions, frees 'ds'! */
 PyObject *mathutils_dynstr_to_py(struct DynStr *ds)
 {
   const int ds_len = BLI_dynstr_get_len(ds); /* space for \0 */

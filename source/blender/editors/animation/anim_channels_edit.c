@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
 
 /** \file
  * \ingroup edanimation
@@ -74,8 +58,6 @@
 
 /* -------------------------- Selection ------------------------------------- */
 
-/* Set the given animation-channel as the active one for the active context */
-/* TODO: extend for animdata types... */
 void ANIM_set_active_channel(bAnimContext *ac,
                              void *data,
                              eAnimCont_Types datatype,
@@ -83,6 +65,8 @@ void ANIM_set_active_channel(bAnimContext *ac,
                              void *channel_data,
                              eAnim_ChannelType channel_type)
 {
+  /* TODO: extend for animdata types. */
+
   ListBase anim_data = {NULL, NULL};
   bAnimListElem *ale;
 
@@ -460,7 +444,6 @@ static void anim_channels_select_set(bAnimContext *ac,
   }
 }
 
-/* Set selection state of all animation channels in the context. */
 void ANIM_anim_channels_select_set(bAnimContext *ac, eAnimChannels_SetFlag sel)
 {
   ListBase anim_data = anim_channels_for_selection(ac);
@@ -468,7 +451,6 @@ void ANIM_anim_channels_select_set(bAnimContext *ac, eAnimChannels_SetFlag sel)
   ANIM_animdata_freelist(&anim_data);
 }
 
-/* Toggle selection state of all animation channels in the context. */
 void ANIM_anim_channels_select_toggle(bAnimContext *ac)
 {
   ListBase anim_data = anim_channels_for_selection(ac);
@@ -508,7 +490,7 @@ static void anim_flush_channel_setting_up(bAnimContext *ac,
   }
 
   /* Go backwards in the list, until the highest-ranking element
-   * (by indention has been covered). */
+   * (by indentation has been covered). */
   int prevLevel = matchLevel;
   for (bAnimListElem *ale = match->prev; ale; ale = ale->prev) {
     const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
@@ -557,7 +539,7 @@ static void anim_flush_channel_setting_down(bAnimContext *ac,
                                             bAnimListElem *const match,
                                             const int matchLevel)
 {
-  /* go forwards in the list, until the lowest-ranking element (by indention has been covered) */
+  /* go forwards in the list, until the lowest-ranking element (by indentation has been covered) */
   for (bAnimListElem *ale = match->next; ale; ale = ale->next) {
     const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
 
@@ -588,15 +570,6 @@ static void anim_flush_channel_setting_down(bAnimContext *ac,
   }
 }
 
-/* Flush visibility (for Graph Editor) changes up/down hierarchy for changes in the given setting
- * - anim_data: list of the all the anim channels that can be chosen
- *   -> filtered using ANIMFILTER_CHANNELS only, since if we took VISIBLE too,
- *      then the channels under closed expanders get ignored...
- * - ale_setting: the anim channel (not in the anim_data list directly, though occurring there)
- *   with the new state of the setting that we want flushed up/down the hierarchy
- * - setting: type of setting to set
- * - on: whether the visibility setting has been enabled or disabled
- */
 void ANIM_flush_setting_anim_channels(bAnimContext *ac,
                                       ListBase *anim_data,
                                       bAnimListElem *ale_setting,
@@ -652,7 +625,6 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
 
 /* -------------------------- F-Curves ------------------------------------- */
 
-/* Delete the given F-Curve from its AnimData block */
 void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *fcu)
 {
   /* - if no AnimData, we've got nowhere to remove the F-Curve from
@@ -708,8 +680,6 @@ void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *f
   BKE_fcurve_free(fcu);
 }
 
-/* If the action has no F-Curves, unlink it from AnimData if it did not
- * come from a NLA Strip being tweaked. */
 bool ANIM_remove_empty_action_from_animdata(struct AnimData *adt)
 {
   if (adt->action != NULL) {

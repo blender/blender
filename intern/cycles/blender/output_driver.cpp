@@ -1,18 +1,5 @@
-/*
- * Copyright 2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2021-2022 Blender Foundation */
 
 #include "blender/output_driver.h"
 
@@ -51,8 +38,6 @@ bool BlenderOutputDriver::read_render_tile(const Tile &tile)
 
   BL::RenderLayer b_rlay = *b_single_rlay;
 
-  vector<float> pixels(tile.size.x * tile.size.y * 4);
-
   /* Copy each pass.
    * TODO:copy only the required ones for better performance? */
   for (BL::RenderPass &b_pass : b_rlay.passes) {
@@ -66,7 +51,7 @@ bool BlenderOutputDriver::read_render_tile(const Tile &tile)
 
 bool BlenderOutputDriver::update_render_tile(const Tile &tile)
 {
-  /* Use final write for preview renders, otherwise render result wouldn't be be updated
+  /* Use final write for preview renders, otherwise render result wouldn't be updated
    * quickly on Blender side. For all other cases we use the display driver. */
   if (b_engine_.is_preview()) {
     write_render_tile(tile);
@@ -109,7 +94,7 @@ void BlenderOutputDriver::write_render_tile(const Tile &tile)
 
   BL::RenderLayer b_rlay = *b_single_rlay;
 
-  vector<float> pixels(tile.size.x * tile.size.y * 4);
+  vector<float> pixels(static_cast<size_t>(tile.size.x) * tile.size.y * 4);
 
   /* Copy each pass. */
   for (BL::RenderPass &b_pass : b_rlay.passes) {
@@ -120,7 +105,7 @@ void BlenderOutputDriver::write_render_tile(const Tile &tile)
     b_pass.rect(&pixels[0]);
   }
 
-  b_engine_.end_result(b_rr, true, false, true);
+  b_engine_.end_result(b_rr, false, false, true);
 }
 
 CCL_NAMESPACE_END

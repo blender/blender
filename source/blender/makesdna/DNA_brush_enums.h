@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -469,6 +455,16 @@ typedef enum eBrushUVSculptTool {
   UV_SCULPT_TOOL_PINCH = 2,
 } eBrushUVSculptTool;
 
+/* Brush.curves_sculpt_tool. */
+typedef enum eBrushCurvesSculptTool {
+  CURVES_SCULPT_TOOL_COMB = 0,
+  CURVES_SCULPT_TOOL_DELETE = 1,
+  CURVES_SCULPT_TOOL_SNAKE_HOOK = 2,
+  CURVES_SCULPT_TOOL_ADD = 3,
+  CURVES_SCULPT_TOOL_TEST1 = 4,
+  CURVES_SCULPT_TOOL_TEST2 = 5,
+} eBrushCurvesSculptTool;
+
 /** When #BRUSH_ACCUMULATE is used */
 #define SCULPT_TOOL_HAS_ACCUMULATE(t) \
   ELEM(t, \
@@ -522,7 +518,7 @@ typedef enum eBrushUVSculptTool {
         SCULPT_TOOL_SLIDE_RELAX, \
         SCULPT_TOOL_MASK) == 0)
 
-/* ImagePaintSettings.tool */
+/** #ImagePaintSettings.tool */
 typedef enum eBrushImagePaintTool {
   PAINT_TOOL_DRAW = 0,
   PAINT_TOOL_SOFTEN = 1,
@@ -532,6 +528,9 @@ typedef enum eBrushImagePaintTool {
   PAINT_TOOL_MASK = 5,
 } eBrushImagePaintTool;
 
+/* The enums here should be kept in sync with the weight paint tool.
+ * This is because #smooth_brush_toggle_on and #smooth_brush_toggle_off
+ * assumes that the blur brush has the same enum value. */
 typedef enum eBrushVertexPaintTool {
   VPAINT_TOOL_DRAW = 0,
   VPAINT_TOOL_BLUR = 1,
@@ -539,6 +538,7 @@ typedef enum eBrushVertexPaintTool {
   VPAINT_TOOL_SMEAR = 3,
 } eBrushVertexPaintTool;
 
+/* See #eBrushVertexPaintTool when changing this definition. */
 typedef enum eBrushWeightPaintTool {
   WPAINT_TOOL_DRAW = 0,
   WPAINT_TOOL_BLUR = 1,
@@ -603,10 +603,10 @@ typedef enum eBlurKernelType {
 } eBlurKernelType;
 
 /* Brush.falloff_shape */
-enum {
+typedef enum eBrushFalloffShape {
   PAINT_FALLOFF_SHAPE_SPHERE = 0,
   PAINT_FALLOFF_SHAPE_TUBE = 1,
-};
+} eBrushFalloffShape;
 
 #define MAX_BRUSH_PIXEL_RADIUS 500
 #define GP_MAX_BRUSH_PIXEL_RADIUS 1000

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -76,10 +60,6 @@ static size_t idp_size_table[] = {
 
 /* --------- property array type -------------*/
 
-/**
- * \note as a start to move away from the stupid IDP_New function, this type
- * has its own allocation function.
- */
 IDProperty *IDP_NewIDPArray(const char *name)
 {
   IDProperty *prop = MEM_callocN(sizeof(IDProperty), "IDProperty prop array");
@@ -127,7 +107,6 @@ static void IDP_FreeIDPArray(IDProperty *prop, const bool do_id_user)
   }
 }
 
-/* shallow copies item */
 void IDP_SetIndexArray(IDProperty *prop, int index, IDProperty *item)
 {
   BLI_assert(prop->type == IDP_IDPARRAY);
@@ -229,7 +208,6 @@ static void idp_resize_group_array(IDProperty *prop, int newlen, void *newarr)
   }
 }
 
-/* This function works for strings too! */
 void IDP_ResizeArray(IDProperty *prop, int newlen)
 {
   const bool is_grow = newlen >= prop->len;
@@ -351,19 +329,13 @@ static IDProperty *IDP_CopyArray(const IDProperty *prop, const int flag)
 
   return newp;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name String Functions (IDProperty String API)
  * \{ */
 
-/**
- *
- * \param st: The string to assign.
- * \param name: The property name.
- * \param maxlen: The size of the new string (including the \0 terminator).
- * \return The new string property.
- */
 IDProperty *IDP_NewString(const char *st, const char *name, int maxlen)
 {
   IDProperty *prop = MEM_callocN(sizeof(IDProperty), "IDProperty string");
@@ -457,6 +429,7 @@ void IDP_FreeString(IDProperty *prop)
     MEM_freeN(prop->data.pointer);
   }
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -514,8 +487,6 @@ static IDProperty *IDP_CopyGroup(const IDProperty *prop, const int flag)
   return newp;
 }
 
-/* use for syncing proxies.
- * When values name and types match, copy the values, else ignore */
 void IDP_SyncGroupValues(IDProperty *dest, const IDProperty *src)
 {
   BLI_assert(dest->type == IDP_GROUP);
@@ -565,9 +536,6 @@ void IDP_SyncGroupTypes(IDProperty *dest, const IDProperty *src, const bool do_a
   }
 }
 
-/**
- * Replaces all properties with the same name in a destination group from a source group.
- */
 void IDP_ReplaceGroupInGroup(IDProperty *dest, const IDProperty *src)
 {
   BLI_assert(dest->type == IDP_GROUP);
@@ -592,10 +560,6 @@ void IDP_ReplaceGroupInGroup(IDProperty *dest, const IDProperty *src)
   }
 }
 
-/**
- * Checks if a property with the same name as prop exists, and if so replaces it.
- * Use this to preserve order!
- */
 void IDP_ReplaceInGroup_ex(IDProperty *group, IDProperty *prop, IDProperty *prop_exist)
 {
   BLI_assert(group->type == IDP_GROUP);
@@ -618,10 +582,6 @@ void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
   IDP_ReplaceInGroup_ex(group, prop, prop_exist);
 }
 
-/**
- * If a property is missing in \a dest, add it.
- * Do it recursively.
- */
 void IDP_MergeGroup_ex(IDProperty *dest,
                        const IDProperty *src,
                        const bool do_overwrite,
@@ -663,25 +623,11 @@ void IDP_MergeGroup_ex(IDProperty *dest,
   }
 }
 
-/**
- * If a property is missing in \a dest, add it.
- * Do it recursively.
- */
 void IDP_MergeGroup(IDProperty *dest, const IDProperty *src, const bool do_overwrite)
 {
   IDP_MergeGroup_ex(dest, src, do_overwrite, 0);
 }
 
-/**
- * This function has a sanity check to make sure ID properties with the same name don't
- * get added to the group.
- *
- * The sanity check just means the property is not added to the group if another property
- * exists with the same name; the client code using ID properties then needs to detect this
- * (the function that adds new properties to groups, #IDP_AddToGroup,
- * returns false if a property can't be added to the group, and true if it can)
- * and free the property.
- */
 bool IDP_AddToGroup(IDProperty *group, IDProperty *prop)
 {
   BLI_assert(group->type == IDP_GROUP);
@@ -695,10 +641,6 @@ bool IDP_AddToGroup(IDProperty *group, IDProperty *prop)
   return false;
 }
 
-/**
- * This is the same as IDP_AddToGroup, only you pass an item
- * in the group list to be inserted after.
- */
 bool IDP_InsertToGroup(IDProperty *group, IDProperty *previous, IDProperty *pnew)
 {
   BLI_assert(group->type == IDP_GROUP);
@@ -712,12 +654,6 @@ bool IDP_InsertToGroup(IDProperty *group, IDProperty *previous, IDProperty *pnew
   return false;
 }
 
-/**
- * \note this does not free the property!!
- *
- * To free the property, you have to do:
- * IDP_FreeProperty(prop);
- */
 void IDP_RemoveFromGroup(IDProperty *group, IDProperty *prop)
 {
   BLI_assert(group->type == IDP_GROUP);
@@ -727,9 +663,6 @@ void IDP_RemoveFromGroup(IDProperty *group, IDProperty *prop)
   BLI_remlink(&group->data.group, prop);
 }
 
-/**
- * Removes the property from the group and frees it.
- */
 void IDP_FreeFromGroup(IDProperty *group, IDProperty *prop)
 {
   IDP_RemoveFromGroup(group, prop);
@@ -742,7 +675,6 @@ IDProperty *IDP_GetPropertyFromGroup(const IDProperty *prop, const char *name)
 
   return (IDProperty *)BLI_findstring(&prop->data.group, name, offsetof(IDProperty, name));
 }
-/** same as above but ensure type match */
 IDProperty *IDP_GetPropertyTypeFromGroup(const IDProperty *prop, const char *name, const char type)
 {
   IDProperty *idprop = IDP_GetPropertyFromGroup(prop, name);
@@ -762,16 +694,13 @@ static void IDP_FreeGroup(IDProperty *prop, const bool do_id_user)
   }
   BLI_freelistN(&prop->data.group);
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Main Functions  (IDProperty Main API)
  * \{ */
 
-/**
- * Return an int from an IDProperty with a compatible type. This should be avoided, but
- * it's sometimes necessary, for example when legacy files have incorrect property types.
- */
 int IDP_coerce_to_int_or_zero(const IDProperty *prop)
 {
   switch (prop->type) {
@@ -786,10 +715,6 @@ int IDP_coerce_to_int_or_zero(const IDProperty *prop)
   }
 }
 
-/**
- * Return a double from an IDProperty with a compatible type. This should be avoided, but
- * it's sometimes necessary, for example when legacy files have incorrect property types.
- */
 double IDP_coerce_to_double_or_zero(const IDProperty *prop)
 {
   switch (prop->type) {
@@ -804,10 +729,6 @@ double IDP_coerce_to_double_or_zero(const IDProperty *prop)
   }
 }
 
-/**
- * Return a float from an IDProperty with a compatible type. This should be avoided, but
- * it's sometimes necessary, for example when legacy files have incorrect property types.
- */
 float IDP_coerce_to_float_or_zero(const IDProperty *prop)
 {
   switch (prop->type) {
@@ -845,10 +766,6 @@ IDProperty *IDP_CopyProperty(const IDProperty *prop)
   return IDP_CopyProperty_ex(prop, 0);
 }
 
-/**
- * Copy content from source IDProperty into destination one, freeing destination property's content
- * first.
- */
 void IDP_CopyPropertyContent(IDProperty *dst, IDProperty *src)
 {
   IDProperty *idprop_tmp = IDP_CopyProperty(src);
@@ -858,11 +775,6 @@ void IDP_CopyPropertyContent(IDProperty *dst, IDProperty *src)
   IDP_FreeProperty(idprop_tmp);
 }
 
-/**
- * Get the Group property that contains the id properties for ID id.  Set create_if_needed
- * to create the Group property and attach it to id if it doesn't exist; otherwise
- * the function will return NULL if there's no Group property attached to the ID.
- */
 IDProperty *IDP_GetProperties(ID *id, const bool create_if_needed)
 {
   if (id->properties) {
@@ -880,8 +792,6 @@ IDProperty *IDP_GetProperties(ID *id, const bool create_if_needed)
   return id->properties;
 }
 
-/**
- * \param is_strict: When false treat missing items as a match */
 bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is_strict)
 {
   if (prop1 == NULL && prop2 == NULL) {
@@ -974,33 +884,6 @@ bool IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
   return IDP_EqualsProperties_ex(prop1, prop2, true);
 }
 
-/**
- * Allocate a new ID.
- *
- * This function takes three arguments: the ID property type, a union which defines
- * its initial value, and a name.
- *
- * The union is simple to use; see the top of BKE_idprop.h for its definition.
- * An example of using this function:
- *
- * \code{.c}
- * IDPropertyTemplate val;
- * IDProperty *group, *idgroup, *color;
- * group = IDP_New(IDP_GROUP, val, "group1"); // groups don't need a template.
- *
- * val.array.len = 4
- * val.array.type = IDP_FLOAT;
- * color = IDP_New(IDP_ARRAY, val, "color1");
- *
- * idgroup = IDP_GetProperties(some_id, 1);
- * IDP_AddToGroup(idgroup, color);
- * IDP_AddToGroup(idgroup, group);
- * \endcode
- *
- * Note that you MUST either attach the id property to an id property group with
- * IDP_AddToGroup or MEM_freeN the property, doing anything else might result in
- * a memory leak.
- */
 IDProperty *IDP_New(const char type, const IDPropertyTemplate *val, const char *name)
 {
   IDProperty *prop = NULL;
@@ -1020,8 +903,7 @@ IDProperty *IDP_New(const char type, const IDPropertyTemplate *val, const char *
       break;
     case IDP_ARRAY: {
       /* for now, we only support float and int and double arrays */
-      if ((val->array.type == IDP_FLOAT) || (val->array.type == IDP_INT) ||
-          (val->array.type == IDP_DOUBLE) || (val->array.type == IDP_GROUP)) {
+      if (ELEM(val->array.type, IDP_FLOAT, IDP_INT, IDP_DOUBLE, IDP_GROUP)) {
         prop = MEM_callocN(sizeof(IDProperty), "IDProperty array");
         prop->subtype = val->array.type;
         if (val->array.len) {
@@ -1096,11 +978,6 @@ IDProperty *IDP_New(const char type, const IDPropertyTemplate *val, const char *
   return prop;
 }
 
-/**
- * Free allocated pointers in the UI data that isn't shared with the UI data in the #other
- * argument. Useful for returning early on failure when updating UI data in place, or when
- * replacing a subset of the UI data's allocated pointers.
- */
 void IDP_ui_data_free_unique_contents(IDPropertyUIData *ui_data,
                                       const eIDPropertyUIDataType type,
                                       const IDPropertyUIData *other)
@@ -1175,10 +1052,6 @@ void IDP_ui_data_free(IDProperty *prop)
   prop->ui_data = NULL;
 }
 
-/**
- * \note This will free allocated data, all child properties of arrays and groups, and unlink IDs!
- * But it does not free the actual IDProperty struct itself.
- */
 void IDP_FreePropertyContent_ex(IDProperty *prop, const bool do_id_user)
 {
   switch (prop->type) {
@@ -1241,14 +1114,6 @@ void IDP_Reset(IDProperty *prop, const IDProperty *reference)
   }
 }
 
-/**
- * Loop through all ID properties in hierarchy of given \a id_property_root included.
- *
- * \note Container types (groups and arrays) are processed after applying the callback on them.
- *
- * \param type_filter: If not 0, only apply callback on properties of matching types, see
- * IDP_TYPE_FILTER_ enum in DNA_ID.h.
- */
 void IDP_foreach_property(IDProperty *id_property_root,
                           const int type_filter,
                           IDPForeachPropertyCallback callback,

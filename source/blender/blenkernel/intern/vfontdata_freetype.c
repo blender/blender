@@ -1,29 +1,13 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is written by Rob Haarsma (phase)
- * All rights reserved.
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * The Original Code is written by Rob Haarsma (phase). All rights reserved. */
+
+/** \file
+ * \ingroup bke
  *
  * This code parses the Freetype font outline data to chains of Blender's bezier-triples.
  * Additional information can be found at the bottom of this file.
  *
  * Code that uses exotic character maps is present but commented out.
- */
-
-/** \file
- * \ingroup bke
  */
 
 #include <ft2build.h>
@@ -396,14 +380,6 @@ static bool check_freetypefont(PackedFile *pf)
   return success;
 }
 
-/**
- * Construct a new VFontData structure from
- * Freetype font data in a PackedFile.
- *
- * \param pf: The font data.
- * \retval A new VFontData structure, or NULL
- * if unable to load.
- */
 VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf)
 {
   VFontData *vfd = NULL;

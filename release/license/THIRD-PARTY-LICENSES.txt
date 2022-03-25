@@ -24,11 +24,12 @@ PERFORMANCE OF THIS SOFTWARE.
 ** Draco; version 1.3.6 -- https://google.github.io/draco/
 ** Embree; version 3.10 -- https://github.com/embree/embree
 ** Mantaflow; version 0.13 -- http://mantaflow.com/
-** oneAPI Threading Building Block; version 2019_U9 --
+** oneAPI Threading Building Block; version 2020_U2 --
 https://software.intel.com/en-us/oneapi/onetbb
 ** OpenCL Wrangler; version 27a6867 -- https://github.com/OpenCLWrangler/clew
-** OpenImageDenoise; version 1.2.3 -- https://www.openimagedenoise.org/
-** OpenXR SDK; version 1.0.8 -- https://khronos.org/openxr
+** OpenImageDenoise; version 1.4.1 -- https://www.openimagedenoise.org/
+** OpenSSL; version 1.1.1 -- https://www.openssl.org/
+** OpenXR SDK; version 1.0.17 -- https://khronos.org/openxr
 ** RangeTree; version 40ebed8aa209 -- https://github.com/ideasman42/rangetree-c
 ** SDL Extension Wrangler; version 15edf8e --
 https://github.com/SDLWrangler/sdlew
@@ -249,6 +250,9 @@ limitations under the License.
     Written by George van Venrooij
 * For OpenImageDenoise see also this required NOTICE:
     Copyright 2009-2020 Intel Corporation
+* For OpenSSL see also this required NOTICE:
+    Copyright (c) 1998-2021 The OpenSSL Project
+    Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson
 * For OpenXR SDK see also this required NOTICE:
     Copyright (c) 2017-2020 The Khronos Group Inc.
     Copyright (c) 2017-2019 Valve Corporation
@@ -261,6 +265,8 @@ limitations under the License.
 
 ------
 
+** NASM; version 2.15.02 -- https://www.nasm.us/
+Contributions since 2008-12-15 are Copyright Intel Corporation.
 ** OpenJPEG; version 2.3.1 -- https://github.com/uclouvain/openjpeg
 Copyright (c) 2002-2014, Universite catholique de Louvain (UCL), Belgium
 Copyright (c) 2002-2014, Professor Benoit Macq
@@ -310,16 +316,20 @@ All rights reserved.
 ** Google Logging; version 4.4.0 -- https://github.com/google/glog
 Copyright (c) 2006, Google Inc.
 All rights reserved.
-** Open Shading Language; version 1.10.10 --
+** ISPC; version 1.16.0 -- https://github.com/ispc/ispc
+Copyright Intel Corporation
+** NumPy; version 1.22.0 -- https://numpy.org/
+Copyright (c) 2005-2021, NumPy Developers.
+** Open Shading Language; version 1.11.14.1 --
 https://github.com/imageworks/OpenShadingLanguage
 Copyright Contributors to the Open Shading Language project.
-** OpenColorIO; version 1.1.1 --
+** OpenColorIO; version 2.0.0 --
 https://github.com/AcademySoftwareFoundation/OpenColorIO
 Copyright Contributors to the OpenColorIO Project.
-** OpenEXR; version 2.4.0 --
+** OpenEXR; version 2.5.5 --
 https://github.com/AcademySoftwareFoundation/openexr
 Copyright Contributors to the OpenEXR Project. All rights reserved.
-** OpenImageIO; version 2.1.15.0 -- http://www.openimageio.org
+** OpenImageIO; version 2.2.15.1 -- http://www.openimageio.org
 Copyright (c) 2008-present by Contributors to the OpenImageIO project. All
 Rights Reserved.
 
@@ -353,7 +363,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ** AutoPackage; version 1.0 -- http://autopackage.org
 BinReloc - a library for creating relocatable executables
 Written by: Hongli Lai <h.lai@chello.nl>
-** LZMA SDK; version 4.65 -- https://www.7-zip.org/sdk.html
+** LZMA SDK; version 5.2.5 -- https://www.7-zip.org/sdk.html
 LZMA SDK: Public Domain
 
 Creative Commons Legal Code
@@ -812,7 +822,7 @@ Yoyodyne, Inc., hereby disclaims all copyright interest in the program
 ** FFTW; version 3.3.8 -- http://www.fftw.org/
 Copyright (c) 2003, 2007-14 Matteo Frigo
 Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
-** GMP; version 6.2.0 -- https://gmplib.org/
+** GMP; version 6.2.1 -- https://gmplib.org/
 Copyright 1996-2020 Free Software Foundation, Inc.
 ** OpenAL; version 1.20.1 -- http://openal-soft.org
 Copyright (c) 2015, Archontis Politis
@@ -1146,16 +1156,26 @@ License.
 
 ------
 
+** libx264; version 33f9e1474613f59392be5ab6a7e7abf60fa63622 --
+https://code.videolan.org/videolan/x264
+Copyright (C) 2003-2021 x264 project
 ** miniLZO; version 2.08 -- http://www.oberhumer.com/opensource/lzo/
 LZO and miniLZO are Copyright (C) 1996-2014 Markus Franz Xaver Oberhumer
 All Rights Reserved.
-** The FreeType Project; version 2.10.2 --
+** The FreeType Project; version 2.11.1 --
 https://sourceforge.net/projects/freetype
 Copyright (C) 1996-2020 by David Turner, Robert Wilhelm, and Werner Lemberg.
 ** X Drag and Drop; version 2000-08-08 --
 https://freedesktop.org/wiki/Specifications/XDND/
 xdnd.c, xdnd.h - C program library for handling the Xdnd protocol
 Copyright (C) 1996-2000 Paul Sheer
+** Xvid Mpeg-4 Video Codec; version 1.3.7 -- https://www.xvid.com/
+Project initiators:
+Christoph Lampert <gruel@web.de>
+Michael Militzer <isibaar@xvid.org>
+Peter Ross <pross@xvid.org>
+** Zstandard; version 1.6.0 -- https://github.com/facebook/zstd
+Copyright (c) 2016-present, Facebook, Inc. All rights reserved.
 
 GNU GENERAL PUBLIC LICENSE
 
@@ -2145,7 +2165,7 @@ of this License. But first, please read <http s ://www.gnu.org/ licenses
 
 ------
 
-** FFmpeg; version 4.2.3 -- http://ffmpeg.org/
+** FFmpeg; version 4.4 -- http://ffmpeg.org/
 -
 
 GNU LESSER GENERAL PUBLIC LICENSE
@@ -2936,9 +2956,16 @@ December 9, 2010
 
 ------
 
+** Brotli; version 1.0.9 -- https://github.com/google/brotli
+Copyright (c) 2009, 2010, 2013-2016 by the Brotli Authors.
+** Expat; version 2.2.10 -- https://github.com/libexpat/libexpat/
+Copyright (c) 1998-2000 Thai Open Source Software Center Ltd and Clark Cooper
+Copyright (c) 2001-2019 Expat maintainers
+** JSON for Modern C++; version 3.10.2 -- https://github.com/nlohmann/json/
+Copyright (c) 2013-2021 Niels Lohmann
 ** Libxml2; version 2.9.10 -- http://xmlsoft.org/
 Copyright (C) 1998-2012 Daniel Veillard.  All Rights Reserved.
-** Mesa 3D; version 18.3.1 -- https://www.mesa3d.org/
+** Mesa 3D; version 21.1.5 -- https://www.mesa3d.org/
 Copyright (C) 1999-2007  Brian Paul   All Rights Reserved.
 ** OPENCollada; version 1.6.68 -- https://github.com/KhronosGroup/OpenCOLLADA
 Copyright (c) 2008-2009 NetAllied Systems GmbH
@@ -2947,6 +2974,21 @@ Copyright (c) 2006-2020 Arseny Kapoulkine
 ** QuadriFlow; version 27a6867 -- https://github.com/hjwdzh/QuadriFlow
 Copyright (c) 2018 Jingwei Huang, Yichao Zhou, Matthias Niessner,
 Jonathan Shewchuk and Leonidas Guibas. All rights reserved.
+** sse2neon; version fe5ff00bb8d19b327714a3c290f3e2ce81ba3525 --
+https://github.com/DLTcollab/sse2neon
+Copyright sse2neon contributors
+** TinyGLTF; version 2.5.0 -- https://github.com/syoyo/tinygltf
+Copyright (c) 2017 Syoyo Fujita, Aurélien Chatelain and many contributors
+** Wayland protocols; version 1.21 --
+https://gitlab.freedesktop.org/wayland/wayland-protocols
+Copyright © 2008-2013 Kristian Høgsberg
+Copyright © 2010-2013 Intel Corporation
+Copyright © 2013      Rafael Antognolli
+Copyright © 2013      Jasper St. Pierre
+Copyright © 2014      Jonas Ådahl
+Copyright © 2014      Jason Ekstrand
+Copyright © 2014-2015 Collabora, Ltd.
+Copyright © 2015      Red Hat Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -2968,10 +3010,10 @@ SOFTWARE.
 
 ------
 
-** NanoVDB; version e62f7a0bf1e27397223c61ddeaaf57edf111b77f --
+** NanoVDB; version dc37d8a631922e7bef46712947dc19b755f3e841 --
 https://github.com/AcademySoftwareFoundation/openvdb
 Copyright Contributors to the OpenVDB Project
-** OpenVDB; version 7.0.0 -- http://www.openvdb.org/
+** OpenVDB; version 8.0.1 -- http://www.openvdb.org/
 Copyright Contributors to the OpenVDB Project
 
 Mozilla Public License Version 2.0
@@ -3314,6 +3356,11 @@ the Mozilla Public License, v. 2.0.
 http://continuousphysics.com/Bullet/
 Bullet Continuous Collision Detection and Physics Library
 Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+** Haru; version 2.3.0 -- http://libharu.org/
+Copyright 2000-2006 (c) Takeshi Kanno
+Copyright 2007-2009 (c) Antony Dovgal et al.
+** NanoSVG; version 3cdd4a9d788 -- https://github.com/memononen/nanosvg
+Copyright (c) 2013-14 Mikko Mononen memon@inside.org
 ** SDL; version 2.0.12 -- https://www.libsdl.org
 Copyright (C) 1997-2020 Sam Lantinga <slouken@libsdl.org>
 ** zlib; version 1.2.11 -- https://zlib.net
@@ -3369,7 +3416,7 @@ IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ------
 
-** The LLVM Compiler Infrastructure; version 9.0.1 --
+** The LLVM Compiler Infrastructure; version 12.0.0 --
 https://github.com/llvm/llvm-project/
 University of Illinois/NCSA
 Open Source License
@@ -3397,7 +3444,7 @@ Software.
 
 ** OpenSubdiv; version 3.4.3 -- http://graphics.pixar.com/opensubdiv
 Copyright 2013 Pixar
-** Universal Scene Description; version 20.05 -- http://www.openusd.org/
+** Universal Scene Description; version 21.02 -- http://www.openusd.org/
 Copyright 2016 Pixar
 
 Licensed under the Apache License, Version 2.0 (the "Apache License") with the
@@ -3442,7 +3489,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ------
 
-** Boost C++ Libraries; version 1.70.0 -- https://www.boost.org/
+** Boost C++ Libraries; version 1.73.0 -- https://www.boost.org/
 -
 
 Boost Software License - Version 1.0 - August 17th, 2003
@@ -3471,7 +3518,7 @@ DEALINGS IN THE SOFTWARE.
 
 ------
 
-** Alembic; version 1.7.12 -- https://github.com/alembic/alembic
+** Alembic; version 1.7.16 -- https://github.com/alembic/alembic
 TM & © 2009-2015 Lucasfilm Entertainment Company Ltd. or Lucasfilm Ltd.
 All rights reserved.
 
@@ -3582,8 +3629,8 @@ disclaims all warranties with regard to this software.
 
 ------
 
-** Python; version 3.7.7 -- https://www.python.org
-Copyright (c) 2001-2020 Python Software Foundation. All rights reserved.
+** Python; version 3.10.2 -- https://www.python.org
+Copyright (c) 2001-2021 Python Software Foundation. All rights reserved.
 
 A. HISTORY OF THE SOFTWARE
 ==========================
@@ -3866,6 +3913,48 @@ INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
 LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
+
+------
+
+** Flex; version 2.6.4 -- https://github.com/westes/flex
+Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007 The Flex Project.
+
+Copyright (c) 1990, 1997 The Regents of the University of California.
+All rights reserved.
+
+This code is derived from software contributed to Berkeley by
+Vern Paxson.
+
+The United States Government has rights in this work pursuant
+to contract no. DE-AC03-76SF00098 between the United States
+Department of Energy and the University of California.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+Neither the name of the University nor the names of its contributors
+may be used to endorse or promote products derived from this software
+without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE.
+
+This basically says "do whatever you please with this software except
+remove this notice or take advantage of the University's (or the flex
+authors') name".
+
+Note that the "flex.skl" scanner skeleton carries no copyright notice.
+You are free to do whatever you please with scanners generated using flex;
+for them, you are not even bound by the above copyright.
 
 ------
 

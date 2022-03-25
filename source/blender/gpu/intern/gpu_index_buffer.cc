@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2016 by Mike Erwin.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 by Mike Erwin. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -74,9 +58,14 @@ void GPU_indexbuf_init(GPUIndexBufBuilder *builder,
 GPUIndexBuf *GPU_indexbuf_build_on_device(uint index_len)
 {
   GPUIndexBuf *elem_ = GPU_indexbuf_calloc();
-  IndexBuf *elem = unwrap(elem_);
-  elem->init_build_on_device(index_len);
+  GPU_indexbuf_init_build_on_device(elem_, index_len);
   return elem_;
+}
+
+void GPU_indexbuf_init_build_on_device(GPUIndexBuf *elem, uint index_len)
+{
+  IndexBuf *elem_ = unwrap(elem);
+  elem_->init_build_on_device(index_len);
 }
 
 void GPU_indexbuf_join(GPUIndexBufBuilder *builder_to, const GPUIndexBufBuilder *builder_from)
@@ -349,7 +338,7 @@ uint32_t *IndexBuf::unmap(const uint32_t *mapped_memory) const
 /** \name C-API
  * \{ */
 
-GPUIndexBuf *GPU_indexbuf_calloc(void)
+GPUIndexBuf *GPU_indexbuf_calloc()
 {
   return wrap(GPUBackend::get()->indexbuf_alloc());
 }
@@ -410,9 +399,19 @@ int GPU_indexbuf_primitive_len(GPUPrimType prim_type)
   return indices_per_primitive(prim_type);
 }
 
+void GPU_indexbuf_use(GPUIndexBuf *elem)
+{
+  unwrap(elem)->upload_data();
+}
+
 void GPU_indexbuf_bind_as_ssbo(GPUIndexBuf *elem, int binding)
 {
   unwrap(elem)->bind_as_ssbo(binding);
+}
+
+void GPU_indexbuf_update_sub(GPUIndexBuf *elem, uint start, uint len, const void *data)
+{
+  unwrap(elem)->update_sub(start, len, data);
 }
 
 /** \} */

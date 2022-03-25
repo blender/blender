@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spfile
@@ -37,10 +21,12 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "ED_fileselect.h"
 
 #include "UI_interface.h"
+#include "UI_interface_icons.h"
 #include "UI_resources.h"
 
 #include "WM_api.h"
@@ -246,8 +232,21 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
   RNA_pointer_create(&screen->id, &RNA_FileAssetSelectParams, params, &params_ptr);
 
   uiItemR(row, &params_ptr, "asset_library_ref", 0, "", ICON_NONE);
-  if (params->asset_library_ref.type != ASSET_LIBRARY_LOCAL) {
-    uiItemO(row, "", ICON_FILE_REFRESH, "FILE_OT_asset_library_refresh");
+  if (params->asset_library_ref.type == ASSET_LIBRARY_LOCAL) {
+    bContext *mutable_ctx = CTX_copy(C);
+    if (WM_operator_name_poll(mutable_ctx, "asset.bundle_install")) {
+      uiItemS(col);
+      uiItemMenuEnumO(col,
+                      mutable_ctx,
+                      "asset.bundle_install",
+                      "asset_library_ref",
+                      "Copy Bundle to Asset Library...",
+                      ICON_IMPORT);
+    }
+    CTX_free(mutable_ctx);
+  }
+  else {
+    uiItemO(row, "", ICON_FILE_REFRESH, "ASSET_OT_library_refresh");
   }
 
   uiItemS(col);

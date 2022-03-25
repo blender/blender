@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2012 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2012 Blender Foundation. All rights reserved. */
 
 #include <cassert>
 #include <iostream>
@@ -67,7 +51,7 @@ static void OCIO_reportException(Exception &exception)
 
 OCIO_ConstConfigRcPtr *OCIOImpl::getCurrentConfig(void)
 {
-  ConstConfigRcPtr *config = OBJECT_GUARDED_NEW(ConstConfigRcPtr);
+  ConstConfigRcPtr *config = MEM_new<ConstConfigRcPtr>(__func__);
 
   try {
     *config = GetCurrentConfig();
@@ -79,7 +63,7 @@ OCIO_ConstConfigRcPtr *OCIOImpl::getCurrentConfig(void)
     OCIO_reportException(exception);
   }
 
-  OBJECT_GUARDED_DELETE(config, ConstConfigRcPtr);
+  MEM_delete(config);
 
   return NULL;
 }
@@ -96,7 +80,7 @@ void OCIOImpl::setCurrentConfig(const OCIO_ConstConfigRcPtr *config)
 
 OCIO_ConstConfigRcPtr *OCIOImpl::configCreateFromEnv(void)
 {
-  ConstConfigRcPtr *config = OBJECT_GUARDED_NEW(ConstConfigRcPtr);
+  ConstConfigRcPtr *config = MEM_new<ConstConfigRcPtr>(__func__);
 
   try {
     *config = Config::CreateFromEnv();
@@ -108,14 +92,14 @@ OCIO_ConstConfigRcPtr *OCIOImpl::configCreateFromEnv(void)
     OCIO_reportException(exception);
   }
 
-  OBJECT_GUARDED_DELETE(config, ConstConfigRcPtr);
+  MEM_delete(config);
 
   return NULL;
 }
 
 OCIO_ConstConfigRcPtr *OCIOImpl::configCreateFromFile(const char *filename)
 {
-  ConstConfigRcPtr *config = OBJECT_GUARDED_NEW(ConstConfigRcPtr);
+  ConstConfigRcPtr *config = MEM_new<ConstConfigRcPtr>(__func__);
 
   try {
     *config = Config::CreateFromFile(filename);
@@ -127,14 +111,14 @@ OCIO_ConstConfigRcPtr *OCIOImpl::configCreateFromFile(const char *filename)
     OCIO_reportException(exception);
   }
 
-  OBJECT_GUARDED_DELETE(config, ConstConfigRcPtr);
+  MEM_delete(config);
 
   return NULL;
 }
 
 void OCIOImpl::configRelease(OCIO_ConstConfigRcPtr *config)
 {
-  OBJECT_GUARDED_DELETE((ConstConfigRcPtr *)config, ConstConfigRcPtr);
+  MEM_delete((ConstConfigRcPtr *)config);
 }
 
 int OCIOImpl::configGetNumColorSpaces(OCIO_ConstConfigRcPtr *config)
@@ -164,7 +148,7 @@ const char *OCIOImpl::configGetColorSpaceNameByIndex(OCIO_ConstConfigRcPtr *conf
 OCIO_ConstColorSpaceRcPtr *OCIOImpl::configGetColorSpace(OCIO_ConstConfigRcPtr *config,
                                                          const char *name)
 {
-  ConstColorSpaceRcPtr *cs = OBJECT_GUARDED_NEW(ConstColorSpaceRcPtr);
+  ConstColorSpaceRcPtr *cs = MEM_new<ConstColorSpaceRcPtr>(__func__);
 
   try {
     *cs = (*(ConstConfigRcPtr *)config)->getColorSpace(name);
@@ -176,7 +160,7 @@ OCIO_ConstColorSpaceRcPtr *OCIOImpl::configGetColorSpace(OCIO_ConstConfigRcPtr *
     OCIO_reportException(exception);
   }
 
-  OBJECT_GUARDED_DELETE(cs, ConstColorSpaceRcPtr);
+  MEM_delete(cs);
 
   return NULL;
 }
@@ -336,16 +320,18 @@ void OCIOImpl::configGetXYZtoRGB(OCIO_ConstConfigRcPtr *config_, float xyz_to_rg
   }
 
   if (config->hasRole("aces_interchange")) {
-    /* Standard OpenColorIO role, defined as ACES2065-1. */
-    const float xyz_E_to_aces[3][3] = {{1.0498110175f, -0.4959030231f, 0.0f},
-                                       {0.0f, 1.3733130458f, 0.0f},
-                                       {-0.0000974845f, 0.0982400361f, 0.9912520182f}};
-    const float xyz_D65_to_E[3][3] = {
-        {1.0521111f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.9184170f}};
-
+    /* Standard OpenColorIO role, defined as ACES AP0 (ACES2065-1). */
     float aces_to_rgb[3][3];
     if (to_scene_linear_matrix(config, "aces_interchange", aces_to_rgb)) {
-      mul_m3_series(xyz_to_rgb, aces_to_rgb, xyz_E_to_aces, xyz_D65_to_E);
+      /* This is the OpenColorIO builtin transform:
+       * UTILITY - ACES-AP0_to_CIE-XYZ-D65_BFD. */
+      const float ACES_AP0_to_xyz_D65[3][3] = {{0.938280f, 0.337369f, 0.001174f},
+                                               {-0.004451f, 0.729522f, -0.003711f},
+                                               {0.016628f, -0.066890f, 1.091595f}};
+      float xyz_to_aces[3][3];
+      invert_m3_m3(xyz_to_aces, ACES_AP0_to_xyz_D65);
+
+      mul_m3_m3m3(xyz_to_rgb, aces_to_rgb, xyz_to_aces);
     }
   }
   else if (config->hasRole("XYZ")) {
@@ -380,7 +366,7 @@ const char *OCIOImpl::configGetLookNameByIndex(OCIO_ConstConfigRcPtr *config, in
 
 OCIO_ConstLookRcPtr *OCIOImpl::configGetLook(OCIO_ConstConfigRcPtr *config, const char *name)
 {
-  ConstLookRcPtr *look = OBJECT_GUARDED_NEW(ConstLookRcPtr);
+  ConstLookRcPtr *look = MEM_new<ConstLookRcPtr>(__func__);
 
   try {
     *look = (*(ConstConfigRcPtr *)config)->getLook(name);
@@ -392,7 +378,7 @@ OCIO_ConstLookRcPtr *OCIOImpl::configGetLook(OCIO_ConstConfigRcPtr *config, cons
     OCIO_reportException(exception);
   }
 
-  OBJECT_GUARDED_DELETE(look, ConstLookRcPtr);
+  MEM_delete(look);
 
   return NULL;
 }
@@ -404,7 +390,7 @@ const char *OCIOImpl::lookGetProcessSpace(OCIO_ConstLookRcPtr *look)
 
 void OCIOImpl::lookRelease(OCIO_ConstLookRcPtr *look)
 {
-  OBJECT_GUARDED_DELETE((ConstLookRcPtr *)look, ConstLookRcPtr);
+  MEM_delete((ConstLookRcPtr *)look);
 }
 
 int OCIOImpl::colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs_)
@@ -521,14 +507,14 @@ void OCIOImpl::colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config_,
 
 void OCIOImpl::colorSpaceRelease(OCIO_ConstColorSpaceRcPtr *cs)
 {
-  OBJECT_GUARDED_DELETE((ConstColorSpaceRcPtr *)cs, ConstColorSpaceRcPtr);
+  MEM_delete((ConstColorSpaceRcPtr *)cs);
 }
 
 OCIO_ConstProcessorRcPtr *OCIOImpl::configGetProcessorWithNames(OCIO_ConstConfigRcPtr *config,
                                                                 const char *srcName,
                                                                 const char *dstName)
 {
-  ConstProcessorRcPtr *processor = OBJECT_GUARDED_NEW(ConstProcessorRcPtr);
+  ConstProcessorRcPtr *processor = MEM_new<ConstProcessorRcPtr>(__func__);
 
   try {
     *processor = (*(ConstConfigRcPtr *)config)->getProcessor(srcName, dstName);
@@ -540,20 +526,20 @@ OCIO_ConstProcessorRcPtr *OCIOImpl::configGetProcessorWithNames(OCIO_ConstConfig
     OCIO_reportException(exception);
   }
 
-  OBJECT_GUARDED_DELETE(processor, ConstProcessorRcPtr);
+  MEM_delete(processor);
 
   return 0;
 }
 
 void OCIOImpl::processorRelease(OCIO_ConstProcessorRcPtr *processor)
 {
-  OBJECT_GUARDED_DELETE(processor, ConstProcessorRcPtr);
+  MEM_delete(processor);
 }
 
 OCIO_ConstCPUProcessorRcPtr *OCIOImpl::processorGetCPUProcessor(
     OCIO_ConstProcessorRcPtr *processor)
 {
-  ConstCPUProcessorRcPtr *cpu_processor = OBJECT_GUARDED_NEW(ConstCPUProcessorRcPtr);
+  ConstCPUProcessorRcPtr *cpu_processor = MEM_new<ConstCPUProcessorRcPtr>(__func__);
   *cpu_processor = (*(ConstProcessorRcPtr *)processor)->getDefaultCPUProcessor();
   return (OCIO_ConstCPUProcessorRcPtr *)cpu_processor;
 }
@@ -580,8 +566,8 @@ void OCIOImpl::cpuProcessorApply_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_proc
       assert(img->isFloat());
       float *pixels = (float *)img->getData();
 
-      int width = img->getWidth();
-      int height = img->getHeight();
+      size_t width = img->getWidth();
+      size_t height = img->getHeight();
 
       for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
@@ -636,7 +622,7 @@ void OCIOImpl::cpuProcessorApplyRGBA_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_
 
 void OCIOImpl::cpuProcessorRelease(OCIO_ConstCPUProcessorRcPtr *cpu_processor)
 {
-  OBJECT_GUARDED_DELETE(cpu_processor, ConstCPUProcessorRcPtr);
+  MEM_delete(cpu_processor);
 }
 
 const char *OCIOImpl::colorSpaceGetName(OCIO_ConstColorSpaceRcPtr *cs)
@@ -725,7 +711,7 @@ OCIO_ConstProcessorRcPtr *OCIOImpl::createDisplayProcessor(OCIO_ConstConfigRcPtr
 
   /* Create processor from transform. This is the moment were OCIO validates
    * the entire transform, no need to check for the validity of inputs above. */
-  ConstProcessorRcPtr *p = OBJECT_GUARDED_NEW(ConstProcessorRcPtr);
+  ConstProcessorRcPtr *p = MEM_new<ConstProcessorRcPtr>(__func__);
 
   try {
     *p = config->getProcessor(group);
@@ -737,7 +723,7 @@ OCIO_ConstProcessorRcPtr *OCIOImpl::createDisplayProcessor(OCIO_ConstConfigRcPtr
     OCIO_reportException(exception);
   }
 
-  OBJECT_GUARDED_DELETE(p, ConstProcessorRcPtr);
+  MEM_delete(p);
   return NULL;
 }
 
@@ -771,7 +757,7 @@ OCIO_PackedImageDesc *OCIOImpl::createOCIO_PackedImageDesc(float *data,
 
 void OCIOImpl::OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *id)
 {
-  OBJECT_GUARDED_DELETE((PackedImageDesc *)id, PackedImageDesc);
+  MEM_delete((PackedImageDesc *)id);
 }
 
 const char *OCIOImpl::getVersionString(void)

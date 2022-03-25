@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "bvh/build.h"
 #include "bvh/bvh.h"
@@ -53,7 +40,7 @@ void Mesh::Triangle::motion_verts(const float3 *verts,
 {
   /* Figure out which steps we need to fetch and their interpolation factor. */
   const size_t max_step = num_steps - 1;
-  const size_t step = min((int)(time * max_step), max_step - 1);
+  const size_t step = min((size_t)(time * max_step), max_step - 1);
   const float t = time * max_step - step;
   /* Fetch vertex coordinates. */
   float3 curr_verts[3];
@@ -81,7 +68,7 @@ void Mesh::Triangle::verts_for_step(const float3 *verts,
     r_verts[2] = verts[v[2]];
   }
   else {
-    /* Center step not stored in the attribute array array. */
+    /* Center step not stored in the attribute array. */
     if (step > center_step) {
       step--;
     }
@@ -141,6 +128,9 @@ NODE_DEFINE(Mesh)
   subdivision_type_enum.insert("catmull_clark", SUBDIVISION_CATMULL_CLARK);
   SOCKET_ENUM(subdivision_type, "Subdivision Type", subdivision_type_enum, SUBDIVISION_NONE);
 
+  SOCKET_INT_ARRAY(subd_vert_creases, "Subdivision Vertex Crease", array<int>());
+  SOCKET_FLOAT_ARRAY(
+      subd_vert_creases_weight, "Subdivision Vertex Crease Weights", array<float>());
   SOCKET_INT_ARRAY(subd_creases_edge, "Subdivision Crease Edges", array<int>());
   SOCKET_FLOAT_ARRAY(subd_creases_weight, "Subdivision Crease Weights", array<float>());
   SOCKET_INT_ARRAY(subd_face_corners, "Subdivision Face Corners", array<int>());
@@ -408,7 +398,7 @@ Mesh::SubdFace Mesh::get_subd_face(size_t index) const
   return s;
 }
 
-void Mesh::add_crease(int v0, int v1, float weight)
+void Mesh::add_edge_crease(int v0, int v1, float weight)
 {
   subd_creases_edge.push_back_slow(v0);
   subd_creases_edge.push_back_slow(v1);
@@ -417,6 +407,17 @@ void Mesh::add_crease(int v0, int v1, float weight)
   tag_subd_creases_edge_modified();
   tag_subd_creases_edge_modified();
   tag_subd_creases_weight_modified();
+}
+
+void Mesh::add_vertex_crease(int v, float weight)
+{
+  assert(v < verts.size());
+
+  subd_vert_creases.push_back_slow(v);
+  subd_vert_creases_weight.push_back_slow(weight);
+
+  tag_subd_vert_creases_modified();
+  tag_subd_vert_creases_weight_modified();
 }
 
 void Mesh::copy_center_to_motion_step(const int motion_step)
@@ -707,7 +708,7 @@ void Mesh::pack_shaders(Scene *scene, uint *tri_shader)
   }
 }
 
-void Mesh::pack_normals(float4 *vnormal)
+void Mesh::pack_normals(packed_float3 *vnormal)
 {
   Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
   if (attr_vN == NULL) {
@@ -727,11 +728,14 @@ void Mesh::pack_normals(float4 *vnormal)
     if (do_transform)
       vNi = safe_normalize(transform_direction(&ntfm, vNi));
 
-    vnormal[i] = make_float4(vNi.x, vNi.y, vNi.z, 0.0f);
+    vnormal[i] = make_float3(vNi.x, vNi.y, vNi.z);
   }
 }
 
-void Mesh::pack_verts(float4 *tri_verts, uint4 *tri_vindex, uint *tri_patch, float2 *tri_patch_uv)
+void Mesh::pack_verts(packed_float3 *tri_verts,
+                      uint4 *tri_vindex,
+                      uint *tri_patch,
+                      float2 *tri_patch_uv)
 {
   size_t verts_size = verts.size();
 
@@ -752,9 +756,9 @@ void Mesh::pack_verts(float4 *tri_verts, uint4 *tri_vindex, uint *tri_patch, flo
 
     tri_patch[i] = (!get_num_subd_faces()) ? -1 : (triangle_patch[i] * 8 + patch_offset);
 
-    tri_verts[i * 3] = float3_to_float4(verts[t.v[0]]);
-    tri_verts[i * 3 + 1] = float3_to_float4(verts[t.v[1]]);
-    tri_verts[i * 3 + 2] = float3_to_float4(verts[t.v[2]]);
+    tri_verts[i * 3] = verts[t.v[0]];
+    tri_verts[i * 3 + 1] = verts[t.v[1]];
+    tri_verts[i * 3 + 2] = verts[t.v[2]];
   }
 }
 

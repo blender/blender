@@ -1,22 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- * util.c
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup imbuf
@@ -162,8 +145,6 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
   return data_rect;
 }
 
-/* The ibuf is only here to detect the storage type. The produced texture will have undefined
- * content. It will need to be populated by using IMB_update_gpu_texture_sub(). */
 GPUTexture *IMB_touch_gpu_texture(
     const char *name, ImBuf *ibuf, int w, int h, int layers, bool use_high_bitdepth)
 {
@@ -183,9 +164,6 @@ GPUTexture *IMB_touch_gpu_texture(
   return tex;
 }
 
-/* Will update a GPUTexture using the content of the ImBuf. Only one layer will be updated.
- * Will resize the ibuf if needed.
- * z is the layer to update. Unused if the texture is 2D. */
 void IMB_update_gpu_texture_sub(GPUTexture *tex,
                                 ImBuf *ibuf,
                                 int x,

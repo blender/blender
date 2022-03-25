@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edgpencil
@@ -59,22 +43,54 @@ struct bGPDframe;
 #define GPENCIL_TRACE_MODE_SINGLE 0
 #define GPENCIL_TRACE_MODE_SEQUENCE 1
 
+/**
+ * Print trace bitmap for debugging.
+ * \param f: Output handle. Use `stderr` for printing
+ * \param bm: Trace bitmap
+ */
 void ED_gpencil_trace_bitmap_print(FILE *f, const potrace_bitmap_t *bm);
 
+/**
+ * Return new un-initialized trace bitmap
+ * \param w: Width in pixels
+ * \param h: Height in pixels
+ * \return Trace bitmap
+ */
 potrace_bitmap_t *ED_gpencil_trace_bitmap_new(int32_t w, int32_t h);
+/**
+ * Free a trace bitmap
+ * \param bm: Trace bitmap
+ */
 void ED_gpencil_trace_bitmap_free(const potrace_bitmap_t *bm);
+/**
+ * Invert the given bitmap (Black to White)
+ * \param bm: Trace bitmap
+ */
 void ED_gpencil_trace_bitmap_invert(const potrace_bitmap_t *bm);
 
+/**
+ * Convert image to BW bitmap for tracing
+ * \param ibuf: ImBuf of the image
+ * \param bm: Trace bitmap
+ */
 void ED_gpencil_trace_image_to_bitmap(struct ImBuf *ibuf,
                                       const potrace_bitmap_t *bm,
-                                      const float threshold);
+                                      float threshold);
 
+/**
+ * Convert Potrace Bitmap to Grease Pencil strokes
+ * \param st: Data with traced data
+ * \param ob: Target grease pencil object
+ * \param offset: Offset to center
+ * \param scale: Scale of the output
+ * \param sample: Sample distance to distribute points
+ */
 void ED_gpencil_trace_data_to_strokes(struct Main *bmain,
                                       potrace_state_t *st,
                                       struct Object *ob,
                                       struct bGPDframe *gpf,
                                       int32_t offset[2],
-                                      const float scale,
-                                      const float sample,
-                                      const int32_t resolution,
-                                      const int32_t thickness);
+                                      float scale,
+                                      float sample,
+                                      int32_t resolution,
+                                      int32_t thickness);

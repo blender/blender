@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edinterface
@@ -238,9 +222,9 @@ static void eyedropper_add_palette_color(bContext *C, const float col_conv[4])
 static void eyedropper_gpencil_color_set(bContext *C, const wmEvent *event, EyedropperGPencil *eye)
 {
 
-  const bool only_stroke = ((!event->ctrl) && (!event->shift));
-  const bool only_fill = ((!event->ctrl) && (event->shift));
-  const bool both = ((event->ctrl) && (event->shift));
+  const bool only_stroke = (event->modifier & (KM_CTRL | KM_SHIFT)) == 0;
+  const bool only_fill = ((event->modifier & KM_CTRL) == 0 && (event->modifier & KM_SHIFT));
+  const bool both = ((event->modifier & KM_CTRL) && (event->modifier & KM_SHIFT));
 
   float col_conv[4];
 
@@ -265,9 +249,9 @@ static void eyedropper_gpencil_color_set(bContext *C, const wmEvent *event, Eyed
 }
 
 /* Sample the color below cursor. */
-static void eyedropper_gpencil_color_sample(bContext *C, EyedropperGPencil *eye, int mx, int my)
+static void eyedropper_gpencil_color_sample(bContext *C, EyedropperGPencil *eye, const int m_xy[2])
 {
-  eyedropper_color_sample_fl(C, mx, my, eye->color);
+  eyedropper_color_sample_fl(C, m_xy, eye->color);
 }
 
 /* Cancel operator. */
@@ -292,7 +276,7 @@ static int eyedropper_gpencil_modal(bContext *C, wmOperator *op, const wmEvent *
           return OPERATOR_CANCELLED;
         }
         case EYE_MODAL_SAMPLE_CONFIRM: {
-          eyedropper_gpencil_color_sample(C, eye, event->xy[0], event->xy[1]);
+          eyedropper_gpencil_color_sample(C, eye, event->xy);
 
           /* Create material. */
           eyedropper_gpencil_color_set(C, event, eye);
@@ -309,7 +293,7 @@ static int eyedropper_gpencil_modal(bContext *C, wmOperator *op, const wmEvent *
     }
     case MOUSEMOVE:
     case INBETWEEN_MOUSEMOVE: {
-      eyedropper_gpencil_color_sample(C, eye, event->xy[0], event->xy[1]);
+      eyedropper_gpencil_color_sample(C, eye, event->xy);
       break;
     }
     default: {

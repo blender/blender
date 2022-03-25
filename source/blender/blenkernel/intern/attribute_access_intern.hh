@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_map.hh"
 #include "BLI_span.hh"
@@ -140,7 +126,8 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
  private:
   static constexpr uint64_t supported_types_mask = CD_MASK_PROP_FLOAT | CD_MASK_PROP_FLOAT2 |
                                                    CD_MASK_PROP_FLOAT3 | CD_MASK_PROP_INT32 |
-                                                   CD_MASK_PROP_COLOR | CD_MASK_PROP_BOOL;
+                                                   CD_MASK_PROP_COLOR | CD_MASK_PROP_BOOL |
+                                                   CD_MASK_PROP_INT8;
   const AttributeDomain domain_;
   const CustomDataAccessInfo custom_data_access_;
 
@@ -161,7 +148,7 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
 
   bool try_create(GeometryComponent &component,
                   const AttributeIDRef &attribute_id,
-                  const AttributeDomain domain,
+                  AttributeDomain domain,
                   const CustomDataType data_type,
                   const AttributeInit &initializer) const final;
 
@@ -185,8 +172,8 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
  */
 class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
  private:
-  using AsReadAttribute = GVArray (*)(const void *data, const int domain_size);
-  using AsWriteAttribute = GVMutableArray (*)(void *data, const int domain_size);
+  using AsReadAttribute = GVArray (*)(const void *data, int domain_size);
+  using AsWriteAttribute = GVMutableArray (*)(void *data, int domain_size);
   const AttributeDomain domain_;
   const CustomDataType attribute_type_;
   const CustomDataType stored_type_;
@@ -220,6 +207,16 @@ class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
   void foreach_domain(const FunctionRef<void(AttributeDomain)> callback) const final;
 };
 
+template<typename T> GVArray make_array_read_attribute(const void *data, const int domain_size)
+{
+  return VArray<T>::ForSpan(Span<T>((const T *)data, domain_size));
+}
+
+template<typename T> GVMutableArray make_array_write_attribute(void *data, const int domain_size)
+{
+  return VMutableArray<T>::ForSpan(MutableSpan<T>((T *)data, domain_size));
+}
+
 /**
  * This provider is used to provide access to builtin attributes. It supports making internal types
  * available as different types. For example, the vertex position attribute is stored as part of
@@ -229,8 +226,8 @@ class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
  * if the stored type is the same as the attribute type.
  */
 class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
-  using AsReadAttribute = GVArray (*)(const void *data, const int domain_size);
-  using AsWriteAttribute = GVMutableArray (*)(void *data, const int domain_size);
+  using AsReadAttribute = GVArray (*)(const void *data, int domain_size);
+  using AsWriteAttribute = GVMutableArray (*)(void *data, int domain_size);
   using UpdateOnRead = void (*)(const GeometryComponent &component);
   using UpdateOnWrite = void (*)(GeometryComponent &component);
   const CustomDataType stored_type_;

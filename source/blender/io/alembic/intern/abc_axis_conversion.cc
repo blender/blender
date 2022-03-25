@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup Alembic
@@ -75,8 +61,6 @@ void create_swapped_rotation_matrix(float rot_x_mat[3][3],
 }  // namespace
    // alembicvoidcreate_swapped_rotation_matrix(floatrot_x_mat[3][3],floatrot_y_mat[3][3],floatrot_z_mat[3][3],constfloateuler[3],AbcAxisSwapModemode)
 
-/* Convert matrix from Z=up to Y=up or vice versa.
- * Use yup_mat = zup_mat for in-place conversion. */
 void copy_m44_axis_swap(float dst_mat[4][4], float src_mat[4][4], AbcAxisSwapMode mode)
 {
   float dst_rot[3][3], src_rot[3][3], dst_scale_mat[4][4];
@@ -139,8 +123,6 @@ void copy_m44_axis_swap(float dst_mat[4][4], float src_mat[4][4], AbcAxisSwapMod
   mul_m4_m4m4(dst_mat, dst_mat, dst_scale_mat);
 }
 
-/* Recompute transform matrix of object in new coordinate system
- * (from Z-Up to Y-Up). */
 void create_transform_matrix(Object *obj,
                              float r_yup_mat[4][4],
                              AbcMatrixMode mode,

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -114,7 +98,8 @@ static bool multires_reshape_vertcos_foreach_topology_info(
     const int num_vertices,
     const int UNUSED(num_edges),
     const int UNUSED(num_loops),
-    const int UNUSED(num_polygons))
+    const int UNUSED(num_polygons),
+    const int *UNUSED(subdiv_polygon_offset))
 {
   MultiresReshapeAssignVertcosContext *reshape_vertcos_context = foreach_context->user_data;
   if (num_vertices != reshape_vertcos_context->num_vert_coords) {
@@ -182,7 +167,6 @@ static void multires_reshape_vertcos_foreach_vertex_every_edge(
   multires_reshape_vertcos_foreach_vertex(foreach_context, &ptex_coord, subdiv_vertex_index);
 }
 
-/* Set displacement grids values at a reshape level to a object coordinates of the given source. */
 bool multires_reshape_assign_final_coords_from_vertcos(
     const MultiresReshapeContext *reshape_context,
     const float (*vert_coords)[3],

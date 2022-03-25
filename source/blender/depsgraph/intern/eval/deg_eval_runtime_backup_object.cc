@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2019 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2019 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup depsgraph
@@ -71,7 +55,6 @@ void ObjectRuntimeBackup::backup_modifier_runtime_data(Object *object)
     const SessionUUID &session_uuid = modifier_data->session_uuid;
     BLI_assert(BLI_session_uuid_is_generated(&session_uuid));
 
-    BLI_assert(modifier_data->orig_modifier_data != nullptr);
     modifier_runtime_data.add(session_uuid, ModifierDataBackup(modifier_data));
     modifier_data->runtime = nullptr;
   }
@@ -98,7 +81,7 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
   object->runtime = runtime;
   object->runtime.data_orig = data_orig;
   object->runtime.bb = bb;
-  if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_CURVE, OB_FONT) && data_eval != nullptr) {
+  if (ELEM(object->type, OB_MESH, OB_LATTICE, OB_CURVES_LEGACY, OB_FONT) && data_eval != nullptr) {
     if (object->id.recalc & ID_RECALC_GEOMETRY) {
       /* If geometry is tagged for update it means, that part of
        * evaluated mesh are not valid anymore. In this case we can not
@@ -128,7 +111,7 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
       }
     }
   }
-  else if (ELEM(object->type, OB_HAIR, OB_POINTCLOUD, OB_VOLUME)) {
+  else if (ELEM(object->type, OB_CURVES, OB_POINTCLOUD, OB_VOLUME)) {
     if (object->id.recalc & ID_RECALC_GEOMETRY) {
       /* Free evaluated caches. */
       object->data = data_orig;
@@ -150,8 +133,9 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
 void ObjectRuntimeBackup::restore_modifier_runtime_data(Object *object)
 {
   LISTBASE_FOREACH (ModifierData *, modifier_data, &object->modifiers) {
-    BLI_assert(modifier_data->orig_modifier_data != nullptr);
     const SessionUUID &session_uuid = modifier_data->session_uuid;
+    BLI_assert(BLI_session_uuid_is_generated(&session_uuid));
+
     optional<ModifierDataBackup> backup = modifier_runtime_data.pop_try(session_uuid);
     if (backup.has_value()) {
       modifier_data->runtime = backup->runtime;

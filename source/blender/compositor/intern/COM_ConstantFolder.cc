@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2021, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2021 Blender Foundation. */
 
 #include "BLI_map.hh"
 #include "BLI_set.hh"
@@ -28,12 +13,6 @@
 
 namespace blender::compositor {
 
-using Link = NodeOperationBuilder::Link;
-
-/**
- * \param operations_builder: Contains all operations to fold.
- * \param exec_system: Execution system.
- */
 ConstantFolder::ConstantFolder(NodeOperationBuilder &operations_builder)
     : operations_builder_(operations_builder)
 {
@@ -135,7 +114,6 @@ Vector<MemoryBuffer *> ConstantFolder::get_constant_input_buffers(NodeOperation 
   return inputs_bufs;
 }
 
-/** Returns constant operations resulted from folded operations. */
 Vector<ConstantOperation *> ConstantFolder::try_fold_operations(Span<NodeOperation *> operations)
 {
   Set<NodeOperation *> foldable_ops = find_constant_foldable_operations(operations);
@@ -151,9 +129,6 @@ Vector<ConstantOperation *> ConstantFolder::try_fold_operations(Span<NodeOperati
   return new_folds;
 }
 
-/**
- * Evaluate operations with constant elements into primitive constant operations.
- */
 int ConstantFolder::fold_operations()
 {
   WorkScheduler::start(operations_builder_.context());
@@ -186,8 +161,8 @@ void ConstantFolder::delete_constant_buffers()
 void ConstantFolder::get_operation_output_operations(NodeOperation *operation,
                                                      Vector<NodeOperation *> &r_outputs)
 {
-  const Vector<Link> &links = operations_builder_.get_links();
-  for (const Link &link : links) {
+  const Vector<NodeOperationBuilder::Link> &links = operations_builder_.get_links();
+  for (const NodeOperationBuilder::Link &link : links) {
     if (&link.from()->get_operation() == operation) {
       r_outputs.append(&link.to()->get_operation());
     }

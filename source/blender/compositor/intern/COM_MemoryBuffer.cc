@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2011, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. */
 
 #include "COM_MemoryBuffer.h"
 
@@ -74,20 +59,12 @@ MemoryBuffer::MemoryBuffer(DataType data_type, const rcti &rect, bool is_a_singl
   set_strides();
 }
 
-/**
- * Construct MemoryBuffer from a float buffer. MemoryBuffer is not responsible for
- * freeing it.
- */
 MemoryBuffer::MemoryBuffer(
     float *buffer, int num_channels, int width, int height, bool is_a_single_elem)
     : MemoryBuffer(buffer, num_channels, create_rect(width, height), is_a_single_elem)
 {
 }
 
-/**
- * Construct MemoryBuffer from a float buffer area. MemoryBuffer is not responsible for
- * freeing given buffer.
- */
 MemoryBuffer::MemoryBuffer(float *buffer,
                            const int num_channels,
                            const rcti &rect,
@@ -145,10 +122,6 @@ BuffersIterator<float> MemoryBuffer::iterate_with(Span<MemoryBuffer *> inputs, c
   return builder.build();
 }
 
-/**
- * Converts a single elem buffer to a full size buffer (allocates memory for all
- * elements in resolution).
- */
 MemoryBuffer *MemoryBuffer::inflate() const
 {
   BLI_assert(is_a_single_elem());
@@ -297,6 +270,23 @@ void MemoryBuffer::copy_from(const uchar *src,
       }
       to_elem += this->elem_stride;
       from_elem += elem_stride;
+    }
+  }
+}
+
+void MemoryBuffer::apply_processor(ColormanageProcessor &processor, const rcti area)
+{
+  const int width = BLI_rcti_size_x(&area);
+  const int height = BLI_rcti_size_y(&area);
+  float *out = get_elem(area.xmin, area.ymin);
+  /* If area allows continuous memory do conversion in one step. Otherwise per row. */
+  if (get_width() == width) {
+    IMB_colormanagement_processor_apply(&processor, out, width, height, get_num_channels(), false);
+  }
+  else {
+    for (int y = 0; y < height; y++) {
+      IMB_colormanagement_processor_apply(&processor, out, width, 1, get_num_channels(), false);
+      out += row_stride;
     }
   }
 }

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2017 Blender Foundation
- * This is a new part of Blender
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2017 Blender Foundation. */
 
 /** \file
  * \ingroup edgpencil
@@ -39,13 +23,6 @@
 
 #include "ED_gpencil.h"
 
-/**
- * Populate stroke with point data from data buffers.
- * \param gps: Grease pencil stroke
- * \param array: Flat array of point data values. Each entry has #GP_PRIM_DATABUF_SIZE values.
- * \param totpoints: Total of points
- * \param mat: 4x4 transform matrix to transform points into the right coordinate space.
- */
 void ED_gpencil_stroke_init_data(bGPDstroke *gps,
                                  const float *array,
                                  const int totpoints,
@@ -842,7 +819,6 @@ static const ColorTemplate gp_monkey_pct_pupils = {
 /* ***************************************************************** */
 /* Monkey API */
 
-/* add a 2D Suzanne (original model created by Matias Mendiola) */
 void ED_gpencil_create_monkey(bContext *C, Object *ob, float mat[4][4])
 {
   Main *bmain = CTX_data_main(C);

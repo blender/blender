@@ -1,24 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 by the Blender Foundation.
- * All rights reserved.
- * Modifier stack implementation.
- *
- * BKE_modifier.h contains the function prototypes for this file.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -78,7 +59,7 @@ static void id_type_init(void)
   INIT_TYPE(ID_LI);
   INIT_TYPE(ID_OB);
   INIT_TYPE(ID_ME);
-  INIT_TYPE(ID_CU);
+  INIT_TYPE(ID_CU_LEGACY);
   INIT_TYPE(ID_MB);
   INIT_TYPE(ID_MA);
   INIT_TYPE(ID_TE);
@@ -110,7 +91,7 @@ static void id_type_init(void)
   INIT_TYPE(ID_CF);
   INIT_TYPE(ID_WS);
   INIT_TYPE(ID_LP);
-  INIT_TYPE(ID_HA);
+  INIT_TYPE(ID_CV);
   INIT_TYPE(ID_PT);
   INIT_TYPE(ID_VO);
   INIT_TYPE(ID_SIM);
@@ -158,13 +139,6 @@ static const IDTypeInfo *idtype_get_info_from_name(const char *idtype_name)
 
 /* Various helpers/wrappers around #IDTypeInfo structure. */
 
-/**
- * Convert an \a idcode into a name.
- *
- * \param idcode: The code to convert.
- * \return A static string representing the name of
- * the code.
- */
 const char *BKE_idtype_idcode_to_name(const short idcode)
 {
   const IDTypeInfo *id_type = BKE_idtype_get_info_from_idcode(idcode);
@@ -172,13 +146,6 @@ const char *BKE_idtype_idcode_to_name(const short idcode)
   return id_type != NULL ? id_type->name : NULL;
 }
 
-/**
- * Convert an \a idcode into a name (plural).
- *
- * \param idcode: The code to convert.
- * \return A static string representing the name of
- * the code.
- */
 const char *BKE_idtype_idcode_to_name_plural(const short idcode)
 {
   const IDTypeInfo *id_type = BKE_idtype_get_info_from_idcode(idcode);
@@ -186,12 +153,6 @@ const char *BKE_idtype_idcode_to_name_plural(const short idcode)
   return id_type != NULL ? id_type->name_plural : NULL;
 }
 
-/**
- * Convert an \a idcode into its translations' context.
- *
- * \param idcode: The code to convert.
- * \return A static string representing the i18n context of the code.
- */
 const char *BKE_idtype_idcode_to_translation_context(const short idcode)
 {
   const IDTypeInfo *id_type = BKE_idtype_get_info_from_idcode(idcode);
@@ -199,12 +160,6 @@ const char *BKE_idtype_idcode_to_translation_context(const short idcode)
   return id_type != NULL ? id_type->translation_context : BLT_I18NCONTEXT_DEFAULT;
 }
 
-/**
- * Convert an ID-type name into an \a idcode (ie. #ID_SCE)
- *
- * \param idtype_name: The ID-type's "user visible name" to convert.
- * \return The \a idcode for the name, or 0 if invalid.
- */
 short BKE_idtype_idcode_from_name(const char *idtype_name)
 {
   const IDTypeInfo *id_type = idtype_get_info_from_name(idtype_name);
@@ -212,23 +167,11 @@ short BKE_idtype_idcode_from_name(const char *idtype_name)
   return id_type != NULL ? id_type->id_code : 0;
 }
 
-/**
- * Return if the ID code is a valid ID code.
- *
- * \param idcode: The code to check.
- * \return Boolean, 0 when invalid.
- */
 bool BKE_idtype_idcode_is_valid(const short idcode)
 {
   return BKE_idtype_get_info_from_idcode(idcode) != NULL ? true : false;
 }
 
-/**
- * Check if an ID type is linkable.
- *
- * \param idcode: The IDType code to check.
- * \return Boolean, false when non linkable, true otherwise.
- */
 bool BKE_idtype_idcode_is_linkable(const short idcode)
 {
   const IDTypeInfo *id_type = BKE_idtype_get_info_from_idcode(idcode);
@@ -236,12 +179,6 @@ bool BKE_idtype_idcode_is_linkable(const short idcode)
   return id_type != NULL ? (id_type->flags & IDTYPE_FLAGS_NO_LIBLINKING) == 0 : false;
 }
 
-/**
- * Check if an ID type is only appendable.
- *
- * \param idcode: The IDType code to check.
- * \return Boolean, false when also linkable, true when only appendable.
- */
 bool BKE_idtype_idcode_is_only_appendable(const short idcode)
 {
   const IDTypeInfo *id_type = BKE_idtype_get_info_from_idcode(idcode);
@@ -254,12 +191,6 @@ bool BKE_idtype_idcode_is_only_appendable(const short idcode)
   return false;
 }
 
-/**
- * Check if an ID type can try to reuse and existing matching local one when being appended again.
- *
- * \param idcode: The IDType code to check.
- * \return Boolean, false when it cannot be re-used, true otherwise.
- */
 bool BKE_idtype_idcode_append_is_reusable(const short idcode)
 {
   const IDTypeInfo *id_type = BKE_idtype_get_info_from_idcode(idcode);
@@ -272,9 +203,6 @@ bool BKE_idtype_idcode_append_is_reusable(const short idcode)
   return false;
 }
 
-/**
- * Convert an \a idcode into an \a idfilter (e.g. ID_OB -> FILTER_ID_OB).
- */
 uint64_t BKE_idtype_idcode_to_idfilter(const short idcode)
 {
 #define CASE_IDFILTER(_id) \
@@ -287,10 +215,10 @@ uint64_t BKE_idtype_idcode_to_idfilter(const short idcode)
     CASE_IDFILTER(BR);
     CASE_IDFILTER(CA);
     CASE_IDFILTER(CF);
-    CASE_IDFILTER(CU);
+    CASE_IDFILTER(CU_LEGACY);
     CASE_IDFILTER(GD);
     CASE_IDFILTER(GR);
-    CASE_IDFILTER(HA);
+    CASE_IDFILTER(CV);
     CASE_IDFILTER(IM);
     CASE_IDFILTER(LA);
     CASE_IDFILTER(LS);
@@ -324,9 +252,6 @@ uint64_t BKE_idtype_idcode_to_idfilter(const short idcode)
 #undef CASE_IDFILTER
 }
 
-/**
- * Convert an \a idfilter into an \a idcode (e.g. #FILTER_ID_OB -> #ID_OB).
- */
 short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter)
 {
 #define CASE_IDFILTER(_id) \
@@ -339,10 +264,10 @@ short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter)
     CASE_IDFILTER(BR);
     CASE_IDFILTER(CA);
     CASE_IDFILTER(CF);
-    CASE_IDFILTER(CU);
+    CASE_IDFILTER(CU_LEGACY);
     CASE_IDFILTER(GD);
     CASE_IDFILTER(GR);
-    CASE_IDFILTER(HA);
+    CASE_IDFILTER(CV);
     CASE_IDFILTER(IM);
     CASE_IDFILTER(LA);
     CASE_IDFILTER(LS);
@@ -375,9 +300,6 @@ short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter)
 #undef CASE_IDFILTER
 }
 
-/**
- * Convert an \a idcode into an index (e.g. #ID_OB -> #INDEX_ID_OB).
- */
 int BKE_idtype_idcode_to_index(const short idcode)
 {
 #define CASE_IDINDEX(_id) \
@@ -390,10 +312,10 @@ int BKE_idtype_idcode_to_index(const short idcode)
     CASE_IDINDEX(BR);
     CASE_IDINDEX(CA);
     CASE_IDINDEX(CF);
-    CASE_IDINDEX(CU);
+    CASE_IDINDEX(CU_LEGACY);
     CASE_IDINDEX(GD);
     CASE_IDINDEX(GR);
-    CASE_IDINDEX(HA);
+    CASE_IDINDEX(CV);
     CASE_IDINDEX(IM);
     CASE_IDINDEX(IP);
     CASE_IDINDEX(KE);
@@ -437,9 +359,6 @@ int BKE_idtype_idcode_to_index(const short idcode)
 #undef CASE_IDINDEX
 }
 
-/**
- * Get an \a idcode from an index (e.g. #INDEX_ID_OB -> #ID_OB).
- */
 short BKE_idtype_idcode_from_index(const int index)
 {
 #define CASE_IDCODE(_id) \
@@ -452,10 +371,10 @@ short BKE_idtype_idcode_from_index(const int index)
     CASE_IDCODE(BR);
     CASE_IDCODE(CA);
     CASE_IDCODE(CF);
-    CASE_IDCODE(CU);
+    CASE_IDCODE(CU_LEGACY);
     CASE_IDCODE(GD);
     CASE_IDCODE(GR);
-    CASE_IDCODE(HA);
+    CASE_IDCODE(CV);
     CASE_IDCODE(IM);
     CASE_IDCODE(IP);
     CASE_IDCODE(KE);
@@ -499,20 +418,11 @@ short BKE_idtype_idcode_from_index(const int index)
 #undef CASE_IDCODE
 }
 
-/**
- * Return an ID code and steps the index forward 1.
- *
- * \param index: start as 0.
- * \return the code, 0 when all codes have been returned.
- */
 short BKE_idtype_idcode_iter_step(int *index)
 {
   return (*index < ARRAY_SIZE(id_types)) ? BKE_idtype_idcode_from_index((*index)++) : 0;
 }
 
-/**
- * Wrapper around #IDTypeInfo foreach_cache that also handles embedded IDs.
- */
 void BKE_idtype_id_foreach_cache(struct ID *id,
                                  IDTypeForeachCacheFunctionCallback function_callback,
                                  void *user_data)

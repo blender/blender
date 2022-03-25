@@ -1,27 +1,14 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
 
 #include "BLI_noise.hh"
 
-namespace blender::nodes {
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+namespace blender::nodes::node_shader_tex_wave_cc {
 
 static void sh_node_tex_wave_declare(NodeDeclarationBuilder &b)
 {
@@ -39,13 +26,25 @@ static void sh_node_tex_wave_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>(N_("Phase Offset")).min(-1000.0f).max(1000.0f).default_value(0.0f);
   b.add_output<decl::Color>(N_("Color")).no_muted_links();
   b.add_output<decl::Float>(N_("Fac")).no_muted_links();
-};
+}
 
-}  // namespace blender::nodes
+static void node_shader_buts_tex_wave(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "wave_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  int type = RNA_enum_get(ptr, "wave_type");
+  if (type == SHD_WAVE_BANDS) {
+    uiItemR(layout, ptr, "bands_direction", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  }
+  else { /* SHD_WAVE_RINGS */
+    uiItemR(layout, ptr, "rings_direction", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  }
+
+  uiItemR(layout, ptr, "wave_profile", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+}
 
 static void node_shader_init_tex_wave(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeTexWave *tex = (NodeTexWave *)MEM_callocN(sizeof(NodeTexWave), "NodeTexWave");
+  NodeTexWave *tex = MEM_cnew<NodeTexWave>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->wave_type = SHD_WAVE_BANDS;
@@ -80,8 +79,6 @@ static int node_shader_gpu_tex_wave(GPUMaterial *mat,
                         GPU_constant(&rings_direction),
                         GPU_constant(&wave_profile));
 }
-
-namespace blender::nodes {
 
 class WaveFunction : public fn::MultiFunction {
  private:
@@ -207,8 +204,7 @@ class WaveFunction : public fn::MultiFunction {
   }
 };
 
-static void sh_node_wave_tex_build_multi_function(
-    blender::nodes::NodeMultiFunctionBuilder &builder)
+static void sh_node_wave_tex_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   bNode &node = builder.node();
   NodeTexWave *tex = (NodeTexWave *)node.storage;
@@ -216,19 +212,22 @@ static void sh_node_wave_tex_build_multi_function(
       tex->wave_type, tex->bands_direction, tex->rings_direction, tex->wave_profile);
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_shader_tex_wave_cc
 
-void register_node_type_sh_tex_wave(void)
+void register_node_type_sh_tex_wave()
 {
+  namespace file_ns = blender::nodes::node_shader_tex_wave_cc;
+
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_TEX_WAVE, "Wave Texture", NODE_CLASS_TEXTURE, 0);
-  ntype.declare = blender::nodes::sh_node_tex_wave_declare;
+  sh_fn_node_type_base(&ntype, SH_NODE_TEX_WAVE, "Wave Texture", NODE_CLASS_TEXTURE);
+  ntype.declare = file_ns::sh_node_tex_wave_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_tex_wave;
   node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
-  node_type_init(&ntype, node_shader_init_tex_wave);
+  node_type_init(&ntype, file_ns::node_shader_init_tex_wave);
   node_type_storage(&ntype, "NodeTexWave", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, node_shader_gpu_tex_wave);
-  ntype.build_multi_function = blender::nodes::sh_node_wave_tex_build_multi_function;
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_wave);
+  ntype.build_multi_function = file_ns::sh_node_wave_tex_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

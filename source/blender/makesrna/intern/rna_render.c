@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -98,6 +84,7 @@ const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
 
 #  include "RNA_access.h"
 
+#  include "BKE_appdir.h"
 #  include "BKE_context.h"
 #  include "BKE_report.h"
 
@@ -418,6 +405,16 @@ static StructRNA *rna_RenderEngine_refine(PointerRNA *ptr)
   RenderEngine *engine = (RenderEngine *)ptr->data;
   return (engine->type && engine->type->rna_ext.srna) ? engine->type->rna_ext.srna :
                                                         &RNA_RenderEngine;
+}
+
+static void rna_RenderEngine_tempdir_get(PointerRNA *UNUSED(ptr), char *value)
+{
+  BLI_strncpy(value, BKE_tempdir_session(), FILE_MAX);
+}
+
+static int rna_RenderEngine_tempdir_length(PointerRNA *UNUSED(ptr))
+{
+  return strlen(BKE_tempdir_session());
 }
 
 static PointerRNA rna_RenderEngine_render_get(PointerRNA *ptr)
@@ -858,6 +855,12 @@ static void rna_def_render_engine(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "resolution_y", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "resolution_y");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "temporary_directory", PROP_STRING, PROP_NONE);
+  RNA_def_function_ui_description(func, "The temp directory used by Blender");
+  RNA_def_property_string_funcs(
+      prop, "rna_RenderEngine_tempdir_get", "rna_RenderEngine_tempdir_length", NULL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   /* Render Data */

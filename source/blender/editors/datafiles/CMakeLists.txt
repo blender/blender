@@ -1,19 +1,4 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public LicenseS
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
 
@@ -610,15 +595,16 @@ set(ICON_NAMES
   axis_top
   layer_used
   layer_active
-  outliner_ob_hair
-  outliner_data_hair
-  hair_data
+  outliner_ob_curves
+  outliner_data_curves
+  curves_data
   outliner_ob_pointcloud
   outliner_data_pointcloud
   pointcloud_data
   outliner_ob_volume
   outliner_data_volume
   volume_data
+  current_file
   home
   documents
   temp
@@ -666,7 +652,7 @@ set(ICON_NAMES
   matsphere
   matcube
   monkey
-  hair
+  curves
   aliased
   antialiased
   mat_sphere_sky
@@ -784,6 +770,11 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.curve.extrude_move
   ops.curve.radius
   ops.curve.vertex_random
+  ops.curves.sculpt_add
+  ops.curves.sculpt_comb
+  ops.curves.sculpt_cut
+  ops.curves.sculpt_delete
+  ops.curves.sculpt_grow
   ops.generic.cursor
   ops.generic.select
   ops.generic.select_box

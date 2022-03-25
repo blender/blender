@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup sptext
@@ -111,7 +96,6 @@ void flatten_string_free(FlattenString *fs)
   }
 }
 
-/* takes a string within fs->buf and returns its length */
 int flatten_string_strlen(FlattenString *fs, const char *str)
 {
   const int len = (fs->pos - (int)(str - fs->buf)) - 1;
@@ -119,8 +103,6 @@ int flatten_string_strlen(FlattenString *fs, const char *str)
   return len;
 }
 
-/* Ensures the format string for the given line is long enough, reallocating
- * as needed. Allocation is done here, alone, to ensure consistency. */
 int text_check_format_len(TextLine *line, uint len)
 {
   if (line->format) {
@@ -142,12 +124,6 @@ int text_check_format_len(TextLine *line, uint len)
   return 1;
 }
 
-/**
- * Fill the string with formatting constant,
- * advancing \a str_p and \a fmt_p
- *
- * \param len: length in bytes of \a fmt_p to fill.
- */
 void text_format_fill(const char **str_p, char **fmt_p, const char type, const int len)
 {
   const char *str = *str_p;
@@ -170,10 +146,6 @@ void text_format_fill(const char **str_p, char **fmt_p, const char type, const i
   *str_p = str;
   *fmt_p = fmt;
 }
-/**
- * ascii version of #text_format_fill,
- * use when we no the text being stepped over is ascii (as is the case for most keywords)
- */
 void text_format_fill_ascii(const char **str_p, char **fmt_p, const char type, const int len)
 {
   const char *str = *str_p;

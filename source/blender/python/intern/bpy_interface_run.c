@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -80,6 +66,14 @@ typedef struct {
 } PyModuleObject;
 #endif
 
+/**
+ * Execute a file-path or text-block.
+ *
+ * \param reports: Report exceptions as errors (may be NULL).
+ * \param do_jump: See #BPY_run_text.
+ *
+ * \note Share a function for this since setup/cleanup logic is the same.
+ */
 static bool python_script_exec(
     bContext *C, const char *fn, struct Text *text, struct ReportList *reports, const bool do_jump)
 {
@@ -108,7 +102,8 @@ static bool python_script_exec(
 
       fn_dummy_py = PyC_UnicodeFromByte(fn_dummy);
 
-      buf = txt_to_buf(text, NULL);
+      size_t buf_len_dummy;
+      buf = txt_to_buf(text, &buf_len_dummy);
       text->compiled = Py_CompileStringObject(buf, fn_dummy_py, Py_file_input, NULL, -1);
       MEM_freeN(buf);
 
@@ -172,7 +167,7 @@ static bool python_script_exec(
   if (!py_result) {
     if (text) {
       if (do_jump) {
-        /* ensure text is valid before use, the script may have freed its self */
+        /* ensure text is valid before use, the script may have freed itself */
         Main *bmain_new = CTX_data_main(C);
         if ((bmain_old == bmain_new) && (BLI_findindex(&bmain_new->texts, text) != -1)) {
           python_script_error_jump_text(text);
@@ -212,7 +207,6 @@ static bool python_script_exec(
 /** \name Run Text / Filename / String
  * \{ */
 
-/* Can run a file or text block */
 bool BPY_run_filepath(bContext *C, const char *filepath, struct ReportList *reports)
 {
   return python_script_exec(C, filepath, NULL, reports, false);
@@ -271,17 +265,11 @@ static bool bpy_run_string_impl(bContext *C,
   return ok;
 }
 
-/**
- * Run an expression, matches: `exec(compile(..., "eval"))`
- */
 bool BPY_run_string_eval(bContext *C, const char *imports[], const char *expr)
 {
   return bpy_run_string_impl(C, imports, expr, Py_eval_input);
 }
 
-/**
- * Run an entire script, matches: `exec(compile(..., "exec"))`
- */
 bool BPY_run_string_exec(bContext *C, const char *imports[], const char *expr)
 {
   return bpy_run_string_impl(C, imports, expr, Py_file_input);
@@ -330,9 +318,6 @@ static void run_string_handle_error(struct BPy_RunErrInfo *err_info)
   Py_XDECREF(py_err_str);
 }
 
-/**
- * \return success
- */
 bool BPY_run_string_as_number(bContext *C,
                               const char *imports[],
                               const char *expr,
@@ -341,10 +326,6 @@ bool BPY_run_string_as_number(bContext *C,
 {
   PyGILState_STATE gilstate;
   bool ok = true;
-
-  if (!r_value || !expr) {
-    return -1;
-  }
 
   if (expr[0] == '\0') {
     *r_value = 0.0;
@@ -364,9 +345,6 @@ bool BPY_run_string_as_number(bContext *C,
   return ok;
 }
 
-/**
- * \return success
- */
 bool BPY_run_string_as_string_and_size(bContext *C,
                                        const char *imports[],
                                        const char *expr,
@@ -374,7 +352,6 @@ bool BPY_run_string_as_string_and_size(bContext *C,
                                        char **r_value,
                                        size_t *r_value_size)
 {
-  BLI_assert(r_value && expr);
   PyGILState_STATE gilstate;
   bool ok = true;
 
@@ -406,18 +383,12 @@ bool BPY_run_string_as_string(bContext *C,
   return BPY_run_string_as_string_and_size(C, imports, expr, err_info, r_value, &value_dummy_size);
 }
 
-/**
- * Support both int and pointers.
- *
- * \return success
- */
 bool BPY_run_string_as_intptr(bContext *C,
                               const char *imports[],
                               const char *expr,
                               struct BPy_RunErrInfo *err_info,
                               intptr_t *r_value)
 {
-  BLI_assert(r_value && expr);
   PyGILState_STATE gilstate;
   bool ok = true;
 

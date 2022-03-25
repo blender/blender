@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -90,7 +76,6 @@ void BLI_uvproject_from_camera(float target[2], float source[3], ProjCameraInfo 
   target[1] += uci->shifty;
 }
 
-/* could rv3d->persmat */
 void BLI_uvproject_from_view(float target[2],
                              float source[3],
                              float persmat[4][4],
@@ -132,8 +117,6 @@ void BLI_uvproject_from_view(float target[2],
   target[1] = (y + target[1]) / winy;
 }
 
-/* 'rotmat' can be `obedit->obmat` when uv project is used.
- * 'winx' and 'winy' can be from `scene->r.xsch/ysch` */
 ProjCameraInfo *BLI_uvproject_camera_info(Object *ob, float rotmat[4][4], float winx, float winy)
 {
   ProjCameraInfo uci;

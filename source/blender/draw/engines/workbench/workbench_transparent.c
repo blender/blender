@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2020, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. */
 
 /** \file
  * \ingroup draw_engine
@@ -65,7 +50,7 @@ void workbench_transparent_engine_init(WORKBENCH_Data *data)
 static void workbench_transparent_lighting_uniforms(WORKBENCH_PrivateData *wpd,
                                                     DRWShadingGroup *grp)
 {
-  DRW_shgroup_uniform_block(grp, "world_block", wpd->world_ubo);
+  DRW_shgroup_uniform_block(grp, "world_data", wpd->world_ubo);
   DRW_shgroup_uniform_bool_copy(grp, "forceShadowing", false);
 
   if (STUDIOLIGHT_TYPE_MATCAP_ENABLED(wpd)) {
@@ -76,8 +61,8 @@ static void workbench_transparent_lighting_uniforms(WORKBENCH_PrivateData *wpd,
     struct GPUTexture *spec_tx = wpd->studio_light->matcap_specular.gputexture;
     const bool use_spec = workbench_is_specular_highlight_enabled(wpd);
     spec_tx = (use_spec && spec_tx) ? spec_tx : diff_tx;
-    DRW_shgroup_uniform_texture(grp, "matcapDiffuseImage", diff_tx);
-    DRW_shgroup_uniform_texture(grp, "matcapSpecularImage", spec_tx);
+    DRW_shgroup_uniform_texture(grp, "matcap_diffuse_tx", diff_tx);
+    DRW_shgroup_uniform_texture(grp, "matcap_specular_tx", spec_tx);
   }
 }
 
@@ -111,25 +96,25 @@ void workbench_transparent_cache_init(WORKBENCH_Data *vedata)
         sh = workbench_shader_transparent_get(wpd, data);
 
         wpd->prepass[transp][infront][data].common_shgrp = grp = DRW_shgroup_create(sh, pass);
-        DRW_shgroup_uniform_block(grp, "material_block", wpd->material_ubo_curr);
+        DRW_shgroup_uniform_block(grp, "materials_data", wpd->material_ubo_curr);
         DRW_shgroup_uniform_int_copy(grp, "materialIndex", -1);
         workbench_transparent_lighting_uniforms(wpd, grp);
 
         wpd->prepass[transp][infront][data].vcol_shgrp = grp = DRW_shgroup_create(sh, pass);
-        DRW_shgroup_uniform_block(grp, "material_block", wpd->material_ubo_curr);
+        DRW_shgroup_uniform_block(grp, "materials_data", wpd->material_ubo_curr);
         DRW_shgroup_uniform_int_copy(grp, "materialIndex", 0); /* Default material. (uses vcol) */
 
         sh = workbench_shader_transparent_image_get(wpd, data, false);
 
         wpd->prepass[transp][infront][data].image_shgrp = grp = DRW_shgroup_create(sh, pass);
-        DRW_shgroup_uniform_block(grp, "material_block", wpd->material_ubo_curr);
+        DRW_shgroup_uniform_block(grp, "materials_data", wpd->material_ubo_curr);
         DRW_shgroup_uniform_int_copy(grp, "materialIndex", 0); /* Default material. */
         workbench_transparent_lighting_uniforms(wpd, grp);
 
         sh = workbench_shader_transparent_image_get(wpd, data, true);
 
         wpd->prepass[transp][infront][data].image_tiled_shgrp = grp = DRW_shgroup_create(sh, pass);
-        DRW_shgroup_uniform_block(grp, "material_block", wpd->material_ubo_curr);
+        DRW_shgroup_uniform_block(grp, "materials_data", wpd->material_ubo_curr);
         DRW_shgroup_uniform_int_copy(grp, "materialIndex", 0); /* Default material. */
         workbench_transparent_lighting_uniforms(wpd, grp);
       }
@@ -149,8 +134,6 @@ void workbench_transparent_cache_init(WORKBENCH_Data *vedata)
   }
 }
 
-/* Redraw the transparent passes but with depth test
- * to output correct outline IDs and depth. */
 void workbench_transparent_draw_depth_pass(WORKBENCH_Data *data)
 {
   WORKBENCH_PrivateData *wpd = data->stl->wpd;

@@ -1,24 +1,7 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * - Blender Foundation, 2003-2009
- * - Peter Schlaile <peter [at] schlaile [dot] de> 2005/2006
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved.
+ *           2003-2009 Blender Foundation.
+ *           2005-2006 Peter Schlaile <peter [at] schlaile [dot] de> */
 
 /** \file
  * \ingroup bke
@@ -193,6 +176,10 @@ static void seq_time_update_meta_strip(Scene *scene, Sequence *seq_meta)
 
 void SEQ_time_update_meta_strip_range(Scene *scene, Sequence *seq_meta)
 {
+  if (seq_meta == NULL) {
+    return;
+  }
+
   seq_time_update_meta_strip(scene, seq_meta);
 
   /* Prevent meta-strip to move in timeline. */
@@ -434,12 +421,6 @@ float SEQ_time_sequence_get_fps(Scene *scene, Sequence *seq)
   return 0.0f;
 }
 
-/**
- * Initialize given rectangle with the Scene's timeline boundaries.
- *
- * \param scene: the Scene instance whose timeline boundaries are extracted from
- * \param rect: output parameter to be filled with timeline boundaries
- */
 void SEQ_timeline_init_boundbox(const Scene *scene, rctf *rect)
 {
   rect->xmin = scene->r.sfra;
@@ -448,12 +429,6 @@ void SEQ_timeline_init_boundbox(const Scene *scene, rctf *rect)
   rect->ymax = 8.0f;
 }
 
-/**
- * Stretch the given rectangle to include the given strips boundaries
- *
- * \param seqbase: ListBase in which strips are located
- * \param rect: output parameter to be filled with strips' boundaries
- */
 void SEQ_timeline_expand_boundbox(const ListBase *seqbase, rctf *rect)
 {
   if (seqbase == NULL) {
@@ -473,13 +448,6 @@ void SEQ_timeline_expand_boundbox(const ListBase *seqbase, rctf *rect)
   }
 }
 
-/**
- * Define boundary rectangle of sequencer timeline and fill in rect data
- *
- * \param scene: Scene in which strips are located
- * \param seqbase: ListBase in which strips are located
- * \param rect: data structure describing rectangle, that will be filled in by this function
- */
 void SEQ_timeline_boundbox(const Scene *scene, const ListBase *seqbase, rctf *rect)
 {
   SEQ_timeline_init_boundbox(scene, rect);
@@ -497,14 +465,6 @@ static bool strip_exists_at_frame(SeqCollection *all_strips, const int timeline_
   return false;
 }
 
-/**
- * Find first gap between strips after initial_frame and describe it by filling data of r_gap_info
- *
- * \param scene: Scene in which strips are located
- * \param seqbase: ListBase in which strips are located
- * \param initial_frame: frame on timeline from where gaps are searched for
- * \param r_gap_info: data structure describing gap, that will be filled in by this function
- */
 void seq_time_gap_info_get(const Scene *scene,
                            ListBase *seqbase,
                            const int initial_frame,
@@ -550,15 +510,6 @@ void seq_time_gap_info_get(const Scene *scene,
   }
 }
 
-/**
- * Test if strip intersects with timeline frame.
- * NOTE: This checks if strip would be rendered at this frame. For rendering it is assumed, that
- * timeline frame has width of 1 frame and therefore ends at timeline_frame + 1
- *
- * \param seq: Sequence to be checked
- * \param timeline_frame: absolute frame position
- * \return true if strip intersects with timeline frame.
- */
 bool SEQ_time_strip_intersects_frame(const Sequence *seq, const int timeline_frame)
 {
   return (seq->startdisp <= timeline_frame) && (seq->enddisp > timeline_frame);

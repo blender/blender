@@ -1,25 +1,9 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- * Operators and API's for creating bones
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edarmature
+ * Operators and API's for creating bones.
  */
 
 #include "DNA_anim_types.h"
@@ -64,8 +48,6 @@
 
 /* *************** Adding stuff in editmode *************** */
 
-/* default bone add, returns it selected, but without tail set */
-/* XXX should be used everywhere, now it mallocs bones still locally in functions */
 EditBone *ED_armature_ebone_add(bArmature *arm, const char *name)
 {
   EditBone *bone = MEM_callocN(sizeof(EditBone), "eBone");
@@ -274,7 +256,6 @@ void ARMATURE_OT_click_extrude(wmOperatorType *ot)
   /* props */
 }
 
-/* adds an EditBone between the nominated locations (should be in the right space) */
 EditBone *add_points_bone(Object *obedit, float head[3], float tail[3])
 {
   EditBone *ebo;
@@ -302,7 +283,6 @@ static EditBone *get_named_editbone(ListBase *edbo, const char *name)
   return NULL;
 }
 
-/* Call this before doing any duplications. */
 void preEditBoneDuplicate(ListBase *editbones)
 {
   /* clear temp */
@@ -585,8 +565,6 @@ static void updateDuplicateLocRotConstraintSettings(Object *ob,
 {
   /* This code assumes that bRotLimitConstraint and bLocLimitConstraint have the same fields in
    * the same memory locations. */
-  BLI_assert(sizeof(bLocLimitConstraint) == sizeof(bRotLimitConstraint));
-
   bRotLimitConstraint *limit = (bRotLimitConstraint *)curcon->data;
   float local_mat[4][4], imat[4][4];
 
@@ -802,6 +780,13 @@ static void updateDuplicateTransformConstraintSettings(Object *ob,
           trans->to_min_rot[i] = temp_vec[i];
         }
       }
+
+      if (trans->from == TRANS_ROTATION && trans->map[1] == Y) {
+        /* Y Rot to Y Rot: Flip and invert */
+        trans->to_max_rot[1] = -trans->to_min_rot[1];
+        trans->to_min_rot[1] = -temp_vec[1];
+      }
+
       break;
   }
   /* convert back to the settings space */
@@ -858,13 +843,27 @@ static void updateDuplicateCustomBoneShapes(bContext *C, EditBone *dup_bone, Obj
     Main *bmain = CTX_data_main(C);
     char name_flip[MAX_ID_NAME - 2];
 
+    /* Invert the X location */
+    pchan->custom_translation[0] *= -1;
+    /* Invert the Y rotation */
+    pchan->custom_rotation_euler[1] *= -1;
+    /* Invert the Z rotation */
+    pchan->custom_rotation_euler[2] *= -1;
+
     /* Skip the first two chars in the object name as those are used to store object type */
     BLI_string_flip_side_name(name_flip, pchan->custom->id.name + 2, false, sizeof(name_flip));
     Object *shape_ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, name_flip);
 
+    /* If name_flip doesn't exist, BKE_libblock_find_name() returns pchan->custom (best match) */
+    shape_ob = shape_ob == pchan->custom ? NULL : shape_ob;
+
     if (shape_ob != NULL) {
       /* A flipped shape object exists, use it! */
       pchan->custom = shape_ob;
+    }
+    else {
+      /* Flip shape */
+      pchan->custom_scale_xyz[0] *= -1;
     }
   }
 }
@@ -1317,9 +1316,10 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-/* following conventions from #MESH_OT_symmetrize */
 void ARMATURE_OT_symmetrize(wmOperatorType *ot)
 {
+  /* NOTE: following conventions from #MESH_OT_symmetrize */
+
   /* subset of 'rna_enum_symmetrize_direction_items' */
   static const EnumPropertyItem arm_symmetrize_direction_items[] = {
       {-1, "NEGATIVE_X", 0, "-X to +X", ""},

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup sptext
@@ -39,7 +23,10 @@ void draw_text_main(struct SpaceText *st, struct ARegion *region);
 void text_update_line_edited(struct TextLine *line);
 void text_update_edited(struct Text *text);
 void text_update_character_width(struct SpaceText *st);
-void text_scroll_to_cursor__area(struct SpaceText *st, struct ScrArea *area, const bool center);
+/**
+ * Takes an area instead of a region, use for listeners.
+ */
+void text_scroll_to_cursor__area(struct SpaceText *st, struct ScrArea *area, bool center);
 void text_update_cursor_moved(struct bContext *C);
 
 /* Padding around line numbers in character widths. */
@@ -73,12 +60,18 @@ void text_update_cursor_moved(struct bContext *C);
 #define TOOL_DOCUMENT 0x02
 
 int wrap_width(const struct SpaceText *st, struct ARegion *region);
+/**
+ * Sets (offl, offc) for transforming (line, curs) to its wrapped position.
+ */
 void wrap_offset(const struct SpaceText *st,
                  struct ARegion *region,
                  struct TextLine *linein,
                  int cursin,
                  int *offl,
                  int *offc);
+/**
+ * cursin - mem, offc - view.
+ */
 void wrap_offset_in_line(const struct SpaceText *st,
                          struct ARegion *region,
                          struct TextLine *linein,

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -315,7 +301,8 @@
     .opacity = 1.0f, \
     .flags = LRT_GPENCIL_MATCH_OUTPUT_VGROUP, \
     .crease_threshold = DEG2RAD(140.0f), \
-    .calculation_flags = LRT_ALLOW_DUPLI_OBJECTS | LRT_ALLOW_CLIPPING_BOUNDARIES | LRT_USE_CREASE_ON_SHARP_EDGES, \
+    .calculation_flags = LRT_ALLOW_DUPLI_OBJECTS | LRT_ALLOW_CLIPPING_BOUNDARIES | \
+                         LRT_USE_CREASE_ON_SHARP_EDGES | LRT_FILTER_FACE_MARK_KEEP_CONTOUR, \
     .angle_splitting_threshold = DEG2RAD(60.0f), \
     .chaining_image_threshold = 0.001f, \
     .chain_smooth_tolerance = 0.2f,\
@@ -333,6 +320,11 @@
     .point_density = 30.0f,\
     .segment_influence = 0.0f,\
     .max_angle = DEG2RAD(170.0f),\
+    .rand_start_fac = 0.0f,\
+    .rand_end_fac = 0.0f,\
+    .rand_offset = 0.0f,\
+    .seed = 0,\
+    .step = 4,\
   }
 
 #define _DNA_DEFAULT_DashGpencilModifierData \
@@ -351,6 +343,27 @@
     .radius = 1.0f, \
     .opacity = 1.0f, \
     .mat_nr = -1, \
+  }
+
+#define _DNA_DEFAULT_ShrinkwrapGpencilModifierData \
+  { \
+    .target = NULL, \
+    .aux_target = NULL, \
+    .keep_dist = 0.05f, \
+    .shrink_type = MOD_SHRINKWRAP_NEAREST_SURFACE, \
+    .shrink_opts = MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR, \
+    .shrink_mode = 0, \
+    .proj_limit = 0.0f, \
+    .proj_axis = 0, \
+    .subsurf_levels = 0, \
+    .material = NULL, \
+    .layername = "", \
+    .vgname = "", \
+    .pass_index = 0, \
+    .flag = 0, \
+    .layer_pass = 0, \
+    .smooth_factor = 0.05f, \
+    .smooth_step = 1, \
   }
 
 

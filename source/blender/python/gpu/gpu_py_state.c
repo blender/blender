@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bpygpu
@@ -165,7 +151,7 @@ static PyObject *pygpu_state_depth_test_set(PyObject *UNUSED(self), PyObject *va
 }
 
 PyDoc_STRVAR(pygpu_state_depth_test_get_doc,
-             ".. function:: blend_depth_test_get()\n"
+             ".. function:: depth_test_get()\n"
              "\n"
              "    Current depth_test equation.\n"
              "\n");
@@ -193,7 +179,7 @@ static PyObject *pygpu_state_depth_mask_set(PyObject *UNUSED(self), PyObject *va
 }
 
 PyDoc_STRVAR(pygpu_state_depth_mask_get_doc,
-             ".. function:: depth_mask_set_get()\n"
+             ".. function:: depth_mask_get()\n"
              "\n"
              "   Writing status in the depth component.\n");
 static PyObject *pygpu_state_depth_mask_get(PyObject *UNUSED(self))
@@ -340,7 +326,7 @@ static PyObject *pygpu_state_front_facing_set(PyObject *UNUSED(self), PyObject *
 }
 
 PyDoc_STRVAR(pygpu_state_program_point_size_set_doc,
-             ".. function:: use_program_point_size(enable)\n"
+             ".. function:: program_point_size_set(enable)\n"
              "\n"
              "   If enabled, the derived point size is taken from the (potentially clipped) "
              "shader builtin gl_PointSize.\n"

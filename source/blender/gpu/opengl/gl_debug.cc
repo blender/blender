@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -108,6 +92,11 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
     GPU_debug_get_groups_names(sizeof(debug_groups), debug_groups);
     CLG_Severity clog_severity;
 
+    if (GPU_debug_group_match(GPU_DEBUG_SHADER_COMPILATION_GROUP)) {
+      /** Do not duplicate shader compilation error/warnings. */
+      return;
+    }
+
     switch (type) {
       case GL_DEBUG_TYPE_ERROR:
       case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
@@ -123,7 +112,7 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
         break;
     }
 
-    if (((LOG.type->flag & CLG_FLAG_USE) && (LOG.type->level >= clog_severity))) {
+    if (((LOG.type->flag & CLG_FLAG_USE) && (LOG.type->level <= clog_severity))) {
       CLG_logf(LOG.type, clog_severity, debug_groups, "", "%s", message);
       if (severity == GL_DEBUG_SEVERITY_HIGH) {
         /* Focus on error message. */
@@ -142,7 +131,6 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
 
 #undef APIENTRY
 
-/* This function needs to be called once per context. */
 void init_gl_callbacks()
 {
   CLOG_ENSURE(&LOG);
@@ -192,6 +180,9 @@ void init_gl_callbacks()
 
 void check_gl_error(const char *info)
 {
+  if (!(G.debug & G_DEBUG_GPU)) {
+    return;
+  }
   GLenum error = glGetError();
 
 #define ERROR_CASE(err) \
@@ -340,7 +331,7 @@ void object_label(GLenum type, GLuint object, const char *name)
     char label[64];
     SNPRINTF(label, "%s%s%s", to_str_prefix(type), name, to_str_suffix(type));
     /* Small convenience for caller. */
-    if (ELEM(type, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, GL_VERTEX_SHADER)) {
+    if (ELEM(type, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, GL_VERTEX_SHADER, GL_COMPUTE_SHADER)) {
       type = GL_SHADER;
     }
     if (ELEM(type, GL_UNIFORM_BUFFER)) {

@@ -1,20 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Chris Keith, Chris Want, Ken Hughes, Campbell Barton
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -80,6 +64,7 @@
 #include "../mathutils/mathutils.h"
 
 /* Logging types to use anywhere in the Python modules. */
+
 CLG_LOGREF_DECLARE_GLOBAL(BPY_LOG_CONTEXT, "bpy.context");
 CLG_LOGREF_DECLARE_GLOBAL(BPY_LOG_INTERFACE, "bpy.interface");
 CLG_LOGREF_DECLARE_GLOBAL(BPY_LOG_RNA, "bpy.rna");
@@ -103,7 +88,6 @@ static double bpy_timer_run;     /* time for each python script run */
 static double bpy_timer_run_tot; /* accumulate python runs */
 #endif
 
-/* use for updating while a python script runs - in case of file load */
 void BPY_context_update(bContext *C)
 {
   /* don't do this from a non-main (e.g. render) thread, it can cause a race
@@ -141,7 +125,6 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
   }
 }
 
-/* context should be used but not now because it causes some bugs */
 void bpy_context_clear(bContext *UNUSED(C), const PyGILState_STATE *gilstate)
 {
   py_call_level--;
@@ -175,16 +158,6 @@ static void bpy_context_end(bContext *C)
   CTX_wm_operator_poll_msg_clear(C);
 }
 
-/**
- * Use for `CTX_*_set(..)` functions need to set values which are later read back as expected.
- * In this case we don't want the Python context to override the values as it causes problems
- * see T66256.
- *
- * \param dict_p: A pointer to #bContext.data.py_context so we can assign a new value.
- * \param dict_orig: The value of #bContext.data.py_context_orig to check if we need to copy.
- *
- * \note Typically accessed via #BPY_context_dict_clear_members macro.
- */
 void BPY_context_dict_clear_members_array(void **dict_p,
                                           void *dict_orig,
                                           const char *context_members[],
@@ -238,9 +211,6 @@ void BPY_text_free_code(Text *text)
   }
 }
 
-/**
- * Needed so the #Main pointer in `bpy.data` doesn't become out of date.
- */
 void BPY_modules_update(void)
 {
 #if 0 /* slow, this runs all the time poll, draw etc 100's of time a sec. */
@@ -333,7 +303,6 @@ static void pystatus_exit_on_error(PyStatus status)
 }
 #endif
 
-/* call BPY_context_set first */
 void BPY_python_start(bContext *C, int argc, const char **argv)
 {
 #ifndef WITH_PYTHON_MODULE
@@ -881,9 +850,6 @@ static void bpy_module_free(void *UNUSED(mod))
 
 #endif
 
-/**
- * Avoids duplicating keyword list.
- */
 bool BPY_string_is_keyword(const char *str)
 {
   /* list is from...
@@ -905,8 +871,7 @@ bool BPY_string_is_keyword(const char *str)
   return false;
 }
 
-/* EVIL, define text.c functions here... */
-/* BKE_text.h */
+/* EVIL: define `text.c` functions here (declared in `BKE_text.h`). */
 int text_check_identifier_unicode(const uint ch)
 {
   return (ch < 255 && text_check_identifier((char)ch)) || Py_UNICODE_ISALNUM(ch);

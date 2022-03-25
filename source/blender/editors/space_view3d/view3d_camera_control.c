@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -102,9 +88,6 @@ BLI_INLINE Object *view3d_cameracontrol_object(const View3DCameraControl *vctrl)
   return vctrl->root_parent ? vctrl->root_parent : vctrl->ctx_v3d->camera;
 }
 
-/**
- * Returns the object which is being manipulated or NULL.
- */
 Object *ED_view3d_cameracontrol_object_get(View3DCameraControl *vctrl)
 {
   RegionView3D *rv3d = vctrl->ctx_rv3d;
@@ -116,10 +99,6 @@ Object *ED_view3d_cameracontrol_object_get(View3DCameraControl *vctrl)
   return NULL;
 }
 
-/**
- * Creates a #View3DCameraControl handle and sets up
- * the view for first-person style navigation.
- */
 struct View3DCameraControl *ED_view3d_cameracontrol_acquire(Depsgraph *depsgraph,
                                                             Scene *scene,
                                                             View3D *v3d,
@@ -243,9 +222,6 @@ static bool object_apply_mat4_with_protect(Object *ob,
   return view_changed;
 }
 
-/**
- * Updates cameras from the `rv3d` values, optionally auto-keyframing.
- */
 void ED_view3d_cameracontrol_update(View3DCameraControl *vctrl,
                                     /* args for keyframing */
                                     const bool use_autokey,
@@ -317,12 +293,6 @@ void ED_view3d_cameracontrol_update(View3DCameraControl *vctrl,
   }
 }
 
-/**
- * Release view control.
- *
- * \param restore: Sets the view state to the values that were set
- *                 before #ED_view3d_control_acquire was called.
- */
 void ED_view3d_cameracontrol_release(View3DCameraControl *vctrl, const bool restore)
 {
   View3D *v3d = vctrl->ctx_v3d;

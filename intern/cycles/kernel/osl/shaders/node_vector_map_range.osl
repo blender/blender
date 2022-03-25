@@ -1,0 +1,61 @@
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
+
+#include "stdcycles.h"
+
+float safe_divide(float a, float b)
+{
+  return (b != 0.0) ? a / b : 0.0;
+}
+
+point safe_divide(point a, point b)
+{
+  return point(safe_divide(a.x, b.x), safe_divide(a.y, b.y), safe_divide(a.z, b.z));
+}
+
+shader node_vector_map_range(string range_type = "linear",
+                             int use_clamp = 0,
+                             point VectorIn = point(1.0, 1.0, 1.0),
+                             point From_Min_FLOAT3 = point(0.0, 0.0, 0.0),
+                             point From_Max_FLOAT3 = point(1.0, 1.0, 1.0),
+                             point To_Min_FLOAT3 = point(0.0, 0.0, 0.0),
+                             point To_Max_FLOAT3 = point(1.0, 1.0, 1.0),
+                             point Steps_FLOAT3 = point(4.0, 4.0, 4.0),
+                             output point VectorOut = point(0.0, 0.0, 0.0))
+{
+  point factor = VectorIn;
+  point from_min = From_Min_FLOAT3;
+  point from_max = From_Max_FLOAT3;
+  point to_min = To_Min_FLOAT3;
+  point to_max = To_Max_FLOAT3;
+  point steps = Steps_FLOAT3;
+
+  if (range_type == "stepped") {
+    factor = safe_divide((factor - from_min), (from_max - from_min));
+    factor = point((steps.x > 0.0) ? floor(factor.x * (steps.x + 1.0)) / steps.x : 0.0,
+                   (steps.y > 0.0) ? floor(factor.y * (steps.y + 1.0)) / steps.y : 0.0,
+                   (steps.z > 0.0) ? floor(factor.z * (steps.z + 1.0)) / steps.z : 0.0);
+  }
+  else if (range_type == "smoothstep") {
+    factor = safe_divide((factor - from_min), (from_max - from_min));
+    factor = clamp(factor, 0.0, 1.0);
+    factor = (3.0 - 2.0 * factor) * (factor * factor);
+  }
+  else if (range_type == "smootherstep") {
+    factor = safe_divide((factor - from_min), (from_max - from_min));
+    factor = clamp(factor, 0.0, 1.0);
+    factor = factor * factor * factor * (factor * (factor * 6.0 - 15.0) + 10.0);
+  }
+  else {
+    factor = safe_divide((factor - from_min), (from_max - from_min));
+  }
+  VectorOut = to_min + factor * (to_max - to_min);
+  if (use_clamp > 0) {
+    VectorOut.x = (to_min.x > to_max.x) ? clamp(VectorOut.x, to_max.x, to_min.x) :
+                                          clamp(VectorOut.x, to_min.x, to_max.x);
+    VectorOut.y = (to_min.y > to_max.y) ? clamp(VectorOut.y, to_max.y, to_min.y) :
+                                          clamp(VectorOut.y, to_min.y, to_max.y);
+    VectorOut.z = (to_min.z > to_max.z) ? clamp(VectorOut.z, to_max.z, to_min.z) :
+                                          clamp(VectorOut.z, to_min.z, to_max.z);
+  }
+}

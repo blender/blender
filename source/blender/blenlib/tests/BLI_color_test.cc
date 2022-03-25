@@ -1,4 +1,4 @@
-/* Apache License, Version 2.0 */
+/* SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
@@ -6,8 +6,8 @@
 
 namespace blender::tests {
 
-/**
- * \name Conversions
+/* -------------------------------------------------------------------- */
+/** \name Conversions
  * \{ */
 
 TEST(color, ThemeByteToFloat)

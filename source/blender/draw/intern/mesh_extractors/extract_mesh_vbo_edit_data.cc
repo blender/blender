@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2021 by Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2021 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup draw
@@ -24,6 +8,8 @@
 #include "extract_mesh.h"
 
 #include "draw_cache_impl.h"
+
+#include "draw_subdivision.h"
 
 namespace blender::draw {
 
@@ -70,11 +56,11 @@ static void mesh_render_data_edge_flag(const MeshRenderData *mr,
     }
   }
 
-  /* Use a byte for value range */
-  if (mr->crease_ofs != -1) {
-    float crease = BM_ELEM_CD_GET_FLOAT(eed, mr->crease_ofs);
+  /* Use half a byte for value range */
+  if (mr->edge_crease_ofs != -1) {
+    float crease = BM_ELEM_CD_GET_FLOAT(eed, mr->edge_crease_ofs);
     if (crease > 0) {
-      eattr->crease = (uchar)(crease * 255.0f);
+      eattr->crease = (uchar)ceil(crease * 15.0f);
     }
   }
   /* Use a byte for value range */
@@ -105,6 +91,24 @@ static void mesh_render_data_vert_flag(const MeshRenderData *mr,
   if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
     eattr->e_flag |= VFLAG_VERT_SELECTED;
   }
+  /* Use half a byte for value range */
+  if (mr->vert_crease_ofs != -1) {
+    float crease = BM_ELEM_CD_GET_FLOAT(eve, mr->vert_crease_ofs);
+    if (crease > 0) {
+      eattr->crease |= (uchar)ceil(crease * 15.0f) << 4;
+    }
+  }
+}
+
+static GPUVertFormat *get_edit_data_format()
+{
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    /* WARNING: Adjust #EditLoopData struct accordingly. */
+    GPU_vertformat_attr_add(&format, "data", GPU_COMP_U8, 4, GPU_FETCH_INT);
+    GPU_vertformat_alias_add(&format, "flag");
+  }
+  return &format;
 }
 
 static void extract_edit_data_init(const MeshRenderData *mr,
@@ -113,13 +117,8 @@ static void extract_edit_data_init(const MeshRenderData *mr,
                                    void *tls_data)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
-    /* WARNING: Adjust #EditLoopData struct accordingly. */
-    GPU_vertformat_attr_add(&format, "data", GPU_COMP_U8, 4, GPU_FETCH_INT);
-    GPU_vertformat_alias_add(&format, "flag");
-  }
-  GPU_vertbuf_init_with_format(vbo, &format);
+  GPUVertFormat *format = get_edit_data_format();
+  GPU_vertbuf_init_with_format(vbo, format);
   GPU_vertbuf_data_alloc(vbo, mr->loop_len + mr->loop_loose_len);
   EditLoopData *vbo_data = (EditLoopData *)GPU_vertbuf_get_data(vbo);
   *(EditLoopData **)tls_data = vbo_data;
@@ -240,6 +239,109 @@ static void extract_edit_data_iter_lvert_mesh(const MeshRenderData *mr,
   }
 }
 
+static void extract_edit_data_init_subdiv(const DRWSubdivCache *subdiv_cache,
+                                          const MeshRenderData *UNUSED(mr),
+                                          MeshBatchCache *UNUSED(cache),
+                                          void *buf,
+                                          void *data)
+{
+  const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
+  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  GPU_vertbuf_init_with_format(vbo, get_edit_data_format());
+  GPU_vertbuf_data_alloc(vbo, subdiv_cache->num_subdiv_loops + loose_geom.loop_len);
+  EditLoopData *vbo_data = (EditLoopData *)GPU_vertbuf_get_data(vbo);
+  *(EditLoopData **)data = vbo_data;
+}
+
+static void extract_edit_data_iter_subdiv_bm(const DRWSubdivCache *subdiv_cache,
+                                             const MeshRenderData *mr,
+                                             void *_data,
+                                             uint subdiv_quad_index,
+                                             const BMFace *coarse_quad)
+{
+  EditLoopData *vbo_data = *(EditLoopData **)_data;
+  int *subdiv_loop_vert_index = (int *)GPU_vertbuf_get_data(subdiv_cache->verts_orig_index);
+  int *subdiv_loop_edge_index = (int *)GPU_vertbuf_get_data(subdiv_cache->edges_orig_index);
+
+  uint start_loop_idx = subdiv_quad_index * 4;
+  uint end_loop_idx = (subdiv_quad_index + 1) * 4;
+  for (uint i = start_loop_idx; i < end_loop_idx; i++) {
+    const int vert_origindex = subdiv_loop_vert_index[i];
+    const int edge_origindex = subdiv_loop_edge_index[i];
+
+    EditLoopData *edit_loop_data = &vbo_data[i];
+    memset(edit_loop_data, 0, sizeof(EditLoopData));
+
+    if (vert_origindex != -1) {
+      const BMVert *eve = mr->v_origindex ? bm_original_vert_get(mr, vert_origindex) :
+                                            BM_vert_at_index(mr->bm, vert_origindex);
+      if (eve) {
+        mesh_render_data_vert_flag(mr, eve, edit_loop_data);
+      }
+    }
+
+    if (edge_origindex != -1) {
+      /* NOTE: #subdiv_loop_edge_index already has the origindex layer baked in. */
+      const BMEdge *eed = BM_edge_at_index(mr->bm, edge_origindex);
+      mesh_render_data_edge_flag(mr, eed, edit_loop_data);
+    }
+
+    /* coarse_quad can be null when called by the mesh iteration below. */
+    if (coarse_quad) {
+      /* The -1 parameter is for edit_uvs, which we don't do here. */
+      mesh_render_data_face_flag(mr, coarse_quad, -1, edit_loop_data);
+    }
+  }
+}
+
+static void extract_edit_data_iter_subdiv_mesh(const DRWSubdivCache *subdiv_cache,
+                                               const MeshRenderData *mr,
+                                               void *_data,
+                                               uint subdiv_quad_index,
+                                               const MPoly *coarse_quad)
+{
+  const int coarse_quad_index = static_cast<int>(coarse_quad - mr->mpoly);
+  BMFace *coarse_quad_bm = bm_original_face_get(mr, coarse_quad_index);
+  extract_edit_data_iter_subdiv_bm(subdiv_cache, mr, _data, subdiv_quad_index, coarse_quad_bm);
+}
+
+static void extract_edit_data_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
+                                                const MeshRenderData *mr,
+                                                void *UNUSED(buffer),
+                                                void *_data)
+{
+  const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
+  if (loose_geom.edge_len == 0) {
+    return;
+  }
+
+  blender::Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
+
+  EditLoopData *vbo_data = *(EditLoopData **)_data;
+  int ledge_index = 0;
+
+  for (const DRWSubdivLooseEdge &loose_edge : loose_edges) {
+    const int offset = subdiv_cache->num_subdiv_loops + ledge_index++ * 2;
+    EditLoopData *data = &vbo_data[offset];
+    memset(data, 0, sizeof(EditLoopData));
+    const int edge_index = loose_edge.coarse_edge_index;
+    BMEdge *eed = mr->e_origindex ? bm_original_edge_get(mr, edge_index) :
+                                    BM_edge_at_index(mr->bm, edge_index);
+    mesh_render_data_edge_flag(mr, eed, &data[0]);
+    data[1] = data[0];
+
+    const DRWSubdivLooseVertex &v1 = loose_geom.verts[loose_edge.loose_subdiv_v1_index];
+    const DRWSubdivLooseVertex &v2 = loose_geom.verts[loose_edge.loose_subdiv_v2_index];
+
+    if (v1.coarse_vertex_index != -1u) {
+      mesh_render_data_vert_flag(mr, eed->v1, &data[0]);
+    }
+    if (v2.coarse_vertex_index != -1u) {
+      mesh_render_data_vert_flag(mr, eed->v2, &data[1]);
+    }
+  }
+}
+
 constexpr MeshExtract create_extractor_edit_data()
 {
   MeshExtract extractor = {nullptr};
@@ -250,6 +352,10 @@ constexpr MeshExtract create_extractor_edit_data()
   extractor.iter_ledge_mesh = extract_edit_data_iter_ledge_mesh;
   extractor.iter_lvert_bm = extract_edit_data_iter_lvert_bm;
   extractor.iter_lvert_mesh = extract_edit_data_iter_lvert_mesh;
+  extractor.init_subdiv = extract_edit_data_init_subdiv;
+  extractor.iter_subdiv_bm = extract_edit_data_iter_subdiv_bm;
+  extractor.iter_subdiv_mesh = extract_edit_data_iter_subdiv_mesh;
+  extractor.iter_loose_geom_subdiv = extract_edit_data_loose_geom_subdiv;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(EditLoopData *);
   extractor.use_threading = true;

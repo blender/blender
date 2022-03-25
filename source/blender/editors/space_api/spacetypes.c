@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) Blender Foundation, 2008
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. */
 
 /** \file
  * \ingroup spapi
@@ -43,6 +28,8 @@
 #include "ED_asset.h"
 #include "ED_clip.h"
 #include "ED_curve.h"
+#include "ED_curves.h"
+#include "ED_curves_sculpt.h"
 #include "ED_fileselect.h"
 #include "ED_geometry.h"
 #include "ED_gizmo_library.h"
@@ -70,10 +57,9 @@
 
 #include "io_ops.h"
 
-/* Only called once on startup. storage is global in BKE kernel listbase. */
 void ED_spacetypes_init(void)
 {
-  /* UI unit is a variable, may be used in some space type inits. */
+  /* UI unit is a variable, may be used in some space type initialization. */
   U.widget_unit = 20;
 
   /* Create space types. */
@@ -111,10 +97,12 @@ void ED_spacetypes_init(void)
   ED_operatortypes_mesh();
   ED_operatortypes_geometry();
   ED_operatortypes_sculpt();
+  ED_operatortypes_sculpt_curves();
   ED_operatortypes_uvedit();
   ED_operatortypes_paint();
   ED_operatortypes_physics();
   ED_operatortypes_curve();
+  ED_operatortypes_curves();
   ED_operatortypes_armature();
   ED_operatortypes_marker();
   ED_operatortypes_metaball();
@@ -186,10 +174,6 @@ void ED_spacemacros_init(void)
   }
 }
 
-/**
- * \note Keymap definitions are registered only once per WM initialize,
- * usually on file read, using the keymap the actual areas/regions add the handlers.
- * \note Called in wm.c. */
 void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 {
   ED_keymap_screen(keyconf);
@@ -253,15 +237,16 @@ void *ED_region_draw_cb_activate(ARegionType *art,
   return rdc;
 }
 
-void ED_region_draw_cb_exit(ARegionType *art, void *handle)
+bool ED_region_draw_cb_exit(ARegionType *art, void *handle)
 {
   LISTBASE_FOREACH (RegionDrawCB *, rdc, &art->drawcalls) {
     if (rdc == (RegionDrawCB *)handle) {
       BLI_remlink(&art->drawcalls, rdc);
       MEM_freeN(rdc);
-      return;
+      return true;
     }
   }
+  return false;
 }
 
 static void ed_region_draw_cb_draw(const bContext *C, ARegion *region, ARegionType *art, int type)

@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "blender/object_cull.h"
 #include "blender/sync.h"
@@ -72,7 +59,8 @@ bool BlenderSync::object_is_geometry(BObjectInfo &b_ob_info)
 
   BL::Object::type_enum type = b_ob_info.iter_object.type();
 
-  if (type == BL::Object::type_VOLUME || type == BL::Object::type_HAIR) {
+  if (type == BL::Object::type_VOLUME || type == BL::Object::type_CURVES ||
+      type == BL::Object::type_POINTCLOUD) {
     /* Will be exported attached to mesh. */
     return true;
   }
@@ -96,7 +84,7 @@ bool BlenderSync::object_can_have_geometry(BL::Object &b_ob)
     case BL::Object::type_SURFACE:
     case BL::Object::type_META:
     case BL::Object::type_FONT:
-    case BL::Object::type_HAIR:
+    case BL::Object::type_CURVES:
     case BL::Object::type_POINTCLOUD:
     case BL::Object::type_VOLUME:
       return true;
@@ -206,7 +194,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
     return NULL;
   }
 
-  /* only interested in object that we can create meshes from */
+  /* only interested in object that we can create geometry from */
   if (!object_is_geometry(b_ob_info)) {
     return NULL;
   }
@@ -331,7 +319,9 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
       (object->get_geometry() && object->get_geometry()->is_modified())) {
     object->name = b_ob.name().c_str();
     object->set_pass_id(b_ob.pass_index());
-    object->set_color(get_float3(b_ob.color()));
+    const BL::Array<float, 4> object_color = b_ob.color();
+    object->set_color(get_float3(object_color));
+    object->set_alpha(object_color[3]);
     object->set_tfm(tfm);
 
     /* dupli texture coordinates and random_id */
@@ -527,6 +517,17 @@ void BlenderSync::sync_procedural(BL::Object &b_ob,
 
   string absolute_path = blender_absolute_path(b_data, b_ob, b_mesh_cache.cache_file().filepath());
   procedural->set_filepath(ustring(absolute_path));
+
+  array<ustring> layers;
+  for (BL::CacheFileLayer &layer : cache_file.layers) {
+    if (layer.hide_layer()) {
+      continue;
+    }
+
+    absolute_path = blender_absolute_path(b_data, b_ob, layer.filepath());
+    layers.push_back_slow(ustring(absolute_path));
+  }
+  procedural->set_layers(layers);
 
   procedural->set_scale(cache_file.scale());
 

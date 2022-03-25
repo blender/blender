@@ -1,22 +1,8 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <vector>
 
-#include "BLI_float3.hh"
+#include "BLI_math_vec_types.hh"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
@@ -121,11 +107,6 @@ struct VolumeToMeshOp {
   }
 };
 
-/**
- * Convert mesh data from the format provided by OpenVDB into Blender's #Mesh data structure.
- * This can be used to add mesh data from a grid into an existing mesh rather than merging multiple
- * meshes later on.
- */
 void fill_mesh_from_openvdb_data(const Span<openvdb::Vec3s> vdb_verts,
                                  const Span<openvdb::Vec3I> vdb_tris,
                                  const Span<openvdb::Vec4I> vdb_quads,
@@ -165,10 +146,6 @@ void fill_mesh_from_openvdb_data(const Span<openvdb::Vec3s> vdb_verts,
   }
 }
 
-/**
- * Convert an OpenVDB volume grid to corresponding mesh data: vertex positions and quad and
- * triangle indices.
- */
 bke::OpenVDBMeshData volume_to_mesh_data(const openvdb::GridBase &grid,
                                          const VolumeToMeshResolution &resolution,
                                          const float threshold,

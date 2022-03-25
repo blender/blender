@@ -1,24 +1,7 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * - Blender Foundation, 2003-2009
- * - Peter Schlaile <peter [at] schlaile [dot] de> 2005/2006
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved.
+ *           2003-2009 Blender Foundation.
+ *           2005-2006 Peter Schlaile <peter [at] schlaile [dot] de> */
 
 /** \file
  * \ingroup bke
@@ -29,6 +12,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 #include "BLI_session_uuid.h"
 
 #include "BKE_main.h"
@@ -281,14 +265,31 @@ void SEQ_relations_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
   }
 }
 
-static void sequencer_all_free_anim_ibufs(ListBase *seqbase, int timeline_frame)
+static void sequencer_all_free_anim_ibufs(Editing *ed,
+                                          ListBase *seqbase,
+                                          int timeline_frame,
+                                          const int frame_range[2])
 {
   for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
-    if (!SEQ_time_strip_intersects_frame(seq, timeline_frame)) {
+    if (!SEQ_time_strip_intersects_frame(seq, timeline_frame) ||
+        !((frame_range[0] <= timeline_frame) && (frame_range[1] > timeline_frame))) {
       SEQ_relations_sequence_free_anim(seq);
     }
     if (seq->type == SEQ_TYPE_META) {
-      sequencer_all_free_anim_ibufs(&seq->seqbase, timeline_frame);
+      int meta_range[2];
+
+      MetaStack *ms = SEQ_meta_stack_active_get(ed);
+      if (ms != NULL && ms->parseq == seq) {
+        meta_range[0] = -MAXFRAME;
+        meta_range[1] = MAXFRAME;
+      }
+      else {
+        /* Limit frame range to meta strip. */
+        meta_range[0] = max_ii(frame_range[0], seq->startdisp);
+        meta_range[1] = min_ii(frame_range[1], seq->enddisp);
+      }
+
+      sequencer_all_free_anim_ibufs(ed, &seq->seqbase, timeline_frame, meta_range);
     }
   }
 }
@@ -299,7 +300,9 @@ void SEQ_relations_free_all_anim_ibufs(Scene *scene, int timeline_frame)
   if (ed == NULL) {
     return;
   }
-  sequencer_all_free_anim_ibufs(&ed->seqbase, timeline_frame);
+
+  const int frame_range[2] = {-MAXFRAME, MAXFRAME};
+  sequencer_all_free_anim_ibufs(ed, &ed->seqbase, timeline_frame, frame_range);
 }
 
 static Sequence *sequencer_check_scene_recursion(Scene *scene, ListBase *seqbase)
@@ -352,7 +355,6 @@ bool SEQ_relations_check_scene_recursion(Scene *scene, ReportList *reports)
   return false;
 }
 
-/* Check if "seq_main" (indirectly) uses strip "seq". */
 bool SEQ_relations_render_loop_check(Sequence *seq_main, Sequence *seq)
 {
   if (seq_main == NULL || seq == NULL) {
@@ -379,7 +381,6 @@ bool SEQ_relations_render_loop_check(Sequence *seq_main, Sequence *seq)
   return false;
 }
 
-/* Function to free imbuf and anim data on changes */
 void SEQ_relations_sequence_free_anim(Sequence *seq)
 {
   while (seq->anims.last) {
@@ -432,7 +433,6 @@ void SEQ_relations_check_uuids_unique_and_report(const Scene *scene)
   BLI_gset_free(used_uuids, NULL);
 }
 
-/* Return immediate parent meta of sequence */
 struct Sequence *SEQ_find_metastrip_by_sequence(ListBase *seqbase, Sequence *meta, Sequence *seq)
 {
   Sequence *iseq;

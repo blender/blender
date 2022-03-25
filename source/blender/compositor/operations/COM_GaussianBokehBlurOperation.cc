@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2011, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. */
 
 #include "COM_GaussianBokehBlurOperation.h"
 
@@ -44,8 +29,10 @@ void GaussianBokehBlurOperation::init_data()
   const float width = this->get_width();
   const float height = this->get_height();
 
-  if (!sizeavailable_) {
-    update_size();
+  if (execution_model_ == eExecutionModel::FullFrame) {
+    if (!sizeavailable_) {
+      update_size();
+    }
   }
 
   radxf_ = size_ * (float)data_.sizex;
@@ -111,6 +98,22 @@ void GaussianBokehBlurOperation::update_gauss()
 
 void GaussianBokehBlurOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
+  float result[4];
+  input_size_->read_sampled(result, 0, 0, PixelSampler::Nearest);
+  size_ = result[0];
+
+  const float width = this->get_width();
+  const float height = this->get_height();
+
+  radxf_ = size_ * (float)data_.sizex;
+  CLAMP(radxf_, 0.0f, width / 2.0f);
+
+  radyf_ = size_ * (float)data_.sizey;
+  CLAMP(radyf_, 0.0f, height / 2.0f);
+
+  radx_ = ceil(radxf_);
+  rady_ = ceil(radyf_);
+
   float temp_color[4];
   temp_color[0] = 0;
   temp_color[1] = 0;

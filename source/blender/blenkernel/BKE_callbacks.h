@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -109,19 +95,21 @@ typedef enum {
   BKE_CB_EVT_LOAD_FACTORY_USERDEF_POST,
   BKE_CB_EVT_LOAD_FACTORY_STARTUP_POST,
   BKE_CB_EVT_XR_SESSION_START_PRE,
+  BKE_CB_EVT_ANNOTATION_PRE,
+  BKE_CB_EVT_ANNOTATION_POST,
   BKE_CB_EVT_TOT,
 } eCbEvent;
 
 typedef struct bCallbackFuncStore {
   struct bCallbackFuncStore *next, *prev;
-  void (*func)(struct Main *, struct PointerRNA **, const int num_pointers, void *arg);
+  void (*func)(struct Main *, struct PointerRNA **, int num_pointers, void *arg);
   void *arg;
   short alloc;
 } bCallbackFuncStore;
 
 void BKE_callback_exec(struct Main *bmain,
                        struct PointerRNA **pointers,
-                       const int num_pointers,
+                       int num_pointers,
                        eCbEvent evt);
 void BKE_callback_exec_null(struct Main *bmain, eCbEvent evt);
 void BKE_callback_exec_id(struct Main *bmain, struct ID *id, eCbEvent evt);
@@ -133,6 +121,9 @@ void BKE_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt);
 void BKE_callback_remove(bCallbackFuncStore *funcstore, eCbEvent evt);
 
 void BKE_callback_global_init(void);
+/**
+ * Call on application exit.
+ */
 void BKE_callback_global_finalize(void);
 
 #ifdef __cplusplus

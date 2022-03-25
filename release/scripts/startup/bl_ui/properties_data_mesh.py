@@ -1,20 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8 compliant>
 import bpy
@@ -81,6 +65,14 @@ class MESH_MT_shape_key_context_menu(Menu):
         layout.separator()
         layout.operator("object.shape_key_move", icon='TRIA_UP_BAR', text="Move to Top").type = 'TOP'
         layout.operator("object.shape_key_move", icon='TRIA_DOWN_BAR', text="Move to Bottom").type = 'BOTTOM'
+
+class MESH_MT_attribute_context_menu(Menu):
+    bl_label = "Attribute Specials"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("geometry.attribute_convert")
 
 
 class MESH_UL_vgroups(UIList):
@@ -557,6 +549,7 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
         col.enabled = obj is not None and obj.mode != 'EDIT'
         col.prop(me, "use_customdata_vertex_bevel", text="Vertex Bevel Weight")
         col.prop(me, "use_customdata_edge_bevel", text="Edge Bevel Weight")
+        col.prop(me, "use_customdata_vertex_crease", text="Vertex Crease")
         col.prop(me, "use_customdata_edge_crease", text="Edge Crease")
 
 
@@ -614,6 +607,10 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
         col.operator("geometry.attribute_add", icon='ADD', text="")
         col.operator("geometry.attribute_remove", icon='REMOVE', text="")
 
+        col.separator()
+
+        col.menu("MESH_MT_attribute_context_menu", icon='DOWNARROW_HLT', text="")
+
         self.draw_attribute_warnings(context, layout)
 
     def draw_attribute_warnings(self, context, layout):
@@ -651,6 +648,7 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
 classes = (
     MESH_MT_vertex_group_context_menu,
     MESH_MT_shape_key_context_menu,
+    MESH_MT_attribute_context_menu,
     MESH_UL_vgroups,
     MESH_UL_fmaps,
     MESH_UL_shape_keys,

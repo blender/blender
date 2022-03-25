@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2019, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2019 Blender Foundation. */
 
 /** \file
  * \ingroup draw_engine
@@ -49,7 +34,7 @@ void select_id_object_min_max(Object *obj, float r_min[3], float r_max[3])
   BoundBox *bb;
   BMEditMesh *em = BKE_editmesh_from_object(obj);
   if (em) {
-    bb = BKE_editmesh_cage_boundbox_get(em);
+    bb = BKE_editmesh_cage_boundbox_get(obj, em);
   }
   else {
     bb = BKE_object_boundbox_get(obj);
@@ -240,7 +225,7 @@ void select_id_draw_object(void *vedata,
             stl, ob, select_mode, initial_offset, r_vert_offset, r_edge_offset, r_face_offset);
       }
       break;
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
       break;
   }

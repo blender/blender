@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008, Blender Foundation
- * This is a new part of Blender
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. */
 
 /** \file
  * \ingroup edgpencil
@@ -61,9 +45,12 @@
 
 #include "WM_api.h"
 
+#include "GPU_batch.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
+#include "GPU_shader_shared.h"
 #include "GPU_state.h"
+#include "GPU_uniform_buffer.h"
 
 #include "ED_gpencil.h"
 #include "ED_screen.h"
@@ -189,21 +176,27 @@ static void gpencil_draw_stroke_3d(tGPDdraw *tgpw,
   };
 
   immBindBuiltinProgram(GPU_SHADER_GPENCIL_STROKE);
-  immUniform2fv("Viewport", viewport);
-  immUniform1f("pixsize", tgpw->rv3d->pixsize);
+
   float obj_scale = tgpw->ob ?
                         (tgpw->ob->scale[0] + tgpw->ob->scale[1] + tgpw->ob->scale[2]) / 3.0f :
                         1.0f;
 
-  immUniform1f("objscale", obj_scale);
+  struct GPencilStrokeData gpencil_stroke_data;
+  copy_v2_v2(gpencil_stroke_data.viewport, viewport);
+  gpencil_stroke_data.pixsize = tgpw->rv3d->pixsize;
+  gpencil_stroke_data.objscale = obj_scale;
   int keep_size = (int)((tgpw->gpd) && (tgpw->gpd->flag & GP_DATA_STROKE_KEEPTHICKNESS));
-  immUniform1i("keep_size", keep_size);
-  immUniform1f("pixfactor", tgpw->gpd->pixfactor);
+  gpencil_stroke_data.keep_size = keep_size;
+  gpencil_stroke_data.pixfactor = tgpw->gpd->pixfactor;
   /* xray mode always to 3D space to avoid wrong zdepth calculation (T60051) */
-  immUniform1i("xraymode", GP_XRAY_3DSPACE);
-  immUniform1i("caps_start", (int)tgpw->gps->caps[0]);
-  immUniform1i("caps_end", (int)tgpw->gps->caps[1]);
-  immUniform1i("fill_stroke", (int)tgpw->is_fill_stroke);
+  gpencil_stroke_data.xraymode = GP_XRAY_3DSPACE;
+  gpencil_stroke_data.caps_start = tgpw->gps->caps[0];
+  gpencil_stroke_data.caps_end = tgpw->gps->caps[1];
+  gpencil_stroke_data.fill_stroke = tgpw->is_fill_stroke;
+
+  GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(
+      sizeof(struct GPencilStrokeData), &gpencil_stroke_data, __func__);
+  immBindUniformBuf("gpencil_stroke_data", ubo);
 
   /* draw stroke curve */
   immBeginAtMost(GPU_PRIM_LINE_STRIP_ADJ, totpoints + cyclic_add + 2);
@@ -255,6 +248,8 @@ static void gpencil_draw_stroke_3d(tGPDdraw *tgpw,
 
   immEnd();
   immUnbindProgram();
+
+  GPU_uniformbuf_free(ubo);
 }
 
 /* ----- Strokes Drawing ------ */
@@ -412,7 +407,6 @@ static void gpencil_draw_strokes(tGPDdraw *tgpw)
 
 /* ----- General Drawing ------ */
 
-/* wrapper to draw strokes for filling operator */
 void ED_gpencil_draw_fill(tGPDdraw *tgpw)
 {
   gpencil_draw_strokes(tgpw);

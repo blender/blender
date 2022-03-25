@@ -1,23 +1,27 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
 #ifdef WITH_TBB
-#  include <tbb/enumerable_thread_specific.h>
+
+#  ifdef WITH_TBB
+/* Quiet top level deprecation message, unrelated to API usage here. */
+#    if defined(WIN32) && !defined(NOMINMAX)
+/* TBB includes Windows.h which will define min/max macros causing issues
+ * when we try to use std::min and std::max later on. */
+#      define NOMINMAX
+#      define TBB_MIN_MAX_CLEANUP
+#    endif
+#    include <tbb/enumerable_thread_specific.h>
+#    ifdef WIN32
+/* We cannot keep this defined, since other parts of the code deal with this on their own, leading
+ * to multiple define warnings unless we un-define this, however we can only undefine this if we
+ * were the ones that made the definition earlier. */
+#      ifdef TBB_MIN_MAX_CLEANUP
+#        undef NOMINMAX
+#      endif
+#    endif
+#  endif
 #endif
 
 #include <atomic>
@@ -28,10 +32,12 @@
 
 namespace blender::threading {
 
+#ifndef WITH_TBB
 namespace enumerable_thread_specific_utils {
 inline std::atomic<int> next_id = 0;
 inline thread_local int thread_id = next_id.fetch_add(1, std::memory_order_relaxed);
 }  // namespace enumerable_thread_specific_utils
+#endif
 
 /**
  * This is mainly a wrapper for `tbb::enumerable_thread_specific`. The wrapper is needed because we

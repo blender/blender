@@ -1,27 +1,11 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2011, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. */
 
 #include "COM_DilateErodeOperation.h"
 #include "COM_OpenCLDevice.h"
 
 namespace blender::compositor {
 
-/* DilateErode Distance Threshold */
 DilateErodeThresholdOperation::DilateErodeThresholdOperation()
 {
   this->add_input_socket(DataType::Value);
@@ -268,7 +252,6 @@ void DilateErodeThresholdOperation::update_memory_buffer_partial(MemoryBuffer *o
   }
 }
 
-/* Dilate Distance. */
 DilateDistanceOperation::DilateDistanceOperation()
 {
   this->add_input_socket(DataType::Value);
@@ -458,7 +441,6 @@ void DilateDistanceOperation::update_memory_buffer_partial(MemoryBuffer *output,
   }
 }
 
-/* Erode Distance */
 ErodeDistanceOperation::ErodeDistanceOperation() : DilateDistanceOperation()
 {
   /* pass */
@@ -531,7 +513,6 @@ void ErodeDistanceOperation::update_memory_buffer_partial(MemoryBuffer *output,
   }
 }
 
-/* Dilate step */
 DilateStepOperation::DilateStepOperation()
 {
   this->add_input_socket(DataType::Value);
@@ -809,7 +790,6 @@ void DilateStepOperation::update_memory_buffer_partial(MemoryBuffer *output,
   step_update_memory_buffer<Max2Selector>(output, inputs[0], area, iterations_, -FLT_MAX);
 }
 
-/* Erode step */
 ErodeStepOperation::ErodeStepOperation() : DilateStepOperation()
 {
   /* pass */

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -45,11 +31,11 @@ namespace blender {
 
 class IndexMask {
  private:
-  /* The underlying reference to sorted integers. */
+  /** The underlying reference to sorted integers. */
   Span<int64_t> indices_;
 
  public:
-  /* Creates an IndexMask that contains no indices. */
+  /** Creates an IndexMask that contains no indices. */
   IndexMask() = default;
 
   /**
@@ -223,7 +209,62 @@ class IndexMask {
     return indices_.is_empty();
   }
 
+  bool contained_in(const IndexRange range) const
+  {
+    if (indices_.is_empty()) {
+      return true;
+    }
+    if (range.size() < indices_.size()) {
+      return false;
+    }
+    return indices_.first() >= range.first() && indices_.last() <= range.last();
+  }
+
+  IndexMask slice(int64_t start, int64_t size) const;
+  IndexMask slice(IndexRange slice) const;
+  /**
+   * Create a sub-mask that is also shifted to the beginning.
+   * The shifting to the beginning allows code to work with smaller indices,
+   * which is more memory efficient.
+   *
+   * \return New index mask with the size of #slice. It is either empty or starts with 0.
+   * It might reference indices that have been appended to #r_new_indices.
+   *
+   * Example:
+   * \code{.unparsed}
+   * this:   [2, 3, 5, 7, 8, 9, 10]
+   * slice:      ^--------^
+   * output: [0, 2, 4, 5]
+   * \endcode
+   *
+   * All the indices in the sub-mask are shifted by 3 towards zero,
+   * so that the first index in the output is zero.
+   */
   IndexMask slice_and_offset(IndexRange slice, Vector<int64_t> &r_new_indices) const;
+
+  /**
+   * Get a new mask that contains all the indices that are not in the current mask.
+   * If necessary, the indices referenced by the new mask are inserted in #r_new_indices.
+   */
+  IndexMask invert(const IndexRange full_range, Vector<int64_t> &r_new_indices) const;
+
+  /**
+   * Get all contiguous index ranges within the mask.
+   */
+  Vector<IndexRange> extract_ranges() const;
+
+  /**
+   * Similar to #extract ranges, but works on the inverted mask. So the returned ranges are
+   * in-between the indices in the mask.
+   *
+   * Using this method is generally more efficient than first inverting the index mask and then
+   * extracting the ranges.
+   *
+   * If #r_skip_amounts is passed in, it will contain the number of indices that have been skipped
+   * before each range in the return value starts.
+   */
+  Vector<IndexRange> extract_ranges_invert(const IndexRange full_range,
+                                           Vector<int64_t> *r_skip_amounts) const;
 };
 
 }  // namespace blender

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -71,7 +57,7 @@ class PythonInterpreter : public Interpreter {
     bool ok = BPY_run_filepath(_context, fn, reports);
 #else
     bool ok;
-    Text *text = BKE_text_load(&_freestyle_bmain, fn, G_MAIN->name);
+    Text *text = BKE_text_load(&_freestyle_bmain, fn, G_MAIN->filepath);
     if (text) {
       ok = BPY_run_text(_context, text, reports, false);
       BKE_id_delete(&_freestyle_bmain, text);

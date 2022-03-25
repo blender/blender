@@ -1,22 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- * filter.c
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup imbuf
@@ -420,12 +403,6 @@ static int check_pixel_assigned(
   return res;
 }
 
-/**
- * if alpha is zero, it checks surrounding pixels and averages color. sets new alphas to 1.0
- *
- * When a mask is given, only effect pixels with a mask value of 1,
- * defined as #BAKE_MASK_MARGIN in rendercore.c
- */
 void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
 {
   const int width = ibuf->x;
@@ -557,7 +534,6 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
   }
 }
 
-/* threadsafe version, only recreates existing maps */
 void IMB_remakemipmap(ImBuf *ibuf, int use_filter)
 {
   ImBuf *hbuf = ibuf;
@@ -594,7 +570,6 @@ void IMB_remakemipmap(ImBuf *ibuf, int use_filter)
   }
 }
 
-/* frees too (if there) and recreates new data */
 void IMB_makemipmap(ImBuf *ibuf, int use_filter)
 {
   ImBuf *hbuf = ibuf;

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) Blender Foundation
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -101,7 +85,7 @@ static void do_kink_spiral_deform(ParticleKey *state,
      * and goes up to the Golden Spiral for 1.0
      * https://en.wikipedia.org/wiki/Golden_spiral
      */
-    const float b = shape * (1.0f + sqrtf(5.0f)) / (float)M_PI * 0.25f;
+    const float b = shape * (1.0f + sqrtf(5.0f)) / (float)M_PI_4;
     /* angle of the spiral against the curve (rotated opposite to make a smooth transition) */
     const float start_angle = ((b != 0.0f) ? atanf(1.0f / b) : (float)-M_PI_2) +
                               (b > 0.0f ? -(float)M_PI_2 : (float)M_PI_2);
@@ -158,9 +142,6 @@ static void do_kink_spiral(ParticleThreadContext *ctx,
   float kink_freq = part->kink_freq;
   float kink_shape = part->kink_shape;
   float kink_axis_random = part->kink_axis_random;
-  float rough1 = part->rough1;
-  float rough2 = part->rough2;
-  float rough_end = part->rough_end;
 
   ParticlePathIterator iter;
   ParticleCacheKey *key;
@@ -180,9 +161,6 @@ static void do_kink_spiral(ParticleThreadContext *ctx,
   if (ptex) {
     kink_amp *= ptex->kink_amp;
     kink_freq *= ptex->kink_freq;
-    rough1 *= ptex->rough1;
-    rough2 *= ptex->rough2;
-    rough_end *= ptex->roughe;
   }
 
   cut_time = (totkeys - 1) * ptex->length;

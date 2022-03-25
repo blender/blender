@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -29,16 +15,6 @@
 #include "BLO_readfile.h"
 #include "readfile.h"
 
-/**
- * Manipulates SDNA before calling #DNA_struct_get_compareflags,
- * allowing us to rename structs and struct members.
- *
- * - This means older versions of Blender won't have access to this data **USE WITH CARE**.
- *
- * - These changes are applied on file load (run-time), similar to versioning for compatibility.
- *
- * \attention ONLY USE THIS KIND OF VERSIONING WHEN `dna_rename_defs.h` ISN'T SUFFICIENT.
- */
 void blo_do_versions_dna(SDNA *sdna, const int versionfile, const int subversionfile)
 {
 #define DNA_VERSION_ATLEAST(ver, subver) \

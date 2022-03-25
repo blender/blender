@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spfile
@@ -27,11 +11,13 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_linklist.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
 
@@ -44,6 +30,7 @@
 #include "WM_types.h"
 
 #include "ED_asset.h"
+#include "ED_asset_indexer.h"
 #include "ED_fileselect.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
@@ -55,6 +42,7 @@
 #include "UI_view2d.h"
 
 #include "GPU_framebuffer.h"
+#include "file_indexer.h"
 #include "file_intern.h" /* own include */
 #include "filelist.h"
 #include "fsmenu.h"
@@ -351,6 +339,12 @@ static void file_refresh(const bContext *C, ScrArea *area)
   if (asset_params) {
     filelist_set_asset_catalog_filter_options(
         sfile->files, asset_params->asset_catalog_visibility, &asset_params->catalog_id);
+  }
+
+  if (ED_fileselect_is_asset_browser(sfile)) {
+    const bool use_asset_indexer = !USER_EXPERIMENTAL_TEST(&U, no_asset_indexing);
+    filelist_setindexer(sfile->files,
+                        use_asset_indexer ? &file_indexer_asset : &file_indexer_noop);
   }
 
   /* Update the active indices of bookmarks & co. */
@@ -688,7 +682,6 @@ static void file_operatortypes(void)
   WM_operatortype_append(FILE_OT_previous);
   WM_operatortype_append(FILE_OT_next);
   WM_operatortype_append(FILE_OT_refresh);
-  WM_operatortype_append(FILE_OT_asset_library_refresh);
   WM_operatortype_append(FILE_OT_bookmark_add);
   WM_operatortype_append(FILE_OT_bookmark_delete);
   WM_operatortype_append(FILE_OT_bookmark_cleanup);
@@ -981,7 +974,7 @@ static int /*eContextResult*/ file_context(const bContext *C,
   return CTX_RESULT_MEMBER_NOT_FOUND;
 }
 
-static void file_id_remap(ScrArea *area, SpaceLink *sl, ID *UNUSED(old_id), ID *UNUSED(new_id))
+static void file_id_remap(ScrArea *area, SpaceLink *sl, const struct IDRemapper *UNUSED(mappings))
 {
   SpaceFile *sfile = (SpaceFile *)sl;
 
@@ -992,7 +985,6 @@ static void file_id_remap(ScrArea *area, SpaceLink *sl, ID *UNUSED(old_id), ID *
   file_reset_filelist_showing_main_data(area, sfile);
 }
 
-/* only called once, from space/spacetypes.c */
 void ED_spacetype_file(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype file");

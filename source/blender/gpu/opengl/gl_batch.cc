@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2016 by Mike Erwin.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 by Mike Erwin. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -74,7 +58,6 @@ void GLVaoCache::init()
   vao_id_ = 0;
 }
 
-/* Create a new VAO object and store it in the cache. */
 void GLVaoCache::insert(const GLShaderInterface *interface, GLuint vao)
 {
   /* Now insert the cache. */
@@ -191,7 +174,6 @@ void GLVaoCache::clear()
   this->init();
 }
 
-/* Return 0 on cache miss (invalid VAO) */
 GLuint GLVaoCache::lookup(const GLShaderInterface *interface)
 {
   const int count = (is_dynamic_vao_count) ? dynamic_vaos.count : GPU_VAO_STATIC_LEN;
@@ -205,8 +187,6 @@ GLuint GLVaoCache::lookup(const GLShaderInterface *interface)
   return 0;
 }
 
-/* The GLVaoCache object is only valid for one GLContext.
- * Reset the cache if trying to draw in another context; */
 void GLVaoCache::context_check()
 {
   GLContext *ctx = GLContext::get();
@@ -276,6 +256,7 @@ GLuint GLVaoCache::vao_get(GPUBatch *batch)
 
   return vao_id_;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

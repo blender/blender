@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2018 Blender Foundation, Alexander Gavrilov
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2018 Blender Foundation, Alexander Gavrilov. All rights reserved. */
 
 /** \file
  * \ingroup bli
@@ -124,7 +108,6 @@ struct ExprPyLike_Parsed {
 /** \name Public API
  * \{ */
 
-/** Free the parsed data; NULL argument is ok. */
 void BLI_expr_pylike_free(ExprPyLike_Parsed *expr)
 {
   if (expr != NULL) {
@@ -132,19 +115,16 @@ void BLI_expr_pylike_free(ExprPyLike_Parsed *expr)
   }
 }
 
-/** Check if the parsing result is valid for evaluation. */
 bool BLI_expr_pylike_is_valid(ExprPyLike_Parsed *expr)
 {
   return expr != NULL && expr->ops_count > 0;
 }
 
-/** Check if the parsed expression always evaluates to the same value. */
 bool BLI_expr_pylike_is_constant(ExprPyLike_Parsed *expr)
 {
   return expr != NULL && expr->ops_count == 1 && expr->ops[0].opcode == OPCODE_CONST;
 }
 
-/** Check if the parsed expression uses the parameter with the given index. */
 bool BLI_expr_pylike_is_using_param(ExprPyLike_Parsed *expr, int index)
 {
   int i;
@@ -168,10 +148,6 @@ bool BLI_expr_pylike_is_using_param(ExprPyLike_Parsed *expr, int index)
 /** \name Stack Machine Evaluation
  * \{ */
 
-/**
- * Evaluate the expression with the given parameters.
- * The order and number of parameters must match the names given to parse.
- */
 eExprPyLike_EvalStatus BLI_expr_pylike_eval(ExprPyLike_Parsed *expr,
                                             const double *param_values,
                                             int param_values_len,
@@ -853,18 +829,18 @@ static bool parse_unary(ExprParseState *state)
 
       /* Specially supported functions. */
       if (STREQ(state->tokenbuf, "min")) {
-        int cnt = parse_function_args(state);
-        CHECK_ERROR(cnt > 0);
+        int count = parse_function_args(state);
+        CHECK_ERROR(count > 0);
 
-        parse_add_op(state, OPCODE_MIN, 1 - cnt)->arg.ival = cnt;
+        parse_add_op(state, OPCODE_MIN, 1 - count)->arg.ival = count;
         return true;
       }
 
       if (STREQ(state->tokenbuf, "max")) {
-        int cnt = parse_function_args(state);
-        CHECK_ERROR(cnt > 0);
+        int count = parse_function_args(state);
+        CHECK_ERROR(count > 0);
 
-        parse_add_op(state, OPCODE_MAX, 1 - cnt)->arg.ival = cnt;
+        parse_add_op(state, OPCODE_MAX, 1 - count)->arg.ival = count;
         return true;
       }
 
@@ -1073,12 +1049,6 @@ static bool parse_expr(ExprParseState *state)
 /** \name Main Parsing Function
  * \{ */
 
-/**
- * Compile the expression and return the result.
- *
- * Parse the expression for evaluation later.
- * Returns non-NULL even on failure; use is_valid to check.
- */
 ExprPyLike_Parsed *BLI_expr_pylike_parse(const char *expression,
                                          const char **param_names,
                                          int param_names_len)

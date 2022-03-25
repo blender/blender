@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #ifndef __UTIL_THREAD_H__
 #define __UTIL_THREAD_H__
@@ -46,9 +33,7 @@ typedef std::condition_variable thread_condition_variable;
 
 class thread {
  public:
-  /* NOTE: Node index of -1 means that affinity will be inherited from the
-   * parent thread and no override on top of that will happen. */
-  thread(function<void()> run_cb, int node = -1);
+  thread(function<void()> run_cb);
   ~thread();
 
   static void *run(void *arg);
@@ -62,7 +47,6 @@ class thread {
   std::thread std_thread;
 #endif
   bool joined_;
-  int node_;
 };
 
 using thread_spin_lock = tbb::spin_mutex;

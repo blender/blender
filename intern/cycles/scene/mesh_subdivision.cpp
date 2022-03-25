@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2016 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "scene/attribute.h"
 #include "scene/camera.h"
@@ -82,24 +69,54 @@ template<>
 bool TopologyRefinerFactory<ccl::Mesh>::assignComponentTags(TopologyRefiner &refiner,
                                                             ccl::Mesh const &mesh)
 {
+  /* Historical maximum crease weight used at Pixar, influencing the maximum in OpenSubDiv. */
+  static constexpr float CREASE_SCALE = 10.0f;
+
   size_t num_creases = mesh.get_subd_creases_weight().size();
+  size_t num_vertex_creases = mesh.get_subd_vert_creases().size();
+
+  /* The last loop is over the vertices, so early exit to avoid iterating them needlessly. */
+  if (num_creases == 0 && num_vertex_creases == 0) {
+    return true;
+  }
 
   for (int i = 0; i < num_creases; i++) {
     ccl::Mesh::SubdEdgeCrease crease = mesh.get_subd_crease(i);
     Index edge = findBaseEdge(refiner, crease.v[0], crease.v[1]);
 
     if (edge != INDEX_INVALID) {
-      setBaseEdgeSharpness(refiner, edge, crease.crease * 10.0f);
+      setBaseEdgeSharpness(refiner, edge, crease.crease * CREASE_SCALE);
     }
   }
 
+  std::map<int, float> vertex_creases;
+
+  for (size_t i = 0; i < num_vertex_creases; ++i) {
+    const int vertex_idx = mesh.get_subd_vert_creases()[i];
+    const float weight = mesh.get_subd_vert_creases_weight()[i];
+
+    vertex_creases[vertex_idx] = weight * CREASE_SCALE;
+  }
+
   for (int i = 0; i < mesh.get_verts().size(); i++) {
+    float sharpness = 0.0f;
+    std::map<int, float>::const_iterator iter = vertex_creases.find(i);
+
+    if (iter != vertex_creases.end()) {
+      sharpness = iter->second;
+    }
+
     ConstIndexArray vert_edges = getBaseVertexEdges(refiner, i);
 
     if (vert_edges.size() == 2) {
-      float sharpness = refiner.getLevel(0).getEdgeSharpness(vert_edges[0]);
-      sharpness = ccl::min(sharpness, refiner.getLevel(0).getEdgeSharpness(vert_edges[1]));
+      const float sharpness0 = refiner.getLevel(0).getEdgeSharpness(vert_edges[0]);
+      const float sharpness1 = refiner.getLevel(0).getEdgeSharpness(vert_edges[1]);
 
+      sharpness += ccl::min(sharpness0, sharpness1);
+      sharpness = ccl::min(sharpness, CREASE_SCALE);
+    }
+
+    if (sharpness != 0.0f) {
       setBaseVertexSharpness(refiner, i, sharpness);
     }
   }
@@ -331,7 +348,8 @@ struct OsdPatch : Patch {
 
   void eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, float u, float v)
   {
-    const Far::PatchTable::PatchHandle *handle = osd_data->patch_map->FindPatch(patch_index, u, v);
+    const Far::PatchTable::PatchHandle *handle = osd_data->patch_map->FindPatch(
+        patch_index, (double)u, (double)v);
     assert(handle);
 
     float p_weights[20], du_weights[20], dv_weights[20];

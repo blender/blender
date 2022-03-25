@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -197,6 +181,7 @@ IDTypeInfo IDType_ID_LT = {
     .name_plural = "lattices",
     .translation_context = BLT_I18NCONTEXT_ID_LATTICE,
     .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = lattice_init_data,
     .copy_data = lattice_copy_data,
@@ -204,6 +189,7 @@ IDTypeInfo IDType_ID_LT = {
     .make_local = NULL,
     .foreach_id = lattice_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = lattice_blend_write,
@@ -464,7 +450,7 @@ void outside_lattice(Lattice *lt)
             bp->hide = 1;
             bp->f1 &= ~SELECT;
 
-            /* u extrema */
+            /* U extrema. */
             bp1 = latt_bp(lt, 0, v, w);
             bp2 = latt_bp(lt, lt->pntsu - 1, v, w);
 
@@ -473,7 +459,7 @@ void outside_lattice(Lattice *lt)
             bp->vec[1] = (1.0f - fac1) * bp1->vec[1] + fac1 * bp2->vec[1];
             bp->vec[2] = (1.0f - fac1) * bp1->vec[2] + fac1 * bp2->vec[2];
 
-            /* v extrema */
+            /* V extrema. */
             bp1 = latt_bp(lt, u, 0, w);
             bp2 = latt_bp(lt, u, lt->pntsv - 1, w);
 
@@ -482,7 +468,7 @@ void outside_lattice(Lattice *lt)
             bp->vec[1] += (1.0f - fac1) * bp1->vec[1] + fac1 * bp2->vec[1];
             bp->vec[2] += (1.0f - fac1) * bp1->vec[2] + fac1 * bp2->vec[2];
 
-            /* w extrema */
+            /* W extrema. */
             bp1 = latt_bp(lt, u, v, 0);
             bp2 = latt_bp(lt, u, v, lt->pntsw - 1);
 

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2016 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup DNA
@@ -59,6 +43,18 @@ typedef struct CacheObjectPath {
   char path[4096];
 } CacheObjectPath;
 
+/* CacheFileLayer::flag */
+enum { CACHEFILE_LAYER_HIDDEN = (1 << 0) };
+
+typedef struct CacheFileLayer {
+  struct CacheFileLayer *next, *prev;
+
+  /** 1024 = FILE_MAX. */
+  char filepath[1024];
+  int flag;
+  int _pad;
+} CacheFileLayer;
+
 /* CacheFile::velocity_unit
  * Determines what temporal unit is used to interpret velocity vectors for motion blur effects. */
 enum {
@@ -72,6 +68,8 @@ typedef struct CacheFile {
 
   /** Paths of the objects inside of the archive referenced by this CacheFile. */
   ListBase object_paths;
+
+  ListBase layers;
 
   /** 1024 = FILE_MAX. */
   char filepath[1024];
@@ -109,7 +107,10 @@ typedef struct CacheFile {
   /** Size in megabytes for the prefetch cache used by the Cycles Procedural. */
   int prefetch_cache_size;
 
-  char _pad2[7];
+  /** Index of the currently selected layer in the UI, starts at 1. */
+  int active_layer;
+
+  char _pad2[3];
 
   char velocity_unit;
   /* Name of the velocity property in the archive. */

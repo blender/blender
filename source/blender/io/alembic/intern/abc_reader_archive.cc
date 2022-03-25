@@ -1,27 +1,13 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2016 Kévin Dietrich.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 Kévin Dietrich. All rights reserved. */
 
 /** \file
  * \ingroup balembic
  */
 
 #include "abc_reader_archive.h"
+
+#include "Alembic/AbcCoreLayer/Read.h"
 
 #include "BKE_main.h"
 
@@ -76,6 +62,46 @@ static IArchive open_archive(const std::string &filename,
   return IArchive();
 }
 
+ArchiveReader *ArchiveReader::get(struct Main *bmain, const std::vector<const char *> &filenames)
+{
+  std::vector<ArchiveReader *> readers;
+
+  for (const char *filename : filenames) {
+    ArchiveReader *reader = new ArchiveReader(bmain, filename);
+
+    if (!reader->valid()) {
+      delete reader;
+      continue;
+    }
+
+    readers.push_back(reader);
+  }
+
+  if (readers.empty()) {
+    return nullptr;
+  }
+
+  if (readers.size() == 1) {
+    return readers[0];
+  }
+
+  return new ArchiveReader(readers);
+}
+
+ArchiveReader::ArchiveReader(const std::vector<ArchiveReader *> &readers) : m_readers(readers)
+{
+  Alembic::AbcCoreLayer::ArchiveReaderPtrs archives;
+
+  for (ArchiveReader *reader : readers) {
+    archives.push_back(reader->m_archive.getPtr());
+  }
+
+  Alembic::AbcCoreLayer::ReadArchive layer;
+  Alembic::AbcCoreAbstract::ArchiveReaderPtr arPtr = layer(archives);
+
+  m_archive = IArchive(arPtr, kWrapExisting, ErrorHandler::kThrowPolicy);
+}
+
 ArchiveReader::ArchiveReader(struct Main *bmain, const char *filename)
 {
   char abs_filename[FILE_MAX];
@@ -94,6 +120,13 @@ ArchiveReader::ArchiveReader(struct Main *bmain, const char *filename)
   m_streams.push_back(&m_infile);
 
   m_archive = open_archive(abs_filename, m_streams);
+}
+
+ArchiveReader::~ArchiveReader()
+{
+  for (ArchiveReader *reader : m_readers) {
+    delete reader;
+  }
 }
 
 bool ArchiveReader::valid() const

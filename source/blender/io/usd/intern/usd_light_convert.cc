@@ -37,6 +37,7 @@
 #include "BKE_light.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_node_tree_update.h"
 #include "BKE_scene.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -131,7 +132,7 @@ static bool node_search(bNode *fromnode, bNode *tonode, void *userdata, const bo
   else if (!res->env_tex_found && ELEM(fromnode->type, SH_NODE_TEX_ENVIRONMENT)) {
     /* Get env tex path. */
 
-    res->file_path = get_node_tex_image_filepath(fromnode, res->stage, res->params);
+    res->file_path = get_tex_image_asset_path(fromnode, res->stage, res->params);
 
     if (!res->file_path.empty()) {
       /* Get the rotation. */
@@ -141,7 +142,7 @@ static bool node_search(bNode *fromnode, bNode *tonode, void *userdata, const bo
       res->env_tex_found = true;
 
       if (res->params.export_textures) {
-        export_texture(fromnode, res->stage);
+        export_texture(fromnode, res->stage, res->params.overwrite_textures);
       }
     }
   }
@@ -455,7 +456,7 @@ void dome_light_to_world_material(const USDImportParams &params,
     }
 
     nodeSetActive(ntree, output);
-    ntreeUpdateTree(bmain, ntree);
+    BKE_ntree_update_main_tree(bmain, ntree, nullptr);
 
     return;
   }
@@ -567,7 +568,7 @@ void dome_light_to_world_material(const USDImportParams &params,
   eul_to_mat4(tex_env->base.tex_mapping.mat, tex_env->base.tex_mapping.rot);
 
   nodeSetActive(ntree, output);
-  ntreeUpdateTree(bmain, ntree);
+  BKE_ntree_update_main_tree(bmain, ntree, nullptr);
 }
 
 }  // namespace blender::io::usd

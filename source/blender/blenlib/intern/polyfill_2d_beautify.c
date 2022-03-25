@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -92,21 +78,6 @@ BLI_INLINE bool is_boundary_edge(uint i_a, uint i_b, const uint coord_last)
   BLI_assert(i_a < i_b);
   return ((i_a + 1 == i_b) || UNLIKELY((i_a == 0) && (i_b == coord_last)));
 }
-/**
- * Assuming we have 2 triangles sharing an edge (2 - 4),
- * check if the edge running from (1 - 3) gives better results.
- *
- * \param lock_degenerate: Use to avoid rotating out of a degenerate state:
- * - When true, an existing zero area face on either side of the (2 - 4
- *   split will return a positive value.
- * - When false, the check must be non-biased towards either split direction.
- * \param r_area: Return the area of the quad,
- * This can be useful when comparing the return value with near zero epsilons.
- * In this case the epsilon can be scaled by the area to avoid the return value
- * of very large faces not having a reliable way to detect near-zero output.
- *
- * \return (negative number means the edge can be rotated, lager == better).
- */
 float BLI_polyfill_beautify_quad_rotate_calc_ex(const float v1[2],
                                                 const float v2[2],
                                                 const float v3[2],
@@ -316,12 +287,6 @@ static void polyedge_rotate(struct HalfEdge *edges, struct HalfEdge *e)
   ed[3]->v = ed[2]->v;
 }
 
-/**
- * The intention is that this calculates the output of #BLI_polyfill_calc
- * \note assumes the \a coords form a boundary,
- * so any edges running along contiguous (wrapped) indices,
- * are ignored since the edges won't share 2 faces.
- */
 void BLI_polyfill_beautify(const float (*coords)[2],
                            const uint coords_tot,
                            uint (*tris)[3],
@@ -421,7 +386,7 @@ void BLI_polyfill_beautify(const float (*coords)[2],
 
   BLI_heap_clear(eheap, NULL);
 
-  /* MEM_freeN(eheap_table); */ /* arena */
+  // MEM_freeN(eheap_table); /* arena */
 
   /* get tris from half edge. */
   uint tri_index = 0;

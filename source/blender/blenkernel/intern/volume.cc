@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -28,12 +14,12 @@
 
 #include "BLI_compiler_compat.h"
 #include "BLI_fileops.h"
-#include "BLI_float3.hh"
 #include "BLI_float4x4.hh"
 #include "BLI_ghash.h"
 #include "BLI_index_range.hh"
 #include "BLI_map.hh"
 #include "BLI_math.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
@@ -41,6 +27,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_anim_data.h"
+#include "BKE_bpath.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
@@ -137,11 +124,19 @@ static struct VolumeFileCache {
       }
 
       std::lock_guard<std::mutex> lock(mutex);
-      return simplified_grids.lookup_or_add_cb(simplify_level, [&]() {
-        const float resolution_factor = 1.0f / (1 << simplify_level);
-        const VolumeGridType grid_type = BKE_volume_grid_type_openvdb(*grid);
-        return BKE_volume_grid_create_with_changed_resolution(grid_type, *grid, resolution_factor);
+      openvdb::GridBase::Ptr simple_grid;
+
+      /* Isolate creating grid since that's multithreaded and we are
+       * holding a mutex lock. */
+      blender::threading::isolate_task([&] {
+        simple_grid = simplified_grids.lookup_or_add_cb(simplify_level, [&]() {
+          const float resolution_factor = 1.0f / (1 << simplify_level);
+          const VolumeGridType grid_type = BKE_volume_grid_type_openvdb(*grid);
+          return BKE_volume_grid_create_with_changed_resolution(
+              grid_type, *grid, resolution_factor);
+        });
       });
+      return simple_grid;
     }
 
     /* Unique key: filename + grid name. */
@@ -246,16 +241,20 @@ static struct VolumeFileCache {
  protected:
   void update_for_remove_user(Entry &entry)
   {
-    if (entry.num_metadata_users + entry.num_tree_users == 0) {
-      cache.erase(entry);
-    }
-    else if (entry.num_tree_users == 0) {
-      /* Note we replace the grid rather than clearing, so that if there is
-       * any other shared pointer to the grid it will keep the tree. */
-      entry.grid = entry.grid->copyGridWithNewTree();
-      entry.simplified_grids.clear();
-      entry.is_loaded = false;
-    }
+    /* Isolate file unloading since that's multithreaded and we are
+     * holding a mutex lock. */
+    blender::threading::isolate_task([&] {
+      if (entry.num_metadata_users + entry.num_tree_users == 0) {
+        cache.erase(entry);
+      }
+      else if (entry.num_tree_users == 0) {
+        /* Note we replace the grid rather than clearing, so that if there is
+         * any other shared pointer to the grid it will keep the tree. */
+        entry.grid = entry.grid->copyGridWithNewTree();
+        entry.simplified_grids.clear();
+        entry.is_loaded = false;
+      }
+    });
   }
 
   /* Cache contents */
@@ -536,7 +535,7 @@ static void volume_copy_data(Main *UNUSED(bmain),
 #ifdef WITH_OPENVDB
   if (volume_src->runtime.grids) {
     const VolumeGridVector &grids_src = *(volume_src->runtime.grids);
-    volume_dst->runtime.grids = OBJECT_GUARDED_NEW(VolumeGridVector, grids_src);
+    volume_dst->runtime.grids = MEM_new<VolumeGridVector>(__func__, grids_src);
   }
 #endif
 
@@ -550,7 +549,8 @@ static void volume_free_data(ID *id)
   BKE_volume_batch_cache_free(volume);
   MEM_SAFE_FREE(volume->mat);
 #ifdef WITH_OPENVDB
-  OBJECT_GUARDED_SAFE_DELETE(volume->runtime.grids, VolumeGridVector);
+  MEM_delete(volume->runtime.grids);
+  volume->runtime.grids = nullptr;
 #endif
 }
 
@@ -574,6 +574,18 @@ static void volume_foreach_cache(ID *id,
   };
 
   function_callback(id, &key, (void **)&volume->runtime.grids, 0, user_data);
+}
+
+static void volume_foreach_path(ID *id, BPathForeachPathData *bpath_data)
+{
+  Volume *volume = reinterpret_cast<Volume *>(id);
+
+  if (volume->packedfile != nullptr &&
+      (bpath_data->flag & BKE_BPATH_FOREACH_PATH_SKIP_PACKED) != 0) {
+    return;
+  }
+
+  BKE_bpath_foreach_path_fixed_process(bpath_data, volume->filepath);
 }
 
 static void volume_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -645,6 +657,7 @@ IDTypeInfo IDType_ID_VO = {
     /* name_plural */ "volumes",
     /* translation_context */ BLT_I18NCONTEXT_ID_VOLUME,
     /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /* asset_type_info */ nullptr,
 
     /* init_data */ volume_init_data,
     /* copy_data */ volume_copy_data,
@@ -652,6 +665,7 @@ IDTypeInfo IDType_ID_VO = {
     /* make_local */ nullptr,
     /* foreach_id */ volume_foreach_id,
     /* foreach_cache */ volume_foreach_cache,
+    /* foreach_path */ volume_foreach_path,
     /* owner_get */ nullptr,
 
     /* blend_write */ volume_blend_write,
@@ -668,7 +682,7 @@ void BKE_volume_init_grids(Volume *volume)
 {
 #ifdef WITH_OPENVDB
   if (volume->runtime.grids == nullptr) {
-    volume->runtime.grids = OBJECT_GUARDED_NEW(VolumeGridVector);
+    volume->runtime.grids = MEM_new<VolumeGridVector>(__func__);
   }
 #else
   UNUSED_VARS(volume);
@@ -939,7 +953,7 @@ BoundBox *BKE_volume_boundbox_get(Object *ob)
   }
 
   if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = (BoundBox *)MEM_callocN(sizeof(BoundBox), __func__);
+    ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
   }
 
   const Volume *volume = (Volume *)ob->data;
@@ -1114,16 +1128,16 @@ void BKE_volume_grids_backup_restore(Volume *volume, VolumeGridVector *grids, co
 
   if (!grids->is_loaded()) {
     /* No grids loaded in CoW datablock, nothing lost by discarding. */
-    OBJECT_GUARDED_DELETE(grids, VolumeGridVector);
+    MEM_delete(grids);
   }
   else if (!STREQ(volume->filepath, filepath)) {
     /* Filepath changed, discard grids from CoW datablock. */
-    OBJECT_GUARDED_DELETE(grids, VolumeGridVector);
+    MEM_delete(grids);
   }
   else {
     /* Keep grids from CoW datablock. We might still unload them a little
      * later in BKE_volume_eval_geometry if the frame changes. */
-    OBJECT_GUARDED_DELETE(volume->runtime.grids, VolumeGridVector);
+    MEM_delete(volume->runtime.grids);
     volume->runtime.grids = grids;
   }
 #else
@@ -1225,7 +1239,6 @@ const VolumeGrid *BKE_volume_grid_active_get_for_read(const Volume *volume)
   return BKE_volume_grid_get_for_read(volume, index);
 }
 
-/* Tries to find a grid with the given name. Make sure that the volume has been loaded. */
 const VolumeGrid *BKE_volume_grid_find_for_read(const Volume *volume, const char *name)
 {
   int num_grids = BKE_volume_num_grids(volume);
@@ -1318,9 +1331,6 @@ VolumeGridType BKE_volume_grid_type_openvdb(const openvdb::GridBase &grid)
   if (grid.isType<openvdb::Vec3dGrid>()) {
     return VOLUME_GRID_VECTOR_DOUBLE;
   }
-  if (grid.isType<openvdb::StringGrid>()) {
-    return VOLUME_GRID_STRING;
-  }
   if (grid.isType<openvdb::MaskGrid>()) {
     return VOLUME_GRID_MASK;
   }
@@ -1356,7 +1366,6 @@ int BKE_volume_grid_channels(const VolumeGrid *grid)
     case VOLUME_GRID_VECTOR_DOUBLE:
     case VOLUME_GRID_VECTOR_INT:
       return 3;
-    case VOLUME_GRID_STRING:
     case VOLUME_GRID_POINTS:
     case VOLUME_GRID_UNKNOWN:
       return 0;
@@ -1365,7 +1374,6 @@ int BKE_volume_grid_channels(const VolumeGrid *grid)
   return 0;
 }
 
-/* Transformation from index space to object space. */
 void BKE_volume_grid_transform_matrix(const VolumeGrid *volume_grid, float mat[4][4])
 {
 #ifdef WITH_OPENVDB
@@ -1530,11 +1538,6 @@ bool BKE_volume_grid_bounds(openvdb::GridBase::ConstPtr grid, float3 &r_min, flo
   return true;
 }
 
-/**
- * Return a new grid pointer with only the metadata and transform changed.
- * This is useful for instances, where there is a separate transform on top of the original
- * grid transform that must be applied for some operations that only take a grid argument.
- */
 openvdb::GridBase::ConstPtr BKE_volume_grid_shallow_transform(openvdb::GridBase::ConstPtr grid,
                                                               const blender::float4x4 &transform)
 {
@@ -1603,13 +1606,8 @@ struct CreateGridWithChangedResolutionOp {
 
   template<typename GridType> typename openvdb::GridBase::Ptr operator()()
   {
-    if constexpr (std::is_same_v<GridType, openvdb::StringGrid>) {
-      return {};
-    }
-    else {
-      return create_grid_with_changed_resolution(static_cast<const GridType &>(grid),
-                                                 resolution_factor);
-    }
+    return create_grid_with_changed_resolution(static_cast<const GridType &>(grid),
+                                               resolution_factor);
   }
 };
 

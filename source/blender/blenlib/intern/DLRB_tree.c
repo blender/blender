@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
 
 /** \file
  * \ingroup bli
@@ -29,14 +13,12 @@
 /* *********************************************** */
 /* Tree API */
 
-/* Create a new tree, and initialize as necessary */
 DLRBT_Tree *BLI_dlrbTree_new(void)
 {
   /* just allocate for now */
   return MEM_callocN(sizeof(DLRBT_Tree), "DLRBT_Tree");
 }
 
-/* Just zero out the pointers used */
 void BLI_dlrbTree_init(DLRBT_Tree *tree)
 {
   if (tree == NULL) {
@@ -47,7 +29,7 @@ void BLI_dlrbTree_init(DLRBT_Tree *tree)
 }
 
 /* Helper for traversing tree and freeing sub-nodes */
-static void recursive_tree_free_nodes(DLRBT_Node *node)
+static void recursive_tree_free_nodes(DLRBT_Node *node, DLRBT_NFree_FP free_cb)
 {
   /* sanity check */
   if (node == NULL) {
@@ -55,15 +37,16 @@ static void recursive_tree_free_nodes(DLRBT_Node *node)
   }
 
   /* free child nodes + subtrees */
-  recursive_tree_free_nodes(node->left);
-  recursive_tree_free_nodes(node->right);
+  recursive_tree_free_nodes(node->left, free_cb);
+  recursive_tree_free_nodes(node->right, free_cb);
 
   /* free self */
-  MEM_freeN(node);
+  if (free_cb) {
+    free_cb(node);
+  }
 }
 
-/* Free the given tree's data but not the tree itself */
-void BLI_dlrbTree_free(DLRBT_Tree *tree)
+void BLI_dlrbTree_free(DLRBT_Tree *tree, DLRBT_NFree_FP free_cb)
 {
   if (tree == NULL) {
     return;
@@ -74,11 +57,19 @@ void BLI_dlrbTree_free(DLRBT_Tree *tree)
    */
   if (tree->first) {
     /* free list */
-    BLI_freelistN((ListBase *)tree);
+    if (free_cb) {
+      LISTBASE_FOREACH_MUTABLE (DLRBT_Node *, node, tree) {
+        free_cb(node);
+      }
+      BLI_listbase_clear((ListBase *)tree);
+    }
+    else {
+      BLI_freelistN((ListBase *)tree);
+    }
   }
   else {
     /* traverse tree, freeing sub-nodes */
-    recursive_tree_free_nodes(tree->root);
+    recursive_tree_free_nodes(tree->root, free_cb);
   }
 
   /* clear pointers */
@@ -109,7 +100,6 @@ static void linkedlist_sync_add_node(DLRBT_Tree *tree, DLRBT_Node *node)
   linkedlist_sync_add_node(tree, node->right);
 }
 
-/* Make sure the tree's Double-Linked list representation is valid */
 void BLI_dlrbTree_linkedlist_sync(DLRBT_Tree *tree)
 {
   /* sanity checks */
@@ -127,7 +117,6 @@ void BLI_dlrbTree_linkedlist_sync(DLRBT_Tree *tree)
 /* *********************************************** */
 /* Tree Search Utilities */
 
-/* Find the node which matches or is the closest to the requested node */
 DLRBT_Node *BLI_dlrbTree_search(const DLRBT_Tree *tree,
                                 DLRBT_Comparator_FP cmp_cb,
                                 void *search_data)
@@ -175,7 +164,6 @@ DLRBT_Node *BLI_dlrbTree_search(const DLRBT_Tree *tree,
   return node;
 }
 
-/* Find the node which exactly matches the required data */
 DLRBT_Node *BLI_dlrbTree_search_exact(const DLRBT_Tree *tree,
                                       DLRBT_Comparator_FP cmp_cb,
                                       void *search_data)
@@ -223,7 +211,6 @@ DLRBT_Node *BLI_dlrbTree_search_exact(const DLRBT_Tree *tree,
   return (found == 1) ? (node) : (NULL);
 }
 
-/* Find the node which occurs immediately before the best matching node */
 DLRBT_Node *BLI_dlrbTree_search_prev(const DLRBT_Tree *tree,
                                      DLRBT_Comparator_FP cmp_cb,
                                      void *search_data)
@@ -254,7 +241,6 @@ DLRBT_Node *BLI_dlrbTree_search_prev(const DLRBT_Tree *tree,
   return NULL;
 }
 
-/* Find the node which occurs immediately after the best matching node */
 DLRBT_Node *BLI_dlrbTree_search_next(const DLRBT_Tree *tree,
                                      DLRBT_Comparator_FP cmp_cb,
                                      void *search_data)
@@ -285,7 +271,6 @@ DLRBT_Node *BLI_dlrbTree_search_next(const DLRBT_Tree *tree,
   return NULL;
 }
 
-/* Check whether there is a node matching the requested node */
 short BLI_dlrbTree_contains(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, void *search_data)
 {
   /* check if an exact search throws up anything... */
@@ -522,9 +507,6 @@ static void insert_check_3(DLRBT_Tree *tree, DLRBT_Node *node)
 
 /* ----- */
 
-/* Balance the tree after the given element has been added to it
- * (using custom code, in the Binary Tree way).
- */
 void BLI_dlrbTree_insert(DLRBT_Tree *tree, DLRBT_Node *node)
 {
   /* sanity checks */
@@ -541,9 +523,6 @@ void BLI_dlrbTree_insert(DLRBT_Tree *tree, DLRBT_Node *node)
 
 /* ----- */
 
-/* Add the given data to the tree, and return the node added */
-/* NOTE: for duplicates, the update_cb is called (if available),
- * and the existing node is returned */
 DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree,
                              DLRBT_Comparator_FP cmp_cb,
                              DLRBT_NAlloc_FP new_cb,
@@ -599,8 +578,10 @@ DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree,
       }
       default: /* update the duplicate node as appropriate */
       {
+        /* Return the updated node after calling the callback.  */
+        node = parNode;
         if (update_cb) {
-          update_cb(parNode, data);
+          update_cb(node, data);
         }
         break;
       }

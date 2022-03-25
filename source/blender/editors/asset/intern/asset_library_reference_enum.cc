@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edasset
@@ -35,10 +21,6 @@
 
 #include "ED_asset_library.h"
 
-/**
- * Return an index that can be used to uniquely identify \a library, assuming
- * that all relevant indices were created with this function.
- */
 int ED_asset_library_reference_to_enum_value(const AssetLibraryReference *library)
 {
   /* Simple case: Predefined repository, just set the value. */
@@ -57,10 +39,6 @@ int ED_asset_library_reference_to_enum_value(const AssetLibraryReference *librar
   return ASSET_LIBRARY_LOCAL;
 }
 
-/**
- * Return an asset library reference matching the index returned by
- * #ED_asset_library_reference_to_enum_value().
- */
 AssetLibraryReference ED_asset_library_reference_from_enum_value(int value)
 {
   AssetLibraryReference library;
@@ -92,31 +70,27 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value)
   return library;
 }
 
-/**
- * Translate all available asset libraries to an RNA enum, whereby the enum values match the result
- * of #ED_asset_library_reference_to_enum_value() for any given library.
- *
- * Since this is meant for UI display, skips non-displayable libraries, that is, libraries with an
- * empty name or path.
- */
-const EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf()
+const EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(
+    const bool include_local_library)
 {
-  const EnumPropertyItem predefined_items[] = {
-      /* For the future. */
-      // {ASSET_REPO_BUNDLED, "BUNDLED", 0, "Bundled", "Show the default user assets"},
-      {ASSET_LIBRARY_LOCAL,
-       "LOCAL",
-       ICON_BLENDER,
-       "Current File",
-       "Show the assets currently available in this Blender session"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   EnumPropertyItem *item = nullptr;
   int totitem = 0;
 
-  /* Add predefined items. */
-  RNA_enum_items_add(&item, &totitem, predefined_items);
+  if (include_local_library) {
+    const EnumPropertyItem predefined_items[] = {
+        /* For the future. */
+        // {ASSET_REPO_BUNDLED, "BUNDLED", 0, "Bundled", "Show the default user assets"},
+        {ASSET_LIBRARY_LOCAL,
+         "LOCAL",
+         ICON_CURRENT_FILE,
+         "Current File",
+         "Show the assets currently available in this Blender session"},
+        {0, nullptr, 0, nullptr, nullptr},
+    };
+
+    /* Add predefined items. */
+    RNA_enum_items_add(&item, &totitem, predefined_items);
+  }
 
   /* Add separator if needed. */
   if (!BLI_listbase_is_empty(&U.asset_libraries)) {

@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "kernel/camera/projection.h"
 
@@ -195,6 +182,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
   const float time = INTEGRATOR_STATE(state, ray, time);
   const float3 Ng = INTEGRATOR_STATE(state, subsurface, Ng);
   const int object = INTEGRATOR_STATE(state, isect, object);
+  const int prim = INTEGRATOR_STATE(state, isect, prim);
 
   /* Sample diffuse surface scatter into the object. */
   float3 D;
@@ -205,14 +193,18 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
   }
 
   /* Setup ray. */
-  ray.P = ray_offset(P, -Ng);
+  ray.P = P;
   ray.D = D;
   ray.t = FLT_MAX;
   ray.time = time;
   ray.dP = ray_dP;
   ray.dD = differential_zero_compact();
+  ray.self.object = object;
+  ray.self.prim = prim;
+  ray.self.light_object = OBJECT_NONE;
+  ray.self.light_prim = PRIM_NONE;
 
-#ifndef __KERNEL_OPTIX__
+#ifndef __KERNEL_GPU_RAYTRACING__
   /* Compute or fetch object transforms. */
   Transform ob_itfm ccl_optional_struct_init;
   Transform ob_tfm = object_fetch_transform_motion_test(kg, object, time, &ob_itfm);
@@ -377,13 +369,21 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
      * If yes, we will later use backwards guided sampling in order to have a decent
      * chance of connecting to it.
      * TODO: Maybe use less than 10 times the mean free path? */
-    ray.t = (bounce == 0) ? max(t, 10.0f / (min3(sigma_t))) : t;
+    if (bounce == 0) {
+      ray.t = max(t, 10.0f / (min3(sigma_t)));
+    }
+    else {
+      ray.t = t;
+      /* After the first bounce the object can intersect the same surface again */
+      ray.self.object = OBJECT_NONE;
+      ray.self.prim = PRIM_NONE;
+    }
     scene_intersect_local(kg, &ray, &ss_isect, object, NULL, 1);
     hit = (ss_isect.num_hits > 0);
 
     if (hit) {
-#ifdef __KERNEL_OPTIX__
-      /* t is always in world space with OptiX. */
+#ifdef __KERNEL_GPU_RAYTRACING__
+      /* t is always in world space with OptiX and MetalRT. */
       ray.t = ss_isect.hits[0].t;
 #else
       /* Compute world space distance to surface hit. */
@@ -407,13 +407,6 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
     /* Use the distance to the exit point for the throughput update if we found one. */
     if (hit) {
       t = ray.t;
-    }
-    else if (bounce == 0) {
-      /* Restore original position if nothing was hit after the first bounce,
-       * without the ray_offset() that was added to avoid self-intersection.
-       * Otherwise if that offset is relatively large compared to the scattering
-       * radius, we never go back up high enough to exit the surface. */
-      ray.P = P;
     }
 
     /* Advance to new scatter location. */

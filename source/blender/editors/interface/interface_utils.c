@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edinterface
@@ -336,6 +320,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                    -1,
                                    -1,
                                    NULL);
+      ui_but_add_search(but, ptr, prop, NULL, NULL);
       break;
     }
     case PROP_COLLECTION: {
@@ -354,12 +339,29 @@ uiBut *uiDefAutoButR(uiBlock *block,
   return but;
 }
 
-/**
- * \a check_prop callback filters functions to avoid drawing certain properties,
- * in cases where PROP_HIDDEN flag can't be used for a property.
- *
- * \param prop_activate_init: Property to activate on initial popup (#UI_BUT_ACTIVATE_ON_INIT).
- */
+void uiDefAutoButsArrayR(uiBlock *block,
+                         PointerRNA *ptr,
+                         PropertyRNA *prop,
+                         const int icon,
+                         const int x,
+                         const int y,
+                         const int tot_width,
+                         const int height)
+{
+  const int len = RNA_property_array_length(ptr, prop);
+  if (len == 0) {
+    return;
+  }
+
+  const int item_width = tot_width / len;
+
+  UI_block_align_begin(block);
+  for (int i = 0; i < len; i++) {
+    uiDefAutoButR(block, ptr, prop, i, "", icon, x + i * item_width, y, item_width, height);
+  }
+  UI_block_align_end(block);
+}
+
 eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
                                      PointerRNA *ptr,
                                      bool (*check_prop)(PointerRNA *ptr,
@@ -552,7 +554,7 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
       cis->name_prefix_offset = name_prefix_offset;
       cis->has_sep_char = has_sep_char;
       if (!skip_filter) {
-        BLI_string_search_add(search, name, cis);
+        BLI_string_search_add(search, name, cis, 0);
       }
       BLI_addtail(items_list, cis);
       if (name != name_buf) {
@@ -593,7 +595,6 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
   MEM_freeN(items_list);
 }
 
-/***************************** ID Utilities *******************************/
 int UI_icon_from_id(const ID *id)
 {
   if (id == NULL) {
@@ -618,7 +619,6 @@ int UI_icon_from_id(const ID *id)
   return (ptr.type) ? RNA_struct_ui_icon(ptr.type) : ICON_NONE;
 }
 
-/* see: report_type_str */
 int UI_icon_from_report_type(int type)
 {
   if (type & RPT_ERROR_ALL) {
@@ -690,10 +690,6 @@ int UI_text_colorid_from_report_type(int type)
 
 /********************************** Misc **************************************/
 
-/**
- * Returns the best "UI" precision for given floating value,
- * so that e.g. 10.000001 rather gets drawn as '10'...
- */
 int UI_calc_float_precision(int prec, double value)
 {
   static const double pow10_neg[UI_PRECISION_FLOAT_MAX + 1] = {
@@ -839,16 +835,6 @@ static bool ui_view2d_cur_ensure_rect_in_view(View2D *v2d, const rctf *rect)
   return changed;
 }
 
-/**
- * Adjust the view so the rectangle of \a but is in view, with some extra margin.
- *
- * It's important that this is only executed after buttons received their final #uiBut.rect. E.g.
- * #UI_panels_end() modifies them, so if that is executed, this function must not be called before
- * it.
- *
- * \param region: The region the button is placed in. Make sure this is actually the one the button
- *                is placed in, not just the context region.
- */
 void UI_but_ensure_in_view(const bContext *C, ARegion *region, const uiBut *but)
 {
   View2D *v2d = &region->v2d;
@@ -892,9 +878,6 @@ struct uiButStoreElem {
   uiBut **but_p;
 };
 
-/**
- * Create a new button store, the caller must manage and run #UI_butstore_free
- */
 uiButStore *UI_butstore_create(uiBlock *block)
 {
   uiButStore *bs_handle = MEM_callocN(sizeof(uiButStore), __func__);
@@ -966,9 +949,6 @@ void UI_butstore_unregister(uiButStore *bs_handle, uiBut **but_p)
   BLI_assert(0);
 }
 
-/**
- * Update the pointer for a registered button.
- */
 bool UI_butstore_register_update(uiBlock *block, uiBut *but_dst, const uiBut *but_src)
 {
   bool found = false;
@@ -985,9 +965,6 @@ bool UI_butstore_register_update(uiBlock *block, uiBut *but_dst, const uiBut *bu
   return found;
 }
 
-/**
- * NULL all pointers, don't free since the owner needs to be able to inspect.
- */
 void UI_butstore_clear(uiBlock *block)
 {
   LISTBASE_FOREACH (uiButStore *, bs_handle, &block->butstore) {
@@ -998,9 +975,6 @@ void UI_butstore_clear(uiBlock *block)
   }
 }
 
-/**
- * Map freed buttons from the old block and update pointers.
- */
 void UI_butstore_update(uiBlock *block)
 {
   /* move this list to the new block */

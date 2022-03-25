@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -451,6 +437,16 @@ static bool nearly_parallel_normalized(const float d1[3], const float d2[3])
   return compare_ff(fabsf(direction_dot), 1.0f, BEVEL_EPSILON_ANG_DOT);
 }
 
+/**
+ * calculate the determinant of a matrix formed by three vectors
+ * \return dot(a, cross(b, c)) = determinant(a, b, c)
+ */
+static float determinant_v3v3v3(const float a[3], const float b[3], const float c[3])
+{
+  return a[0] * b[1] * c[2] + a[1] * b[2] * c[0] + a[2] * b[0] * c[1] - a[0] * b[2] * c[1] -
+         a[1] * b[0] * c[2] - a[2] * b[1] * c[0];
+}
+
 /* Make a new BoundVert of the given kind, inserting it at the end of the circular linked
  * list with entry point bv->boundstart, and return it. */
 static BoundVert *add_new_bound_vert(MemArena *mem_arena, VMesh *vm, const float co[3])
@@ -536,7 +532,7 @@ static BevVert *find_bevvert(BevelParams *bp, BMVert *bmv)
 
 /**
  * Find the EdgeHalf representing the other end of e->e.
- * \return Return other end's BevVert in *r_bvother, if r_bvother is provided. That may not have
+ * \return other end's BevVert in *r_bvother, if r_bvother is provided. That may not have
  * been constructed yet, in which case return NULL.
  */
 static EdgeHalf *find_other_end_edge_half(BevelParams *bp, EdgeHalf *e, BevVert **r_bvother)
@@ -575,7 +571,7 @@ static EdgeHalf *next_bev(BevVert *bv, EdgeHalf *from_e)
 /* Return the count of edges between e1 and e2 when going around bv CCW. */
 static int count_ccw_edges_between(EdgeHalf *e1, EdgeHalf *e2)
 {
-  int cnt = 0;
+  int count = 0;
   EdgeHalf *e = e1;
 
   do {
@@ -583,9 +579,9 @@ static int count_ccw_edges_between(EdgeHalf *e1, EdgeHalf *e2)
       break;
     }
     e = e->next;
-    cnt++;
+    count++;
   } while (e != e1);
-  return cnt;
+  return count;
 }
 
 /* Assume bme1 and bme2 both share some vert. Do they share a face?
@@ -1863,7 +1859,7 @@ static void move_weld_profile_planes(BevVert *bv, BoundVert *bndv1, BoundVert *b
   float l1 = normalize_v3(no);
 
   /* "no" is new normal projection plane, but don't move if it is coplanar with both of the
-   * projection dirs. */
+   * projection directions. */
   float no2[3], no3[3];
   cross_v3_v3v3(no2, d1, bndv1->profile.proj_dir);
   float l2 = normalize_v3(no2);
@@ -4118,43 +4114,113 @@ static VMesh *cubic_subdiv(BevelParams *bp, VMesh *vm_in)
   VMesh *vm_out = new_adj_vmesh(bp->mem_arena, n_boundary, ns_out, vm_in->boundstart);
 
   /* First we adjust the boundary vertices of the input mesh, storing in output mesh. */
+  BoundVert *bndv = vm_in->boundstart;
   for (int i = 0; i < n_boundary; i++) {
+    float co1[3], co2[3], acc[3];
+    EdgeHalf *e = bndv->elast;
+    /* Generate tangents. This is hacked together and would ideally be done elsewhere and then only
+     * used here. */
+    float tangent[3], tangent2[3], normal[3];
+    bool convex = true;
+    bool orthogonal = false;
+    float stretch = 0.0f;
+    if (e) {
+      /* Projection direction is direction of the edge. */
+      sub_v3_v3v3(tangent, e->e->v1->co, e->e->v2->co);
+      if (e->is_rev) {
+        negate_v3(tangent);
+      }
+      normalize_v3(tangent);
+      if (bndv->is_arc_start || bndv->is_patch_start) {
+        BMFace *face = e->fnext;
+        if (face) {
+          copy_v3_v3(normal, face->no);
+        }
+        else {
+          zero_v3(normal);
+        }
+        madd_v3_v3v3fl(co2, bndv->profile.middle, normal, 0.1f);
+      }
+      if (bndv->is_arc_start || bp->affect_type == BEVEL_AFFECT_VERTICES) {
+        EdgeHalf *e1 = bndv->next->elast;
+        BLI_assert(e1);
+        sub_v3_v3v3(tangent2, e1->e->v1->co, e1->e->v2->co);
+        if (e1->is_rev) {
+          negate_v3(tangent2);
+        }
+        normalize_v3(tangent2);
+
+        convex = determinant_v3v3v3(tangent2, tangent, normal) < 0;
+
+        add_v3_v3(tangent2, tangent);
+        normalize_v3(tangent2);
+        copy_v3_v3(tangent, tangent2);
+      }
+      /* Calculate a factor which determines how much the interpolated mesh is
+       * going to be stretched out into the direction of the tangent.
+       * It is currently using the difference along the tangent of the
+       * central point on the profile and the current center vertex position. */
+      get_profile_point(bp, &bndv->profile, ns_in2, ns_in, co);
+      stretch = dot_v3v3(tangent, mesh_vert(vm_in, i, ns_in2, ns_in2)->co) - dot_v3v3(tangent, co);
+      stretch = fabsf(stretch);
+      /* Scale the tangent by stretch. The divide by ns_in2 comes from the Levin Paper. */
+      mul_v3_fl(tangent, stretch / ns_in2);
+      orthogonal = bndv->is_patch_start;
+    }
+    else if (bndv->prev->is_patch_start) {
+      /* If this is the second edge of a patch and therefore #e is NULL,
+       * then e->fprev has to be used/not NULL. */
+      BLI_assert(bndv->prev->elast);
+      BMFace *face = bndv->prev->elast->fnext;
+      if (face) {
+        copy_v3_v3(normal, face->no);
+      }
+      else {
+        zero_v3(normal);
+      }
+      orthogonal = true;
+    }
+    else {
+      /** Should only come here from make_cube_corner_adj_vmesh. */
+      sub_v3_v3v3(co1, mesh_vert(vm_in, i, 0, 0)->co, mesh_vert(vm_in, i, 0, 1)->co);
+      sub_v3_v3v3(co2, mesh_vert(vm_in, i, 0, 1)->co, mesh_vert(vm_in, i, 0, 2)->co);
+      cross_v3_v3v3(tangent, co1, co2);
+      /** The following constant is chosen to best match the old results. */
+      normalize_v3_length(tangent, 1.5f / ns_out);
+    }
+    /** Copy corner vertex. */
     copy_v3_v3(mesh_vert(vm_out, i, 0, 0)->co, mesh_vert(vm_in, i, 0, 0)->co);
+    /** Copy the rest of the boundary vertices. */
     for (int k = 1; k < ns_in; k++) {
       copy_v3_v3(co, mesh_vert(vm_in, i, 0, k)->co);
 
-      /* Smooth boundary rule. Custom profiles shouldn't be smoothed. */
-      if (bp->profile_type != BEVEL_PROFILE_CUSTOM) {
-        float co1[3], co2[3], acc[3];
-        copy_v3_v3(co1, mesh_vert(vm_in, i, 0, k - 1)->co);
-        copy_v3_v3(co2, mesh_vert(vm_in, i, 0, k + 1)->co);
+      copy_v3_v3(co1, mesh_vert(vm_in, i, 0, k - 1)->co);
+      copy_v3_v3(co2, mesh_vert(vm_in, i, 0, k + 1)->co);
 
-        add_v3_v3v3(acc, co1, co2);
-        madd_v3_v3fl(acc, co, -2.0f);
-        madd_v3_v3fl(co, acc, -1.0f / 6.0f);
+      add_v3_v3v3(acc, co1, co2);
+      if (bndv->is_arc_start) {
+        sub_v3_v3(co1, co);
+        sub_v3_v3(co2, co);
+        normalize_v3(co1);
+        normalize_v3(co2);
+        add_v3_v3v3(tangent, co1, co2);
+        /* This is an empirical formula to make the result look good. */
+        normalize_v3(tangent);
+        float dot = convex ? fminf(0, dot_v3v3(tangent2, tangent)) : 1.0f;
+        mul_v3_fl(tangent, stretch / ns_in * dot);
       }
+      else if (orthogonal) {
+        sub_v3_v3(co1, co);
+        cross_v3_v3v3(tangent, normal, co1);
+        /* This is an empirical formula to make the result look good. */
+        normalize_v3_length(tangent, -bp->offset * 0.7071f / ns_in);
+      }
+      mul_v3_fl(co, 2.0f);
+      madd_v3_v3fl(co, acc, -0.25f);
+      madd_v3_v3fl(co, mesh_vert(vm_in, i, 1, k)->co, -0.5f);
+      add_v3_v3(co, tangent);
 
       copy_v3_v3(mesh_vert_canon(vm_out, i, 0, 2 * k)->co, co);
-    }
-  }
-  /* Now adjust odd boundary vertices in output mesh, based on even ones. */
-  BoundVert *bndv = vm_out->boundstart;
-  for (int i = 0; i < n_boundary; i++) {
-    for (int k = 1; k < ns_out; k += 2) {
-      get_profile_point(bp, &bndv->profile, k, ns_out, co);
-
-      /* Smooth if using a non-custom profile. */
-      if (bp->profile_type != BEVEL_PROFILE_CUSTOM) {
-        float co1[3], co2[3], acc[3];
-        copy_v3_v3(co1, mesh_vert_canon(vm_out, i, 0, k - 1)->co);
-        copy_v3_v3(co2, mesh_vert_canon(vm_out, i, 0, k + 1)->co);
-
-        add_v3_v3v3(acc, co1, co2);
-        madd_v3_v3fl(acc, co, -2.0f);
-        madd_v3_v3fl(co, acc, -1.0f / 6.0f);
-      }
-
-      copy_v3_v3(mesh_vert_canon(vm_out, i, 0, k)->co, co);
     }
     bndv = bndv->next;
   }
@@ -4163,7 +4229,7 @@ static VMesh *cubic_subdiv(BevelParams *bp, VMesh *vm_in)
   /* Copy adjusted verts back into vm_in. */
   for (int i = 0; i < n_boundary; i++) {
     for (int k = 0; k < ns_in; k++) {
-      copy_v3_v3(mesh_vert(vm_in, i, 0, k)->co, mesh_vert(vm_out, i, 0, 2 * k)->co);
+      copy_v3_v3(mesh_vert_canon(vm_in, i, 0, k)->co, mesh_vert_canon(vm_out, i, 0, 2 * k)->co);
     }
   }
 
@@ -4248,7 +4314,7 @@ static VMesh *cubic_subdiv(BevelParams *bp, VMesh *vm_in)
   vmesh_copy_equiv_verts(vm_out);
 
   /* The center vertex is special. */
-  gamma = sabin_gamma(n_boundary);
+  gamma = sabin_gamma(n_boundary) * 0.5f;
   beta = -gamma;
   /* Accumulate edge verts in co1, face verts in co2. */
   float co1[3], co2[3];
@@ -5505,7 +5571,7 @@ static void bevel_build_cutoff(BevelParams *bp, BMesh *bm, BevVert *bv)
       /* Add verts from each cutoff face. */
       face_bmverts[i] = mesh_vert(bv->vmesh, i, 1, 0)->v;
     }
-    /* BLI_array_append(bmfaces, repface); */
+    // BLI_array_append(bmfaces, repface);
     bev_create_ngon(bm, face_bmverts, n_bndv, bmfaces, NULL, bmedges, bp->mat_nr, true);
 
     BLI_array_free(bmedges);
@@ -6293,10 +6359,10 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
           sub_v3_v3v3(edge_dir, bv->v->co, v2->co);
           float z = fabsf(2.0f * sinf(angle_v3v3(vert_axis, edge_dir)));
           if (z < BEVEL_EPSILON) {
-            e->offset_l_spec = 0.01f * bp->offset; /* Undefined behavior, so tiny bevel. */
+            e->offset_l_spec = 0.01f * bv->offset; /* Undefined behavior, so tiny bevel. */
           }
           else {
-            e->offset_l_spec = bp->offset / z;
+            e->offset_l_spec = bv->offset / z;
           }
           break;
         }
@@ -6305,10 +6371,10 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
           sub_v3_v3v3(edge_dir, bv->v->co, v2->co);
           float z = fabsf(cosf(angle_v3v3(vert_axis, edge_dir)));
           if (z < BEVEL_EPSILON) {
-            e->offset_l_spec = 0.01f * bp->offset; /* Undefined behavior, so tiny bevel. */
+            e->offset_l_spec = 0.01f * bv->offset; /* Undefined behavior, so tiny bevel. */
           }
           else {
-            e->offset_l_spec = bp->offset / z;
+            e->offset_l_spec = bv->offset / z;
           }
           break;
         }
@@ -7040,7 +7106,7 @@ static void find_even_superellipse_chords(int n, float r, double *xvals, double 
     return;
   }
   if (r == PRO_CIRCLE_R) {
-    double temp = (M_PI / 2) / n;
+    double temp = M_PI_2 / n;
     /* Angle spacing. */
     for (int i = 0; i <= n; i++) {
       xvals[i] = sin(i * temp);
@@ -7443,18 +7509,6 @@ static void bevel_limit_offset(BevelParams *bp, BMesh *bm)
   }
 }
 
-/**
- * - Currently only bevels BM_ELEM_TAG'd verts and edges.
- *
- * - Newly created faces, edges, and verts are BM_ELEM_TAG'd too,
- *   the caller needs to ensure these are cleared before calling
- *   if its going to use this tag.
- *
- * - If limit_offset is set, adjusts offset down if necessary
- *   to avoid geometry collisions.
- *
- * \warning all tagged edges _must_ be manifold.
- */
 void BM_mesh_bevel(BMesh *bm,
                    const float offset,
                    const int offset_type,

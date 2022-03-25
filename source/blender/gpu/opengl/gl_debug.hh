@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -88,9 +74,17 @@ namespace debug {
 void raise_gl_error(const char *info);
 void check_gl_error(const char *info);
 void check_gl_resources(const char *info);
-void init_gl_callbacks(void);
+/**
+ * This function needs to be called once per context.
+ */
+void init_gl_callbacks();
 
-void init_debug_layer(void);
+/**
+ * Initialize a fallback layer (to KHR_debug) that covers only some functions.
+ * We override the functions pointers by our own implementation that just checks #glGetError.
+ * Some additional functions (not overridable) are covered inside the header using wrappers.
+ */
+void init_debug_layer();
 
 void object_label(GLenum type, GLuint object, const char *name);
 

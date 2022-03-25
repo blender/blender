@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2021 Tangent Animation and
- * NVIDIA Corporation. All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2021 Tangent Animation and. NVIDIA Corporation. All rights reserved. */
 
 #include "usd_reader_stage.h"
 #include "usd_reader_camera.h"
@@ -128,11 +112,6 @@ USDPrimReader *USDStageReader::create_reader(const pxr::UsdPrim &prim,
   return nullptr;
 }
 
-/* Returns true if the given prim should be included in the
- * traversal based on the import options and the prim's visibility
- * attribute.  Note that the prim will be trivially included
- * if it has no visibility attribute or if the visibility
- * is inherited. */
 bool USDStageReader::include_by_visibility(const pxr::UsdGeomImageable &imageable) const
 {
   if (!params_.import_visible_only) {
@@ -158,11 +137,6 @@ bool USDStageReader::include_by_visibility(const pxr::UsdGeomImageable &imageabl
   return visibility != pxr::UsdGeomTokens->invisible;
 }
 
-/* Returns true if the given prim should be included in the
- * traversal based on the import options and the prim's purpose
- * attribute. E.g., return false (to exclude the prim) if the prim
- * represents guide geometry and the 'Import Guide' option is
- * toggled off. */
 bool USDStageReader::include_by_purpose(const pxr::UsdGeomImageable &imageable) const
 {
   if (params_.import_guide && params_.import_proxy && params_.import_render) {

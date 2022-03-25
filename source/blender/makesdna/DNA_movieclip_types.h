@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2011 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup DNA
@@ -160,7 +144,7 @@ typedef struct MovieClipScopes {
   float slide_scale[2];
 } MovieClipScopes;
 
-/* MovieClipProxy->build_size_flag */
+/** #MovieClipProxy.build_size_flag */
 enum {
   MCLIP_PROXY_SIZE_25 = (1 << 0),
   MCLIP_PROXY_SIZE_50 = (1 << 1),
@@ -172,13 +156,13 @@ enum {
   MCLIP_PROXY_UNDISTORTED_SIZE_100 = (1 << 7),
 };
 
-/* MovieClip->source */
+/** #MovieClip.source */
 enum {
   MCLIP_SRC_SEQUENCE = 1,
   MCLIP_SRC_MOVIE = 2,
 };
 
-/* MovieClip->flag */
+/** #MovieClip.flag */
 enum {
   MCLIP_USE_PROXY = (1 << 0),
   MCLIP_USE_PROXY_CUSTOM_DIR = (1 << 1),
@@ -188,7 +172,7 @@ enum {
   MCLIP_TIMECODE_FLAGS = (MCLIP_USE_PROXY | MCLIP_USE_PROXY_CUSTOM_DIR),
 };
 
-/* MovieClip->render_size */
+/** #MovieClip.render_size */
 enum {
   MCLIP_PROXY_RENDER_SIZE_FULL = 0,
   MCLIP_PROXY_RENDER_SIZE_25 = 1,
@@ -197,7 +181,7 @@ enum {
   MCLIP_PROXY_RENDER_SIZE_100 = 4,
 };
 
-/* MovieClip->render_flag */
+/** #MovieClip.render_flag */
 enum {
   MCLIP_PROXY_RENDER_UNDISTORT = 1,
   /** Use original, if proxy is not found. */

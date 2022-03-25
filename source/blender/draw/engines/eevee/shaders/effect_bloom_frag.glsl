@@ -50,12 +50,6 @@ out vec4 FragColor;
 
 /* -------------- Utils ------------- */
 
-vec3 safe_color(vec3 c)
-{
-  /* Clamp to avoid black square artifacts if a pixel goes NaN. */
-  return clamp(c, vec3(0.0), vec3(1e20)); /* 1e20 arbitrary. */
-}
-
 /* 3-tap median filter */
 vec3 median(vec3 a, vec3 b, vec3 c)
 {

@@ -1,25 +1,9 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- * Operators and API's for renaming bones both in and out of Edit Mode
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edarmature
+ * Operators and API's for renaming bones both in and out of Edit Mode.
  *
  * This file contains functions/API's for renaming bones and/or working with them.
  */
@@ -80,7 +64,6 @@ static bool editbone_unique_check(void *arg, const char *name)
   return dupli && dupli != data->bone;
 }
 
-/* If bone is already in list, pass it as param to ignore it. */
 void ED_armature_ebone_unique_name(ListBase *ebones, char *name, EditBone *bone)
 {
   struct {
@@ -154,9 +137,6 @@ static void constraint_bone_name_fix(Object *ob,
   }
 }
 
-/* called by UI for renaming a bone */
-/* warning: make sure the original bone was not renamed yet! */
-/* seems messy, but that's what you get with not using pointers but channel names :) */
 void ED_armature_bone_rename(Main *bmain,
                              bArmature *arm,
                              const char *oldnamep,
@@ -269,6 +249,7 @@ void ED_armature_bone_rename(Main *bmain,
         bDeformGroup *dg = BKE_object_defgroup_find_name(ob, oldname);
         if (dg) {
           BLI_strncpy(dg->name, newname, MAXBONENAME);
+          DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
         }
       }
 
@@ -325,6 +306,7 @@ void ED_armature_bone_rename(Main *bmain,
                 bDeformGroup *dg = BKE_object_defgroup_find_name(ob, oldname);
                 if (dg) {
                   BLI_strncpy(dg->name, newname, MAXBONENAME);
+                  DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
                 }
               }
               break;
@@ -393,16 +375,6 @@ typedef struct BoneFlipNameData {
   char name_flip[MAXBONENAME];
 } BoneFlipNameData;
 
-/**
- * Renames (by flipping) all selected bones at once.
- *
- * This way if we are flipping related bones (e.g., Bone.L, Bone.R) at the same time
- * all the bones are safely renamed, without conflicting with each other.
- *
- * \param arm: Armature the bones belong to
- * \param bones_names: List of BoneConflict elems.
- * \param do_strip_numbers: if set, try to get rid of dot-numbers at end of bone names.
- */
 void ED_armature_bones_flip_names(Main *bmain,
                                   bArmature *arm,
                                   ListBase *bones_names,

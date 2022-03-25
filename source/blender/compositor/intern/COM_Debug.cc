@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2013, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2013 Blender Foundation. */
 
 #include "COM_Debug.h"
 
@@ -431,8 +416,9 @@ void DebugInfo::graphviz(const ExecutionSystem *system, StringRefNull name)
   if (!COM_EXPORT_GRAPHVIZ) {
     return;
   }
-  char str[1000000];
-  if (graphviz_system(system, str, sizeof(str) - 1)) {
+  const int max_textlength = 1000000;
+  char *str = (char *)MEM_mallocN(max_textlength, __func__);
+  if (graphviz_system(system, str, max_textlength - 1)) {
     char basename[FILE_MAX];
     char filename[FILE_MAX];
 
@@ -451,6 +437,7 @@ void DebugInfo::graphviz(const ExecutionSystem *system, StringRefNull name)
     fputs(str, fp);
     fclose(fp);
   }
+  MEM_freeN(str);
 }
 
 static std::string get_operations_export_dir()

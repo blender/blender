@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2016 by Mike Erwin.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 by Mike Erwin. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -50,7 +34,7 @@ using namespace blender::gpu;
 /** \name Creation & Deletion
  * \{ */
 
-GPUBatch *GPU_batch_calloc(void)
+GPUBatch *GPU_batch_calloc()
 {
   GPUBatch *batch = GPUBackend::get()->batch_alloc();
   memset(batch, 0, sizeof(*batch));
@@ -90,7 +74,6 @@ void GPU_batch_init_ex(GPUBatch *batch,
   batch->shader = nullptr;
 }
 
-/* This will share the VBOs with the new batch. */
 void GPU_batch_copy(GPUBatch *batch_dst, GPUBatch *batch_src)
 {
   GPU_batch_init_ex(
@@ -137,7 +120,6 @@ void GPU_batch_discard(GPUBatch *batch)
 /** \name Buffers Management
  * \{ */
 
-/* NOTE: Override ONLY the first instance vbo (and free them if owned). */
 void GPU_batch_instbuf_set(GPUBatch *batch, GPUVertBuf *inst, bool own_vbo)
 {
   BLI_assert(inst);
@@ -151,7 +133,6 @@ void GPU_batch_instbuf_set(GPUBatch *batch, GPUVertBuf *inst, bool own_vbo)
   SET_FLAG_FROM_TEST(batch->flag, own_vbo, GPU_BATCH_OWNS_INST_VBO);
 }
 
-/* NOTE: Override any previously assigned elem (and free it if owned). */
 void GPU_batch_elembuf_set(GPUBatch *batch, GPUIndexBuf *elem, bool own_ibo)
 {
   BLI_assert(elem);
@@ -188,7 +169,6 @@ int GPU_batch_instbuf_add_ex(GPUBatch *batch, GPUVertBuf *insts, bool own_vbo)
   return -1;
 }
 
-/* Returns the index of verts in the batch. */
 int GPU_batch_vertbuf_add_ex(GPUBatch *batch, GPUVertBuf *verts, bool own_vbo)
 {
   BLI_assert(verts);
@@ -209,6 +189,16 @@ int GPU_batch_vertbuf_add_ex(GPUBatch *batch, GPUVertBuf *verts, bool own_vbo)
   /* we only make it this far if there is no room for another GPUVertBuf */
   BLI_assert_msg(0, "Not enough VBO slot in batch");
   return -1;
+}
+
+bool GPU_batch_vertbuf_has(GPUBatch *batch, GPUVertBuf *verts)
+{
+  for (uint v = 0; v < GPU_BATCH_VBO_MAX_LEN; v++) {
+    if (batch->verts[v] == verts) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /** \} */
@@ -243,7 +233,6 @@ void GPU_batch_draw_range(GPUBatch *batch, int v_first, int v_count)
   GPU_batch_draw_advanced(batch, v_first, v_count, 0, 0);
 }
 
-/* Draw multiple instance of a batch without having any instance attributes. */
 void GPU_batch_draw_instanced(GPUBatch *batch, int i_count)
 {
   BLI_assert(batch->inst[0] == nullptr);
@@ -301,9 +290,6 @@ void GPU_batch_program_set_builtin(GPUBatch *batch, eGPUBuiltinShader shader_id)
   GPU_batch_program_set_builtin_with_config(batch, shader_id, GPU_SHADER_CFG_DEFAULT);
 }
 
-/* Bind program bound to IMM to the batch.
- * XXX Use this with much care. Drawing with the GPUBatch API is not compatible with IMM.
- * DO NOT DRAW WITH THE BATCH BEFORE CALLING immUnbindProgram. */
 void GPU_batch_program_set_imm_shader(GPUBatch *batch)
 {
   GPU_batch_set_shader(batch, immGetShader());
@@ -315,12 +301,12 @@ void GPU_batch_program_set_imm_shader(GPUBatch *batch)
 /** \name Init/Exit
  * \{ */
 
-void gpu_batch_init(void)
+void gpu_batch_init()
 {
   gpu_batch_presets_init();
 }
 
-void gpu_batch_exit(void)
+void gpu_batch_exit()
 {
   gpu_batch_presets_exit();
 }

@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #ifndef __UTIL_HALF_H__
 #define __UTIL_HALF_H__
@@ -28,8 +15,27 @@ CCL_NAMESPACE_BEGIN
 
 /* Half Floats */
 
+#if defined(__KERNEL_METAL__)
+
+ccl_device_inline float half_to_float(half h_in)
+{
+  float f;
+  union {
+    half h;
+    uint16_t s;
+  } val;
+  val.h = h_in;
+
+  *((ccl_private int *)&f) = ((val.s & 0x8000) << 16) | (((val.s & 0x7c00) + 0x1C000) << 13) |
+                             ((val.s & 0x03FF) << 13);
+
+  return f;
+}
+
+#else
+
 /* CUDA has its own half data type, no need to define then */
-#if !defined(__KERNEL_CUDA__) && !defined(__KERNEL_HIP__)
+#  if !defined(__KERNEL_CUDA__) && !defined(__KERNEL_HIP__)
 /* Implementing this as a class rather than a typedef so that the compiler can tell it apart from
  * unsigned shorts. */
 class half {
@@ -53,11 +59,12 @@ class half {
  private:
   unsigned short v;
 };
-#endif
+#  endif
 
 struct half4 {
   half x, y, z, w;
 };
+#endif
 
 /* Conversion to/from half float for image textures
  *
@@ -66,7 +73,9 @@ struct half4 {
 
 ccl_device_inline half float_to_half_image(float f)
 {
-#if defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__)
+#if defined(__KERNEL_METAL__)
+  return half(f);
+#elif defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__)
   return __float2half(f);
 #else
   const uint u = __float_as_uint(f);
@@ -92,7 +101,9 @@ ccl_device_inline half float_to_half_image(float f)
 
 ccl_device_inline float half_to_float_image(half h)
 {
-#if defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__)
+#if defined(__KERNEL_METAL__)
+  return half_to_float(h);
+#elif defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__)
   return __half2float(h);
 #else
   const int x = ((h & 0x8000) << 16) | (((h & 0x7c00) + 0x1C000) << 13) | ((h & 0x03FF) << 13);
@@ -125,7 +136,9 @@ ccl_device_inline float4 half4_to_float4_image(const half4 h)
 
 ccl_device_inline half float_to_half_display(const float f)
 {
-#if defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__)
+#if defined(__KERNEL_METAL__)
+  return half(f);
+#elif defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__)
   return __float2half(f);
 #else
   const int x = __float_as_int((f > 0.0f) ? ((f < 65504.0f) ? f : 65504.0f) : 0.0f);

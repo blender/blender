@@ -1,18 +1,6 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
+
 #pragma once
 
 #include "kernel/sample/jitter.h"
@@ -163,18 +151,7 @@ ccl_device_inline bool sample_is_even(int pattern, int sample)
     /* See Section 10.2.1, "Progressive Multi-Jittered Sample Sequences", Christensen et al.
      * We can use this to get divide sample sequence into two classes for easier variance
      * estimation. */
-#if defined(__GNUC__) && !defined(__KERNEL_GPU__)
-    return __builtin_popcount(sample & 0xaaaaaaaa) & 1;
-#elif defined(__NVCC__)
-    return __popc(sample & 0xaaaaaaaa) & 1;
-#else
-    /* TODO(Stefan): pop-count intrinsic for Windows with fallback for older CPUs. */
-    int i = sample & 0xaaaaaaaa;
-    i = i - ((i >> 1) & 0x55555555);
-    i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
-    i = (((i + (i >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
-    return i & 1;
-#endif
+    return popcount(uint(sample) & 0xaaaaaaaa) & 1;
   }
   else {
     /* TODO(Stefan): Are there reliable ways of dividing CMJ and Sobol into two classes? */

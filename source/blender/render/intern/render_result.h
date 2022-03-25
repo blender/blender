@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2007 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2007 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup render
@@ -46,6 +30,12 @@ extern "C" {
 
 /* New */
 
+/**
+ * Called by main render as well for parts will read info from Render *re to define layers.
+ * \note Called in threads.
+ *
+ * `re->winx`, `re->winy` is coordinate space of entire image, `partrct` the part within.
+ */
 struct RenderResult *render_result_new(struct Render *re,
                                        struct rcti *partrct,
                                        const char *layername,
@@ -53,6 +43,10 @@ struct RenderResult *render_result_new(struct Render *re,
 
 void render_result_passes_allocated_ensure(struct RenderResult *rr);
 
+/**
+ * From imbuf, if a handle was returned and
+ * it's not a single-layer multi-view we convert this to render result.
+ */
 struct RenderResult *render_result_new_from_exr(
     void *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
 
@@ -61,6 +55,11 @@ void render_result_views_new(struct RenderResult *rr, const struct RenderData *r
 
 /* Merge */
 
+/**
+ * Used when rendering to a full buffer, or when reading the EXR part-layer-pass file.
+ * no test happens here if it fits... we also assume layers are in sync.
+ * \note Is used within threads.
+ */
 void render_result_merge(struct RenderResult *rr, struct RenderResult *rrpart);
 
 /* Add Passes */
@@ -70,22 +69,33 @@ void render_result_clone_passes(struct Render *re, struct RenderResult *rr, cons
 /* Free */
 
 void render_result_free(struct RenderResult *rr);
+/**
+ * Version that's compatible with full-sample buffers.
+ */
 void render_result_free_list(struct ListBase *lb, struct RenderResult *rr);
 
 /* Single Layer Render */
 
 void render_result_single_layer_begin(struct Render *re);
+/**
+ * If #RenderData.scemode is #R_SINGLE_LAYER, at end of rendering, merge the both render results.
+ */
 void render_result_single_layer_end(struct Render *re);
 
-/* render pass wrapper for gpencil */
+/**
+ * Render pass wrapper for grease-pencil.
+ */
 struct RenderPass *render_layer_add_pass(struct RenderResult *rr,
                                          struct RenderLayer *rl,
                                          int channels,
                                          const char *name,
                                          const char *viewname,
                                          const char *chan_id,
-                                         const bool allocate);
+                                         bool allocate);
 
+/**
+ * Called for reading temp files, and for external engines.
+ */
 int render_result_exr_file_read_path(struct RenderResult *rr,
                                      struct RenderLayer *rl_single,
                                      const char *filepath);
@@ -93,26 +103,34 @@ int render_result_exr_file_read_path(struct RenderResult *rr,
 /* EXR cache */
 
 void render_result_exr_file_cache_write(struct Render *re);
+/**
+ * For cache, makes exact copy of render result.
+ */
 bool render_result_exr_file_cache_read(struct Render *re);
 
 /* Combined Pixel Rect */
 
 struct ImBuf *render_result_rect_to_ibuf(struct RenderResult *rr,
                                          const struct RenderData *rd,
-                                         const int view_id);
+                                         int view_id);
 
-void render_result_rect_fill_zero(struct RenderResult *rr, const int view_id);
+void render_result_rect_fill_zero(struct RenderResult *rr, int view_id);
 void render_result_rect_get_pixels(struct RenderResult *rr,
                                    unsigned int *rect,
                                    int rectx,
                                    int recty,
                                    const struct ColorManagedViewSettings *view_settings,
                                    const struct ColorManagedDisplaySettings *display_settings,
-                                   const int view_id);
+                                   int view_id);
 
+/**
+ * Create a new views #ListBase in rr without duplicating the memory pointers.
+ */
 void render_result_views_shallowcopy(struct RenderResult *dst, struct RenderResult *src);
+/**
+ * Free the views created temporarily.
+ */
 void render_result_views_shallowdelete(struct RenderResult *rr);
-bool render_result_has_views(const struct RenderResult *rr);
 
 #define FOREACH_VIEW_LAYER_TO_RENDER_BEGIN(re_, iter_) \
   { \

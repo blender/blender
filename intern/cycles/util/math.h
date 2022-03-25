@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #ifndef __UTIL_MATH_H__
 #define __UTIL_MATH_H__
@@ -30,9 +17,11 @@
 #  include <hip/hip_vector_types.h>
 #endif
 
-#include <float.h>
-#include <math.h>
-#include <stdio.h>
+#if !defined(__KERNEL_METAL__)
+#  include <float.h>
+#  include <math.h>
+#  include <stdio.h>
+#endif /* !defined(__KERNEL_METAL__) */
 
 #include "util/types.h"
 
@@ -78,6 +67,9 @@ CCL_NAMESPACE_BEGIN
 #ifndef M_SQRT2_F
 #  define M_SQRT2_F (1.4142135623730950f) /* sqrt(2) */
 #endif
+#ifndef M_SQRT3_F
+#  define M_SQRT3_F (1.7320508075688772f) /* sqrt(3) */
+#endif
 #ifndef M_LN2_F
 #  define M_LN2_F (0.6931471805599453f) /* ln(2) */
 #endif
@@ -122,7 +114,41 @@ ccl_device_inline int min(int a, int b)
   return (a < b) ? a : b;
 }
 
-ccl_device_inline uint min(uint a, uint b)
+ccl_device_inline uint32_t max(uint32_t a, uint32_t b)
+{
+  return (a > b) ? a : b;
+}
+
+ccl_device_inline uint32_t min(uint32_t a, uint32_t b)
+{
+  return (a < b) ? a : b;
+}
+
+ccl_device_inline uint64_t max(uint64_t a, uint64_t b)
+{
+  return (a > b) ? a : b;
+}
+
+ccl_device_inline uint64_t min(uint64_t a, uint64_t b)
+{
+  return (a < b) ? a : b;
+}
+
+/* NOTE: On 64bit Darwin the `size_t` is defined as `unsigned long int` and `uint64_t` is defined
+ * as `unsigned long long`. Both of the definitions are 64 bit unsigned integer, but the automatic
+ * substitution does not allow to automatically pick function defined for `uint64_t` as it is not
+ * exactly the same type definition.
+ * Work this around by adding a templated function enabled for `size_t` type which will be used
+ * when there is no explicit specialization of `min()`/`max()` above. */
+
+template<class T>
+ccl_device_inline typename std::enable_if_t<std::is_same_v<T, size_t>, T> max(T a, T b)
+{
+  return (a > b) ? a : b;
+}
+
+template<class T>
+ccl_device_inline typename std::enable_if_t<std::is_same_v<T, size_t>, T> min(T a, T b)
 {
   return (a < b) ? a : b;
 }
@@ -174,6 +200,7 @@ ccl_device_inline float max4(float a, float b, float c, float d)
   return max(max(a, b), max(c, d));
 }
 
+#if !defined(__KERNEL_METAL__)
 /* Int/Float conversion */
 
 ccl_device_inline int as_int(uint i)
@@ -206,7 +233,7 @@ ccl_device_inline uint as_uint(float f)
   return u.i;
 }
 
-#ifndef __HIP__
+#  ifndef __HIP__
 ccl_device_inline int __float_as_int(float f)
 {
   union {
@@ -246,28 +273,33 @@ ccl_device_inline float __uint_as_float(uint i)
   u.i = i;
   return u.f;
 }
-#endif
+#  endif
 
 ccl_device_inline int4 __float4_as_int4(float4 f)
 {
-#ifdef __KERNEL_SSE__
+#  ifdef __KERNEL_SSE__
   return int4(_mm_castps_si128(f.m128));
-#else
+#  else
   return make_int4(
       __float_as_int(f.x), __float_as_int(f.y), __float_as_int(f.z), __float_as_int(f.w));
-#endif
+#  endif
 }
 
 ccl_device_inline float4 __int4_as_float4(int4 i)
 {
-#ifdef __KERNEL_SSE__
+#  ifdef __KERNEL_SSE__
   return float4(_mm_castsi128_ps(i.m128));
-#else
+#  else
   return make_float4(
       __int_as_float(i.x), __int_as_float(i.y), __int_as_float(i.z), __int_as_float(i.w));
-#endif
+#  endif
 }
+#endif /* !defined(__KERNEL_METAL__) */
 
+#if defined(__KERNEL_METAL__)
+#  define isnan_safe(v) isnan(v)
+#  define isfinite_safe(v) isfinite(v)
+#else
 template<typename T> ccl_device_inline uint pointer_pack_to_uint_0(T *ptr)
 {
   return ((uint64_t)ptr) & 0xFFFFFFFF;
@@ -311,12 +343,14 @@ ccl_device_inline bool isfinite_safe(float f)
   unsigned int x = __float_as_uint(f);
   return (f == f) && (x == 0 || x == (1u << 31) || (f != 2.0f * f)) && !((x << 1) > 0xff000000u);
 }
+#endif
 
 ccl_device_inline float ensure_finite(float v)
 {
   return isfinite_safe(v) ? v : 0.0f;
 }
 
+#if !defined(__KERNEL_METAL__)
 ccl_device_inline int clamp(int a, int mn, int mx)
 {
   return min(max(a, mn), mx);
@@ -346,15 +380,17 @@ ccl_device_inline float smoothstep(float edge0, float edge1, float x)
   return result;
 }
 
-#ifndef __KERNEL_CUDA__
-ccl_device_inline float saturatef(float a)
-{
-  return clamp(a, 0.0f, 1.0f);
-}
-#else
+#endif /* !defined(__KERNEL_METAL__) */
+
+#if defined(__KERNEL_CUDA__)
 ccl_device_inline float saturatef(float a)
 {
   return __saturatef(a);
+}
+#elif !defined(__KERNEL_METAL__)
+ccl_device_inline float saturatef(float a)
+{
+  return clamp(a, 0.0f, 1.0f);
 }
 #endif /* __KERNEL_CUDA__ */
 
@@ -389,7 +425,7 @@ ccl_device_inline float fractf(float x)
   return x - floorf(x);
 }
 
-/* Adapted from godot-engine math_funcs.h. */
+/* Adapted from `godot-engine` math_funcs.h. */
 ccl_device_inline float wrapf(float value, float max, float min)
 {
   float range = max - min;
@@ -491,12 +527,15 @@ CCL_NAMESPACE_END
 
 CCL_NAMESPACE_BEGIN
 
+#if !defined(__KERNEL_METAL__)
 /* Interpolation */
 
 template<class A, class B> A lerp(const A &a, const A &b, const B &t)
 {
   return (A)(a * ((B)1 - t) + b * t);
 }
+
+#endif /* __KERNEL_METAL__ */
 
 /* Triangle */
 
@@ -627,7 +666,11 @@ ccl_device_inline float safe_sqrtf(float f)
 
 ccl_device_inline float inversesqrtf(float f)
 {
+#if defined(__KERNEL_METAL__)
+  return (f > 0.0f) ? rsqrt(f) : 0.0f;
+#else
   return (f > 0.0f) ? 1.0f / sqrtf(f) : 0.0f;
+#endif
 }
 
 ccl_device float safe_asinf(float a)
@@ -700,6 +743,20 @@ ccl_device_inline float pow22(float a)
   return sqr(a * sqr(sqr(sqr(a)) * a));
 }
 
+#ifdef __KERNEL_METAL__
+ccl_device_inline float lgammaf(float x)
+{
+  /* Nemes, Gergő (2010), "New asymptotic expansion for the Gamma function", Archiv der Mathematik
+   */
+  const float _1_180 = 1.0f / 180.0f;
+  const float log2pi = 1.83787706641f;
+  const float logx = log(x);
+  return (log2pi - logx +
+          x * (logx * 2.0f + log(x * sinh(1.0f / x) + (_1_180 / pow(x, 6.0f))) - 2.0f)) *
+         0.5f;
+}
+#endif
+
 ccl_device_inline float beta(float x, float y)
 {
   return expf(lgammaf(x) + lgammaf(y) - lgammaf(x + y));
@@ -715,10 +772,30 @@ ccl_device float bits_to_01(uint bits)
   return bits * (1.0f / (float)0xFFFFFFFF);
 }
 
+#if !defined(__KERNEL_GPU__)
+#  if defined(__GNUC__)
+#    define popcount(x) __builtin_popcount(x)
+#  else
+ccl_device_inline uint popcount(uint x)
+{
+  /* TODO(Stefan): pop-count intrinsic for Windows with fallback for older CPUs. */
+  uint i = x & 0xaaaaaaaa;
+  i = i - ((i >> 1) & 0x55555555);
+  i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
+  i = (((i + (i >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
+  return i & 1;
+}
+#  endif
+#elif !defined(__KERNEL_METAL__)
+#  define popcount(x) __popc(x)
+#endif
+
 ccl_device_inline uint count_leading_zeros(uint x)
 {
 #if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__) || defined(__KERNEL_HIP__)
   return __clz(x);
+#elif defined(__KERNEL_METAL__)
+  return clz(x);
 #else
   assert(x != 0);
 #  ifdef _MSC_VER
@@ -735,6 +812,8 @@ ccl_device_inline uint count_trailing_zeros(uint x)
 {
 #if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__) || defined(__KERNEL_HIP__)
   return (__ffs(x) - 1);
+#elif defined(__KERNEL_METAL__)
+  return ctz(x);
 #else
   assert(x != 0);
 #  ifdef _MSC_VER
@@ -751,6 +830,8 @@ ccl_device_inline uint find_first_set(uint x)
 {
 #if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__) || defined(__KERNEL_HIP__)
   return __ffs(x);
+#elif defined(__KERNEL_METAL__)
+  return (x != 0) ? ctz(x) + 1 : 0;
 #else
 #  ifdef _MSC_VER
   return (x != 0) ? (32 - count_leading_zeros(x & (-x))) : 0;
@@ -801,7 +882,7 @@ ccl_device_inline float2 map_to_sphere(const float3 co)
  * https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
  */
 
-ccl_device_inline float compare_floats(float a, float b, float abs_diff, int ulp_diff)
+ccl_device_inline bool compare_floats(float a, float b, float abs_diff, int ulp_diff)
 {
   if (fabsf(a - b) < abs_diff) {
     return true;
@@ -844,11 +925,19 @@ ccl_device_inline uint prev_power_of_two(uint x)
 ccl_device_inline uint32_t reverse_integer_bits(uint32_t x)
 {
   /* Use a native instruction if it exists. */
-#if defined(__arm__) || defined(__aarch64__)
+#if defined(__aarch64__) || defined(_M_ARM64)
+  /* Assume the rbit is always available on 64bit ARM architecture. */
   __asm__("rbit %w0, %w1" : "=r"(x) : "r"(x));
+  return x;
+#elif defined(__arm__) && ((__ARM_ARCH > 7) || __ARM_ARCH == 6 && __ARM_ARCH_ISA_THUMB >= 2)
+  /* This ARM instruction is available in ARMv6T2 and above.
+   * This 32-bit Thumb instruction is available in ARMv6T2 and above. */
+  __asm__("rbit %0, %1" : "=r"(x) : "r"(x));
   return x;
 #elif defined(__KERNEL_CUDA__)
   return __brev(x);
+#elif defined(__KERNEL_METAL__)
+  return reverse_bits(x);
 #elif __has_builtin(__builtin_bitreverse32)
   return __builtin_bitreverse32(x);
 #else

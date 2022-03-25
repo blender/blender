@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edsculpt
@@ -57,6 +41,10 @@
 #include <math.h>
 #include <stdlib.h>
 
+/* -------------------------------------------------------------------- */
+/** \name Internal Utilities
+ * \{ */
+
 typedef struct {
   const float *ray_start;
   bool hit;
@@ -81,6 +69,12 @@ static bool sculpt_and_dynamic_topology_poll(bContext *C)
 
   return SCULPT_mode_poll(C) && ob->sculpt->bm;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Detail Flood Fill
+ * \{ */
 
 static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -146,6 +140,12 @@ void SCULPT_OT_detail_flood_fill(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sample Detail Size
+ * \{ */
 
 typedef enum eSculptSampleDetailModeTypes {
   SAMPLE_DETAIL_DYNTOPO = 0,
@@ -232,8 +232,10 @@ static int sample_detail(bContext *C, int mx, int my, int mode)
 {
   /* Find 3D view to pick from. */
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_VIEW3D, mx, my);
-  ARegion *region = (area) ? BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mx, my) : NULL;
+  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_VIEW3D, (const int[2]){mx, my});
+  ARegion *region = (area) ?
+                        BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, (const int[2]){mx, my}) :
+                        NULL;
   if (region == NULL) {
     return OPERATOR_CANCELLED;
   }
@@ -364,13 +366,17 @@ void SCULPT_OT_sample_detail_size(wmOperatorType *ot)
                "Target sculpting workflow that is going to use the sampled size");
 }
 
-/* Dynamic-topology detail size.
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Dynamic-topology detail size
  *
  * Currently, there are two operators editing the detail size:
- * - SCULPT_OT_set_detail_size uses radial control for all methods
- * - SCULPT_OT_dyntopo_detail_size_edit shows a triangle grid representation of the detail
- * resolution (for constant detail method, falls back to radial control for the remaining methods).
- */
+ * - #SCULPT_OT_set_detail_size uses radial control for all methods
+ * - #SCULPT_OT_dyntopo_detail_size_edit shows a triangle grid representation of the detail
+ *   resolution (for constant detail method,
+ *   falls back to radial control for the remaining methods).
+ * \{ */
 
 static void set_brush_rc_props(PointerRNA *ptr, const char *prop)
 {
@@ -402,7 +408,7 @@ static void sculpt_detail_size_set_radial_control(bContext *C)
     RNA_string_set(&props_ptr, "data_path_primary", "tool_settings.sculpt.detail_size");
   }
 
-  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
+  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, NULL);
 
   WM_operator_properties_free(&props_ptr);
 }
@@ -428,6 +434,8 @@ void SCULPT_OT_set_detail_size(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Dyntopo Detail Size Edit Operator
@@ -759,3 +767,5 @@ void SCULPT_OT_dyntopo_detail_size_edit(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */

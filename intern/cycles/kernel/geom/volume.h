@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 /* Volume Primitive
  *
@@ -75,7 +62,7 @@ ccl_device float4 volume_attribute_float4(KernelGlobals kg,
                                           const AttributeDescriptor desc)
 {
   if (desc.element & (ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
-    return kernel_tex_fetch(__attributes_float3, desc.offset);
+    return kernel_tex_fetch(__attributes_float4, desc.offset);
   }
   else if (desc.element == ATTR_ELEMENT_VOXEL) {
     /* todo: optimize this so we don't have to transform both here and in

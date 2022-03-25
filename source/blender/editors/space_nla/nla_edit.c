@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
 
 /** \file
  * \ingroup spnla
@@ -55,6 +39,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -71,7 +56,6 @@
 /** \name Public Utilities
  * \{ */
 
-/* Perform validation for blending/extend settings */
 void ED_nla_postop_refresh(bAnimContext *ac)
 {
   ListBase anim_data = {NULL, NULL};
@@ -205,7 +189,6 @@ void NLA_OT_tweakmode_enter(wmOperatorType *ot)
 /** \name Disable Tweak-Mode Operator
  * \{ */
 
-/* NLA Editor internal API function for exiting tweak-mode. */
 bool nlaedit_disable_tweakmode(bAnimContext *ac, bool do_solo)
 {
   ListBase anim_data = {NULL, NULL};
@@ -1210,12 +1193,12 @@ static int nlaedit_duplicate_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
-static int nlaedit_duplicate_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int nlaedit_duplicate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   nlaedit_duplicate_exec(C, op);
 
   RNA_enum_set(op->ptr, "mode", TFM_TRANSLATION);
-  WM_operator_name_call(C, "TRANSFORM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+  WM_operator_name_call(C, "TRANSFORM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr, event);
 
   return OPERATOR_FINISHED;
 }
@@ -1399,8 +1382,11 @@ static void nlaedit_split_strip_actclip(
     nstrip->actstart = splitaframe;
   }
 
-  /* clear the active flag from the copy */
-  nstrip->flag &= ~NLASTRIP_FLAG_ACTIVE;
+  /* Make sure Sync Length is off. With that setting on, entering and exiting tweak mode would
+   * effectively undo the split, because both the old and the new strip will be at the length of
+   * the Action again. */
+  strip->flag &= ~NLASTRIP_FLAG_SYNC_LENGTH;
+  nstrip->flag &= ~(NLASTRIP_FLAG_SYNC_LENGTH | NLASTRIP_FLAG_ACTIVE);
 
   /* auto-name the new strip */
   BKE_nlastrip_validate_name(adt, nstrip);
@@ -2193,8 +2179,19 @@ static int nlaedit_apply_scale_exec(bContext *C, wmOperator *UNUSED(op))
          * and recalculate the extents of the action now that it has been scaled
          * but leave everything else alone
          */
+        const float start = nlastrip_get_frame(strip, strip->actstart, NLATIME_CONVERT_MAP);
+        const float end = nlastrip_get_frame(strip, strip->actend, NLATIME_CONVERT_MAP);
+
+        if (strip->act->flag & ACT_FRAME_RANGE) {
+          strip->act->frame_start = nlastrip_get_frame(
+              strip, strip->act->frame_start, NLATIME_CONVERT_MAP);
+          strip->act->frame_end = nlastrip_get_frame(
+              strip, strip->act->frame_end, NLATIME_CONVERT_MAP);
+        }
+
         strip->scale = 1.0f;
-        calc_action_range(strip->act, &strip->actstart, &strip->actend, 0);
+        strip->actstart = start;
+        strip->actend = end;
 
         ale->update |= ANIM_UPDATE_DEPS;
       }

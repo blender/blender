@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -65,7 +49,7 @@ extern char datatoc_gpu_shader_common_obinfos_lib_glsl[];
  * same for 2 different Materials. Unused GPUPasses are free by Garbage collection.
  */
 
-/* Only use one linklist that contains the GPUPasses grouped by hash. */
+/* Only use one linked-list that contains the GPUPasses grouped by hash. */
 static GPUPass *pass_cache = NULL;
 static SpinLock pass_cache_spin;
 
@@ -711,10 +695,10 @@ static char *code_generate_vertex(GPUNodeGraph *graph,
   LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph->attributes) {
     const char *type_str = gpu_data_type_to_string(attr->gputype);
     const char *prefix = attr_prefix_get(attr->type);
-    /* XXX FIXME : see notes in mesh_render_data_create() */
-    /* NOTE : Replicate changes to mesh_render_data_create() in draw_cache_impl_mesh.c */
+    /* XXX FIXME: see notes in mesh_render_data_create() */
+    /* NOTE: Replicate changes to mesh_render_data_create() in draw_cache_impl_mesh.c */
     if (attr->type == CD_ORCO) {
-      /* OPTI : orco is computed from local positions, but only if no modifier is present. */
+      /* OPTI: orco is computed from local positions, but only if no modifier is present. */
       BLI_dynstr_append(ds, datatoc_gpu_shader_common_obinfos_lib_glsl);
       BLI_dynstr_append(ds, "DEFINE_ATTR(vec4, orco);\n");
     }

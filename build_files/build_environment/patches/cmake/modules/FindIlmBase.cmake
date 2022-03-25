@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: BSD-3-Clause
+
 # Module to find IlmBase
 #
 # This module will first look into the directories defined by the variables:

@@ -1,10 +1,4 @@
 
-uniform sampler2D depthBuffer;
-
-in vec4 uvcoordsvar;
-
-out vec4 fragColor;
-
 void main()
 {
   float depth = texture(depthBuffer, uvcoordsvar.st).r;

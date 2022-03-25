@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #pragma once
 
@@ -57,7 +44,6 @@ ccl_device int subsurface_bounce(KernelGlobals kg,
 
   /* Pass along object info, reusing isect to save memory. */
   INTEGRATOR_STATE_WRITE(state, subsurface, Ng) = sd->Ng;
-  INTEGRATOR_STATE_WRITE(state, isect, object) = sd->object;
 
   uint32_t path_flag = (INTEGRATOR_STATE(state, path, flag) & ~PATH_RAY_CAMERA) |
                        ((sc->type == CLOSURE_BSSRDF_BURLEY_ID) ? PATH_RAY_SUBSURFACE_DISK :
@@ -165,10 +151,8 @@ ccl_device_inline bool subsurface_scatter(KernelGlobals kg, IntegratorState stat
 
     if (object_flag & SD_OBJECT_INTERSECTS_VOLUME) {
       float3 P = INTEGRATOR_STATE(state, ray, P);
-      const float3 Ng = INTEGRATOR_STATE(state, subsurface, Ng);
-      const float3 offset_P = ray_offset(P, -Ng);
 
-      integrator_volume_stack_update_for_subsurface(kg, state, offset_P, ray.P);
+      integrator_volume_stack_update_for_subsurface(kg, state, P, ray.P);
     }
   }
 #  endif /* __VOLUME__ */

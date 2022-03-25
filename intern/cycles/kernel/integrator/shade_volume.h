@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #pragma once
 
@@ -26,8 +13,6 @@
 
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"
-
-#include "kernel/sample/mis.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -261,6 +246,12 @@ ccl_device void volume_shadow_heterogeneous(KernelGlobals kg,
 /* Equi-angular sampling as in:
  * "Importance Sampling Techniques for Path Tracing in Participating Media" */
 
+/* Below this pdf we ignore samples, as they tend to lead to very long distances.
+ * This can cause performance issues with BVH traversal in OptiX, leading it to
+ * traverse many nodes. Since these contribute very little to the image, just ignore
+ * those samples. */
+#  define VOLUME_SAMPLE_PDF_CUTOFF 1e-8f
+
 ccl_device float volume_equiangular_sample(ccl_private const Ray *ccl_restrict ray,
                                            const float3 light_P,
                                            const float xi,
@@ -435,7 +426,8 @@ ccl_device_forceinline void volume_integrate_step_scattering(
 
   /* Equiangular sampling for direct lighting. */
   if (vstate.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR && !result.direct_scatter) {
-    if (result.direct_t >= vstate.start_t && result.direct_t <= vstate.end_t) {
+    if (result.direct_t >= vstate.start_t && result.direct_t <= vstate.end_t &&
+        vstate.equiangular_pdf > VOLUME_SAMPLE_PDF_CUTOFF) {
       const float new_dt = result.direct_t - vstate.start_t;
       const float3 new_transmittance = volume_color_transmittance(coeff.sigma_t, new_dt);
 
@@ -472,26 +464,28 @@ ccl_device_forceinline void volume_integrate_step_scattering(
       const float3 new_transmittance = volume_color_transmittance(coeff.sigma_t, new_dt);
       const float distance_pdf = dot(channel_pdf, coeff.sigma_t * new_transmittance);
 
-      /* throughput */
-      result.indirect_scatter = true;
-      result.indirect_t = new_t;
-      result.indirect_throughput *= coeff.sigma_s * new_transmittance / distance_pdf;
-      shader_copy_volume_phases(&result.indirect_phases, sd);
+      if (vstate.distance_pdf * distance_pdf > VOLUME_SAMPLE_PDF_CUTOFF) {
+        /* throughput */
+        result.indirect_scatter = true;
+        result.indirect_t = new_t;
+        result.indirect_throughput *= coeff.sigma_s * new_transmittance / distance_pdf;
+        shader_copy_volume_phases(&result.indirect_phases, sd);
 
-      if (vstate.direct_sample_method != VOLUME_SAMPLE_EQUIANGULAR) {
-        /* If using distance sampling for direct light, just copy parameters
-         * of indirect light since we scatter at the same point then. */
-        result.direct_scatter = true;
-        result.direct_t = result.indirect_t;
-        result.direct_throughput = result.indirect_throughput;
-        shader_copy_volume_phases(&result.direct_phases, sd);
+        if (vstate.direct_sample_method != VOLUME_SAMPLE_EQUIANGULAR) {
+          /* If using distance sampling for direct light, just copy parameters
+           * of indirect light since we scatter at the same point then. */
+          result.direct_scatter = true;
+          result.direct_t = result.indirect_t;
+          result.direct_throughput = result.indirect_throughput;
+          shader_copy_volume_phases(&result.direct_phases, sd);
 
-        /* Multiple importance sampling. */
-        if (vstate.use_mis) {
-          const float equiangular_pdf = volume_equiangular_pdf(ray, equiangular_light_P, new_t);
-          const float mis_weight = power_heuristic(vstate.distance_pdf * distance_pdf,
-                                                   equiangular_pdf);
-          result.direct_throughput *= 2.0f * mis_weight;
+          /* Multiple importance sampling. */
+          if (vstate.use_mis) {
+            const float equiangular_pdf = volume_equiangular_pdf(ray, equiangular_light_P, new_t);
+            const float mis_weight = power_heuristic(vstate.distance_pdf * distance_pdf,
+                                                     equiangular_pdf);
+            result.direct_throughput *= 2.0f * mis_weight;
+          }
         }
       }
     }
@@ -692,8 +686,10 @@ ccl_device_forceinline bool integrate_volume_sample_light(
   float light_u, light_v;
   path_state_rng_2D(kg, rng_state, PRNG_LIGHT_U, &light_u, &light_v);
 
-  light_distribution_sample_from_volume_segment(
-      kg, light_u, light_v, sd->time, sd->P, bounce, path_flag, ls);
+  if (!light_distribution_sample_from_volume_segment(
+          kg, light_u, light_v, sd->time, sd->P, bounce, path_flag, ls)) {
+    return false;
+  }
 
   if (ls->shader & SHADER_EXCLUDE_SCATTER) {
     return false;
@@ -759,7 +755,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
   const float phase_pdf = shader_volume_phase_eval(kg, sd, phases, ls->D, &phase_eval);
 
   if (ls->shader & SHADER_USE_MIS) {
-    float mis_weight = power_heuristic(ls->pdf, phase_pdf);
+    float mis_weight = light_sample_mis_weight_nee(kg, ls->pdf, phase_pdf);
     bsdf_eval_mul(&phase_eval, mis_weight);
   }
 
@@ -782,21 +778,36 @@ ccl_device_forceinline void integrate_volume_direct_light(
 
   /* Write shadow ray and associated state to global memory. */
   integrator_state_write_shadow_ray(kg, shadow_state, &ray);
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, object) = ray.self.object;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, prim) = ray.self.prim;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, object) = ray.self.light_object;
+  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, prim) = ray.self.light_prim;
 
   /* Copy state from main path to shadow path. */
   const uint16_t bounce = INTEGRATOR_STATE(state, path, bounce);
   const uint16_t transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce);
   uint32_t shadow_flag = INTEGRATOR_STATE(state, path, flag);
   shadow_flag |= (is_light) ? PATH_RAY_SHADOW_FOR_LIGHT : 0;
-  shadow_flag |= PATH_RAY_VOLUME_PASS;
   const float3 throughput_phase = throughput * bsdf_eval_sum(&phase_eval);
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
-    const float3 pass_diffuse_weight = (bounce == 0) ?
-                                           one_float3() :
-                                           INTEGRATOR_STATE(state, path, pass_diffuse_weight);
+    packed_float3 pass_diffuse_weight;
+    packed_float3 pass_glossy_weight;
+
+    if (shadow_flag & PATH_RAY_ANY_PASS) {
+      /* Indirect bounce, use weights from earlier surface or volume bounce. */
+      pass_diffuse_weight = INTEGRATOR_STATE(state, path, pass_diffuse_weight);
+      pass_glossy_weight = INTEGRATOR_STATE(state, path, pass_glossy_weight);
+    }
+    else {
+      /* Direct light, no diffuse/glossy distinction needed for volumes. */
+      shadow_flag |= PATH_RAY_VOLUME_PASS;
+      pass_diffuse_weight = packed_float3(one_float3());
+      pass_glossy_weight = packed_float3(zero_float3());
+    }
+
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, pass_diffuse_weight) = pass_diffuse_weight;
-    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, pass_glossy_weight) = zero_float3();
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, pass_glossy_weight) = pass_glossy_weight;
   }
 
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, render_pixel_index) = INTEGRATOR_STATE(
@@ -863,11 +874,13 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
   INTEGRATOR_STATE_WRITE(state, ray, P) = sd->P;
   INTEGRATOR_STATE_WRITE(state, ray, D) = normalize(phase_omega_in);
   INTEGRATOR_STATE_WRITE(state, ray, t) = FLT_MAX;
-
 #  ifdef __RAY_DIFFERENTIALS__
   INTEGRATOR_STATE_WRITE(state, ray, dP) = differential_make_compact(sd->dP);
   INTEGRATOR_STATE_WRITE(state, ray, dD) = differential_make_compact(phase_domega_in);
 #  endif
+  // Save memory by storing last hit prim and object in isect
+  INTEGRATOR_STATE_WRITE(state, isect, prim) = sd->prim;
+  INTEGRATOR_STATE_WRITE(state, isect, object) = sd->object;
 
   /* Update throughput. */
   const float3 throughput = INTEGRATOR_STATE(state, path, throughput);

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup eduv
@@ -74,43 +58,54 @@ typedef struct UvNearestHit {
 bool uv_find_nearest_vert(struct Scene *scene,
                           struct Object *obedit,
                           const float co[2],
-                          const float penalty_dist,
+                          float penalty_dist,
                           struct UvNearestHit *hit);
 bool uv_find_nearest_vert_multi(struct Scene *scene,
                                 struct Object **objects,
-                                const uint objects_len,
+                                uint objects_len,
                                 const float co[2],
-                                const float penalty_dist,
+                                float penalty_dist,
                                 struct UvNearestHit *hit);
 
 bool uv_find_nearest_edge(struct Scene *scene,
                           struct Object *obedit,
                           const float co[2],
+                          float penalty,
                           struct UvNearestHit *hit);
 bool uv_find_nearest_edge_multi(struct Scene *scene,
                                 struct Object **objects,
-                                const uint objects_len,
+                                uint objects_len,
                                 const float co[2],
+                                float penalty,
                                 struct UvNearestHit *hit);
 
+/**
+ * \param only_in_face: when true, only hit faces which `co` is inside.
+ * This gives users a result they might expect, especially when zoomed in.
+ *
+ * \note Concave faces can cause odd behavior, although in practice this isn't often an issue.
+ * The center can be outside the face, in this case the distance to the center
+ * could cause the face to be considered too far away.
+ * If this becomes an issue we could track the distance to the faces closest edge.
+ */
 bool uv_find_nearest_face_ex(struct Scene *scene,
                              struct Object *obedit,
                              const float co[2],
                              struct UvNearestHit *hit,
-                             const bool only_in_face);
+                             bool only_in_face);
 bool uv_find_nearest_face(struct Scene *scene,
                           struct Object *obedit,
                           const float co[2],
                           struct UvNearestHit *hit);
 bool uv_find_nearest_face_multi_ex(struct Scene *scene,
                                    struct Object **objects,
-                                   const uint objects_len,
+                                   uint objects_len,
                                    const float co[2],
                                    struct UvNearestHit *hit,
-                                   const bool only_in_face);
+                                   bool only_in_face);
 bool uv_find_nearest_face_multi(struct Scene *scene,
                                 struct Object **objects,
-                                const uint objects_len,
+                                uint objects_len,
                                 const float co[2],
                                 struct UvNearestHit *hit);
 
@@ -122,6 +117,16 @@ BMLoop *uv_find_nearest_loop_from_edge(struct Scene *scene,
                                        struct Object *obedit,
                                        struct BMEdge *e,
                                        const float co[2]);
+
+bool uvedit_vert_is_edge_select_any_other(const struct Scene *scene,
+                                          struct BMLoop *l,
+                                          const int cd_loop_uv_offset);
+bool uvedit_vert_is_face_select_any_other(const struct Scene *scene,
+                                          struct BMLoop *l,
+                                          const int cd_loop_uv_offset);
+bool uvedit_vert_is_all_other_faces_selected(const struct Scene *scene,
+                                             struct BMLoop *l,
+                                             const int cd_loop_uv_offset);
 
 /* utility tool functions */
 
@@ -150,13 +155,17 @@ void UV_OT_shortest_path_select(struct wmOperatorType *ot);
 
 /* uvedit_select.c */
 
-bool uvedit_select_is_any_selected(struct Scene *scene, struct Object *obedit);
-bool uvedit_select_is_any_selected_multi(struct Scene *scene,
+bool uvedit_select_is_any_selected(const struct Scene *scene, struct Object *obedit);
+bool uvedit_select_is_any_selected_multi(const struct Scene *scene,
                                          struct Object **objects,
-                                         const uint objects_len);
+                                         uint objects_len);
+/**
+ * \warning This returns first selected UV,
+ * not ideal in many cases since there could be multiple.
+ */
 const float *uvedit_first_selected_uv_from_vertex(struct Scene *scene,
                                                   struct BMVert *eve,
-                                                  const int cd_loop_uv_offset);
+                                                  int cd_loop_uv_offset);
 
 void UV_OT_select_all(struct wmOperatorType *ot);
 void UV_OT_select(struct wmOperatorType *ot);
@@ -172,3 +181,5 @@ void UV_OT_select_circle(struct wmOperatorType *ot);
 void UV_OT_select_more(struct wmOperatorType *ot);
 void UV_OT_select_less(struct wmOperatorType *ot);
 void UV_OT_select_overlap(struct wmOperatorType *ot);
+/* Used only when UV sync select is disabled. */
+void UV_OT_select_mode(struct wmOperatorType *ot);

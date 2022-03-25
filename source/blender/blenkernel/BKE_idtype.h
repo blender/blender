@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 #pragma once
 
@@ -31,6 +15,7 @@
 extern "C" {
 #endif
 
+struct BPathForeachPathData;
 struct BlendDataReader;
 struct BlendExpander;
 struct BlendLibReader;
@@ -77,12 +62,12 @@ typedef void (*IDTypeInitDataFunction)(struct ID *id);
 typedef void (*IDTypeCopyDataFunction)(struct Main *bmain,
                                        struct ID *id_dst,
                                        const struct ID *id_src,
-                                       const int flag);
+                                       int flag);
 
 typedef void (*IDTypeFreeDataFunction)(struct ID *id);
 
-/** \param flag: See BKE_lib_id.h's LIB_ID_MAKELOCAL_... flags. */
-typedef void (*IDTypeMakeLocalFunction)(struct Main *bmain, struct ID *id, const int flags);
+/** \param flags: See BKE_lib_id.h's LIB_ID_MAKELOCAL_... flags. */
+typedef void (*IDTypeMakeLocalFunction)(struct Main *bmain, struct ID *id, int flags);
 
 typedef void (*IDTypeForeachIDFunction)(struct ID *id, struct LibraryForeachIDData *data);
 
@@ -99,6 +84,8 @@ typedef void (*IDTypeForeachCacheFunctionCallback)(struct ID *id,
 typedef void (*IDTypeForeachCacheFunction)(struct ID *id,
                                            IDTypeForeachCacheFunctionCallback function_callback,
                                            void *user_data);
+
+typedef void (*IDTypeForeachPathFunction)(struct ID *id, struct BPathForeachPathData *bpath_data);
 
 typedef struct ID *(*IDTypeEmbeddedOwnerGetFunction)(struct Main *bmain, struct ID *id);
 
@@ -149,11 +136,12 @@ typedef struct IDTypeInfo {
   /** Generic info flags about that data-block type. */
   uint32_t flags;
 
-  /* ********** ID management callbacks ********** */
+  /**
+   * Information and callbacks for assets, based on the type of asset.
+   */
+  struct AssetTypeInfo *asset_type_info;
 
-  /* TODO: Note about callbacks: Ideally we could also handle here `BKE_lib_query`'s behavior, as
-   * well as read/write of files. However, this is a bit more involved than basic ID management
-   * callbacks, so we'll check on this later. */
+  /* ********** ID management callbacks ********** */
 
   /**
    * Initialize a new, empty calloc'ed data-block. May be NULL if there is nothing to do.
@@ -187,6 +175,11 @@ typedef struct IDTypeInfo {
    * Iterator over all cache pointers of given ID.
    */
   IDTypeForeachCacheFunction foreach_cache;
+
+  /**
+   * Iterator over all file paths of given ID.
+   */
+  IDTypeForeachPathFunction foreach_path;
 
   /**
    * For embedded IDs, return their owner ID.
@@ -228,11 +221,6 @@ typedef struct IDTypeInfo {
    * \note Currently needed for some update operation on point caches.
    */
   IDTypeLibOverrideApplyPost lib_override_apply_post;
-
-  /**
-   * Callbacks for assets, based on the type of asset.
-   */
-  struct AssetTypeInfo *asset_type_info;
 } IDTypeInfo;
 
 /* ********** Declaration of each IDTypeInfo. ********** */
@@ -242,7 +230,7 @@ extern IDTypeInfo IDType_ID_SCE;
 extern IDTypeInfo IDType_ID_LI;
 extern IDTypeInfo IDType_ID_OB;
 extern IDTypeInfo IDType_ID_ME;
-extern IDTypeInfo IDType_ID_CU;
+extern IDTypeInfo IDType_ID_CU_LEGACY;
 extern IDTypeInfo IDType_ID_MB;
 extern IDTypeInfo IDType_ID_MA;
 extern IDTypeInfo IDType_ID_TE;
@@ -274,11 +262,12 @@ extern IDTypeInfo IDType_ID_PC;
 extern IDTypeInfo IDType_ID_CF;
 extern IDTypeInfo IDType_ID_WS;
 extern IDTypeInfo IDType_ID_LP;
-extern IDTypeInfo IDType_ID_HA;
+extern IDTypeInfo IDType_ID_CV;
 extern IDTypeInfo IDType_ID_PT;
 extern IDTypeInfo IDType_ID_VO;
 extern IDTypeInfo IDType_ID_SIM;
 
+/** Empty shell mostly, but needed for read code. */
 extern IDTypeInfo IDType_ID_LINK_PLACEHOLDER;
 
 /* ********** Helpers/Utils API. ********** */
@@ -287,35 +276,104 @@ extern IDTypeInfo IDType_ID_LINK_PLACEHOLDER;
 void BKE_idtype_init(void);
 
 /* General helpers. */
-const struct IDTypeInfo *BKE_idtype_get_info_from_idcode(const short id_code);
+const struct IDTypeInfo *BKE_idtype_get_info_from_idcode(short id_code);
 const struct IDTypeInfo *BKE_idtype_get_info_from_id(const struct ID *id);
 
-const char *BKE_idtype_idcode_to_name(const short idcode);
-const char *BKE_idtype_idcode_to_name_plural(const short idcode);
-const char *BKE_idtype_idcode_to_translation_context(const short idcode);
+/**
+ * Convert an \a idcode into a name.
+ *
+ * \param idcode: The code to convert.
+ * \return A static string representing the name of the code.
+ */
+const char *BKE_idtype_idcode_to_name(short idcode);
+/**
+ * Convert an \a idcode into a name (plural).
+ *
+ * \param idcode: The code to convert.
+ * \return A static string representing the name of the code.
+ */
+const char *BKE_idtype_idcode_to_name_plural(short idcode);
+/**
+ * Convert an \a idcode into its translations' context.
+ *
+ * \param idcode: The code to convert.
+ * \return A static string representing the i18n context of the code.
+ */
+const char *BKE_idtype_idcode_to_translation_context(short idcode);
 
-bool BKE_idtype_idcode_is_valid(const short idcode);
+/**
+ * Return if the ID code is a valid ID code.
+ *
+ * \param idcode: The code to check.
+ * \return Boolean, 0 when invalid.
+ */
+bool BKE_idtype_idcode_is_valid(short idcode);
 
-bool BKE_idtype_idcode_is_linkable(const short idcode);
-bool BKE_idtype_idcode_is_only_appendable(const short idcode);
-bool BKE_idtype_idcode_append_is_reusable(const short idcode);
+/**
+ * Check if an ID type is linkable.
+ *
+ * \param idcode: The IDType code to check.
+ * \return Boolean, false when non linkable, true otherwise.
+ */
+bool BKE_idtype_idcode_is_linkable(short idcode);
+/**
+ * Check if an ID type is only appendable.
+ *
+ * \param idcode: The IDType code to check.
+ * \return Boolean, false when also linkable, true when only appendable.
+ */
+bool BKE_idtype_idcode_is_only_appendable(short idcode);
+/**
+ * Check if an ID type can try to reuse and existing matching local one when being appended again.
+ *
+ * \param idcode: The IDType code to check.
+ * \return Boolean, false when it cannot be re-used, true otherwise.
+ */
+bool BKE_idtype_idcode_append_is_reusable(short idcode);
 /* Macro currently, since any linkable IDtype should be localizable. */
 #define BKE_idtype_idcode_is_localizable BKE_idtype_idcode_is_linkable
 
+/**
+ * Convert an ID-type name into an \a idcode (ie. #ID_SCE)
+ *
+ * \param idtype_name: The ID-type's "user visible name" to convert.
+ * \return The \a idcode for the name, or 0 if invalid.
+ */
 short BKE_idtype_idcode_from_name(const char *idtype_name);
 
-uint64_t BKE_idtype_idcode_to_idfilter(const short idcode);
-short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter);
+/**
+ * Convert an \a idcode into an \a idfilter (e.g. #ID_OB -> #FILTER_ID_OB).
+ */
+uint64_t BKE_idtype_idcode_to_idfilter(short idcode);
+/**
+ * Convert an \a idfilter into an \a idcode (e.g. #FILTER_ID_OB -> #ID_OB).
+ */
+short BKE_idtype_idcode_from_idfilter(uint64_t idfilter);
 
-int BKE_idtype_idcode_to_index(const short idcode);
-short BKE_idtype_idcode_from_index(const int index);
+/**
+ * Convert an \a idcode into an index (e.g. #ID_OB -> #INDEX_ID_OB).
+ */
+int BKE_idtype_idcode_to_index(short idcode);
+/**
+ * Get an \a idcode from an index (e.g. #INDEX_ID_OB -> #ID_OB).
+ */
+short BKE_idtype_idcode_from_index(int index);
 
+/**
+ * Return an ID code and steps the index forward 1.
+ *
+ * \param index: start as 0.
+ * \return the code, 0 when all codes have been returned.
+ */
 short BKE_idtype_idcode_iter_step(int *index);
 
 /* Some helpers/wrappers around callbacks defined in #IDTypeInfo, dealing e.g. with embedded IDs.
  * XXX Ideally those would rather belong to #BKE_lib_id, but using callback function pointers makes
  * this hard to do properly if we want to avoid headers includes in headers. */
 
+/**
+ * Wrapper around #IDTypeInfo foreach_cache that also handles embedded IDs.
+ */
 void BKE_idtype_id_foreach_cache(struct ID *id,
                                  IDTypeForeachCacheFunctionCallback function_callback,
                                  void *user_data);

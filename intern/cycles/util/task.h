@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #ifndef __UTIL_TASK_H__
 #define __UTIL_TASK_H__
@@ -86,10 +73,9 @@ class TaskScheduler {
   static void exit();
   static void free_memory();
 
-  /* Approximate number of threads that will work on task, which may be lower
-   * or higher than the actual number of threads. Use as little as possible and
-   * leave splitting up tasks to the scheduler. */
-  static int num_threads();
+  /* Maximum number of threads that will work on task. Use as little as
+   * possible and leave scheduling and splitting up tasks to the scheduler. */
+  static int max_concurrency();
 
  protected:
   static thread_mutex mutex;

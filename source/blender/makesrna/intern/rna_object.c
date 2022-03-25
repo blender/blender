@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -98,6 +84,7 @@ const EnumPropertyItem rna_enum_object_mode_items[] = {
      ICON_VPAINT_HLT,
      "Vertex Paint",
      "Grease Pencil Vertex Paint Strokes"},
+    {OB_MODE_SCULPT_CURVES, "SCULPT_CURVES", ICON_SCULPTMODE_HLT, "Sculpt Mode", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -254,7 +241,7 @@ const EnumPropertyItem rna_enum_lightprobes_type_items[] = {
 /* used for 2 enums */
 #define OBTYPE_CU_CURVE \
   { \
-    OB_CURVE, "CURVE", ICON_OUTLINER_OB_CURVE, "Curve", "" \
+    OB_CURVES_LEGACY, "CURVE", ICON_OUTLINER_OB_CURVE, "Curve", "" \
   }
 #define OBTYPE_CU_SURF \
   { \
@@ -271,7 +258,7 @@ const EnumPropertyItem rna_enum_object_type_items[] = {
     OBTYPE_CU_SURF,
     {OB_MBALL, "META", ICON_OUTLINER_OB_META, "Metaball", ""},
     OBTYPE_CU_FONT,
-    {OB_HAIR, "HAIR", ICON_OUTLINER_OB_HAIR, "Hair", ""},
+    {OB_CURVES, "CURVES", ICON_OUTLINER_OB_CURVES, "Hair Curves", ""},
     {OB_POINTCLOUD, "POINTCLOUD", ICON_OUTLINER_OB_POINTCLOUD, "Point Cloud", ""},
     {OB_VOLUME, "VOLUME", ICON_OUTLINER_OB_VOLUME, "Volume", ""},
     {OB_GPENCIL, "GPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil", ""},
@@ -345,6 +332,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_key.h"
 #  include "BKE_material.h"
 #  include "BKE_mesh.h"
+#  include "BKE_mesh_wrapper.h"
 #  include "BKE_modifier.h"
 #  include "BKE_object.h"
 #  include "BKE_particle.h"
@@ -491,7 +479,7 @@ static void rna_Object_active_shape_update(Main *bmain, Scene *UNUSED(scene), Po
         BKE_editmesh_looptri_and_normals_calc(em);
         break;
       }
-      case OB_CURVE:
+      case OB_CURVES_LEGACY:
       case OB_SURF:
         ED_curve_editnurb_load(bmain, ob);
         ED_curve_editnurb_make(ob);
@@ -522,6 +510,17 @@ void rna_Object_data_update(Main *bmain, Scene *scene, PointerRNA *ptr)
   }
 
   rna_Object_internal_update_data_dependency(bmain, scene, ptr);
+}
+
+static PointerRNA rna_Object_data_get(PointerRNA *ptr)
+{
+  Object *ob = (Object *)ptr->data;
+  if (ob->type == OB_MESH) {
+    Mesh *me = (Mesh *)ob->data;
+    me = BKE_mesh_wrapper_ensure_subdivision(ob, me);
+    return rna_pointer_inherit_refine(ptr, &RNA_Mesh, me);
+  }
+  return rna_pointer_inherit_refine(ptr, &RNA_ID, ob->data);
 }
 
 static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value, struct ReportList *reports)
@@ -572,7 +571,7 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value, struct Report
     ob->data = id;
     BKE_object_materials_test(G_MAIN, ob, id);
 
-    if (GS(id->name) == ID_CU) {
+    if (GS(id->name) == ID_CU_LEGACY) {
       BKE_curve_type_test(ob);
     }
     else if (ob->type == OB_ARMATURE) {
@@ -591,7 +590,7 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
       return &RNA_Image;
     case OB_MESH:
       return &RNA_Mesh;
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
       return &RNA_Curve;
     case OB_SURF:
       return &RNA_Curve;
@@ -613,18 +612,14 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
       return &RNA_LightProbe;
     case OB_GPENCIL:
       return &RNA_GreasePencil;
-    case OB_HAIR:
-#  ifdef WITH_HAIR_NODES
-      return &RNA_Hair;
+    case OB_CURVES:
+#  ifdef WITH_NEW_CURVES_TYPE
+      return &RNA_Curves;
 #  else
       return &RNA_ID;
 #  endif
     case OB_POINTCLOUD:
-#  ifdef WITH_POINT_CLOUD
       return &RNA_PointCloud;
-#  else
-      return &RNA_ID;
-#  endif
     case OB_VOLUME:
       return &RNA_Volume;
     default:
@@ -1673,6 +1668,7 @@ static bConstraint *rna_Object_constraints_copy(Object *object, Main *bmain, Poi
 {
   bConstraint *con = con_ptr->data;
   bConstraint *new_con = BKE_constraint_copy_for_object(object, con);
+  new_con->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
 
   ED_object_constraint_tag_update(bmain, object, new_con);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_ADDED, object);
@@ -1704,27 +1700,20 @@ bool rna_Object_constraints_override_apply(Main *UNUSED(bmain),
   /* Remember that insertion operations are defined and stored in correct order, which means that
    * even if we insert several items in a row, we always insert first one, then second one, etc.
    * So we should always find 'anchor' constraint in both _src *and* _dst. */
-  bConstraint *con_anchor = NULL;
-  if (opop->subitem_local_name && opop->subitem_local_name[0]) {
-    con_anchor = BLI_findstring(
-        &ob_dst->constraints, opop->subitem_local_name, offsetof(bConstraint, name));
-  }
-  if (con_anchor == NULL && opop->subitem_local_index >= 0) {
-    con_anchor = BLI_findlink(&ob_dst->constraints, opop->subitem_local_index);
-  }
-  /* Otherwise we just insert in first position. */
+  const size_t name_offset = offsetof(bConstraint, name);
+  bConstraint *con_anchor = BLI_listbase_string_or_index_find(&ob_dst->constraints,
+                                                              opop->subitem_reference_name,
+                                                              name_offset,
+                                                              opop->subitem_reference_index);
+  /* If `con_anchor` is NULL, `con_src` will be inserted in first position. */
 
-  bConstraint *con_src = NULL;
-  if (opop->subitem_local_name && opop->subitem_local_name[0]) {
-    con_src = BLI_findstring(
-        &ob_src->constraints, opop->subitem_local_name, offsetof(bConstraint, name));
-  }
-  if (con_src == NULL && opop->subitem_local_index >= 0) {
-    con_src = BLI_findlink(&ob_src->constraints, opop->subitem_local_index);
-  }
-  con_src = con_src ? con_src->next : ob_src->constraints.first;
+  bConstraint *con_src = BLI_listbase_string_or_index_find(
+      &ob_src->constraints, opop->subitem_local_name, name_offset, opop->subitem_local_index);
 
-  BLI_assert(con_src != NULL);
+  if (con_src == NULL) {
+    BLI_assert(con_src != NULL);
+    return false;
+  }
 
   bConstraint *con_dst = BKE_constraint_duplicate_ex(con_src, 0, true);
 
@@ -1826,25 +1815,15 @@ bool rna_Object_modifiers_override_apply(Main *bmain,
   /* Remember that insertion operations are defined and stored in correct order, which means that
    * even if we insert several items in a row, we always insert first one, then second one, etc.
    * So we should always find 'anchor' modifier in both _src *and* _dst. */
-  ModifierData *mod_anchor = NULL;
-  if (opop->subitem_local_name && opop->subitem_local_name[0]) {
-    mod_anchor = BLI_findstring(
-        &ob_dst->modifiers, opop->subitem_local_name, offsetof(ModifierData, name));
-  }
-  if (mod_anchor == NULL && opop->subitem_local_index >= 0) {
-    mod_anchor = BLI_findlink(&ob_dst->modifiers, opop->subitem_local_index);
-  }
-  /* Otherwise we just insert in first position. */
+  const size_t name_offset = offsetof(ModifierData, name);
+  ModifierData *mod_anchor = BLI_listbase_string_or_index_find(&ob_dst->modifiers,
+                                                               opop->subitem_reference_name,
+                                                               name_offset,
+                                                               opop->subitem_reference_index);
+  /* If `mod_anchor` is NULL, `mod_src` will be inserted in first position. */
 
-  ModifierData *mod_src = NULL;
-  if (opop->subitem_local_name && opop->subitem_local_name[0]) {
-    mod_src = BLI_findstring(
-        &ob_src->modifiers, opop->subitem_local_name, offsetof(ModifierData, name));
-  }
-  if (mod_src == NULL && opop->subitem_local_index >= 0) {
-    mod_src = BLI_findlink(&ob_src->modifiers, opop->subitem_local_index);
-  }
-  mod_src = mod_src ? mod_src->next : ob_src->modifiers.first;
+  ModifierData *mod_src = BLI_listbase_string_or_index_find(
+      &ob_src->modifiers, opop->subitem_local_name, name_offset, opop->subitem_local_index);
 
   if (mod_src == NULL) {
     BLI_assert(mod_src != NULL);
@@ -1933,25 +1912,18 @@ bool rna_Object_greasepencil_modifiers_override_apply(Main *bmain,
   /* Remember that insertion operations are defined and stored in correct order, which means that
    * even if we insert several items in a row, we always insert first one, then second one, etc.
    * So we should always find 'anchor' modifier in both _src *and* _dst. */
-  GpencilModifierData *mod_anchor = NULL;
-  if (opop->subitem_local_name && opop->subitem_local_name[0]) {
-    mod_anchor = BLI_findstring(
-        &ob_dst->greasepencil_modifiers, opop->subitem_local_name, offsetof(ModifierData, name));
-  }
-  if (mod_anchor == NULL && opop->subitem_local_index >= 0) {
-    mod_anchor = BLI_findlink(&ob_dst->greasepencil_modifiers, opop->subitem_local_index);
-  }
-  /* Otherwise we just insert in first position. */
+  const size_t name_offset = offsetof(GpencilModifierData, name);
+  GpencilModifierData *mod_anchor = BLI_listbase_string_or_index_find(
+      &ob_dst->greasepencil_modifiers,
+      opop->subitem_reference_name,
+      name_offset,
+      opop->subitem_reference_index);
+  /* If `mod_anchor` is NULL, `mod_src` will be inserted in first position. */
 
-  GpencilModifierData *mod_src = NULL;
-  if (opop->subitem_local_name && opop->subitem_local_name[0]) {
-    mod_src = BLI_findstring(
-        &ob_src->greasepencil_modifiers, opop->subitem_local_name, offsetof(ModifierData, name));
-  }
-  if (mod_src == NULL && opop->subitem_local_index >= 0) {
-    mod_src = BLI_findlink(&ob_src->greasepencil_modifiers, opop->subitem_local_index);
-  }
-  mod_src = mod_src ? mod_src->next : ob_src->greasepencil_modifiers.first;
+  GpencilModifierData *mod_src = BLI_listbase_string_or_index_find(&ob_src->greasepencil_modifiers,
+                                                                   opop->subitem_local_name,
+                                                                   name_offset,
+                                                                   opop->subitem_local_index);
 
   if (mod_src == NULL) {
     BLI_assert(mod_src != NULL);
@@ -2210,7 +2182,7 @@ bool rna_Lattice_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 
 bool rna_Curve_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
-  return ((Object *)value.owner_id)->type == OB_CURVE;
+  return ((Object *)value.owner_id)->type == OB_CURVES_LEGACY;
 }
 
 bool rna_Armature_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
@@ -2481,6 +2453,10 @@ static void rna_def_material_slot(BlenderRNA *brna)
                                  "rna_MaterialSlot_material_poll");
   RNA_def_property_ui_text(prop, "Material", "Material data-block used by this material slot");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_MaterialSlot_update");
+
+  prop = RNA_def_property(srna, "slot_index", PROP_INT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_int_funcs(prop, "rna_MaterialSlot_index", NULL, NULL);
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_funcs(
@@ -3082,8 +3058,11 @@ static void rna_def_object(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "ID");
-  RNA_def_property_pointer_funcs(
-      prop, NULL, "rna_Object_data_set", "rna_Object_data_typef", "rna_Object_data_poll");
+  RNA_def_property_pointer_funcs(prop,
+                                 "rna_Object_data_get",
+                                 "rna_Object_data_set",
+                                 "rna_Object_data_typef",
+                                 "rna_Object_data_poll");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
   RNA_def_property_ui_text(prop, "Data", "Object data");
   RNA_def_property_update(prop, 0, "rna_Object_data_update");
@@ -3176,19 +3155,6 @@ static void rna_def_object(BlenderRNA *brna)
       "Axis that points in the upward direction (applies to Instance Vertices when "
       "Align to Vertex Normal is enabled)");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update");
-
-  /* proxy */
-  prop = RNA_def_property(srna, "proxy", PROP_POINTER, PROP_NONE);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
-  RNA_def_property_override_clear_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_ui_text(prop, "Proxy", "Library object this proxy object controls");
-
-  prop = RNA_def_property(srna, "proxy_collection", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, NULL, "proxy_group");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
-  RNA_def_property_override_clear_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_ui_text(
-      prop, "Proxy Collection", "Library collection duplicator object this proxy object controls");
 
   /* materials */
   prop = RNA_def_property(srna, "material_slots", PROP_COLLECTION, PROP_NONE);

@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) Blender Foundation
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright Blender Foundation. */
 
 /** \file
  * \ingroup spgraph
@@ -437,7 +422,6 @@ static void draw_fcurve_handles(SpaceGraph *sipo, FCurve *fcu)
   for (sel = 0; sel < 2; sel++) {
     BezTriple *bezt = fcu->bezt, *prevbezt = NULL;
     int basecol = (sel) ? TH_HANDLE_SEL_FREE : TH_HANDLE_FREE;
-    const float *fp;
     uchar col[4];
 
     for (b = 0; b < fcu->totvert; b++, prevbezt = bezt, bezt++) {
@@ -452,17 +436,15 @@ static void draw_fcurve_handles(SpaceGraph *sipo, FCurve *fcu)
 
       /* draw handle with appropriate set of colors if selection is ok */
       if ((bezt->f2 & SELECT) == sel) {
-        fp = bezt->vec[0];
-
         /* only draw first handle if previous segment had handles */
         if ((!prevbezt && (bezt->ipo == BEZT_IPO_BEZ)) ||
             (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ))) {
           UI_GetThemeColor3ubv(basecol + bezt->h1, col);
           col[3] = fcurve_display_alpha(fcu) * 255;
           immAttr4ubv(color, col);
-          immVertex2fv(pos, fp);
+          immVertex2fv(pos, bezt->vec[0]);
           immAttr4ubv(color, col);
-          immVertex2fv(pos, fp + 3);
+          immVertex2fv(pos, bezt->vec[1]);
         }
 
         /* only draw second handle if this segment is bezier */
@@ -470,33 +452,31 @@ static void draw_fcurve_handles(SpaceGraph *sipo, FCurve *fcu)
           UI_GetThemeColor3ubv(basecol + bezt->h2, col);
           col[3] = fcurve_display_alpha(fcu) * 255;
           immAttr4ubv(color, col);
-          immVertex2fv(pos, fp + 3);
+          immVertex2fv(pos, bezt->vec[1]);
           immAttr4ubv(color, col);
-          immVertex2fv(pos, fp + 6);
+          immVertex2fv(pos, bezt->vec[2]);
         }
       }
       else {
         /* only draw first handle if previous segment was had handles, and selection is ok */
         if (((bezt->f1 & SELECT) == sel) && ((!prevbezt && (bezt->ipo == BEZT_IPO_BEZ)) ||
                                              (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ)))) {
-          fp = bezt->vec[0];
           UI_GetThemeColor3ubv(basecol + bezt->h1, col);
           col[3] = fcurve_display_alpha(fcu) * 255;
           immAttr4ubv(color, col);
-          immVertex2fv(pos, fp);
+          immVertex2fv(pos, bezt->vec[0]);
           immAttr4ubv(color, col);
-          immVertex2fv(pos, fp + 3);
+          immVertex2fv(pos, bezt->vec[1]);
         }
 
         /* only draw second handle if this segment is bezier, and selection is ok */
         if (((bezt->f3 & SELECT) == sel) && (bezt->ipo == BEZT_IPO_BEZ)) {
-          fp = bezt->vec[1];
           UI_GetThemeColor3ubv(basecol + bezt->h2, col);
           col[3] = fcurve_display_alpha(fcu) * 255;
           immAttr4ubv(color, col);
-          immVertex2fv(pos, fp);
+          immVertex2fv(pos, bezt->vec[0]);
           immAttr4ubv(color, col);
-          immVertex2fv(pos, fp + 3);
+          immVertex2fv(pos, bezt->vec[1]);
         }
       }
     }
@@ -1060,21 +1040,21 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
     const uint shdr_pos = GPU_vertformat_attr_add(
         immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-    immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
-
     float viewport_size[4];
     GPU_viewport_size_get_f(viewport_size);
-    immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
-
-    immUniform1i("colors_len", 0); /* Simple dashes. */
 
     if (BKE_fcurve_is_protected(fcu)) {
-      /* protected curves (non editable) are drawn with dotted lines */
+      /* Protected curves (non editable) are drawn with dotted lines. */
+      immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+      immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+      immUniform1i("colors_len", 0); /* Simple dashes. */
       immUniform1f("dash_width", 4.0f);
       immUniform1f("dash_factor", 0.5f);
     }
     else {
-      immUniform1f("dash_factor", 2.0f); /* solid line */
+      immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+      immUniform2fv("viewportSize", &viewport_size[2]);
+      immUniform1f("lineWidth", GPU_line_width_get());
     }
 
     if (((fcu->grp) && (fcu->grp->flag & AGRP_MUTED)) || (fcu->flag & FCURVE_MUTED)) {
@@ -1314,9 +1294,6 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
 
 /* Public Curve-Drawing API  ---------------- */
 
-/* Draw the 'ghost' F-Curves (i.e. snapshots of the curve)
- * NOTE: unit mapping has already been applied to the values, so do not try and apply again
- */
 void graph_draw_ghost_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region)
 {
   FCurve *fcu;
@@ -1364,9 +1341,6 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region
   GPU_blend(GPU_BLEND_NONE);
 }
 
-/* This is called twice from space_graph.c -> graph_main_region_draw()
- * Unselected then selected F-Curves are drawn so that they do not occlude each other.
- */
 void graph_draw_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, short sel)
 {
   ListBase anim_data = {NULL, NULL};
@@ -1408,7 +1382,6 @@ void graph_draw_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, shor
 /** \name Channel List
  * \{ */
 
-/* left hand part */
 void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
 {
   ListBase anim_data = {NULL, NULL};

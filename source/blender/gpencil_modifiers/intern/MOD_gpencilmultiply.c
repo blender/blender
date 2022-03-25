@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2017, Blender Foundation
- * This is a new part of Blender
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2017 Blender Foundation. */
 
 /** \file
  * \ingroup modifiers
@@ -191,53 +175,6 @@ static void duplicateStroke(Object *ob,
   MEM_freeN(t2_array);
 }
 
-static void bakeModifier(Main *UNUSED(bmain),
-                         Depsgraph *UNUSED(depsgraph),
-                         GpencilModifierData *md,
-                         Object *ob)
-{
-  bGPdata *gpd = ob->data;
-
-  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-      ListBase duplicates = {0};
-      MultiplyGpencilModifierData *mmd = (MultiplyGpencilModifierData *)md;
-      bGPDstroke *gps;
-      for (gps = gpf->strokes.first; gps; gps = gps->next) {
-        if (!is_stroke_affected_by_modifier(ob,
-                                            mmd->layername,
-                                            mmd->material,
-                                            mmd->pass_index,
-                                            mmd->layer_pass,
-                                            1,
-                                            gpl,
-                                            gps,
-                                            mmd->flag & GP_MIRROR_INVERT_LAYER,
-                                            mmd->flag & GP_MIRROR_INVERT_PASS,
-                                            mmd->flag & GP_MIRROR_INVERT_LAYERPASS,
-                                            mmd->flag & GP_MIRROR_INVERT_MATERIAL)) {
-          continue;
-        }
-        if (mmd->duplications > 0) {
-          duplicateStroke(ob,
-                          gps,
-                          mmd->duplications,
-                          mmd->distance,
-                          mmd->offset,
-                          &duplicates,
-                          mmd->flags & GP_MULTIPLY_ENABLE_FADING,
-                          mmd->fading_center,
-                          mmd->fading_thickness,
-                          mmd->fading_opacity);
-        }
-      }
-      if (!BLI_listbase_is_empty(&duplicates)) {
-        BLI_movelisttolist(&gpf->strokes, &duplicates);
-      }
-    }
-  }
-}
-
 /* -------------------------------- */
 static void generate_geometry(GpencilModifierData *md, Object *ob, bGPDlayer *gpl, bGPDframe *gpf)
 {
@@ -274,6 +211,20 @@ static void generate_geometry(GpencilModifierData *md, Object *ob, bGPDlayer *gp
   }
   if (!BLI_listbase_is_empty(&duplicates)) {
     BLI_movelisttolist(&gpf->strokes, &duplicates);
+  }
+}
+
+static void bakeModifier(Main *UNUSED(bmain),
+                         Depsgraph *UNUSED(depsgraph),
+                         GpencilModifierData *md,
+                         Object *ob)
+{
+  bGPdata *gpd = ob->data;
+
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+      generate_geometry(md, ob, gpl, gpf);
+    }
   }
 }
 

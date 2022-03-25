@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2007 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2007 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup wm
@@ -171,8 +155,8 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
     win->ghostwin = NULL;
     win->gpuctx = NULL;
     win->eventstate = NULL;
+    win->event_last_handled = NULL;
     win->cursor_keymap_status = NULL;
-    win->tweak = NULL;
 #if defined(WIN32) || defined(__APPLE__)
     win->ime_data = NULL;
 #endif
@@ -272,6 +256,7 @@ IDTypeInfo IDType_ID_WM = {
     .name_plural = "window_managers",
     .translation_context = BLT_I18NCONTEXT_ID_WINDOWMANAGER,
     .flags = IDTYPE_FLAGS_NO_COPY | IDTYPE_FLAGS_NO_LIBLINKING | IDTYPE_FLAGS_NO_ANIMDATA,
+    .asset_type_info = NULL,
 
     .init_data = NULL,
     .copy_data = NULL,
@@ -279,6 +264,7 @@ IDTypeInfo IDType_ID_WM = {
     .make_local = NULL,
     .foreach_id = window_manager_foreach_id,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = window_manager_blend_write,
@@ -339,13 +325,6 @@ void WM_operator_free_all_after(wmWindowManager *wm, struct wmOperator *op)
   }
 }
 
-/**
- * Use with extreme care!,
- * properties, custom-data etc - must be compatible.
- *
- * \param op: Operator to assign the type to.
- * \param ot: Operator type to assign.
- */
 void WM_operator_type_set(wmOperator *op, wmOperatorType *ot)
 {
   /* Not supported for Python. */
@@ -375,8 +354,6 @@ static void wm_reports_free(wmWindowManager *wm)
   WM_event_remove_timer(wm, NULL, wm->reports.reporttimer);
 }
 
-/* All operations get registered in the windowmanager here. */
-/* Called on event handling by event_system.c. */
 void wm_operator_register(bContext *C, wmOperator *op)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -413,10 +390,6 @@ void WM_operator_stack_clear(wmWindowManager *wm)
   WM_main_add_notifier(NC_WM | ND_HISTORY, NULL);
 }
 
-/**
- * This function is needed in the case when an addon id disabled
- * while a modal operator it defined is running.
- */
 void WM_operator_handlers_clear(wmWindowManager *wm, wmOperatorType *ot)
 {
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
@@ -509,17 +482,17 @@ void WM_check(bContext *C)
   }
 
   if (!G.background) {
-    /* Case: fileread. */
+    /* Case: file-read. */
     if ((wm->initialized & WM_WINDOW_IS_INIT) == 0) {
       WM_keyconfig_init(C);
-      WM_autosave_init(wm);
+      WM_file_autosave_init(wm);
     }
 
     /* Case: no open windows at all, for old file reads. */
     wm_window_ghostwindows_ensure(wm);
   }
 
-  /* Case: fileread. */
+  /* Case: file-read. */
   /* NOTE: this runs in background mode to set the screen context cb. */
   if ((wm->initialized & WM_WINDOW_IS_INIT) == 0) {
     ED_screens_init(bmain, wm);
@@ -549,7 +522,6 @@ void wm_clear_default_size(bContext *C)
   }
 }
 
-/* On startup, it adds all data, for matching. */
 void wm_add_default(Main *bmain, bContext *C)
 {
   wmWindowManager *wm = BKE_libblock_alloc(bmain, ID_WM, "WinMan", 0);
@@ -571,7 +543,6 @@ void wm_add_default(Main *bmain, bContext *C)
   wm_window_make_drawable(wm, win);
 }
 
-/* Context is allowed to be NULL, do not free wm itself (lib_id.c). */
 void wm_close_and_free(bContext *C, wmWindowManager *wm)
 {
   if (wm->autosavetimer) {

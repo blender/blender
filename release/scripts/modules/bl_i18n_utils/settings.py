@@ -1,20 +1,4 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8 compliant>
 
@@ -100,6 +84,7 @@ LANGUAGES = (
     (45, "Abkhaz (Аԥсуа бызшәа)", "ab"),
     (46, "Thai (ภาษาไทย)", "th_TH"),
     (47, "Slovak (Slovenčina)", "sk_SK"),
+    (48, "Georgian (ქართული)", "ka"),
 )
 
 # Default context, in py (keep in sync with `BLT_translation.h`)!
@@ -355,6 +340,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "y",
     "y = (Ax + B)",
     # Sub-strings.
+    "and AMD Radeon Pro 21.Q4 driver or newer",
     "available with",
     "brown fox",
     "can't save image while rendering",
@@ -377,6 +363,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "image path can't be written to",
     "in memory to enable editing!",
     "insufficient content",
+    "into",
     "jumps over",
     "left",
     "local",
@@ -386,6 +373,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "performance impact!",
     "right",
     "the lazy dog",
+    "to the top level of the tree",
     "unable to load movie clip",
     "unable to load text",
     "unable to open the file",

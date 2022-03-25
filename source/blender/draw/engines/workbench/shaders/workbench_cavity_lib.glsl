@@ -1,17 +1,11 @@
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(workbench_data_lib.glsl)
 #pragma BLENDER_REQUIRE(workbench_common_lib.glsl)
-
-layout(std140) uniform samples_block
-{
-  vec4 samples_coords[512];
-};
-
-uniform sampler2D cavityJitter;
 
 /*  From The Alchemy screen-space ambient obscurance algorithm
  * http://graphics.cs.williams.edu/papers/AlchemyHPG11/VV11AlchemyAO.pdf */
+
+#ifdef USE_CAVITY
 
 void cavity_compute(vec2 screenco,
                     sampler2D depthBuffer,
@@ -98,3 +92,5 @@ void cavity_compute(vec2 screenco,
   cavities = clamp(cavities * world_data.cavity_valley_factor, 0.0, 1.0);
   edges = edges * world_data.cavity_ridge_factor;
 }
+
+#endif /* USE_CAVITY */

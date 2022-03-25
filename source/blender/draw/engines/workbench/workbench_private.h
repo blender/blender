@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2016, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 Blender Foundation. */
 
 /** \file
  * \ingroup draw_engine
@@ -414,12 +399,16 @@ void workbench_opaque_cache_init(WORKBENCH_Data *data);
 /* workbench_transparent.c */
 void workbench_transparent_engine_init(WORKBENCH_Data *data);
 void workbench_transparent_cache_init(WORKBENCH_Data *data);
+/**
+ * Redraw the transparent passes but with depth test
+ * to output correct outline IDs and depth.
+ */
 void workbench_transparent_draw_depth_pass(WORKBENCH_Data *data);
 
 /* workbench_shadow.c */
 void workbench_shadow_data_update(WORKBENCH_PrivateData *wpd, WORKBENCH_UBO_World *wd);
 void workbench_shadow_cache_init(WORKBENCH_Data *data);
-void workbench_shadow_cache_populate(WORKBENCH_Data *data, Object *ob, const bool has_transp_mat);
+void workbench_shadow_cache_populate(WORKBENCH_Data *data, Object *ob, bool has_transp_mat);
 
 /* workbench_shader.c */
 GPUShader *workbench_shader_opaque_get(WORKBENCH_PrivateData *wpd, eWORKBENCH_DataType data);
@@ -455,7 +444,6 @@ void workbench_shader_depth_of_field_get(GPUShader **prepare_sh,
                                          GPUShader **blur2_sh,
                                          GPUShader **resolve_sh);
 
-void workbench_shader_library_ensure(void);
 void workbench_shader_free(void);
 
 /* workbench_effect_antialiasing.c */
@@ -463,6 +451,9 @@ int workbench_antialiasing_sample_count_get(WORKBENCH_PrivateData *wpd);
 void workbench_antialiasing_engine_init(WORKBENCH_Data *vedata);
 void workbench_antialiasing_cache_init(WORKBENCH_Data *vedata);
 void workbench_antialiasing_view_updated(WORKBENCH_Data *vedata);
+/**
+ * Return true if render is not cached.
+ */
 bool workbench_antialiasing_setup(WORKBENCH_Data *vedata);
 void workbench_antialiasing_draw_pass(WORKBENCH_Data *vedata);
 
@@ -491,6 +482,9 @@ DRWShadingGroup *workbench_material_setup_ex(WORKBENCH_PrivateData *wpd,
                                              eV3DShadingColorType color_type,
                                              eWORKBENCH_DataType datatype,
                                              bool *r_transp);
+/**
+ * If `ima` is null, search appropriate image node but will fallback to purple texture otherwise.
+ */
 DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
                                           Object *ob,
                                           int mat_nr,
@@ -535,6 +529,10 @@ void workbench_engine_init(void *ved);
 void workbench_cache_init(void *ved);
 void workbench_cache_populate(void *ved, Object *ob);
 void workbench_cache_finish(void *ved);
+/**
+ * Used by viewport rendering & final rendering.
+ * Do one render loop iteration (i.e: One TAA sample).
+ */
 void workbench_draw_sample(void *ved);
 void workbench_draw_finish(void *ved);
 

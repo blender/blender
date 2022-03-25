@@ -1,20 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8 compliant>
 
@@ -127,8 +111,8 @@ class DopesheetFilterPopoverBase:
             flow.prop(dopesheet, "show_lattices", text="Lattices")
         if bpy.data.metaballs:
             flow.prop(dopesheet, "show_metaballs", text="Metaballs")
-        if hasattr(bpy.data, "hairs") and bpy.data.hairs:
-            flow.prop(dopesheet, "show_hairs", text="Hairs")
+        if hasattr(bpy.data, "hair_curves") and bpy.data.hair_curves:
+            flow.prop(dopesheet, "show_hair_curves", text="Hair Curves")
         if hasattr(bpy.data, "pointclouds") and bpy.data.pointclouds:
             flow.prop(dopesheet, "show_pointclouds", text="Point Clouds")
         if bpy.data.volumes:
@@ -382,7 +366,7 @@ class DOPESHEET_MT_view(Menu):
 class DOPESHEET_MT_view_pie(Menu):
     bl_label = "View"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         pie = layout.menu_pie()
@@ -537,6 +521,39 @@ class DOPESHEET_MT_key_transform(Menu):
         layout.operator("transform.transform", text="Extend").mode = 'TIME_EXTEND'
         layout.operator("transform.transform", text="Slide").mode = 'TIME_SLIDE'
         layout.operator("transform.transform", text="Scale").mode = 'TIME_SCALE'
+
+
+class DopesheetActionPanelBase:
+    bl_region_type = 'UI'
+    bl_label = "Action"
+
+    @classmethod
+    def draw_generic_panel(cls, _context, layout, action):
+        layout.label(text=action.name, icon='ACTION')
+
+        layout.prop(action, "use_frame_range")
+
+        col = layout.column()
+        col.active = action.use_frame_range
+
+        row = col.row(align=True)
+        row.prop(action, "frame_start", text="Start")
+        row.prop(action, "frame_end", text="End")
+
+        col.prop(action, "use_cyclic")
+
+
+class DOPESHEET_PT_action(DopesheetActionPanelBase, Panel):
+    bl_space_type = 'DOPESHEET_EDITOR'
+    bl_category = "Item"
+
+    @classmethod
+    def poll(cls, context):
+        return bool(context.selected_visible_actions)
+
+    def draw(self, context):
+        action = context.selected_visible_actions[0]
+        self.draw_generic_panel(context, self.layout, action)
 
 
 #######################################
@@ -792,6 +809,7 @@ classes = (
     DOPESHEET_MT_snap_pie,
     DOPESHEET_MT_view_pie,
     DOPESHEET_PT_filters,
+    DOPESHEET_PT_action,
     DOPESHEET_PT_gpencil_mode,
     DOPESHEET_PT_gpencil_layer_masks,
     DOPESHEET_PT_gpencil_layer_transform,

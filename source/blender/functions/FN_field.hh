@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -47,51 +33,54 @@
  */
 
 #include "BLI_function_ref.hh"
+#include "BLI_generic_virtual_array.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
-#include "FN_generic_virtual_array.hh"
 #include "FN_multi_function_builder.hh"
-#include "FN_multi_function_procedure.hh"
-#include "FN_multi_function_procedure_builder.hh"
-#include "FN_multi_function_procedure_executor.hh"
 
 namespace blender::fn {
 
 class FieldInput;
+struct FieldInputs;
+
+/**
+ * Have a fixed set of base node types, because all code that works with field nodes has to
+ * understand those.
+ */
+enum class FieldNodeType {
+  Input,
+  Operation,
+  Constant,
+};
 
 /**
  * A node in a field-tree. It has at least one output that can be referenced by fields.
  */
 class FieldNode {
  private:
-  bool is_input_;
+  FieldNodeType node_type_;
+
+ protected:
   /**
-   * True when this node is a #FieldInput or (potentially indirectly) depends on one. This could
-   * always be derived again later by traversing the field-tree, but keeping track of it while the
-   * field is built is cheaper.
-   *
-   * If this is false, the field is constant. Note that even when this is true, the field may be
-   * constant when all inputs are constant.
+   * Keeps track of the inputs that this node depends on. This avoids recomputing it every time the
+   * data is required. It is a shared pointer, because very often multiple nodes depend on the same
+   * inputs.
+   * Might contain null.
    */
-  bool depends_on_input_;
+  std::shared_ptr<const FieldInputs> field_inputs_;
 
  public:
-  FieldNode(bool is_input, bool depends_on_input);
-
-  virtual ~FieldNode() = default;
+  FieldNode(FieldNodeType node_type);
+  virtual ~FieldNode();
 
   virtual const CPPType &output_cpp_type(int output_index) const = 0;
 
-  bool is_input() const;
-  bool is_operation() const;
+  FieldNodeType node_type() const;
   bool depends_on_input() const;
 
-  /**
-   * Invoke callback for every field input. It might be called multiple times for the same input.
-   * The caller is responsible for deduplication if required.
-   */
-  virtual void foreach_field_input(FunctionRef<void(const FieldInput &)> foreach_fn) const = 0;
+  const std::shared_ptr<const FieldInputs> &field_inputs() const;
 
   virtual uint64_t hash() const;
   virtual bool is_equal_to(const FieldNode &other) const;
@@ -130,7 +119,7 @@ template<typename NodePtr> class GFieldBase {
     return get_default_hash_2(*node_, node_output_index_);
   }
 
-  const fn::CPPType &cpp_type() const
+  const CPPType &cpp_type() const
   {
     return node_->output_cpp_type(node_output_index_);
   }
@@ -178,11 +167,19 @@ class GFieldRef : public GFieldBase<const FieldNode *> {
   }
 };
 
+namespace detail {
+/* Utility class to make #is_field_v work. */
+struct TypedFieldBase {
+};
+}  // namespace detail
+
 /**
  * A typed version of #GField. It has the same memory layout as #GField.
  */
-template<typename T> class Field : public GField {
+template<typename T> class Field : public GField, detail::TypedFieldBase {
  public:
+  using base_type = T;
+
   Field() = default;
 
   Field(GField field) : GField(std::move(field))
@@ -195,6 +192,11 @@ template<typename T> class Field : public GField {
   {
   }
 };
+
+/** True when T is any Field<...> type. */
+template<typename T>
+static constexpr bool is_field_v = std::is_base_of_v<detail::TypedFieldBase, T> &&
+                                   !std::is_same_v<detail::TypedFieldBase, T>;
 
 /**
  * A #FieldNode that allows composing existing fields into new fields.
@@ -213,12 +215,12 @@ class FieldOperation : public FieldNode {
  public:
   FieldOperation(std::shared_ptr<const MultiFunction> function, Vector<GField> inputs = {});
   FieldOperation(const MultiFunction &function, Vector<GField> inputs = {});
+  ~FieldOperation();
 
   Span<GField> inputs() const;
   const MultiFunction &multi_function() const;
 
   const CPPType &output_cpp_type(int output_index) const override;
-  void foreach_field_input(FunctionRef<void(const FieldInput &)> foreach_fn) const override;
 };
 
 class FieldContext;
@@ -243,6 +245,7 @@ class FieldInput : public FieldNode {
 
  public:
   FieldInput(const CPPType &type, std::string debug_name = "");
+  ~FieldInput();
 
   /**
    * Get the value of this specific input based on the given context. The returned virtual array,
@@ -258,7 +261,33 @@ class FieldInput : public FieldNode {
   Category category() const;
 
   const CPPType &output_cpp_type(int output_index) const override;
-  void foreach_field_input(FunctionRef<void(const FieldInput &)> foreach_fn) const override;
+};
+
+class FieldConstant : public FieldNode {
+ private:
+  const CPPType &type_;
+  void *value_;
+
+ public:
+  FieldConstant(const CPPType &type, const void *value);
+  ~FieldConstant();
+
+  const CPPType &output_cpp_type(int output_index) const override;
+  const CPPType &type() const;
+  GPointer value() const;
+};
+
+/**
+ * Keeps track of the inputs of a field.
+ */
+struct FieldInputs {
+  /** All #FieldInput nodes that a field (possibly indirectly) depends on. */
+  VectorSet<const FieldInput *> nodes;
+  /**
+   * Same as above but the inputs are deduplicated. For example, when there are two separate index
+   * input nodes, only one will show up in this list.
+   */
+  VectorSet<std::reference_wrapper<const FieldInput>> deduplicated_nodes;
 };
 
 /**
@@ -266,7 +295,7 @@ class FieldInput : public FieldNode {
  */
 class FieldContext {
  public:
-  ~FieldContext() = default;
+  virtual ~FieldContext() = default;
 
   virtual GVArray get_varray_for_input(const FieldInput &field_input,
                                        IndexMask mask,
@@ -294,6 +323,9 @@ class FieldEvaluator : NonMovable, NonCopyable {
   Vector<OutputPointerInfo> output_pointer_infos_;
   bool is_evaluated_ = false;
 
+  Field<bool> selection_field_;
+  IndexMask selection_mask_;
+
  public:
   /** Takes #mask by pointer because the mask has to live longer than the evaluator. */
   FieldEvaluator(const FieldContext &context, const IndexMask *mask)
@@ -311,6 +343,18 @@ class FieldEvaluator : NonMovable, NonCopyable {
     /* While this assert isn't strictly necessary, and could be replaced with a warning,
      * it will catch cases where someone forgets to call #evaluate(). */
     BLI_assert(is_evaluated_);
+  }
+
+  /**
+   * The selection field is evaluated first to determine which indices of the other fields should
+   * be evaluated. Calling this method multiple times will just replace the previously set
+   * selection field. Only the elements selected by both this selection and the selection provided
+   * in the constructor are calculated. If no selection field is set, it is assumed that all
+   * indices passed to the constructor are selected.
+   */
+  void set_selection(Field<bool> selection)
+  {
+    selection_field_ = std::move(selection);
   }
 
   /**
@@ -384,14 +428,34 @@ class FieldEvaluator : NonMovable, NonCopyable {
     return this->get_evaluated(field_index).typed<T>();
   }
 
+  IndexMask get_evaluated_selection_as_mask();
+
   /**
    * Retrieve the output of an evaluated boolean field and convert it to a mask, which can be used
    * to avoid calculations for unnecessary elements later on. The evaluator will own the indices in
    * some cases, so it must live at least as long as the returned mask.
    */
-  IndexMask get_evaluated_as_mask(const int field_index);
+  IndexMask get_evaluated_as_mask(int field_index);
 };
 
+/**
+ * Evaluate fields in the given context. If possible, multiple fields should be evaluated together,
+ * because that can be more efficient when they share common sub-fields.
+ *
+ * \param scope: The resource scope that owns data that makes up the output virtual arrays. Make
+ *   sure the scope is not destructed when the output virtual arrays are still used.
+ * \param fields_to_evaluate: The fields that should be evaluated together.
+ * \param mask: Determines which indices are computed. The mask may be referenced by the returned
+ *   virtual arrays. So the underlying indices (if applicable) should live longer then #scope.
+ * \param context: The context that the field is evaluated in. Used to retrieve data from each
+ *   #FieldInput in the field network.
+ * \param dst_varrays: If provided, the computed data will be written into those virtual arrays
+ *   instead of into newly created ones. That allows making the computed data live longer than
+ *   #scope and is more efficient when the data will be written into those virtual arrays
+ *   later anyway.
+ * \return The computed virtual arrays for each provided field. If #dst_varrays is passed, the
+ *   provided virtual arrays are returned.
+ */
 Vector<GVArray> evaluate_fields(ResourceScope &scope,
                                 Span<GFieldRef> fields_to_evaluate,
                                 IndexMask mask,
@@ -412,20 +476,29 @@ template<typename T> T evaluate_constant_field(const Field<T> &field)
   return value;
 }
 
+GField make_constant_field(const CPPType &type, const void *value);
+
 template<typename T> Field<T> make_constant_field(T value)
 {
-  auto constant_fn = std::make_unique<fn::CustomMF_Constant<T>>(std::forward<T>(value));
-  auto operation = std::make_shared<FieldOperation>(std::move(constant_fn));
-  return Field<T>{GField{std::move(operation), 0}};
+  return make_constant_field(CPPType::get<T>(), &value);
 }
 
+/**
+ * If the field depends on some input, the same field is returned.
+ * Otherwise the field is evaluated and a new field is created that just computes this constant.
+ *
+ * Making the field constant has two benefits:
+ * - The field-tree becomes a single node, which is more efficient when the field is evaluated many
+ *   times.
+ * - Memory of the input fields may be freed.
+ */
 GField make_field_constant_if_possible(GField field);
 
 class IndexFieldInput final : public FieldInput {
  public:
   IndexFieldInput();
 
-  static GVArray get_index_varray(IndexMask mask, ResourceScope &scope);
+  static GVArray get_index_varray(IndexMask mask);
 
   GVArray get_varray_for_context(const FieldContext &context,
                                  IndexMask mask,
@@ -438,27 +511,72 @@ class IndexFieldInput final : public FieldInput {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Value or Field Class
+ *
+ * Utility class that wraps a single value and a field, to simplify accessing both of the types.
+ * \{ */
+
+template<typename T> struct ValueOrField {
+  /** Value that is used when the field is empty. */
+  T value{};
+  Field<T> field;
+
+  ValueOrField() = default;
+
+  ValueOrField(T value) : value(std::move(value))
+  {
+  }
+
+  ValueOrField(Field<T> field) : field(std::move(field))
+  {
+  }
+
+  bool is_field() const
+  {
+    return (bool)this->field;
+  }
+
+  Field<T> as_field() const
+  {
+    if (this->field) {
+      return this->field;
+    }
+    return make_constant_field(this->value);
+  }
+
+  T as_value() const
+  {
+    if (this->field) {
+      /* This returns a default value when the field is not constant. */
+      return evaluate_constant_field(this->field);
+    }
+    return this->value;
+  }
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name #FieldNode Inline Methods
  * \{ */
 
-inline FieldNode::FieldNode(bool is_input, bool depends_on_input)
-    : is_input_(is_input), depends_on_input_(depends_on_input)
+inline FieldNode::FieldNode(const FieldNodeType node_type) : node_type_(node_type)
 {
 }
 
-inline bool FieldNode::is_input() const
+inline FieldNodeType FieldNode::node_type() const
 {
-  return is_input_;
-}
-
-inline bool FieldNode::is_operation() const
-{
-  return !is_input_;
+  return node_type_;
 }
 
 inline bool FieldNode::depends_on_input() const
 {
-  return depends_on_input_;
+  return field_inputs_ && !field_inputs_->nodes.is_empty();
+}
+
+inline const std::shared_ptr<const FieldInputs> &FieldNode::field_inputs() const
+{
+  return field_inputs_;
 }
 
 inline uint64_t FieldNode::hash() const

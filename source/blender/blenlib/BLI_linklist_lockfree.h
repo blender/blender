@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2018 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2018 Blender Foundation. All rights reserved. */
 
 #pragma once
 
@@ -48,18 +32,19 @@ typedef void (*LockfreeeLinkNodeFreeFP)(void *link);
 /* NOTE: These functions are NOT safe for use from threads. */
 /* NOTE: !!! I REPEAT: DO NOT USE THEM WITHOUT EXTERNAL LOCK !!! */
 
-/* Make list ready for lock-free access. */
+/** Make list ready for lock-free access. */
 void BLI_linklist_lockfree_init(LockfreeLinkList *list);
 
-/* Completely free the whole list, it is NOT re-usable after this. */
+/** Completely free the whole list, it is NOT re-usable after this. */
 void BLI_linklist_lockfree_free(LockfreeLinkList *list, LockfreeeLinkNodeFreeFP free_func);
 
-/* Remove all the elements from the list, keep it usable for further
- * inserts.
+/**
+ * Remove all the elements from the list, keep it usable for further inserts.
  */
 void BLI_linklist_lockfree_clear(LockfreeLinkList *list, LockfreeeLinkNodeFreeFP free_func);
 
-/* Begin iteration of lock-free linked list, starting with a
+/**
+ * Begin iteration of lock-free linked list, starting with a
  * first user=defined node. Will ignore the dummy node.
  */
 LockfreeLinkNode *BLI_linklist_lockfree_begin(LockfreeLinkList *list);

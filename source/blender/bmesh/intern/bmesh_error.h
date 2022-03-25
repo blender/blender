@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -48,13 +34,17 @@ typedef enum eBMOpErrorLevel {
   BMO_ERROR_FATAL = 2,
 } eBMOpErrorLevel;
 
-/* Pushes an error onto the bmesh error stack.
- * if msg is null, then the default message for the `errcode` is used. */
+/**
+ * Pushes an error onto the bmesh error stack.
+ * if msg is null, then the default message for the `errcode` is used.
+ */
 void BMO_error_raise(BMesh *bm, BMOperator *owner, eBMOpErrorLevel level, const char *msg)
     ATTR_NONNULL(1, 2, 4);
 
-/* Gets the topmost error from the stack.
- * returns error code or 0 if no error. */
+/**
+ * Gets the topmost error from the stack.
+ * returns error code or 0 if no error.
+ */
 bool BMO_error_get(BMesh *bm, const char **r_msg, BMOperator **r_op, eBMOpErrorLevel *r_level);
 bool BMO_error_get_at_level(BMesh *bm,
                             eBMOpErrorLevel level,
@@ -83,8 +73,10 @@ void BMO_error_clear(BMesh *bm);
 #  define _BMESH_DUMMY_ABORT() (void)0
 #endif
 
-/* This is meant to be higher level than BLI_assert(),
- * its enabled even when in Release mode. */
+/**
+ * This is meant to be higher level than BLI_assert(),
+ * its enabled even when in Release mode.
+ */
 #define BMESH_ASSERT(a) \
   (void)((!(a)) ? ((fprintf(stderr, \
                             "BMESH_ASSERT failed: %s, %s(), %d at \'%s\'\n", \

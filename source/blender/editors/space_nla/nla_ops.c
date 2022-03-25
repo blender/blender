@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
 
 /** \file
  * \ingroup spnla
@@ -39,7 +23,6 @@
 
 /* ************************** poll callbacks for operators **********************************/
 
-/* Tweak-mode is NOT enabled. */
 bool nlaop_poll_tweakmode_off(bContext *C)
 {
   Scene *scene;
@@ -62,7 +45,6 @@ bool nlaop_poll_tweakmode_off(bContext *C)
   return 1;
 }
 
-/* Tweak-mode IS enabled. */
 bool nlaop_poll_tweakmode_on(bContext *C)
 {
   Scene *scene;
@@ -85,7 +67,6 @@ bool nlaop_poll_tweakmode_on(bContext *C)
   return 1;
 }
 
-/* is tweak-mode enabled - for use in NLA operator code */
 bool nlaedit_is_tweakmode_on(bAnimContext *ac)
 {
   if (ac && ac->scene) {

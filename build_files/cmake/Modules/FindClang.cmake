@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2011 Blender Foundation.
+
 # - Find Clang library
 # Find the native Clang includes and library
 # This module defines
@@ -7,13 +10,6 @@
 #  CLANG_ROOT_DIR, The base directory to search for Clang.
 #                        This can also be an environment variable.
 #  CLANG_FOUND, If false, do not try to use Clang.
-
-#=============================================================================
-# Copyright 2021 Blender Foundation.
-#
-# Distributed under the OSI-approved BSD 3-Clause License,
-# see accompanying file BSD-3-Clause-license.txt for details.
-#=============================================================================
 
 # If CLANG_ROOT_DIR was defined in the environment, use it.
 if(NOT CLANG_ROOT_DIR AND NOT $ENV{CLANG_ROOT_DIR} STREQUAL "")

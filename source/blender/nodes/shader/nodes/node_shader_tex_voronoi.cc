@@ -1,40 +1,37 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
 
 #include "BLI_noise.hh"
 
-namespace blender::nodes {
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+namespace blender::nodes::node_shader_tex_voronoi_cc {
+
+NODE_STORAGE_FUNCS(NodeTexVoronoi)
 
 static void sh_node_tex_voronoi_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Vector>(N_("Vector")).hide_value().implicit_field();
-  b.add_input<decl::Float>(N_("W")).min(-1000.0f).max(1000.0f);
+  b.add_input<decl::Float>(N_("W")).min(-1000.0f).max(1000.0f).make_available([](bNode &node) {
+    /* Default to 1 instead of 4, because it is much faster. */
+    node_storage(node).dimensions = 1;
+  });
   b.add_input<decl::Float>(N_("Scale")).min(-1000.0f).max(1000.0f).default_value(5.0f);
   b.add_input<decl::Float>(N_("Smoothness"))
       .min(0.0f)
       .max(1.0f)
       .default_value(1.0f)
-      .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("Exponent")).min(0.0f).max(32.0f).default_value(0.5f);
+      .subtype(PROP_FACTOR)
+      .make_available([](bNode &node) { node_storage(node).feature = SHD_VORONOI_SMOOTH_F1; });
+  b.add_input<decl::Float>(N_("Exponent"))
+      .min(0.0f)
+      .max(32.0f)
+      .default_value(0.5f)
+      .make_available([](bNode &node) { node_storage(node).distance = SHD_VORONOI_MINKOWSKI; });
   b.add_input<decl::Float>(N_("Randomness"))
       .min(0.0f)
       .max(1.0f)
@@ -43,15 +40,29 @@ static void sh_node_tex_voronoi_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Distance")).no_muted_links();
   b.add_output<decl::Color>(N_("Color")).no_muted_links();
   b.add_output<decl::Vector>(N_("Position")).no_muted_links();
-  b.add_output<decl::Float>(N_("W")).no_muted_links();
-  b.add_output<decl::Float>(N_("Radius")).no_muted_links();
-};
+  b.add_output<decl::Float>(N_("W")).no_muted_links().make_available([](bNode &node) {
+    /* Default to 1 instead of 4, because it is much faster. */
+    node_storage(node).dimensions = 1;
+  });
+  b.add_output<decl::Float>(N_("Radius")).no_muted_links().make_available([](bNode &node) {
+    node_storage(node).feature = SHD_VORONOI_N_SPHERE_RADIUS;
+  });
+}
 
-}  // namespace blender::nodes
+static void node_shader_buts_tex_voronoi(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "voronoi_dimensions", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  uiItemR(layout, ptr, "feature", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  int feature = RNA_enum_get(ptr, "feature");
+  if (!ELEM(feature, SHD_VORONOI_DISTANCE_TO_EDGE, SHD_VORONOI_N_SPHERE_RADIUS) &&
+      RNA_enum_get(ptr, "voronoi_dimensions") != 1) {
+    uiItemR(layout, ptr, "distance", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  }
+}
 
 static void node_shader_init_tex_voronoi(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeTexVoronoi *tex = (NodeTexVoronoi *)MEM_callocN(sizeof(NodeTexVoronoi), "NodeTexVoronoi");
+  NodeTexVoronoi *tex = MEM_cnew<NodeTexVoronoi>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   tex->dimensions = 3;
@@ -123,7 +134,7 @@ static int node_shader_gpu_tex_voronoi(GPUMaterial *mat,
   return GPU_stack_link(mat, node, name, in, out, GPU_constant(&metric));
 }
 
-static void node_shader_update_tex_voronoi(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_shader_update_tex_voronoi(bNodeTree *ntree, bNode *node)
 {
   bNodeSocket *inVectorSock = nodeFindSocket(node, SOCK_IN, "Vector");
   bNodeSocket *inWSock = nodeFindSocket(node, SOCK_IN, "W");
@@ -136,32 +147,37 @@ static void node_shader_update_tex_voronoi(bNodeTree *UNUSED(ntree), bNode *node
   bNodeSocket *outWSock = nodeFindSocket(node, SOCK_OUT, "W");
   bNodeSocket *outRadiusSock = nodeFindSocket(node, SOCK_OUT, "Radius");
 
-  NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
+  const NodeTexVoronoi &storage = node_storage(*node);
 
-  nodeSetSocketAvailability(inWSock, tex->dimensions == 1 || tex->dimensions == 4);
-  nodeSetSocketAvailability(inVectorSock, tex->dimensions != 1);
+  nodeSetSocketAvailability(ntree, inWSock, storage.dimensions == 1 || storage.dimensions == 4);
+  nodeSetSocketAvailability(ntree, inVectorSock, storage.dimensions != 1);
   nodeSetSocketAvailability(
+      ntree,
       inExponentSock,
-      tex->distance == SHD_VORONOI_MINKOWSKI && tex->dimensions != 1 &&
-          !ELEM(tex->feature, SHD_VORONOI_DISTANCE_TO_EDGE, SHD_VORONOI_N_SPHERE_RADIUS));
-  nodeSetSocketAvailability(inSmoothnessSock, tex->feature == SHD_VORONOI_SMOOTH_F1);
+      storage.distance == SHD_VORONOI_MINKOWSKI && storage.dimensions != 1 &&
+          !ELEM(storage.feature, SHD_VORONOI_DISTANCE_TO_EDGE, SHD_VORONOI_N_SPHERE_RADIUS));
+  nodeSetSocketAvailability(ntree, inSmoothnessSock, storage.feature == SHD_VORONOI_SMOOTH_F1);
 
-  nodeSetSocketAvailability(outDistanceSock, tex->feature != SHD_VORONOI_N_SPHERE_RADIUS);
-  nodeSetSocketAvailability(outColorSock,
-                            tex->feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
-                                tex->feature != SHD_VORONOI_N_SPHERE_RADIUS);
-  nodeSetSocketAvailability(outPositionSock,
-                            tex->feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
-                                tex->feature != SHD_VORONOI_N_SPHERE_RADIUS &&
-                                tex->dimensions != 1);
-  nodeSetSocketAvailability(outWSock,
-                            tex->feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
-                                tex->feature != SHD_VORONOI_N_SPHERE_RADIUS &&
-                                (ELEM(tex->dimensions, 1, 4)));
-  nodeSetSocketAvailability(outRadiusSock, tex->feature == SHD_VORONOI_N_SPHERE_RADIUS);
+  nodeSetSocketAvailability(
+      ntree, outDistanceSock, storage.feature != SHD_VORONOI_N_SPHERE_RADIUS);
+  nodeSetSocketAvailability(ntree,
+                            outColorSock,
+                            storage.feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
+                                storage.feature != SHD_VORONOI_N_SPHERE_RADIUS);
+  nodeSetSocketAvailability(ntree,
+                            outPositionSock,
+                            storage.feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
+                                storage.feature != SHD_VORONOI_N_SPHERE_RADIUS &&
+                                storage.dimensions != 1);
+  nodeSetSocketAvailability(ntree,
+                            outWSock,
+                            storage.feature != SHD_VORONOI_DISTANCE_TO_EDGE &&
+                                storage.feature != SHD_VORONOI_N_SPHERE_RADIUS &&
+                                (ELEM(storage.dimensions, 1, 4)));
+  nodeSetSocketAvailability(ntree, outRadiusSock, storage.feature == SHD_VORONOI_N_SPHERE_RADIUS);
 }
 
-namespace blender::nodes {
+static MultiFunction::ExecutionHints voronoi_execution_hints{50, false};
 
 class VoronoiMinowskiFunction : public fn::MultiFunction {
  private:
@@ -281,7 +297,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                pos = float2::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 r_position[i] = float3(pos.x, pos.y, 0.0f);
               }
             }
@@ -313,7 +329,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                pos = float2::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 r_position[i] = float3(pos.x, pos.y, 0.0f);
               }
             }
@@ -348,7 +364,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                pos = float2::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 r_position[i] = float3(pos.x, pos.y, 0.0f);
               }
             }
@@ -384,7 +400,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+                r_position[i] = math::safe_divide(r_position[i], scale[i]);
               }
             }
             break;
@@ -414,7 +430,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+                r_position[i] = math::safe_divide(r_position[i], scale[i]);
               }
             }
             break;
@@ -447,7 +463,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+                r_position[i] = math::safe_divide(r_position[i], scale[i]);
               }
             }
             break;
@@ -487,7 +503,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position || calc_w) {
-                pos = float4::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 if (calc_position) {
                   r_position[i] = float3(pos.x, pos.y, pos.z);
                 }
@@ -528,7 +544,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position || calc_w) {
-                pos = float4::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 if (calc_position) {
                   r_position[i] = float3(pos.x, pos.y, pos.z);
                 }
@@ -572,7 +588,7 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position || calc_w) {
-                pos = float4::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 if (calc_position) {
                   r_position[i] = float3(pos.x, pos.y, pos.z);
                 }
@@ -587,6 +603,11 @@ class VoronoiMinowskiFunction : public fn::MultiFunction {
         break;
       }
     }
+  }
+
+  ExecutionHints get_execution_hints() const override
+  {
+    return voronoi_execution_hints;
   }
 };
 
@@ -800,7 +821,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                pos = float2::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 r_position[i] = float3(pos.x, pos.y, 0.0f);
               }
             }
@@ -831,7 +852,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                pos = float2::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 r_position[i] = float3(pos.x, pos.y, 0.0f);
               }
             }
@@ -865,7 +886,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                pos = float2::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 r_position[i] = float3(pos.x, pos.y, 0.0f);
               }
             }
@@ -900,7 +921,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+                r_position[i] = math::safe_divide(r_position[i], scale[i]);
               }
             }
             break;
@@ -929,7 +950,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position) {
-                r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+                r_position[i] = math::safe_divide(r_position[i], scale[i]);
               }
             }
             break;
@@ -962,7 +983,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                   r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
                 }
                 if (calc_position) {
-                  r_position[i] = float3::safe_divide(r_position[i], scale[i]);
+                  r_position[i] = math::safe_divide(r_position[i], scale[i]);
                 }
               }
             }
@@ -1003,7 +1024,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position || calc_w) {
-                pos = float4::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 if (calc_position) {
                   r_position[i] = float3(pos.x, pos.y, pos.z);
                 }
@@ -1043,7 +1064,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position || calc_w) {
-                pos = float4::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 if (calc_position) {
                   r_position[i] = float3(pos.x, pos.y, pos.z);
                 }
@@ -1086,7 +1107,7 @@ class VoronoiMetricFunction : public fn::MultiFunction {
                 r_color[i] = ColorGeometry4f(col[0], col[1], col[2], 1.0f);
               }
               if (calc_position || calc_w) {
-                pos = float4::safe_divide(pos, scale[i]);
+                pos = math::safe_divide(pos, scale[i]);
                 if (calc_position) {
                   r_position[i] = float3(pos.x, pos.y, pos.z);
                 }
@@ -1101,6 +1122,11 @@ class VoronoiMetricFunction : public fn::MultiFunction {
         break;
       }
     }
+  }
+
+  ExecutionHints get_execution_hints() const override
+  {
+    return voronoi_execution_hints;
   }
 };
 
@@ -1278,42 +1304,53 @@ class VoronoiEdgeFunction : public fn::MultiFunction {
         break;
       }
     }
-  };
+  }
+
+  ExecutionHints get_execution_hints() const override
+  {
+    return voronoi_execution_hints;
+  }
 };
 
-static void sh_node_voronoi_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void sh_node_voronoi_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  bNode &node = builder.node();
-  NodeTexVoronoi *tex = (NodeTexVoronoi *)node.storage;
-  bool minowski = (tex->distance == SHD_VORONOI_MINKOWSKI && tex->dimensions != 1 &&
-                   !ELEM(tex->feature, SHD_VORONOI_DISTANCE_TO_EDGE, SHD_VORONOI_N_SPHERE_RADIUS));
-  bool dist_radius = ELEM(tex->feature, SHD_VORONOI_DISTANCE_TO_EDGE, SHD_VORONOI_N_SPHERE_RADIUS);
+  const NodeTexVoronoi &storage = node_storage(builder.node());
+  bool minowski =
+      (storage.distance == SHD_VORONOI_MINKOWSKI && storage.dimensions != 1 &&
+       !ELEM(storage.feature, SHD_VORONOI_DISTANCE_TO_EDGE, SHD_VORONOI_N_SPHERE_RADIUS));
+  bool dist_radius = ELEM(
+      storage.feature, SHD_VORONOI_DISTANCE_TO_EDGE, SHD_VORONOI_N_SPHERE_RADIUS);
   if (dist_radius) {
-    builder.construct_and_set_matching_fn<VoronoiEdgeFunction>(tex->dimensions, tex->feature);
+    builder.construct_and_set_matching_fn<VoronoiEdgeFunction>(storage.dimensions,
+                                                               storage.feature);
   }
   else if (minowski) {
-    builder.construct_and_set_matching_fn<VoronoiMinowskiFunction>(tex->dimensions, tex->feature);
+    builder.construct_and_set_matching_fn<VoronoiMinowskiFunction>(storage.dimensions,
+                                                                   storage.feature);
   }
   else {
     builder.construct_and_set_matching_fn<VoronoiMetricFunction>(
-        tex->dimensions, tex->feature, tex->distance);
+        storage.dimensions, storage.feature, storage.distance);
   }
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_shader_tex_voronoi_cc
 
-void register_node_type_sh_tex_voronoi(void)
+void register_node_type_sh_tex_voronoi()
 {
+  namespace file_ns = blender::nodes::node_shader_tex_voronoi_cc;
+
   static bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_TEX_VORONOI, "Voronoi Texture", NODE_CLASS_TEXTURE, 0);
-  ntype.declare = blender::nodes::sh_node_tex_voronoi_declare;
-  node_type_init(&ntype, node_shader_init_tex_voronoi);
+  sh_fn_node_type_base(&ntype, SH_NODE_TEX_VORONOI, "Voronoi Texture", NODE_CLASS_TEXTURE);
+  ntype.declare = file_ns::sh_node_tex_voronoi_declare;
+  ntype.draw_buttons = file_ns::node_shader_buts_tex_voronoi;
+  node_type_init(&ntype, file_ns::node_shader_init_tex_voronoi);
   node_type_storage(
       &ntype, "NodeTexVoronoi", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, node_shader_gpu_tex_voronoi);
-  node_type_update(&ntype, node_shader_update_tex_voronoi);
-  ntype.build_multi_function = blender::nodes::sh_node_voronoi_build_multi_function;
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_voronoi);
+  node_type_update(&ntype, file_ns::node_shader_update_tex_voronoi);
+  ntype.build_multi_function = file_ns::sh_node_voronoi_build_multi_function;
 
   nodeRegisterType(&ntype);
 }

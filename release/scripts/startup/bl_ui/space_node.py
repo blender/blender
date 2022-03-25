@@ -1,20 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8 compliant>
 import bpy
@@ -77,7 +61,7 @@ class NODE_HT_header(Header):
                 layout.separator_spacer()
 
                 types_that_support_material = {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META',
-                                               'GPENCIL', 'VOLUME', 'HAIR', 'POINTCLOUD'}
+                                               'GPENCIL', 'VOLUME', 'CURVES', 'POINTCLOUD'}
                 # disable material slot buttons when pinned, cannot find correct slot within id_from (T36589)
                 # disable also when the selected object does not support materials
                 has_material_slots = not snode.pin and ob_type in types_that_support_material
@@ -201,7 +185,7 @@ class NODE_HT_header(Header):
 
         # Snap
         row = layout.row(align=True)
-        row.prop(tool_settings, "use_snap", text="")
+        row.prop(tool_settings, "use_snap_node", text="")
         row.prop(tool_settings, "snap_node_element", icon_only=True)
         if tool_settings.snap_node_element != 'GRID':
             row.prop(tool_settings, "snap_target", text="")
@@ -370,7 +354,7 @@ class NODE_MT_node(Menu):
 class NODE_MT_view_pie(Menu):
     bl_label = "View"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         pie = layout.menu_pie()
@@ -719,7 +703,12 @@ class NODE_PT_overlay(Panel):
 
         col.separator()
 
+        col.prop(overlay, "show_context_path", text="Context Path")
         col.prop(snode, "show_annotation", text="Annotations")
+
+        if snode.tree_type == 'GeometryNodeTree':
+            col.separator()
+            col.prop(overlay, "show_timing", text="Timings")
 
 
 class NODE_UL_interface_sockets(bpy.types.UIList):

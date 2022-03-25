@@ -35,7 +35,7 @@ float circle_to_polygon_radius(float sides_count, float theta)
          cos(theta - side_angle * floor((sides_count * theta + M_PI) / M_2PI));
 }
 
-/* Remap input angle to have homogenous spacing of points along a polygon edge.
+/* Remap input angle to have homogeneous spacing of points along a polygon edge.
  * Expect theta to be in [0..2pi] range. */
 float circle_to_polygon_angle(float sides_count, float theta)
 {
@@ -50,10 +50,10 @@ float circle_to_polygon_angle(float sides_count, float theta)
   float ratio = (local_theta - halfside_angle) / halfside_angle;
 
   float halfside_len = polygon_sides_length(sides_count) * 0.5;
-  float oposite = ratio * halfside_len;
+  float opposite = ratio * halfside_len;
 
   /* NOTE: atan(y_over_x) has output range [-M_PI_2..M_PI_2]. */
-  float final_local_theta = atan(oposite / adjacent);
+  float final_local_theta = atan(opposite / adjacent);
 
   return side * side_angle + final_local_theta;
 }

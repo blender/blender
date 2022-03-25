@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2014 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2014 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bli
@@ -53,25 +37,11 @@
 
 #include "BLI_astar.h"
 
-/**
- * Init a node in A* graph.
- *
- * \param custom_data: an opaque pointer attached to this link,
- * available e.g. to cost callback function.
- */
 void BLI_astar_node_init(BLI_AStarGraph *as_graph, const int node_index, void *custom_data)
 {
   as_graph->nodes[node_index].custom_data = custom_data;
 }
 
-/**
- * Add a link between two nodes of our A* graph.
- *
- * \param cost: the 'length' of the link
- * (actual distance between two vertices or face centers e.g.).
- * \param custom_data: an opaque pointer attached to this link,
- * available e.g. to cost callback function.
- */
 void BLI_astar_node_link_add(BLI_AStarGraph *as_graph,
                              const int node1_index,
                              const int node2_index,
@@ -93,22 +63,11 @@ void BLI_astar_node_link_add(BLI_AStarGraph *as_graph,
   BLI_addtail(&(as_graph->nodes[node2_index].neighbor_links), &ld[1]);
 }
 
-/**
- * \return The index of the other node of given link.
- */
 int BLI_astar_node_link_other_node(BLI_AStarGNLink *lnk, const int idx)
 {
   return (lnk->nodes[0] == idx) ? lnk->nodes[1] : lnk->nodes[0];
 }
 
-/**
- * Initialize a solution data for given A* graph. Does not compute anything!
- *
- * \param custom_data: an opaque pointer attached to this link, available e.g
- * . to cost callback function.
- *
- * \note BLI_AStarSolution stores nearly all data needed during solution compute.
- */
 void BLI_astar_solution_init(BLI_AStarGraph *as_graph,
                              BLI_AStarSolution *as_solution,
                              void *custom_data)
@@ -133,12 +92,6 @@ void BLI_astar_solution_init(BLI_AStarGraph *as_graph,
   as_solution->g_steps = BLI_memarena_alloc(mem, sizeof(*as_solution->g_steps) * node_num);
 }
 
-/**
- * Clear given solution's data, but does not release its memory. Avoids having to recreate/allocate
- * a memarena in loops, e.g.
- *
- * \note This *has to be called* between each path solving.
- */
 void BLI_astar_solution_clear(BLI_AStarSolution *as_solution)
 {
   if (as_solution->mem) {
@@ -156,9 +109,6 @@ void BLI_astar_solution_clear(BLI_AStarSolution *as_solution)
   as_solution->g_steps = NULL;
 }
 
-/**
- * Release the memory allocated for this solution.
- */
 void BLI_astar_solution_free(BLI_AStarSolution *as_solution)
 {
   if (as_solution->mem) {
@@ -167,14 +117,6 @@ void BLI_astar_solution_free(BLI_AStarSolution *as_solution)
   }
 }
 
-/**
- * Init an A* graph. Total number of nodes must be known.
- *
- * Nodes might be e.g. vertices, faces, ...
- *
- * \param custom_data: an opaque pointer attached to this link,
- * available e.g. to cost callback function.
- */
 void BLI_astar_graph_init(BLI_AStarGraph *as_graph, const int node_num, void *custom_data)
 {
   MemArena *mem = as_graph->mem;
@@ -199,14 +141,6 @@ void BLI_astar_graph_free(BLI_AStarGraph *as_graph)
   }
 }
 
-/**
- * Solve a path in given graph, using given 'cost' callback function.
- *
- * \param max_steps: maximum number of nodes the found path may have.
- * Useful in performance-critical usages.
- * If no path is found within given steps, returns false too.
- * \return true if a path was found, false otherwise.
- */
 bool BLI_astar_graph_solve(BLI_AStarGraph *as_graph,
                            const int node_index_src,
                            const int node_index_dst,

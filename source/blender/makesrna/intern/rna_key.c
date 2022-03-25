@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -61,7 +47,7 @@
 static Key *rna_ShapeKey_find_key(ID *id)
 {
   switch (GS(id->name)) {
-    case ID_CU:
+    case ID_CU_LEGACY:
       return ((Curve *)id)->key;
     case ID_KE:
       return (Key *)id;
@@ -167,10 +153,10 @@ static void rna_ShapeKey_slider_max_set(PointerRNA *ptr, float value)
 
 #  undef SHAPEKEY_SLIDER_TOL
 
-/* ***** Normals accessors for shapekeys. ***** */
+/* ***** Normals accessors for shape-keys. ***** */
 /* NOTE: with this we may recompute several times the same data, should we want to access verts,
  *       then polys, then loops normals... However,
- *       such case looks rather unlikely - and not worth adding some kind of caching in KeyBlocks.
+ *       such case looks rather unlikely - and not worth adding some kind of caching in key-blocks.
  */
 
 static Mesh *rna_KeyBlock_normals_get_mesh(PointerRNA *ptr, ID *id)
@@ -570,7 +556,7 @@ static void rna_ShapeKey_data_begin(CollectionPropertyIterator *iter, PointerRNA
   KeyBlock *kb = (KeyBlock *)ptr->data;
   int tot = kb->totelem, size = key->elemsize;
 
-  if (GS(key->from->name) == ID_CU && tot > 0) {
+  if (GS(key->from->name) == ID_CU_LEGACY && tot > 0) {
     Curve *cu = (Curve *)key->from;
     StructRNA *type = NULL;
     NurbInfo info = {0};
@@ -607,7 +593,7 @@ static int rna_ShapeKey_data_length(PointerRNA *ptr)
   KeyBlock *kb = (KeyBlock *)ptr->data;
   int tot = kb->totelem;
 
-  if (GS(key->from->name) == ID_CU) {
+  if (GS(key->from->name) == ID_CU_LEGACY) {
     tot = rna_ShapeKey_curve_find_index(key, tot);
   }
 
@@ -627,7 +613,7 @@ static PointerRNA rna_ShapeKey_data_get(CollectionPropertyIterator *iter)
     return rna_pointer_inherit_refine(&iter->parent, point->type, point->data);
   }
 
-  if (GS(key->from->name) == ID_CU) {
+  if (GS(key->from->name) == ID_CU_LEGACY) {
     Curve *cu = (Curve *)key->from;
 
     type = rna_ShapeKey_curve_point_type(cu->nurb.first);
@@ -649,7 +635,7 @@ int rna_ShapeKey_data_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
     return false;
   }
 
-  if (GS(key->from->name) == ID_CU) {
+  if (GS(key->from->name) == ID_CU_LEGACY) {
     NurbInfo info;
     rna_ShapeKey_NurbInfo_find_index(key, index, false, &info);
 

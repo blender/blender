@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -94,6 +80,7 @@ static bool bmw_edge_is_wire(const BMWalker *walker, const BMEdge *e)
   }
   return BM_edge_is_wire(e);
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -107,6 +94,7 @@ static bool bmw_edge_is_wire(const BMWalker *walker, const BMEdge *e)
  *
  * \todo Add restriction flag/callback for wire edges.
  * \{ */
+
 static void bmw_VertShellWalker_visitEdge(BMWalker *walker, BMEdge *e)
 {
   BMwShellWalker *shellWalk = NULL;
@@ -236,6 +224,7 @@ static void *bmw_VertShellWalker_step(BMWalker *walker)
  *
  * \note this is mainly useful to loop over a shell delimited by edges.
  * \{ */
+
 static void bmw_LoopShellWalker_visitLoop(BMWalker *walker, BMLoop *l)
 {
   BMwLoopShellWalker *shellWalk = NULL;
@@ -509,6 +498,7 @@ static void *bmw_LoopShellWireWalker_step(BMWalker *walker)
  * Starts at an edge on the mesh and walks over the 'shell' it belongs
  * to via visiting connected faces.
  * \{ */
+
 static void bmw_FaceShellWalker_visitEdge(BMWalker *walker, BMEdge *e)
 {
   BMwShellWalker *shellWalk = NULL;
@@ -564,6 +554,7 @@ static void *bmw_FaceShellWalker_step(BMWalker *walker)
 
   return e;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -573,6 +564,7 @@ static void *bmw_FaceShellWalker_step(BMWalker *walker)
  *
  * Walk from a vertex to all connected vertices.
  * \{ */
+
 static void bmw_ConnectedVertexWalker_visitVertex(BMWalker *walker, BMVert *v)
 {
   BMwConnectedVertexWalker *vwalk;
@@ -640,6 +632,7 @@ static void *bmw_ConnectedVertexWalker_step(BMWalker *walker)
  *
  * \todo Add restriction flag/callback for wire edges.
  * \{ */
+
 static void bmw_IslandboundWalker_begin(BMWalker *walker, void *data)
 {
   BMLoop *l = data;
@@ -735,6 +728,7 @@ static void *bmw_IslandboundWalker_step(BMWalker *walker)
  *
  * \todo Add restriction flag/callback for wire edges.
  * \{ */
+
 static void bmw_IslandWalker_begin(BMWalker *walker, void *data)
 {
   BMwIslandWalker *iwalk = NULL;
@@ -1299,6 +1293,7 @@ static void *bmw_FaceLoopWalker_step(BMWalker *walker)
  * Conditions for starting and stepping the edge ring have been
  * tuned to match behavior users expect (dating back to v2.4x).
  * \{ */
+
 static void bmw_EdgeringWalker_begin(BMWalker *walker, void *data)
 {
   BMwEdgeringWalker *lwalk, owalk, *owalk_pt;
@@ -1850,6 +1845,12 @@ static BMWalker bmw_ConnectedVertexWalker_Type = {
     BM_VERT, /* Valid restrict masks. */
 };
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name All Walker Types
+ * \{ */
+
 BMWalker *bm_walker_types[] = {
     &bmw_VertShellWalker_Type,       /* #BMW_VERT_SHELL */
     &bmw_LoopShellWalker_Type,       /* #BMW_LOOP_SHELL */
@@ -1868,3 +1869,5 @@ BMWalker *bm_walker_types[] = {
 };
 
 const int bm_totwalkers = ARRAY_SIZE(bm_walker_types);
+
+/** \} */

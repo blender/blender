@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2019 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2019 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup editor/io
@@ -313,7 +297,9 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   const eUSDXformOpMode xform_op_mode = RNA_enum_get(op->ptr, "xform_op_mode");
 
-  const bool fix_skel_root = RNA_boolean_get(op->ptr, "fix_skel_root");;
+  const bool fix_skel_root = RNA_boolean_get(op->ptr, "fix_skel_root");
+  
+  const bool overwrite_textures = RNA_boolean_get(op->ptr, "overwrite_textures");
 
   struct USDExportParams params = {RNA_int_get(op->ptr, "start"),
                                    RNA_int_get(op->ptr, "end"),
@@ -369,7 +355,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
                                    generate_cycles_shaders,
                                    export_armatures,
                                    xform_op_mode,
-                                   fix_skel_root};
+                                   fix_skel_root,
+                                   overwrite_textures};
 
   /* Take some defaults from the scene, if not specified explicitly. */
   Scene *scene = CTX_data_scene(C);
@@ -510,6 +497,9 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     box = uiLayoutBox(layout);
     uiItemL(box, IFACE_("Textures:"), ICON_NONE);
     uiItemR(box, ptr, "export_textures", 0, NULL, ICON_NONE);
+    if (RNA_boolean_get(ptr, "export_textures")) {
+      uiItemR(box, ptr, "overwrite_textures", 0, NULL, ICON_NONE);
+    }    
     uiItemR(box, ptr, "relative_texture_paths", 0, NULL, ICON_NONE);
   }
 
@@ -841,8 +831,14 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                   "export_textures",
                   true,
                   "Export Textures",
-                  "When checked and if exporting materials, textures referenced by material nodes "
-                  "will be exported to a 'textures' directory in the same directory as the USD.");
+                  "If exporting materials, export textures referenced by material nodes "
+                  "to a 'textures' directory in the same directory as the USD file");
+
+  RNA_def_boolean(ot->srna,
+                  "overwrite_textures",
+                  false,
+                  "Overwrite Textures",
+                  "Allow overwriting existing texture files when exporting textures");
 
   RNA_def_boolean(
       ot->srna,

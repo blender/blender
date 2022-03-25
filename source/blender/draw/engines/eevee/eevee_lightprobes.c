@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2016, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 Blender Foundation. */
 
 /** \file
  * \ingroup draw_engine
@@ -202,7 +187,6 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 }
 
-/* Only init the passes useful for rendering the light cache. */
 void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
                                 EEVEE_Data *vedata,
                                 GPUTexture *rt_color,
@@ -629,7 +613,7 @@ void EEVEE_lightprobes_planar_data_from_object(Object *ob,
   eplanar->clip_edge_y_neg = dot_v3v3(eplanar->clip_vec_y, vec);
 
   /* Facing factors */
-  float max_angle = max_ff(1e-2f, 1.0f - probe->falloff) * M_PI * 0.5f;
+  float max_angle = max_ff(1e-2f, 1.0f - probe->falloff) * M_PI_2;
   float min_angle = 0.0f;
   eplanar->facing_scale = 1.0f / max_ff(1e-8f, cosf(min_angle) - cosf(max_angle));
   eplanar->facing_bias = -min_ff(1.0f - 1e-8f, cosf(max_angle)) * eplanar->facing_scale;
@@ -871,7 +855,6 @@ static void lightbake_render_scene_face(int face, EEVEE_BakeRenderData *user_dat
   DRW_draw_pass(psl->transparent_pass);
 }
 
-/* Render the scene to the probe_rt texture. */
 void EEVEE_lightbake_render_scene(EEVEE_ViewLayerData *sldata,
                                   EEVEE_Data *vedata,
                                   struct GPUFrameBuffer *face_fb[6],
@@ -969,13 +952,13 @@ static void eevee_lightbake_render_scene_to_planars(EEVEE_ViewLayerData *sldata,
                      sldata->probes->planar_data,
                      sldata->probes->num_planar);
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Filtering
  * \{ */
 
-/* Glossy filter rt_color to light_cache->cube_tx.tex at index probe_idx */
 void EEVEE_lightbake_filter_glossy(EEVEE_ViewLayerData *sldata,
                                    EEVEE_Data *vedata,
                                    struct GPUTexture *rt_color,
@@ -1064,7 +1047,6 @@ void EEVEE_lightbake_filter_glossy(EEVEE_ViewLayerData *sldata,
   }
 }
 
-/* Diffuse filter rt_color to light_cache->grid_tx.tex at index grid_offset */
 void EEVEE_lightbake_filter_diffuse(EEVEE_ViewLayerData *sldata,
                                     EEVEE_Data *vedata,
                                     struct GPUTexture *rt_color,
@@ -1080,8 +1062,8 @@ void EEVEE_lightbake_filter_diffuse(EEVEE_ViewLayerData *sldata,
 
   pinfo->intensity_fac = intensity;
 
-  /* find cell position on the virtual 3D texture */
-  /* NOTE : Keep in sync with load_irradiance_cell() */
+  /* Find cell position on the virtual 3D texture. */
+  /* NOTE: Keep in sync with `load_irradiance_cell()`. */
 #if defined(IRRADIANCE_SH_L2)
   int size[2] = {3, 3};
 #elif defined(IRRADIANCE_HL2)
@@ -1117,7 +1099,6 @@ void EEVEE_lightbake_filter_diffuse(EEVEE_ViewLayerData *sldata,
   GPU_framebuffer_viewport_reset(fb);
 }
 
-/* Filter rt_depth to light_cache->grid_tx.tex at index grid_offset */
 void EEVEE_lightbake_filter_visibility(EEVEE_ViewLayerData *sldata,
                                        EEVEE_Data *vedata,
                                        struct GPUTexture *UNUSED(rt_depth),

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -1366,6 +1352,28 @@ static float rna_Sequence_fps_get(PointerRNA *ptr)
   return SEQ_time_sequence_get_fps(scene, seq);
 }
 
+static void rna_Sequence_separate(ID *id, Sequence *seqm, Main *bmain)
+{
+  Scene *scene = (Scene *)id;
+
+  /* Find the appropriate seqbase */
+  Editing *ed = SEQ_editing_get(scene);
+  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seqm);
+
+  LISTBASE_FOREACH_MUTABLE (Sequence *, seq, &seqm->seqbase) {
+    SEQ_edit_move_strip_to_seqbase(scene, &seqm->seqbase, seq, seqbase);
+  }
+
+  SEQ_edit_flag_for_removal(scene, seqbase, seqm);
+  SEQ_edit_remove_flagged_sequences(scene, seqbase);
+
+  /* Update depsgraph. */
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
+
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
+}
+
 #else
 
 static void rna_def_strip_element(BlenderRNA *brna)
@@ -1434,6 +1442,12 @@ static void rna_def_strip_crop(BlenderRNA *brna)
   RNA_def_struct_path_func(srna, "rna_SequenceCrop_path");
 }
 
+static const EnumPropertyItem transform_filter_items[] = {
+    {SEQ_TRANSFORM_FILTER_NEAREST, "NEAREST", 0, "Nearest", ""},
+    {SEQ_TRANSFORM_FILTER_BILINEAR, "BILINEAR", 0, "Bilinear", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 static void rna_def_strip_transform(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -1457,16 +1471,16 @@ static void rna_def_strip_transform(BlenderRNA *brna)
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
 
-  prop = RNA_def_property(srna, "offset_x", PROP_INT, PROP_PIXEL);
-  RNA_def_property_int_sdna(prop, NULL, "xofs");
+  prop = RNA_def_property(srna, "offset_x", PROP_FLOAT, PROP_PIXEL);
+  RNA_def_property_float_sdna(prop, NULL, "xofs");
   RNA_def_property_ui_text(prop, "Translate X", "Move along X axis");
-  RNA_def_property_ui_range(prop, INT_MIN, INT_MAX, 1, 6);
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 100, 3);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
 
-  prop = RNA_def_property(srna, "offset_y", PROP_INT, PROP_PIXEL);
-  RNA_def_property_int_sdna(prop, NULL, "yofs");
+  prop = RNA_def_property(srna, "offset_y", PROP_FLOAT, PROP_PIXEL);
+  RNA_def_property_float_sdna(prop, NULL, "yofs");
   RNA_def_property_ui_text(prop, "Translate Y", "Move along Y axis");
-  RNA_def_property_ui_range(prop, INT_MIN, INT_MAX, 1, 6);
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 100, 3);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
 
   prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ANGLE);
@@ -1478,6 +1492,13 @@ static void rna_def_strip_transform(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "origin");
   RNA_def_property_ui_text(prop, "Origin", "Origin of image for transformation");
   RNA_def_property_ui_range(prop, 0, 1, 1, 3);
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
+
+  prop = RNA_def_property(srna, "filter", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "filter");
+  RNA_def_property_enum_items(prop, transform_filter_items);
+  RNA_def_property_enum_default(prop, SEQ_TRANSFORM_FILTER_BILINEAR);
+  RNA_def_property_ui_text(prop, "Filter", "Type of filter to use for image transformation");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
 
   RNA_def_struct_path_func(srna, "rna_SequenceTransform_path");
@@ -2250,7 +2271,8 @@ static void rna_def_filter_video(StructRNA *srna)
   prop = RNA_def_property(srna, "use_reverse_frames", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_REVERSE_FRAMES);
   RNA_def_property_ui_text(prop, "Reverse Frames", "Reverse frame order");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
+  RNA_def_property_update(
+      prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 
   prop = RNA_def_property(srna, "color_multiply", PROP_FLOAT, PROP_UNSIGNED);
   RNA_def_property_float_sdna(prop, NULL, "mul");
@@ -2439,6 +2461,7 @@ static void rna_def_image(BlenderRNA *brna)
 static void rna_def_meta(BlenderRNA *brna)
 {
   StructRNA *srna;
+  FunctionRNA *func;
   PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "MetaSequence", "Sequence");
@@ -2451,6 +2474,10 @@ static void rna_def_meta(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "Sequence");
   RNA_def_property_ui_text(prop, "Sequences", "Sequences nested in meta strip");
   RNA_api_sequences(brna, prop, true);
+
+  func = RNA_def_function(srna, "separate", "rna_Sequence_separate");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
+  RNA_def_function_ui_description(func, "Separate meta");
 
   rna_def_filter_video(srna);
   rna_def_proxy(srna);
@@ -2984,7 +3011,7 @@ static void rna_def_text(StructRNA *srna)
   RNA_def_property_float_sdna(prop, NULL, "text_size");
   RNA_def_property_ui_text(prop, "Size", "Size of the text");
   RNA_def_property_range(prop, 0.0, 2000);
-  RNA_def_property_ui_range(prop, 0.0f, 2000, 10.f, 1);
+  RNA_def_property_ui_range(prop, 0.0f, 2000, 10.0f, 1);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 
   prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);

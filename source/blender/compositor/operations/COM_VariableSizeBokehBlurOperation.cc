@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2011, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. */
 
 #include "COM_VariableSizeBokehBlurOperation.h"
 #include "COM_OpenCLDevice.h"
@@ -69,7 +54,7 @@ void *VariableSizeBokehBlurOperation::initialize_tile_data(rcti *rect)
   data->bokeh = (MemoryBuffer *)input_bokeh_program_->initialize_tile_data(rect);
   data->size = (MemoryBuffer *)input_size_program_->initialize_tile_data(rect);
 
-  rcti rect2;
+  rcti rect2 = COM_AREA_NONE;
   this->determine_depending_area_of_interest(
       rect, (ReadBufferOperation *)input_size_program_, &rect2);
 
@@ -398,7 +383,7 @@ void VariableSizeBokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *
   p.image_width = this->get_width();
   p.image_height = this->get_height();
 
-  rcti scalar_area;
+  rcti scalar_area = COM_AREA_NONE;
   this->get_area_of_interest(SIZE_INPUT_INDEX, area, scalar_area);
   BLI_rcti_isect(&scalar_area, &p.size_input->get_rect(), &scalar_area);
   const float max_size = p.size_input->get_max_value(scalar_area);

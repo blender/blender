@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup editors
@@ -63,10 +47,13 @@ struct PropertyRNA;
 /* ANIMATION CHANNEL FILTERING */
 /* anim_filter.c */
 
-/* --------------- Context --------------------- */
+/* -------------------------------------------------------------------- */
+/** \name Context
+ * \{ */
 
-/* This struct defines a structure used for animation-specific
- * 'context' information
+/**
+ * This struct defines a structure used for animation-specific
+ * 'context' information.
  */
 typedef struct bAnimContext {
   /** data to be filtered for use in animation editor */
@@ -126,10 +113,15 @@ typedef enum eAnimCont_Types {
   ANIMCONT_TIMELINE = 10, /* "timeline" editor (bDopeSheet) */
 } eAnimCont_Types;
 
-/* --------------- Channels -------------------- */
+/** \} */
 
-/* This struct defines a structure used for quick and uniform access for
- * channels of animation data
+/* -------------------------------------------------------------------- */
+/** \name Channels
+ * \{ */
+
+/**
+ * This struct defines a structure used for quick and uniform access for
+ * channels of animation data.
  */
 typedef struct bAnimListElem {
   struct bAnimListElem *next, *prev;
@@ -267,7 +259,8 @@ typedef enum eAnim_KeyType {
   ALE_GROUP, /* Action Group summary */
 } eAnim_KeyType;
 
-/* Flags for specifying the types of updates (i.e. recalculation/refreshing) that
+/**
+ * Flags for specifying the types of updates (i.e. recalculation/refreshing) that
  * needs to be performed to the data contained in a channel following editing.
  * For use with ANIM_animdata_update()
  */
@@ -281,7 +274,11 @@ typedef enum eAnim_Update_Flags {
 #define ANIM_UPDATE_DEFAULT (ANIM_UPDATE_DEPS | ANIM_UPDATE_ORDER | ANIM_UPDATE_HANDLES)
 #define ANIM_UPDATE_DEFAULT_NOHANDLES (ANIM_UPDATE_DEFAULT & ~ANIM_UPDATE_HANDLES)
 
-/* ----------------- Filtering -------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Filtering
+ * \{ */
 
 /* filtering flags  - under what circumstances should a channel be returned */
 typedef enum eAnimFilter_Flags {
@@ -334,7 +331,12 @@ typedef enum eAnimFilter_Flags {
   ANIMFILTER_TMP_IGNORE_ONLYSEL = (1u << 31),
 } eAnimFilter_Flags;
 
-/* ---------- Flag Checking Macros ------------ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Flag Checking Macros
+ * \{ */
+
 /* XXX check on all of these flags again. */
 
 /* Dopesheet only */
@@ -363,7 +365,7 @@ typedef enum eAnimFilter_Flags {
 #define FILTER_MESH_OBJD(me) (CHECK_TYPE_INLINE(me, Mesh *), ((me->flag & ME_DS_EXPAND)))
 #define FILTER_LATTICE_OBJD(lt) (CHECK_TYPE_INLINE(lt, Lattice *), ((lt->flag & LT_DS_EXPAND)))
 #define FILTER_SPK_OBJD(spk) (CHECK_TYPE_INLINE(spk, Speaker *), ((spk->flag & SPK_DS_EXPAND)))
-#define FILTER_HAIR_OBJD(ha) (CHECK_TYPE_INLINE(ha, Hair *), ((ha->flag & HA_DS_EXPAND)))
+#define FILTER_CURVES_OBJD(ha) (CHECK_TYPE_INLINE(ha, Curves *), ((ha->flag & HA_DS_EXPAND)))
 #define FILTER_POINTS_OBJD(pt) (CHECK_TYPE_INLINE(pt, PointCloud *), ((pt->flag & PT_DS_EXPAND)))
 #define FILTER_VOLUME_OBJD(vo) (CHECK_TYPE_INLINE(vo, Volume *), ((vo->flag & VO_DS_EXPAND)))
 #define FILTER_SIMULATION_OBJD(sim) \
@@ -380,13 +382,13 @@ typedef enum eAnimFilter_Flags {
 #define EXPANDED_DRVD(adt) ((adt->flag & ADT_DRIVERS_COLLAPSED) == 0)
 
 /* Actions (also used for Dopesheet) */
-/* Action Channel Group */
+/** Action Channel Group. */
 #define EDITABLE_AGRP(agrp) (((agrp)->flag & AGRP_PROTECTED) == 0)
 #define EXPANDED_AGRP(ac, agrp) \
   (((!(ac) || ((ac)->spacetype != SPACE_GRAPH)) && ((agrp)->flag & AGRP_EXPANDED)) || \
    (((ac) && ((ac)->spacetype == SPACE_GRAPH)) && ((agrp)->flag & AGRP_EXPANDED_G)))
 #define SEL_AGRP(agrp) (((agrp)->flag & AGRP_SELECTED) || ((agrp)->flag & AGRP_ACTIVE))
-/* F-Curve Channels */
+/** F-Curve Channels. */
 #define EDITABLE_FCU(fcu) ((fcu->flag & FCURVE_PROTECTED) == 0)
 #define SEL_FCU(fcu) (fcu->flag & FCURVE_SELECTED)
 
@@ -395,16 +397,16 @@ typedef enum eAnimFilter_Flags {
 #define SEL_SHAPEKEY(kb) (kb->flag & KEYBLOCK_SEL)
 
 /* Grease Pencil only */
-/* Grease Pencil datablock settings */
+/** Grease Pencil data-block settings. */
 #define EXPANDED_GPD(gpd) (gpd->flag & GP_DATA_EXPAND)
-/* Grease Pencil Layer settings */
+/** Grease Pencil Layer settings. */
 #define EDITABLE_GPL(gpl) ((gpl->flag & GP_LAYER_LOCKED) == 0)
 #define SEL_GPL(gpl) (gpl->flag & GP_LAYER_SELECT)
 
 /* Mask Only */
-/* Grease Pencil datablock settings */
+/** Grease Pencil data-block settings. */
 #define EXPANDED_MASK(mask) (mask->flag & MASK_ANIMF_EXPAND)
-/* Grease Pencil Layer settings */
+/** Grease Pencil Layer settings. */
 #define EDITABLE_MASK(masklay) ((masklay->flag & MASK_LAYERFLAG_LOCKED) == 0)
 #define SEL_MASKLAY(masklay) (masklay->flag & SELECT)
 
@@ -421,27 +423,35 @@ typedef enum eAnimFilter_Flags {
 /* AnimData - NLA mostly... */
 #define SEL_ANIMDATA(adt) (adt->flag & ADT_UI_SELECTED)
 
-/* -------------- Channel Defines -------------- */
+/** \} */
 
-/* channel heights */
+/* -------------------------------------------------------------------- */
+/** \name Channel Defines
+ * \{ */
+
+/** Channel heights. */
 #define ACHANNEL_FIRST_TOP(ac) \
   (UI_view2d_scale_get_y(&(ac)->region->v2d) * -UI_TIME_SCRUB_MARGIN_Y - ACHANNEL_SKIP)
 #define ACHANNEL_HEIGHT(ac) (0.8f * (ac)->yscale_fac * U.widget_unit)
 #define ACHANNEL_SKIP (0.1f * U.widget_unit)
 #define ACHANNEL_STEP(ac) (ACHANNEL_HEIGHT(ac) + ACHANNEL_SKIP)
-/* Additional offset to give some room at the end. */
+/** Additional offset to give some room at the end. */
 #define ACHANNEL_TOT_HEIGHT(ac, item_amount) \
   (-ACHANNEL_FIRST_TOP(ac) + ACHANNEL_STEP(ac) * (item_amount + 1))
 
-/* channel widths */
+/** Channel widths. */
 #define ACHANNEL_NAMEWIDTH (10 * U.widget_unit)
 
-/* channel toggle-buttons */
+/** Channel toggle-buttons. */
 #define ACHANNEL_BUTTON_WIDTH (0.8f * U.widget_unit)
 
-/* -------------- NLA Channel Defines -------------- */
+/** \} */
 
-/* NLA channel heights */
+/* -------------------------------------------------------------------- */
+/** \name NLA Channel Defines
+ * \{ */
+
+/** NLA channel heights */
 #define NLACHANNEL_FIRST_TOP(ac) \
   (UI_view2d_scale_get_y(&(ac)->region->v2d) * -UI_TIME_SCRUB_MARGIN_Y - NLACHANNEL_SKIP)
 #define NLACHANNEL_HEIGHT(snla) \
@@ -449,20 +459,29 @@ typedef enum eAnimFilter_Flags {
                                                      (1.2f * U.widget_unit))
 #define NLACHANNEL_SKIP (0.1f * U.widget_unit)
 #define NLACHANNEL_STEP(snla) (NLACHANNEL_HEIGHT(snla) + NLACHANNEL_SKIP)
-/* Additional offset to give some room at the end. */
+/** Additional offset to give some room at the end. */
 #define NLACHANNEL_TOT_HEIGHT(ac, item_amount) \
   (-NLACHANNEL_FIRST_TOP(ac) + NLACHANNEL_STEP(((SpaceNla *)(ac)->sl)) * (item_amount + 1))
 
-/* channel widths */
+/** Channel widths */
 #define NLACHANNEL_NAMEWIDTH (10 * U.widget_unit)
 
-/* channel toggle-buttons */
+/** Channel toggle-buttons */
 #define NLACHANNEL_BUTTON_WIDTH (0.8f * U.widget_unit)
 
-/* ---------------- API  -------------------- */
+/** \} */
 
-/* Obtain list of filtered Animation channels to operate on.
- * Returns the number of channels in the list
+/* -------------------------------------------------------------------- */
+/** \name Public API
+ * \{ */
+
+/**
+ * This function filters the active data source to leave only animation channels suitable for
+ * usage by the caller. It will return the length of the list
+ *
+ * \param anim_data: Is a pointer to a #ListBase,
+ * to which the filtered animation channels will be placed for use.
+ * \param filter_mode: how should the data be filtered - bit-mapping accessed flags.
  */
 size_t ANIM_animdata_filter(bAnimContext *ac,
                             ListBase *anim_data,
@@ -470,18 +489,27 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
                             void *data,
                             eAnimCont_Types datatype);
 
-/* Obtain current anim-data context from Blender Context info.
- * Returns whether the operation was successful.
+/**
+ * Obtain current anim-data context from Blender Context info
+ * - AnimContext to write to is provided as pointer to var on stack so that we don't have
+ *   allocation/freeing costs (which are not that avoidable with channels).
+ * - Clears data and sets the information from Blender Context which is useful
+ * \return whether the operation was successful.
  */
 bool ANIM_animdata_get_context(const struct bContext *C, bAnimContext *ac);
 
-/* Obtain current anim-data context (from Animation Editor) given
- * that Blender Context info has already been set.
- * Returns whether the operation was successful.
+/**
+ * Obtain current anim-data context,
+ * given that context info from Blender context has already been set:
+ * - AnimContext to write to is provided as pointer to var on stack so that we don't have
+ *   allocation/freeing costs (which are not that avoidable with channels).
+ * \return whether the operation was successful.
  */
 bool ANIM_animdata_context_getdata(bAnimContext *ac);
 
-/* Acts on bAnimListElem eAnim_Update_Flags */
+/**
+ * Acts on bAnimListElem eAnim_Update_Flags.
+ */
 void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data);
 
 void ANIM_animdata_freelist(ListBase *anim_data);
@@ -490,9 +518,13 @@ void ANIM_animdata_freelist(ListBase *anim_data);
 /* ANIMATION CHANNELS LIST */
 /* anim_channels_*.c */
 
-/* ------------------------ Drawing TypeInfo -------------------------- */
+/** \} */
 
-/* role or level of animchannel in the hierarchy */
+/* -------------------------------------------------------------------- */
+/** \name Drawing TypeInfo
+ * \{ */
+
+/** Role or level of anim-channel in the hierarchy. */
 typedef enum eAnimChannel_Role {
   /** datablock expander - a "composite" channel type */
   ACHANNEL_ROLE_EXPANDER = -1,
@@ -532,7 +564,7 @@ typedef enum eAnimChannel_Settings {
   ACHANNEL_SETTING_ALWAYS_VISIBLE = 8,
 } eAnimChannel_Settings;
 
-/* Drawing, mouse handling, and flag setting behavior... */
+/** Drawing, mouse handling, and flag setting behavior. */
 typedef struct bAnimChannelType {
   /* -- Type data -- */
   /* name of the channel type, for debugging */
@@ -541,46 +573,64 @@ typedef struct bAnimChannelType {
   eAnimChannel_Role channel_role;
 
   /* -- Drawing -- */
-  /* get RGB color that is used to draw the majority of the backdrop */
+  /** Get RGB color that is used to draw the majority of the backdrop. */
   void (*get_backdrop_color)(bAnimContext *ac, bAnimListElem *ale, float r_color[3]);
-  /* draw backdrop strip for channel */
+  /** Draw backdrop strip for channel. */
   void (*draw_backdrop)(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc);
-  /* get depth of indention (relative to the depth channel is nested at) */
+  /** Get depth of indentation (relative to the depth channel is nested at). */
   short (*get_indent_level)(bAnimContext *ac, bAnimListElem *ale);
-  /* get offset in pixels for the start of the channel (in addition to the indent depth) */
+  /** Get offset in pixels for the start of the channel (in addition to the indent depth). */
   short (*get_offset)(bAnimContext *ac, bAnimListElem *ale);
 
-  /* get name (for channel lists) */
+  /** Get name (for channel lists). */
   void (*name)(bAnimListElem *ale, char *name);
-  /* get RNA property+pointer for editing the name */
+  /** Get RNA property+pointer for editing the name. */
   bool (*name_prop)(bAnimListElem *ale, struct PointerRNA *ptr, struct PropertyRNA **prop);
-  /* get icon (for channel lists) */
+  /** Get icon (for channel lists). */
   int (*icon)(bAnimListElem *ale);
 
   /* -- Settings -- */
-  /* check if the given setting is valid in the current context */
+  /** Check if the given setting is valid in the current context. */
   bool (*has_setting)(bAnimContext *ac, bAnimListElem *ale, eAnimChannel_Settings setting);
-  /* get the flag used for this setting */
+  /** Get the flag used for this setting. */
   int (*setting_flag)(bAnimContext *ac, eAnimChannel_Settings setting, bool *neg);
-  /* get the pointer to int/short where data is stored,
-   * with type being  sizeof(ptr_data) which should be fine for runtime use...
-   * - assume that setting has been checked to be valid for current context
+  /**
+   * Get the pointer to int/short where data is stored,
+   * with type being `sizeof(ptr_data)` which should be fine for runtime use.
+   * - assume that setting has been checked to be valid for current context.
    */
   void *(*setting_ptr)(bAnimListElem *ale, eAnimChannel_Settings setting, short *type);
 } bAnimChannelType;
 
-/* ------------------------ Drawing API -------------------------- */
+/** \} */
 
-/* Get typeinfo for the given channel */
+/* -------------------------------------------------------------------- */
+/** \name Drawing API
+ * \{ */
+
+/**
+ * Get type info from given channel type.
+ */
 const bAnimChannelType *ANIM_channel_get_typeinfo(bAnimListElem *ale);
 
-/* Print debugging info about a given channel */
+/**
+ * Print debug info string for the given channel.
+ */
 void ANIM_channel_debug_print_info(bAnimListElem *ale, short indent_level);
 
-/* Draw the given channel */
+/**
+ * Retrieves the Action associated with this animation channel.
+ */
+bAction *ANIM_channel_action_get(const bAnimListElem *ale);
+
+/**
+ * Draw the given channel.
+ */
 void ANIM_channel_draw(
     bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc, size_t channel_index);
-/* Draw the widgets for the given channel */
+/**
+ * Draw UI widgets the given channel.
+ */
 void ANIM_channel_draw_widgets(const struct bContext *C,
                                bAnimContext *ac,
                                bAnimListElem *ale,
@@ -588,27 +638,30 @@ void ANIM_channel_draw_widgets(const struct bContext *C,
                                rctf *rect,
                                size_t channel_index);
 
-/* ------------------------ Editing API -------------------------- */
+/** \} */
 
-/* Check if some setting for a channel is enabled
- * Returns: 1 = On, 0 = Off, -1 = Invalid
- *
- * - setting: eAnimChannel_Settings
+/* -------------------------------------------------------------------- */
+/** \name Editing API
+ * \{ */
+
+/**
+ * Check if some setting for a channel is enabled
+ * Returns: 1 = On, 0 = Off, -1 = Invalid.
  */
 short ANIM_channel_setting_get(bAnimContext *ac,
                                bAnimListElem *ale,
                                eAnimChannel_Settings setting);
 
-/* Change value of some setting for a channel
- * - setting: eAnimChannel_Settings
- * - mode: eAnimChannels_SetFlag
+/**
+ * Change value of some setting for a channel.
  */
 void ANIM_channel_setting_set(bAnimContext *ac,
                               bAnimListElem *ale,
                               eAnimChannel_Settings setting,
                               eAnimChannels_SetFlag mode);
 
-/* Flush visibility (for Graph Editor) changes up/down hierarchy for changes in the given setting
+/**
+ * Flush visibility (for Graph Editor) changes up/down hierarchy for changes in the given setting
  * - anim_data: list of the all the anim channels that can be chosen
  *   -> filtered using ANIMFILTER_CHANNELS only, since if we took VISIBLE too,
  *      then the channels under closed expanders get ignored...
@@ -623,13 +676,19 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
                                       eAnimChannel_Settings setting,
                                       eAnimChannels_SetFlag mode);
 
-/* Select or deselect animation channels */
+/**
+ * Set selection state of all animation channels in the context.
+ */
 void ANIM_anim_channels_select_set(bAnimContext *ac, eAnimChannels_SetFlag sel);
 
-/* Toggle selection of animation channels */
+/**
+ * Toggle selection state of all animation channels in the context.
+ */
 void ANIM_anim_channels_select_toggle(bAnimContext *ac);
 
-/* Set the 'active' channel of type channel_type, in the given action */
+/**
+ * Set the given animation-channel as the active one for the active context.
+ */
 void ANIM_set_active_channel(bAnimContext *ac,
                              void *data,
                              eAnimCont_Types datatype,
@@ -637,46 +696,90 @@ void ANIM_set_active_channel(bAnimContext *ac,
                              void *channel_data,
                              eAnim_ChannelType channel_type);
 
-/* Delete the F-Curve from the given AnimData block (if possible),
- * as appropriate according to animation context */
+/**
+ * Delete the F-Curve from the given AnimData block (if possible),
+ * as appropriate according to animation context.
+ */
 void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, struct AnimData *adt, struct FCurve *fcu);
 
-/* Unlink the action from animdata if it's empty. */
+/**
+ * Unlink the action from animdata if it's empty.
+ *
+ * If the action has no F-Curves, unlink it from AnimData if it did not
+ * come from a NLA Strip being tweaked.
+ */
 bool ANIM_remove_empty_action_from_animdata(struct AnimData *adt);
 
 /* ************************************************ */
 /* DRAWING API */
 /* anim_draw.c */
 
-/* ---------- Current Frame Drawing ---------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Current Frame Drawing
+ *
+ * Main call to draw current-frame indicator in an Animation Editor.
+ * \{ */
 
 /* flags for Current Frame Drawing */
 typedef enum eAnimEditDraw_CurrentFrame {
-  /* plain time indicator with no special indicators */
+  /** Plain time indicator with no special indicators. */
   /* DRAWCFRA_PLAIN = 0, */ /* UNUSED */
-  /* time indication in seconds or frames */
+  /** Time indication in seconds or frames. */
   DRAWCFRA_UNIT_SECONDS = (1 << 0),
-  /* draw indicator extra wide (for timeline) */
+  /** Draw indicator extra wide (for timeline). */
   DRAWCFRA_WIDE = (1 << 1),
 } eAnimEditDraw_CurrentFrame;
 
-/* main call to draw current-frame indicator in an Animation Editor */
+/**
+ * General call for drawing current frame indicator in animation editor.
+ */
 void ANIM_draw_cfra(const struct bContext *C, struct View2D *v2d, short flag);
 
-/* ------------- Preview Range Drawing -------------- */
+/** \} */
 
-/* main call to draw preview range curtains */
+/* -------------------------------------------------------------------- */
+/** \name Preview Range Drawing
+ *
+ * Main call to draw preview range curtains.
+ * \{ */
+
+/**
+ * Draw preview range 'curtains' for highlighting where the animation data is.
+ */
 void ANIM_draw_previewrange(const struct bContext *C, struct View2D *v2d, int end_frame_width);
 
-/* -------------- Frame Range Drawing --------------- */
+/** \} */
 
-/* main call to draw normal frame range indicators */
+/* -------------------------------------------------------------------- */
+/** \name Frame Range Drawing
+ *
+ * Main call to draw normal frame range indicators.
+ * \{ */
+
+/**
+ * Draw frame range guides (for scene frame range) in background.
+ *
+ * TODO: Should we still show these when preview range is enabled?
+ */
 void ANIM_draw_framerange(struct Scene *scene, struct View2D *v2d);
+
+/**
+ * Draw manually set intended playback frame range guides for the action in the background.
+ * Allows specifying a subset of the Y range of the view.
+ */
+void ANIM_draw_action_framerange(
+    struct AnimData *adt, struct bAction *action, struct View2D *v2d, float ymin, float ymax);
 
 /* ************************************************* */
 /* F-MODIFIER TOOLS */
 
-/* ------------- UI Panel Drawing -------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name UI Panel Drawing
+ * \{ */
 
 bool ANIM_nla_context_track_ptr(const struct bContext *C, struct PointerRNA *r_ptr);
 bool ANIM_nla_context_strip_ptr(const struct bContext *C, struct PointerRNA *r_ptr);
@@ -685,11 +788,14 @@ struct NlaTrack *ANIM_nla_context_track(const struct bContext *C);
 struct NlaStrip *ANIM_nla_context_strip(const struct bContext *C);
 struct FCurve *ANIM_graph_context_fcurve(const struct bContext *C);
 
-/* Needed for abstraction between the graph editor and the NLA editor. */
+/** Needed for abstraction between the graph editor and the NLA editor. */
 typedef bool (*PanelTypePollFn)(const struct bContext *C, struct PanelType *pt);
-/* Avoid including "UI_interface.h" here. */
+/** Avoid including `UI_interface.h` here. */
 typedef void (*uiListPanelIDFromDataFunc)(void *data_link, char *r_idname);
 
+/**
+ * Checks if the panels match the active strip / curve, rebuilds them if they don't.
+ */
 void ANIM_fmodifier_panels(const struct bContext *C,
                            struct ID *owner_id,
                            struct ListBase *fmodifiers,
@@ -702,49 +808,93 @@ void ANIM_modifier_panels_register_graph_only(struct ARegionType *region_type,
                                               const char *modifier_panel_prefix,
                                               PanelTypePollFn poll_function);
 
-/* ------------- Copy/Paste Buffer -------------- */
+/** \} */
 
-/* free the copy/paste buffer */
+/* -------------------------------------------------------------------- */
+/** \name Copy/Paste Buffer
+ * \{ */
+
+/**
+ * Free the copy/paste buffer.
+ */
 void ANIM_fmodifiers_copybuf_free(void);
 
-/* copy the given F-Modifiers to the buffer, returning whether anything was copied or not
- * assuming that the buffer has been cleared already with ANIM_fmodifiers_copybuf_free()
- * - active: only copy the active modifier
+/**
+ * Copy the given F-Modifiers to the buffer, returning whether anything was copied or not
+ * assuming that the buffer has been cleared already with #ANIM_fmodifiers_copybuf_free()
+ * \param active: Only copy the active modifier.
  */
 bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active);
 
-/* 'Paste' the F-Modifier(s) from the buffer to the specified list
- * - replace: free all the existing modifiers to leave only the pasted ones
+/**
+ * 'Paste' the F-Modifier(s) from the buffer to the specified list
+ * \param replace: Free all the existing modifiers to leave only the pasted ones.
  */
 bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace, struct FCurve *curve);
 
 /* ************************************************* */
 /* ASSORTED TOOLS */
 
-/* ------------ Animation F-Curves <-> Icons/Names Mapping ------------ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Animation F-Curves <-> Icons/Names Mapping
+ * \{ */
+
 /* anim_ipo_utils.c */
 
-/* Get icon + name for channel-list displays for F-Curve */
+/**
+ * Get icon + name for channel-list displays for F-Curve.
+ *
+ * Write into "name" buffer, the name of the property
+ * (retrieved using RNA from the curve's settings),
+ * and return the icon used for the struct that this property refers to
+ *
+ * \warning name buffer we're writing to cannot exceed 256 chars
+ * (check anim_channels_defines.c for details).
+ */
 int getname_anim_fcurve(char *name, struct ID *id, struct FCurve *fcu);
 
-/* Automatically determine a color for the nth F-Curve */
+/**
+ * Automatically determine a color for the nth F-Curve.
+ */
 void getcolor_fcurve_rainbow(int cur, int tot, float out[3]);
 
-/* ----------------- NLA Drawing ----------------------- */
-/* NOTE: Technically, this is not in the animation module (it's in space_nla)
- * but these are sometimes needed by various animation API's.
- */
+/** \} */
 
-/* Get color to use for NLA Action channel's background */
+/* -------------------------------------------------------------------- */
+/** \name NLA Drawing
+ *
+ * \note Technically, this is not in the animation module (it's in space_nla)
+ * but these are sometimes needed by various animation API's.
+ * \{ */
+
+/**
+ * Get color to use for NLA Action channel's background.
+ * \note color returned includes fine-tuned alpha!
+ */
 void nla_action_get_color(struct AnimData *adt, struct bAction *act, float color[4]);
 
-/* ----------------- NLA-Mapping ----------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name NLA-Mapping
+ * \{ */
+
 /* anim_draw.c */
 
-/* Obtain the AnimData block providing NLA-scaling for the given channel if applicable */
+/**
+ * Obtain the AnimData block providing NLA-mapping for the given channel (if applicable).
+ *
+ * TODO: do not supply return this if the animdata tells us that there is no mapping to perform.
+ */
 struct AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale);
 
-/* Apply/Unapply NLA mapping to all keyframes in the nominated F-Curve */
+/**
+ * Apply/Unapply NLA mapping to all keyframes in the nominated F-Curve
+ * \param restore: Whether to map points back to non-mapped time.
+ * \param only_keys: Whether to only adjust the location of the center point of beztriples.
+ */
 void ANIM_nla_mapping_apply_fcurve(struct AnimData *adt,
                                    struct FCurve *fcu,
                                    bool restore,
@@ -752,50 +902,67 @@ void ANIM_nla_mapping_apply_fcurve(struct AnimData *adt,
 
 /* ..... */
 
-/* Perform auto-blending/extend refreshes after some operations */
-/* NOTE: defined in space_nla/nla_edit.c, not in animation/ */
+/**
+ * Perform validation & auto-blending/extend refreshes after some operations
+ * \note defined in space_nla/nla_edit.c, not in animation/
+ */
 void ED_nla_postop_refresh(bAnimContext *ac);
 
-/* ------------- Unit Conversion Mappings ------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Unit Conversion Mappings
+ * \{ */
+
 /* anim_draw.c */
 
-/* flags for conversion mapping */
+/** Flags for conversion mapping. */
 typedef enum eAnimUnitConv_Flags {
-  /* restore to original internal values */
+  /** Restore to original internal values. */
   ANIM_UNITCONV_RESTORE = (1 << 0),
-  /* ignore handles (i.e. only touch main keyframes) */
+  /** Ignore handles (i.e. only touch main keyframes). */
   ANIM_UNITCONV_ONLYKEYS = (1 << 1),
-  /* only touch selected BezTriples */
+  /** Only touch selected BezTriples. */
   ANIM_UNITCONV_ONLYSEL = (1 << 2),
-  /* only touch selected vertices */
+  /** Only touch selected vertices. */
   ANIM_UNITCONV_SELVERTS = (1 << 3),
   /* ANIM_UNITCONV_SKIPKNOTS = (1 << 4), */ /* UNUSED */
-  /* Scale FCurve i a way it fits to -1..1 space */
+  /** Scale FCurve i a way it fits to -1..1 space. */
   ANIM_UNITCONV_NORMALIZE = (1 << 5),
-  /* Only when normalization is used: use scale factor from previous run,
+  /**
+   * Only when normalization is used: use scale factor from previous run,
    * prevents curves from jumping all over the place when tweaking them.
    */
   ANIM_UNITCONV_NORMALIZE_FREEZE = (1 << 6),
 } eAnimUnitConv_Flags;
 
-/* Normalization flags from Space Graph passing to ANIM_unit_mapping_get_factor */
+/**
+ * Get flags used for normalization in ANIM_unit_mapping_get_factor.
+ */
 short ANIM_get_normalization_flags(bAnimContext *ac);
-
-/* Get unit conversion factor for given ID + F-Curve */
+/**
+ * Get unit conversion factor for given ID + F-Curve.
+ */
 float ANIM_unit_mapping_get_factor(
     struct Scene *scene, struct ID *id, struct FCurve *fcu, short flag, float *r_offset);
 
-/* ------------- Utility macros ----------------------- */
+/** \} */
 
-/* provide access to Keyframe Type info in BezTriple
+/* -------------------------------------------------------------------- */
+/** \name Utility macros
+ * \{ */
+
+/**
+ * Provide access to Keyframe Type info in #BezTriple.
  * NOTE: this is so that we can change it from being stored in 'hide'
  */
 #define BEZKEYTYPE(bezt) ((bezt)->hide)
 
-/* set/clear/toggle macro
- * - channel - channel with a 'flag' member that we're setting
- * - smode - 0=clear, 1=set, 2=invert
- * - sflag - bitflag to set
+/**
+ * Set/Clear/Toggle macro.
+ * \param channel: Channel with a 'flag' member that we're setting.
+ * \param smode: 0=clear, 1=set, 2=invert.
+ * \param sflag: bit-flag to set.
  */
 #define ACHANNEL_SET_FLAG(channel, smode, sflag) \
   { \
@@ -811,10 +978,11 @@ float ANIM_unit_mapping_get_factor(
   } \
   ((void)0)
 
-/* set/clear/toggle macro, where the flag is negative
- * - channel - channel with a 'flag' member that we're setting
- * - smode - 0=clear, 1=set, 2=invert
- * - sflag - bitflag to set
+/**
+ * Set/Clear/Toggle macro, where the flag is negative.
+ * \param channel: channel with a 'flag' member that we're setting.
+ * \param smode: 0=clear, 1=set, 2=invert.
+ * \param sflag: Bit-flag to set.
  */
 #define ACHANNEL_SET_FLAG_NEG(channel, smode, sflag) \
   { \
@@ -830,18 +998,37 @@ float ANIM_unit_mapping_get_factor(
   } \
   ((void)0)
 
-/* --------- anim_deps.c, animation updates -------- */
+/** \} */
 
+/* anim_deps.c */
+
+/* -------------------------------------------------------------------- */
+/** \name Animation Updates
+ * \{ */
+
+/**
+ * Tags the given ID block for refreshes (if applicable) due to Animation Editor editing.
+ */
 void ANIM_id_update(struct Main *bmain, struct ID *id);
+/**
+ * Tags the given anim list element for refreshes (if applicable) due to Animation Editor editing.
+ */
 void ANIM_list_elem_update(struct Main *bmain, struct Scene *scene, bAnimListElem *ale);
 
 /* data -> channels syncing */
+
+/**
+ * Main call to be exported to animation editors.
+ */
 void ANIM_sync_animchannels_to_data(const struct bContext *C);
 
 void ANIM_center_frame(struct bContext *C, int smooth_viewtx);
 
-/* ************************************************* */
-/* OPERATORS */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operators
+ * \{ */
 
 /* generic animation channels */
 void ED_operatortypes_animchannels(void);
@@ -856,12 +1043,20 @@ void ED_operatormacros_graph(void);
 /* space_action */
 void ED_operatormacros_action(void);
 
-/* ************************************************ */
-/* Animation Editor Exports */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Animation Editor Exports
+ * \{ */
+
 /* XXX: Should we be doing these here, or at all? */
 
-/* Action Editor - Action Management */
-struct AnimData *ED_actedit_animdata_from_context(struct bContext *C, struct ID **r_adt_id_owner);
+/**
+ * Action Editor - Action Management.
+ * Helper function to find the active AnimData block from the Action Editor context.
+ */
+struct AnimData *ED_actedit_animdata_from_context(const struct bContext *C,
+                                                  struct ID **r_adt_id_owner);
 void ED_animedit_unlink_action(struct bContext *C,
                                struct ID *id,
                                struct AnimData *adt,
@@ -869,19 +1064,23 @@ void ED_animedit_unlink_action(struct bContext *C,
                                struct ReportList *reports,
                                bool force_delete);
 
-/* Drivers Editor - Utility to set up UI correctly */
+/**
+ * Set up UI configuration for Drivers Editor
+ * (drivers editor window) and RNA (mode switching).
+ * \note Currently called from window-manager.
+ */
 void ED_drivers_editor_init(struct bContext *C, struct ScrArea *area);
 
 /* ************************************************ */
 
 typedef enum eAnimvizCalcRange {
-  /* Update motion paths at the current frame only. */
+  /** Update motion paths at the current frame only. */
   ANIMVIZ_CALC_RANGE_CURRENT_FRAME,
 
-  /* Try to limit updates to a close neighborhood of the current frame. */
+  /** Try to limit updates to a close neighborhood of the current frame. */
   ANIMVIZ_CALC_RANGE_CHANGED,
 
-  /* Update an entire range of the motion paths. */
+  /** Update an entire range of the motion paths. */
   ANIMVIZ_CALC_RANGE_FULL,
 } eAnimvizCalcRange;
 
@@ -897,7 +1096,13 @@ void animviz_calc_motionpaths(struct Depsgraph *depsgraph,
                               eAnimvizCalcRange range,
                               bool restore);
 
+/**
+ * Get list of motion paths to be baked for the given object.
+ * - assumes the given list is ready to be used.
+ */
 void animviz_get_object_motionpaths(struct Object *ob, ListBase *targets);
+
+/** \} */
 
 #ifdef __cplusplus
 }

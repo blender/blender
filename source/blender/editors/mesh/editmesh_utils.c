@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2004 by Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2004 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edmesh
@@ -68,9 +52,6 @@
  * just as the undo stack would.
  * So leaving this as an interface for further work */
 
-/**
- * Save a copy of the #BMesh for restoring later.
- */
 BMBackup EDBM_redo_state_store(BMEditMesh *em)
 {
   BMBackup backup;
@@ -93,9 +74,6 @@ void EDBM_redo_state_restore(BMBackup *backup, BMEditMesh *em, bool recalc_loopt
   }
 }
 
-/**
- * Delete the backup, flushing it to an edit-mesh.
- */
 void EDBM_redo_state_restore_and_free(BMBackup *backup, BMEditMesh *em, bool recalc_looptri)
 {
   BM_mesh_data_free(em->bm);
@@ -139,11 +117,6 @@ bool EDBM_op_init(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const char *
   return true;
 }
 
-/**
- * The return value:
- * - False on error (the mesh must not be changed).
- * - True on success, executes and finishes a #BMesh operator.
- */
 bool EDBM_op_finish(BMEditMesh *em, BMOperator *bmop, wmOperator *op, const bool do_report)
 {
   const char *errmsg;
@@ -320,11 +293,6 @@ void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
   EDBM_selectmode_flush(me->edit_mesh);
 }
 
-/**
- * \warning This can invalidate the #Mesh runtime cache of other objects (for linked duplicates).
- * Most callers should run #DEG_id_tag_update on `ob->data`, see: T46738, T46913.
- * This ensures #BKE_object_free_derived_caches runs on all objects that use this mesh.
- */
 void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
 {
   Mesh *me = ob->data;
@@ -350,9 +318,6 @@ void EDBM_mesh_clear(BMEditMesh *em)
   /* clear bmesh */
   BM_mesh_clear(em->bm);
 
-  /* Free evaluated meshes & cache. */
-  BKE_editmesh_free_derived_caches(em);
-
   /* free tessellation data */
   em->tottri = 0;
   MEM_SAFE_FREE(em->looptris);
@@ -363,9 +328,6 @@ void EDBM_mesh_load(Main *bmain, Object *ob)
   EDBM_mesh_load_ex(bmain, ob, true);
 }
 
-/**
- * Should only be called on the active edit-mesh, otherwise call #BKE_editmesh_free_data.
- */
 void EDBM_mesh_free_data(BMEditMesh *em)
 {
   /* These tables aren't used yet, so it's not strictly necessary
@@ -486,9 +448,6 @@ void EDBM_flag_enable_all(BMEditMesh *em, const char hflag)
 /** \name UV Vertex Map API
  * \{ */
 
-/**
- * Return a new #UvVertMap from the edit-mesh.
- */
 UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool use_winding)
 {
   BMVert *ev;
@@ -632,7 +591,6 @@ UvMapVert *BM_uv_vert_map_at_index(UvVertMap *vmap, uint v)
   return vmap->vert[v];
 }
 
-/* A specialized vert map used by stitch operator */
 UvElementMap *BM_uv_element_map_create(BMesh *bm,
                                        const Scene *scene,
                                        const bool face_selected,
@@ -953,10 +911,6 @@ UvElement *BM_uv_element_get(UvElementMap *map, BMFace *efa, BMLoop *l)
 /** \name Data Layer Checks
  * \{ */
 
-/**
- * last_sel, use em->act_face otherwise get the last selected face in the editselections
- * at the moment, last_sel is mainly useful for making sure the space image doesn't flicker.
- */
 BMFace *EDBM_uv_active_face_get(BMEditMesh *em, const bool sloppy, const bool selected)
 {
   BMFace *efa = NULL;
@@ -974,7 +928,6 @@ BMFace *EDBM_uv_active_face_get(BMEditMesh *em, const bool sloppy, const bool se
   return NULL;
 }
 
-/* Can we edit UV's for this mesh? */
 bool EDBM_uv_check(BMEditMesh *em)
 {
   /* some of these checks could be a touch overkill */
@@ -1015,20 +968,10 @@ static BMVert *cache_mirr_intptr_as_bmvert(const intptr_t *index_lookup, int ind
  * \endcode
  */
 
-/* BM_SEARCH_MAXDIST is too big, copied from 2.6x MOC_THRESH, should become a
- * preference */
+/* BM_SEARCH_MAXDIST is too big, copied from 2.6x MOC_THRESH, should become a preference. */
 #define BM_SEARCH_MAXDIST_MIRR 0.00002f
 #define BM_CD_LAYER_ID "__mirror_index"
-/**
- * \param em: Editmesh.
- * \param use_self: Allow a vertex to point to its self (middle verts).
- * \param use_select: Restrict to selected verts.
- * \param respecthide: Skip hidden vertices.
- * \param use_topology: Use topology mirror.
- * \param maxdist: Distance for close point test.
- * \param r_index: Optional array to write into, as an alternative to a customdata layer
- * (length of total verts).
- */
+
 void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
                                       const int axis,
                                       const bool use_self,
@@ -1255,7 +1198,6 @@ void EDBM_verts_mirror_apply(BMEditMesh *em, const int sel_from, const int sel_t
 /** \name Hide/Reveal API
  * \{ */
 
-/* swap is 0 or 1, if 1 it hides not selected */
 bool EDBM_mesh_hide(BMEditMesh *em, bool swap)
 {
   BMIter iter;
@@ -1410,9 +1352,6 @@ void EDBM_stats_update(BMEditMesh *em)
   }
 }
 
-/**
- * So many tools call these that we better make it a generic function.
- */
 void EDBM_update(Mesh *mesh, const struct EDBMUpdate_Params *params)
 {
   BMEditMesh *em = mesh->edit_mesh;
@@ -1446,8 +1385,6 @@ void EDBM_update(Mesh *mesh, const struct EDBMUpdate_Params *params)
     BM_lnorspace_invalidate(em->bm, false);
     em->bm->spacearr_dirty &= ~BM_SPACEARR_BMO_SET;
   }
-  /* Don't keep stale evaluated mesh data around, see: T38872. */
-  BKE_editmesh_free_derived_caches(em);
 
 #ifdef DEBUG
   {
@@ -1459,7 +1396,6 @@ void EDBM_update(Mesh *mesh, const struct EDBMUpdate_Params *params)
 #endif
 }
 
-/* Bad level call from Python API. */
 void EDBM_update_extern(struct Mesh *me, const bool do_tessellation, const bool is_destructive)
 {
   EDBM_update(me,
@@ -1476,7 +1412,6 @@ void EDBM_update_extern(struct Mesh *me, const bool do_tessellation, const bool 
 /** \name Operator Helpers
  * \{ */
 
-/* poll call for mesh operators requiring a view3d context */
 bool EDBM_view3d_poll(bContext *C)
 {
   if (ED_operator_editmesh(C) && ED_operator_view3d_active(C)) {
@@ -1509,11 +1444,6 @@ BMElem *EDBM_elem_from_selectmode(BMEditMesh *em, BMVert *eve, BMEdge *eed, BMFa
   return ele;
 }
 
-/**
- * Used when we want to store a single index for any vert/edge/face.
- *
- * Intended for use with operators.
- */
 int EDBM_elem_to_index_any(BMEditMesh *em, BMElem *ele)
 {
   BMesh *bm = em->bm;

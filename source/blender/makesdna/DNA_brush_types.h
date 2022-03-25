@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup DNA
@@ -123,7 +107,7 @@ typedef struct BrushGpencilSettings {
   int sculpt_mode_flag;
   /** Preset type (used to reset brushes - internal). */
   short preset_type;
-  /** Brush preselected mode (Active/Material/Vertexcolor). */
+  /** Brush preselected mode (Active/Material/Vertex-color). */
   short brush_draw_mode;
 
   /** Randomness for Hue. */
@@ -152,6 +136,11 @@ typedef struct BrushGpencilSettings {
   /** Material. */
   struct Material *material;
 } BrushGpencilSettings;
+
+typedef struct BrushCurvesSculptSettings {
+  /* Number of curves added by the add brush.  */
+  int add_amount;
+} BrushCurvesSculptSettings;
 
 typedef struct Brush {
   ID id;
@@ -272,7 +261,9 @@ typedef struct Brush {
   char gpencil_sculpt_tool;
   /** Active grease pencil weight tool. */
   char gpencil_weight_tool;
-  char _pad1[6];
+  /** Active curves sculpt tool (#eBrushCurvesSculptTool). */
+  char curves_sculpt_tool;
+  char _pad1[5];
 
   float autosmooth_factor;
 
@@ -374,7 +365,7 @@ typedef struct Brush {
   float mask_stencil_dimension[2];
 
   struct BrushGpencilSettings *gpencil_settings;
-
+  struct BrushCurvesSculptSettings *curves_sculpt_settings;
 } Brush;
 
 /* Struct to hold palette colors for sorting. */

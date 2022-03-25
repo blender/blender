@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edtransform
@@ -295,10 +279,6 @@ static void constraint_snap_plane_to_edge(const TransInfo *t, const float plane[
   }
 }
 
-/**
- * Snap to the nearest point between the snap point and the line that
- * intersects the face plane with the constraint plane.
- */
 static void UNUSED_FUNCTION(constraint_snap_plane_to_face(const TransInfo *t,
                                                           const float plane[4],
                                                           float r_out[3]))
@@ -314,9 +294,6 @@ static void UNUSED_FUNCTION(constraint_snap_plane_to_face(const TransInfo *t,
   }
 }
 
-/**
- * Snap to the nearest point on the axis to the edge/line element.
- */
 void transform_constraint_snap_axis_to_edge(const TransInfo *t,
                                             const float axis[3],
                                             float r_out[3])
@@ -331,9 +308,6 @@ void transform_constraint_snap_axis_to_edge(const TransInfo *t,
   }
 }
 
-/**
- * Snap to the intersection of the axis and the plane defined by the face.
- */
 void transform_constraint_snap_axis_to_face(const TransInfo *t,
                                             const float axis[3],
                                             float r_out[3])
@@ -700,7 +674,6 @@ void setConstraint(TransInfo *t, int mode, const char text[])
   t->redraw = TREDRAW_HARD;
 }
 
-/* applies individual td->axismtx constraints */
 void setAxisMatrixConstraint(TransInfo *t, int mode, const char text[])
 {
   BLI_strncpy(t->con.text + 1, text, sizeof(t->con.text) - 1);
@@ -728,12 +701,6 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[])
   }
 }
 
-/**
- * Set the constraint according to the user defined orientation
- *
- * `ftext` is a format string passed to #BLI_snprintf. It will add the name of
- * the orientation where %s is (logically).
- */
 void setUserConstraint(TransInfo *t, int mode, const char ftext[])
 {
   char text[256];
@@ -842,7 +809,6 @@ void drawConstraint(TransInfo *t)
   }
 }
 
-/* called from drawview.c, as an extra per-window draw option */
 void drawPropCircle(const struct bContext *C, TransInfo *t)
 {
   if (t->flag & T_PROP_EDIT) {
@@ -1075,8 +1041,7 @@ static void setNearestAxis3d(TransInfo *t)
    * and to overflow the short integers.
    * The formula used is a bit stupid, just a simplification of the subtraction
    * of two 2D points 30 pixels apart (that's the last factor in the formula) after
-   * projecting them with ED_view3d_win_to_delta and then get the length of that vector.
-   */
+   * projecting them with #ED_view3d_win_to_delta and then get the length of that vector. */
   zfac = mul_project_m4_v3_zfac(t->persmat, t->center_global);
   zfac = len_v3(t->persinv[0]) * 2.0f / t->region->winx * zfac * 30.0f;
 
@@ -1200,13 +1165,6 @@ bool isLockConstraint(const TransInfo *t)
   return false;
 }
 
-/**
- * Returns the dimension of the constraint space.
- *
- * For that reason, the flags always needs to be set to properly evaluate here,
- * even if they aren't actually used in the callback function.
- * (Which could happen for weird constraints not yet designed. Along a path for example.)
- */
 int getConstraintSpaceDimension(const TransInfo *t)
 {
   int n = 0;

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pygen
@@ -686,12 +672,6 @@ static IDProperty *idp_from_PyObject(PyObject *name_obj, PyObject *ob)
 /** \name Mapping Get/Set (Internal Access)
  * \{ */
 
-/**
- * \note group can be a pointer array or a group.
- * assume we already checked key is a string.
- *
- * \return success.
- */
 bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty *group, PyObject *ob)
 {
   IDProperty *prop = idp_from_PyObject(name_obj, ob);
@@ -776,10 +756,18 @@ static int BPy_IDGroup_Map_SetItem(BPy_IDProperty *self, PyObject *key, PyObject
 
 static PyObject *BPy_IDGroup_iter(BPy_IDProperty *self)
 {
-  return BPy_IDGroup_ViewKeys_CreatePyObject(self);
+  PyObject *iterable = BPy_IDGroup_ViewKeys_CreatePyObject(self);
+  PyObject *ret;
+  if (iterable) {
+    ret = PyObject_GetIter(iterable);
+    Py_DECREF(iterable);
+  }
+  else {
+    ret = NULL;
+  }
+  return ret;
 }
 
-/* for simple, non nested types this is the same as BPy_IDGroup_WrapData */
 PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 {
   switch (prop->type) {
@@ -1974,6 +1962,8 @@ static PyBufferProcs BPy_IDArray_Buffer = {
     (getbufferproc)BPy_IDArray_getbuffer,
     (releasebufferproc)BPy_IDArray_releasebuffer,
 };
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name ID Array Type

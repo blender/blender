@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -69,7 +53,6 @@ static CLG_LogRef LOG = {"bke.anim_sys"};
 
 /* Getter/Setter -------------------------------------------- */
 
-/* Check if ID can have AnimData */
 bool id_type_can_have_animdata(const short id_type)
 {
   const IDTypeInfo *typeinfo = BKE_idtype_get_info_from_idcode(id_type);
@@ -89,10 +72,7 @@ bool id_can_have_animdata(const ID *id)
   return id_type_can_have_animdata(GS(id->name));
 }
 
-/**
- * Get #AnimData from the given ID-block.
- */
-AnimData *BKE_animdata_from_id(ID *id)
+AnimData *BKE_animdata_from_id(const ID *id)
 {
   /* In order for this to work, we assume that the #AnimData pointer is stored
    * immediately after the given ID-block in the struct, as per IdAdtTemplate. */
@@ -106,9 +86,6 @@ AnimData *BKE_animdata_from_id(ID *id)
   return NULL;
 }
 
-/**
- * Ensure #AnimData exists in the given ID-block (when supported).
- */
 AnimData *BKE_animdata_ensure_id(ID *id)
 {
   /* In order for this to work, we assume that the #AnimData pointer is stored
@@ -137,16 +114,6 @@ AnimData *BKE_animdata_ensure_id(ID *id)
 
 /* Action Setter --------------------------------------- */
 
-/**
- * Called when user tries to change the active action of an #AnimData block
- * (via RNA, Outliner, etc.)
- *
- * \param reports: Can be NULL.
- * \param id: The owner of the animation data
- * \param act: The Action to set, or NULL to clear.
- *
- * \return true when the action was successfully updated, false otherwise.
- */
 bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
 {
   AnimData *adt = BKE_animdata_from_id(id);
@@ -226,7 +193,6 @@ bool BKE_animdata_action_ensure_idroot(const ID *owner, bAction *action)
 
 /* Freeing -------------------------------------------- */
 
-/* Free AnimData used by the nominated ID-block, and clear ID-block's AnimData pointer */
 void BKE_animdata_free(ID *id, const bool do_id_user)
 {
   /* Only some ID-blocks have this info for now, so we cast the
@@ -287,10 +253,6 @@ bool BKE_animdata_id_is_animated(const struct ID *id)
          !BLI_listbase_is_empty(&adt->overrides);
 }
 
-/**
- * Callback used by lib_query to walk over all ID usages (mimics `foreach_id` callback of
- * `IDTypeInfo` structure).
- */
 void BKE_animdata_foreach_id(AnimData *adt, LibraryForeachIDData *data)
 {
   LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
@@ -309,12 +271,6 @@ void BKE_animdata_foreach_id(AnimData *adt, LibraryForeachIDData *data)
 
 /* Copying -------------------------------------------- */
 
-/**
- * Make a copy of the given AnimData - to be used when copying data-blocks.
- * \param flag: Control ID pointers management,
- * see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_lib_id.h
- * \return The copied animdata.
- */
 AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
 {
   AnimData *dadt;
@@ -367,11 +323,6 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
   return dadt;
 }
 
-/**
- * \param flag: Control ID pointers management,
- * see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in BKE_lib_id.h
- * \return true is successfully copied.
- */
 bool BKE_animdata_copy_id(Main *bmain, ID *id_to, ID *id_from, const int flag)
 {
   AnimData *adt;
@@ -432,7 +383,6 @@ void BKE_animdata_duplicate_id_action(struct Main *bmain,
   }
 }
 
-/* Merge copies of the data from the src AnimData into the destination AnimData */
 void BKE_animdata_merge_copy(
     Main *bmain, ID *dst_id, ID *src_id, eAnimData_MergeCopy_Modes action_mode, bool fix_drivers)
 {
@@ -647,12 +597,6 @@ static void animdata_move_drivers_by_basepath(AnimData *srcAdt,
   }
 }
 
-/* Transfer the animation data from srcID to dstID where the srcID
- * animation data is based off "basepath", creating new AnimData and
- * associated data as necessary.
- *
- * basepaths is a list of AnimationBasePathChange.
- */
 void BKE_animdata_transfer_by_basepath(Main *bmain, ID *srcID, ID *dstID, ListBase *basepaths)
 {
   AnimData *srcAdt = NULL, *dstAdt = NULL;
@@ -714,52 +658,6 @@ void BKE_animdata_transfer_by_basepath(Main *bmain, ID *srcID, ID *dstID, ListBa
           srcAdt, dstAdt, basepath_change->src_basepath, basepath_change->dst_basepath);
     }
   }
-}
-
-/**
- * Temporary wrapper for driver operators for buttons to make it easier to create
- * such drivers by rerouting all paths through the active object instead so that
- * they will get picked up by the dependency system.
- *
- * \param C: Context pointer - for getting active data
- * \param[in,out] ptr: RNA pointer for property's data-block.
- * May be modified as result of path remapping.
- * \param prop: RNA definition of property to add for
- * \return MEM_alloc'd string representing the path to the property from the given #PointerRNA
- */
-char *BKE_animdata_driver_path_hack(bContext *C,
-                                    PointerRNA *ptr,
-                                    PropertyRNA *prop,
-                                    char *base_path)
-{
-  ID *id = ptr->owner_id;
-  ScrArea *area = CTX_wm_area(C);
-
-  /* get standard path which may be extended */
-  char *basepath = base_path ? base_path : RNA_path_from_ID_to_property(ptr, prop);
-  char *path = basepath; /* in case no remapping is needed */
-
-  /* Remapping will only be performed in the Properties Editor, as only this
-   * restricts the subspace of options to the 'active' data (a manageable state)
-   */
-  /* TODO: watch out for pinned context? */
-  if ((area) && (area->spacetype == SPACE_PROPERTIES)) {
-    Object *ob = CTX_data_active_object(C);
-
-    if (ob && id) {
-      /* TODO: after material textures were removed, this function serves
-       * no purpose anymore, but could be used again so was not removed. */
-
-      /* fix RNA pointer, as we've now changed the ID root by changing the paths */
-      if (basepath != path) {
-        /* rebase provided pointer so that it starts from object... */
-        RNA_pointer_create(&ob->id, ptr->type, ptr->data, ptr);
-      }
-    }
-  }
-
-  /* the path should now have been corrected for use */
-  return path;
 }
 
 /* Path Validation -------------------------------------------- */
@@ -865,7 +763,7 @@ static bool fcurves_path_rename_fix(ID *owner_id,
     if (fcu->rna_path != old_path) {
       bActionGroup *agrp = fcu->grp;
       is_changed = true;
-      if ((agrp != NULL) && STREQ(oldName, agrp->name)) {
+      if (oldName != NULL && (agrp != NULL) && STREQ(oldName, agrp->name)) {
         BLI_strncpy(agrp->name, newName, sizeof(agrp->name));
       }
     }
@@ -956,14 +854,6 @@ static bool nlastrips_path_rename_fix(ID *owner_id,
 
 /* Rename Sub-ID Entities in RNA Paths ----------------------- */
 
-/* Fix up the given RNA-Path
- *
- * This is just an external wrapper for the RNA-Path fixing function,
- * with input validity checks on top of the basic method.
- *
- * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
- *       i.e. pose.bones["Bone"]
- */
 char *BKE_animsys_fix_rna_path_rename(ID *owner_id,
                                       char *old_path,
                                       const char *prefix,
@@ -1019,14 +909,6 @@ char *BKE_animsys_fix_rna_path_rename(ID *owner_id,
   return result;
 }
 
-/* Fix all RNA_Paths in the given Action, relative to the given ID block
- *
- * This is just an external wrapper for the F-Curve fixing function,
- * with input validity checks on top of the basic method.
- *
- * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
- *       i.e. pose.bones["Bone"]
- */
 void BKE_action_fix_paths_rename(ID *owner_id,
                                  bAction *act,
                                  const char *prefix,
@@ -1070,10 +952,6 @@ void BKE_action_fix_paths_rename(ID *owner_id,
   MEM_freeN(newN);
 }
 
-/* Fix all RNA-Paths in the AnimData block used by the given ID block
- * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
- *       i.e. pose.bones["Bone"]
- */
 void BKE_animdata_fix_paths_rename(ID *owner_id,
                                    AnimData *adt,
                                    ID *ref_id,
@@ -1282,7 +1160,6 @@ void BKE_fcurves_id_cb(ID *id, ID_FCurve_Edit_Callback func, void *user_data)
   }
 }
 
-/* apply the given callback function on all F-Curves attached to data in main database */
 void BKE_fcurves_main_cb(Main *bmain, ID_FCurve_Edit_Callback func, void *user_data)
 {
   /* Wrap F-Curve operation stuff to pass to the general AnimData-level func */
@@ -1294,7 +1171,6 @@ void BKE_fcurves_main_cb(Main *bmain, ID_FCurve_Edit_Callback func, void *user_d
 
 /* Whole Database Ops -------------------------------------------- */
 
-/* apply the given callback function on all data in main database */
 void BKE_animdata_main_cb(Main *bmain, ID_AnimData_Edit_Callback func, void *user_data)
 {
   ID *id;
@@ -1392,8 +1268,8 @@ void BKE_animdata_main_cb(Main *bmain, ID_AnimData_Edit_Callback func, void *use
   /* cache files */
   ANIMDATA_IDS_CB(bmain->cachefiles.first);
 
-  /* hairs */
-  ANIMDATA_IDS_CB(bmain->hairs.first);
+  /* Hair Curves. */
+  ANIMDATA_IDS_CB(bmain->hair_curves.first);
 
   /* pointclouds */
   ANIMDATA_IDS_CB(bmain->pointclouds.first);
@@ -1405,10 +1281,6 @@ void BKE_animdata_main_cb(Main *bmain, ID_AnimData_Edit_Callback func, void *use
   ANIMDATA_IDS_CB(bmain->simulations.first);
 }
 
-/* Fix all RNA-Paths throughout the database (directly access the Global.main version)
- * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
- *      i.e. pose.bones["Bone"]
- */
 void BKE_animdata_fix_paths_rename_all(ID *ref_id,
                                        const char *prefix,
                                        const char *oldName,
@@ -1418,11 +1290,6 @@ void BKE_animdata_fix_paths_rename_all(ID *ref_id,
   BKE_animdata_fix_paths_rename_all_ex(bmain, ref_id, prefix, oldName, newName, 0, 0, 1);
 }
 
-/* Fix all RNA-Paths throughout the database
- * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
- *      i.e. pose.bones["Bone"]
- */
-/* TODO: use BKE_animdata_main_cb for looping over all data. */
 void BKE_animdata_fix_paths_rename_all_ex(Main *bmain,
                                           ID *ref_id,
                                           const char *prefix,
@@ -1432,6 +1299,7 @@ void BKE_animdata_fix_paths_rename_all_ex(Main *bmain,
                                           const int newSubscript,
                                           const bool verify_paths)
 {
+  /* TODO: use BKE_animdata_main_cb for looping over all data. */
 
   ID *id;
 
@@ -1529,8 +1397,8 @@ void BKE_animdata_fix_paths_rename_all_ex(Main *bmain,
   /* cache files */
   RENAMEFIX_ANIM_IDS(bmain->cachefiles.first);
 
-  /* hairs */
-  RENAMEFIX_ANIM_IDS(bmain->hairs.first);
+  /* Hair Curves. */
+  RENAMEFIX_ANIM_IDS(bmain->hair_curves.first);
 
   /* pointclouds */
   RENAMEFIX_ANIM_IDS(bmain->pointclouds.first);

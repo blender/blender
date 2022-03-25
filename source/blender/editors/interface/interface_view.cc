@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -46,7 +32,7 @@ struct ViewLink : public Link {
   using TreeViewPtr = std::unique_ptr<AbstractTreeView>;
 
   std::string idname;
-  /* Note: Can't use std::get() on this until minimum macOS deployment target is 10.14. */
+  /* NOTE: Can't use std::get() on this until minimum macOS deployment target is 10.14. */
   std::variant<TreeViewPtr> view;
 };
 
@@ -56,14 +42,11 @@ template<class T> T *get_view_from_link(ViewLink &link)
   return t_uptr ? t_uptr->get() : nullptr;
 }
 
-/**
- * Override this for all available tree types.
- */
 AbstractTreeView *UI_block_add_view(uiBlock &block,
                                     StringRef idname,
                                     std::unique_ptr<AbstractTreeView> tree_view)
 {
-  ViewLink *view_link = OBJECT_GUARDED_NEW(ViewLink);
+  ViewLink *view_link = MEM_new<ViewLink>(__func__);
   BLI_addtail(&block.views, view_link);
 
   view_link->view = std::move(tree_view);
@@ -75,13 +58,10 @@ AbstractTreeView *UI_block_add_view(uiBlock &block,
 void ui_block_free_views(uiBlock *block)
 {
   LISTBASE_FOREACH_MUTABLE (ViewLink *, link, &block->views) {
-    OBJECT_GUARDED_DELETE(link, ViewLink);
+    MEM_delete(link);
   }
 }
 
-/**
- * \param x, y: Coordinate to find a tree-row item at, in window space.
- */
 uiTreeViewItemHandle *UI_block_tree_view_find_item_at(const ARegion *region, const int xy[2])
 {
   uiButTreeRow *tree_row_but = (uiButTreeRow *)ui_tree_row_find_mouse_over(region, xy);

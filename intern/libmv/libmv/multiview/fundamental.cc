@@ -411,7 +411,7 @@ void FundamentalToEssential(const Mat3& F, Mat3* E) {
 
 // Default settings for fundamental estimation which should be suitable
 // for a wide range of use cases.
-EstimateFundamentalOptions::EstimateFundamentalOptions(void)
+EstimateFundamentalOptions::EstimateFundamentalOptions()
     : max_num_iterations(50), expected_average_symmetric_distance(1e-16) {
 }
 

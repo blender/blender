@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2020, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. */
 
 /** \file
  * \ingroup EEVEE
@@ -56,7 +41,7 @@
 #include "BLI_math_bits.h"
 #include "BLI_rect.h"
 
-#include "DNA_hair_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
@@ -139,6 +124,8 @@ void EEVEE_cryptomatte_renderpasses_init(EEVEE_Data *vedata)
     g_data->cryptomatte_session = session;
 
     g_data->render_passes |= EEVEE_RENDER_PASS_CRYPTOMATTE | EEVEE_RENDER_PASS_VOLUME_LIGHT;
+    g_data->cryptomatte_accurate_mode = (view_layer->cryptomatte_flag &
+                                         VIEW_LAYER_CRYPTOMATTE_ACCURATE) != 0;
   }
 }
 
@@ -246,25 +233,25 @@ static DRWShadingGroup *eevee_cryptomatte_shading_group_create(EEVEE_Data *vedat
   return grp;
 }
 
-static void eevee_cryptomatte_hair_cache_populate(EEVEE_Data *vedata,
-                                                  EEVEE_ViewLayerData *sldata,
-                                                  Object *ob,
-                                                  ParticleSystem *psys,
-                                                  ModifierData *md,
-                                                  Material *material)
+static void eevee_cryptomatte_curves_cache_populate(EEVEE_Data *vedata,
+                                                    EEVEE_ViewLayerData *sldata,
+                                                    Object *ob,
+                                                    ParticleSystem *psys,
+                                                    ModifierData *md,
+                                                    Material *material)
 {
   DRWShadingGroup *grp = eevee_cryptomatte_shading_group_create(
       vedata, sldata, ob, material, true);
   DRW_shgroup_hair_create_sub(ob, psys, md, grp, NULL);
 }
 
-void EEVEE_cryptomatte_object_hair_cache_populate(EEVEE_Data *vedata,
-                                                  EEVEE_ViewLayerData *sldata,
-                                                  Object *ob)
+void EEVEE_cryptomatte_object_curves_cache_populate(EEVEE_Data *vedata,
+                                                    EEVEE_ViewLayerData *sldata,
+                                                    Object *ob)
 {
-  BLI_assert(ob->type == OB_HAIR);
-  Material *material = BKE_object_material_get_eval(ob, HAIR_MATERIAL_NR);
-  eevee_cryptomatte_hair_cache_populate(vedata, sldata, ob, NULL, NULL, material);
+  BLI_assert(ob->type == OB_CURVES);
+  Material *material = BKE_object_material_get_eval(ob, CURVES_MATERIAL_NR);
+  eevee_cryptomatte_curves_cache_populate(vedata, sldata, ob, NULL, NULL, material);
 }
 
 void EEVEE_cryptomatte_particle_hair_cache_populate(EEVEE_Data *vedata,
@@ -289,7 +276,7 @@ void EEVEE_cryptomatte_particle_hair_cache_populate(EEVEE_Data *vedata,
           continue;
         }
         Material *material = BKE_object_material_get_eval(ob, part->omat);
-        eevee_cryptomatte_hair_cache_populate(vedata, sldata, ob, psys, md, material);
+        eevee_cryptomatte_curves_cache_populate(vedata, sldata, ob, psys, md, material);
       }
     }
   }
@@ -403,6 +390,7 @@ void EEVEE_cryptomatte_output_accumulate(EEVEE_ViewLayerData *UNUSED(sldata), EE
 {
   EEVEE_FramebufferList *fbl = vedata->fbl;
   EEVEE_StorageList *stl = vedata->stl;
+  EEVEE_PrivateData *g_data = stl->g_data;
   EEVEE_EffectsInfo *effects = stl->effects;
   EEVEE_PassList *psl = vedata->psl;
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -410,9 +398,10 @@ void EEVEE_cryptomatte_output_accumulate(EEVEE_ViewLayerData *UNUSED(sldata), EE
   const int cryptomatte_levels = view_layer->cryptomatte_levels;
   const int current_sample = effects->taa_current_sample;
 
-  /* Render samples used by cryptomatte are limited to the number of cryptomatte levels. This will
-   * reduce the overhead of downloading the GPU buffer and integrating it into the accum buffer. */
-  if (current_sample < cryptomatte_levels) {
+  /* In accurate mode all render samples are evaluated. In inaccurate mode this is limited to the
+   * number of cryptomatte levels. This will reduce the overhead of downloading the GPU buffer and
+   * integrating it into the accum buffer. */
+  if (g_data->cryptomatte_accurate_mode || current_sample < cryptomatte_levels) {
     static float clear_color[4] = {0.0};
     GPU_framebuffer_bind(fbl->cryptomatte_fb);
     GPU_framebuffer_clear_color(fbl->cryptomatte_fb, clear_color);
@@ -431,9 +420,6 @@ void EEVEE_cryptomatte_output_accumulate(EEVEE_ViewLayerData *UNUSED(sldata), EE
 /** \name Update Render Passes
  * \{ */
 
-/* Register the render passes needed for cryptomatte
- * normally this is done in `EEVEE_render_update_passes`, but it has been placed here to keep
- * related code side-by-side for clarity. */
 void EEVEE_cryptomatte_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)
 {
   char cryptomatte_pass_name[MAX_NAME];

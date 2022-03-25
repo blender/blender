@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -39,7 +23,6 @@
 /* ******************************************************************** */
 /* Animation Visualization */
 
-/* Initialize the default settings for animation visualization */
 void animviz_settings_init(bAnimVizSettings *avs)
 {
   /* sanity check */
@@ -62,7 +45,6 @@ void animviz_settings_init(bAnimVizSettings *avs)
 
 /* ------------------- */
 
-/* Free the given motion path's cache */
 void animviz_free_motionpath_cache(bMotionPath *mpath)
 {
   /* sanity check */
@@ -84,9 +66,6 @@ void animviz_free_motionpath_cache(bMotionPath *mpath)
   mpath->length = 0;
 }
 
-/* Free the given motion path instance and its data
- * NOTE: this frees the motion path given!
- */
 void animviz_free_motionpath(bMotionPath *mpath)
 {
   /* sanity check */
@@ -103,7 +82,6 @@ void animviz_free_motionpath(bMotionPath *mpath)
 
 /* ------------------- */
 
-/* Make a copy of motionpath data, so that viewing with copy on write works */
 bMotionPath *animviz_copy_motionpath(const bMotionPath *mpath_src)
 {
   bMotionPath *mpath_dst;
@@ -125,14 +103,6 @@ bMotionPath *animviz_copy_motionpath(const bMotionPath *mpath_src)
 
 /* ------------------- */
 
-/**
- * Setup motion paths for the given data.
- * \note Only used when explicitly calculating paths on bones which may/may not be consider already
- *
- * \param scene: Current scene (for frame ranges, etc.)
- * \param ob: Object to add paths for (must be provided)
- * \param pchan: Posechannel to add paths for (optional; if not provided, object-paths are assumed)
- */
 bMotionPath *animviz_verify_motionpaths(ReportList *reports,
                                         Scene *scene,
                                         Object *ob,

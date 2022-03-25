@@ -1,23 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: some of this file.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bli
@@ -382,7 +364,7 @@ MINLINE void blend_color_pinlight_byte(uchar dst[4], const uchar src1[4], const 
       else {
         temp = min_ii(2 * src2[i], src1[i]);
       }
-      dst[i] = (uchar)((temp * fac + src1[i] * mfac) / 255);
+      dst[i] = (uchar)((min_ii(temp, 255) * fac + src1[i] * mfac) / 255);
     }
   }
   else {
@@ -473,7 +455,7 @@ MINLINE void blend_color_exclusion_byte(uchar dst[4], const uchar src1[4], const
     int i = 3;
 
     while (i--) {
-      const int temp = 127 - ((2 * (src1[i] - 127) * (src2[i] - 127)) / 255);
+      const int temp = 127 - min_ii(((2 * (src1[i] - 127) * (src2[i] - 127)) / 255), 127);
       dst[i] = (uchar)((temp * fac + src1[i] * mfac) / 255);
     }
   }
@@ -896,15 +878,9 @@ MINLINE void blend_color_softlight_float(float dst[4], const float src1[4], cons
     int i = 3;
 
     while (i--) {
-      float temp;
-
-      if (src1[i] < 0.5f) {
-        temp = (src2[i] + 0.5f) * src1[i];
-      }
-      else {
-        temp = 1.0f - ((1.0f - (src2[i] + 0.5f)) * (1.0f - src1[i]));
-      }
-      dst[i] = (temp * fac + src1[i] * mfac);
+      float screen = 1.0f - (1.0f - src1[i]) * (1.0f - src2[i]);
+      float soft_light = ((1.0f - src1[i]) * src2[i] + screen) * src1[i];
+      dst[i] = src1[i] * mfac + soft_light * fac;
     }
   }
   else {

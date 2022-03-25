@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup render
@@ -83,6 +69,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "RE_bake.h"
+#include "RE_texture_margin.h"
 
 /* local include */
 #include "render_types.h"
@@ -107,6 +94,7 @@ typedef struct TSpace {
 
 typedef struct TriTessFace {
   const MVert *mverts[3];
+  const float *vert_normals[3];
   const TSpace *tspace[3];
   float *loop_normal[3];
   float normal[3]; /* for flat faces */
@@ -153,10 +141,24 @@ void RE_bake_mask_fill(const BakePixel pixel_array[], const size_t num_pixels, c
   }
 }
 
-void RE_bake_margin(ImBuf *ibuf, char *mask, const int margin)
+void RE_bake_margin(ImBuf *ibuf,
+                    char *mask,
+                    const int margin,
+                    const char margin_type,
+                    Mesh const *me,
+                    char const *uv_layer)
 {
   /* margin */
-  IMB_filter_extend(ibuf, mask, margin);
+  switch (margin_type) {
+    case R_BAKE_ADJACENT_FACES:
+      RE_generate_texturemargin_adjacentfaces(ibuf, mask, margin, me, uv_layer);
+      break;
+    default:
+    /* fall through */
+    case R_BAKE_EXTEND:
+      IMB_filter_extend(ibuf, mask, margin);
+      break;
+  }
 
   if (ibuf->planes != R_IMF_PLANES_RGBA) {
     /* clear alpha added by filtering */
@@ -241,9 +243,9 @@ static void calc_point_from_barycentric_extrusion(TriTessFace *triangles,
   interp_barycentric_tri_v3(data, u, v, coord);
 
   if (is_smooth) {
-    normal_short_to_float_v3(data[0], triangle->mverts[0]->no);
-    normal_short_to_float_v3(data[1], triangle->mverts[1]->no);
-    normal_short_to_float_v3(data[2], triangle->mverts[2]->no);
+    copy_v3_v3(data[0], triangle->vert_normals[0]);
+    copy_v3_v3(data[1], triangle->vert_normals[1]);
+    copy_v3_v3(data[2], triangle->vert_normals[2]);
 
     interp_barycentric_tri_v3(data, u, v, dir);
     normalize_v3(dir);
@@ -466,7 +468,9 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
   looptri = MEM_mallocN(sizeof(*looptri) * tottri, __func__);
   triangles = MEM_callocN(sizeof(TriTessFace) * tottri, __func__);
 
-  const float(*precomputed_normals)[3] = CustomData_get_layer(&me->pdata, CD_NORMAL);
+  const float(*precomputed_normals)[3] = BKE_mesh_poly_normals_are_dirty(me) ?
+                                             NULL :
+                                             BKE_mesh_poly_normals_ensure(me);
   const bool calculate_normal = precomputed_normals ? false : true;
 
   if (precomputed_normals != NULL) {
@@ -488,6 +492,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
     loop_normals = CustomData_get_layer(&me_eval->ldata, CD_NORMAL);
   }
 
+  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me);
   for (i = 0; i < tottri; i++) {
     const MLoopTri *lt = &looptri[i];
     const MPoly *mp = &me->mpoly[lt->poly];
@@ -495,6 +500,9 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
     triangles[i].mverts[0] = &mvert[me->mloop[lt->tri[0]].v];
     triangles[i].mverts[1] = &mvert[me->mloop[lt->tri[1]].v];
     triangles[i].mverts[2] = &mvert[me->mloop[lt->tri[2]].v];
+    triangles[i].vert_normals[0] = vert_normals[me->mloop[lt->tri[0]].v];
+    triangles[i].vert_normals[1] = vert_normals[me->mloop[lt->tri[1]].v];
+    triangles[i].vert_normals[2] = vert_normals[me->mloop[lt->tri[2]].v];
     triangles[i].is_smooth = (mp->flag & ME_SMOOTH) != 0;
 
     if (tangent) {
@@ -814,10 +822,6 @@ static void normal_compress(float out[3],
   }
 }
 
-/**
- * This function converts an object space normal map
- * to a tangent space normal map for a given low poly mesh.
- */
 void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
                                      const size_t num_pixels,
                                      const int depth,
@@ -882,7 +886,7 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
           copy_v3_v3(normals[j], triangle->loop_normal[j]);
         }
         else {
-          normal_short_to_float_v3(normals[j], triangle->mverts[j]->no);
+          copy_v3_v3(normals[j], triangle->vert_normals[j]);
         }
       }
 

@@ -1,26 +1,13 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2011, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. */
 
 #include "COM_TextureOperation.h"
 #include "COM_WorkScheduler.h"
 
 #include "BKE_image.h"
 #include "BKE_node.h"
+
+#include "NOD_texture.h"
 
 namespace blender::compositor {
 
@@ -80,7 +67,7 @@ void TextureBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_
 
   if (execution_model_ == eExecutionModel::FullFrame) {
     /* Determine inputs. */
-    rcti temp;
+    rcti temp = COM_AREA_NONE;
     NodeOperation::determine_canvas(r_area, temp);
   }
 }
@@ -100,7 +87,7 @@ void TextureBaseOperation::execute_pixel_sampled(float output[4],
                                                  float y,
                                                  PixelSampler sampler)
 {
-  TexResult texres = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, nullptr};
+  TexResult texres = {0.0f};
   float texture_size[4];
   float texture_offset[4];
   float vec[3];
@@ -131,11 +118,9 @@ void TextureBaseOperation::execute_pixel_sampled(float output[4],
   retval = multitex_ext(
       texture_, vec, nullptr, nullptr, 0, &texres, thread_id, pool_, scene_color_manage_, false);
 
-  output[3] = texres.talpha ? texres.ta : texres.tin;
+  output[3] = texres.talpha ? texres.trgba[3] : texres.tin;
   if (retval & TEX_RGB) {
-    output[0] = texres.tr;
-    output[1] = texres.tg;
-    output[2] = texres.tb;
+    copy_v3_v3(output, texres.trgba);
   }
   else {
     output[0] = output[1] = output[2] = output[3];
@@ -184,11 +169,9 @@ void TextureBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                     scene_color_manage_,
                                     false);
 
-    it.out[3] = tex_result.talpha ? tex_result.ta : tex_result.tin;
+    it.out[3] = tex_result.talpha ? tex_result.trgba[3] : tex_result.tin;
     if (retval & TEX_RGB) {
-      it.out[0] = tex_result.tr;
-      it.out[1] = tex_result.tg;
-      it.out[2] = tex_result.tb;
+      copy_v3_v3(it.out, tex_result.trgba);
     }
     else {
       it.out[0] = it.out[1] = it.out[2] = it.out[3];

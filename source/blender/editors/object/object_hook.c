@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edobj
@@ -57,6 +41,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "ED_curve.h"
 #include "ED_mesh.h"
@@ -358,7 +343,7 @@ static bool object_hook_index_array(Main *bmain,
       }
       return true;
     }
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
       ED_curve_editnurb_load(bmain, obedit);
       ED_curve_editnurb_make(obedit);
@@ -463,7 +448,7 @@ static void object_hook_select(Object *ob, HookModifierData *hmd)
   else if (ob->type == OB_LATTICE) {
     select_editlattice_hook(ob, hmd);
   }
-  else if (ob->type == OB_CURVE) {
+  else if (ob->type == OB_CURVES_LEGACY) {
     select_editcurve_hook(ob, hmd);
   }
   else if (ob->type == OB_SURF) {
@@ -582,7 +567,7 @@ static int add_hook_object(const bContext *C,
 
       BLI_strncpy(hmd->subtarget, arm->act_bone->name, sizeof(hmd->subtarget));
 
-      pchan_act = BKE_pose_channel_active(ob);
+      pchan_act = BKE_pose_channel_active_if_layer_visible(ob);
       if (LIKELY(pchan_act)) {
         invert_m4_m4(pose_mat, pchan_act->pose_mat);
         mul_v3_m4v3(cent, ob->obmat, pchan_act->pose_mat[3]);

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup spimage
@@ -135,7 +119,6 @@ static void draw_render_info(
   }
 }
 
-/* used by node view too */
 void ED_image_draw_info(Scene *scene,
                         ARegion *region,
                         bool color_manage,
@@ -558,7 +541,10 @@ void draw_image_cache(const bContext *C, ARegion *region)
     int num_segments = 0;
     int *points = NULL;
 
+    BLI_mutex_lock(image->runtime.cache_mutex);
     IMB_moviecache_get_cache_segments(image->cache, IMB_PROXY_NONE, 0, &num_segments, &points);
+    BLI_mutex_unlock(image->runtime.cache_mutex);
+
     ED_region_cache_draw_cached_segments(
         region, num_segments, points, sfra + sima->iuser.offset, efra + sima->iuser.offset);
   }
@@ -592,7 +578,7 @@ float ED_space_image_zoom_level(const View2D *v2d, const int grid_dimension)
    * - Default grid size on startup, which is 256x256 pixels
    * - How blend factor for grid lines is set up in the fragment shader `grid_frag.glsl`. */
   float zoom_factor;
-  zoom_factor = (xzoom + yzoom) / 2.0f; /* Average for accuracy.  */
+  zoom_factor = (xzoom + yzoom) / 2.0f; /* Average for accuracy. */
   zoom_factor *= 256.0f / (powf(grid_dimension, 2));
   return zoom_factor;
 }
@@ -614,11 +600,6 @@ void ED_space_image_grid_steps(SpaceImage *sima,
   }
 }
 
-/**
- * Calculate the increment snapping value for UV/image editor based on the zoom factor
- * The code in here (except the offset part) is used in `grid_frag.glsl` (see `grid_res`) for
- * drawing the grid overlay for the UV/Image editor.
- */
 float ED_space_image_increment_snap_value(const int grid_dimesnions,
                                           const float grid_steps[SI_GRID_STEPS_LEN],
                                           const float zoom_factor)

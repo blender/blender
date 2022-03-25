@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2018 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #pragma once
 
@@ -320,12 +307,19 @@ struct CachedData {
   DataStore<int> num_ngons;
   DataStore<array<int>> subd_creases_edge;
   DataStore<array<float>> subd_creases_weight;
+  DataStore<array<int>> subd_vertex_crease_indices;
+  DataStore<array<float>> subd_vertex_crease_weights;
 
   /* hair data */
   DataStore<array<float3>> curve_keys;
   DataStore<array<float>> curve_radius;
   DataStore<array<int>> curve_first_key;
   DataStore<array<int>> curve_shader;
+
+  /* point data */
+  DataStore<array<float3>> points;
+  DataStore<array<float>> radiuses;
+  DataStore<array<int>> points_shader;
 
   struct CachedAttribute {
     AttributeStandard std;
@@ -414,6 +408,7 @@ class AlembicObject : public Node {
     POLY_MESH,
     SUBD,
     CURVES,
+    POINTS,
   };
 
   bool need_shader_update = true;
@@ -472,6 +467,10 @@ class AlembicProcedural : public Procedural {
 
   /* The file path to the Alembic archive */
   NODE_SOCKET_API(ustring, filepath)
+
+  /* Layers for the Alembic archive. Layers are in the order in which they override data, with the
+   * latter elements overriding the former ones. */
+  NODE_SOCKET_API_ARRAY(array<ustring>, layers)
 
   /* The current frame to render. */
   NODE_SOCKET_API(float, frame)
@@ -549,6 +548,10 @@ class AlembicProcedural : public Procedural {
   /* Read the data for an ICurves at the specified frame_time. Creates corresponding Geometry and
    * Object Nodes in the Cycles scene if none exist yet. */
   void read_curves(AlembicObject *abc_object, Alembic::AbcGeom::Abc::chrono_t frame_time);
+
+  /* Read the data for an IPoints at the specified frame_time. Creates corresponding Geometry and
+   * Object Nodes in the Cycles scene if none exist yet. */
+  void read_points(AlembicObject *abc_object, Alembic::AbcGeom::Abc::chrono_t frame_time);
 
   /* Read the data for an ISubD at the specified frame_time. Creates corresponding Geometry and
    * Object Nodes in the Cycles scene if none exist yet. */

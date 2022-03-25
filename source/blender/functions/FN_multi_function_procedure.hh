@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -268,6 +254,7 @@ class MFProcedure : NonCopyable, NonMovable {
   Vector<MFReturnInstruction *> return_instructions_;
   Vector<MFVariable *> variables_;
   Vector<MFParameter> params_;
+  Vector<destruct_ptr<MultiFunction>> owned_functions_;
   MFInstruction *entry_ = nullptr;
 
   friend class MFProcedureDotExport;
@@ -284,8 +271,9 @@ class MFProcedure : NonCopyable, NonMovable {
   MFReturnInstruction &new_return_instruction();
 
   void add_parameter(MFParamType::InterfaceType interface_type, MFVariable &variable);
-
   Span<ConstMFParameter> params() const;
+
+  template<typename T, typename... Args> const MultiFunction &construct_function(Args &&...args);
 
   MFInstruction *entry();
   const MFInstruction *entry() const;
@@ -548,6 +536,15 @@ inline Span<MFVariable *> MFProcedure::variables()
 inline Span<const MFVariable *> MFProcedure::variables() const
 {
   return variables_;
+}
+
+template<typename T, typename... Args>
+inline const MultiFunction &MFProcedure::construct_function(Args &&...args)
+{
+  destruct_ptr<T> fn = allocator_.construct<T>(std::forward<Args>(args)...);
+  const MultiFunction &fn_ref = *fn;
+  owned_functions_.append(std::move(fn));
+  return fn_ref;
 }
 
 /** \} */

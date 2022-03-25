@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edobj
@@ -105,7 +89,7 @@
 
 #include "CLG_log.h"
 
-/* For menu/popup icons etc etc. */
+/* For menu/popup icons etc. */
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -134,8 +118,6 @@ Object *ED_object_context(const bContext *C)
   return CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 }
 
-/* Find the correct active object per context.
- * NOTE: context can be NULL when called from a enum with #PROP_ENUM_NO_CONTEXT. */
 Object *ED_object_active_context(const bContext *C)
 {
   Object *ob = NULL;
@@ -148,14 +130,6 @@ Object *ED_object_active_context(const bContext *C)
   return ob;
 }
 
-/**
- * Return an array of objects:
- * - When in the property space, return the pinned or active object.
- * - When in edit-mode/pose-mode, return an array of objects in the mode.
- * - Otherwise return selected objects,
- *   the callers \a filter_fn needs to check of they are editable
- *   (assuming they need to be modified).
- */
 Object **ED_object_array_in_mode_or_selected(bContext *C,
                                              bool (*filter_fn)(const Object *ob, void *user_data),
                                              void *filter_user_data,
@@ -362,16 +336,11 @@ void OBJECT_OT_hide_view_set(wmOperatorType *ot)
 
 static int object_hide_collection_exec(bContext *C, wmOperator *op)
 {
-  wmWindow *win = CTX_wm_window(C);
   View3D *v3d = CTX_wm_view3d(C);
 
   int index = RNA_int_get(op->ptr, "collection_index");
-  const bool extend = (win->eventstate->shift != 0);
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
   const bool toggle = RNA_boolean_get(op->ptr, "toggle");
-
-  if (win->eventstate->alt != 0) {
-    index += 10;
-  }
 
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -491,6 +460,8 @@ void OBJECT_OT_hide_collection(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
   prop = RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "Toggle visibility");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend visibility");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 /** \} */
@@ -594,7 +565,7 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
      */
     DEG_relations_tag_update(bmain);
   }
-  else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
+  else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
     const Curve *cu = obedit->data;
     if (cu->editnurb == NULL) {
       return false;
@@ -669,10 +640,6 @@ bool ED_object_editmode_load(Main *bmain, Object *obedit)
   return ED_object_editmode_load_free_ex(bmain, obedit, true, false);
 }
 
-/**
- * \param flag:
- * - If #EM_FREEDATA isn't in the flag, use ED_object_editmode_load directly.
- */
 bool ED_object_editmode_exit_ex(Main *bmain, Scene *scene, Object *obedit, int flag)
 {
   const bool free_data = (flag & EM_FREEDATA) != 0;
@@ -723,11 +690,6 @@ bool ED_object_editmode_exit(bContext *C, int flag)
   return ED_object_editmode_exit_ex(bmain, scene, obedit, flag);
 }
 
-/**
- * Support freeing edit-mode data without flushing it back to the object.
- *
- * \return true if data was freed.
- */
 bool ED_object_editmode_free_ex(Main *bmain, Object *obedit)
 {
   return ED_object_editmode_load_free_ex(bmain, obedit, false, true);
@@ -834,11 +796,15 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
 
     WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_LATTICE, scene);
   }
-  else if (ELEM(ob->type, OB_SURF, OB_CURVE)) {
+  else if (ELEM(ob->type, OB_SURF, OB_CURVES_LEGACY)) {
     ok = true;
     ED_curve_editnurb_make(ob);
 
     WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_CURVE, scene);
+  }
+  else if (ob->type == OB_CURVES) {
+    ok = true;
+    WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_CURVES, scene);
   }
 
   if (ok) {
@@ -1054,7 +1020,7 @@ void ED_object_check_force_modifiers(Main *bmain, Scene *scene, Object *object)
   if (!md) {
     if (pd && (pd->shape == PFIELD_SHAPE_SURFACE) &&
         !ELEM(pd->forcefield, 0, PFIELD_GUIDE, PFIELD_TEXTURE)) {
-      if (ELEM(object->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE)) {
+      if (ELEM(object->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVES_LEGACY)) {
         ED_object_modifier_add(NULL, bmain, scene, object, NULL, eModifierType_Surface);
       }
     }
@@ -1161,11 +1127,6 @@ static bool has_pose_motion_paths(Object *ob)
   return ob->pose && (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) != 0;
 }
 
-/* For the objects with animation: update paths for those that have got them
- * This should selectively update paths that exist...
- *
- * To be called from various tools that do incremental updates
- */
 void ED_objects_recalculate_paths(bContext *C,
                                   Scene *scene,
                                   eObjectPathCalcRange range,
@@ -1428,7 +1389,6 @@ static void object_clear_mpath(Object *ob)
   }
 }
 
-/* Clear motion paths for all objects */
 void ED_objects_clear_paths(bContext *C, bool only_selected)
 {
   if (only_selected) {
@@ -1464,7 +1424,7 @@ static int object_clear_paths_exec(bContext *C, wmOperator *op)
 /* operator callback/wrapper */
 static int object_clear_paths_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  if ((event->shift) && !RNA_struct_property_is_set(op->ptr, "only_selected")) {
+  if ((event->modifier & KM_SHIFT) && !RNA_struct_property_is_set(op->ptr, "only_selected")) {
     RNA_boolean_set(op->ptr, "only_selected", true);
   }
   return object_clear_paths_exec(C, op);
@@ -1589,7 +1549,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
       BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
       changed = true;
     }
-    else if (ELEM(ob->type, OB_SURF, OB_CURVE)) {
+    else if (ELEM(ob->type, OB_SURF, OB_CURVES_LEGACY)) {
       BKE_curve_smooth_flag_set(ob->data, use_smooth);
       changed = true;
     }
@@ -1663,10 +1623,10 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 /** \name Object Mode Set Operator
  * \{ */
 
-static const EnumPropertyItem *object_mode_set_itemsf(bContext *C,
-                                                      PointerRNA *UNUSED(ptr),
-                                                      PropertyRNA *UNUSED(prop),
-                                                      bool *r_free)
+static const EnumPropertyItem *object_mode_set_itemf(bContext *C,
+                                                     PointerRNA *UNUSED(ptr),
+                                                     PropertyRNA *UNUSED(prop),
+                                                     bool *r_free)
 {
   const EnumPropertyItem *input = rna_enum_object_mode_items;
   EnumPropertyItem *item = NULL;
@@ -1815,7 +1775,7 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 
   ot->prop = RNA_def_enum(
       ot->srna, "mode", rna_enum_object_mode_items, OB_MODE_OBJECT, "Mode", "");
-  RNA_def_enum_funcs(ot->prop, object_mode_set_itemsf);
+  RNA_def_enum_funcs(ot->prop, object_mode_set_itemf);
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
@@ -2001,8 +1961,14 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
   RNA_int_set(&menu->ptr, "collection_index", menu->index);
   RNA_boolean_set(&menu->ptr, "is_new", true);
 
-  uiItemFullO_ptr(
-      layout, menu->ot, "New Collection", ICON_ADD, menu->ptr.data, WM_OP_INVOKE_DEFAULT, 0, NULL);
+  uiItemFullO_ptr(layout,
+                  menu->ot,
+                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "New Collection"),
+                  ICON_ADD,
+                  menu->ptr.data,
+                  WM_OP_INVOKE_DEFAULT,
+                  0,
+                  NULL);
 
   uiItemS(layout);
 

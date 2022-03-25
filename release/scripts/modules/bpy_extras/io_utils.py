@@ -1,20 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8-80 compliant>
 
@@ -360,7 +344,6 @@ def create_derived_objects(depsgraph, objects):
     :rtype: dict
     """
     result = {}
-    has_instancer = False
     for ob in objects:
         ob_parent = ob.parent
         if ob_parent and ob_parent.instance_type in {'VERTS', 'FACES'}:
@@ -546,7 +529,7 @@ def unique_name(key, name, name_dict, name_max=-1, clean_func=None, sep="."):
 
     :arg key: unique item this name belongs to, name_dict[key] will be reused
        when available.
-       This can be the object, mesh, material, etc instance its self.
+       This can be the object, mesh, material, etc instance itself.
     :type key: any hashable object associated with the *name*.
     :arg name: The name used to create a unique value in *name_dict*.
     :type name: string

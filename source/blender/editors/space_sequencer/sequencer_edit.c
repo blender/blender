@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup spseq
@@ -39,6 +23,7 @@
 #include "DNA_sound_types.h"
 
 #include "BKE_context.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -46,6 +31,7 @@
 #include "BKE_sound.h"
 
 #include "SEQ_add.h"
+#include "SEQ_animation.h"
 #include "SEQ_clipboard.h"
 #include "SEQ_edit.h"
 #include "SEQ_effects.h"
@@ -64,8 +50,10 @@
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 /* For menu, popup, icons, etc. */
+#include "ED_keyframing.h"
 #include "ED_numinput.h"
 #include "ED_outliner.h"
 #include "ED_screen.h"
@@ -127,7 +115,6 @@ bool ED_space_sequencer_maskedit_poll(bContext *C)
   return false;
 }
 
-/* Are we displaying the seq output (not channels or histogram). */
 bool ED_space_sequencer_check_show_imbuf(SpaceSeq *sseq)
 {
   return (sseq->mainb == SEQ_DRAW_IMG_IMBUF) &&
@@ -152,12 +139,6 @@ static bool sequencer_fcurves_targets_color_strip(const FCurve *fcurve)
   return true;
 }
 
-/*
- * Check if there is animation shown during playback.
- *
- * - Colors of color strips are displayed on the strip itself.
- * - Backdrop is drawn.
- */
 bool ED_space_sequencer_has_playback_animation(const struct SpaceSeq *sseq,
                                                const struct Scene *scene)
 {
@@ -187,7 +168,6 @@ bool ED_space_sequencer_has_playback_animation(const struct SpaceSeq *sseq,
 /** \name Shared Poll Functions
  * \{ */
 
-/* Operator functions. */
 bool sequencer_edit_poll(bContext *C)
 {
   return (SEQ_editing_get(CTX_data_scene(C)) != NULL);
@@ -210,7 +190,7 @@ bool sequencer_strip_has_path_poll(bContext *C)
           (SEQ_HAS_PATH(seq)));
 }
 
-bool sequencer_view_preview_poll(bContext *C)
+bool sequencer_view_has_preview_poll(bContext *C)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   if (sseq == NULL) {
@@ -221,6 +201,26 @@ bool sequencer_view_preview_poll(bContext *C)
   }
   if (!(ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW) &&
         (sseq->mainb == SEQ_DRAW_IMG_IMBUF))) {
+    return false;
+  }
+  ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_PREVIEW)) {
+    return false;
+  }
+
+  return true;
+}
+
+bool sequencer_view_preview_only_poll(const bContext *C)
+{
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+  if (sseq == NULL) {
+    return false;
+  }
+  if (SEQ_editing_get(CTX_data_scene(C)) == NULL) {
+    return false;
+  }
+  if (!(ELEM(sseq->view, SEQ_VIEW_PREVIEW) && (sseq->mainb == SEQ_DRAW_IMG_IMBUF))) {
     return false;
   }
   ARegion *region = CTX_wm_region(C);
@@ -1546,7 +1546,7 @@ static int sequencer_split_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   }
   RNA_int_set(op->ptr, "channel", mouseloc[1]);
   RNA_enum_set(op->ptr, "side", split_side);
-  /*RNA_enum_set(op->ptr, "type", split_hard); */
+  // RNA_enum_set(op->ptr, "type", split_hard);
 
   return sequencer_split_exec(C, op);
 }
@@ -1643,6 +1643,35 @@ void SEQUENCER_OT_split(struct wmOperatorType *ot)
 /** \name Duplicate Strips Operator
  * \{ */
 
+static void sequencer_backup_original_animation(Scene *scene, ListBase *list)
+{
+  if (scene->adt == NULL || scene->adt->action == NULL ||
+      BLI_listbase_is_empty(&scene->adt->action->curves)) {
+    return;
+  }
+
+  BLI_movelisttolist(list, &scene->adt->action->curves);
+}
+
+static void sequencer_restore_original_animation(Scene *scene, ListBase *list)
+{
+  if (scene->adt == NULL || scene->adt->action == NULL || BLI_listbase_is_empty(list)) {
+    return;
+  }
+
+  BLI_movelisttolist(&scene->adt->action->curves, list);
+}
+
+static void sequencer_duplicate_animation(Scene *scene, Sequence *seq, ListBase *curves_backup)
+{
+  GSet *fcurves = SEQ_fcurves_by_strip_get(seq, curves_backup);
+  GSET_FOREACH_BEGIN (FCurve *, fcu, fcurves) {
+    FCurve *fcu_cpy = BKE_fcurve_copy(fcu);
+    BLI_addtail(&scene->adt->action->curves, fcu_cpy);
+  }
+  GSET_FOREACH_END();
+}
+
 static int sequencer_add_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
@@ -1653,32 +1682,44 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   Sequence *active_seq = SEQ_select_active_get(scene);
-  ListBase duplicated = {NULL, NULL};
+  ListBase duplicated_strips = {NULL, NULL};
 
-  SEQ_sequence_base_dupli_recursive(scene, scene, &duplicated, ed->seqbasep, 0, 0);
+  SEQ_sequence_base_dupli_recursive(scene, scene, &duplicated_strips, ed->seqbasep, 0, 0);
   ED_sequencer_deselect_all(scene);
 
-  if (duplicated.first) {
-    Sequence *seq = duplicated.first;
-    /* Rely on the nseqbase list being added at the end.
-     * Their UUIDs has been re-generated by the SEQ_sequence_base_dupli_recursive(), */
-    BLI_movelisttolist(ed->seqbasep, &duplicated);
-
-    /* Handle duplicated strips: set active, select, ensure unique name and duplicate animation
-     * data. */
-    for (; seq; seq = seq->next) {
-      if (active_seq != NULL && STREQ(seq->name, active_seq->name)) {
-        SEQ_select_active_set(scene, seq);
-      }
-      seq->flag &= ~(SEQ_LEFTSEL + SEQ_RIGHTSEL + SEQ_LOCK);
-      SEQ_ensure_unique_name(seq, scene);
-    }
-
-    WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
-    return OPERATOR_FINISHED;
+  if (duplicated_strips.first == NULL) {
+    return OPERATOR_CANCELLED;
   }
 
-  return OPERATOR_CANCELLED;
+  /* Duplicate animation.
+   * First backup original curves from scene and duplicate strip curves from backup into scene.
+   * This way, when pasted strips are renamed, curves are renamed with them. Finally, restore
+   * original curves from backup.
+   */
+  ListBase fcurves_original_backup = {NULL, NULL};
+  sequencer_backup_original_animation(scene, &fcurves_original_backup);
+
+  Sequence *seq = duplicated_strips.first;
+
+  /* Rely on the nseqbase list being added at the end.
+   * Their UUIDs has been re-generated by the SEQ_sequence_base_dupli_recursive(), */
+  BLI_movelisttolist(ed->seqbasep, &duplicated_strips);
+
+  /* Handle duplicated strips: set active, select, ensure unique name and duplicate animation
+   * data. */
+  for (; seq; seq = seq->next) {
+    if (active_seq != NULL && STREQ(seq->name, active_seq->name)) {
+      SEQ_select_active_set(scene, seq);
+    }
+    seq->flag &= ~(SEQ_LEFTSEL + SEQ_RIGHTSEL + SEQ_LOCK);
+    sequencer_duplicate_animation(scene, seq, &fcurves_original_backup);
+    SEQ_ensure_unique_name(seq, scene);
+  }
+
+  sequencer_restore_original_animation(scene, &fcurves_original_backup);
+
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+  return OPERATOR_FINISHED;
 }
 
 void SEQUENCER_OT_duplicate(wmOperatorType *ot)
@@ -1708,22 +1749,21 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
   Scene *scene = CTX_data_scene(C);
   ListBase *seqbasep = SEQ_active_seqbase_get(SEQ_editing_get(scene));
 
+  if (sequencer_view_has_preview_poll(C) && !sequencer_view_preview_only_poll(C)) {
+    return OPERATOR_CANCELLED;
+  }
+
   SEQ_prefetch_stop(scene);
 
-  const bool is_preview = sequencer_view_preview_poll(C);
-  if (is_preview) {
-    SEQ_query_rendered_strips_to_tag(seqbasep, scene->r.cfra, 0);
-  }
+  SeqCollection *selected_strips = selected_strips_from_context(C);
+  Sequence *seq;
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbasep) {
-    if (is_preview && (seq->tmp_tag == false)) {
-      continue;
-    }
-    if (seq->flag & SELECT) {
-      SEQ_edit_flag_for_removal(scene, seqbasep, seq);
-    }
+  SEQ_ITERATOR_FOREACH (seq, selected_strips) {
+    SEQ_edit_flag_for_removal(scene, seqbasep, seq);
   }
   SEQ_edit_remove_flagged_sequences(scene, seqbasep);
+
+  SEQ_collection_free(selected_strips);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   DEG_relations_tag_update(bmain);
@@ -1894,13 +1934,15 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
       }
 
       seq_next = seq->next;
-      SEQ_sequence_free(scene, seq, true);
+      SEQ_edit_flag_for_removal(scene, seqbase, seq);
       seq = seq_next;
     }
     else {
       seq = seq->next;
     }
   }
+
+  SEQ_edit_remove_flagged_sequences(scene, seqbase);
 
   SEQ_sort(seqbase);
 
@@ -1938,6 +1980,8 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
   Sequence *active_seq = SEQ_select_active_get(scene);
+
+  SEQ_prefetch_stop(scene);
 
   if (active_seq && active_seq->type == SEQ_TYPE_META && active_seq->flag & SELECT) {
     /* Enter meta-strip. */
@@ -2154,6 +2198,7 @@ static int sequencer_strip_jump_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 
   return OPERATOR_FINISHED;
@@ -2427,6 +2472,22 @@ static void seq_copy_del_sound(Scene *scene, Sequence *seq)
   }
 }
 
+static void sequencer_copy_animation(Scene *scene, Sequence *seq)
+{
+  if (scene->adt == NULL || scene->adt->action == NULL ||
+      BLI_listbase_is_empty(&scene->adt->action->curves)) {
+    return;
+  }
+
+  GSet *fcurves = SEQ_fcurves_by_strip_get(seq, &scene->adt->action->curves);
+
+  GSET_FOREACH_BEGIN (FCurve *, fcu, fcurves) {
+    BLI_addtail(&fcurves_clipboard, BKE_fcurve_copy(fcu));
+  }
+  GSET_FOREACH_END();
+  BLI_gset_free(fcurves, NULL);
+}
+
 static int sequencer_copy_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -2453,8 +2514,10 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
   seqbase_clipboard_frame = scene->r.cfra;
   SEQ_clipboard_active_seq_name_store(scene);
 
-  /* Remove anything that references the current scene. */
   LISTBASE_FOREACH (Sequence *, seq, &seqbase_clipboard) {
+    /* Copy curves. */
+    sequencer_copy_animation(scene, seq);
+    /* Remove anything that references the current scene. */
     seq_copy_del_sound(scene, seq);
   }
 
@@ -2499,6 +2562,29 @@ void ED_sequencer_deselect_all(Scene *scene)
   }
 }
 
+static void sequencer_paste_animation(bContext *C)
+{
+  if (BLI_listbase_is_empty(&fcurves_clipboard)) {
+    return;
+  }
+
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  bAction *act;
+
+  if (scene->adt != NULL && scene->adt->action != NULL) {
+    act = scene->adt->action;
+  }
+  else {
+    /* get action to add F-Curve+keyframe to */
+    act = ED_id_action_ensure(bmain, &scene->id);
+  }
+
+  LISTBASE_FOREACH (FCurve *, fcu, &fcurves_clipboard) {
+    BLI_addtail(&act->curves, BKE_fcurve_copy(fcu));
+  }
+}
+
 static int sequencer_paste_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -2528,6 +2614,17 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
     ofs = scene->r.cfra - min_seq_startdisp;
   }
 
+  /* Paste animation.
+   * Note: Only fcurves are copied. Drivers and NLA action strips are not copied.
+   * First backup original curves from scene and move curves from clipboard into scene. This way,
+   * when pasted strips are renamed, pasted fcurves are renamed with them. Finally restore original
+   * curves from backup.
+   */
+
+  ListBase fcurves_original_backup = {NULL, NULL};
+  sequencer_backup_original_animation(scene, &fcurves_original_backup);
+  sequencer_paste_animation(C);
+
   /* Copy strips, temporarily restoring pointers to actual data-blocks. This
    * must happen on the clipboard itself, so that copying does user counting
    * on the actual data-blocks. */
@@ -2556,6 +2653,8 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
       SEQ_transform_seqbase_shuffle(ed->seqbasep, iseq, scene);
     }
   }
+
+  sequencer_restore_original_animation(scene, &fcurves_original_backup);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   DEG_relations_tag_update(bmain);
@@ -3412,7 +3511,8 @@ static int sequencer_set_2d_cursor_exec(bContext *C, wmOperator *op)
 
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 
-  return OPERATOR_FINISHED;
+  /* Use pass-through to allow click-drag to transform the cursor. */
+  return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
 }
 
 static int sequencer_set_2d_cursor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -3437,7 +3537,7 @@ void SEQUENCER_OT_cursor_set(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = sequencer_set_2d_cursor_exec;
   ot->invoke = sequencer_set_2d_cursor_invoke;
-  ot->poll = sequencer_view_preview_poll;
+  ot->poll = sequencer_view_has_preview_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

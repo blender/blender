@@ -1,25 +1,9 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2015, Blender Foundation
- * This is a new part of Blender
- * Brush based operators for editing Grease Pencil strokes
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2015 Blender Foundation. */
 
 /** \file
  * \ingroup edgpencil
+ * Brush based operators for editing Grease Pencil strokes.
  */
 
 #include "MEM_guardedalloc.h"
@@ -54,7 +38,7 @@
 static const EnumPropertyItem gpencil_modesEnumPropertyItem_mode[] = {
     {GPPAINT_MODE_STROKE, "STROKE", 0, "Stroke", ""},
     {GPPAINT_MODE_FILL, "FILL", 0, "Fill", ""},
-    {GPPAINT_MODE_BOTH, "BOTH", 0, "Stroke and Fill", ""},
+    {GPPAINT_MODE_BOTH, "BOTH", 0, "Stroke & Fill", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -975,7 +959,7 @@ static int gpencil_material_to_vertex_exec(bContext *C, wmOperator *op)
   /* Clean unused materials. */
   if (remove) {
     WM_operator_name_call(
-        C, "OBJECT_OT_material_slot_remove_unused", WM_OP_INVOKE_REGION_WIN, NULL);
+        C, "OBJECT_OT_material_slot_remove_unused", WM_OP_INVOKE_REGION_WIN, NULL, NULL);
   }
 
   return OPERATOR_FINISHED;
@@ -1142,7 +1126,7 @@ void GPENCIL_OT_stroke_reset_vertex_color(wmOperatorType *ot)
   static EnumPropertyItem mode_types_items[] = {
       {GPPAINT_MODE_STROKE, "STROKE", 0, "Stroke", "Reset Vertex Color to Stroke only"},
       {GPPAINT_MODE_FILL, "FILL", 0, "Fill", "Reset Vertex Color to Fill only"},
-      {GPPAINT_MODE_BOTH, "BOTH", 0, "Stroke and Fill", "Reset Vertex Color to Stroke and Fill"},
+      {GPPAINT_MODE_BOTH, "BOTH", 0, "Stroke & Fill", "Reset Vertex Color to Stroke and Fill"},
       {0, NULL, 0, NULL, NULL},
   };
 

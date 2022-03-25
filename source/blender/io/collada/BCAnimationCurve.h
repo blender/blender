@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 #pragma once
 
@@ -59,8 +43,8 @@ class BCCurveKey {
   BCCurveKey();
   BCCurveKey(const BC_animation_type type,
              const std::string path,
-             const int array_index,
-             const int subindex = -1);
+             int array_index,
+             int subindex = -1);
   void operator=(const BCCurveKey &other);
   std::string get_full_path() const;
   std::string get_path() const;
@@ -127,7 +111,7 @@ class BCAnimationCurve {
   FCurve *get_fcurve() const;
   int sample_count() const;
 
-  float get_value(const float frame);
+  float get_value(float frame);
   void get_values(BCValues &values) const;
   void get_value_map(BCValueMap &value_map);
 
@@ -135,14 +119,14 @@ class BCAnimationCurve {
 
   /* Curve edit functions create a copy of the underlying #FCurve. */
   FCurve *get_edit_fcurve();
-  bool add_value_from_rna(const int frame);
-  bool add_value_from_matrix(const BCSample &sample, const int frame);
-  void add_value(const float val, const int frame);
+  bool add_value_from_rna(int frame);
+  bool add_value_from_matrix(const BCSample &sample, int frame);
+  void add_value(float val, int frame);
   void clean_handles();
 
   /* experimental stuff */
-  int closest_index_above(const float sample_frame, const int start_at) const;
-  int closest_index_below(const float sample_frame) const;
+  int closest_index_above(float sample_frame, int start_at) const;
+  int closest_index_below(float sample_frame) const;
 };
 
 typedef std::map<BCCurveKey, BCAnimationCurve *> BCAnimationCurveMap;

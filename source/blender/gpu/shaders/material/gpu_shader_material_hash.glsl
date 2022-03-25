@@ -215,3 +215,14 @@ float integer_noise(int n)
   nn = (n * (n * n * 60493 + 19990303) + 1376312589) & 0x7fffffff;
   return 0.5 * (float(nn) / 1073741824.0);
 }
+
+float wang_hash_noise(uint s)
+{
+  s = (s ^ 61u) ^ (s >> 16u);
+  s *= 9u;
+  s = s ^ (s >> 4u);
+  s *= 0x27d4eb2du;
+  s = s ^ (s >> 15u);
+
+  return fract(float(s) / 4294967296.0);
+}

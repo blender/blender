@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009, Blender Foundation, Joshua Leung
- * This is a new part of Blender
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation, Joshua Leung. */
 
 /** \file
  * \ingroup edarmature
@@ -42,6 +26,7 @@
 #include "DEG_depsgraph.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -132,9 +117,6 @@ static void fcurves_to_pchan_links_get(ListBase *pfLinks,
   }
 }
 
-/**
- *  Returns a valid pose armature for this object, else returns NULL.
- */
 Object *poseAnim_object_get(Object *ob_)
 {
   Object *ob = BKE_object_pose_armature_get(ob_);
@@ -144,9 +126,6 @@ Object *poseAnim_object_get(Object *ob_)
   return NULL;
 }
 
-/**
- * Get sets of F-Curves providing transforms for the bones in the Pose.
- */
 void poseAnim_mapping_get(bContext *C, ListBase *pfLinks)
 {
   /* for each Pose-Channel which gets affected, get the F-Curves for that channel
@@ -192,7 +171,6 @@ void poseAnim_mapping_get(bContext *C, ListBase *pfLinks)
   }
 }
 
-/* Free F-Curve <-> PoseChannel links. */
 void poseAnim_mapping_free(ListBase *pfLinks)
 {
   tPChanFCurveLink *pfl, *pfln = NULL;
@@ -219,7 +197,6 @@ void poseAnim_mapping_free(ListBase *pfLinks)
 
 /* ------------------------- */
 
-/* helper for apply() / reset() - refresh the data */
 void poseAnim_mapping_refresh(bContext *C, Scene *UNUSED(scene), Object *ob)
 {
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -231,7 +208,6 @@ void poseAnim_mapping_refresh(bContext *C, Scene *UNUSED(scene), Object *ob)
   }
 }
 
-/* reset changes made to current pose */
 void poseAnim_mapping_reset(ListBase *pfLinks)
 {
   tPChanFCurveLink *pfl;
@@ -268,7 +244,6 @@ void poseAnim_mapping_reset(ListBase *pfLinks)
   }
 }
 
-/* perform auto-key-framing after changes were made + confirmed */
 void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks, float cframe)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -337,9 +312,6 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks,
 
 /* ------------------------- */
 
-/* find the next F-Curve for a PoseChannel with matching path...
- * - path is not just the pfl rna_path, since that path doesn't have property info yet
- */
 LinkData *poseAnim_mapping_getNextFCurve(ListBase *fcuLinks, LinkData *prev, const char *path)
 {
   LinkData *first = (prev) ? prev->next : (fcuLinks) ? fcuLinks->first : NULL;

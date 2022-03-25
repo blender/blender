@@ -1,23 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: some of this file.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bli
@@ -41,11 +23,6 @@
 /** \name Draw Line
  * \{ */
 
-/**
- * Plot a line from \a p1 to \a p2 (inclusive).
- *
- * \note For clipped line drawing, see: http://stackoverflow.com/a/40902741/432509
- */
 void BLI_bitmap_draw_2d_line_v2v2i(const int p1[2],
                                    const int p2[2],
                                    bool (*callback)(int, int, void *),
@@ -223,9 +200,6 @@ static void draw_tri_flat_min(const int p[2],
   }
 }
 
-/**
- * \note Unclipped (clipped version can be added if needed).
- */
 void BLI_bitmap_draw_2d_tri_v2i(
     /* all 2d */
     const int p1[2],
@@ -234,7 +208,7 @@ void BLI_bitmap_draw_2d_tri_v2i(
     void (*callback)(int x, int x_end, int y, void *),
     void *user_data)
 {
-  /* At first sort the three vertices by y-coordinate ascending so p1 is the top-most vertice */
+  /* At first sort the three vertices by y-coordinate ascending so p1 is the top-most vertex */
   ORDER_VARS3_BY(const int *, p1, p2, p3, [1]);
 
   BLI_assert(p1[1] <= p2[1] && p2[1] <= p3[1]);
@@ -338,18 +312,6 @@ static int draw_poly_v2i_n__span_y_sort(const void *a_p, const void *b_p, void *
   return 0;
 }
 
-/**
- * Draws a filled polygon with support for self intersections.
- *
- * \param callback: Takes the x, y coords and x-span (\a x_end is not inclusive),
- * note that \a x_end will always be greater than \a x, so we can use:
- *
- * \code{.c}
- * do {
- *     func(x, y);
- * } while (++x != x_end);
- * \endcode
- */
 void BLI_bitmap_draw_2d_poly_v2i_n(const int xmin,
                                    const int ymin,
                                    const int xmax,

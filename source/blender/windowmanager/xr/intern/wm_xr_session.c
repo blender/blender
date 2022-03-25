@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -30,6 +16,7 @@
 #include "BLI_math.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "DNA_camera_types.h"
 #include "DNA_space_types.h"
@@ -154,10 +141,6 @@ void wm_xr_session_toggle(wmWindowManager *wm,
   }
 }
 
-/**
- * Check if the XR-Session was triggered.
- * If an error happened while trying to start a session, this returns false too.
- */
 bool WM_xr_session_exists(const wmXrData *xr)
 {
   return xr->runtime && xr->runtime->context && xr->runtime->session_state.is_started;
@@ -168,9 +151,6 @@ void WM_xr_session_base_pose_reset(wmXrData *xr)
   xr->runtime->session_state.force_reset_to_base_pose = true;
 }
 
-/**
- * Check if the session is running, according to the OpenXR definition.
- */
 bool WM_xr_session_is_ready(const wmXrData *xr)
 {
   return WM_xr_session_exists(xr) && GHOST_XrSessionIsRunning(xr->runtime->context);
@@ -250,10 +230,9 @@ wmWindow *wm_xr_session_root_window_or_fallback_get(const wmWindowManager *wm,
  * It's important that the VR session follows some existing window, otherwise it would need to have
  * an own depsgraph, which is an expense we should avoid.
  */
-static void wm_xr_session_scene_and_evaluated_depsgraph_get(Main *bmain,
-                                                            const wmWindowManager *wm,
-                                                            Scene **r_scene,
-                                                            Depsgraph **r_depsgraph)
+static void wm_xr_session_scene_and_depsgraph_get(const wmWindowManager *wm,
+                                                  Scene **r_scene,
+                                                  Depsgraph **r_depsgraph)
 {
   const wmWindow *root_win = wm_xr_session_root_window_or_fallback_get(wm, wm->xr.runtime);
 
@@ -263,7 +242,6 @@ static void wm_xr_session_scene_and_evaluated_depsgraph_get(Main *bmain,
 
   Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer);
   BLI_assert(scene && view_layer && depsgraph);
-  BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
   *r_scene = scene;
   *r_depsgraph = depsgraph;
 }
@@ -354,11 +332,6 @@ void wm_xr_session_draw_data_update(wmXrSessionState *state,
   }
 }
 
-/**
- * Update information that is only stored for external state queries. E.g. for Python API to
- * request the current (as in, last known) viewer pose.
- * Controller data and action sets will be updated separately via wm_xr_session_actions_update().
- */
 void wm_xr_session_state_update(const XrSessionSettings *settings,
                                 const wmXrDrawData *draw_data,
                                 const GHOST_XrDrawViewInfo *draw_view,
@@ -1215,8 +1188,9 @@ void wm_xr_session_actions_update(wmWindowManager *wm)
         &state->viewer_pose, settings->base_scale * state->nav_scale, state->viewer_viewmat);
   }
 
-  int ret = GHOST_XrSyncActions(xr_context, active_action_set ? active_action_set->name : NULL);
-  if (!ret) {
+  const bool synced = GHOST_XrSyncActions(xr_context,
+                                          active_action_set ? active_action_set->name : NULL);
+  if (!synced) {
     return;
   }
 
@@ -1314,7 +1288,6 @@ void wm_xr_session_controller_data_clear(wmXrSessionState *state)
 static void wm_xr_session_surface_draw(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  Main *bmain = CTX_data_main(C);
   wmXrDrawData draw_data;
 
   if (!WM_xr_session_is_ready(&wm->xr)) {
@@ -1323,12 +1296,32 @@ static void wm_xr_session_surface_draw(bContext *C)
 
   Scene *scene;
   Depsgraph *depsgraph;
-  wm_xr_session_scene_and_evaluated_depsgraph_get(bmain, wm, &scene, &depsgraph);
+  wm_xr_session_scene_and_depsgraph_get(wm, &scene, &depsgraph);
+  /* Might fail when force-redrawing windows with #WM_redraw_windows(), which is done on file
+   * writing for example. */
+  // BLI_assert(DEG_is_fully_evaluated(depsgraph));
   wm_xr_session_draw_data_populate(&wm->xr, scene, depsgraph, &draw_data);
 
   GHOST_XrSessionDrawViews(wm->xr.runtime->context, &draw_data);
 
-  GPU_framebuffer_restore();
+  /* There's no active frame-buffer if the session was canceled (exception while drawing views). */
+  if (GPU_framebuffer_active_get()) {
+    GPU_framebuffer_restore();
+  }
+}
+
+static void wm_xr_session_do_depsgraph(bContext *C)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+
+  if (!WM_xr_session_is_ready(&wm->xr)) {
+    return;
+  }
+
+  Scene *scene;
+  Depsgraph *depsgraph;
+  wm_xr_session_scene_and_depsgraph_get(wm, &scene, &depsgraph);
+  BKE_scene_graph_evaluated_ensure(depsgraph, CTX_data_main(C));
 }
 
 bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
@@ -1439,6 +1432,7 @@ static wmSurface *wm_xr_session_surface_create(void)
   data->controller_art = MEM_callocN(sizeof(*(data->controller_art)), "XrControllerRegionType");
 
   surface->draw = wm_xr_session_surface_draw;
+  surface->do_depsgraph = wm_xr_session_do_depsgraph;
   surface->free_data = wm_xr_session_surface_free_data;
   surface->activate = DRW_xr_drawing_begin;
   surface->deactivate = DRW_xr_drawing_end;

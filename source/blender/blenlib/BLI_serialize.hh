@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -36,7 +22,7 @@
  * - DoubleValue: for double precision floating point numbers
  * - BooleanValue: for boolean values
  * - ArrayValue: An array of any supported value.
- * - ObjectValue: A key value pair where keys are std::string.
+ * - DictionaryValue: A key value pair where keys are std::string.
  * - NullValue: for null values.
  *
  * # Basic usage
@@ -92,12 +78,12 @@ enum class eValueType {
   Null,
   Boolean,
   Double,
-  Object,
+  Dictionary,
 };
 
 class Value;
 class StringValue;
-class ObjectValue;
+class DictionaryValue;
 template<typename T, eValueType V> class PrimitiveValue;
 using IntValue = PrimitiveValue<int64_t, eValueType::Int>;
 using DoubleValue = PrimitiveValue<double, eValueType::Double>;
@@ -122,8 +108,8 @@ using ArrayValue = ContainerValue<Vector<std::shared_ptr<Value>>, eValueType::Ar
  * - `NullValue`: represents nothing (null pointer or optional).
  * - `BooleanValue`: contains a boolean (true/false).
  * - `DoubleValue`: contains a double precision floating point number.
- * - `ObjectValue`: represents an object (key value pairs where keys are strings and values can be
- *   of different types.
+ * - `DictionaryValue`: represents an object (key value pairs where keys are strings and values can
+ *   be of different types.
  *
  */
 class Value {
@@ -174,10 +160,10 @@ class Value {
   const ArrayValue *as_array_value() const;
 
   /**
-   * Casts to an ObjectValue.
+   * Casts to an DictionaryValue.
    * Will return nullptr when it is a different type.
    */
-  const ObjectValue *as_object_value() const;
+  const DictionaryValue *as_dictionary_value() const;
 };
 
 /**
@@ -228,7 +214,7 @@ class StringValue : public Value {
 /**
  * Template for arrays and objects.
  *
- * Both ArrayValue and ObjectValue store their values in an array.
+ * Both ArrayValue and DictionaryValue store their values in an array.
  */
 template<
     /** The container type where the elements are stored in. */
@@ -264,18 +250,19 @@ class ContainerValue : public Value {
 };
 
 /**
- * Internal storage type for ObjectValue.
+ * Internal storage type for DictionaryValue.
  *
  * The elements are stored as an key value pair. The value is a shared pointer so it can be shared
- * when using `ObjectValue::create_lookup`.
+ * when using `DictionaryValue::create_lookup`.
  */
-using ObjectElementType = std::pair<std::string, std::shared_ptr<Value>>;
+using DictionaryElementType = std::pair<std::string, std::shared_ptr<Value>>;
 
 /**
  * Object is a key-value container where the key must be a std::string.
  * Internally it is stored in a blender::Vector to ensure the order of keys.
  */
-class ObjectValue : public ContainerValue<Vector<ObjectElementType>, eValueType::Object> {
+class DictionaryValue
+    : public ContainerValue<Vector<DictionaryElementType>, eValueType::Dictionary> {
  public:
   using LookupValue = std::shared_ptr<Value>;
   using Lookup = Map<std::string, LookupValue>;

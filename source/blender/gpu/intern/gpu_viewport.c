@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2006 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2006 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -137,19 +121,24 @@ struct DRWData **GPU_viewport_data_get(GPUViewport *viewport)
 static void gpu_viewport_textures_create(GPUViewport *viewport)
 {
   int *size = viewport->size;
+  float empty_pixel[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
   if (viewport->color_render_tx[0] == NULL) {
     viewport->color_render_tx[0] = GPU_texture_create_2d(
         "dtxl_color", UNPACK2(size), 1, GPU_RGBA16F, NULL);
+    GPU_texture_clear(viewport->color_render_tx[0], GPU_DATA_FLOAT, empty_pixel);
     viewport->color_overlay_tx[0] = GPU_texture_create_2d(
         "dtxl_color_overlay", UNPACK2(size), 1, GPU_SRGB8_A8, NULL);
+    GPU_texture_clear(viewport->color_overlay_tx[0], GPU_DATA_FLOAT, empty_pixel);
   }
 
   if ((viewport->flag & GPU_VIEWPORT_STEREO) != 0 && viewport->color_render_tx[1] == NULL) {
     viewport->color_render_tx[1] = GPU_texture_create_2d(
         "dtxl_color_stereo", UNPACK2(size), 1, GPU_RGBA16F, NULL);
+    GPU_texture_clear(viewport->color_render_tx[1], GPU_DATA_FLOAT, empty_pixel);
     viewport->color_overlay_tx[1] = GPU_texture_create_2d(
         "dtxl_color_overlay_stereo", UNPACK2(size), 1, GPU_SRGB8_A8, NULL);
+    GPU_texture_clear(viewport->color_overlay_tx[1], GPU_DATA_FLOAT, empty_pixel);
   }
 
   /* Can be shared with GPUOffscreen. */
@@ -194,8 +183,9 @@ void GPU_viewport_bind(GPUViewport *viewport, int view, const rcti *rect)
   viewport->active_view = view;
 }
 
-/* Should be called from DRW after DRW_opengl_context_enable. */
-void GPU_viewport_bind_from_offscreen(GPUViewport *viewport, struct GPUOffScreen *ofs)
+void GPU_viewport_bind_from_offscreen(GPUViewport *viewport,
+                                      struct GPUOffScreen *ofs,
+                                      bool is_xr_surface)
 {
   GPUTexture *color, *depth;
   GPUFrameBuffer *fb;
@@ -204,7 +194,13 @@ void GPU_viewport_bind_from_offscreen(GPUViewport *viewport, struct GPUOffScreen
 
   GPU_offscreen_viewport_data_get(ofs, &fb, &color, &depth);
 
-  gpu_viewport_textures_free(viewport);
+  /* XR surfaces will already check for texture size changes and free if necessary (see
+   * #wm_xr_session_surface_offscreen_ensure()), so don't free here as it has a significant
+   * performance impact (leads to texture re-creation in #gpu_viewport_textures_create() every VR
+   * drawing iteration).*/
+  if (!is_xr_surface) {
+    gpu_viewport_textures_free(viewport);
+  }
 
   /* This is the only texture we can share. */
   viewport->depth_tx = depth;
@@ -258,7 +254,6 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
   viewport->do_color_management = true;
 }
 
-/* Merge the stereo textures. `color` and `overlay` texture will be modified. */
 void GPU_viewport_stereo_composite(GPUViewport *viewport, Stereo3dFormat *stereo_format)
 {
   if (!ELEM(stereo_format->display_mode, S3D_DISPLAY_ANAGLYPH, S3D_DISPLAY_INTERLACE)) {
@@ -282,8 +277,6 @@ void GPU_viewport_stereo_composite(GPUViewport *viewport, Stereo3dFormat *stereo
   GPU_matrix_identity_set();
   GPU_matrix_identity_projection_set();
   immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_OVERLAYS_STEREO_MERGE);
-  immUniform1i("overlayTexture", 0);
-  immUniform1i("imageTexture", 1);
   int settings = stereo_format->display_mode;
   if (settings == S3D_DISPLAY_ANAGLYPH) {
     switch (stereo_format->anaglyph_type) {
@@ -437,8 +430,6 @@ static void gpu_viewport_draw_colormanaged(GPUViewport *viewport,
     GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_IMAGE_OVERLAYS_MERGE);
     GPU_batch_uniform_1i(batch, "overlay", do_overlay_merge);
     GPU_batch_uniform_1i(batch, "display_transform", display_colorspace);
-    GPU_batch_uniform_1i(batch, "image_texture", 0);
-    GPU_batch_uniform_1i(batch, "overlays_texture", 1);
   }
 
   GPU_texture_bind(color, 0);
@@ -452,10 +443,6 @@ static void gpu_viewport_draw_colormanaged(GPUViewport *viewport,
   }
 }
 
-/**
- * Version of #GPU_viewport_draw_to_screen() that lets caller decide if display colorspace
- * transform should be performed.
- */
 void GPU_viewport_draw_to_screen_ex(GPUViewport *viewport,
                                     int view,
                                     const rcti *rect,
@@ -508,21 +495,11 @@ void GPU_viewport_draw_to_screen_ex(GPUViewport *viewport,
       viewport, view, &pos_rect, &uv_rect, display_colorspace, do_overlay_merge);
 }
 
-/**
- * Merge and draw the buffers of \a viewport into the currently active framebuffer, performing
- * color transform to display space.
- *
- * \param rect: Coordinates to draw into. By swapping min and max values, drawing can be done
- * with inversed axis coordinates (upside down or sideways).
- */
 void GPU_viewport_draw_to_screen(GPUViewport *viewport, int view, const rcti *rect)
 {
   GPU_viewport_draw_to_screen_ex(viewport, view, rect, true, true);
 }
 
-/**
- * Clear vars assigned from offscreen, so we don't free data owned by `GPUOffScreen`.
- */
 void GPU_viewport_unbind_from_offscreen(GPUViewport *viewport,
                                         struct GPUOffScreen *ofs,
                                         bool display_colorspace,
@@ -587,18 +564,17 @@ GPUTexture *GPU_viewport_depth_texture(GPUViewport *viewport)
   return viewport->depth_tx;
 }
 
-/* Overlay framebuffer for drawing outside of DRW module. */
 GPUFrameBuffer *GPU_viewport_framebuffer_overlay_get(GPUViewport *viewport)
 {
-  GPU_framebuffer_ensure_config(&viewport->overlay_fb,
-                                {
-                                    GPU_ATTACHMENT_TEXTURE(viewport->depth_tx),
-                                    GPU_ATTACHMENT_TEXTURE(viewport->color_overlay_tx[0]),
-                                });
+  GPU_framebuffer_ensure_config(
+      &viewport->overlay_fb,
+      {
+          GPU_ATTACHMENT_TEXTURE(viewport->depth_tx),
+          GPU_ATTACHMENT_TEXTURE(viewport->color_overlay_tx[viewport->active_view]),
+      });
   return viewport->overlay_fb;
 }
 
-/* Must be executed inside Draw-manager OpenGL Context. */
 void GPU_viewport_free(GPUViewport *viewport)
 {
   if (viewport->draw_data) {

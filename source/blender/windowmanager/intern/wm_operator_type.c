@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -42,6 +28,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -89,7 +76,6 @@ wmOperatorType *WM_operatortype_find(const char *idname, bool quiet)
   return NULL;
 }
 
-/* caller must free */
 void WM_operatortype_iter(GHashIterator *ghi)
 {
   BLI_ghashIterator_init(ghi, global_ops_hash);
@@ -132,7 +118,8 @@ static void wm_operatortype_append__end(wmOperatorType *ot)
   BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
 }
 
-/* all ops in 1 list (for time being... needs evaluation later) */
+/* All ops in 1 list (for time being... needs evaluation later). */
+
 void WM_operatortype_append(void (*opfunc)(wmOperatorType *))
 {
   wmOperatorType *ot = wm_operatortype_append__begin();
@@ -149,7 +136,6 @@ void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType *, void *), void *
 
 /** \} */
 
-/* called on initialize WM_exit() */
 void WM_operatortype_remove_ptr(wmOperatorType *ot)
 {
   BLI_assert(ot == WM_operatortype_find(ot->idname, false));
@@ -184,7 +170,6 @@ bool WM_operatortype_remove(const char *idname)
   return true;
 }
 
-/* called on initialize WM_init() */
 void wm_operatortype_init(void)
 {
   /* reserve size is set based on blender default setup */
@@ -215,18 +200,6 @@ void wm_operatortype_free(void)
   global_ops_hash = NULL;
 }
 
-/**
- * Tag all operator-properties of \a ot defined after calling this, until
- * the next #WM_operatortype_props_advanced_end call (if available), with
- * #OP_PROP_TAG_ADVANCED. Previously defined ones properties not touched.
- *
- * Calling this multiple times without a call to #WM_operatortype_props_advanced_end,
- * all calls after the first one are ignored. Meaning all proprieties defined after the
- * first call are tagged as advanced.
- *
- * This doesn't do the actual tagging, #WM_operatortype_props_advanced_end does which is
- * called for all operators during registration (see #wm_operatortype_append__end).
- */
 void WM_operatortype_props_advanced_begin(wmOperatorType *ot)
 {
   if (ot_prop_basic_count == -1) {
@@ -235,14 +208,6 @@ void WM_operatortype_props_advanced_begin(wmOperatorType *ot)
   }
 }
 
-/**
- * Tags all operator-properties of \a ot defined since the first
- * #WM_operatortype_props_advanced_begin call,
- * or the last #WM_operatortype_props_advanced_end call, with #OP_PROP_TAG_ADVANCED.
- *
- * \note This is called for all operators during registration (see #wm_operatortype_append__end).
- * So it does not need to be explicitly called in operator-type definition.
- */
 void WM_operatortype_props_advanced_end(wmOperatorType *ot)
 {
   PointerRNA struct_ptr;
@@ -266,9 +231,6 @@ void WM_operatortype_props_advanced_end(wmOperatorType *ot)
   ot_prop_basic_count = -1;
 }
 
-/**
- * Remove memory of all previously executed tools.
- */
 void WM_operatortype_last_properties_clear_all(void)
 {
   GHashIterator iter;
@@ -471,7 +433,6 @@ static void wm_macro_cancel(bContext *C, wmOperator *op)
   wm_macro_end(op, OPERATOR_CANCELLED);
 }
 
-/* Names have to be static for now */
 wmOperatorType *WM_operatortype_append_macro(const char *idname,
                                              const char *name,
                                              const char *description,
@@ -613,9 +574,6 @@ char *WM_operatortype_description(struct bContext *C,
   return NULL;
 }
 
-/**
- * Use when we want a label, preferring the description.
- */
 char *WM_operatortype_description_or_name(struct bContext *C,
                                           struct wmOperatorType *ot,
                                           struct PointerRNA *properties)

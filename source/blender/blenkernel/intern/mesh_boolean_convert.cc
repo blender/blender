@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -32,9 +16,9 @@
 
 #include "BLI_alloca.h"
 #include "BLI_array.hh"
-#include "BLI_float2.hh"
 #include "BLI_float4x4.hh"
 #include "BLI_math.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_mesh_boolean.hh"
 #include "BLI_mesh_intersect.hh"
 #include "BLI_span.hh"
@@ -308,7 +292,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
     r_info->mesh_edge_offset[mi] = e;
     r_info->mesh_poly_offset[mi] = f;
     /* Get matrix that transforms a coordinate in objects[mi]'s local space
-     * to the target space space. */
+     * to the target space. */
     const float4x4 objn_mat = (obmats[mi] == nullptr) ? float4x4::identity() :
                                                         clean_obmat(*obmats[mi]);
     r_info->to_target_transform[mi] = inv_target_mat * objn_mat;
@@ -807,16 +791,6 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
 
 #endif  // WITH_GMP
 
-/**
- * Do a mesh boolean operation directly on meshes (without going back and forth to BMesh).
- * \param meshes: An array of Mesh pointers.
- * \param obmats: An array of pointers to the obmat matrices that transform local
- * coordinates to global ones. It is allowed for the pointers to be null, meaning the
- * transformation is the identity.
- * \param material_remaps: An array of pointers to arrays of maps from material slot numbers in the
- * corresponding mesh to the material slot in the first mesh. It is OK for material_remaps or any
- * of its constituent arrays to be empty.
- */
 Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
                           Span<const float4x4 *> obmats,
                           const float4x4 &target_transform,

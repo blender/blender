@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -33,19 +19,19 @@
 /**
  * NOTE(@joeedh): Details on design.
  *
- * original design: walkers directly emulation recursive functions.
- * functions save their state onto a worklist, and also add new states
- * to implement recursive or looping behavior.  generally only one
- * state push per call with a specific state is desired.
+ * Original design: walkers directly emulation recursive functions.
+ * functions save their state onto a #BMWalker.worklist, and also add new states
+ * to implement recursive or looping behavior.
+ * Generally only one state push per call with a specific state is desired.
  *
  * basic design pattern: the walker step function goes through its
  * list of possible choices for recursion, and recurses (by pushing a new state)
- * using the first non-visited one.  This choice is the flagged as visited using
- * the ghash.  each step may push multiple new states onto the worklist at once.
+ * using the first non-visited one.  This choice is the flagged as visited using the #GHash.
+ * Each step may push multiple new states onto the #BMWalker.worklist at once.
  *
  * - Walkers use tool flags, not header flags.
- * - Walkers now use ghash for storing visited elements,
- *   rather than stealing flags.  ghash can be rewritten
+ * - Walkers now use #GHash for storing visited elements,
+ *   rather than stealing flags. #GHash can be rewritten
  *   to be faster if necessary, in the far future :) .
  * - tools should ALWAYS have necessary error handling
  *   for if walkers fail.
@@ -60,12 +46,6 @@ void *BMW_begin(BMWalker *walker, void *start)
   return BMW_current_state(walker) ? walker->step(walker) : NULL;
 }
 
-/**
- * \brief Init Walker
- *
- * Allocates and returns a new mesh walker of a given type.
- * The elements visited are filtered by the bitmask 'searchmask'.
- */
 void BMW_init(BMWalker *walker,
               BMesh *bm,
               int type,
@@ -124,11 +104,6 @@ void BMW_init(BMWalker *walker,
   BLI_listbase_clear(&walker->states);
 }
 
-/**
- * \brief End Walker
- *
- * Frees a walker's worklist.
- */
 void BMW_end(BMWalker *walker)
 {
   BLI_mempool_destroy(walker->worklist);
@@ -136,9 +111,6 @@ void BMW_end(BMWalker *walker)
   BLI_gset_free(walker->visit_set_alt, NULL);
 }
 
-/**
- * \brief Step Walker
- */
 void *BMW_step(BMWalker *walker)
 {
   BMHeader *head;
@@ -148,22 +120,11 @@ void *BMW_step(BMWalker *walker)
   return head;
 }
 
-/**
- * \brief Walker Current Depth
- *
- * Returns the current depth of the walker.
- */
-
 int BMW_current_depth(BMWalker *walker)
 {
   return walker->depth;
 }
 
-/**
- * \brief Main Walking Function
- *
- * Steps a mesh walker forward by one element
- */
 void *BMW_walk(BMWalker *walker)
 {
   void *current = NULL;
@@ -177,13 +138,6 @@ void *BMW_walk(BMWalker *walker)
   return NULL;
 }
 
-/**
- * \brief Current Walker State
- *
- * Returns the first state from the walker state
- * worklist. This state is the next in the
- * worklist for processing.
- */
 void *BMW_current_state(BMWalker *walker)
 {
   BMwGenericWalker *currentstate = walker->states.first;
@@ -203,12 +157,6 @@ void *BMW_current_state(BMWalker *walker)
   return currentstate;
 }
 
-/**
- * \brief Remove Current Walker State
- *
- * Remove and free an item from the end of the walker state
- * worklist.
- */
 void BMW_state_remove(BMWalker *walker)
 {
   void *oldstate;
@@ -217,15 +165,6 @@ void BMW_state_remove(BMWalker *walker)
   BLI_mempool_free(walker->worklist, oldstate);
 }
 
-/**
- * \brief Add a new Walker State
- *
- * Allocate a new empty state and put it on the worklist.
- * A pointer to the new state is returned so that the caller
- * can fill in the state data. The new state will be inserted
- * at the front for depth-first walks, and at the end for
- * breadth-first walks.
- */
 void *BMW_state_add(BMWalker *walker)
 {
   BMwGenericWalker *newstate;
@@ -245,12 +184,6 @@ void *BMW_state_add(BMWalker *walker)
   return newstate;
 }
 
-/**
- * \brief Reset Walker
- *
- * Frees all states from the worklist, resetting the walker
- * for reuse in a new walk.
- */
 void BMW_reset(BMWalker *walker)
 {
   while (BMW_current_state(walker)) {

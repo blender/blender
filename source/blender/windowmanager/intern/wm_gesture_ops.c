@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2007 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2007 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup wm
@@ -124,6 +108,7 @@ static int UNUSED_FUNCTION(gesture_modal_state_from_operator)(wmOperator *op)
   }
   return GESTURE_MODAL_NOP;
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -486,119 +471,6 @@ void WM_OT_circle_gesture(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Tweak Gesture
- * \{ */
-
-static void gesture_tweak_modal(bContext *C, const wmEvent *event)
-{
-  wmWindow *window = CTX_wm_window(C);
-  wmGesture *gesture = window->tweak;
-  rcti *rect = gesture->customdata;
-  bool gesture_end = false;
-
-  switch (event->type) {
-    case MOUSEMOVE:
-    case INBETWEEN_MOUSEMOVE: {
-
-      rect->xmax = event->xy[0] - gesture->winrct.xmin;
-      rect->ymax = event->xy[1] - gesture->winrct.ymin;
-
-      const int val = wm_gesture_evaluate(gesture, event);
-      if (val != 0) {
-        wmEvent tevent;
-
-        wm_event_init_from_window(window, &tevent);
-        /* We want to get coord from start of drag,
-         * not from point where it becomes a tweak event, see T40549. */
-        tevent.xy[0] = rect->xmin + gesture->winrct.xmin;
-        tevent.xy[1] = rect->ymin + gesture->winrct.ymin;
-        if (gesture->event_type == LEFTMOUSE) {
-          tevent.type = EVT_TWEAK_L;
-        }
-        else if (gesture->event_type == RIGHTMOUSE) {
-          tevent.type = EVT_TWEAK_R;
-        }
-        else {
-          tevent.type = EVT_TWEAK_M;
-        }
-        tevent.val = val;
-        tevent.is_repeat = false;
-        /* mouse coords! */
-
-        /* important we add immediately after this event, so future mouse releases
-         * (which may be in the queue already), are handled in order, see T44740 */
-        wm_event_add_ex(window, &tevent, event);
-
-        gesture_end = true;
-      }
-
-      break;
-    }
-
-    case LEFTMOUSE:
-    case RIGHTMOUSE:
-    case MIDDLEMOUSE:
-      if (gesture->event_type == event->type) {
-        gesture_end = true;
-
-        /* when tweak fails we should give the other keymap entries a chance */
-
-        /* XXX, assigning to readonly, BAD JUJU! */
-        ((wmEvent *)event)->val = KM_RELEASE;
-      }
-      break;
-    default:
-      if (!ISTIMER(event->type) && event->type != EVENT_NONE) {
-        gesture_end = true;
-      }
-      break;
-  }
-
-  if (gesture_end) {
-    /* Frees gesture itself, and unregisters from window. */
-    WM_gesture_end(window, gesture);
-
-    /* This isn't very nice but needed to redraw gizmos which are hidden while tweaking,
-     * See #WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK for details. */
-    ARegion *region = CTX_wm_region(C);
-    if ((region != NULL) && (region->gizmo_map != NULL)) {
-      if (WM_gizmomap_tag_delay_refresh_for_tweak_check(region->gizmo_map)) {
-        ED_region_tag_redraw(region);
-      }
-    }
-  }
-}
-
-/* standard tweak, called after window handlers passed on event */
-void wm_tweakevent_test(bContext *C, const wmEvent *event, int action)
-{
-  wmWindow *win = CTX_wm_window(C);
-
-  if (win->tweak == NULL) {
-    const ARegion *region = CTX_wm_region(C);
-
-    if (region) {
-      if (event->val == KM_PRESS) {
-        if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE)) {
-          win->tweak = WM_gesture_new(win, region, event, WM_GESTURE_TWEAK);
-        }
-      }
-    }
-  }
-  else {
-    /* no tweaks if event was handled */
-    if (action & WM_HANDLER_BREAK) {
-      WM_gesture_end(win, win->tweak);
-    }
-    else {
-      gesture_tweak_modal(C, event);
-    }
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Lasso Gesture
  * \{ */
 
@@ -750,11 +622,6 @@ void WM_gesture_lines_cancel(bContext *C, wmOperator *op)
   gesture_modal_end(C, op);
 }
 
-/**
- * helper function, we may want to add options for conversion to view space
- *
- * caller must free.
- */
 const int (*WM_gesture_lasso_path_to_array(bContext *UNUSED(C),
                                            wmOperator *op,
                                            int *r_mcoords_len))[2]
@@ -889,10 +756,6 @@ int WM_gesture_straightline_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
   return OPERATOR_RUNNING_MODAL;
 }
-/**
- * This invoke callback starts the straightline gesture with a viewport preview to the right side
- * of the line.
- */
 int WM_gesture_straightline_active_side_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   WM_gesture_straightline_invoke(C, op, event);
@@ -928,11 +791,6 @@ static void wm_gesture_straightline_do_angle_snap(rcti *rect)
   rect->ymax = (int)line_snapped_end[1];
 }
 
-/**
- * This modal callback calls exec once per mouse move event while the gesture is active with the
- * updated line start and end values, so it can be used for tools that have a real time preview
- * (like a gradient updating in real time over the mesh).
- */
 int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   wmGesture *gesture = op->customdata;
@@ -1012,13 +870,6 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
   return OPERATOR_RUNNING_MODAL;
 }
 
-/**
- * This modal one-shot callback only calls exec once after the gesture finishes without any updates
- * during the gesture execution. Should be used for operations that are intended to be applied once
- * without real time preview (like a trimming tool that only applies the bisect operation once
- * after finishing the gesture as the bisect operation is too heavy to be computed in real time for
- * a preview).
- */
 int WM_gesture_straightline_oneshot_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   wmGesture *gesture = op->customdata;

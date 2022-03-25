@@ -1,22 +1,5 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# The Original Code is Copyright (C) 2006, Blender Foundation
-# All rights reserved.
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright 2006 Blender Foundation. All rights reserved.
 
 set(INC
   .
@@ -56,6 +39,8 @@ set(INC
 
   # dna_type_offsets.h
   ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -100,6 +85,7 @@ set(SRC
   intern/blender_undo.c
   intern/blender_user_menu.c
   intern/blendfile.c
+  intern/blendfile_link_append.c
   intern/boids.c
   intern/bpath.c
   intern/brush.c
@@ -117,15 +103,20 @@ set(SRC
   intern/context.c
   intern/crazyspace.c
   intern/cryptomatte.cc
-  intern/curve.c
+  intern/curve.cc
+  intern/curves.cc
+  intern/curves_geometry.cc
   intern/curve_bevel.c
+  intern/curve_bezier.cc
+  intern/curve_catmull_rom.cc
   intern/curve_convert.c
   intern/curve_decimate.c
   intern/curve_deform.c
   intern/curve_eval.cc
+  intern/curve_nurbs.cc
   intern/curve_to_mesh_convert.cc
   intern/curveprofile.cc
-  intern/customdata.c
+  intern/customdata.cc
   intern/customdata_file.c
   intern/data_transfer.c
   intern/deform.c
@@ -138,7 +129,6 @@ set(SRC
   intern/editmesh_cache.c
   intern/editmesh_tangent.c
   intern/effect.c
-  intern/extern_implementations.cc
   intern/fcurve.c
   intern/fcurve_cache.c
   intern/fcurve_driver.c
@@ -146,6 +136,7 @@ set(SRC
   intern/fmodifier.c
   intern/freestyle.c
   intern/geometry_component_curve.cc
+  intern/geometry_component_curves.cc
   intern/geometry_component_instances.cc
   intern/geometry_component_mesh.cc
   intern/geometry_component_pointcloud.cc
@@ -156,16 +147,20 @@ set(SRC
   intern/gpencil_curve.c
   intern/gpencil_geom.cc
   intern/gpencil_modifier.c
-  intern/hair.c
+  intern/gpencil_update_cache.c
   intern/icons.cc
   intern/icons_rasterize.c
   intern/idprop.c
+  intern/idprop_create.cc
+  intern/idprop_serialize.cc
   intern/idprop_utils.c
   intern/idtype.c
-  intern/image.c
+  intern/image.cc
+  intern/image_format.cc
+  intern/image_partial_update.cc
   intern/image_gen.c
-  intern/image_gpu.c
-  intern/image_save.c
+  intern/image_gpu.cc
+  intern/image_save.cc
   intern/ipo.c
   intern/kelvinlet.c
   intern/key.c
@@ -177,7 +172,9 @@ set(SRC
   intern/lib_id.c
   intern/lib_id_delete.c
   intern/lib_id_eval.c
+  intern/lib_id_remapper.cc
   intern/lib_override.c
+  intern/lib_override_proxy_conversion.c
   intern/lib_query.c
   intern/lib_remap.c
   intern/library.c
@@ -194,7 +191,9 @@ set(SRC
   intern/mball_tessellate.c
   intern/mesh.cc
   intern/mesh_boolean_convert.cc
+  intern/mesh_calc_edges.cc
   intern/mesh_convert.cc
+  intern/mesh_debug.cc
   intern/mesh_evaluate.cc
   intern/mesh_fair.cc
   intern/mesh_iterators.c
@@ -208,7 +207,6 @@ set(SRC
   intern/mesh_sample.cc
   intern/mesh_tangent.c
   intern/mesh_tessellate.c
-  intern/mesh_validate.c
   intern/mesh_validate.cc
   intern/mesh_wrapper.c
   intern/modifier.c
@@ -226,6 +224,7 @@ set(SRC
   intern/multires_versioning.c
   intern/nla.c
   intern/node.cc
+  intern/node_tree_update.cc
   intern/object.cc
   intern/object_deform.c
   intern/object_dupli.cc
@@ -273,6 +272,7 @@ set(SRC
   intern/subdiv_eval.c
   intern/subdiv_foreach.c
   intern/subdiv_mesh.c
+  intern/subdiv_modifier.c
   intern/subdiv_stats.c
   intern/subdiv_topology.c
   intern/subsurf_ccg.c
@@ -287,6 +287,7 @@ set(SRC
   intern/tracking_solver.c
   intern/tracking_stabilize.c
   intern/tracking_util.c
+  intern/type_conversions.cc
   intern/undo_system.c
   intern/unit.c
   intern/vfont.c
@@ -326,6 +327,7 @@ set(SRC
   BKE_blender_user_menu.h
   BKE_blender_version.h
   BKE_blendfile.h
+  BKE_blendfile_link_append.h
   BKE_boids.h
   BKE_bpath.h
   BKE_brush.h
@@ -346,6 +348,8 @@ set(SRC
   BKE_cryptomatte.h
   BKE_cryptomatte.hh
   BKE_curve.h
+  BKE_curves.h
+  BKE_curves.hh
   BKE_curve_to_mesh.hh
   BKE_curveprofile.h
   BKE_customdata.h
@@ -374,11 +378,14 @@ set(SRC
   BKE_gpencil_curve.h
   BKE_gpencil_geom.h
   BKE_gpencil_modifier.h
-  BKE_hair.h
+  BKE_gpencil_update_cache.h
   BKE_icons.h
   BKE_idprop.h
+  BKE_idprop.hh
   BKE_idtype.h
   BKE_image.h
+  BKE_image_format.h
+  BKE_image_partial_update.hh
   BKE_image_save.h
   BKE_ipo.h
   BKE_kelvinlet.h
@@ -418,6 +425,7 @@ set(SRC
   BKE_multires.h
   BKE_nla.h
   BKE_node.h
+  BKE_node_tree_update.h
   BKE_object.h
   BKE_object_deform.h
   BKE_object_facemap.h
@@ -449,12 +457,14 @@ set(SRC
   BKE_subdiv_eval.h
   BKE_subdiv_foreach.h
   BKE_subdiv_mesh.h
+  BKE_subdiv_modifier.h
   BKE_subdiv_topology.h
   BKE_subsurf.h
   BKE_text.h
   BKE_text_suggestions.h
   BKE_texture.h
   BKE_tracking.h
+  BKE_type_conversions.hh
   BKE_undo_system.h
   BKE_unit.h
   BKE_vfont.h
@@ -511,7 +521,7 @@ set(LIB
   bf_simulation
 
   # For `vfontdata_freetype.c`.
-  ${FREETYPE_LIBRARY}
+  ${FREETYPE_LIBRARIES} ${BROTLI_LIBRARIES}
 )
 
 if(WITH_BINRELOC)
@@ -706,10 +716,6 @@ if(WITH_FFTW3)
   add_definitions(-DFFTW3=1)
 endif()
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
 if(WITH_FREESTYLE)
   add_definitions(-DWITH_FREESTYLE)
 endif()
@@ -795,6 +801,8 @@ blender_add_lib(bf_blenkernel "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # Needed so we can use dna_type_offsets.h for defaults initialization.
 add_dependencies(bf_blenkernel bf_dna)
+# RNA_prototypes.h
+add_dependencies(bf_blenkernel bf_rna)
 
 
 if(WITH_GTESTS)
@@ -806,11 +814,17 @@ if(WITH_GTESTS)
     intern/asset_library_service_test.cc
     intern/asset_library_test.cc
     intern/asset_test.cc
+    intern/bpath_test.cc
     intern/cryptomatte_test.cc
+    intern/curves_geometry_test.cc
     intern/fcurve_test.cc
+    intern/idprop_serialize_test.cc
+    intern/image_partial_update_test.cc
     intern/lattice_deform_test.cc
     intern/layer_test.cc
+    intern/lib_id_remapper_test.cc
     intern/lib_id_test.cc
+    intern/lib_remap_test.cc
     intern/tracking_test.cc
   )
   set(TEST_INC
@@ -818,4 +832,7 @@ if(WITH_GTESTS)
   )
   include(GTestTesting)
   blender_add_test_lib(bf_blenkernel_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB}")
+
+  # RNA_prototypes.h
+  add_dependencies(bf_blenkernel_tests bf_rna)
 endif()

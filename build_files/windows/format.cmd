@@ -9,16 +9,10 @@ exit /b 1
 :detect_done
 echo found clang-format in %CF_PATH%
 
-if EXIST %PYTHON% (
-    set PYTHON=%BLENDER_DIR%\..\lib\win64_vc15\python\39\bin\python.exe
-    goto detect_python_done
+if NOT EXIST %PYTHON% (
+    echo python not found, required for this operation
+    exit /b 1
 )
-
-echo python not found in lib folder
-exit /b 1
-
-:detect_python_done
-echo found python (%PYTHON%)
 
 set FORMAT_PATHS=%BLENDER_DIR%\source\tools\utils_maintenance\clang_format_paths.py
 

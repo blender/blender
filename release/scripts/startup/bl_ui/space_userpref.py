@@ -1,20 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8 compliant>
 import bpy
@@ -594,12 +578,6 @@ class USERPREF_PT_system_sound(SystemPanel, CenterAlignMixIn, Panel):
 class USERPREF_PT_system_cycles_devices(SystemPanel, CenterAlignMixIn, Panel):
     bl_label = "Cycles Render Devices"
 
-    @classmethod
-    def poll(cls, _context):
-        # No GPU rendering on macOS currently.
-        import sys
-        return bpy.app.build_options.cycles and sys.platform != "darwin"
-
     def draw_centered(self, context, layout):
         prefs = context.preferences
 
@@ -707,10 +685,10 @@ class USERPREF_PT_viewport_display(ViewportPanel, CenterAlignMixIn, Panel):
         prefs = context.preferences
         view = prefs.view
 
-        col = layout.column(heading="Show")
+        col = layout.column(heading="Text Info Overlay")
         col.prop(view, "show_object_info", text="Object Info")
         col.prop(view, "show_view_name", text="View Name")
-        col.prop(view, "show_playback_fps", text="Playback FPS")
+        col.prop(view, "show_playback_fps", text="Playback Frame Rate (FPS)")
 
         layout.separator()
 
@@ -768,6 +746,17 @@ class USERPREF_PT_viewport_selection(ViewportPanel, CenterAlignMixIn, Panel):
         system = prefs.system
 
         layout.prop(system, "use_select_pick_depth")
+
+
+class USERPREF_PT_viewport_subdivision(ViewportPanel, CenterAlignMixIn, Panel):
+    bl_label = "Subdivision"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_centered(self, context, layout):
+        prefs = context.preferences
+        system = prefs.system
+
+        layout.prop(system, "use_gpu_subdivision")
 
 
 # -----------------------------------------------------------------------------
@@ -1729,6 +1718,7 @@ class USERPREF_PT_ndof_settings(Panel):
         if show_3dview_settings:
             col.prop(props, "ndof_show_guide")
         col.prop(props, "ndof_zoom_invert")
+        col.prop(props, "ndof_lock_camera_pan_zoom")
         row = col.row(heading="Pan")
         row.prop(props, "ndof_pan_yz_swap_axis", text="Swap Y and Z Axes")
 
@@ -1818,7 +1808,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
     bl_options = {'HIDE_HEADER'}
 
     _support_icon_mapping = {
-        'OFFICIAL': 'FILE_BLEND',
+        'OFFICIAL': 'BLENDER',
         'COMMUNITY': 'COMMUNITY',
         'TESTING': 'EXPERIMENTAL',
     }
@@ -1867,11 +1857,6 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
             )
             if p
         )
-
-        # Development option for 2.8x, don't show users bundled addons
-        # unless they have been updated for 2.8x.
-        # Developers can turn them on with '--debug'
-        show_official_27x_addons = bpy.app.debug
 
         # collect the categories that can be filtered on
         addons = [
@@ -1949,15 +1934,6 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                 ):
                     continue
 
-                # Skip 2.7x add-ons included with Blender, unless in debug mode.
-                is_addon_27x = info.get("blender", (0,)) < (2, 80)
-                if (
-                        is_addon_27x and
-                        (not show_official_27x_addons) and
-                        (not mod.__file__.startswith(addon_user_dirs))
-                ):
-                    continue
-
                 # Addon UI Code
                 col_box = col.column()
                 box = col_box.box()
@@ -1980,13 +1956,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                 sub.active = is_enabled
                 sub.label(text="%s: %s" % (info["category"], info["name"]))
 
-                # WARNING: 2.8x exception, may be removed
-                # use disabled state for old add-ons, chances are they are broken.
-                if is_addon_27x:
-                    sub.label(text="Upgrade to 2.8x required")
-                    sub.label(icon='ERROR')
-                # Remove code above after 2.8x migration is complete.
-                elif info["warning"]:
+                if info["warning"]:
                     sub.label(icon='ERROR')
 
                 # icon showing support level.
@@ -2292,6 +2262,7 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
                 ({"property": "use_sculpt_tools_tilt"}, "T82877"),
                 ({"property": "use_extended_asset_browser"}, ("project/view/130/", "Project Page")),
                 ({"property": "use_override_templates"}, ("T73318", "Milestone 4")),
+                ({"property": "use_named_attribute_nodes"}, ("T91742")),
             ),
         )
 
@@ -2302,9 +2273,10 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
     def draw(self, context):
         self._draw_items(
             context, (
-                ({"property": "use_new_hair_type"}, "T68981"),
+                ({"property": "use_new_curves_type"}, "T68981"),
                 ({"property": "use_new_point_cloud_type"}, "T75717"),
                 ({"property": "use_full_frame_compositor"}, "T88150"),
+                ({"property": "enable_eevee_next"}, "T93220"),
             ),
         )
 
@@ -2323,10 +2295,9 @@ class USERPREF_PT_experimental_debugging(ExperimentalPanel, Panel):
             context, (
                 ({"property": "use_undo_legacy"}, "T60695"),
                 ({"property": "override_auto_resync"}, "T83811"),
-                ({"property": "proxy_to_override_auto_conversion"}, "T91671"),
                 ({"property": "use_cycles_debug"}, None),
-                ({"property": "use_geometry_nodes_legacy"}, "T91274"),
                 ({"property": "show_asset_debug_info"}, None),
+                ({"property": "use_asset_indexing"}, None),
             ),
         )
 
@@ -2360,6 +2331,7 @@ classes = (
     USERPREF_PT_viewport_quality,
     USERPREF_PT_viewport_textures,
     USERPREF_PT_viewport_selection,
+    USERPREF_PT_viewport_subdivision,
 
     USERPREF_PT_edit_objects,
     USERPREF_PT_edit_objects_new,

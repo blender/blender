@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -24,6 +8,7 @@
 #pragma once
 
 #include "DNA_customdata_types.h" /* for CustomDataType */
+#include "DNA_image_types.h"
 #include "DNA_listBase.h"
 
 #include "BLI_sys_types.h" /* for bool */
@@ -54,7 +39,7 @@ typedef struct GPUMaterial GPUMaterial;
 typedef struct GPUNode GPUNode;
 typedef struct GPUNodeLink GPUNodeLink;
 
-/* Functions to create GPU Materials nodes */
+/* Functions to create GPU Materials nodes. */
 
 typedef enum eGPUType {
   /* Keep in sync with GPU_DATATYPE_STR */
@@ -170,7 +155,7 @@ bool GPU_stack_link(GPUMaterial *mat,
 GPUNodeLink *GPU_uniformbuf_link_out(struct GPUMaterial *mat,
                                      struct bNode *node,
                                      struct GPUNodeStack *stack,
-                                     const int index);
+                                     int index);
 
 void GPU_material_output_link(GPUMaterial *material, GPUNodeLink *link);
 void GPU_material_add_output_link_aov(GPUMaterial *material, GPUNodeLink *link, int hash);
@@ -180,17 +165,24 @@ struct GPUUniformBuf *GPU_material_sss_profile_get(GPUMaterial *material,
                                                    int sample_len,
                                                    struct GPUTexture **tex_profile);
 
-/* High level functions to create and use GPU materials */
+/**
+ * High level functions to create and use GPU materials.
+ */
 GPUMaterial *GPU_material_from_nodetree_find(struct ListBase *gpumaterials,
                                              const void *engine_type,
                                              int options);
+/**
+ * \note Caller must use #GPU_material_from_nodetree_find to re-use existing materials,
+ * This is enforced since constructing other arguments to this function may be expensive
+ * so only do this when they are needed.
+ */
 GPUMaterial *GPU_material_from_nodetree(struct Scene *scene,
                                         struct Material *ma,
                                         struct bNodeTree *ntree,
                                         struct ListBase *gpumaterials,
                                         const void *engine_type,
-                                        const int options,
-                                        const bool is_volume_shader,
+                                        int options,
+                                        bool is_volume_shader,
                                         const char *vert_code,
                                         const char *geom_code,
                                         const char *frag_lib,
@@ -205,10 +197,21 @@ void GPU_materials_free(struct Main *bmain);
 struct Scene *GPU_material_scene(GPUMaterial *material);
 struct GPUPass *GPU_material_get_pass(GPUMaterial *material);
 struct GPUShader *GPU_material_get_shader(GPUMaterial *material);
+/**
+ * Return can be NULL if it's a world material.
+ */
 struct Material *GPU_material_get_material(GPUMaterial *material);
+/**
+ * Return true if the material compilation has not yet begin or begin.
+ */
 eGPUMaterialStatus GPU_material_status(GPUMaterial *mat);
 
 struct GPUUniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material);
+/**
+ * Create dynamic UBO from parameters
+ *
+ * \param inputs: Items are #LinkData, data is #GPUInput (`BLI_genericNodeN(GPUInput)`).
+ */
 void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs);
 struct GPUUniformBuf *GPU_material_create_sss_profile_ubo(void);
 
@@ -238,7 +241,8 @@ typedef struct GPUMaterialAttribute {
 typedef struct GPUMaterialTexture {
   struct GPUMaterialTexture *next, *prev;
   struct Image *ima;
-  struct ImageUser *iuser;
+  struct ImageUser iuser;
+  bool iuser_available;
   struct GPUTexture **colorband;
   char sampler_name[32];       /* Name of sampler in GLSL. */
   char tiled_mapping_name[32]; /* Name of tile mapping sampler in GLSL. */

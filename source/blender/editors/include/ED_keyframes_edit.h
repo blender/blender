@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup editors
@@ -39,7 +23,9 @@ struct bDopeSheet;
 /* ************************************************ */
 /* Common Macros and Defines */
 
-/* --------- Tool Flags ------------ */
+/* -------------------------------------------------------------------- */
+/** \name Tool Flags
+ * \{ */
 
 /* bezt validation */
 typedef enum eEditKeyframes_Validate {
@@ -60,7 +46,7 @@ typedef enum eEditKeyframes_Validate {
   BEZT_OK_CHANNEL_CIRCLE,
 } eEditKeyframes_Validate;
 
-/* ------------ */
+/** \} */
 
 /* select modes */
 typedef enum eEditKeyframes_Select {
@@ -91,6 +77,13 @@ typedef enum eEditKeyframes_Snap {
   SNAP_KEYS_TIME,
 } eEditKeyframes_Snap;
 
+/* equalizing tools */
+typedef enum eEditKeyframes_Equalize {
+  EQUALIZE_HANDLES_LEFT = (1 << 0),
+  EQUALIZE_HANDLES_RIGHT = (1 << 1),
+  EQUALIZE_HANDLES_BOTH = (EQUALIZE_HANDLES_LEFT | EQUALIZE_HANDLES_RIGHT),
+} eEditKeyframes_Equalize;
+
 /* mirroring tools */
 typedef enum eEditKeyframes_Mirror {
   MIRROR_KEYS_CURFRAME = 1,
@@ -120,7 +113,9 @@ typedef struct KeyframeEdit_CircleData {
 /* ************************************************ */
 /* Non-Destructive Editing API (keyframes_edit.c) */
 
-/* --- Defines for 'OK' polls + KeyframeEditData Flags --------- */
+/* -------------------------------------------------------------------- */
+/** \name Defines for 'OK' polls + KeyframeEditData Flags
+ * \{ */
 
 /* which verts of a keyframe is active (after polling) */
 typedef enum eKeyframeVertOk {
@@ -154,7 +149,11 @@ typedef enum eKeyframeIterFlags {
   KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE = (1 << 3),
 } eKeyframeIterFlags;
 
-/* --- Generic Properties for Keyframe Edit Tools ----- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Generic Properties for Keyframe Edit Tools
+ * \{ */
 
 typedef struct KeyframeEditData {
   /* generic properties/data access */
@@ -184,14 +183,22 @@ typedef struct KeyframeEditData {
   eKeyframeIterFlags iterflags;
 } KeyframeEditData;
 
-/* ------- Function Pointer Typedefs ---------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Function Pointer Typedefs
+ * \{ */
 
 /* callback function that refreshes the F-Curve after use */
 typedef void (*FcuEditFunc)(struct FCurve *fcu);
 /* callback function that operates on the given BezTriple */
 typedef short (*KeyframeEditFunc)(KeyframeEditData *ked, struct BezTriple *bezt);
 
-/* ------- Custom Data Type Defines ------------------ */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Custom Data Type Defines
+ * \{ */
 
 /* Custom data for remapping one range to another in a fixed way */
 typedef struct KeyframeEditCD_Remap {
@@ -222,18 +229,40 @@ typedef enum eKeyMergeMode {
   KEYFRAME_PASTE_MERGE_OVER_RANGE_ALL,
 } eKeyMergeMode;
 
-/* ---------------- Looping API --------------------- */
+/** \} */
 
-/* functions for looping over keyframes */
-/* function for working with F-Curve data only
- * (i.e. when filters have been chosen to explicitly use this) */
+/* -------------------------------------------------------------------- */
+/** \name Looping API
+ *
+ * Functions for looping over keyframes.
+ * \{ */
+
+/**
+ * This function is used to loop over BezTriples in the given F-Curve, applying a given
+ * operation on them, and optionally applies an F-Curve validation function afterwards.
+ *
+ * function for working with F-Curve data only
+ * (i.e. when filters have been chosen to explicitly use this).
+ */
 short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked,
                                  struct FCurve *fcu,
                                  KeyframeEditFunc key_ok,
                                  KeyframeEditFunc key_cb,
                                  FcuEditFunc fcu_cb);
-/* function for working with any type (i.e. one of the known types) of animation channel
- * - filterflag is bDopeSheet->flag (DOPESHEET_FILTERFLAG)
+/**
+ * Sets selected keyframes' bezier handles to an equal length and optionally makes
+ * the keyframes' handles horizontal.
+ * \param handle_length: Desired handle length, must be positive.
+ * \param flatten: Makes the keyframes' handles the same value as the keyframe,
+ * flattening the curve at that point.
+ */
+void ANIM_fcurve_equalize_keyframes_loop(struct FCurve *fcu,
+                                         eEditKeyframes_Equalize mode,
+                                         float handle_length,
+                                         bool flatten);
+
+/**
+ * Function for working with any type (i.e. one of the known types) of animation channel.
  */
 short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked,
                                       struct bDopeSheet *ads,
@@ -241,8 +270,9 @@ short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked,
                                       KeyframeEditFunc key_ok,
                                       KeyframeEditFunc key_cb,
                                       FcuEditFunc fcu_cb);
-/* same as above, except bAnimListElem wrapper is not needed...
- * - keytype is eAnim_KeyType
+/**
+ * Same as above, except bAnimListElem wrapper is not needed.
+ * \param keytype: is #eAnim_KeyType.
  */
 short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked,
                                           struct bDopeSheet *ads,
@@ -252,55 +282,92 @@ short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked,
                                           KeyframeEditFunc key_cb,
                                           FcuEditFunc fcu_cb);
 
-/* Calls callback_fn() for each keyframe in each fcurve in the filtered animation context.
- * Assumes the callback updates keys. */
+/**
+ * Calls callback_fn() for each keyframe in each fcurve in the filtered animation context.
+ * Assumes the callback updates keys.
+ */
 void ANIM_animdata_keyframe_callback(struct bAnimContext *ac,
                                      eAnimFilter_Flags filter,
                                      KeyframeEditFunc callback_fn);
 
-/* functions for making sure all keyframes are in good order */
+/**
+ * Functions for making sure all keyframes are in good order.
+ */
 void ANIM_editkeyframes_refresh(struct bAnimContext *ac);
 
-/* ----------- BezTriple Callback Getters ---------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name BezTriple Callback Getters
+ * \{ */
 
 /* accessories */
 KeyframeEditFunc ANIM_editkeyframes_ok(short mode);
 
 /* edit */
 KeyframeEditFunc ANIM_editkeyframes_snap(short mode);
+/**
+ * \note for markers and 'value', the values to use must be supplied as the first float value.
+ */
 KeyframeEditFunc ANIM_editkeyframes_mirror(short mode);
 KeyframeEditFunc ANIM_editkeyframes_select(short mode);
+/**
+ * Set all selected Bezier Handles to a single type.
+ */
 KeyframeEditFunc ANIM_editkeyframes_handles(short mode);
+/**
+ * Set the interpolation type of the selected BezTriples in each F-Curve to the specified one.
+ */
 KeyframeEditFunc ANIM_editkeyframes_ipo(short mode);
 KeyframeEditFunc ANIM_editkeyframes_keytype(short mode);
 KeyframeEditFunc ANIM_editkeyframes_easing(short mode);
 
-/* -------- BezTriple Callbacks (Selection Map) ---------- */
+/** \} */
 
-/* Get a callback to populate the selection settings map
- * requires: ked->custom = char[] of length fcurve->totvert
+/* -------------------------------------------------------------------- */
+/** \name BezTriple Callbacks (Selection Map)
+ * \{ */
+
+/**
+ * Get a callback to populate the selection settings map
+ * requires: `ked->custom = char[]` of length `fcurve->totvert`.
  */
 KeyframeEditFunc ANIM_editkeyframes_buildselmap(short mode);
 
-/* Change the selection status of the keyframe based on the map entry for this vert
- * requires: ked->custom = char[] of length fcurve->totvert
+/**
+ * Change the selection status of the keyframe based on the map entry for this vert
+ * requires: `ked->custom = char[]` of length `fcurve->totvert`.
  */
 short bezt_selmap_flush(KeyframeEditData *ked, struct BezTriple *bezt);
 
-/* ----------- BezTriple Callback (Assorted Utilities) ---------- */
+/** \} */
 
-/* used to calculate the average location of all relevant BezTriples by summing their locations */
+/* -------------------------------------------------------------------- */
+/** \name BezTriple Callback (Assorted Utilities)
+ * \{ */
+
+/**
+ * Used to calculate the average location of all relevant BezTriples by summing their locations.
+ */
 short bezt_calc_average(KeyframeEditData *ked, struct BezTriple *bezt);
 
-/* used to extract a set of cfra-elems from the keyframes */
+/**
+ * Used to extract a set of cfra-elems from the keyframes.
+ */
 short bezt_to_cfraelem(KeyframeEditData *ked, struct BezTriple *bezt);
 
-/* used to remap times from one range to another
- * requires:  ked->custom = KeyframeEditCD_Remap
+/**
+ * Used to remap times from one range to another.
+ * requires: `ked->custom = KeyframeEditCD_Remap`.
  */
 void bezt_remap_times(KeyframeEditData *ked, struct BezTriple *bezt);
 
-/* ------ 1.5-D Region Testing Utilities (Lasso/Circle Select) ------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name 1.5-D Region Testing Utilities (Lasso/Circle Select)
+ * \{ */
+
 /* XXX: These are temporary,
  * until we can unify GP/Mask Keyframe handling and standard FCurve Keyframe handling */
 
@@ -315,12 +382,33 @@ void delete_fcurve_key(struct FCurve *fcu, int index, bool do_recalc);
 bool delete_fcurve_keys(struct FCurve *fcu);
 void clear_fcurve_keys(struct FCurve *fcu);
 void duplicate_fcurve_keys(struct FCurve *fcu);
+float get_default_rna_value(struct FCurve *fcu, struct PropertyRNA *prop, struct PointerRNA *ptr);
 
+typedef struct FCurveSegment {
+  struct FCurveSegment *next, *prev;
+  int start_index, length;
+} FCurveSegment;
+
+/**
+ * Return a list of #FCurveSegment with a start index and a length.
+ * A segment is a continuous selection of keyframes.
+ * Keys that have BEZT_FLAG_IGNORE_TAG set are treated as unselected.
+ * The caller is responsible for freeing the memory.
+ */
+ListBase find_fcurve_segments(struct FCurve *fcu);
 void clean_fcurve(struct bAnimContext *ac,
                   struct bAnimListElem *ale,
                   float thresh,
                   bool cleardefault);
+void blend_to_neighbor_fcurve_segment(struct FCurve *fcu,
+                                      struct FCurveSegment *segment,
+                                      float factor);
+void breakdown_fcurve_segment(struct FCurve *fcu, struct FCurveSegment *segment, float factor);
 bool decimate_fcurve(struct bAnimListElem *ale, float remove_ratio, float error_sq_max);
+void blend_to_default_fcurve(struct PointerRNA *id_ptr, struct FCurve *fcu, float factor);
+/**
+ * Use a weighted moving-means method to reduce intensity of fluctuations.
+ */
 void smooth_fcurve(struct FCurve *fcu);
 void sample_fcurve(struct FCurve *fcu);
 
@@ -330,11 +418,13 @@ void ANIM_fcurves_copybuf_free(void);
 short copy_animedit_keys(struct bAnimContext *ac, ListBase *anim_data);
 short paste_animedit_keys(struct bAnimContext *ac,
                           ListBase *anim_data,
-                          const eKeyPasteOffset offset_mode,
-                          const eKeyMergeMode merge_mode,
+                          eKeyPasteOffset offset_mode,
+                          eKeyMergeMode merge_mode,
                           bool flip);
 
 /* ************************************************ */
+
+/** \} */
 
 #ifdef __cplusplus
 }

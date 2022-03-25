@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2016 by Mike Erwin.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 by Mike Erwin. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -53,6 +37,8 @@ void GPU_indexbuf_init_ex(GPUIndexBufBuilder *, GPUPrimType, uint index_len, uin
 void GPU_indexbuf_init(GPUIndexBufBuilder *, GPUPrimType, uint prim_len, uint vertex_len);
 GPUIndexBuf *GPU_indexbuf_build_on_device(uint index_len);
 
+void GPU_indexbuf_init_build_on_device(GPUIndexBuf *elem, uint index_len);
+
 /*
  * Thread safe.
  *
@@ -81,6 +67,16 @@ GPUIndexBuf *GPU_indexbuf_build(GPUIndexBufBuilder *);
 void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *, GPUIndexBuf *);
 
 void GPU_indexbuf_bind_as_ssbo(GPUIndexBuf *elem, int binding);
+
+/* Upload data to the GPU (if not built on the device) and bind the buffer to its default target.
+ */
+void GPU_indexbuf_use(GPUIndexBuf *elem);
+
+/* Partially update the GPUIndexBuf which was already sent to the device, or built directly on the
+ * device. The data needs to be compatible with potential compression applied to the original
+ * indices when the index buffer was built, i.e., if the data was compressed to use shorts instead
+ * of ints, shorts should passed here. */
+void GPU_indexbuf_update_sub(GPUIndexBuf *elem, uint start, uint len, const void *data);
 
 /* Create a sub-range of an existing index-buffer. */
 GPUIndexBuf *GPU_indexbuf_create_subrange(GPUIndexBuf *elem_src, uint start, uint length);

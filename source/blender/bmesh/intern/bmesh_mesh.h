@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -34,30 +20,85 @@ struct BMeshCreateParams {
   uint use_toolflags : 1;
 };
 
+/**
+ * \brief BMesh Make Mesh
+ *
+ * Allocates a new BMesh structure.
+ *
+ * \return The New bmesh
+ *
+ * \note ob is needed by multires
+ */
 BMesh *BM_mesh_create(const struct BMAllocTemplate *allocsize,
                       const struct BMeshCreateParams *params);
 
+/**
+ * \brief BMesh Free Mesh
+ *
+ * Frees a BMesh data and its structure.
+ */
 void BM_mesh_free(BMesh *bm);
+/**
+ * \brief BMesh Free Mesh Data
+ *
+ * Frees a BMesh structure.
+ *
+ * \note frees mesh, but not actual BMesh struct
+ */
 void BM_mesh_data_free(BMesh *bm);
+/**
+ * \brief BMesh Clear Mesh
+ *
+ * Clear all data in bm
+ */
 void BM_mesh_clear(BMesh *bm);
 
-void bmesh_edit_begin(BMesh *bm, const BMOpTypeFlag type_flag);
-void bmesh_edit_end(BMesh *bm, const BMOpTypeFlag type_flag);
+/**
+ * \brief BMesh Begin Edit
+ *
+ * Functions for setting up a mesh for editing and cleaning up after
+ * the editing operations are done. These are called by the tools/operator
+ * API for each time a tool is executed.
+ */
+void bmesh_edit_begin(BMesh *bm, BMOpTypeFlag type_flag);
+/**
+ * \brief BMesh End Edit
+ */
+void bmesh_edit_end(BMesh *bm, BMOpTypeFlag type_flag);
 
-void BM_mesh_elem_index_ensure_ex(BMesh *bm, const char htype, int elem_offset[4]);
-void BM_mesh_elem_index_ensure(BMesh *bm, const char htype);
+void BM_mesh_elem_index_ensure_ex(BMesh *bm, char htype, int elem_offset[4]);
+void BM_mesh_elem_index_ensure(BMesh *bm, char htype);
+/**
+ * Array checking/setting macros.
+ *
+ * Currently vert/edge/loop/face index data is being abused, in a few areas of the code.
+ *
+ * To avoid correcting them afterwards, set 'bm->elem_index_dirty' however its possible
+ * this flag is set incorrectly which could crash blender.
+ *
+ * Functions that calls this function may depend on dirty indices on being set.
+ *
+ * This is read-only, so it can be used for assertions that don't impact behavior.
+ */
 void BM_mesh_elem_index_validate(
     BMesh *bm, const char *location, const char *func, const char *msg_a, const char *msg_b);
 
-void BM_mesh_toolflags_set(BMesh *bm, bool use_toolflags);
-
 #ifndef NDEBUG
+/**
+ * \see #BM_mesh_elem_index_validate the same rationale applies to this function.
+ */
 bool BM_mesh_elem_table_check(BMesh *bm);
 #endif
 
-void BM_mesh_elem_table_ensure(BMesh *bm, const char htype);
-void BM_mesh_elem_table_init(BMesh *bm, const char htype);
-void BM_mesh_elem_table_free(BMesh *bm, const char htype);
+/**
+ * Re-allocates mesh data with/without toolflags.
+ */
+void BM_mesh_toolflags_set(BMesh *bm, bool use_toolflags);
+
+void BM_mesh_elem_table_ensure(BMesh *bm, char htype);
+/* use BM_mesh_elem_table_ensure where possible to avoid full rebuild */
+void BM_mesh_elem_table_init(BMesh *bm, char htype);
+void BM_mesh_elem_table_free(BMesh *bm, char htype);
 
 BLI_INLINE BMVert *BM_vert_at_index(BMesh *bm, const int index)
 {
@@ -78,21 +119,49 @@ BLI_INLINE BMFace *BM_face_at_index(BMesh *bm, const int index)
   return bm->ftable[index];
 }
 
-BMVert *BM_vert_at_index_find(BMesh *bm, const int index);
-BMEdge *BM_edge_at_index_find(BMesh *bm, const int index);
-BMFace *BM_face_at_index_find(BMesh *bm, const int index);
-BMLoop *BM_loop_at_index_find(BMesh *bm, const int index);
+BMVert *BM_vert_at_index_find(BMesh *bm, int index);
+BMEdge *BM_edge_at_index_find(BMesh *bm, int index);
+BMFace *BM_face_at_index_find(BMesh *bm, int index);
+BMLoop *BM_loop_at_index_find(BMesh *bm, int index);
 
-BMVert *BM_vert_at_index_find_or_table(BMesh *bm, const int index);
-BMEdge *BM_edge_at_index_find_or_table(BMesh *bm, const int index);
-BMFace *BM_face_at_index_find_or_table(BMesh *bm, const int index);
+/**
+ * Use lookup table when available, else use slower find functions.
+ *
+ * \note Try to use #BM_mesh_elem_table_ensure instead.
+ */
+BMVert *BM_vert_at_index_find_or_table(BMesh *bm, int index);
+BMEdge *BM_edge_at_index_find_or_table(BMesh *bm, int index);
+BMFace *BM_face_at_index_find_or_table(BMesh *bm, int index);
 
 // XXX
 
-int BM_mesh_elem_count(BMesh *bm, const char htype);
+/**
+ * Return the amount of element of type 'type' in a given bmesh.
+ */
+int BM_mesh_elem_count(BMesh *bm, char htype);
 
+/**
+ * Remaps the vertices, edges and/or faces of the bmesh as indicated by vert/edge/face_idx arrays
+ * (xxx_idx[org_index] = new_index).
+ *
+ * A NULL array means no changes.
+ *
+ * \note
+ * - Does not mess with indices, just sets elem_index_dirty flag.
+ * - For verts/edges/faces only (as loops must remain "ordered" and "aligned"
+ *   on a per-face basis...).
+ *
+ * \warning Be careful if you keep pointers to affected BM elements,
+ * or arrays, when using this func!
+ */
 void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const uint *face_idx);
 
+/**
+ * Use new memory pools for this mesh.
+ *
+ * \note needed for re-sizing elements (adding/removing tool flags)
+ * but could also be used for packing fragmented bmeshes.
+ */
 void BM_mesh_rebuild(BMesh *bm,
                      const struct BMeshCreateParams *params,
                      struct BLI_mempool *vpool,
@@ -104,6 +173,7 @@ typedef struct BMAllocTemplate {
   int totvert, totedge, totloop, totface;
 } BMAllocTemplate;
 
+/* used as an extern, defined in bmesh.h */
 extern const BMAllocTemplate bm_mesh_allocsize_default;
 extern const BMAllocTemplate bm_mesh_chunksize_default;
 

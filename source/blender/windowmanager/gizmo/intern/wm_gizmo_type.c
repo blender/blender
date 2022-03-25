@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -34,6 +20,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -78,7 +65,6 @@ const wmGizmoType *WM_gizmotype_find(const char *idname, bool quiet)
   return NULL;
 }
 
-/* caller must free */
 void WM_gizmotype_iter(GHashIterator *ghi)
 {
   BLI_ghashIterator_init(ghi, global_gizmotype_hash);
@@ -118,9 +104,6 @@ void WM_gizmotype_append_ptr(void (*gtfunc)(struct wmGizmoType *, void *), void 
   wm_gizmotype_append__end(mt);
 }
 
-/**
- * Free but don't remove from ghash.
- */
 void WM_gizmotype_free_ptr(wmGizmoType *gzt)
 {
   if (gzt->rna_ext.srna) { /* python gizmo, allocs own string */
@@ -195,7 +178,6 @@ void wm_gizmotype_free(void)
   global_gizmotype_hash = NULL;
 }
 
-/* called on initialize WM_init() */
 void wm_gizmotype_init(void)
 {
   /* reserve size is set based on blender default setup */

@@ -1,19 +1,6 @@
-/*
+/* SPDX-License-Identifier: Apache-2.0
  * Adapted from code copyright 2009-2010 NVIDIA Corporation
- * Modifications Copyright 2011, Blender Foundation.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * Modifications Copyright 2011-2022 Blender Foundation. */
 
 #ifndef __BVH_NODE_H__
 #define __BVH_NODE_H__
@@ -178,7 +165,7 @@ class InnerNode : public BVHNode {
     reset_unused_children();
   }
 
-  /* NOTE: This function is only used during binary BVH builder, and it
+  /* NOTE: This function is only used during binary BVH builder, and it's
    * supposed to be configured to have 2 children which will be filled-in in a
    * bit. But this is important to have children reset to NULL. */
   explicit InnerNode(const BoundBox &bounds) : BVHNode(bounds), num_children_(0)

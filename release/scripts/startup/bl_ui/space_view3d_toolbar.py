@@ -1,20 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8 compliant>
 from bpy.types import Menu, Panel, UIList
@@ -689,13 +673,23 @@ class VIEW3D_PT_tools_brush_stroke_smooth_stroke(Panel, View3DPaintPanel, Smooth
 
 
 class VIEW3D_PT_tools_weight_gradient(Panel, View3DPaintPanel):
-    bl_context = ".weightpaint" # dot on purpose (access from topbar)
+    # dont give context on purpose to not show this in the generic header toolsettings
+    # this is added only in the gradient tool's ToolDef
+    #bl_context = ".weightpaint" # dot on purpose (access from topbar)
     bl_label = "Falloff"
     bl_options = {'DEFAULT_CLOSED'}
+    # also dont draw as an extra panel in the sidebar (already included in the Brush settings)
+    bl_space_type = 'TOPBAR'
+    bl_region_type = 'HEADER'
 
     @classmethod
     def poll(cls, context):
+        # since we dont give context above, check mode here (to not show in other modes like sculpt)
+        if context.mode != 'PAINT_WEIGHT':
+            return False
         settings = context.tool_settings.weight_paint
+        if settings is None:
+            return False
         brush = settings.brush
         return brush is not None
 

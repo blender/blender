@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2019, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2019 Blender Foundation. */
 
 /** \file
  * \ingroup draw_engine
@@ -182,6 +167,7 @@ typedef struct OVERLAY_Shaders {
   GPUShader *edit_uv_verts;
   GPUShader *edit_uv_faces;
   GPUShader *edit_uv_edges;
+  GPUShader *edit_uv_edges_for_edge_select;
   GPUShader *edit_uv_face_dots;
   GPUShader *edit_uv_stretching_angle;
   GPUShader *edit_uv_stretching_area;
@@ -323,7 +309,9 @@ GPUShader *OVERLAY_shader_edit_mesh_vert(void)
                                  datatoc_edit_mesh_common_lib_glsl,
                                  datatoc_edit_mesh_vert_glsl,
                                  NULL},
-        .frag = (const char *[]){datatoc_gpu_shader_point_varying_color_frag_glsl, NULL},
+        .frag = (const char *[]){datatoc_common_globals_lib_glsl,
+                                 datatoc_gpu_shader_point_varying_color_frag_glsl,
+                                 NULL},
         .defs = (const char *[]){sh_cfg->def, "#define VERT\n", NULL},
     });
   }
@@ -383,7 +371,7 @@ GPUShader *OVERLAY_shader_armature_sphere(bool use_outline)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
-  const char extensions[] = "#extension GL_ARB_conservative_depth : enable\n";
+  const char extensions[] = "";
   if (use_outline && !sh_data->armature_sphere_outline) {
     sh_data->armature_sphere_outline = GPU_shader_create_from_arrays({
         .vert = (const char *[]){sh_cfg->lib,
@@ -1616,6 +1604,20 @@ GPUShader *OVERLAY_shader_edit_uv_edges_get(void)
                                                               NULL);
   }
   return sh_data->edit_uv_edges;
+}
+
+GPUShader *OVERLAY_shader_edit_uv_edges_for_edge_select_get(void)
+{
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
+  if (!sh_data->edit_uv_edges_for_edge_select) {
+    sh_data->edit_uv_edges_for_edge_select = DRW_shader_create_with_shaderlib(
+        datatoc_edit_uv_edges_vert_glsl,
+        datatoc_edit_uv_edges_geom_glsl,
+        datatoc_edit_uv_edges_frag_glsl,
+        e_data.lib,
+        "#define USE_EDGE_SELECT\n");
+  }
+  return sh_data->edit_uv_edges_for_edge_select;
 }
 
 GPUShader *OVERLAY_shader_edit_uv_face_get(void)

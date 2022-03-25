@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
@@ -25,12 +11,18 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_curve_subdivide_cc {
 
-static void geo_node_curve_subdivide_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_input<decl::Int>(N_("Cuts")).default_value(1).min(0).max(1000).supports_field();
+  b.add_input<decl::Int>(N_("Cuts"))
+      .default_value(1)
+      .min(0)
+      .max(1000)
+      .supports_field()
+      .description(
+          N_("The number of control points to create on the segment following each point"));
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
@@ -101,8 +93,8 @@ static void subdivide_bezier_segment(const BezierSpline &src,
                                      MutableSpan<float3> dst_positions,
                                      MutableSpan<float3> dst_handles_left,
                                      MutableSpan<float3> dst_handles_right,
-                                     MutableSpan<BezierSpline::HandleType> dst_type_left,
-                                     MutableSpan<BezierSpline::HandleType> dst_type_right)
+                                     MutableSpan<int8_t> dst_type_left,
+                                     MutableSpan<int8_t> dst_type_right)
 {
   const bool is_last_cyclic_segment = index == (src.size() - 1);
   const int next_index = is_last_cyclic_segment ? 0 : index + 1;
@@ -112,10 +104,10 @@ static void subdivide_bezier_segment(const BezierSpline &src,
 
   if (src.segment_is_vector(index)) {
     if (is_last_cyclic_segment) {
-      dst_type_left.first() = BezierSpline::HandleType::Vector;
+      dst_type_left.first() = BEZIER_HANDLE_VECTOR;
     }
-    dst_type_left.slice(offset + 1, result_size).fill(BezierSpline::HandleType::Vector);
-    dst_type_right.slice(offset, result_size).fill(BezierSpline::HandleType::Vector);
+    dst_type_left.slice(offset + 1, result_size).fill(BEZIER_HANDLE_VECTOR);
+    dst_type_right.slice(offset, result_size).fill(BEZIER_HANDLE_VECTOR);
 
     const float factor_delta = 1.0f / result_size;
     for (const int cut : IndexRange(result_size)) {
@@ -126,10 +118,10 @@ static void subdivide_bezier_segment(const BezierSpline &src,
   }
   else {
     if (is_last_cyclic_segment) {
-      dst_type_left.first() = BezierSpline::HandleType::Free;
+      dst_type_left.first() = BEZIER_HANDLE_FREE;
     }
-    dst_type_left.slice(offset + 1, result_size).fill(BezierSpline::HandleType::Free);
-    dst_type_right.slice(offset, result_size).fill(BezierSpline::HandleType::Free);
+    dst_type_left.slice(offset + 1, result_size).fill(BEZIER_HANDLE_FREE);
+    dst_type_right.slice(offset, result_size).fill(BEZIER_HANDLE_FREE);
 
     const int i_segment_last = is_last_cyclic_segment ? 0 : offset + result_size;
 
@@ -177,8 +169,8 @@ static void subdivide_bezier_spline(const BezierSpline &src,
   MutableSpan<float3> dst_positions = dst.positions();
   MutableSpan<float3> dst_handles_left = dst.handle_positions_left();
   MutableSpan<float3> dst_handles_right = dst.handle_positions_right();
-  MutableSpan<BezierSpline::HandleType> dst_type_left = dst.handle_types_left();
-  MutableSpan<BezierSpline::HandleType> dst_type_right = dst.handle_types_right();
+  MutableSpan<int8_t> dst_type_left = dst.handle_types_left();
+  MutableSpan<int8_t> dst_type_right = dst.handle_types_right();
 
   threading::parallel_for(IndexRange(src.size() - 1), 512, [&](IndexRange range) {
     for (const int i : range) {
@@ -214,6 +206,10 @@ static void subdivide_bezier_spline(const BezierSpline &src,
   }
   else {
     dst_positions.last() = src_positions.last();
+    dst_type_left.first() = src.handle_types_left().first();
+    dst_type_right.last() = src.handle_types_right().last();
+    dst_handles_left.first() = src_handles_left.first();
+    dst_handles_right.last() = src_handles_right.last();
   }
 }
 
@@ -225,24 +221,28 @@ static void subdivide_builtin_attributes(const Spline &src_spline,
   subdivide_attribute<float>(src_spline.radii(), offsets, is_cyclic, dst_spline.radii());
   subdivide_attribute<float>(src_spline.tilts(), offsets, is_cyclic, dst_spline.tilts());
   switch (src_spline.type()) {
-    case Spline::Type::Poly: {
+    case CURVE_TYPE_POLY: {
       const PolySpline &src = static_cast<const PolySpline &>(src_spline);
       PolySpline &dst = static_cast<PolySpline &>(dst_spline);
       subdivide_attribute<float3>(src.positions(), offsets, is_cyclic, dst.positions());
       break;
     }
-    case Spline::Type::Bezier: {
+    case CURVE_TYPE_BEZIER: {
       const BezierSpline &src = static_cast<const BezierSpline &>(src_spline);
       BezierSpline &dst = static_cast<BezierSpline &>(dst_spline);
       subdivide_bezier_spline(src, offsets, dst);
       dst.mark_cache_invalid();
       break;
     }
-    case Spline::Type::NURBS: {
+    case CURVE_TYPE_NURBS: {
       const NURBSpline &src = static_cast<const NURBSpline &>(src_spline);
       NURBSpline &dst = static_cast<NURBSpline &>(dst_spline);
       subdivide_attribute<float3>(src.positions(), offsets, is_cyclic, dst.positions());
       subdivide_attribute<float>(src.weights(), offsets, is_cyclic, dst.weights());
+      break;
+    }
+    case CURVE_TYPE_CATMULL_ROM: {
+      BLI_assert_unreachable();
       break;
     }
   }
@@ -322,13 +322,13 @@ static std::unique_ptr<CurveEval> subdivide_curve(const CurveEval &input_curve,
   return output_curve;
 }
 
-static void geo_node_subdivide_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   Field<int> cuts_field = params.extract_input<Field<int>>("Cuts");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (!geometry_set.has_curve()) {
+    if (!geometry_set.has_curves()) {
       return;
     }
 
@@ -344,21 +344,23 @@ static void geo_node_subdivide_exec(GeoNodeExecParams params)
     if (cuts.is_single() && cuts.get_internal_single() < 1) {
       return;
     }
-
-    std::unique_ptr<CurveEval> output_curve = subdivide_curve(*component.get_for_read(), cuts);
-    geometry_set.replace_curve(output_curve.release());
+    std::unique_ptr<CurveEval> output_curve = subdivide_curve(
+        *curves_to_curve_eval(*component.get_for_read()), cuts);
+    geometry_set.replace_curves(curve_eval_to_curves(*output_curve));
   });
   params.set_output("Curve", geometry_set);
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_subdivide_cc
 
 void register_node_type_geo_curve_subdivide()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_subdivide_cc;
+
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SUBDIVIDE_CURVE, "Subdivide Curve", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_curve_subdivide_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_subdivide_exec;
+  geo_node_type_base(&ntype, GEO_NODE_SUBDIVIDE_CURVE, "Subdivide Curve", NODE_CLASS_GEOMETRY);
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

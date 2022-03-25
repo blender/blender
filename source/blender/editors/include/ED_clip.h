@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup editors
@@ -56,6 +40,9 @@ void ED_space_clip_get_zoom(struct SpaceClip *sc,
 void ED_space_clip_get_aspect(struct SpaceClip *sc, float *aspx, float *aspy);
 void ED_space_clip_get_aspect_dimension_aware(struct SpaceClip *sc, float *aspx, float *aspy);
 
+/**
+ * Return current frame number in clip space.
+ */
 int ED_space_clip_get_clip_frame_number(struct SpaceClip *sc);
 
 struct ImBuf *ED_space_clip_get_buffer(struct SpaceClip *sc);
@@ -65,9 +52,12 @@ struct ImBuf *ED_space_clip_get_stable_buffer(struct SpaceClip *sc,
                                               float *angle);
 
 bool ED_space_clip_get_position(struct SpaceClip *sc,
-                                struct ARegion *ar,
+                                struct ARegion *region,
                                 int mval[2],
                                 float fpos[2]);
+/**
+ * Returns color in linear space, matching #ED_space_image_color_sample().
+ */
 bool ED_space_clip_color_sample(struct SpaceClip *sc,
                                 struct ARegion *region,
                                 int mval[2],
@@ -82,10 +72,17 @@ bool ED_clip_can_select(struct bContext *C);
 void ED_clip_point_undistorted_pos(struct SpaceClip *sc, const float co[2], float r_co[2]);
 void ED_clip_point_stable_pos(
     struct SpaceClip *sc, struct ARegion *region, float x, float y, float *xr, float *yr);
+/**
+ * \brief the reverse of #ED_clip_point_stable_pos(), gets the marker region coords.
+ * better name here? view_to_track / track_to_view or so?
+ */
 void ED_clip_point_stable_pos__reverse(struct SpaceClip *sc,
                                        struct ARegion *region,
                                        const float co[2],
                                        float r_co[2]);
+/**
+ * Takes `event->mval`.
+ */
 void ED_clip_mouse_pos(struct SpaceClip *sc,
                        struct ARegion *region,
                        const int mval[2],

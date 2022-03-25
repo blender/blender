@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2004 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2004 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edmesh
@@ -32,6 +16,7 @@
 #include "BLI_math.h"
 #include "BLI_math_bits.h"
 #include "BLI_rand.h"
+#include "BLI_string.h"
 #include "BLI_utildefines_stack.h"
 
 #include "BKE_context.h"
@@ -54,6 +39,8 @@
 #include "ED_select_utils.h"
 #include "ED_transform.h"
 #include "ED_view3d.h"
+
+#include "BLT_translation.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -267,17 +254,6 @@ static void findnearestvert__doClosest(void *userData,
   }
 }
 
-/**
- * Nearest vertex under the cursor.
- *
- * \param dist_px_manhattan_p: (in/out), minimal distance to the nearest and at the end,
- * actual distance.
- * \param use_select_bias:
- * - When true, selected vertices are given a 5 pixel bias
- *   to make them further than unselect verts.
- * - When false, unselected vertices are given the bias.
- * \param use_cycle: Cycle over elements within #FIND_NEAR_CYCLE_THRESHOLD_MIN in order of index.
- */
 BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
                                   float *dist_px_manhattan_p,
                                   const bool use_select_bias,
@@ -713,13 +689,6 @@ static void findnearestface__doClosest(void *userData,
   }
 }
 
-/**
- * \param use_zbuf_single_px: Special case, when using the back-buffer selection,
- * only use the pixel at `vc->mval` instead of using `dist_px_manhattan_p` to search over a larger
- * region. This is needed because historically selection worked this way for a long time, however
- * it's reasonable that some callers might want to expand the region too. So add an argument to do
- * this,
- */
 BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
                                   float *dist_px_manhattan_p,
                                   float *r_dist_center,
@@ -1398,13 +1367,44 @@ static int edbm_select_mode_invoke(bContext *C, wmOperator *op, const wmEvent *e
   /* detecting these options based on shift/ctrl here is weak, but it's done
    * to make this work when clicking buttons or menus */
   if (!RNA_struct_property_is_set(op->ptr, "use_extend")) {
-    RNA_boolean_set(op->ptr, "use_extend", event->shift);
+    RNA_boolean_set(op->ptr, "use_extend", event->modifier & KM_SHIFT);
   }
   if (!RNA_struct_property_is_set(op->ptr, "use_expand")) {
-    RNA_boolean_set(op->ptr, "use_expand", event->ctrl);
+    RNA_boolean_set(op->ptr, "use_expand", event->modifier & KM_CTRL);
   }
 
   return edbm_select_mode_exec(C, op);
+}
+
+static char *edbm_select_mode_get_description(struct bContext *UNUSED(C),
+                                              struct wmOperatorType *UNUSED(op),
+                                              struct PointerRNA *values)
+{
+  const int type = RNA_enum_get(values, "type");
+
+  /* Because the special behavior for shift and ctrl click depend on user input, they may be
+   * incorrect if the operator is used from a script or from a special button. So only return the
+   * specialized descriptions if only the "type" is set, which conveys that the operator is meant
+   * to be used with the logic in the `invoke` method. */
+  if (RNA_struct_property_is_set(values, "type") &&
+      !RNA_struct_property_is_set(values, "use_extend") &&
+      !RNA_struct_property_is_set(values, "use_expand") &&
+      !RNA_struct_property_is_set(values, "action")) {
+    switch (type) {
+      case SCE_SELECT_VERTEX:
+        return BLI_strdup(TIP_(
+            "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"));
+      case SCE_SELECT_EDGE:
+        return BLI_strdup(
+            TIP_("Edge select - Shift-Click for multiple modes, "
+                 "Ctrl-Click expands/contracts selection depending on the current mode"));
+      case SCE_SELECT_FACE:
+        return BLI_strdup(
+            TIP_("Face select - Shift-Click for multiple modes, Ctrl-Click expands selection"));
+    }
+  }
+
+  return NULL;
 }
 
 void MESH_OT_select_mode(wmOperatorType *ot)
@@ -1427,6 +1427,7 @@ void MESH_OT_select_mode(wmOperatorType *ot)
   ot->invoke = edbm_select_mode_invoke;
   ot->exec = edbm_select_mode_exec;
   ot->poll = ED_operator_editmesh;
+  ot->get_description = edbm_select_mode_get_description;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2015,7 +2016,7 @@ void MESH_OT_select_interior_faces(wmOperatorType *ot)
  * Gets called via generic mouse select operator.
  * \{ */
 
-bool EDBM_select_pick(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
+bool EDBM_select_pick(bContext *C, const int mval[2], const struct SelectPick_Params *params)
 {
   ViewContext vc;
 
@@ -2032,100 +2033,153 @@ bool EDBM_select_pick(bContext *C, const int mval[2], bool extend, bool deselect
   uint bases_len = 0;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(vc.view_layer, vc.v3d, &bases_len);
 
-  bool ok = false;
+  bool changed = false;
+  bool found = unified_findnearest(&vc, bases, bases_len, &base_index_active, &eve, &eed, &efa);
 
-  if (unified_findnearest(&vc, bases, bases_len, &base_index_active, &eve, &eed, &efa)) {
-    Base *basact = bases[base_index_active];
-    ED_view3d_viewcontext_init_object(&vc, basact->object);
-
-    /* Deselect everything */
-    if (extend == false && deselect == false && toggle == false) {
+  if (params->sel_op == SEL_OP_SET) {
+    BMElem *ele = efa ? (BMElem *)efa : (eed ? (BMElem *)eed : (BMElem *)eve);
+    if ((found && params->select_passthrough) && BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
+      found = false;
+    }
+    else if (found || params->deselect_all) {
+      /* Deselect everything. */
       for (uint base_index = 0; base_index < bases_len; base_index++) {
         Base *base_iter = bases[base_index];
         Object *ob_iter = base_iter->object;
         EDBM_flag_disable_all(BKE_editmesh_from_object(ob_iter), BM_ELEM_SELECT);
-        if (basact->object != ob_iter) {
-          DEG_id_tag_update(ob_iter->data, ID_RECALC_SELECT);
-          WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
-        }
+        DEG_id_tag_update(ob_iter->data, ID_RECALC_SELECT);
+        WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
       }
+      changed = true;
     }
+  }
+
+  if (found) {
+    Base *basact = bases[base_index_active];
+    ED_view3d_viewcontext_init_object(&vc, basact->object);
 
     if (efa) {
-      if (extend) {
-        /* set the last selected face */
-        BM_mesh_active_face_set(vc.em->bm, efa);
+      switch (params->sel_op) {
+        case SEL_OP_ADD: {
+          BM_mesh_active_face_set(vc.em->bm, efa);
 
-        /* Work-around: deselect first, so we can guarantee it will */
-        /* be active even if it was already selected */
-        BM_select_history_remove(vc.em->bm, efa);
-        BM_face_select_set(vc.em->bm, efa, false);
-        BM_select_history_store(vc.em->bm, efa);
-        BM_face_select_set(vc.em->bm, efa, true);
-      }
-      else if (deselect) {
-        BM_select_history_remove(vc.em->bm, efa);
-        BM_face_select_set(vc.em->bm, efa, false);
-      }
-      else {
-        /* set the last selected face */
-        BM_mesh_active_face_set(vc.em->bm, efa);
-
-        if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-          BM_select_history_store(vc.em->bm, efa);
-          BM_face_select_set(vc.em->bm, efa, true);
-        }
-        else if (toggle) {
+          /* Work-around: deselect first, so we can guarantee it will
+           * be active even if it was already selected. */
           BM_select_history_remove(vc.em->bm, efa);
           BM_face_select_set(vc.em->bm, efa, false);
+          BM_select_history_store(vc.em->bm, efa);
+          BM_face_select_set(vc.em->bm, efa, true);
+          break;
+        }
+        case SEL_OP_SUB: {
+          BM_select_history_remove(vc.em->bm, efa);
+          BM_face_select_set(vc.em->bm, efa, false);
+          break;
+        }
+        case SEL_OP_XOR: {
+          BM_mesh_active_face_set(vc.em->bm, efa);
+          if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+            BM_select_history_store(vc.em->bm, efa);
+            BM_face_select_set(vc.em->bm, efa, true);
+          }
+          else {
+            BM_select_history_remove(vc.em->bm, efa);
+            BM_face_select_set(vc.em->bm, efa, false);
+          }
+          break;
+        }
+        case SEL_OP_SET: {
+          BM_mesh_active_face_set(vc.em->bm, efa);
+          if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+            BM_select_history_store(vc.em->bm, efa);
+            BM_face_select_set(vc.em->bm, efa, true);
+          }
+          break;
+        }
+        case SEL_OP_AND: {
+          BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+          break;
         }
       }
     }
     else if (eed) {
-      if (extend) {
-        /* Work-around: deselect first, so we can guarantee it will */
-        /* be active even if it was already selected */
-        BM_select_history_remove(vc.em->bm, eed);
-        BM_edge_select_set(vc.em->bm, eed, false);
-        BM_select_history_store(vc.em->bm, eed);
-        BM_edge_select_set(vc.em->bm, eed, true);
-      }
-      else if (deselect) {
-        BM_select_history_remove(vc.em->bm, eed);
-        BM_edge_select_set(vc.em->bm, eed, false);
-      }
-      else {
-        if (!BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-          BM_select_history_store(vc.em->bm, eed);
-          BM_edge_select_set(vc.em->bm, eed, true);
-        }
-        else if (toggle) {
+
+      switch (params->sel_op) {
+        case SEL_OP_ADD: {
+          /* Work-around: deselect first, so we can guarantee it will
+           * be active even if it was already selected. */
           BM_select_history_remove(vc.em->bm, eed);
           BM_edge_select_set(vc.em->bm, eed, false);
+          BM_select_history_store(vc.em->bm, eed);
+          BM_edge_select_set(vc.em->bm, eed, true);
+          break;
+        }
+        case SEL_OP_SUB: {
+          BM_select_history_remove(vc.em->bm, eed);
+          BM_edge_select_set(vc.em->bm, eed, false);
+          break;
+        }
+        case SEL_OP_XOR: {
+          if (!BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+            BM_select_history_store(vc.em->bm, eed);
+            BM_edge_select_set(vc.em->bm, eed, true);
+          }
+          else {
+            BM_select_history_remove(vc.em->bm, eed);
+            BM_edge_select_set(vc.em->bm, eed, false);
+          }
+          break;
+        }
+        case SEL_OP_SET: {
+          if (!BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+            BM_select_history_store(vc.em->bm, eed);
+            BM_edge_select_set(vc.em->bm, eed, true);
+          }
+          break;
+        }
+        case SEL_OP_AND: {
+          BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+          break;
         }
       }
     }
     else if (eve) {
-      if (extend) {
-        /* Work-around: deselect first, so we can guarantee it will */
-        /* be active even if it was already selected */
-        BM_select_history_remove(vc.em->bm, eve);
-        BM_vert_select_set(vc.em->bm, eve, false);
-        BM_select_history_store(vc.em->bm, eve);
-        BM_vert_select_set(vc.em->bm, eve, true);
-      }
-      else if (deselect) {
-        BM_select_history_remove(vc.em->bm, eve);
-        BM_vert_select_set(vc.em->bm, eve, false);
-      }
-      else {
-        if (!BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-          BM_select_history_store(vc.em->bm, eve);
-          BM_vert_select_set(vc.em->bm, eve, true);
-        }
-        else if (toggle) {
+      switch (params->sel_op) {
+        case SEL_OP_ADD: {
+          /* Work-around: deselect first, so we can guarantee it will
+           * be active even if it was already selected. */
           BM_select_history_remove(vc.em->bm, eve);
           BM_vert_select_set(vc.em->bm, eve, false);
+          BM_select_history_store(vc.em->bm, eve);
+          BM_vert_select_set(vc.em->bm, eve, true);
+          break;
+        }
+        case SEL_OP_SUB: {
+          BM_select_history_remove(vc.em->bm, eve);
+          BM_vert_select_set(vc.em->bm, eve, false);
+          break;
+        }
+        case SEL_OP_XOR: {
+          if (!BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+            BM_select_history_store(vc.em->bm, eve);
+            BM_vert_select_set(vc.em->bm, eve, true);
+          }
+          else {
+            BM_select_history_remove(vc.em->bm, eve);
+            BM_vert_select_set(vc.em->bm, eve, false);
+          }
+          break;
+        }
+        case SEL_OP_SET: {
+          if (!BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+            BM_select_history_store(vc.em->bm, eve);
+            BM_vert_select_set(vc.em->bm, eve, true);
+          }
+          break;
+        }
+        case SEL_OP_AND: {
+          BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+          break;
         }
       }
     }
@@ -2167,12 +2221,12 @@ bool EDBM_select_pick(bContext *C, const int mval[2], bool extend, bool deselect
     DEG_id_tag_update(vc.obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
 
-    ok = true;
+    changed = true;
   }
 
   MEM_freeN(bases);
 
-  return ok;
+  return changed;
 }
 
 /** \} */
@@ -2217,8 +2271,6 @@ static void edbm_strip_selections(BMEditMesh *em)
   }
 }
 
-/* when switching select mode, makes sure selection is consistent for editing */
-/* also for paranoia checks to make sure edge or face mode works */
 void EDBM_selectmode_set(BMEditMesh *em)
 {
   BMVert *eve;
@@ -2273,20 +2325,6 @@ void EDBM_selectmode_set(BMEditMesh *em)
   }
 }
 
-/**
- * Expand & Contract the Selection
- * (used when changing modes and Ctrl key held)
- *
- * Flush the selection up:
- * - vert -> edge
- * - vert -> face
- * - edge -> face
- *
- * Flush the selection down:
- * - face -> edge
- * - face -> vert
- * - edge -> vert
- */
 void EDBM_selectmode_convert(BMEditMesh *em,
                              const short selectmode_old,
                              const short selectmode_new)
@@ -2393,7 +2431,6 @@ void EDBM_selectmode_convert(BMEditMesh *em,
   }
 }
 
-/* user facing function, does notification */
 bool EDBM_selectmode_toggle_multi(bContext *C,
                                   const short selectmode_new,
                                   const int action,
@@ -2569,12 +2606,6 @@ bool EDBM_selectmode_set_multi(bContext *C, const short selectmode)
   return changed;
 }
 
-/**
- * Use to disable a selectmode if its enabled, Using another mode as a fallback
- * if the disabled mode is the only mode set.
- *
- * \return true if the mode is changed.
- */
 bool EDBM_selectmode_disable(Scene *scene,
                              BMEditMesh *em,
                              const short selectmode_disable,
@@ -3574,7 +3605,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
     return edbm_select_linked_pick_exec(C, op);
   }
 
-  /* unified_finednearest needs ogl */
+  /* #unified_findnearest needs OpenGL. */
   view3d_operator_needs_opengl(C);
 
   /* setup view context for argument to callbacks */

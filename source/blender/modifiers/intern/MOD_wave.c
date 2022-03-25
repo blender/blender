@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 by the Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup modifiers
@@ -49,6 +33,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -163,8 +148,10 @@ static void waveModifier_do(WaveModifierData *md,
   float falloff_fac = 1.0f; /* when falloff == 0.0f this stays at 1.0f */
   const bool invert_group = (wmd->flag & MOD_WAVE_INVERT_VGROUP) != 0;
 
+  const float(*vert_normals)[3] = NULL;
   if ((wmd->flag & MOD_WAVE_NORM) && (mesh != NULL)) {
     mvert = mesh->mvert;
+    vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
   }
 
   if (wmd->objectcenter != NULL) {
@@ -288,13 +275,13 @@ static void waveModifier_do(WaveModifierData *md,
         if (mvert) {
           /* move along normals */
           if (wmd->flag & MOD_WAVE_NORM_X) {
-            co[0] += (lifefac * amplit) * mvert[i].no[0] / 32767.0f;
+            co[0] += (lifefac * amplit) * vert_normals[i][0];
           }
           if (wmd->flag & MOD_WAVE_NORM_Y) {
-            co[1] += (lifefac * amplit) * mvert[i].no[1] / 32767.0f;
+            co[1] += (lifefac * amplit) * vert_normals[i][1];
           }
           if (wmd->flag & MOD_WAVE_NORM_Z) {
-            co[2] += (lifefac * amplit) * mvert[i].no[2] / 32767.0f;
+            co[2] += (lifefac * amplit) * vert_normals[i][2];
           }
         }
         else {
@@ -492,7 +479,6 @@ ModifierTypeInfo modifierType_Wave = {
     /* deformVertsEM */ deformVertsEM,
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ NULL,
-    /* modifyHair */ NULL,
     /* modifyGeometrySet */ NULL,
 
     /* initData */ initData,

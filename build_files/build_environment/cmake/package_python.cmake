@@ -1,20 +1,4 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 if(MSVC)
   set(PYTARGET ${HARVEST_TARGET}/python/${PYTHON_SHORT_VERSION_NO_DOTS})
@@ -24,7 +8,7 @@ if(MSVC)
     add_custom_command(
       OUTPUT ${PYTARGET}/bin/python${PYTHON_POSTFIX}.exe
       COMMAND echo packaging python
-      COMMAND echo this should ouput at ${PYTARGET}/bin/python${PYTHON_POSTFIX}.exe
+      COMMAND echo this should output at ${PYTARGET}/bin/python${PYTHON_POSTFIX}.exe
       COMMAND ${CMAKE_COMMAND} -E make_directory ${PYTARGET}/libs
       COMMAND ${CMAKE_COMMAND} -E copy ${PYSRC}/libs/python${PYTHON_SHORT_VERSION_NO_DOTS}.lib ${PYTARGET}/libs/python${PYTHON_SHORT_VERSION_NO_DOTS}.lib
       COMMAND ${CMAKE_COMMAND} -E copy ${PYSRC}/python.exe ${PYTARGET}/bin/python.exe
@@ -43,7 +27,7 @@ if(MSVC)
     add_custom_command(
       OUTPUT ${PYTARGET}/bin/python${PYTHON_POSTFIX}.exe
       COMMAND echo packaging python
-      COMMAND echo this should ouput at ${PYTARGET}/bin/python${PYTHON_POSTFIX}.exe
+      COMMAND echo this should output at ${PYTARGET}/bin/python${PYTHON_POSTFIX}.exe
       COMMAND ${CMAKE_COMMAND} -E make_directory ${PYTARGET}/libs
       COMMAND ${CMAKE_COMMAND} -E copy ${PYSRC}/libs/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.lib ${PYTARGET}/libs/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.lib
       COMMAND ${CMAKE_COMMAND} -E copy ${PYSRC}/python${PYTHON_POSTFIX}.exe ${PYTARGET}/bin/python${PYTHON_POSTFIX}.exe

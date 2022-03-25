@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -531,7 +517,6 @@ static bool bm_decim_triangulate_begin(BMesh *bm, int *r_edges_tri_tot)
 {
   BMIter iter;
   BMFace *f;
-  bool has_quad = false;
   bool has_ngon = false;
   bool has_cut = false;
 
@@ -547,7 +532,6 @@ static bool bm_decim_triangulate_begin(BMesh *bm, int *r_edges_tri_tot)
       BM_elem_index_set(l_iter, -1); /* set_dirty */
     } while ((l_iter = l_iter->next) != l_first);
 
-    has_quad |= (f->len > 3);
     has_ngon |= (f->len > 4);
   }
 
@@ -847,7 +831,7 @@ BLI_INLINE int bm_edge_is_manifold_or_boundary(BMLoop *l)
   /* less optimized version of check below */
   return (BM_edge_is_manifold(l->e) || BM_edge_is_boundary(l->e);
 #else
-  /* if the edge is a boundary it points to its self, else this must be a manifold */
+  /* if the edge is a boundary it points to itself, else this must be a manifold */
   return LIKELY(l) && LIKELY(l->radial_next->radial_next == l);
 #endif
 }
@@ -855,7 +839,7 @@ BLI_INLINE int bm_edge_is_manifold_or_boundary(BMLoop *l)
 static bool bm_edge_collapse_is_degenerate_topology(BMEdge *e_first)
 {
   /* simply check that there is no overlap between faces and edges of each vert,
-   * (excluding the 2 faces attached to 'e' and 'e' its self) */
+   * (excluding the 2 faces attached to 'e' and 'e' itself) */
 
   BMEdge *e_iter;
 
@@ -1277,20 +1261,6 @@ static bool bm_decim_edge_collapse(BMesh *bm,
 /* Main Decimate Function
  * ********************** */
 
-/**
- * \brief BM_mesh_decimate
- * \param bm: The mesh
- * \param factor: face count multiplier [0 - 1]
- * \param vweights: Optional array of vertex  aligned weights [0 - 1],
- *        a vertex group is the usual source for this.
- * \param symmetry_axis: Axis of symmetry, -1 to disable mirror decimate.
- * \param symmetry_eps: Threshold when matching mirror verts.
- *
- * \note The caller is responsible for recalculating face and vertex normals.
- * - Vertex normals are maintained while decimating,
- *   although they won't necessarily match the final recalculated normals.
- * - Face normals are not maintained at all.
- */
 void BM_mesh_decimate_collapse(BMesh *bm,
                                const float factor,
                                float *vweights,

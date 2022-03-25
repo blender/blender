@@ -1,0 +1,10 @@
+Corresponding SPDX license identifiers in the source code:
+
+Apache-2.0                Apache-2-license.txt      https://spdx.org/licenses/Apache-2.0.html
+BSD-2-Clause              BSD-2-Clause-license.txt  https://spdx.org/licenses/BSD-2-Clause.html
+BSD-3-Clause              BSD-3-Clause-license.txt  https://spdx.org/licenses/BSD-3-Clause.html
+GPL-2.0-or-later          GPL-license.txt           https://spdx.org/licenses/GPL-2.0-or-later.html
+GPL-3.0-or-later          GPL3-license.txt          https://spdx.org/licenses/GPL-3.0-or-later.html
+LGPL-2.1-or-later         LGPL2.1-license.txt       https://spdx.org/licenses/LGPL-2.1-or-later.html
+MIT                       MIT-license.txt           https://spdx.org/licenses/MIT.html
+Zlib                      Zlib-license.txt          https://spdx.org/licenses/Zlib.html

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -35,10 +21,10 @@ namespace blender::ed::spreadsheet {
 class ExtraColumns {
  private:
   /** Maps column names to their data. The data is actually stored in the spreadsheet cache. */
-  Map<std::string, fn::GSpan> columns_;
+  Map<std::string, GSpan> columns_;
 
  public:
-  void add(std::string name, fn::GSpan data)
+  void add(std::string name, GSpan data)
   {
     columns_.add(std::move(name), data);
   }
@@ -82,30 +68,12 @@ class GeometryDataSource : public DataSource {
     return object_eval_;
   }
 
+  /**
+   * Only data sets corresponding to mesh objects in edit mode currently support selection
+   * filtering.
+   */
   bool has_selection_filter() const override;
-  void apply_selection_filter(MutableSpan<bool> rows_included) const;
-
-  void foreach_default_column_ids(
-      FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const override;
-
-  std::unique_ptr<ColumnValues> get_column_values(
-      const SpreadsheetColumnID &column_id) const override;
-
-  int tot_rows() const override;
-};
-
-class InstancesDataSource : public DataSource {
-  const GeometrySet geometry_set_;
-  const InstancesComponent *component_;
-  ExtraColumns extra_columns_;
-
- public:
-  InstancesDataSource(GeometrySet geometry_set, ExtraColumns extra_columns)
-      : geometry_set_(std::move(geometry_set)),
-        component_(geometry_set_.get_component_for_read<InstancesComponent>()),
-        extra_columns_(std::move(extra_columns))
-  {
-  }
+  IndexMask apply_selection_filter(Vector<int64_t> &indices) const;
 
   void foreach_default_column_ids(
       FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const override;

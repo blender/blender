@@ -1,24 +1,5 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# The Original Code is Copyright (C) 2006, Blender Foundation
-# All rights reserved.
-# ***** END GPL LICENSE BLOCK *****
-
-setup_libdirs()
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright 2006 Blender Foundation. All rights reserved.
 
 blender_include_dirs(
   ../../intern/clog
@@ -73,8 +54,8 @@ endif()
 
 if(WITH_TBB)
   blender_include_dirs(${TBB_INCLUDE_DIRS})
-  if(NOT APPLE)
-    # APPLE platform uses full paths for linking libraries.
+  if(WIN32)
+    # For pragma that links tbbmalloc_proxy.lib
     link_directories(${LIBDIR}/tbb/lib)
   endif()
 endif()
@@ -338,16 +319,23 @@ elseif(WIN32)
 elseif(APPLE)
   if(WITH_PYTHON_MODULE)
     if(WITH_INSTALL_PORTABLE)
+      set(BPY_INSTALL_DIR)
       set(TARGETDIR_VER $<TARGET_FILE_DIR:blender>/../Resources/${BLENDER_VERSION})
       # Keep the `BLENDER_VERSION` folder and bpy.so in the build folder.
       set(INSTALL_BPY_TO_SITE_PACKAGES OFF)
     else()
-      set(TARGETDIR_VER "${PYTHON_LIBPATH}/Resources/${BLENDER_VERSION}")
+      # Parent directory of bpy.so for installation.
+      set(BPY_INSTALL_DIR ${PYTHON_LIBPATH}/site-packages)
+      # Defined in terms of site-packages since the site-packages
+      # directory can be a symlink (brew for example).
+      set(TARGETDIR_VER "${BPY_INSTALL_DIR}/../Resources/${BLENDER_VERSION}")
       set(INSTALL_BPY_TO_SITE_PACKAGES ON)
     endif()
   else()
     set(TARGETDIR_VER Blender.app/Contents/Resources/${BLENDER_VERSION})
   endif()
+  # License, copyright, readme files.
+  set(BLENDER_TEXT_FILES_DESTINATION "${TARGETDIR_VER}/../text")
   set(MAC_BLENDER_TARGET_DYLIBS_DIR "${TARGETDIR_VER}/lib")
   # Skip relinking on cpack / install
   set_target_properties(blender PROPERTIES BUILD_WITH_INSTALL_RPATH true)
@@ -658,11 +646,11 @@ if(UNIX AND NOT APPLE)
         # Install to the same directory as the source, so debian-like
         # distros are happy with their policy.
         set(_suffix "site-packages")
-        if(${PYTHON_NUMPY_PATH} MATCHES "dist-packages")
+        if(${PYTHON_ZSTANDARD_PATH} MATCHES "dist-packages")
           set(_suffix "dist-packages")
         endif()
         install(
-          DIRECTORY ${PYTHON_NUMPY_PATH}/zstandard
+          DIRECTORY ${PYTHON_ZSTANDARD_PATH}/zstandard
           DESTINATION ${TARGETDIR_VER}/python/${_target_LIB}/python${PYTHON_VERSION}/${_suffix}
           PATTERN ".svn" EXCLUDE
           PATTERN "__pycache__" EXCLUDE           # * any cache *
@@ -687,7 +675,11 @@ if(UNIX AND NOT APPLE)
           PATTERN "*.pyo" EXCLUDE                 # * any cache *
         )
         # On some platforms requests does have extra dependencies.
-        set(_requests_deps "certifi" "chardet" "idna" "urllib3")
+        #
+        # Either 'chardet' or 'charset_normalizer" is used, depending on the
+        # version of Python. The code below silently skips the one that's not
+        # available, so we can just list both here.
+        set(_requests_deps "certifi" "chardet" "charset_normalizer" "idna" "urllib3")
         foreach(_requests_dep ${_requests_deps})
           if(EXISTS ${PYTHON_REQUESTS_PATH}/${_requests_dep})
             install(
@@ -1067,9 +1059,6 @@ elseif(APPLE)
     DESTINATION "."
   )
 
-  # install release and app files
-  set(BLENDER_TEXT_FILES_DESTINATION Blender.app/Contents/Resources/text)
-
   install(
     FILES ${OSX_APP_SOURCEDIR}/Contents/PkgInfo
     DESTINATION Blender.app/Contents
@@ -1079,6 +1068,13 @@ elseif(APPLE)
     ${OSX_APP_SOURCEDIR}/Contents/Resources
     Blender.app/Contents/
   )
+
+  if(WITH_BLENDER_THUMBNAILER)
+      install(
+        TARGETS blender-thumbnailer
+        DESTINATION Blender.app/Contents/MacOS/
+      )
+  endif()
 
   if(WITH_OPENMP AND OPENMP_CUSTOM)
     install(
@@ -1102,9 +1098,9 @@ elseif(APPLE)
       ${TARGETDIR_VER}/python/lib
     )
 
-    install(DIRECTORY ${LIBDIR}/python/bin
-      DESTINATION ${TARGETDIR_VER}/python
-      USE_SOURCE_PERMISSIONS
+    install(
+      PROGRAMS ${PYTHON_EXECUTABLE}
+      DESTINATION ${TARGETDIR_VER}/python/bin
     )
 
     # Needed for distutils/pip
@@ -1116,11 +1112,12 @@ elseif(APPLE)
     )
     unset(_py_inc_suffix)
   endif()
+
   if(WITH_PYTHON_MODULE)
     if(INSTALL_BPY_TO_SITE_PACKAGES)
       install(
         TARGETS blender
-        LIBRARY DESTINATION ${PYTHON_LIBPATH}/site-packages
+        LIBRARY DESTINATION ${BPY_INSTALL_DIR}
       )
     endif()
   endif()
@@ -1138,15 +1135,9 @@ endif()
 
 if(DEFINED BLENDER_TEXT_FILES_DESTINATION)
 
-  install(
-    CODE
-    "
-    file(READ \"${CMAKE_SOURCE_DIR}/release/text/readme.html\" DATA_SRC)
-    string(REGEX REPLACE \"BLENDER_VERSION\" \"${BLENDER_VERSION}\" DATA_DST \"\${DATA_SRC}\")
-    file(WRITE \"${CMAKE_BINARY_DIR}/release/text/readme.html\" \"\${DATA_DST}\")
-    unset(DATA_SRC)
-    unset(DATA_DST)
-    "
+  configure_file(${CMAKE_SOURCE_DIR}/release/text/readme.html
+                 ${CMAKE_BINARY_DIR}/release/text/readme.html
+                 @ONLY
   )
   list(APPEND BLENDER_TEXT_FILES
     ${CMAKE_BINARY_DIR}/release/text/readme.html

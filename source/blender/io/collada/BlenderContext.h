@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup collada
@@ -38,6 +24,12 @@ static const BC_global_up_axis BC_DEFAULT_UP = BC_GLOBAL_UP_Z;
 
 bool bc_is_in_Export_set(LinkNode *export_set, Object *ob, ViewLayer *view_layer);
 bool bc_is_base_node(LinkNode *export_set, Object *ob, ViewLayer *view_layer);
+/**
+ * Returns the highest selected ancestor
+ * returns NULL if no ancestor is selected
+ * IMPORTANT: This function expects that all exported objects have set:
+ * `ob->id.tag & LIB_TAG_DOIT`
+ */
 Object *bc_get_highest_exported_ancestor_or_self(LinkNode *export_set,
                                                  Object *ob,
                                                  ViewLayer *view_layer);

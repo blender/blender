@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2016 by Mike Erwin.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 by Mike Erwin. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -60,34 +44,36 @@ class VertBuf {
   virtual ~VertBuf();
 
   void init(const GPUVertFormat *format, GPUUsageType usage);
-  void clear(void);
+  void clear();
 
   /* Data management. */
   void allocate(uint vert_len);
   void resize(uint vert_len);
-  void upload(void);
+  void upload();
   virtual void bind_as_ssbo(uint binding) = 0;
 
-  VertBuf *duplicate(void);
+  virtual void wrap_handle(uint64_t handle) = 0;
+
+  VertBuf *duplicate();
 
   /* Size of the data allocated. */
-  size_t size_alloc_get(void) const
+  size_t size_alloc_get() const
   {
     BLI_assert(format.packed);
     return vertex_alloc * format.stride;
   }
   /* Size of the data uploaded to the GPU. */
-  size_t size_used_get(void) const
+  size_t size_used_get() const
   {
     BLI_assert(format.packed);
     return vertex_len * format.stride;
   }
 
-  void reference_add(void)
+  void reference_add()
   {
     handle_refcount_++;
   }
-  void reference_remove(void)
+  void reference_remove()
   {
     BLI_assert(handle_refcount_ > 0);
     handle_refcount_--;
@@ -96,15 +82,15 @@ class VertBuf {
     }
   }
 
-  virtual void update_sub(uint start, uint len, void *data) = 0;
+  virtual void update_sub(uint start, uint len, const void *data) = 0;
   virtual const void *read() const = 0;
   virtual void *unmap(const void *mapped_data) const = 0;
 
  protected:
-  virtual void acquire_data(void) = 0;
-  virtual void resize_data(void) = 0;
-  virtual void release_data(void) = 0;
-  virtual void upload_data(void) = 0;
+  virtual void acquire_data() = 0;
+  virtual void resize_data() = 0;
+  virtual void release_data() = 0;
+  virtual void upload_data() = 0;
   virtual void duplicate_data(VertBuf *dst) = 0;
 };
 

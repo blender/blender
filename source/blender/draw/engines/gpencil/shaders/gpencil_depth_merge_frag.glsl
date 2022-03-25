@@ -1,7 +1,4 @@
 
-uniform sampler2D depthBuf;
-uniform bool strokeOrder3d;
-
 void main()
 {
   float depth = textureLod(depthBuf, gl_FragCoord.xy / vec2(textureSize(depthBuf, 0)), 0).r;

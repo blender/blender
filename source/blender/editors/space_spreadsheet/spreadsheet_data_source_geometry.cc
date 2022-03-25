@@ -1,21 +1,10 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+#include "BLI_virtual_array.hh"
 
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
+#include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_wrapper.h"
@@ -51,30 +40,6 @@ using blender::fn::GField;
 
 namespace blender::ed::spreadsheet {
 
-static std::optional<eSpreadsheetColumnValueType> cpp_type_to_column_value_type(
-    const fn::CPPType &type)
-{
-  if (type.is<bool>()) {
-    return SPREADSHEET_VALUE_TYPE_BOOL;
-  }
-  if (type.is<int>()) {
-    return SPREADSHEET_VALUE_TYPE_INT32;
-  }
-  if (type.is<float>()) {
-    return SPREADSHEET_VALUE_TYPE_FLOAT;
-  }
-  if (type.is<float2>()) {
-    return SPREADSHEET_VALUE_TYPE_FLOAT2;
-  }
-  if (type.is<float3>()) {
-    return SPREADSHEET_VALUE_TYPE_FLOAT3;
-  }
-  if (type.is<ColorGeometry4f>()) {
-    return SPREADSHEET_VALUE_TYPE_COLOR;
-  }
-  return std::nullopt;
-}
-
 void ExtraColumns::foreach_default_column_ids(
     FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const
 {
@@ -88,43 +53,11 @@ void ExtraColumns::foreach_default_column_ids(
 std::unique_ptr<ColumnValues> ExtraColumns::get_column_values(
     const SpreadsheetColumnID &column_id) const
 {
-  const fn::GSpan *values = columns_.lookup_ptr(column_id.name);
+  const GSpan *values = columns_.lookup_ptr(column_id.name);
   if (values == nullptr) {
     return {};
   }
-  eSpreadsheetColumnValueType column_type = *cpp_type_to_column_value_type(values->type());
-  return column_values_from_function(column_type,
-                                     column_id.name,
-                                     values->size(),
-                                     [column_type, values](int index, CellValue &r_cell_value) {
-                                       const void *value = (*values)[index];
-                                       switch (column_type) {
-                                         case SPREADSHEET_VALUE_TYPE_BOOL:
-                                           r_cell_value.value_bool = *(const bool *)value;
-                                           break;
-                                         case SPREADSHEET_VALUE_TYPE_INT32:
-                                           r_cell_value.value_int = *(const int *)value;
-                                           break;
-                                         case SPREADSHEET_VALUE_TYPE_FLOAT:
-                                           r_cell_value.value_float = *(const float *)value;
-                                           break;
-                                         case SPREADSHEET_VALUE_TYPE_FLOAT2:
-                                           r_cell_value.value_float2 = *(const float2 *)value;
-                                           break;
-                                         case SPREADSHEET_VALUE_TYPE_FLOAT3:
-                                           r_cell_value.value_float3 = *(const float3 *)value;
-                                           break;
-                                         case SPREADSHEET_VALUE_TYPE_COLOR:
-                                           r_cell_value.value_color = *(
-                                               const ColorGeometry4f *)value;
-                                           break;
-                                         case SPREADSHEET_VALUE_TYPE_STRING:
-                                           r_cell_value.value_string = *(const std::string *)value;
-                                           break;
-                                         case SPREADSHEET_VALUE_TYPE_INSTANCES:
-                                           break;
-                                       }
-                                     });
+  return std::make_unique<ColumnValues>(column_id.name, GVArray::ForSpan(*values));
 }
 
 void GeometryDataSource::foreach_default_column_ids(
@@ -132,6 +65,10 @@ void GeometryDataSource::foreach_default_column_ids(
 {
   if (component_->attribute_domain_size(domain_) == 0) {
     return;
+  }
+
+  if (component_->type() == GEO_COMPONENT_TYPE_INSTANCES) {
+    fn({(char *)"Name"}, false);
   }
 
   extra_columns_.foreach_default_column_ids(fn);
@@ -148,12 +85,32 @@ void GeometryDataSource::foreach_default_column_ids(
         fn(column_id, false);
         return true;
       });
+
+  if (component_->type() == GEO_COMPONENT_TYPE_INSTANCES) {
+    fn({(char *)"Rotation"}, false);
+    fn({(char *)"Scale"}, false);
+  }
+  else if (G.debug_value == 4001 && component_->type() == GEO_COMPONENT_TYPE_MESH) {
+    if (domain_ == ATTR_DOMAIN_EDGE) {
+      fn({(char *)"Vertex 1"}, false);
+      fn({(char *)"Vertex 2"}, false);
+    }
+    else if (domain_ == ATTR_DOMAIN_FACE) {
+      fn({(char *)"Corner Start"}, false);
+      fn({(char *)"Corner Size"}, false);
+    }
+    else if (domain_ == ATTR_DOMAIN_CORNER) {
+      fn({(char *)"Vertex"}, false);
+      fn({(char *)"Edge"}, false);
+    }
+  }
 }
 
 std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     const SpreadsheetColumnID &column_id) const
 {
-  if (component_->attribute_domain_size(domain_) == 0) {
+  const int domain_size = component_->attribute_domain_size(domain_);
+  if (domain_size == 0) {
     return {};
   }
 
@@ -164,169 +121,95 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     return extra_column_values;
   }
 
+  if (component_->type() == GEO_COMPONENT_TYPE_INSTANCES) {
+    const InstancesComponent &instances = static_cast<const InstancesComponent &>(*component_);
+    if (STREQ(column_id.name, "Name")) {
+      Span<int> reference_handles = instances.instance_reference_handles();
+      Span<InstanceReference> references = instances.references();
+      return std::make_unique<ColumnValues>(
+          column_id.name,
+          VArray<InstanceReference>::ForFunc(domain_size,
+                                             [reference_handles, references](int64_t index) {
+                                               return references[reference_handles[index]];
+                                             }));
+    }
+    Span<float4x4> transforms = instances.instance_transforms();
+    if (STREQ(column_id.name, "Rotation")) {
+      return std::make_unique<ColumnValues>(
+          column_id.name, VArray<float3>::ForFunc(domain_size, [transforms](int64_t index) {
+            return transforms[index].to_euler();
+          }));
+    }
+    if (STREQ(column_id.name, "Scale")) {
+      return std::make_unique<ColumnValues>(
+          column_id.name, VArray<float3>::ForFunc(domain_size, [transforms](int64_t index) {
+            return transforms[index].scale();
+          }));
+    }
+  }
+  else if (G.debug_value == 4001 && component_->type() == GEO_COMPONENT_TYPE_MESH) {
+    const MeshComponent &component = static_cast<const MeshComponent &>(*component_);
+    if (const Mesh *mesh = component.get_for_read()) {
+      if (domain_ == ATTR_DOMAIN_EDGE) {
+        if (STREQ(column_id.name, "Vertex 1")) {
+          return std::make_unique<ColumnValues>(
+              column_id.name, VArray<int>::ForFunc(mesh->totedge, [mesh](int64_t index) {
+                return mesh->medge[index].v1;
+              }));
+        }
+        if (STREQ(column_id.name, "Vertex 2")) {
+          return std::make_unique<ColumnValues>(
+              column_id.name, VArray<int>::ForFunc(mesh->totedge, [mesh](int64_t index) {
+                return mesh->medge[index].v2;
+              }));
+        }
+      }
+      else if (domain_ == ATTR_DOMAIN_FACE) {
+        if (STREQ(column_id.name, "Corner Start")) {
+          return std::make_unique<ColumnValues>(
+              column_id.name, VArray<int>::ForFunc(mesh->totpoly, [mesh](int64_t index) {
+                return mesh->mpoly[index].loopstart;
+              }));
+        }
+        if (STREQ(column_id.name, "Corner Size")) {
+          return std::make_unique<ColumnValues>(
+              column_id.name, VArray<int>::ForFunc(mesh->totpoly, [mesh](int64_t index) {
+                return mesh->mpoly[index].totloop;
+              }));
+        }
+      }
+      else if (domain_ == ATTR_DOMAIN_CORNER) {
+        if (STREQ(column_id.name, "Vertex")) {
+          return std::make_unique<ColumnValues>(
+              column_id.name, VArray<int>::ForFunc(mesh->totloop, [mesh](int64_t index) {
+                return mesh->mloop[index].v;
+              }));
+        }
+        if (STREQ(column_id.name, "Edge")) {
+          return std::make_unique<ColumnValues>(
+              column_id.name, VArray<int>::ForFunc(mesh->totloop, [mesh](int64_t index) {
+                return mesh->mloop[index].e;
+              }));
+        }
+      }
+    }
+  }
+
   bke::ReadAttributeLookup attribute = component_->attribute_try_get_for_read(column_id.name);
   if (!attribute) {
     return {};
   }
-  fn::GVArray varray = std::move(attribute.varray);
+  GVArray varray = std::move(attribute.varray);
   if (attribute.domain != domain_) {
     return {};
   }
-  int domain_size = varray.size();
-  const CustomDataType type = bke::cpp_type_to_custom_data_type(varray.type());
-  switch (type) {
-    case CD_PROP_FLOAT:
-      return column_values_from_function(SPREADSHEET_VALUE_TYPE_FLOAT,
-                                         column_id.name,
-                                         domain_size,
-                                         [varray](int index, CellValue &r_cell_value) {
-                                           float value;
-                                           varray.get(index, &value);
-                                           r_cell_value.value_float = value;
-                                         });
-    case CD_PROP_INT32:
-      return column_values_from_function(
-          SPREADSHEET_VALUE_TYPE_INT32,
-          column_id.name,
-          domain_size,
-          [varray](int index, CellValue &r_cell_value) {
-            int value;
-            varray.get(index, &value);
-            r_cell_value.value_int = value;
-          },
-          STREQ(column_id.name, "id") ? 5.5f : 0.0f);
-    case CD_PROP_BOOL:
-      return column_values_from_function(SPREADSHEET_VALUE_TYPE_BOOL,
-                                         column_id.name,
-                                         domain_size,
-                                         [varray](int index, CellValue &r_cell_value) {
-                                           bool value;
-                                           varray.get(index, &value);
-                                           r_cell_value.value_bool = value;
-                                         });
-    case CD_PROP_FLOAT2: {
-      return column_values_from_function(SPREADSHEET_VALUE_TYPE_FLOAT2,
-                                         column_id.name,
-                                         domain_size,
-                                         [varray](int index, CellValue &r_cell_value) {
-                                           float2 value;
-                                           varray.get(index, &value);
-                                           r_cell_value.value_float2 = value;
-                                         });
-    }
-    case CD_PROP_FLOAT3: {
-      return column_values_from_function(SPREADSHEET_VALUE_TYPE_FLOAT3,
-                                         column_id.name,
-                                         domain_size,
-                                         [varray](int index, CellValue &r_cell_value) {
-                                           float3 value;
-                                           varray.get(index, &value);
-                                           r_cell_value.value_float3 = value;
-                                         });
-    }
-    case CD_PROP_COLOR: {
-      return column_values_from_function(SPREADSHEET_VALUE_TYPE_COLOR,
-                                         column_id.name,
-                                         domain_size,
-                                         [varray](int index, CellValue &r_cell_value) {
-                                           ColorGeometry4f value;
-                                           varray.get(index, &value);
-                                           r_cell_value.value_color = value;
-                                         });
-    }
-    default:
-      break;
-  }
-  return {};
+
+  return std::make_unique<ColumnValues>(column_id.name, std::move(varray));
 }
 
 int GeometryDataSource::tot_rows() const
 {
   return component_->attribute_domain_size(domain_);
-}
-
-using IsVertexSelectedFn = FunctionRef<bool(int vertex_index)>;
-
-static void get_selected_vertex_indices(const Mesh &mesh,
-                                        const IsVertexSelectedFn is_vertex_selected_fn,
-                                        MutableSpan<bool> selection)
-{
-  for (const int i : IndexRange(mesh.totvert)) {
-    if (!selection[i]) {
-      continue;
-    }
-    if (!is_vertex_selected_fn(i)) {
-      selection[i] = false;
-    }
-  }
-}
-
-static void get_selected_corner_indices(const Mesh &mesh,
-                                        const IsVertexSelectedFn is_vertex_selected_fn,
-                                        MutableSpan<bool> selection)
-{
-  for (const int i : IndexRange(mesh.totloop)) {
-    const MLoop &loop = mesh.mloop[i];
-    if (!selection[i]) {
-      continue;
-    }
-    if (!is_vertex_selected_fn(loop.v)) {
-      selection[i] = false;
-    }
-  }
-}
-
-static void get_selected_face_indices(const Mesh &mesh,
-                                      const IsVertexSelectedFn is_vertex_selected_fn,
-                                      MutableSpan<bool> selection)
-{
-  for (const int poly_index : IndexRange(mesh.totpoly)) {
-    if (!selection[poly_index]) {
-      continue;
-    }
-    const MPoly &poly = mesh.mpoly[poly_index];
-    for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
-      const MLoop &loop = mesh.mloop[loop_index];
-      if (!is_vertex_selected_fn(loop.v)) {
-        selection[poly_index] = false;
-        break;
-      }
-    }
-  }
-}
-
-static void get_selected_edge_indices(const Mesh &mesh,
-                                      const IsVertexSelectedFn is_vertex_selected_fn,
-                                      MutableSpan<bool> selection)
-{
-  for (const int i : IndexRange(mesh.totedge)) {
-    if (!selection[i]) {
-      continue;
-    }
-    const MEdge &edge = mesh.medge[i];
-    if (!is_vertex_selected_fn(edge.v1) || !is_vertex_selected_fn(edge.v2)) {
-      selection[i] = false;
-    }
-  }
-}
-
-static void get_selected_indices_on_domain(const Mesh &mesh,
-                                           const AttributeDomain domain,
-                                           const IsVertexSelectedFn is_vertex_selected_fn,
-                                           MutableSpan<bool> selection)
-{
-  switch (domain) {
-    case ATTR_DOMAIN_POINT:
-      return get_selected_vertex_indices(mesh, is_vertex_selected_fn, selection);
-    case ATTR_DOMAIN_FACE:
-      return get_selected_face_indices(mesh, is_vertex_selected_fn, selection);
-    case ATTR_DOMAIN_CORNER:
-      return get_selected_corner_indices(mesh, is_vertex_selected_fn, selection);
-    case ATTR_DOMAIN_EDGE:
-      return get_selected_edge_indices(mesh, is_vertex_selected_fn, selection);
-    default:
-      return;
-  }
 }
 
 /**
@@ -348,7 +231,18 @@ bool GeometryDataSource::has_selection_filter() const
   return true;
 }
 
-void GeometryDataSource::apply_selection_filter(MutableSpan<bool> rows_included) const
+static IndexMask index_mask_from_bool_array(const VArray<bool> &selection,
+                                            Vector<int64_t> &indices)
+{
+  for (const int i : selection.index_range()) {
+    if (selection[i]) {
+      indices.append(i);
+    }
+  }
+  return IndexMask(indices);
+}
+
+IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) const
 {
   std::lock_guard lock{mutex_};
 
@@ -364,136 +258,38 @@ void GeometryDataSource::apply_selection_filter(MutableSpan<bool> rows_included)
   int *orig_indices = (int *)CustomData_get_layer(&mesh_eval->vdata, CD_ORIGINDEX);
   if (orig_indices != nullptr) {
     /* Use CD_ORIGINDEX layer if it exists. */
-    auto is_vertex_selected = [&](int vertex_index) -> bool {
-      const int i_orig = orig_indices[vertex_index];
-      if (i_orig < 0) {
-        return false;
-      }
-      if (i_orig >= bm->totvert) {
-        return false;
-      }
-      BMVert *vert = bm->vtable[i_orig];
-      return BM_elem_flag_test(vert, BM_ELEM_SELECT);
-    };
-    get_selected_indices_on_domain(*mesh_eval, domain_, is_vertex_selected, rows_included);
+    VArray<bool> selection = mesh_component->attribute_try_adapt_domain<bool>(
+        VArray<bool>::ForFunc(mesh_eval->totvert,
+                              [bm, orig_indices](int vertex_index) -> bool {
+                                const int i_orig = orig_indices[vertex_index];
+                                if (i_orig < 0) {
+                                  return false;
+                                }
+                                if (i_orig >= bm->totvert) {
+                                  return false;
+                                }
+                                BMVert *vert = bm->vtable[i_orig];
+                                return BM_elem_flag_test(vert, BM_ELEM_SELECT);
+                              }),
+        ATTR_DOMAIN_POINT,
+        domain_);
+    return index_mask_from_bool_array(selection, indices);
   }
-  else if (mesh_eval->totvert == bm->totvert) {
+
+  if (mesh_eval->totvert == bm->totvert) {
     /* Use a simple heuristic to match original vertices to evaluated ones. */
-    auto is_vertex_selected = [&](int vertex_index) -> bool {
-      BMVert *vert = bm->vtable[vertex_index];
-      return BM_elem_flag_test(vert, BM_ELEM_SELECT);
-    };
-    get_selected_indices_on_domain(*mesh_eval, domain_, is_vertex_selected, rows_included);
-  }
-}
-
-void InstancesDataSource::foreach_default_column_ids(
-    FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const
-{
-  if (component_->instances_amount() == 0) {
-    return;
+    VArray<bool> selection = mesh_component->attribute_try_adapt_domain<bool>(
+        VArray<bool>::ForFunc(mesh_eval->totvert,
+                              [bm](int vertex_index) -> bool {
+                                BMVert *vert = bm->vtable[vertex_index];
+                                return BM_elem_flag_test(vert, BM_ELEM_SELECT);
+                              }),
+        ATTR_DOMAIN_POINT,
+        domain_);
+    return index_mask_from_bool_array(selection, indices);
   }
 
-  extra_columns_.foreach_default_column_ids(fn);
-
-  SpreadsheetColumnID column_id;
-  column_id.name = (char *)"Name";
-  fn(column_id, false);
-  for (const char *name : {"Position", "Rotation", "Scale", "id"}) {
-    column_id.name = (char *)name;
-    fn(column_id, false);
-  }
-}
-
-std::unique_ptr<ColumnValues> InstancesDataSource::get_column_values(
-    const SpreadsheetColumnID &column_id) const
-{
-  if (component_->instances_amount() == 0) {
-    return {};
-  }
-
-  std::unique_ptr<ColumnValues> extra_column_values = extra_columns_.get_column_values(column_id);
-  if (extra_column_values) {
-    return extra_column_values;
-  }
-
-  const int size = this->tot_rows();
-  if (STREQ(column_id.name, "Name")) {
-    Span<int> reference_handles = component_->instance_reference_handles();
-    Span<InstanceReference> references = component_->references();
-    std::unique_ptr<ColumnValues> values = column_values_from_function(
-        SPREADSHEET_VALUE_TYPE_INSTANCES,
-        "Name",
-        size,
-        [reference_handles, references](int index, CellValue &r_cell_value) {
-          const InstanceReference &reference = references[reference_handles[index]];
-          switch (reference.type()) {
-            case InstanceReference::Type::Object: {
-              Object &object = reference.object();
-              r_cell_value.value_object = ObjectCellValue{&object};
-              break;
-            }
-            case InstanceReference::Type::Collection: {
-              Collection &collection = reference.collection();
-              r_cell_value.value_collection = CollectionCellValue{&collection};
-              break;
-            }
-            case InstanceReference::Type::GeometrySet: {
-              const GeometrySet &geometry_set = reference.geometry_set();
-              r_cell_value.value_geometry_set = GeometrySetCellValue{&geometry_set};
-              break;
-            }
-            case InstanceReference::Type::None: {
-              break;
-            }
-          }
-        });
-    return values;
-  }
-  Span<float4x4> transforms = component_->instance_transforms();
-  if (STREQ(column_id.name, "Position")) {
-    return column_values_from_function(
-        SPREADSHEET_VALUE_TYPE_FLOAT3,
-        column_id.name,
-        size,
-        [transforms](int index, CellValue &r_cell_value) {
-          r_cell_value.value_float3 = transforms[index].translation();
-        });
-  }
-  if (STREQ(column_id.name, "Rotation")) {
-    return column_values_from_function(SPREADSHEET_VALUE_TYPE_FLOAT3,
-                                       column_id.name,
-                                       size,
-                                       [transforms](int index, CellValue &r_cell_value) {
-                                         r_cell_value.value_float3 = transforms[index].to_euler();
-                                       });
-  }
-  if (STREQ(column_id.name, "Scale")) {
-    return column_values_from_function(SPREADSHEET_VALUE_TYPE_FLOAT3,
-                                       column_id.name,
-                                       size,
-                                       [transforms](int index, CellValue &r_cell_value) {
-                                         r_cell_value.value_float3 = transforms[index].scale();
-                                       });
-  }
-  Span<int> ids = component_->instance_ids();
-  if (!ids.is_empty()) {
-    if (STREQ(column_id.name, "id")) {
-      /* Make the column a bit wider by default, since the IDs tend to be large numbers. */
-      return column_values_from_function(
-          SPREADSHEET_VALUE_TYPE_INT32,
-          column_id.name,
-          size,
-          [ids](int index, CellValue &r_cell_value) { r_cell_value.value_int = ids[index]; },
-          5.5f);
-    }
-  }
-  return {};
-}
-
-int InstancesDataSource::tot_rows() const
-{
-  return component_->instances_amount();
+  return IndexMask(mesh_eval->totvert);
 }
 
 void VolumeDataSource::foreach_default_column_ids(
@@ -520,50 +316,36 @@ std::unique_ptr<ColumnValues> VolumeDataSource::get_column_values(
 #ifdef WITH_OPENVDB
   const int size = this->tot_rows();
   if (STREQ(column_id.name, "Grid Name")) {
-    return column_values_from_function(
-        SPREADSHEET_VALUE_TYPE_STRING,
-        IFACE_("Grid Name"),
-        size,
-        [volume](int index, CellValue &r_cell_value) {
+    return std::make_unique<ColumnValues>(
+        IFACE_("Grid Name"), VArray<std::string>::ForFunc(size, [volume](int64_t index) {
           const VolumeGrid *volume_grid = BKE_volume_grid_get_for_read(volume, index);
-          r_cell_value.value_string = BKE_volume_grid_name(volume_grid);
-        },
-        6.0f);
+          return BKE_volume_grid_name(volume_grid);
+        }));
   }
   if (STREQ(column_id.name, "Data Type")) {
-    return column_values_from_function(
-        SPREADSHEET_VALUE_TYPE_STRING,
-        IFACE_("Type"),
-        size,
-        [volume](int index, CellValue &r_cell_value) {
+    return std::make_unique<ColumnValues>(
+        IFACE_("Data Type"), VArray<std::string>::ForFunc(size, [volume](int64_t index) {
           const VolumeGrid *volume_grid = BKE_volume_grid_get_for_read(volume, index);
           const VolumeGridType type = BKE_volume_grid_type(volume_grid);
           const char *name = nullptr;
           RNA_enum_name_from_value(rna_enum_volume_grid_data_type_items, type, &name);
-          r_cell_value.value_string = IFACE_(name);
-        },
-        5.0f);
+          return IFACE_(name);
+        }));
   }
   if (STREQ(column_id.name, "Class")) {
-    return column_values_from_function(
-        SPREADSHEET_VALUE_TYPE_STRING,
-        IFACE_("Class"),
-        size,
-        [volume](int index, CellValue &r_cell_value) {
+    return std::make_unique<ColumnValues>(
+        IFACE_("Class"), VArray<std::string>::ForFunc(size, [volume](int64_t index) {
           const VolumeGrid *volume_grid = BKE_volume_grid_get_for_read(volume, index);
           openvdb::GridBase::ConstPtr grid = BKE_volume_grid_openvdb_for_read(volume, volume_grid);
           openvdb::GridClass grid_class = grid->getGridClass();
           if (grid_class == openvdb::GridClass::GRID_FOG_VOLUME) {
-            r_cell_value.value_string = IFACE_("Fog Volume");
+            return IFACE_("Fog Volume");
           }
-          else if (grid_class == openvdb::GridClass::GRID_LEVEL_SET) {
-            r_cell_value.value_string = IFACE_("Level Set");
+          if (grid_class == openvdb::GridClass::GRID_LEVEL_SET) {
+            return IFACE_("Level Set");
           }
-          else {
-            r_cell_value.value_string = IFACE_("Unkown");
-          }
-        },
-        5.0f);
+          return IFACE_("Unknown");
+        }));
   }
 #else
   UNUSED_VARS(column_id);
@@ -582,8 +364,7 @@ int VolumeDataSource::tot_rows() const
 }
 
 GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspreadsheet,
-                                                 Object *object_eval,
-                                                 const GeometryComponentType used_component_type)
+                                                 Object *object_eval)
 {
   GeometrySet geometry_set;
   if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
@@ -615,7 +396,7 @@ GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspread
     }
   }
   else {
-    if (used_component_type == GEO_COMPONENT_TYPE_MESH && object_eval->mode == OB_MODE_EDIT) {
+    if (object_eval->mode == OB_MODE_EDIT && object_eval->type == OB_MESH) {
       Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_eval, false);
       if (mesh == nullptr) {
         return geometry_set;
@@ -679,6 +460,11 @@ static void find_fields_to_evaluate(const SpaceSpreadsheet *sspreadsheet,
         r_fields.add("Viewer", std::move(field));
       }
     }
+    if (const geo_log::GenericValueLog *generic_value_log =
+            dynamic_cast<const geo_log::GenericValueLog *>(value_log)) {
+      GPointer value = generic_value_log->value();
+      r_fields.add("Viewer", fn::make_constant_field(*value.type(), value.get()));
+    }
   }
 }
 
@@ -722,7 +508,7 @@ class GeometryComponentCacheValue : public SpreadsheetCache::Value {
  public:
   /* Stores the result of fields evaluated on a geometry component. Without this, fields would have
    * to be reevaluated on every redraw. */
-  Map<std::pair<AttributeDomain, GField>, fn::GArray<>> arrays;
+  Map<std::pair<AttributeDomain, GField>, GArray<>> arrays;
 };
 
 static void add_fields_as_extra_columns(SpaceSpreadsheet *sspreadsheet,
@@ -743,8 +529,8 @@ static void add_fields_as_extra_columns(SpaceSpreadsheet *sspreadsheet,
     const GField &field = item.value;
 
     /* Use the cached evaluated array if it exists, otherwise evaluate the field now. */
-    fn::GArray<> &evaluated_array = cache.arrays.lookup_or_add_cb({domain, field}, [&]() {
-      fn::GArray<> evaluated_array(field.cpp_type(), domain_size);
+    GArray<> &evaluated_array = cache.arrays.lookup_or_add_cb({domain, field}, [&]() {
+      GArray<> evaluated_array(field.cpp_type(), domain_size);
 
       bke::GeometryComponentFieldContext field_context{component, domain};
       fn::FieldEvaluator field_evaluator{field_context, domain_size};
@@ -762,8 +548,7 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   const AttributeDomain domain = (AttributeDomain)sspreadsheet->attribute_domain;
   const GeometryComponentType component_type = get_display_component_type(C, object_eval);
-  GeometrySet geometry_set = spreadsheet_get_display_geometry_set(
-      sspreadsheet, object_eval, component_type);
+  GeometrySet geometry_set = spreadsheet_get_display_geometry_set(sspreadsheet, object_eval);
 
   if (!geometry_set.has(component_type)) {
     return {};
@@ -773,9 +558,6 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
   ExtraColumns extra_columns;
   add_fields_as_extra_columns(sspreadsheet, component, extra_columns);
 
-  if (component_type == GEO_COMPONENT_TYPE_INSTANCES) {
-    return std::make_unique<InstancesDataSource>(geometry_set, std::move(extra_columns));
-  }
   if (component_type == GEO_COMPONENT_TYPE_VOLUME) {
     return std::make_unique<VolumeDataSource>(geometry_set);
   }

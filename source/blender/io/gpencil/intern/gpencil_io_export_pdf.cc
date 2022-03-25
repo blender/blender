@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bgpencil
@@ -109,7 +93,6 @@ bool GpencilExporterPDF::write()
   return (res == 0) ? true : false;
 }
 
-/* Create pdf document. */
 bool GpencilExporterPDF::create_document()
 {
   pdf_ = HPDF_New(error_handler, nullptr);
@@ -120,7 +103,6 @@ bool GpencilExporterPDF::create_document()
   return true;
 }
 
-/* Add page. */
 bool GpencilExporterPDF::add_page()
 {
   /* Add a new page object. */
@@ -136,7 +118,6 @@ bool GpencilExporterPDF::add_page()
   return true;
 }
 
-/* Main layer loop. */
 void GpencilExporterPDF::export_gpencil_layers()
 {
   /* If is doing a set of frames, the list of objects can change for each frame. */
@@ -215,7 +196,7 @@ void GpencilExporterPDF::export_gpencil_layers()
 
             /* Sample stroke. */
             if (params_.stroke_sample > 0.0f) {
-              BKE_gpencil_stroke_sample(gpd_eval, gps_perimeter, params_.stroke_sample, false);
+              BKE_gpencil_stroke_sample(gpd_eval, gps_perimeter, params_.stroke_sample, false, 0);
             }
 
             export_stroke_to_polyline(gpl, gps_perimeter, is_stroke, false, false);
@@ -229,10 +210,6 @@ void GpencilExporterPDF::export_gpencil_layers()
   }
 }
 
-/**
- * Export a stroke using polyline or polygon
- * \param do_fill: True if the stroke is only fill
- */
 void GpencilExporterPDF::export_stroke_to_polyline(bGPDlayer *gpl,
                                                    bGPDstroke *gps,
                                                    const bool is_stroke,
@@ -245,7 +222,7 @@ void GpencilExporterPDF::export_stroke_to_polyline(bGPDlayer *gpl,
   /* Get the thickness in pixels using a simple 1 point stroke. */
   bGPDstroke *gps_temp = BKE_gpencil_stroke_duplicate(gps, false, false);
   gps_temp->totpoints = 1;
-  gps_temp->points = (bGPDspoint *)MEM_callocN(sizeof(bGPDspoint), "gp_stroke_points");
+  gps_temp->points = MEM_cnew<bGPDspoint>("gp_stroke_points");
   const bGPDspoint *pt_src = &gps->points[0];
   bGPDspoint *pt_dst = &gps_temp->points[0];
   copy_v3_v3(&pt_dst->x, &pt_src->x);
@@ -288,10 +265,6 @@ void GpencilExporterPDF::export_stroke_to_polyline(bGPDlayer *gpl,
   HPDF_Page_GRestore(page_);
 }
 
-/**
- * Set color.
- * \param do_fill: True if the stroke is only fill.
- */
 void GpencilExporterPDF::color_set(bGPDlayer *gpl, const bool do_fill)
 {
   const float fill_opacity = fill_color_[3] * gpl->opacity;

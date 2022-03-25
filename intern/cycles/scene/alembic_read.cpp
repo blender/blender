@@ -1,18 +1,5 @@
-/*
- * Copyright 2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2021-2022 Blender Foundation */
 
 #include "scene/alembic_read.h"
 #include "scene/alembic.h"
@@ -478,9 +465,11 @@ static void add_subd_polygons(CachedData &cached_data, const SubDSchemaData &dat
   cached_data.uv_loops.add_data(uv_loops, time);
 }
 
-static void add_subd_creases(CachedData &cached_data, const SubDSchemaData &data, chrono_t time)
+static void add_subd_edge_creases(CachedData &cached_data,
+                                  const SubDSchemaData &data,
+                                  chrono_t time)
 {
-  if (!(data.crease_indices.valid() && data.crease_indices.valid() &&
+  if (!(data.crease_indices.valid() && data.crease_lengths.valid() &&
         data.crease_sharpnesses.valid())) {
     return;
   }
@@ -517,15 +506,47 @@ static void add_subd_creases(CachedData &cached_data, const SubDSchemaData &data
   }
 }
 
+static void add_subd_vertex_creases(CachedData &cached_data,
+                                    const SubDSchemaData &data,
+                                    chrono_t time)
+{
+  if (!(data.corner_indices.valid() && data.crease_sharpnesses.valid())) {
+    return;
+  }
+
+  const ISampleSelector iss = ISampleSelector(time);
+  const Int32ArraySamplePtr creases_indices = data.crease_indices.getValue(iss);
+  const FloatArraySamplePtr creases_sharpnesses = data.crease_sharpnesses.getValue(iss);
+
+  if (!(creases_indices && creases_sharpnesses) ||
+      creases_indices->size() != creases_sharpnesses->size()) {
+    return;
+  }
+
+  array<float> sharpnesses;
+  sharpnesses.reserve(creases_indices->size());
+  array<int> indices;
+  indices.reserve(creases_indices->size());
+
+  for (size_t i = 0; i < creases_indices->size(); i++) {
+    indices.push_back_reserved((*creases_indices)[i]);
+    sharpnesses.push_back_reserved((*creases_sharpnesses)[i]);
+  }
+
+  cached_data.subd_vertex_crease_indices.add_data(indices, time);
+  cached_data.subd_vertex_crease_weights.add_data(sharpnesses, time);
+}
+
 static void read_subd_geometry(CachedData &cached_data, const SubDSchemaData &data, chrono_t time)
 {
   const ISampleSelector iss = ISampleSelector(time);
 
   add_positions(data.positions.getValue(iss), time, cached_data);
 
-  if (data.topology_variance != kHomogenousTopology || cached_data.shader.size() == 0) {
+  if (data.topology_variance != kHomogeneousTopology || cached_data.shader.size() == 0) {
     add_subd_polygons(cached_data, data, time);
-    add_subd_creases(cached_data, data, time);
+    add_subd_edge_creases(cached_data, data, time);
+    add_subd_vertex_creases(cached_data, data, time);
   }
 }
 
@@ -561,7 +582,7 @@ static void read_curves_data(CachedData &cached_data, const CurvesSchemaData &da
   array<int> curve_first_key;
   array<int> curve_shader;
 
-  const bool is_homogenous = data.topology_variance == kHomogenousTopology;
+  const bool is_homogeneous = data.topology_variance == kHomogeneousTopology;
 
   curve_keys.reserve(position->size());
   curve_radius.reserve(position->size());
@@ -584,7 +605,7 @@ static void read_curves_data(CachedData &cached_data, const CurvesSchemaData &da
       curve_radius.push_back_slow(radius * data.radius_scale);
     }
 
-    if (!is_homogenous || cached_data.curve_first_key.size() == 0) {
+    if (!is_homogeneous || cached_data.curve_first_key.size() == 0) {
       curve_first_key.push_back_reserved(offset);
       curve_shader.push_back_reserved(0);
     }
@@ -595,7 +616,7 @@ static void read_curves_data(CachedData &cached_data, const CurvesSchemaData &da
   cached_data.curve_keys.add_data(curve_keys, time);
   cached_data.curve_radius.add_data(curve_radius, time);
 
-  if (!is_homogenous || cached_data.curve_first_key.size() == 0) {
+  if (!is_homogeneous || cached_data.curve_first_key.size() == 0) {
     cached_data.curve_first_key.add_data(curve_first_key, time);
     cached_data.curve_shader.add_data(curve_shader, time);
   }
@@ -609,6 +630,55 @@ void read_geometry_data(AlembicProcedural *proc,
   read_data_loop(proc, cached_data, data, read_curves_data, progress);
 }
 
+/* Points Geometries. */
+
+static void read_points_data(CachedData &cached_data, const PointsSchemaData &data, chrono_t time)
+{
+  const ISampleSelector iss = ISampleSelector(time);
+
+  const P3fArraySamplePtr position = data.positions.getValue(iss);
+  FloatArraySamplePtr radiuses;
+
+  array<float3> a_positions;
+  array<float> a_radius;
+  array<int> a_shader;
+  a_positions.reserve(position->size());
+  a_radius.reserve(position->size());
+  a_shader.reserve(position->size());
+
+  if (data.radiuses.valid()) {
+    IFloatGeomParam::Sample wsample = data.radiuses.getExpandedValue(iss);
+    radiuses = wsample.getVals();
+  }
+
+  const bool do_radius = (radiuses != nullptr) && (radiuses->size() > 1);
+  float radius = (radiuses && radiuses->size() == 1) ? (*radiuses)[0] : data.default_radius;
+
+  int offset = 0;
+  for (size_t i = 0; i < position->size(); i++) {
+    const V3f &f = position->get()[offset + i];
+    a_positions.push_back_slow(make_float3_from_yup(f));
+
+    if (do_radius) {
+      radius = (*radiuses)[offset + i];
+      a_radius.push_back_slow(radius);
+    }
+
+    a_shader.push_back_slow((int)0);
+  }
+
+  cached_data.points.add_data(a_positions, time);
+  cached_data.radiuses.add_data(a_radius, time);
+  cached_data.points_shader.add_data(a_shader, time);
+}
+
+void read_geometry_data(AlembicProcedural *proc,
+                        CachedData &cached_data,
+                        const PointsSchemaData &data,
+                        Progress &progress)
+{
+  read_data_loop(proc, cached_data, data, read_points_data, progress);
+}
 /* Attributes conversions. */
 
 /* Type traits for converting between Alembic and Cycles types.

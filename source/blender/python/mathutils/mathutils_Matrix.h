@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pymathutils
@@ -61,23 +47,26 @@ typedef struct {
 
 /* prototypes */
 PyObject *Matrix_CreatePyObject(const float *mat,
-                                const ushort num_col,
-                                const ushort num_row,
+                                ushort num_col,
+                                ushort num_row,
                                 PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT;
 PyObject *Matrix_CreatePyObject_wrap(float *mat,
-                                     const ushort num_col,
-                                     const ushort num_row,
+                                     ushort num_col,
+                                     ushort num_row,
                                      PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1);
 PyObject *Matrix_CreatePyObject_cb(PyObject *user,
-                                   const unsigned short num_col,
-                                   const unsigned short num_row,
+                                   unsigned short num_col,
+                                   unsigned short num_row,
                                    unsigned char cb_type,
                                    unsigned char cb_subtype) ATTR_WARN_UNUSED_RESULT;
 
+/**
+ * \param mat: Initialized matrix value to use in-place, allocated with #PyMem_Malloc
+ */
 PyObject *Matrix_CreatePyObject_alloc(float *mat,
-                                      const ushort num_col,
-                                      const ushort num_row,
+                                      ushort num_col,
+                                      ushort num_row,
                                       PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT;
 
 /* PyArg_ParseTuple's "O&" formatting helpers. */

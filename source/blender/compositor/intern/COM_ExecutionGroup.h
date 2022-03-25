@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2011, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. */
 
 #pragma once
 
@@ -175,9 +160,7 @@ class ExecutionGroup {
   /**
    * \brief Determine the rect (minx, maxx, miny, maxy) of a chunk at a position.
    */
-  void determine_chunk_rect(rcti *r_rect,
-                            const unsigned int x_chunk,
-                            const unsigned int y_chunk) const;
+  void determine_chunk_rect(rcti *r_rect, unsigned int x_chunk, unsigned int y_chunk) const;
 
   /**
    * \brief determine the number of chunks, based on the chunk_size, width and height.
@@ -197,7 +180,7 @@ class ExecutionGroup {
    * true: package(s) are scheduled
    * false: scheduling is deferred (depending workpackages are scheduled)
    */
-  bool schedule_chunk_when_possible(ExecutionSystem *graph, const int chunk_x, const int chunk_y);
+  bool schedule_chunk_when_possible(ExecutionSystem *graph, int chunk_x, int chunk_y);
 
   /**
    * \brief try to schedule a specific area.
@@ -365,12 +348,16 @@ class ExecutionGroup {
    * \see ViewerOperation
    * \param graph:
    */
+  /**
+   * This method is called for the top execution groups. containing the compositor node or the
+   * preview node or the viewer node).
+   */
   void execute(ExecutionSystem *graph);
 
   /**
    * \brief Determine the rect (minx, maxx, miny, maxy) of a chunk.
    */
-  void determine_chunk_rect(rcti *r_rect, const unsigned int chunk_number) const;
+  void determine_chunk_rect(rcti *r_rect, unsigned int chunk_number) const;
 
   void set_chunksize(int chunksize)
   {

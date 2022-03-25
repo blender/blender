@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2016 Kévin Dietrich.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 Kévin Dietrich. All rights reserved. */
 #pragma once
 
 /** \file
@@ -132,6 +116,14 @@ typedef enum {
   ABC_UV_SCOPE_VERTEX,
 } AbcUvScope;
 
+/**
+ * UVs can be defined per-loop (one value per vertex per face), or per-vertex (one value per
+ * vertex). The first case is the most common, as this is the standard way of storing this data
+ * given that some vertices might be on UV seams and have multiple possible UV coordinates; the
+ * second case can happen when the mesh is split according to the UV islands, in which case storing
+ * a single UV value per vertex allows to de-duplicate data and thus to reduce the file size since
+ * vertices are guaranteed to only have a single UV coordinate.
+ */
 AbcUvScope get_uv_scope(const Alembic::AbcGeom::GeometryScope scope,
                         const CDStreamConfig &config,
                         const Alembic::AbcGeom::UInt32ArraySamplePtr &indices);

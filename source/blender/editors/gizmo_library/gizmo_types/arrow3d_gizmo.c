@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2014 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2014 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edgizmolib
@@ -66,6 +50,11 @@
 /* to use custom arrows exported to geom_arrow_gizmo.c */
 //#define USE_GIZMO_CUSTOM_ARROWS
 
+/** Margins to add when selecting the arrow stem. */
+#define ARROW_SELECT_THRESHOLD_PX_STEM (5 * UI_DPI_FAC)
+/** Margins to add when selecting the arrow head. */
+#define ARROW_SELECT_THRESHOLD_PX_HEAD (12 * UI_DPI_FAC)
+
 typedef struct ArrowGizmo3D {
   wmGizmo gizmo;
   GizmoCommonData data;
@@ -88,8 +77,7 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
   const int draw_style = RNA_enum_get(arrow->gizmo.ptr, "draw_style");
   const int draw_options = RNA_enum_get(arrow->gizmo.ptr, "draw_options");
 
-  immBindBuiltinProgram(select ? GPU_SHADER_3D_UNIFORM_COLOR :
-                                 GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+  immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
 
   float viewport[4];
   GPU_viewport_size_get_f(viewport);
@@ -133,7 +121,9 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
     };
 
     if (draw_options & ED_GIZMO_ARROW_DRAW_FLAG_STEM) {
-      immUniform1f("lineWidth", arrow->gizmo.line_width * U.pixelsize);
+      const float stem_width = (arrow->gizmo.line_width * U.pixelsize) +
+                               (select ? ARROW_SELECT_THRESHOLD_PX_STEM : 0);
+      immUniform1f("lineWidth", stem_width);
       wm_gizmo_vec_draw(color, vec, ARRAY_SIZE(vec), pos, GPU_PRIM_LINE_STRIP);
     }
     else {
@@ -144,6 +134,8 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
 
     GPU_matrix_push();
 
+    /* NOTE: ideally #ARROW_SELECT_THRESHOLD_PX_HEAD would be added here, however adding a
+     * margin in pixel space isn't so simple, nor is it as important as for the arrow stem. */
     if (draw_style == ED_GIZMO_ARROW_STYLE_BOX) {
       const float size = 0.05f;
 
@@ -248,8 +240,8 @@ static int gizmo_arrow_test_select(bContext *UNUSED(C), wmGizmo *gz, const int m
   }
 
   const float mval_fl[2] = {UNPACK2(mval)};
-  const float arrow_stem_threshold_px = 5 * UI_DPI_FAC;
-  const float arrow_head_threshold_px = 12 * UI_DPI_FAC;
+  const float arrow_stem_threshold_px = ARROW_SELECT_THRESHOLD_PX_STEM;
+  const float arrow_head_threshold_px = ARROW_SELECT_THRESHOLD_PX_HEAD;
 
   /* Distance to arrow head. */
   if (len_squared_v2v2(mval_fl, arrow_end) < square_f(arrow_head_threshold_px)) {
@@ -448,11 +440,6 @@ static void gizmo_arrow_exit(bContext *C, wmGizmo *gz, const bool cancel)
 /** \name Arrow Gizmo API
  * \{ */
 
-/**
- * Define a custom property UI range
- *
- * \note Needs to be called before WM_gizmo_target_property_def_rna!
- */
 void ED_gizmo_arrow3d_set_ui_range(wmGizmo *gz, const float min, const float max)
 {
   ArrowGizmo3D *arrow = (ArrowGizmo3D *)gz;
@@ -467,11 +454,6 @@ void ED_gizmo_arrow3d_set_ui_range(wmGizmo *gz, const float min, const float max
   arrow->data.is_custom_range_set = true;
 }
 
-/**
- * Define a custom factor for arrow min/max distance
- *
- * \note Needs to be called before WM_gizmo_target_property_def_rna!
- */
 void ED_gizmo_arrow3d_set_range_fac(wmGizmo *gz, const float range_fac)
 {
   ArrowGizmo3D *arrow = (ArrowGizmo3D *)gz;

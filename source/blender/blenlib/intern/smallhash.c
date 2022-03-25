@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bli
@@ -214,7 +198,6 @@ void BLI_smallhash_init(SmallHash *sh)
   BLI_smallhash_init_ex(sh, 0);
 }
 
-/* NOTE: does *not* free *sh itself!  only the direct data! */
 void BLI_smallhash_release(SmallHash *sh)
 {
   if (sh->buckets != sh->buckets_stack) {
@@ -239,13 +222,6 @@ void BLI_smallhash_insert(SmallHash *sh, uintptr_t key, void *item)
   e->val = item;
 }
 
-/**
- * Inserts a new value to a key that may already be in ghash.
- *
- * Avoids #BLI_smallhash_remove, #BLI_smallhash_insert calls (double lookups)
- *
- * \returns true if a new key has been added.
- */
 bool BLI_smallhash_reinsert(SmallHash *sh, uintptr_t key, void *item)
 {
   SmallHashEntry *e = smallhash_lookup(sh, key);
@@ -389,12 +365,6 @@ void BLI_smallhash_print(SmallHash *sh)
 #endif
 
 #ifdef DEBUG
-/**
- * Measure how well the hash function performs
- * (1.0 is perfect - no stepping needed).
- *
- * Smaller is better!
- */
 double BLI_smallhash_calc_quality(SmallHash *sh)
 {
   uint64_t sum = 0;

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
@@ -46,12 +32,10 @@
 
 #include "node_intern.hh"
 
-using blender::IndexRange;
-using blender::Map;
-using blender::Set;
-using blender::StringRef;
 namespace geo_log = blender::nodes::geometry_nodes_eval_log;
 using geo_log::GeometryAttributeInfo;
+
+namespace blender::ed::space_node {
 
 struct AttributeSearchData {
   const bNodeTree *tree;
@@ -100,13 +84,13 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
   ED_undo_push(C, "Assign Attribute Name");
 }
 
-void node_geometry_add_attribute_search_button(const bContext *UNUSED(C),
-                                               const bNodeTree *node_tree,
-                                               const bNode *node,
-                                               PointerRNA *socket_ptr,
-                                               uiLayout *layout)
+void node_geometry_add_attribute_search_button(const bContext &UNUSED(C),
+                                               const bNodeTree &node_tree,
+                                               const bNode &node,
+                                               PointerRNA &socket_ptr,
+                                               uiLayout &layout)
 {
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = uiLayoutGetBlock(&layout);
   uiBut *but = uiDefIconTextButR(block,
                                  UI_BTYPE_SEARCH_MENU,
                                  0,
@@ -116,7 +100,7 @@ void node_geometry_add_attribute_search_button(const bContext *UNUSED(C),
                                  0,
                                  10 * UI_UNIT_X, /* Dummy value, replaced by layout system. */
                                  UI_UNIT_Y,
-                                 socket_ptr,
+                                 &socket_ptr,
                                  "default_value",
                                  0,
                                  0.0f,
@@ -125,8 +109,8 @@ void node_geometry_add_attribute_search_button(const bContext *UNUSED(C),
                                  0.0f,
                                  "");
 
-  AttributeSearchData *data = OBJECT_GUARDED_NEW(
-      AttributeSearchData, {node_tree, node, (bNodeSocket *)socket_ptr->data});
+  AttributeSearchData *data = MEM_new<AttributeSearchData>(
+      __func__, AttributeSearchData{&node_tree, &node, (bNodeSocket *)socket_ptr.data});
 
   UI_but_func_search_set_results_are_suggestions(but, true);
   UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
@@ -139,3 +123,5 @@ void node_geometry_add_attribute_search_button(const bContext *UNUSED(C),
                          attribute_search_exec_fn,
                          nullptr);
 }
+
+}  // namespace blender::ed::space_node

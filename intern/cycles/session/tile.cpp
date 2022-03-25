@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "session/tile.h"
 
@@ -23,6 +10,7 @@
 #include "scene/film.h"
 #include "scene/integrator.h"
 #include "scene/scene.h"
+#include "session/session.h"
 #include "util/algorithm.h"
 #include "util/foreach.h"
 #include "util/log.h"
@@ -55,7 +43,6 @@ static std::vector<std::string> exr_channel_names_for_passes(const BufferParams 
   static const char *component_suffixes[] = {"R", "G", "B", "A"};
 
   int pass_index = 0;
-  int num_channels = 0;
   std::vector<std::string> channel_names;
   for (const BufferPass &pass : buffer_params.passes) {
     if (pass.offset == PASS_UNUSED) {
@@ -63,7 +50,6 @@ static std::vector<std::string> exr_channel_names_for_passes(const BufferParams 
     }
 
     const PassInfo pass_info = pass.get_info();
-    num_channels += pass_info.num_components;
 
     /* EXR canonically expects first part of channel names to be sorted alphabetically, which is
      * not guaranteed to be the case with passes names. Assign a prefix based on the pass index
@@ -341,8 +327,10 @@ int TileManager::compute_render_tile_size(const int suggested_tile_size) const
   /* Must be a multiple of IMAGE_TILE_SIZE so that we can write render tiles into the image file
    * aligned on image tile boundaries. We can't set IMAGE_TILE_SIZE equal to the render tile size
    * because too big tile size leads to integer overflow inside OpenEXR. */
-  return (suggested_tile_size <= IMAGE_TILE_SIZE) ? suggested_tile_size :
-                                                    align_up(suggested_tile_size, IMAGE_TILE_SIZE);
+  const int computed_tile_size = (suggested_tile_size <= IMAGE_TILE_SIZE) ?
+                                     suggested_tile_size :
+                                     align_up(suggested_tile_size, IMAGE_TILE_SIZE);
+  return min(computed_tile_size, MAX_TILE_SIZE);
 }
 
 void TileManager::reset_scheduling(const BufferParams &params, int2 tile_size)
@@ -390,6 +378,11 @@ void TileManager::update(const BufferParams &params, const Scene *scene)
     write_state_.image_spec = ImageSpec();
     overscan_ = 0;
   }
+}
+
+void TileManager::set_temp_dir(const string &temp_dir)
+{
+  temp_dir_ = temp_dir;
 }
 
 bool TileManager::done()
@@ -450,7 +443,8 @@ const int2 TileManager::get_size() const
 
 bool TileManager::open_tile_output()
 {
-  write_state_.filename = path_temp_get("cycles-tile-buffer-" + tile_file_unique_part_ + "-" +
+  write_state_.filename = path_join(temp_dir_,
+                                    "cycles-tile-buffer-" + tile_file_unique_part_ + "-" +
                                         to_string(write_state_.tile_file_index) + ".exr");
 
   write_state_.tile_out = ImageOutput::create(write_state_.filename);

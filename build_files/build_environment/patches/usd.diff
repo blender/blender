@@ -197,3 +197,38 @@ index 67ec0d15f..6dc3e85a0 100644
  #else
  #error Unknown architecture.
  #endif
+
+diff --git a/pxr/base/arch/demangle.cpp b/pxr/base/arch/demangle.cpp
+index 67ec0d15f..6dc3e85a0 100644
+--- a/pxr/base/arch/demangle.cpp
++++ b/pxr/base/arch/demangle.cpp
+@@ -36,6 +36,7 @@
+ #if (ARCH_COMPILER_GCC_MAJOR == 3 && ARCH_COMPILER_GCC_MINOR >= 1) || \
+     ARCH_COMPILER_GCC_MAJOR > 3 || defined(ARCH_COMPILER_CLANG)
+ #define _AT_LEAST_GCC_THREE_ONE_OR_CLANG
++#include <cxxabi.h>
+ #endif
+ 
+ PXR_NAMESPACE_OPEN_SCOPE
+@@ -138,7 +139,6 @@
+ #endif
+ 
+ #if defined(_AT_LEAST_GCC_THREE_ONE_OR_CLANG)
+-#include <cxxabi.h>
+ 
+ /*
+  * This routine doesn't work when you get to gcc3.4.
+
+diff --git a/pxr/base/work/singularTask.h b/pxr/base/work/singularTask.h
+index 67ec0d15f..6dc3e85a0 100644
+--- a/pxr/base/work/singularTask.h
++++ b/pxr/base/work/singularTask.h
+@@ -120,7 +120,7 @@
+                     // case we go again to ensure the task can do whatever it
+                     // was awakened to do.  Once we successfully take the count
+                     // to zero, we stop.
+-                    size_t old = count;
++                    std::size_t old = count;
+                     do { _fn(); } while (
+                         !count.compare_exchange_strong(old, 0));
+                 });

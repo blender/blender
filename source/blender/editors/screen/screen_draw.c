@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edscr
@@ -144,7 +130,7 @@ static void drawscredge_area_draw(
   }
 
   GPUBatch *batch = batch_screen_edges_get(NULL);
-  GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_AREA_EDGES);
+  GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_AREA_BORDERS);
   GPU_batch_uniform_4fv(batch, "rect", (float *)&rect);
   GPU_batch_draw(batch);
 }
@@ -162,9 +148,6 @@ static void drawscredge_area(ScrArea *area, int sizex, int sizey, float edge_thi
   drawscredge_area_draw(sizex, sizey, x1, y1, x2, y2, edge_thickness);
 }
 
-/**
- * Only for edge lines between areas.
- */
 void ED_screen_draw_edges(wmWindow *win)
 {
   bScreen *screen = WM_window_get_active_screen(win);
@@ -215,7 +198,7 @@ void ED_screen_draw_edges(wmWindow *win)
   GPU_blend(GPU_BLEND_ALPHA);
 
   GPUBatch *batch = batch_screen_edges_get(&verts_per_corner);
-  GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_AREA_EDGES);
+  GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_AREA_BORDERS);
   GPU_batch_uniform_1i(batch, "cornerLen", verts_per_corner);
   GPU_batch_uniform_1f(batch, "scale", corner_scale);
   GPU_batch_uniform_4fv(batch, "color", col);
@@ -231,12 +214,6 @@ void ED_screen_draw_edges(wmWindow *win)
   }
 }
 
-/**
- * Visual indication of the two areas involved in a proposed join.
- *
- * \param sa1: Area from which the resultant originates.
- * \param sa2: Target area that will be replaced.
- */
 void screen_draw_join_highlight(ScrArea *sa1, ScrArea *sa2)
 {
   const eScreenDir dir = area_getorientation(sa1, sa2);
@@ -445,9 +422,6 @@ static void screen_preview_draw(const bScreen *screen, int size_x, int size_y)
   GPU_matrix_pop();
 }
 
-/**
- * Render the preview for a screen layout in \a screen.
- */
 void ED_screen_preview_render(const bScreen *screen, int size_x, int size_y, uint *r_rect)
 {
   char err_out[256] = "unknown";

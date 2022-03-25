@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edcurve
@@ -70,8 +54,6 @@
 #define MAXTEXT 32766
 
 static int kill_selection(Object *obedit, int ins);
-
-/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
@@ -1658,7 +1640,9 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   EditFont *ef = cu->editfont;
   static int accentcode = 0;
   uintptr_t ascii = event->ascii;
-  int alt = event->alt, shift = event->shift, ctrl = event->ctrl;
+  const bool alt = event->modifier & KM_ALT;
+  const bool shift = event->modifier & KM_SHIFT;
+  const bool ctrl = event->modifier & KM_CTRL;
   int event_type = event->type, event_val = event->val;
   char32_t inserted_text[2] = {0};
 
@@ -2199,11 +2183,11 @@ void FONT_OT_unlink(wmOperatorType *ot)
   ot->exec = font_unlink_exec;
 }
 
-/**
- * TextBox selection
- */
 bool ED_curve_editfont_select_pick(
-    bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
+    bContext *C,
+    const int mval[2],
+    /* NOTE: `params->deselect_all` is ignored as only one text-box is active at once. */
+    const struct SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obedit = CTX_data_edit_object(C);
@@ -2222,9 +2206,7 @@ bool ED_curve_editfont_select_pick(
   ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
   /* currently only select active */
-  (void)extend;
-  (void)deselect;
-  (void)toggle;
+  (void)params;
 
   for (i_iter = 0; i_iter < cu->totbox; i_iter++) {
     int i = (i_iter + i_actbox) % cu->totbox;
@@ -2276,6 +2258,8 @@ bool ED_curve_editfont_select_pick(
     if (cu->actbox != actbox_select) {
       cu->actbox = actbox_select;
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+      /* TODO: support #ID_RECALC_SELECT. */
+      DEG_id_tag_update(obedit->data, ID_RECALC_COPY_ON_WRITE);
     }
     return true;
   }

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbdds
@@ -35,8 +21,11 @@
 /** Uncompressed 4x4 color block. */
 struct ColorBlock {
   ColorBlock() = default;
+  /** Init the color block from an array of colors. */
   ColorBlock(const uint *linearImage);
+  /** Init the color block with the contents of the given block. */
   ColorBlock(const ColorBlock &block);
+  /** Initialize this color block. */
   ColorBlock(const Image *img, uint x, uint y);
 
   void init(const Image *img, uint x, uint y);
@@ -45,7 +34,9 @@ struct ColorBlock {
 
   void swizzle(uint x, uint y, uint z, uint w); /* 0=r, 1=g, 2=b, 3=a, 4=0xFF, 5=0 */
 
+  /** Returns true if the block has a single color. */
   bool isSingleColor(Color32 mask = Color32(0xFF, 0xFF, 0xFF, 0x00)) const;
+  /** Return true if the block is not fully opaque. */
   bool hasAlpha() const;
 
   /* Accessors */

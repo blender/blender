@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #pragma once
 
@@ -160,7 +147,8 @@ ccl_device_inline int kernel_accum_sample(KernelGlobals kg,
 
   ccl_global float *buffer = kernel_accum_pixel_render_buffer(kg, state, render_buffer);
 
-  return atomic_fetch_and_add_uint32((uint *)(buffer) + kernel_data.film.pass_sample_count, 1) +
+  return atomic_fetch_and_add_uint32(
+             (ccl_global uint *)(buffer) + kernel_data.film.pass_sample_count, 1) +
          sample_offset;
 }
 
@@ -501,7 +489,7 @@ ccl_device_inline void kernel_accum_light(KernelGlobals kg,
 
     /* Write shadow pass. */
     if (kernel_data.film.pass_shadow != PASS_UNUSED && (path_flag & PATH_RAY_SHADOW_FOR_LIGHT) &&
-        (path_flag & PATH_RAY_CAMERA)) {
+        (path_flag & PATH_RAY_TRANSPARENT_BACKGROUND)) {
       const float3 unshadowed_throughput = INTEGRATOR_STATE(
           state, shadow_path, unshadowed_throughput);
       const float3 shadowed_throughput = INTEGRATOR_STATE(state, shadow_path, throughput);
@@ -552,7 +540,7 @@ ccl_device_inline void kernel_accum_background(KernelGlobals kg,
                                                const bool is_transparent_background_ray,
                                                ccl_global float *ccl_restrict render_buffer)
 {
-  float3 contribution = INTEGRATOR_STATE(state, path, throughput) * L;
+  float3 contribution = float3(INTEGRATOR_STATE(state, path, throughput)) * L;
   kernel_accum_clamp(kg, &contribution, INTEGRATOR_STATE(state, path, bounce) - 1);
 
   ccl_global float *buffer = kernel_accum_pixel_render_buffer(kg, state, render_buffer);

@@ -1,48 +1,57 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_geometry_util.hh"
+
+#include "GEO_realize_instances.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_realize_instances_cc {
 
-static void geo_node_realize_instances_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Geometry"));
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void geo_node_realize_instances_exec(GeoNodeExecParams params)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
+  uiItemR(layout, ptr, "legacy_behavior", 0, nullptr, ICON_NONE);
+}
+
+static void node_geo_exec(GeoNodeExecParams params)
+{
+  const bool legacy_behavior = params.node().custom1 & GEO_NODE_REALIZE_INSTANCES_LEGACY_BEHAVIOR;
+
+  if (legacy_behavior) {
+    params.error_message_add(
+        NodeWarningType::Info,
+        TIP_("This node uses legacy behavior with regards to attributes on "
+             "instances. The behavior can be changed in the node properties in "
+             "the side bar. In most cases the new behavior is the same for files created in "
+             "Blender 3.0"));
+  }
+
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-  geometry_set = bke::geometry_set_realize_instances(geometry_set);
+  geometry::RealizeInstancesOptions options;
+  options.keep_original_ids = legacy_behavior;
+  options.realize_instance_attributes = !legacy_behavior;
+  geometry_set = geometry::realize_instances(geometry_set, options);
   params.set_output("Geometry", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_realize_instances_cc
 
 void register_node_type_geo_realize_instances()
 {
+  namespace file_ns = blender::nodes::node_geo_realize_instances_cc;
+
   static bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, GEO_NODE_REALIZE_INSTANCES, "Realize Instances", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_realize_instances_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_realize_instances_exec;
+  geo_node_type_base(&ntype, GEO_NODE_REALIZE_INSTANCES, "Realize Instances", NODE_CLASS_GEOMETRY);
+  ntype.declare = file_ns::node_declare;
+  ntype.draw_buttons_ex = file_ns::node_layout;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

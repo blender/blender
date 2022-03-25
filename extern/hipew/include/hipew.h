@@ -804,31 +804,29 @@ typedef enum hipDeviceP2PAttr {
 } hipDeviceP2PAttr;
 
 typedef struct HIP_MEMCPY3D {
-  size_t srcXInBytes;
-  size_t srcY;
-  size_t srcZ;
-  size_t srcLOD;
+  unsigned int srcXInBytes;
+  unsigned int srcY;
+  unsigned int srcZ;
+  unsigned int srcLOD;
   hipMemoryType srcMemoryType;
   const void* srcHost;
   hipDeviceptr_t srcDevice;
-  hArray * srcArray;
-  void* reserved0;
-  size_t srcPitch;
-  size_t srcHeight;
-  size_t dstXInBytes;
-  size_t dstY;
-  size_t dstZ;
-  size_t dstLOD;
+  hArray srcArray;
+  unsigned int srcPitch;
+  unsigned int srcHeight;
+  unsigned int dstXInBytes;
+  unsigned int dstY;
+  unsigned int dstZ;
+  unsigned int dstLOD;
   hipMemoryType dstMemoryType;
   void* dstHost;
   hipDeviceptr_t dstDevice;
-  hArray * dstArray;
-  void* reserved1;
-  size_t dstPitch;
-  size_t dstHeight;
-  size_t WidthInBytes;
-  size_t Height;
-  size_t Depth;
+  hArray dstArray;
+  unsigned int dstPitch;
+  unsigned int dstHeight;
+  unsigned int WidthInBytes;
+  unsigned int Height;
+  unsigned int Depth;
 } HIP_MEMCPY3D;
 
 typedef struct HIP_MEMCPY3D_PEER_st {
@@ -879,7 +877,7 @@ typedef struct HIP_RESOURCE_DESC_st {
   hipResourceType resType;
   union {
     struct {
-      hArray * h_Array;
+      hArray h_Array;
     } array;
     struct {
       hipMipmappedArray_t hMipmappedArray;
@@ -1074,9 +1072,10 @@ typedef enum hiprtcResult {
 typedef hipError_t HIPAPI thipGetErrorName(hipError_t error, const char** pStr);
 typedef hipError_t HIPAPI thipInit(unsigned int Flags);
 typedef hipError_t HIPAPI thipDriverGetVersion(int* driverVersion);
-typedef hipError_t HIPAPI thipGetDevice(hipDevice_t* device, int ordinal);
+typedef hipError_t HIPAPI thipGetDevice(int* device);
 typedef hipError_t HIPAPI thipGetDeviceCount(int* count);
 typedef hipError_t HIPAPI thipGetDeviceProperties(hipDeviceProp_t* props, int deviceId);
+typedef hipError_t HIPAPI thipDeviceGet(hipDevice_t* device, int ordinal);
 typedef hipError_t HIPAPI thipDeviceGetName(char* name, int len, hipDevice_t dev);
 typedef hipError_t HIPAPI thipDeviceGetAttribute(int* pi, hipDeviceAttribute_t attrib, hipDevice_t dev);
 typedef hipError_t HIPAPI thipDeviceComputeCapability(int* major, int* minor, hipDevice_t dev);
@@ -1209,6 +1208,7 @@ extern thipDriverGetVersion *hipDriverGetVersion;
 extern thipGetDevice *hipGetDevice;
 extern thipGetDeviceCount *hipGetDeviceCount;
 extern thipGetDeviceProperties *hipGetDeviceProperties;
+extern thipDeviceGet* hipDeviceGet;
 extern thipDeviceGetName *hipDeviceGetName;
 extern thipDeviceGetAttribute *hipDeviceGetAttribute;
 extern thipDeviceComputeCapability *hipDeviceComputeCapability;
@@ -1333,6 +1333,7 @@ enum {
   HIPEW_SUCCESS = 0,
   HIPEW_ERROR_OPEN_FAILED = -1,
   HIPEW_ERROR_ATEXIT_FAILED = -2,
+  HIPEW_ERROR_OLD_DRIVER = -3,
 };
 
 enum {

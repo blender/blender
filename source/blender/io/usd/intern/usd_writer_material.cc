@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "usd_writer_material.h"
 
@@ -25,8 +11,10 @@
 #include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_node_tree_update.h"
 
 #include "BLI_fileops.h"
 #include "BLI_linklist.h"
@@ -39,6 +27,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "WM_api.h"
+
 #include <pxr/base/tf/stringUtils.h>
 #include <pxr/pxr.h>
 #include <pxr/usd/usdGeom/scope.h>
@@ -49,6 +39,8 @@
 /* TfToken objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
 // Materials
+static const pxr::TfToken clearcoat("clearcoat", pxr::TfToken::Immortal);
+static const pxr::TfToken clearcoatRoughness("clearcoatRoughness", pxr::TfToken::Immortal);
 static const pxr::TfToken diffuse_color("diffuseColor", pxr::TfToken::Immortal);
 static const pxr::TfToken metallic("metallic", pxr::TfToken::Immortal);
 static const pxr::TfToken preview_shader("previewShader", pxr::TfToken::Immortal);
@@ -117,79 +109,292 @@ static void ensure_forward_slashes(char *buf, int size)
   }
 }
 
-static std::string get_in_memory_texture_filename(bNode *node)
+/* Preview surface input specification. */
+struct InputSpec {
+  pxr::TfToken input_name;
+  pxr::SdfValueTypeName input_type;
+  pxr::TfToken source_name;
+  /* Whether a default value should be set
+   * if the node socket has not input. Usually
+   * false for the Normal input. */
+  bool set_default_value;
+};
+
+/* Map Blender socket names to USD Preview Surface InputSpec structs. */
+using InputSpecMap = std::map<std::string, InputSpec>;
+
+/* Static function forward declarations. */
+static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &usd_export_context,
+                                                     pxr::UsdShadeMaterial &material,
+                                                     const char *name,
+                                                     int type);
+static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &usd_export_context,
+                                                     pxr::UsdShadeMaterial &material,
+                                                     bNode *node);
+static void create_uvmap_shader(const USDExporterContext &usd_export_context,
+                                bNode *tex_node,
+                                pxr::UsdShadeMaterial &usd_material,
+                                pxr::UsdShadeShader &usd_tex_shader,
+                                const pxr::TfToken &default_uv);
+static bNode *find_bsdf_node(Material *material);
+static void get_absolute_path(Image *ima, char *r_path);
+static InputSpecMap &preview_surface_input_map();
+static bNode *traverse_channel(bNodeSocket *input, short target_type);
+
+template<typename T1, typename T2>
+void create_input(pxr::UsdShadeShader &shader, const InputSpec &spec, const void *value);
+
+void create_usd_preview_surface_material(const USDExporterContext &usd_export_context,
+                                         Material *material,
+                                         pxr::UsdShadeMaterial &usd_material,
+                                         const std::string &default_uv)
 {
+  if (!material) {
+    return;
+  }
+
+  /* Define a 'preview' scope beneath the material which will contain the preview shaders. */
+  usd_define_or_over<pxr::UsdGeomScope>(usd_export_context.stage,
+                                        usd_material.GetPath().AppendChild(usdtokens::preview),
+                                        usd_export_context.export_params.export_as_overs);
+
+
+  /* Default map when creating UV primvar reader shaders. */
+  pxr::TfToken default_uv_sampler = default_uv.empty() ? cyclestokens::UVMap :
+                                                         pxr::TfToken(default_uv);
+
+  /* We only handle the first instance of either principled or
+   * diffuse bsdf nodes in the material's node tree, because
+   * USD Preview Surface has no concept of layering materials. */
+  bNode *node = find_bsdf_node(material);
   if (!node) {
-    return "";
+    return;
   }
 
-  Image *ima = reinterpret_cast<Image *>(node->id);
+  pxr::UsdShadeShader preview_surface = create_usd_preview_shader(
+      usd_export_context, usd_material, node);
 
-  if (!ima) {
-    return "";
+  const InputSpecMap &input_map = preview_surface_input_map();
+
+  /* Set the preview surface inputs. */
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+
+    /* Check if this socket is mapped to a USD preview shader input. */
+    const InputSpecMap::const_iterator it = input_map.find(sock->name);
+
+    if (it == input_map.end()) {
+      continue;
+    }
+
+    pxr::UsdShadeShader created_shader;
+
+    bNode *input_node = traverse_channel(sock, SH_NODE_TEX_IMAGE);
+
+    const InputSpec &input_spec = it->second;
+
+    if (input_node) {
+      /* Create connection. */
+      created_shader = create_usd_preview_shader(usd_export_context, usd_material, input_node);
+
+      preview_surface.CreateInput(input_spec.input_name, input_spec.input_type)
+          .ConnectToSource(created_shader, input_spec.source_name);
+    }
+    else if (input_spec.set_default_value) {
+      /* Set hardcoded value. */
+      switch (sock->type) {
+        case SOCK_FLOAT: {
+          create_input<bNodeSocketValueFloat, float>(
+              preview_surface, input_spec, sock->default_value);
+        } break;
+        case SOCK_VECTOR: {
+          create_input<bNodeSocketValueVector, pxr::GfVec3f>(
+              preview_surface, input_spec, sock->default_value);
+        } break;
+        case SOCK_RGBA: {
+          create_input<bNodeSocketValueRGBA, pxr::GfVec3f>(
+              preview_surface, input_spec, sock->default_value);
+        } break;
+        default:
+          break;
+      }
+    }
+
+    /* If any input texture node has been found, export the texture, if necessary,
+     * and look for a connected uv node. */
+    if (!(created_shader && input_node && input_node->type == SH_NODE_TEX_IMAGE)) {
+      continue;
+    }
+
+    if (usd_export_context.export_params.export_textures) {
+      export_texture(input_node,
+                     usd_export_context.stage,
+                     usd_export_context.export_params.overwrite_textures);
+    }
+
+    create_uvmap_shader(
+        usd_export_context, input_node, usd_material, created_shader, default_uv_sampler);
+  }
+}
+
+void create_usd_viewport_material(const USDExporterContext &usd_export_context,
+                                  Material *material,
+                                  pxr::UsdShadeMaterial &usd_material)
+{
+  /* Construct the shader. */
+  pxr::SdfPath shader_path = usd_material.GetPath().AppendChild(usdtokens::preview_shader);
+  pxr::UsdShadeShader shader = pxr::UsdShadeShader::Define(usd_export_context.stage, shader_path);
+
+  shader.CreateIdAttr(pxr::VtValue(usdtokens::preview_surface));
+  shader.CreateInput(usdtokens::diffuse_color, pxr::SdfValueTypeNames->Color3f)
+      .Set(pxr::GfVec3f(material->r, material->g, material->b));
+  shader.CreateInput(usdtokens::roughness, pxr::SdfValueTypeNames->Float).Set(material->roughness);
+  shader.CreateInput(usdtokens::metallic, pxr::SdfValueTypeNames->Float).Set(material->metallic);
+
+  /* Connect the shader and the material together. */
+  usd_material.CreateSurfaceOutput().ConnectToSource(shader, usdtokens::surface);
+}
+
+/* Return USD Preview Surface input map singleton. */
+static InputSpecMap &preview_surface_input_map()
+{
+  static InputSpecMap input_map = {
+      {"Base Color",
+       {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3, usdtokens::rgb, true}},
+      {"Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3, usdtokens::rgb, true}},
+      {"Roughness", {usdtokens::roughness, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
+      {"Metallic", {usdtokens::metallic, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
+      {"Specular", {usdtokens::specular, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
+      {"Alpha", {usdtokens::opacity, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
+      {"IOR", {usdtokens::ior, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
+      /* Note that for the Normal input set_default_value is false. */
+      {"Normal", {usdtokens::normal, pxr::SdfValueTypeNames->Float3, usdtokens::rgb, false}},
+      {"Clearcoat", {usdtokens::clearcoat, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
+      {"Clearcoat Roughness",
+       {usdtokens::clearcoatRoughness, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
+  };
+
+  return input_map;
+}
+
+/* Create an input on the given shader with name and type
+ * provided by the InputSpec and assign the given value to the
+ * input.  Parameters T1 and T2 indicate the Blender and USD
+ * value types, respectively. */
+template<typename T1, typename T2>
+void create_input(pxr::UsdShadeShader &shader, const InputSpec &spec, const void *value)
+{
+  const T1 *cast_value = static_cast<const T1 *>(value);
+  shader.CreateInput(spec.input_name, spec.input_type).Set(T2(cast_value->value));
+}
+
+/* Find the UVMAP node input to the given texture image node and convert it
+ * to a USD primvar reader shader. If no UVMAP node is found, create a primvar
+ * reader for the given default uv set.  The primvar reader will be attached to
+ * the 'st' input of the given USD texture shader.  */
+static void create_uvmap_shader(const USDExporterContext &usd_export_context,
+                                bNode *tex_node,
+                                pxr::UsdShadeMaterial &usd_material,
+                                pxr::UsdShadeShader &usd_tex_shader,
+                                const pxr::TfToken &default_uv)
+{
+  bool found_uv_node = false;
+
+  /* Find UV input to the texture node. */
+  LISTBASE_FOREACH (bNodeSocket *, tex_node_sock, &tex_node->inputs) {
+
+    if (!tex_node_sock->link || !STREQ(tex_node_sock->name, "Vector")) {
+      continue;
+    }
+
+    bNode *uv_node = traverse_channel(tex_node_sock, SH_NODE_UVMAP);
+    if (uv_node == nullptr) {
+      continue;
+    }
+
+    pxr::UsdShadeShader uv_shader = create_usd_preview_shader(
+        usd_export_context, usd_material, uv_node);
+
+    if (!uv_shader.GetPrim().IsValid()) {
+      continue;
+    }
+
+    found_uv_node = true;
+
+    if (NodeShaderUVMap *shader_uv_map = static_cast<NodeShaderUVMap *>(uv_node->storage)) {
+      /* We need to make valid here because actual uv primvar has been. */
+      std::string uv_set = pxr::TfMakeValidIdentifier(shader_uv_map->uv_map);
+
+      uv_shader.CreateInput(usdtokens::varname, pxr::SdfValueTypeNames->Token)
+          .Set(pxr::TfToken(uv_set));
+      usd_tex_shader.CreateInput(usdtokens::st, pxr::SdfValueTypeNames->Float2)
+          .ConnectToSource(uv_shader, usdtokens::result);
+    }
+    else {
+      uv_shader.CreateInput(usdtokens::varname, pxr::SdfValueTypeNames->Token).Set(default_uv);
+      usd_tex_shader.CreateInput(usdtokens::st, pxr::SdfValueTypeNames->Float2)
+          .ConnectToSource(uv_shader, usdtokens::result);
+    }
   }
 
-  if (strlen(ima->filepath) > 0) {
-    /* We only generate a filename if the image
-     * doesn't already have one. */
-    return "";
+  if (!found_uv_node) {
+    /* No UVMAP node was linked to the texture node. However, we generate
+     * a primvar reader node that specifies the UV set to sample, as some
+     * DCCs require this. */
+
+    pxr::UsdShadeShader uv_shader = create_usd_preview_shader(
+        usd_export_context, usd_material, "uvmap", SH_NODE_TEX_COORD);
+
+    if (uv_shader.GetPrim().IsValid()) {
+      uv_shader.CreateInput(usdtokens::varname, pxr::SdfValueTypeNames->Token).Set(default_uv);
+      usd_tex_shader.CreateInput(usdtokens::st, pxr::SdfValueTypeNames->Float2)
+          .ConnectToSource(uv_shader, usdtokens::result);
+    }
   }
+}
 
-  /* TODO(makowalsk): the following code overlaps with
-   * export_in_memory_texture(), see if we can consolidate
-   * the common functionality. */
-
+/* Generate a file name for an in-memory image that doesn't have a
+ * filepath already defined. */
+static std::string get_in_memory_texture_filename(Image *ima)
+{
   bool is_dirty = BKE_image_is_dirty(ima);
   bool is_generated = ima->source == IMA_SRC_GENERATED;
   bool is_packed = BKE_image_has_packedfile(ima);
-
   if (!(is_generated || is_dirty || is_packed)) {
     return "";
   }
 
-  char file_name[FILE_MAX];
-  file_name[0] = '\0';
-
-  /* Try using the iamge name for the file name. */
-  /* Sanity check. */
-  if (strlen(ima->id.name) < 3) {
-    return "";
-  }
-
-  strcpy(file_name, ima->id.name + 2);
-
+  /* Determine the correct file extension from the image format. */
   ImBuf *imbuf = BKE_image_acquire_ibuf(ima, nullptr, nullptr);
   if (!imbuf) {
     return "";
   }
 
   ImageFormatData imageFormat;
-  BKE_imbuf_to_image_format(&imageFormat, imbuf);
+  BKE_image_format_from_imbuf(&imageFormat, imbuf);
+
+  char file_name[FILE_MAX];
+  /* Use the image name for the file name. */
+  strcpy(file_name, ima->id.name + 2);
 
   BKE_image_path_ensure_ext_from_imformat(file_name, &imageFormat);
 
   return file_name;
 }
 
-static void export_in_memory_texture(Image *ima, const std::string &export_dir)
+static void export_in_memory_texture(Image *ima,
+                                     const std::string &export_dir,
+                                     const bool allow_overwrite)
 {
-  if (!ima) {
-    return;
-  }
+  char image_abs_path[FILE_MAX];
 
-  char file_name[FILE_MAX] = {0};
-
+  char file_name[FILE_MAX];
   if (strlen(ima->filepath) > 0) {
-    BLI_split_file_part(ima->filepath, file_name, FILE_MAX);
+    get_absolute_path(ima, image_abs_path);
+    BLI_split_file_part(image_abs_path, file_name, FILE_MAX);
   }
   else {
-    /* Try using the iamge name for the file name.  */
+    /* Use the image name for the file name.  */
     strcpy(file_name, ima->id.name + 2);
-  }
-
-  if (strlen(file_name) == 0) {
-    printf("WARNING:  Couldn't retrieve in memory texture file name.\n");
-    return;
   }
 
   ImBuf *imbuf = BKE_image_acquire_ibuf(ima, nullptr, nullptr);
@@ -198,7 +403,7 @@ static void export_in_memory_texture(Image *ima, const std::string &export_dir)
   }
 
   ImageFormatData imageFormat;
-  BKE_imbuf_to_image_format(&imageFormat, imbuf);
+  BKE_image_format_from_imbuf(&imageFormat, imbuf);
 
   /* This image in its current state only exists in Blender memory.
    * So we have to export it. The export will keep the image state intact,
@@ -206,132 +411,33 @@ static void export_in_memory_texture(Image *ima, const std::string &export_dir)
 
   BKE_image_path_ensure_ext_from_imformat(file_name, &imageFormat);
 
-  std::string export_path = export_dir;
+  char export_path[FILE_MAX];
+  BLI_path_join(export_path, FILE_MAX, export_dir.c_str(), file_name, nullptr);
 
-  if (export_path.back() != '/' && export_path.back() != '\\') {
-    export_path += "/";
+  if (!allow_overwrite && BLI_exists(export_path)) {
+    return;
   }
 
-  export_path += std::string(file_name);
-
-  /* We never overwrite files.
-   * TODO(makowalski): consider adding an option to overwrite. */
-  if (BLI_exists(export_path.c_str())) {
+  if ((BLI_path_cmp_normalized(export_path, image_abs_path) == 0) && BLI_exists(image_abs_path)) {
+    /* As a precaution, don't overwrite the original path. */
     return;
   }
 
   std::cout << "Exporting in-memory texture to " << export_path << std::endl;
 
-  if (BKE_imbuf_write_as(imbuf, export_path.c_str(), &imageFormat, true) == 0) {
-    std::cout << "WARNING: couldn't export in-memory texture to " << export_path << std::endl;
+  if (BKE_imbuf_write_as(imbuf, export_path, &imageFormat, true) == 0) {
+    WM_reportf(RPT_WARNING, "USD export: couldn't export in-memory texture to %s", export_path);
   }
 }
 
-static void get_absolute_path(Image *ima, char *r_path, size_t len)
+/* Get the absolute filepath of the given image.  Assumes
+ * r_path result array is of length FILE_MAX. */
+static void get_absolute_path(Image *ima, char *r_path)
 {
-  if (!r_path) {
-    return;
-  }
-
-  if (!ima) {
-    r_path[0] = '\0';
-    return;
-  }
-  /* make absolute source path */
-  BLI_strncpy(r_path, ima->filepath, len);
+  /* Make absolute source path. */
+  BLI_strncpy(r_path, ima->filepath, FILE_MAX);
   BLI_path_abs(r_path, ID_BLEND_PATH_FROM_GLOBAL(&ima->id));
   BLI_path_normalize(nullptr, r_path);
-}
-
-static void copy_tiled_textures(Image *ima, const std::string &in_dest_dir)
-{
-  if (!ima || in_dest_dir.empty()) {
-    return;
-  }
-
-  if (ima->source != IMA_SRC_TILED) {
-    return;
-  }
-
-  std::string dest_dir = in_dest_dir;
-
-  if (dest_dir.back() != '/' && dest_dir.back() != '\\') {
-    dest_dir += "/";
-  }
-
-  char src_path[FILE_MAX];
-  get_absolute_path(ima, src_path, sizeof(src_path));
-
-  char src_dir[FILE_MAX];
-  char src_file[FILE_MAX];
-  BLI_split_dirfile(src_path, src_dir, src_file, FILE_MAX, FILE_MAX);
-
-  char head[FILE_MAX], tail[FILE_MAX];
-  unsigned short numlen;
-  BLI_path_sequence_decode(src_file, head, tail, &numlen);
-
-  /* Copy all tiles. */
-  LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
-    char tile_file[FILE_MAX];
-    ;
-
-    /* Build filepath of the tile. */
-    BLI_path_sequence_encode(tile_file, head, tail, numlen, tile->tile_number);
-
-    std::string dest_tile_path = dest_dir + std::string(tile_file);
-
-    /* We never overwrite files.
-     * TODO(makowalski): consider adding an option to overwrite. */
-    if (BLI_exists(dest_tile_path.c_str())) {
-      return;
-    }
-
-    std::string src_tile_path = std::string(src_dir) + std::string(tile_file);
-
-    std::cout << "Copying texture tile from " << src_tile_path << " to " << dest_tile_path
-              << std::endl;
-
-    /* Copy the file. */
-    if (BLI_copy(src_tile_path.c_str(), dest_tile_path.c_str()) != 0) {
-      std::cout << "WARNING: couldn't copy texture tile from " << src_tile_path << " to "
-                << dest_tile_path << std::endl;
-    }
-  }
-}
-
-static void copy_single_file(Image *ima, const std::string &dest_dir)
-{
-  if (!ima || dest_dir.empty()) {
-    return;
-  }
-
-  char source_path[FILE_MAX];
-  get_absolute_path(ima, source_path, sizeof(source_path));
-
-  char file_name[FILE_MAX];
-  BLI_split_file_part(source_path, file_name, FILE_MAX);
-
-  std::string dest_path = dest_dir;
-
-  if (dest_path.back() != '/' && dest_path.back() != '\\') {
-    dest_path += "/";
-  }
-
-  dest_path += std::string(file_name);
-
-  /* We never overwrite files.
-   * TODO(makowalski): consider adding an option to overwrite. */
-  if (BLI_exists(dest_path.c_str())) {
-    return;
-  }
-
-  std::cout << "Copying texture from " << source_path << " to " << dest_path << std::endl;
-
-  /* Copy the file. */
-  if (BLI_copy(source_path, dest_path.c_str()) != 0) {
-    std::cout << "WARNING: couldn't copy texture from " << source_path << " to " << dest_path
-              << std::endl;
-  }
 }
 
 /* ===== Functions copied from inacessible source file
@@ -498,7 +604,7 @@ static void ntree_shader_unlink_hidden_value_sockets(bNode *group_node, bNodeSoc
   }
 
   if (removed_link) {
-    ntreeUpdateTree(G.main, group_ntree);
+    BKE_ntree_update_main_tree(G.main, group_ntree, nullptr);
   }
 }
 
@@ -546,7 +652,7 @@ static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
   }
 
   if (link_added) {
-    ntreeUpdateTree(G.main, localtree);
+    BKE_ntree_update_main_tree(G.main, localtree, nullptr);
   }
 }
 
@@ -628,7 +734,7 @@ static void flatten_group_do(bNodeTree *ntree, bNode *gnode)
     ntreeFreeLocalNode(ntree, node);
   }
 
-  ntree->update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
+  BKE_ntree_update_tag_all(ntree);
 }
 
 /* Flatten group to only have a simple single tree */
@@ -652,69 +758,10 @@ static void ntree_shader_groups_flatten(bNodeTree *localtree)
     }
   }
 
-  ntreeUpdateTree(G.main, localtree);
+  BKE_ntree_update_main_tree(G.main, localtree, nullptr);
 }
 
 /* ===== USD/Blender Material Interchange ===== */
-
-/* Gets a NodeTexImage's filepath */
-static std::string get_node_tex_image_filepath(bNode *node)
-{
-  NodeTexImage *tex_original = (NodeTexImage *)node->storage;
-
-  Image *ima = (Image *)node->id;
-
-  if (!ima)
-    return "";
-  if (sizeof(ima->filepath) == 0)
-    return "";
-
-  char filepath[1024] = "\0";
-
-  strncpy(filepath, ima->filepath, sizeof(ima->filepath));
-
-  BKE_image_user_file_path(&tex_original->iuser, ima, filepath);
-
-  BLI_str_replace_char(filepath, '\\', '/');
-
-  if (ima->source == IMA_SRC_TILED) {
-    char head[FILE_MAX], tail[FILE_MAX];
-    unsigned short numlen;
-
-    BLI_path_sequence_decode(filepath, head, tail, &numlen);
-    return (std::string(head) + "<UDIM>" + std::string(tail));
-  }
-
-  return std::string(filepath);
-}
-
-static pxr::TfToken get_node_tex_image_color_space(bNode *node)
-{
-  if (node->type != SH_NODE_TEX_IMAGE) {
-    std::cout << "get_node_tex_image_color_space() called with unexpected type.\n";
-    return pxr::TfToken();
-  }
-
-  if (node->id == nullptr) {
-    return pxr::TfToken();
-  }
-
-  Image *ima = reinterpret_cast<Image *>(node->id);
-
-  pxr::TfToken color_space;
-
-  if (strcmp(ima->colorspace_settings.name, "Raw") == 0) {
-    color_space = usdtokens::raw;
-  }
-  else if (strcmp(ima->colorspace_settings.name, "Non-Color") == 0) {
-    color_space = usdtokens::raw;
-  }
-  else if (strcmp(ima->colorspace_settings.name, "sRGB") == 0) {
-    color_space = usdtokens::sRGB;
-  }
-
-  return color_space;
-}
 
 static pxr::TfToken get_node_tex_image_wrap(bNode *node)
 {
@@ -1166,98 +1213,6 @@ static void set_default(bNode *node,
   }
 }
 
-bNode *traverse_channel(bNodeSocket *input, short target_type = SH_NODE_TEX_IMAGE);
-
-bNode *traverse_channel(bNodeSocket *input, short target_type)
-{
-  bNodeSocket *tSock = input;
-  if (input->link) {
-    bNode *tNode = tSock->link->fromnode;
-
-    // if texture node
-    if (tNode->type == target_type) {
-      return tNode;
-    }
-
-    // for all inputs
-    for (bNodeSocket *nSock = (bNodeSocket *)tNode->inputs.first; nSock; nSock = nSock->next) {
-      tNode = traverse_channel(nSock);
-      if (tNode)
-        return tNode;
-    }
-
-    return NULL;
-  }
-  else {
-    return NULL;
-  }
-}
-
-/* Creates a USD Preview Surface node based on given cycles shading node */
-pxr::UsdShadeShader create_usd_preview_shader_node(const USDExporterContext &usd_export_context,
-                                                   pxr::UsdShadeMaterial &material,
-                                                   const char *name,
-                                                   int type,
-                                                   bNode *node)
-{
-  pxr::SdfPath shader_path = material.GetPath()
-                                 .AppendChild(usdtokens::preview)
-                                 .AppendChild(pxr::TfToken(pxr::TfMakeValidIdentifier(name)));
-  pxr::UsdShadeShader shader = (usd_export_context.export_params.export_as_overs) ?
-                                   pxr::UsdShadeShader(
-                                       usd_export_context.stage->OverridePrim(shader_path)) :
-                                   pxr::UsdShadeShader::Define(usd_export_context.stage,
-                                                               shader_path);
-  switch (type) {
-    case SH_NODE_TEX_IMAGE: {
-      shader.CreateIdAttr(pxr::VtValue(usdtokens::uv_texture));
-      std::string imagePath = get_node_tex_image_filepath(
-          node, usd_export_context.stage, usd_export_context.export_params);
-      if (!imagePath.empty()) {
-        shader.CreateInput(usdtokens::file, pxr::SdfValueTypeNames->Asset)
-            .Set(pxr::SdfAssetPath(imagePath));
-      }
-
-      pxr::TfToken colorSpace = get_node_tex_image_color_space(node);
-      if (!colorSpace.IsEmpty()) {
-        shader.CreateInput(usdtokens::sourceColorSpace, pxr::SdfValueTypeNames->Token)
-            .Set(colorSpace);
-      }
-
-      pxr::TfToken wrap = get_node_tex_image_wrap(node);
-      if (!wrap.IsEmpty()) {
-        shader.CreateInput(usdtokens::wrapS, pxr::SdfValueTypeNames->Token).Set(wrap);
-        shader.CreateInput(usdtokens::wrapT, pxr::SdfValueTypeNames->Token).Set(wrap);
-      }
-
-      if (usd_export_context.export_params.export_textures) {
-        export_texture(node, usd_export_context.stage);
-      }
-
-      break;
-    }
-    case SH_NODE_TEX_COORD:
-    case SH_NODE_UVMAP: {
-      shader.CreateIdAttr(pxr::VtValue(usdtokens::primvar_float2));
-      break;
-    }
-    /*case SH_NODE_MAPPING: {
-      shader.CreateIdAttr(pxr::VtValue(usdtokens::primvar_float2));
-      break;
-    }*/
-    case SH_NODE_BSDF_DIFFUSE:
-    case SH_NODE_BSDF_PRINCIPLED: {
-      shader.CreateIdAttr(pxr::VtValue(usdtokens::preview_surface));
-      material.CreateSurfaceOutput().ConnectToSource(shader, usdtokens::surface);
-      break;
-    }
-
-    default:
-      break;
-  }
-
-  return shader;
-}
 
 /* Creates a USDShadeShader based on given cycles shading node */
 static pxr::UsdShadeShader create_cycles_shader_node(pxr::UsdStageRefPtr a_stage,
@@ -1497,7 +1452,7 @@ static pxr::UsdShadeShader create_cycles_shader_node(pxr::UsdStageRefPtr a_stage
       NodeTexImage *tex_original = (NodeTexImage *)node->storage;
       if (!tex_original)
         break;
-      std::string imagePath = get_node_tex_image_filepath(node, a_stage, export_params);
+      std::string imagePath = get_tex_image_asset_path(node, a_stage, export_params);
       if (imagePath.size() > 0)
         shader.CreateInput(cyclestokens::filename, pxr::SdfValueTypeNames->Asset)
             .Set(pxr::SdfAssetPath(imagePath));
@@ -1559,7 +1514,7 @@ static pxr::UsdShadeShader create_cycles_shader_node(pxr::UsdStageRefPtr a_stage
         break;
       // TexMapping tex_mapping;
       // ColorMapping color_mapping;
-      std::string imagePath = get_node_tex_image_filepath(node, a_stage, export_params);
+      std::string imagePath = get_tex_image_asset_path(node, a_stage, export_params);
       if (imagePath.size() > 0)
         shader.CreateInput(cyclestokens::filename, pxr::SdfValueTypeNames->Asset)
             .Set(pxr::SdfAssetPath(imagePath));
@@ -1882,225 +1837,6 @@ static pxr::UsdShadeShader create_cycles_shader_node(pxr::UsdStageRefPtr a_stage
   return shader;
 }
 
-/* Entry point to create approximate USD Preview Surface network from Cycles node graph.
- * Due to the limited nodes in the USD Preview Surface Spec, only the following nodes
- * are supported:
- *  - UVMap
- *  - Texture Coordinate
- *  - Image Texture
- *  - Principled BSDF
- * More may be added in the future. */
-void create_usd_preview_surface_material(const USDExporterContext &usd_export_context,
-                                         Material *material,
-                                         pxr::UsdShadeMaterial &usd_material)
-{
-
-  usd_define_or_over<pxr::UsdGeomScope>(usd_export_context.stage,
-                                        usd_material.GetPath().AppendChild(usdtokens::preview),
-                                        usd_export_context.export_params.export_as_overs);
-
-  pxr::TfToken defaultUVSampler = (usd_export_context.export_params.convert_uv_to_st) ?
-                                      usdtokens::st :
-                                      cyclestokens::UVMap;
-
-  for (bNode *node = (bNode *)material->nodetree->nodes.first; node; node = node->next) {
-    if (node->type == SH_NODE_BSDF_PRINCIPLED || node->type == SH_NODE_BSDF_DIFFUSE) {
-      // We only handle the first instance of matching BSDF
-      // USD Preview surface has no concept of layering materials
-
-      pxr::UsdShadeShader previewSurface = create_usd_preview_shader_node(
-          usd_export_context, usd_material, node->name, node->type, node);
-
-      // @TODO: Maybe use this call: bNodeSocket *in_sock = nodeFindSocket(node, SOCK_IN, "Base
-      // Color");
-      for (bNodeSocket *sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
-        bNode *found_node = NULL;
-        pxr::UsdShadeShader created_shader;
-
-        if (strncmp(sock->name, "Base Color", 64) == 0 || strncmp(sock->name, "Color", 64) == 0) {
-          // -- Base Color
-
-          found_node = traverse_channel(sock);
-          if (found_node) {  // Create connection
-            created_shader = create_usd_preview_shader_node(
-                usd_export_context, usd_material, found_node->name, found_node->type, found_node);
-            previewSurface.CreateInput(usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3)
-                .ConnectToSource(created_shader, usdtokens::rgb);
-          }
-          else {  // Set hardcoded value
-            bNodeSocketValueRGBA *socket_data = (bNodeSocketValueRGBA *)sock->default_value;
-            previewSurface.CreateInput(usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3)
-                .Set(pxr::VtValue(pxr::GfVec3f(
-                    socket_data->value[0], socket_data->value[1], socket_data->value[2])));
-          }
-        }
-        else if (strncmp(sock->name, "Roughness", 64) == 0) {
-          // -- Roughness
-
-          found_node = traverse_channel(sock);
-          if (found_node) {  // Create connection
-            created_shader = create_usd_preview_shader_node(
-                usd_export_context, usd_material, found_node->name, found_node->type, found_node);
-            previewSurface.CreateInput(usdtokens::roughness, pxr::SdfValueTypeNames->Float)
-                .ConnectToSource(created_shader, usdtokens::r);
-          }
-          else {  // Set hardcoded value
-            bNodeSocketValueFloat *socket_data = (bNodeSocketValueFloat *)sock->default_value;
-            previewSurface.CreateInput(usdtokens::roughness, pxr::SdfValueTypeNames->Float)
-                .Set(pxr::VtValue(socket_data->value));
-          }
-        }
-        else if (strncmp(sock->name, "Metallic", 64) == 0) {
-          // -- Metallic
-
-          found_node = traverse_channel(sock);
-          if (found_node) {  // Set hardcoded value
-            created_shader = create_usd_preview_shader_node(
-                usd_export_context, usd_material, found_node->name, found_node->type, found_node);
-            previewSurface.CreateInput(usdtokens::metallic, pxr::SdfValueTypeNames->Float)
-                .ConnectToSource(created_shader, usdtokens::r);
-          }
-          else {  // Set hardcoded value
-            bNodeSocketValueFloat *socket_data = (bNodeSocketValueFloat *)sock->default_value;
-            previewSurface.CreateInput(usdtokens::metallic, pxr::SdfValueTypeNames->Float)
-                .Set(pxr::VtValue(socket_data->value));
-          }
-        }
-        else if (strncmp(sock->name, "Specular", 64) == 0) {
-          // -- Specular
-
-          found_node = traverse_channel(sock);
-          if (found_node) {  // Set hardcoded value
-            created_shader = create_usd_preview_shader_node(
-                usd_export_context, usd_material, found_node->name, found_node->type, found_node);
-            previewSurface.CreateInput(usdtokens::specular, pxr::SdfValueTypeNames->Float)
-                .ConnectToSource(created_shader, usdtokens::r);
-          }
-          else {  // Set hardcoded value
-            bNodeSocketValueFloat *socket_data = (bNodeSocketValueFloat *)sock->default_value;
-            previewSurface.CreateInput(usdtokens::specular, pxr::SdfValueTypeNames->Float)
-                .Set(pxr::VtValue(socket_data->value));
-          }
-        }
-        else if (strncmp(sock->name, "Alpha", 64) == 0) {
-          // -- Alpha
-
-          found_node = traverse_channel(sock);
-          if (found_node) {  // Set hardcoded value
-            created_shader = create_usd_preview_shader_node(
-                usd_export_context, usd_material, found_node->name, found_node->type, found_node);
-            previewSurface.CreateInput(usdtokens::opacity, pxr::SdfValueTypeNames->Float)
-                .ConnectToSource(created_shader, usdtokens::r);
-          }
-          else {  // Set hardcoded value
-            bNodeSocketValueFloat *socket_data = (bNodeSocketValueFloat *)sock->default_value;
-            previewSurface.CreateInput(usdtokens::opacity, pxr::SdfValueTypeNames->Float)
-                .Set(pxr::VtValue(socket_data->value));
-          }
-        }
-        else if (strncmp(sock->name, "IOR", 64) == 0) {
-          // -- Specular
-          // @TODO: We assume no input connection
-
-          // Set hardcoded value
-          bNodeSocketValueFloat *socket_data = (bNodeSocketValueFloat *)sock->default_value;
-          previewSurface.CreateInput(usdtokens::ior, pxr::SdfValueTypeNames->Float)
-              .Set(pxr::VtValue(socket_data->value));
-        }
-        else if (strncmp(sock->name, "Normal", 64) == 0) {
-          // -- Normal
-          // @TODO: We assume no default value
-
-          found_node = traverse_channel(sock);
-          if (found_node) {
-            created_shader = create_usd_preview_shader_node(
-                usd_export_context, usd_material, found_node->name, found_node->type, found_node);
-            previewSurface.CreateInput(usdtokens::normal, pxr::SdfValueTypeNames->Float)
-                .ConnectToSource(created_shader, usdtokens::rgb);
-          }
-        }
-
-        // If any input node has been found, look for uv node
-        if (found_node) {
-
-          bool found_uv_node = false;
-
-          // Find UV Input
-          for (bNodeSocket *sock = (bNodeSocket *)found_node->inputs.first; sock;
-               sock = sock->next) {
-            if (sock == nullptr)
-              continue;
-            if (sock->link == nullptr)
-              continue;
-
-            if (strncmp(sock->name, "Vector", 64) != 0)
-              continue;
-            // bNode *uvNode = sock->link->fromnode;
-            bNode *uvNode = traverse_channel(sock, SH_NODE_TEX_COORD);
-            if (uvNode == nullptr)
-              uvNode = traverse_channel(sock, SH_NODE_UVMAP);
-
-            if (uvNode == NULL)
-              continue;
-
-            pxr::UsdShadeShader uvShader = create_usd_preview_shader_node(
-                usd_export_context, usd_material, uvNode->name, uvNode->type, uvNode);
-            if (!uvShader.GetPrim().IsValid())
-              continue;
-
-            found_uv_node = true;
-
-            if (uvNode->storage != NULL) {
-              NodeShaderUVMap *uvmap = (NodeShaderUVMap *)uvNode->storage;
-              if (uvmap) {
-
-                // We need to make valid here because actual uv primvar has been
-                std::string uv_set = pxr::TfMakeValidIdentifier(uvmap->uv_map);
-                if (usd_export_context.export_params.convert_uv_to_st)
-                  uv_set = "st";
-
-                uvShader.CreateInput(usdtokens::varname, pxr::SdfValueTypeNames->Token)
-                    .Set(pxr::TfToken(uv_set));
-                created_shader.CreateInput(usdtokens::st, pxr::SdfValueTypeNames->Float2)
-                    .ConnectToSource(uvShader, usdtokens::result);
-              }
-              else {
-                uvShader.CreateInput(usdtokens::varname, pxr::SdfValueTypeNames->Token)
-                    .Set(defaultUVSampler);
-                created_shader.CreateInput(usdtokens::st, pxr::SdfValueTypeNames->Float2)
-                    .ConnectToSource(uvShader, usdtokens::result);
-              }
-            }
-            else {
-              uvShader.CreateInput(usdtokens::varname, pxr::SdfValueTypeNames->Token)
-                  .Set(defaultUVSampler);
-              created_shader.CreateInput(usdtokens::st, pxr::SdfValueTypeNames->Float2)
-                  .ConnectToSource(uvShader, usdtokens::result);
-            }
-          }
-
-          if (!found_uv_node) {
-            pxr::UsdShadeShader uvShader = create_usd_preview_shader_node(
-                usd_export_context,
-                usd_material,
-                "uvmap",
-                SH_NODE_TEX_COORD,
-                NULL);
-            if (!uvShader.GetPrim().IsValid())
-              continue;
-            uvShader.CreateInput(usdtokens::varname, pxr::SdfValueTypeNames->Token)
-                .Set(defaultUVSampler);
-            created_shader.CreateInput(usdtokens::st, pxr::SdfValueTypeNames->Float2)
-                .ConnectToSource(uvShader, usdtokens::result);
-          }
-        }
-      }
-      return;
-    }
-  }
-  return;
-}
-
 static void store_cycles_nodes(pxr::UsdStageRefPtr a_stage,
                                bNodeTree *ntree,
                                pxr::SdfPath shader_path,
@@ -2280,28 +2016,6 @@ void create_usd_cycles_material(pxr::UsdStageRefPtr a_stage,
   MEM_freeN(localtree);
 }
 
-/* Entry point to create USD Shade Material network from Blender "Viewport Display" */
-void create_usd_viewport_material(const USDExporterContext &usd_export_context,
-                                  Material *material,
-                                  pxr::UsdShadeMaterial &usd_material)
-{
-  // Construct the shader.
-  pxr::SdfPath shader_path = usd_material.GetPath().AppendChild(usdtokens::preview_shader);
-  pxr::UsdShadeShader shader = (usd_export_context.export_params.export_as_overs) ?
-                                   pxr::UsdShadeShader(
-                                       usd_export_context.stage->OverridePrim(shader_path)) :
-                                   pxr::UsdShadeShader::Define(usd_export_context.stage,
-                                                               shader_path);
-  shader.CreateIdAttr(pxr::VtValue(usdtokens::preview_surface));
-  shader.CreateInput(usdtokens::diffuse_color, pxr::SdfValueTypeNames->Color3f)
-      .Set(pxr::GfVec3f(material->r, material->g, material->b));
-  shader.CreateInput(usdtokens::roughness, pxr::SdfValueTypeNames->Float).Set(material->roughness);
-  shader.CreateInput(usdtokens::metallic, pxr::SdfValueTypeNames->Float).Set(material->metallic);
-
-  // Connect the shader and the material together.
-  usd_material.CreateSurfaceOutput().ConnectToSource(shader, usdtokens::surface);
-}
-
 void create_mdl_material(const USDExporterContext &usd_export_context,
                          Material *material,
                          pxr::UsdShadeMaterial &usd_material)
@@ -2345,73 +2059,368 @@ void create_mdl_material(const USDExporterContext &usd_export_context,
 #endif
 }
 
-/* Gets a NodeTexImage's filepath, returning a path in the texture export directory or a relative
- * path, if the export parameters require it.
- */
-std::string get_node_tex_image_filepath(bNode *node,
-                                        const pxr::UsdStageRefPtr stage,
-                                        const USDExportParams &export_params)
+static pxr::TfToken get_node_tex_image_color_space(bNode *node)
 {
-  std::string image_path = get_node_tex_image_filepath(node);
-
-  if (image_path.empty() && export_params.export_textures) {
-    /* The path may be empty because this is an in-memory texture.
-     * Since we are exporting textures, check if this is an
-     * in-memory texture for which we can generate a file name. */
-    image_path = get_in_memory_texture_filename(node);
-  }
-
-  return get_texture_filepath(image_path, stage, export_params);
-}
-
-/* Based on ImagesExporter::export_UV_Image() */
-void export_texture(bNode *node, const pxr::UsdStageRefPtr stage)
-{
-  if (!stage || !node ||
-      (node->type != SH_NODE_TEX_IMAGE && node->type != SH_NODE_TEX_ENVIRONMENT)) {
-    return;
-  }
-
-  // Get the path relative to the USD.
-  // TODO(makowalski): avoid recomputing the USD path, if possible.
-  pxr::SdfLayerHandle layer = stage->GetRootLayer();
-
-  std::string stage_path = layer->GetRealPath();
-
-  if (stage_path.empty()) {
-    return;
+  if (!node->id) {
+    return pxr::TfToken();
   }
 
   Image *ima = reinterpret_cast<Image *>(node->id);
 
+  if (strcmp(ima->colorspace_settings.name, "Raw") == 0) {
+    return usdtokens::raw;
+  }
+  if (strcmp(ima->colorspace_settings.name, "Non-Color") == 0) {
+    return usdtokens::raw;
+  }
+  if (strcmp(ima->colorspace_settings.name, "sRGB") == 0) {
+    return usdtokens::sRGB;
+  }
+
+  return pxr::TfToken();
+}
+
+/* Search the upstream nodes connected to the given socket and return the first occurrence
+ * of the node of the given type. Return null if no node of this type was found. */
+static bNode *traverse_channel(bNodeSocket *input, const short target_type)
+{
+  if (!input->link) {
+    return nullptr;
+  }
+
+  bNode *linked_node = input->link->fromnode;
+  if (linked_node->type == target_type) {
+    /* Return match. */
+    return linked_node;
+  }
+
+  /* Recursively traverse the linked node's sockets. */
+  LISTBASE_FOREACH (bNodeSocket *, sock, &linked_node->inputs) {
+    if (bNode *found_node = traverse_channel(sock, target_type)) {
+      return found_node;
+    }
+  }
+
+  return nullptr;
+}
+
+/* Returns the first occurrence of a principled BSDF or a diffuse BSDF node found in the given
+ * material's node tree.  Returns null if no instance of either type was found.*/
+static bNode *find_bsdf_node(Material *material)
+{
+  LISTBASE_FOREACH (bNode *, node, &material->nodetree->nodes) {
+    if (node->type == SH_NODE_BSDF_PRINCIPLED || node->type == SH_NODE_BSDF_DIFFUSE) {
+      return node;
+    }
+  }
+
+  return nullptr;
+}
+
+/* Creates a USD Preview Surface shader based on the given cycles node name and type. */
+static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &usd_export_context,
+                                                     pxr::UsdShadeMaterial &material,
+                                                     const char *name,
+                                                     const int type)
+{
+  pxr::SdfPath shader_path = material.GetPath()
+                                 .AppendChild(usdtokens::preview)
+                                 .AppendChild(pxr::TfToken(pxr::TfMakeValidIdentifier(name)));
+  pxr::UsdShadeShader shader = pxr::UsdShadeShader::Define(usd_export_context.stage, shader_path);
+
+  switch (type) {
+    case SH_NODE_TEX_IMAGE: {
+      shader.CreateIdAttr(pxr::VtValue(usdtokens::uv_texture));
+      break;
+    }
+    case SH_NODE_TEX_COORD:
+    case SH_NODE_UVMAP: {
+      shader.CreateIdAttr(pxr::VtValue(usdtokens::primvar_float2));
+      break;
+    }
+    case SH_NODE_BSDF_DIFFUSE:
+    case SH_NODE_BSDF_PRINCIPLED: {
+      shader.CreateIdAttr(pxr::VtValue(usdtokens::preview_surface));
+      material.CreateSurfaceOutput().ConnectToSource(shader, usdtokens::surface);
+      break;
+    }
+
+    default:
+      break;
+  }
+
+  return shader;
+}
+
+/* Creates a USD Preview Surface shader based on the given cycles shading node. */
+static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &usd_export_context,
+                                                     pxr::UsdShadeMaterial &material,
+                                                     bNode *node)
+{
+  pxr::UsdShadeShader shader = create_usd_preview_shader(
+      usd_export_context, material, node->name, node->type);
+
+  if (node->type != SH_NODE_TEX_IMAGE) {
+    return shader;
+  }
+
+  /* For texture image nodes we set the image path, color space and wrap. */
+  std::string imagePath = get_tex_image_asset_path(
+      node, usd_export_context.stage, usd_export_context.export_params);
+  if (!imagePath.empty()) {
+    shader.CreateInput(usdtokens::file, pxr::SdfValueTypeNames->Asset)
+        .Set(pxr::SdfAssetPath(imagePath));
+  }
+
+  pxr::TfToken colorSpace = get_node_tex_image_color_space(node);
+  if (!colorSpace.IsEmpty()) {
+    shader.CreateInput(usdtokens::sourceColorSpace, pxr::SdfValueTypeNames->Token).Set(colorSpace);
+  }
+
+  pxr::TfToken wrap = get_node_tex_image_wrap(node);
+  if (!wrap.IsEmpty()) {
+    shader.CreateInput(usdtokens::wrapS, pxr::SdfValueTypeNames->Token).Set(wrap);
+    shader.CreateInput(usdtokens::wrapT, pxr::SdfValueTypeNames->Token).Set(wrap);
+  }
+
+  return shader;
+}
+
+static std::string get_tex_image_asset_path(Image *ima)
+{
+  char filepath[FILE_MAX];
+  get_absolute_path(ima, filepath);
+
+  return std::string(filepath);
+}
+
+/* Gets an asset path for the given texture image node. The resulting path
+ * may be absolute, relative to the USD file, or in a 'textures' directory
+ * in the same directory as the USD file, depending on the export parameters.
+ * The filename is typically the image filepath but might also be automatically
+ * generated based on the image name for in-memory textures when exporting textures.
+ * This function may return an empty string if the image does not have a filepath
+ * assigned and no asset path could be determined. */
+std::string get_tex_image_asset_path(bNode *node,
+                                     const pxr::UsdStageRefPtr stage,
+                                     const USDExportParams &export_params)
+{
+  Image *ima = reinterpret_cast<Image *>(node->id);
   if (!ima) {
+    return "";
+  }
+
+  std::string path;
+
+  if (strlen(ima->filepath) > 0) {
+    /* Get absolute path. */
+    path = get_tex_image_asset_path(ima);
+  }
+  else if (export_params.export_textures) {
+    /* Image has no filepath, but since we are exporting textures,
+     * check if this is an in-memory texture for which we can
+     * generate a file name. */
+    path = get_in_memory_texture_filename(ima);
+  }
+
+  return get_tex_image_asset_path(path, stage, export_params); 
+}
+
+/* Return a USD asset path referencing the given texture file. The resulting path
+ * may be absolute, relative to the USD file, or in a 'textures' directory
+ * in the same directory as the USD file, depending on the export parameters. */
+std::string get_tex_image_asset_path(const std::string &path,
+                                     const pxr::UsdStageRefPtr stage,
+                                     const USDExportParams &export_params)
+{
+  if (path.empty()) {
+    return path;
+  }
+
+  if (export_params.export_textures) {
+    /* The texture is exported to a 'textures' directory next to the
+     * USD root layer. */
+
+    char exp_path[FILE_MAX];
+    char file_path[FILE_MAX];
+    BLI_split_file_part(path.c_str(), file_path, FILE_MAX);
+
+    if (export_params.relative_texture_paths) {
+      BLI_path_join(exp_path, FILE_MAX, ".", "textures", file_path, nullptr);
+    }
+    else {
+      /* Create absolute path in the textures directory. */
+      pxr::SdfLayerHandle layer = stage->GetRootLayer();
+      std::string stage_path = layer->GetRealPath();
+      if (stage_path.empty()) {
+        return path;
+      }
+
+      char dir_path[FILE_MAX];
+      BLI_split_dir_part(stage_path.c_str(), dir_path, FILE_MAX);
+      BLI_path_join(exp_path, FILE_MAX, dir_path, "textures", file_path, nullptr);
+    }
+    ensure_forward_slashes(exp_path, sizeof(exp_path));
+    return exp_path;
+  }
+
+  if (export_params.relative_texture_paths) {
+    /* Get the path relative to the USD. */
+    pxr::SdfLayerHandle layer = stage->GetRootLayer();
+    std::string stage_path = layer->GetRealPath();
+    if (stage_path.empty()) {
+      return path;
+    }
+
+    char rel_path[FILE_MAX];
+    strcpy(rel_path, path.c_str());
+
+    BLI_path_rel(rel_path, stage_path.c_str());
+
+    /* BLI_path_rel adds '//' as a prefix to the path, if
+     * generating the relative path was successful. */
+    if (rel_path[0] != '/' || rel_path[1] != '/') {
+      /* No relative path generated. */
+      return path;
+    }
+    ensure_forward_slashes(rel_path, sizeof(rel_path));
+    return rel_path + 2;
+  }
+
+  return path;
+}
+
+/* If the given image is tiled, copy the image tiles to the given
+ * destination directory. */
+static void copy_tiled_textures(Image *ima,
+                                const std::string &dest_dir,
+                                const bool allow_overwrite)
+{
+  char src_path[FILE_MAX];
+  get_absolute_path(ima, src_path);
+
+  eUDIM_TILE_FORMAT tile_format;
+  char *udim_pattern = BKE_image_get_tile_strformat(src_path, &tile_format);
+
+  /* Only <UDIM> tile formats are supported by USD right now. */
+  if (tile_format != UDIM_TILE_FORMAT_UDIM) {
+    std::cout << "WARNING: unsupported tile format for `" << src_path << "`" << std::endl;
+    MEM_SAFE_FREE(udim_pattern);
+    return;
+  }
+
+  /* Copy all tiles. */
+  LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+    char src_tile_path[FILE_MAX];
+    BKE_image_set_filepath_from_tile_number(
+        src_tile_path, udim_pattern, tile_format, tile->tile_number);
+
+    char dest_filename[FILE_MAXFILE];
+    BLI_split_file_part(src_tile_path, dest_filename, sizeof(dest_filename));
+
+    char dest_tile_path[FILE_MAX];
+    BLI_path_join(dest_tile_path, FILE_MAX, dest_dir.c_str(), dest_filename, nullptr);
+
+    if (!allow_overwrite && BLI_exists(dest_tile_path)) {
+      continue;
+    }
+
+    if (BLI_path_cmp_normalized(src_tile_path, dest_tile_path) == 0) {
+      /* Source and destination paths are the same, don't copy. */
+      continue;
+    }
+
+    std::cout << "Copying texture tile from " << src_tile_path << " to " << dest_tile_path
+              << std::endl;
+
+    /* Copy the file. */
+    if (BLI_copy(src_tile_path, dest_tile_path) != 0) {
+      WM_reportf(RPT_WARNING,
+                 "USD export:  couldn't copy texture tile from %s to %s",
+                 src_tile_path,
+                 dest_tile_path);
+    }
+  }
+  MEM_SAFE_FREE(udim_pattern);
+}
+
+/* Copy the given image to the destination directory. */
+static void copy_single_file(Image *ima, const std::string &dest_dir, const bool allow_overwrite)
+{
+  char source_path[FILE_MAX];
+  get_absolute_path(ima, source_path);
+
+  char file_name[FILE_MAX];
+  BLI_split_file_part(source_path, file_name, FILE_MAX);
+
+  char dest_path[FILE_MAX];
+  BLI_path_join(dest_path, FILE_MAX, dest_dir.c_str(), file_name, nullptr);
+
+  if (!allow_overwrite && BLI_exists(dest_path)) {
+    return;
+  }
+
+  if (BLI_path_cmp_normalized(source_path, dest_path) == 0) {
+    /* Source and destination paths are the same, don't copy. */
+    return;
+  }
+
+  std::cout << "Copying texture from " << source_path << " to " << dest_path << std::endl;
+
+  /* Copy the file. */
+  if (BLI_copy(source_path, dest_path) != 0) {
+    WM_reportf(
+        RPT_WARNING, "USD export:  couldn't copy texture from %s to %s", source_path, dest_path);
+  }
+}
+
+/* Export the given texture node's image to a 'textures' directory
+ * next to given stage's root layer USD.
+ * Based on ImagesExporter::export_UV_Image() */
+void export_texture(bNode *node,
+                    const pxr::UsdStageRefPtr stage,
+                    const bool allow_overwrite)
+{
+  if (node->type != SH_NODE_TEX_IMAGE && node->type != SH_NODE_TEX_ENVIRONMENT) {
+    return;
+  }
+
+  Image *ima = reinterpret_cast<Image *>(node->id);
+  if (!ima) {
+    return;
+  }
+
+  pxr::SdfLayerHandle layer = stage->GetRootLayer();
+  std::string stage_path = layer->GetRealPath();
+  if (stage_path.empty()) {
     return;
   }
 
   char usd_dir_path[FILE_MAX];
   BLI_split_dir_part(stage_path.c_str(), usd_dir_path, FILE_MAX);
 
-  std::string dest_dir(usd_dir_path);
-  dest_dir += "textures";
+  char tex_dir_path[FILE_MAX];
+  BLI_path_join(tex_dir_path, FILE_MAX, usd_dir_path, "textures", SEP_STR, nullptr);
 
-  BLI_dir_create_recursive(dest_dir.c_str());
+  BLI_dir_create_recursive(tex_dir_path);
 
-  dest_dir += "/";
+  const bool is_dirty = BKE_image_is_dirty(ima);
+  const bool is_generated = ima->source == IMA_SRC_GENERATED;
+  const bool is_packed = BKE_image_has_packedfile(ima);
 
-  bool is_dirty = BKE_image_is_dirty(ima);
-  bool is_generated = ima->source == IMA_SRC_GENERATED;
-  bool is_packed = BKE_image_has_packedfile(ima);
+  std::string dest_dir(tex_dir_path);
 
   if (is_generated || is_dirty || is_packed) {
-    export_in_memory_texture(ima, dest_dir);
+    export_in_memory_texture(ima, dest_dir, allow_overwrite);
   }
   else if (ima->source == IMA_SRC_TILED) {
-    copy_tiled_textures(ima, dest_dir);
+    copy_tiled_textures(ima, dest_dir, allow_overwrite);
   }
   else {
-    copy_single_file(ima, dest_dir);
+    copy_single_file(ima, dest_dir, allow_overwrite);
   }
 }
+
 
 /* Export the texture of every texture image node in the given material's node tree. */
 void export_textures(const Material *material, const pxr::UsdStageRefPtr stage)
@@ -2431,83 +2440,5 @@ void export_textures(const Material *material, const pxr::UsdStageRefPtr stage)
   }
 }
 
-std::string get_texture_filepath(const std::string &in_path,
-                                 const pxr::UsdStageRefPtr stage,
-                                 const USDExportParams &export_params)
-{
-  if (!(export_params.relative_texture_paths || export_params.export_textures)) {
-    return in_path;
-  }
-
-  if (in_path.empty()) {
-    return in_path;
-  }
-
-  if (!stage) {
-    return in_path;
-  }
-
-  // TODO(makowalski): avoid recomputing the USD path, if possible.
-  pxr::SdfLayerHandle layer = stage->GetRootLayer();
-
-  std::string stage_path = layer->GetRealPath();
-
-  if (stage_path.empty()) {
-    return in_path;
-  }
-
-  /* If we are exporting textures, set the textures directory in the path. */
-  if (export_params.export_textures) {
-    char dir_path[FILE_MAX];
-    char file_path[FILE_MAX];
-    BLI_split_dir_part(stage_path.c_str(), dir_path, FILE_MAX);
-    BLI_split_file_part(in_path.c_str(), file_path, FILE_MAX);
-
-    ensure_forward_slashes(dir_path, FILE_MAX);
-
-    std::string result;
-
-    if (export_params.relative_texture_paths) {
-      result = "./textures/";
-    }
-    else {
-      result = std::string(dir_path);
-      if (result.back() != '/' && result.back() != '\\') {
-        result += "/";
-      }
-      result += "textures/";
-    }
-
-    result += std::string(file_path);
-    return result;
-  }
-
-  // Get the path relative to the USD.
-  char rel_path[FILE_MAX];
-
-  strcpy(rel_path, in_path.c_str());
-
-  BLI_path_rel(rel_path, stage_path.c_str());
-
-  /* BLI_path_rel adds '//' as a prefix to the path, if
-   * generating the relative path was successful. */
-  if (rel_path[0] != '/' || rel_path[1] != '/') {
-    /* No relative path generated. */
-    return in_path;
-  }
-
-  int offset = 0;
-
-  if (rel_path[2] != '.') {
-    rel_path[0] = '.';
-  }
-  else {
-    offset = 2;
-  }
-
-  ensure_forward_slashes(rel_path, FILE_MAX);
-
-  return std::string(rel_path + offset);
-}
 
 }  // namespace blender::io::usd

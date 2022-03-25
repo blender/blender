@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup GHOST
@@ -71,6 +55,8 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_mousePresent(false),
       m_inLiveResize(false),
       m_system(system),
+      m_dropTarget(NULL),
+      m_hWnd(0),
       m_hDC(0),
       m_isDialog(dialog),
       m_hasMouseCaptured(false),
@@ -78,6 +64,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_nPressedButtons(0),
       m_customCursor(0),
       m_wantAlphaBackground(alphaBackground),
+      m_Bar(NULL),
       m_wintab(NULL),
       m_lastPointerTabletData(GHOST_TABLET_DATA_NONE),
       m_normal_state(GHOST_kWindowStateNormal),
@@ -129,8 +116,24 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
   m_hDC = ::GetDC(m_hWnd);
 
   if (!setDrawingContextType(type)) {
+    const char *title = "Blender - Unsupported Graphics Card Configuration";
+    const char *text =
+        "A graphics card and driver with support for OpenGL 3.3 or higher is "
+        "required.\n\nInstalling the latest driver for your graphics card might resolve the "
+        "issue.";
+    if (GetSystemMetrics(SM_CMONITORS) > 1) {
+      text =
+          "A graphics card and driver with support for OpenGL 3.3 or higher is "
+          "required.\n\nPlugging all monitors into your primary graphics card might resolve "
+          "this issue. Installing the latest driver for your graphics card could also help.";
+    }
+    MessageBox(m_hWnd, text, title, MB_OK | MB_ICONERROR);
+    ::ReleaseDC(m_hWnd, m_hDC);
     ::DestroyWindow(m_hWnd);
     m_hWnd = NULL;
+    if (!parentwindow) {
+      exit(0);
+    }
     return;
   }
 
@@ -564,19 +567,12 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
                                    (m_debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
                                    GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
 
-    if (context->initializeDrawingContext()) {
-      return context;
-    }
-    else {
-      MessageBox(m_hWnd,
-                 "A graphics card and driver with support for OpenGL 3.3 or higher is required.\n"
-                 "Installing the latest driver for your graphics card may resolve the issue.\n\n"
-                 "The program will now close.",
-                 "Blender - Unsupported Graphics Card or Driver",
-                 MB_OK | MB_ICONERROR);
+    if (context && !context->initializeDrawingContext()) {
       delete context;
-      exit(0);
+      context = nullptr;
     }
+
+    return context;
 
 #elif defined(WITH_GL_PROFILE_COMPAT)
     // ask for 2.1 context, driver gives any GL version >= 2.1

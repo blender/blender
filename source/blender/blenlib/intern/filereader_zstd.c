@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2021 Blender Foundation
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2021 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bli
@@ -330,6 +314,9 @@ FileReader *BLI_filereader_new_zstd(FileReader *base)
     zstd->in_buf.pos = zstd->in_buf_max_size;
   }
   zstd->reader.close = zstd_close;
+
+  /* Rewind after the seek table check so that zstd_read starts at the file's start. */
+  zstd->base->seek(zstd->base, 0, SEEK_SET);
 
   return (FileReader *)zstd;
 }

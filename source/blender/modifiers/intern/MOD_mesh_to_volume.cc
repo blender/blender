@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -51,6 +37,7 @@
 #include "BLI_span.hh"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #ifdef WITH_OPENVDB
 #  include <openvdb/openvdb.h>
@@ -197,8 +184,8 @@ static float compute_voxel_size(const ModifierEvalContext *ctx,
   /* Compute the voxel size based on the desired number of voxels and the approximated bounding box
    * of the volume. */
   const BoundBox *bb = BKE_object_boundbox_get(mvmd->object);
-  const float diagonal = float3::distance(transform * float3(bb->vec[6]),
-                                          transform * float3(bb->vec[0]));
+  const float diagonal = math::distance(transform * float3(bb->vec[6]),
+                                        transform * float3(bb->vec[0]));
   const float approximate_volume_side_length = diagonal + mvmd->exterior_band_width * 2.0f;
   const float voxel_size = approximate_volume_side_length / mvmd->voxel_amount / volume_simplify;
   return voxel_size;
@@ -308,7 +295,6 @@ ModifierTypeInfo modifierType_MeshToVolume = {
     /* deformVertsEM */ nullptr,
     /* deformMatricesEM */ nullptr,
     /* modifyMesh */ nullptr,
-    /* modifyHair */ nullptr,
     /* modifyGeometrySet */ modifyGeometrySet,
 
     /* initData */ initData,

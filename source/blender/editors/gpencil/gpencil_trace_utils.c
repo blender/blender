@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edgpencil
@@ -46,11 +30,6 @@
 
 #include "gpencil_trace.h"
 
-/**
- * Print trace bitmap for debugging.
- * \param f: Output handle. Use `stderr` for printing
- * \param bm: Trace bitmap
- */
 void ED_gpencil_trace_bitmap_print(FILE *f, const potrace_bitmap_t *bm)
 {
   int32_t x, y;
@@ -77,12 +56,6 @@ void ED_gpencil_trace_bitmap_print(FILE *f, const potrace_bitmap_t *bm)
   }
 }
 
-/**
- * Return new un-initialized trace bitmap
- * \param w: Width in pixels
- * \param h: Height in pixels
- * \return Trace bitmap
- */
 potrace_bitmap_t *ED_gpencil_trace_bitmap_new(int32_t w, int32_t h)
 {
   potrace_bitmap_t *bm;
@@ -104,10 +77,6 @@ potrace_bitmap_t *ED_gpencil_trace_bitmap_new(int32_t w, int32_t h)
   return bm;
 }
 
-/**
- * Free a trace bitmap
- * \param bm: Trace bitmap
- */
 void ED_gpencil_trace_bitmap_free(const potrace_bitmap_t *bm)
 {
   if (bm != NULL) {
@@ -116,10 +85,6 @@ void ED_gpencil_trace_bitmap_free(const potrace_bitmap_t *bm)
   MEM_SAFE_FREE(bm);
 }
 
-/**
- * Invert the given bitmap (Black to White)
- * \param bm: Trace bitmap
- */
 void ED_gpencil_trace_bitmap_invert(const potrace_bitmap_t *bm)
 {
   int32_t dy = bm->dy;
@@ -162,11 +127,6 @@ static void pixel_at_index(const ImBuf *ibuf, const int32_t idx, float r_col[4])
   }
 }
 
-/**
- * Convert image to BW bitmap for tracing
- * \param ibuf: ImBuf of the image
- * \param bm: Trace bitmap
- */
 void ED_gpencil_trace_image_to_bitmap(ImBuf *ibuf,
                                       const potrace_bitmap_t *bm,
                                       const float threshold)
@@ -231,14 +191,6 @@ static void add_bezier(bGPDstroke *gps,
   }
 }
 
-/**
- * Convert Potrace Bitmap to Grease Pencil strokes
- * \param st: Data with traced data
- * \param ob: Target grease pencil object
- * \param offset: Offset to center
- * \param scale: Scale of the output
- * \param sample: Sample distance to distribute points
- */
 void ED_gpencil_trace_data_to_strokes(Main *bmain,
                                       potrace_state_t *st,
                                       Object *ob,
@@ -362,7 +314,7 @@ void ED_gpencil_trace_data_to_strokes(Main *bmain,
       if (sample > 0.0f) {
         /* Resample stroke. Don't need to call to BKE_gpencil_stroke_geometry_update() because
          * the sample function already call that. */
-        BKE_gpencil_stroke_sample(gpd, gps, sample, false);
+        BKE_gpencil_stroke_sample(gpd, gps, sample, false, 0);
       }
       else {
         BKE_gpencil_stroke_geometry_update(gpd, gps);

@@ -1,20 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8 compliant>
 
@@ -355,6 +339,58 @@ class CameraExportImportTest(unittest.TestCase):
         self.assertAlmostEqual(1, actual_scale.x, delta=delta_scale)
         self.assertAlmostEqual(1, actual_scale.y, delta=delta_scale)
         self.assertAlmostEqual(1, actual_scale.z, delta=delta_scale)
+
+
+class OverrideLayersTest(AbstractAlembicTest):
+    def test_import_layer(self):
+        fname = 'cube-base-file.abc'
+        fname_layer = 'cube-hi-res.abc'
+        abc = self.testdir / fname
+        abc_layer = self.testdir / fname_layer
+
+        # We need a cache reader to ensure that the data will be updated after adding a layer.
+        res = bpy.ops.wm.alembic_import(filepath=str(abc), as_background_job=False, always_add_cache_reader=True)
+        self.assertEqual({'FINISHED'}, res)
+
+        # Check that the file loaded ok.
+        cube = bpy.context.active_object
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        scene = bpy.context.scene
+        cube_eval = cube.evaluated_get(depsgraph)
+        mesh = cube_eval.to_mesh()
+
+        # The base file should be a default cube.
+        self.assertEqual(len(mesh.vertices), 8)
+        self.assertEqual(len(mesh.edges), 12)
+        self.assertEqual(len(mesh.polygons), 6)
+
+        # Add a layer.
+        cache_file = bpy.data.cache_files[fname]
+        self.assertEqual(len(cache_file.layers), 0)
+
+        layer = cache_file.layers.new(filepath=str(abc_layer))
+        self.assertEqual(len(cache_file.layers), 1)
+        self.assertIsNotNone(layer)
+
+        # The layer added a higher res version of the mesh.
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        cube_eval = cube.evaluated_get(depsgraph)
+        mesh = cube_eval.to_mesh()
+        self.assertEqual(len(mesh.vertices), 26)
+        self.assertEqual(len(mesh.edges), 48)
+        self.assertEqual(len(mesh.polygons), 24)
+
+        # Remove the layer.
+        cache_file.layers.remove(layer)
+        self.assertEqual(len(cache_file.layers), 0)
+
+        # We should have reverted to the default cube.
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        cube_eval = cube.evaluated_get(depsgraph)
+        mesh = cube_eval.to_mesh()
+        self.assertEqual(len(mesh.vertices), 8)
+        self.assertEqual(len(mesh.edges), 12)
+        self.assertEqual(len(mesh.polygons), 6)
 
 
 def main():

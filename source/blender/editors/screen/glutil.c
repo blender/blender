@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edscr
@@ -57,12 +41,6 @@ static void immDrawPixelsTexSetupAttributes(IMMDrawPixelsTexState *state)
       vert_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 }
 
-/**
- * To be used before calling #immDrawPixelsTex
- * Default shader is #GPU_SHADER_2D_IMAGE_COLOR
- * You can still set uniforms with:
- * `GPU_shader_uniform_int(shader, GPU_shader_get_uniform(shader, "name"), 0);`
- */
 IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin)
 {
   IMMDrawPixelsTexState state;
@@ -70,7 +48,7 @@ IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin)
 
   state.shader = GPU_shader_get_builtin_shader(builtin);
 
-  /* Shader will be unbind by immUnbindProgram in immDrawPixelsTexScaled_clipping */
+  /* Shader will be unbind by immUnbindProgram in a `immDrawPixelsTex` function. */
   immBindBuiltinProgram(builtin);
   immUniform1i("image", 0);
   state.do_shader_unbind = true;
@@ -78,37 +56,93 @@ IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin)
   return state;
 }
 
-/**
- * Use the currently bound shader.
- *
- * Use #immDrawPixelsTexSetup to bind the shader you
- * want before calling #immDrawPixelsTex.
- *
- * If using a special shader double check it uses the same
- * attributes "pos" "texCoord" and uniform "image".
- *
- * If color is NULL then use white by default
- *
- * Be also aware that this function unbinds the shader when
- * it's finished.
- */
-void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
-                                     float x,
-                                     float y,
-                                     int img_w,
-                                     int img_h,
-                                     eGPUTextureFormat gpu_format,
-                                     bool use_filter,
-                                     void *rect,
-                                     float scaleX,
-                                     float scaleY,
-                                     float clip_min_x,
-                                     float clip_min_y,
-                                     float clip_max_x,
-                                     float clip_max_y,
-                                     float xzoom,
-                                     float yzoom,
-                                     const float color[4])
+void immDrawPixelsTexScaledFullSize(const IMMDrawPixelsTexState *state,
+                                    const float x,
+                                    const float y,
+                                    const int img_w,
+                                    const int img_h,
+                                    const eGPUTextureFormat gpu_format,
+                                    const bool use_filter,
+                                    const void *rect,
+                                    const float scaleX,
+                                    const float scaleY,
+                                    const float xzoom,
+                                    const float yzoom,
+                                    const float color[4])
+{
+  static const float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  const float draw_width = img_w * scaleX * xzoom;
+  const float draw_height = img_h * scaleY * yzoom;
+  /* Down-scaling with regular bi-linear interpolation (i.e. #GL_LINEAR) doesn't give good
+   * filtering results. Mipmaps can be used to get better results (i.e. #GL_LINEAR_MIPMAP_LINEAR),
+   * so always use mipmaps when filtering. */
+  const bool use_mipmap = use_filter && ((draw_width < img_w) || (draw_height < img_h));
+  const int mips = use_mipmap ? 9999 : 1;
+
+  GPUTexture *tex = GPU_texture_create_2d("immDrawPixels", img_w, img_h, mips, gpu_format, NULL);
+
+  const bool use_float_data = ELEM(gpu_format, GPU_RGBA16F, GPU_RGB16F, GPU_R16F);
+  eGPUDataFormat gpu_data_format = (use_float_data) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
+  GPU_texture_update(tex, gpu_data_format, rect);
+
+  GPU_texture_filter_mode(tex, use_filter);
+  if (use_mipmap) {
+    GPU_texture_generate_mipmap(tex);
+    GPU_texture_mipmap_mode(tex, true, true);
+  }
+  GPU_texture_wrap_mode(tex, false, true);
+
+  GPU_texture_bind(tex, 0);
+
+  /* optional */
+  /* NOTE: Shader could be null for GLSL OCIO drawing, it is fine, since
+   * it does not need color.
+   */
+  if (state->shader != NULL && GPU_shader_get_uniform(state->shader, "color") != -1) {
+    immUniformColor4fv((color) ? color : white);
+  }
+
+  uint pos = state->pos, texco = state->texco;
+
+  immBegin(GPU_PRIM_TRI_FAN, 4);
+  immAttr2f(texco, 0.0f, 0.0f);
+  immVertex2f(pos, x, y);
+
+  immAttr2f(texco, 1.0f, 0.0f);
+  immVertex2f(pos, x + draw_width, y);
+
+  immAttr2f(texco, 1.0f, 1.0f);
+  immVertex2f(pos, x + draw_width, y + draw_height);
+
+  immAttr2f(texco, 0.0f, 1.0f);
+  immVertex2f(pos, x, y + draw_height);
+  immEnd();
+
+  if (state->do_shader_unbind) {
+    immUnbindProgram();
+  }
+
+  GPU_texture_unbind(tex);
+  GPU_texture_free(tex);
+}
+
+void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
+                                            float x,
+                                            float y,
+                                            int img_w,
+                                            int img_h,
+                                            eGPUTextureFormat gpu_format,
+                                            bool use_filter,
+                                            void *rect,
+                                            float scaleX,
+                                            float scaleY,
+                                            float clip_min_x,
+                                            float clip_min_y,
+                                            float clip_max_x,
+                                            float clip_max_y,
+                                            float xzoom,
+                                            float yzoom,
+                                            const float color[4])
 {
   int subpart_x, subpart_y, tex_w = 256, tex_h = 256;
   int seamless, offset_x, offset_y, nsubparts_x, nsubparts_y;
@@ -262,108 +296,107 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
   GPU_unpack_row_length_set(0);
 }
 
-void immDrawPixelsTexScaled(IMMDrawPixelsTexState *state,
-                            float x,
-                            float y,
-                            int img_w,
-                            int img_h,
-                            eGPUTextureFormat gpu_format,
-                            bool use_filter,
-                            void *rect,
-                            float scaleX,
-                            float scaleY,
-                            float xzoom,
-                            float yzoom,
-                            const float color[4])
+void immDrawPixelsTexTiled_scaling(IMMDrawPixelsTexState *state,
+                                   float x,
+                                   float y,
+                                   int img_w,
+                                   int img_h,
+                                   eGPUTextureFormat gpu_format,
+                                   bool use_filter,
+                                   void *rect,
+                                   float scaleX,
+                                   float scaleY,
+                                   float xzoom,
+                                   float yzoom,
+                                   const float color[4])
 {
-  immDrawPixelsTexScaled_clipping(state,
-                                  x,
-                                  y,
-                                  img_w,
-                                  img_h,
-                                  gpu_format,
-                                  use_filter,
-                                  rect,
-                                  scaleX,
-                                  scaleY,
-                                  0.0f,
-                                  0.0f,
-                                  0.0f,
-                                  0.0f,
-                                  xzoom,
-                                  yzoom,
-                                  color);
+  immDrawPixelsTexTiled_scaling_clipping(state,
+                                         x,
+                                         y,
+                                         img_w,
+                                         img_h,
+                                         gpu_format,
+                                         use_filter,
+                                         rect,
+                                         scaleX,
+                                         scaleY,
+                                         0.0f,
+                                         0.0f,
+                                         0.0f,
+                                         0.0f,
+                                         xzoom,
+                                         yzoom,
+                                         color);
 }
 
-void immDrawPixelsTex(IMMDrawPixelsTexState *state,
-                      float x,
-                      float y,
-                      int img_w,
-                      int img_h,
-                      eGPUTextureFormat gpu_format,
-                      bool use_filter,
-                      void *rect,
-                      float xzoom,
-                      float yzoom,
-                      const float color[4])
+void immDrawPixelsTexTiled(IMMDrawPixelsTexState *state,
+                           float x,
+                           float y,
+                           int img_w,
+                           int img_h,
+                           eGPUTextureFormat gpu_format,
+                           bool use_filter,
+                           void *rect,
+                           float xzoom,
+                           float yzoom,
+                           const float color[4])
 {
-  immDrawPixelsTexScaled_clipping(state,
-                                  x,
-                                  y,
-                                  img_w,
-                                  img_h,
-                                  gpu_format,
-                                  use_filter,
-                                  rect,
-                                  1.0f,
-                                  1.0f,
-                                  0.0f,
-                                  0.0f,
-                                  0.0f,
-                                  0.0f,
-                                  xzoom,
-                                  yzoom,
-                                  color);
+  immDrawPixelsTexTiled_scaling_clipping(state,
+                                         x,
+                                         y,
+                                         img_w,
+                                         img_h,
+                                         gpu_format,
+                                         use_filter,
+                                         rect,
+                                         1.0f,
+                                         1.0f,
+                                         0.0f,
+                                         0.0f,
+                                         0.0f,
+                                         0.0f,
+                                         xzoom,
+                                         yzoom,
+                                         color);
 }
 
-void immDrawPixelsTex_clipping(IMMDrawPixelsTexState *state,
-                               float x,
-                               float y,
-                               int img_w,
-                               int img_h,
-                               eGPUTextureFormat gpu_format,
-                               bool use_filter,
-                               void *rect,
-                               float clip_min_x,
-                               float clip_min_y,
-                               float clip_max_x,
-                               float clip_max_y,
-                               float xzoom,
-                               float yzoom,
-                               const float color[4])
+void immDrawPixelsTexTiled_clipping(IMMDrawPixelsTexState *state,
+                                    float x,
+                                    float y,
+                                    int img_w,
+                                    int img_h,
+                                    eGPUTextureFormat gpu_format,
+                                    bool use_filter,
+                                    void *rect,
+                                    float clip_min_x,
+                                    float clip_min_y,
+                                    float clip_max_x,
+                                    float clip_max_y,
+                                    float xzoom,
+                                    float yzoom,
+                                    const float color[4])
 {
-  immDrawPixelsTexScaled_clipping(state,
-                                  x,
-                                  y,
-                                  img_w,
-                                  img_h,
-                                  gpu_format,
-                                  use_filter,
-                                  rect,
-                                  1.0f,
-                                  1.0f,
-                                  clip_min_x,
-                                  clip_min_y,
-                                  clip_max_x,
-                                  clip_max_y,
-                                  xzoom,
-                                  yzoom,
-                                  color);
+  immDrawPixelsTexTiled_scaling_clipping(state,
+                                         x,
+                                         y,
+                                         img_w,
+                                         img_h,
+                                         gpu_format,
+                                         use_filter,
+                                         rect,
+                                         1.0f,
+                                         1.0f,
+                                         clip_min_x,
+                                         clip_min_y,
+                                         clip_max_x,
+                                         clip_max_y,
+                                         xzoom,
+                                         yzoom,
+                                         color);
 }
 
 /* **** Color management helper functions for GLSL display/transform ***** */
 
-/* Draw given image buffer on a screen using GLSL for display transform */
 void ED_draw_imbuf_clipping(ImBuf *ibuf,
                             float x,
                             float y,
@@ -430,40 +463,40 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
         }
 
         if (format != 0) {
-          immDrawPixelsTex_clipping(&state,
-                                    x,
-                                    y,
-                                    ibuf->x,
-                                    ibuf->y,
-                                    format,
-                                    use_filter,
-                                    ibuf->rect_float,
-                                    clip_min_x,
-                                    clip_min_y,
-                                    clip_max_x,
-                                    clip_max_y,
-                                    zoom_x,
-                                    zoom_y,
-                                    NULL);
+          immDrawPixelsTexTiled_clipping(&state,
+                                         x,
+                                         y,
+                                         ibuf->x,
+                                         ibuf->y,
+                                         format,
+                                         use_filter,
+                                         ibuf->rect_float,
+                                         clip_min_x,
+                                         clip_min_y,
+                                         clip_max_x,
+                                         clip_max_y,
+                                         zoom_x,
+                                         zoom_y,
+                                         NULL);
         }
       }
       else if (ibuf->rect) {
         /* ibuf->rect is always RGBA */
-        immDrawPixelsTex_clipping(&state,
-                                  x,
-                                  y,
-                                  ibuf->x,
-                                  ibuf->y,
-                                  GPU_RGBA8,
-                                  use_filter,
-                                  ibuf->rect,
-                                  clip_min_x,
-                                  clip_min_y,
-                                  clip_max_x,
-                                  clip_max_y,
-                                  zoom_x,
-                                  zoom_y,
-                                  NULL);
+        immDrawPixelsTexTiled_clipping(&state,
+                                       x,
+                                       y,
+                                       ibuf->x,
+                                       ibuf->y,
+                                       GPU_RGBA8,
+                                       use_filter,
+                                       ibuf->rect,
+                                       clip_min_x,
+                                       clip_min_y,
+                                       clip_max_x,
+                                       clip_max_y,
+                                       zoom_x,
+                                       zoom_y,
+                                       NULL);
       }
 
       IMB_colormanagement_finish_glsl_draw();
@@ -482,21 +515,21 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
 
     if (display_buffer) {
       IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-      immDrawPixelsTex_clipping(&state,
-                                x,
-                                y,
-                                ibuf->x,
-                                ibuf->y,
-                                GPU_RGBA8,
-                                use_filter,
-                                display_buffer,
-                                clip_min_x,
-                                clip_min_y,
-                                clip_max_x,
-                                clip_max_y,
-                                zoom_x,
-                                zoom_y,
-                                NULL);
+      immDrawPixelsTexTiled_clipping(&state,
+                                     x,
+                                     y,
+                                     ibuf->x,
+                                     ibuf->y,
+                                     GPU_RGBA8,
+                                     use_filter,
+                                     display_buffer,
+                                     clip_min_x,
+                                     clip_min_y,
+                                     clip_max_x,
+                                     clip_max_y,
+                                     zoom_x,
+                                     zoom_y,
+                                     NULL);
     }
 
     IMB_display_buffer_release(cache_handle);
@@ -577,8 +610,6 @@ int ED_draw_imbuf_method(ImBuf *ibuf)
   return U.image_draw_method;
 }
 
-/* don't move to GPU_immediate_util.h because this uses user-prefs
- * and isn't very low level */
 void immDrawBorderCorners(uint pos, const rcti *border, float zoomx, float zoomy)
 {
   float delta_x = 4.0f * UI_DPI_FAC / zoomx;

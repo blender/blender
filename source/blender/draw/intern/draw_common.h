@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2016, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 Blender Foundation. */
 
 /** \file
  * \ingroup draw
@@ -24,12 +9,12 @@
 
 struct DRWShadingGroup;
 struct FluidModifierData;
+struct GPUMaterial;
 struct ModifierData;
 struct Object;
 struct ParticleSystem;
 struct RegionView3D;
 struct ViewLayer;
-struct GPUMaterial;
 
 #define UBO_FIRST_COLOR colorWire
 #define UBO_LAST_COLOR colorUVShadow
@@ -161,6 +146,10 @@ struct DRWView *DRW_view_create_with_zoffset(const struct DRWView *parent_view,
                                              const struct RegionView3D *rv3d,
                                              float offset);
 
+/**
+ * Get the wire color theme_id of an object based on its state
+ * \a r_color is a way to get a pointer to the static color var associated
+ */
 int DRW_object_wire_theme_get(struct Object *ob, struct ViewLayer *view_layer, float **r_color);
 float *DRW_color_background_blend_get(int theme_id);
 
@@ -169,13 +158,18 @@ bool DRW_object_axis_orthogonal_to_view(struct Object *ob, int axis);
 
 /* draw_hair.c */
 
-/* This creates a shading group with display hairs.
- * The draw call is already added by this function, just add additional uniforms. */
+/**
+ * This creates a shading group with display hairs.
+ * The draw call is already added by this function, just add additional uniforms.
+ */
 struct DRWShadingGroup *DRW_shgroup_hair_create_sub(struct Object *object,
                                                     struct ParticleSystem *psys,
                                                     struct ModifierData *md,
                                                     struct DRWShadingGroup *shgrp,
                                                     struct GPUMaterial *gpu_material);
+/**
+ * \note Only valid after #DRW_hair_update().
+ */
 struct GPUVertBuf *DRW_hair_pos_buffer_get(struct Object *object,
                                            struct ParticleSystem *psys,
                                            struct ModifierData *md);
@@ -201,6 +195,7 @@ void DRW_smoke_free(struct FluidModifierData *fmd);
 void DRW_smoke_free_velocity(struct FluidModifierData *fmd);
 
 /* draw_common.c */
+
 struct DRW_Global {
   /** If needed, contains all global/Theme colors
    * Add needed theme colors / values to DRW_globals_update() and update UBO

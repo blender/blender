@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -227,7 +211,7 @@ static void curve_deform_coords_impl(const Object *ob_curve,
   bool use_dverts = false;
   int cd_dvert_offset;
 
-  if (ob_curve->type != OB_CURVE) {
+  if (ob_curve->type != OB_CURVES_LEGACY) {
     return;
   }
 
@@ -410,12 +394,6 @@ void BKE_curve_deform_coords_with_editmesh(const Object *ob_curve,
                            em_target);
 }
 
-/**
- * \param orco: Input vec and orco = local coord in curve space
- * orco is original not-animated or deformed reference point.
- *
- * The result written in vec and r_mat.
- */
 void BKE_curve_deform_co(const Object *ob_curve,
                          const Object *ob_target,
                          const float orco[3],
@@ -426,7 +404,7 @@ void BKE_curve_deform_co(const Object *ob_curve,
   CurveDeform cd;
   float quat[4];
 
-  if (ob_curve->type != OB_CURVE) {
+  if (ob_curve->type != OB_CURVES_LEGACY) {
     unit_m3(r_mat);
     return;
   }

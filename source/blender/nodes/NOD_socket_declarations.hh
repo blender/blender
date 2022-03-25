@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -21,7 +7,7 @@
 #include "RNA_types.h"
 
 #include "BLI_color.hh"
-#include "BLI_float3.hh"
+#include "BLI_math_vec_types.hh"
 
 namespace blender::nodes::decl {
 
@@ -39,16 +25,17 @@ class Float : public SocketDeclaration {
  public:
   using Builder = FloatBuilder;
 
-  bNodeSocket &build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const override;
+  bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
   bool matches(const bNodeSocket &socket) const override;
   bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
+  bool can_connect(const bNodeSocket &socket) const override;
 };
 
 class FloatBuilder : public SocketDeclarationBuilder<Float> {
  public:
-  FloatBuilder &min(const float value);
-  FloatBuilder &max(const float value);
-  FloatBuilder &default_value(const float value);
+  FloatBuilder &min(float value);
+  FloatBuilder &max(float value);
+  FloatBuilder &default_value(float value);
   FloatBuilder &subtype(PropertySubType subtype);
 };
 
@@ -66,16 +53,17 @@ class Int : public SocketDeclaration {
  public:
   using Builder = IntBuilder;
 
-  bNodeSocket &build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const override;
+  bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
   bool matches(const bNodeSocket &socket) const override;
   bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
+  bool can_connect(const bNodeSocket &socket) const override;
 };
 
 class IntBuilder : public SocketDeclarationBuilder<Int> {
  public:
-  IntBuilder &min(const int value);
-  IntBuilder &max(const int value);
-  IntBuilder &default_value(const int value);
+  IntBuilder &min(int value);
+  IntBuilder &max(int value);
+  IntBuilder &default_value(int value);
   IntBuilder &subtype(PropertySubType subtype);
 };
 
@@ -93,17 +81,19 @@ class Vector : public SocketDeclaration {
  public:
   using Builder = VectorBuilder;
 
-  bNodeSocket &build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const override;
+  bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
   bool matches(const bNodeSocket &socket) const override;
   bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
+  bool can_connect(const bNodeSocket &socket) const override;
 };
 
 class VectorBuilder : public SocketDeclarationBuilder<Vector> {
  public:
   VectorBuilder &default_value(const float3 value);
   VectorBuilder &subtype(PropertySubType subtype);
-  VectorBuilder &min(const float min);
-  VectorBuilder &max(const float max);
+  VectorBuilder &min(float min);
+  VectorBuilder &max(float max);
+  VectorBuilder &compact();
 };
 
 class BoolBuilder;
@@ -116,13 +106,14 @@ class Bool : public SocketDeclaration {
  public:
   using Builder = BoolBuilder;
 
-  bNodeSocket &build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const override;
+  bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
   bool matches(const bNodeSocket &socket) const override;
+  bool can_connect(const bNodeSocket &socket) const override;
 };
 
 class BoolBuilder : public SocketDeclarationBuilder<Bool> {
  public:
-  BoolBuilder &default_value(const bool value);
+  BoolBuilder &default_value(bool value);
 };
 
 class ColorBuilder;
@@ -136,8 +127,9 @@ class Color : public SocketDeclaration {
  public:
   using Builder = ColorBuilder;
 
-  bNodeSocket &build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const override;
+  bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
   bool matches(const bNodeSocket &socket) const override;
+  bool can_connect(const bNodeSocket &socket) const override;
 };
 
 class ColorBuilder : public SocketDeclarationBuilder<Color> {
@@ -156,8 +148,9 @@ class String : public SocketDeclaration {
  public:
   using Builder = StringBuilder;
 
-  bNodeSocket &build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const override;
+  bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
   bool matches(const bNodeSocket &socket) const override;
+  bool can_connect(const bNodeSocket &socket) const override;
 };
 
 class StringBuilder : public SocketDeclarationBuilder<String> {
@@ -172,9 +165,10 @@ class IDSocketDeclaration : public SocketDeclaration {
  public:
   IDSocketDeclaration(const char *idname);
 
-  bNodeSocket &build(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out) const override;
+  bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
   bool matches(const bNodeSocket &socket) const override;
   bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
+  bool can_connect(const bNodeSocket &socket) const override;
 };
 
 class Object : public IDSocketDeclaration {
@@ -210,6 +204,23 @@ class Image : public IDSocketDeclaration {
   using Builder = SocketDeclarationBuilder<Image>;
 
   Image();
+};
+
+class ShaderBuilder;
+
+class Shader : public SocketDeclaration {
+ private:
+  friend ShaderBuilder;
+
+ public:
+  using Builder = ShaderBuilder;
+
+  bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
+  bool matches(const bNodeSocket &socket) const override;
+  bool can_connect(const bNodeSocket &socket) const override;
+};
+
+class ShaderBuilder : public SocketDeclarationBuilder<Shader> {
 };
 
 /* -------------------------------------------------------------------- */
@@ -300,6 +311,12 @@ inline VectorBuilder &VectorBuilder::max(const float max)
   return *this;
 }
 
+inline VectorBuilder &VectorBuilder::compact()
+{
+  decl_->compact_ = true;
+  return *this;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -369,26 +386,3 @@ inline Image::Image() : IDSocketDeclaration("NodeSocketImage")
 /** \} */
 
 }  // namespace blender::nodes::decl
-
-/* -------------------------------------------------------------------- */
-/** \name External Template Instantiations
- *
- * Defined in `intern/extern_implementations.cc`.
- * \{ */
-
-namespace blender::nodes {
-#define MAKE_EXTERN_SOCKET_DECLARATION(TYPE) \
-  extern template class SocketDeclarationBuilder<TYPE>; \
-  extern template TYPE::Builder &NodeDeclarationBuilder::add_input<TYPE>(StringRef, StringRef); \
-  extern template TYPE::Builder &NodeDeclarationBuilder::add_output<TYPE>(StringRef, StringRef);
-
-MAKE_EXTERN_SOCKET_DECLARATION(decl::Float)
-MAKE_EXTERN_SOCKET_DECLARATION(decl::Int)
-MAKE_EXTERN_SOCKET_DECLARATION(decl::Vector)
-MAKE_EXTERN_SOCKET_DECLARATION(decl::Bool)
-MAKE_EXTERN_SOCKET_DECLARATION(decl::Color)
-MAKE_EXTERN_SOCKET_DECLARATION(decl::String)
-
-}  // namespace blender::nodes
-
-/** \} */

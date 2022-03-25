@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #pragma once
 
@@ -91,6 +78,14 @@ ccl_device_forceinline void kernel_write_denoising_features_surface(
     }
     else if (sc->type == CLOSURE_BSDF_HAIR_PRINCIPLED_ID) {
       closure_albedo *= bsdf_principled_hair_albedo(sc);
+    }
+    else if (sc->type == CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID) {
+      /* BSSRDF already accounts for weight, retro-reflection would double up. */
+      ccl_private const PrincipledDiffuseBsdf *bsdf = (ccl_private const PrincipledDiffuseBsdf *)
+          sc;
+      if (bsdf->components == PRINCIPLED_DIFFUSE_RETRO_REFLECTION) {
+        continue;
+      }
     }
 
     if (bsdf_get_specular_roughness_squared(sc) > sqr(0.075f)) {
@@ -177,7 +172,7 @@ ccl_device_inline void kernel_write_data_passes(KernelGlobals kg,
 #ifdef __PASSES__
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
-  if (!(path_flag & PATH_RAY_CAMERA)) {
+  if (!(path_flag & PATH_RAY_TRANSPARENT_BACKGROUND)) {
     return;
   }
 

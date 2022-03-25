@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2020, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. */
 
 /** \file
  * \ingroup gpu
@@ -84,7 +69,6 @@ void GLStateManager::apply_state()
   active_fb->apply_state();
 };
 
-/* Will set all the states regardless of the current ones. */
 void GLStateManager::force_state()
 {
   /* Little exception for clip distances since they need to keep the old count correct. */
@@ -378,7 +362,7 @@ void GLStateManager::set_blend(const eGPUBlend value)
       break;
     }
     case GPU_BLEND_ADDITIVE: {
-      /* Do not let alpha accumulate but premult the source RGB by it. */
+      /* Do not let alpha accumulate but pre-multiply the source RGB by it. */
       src_rgb = GL_SRC_ALPHA;
       dst_rgb = GL_ONE;
       src_alpha = GL_ZERO;
@@ -482,7 +466,6 @@ void GLStateManager::texture_bind(Texture *tex_, eGPUSamplerState sampler_type, 
   dirty_texture_binds_ |= 1ULL << unit;
 }
 
-/* Bind the texture to slot 0 for editing purpose. Used by legacy pipeline. */
 void GLStateManager::texture_bind_temp(GLTexture *tex)
 {
   glActiveTexture(GL_TEXTURE0);

@@ -1,22 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- * Support for linked lists.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bli
@@ -100,10 +83,6 @@ void BLI_linklist_reverse(LinkNode **listp)
   *listp = rhead;
 }
 
-/**
- * Move an item from its current position to a new one inside a single-linked list.
- * Note *listp may be modified.
- */
 void BLI_linklist_move_item(LinkNode **listp, int curr_index, int new_index)
 {
   LinkNode *lnk, *lnk_psrc = NULL, *lnk_pdst = NULL;
@@ -171,9 +150,6 @@ void BLI_linklist_move_item(LinkNode **listp, int curr_index, int new_index)
   }
 }
 
-/**
- * A version of prepend that takes the allocated link.
- */
 void BLI_linklist_prepend_nlink(LinkNode **listp, void *ptr, LinkNode *nlink)
 {
   nlink->link = ptr;
@@ -199,9 +175,6 @@ void BLI_linklist_prepend_pool(LinkNode **listp, void *ptr, BLI_mempool *mempool
   BLI_linklist_prepend_nlink(listp, ptr, nlink);
 }
 
-/**
- * A version of append that takes the allocated link.
- */
 void BLI_linklist_append_nlink(LinkNodePair *list_pair, void *ptr, LinkNode *nlink)
 {
   nlink->link = ptr;

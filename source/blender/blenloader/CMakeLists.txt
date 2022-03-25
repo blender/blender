@@ -1,22 +1,5 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# The Original Code is Copyright (C) 2006, Blender Foundation
-# All rights reserved.
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright 2006 Blender Foundation. All rights reserved.
 
 set(INC
   .
@@ -26,6 +9,7 @@ set(INC
   ../blentranslation
   ../depsgraph
   ../draw
+  ../editors/include
   ../imbuf
   ../makesdna
   ../makesrna
@@ -34,12 +18,12 @@ set(INC
   ../sequencer
   ../windowmanager
   ../../../intern/clog
-  ../../../intern/ghost
   ../../../intern/guardedalloc
 
   # for writefile.c: dna_type_offsets.h
   ${CMAKE_BINARY_DIR}/source/blender/makesdna/intern
-
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -86,10 +70,6 @@ if(WITH_BUILDINFO)
   add_definitions(-DWITH_BUILDINFO)
 endif()
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
 if(WITH_CODEC_FFMPEG)
   add_definitions(-DWITH_FFMPEG)
 endif()
@@ -105,6 +85,8 @@ blender_add_lib(bf_blenloader "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # needed so writefile.c can use dna_type_offsets.h
 add_dependencies(bf_blenloader bf_dna)
+# RNA_prototypes.h
+add_dependencies(bf_blenloader bf_rna)
 
 if(WITH_GTESTS)
   set(TEST_SRC
@@ -114,6 +96,7 @@ if(WITH_GTESTS)
     tests/blendfile_loading_base_test.h
   )
   set(TEST_INC
+    ../../../intern/ghost
   )
   set(TEST_LIB
     bf_blenloader

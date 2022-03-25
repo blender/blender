@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2015, Blender Foundation
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2015 Blender Foundation. */
 
 /** \file
  * \ingroup editors
@@ -33,10 +18,21 @@ struct bContext;
 
 bool ED_outliner_collections_editor_poll(struct bContext *C);
 
+/**
+ * Populates the \param objects: ListBase with all the outliner selected objects
+ * We store it as (Object *)LinkData->data
+ * \param objects: expected to be empty
+ */
 void ED_outliner_selected_objects_get(const struct bContext *C, struct ListBase *objects);
 
+/**
+ * Get base of object under cursor. Used for eyedropper tool.
+ */
 struct Base *ED_outliner_give_base_under_cursor(struct bContext *C, const int mval[2]);
 
+/**
+ * Functions for tagging outliner selection syncing is dirty from operators.
+ */
 void ED_outliner_select_sync_from_object_tag(struct bContext *C);
 void ED_outliner_select_sync_from_edit_bone_tag(struct bContext *C);
 void ED_outliner_select_sync_from_pose_bone_tag(struct bContext *C);
@@ -45,9 +41,15 @@ void ED_outliner_select_sync_from_all_tag(struct bContext *C);
 
 bool ED_outliner_select_sync_is_dirty(const struct bContext *C);
 
+/**
+ * Set clean outliner and mark other outliners for syncing.
+ */
 void ED_outliner_select_sync_from_outliner(struct bContext *C,
                                            struct SpaceOutliner *space_outliner);
 
+/**
+ * Copy sync select dirty flag from window manager to all outliners to be synced lazily on draw.
+ */
 void ED_outliner_select_sync_flag_outliners(const struct bContext *C);
 
 #ifdef __cplusplus

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -86,11 +72,6 @@ void BLI_buffer_resize(BLI_Buffer *buffer, const size_t new_count)
   buffer->count = new_count;
 }
 
-/**
- * Similar to #BLI_buffer_resize, but use when the existing data can be:
- * - Ignored (malloc'd)
- * - Cleared (when BLI_BUFFER_USE_CALLOC is set)
- */
 void BLI_buffer_reinit(BLI_Buffer *buffer, const size_t new_count)
 {
   if (UNLIKELY(new_count > buffer->alloc_count)) {
@@ -114,7 +95,6 @@ void BLI_buffer_reinit(BLI_Buffer *buffer, const size_t new_count)
   buffer->count = new_count;
 }
 
-/* Callers use BLI_buffer_append_array. */
 void _bli_buffer_append_array(BLI_Buffer *buffer, void *new_data, size_t count)
 {
   size_t size = buffer->count;
@@ -124,7 +104,6 @@ void _bli_buffer_append_array(BLI_Buffer *buffer, void *new_data, size_t count)
   memcpy(bytes + size * buffer->elem_size, new_data, count * buffer->elem_size);
 }
 
-/* callers use BLI_buffer_free */
 void _bli_buffer_free(BLI_Buffer *buffer)
 {
   if ((buffer->flag & BLI_BUFFER_USE_STATIC) == 0) {

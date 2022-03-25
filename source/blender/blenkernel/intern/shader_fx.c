@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2018, Blender Foundation
- * This is a new part of Blender
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2018 Blender Foundation. */
 
 /** \file
  * \ingroup bke
@@ -57,7 +41,6 @@ static ShaderFxTypeInfo *shader_fx_types[NUM_SHADER_FX_TYPES] = {NULL};
 /* *************************************************** */
 /* Methods - Evaluation Loops, etc. */
 
-/* check if exist grease pencil effects */
 bool BKE_shaderfx_has_gpencil(const Object *ob)
 {
   const ShaderFxData *fx;
@@ -136,7 +119,6 @@ void BKE_shaderfx_free(ShaderFxData *fx)
   BKE_shaderfx_free_ex(fx, 0);
 }
 
-/* check unique name */
 bool BKE_shaderfx_unique_name(ListBase *shaders, ShaderFxData *fx)
 {
   if (shaders && fx) {
@@ -164,24 +146,12 @@ const ShaderFxTypeInfo *BKE_shaderfx_get_info(ShaderFxType type)
   return NULL;
 }
 
-/**
- * Check whether given shaderfx is not local (i.e. from linked data) when the object is a library
- * override.
- *
- * \param shaderfx: May be NULL, in which case we consider it as a non-local shaderfx case.
- */
 bool BKE_shaderfx_is_nonlocal_in_liboverride(const Object *ob, const ShaderFxData *shaderfx)
 {
   return (ID_IS_OVERRIDE_LIBRARY(ob) &&
           ((shaderfx == NULL) || (shaderfx->flag & eShaderFxFlag_OverrideLibrary_Local) == 0));
 }
 
-/**
- * Get an effect's panel type, which was defined in the #panelRegister callback.
- *
- * \note ShaderFx panel types are assumed to be named with the struct name field concatenated to
- * the defined prefix.
- */
 void BKE_shaderfxType_panel_id(ShaderFxType type, char *r_idname)
 {
   const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(type);

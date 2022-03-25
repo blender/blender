@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) (C) 2009 Blender Foundation, Joshua Leung
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
 
 /** \file
  * \ingroup editors
@@ -140,12 +124,9 @@ typedef enum eKeyframeExtremeDrawOpts {
 struct AnimKeylist *ED_keylist_create(void);
 void ED_keylist_free(struct AnimKeylist *keylist);
 void ED_keylist_prepare_for_direct_access(struct AnimKeylist *keylist);
-const struct ActKeyColumn *ED_keylist_find_exact(const struct AnimKeylist *keylist,
-                                                 const float cfra);
-const struct ActKeyColumn *ED_keylist_find_next(const struct AnimKeylist *keylist,
-                                                const float cfra);
-const struct ActKeyColumn *ED_keylist_find_prev(const struct AnimKeylist *keylist,
-                                                const float cfra);
+const struct ActKeyColumn *ED_keylist_find_exact(const struct AnimKeylist *keylist, float cfra);
+const struct ActKeyColumn *ED_keylist_find_next(const struct AnimKeylist *keylist, float cfra);
+const struct ActKeyColumn *ED_keylist_find_prev(const struct AnimKeylist *keylist, float cfra);
 const struct ActKeyColumn *ED_keylist_find_any_between(const struct AnimKeylist *keylist,
                                                        const Range2f frame_range);
 bool ED_keylist_is_empty(const struct AnimKeylist *keylist);
@@ -160,41 +141,39 @@ int64_t ED_keylist_array_len(const struct AnimKeylist *keylist);
 void fcurve_to_keylist(struct AnimData *adt,
                        struct FCurve *fcu,
                        struct AnimKeylist *keylist,
-                       const int saction_flag);
+                       int saction_flag);
 /* Action Group */
 void agroup_to_keylist(struct AnimData *adt,
                        struct bActionGroup *agrp,
                        struct AnimKeylist *keylist,
-                       const int saction_flag);
+                       int saction_flag);
 /* Action */
 void action_to_keylist(struct AnimData *adt,
                        struct bAction *act,
                        struct AnimKeylist *keylist,
-                       const int saction_flag);
+                       int saction_flag);
 /* Object */
 void ob_to_keylist(struct bDopeSheet *ads,
                    struct Object *ob,
                    struct AnimKeylist *keylist,
-                   const int saction_flag);
+                   int saction_flag);
 /* Cache File */
 void cachefile_to_keylist(struct bDopeSheet *ads,
                           struct CacheFile *cache_file,
                           struct AnimKeylist *keylist,
-                          const int saction_flag);
+                          int saction_flag);
 /* Scene */
 void scene_to_keylist(struct bDopeSheet *ads,
                       struct Scene *sce,
                       struct AnimKeylist *keylist,
-                      const int saction_flag);
+                      int saction_flag);
 /* DopeSheet Summary */
-void summary_to_keylist(struct bAnimContext *ac,
-                        struct AnimKeylist *keylist,
-                        const int saction_flag);
+void summary_to_keylist(struct bAnimContext *ac, struct AnimKeylist *keylist, int saction_flag);
 /* Grease Pencil datablock summary */
 void gpencil_to_keylist(struct bDopeSheet *ads,
                         struct bGPdata *gpd,
                         struct AnimKeylist *keylist,
-                        const bool active);
+                        bool active);
 /* Grease Pencil Layer */
 void gpl_to_keylist(struct bDopeSheet *ads, struct bGPDlayer *gpl, struct AnimKeylist *keylist);
 /* Mask */
@@ -204,10 +183,10 @@ void mask_to_keylist(struct bDopeSheet *ads,
 
 /* ActKeyColumn API ---------------- */
 
-/* Checks if ActKeyColumn has any block data */
+/** Checks if #ActKeyColumn has any block data. */
 bool actkeyblock_is_valid(const ActKeyColumn *ac);
 
-/* Checks if ActKeyColumn can be used as a block (i.e. drawn/used to detect "holds") */
+/** Checks if #ActKeyColumn can be used as a block (i.e. drawn/used to detect "holds"). */
 int actkeyblock_get_valid_hold(const ActKeyColumn *ac);
 
 #ifdef __cplusplus

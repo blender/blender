@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) Blender Foundation
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -1673,7 +1657,7 @@ static int sb_detect_vertex_collisionCached(float opco[3],
 
           if ((opco[0] < minx) || (opco[1] < miny) || (opco[2] < minz) || (opco[0] > maxx) ||
               (opco[1] > maxy) || (opco[2] > maxz)) {
-            /* outside the padded boundbox --> collision object is too far away */
+            /* Outside the padded bound-box -> collision object is too far away. */
             BLI_ghashIterator_step(ihash);
             continue;
           }
@@ -2633,7 +2617,7 @@ static void interpolate_exciter(Object *ob, int timescale, int time)
   }
 }
 
-/* ************ convertors ********** */
+/* ************ converters ********** */
 
 /* for each object type we need;
  * - xxxx_to_softbody(Object *ob)      : a full (new) copy, creates SB geometry
@@ -2983,7 +2967,7 @@ static void curve_surf_to_softbody(Object *ob)
   totvert = BKE_nurbList_verts_count(&cu->nurb);
 
   if (ob->softflag & OB_SB_EDGES) {
-    if (ob->type == OB_CURVE) {
+    if (ob->type == OB_CURVES_LEGACY) {
       totspring = totvert - BLI_listbase_count(&cu->nurb);
     }
   }
@@ -3112,7 +3096,6 @@ static void sb_new_scratch(SoftBody *sb)
 
 /* ************ Object level, exported functions *************** */
 
-/* allocates and initializes general main data */
 SoftBody *sbNew(void)
 {
   SoftBody *sb;
@@ -3162,7 +3145,6 @@ SoftBody *sbNew(void)
   return sb;
 }
 
-/* frees all */
 void sbFree(Object *ob)
 {
   SoftBody *sb = ob->soft;
@@ -3193,7 +3175,6 @@ void sbFreeSimulation(SoftBody *sb)
   free_softbody_intern(sb);
 }
 
-/* makes totally fresh start situation */
 void sbObjectToSoftbody(Object *ob)
 {
   // ob->softflag |= OB_SB_REDO;
@@ -3213,7 +3194,6 @@ static bool object_has_edges(const Object *ob)
   return false;
 }
 
-/* SB global visible functions */
 void sbSetInterruptCallBack(int (*f)(void))
 {
   SB_localInterruptCallBack = f;
@@ -3243,20 +3223,6 @@ static void softbody_update_positions(Object *ob,
     copy_v3_v3(bp->origT, bp->origE);
   }
 }
-
-/* void SB_estimate_transform */
-/* input   Object *ob out (says any object that can do SB like mesh, lattice, curve )
- * output  float lloc[3], float lrot[3][3], float lscale[3][3]
- * that is:
- * a precise position vector denoting the motion of the center of mass
- * give a rotation/scale matrix using averaging method, that's why estimate and not calculate
- * see: this is kind of reverse engineering: having to states of a point cloud and recover what
- * happened our advantage here we know the identity of the vertex there are others methods giving
- * other results. lloc, lrot, lscale are allowed to be NULL, just in case you don't need it.
- * should be pretty useful for pythoneers :)
- * not! velocity .. 2nd order stuff
- * vcloud_estimate_transform_v3 see
- */
 
 void SB_estimate_transform(Object *ob, float lloc[3], float lrot[3][3], float lscale[3][3])
 {
@@ -3354,7 +3320,7 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
       break;
     case OB_LATTICE:
       break;
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
       break;
     default:
@@ -3523,7 +3489,6 @@ static void sbStoreLastFrame(struct Depsgraph *depsgraph, Object *object, float 
   object_orig->soft->last_frame = framenr;
 }
 
-/* simulates one step. framenr is in frames */
 void sbObjectStep(struct Depsgraph *depsgraph,
                   Scene *scene,
                   Object *ob,
@@ -3572,7 +3537,7 @@ void sbObjectStep(struct Depsgraph *depsgraph,
       case OB_LATTICE:
         lattice_to_softbody(ob);
         break;
-      case OB_CURVE:
+      case OB_CURVES_LEGACY:
       case OB_SURF:
         curve_surf_to_softbody(ob);
         break;

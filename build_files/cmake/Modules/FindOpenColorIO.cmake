@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2012 Blender Foundation.
+
 # - Find OpenColorIO library
 # Find the native OpenColorIO includes and library
 # This module defines
@@ -10,13 +13,6 @@
 #
 # also defined, but not for general use are
 #  OPENCOLORIO_LIBRARY, where to find the OpenColorIO library.
-
-#=============================================================================
-# Copyright 2012 Blender Foundation.
-#
-# Distributed under the OSI-approved BSD 3-Clause License,
-# see accompanying file BSD-3-Clause-license.txt for details.
-#=============================================================================
 
 # If OPENCOLORIO_ROOT_DIR was defined in the environment, use it.
 IF(NOT OPENCOLORIO_ROOT_DIR AND NOT $ENV{OPENCOLORIO_ROOT_DIR} STREQUAL "")
@@ -87,11 +83,13 @@ ENDIF()
 MARK_AS_ADVANCED(
   OPENCOLORIO_INCLUDE_DIR
   OPENCOLORIO_LIBRARY
-  OPENCOLORIO_OPENCOLORIO_LIBRARY
-  OPENCOLORIO_TINYXML_LIBRARY
-  OPENCOLORIO_YAML-CPP_LIBRARY
   OPENCOLORIO_VERSION
 )
+
+FOREACH(COMPONENT ${_opencolorio_FIND_COMPONENTS})
+  STRING(TOUPPER ${COMPONENT} UPPERCOMPONENT)
+  MARK_AS_ADVANCED(OPENCOLORIO_${UPPERCOMPONENT}_LIBRARY)
+ENDFOREACH()
 
 UNSET(COMPONENT)
 UNSET(UPPERCOMPONENT)

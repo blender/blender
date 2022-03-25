@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2013 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2013 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup depsgraph
@@ -87,7 +71,7 @@ void depsgraph_geometry_tag_to_component(const ID *id, NodeType *component_type)
 
 bool is_selectable_data_id_type(const ID_Type id_type)
 {
-  return ELEM(id_type, ID_ME, ID_CU, ID_MB, ID_LT, ID_GD, ID_HA, ID_PT, ID_VO);
+  return ELEM(id_type, ID_ME, ID_CU_LEGACY, ID_MB, ID_LT, ID_GD, ID_CV, ID_PT, ID_VO);
 }
 
 void depsgraph_select_tag_to_component_opcode(const ID *id,
@@ -193,12 +177,7 @@ void depsgraph_tag_to_component_opcode(const ID *id,
       *component_type = NodeType::COPY_ON_WRITE;
       break;
     case ID_RECALC_SHADING:
-      if (id_type == ID_NT) {
-        *component_type = NodeType::SHADING_PARAMETERS;
-      }
-      else {
-        *component_type = NodeType::SHADING;
-      }
+      *component_type = NodeType::SHADING;
       break;
     case ID_RECALC_SELECT:
       depsgraph_select_tag_to_component_opcode(id, component_type, operation_code);
@@ -216,7 +195,7 @@ void depsgraph_tag_to_component_opcode(const ID *id,
     case ID_RECALC_SEQUENCER_STRIPS:
       *component_type = NodeType::SEQUENCER;
       break;
-    case ID_RECALC_AUDIO_SEEK:
+    case ID_RECALC_FRAME_CHANGE:
     case ID_RECALC_AUDIO_FPS:
     case ID_RECALC_AUDIO_VOLUME:
     case ID_RECALC_AUDIO_MUTE:
@@ -237,6 +216,10 @@ void depsgraph_tag_to_component_opcode(const ID *id,
       break;
     case ID_RECALC_TAG_FOR_UNDO:
       break; /* Must be ignored by depsgraph. */
+    case ID_RECALC_NTREE_OUTPUT:
+      *component_type = NodeType::NTREE_OUTPUT;
+      *operation_code = OperationCode::NTREE_OUTPUT;
+      break;
   }
 }
 
@@ -285,6 +268,7 @@ void depsgraph_tag_component(Depsgraph *graph,
    * here. */
   if (component_node == nullptr) {
     if (component_type == NodeType::ANIMATION) {
+      id_node->is_cow_explicitly_tagged = true;
       depsgraph_id_tag_copy_on_write(graph, id_node, update_source);
     }
     return;
@@ -301,6 +285,9 @@ void depsgraph_tag_component(Depsgraph *graph,
   /* If component depends on copy-on-write, tag it as well. */
   if (component_node->need_tag_cow_before_update()) {
     depsgraph_id_tag_copy_on_write(graph, id_node, update_source);
+  }
+  if (component_type == NodeType::COPY_ON_WRITE) {
+    id_node->is_cow_explicitly_tagged = true;
   }
 }
 
@@ -345,7 +332,7 @@ void deg_graph_id_tag_legacy_compat(
         }
         break;
       }
-      case ID_CU: {
+      case ID_CU_LEGACY: {
         Curve *curve = (Curve *)id;
         if (curve->key != nullptr) {
           ID *key_id = &curve->key->id;
@@ -496,6 +483,10 @@ void deg_graph_node_tag_zero(Main *bmain,
     if (comp_node->type == NodeType::ANIMATION) {
       continue;
     }
+    if (comp_node->type == NodeType::COPY_ON_WRITE) {
+      id_node->is_cow_explicitly_tagged = true;
+    }
+
     comp_node->tag_update(graph, update_source);
   }
   deg_graph_id_tag_legacy_compat(bmain, graph, id, (IDRecalcFlag)0, update_source);
@@ -523,12 +514,6 @@ void graph_tag_ids_for_visible_update(Depsgraph *graph)
    * this. */
   for (deg::IDNode *id_node : graph->id_nodes) {
     const ID_Type id_type = GS(id_node->id_orig->name);
-    if (id_type == ID_OB) {
-      Object *object_orig = reinterpret_cast<Object *>(id_node->id_orig);
-      if (object_orig->proxy != nullptr) {
-        object_orig->proxy->proxy_from = object_orig;
-      }
-    }
 
     if (!id_node->visible_components_mask) {
       /* ID has no components which affects anything visible.
@@ -588,13 +573,13 @@ NodeType geometry_tag_to_component(const ID *id)
       const Object *object = (Object *)id;
       switch (object->type) {
         case OB_MESH:
-        case OB_CURVE:
+        case OB_CURVES_LEGACY:
         case OB_SURF:
         case OB_FONT:
         case OB_LATTICE:
         case OB_MBALL:
         case OB_GPENCIL:
-        case OB_HAIR:
+        case OB_CURVES:
         case OB_POINTCLOUD:
         case OB_VOLUME:
           return NodeType::GEOMETRY;
@@ -605,10 +590,10 @@ NodeType geometry_tag_to_component(const ID *id)
       break;
     }
     case ID_ME:
-    case ID_CU:
+    case ID_CU_LEGACY:
     case ID_LT:
     case ID_MB:
-    case ID_HA:
+    case ID_CV:
     case ID_PT:
     case ID_VO:
     case ID_GR:
@@ -734,8 +719,8 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
       return "EDITORS";
     case ID_RECALC_SEQUENCER_STRIPS:
       return "SEQUENCER_STRIPS";
-    case ID_RECALC_AUDIO_SEEK:
-      return "AUDIO_SEEK";
+    case ID_RECALC_FRAME_CHANGE:
+      return "FRAME_CHANGE";
     case ID_RECALC_AUDIO_FPS:
       return "AUDIO_FPS";
     case ID_RECALC_AUDIO_VOLUME:
@@ -754,13 +739,14 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
       return "ALL";
     case ID_RECALC_TAG_FOR_UNDO:
       return "TAG_FOR_UNDO";
+    case ID_RECALC_NTREE_OUTPUT:
+      return "ID_RECALC_NTREE_OUTPUT";
   }
   return nullptr;
 }
 
 /* Data-Based Tagging. */
 
-/* Tag given ID for an update in all the dependency graphs. */
 void DEG_id_tag_update(ID *id, int flag)
 {
   DEG_id_tag_update_ex(G.main, id, flag);
@@ -797,7 +783,6 @@ void DEG_graph_time_tag_update(struct Depsgraph *depsgraph)
   deg_graph->tag_time_source();
 }
 
-/* Mark a particular data-block type as having changing. */
 void DEG_graph_id_type_tag(Depsgraph *depsgraph, short id_type)
 {
   if (id_type == ID_NT) {
@@ -822,7 +807,6 @@ void DEG_id_type_tag(Main *bmain, short id_type)
   }
 }
 
-/* Update dependency graph when visible scenes/layers changes. */
 void DEG_graph_tag_on_visible_update(Depsgraph *depsgraph, const bool do_time)
 {
   deg::Depsgraph *graph = (deg::Depsgraph *)depsgraph;
@@ -842,8 +826,6 @@ void DEG_enable_editors_update(Depsgraph *depsgraph)
   graph->use_editors_update = true;
 }
 
-/* Check if something was changed in the database and inform
- * editors about this. */
 void DEG_editors_update(Depsgraph *depsgraph, bool time)
 {
   deg::Depsgraph *graph = (deg::Depsgraph *)depsgraph;
@@ -883,7 +865,7 @@ void DEG_ids_clear_recalc(Depsgraph *depsgraph, const bool backup)
   if (!DEG_id_type_any_updated(depsgraph)) {
     return;
   }
-  /* Go over all ID nodes nodes, clearing tags. */
+  /* Go over all ID nodes, clearing tags. */
   for (deg::IDNode *id_node : deg_graph->id_nodes) {
     if (backup) {
       id_node->id_cow_recalc_backup |= id_node->id_cow->recalc;
@@ -892,6 +874,7 @@ void DEG_ids_clear_recalc(Depsgraph *depsgraph, const bool backup)
      * correctly when there are multiple depsgraph with others still using
      * the recalc flag. */
     id_node->is_user_modified = false;
+    id_node->is_cow_explicitly_tagged = false;
     deg_graph_clear_id_recalc_flags(id_node->id_cow);
     if (deg_graph->is_active) {
       deg_graph_clear_id_recalc_flags(id_node->id_orig);

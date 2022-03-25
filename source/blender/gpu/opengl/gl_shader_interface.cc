@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2016 by Mike Erwin.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 by Mike Erwin. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -25,7 +9,9 @@
 
 #include "BLI_bitmap.h"
 
+#include "gl_backend.hh"
 #include "gl_batch.hh"
+#include "gl_context.hh"
 
 #include "gl_shader_interface.hh"
 
@@ -115,7 +101,28 @@ static inline int image_binding(int32_t program,
   switch (type) {
     case GL_IMAGE_1D:
     case GL_IMAGE_2D:
-    case GL_IMAGE_3D: {
+    case GL_IMAGE_3D:
+    case GL_IMAGE_CUBE:
+    case GL_IMAGE_BUFFER:
+    case GL_IMAGE_1D_ARRAY:
+    case GL_IMAGE_2D_ARRAY:
+    case GL_IMAGE_CUBE_MAP_ARRAY:
+    case GL_INT_IMAGE_1D:
+    case GL_INT_IMAGE_2D:
+    case GL_INT_IMAGE_3D:
+    case GL_INT_IMAGE_CUBE:
+    case GL_INT_IMAGE_BUFFER:
+    case GL_INT_IMAGE_1D_ARRAY:
+    case GL_INT_IMAGE_2D_ARRAY:
+    case GL_INT_IMAGE_CUBE_MAP_ARRAY:
+    case GL_UNSIGNED_INT_IMAGE_1D:
+    case GL_UNSIGNED_INT_IMAGE_2D:
+    case GL_UNSIGNED_INT_IMAGE_3D:
+    case GL_UNSIGNED_INT_IMAGE_CUBE:
+    case GL_UNSIGNED_INT_IMAGE_BUFFER:
+    case GL_UNSIGNED_INT_IMAGE_1D_ARRAY:
+    case GL_UNSIGNED_INT_IMAGE_2D_ARRAY:
+    case GL_UNSIGNED_INT_IMAGE_CUBE_MAP_ARRAY: {
       /* For now just assign a consecutive index. In the future, we should set it in
        * the shader using layout(binding = i) and query its value. */
       int binding = *image_len;
@@ -296,6 +303,7 @@ GLShaderInterface::GLShaderInterface(GLuint program)
     input->binding = input->location = binding;
 
     name_buffer_offset += this->set_input_name(input, name, name_len);
+    enabled_ssbo_mask_ |= (input->binding != -1) ? (1lu << input->binding) : 0lu;
   }
 
   /* Builtin Uniforms */
@@ -323,6 +331,162 @@ GLShaderInterface::GLShaderInterface(GLuint program)
   this->sort_inputs();
 }
 
+GLShaderInterface::GLShaderInterface(GLuint program, const shader::ShaderCreateInfo &info)
+{
+  using namespace blender::gpu::shader;
+
+  attr_len_ = info.vertex_inputs_.size();
+  uniform_len_ = info.push_constants_.size();
+  ubo_len_ = 0;
+  ssbo_len_ = 0;
+
+  Vector<ShaderCreateInfo::Resource> all_resources;
+  all_resources.extend(info.pass_resources_);
+  all_resources.extend(info.batch_resources_);
+
+  for (ShaderCreateInfo::Resource &res : all_resources) {
+    switch (res.bind_type) {
+      case ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
+        ubo_len_++;
+        break;
+      case ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
+        ssbo_len_++;
+        break;
+      case ShaderCreateInfo::Resource::BindType::SAMPLER:
+        uniform_len_++;
+        break;
+      case ShaderCreateInfo::Resource::BindType::IMAGE:
+        uniform_len_++;
+        break;
+    }
+  }
+
+  size_t workaround_names_size = 0;
+  Vector<StringRefNull> workaround_uniform_names;
+  auto check_enabled_uniform = [&](const char *uniform_name) {
+    if (glGetUniformLocation(program, uniform_name) != -1) {
+      workaround_uniform_names.append(uniform_name);
+      workaround_names_size += StringRefNull(uniform_name).size() + 1;
+      uniform_len_++;
+    }
+  };
+
+  if (!GLContext::shader_draw_parameters_support) {
+    check_enabled_uniform("gpu_BaseInstance");
+  }
+
+  BLI_assert_msg(ubo_len_ <= 16, "enabled_ubo_mask_ is uint16_t");
+
+  int input_tot_len = attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_;
+  inputs_ = (ShaderInput *)MEM_callocN(sizeof(ShaderInput) * input_tot_len, __func__);
+  ShaderInput *input = inputs_;
+
+  name_buffer_ = (char *)MEM_mallocN(info.interface_names_size_ + workaround_names_size,
+                                     "name_buffer");
+  uint32_t name_buffer_offset = 0;
+
+  /* Necessary to make #glUniform works. TODO(fclem) Remove. */
+  glUseProgram(program);
+
+  /* Attributes */
+  for (const ShaderCreateInfo::VertIn &attr : info.vertex_inputs_) {
+    copy_input_name(input, attr.name, name_buffer_, name_buffer_offset);
+    if (true || !GLContext::explicit_location_support) {
+      input->location = input->binding = glGetAttribLocation(program, attr.name.c_str());
+    }
+    else {
+      input->location = input->binding = attr.index;
+    }
+    if (input->location != -1) {
+      enabled_attr_mask_ |= (1 << input->location);
+    }
+    input++;
+  }
+
+  /* Uniform Blocks */
+  for (const ShaderCreateInfo::Resource &res : all_resources) {
+    if (res.bind_type == ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
+      copy_input_name(input, res.uniformbuf.name, name_buffer_, name_buffer_offset);
+      if (true || !GLContext::explicit_location_support) {
+        input->location = glGetUniformBlockIndex(program, name_buffer_ + input->name_offset);
+        glUniformBlockBinding(program, input->location, res.slot);
+      }
+      input->binding = res.slot;
+      enabled_ubo_mask_ |= (1 << input->binding);
+      input++;
+    }
+  }
+
+  /* Uniforms & samplers & images */
+  for (const ShaderCreateInfo::Resource &res : all_resources) {
+    if (res.bind_type == ShaderCreateInfo::Resource::BindType::SAMPLER) {
+      copy_input_name(input, res.sampler.name, name_buffer_, name_buffer_offset);
+      /* Until we make use of explicit uniform location or eliminate all
+       * sampler manually changing. */
+      if (true || !GLContext::explicit_location_support) {
+        input->location = glGetUniformLocation(program, res.sampler.name.c_str());
+        glUniform1i(input->location, res.slot);
+      }
+      input->binding = res.slot;
+      enabled_tex_mask_ |= (1ull << input->binding);
+      input++;
+    }
+    else if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
+      copy_input_name(input, res.image.name, name_buffer_, name_buffer_offset);
+      /* Until we make use of explicit uniform location. */
+      if (true || !GLContext::explicit_location_support) {
+        input->location = glGetUniformLocation(program, res.image.name.c_str());
+        glUniform1i(input->location, res.slot);
+      }
+      input->binding = res.slot;
+      enabled_ima_mask_ |= (1 << input->binding);
+      input++;
+    }
+  }
+  for (const ShaderCreateInfo::PushConst &uni : info.push_constants_) {
+    copy_input_name(input, uni.name, name_buffer_, name_buffer_offset);
+    input->location = glGetUniformLocation(program, name_buffer_ + input->name_offset);
+    input->binding = -1;
+    input++;
+  }
+
+  /* Compatibility uniforms. */
+  for (auto &name : workaround_uniform_names) {
+    copy_input_name(input, name, name_buffer_, name_buffer_offset);
+    input->location = glGetUniformLocation(program, name_buffer_ + input->name_offset);
+    input->binding = -1;
+    input++;
+  }
+
+  /* SSBOs */
+  for (const ShaderCreateInfo::Resource &res : all_resources) {
+    if (res.bind_type == ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER) {
+      copy_input_name(input, res.storagebuf.name, name_buffer_, name_buffer_offset);
+      input->location = input->binding = res.slot;
+      enabled_ssbo_mask_ |= (1 << input->binding);
+      input++;
+    }
+  }
+
+  /* Builtin Uniforms */
+  for (int32_t u_int = 0; u_int < GPU_NUM_UNIFORMS; u_int++) {
+    GPUUniformBuiltin u = static_cast<GPUUniformBuiltin>(u_int);
+    const ShaderInput *uni = this->uniform_get(builtin_uniform_name(u));
+    builtins_[u] = (uni != nullptr) ? uni->location : -1;
+  }
+
+  /* Builtin Uniforms Blocks */
+  for (int32_t u_int = 0; u_int < GPU_NUM_UNIFORM_BLOCKS; u_int++) {
+    GPUUniformBlockBuiltin u = static_cast<GPUUniformBlockBuiltin>(u_int);
+    const ShaderInput *block = this->ubo_get(builtin_uniform_block_name(u));
+    builtin_blocks_[u] = (block != nullptr) ? block->binding : -1;
+  }
+
+  this->sort_inputs();
+
+  // this->debug_print();
+}
+
 GLShaderInterface::~GLShaderInterface()
 {
   for (auto *ref : refs_) {
@@ -341,7 +505,7 @@ GLShaderInterface::~GLShaderInterface()
 void GLShaderInterface::ref_add(GLVaoCache *ref)
 {
   for (int i = 0; i < refs_.size(); i++) {
-    if (refs_[i] == NULL) {
+    if (refs_[i] == nullptr) {
       refs_[i] = ref;
       return;
     }
@@ -353,7 +517,7 @@ void GLShaderInterface::ref_remove(GLVaoCache *ref)
 {
   for (int i = 0; i < refs_.size(); i++) {
     if (refs_[i] == ref) {
-      refs_[i] = NULL;
+      refs_[i] = nullptr;
       break; /* cannot have duplicates */
     }
   }

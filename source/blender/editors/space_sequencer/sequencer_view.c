@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2012 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2012 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spseq
@@ -405,7 +389,7 @@ void SEQUENCER_OT_view_ghost_border(wmOperatorType *ot)
   ot->invoke = WM_gesture_box_invoke;
   ot->exec = view_ghost_border_exec;
   ot->modal = WM_gesture_box_modal;
-  ot->poll = sequencer_view_preview_poll;
+  ot->poll = sequencer_view_has_preview_poll;
   ot->cancel = WM_gesture_box_cancel;
 
   /* Flags. */

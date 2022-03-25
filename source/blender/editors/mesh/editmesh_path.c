@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2004 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2004 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edmesh
@@ -44,6 +28,7 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
 
@@ -377,7 +362,7 @@ static void edgetag_ensure_cd_flag(Mesh *me, const char edge_mode)
   }
 }
 
-/* mesh shortest path select, uses prev-selected edge */
+/* Mesh shortest path select, uses previously-selected edge. */
 
 /* since you want to create paths with multiple selects, it doesn't have extend option */
 static void mouse_mesh_shortest_path_edge(Scene *scene,
@@ -716,7 +701,10 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
     /* TODO(dfelinto): right now we try to find the closest element twice.
      * The ideal is to refactor EDBM_select_pick so it doesn't
      * have to pick the nearest vert/edge/face again. */
-    EDBM_select_pick(C, event->mval, true, false, false);
+    const struct SelectPick_Params params = {
+        .sel_op = SEL_OP_ADD,
+    };
+    EDBM_select_pick(C, event->mval, &params);
     return OPERATOR_FINISHED;
   }
 

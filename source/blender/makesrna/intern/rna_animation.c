@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -761,8 +747,8 @@ bool rna_NLA_tracks_override_apply(Main *bmain,
   /* This is not working so well with index-based insertion, especially in case some tracks get
    * added to lib linked data. So we simply add locale tracks at the end of the list always, order
    * of override operations should ensure order of local tracks is preserved properly. */
-  if (opop->subitem_local_index >= 0) {
-    nla_track_anchor = BLI_findlink(&anim_data_dst->nla_tracks, opop->subitem_local_index);
+  if (opop->subitem_reference_index >= 0) {
+    nla_track_anchor = BLI_findlink(&anim_data_dst->nla_tracks, opop->subitem_reference_index);
   }
   /* Otherwise we just insert in first position. */
 #  else
@@ -773,9 +759,11 @@ bool rna_NLA_tracks_override_apply(Main *bmain,
   if (opop->subitem_local_index >= 0) {
     nla_track_src = BLI_findlink(&anim_data_src->nla_tracks, opop->subitem_local_index);
   }
-  nla_track_src = nla_track_src ? nla_track_src->next : anim_data_src->nla_tracks.first;
 
-  BLI_assert(nla_track_src != NULL);
+  if (nla_track_src == NULL) {
+    BLI_assert(nla_track_src != NULL);
+    return false;
+  }
 
   NlaTrack *nla_track_dst = BKE_nlatrack_copy(bmain, nla_track_src, true, 0);
 

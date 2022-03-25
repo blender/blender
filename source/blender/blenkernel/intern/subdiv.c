@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2018 by Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2018 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -28,6 +12,9 @@
 #include "DNA_modifier_types.h"
 
 #include "BLI_utildefines.h"
+
+#include "BKE_modifier.h"
+#include "BKE_subdiv_modifier.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -189,6 +176,12 @@ Subdiv *BKE_subdiv_update_from_mesh(Subdiv *subdiv,
 void BKE_subdiv_free(Subdiv *subdiv)
 {
   if (subdiv->evaluator != NULL) {
+    const eOpenSubdivEvaluator evaluator_type = subdiv->evaluator->type;
+    if (evaluator_type != OPENSUBDIV_EVALUATOR_CPU) {
+      /* Let the draw code do the freeing, to ensure that the OpenGL context is valid. */
+      BKE_subsurf_modifier_free_gpu_cache_cb(subdiv);
+      return;
+    }
     openSubdiv_deleteEvaluator(subdiv->evaluator);
   }
   if (subdiv->topology_refiner != NULL) {
@@ -214,12 +207,13 @@ int *BKE_subdiv_face_ptex_offset_get(Subdiv *subdiv)
   }
   const int num_coarse_faces = topology_refiner->getNumFaces(topology_refiner);
   subdiv->cache_.face_ptex_offset = MEM_malloc_arrayN(
-      num_coarse_faces, sizeof(int), "subdiv face_ptex_offset");
+      num_coarse_faces + 1, sizeof(int), "subdiv face_ptex_offset");
   int ptex_offset = 0;
   for (int face_index = 0; face_index < num_coarse_faces; face_index++) {
     const int num_ptex_faces = topology_refiner->getNumFacePtexFaces(topology_refiner, face_index);
     subdiv->cache_.face_ptex_offset[face_index] = ptex_offset;
     ptex_offset += num_ptex_faces;
   }
+  subdiv->cache_.face_ptex_offset[num_coarse_faces] = ptex_offset;
   return subdiv->cache_.face_ptex_offset;
 }

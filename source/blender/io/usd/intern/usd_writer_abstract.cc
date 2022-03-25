@@ -1,37 +1,14 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2019 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2019 Blender Foundation. All rights reserved. */
 #include "usd_writer_abstract.h"
 #include "usd_hierarchy_iterator.h"
 #include "usd_writer_material.h"
 
 #include <pxr/base/tf/stringUtils.h>
 
+#include "BKE_customdata.h"
 #include "BLI_assert.h"
-
-extern "C" {
-#include "BKE_anim_data.h"
-#include "BKE_key.h"
-
-#include "BLI_utildefines.h"
-
-#include "DNA_modifier_types.h"
-}
+#include "DNA_mesh_types.h"
 
 /* TfToken objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
@@ -74,6 +51,19 @@ bool set_vec_attrib(const pxr::UsdPrim &prim,
 }  // anonymous namespace
 
 namespace blender::io::usd {
+
+static std::string get_mesh_active_uvlayer_name(const Object *ob)
+{
+  if (!ob || ob->type != OB_MESH || !ob->data) {
+    return "";
+  }
+
+  const Mesh *me = static_cast<Mesh *>(ob->data);
+
+  const char *name = CustomData_get_active_layer_name(&me->ldata, CD_MLOOPUV);
+
+  return name ? name : "";
+}
 
 static void create_vector_attrib(const pxr::UsdPrim &prim,
                                  const IDProperty *prop,
@@ -188,38 +178,13 @@ void USDAbstractWriter::write(HierarchyContext &context)
   frame_has_been_written_ = true;
 }
 
-bool USDAbstractWriter::check_is_animated(const HierarchyContext &context) const
-{
-  const Object *object = context.object;
-
-  if (BKE_animdata_id_is_animated(static_cast<ID *>(object->data))) {
-    return true;
-  }
-  if (BKE_key_from_object(object) != nullptr) {
-    return true;
-  }
-
-  /* Test modifiers. */
-  /* TODO(Sybren): replace this with a check on the depsgraph to properly check for dependency on
-   * time. */
-  ModifierData *md = static_cast<ModifierData *>(object->modifiers.first);
-  while (md) {
-    if (md->type != eModifierType_Subsurf) {
-      return true;
-    }
-    md = md->next;
-  }
-
-  return false;
-}
-
 const pxr::SdfPath &USDAbstractWriter::usd_path() const
 {
   return usd_export_context_.usd_path;
 }
 
-pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(Material *material,
-                                                             const HierarchyContext &context)
+pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyContext &context,
+                                                             Material *material)
 {
   std::string material_prim_path_str;
 
@@ -270,12 +235,13 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(Material *material,
     }
   }
   if (material->use_nodes && this->usd_export_context_.export_params.generate_preview_surface) {
-    create_usd_preview_surface_material(this->usd_export_context_, material, usd_material);
+    std::string active_uv = get_mesh_active_uvlayer_name(context.object);
+    create_usd_preview_surface_material(
+        this->usd_export_context_, material, usd_material, active_uv);
   }
   else {
     create_usd_viewport_material(this->usd_export_context_, material, usd_material);
   }
-
   if (usd_export_context_.export_params.export_custom_properties && material) {
     auto prim = usd_material.GetPrim();
     write_id_properties(prim, material->id, get_export_time_code());
@@ -298,7 +264,6 @@ void USDAbstractWriter::write_visibility(const HierarchyContext &context,
   usd_value_writer_.SetAttribute(attr_visibility, pxr::VtValue(visibility), timecode);
 }
 
-/* Reference the original data instead of writing a copy. */
 bool USDAbstractWriter::mark_as_instance(const HierarchyContext &context, const pxr::UsdPrim &prim)
 {
   BLI_assert(context.is_instance());
@@ -318,7 +283,7 @@ bool USDAbstractWriter::mark_as_instance(const HierarchyContext &context, const 
   usd_export_context_.stage->DefinePrim(ref_path);
 
   if (!prim.GetReferences().AddInternalReference(ref_path)) {
-    /* See this URL for a description fo why referencing may fail"
+    /* See this URL for a description for why referencing may fail"
      * https://graphics.pixar.com/usd/docs/api/class_usd_references.html#Usd_Failing_References
      */
     printf("USD Export warning: unable to add reference from %s to %s, not instancing object\n",

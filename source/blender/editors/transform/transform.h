@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edtransform
@@ -152,6 +136,9 @@ typedef enum {
   T_AUTOMERGE = 1 << 20,
   /** Runs auto-merge & splits. */
   T_AUTOSPLIT = 1 << 21,
+
+  /** Use drag-start position of the event, otherwise use the cursor coordinates (unmodified). */
+  T_EVENT_DRAG_START = (1 << 22),
 
   /** No cursor wrapping on region bounds */
   T_NO_CURSOR_WRAP = 1 << 23,
@@ -298,13 +285,18 @@ enum {
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Transform Types
+ * \{ */
+
 typedef struct TransSnapPoint {
   struct TransSnapPoint *next, *prev;
   float co[3];
 } TransSnapPoint;
 
 typedef struct TransSnap {
-  short mode;
+  char flag;
+  char mode;
   short target;
   short modePoint;
   short modeSelect;
@@ -576,11 +568,11 @@ typedef struct TransInfo {
   /** Mouse side of the current frame, 'L', 'R' or 'B' */
   char frame_side;
 
-  /** copy from G.vd, prevents feedback. */
+  /** copy from #RegionView3D, prevents feedback. */
   float viewmat[4][4];
   /** and to make sure we don't have to. */
   float viewinv[4][4];
-  /** access G.vd from other space types. */
+  /** Access #RegionView3D from other space types. */
   float persmat[4][4];
   float persinv[4][4];
   short persp;
@@ -604,11 +596,13 @@ typedef struct TransInfo {
   /*************** NEW STUFF *********************/
   /** event type used to launch transform. */
   short launch_event;
-  /** Is the actual launch event a tweak event? (launch_event above is set to the corresponding
-   * mouse button then.) */
-  bool is_launch_event_tweak;
+  /**
+   * Is the actual launch event a drag event?
+   * (`launch_event` is set to the corresponding mouse button then.)
+   */
+  bool is_launch_event_drag;
 
-  bool is_orient_set;
+  bool is_orient_default_overwrite;
 
   struct {
     short type;
@@ -687,11 +681,19 @@ typedef struct TransInfo {
 /** \name Public Transform API
  * \{ */
 
+/**
+ * \note  caller needs to free `t` on a 0 return
+ * \warning \a event might be NULL (when tweaking from redo panel)
+ * \see #saveTransform which writes these values back.
+ */
 bool initTransform(struct bContext *C,
                    struct TransInfo *t,
                    struct wmOperator *op,
                    const struct wmEvent *event,
                    int mode);
+/**
+ * \see #initTransform which reads values from the operator.
+ */
 void saveTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op);
 int transformEvent(TransInfo *t, const struct wmEvent *event);
 void transformApply(struct bContext *C, TransInfo *t);
@@ -700,14 +702,17 @@ int transformEnd(struct bContext *C, TransInfo *t);
 void setTransformViewMatrices(TransInfo *t);
 void setTransformViewAspect(TransInfo *t, float r_aspect[3]);
 void convertViewVec(TransInfo *t, float r_vec[3], double dx, double dy);
-void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DProjTest flag);
+void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], eV3DProjTest flag);
 void projectIntView(TransInfo *t, const float vec[3], int adr[2]);
-void projectFloatViewEx(TransInfo *t, const float vec[3], float adr[2], const eV3DProjTest flag);
+void projectFloatViewEx(TransInfo *t, const float vec[3], float adr[2], eV3DProjTest flag);
 void projectFloatView(TransInfo *t, const float vec[3], float adr[2]);
 
 void applyAspectRatio(TransInfo *t, float vec[2]);
 void removeAspectRatio(TransInfo *t, float vec[2]);
 
+/**
+ * Called in transform_ops.c, on each regeneration of key-maps.
+ */
 struct wmKeyMap *transform_modal_keymap(struct wmKeyConfig *keyconf);
 
 /** \} */
@@ -755,7 +760,7 @@ typedef enum {
 } MouseInputMode;
 
 void initMouseInput(
-    TransInfo *t, MouseInput *mi, const float center[2], const int mval[2], const bool precision);
+    TransInfo *t, MouseInput *mi, const float center[2], const int mval[2], bool precision);
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode);
 void applyMouseInput(struct TransInfo *t,
                      struct MouseInput *mi,
@@ -772,12 +777,28 @@ void setInputPostFct(MouseInput *mi, void (*post)(struct TransInfo *t, float val
 /** \name Generics
  * \{ */
 
+/**
+ * Setup internal data, mouse, vectors
+ *
+ * \note \a op and \a event can be NULL
+ *
+ * \see #saveTransform does the reverse.
+ */
 void initTransInfo(struct bContext *C,
                    TransInfo *t,
                    struct wmOperator *op,
                    const struct wmEvent *event);
+/**
+ * Needed for mode switching.
+ */
 void freeTransCustomDataForMode(TransInfo *t);
+/**
+ * Here I would suggest only #TransInfo related issues, like free data & reset vars. Not redraws.
+ */
 void postTrans(struct bContext *C, TransInfo *t);
+/**
+ * Free data before switching to another mode.
+ */
 void resetTransModal(TransInfo *t);
 void resetTransRestrictions(TransInfo *t);
 
@@ -800,17 +821,25 @@ void calculateCenterMedian(TransInfo *t, float r_center[3]);
 void calculateCenterCursor(TransInfo *t, float r_center[3]);
 void calculateCenterCursor2D(TransInfo *t, float r_center[2]);
 void calculateCenterCursorGraph2D(TransInfo *t, float r_center[2]);
+/**
+ * \param select_only: only get active center from data being transformed.
+ */
 bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3]);
 
 void calculatePropRatio(TransInfo *t);
 
+/**
+ * Rotate an element, low level code, ignore protected channels.
+ * (use for objects or pose-bones)
+ * Similar to #ElementRotation.
+ */
 void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot);
 
 struct Object *transform_object_deform_pose_armature_get(const TransInfo *t, struct Object *ob);
 
 void freeCustomNormalArray(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data);
 
-/* TODO: `transform_query.c`. */
+/* TODO: move to: `transform_query.c`. */
 bool checkUseAxisMatrix(TransInfo *t);
 
 #define TRANSFORM_SNAP_MAX_PX 100.0f

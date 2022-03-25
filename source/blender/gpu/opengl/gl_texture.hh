@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -53,6 +37,8 @@ class GLTexture : public Texture {
   /** True if this texture is bound to at least one texture unit. */
   /* TODO(fclem): How do we ensure thread safety here? */
   bool is_bound_ = false;
+  /** True if pixels in the texture have been initialized. */
+  bool has_pixels_ = false;
 
  public:
   GLTexture(const char *name);
@@ -61,32 +47,42 @@ class GLTexture : public Texture {
   void update_sub(
       int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data) override;
 
-  void generate_mipmap(void) override;
+  /**
+   * This will create the mipmap images and populate them with filtered data from base level.
+   *
+   * \warning Depth textures are not populated but they have their mips correctly defined.
+   * \warning This resets the mipmap range.
+   */
+  void generate_mipmap() override;
   void copy_to(Texture *dst) override;
   void clear(eGPUDataFormat format, const void *data) override;
   void swizzle_set(const char swizzle_mask[4]) override;
+  void stencil_texture_mode_set(bool use_stencil) override;
   void mip_range_set(int min, int max) override;
   void *read(int mip, eGPUDataFormat type) override;
 
-  void check_feedback_loop(void);
+  void check_feedback_loop();
 
   /* TODO(fclem): Legacy. Should be removed at some point. */
-  uint gl_bindcode_get(void) const override;
+  uint gl_bindcode_get() const override;
 
-  static void samplers_init(void);
-  static void samplers_free(void);
-  static void samplers_update(void);
+  static void samplers_init();
+  static void samplers_free();
+  static void samplers_update();
 
  protected:
-  bool init_internal(void) override;
+  /** Return true on success. */
+  bool init_internal() override;
+  /** Return true on success. */
   bool init_internal(GPUVertBuf *vbo) override;
+  /** Return true on success. */
+  bool init_internal(const GPUTexture *src, int mip_offset, int layer_offset) override;
 
  private:
   bool proxy_check(int mip);
-  void ensure_mipmaps(int mip);
   void update_sub_direct_state_access(
       int mip, int offset[3], int extent[3], GLenum gl_format, GLenum gl_type, const void *data);
-  GPUFrameBuffer *framebuffer_get(void);
+  GPUFrameBuffer *framebuffer_get();
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLTexture")
 };
@@ -292,7 +288,9 @@ inline GLenum to_gl(eGPUDataFormat format)
   }
 }
 
-/* Definitely not complete, edit according to the gl specification. */
+/**
+ * Definitely not complete, edit according to the OpenGL specification.
+ */
 inline GLenum to_gl_data_format(eGPUTextureFormat format)
 {
   /* You can add any of the available type to this list
@@ -364,7 +362,9 @@ inline GLenum to_gl_data_format(eGPUTextureFormat format)
   }
 }
 
-/* Assume Unorm / Float target. Used with glReadPixels. */
+/**
+ * Assume Unorm / Float target. Used with #glReadPixels.
+ */
 inline GLenum channel_len_to_gl(int channel_len)
 {
   switch (channel_len) {

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2007 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2007 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bmesh
@@ -39,11 +23,6 @@
 
 #define SELECT 1
 
-/**
- * Fill in a vertex array from an edge array.
- *
- * \returns false if any verts aren't found.
- */
 bool BM_verts_from_edges(BMVert **vert_arr, BMEdge **edge_arr, const int len)
 {
   int i, i_prev = len - 1;
@@ -57,11 +36,6 @@ bool BM_verts_from_edges(BMVert **vert_arr, BMEdge **edge_arr, const int len)
   return true;
 }
 
-/**
- * Fill in an edge array from a vertex array (connected polygon loop).
- *
- * \returns false if any edges aren't found.
- */
 bool BM_edges_from_verts(BMEdge **edge_arr, BMVert **vert_arr, const int len)
 {
   int i, i_prev = len - 1;
@@ -75,10 +49,6 @@ bool BM_edges_from_verts(BMEdge **edge_arr, BMVert **vert_arr, const int len)
   return true;
 }
 
-/**
- * Fill in an edge array from a vertex array (connected polygon loop).
- * Creating edges as-needed.
- */
 void BM_edges_from_verts_ensure(BMesh *bm, BMEdge **edge_arr, BMVert **vert_arr, const int len)
 {
   int i, i_prev = len - 1;
@@ -93,20 +63,6 @@ void BM_edges_from_verts_ensure(BMesh *bm, BMEdge **edge_arr, BMVert **vert_arr,
 static void bm_loop_attrs_copy(
     BMesh *bm_src, BMesh *bm_dst, const BMLoop *l_src, BMLoop *l_dst, CustomDataMask mask_exclude);
 
-/**
- * \brief Make Quad/Triangle
- *
- * Creates a new quad or triangle from a list of 3 or 4 vertices.
- * If \a no_double is true, then a check is done to see if a face
- * with these vertices already exists and returns it instead.
- *
- * If a pointer to an example face is provided, its custom data
- * and properties will be copied to the new face.
- *
- * \note The winding of the face is determined by the order
- * of the vertices in the vertex array.
- */
-
 BMFace *BM_face_create_quad_tri(BMesh *bm,
                                 BMVert *v1,
                                 BMVert *v2,
@@ -119,16 +75,6 @@ BMFace *BM_face_create_quad_tri(BMesh *bm,
   return BM_face_create_verts(bm, vtar, v4 ? 4 : 3, f_example, create_flag, true);
 }
 
-/**
- * \brief copies face loop data from shared adjacent faces.
- *
- * \param filter_fn: A function that filters the source loops before copying
- * (don't always want to copy all).
- *
- * \note when a matching edge is found, both loops of that edge are copied
- * this is done since the face may not be completely surrounded by faces,
- * this way: a quad with 2 connected quads on either side will still get all 4 loops updated
- */
 void BM_face_copy_shared(BMesh *bm, BMFace *f, BMLoopFilterFunc filter_fn, void *user_data)
 {
   BMLoop *l_first;
@@ -260,20 +206,6 @@ error:
   return false;
 }
 
-/**
- * \brief Make NGon
- *
- * Makes an ngon from an unordered list of edges.
- * Verts \a v1 and \a v2 define the winding of the new face.
- *
- * \a edges are not required to be ordered, simply to form
- * a single closed loop as a whole.
- *
- * \note While this function will work fine when the edges
- * are already sorted, if the edges are always going to be sorted,
- * #BM_face_create should be considered over this function as it
- * avoids some unnecessary work.
- */
 BMFace *BM_face_create_ngon(BMesh *bm,
                             BMVert *v1,
                             BMVert *v2,
@@ -294,14 +226,6 @@ BMFace *BM_face_create_ngon(BMesh *bm,
   return NULL;
 }
 
-/**
- * Create an ngon from an array of sorted verts
- *
- * Special features this has over other functions.
- * - Optionally calculate winding based on surrounding edges.
- * - Optionally create edges between vertices.
- * - Uses verts so no need to find edges (handy when you only have verts)
- */
 BMFace *BM_face_create_ngon_verts(BMesh *bm,
                                   BMVert **vert_arr,
                                   const int len,
@@ -367,22 +291,6 @@ BMFace *BM_face_create_ngon_verts(BMesh *bm,
       bm, v_winding[winding[0]], v_winding[winding[1]], edge_arr, len, f_example, create_flag);
 }
 
-/**
- * Makes an NGon from an un-ordered set of verts
- *
- * assumes...
- * - that verts are only once in the list.
- * - that the verts have roughly planer bounds
- * - that the verts are roughly circular
- * there can be concave areas but overlapping folds from the center point will fail.
- *
- * a brief explanation of the method used
- * - find the center point
- * - find the normal of the vcloud
- * - order the verts around the face based on their angle to the normal vector at the center point.
- *
- * \note Since this is a vcloud there is no direction.
- */
 void BM_verts_sort_radial_plane(BMVert **vert_arr, int len)
 {
   struct SortIntByFloat *vang = BLI_array_alloca(vang, len);
@@ -467,13 +375,6 @@ static void bm_face_attrs_copy(
   f_dst->mat_nr = f_src->mat_nr;
 }
 
-/* BMESH_TODO: Special handling for hide flags? */
-/* BMESH_TODO: swap src/dst args, everywhere else in bmesh does other way round */
-
-/**
- * Copies attributes, e.g. customdata, header flags, etc, from one element
- * to another of the same type.
- */
 void BM_elem_attrs_copy_ex(BMesh *bm_src,
                            BMesh *bm_dst,
                            const void *ele_src_v,
@@ -481,6 +382,9 @@ void BM_elem_attrs_copy_ex(BMesh *bm_src,
                            const char hflag_mask,
                            const uint64_t cd_mask_exclude)
 {
+  /* TODO: Special handling for hide flags? */
+  /* TODO: swap src/dst args, everywhere else in bmesh does other way round. */
+
   const BMHeader *ele_src = ele_src_v;
   BMHeader *ele_dst = ele_dst_v;
 
@@ -590,23 +494,51 @@ static BMFace *bm_mesh_copy_new_face(
   return f_new;
 }
 
-void BM_mesh_copy_init_customdata_from_mesh(BMesh *bm_dst,
-                                            const Mesh *me_src,
-                                            const BMAllocTemplate *allocsize)
+void BM_mesh_copy_init_customdata_from_mesh_array(BMesh *bm_dst,
+                                                  const Mesh *me_src_array[],
+                                                  const int me_src_array_len,
+                                                  const BMAllocTemplate *allocsize)
+
 {
   if (allocsize == NULL) {
     allocsize = &bm_mesh_allocsize_default;
   }
 
-  CustomData_copy(&me_src->vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_CALLOC, 0);
-  CustomData_copy(&me_src->edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_CALLOC, 0);
-  CustomData_copy(&me_src->ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_CALLOC, 0);
-  CustomData_copy(&me_src->pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_CALLOC, 0);
+  char cd_flag = 0;
+
+  for (int i = 0; i < me_src_array_len; i++) {
+    const Mesh *me_src = me_src_array[i];
+    if (i == 0) {
+      CustomData_copy(&me_src->vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_CALLOC, 0);
+      CustomData_copy(&me_src->edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_CALLOC, 0);
+      CustomData_copy(&me_src->ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_CALLOC, 0);
+      CustomData_copy(&me_src->pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_CALLOC, 0);
+    }
+    else {
+      CustomData_merge(&me_src->vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_CALLOC, 0);
+      CustomData_merge(&me_src->edata, &bm_dst->edata, CD_MASK_BMESH.emask, CD_CALLOC, 0);
+      CustomData_merge(&me_src->ldata, &bm_dst->ldata, CD_MASK_BMESH.lmask, CD_CALLOC, 0);
+      CustomData_merge(&me_src->pdata, &bm_dst->pdata, CD_MASK_BMESH.pmask, CD_CALLOC, 0);
+    }
+
+    cd_flag |= me_src->cd_flag;
+  }
+
+  cd_flag |= BM_mesh_cd_flag_from_bmesh(bm_dst);
 
   CustomData_bmesh_init_pool(&bm_dst->vdata, allocsize->totvert, BM_VERT);
   CustomData_bmesh_init_pool(&bm_dst->edata, allocsize->totedge, BM_EDGE);
   CustomData_bmesh_init_pool(&bm_dst->ldata, allocsize->totloop, BM_LOOP);
   CustomData_bmesh_init_pool(&bm_dst->pdata, allocsize->totface, BM_FACE);
+
+  BM_mesh_cd_flag_apply(bm_dst, cd_flag);
+}
+
+void BM_mesh_copy_init_customdata_from_mesh(BMesh *bm_dst,
+                                            const Mesh *me_src,
+                                            const BMAllocTemplate *allocsize)
+{
+  BM_mesh_copy_init_customdata_from_mesh_array(bm_dst, &me_src, 1, allocsize);
 }
 
 void BM_mesh_copy_init_customdata(BMesh *bm_dst, BMesh *bm_src, const BMAllocTemplate *allocsize)
@@ -626,15 +558,6 @@ void BM_mesh_copy_init_customdata(BMesh *bm_dst, BMesh *bm_src, const BMAllocTem
   CustomData_bmesh_init_pool(&bm_dst->pdata, allocsize->totface, BM_FACE);
 }
 
-/**
- * Similar to #BM_mesh_copy_init_customdata but copies all layers ignoring
- * flags like #CD_FLAG_NOCOPY.
- *
- * \param bm_dst: BMesh whose custom-data layers will be added.
- * \param bm_src: BMesh whose custom-data layers will be copied.
- * \param htype: Specifies which custom-data layers will be initiated.
- * \param allocsize: Initialize the memory-pool before use (may be an estimate).
- */
 void BM_mesh_copy_init_customdata_all_layers(BMesh *bm_dst,
                                              BMesh *bm_src,
                                              const char htype,
@@ -786,7 +709,6 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
   return bm_new;
 }
 
-/* ME -> BM */
 char BM_vert_flag_from_mflag(const char mflag)
 {
   return (((mflag & SELECT) ? BM_ELEM_SELECT : 0) | ((mflag & ME_HIDE) ? BM_ELEM_HIDDEN : 0));
@@ -804,7 +726,6 @@ char BM_face_flag_from_mflag(const char mflag)
           ((mflag & ME_SMOOTH) ? BM_ELEM_SMOOTH : 0) | ((mflag & ME_HIDE) ? BM_ELEM_HIDDEN : 0));
 }
 
-/* BM -> ME */
 char BM_vert_flag_to_mflag(BMVert *v)
 {
   const char hflag = v->head.hflag;

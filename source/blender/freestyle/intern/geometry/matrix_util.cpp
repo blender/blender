@@ -1,29 +1,7 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
+/* SPDX-License-Identifier: GPL-2.0-or-later
  * The Original Code is:
  *   GXML/Graphite: Geometry and Graphics Programming Library + Utilities
- *   Copyright (C) 2000 Bruno Levy
- *   Contact: Bruno Levy
- *      <levy@loria.fr>
- *      ISA Project
- *      LORIA, INRIA Lorraine,
- *      Campus Scientifique, BP 239
- *      54506 VANDOEUVRE LES NANCY CEDEX
- *      FRANCE
- */
+ *   Copyright 2000 Bruno Levy <levy@loria.fr> */
 
 /** \file
  * \ingroup freestyle
@@ -128,7 +106,7 @@ void semi_definite_symmetric_eigen(const double *mat, int n, double *eigen_vec, 
           delta = a_ll - a_mm;
 
           if (delta == 0.0) {
-            x = -M_PI / 4;
+            x = -M_PI_4;
           }
           else {
             x = -atan((a_lm + a_lm) / delta) / 2.0;

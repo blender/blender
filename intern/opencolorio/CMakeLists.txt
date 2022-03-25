@@ -1,22 +1,5 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# The Original Code is Copyright (C) 2012, Blender Foundation
-# All rights reserved.
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright 2012 Blender Foundation. All rights reserved.
 
 set(INC
   .
@@ -24,6 +7,7 @@ set(INC
   ../guardedalloc
   ../../source/blender/blenlib
   ../../source/blender/gpu
+  ../../source/blender/gpu/intern
   ../../source/blender/makesdna
 )
 
@@ -37,6 +21,7 @@ set(SRC
 
   ocio_capi.h
   ocio_impl.h
+  ocio_shader_shared.hh
 )
 
 set(LIB
@@ -73,8 +58,38 @@ if(WITH_OPENCOLORIO)
     )
   endif()
 
-  data_to_c_simple(gpu_shader_display_transform.glsl SRC)
-  data_to_c_simple(gpu_shader_display_transform_vertex.glsl SRC)
+  set(GLSL_SRC
+    gpu_shader_display_transform_vert.glsl
+    gpu_shader_display_transform_frag.glsl
+
+    ocio_shader_shared.hh
+  )
+
+  set(GLSL_C)
+  foreach(GLSL_FILE ${GLSL_SRC})
+    data_to_c_simple(${GLSL_FILE} GLSL_C)
+  endforeach()
+
+  blender_add_lib(bf_ocio_shaders "${GLSL_C}" "" "" "")
+
+  list(APPEND LIB
+    bf_ocio_shaders
+  )
+
+  set(GLSL_SOURCE_CONTENT "")
+  foreach(GLSL_FILE ${GLSL_SRC})
+    get_filename_component(GLSL_FILE_NAME ${GLSL_FILE} NAME)
+    string(REPLACE "." "_" GLSL_FILE_NAME_UNDERSCORES ${GLSL_FILE_NAME})
+    string(APPEND GLSL_SOURCE_CONTENT "SHADER_SOURCE\(datatoc_${GLSL_FILE_NAME_UNDERSCORES}, \"${GLSL_FILE_NAME}\", \"${GLSL_FILE}\"\)\n")
+  endforeach()
+
+  set(glsl_source_list_file "${CMAKE_CURRENT_BINARY_DIR}/glsl_ocio_source_list.h")
+  file(GENERATE OUTPUT ${glsl_source_list_file} CONTENT "${GLSL_SOURCE_CONTENT}")
+  list(APPEND SRC ${glsl_source_list_file})
+  list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
+
+  target_include_directories(bf_ocio_shaders PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+
 endif()
 
 

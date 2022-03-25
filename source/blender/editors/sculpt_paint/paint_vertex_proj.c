@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2013 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2013 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edsculpt
@@ -72,8 +56,10 @@ struct VertProjUpdate {
 /* -------------------------------------------------------------------- */
 /* Internal Init */
 
-static void vpaint_proj_dm_map_cosnos_init__map_cb(
-    void *userData, int index, const float co[3], const float no_f[3], const short no_s[3])
+static void vpaint_proj_dm_map_cosnos_init__map_cb(void *userData,
+                                                   int index,
+                                                   const float co[3],
+                                                   const float no[3])
 {
   struct VertProjHandle *vp_handle = userData;
   CoNo *co_no = &vp_handle->vcosnos[index];
@@ -86,12 +72,7 @@ static void vpaint_proj_dm_map_cosnos_init__map_cb(
   }
 
   copy_v3_v3(co_no->co, co);
-  if (no_f) {
-    copy_v3_v3(co_no->no, no_f);
-  }
-  else {
-    normal_short_to_float_v3(co_no->no, no_s);
-  }
+  copy_v3_v3(co_no->no, no);
 }
 
 static void vpaint_proj_dm_map_cosnos_init(struct Depsgraph *depsgraph,
@@ -116,8 +97,10 @@ static void vpaint_proj_dm_map_cosnos_init(struct Depsgraph *depsgraph,
 
 /* Same as init but take mouse location into account */
 
-static void vpaint_proj_dm_map_cosnos_update__map_cb(
-    void *userData, int index, const float co[3], const float no_f[3], const short no_s[3])
+static void vpaint_proj_dm_map_cosnos_update__map_cb(void *userData,
+                                                     int index,
+                                                     const float co[3],
+                                                     const float no[3])
 {
   struct VertProjUpdate *vp_update = userData;
   struct VertProjHandle *vp_handle = vp_update->vp_handle;
@@ -148,12 +131,7 @@ static void vpaint_proj_dm_map_cosnos_update__map_cb(
   /* continue with regular functionality */
 
   copy_v3_v3(co_no->co, co);
-  if (no_f) {
-    copy_v3_v3(co_no->no, no_f);
-  }
-  else {
-    normal_short_to_float_v3(co_no->no, no_s);
-  }
+  copy_v3_v3(co_no->no, no);
 }
 
 static void vpaint_proj_dm_map_cosnos_update(struct Depsgraph *depsgraph,

@@ -1,18 +1,5 @@
-/*
- * Copyright 2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2021-2022 Blender Foundation */
 
 #include "integrator/path_trace_display.h"
 
@@ -26,15 +13,20 @@ PathTraceDisplay::PathTraceDisplay(unique_ptr<DisplayDriver> driver) : driver_(m
 {
 }
 
-void PathTraceDisplay::reset(const BufferParams &buffer_params)
+void PathTraceDisplay::reset(const BufferParams &buffer_params, const bool reset_rendering)
 {
   thread_scoped_lock lock(mutex_);
 
-  params_.full_offset = make_int2(buffer_params.full_x, buffer_params.full_y);
+  params_.full_offset = make_int2(buffer_params.full_x + buffer_params.window_x,
+                                  buffer_params.full_y + buffer_params.window_y);
   params_.full_size = make_int2(buffer_params.full_width, buffer_params.full_height);
-  params_.size = make_int2(buffer_params.width, buffer_params.height);
+  params_.size = make_int2(buffer_params.window_width, buffer_params.window_height);
 
   texture_state_.is_outdated = true;
+
+  if (!reset_rendering) {
+    driver_->next_tile_begin();
+  }
 }
 
 void PathTraceDisplay::mark_texture_updated()
@@ -246,6 +238,11 @@ bool PathTraceDisplay::draw()
   driver_->draw(params);
 
   return !is_outdated;
+}
+
+void PathTraceDisplay::flush()
+{
+  driver_->flush();
 }
 
 CCL_NAMESPACE_END

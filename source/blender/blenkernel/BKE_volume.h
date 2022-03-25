@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -88,6 +74,7 @@ const char *BKE_volume_grids_frame_filepath(const struct Volume *volume);
 const VolumeGrid *BKE_volume_grid_get_for_read(const struct Volume *volume, int grid_index);
 VolumeGrid *BKE_volume_grid_get_for_write(struct Volume *volume, int grid_index);
 const VolumeGrid *BKE_volume_grid_active_get_for_read(const struct Volume *volume);
+/* Tries to find a grid with the given name. Make sure that the volume has been loaded. */
 const VolumeGrid *BKE_volume_grid_find_for_read(const struct Volume *volume, const char *name);
 
 /* Grid
@@ -103,7 +90,6 @@ typedef enum VolumeGridType {
   VOLUME_GRID_INT,
   VOLUME_GRID_INT64,
   VOLUME_GRID_MASK,
-  VOLUME_GRID_STRING,
   VOLUME_GRID_VECTOR_FLOAT,
   VOLUME_GRID_VECTOR_DOUBLE,
   VOLUME_GRID_VECTOR_INT,
@@ -115,9 +101,13 @@ void BKE_volume_grid_unload(const struct Volume *volume, const struct VolumeGrid
 bool BKE_volume_grid_is_loaded(const struct VolumeGrid *grid);
 
 /* Metadata */
+
 const char *BKE_volume_grid_name(const struct VolumeGrid *grid);
 VolumeGridType BKE_volume_grid_type(const struct VolumeGrid *grid);
 int BKE_volume_grid_channels(const struct VolumeGrid *grid);
+/**
+ * Transformation from index space to object space.
+ */
 void BKE_volume_grid_transform_matrix(const struct VolumeGrid *grid, float mat[4][4]);
 
 /* Volume Editing
@@ -158,8 +148,8 @@ bool BKE_volume_save(const struct Volume *volume,
  * file or copy shared grids to make them writeable. */
 
 #ifdef __cplusplus
-#  include "BLI_float3.hh"
 #  include "BLI_float4x4.hh"
+#  include "BLI_math_vec_types.hh"
 #  include "BLI_string_ref.hh"
 
 bool BKE_volume_min_max(const Volume *volume, blender::float3 &r_min, blender::float3 &r_max);
@@ -176,6 +166,11 @@ bool BKE_volume_grid_bounds(openvdb::GridBase::ConstPtr grid,
                             blender::float3 &r_min,
                             blender::float3 &r_max);
 
+/**
+ * Return a new grid pointer with only the metadata and transform changed.
+ * This is useful for instances, where there is a separate transform on top of the original
+ * grid transform that must be applied for some operations that only take a grid argument.
+ */
 openvdb::GridBase::ConstPtr BKE_volume_grid_shallow_transform(openvdb::GridBase::ConstPtr grid,
                                                               const blender::float4x4 &transform);
 
@@ -184,7 +179,7 @@ openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_read(const struct Volume
                                                              const struct VolumeGrid *grid);
 openvdb::GridBase::Ptr BKE_volume_grid_openvdb_for_write(const struct Volume *volume,
                                                          struct VolumeGrid *grid,
-                                                         const bool clear);
+                                                         bool clear);
 
 VolumeGridType BKE_volume_grid_type_openvdb(const openvdb::GridBase &grid);
 
@@ -208,8 +203,6 @@ auto BKE_volume_grid_type_operation(const VolumeGridType grid_type, OpType &&op)
       return op.template operator()<openvdb::Vec3IGrid>();
     case VOLUME_GRID_VECTOR_DOUBLE:
       return op.template operator()<openvdb::Vec3dGrid>();
-    case VOLUME_GRID_STRING:
-      return op.template operator()<openvdb::StringGrid>();
     case VOLUME_GRID_MASK:
       return op.template operator()<openvdb::MaskGrid>();
     case VOLUME_GRID_POINTS:
@@ -224,9 +217,7 @@ auto BKE_volume_grid_type_operation(const VolumeGridType grid_type, OpType &&op)
 }
 
 openvdb::GridBase::Ptr BKE_volume_grid_create_with_changed_resolution(
-    const VolumeGridType grid_type,
-    const openvdb::GridBase &old_grid,
-    const float resolution_factor);
+    const VolumeGridType grid_type, const openvdb::GridBase &old_grid, float resolution_factor);
 
 #  endif
 #endif

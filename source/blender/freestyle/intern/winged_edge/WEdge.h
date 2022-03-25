@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -157,12 +143,14 @@ class WVertex {
 
  public:
   /** Iterator to iterate over a vertex incoming edges in the CCW order. */
-#if defined(__GNUC__) && (__GNUC__ < 3)
-  class incoming_edge_iterator : public input_iterator<WOEdge *, ptrdiff_t>
-#else
-  class incoming_edge_iterator : public iterator<input_iterator_tag, WOEdge *, ptrdiff_t>
-#endif
-  {
+  class incoming_edge_iterator {
+   public:
+    using iterator_category = input_iterator_tag;
+    using value_type = WOEdge *;
+    using difference_type = ptrdiff_t;
+    using pointer = value_type *;
+    using reference = value_type &;
+
    private:
     WVertex *_vertex;
     //
@@ -170,25 +158,12 @@ class WVertex {
     WOEdge *_current;
 
    public:
-#if defined(__GNUC__) && (__GNUC__ < 3)
-    inline incoming_edge_iterator() : input_iterator<WOEdge *, ptrdiff_t>()
-    {
-    }
-#else
-    inline incoming_edge_iterator() : iterator<input_iterator_tag, WOEdge *, ptrdiff_t>()
-    {
-    }
-#endif
-    virtual ~incoming_edge_iterator(){};  // soc
+    inline incoming_edge_iterator() = default;
+    virtual ~incoming_edge_iterator() = default;
 
    protected:
     friend class WVertex;
     inline incoming_edge_iterator(WVertex *iVertex, WOEdge *iBegin, WOEdge *iCurrent)
-#if defined(__GNUC__) && (__GNUC__ < 3)
-        : input_iterator<WOEdge *, ptrdiff_t>()
-#else
-        : iterator<input_iterator_tag, WOEdge *, ptrdiff_t>()
-#endif
     {
       _vertex = iVertex;
       _begin = iBegin;
@@ -197,11 +172,6 @@ class WVertex {
 
    public:
     inline incoming_edge_iterator(const incoming_edge_iterator &iBrother)
-#if defined(__GNUC__) && (__GNUC__ < 3)
-        : input_iterator<WOEdge *, ptrdiff_t>(iBrother)
-#else
-        : iterator<input_iterator_tag, WOEdge *, ptrdiff_t>(iBrother)
-#endif
     {
       _vertex = iBrother._vertex;
       _begin = iBrother._begin;
@@ -247,47 +217,30 @@ class WVertex {
 #endif
   };
 
-  /** Iterator to iterate over a vertex faces in the CCW order */
-#if defined(__GNUC__) && (__GNUC__ < 3)
-  class face_iterator : public input_iterator<WFace *, ptrdiff_t>
-#else
-  class face_iterator : public iterator<input_iterator_tag, WFace *, ptrdiff_t>
-#endif
-  {
+  class face_iterator {
+   public:
+    using iterator_category = input_iterator_tag;
+    using value_type = WFace *;
+    using difference_type = ptrdiff_t;
+    using pointer = value_type *;
+    using reference = value_type &;
+
    private:
     incoming_edge_iterator _edge_it;
 
    public:
-#if defined(__GNUC__) && (__GNUC__ < 3)
-    inline face_iterator() : input_iterator<WFace *, ptrdiff_t>()
-    {
-    }
-#else
-    inline face_iterator() : iterator<input_iterator_tag, WFace *, ptrdiff_t>()
-    {
-    }
-#endif
-    virtual ~face_iterator(){};  // soc
+    inline face_iterator() = default;
+    virtual ~face_iterator() = default;
 
    protected:
     friend class WVertex;
     inline face_iterator(incoming_edge_iterator it)
-#if defined(__GNUC__) && (__GNUC__ < 3)
-        : input_iterator<WFace *, ptrdiff_t>()
-#else
-        : iterator<input_iterator_tag, WFace *, ptrdiff_t>()
-#endif
     {
       _edge_it = it;
     }
 
    public:
     inline face_iterator(const face_iterator &iBrother)
-#if defined(__GNUC__) && (__GNUC__ < 3)
-        : input_iterator<WFace *, ptrdiff_t>(iBrother)
-#else
-        : iterator<input_iterator_tag, WFace *, ptrdiff_t>(iBrother)
-#endif
     {
       _edge_it = iBrother._edge_it;
     }
@@ -874,7 +827,7 @@ class WFace {
     return _VerticesNormals[index];
   }
 
-  /** Returns the tex coords of the vertex of `index`. */
+  /** Returns the texture coords of the vertex of `index`. */
   inline Vec2f &GetVertexTexCoords(int index)
   {
     return _VerticesTexCoords[index];
@@ -1225,7 +1178,7 @@ class WShape {
    * orientation and (so) the face orientation. iMaterialIndex The materialIndex for this face
    *   iNormalsList
    *     The list of normals, iNormalsList[i] corresponding to the normal of the vertex
-   * iVertexList[i] for that face. iTexCoordsList The list of tex coords, iTexCoordsList[i]
+   * iVertexList[i] for that face. iTexCoordsList The list of texture coords, iTexCoordsList[i]
    * corresponding to the normal of the vertex iVertexList[i] for that face.
    */
   virtual WFace *MakeFace(vector<WVertex *> &iVertexList,
@@ -1414,11 +1367,11 @@ inline void WOEdge::setVecAndAngle()
     if (_paFace && _pbFace) {
       float sine = (_pbFace->GetNormal() ^ _paFace->GetNormal()) * _vec / _vec.norm();
       if (sine >= 1.0) {
-        _angle = M_PI / 2.0;
+        _angle = M_PI_2;
         return;
       }
       if (sine <= -1.0) {
-        _angle = -M_PI / 2.0;
+        _angle = -M_PI_2;
         return;
       }
       _angle = ::asin(sine);

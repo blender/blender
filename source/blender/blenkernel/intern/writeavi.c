@@ -1,25 +1,9 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- * Functions for writing avi-format files.
- * Added interface for generic movie support (ton)
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
+ * Functions for writing AVI-format files.
+ * Added interface for generic movie support (ton)
  * \ingroup bke
  */
 
@@ -315,7 +299,6 @@ static void context_free_avi(void *context_v)
 
 #endif /* WITH_AVI */
 
-/* similar to BKE_image_path_from_imformat() */
 void BKE_movie_filepath_get(char *string, const RenderData *rd, bool preview, const char *suffix)
 {
   bMovieHandle *mh = BKE_movie_handle_get(rd->im_format.imtype);

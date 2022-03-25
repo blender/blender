@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 #pragma once
 
 /** \file
@@ -42,6 +26,9 @@ struct TexResult;
 /** #ColorBand.data length. */
 #define MAXCOLORBAND 32
 
+/**
+ * Utility for all IDs using those texture slots.
+ */
 void BKE_texture_mtex_foreach_id(struct LibraryForeachIDData *data, struct MTex *mtex);
 
 void BKE_texture_default(struct Tex *tex);
@@ -50,6 +37,9 @@ void BKE_texture_type_set(struct Tex *tex, int type);
 
 void BKE_texture_mtex_default(struct MTex *mtex);
 struct MTex *BKE_texture_mtex_add(void);
+/**
+ * Slot -1 for first free ID.
+ */
 struct MTex *BKE_texture_mtex_add_id(struct ID *id, int slot);
 /* UNUSED */
 // void autotexname(struct Tex *tex);
@@ -76,9 +66,12 @@ void BKE_texture_pointdensity_init_data(struct PointDensity *pd);
 void BKE_texture_pointdensity_free_data(struct PointDensity *pd);
 void BKE_texture_pointdensity_free(struct PointDensity *pd);
 struct PointDensity *BKE_texture_pointdensity_add(void);
-struct PointDensity *BKE_texture_pointdensity_copy(const struct PointDensity *pd, const int flag);
+struct PointDensity *BKE_texture_pointdensity_copy(const struct PointDensity *pd, int flag);
 
 bool BKE_texture_dependsOnTime(const struct Tex *texture);
+/**
+ * \returns true if this texture can use its #Texture.ima (even if its NULL).
+ */
 bool BKE_texture_is_image_user(const struct Tex *tex);
 
 void BKE_texture_get_value_ex(const struct Scene *scene,
@@ -94,6 +87,9 @@ void BKE_texture_get_value(const struct Scene *scene,
                            struct TexResult *texres,
                            bool use_color_management);
 
+/**
+ * Make sure all images used by texture are loaded into pool.
+ */
 void BKE_texture_fetch_images_for_pool(struct Tex *texture, struct ImagePool *pool);
 
 #ifdef __cplusplus

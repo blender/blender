@@ -1,34 +1,50 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
 #include <mutex>
 
-#include "FN_cpp_type.hh"
-#include "FN_generic_span.hh"
-#include "FN_generic_virtual_array.hh"
-
 #include "BKE_anonymous_attribute.hh"
 #include "BKE_attribute.h"
 
 #include "BLI_color.hh"
-#include "BLI_float2.hh"
-#include "BLI_float3.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_generic_span.hh"
+#include "BLI_generic_virtual_array.hh"
+#include "BLI_math_vec_types.hh"
+
+/**
+ * This file defines classes that help to provide access to attribute data on a #GeometryComponent.
+ * The API for retrieving attributes is defined in `BKE_geometry_set.hh`, but this comment has some
+ * general comments about the system.
+ *
+ * Attributes are stored in geometry data, though they can also be stored in instances. Their
+ * storage is often tied to `CustomData`, which is a system to store "layers" of data with specific
+ * types and names. However, since `CustomData` was added to Blender before attributes were
+ * conceptualized, it combines the "legacy" style of task-specific attribute types with generic
+ * types like "Float". The attribute API here only provides access to generic types.
+ *
+ * Attributes are retrieved from geometry components by providing an "id" (#AttributeIDRef). This
+ * is most commonly just an attribute name. The attribute API on geometry components has some more
+ * advanced capabilities:
+ * 1. Read-only access: With a `const` geometry component, an attribute on the geometry cannot be
+ *    modified, so the `for_write` and `for_output` versions of the API are not available. This is
+ *    extremely important for writing coherent bug-free code. When an attribute is retrieved with
+ *    write access, via #WriteAttributeLookup or #OutputAttribute, the geometry component must be
+ *    tagged to clear caches that depend on the changed data.
+ * 2. Domain interpolation: When retrieving an attribute, a domain (#AttributeDomain) can be
+ *    provided. If the attribute is stored on a different domain and conversion is possible, a
+ *    version of the data interpolated to the requested domain will be provided. These conversions
+ *    are implemented in each #GeometryComponent by `attribute_try_adapt_domain_impl`.
+ * 3. Implicit type conversion: In addition  to interpolating domains, attribute types can be
+ *    converted, using the conversions in `BKE_type_conversions.hh`. The #VArray / #GVArray system
+ *    makes it possible to only convert necessary indices on-demand.
+ * 4. Anonymous attributes: The "id" used to look up an attribute can also be an anonymous
+ *    attribute reference. Currently anonymous attributes are only used in geometry nodes.
+ * 5. Abstracted storage: Since the data returned from the API is usually a virtual array,
+ *    it doesn't have to be stored contiguously (even though that is generally preferred). This
+ *    allows accessing "legacy" attributes like `material_index`, which is stored in `MPoly`.
+ */
 
 namespace blender::bke {
 
@@ -115,9 +131,9 @@ struct AttributeInitDefault : public AttributeInit {
  * Note that this can be used to fill the new attribute with the default
  */
 struct AttributeInitVArray : public AttributeInit {
-  blender::fn::GVArray varray;
+  blender::GVArray varray;
 
-  AttributeInitVArray(blender::fn::GVArray varray)
+  AttributeInitVArray(blender::GVArray varray)
       : AttributeInit(Type::VArray), varray(std::move(varray))
   {
   }
@@ -148,13 +164,11 @@ using AttributeForeachCallback = blender::FunctionRef<bool(
 
 namespace blender::bke {
 
-using fn::CPPType;
-using fn::GVArray;
-using fn::GVMutableArray;
-
-const CPPType *custom_data_type_to_cpp_type(const CustomDataType type);
-CustomDataType cpp_type_to_custom_data_type(const CPPType &type);
 CustomDataType attribute_data_type_highest_complexity(Span<CustomDataType> data_types);
+/**
+ * Domains with a higher "information density" have a higher priority,
+ * in order to choose a domain that will not lose data through domain conversion.
+ */
 AttributeDomain attribute_domain_highest_priority(Span<AttributeDomain> domains);
 
 /**
@@ -177,11 +191,14 @@ struct ReadAttributeLookup {
  * Used when looking up a "plain attribute" based on a name for reading from it and writing to it.
  */
 struct WriteAttributeLookup {
-  /* The virtual array that is used to read from and write to the attribute. */
+  /** The virtual array that is used to read from and write to the attribute. */
   GVMutableArray varray;
-  /* Domain the attributes lives on in the geometry. */
+  /** Domain the attributes lives on in the geometry component. */
   AttributeDomain domain;
-  /* Call this after changing the attribute to invalidate caches that depend on this attribute. */
+  /**
+   * Call this after changing the attribute to invalidate caches that depend on this attribute.
+   * \note Do not call this after the component the attribute is from has been destructed.
+   */
   std::function<void()> tag_modified_fn;
 
   /* Convenience function to check if the attribute has been found. */
@@ -201,6 +218,10 @@ struct WriteAttributeLookup {
  *   VMutableArray_Span in many cases).
  * - An output attribute can live side by side with an existing attribute with a different domain
  *   or data type. The old attribute will only be overwritten when the #save function is called.
+ *
+ * \note The lifetime of an output attribute should not be longer than the lifetime of the
+ * geometry component it comes from, since it can keep a reference to the component for use in
+ * the #save method.
  */
 class OutputAttribute {
  public:
@@ -210,7 +231,7 @@ class OutputAttribute {
   GVMutableArray varray_;
   AttributeDomain domain_ = ATTR_DOMAIN_AUTO;
   SaveFn save_;
-  std::unique_ptr<fn::GVMutableArray_GSpan> optional_span_varray_;
+  std::unique_ptr<GVMutableArray_GSpan> optional_span_varray_;
   bool ignore_old_values_ = false;
   bool save_has_been_called_ = false;
 
@@ -220,20 +241,20 @@ class OutputAttribute {
   OutputAttribute(GVMutableArray varray,
                   AttributeDomain domain,
                   SaveFn save,
-                  const bool ignore_old_values);
+                  bool ignore_old_values);
 
   ~OutputAttribute();
 
   operator bool() const;
 
   GVMutableArray &operator*();
-  fn::GVMutableArray *operator->();
+  GVMutableArray *operator->();
   GVMutableArray &varray();
   AttributeDomain domain() const;
   const CPPType &cpp_type() const;
   CustomDataType custom_data_type() const;
 
-  fn::GMutableSpan as_span();
+  GMutableSpan as_span();
   template<typename T> MutableSpan<T> as_span();
 
   void save();
@@ -343,24 +364,31 @@ class CustomDataAttributes {
   CustomDataAttributes(CustomDataAttributes &&other);
   CustomDataAttributes &operator=(const CustomDataAttributes &other);
 
-  void reallocate(const int size);
+  void reallocate(int size);
 
-  std::optional<blender::fn::GSpan> get_for_read(const AttributeIDRef &attribute_id) const;
+  void clear();
 
-  blender::fn::GVArray get_for_read(const AttributeIDRef &attribute_id,
-                                    const CustomDataType data_type,
-                                    const void *default_value) const;
+  std::optional<blender::GSpan> get_for_read(const AttributeIDRef &attribute_id) const;
+
+  /**
+   * Return a virtual array for a stored attribute, or a single value virtual array with the
+   * default value if the attribute doesn't exist. If no default value is provided, the default
+   * value for the type will be used.
+   */
+  blender::GVArray get_for_read(const AttributeIDRef &attribute_id,
+                                const CustomDataType data_type,
+                                const void *default_value) const;
 
   template<typename T>
   blender::VArray<T> get_for_read(const AttributeIDRef &attribute_id, const T &default_value) const
   {
-    const blender::fn::CPPType &cpp_type = blender::fn::CPPType::get<T>();
+    const blender::CPPType &cpp_type = blender::CPPType::get<T>();
     const CustomDataType type = blender::bke::cpp_type_to_custom_data_type(cpp_type);
     GVArray varray = this->get_for_read(attribute_id, type, &default_value);
     return varray.typed<T>();
   }
 
-  std::optional<blender::fn::GMutableSpan> get_for_write(const AttributeIDRef &attribute_id);
+  std::optional<blender::GMutableSpan> get_for_write(const AttributeIDRef &attribute_id);
   bool create(const AttributeIDRef &attribute_id, const CustomDataType data_type);
   bool create_by_move(const AttributeIDRef &attribute_id,
                       const CustomDataType data_type,
@@ -372,8 +400,7 @@ class CustomDataAttributes {
    */
   void reorder(Span<AttributeIDRef> new_order);
 
-  bool foreach_attribute(const AttributeForeachCallback callback,
-                         const AttributeDomain domain) const;
+  bool foreach_attribute(const AttributeForeachCallback callback, AttributeDomain domain) const;
 };
 
 /* -------------------------------------------------------------------- */
@@ -481,7 +508,7 @@ inline GVMutableArray &OutputAttribute::operator*()
   return varray_;
 }
 
-inline fn::GVMutableArray *OutputAttribute::operator->()
+inline GVMutableArray *OutputAttribute::operator->()
 {
   return &varray_;
 }
@@ -514,19 +541,3 @@ template<typename T> inline MutableSpan<T> OutputAttribute::as_span()
 /** \} */
 
 }  // namespace blender::bke
-
-/* -------------------------------------------------------------------- */
-/** \name External Template Instantiations
- *
- * Defined in `intern/extern_implementations.cc`.
- * \{ */
-
-namespace blender::bke {
-extern template class OutputAttribute_Typed<float>;
-extern template class OutputAttribute_Typed<int>;
-extern template class OutputAttribute_Typed<float3>;
-extern template class OutputAttribute_Typed<bool>;
-extern template class OutputAttribute_Typed<ColorGeometry4f>;
-}  // namespace blender::bke
-
-/** \} */

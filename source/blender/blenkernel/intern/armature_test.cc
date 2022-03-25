@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 #include "BKE_armature.hh"
 
@@ -301,7 +285,7 @@ TEST(vec_roll_to_mat3_normalized, Roll1)
   const float expected_roll_mat[3][3] = {{0.211324856f, 0.577350259f, -0.788675129f},
                                          {0.577350259f, 0.577350259f, 0.577350259f},
                                          {0.788675129f, -0.577350259f, -0.211324856f}};
-  test_vec_roll_to_mat3_normalized(input, float(M_PI * 0.5), expected_roll_mat);
+  test_vec_roll_to_mat3_normalized(input, float(M_PI_2), expected_roll_mat);
 }
 
 /** Test that the matrix is orthogonal for an input close to -Y. */

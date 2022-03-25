@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edobj
@@ -89,14 +73,6 @@
 /** \name Public Object Selection API
  * \{ */
 
-/**
- * Simple API for object selection, rather than just using the flag
- * this takes into account the 'restrict selection in 3d view' flag.
- * deselect works always, the restriction just prevents selection
- *
- * \note Caller must send a `NC_SCENE | ND_OB_SELECT` notifier
- * (or a `NC_SCENE | ND_OB_VISIBLE` in case of visibility toggling).
- */
 void ED_object_base_select(Base *base, eObjectSelect_Mode mode)
 {
   if (mode == BA_INVERT) {
@@ -121,9 +97,6 @@ void ED_object_base_select(Base *base, eObjectSelect_Mode mode)
   }
 }
 
-/**
- * Call when the active base has changed.
- */
 void ED_object_base_active_refresh(Main *bmain, Scene *scene, ViewLayer *view_layer)
 {
   WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
@@ -134,9 +107,6 @@ void ED_object_base_active_refresh(Main *bmain, Scene *scene, ViewLayer *view_la
   }
 }
 
-/**
- * Change active base, it includes the notifier
- */
 void ED_object_base_activate(bContext *C, Base *base)
 {
   Scene *scene = CTX_data_scene(C);
@@ -242,10 +212,6 @@ static int get_base_select_priority(Base *base)
   return 1;
 }
 
-/**
- * If id is not already an Object, try to find an object that uses it as data.
- * Prefers active, then selected, then visible/selectable.
- */
 Base *ED_object_find_first_by_data_id(ViewLayer *view_layer, ID *id)
 {
   BLI_assert(OB_DATA_SUPPORT_ID(GS(id->name)));
@@ -279,12 +245,6 @@ Base *ED_object_find_first_by_data_id(ViewLayer *view_layer, ID *id)
   return base_best;
 }
 
-/**
- * Select and make the target object active in the view layer.
- * If already selected, selection isn't changed.
- *
- * \returns false if not found in current view layer
- */
 bool ED_object_jump_to_object(bContext *C, Object *ob, const bool UNUSED(reveal_hidden))
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -316,13 +276,6 @@ bool ED_object_jump_to_object(bContext *C, Object *ob, const bool UNUSED(reveal_
   return true;
 }
 
-/**
- * Select and make the target object and bone active.
- * Switches to Pose mode if in Object mode so the selection is visible.
- * Un-hides the target bone and bone layer if necessary.
- *
- * \returns false if object not in layer, bone not found, or other error
- */
 bool ED_object_jump_to_bone(bContext *C,
                             Object *ob,
                             const char *bone_name,

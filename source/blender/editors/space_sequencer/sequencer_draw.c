@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup spseq
@@ -69,6 +53,8 @@
 #include "ED_util.h"
 
 #include "BIF_glutil.h"
+
+#include "RNA_prototypes.h"
 
 #include "SEQ_effects.h"
 #include "SEQ_iterator.h"
@@ -492,7 +478,7 @@ static void draw_seq_waveform_overlay(View2D *v2d,
 
       bool is_line_strip = (value_max - value_min < 0.05f);
 
-      if (was_line_strip != -1 && is_line_strip != was_line_strip) {
+      if (!ELEM(was_line_strip, -1, is_line_strip)) {
         /* If the previously added strip type isn't the same as the current one,
          * add transition areas so they transition smoothly between each other. */
         if (is_line_strip) {
@@ -668,7 +654,6 @@ static void drawmeta_contents(Scene *scene,
   GPU_blend(GPU_BLEND_NONE);
 }
 
-/* Get handle width in 2d-View space. */
 float sequence_handle_size_get_clamped(Sequence *seq, const float pixelx)
 {
   const float maxhandle = (pixelx * SEQ_HANDLE_SIZE) * U.pixelsize;
@@ -1389,7 +1374,8 @@ static void draw_seq_strip(const bContext *C,
   if ((sseq->flag & SEQ_SHOW_OVERLAY) &&
       (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_THUMBNAILS) &&
       (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE))) {
-    draw_seq_strip_thumbnail(v2d, C, scene, seq, y1, y2, pixelx, pixely);
+    draw_seq_strip_thumbnail(
+        v2d, C, scene, seq, y1, y_threshold ? text_margin_y : y2, pixelx, pixely);
   }
 
   if ((sseq->flag & SEQ_SHOW_OVERLAY) &&
@@ -1516,13 +1502,6 @@ void ED_sequencer_special_preview_clear(void)
   sequencer_special_update_set(NULL);
 }
 
-/**
- * Rendering using opengl will change the current viewport/context.
- * This is why we need the \a region, to set back the render area.
- *
- * TODO: do not rely on such hack and just update the \a ibuf outside of
- * the UI drawing code.
- */
 ImBuf *sequencer_ibuf_get(struct Main *bmain,
                           ARegion *region,
                           struct Depsgraph *depsgraph,
@@ -1659,7 +1638,9 @@ static void sequencer_draw_gpencil_overlay(const bContext *C)
   ED_annotation_draw_view2d(C, 0);
 }
 
-/* Draw content and safety borders borders. */
+/**
+ * Draw content and safety borders.
+ */
 static void sequencer_draw_borders_overlay(const SpaceSeq *sseq,
                                            const View2D *v2d,
                                            const Scene *scene)
@@ -1949,7 +1930,6 @@ static void sequencer_draw_display_buffer(const bContext *C,
   if (!glsl_used) {
     immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
     immUniformColor3f(1.0f, 1.0f, 1.0f);
-    immUniform1i("image", 0);
   }
 
   immBegin(GPU_PRIM_TRI_FAN, 4);
@@ -2096,6 +2076,10 @@ static int sequencer_draw_get_transform_preview_frame(Scene *scene)
 static void seq_draw_image_origin_and_outline(const bContext *C, Sequence *seq, bool is_active_seq)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
+  const ARegion *region = CTX_wm_region(C);
+  if (region->regiontype == RGN_TYPE_PREVIEW && !sequencer_view_preview_only_poll(C)) {
+    return;
+  }
   if ((seq->flag & SELECT) == 0) {
     return;
   }
@@ -2265,28 +2249,15 @@ void sequencer_draw_preview(const bContext *C,
   seq_prefetch_wm_notify(C, scene);
 }
 
-/* Draw backdrop in sequencer timeline. */
-static void draw_seq_backdrop(View2D *v2d)
+static void draw_seq_timeline_channels(View2D *v2d)
 {
-  int i;
-
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
-  /* View backdrop. */
-  immUniformThemeColor(TH_BACK);
-  immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
-
-  /* Darker overlay over the view backdrop. */
-  immUniformThemeColorShade(TH_BACK, -10);
-  immRectf(pos, v2d->cur.xmin, -1.0, v2d->cur.xmax, 1.0);
-
-  /* Alternating horizontal stripes. */
-  i = max_ii(1, ((int)v2d->cur.ymin) - 1);
-
   GPU_blend(GPU_BLEND_ALPHA);
   immUniformThemeColor(TH_ROW_ALTERNATE);
 
+  /* Alternating horizontal stripes. */
+  int i = max_ii(1, ((int)v2d->cur.ymin) - 1);
   while (i < v2d->cur.ymax) {
     if (i & 1) {
       immRectf(pos, v2d->cur.xmin, i, v2d->cur.xmax, i + 1);
@@ -2296,6 +2267,14 @@ static void draw_seq_backdrop(View2D *v2d)
 
   GPU_blend(GPU_BLEND_NONE);
   immUnbindProgram();
+}
+
+static void draw_seq_timeline_channel_numbers(ARegion *region)
+{
+  View2D *v2d = &region->v2d;
+  rcti rect;
+  BLI_rcti_init(&rect, 0, 15 * UI_DPI_FAC, 15 * UI_DPI_FAC, region->winy - UI_TIME_SCRUB_MARGIN_Y);
+  UI_view2d_draw_scale_y__block(region, v2d, &rect, TH_SCROLL_TEXT);
 }
 
 static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *region)
@@ -2702,7 +2681,6 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   Editing *ed = SEQ_editing_get(scene);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   View2D *v2d = &region->v2d;
-  short cfra_flag = 0;
   float col[3];
 
   seq_prefetch_wm_notify(C, scene);
@@ -2713,15 +2691,10 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   GPU_depth_test(GPU_DEPTH_NONE);
 
   UI_GetThemeColor3fv(TH_BACK, col);
-  if (ed && ed->metastack.first) {
-    GPU_clear_color(col[0], col[1], col[2] - 0.1f, 0.0f);
-  }
-  else {
-    GPU_clear_color(col[0], col[1], col[2], 0.0f);
-  }
+  GPU_clear_color(col[0], col[1], col[2], 0.0f);
 
   UI_view2d_view_ortho(v2d);
-  draw_seq_backdrop(v2d);
+  draw_seq_timeline_channels(v2d);
   if ((sseq->flag & SEQ_SHOW_OVERLAY) && (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_GRID)) {
     U.v2d_min_gridsize *= 3;
     UI_view2d_draw_lines_x__discrete_frames_or_seconds(
@@ -2754,9 +2727,6 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   }
 
   UI_view2d_view_ortho(v2d);
-  if ((sseq->flag & SEQ_DRAWFRAMES) == 0) {
-    cfra_flag |= DRAWCFRA_UNIT_SECONDS;
-  }
 
   UI_view2d_view_orthoSpecial(region, v2d, 1);
   int marker_draw_flag = DRAW_MARKERS_MARGIN;
@@ -2779,13 +2749,7 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
   ED_time_scrub_draw(region, scene, !(sseq->flag & SEQ_DRAWFRAMES), true);
 
-  /* Draw channel numbers. */
-  {
-    rcti rect;
-    BLI_rcti_init(
-        &rect, 0, 15 * UI_DPI_FAC, 15 * UI_DPI_FAC, region->winy - UI_TIME_SCRUB_MARGIN_Y);
-    UI_view2d_draw_scale_y__block(region, v2d, &rect, TH_SCROLL_TEXT);
-  }
+  draw_seq_timeline_channel_numbers(region);
 }
 
 void draw_timeline_seq_display(const bContext *C, ARegion *region)

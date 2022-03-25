@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -78,6 +64,8 @@ static PyStructSequence_Field app_cb_info_fields[] = {
     {"load_factory_preferences_post", "on loading factory preferences (after)"},
     {"load_factory_startup_post", "on loading factory startup (after)"},
     {"xr_session_start_pre", "on starting an xr session (before)"},
+    {"annotation_pre", "on drawing an annotation (before)"},
+    {"annotation_post", "on drawing an annotation (after)"},
 
 /* sets the permanent tag */
 #define APP_CB_OTHER_FIELDS 1
@@ -290,7 +278,7 @@ void BPY_app_handlers_reset(const short do_all)
         }
         else {
           /* remove */
-          /* PySequence_DelItem(ls, i); */ /* more obvious but slower */
+          // PySequence_DelItem(ls, i); /* more obvious but slower */
           PyList_SetSlice(ls, i, i + 1, NULL);
         }
       }

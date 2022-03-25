@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_pointcloud_types.h"
 
@@ -26,9 +12,11 @@
 
 using blender::Array;
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_mesh_to_points_cc {
 
-static void geo_node_mesh_to_points_declare(NodeDeclarationBuilder &b)
+NODE_STORAGE_FUNCS(NodeGeometryMeshToPoints)
+
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
@@ -41,15 +29,14 @@ static void geo_node_mesh_to_points_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Points"));
 }
 
-static void geo_node_mesh_to_points_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
 }
 
-static void geo_node_mesh_to_points_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometryMeshToPoints *data = (NodeGeometryMeshToPoints *)MEM_callocN(
-      sizeof(NodeGeometryMeshToPoints), __func__);
+  NodeGeometryMeshToPoints *data = MEM_cnew<NodeGeometryMeshToPoints>(__func__);
   data->mode = GEO_NODE_MESH_TO_POINTS_VERTICES;
   node->storage = data;
 }
@@ -81,10 +68,15 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
     geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
     return;
   }
-  fn::FieldEvaluator selection_evaluator{field_context, domain_size};
-  selection_evaluator.add(selection_field);
-  selection_evaluator.evaluate();
-  const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
+  fn::FieldEvaluator evaluator{field_context, domain_size};
+  evaluator.set_selection(selection_field);
+  /* Evaluating directly into the point cloud doesn't work because we are not using the full
+   * "min_array_size" array but compressing the selected elements into the final array with no
+   * gaps. */
+  evaluator.add(position_field);
+  evaluator.add(radius_field);
+  evaluator.evaluate();
+  const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
   uninitialized_fill_n(pointcloud->radius, pointcloud->totpoint, 0.05f);
@@ -92,13 +84,6 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   PointCloudComponent &point_component =
       geometry_set.get_component_for_write<PointCloudComponent>();
 
-  /* Evaluating directly into the point cloud doesn't work because we are not using the full
-   * "min_array_size" array but compressing the selected elements into the final array with no
-   * gaps. */
-  fn::FieldEvaluator evaluator{field_context, &selection};
-  evaluator.add(position_field);
-  evaluator.add(radius_field);
-  evaluator.evaluate();
   copy_attribute_to_points(evaluator.get_evaluated<float3>(0),
                            selection,
                            {(float3 *)pointcloud->co, pointcloud->totpoint});
@@ -129,7 +114,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   geometry_set.keep_only({GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_INSTANCES});
 }
 
-static void geo_node_mesh_to_points_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
   Field<float3> position = params.extract_input<Field<float3>>("Position");
@@ -144,8 +129,7 @@ static void geo_node_mesh_to_points_exec(GeoNodeExecParams params)
       FieldOperation(max_zero_fn, {std::move(radius)}));
   Field<float> positive_radius(std::move(max_zero_op), 0);
 
-  const NodeGeometryMeshToPoints &storage =
-      *(const NodeGeometryMeshToPoints *)params.node().storage;
+  const NodeGeometryMeshToPoints &storage = node_storage(params.node());
   const GeometryNodeMeshToPointsMode mode = (GeometryNodeMeshToPointsMode)storage.mode;
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
@@ -172,17 +156,19 @@ static void geo_node_mesh_to_points_exec(GeoNodeExecParams params)
   params.set_output("Points", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_mesh_to_points_cc
 
 void register_node_type_geo_mesh_to_points()
 {
+  namespace file_ns = blender::nodes::node_geo_mesh_to_points_cc;
+
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_MESH_TO_POINTS, "Mesh to Points", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_mesh_to_points_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_mesh_to_points_exec;
-  node_type_init(&ntype, blender::nodes::geo_node_mesh_to_points_init);
-  ntype.draw_buttons = blender::nodes::geo_node_mesh_to_points_layout;
+  geo_node_type_base(&ntype, GEO_NODE_MESH_TO_POINTS, "Mesh to Points", NODE_CLASS_GEOMETRY);
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  node_type_init(&ntype, file_ns::node_init);
+  ntype.draw_buttons = file_ns::node_layout;
   node_type_storage(
       &ntype, "NodeGeometryMeshToPoints", node_free_standard_storage, node_copy_standard_storage);
   nodeRegisterType(&ntype);

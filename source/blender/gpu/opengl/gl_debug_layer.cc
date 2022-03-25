@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -82,6 +66,8 @@ DEBUG_FUNC_DECLARE(PFNGLDRAWBUFFERSPROC, void, glDrawBuffers, GLsizei, n, const 
 DEBUG_FUNC_DECLARE(PFNGLDRAWELEMENTSINSTANCEDBASEVERTEXBASEINSTANCEPROC, void, glDrawElementsInstancedBaseVertexBaseInstance, GLenum, mode, GLsizei, count, GLenum, type, const void *, indices, GLsizei, primcount, GLint, basevertex, GLuint, baseinstance);
 DEBUG_FUNC_DECLARE(PFNGLDRAWELEMENTSINSTANCEDBASEVERTEXPROC, void, glDrawElementsInstancedBaseVertex, GLenum, mode, GLsizei, count, GLenum, type, const void *, indices, GLsizei, instancecount, GLint, basevertex);
 DEBUG_FUNC_DECLARE(PFNGLENDQUERYPROC, void, glEndQuery, GLenum, target);
+DEBUG_FUNC_DECLARE(PFNGLDISPATCHCOMPUTEPROC, void, glDispatchCompute, GLuint, num_groups_x, GLuint, num_groups_y, GLuint, num_groups_z);
+DEBUG_FUNC_DECLARE(PFNGLDISPATCHCOMPUTEINDIRECTPROC, void, glDispatchComputeIndirect, GLintptr, indirect);
 DEBUG_FUNC_DECLARE(PFNGLENDTRANSFORMFEEDBACKPROC, void, glEndTransformFeedback, void);
 DEBUG_FUNC_DECLARE(PFNGLFRAMEBUFFERTEXTURE2DPROC, void, glFramebufferTexture2D, GLenum, target, GLenum, attachment, GLenum, textarget, GLuint, texture, GLint, level);
 DEBUG_FUNC_DECLARE(PFNGLFRAMEBUFFERTEXTURELAYERPROC, void, glFramebufferTextureLayer, GLenum, target, GLenum, attachment, GLuint, texture, GLint, level, GLint, layer);
@@ -105,11 +91,6 @@ DEBUG_FUNC_DECLARE(PFNGLUSEPROGRAMPROC, void, glUseProgram, GLuint, program);
 
 #undef DEBUG_FUNC_DECLARE
 
-/**
- * Initialize a fallback layer (to KHR_debug) that covers only some functions.
- * We override the functions pointers by our own implementation that just checks #glGetError.
- * Some additional functions (not overridable) are covered inside the header using wrappers.
- */
 void init_debug_layer()
 {
 #define DEBUG_WRAP(function) \
@@ -135,6 +116,8 @@ void init_debug_layer()
   DEBUG_WRAP(glDeleteSamplers);
   DEBUG_WRAP(glDeleteShader);
   DEBUG_WRAP(glDeleteVertexArrays);
+  DEBUG_WRAP(glDispatchCompute);
+  DEBUG_WRAP(glDispatchComputeIndirect);
   DEBUG_WRAP(glDrawArraysInstanced);
   DEBUG_WRAP(glDrawArraysInstancedBaseInstance);
   DEBUG_WRAP(glDrawBuffers);

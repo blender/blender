@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2013 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2013 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup depsgraph
@@ -148,15 +132,15 @@ void DEG_add_simulation_relation(DepsNodeHandle *node_handle,
   deg_node_handle->builder->add_node_handle_relation(operation_key, deg_node_handle, description);
 }
 
-void DEG_add_node_tree_relation(DepsNodeHandle *node_handle,
-                                bNodeTree *node_tree,
-                                const char *description)
+void DEG_add_node_tree_output_relation(DepsNodeHandle *node_handle,
+                                       bNodeTree *node_tree,
+                                       const char *description)
 {
-  /* Using shading key, because that's the one that exists right now. Should use something else in
-   * the future. */
-  deg::ComponentKey shading_key(&node_tree->id, deg::NodeType::SHADING);
+  deg::OperationKey ntree_output_key(
+      &node_tree->id, deg::NodeType::NTREE_OUTPUT, deg::OperationCode::NTREE_OUTPUT);
   deg::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
-  deg_node_handle->builder->add_node_handle_relation(shading_key, deg_node_handle, description);
+  deg_node_handle->builder->add_node_handle_relation(
+      ntree_output_key, deg_node_handle, description);
 }
 
 void DEG_add_object_cache_relation(DepsNodeHandle *node_handle,
@@ -252,7 +236,6 @@ struct Depsgraph *DEG_get_graph_from_handle(struct DepsNodeHandle *node_handle)
 /* ******************** */
 /* Graph Building API's */
 
-/* Build depsgraph for the given scene layer, and dump results in given graph container. */
 void DEG_graph_build_from_view_layer(Depsgraph *graph)
 {
   deg::ViewLayerBuilderPipeline builder(graph);
@@ -283,7 +266,6 @@ void DEG_graph_build_from_ids(Depsgraph *graph, ID **ids, const int num_ids)
   builder.build();
 }
 
-/* Tag graph relations for update. */
 void DEG_graph_tag_relations_update(Depsgraph *graph)
 {
   DEG_DEBUG_PRINTF(graph, TAG, "%s: Tagging relations for update.\n", __func__);
@@ -301,7 +283,6 @@ void DEG_graph_tag_relations_update(Depsgraph *graph)
   }
 }
 
-/* Create or update relations in the specified graph. */
 void DEG_graph_relations_update(Depsgraph *graph)
 {
   deg::Depsgraph *deg_graph = (deg::Depsgraph *)graph;
@@ -312,7 +293,6 @@ void DEG_graph_relations_update(Depsgraph *graph)
   DEG_graph_build_from_view_layer(graph);
 }
 
-/* Tag all relations for update. */
 void DEG_relations_tag_update(Main *bmain)
 {
   DEG_GLOBAL_DEBUG_PRINTF(TAG, "%s: Tagging relations for update.\n", __func__);

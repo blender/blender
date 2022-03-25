@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #ifndef __BLENDER_SYNC_H__
 #define __BLENDER_SYNC_H__
@@ -66,6 +53,8 @@ class BlenderSync {
 
   void reset(BL::BlendData &b_data, BL::Scene &b_scene);
 
+  void tag_update();
+
   /* sync */
   void sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d);
   void sync_data(BL::RenderSettings &b_render,
@@ -103,11 +92,11 @@ class BlenderSync {
   static BufferParams get_buffer_params(
       BL::SpaceView3D &b_v3d, BL::RegionView3D &b_rv3d, Camera *cam, int width, int height);
 
- private:
   static DenoiseParams get_denoise_params(BL::Scene &b_scene,
                                           BL::ViewLayer &b_view_layer,
                                           bool background);
 
+ private:
   /* sync */
   void sync_lights(BL::Depsgraph &b_depsgraph, bool update_all);
   void sync_materials(BL::Depsgraph &b_depsgraph, bool update_all);
@@ -125,7 +114,7 @@ class BlenderSync {
   /* Shader */
   array<Node *> find_used_shaders(BL::Object &b_ob);
   void sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d, bool update_all);
-  void sync_shaders(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d);
+  void sync_shaders(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d, bool update_all);
   void sync_nodes(Shader *shader, BL::ShaderNodeTree &b_ntree);
 
   /* Object */
@@ -167,12 +156,16 @@ class BlenderSync {
       Hair *hair, BL::Mesh &b_mesh, BObjectInfo &b_ob_info, bool motion, int motion_step = 0);
   bool object_has_particle_hair(BL::Object b_ob);
 
+  /* Point Cloud */
+  void sync_pointcloud(PointCloud *pointcloud, BObjectInfo &b_ob_info);
+  void sync_pointcloud_motion(PointCloud *pointcloud, BObjectInfo &b_ob_info, int motion_step = 0);
+
   /* Camera */
   void sync_camera_motion(
       BL::RenderSettings &b_render, BL::Object &b_ob, int width, int height, float motion_time);
 
   /* Geometry */
-  Geometry *sync_geometry(BL::Depsgraph &b_depsgrpah,
+  Geometry *sync_geometry(BL::Depsgraph &b_depsgraph,
                           BObjectInfo &b_ob_info,
                           bool object_updated,
                           bool use_particle_hair,
@@ -267,7 +260,6 @@ class BlenderSync {
 
   Progress &progress;
 
- protected:
   /* Indicates that `sync_recalc()` detected changes in the scene.
    * If this flag is false then the data is considered to be up-to-date and will not be
    * synchronized at all. */

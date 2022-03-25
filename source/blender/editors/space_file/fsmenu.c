@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup spfile
@@ -45,6 +29,7 @@
  * because 'near' is disabled through BLI_windstuff. */
 #  include "BLI_winstuff.h"
 #  include <shlobj.h>
+#  include <shlwapi.h>
 #endif
 
 #include "UI_interface_icons.h"
@@ -185,8 +170,8 @@ static void fsmenu_xdg_user_dirs_free(GHash *xdg_map)
 
 /**
  * Add fsmenu entry for system folders on linux.
- * - Check if a path is stored in the GHash generated from user-dirs.dirs
- * - If not, check for a default path in $HOME
+ * - Check if a path is stored in the #GHash generated from `user-dirs.dirs`.
+ * - If not, check for a default path in `$HOME`.
  *
  * \param key: Use `user-dirs.dirs` format "XDG_EXAMPLE_DIR"
  * \param default_path: Directory name to check in $HOME, also used for the menu entry name.
@@ -658,14 +643,29 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
         tmps[3] = '\0';
         name = NULL;
 
-        /* Flee from horrible win querying hover floppy drives! */
+        /* Skip over floppy disks A & B. */
         if (i > 1) {
-          /* Try to get a friendly drive description. */
-          SHFILEINFOW shFile = {0};
+          /* Friendly volume descriptions without using SHGetFileInfoW (T85689). */
           BLI_strncpy_wchar_from_utf8(wline, tmps, 4);
-          if (SHGetFileInfoW(wline, 0, &shFile, sizeof(SHFILEINFOW), SHGFI_DISPLAYNAME)) {
-            BLI_strncpy_wchar_as_utf8(line, shFile.szDisplayName, FILE_MAXDIR);
-            name = line;
+          IShellFolder *desktop;
+          if (SHGetDesktopFolder(&desktop) == S_OK) {
+            PIDLIST_RELATIVE volume;
+            if (desktop->lpVtbl->ParseDisplayName(
+                    desktop, NULL, NULL, wline, NULL, &volume, NULL) == S_OK) {
+              STRRET volume_name;
+              volume_name.uType = STRRET_WSTR;
+              if (desktop->lpVtbl->GetDisplayNameOf(
+                      desktop, volume, SHGDN_FORADDRESSBAR, &volume_name) == S_OK) {
+                wchar_t *volume_name_wchar;
+                if (StrRetToStrW(&volume_name, volume, &volume_name_wchar) == S_OK) {
+                  BLI_strncpy_wchar_as_utf8(line, volume_name_wchar, FILE_MAXDIR);
+                  name = line;
+                  CoTaskMemFree(volume_name_wchar);
+                }
+              }
+              CoTaskMemFree(volume);
+            }
+            desktop->lpVtbl->Release(desktop);
           }
         }
         if (name == NULL) {
@@ -745,14 +745,17 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
                                 N_("Fonts"),
                                 ICON_FILE_FONT,
                                 FS_INSERT_LAST);
+      fsmenu_add_windows_folder(fsmenu,
+                                FS_CATEGORY_SYSTEM_BOOKMARKS,
+                                &FOLDERID_SkyDrive,
+                                N_("OneDrive"),
+                                ICON_URL,
+                                FS_INSERT_LAST);
 
       /* These items are just put in path cache for thumbnail views and if bookmarked. */
 
       fsmenu_add_windows_folder(
           fsmenu, FS_CATEGORY_OTHER, &FOLDERID_UserProfiles, NULL, ICON_COMMUNITY, FS_INSERT_LAST);
-
-      fsmenu_add_windows_folder(
-          fsmenu, FS_CATEGORY_OTHER, &FOLDERID_SkyDrive, NULL, ICON_URL, FS_INSERT_LAST);
     }
   }
 #elif defined(__APPLE__)
@@ -787,7 +790,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
     }
 
     /* Get mounted volumes better method OSX 10.6 and higher, see:
-     * https://developer.apple.com/library/mac/#documentation/CoreFOundation/Reference/CFURLRef/Reference/reference.html
+     * https://developer.apple.com/library/mac/#documentation/CoreFoundation/Reference/CFURLRef/Reference/reference.html
      */
 
     /* We get all volumes sorted including network and do not relay

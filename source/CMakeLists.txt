@@ -1,22 +1,5 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# The Original Code is Copyright (C) 2006, Blender Foundation
-# All rights reserved.
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright 2006 Blender Foundation. All rights reserved.
 
 if(WITH_LEGACY_OPENGL)
   add_definitions(-DWITH_LEGACY_OPENGL)
@@ -25,6 +8,10 @@ endif()
 if(WITH_CLANG_TIDY AND NOT MSVC)
   if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
     message(WARNING "Currently Clang-Tidy might fail with GCC toolchain, switch to Clang toolchain if that happens")
+    if(COMMAND target_precompile_headers)
+      message(STATUS "Clang-Tidy and GCC precompiled headers are incompatible, disabling precompiled headers")
+      set(CMAKE_DISABLE_PRECOMPILE_HEADERS ON)
+    endif()
   endif()
 
   find_package(ClangTidy REQUIRED)

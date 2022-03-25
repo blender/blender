@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2017 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #ifndef __UTIL_MATH_INT4_H__
 #define __UTIL_MATH_INT4_H__
@@ -131,10 +118,7 @@ ccl_device_inline int4 clamp(const int4 &a, const int4 &mn, const int4 &mx)
 ccl_device_inline int4 select(const int4 &mask, const int4 &a, const int4 &b)
 {
 #  ifdef __KERNEL_SSE__
-  const __m128 m = _mm_cvtepi32_ps(mask);
-  /* TODO(sergey): avoid cvt. */
-  return int4(_mm_castps_si128(
-      _mm_or_ps(_mm_and_ps(m, _mm_castsi128_ps(a)), _mm_andnot_ps(m, _mm_castsi128_ps(b)))));
+  return int4(_mm_or_si128(_mm_and_si128(mask, a), _mm_andnot_si128(mask, b)));
 #  else
   return make_int4(
       (mask.x) ? a.x : b.x, (mask.y) ? a.y : b.y, (mask.z) ? a.z : b.z, (mask.w) ? a.w : b.w);

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -140,7 +126,7 @@ static char *rna_PoseBone_path(PointerRNA *ptr)
 
 static bool rna_bone_group_poll(Object *ob, ReportList *reports)
 {
-  if ((ob->proxy != NULL) || (ob->proxy_group != NULL) || ID_IS_OVERRIDE_LIBRARY(ob)) {
+  if (ID_IS_OVERRIDE_LIBRARY(ob)) {
     BKE_report(reports, RPT_ERROR, "Cannot edit bone groups for proxies or library overrides");
     return false;
   }
@@ -650,6 +636,7 @@ static bConstraint *rna_PoseChannel_constraints_copy(ID *id,
   Object *ob = (Object *)id;
   bConstraint *con = con_ptr->data;
   bConstraint *new_con = BKE_constraint_copy_for_pose(ob, pchan, con);
+  new_con->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
 
   ED_object_constraint_dependency_tag_update(bmain, ob, new_con);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_ADDED, id);
@@ -681,29 +668,18 @@ bool rna_PoseChannel_constraints_override_apply(Main *UNUSED(bmain),
   /* Remember that insertion operations are defined and stored in correct order, which means that
    * even if we insert several items in a row, we always insert first one, then second one, etc.
    * So we should always find 'anchor' constraint in both _src *and* _dst */
-  bConstraint *con_anchor = NULL;
-  if (opop->subitem_local_name && opop->subitem_local_name[0]) {
-    con_anchor = BLI_findstring(
-        &pchan_dst->constraints, opop->subitem_local_name, offsetof(bConstraint, name));
-  }
-  if (con_anchor == NULL && opop->subitem_local_index >= 0) {
-    con_anchor = BLI_findlink(&pchan_dst->constraints, opop->subitem_local_index);
-  }
-  /* Otherwise we just insert in first position. */
+  const size_t name_offset = offsetof(bConstraint, name);
+  bConstraint *con_anchor = BLI_listbase_string_or_index_find(&pchan_dst->constraints,
+                                                              opop->subitem_reference_name,
+                                                              name_offset,
+                                                              opop->subitem_reference_index);
+  /* If `con_anchor` is NULL, `con_src` will be inserted in first position. */
 
-  bConstraint *con_src = NULL;
-  if (opop->subitem_local_name && opop->subitem_local_name[0]) {
-    con_src = BLI_findstring(
-        &pchan_src->constraints, opop->subitem_local_name, offsetof(bConstraint, name));
-  }
-  if (con_src == NULL && opop->subitem_local_index >= 0) {
-    con_src = BLI_findlink(&pchan_src->constraints, opop->subitem_local_index);
-  }
-  con_src = con_src ? con_src->next : pchan_src->constraints.first;
+  bConstraint *con_src = BLI_listbase_string_or_index_find(
+      &pchan_src->constraints, opop->subitem_local_name, name_offset, opop->subitem_local_index);
 
   if (con_src == NULL) {
-    printf("%s: Could not find constraint to insert, doing nothing...\n", __func__);
-    BLI_assert(0);
+    BLI_assert(con_src != NULL);
     return false;
   }
 
@@ -727,7 +703,7 @@ static int rna_PoseChannel_proxy_editable(PointerRNA *ptr, const char **r_info)
   bArmature *arm = ob->data;
   bPoseChannel *pchan = (bPoseChannel *)ptr->data;
 
-  if (ob->proxy && pchan->bone && (pchan->bone->layer & arm->layer_protected)) {
+  if (false && pchan->bone && (pchan->bone->layer & arm->layer_protected)) {
     *r_info = "Can't edit property of a proxy on a protected layer";
     return 0;
   }
@@ -879,7 +855,6 @@ static void rna_PoseChannel_custom_shape_transform_set(PointerRNA *ptr,
 
 #else
 
-/* common properties for Action/Bone Groups - related to color */
 void rna_def_actionbone_group_common(StructRNA *srna, int update_flag, const char *update_cb)
 {
   PropertyRNA *prop;

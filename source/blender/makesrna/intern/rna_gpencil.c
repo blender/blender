@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -172,6 +158,7 @@ static const EnumPropertyItem rna_enum_gpencil_caps_modes_items[] = {
 #  include "BKE_gpencil.h"
 #  include "BKE_gpencil_curve.h"
 #  include "BKE_gpencil_geom.h"
+#  include "BKE_gpencil_update_cache.h"
 #  include "BKE_icons.h"
 
 #  include "DEG_depsgraph.h"
@@ -179,6 +166,12 @@ static const EnumPropertyItem rna_enum_gpencil_caps_modes_items[] = {
 
 static void rna_GPencil_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
+#  if 0
+  /* In case a property on a layer changed, tag it with a light update. */
+  if (ptr->type == &RNA_GPencilLayer) {
+    BKE_gpencil_tag_light_update((bGPdata *)(ptr->owner_id), (bGPDlayer *)(ptr->data), NULL, NULL);
+  }
+#  endif
   DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 }
@@ -362,6 +355,12 @@ static void set_parent(bGPDlayer *gpl, Object *par, const int type, const char *
       gpl->parent = par;
       gpl->partype |= PARBONE;
       BLI_strncpy(gpl->parsubstr, substr, sizeof(gpl->parsubstr));
+    }
+    else {
+      invert_m4_m4(gpl->inverse, par->obmat);
+      gpl->parent = par;
+      gpl->partype |= PAROBJECT;
+      gpl->parsubstr[0] = 0;
     }
   }
 }
@@ -2228,7 +2227,7 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_solo_mode", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_SOLO_MODE);
   RNA_def_property_ui_text(
-      prop, "Solo Mode", "In Paint mode display only layers with keyframe in current frame");
+      prop, "Solo Mode", "In Draw Mode only display layers with keyframe in current frame");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
   /* Layer is used as Ruler. */

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 #include "GHOST_SystemCocoa.h"
 
@@ -323,6 +307,7 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
           case ']':
             return GHOST_kKeyRightBracket;
           case '`':
+          case '<': /* The position of '`' is equivalent to this symbol in the French layout. */
             return GHOST_kKeyAccentGrave;
           default:
             return GHOST_kKeyUnknown;
@@ -787,6 +772,20 @@ GHOST_TSuccess GHOST_SystemCocoa::disposeContext(GHOST_IContext *context)
   return GHOST_kSuccess;
 }
 
+GHOST_IWindow *GHOST_SystemCocoa::getWindowUnderCursor(int32_t x, int32_t y)
+{
+  NSPoint scr_co = NSMakePoint(x, y);
+
+  int windowNumberAtPoint = [NSWindow windowNumberAtPoint:scr_co belowWindowWithWindowNumber:0];
+  NSWindow *nswindow = [NSApp windowWithWindowNumber:windowNumberAtPoint];
+
+  if (nswindow == nil) {
+    return nil;
+  }
+
+  return m_windowManager->getWindowAssociatedWithOSWindow((void *)nswindow);
+}
+
 /**
  * \note : returns coordinates in Cocoa screen coordinates
  */
@@ -890,7 +889,7 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
   bool anyProcessed = false;
   NSEvent *event;
 
-  // TODO : implement timer ??
+  /* TODO: implement timer? */
 #if 0
   do {
     GHOST_TimerManager* timerMgr = getTimerManager();
@@ -1051,8 +1050,6 @@ void GHOST_SystemCocoa::notifyExternalEventProcessed()
 GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType,
                                                     GHOST_WindowCocoa *window)
 {
-  NSArray *windowsList;
-  windowsList = [NSApp orderedWindows];
   if (!validWindow(window)) {
     return GHOST_kFailure;
   }

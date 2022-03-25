@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup editorui
@@ -46,7 +30,43 @@ typedef struct IMMDrawPixelsTexState {
 /* To be used before calling immDrawPixelsTex
  * Default shader is GPU_SHADER_2D_IMAGE_COLOR
  * Returns a shader to be able to set uniforms */
+/**
+ * To be used before calling #immDrawPixelsTex
+ * Default shader is #GPU_SHADER_2D_IMAGE_COLOR
+ * You can still set uniforms with:
+ * `GPU_shader_uniform_int(shader, GPU_shader_get_uniform(shader, "name"), 0);`
+ */
 IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin);
+
+/**
+ * Unlike the `immDrawPixelsTexTiled` functions, this doesn't do tiled drawing, but draws into a
+ * full texture.
+ *
+ * Use the currently bound shader.
+ *
+ * Use #immDrawPixelsTexSetup to bind the shader you want before calling #immDrawPixelsTex.
+ *
+ * If using a special shader double check it uses the same attributes "pos" "texCoord" and uniform
+ * "image".
+ *
+ * If color is NULL then use white by default
+ *
+ * Unless <em>state->do_shader_unbind<em> is explicitly set to `false`, the shader is unbound when
+ * finished.
+ */
+void immDrawPixelsTexScaledFullSize(const IMMDrawPixelsTexState *state,
+                                    const float x,
+                                    const float y,
+                                    const int img_w,
+                                    const int img_h,
+                                    const eGPUTextureFormat gpu_format,
+                                    const bool use_filter,
+                                    const void *rect,
+                                    const float scaleX,
+                                    const float scaleY,
+                                    const float xzoom,
+                                    const float yzoom,
+                                    const float color[4]);
 
 /**
  * #immDrawPixelsTex - Functions like a limited #glDrawPixels, but actually draws the
@@ -62,62 +82,76 @@ IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin);
  * model-view and projection matrices are assumed to define a
  * 1-to-1 mapping to screen space.
  */
-void immDrawPixelsTex(IMMDrawPixelsTexState *state,
-                      float x,
-                      float y,
-                      int img_w,
-                      int img_h,
-                      eGPUTextureFormat gpu_format,
-                      bool use_filter,
-                      void *rect,
-                      float xzoom,
-                      float yzoom,
-                      const float color[4]);
-void immDrawPixelsTex_clipping(IMMDrawPixelsTexState *state,
-                               float x,
-                               float y,
-                               int img_w,
-                               int img_h,
-                               eGPUTextureFormat gpu_format,
-                               bool use_filter,
-                               void *rect,
-                               float clip_min_x,
-                               float clip_min_y,
-                               float clip_max_x,
-                               float clip_max_y,
-                               float xzoom,
-                               float yzoom,
-                               const float color[4]);
-void immDrawPixelsTexScaled(IMMDrawPixelsTexState *state,
-                            float x,
-                            float y,
-                            int img_w,
-                            int img_h,
-                            eGPUTextureFormat gpu_format,
-                            bool use_filter,
-                            void *rect,
-                            float scaleX,
-                            float scaleY,
-                            float xzoom,
-                            float yzoom,
-                            const float color[4]);
-void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
-                                     float x,
-                                     float y,
-                                     int img_w,
-                                     int img_h,
-                                     eGPUTextureFormat gpu_format,
-                                     bool use_filter,
-                                     void *rect,
-                                     float scaleX,
-                                     float scaleY,
-                                     float clip_min_x,
-                                     float clip_min_y,
-                                     float clip_max_x,
-                                     float clip_max_y,
-                                     float xzoom,
-                                     float yzoom,
-                                     const float color[4]);
+void immDrawPixelsTexTiled(IMMDrawPixelsTexState *state,
+                           float x,
+                           float y,
+                           int img_w,
+                           int img_h,
+                           eGPUTextureFormat gpu_format,
+                           bool use_filter,
+                           void *rect,
+                           float xzoom,
+                           float yzoom,
+                           const float color[4]);
+void immDrawPixelsTexTiled_clipping(IMMDrawPixelsTexState *state,
+                                    float x,
+                                    float y,
+                                    int img_w,
+                                    int img_h,
+                                    eGPUTextureFormat gpu_format,
+                                    bool use_filter,
+                                    void *rect,
+                                    float clip_min_x,
+                                    float clip_min_y,
+                                    float clip_max_x,
+                                    float clip_max_y,
+                                    float xzoom,
+                                    float yzoom,
+                                    const float color[4]);
+void immDrawPixelsTexTiled_scaling(IMMDrawPixelsTexState *state,
+                                   float x,
+                                   float y,
+                                   int img_w,
+                                   int img_h,
+                                   eGPUTextureFormat gpu_format,
+                                   bool use_filter,
+                                   void *rect,
+                                   float scaleX,
+                                   float scaleY,
+                                   float xzoom,
+                                   float yzoom,
+                                   const float color[4]);
+/**
+ * Use the currently bound shader.
+ *
+ * Use #immDrawPixelsTexSetup to bind the shader you
+ * want before calling #immDrawPixelsTex.
+ *
+ * If using a special shader double check it uses the same
+ * attributes "pos" "texCoord" and uniform "image".
+ *
+ * If color is NULL then use white by default
+ *
+ * Unless <em>state->do_shader_unbind<em> is explicitly set to `false`, the shader is unbound when
+ * finished.
+ */
+void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
+                                            float x,
+                                            float y,
+                                            int img_w,
+                                            int img_h,
+                                            eGPUTextureFormat gpu_format,
+                                            bool use_filter,
+                                            void *rect,
+                                            float scaleX,
+                                            float scaleY,
+                                            float clip_min_x,
+                                            float clip_min_y,
+                                            float clip_max_x,
+                                            float clip_max_y,
+                                            float xzoom,
+                                            float yzoom,
+                                            const float color[4]);
 
 /* Image buffer drawing functions, with display transform
  *
@@ -135,6 +169,9 @@ void ED_draw_imbuf(struct ImBuf *ibuf,
                    struct ColorManagedDisplaySettings *display_settings,
                    float zoom_x,
                    float zoom_y);
+/**
+ * Draw given image buffer on a screen using GLSL for display transform.
+ */
 void ED_draw_imbuf_clipping(struct ImBuf *ibuf,
                             float x,
                             float y,
@@ -169,6 +206,9 @@ void ED_draw_imbuf_ctx_clipping(const struct bContext *C,
 
 int ED_draw_imbuf_method(struct ImBuf *ibuf);
 
+/**
+ * Don't move to `GPU_immediate_util.h` because this uses user-prefs and isn't very low level.
+ */
 void immDrawBorderCorners(unsigned int pos, const struct rcti *border, float zoomx, float zoomy);
 
 #ifdef __cplusplus

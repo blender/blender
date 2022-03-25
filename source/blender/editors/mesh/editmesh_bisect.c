@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2013 by Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2013 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edmesh
@@ -93,14 +77,14 @@ static void mesh_bisect_interactive_calc(bContext *C,
   const float *co_ref = rv3d->ofs;
   float co_a_ss[2] = {x_start, y_start}, co_b_ss[2] = {x_end, y_end}, co_delta_ss[2];
   float co_a[3], co_b[3];
-  const float zfac = ED_view3d_calc_zfac(rv3d, co_ref, NULL);
+  const float zfac = ED_view3d_calc_zfac(rv3d, co_ref);
 
   /* view vector */
   ED_view3d_win_to_vector(region, co_a_ss, co_a);
 
   /* view delta */
   sub_v2_v2v2(co_delta_ss, co_a_ss, co_b_ss);
-  ED_view3d_win_to_delta(region, co_delta_ss, co_b, zfac);
+  ED_view3d_win_to_delta(region, co_delta_ss, zfac, co_b);
 
   /* cross both to get a normal */
   cross_v3_v3v3(plane_no, co_a, co_b);

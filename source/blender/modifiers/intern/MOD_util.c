@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup modifiers
@@ -72,7 +56,6 @@ void MOD_init_texture(MappingInfoModifierData *dmd, const ModifierEvalContext *c
 }
 
 /* TODO: to be renamed to get_texture_coords once we are done with moving modifiers to Mesh. */
-/** \param cos: may be NULL, in which case we use directly mesh vertices' coordinates. */
 void MOD_get_texture_coords(MappingInfoModifierData *dmd,
                             const ModifierEvalContext *UNUSED(ctx),
                             Object *ob,
@@ -182,7 +165,6 @@ void MOD_previous_vcos_store(ModifierData *md, const float (*vert_coords)[3])
   /* lattice/mesh modifier too */
 }
 
-/* returns a mesh if mesh == NULL, for deforming modifiers that need it */
 Mesh *MOD_deform_mesh_eval_get(Object *ob,
                                struct BMEditMesh *em,
                                Mesh *mesh,
@@ -219,11 +201,10 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
     }
 
     if (use_orco) {
-      CustomData_add_layer(
-          &mesh->vdata, CD_ORCO, CD_ASSIGN, BKE_mesh_orco_verts_get(ob), mesh->totvert);
+      BKE_mesh_orco_ensure(ob, mesh);
     }
   }
-  else if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
+  else if (ELEM(ob->type, OB_FONT, OB_CURVES_LEGACY, OB_SURF)) {
     /* TODO(sybren): get evaluated mesh from depsgraph once
      * that's properly generated for curves. */
     mesh = BKE_mesh_new_nomain_from_curve(ob);
@@ -237,9 +218,11 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
     }
   }
 
+  /* TODO: Remove this "use_normals" argument, since the caller should retrieve normals afterwards
+   * if necessary. */
   if (use_normals) {
     if (LIKELY(mesh)) {
-      BKE_mesh_ensure_normals(mesh);
+      BKE_mesh_vertex_normals_ensure(mesh);
     }
   }
 
@@ -289,7 +272,6 @@ void MOD_depsgraph_update_object_bone_relation(struct DepsNodeHandle *node,
   }
 }
 
-/* only called by BKE_modifier.h/modifier.c */
 void modifier_type_init(ModifierTypeInfo *types[])
 {
 #define INIT_TYPE(typeName) (types[eModifierType_##typeName] = &modifierType_##typeName)

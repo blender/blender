@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #ifndef __INTEGRATOR_H__
 #define __INTEGRATOR_H__
@@ -40,6 +27,10 @@ class Integrator : public Node {
   NODE_SOCKET_API(int, max_glossy_bounce)
   NODE_SOCKET_API(int, max_transmission_bounce)
   NODE_SOCKET_API(int, max_volume_bounce)
+
+#ifdef WITH_CYCLES_DEBUG
+  NODE_SOCKET_API(DirectLightSamplingType, direct_light_sampling_type)
+#endif
 
   NODE_SOCKET_API(int, transparent_min_bounce)
   NODE_SOCKET_API(int, transparent_max_bounce)

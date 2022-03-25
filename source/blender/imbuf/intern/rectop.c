@@ -1,22 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- * allocimbuf.c
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup imbuf
@@ -251,9 +234,6 @@ static void rect_crop_16bytes(void **buf_p, const int size_src[2], const rcti *c
   *buf_p = (void *)MEM_reallocN(*buf_p, sizeof(uint[4]) * size_dst[0] * size_dst[1]);
 }
 
-/**
- * In-place image crop.
- */
 void IMB_rect_crop(ImBuf *ibuf, const rcti *crop)
 {
   const int size_src[2] = {
@@ -302,9 +282,6 @@ static void rect_realloc_16bytes(void **buf_p, const uint size[2])
   *buf_p = MEM_mallocN(sizeof(uint[4]) * size[0] * size[1], __func__);
 }
 
-/**
- * In-place size setting (caller must fill in buffer contents).
- */
 void IMB_rect_size_set(ImBuf *ibuf, const uint size[2])
 {
   BLI_assert(size[0] > 0 && size[1] > 0);
@@ -1070,11 +1047,6 @@ void IMB_rectblend_threaded(ImBuf *dbuf,
   }
 }
 
-/**
- * Replace pixels of entire image with solid color.
- * \param ibuf: An image to be filled with color. It must be 4 channel image.
- * \param col: RGBA color, which is assigned directly to both byte (via scaling) and float buffers.
- */
 void IMB_rectfill(ImBuf *drect, const float col[4])
 {
   int num;
@@ -1107,15 +1079,6 @@ void IMB_rectfill(ImBuf *drect, const float col[4])
   }
 }
 
-/**
- * Replace pixels of image area with solid color.
- * \param ibuf: an image to be filled with color. It must be 4 channel image.
- * \param col: RGBA color, which is assigned directly to both byte (via scaling) and float buffers.
- * \param x1, y1, x2, y2: (x1, y1) defines starting point of the rectangular area to be filled,
- * (x2, y2) is the end point. Note that values are allowed to be loosely ordered, which means that
- * x2 is allowed to be lower than x1, as well as y2 is allowed to be lower than y1. No matter the
- * order the area between x1 and x2, and y1 and y2 is filled.
- */
 void IMB_rectfill_area_replace(
     const ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2)
 {
@@ -1273,21 +1236,6 @@ void buf_rectfill_area(unsigned char *rect,
   }
 }
 
-/**
- * Blend pixels of image area with solid color.
- *
- * For images with `uchar` buffer use color matching image color-space.
- * For images with float buffer use color display color-space.
- * If display color-space can not be referenced, use color in SRGB color-space.
- *
- * \param ibuf: an image to be filled with color. It must be 4 channel image.
- * \param col: RGBA color.
- * \param x1, y1, x2, y2: (x1, y1) defines starting point of the rectangular area to be filled,
- * (x2, y2) is the end point. Note that values are allowed to be loosely ordered, which means that
- * x2 is allowed to be lower than x1, as well as y2 is allowed to be lower than y1. No matter the
- * order the area between x1 and x2, and y1 and y2 is filled.
- * \param display: color-space reference for display space.
- */
 void IMB_rectfill_area(ImBuf *ibuf,
                        const float col[4],
                        int x1,

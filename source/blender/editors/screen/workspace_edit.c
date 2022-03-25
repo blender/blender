@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edscr
@@ -112,15 +98,6 @@ static WorkSpaceLayout *workspace_change_get_new_layout(Main *bmain,
       bmain, workspace_new, layout_new, layout_old, win);
 }
 
-/**
- * \brief Change the active workspace.
- *
- * Operator call, WM + Window + screen already existed before
- * Pretty similar to #ED_screen_change since changing workspace also changes screen.
- *
- * \warning Do NOT call in area/region queues!
- * \returns if workspace changing was successful.
- */
 bool ED_workspace_change(WorkSpace *workspace_new, bContext *C, wmWindowManager *wm, wmWindow *win)
 {
   Main *bmain = CTX_data_main(C);
@@ -160,10 +137,6 @@ bool ED_workspace_change(WorkSpace *workspace_new, bContext *C, wmWindowManager 
   return true;
 }
 
-/**
- * Duplicate a workspace including its layouts. Does not activate the workspace, but
- * it stores the screen-layout to be activated (BKE_workspace_temp_layout_store)
- */
 WorkSpace *ED_workspace_duplicate(WorkSpace *workspace_old, Main *bmain, wmWindow *win)
 {
   WorkSpaceLayout *layout_active_old = BKE_workspace_active_layout_get(win->workspace_hook);
@@ -187,9 +160,6 @@ WorkSpace *ED_workspace_duplicate(WorkSpace *workspace_old, Main *bmain, wmWindo
   return workspace_new;
 }
 
-/**
- * \return if succeeded.
- */
 bool ED_workspace_delete(WorkSpace *workspace, Main *bmain, bContext *C, wmWindowManager *wm)
 {
   if (BLI_listbase_is_single(&bmain->workspaces)) {
@@ -220,10 +190,6 @@ bool ED_workspace_delete(WorkSpace *workspace, Main *bmain, bContext *C, wmWindo
   return true;
 }
 
-/**
- * Some editor data may need to be synced with scene data (3D View camera and layers).
- * This function ensures data is synced for editors in active layout of \a workspace.
- */
 void ED_workspace_scene_data_sync(WorkSpaceInstanceHook *hook, Scene *scene)
 {
   bScreen *screen = BKE_workspace_active_screen_get(hook);
@@ -393,7 +359,7 @@ static void workspace_append_button(uiLayout *layout,
                                     const Main *from_main)
 {
   const ID *id = (ID *)workspace;
-  const char *filepath = from_main->name;
+  const char *filepath = from_main->filepath;
 
   if (strlen(filepath) == 0) {
     filepath = BLO_EMBEDDED_STARTUP_BLEND;
@@ -515,7 +481,7 @@ static void WORKSPACE_OT_reorder_to_back(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Workspace Reorder to Back";
-  ot->description = "Reorder workspace to be first in the list";
+  ot->description = "Reorder workspace to be last in the list";
   ot->idname = "WORKSPACE_OT_reorder_to_back";
 
   /* api callbacks */

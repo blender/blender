@@ -4,9 +4,9 @@ void node_tex_environment_texco(vec3 viewvec, out vec3 worldvec)
   worldvec = worldPosition;
 #else
   vec4 v = (ProjectionMatrix[3][3] == 0.0) ? vec4(viewvec, 1.0) : vec4(0.0, 0.0, 1.0, 1.0);
-  vec4 co_homogenous = (ProjectionMatrixInverse * v);
+  vec4 co_homogeneous = (ProjectionMatrixInverse * v);
 
-  vec3 co = co_homogenous.xyz / co_homogenous.w;
+  vec3 co = co_homogeneous.xyz / co_homogeneous.w;
 #  if defined(WORLD_BACKGROUND) || defined(PROBE_CAPTURE)
   worldvec = mat3(ViewMatrixInverse) * co;
 #  else

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2006 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2006 NaN Holding BV. All rights reserved. */
 
 #pragma once
 
@@ -104,69 +88,104 @@ enum {
 #define BVH_RAYCAST_DEFAULT (BVH_RAYCAST_WATERTIGHT)
 #define BVH_RAYCAST_DIST_MAX (FLT_MAX / 2.0f)
 
-/* callback must update nearest in case it finds a nearest result */
+/**
+ * Callback must update nearest in case it finds a nearest result.
+ */
 typedef void (*BVHTree_NearestPointCallback)(void *userdata,
                                              int index,
                                              const float co[3],
                                              BVHTreeNearest *nearest);
 
-/* callback must update hit in case it finds a nearest successful hit */
+/**
+ * Callback must update hit in case it finds a nearest successful hit.
+ */
 typedef void (*BVHTree_RayCastCallback)(void *userdata,
                                         int index,
                                         const BVHTreeRay *ray,
                                         BVHTreeRayHit *hit);
 
-/* callback to check if 2 nodes overlap (use thread if intersection results need to be stored) */
+/**
+ * Callback to check if 2 nodes overlap (use thread if intersection results need to be stored).
+ */
 typedef bool (*BVHTree_OverlapCallback)(void *userdata, int index_a, int index_b, int thread);
 
-/* callback to range search query */
+/**
+ * Callback to range search query.
+ */
 typedef void (*BVHTree_RangeQuery)(void *userdata, int index, const float co[3], float dist_sq);
 
-/* callback to find nearest projected */
+/**
+ * Callback to find nearest projected.
+ */
 typedef void (*BVHTree_NearestProjectedCallback)(void *userdata,
                                                  int index,
                                                  const struct DistProjectedAABBPrecalc *precalc,
                                                  const float (*clip_plane)[4],
-                                                 const int clip_plane_len,
+                                                 int clip_plane_len,
                                                  BVHTreeNearest *nearest);
 
 /* callbacks to BLI_bvhtree_walk_dfs */
-/* return true to traverse into this nodes children, else skip. */
+
+/**
+ * Return true to traverse into this nodes children, else skip.
+ */
 typedef bool (*BVHTree_WalkParentCallback)(const BVHTreeAxisRange *bounds, void *userdata);
-/* return true to keep walking, else early-exit the search. */
+/**
+ * Return true to keep walking, else early-exit the search.
+ */
 typedef bool (*BVHTree_WalkLeafCallback)(const BVHTreeAxisRange *bounds,
                                          int index,
                                          void *userdata);
-/* return true to search (min, max) else (max, min). */
+/**
+ * Return true to search (min, max) else (max, min).
+ */
 typedef bool (*BVHTree_WalkOrderCallback)(const BVHTreeAxisRange *bounds,
                                           char axis,
                                           void *userdata);
 
+/**
+ * \note many callers don't check for `NULL` return.
+ */
 BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis);
 void BLI_bvhtree_free(BVHTree *tree);
 
-/* construct: first insert points, then call balance */
+/**
+ * Construct: first insert points, then call balance.
+ */
 void BLI_bvhtree_insert(BVHTree *tree, int index, const float co[3], int numpoints);
 void BLI_bvhtree_balance(BVHTree *tree);
 
-/* update: first update points/nodes, then call update_tree to refit the bounding volumes */
+/**
+ * Update: first update points/nodes, then call update_tree to refit the bounding volumes.
+ * \note call before #BLI_bvhtree_update_tree().
+ */
 bool BLI_bvhtree_update_node(
     BVHTree *tree, int index, const float co[3], const float co_moving[3], int numpoints);
+/**
+ * Call #BLI_bvhtree_update_node() first for every node/point/triangle.
+ */
 void BLI_bvhtree_update_tree(BVHTree *tree);
 
+/**
+ * Use to check the total number of threads #BLI_bvhtree_overlap will use.
+ *
+ * \warning Must be the first tree passed to #BLI_bvhtree_overlap!
+ */
 int BLI_bvhtree_overlap_thread_num(const BVHTree *tree);
 
-/* collision/overlap: check two trees if they overlap,
- * alloc's *overlap with length of the int return value */
-BVHTreeOverlap *BLI_bvhtree_overlap_ex(
-    const BVHTree *tree1,
-    const BVHTree *tree2,
-    uint *r_overlap_tot,
-    /* optional callback to test the overlap before adding (must be thread-safe!) */
-    BVHTree_OverlapCallback callback,
-    void *userdata,
-    const uint max_interactions,
-    const int flag);
+/**
+ * Collision/overlap: check two trees if they overlap,
+ * alloc's *overlap with length of the int return value.
+ *
+ * \param callback: optional, to test the overlap before adding (must be thread-safe!).
+ */
+BVHTreeOverlap *BLI_bvhtree_overlap_ex(const BVHTree *tree1,
+                                       const BVHTree *tree2,
+                                       uint *r_overlap_tot,
+                                       BVHTree_OverlapCallback callback,
+                                       void *userdata,
+                                       uint max_interactions,
+                                       int flag);
 BVHTreeOverlap *BLI_bvhtree_overlap(const BVHTree *tree1,
                                     const BVHTree *tree2,
                                     unsigned int *r_overlap_tot,
@@ -175,14 +194,26 @@ BVHTreeOverlap *BLI_bvhtree_overlap(const BVHTree *tree1,
 
 int *BLI_bvhtree_intersect_plane(BVHTree *tree, float plane[4], uint *r_intersect_tot);
 
+/**
+ * Number of times #BLI_bvhtree_insert has been called.
+ * mainly useful for asserts functions to check we added the correct number.
+ */
 int BLI_bvhtree_get_len(const BVHTree *tree);
+/**
+ * Maximum number of children that a node can have.
+ */
 int BLI_bvhtree_get_tree_type(const BVHTree *tree);
 float BLI_bvhtree_get_epsilon(const BVHTree *tree);
+/**
+ * This function returns the bounding box of the BVH tree.
+ */
 void BLI_bvhtree_get_bounding_box(BVHTree *tree, float r_bb_min[3], float r_bb_max[3]);
 
-/* find nearest node to the given coordinates
+/**
+ * Find nearest node to the given coordinates
  * (if nearest is given it will only search nodes where
- * square distance is smaller than nearest->dist) */
+ * square distance is smaller than nearest->dist).
+ */
 int BLI_bvhtree_find_nearest_ex(BVHTree *tree,
                                 const float co[3],
                                 BVHTreeNearest *nearest,
@@ -195,9 +226,13 @@ int BLI_bvhtree_find_nearest(BVHTree *tree,
                              BVHTree_NearestPointCallback callback,
                              void *userdata);
 
+/**
+ * Find the first node nearby.
+ * Favors speed over quality since it doesn't find the best target node.
+ */
 int BLI_bvhtree_find_nearest_first(BVHTree *tree,
                                    const float co[3],
-                                   const float dist_sq,
+                                   float dist_sq,
                                    BVHTree_NearestPointCallback callback,
                                    void *userdata);
 
@@ -217,6 +252,15 @@ int BLI_bvhtree_ray_cast(BVHTree *tree,
                          BVHTree_RayCastCallback callback,
                          void *userdata);
 
+/**
+ * Calls the callback for every ray intersection
+ *
+ * \note Using a \a callback which resets or never sets the #BVHTreeRayHit index & dist works too,
+ * however using this function means existing generic callbacks can be used from custom callbacks
+ * without having to handle resetting the hit beforehand.
+ * It also avoid redundant argument and return value which aren't meaningful
+ * when collecting multiple hits.
+ */
 void BLI_bvhtree_ray_cast_all_ex(BVHTree *tree,
                                  const float co[3],
                                  const float dir[3],
@@ -238,7 +282,9 @@ float BLI_bvhtree_bb_raycast(const float bv[6],
                              const float light_end[3],
                              float pos[3]);
 
-/* range query */
+/**
+ * Range query.
+ */
 int BLI_bvhtree_range_query(
     BVHTree *tree, const float co[3], float radius, BVHTree_RangeQuery callback, void *userdata);
 
@@ -252,15 +298,58 @@ int BLI_bvhtree_find_nearest_projected(BVHTree *tree,
                                        BVHTree_NearestProjectedCallback callback,
                                        void *userdata);
 
+/**
+ * This is a generic function to perform a depth first search on the #BVHTree
+ * where the search order and nodes traversed depend on callbacks passed in.
+ *
+ * \param tree: Tree to walk.
+ * \param walk_parent_cb: Callback on a parents bound-box to test if it should be traversed.
+ * \param walk_leaf_cb: Callback to test leaf nodes, callback must store its own result,
+ * returning false exits early.
+ * \param walk_order_cb: Callback that indicates which direction to search,
+ * either from the node with the lower or higher K-DOP axis value.
+ * \param userdata: Argument passed to all callbacks.
+ */
 void BLI_bvhtree_walk_dfs(BVHTree *tree,
                           BVHTree_WalkParentCallback walk_parent_cb,
                           BVHTree_WalkLeafCallback walk_leaf_cb,
                           BVHTree_WalkOrderCallback walk_order_cb,
                           void *userdata);
 
-/* expose for bvh callbacks to use */
+/**
+ * Expose for BVH callbacks to use.
+ */
 extern const float bvhtree_kdop_axes[13][3];
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+
+#  include "BLI_function_ref.hh"
+#  include "BLI_math_vector.hh"
+
+namespace blender {
+
+using BVHTree_RangeQuery_CPP = FunctionRef<void(int index, const float3 &co, float dist_sq)>;
+
+inline void BLI_bvhtree_range_query_cpp(BVHTree &tree,
+                                        const float3 co,
+                                        float radius,
+                                        BVHTree_RangeQuery_CPP fn)
+{
+  BLI_bvhtree_range_query(
+      &tree,
+      co,
+      radius,
+      [](void *userdata, const int index, const float co[3], const float dist_sq) {
+        BVHTree_RangeQuery_CPP fn = *static_cast<BVHTree_RangeQuery_CPP *>(userdata);
+        fn(index, co, dist_sq);
+      },
+      &fn);
+}
+
+}  // namespace blender
+
 #endif

@@ -5,6 +5,9 @@
  * of data the CPU has to precompute and transfer for each update.
  */
 
+/* TODO(fclem): Keep documentation but remove the uniform declaration. */
+#ifndef USE_GPU_SHADER_CREATE_INFO
+
 /**
  * hairStrandsRes: Number of points per hair strand.
  * 2 - no subdivision
@@ -33,8 +36,6 @@ uniform int hairStrandOffset = 0;
 
 /* -- Per control points -- */
 uniform samplerBuffer hairPointBuffer; /* RGBA32F */
-#define point_position xyz
-#define point_time w /* Position along the hair length */
 
 /* -- Per strands data -- */
 uniform usamplerBuffer hairStrandBuffer;    /* R32UI */
@@ -43,6 +44,10 @@ uniform usamplerBuffer hairStrandSegBuffer; /* R16UI */
 /* Not used, use one buffer per uv layer */
 // uniform samplerBuffer hairUVBuffer; /* RG32F */
 // uniform samplerBuffer hairColBuffer; /* RGBA16 linear color */
+#endif
+
+#define point_position xyz
+#define point_time w /* Position along the hair length */
 
 /* -- Subdivision stage -- */
 /**

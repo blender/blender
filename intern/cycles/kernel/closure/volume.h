@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #pragma once
 
@@ -199,22 +186,18 @@ ccl_device int volume_sample_channel(float3 albedo,
    *  Tracing". Matt Jen-Yuan Chiang, Peter Kutz, Brent Burley. SIGGRAPH 2016. */
   float3 weights = fabs(throughput * albedo);
   float sum_weights = weights.x + weights.y + weights.z;
-  float3 weights_pdf;
 
   if (sum_weights > 0.0f) {
-    weights_pdf = weights / sum_weights;
+    *pdf = weights / sum_weights;
   }
   else {
-    weights_pdf = make_float3(1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f);
+    *pdf = make_float3(1.0f / 3.0f, 1.0f / 3.0f, 1.0f / 3.0f);
   }
 
-  *pdf = weights_pdf;
-
-  /* OpenCL does not support -> on float3, so don't use pdf->x. */
-  if (rand < weights_pdf.x) {
+  if (rand < pdf->x) {
     return 0;
   }
-  else if (rand < weights_pdf.x + weights_pdf.y) {
+  else if (rand < pdf->x + pdf->y) {
     return 1;
   }
   else {

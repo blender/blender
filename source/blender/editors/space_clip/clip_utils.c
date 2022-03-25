@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2011 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spclip
@@ -398,7 +382,6 @@ void clip_delete_plane_track(bContext *C, MovieClip *clip, MovieTrackingPlaneTra
   DEG_id_tag_update(&clip->id, 0);
 }
 
-/* Calculate space clip offset to be centered at the given point. */
 void clip_view_offset_for_center_to_point(
     SpaceClip *sc, const float x, const float y, float *r_offset_x, float *r_offset_y)
 {
@@ -608,8 +591,6 @@ bool clip_view_calculate_view_selection(
   return true;
 }
 
-/* Returns truth if lock-to-selection is enabled and possible.
- * Locking to selection is not possible if there is no selection. */
 bool clip_view_has_locked_selection(const bContext *C)
 {
   SpaceClip *space_clip = CTX_wm_space_clip(C);

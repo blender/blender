@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2017, Blender Foundation
- * This is a new part of Blender
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2017 Blender Foundation. */
 
 /** \file
  * \ingroup bke
@@ -23,22 +7,26 @@
 
 #include <stdio.h>
 
-#include "BLI_utildefines.h"
-
+#include "BLI_blenlib.h"
 #include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_deform.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_material.h"
+#include "BKE_scene.h"
 
 #include "MOD_gpencil_modifiertypes.h"
 #include "MOD_gpencil_util.h"
+
+#include "DEG_depsgraph_query.h"
 
 void gpencil_modifier_type_init(GpencilModifierTypeInfo *types[])
 {
@@ -67,13 +55,13 @@ void gpencil_modifier_type_init(GpencilModifierTypeInfo *types[])
   INIT_GP_TYPE(WeightProximity);
   INIT_GP_TYPE(Lineart);
   INIT_GP_TYPE(Dash);
+  INIT_GP_TYPE(Shrinkwrap);
 #undef INIT_GP_TYPE
 }
 
-/* verify if valid layer, material and pass index */
 bool is_stroke_affected_by_modifier(Object *ob,
                                     char *mlayername,
-                                    const Material *material,
+                                    Material *material,
                                     const int mpassindex,
                                     const int gpl_passindex,
                                     const int minpoints,
@@ -84,8 +72,8 @@ bool is_stroke_affected_by_modifier(Object *ob,
                                     const bool inv3,
                                     const bool inv4)
 {
-  Material *ma = BKE_gpencil_material(ob, gps->mat_nr + 1);
-  MaterialGPencilStyle *gp_style = ma->gp_style;
+  Material *ma_gps = BKE_gpencil_material(ob, gps->mat_nr + 1);
+  MaterialGPencilStyle *gp_style = ma_gps->gp_style;
 
   /* omit if filter by layer */
   if (mlayername[0] != '\0') {
@@ -102,13 +90,16 @@ bool is_stroke_affected_by_modifier(Object *ob,
   }
   /* Omit if filter by material. */
   if (material != NULL) {
+    /* Requires to use the original material to compare the same pointer address. */
+    Material *ma_md_orig = (Material *)DEG_get_original_id(&material->id);
+    Material *ma_gps_orig = (Material *)DEG_get_original_id(&ma_gps->id);
     if (inv4 == false) {
-      if (material != ma) {
+      if (ma_md_orig != ma_gps_orig) {
         return false;
       }
     }
     else {
-      if (material == ma) {
+      if (ma_md_orig == ma_gps_orig) {
         return false;
       }
     }
@@ -147,7 +138,6 @@ bool is_stroke_affected_by_modifier(Object *ob,
   return true;
 }
 
-/* verify if valid vertex group *and return weight */
 float get_modifier_point_weight(MDeformVert *dvert, bool inverse, int def_nr)
 {
   float weight = 1.0f;
@@ -179,4 +169,30 @@ float get_modifier_point_weight(MDeformVert *dvert, bool inverse, int def_nr)
   }
 
   return weight;
+}
+
+void generic_bake_deform_stroke(
+    Depsgraph *depsgraph, GpencilModifierData *md, Object *ob, const bool retime, gpBakeCb bake_cb)
+{
+  Scene *scene = DEG_get_evaluated_scene(depsgraph);
+  bGPdata *gpd = ob->data;
+  int oldframe = (int)DEG_get_ctime(depsgraph);
+
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+      if (retime) {
+        CFRA = gpf->framenum;
+        BKE_scene_graph_update_for_newframe(depsgraph);
+      }
+      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+        bake_cb(md, depsgraph, ob, gpl, gpf, gps);
+      }
+    }
+  }
+
+  /* Return frame state and DB to original state. */
+  if (retime) {
+    CFRA = oldframe;
+    BKE_scene_graph_update_for_newframe(depsgraph);
+  }
 }

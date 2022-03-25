@@ -177,7 +177,7 @@ void FFMPEGReader::init(int stream)
 
 	// get a decoder and open it
 #ifndef FFMPEG_OLD_CODE
-	AVCodec* aCodec = avcodec_find_decoder(m_formatCtx->streams[m_stream]->codecpar->codec_id);
+	const AVCodec* aCodec = avcodec_find_decoder(m_formatCtx->streams[m_stream]->codecpar->codec_id);
 
 	if(!aCodec)
 		AUD_THROW(FileException, "File couldn't be read, no decoder found with ffmpeg.");

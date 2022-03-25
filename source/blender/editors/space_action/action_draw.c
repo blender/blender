@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup spaction
@@ -63,7 +47,6 @@
 /* ************************************************************************* */
 /* Channel List */
 
-/* left hand part */
 void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
 {
   ListBase anim_data = {NULL, NULL};
@@ -131,7 +114,54 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
 /* extra padding for lengths (to go under scrollers) */
 #define EXTRA_SCROLL_PAD 100.0f
 
-/* draw keyframes in each channel */
+/* Draw manually set intended playback frame ranges for actions. */
+static void draw_channel_action_ranges(bAnimContext *ac, ListBase *anim_data, View2D *v2d)
+{
+  /* Variables for coalescing the Y region of one action. */
+  bAction *cur_action = NULL;
+  AnimData *cur_adt = NULL;
+  float cur_ymax;
+
+  /* Walk through channels, grouping contiguous spans referencing the same action. */
+  float ymax = ACHANNEL_FIRST_TOP(ac) + ACHANNEL_SKIP / 2;
+  float ystep = ACHANNEL_STEP(ac);
+  float ymin = ymax - ystep;
+
+  for (bAnimListElem *ale = anim_data->first; ale; ale = ale->next, ymax = ymin, ymin -= ystep) {
+    bAction *action = NULL;
+    AnimData *adt = NULL;
+
+    /* check if visible */
+    if (IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
+        IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax)) {
+      /* check if anything to show for this channel */
+      if (ale->datatype != ALE_NONE) {
+        action = ANIM_channel_action_get(ale);
+
+        if (action) {
+          adt = ale->adt;
+        }
+      }
+    }
+
+    /* Extend the current region, or flush and restart. */
+    if (action != cur_action || adt != cur_adt) {
+      if (cur_action) {
+        ANIM_draw_action_framerange(cur_adt, cur_action, v2d, ymax, cur_ymax);
+      }
+
+      cur_action = action;
+      cur_adt = adt;
+      cur_ymax = ymax;
+    }
+  }
+
+  /* Flush the last region. */
+  if (cur_action) {
+    ANIM_draw_action_framerange(cur_adt, cur_action, v2d, ymax, cur_ymax);
+  }
+}
+
 void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region)
 {
   ListBase anim_data = {NULL, NULL};
@@ -166,6 +196,13 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
   int height = ACHANNEL_TOT_HEIGHT(ac, items);
   v2d->tot.ymin = -height;
 
+  /* Draw the manual frame ranges for actions in the background of the dopesheet.
+   * The action editor has already drawn the range for its action so it's not needed. */
+  if (ac->datatype == ANIMCONT_DOPESHEET) {
+    draw_channel_action_ranges(ac, &anim_data, v2d);
+  }
+
+  /* Draw the background strips. */
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 

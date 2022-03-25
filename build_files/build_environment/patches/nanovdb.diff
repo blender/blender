@@ -1,0 +1,374 @@
+Index: nanovdb/nanovdb/NanoVDB.h
+===================================================================
+--- a/nanovdb/nanovdb/NanoVDB.h	(revision 62751)
++++ b/nanovdb/nanovdb/NanoVDB.h	(working copy)
+@@ -152,8 +152,8 @@
+ 
+ #endif // __CUDACC_RTC__
+ 
+-#ifdef __CUDACC__
+-// Only define __hostdev__ when using NVIDIA CUDA compiler
++#if defined(__CUDACC__) || defined(__HIP__)
++// Only define __hostdev__ when using NVIDIA CUDA or HIP compiler
+ #define __hostdev__ __host__ __device__
+ #else
+ #define __hostdev__
+@@ -461,7 +461,7 @@
+ /// Maximum floating-point values
+ template<typename T>
+ struct Maximum;
+-#ifdef __CUDA_ARCH__
++#if defined(__CUDA_ARCH__) || defined(__HIP__)
+ template<>
+ struct Maximum<int>
+ {
+@@ -1006,10 +1006,10 @@
+ using Vec3i = Vec3<int>;
+ 
+ /// @brief Return a single precision floating-point vector of this coordinate
+-Vec3f Coord::asVec3s() const { return Vec3f(float(mVec[0]), float(mVec[1]), float(mVec[2])); }
++inline __hostdev__ Vec3f Coord::asVec3s() const { return Vec3f(float(mVec[0]), float(mVec[1]), float(mVec[2])); }
+ 
+ /// @brief Return a double precision floating-point vector of this coordinate
+-Vec3d Coord::asVec3d() const { return Vec3d(double(mVec[0]), double(mVec[1]), double(mVec[2])); }
++inline __hostdev__ Vec3d Coord::asVec3d() const { return Vec3d(double(mVec[0]), double(mVec[1]), double(mVec[2])); }
+ 
+ // ----------------------------> Vec4 <--------------------------------------
+ 
+@@ -1820,7 +1820,7 @@
+ }; // Map
+ 
+ template<typename Mat4T>
+-void Map::set(const Mat4T& mat, const Mat4T& invMat, double taper)
++__hostdev__ void Map::set(const Mat4T& mat, const Mat4T& invMat, double taper)
+ {
+     float * mf = mMatF, *vf = mVecF;
+     float*  mif = mInvMatF;
+@@ -2170,7 +2170,7 @@
+ }; // Class Grid
+ 
+ template<typename TreeT>
+-int Grid<TreeT>::findBlindDataForSemantic(GridBlindDataSemantic semantic) const
++__hostdev__ int Grid<TreeT>::findBlindDataForSemantic(GridBlindDataSemantic semantic) const
+ {
+     for (uint32_t i = 0, n = blindDataCount(); i < n; ++i)
+         if (blindMetaData(i).mSemantic == semantic)
+@@ -2328,7 +2328,7 @@
+ }; // Tree class
+ 
+ template<typename RootT>
+-void Tree<RootT>::extrema(ValueType& min, ValueType& max) const
++__hostdev__ void Tree<RootT>::extrema(ValueType& min, ValueType& max) const
+ {
+     min = this->root().valueMin();
+     max = this->root().valueMax();
+@@ -2336,7 +2336,7 @@
+ 
+ template<typename RootT>
+ template<typename NodeT>
+-const NodeT* Tree<RootT>::getNode(uint32_t i) const
++__hostdev__ const NodeT* Tree<RootT>::getNode(uint32_t i) const
+ {
+     static_assert(is_same<TreeNodeT<NodeT::LEVEL>, NodeT>::value, "Tree::getNode: unvalid node type");
+     NANOVDB_ASSERT(i < DataType::mCount[NodeT::LEVEL]);
+@@ -2345,7 +2345,7 @@
+ 
+ template<typename RootT>
+ template<int LEVEL>
+-const typename TreeNode<Tree<RootT>, LEVEL>::type* Tree<RootT>::getNode(uint32_t i) const
++__hostdev__ const typename TreeNode<Tree<RootT>, LEVEL>::type* Tree<RootT>::getNode(uint32_t i) const
+ {
+     NANOVDB_ASSERT(i < DataType::mCount[LEVEL]);
+     return reinterpret_cast<const TreeNodeT<LEVEL>*>(reinterpret_cast<const uint8_t*>(this) + DataType::mBytes[LEVEL]) + i;
+@@ -2353,7 +2353,7 @@
+ 
+ template<typename RootT>
+ template<typename NodeT>
+-NodeT* Tree<RootT>::getNode(uint32_t i)
++__hostdev__ NodeT* Tree<RootT>::getNode(uint32_t i)
+ {
+     static_assert(is_same<TreeNodeT<NodeT::LEVEL>, NodeT>::value, "Tree::getNode: invalid node type");
+     NANOVDB_ASSERT(i < DataType::mCount[NodeT::LEVEL]);
+@@ -2362,7 +2362,7 @@
+ 
+ template<typename RootT>
+ template<int LEVEL>
+-typename TreeNode<Tree<RootT>, LEVEL>::type* Tree<RootT>::getNode(uint32_t i)
++__hostdev__ typename TreeNode<Tree<RootT>, LEVEL>::type* Tree<RootT>::getNode(uint32_t i)
+ {
+     NANOVDB_ASSERT(i < DataType::mCount[LEVEL]);
+     return reinterpret_cast<TreeNodeT<LEVEL>*>(reinterpret_cast<uint8_t*>(this) + DataType::mBytes[LEVEL]) + i;
+@@ -2370,7 +2370,7 @@
+ 
+ template<typename RootT>
+ template<typename NodeT>
+-uint32_t Tree<RootT>::getNodeID(const NodeT& node) const
++__hostdev__ uint32_t Tree<RootT>::getNodeID(const NodeT& node) const
+ {
+     static_assert(is_same<TreeNodeT<NodeT::LEVEL>, NodeT>::value, "Tree::getNodeID: invalid node type");
+     const NodeT* first = reinterpret_cast<const NodeT*>(reinterpret_cast<const uint8_t*>(this) + DataType::mBytes[NodeT::LEVEL]);
+@@ -2380,7 +2380,7 @@
+ 
+ template<typename RootT>
+ template<typename NodeT>
+-uint32_t Tree<RootT>::getLinearOffset(const NodeT& node) const
++__hostdev__ uint32_t Tree<RootT>::getLinearOffset(const NodeT& node) const
+ {
+     return this->getNodeID(node) + DataType::mPFSum[NodeT::LEVEL];
+ }
+@@ -3366,7 +3366,7 @@
+ }; // LeafNode class
+ 
+ template<typename ValueT, typename CoordT, template<uint32_t> class MaskT, uint32_t LOG2DIM>
+-inline void LeafNode<ValueT, CoordT, MaskT, LOG2DIM>::updateBBox()
++inline __hostdev__ void LeafNode<ValueT, CoordT, MaskT, LOG2DIM>::updateBBox()
+ {
+     static_assert(LOG2DIM == 3, "LeafNode::updateBBox: only supports LOGDIM = 3!");
+     if (!this->isActive()) return;
+Index: nanovdb/nanovdb/util/SampleFromVoxels.h
+===================================================================
+--- a/nanovdb/nanovdb/util/SampleFromVoxels.h	(revision 62751)
++++ b/nanovdb/nanovdb/util/SampleFromVoxels.h	(working copy)
+@@ -22,7 +22,7 @@
+ #define NANOVDB_SAMPLE_FROM_VOXELS_H_HAS_BEEN_INCLUDED
+ 
+ // Only define __hostdev__ when compiling as NVIDIA CUDA
+-#ifdef __CUDACC__
++#if defined(__CUDACC__) || defined(__HIP__)
+ #define __hostdev__ __host__ __device__
+ #else
+ #include <cmath> // for floor
+@@ -136,7 +136,7 @@
+ 
+ template<typename TreeOrAccT>
+ template<typename Vec3T>
+-typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 0, true>::operator()(const Vec3T& xyz) const
++__hostdev__ typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 0, true>::operator()(const Vec3T& xyz) const
+ {
+     const CoordT ijk = Round<CoordT>(xyz);
+     if (ijk != mPos) {
+@@ -147,7 +147,7 @@
+ }
+ 
+ template<typename TreeOrAccT>
+-typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 0, true>::operator()(const CoordT& ijk) const
++__hostdev__ typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 0, true>::operator()(const CoordT& ijk) const
+ {
+     if (ijk != mPos) {
+         mPos = ijk;
+@@ -158,7 +158,7 @@
+ 
+ template<typename TreeOrAccT>
+ template<typename Vec3T>
+-typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 0, false>::operator()(const Vec3T& xyz) const
++__hostdev__ typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 0, false>::operator()(const Vec3T& xyz) const
+ {
+     return mAcc.getValue(Round<CoordT>(xyz));
+ }
+@@ -195,7 +195,7 @@
+ }; // TrilinearSamplerBase
+ 
+ template<typename TreeOrAccT>
+-void TrilinearSampler<TreeOrAccT>::stencil(CoordT& ijk, ValueT (&v)[2][2][2]) const
++__hostdev__ void TrilinearSampler<TreeOrAccT>::stencil(CoordT& ijk, ValueT (&v)[2][2][2]) const
+ {
+     v[0][0][0] = mAcc.getValue(ijk); // i, j, k
+ 
+@@ -224,7 +224,7 @@
+ 
+ template<typename TreeOrAccT>
+ template<typename RealT, template<typename...> class Vec3T>
+-typename TreeOrAccT::ValueType TrilinearSampler<TreeOrAccT>::sample(const Vec3T<RealT> &uvw, const ValueT (&v)[2][2][2])
++__hostdev__ typename TreeOrAccT::ValueType TrilinearSampler<TreeOrAccT>::sample(const Vec3T<RealT> &uvw, const ValueT (&v)[2][2][2])
+ {
+ #if 0
+   auto lerp = [](ValueT a, ValueT b, ValueT w){ return fma(w, b-a, a); };// = w*(b-a) + a
+@@ -239,7 +239,7 @@
+ 
+ template<typename TreeOrAccT>
+ template<typename RealT, template<typename...> class Vec3T>
+-Vec3T<typename TreeOrAccT::ValueType> TrilinearSampler<TreeOrAccT>::gradient(const Vec3T<RealT> &uvw, const ValueT (&v)[2][2][2])
++__hostdev__ Vec3T<typename TreeOrAccT::ValueType> TrilinearSampler<TreeOrAccT>::gradient(const Vec3T<RealT> &uvw, const ValueT (&v)[2][2][2])
+ {
+     static_assert(std::is_floating_point<ValueT>::value, "TrilinearSampler::gradient requires a floating-point type");
+ #if 0
+@@ -270,7 +270,7 @@
+ }
+ 
+ template<typename TreeOrAccT>
+-bool TrilinearSampler<TreeOrAccT>::zeroCrossing(const ValueT (&v)[2][2][2])
++__hostdev__ bool TrilinearSampler<TreeOrAccT>::zeroCrossing(const ValueT (&v)[2][2][2])
+ {
+     static_assert(std::is_floating_point<ValueT>::value, "TrilinearSampler::zeroCrossing requires a floating-point type");
+     const bool less = v[0][0][0] < ValueT(0);
+@@ -363,7 +363,7 @@
+ 
+ template<typename TreeOrAccT>
+ template<typename RealT, template<typename...> class Vec3T>
+-typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 1, true>::operator()(Vec3T<RealT> xyz) const
++__hostdev__ typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 1, true>::operator()(Vec3T<RealT> xyz) const
+ {
+     this->cache(xyz);
+     return BaseT::sample(xyz, mVal);
+@@ -370,7 +370,7 @@
+ }
+ 
+ template<typename TreeOrAccT>
+-typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 1, true>::operator()(const CoordT &ijk) const
++__hostdev__ typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 1, true>::operator()(const CoordT &ijk) const
+ {
+     return  ijk == mPos ? mVal[0][0][0] : BaseT::mAcc.getValue(ijk);
+ }
+@@ -377,7 +377,7 @@
+ 
+ template<typename TreeOrAccT>
+ template<typename RealT, template<typename...> class Vec3T>
+-Vec3T<typename TreeOrAccT::ValueType> SampleFromVoxels<TreeOrAccT, 1, true>::gradient(Vec3T<RealT> xyz) const
++__hostdev__ Vec3T<typename TreeOrAccT::ValueType> SampleFromVoxels<TreeOrAccT, 1, true>::gradient(Vec3T<RealT> xyz) const
+ {
+     this->cache(xyz);
+     return BaseT::gradient(xyz, mVal);
+@@ -393,7 +393,7 @@
+ 
+ template<typename TreeOrAccT>
+ template<typename RealT, template<typename...> class Vec3T>
+-void SampleFromVoxels<TreeOrAccT, 1, true>::cache(Vec3T<RealT>& xyz) const
++__hostdev__ void SampleFromVoxels<TreeOrAccT, 1, true>::cache(Vec3T<RealT>& xyz) const
+ {
+     CoordT ijk = Floor<CoordT>(xyz);
+     if (ijk != mPos) {
+@@ -406,7 +406,7 @@
+ 
+ template<typename TreeOrAccT>
+ template<typename RealT, template<typename...> class Vec3T>
+-typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 1, false>::operator()(Vec3T<RealT> xyz) const
++__hostdev__ typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 1, false>::operator()(Vec3T<RealT> xyz) const
+ {
+     ValueT val[2][2][2];
+     CoordT ijk = Floor<CoordT>(xyz);
+@@ -418,7 +418,7 @@
+ 
+ template<typename TreeOrAccT>
+ template<typename RealT, template<typename...> class Vec3T>
+-typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 1, false>::operator()(Vec3T<RealT> xyz) const
++__hostdev__ typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 1, false>::operator()(Vec3T<RealT> xyz) const
+ {
+     auto lerp = [](ValueT a, ValueT b, RealT w) { return a + ValueT(w) * (b - a); };
+ 
+@@ -463,7 +463,7 @@
+ 
+ template<typename TreeOrAccT>
+ template<typename RealT, template<typename...> class Vec3T>
+-inline Vec3T<typename TreeOrAccT::ValueType> SampleFromVoxels<TreeOrAccT, 1, false>::gradient(Vec3T<RealT> xyz) const
++inline __hostdev__ Vec3T<typename TreeOrAccT::ValueType> SampleFromVoxels<TreeOrAccT, 1, false>::gradient(Vec3T<RealT> xyz) const
+ {
+     ValueT val[2][2][2];
+     CoordT ijk = Floor<CoordT>(xyz);
+@@ -473,7 +473,7 @@
+ 
+ template<typename TreeOrAccT>
+ template<typename RealT, template<typename...> class Vec3T>
+-bool SampleFromVoxels<TreeOrAccT, 1, false>::zeroCrossing(Vec3T<RealT> xyz) const
++__hostdev__ bool SampleFromVoxels<TreeOrAccT, 1, false>::zeroCrossing(Vec3T<RealT> xyz) const
+ {
+     ValueT val[2][2][2];
+     CoordT ijk = Floor<CoordT>(xyz);
+@@ -510,7 +510,7 @@
+ }; // TriquadraticSamplerBase
+ 
+ template<typename TreeOrAccT>
+-void TriquadraticSampler<TreeOrAccT>::stencil(const CoordT &ijk, ValueT (&v)[3][3][3]) const
++__hostdev__ void TriquadraticSampler<TreeOrAccT>::stencil(const CoordT &ijk, ValueT (&v)[3][3][3]) const
+ {
+     CoordT p(ijk[0] - 1, 0, 0);
+     for (int dx = 0; dx < 3; ++dx, ++p[0]) {
+@@ -526,7 +526,7 @@
+ 
+ template<typename TreeOrAccT>
+ template<typename RealT, template<typename...> class Vec3T>
+-typename TreeOrAccT::ValueType TriquadraticSampler<TreeOrAccT>::sample(const Vec3T<RealT> &uvw, const ValueT (&v)[3][3][3])
++__hostdev__ typename TreeOrAccT::ValueType TriquadraticSampler<TreeOrAccT>::sample(const Vec3T<RealT> &uvw, const ValueT (&v)[3][3][3])
+ {
+     auto kernel = [](const ValueT* value, double weight)->ValueT {
+         return weight * (weight * (0.5f * (value[0] + value[2]) - value[1]) + 
+@@ -545,7 +545,7 @@
+ }
+ 
+ template<typename TreeOrAccT>
+-bool TriquadraticSampler<TreeOrAccT>::zeroCrossing(const ValueT (&v)[3][3][3])
++__hostdev__ bool TriquadraticSampler<TreeOrAccT>::zeroCrossing(const ValueT (&v)[3][3][3])
+ {
+     static_assert(std::is_floating_point<ValueT>::value, "TrilinearSampler::zeroCrossing requires a floating-point type");
+     const bool less = v[0][0][0] < ValueT(0);
+@@ -624,7 +624,7 @@
+ 
+ template<typename TreeOrAccT>
+ template<typename RealT, template<typename...> class Vec3T>
+-typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 2, true>::operator()(Vec3T<RealT> xyz) const
++__hostdev__ typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 2, true>::operator()(Vec3T<RealT> xyz) const
+ {
+     this->cache(xyz);
+     return BaseT::sample(xyz, mVal);
+@@ -631,7 +631,7 @@
+ }
+ 
+ template<typename TreeOrAccT>
+-typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 2, true>::operator()(const CoordT &ijk) const
++__hostdev__ typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 2, true>::operator()(const CoordT &ijk) const
+ {
+     return  ijk == mPos ? mVal[1][1][1] : BaseT::mAcc.getValue(ijk);
+ }
+@@ -646,7 +646,7 @@
+ 
+ template<typename TreeOrAccT>
+ template<typename RealT, template<typename...> class Vec3T>
+-void SampleFromVoxels<TreeOrAccT, 2, true>::cache(Vec3T<RealT>& xyz) const
++__hostdev__ void SampleFromVoxels<TreeOrAccT, 2, true>::cache(Vec3T<RealT>& xyz) const
+ {
+     CoordT ijk = Floor<CoordT>(xyz);
+     if (ijk != mPos) {
+@@ -657,7 +657,7 @@
+ 
+ template<typename TreeOrAccT>
+ template<typename RealT, template<typename...> class Vec3T>
+-typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 2, false>::operator()(Vec3T<RealT> xyz) const
++__hostdev__ typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 2, false>::operator()(Vec3T<RealT> xyz) const
+ {
+     ValueT val[3][3][3];
+     CoordT ijk = Floor<CoordT>(xyz);
+@@ -667,7 +667,7 @@
+ 
+ template<typename TreeOrAccT>
+ template<typename RealT, template<typename...> class Vec3T>
+-bool SampleFromVoxels<TreeOrAccT, 2, false>::zeroCrossing(Vec3T<RealT> xyz) const
++__hostdev__ bool SampleFromVoxels<TreeOrAccT, 2, false>::zeroCrossing(Vec3T<RealT> xyz) const
+ {
+     ValueT val[3][3][3];
+     CoordT ijk = Floor<CoordT>(xyz);
+@@ -710,7 +710,7 @@
+ }; // TricubicSampler
+ 
+ template<typename TreeOrAccT>
+-void TricubicSampler<TreeOrAccT>::stencil(const CoordT& ijk, ValueT (&C)[64]) const
++__hostdev__ void TricubicSampler<TreeOrAccT>::stencil(const CoordT& ijk, ValueT (&C)[64]) const
+ {
+     auto fetch = [&](int i, int j, int k) -> ValueT& { return C[((i + 1) << 4) + ((j + 1) << 2) + k + 1]; };
+ 
+@@ -929,7 +929,7 @@
+ 
+ template<typename TreeOrAccT>
+ template<typename RealT, template<typename...> class Vec3T>
+-typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 3, true>::operator()(Vec3T<RealT> xyz) const
++__hostdev__ typename TreeOrAccT::ValueType SampleFromVoxels<TreeOrAccT, 3, true>::operator()(Vec3T<RealT> xyz) const
+ {
+     this->cache(xyz);
+     return BaseT::sample(xyz, mC);
+@@ -937,7 +937,7 @@
+ 
+ template<typename TreeOrAccT>
+ template<typename RealT, template<typename...> class Vec3T>
+-void SampleFromVoxels<TreeOrAccT, 3, true>::cache(Vec3T<RealT>& xyz) const
++__hostdev__ void SampleFromVoxels<TreeOrAccT, 3, true>::cache(Vec3T<RealT>& xyz) const
+ {
+     CoordT ijk = Floor<CoordT>(xyz);
+     if (ijk != mPos) {

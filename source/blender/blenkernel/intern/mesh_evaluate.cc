@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -191,7 +175,6 @@ void BKE_mesh_calc_poly_center(const MPoly *mpoly,
   }
 }
 
-/* NOTE: passing poly-normal is only a speedup so we can skip calculating it. */
 float BKE_mesh_calc_poly_area(const MPoly *mpoly, const MLoop *loopstart, const MVert *mvarray)
 {
   if (mpoly->totloop == 3) {
@@ -249,23 +232,6 @@ float BKE_mesh_calc_poly_uv_area(const MPoly *mpoly, const MLoopUV *uv_array)
   return area;
 }
 
-/**
- * Calculate the volume and volume-weighted centroid of the volume
- * formed by the polygon and the origin.
- * Results will be negative if the origin is "outside" the polygon
- * (+ve normal side), but the polygon may be non-planar with no effect.
- *
- * Method from:
- * - http://forums.cgsociety.org/archive/index.php?t-756235.html
- * - http://www.globalspec.com/reference/52702/203279/4-8-the-centroid-of-a-tetrahedron
- *
- * \note
- * - Volume is 6x actual volume, and centroid is 4x actual volume-weighted centroid
- *   (so division can be done once at the end).
- * - Results will have bias if polygon is non-planar.
- * - The resulting volume will only be correct if the mesh is manifold and has consistent
- *   face winding (non-contiguous face normals or holes in the mesh surface).
- */
 static float UNUSED_FUNCTION(mesh_calc_poly_volume_centroid)(const MPoly *mpoly,
                                                              const MLoop *loopstart,
                                                              const MVert *mvarray,
@@ -445,10 +411,6 @@ bool BKE_mesh_center_median(const Mesh *me, float r_cent[3])
   return (me->totvert != 0);
 }
 
-/**
- * Calculate the center from polygons,
- * use when we want to ignore vertex locations that don't have connected faces.
- */
 bool BKE_mesh_center_median_from_polys(const Mesh *me, float r_cent[3])
 {
   int i = me->totpoly;
@@ -514,10 +476,6 @@ bool BKE_mesh_center_of_surface(const Mesh *me, float r_cent[3])
   return (me->totpoly != 0);
 }
 
-/**
- * \note Mesh must be manifold with consistent face-winding,
- * see #mesh_calc_poly_volume_centroid for details.
- */
 bool BKE_mesh_center_of_volume(const Mesh *me, float r_cent[3])
 {
   int i = me->totpoly;
@@ -602,12 +560,6 @@ static bool mesh_calc_center_centroid_ex(const MVert *mverts,
   return true;
 }
 
-/**
- * Calculate the volume and center.
- *
- * \param r_volume: Volume (unsigned).
- * \param r_center: Center of mass.
- */
 void BKE_mesh_calc_volume(const MVert *mverts,
                           const int mverts_num,
                           const MLoopTri *looptri,
@@ -800,19 +752,6 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
   BKE_mesh_update_customdata_pointers(mesh, true);
 }
 
-/**
- * The same as #BKE_mesh_convert_mfaces_to_mpolys
- * but oriented to be used in #do_versions from `readfile.c`
- * the difference is how active/render/clone/stencil indices are handled here.
- *
- * normally they're being set from `pdata` which totally makes sense for meshes which are already
- * converted to #BMesh structures, but when loading older files indices shall be updated in other
- * way around, so newly added `pdata` and `ldata` would have this indices set
- * based on `fdata`  layer.
- *
- * this is normally only needed when reading older files,
- * in all other cases #BKE_mesh_convert_mfaces_to_mpolys shall be always used.
- */
 void BKE_mesh_do_versions_convert_mfaces_to_mpolys(Mesh *mesh)
 {
   BKE_mesh_convert_mfaces_to_mpolys_ex(&mesh->id,
@@ -957,12 +896,9 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id,
 
 #undef ME_FGON
 }
+
 /** \} */
 
-/**
- * Flip a single MLoop's #MDisps structure,
- * low level function to be called from face-flipping code which re-arranged the mdisps themselves.
- */
 void BKE_mesh_mdisp_flip(MDisps *md, const bool use_loop_mdisp_flip)
 {
   if (UNLIKELY(!md->totdisp || !md->disps)) {
@@ -999,14 +935,6 @@ void BKE_mesh_mdisp_flip(MDisps *md, const bool use_loop_mdisp_flip)
   }
 }
 
-/**
- * Flip (invert winding of) the given \a mpoly, i.e. reverse order of its loops
- * (keeping the same vertex as 'start point').
- *
- * \param mpoly: the polygon to flip.
- * \param mloop: the full loops array.
- * \param ldata: the loops custom data.
- */
 void BKE_mesh_polygon_flip_ex(MPoly *mpoly,
                               MLoop *mloop,
                               CustomData *ldata,
@@ -1056,11 +984,6 @@ void BKE_mesh_polygon_flip(MPoly *mpoly, MLoop *mloop, CustomData *ldata)
   BKE_mesh_polygon_flip_ex(mpoly, mloop, ldata, nullptr, mdisp, true);
 }
 
-/**
- * Flip (invert winding of) all polygons (used to inverse their normals).
- *
- * \note Invalidates tessellation, caller must handle that.
- */
 void BKE_mesh_polygons_flip(MPoly *mpoly, MLoop *mloop, CustomData *ldata, int totpoly)
 {
   MDisps *mdisp = (MDisps *)CustomData_get_layer(ldata, CD_MDISPS);
@@ -1076,8 +999,6 @@ void BKE_mesh_polygons_flip(MPoly *mpoly, MLoop *mloop, CustomData *ldata, int t
 /** \name Mesh Flag Flushing
  * \{ */
 
-/* update the hide flag for edges and faces from the corresponding
- * flag in verts */
 void BKE_mesh_flush_hidden_from_verts_ex(const MVert *mvert,
                                          const MLoop *mloop,
                                          MEdge *medge,
@@ -1149,9 +1070,6 @@ void BKE_mesh_flush_hidden_from_polys(Mesh *me)
       me->mvert, me->mloop, me->medge, me->totedge, me->mpoly, me->totpoly);
 }
 
-/**
- * simple poly -> vert/edge selection.
- */
 void BKE_mesh_flush_select_from_polys_ex(MVert *mvert,
                                          const int totvert,
                                          const MLoop *mloop,
@@ -1248,23 +1166,13 @@ void BKE_mesh_flush_select_from_verts(Mesh *me)
   BKE_mesh_flush_select_from_verts_ex(
       me->mvert, me->totvert, me->mloop, me->medge, me->totedge, me->mpoly, me->totpoly);
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Spatial Calculation
  * \{ */
 
-/**
- * This function takes the difference between 2 vertex-coord-arrays
- * (\a vert_cos_src, \a vert_cos_dst),
- * and applies the difference to \a vert_cos_new relative to \a vert_cos_org.
- *
- * \param vert_cos_src: reference deform source.
- * \param vert_cos_dst: reference deform destination.
- *
- * \param vert_cos_org: reference for the output location.
- * \param vert_cos_new: resulting coords.
- */
 void BKE_mesh_calc_relative_deform(const MPoly *mpoly,
                                    const int totpoly,
                                    const MLoop *mloop,
@@ -1318,4 +1226,5 @@ void BKE_mesh_calc_relative_deform(const MPoly *mpoly,
 
   MEM_freeN(vert_accum);
 }
+
 /** \} */

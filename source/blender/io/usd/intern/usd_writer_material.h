@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 #include <pxr/pxr.h>
@@ -37,9 +23,6 @@ T usd_define_or_over(pxr::UsdStageRefPtr stage, pxr::SdfPath path, bool as_overs
 
 struct USDExporterContext;
 
-void create_usd_preview_surface_material(const USDExporterContext &usd_export_context,
-                                         Material *material,
-                                         pxr::UsdShadeMaterial &usd_material);
 void create_usd_cycles_material(pxr::UsdStageRefPtr a_stage,
                                 bNodeTree *ntree,
                                 pxr::UsdShadeMaterial &usd_material,
@@ -48,23 +31,46 @@ void create_usd_cycles_material(pxr::UsdStageRefPtr a_stage,
                                 Material *material,
                                 pxr::UsdShadeMaterial &usd_material,
                                 const USDExportParams &export_params);
-void create_usd_viewport_material(const USDExporterContext &usd_export_context,
-                                  Material *material,
-                                  pxr::UsdShadeMaterial &usd_material);
 void create_mdl_material(const USDExporterContext &usd_export_context,
                          Material *material,
                          pxr::UsdShadeMaterial &usd_material);
 
-void export_texture(bNode *node, const pxr::UsdStageRefPtr stage);
+/**
+ * Entry point to create an approximate USD Preview Surface network from a Cycles node graph.
+ * Due to the limited nodes in the USD Preview Surface specification, only the following nodes
+ * are supported:
+ * - UVMap
+ * - Texture Coordinate
+ * - Image Texture
+ * - Principled BSDF
+ * More may be added in the future.
+ *
+ * \param default_uv: used as the default UV set name sampled by the `primvar`
+ * reader shaders generated for image texture nodes that don't have an attached UVMap node.
+ */
+void create_usd_preview_surface_material(const USDExporterContext &usd_export_context,
+                                         Material *material,
+                                         pxr::UsdShadeMaterial &usd_material,
+                                         const std::string &default_uv = "");
+
+/* Entry point to create USD Shade Material network from Blender viewport display settings. */
+void create_usd_viewport_material(const USDExporterContext &usd_export_context,
+                                  Material *material,
+                                  pxr::UsdShadeMaterial &usd_material);
+
+void export_texture(bNode *node,
+                    const pxr::UsdStageRefPtr stage,
+                    const bool allow_overwrite = false);
+
+std::string get_tex_image_asset_path(bNode *node,
+                                     const pxr::UsdStageRefPtr stage,
+                                     const USDExportParams &export_params);
+
+std::string get_tex_image_asset_path(const std::string &asset_path,
+                                     const pxr::UsdStageRefPtr stage,
+                                     const USDExportParams &export_params);
 
 void export_textures(const Material *material, const pxr::UsdStageRefPtr stage);
 
-std::string get_node_tex_image_filepath(bNode *node,
-                                        const pxr::UsdStageRefPtr stage,
-                                        const USDExportParams &export_params);
+}  // namespace blender::io::usd
 
-std::string get_texture_filepath(const std::string &tex_filepath,
-                                 const pxr::UsdStageRefPtr stage,
-                                 const USDExportParams &export_params);
-
-}  // Namespace blender::io::usd

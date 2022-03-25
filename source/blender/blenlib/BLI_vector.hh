@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -163,7 +149,7 @@ class Vector {
   /**
    * Create a vector from a span. The values in the vector are copy constructed.
    */
-  template<typename U, typename std::enable_if_t<std::is_convertible_v<U, T>> * = nullptr>
+  template<typename U, BLI_ENABLE_IF((std::is_convertible_v<U, T>))>
   Vector(Span<U> values, Allocator allocator = {}) : Vector(NoExceptConstructor(), allocator)
   {
     const int64_t size = values.size();
@@ -178,7 +164,7 @@ class Vector {
    * This allows you to write code like:
    * Vector<int> vec = {3, 4, 5};
    */
-  template<typename U, typename std::enable_if_t<std::is_convertible_v<U, T>> * = nullptr>
+  template<typename U, BLI_ENABLE_IF((std::is_convertible_v<U, T>))>
   Vector(const std::initializer_list<U> &values) : Vector(Span<U>(values))
   {
   }
@@ -187,9 +173,7 @@ class Vector {
   {
   }
 
-  template<typename U,
-           size_t N,
-           typename std::enable_if_t<std::is_convertible_v<U, T>> * = nullptr>
+  template<typename U, size_t N, BLI_ENABLE_IF((std::is_convertible_v<U, T>))>
   Vector(const std::array<U, N> &values) : Vector(Span(values))
   {
   }
@@ -197,7 +181,7 @@ class Vector {
   template<typename InputIt,
            /* This constructor should not be called with e.g. Vector(3, 10), because that is
             * expected to produce the vector (10, 10, 10). */
-           typename std::enable_if_t<!std::is_convertible_v<InputIt, int>> * = nullptr>
+           BLI_ENABLE_IF((!std::is_convertible_v<InputIt, int>))>
   Vector(InputIt first, InputIt last, Allocator allocator = {})
       : Vector(NoExceptConstructor(), allocator)
   {
@@ -326,13 +310,13 @@ class Vector {
     return MutableSpan<T>(begin_, this->size());
   }
 
-  template<typename U, typename std::enable_if_t<is_span_convertible_pointer_v<T, U>> * = nullptr>
+  template<typename U, BLI_ENABLE_IF((is_span_convertible_pointer_v<T, U>))>
   operator Span<U>() const
   {
     return Span<U>(begin_, this->size());
   }
 
-  template<typename U, typename std::enable_if_t<is_span_convertible_pointer_v<T, U>> * = nullptr>
+  template<typename U, BLI_ENABLE_IF((is_span_convertible_pointer_v<T, U>))>
   operator MutableSpan<U>()
   {
     return MutableSpan<U>(begin_, this->size());
@@ -637,7 +621,7 @@ class Vector {
    * Insert values at the beginning of the vector. The has to move all the other elements, so it
    * has a linear running time.
    */
-  void prepend(const T &&value)
+  void prepend(const T &value)
   {
     this->insert(0, value);
   }
@@ -655,18 +639,20 @@ class Vector {
   }
 
   /**
-   * Return a reference to the last element in the vector.
-   * This invokes undefined behavior when the vector is empty.
+   * Return a reference to the nth last element.
+   * This invokes undefined behavior when the vector is too short.
    */
-  const T &last() const
+  const T &last(const int64_t n = 0) const
   {
-    BLI_assert(this->size() > 0);
-    return *(end_ - 1);
+    BLI_assert(n >= 0);
+    BLI_assert(n < this->size());
+    return *(end_ - 1 - n);
   }
-  T &last()
+  T &last(const int64_t n = 0)
   {
-    BLI_assert(this->size() > 0);
-    return *(end_ - 1);
+    BLI_assert(n >= 0);
+    BLI_assert(n < this->size());
+    return *(end_ - 1 - n);
   }
 
   /**

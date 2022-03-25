@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2014 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2014 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -63,15 +47,19 @@ enum {
   DT_TYPE_POLY_ALL = DT_TYPE_UV | DT_TYPE_SHARP_FACE | DT_TYPE_FREESTYLE_FACE,
 };
 
-void BKE_object_data_transfer_dttypes_to_cdmask(const int dtdata_types,
+void BKE_object_data_transfer_dttypes_to_cdmask(int dtdata_types,
                                                 struct CustomData_MeshMasks *r_data_masks);
-bool BKE_object_data_transfer_get_dttypes_capacity(const int dtdata_types,
+/**
+ * Check what can do each layer type
+ * (if it is actually handled by transfer-data, if it supports advanced mixing.
+ */
+bool BKE_object_data_transfer_get_dttypes_capacity(int dtdata_types,
                                                    bool *r_advanced_mixing,
                                                    bool *r_threshold);
-int BKE_object_data_transfer_get_dttypes_item_types(const int dtdata_types);
+int BKE_object_data_transfer_get_dttypes_item_types(int dtdata_types);
 
-int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type);
-int BKE_object_data_transfer_dttype_to_srcdst_index(const int dtdata_type);
+int BKE_object_data_transfer_dttype_to_cdtype(int dtdata_type);
+int BKE_object_data_transfer_dttype_to_srcdst_index(int dtdata_type);
 
 #define DT_DATATYPE_IS_VERT(_dt) \
   ELEM(_dt, DT_TYPE_MDEFORMVERT, DT_TYPE_SHAPEKEY, DT_TYPE_SKIN, DT_TYPE_BWEIGHT_VERT)
@@ -122,12 +110,18 @@ enum {
 #endif
 };
 
+/**
+ * Transfer data *layout* of selected types from source to destination object.
+ * By default, it only creates new data layers if needed on \a ob_dst.
+ * If \a use_delete is true, it will also delete data layers on \a ob_dst that do not match those
+ * from \a ob_src, to get (as much as possible) exact copy of source data layout.
+ */
 void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
                                      struct Scene *scene,
                                      struct Object *ob_src,
                                      struct Object *ob_dst,
-                                     const int data_types,
-                                     const bool use_delete,
+                                     int data_types,
+                                     bool use_delete,
                                      const int fromlayers_select[DT_MULTILAYER_INDEX_MAX],
                                      const int tolayers_select[DT_MULTILAYER_INDEX_MAX]);
 
@@ -135,46 +129,46 @@ bool BKE_object_data_transfer_mesh(struct Depsgraph *depsgraph,
                                    struct Scene *scene,
                                    struct Object *ob_src,
                                    struct Object *ob_dst,
-                                   const int data_types,
-                                   const bool use_create,
-                                   const int map_vert_mode,
-                                   const int map_edge_mode,
-                                   const int map_loop_mode,
-                                   const int map_poly_mode,
+                                   int data_types,
+                                   bool use_create,
+                                   int map_vert_mode,
+                                   int map_edge_mode,
+                                   int map_loop_mode,
+                                   int map_poly_mode,
                                    struct SpaceTransform *space_transform,
-                                   const bool auto_transform,
-                                   const float max_distance,
-                                   const float ray_radius,
-                                   const float islands_handling_precision,
+                                   bool auto_transform,
+                                   float max_distance,
+                                   float ray_radius,
+                                   float islands_handling_precision,
                                    const int fromlayers_select[DT_MULTILAYER_INDEX_MAX],
                                    const int tolayers_select[DT_MULTILAYER_INDEX_MAX],
-                                   const int mix_mode,
-                                   const float mix_factor,
+                                   int mix_mode,
+                                   float mix_factor,
                                    const char *vgroup_name,
-                                   const bool invert_vgroup,
+                                   bool invert_vgroup,
                                    struct ReportList *reports);
 bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
                                  struct Scene *scene,
                                  struct Object *ob_src,
                                  struct Object *ob_dst,
                                  struct Mesh *me_dst,
-                                 const int data_types,
+                                 int data_types,
                                  bool use_create,
-                                 const int map_vert_mode,
-                                 const int map_edge_mode,
-                                 const int map_loop_mode,
-                                 const int map_poly_mode,
+                                 int map_vert_mode,
+                                 int map_edge_mode,
+                                 int map_loop_mode,
+                                 int map_poly_mode,
                                  struct SpaceTransform *space_transform,
-                                 const bool auto_transform,
-                                 const float max_distance,
-                                 const float ray_radius,
-                                 const float islands_handling_precision,
+                                 bool auto_transform,
+                                 float max_distance,
+                                 float ray_radius,
+                                 float islands_handling_precision,
                                  const int fromlayers_select[DT_MULTILAYER_INDEX_MAX],
                                  const int tolayers_select[DT_MULTILAYER_INDEX_MAX],
-                                 const int mix_mode,
-                                 const float mix_factor,
+                                 int mix_mode,
+                                 float mix_factor,
                                  const char *vgroup_name,
-                                 const bool invert_vgroup,
+                                 bool invert_vgroup,
                                  struct ReportList *reports);
 
 #ifdef __cplusplus

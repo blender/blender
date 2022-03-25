@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2011 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spclip
@@ -50,25 +34,34 @@ struct wmOperatorType;
 /* internal exports only */
 
 /* clip_buttons.c */
+
 void ED_clip_buttons_register(struct ARegionType *art);
 
 /* clip_dopesheet_draw.c */
+
 void clip_draw_dopesheet_main(struct SpaceClip *sc, struct ARegion *region, struct Scene *scene);
 void clip_draw_dopesheet_channels(const struct bContext *C, struct ARegion *region);
 
 /* clip_dopesheet_ops.c */
+
 void CLIP_OT_dopesheet_select_channel(struct wmOperatorType *ot);
 void CLIP_OT_dopesheet_view_all(struct wmOperatorType *ot);
 
 /* clip_draw.c */
+
 void clip_draw_main(const struct bContext *C, struct SpaceClip *sc, struct ARegion *region);
+
+/* draw grease pencil */
+
 void clip_draw_grease_pencil(struct bContext *C, int onlyv2d);
 void clip_draw_cache_and_notes(const bContext *C, SpaceClip *sc, ARegion *region);
 
 /* clip_editor.c */
+
 void clip_start_prefetch_job(const struct bContext *C);
 
 /* clip_graph_draw.c */
+
 void clip_draw_graph(struct SpaceClip *sc, struct ARegion *region, struct Scene *scene);
 
 /* clip_graph_ops.c */
@@ -171,13 +164,20 @@ void clip_delete_plane_track(struct bContext *C,
                              struct MovieClip *clip,
                              struct MovieTrackingPlaneTrack *plane_track);
 
+/**
+ * Calculate space clip offset to be centered at the given point.
+ */
 void clip_view_offset_for_center_to_point(
-    SpaceClip *sc, const float x, const float y, float *r_offset_x, float *r_offset_y);
+    SpaceClip *sc, float x, float y, float *r_offset_x, float *r_offset_y);
 void clip_view_center_to_point(SpaceClip *sc, float x, float y);
 
 bool clip_view_calculate_view_selection(
     const struct bContext *C, bool fit, float *r_offset_x, float *r_offset_y, float *r_zoom);
 
+/**
+ * Returns truth if lock-to-selection is enabled and possible.
+ * Locking to selection is not possible if there is no selection.
+ */
 bool clip_view_has_locked_selection(const struct bContext *C);
 
 void clip_draw_sfra_efra(struct View2D *v2d, struct Scene *scene);

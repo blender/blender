@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup RNA
@@ -68,6 +52,7 @@ static const EnumPropertyItem space_items[] = {
 #  include "BKE_bvhutils.h"
 #  include "BKE_constraint.h"
 #  include "BKE_context.h"
+#  include "BKE_crazyspace.h"
 #  include "BKE_customdata.h"
 #  include "BKE_global.h"
 #  include "BKE_layer.h"
@@ -379,6 +364,39 @@ static void rna_Object_camera_fit_coords(
       depsgraph, (const float(*)[3])cos, num_cos / 3, ob, co_ret, scale_ret);
 }
 
+static void rna_Object_crazyspace_eval(Object *object,
+                                       ReportList *reports,
+                                       Depsgraph *depsgraph,
+                                       Scene *scene)
+{
+  BKE_crazyspace_api_eval(depsgraph, scene, object, reports);
+}
+
+static void rna_Object_crazyspace_displacement_to_deformed(Object *object,
+                                                           ReportList *reports,
+                                                           const int vertex_index,
+                                                           float displacement[3],
+                                                           float r_displacement_deformed[3])
+{
+  BKE_crazyspace_api_displacement_to_deformed(
+      object, reports, vertex_index, displacement, r_displacement_deformed);
+}
+
+static void rna_Object_crazyspace_displacement_to_original(Object *object,
+                                                           ReportList *reports,
+                                                           const int vertex_index,
+                                                           float displacement_deformed[3],
+                                                           float r_displacement[3])
+{
+  BKE_crazyspace_api_displacement_to_original(
+      object, reports, vertex_index, displacement_deformed, r_displacement);
+}
+
+static void rna_Object_crazyspace_eval_clear(Object *object)
+{
+  BKE_crazyspace_api_eval_clear(object);
+}
+
 /* copied from Mesh_getFromObject and adapted to RNA interface */
 static Mesh *rna_Object_to_mesh(Object *object,
                                 ReportList *reports,
@@ -389,7 +407,7 @@ static Mesh *rna_Object_to_mesh(Object *object,
    * rna_Main_meshes_new_from_object. */
   switch (object->type) {
     case OB_FONT:
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF:
     case OB_MBALL:
     case OB_MESH:
@@ -412,7 +430,7 @@ static Curve *rna_Object_to_curve(Object *object,
                                   Depsgraph *depsgraph,
                                   bool apply_modifiers)
 {
-  if (!ELEM(object->type, OB_FONT, OB_CURVE)) {
+  if (!ELEM(object->type, OB_FONT, OB_CURVES_LEGACY)) {
     BKE_report(reports, RPT_ERROR, "Object is not a curve or a text");
     return NULL;
   }
@@ -530,7 +548,7 @@ static int mesh_looptri_to_poly_index(Mesh *me_eval, const MLoopTri *lt)
   return index_mp_to_orig ? index_mp_to_orig[lt->poly] : lt->poly;
 }
 
-/* TOOD(sergey): Make the Python API more clear that evaluation might happen, or requite
+/* TODO(sergey): Make the Python API more clear that evaluation might happen, or require
  * passing fully evaluated depsgraph. */
 static Object *eval_object_ensure(Object *ob,
                                   bContext *C,
@@ -729,7 +747,7 @@ void rna_Object_me_eval_info(
   }
 
   if (me_eval) {
-    ret = BKE_mesh_runtime_debug_info(me_eval);
+    ret = BKE_mesh_debug_info(me_eval);
     if (ret) {
       strcpy(result, ret);
       MEM_freeN(ret);
@@ -767,7 +785,7 @@ bool rna_Object_generate_gpencil_strokes(Object *ob,
                                          float scale_thickness,
                                          float sample)
 {
-  if (ob->type != OB_CURVE) {
+  if (ob->type != OB_CURVES_LEGACY) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Object '%s' is not valid for this operation! Only curves are supported",
@@ -977,6 +995,52 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_property_ui_text(
       parm, "", "The ortho scale to aim to be able to see all given points (if relevant)");
   RNA_def_parameter_flags(parm, 0, PARM_OUTPUT);
+
+  /* Crazy-space access. */
+
+  func = RNA_def_function(srna, "crazyspace_eval", "rna_Object_crazyspace_eval");
+  RNA_def_function_ui_description(
+      func,
+      "Compute orientation mapping between vertices of an original object and object with shape "
+      "keys and deforming modifiers applied."
+      "The evaluation is to be freed with the crazyspace_eval_free function");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_pointer(
+      func, "depsgraph", "Depsgraph", "Dependency Graph", "Evaluated dependency graph");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_pointer(func, "scene", "Scene", "Scene", "Scene of the object");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+  func = RNA_def_function(srna,
+                          "crazyspace_displacement_to_deformed",
+                          "rna_Object_crazyspace_displacement_to_deformed");
+  RNA_def_function_ui_description(
+      func, "Convert displacement vector from non-deformed object space to deformed object space");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_property(func, "vertex_index", PROP_INT, PROP_NONE);
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_property(func, "displacement", PROP_FLOAT, PROP_XYZ);
+  RNA_def_property_array(parm, 3);
+  parm = RNA_def_property(func, "displacement_deformed", PROP_FLOAT, PROP_XYZ);
+  RNA_def_property_array(parm, 3);
+  RNA_def_function_output(func, parm);
+
+  func = RNA_def_function(srna,
+                          "crazyspace_displacement_to_original",
+                          "rna_Object_crazyspace_displacement_to_original");
+  RNA_def_function_ui_description(
+      func, "Convert displacement vector from deformed object space to non-deformed object space");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  RNA_def_property(func, "vertex_index", PROP_INT, PROP_NONE);
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_property(func, "displacement", PROP_FLOAT, PROP_XYZ);
+  RNA_def_property_array(parm, 3);
+  parm = RNA_def_property(func, "displacement_original", PROP_FLOAT, PROP_XYZ);
+  RNA_def_property_array(parm, 3);
+  RNA_def_function_output(func, parm);
+
+  RNA_def_function(srna, "crazyspace_eval_clear", "rna_Object_crazyspace_eval_clear");
+  RNA_def_function_ui_description(func, "Free evaluated state of crazyspace");
 
   /* mesh */
   func = RNA_def_function(srna, "to_mesh", "rna_Object_to_mesh");

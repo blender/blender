@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edscr
@@ -37,9 +23,6 @@
 
 #include "screen_intern.h"
 
-/**
- * Empty screen, with 1 dummy area without space-data. Uses window size.
- */
 WorkSpaceLayout *ED_workspace_layout_add(Main *bmain,
                                          WorkSpace *workspace,
                                          wmWindow *win,
@@ -129,10 +112,6 @@ static WorkSpaceLayout *workspace_layout_delete_find_new(const WorkSpaceLayout *
   return NULL;
 }
 
-/**
- * \warning Only call outside of area/region loops!
- * \return true if succeeded.
- */
 bool ED_workspace_layout_delete(WorkSpace *workspace, WorkSpaceLayout *layout_old, bContext *C)
 {
   const bScreen *screen_old = BKE_workspace_layout_screen_get(layout_old);
@@ -183,12 +162,6 @@ static bool screen_is_used_by_other_window(const wmWindow *win, const bScreen *s
   return BKE_screen_is_used(screen) && (screen->winid != win->winid);
 }
 
-/**
- * Make sure there is a non-fullscreen layout to switch to that is not used yet by an other window.
- * Needed for workspace or screen switching to ensure valid screens.
- *
- * \param layout_fallback_base: As last resort, this layout is duplicated and returned.
- */
 WorkSpaceLayout *ED_workspace_screen_change_ensure_unused_layout(
     Main *bmain,
     WorkSpace *workspace,

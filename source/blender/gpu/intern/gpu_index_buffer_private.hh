@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -77,25 +61,29 @@ class IndexBuf {
   void init_subrange(IndexBuf *elem_src, uint start, uint length);
   void init_build_on_device(uint index_len);
 
-  uint32_t index_len_get(void) const
+  uint32_t index_len_get() const
   {
     return index_len_;
   }
   /* Return size in byte of the drawable data buffer range. Actual buffer size might be bigger. */
-  size_t size_get(void) const
+  size_t size_get() const
   {
     return index_len_ * to_bytesize(index_type_);
   };
 
-  bool is_init(void) const
+  bool is_init() const
   {
     return is_init_;
   };
+
+  virtual void upload_data() = 0;
 
   virtual void bind_as_ssbo(uint binding) = 0;
 
   virtual const uint32_t *read() const = 0;
   uint32_t *unmap(const uint32_t *mapped_memory) const;
+
+  virtual void update_sub(uint start, uint len, const void *data) = 0;
 
  private:
   inline void squeeze_indices_short(uint min_idx, uint max_idx);

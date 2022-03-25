@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #pragma once
 
@@ -220,7 +207,7 @@ CCL_NAMESPACE_BEGIN
 template<uint node_feature_mask, ShaderType type, typename ConstIntegratorGenericState>
 ccl_device void svm_eval_nodes(KernelGlobals kg,
                                ConstIntegratorGenericState state,
-                               ShaderData *sd,
+                               ccl_private ShaderData *sd,
                                ccl_global float *render_buffer,
                                uint32_t path_flag)
 {
@@ -454,13 +441,14 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
         break;
 #if defined(__HAIR__)
       case NODE_HAIR_INFO:
-        IF_KERNEL_NODES_FEATURE(HAIR)
-        {
-          svm_node_hair_info(kg, sd, stack, node.y, node.z);
-        }
+        svm_node_hair_info(kg, sd, stack, node.y, node.z);
         break;
 #endif
-
+#if defined(__POINTCLOUD__)
+      case NODE_POINT_INFO:
+        svm_node_point_info(kg, sd, stack, node.y, node.z);
+        break;
+#endif
       case NODE_TEXTURE_MAPPING:
         offset = svm_node_texture_mapping(kg, sd, stack, node.y, node.z, offset);
         break;
@@ -561,6 +549,9 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
         break;
       case NODE_MAP_RANGE:
         offset = svm_node_map_range(kg, sd, stack, node.y, node.z, node.w, offset);
+        break;
+      case NODE_VECTOR_MAP_RANGE:
+        offset = svm_node_vector_map_range(kg, sd, stack, node.y, node.z, node.w, offset);
         break;
       case NODE_CLAMP:
         offset = svm_node_clamp(kg, sd, stack, node.y, node.z, node.w, offset);

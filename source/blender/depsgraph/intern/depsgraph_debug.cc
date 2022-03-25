@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2014 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2014 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup depsgraph
@@ -196,12 +180,6 @@ bool DEG_debug_consistency_check(Depsgraph *graph)
 
 /* ------------------------------------------------ */
 
-/**
- * Obtain simple statistics about the complexity of the depsgraph.
- * \param[out] r_outer:      The number of outer nodes in the graph
- * \param[out] r_operations: The number of operation nodes in the graph
- * \param[out] r_relations:  The number of relations between (executable) nodes in the graph
- */
 void DEG_stats_simple(const Depsgraph *graph,
                       size_t *r_outer,
                       size_t *r_operations,

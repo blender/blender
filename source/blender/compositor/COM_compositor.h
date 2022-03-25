@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2011, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. */
 
 #pragma once
 
@@ -28,12 +13,19 @@ extern "C" {
 /* Keep ascii art. */
 /* clang-format off */
 /**
+ *
  * \defgroup Model The data model of the compositor
+ * \ingroup compositor
  * \defgroup Memory The memory management stuff
+ * \ingroup compositor
  * \defgroup Execution The execution logic
+ * \ingroup compositor
  * \defgroup Conversion Conversion logic
+ * \ingroup compositor
  * \defgroup Node All nodes of the compositor
+ * \ingroup compositor
  * \defgroup Operation All operations of the compositor
+ * \ingroup compositor
  *
  * \page Introduction of the Blender Compositor
  *
@@ -301,10 +293,10 @@ extern "C" {
  * It can be executed during editing (blenkernel/node.cc) or rendering
  * (renderer/pipeline.c)
  *
- * \param rd: [struct RenderData]
+ * \param render_data: [struct RenderData]
  *   Render data for this composite, this won't always belong to a scene.
  *
- * \param editingtree: [struct bNodeTree]
+ * \param node_tree: [struct bNodeTree]
  *   reference to the compositor editing tree
  *
  * \param rendering: [true false]

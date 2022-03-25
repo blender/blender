@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -117,16 +101,24 @@ class Texture {
   virtual ~Texture();
 
   /* Return true on success. */
-  bool init_1D(int w, int layers, eGPUTextureFormat format);
-  bool init_2D(int w, int h, int layers, eGPUTextureFormat format);
-  bool init_3D(int w, int h, int d, eGPUTextureFormat format);
-  bool init_cubemap(int w, int layers, eGPUTextureFormat format);
+  bool init_1D(int w, int layers, int mips, eGPUTextureFormat format);
+  bool init_2D(int w, int h, int layers, int mips, eGPUTextureFormat format);
+  bool init_3D(int w, int h, int d, int mips, eGPUTextureFormat format);
+  bool init_cubemap(int w, int layers, int mips, eGPUTextureFormat format);
   bool init_buffer(GPUVertBuf *vbo, eGPUTextureFormat format);
+  bool init_view(const GPUTexture *src,
+                 eGPUTextureFormat format,
+                 int mip_start,
+                 int mip_len,
+                 int layer_start,
+                 int layer_len,
+                 bool cube_as_array);
 
-  virtual void generate_mipmap(void) = 0;
+  virtual void generate_mipmap() = 0;
   virtual void copy_to(Texture *tex) = 0;
   virtual void clear(eGPUDataFormat format, const void *data) = 0;
   virtual void swizzle_set(const char swizzle_mask[4]) = 0;
+  virtual void stencil_texture_mode_set(bool use_stencil) = 0;
   virtual void mip_range_set(int min, int max) = 0;
   virtual void *read(int mip, eGPUDataFormat format) = 0;
 
@@ -138,17 +130,17 @@ class Texture {
       int mip, int offset[3], int extent[3], eGPUDataFormat format, const void *data) = 0;
 
   /* TODO(fclem): Legacy. Should be removed at some point. */
-  virtual uint gl_bindcode_get(void) const = 0;
+  virtual uint gl_bindcode_get() const = 0;
 
-  int width_get(void) const
+  int width_get() const
   {
     return w_;
   }
-  int height_get(void) const
+  int height_get() const
   {
     return h_;
   }
-  int depth_get(void) const
+  int depth_get() const
   {
     return d_;
   }
@@ -188,7 +180,7 @@ class Texture {
   }
 
   /* Return number of dimension taking the array type into account. */
-  int dimensions_count(void) const
+  int dimensions_count() const
   {
     const int array = (type_ & GPU_TEXTURE_ARRAY) ? 1 : 0;
     switch (type_ & ~GPU_TEXTURE_ARRAY) {
@@ -205,7 +197,7 @@ class Texture {
     }
   }
   /* Return number of array layer (or face layer) for texture array or 1 for the others. */
-  int layer_count(void) const
+  int layer_count() const
   {
     switch (type_) {
       case GPU_TEXTURE_1D_ARRAY:
@@ -218,15 +210,20 @@ class Texture {
     }
   }
 
-  eGPUTextureFormat format_get(void) const
+  int mip_count() const
+  {
+    return mipmaps_;
+  }
+
+  eGPUTextureFormat format_get() const
   {
     return format_;
   }
-  eGPUTextureFormatFlag format_flag_get(void) const
+  eGPUTextureFormatFlag format_flag_get() const
   {
     return format_flag_;
   }
-  eGPUTextureType type_get(void) const
+  eGPUTextureType type_get() const
   {
     return type_;
   }
@@ -248,8 +245,9 @@ class Texture {
   }
 
  protected:
-  virtual bool init_internal(void) = 0;
+  virtual bool init_internal() = 0;
   virtual bool init_internal(GPUVertBuf *vbo) = 0;
+  virtual bool init_internal(const GPUTexture *src, int mip_offset, int layer_offset) = 0;
 };
 
 /* Syntactic sugar. */
@@ -371,10 +369,15 @@ inline int to_component_len(eGPUTextureFormat format)
 {
   switch (format) {
     case GPU_RGBA8:
+    case GPU_RGBA8I:
     case GPU_RGBA8UI:
-    case GPU_RGBA16F:
     case GPU_RGBA16:
+    case GPU_RGBA16F:
+    case GPU_RGBA16I:
+    case GPU_RGBA16UI:
     case GPU_RGBA32F:
+    case GPU_RGBA32I:
+    case GPU_RGBA32UI:
     case GPU_SRGB8_A8:
     case GPU_RGB10_A2:
       return 4;
@@ -382,11 +385,15 @@ inline int to_component_len(eGPUTextureFormat format)
     case GPU_R11F_G11F_B10F:
       return 3;
     case GPU_RG8:
+    case GPU_RG8I:
+    case GPU_RG8UI:
     case GPU_RG16:
     case GPU_RG16F:
     case GPU_RG16I:
     case GPU_RG16UI:
     case GPU_RG32F:
+    case GPU_RG32I:
+    case GPU_RG32UI:
       return 2;
     default:
       return 1;
@@ -451,7 +458,6 @@ inline bool validate_data_format(eGPUTextureFormat tex_format, eGPUDataFormat da
   }
 }
 
-/* Definitely not complete, edit according to the gl specification. */
 inline eGPUDataFormat to_data_format(eGPUTextureFormat tex_format)
 {
   switch (tex_format) {
@@ -462,16 +468,27 @@ inline eGPUDataFormat to_data_format(eGPUTextureFormat tex_format)
     case GPU_DEPTH24_STENCIL8:
     case GPU_DEPTH32F_STENCIL8:
       return GPU_DATA_UINT_24_8;
-    case GPU_R8UI:
     case GPU_R16UI:
-    case GPU_RG16UI:
     case GPU_R32UI:
+    case GPU_RG16UI:
+    case GPU_RG32UI:
+    case GPU_RGBA16UI:
+    case GPU_RGBA32UI:
       return GPU_DATA_UINT;
-    case GPU_RG16I:
     case GPU_R16I:
+    case GPU_R32I:
+    case GPU_R8I:
+    case GPU_RG16I:
+    case GPU_RG32I:
+    case GPU_RG8I:
+    case GPU_RGBA16I:
+    case GPU_RGBA32I:
+    case GPU_RGBA8I:
       return GPU_DATA_INT;
     case GPU_R8:
+    case GPU_R8UI:
     case GPU_RG8:
+    case GPU_RG8UI:
     case GPU_RGBA8:
     case GPU_RGBA8UI:
     case GPU_SRGB8_A8:

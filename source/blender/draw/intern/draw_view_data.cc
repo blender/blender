@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2021, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2021 Blender Foundation. */
 
 /** \file
  * \ingroup draw
@@ -50,11 +35,6 @@ struct DRWViewData {
   Vector<ViewportEngineData *> enabled_engines;
 };
 
-/**
- * Creates a view data with all possible engines type for this view.
- *
- * `engine_types` contains `DRWRegisteredDrawEngine`.
- * */
 DRWViewData *DRW_view_data_create(ListBase *engine_types)
 {
   DRWViewData *view_data = new DRWViewData();
@@ -118,6 +98,12 @@ static void draw_viewport_engines_data_clear(ViewportEngineData *data)
   }
   for (int i = 0; data->stl && i < data_size->stl_len; i++) {
     MEM_SAFE_FREE(data->stl->storage[i]);
+  }
+
+  if (data->instance_data) {
+    BLI_assert(engine_type->instance_free != nullptr);
+    engine_type->instance_free(data->instance_data);
+    data->instance_data = nullptr;
   }
 
   MEM_SAFE_FREE(data->fbl);

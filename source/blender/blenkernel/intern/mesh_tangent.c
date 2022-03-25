@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -115,12 +99,6 @@ static void set_tspace(const SMikkTSpaceContext *pContext,
   p_res[3] = face_sign;
 }
 
-/**
- * Compute simplified tangent space normals, i.e.
- * tangent vector + sign of bi-tangent one, which combined with
- * split normals can be used to recreate the full tangent space.
- * NOTE: * The mesh should be made of only tris and quads!
- */
 void BKE_mesh_calc_loop_tangent_single_ex(const MVert *mverts,
                                           const int UNUSED(numVerts),
                                           const MLoop *mloops,
@@ -172,12 +150,6 @@ void BKE_mesh_calc_loop_tangent_single_ex(const MVert *mverts,
   }
 }
 
-/**
- * Wrapper around BKE_mesh_calc_loop_tangent_single_ex, which takes care of most boiling code.
- * \note
- * - There must be a valid loop's CD_NORMALS available.
- * - The mesh should be made of only tris and quads!
- */
 void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
                                        const char *uvmap,
                                        float (*r_looptangents)[4],
@@ -236,7 +208,8 @@ typedef struct {
   MLoopUV *mloopuv;   /* texture coordinates */
   const MPoly *mpoly; /* indices */
   const MLoop *mloop; /* indices */
-  const MVert *mvert; /* vertices & normals */
+  const MVert *mvert; /* vertex coordinates */
+  const float (*vert_normals)[3];
   const float (*orco)[3];
   float (*tangent)[4]; /* destination */
   int numTessFaces;
@@ -410,8 +383,7 @@ finally:
     }
   }
   else {
-    const short *no = pMesh->mvert[pMesh->mloop[loop_index].v].no;
-    normal_short_to_float_v3(r_no, no);
+    copy_v3_v3(r_no, pMesh->vert_normals[pMesh->mloop[loop_index].v]);
   }
 }
 
@@ -485,12 +457,6 @@ void BKE_mesh_add_loop_tangent_named_layer_for_uv(CustomData *uv_data,
   }
 }
 
-/**
- * Here we get some useful information such as active uv layer name and
- * search if it is already in tangent_names.
- * Also, we calculate tangent_mask that works as a descriptor of tangents state.
- * If tangent_mask has changed, then recalculate tangents.
- */
 void BKE_mesh_calc_loop_tangent_step_0(const CustomData *loopData,
                                        bool calc_active_tangent,
                                        const char (*tangent_names)[MAX_NAME],
@@ -564,9 +530,6 @@ void BKE_mesh_calc_loop_tangent_step_0(const CustomData *loopData,
   }
 }
 
-/**
- * See: #BKE_editmesh_loop_tangent_calc (matching logic).
- */
 void BKE_mesh_calc_loop_tangent_ex(const MVert *mvert,
                                    const MPoly *mpoly,
                                    const uint mpoly_len,
@@ -578,6 +541,7 @@ void BKE_mesh_calc_loop_tangent_ex(const MVert *mvert,
                                    bool calc_active_tangent,
                                    const char (*tangent_names)[MAX_NAME],
                                    int tangent_names_len,
+                                   const float (*vert_normals)[3],
                                    const float (*poly_normals)[3],
                                    const float (*loop_normals)[3],
                                    const float (*vert_orco)[3],
@@ -672,6 +636,7 @@ void BKE_mesh_calc_loop_tangent_ex(const MVert *mvert,
         mesh2tangent->num_face_as_quad_map = num_face_as_quad_map;
 #endif
         mesh2tangent->mvert = mvert;
+        mesh2tangent->vert_normals = vert_normals;
         mesh2tangent->mpoly = mpoly;
         mesh2tangent->mloop = mloop;
         mesh2tangent->looptri = looptri;
@@ -764,7 +729,8 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
                                 calc_active_tangent,
                                 tangent_names,
                                 tangent_names_len,
-                                CustomData_get_layer(&me_eval->pdata, CD_NORMAL),
+                                BKE_mesh_vertex_normals_ensure(me_eval),
+                                BKE_mesh_poly_normals_ensure(me_eval),
                                 CustomData_get_layer(&me_eval->ldata, CD_NORMAL),
                                 CustomData_get_layer(&me_eval->vdata, CD_ORCO), /* may be NULL */
                                 /* result */

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -33,13 +19,6 @@
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_mempool.h"
-
-/* Defines for passing to BM_iter_new.
- *
- * "OF" can be substituted for "around"
- * so BM_VERTS_OF_FACE means "vertices
- * around a face."
- */
 
 /* these iterator over all elements of a specific
  * type in the mesh.
@@ -75,6 +54,12 @@ typedef enum BMIterType {
 /* the iterator htype for each iterator */
 extern const char bm_iter_itype_htype_map[BM_ITYPE_MAX];
 
+/* -------------------------------------------------------------------- */
+/** \name Defines for passing to #BM_iter_new.
+ *
+ * "OF" can be substituted for "around" so #BM_VERTS_OF_FACE means "vertices* around a face."
+ * \{ */
+
 #define BM_ITER_MESH(ele, iter, bm, itype) \
   for (BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BM_iter_new(iter, bm, itype, NULL); ele; \
        BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BM_iter_step(iter))
@@ -107,6 +92,8 @@ extern const char bm_iter_itype_htype_map[BM_ITYPE_MAX];
 #define BM_ITER_ELEM_INDEX(ele, iter, data, itype, indexvar) \
   for (BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BM_iter_new(iter, NULL, itype, data), indexvar = 0; ele; \
        BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BM_iter_step(iter), (indexvar)++)
+
+/** \} */
 
 /* iterator type structs */
 struct BMIter__elem_of_mesh {
@@ -184,42 +171,86 @@ typedef struct BMIter {
   char itype;
 } BMIter;
 
-void *BM_iter_at_index(BMesh *bm, const char itype, void *data, int index) ATTR_WARN_UNUSED_RESULT;
-int BM_iter_as_array(BMesh *bm, const char itype, void *data, void **array, const int len);
+/**
+ * \note Use #BM_vert_at_index / #BM_edge_at_index / #BM_face_at_index for mesh arrays.
+ */
+void *BM_iter_at_index(BMesh *bm, char itype, void *data, int index) ATTR_WARN_UNUSED_RESULT;
+/**
+ * \brief Iterator as Array
+ *
+ * Sometimes its convenient to get the iterator as an array
+ * to avoid multiple calls to #BM_iter_at_index.
+ */
+int BM_iter_as_array(BMesh *bm, char itype, void *data, void **array, int len);
+/**
+ * \brief Iterator as Array
+ *
+ * Allocates a new array, has the advantage that you don't need to know the size ahead of time.
+ *
+ * Takes advantage of less common iterator usage to avoid counting twice,
+ * which you might end up doing when #BM_iter_as_array is used.
+ *
+ * Caller needs to free the array.
+ */
 void *BM_iter_as_arrayN(BMesh *bm,
-                        const char itype,
+                        char itype,
                         void *data,
                         int *r_len,
                         void **stack_array,
                         int stack_array_size) ATTR_WARN_UNUSED_RESULT;
+/**
+ * \brief Operator Iterator as Array
+ *
+ * Sometimes its convenient to get the iterator as an array.
+ */
 int BMO_iter_as_array(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
                       const char *slot_name,
-                      const char restrictmask,
+                      char restrictmask,
                       void **array,
-                      const int len);
+                      int len);
 void *BMO_iter_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
                          const char *slot_name,
-                         const char restrictmask,
+                         char restrictmask,
                          int *r_len,
                          /* optional args to avoid an alloc (normally stack array) */
                          void **stack_array,
                          int stack_array_size);
 
-int BM_iter_mesh_bitmap_from_filter(const char itype,
+int BM_iter_mesh_bitmap_from_filter(char itype,
                                     BMesh *bm,
                                     uint *bitmap,
                                     bool (*test_fn)(BMElem *, void *user_data),
                                     void *user_data);
+/**
+ * Needed when we want to check faces, but return a loop aligned array.
+ */
 int BM_iter_mesh_bitmap_from_filter_tessface(BMesh *bm,
                                              uint *bitmap,
                                              bool (*test_fn)(BMFace *, void *user_data),
                                              void *user_data);
 
-int BM_iter_elem_count_flag(const char itype, void *data, const char hflag, const bool value);
-int BMO_iter_elem_count_flag(
-    BMesh *bm, const char itype, void *data, const short oflag, const bool value);
-int BM_iter_mesh_count(const char itype, BMesh *bm);
-int BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const bool value);
+/**
+ * \brief Elem Iter Flag Count
+ *
+ * Counts how many flagged / unflagged items are found in this element.
+ */
+int BM_iter_elem_count_flag(char itype, void *data, char hflag, bool value);
+/**
+ * \brief Elem Iter Tool Flag Count
+ *
+ * Counts how many flagged / unflagged items are found in this element.
+ */
+int BMO_iter_elem_count_flag(BMesh *bm, char itype, void *data, short oflag, bool value);
+/**
+ * Utility function.
+ */
+int BM_iter_mesh_count(char itype, BMesh *bm);
+/**
+ * \brief Mesh Iter Flag Count
+ *
+ * Counts how many flagged / unflagged items are found in this mesh.
+ */
+int BM_iter_mesh_count_flag(char itype, BMesh *bm, char hflag, bool value);
 
 /* private for bmesh_iterators_inline.c */
 

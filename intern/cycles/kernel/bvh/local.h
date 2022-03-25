@@ -1,21 +1,6 @@
-/*
+/* SPDX-License-Identifier: Apache-2.0
  * Adapted from code Copyright 2009-2010 NVIDIA Corporation,
- * and code copyright 2009-2012 Intel Corporation
- *
- * Modifications Copyright 2011-2013, Blender Foundation.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * and code copyright 2009-2012 Intel Corporation */
 
 #if BVH_FEATURE(BVH_HAIR)
 #  define NODE_INTERSECT bvh_node_intersect
@@ -148,12 +133,27 @@ ccl_device_inline
             /* intersect ray against primitive */
             for (; prim_addr < prim_addr2; prim_addr++) {
               kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
+
+              /* Only intersect with matching object, for instanced objects we
+               * already know we are only intersecting the right object. */
+              if (object == OBJECT_NONE) {
+                if (kernel_tex_fetch(__prim_object, prim_addr) != local_object) {
+                  continue;
+                }
+              }
+
+              /* Skip self intersection. */
+              const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+              if (intersection_skip_self_local(ray->self, prim)) {
+                continue;
+              }
+
               if (triangle_intersect_local(kg,
                                            local_isect,
                                            P,
                                            dir,
-                                           object,
                                            local_object,
+                                           prim,
                                            prim_addr,
                                            isect_t,
                                            lcg_state,
@@ -168,13 +168,28 @@ ccl_device_inline
             /* intersect ray against primitive */
             for (; prim_addr < prim_addr2; prim_addr++) {
               kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
+
+              /* Only intersect with matching object, for instanced objects we
+               * already know we are only intersecting the right object. */
+              if (object == OBJECT_NONE) {
+                if (kernel_tex_fetch(__prim_object, prim_addr) != local_object) {
+                  continue;
+                }
+              }
+
+              /* Skip self intersection. */
+              const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+              if (intersection_skip_self_local(ray->self, prim)) {
+                continue;
+              }
+
               if (motion_triangle_intersect_local(kg,
                                                   local_isect,
                                                   P,
                                                   dir,
                                                   ray->time,
-                                                  object,
                                                   local_object,
+                                                  prim,
                                                   prim_addr,
                                                   isect_t,
                                                   lcg_state,

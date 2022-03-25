@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bli
@@ -46,9 +30,10 @@ uint BLI_ghashutil_ptrhash(const void *key)
   return (uint)(intptr_t)key;
 }
 #else
-/* Based Python3.7's pointer hashing function. */
 uint BLI_ghashutil_ptrhash(const void *key)
 {
+  /* Based Python3.7's pointer hashing function. */
+
   size_t y = (size_t)key;
   /* bottom 3 or 4 bits are likely to be 0; rotate y by 4 to avoid
    * excessive hash collisions for dicts and sets */
@@ -134,15 +119,6 @@ size_t BLI_ghashutil_combine_hash(size_t hash_a, size_t hash_b)
   return hash_a ^ (hash_b + 0x9e3779b9 + (hash_a << 6) + (hash_a >> 2));
 }
 
-/**
- * This function implements the widely used "djb" hash apparently posted
- * by Daniel Bernstein to comp.lang.c some time ago.  The 32 bit
- * unsigned hash value starts at 5381 and for each byte 'c' in the
- * string, is updated: `hash = hash * 33 + c`.
- * This function uses the signed value of each byte.
- *
- * NOTE: this is the same hash method that glib 2.34.0 uses.
- */
 uint BLI_ghashutil_strhash_n(const char *key, size_t n)
 {
   const signed char *p;

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup collada
@@ -320,10 +306,6 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node,
   }
 }
 
-/**
- * If the imported file was made with Blender, return the Blender version used,
- * otherwise return an empty std::string
- */
 std::string DocumentImporter::get_import_version(const COLLADAFW::FileInfo *asset)
 {
   const char AUTORING_TOOL[] = "authoring_tool";
@@ -347,10 +329,6 @@ std::string DocumentImporter::get_import_version(const COLLADAFW::FileInfo *asse
   return "";
 }
 
-/**
- * When this method is called, the writer must write the global document asset.
- * \return The writer should return true, if writing succeeded, false otherwise.
- */
 bool DocumentImporter::writeGlobalAsset(const COLLADAFW::FileInfo *asset)
 {
   unit_converter.read_asset(asset);
@@ -359,10 +337,6 @@ bool DocumentImporter::writeGlobalAsset(const COLLADAFW::FileInfo *asset)
   return true;
 }
 
-/**
- * When this method is called, the writer must write the scene.
- * \return The writer should return true, if writing succeeded, false otherwise.
- */
 bool DocumentImporter::writeScene(const COLLADAFW::Scene *scene)
 {
   /* XXX could store the scene id, but do nothing for now */
@@ -422,8 +396,7 @@ Object *DocumentImporter::create_instance_node(Object *source_ob,
     anim_importer.read_node_transform(instance_node, obn);
     /* if we also have a source_node (always ;), take its
      * transformation matrix and apply it to the newly instantiated
-     * object to account for node hierarchy transforms in
-     * .dae */
+     * object to account for node hierarchy transforms in `.dae`. */
     if (source_node) {
       COLLADABU::Math::Matrix4 mat4 = source_node->getTransformationMatrix();
       COLLADABU::Math::Matrix4 bmat4 =
@@ -476,8 +449,6 @@ Object *DocumentImporter::create_instance_node(Object *source_ob,
   return obn;
 }
 
-/* to create constraints off node <extra> tags. Assumes only constraint data in
- * current <extra> with blender profile. */
 void DocumentImporter::create_constraints(ExtraTags *et, Object *ob)
 {
   if (et && et->isProfile("blender")) {
@@ -712,10 +683,6 @@ finally:
   return root_objects;
 }
 
-/**
- * When this method is called, the writer must write the entire visual scene.
- * Return The writer should return true, if writing succeeded, false otherwise.
- */
 bool DocumentImporter::writeVisualScene(const COLLADAFW::VisualScene *visualScene)
 {
   if (mImportStage == Fetching_Controller_data) {
@@ -738,11 +705,6 @@ bool DocumentImporter::writeVisualScene(const COLLADAFW::VisualScene *visualScen
   return true;
 }
 
-/**
- * When this method is called, the writer must handle all nodes contained in the
- * library nodes.
- * \return The writer should return true, if writing succeeded, false otherwise.
- */
 bool DocumentImporter::writeLibraryNodes(const COLLADAFW::LibraryNodes *libraryNodes)
 {
   if (mImportStage == Fetching_Controller_data) {
@@ -762,10 +724,6 @@ bool DocumentImporter::writeLibraryNodes(const COLLADAFW::LibraryNodes *libraryN
   return true;
 }
 
-/**
- * When this method is called, the writer must write the geometry.
- * \return The writer should return true, if writing succeeded, false otherwise.
- */
 bool DocumentImporter::writeGeometry(const COLLADAFW::Geometry *geom)
 {
   if (mImportStage == Fetching_Controller_data) {
@@ -775,10 +733,6 @@ bool DocumentImporter::writeGeometry(const COLLADAFW::Geometry *geom)
   return mesh_importer.write_geometry(geom);
 }
 
-/**
- * When this method is called, the writer must write the material.
- * \return The writer should return true, if writing succeeded, false otherwise.
- */
 bool DocumentImporter::writeMaterial(const COLLADAFW::Material *cmat)
 {
   if (mImportStage == Fetching_Controller_data) {
@@ -821,10 +775,6 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
   matNode.update_material_nodetree();
 }
 
-/**
- * When this method is called, the writer must write the effect.
- * \return The writer should return true, if writing succeeded, false otherwise.
- */
 bool DocumentImporter::writeEffect(const COLLADAFW::Effect *effect)
 {
   if (mImportStage == Fetching_Controller_data) {
@@ -860,10 +810,6 @@ bool DocumentImporter::writeEffect(const COLLADAFW::Effect *effect)
   return true;
 }
 
-/**
- * When this method is called, the writer must write the camera.
- * \return The writer should return true, if writing succeeded, false otherwise.
- */
 bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
 {
   if (mImportStage == Fetching_Controller_data) {
@@ -973,10 +919,6 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
   return true;
 }
 
-/**
- * When this method is called, the writer must write the image.
- * \return The writer should return true, if writing succeeded, false otherwise.
- */
 bool DocumentImporter::writeImage(const COLLADAFW::Image *image)
 {
   if (mImportStage == Fetching_Controller_data) {
@@ -1013,10 +955,6 @@ bool DocumentImporter::writeImage(const COLLADAFW::Image *image)
   return true;
 }
 
-/**
- * When this method is called, the writer must write the light.
- * \return The writer should return true, if writing succeeded, false otherwise.
- */
 bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 {
   if (mImportStage == Fetching_Controller_data) {
@@ -1164,7 +1102,6 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
   return true;
 }
 
-/* this function is called only for animations that pass COLLADAFW::validate */
 bool DocumentImporter::writeAnimation(const COLLADAFW::Animation *anim)
 {
   if (mImportStage == Fetching_Controller_data) {
@@ -1174,7 +1111,6 @@ bool DocumentImporter::writeAnimation(const COLLADAFW::Animation *anim)
   return anim_importer.write_animation(anim);
 }
 
-/* called on post-process stage after writeVisualScenes */
 bool DocumentImporter::writeAnimationList(const COLLADAFW::AnimationList *animationList)
 {
   if (mImportStage == Fetching_Controller_data) {
@@ -1186,10 +1122,10 @@ bool DocumentImporter::writeAnimationList(const COLLADAFW::AnimationList *animat
 }
 
 #if WITH_OPENCOLLADA_ANIMATION_CLIP
-/* Since opencollada 1.6.68
- * called on post-process stage after writeVisualScenes */
 bool DocumentImporter::writeAnimationClip(const COLLADAFW::AnimationClip *animationClip)
 {
+  /* Since opencollada 1.6.68: called on post-process stage after writeVisualScenes. */
+
   if (mImportStage == Fetching_Controller_data) {
     return true;
   }
@@ -1200,16 +1136,11 @@ bool DocumentImporter::writeAnimationClip(const COLLADAFW::AnimationClip *animat
 }
 #endif
 
-/**
- * When this method is called, the writer must write the skin controller data.
- * \return The writer should return true, if writing succeeded, false otherwise.
- */
 bool DocumentImporter::writeSkinControllerData(const COLLADAFW::SkinControllerData *skin)
 {
   return armature_importer.write_skin_controller_data(skin);
 }
 
-/* this is called on postprocess, before writeVisualScenes */
 bool DocumentImporter::writeController(const COLLADAFW::Controller *controller)
 {
   if (mImportStage == Fetching_Controller_data) {

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2016 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup depsgraph
@@ -35,6 +19,8 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
+
+#include "RNA_prototypes.h"
 
 #include "intern/builder/deg_builder_cache.h"
 #include "intern/builder/deg_builder_remove_noop.h"
@@ -125,10 +111,6 @@ bool DepsgraphBuilder::check_pchan_has_bbone(Object *object, const bPoseChannel 
 
 bool DepsgraphBuilder::check_pchan_has_bbone_segments(Object *object, const bPoseChannel *pchan)
 {
-  /* Proxies don't have BONE_SEGMENTS */
-  if (ID_IS_LINKED(object) && object->proxy_from != nullptr) {
-    return false;
-  }
   return check_pchan_has_bbone(object, pchan);
 }
 
@@ -176,7 +158,22 @@ void deg_graph_build_flush_visibility(Depsgraph *graph)
     for (Relation *rel : op_node->inlinks) {
       if (rel->from->type == NodeType::OPERATION) {
         OperationNode *op_from = (OperationNode *)rel->from;
-        op_from->owner->affects_directly_visible |= op_node->owner->affects_directly_visible;
+        ComponentNode *comp_from = op_from->owner;
+        const bool target_directly_visible = op_node->owner->affects_directly_visible;
+
+        /* Visibility component forces all components of the current ID to be considered as
+         * affecting directly visible. */
+        if (comp_from->type == NodeType::VISIBILITY) {
+          if (target_directly_visible) {
+            IDNode *id_node_from = comp_from->owner;
+            for (ComponentNode *comp_node : id_node_from->components.values()) {
+              comp_node->affects_directly_visible |= target_directly_visible;
+            }
+          }
+        }
+        else {
+          comp_from->affects_directly_visible |= target_directly_visible;
+        }
       }
     }
     /* Schedule parent nodes. */

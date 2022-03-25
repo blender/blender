@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -274,21 +260,6 @@ static void task_parallel_iterator_do(const TaskParallelSettings *settings,
   state->iter_shared.spin_lock = NULL;
 }
 
-/**
- * This function allows to parallelize for loops using a generic iterator.
- *
- * \param userdata: Common userdata passed to all instances of \a func.
- * \param iter_func: Callback function used to generate chunks of items.
- * \param init_item: The initial item, if necessary (may be NULL if unused).
- * \param init_index: The initial index.
- * \param tot_items: The total amount of items to iterate over
- *                   (if unknown, set it to a negative number).
- * \param func: Callback function.
- * \param settings: See public API doc of TaskParallelSettings for description of all settings.
- *
- * \note Static scheduling is only available when \a tot_items is >= 0.
- */
-
 void BLI_task_parallel_iterator(void *userdata,
                                 TaskParallelIteratorIterFunc iter_func,
                                 void *init_item,
@@ -332,17 +303,6 @@ static void task_parallel_listbase_get(void *__restrict UNUSED(userdata),
   (*r_next_index)++;
 }
 
-/**
- * This function allows to parallelize for loops over ListBase items.
- *
- * \param listbase: The double linked list to loop over.
- * \param userdata: Common userdata passed to all instances of \a func.
- * \param func: Callback function.
- * \param settings: See public API doc of ParallelRangeSettings for description of all settings.
- *
- * \note There is no static scheduling here,
- * since it would need another full loop over items to count them.
- */
 void BLI_task_parallel_listbase(ListBase *listbase,
                                 void *userdata,
                                 TaskParallelIteratorFunc func,
@@ -388,16 +348,6 @@ static void parallel_mempool_func(TaskPool *__restrict pool, void *taskdata)
   }
 }
 
-/**
- * This function allows to parallelize for loops over Mempool items.
- *
- * \param mempool: The iterable BLI_mempool to loop over.
- * \param userdata: Common userdata passed to all instances of \a func.
- * \param func: Callback function.
- * \param settings: See public API doc of TaskParallelSettings for description of all settings.
- *
- * \note There is no static scheduling here.
- */
 void BLI_task_parallel_mempool(BLI_mempool *mempool,
                                void *userdata,
                                TaskParallelMempoolFunc func,

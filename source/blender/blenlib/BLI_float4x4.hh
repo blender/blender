@@ -1,23 +1,11 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
-#include "BLI_float3.hh"
 #include "BLI_math_matrix.h"
+#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 
 namespace blender {
 
@@ -63,7 +51,7 @@ struct float4x4 {
      * Without the negation, the result would be a so called improper rotation. That means it
      * contains a reflection. Such an improper rotation matrix could not be converted to another
      * representation of a rotation such as euler angles. */
-    const float3 cross = -float3::cross(forward, up);
+    const float3 cross = -math::cross(forward, up);
 
     float4x4 matrix;
     matrix.values[0][0] = forward.x;
@@ -104,6 +92,20 @@ struct float4x4 {
   operator const float *() const
   {
     return &values[0][0];
+  }
+
+  float *operator[](const int64_t index)
+  {
+    BLI_assert(index >= 0);
+    BLI_assert(index < 4);
+    return &values[index][0];
+  }
+
+  const float *operator[](const int64_t index) const
+  {
+    BLI_assert(index >= 0);
+    BLI_assert(index < 4);
+    return &values[index][0];
   }
 
   using c_style_float4x4 = float[4][4];

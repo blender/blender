@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -244,22 +230,10 @@ static void calc_node_transforms(const tinygltf::Node &gltf_node,
    * both. */
   if (gltf_node.matrix.size() == 16) {
     const std::vector<double> &dm = gltf_node.matrix;
-    float m[4][4] = {(float)dm[0],
-                     (float)dm[1],
-                     (float)dm[2],
-                     (float)dm[3],
-                     (float)dm[4],
-                     (float)dm[5],
-                     (float)dm[6],
-                     (float)dm[7],
-                     (float)dm[8],
-                     (float)dm[9],
-                     (float)dm[10],
-                     (float)dm[11],
-                     (float)dm[12],
-                     (float)dm[13],
-                     (float)dm[14],
-                     (float)dm[15]};
+    float m[4][4] = {{(float)dm[0], (float)dm[1], (float)dm[2], (float)dm[3]},
+                     {(float)dm[4], (float)dm[5], (float)dm[6], (float)dm[7]},
+                     {(float)dm[8], (float)dm[9], (float)dm[10], (float)dm[11]},
+                     {(float)dm[12], (float)dm[13], (float)dm[14], (float)dm[15]}};
     memcpy(r_local_transform, m, sizeof(float) * 16);
   }
   else {
@@ -534,7 +508,7 @@ void GHOST_XrControllerModel::loadControllerModel(XrSession session)
       (gltf_model.defaultScene == -1) ? 0 : gltf_model.defaultScene);
   const int32_t root_idx = -1;
   const std::string root_name = "";
-  float root_transform[4][4] = {0};
+  float root_transform[4][4] = {{0}};
   root_transform[0][0] = root_transform[1][1] = root_transform[2][2] = root_transform[3][3] = 1.0f;
 
   for (const int node_id : default_scene.nodes) {

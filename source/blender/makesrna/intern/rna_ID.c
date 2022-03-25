@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -49,7 +35,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
     {ID_BR, "BRUSH", ICON_BRUSH_DATA, "Brush", ""},
     {ID_CA, "CAMERA", ICON_CAMERA_DATA, "Camera", ""},
     {ID_CF, "CACHEFILE", ICON_FILE, "Cache File", ""},
-    {ID_CU, "CURVE", ICON_CURVE_DATA, "Curve", ""},
+    {ID_CU_LEGACY, "CURVE", ICON_CURVE_DATA, "Curve", ""},
     {ID_VF, "FONT", ICON_FONT_DATA, "Font", ""},
     {ID_GD, "GREASEPENCIL", ICON_GREASEPENCIL, "Grease Pencil", ""},
     {ID_GR, "COLLECTION", ICON_OUTLINER_COLLECTION, "Collection", ""},
@@ -76,7 +62,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
     {ID_SPK, "SPEAKER", ICON_SPEAKER, "Speaker", ""},
     {ID_TXT, "TEXT", ICON_TEXT, "Text", ""},
     {ID_TE, "TEXTURE", ICON_TEXTURE_DATA, "Texture", ""},
-    {ID_HA, "HAIR", ICON_HAIR_DATA, "Hair", ""},
+    {ID_CV, "CURVES", ICON_CURVES_DATA, "Hair Curves", ""},
     {ID_PT, "POINTCLOUD", ICON_POINTCLOUD_DATA, "Point Cloud", ""},
     {ID_VO, "VOLUME", ICON_VOLUME_DATA, "Volume", ""},
     {ID_WM, "WINDOWMANAGER", ICON_WINDOW, "Window Manager", ""},
@@ -140,7 +126,7 @@ const struct IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
     {FILTER_ID_BR, "filter_brush", ICON_BRUSH_DATA, "Brushes", "Show Brushes data-blocks"},
     {FILTER_ID_CA, "filter_camera", ICON_CAMERA_DATA, "Cameras", "Show Camera data-blocks"},
     {FILTER_ID_CF, "filter_cachefile", ICON_FILE, "Cache Files", "Show Cache File data-blocks"},
-    {FILTER_ID_CU, "filter_curve", ICON_CURVE_DATA, "Curves", "Show Curve data-blocks"},
+    {FILTER_ID_CU_LEGACY, "filter_curve", ICON_CURVE_DATA, "Curves", "Show Curve data-blocks"},
     {FILTER_ID_GD,
      "filter_grease_pencil",
      ICON_GREASEPENCIL,
@@ -151,7 +137,7 @@ const struct IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
      ICON_OUTLINER_COLLECTION,
      "Collections",
      "Show Collection data-blocks"},
-    {FILTER_ID_HA, "filter_hair", ICON_HAIR_DATA, "Hairs", "Show/hide Hair data-blocks"},
+    {FILTER_ID_CV, "filter_hair", ICON_CURVES_DATA, "Hairs", "Show/hide Hair data-blocks"},
     {FILTER_ID_IM, "filter_image", ICON_IMAGE_DATA, "Images", "Show Image data-blocks"},
     {FILTER_ID_LA, "filter_light", ICON_LIGHT_DATA, "Lights", "Show Light data-blocks"},
     {FILTER_ID_LP,
@@ -362,7 +348,7 @@ short RNA_type_to_ID_code(const StructRNA *type)
     return ID_CA;
   }
   if (base_type == &RNA_Curve) {
-    return ID_CU;
+    return ID_CU_LEGACY;
   }
   if (base_type == &RNA_GreasePencil) {
     return ID_GD;
@@ -385,9 +371,9 @@ short RNA_type_to_ID_code(const StructRNA *type)
   if (base_type == &RNA_FreestyleLineStyle) {
     return ID_LS;
   }
-#  ifdef WITH_HAIR_NODES
-  if (base_type == &RNA_Hair) {
-    return ID_HA;
+#  ifdef WITH_NEW_CURVES_TYPE
+  if (base_type == &RNA_Curves) {
+    return ID_CV;
   }
 #  endif
   if (base_type == &RNA_Lattice) {
@@ -423,11 +409,9 @@ short RNA_type_to_ID_code(const StructRNA *type)
   if (base_type == &RNA_PaintCurve) {
     return ID_PC;
   }
-#  ifdef WITH_POINT_CLOUD
   if (base_type == &RNA_PointCloud) {
     return ID_PT;
   }
-#  endif
   if (base_type == &RNA_LightProbe) {
     return ID_LP;
   }
@@ -488,15 +472,15 @@ StructRNA *ID_code_to_RNA_type(short idcode)
       return &RNA_Camera;
     case ID_CF:
       return &RNA_CacheFile;
-    case ID_CU:
+    case ID_CU_LEGACY:
       return &RNA_Curve;
     case ID_GD:
       return &RNA_GreasePencil;
     case ID_GR:
       return &RNA_Collection;
-    case ID_HA:
-#  ifdef WITH_HAIR_NODES
-      return &RNA_Hair;
+    case ID_CV:
+#  ifdef WITH_NEW_CURVES_TYPE
+      return &RNA_Curves;
 #  else
       return &RNA_ID;
 #  endif
@@ -533,11 +517,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
     case ID_PC:
       return &RNA_PaintCurve;
     case ID_PT:
-#  ifdef WITH_POINT_CLOUD
       return &RNA_PointCloud;
-#  else
-      return &RNA_ID;
-#  endif
     case ID_LP:
       return &RNA_LightProbe;
     case ID_SCE:
@@ -710,12 +690,13 @@ static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)
   }
 
   WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 
   return local_id;
 }
 
 static ID *rna_ID_override_hierarchy_create(
-    ID *id, Main *bmain, Scene *scene, ViewLayer *view_layer, ID *id_reference)
+    ID *id, Main *bmain, Scene *scene, ViewLayer *view_layer, ID *id_instance_hint)
 {
   if (!ID_IS_OVERRIDABLE_LIBRARY(id)) {
     return NULL;
@@ -724,9 +705,11 @@ static ID *rna_ID_override_hierarchy_create(
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
   ID *id_root_override = NULL;
-  BKE_lib_override_library_create(bmain, scene, view_layer, id, id_reference, &id_root_override);
+  BKE_lib_override_library_create(
+      bmain, scene, view_layer, NULL, id, id, id_instance_hint, &id_root_override);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 
   return id_root_override;
 }
@@ -747,6 +730,8 @@ static void rna_ID_override_template_create(ID *id, ReportList *reports)
     return;
   }
   BKE_lib_override_library_template_create(id);
+
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 }
 
 static void rna_ID_override_library_operations_update(ID *id,
@@ -759,7 +744,14 @@ static void rna_ID_override_library_operations_update(ID *id,
     return;
   }
 
+  if (ID_IS_LINKED(id)) {
+    BKE_reportf(reports, RPT_ERROR, "ID '%s' is linked, cannot edit its overrides", id->name);
+    return;
+  }
+
   BKE_lib_override_library_operations_create(bmain, id);
+
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 }
 
 static void rna_ID_override_library_reset(ID *id,
@@ -779,6 +771,8 @@ static void rna_ID_override_library_reset(ID *id,
   else {
     BKE_lib_override_library_id_reset(bmain, id);
   }
+
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 }
 
 static void rna_ID_override_library_destroy(ID *id,
@@ -799,6 +793,8 @@ static void rna_ID_override_library_destroy(ID *id,
     BKE_libblock_remap(bmain, id, id->override_library->reference, ID_REMAP_SKIP_INDIRECT_USAGE);
     BKE_id_delete(bmain, id);
   }
+
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 }
 
 static IDOverrideLibraryProperty *rna_ID_override_library_properties_add(
@@ -812,6 +808,7 @@ static IDOverrideLibraryProperty *rna_ID_override_library_properties_add(
     BKE_report(reports, RPT_DEBUG, "No new override property created, property already exists");
   }
 
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
   return result;
 }
 
@@ -825,6 +822,8 @@ static void rna_ID_override_library_properties_remove(IDOverrideLibrary *overrid
   }
 
   BKE_lib_override_library_property_delete(override_library, override_property);
+
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 }
 
 static IDOverrideLibraryPropertyOperation *rna_ID_override_library_property_operations_add(
@@ -851,6 +850,8 @@ static IDOverrideLibraryPropertyOperation *rna_ID_override_library_property_oper
   if (!created) {
     BKE_report(reports, RPT_DEBUG, "No new override operation created, operation already exists");
   }
+
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
   return result;
 }
 
@@ -865,6 +866,8 @@ static void rna_ID_override_library_property_operations_remove(
   }
 
   BKE_lib_override_library_property_operation_delete(override_property, override_operation);
+
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
 }
 
 static void rna_ID_update_tag(ID *id, Main *bmain, ReportList *reports, int flag)
@@ -937,9 +940,9 @@ static void rna_ID_user_remap(ID *id, Main *bmain, ID *new_id)
   }
 }
 
-static struct ID *rna_ID_make_local(struct ID *self, Main *bmain, bool clear_proxy)
+static struct ID *rna_ID_make_local(struct ID *self, Main *bmain, bool UNUSED(clear_proxy))
 {
-  BKE_lib_id_make_local(bmain, self, clear_proxy ? 0 : LIB_ID_MAKELOCAL_OBJECT_NO_PROXY_CLEARING);
+  BKE_lib_id_make_local(bmain, self, 0);
 
   ID *ret_id = self->newid ? self->newid : self;
   BKE_id_newptr_and_tag_clear(self);
@@ -1445,7 +1448,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
   RNA_def_struct_refine_func(srna, "rna_PropertyGroup_refine");
 
   /* important so python types can have their name used in list views
-   * however this isn't prefect because it overrides how python would set the name
+   * however this isn't perfect because it overrides how python would set the name
    * when we only really want this so RNA_def_struct_name_property() is set to something useful */
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_flag(prop, PROP_IDPROPERTY);
@@ -1753,6 +1756,7 @@ static void rna_def_ID_override_library_property(BlenderRNA *brna)
                             "IDOverrideLibraryPropertyOperation",
                             "Operations",
                             "List of overriding operations for a property");
+  RNA_def_property_update(prop, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
   rna_def_ID_override_library_property_operations(brna, prop);
 
   rna_def_ID_override_library_property_operation(brna);
@@ -1805,14 +1809,32 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "ID Library Override", "Struct gathering all data needed by overridden linked IDs");
 
-  RNA_def_pointer(
+  prop = RNA_def_pointer(
       srna, "reference", "ID", "Reference ID", "Linked ID used as reference by this override");
+  RNA_def_property_update(prop, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
+
+  RNA_def_pointer(
+      srna,
+      "hierarchy_root",
+      "ID",
+      "Hierarchy Root ID",
+      "Library override ID used as root of the override hierarchy this ID is a member of");
+
+  prop = RNA_def_boolean(srna,
+                         "is_in_hierarchy",
+                         true,
+                         "Is In Hierarchy",
+                         "Whether this library override is defined as part of a library "
+                         "hierarchy, or as a single, isolated and autonomous override");
+  RNA_def_property_update(prop, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
+  RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY);
 
   prop = RNA_def_collection(srna,
                             "properties",
                             "IDOverrideLibraryProperty",
                             "Properties",
                             "List of overridden properties");
+  RNA_def_property_update(prop, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
   rna_def_ID_override_library_properties(brna, prop);
 
   /* Update function. */
@@ -2040,7 +2062,7 @@ static void rna_def_ID(BlenderRNA *brna)
                   "reference",
                   "ID",
                   "",
-                  "Another ID (usually an Object or Collection) used to decide where to "
+                  "Another ID (usually an Object or Collection) used as a hint to decide where to "
                   "instantiate the new overrides");
 
   func = RNA_def_function(srna, "override_template_create", "rna_ID_override_template_create");
@@ -2065,13 +2087,7 @@ static void rna_def_ID(BlenderRNA *brna)
       "Make this datablock local, return local one "
       "(may be a copy of the original, in case it is also indirectly used)");
   RNA_def_function_flag(func, FUNC_USE_MAIN);
-  parm = RNA_def_boolean(
-      func,
-      "clear_proxy",
-      true,
-      "",
-      "Whether to clear proxies (the default behavior, "
-      "note that if object has to be duplicated to be made local, proxies are always cleared)");
+  parm = RNA_def_boolean(func, "clear_proxy", true, "", "Deprecated, has no effect");
   parm = RNA_def_pointer(func, "id", "ID", "", "This ID, or the new ID if it was copied");
   RNA_def_function_return(func, parm);
 

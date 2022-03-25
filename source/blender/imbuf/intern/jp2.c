@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -424,13 +410,13 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
   h = image->comps[0].h;
 
   switch (image->numcomps) {
-    case 1: /* Grayscale */
-    case 3: /* Color */
+    case 1: /* Gray-scale. */
+    case 3: /* Color. */
       planes = 24;
       use_alpha = false;
       break;
-    default:       /* 2 or 4 - Grayscale or Color + alpha */
-      planes = 32; /* grayscale + alpha */
+    default:       /* 2 or 4 - Gray-scale or Color + alpha. */
+      planes = 32; /* Gray-scale + alpha. */
       use_alpha = true;
       break;
   }
@@ -529,7 +515,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
       r = image->comps[0].data;
       a = (use_alpha) ? image->comps[1].data : NULL;
 
-      /* grayscale */
+      /* Gray-scale. */
       if (use_alpha) {
         a = image->comps[3].data;
         PIXEL_LOOPER_BEGIN (rect_uchar) {
@@ -891,8 +877,8 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
       prec = 8;
     }
 
-    /* 32bit images == alpha channel */
-    /* grayscale not supported yet */
+    /* 32bit images == alpha channel. */
+    /* Gray-scale not supported yet. */
     numcomps = (ibuf->planes == 32) ? 4 : 3;
   }
 

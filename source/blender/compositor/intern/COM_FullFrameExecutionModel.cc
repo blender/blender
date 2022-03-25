@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2021, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2021 Blender Foundation. */
 
 #include "COM_FullFrameExecutionModel.h"
 
@@ -73,10 +58,6 @@ void FullFrameExecutionModel::determine_areas_to_render_and_reads()
   }
 }
 
-/**
- * Returns input buffers with an offset relative to given output coordinates. Returned memory
- * buffers must be deleted.
- */
 Vector<MemoryBuffer *> FullFrameExecutionModel::get_input_buffers(NodeOperation *op,
                                                                   const int output_x,
                                                                   const int output_y)
@@ -137,9 +118,6 @@ void FullFrameExecutionModel::render_operation(NodeOperation *op)
   operation_finished(op);
 }
 
-/**
- * Render output operations in order of priority.
- */
 void FullFrameExecutionModel::render_operations()
 {
   const bool is_rendering = context_.is_rendering();
@@ -200,9 +178,6 @@ void FullFrameExecutionModel::render_output_dependencies(NodeOperation *output_o
   }
 }
 
-/**
- * Determines all operations areas needed to render given output area.
- */
 void FullFrameExecutionModel::determine_areas_to_render(NodeOperation *output_op,
                                                         const rcti &output_area)
 {
@@ -235,10 +210,6 @@ void FullFrameExecutionModel::determine_areas_to_render(NodeOperation *output_op
   }
 }
 
-/**
- * Determines reads to receive by operations in output operation tree (i.e: Number of dependent
- * operations each operation has).
- */
 void FullFrameExecutionModel::determine_reads(NodeOperation *output_op)
 {
   BLI_assert(output_op->is_output_operation(context_.is_rendering()));
@@ -258,10 +229,6 @@ void FullFrameExecutionModel::determine_reads(NodeOperation *output_op)
   }
 }
 
-/**
- * Calculates given output operation area to be rendered taking into account viewer and render
- * borders.
- */
 void FullFrameExecutionModel::get_output_render_area(NodeOperation *output_op, rcti &r_area)
 {
   BLI_assert(output_op->is_output_operation(context_.is_rendering()));

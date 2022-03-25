@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -41,6 +25,7 @@
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph_query.h"
 
@@ -98,7 +83,6 @@ static bool modifiers_disable_subsurf_temporary(struct Scene *scene, Object *ob)
   return disabled;
 }
 
-/* disable subsurf temporal, get mapped cos, and enable it */
 float (*BKE_crazyspace_get_mapped_editverts(struct Depsgraph *depsgraph, Object *obedit))[3]
 {
   Scene *scene = DEG_get_input_scene(depsgraph);
@@ -110,7 +94,7 @@ float (*BKE_crazyspace_get_mapped_editverts(struct Depsgraph *depsgraph, Object 
   /* disable subsurf temporal, get mapped cos, and enable it */
   if (modifiers_disable_subsurf_temporary(scene_eval, obedit_eval)) {
     /* need to make new derivemesh */
-    makeDerivedMesh(depsgraph, scene_eval, obedit_eval, editmesh_eval, &CD_MASK_BAREMESH);
+    makeDerivedMesh(depsgraph, scene_eval, obedit_eval, &CD_MASK_BAREMESH);
   }
 
   /* now get the cage */
@@ -194,13 +178,10 @@ void BKE_crazyspace_set_quats_mesh(Mesh *me,
                                    float (*mappedcos)[3],
                                    float (*quats)[4])
 {
-  MVert *mvert = me->mvert;
-  for (int i = 0; i < me->totvert; i++, mvert++) {
-    mvert->flag &= ~ME_VERT_TMP_TAG;
-  }
+  BLI_bitmap *vert_tag = BLI_BITMAP_NEW(me->totvert, __func__);
 
   /* first store two sets of tangent vectors in vertices, we derive it just from the face-edges */
-  mvert = me->mvert;
+  MVert *mvert = me->mvert;
   MPoly *mp = me->mpoly;
   MLoop *mloop = me->mloop;
 
@@ -210,7 +191,7 @@ void BKE_crazyspace_set_quats_mesh(Mesh *me,
     MLoop *ml_prev = &ml_next[mp->totloop - 2];
 
     for (int j = 0; j < mp->totloop; j++) {
-      if ((mvert[ml_curr->v].flag & ME_VERT_TMP_TAG) == 0) {
+      if (!BLI_BITMAP_TEST(vert_tag, ml_curr->v)) {
         const float *co_prev, *co_curr, *co_next; /* orig */
         const float *vd_prev, *vd_curr, *vd_next; /* deform */
 
@@ -233,7 +214,7 @@ void BKE_crazyspace_set_quats_mesh(Mesh *me,
         set_crazy_vertex_quat(
             quats[ml_curr->v], co_curr, co_next, co_prev, vd_curr, vd_next, vd_prev);
 
-        mvert[ml_curr->v].flag |= ME_VERT_TMP_TAG;
+        BLI_BITMAP_ENABLE(vert_tag, ml_curr->v);
       }
 
       ml_prev = ml_curr;
@@ -241,12 +222,10 @@ void BKE_crazyspace_set_quats_mesh(Mesh *me,
       ml_next++;
     }
   }
+
+  MEM_freeN(vert_tag);
 }
 
-/**
- * Returns an array of deform matrices for crazy-space correction,
- * and the number of modifiers left.
- */
 int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgraph,
                                                        Scene *scene,
                                                        Object *ob,
@@ -521,3 +500,85 @@ void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph,
     }
   }
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Crazyspace API
+ * \{ */
+
+void BKE_crazyspace_api_eval(Depsgraph *depsgraph,
+                             Scene *scene,
+                             Object *object,
+                             struct ReportList *reports)
+{
+  if (object->runtime.crazyspace_deform_imats != NULL ||
+      object->runtime.crazyspace_deform_cos != NULL) {
+    return;
+  }
+
+  if (object->type != OB_MESH) {
+    BKE_report(reports,
+               RPT_ERROR,
+               "Crazyspace transformation is only available for Mesh type of objects");
+    return;
+  }
+
+  const Mesh *mesh = (const Mesh *)object->data;
+  object->runtime.crazyspace_num_verts = mesh->totvert;
+  BKE_crazyspace_build_sculpt(depsgraph,
+                              scene,
+                              object,
+                              &object->runtime.crazyspace_deform_imats,
+                              &object->runtime.crazyspace_deform_cos);
+}
+
+void BKE_crazyspace_api_displacement_to_deformed(struct Object *object,
+                                                 struct ReportList *reports,
+                                                 int vertex_index,
+                                                 float displacement[3],
+                                                 float r_displacement_deformed[3])
+{
+  if (vertex_index < 0 || vertex_index >= object->runtime.crazyspace_num_verts) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Invalid vertex index %d (expected to be within 0 to %d range)",
+                vertex_index,
+                object->runtime.crazyspace_num_verts);
+    return;
+  }
+
+  mul_v3_m3v3(r_displacement_deformed,
+              object->runtime.crazyspace_deform_imats[vertex_index],
+              displacement);
+}
+
+void BKE_crazyspace_api_displacement_to_original(struct Object *object,
+                                                 struct ReportList *reports,
+                                                 int vertex_index,
+                                                 float displacement_deformed[3],
+                                                 float r_displacement[3])
+{
+  if (vertex_index < 0 || vertex_index >= object->runtime.crazyspace_num_verts) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Invalid vertex index %d (expected to be within 0 to %d range))",
+                vertex_index,
+                object->runtime.crazyspace_num_verts);
+    return;
+  }
+
+  float mat[3][3];
+  if (!invert_m3_m3(mat, object->runtime.crazyspace_deform_imats[vertex_index])) {
+    copy_v3_v3(r_displacement, displacement_deformed);
+    return;
+  }
+
+  mul_v3_m3v3(r_displacement, mat, displacement_deformed);
+}
+
+void BKE_crazyspace_api_eval_clear(Object *object)
+{
+  MEM_SAFE_FREE(object->runtime.crazyspace_deform_imats);
+  MEM_SAFE_FREE(object->runtime.crazyspace_deform_cos);
+}
+
+/** \} */

@@ -1,19 +1,4 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
   ../include
@@ -24,9 +9,11 @@ set(INC
   ../../bmesh
   ../../depsgraph
   ../../draw
+  ../../functions
   ../../gpu
   ../../imbuf
   ../../makesdna
+  ../../nodes
   ../../makesrna
   ../../render
   ../../windowmanager
@@ -35,15 +22,24 @@ set(INC
   ../../../../intern/eigen
   ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(SRC
+  curves_sculpt_add.cc
+  curves_sculpt_comb.cc
+  curves_sculpt_delete.cc
+  curves_sculpt_ops.cc
+  curves_sculpt_snake_hook.cc
   paint_cursor.c
   paint_curve.c
   paint_curve_undo.c
   paint_hide.c
-  paint_image.c
+  paint_image.cc
+  paint_image_ops_paint.cc
   paint_image_2d.c
+  paint_image_2d_curve_mask.cc
   paint_image_proj.c
   paint_mask.c
   paint_ops.c
@@ -58,6 +54,7 @@ set(SRC
   sculpt.c
   sculpt_automasking.c
   sculpt_boundary.c
+  sculpt_brush_types.c
   sculpt_cloth.c
   sculpt_detail.c
   sculpt_dyntopo.c
@@ -70,6 +67,7 @@ set(SRC
   sculpt_mask_expand.c
   sculpt_mask_init.c
   sculpt_multiplane_scrape.c
+  sculpt_ops.c
   sculpt_paint_color.c
   sculpt_pose.c
   sculpt_smooth.c
@@ -77,6 +75,8 @@ set(SRC
   sculpt_undo.c
   sculpt_uv.c
 
+  curves_sculpt_intern.h
+  curves_sculpt_intern.hh
   paint_intern.h
   sculpt_intern.h
 )
@@ -86,9 +86,19 @@ set(LIB
   bf_blenlib
 )
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
+if(WITH_TBB)
+  list(APPEND INC_SYS
+    ${TBB_INCLUDE_DIRS}
+  )
+  add_definitions(-DWITH_TBB)
+  if(WIN32)
+    # TBB includes Windows.h which will define min/max macros
+    # that will collide with the stl versions.
+    add_definitions(-DNOMINMAX)
+  endif()
 endif()
 
-
 blender_add_lib(bf_editor_sculpt_paint "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+# RNA_prototypes.h
+add_dependencies(bf_editor_sculpt_paint bf_rna)

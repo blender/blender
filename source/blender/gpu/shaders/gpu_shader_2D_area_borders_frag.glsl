@@ -1,10 +1,11 @@
-
+#ifndef USE_GPU_SHADER_CREATE_INFO
 uniform vec4 color;
 uniform float scale;
 
 in vec2 uv;
 
 out vec4 fragColor;
+#endif
 
 void main()
 {

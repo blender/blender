@@ -1,20 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8 compliant>
 
@@ -281,10 +265,10 @@ class action_handlers:
         yield dict(type='RET', value='TAP')
 
     @staticmethod
-    def event(*, value, type, ctrl=False, alt=False, shift=False, repeat=1, only_validate=False):
+    def event(*, type, value, ctrl=False, alt=False, shift=False, repeat=1, only_validate=False):
         """
-        value: The event, typically key, e.g. 'ESC', 'RET', 'SPACE', 'A'.
-        type: The event type, valid values include: 'PRESS', 'RELEASE', 'TAP'.
+        type: The event, typically key, e.g. 'ESC', 'RET', 'SPACE', 'A'.
+        value: The event type, valid values include: 'PRESS', 'RELEASE', 'TAP'.
         ctrl: Control modifier.
         alt: Alt modifier.
         shift: Shift modifier.

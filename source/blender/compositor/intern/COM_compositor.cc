@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2011, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. */
 
 #include "BLI_threads.h"
 
@@ -51,7 +36,7 @@ static void compositor_init_node_previews(const RenderData *render_data, bNodeTr
     preview_width = (int)(blender::compositor::COM_PREVIEW_SIZE / aspect);
     preview_height = blender::compositor::COM_PREVIEW_SIZE;
   }
-  BKE_node_preview_init_tree(node_tree, preview_width, preview_height, false);
+  BKE_node_preview_init_tree(node_tree, preview_width, preview_height);
 }
 
 static void compositor_reset_node_tree_status(bNodeTree *node_tree)

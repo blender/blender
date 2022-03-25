@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup RNA
@@ -50,6 +34,39 @@ static void rna_Curve_update_gpu_tag(Curve *cu)
 static float rna_Nurb_calc_length(Nurb *nu, int resolution_u)
 {
   return BKE_nurb_calc_length(nu, resolution_u);
+}
+
+static void rna_Nurb_valid_message(Nurb *nu, int direction, int *result_len, const char **r_result)
+{
+  const bool is_surf = nu->pntsv > 1;
+  const short type = nu->type;
+
+  int pnts;
+  short order, flag;
+  const char *dir;
+  if (direction == 0) {
+    pnts = nu->pntsu;
+    order = nu->orderu;
+    flag = nu->flagu;
+    dir = "U";
+  }
+  else {
+    pnts = nu->pntsv;
+    order = nu->orderv;
+    flag = nu->flagv;
+    dir = "V";
+  }
+
+  char buf[64];
+  if (BKE_nurb_valid_message(pnts, order, flag, type, is_surf, dir, buf, sizeof(buf))) {
+    const int buf_len = strlen(buf);
+    *r_result = BLI_strdupn(buf, buf_len);
+    *result_len = buf_len;
+  }
+  else {
+    *r_result = NULL;
+    *result_len = 0;
+  }
 }
 
 #else
@@ -102,6 +119,22 @@ void RNA_api_curve_nurb(StructRNA *srna)
                                 0.0f,
                                 FLT_MAX);
   RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "valid_message", "rna_Nurb_valid_message");
+  RNA_def_function_ui_description(func, "Return the message");
+  parm = RNA_def_int(
+      func, "direction", 0, 0, 1, "Direction", "The direction where 0-1 maps to U-V", 0, 1);
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  /* return value */
+  parm = RNA_def_string(func,
+                        "result",
+                        "nothing",
+                        64,
+                        "Return value",
+                        "The message or an empty string when there is no error");
+
+  RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_OUTPUT);
+  RNA_def_property_clear_flag(parm, PROP_NEVER_NULL);
 }
 
 #endif

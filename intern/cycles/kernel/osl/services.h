@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #ifndef __OSL_SERVICES_H__
 #define __OSL_SERVICES_H__
@@ -272,6 +259,7 @@ class OSLRenderServices : public OSL::RendererServices {
   static ustring u_ndc;
   static ustring u_object_location;
   static ustring u_object_color;
+  static ustring u_object_alpha;
   static ustring u_object_index;
   static ustring u_geom_dupli_generated;
   static ustring u_geom_dupli_uv;
@@ -297,6 +285,10 @@ class OSLRenderServices : public OSL::RendererServices {
   static ustring u_curve_length;
   static ustring u_curve_tangent_normal;
   static ustring u_curve_random;
+  static ustring u_is_point;
+  static ustring u_point_position;
+  static ustring u_point_radius;
+  static ustring u_point_random;
   static ustring u_normal_map_normal;
   static ustring u_path_ray_length;
   static ustring u_path_ray_depth;

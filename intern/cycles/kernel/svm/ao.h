@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2018 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #pragma once
 
@@ -70,10 +57,14 @@ ccl_device float svm_ao(
 
     /* Create ray. */
     Ray ray;
-    ray.P = ray_offset(sd->P, N);
+    ray.P = sd->P;
     ray.D = D.x * T + D.y * B + D.z * N;
     ray.t = max_dist;
     ray.time = sd->time;
+    ray.self.object = sd->object;
+    ray.self.prim = sd->prim;
+    ray.self.light_object = OBJECT_NONE;
+    ray.self.light_prim = PRIM_NONE;
     ray.dP = differential_zero_compact();
     ray.dD = differential_zero_compact();
 

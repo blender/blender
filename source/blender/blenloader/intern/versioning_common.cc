@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -61,11 +47,6 @@ ARegion *do_versions_add_region_if_not_found(ListBase *regionbase,
   return new_region;
 }
 
-/**
- * Rename if the ID doesn't exist.
- *
- * \return the ID (if found).
- */
 ID *do_versions_rename_id(Main *bmain,
                           const short id_type,
                           const char *name_src,
@@ -75,7 +56,7 @@ ID *do_versions_rename_id(Main *bmain,
   ListBase *lb = which_libbase(bmain, id_type);
   ID *id = nullptr;
   LISTBASE_FOREACH (ID *, idtest, lb) {
-    if (idtest->lib == nullptr) {
+    if (!ID_IS_LINKED(idtest)) {
       if (STREQ(idtest->name + 2, name_src)) {
         id = idtest;
       }
@@ -104,9 +85,6 @@ static void change_node_socket_name(ListBase *sockets, const char *old_name, con
   }
 }
 
-/**
- * Convert `SocketName.001` unique name format to `SocketName_001`. Previously both were used.
- */
 void version_node_socket_id_delim(bNodeSocket *socket)
 {
   StringRef name = socket->name;
@@ -165,9 +143,21 @@ void version_node_output_socket_name(bNodeTree *ntree,
   }
 }
 
-/**
- * Replace the ID name of all nodes in the tree with the given type with the new name.
- */
+bNodeSocket *version_node_add_socket_if_not_exist(bNodeTree *ntree,
+                                                  bNode *node,
+                                                  eNodeSocketInOut in_out,
+                                                  int type,
+                                                  int subtype,
+                                                  const char *identifier,
+                                                  const char *name)
+{
+  bNodeSocket *sock = nodeFindSocket(node, in_out, identifier);
+  if (sock != nullptr) {
+    return sock;
+  }
+  return nodeAddStaticSocket(ntree, node, in_out, type, subtype, identifier, name);
+}
+
 void version_node_id(bNodeTree *ntree, const int node_type, const char *new_name)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -179,23 +169,6 @@ void version_node_id(bNodeTree *ntree, const int node_type, const char *new_name
   }
 }
 
-/**
- * Adjust animation data for newly added node sockets.
- *
- * Node sockets are addressed by their index (in their RNA path, and thus FCurves/drivers), and
- * thus when a new node is added in the middle of the list, existing animation data needs to be
- * adjusted.
- *
- * Since this is about animation data, it only concerns input sockets.
- *
- * \param node_tree_type node tree type that has these nodes, for example NTREE_SHADER.
- * \param node_type node type to adjust, for example SH_NODE_BSDF_PRINCIPLED.
- * \param socket_index_orig the original index of the moved socket; when socket 4 moved to 6,
- * pass 4 here.
- * \param socket_index_offset the offset of the nodes, so when socket 4 moved to 6,
- * pass 2 here.
- * \param total_number_of_sockets the total number of sockets in the node.
- */
 void version_node_socket_index_animdata(Main *bmain,
                                         const int node_tree_type,
                                         const int node_type,
@@ -234,5 +207,21 @@ void version_node_socket_index_animdata(Main *bmain,
       }
     }
     FOREACH_NODETREE_END;
+  }
+}
+
+void version_socket_update_is_used(bNodeTree *ntree)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+      socket->flag &= ~SOCK_IN_USE;
+    }
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
+      socket->flag &= ~SOCK_IN_USE;
+    }
+  }
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+    link->fromsock->flag |= SOCK_IN_USE;
+    link->tosock->flag |= SOCK_IN_USE;
   }
 }

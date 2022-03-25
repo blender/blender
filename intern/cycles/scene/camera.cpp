@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "scene/camera.h"
 #include "scene/mesh.h"
@@ -100,6 +87,7 @@ NODE_DEFINE(Camera)
   panorama_type_enum.insert("mirrorball", PANORAMA_MIRRORBALL);
   panorama_type_enum.insert("fisheye_equidistant", PANORAMA_FISHEYE_EQUIDISTANT);
   panorama_type_enum.insert("fisheye_equisolid", PANORAMA_FISHEYE_EQUISOLID);
+  panorama_type_enum.insert("fisheye_lens_polynomial", PANORAMA_FISHEYE_LENS_POLYNOMIAL);
   SOCKET_ENUM(panorama_type, "Panorama Type", panorama_type_enum, PANORAMA_EQUIRECTANGULAR);
 
   SOCKET_FLOAT(fisheye_fov, "Fisheye FOV", M_PI_F);
@@ -111,6 +99,12 @@ NODE_DEFINE(Camera)
   SOCKET_FLOAT(fov, "FOV", M_PI_4_F);
   SOCKET_FLOAT(fov_pre, "FOV Pre", M_PI_4_F);
   SOCKET_FLOAT(fov_post, "FOV Post", M_PI_4_F);
+
+  SOCKET_FLOAT(fisheye_polynomial_k0, "Fisheye Polynomial K0", 0.0f);
+  SOCKET_FLOAT(fisheye_polynomial_k1, "Fisheye Polynomial K1", 0.0f);
+  SOCKET_FLOAT(fisheye_polynomial_k2, "Fisheye Polynomial K2", 0.0f);
+  SOCKET_FLOAT(fisheye_polynomial_k3, "Fisheye Polynomial K3", 0.0f);
+  SOCKET_FLOAT(fisheye_polynomial_k4, "Fisheye Polynomial K4", 0.0f);
 
   static NodeEnum stereo_eye_enum;
   stereo_eye_enum.insert("none", STEREO_NONE);
@@ -418,6 +412,9 @@ void Camera::update(Scene *scene)
                                             -longitude_min,
                                             latitude_min - latitude_max,
                                             -latitude_min + M_PI_2_F);
+  kcam->fisheye_lens_polynomial_bias = fisheye_polynomial_k0;
+  kcam->fisheye_lens_polynomial_coefficients = make_float4(
+      fisheye_polynomial_k1, fisheye_polynomial_k2, fisheye_polynomial_k3, fisheye_polynomial_k4);
 
   switch (stereo_eye) {
     case STEREO_LEFT:

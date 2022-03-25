@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2016 by Mike Erwin.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 by Mike Erwin. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -109,7 +93,6 @@ GPUContext *GPU_context_create(void *ghost_window)
   return wrap(ctx);
 }
 
-/* to be called after GPU_context_active_set(ctx_to_destroy) */
 void GPU_context_discard(GPUContext *ctx_)
 {
   Context *ctx = unwrap(ctx_);
@@ -117,7 +100,6 @@ void GPU_context_discard(GPUContext *ctx_)
   active_ctx = nullptr;
 }
 
-/* ctx can be NULL */
 void GPU_context_active_set(GPUContext *ctx_)
 {
   Context *ctx = unwrap(ctx_);
@@ -133,7 +115,7 @@ void GPU_context_active_set(GPUContext *ctx_)
   }
 }
 
-GPUContext *GPU_context_active_get(void)
+GPUContext *GPU_context_active_get()
 {
   return wrap(Context::get());
 }
@@ -146,12 +128,12 @@ GPUContext *GPU_context_active_get(void)
 
 static std::mutex main_context_mutex;
 
-void GPU_context_main_lock(void)
+void GPU_context_main_lock()
 {
   main_context_mutex.lock();
 }
 
-void GPU_context_main_unlock(void)
+void GPU_context_main_unlock()
 {
   main_context_mutex.unlock();
 }
@@ -180,12 +162,21 @@ void GPU_backend_init(eGPUBackendType backend_type)
   }
 }
 
-void GPU_backend_exit(void)
+void GPU_backend_exit()
 {
   /* TODO: assert no resource left. Currently UI textures are still not freed in their context
    * correctly. */
   delete g_backend;
   g_backend = nullptr;
+}
+
+eGPUBackendType GPU_backend_get_type()
+{
+  if (g_backend && dynamic_cast<GLBackend *>(g_backend) != nullptr) {
+    return GPU_BACKEND_OPENGL;
+  }
+
+  return GPU_BACKEND_NONE;
 }
 
 GPUBackend *GPUBackend::get()

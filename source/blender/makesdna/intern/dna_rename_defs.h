@@ -1,22 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- * DNA handling
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup DNA
@@ -50,7 +33,9 @@
 
 /* No include guard (intentional). */
 
-/* Match RNA names where possible, keep sorted. */
+/* Match RNA names where possible. */
+
+/* NOTE: Keep sorted! */
 
 DNA_STRUCT_RENAME(Lamp, Light)
 DNA_STRUCT_RENAME(SpaceButs, SpaceProperties)
@@ -63,20 +48,24 @@ DNA_STRUCT_RENAME_ELEM(Bone, curveInY, curve_in_z)
 DNA_STRUCT_RENAME_ELEM(Bone, curveOutX, curve_out_x)
 DNA_STRUCT_RENAME_ELEM(Bone, curveOutY, curve_out_z)
 DNA_STRUCT_RENAME_ELEM(Bone, scaleIn, scale_in_x)
-DNA_STRUCT_RENAME_ELEM(Bone, scale_in_y, scale_in_z)
 DNA_STRUCT_RENAME_ELEM(Bone, scaleOut, scale_out_x)
+DNA_STRUCT_RENAME_ELEM(Bone, scale_in_y, scale_in_z)
 DNA_STRUCT_RENAME_ELEM(Bone, scale_out_y, scale_out_z)
 DNA_STRUCT_RENAME_ELEM(BrushGpencilSettings, gradient_f, hardeness)
 DNA_STRUCT_RENAME_ELEM(BrushGpencilSettings, gradient_s, aspect_ratio)
 DNA_STRUCT_RENAME_ELEM(Camera, YF_dofdist, dof_distance)
-DNA_STRUCT_RENAME_ELEM(Curve, len_wchar, len_char32)
 DNA_STRUCT_RENAME_ELEM(Camera, clipend, clip_end)
 DNA_STRUCT_RENAME_ELEM(Camera, clipsta, clip_start)
 DNA_STRUCT_RENAME_ELEM(Collection, dupli_ofs, instance_offset)
+DNA_STRUCT_RENAME_ELEM(Curve, ext1, extrude)
+DNA_STRUCT_RENAME_ELEM(Curve, ext2, bevel_radius)
+DNA_STRUCT_RENAME_ELEM(Curve, len_wchar, len_char32)
+DNA_STRUCT_RENAME_ELEM(Curve, width, offset)
 DNA_STRUCT_RENAME_ELEM(Editing, over_border, overlay_frame_rect)
 DNA_STRUCT_RENAME_ELEM(Editing, over_cfra, overlay_frame_abs)
 DNA_STRUCT_RENAME_ELEM(Editing, over_flag, overlay_frame_flag)
 DNA_STRUCT_RENAME_ELEM(Editing, over_ofs, overlay_frame_ofs)
+DNA_STRUCT_RENAME_ELEM(FileGlobal, filename, filepath)
 DNA_STRUCT_RENAME_ELEM(FluidDomainSettings, cache_frame_pause_guiding, cache_frame_pause_guide)
 DNA_STRUCT_RENAME_ELEM(FluidDomainSettings, guiding_alpha, guide_alpha)
 DNA_STRUCT_RENAME_ELEM(FluidDomainSettings, guiding_beta, guide_beta)
@@ -86,17 +75,24 @@ DNA_STRUCT_RENAME_ELEM(FluidDomainSettings, guiding_vel_factor, guide_vel_factor
 DNA_STRUCT_RENAME_ELEM(FluidEffectorSettings, guiding_mode, guide_mode)
 DNA_STRUCT_RENAME_ELEM(Image, name, filepath)
 DNA_STRUCT_RENAME_ELEM(Library, name, filepath)
+DNA_STRUCT_RENAME_ELEM(LineartGpencilModifierData, line_types, edge_types)
+DNA_STRUCT_RENAME_ELEM(LineartGpencilModifierData, transparency_flags, mask_switches)
+DNA_STRUCT_RENAME_ELEM(LineartGpencilModifierData, transparency_mask, material_mask_bits)
 DNA_STRUCT_RENAME_ELEM(MaskLayer, restrictflag, visibility_flag)
+DNA_STRUCT_RENAME_ELEM(MaterialLineArt, transparency_mask, material_mask_bits)
 DNA_STRUCT_RENAME_ELEM(MovieClip, name, filepath)
 DNA_STRUCT_RENAME_ELEM(Object, col, color)
 DNA_STRUCT_RENAME_ELEM(Object, dup_group, instance_collection)
 DNA_STRUCT_RENAME_ELEM(Object, dupfacesca, instance_faces_scale)
-DNA_STRUCT_RENAME_ELEM(Object, size, scale)
 DNA_STRUCT_RENAME_ELEM(Object, restrictflag, visibility_flag)
+DNA_STRUCT_RENAME_ELEM(Object, size, scale)
 DNA_STRUCT_RENAME_ELEM(ParticleSettings, dup_group, instance_collection)
 DNA_STRUCT_RENAME_ELEM(ParticleSettings, dup_ob, instance_object)
 DNA_STRUCT_RENAME_ELEM(ParticleSettings, dupliweights, instance_weights)
+DNA_STRUCT_RENAME_ELEM(RigidBodyWorld, steps_per_second, substeps_per_frame)
+DNA_STRUCT_RENAME_ELEM(RenderData, bake_filter, bake_margin)
 DNA_STRUCT_RENAME_ELEM(SpaceSeq, overlay_type, overlay_frame_type)
+DNA_STRUCT_RENAME_ELEM(SurfaceDeformModifierData, numverts, num_bind_verts)
 DNA_STRUCT_RENAME_ELEM(Text, name, filepath)
 DNA_STRUCT_RENAME_ELEM(ThemeSpace, scrubbing_background, time_scrub_background)
 DNA_STRUCT_RENAME_ELEM(ThemeSpace, show_back_grad, background_type)
@@ -114,8 +110,8 @@ DNA_STRUCT_RENAME_ELEM(bPoseChannel, curveInY, curve_in_z)
 DNA_STRUCT_RENAME_ELEM(bPoseChannel, curveOutX, curve_out_x)
 DNA_STRUCT_RENAME_ELEM(bPoseChannel, curveOutY, curve_out_z)
 DNA_STRUCT_RENAME_ELEM(bPoseChannel, scaleIn, scale_in_x)
-DNA_STRUCT_RENAME_ELEM(bPoseChannel, scale_in_y, scale_in_z)
 DNA_STRUCT_RENAME_ELEM(bPoseChannel, scaleOut, scale_out_x)
+DNA_STRUCT_RENAME_ELEM(bPoseChannel, scale_in_y, scale_in_z)
 DNA_STRUCT_RENAME_ELEM(bPoseChannel, scale_out_y, scale_out_z)
 DNA_STRUCT_RENAME_ELEM(bSameVolumeConstraint, flag, free_axis)
 DNA_STRUCT_RENAME_ELEM(bSound, name, filepath)
@@ -136,12 +132,8 @@ DNA_STRUCT_RENAME_ELEM(bTheme, tstatusbar, space_statusbar)
 DNA_STRUCT_RENAME_ELEM(bTheme, ttopbar, space_topbar)
 DNA_STRUCT_RENAME_ELEM(bTheme, tuserpref, space_preferences)
 DNA_STRUCT_RENAME_ELEM(bTheme, tv3d, space_view3d)
-DNA_STRUCT_RENAME_ELEM(RigidBodyWorld, steps_per_second, substeps_per_frame)
 /* Write with a different name, old Blender versions crash loading files with non-NULL
  * global_areas. See D9442. */
 DNA_STRUCT_RENAME_ELEM(wmWindow, global_area_map, global_areas)
-DNA_STRUCT_RENAME_ELEM(LineartGpencilModifierData, line_types, edge_types)
-DNA_STRUCT_RENAME_ELEM(LineartGpencilModifierData, transparency_flags, mask_switches)
-DNA_STRUCT_RENAME_ELEM(LineartGpencilModifierData, transparency_mask, material_mask_bits)
-DNA_STRUCT_RENAME_ELEM(SurfaceDeformModifierData, numverts, num_bind_verts)
-DNA_STRUCT_RENAME_ELEM(MaterialLineArt, transparency_mask, material_mask_bits)
+
+/* NOTE: Keep sorted! */

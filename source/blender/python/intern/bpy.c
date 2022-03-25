@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -37,6 +23,7 @@
 #include "BKE_global.h" /* XXX, G_MAIN only */
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 #include "RNA_types.h"
 
 #include "GPU_state.h"
@@ -94,10 +81,13 @@ static PyObject *bpy_script_paths(PyObject *UNUSED(self))
   return ret;
 }
 
-static bool bpy_blend_paths_visit_cb(void *userdata, char *UNUSED(path_dst), const char *path_src)
+static bool bpy_blend_foreach_path_cb(BPathForeachPathData *bpath_data,
+                                      char *UNUSED(path_dst),
+                                      const char *path_src)
 {
-  PyList_APPEND((PyObject *)userdata, PyC_UnicodeFromByte(path_src));
-  return false; /* never edits the path */
+  PyObject *py_list = bpath_data->user_data;
+  PyList_APPEND(py_list, PyC_UnicodeFromByte(path_src));
+  return false; /* Never edits the path. */
 }
 
 PyDoc_STRVAR(bpy_blend_paths_doc,
@@ -115,7 +105,7 @@ PyDoc_STRVAR(bpy_blend_paths_doc,
              "   :rtype: list of strings\n");
 static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
-  int flag = 0;
+  eBPathForeachFlag flag = 0;
   PyObject *list;
 
   bool absolute = false;
@@ -137,18 +127,23 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
   }
 
   if (absolute) {
-    flag |= BKE_BPATH_TRAVERSE_ABS;
+    flag |= BKE_BPATH_FOREACH_PATH_ABSOLUTE;
   }
   if (!packed) {
-    flag |= BKE_BPATH_TRAVERSE_SKIP_PACKED;
+    flag |= BKE_BPATH_FOREACH_PATH_SKIP_PACKED;
   }
   if (local) {
-    flag |= BKE_BPATH_TRAVERSE_SKIP_LIBRARY;
+    flag |= BKE_BPATH_FOREACH_PATH_SKIP_LINKED;
   }
 
   list = PyList_New(0);
 
-  BKE_bpath_traverse_main(G_MAIN, bpy_blend_paths_visit_cb, flag, (void *)list);
+  BKE_bpath_foreach_path_main(&(BPathForeachPathData){
+      .bmain = G_MAIN,
+      .callback_function = bpy_blend_foreach_path_cb,
+      .flag = flag,
+      .user_data = list,
+  });
 
   return list;
 }
@@ -442,9 +437,6 @@ static PyObject *bpy_import_test(const char *modname)
   return mod;
 }
 
-/******************************************************************************
- * Description: Creates the bpy module and adds it to sys.modules for importing
- ******************************************************************************/
 void BPy_init_modules(struct bContext *C)
 {
   PointerRNA ctx_ptr;

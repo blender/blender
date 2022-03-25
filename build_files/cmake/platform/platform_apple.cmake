@@ -1,22 +1,5 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# The Original Code is Copyright (C) 2016, Blender Foundation
-# All rights reserved.
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright 2016 Blender Foundation. All rights reserved.
 
 # Libraries configuration for Apple.
 
@@ -128,25 +111,20 @@ if(WITH_CODEC_SNDFILE)
 endif()
 
 if(WITH_PYTHON)
-  # we use precompiled libraries for py 3.9 and up by default
-  set(PYTHON_VERSION 3.9)
+  # Use precompiled libraries by default.
+  set(PYTHON_VERSION 3.10)
   if(NOT WITH_PYTHON_MODULE AND NOT WITH_PYTHON_FRAMEWORK)
-    # normally cached but not since we include them with blender
+    # Normally cached but not since we include them with blender.
     set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}")
     set(PYTHON_EXECUTABLE "${LIBDIR}/python/bin/python${PYTHON_VERSION}")
     set(PYTHON_LIBRARY ${LIBDIR}/python/lib/libpython${PYTHON_VERSION}.a)
     set(PYTHON_LIBPATH "${LIBDIR}/python/lib/python${PYTHON_VERSION}")
-    # set(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
   else()
-    # module must be compiled against Python framework
+    # Module must be compiled against Python framework.
     set(_py_framework "/Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}")
-
     set(PYTHON_INCLUDE_DIR "${_py_framework}/include/python${PYTHON_VERSION}")
     set(PYTHON_EXECUTABLE "${_py_framework}/bin/python${PYTHON_VERSION}")
     set(PYTHON_LIBPATH "${_py_framework}/lib/python${PYTHON_VERSION}")
-    # set(PYTHON_LIBRARY python${PYTHON_VERSION})
-    # set(PYTHON_LINKFLAGS "-u _PyMac_Error -framework Python")  # won't  build with this enabled
-
     unset(_py_framework)
   endif()
 
@@ -166,13 +144,18 @@ if(WITH_FFTW3)
   find_package(Fftw3)
 endif()
 
+# FreeType compiled with Brotli compression for woff2.
 find_package(Freetype REQUIRED)
+list(APPEND FREETYPE_LIBRARIES
+  ${LIBDIR}/brotli/lib/libbrotlicommon-static.a
+  ${LIBDIR}/brotli/lib/libbrotlidec-static.a)
 
 if(WITH_IMAGE_OPENEXR)
   find_package(OpenEXR)
 endif()
 
 if(WITH_CODEC_FFMPEG)
+  set(FFMPEG_ROOT_DIR ${LIBDIR}/ffmpeg)
   set(FFMPEG_FIND_COMPONENTS
     avcodec avdevice avformat avutil
     mp3lame ogg opus swresample swscale
@@ -257,9 +240,6 @@ if(WITH_BOOST)
   if(WITH_INTERNATIONAL)
     list(APPEND _boost_FIND_COMPONENTS locale)
   endif()
-  if(WITH_CYCLES_NETWORK)
-    list(APPEND _boost_FIND_COMPONENTS serialization)
-  endif()
   if(WITH_OPENVDB)
     list(APPEND _boost_FIND_COMPONENTS iostreams)
   endif()
@@ -339,7 +319,7 @@ if(WITH_LLVM)
 
 endif()
 
-if(WITH_CYCLES_OSL)
+if(WITH_CYCLES AND WITH_CYCLES_OSL)
   set(CYCLES_OSL ${LIBDIR}/osl)
 
   find_library(OSL_LIB_EXEC NAMES oslexec PATHS ${CYCLES_OSL}/lib)
@@ -359,7 +339,7 @@ if(WITH_CYCLES_OSL)
   endif()
 endif()
 
-if(WITH_CYCLES_EMBREE)
+if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
   find_package(Embree 3.8.0 REQUIRED)
   # Increase stack size for Embree, only works for executables.
   if(NOT WITH_PYTHON_MODULE)
@@ -482,8 +462,11 @@ string(APPEND PLATFORM_LINKFLAGS " -stdlib=libc++")
 # Suppress ranlib "has no symbols" warnings (workaround for T48250)
 set(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
 set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
-set(CMAKE_C_ARCHIVE_FINISH   "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
-set(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
+# llvm-ranlib doesn't support this flag. Xcode's libtool does.
+if(NOT ${CMAKE_RANLIB} MATCHES ".*llvm-ranlib$")
+  set(CMAKE_C_ARCHIVE_FINISH   "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
+  set(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
+endif()
 
 if(WITH_COMPILER_CCACHE)
   if(NOT CMAKE_GENERATOR STREQUAL "Xcode")
@@ -510,3 +493,6 @@ list(APPEND CMAKE_BUILD_RPATH "${OpenMP_LIBRARY_DIR}")
 
 set(CMAKE_SKIP_INSTALL_RPATH FALSE)
 list(APPEND CMAKE_INSTALL_RPATH "@loader_path/../Resources/${BLENDER_VERSION}/lib")
+
+# Same as `CFBundleIdentifier` in Info.plist.
+set(CMAKE_XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.blenderfoundation.blender")

@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #pragma once
 
@@ -99,11 +86,11 @@ ccl_device_inline float bump_shadowing_term(float3 Ng, float3 N, float3 I)
   return -g2 * g + g2 + g;
 }
 
-/* Shadow terminator workaround, taken from Appleseed.
- * Original code is under the MIT License
- * Copyright (c) 2019 Francois Beaune, The appleseedhq Organization */
 ccl_device_inline float shift_cos_in(float cos_in, const float frequency_multiplier)
 {
+  /* Shadow terminator workaround, taken from Appleseed.
+   * SPDX-License-Identifier: MIT
+   * Copyright (c) 2019 Francois Beaune, The appleseedhq Organization */
   cos_in = min(cos_in, 1.0f);
 
   const float angle = fast_acosf(cos_in);
@@ -124,7 +111,7 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
   /* For curves use the smooth normal, particularly for ribbons the geometric
    * normal gives too much darkening otherwise. */
   int label;
-  const float3 Ng = (sd->type & PRIMITIVE_ALL_CURVE) ? sc->N : sd->Ng;
+  const float3 Ng = (sd->type & PRIMITIVE_CURVE) ? sc->N : sd->Ng;
 
   switch (sc->type) {
     case CLOSURE_BSDF_DIFFUSE_ID:
@@ -438,7 +425,7 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
   if (label & LABEL_TRANSMIT) {
     float threshold_squared = kernel_data.background.transparent_roughness_squared_threshold;
 
-    if (threshold_squared >= 0.0f) {
+    if (threshold_squared >= 0.0f && !(label & LABEL_DIFFUSE)) {
       if (bsdf_get_specular_roughness_squared(sc) <= threshold_squared) {
         label |= LABEL_TRANSMIT_TRANSPARENT;
       }

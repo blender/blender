@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2013 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2013 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup depsgraph
@@ -346,9 +330,6 @@ void invalidate_tagged_evaluated_data(Depsgraph *graph)
 
 }  // namespace
 
-/* Flush updates from tagged nodes outwards until all affected nodes
- * are tagged.
- */
 void deg_graph_flush_updates(Depsgraph *graph)
 {
   /* Sanity checks. */
@@ -395,7 +376,6 @@ void deg_graph_flush_updates(Depsgraph *graph)
   invalidate_tagged_evaluated_data(graph);
 }
 
-/* Clear tags from all operation nodes. */
 void deg_graph_clear_tags(Depsgraph *graph)
 {
   /* Go over all operation nodes, clearing tags. */

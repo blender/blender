@@ -33,17 +33,17 @@ using blender::opensubdiv::GLSLTransformFeedbackDeviceContext;
 using blender::opensubdiv::OpenCLDeviceContext;
 using blender::opensubdiv::OpenMPDeviceContext;
 
-void openSubdiv_init(void)
+void openSubdiv_init()
 {
   // Ensure all OpenGL strings are cached.
   openSubdiv_getAvailableEvaluators();
 }
 
-void openSubdiv_cleanup(void)
+void openSubdiv_cleanup()
 {
 }
 
-int openSubdiv_getAvailableEvaluators(void)
+int openSubdiv_getAvailableEvaluators()
 {
   int flags = OPENSUBDIV_EVALUATOR_CPU;
 
@@ -70,7 +70,7 @@ int openSubdiv_getAvailableEvaluators(void)
   return flags;
 }
 
-int openSubdiv_getVersionHex(void)
+int openSubdiv_getVersionHex()
 {
 #if defined(OPENSUBDIV_VERSION_NUMBER)
   return OPENSUBDIV_VERSION_NUMBER;

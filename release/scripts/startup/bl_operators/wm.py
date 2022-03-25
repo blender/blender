@@ -1,20 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8 compliant>
 from __future__ import annotations
@@ -581,7 +565,7 @@ class WM_OT_context_cycle_enum(Operator):
 
         # Have the info we need, advance to the next item.
         #
-        # When wrap's disabled we may set the value to its self,
+        # When wrap's disabled we may set the value to itself,
         # this is done to ensure update callbacks run.
         if self.reverse:
             if orig_index == 0:
@@ -979,21 +963,19 @@ class WM_OT_url_open(Operator):
         return {'FINISHED'}
 
 
-# NOTE: needed for Python 3.10 since there are name-space issues with annotations.
-# This can be moved into the class as a static-method once Python 3.9x is dropped.
-def _wm_url_open_preset_type_items(_self, _context):
-    return [item for (item, _) in WM_OT_url_open_preset.preset_items]
-
-
 class WM_OT_url_open_preset(Operator):
     """Open a preset website in the web browser"""
     bl_idname = "wm.url_open_preset"
     bl_label = "Open Preset Website"
     bl_options = {'INTERNAL'}
 
+    @staticmethod
+    def _wm_url_open_preset_type_items(_self, _context):
+        return [item for (item, _) in WM_OT_url_open_preset.preset_items]
+
     type: EnumProperty(
         name="Site",
-        items=_wm_url_open_preset_type_items,
+        items=WM_OT_url_open_preset._wm_url_open_preset_type_items,
     )
 
     id: StringProperty(
@@ -1013,11 +995,10 @@ class WM_OT_url_open_preset(Operator):
         return "https://www.blender.org/download/releases/%d-%d/" % bpy.app.version[:2]
 
     def _url_from_manual(self, _context):
-        if bpy.app.version_cycle in {"rc", "release"}:
-            manual_version = "%d.%d" % bpy.app.version[:2]
-        else:
-            manual_version = "dev"
-        return "https://docs.blender.org/manual/en/" + manual_version + "/"
+        return "https://docs.blender.org/manual/en/%d.%d/" % bpy.app.version[:2]
+
+    def _url_from_api(self, _context):
+        return "https://docs.blender.org/api/%d.%d/" % bpy.app.version[:2]
 
     # This list is: (enum_item, url) pairs.
     # Allow dynamically extending.
@@ -1032,9 +1013,12 @@ class WM_OT_url_open_preset(Operator):
         (('RELEASE_NOTES', "Release Notes",
           "Read about what's new in this version of Blender"),
          _url_from_release_notes),
-        (('MANUAL', "Manual",
+        (('MANUAL', "User Manual",
           "The reference manual for this version of Blender"),
          _url_from_manual),
+        (('API', "Python API Reference",
+          "The API reference manual for this version of Blender"),
+         _url_from_api),
 
         # Static URL's.
         (('FUND', "Development Fund",
@@ -1249,11 +1233,7 @@ class WM_OT_doc_view(Operator):
     bl_label = "View Documentation"
 
     doc_id: doc_id
-    if bpy.app.version_cycle in {"release", "rc", "beta"}:
-        _prefix = ("https://docs.blender.org/api/%d.%d" %
-                   (bpy.app.version[0], bpy.app.version[1]))
-    else:
-        _prefix = ("https://docs.blender.org/api/master")
+    _prefix = "https://docs.blender.org/api/%d.%d" % bpy.app.version[:2]
 
     def execute(self, _context):
         url = _wm_doc_get_id(self.doc_id, do_url=True, url_prefix=self._prefix, report=self.report)
@@ -1297,12 +1277,6 @@ rna_vector_subtype_items = (
     ('EULER', "Euler Angles", "Euler rotation angles in radians"),
     ('QUATERNION', "Quaternion Rotation", "Quaternion rotation (affects NLA blending)"),
 )
-
-
-# NOTE: needed for Python 3.10 since there are name-space issues with annotations.
-# This can be moved into the class as a static-method once Python 3.9x is dropped.
-def _wm_properties_edit_subtype_items(_self, _context):
-    return WM_OT_properties_edit.subtype_items
 
 
 class WM_OT_properties_edit(Operator):
@@ -1411,7 +1385,7 @@ class WM_OT_properties_edit(Operator):
     )
     subtype: EnumProperty(
         name="Subtype",
-        items=_wm_properties_edit_subtype_items,
+        items=WM_OT_properties_edit.subtype_items,
     )
 
     # String properties.
@@ -2467,18 +2441,22 @@ class WM_OT_batch_rename(Operator):
         name="Type",
         items=(
             ('OBJECT', "Objects", ""),
+            ('COLLECTION', "Collections", ""),
             ('MATERIAL', "Materials", ""),
             None,
             # Enum identifiers are compared with 'object.type'.
+            # Follow order in "Add" menu.
             ('MESH', "Meshes", ""),
             ('CURVE', "Curves", ""),
             ('META', "Metaballs", ""),
+            ('VOLUME', "Volumes", ""),
+            ('GPENCIL', "Grease Pencils", ""),
             ('ARMATURE', "Armatures", ""),
             ('LATTICE', "Lattices", ""),
-            ('GPENCIL', "Grease Pencils", ""),
+            ('LIGHT', "Light", ""),
+            ('LIGHT_PROBE', "Light Probes", ""),
             ('CAMERA', "Cameras", ""),
             ('SPEAKER', "Speakers", ""),
-            ('LIGHT_PROBE', "Light Probes", ""),
             None,
             ('BONE', "Bones", ""),
             ('NODE', "Nodes", ""),
@@ -2498,7 +2476,26 @@ class WM_OT_batch_rename(Operator):
     actions: CollectionProperty(type=BatchRenameAction)
 
     @staticmethod
-    def _data_from_context(context, data_type, only_selected, *, check_context=False):
+    def _selected_ids_from_outliner_by_type(context, ty):
+        return [
+            id for id in context.selected_ids
+            if isinstance(id, ty)
+            if id.library is None
+        ]
+
+    @staticmethod
+    def _selected_ids_from_outliner_by_type_for_object_data(context, ty):
+        # Include selected object-data as well as the selected ID's.
+        from bpy.types import Object
+        # De-duplicate the result as object-data may cause duplicates.
+        return tuple(set([
+            id for id_base in context.selected_ids
+            if isinstance(id := id_base.data if isinstance(id_base, Object) else id_base, ty)
+            if id.library is None
+        ]))
+
+    @classmethod
+    def _data_from_context(cls, context, data_type, only_selected, *, check_context=False):
 
         mode = context.mode
         scene = context.scene
@@ -2512,10 +2509,9 @@ class WM_OT_batch_rename(Operator):
                 return data_type_test
             if data_type == data_type_test:
                 data = (
-                    # TODO, we don't have access to seqbasep, this won't work when inside metas.
-                    [seq for seq in context.scene.sequence_editor.sequences_all if seq.select]
+                    context.selected_sequences
                     if only_selected else
-                    context.scene.sequence_editor.sequences_all,
+                    scene.sequence_editor.sequences_all,
                     "name",
                     "Strip(s)",
                 )
@@ -2530,6 +2526,18 @@ class WM_OT_batch_rename(Operator):
                     list(space.node_tree.nodes),
                     "name",
                     "Node(s)",
+                )
+        elif space_type == 'OUTLINER':
+            data_type_test = 'COLLECTION'
+            if check_context:
+                return data_type_test
+            if data_type == data_type_test:
+                data = (
+                    cls._selected_ids_from_outliner_by_type(context, bpy.types.Collection)
+                    if only_selected else
+                    scene.collection.children_recursive,
+                    "name",
+                    "Collection(s)",
                 )
         else:
             if mode == 'POSE' or (mode == 'WEIGHT_PAINT' and context.pose_object):
@@ -2561,15 +2569,17 @@ class WM_OT_batch_rename(Operator):
             return 'OBJECT'
 
         object_data_type_attrs_map = {
-            'MESH': ("meshes", "Mesh(es)"),
-            'CURVE': ("curves", "Curve(s)"),
-            'META': ("metaballs", "Metaball(s)"),
-            'ARMATURE': ("armatures", "Armature(s)"),
-            'LATTICE': ("lattices", "Lattice(s)"),
-            'GPENCIL': ("grease_pencils", "Grease Pencil(s)"),
-            'CAMERA': ("cameras", "Camera(s)"),
-            'SPEAKER': ("speakers", "Speaker(s)"),
-            'LIGHT_PROBE': ("light_probes", "Light Probe(s)"),
+            'MESH': ("meshes", "Mesh(es)", bpy.types.Mesh),
+            'CURVE': ("curves", "Curve(s)", bpy.types.Curve),
+            'META': ("metaballs", "Metaball(s)", bpy.types.MetaBall),
+            'VOLUME': ("volumes", "Volume(s)", bpy.types.Volume),
+            'GPENCIL': ("grease_pencils", "Grease Pencil(s)", bpy.types.GreasePencil),
+            'ARMATURE': ("armatures", "Armature(s)", bpy.types.Armature),
+            'LATTICE': ("lattices", "Lattice(s)", bpy.types.Lattice),
+            'LIGHT': ("lights", "Light(s)", bpy.types.Light),
+            'LIGHT_PROBE': ("light_probes", "Light Probe(s)", bpy.types.LightProbe),
+            'CAMERA': ("cameras", "Camera(s)", bpy.types.Camera),
+            'SPEAKER': ("speakers", "Speaker(s)", bpy.types.Speaker),
         }
 
         # Finish with space types.
@@ -2577,34 +2587,67 @@ class WM_OT_batch_rename(Operator):
 
             if data_type == 'OBJECT':
                 data = (
-                    context.selected_editable_objects
+                    (
+                        # Outliner.
+                        cls._selected_ids_from_outliner_by_type(context, bpy.types.Object)
+                        if space_type == 'OUTLINER' else
+                        # 3D View (default).
+                        context.selected_editable_objects
+                    )
                     if only_selected else
                     [id for id in bpy.data.objects if id.library is None],
                     "name",
                     "Object(s)",
                 )
+            elif data_type == 'COLLECTION':
+                data = (
+                    # Outliner case is handled already.
+                    tuple(set(
+                        ob.instance_collection
+                        for ob in context.selected_objects
+                        if ((ob.instance_type == 'COLLECTION') and
+                            (collection := ob.instance_collection) is not None and
+                            (collection.library is None))
+                    ))
+                    if only_selected else
+                    [id for id in bpy.data.collections if id.library is None],
+                    "name",
+                    "Collection(s)",
+                )
             elif data_type == 'MATERIAL':
                 data = (
-                    tuple(set(
-                        slot.material
-                        for ob in context.selected_objects
-                        for slot in ob.material_slots
-                        if slot.material is not None
-                    ))
+                    (
+                        # Outliner.
+                        cls._selected_ids_from_outliner_by_type(context, bpy.types.Material)
+                        if space_type == 'OUTLINER' else
+                        # 3D View (default).
+                        tuple(set(
+                            id
+                            for ob in context.selected_objects
+                            for slot in ob.material_slots
+                            if (id := slot.material) is not None and id.library is None
+                        ))
+                    )
                     if only_selected else
                     [id for id in bpy.data.materials if id.library is None],
                     "name",
                     "Material(s)",
                 )
             elif data_type in object_data_type_attrs_map.keys():
-                attr, descr = object_data_type_attrs_map[data_type]
+                attr, descr, ty = object_data_type_attrs_map[data_type]
                 data = (
-                    tuple(set(
-                        id
-                        for ob in context.selected_objects
-                        if ob.type == data_type
-                        if (id := ob.data) is not None and id.library is None
-                    ))
+                    (
+                        # Outliner.
+                        cls._selected_ids_from_outliner_by_type_for_object_data(context, ty)
+                        if space_type == 'OUTLINER' else
+                        # 3D View (default).
+                        tuple(set(
+                            id
+                            for ob in context.selected_objects
+                            if ob.type == data_type
+                            if (id := ob.data) is not None and id.library is None
+                        ))
+                    )
                     if only_selected else
                     [id for id in getattr(bpy.data, attr) if id.library is None],
                     "name",
@@ -2892,93 +2935,75 @@ class WM_MT_splash_quick_setup(Menu):
     bl_label = "Quick Setup"
 
     def draw(self, context):
-        wm = context.window_manager
-        # prefs = context.preferences
-
         layout = self.layout
-
         layout.operator_context = 'EXEC_DEFAULT'
 
         layout.label(text="Quick Setup")
 
-        split = layout.split(factor=0.25)
+        split = layout.split(factor=0.14) # Left margin.
         split.label()
-        split = split.split(factor=2.0 / 3.0)
+        split = split.split(factor=0.73) # Content width.
 
         col = split.column()
 
+        col.use_property_split = True
+        col.use_property_decorate = False
+
+        # Languages.
         if bpy.app.build_options.international:
-            sub = col.split(factor=0.35)
-            row = sub.row()
-            row.alignment = 'RIGHT'
-            row.label(text="Language")
             prefs = context.preferences
-            sub.prop(prefs.view, "language", text="")
+            col.prop(prefs.view, "language")
+            col.separator()
 
-        col.separator()
+        # Shortcuts.
+        wm = context.window_manager
+        kc = wm.keyconfigs.active
+        kc_prefs = kc.preferences
 
-        sub = col.split(factor=0.35)
-        row = sub.row()
-        row.alignment = 'RIGHT'
-        row.label(text="Shortcuts")
-        text = bpy.path.display_name(wm.keyconfigs.active.name)
+        sub = col.column(heading="Shortcuts")
+        text = bpy.path.display_name(kc.name)
         if not text:
             text = "Blender"
         sub.menu("USERPREF_MT_keyconfigs", text=text)
 
-        kc = wm.keyconfigs.active
-        kc_prefs = kc.preferences
         has_select_mouse = hasattr(kc_prefs, "select_mouse")
         if has_select_mouse:
-            sub = col.split(factor=0.35)
-            row = sub.row()
-            row.alignment = 'RIGHT'
-            row.label(text="Select With")
-            sub.row().prop(kc_prefs, "select_mouse", expand=True)
-            has_select_mouse = True
+            col.row().prop(kc_prefs, "select_mouse", text="Select With", expand=True)
 
         has_spacebar_action = hasattr(kc_prefs, "spacebar_action")
         if has_spacebar_action:
-            sub = col.split(factor=0.35)
-            row = sub.row()
-            row.alignment = 'RIGHT'
-            row.label(text="Spacebar")
-            sub.row().prop(kc_prefs, "spacebar_action", expand=True)
-            has_select_mouse = True
+            col.row().prop(kc_prefs, "spacebar_action", text="Spacebar")
 
         col.separator()
 
-        sub = col.split(factor=0.35)
-        row = sub.row()
-        row.alignment = 'RIGHT'
-        row.label(text="Theme")
+        # Themes.
+        sub = col.column(heading="Theme")
         label = bpy.types.USERPREF_MT_interface_theme_presets.bl_label
         if label == "Presets":
             label = "Blender Dark"
         sub.menu("USERPREF_MT_interface_theme_presets", text=label)
 
-        # Keep height constant
+        # Keep height constant.
         if not has_select_mouse:
             col.label()
         if not has_spacebar_action:
             col.label()
 
-        layout.label()
+        layout.separator(factor=2.0)
 
-        row = layout.row()
+        # Save settings buttons.
+        sub = layout.row()
 
-        sub = row.row()
         old_version = bpy.types.PREFERENCES_OT_copy_prev.previous_version()
         if bpy.types.PREFERENCES_OT_copy_prev.poll(context) and old_version:
-            sub.operator("preferences.copy_prev", text="Load %d.%d Settings" % old_version)
+            sub.operator("preferences.copy_prev", text=iface_("Load %d.%d Settings", "Operator") % old_version)
             sub.operator("wm.save_userpref", text="Save New Settings")
         else:
             sub.label()
             sub.label()
             sub.operator("wm.save_userpref", text="Next")
 
-        layout.separator()
-        layout.separator()
+        layout.separator(factor=2.4)
 
 
 class WM_MT_splash(Menu):

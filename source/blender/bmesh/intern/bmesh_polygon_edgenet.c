@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -452,14 +438,6 @@ static bool bm_face_split_edgenet_find_loop(BMVert *v_init,
   return false;
 }
 
-/**
- * Splits a face into many smaller faces defined by an edge-net.
- * handle customdata and degenerate cases.
- *
- * - Isolated holes or unsupported face configurations, will be ignored.
- * - Customdata calculations aren't efficient
- *   (need to calculate weights for each vert).
- */
 bool BM_face_split_edgenet(BMesh *bm,
                            BMFace *f,
                            BMEdge **edge_net,
@@ -1223,14 +1201,6 @@ static bool bm_vert_partial_connect_check_overlap(const int *remap,
 
 #endif /* USE_PARTIAL_CONNECT */
 
-/**
- * For when the edge-net has holes in it-this connects them.
- *
- * \param use_partial_connect: Support for handling islands connected by only a single edge,
- * \note that this is quite slow so avoid using where possible.
- * \param mem_arena: Avoids many small allocs & should be cleared after each use.
- * take care since \a edge_net_new is stored in \a r_edge_net_new.
- */
 bool BM_face_split_edgenet_connect_islands(BMesh *bm,
                                            BMFace *f,
                                            BMEdge **edge_net_init,

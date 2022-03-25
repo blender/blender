@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -35,7 +21,9 @@ struct bNodeType;
 #define DEF_ENUM(id) extern const EnumPropertyItem id[];
 #include "RNA_enum_items.h"
 
-extern const EnumPropertyItem *rna_enum_attribute_domain_itemf(struct ID *id, bool *r_free);
+extern const EnumPropertyItem *rna_enum_attribute_domain_itemf(struct ID *id,
+                                                               bool include_instances,
+                                                               bool *r_free);
 
 /**
  * For ID filters (#FILTER_ID_AC, #FILTER_ID_AR, ...) an int isn't enough. This version allows 64
@@ -83,8 +71,10 @@ const EnumPropertyItem *rna_TransformOrientation_itemf(struct bContext *C,
                                                        struct PropertyRNA *prop,
                                                        bool *r_free);
 
-/* Generic functions, return an enum from library data, index is the position
- * in the linked list can add more for different types as needed */
+/**
+ * Generic functions, return an enum from library data, index is the position
+ * in the linked list can add more for different types as needed.
+ */
 const EnumPropertyItem *RNA_action_itemf(struct bContext *C,
                                          struct PointerRNA *ptr,
                                          struct PropertyRNA *prop,

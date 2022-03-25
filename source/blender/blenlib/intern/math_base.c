@@ -1,23 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: some of this file.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bli
@@ -42,10 +24,10 @@ int pow_i(int base, int exp)
   return result;
 }
 
-/* from python 3.1 floatobject.c
- * ndigits must be between 0 and 21 */
 double double_round(double x, int ndigits)
 {
+  /* From Python 3.1 `floatobject.c`. */
+
   double pow1, pow2, y, z;
   if (ndigits >= 0) {
     pow1 = pow(10.0, (double)ndigits);
@@ -79,15 +61,6 @@ double double_round(double x, int ndigits)
   return z;
 }
 
-/**
- * Floor to the nearest power of 10, e.g.:
- * - 15.0 -> 10.0
- * - 0.015 -> 0.01
- * - 1.0 -> 1.0
- *
- * \param f: Value to floor, must be over 0.0.
- * \note If we wanted to support signed values we could if this becomes necessary.
- */
 float floor_power_of_10(float f)
 {
   BLI_assert(!(f < 0.0f));
@@ -97,15 +70,6 @@ float floor_power_of_10(float f)
   return 0.0f;
 }
 
-/**
- * Ceiling to the nearest power of 10, e.g.:
- * - 15.0 -> 100.0
- * - 0.015 -> 0.1
- * - 1.0 -> 1.0
- *
- * \param f: Value to ceiling, must be over 0.0.
- * \note If we wanted to support signed values we could if this becomes necessary.
- */
 float ceil_power_of_10(float f)
 {
   BLI_assert(!(f < 0.0f));

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -192,12 +178,12 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out, bool keep_hidden
       BM_elem_flag_enable(bmv, KEEP_FLAG);
     }
     else {
-      new_bmvs[v] = NULL;
+      new_bmvs[v] = nullptr;
     }
   }
   for (int v : m_out.vert_index_range()) {
     const Vert *vertp = m_out.vert(v);
-    if (new_bmvs[v] == NULL) {
+    if (new_bmvs[v] == nullptr) {
       float co[3];
       const double3 &d_co = vertp->co;
       for (int i = 0; i < 3; ++i) {
@@ -456,14 +442,6 @@ bool BM_mesh_boolean(BMesh *bm,
       static_cast<blender::meshintersect::BoolOpType>(boolean_mode));
 }
 
-/**
- * Perform a Knife Intersection operation on the mesh bm.
- * There are either one or two operands, the same as described above for BM_mesh_boolean().
- * If use_separate_all is true, each edge that is created from the intersection should
- * be used to separate all its incident faces. TODO: implement that.
- * TODO: need to ensure that "selected/non-selected" flag of original faces gets propagated
- * to the intersection result faces.
- */
 bool BM_mesh_boolean_knife(BMesh *bm,
                            struct BMLoop *(*looptris)[3],
                            const int looptris_tot,

@@ -1,20 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8-80 compliant>
 
@@ -238,11 +222,15 @@ def RKS_GEN_custom_props(_ksi, _context, ks, data):
             continue
 
         prop_path = '["%s"]' % bpy.utils.escape_identifier(cprop_name)
+
         try:
             rna_property = data.path_resolve(prop_path, False)
         except ValueError:
-            # This happens when a custom property is set to None. In that case it cannot
-            # be converted to an FCurve-compatible value, so we can't keyframe it anyway.
+            # Can technically happen, but there is no known case.
+            continue
+        if rna_property is None:
+            # In this case the property cannot be converted to an
+            # FCurve-compatible value, so we can't keyframe it anyways.
             continue
         if rna_property.rna_type not in prop_type_compat:
             continue

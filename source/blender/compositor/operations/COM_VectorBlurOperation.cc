@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2011, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. */
 
 #include "BLI_jitter_2d.h"
 
@@ -40,6 +25,7 @@ void zbuf_free_span(ZSpan *zspan);
 void antialias_tagbuf(int xsize, int ysize, char *rectmove);
 
 /* VectorBlurOperation */
+
 VectorBlurOperation::VectorBlurOperation()
 {
   this->add_input_socket(DataType::Color);
@@ -179,8 +165,13 @@ void VectorBlurOperation::generate_vector_blur(float *data,
                           inputZ->get_buffer());
 }
 
-/* ****************** Spans ******************************* */
-/* span fill in method, is also used to localize data for zbuffering */
+/* -------------------------------------------------------------------- */
+/** \name Spans
+ *
+ * Duplicated logic from `zbuf.c`.
+ * \{ */
+
+/** Span fill in method, is also used to localize data for Z-buffering. */
 struct ZSpan {
   /* range for clipping */
   int rectx, recty;
@@ -326,10 +317,12 @@ static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
   }
 
   for (y = my2; y >= my0; y--, xs0 += dx0) {
-    /* xs0 is the xcoord! */
+    /* xs0 is the X-coordinate! */
     span[y] = xs0;
   }
 }
+
+/** \} */
 
 /* ******************** VECBLUR ACCUM BUF ************************* */
 
@@ -338,6 +331,9 @@ struct DrawBufPixel {
   float alpha;
 };
 
+/**
+ * \note Near duplicate of `zspan_scanconvert` in `zbuf.c` with some minor adjustments.
+ */
 static void zbuf_fill_in_rgba(
     ZSpan *zspan, DrawBufPixel *col, float *v1, float *v2, float *v3, float *v4)
 {

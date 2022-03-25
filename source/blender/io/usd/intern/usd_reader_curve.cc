@@ -1,24 +1,6 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Adapted from the Blender Alembic importer implementation,
- * Copyright (C) 2016 Kévin Dietrich.
- *
- * Modifications Copyright (C) 2021 Tangent Animation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Adapted from the Blender Alembic importer implementation. Copyright 2016 Kévin Dietrich.
+ * Modifications Copyright 2021 Tangent Animation. All rights reserved. */
 
 #include "usd_reader_curve.h"
 
@@ -44,13 +26,13 @@ namespace blender::io::usd {
 
 void USDCurvesReader::create_object(Main *bmain, const double /* motionSampleTime */)
 {
-  curve_ = BKE_curve_add(bmain, name_.c_str(), OB_CURVE);
+  curve_ = BKE_curve_add(bmain, name_.c_str(), OB_CURVES_LEGACY);
 
   curve_->flag |= CU_3D;
   curve_->actvert = CU_ACT_NONE;
   curve_->resolu = 2;
 
-  object_ = BKE_object_add_only_object(bmain, OB_CURVE, name_.c_str());
+  object_ = BKE_object_add_only_object(bmain, OB_CURVES_LEGACY, name_.c_str());
   object_->data = curve_;
 }
 
@@ -108,11 +90,11 @@ void USDCurvesReader::read_curve_sample(Curve *cu, const double motionSampleTime
    * Perhaps to be replaced by Blender/USD Schema. */
   if (!usdNormals.empty()) {
     /* Set extrusion to 1.0f. */
-    curve_->ext1 = 1.0f;
+    curve_->extrude = 1.0f;
   }
   else {
     /* Set bevel depth to 1.0f. */
-    curve_->ext2 = 1.0f;
+    curve_->bevel_radius = 1.0f;
   }
 
   size_t idx = 0;
@@ -164,7 +146,7 @@ void USDCurvesReader::read_curve_sample(Curve *cu, const double motionSampleTime
       bp->f1 = SELECT;
       bp->weight = weight;
 
-      float radius = curve_->width;
+      float radius = curve_->offset;
       if (idx < usdWidths.size()) {
         radius = usdWidths[idx];
       }

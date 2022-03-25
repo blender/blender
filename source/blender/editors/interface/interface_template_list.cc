@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -37,6 +23,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "UI_interface.h"
 #include "UI_view2d.h"
@@ -612,7 +599,7 @@ static char *uilist_item_tooltip_func(bContext *UNUSED(C), void *argN, const cha
 }
 
 /**
- * \note Note that \a layout_type may be null.
+ * \note that \a layout_type may be null.
  */
 static uiList *ui_list_ensure(bContext *C,
                               uiListType *ui_list_type,
@@ -1276,9 +1263,6 @@ void uiTemplateList(uiLayout *layout,
                     nullptr);
 }
 
-/**
- * \return: A RNA pointer for the operator properties.
- */
 PointerRNA *UI_list_custom_activate_operator_set(uiList *ui_list,
                                                  const char *opname,
                                                  bool create_properties)
@@ -1298,9 +1282,6 @@ PointerRNA *UI_list_custom_activate_operator_set(uiList *ui_list,
   return dyn_data->custom_activate_opptr;
 }
 
-/**
- * \return: A RNA pointer for the operator properties.
- */
 PointerRNA *UI_list_custom_drag_operator_set(uiList *ui_list,
                                              const char *opname,
                                              bool create_properties)
@@ -1325,9 +1306,10 @@ PointerRNA *UI_list_custom_drag_operator_set(uiList *ui_list,
 /** \name List-types Registration
  * \{ */
 
-void ED_uilisttypes_ui(void)
+void ED_uilisttypes_ui()
 {
   WM_uilisttype_add(UI_UL_asset_view());
+  WM_uilisttype_add(UI_UL_cache_file_layers());
 }
 
 /** \} */

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2011 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spclip
@@ -287,7 +271,6 @@ static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
   const int framenr = ED_space_clip_get_clip_frame_number(sc);
-  bool has_selection = false;
   bool changed = false;
 
   ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
@@ -297,7 +280,6 @@ static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
     if (TRACK_VIEW_SELECTED(sc, track)) {
       MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, framenr);
       if (marker != NULL) {
-        has_selection |= track->markersnr > 1;
         clip_delete_marker(C, clip, track, marker);
         changed = true;
       }
@@ -1385,7 +1367,7 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 
   if (CFRA != sc->user.framenr) {
     CFRA = sc->user.framenr;
-    DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
+    DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
 
     WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
   }

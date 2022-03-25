@@ -1,21 +1,6 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * Copyright (C) 1995 Software Foundation, Inc.
- *
- * Written by Ulrich Drepper <drepper@gnu.ai.mit.edu>.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 1995 Free Software Foundation, Inc.
+ * Written by Ulrich Drepper <drepper@gnu.ai.mit.edu>. */
 
 /** \file
  * \ingroup bli
@@ -284,11 +269,6 @@ static void *md5_read_ctx(const struct md5_ctx *ctx, void *resbuf)
 
 /* Top level public functions. */
 
-/**
- * Compute MD5 message digest for bytes read from 'stream'.
- * The resulting message digest number will be written into the 16 bytes beginning at 'resblock'.
- * \return Non-zero if an error occurred.
- */
 int BLI_hash_md5_stream(FILE *stream, void *resblock)
 {
 #define BLOCKSIZE 4096 /* Important: must be a multiple of 64. */
@@ -362,11 +342,6 @@ int BLI_hash_md5_stream(FILE *stream, void *resblock)
   return 0;
 }
 
-/**
- * Compute MD5 message digest for 'len' bytes beginning at 'buffer'.
- * The result is always in little endian byte order,
- * so that a byte-wise output yields to the wanted ASCII representation of the message digest.
- */
 void *BLI_hash_md5_buffer(const char *buffer, size_t len, void *resblock)
 {
   struct md5_ctx ctx;

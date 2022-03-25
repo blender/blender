@@ -1,23 +1,7 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
+/* SPDX-License-Identifier: GPL-2.0-or-later
  * Adapted from the Blender Alembic importer implementation.
- *
- * Modifications Copyright (C) 2021 Tangent Animation and
- * NVIDIA Corporation.  All rights reserved.
- */
+ * Modifications Copyright 2021 Tangent Animation and
+ * NVIDIA Corporation. All rights reserved. */
 
 #include "usd_reader_mesh.h"
 #include "usd_reader_material.h"
@@ -30,6 +14,8 @@
 
 #include "BLI_math.h"
 #include "BLI_math_geom.h"
+#include "BLI_math_vec_types.hh"
+#include "BLI_span.hh"
 #include "BLI_string.h"
 
 #include "DNA_customdata_types.h"
@@ -543,6 +529,38 @@ void USDMeshReader::read_colors(Mesh *mesh, const double motionSampleTime)
   }
 }
 
+void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTime)
+{
+  pxr::VtIntArray corner_indices;
+  if (!mesh_prim_.GetCornerIndicesAttr().Get(&corner_indices, motionSampleTime)) {
+    return;
+  }
+
+  pxr::VtIntArray corner_sharpnesses;
+  if (!mesh_prim_.GetCornerSharpnessesAttr().Get(&corner_sharpnesses, motionSampleTime)) {
+    return;
+  }
+
+  /* It is fine to have fewer indices than vertices, but never the other way other. */
+  if (corner_indices.size() > mesh->totvert) {
+    std::cerr << "WARNING: too many vertex crease for mesh " << prim_path_ << std::endl;
+    return;
+  }
+
+  if (corner_indices.size() != corner_sharpnesses.size()) {
+    std::cerr << "WARNING: vertex crease indices and sharpnesses count mismatch for mesh "
+              << prim_path_ << std::endl;
+    return;
+  }
+
+  float *creases = static_cast<float *>(
+      CustomData_add_layer(&mesh->vdata, CD_CREASE, CD_DEFAULT, nullptr, mesh->totvert));
+
+  for (size_t i = 0; i < corner_indices.size(); i++) {
+    creases[corner_indices[i]] = corner_sharpnesses[i];
+  }
+}
+
 void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)
 {
   if (!mesh) {
@@ -550,34 +568,32 @@ void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)
   }
 
   if (normals_.empty()) {
-    BKE_mesh_calc_normals(mesh);
     return;
   }
 
   if (normals_.size() != mesh->totvert) {
     std::cerr << "WARNING: vertex varying normals count mismatch for mesh " << prim_path_
               << std::endl;
-    BKE_mesh_calc_normals(mesh);
     return;
   }
 
-  for (int i = 0; i < normals_.size(); i++) {
-    MVert &mvert = mesh->mvert[i];
-    normal_float_to_short_v3(mvert.no, normals_[i].data());
-  }
+  MutableSpan vert_normals{(float3 *)BKE_mesh_vertex_normals_for_write(mesh), mesh->totvert};
+  BLI_STATIC_ASSERT(sizeof(normals_[0]) == sizeof(float3), "Expected float3 normals size");
+  vert_normals.copy_from({(float3 *)normals_.data(), static_cast<int64_t>(normals_.size())});
+  BKE_mesh_vertex_normals_clear_dirty(mesh);
 }
 
 void USDMeshReader::process_normals_face_varying(Mesh *mesh)
 {
   if (normals_.empty()) {
-    BKE_mesh_calc_normals(mesh);
+    BKE_mesh_normals_tag_dirty(mesh);
     return;
   }
 
   /* Check for normals count mismatches to prevent crashes. */
   if (normals_.size() != mesh->totloop) {
     std::cerr << "WARNING: loop normal count mismatch for mesh " << mesh->id.name << std::endl;
-    BKE_mesh_calc_normals(mesh);
+    BKE_mesh_normals_tag_dirty(mesh);
     return;
   }
 
@@ -612,18 +628,17 @@ void USDMeshReader::process_normals_face_varying(Mesh *mesh)
   MEM_freeN(lnors);
 }
 
-/* Set USD uniform (per-face) normals as Blender loop normals. */
 void USDMeshReader::process_normals_uniform(Mesh *mesh)
 {
   if (normals_.empty()) {
-    BKE_mesh_calc_normals(mesh);
+    BKE_mesh_normals_tag_dirty(mesh);
     return;
   }
 
   /* Check for normals count mismatches to prevent crashes. */
   if (normals_.size() != mesh->totpoly) {
     std::cerr << "WARNING: uniform normal count mismatch for mesh " << mesh->id.name << std::endl;
-    BKE_mesh_calc_normals(mesh);
+    BKE_mesh_normals_tag_dirty(mesh);
     return;
   }
 
@@ -664,6 +679,8 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
       mvert.co[1] = positions_[i][1];
       mvert.co[2] = positions_[i][2];
     }
+
+    read_vertex_creases(mesh, motionSampleTime);
   }
 
   if (new_mesh || (settings->read_flag & MOD_MESHSEQ_READ_POLY) != 0) {
@@ -676,14 +693,11 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
     }
     else {
       /* Default */
-      BKE_mesh_calc_normals(mesh);
+      BKE_mesh_normals_tag_dirty(mesh);
     }
   }
 
-  /* Process point normals after reading polys.  This
-   * is important in the case where the normals are empty
-   * and we invoke BKE_mesh_calc_normals(mesh), which requires
-   * edges to be defined. */
+  /* Process point normals after reading polys. */
   if ((settings->read_flag & MOD_MESHSEQ_READ_VERT) != 0 &&
       normal_interpolation_ == pxr::UsdGeomTokens->vertex) {
     process_normals_vertex_varying(mesh);

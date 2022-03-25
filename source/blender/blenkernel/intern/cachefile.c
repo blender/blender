@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2016 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -40,6 +24,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_anim_data.h"
+#include "BKE_bpath.h"
 #include "BKE_cachefile.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
@@ -52,6 +37,8 @@
 #include "RE_engine.h"
 
 #include "BLO_read_write.h"
+
+#include "MEM_guardedalloc.h"
 
 #ifdef WITH_ALEMBIC
 #  include "ABC_alembic.h"
@@ -85,6 +72,7 @@ static void cache_file_copy_data(Main *UNUSED(bmain),
   cache_file_dst->handle = NULL;
   cache_file_dst->handle_readers = NULL;
   BLI_duplicatelist(&cache_file_dst->object_paths, &cache_file_src->object_paths);
+  BLI_duplicatelist(&cache_file_dst->layers, &cache_file_src->layers);
 }
 
 static void cache_file_free_data(ID *id)
@@ -92,6 +80,13 @@ static void cache_file_free_data(ID *id)
   CacheFile *cache_file = (CacheFile *)id;
   cachefile_handle_free(cache_file);
   BLI_freelistN(&cache_file->object_paths);
+  BLI_freelistN(&cache_file->layers);
+}
+
+static void cache_file_foreach_path(ID *id, BPathForeachPathData *bpath_data)
+{
+  CacheFile *cache_file = (CacheFile *)id;
+  BKE_bpath_foreach_path_fixed_process(bpath_data, cache_file->filepath);
 }
 
 static void cache_file_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -110,6 +105,11 @@ static void cache_file_blend_write(BlendWriter *writer, ID *id, const void *id_a
   if (cache_file->adt) {
     BKE_animdata_blend_write(writer, cache_file->adt);
   }
+
+  /* write layers */
+  LISTBASE_FOREACH (CacheFileLayer *, layer, &cache_file->layers) {
+    BLO_write_struct(writer, CacheFileLayer, layer);
+  }
 }
 
 static void cache_file_blend_read_data(BlendDataReader *reader, ID *id)
@@ -123,6 +123,9 @@ static void cache_file_blend_read_data(BlendDataReader *reader, ID *id)
   /* relink animdata */
   BLO_read_data_address(reader, &cache_file->adt);
   BKE_animdata_blend_read_data(reader, cache_file->adt);
+
+  /* relink layers */
+  BLO_read_list(reader, &cache_file->layers);
 }
 
 IDTypeInfo IDType_ID_CF = {
@@ -134,6 +137,7 @@ IDTypeInfo IDType_ID_CF = {
     .name_plural = "cache_files",
     .translation_context = BLT_I18NCONTEXT_ID_CACHEFILE,
     .flags = IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = cache_file_init_data,
     .copy_data = cache_file_copy_data,
@@ -141,6 +145,7 @@ IDTypeInfo IDType_ID_CF = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = NULL,
+    .foreach_path = cache_file_foreach_path,
     .owner_get = NULL,
 
     .blend_write = cache_file_blend_write,
@@ -355,7 +360,8 @@ void BKE_cachefile_eval(Main *bmain, Depsgraph *depsgraph, CacheFile *cache_file
 #ifdef WITH_ALEMBIC
   if (BLI_path_extension_check_glob(filepath, "*abc")) {
     cache_file->type = CACHEFILE_TYPE_ALEMBIC;
-    cache_file->handle = ABC_create_handle(bmain, filepath, &cache_file->object_paths);
+    cache_file->handle = ABC_create_handle(
+        bmain, filepath, cache_file->layers.first, &cache_file->object_paths);
     BLI_strncpy(cache_file->handle_filepath, filepath, FILE_MAX);
   }
 #endif
@@ -411,12 +417,6 @@ float BKE_cachefile_time_offset(const CacheFile *cache_file, const float time, c
   return cache_file->is_sequence ? frame : frame / fps - time_offset;
 }
 
-/**
- * Determine whether the #CacheFile should use a render engine procedural. If so, data is not read
- * from the file and bounding boxes are used to represent the objects in the Scene.
- * Render engines will receive the bounding box as a placeholder but can instead
- * load the data directly if they support it.
- */
 bool BKE_cache_file_uses_render_procedural(const CacheFile *cache_file,
                                            Scene *scene,
                                            const int dag_eval_mode)
@@ -431,4 +431,36 @@ bool BKE_cache_file_uses_render_procedural(const CacheFile *cache_file,
   /* The render time procedural is only enabled during viewport rendering. */
   const bool is_final_render = (eEvaluationMode)dag_eval_mode == DAG_EVAL_RENDER;
   return cache_file->use_render_procedural && !is_final_render;
+}
+
+CacheFileLayer *BKE_cachefile_add_layer(CacheFile *cache_file, const char filename[1024])
+{
+  for (CacheFileLayer *layer = cache_file->layers.first; layer; layer = layer->next) {
+    if (STREQ(layer->filepath, filename)) {
+      return NULL;
+    }
+  }
+
+  const int num_layers = BLI_listbase_count(&cache_file->layers);
+
+  CacheFileLayer *layer = MEM_callocN(sizeof(CacheFileLayer), "CacheFileLayer");
+  BLI_strncpy(layer->filepath, filename, sizeof(layer->filepath));
+
+  BLI_addtail(&cache_file->layers, layer);
+
+  cache_file->active_layer = (char)(num_layers + 1);
+
+  return layer;
+}
+
+CacheFileLayer *BKE_cachefile_get_active_layer(CacheFile *cache_file)
+{
+  return BLI_findlink(&cache_file->layers, cache_file->active_layer - 1);
+}
+
+void BKE_cachefile_remove_layer(CacheFile *cache_file, CacheFileLayer *layer)
+{
+  cache_file->active_layer = 0;
+  BLI_remlink(&cache_file->layers, layer);
+  MEM_freeN(layer);
 }

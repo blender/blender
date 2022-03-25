@@ -1,25 +1,9 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- * Armature EditMode tools - transforms, chain based editing, and other settings
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edarmature
+ * Armature EditMode tools - transforms, chain based editing, and other settings.
  */
 
 #include "DNA_armature_types.h"
@@ -66,9 +50,6 @@
 
 /* NOTE: these functions are exported to the Object module to be called from the tools there */
 
-/**
- * See #BKE_armature_transform for object-mode transform.
- */
 void ED_armature_edit_transform(bArmature *arm, const float mat[4][4], const bool do_props)
 {
   EditBone *ebone;
@@ -116,8 +97,6 @@ void ED_armature_transform(bArmature *arm, const float mat[4][4], const bool do_
   }
 }
 
-/* exported for use in editors/object/ */
-/* 0 == do center, 1 == center new, 2 == center cursor */
 void ED_armature_origin_set(
     Main *bmain, Object *ob, const float cursor[3], int centermode, int around)
 {
@@ -186,9 +165,6 @@ void ED_armature_origin_set(
 /** \name Bone Roll Calculate Operator
  * \{ */
 
-/* adjust bone roll to align Z axis with vector
- * vec is in local space and is normalized
- */
 float ED_armature_ebone_roll_to_vector(const EditBone *bone,
                                        const float align_axis[3],
                                        const bool axis_only)

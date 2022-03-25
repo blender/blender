@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 #include "asset_library_service.hh"
 
@@ -97,7 +81,7 @@ TEST_F(AssetLibraryServiceTest, get_destroy)
   AssetLibraryService::destroy();
   AssetLibraryService::destroy();
 
-  /* Note: there used to be a test for the opposite here, that after a call to
+  /* NOTE: there used to be a test for the opposite here, that after a call to
    * AssetLibraryService::destroy() the above calls should return freshly allocated objects. This
    * cannot be reliably tested by just pointer comparison, though. */
 }
@@ -113,7 +97,7 @@ TEST_F(AssetLibraryServiceTest, library_pointers)
   EXPECT_EQ(curfile_lib, service->get_asset_library_current_file())
       << "Calling twice without destroying in between should return the same instance.";
 
-  /* Note: there used to be a test for the opposite here, that after a call to
+  /* NOTE: there used to be a test for the opposite here, that after a call to
    * AssetLibraryService::destroy() the above calls should return freshly allocated objects. This
    * cannot be reliably tested by just pointer comparison, though. */
 }

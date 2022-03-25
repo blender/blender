@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spoutliner
@@ -34,15 +20,34 @@
 
 #pragma once
 
-#include "tree_display.h"
+#include <memory>
 
+struct ID;
+struct LayerCollection;
+struct Library;
 struct ListBase;
 struct Main;
+struct Scene;
+struct Sequence;
 struct SpaceOutliner;
 struct TreeElement;
-struct TreeSourceData;
+struct ViewLayer;
 
 namespace blender::ed::outliner {
+
+/**
+ * \brief The data to build the tree from.
+ */
+struct TreeSourceData {
+  Main *bmain;
+  Scene *scene;
+  ViewLayer *view_layer;
+
+  TreeSourceData(Main &bmain, Scene &scene, ViewLayer &view_layer)
+      : bmain(&bmain), scene(&scene), view_layer(&view_layer)
+  {
+  }
+};
 
 /* -------------------------------------------------------------------- */
 /* Tree-Display Interface */
@@ -59,13 +64,21 @@ class AbstractTreeDisplay {
   }
   virtual ~AbstractTreeDisplay() = default;
 
+  static std::unique_ptr<AbstractTreeDisplay> createFromDisplayMode(
+      int /*eSpaceOutliner_Mode*/ mode, SpaceOutliner &space_outliner);
+
   /**
    * Build a tree for this display mode with the Blender context data given in \a source_data and
    * the view settings in \a space_outliner.
    */
   virtual ListBase buildTree(const TreeSourceData &source_data) = 0;
 
+  /** Accessor to whether given tree has some warnings to display. */
+  bool hasWarnings() const;
+
  protected:
+  bool has_warnings = false;
+
   /** All derived classes will need a handle to this, so storing it in the base for convenience. */
   SpaceOutliner &space_outliner_;
 };
@@ -105,7 +118,7 @@ class TreeDisplayLibraries final : public AbstractTreeDisplay {
   ListBase buildTree(const TreeSourceData &source_data) override;
 
  private:
-  TreeElement *add_library_contents(Main &, ListBase &, Library *) const;
+  TreeElement *add_library_contents(Main &, ListBase &, Library *);
   bool library_id_filter_poll(const Library *lib, ID *id) const;
   short id_filter_get() const;
 };
@@ -123,7 +136,7 @@ class TreeDisplayOverrideLibrary final : public AbstractTreeDisplay {
   ListBase buildTree(const TreeSourceData &source_data) override;
 
  private:
-  TreeElement *add_library_contents(Main &, ListBase &, Library *) const;
+  TreeElement *add_library_contents(Main &, ListBase &, Library *);
   bool override_library_id_filter_poll(const Library *lib, ID *id) const;
   short id_filter_get() const;
 };
@@ -148,6 +161,9 @@ class TreeDisplaySequencer final : public AbstractTreeDisplay {
 
  private:
   TreeElement *add_sequencer_contents() const;
+  /**
+   * Helped function to put duplicate sequence in the same tree.
+   */
   SequenceAddOp need_add_seq_dup(Sequence *seq) const;
   void add_seq_dup(Sequence *seq, TreeElement *te, short index) const;
 };

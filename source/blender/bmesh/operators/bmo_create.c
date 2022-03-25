@@ -1,23 +1,9 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
  *
- * Create faces or edges (Fkey by default).
+ * Create faces or edges (F-key by default).
  */
 
 #include "MEM_guardedalloc.h"
@@ -31,12 +17,11 @@
 #define ELE_NEW 1
 #define ELE_OUT 2
 
-/* This is what runs when pressing the F key
- * doing the best thing here isn't always easy create vs dissolve, its nice to support
- * but it _really_ gives issues we might have to not call dissolve. - campbell
- */
 void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 {
+  /* NOTE(@campbellbarton): doing the best thing here isn't always easy create vs dissolve,
+   * its nice to support but it _really_ gives issues we might have to not call dissolve. */
+
   BMOIter oiter;
   BMHeader *h;
   int totv = 0, tote = 0, totf = 0;

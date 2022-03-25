@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2018 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "scene/alembic.h"
 
@@ -21,6 +8,7 @@
 #include "scene/curves.h"
 #include "scene/mesh.h"
 #include "scene/object.h"
+#include "scene/pointcloud.h"
 #include "scene/scene.h"
 #include "scene/shader.h"
 
@@ -99,6 +87,9 @@ void CachedData::clear()
   triangles.clear();
   uv_loops.clear();
   vertices.clear();
+  points.clear();
+  radiuses.clear();
+  points_shader.clear();
 
   for (CachedAttribute &attr : attributes) {
     attr.data.clear();
@@ -146,6 +137,9 @@ bool CachedData::is_constant() const
   CHECK_IF_CONSTANT(triangles)
   CHECK_IF_CONSTANT(uv_loops)
   CHECK_IF_CONSTANT(vertices)
+  CHECK_IF_CONSTANT(points)
+  CHECK_IF_CONSTANT(radiuses)
+  CHECK_IF_CONSTANT(points_shader)
 
   for (const CachedAttribute &attr : attributes) {
     if (!attr.data.is_constant()) {
@@ -185,6 +179,9 @@ void CachedData::invalidate_last_loaded_time(bool attributes_only)
   triangles.invalidate_last_loaded_time();
   uv_loops.invalidate_last_loaded_time();
   vertices.invalidate_last_loaded_time();
+  points.invalidate_last_loaded_time();
+  radiuses.invalidate_last_loaded_time();
+  points_shader.invalidate_last_loaded_time();
 }
 
 void CachedData::set_time_sampling(TimeSampling time_sampling)
@@ -206,6 +203,9 @@ void CachedData::set_time_sampling(TimeSampling time_sampling)
   triangles.set_time_sampling(time_sampling);
   uv_loops.set_time_sampling(time_sampling);
   vertices.set_time_sampling(time_sampling);
+  points.set_time_sampling(time_sampling);
+  radiuses.set_time_sampling(time_sampling);
+  points_shader.set_time_sampling(time_sampling);
 
   for (CachedAttribute &attr : attributes) {
     attr.data.set_time_sampling(time_sampling);
@@ -233,6 +233,9 @@ size_t CachedData::memory_used() const
   mem_used += triangles.memory_used();
   mem_used += uv_loops.memory_used();
   mem_used += vertices.memory_used();
+  mem_used += points.memory_used();
+  mem_used += radiuses.memory_used();
+  mem_used += points_shader.memory_used();
 
   for (const CachedAttribute &attr : attributes) {
     mem_used += attr.data.memory_used();
@@ -726,6 +729,7 @@ NODE_DEFINE(AlembicProcedural)
   NodeType *type = NodeType::add("alembic", create);
 
   SOCKET_STRING(filepath, "Filename", ustring());
+  SOCKET_STRING_ARRAY(layers, "Layers", array<ustring>());
   SOCKET_FLOAT(frame, "Frame", 1.0f);
   SOCKET_FLOAT(start_frame, "Start Frame", 1.0f);
   SOCKET_FLOAT(end_frame, "End Frame", 1.0f);
@@ -823,14 +827,26 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
     return;
   }
 
-  if (!archive.valid()) {
+  if (!archive.valid() || filepath_is_modified() || layers_is_modified()) {
     Alembic::AbcCoreFactory::IFactory factory;
     factory.setPolicy(Alembic::Abc::ErrorHandler::kQuietNoopPolicy);
-    archive = factory.getArchive(filepath.c_str());
+
+    std::vector<std::string> filenames;
+    filenames.push_back(filepath.c_str());
+
+    for (const ustring &layer : layers) {
+      filenames.push_back(layer.c_str());
+    }
+
+    /* We need to reverse the order as overriding archives should come first. */
+    std::reverse(filenames.begin(), filenames.end());
+
+    archive = factory.getArchive(filenames);
 
     if (!archive.valid()) {
       /* avoid potential infinite update loops in viewport synchronization */
       filepath.clear();
+      layers.clear();
       clear_modified();
       return;
     }
@@ -901,6 +917,9 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
     else if (object->schema_type == AlembicObject::CURVES) {
       read_curves(object, frame_time);
     }
+    else if (object->schema_type == AlembicObject::POINTS) {
+      read_points(object, frame_time);
+    }
     else if (object->schema_type == AlembicObject::SUBD) {
       read_subd(object, frame_time);
     }
@@ -969,6 +988,9 @@ void AlembicProcedural::load_objects(Progress &progress)
     if (!abc_object->instance_of) {
       if (abc_object->schema_type == AlembicObject::CURVES) {
         geometry = scene_->create_node<Hair>();
+      }
+      else if (abc_object->schema_type == AlembicObject::POINTS) {
+        geometry = scene_->create_node<PointCloud>();
       }
       else if (abc_object->schema_type == AlembicObject::POLY_MESH ||
                abc_object->schema_type == AlembicObject::SUBD) {
@@ -1143,6 +1165,12 @@ void AlembicProcedural::read_subd(AlembicObject *abc_object, Abc::chrono_t frame
   cached_data.subd_creases_weight.copy_to_socket(
       frame_time, mesh, mesh->get_subd_creases_weight_socket());
 
+  cached_data.subd_vertex_crease_indices.copy_to_socket(
+      frame_time, mesh, mesh->get_subd_vert_creases_socket());
+
+  cached_data.subd_vertex_crease_weights.copy_to_socket(
+      frame_time, mesh, mesh->get_subd_vert_creases_weight_socket());
+
   mesh->set_num_subd_faces(mesh->get_subd_shader().size());
 
   /* Update attributes. */
@@ -1200,6 +1228,45 @@ void AlembicProcedural::read_curves(AlembicObject *abc_object, Abc::chrono_t fra
 
   const bool rebuild = (hair->curve_keys_is_modified() || hair->curve_radius_is_modified());
   hair->tag_update(scene_, rebuild);
+}
+
+void AlembicProcedural::read_points(AlembicObject *abc_object, Abc::chrono_t frame_time)
+{
+  CachedData &cached_data = abc_object->get_cached_data();
+
+  /* update sockets */
+
+  Object *object = abc_object->get_object();
+  cached_data.transforms.copy_to_socket(frame_time, object, object->get_tfm_socket());
+
+  if (object->is_modified()) {
+    object->tag_update(scene_);
+  }
+
+  /* Only update sockets for the original Geometry. */
+  if (abc_object->instance_of) {
+    return;
+  }
+
+  PointCloud *point_cloud = static_cast<PointCloud *>(object->get_geometry());
+
+  /* Make sure shader ids are also updated. */
+  if (point_cloud->used_shaders_is_modified()) {
+    point_cloud->tag_shader_modified();
+  }
+
+  cached_data.points.copy_to_socket(frame_time, point_cloud, point_cloud->get_points_socket());
+  cached_data.radiuses.copy_to_socket(frame_time, point_cloud, point_cloud->get_radius_socket());
+  cached_data.points_shader.copy_to_socket(
+      frame_time, point_cloud, point_cloud->get_shader_socket());
+
+  /* update attributes */
+
+  update_attributes(point_cloud->attributes, cached_data, frame_time);
+
+  const bool rebuild = (point_cloud->points_is_modified() || point_cloud->radius_is_modified() ||
+                        point_cloud->shader_is_modified());
+  point_cloud->tag_update(scene_, rebuild);
 }
 
 void AlembicProcedural::walk_hierarchy(
@@ -1314,7 +1381,23 @@ void AlembicProcedural::walk_hierarchy(
     // ignore the face set, it will be read along with the data
   }
   else if (IPoints::matches(header)) {
-    // unsupported for now
+    IPoints points(parent, header.getName());
+
+    unordered_map<std::string, AlembicObject *>::const_iterator iter;
+    iter = object_map.find(points.getFullName());
+
+    if (iter != object_map.end()) {
+      AlembicObject *abc_object = iter->second;
+      abc_object->iobject = points;
+      abc_object->schema_type = AlembicObject::POINTS;
+
+      if (matrix_samples_data.samples) {
+        abc_object->xform_samples = *matrix_samples_data.samples;
+        abc_object->xform_time_sampling = matrix_samples_data.time_sampling;
+      }
+    }
+
+    next_object = points;
   }
   else if (INuPatch::matches(header)) {
     // unsupported for now
@@ -1388,6 +1471,14 @@ void AlembicProcedural::build_caches(Progress &progress)
           object->radius_scale_is_modified()) {
         ICurves curves(object->iobject, Alembic::Abc::kWrapExisting);
         ICurvesSchema schema = curves.getSchema();
+        object->load_data_in_cache(object->get_cached_data(), this, schema, progress);
+      }
+    }
+    else if (object->schema_type == AlembicObject::POINTS) {
+      if (!object->has_data_loaded() || default_radius_is_modified() ||
+          object->radius_scale_is_modified()) {
+        IPoints points(object->iobject, Alembic::Abc::kWrapExisting);
+        IPointsSchema schema = points.getSchema();
         object->load_data_in_cache(object->get_cached_data(), this, schema, progress);
       }
     }

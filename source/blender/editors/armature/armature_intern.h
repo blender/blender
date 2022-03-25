@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edarmature
@@ -27,6 +11,7 @@
 struct wmOperatorType;
 
 struct Base;
+struct GPUSelectResult;
 struct Object;
 struct Scene;
 struct bContext;
@@ -39,8 +24,10 @@ struct bArmature;
 struct LinkData;
 struct ListBase;
 
-/* ******************************************************* */
-/* Armature EditMode Operators */
+/* -------------------------------------------------------------------- */
+/** \name Armature EditMode Operators
+ * \{ */
+
 void ARMATURE_OT_bone_primitive_add(struct wmOperatorType *ot);
 
 void ARMATURE_OT_align(struct wmOperatorType *ot);
@@ -82,8 +69,12 @@ void ARMATURE_OT_layers_show_all(struct wmOperatorType *ot);
 void ARMATURE_OT_armature_layers(struct wmOperatorType *ot);
 void ARMATURE_OT_bone_layers(struct wmOperatorType *ot);
 
-/* ******************************************************* */
-/* Pose-Mode Operators */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pose-Mode Operators
+ * \{ */
+
 void POSE_OT_hide(struct wmOperatorType *ot);
 void POSE_OT_reveal(struct wmOperatorType *ot);
 
@@ -131,8 +122,12 @@ void POSE_OT_quaternions_flip(struct wmOperatorType *ot);
 
 void POSE_OT_bone_layers(struct wmOperatorType *ot);
 
-/* ******************************************************* */
-/* Pose Tool Utilities (for PoseLib, Pose Sliding, etc.) */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pose Tool Utilities (for PoseLib, Pose Sliding, etc.)
+ * \{ */
+
 /* pose_utils.c */
 
 /* Temporary data linking PoseChannels with the F-Curves they affect */
@@ -173,21 +168,39 @@ typedef struct tPChanFCurveLink {
 
 /* ----------- */
 
+/** Returns a valid pose armature for this object, else returns NULL. */
 struct Object *poseAnim_object_get(struct Object *ob_);
+/** Get sets of F-Curves providing transforms for the bones in the Pose. */
 void poseAnim_mapping_get(struct bContext *C, ListBase *pfLinks);
+/** Free F-Curve <-> PoseChannel links. */
 void poseAnim_mapping_free(ListBase *pfLinks);
 
+/**
+ * Helper for apply() / reset() - refresh the data.
+ */
 void poseAnim_mapping_refresh(struct bContext *C, struct Scene *scene, struct Object *ob);
+/**
+ * Reset changes made to current pose.
+ */
 void poseAnim_mapping_reset(ListBase *pfLinks);
+/** Perform auto-key-framing after changes were made + confirmed. */
 void poseAnim_mapping_autoKeyframe(struct bContext *C,
                                    struct Scene *scene,
                                    ListBase *pfLinks,
                                    float cframe);
 
+/**
+ * Find the next F-Curve for a PoseChannel with matching path...
+ * - path is not just the pfl rna_path, since that path doesn't have property info yet.
+ */
 LinkData *poseAnim_mapping_getNextFCurve(ListBase *fcuLinks, LinkData *prev, const char *path);
 
-/* ******************************************************* */
-/* PoseLib */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name PoseLib
+ * \{ */
+
 /* pose_lib.c */
 
 void POSELIB_OT_new(struct wmOperatorType *ot);
@@ -207,8 +220,12 @@ void POSELIB_OT_apply_pose(struct wmOperatorType *ot);
 void POSELIB_OT_apply_pose_asset(struct wmOperatorType *ot);
 void POSELIB_OT_blend_pose_asset(struct wmOperatorType *ot);
 
-/* ******************************************************* */
-/* Pose Sliding Tools */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Pose Sliding Tools
+ * \{ */
+
 /* pose_slide.c */
 
 void POSE_OT_push(struct wmOperatorType *ot);
@@ -220,8 +237,11 @@ void POSE_OT_blend_to_neighbors(struct wmOperatorType *ot);
 
 void POSE_OT_propagate(struct wmOperatorType *ot);
 
-/* ******************************************************* */
-/* Various Armature Edit/Pose Editing API's */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Various Armature Edit/Pose Editing API's
+ * \{ */
 
 /* Ideally, many of these defines would not be needed as everything would be strictly
  * self-contained within each file,
@@ -232,7 +252,9 @@ struct EditBone *make_boneList(struct ListBase *edbo,
                                struct ListBase *bones,
                                struct Bone *actBone);
 
-/* duplicate method */
+/* Duplicate method. */
+
+/** Call this before doing any duplications. */
 void preEditBoneDuplicate(struct ListBase *editbones);
 void postEditBoneDuplicate(struct ListBase *editbones, struct Object *ob);
 struct EditBone *duplicateEditBone(struct EditBone *cur_bone,
@@ -240,21 +262,36 @@ struct EditBone *duplicateEditBone(struct EditBone *cur_bone,
                                    struct ListBase *editbones,
                                    struct Object *ob);
 
-/* duplicate method (cross objects) */
-/* editbones is the target list */
+/* Duplicate method (cross objects). */
+
+/**
+ * \param editbones: The target list.
+ */
 struct EditBone *duplicateEditBoneObjects(struct EditBone *cur_bone,
                                           const char *name,
                                           struct ListBase *editbones,
                                           struct Object *src_ob,
                                           struct Object *dst_ob);
 
+/** Adds an EditBone between the nominated locations (should be in the right space). */
 struct EditBone *add_points_bone(struct Object *obedit, float head[3], float tail[3]);
 void bone_free(struct bArmature *arm, struct EditBone *bone);
 
 void armature_tag_select_mirrored(struct bArmature *arm);
-void armature_select_mirrored_ex(struct bArmature *arm, const int flag);
+/**
+ * Helper function for tools to work on mirrored parts.
+ * it leaves mirrored bones selected then too, which is a good indication of what happened.
+ */
+void armature_select_mirrored_ex(struct bArmature *arm, int flag);
 void armature_select_mirrored(struct bArmature *arm);
+/** Only works when tagged. */
 void armature_tag_unselect(struct bArmature *arm);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Selection Picking
+ * \{ */
 
 struct EditBone *ED_armature_pick_ebone(struct bContext *C,
                                         const int xy[2],
@@ -271,27 +308,39 @@ struct Bone *ED_armature_pick_bone(struct bContext *C,
 
 struct EditBone *ED_armature_pick_ebone_from_selectbuffer(struct Base **bases,
                                                           uint bases_len,
-                                                          const uint *buffer,
+                                                          const struct GPUSelectResult *buffer,
                                                           short hits,
                                                           bool findunsel,
                                                           bool do_nearest,
                                                           struct Base **r_base);
 struct bPoseChannel *ED_armature_pick_pchan_from_selectbuffer(struct Base **bases,
                                                               uint bases_len,
-                                                              const uint *buffer,
+                                                              const struct GPUSelectResult *buffer,
                                                               short hits,
                                                               bool findunsel,
                                                               bool do_nearest,
                                                               struct Base **r_base);
 struct Bone *ED_armature_pick_bone_from_selectbuffer(struct Base **bases,
                                                      uint bases_len,
-                                                     const uint *buffer,
+                                                     const struct GPUSelectResult *buffer,
                                                      short hits,
                                                      bool findunsel,
                                                      bool do_nearest,
                                                      struct Base **r_base);
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Iteration
+ * \{ */
+
+/**
+ * XXX: bone_looper is only to be used when we want to access settings
+ * (i.e. editability/visibility/selected) that context doesn't offer.
+ */
 int bone_looper(struct Object *ob,
                 struct Bone *bone,
                 void *data,
                 int (*bone_func)(struct Object *, struct Bone *, void *));
+
+/** \} */

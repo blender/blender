@@ -71,6 +71,7 @@ thipDriverGetVersion *hipDriverGetVersion;
 thipGetDevice *hipGetDevice;
 thipGetDeviceCount *hipGetDeviceCount;
 thipGetDeviceProperties *hipGetDeviceProperties;
+thipDeviceGet* hipDeviceGet;
 thipDeviceGetName *hipDeviceGetName;
 thipDeviceGetAttribute *hipDeviceGetAttribute;
 thipDeviceComputeCapability *hipDeviceComputeCapability;
@@ -213,6 +214,36 @@ static void hipewHipExit(void) {
   }
 }
 
+#ifdef _WIN32
+static int hipewHasOldDriver(const char *hip_path) {
+  DWORD verHandle = 0;
+  DWORD verSize = GetFileVersionInfoSize(hip_path, &verHandle);
+  int old_driver = 0;
+  if (verSize != 0) {
+    LPSTR verData = (LPSTR)malloc(verSize);
+    if (GetFileVersionInfo(hip_path, verHandle, verSize, verData)) {
+      LPBYTE lpBuffer = NULL;
+      UINT size = 0;
+      if (VerQueryValue(verData, "\\", (VOID FAR * FAR *)&lpBuffer, &size)) {
+        if (size) {
+          VS_FIXEDFILEINFO *verInfo = (VS_FIXEDFILEINFO *)lpBuffer;
+          /* Magic value from
+           * https://docs.microsoft.com/en-us/windows/win32/api/verrsrc/ns-verrsrc-vs_fixedfileinfo */
+          if (verInfo->dwSignature == 0xfeef04bd) {
+            unsigned int fileVersionLS0 = (verInfo->dwFileVersionLS >> 16) & 0xffff;
+            unsigned int fileversionLS1 = (verInfo->dwFileVersionLS >> 0) & 0xffff;
+            /* Corresponds to versions older than AMD Radeon Pro 21.Q4. */
+            old_driver = ((fileVersionLS0 < 3354) || (fileVersionLS0 == 3354 && fileversionLS1 < 13));
+          }
+        }
+      }
+    }
+    free(verData);
+  }
+  return old_driver;
+}
+#endif
+
 static int hipewHipInit(void) {
   /* Library paths. */
 #ifdef _WIN32
@@ -226,7 +257,7 @@ static int hipewHipInit(void) {
 #endif
   static int initialized = 0;
   static int result = 0;
-  int error, driver_version;
+  int error;
 
   if (initialized) {
     return result;
@@ -239,6 +270,14 @@ static int hipewHipInit(void) {
     result = HIPEW_ERROR_ATEXIT_FAILED;
     return result;
   }
+
+#ifdef _WIN32
+  /* Test for driver version. */
+  if(hipewHasOldDriver(hip_paths[0])) {
+     result = HIPEW_ERROR_OLD_DRIVER;
+     return result;
+  }
+#endif
 
   /* Load library. */
   hip_lib = dynamic_library_open_find(hip_paths);
@@ -255,6 +294,7 @@ static int hipewHipInit(void) {
   HIP_LIBRARY_FIND_CHECKED(hipGetDevice);
   HIP_LIBRARY_FIND_CHECKED(hipGetDeviceCount);
   HIP_LIBRARY_FIND_CHECKED(hipGetDeviceProperties);
+  HIP_LIBRARY_FIND_CHECKED(hipDeviceGet);
   HIP_LIBRARY_FIND_CHECKED(hipDeviceGetName);
   HIP_LIBRARY_FIND_CHECKED(hipDeviceGetAttribute);
   HIP_LIBRARY_FIND_CHECKED(hipDeviceComputeCapability);
@@ -525,8 +565,6 @@ int hipewCompilerVersion(void) {
   const char *path = hipewCompilerPath();
   const char *marker = "Hip compilation tools, release ";
   FILE *pipe;
-  int major, minor;
-  char *versionstr;
   char buf[128];
   char output[65536] = "\0";
   char command[65536] = "\0";

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2021 by Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2021 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup draw
@@ -460,7 +444,7 @@ static void statvis_calc_distort(const MeshRenderData *mr, float *r_distort)
       float fac = -1.0f;
 
       if (mp->totloop > 3) {
-        float *f_no = mr->poly_normals[mp_index];
+        const float *f_no = mr->poly_normals[mp_index];
         fac = 0.0f;
 
         for (int i = 1; i <= mp->totloop; i++) {
@@ -555,7 +539,7 @@ static void statvis_calc_sharp(const MeshRenderData *mr, float *r_sharp)
         void **pval;
         bool value_is_init = BLI_edgehash_ensure_p(eh, l_curr->v, l_next->v, &pval);
         if (!value_is_init) {
-          *pval = mr->poly_normals[mp_index];
+          *pval = (void *)mr->poly_normals[mp_index];
           /* non-manifold edge, yet... */
           continue;
         }

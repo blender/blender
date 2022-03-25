@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup DNA
@@ -72,12 +56,12 @@ typedef struct bScreen {
   short flag;
   /** Winid from WM, starts with 1. */
   short winid;
-  /** User-setting for which editors get redrawn during anim playback. */
+  /** User-setting for which editors get redrawn during animation playback. */
   short redraws_flag;
 
-  /** Temp screen in a temp window, don't save (like user prefs). */
+  /** Temp screen in a temp window, don't save (like user-preferences). */
   char temp;
-  /** Temp screen for image render display or fileselect. */
+  /** Temp screen for image render display or file-select. */
   char state;
   /** Notifier for drawing edges. */
   char do_draw;
@@ -154,6 +138,9 @@ typedef struct Panel_Runtime {
   /* Pointer to the panel's block. Useful when changes to panel #uiBlocks
    * need some context from traversal of the panel "tree". */
   struct uiBlock *block;
+
+  /* Non-owning pointer. The context is stored in the block. */
+  struct bContextStore *context;
 } Panel_Runtime;
 
 /** The part from uiBlock that needs saved in file. */
@@ -241,7 +228,7 @@ typedef struct PanelCategoryDyn {
   rcti rect;
 } PanelCategoryDyn;
 
-/* region stack of active tabs */
+/** Region stack of active tabs. */
 typedef struct PanelCategoryStack {
   struct PanelCategoryStack *next, *prev;
   char idname[64];
@@ -458,6 +445,9 @@ typedef struct ARegion_Runtime {
 
   /* The offset needed to not overlap with window scrollbars. Only used by HUD regions for now. */
   int offset_x, offset_y;
+
+  /* Maps uiBlock->name to uiBlock for faster lookups. */
+  struct GHash *block_name_map;
 } ARegion_Runtime;
 
 typedef struct ARegion {
@@ -648,8 +638,10 @@ enum {
 
 #define UILST_FLT_SORT_MASK (((unsigned int)(UILST_FLT_SORT_REVERSE | UILST_FLT_SORT_LOCK)) - 1)
 
-/* regiontype, first two are the default set */
-/* Do NOT change order, append on end. Types are hardcoded needed */
+/**
+ * regiontype, first two are the default set.
+ * \warning Do NOT change order, append on end. Types are hard-coded needed.
+ */
 typedef enum eRegion_Type {
   RGN_TYPE_WINDOW = 0,
   RGN_TYPE_HEADER = 1,

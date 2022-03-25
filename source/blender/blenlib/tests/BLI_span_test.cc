@@ -1,4 +1,4 @@
-/* Apache License, Version 2.0 */
+/* SPDX-License-Identifier: Apache-2.0 */
 
 #include "BLI_span.hh"
 #include "BLI_strict_flags.h"
@@ -247,6 +247,8 @@ TEST(span, FirstLast)
   Span<int> a_span(a);
   EXPECT_EQ(a_span.first(), 6);
   EXPECT_EQ(a_span.last(), 9);
+  EXPECT_EQ(a_span.last(1), 8);
+  EXPECT_EQ(a_span.last(2), 7);
 }
 
 TEST(span, FirstLast_OneElement)
@@ -255,6 +257,7 @@ TEST(span, FirstLast_OneElement)
   Span<int> a_span(&a, 1);
   EXPECT_EQ(a_span.first(), 3);
   EXPECT_EQ(a_span.last(), 3);
+  EXPECT_EQ(a_span.last(0), 3);
 }
 
 TEST(span, Get)

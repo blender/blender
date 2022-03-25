@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "blender/session.h"
 #include "blender/sync.h"
@@ -555,7 +542,7 @@ static void attr_create_vertex_color(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh,
 /* Create uv map attributes. */
 static void attr_create_uv_map(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh)
 {
-  if (b_mesh.uv_layers.length() != 0) {
+  if (!b_mesh.uv_layers.empty()) {
     for (BL::MeshUVLoopLayer &l : b_mesh.uv_layers) {
       const bool active_render = l.active_render();
       AttributeStandard uv_std = (active_render) ? ATTR_STD_UV : ATTR_STD_NONE;
@@ -619,7 +606,7 @@ static void attr_create_uv_map(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh)
 
 static void attr_create_subd_uv_map(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, bool subdivide_uvs)
 {
-  if (b_mesh.uv_layers.length() != 0) {
+  if (!b_mesh.uv_layers.empty()) {
     BL::Mesh::uv_layers_iterator l;
     int i = 0;
 
@@ -951,7 +938,7 @@ static void create_mesh(Scene *scene,
   N = attr_N->data_float3();
 
   /* create generated coordinates from undeformed coordinates */
-  const bool need_default_tangent = (subdivision == false) && (b_mesh.uv_layers.length() == 0) &&
+  const bool need_default_tangent = (subdivision == false) && (b_mesh.uv_layers.empty()) &&
                                     (mesh->need_attribute(scene, ATTR_STD_UV_TANGENT));
   if (mesh->need_attribute(scene, ATTR_STD_GENERATED) || need_default_tangent) {
     Attribute *attr = attributes.add(ATTR_STD_GENERATED);
@@ -1071,7 +1058,15 @@ static void create_subd_mesh(Scene *scene,
 
   for (BL::MeshEdge &e : b_mesh.edges) {
     if (e.crease() != 0.0f) {
-      mesh->add_crease(e.vertices()[0], e.vertices()[1], e.crease());
+      mesh->add_edge_crease(e.vertices()[0], e.vertices()[1], e.crease());
+    }
+  }
+
+  for (BL::MeshVertexCreaseLayer &c : b_mesh.vertex_creases) {
+    for (int i = 0; i < c.data.length(); ++i) {
+      if (c.data[i].value() != 0.0f) {
+        mesh->add_vertex_crease(i, c.data[i].value());
+      }
     }
   }
 
@@ -1085,40 +1080,6 @@ static void create_subd_mesh(Scene *scene,
 }
 
 /* Sync */
-
-/* Check whether some of "built-in" motion-related attributes are needed to be exported (includes
- * things like velocity from cache modifier, fluid simulation).
- *
- * NOTE: This code is run prior to object motion blur initialization. so can not access properties
- * set by `sync_object_motion_init()`. */
-static bool mesh_need_motion_attribute(BObjectInfo &b_ob_info, Scene *scene)
-{
-  const Scene::MotionType need_motion = scene->need_motion();
-  if (need_motion == Scene::MOTION_NONE) {
-    /* Simple case: neither motion pass nor motion blur is needed, no need in the motion related
-     * attributes. */
-    return false;
-  }
-
-  if (need_motion == Scene::MOTION_BLUR) {
-    /* A bit tricky and implicit case:
-     * - Motion blur is enabled in the scene, which implies specific number of time steps for
-     *   objects.
-     * - If the object has motion blur disabled on it, it will have 0 time steps.
-     * - Motion attribute expects non-zero time steps.
-     *
-     * Avoid adding motion attributes if the motion blur will enforce 0 motion steps. */
-    PointerRNA cobject = RNA_pointer_get(&b_ob_info.real_object.ptr, "cycles");
-    const bool use_motion = get_boolean(cobject, "use_motion_blur");
-    if (!use_motion) {
-      return false;
-    }
-  }
-
-  /* Motion pass which implies 3 motion steps, or motion blur which is not disabled on object
-   * level. */
-  return true;
-}
 
 void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, Mesh *mesh)
 {
@@ -1144,7 +1105,7 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, M
 
     if (b_mesh) {
       /* Motion blur attribute is relative to seconds, we need it relative to frames. */
-      const bool need_motion = mesh_need_motion_attribute(b_ob_info, scene);
+      const bool need_motion = object_need_motion_attribute(b_ob_info, scene);
       const float motion_scale = (need_motion) ?
                                      scene->motion_shutter_time() /
                                          (b_scene.render().fps() / b_scene.render().fps_base()) :

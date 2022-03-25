@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
 
 /** \file
  * \ingroup spnla
@@ -75,6 +59,9 @@ enum eNlaEdit_Snap_Mode {
 
 /* --- */
 
+/**
+ * NLA Editor internal API function for exiting tweak-mode.
+ */
 bool nlaedit_disable_tweakmode(bAnimContext *ac, bool do_solo);
 
 void NLA_OT_tweakmode_enter(wmOperatorType *ot);
@@ -121,7 +108,13 @@ void NLA_OT_fmodifier_paste(wmOperatorType *ot);
 /* **************************************** */
 /* nla_channels.c */
 
+/**
+ * Helper - add NLA Tracks alongside existing ones.
+ */
 bool nlaedit_add_tracks_existing(bAnimContext *ac, bool above_sel);
+/**
+ * helper - add NLA Tracks to empty (and selected) AnimData blocks.
+ */
 bool nlaedit_add_tracks_empty(bAnimContext *ac);
 
 /* --- */
@@ -139,9 +132,18 @@ void NLA_OT_selected_objects_add(wmOperatorType *ot);
 /* **************************************** */
 /* nla_ops.c */
 
+/**
+ * Tweak-mode is NOT enabled.
+ */
 bool nlaop_poll_tweakmode_off(bContext *C);
+/**
+ * Tweak-mode IS enabled.
+ */
 bool nlaop_poll_tweakmode_on(bContext *C);
 
+/**
+ * Is tweak-mode enabled - for use in NLA operator code.
+ */
 bool nlaedit_is_tweakmode_on(bAnimContext *ac);
 
 /* --- */

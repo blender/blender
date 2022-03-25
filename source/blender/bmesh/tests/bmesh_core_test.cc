@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 #include "testing/testing.h"
 
 #include "BLI_math.h"

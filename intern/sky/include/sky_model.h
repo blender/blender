@@ -1,32 +1,5 @@
-/*
-This source is published under the following 3-clause BSD license.
-
-Copyright (c) 2012 - 2013, Lukas Hosek and Alexander Wilkie
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * None of the names of the contributors may be used to endorse or promote
-      products derived from this software without specific prior written
-      permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+/* SPDX-License-Identifier: BSD-3-Clause
+ * Copyright 2012-2013 Lukas Hosek and Alexander Wilkie. All rights reserved. */
 
 /* ============================================================================
 
@@ -133,7 +106,7 @@ function which generates skydome states for different solar emission spectra
 and solar radii: 'arhosekskymodelstate_alienworld_alloc_init()'.
 
 See the notes about the "Alien World" functionality provided further down for a
-discussion of the usefulness and limits of that second initalisation function.
+discussion of the usefulness and limits of that second initialisation function.
 Sky model states that have been initialized with either function behave in a
 completely identical fashion during use and cleanup.
 
@@ -298,6 +271,10 @@ HINT #1:   if you want to model the sky of an earth-like planet that orbits
            previous paragraph.
 */
 
+/** \file
+ * \ingroup intern_sky_modal
+ */
+
 #ifndef __SKY_MODEL_H__
 #define __SKY_MODEL_H__
 
@@ -368,7 +345,7 @@ SKY_ArHosekSkyModelState *SKY_arhosekskymodelstate_alloc_init(const double solar
     with a sun of a surface temperature given in 'kelvin'. The parameter
     'solar_intensity' controls the overall brightness of the sky, relative
     to the solar irradiance on Earth. A value of 1.0 yields a sky dome that
-    is, on average over the wavelenghts covered in the model (!), as bright
+    is, on average over the wavelengths covered in the model (!), as bright
     as the terrestrial sky in radiometric terms.
 
     Which means that the solar radius has to be adjusted, since the

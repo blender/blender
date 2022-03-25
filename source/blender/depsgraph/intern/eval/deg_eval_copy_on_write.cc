@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2017 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2017 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup depsgraph
@@ -43,6 +27,7 @@
 #include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
+#include "BKE_gpencil_update_cache.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -56,6 +41,7 @@
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -140,7 +126,7 @@ void nested_id_hack_discard_pointers(ID *id_cow)
     SPECIAL_CASE(ID_WO, World, nodetree)
     SPECIAL_CASE(ID_SIM, Simulation, nodetree)
 
-    SPECIAL_CASE(ID_CU, Curve, key)
+    SPECIAL_CASE(ID_CU_LEGACY, Curve, key)
     SPECIAL_CASE(ID_LT, Lattice, key)
     SPECIAL_CASE(ID_ME, Mesh, key)
 
@@ -189,7 +175,7 @@ const ID *nested_id_hack_get_discarded_pointers(NestedIDHackTempStorage *storage
     SPECIAL_CASE(ID_WO, World, nodetree, world)
     SPECIAL_CASE(ID_SIM, Simulation, nodetree, simulation)
 
-    SPECIAL_CASE(ID_CU, Curve, key, curve)
+    SPECIAL_CASE(ID_CU_LEGACY, Curve, key, curve)
     SPECIAL_CASE(ID_LT, Lattice, key, lattice)
     SPECIAL_CASE(ID_ME, Mesh, key, mesh)
 
@@ -229,7 +215,7 @@ void nested_id_hack_restore_pointers(const ID *old_id, ID *new_id)
     SPECIAL_CASE(ID_WO, World, nodetree)
     SPECIAL_CASE(ID_SIM, Simulation, nodetree)
 
-    SPECIAL_CASE(ID_CU, Curve, key)
+    SPECIAL_CASE(ID_CU_LEGACY, Curve, key)
     SPECIAL_CASE(ID_LT, Lattice, key)
     SPECIAL_CASE(ID_ME, Mesh, key)
 
@@ -267,7 +253,7 @@ void ntree_hack_remap_pointers(const Depsgraph *depsgraph, ID *id_cow)
     SPECIAL_CASE(ID_WO, World, nodetree, bNodeTree)
     SPECIAL_CASE(ID_SIM, Simulation, nodetree, bNodeTree)
 
-    SPECIAL_CASE(ID_CU, Curve, key, Key)
+    SPECIAL_CASE(ID_CU_LEGACY, Curve, key, Key)
     SPECIAL_CASE(ID_LT, Lattice, key, Key)
     SPECIAL_CASE(ID_ME, Mesh, key, Key)
 
@@ -593,7 +579,7 @@ void update_edit_mode_pointers(const Depsgraph *depsgraph, const ID *id_orig, ID
     case ID_ME:
       update_mesh_edit_mode_pointers(id_orig, id_cow);
       break;
-    case ID_CU:
+    case ID_CU_LEGACY:
       update_curve_edit_mode_pointers(depsgraph, id_orig, id_cow);
       break;
     case ID_MB:
@@ -646,8 +632,8 @@ void set_particle_system_modifiers_loaded(Object *object_cow)
 
 void reset_particle_system_edit_eval(const Depsgraph *depsgraph, Object *object_cow)
 {
-  /* Inactive (and render) dependency graphs are living in own little bubble, should not care about
-   * edit mode at all. */
+  /* Inactive (and render) dependency graphs are living in their own little bubble, should not care
+   * about edit mode at all. */
   if (!DEG_is_active(reinterpret_cast<const ::Depsgraph *>(depsgraph))) {
     return;
   }
@@ -672,12 +658,6 @@ void update_particles_after_copy(const Depsgraph *depsgraph,
 void update_pose_orig_pointers(const bPose *pose_orig, bPose *pose_cow)
 {
   update_list_orig_pointers(&pose_orig->chanbase, &pose_cow->chanbase, &bPoseChannel::orig_pchan);
-}
-
-void update_modifiers_orig_pointers(const Object *object_orig, Object *object_cow)
-{
-  update_list_orig_pointers(
-      &object_orig->modifiers, &object_cow->modifiers, &ModifierData::orig_modifier_data);
 }
 
 void update_nla_strips_orig_pointers(const ListBase *strips_orig, ListBase *strips_cow)
@@ -714,25 +694,6 @@ void update_animation_data_after_copy(const ID *id_orig, ID *id_cow)
   update_nla_tracks_orig_pointers(&anim_data_orig->nla_tracks, &anim_data_cow->nla_tracks);
 }
 
-/* Some builders (like motion path one) will ignore proxies from being built. This code makes it so
- * proxy and proxy_group pointers never point to an original objects, preventing evaluation code
- * from assign evaluated pointer to an original proxy->proxy_from. */
-void update_proxy_pointers_after_copy(const Depsgraph *depsgraph,
-                                      const Object *object_orig,
-                                      Object *object_cow)
-{
-  if (object_cow->proxy != nullptr) {
-    if (!deg_check_id_in_depsgraph(depsgraph, &object_orig->proxy->id)) {
-      object_cow->proxy = nullptr;
-    }
-  }
-  if (object_cow->proxy_group != nullptr) {
-    if (!deg_check_id_in_depsgraph(depsgraph, &object_orig->proxy_group->id)) {
-      object_cow->proxy_group = nullptr;
-    }
-  }
-}
-
 /* Do some special treatment of data transfer from original ID to its
  * CoW complementary part.
  *
@@ -762,12 +723,7 @@ void update_id_after_copy(const Depsgraph *depsgraph,
         }
         BKE_pose_pchan_index_rebuild(object_cow->pose);
       }
-      if (object_cow->type == OB_GPENCIL) {
-        BKE_gpencil_update_orig_pointers(object_orig, object_cow);
-      }
       update_particles_after_copy(depsgraph, object_orig, object_cow);
-      update_modifiers_orig_pointers(object_orig, object_cow);
-      update_proxy_pointers_after_copy(depsgraph, object_orig, object_cow);
       break;
     }
     case ID_SCE: {
@@ -776,6 +732,16 @@ void update_id_after_copy(const Depsgraph *depsgraph,
       scene_cow->toolsettings = scene_orig->toolsettings;
       scene_cow->eevee.light_cache_data = scene_orig->eevee.light_cache_data;
       scene_setup_view_layers_after_remap(depsgraph, id_node, reinterpret_cast<Scene *>(id_cow));
+      break;
+    }
+    /* FIXME: This is a temporary fix to update the runtime pointers properly, see T96216. Should
+     * be removed at some point. */
+    case ID_GD: {
+      bGPdata *gpd_cow = (bGPdata *)id_cow;
+      bGPDlayer *gpl = (bGPDlayer *)(gpd_cow->layers.first);
+      if (gpl != nullptr && gpl->runtime.gpl_orig == nullptr) {
+        BKE_gpencil_data_update_orig_pointers((bGPdata *)id_orig, gpd_cow);
+      }
       break;
     }
     default:
@@ -898,6 +864,36 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph, const IDNode 
   if (!deg_copy_on_write_is_needed(id_orig)) {
     return id_cow;
   }
+
+  /* When updating object data in edit-mode, don't request COW update since this will duplicate
+   * all object data which is unnecessary when the edit-mode data is used for calculating
+   * modifiers.
+   *
+   * TODO: Investigate modes besides edit-mode. */
+  if (check_datablock_expanded(id_cow) && !id_node->is_cow_explicitly_tagged) {
+    const ID_Type id_type = GS(id_orig->name);
+    if (OB_DATA_SUPPORT_EDITMODE(id_type) && BKE_object_data_is_in_editmode(id_orig)) {
+      /* Make sure pointers in the edit mode data are updated in the copy.
+       * This allows depsgraph to pick up changes made in another context after it has been
+       * evaluated. Consider the following scenario:
+       *
+       *  - ObjectA in SceneA is using Mesh.
+       *  - ObjectB in SceneB is using Mesh (same exact datablock).
+       *  - Depsgraph of SceneA is evaluated.
+       *  - Depsgraph of SceneB is evaluated.
+       *  - User enters edit mode of ObjectA in SceneA. */
+      update_edit_mode_pointers(depsgraph, id_orig, id_cow);
+      return id_cow;
+    }
+    /* In case we don't need to do a copy-on-write, we can use the update cache of the grease
+     * pencil data to do an update-on-write.*/
+    if (id_type == ID_GD && BKE_gpencil_can_avoid_full_copy_on_write(
+                                (const ::Depsgraph *)depsgraph, (bGPdata *)id_orig)) {
+      BKE_gpencil_update_on_write((bGPdata *)id_orig, (bGPdata *)id_cow);
+      return id_cow;
+    }
+  }
+
   RuntimeBackup backup(depsgraph);
   backup.init_from_id(id_cow);
   deg_free_copy_on_write_datablock(id_cow);
@@ -906,7 +902,9 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph, const IDNode 
   return id_cow;
 }
 
-/* NOTE: Depsgraph is supposed to have ID node already. */
+/**
+ * \note Depsgraph is supposed to have ID node already.
+ */
 ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph, ID *id_orig)
 {
   IDNode *id_node = depsgraph->find_id_node(id_orig);
@@ -966,7 +964,7 @@ void discard_edit_mode_pointers(ID *id_cow)
     case ID_ME:
       discard_mesh_edit_mode_pointers(id_cow);
       break;
-    case ID_CU:
+    case ID_CU_LEGACY:
       discard_curve_edit_mode_pointers(id_cow);
       break;
     case ID_MB:
@@ -987,10 +985,12 @@ void discard_edit_mode_pointers(ID *id_cow)
 
 }  // namespace
 
-/* Free content of the CoW data-block
+/**
+   Free content of the CoW data-block.
  * Notes:
  * - Does not recurse into nested ID data-blocks.
- * - Does not free data-block itself. */
+ * - Does not free data-block itself.
+ */
 void deg_free_copy_on_write_datablock(ID *id_cow)
 {
   if (!check_datablock_expanded(id_cow)) {
@@ -1006,7 +1006,7 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
     case ID_OB: {
       /* TODO(sergey): This workaround is only to prevent free derived
        * caches from modifying object->data. This is currently happening
-       * due to mesh/curve datablock boundbox tagging dirty. */
+       * due to mesh/curve data-block bound-box tagging dirty. */
       Object *ob_cow = (Object *)id_cow;
       ob_cow->data = nullptr;
       ob_cow->sculpt = nullptr;

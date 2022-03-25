@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -25,6 +11,8 @@
 #include "DNA_texture_types.h"
 
 #include "BLI_utildefines.h"
+
+#include "BKE_node_tree_update.h"
 
 #include "RNA_define.h"
 #include "rna_internal.h"
@@ -185,11 +173,7 @@ static char *rna_ColorRamp_path(PointerRNA *ptr)
         char *node_path;
 
         for (node = ntree->nodes.first; node; node = node->next) {
-          if (ELEM(node->type,
-                   SH_NODE_VALTORGB,
-                   CMP_NODE_VALTORGB,
-                   TEX_NODE_VALTORGB,
-                   GEO_NODE_LEGACY_ATTRIBUTE_COLOR_RAMP)) {
+          if (ELEM(node->type, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
             if (node->storage == ptr->data) {
               /* all node color ramp properties called 'color_ramp'
                * prepend path from ID to the node
@@ -316,12 +300,9 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
         bNode *node;
 
         for (node = ntree->nodes.first; node; node = node->next) {
-          if (ELEM(node->type,
-                   SH_NODE_VALTORGB,
-                   CMP_NODE_VALTORGB,
-                   TEX_NODE_VALTORGB,
-                   GEO_NODE_LEGACY_ATTRIBUTE_COLOR_RAMP)) {
-            ED_node_tag_update_nodetree(bmain, ntree, node);
+          if (ELEM(node->type, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
+            BKE_ntree_update_tag_node_property(ntree, node);
+            ED_node_tree_propagate_change(NULL, bmain, ntree);
           }
         }
         break;

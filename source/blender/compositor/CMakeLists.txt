@@ -1,22 +1,5 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# The Original Code is Copyright (C) 2011, Blender Foundation
-# All rights reserved.
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright 2011 Blender Foundation. All rights reserved.
 
 set(INC
   .
@@ -38,7 +21,13 @@ set(INC
   ../render/intern
   ../../../extern/clew/include
   ../../../intern/atomic
+  ../../../intern/clog
   ../../../intern/guardedalloc
+
+  # dna_type_offsets.h
+  ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -136,6 +125,8 @@ set(SRC
   nodes/COM_OutputFileNode.h
   nodes/COM_RenderLayersNode.cc
   nodes/COM_RenderLayersNode.h
+  nodes/COM_SceneTimeNode.cc
+  nodes/COM_SceneTimeNode.h
   nodes/COM_SwitchNode.cc
   nodes/COM_SwitchNode.h
   nodes/COM_SwitchViewNode.cc
@@ -242,6 +233,8 @@ set(SRC
   nodes/COM_ColorToBWNode.h
   nodes/COM_ConvertAlphaNode.cc
   nodes/COM_ConvertAlphaNode.h
+  nodes/COM_ConvertColorSpaceNode.cc
+  nodes/COM_ConvertColorSpaceNode.h
   nodes/COM_GammaNode.cc
   nodes/COM_GammaNode.h
   nodes/COM_HueSaturationValueCorrectNode.cc
@@ -266,10 +259,14 @@ set(SRC
   # converter nodes
   nodes/COM_CombineColorNode.cc
   nodes/COM_CombineColorNode.h
+  nodes/COM_CombineXYZNode.cc
+  nodes/COM_CombineXYZNode.h
   nodes/COM_IDMaskNode.cc
   nodes/COM_IDMaskNode.h
   nodes/COM_SeparateColorNode.cc
   nodes/COM_SeparateColorNode.h
+  nodes/COM_SeparateXYZNode.cc
+  nodes/COM_SeparateXYZNode.h
 
   nodes/COM_MapRangeNode.cc
   nodes/COM_MapRangeNode.h
@@ -565,6 +562,8 @@ set(SRC
   operations/COM_IDMaskOperation.cc
   operations/COM_IDMaskOperation.h
 
+  operations/COM_ConvertColorSpaceOperation.cc
+  operations/COM_ConvertColorSpaceOperation.h
   operations/COM_DotproductOperation.cc
   operations/COM_DotproductOperation.h
 
@@ -621,10 +620,6 @@ list(APPEND SRC
 unset(GENSRC)
 unset(GENSRC_DIR)
 
-if(WITH_INTERNATIONAL)
-  add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
 if(WITH_OPENIMAGEDENOISE)
   add_definitions(-DWITH_OPENIMAGEDENOISE)
   add_definitions(-DOIDN_STATIC_LIB)
@@ -639,6 +634,15 @@ if(WITH_OPENIMAGEDENOISE)
 endif()
 
 blender_add_lib(bf_compositor "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+if(WITH_UNITY_BUILD)
+  set_target_properties(bf_compositor PROPERTIES UNITY_BUILD ON)
+  set_target_properties(bf_compositor PROPERTIES UNITY_BUILD_BATCH_SIZE 10)
+endif()
+
+if(COMMAND target_precompile_headers)
+  target_precompile_headers(bf_compositor PRIVATE COM_precomp.h)
+endif()
 
 if(CXX_WARN_NO_SUGGEST_OVERRIDE)
   target_compile_options(bf_compositor PRIVATE "-Wsuggest-override")
@@ -661,3 +665,8 @@ if(WITH_GTESTS)
   include(GTestTesting)
   blender_add_test_lib(bf_compositor_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
 endif()
+
+# Needed so we can use dna_type_offsets.h for defaults initialization.
+add_dependencies(bf_compositor bf_dna)
+# RNA_prototypes.h
+add_dependencies(bf_compositor bf_rna)

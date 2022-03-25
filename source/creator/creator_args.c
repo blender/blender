@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup creator
@@ -49,7 +35,7 @@
 #  include "BKE_context.h"
 
 #  include "BKE_global.h"
-#  include "BKE_image.h"
+#  include "BKE_image_format.h"
 #  include "BKE_lib_id.h"
 #  include "BKE_main.h"
 #  include "BKE_report.h"
@@ -276,7 +262,7 @@ static int *parse_int_relative_clamp_n(
   int i = 0;
   while (true) {
     const char *str_end = strchr(str, sep);
-    if ((*str == sep) || (*str == '\0')) {
+    if (ELEM(*str, sep, '\0')) {
       static const char *msg = "incorrect comma use";
       *r_err_msg = msg;
       goto fail;
@@ -970,9 +956,6 @@ static const char arg_handle_debug_mode_generic_set_doc_xr_time[] =
 static const char arg_handle_debug_mode_generic_set_doc_jobs[] =
     "\n\t"
     "Enable time profiling for background jobs.";
-static const char arg_handle_debug_mode_generic_set_doc_gpu[] =
-    "\n\t"
-    "Enable GPU debug context and information for OpenGL 4.3+.";
 static const char arg_handle_debug_mode_generic_set_doc_depsgraph[] =
     "\n\t"
     "Enable all debug messages from dependency graph.";
@@ -1094,6 +1077,20 @@ static int arg_handle_debug_value_set(int argc, const char **argv, void *UNUSED(
     return 1;
   }
   printf("\nError: you must specify debug value to set.\n");
+  return 0;
+}
+
+static const char arg_handle_debug_gpu_set_doc[] =
+    "\n"
+    "\tEnable GPU debug context and information for OpenGL 4.3+.";
+static int arg_handle_debug_gpu_set(int UNUSED(argc),
+                                    const char **UNUSED(argv),
+                                    void *UNUSED(data))
+{
+  /* Also enable logging because that how gl errors are reported. */
+  const char *gpu_filter = "gpu.*";
+  CLG_type_filter_include(gpu_filter, strlen(gpu_filter));
+  G.debug |= G_DEBUG_GPU;
   return 0;
 }
 
@@ -1994,9 +1991,7 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
     if (BLO_has_bfile_extension(filename)) {
       /* Just pretend a file was loaded, so the user can press Save and it'll
        * save at the filename from the CLI. */
-      BLI_strncpy(G_MAIN->name, filename, FILE_MAX);
-      G.relbase_valid = true;
-      G.save_over = true;
+      STRNCPY(G_MAIN->filepath, filename);
       printf("... opened default scene instead; saving will write to: %s\n", filename);
     }
     else {
@@ -2157,8 +2152,8 @@ void main_args_setup(bContext *C, bArgs *ba)
                "--debug-jobs",
                CB_EX(arg_handle_debug_mode_generic_set, jobs),
                (void *)G_DEBUG_JOBS);
-  BLI_args_add(
-      ba, NULL, "--debug-gpu", CB_EX(arg_handle_debug_mode_generic_set, gpu), (void *)G_DEBUG_GPU);
+  BLI_args_add(ba, NULL, "--debug-gpu", CB(arg_handle_debug_gpu_set), NULL);
+
   BLI_args_add(ba,
                NULL,
                "--debug-depsgraph",

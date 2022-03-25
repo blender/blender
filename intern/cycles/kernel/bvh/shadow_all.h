@@ -1,21 +1,8 @@
-/*
+/* SPDX-License-Identifier: Apache-2.0
  * Adapted from code Copyright 2009-2010 NVIDIA Corporation,
  * and code copyright 2009-2012 Intel Corporation
  *
- * Modifications Copyright 2011-2013, Blender Foundation.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * Modifications Copyright 2011-2022 Blender Foundation. */
 
 #if BVH_FEATURE(BVH_HAIR)
 #  define NODE_INTERSECT bvh_node_intersect
@@ -28,6 +15,7 @@
  * without new features slowing things down.
  *
  * BVH_HAIR: hair curve rendering
+ * BVH_POINTCLOUD: point cloud rendering
  * BVH_MOTION: motion blur rendering
  */
 
@@ -41,8 +29,8 @@ ccl_device_inline
                                      IntegratorShadowState state,
                                      const uint visibility,
                                      const uint max_hits,
-                                     ccl_private uint *num_recorded_hits,
-                                     ccl_private float *throughput)
+                                     ccl_private uint *r_num_recorded_hits,
+                                     ccl_private float *r_throughput)
 {
   /* todo:
    * - likely and unlikely for if() statements
@@ -72,15 +60,18 @@ ccl_device_inline
    * recorded hits is exceeded and we no longer need to find hits beyond the max
    * distance found. */
   float t_max_world = ray->t;
-  /* Equal to t_max_world when traversing top level BVH, transformed into local
-   * space when entering instances. */
-  float t_max_current = t_max_world;
+
+  /* Current maximum distance to the intersection.
+   * Is calculated as a ray length, transformed to an object space when entering
+   * instance node. */
+  float t_max_current = ray->t;
+
   /* Conversion from world to local space for the current instance if any, 1.0
    * otherwise. */
   float t_world_to_instance = 1.0f;
 
-  *num_recorded_hits = 0;
-  *throughput = 1.0f;
+  *r_num_recorded_hits = 0;
+  *r_throughput = 1.0f;
 
   /* traversal loop */
   do {
@@ -145,7 +136,7 @@ ccl_device_inline
           --stack_ptr;
 
           /* primitive intersection */
-          while (prim_addr < prim_addr2) {
+          for (; prim_addr < prim_addr2; prim_addr++) {
             kernel_assert((kernel_tex_fetch(__prim_type, prim_addr) & PRIMITIVE_ALL) ==
                           (type & PRIMITIVE_ALL));
             bool hit;
@@ -155,16 +146,32 @@ ccl_device_inline
              * might give a few % performance improvement */
             Intersection isect ccl_optional_struct_init;
 
+            const int prim_object = (object == OBJECT_NONE) ?
+                                        kernel_tex_fetch(__prim_object, prim_addr) :
+                                        object;
+            const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+            if (intersection_skip_self_shadow(ray->self, prim_object, prim)) {
+              continue;
+            }
+
             switch (type & PRIMITIVE_ALL) {
               case PRIMITIVE_TRIANGLE: {
                 hit = triangle_intersect(
-                    kg, &isect, P, dir, t_max_current, visibility, object, prim_addr);
+                    kg, &isect, P, dir, t_max_current, visibility, prim_object, prim, prim_addr);
                 break;
               }
 #if BVH_FEATURE(BVH_MOTION)
               case PRIMITIVE_MOTION_TRIANGLE: {
-                hit = motion_triangle_intersect(
-                    kg, &isect, P, dir, t_max_current, ray->time, visibility, object, prim_addr);
+                hit = motion_triangle_intersect(kg,
+                                                &isect,
+                                                P,
+                                                dir,
+                                                t_max_current,
+                                                ray->time,
+                                                visibility,
+                                                prim_object,
+                                                prim,
+                                                prim_addr);
                 break;
               }
 #endif
@@ -173,7 +180,7 @@ ccl_device_inline
               case PRIMITIVE_MOTION_CURVE_THICK:
               case PRIMITIVE_CURVE_RIBBON:
               case PRIMITIVE_MOTION_CURVE_RIBBON: {
-                if ((type & PRIMITIVE_ALL_MOTION) && kernel_data.bvh.use_bvh_steps) {
+                if ((type & PRIMITIVE_MOTION) && kernel_data.bvh.use_bvh_steps) {
                   const float2 prim_time = kernel_tex_fetch(__prim_time, prim_addr);
                   if (ray->time < prim_time.x || ray->time > prim_time.y) {
                     hit = false;
@@ -181,24 +188,30 @@ ccl_device_inline
                   }
                 }
 
-                const int curve_object = (object == OBJECT_NONE) ?
-                                             kernel_tex_fetch(__prim_object, prim_addr) :
-                                             object;
                 const int curve_type = kernel_tex_fetch(__prim_type, prim_addr);
-                const int curve_prim = kernel_tex_fetch(__prim_index, prim_addr);
-                hit = curve_intersect(kg,
-                                      &isect,
-                                      P,
-                                      dir,
-                                      t_max_current,
-                                      curve_object,
-                                      curve_prim,
-                                      ray->time,
-                                      curve_type);
+                hit = curve_intersect(
+                    kg, &isect, P, dir, t_max_current, prim_object, prim, ray->time, curve_type);
 
                 break;
               }
 #endif
+#if BVH_FEATURE(BVH_POINTCLOUD)
+              case PRIMITIVE_POINT:
+              case PRIMITIVE_MOTION_POINT: {
+                if ((type & PRIMITIVE_MOTION) && kernel_data.bvh.use_bvh_steps) {
+                  const float2 prim_time = kernel_tex_fetch(__prim_time, prim_addr);
+                  if (ray->time < prim_time.x || ray->time > prim_time.y) {
+                    hit = false;
+                    break;
+                  }
+                }
+
+                const int point_type = kernel_tex_fetch(__prim_type, prim_addr);
+                hit = point_intersect(
+                    kg, &isect, P, dir, t_max_current, prim_object, prim, ray->time, point_type);
+                break;
+              }
+#endif /* BVH_FEATURE(BVH_POINTCLOUD) */
               default: {
                 hit = false;
                 break;
@@ -226,11 +239,11 @@ ccl_device_inline
               bool record_intersection = true;
 
               /* Always use baked shadow transparency for curves. */
-              if (isect.type & PRIMITIVE_ALL_CURVE) {
-                *throughput *= intersection_curve_shadow_transparency(
+              if (isect.type & PRIMITIVE_CURVE) {
+                *r_throughput *= intersection_curve_shadow_transparency(
                     kg, isect.object, isect.prim, isect.u);
 
-                if (*throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
+                if (*r_throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
                   return true;
                 }
                 else {
@@ -239,41 +252,41 @@ ccl_device_inline
               }
 
               if (record_intersection) {
-                /* Increase the number of hits, possibly beyond max_hits, we will
-                 * simply not record those and only keep the max_hits closest. */
-                uint record_index = (*num_recorded_hits)++;
-
+                /* Test if we need to record this transparent intersection. */
                 const uint max_record_hits = min(max_hits, INTEGRATOR_SHADOW_ISECT_SIZE);
-                if (record_index >= max_record_hits - 1) {
-                  /* If maximum number of hits reached, find the intersection with
-                   * the largest distance to potentially replace when another hit
-                   * is found. */
-                  const int num_recorded_hits = min(max_record_hits, record_index);
-                  float max_recorded_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, t);
-                  int max_recorded_hit = 0;
+                if (*r_num_recorded_hits < max_record_hits || isect.t < t_max_world) {
+                  /* If maximum number of hits was reached, replace the intersection with the
+                   * highest distance. We want to find the N closest intersections. */
+                  const uint num_recorded_hits = min(*r_num_recorded_hits, max_record_hits);
+                  uint isect_index = num_recorded_hits;
+                  if (num_recorded_hits + 1 >= max_record_hits) {
+                    float max_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, t);
+                    uint max_recorded_hit = 0;
 
-                  for (int i = 1; i < num_recorded_hits; i++) {
-                    const float isect_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, i, t);
-                    if (isect_t > max_recorded_t) {
-                      max_recorded_t = isect_t;
-                      max_recorded_hit = i;
+                    for (uint i = 1; i < num_recorded_hits; ++i) {
+                      const float isect_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, i, t);
+                      if (isect_t > max_t) {
+                        max_recorded_hit = i;
+                        max_t = isect_t;
+                      }
                     }
+
+                    if (num_recorded_hits >= max_record_hits) {
+                      isect_index = max_recorded_hit;
+                    }
+
+                    /* Limit the ray distance and stop counting hits beyond this. */
+                    t_max_world = max(isect.t, max_t);
                   }
 
-                  if (record_index >= max_record_hits) {
-                    record_index = max_recorded_hit;
-                  }
-
-                  /* Limit the ray distance and stop counting hits beyond this. */
-                  t_max_world = max(max_recorded_t, isect.t);
-                  t_max_current = t_max_world * t_world_to_instance;
+                  integrator_state_write_shadow_isect(state, &isect, isect_index);
                 }
 
-                integrator_state_write_shadow_isect(state, &isect, record_index);
+                /* Always increase the number of recorded hits, even beyond the maximum,
+                 * so that we can detect this and trace another ray if needed. */
+                ++(*r_num_recorded_hits);
               }
             }
-
-            prim_addr++;
           }
         }
         else {
@@ -310,7 +323,7 @@ ccl_device_inline
 #endif
 
       /* Restore world space ray length. */
-      t_max_current = t_max_world;
+      t_max_current = ray->t;
 
       object = OBJECT_NONE;
       t_world_to_instance = 1.0f;

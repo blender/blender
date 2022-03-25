@@ -4,77 +4,42 @@
 
 #define MID_VERTEX 65
 
-/* u is position along the curve, defining the tangent space.
- * v is "signed" distance (compressed to [0..1] range) from the pos in expand direction */
-in vec2 uv;
-in vec2 pos; /* verts position in the curve tangent space */
-in vec2 expand;
-
-#ifdef USE_INSTANCE
-/* Instance attrs. */
-in vec2 P0;
-in vec2 P1;
-in vec2 P2;
-in vec2 P3;
-in ivec4 colid_doarrow;
-in vec4 start_color;
-in vec4 end_color;
-in ivec2 domuted;
-in float dim_factor;
-in float thickness;
-in float dash_factor;
-in float dash_alpha;
-
-uniform vec4 colors[6];
-
-#  define colStart (colid_doarrow[0] < 3 ? start_color : colors[colid_doarrow[0]])
-#  define colEnd (colid_doarrow[1] < 3 ? end_color : colors[colid_doarrow[1]])
-#  define colShadow colors[colid_doarrow[2]]
-#  define doArrow (colid_doarrow[3] != 0)
-#  define doMuted (domuted[0] != 0)
-
-#else
-/* Single curve drawcall, use uniform. */
-uniform vec2 bezierPts[4];
-
-#  define P0 bezierPts[0]
-#  define P1 bezierPts[1]
-#  define P2 bezierPts[2]
-#  define P3 bezierPts[3]
-
-uniform vec4 colors[3];
-uniform bool doArrow;
-uniform bool doMuted;
-uniform float dim_factor;
-uniform float thickness;
-uniform float dash_factor;
-uniform float dash_alpha;
-
-#  define colShadow colors[0]
-#  define colStart colors[1]
-#  define colEnd colors[2]
-
-#endif
-
-uniform float expandSize;
-uniform float arrowSize;
-uniform mat4 ModelViewProjectionMatrix;
-
-out float colorGradient;
-out vec4 finalColor;
-out float lineU;
-flat out float lineLength;
-flat out float dashFactor;
-flat out float dashAlpha;
-flat out int isMainLine;
-
-/* Define where along the noodle the gradient will starts and ends.
- * Use 0.25 instead of 0.35-0.65, because of a visual shift issue. */
-const float start_gradient_threshold = 0.25;
-const float end_gradient_threshold = 0.55;
+/**
+ * `uv.x` is position along the curve, defining the tangent space.
+ * `uv.y` is "signed" distance (compressed to [0..1] range) from the pos in expand direction
+ * `pos` is the verts position in the curve tangent space
+ */
 
 void main(void)
 {
+  /* Define where along the noodle the gradient will starts and ends.
+   * Use 0.25 instead of 0.35-0.65, because of a visual shift issue. */
+  const float start_gradient_threshold = 0.25;
+  const float end_gradient_threshold = 0.55;
+
+#ifdef USE_INSTANCE
+#  define colStart (colid_doarrow[0] < 3 ? start_color : node_link_data.colors[colid_doarrow[0]])
+#  define colEnd (colid_doarrow[1] < 3 ? end_color : node_link_data.colors[colid_doarrow[1]])
+#  define colShadow node_link_data.colors[colid_doarrow[2]]
+#  define doArrow (colid_doarrow[3] != 0)
+#  define doMuted (domuted[0] != 0)
+#else
+  vec2 P0 = node_link_data.bezierPts[0].xy;
+  vec2 P1 = node_link_data.bezierPts[1].xy;
+  vec2 P2 = node_link_data.bezierPts[2].xy;
+  vec2 P3 = node_link_data.bezierPts[3].xy;
+  bool doArrow = node_link_data.doArrow;
+  bool doMuted = node_link_data.doMuted;
+  float dim_factor = node_link_data.dim_factor;
+  float thickness = node_link_data.thickness;
+  float dash_factor = node_link_data.dash_factor;
+  float dash_alpha = node_link_data.dash_alpha;
+
+  vec4 colShadow = node_link_data.colors[0];
+  vec4 colStart = node_link_data.colors[1];
+  vec4 colEnd = node_link_data.colors[2];
+#endif
+
   /* Parameters for the dashed line. */
   isMainLine = expand.y != 1.0 ? 0 : 1;
   dashFactor = dash_factor;
@@ -101,7 +66,7 @@ void main(void)
   vec2 normal = tangent.yx * vec2(-1.0, 1.0);
 
   /* Position vertex on the curve tangent space */
-  point += (pos.x * tangent + pos.y * normal) * arrowSize;
+  point += (pos.x * tangent + pos.y * normal) * node_link_data.arrowSize;
 
   gl_Position = ModelViewProjectionMatrix * vec4(point, 0.0, 1.0);
 
@@ -139,7 +104,7 @@ void main(void)
   finalColor[3] *= dim_factor;
 
   /* Expand into a line */
-  gl_Position.xy += exp_axis * expandSize * expand_dist * thickness;
+  gl_Position.xy += exp_axis * node_link_data.expandSize * expand_dist * thickness;
 
   /* If the link is not muted or is not a reroute arrow the points are squashed to the center of
    * the line. Magic numbers are defined in drawnode.c */

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup creator
@@ -117,11 +103,11 @@ static void sig_handle_crash(int signum)
     if (memfile) {
       char fname[FILE_MAX];
 
-      if (!(G_MAIN && G_MAIN->name[0])) {
+      if (!(G_MAIN && G_MAIN->filepath[0])) {
         BLI_join_dirfile(fname, sizeof(fname), BKE_tempdir_base(), "crash.blend");
       }
       else {
-        BLI_strncpy(fname, G_MAIN->name, sizeof(fname));
+        STRNCPY(fname, G_MAIN->filepath);
         BLI_path_extension_replace(fname, sizeof(fname), ".crash.blend");
       }
 
@@ -138,11 +124,12 @@ static void sig_handle_crash(int signum)
 
   char fname[FILE_MAX];
 
-  if (!(G_MAIN && G_MAIN->name[0])) {
+  if (!(G_MAIN && G_MAIN->filepath[0])) {
     BLI_join_dirfile(fname, sizeof(fname), BKE_tempdir_base(), "blender.crash.txt");
   }
   else {
-    BLI_join_dirfile(fname, sizeof(fname), BKE_tempdir_base(), BLI_path_basename(G_MAIN->name));
+    BLI_join_dirfile(
+        fname, sizeof(fname), BKE_tempdir_base(), BLI_path_basename(G_MAIN->filepath));
     BLI_path_extension_replace(fname, sizeof(fname), ".crash.txt");
   }
 

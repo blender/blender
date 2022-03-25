@@ -1,24 +1,8 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
- * \ingroup iksolver
+ * \ingroup intern_iksolver
  */
 
 #include "IK_QJacobian.h"
@@ -196,12 +180,12 @@ void IK_QJacobian::InvertSDLS()
   // Compute the dampeds least squeares pseudo inverse of J.
   //
   // Since J is usually not invertible (most of the times it's not even
-  // square), the psuedo inverse is used. This gives us a least squares
+  // square), the pseudo inverse is used. This gives us a least squares
   // solution.
   //
   // This is fine when the J*Jt is of full rank. When J*Jt is near to
   // singular the least squares inverse tries to minimize |J(dtheta) - dX)|
-  // and doesn't try to minimize  dTheta. This results in eratic changes in
+  // and doesn't try to minimize  dTheta. This results in erratic changes in
   // angle. The damped least squares minimizes |dtheta| to try and reduce this
   // erratic behavior.
   //
@@ -209,7 +193,7 @@ void IK_QJacobian::InvertSDLS()
   // DLS. The SDLS damps individual singular values, instead of using a single
   // damping term.
 
-  double max_angle_change = M_PI / 4.0;
+  double max_angle_change = M_PI_4;
   double epsilon = 1e-10;
   int i, j;
 
@@ -323,7 +307,7 @@ void IK_QJacobian::InvertDLS()
   // least squares solution. This is fine when the m_jjt is
   // of full rank. When m_jjt is near to singular the least squares
   // inverse tries to minimize |J(dtheta) - dX)| and doesn't
-  // try to minimize  dTheta. This results in eratic changes in angle.
+  // try to minimize  dTheta. This results in erratic changes in angle.
   // Damped least squares minimizes |dtheta| to try and reduce this
   // erratic behavior.
 

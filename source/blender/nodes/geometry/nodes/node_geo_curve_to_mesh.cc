@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_spline.hh"
 
@@ -23,9 +9,9 @@
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_curve_to_mesh_cc {
 
-static void geo_node_curve_to_mesh_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
   b.add_input<decl::Geometry>(N_("Profile Curve"))
@@ -41,29 +27,31 @@ static void geometry_set_curve_to_mesh(GeometrySet &geometry_set,
                                        const GeometrySet &profile_set,
                                        const bool fill_caps)
 {
-  const CurveEval *curve = geometry_set.get_curve_for_read();
-  const CurveEval *profile_curve = profile_set.get_curve_for_read();
+  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
+      *geometry_set.get_curves_for_read());
+  const Curves *profile_curves = profile_set.get_curves_for_read();
 
-  if (profile_curve == nullptr) {
+  if (profile_curves == nullptr) {
     Mesh *mesh = bke::curve_to_wire_mesh(*curve);
     geometry_set.replace_mesh(mesh);
   }
   else {
+    const std::unique_ptr<CurveEval> profile_curve = curves_to_curve_eval(*profile_curves);
     Mesh *mesh = bke::curve_to_mesh_sweep(*curve, *profile_curve, fill_caps);
     geometry_set.replace_mesh(mesh);
   }
 }
 
-static void geo_node_curve_to_mesh_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet curve_set = params.extract_input<GeometrySet>("Curve");
   GeometrySet profile_set = params.extract_input<GeometrySet>("Profile Curve");
   const bool fill_caps = params.extract_input<bool>("Fill Caps");
 
-  bool has_curve = false;
+  bool has_curves = false;
   curve_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (geometry_set.has_curve()) {
-      has_curve = true;
+    if (geometry_set.has_curves()) {
+      has_curves = true;
       geometry_set_curve_to_mesh(geometry_set, profile_set, fill_caps);
     }
     geometry_set.keep_only({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_INSTANCES});
@@ -72,14 +60,16 @@ static void geo_node_curve_to_mesh_exec(GeoNodeExecParams params)
   params.set_output("Mesh", std::move(curve_set));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_to_mesh_cc
 
 void register_node_type_geo_curve_to_mesh()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_to_mesh_cc;
+
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_TO_MESH, "Curve to Mesh", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_curve_to_mesh_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_curve_to_mesh_exec;
+  geo_node_type_base(&ntype, GEO_NODE_CURVE_TO_MESH, "Curve to Mesh", NODE_CLASS_GEOMETRY);
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

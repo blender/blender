@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2011 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup blt
@@ -44,30 +28,25 @@ const char *BLT_translate_do_iface(const char *msgctxt, const char *msgid);
 const char *BLT_translate_do_tooltip(const char *msgctxt, const char *msgid);
 const char *BLT_translate_do_new_dataname(const char *msgctxt, const char *msgid);
 
+/**
+ * Note that "lang" here is the _output_ display language. We used to restrict
+ * IME for keyboard _input_ language because our multilingual font was only used
+ * when some output languages were selected. That font is used all the time now.
+ */
 bool BLT_lang_is_ime_supported(void);
 
 /* The "translation-marker" macro. */
 #define N_(msgid) msgid
 #define CTX_N_(context, msgid) msgid
 
-/* Those macros should be used everywhere in UI code. */
-#ifdef WITH_INTERNATIONAL
+/* These macros should be used everywhere in UI code. */
 /*#  define _(msgid) BLT_gettext(msgid) */
-#  define IFACE_(msgid) BLT_translate_do_iface(NULL, msgid)
-#  define TIP_(msgid) BLT_translate_do_tooltip(NULL, msgid)
-#  define DATA_(msgid) BLT_translate_do_new_dataname(NULL, msgid)
-#  define CTX_IFACE_(context, msgid) BLT_translate_do_iface(context, msgid)
-#  define CTX_TIP_(context, msgid) BLT_translate_do_tooltip(context, msgid)
-#  define CTX_DATA_(context, msgid) BLT_translate_do_new_dataname(context, msgid)
-#else
-/*#  define _(msgid) msgid */
-#  define IFACE_(msgid) msgid
-#  define TIP_(msgid) msgid
-#  define DATA_(msgid) msgid
-#  define CTX_IFACE_(context, msgid) ((void)(0 ? (context) : 0), msgid)
-#  define CTX_TIP_(context, msgid) ((void)(0 ? (context) : 0), msgid)
-#  define CTX_DATA_(context, msgid) ((void)(0 ? (context) : 0), msgid)
-#endif
+#define IFACE_(msgid) BLT_translate_do_iface(NULL, msgid)
+#define TIP_(msgid) BLT_translate_do_tooltip(NULL, msgid)
+#define DATA_(msgid) BLT_translate_do_new_dataname(NULL, msgid)
+#define CTX_IFACE_(context, msgid) BLT_translate_do_iface(context, msgid)
+#define CTX_TIP_(context, msgid) BLT_translate_do_tooltip(context, msgid)
+#define CTX_DATA_(context, msgid) BLT_translate_do_new_dataname(context, msgid)
 
 /* Helper macro, when we want to define a same msgid for multiple msgctxt...
  * Does nothing in C, but is "parsed" by our i18n py tools.
@@ -113,10 +92,10 @@ bool BLT_lang_is_ime_supported(void);
 #define BLT_I18NCONTEXT_ID_CAMERA "Camera"
 #define BLT_I18NCONTEXT_ID_CACHEFILE "CacheFile"
 #define BLT_I18NCONTEXT_ID_COLLECTION "Collection"
-#define BLT_I18NCONTEXT_ID_CURVE "Curve"
+#define BLT_I18NCONTEXT_ID_CURVE_LEGACY "Curve"
 #define BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE "FreestyleLineStyle"
 #define BLT_I18NCONTEXT_ID_GPENCIL "GPencil"
-#define BLT_I18NCONTEXT_ID_HAIR "Hair"
+#define BLT_I18NCONTEXT_ID_CURVES "Curves"
 #define BLT_I18NCONTEXT_ID_ID "ID"
 #define BLT_I18NCONTEXT_ID_IMAGE "Image"
 // #define BLT_I18NCONTEXT_ID_IPO "Ipo" /* DEPRECATED */
@@ -150,6 +129,9 @@ bool BLT_lang_is_ime_supported(void);
 #define BLT_I18NCONTEXT_ID_MOVIECLIP "MovieClip"
 #define BLT_I18NCONTEXT_ID_MASK "Mask"
 
+/* Editors-types contexts. */
+#define BLT_I18NCONTEXT_EDITOR_VIEW3D "View3D"
+
 /* Helper for bpy.app.i18n object... */
 typedef struct {
   const char *c_id;
@@ -175,10 +157,10 @@ typedef struct {
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_CAMERA, "id_camera"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_CACHEFILE, "id_cachefile"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_COLLECTION, "id_collection"), \
-        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_CURVE, "id_curve"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "id_curve"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_FREESTYLELINESTYLE, "id_fs_linestyle"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_GPENCIL, "id_gpencil"), \
-        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_HAIR, "id_hair"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_CURVES, "id_curves"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_ID, "id_id"), \
         BLT_I18NCONTEXTS_ITEM( \
             BLT_I18NCONTEXT_ID_IMAGE, \
@@ -212,6 +194,7 @@ typedef struct {
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_WORLD, "id_world"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_WORKSPACE, "id_workspace"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "id_windowmanager"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_EDITOR_VIEW3D, "editor_view3d"), \
     { \
       NULL, NULL, NULL \
     } \

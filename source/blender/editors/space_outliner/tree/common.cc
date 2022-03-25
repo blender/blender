@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spoutliner
@@ -20,10 +6,19 @@
  * Functions and helpers shared between tree-display types or other tree related code.
  */
 
+#include "BLI_listbase.h"
+
 #include "BKE_idtype.h"
 
-#include "RNA_access.h"
+#include "DNA_anim_types.h"
+#include "DNA_object_types.h"
+#include "DNA_outliner_types.h"
 
+#include "RNA_access.h"
+#include "RNA_prototypes.h"
+
+#include "../outliner_intern.hh"
+#include "common.hh"
 #include "tree_display.hh"
 
 /* -------------------------------------------------------------------- */
@@ -38,3 +33,33 @@ const char *outliner_idcode_to_plural(short idcode)
 }
 
 /** \} */
+
+void outliner_make_object_parent_hierarchy(ListBase *lb)
+{
+  /* build hierarchy */
+  /* XXX also, set extents here... */
+  TreeElement *te = reinterpret_cast<TreeElement *>(lb->first);
+  while (te) {
+    TreeElement *ten = te->next;
+    TreeStoreElem *tselem = TREESTORE(te);
+
+    if ((tselem->type == TSE_SOME_ID) && te->idcode == ID_OB) {
+      Object *ob = (Object *)tselem->id;
+      if (ob->parent && ob->parent->id.newid) {
+        BLI_remlink(lb, te);
+        TreeElement *tep = (TreeElement *)ob->parent->id.newid;
+        BLI_addtail(&tep->subtree, te);
+        te->parent = tep;
+      }
+    }
+    te = ten;
+  }
+}
+
+bool outliner_animdata_test(const AnimData *adt)
+{
+  if (adt) {
+    return (adt->action || adt->drivers.first || adt->nla_tracks.first);
+  }
+  return false;
+}

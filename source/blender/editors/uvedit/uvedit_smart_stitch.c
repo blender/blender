@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup eduv
@@ -59,6 +43,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -2561,7 +2546,7 @@ static StitchState *stitch_select(bContext *C,
       return state;
     }
   }
-  else if (uv_find_nearest_edge_multi(scene, ssc->objects, ssc->objects_len, co, &hit)) {
+  else if (uv_find_nearest_edge_multi(scene, ssc->objects, ssc->objects_len, co, 0.0f, &hit)) {
     /* find StitchState from hit->ob */
     StitchState *state = NULL;
     for (uint ob_index = 0; ob_index < ssc->objects_len; ob_index++) {
@@ -2614,7 +2599,7 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
       /* Increase limit */
     case EVT_PADPLUSKEY:
     case WHEELUPMOUSE:
-      if (event->val == KM_PRESS && event->alt) {
+      if ((event->val == KM_PRESS) && (event->modifier & KM_ALT)) {
         ssc->limit_dist += 0.01f;
         if (!stitch_process_data(ssc, active_state, scene, false)) {
           stitch_cancel(C, op);
@@ -2628,7 +2613,7 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
       /* Decrease limit */
     case EVT_PADMINUS:
     case WHEELDOWNMOUSE:
-      if (event->val == KM_PRESS && event->alt) {
+      if ((event->val == KM_PRESS) && (event->modifier & KM_ALT)) {
         ssc->limit_dist -= 0.01f;
         ssc->limit_dist = MAX2(0.01f, ssc->limit_dist);
         if (!stitch_process_data(ssc, active_state, scene, false)) {
@@ -2689,7 +2674,7 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
       /* Select geometry */
     case RIGHTMOUSE:
-      if (!event->shift) {
+      if ((event->modifier & KM_SHIFT) == 0) {
         stitch_cancel(C, op);
         return OPERATOR_CANCELLED;
       }

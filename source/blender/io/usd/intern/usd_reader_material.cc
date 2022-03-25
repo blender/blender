@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2021 NVIDIA Corporation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2021 NVIDIA Corporation. All rights reserved. */
 
 #include "usd_reader_material.h"
 
@@ -25,6 +9,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
+#include "BKE_node_tree_update.h"
 
 #include "BLI_fileops.h"
 #include "BLI_math_vector.h"
@@ -487,7 +472,6 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
   return mtl;
 }
 
-/* Create the Principled BSDF shader node network. */
 void USDMaterialReader::import_usd_preview(Material *mtl,
                                            const pxr::UsdShadeShader &usd_shader) const
 {
@@ -529,7 +513,7 @@ void USDMaterialReader::import_usd_preview(Material *mtl,
 
   nodeSetActive(ntree, output);
 
-  ntreeUpdateTree(bmain_, ntree);
+  BKE_ntree_update_main_tree(bmain_, ntree, nullptr);
 
   /* Optionally, set the material blend mode. */
 
@@ -605,7 +589,6 @@ void USDMaterialReader::set_principled_node_inputs(bNode *principled,
   }
 }
 
-/* Convert the given USD shader input to an input on the given Blender node. */
 void USDMaterialReader::set_node_input(const pxr::UsdShadeInput &usd_input,
                                        bNode *dest_node,
                                        const char *dest_socket_name,
@@ -673,8 +656,6 @@ void USDMaterialReader::set_node_input(const pxr::UsdShadeInput &usd_input,
   }
 }
 
-/* Follow the connected source of the USD input to create corresponding inputs
- * for the given Blender node. */
 void USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
                                           bNode *dest_node,
                                           const char *dest_socket_name,
@@ -783,8 +764,6 @@ void USDMaterialReader::convert_usd_uv_texture(const pxr::UsdShadeShader &usd_sh
   }
 }
 
-/* Load the texture image node's texture from the path given by the USD shader's
- * file input value. */
 void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
                                        bNode *tex_image) const
 {
@@ -889,10 +868,6 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
   storage->extension = get_image_extension(usd_shader, storage->extension);
 }
 
-/* This function creates a Blender UV Map node, under the simplifying assumption that
- * UsdPrimvarReader_float2 shaders output UV coordinates.
- * TODO(makowalski): investigate supporting conversion to other Blender node types
- * (e.g., Attribute Nodes) if needed. */
 void USDMaterialReader::convert_usd_primvar_reader_float2(
     const pxr::UsdShadeShader &usd_shader,
     const pxr::TfToken & /* usd_source_name */,

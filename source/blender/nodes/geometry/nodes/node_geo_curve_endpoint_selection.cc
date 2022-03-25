@@ -1,29 +1,15 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_spline.hh"
+#include "BKE_curves.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_curve_endpoint_selection_cc {
 
-static void geo_node_curve_endpoint_selection_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>(N_("Start Size"))
       .min(0)
@@ -41,79 +27,62 @@ static void geo_node_curve_endpoint_selection_declare(NodeDeclarationBuilder &b)
           N_("The selection from the start and end of the splines based on the input sizes"));
 }
 
-static void select_by_spline(const int start, const int end, MutableSpan<bool> r_selection)
-{
-  const int size = r_selection.size();
-  const int start_use = std::min(start, size);
-  const int end_use = std::min(end, size);
-
-  r_selection.slice(0, start_use).fill(true);
-  r_selection.slice(size - end_use, end_use).fill(true);
-}
-
-class EndpointFieldInput final : public fn::FieldInput {
+class EndpointFieldInput final : public GeometryFieldInput {
   Field<int> start_size_;
   Field<int> end_size_;
 
  public:
   EndpointFieldInput(Field<int> start_size, Field<int> end_size)
-      : FieldInput(CPPType::get<bool>(), "Endpoint Selection node"),
+      : GeometryFieldInput(CPPType::get<bool>(), "Endpoint Selection node"),
         start_size_(start_size),
         end_size_(end_size)
   {
     category_ = Category::Generated;
   }
 
-  GVArray get_varray_for_context(const fn::FieldContext &context,
-                                 IndexMask UNUSED(mask),
-                                 ResourceScope &UNUSED(scope)) const final
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 const AttributeDomain domain,
+                                 IndexMask UNUSED(mask)) const final
   {
-    if (const GeometryComponentFieldContext *geometry_context =
-            dynamic_cast<const GeometryComponentFieldContext *>(&context)) {
-
-      const GeometryComponent &component = geometry_context->geometry_component();
-      const AttributeDomain domain = geometry_context->domain();
-      if (component.type() != GEO_COMPONENT_TYPE_CURVE || domain != ATTR_DOMAIN_POINT) {
-        return nullptr;
-      }
-
-      const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-      const CurveEval *curve = curve_component.get_for_read();
-
-      Array<int> control_point_offsets = curve->control_point_offsets();
-
-      if (curve == nullptr || control_point_offsets.last() == 0) {
-        return nullptr;
-      }
-
-      GeometryComponentFieldContext size_context{curve_component, ATTR_DOMAIN_CURVE};
-      fn::FieldEvaluator evaluator{size_context, curve->splines().size()};
-      evaluator.add(start_size_);
-      evaluator.add(end_size_);
-      evaluator.evaluate();
-      const VArray<int> &start_size = evaluator.get_evaluated<int>(0);
-      const VArray<int> &end_size = evaluator.get_evaluated<int>(1);
-
-      const int point_size = control_point_offsets.last();
-      Array<bool> selection(point_size, false);
-      int current_point = 0;
-      MutableSpan<bool> selection_span = selection.as_mutable_span();
-      for (int i : IndexRange(curve->splines().size())) {
-        const SplinePtr &spline = curve->splines()[i];
-        if (start_size[i] <= 0 && end_size[i] <= 0) {
-          selection_span.slice(current_point, spline->size()).fill(false);
-        }
-        else {
-          int start_use = std::max(start_size[i], 0);
-          int end_use = std::max(end_size[i], 0);
-          select_by_spline(
-              start_use, end_use, selection_span.slice(current_point, spline->size()));
-        }
-        current_point += spline->size();
-      }
-      return VArray<bool>::ForContainer(std::move(selection));
+    if (component.type() != GEO_COMPONENT_TYPE_CURVE || domain != ATTR_DOMAIN_POINT) {
+      return nullptr;
     }
-    return {};
+
+    const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
+    if (!curve_component.has_curves()) {
+      return nullptr;
+    }
+
+    const Curves &curves_id = *curve_component.get_for_read();
+    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+    if (curves.points_size() == 0) {
+      return nullptr;
+    }
+
+    GeometryComponentFieldContext size_context{curve_component, ATTR_DOMAIN_CURVE};
+    fn::FieldEvaluator evaluator{size_context, curves.curves_size()};
+    evaluator.add(start_size_);
+    evaluator.add(end_size_);
+    evaluator.evaluate();
+    const VArray<int> &start_size = evaluator.get_evaluated<int>(0);
+    const VArray<int> &end_size = evaluator.get_evaluated<int>(1);
+
+    Array<bool> selection(curves.points_size(), false);
+    MutableSpan<bool> selection_span = selection.as_mutable_span();
+    devirtualize_varray2(start_size, end_size, [&](const auto &start_size, const auto &end_size) {
+      threading::parallel_for(curves.curves_range(), 1024, [&](IndexRange curves_range) {
+        for (const int i : curves_range) {
+          const IndexRange range = curves.range_for_curve(i);
+          const int start = std::max(start_size[i], 0);
+          const int end = std::max(end_size[i], 0);
+
+          selection_span.slice(range.take_front(start)).fill(true);
+          selection_span.slice(range.take_back(end)).fill(true);
+        }
+      });
+    });
+
+    return VArray<bool>::ForContainer(std::move(selection));
   };
 
   uint64_t hash() const override
@@ -131,23 +100,25 @@ class EndpointFieldInput final : public fn::FieldInput {
   }
 };
 
-static void geo_node_curve_endpoint_selection_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   Field<int> start_size = params.extract_input<Field<int>>("Start Size");
   Field<int> end_size = params.extract_input<Field<int>>("End Size");
   Field<bool> selection_field{std::make_shared<EndpointFieldInput>(start_size, end_size)};
   params.set_output("Selection", std::move(selection_field));
 }
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_endpoint_selection_cc
 
 void register_node_type_geo_curve_endpoint_selection()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_endpoint_selection_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_CURVE_ENDPOINT_SELECTION, "Endpoint Selection", NODE_CLASS_INPUT, 0);
-  ntype.declare = blender::nodes::geo_node_curve_endpoint_selection_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_curve_endpoint_selection_exec;
+      &ntype, GEO_NODE_CURVE_ENDPOINT_SELECTION, "Endpoint Selection", NODE_CLASS_INPUT);
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
 
   nodeRegisterType(&ntype);
 }

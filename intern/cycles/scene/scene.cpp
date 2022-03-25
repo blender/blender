@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include <stdlib.h>
 
@@ -30,6 +17,7 @@
 #include "scene/object.h"
 #include "scene/osl.h"
 #include "scene/particles.h"
+#include "scene/pointcloud.h"
 #include "scene/procedural.h"
 #include "scene/scene.h"
 #include "scene/shader.h"
@@ -64,16 +52,20 @@ DeviceScene::DeviceScene(Device *device)
       curve_keys(device, "__curve_keys", MEM_GLOBAL),
       curve_segments(device, "__curve_segments", MEM_GLOBAL),
       patches(device, "__patches", MEM_GLOBAL),
+      points(device, "__points", MEM_GLOBAL),
+      points_shader(device, "__points_shader", MEM_GLOBAL),
       objects(device, "__objects", MEM_GLOBAL),
       object_motion_pass(device, "__object_motion_pass", MEM_GLOBAL),
       object_motion(device, "__object_motion", MEM_GLOBAL),
       object_flag(device, "__object_flag", MEM_GLOBAL),
       object_volume_step(device, "__object_volume_step", MEM_GLOBAL),
+      object_prim_offset(device, "__object_prim_offset", MEM_GLOBAL),
       camera_motion(device, "__camera_motion", MEM_GLOBAL),
       attributes_map(device, "__attributes_map", MEM_GLOBAL),
       attributes_float(device, "__attributes_float", MEM_GLOBAL),
       attributes_float2(device, "__attributes_float2", MEM_GLOBAL),
       attributes_float3(device, "__attributes_float3", MEM_GLOBAL),
+      attributes_float4(device, "__attributes_float4", MEM_GLOBAL),
       attributes_uchar4(device, "__attributes_uchar4", MEM_GLOBAL),
       light_distribution(device, "__light_distribution", MEM_GLOBAL),
       lights(device, "__lights", MEM_GLOBAL),
@@ -311,6 +303,12 @@ void Scene::device_update(Device *device_, Progress &progress)
   if (progress.get_cancel() || device->have_error())
     return;
 
+  progress.set_status("Updating Primitive Offsets");
+  object_manager->device_update_prim_offsets(device, &dscene, this);
+
+  if (progress.get_cancel() || device->have_error())
+    return;
+
   progress.set_status("Updating Images");
   image_manager->device_update(device, this, progress);
 
@@ -515,6 +513,9 @@ void Scene::update_kernel_features()
     else if (geom->is_hair()) {
       kernel_features |= KERNEL_FEATURE_HAIR;
     }
+    else if (geom->is_pointcloud()) {
+      kernel_features |= KERNEL_FEATURE_POINTCLOUD;
+    }
   }
 
   if (bake_manager->get_baking()) {
@@ -556,7 +557,6 @@ static void log_kernel_features(const uint features)
           << "\n";
   VLOG(2) << "Use Emission " << string_from_bool(features & KERNEL_FEATURE_NODE_EMISSION) << "\n";
   VLOG(2) << "Use Volume " << string_from_bool(features & KERNEL_FEATURE_NODE_VOLUME) << "\n";
-  VLOG(2) << "Use Hair " << string_from_bool(features & KERNEL_FEATURE_NODE_HAIR) << "\n";
   VLOG(2) << "Use Bump " << string_from_bool(features & KERNEL_FEATURE_NODE_BUMP) << "\n";
   VLOG(2) << "Use Voronoi " << string_from_bool(features & KERNEL_FEATURE_NODE_VORONOI_EXTRA)
           << "\n";
@@ -567,6 +567,7 @@ static void log_kernel_features(const uint features)
   VLOG(2) << "Use Path Tracing " << string_from_bool(features & KERNEL_FEATURE_PATH_TRACING)
           << "\n";
   VLOG(2) << "Use Hair " << string_from_bool(features & KERNEL_FEATURE_HAIR) << "\n";
+  VLOG(2) << "Use Pointclouds " << string_from_bool(features & KERNEL_FEATURE_POINTCLOUD) << "\n";
   VLOG(2) << "Use Object Motion " << string_from_bool(features & KERNEL_FEATURE_OBJECT_MOTION)
           << "\n";
   VLOG(2) << "Use Camera Motion " << string_from_bool(features & KERNEL_FEATURE_CAMERA_MOTION)
@@ -749,6 +750,15 @@ template<> Volume *Scene::create_node<Volume>()
   return node;
 }
 
+template<> PointCloud *Scene::create_node<PointCloud>()
+{
+  PointCloud *node = new PointCloud();
+  node->set_owner(this);
+  geometry.push_back(node);
+  geometry_manager->tag_update(this, GeometryManager::POINT_ADDED);
+  return node;
+}
+
 template<> Object *Scene::create_node<Object>()
 {
   Object *node = new Object();
@@ -834,6 +844,12 @@ template<> void Scene::delete_node_impl(Volume *node)
 {
   delete_node_from_array(geometry, static_cast<Geometry *>(node));
   geometry_manager->tag_update(this, GeometryManager::MESH_REMOVED);
+}
+
+template<> void Scene::delete_node_impl(PointCloud *node)
+{
+  delete_node_from_array(geometry, static_cast<Geometry *>(node));
+  geometry_manager->tag_update(this, GeometryManager::POINT_REMOVED);
 }
 
 template<> void Scene::delete_node_impl(Geometry *node)

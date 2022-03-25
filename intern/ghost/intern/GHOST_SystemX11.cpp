@@ -1,23 +1,7 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- * Part of this code has been taken from Qt, under LGPL license
- * Copyright (C) 2009 Nokia Corporation and/or its subsidiary(-ies).
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved.
+ *           2009 Nokia Corporation and/or its subsidiary(-ies).
+ *                Part of this code has been taken from Qt, under LGPL license. */
 
 /** \file
  * \ingroup GHOST
@@ -714,7 +698,7 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
       anyProcessed = true;
 
 #ifdef USE_UNITY_WORKAROUND
-      /* note: processEvent() can't include this code because
+      /* NOTE: processEvent() can't include this code because
        * KeymapNotify event have no valid window information. */
 
       /* the X server generates KeymapNotify event immediately after
@@ -1514,7 +1498,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
            * around tablet surface */
           window->GetTabletData().Active = xtablet.mode;
 
-          /* Note: This event might be generated with incomplete data-set
+          /* NOTE: This event might be generated with incomplete data-set
            * (don't exactly know why, looks like in some cases, if the value does not change,
            * it is not included in subsequent #XDeviceMotionEvent events).
            * So we have to check which values this event actually contains!
@@ -2278,6 +2262,7 @@ void GHOST_SystemX11::putClipboard(const char *buffer, bool selection) const
 /* -------------------------------------------------------------------- */
 /** \name Message Box
  * \{ */
+
 class DialogData {
  public:
   /* Width of the dialog. */

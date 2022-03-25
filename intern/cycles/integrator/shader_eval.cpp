@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "integrator/shader_eval.h"
 
@@ -157,15 +144,17 @@ bool ShaderEval::eval_gpu(Device *device,
   queue->init_execution();
 
   /* Execute work on GPU in chunk, so we can cancel.
-   * TODO : query appropriate size from device.*/
-  const int64_t chunk_size = 65536;
+   * TODO: query appropriate size from device. */
+  const int32_t chunk_size = 65536;
 
-  void *d_input = (void *)input.device_pointer;
-  void *d_output = (void *)output.device_pointer;
+  device_ptr d_input = input.device_pointer;
+  device_ptr d_output = output.device_pointer;
 
-  for (int64_t d_offset = 0; d_offset < work_size; d_offset += chunk_size) {
-    int64_t d_work_size = std::min(chunk_size, work_size - d_offset);
-    void *args[] = {&d_input, &d_output, &d_offset, &d_work_size};
+  assert(work_size <= 0x7fffffff);
+  for (int32_t d_offset = 0; d_offset < int32_t(work_size); d_offset += chunk_size) {
+    int32_t d_work_size = std::min(chunk_size, int32_t(work_size) - d_offset);
+
+    DeviceKernelArguments args(&d_input, &d_output, &d_offset, &d_work_size);
 
     queue->enqueue(kernel, d_work_size, args);
     queue->synchronize();

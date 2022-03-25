@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #ifdef WITH_HIP
 
@@ -89,7 +76,9 @@ bool HIPDeviceQueue::kernel_available(DeviceKernel kernel) const
   return hip_device_->kernels.available(kernel);
 }
 
-bool HIPDeviceQueue::enqueue(DeviceKernel kernel, const int work_size, void *args[])
+bool HIPDeviceQueue::enqueue(DeviceKernel kernel,
+                             const int work_size,
+                             DeviceKernelArguments const &args)
 {
   if (hip_device_->have_error()) {
     return false;
@@ -132,7 +121,7 @@ bool HIPDeviceQueue::enqueue(DeviceKernel kernel, const int work_size, void *arg
                                        1,
                                        shared_mem_bytes,
                                        hip_stream_,
-                                       args,
+                                       const_cast<void **>(args.values),
                                        0),
                  "enqueue");
 

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 by Nicholas Bishop
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 by Nicholas Bishop. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -143,6 +127,7 @@ IDTypeInfo IDType_ID_PAL = {
     .name_plural = "palettes",
     .translation_context = BLT_I18NCONTEXT_ID_PALETTE,
     .flags = IDTYPE_FLAGS_NO_ANIMDATA,
+    .asset_type_info = NULL,
 
     .init_data = palette_init_data,
     .copy_data = palette_copy_data,
@@ -150,6 +135,7 @@ IDTypeInfo IDType_ID_PAL = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = palette_blend_write,
@@ -208,6 +194,7 @@ IDTypeInfo IDType_ID_PC = {
     .name_plural = "paint_curves",
     .translation_context = BLT_I18NCONTEXT_ID_PAINTCURVE,
     .flags = IDTYPE_FLAGS_NO_ANIMDATA,
+    .asset_type_info = NULL,
 
     .init_data = NULL,
     .copy_data = paint_curve_copy_data,
@@ -215,6 +202,7 @@ IDTypeInfo IDType_ID_PC = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = NULL,
+    .foreach_path = NULL,
     .owner_get = NULL,
 
     .blend_write = paint_curve_blend_write,
@@ -339,6 +327,9 @@ bool BKE_paint_ensure_from_paintmode(Scene *sce, ePaintMode mode)
     case PAINT_MODE_WEIGHT_GPENCIL:
       paint_ptr = (Paint **)&ts->gp_weightpaint;
       break;
+    case PAINT_MODE_SCULPT_CURVES:
+      paint_ptr = (Paint **)&ts->curves_sculpt;
+      break;
     case PAINT_MODE_INVALID:
       break;
   }
@@ -374,6 +365,8 @@ Paint *BKE_paint_get_active_from_paintmode(Scene *sce, ePaintMode mode)
         return &ts->gp_sculptpaint->paint;
       case PAINT_MODE_WEIGHT_GPENCIL:
         return &ts->gp_weightpaint->paint;
+      case PAINT_MODE_SCULPT_CURVES:
+        return &ts->curves_sculpt->paint;
       case PAINT_MODE_INVALID:
         return NULL;
       default:
@@ -406,6 +399,8 @@ const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(ePaintMode mode)
       return rna_enum_brush_gpencil_sculpt_types_items;
     case PAINT_MODE_WEIGHT_GPENCIL:
       return rna_enum_brush_gpencil_weight_types_items;
+    case PAINT_MODE_SCULPT_CURVES:
+      return rna_enum_brush_curves_sculpt_tool_items;
     case PAINT_MODE_INVALID:
       break;
   }
@@ -434,6 +429,8 @@ const char *BKE_paint_get_tool_prop_id_from_paintmode(ePaintMode mode)
       return "gpencil_sculpt_tool";
     case PAINT_MODE_WEIGHT_GPENCIL:
       return "gpencil_weight_tool";
+    case PAINT_MODE_SCULPT_CURVES:
+      return "curves_sculpt_tool";
     case PAINT_MODE_INVALID:
       break;
   }
@@ -465,6 +462,8 @@ Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer)
           return &ts->gp_sculptpaint->paint;
         case OB_MODE_WEIGHT_GPENCIL:
           return &ts->gp_weightpaint->paint;
+        case OB_MODE_SCULPT_CURVES:
+          return &ts->curves_sculpt->paint;
         case OB_MODE_EDIT:
           return ts->uvsculpt ? &ts->uvsculpt->paint : NULL;
         default:
@@ -552,6 +551,8 @@ ePaintMode BKE_paintmode_get_active_from_context(const bContext *C)
           return PAINT_MODE_TEXTURE_3D;
         case OB_MODE_EDIT:
           return PAINT_MODE_SCULPT_UV;
+        case OB_MODE_SCULPT_CURVES:
+          return PAINT_MODE_SCULPT_CURVES;
         default:
           return PAINT_MODE_TEXTURE_2D;
       }
@@ -585,6 +586,8 @@ ePaintMode BKE_paintmode_get_from_tool(const struct bToolRef *tref)
         return PAINT_MODE_SCULPT_GPENCIL;
       case CTX_MODE_WEIGHT_GPENCIL:
         return PAINT_MODE_WEIGHT_GPENCIL;
+      case CTX_MODE_SCULPT_CURVES:
+        return PAINT_MODE_SCULPT_CURVES;
     }
   }
   else if (tref->space_type == SPACE_IMAGE) {
@@ -653,6 +656,10 @@ void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint)
     paint->runtime.tool_offset = offsetof(Brush, gpencil_weight_tool);
     paint->runtime.ob_mode = OB_MODE_WEIGHT_GPENCIL;
   }
+  else if (ts->curves_sculpt && paint == &ts->curves_sculpt->paint) {
+    paint->runtime.tool_offset = offsetof(Brush, curves_sculpt_tool);
+    paint->runtime.ob_mode = OB_MODE_SCULPT_CURVES;
+  }
   else {
     BLI_assert_unreachable();
   }
@@ -680,6 +687,8 @@ uint BKE_paint_get_brush_tool_offset_from_paintmode(const ePaintMode mode)
       return offsetof(Brush, gpencil_sculpt_tool);
     case PAINT_MODE_WEIGHT_GPENCIL:
       return offsetof(Brush, gpencil_weight_tool);
+    case PAINT_MODE_SCULPT_CURVES:
+      return offsetof(Brush, curves_sculpt_tool);
     case PAINT_MODE_INVALID:
       break; /* We don't use these yet. */
   }
@@ -723,7 +732,6 @@ void BKE_paint_curve_clamp_endpoint_add_index(PaintCurve *pc, const int add_inde
   pc->add_index = (add_index || pc->tot_points == 1) ? (add_index + 1) : 0;
 }
 
-/** Remove color from palette. Must be certain color is inside the palette! */
 void BKE_palette_color_remove(Palette *palette, PaletteColor *color)
 {
   if (BLI_listbase_count_at_most(&palette->colors, palette->active_color) ==
@@ -962,7 +970,6 @@ bool BKE_palette_from_hash(Main *bmain, GHash *color_table, const char *name, co
   return done;
 }
 
-/* are we in vertex paint or weight paint face select mode? */
 bool BKE_paint_select_face_test(Object *ob)
 {
   return ((ob != NULL) && (ob->type == OB_MESH) && (ob->data != NULL) &&
@@ -970,7 +977,6 @@ bool BKE_paint_select_face_test(Object *ob)
           (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)));
 }
 
-/* are we in weight paint vertex select mode? */
 bool BKE_paint_select_vert_test(Object *ob)
 {
   return ((ob != NULL) && (ob->type == OB_MESH) && (ob->data != NULL) &&
@@ -978,10 +984,6 @@ bool BKE_paint_select_vert_test(Object *ob)
           (ob->mode & OB_MODE_WEIGHT_PAINT || ob->mode & OB_MODE_VERTEX_PAINT));
 }
 
-/**
- * used to check if selection is possible
- * (when we don't care if its face or vert)
- */
 bool BKE_paint_select_elem_test(Object *ob)
 {
   return (BKE_paint_select_vert_test(ob) || BKE_paint_select_face_test(ob));
@@ -1024,9 +1026,6 @@ eObjectMode BKE_paint_object_mode_from_paintmode(ePaintMode mode)
   }
 }
 
-/**
- * Call when entering each respective paint mode.
- */
 bool BKE_paint_ensure(ToolSettings *ts, struct Paint **r_paint)
 {
   Paint *paint = NULL;
@@ -1050,6 +1049,7 @@ bool BKE_paint_ensure(ToolSettings *ts, struct Paint **r_paint)
                       (Paint *)ts->vpaint,
                       (Paint *)ts->wpaint,
                       (Paint *)ts->uvsculpt,
+                      (Paint *)ts->curves_sculpt,
                       (Paint *)&ts->imapaint));
 #ifdef DEBUG
       struct Paint paint_test = **r_paint;
@@ -1095,6 +1095,11 @@ bool BKE_paint_ensure(ToolSettings *ts, struct Paint **r_paint)
   }
   else if ((UvSculpt **)r_paint == &ts->uvsculpt) {
     UvSculpt *data = MEM_callocN(sizeof(*data), __func__);
+    paint = &data->paint;
+  }
+  else if ((CurvesSculpt **)r_paint == &ts->curves_sculpt) {
+    CurvesSculpt *data = MEM_callocN(sizeof(*data), __func__);
+    data->curve_length = 0.3f;
     paint = &data->paint;
   }
   else if (*r_paint == &ts->imapaint.paint) {
@@ -1147,10 +1152,6 @@ void BKE_paint_free(Paint *paint)
   MEM_SAFE_FREE(paint->tool_slots);
 }
 
-/* called when copying scene settings, so even if 'src' and 'tar' are the same
- * still do a id_us_plus(), rather than if we were copying between 2 existing
- * scenes where a matching value should decrease the existing user count as
- * with paint_brush_set() */
 void BKE_paint_copy(Paint *src, Paint *tar, const int flag)
 {
   tar->brush = src->brush;
@@ -1230,8 +1231,6 @@ void BKE_paint_blend_read_lib(BlendLibReader *reader, Scene *sce, Paint *p)
   }
 }
 
-/* returns non-zero if any of the face's vertices
- * are hidden, zero otherwise */
 bool paint_is_face_hidden(const MLoopTri *lt, const MVert *mvert, const MLoop *mloop)
 {
   return ((mvert[mloop[lt->tri[0]].v].flag & ME_HIDE) ||
@@ -1239,9 +1238,6 @@ bool paint_is_face_hidden(const MLoopTri *lt, const MVert *mvert, const MLoop *m
           (mvert[mloop[lt->tri[2]].v].flag & ME_HIDE));
 }
 
-/* returns non-zero if any of the corners of the grid
- * face whose inner corner is at (x, y) are hidden,
- * zero otherwise */
 bool paint_is_grid_face_hidden(const uint *grid_hidden, int gridsize, int x, int y)
 {
   /* skip face if any of its corners are hidden */
@@ -1251,7 +1247,6 @@ bool paint_is_grid_face_hidden(const uint *grid_hidden, int gridsize, int x, int
           BLI_BITMAP_TEST(grid_hidden, (y + 1) * gridsize + x));
 }
 
-/* Return true if all vertices in the face are visible, false otherwise */
 bool paint_is_bmesh_face_hidden(BMFace *f)
 {
   BMLoop *l_iter;
@@ -1520,9 +1515,7 @@ void BKE_sculptsession_free(Object *ob)
   }
 }
 
-/* Sculpt mode handles multires differently from regular meshes, but only if
- * it's the last modifier on the stack and it is not on the first level */
-MultiresModifierData *BKE_sculpt_multires_active(Scene *scene, Object *ob)
+MultiresModifierData *BKE_sculpt_multires_active(const Scene *scene, Object *ob)
 {
   Mesh *me = (Mesh *)ob->data;
   ModifierData *md;
@@ -1811,7 +1804,6 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
   DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
 }
 
-/** \warning Expects a fully evaluated depsgraph. */
 void BKE_sculpt_update_object_for_edit(
     Depsgraph *depsgraph, Object *ob_orig, bool need_pmap, bool need_mask, bool need_colors)
 {
@@ -1941,10 +1933,6 @@ static bool check_sculpt_object_deformed(Object *object, const bool for_construc
   return deformed;
 }
 
-/**
- * Ensures that a Face Set data-layers exists. If it does not, it creates one respecting the
- * visibility stored in the vertices of the mesh. If it does, it copies the visibility from the
- * mesh to the Face Sets. */
 void BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(Mesh *mesh)
 {
   const int face_sets_default_visible_id = 1;
@@ -2046,12 +2034,6 @@ void BKE_sculpt_sync_face_set_visibility(struct Mesh *mesh, struct SubdivCCG *su
   BKE_sculpt_sync_face_sets_visibility_to_grids(mesh, subdiv_ccg);
 }
 
-/**
- * Ensures we do have expected mesh data in original mesh for the sculpt mode.
- *
- * \note IDs are expected to be original ones here, and calling code should ensure it updates its
- * depsgraph properly after calling this function if it needs up-to-date evaluated data.
- */
 void BKE_sculpt_ensure_orig_mesh_data(Scene *scene, Object *object)
 {
   Mesh *mesh = BKE_mesh_from_object(object);
@@ -2223,8 +2205,6 @@ void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg)
                         subdiv_ccg->grid_hidden);
 }
 
-/* Test if PBVH can be used directly for drawing, which is faster than
- * drawing the mesh and all updates that come with it. */
 bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D *v3d)
 {
   SculptSession *ss = ob->sculpt;

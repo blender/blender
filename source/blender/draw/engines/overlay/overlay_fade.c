@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2020, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. */
 
 /** \file
  * \ingroup draw_engine
@@ -43,7 +28,6 @@ void OVERLAY_fade_cache_init(OVERLAY_Data *vedata)
 
     GPUShader *sh = OVERLAY_shader_uniform_color();
     pd->fade_grp[i] = DRW_shgroup_create(sh, psl->fade_ps[i]);
-    DRW_shgroup_uniform_block(pd->fade_grp[i], "globalsBlock", G_draw.block_ubo);
 
     const DRWContextState *draw_ctx = DRW_context_state_get();
     float color[4];

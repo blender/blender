@@ -4,14 +4,6 @@
 #pragma BLENDER_REQUIRE(workbench_cavity_lib.glsl)
 #pragma BLENDER_REQUIRE(workbench_curvature_lib.glsl)
 
-uniform sampler2D depthBuffer;
-uniform sampler2D normalBuffer;
-uniform usampler2D objectIdBuffer;
-
-in vec4 uvcoordsvar;
-
-out vec4 fragColor;
-
 void main()
 {
   float cavity = 0.0, edges = 0.0, curvature = 0.0;

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2017 by Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2017 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup draw
@@ -54,7 +38,7 @@
 BLI_INLINE eParticleRefineShaderType drw_hair_shader_type_get(void)
 {
 #ifdef USE_COMPUTE_SHADERS
-  if (GPU_compute_shader_support()) {
+  if (GPU_compute_shader_support() && GPU_shader_storage_buffer_objects_support()) {
     return PART_REFINE_SHADER_COMPUTE;
   }
 #endif
@@ -130,7 +114,7 @@ static void drw_hair_particle_cache_update_compute(ParticleHairCache *cache, con
     GPUShader *shader = hair_refine_shader_get(PART_REFINE_CATMULL_ROM);
     DRWShadingGroup *shgrp = DRW_shgroup_create(shader, g_tf_pass);
     drw_hair_particle_cache_shgrp_attach_resources(shgrp, cache, subdiv);
-    DRW_shgroup_vertex_buffer(shgrp, "hairPointOutputBuffer", cache->final[subdiv].proc_buf);
+    DRW_shgroup_vertex_buffer(shgrp, "posTime", cache->final[subdiv].proc_buf);
 
     const int max_strands_per_call = GPU_max_work_group_count(0);
     int strands_start = 0;
@@ -203,7 +187,6 @@ static ParticleHairCache *drw_hair_particle_cache_get(Object *object,
   return cache;
 }
 
-/* NOTE: Only valid after DRW_hair_update(). */
 GPUVertBuf *DRW_hair_pos_buffer_get(Object *object, ParticleSystem *psys, ModifierData *md)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();

@@ -50,7 +50,7 @@ int SolveCubicPolynomial(Real a, Real b, Real c, Real* x0, Real* x1, Real* x2) {
   Real CQ3 = 2916 * q * q * q;
 
   if (R == 0 && Q == 0) {
-    // Tripple root in one place.
+    // Triple root in one place.
     *x0 = *x1 = *x2 = -a / 3;
     return 3;
 

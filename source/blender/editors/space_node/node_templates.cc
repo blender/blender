@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -37,8 +23,10 @@
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_node_tree_update.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.h"
@@ -52,8 +40,9 @@
 
 #include "ED_undo.h"
 
-using blender::Vector;
 using blender::nodes::NodeDeclaration;
+
+namespace blender::ed::space_node {
 
 /************************* Node Socket Manipulation **************************/
 
@@ -80,11 +69,11 @@ static bool node_link_item_compare(bNode *node, NodeLinkItem *item)
   return true;
 }
 
-static void node_link_item_apply(Main *bmain, bNode *node, NodeLinkItem *item)
+static void node_link_item_apply(bNodeTree *ntree, bNode *node, NodeLinkItem *item)
 {
   if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
     node->id = (ID *)item->ngroup;
-    ntreeUpdateTree(bmain, item->ngroup);
+    BKE_ntree_update_tag_node_property(ntree, node);
   }
   else {
     /* nothing to do for now */
@@ -179,10 +168,8 @@ static void node_socket_disconnect(Main *bmain,
   nodeRemLink(ntree, sock_to->link);
   sock_to->flag |= SOCK_COLLAPSED;
 
-  nodeUpdate(ntree, node_to);
-  ntreeUpdateTree(bmain, ntree);
-
-  ED_node_tag_update_nodetree(bmain, ntree, node_to);
+  BKE_ntree_update_tag_node_property(ntree, node_to);
+  ED_node_tree_propagate_change(nullptr, bmain, ntree);
 }
 
 /* remove all nodes connected to this socket, if they aren't connected to other nodes */
@@ -195,10 +182,8 @@ static void node_socket_remove(Main *bmain, bNodeTree *ntree, bNode *node_to, bN
   node_remove_linked(bmain, ntree, sock_to->link->fromnode);
   sock_to->flag |= SOCK_COLLAPSED;
 
-  nodeUpdate(ntree, node_to);
-  ntreeUpdateTree(bmain, ntree);
-
-  ED_node_tag_update_nodetree(bmain, ntree, node_to);
+  BKE_ntree_update_tag_node_property(ntree, node_to);
+  ED_node_tree_propagate_change(nullptr, bmain, ntree);
 }
 
 /* add new node connected to this socket, or replace an existing one */
@@ -252,7 +237,8 @@ static void node_socket_add_replace(const bContext *C,
       nodePositionRelative(node_from, node_to, sock_from_tmp, sock_to);
     }
 
-    node_link_item_apply(bmain, node_from, item);
+    node_link_item_apply(ntree, node_from, item);
+    ED_node_tree_propagate_change(C, bmain, ntree);
   }
 
   nodeSetActive(ntree, node_from);
@@ -299,11 +285,9 @@ static void node_socket_add_replace(const bContext *C,
     node_remove_linked(bmain, ntree, node_prev);
   }
 
-  nodeUpdate(ntree, node_from);
-  nodeUpdate(ntree, node_to);
-  ntreeUpdateTree(CTX_data_main(C), ntree);
-
-  ED_node_tag_update_nodetree(CTX_data_main(C), ntree, node_to);
+  BKE_ntree_update_tag_node_property(ntree, node_from);
+  BKE_ntree_update_tag_node_property(ntree, node_to);
+  ED_node_tree_propagate_change(nullptr, bmain, ntree);
 }
 
 /****************************** Node Link Menu *******************************/
@@ -386,16 +370,41 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
       const SocketDeclaration &socket_decl = *socket_decl_ptr;
       NodeLinkItem item;
       item.socket_index = index++;
-      /* A socket declaration does not necessarily map to exactly one built-in socket type. So only
-       * check for the types that matter here. */
-      if (dynamic_cast<const decl::Color *>(&socket_decl)) {
-        item.socket_type = SOCK_RGBA;
-      }
-      else if (dynamic_cast<const decl::Float *>(&socket_decl)) {
+      if (dynamic_cast<const decl::Float *>(&socket_decl)) {
         item.socket_type = SOCK_FLOAT;
+      }
+      else if (dynamic_cast<const decl::Int *>(&socket_decl)) {
+        item.socket_type = SOCK_INT;
+      }
+      else if (dynamic_cast<const decl::Bool *>(&socket_decl)) {
+        item.socket_type = SOCK_BOOLEAN;
       }
       else if (dynamic_cast<const decl::Vector *>(&socket_decl)) {
         item.socket_type = SOCK_VECTOR;
+      }
+      else if (dynamic_cast<const decl::Color *>(&socket_decl)) {
+        item.socket_type = SOCK_RGBA;
+      }
+      else if (dynamic_cast<const decl::String *>(&socket_decl)) {
+        item.socket_type = SOCK_STRING;
+      }
+      else if (dynamic_cast<const decl::Image *>(&socket_decl)) {
+        item.socket_type = SOCK_IMAGE;
+      }
+      else if (dynamic_cast<const decl::Texture *>(&socket_decl)) {
+        item.socket_type = SOCK_TEXTURE;
+      }
+      else if (dynamic_cast<const decl::Material *>(&socket_decl)) {
+        item.socket_type = SOCK_MATERIAL;
+      }
+      else if (dynamic_cast<const decl::Shader *>(&socket_decl)) {
+        item.socket_type = SOCK_SHADER;
+      }
+      else if (dynamic_cast<const decl::Collection *>(&socket_decl)) {
+        item.socket_type = SOCK_COLLECTION;
+      }
+      else if (dynamic_cast<const decl::Object *>(&socket_decl)) {
+        item.socket_type = SOCK_OBJECT;
       }
       else {
         item.socket_type = SOCK_CUSTOM;
@@ -447,7 +456,9 @@ static void ui_node_link(bContext *C, void *arg_p, void *event_p)
   ED_undo_push(C, "Node input modify");
 }
 
-static void ui_node_sock_name(bNodeTree *ntree, bNodeSocket *sock, char name[UI_MAX_NAME_STR])
+static void ui_node_sock_name(const bNodeTree *ntree,
+                              bNodeSocket *sock,
+                              char name[UI_MAX_NAME_STR])
 {
   if (sock->link && sock->link->fromnode) {
     bNode *node = sock->link->fromnode;
@@ -694,22 +705,26 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
   ui_node_menu_column(arg, NODE_CLASS_GROUP, N_("Group"));
 }
 
+}  // namespace blender::ed::space_node
+
 void uiTemplateNodeLink(
     uiLayout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *input)
 {
+  using namespace blender::ed::space_node;
+
   uiBlock *block = uiLayoutGetBlock(layout);
   NodeLinkArg *arg;
   uiBut *but;
   float socket_col[4];
 
-  arg = (NodeLinkArg *)MEM_callocN(sizeof(NodeLinkArg), "NodeLinkArg");
+  arg = MEM_new<NodeLinkArg>("NodeLinkArg");
   arg->ntree = ntree;
   arg->node = node;
   arg->sock = input;
 
   PointerRNA node_ptr;
   RNA_pointer_create((ID *)ntree, &RNA_Node, node, &node_ptr);
-  node_socket_color_get(C, ntree, &node_ptr, input, socket_col);
+  node_socket_color_get(*C, *ntree, node_ptr, *input, socket_col);
 
   UI_block_layout_set_current(block, layout);
 
@@ -737,6 +752,8 @@ void uiTemplateNodeLink(
     }
   }
 }
+
+namespace blender::ed::space_node {
 
 /**************************** Node Tree Layout *******************************/
 
@@ -769,7 +786,6 @@ static void ui_node_draw_input(
   PointerRNA inputptr, nodeptr;
   uiBlock *block = uiLayoutGetBlock(layout);
   uiLayout *row = nullptr;
-  bNode *lnode;
   bool dependency_loop;
 
   if (input->flag & SOCK_UNAVAIL) {
@@ -778,7 +794,7 @@ static void ui_node_draw_input(
 
   /* to avoid eternal loops on cyclic dependencies */
   node->flag |= NODE_TEST;
-  lnode = (input->link) ? input->link->fromnode : nullptr;
+  bNode *lnode = (input->link) ? input->link->fromnode : nullptr;
 
   dependency_loop = (lnode && (lnode->flag & NODE_TEST));
   if (dependency_loop) {
@@ -868,7 +884,7 @@ static void ui_node_draw_input(
           if (node_tree->type == NTREE_GEOMETRY && snode != nullptr) {
             /* Only add the attribute search in the node editor, in other places there is not
              * enough context. */
-            node_geometry_add_attribute_search_button(C, node_tree, node, &inputptr, row);
+            node_geometry_add_attribute_search_button(*C, *node_tree, *node, inputptr, *row);
           }
           else {
             uiItemR(sub, &inputptr, "default_value", 0, "", ICON_NONE);
@@ -891,9 +907,13 @@ static void ui_node_draw_input(
   node->flag &= ~NODE_TEST;
 }
 
+}  // namespace blender::ed::space_node
+
 void uiTemplateNodeView(
     uiLayout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *input)
 {
+  using namespace blender::ed::space_node;
+
   bNode *tnode;
 
   if (!ntree) {

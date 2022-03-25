@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup wm
@@ -187,12 +171,6 @@ static wmJob *wm_job_find(const wmWindowManager *wm, const void *owner, const in
 
 /* ******************* public API ***************** */
 
-/**
- * \return current job or adds new job, but doesn't run it.
- *
- * \note every owner only gets a single job,
- * adding a new one will stop running job and when stopped it starts the new one.
- */
 wmJob *WM_jobs_get(wmWindowManager *wm,
                    wmWindow *win,
                    const void *owner,
@@ -223,7 +201,6 @@ wmJob *WM_jobs_get(wmWindowManager *wm,
   return wm_job;
 }
 
-/* returns true if job runs, for UI (progress) indicators */
 bool WM_jobs_test(const wmWindowManager *wm, const void *owner, int job_type)
 {
   /* job can be running or about to run (suspended) */
@@ -281,7 +258,6 @@ static void wm_jobs_update_progress_bars(wmWindowManager *wm)
   }
 }
 
-/* time that job started */
 double WM_jobs_starttime(const wmWindowManager *wm, const void *owner)
 {
   const wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
@@ -389,7 +365,6 @@ static void *do_job_thread(void *job_v)
 {
   wmJob *wm_job = job_v;
 
-  BLI_thread_put_thread_on_fast_node();
   wm_job->startjob(wm_job->run_customdata, &wm_job->stop, &wm_job->do_update, &wm_job->progress);
   wm_job->ready = true;
 
@@ -447,10 +422,6 @@ static void wm_jobs_test_suspend_stop(wmWindowManager *wm, wmJob *test)
 #endif
 }
 
-/**
- * if job running, the same owner gave it a new job.
- * if different owner starts existing startjob, it suspends itself
- */
 void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job)
 {
   if (wm_job->running) {
@@ -550,7 +521,6 @@ static void wm_jobs_kill_job(wmWindowManager *wm, wmJob *wm_job)
   }
 }
 
-/* wait until every job ended */
 void WM_jobs_kill_all(wmWindowManager *wm)
 {
   wmJob *wm_job;
@@ -563,7 +533,6 @@ void WM_jobs_kill_all(wmWindowManager *wm)
   SEQ_prefetch_stop_all();
 }
 
-/* wait until every job ended, except for one owner (used in undo to keep screen job alive) */
 void WM_jobs_kill_all_except(wmWindowManager *wm, const void *owner)
 {
   LISTBASE_FOREACH_MUTABLE (wmJob *, wm_job, &wm->jobs) {
@@ -584,7 +553,6 @@ void WM_jobs_kill_type(struct wmWindowManager *wm, const void *owner, int job_ty
   }
 }
 
-/* signal job(s) from this owner or callback to stop, timer is required to get handled */
 void WM_jobs_stop(wmWindowManager *wm, const void *owner, void *startjob)
 {
   LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
@@ -596,7 +564,6 @@ void WM_jobs_stop(wmWindowManager *wm, const void *owner, void *startjob)
   }
 }
 
-/* actually terminate thread and job timer */
 void WM_jobs_kill(wmWindowManager *wm,
                   void *owner,
                   void (*startjob)(void *, short int *, short int *, float *))
@@ -608,7 +575,6 @@ void WM_jobs_kill(wmWindowManager *wm,
   }
 }
 
-/* kill job entirely, also removes timer itself */
 void wm_jobs_timer_end(wmWindowManager *wm, wmTimer *wt)
 {
   LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
@@ -619,7 +585,6 @@ void wm_jobs_timer_end(wmWindowManager *wm, wmTimer *wt)
   }
 }
 
-/* hardcoded to event TIMERJOBS */
 void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt)
 {
   LISTBASE_FOREACH_MUTABLE (wmJob *, wm_job, &wm->jobs) {

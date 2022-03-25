@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -28,8 +14,6 @@
 #  include "BLI_array.hh"
 #  include "BLI_assert.h"
 #  include "BLI_delaunay_2d.h"
-#  include "BLI_double3.hh"
-#  include "BLI_float3.hh"
 #  include "BLI_hash.hh"
 #  include "BLI_kdopbvh.h"
 #  include "BLI_map.hh"
@@ -37,8 +21,9 @@
 #  include "BLI_math_boolean.hh"
 #  include "BLI_math_geom.h"
 #  include "BLI_math_mpq.hh"
+#  include "BLI_math_vec_mpq_types.hh"
+#  include "BLI_math_vector.hh"
 #  include "BLI_mesh_intersect.hh"
-#  include "BLI_mpq3.hh"
 #  include "BLI_set.hh"
 #  include "BLI_span.hh"
 #  include "BLI_stack.hh"
@@ -1370,6 +1355,11 @@ static bool is_pwn(const IMesh &tm, const TriMeshTopology &tmtopo)
   }
 
   threading::parallel_for(tris.index_range(), 2048, [&](IndexRange range) {
+    if (!is_pwn.load()) {
+      /* Early out if mesh is already determined to be non-pwn. */
+      return;
+    }
+
     for (int j : range) {
       const Edge &edge = tris[j].first;
       int tot_orient = 0;
@@ -1395,9 +1385,7 @@ static bool is_pwn(const IMesh &tm, const TriMeshTopology &tmtopo)
           std::cout << "edge causing non-pwn: " << edge << "\n";
         }
         is_pwn = false;
-#  ifdef WITH_TBB
-        tbb::task::self().cancel_group_execution();
-#  endif
+        break;
       }
     }
   });
@@ -1630,13 +1618,13 @@ static Edge find_good_sorting_edge(const Vert *testp,
   ordinate[axis_next] = -abscissa[axis];
   ordinate[axis_next_next] = 0;
   /* By construction, dot(abscissa, ordinate) == 0, so they are perpendicular. */
-  mpq3 normal = mpq3::cross(abscissa, ordinate);
+  mpq3 normal = math::cross(abscissa, ordinate);
   if (dbg_level > 0) {
     std::cout << "abscissa = " << abscissa << "\n";
     std::cout << "ordinate = " << ordinate << "\n";
     std::cout << "normal = " << normal << "\n";
   }
-  mpq_class nlen2 = normal.length_squared();
+  mpq_class nlen2 = math::length_squared(normal);
   mpq_class max_abs_slope = -1;
   Edge esort;
   const Vector<Edge> &edges = tmtopo.vert_edges(closestp);
@@ -1645,12 +1633,12 @@ static Edge find_good_sorting_edge(const Vert *testp,
     const mpq3 &co_other = v_other->co_exact;
     mpq3 evec = co_other - co_closest;
     /* Get projection of evec onto plane of abscissa and ordinate. */
-    mpq3 proj_evec = evec - (mpq3::dot(evec, normal) / nlen2) * normal;
+    mpq3 proj_evec = evec - (math::dot(evec, normal) / nlen2) * normal;
     /* The projection calculations along the abscissa and ordinate should
      * be scaled by 1/abscissa and 1/ordinate respectively,
      * but we can skip: it won't affect which `evec` has the maximum slope. */
-    mpq_class evec_a = mpq3::dot(proj_evec, abscissa);
-    mpq_class evec_o = mpq3::dot(proj_evec, ordinate);
+    mpq_class evec_a = math::dot(proj_evec, abscissa);
+    mpq_class evec_o = math::dot(proj_evec, ordinate);
     if (dbg_level > 0) {
       std::cout << "e = " << e << "\n";
       std::cout << "v_other = " << v_other << "\n";
@@ -1788,8 +1776,8 @@ static mpq_class closest_on_tri_to_point(const mpq3 &p,
   ap = p;
   ap -= a;
 
-  mpq_class d1 = mpq3::dot_with_buffer(ab, ap, m);
-  mpq_class d2 = mpq3::dot_with_buffer(ac, ap, m);
+  mpq_class d1 = math::dot_with_buffer(ab, ap, m);
+  mpq_class d2 = math::dot_with_buffer(ac, ap, m);
   if (d1 <= 0 && d2 <= 0) {
     /* Barycentric coordinates (1,0,0). */
     *r_edge = -1;
@@ -1797,13 +1785,13 @@ static mpq_class closest_on_tri_to_point(const mpq3 &p,
     if (dbg_level > 0) {
       std::cout << "  answer = a\n";
     }
-    return mpq3::distance_squared_with_buffer(p, a, m);
+    return math::distance_squared_with_buffer(p, a, m);
   }
   /* Check if p in vertex region outside b. */
   bp = p;
   bp -= b;
-  mpq_class d3 = mpq3::dot_with_buffer(ab, bp, m);
-  mpq_class d4 = mpq3::dot_with_buffer(ac, bp, m);
+  mpq_class d3 = math::dot_with_buffer(ab, bp, m);
+  mpq_class d4 = math::dot_with_buffer(ac, bp, m);
   if (d3 >= 0 && d4 <= d3) {
     /* Barycentric coordinates (0,1,0). */
     *r_edge = -1;
@@ -1811,7 +1799,7 @@ static mpq_class closest_on_tri_to_point(const mpq3 &p,
     if (dbg_level > 0) {
       std::cout << "  answer = b\n";
     }
-    return mpq3::distance_squared_with_buffer(p, b, m);
+    return math::distance_squared_with_buffer(p, b, m);
   }
   /* Check if p in region of ab. */
   mpq_class vc = d1 * d4 - d3 * d2;
@@ -1826,13 +1814,13 @@ static mpq_class closest_on_tri_to_point(const mpq3 &p,
     if (dbg_level > 0) {
       std::cout << "  answer = on ab at " << r << "\n";
     }
-    return mpq3::distance_squared_with_buffer(p, r, m);
+    return math::distance_squared_with_buffer(p, r, m);
   }
   /* Check if p in vertex region outside c. */
   cp = p;
   cp -= c;
-  mpq_class d5 = mpq3::dot_with_buffer(ab, cp, m);
-  mpq_class d6 = mpq3::dot_with_buffer(ac, cp, m);
+  mpq_class d5 = math::dot_with_buffer(ab, cp, m);
+  mpq_class d6 = math::dot_with_buffer(ac, cp, m);
   if (d6 >= 0 && d5 <= d6) {
     /* Barycentric coordinates (0,0,1). */
     *r_edge = -1;
@@ -1840,7 +1828,7 @@ static mpq_class closest_on_tri_to_point(const mpq3 &p,
     if (dbg_level > 0) {
       std::cout << "  answer = c\n";
     }
-    return mpq3::distance_squared_with_buffer(p, c, m);
+    return math::distance_squared_with_buffer(p, c, m);
   }
   /* Check if p in edge region of ac. */
   mpq_class vb = d5 * d2 - d1 * d6;
@@ -1855,7 +1843,7 @@ static mpq_class closest_on_tri_to_point(const mpq3 &p,
     if (dbg_level > 0) {
       std::cout << "  answer = on ac at " << r << "\n";
     }
-    return mpq3::distance_squared_with_buffer(p, r, m);
+    return math::distance_squared_with_buffer(p, r, m);
   }
   /* Check if p in edge region of bc. */
   mpq_class va = d3 * d6 - d5 * d4;
@@ -1871,7 +1859,7 @@ static mpq_class closest_on_tri_to_point(const mpq3 &p,
     if (dbg_level > 0) {
       std::cout << "  answer = on bc at " << r << "\n";
     }
-    return mpq3::distance_squared_with_buffer(p, r, m);
+    return math::distance_squared_with_buffer(p, r, m);
   }
   /* p inside face region. Compute barycentric coordinates (u,v,w). */
   mpq_class denom = 1 / (va + vb + vc);
@@ -1887,7 +1875,7 @@ static mpq_class closest_on_tri_to_point(const mpq3 &p,
   if (dbg_level > 0) {
     std::cout << "  answer = inside at " << r << "\n";
   }
-  return mpq3::distance_squared_with_buffer(p, r, m);
+  return math::distance_squared_with_buffer(p, r, m);
 }
 
 static float closest_on_tri_to_point_float_dist_squared(const float3 &p,
@@ -2197,7 +2185,7 @@ static void finish_patch_cell_graph(const IMesh &tm,
  * There will be a vector of \a nshapes winding numbers in each cell, one per
  * input shape.
  * As one crosses a patch into a new cell, the original shape (mesh part)
- * that that patch was part of dictates which winding number changes.
+ * that patch was part of dictates which winding number changes.
  * The shape_fn(triangle_number) function should return the shape that the
  * triangle is part of.
  * Also, as soon as the winding numbers for a cell are set, use bool_optype
@@ -2607,7 +2595,7 @@ static void test_tri_inside_shapes(const IMesh &tm,
   double3 test_point = calc_point_inside_tri_db(tri_test);
   /* Offset the test point a tiny bit in the tri_test normal direction. */
   tri_test.populate_plane(false);
-  double3 norm = tri_test.plane->norm.normalized();
+  double3 norm = math::normalize(tri_test.plane->norm);
   const double offset_amount = 1e-5;
   double3 offset_test_point = test_point + offset_amount * norm;
   if (dbg_level > 0) {
@@ -2999,7 +2987,7 @@ static void init_face_merge_state(FaceMergeState *fms,
       std::cout << "process tri = " << &tri << "\n";
     }
     BLI_assert(tri.plane_populated());
-    if (double3::dot(norm, tri.plane->norm) <= 0.0) {
+    if (math::dot(norm, tri.plane->norm) <= 0.0) {
       if (dbg_level > 0) {
         std::cout << "triangle has wrong orientation, skipping\n";
       }
@@ -3024,7 +3012,7 @@ static void init_face_merge_state(FaceMergeState *fms,
       }
       if (me_index == -1) {
         double3 vec = new_me.v2->co - new_me.v1->co;
-        new_me.len_squared = vec.length_squared();
+        new_me.len_squared = math::length_squared(vec);
         new_me.orig = tri.edge_orig[i];
         new_me.is_intersect = tri.is_intersect[i];
         new_me.dissolvable = (new_me.orig == NO_INDEX && !new_me.is_intersect);
@@ -3264,7 +3252,7 @@ static Vector<Face *> merge_tris_for_face(Vector<int> tris,
   bool done = false;
   double3 first_tri_normal = tm.face(tris[0])->plane->norm;
   double3 second_tri_normal = tm.face(tris[1])->plane->norm;
-  if (tris.size() == 2 && double3::dot(first_tri_normal, second_tri_normal) > 0.0) {
+  if (tris.size() == 2 && math::dot(first_tri_normal, second_tri_normal) > 0.0) {
     /* Is this a case where quad with one diagonal remained unchanged?
      * Worth special handling because this case will be very common. */
     Face &tri1 = *tm.face(tris[0]);
@@ -3329,7 +3317,7 @@ static bool approx_in_line(const double3 &a, const double3 &b, const double3 &c)
 {
   double3 vec1 = b - a;
   double3 vec2 = c - b;
-  double cos_ang = double3::dot(vec1.normalized(), vec2.normalized());
+  double cos_ang = math::dot(math::normalize(vec1), math::normalize(vec2));
   return fabs(cos_ang - 1.0) < 1e-4;
 }
 
@@ -3673,10 +3661,6 @@ static void dump_test_spec(IMesh &imesh)
   }
 }
 
-/**
- * Do the boolean operation op on the polygon mesh imesh_in.
- * See the header file for a complete description.
- */
 IMesh boolean_mesh(IMesh &imesh,
                    BoolOpType op,
                    int nshapes,

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edobj
@@ -39,6 +23,7 @@
 
 #include "BLI_alloca.h"
 #include "BLI_array.h"
+#include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -62,6 +47,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
+
+#include "BLT_translation.h"
 
 #include "DNA_armature_types.h"
 #include "RNA_access.h"
@@ -140,9 +127,6 @@ bool ED_vgroup_sync_from_pose(Object *ob)
   return false;
 }
 
-/**
- * Removes out of range MDeformWeights
- */
 void ED_vgroup_data_clamp_range(ID *id, const int total)
 {
   MDeformVert **dvert_arr;
@@ -264,13 +248,6 @@ bool ED_vgroup_parray_alloc(ID *id,
   return false;
 }
 
-/**
- * For use with tools that use ED_vgroup_parray_alloc with \a use_vert_sel == true.
- * This finds the unselected mirror deform verts and copies the weights to them from the selected.
- *
- * \note \a dvert_array has mirrored weights filled in,
- * in case cleanup operations are needed on both.
- */
 void ED_vgroup_parray_mirror_sync(Object *ob,
                                   MDeformVert **dvert_array,
                                   const int dvert_tot,
@@ -314,11 +291,6 @@ void ED_vgroup_parray_mirror_sync(Object *ob,
   MEM_freeN(dvert_array_all);
 }
 
-/**
- * Fill in the pointers for mirror verts (as if all mirror verts were selected too).
- *
- * similar to #ED_vgroup_parray_mirror_sync but only fill in mirror points.
- */
 void ED_vgroup_parray_mirror_assign(Object *ob, MDeformVert **dvert_array, const int dvert_tot)
 {
   BMEditMesh *em = BKE_editmesh_from_object(ob);
@@ -383,7 +355,6 @@ void ED_vgroup_parray_remove_zero(MDeformVert **dvert_array,
   }
 }
 
-/* matching index only */
 bool ED_vgroup_array_copy(Object *ob, Object *ob_from)
 {
   MDeformVert **dvert_array_from = NULL, **dvf;
@@ -575,9 +546,6 @@ static void ED_mesh_defvert_mirror_update_ob(Object *ob, int def_nr, int vidx)
   }
 }
 
-/**
- * Use when adjusting the active vertex weight and apply to mirror vertices.
- */
 void ED_vgroup_vert_active_mirror(Object *ob, int def_nr)
 {
   Mesh *me = ob->data;
@@ -883,7 +851,6 @@ static void ED_vgroup_nr_vert_add(
   }
 }
 
-/* called while not in editmode */
 void ED_vgroup_vert_add(Object *ob, bDeformGroup *dg, int vertnum, float weight, int assignmode)
 {
   /* add the vert to the deform group with the
@@ -912,7 +879,6 @@ void ED_vgroup_vert_add(Object *ob, bDeformGroup *dg, int vertnum, float weight,
   }
 }
 
-/* mesh object mode, lattice can be in editmode */
 void ED_vgroup_vert_remove(Object *ob, bDeformGroup *dg, int vertnum)
 {
   /* This routine removes the vertex from the specified
@@ -2369,8 +2335,6 @@ static void dvert_mirror_op(MDeformVert *dvert,
   }
 }
 
-/* TODO: vgroup locking. */
-/* TODO: face masking. */
 void ED_vgroup_mirror(Object *ob,
                       const bool mirror_weights,
                       const bool flip_vgroups,
@@ -2379,6 +2343,8 @@ void ED_vgroup_mirror(Object *ob,
                       int *r_totmirr,
                       int *r_totfail)
 {
+  /* TODO: vgroup locking.
+   * TODO: face masking. */
 
 #define VGROUP_MIRR_OP \
   dvert_mirror_op(dvert, \
@@ -2485,17 +2451,14 @@ void ED_vgroup_mirror(Object *ob,
         sel = sel_mirr = true;
       }
 
-      /* tag verts we have used */
-      for (vidx = 0, mv = me->mvert; vidx < me->totvert; vidx++, mv++) {
-        mv->flag &= ~ME_VERT_TMP_TAG;
-      }
+      BLI_bitmap *vert_tag = BLI_BITMAP_NEW(me->totvert, __func__);
 
       for (vidx = 0, mv = me->mvert; vidx < me->totvert; vidx++, mv++) {
-        if ((mv->flag & ME_VERT_TMP_TAG) == 0) {
+        if (!BLI_BITMAP_TEST(vert_tag, vidx)) {
           if ((vidx_mirr = mesh_get_x_mirror_vert(ob, NULL, vidx, use_topology)) != -1) {
             if (vidx != vidx_mirr) {
               mv_mirr = &me->mvert[vidx_mirr];
-              if ((mv_mirr->flag & ME_VERT_TMP_TAG) == 0) {
+              if (!BLI_BITMAP_TEST(vert_tag, vidx_mirr)) {
 
                 if (use_vert_sel) {
                   sel = mv->flag & SELECT;
@@ -2510,8 +2473,8 @@ void ED_vgroup_mirror(Object *ob,
                   totmirr++;
                 }
 
-                mv->flag |= ME_VERT_TMP_TAG;
-                mv_mirr->flag |= ME_VERT_TMP_TAG;
+                BLI_BITMAP_ENABLE(vert_tag, vidx);
+                BLI_BITMAP_ENABLE(vert_tag, vidx_mirr);
               }
             }
           }
@@ -2520,6 +2483,8 @@ void ED_vgroup_mirror(Object *ob,
           }
         }
       }
+
+      MEM_freeN(vert_tag);
     }
   }
   else if (ob->type == OB_LATTICE) {
@@ -3448,16 +3413,16 @@ static char *vertex_group_lock_description(struct bContext *UNUSED(C),
 
   switch (action) {
     case VGROUP_LOCK:
-      action_str = "Lock";
+      action_str = TIP_("Lock");
       break;
     case VGROUP_UNLOCK:
-      action_str = "Unlock";
+      action_str = TIP_("Unlock");
       break;
     case VGROUP_TOGGLE:
-      action_str = "Toggle locks of";
+      action_str = TIP_("Toggle locks of");
       break;
     case VGROUP_INVERT:
-      action_str = "Invert locks of";
+      action_str = TIP_("Invert locks of");
       break;
     default:
       return NULL;
@@ -3465,34 +3430,34 @@ static char *vertex_group_lock_description(struct bContext *UNUSED(C),
 
   switch (mask) {
     case VGROUP_MASK_ALL:
-      target_str = "all";
+      target_str = TIP_("all");
       break;
     case VGROUP_MASK_SELECTED:
-      target_str = "selected";
+      target_str = TIP_("selected");
       break;
     case VGROUP_MASK_UNSELECTED:
-      target_str = "unselected";
+      target_str = TIP_("unselected");
       break;
     case VGROUP_MASK_INVERT_UNSELECTED:
       switch (action) {
         case VGROUP_INVERT:
-          target_str = "selected";
+          target_str = TIP_("selected");
           break;
         case VGROUP_LOCK:
-          target_str = "selected and unlock unselected";
+          target_str = TIP_("selected and unlock unselected");
           break;
         case VGROUP_UNLOCK:
-          target_str = "selected and lock unselected";
+          target_str = TIP_("selected and lock unselected");
           break;
         default:
-          target_str = "all and invert unselected";
+          target_str = TIP_("all and invert unselected");
       }
       break;
     default:
       return NULL;
   }
 
-  return BLI_sprintfN("%s %s vertex groups of the active object", action_str, target_str);
+  return BLI_sprintfN(TIP_("%s %s vertex groups of the active object"), action_str, target_str);
 }
 
 void OBJECT_OT_vertex_group_lock(wmOperatorType *ot)

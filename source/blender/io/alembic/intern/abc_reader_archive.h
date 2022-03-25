@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2016 Kévin Dietrich.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 Kévin Dietrich. All rights reserved. */
 #pragma once
 
 /** \file
@@ -41,8 +25,16 @@ class ArchiveReader {
   std::ifstream m_infile;
   std::vector<std::istream *> m_streams;
 
- public:
+  std::vector<ArchiveReader *> m_readers;
+
+  ArchiveReader(const std::vector<ArchiveReader *> &readers);
+
   ArchiveReader(struct Main *bmain, const char *filename);
+
+ public:
+  static ArchiveReader *get(struct Main *bmain, const std::vector<const char *> &filenames);
+
+  ~ArchiveReader();
 
   bool valid() const;
 

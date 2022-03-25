@@ -736,9 +736,11 @@ float2 SMAALumaEdgeDetectionPS(float2 texcoord,
   float2 edges = step(threshold, delta.xy);
 
 #  ifndef SMAA_NO_DISCARD
+#    ifdef GPU_FRAGMENT_SHADER
   // Then discard if there is no edge:
   if (dot(edges, float2(1.0, 1.0)) == 0.0)
     discard;
+#    endif
 #  endif
 
   // Calculate right and bottom deltas:
@@ -804,9 +806,11 @@ float2 SMAAColorEdgeDetectionPS(float2 texcoord,
   float2 edges = step(threshold, delta.xy);
 
 #  ifndef SMAA_NO_DISCARD
+#    ifdef GPU_FRAGMENT_SHADER
   // Then discard if there is no edge:
   if (dot(edges, float2(1.0, 1.0)) == 0.0)
     discard;
+#    endif
 #  endif
 
   // Calculate right and bottom deltas:
@@ -851,8 +855,10 @@ float2 SMAADepthEdgeDetectionPS(float2 texcoord, float4 offset[3], SMAATexture2D
   float2 delta = abs(neighbours.xx - float2(neighbours.y, neighbours.z));
   float2 edges = step(SMAA_DEPTH_THRESHOLD, delta);
 
+#  ifdef GPU_FRAGMENT_SHADER
   if (dot(edges, float2(1.0, 1.0)) == 0.0)
     discard;
+#  endif
 
   return edges;
 }

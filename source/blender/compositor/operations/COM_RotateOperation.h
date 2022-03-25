@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2011, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. */
 
 #pragma once
 
@@ -56,27 +41,19 @@ class RotateOperation : public MultiThreadedOperation {
                                   const rcti &rotate_canvas,
                                   float &r_offset_x,
                                   float &r_offset_y);
-  static void get_area_rotation_bounds(const rcti &area,
-                                       const float center_x,
-                                       const float center_y,
-                                       const float sine,
-                                       const float cosine,
-                                       rcti &r_bounds);
-  static void get_area_rotation_bounds_inverted(const rcti &area,
-                                                const float center_x,
-                                                const float center_y,
-                                                const float sine,
-                                                const float cosine,
-                                                rcti &r_bounds);
+  static void get_area_rotation_bounds(
+      const rcti &area, float center_x, float center_y, float sine, float cosine, rcti &r_bounds);
+  static void get_area_rotation_bounds_inverted(
+      const rcti &area, float center_x, float center_y, float sine, float cosine, rcti &r_bounds);
   static void get_rotation_area_of_interest(const rcti &input_canvas,
                                             const rcti &rotate_canvas,
-                                            const float sine,
-                                            const float cosine,
+                                            float sine,
+                                            float cosine,
                                             const rcti &output_area,
                                             rcti &r_input_area);
   static void get_rotation_canvas(const rcti &input_canvas,
-                                  const float sine,
-                                  const float cosine,
+                                  float sine,
+                                  float cosine,
                                   rcti &r_canvas);
 
   bool determine_depending_area_of_interest(rcti *input,

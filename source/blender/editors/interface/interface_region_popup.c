@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edinterface
@@ -53,9 +37,6 @@
 /** \name Utility Functions
  * \{ */
 
-/**
- * Translate any popup regions (so we can drag them).
- */
 void ui_popup_translate(ARegion *region, const int mdiff[2])
 {
   BLI_rcti_translate(&region->winrct, UNPACK2(mdiff));
@@ -554,9 +535,6 @@ static void ui_popup_block_remove(bContext *C, uiPopupBlockHandle *handle)
   }
 }
 
-/**
- * Called for creating new popups and refreshing existing ones.
- */
 uiBlock *ui_popup_block_refresh(bContext *C,
                                 uiPopupBlockHandle *handle,
                                 ARegion *butregion,
@@ -579,6 +557,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
 
 #ifdef DEBUG
   wmEvent *event_back = window->eventstate;
+  wmEvent *event_last_back = window->event_last_handled;
 #endif
 
   /* create ui block */
@@ -743,7 +722,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   if (block_old) {
     block->oldblock = block_old;
     UI_block_update_from_old(C, block);
-    UI_blocklist_free_inactive(C, &region->uiblocks);
+    UI_blocklist_free_inactive(C, region);
   }
 
   /* checks which buttons are visible, sets flags to prevent draw (do after region init) */
@@ -762,6 +741,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
 
 #ifdef DEBUG
   window->eventstate = event_back;
+  window->event_last_handled = event_last_back;
 #endif
 
   return block;

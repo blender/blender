@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup imbuf
@@ -93,7 +77,6 @@ void imb_freemipmapImBuf(ImBuf *ibuf)
   ibuf->miptot = 0;
 }
 
-/* any free rect frees mipmaps to be sure, creation is in render on first request */
 void imb_freerectfloatImBuf(ImBuf *ibuf)
 {
   if (ibuf == NULL) {
@@ -111,7 +94,6 @@ void imb_freerectfloatImBuf(ImBuf *ibuf)
   ibuf->mall &= ~IB_rectfloat;
 }
 
-/* any free rect frees mipmaps to be sure, creation is in render on first request */
 void imb_freerectImBuf(ImBuf *ibuf)
 {
   if (ibuf == NULL) {
@@ -197,7 +179,6 @@ void IMB_freezbuffloatImBuf(ImBuf *ibuf)
   ibuf->mall &= ~IB_zbuffloat;
 }
 
-/** Free all pixel data (associated with image size). */
 void imb_freerectImbuf_all(ImBuf *ibuf)
 {
   imb_freerectImBuf(ibuf);
@@ -403,9 +384,10 @@ bool imb_addrectfloatImBuf(ImBuf *ibuf)
   return false;
 }
 
-/* question; why also add zbuf? */
 bool imb_addrectImBuf(ImBuf *ibuf)
 {
+  /* Question; why also add ZBUF (when `planes > 32`)? */
+
   if (ibuf == NULL) {
     return false;
   }
@@ -430,9 +412,6 @@ bool imb_addrectImBuf(ImBuf *ibuf)
   return false;
 }
 
-/**
- * \param take_ownership: When true, the buffers become owned by the resulting image.
- */
 struct ImBuf *IMB_allocFromBufferOwn(
     unsigned int *rect, float *rectf, unsigned int w, unsigned int h, unsigned int channels)
 {
@@ -580,7 +559,6 @@ bool IMB_initImBuf(
   return true;
 }
 
-/* does no zbuffers? */
 ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
 {
   ImBuf *ibuf2, tbuf;
@@ -667,6 +645,11 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
   *ibuf2 = tbuf;
 
   return ibuf2;
+}
+
+size_t IMB_get_rect_len(const ImBuf *ibuf)
+{
+  return (size_t)ibuf->x * (size_t)ibuf->y;
 }
 
 size_t IMB_get_size_in_memory(ImBuf *ibuf)

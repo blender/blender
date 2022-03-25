@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -26,8 +12,8 @@
 
 #include "rna_internal.h"
 
+#include "DNA_curves_types.h"
 #include "DNA_customdata_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_pointcloud_types.h"
@@ -46,6 +32,7 @@ const EnumPropertyItem rna_enum_attribute_type_items[] = {
     {CD_PROP_STRING, "STRING", 0, "String", "Text string"},
     {CD_PROP_BOOL, "BOOLEAN", 0, "Boolean", "True or false"},
     {CD_PROP_FLOAT2, "FLOAT2", 0, "2D Vector", "2D vector with floating-point values"},
+    {CD_PROP_INT8, "INT8", 0, "8-Bit Integer", "Smaller integer with a range from -128 to 127"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -59,6 +46,7 @@ const EnumPropertyItem rna_enum_attribute_type_with_auto_items[] = {
     {CD_PROP_STRING, "STRING", 0, "String", "Text string"},
     {CD_PROP_BOOL, "BOOLEAN", 0, "Boolean", "True or false"},
     {CD_PROP_FLOAT2, "FLOAT2", 0, "2D Vector", "2D vector with floating-point values"},
+    {CD_PROP_INT8, "INT8", 0, "8-Bit Integer", "Smaller integer with a range from -128 to 127"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -72,6 +60,7 @@ const EnumPropertyItem rna_enum_attribute_domain_items[] = {
     /* Not implement yet */
     // {ATTR_DOMAIN_GRIDS, "GRIDS", 0, "Grids", "Attribute on mesh multires grids"},
     {ATTR_DOMAIN_CURVE, "CURVE", 0, "Spline", "Attribute on spline"},
+    {ATTR_DOMAIN_INSTANCE, "INSTANCE", 0, "Instance", "Attribute on instance"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -80,6 +69,7 @@ const EnumPropertyItem rna_enum_attribute_domain_without_corner_items[] = {
     {ATTR_DOMAIN_EDGE, "EDGE", 0, "Edge", "Attribute on mesh edge"},
     {ATTR_DOMAIN_FACE, "FACE", 0, "Face", "Attribute on mesh faces"},
     {ATTR_DOMAIN_CURVE, "CURVE", 0, "Spline", "Attribute on spline"},
+    {ATTR_DOMAIN_INSTANCE, "INSTANCE", 0, "Instance", "Attribute on instance"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -90,6 +80,7 @@ const EnumPropertyItem rna_enum_attribute_domain_with_auto_items[] = {
     {ATTR_DOMAIN_FACE, "FACE", 0, "Face", "Attribute on mesh faces"},
     {ATTR_DOMAIN_CORNER, "CORNER", 0, "Face Corner", "Attribute on mesh face corner"},
     {ATTR_DOMAIN_CURVE, "CURVE", 0, "Spline", "Attribute on spline"},
+    {ATTR_DOMAIN_INSTANCE, "INSTANCE", 0, "Instance", "Attribute on instance"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -130,6 +121,8 @@ static StructRNA *srna_by_custom_data_layer_type(const CustomDataType type)
       return &RNA_BoolAttribute;
     case CD_PROP_FLOAT2:
       return &RNA_Float2Attribute;
+    case CD_PROP_INT8:
+      return &RNA_ByteIntAttribute;
     default:
       return NULL;
   }
@@ -163,7 +156,9 @@ static int rna_Attribute_type_get(PointerRNA *ptr)
   return layer->type;
 }
 
-const EnumPropertyItem *rna_enum_attribute_domain_itemf(ID *id, bool *r_free)
+const EnumPropertyItem *rna_enum_attribute_domain_itemf(ID *id,
+                                                        bool include_instances,
+                                                        bool *r_free)
 {
   EnumPropertyItem *item = NULL;
   const EnumPropertyItem *domain_item = NULL;
@@ -179,10 +174,13 @@ const EnumPropertyItem *rna_enum_attribute_domain_itemf(ID *id, bool *r_free)
     if (id_type == ID_PT && !ELEM(domain_item->value, ATTR_DOMAIN_POINT)) {
       continue;
     }
-    if (id_type == ID_HA && !ELEM(domain_item->value, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
+    if (id_type == ID_CV && !ELEM(domain_item->value, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
       continue;
     }
     if (id_type == ID_ME && ELEM(domain_item->value, ATTR_DOMAIN_CURVE)) {
+      continue;
+    }
+    if (!include_instances && domain_item->value == ATTR_DOMAIN_INSTANCE) {
       continue;
     }
 
@@ -204,7 +202,7 @@ static const EnumPropertyItem *rna_Attribute_domain_itemf(bContext *UNUSED(C),
                                                           PropertyRNA *UNUSED(prop),
                                                           bool *r_free)
 {
-  return rna_enum_attribute_domain_itemf(ptr->owner_id, r_free);
+  return rna_enum_attribute_domain_itemf(ptr->owner_id, true, r_free);
 }
 
 static int rna_Attribute_domain_get(PointerRNA *ptr)
@@ -245,6 +243,9 @@ static void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRN
     case CD_PROP_FLOAT2:
       struct_size = sizeof(float[2]);
       break;
+    case CD_PROP_INT8:
+      struct_size = sizeof(int8_t);
+      break;
     default:
       struct_size = 0;
       length = 0;
@@ -284,6 +285,28 @@ static void rna_ByteColorAttributeValue_color_set(PointerRNA *ptr, const float *
 {
   MLoopCol *mlcol = (MLoopCol *)ptr->data;
   linearrgb_to_srgb_uchar4(&mlcol->r, values);
+}
+
+/* Int8 Attribute. */
+
+static int rna_ByteIntAttributeValue_get(PointerRNA *ptr)
+{
+  int8_t *value = (int8_t *)ptr->data;
+  return (int)(*value);
+}
+
+static void rna_ByteIntAttributeValue_set(PointerRNA *ptr, const int new_value)
+{
+  int8_t *value = (int8_t *)ptr->data;
+  if (new_value > INT8_MAX) {
+    *value = INT8_MAX;
+  }
+  else if (new_value < INT8_MIN) {
+    *value = INT8_MIN;
+  }
+  else {
+    *value = (int8_t)new_value;
+  }
 }
 
 /* Attribute Group */
@@ -640,6 +663,36 @@ static void rna_def_attribute_bool(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "b", 0x01);
 }
 
+static void rna_def_attribute_int8(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "ByteIntAttribute", "Attribute");
+  RNA_def_struct_sdna(srna, "CustomDataLayer");
+  RNA_def_struct_ui_text(srna, "8-bit Int Attribute", "8-bit int geometry attribute");
+
+  prop = RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "ByteIntAttributeValue");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_Attribute_data_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_Attribute_data_length",
+                                    NULL,
+                                    NULL,
+                                    NULL);
+
+  srna = RNA_def_struct(brna, "ByteIntAttributeValue", NULL);
+  RNA_def_struct_sdna(srna, "MInt8Property");
+  RNA_def_struct_ui_text(
+      srna, "8-bit Integer Attribute Value", "8-bit value in geometry attribute");
+  prop = RNA_def_property(srna, "value", PROP_INT, PROP_NONE);
+  RNA_def_property_int_funcs(
+      prop, "rna_ByteIntAttributeValue_get", "rna_ByteIntAttributeValue_set", NULL);
+}
+
 static void rna_def_attribute_float2(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -715,6 +768,7 @@ static void rna_def_attribute(BlenderRNA *brna)
   rna_def_attribute_string(brna);
   rna_def_attribute_bool(brna);
   rna_def_attribute_float2(brna);
+  rna_def_attribute_int8(brna);
 }
 
 /* Mesh/PointCloud/Hair.attributes */

@@ -157,7 +157,7 @@ bool Homography2DFromCorrespondencesLinear(const Mat& x1,
 
 // Default settings for homography estimation which should be suitable
 // for a wide range of use cases.
-EstimateHomographyOptions::EstimateHomographyOptions(void)
+EstimateHomographyOptions::EstimateHomographyOptions()
     : use_normalization(true),
       max_num_iterations(50),
       expected_average_symmetric_distance(1e-16) {

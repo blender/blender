@@ -1,23 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (c) 2010 The Chromium Authors. All rights reserved.
- * All rights reserved.
- *
- * The Original Code is: some of this file.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * The Original Code is Copyright 2010 The Chromium Authors. All rights reserved. */
 
 /** \file
  * \ingroup GHOST
@@ -96,7 +78,7 @@ bool GHOST_ImeWin32::IsEnglishMode()
          !(conversion_modes_ & (IME_CMODE_NATIVE | IME_CMODE_FULLSHAPE));
 }
 
-bool GHOST_ImeWin32::IsImeKeyEvent(char ascii)
+bool GHOST_ImeWin32::IsImeKeyEvent(char ascii, GHOST_TKey key)
 {
   if (!(IsEnglishMode())) {
     /* In Chinese, Japanese, Korean, all alpha keys are processed by IME. */
@@ -106,8 +88,14 @@ bool GHOST_ImeWin32::IsImeKeyEvent(char ascii)
     if (IsLanguage(IMELANG_JAPANESE) && (ascii >= ' ' && ascii <= '~')) {
       return true;
     }
-    else if (IsLanguage(IMELANG_CHINESE) && ascii && strchr("!\"$'(),.:;<>?[\\]^_`", ascii)) {
-      return true;
+    if (IsLanguage(IMELANG_CHINESE)) {
+      if (ascii && strchr("!\"$'(),.:;<>?[\\]^_`/", ascii) && !(key == GHOST_kKeyNumpadPeriod)) {
+        return true;
+      }
+      if (conversion_modes_ & IME_CMODE_FULLSHAPE && (ascii >= '0' && ascii <= '9')) {
+        /* When in Full Width mode the number keys are also converted. */
+        return true;
+      }
     }
   }
   return false;

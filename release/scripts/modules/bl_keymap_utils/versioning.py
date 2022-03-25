@@ -1,27 +1,11 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8 compliant>
 
 # Update Blender version this key-map was written in:
 #
-# When the version is ``(0, 0, 0)``, the key-map being loaded didn't contain any versioning information.
-# This will older than ``(2, 92, 0)``.
+# When the version is `(0, 0, 0)`, the key-map being loaded didn't contain any versioning information.
+# This will older than `(2, 92, 0)`.
 
 def keyconfig_update(keyconfig_data, keyconfig_version):
     from bpy.app import version_file as blender_version
@@ -30,11 +14,11 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
 
     # Version the key-map.
     import copy
+    # Only copy once.
     has_copy = False
 
     # Default repeat to false.
     if keyconfig_version <= (2, 92, 0):
-        # Only copy once.
         if not has_copy:
             keyconfig_data = copy.deepcopy(keyconfig_data)
             has_copy = True
@@ -45,5 +29,37 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
                     # Unfortunately we don't know the 'map_type' at this point.
                     # Setting repeat true on other kinds of events is harmless.
                     item_event["repeat"] = True
+
+    if keyconfig_version <= (3, 2, 5):
+        if not has_copy:
+            keyconfig_data = copy.deepcopy(keyconfig_data)
+            has_copy = True
+
+        for _km_name, _km_parms, km_items_data in keyconfig_data:
+            for (_item_op, item_event, _item_prop) in km_items_data["items"]:
+                if ty_new := {
+                        'EVT_TWEAK_L': 'LEFTMOUSE',
+                        'EVT_TWEAK_M': 'MIDDLEMOUSE',
+                        'EVT_TWEAK_R': 'RIGHTMOUSE',
+                }.get(item_event.get("type")):
+                    item_event["type"] = ty_new
+                    if (value := item_event["value"]) != 'ANY':
+                        item_event["direction"] = value
+                    item_event["value"] = 'CLICK_DRAG'
+
+    if keyconfig_version <= (3, 2, 6):
+        if not has_copy:
+            keyconfig_data = copy.deepcopy(keyconfig_data)
+            has_copy = True
+
+        for _km_name, _km_parms, km_items_data in keyconfig_data:
+            for (_item_op, item_event, _item_prop) in km_items_data["items"]:
+                if ty_new := {
+                        'NDOF_BUTTON_ESC': 'ESC',
+                        'NDOF_BUTTON_ALT': 'LEFT_ALT',
+                        'NDOF_BUTTON_SHIFT': 'LEFT_SHIFT',
+                        'NDOF_BUTTON_CTRL': 'LEFT_CTRL',
+                }.get(item_event.get("type")):
+                    item_event["type"] = ty_new
 
     return keyconfig_data

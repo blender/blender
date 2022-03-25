@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2019, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2019 Blender Foundation. */
 
 /** \file
  * \ingroup draw_engine
@@ -471,7 +456,7 @@ static void OVERLAY_texture_space(OVERLAY_ExtraCallBuffers *cb, Object *ob, cons
     case ID_ME:
       BKE_mesh_texspace_get_reference((Mesh *)ob_data, NULL, &texcoloc, &texcosize);
       break;
-    case ID_CU: {
+    case ID_CU_LEGACY: {
       Curve *cu = (Curve *)ob_data;
       BKE_curve_texspace_ensure(cu);
       texcoloc = cu->loc;
@@ -484,7 +469,7 @@ static void OVERLAY_texture_space(OVERLAY_ExtraCallBuffers *cb, Object *ob, cons
       texcosize = mb->size;
       break;
     }
-    case ID_HA:
+    case ID_CV:
     case ID_PT:
     case ID_VO: {
       /* No user defined texture space support. */
@@ -514,7 +499,7 @@ static void OVERLAY_forcefield(OVERLAY_ExtraCallBuffers *cb, Object *ob, ViewLay
   int theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
   float *color = DRW_color_background_blend_get(theme_id);
   PartDeflect *pd = ob->pd;
-  Curve *cu = (ob->type == OB_CURVE) ? ob->data : NULL;
+  Curve *cu = (ob->type == OB_CURVES_LEGACY) ? ob->data : NULL;
 
   union {
     float mat[4][4];

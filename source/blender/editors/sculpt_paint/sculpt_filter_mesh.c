@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edsculpt
@@ -64,7 +48,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-/* Filter orientation utils. */
 void SCULPT_filter_to_orientation_space(float r_v[3], struct FilterCache *filter_cache)
 {
   switch (filter_cache->orientation) {
@@ -304,7 +287,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
-    float orig_co[3], val[3], avg[3], normal[3], disp[3], disp2[3], transform[3][3], final_pos[3];
+    float orig_co[3], val[3], avg[3], disp[3], disp2[3], transform[3][3], final_pos[3];
     float fade = vd.mask ? *vd.mask : 0.0f;
     fade = 1.0f - fade;
     fade *= data->filter_strength;
@@ -340,8 +323,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         sub_v3_v3v3(disp, val, orig_co);
         break;
       case MESH_FILTER_INFLATE:
-        normal_short_to_float_v3(normal, orig_data.no);
-        mul_v3_v3fl(disp, normal, fade);
+        mul_v3_v3fl(disp, orig_data.no, fade);
         break;
       case MESH_FILTER_SCALE:
         unit_m3(transform);
@@ -373,7 +355,8 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         mid_v3_v3v3(disp, disp, disp2);
         break;
       case MESH_FILTER_RANDOM: {
-        normal_short_to_float_v3(normal, orig_data.no);
+        float normal[3];
+        copy_v3_v3(normal, orig_data.no);
         /* Index is not unique for multires, so hash by vertex coordinates. */
         const uint *hash_co = (const uint *)orig_co;
         const uint hash = BLI_hash_int_2d(hash_co[0], hash_co[1]) ^
@@ -433,7 +416,6 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         /* Intensify details. */
         if (ss->filter_cache->sharpen_intensify_detail_strength > 0.0f) {
           float detail_strength[3];
-          normal_short_to_float_v3(detail_strength, orig_data.no);
           copy_v3_v3(detail_strength, ss->filter_cache->detail_directions[vd.index]);
           madd_v3_v3fl(disp,
                        detail_strength,
@@ -470,7 +452,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
     }
     copy_v3_v3(vd.co, final_pos);
     if (vd.mvert) {
-      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -624,7 +606,7 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
     return OPERATOR_RUNNING_MODAL;
   }
 
-  const float len = event->prev_click_xy[0] - event->xy[0];
+  const float len = event->prev_press_xy[0] - event->xy[0];
   filter_strength = filter_strength * -len * 0.001f * UI_DPI_FAC;
 
   SCULPT_vertex_random_access_ensure(ss);

@@ -1,18 +1,5 @@
-/*
- * Copyright 2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2021-2022 Blender Foundation */
 
 #pragma once
 
@@ -54,6 +41,8 @@ class DisplayDriver {
     }
   };
 
+  virtual void next_tile_begin() = 0;
+
   /* Update the render from the rendering thread.
    *
    * Cycles periodically updates the render to be displayed. For multithreaded updates with
@@ -80,6 +69,9 @@ class DisplayDriver {
   virtual bool update_begin(const Params &params, int width, int height) = 0;
   virtual void update_end() = 0;
 
+  /* Optionally flush outstanding display commands before ending the render loop. */
+  virtual void flush(){};
+
   virtual half4 *map_texture_buffer() = 0;
   virtual void unmap_texture_buffer() = 0;
 
@@ -97,6 +89,17 @@ class DisplayDriver {
 
     /* Clear the entire buffer before doing partial write to it. */
     bool need_clear = false;
+
+    /* Enforce re-creation of the graphics interop object.
+     *
+     * When this field is true then the graphics interop will be re-created no matter what the
+     * rest of the configuration is.
+     * When this field is false the graphics interop will be re-created if the PBO or buffer size
+     * did change.
+     *
+     * This allows to ensure graphics interop is re-created when there is a possibility that an
+     * underlying PBO was re-allocated but did not change its ID. */
+    bool need_recreate = false;
   };
 
   virtual GraphicsInterop graphics_interop_get()

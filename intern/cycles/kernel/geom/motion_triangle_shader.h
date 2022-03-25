@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2016 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 /* Motion Triangle Primitive
  *
@@ -68,15 +55,7 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg,
   verts[1] = (1.0f - t) * verts[1] + t * next_verts[1];
   verts[2] = (1.0f - t) * verts[2] + t * next_verts[2];
   /* Compute refined position. */
-#ifdef __BVH_LOCAL__
-  if (is_local) {
-    sd->P = motion_triangle_refine_local(kg, sd, P, D, ray_t, isect_object, isect_prim, verts);
-  }
-  else
-#endif /* __BVH_LOCAL__*/
-  {
-    sd->P = motion_triangle_refine(kg, sd, P, D, ray_t, isect_object, isect_prim, verts);
-  }
+  sd->P = motion_triangle_point_from_uv(kg, sd, isect_object, isect_prim, sd->u, sd->v, verts);
   /* Compute face normal. */
   float3 Ng;
   if (sd->object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {

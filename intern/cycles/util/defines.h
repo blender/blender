@@ -1,19 +1,5 @@
-
-/*
- * Copyright 2011-2017 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 /* clang-format off */
 
@@ -44,6 +30,7 @@
 #  if defined(_WIN32) && !defined(FREE_WINDOWS)
 #    define ccl_device_inline static __forceinline
 #    define ccl_device_forceinline static __forceinline
+#    define ccl_device_inline_method __forceinline
 #    define ccl_align(...) __declspec(align(__VA_ARGS__))
 #    ifdef __KERNEL_64_BIT__
 #      define ccl_try_align(...) __declspec(align(__VA_ARGS__))
@@ -58,6 +45,7 @@
 #  else /* _WIN32 && !FREE_WINDOWS */
 #    define ccl_device_inline static inline __attribute__((always_inline))
 #    define ccl_device_forceinline static inline __attribute__((always_inline))
+#    define ccl_device_inline_method __attribute__((always_inline))
 #    define ccl_align(...) __attribute__((aligned(__VA_ARGS__)))
 #    ifndef FREE_WINDOWS64
 #      define __forceinline inline __attribute__((always_inline))
@@ -70,7 +58,7 @@
 
 /* Address spaces for GPU. */
 #  define ccl_global
-#  define ccl_static_constant static const
+#  define ccl_inline_constant inline constexpr
 #  define ccl_constant const
 #  define ccl_private
 

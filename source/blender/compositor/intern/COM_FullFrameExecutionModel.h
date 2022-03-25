@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2021, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2021 Blender Foundation. */
 
 #pragma once
 
@@ -42,8 +27,8 @@ class SharedOperationBuffers;
 class FullFrameExecutionModel : public ExecutionModel {
  private:
   /**
-   * Contains operations active buffers data. Buffers will be disposed once reader operations are
-   * finished.
+   * Contains operations active buffers data.
+   * Buffers will be disposed once reader operations are finished.
    */
   SharedOperationBuffers &active_buffers_;
 
@@ -66,18 +51,34 @@ class FullFrameExecutionModel : public ExecutionModel {
 
  private:
   void determine_areas_to_render_and_reads();
+  /**
+   * Render output operations in order of priority.
+   */
   void render_operations();
   void render_output_dependencies(NodeOperation *output_op);
-  Vector<MemoryBuffer *> get_input_buffers(NodeOperation *op,
-                                           const int output_x,
-                                           const int output_y);
-  MemoryBuffer *create_operation_buffer(NodeOperation *op, const int output_x, const int output_y);
+  /**
+   * Returns input buffers with an offset relative to given output coordinates.
+   * Returned memory buffers must be deleted.
+   */
+  Vector<MemoryBuffer *> get_input_buffers(NodeOperation *op, int output_x, int output_y);
+  MemoryBuffer *create_operation_buffer(NodeOperation *op, int output_x, int output_y);
   void render_operation(NodeOperation *op);
 
   void operation_finished(NodeOperation *operation);
 
+  /**
+   * Calculates given output operation area to be rendered taking into account viewer and render
+   * borders.
+   */
   void get_output_render_area(NodeOperation *output_op, rcti &r_area);
+  /**
+   * Determines all operations areas needed to render given output area.
+   */
   void determine_areas_to_render(NodeOperation *output_op, const rcti &output_area);
+  /**
+   * Determines reads to receive by operations in output operation tree (i.e: Number of dependent
+   * operations each operation has).
+   */
   void determine_reads(NodeOperation *output_op);
 
   void update_progress_bar();

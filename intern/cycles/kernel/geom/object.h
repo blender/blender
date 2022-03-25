@@ -1,16 +1,5 @@
-/*
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 /* Object Primitive
  *
@@ -272,6 +261,16 @@ ccl_device_inline float3 object_color(KernelGlobals kg, int object)
 
   ccl_global const KernelObject *kobject = &kernel_tex_fetch(__objects, object);
   return make_float3(kobject->color[0], kobject->color[1], kobject->color[2]);
+}
+
+/* Alpha of the object */
+
+ccl_device_inline float object_alpha(KernelGlobals kg, int object)
+{
+  if (object == OBJECT_NONE)
+    return 0.0f;
+
+  return kernel_tex_fetch(__objects, object).alpha;
 }
 
 /* Pass ID number of object */

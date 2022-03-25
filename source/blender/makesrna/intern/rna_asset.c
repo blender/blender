@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -237,7 +223,7 @@ static void rna_AssetMetaData_catalog_id_set(PointerRNA *ptr, const char *value)
   }
 
   if (!BLI_uuid_parse_string(&new_uuid, value)) {
-    // TODO(Sybren): raise ValueError exception once that's possible from an RNA setter.
+    /* TODO(@sybren): raise ValueError exception once that's possible from an RNA setter. */
     printf("UUID %s not formatted correctly, ignoring new value\n", value);
     return;
   }
@@ -307,7 +293,7 @@ const EnumPropertyItem *rna_asset_library_reference_itemf(bContext *UNUSED(C),
                                                           PropertyRNA *UNUSED(prop),
                                                           bool *r_free)
 {
-  const EnumPropertyItem *items = ED_asset_library_reference_to_rna_enum_itemf();
+  const EnumPropertyItem *items = ED_asset_library_reference_to_rna_enum_itemf(true);
   if (!items) {
     *r_free = false;
   }
@@ -493,9 +479,6 @@ static void rna_def_asset_library_reference(BlenderRNA *brna)
       srna, "Asset Library Reference", "Identifier to refer to the asset library");
 }
 
-/**
- * \note the UI text and updating has to be set by the caller.
- */
 PropertyRNA *rna_def_asset_library_reference_common(struct StructRNA *srna,
                                                     const char *get,
                                                     const char *set)

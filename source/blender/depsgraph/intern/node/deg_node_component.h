@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2013 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2013 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup depsgraph
@@ -67,6 +51,7 @@ struct ComponentNode : public Node {
   ComponentNode();
   ~ComponentNode();
 
+  /** Initialize 'component' node - from pointer data given. */
   void init(const ID *id, const char *subdata) override;
 
   virtual string identifier() const override;
@@ -162,23 +147,6 @@ struct ComponentNode : public Node {
     DEG_COMPONENT_NODE_DECLARE; \
   }
 
-/* When updating object data in edit-mode, don't request COW update since this will duplicate
- * all object data which is unnecessary when the edit-mode data is used for calculating modifiers.
- *
- * TODO: Investigate modes besides edit-mode. */
-#define DEG_COMPONENT_NODE_DECLARE_NO_COW_TAG_ON_OBDATA_IN_EDIT_MODE(name) \
-  struct name##ComponentNode : public ComponentNode { \
-    DEG_COMPONENT_NODE_DECLARE; \
-    virtual bool need_tag_cow_before_update() override \
-    { \
-      if (OB_DATA_SUPPORT_EDITMODE(owner->id_type) && \
-          BKE_object_data_is_in_editmode(owner->id_orig)) { \
-        return false; \
-      } \
-      return true; \
-    } \
-  }
-
 #define DEG_COMPONENT_NODE_DECLARE_NO_COW_TAG_ON_UPDATE(name) \
   struct name##ComponentNode : public ComponentNode { \
     DEG_COMPONENT_NODE_DECLARE; \
@@ -188,18 +156,26 @@ struct ComponentNode : public Node {
     } \
   }
 
+#define DEG_COMPONENT_NODE_DECLARE_NO_COW(name) \
+  struct name##ComponentNode : public ComponentNode { \
+    DEG_COMPONENT_NODE_DECLARE; \
+    virtual bool depends_on_cow() \
+    { \
+      return false; \
+    } \
+  }
+
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Animation);
 DEG_COMPONENT_NODE_DECLARE_NO_COW_TAG_ON_UPDATE(BatchCache);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Cache);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(CopyOnWrite);
-DEG_COMPONENT_NODE_DECLARE_NO_COW_TAG_ON_OBDATA_IN_EDIT_MODE(Geometry);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(Geometry);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(ImageAnimation);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(LayerCollections);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Particles);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(ParticleSettings);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Pose);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(PointCache);
-DEG_COMPONENT_NODE_DECLARE_GENERIC(Proxy);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Sequencer);
 DEG_COMPONENT_NODE_DECLARE_NO_COW_TAG_ON_UPDATE(Shading);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(ShadingParameters);
@@ -210,10 +186,13 @@ DEG_COMPONENT_NODE_DECLARE_GENERIC(Synchronization);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Audio);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Armature);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(GenericDatablock);
+DEG_COMPONENT_NODE_DECLARE_NO_COW(Visibility);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Simulation);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(NTreeOutput);
 
 /* Bone Component */
 struct BoneComponentNode : public ComponentNode {
+  /** Initialize 'bone component' node - from pointer data given. */
   void init(const ID *id, const char *subdata);
 
   struct bPoseChannel *pchan; /* the bone that this component represents */

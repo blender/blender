@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2020, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. */
 
 /** \file
  * \ingroup gpu
@@ -62,7 +47,7 @@ union GPUState {
     uint32_t polygon_smooth : 1;
     uint32_t line_smooth : 1;
   };
-  /* Here to allow fast bitwise ops. */
+  /* Here to allow fast bit-wise ops. */
   uint64_t data;
 };
 
@@ -159,18 +144,18 @@ class StateManager {
   StateManager();
   virtual ~StateManager(){};
 
-  virtual void apply_state(void) = 0;
-  virtual void force_state(void) = 0;
+  virtual void apply_state() = 0;
+  virtual void force_state() = 0;
 
   virtual void issue_barrier(eGPUBarrier barrier_bits) = 0;
 
   virtual void texture_bind(Texture *tex, eGPUSamplerState sampler, int unit) = 0;
   virtual void texture_unbind(Texture *tex) = 0;
-  virtual void texture_unbind_all(void) = 0;
+  virtual void texture_unbind_all() = 0;
 
   virtual void image_bind(Texture *tex, int unit) = 0;
   virtual void image_unbind(Texture *tex) = 0;
-  virtual void image_unbind_all(void) = 0;
+  virtual void image_unbind_all() = 0;
 
   virtual void texture_unpack_row_length_set(uint len) = 0;
 };

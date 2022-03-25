@@ -1,24 +1,8 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
- * \ingroup MEM
+ * \ingroup intern_mem
  *
  * \brief Read \ref MEMPage
  *
@@ -39,8 +23,8 @@
  * second intern/ module with MEM_ prefix, for use in c++.
  *
  * \subsection memdependencies Dependencies
- * - stdlib
- * - stdio
+ * - `stdlib`
+ * - `stdio`
  *
  * \subsection memdocs API Documentation
  * See \ref MEM_guardedalloc.h
@@ -259,6 +243,74 @@ void MEM_use_guarded_allocator(void);
 #endif /* __cplusplus */
 
 #ifdef __cplusplus
+
+#  include <new>
+#  include <type_traits>
+#  include <utility>
+
+/**
+ * Allocate new memory for and constructs an object of type #T.
+ * #MEM_delete should be used to delete the object. Just calling #MEM_freeN is not enough when #T
+ * is not a trivial type.
+ *
+ * Note that when no arguments are passed, C++ will do recursive member-wise value initialization.
+ * That is because C++ differentiates between creating an object with `T` (default initialization)
+ * and `T()` (value initialization), whereby this function does the latter. Value initialization
+ * rules are complex, but for C-style structs, memory will be zero-initialized. So this doesn't
+ * match a `malloc()`, but a `calloc()` call in this case. See https://stackoverflow.com/a/4982720.
+ */
+template<typename T, typename... Args>
+inline T *MEM_new(const char *allocation_name, Args &&...args)
+{
+  void *buffer = MEM_mallocN(sizeof(T), allocation_name);
+  return new (buffer) T(std::forward<Args>(args)...);
+}
+
+/**
+ * Allocates zero-initialized memory for an object of type #T. The constructor of #T is not called,
+ * therefor this should only used with trivial types (like all C types).
+ * It's valid to call #MEM_freeN on a pointer returned by this, because a destructor call is not
+ * necessary, because the type is trivial.
+ */
+template<typename T> inline T *MEM_cnew(const char *allocation_name)
+{
+  static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new should be used.");
+  return static_cast<T *>(MEM_callocN(sizeof(T), allocation_name));
+}
+
+/**
+ * Allocate memory for an object of type #T and copy construct an object from `other`.
+ * Only applicable for a trivial types.
+ *
+ * This function works around problem of copy-constructing DNA structs which contains deprecated
+ * fields: some compilers will generate access deprecated field in implicitly defined copy
+ * constructors.
+ *
+ * This is a better alternative to #MEM_dupallocN.
+ */
+template<typename T> inline T *MEM_cnew(const char *allocation_name, const T &other)
+{
+  static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new should be used.");
+  T *new_object = static_cast<T *>(MEM_mallocN(sizeof(T), allocation_name));
+  memcpy(new_object, &other, sizeof(T));
+  return new_object;
+}
+
+/**
+ * Destructs and deallocates an object previously allocated with any `MEM_*` function.
+ * Passing in null does nothing.
+ */
+template<typename T> inline void MEM_delete(const T *ptr)
+{
+  if (ptr == nullptr) {
+    /* Support #ptr being null, because C++ `delete` supports that as well. */
+    return;
+  }
+  /* C++ allows destruction of const objects, so the pointer is allowed to be const. */
+  ptr->~T();
+  MEM_freeN(const_cast<T *>(ptr));
+}
+
 /* Allocation functions (for C++ only). */
 #  define MEM_CXX_CLASS_ALLOC_FUNCS(_id) \
    public: \
@@ -292,36 +344,6 @@ void MEM_use_guarded_allocator(void);
     { \
     }
 
-/* Needed when type includes a namespace, then the namespace should not be
- * specified after ~, so using a macro fails. */
-template<class T> inline void OBJECT_GUARDED_DESTRUCTOR(T *what)
-{
-  what->~T();
-}
-
-#  if defined __GNUC__
-#    define OBJECT_GUARDED_NEW(type, args...) new (MEM_mallocN(sizeof(type), __func__)) type(args)
-#  else
-#    define OBJECT_GUARDED_NEW(type, ...) \
-      new (MEM_mallocN(sizeof(type), __FUNCTION__)) type(__VA_ARGS__)
-#  endif
-#  define OBJECT_GUARDED_DELETE(what, type) \
-    { \
-      if (what) { \
-        OBJECT_GUARDED_DESTRUCTOR((type *)what); \
-        MEM_freeN(what); \
-      } \
-    } \
-    (void)0
-#  define OBJECT_GUARDED_SAFE_DELETE(what, type) \
-    { \
-      if (what) { \
-        OBJECT_GUARDED_DESTRUCTOR((type *)what); \
-        MEM_freeN(what); \
-        what = NULL; \
-      } \
-    } \
-    (void)0
 #endif /* __cplusplus */
 
 #endif /* __MEM_GUARDEDALLOC_H__ */

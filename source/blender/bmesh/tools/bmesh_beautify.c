@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -49,8 +35,17 @@
 /* GSet for edge rotation */
 
 typedef struct EdRotState {
-  int v1, v2; /*  edge vert, small -> large */
-  int f1, f2; /*  face vert, small -> large */
+  /**
+   * Edge vert indices (ordered small -> large).
+   */
+  int v_pair[2];
+  /**
+   * Face vert indices (small -> large).
+   *
+   * Each face-vertex points to a connected triangles vertex
+   * that's isn't part of the edge defined by `v_pair`.
+   */
+  int f_pair[2];
 } EdRotState;
 
 #if 0
@@ -58,7 +53,7 @@ typedef struct EdRotState {
 static uint erot_gsetutil_hash(const void *ptr)
 {
   const EdRotState *e_state = (const EdRotState *)ptr;
-  return BLI_ghashutil_inthash_v4(&e_state->v1);
+  return BLI_ghashutil_inthash_v4(&e_state->v_pair[0]);
 }
 #endif
 #if 0
@@ -66,33 +61,31 @@ static int erot_gsetutil_cmp(const void *a, const void *b)
 {
   const EdRotState *e_state_a = (const EdRotState *)a;
   const EdRotState *e_state_b = (const EdRotState *)b;
-  if (e_state_a->v1 < e_state_b->v1) {
+  if (e_state_a->v_pair[0] < e_state_b->v_pair[0]) {
     return -1;
   }
-  else if (e_state_a->v1 > e_state_b->v1) {
+  if (e_state_a->v_pair[0] > e_state_b->v_pair[0]) {
     return 1;
   }
-  else if (e_state_a->v2 < e_state_b->v2) {
+  if (e_state_a->v_pair[1] < e_state_b->v_pair[1]) {
     return -1;
   }
-  else if (e_state_a->v2 > e_state_b->v2) {
+  if (e_state_a->v_pair[1] > e_state_b->v_pair[1]) {
     return 1;
   }
-  else if (e_state_a->f1 < e_state_b->f1) {
+  if (e_state_a->f_pair[0] < e_state_b->f_pair[0]) {
     return -1;
   }
-  else if (e_state_a->f1 > e_state_b->f1) {
+  if (e_state_a->f_pair[0] > e_state_b->f_pair[0]) {
     return 1;
   }
-  else if (e_state_a->f2 < e_state_b->f2) {
+  if (e_state_a->f_pair[1] < e_state_b->f_pair[1]) {
     return -1;
   }
-  else if (e_state_a->f2 > e_state_b->f2) {
+  if (e_state_a->f_pair[1] > e_state_b->f_pair[1]) {
     return 1;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 #endif
 static GSet *erot_gset_new(void)
@@ -127,12 +120,12 @@ static void erot_state_ex(const BMEdge *e, int v_index[2], int f_index[2])
 
 static void erot_state_current(const BMEdge *e, EdRotState *e_state)
 {
-  erot_state_ex(e, &e_state->v1, &e_state->f1);
+  erot_state_ex(e, e_state->v_pair, e_state->f_pair);
 }
 
 static void erot_state_alternate(const BMEdge *e, EdRotState *e_state)
 {
-  erot_state_ex(e, &e_state->f1, &e_state->v1);
+  erot_state_ex(e, e_state->f_pair, e_state->v_pair);
 }
 
 /* -------------------------------------------------------------------- */
@@ -235,12 +228,6 @@ static float bm_edge_calc_rotate_beauty__angle(const float v1[3],
   return FLT_MAX;
 }
 
-/**
- * Assuming we have 2 triangles sharing an edge (2 - 4),
- * check if the edge running from (1 - 3) gives better results.
- *
- * \return (negative number means the edge can be rotated, lager == better).
- */
 float BM_verts_calc_rotate_beauty(const BMVert *v1,
                                   const BMVert *v2,
                                   const BMVert *v3,
@@ -374,9 +361,6 @@ static void bm_edge_update_beauty_cost(BMEdge *e,
 /* -------------------------------------------------------------------- */
 /* Beautify Fill */
 
-/**
- * \note This function sets the edge indices to invalid values.
- */
 void BM_mesh_beautify_fill(BMesh *bm,
                            BMEdge **edge_array,
                            const int edge_array_len,

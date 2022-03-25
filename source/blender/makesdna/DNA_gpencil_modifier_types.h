@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -28,6 +14,7 @@ extern "C" {
 #endif
 
 struct LatticeDeformData;
+struct ShrinkwrapTreeData;
 
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE!
  * (ONLY ADD NEW ITEMS AT THE END)
@@ -58,6 +45,7 @@ typedef enum GpencilModifierType {
   eGpencilModifierType_WeightProximity = 21,
   eGpencilModifierType_Dash = 22,
   eGpencilModifierType_WeightAngle = 23,
+  eGpencilModifierType_Shrinkwrap = 24,
   /* Keep last. */
   NUM_GREASEPENCIL_MODIFIER_TYPES,
 } GpencilModifierType;
@@ -413,6 +401,8 @@ typedef enum eBuildGpencil_Mode {
   GP_BUILD_MODE_SEQUENTIAL = 0,
   /* All strokes start at the same time */
   GP_BUILD_MODE_CONCURRENT = 1,
+  /* Only the new strokes are built */
+  GP_BUILD_MODE_ADDITIVE = 2,
 } eBuildGpencil_Mode;
 
 typedef enum eBuildGpencil_Transition {
@@ -490,10 +480,17 @@ typedef struct LengthGpencilModifierData {
   int layer_pass;
   /** Length. */
   float start_fac, end_fac;
+  /** Random length factors. */
+  float rand_start_fac, rand_end_fac, rand_offset;
   /** Overshoot trajectory factor. */
   float overshoot_fac;
+  /** (first element is the index) random values. */
+  int seed;
+  /** How many frames before recalculate randoms. */
+  int step;
   /** Modifier mode. */
   int mode;
+  char _pad[4];
   /* Curvature parameters. */
   float point_density;
   float segment_influence;
@@ -507,6 +504,7 @@ typedef enum eLengthGpencil_Flag {
   GP_LENGTH_INVERT_MATERIAL = (1 << 3),
   GP_LENGTH_USE_CURVATURE = (1 << 4),
   GP_LENGTH_INVERT_CURVATURE = (1 << 5),
+  GP_LENGTH_USE_RANDOM = (1 << 6),
 } eLengthGpencil_Flag;
 
 typedef enum eLengthGpencil_Type {
@@ -653,9 +651,10 @@ typedef struct SimplifyGpencilModifierData {
   int layer_pass;
   /** Sample length */
   float length;
+  /** Sample sharp threshold */
+  float sharp_threshold;
   /** Merge distance */
   float distance;
-  char _pad[4];
 } SimplifyGpencilModifierData;
 
 typedef enum eSimplifyGpencil_Flag {
@@ -728,7 +727,7 @@ typedef struct SmoothGpencilModifierData {
   int pass_index;
   /** Several flags. */
   int flag;
-  /** Factor of noise. */
+  /** Factor of smooth. */
   float factor;
   /** How many times apply smooth. */
   int step;
@@ -979,6 +978,7 @@ typedef enum eLineArtGPencilModifierFlags {
   LRT_GPENCIL_IS_BAKED = (1 << 3),
   LRT_GPENCIL_USE_CACHE = (1 << 4),
   LRT_GPENCIL_OFFSET_TOWARDS_CUSTOM_CAMERA = (1 << 5),
+  LRT_GPENCIL_INVERT_COLLECTION = (1 << 6),
 } eLineArtGPencilModifierFlags;
 
 typedef enum eLineartGpencilMaskSwitches {
@@ -1072,6 +1072,60 @@ typedef struct LineartGpencilModifierData {
   struct LineartRenderBuffer *render_buffer_ptr;
 
 } LineartGpencilModifierData;
+
+typedef struct ShrinkwrapGpencilModifierData {
+  GpencilModifierData modifier;
+  /** Shrink target. */
+  struct Object *target;
+  /** Additional shrink target. */
+  struct Object *aux_target;
+  /** Material for filtering. */
+  struct Material *material;
+  /** Layer name. */
+  char layername[64];
+  /** Optional vertexgroup filter name, MAX_VGROUP_NAME. */
+  char vgname[64];
+  /** Custom index for passes. */
+  int pass_index;
+  /** Flags. */
+  int flag;
+  /** Custom index for passes. */
+  int layer_pass;
+  /** Distance offset to keep from mesh/projection point. */
+  float keep_dist;
+  /** Shrink type projection. */
+  short shrink_type;
+  /** Shrink options. */
+  char shrink_opts;
+  /** Shrink to surface mode. */
+  char shrink_mode;
+  /** Limit the projection ray cast. */
+  float proj_limit;
+  /** Axis to project over. */
+  char proj_axis;
+
+  /** If using projection over vertex normal this controls the level of subsurface that must be
+   * done before getting the vertex coordinates and normal
+   */
+  char subsurf_levels;
+  char _pad[6];
+  /** Factor of smooth. */
+  float smooth_factor;
+  /** How many times apply smooth. */
+  int smooth_step;
+
+  /** Runtime only. */
+  struct ShrinkwrapTreeData *cache_data;
+} ShrinkwrapGpencilModifierData;
+
+typedef enum eShrinkwrapGpencil_Flag {
+  GP_SHRINKWRAP_INVERT_LAYER = (1 << 0),
+  GP_SHRINKWRAP_INVERT_PASS = (1 << 1),
+  GP_SHRINKWRAP_INVERT_LAYERPASS = (1 << 3),
+  GP_SHRINKWRAP_INVERT_MATERIAL = (1 << 4),
+  /* Keep next bit as is to be equals to mesh modifier flag to reuse functions. */
+  GP_SHRINKWRAP_INVERT_VGROUP = (1 << 6),
+} eShrinkwrapGpencil_Flag;
 
 #ifdef __cplusplus
 }

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2011 Blender Foundation.
+
 # - Find GMP library
 # Find the native GMP includes and library
 # This module defines
@@ -10,13 +13,6 @@
 #
 # also defined, but not for general use are
 #  GMP_LIBRARY, where to find the GMP library.
-
-#=============================================================================
-# Copyright 2011 Blender Foundation.
-#
-# Distributed under the OSI-approved BSD 3-Clause License,
-# see accompanying file BSD-3-Clause-license.txt for details.
-#=============================================================================
 
 # If GMP_ROOT_DIR was defined in the environment, use it.
 IF(NOT GMP_ROOT_DIR AND NOT $ENV{GMP_ROOT_DIR} STREQUAL "")

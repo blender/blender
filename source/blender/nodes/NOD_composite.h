@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup nodes
@@ -43,6 +27,7 @@ void register_node_type_cmp_texture(void);
 void register_node_type_cmp_value(void);
 void register_node_type_cmp_rgb(void);
 void register_node_type_cmp_curve_time(void);
+void register_node_type_cmp_scene_time(void);
 void register_node_type_cmp_movieclip(void);
 
 void register_node_type_cmp_composite(void);
@@ -62,6 +47,7 @@ void register_node_type_cmp_alphaover(void);
 void register_node_type_cmp_zcombine(void);
 void register_node_type_cmp_colorbalance(void);
 void register_node_type_cmp_huecorrect(void);
+void register_node_type_cmp_convert_color_space(void);
 
 void register_node_type_cmp_normal(void);
 void register_node_type_cmp_curve_vec(void);
@@ -138,6 +124,8 @@ void register_node_type_cmp_pixelate(void);
 void register_node_type_cmp_trackpos(void);
 void register_node_type_cmp_planetrackdeform(void);
 void register_node_type_cmp_cornerpin(void);
+void register_node_type_cmp_separate_xyz(void);
+void register_node_type_cmp_combine_xyz(void);
 
 void node_cmp_rlayers_outputs(struct bNodeTree *ntree, struct bNode *node);
 void node_cmp_rlayers_register_pass(struct bNodeTree *ntree,
@@ -149,6 +137,75 @@ void node_cmp_rlayers_register_pass(struct bNodeTree *ntree,
 const char *node_cmp_rlayers_sock_to_pass(int sock_index);
 
 void register_node_type_cmp_custom_group(bNodeType *ntype);
+
+void ntreeCompositExecTree(struct Scene *scene,
+                           struct bNodeTree *ntree,
+                           struct RenderData *rd,
+                           int rendering,
+                           int do_previews,
+                           const struct ColorManagedViewSettings *view_settings,
+                           const struct ColorManagedDisplaySettings *display_settings,
+                           const char *view_name);
+
+/**
+ * Called from render pipeline, to tag render input and output.
+ * need to do all scenes, to prevent errors when you re-render 1 scene.
+ */
+void ntreeCompositTagRender(struct Scene *scene);
+
+/**
+ * Update the outputs of the render layer nodes.
+ * Since the outputs depend on the render engine, this part is a bit complex:
+ * - #ntreeCompositUpdateRLayers is called and loops over all render layer nodes.
+ * - Each render layer node calls the update function of the
+ *   render engine that's used for its scene.
+ * - The render engine calls RE_engine_register_pass for each pass.
+ * - #RE_engine_register_pass calls #node_cmp_rlayers_register_pass.
+ */
+void ntreeCompositUpdateRLayers(struct bNodeTree *ntree);
+
+void ntreeCompositClearTags(struct bNodeTree *ntree);
+
+struct bNodeSocket *ntreeCompositOutputFileAddSocket(struct bNodeTree *ntree,
+                                                     struct bNode *node,
+                                                     const char *name,
+                                                     struct ImageFormatData *im_format);
+
+int ntreeCompositOutputFileRemoveActiveSocket(struct bNodeTree *ntree, struct bNode *node);
+void ntreeCompositOutputFileSetPath(struct bNode *node,
+                                    struct bNodeSocket *sock,
+                                    const char *name);
+void ntreeCompositOutputFileSetLayer(struct bNode *node,
+                                     struct bNodeSocket *sock,
+                                     const char *name);
+/* needed in do_versions */
+void ntreeCompositOutputFileUniquePath(struct ListBase *list,
+                                       struct bNodeSocket *sock,
+                                       const char defname[],
+                                       char delim);
+void ntreeCompositOutputFileUniqueLayer(struct ListBase *list,
+                                        struct bNodeSocket *sock,
+                                        const char defname[],
+                                        char delim);
+
+void ntreeCompositColorBalanceSyncFromLGG(bNodeTree *ntree, bNode *node);
+void ntreeCompositColorBalanceSyncFromCDL(bNodeTree *ntree, bNode *node);
+
+void ntreeCompositCryptomatteSyncFromAdd(const Scene *scene, bNode *node);
+void ntreeCompositCryptomatteSyncFromRemove(bNode *node);
+bNodeSocket *ntreeCompositCryptomatteAddSocket(bNodeTree *ntree, bNode *node);
+int ntreeCompositCryptomatteRemoveSocket(bNodeTree *ntree, bNode *node);
+void ntreeCompositCryptomatteLayerPrefix(const Scene *scene,
+                                         const bNode *node,
+                                         char *r_prefix,
+                                         size_t prefix_len);
+
+/**
+ * Update the runtime layer names with the crypto-matte layer names of the references render layer
+ * or image.
+ */
+void ntreeCompositCryptomatteUpdateLayerNames(const Scene *scene, bNode *node);
+struct CryptomatteSession *ntreeCompositCryptomatteSession(const Scene *scene, bNode *node);
 
 #ifdef __cplusplus
 }

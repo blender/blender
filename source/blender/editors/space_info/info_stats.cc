@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spinfo
@@ -43,6 +29,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_blender_version.h"
 #include "BKE_context.h"
@@ -165,7 +152,7 @@ static void stats_object(Object *ob,
       }
       break;
     case OB_SURF:
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_FONT: {
       const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
       if ((me_eval != nullptr) && !BLI_gset_add(objects_gset, (void *)me_eval)) {
@@ -218,7 +205,7 @@ static void stats_object(Object *ob,
       }
       break;
     }
-    case OB_HAIR:
+    case OB_CURVES:
     case OB_POINTCLOUD:
     case OB_VOLUME: {
       break;
@@ -273,7 +260,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
       stats->totvert += 2;
     }
   }
-  else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) { /* OB_FONT has no cu->editnurb */
+  else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) { /* OB_FONT has no cu->editnurb */
     /* Curve Edit */
     Curve *cu = static_cast<Curve *>(obedit->data);
     BezTriple *bezt;
@@ -351,7 +338,7 @@ static void stats_object_pose(const Object *ob, SceneStats *stats)
     LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       stats->totbone++;
       if (pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
-        if (pchan->bone->layer & arm->layer) {
+        if (BKE_pose_is_layer_visible(arm, pchan)) {
           stats->totbonesel++;
         }
       }
@@ -721,11 +708,6 @@ static void stats_row(int col1,
   BLF_draw_default(col2, *y, 0.0f, values, sizeof(values));
 }
 
-/**
- * \param v3d_local: Pass this argument to calculate view-port local statistics.
- * Note that this must only be used for local-view, otherwise report specific statistics
- * will be written into the global scene statistics giving incorrect results.
- */
 void ED_info_draw_stats(
     Main *bmain, Scene *scene, ViewLayer *view_layer, View3D *v3d_local, int x, int *y, int height)
 {

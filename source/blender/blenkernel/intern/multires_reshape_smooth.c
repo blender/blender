@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -75,6 +59,7 @@ typedef struct Vertex {
   int num_grid_coords;
   GridCoord *grid_coords;
 
+  float sharpness;
   bool is_infinite_sharp;
 } Vertex;
 
@@ -489,17 +474,31 @@ static int get_reshape_level_resolution(const MultiresReshapeContext *reshape_co
   return (1 << reshape_context->reshape.level) + 1;
 }
 
+static bool is_crease_supported(const MultiresReshapeSmoothContext *reshape_smooth_context)
+{
+  return !ELEM(reshape_smooth_context->smoothing_type,
+               MULTIRES_SUBDIVIDE_LINEAR,
+               MULTIRES_SUBDIVIDE_SIMPLE);
+}
+
 /* Get crease which will be used for communication to OpenSubdiv topology.
  * Note that simple subdivision treats all base edges as infinitely sharp. */
-static char get_effective_edge_crease_char(
-    const MultiresReshapeSmoothContext *reshape_smooth_context, const MEdge *base_edge)
+static char get_effective_crease_char(const MultiresReshapeSmoothContext *reshape_smooth_context,
+                                      const MEdge *base_edge)
 {
-  if (ELEM(reshape_smooth_context->smoothing_type,
-           MULTIRES_SUBDIVIDE_LINEAR,
-           MULTIRES_SUBDIVIDE_SIMPLE)) {
+  if (!is_crease_supported(reshape_smooth_context)) {
     return 255;
   }
   return base_edge->crease;
+}
+
+static float get_effective_crease_float(const MultiresReshapeSmoothContext *reshape_smooth_context,
+                                        const float crease)
+{
+  if (!is_crease_supported(reshape_smooth_context)) {
+    return 1.0f;
+  }
+  return crease;
 }
 
 static void context_init(MultiresReshapeSmoothContext *reshape_smooth_context,
@@ -566,7 +565,8 @@ static bool foreach_topology_info(const SubdivForeachContext *foreach_context,
                                   const int num_vertices,
                                   const int num_edges,
                                   const int num_loops,
-                                  const int num_polygons)
+                                  const int num_polygons,
+                                  const int *UNUSED(subdiv_polygon_offset))
 {
   MultiresReshapeSmoothContext *reshape_smooth_context = foreach_context->user_data;
   const int max_edges = reshape_smooth_context->smoothing_type == MULTIRES_SUBDIVIDE_LINEAR ?
@@ -595,6 +595,7 @@ static bool foreach_topology_info(const SubdivForeachContext *foreach_context,
 
 static void foreach_single_vertex(const SubdivForeachContext *foreach_context,
                                   const GridCoord *grid_coord,
+                                  const int coarse_vertex_index,
                                   const int subdiv_vertex_index)
 {
   const MultiresReshapeSmoothContext *reshape_smooth_context = foreach_context->user_data;
@@ -607,11 +608,32 @@ static void foreach_single_vertex(const SubdivForeachContext *foreach_context,
                                      sizeof(Vertex) * (vertex->num_grid_coords + 1));
   vertex->grid_coords[vertex->num_grid_coords] = *grid_coord;
   ++vertex->num_grid_coords;
+
+  if (coarse_vertex_index == -1) {
+    return;
+  }
+
+  const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
+  const float *cd_vertex_crease = reshape_context->cd_vertex_crease;
+
+  if (cd_vertex_crease == NULL) {
+    return;
+  }
+
+  float crease = cd_vertex_crease[coarse_vertex_index];
+
+  if (crease == 0.0f) {
+    return;
+  }
+
+  crease = get_effective_crease_float(reshape_smooth_context, crease);
+  vertex->sharpness = BKE_subdiv_crease_to_sharpness_f(crease);
 }
 
 /* TODO(sergey): De-duplicate with similar function in multires_reshape_vertcos.c */
 static void foreach_vertex(const SubdivForeachContext *foreach_context,
                            const PTexCoord *ptex_coord,
+                           const int coarse_vertex_index,
                            const int subdiv_vertex_index)
 {
   const MultiresReshapeSmoothContext *reshape_smooth_context = foreach_context->user_data;
@@ -631,12 +653,13 @@ static void foreach_vertex(const SubdivForeachContext *foreach_context,
     for (int current_corner = 0; current_corner < num_corners; ++current_corner) {
       GridCoord corner_grid_coord = grid_coord;
       corner_grid_coord.grid_index = start_grid_index + current_corner;
-      foreach_single_vertex(foreach_context, &corner_grid_coord, subdiv_vertex_index);
+      foreach_single_vertex(
+          foreach_context, &corner_grid_coord, coarse_vertex_index, subdiv_vertex_index);
     }
     return;
   }
 
-  foreach_single_vertex(foreach_context, &grid_coord, subdiv_vertex_index);
+  foreach_single_vertex(foreach_context, &grid_coord, coarse_vertex_index, subdiv_vertex_index);
 
   if (grid_coord.u == 0.0f) {
     GridCoord prev_grid_coord;
@@ -644,7 +667,8 @@ static void foreach_vertex(const SubdivForeachContext *foreach_context,
     prev_grid_coord.u = grid_coord.v;
     prev_grid_coord.v = 0.0f;
 
-    foreach_single_vertex(foreach_context, &prev_grid_coord, subdiv_vertex_index);
+    foreach_single_vertex(
+        foreach_context, &prev_grid_coord, coarse_vertex_index, subdiv_vertex_index);
   }
 
   if (grid_coord.v == 0.0f) {
@@ -653,7 +677,8 @@ static void foreach_vertex(const SubdivForeachContext *foreach_context,
     next_grid_coord.u = 0.0f;
     next_grid_coord.v = grid_coord.u;
 
-    foreach_single_vertex(foreach_context, &next_grid_coord, subdiv_vertex_index);
+    foreach_single_vertex(
+        foreach_context, &next_grid_coord, coarse_vertex_index, subdiv_vertex_index);
   }
 }
 
@@ -671,7 +696,7 @@ static void foreach_vertex_inner(const struct SubdivForeachContext *foreach_cont
       .u = ptex_face_u,
       .v = ptex_face_v,
   };
-  foreach_vertex(foreach_context, &ptex_coord, subdiv_vertex_index);
+  foreach_vertex(foreach_context, &ptex_coord, -1, subdiv_vertex_index);
 }
 
 static void foreach_vertex_every_corner(const struct SubdivForeachContext *foreach_context,
@@ -679,7 +704,7 @@ static void foreach_vertex_every_corner(const struct SubdivForeachContext *forea
                                         const int ptex_face_index,
                                         const float ptex_face_u,
                                         const float ptex_face_v,
-                                        const int UNUSED(coarse_vertex_index),
+                                        const int coarse_vertex_index,
                                         const int UNUSED(coarse_face_index),
                                         const int UNUSED(coarse_face_corner),
                                         const int subdiv_vertex_index)
@@ -689,7 +714,7 @@ static void foreach_vertex_every_corner(const struct SubdivForeachContext *forea
       .u = ptex_face_u,
       .v = ptex_face_v,
   };
-  foreach_vertex(foreach_context, &ptex_coord, subdiv_vertex_index);
+  foreach_vertex(foreach_context, &ptex_coord, coarse_vertex_index, subdiv_vertex_index);
 }
 
 static void foreach_vertex_every_edge(const struct SubdivForeachContext *foreach_context,
@@ -707,7 +732,7 @@ static void foreach_vertex_every_edge(const struct SubdivForeachContext *foreach
       .u = ptex_face_u,
       .v = ptex_face_v,
   };
-  foreach_vertex(foreach_context, &ptex_coord, subdiv_vertex_index);
+  foreach_vertex(foreach_context, &ptex_coord, -1, subdiv_vertex_index);
 }
 
 static void foreach_loop(const struct SubdivForeachContext *foreach_context,
@@ -777,13 +802,14 @@ static void store_edge(MultiresReshapeSmoothContext *reshape_smooth_context,
   Edge *edge = &reshape_smooth_context->geometry.edges[edge_index];
   edge->v1 = subdiv_v1;
   edge->v2 = subdiv_v2;
-  edge->sharpness = BKE_subdiv_edge_crease_to_sharpness_char(crease);
+  edge->sharpness = BKE_subdiv_crease_to_sharpness_char(crease);
 }
 
 static void foreach_edge(const struct SubdivForeachContext *foreach_context,
                          void *UNUSED(tls),
                          const int coarse_edge_index,
                          const int UNUSED(subdiv_edge_index),
+                         const bool is_loose,
                          const int subdiv_v1,
                          const int subdiv_v2)
 {
@@ -791,7 +817,9 @@ static void foreach_edge(const struct SubdivForeachContext *foreach_context,
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
 
   if (reshape_smooth_context->smoothing_type == MULTIRES_SUBDIVIDE_LINEAR) {
-    store_edge(reshape_smooth_context, subdiv_v1, subdiv_v2, (char)255);
+    if (!is_loose) {
+      store_edge(reshape_smooth_context, subdiv_v1, subdiv_v2, (char)255);
+    }
     return;
   }
 
@@ -808,7 +836,7 @@ static void foreach_edge(const struct SubdivForeachContext *foreach_context,
   /* Edges without crease are to be ignored as well. */
   const Mesh *base_mesh = reshape_context->base_mesh;
   const MEdge *base_edge = &base_mesh->medge[coarse_edge_index];
-  const char crease = get_effective_edge_crease_char(reshape_smooth_context, base_edge);
+  const char crease = get_effective_crease_char(reshape_smooth_context, base_edge);
   if (crease == 0) {
     return;
   }
@@ -834,8 +862,7 @@ static void geometry_init_loose_information(MultiresReshapeSmoothContext *reshap
       if (!BLI_BITMAP_TEST_BOOL(reshape_smooth_context->non_loose_base_edge_map, loop->e)) {
         BLI_BITMAP_ENABLE(reshape_smooth_context->non_loose_base_edge_map, loop->e);
 
-        const char crease = get_effective_edge_crease_char(reshape_smooth_context,
-                                                           &base_edge[loop->e]);
+        const char crease = get_effective_crease_char(reshape_smooth_context, &base_edge[loop->e]);
         if (crease != 0) {
           ++num_used_edges;
         }
@@ -978,6 +1005,15 @@ static float get_edge_sharpness(const OpenSubdiv_Converter *converter, const int
   return edge->sharpness;
 }
 
+static float get_vertex_sharpness(const OpenSubdiv_Converter *converter, const int vertex_index)
+{
+  const MultiresReshapeSmoothContext *reshape_smooth_context = converter->user_data;
+  BLI_assert(vertex_index < reshape_smooth_context->geometry.num_vertices);
+
+  const Vertex *vertex = &reshape_smooth_context->geometry.vertices[vertex_index];
+  return vertex->sharpness;
+}
+
 static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter, int vertex_index)
 {
   const MultiresReshapeSmoothContext *reshape_smooth_context = converter->user_data;
@@ -1014,7 +1050,7 @@ static void converter_init(const MultiresReshapeSmoothContext *reshape_smooth_co
   converter->getNumVertexFaces = NULL;
   converter->getVertexFaces = NULL;
   converter->isInfiniteSharpVertex = is_infinite_sharp_vertex;
-  converter->getVertexSharpness = NULL;
+  converter->getVertexSharpness = get_vertex_sharpness;
 
   converter->getNumUVLayers = NULL;
   converter->precalcUVLayer = NULL;
@@ -1037,7 +1073,7 @@ static void reshape_subdiv_create(MultiresReshapeSmoothContext *reshape_smooth_c
   converter_init(reshape_smooth_context, &converter);
 
   Subdiv *reshape_subdiv = BKE_subdiv_new_from_converter(settings, &converter);
-  BKE_subdiv_eval_begin(reshape_subdiv);
+  BKE_subdiv_eval_begin(reshape_subdiv, SUBDIV_EVALUATOR_TYPE_CPU, NULL);
 
   reshape_smooth_context->reshape_subdiv = reshape_subdiv;
 

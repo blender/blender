@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 #pragma once
 
@@ -58,8 +42,15 @@ LinkNode *BLI_linklist_find_last(LinkNode *list) ATTR_WARN_UNUSED_RESULT;
 
 void BLI_linklist_reverse(LinkNode **listp) ATTR_NONNULL(1);
 
+/**
+ * Move an item from its current position to a new one inside a single-linked list.
+ * \note `*listp` may be modified.
+ */
 void BLI_linklist_move_item(LinkNode **listp, int curr_index, int new_index) ATTR_NONNULL(1);
 
+/**
+ * A version of #BLI_linklist_prepend that takes the allocated link.
+ */
 void BLI_linklist_prepend_nlink(LinkNode **listp, void *ptr, LinkNode *nlink) ATTR_NONNULL(1, 3);
 void BLI_linklist_prepend(LinkNode **listp, void *ptr) ATTR_NONNULL(1);
 void BLI_linklist_prepend_arena(LinkNode **listp, void *ptr, struct MemArena *ma)
@@ -67,7 +58,11 @@ void BLI_linklist_prepend_arena(LinkNode **listp, void *ptr, struct MemArena *ma
 void BLI_linklist_prepend_pool(LinkNode **listp, void *ptr, struct BLI_mempool *mempool)
     ATTR_NONNULL(1, 3);
 
-/* use LinkNodePair to avoid full search */
+/* Use #LinkNodePair to avoid full search. */
+
+/**
+ * A version of append that takes the allocated link.
+ */
 void BLI_linklist_append_nlink(LinkNodePair *list_pair, void *ptr, LinkNode *nlink)
     ATTR_NONNULL(1, 3);
 void BLI_linklist_append(LinkNodePair *list_pair, void *ptr) ATTR_NONNULL(1);

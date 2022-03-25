@@ -225,7 +225,7 @@ void assignFunctionPointers(OpenSubdiv_TopologyRefiner *topology_refiner)
 
 OpenSubdiv_TopologyRefiner *allocateTopologyRefiner()
 {
-  OpenSubdiv_TopologyRefiner *topology_refiner = OBJECT_GUARDED_NEW(OpenSubdiv_TopologyRefiner);
+  OpenSubdiv_TopologyRefiner *topology_refiner = MEM_new<OpenSubdiv_TopologyRefiner>(__func__);
   assignFunctionPointers(topology_refiner);
   return topology_refiner;
 }
@@ -252,7 +252,7 @@ OpenSubdiv_TopologyRefiner *openSubdiv_createTopologyRefinerFromConverter(
 void openSubdiv_deleteTopologyRefiner(OpenSubdiv_TopologyRefiner *topology_refiner)
 {
   delete topology_refiner->impl;
-  OBJECT_GUARDED_DELETE(topology_refiner, OpenSubdiv_TopologyRefiner);
+  MEM_delete(topology_refiner);
 }
 
 bool openSubdiv_topologyRefinerCompareWithConverter(

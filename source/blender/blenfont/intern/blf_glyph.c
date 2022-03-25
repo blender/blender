@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup blf
@@ -34,6 +18,7 @@
 #include FT_GLYPH_H
 #include FT_OUTLINE_H
 #include FT_BITMAP_H
+#include FT_ADVANCES_H /* For FT_Get_Advance. */
 
 #include "MEM_guardedalloc.h"
 
@@ -73,10 +58,7 @@ static FT_Fixed to_16dot16(double val)
 /** \name Glyph Cache
  * \{ */
 
-/**
- * Find a glyph cache that matches a size, DPI & styles.
- */
-GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, float size, unsigned int dpi)
+static GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, float size, unsigned int dpi)
 {
   GlyphCacheBLF *gc = (GlyphCacheBLF *)font->cache.first;
   while (gc) {
@@ -89,10 +71,7 @@ GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, float size, unsigned int dpi)
   return NULL;
 }
 
-/**
- * Create a new glyph cache for the current size, DPI & styles.
- */
-GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
+static GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 {
   GlyphCacheBLF *gc = (GlyphCacheBLF *)MEM_callocN(sizeof(GlyphCacheBLF), "blf_glyph_cache_new");
 
@@ -105,6 +84,22 @@ GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 
   memset(gc->glyph_ascii_table, 0, sizeof(gc->glyph_ascii_table));
   memset(gc->bucket, 0, sizeof(gc->bucket));
+
+  /* Determine ideal fixed-width size for monospaced output. */
+  FT_UInt gindex = FT_Get_Char_Index(font->face, U'0');
+  if (gindex) {
+    FT_Fixed advance = 0;
+    FT_Get_Advance(font->face, gindex, FT_LOAD_NO_HINTING, &advance);
+    /* Use CSS 'ch unit' width, advance of zero character. */
+    gc->fixed_width = (int)(advance >> 16);
+  }
+  else {
+    /* Font does not contain "0" so use CSS fallback of 1/2 of em. */
+    gc->fixed_width = (int)((font->face->size->metrics.height / 2) >> 6);
+  }
+  if (gc->fixed_width < 1) {
+    gc->fixed_width = 1;
+  }
 
   BLI_addhead(&font->cache, gc);
   return gc;
@@ -128,20 +123,7 @@ void blf_glyph_cache_release(FontBLF *font)
   BLI_spin_unlock(font->glyph_cache_mutex);
 }
 
-void blf_glyph_cache_clear(FontBLF *font)
-{
-  GlyphCacheBLF *gc;
-
-  BLI_spin_lock(font->glyph_cache_mutex);
-
-  while ((gc = BLI_pophead(&font->cache))) {
-    blf_glyph_cache_free(gc);
-  }
-
-  BLI_spin_unlock(font->glyph_cache_mutex);
-}
-
-void blf_glyph_cache_free(GlyphCacheBLF *gc)
+static void blf_glyph_cache_free(GlyphCacheBLF *gc)
 {
   GlyphBLF *g;
   for (uint i = 0; i < ARRAY_SIZE(gc->bucket); i++) {
@@ -156,6 +138,19 @@ void blf_glyph_cache_free(GlyphCacheBLF *gc)
     MEM_freeN(gc->bitmap_result);
   }
   MEM_freeN(gc);
+}
+
+void blf_glyph_cache_clear(FontBLF *font)
+{
+  GlyphCacheBLF *gc;
+
+  BLI_spin_lock(font->glyph_cache_mutex);
+
+  while ((gc = BLI_pophead(&font->cache))) {
+    blf_glyph_cache_free(gc);
+  }
+
+  BLI_spin_unlock(font->glyph_cache_mutex);
 }
 
 /**
@@ -451,9 +446,6 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
   return NULL;
 }
 
-/**
- * Create (or load from cache) a fully-rendered bitmap glyph.
- */
 GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, uint charcode)
 {
   GlyphBLF *g = blf_glyph_cache_find_glyph(gc, charcode);

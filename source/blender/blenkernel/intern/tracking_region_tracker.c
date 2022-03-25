@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2011 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -26,6 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_defaults.h"
 #include "DNA_movieclip_types.h"
 
 #include "BLI_threads.h"
@@ -42,7 +27,7 @@
 
 /* **** utility functions for tracking **** */
 
-/* convert from float and byte RGBA to grayscale. Supports different coefficients for RGB. */
+/** Convert from float and byte RGBA to gray-scale. Supports different coefficients for RGB. */
 static void float_rgba_to_gray(const float *rgba,
                                float *gray,
                                int num_pixels,
@@ -71,7 +56,7 @@ static void uint8_rgba_to_float_gray(const unsigned char *rgba,
   }
 }
 
-/* Get grayscale float search buffer for given marker and frame. */
+/** Get gray-scale float search buffer for given marker and frame. */
 static float *track_get_search_floatbuf(ImBuf *ibuf,
                                         MovieTrackingTrack *track,
                                         MovieTrackingMarker *marker,
@@ -180,7 +165,6 @@ static ImBuf *tracking_context_get_reference_ibuf(MovieClip *clip,
   return ibuf;
 }
 
-/* Fill in libmv tracker options structure with settings need to be used to perform track. */
 void tracking_configure_tracker(const MovieTrackingTrack *track,
                                 float *mask,
                                 const bool is_backwards,
@@ -311,11 +295,6 @@ static bool refine_marker_reference_frame_get(MovieTrackingTrack *track,
   return (reference->flag & MARKER_DISABLED) == 0;
 }
 
-/* Refine marker's position using previously known keyframe.
- * Direction of searching for a keyframe depends on backwards flag,
- * which means if backwards is false, previous keyframe will be as
- * reference.
- */
 void BKE_tracking_refine_marker(MovieClip *clip,
                                 MovieTrackingTrack *track,
                                 MovieTrackingMarker *marker,
@@ -328,7 +307,7 @@ void BKE_tracking_refine_marker(MovieClip *clip,
   int search_area_height, search_area_width;
   int clip_flag = clip->flag & MCLIP_TIMECODE_FLAGS;
   int reference_framenr;
-  MovieClipUser user = {0};
+  MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
   double dst_pixel_x[5], dst_pixel_y[5];
   bool tracked;
 

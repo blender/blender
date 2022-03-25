@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2020 Blender Foundation.
+
 # - Find sse2neon library
 # Find the native sse2neon includes and library
 # This module defines
@@ -6,13 +9,6 @@
 #  SSE2NEON_ROOT_DIR, The base directory to search for sse2neon.
 #                     This can also be an environment variable.
 #  SSE2NEON_FOUND, If false, do not try to use sse2neon.
-
-#=============================================================================
-# Copyright 2020 Blender Foundation.
-#
-# Distributed under the OSI-approved BSD 3-Clause License,
-# see accompanying file BSD-3-Clause-license.txt for details.
-#=============================================================================
 
 # If SSE2NEON_ROOT_DIR was defined in the environment, use it.
 IF(NOT SSE2NEON_ROOT_DIR AND NOT $ENV{SSE2NEON_ROOT_DIR} STREQUAL "")

@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spoutliner
@@ -25,11 +11,14 @@
 #include "BKE_main.h"
 
 #include "DNA_collection_types.h"
+#include "DNA_space_types.h"
 
 #include "BLT_translation.h"
 
-#include "../outliner_intern.h"
+#include "../outliner_intern.hh"
+#include "common.hh"
 #include "tree_display.hh"
+#include "tree_element.hh"
 
 namespace blender::ed::outliner {
 
@@ -107,7 +96,7 @@ ListBase TreeDisplayOverrideLibrary::buildTree(const TreeSourceData &source_data
 
 TreeElement *TreeDisplayOverrideLibrary::add_library_contents(Main &mainvar,
                                                               ListBase &lb,
-                                                              Library *lib) const
+                                                              Library *lib)
 {
   const short filter_id_type = id_filter_get();
 
@@ -146,6 +135,9 @@ TreeElement *TreeDisplayOverrideLibrary::add_library_contents(Main &mainvar,
         else {
           tenlib = outliner_add_element(&space_outliner_, &lb, &mainvar, nullptr, TSE_ID_BASE, 0);
           tenlib->name = IFACE_("Current File");
+        }
+        if (tenlib->flag & TE_HAS_WARNING) {
+          has_warnings = true;
         }
       }
 

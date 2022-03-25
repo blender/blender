@@ -1,24 +1,17 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <iomanip>
 #include <sstream>
 
+#include "BLI_math_vec_types.hh"
+
+#include "BKE_geometry_set.hh"
+
+#include "spreadsheet_column_values.hh"
 #include "spreadsheet_layout.hh"
 
+#include "DNA_collection_types.h"
+#include "DNA_object_types.h"
 #include "DNA_userdef_types.h"
 
 #include "UI_interface.h"
@@ -92,13 +85,14 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
   {
     const int real_index = spreadsheet_layout_.row_indices[row_index];
     const ColumnValues &column = *spreadsheet_layout_.columns[column_index].values;
-    CellValue cell_value;
-    if (real_index < column.size()) {
-      column.get_value(real_index, cell_value);
+    if (real_index > column.size()) {
+      return;
     }
 
-    if (cell_value.value_int.has_value()) {
-      const int value = *cell_value.value_int;
+    const GVArray &data = column.data();
+
+    if (data.type().is<int>()) {
+      const int value = data.get<int>(real_index);
       const std::string value_str = std::to_string(value);
       uiBut *but = uiDefIconTextBut(params.block,
                                     UI_BTYPE_LABEL,
@@ -119,8 +113,30 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
       UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
     }
-    else if (cell_value.value_float.has_value()) {
-      const float value = *cell_value.value_float;
+    if (data.type().is<int8_t>()) {
+      const int8_t value = data.get<int8_t>(real_index);
+      const std::string value_str = std::to_string(value);
+      uiBut *but = uiDefIconTextBut(params.block,
+                                    UI_BTYPE_LABEL,
+                                    0,
+                                    ICON_NONE,
+                                    value_str.c_str(),
+                                    params.xmin,
+                                    params.ymin,
+                                    params.width,
+                                    params.height,
+                                    nullptr,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    nullptr);
+      /* Right-align Integers. */
+      UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
+      UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
+    }
+    else if (data.type().is<float>()) {
+      const float value = data.get<float>(real_index);
       std::stringstream ss;
       ss << std::fixed << std::setprecision(3) << value;
       const std::string value_str = ss.str();
@@ -143,8 +159,8 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
       UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
     }
-    else if (cell_value.value_bool.has_value()) {
-      const bool value = *cell_value.value_bool;
+    else if (data.type().is<bool>()) {
+      const bool value = data.get<bool>(real_index);
       const int icon = value ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
       uiBut *but = uiDefIconTextBut(params.block,
                                     UI_BTYPE_LABEL,
@@ -163,77 +179,88 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr);
       UI_but_drawflag_disable(but, UI_BUT_ICON_LEFT);
     }
-    else if (cell_value.value_float2.has_value()) {
-      const float2 value = *cell_value.value_float2;
+    else if (data.type().is<float2>()) {
+      const float2 value = data.get<float2>(real_index);
       this->draw_float_vector(params, Span(&value.x, 2));
     }
-    else if (cell_value.value_float3.has_value()) {
-      const float3 value = *cell_value.value_float3;
+    else if (data.type().is<float3>()) {
+      const float3 value = data.get<float3>(real_index);
       this->draw_float_vector(params, Span(&value.x, 3));
     }
-    else if (cell_value.value_color.has_value()) {
-      const ColorGeometry4f value = *cell_value.value_color;
+    else if (data.type().is<ColorGeometry4f>()) {
+      const ColorGeometry4f value = data.get<ColorGeometry4f>(real_index);
       this->draw_float_vector(params, Span(&value.r, 4));
     }
-    else if (cell_value.value_object.has_value()) {
-      const ObjectCellValue value = *cell_value.value_object;
-      uiDefIconTextBut(params.block,
-                       UI_BTYPE_LABEL,
-                       0,
-                       ICON_OBJECT_DATA,
-                       reinterpret_cast<const ID *const>(value.object)->name + 2,
-                       params.xmin,
-                       params.ymin,
-                       params.width,
-                       params.height,
-                       nullptr,
-                       0,
-                       0,
-                       0,
-                       0,
-                       nullptr);
+    else if (data.type().is<InstanceReference>()) {
+      const InstanceReference value = data.get<InstanceReference>(real_index);
+      switch (value.type()) {
+        case InstanceReference::Type::Object: {
+          const Object &object = value.object();
+          uiDefIconTextBut(params.block,
+                           UI_BTYPE_LABEL,
+                           0,
+                           ICON_OBJECT_DATA,
+                           object.id.name + 2,
+                           params.xmin,
+                           params.ymin,
+                           params.width,
+                           params.height,
+                           nullptr,
+                           0,
+                           0,
+                           0,
+                           0,
+                           nullptr);
+          break;
+        }
+        case InstanceReference::Type::Collection: {
+          Collection &collection = value.collection();
+          uiDefIconTextBut(params.block,
+                           UI_BTYPE_LABEL,
+                           0,
+                           ICON_OUTLINER_COLLECTION,
+                           collection.id.name + 2,
+                           params.xmin,
+                           params.ymin,
+                           params.width,
+                           params.height,
+                           nullptr,
+                           0,
+                           0,
+                           0,
+                           0,
+                           nullptr);
+          break;
+        }
+        case InstanceReference::Type::GeometrySet: {
+          uiDefIconTextBut(params.block,
+                           UI_BTYPE_LABEL,
+                           0,
+                           ICON_MESH_DATA,
+                           "Geometry",
+                           params.xmin,
+                           params.ymin,
+                           params.width,
+                           params.height,
+                           nullptr,
+                           0,
+                           0,
+                           0,
+                           0,
+                           nullptr);
+          break;
+        }
+        case InstanceReference::Type::None: {
+          break;
+        }
+      }
     }
-    else if (cell_value.value_collection.has_value()) {
-      const CollectionCellValue value = *cell_value.value_collection;
-      uiDefIconTextBut(params.block,
-                       UI_BTYPE_LABEL,
-                       0,
-                       ICON_OUTLINER_COLLECTION,
-                       reinterpret_cast<const ID *const>(value.collection)->name + 2,
-                       params.xmin,
-                       params.ymin,
-                       params.width,
-                       params.height,
-                       nullptr,
-                       0,
-                       0,
-                       0,
-                       0,
-                       nullptr);
-    }
-    else if (cell_value.value_geometry_set.has_value()) {
-      uiDefIconTextBut(params.block,
-                       UI_BTYPE_LABEL,
-                       0,
-                       ICON_MESH_DATA,
-                       "Geometry",
-                       params.xmin,
-                       params.ymin,
-                       params.width,
-                       params.height,
-                       nullptr,
-                       0,
-                       0,
-                       0,
-                       0,
-                       nullptr);
-    }
-    else if (cell_value.value_string.has_value()) {
+    else if (data.type().is<std::string>()) {
       uiDefIconTextBut(params.block,
                        UI_BTYPE_LABEL,
                        0,
                        ICON_NONE,
-                       cell_value.value_string->c_str(),
+                       data.get<std::string>(real_index).c_str(),
                        params.xmin,
                        params.ymin,
                        params.width,

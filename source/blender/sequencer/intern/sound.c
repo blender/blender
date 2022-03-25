@@ -1,24 +1,7 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * - Blender Foundation, 2003-2009
- * - Peter Schlaile <peter [at] schlaile [dot] de> 2005/2006
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved.
+ *           2003-2009 Blender Foundation.
+ *           2005-2006 Peter Schlaile <peter [at] schlaile [dot] de> */
 
 /** \file
  * \ingroup bke
@@ -31,6 +14,7 @@
 #include "DNA_sound_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_main.h"
 #include "BKE_scene.h"
@@ -56,11 +40,15 @@ static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, 
       }
     }
     else if (seq->type == SEQ_TYPE_SOUND_RAM && seq->sound) {
-      const float length = BKE_sound_get_length(bmain, seq->sound);
+      SoundInfo info;
+      if (!BKE_sound_info_get(bmain, seq->sound, &info)) {
+        continue;
+      }
+
       int old = seq->len;
       float fac;
 
-      seq->len = (int)ceil((double)length * FPS);
+      seq->len = MAX2(1, round((info.length - seq->sound->offset_time) * FPS));
       fac = (float)seq->len / (float)old;
       old = seq->startofs;
       seq->startofs *= fac;

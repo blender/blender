@@ -1,25 +1,12 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_modifier_types.h"
 
 #include "DEG_depsgraph_query.h"
 
+#include "BKE_type_conversions.hh"
+
 #include "NOD_geometry_exec.hh"
-#include "NOD_type_conversions.hh"
 
 #include "node_geometry_util.hh"
 
@@ -149,7 +136,7 @@ GVArray GeoNodeExecParams::get_input_attribute(const StringRef name,
     }
     return GVArray::ForSingle(*cpp_type, domain_size, default_value);
   }
-  const DataTypeConversions &conversions = get_implicit_type_conversions();
+  const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
   if (found_socket->type == SOCK_FLOAT) {
     const float value = this->get_input<float>(found_socket->identifier);
     BUFFER_FOR_CPP_TYPE_VALUE(*cpp_type, buffer);
@@ -215,11 +202,6 @@ CustomDataType GeoNodeExecParams::get_input_attribute_data_type(
   return default_type;
 }
 
-/**
- * If any of the corresponding input sockets are attributes instead of single values,
- * use the highest priority attribute domain from among them.
- * Otherwise return the default domain.
- */
 AttributeDomain GeoNodeExecParams::get_highest_priority_input_domain(
     Span<std::string> names,
     const GeometryComponent &component,
@@ -252,6 +234,11 @@ AttributeDomain GeoNodeExecParams::get_highest_priority_input_domain(
 std::string GeoNodeExecParams::attribute_producer_name() const
 {
   return provider_->dnode->label_or_name() + TIP_(" node");
+}
+
+void GeoNodeExecParams::set_default_remaining_outputs()
+{
+  provider_->set_default_remaining_outputs();
 }
 
 void GeoNodeExecParams::check_input_access(StringRef identifier,
@@ -288,7 +275,7 @@ void GeoNodeExecParams::check_input_access(StringRef identifier,
     BLI_assert_unreachable();
   }
   else if (requested_type != nullptr) {
-    const CPPType &expected_type = *found_socket->typeinfo->get_geometry_nodes_cpp_type();
+    const CPPType &expected_type = *found_socket->typeinfo->geometry_nodes_cpp_type;
     if (*requested_type != expected_type) {
       std::cout << "The requested type '" << requested_type->name() << "' is incorrect. Expected '"
                 << expected_type.name() << "'.\n";
@@ -328,7 +315,7 @@ void GeoNodeExecParams::check_output_access(StringRef identifier, const CPPType 
     BLI_assert_unreachable();
   }
   else {
-    const CPPType &expected_type = *found_socket->typeinfo->get_geometry_nodes_cpp_type();
+    const CPPType &expected_type = *found_socket->typeinfo->geometry_nodes_cpp_type;
     if (value_type != expected_type) {
       std::cout << "The value type '" << value_type.name() << "' is incorrect. Expected '"
                 << expected_type.name() << "'.\n";

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2016 Kévin Dietrich & Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 Kévin Dietrich & Blender Foundation. All rights reserved. */
 #pragma once
 
 /** \file
@@ -70,20 +54,27 @@ BLI_INLINE void copy_yup_from_zup(short yup[3], const short zup[3])
 }
 
 /* Names are given in (dst, src) order, just like
- * the parameters of copy_m44_axis_swap() */
+ * the parameters of copy_m44_axis_swap(). */
+
 typedef enum {
   ABC_ZUP_FROM_YUP = 1,
   ABC_YUP_FROM_ZUP = 2,
 } AbcAxisSwapMode;
 
-/* Create a rotation matrix for each axis from euler angles.
- * Euler angles are swapped to change coordinate system. */
+/**
+ * Create a rotation matrix for each axis from euler angles.
+ * Euler angles are swapped to change coordinate system.
+ */
 void create_swapped_rotation_matrix(float rot_x_mat[3][3],
                                     float rot_y_mat[3][3],
                                     float rot_z_mat[3][3],
                                     const float euler[3],
                                     AbcAxisSwapMode mode);
 
+/**
+ * Convert matrix from Z=up to Y=up or vice versa.
+ * Use yup_mat = zup_mat for in-place conversion.
+ */
 void copy_m44_axis_swap(float dst_mat[4][4], float src_mat[4][4], AbcAxisSwapMode mode);
 
 typedef enum {
@@ -91,6 +82,10 @@ typedef enum {
   ABC_MATRIX_LOCAL = 2,
 } AbcMatrixMode;
 
+/**
+ * Recompute transform matrix of object in new coordinate system
+ * (from Z-Up to Y-Up).
+ */
 void create_transform_matrix(Object *obj,
                              float r_yup_mat[4][4],
                              AbcMatrixMode mode,

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup DNA
@@ -114,6 +98,10 @@ typedef enum CustomDataType {
   CD_MTFACE = 5,
   CD_MCOL = 6,
   CD_ORIGINDEX = 7,
+  /**
+   * Used for derived face corner normals on mesh `ldata`, since currently they are not computed
+   * lazily. Derived vertex and polygon normals are stored in #Mesh_Runtime.
+   */
   CD_NORMAL = 8,
   CD_FACEMAP = 9, /* exclusive face group, each face can only be part of one */
   CD_PROP_FLOAT = 10,
@@ -134,17 +122,21 @@ typedef enum CustomDataType {
   CD_CLOTH_ORCO = 23,
   /* CD_RECAST = 24, */ /* UNUSED */
 
-  /* BMESH ONLY START */
   CD_MPOLY = 25,
   CD_MLOOP = 26,
   CD_SHAPE_KEYINDEX = 27,
   CD_SHAPEKEY = 28,
   CD_BWEIGHT = 29,
+  /**
+   * Usage of #CD_CREASE depends on where on the Mesh the layer is added:
+   * - For vertex creasing, this is persistent data across all modes and is stored in the file.
+   * - For edge creasing, it is runtime data which is only used in edit-mode before being copied
+   *   to #MEdge when exiting edit-mode.
+   */
   CD_CREASE = 30,
   CD_ORIGSPACE_MLOOP = 31,
   CD_PREVIEW_MLOOPCOL = 32,
   CD_BM_ELEM_PYPTR = 33,
-  /* BMESH ONLY END */
 
   CD_PAINT_MASK = 34,
   CD_GRID_PAINT_MASK = 35,
@@ -158,13 +150,12 @@ typedef enum CustomDataType {
 
   /* CD_LOCATION = 43, */ /* UNUSED */
   /* CD_RADIUS = 44, */   /* UNUSED */
-  CD_HAIRCURVE = 45,
-  CD_HAIRMAPPING = 46,
+  CD_PROP_INT8 = 45,
+  /* CD_HAIRMAPPING = 46, */ /* UNUSED, can be reused. */
 
   CD_PROP_COLOR = 47,
   CD_PROP_FLOAT3 = 48,
   CD_PROP_FLOAT2 = 49,
-
   CD_PROP_BOOL = 50,
 
   CD_HAIRLENGTH = 51,
@@ -197,7 +188,6 @@ typedef enum CustomDataType {
 #define CD_MASK_CLOTH_ORCO (1 << CD_CLOTH_ORCO)
 // #define CD_MASK_RECAST (1 << CD_RECAST)  /* DEPRECATED */
 
-/* BMESH ONLY START */
 #define CD_MASK_MPOLY (1 << CD_MPOLY)
 #define CD_MASK_MLOOP (1 << CD_MLOOP)
 #define CD_MASK_SHAPE_KEYINDEX (1 << CD_SHAPE_KEYINDEX)
@@ -207,7 +197,6 @@ typedef enum CustomDataType {
 #define CD_MASK_ORIGSPACE_MLOOP (1LL << CD_ORIGSPACE_MLOOP)
 #define CD_MASK_PREVIEW_MLOOPCOL (1LL << CD_PREVIEW_MLOOPCOL)
 #define CD_MASK_BM_ELEM_PYPTR (1LL << CD_BM_ELEM_PYPTR)
-/* BMESH ONLY END */
 
 #define CD_MASK_PAINT_MASK (1LL << CD_PAINT_MASK)
 #define CD_MASK_GRID_PAINT_MASK (1LL << CD_GRID_PAINT_MASK)
@@ -222,6 +211,7 @@ typedef enum CustomDataType {
 #define CD_MASK_PROP_FLOAT3 (1ULL << CD_PROP_FLOAT3)
 #define CD_MASK_PROP_FLOAT2 (1ULL << CD_PROP_FLOAT2)
 #define CD_MASK_PROP_BOOL (1ULL << CD_PROP_BOOL)
+#define CD_MASK_PROP_INT8 (1ULL << CD_PROP_INT8)
 
 #define CD_MASK_HAIRLENGTH (1ULL << CD_HAIRLENGTH)
 
@@ -234,7 +224,8 @@ typedef enum CustomDataType {
 /* All generic attributes. */
 #define CD_MASK_PROP_ALL \
   (CD_MASK_PROP_FLOAT | CD_MASK_PROP_FLOAT2 | CD_MASK_PROP_FLOAT3 | CD_MASK_PROP_INT32 | \
-   CD_MASK_PROP_COLOR | CD_MASK_PROP_STRING | CD_MASK_MLOOPCOL | CD_MASK_PROP_BOOL)
+   CD_MASK_PROP_COLOR | CD_MASK_PROP_STRING | CD_MASK_MLOOPCOL | CD_MASK_PROP_BOOL | \
+   CD_MASK_PROP_INT8)
 
 typedef struct CustomData_MeshMasks {
   uint64_t vmask;

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spnode
@@ -29,11 +13,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
-
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_remap.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"
 
@@ -48,11 +30,14 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "node_intern.hh" /* own include */
+
+using blender::float2;
 
 /* ******************** tree path ********************* */
 
@@ -64,7 +49,7 @@ void ED_node_tree_start(SpaceNode *snode, bNodeTree *ntree, ID *id, ID *from)
   BLI_listbase_clear(&snode->treepath);
 
   if (ntree) {
-    bNodeTreePath *path = (bNodeTreePath *)MEM_callocN(sizeof(bNodeTreePath), "node tree path");
+    bNodeTreePath *path = MEM_cnew<bNodeTreePath>("node tree path");
     path->nodetree = ntree;
     path->parent_key = NODE_INSTANCE_KEY_BASE;
 
@@ -97,7 +82,7 @@ void ED_node_tree_start(SpaceNode *snode, bNodeTree *ntree, ID *id, ID *from)
 
 void ED_node_tree_push(SpaceNode *snode, bNodeTree *ntree, bNode *gnode)
 {
-  bNodeTreePath *path = (bNodeTreePath *)MEM_callocN(sizeof(bNodeTreePath), "node tree path");
+  bNodeTreePath *path = MEM_cnew<bNodeTreePath>("node tree path");
   bNodeTreePath *prev_path = (bNodeTreePath *)snode->treepath.last;
   path->nodetree = ntree;
   if (gnode) {
@@ -207,31 +192,38 @@ void ED_node_set_active_viewer_key(SpaceNode *snode)
   }
 }
 
-void space_node_group_offset(SpaceNode *snode, float *x, float *y)
+void ED_node_cursor_location_get(const SpaceNode *snode, float value[2])
 {
-  bNodeTreePath *path = (bNodeTreePath *)snode->treepath.last;
+  copy_v2_v2(value, snode->runtime->cursor);
+}
+
+void ED_node_cursor_location_set(SpaceNode *snode, const float value[2])
+{
+  copy_v2_v2(snode->runtime->cursor, value);
+}
+
+namespace blender::ed::space_node {
+
+float2 space_node_group_offset(const SpaceNode &snode)
+{
+  const bNodeTreePath *path = (bNodeTreePath *)snode.treepath.last;
 
   if (path && path->prev) {
-    float dcenter[2];
-    sub_v2_v2v2(dcenter, path->view_center, path->prev->view_center);
-    *x = dcenter[0];
-    *y = dcenter[1];
+    return float2(path->view_center) - float2(path->prev->view_center);
   }
-  else {
-    *x = *y = 0.0f;
-  }
+  return float2(0);
 }
 
 /* ******************** default callbacks for node space ***************** */
 
 static SpaceLink *node_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
-  SpaceNode *snode = (SpaceNode *)MEM_callocN(sizeof(SpaceNode), "initnode");
+  SpaceNode *snode = MEM_cnew<SpaceNode>("initnode");
   snode->spacetype = SPACE_NODE;
 
   snode->flag = SNODE_SHOW_GPENCIL | SNODE_USE_ALPHA;
-  snode->overlay.flag |= SN_OVERLAY_SHOW_OVERLAYS;
-  snode->overlay.flag |= SN_OVERLAY_SHOW_WIRE_COLORS;
+  snode->overlay.flag = (SN_OVERLAY_SHOW_OVERLAYS | SN_OVERLAY_SHOW_WIRE_COLORS |
+                         SN_OVERLAY_SHOW_PATH);
 
   /* backdrop */
   snode->zoom = 1.0f;
@@ -244,21 +236,21 @@ static SpaceLink *node_create(const ScrArea *UNUSED(area), const Scene *UNUSED(s
   NODE_TREE_TYPES_END;
 
   /* header */
-  ARegion *region = (ARegion *)MEM_callocN(sizeof(ARegion), "header for node");
+  ARegion *region = MEM_cnew<ARegion>("header for node");
 
   BLI_addtail(&snode->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* buttons/list view */
-  region = (ARegion *)MEM_callocN(sizeof(ARegion), "buttons for node");
+  region = MEM_cnew<ARegion>("buttons for node");
 
   BLI_addtail(&snode->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
   region->alignment = RGN_ALIGN_RIGHT;
 
   /* toolbar */
-  region = (ARegion *)MEM_callocN(sizeof(ARegion), "node tools");
+  region = MEM_cnew<ARegion>("node tools");
 
   BLI_addtail(&snode->regionbase, region);
   region->regiontype = RGN_TYPE_TOOLS;
@@ -267,7 +259,7 @@ static SpaceLink *node_create(const ScrArea *UNUSED(area), const Scene *UNUSED(s
   region->flag = RGN_FLAG_HIDDEN;
 
   /* main region */
-  region = (ARegion *)MEM_callocN(sizeof(ARegion), "main region for node");
+  region = MEM_cnew<ARegion>("main region for node");
 
   BLI_addtail(&snode->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
@@ -285,7 +277,7 @@ static SpaceLink *node_create(const ScrArea *UNUSED(area), const Scene *UNUSED(s
   region->v2d.max[0] = 32000.0f;
   region->v2d.max[1] = 32000.0f;
 
-  region->v2d.minzoom = 0.09f;
+  region->v2d.minzoom = 0.05f;
   region->v2d.maxzoom = 2.31f;
 
   region->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
@@ -303,7 +295,10 @@ static void node_free(SpaceLink *sl)
     MEM_freeN(path);
   }
 
-  MEM_SAFE_FREE(snode->runtime);
+  if (snode->runtime) {
+    snode->runtime->linkdrag.reset();
+    MEM_freeN(snode->runtime);
+  }
 }
 
 /* spacetype; init callback */
@@ -312,8 +307,21 @@ static void node_init(struct wmWindowManager *UNUSED(wm), ScrArea *area)
   SpaceNode *snode = (SpaceNode *)area->spacedata.first;
 
   if (snode->runtime == nullptr) {
-    snode->runtime = (SpaceNode_Runtime *)MEM_callocN(sizeof(SpaceNode_Runtime), __func__);
+    snode->runtime = MEM_new<SpaceNode_Runtime>(__func__);
   }
+}
+
+static bool any_node_uses_id(const bNodeTree *ntree, const ID *id)
+{
+  if (ELEM(nullptr, ntree, id)) {
+    return false;
+  }
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->id == id) {
+      return true;
+    }
+  }
+  return false;
 }
 
 static void node_area_listener(const wmSpaceTypeListenerParams *params)
@@ -372,9 +380,6 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
         }
         else if (wmn->data == ND_SHADING_LINKS) {
           ED_area_tag_refresh(area);
-        }
-        else if (wmn->action == NA_ADDED && snode->edittree) {
-          nodeSetActiveID(snode->edittree, ID_MA, (ID *)wmn->reference);
         }
       }
       break;
@@ -439,10 +444,9 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
     case NC_IMAGE:
       if (wmn->action == NA_EDITED) {
         if (ED_node_is_compositor(snode)) {
-          /* note that nodeUpdateID is already called by BKE_image_signal() on all
-           * scenes so really this is just to know if the images is used in the compo else
-           * painting on images could become very slow when the compositor is open. */
-          if (nodeUpdateID(snode->nodetree, (ID *)wmn->reference)) {
+          /* Without this check drawing on an image could become very slow when the compositor is
+           * open. */
+          if (any_node_uses_id(snode->nodetree, (ID *)wmn->reference)) {
             ED_area_tag_refresh(area);
           }
         }
@@ -452,7 +456,7 @@ static void node_area_listener(const wmSpaceTypeListenerParams *params)
     case NC_MOVIECLIP:
       if (wmn->action == NA_EDITED) {
         if (ED_node_is_compositor(snode)) {
-          if (nodeUpdateID(snode->nodetree, (ID *)wmn->reference)) {
+          if (any_node_uses_id(snode->nodetree, (ID *)wmn->reference)) {
             ED_area_tag_refresh(area);
           }
         }
@@ -482,30 +486,10 @@ static void node_area_refresh(const struct bContext *C, ScrArea *area)
   /* default now: refresh node is starting preview */
   SpaceNode *snode = (SpaceNode *)area->spacedata.first;
 
-  snode_set_context(C);
+  snode_set_context(*C);
 
   if (snode->nodetree) {
-    if (snode->nodetree->type == NTREE_SHADER) {
-      if (GS(snode->id->name) == ID_MA) {
-        Material *ma = (Material *)snode->id;
-        if (ma->use_nodes) {
-          ED_preview_shader_job(C, area, snode->id, nullptr, nullptr, 100, 100, PR_NODE_RENDER);
-        }
-      }
-      else if (GS(snode->id->name) == ID_LA) {
-        Light *la = (Light *)snode->id;
-        if (la->use_nodes) {
-          ED_preview_shader_job(C, area, snode->id, nullptr, nullptr, 100, 100, PR_NODE_RENDER);
-        }
-      }
-      else if (GS(snode->id->name) == ID_WO) {
-        World *wo = (World *)snode->id;
-        if (wo->use_nodes) {
-          ED_preview_shader_job(C, area, snode->id, nullptr, nullptr, 100, 100, PR_NODE_RENDER);
-        }
-      }
-    }
-    else if (snode->nodetree->type == NTREE_COMPOSIT) {
+    if (snode->nodetree->type == NTREE_COMPOSIT) {
       Scene *scene = (Scene *)snode->id;
       if (scene->use_nodes) {
         /* recalc is set on 3d view changes for auto compo */
@@ -518,12 +502,6 @@ static void node_area_refresh(const struct bContext *C, ScrArea *area)
         }
       }
     }
-    else if (snode->nodetree->type == NTREE_TEXTURE) {
-      Tex *tex = (Tex *)snode->id;
-      if (tex->use_nodes) {
-        ED_preview_shader_job(C, area, snode->id, nullptr, nullptr, 100, 100, PR_NODE_RENDER);
-      }
-    }
   }
 }
 
@@ -534,10 +512,7 @@ static SpaceLink *node_duplicate(SpaceLink *sl)
 
   BLI_duplicatelist(&snoden->treepath, &snode->treepath);
 
-  if (snode->runtime != nullptr) {
-    snoden->runtime = (SpaceNode_Runtime *)MEM_dupallocN(snode->runtime);
-    BLI_listbase_clear(&snoden->runtime->linkdrag);
-  }
+  snoden->runtime = nullptr;
 
   /* NOTE: no need to set node tree user counts,
    * the editor only keeps at least 1 (id_us_ensure_real),
@@ -579,16 +554,6 @@ static void node_toolbar_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-void ED_node_cursor_location_get(const SpaceNode *snode, float value[2])
-{
-  copy_v2_v2(value, snode->runtime->cursor);
-}
-
-void ED_node_cursor_location_set(SpaceNode *snode, const float value[2])
-{
-  copy_v2_v2(snode->runtime->cursor, value);
-}
-
 static void node_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 {
   SpaceNode *snode = (SpaceNode *)area->spacedata.first;
@@ -601,7 +566,7 @@ static void node_cursor(wmWindow *win, ScrArea *area, ARegion *region)
                            &snode->runtime->cursor[1]);
 
   /* here snode->runtime->cursor is used to detect the node edge for sizing */
-  node_set_cursor(win, snode, snode->runtime->cursor);
+  node_set_cursor(*win, *snode, snode->runtime->cursor);
 
   /* XXX snode->runtime->cursor is in placing new nodes space */
   snode->runtime->cursor[0] /= UI_DPI_FAC;
@@ -635,7 +600,7 @@ static void node_main_region_init(wmWindowManager *wm, ARegion *region)
 
 static void node_main_region_draw(const bContext *C, ARegion *region)
 {
-  node_draw_space(C, region);
+  node_draw_space(*C, *region);
 }
 
 /* ************* dropboxes ************* */
@@ -655,11 +620,6 @@ static bool node_collection_drop_poll(bContext *UNUSED(C),
                                       const wmEvent *UNUSED(event))
 {
   return WM_drag_is_ID_type(drag, ID_GR);
-}
-
-static bool node_texture_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
-{
-  return WM_drag_is_ID_type(drag, ID_TE);
 }
 
 static bool node_ima_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
@@ -687,7 +647,7 @@ static void node_id_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
 
-  RNA_string_set(drop->ptr, "name", id->name + 2);
+  RNA_int_set(drop->ptr, "session_uuid", (int)id->session_uuid);
 }
 
 static void node_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)
@@ -722,12 +682,6 @@ static void node_dropboxes()
                  WM_drag_free_imported_drag_ID,
                  nullptr);
   WM_dropbox_add(lb,
-                 "NODE_OT_add_texture",
-                 node_texture_drop_poll,
-                 node_id_drop_copy,
-                 WM_drag_free_imported_drag_ID,
-                 nullptr);
-  WM_dropbox_add(lb,
                  "NODE_OT_add_group",
                  node_group_drop_poll,
                  node_group_drop_copy,
@@ -758,7 +712,7 @@ static void node_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region
 static void node_header_region_draw(const bContext *C, ARegion *region)
 {
   /* find and set the context */
-  snode_set_context(C);
+  snode_set_context(*C);
 
   ED_region_header(C, region);
 }
@@ -837,8 +791,14 @@ static void node_region_listener(const wmRegionListenerParams *params)
   }
 }
 
+}  // namespace blender::ed::space_node
+
+/* Outside of blender namespace to avoid Python documentation build error with `ctypes`. */
 const char *node_context_dir[] = {
     "selected_nodes", "active_node", "light", "material", "world", nullptr};
+
+namespace blender::ed::space_node {
+
 static int /*eContextResult*/ node_context(const bContext *C,
                                            const char *member,
                                            bContextDataResult *result)
@@ -911,9 +871,9 @@ static void node_widgets()
   WM_gizmogrouptype_append_and_link(gzmap_type, NODE_GGT_backdrop_corner_pin);
 }
 
-static void node_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
+static void node_id_remap_cb(ID *old_id, ID *new_id, void *user_data)
 {
-  SpaceNode *snode = (SpaceNode *)slink;
+  SpaceNode *snode = static_cast<SpaceNode *>(user_data);
 
   if (snode->id == old_id) {
     /* nasty DNA logic for SpaceNode:
@@ -979,6 +939,24 @@ static void node_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, I
   }
 }
 
+static void node_id_remap(ScrArea *UNUSED(area),
+                          SpaceLink *slink,
+                          const struct IDRemapper *mappings)
+{
+  /* Although we should be able to perform all the mappings in a single go this lead to issues when
+   * running the python test cases. Somehow the nodetree/edittree weren't updated to the new
+   * pointers that generated a SEGFAULT.
+   *
+   * To move forward we should perhaps remove snode->edittree and snode->nodetree as they are just
+   * copies of pointers. All usages should be calling a function that will receive the appropriate
+   * instance.
+   *
+   * We could also move a remap address at a time to use the IDRemapper as that should get closer
+   * to cleaner code. See {D13615} for more information about this topic.
+   */
+  BKE_id_remapper_iter(mappings, node_id_remap_cb, slink);
+}
+
 static int node_space_subtype_get(ScrArea *area)
 {
   SpaceNode *snode = (SpaceNode *)area->spacedata.first;
@@ -1001,10 +979,13 @@ static void node_space_subtype_item_extend(bContext *C, EnumPropertyItem **item,
   }
 }
 
-/* only called once, from space/spacetypes.c */
-void ED_spacetype_node(void)
+}  // namespace blender::ed::space_node
+
+void ED_spacetype_node()
 {
-  SpaceType *st = (SpaceType *)MEM_callocN(sizeof(SpaceType), "spacetype node");
+  using namespace blender::ed::space_node;
+
+  SpaceType *st = MEM_cnew<SpaceType>("spacetype node");
   ARegionType *art;
 
   st->spaceid = SPACE_NODE;
@@ -1027,7 +1008,7 @@ void ED_spacetype_node(void)
   st->space_subtype_set = node_space_subtype_set;
 
   /* regions: main window */
-  art = (ARegionType *)MEM_callocN(sizeof(ARegionType), "spacetype node region");
+  art = MEM_cnew<ARegionType>("spacetype node region");
   art->regionid = RGN_TYPE_WINDOW;
   art->init = node_main_region_init;
   art->draw = node_main_region_draw;
@@ -1041,7 +1022,7 @@ void ED_spacetype_node(void)
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = (ARegionType *)MEM_callocN(sizeof(ARegionType), "spacetype node region");
+  art = MEM_cnew<ARegionType>("spacetype node region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
@@ -1052,7 +1033,7 @@ void ED_spacetype_node(void)
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: listview/buttons */
-  art = (ARegionType *)MEM_callocN(sizeof(ARegionType), "spacetype node region");
+  art = MEM_cnew<ARegionType>("spacetype node region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
@@ -1063,7 +1044,7 @@ void ED_spacetype_node(void)
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: toolbar */
-  art = (ARegionType *)MEM_callocN(sizeof(ARegionType), "spacetype view3d tools region");
+  art = MEM_cnew<ARegionType>("spacetype view3d tools region");
   art->regionid = RGN_TYPE_TOOLS;
   art->prefsizex = 58; /* XXX */
   art->prefsizey = 50; /* XXX */
@@ -1074,8 +1055,6 @@ void ED_spacetype_node(void)
   art->init = node_toolbar_region_init;
   art->draw = node_toolbar_region_draw;
   BLI_addhead(&st->regiontypes, art);
-
-  node_toolbar_register(art);
 
   BKE_spacetype_register(st);
 }

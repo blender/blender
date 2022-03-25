@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup collada
@@ -64,6 +50,10 @@ class DocumentImporter : COLLADAFW::IWriter {
   Object *create_camera_object(COLLADAFW::InstanceCamera *, Scene *);
   Object *create_light_object(COLLADAFW::InstanceLight *, Scene *);
   Object *create_instance_node(Object *, COLLADAFW::Node *, COLLADAFW::Node *, Scene *, bool);
+  /**
+   * To create constraints off node <extra> tags. Assumes only constraint data in
+   * current <extra> with blender profile.
+   */
   void create_constraints(ExtraTags *et, Object *ob);
   std::vector<Object *> *write_node(COLLADAFW::Node *, COLLADAFW::Node *, Scene *, Object *, bool);
   void write_profile_COMMON(COLLADAFW::EffectCommon *, Material *);
@@ -86,17 +76,44 @@ class DocumentImporter : COLLADAFW::IWriter {
    */
   void finish();
 
+  /**
+   * When this method is called, the writer must write the global document asset.
+   * \return The writer should return true, if writing succeeded, false otherwise.
+   */
   bool writeGlobalAsset(const COLLADAFW::FileInfo *);
+  /**
+   * If the imported file was made with Blender, return the Blender version used,
+   * otherwise return an empty std::string
+   */
   std::string get_import_version(const COLLADAFW::FileInfo *asset);
 
+  /**
+   * When this method is called, the writer must write the scene.
+   * \return The writer should return true, if writing succeeded, false otherwise.
+   */
   bool writeScene(const COLLADAFW::Scene *);
 
+  /**
+   * When this method is called, the writer must write the entire visual scene.
+   * Return The writer should return true, if writing succeeded, false otherwise.
+   */
   bool writeVisualScene(const COLLADAFW::VisualScene *);
 
+  /**
+   * When this method is called, the writer must handle all nodes contained in the
+   * library nodes.
+   * \return The writer should return true, if writing succeeded, false otherwise.
+   */
   bool writeLibraryNodes(const COLLADAFW::LibraryNodes *);
 
+  /**
+   * This function is called only for animations that pass COLLADAFW::validate.
+   */
   bool writeAnimation(const COLLADAFW::Animation *);
 
+  /**
+   * Called on post-process stage after writeVisualScenes.
+   */
   bool writeAnimationList(const COLLADAFW::AnimationList *);
 
 #if WITH_OPENCOLLADA_ANIMATION_CLIP
@@ -105,20 +122,49 @@ class DocumentImporter : COLLADAFW::IWriter {
   bool writeAnimationClip(const COLLADAFW::AnimationClip *animationClip);
 #endif
 
+  /**
+   * When this method is called, the writer must write the geometry.
+   * \return The writer should return true, if writing succeeded, false otherwise.
+   */
   bool writeGeometry(const COLLADAFW::Geometry *);
 
+  /**
+   * When this method is called, the writer must write the material.
+   * \return The writer should return true, if writing succeeded, false otherwise.
+   */
   bool writeMaterial(const COLLADAFW::Material *);
 
+  /**
+   * When this method is called, the writer must write the effect.
+   * \return The writer should return true, if writing succeeded, false otherwise.
+   */
   bool writeEffect(const COLLADAFW::Effect *);
 
+  /**
+   * When this method is called, the writer must write the camera.
+   * \return The writer should return true, if writing succeeded, false otherwise.
+   */
   bool writeCamera(const COLLADAFW::Camera *);
 
+  /**
+   * When this method is called, the writer must write the image.
+   * \return The writer should return true, if writing succeeded, false otherwise.
+   */
   bool writeImage(const COLLADAFW::Image *);
 
+  /**
+   * When this method is called, the writer must write the light.
+   * \return The writer should return true, if writing succeeded, false otherwise.
+   */
   bool writeLight(const COLLADAFW::Light *);
 
+  /**
+   * When this method is called, the writer must write the skin controller data.
+   * \return The writer should return true, if writing succeeded, false otherwise.
+   */
   bool writeSkinControllerData(const COLLADAFW::SkinControllerData *);
 
+  /** This is called on post-process, before writeVisualScenes. */
   bool writeController(const COLLADAFW::Controller *);
 
   bool writeFormulas(const COLLADAFW::Formulas *);

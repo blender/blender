@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spgraph
@@ -34,12 +18,23 @@ struct bContext;
 
 /* ***************************************** */
 /* graph_draw.c */
+/**
+ * Left hand part.
+ */
 void graph_draw_channel_names(struct bContext *C, struct bAnimContext *ac, struct ARegion *region);
 
+/**
+ * This is called twice from space_graph.c -> graph_main_region_draw()
+ * Unselected then selected F-Curves are drawn so that they do not occlude each other.
+ */
 void graph_draw_curves(struct bAnimContext *ac,
                        struct SpaceGraph *sipo,
                        struct ARegion *region,
                        short sel);
+/**
+ * Draw the 'ghost' F-Curves (i.e. snapshots of the curve)
+ * \note unit mapping has already been applied to the values, so do not try and apply again.
+ */
 void graph_draw_ghost_curves(struct bAnimContext *ac,
                              struct SpaceGraph *sipo,
                              struct ARegion *region);
@@ -47,6 +42,17 @@ void graph_draw_ghost_curves(struct bAnimContext *ac,
 /* ***************************************** */
 /* graph_select.c */
 
+/**
+ * Deselects keyframes in the Graph Editor
+ * - This is called by the deselect all operator, as well as other ones!
+ *
+ * - test: check if select or deselect all
+ * - sel: how to select keyframes
+ *   0 = deselect
+ *   1 = select
+ *   2 = invert
+ * - do_channels: whether to affect selection status of channels
+ */
 void deselect_graph_keys(struct bAnimContext *ac, bool test, short sel, bool do_channels);
 
 void GRAPH_OT_select_all(struct wmOperatorType *ot);
@@ -78,13 +84,17 @@ enum eGraphKeys_ColumnSelect_Mode {
 /* ***************************************** */
 /* graph_edit.c */
 
+/**
+ * Get the min/max keyframes.
+ * \note it should return total bound-box, filter for selection only can be argument.
+ */
 void get_graph_keyframe_extents(struct bAnimContext *ac,
                                 float *xmin,
                                 float *xmax,
                                 float *ymin,
                                 float *ymax,
-                                const bool do_sel_only,
-                                const bool include_handles);
+                                bool do_sel_only,
+                                bool include_handles);
 
 void GRAPH_OT_previewrange_set(struct wmOperatorType *ot);
 void GRAPH_OT_view_all(struct wmOperatorType *ot);
@@ -100,7 +110,10 @@ void GRAPH_OT_paste(struct wmOperatorType *ot);
 void GRAPH_OT_duplicate(struct wmOperatorType *ot);
 void GRAPH_OT_delete(struct wmOperatorType *ot);
 void GRAPH_OT_clean(struct wmOperatorType *ot);
+void GRAPH_OT_blend_to_neighbor(struct wmOperatorType *ot);
+void GRAPH_OT_breakdown(struct wmOperatorType *ot);
 void GRAPH_OT_decimate(struct wmOperatorType *ot);
+void GRAPH_OT_blend_to_default(struct wmOperatorType *ot);
 void GRAPH_OT_sample(struct wmOperatorType *ot);
 void GRAPH_OT_bake(struct wmOperatorType *ot);
 void GRAPH_OT_unbake(struct wmOperatorType *ot);
@@ -116,6 +129,7 @@ void GRAPH_OT_easing_type(struct wmOperatorType *ot);
 void GRAPH_OT_frame_jump(struct wmOperatorType *ot);
 void GRAPH_OT_snap_cursor_value(struct wmOperatorType *ot);
 void GRAPH_OT_snap(struct wmOperatorType *ot);
+void GRAPH_OT_equalize_handles(struct wmOperatorType *ot);
 void GRAPH_OT_mirror(struct wmOperatorType *ot);
 
 /* defines for snap keyframes
@@ -128,6 +142,15 @@ enum eGraphKeys_Snap_Mode {
   GRAPHKEYS_SNAP_NEAREST_MARKER,
   GRAPHKEYS_SNAP_HORIZONTAL,
   GRAPHKEYS_SNAP_VALUE,
+};
+
+/* Defines for equalize keyframe handles.
+ * NOTE: Keep in sync with eEditKeyframes_Equalize (in ED_keyframes_edit.h).
+ */
+enum eGraphKeys_Equalize_Mode {
+  GRAPHKEYS_EQUALIZE_LEFT = 1,
+  GRAPHKEYS_EQUALIZE_RIGHT,
+  GRAPHKEYS_EQUALIZE_BOTH,
 };
 
 /* defines for mirror keyframes
@@ -166,12 +189,36 @@ void graph_buttons_register(struct ARegionType *art);
 /* ***************************************** */
 /* graph_utils.c */
 
+/**
+ * Find 'active' F-Curve.
+ * It must be editable, since that's the purpose of these buttons (subject to change).
+ * We return the 'wrapper' since it contains valuable context info (about hierarchy),
+ * which will need to be freed when the caller is done with it.
+ *
+ * \note curve-visible flag isn't included,
+ * otherwise selecting a curve via list to edit is too cumbersome.
+ */
 struct bAnimListElem *get_active_fcurve_channel(struct bAnimContext *ac);
 
+/**
+ * Check if there are any visible keyframes (for selection tools).
+ */
 bool graphop_visible_keyframes_poll(struct bContext *C);
+/**
+ * Check if there are any visible + editable keyframes (for editing tools).
+ */
 bool graphop_editable_keyframes_poll(struct bContext *C);
+/**
+ * Has active F-Curve that's editable.
+ */
 bool graphop_active_fcurve_poll(struct bContext *C);
+/**
+ * Has active F-Curve in the context that's editable.
+ */
 bool graphop_active_editable_fcurve_ctx_poll(struct bContext *C);
+/**
+ * Has selected F-Curve that's editable.
+ */
 bool graphop_selected_fcurve_poll(struct bContext *C);
 
 /* ***************************************** */

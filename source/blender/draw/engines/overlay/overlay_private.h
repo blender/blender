@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2019, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2019 Blender Foundation. */
 
 /** \file
  * \ingroup DNA
@@ -216,37 +201,37 @@ typedef struct OVERLAY_ExtraCallBuffers {
   DRWShadingGroup *extra_loose_points;
 } OVERLAY_ExtraCallBuffers;
 
-typedef struct OVERLAY_ArmatureCallBuffers {
+typedef struct OVERLAY_ArmatureCallBuffersInner {
   DRWCallBuffer *box_outline;
-  DRWCallBuffer *box_solid;
-  DRWCallBuffer *box_transp;
+  DRWCallBuffer *box_fill;
 
   DRWCallBuffer *dof_lines;
   DRWCallBuffer *dof_sphere;
 
   DRWCallBuffer *envelope_distance;
   DRWCallBuffer *envelope_outline;
-  DRWCallBuffer *envelope_solid;
-  DRWCallBuffer *envelope_transp;
+  DRWCallBuffer *envelope_fill;
 
   DRWCallBuffer *octa_outline;
-  DRWCallBuffer *octa_solid;
-  DRWCallBuffer *octa_transp;
+  DRWCallBuffer *octa_fill;
 
   DRWCallBuffer *point_outline;
-  DRWCallBuffer *point_solid;
-  DRWCallBuffer *point_transp;
+  DRWCallBuffer *point_fill;
 
   DRWCallBuffer *stick;
 
   DRWCallBuffer *wire;
 
   DRWShadingGroup *custom_outline;
-  DRWShadingGroup *custom_solid;
-  DRWShadingGroup *custom_transp;
+  DRWShadingGroup *custom_fill;
   DRWShadingGroup *custom_wire;
-  GHash *custom_shapes_transp_ghash;
+
   GHash *custom_shapes_ghash;
+} OVERLAY_ArmatureCallBuffersInner;
+
+typedef struct OVERLAY_ArmatureCallBuffers {
+  OVERLAY_ArmatureCallBuffersInner solid;
+  OVERLAY_ArmatureCallBuffersInner transp;
 } OVERLAY_ArmatureCallBuffers;
 
 typedef struct OVERLAY_PrivateData {
@@ -374,6 +359,7 @@ typedef struct OVERLAY_PrivateData {
     bool do_stencil_overlay;
     bool do_mask_overlay;
 
+    bool do_verts;
     bool do_faces;
     bool do_face_dots;
 
@@ -510,6 +496,9 @@ void OVERLAY_xray_fade_draw(OVERLAY_Data *vedata);
 void OVERLAY_xray_depth_copy(OVERLAY_Data *vedata);
 void OVERLAY_xray_depth_infront_copy(OVERLAY_Data *vedata);
 
+/**
+ * Return true if armature should be handled by the pose mode engine.
+ */
 bool OVERLAY_armature_is_pose_mode(Object *ob, const struct DRWContextState *draw_ctx);
 void OVERLAY_armature_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_armature_cache_populate(OVERLAY_Data *vedata, Object *ob);
@@ -587,11 +576,11 @@ void OVERLAY_extra_line_dashed(OVERLAY_ExtraCallBuffers *cb,
 void OVERLAY_extra_line(OVERLAY_ExtraCallBuffers *cb,
                         const float start[3],
                         const float end[3],
-                        const int color_id);
+                        int color_id);
 void OVERLAY_empty_shape(OVERLAY_ExtraCallBuffers *cb,
                          const float mat[4][4],
-                         const float draw_size,
-                         const char draw_type,
+                         float draw_size,
+                         char draw_type,
                          const float color[4]);
 void OVERLAY_extra_loose_points(OVERLAY_ExtraCallBuffers *cb,
                                 struct GPUBatch *geom,
@@ -631,6 +620,10 @@ void OVERLAY_image_empty_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_image_cache_finish(OVERLAY_Data *vedata);
 void OVERLAY_image_draw(OVERLAY_Data *vedata);
 void OVERLAY_image_background_draw(OVERLAY_Data *vedata);
+/**
+ * This function draws images that needs the view transform applied.
+ * It draws these images directly into the scene color buffer.
+ */
 void OVERLAY_image_scene_background_draw(OVERLAY_Data *vedata);
 void OVERLAY_image_in_front_draw(OVERLAY_Data *vedata);
 
@@ -707,6 +700,7 @@ GPUShader *OVERLAY_shader_edit_mesh_vert(void);
 GPUShader *OVERLAY_shader_edit_particle_strand(void);
 GPUShader *OVERLAY_shader_edit_particle_point(void);
 GPUShader *OVERLAY_shader_edit_uv_edges_get(void);
+GPUShader *OVERLAY_shader_edit_uv_edges_for_edge_select_get(void);
 GPUShader *OVERLAY_shader_edit_uv_face_get(void);
 GPUShader *OVERLAY_shader_edit_uv_face_dots_get(void);
 GPUShader *OVERLAY_shader_edit_uv_verts_get(void);

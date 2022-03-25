@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
 
 /** \file
  * \ingroup edanimation
@@ -55,15 +39,13 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "anim_intern.h"
 
 /* ************************************************** */
 /* Animation Data Validation */
 
-/* Get (or add relevant data to be able to do so) F-Curve from the driver stack,
- * for the given Animation Data block. This assumes that all the destinations are valid.
- */
 FCurve *verify_driver_fcurve(ID *id,
                              const char rna_path[],
                              const int array_index,
@@ -295,17 +277,6 @@ static int add_driver_with_target(ReportList *UNUSED(reports),
   return (fcu != NULL);
 }
 
-/* Main Driver Management API calls:
- * Add a new driver for the specified property on the given ID block,
- * and make it be driven by the specified target.
- *
- * This is intended to be used in conjunction with a modal "eyedropper"
- * for picking the variable that is going to be used to drive this one.
- *
- * - flag: eCreateDriverFlags
- * - driver_type: eDriver_Types
- * - mapping_type: eCreateDriver_MappingTypes
- */
 int ANIM_add_driver_with_target(ReportList *reports,
                                 ID *dst_id,
                                 const char dst_path[],
@@ -420,10 +391,6 @@ int ANIM_add_driver_with_target(ReportList *reports,
 
 /* --------------------------------- */
 
-/**
- * Main Driver Management API calls:
- * Add a new driver for the specified property on the given ID block
- */
 int ANIM_add_driver(
     ReportList *reports, ID *id, const char rna_path[], int array_index, short flag, int type)
 {
@@ -546,9 +513,6 @@ int ANIM_add_driver(
   return done_tot;
 }
 
-/* Main Driver Management API calls:
- * Remove the driver for the specified property on the given ID block (if available)
- */
 bool ANIM_remove_driver(ReportList *UNUSED(reports),
                         ID *id,
                         const char rna_path[],
@@ -603,7 +567,6 @@ bool ANIM_remove_driver(ReportList *UNUSED(reports),
 /* Copy/Paste Buffer for Driver Data... */
 static FCurve *channeldriver_copypaste_buf = NULL;
 
-/* This function frees any MEM_calloc'ed copy/paste buffer data */
 void ANIM_drivers_copybuf_free(void)
 {
   /* free the buffer F-Curve if it exists, as if it were just another F-Curve */
@@ -613,7 +576,6 @@ void ANIM_drivers_copybuf_free(void)
   channeldriver_copypaste_buf = NULL;
 }
 
-/* Checks if there is a driver in the copy/paste buffer */
 bool ANIM_driver_can_paste(void)
 {
   return (channeldriver_copypaste_buf != NULL);
@@ -621,9 +583,6 @@ bool ANIM_driver_can_paste(void)
 
 /* ------------------- */
 
-/* Main Driver Management API calls:
- *  Make a copy of the driver for the specified property on the given ID block
- */
 bool ANIM_copy_driver(
     ReportList *reports, ID *id, const char rna_path[], int array_index, short UNUSED(flag))
 {
@@ -672,10 +631,6 @@ bool ANIM_copy_driver(
   return 0;
 }
 
-/* Main Driver Management API calls:
- * Add a new driver for the specified property on the given ID block or replace an existing one
- * with the driver + driver-curve data from the buffer
- */
 bool ANIM_paste_driver(
     ReportList *reports, ID *id, const char rna_path[], int array_index, short UNUSED(flag))
 {
@@ -733,7 +688,6 @@ bool ANIM_paste_driver(
 /* Copy/Paste Buffer for Driver Variables... */
 static ListBase driver_vars_copybuf = {NULL, NULL};
 
-/* This function frees any MEM_calloc'ed copy/paste buffer data */
 void ANIM_driver_vars_copybuf_free(void)
 {
   /* Free the driver variables kept in the buffer */
@@ -750,7 +704,6 @@ void ANIM_driver_vars_copybuf_free(void)
   BLI_listbase_clear(&driver_vars_copybuf);
 }
 
-/* Checks if there are driver variables in the copy/paste buffer */
 bool ANIM_driver_vars_can_paste(void)
 {
   return (BLI_listbase_is_empty(&driver_vars_copybuf) == false);
@@ -758,7 +711,6 @@ bool ANIM_driver_vars_can_paste(void)
 
 /* -------------------------------------------------- */
 
-/* Copy the given driver's variables to the buffer */
 bool ANIM_driver_vars_copy(ReportList *reports, FCurve *fcu)
 {
   /* sanity checks */
@@ -781,7 +733,6 @@ bool ANIM_driver_vars_copy(ReportList *reports, FCurve *fcu)
   return (BLI_listbase_is_empty(&driver_vars_copybuf) == false);
 }
 
-/* Paste the variables in the buffer to the given FCurve */
 bool ANIM_driver_vars_paste(ReportList *reports, FCurve *fcu, bool replace)
 {
   ChannelDriver *driver = (fcu) ? fcu->driver : NULL;
@@ -837,8 +788,6 @@ bool ANIM_driver_vars_paste(ReportList *reports, FCurve *fcu, bool replace)
 
 /* -------------------------------------------------- */
 
-/* Create a driver & variable that reads the specified property,
- * and store it in the buffers for Paste Driver and Paste Variables. */
 void ANIM_copy_as_driver(struct ID *target_id, const char *target_path, const char *var_name)
 {
   /* Clear copy/paste buffer first (for consistency with other copy/paste buffers). */
@@ -882,13 +831,8 @@ void ANIM_copy_as_driver(struct ID *target_id, const char *target_path, const ch
 
 /* Add Driver - Enum Defines ------------------------- */
 
-/**
- * Mapping Types enum for operators.
- * \note Used by #ANIM_OT_driver_button_add and #UI_OT_eyedropper_driver.
- *
- * XXX: These names need reviewing.
- */
 EnumPropertyItem prop_driver_create_mapping_types[] = {
+    /* XXX: These names need reviewing. */
     {CREATEDRIVER_MAPPING_1_N,
      "SINGLE_MANY",
      0,
@@ -920,10 +864,10 @@ EnumPropertyItem prop_driver_create_mapping_types[] = {
 };
 
 /* Filtering callback for driver mapping types enum */
-static const EnumPropertyItem *driver_mapping_type_itemsf(bContext *C,
-                                                          PointerRNA *UNUSED(owner_ptr),
-                                                          PropertyRNA *UNUSED(owner_prop),
-                                                          bool *r_free)
+static const EnumPropertyItem *driver_mapping_type_itemf(bContext *C,
+                                                         PointerRNA *UNUSED(owner_ptr),
+                                                         PropertyRNA *UNUSED(owner_prop),
+                                                         bool *r_free)
 {
   EnumPropertyItem *input = prop_driver_create_mapping_types;
   EnumPropertyItem *item = NULL;
@@ -1002,7 +946,7 @@ static int add_driver_button_none(bContext *C, wmOperator *op, short mapping_typ
   }
 
   if (ptr.owner_id && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
-    char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
+    char *path = RNA_path_from_ID_to_property(&ptr, prop);
     short flags = CREATEDRIVER_WITH_DEFAULT_DVAR;
 
     if (path) {
@@ -1036,7 +980,7 @@ static int add_driver_button_menu_exec(bContext *C, wmOperator *op)
 
   /* XXX: We assume that it's fine to use the same set of properties,
    * since they're actually the same. */
-  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, op->ptr);
+  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, op->ptr, NULL);
 
   return OPERATOR_FINISHED;
 }
@@ -1080,7 +1024,7 @@ static void UNUSED_FUNCTION(ANIM_OT_driver_button_add_menu)(wmOperatorType *ot)
                           0,
                           "Mapping Type",
                           "Method used to match target and driven properties");
-  RNA_def_enum_funcs(ot->prop, driver_mapping_type_itemsf);
+  RNA_def_enum_funcs(ot->prop, driver_mapping_type_itemf);
 }
 
 /* Add Driver Button Operator ------------------------ */
@@ -1096,7 +1040,7 @@ static int add_driver_button_invoke(bContext *C, wmOperator *op, const wmEvent *
 
   if (ptr.owner_id && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
     /* 1) Create a new "empty" driver for this property */
-    char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
+    char *path = RNA_path_from_ID_to_property(&ptr, prop);
     short flags = CREATEDRIVER_WITH_DEFAULT_DVAR;
     bool changed = false;
 
@@ -1156,7 +1100,7 @@ static int remove_driver_button_exec(bContext *C, wmOperator *op)
   }
 
   if (ptr.owner_id && ptr.data && prop) {
-    char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
+    char *path = RNA_path_from_ID_to_property(&ptr, prop);
 
     if (path) {
       changed = ANIM_remove_driver(op->reports, ptr.owner_id, path, index, 0);
@@ -1241,7 +1185,7 @@ static int copy_driver_button_exec(bContext *C, wmOperator *op)
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   if (ptr.owner_id && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
-    char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
+    char *path = RNA_path_from_ID_to_property(&ptr, prop);
 
     if (path) {
       /* only copy the driver for the button that this was involved for */
@@ -1285,7 +1229,7 @@ static int paste_driver_button_exec(bContext *C, wmOperator *op)
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   if (ptr.owner_id && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
-    char *path = BKE_animdata_driver_path_hack(C, &ptr, prop, NULL);
+    char *path = RNA_path_from_ID_to_property(&ptr, prop);
 
     if (path) {
       /* only copy the driver for the button that this was involved for */

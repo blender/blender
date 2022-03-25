@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_span.hh"
 #include "BLI_virtual_array.hh"
@@ -20,9 +6,9 @@
 #include "BKE_spline.hh"
 
 using blender::float3;
+using blender::GVArray;
 using blender::MutableSpan;
 using blender::Span;
-using blender::fn::GVArray;
 
 void PolySpline::copy_settings(Spline &UNUSED(dst)) const
 {
@@ -43,17 +29,6 @@ int PolySpline::size() const
   BLI_assert(size == radii_.size());
   BLI_assert(size == tilts_.size());
   return size;
-}
-
-/**
- * \warning Call #reallocate on the spline's attributes after adding all points.
- */
-void PolySpline::add_point(const float3 position, const float radius, const float tilt)
-{
-  positions_.append(position);
-  radii_.append(radius);
-  tilts_.append(tilt);
-  this->mark_cache_invalid();
 }
 
 void PolySpline::resize(const int size)
@@ -115,12 +90,6 @@ Span<float3> PolySpline::evaluated_positions() const
   return this->positions();
 }
 
-/**
- * Poly spline interpolation from control points to evaluated points is a special case, since
- * the result data is the same as the input data. This function returns a GVArray that points to
- * the original data. Therefore the lifetime of the returned virtual array must not be longer than
- * the source data.
- */
 GVArray PolySpline::interpolate_to_evaluated(const GVArray &src) const
 {
   BLI_assert(src.size() == this->size());

@@ -1,5 +1,7 @@
 
-#pragma BLENDER_REQUIRE(workbench_data_lib.glsl)
+#pragma BLENDER_REQUIRE(workbench_common_lib.glsl)
+
+#ifdef USE_CURVATURE
 
 float curvature_soft_clamp(float curvature, float control)
 {
@@ -45,3 +47,5 @@ void curvature_compute(vec2 uv,
     curvature = 2.0 * curvature_soft_clamp(normal_diff, world_data.curvature_ridge);
   }
 }
+
+#endif /* USE_CURVATURE */

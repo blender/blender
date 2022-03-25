@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #pragma once
 
@@ -129,6 +116,9 @@ ccl_device_noinline void svm_node_object_info(KernelGlobals kg,
       stack_store_float3(stack, out_offset, object_color(kg, sd->object));
       return;
     }
+    case NODE_INFO_OB_ALPHA:
+      data = object_alpha(kg, sd->object);
+      break;
     case NODE_INFO_OB_INDEX:
       data = object_pass_id(kg, sd->object);
       break;
@@ -227,7 +217,7 @@ ccl_device_noinline void svm_node_hair_info(KernelGlobals kg,
 
   switch (type) {
     case NODE_INFO_CURVE_IS_STRAND: {
-      data = (sd->type & PRIMITIVE_ALL_CURVE) != 0;
+      data = (sd->type & PRIMITIVE_CURVE) != 0;
       stack_store_float(stack, out_offset, data);
       break;
     }
@@ -242,13 +232,6 @@ ccl_device_noinline void svm_node_hair_info(KernelGlobals kg,
       stack_store_float(stack, out_offset, data);
       break;
     }
-#  if 0
-    case NODE_INFO_CURVE_FADE: {
-      data = sd->curve_transparency;
-      stack_store_float(stack, out_offset, data);
-      break;
-    }
-#  endif
     case NODE_INFO_CURVE_TANGENT_NORMAL: {
       data3 = curve_tangent_normal(kg, sd);
       stack_store_float3(stack, out_offset, data3);
@@ -256,6 +239,30 @@ ccl_device_noinline void svm_node_hair_info(KernelGlobals kg,
     }
   }
 }
+#endif
+
+#ifdef __POINTCLOUD__
+
+/* Point Info */
+
+ccl_device_noinline void svm_node_point_info(KernelGlobals kg,
+                                             ccl_private ShaderData *sd,
+                                             ccl_private float *stack,
+                                             uint type,
+                                             uint out_offset)
+{
+  switch (type) {
+    case NODE_INFO_POINT_POSITION:
+      stack_store_float3(stack, out_offset, point_position(kg, sd));
+      break;
+    case NODE_INFO_POINT_RADIUS:
+      stack_store_float(stack, out_offset, point_radius(kg, sd));
+      break;
+    case NODE_INFO_POINT_RANDOM:
+      break; /* handled as attribute */
+  }
+}
+
 #endif
 
 CCL_NAMESPACE_END

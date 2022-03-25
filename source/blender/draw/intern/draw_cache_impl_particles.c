@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2017 by Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2017 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup draw
@@ -634,7 +618,7 @@ static void particle_batch_cache_fill_segments_proc_pos(ParticleCacheKey **path_
       seg_data[3] = total_len;
       co_prev = path[j].co;
     }
-    /* Assign length value*/
+    /* Assign length value. */
     *(float *)GPU_vertbuf_raw_step(length_step) = total_len;
     if (total_len > 0.0f) {
       /* Divide by total length to have a [0-1] number. */
@@ -1674,7 +1658,6 @@ GPUBatch *DRW_particles_batch_cache_get_edit_tip_points(Object *object,
   return cache->edit_tip_points;
 }
 
-/* Ensure all textures and buffers needed for GPU accelerated drawing. */
 bool particles_ensure_procedural_data(Object *object,
                                       ParticleSystem *psys,
                                       ModifierData *md,

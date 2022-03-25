@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -35,12 +21,25 @@ struct bUserAssetLibrary;
 struct bUserAssetLibrary *BKE_preferences_asset_library_add(struct UserDef *userdef,
                                                             const char *name,
                                                             const char *path) ATTR_NONNULL(1);
+/**
+ * Unlink and free a library preference member.
+ * \note Free's \a library itself.
+ */
 void BKE_preferences_asset_library_remove(struct UserDef *userdef,
                                           struct bUserAssetLibrary *library) ATTR_NONNULL();
 
 void BKE_preferences_asset_library_name_set(struct UserDef *userdef,
                                             struct bUserAssetLibrary *library,
                                             const char *name) ATTR_NONNULL();
+
+/**
+ * Set the library path, ensuring it is pointing to a directory.
+ * Single blend files can only act as "Current File" library; libraries on disk
+ * should always be directories. If the path does not exist, that's fine; it can
+ * created as directory if necessary later.
+ */
+void BKE_preferences_asset_library_path_set(struct bUserAssetLibrary *library, const char *path)
+    ATTR_NONNULL();
 
 struct bUserAssetLibrary *BKE_preferences_asset_library_find_from_index(
     const struct UserDef *userdef, int index) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;

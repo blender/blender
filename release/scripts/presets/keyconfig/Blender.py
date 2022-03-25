@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 import os
 import bpy
 from bpy.props import (
@@ -83,6 +85,18 @@ class Prefs(bpy.types.KeyConfigPreferences):
         ),
         update=update_fn,
     )
+
+    # Experimental: only show with developer extras, see: T96544.
+    use_tweak_tool_lmb_interaction: BoolProperty(
+        name="Tweak Tool: Left Mouse Select & Move",
+        description=(
+            "The tweak tool is activated immediately instead of placing the cursor. "
+            "This is an experimental preference and may be removed"
+        ),
+        default=False,
+        update=update_fn,
+    )
+
     use_alt_click_leader: BoolProperty(
         name="Alt Click Tool Prompt",
         description=(
@@ -234,6 +248,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
 
         prefs = context.preferences
 
+        show_developer_ui = prefs.view.show_developer_ui
         is_select_left = (self.select_mouse == 'LEFT')
         use_mouse_emulate_3_button = (
             prefs.inputs.use_mouse_emulate_3_button and
@@ -268,6 +283,10 @@ class Prefs(bpy.types.KeyConfigPreferences):
         row = sub.row()
         row.prop(self, "use_select_all_toggle")
 
+        if show_developer_ui and (not is_select_left):
+            row = sub.row()
+            row.prop(self, "use_tweak_tool_lmb_interaction")
+
         # 3DView settings.
         col = layout.column()
         col.label(text="3D View")
@@ -299,6 +318,7 @@ def load():
     kc = context.window_manager.keyconfigs.new(IDNAME)
     kc_prefs = kc.preferences
 
+    show_developer_ui = prefs.view.show_developer_ui
     is_select_left = (kc_prefs.select_mouse == 'LEFT')
     use_mouse_emulate_3_button = (
         prefs.inputs.use_mouse_emulate_3_button and
@@ -318,7 +338,12 @@ def load():
             use_v3d_tab_menu=kc_prefs.use_v3d_tab_menu,
             use_v3d_shade_ex_pie=kc_prefs.use_v3d_shade_ex_pie,
             use_gizmo_drag=(is_select_left and kc_prefs.gizmo_action == 'DRAG'),
-            use_fallback_tool=(True if is_select_left else (kc_prefs.rmb_action == 'FALLBACK_TOOL')),
+            use_fallback_tool=True,
+            use_fallback_tool_rmb=(False if is_select_left else kc_prefs.rmb_action == 'FALLBACK_TOOL'),
+            use_tweak_tool_lmb_interaction=(
+                False if is_select_left else
+                (show_developer_ui and kc_prefs.use_tweak_tool_lmb_interaction)
+            ),
             use_alt_tool_or_cursor=(
                 (not use_mouse_emulate_3_button) and
                 (kc_prefs.use_alt_tool if is_select_left else kc_prefs.use_alt_cursor)

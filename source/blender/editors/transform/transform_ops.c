@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -78,6 +64,7 @@ static const char OP_BONE_SIZE[] = "TRANSFORM_OT_bbone_resize";
 static const char OP_EDGE_SLIDE[] = "TRANSFORM_OT_edge_slide";
 static const char OP_VERT_SLIDE[] = "TRANSFORM_OT_vert_slide";
 static const char OP_EDGE_CREASE[] = "TRANSFORM_OT_edge_crease";
+static const char OP_VERT_CREASE[] = "TRANSFORM_OT_vert_crease";
 static const char OP_EDGE_BWEIGHT[] = "TRANSFORM_OT_edge_bevelweight";
 static const char OP_SEQ_SLIDE[] = "TRANSFORM_OT_seq_slide";
 static const char OP_NORMAL_ROTATION[] = "TRANSFORM_OT_rotate_normal";
@@ -98,6 +85,7 @@ static void TRANSFORM_OT_bbone_resize(struct wmOperatorType *ot);
 static void TRANSFORM_OT_edge_slide(struct wmOperatorType *ot);
 static void TRANSFORM_OT_vert_slide(struct wmOperatorType *ot);
 static void TRANSFORM_OT_edge_crease(struct wmOperatorType *ot);
+static void TRANSFORM_OT_vert_crease(struct wmOperatorType *ot);
 static void TRANSFORM_OT_edge_bevelweight(struct wmOperatorType *ot);
 static void TRANSFORM_OT_seq_slide(struct wmOperatorType *ot);
 static void TRANSFORM_OT_rotate_normal(struct wmOperatorType *ot);
@@ -118,7 +106,8 @@ static TransformModeItem transform_modes[] = {
     {OP_BONE_SIZE, TFM_BONESIZE, TRANSFORM_OT_bbone_resize},
     {OP_EDGE_SLIDE, TFM_EDGE_SLIDE, TRANSFORM_OT_edge_slide},
     {OP_VERT_SLIDE, TFM_VERT_SLIDE, TRANSFORM_OT_vert_slide},
-    {OP_EDGE_CREASE, TFM_CREASE, TRANSFORM_OT_edge_crease},
+    {OP_EDGE_CREASE, TFM_EDGE_CREASE, TRANSFORM_OT_edge_crease},
+    {OP_VERT_CREASE, TFM_VERT_CREASE, TRANSFORM_OT_vert_crease},
     {OP_EDGE_BWEIGHT, TFM_BWEIGHT, TRANSFORM_OT_edge_bevelweight},
     {OP_SEQ_SLIDE, TFM_SEQ_SLIDE, TRANSFORM_OT_seq_slide},
     {OP_NORMAL_ROTATION, TFM_NORMAL_ROTATION, TRANSFORM_OT_rotate_normal},
@@ -139,7 +128,8 @@ const EnumPropertyItem rna_enum_transform_mode_types[] = {
     {TFM_TILT, "TILT", 0, "Tilt", ""},
     {TFM_TRACKBALL, "TRACKBALL", 0, "Trackball", ""},
     {TFM_PUSHPULL, "PUSHPULL", 0, "Push/Pull", ""},
-    {TFM_CREASE, "CREASE", 0, "Crease", ""},
+    {TFM_EDGE_CREASE, "CREASE", 0, "Crease", ""},
+    {TFM_VERT_CREASE, "VERTEX_CREASE", 0, "Vertex Crease", ""},
     {TFM_MIRROR, "MIRROR", 0, "Mirror", ""},
     {TFM_BONESIZE, "BONE_SIZE", 0, "Bone Size", ""},
     {TFM_BONE_ENVELOPE, "BONE_ENVELOPE", 0, "Bone Envelope", ""},
@@ -638,7 +628,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
                         "Proportional Falloff",
                         "Falloff type for proportional editing mode");
     /* Abusing id_curve :/ */
-    RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE);
+    RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE_LEGACY);
     RNA_def_float(ot->srna,
                   "proportional_size",
                   1,
@@ -1196,6 +1186,29 @@ static void TRANSFORM_OT_edge_crease(struct wmOperatorType *ot)
   Transform_Properties(ot, P_SNAP);
 }
 
+static void TRANSFORM_OT_vert_crease(struct wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Vertex Crease";
+  ot->description = "Change the crease of vertices";
+  ot->idname = OP_VERT_CREASE;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
+
+  /* api callbacks */
+  ot->invoke = transform_invoke;
+  ot->exec = transform_exec;
+  ot->modal = transform_modal;
+  ot->cancel = transform_cancel;
+  ot->poll = ED_operator_editmesh;
+  ot->poll_property = transform_poll_property;
+
+  RNA_def_float_factor(ot->srna, "value", 0, -1.0f, 1.0f, "Factor", "", -1.0f, 1.0f);
+
+  WM_operatortype_props_advanced_begin(ot);
+
+  Transform_Properties(ot, P_SNAP);
+}
+
 static void TRANSFORM_OT_edge_bevelweight(struct wmOperatorType *ot)
 {
   /* identifiers */
@@ -1298,9 +1311,7 @@ static void TRANSFORM_OT_transform(struct wmOperatorType *ot)
                            P_ALIGN_SNAP | P_GPENCIL_EDIT | P_CENTER);
 }
 
-static int transform_from_gizmo_invoke(bContext *C,
-                                       wmOperator *UNUSED(op),
-                                       const wmEvent *UNUSED(event))
+static int transform_from_gizmo_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
   bToolRef *tref = WM_toolsystem_ref_from_context(C);
   if (tref) {
@@ -1330,7 +1341,7 @@ static int transform_from_gizmo_invoke(bContext *C,
         PointerRNA op_ptr;
         WM_operator_properties_create_ptr(&op_ptr, ot);
         RNA_boolean_set(&op_ptr, "release_confirm", true);
-        WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &op_ptr);
+        WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &op_ptr, event);
         WM_operator_properties_free(&op_ptr);
         return OPERATOR_FINISHED;
       }

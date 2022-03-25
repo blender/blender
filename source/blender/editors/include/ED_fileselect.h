@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup editors
@@ -105,15 +89,29 @@ typedef struct FileSelection {
 struct View2D;
 struct rcti;
 
+/**
+ * If needed, create and return the file select parameters for the active browse mode.
+ */
 struct FileSelectParams *ED_fileselect_ensure_active_params(struct SpaceFile *sfile);
+/**
+ * Get the file select parameters for the active browse mode.
+ */
 struct FileSelectParams *ED_fileselect_get_active_params(const struct SpaceFile *sfile);
 struct FileSelectParams *ED_fileselect_get_file_params(const struct SpaceFile *sfile);
 struct FileAssetSelectParams *ED_fileselect_get_asset_params(const struct SpaceFile *sfile);
+bool ED_fileselect_is_local_asset_library(const struct SpaceFile *sfile);
 
 void ED_fileselect_set_params_from_userdef(struct SpaceFile *sfile);
+/**
+ * Update the user-preference data for the file space. In fact, this also contains some
+ * non-FileSelectParams data, but we can safely ignore this.
+ *
+ * \param temp_win_size: If the browser was opened in a temporary window,
+ * pass its size here so we can store that in the preferences. Otherwise NULL.
+ */
 void ED_fileselect_params_to_userdef(struct SpaceFile *sfile,
                                      const int temp_win_size[2],
-                                     const bool is_maximized);
+                                     bool is_maximized);
 
 void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *region);
 
@@ -123,6 +121,10 @@ int ED_fileselect_layout_numfiles(FileLayout *layout, struct ARegion *region);
 int ED_fileselect_layout_offset(FileLayout *layout, int x, int y);
 FileSelection ED_fileselect_layout_offset_rect(FileLayout *layout, const struct rcti *rect);
 
+/**
+ * Get the currently visible bounds of the layout in screen space. Matches View2D.mask minus the
+ * top column-header row.
+ */
 void ED_fileselect_layout_maskrect(const FileLayout *layout,
                                    const struct View2D *v2d,
                                    struct rcti *r_rect);
@@ -134,7 +136,7 @@ bool ED_fileselect_layout_isect_rect(const FileLayout *layout,
                                      const struct View2D *v2d,
                                      const struct rcti *rect,
                                      struct rcti *r_dst);
-void ED_fileselect_layout_tilepos(FileLayout *layout, int tile, int *x, int *y);
+void ED_fileselect_layout_tilepos(const FileLayout *layout, int tile, int *x, int *y);
 
 void ED_operatormacros_file(void);
 
@@ -149,11 +151,11 @@ struct ID *ED_fileselect_active_asset_get(const struct SpaceFile *sfile);
 
 void ED_fileselect_activate_asset_catalog(const struct SpaceFile *sfile, bUUID catalog_id);
 
-/* Activate and select the file that corresponds to the given ID.
- * Pass deferred=true to wait for the next refresh before activating. */
-void ED_fileselect_activate_by_id(struct SpaceFile *sfile,
-                                  struct ID *asset_id,
-                                  const bool deferred);
+/**
+ * Activate and select the file that corresponds to the given ID.
+ * Pass deferred=true to wait for the next refresh before activating.
+ */
+void ED_fileselect_activate_by_id(struct SpaceFile *sfile, struct ID *asset_id, bool deferred);
 
 void ED_fileselect_deselect_all(struct SpaceFile *sfile);
 void ED_fileselect_activate_by_relpath(struct SpaceFile *sfile, const char *relative_path);
@@ -165,12 +167,18 @@ void ED_fileselect_window_params_get(const struct wmWindow *win,
 struct ScrArea *ED_fileselect_handler_area_find(const struct wmWindow *win,
                                                 const struct wmOperator *file_operator);
 
+/* TODO: Maybe we should move this to BLI?
+ * On the other hand, it's using defines from space-file area, so not sure... */
 int ED_path_extension_type(const char *path);
 int ED_file_extension_icon(const char *path);
 int ED_file_icon(const struct FileDirEntry *file);
 
 void ED_file_read_bookmarks(void);
 
+/**
+ * Support updating the directory even when this isn't the active space
+ * needed so RNA properties update function isn't context sensitive, see T70255.
+ */
 void ED_file_change_dir_ex(struct bContext *C, struct ScrArea *area);
 void ED_file_change_dir(struct bContext *C);
 
@@ -230,7 +238,7 @@ char *ED_fsmenu_entry_get_name(struct FSMenuEntry *fsentry);
 void ED_fsmenu_entry_set_name(struct FSMenuEntry *fsentry, const char *name);
 
 int ED_fsmenu_entry_get_icon(struct FSMenuEntry *fsentry);
-void ED_fsmenu_entry_set_icon(struct FSMenuEntry *fsentry, const int icon);
+void ED_fsmenu_entry_set_icon(struct FSMenuEntry *fsentry, int icon);
 
 #ifdef __cplusplus
 }

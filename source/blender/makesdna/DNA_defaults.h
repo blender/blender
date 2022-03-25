@@ -1,22 +1,5 @@
-
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup DNA
@@ -36,7 +19,9 @@ extern "C" {
 
 extern const void *DNA_default_table[SDNA_TYPE_MAX];
 
-char *_DNA_struct_default_alloc_impl(const char *data_src, size_t size, const char *alloc_str);
+uint8_t *_DNA_struct_default_alloc_impl(const uint8_t *data_src,
+                                        size_t size,
+                                        const char *alloc_str);
 
 /**
  * Wrap with macro that casts correctly.
@@ -46,7 +31,9 @@ char *_DNA_struct_default_alloc_impl(const char *data_src, size_t size, const ch
 
 #define DNA_struct_default_alloc(struct_name) \
   (struct_name *)_DNA_struct_default_alloc_impl( \
-      DNA_default_table[SDNA_TYPE_FROM_STRUCT(struct_name)], sizeof(struct_name), __func__)
+      (const uint8_t *)DNA_default_table[SDNA_TYPE_FROM_STRUCT(struct_name)], \
+      sizeof(struct_name), \
+      __func__)
 
 #ifdef __cplusplus
 }

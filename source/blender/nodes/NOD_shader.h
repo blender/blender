@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup nodes
@@ -85,6 +69,7 @@ void register_node_type_sh_layer_weight(void);
 void register_node_type_sh_tex_coord(void);
 void register_node_type_sh_particle_info(void);
 void register_node_type_sh_hair_info(void);
+void register_node_type_sh_point_info(void);
 void register_node_type_sh_volume_info(void);
 void register_node_type_sh_script(void);
 void register_node_type_sh_normal_map(void);
@@ -142,6 +127,27 @@ void register_node_type_sh_tex_ies(void);
 void register_node_type_sh_tex_white_noise(void);
 
 void register_node_type_sh_custom_group(bNodeType *ntype);
+
+struct bNodeTreeExec *ntreeShaderBeginExecTree(struct bNodeTree *ntree);
+void ntreeShaderEndExecTree(struct bNodeTreeExec *exec);
+
+/**
+ * Find an output node of the shader tree.
+ *
+ * \note it will only return output which is NOT in the group, which isn't how
+ * render engines works but it's how the GPU shader compilation works. This we
+ * can change in the future and make it a generic function, but for now it stays
+ * private here.
+ */
+struct bNode *ntreeShaderOutputNode(struct bNodeTree *ntree, int target);
+
+/**
+ * This one needs to work on a local tree.
+ */
+void ntreeGPUMaterialNodes(struct bNodeTree *localtree,
+                           struct GPUMaterial *mat,
+                           bool *has_surface_output,
+                           bool *has_volume_output);
 
 #ifdef __cplusplus
 }

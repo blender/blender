@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -44,14 +30,17 @@
 /** \name Generic Utilities
  * \{ */
 
-/**
- * Only finish + pass through for press events (allowing press-tweak).
- */
 int WM_operator_flag_only_pass_through_on_press(int retval, const struct wmEvent *event)
 {
-  if ((event->val != KM_PRESS) &&
-      ((retval & OPERATOR_PASS_THROUGH) && (retval & OPERATOR_FINISHED))) {
-    retval &= ~OPERATOR_PASS_THROUGH;
+  if (event->val != KM_PRESS) {
+    if (retval & OPERATOR_PASS_THROUGH) {
+      /* Operators that use this function should either finish or cancel,
+       * otherwise non-press events will be passed through to other key-map items. */
+      BLI_assert((retval & ~OPERATOR_PASS_THROUGH) != 0);
+      if (retval & (OPERATOR_FINISHED | OPERATOR_CANCELLED)) {
+        retval &= ~OPERATOR_PASS_THROUGH;
+      }
+    }
   }
   return retval;
 }
@@ -132,11 +121,11 @@ static bool interactive_value_update(ValueInteraction *inter,
                        (((float)(mval_curr - mval_init) / inter->context_vars.region->winx) *
                         value_range)) *
                       value_scale;
-  if (event->ctrl) {
+  if (event->modifier & KM_CTRL) {
     const double snap = 0.1;
     value_delta = (float)roundf((double)value_delta / snap) * snap;
   }
-  if (event->shift) {
+  if (event->modifier & KM_SHIFT) {
     value_delta *= 0.1f;
   }
   const float value_final = inter->init.prop_value + value_delta;
@@ -150,8 +139,8 @@ static bool interactive_value_update(ValueInteraction *inter,
   }
 
   inter->prev.prop_value = value_final;
-  inter->prev.is_snap = event->ctrl;
-  inter->prev.is_precise = event->shift;
+  inter->prev.is_snap = (event->modifier & KM_CTRL) != 0;
+  inter->prev.is_precise = (event->modifier & KM_SHIFT) != 0;
 
   *r_value_final = value_final;
   return changed;
@@ -337,10 +326,6 @@ static int op_generic_value_modal(bContext *C, wmOperator *op, const wmEvent *ev
   return OPERATOR_RUNNING_MODAL;
 }
 
-/**
- * Allow an operator with only and execute function to run modally,
- * re-doing the action, using vertex coordinate store/restore instead of operator undo.
- */
 void WM_operator_type_modal_from_exec_for_object_edit_coords(wmOperatorType *ot)
 {
   PropertyRNA *prop;

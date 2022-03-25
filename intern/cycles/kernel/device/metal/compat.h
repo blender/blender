@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #pragma once
 
@@ -32,8 +19,13 @@
 
 using namespace metal;
 
+#ifdef __METALRT__
+using namespace metal::raytracing;
+#endif
+
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wsign-compare"
+#pragma clang diagnostic ignored "-Wuninitialized"
 
 /* Qualifiers */
 
@@ -42,10 +34,11 @@ using namespace metal;
 #define ccl_device_forceinline ccl_device
 #define ccl_device_noinline ccl_device __attribute__((noinline))
 #define ccl_device_noinline_cpu ccl_device
+#define ccl_device_inline_method ccl_device
 #define ccl_global device
-#define ccl_static_constant static constant constexpr
+#define ccl_inline_constant static constant constexpr
 #define ccl_device_constant constant
-#define ccl_constant const device
+#define ccl_constant constant
 #define ccl_gpu_shared threadgroup
 #define ccl_private thread
 #define ccl_may_alias
@@ -64,7 +57,7 @@ using namespace metal;
 #define ccl_gpu_thread_mask(thread_warp) uint64_t((1ull << thread_warp) - 1)
 
 #define ccl_gpu_ballot(predicate) ((uint64_t)((simd_vote::vote_t)simd_ballot(predicate)))
-#define ccl_gpu_popc(x) popcount(x)
+#define ccl_gpu_syncthreads() threadgroup_barrier(mem_flags::mem_threadgroup);
 
 // clang-format off
 
@@ -92,8 +85,12 @@ using namespace metal;
 #define FN14(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14) p1; p2; p3; p4; p5; p6; p7; p8; p9; p10; p11; p12; p13; p14;
 #define FN15(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15) p1; p2; p3; p4; p5; p6; p7; p8; p9; p10; p11; p12; p13; p14; p15;
 #define FN16(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16) p1; p2; p3; p4; p5; p6; p7; p8; p9; p10; p11; p12; p13; p14; p15; p16;
-#define GET_LAST_ARG(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, ...) p16
-#define PARAMS_MAKER(...) GET_LAST_ARG(__VA_ARGS__, FN16, FN15, FN14, FN13, FN12, FN11, FN10, FN9, FN8, FN7, FN6, FN5, FN4, FN3, FN2, FN1, FN0)
+#define FN17(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17) p1; p2; p3; p4; p5; p6; p7; p8; p9; p10; p11; p12; p13; p14; p15; p16; p17;
+#define FN18(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18) p1; p2; p3; p4; p5; p6; p7; p8; p9; p10; p11; p12; p13; p14; p15; p16; p17; p18;
+#define FN19(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19) p1; p2; p3; p4; p5; p6; p7; p8; p9; p10; p11; p12; p13; p14; p15; p16; p17; p18; p19;
+#define FN20(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20) p1; p2; p3; p4; p5; p6; p7; p8; p9; p10; p11; p12; p13; p14; p15; p16; p17; p18; p19; p20;
+#define GET_LAST_ARG(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, ...) p20
+#define PARAMS_MAKER(...) GET_LAST_ARG(__VA_ARGS__, FN20, FN19, FN18, FN17, FN16, FN15, FN14, FN13, FN12, FN11, FN10, FN9, FN8, FN7, FN6, FN5, FN4, FN3, FN2, FN1, FN0)
 
 /* Generate a struct containing the entry-point parameters and a "run"
  * method which can access them implicitly via this-> */
@@ -111,7 +108,7 @@ struct kernel_gpu_##name \
            uint simd_group_index, \
            uint num_simd_groups) ccl_global const; \
 }; \
-kernel void kernel_metal_##name(device const kernel_gpu_##name *params_struct, \
+kernel void cycles_metal_##name(device const kernel_gpu_##name *params_struct, \
                                 constant KernelParamsMetal &ccl_restrict   _launch_params_metal, \
                                 constant MetalAncillaries *_metal_ancillaries, \
                                 threadgroup int *simdgroup_offset[[ threadgroup(0) ]], \
@@ -123,7 +120,6 @@ kernel void kernel_metal_##name(device const kernel_gpu_##name *params_struct, \
                                 uint simd_group_index [[simdgroup_index_in_threadgroup]], \
                                 uint num_simd_groups [[simdgroups_per_threadgroup]]) { \
   MetalKernelContext context(_launch_params_metal, _metal_ancillaries); \
-  INIT_DEBUG_BUFFER \
   params_struct->run(context, simdgroup_offset, metal_global_id, metal_local_id, metal_local_size, simdgroup_size, simd_lane_index, simd_group_index, num_simd_groups); \
 } \
 void kernel_gpu_##name::run(thread MetalKernelContext& context, \
@@ -229,6 +225,7 @@ void kernel_gpu_##name::run(thread MetalKernelContext& context, \
 #define sinhf(x) sinh(float(x))
 #define coshf(x) cosh(float(x))
 #define tanhf(x) tanh(float(x))
+#define saturatef(x) saturate(float(x))
 
 /* Use native functions with possibly lower precision for performance,
  * no issues found so far. */
@@ -242,6 +239,24 @@ void kernel_gpu_##name::run(thread MetalKernelContext& context, \
 
 #define NULL 0
 
+#define __device__
+
+#ifdef __METALRT__
+
+#  define __KERNEL_GPU_RAYTRACING__
+
+#  if defined(__METALRT_MOTION__)
+#    define METALRT_TAGS instancing, instance_motion, primitive_motion
+#  else
+#    define METALRT_TAGS instancing
+#  endif /* __METALRT_MOTION__ */
+
+typedef acceleration_structure<METALRT_TAGS> metalrt_as_type;
+typedef intersection_function_table<triangle_data, METALRT_TAGS> metalrt_ift_type;
+typedef metal::raytracing::intersector<triangle_data, METALRT_TAGS> metalrt_intersector_type;
+
+#endif /* __METALRT__ */
+
 /* texture bindings and sampler setup */
 
 struct Texture2DParamsMetal {
@@ -254,7 +269,17 @@ struct Texture3DParamsMetal {
 struct MetalAncillaries {
   device Texture2DParamsMetal *textures_2d;
   device Texture3DParamsMetal *textures_3d;
+
+#ifdef __METALRT__
+  metalrt_as_type accel_struct;
+  metalrt_ift_type ift_default;
+  metalrt_ift_type ift_shadow;
+  metalrt_ift_type ift_local;
+#endif
 };
+
+#include "util/half.h"
+#include "util/types.h"
 
 enum SamplerType {
   SamplerFilterNearest_AddressRepeat,

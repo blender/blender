@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup GHOST
@@ -247,6 +231,16 @@ int GHOST_GetFullScreen(GHOST_SystemHandle systemhandle)
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
   return (int)system->getFullScreen();
+}
+
+GHOST_WindowHandle GHOST_GetWindowUnderCursor(GHOST_SystemHandle systemhandle,
+                                              int32_t x,
+                                              int32_t y)
+{
+  GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
+  GHOST_IWindow *window = system->getWindowUnderCursor(x, y);
+
+  return (GHOST_WindowHandle)window;
 }
 
 bool GHOST_ProcessEvents(GHOST_SystemHandle systemhandle, bool waitForEvent)
@@ -809,10 +803,10 @@ void GHOST_putClipboard(const char *buffer, bool selection)
   system->putClipboard(buffer, selection);
 }
 
-int GHOST_toggleConsole(int action)
+int setConsoleWindowState(GHOST_TConsoleWindowState action)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
-  return system->toggleConsole(action);
+  return system->setConsoleWindowState(action);
 }
 
 int GHOST_UseNativePixels(void)

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # Always run tests from install path, so all required scripts and libraries
 # are available and we are testing the actual installation layout.

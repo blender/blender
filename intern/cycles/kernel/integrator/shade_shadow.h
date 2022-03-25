@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #pragma once
 
@@ -83,7 +70,10 @@ ccl_device_inline void integrate_transparent_volume_shadow(KernelGlobals kg,
   /* Setup shader data. */
   Ray ray ccl_optional_struct_init;
   integrator_state_read_shadow_ray(kg, state, &ray);
-
+  ray.self.object = OBJECT_NONE;
+  ray.self.prim = PRIM_NONE;
+  ray.self.light_object = OBJECT_NONE;
+  ray.self.light_prim = PRIM_NONE;
   /* Modify ray position and length to match current segment. */
   const float start_t = (hit == 0) ? 0.0f :
                                      INTEGRATOR_STATE_ARRAY(state, shadow_isect, hit - 1, t);
@@ -149,7 +139,7 @@ ccl_device_inline bool integrate_transparent_shadow(KernelGlobals kg,
     const float last_hit_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, num_recorded_hits - 1, t);
     const float3 ray_P = INTEGRATOR_STATE(state, shadow_ray, P);
     const float3 ray_D = INTEGRATOR_STATE(state, shadow_ray, D);
-    INTEGRATOR_STATE_WRITE(state, shadow_ray, P) = ray_offset(ray_P + last_hit_t * ray_D, ray_D);
+    INTEGRATOR_STATE_WRITE(state, shadow_ray, P) = ray_P + last_hit_t * ray_D;
     INTEGRATOR_STATE_WRITE(state, shadow_ray, t) -= last_hit_t;
   }
 

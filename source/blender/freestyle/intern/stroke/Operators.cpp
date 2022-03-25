@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -885,7 +871,7 @@ static int __recursiveSplit(Chain *_curve,
 #endif
   real _min = FLT_MAX;
   ++it;
-  real mean = 0.0f;
+  // real mean = 0.0f;
   // soc unused - real variance                              = 0.0f;
   unsigned count = 0;
   CurveInternal::CurvePointIterator next = it;
@@ -904,14 +890,14 @@ static int __recursiveSplit(Chain *_curve,
     if (func(it0d) < 0) {
       return -1;
     }
-    mean += func.result;
+    // mean += func.result;
     if (func.result < _min) {
       _min = func.result;
       split = it;
       bsplit = true;
     }
   }
-  mean /= (float)count;
+  // mean /= (float)count;
 
   // if ((!bsplit) || (mean - _min > mean)) { // we didn't find any minimum
   if (!bsplit) {  // we didn't find any minimum

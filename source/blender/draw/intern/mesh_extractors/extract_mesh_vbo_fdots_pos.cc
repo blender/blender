@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2021 by Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2021 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup draw
@@ -23,11 +7,31 @@
 
 #include "extract_mesh.h"
 
+#include "draw_subdivision.h"
+
 namespace blender::draw {
 
 /* ---------------------------------------------------------------------- */
 /** \name Extract Face-dots positions
  * \{ */
+
+static GPUVertFormat *get_fdots_pos_format()
+{
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  }
+  return &format;
+}
+
+static GPUVertFormat *get_fdots_nor_format_subdiv()
+{
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "norAndFlag", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  }
+  return &format;
+}
 
 static void extract_fdots_pos_init(const MeshRenderData *mr,
                                    struct MeshBatchCache *UNUSED(cache),
@@ -35,12 +39,8 @@ static void extract_fdots_pos_init(const MeshRenderData *mr,
                                    void *tls_data)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
-  static GPUVertFormat format = {0};
-  if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  }
-
-  GPU_vertbuf_init_with_format(vbo, &format);
+  GPUVertFormat *format = get_fdots_pos_format();
+  GPU_vertbuf_init_with_format(vbo, format);
   GPU_vertbuf_data_alloc(vbo, mr->poly_len);
   void *vbo_data = GPU_vertbuf_get_data(vbo);
   *(float(**)[3])tls_data = static_cast<float(*)[3]>(vbo_data);
@@ -97,10 +97,30 @@ static void extract_fdots_pos_iter_poly_mesh(const MeshRenderData *mr,
   }
 }
 
+static void extract_fdots_init_subdiv(const DRWSubdivCache *subdiv_cache,
+                                      const MeshRenderData *UNUSED(mr),
+                                      struct MeshBatchCache *cache,
+                                      void *buffer,
+                                      void *UNUSED(data))
+{
+  /* We "extract" positions, normals, and indices at once. */
+  GPUVertBuf *fdots_pos_vbo = static_cast<GPUVertBuf *>(buffer);
+  GPUVertBuf *fdots_nor_vbo = cache->final.buff.vbo.fdots_nor;
+  GPUIndexBuf *fdots_pos_ibo = cache->final.buff.ibo.fdots;
+
+  GPU_vertbuf_init_build_on_device(
+      fdots_nor_vbo, get_fdots_nor_format_subdiv(), subdiv_cache->num_coarse_poly);
+  GPU_vertbuf_init_build_on_device(
+      fdots_pos_vbo, get_fdots_pos_format(), subdiv_cache->num_coarse_poly);
+  GPU_indexbuf_init_build_on_device(fdots_pos_ibo, subdiv_cache->num_coarse_poly);
+  draw_subdiv_build_fdots_buffers(subdiv_cache, fdots_pos_vbo, fdots_nor_vbo, fdots_pos_ibo);
+}
+
 constexpr MeshExtract create_extractor_fdots_pos()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_fdots_pos_init;
+  extractor.init_subdiv = extract_fdots_init_subdiv;
   extractor.iter_poly_bm = extract_fdots_pos_iter_poly_bm;
   extractor.iter_poly_mesh = extract_fdots_pos_iter_poly_mesh;
   extractor.data_type = MR_DATA_NONE;

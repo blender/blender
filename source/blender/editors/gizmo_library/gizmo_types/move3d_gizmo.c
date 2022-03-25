@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edgizmolib
@@ -161,7 +147,7 @@ static void move3d_get_translate(const wmGizmo *gz,
                                  float co_delta[3])
 {
   MoveInteraction *inter = gz->interaction_data;
-  const float mval_delta[2] = {
+  const float xy_delta[2] = {
       event->mval[0] - inter->init.mval[0],
       event->mval[1] - inter->init.mval[1],
   };
@@ -169,9 +155,9 @@ static void move3d_get_translate(const wmGizmo *gz,
   RegionView3D *rv3d = region->regiondata;
   float co_ref[3];
   mul_v3_mat3_m4v3(co_ref, gz->matrix_space, inter->init.prop_co);
-  const float zfac = ED_view3d_calc_zfac(rv3d, co_ref, NULL);
+  const float zfac = ED_view3d_calc_zfac(rv3d, co_ref);
 
-  ED_view3d_win_to_delta(region, mval_delta, co_delta, zfac);
+  ED_view3d_win_to_delta(region, xy_delta, zfac, co_delta);
 
   float matrix_space_inv[3][3];
   copy_m3_m4(matrix_space_inv, gz->matrix_space);

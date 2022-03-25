@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edphys
@@ -55,6 +39,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -743,8 +728,10 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   invert_m4_m4(from_imat, from_mat);
   invert_m4_m4(to_imat, to_mat);
 
-  if (target_psmd->mesh_final->runtime.deformed_only) {
-    /* we don't want to mess up target_psmd->dm when converting to global coordinates below */
+  const bool use_dm_final_indices = (target_psys->part->use_modifier_stack &&
+                                     !target_psmd->mesh_final->runtime.deformed_only);
+
+  if (use_dm_final_indices || !target_psmd->mesh_original) {
     mesh = target_psmd->mesh_final;
   }
   else {
@@ -755,6 +742,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
     return false;
   }
   /* don't modify the original vertices */
+  /* we don't want to mess up target_psmd->dm when converting to global coordinates below */
   mesh = (Mesh *)BKE_id_copy_ex(NULL, &mesh->id, NULL, LIB_ID_COPY_LOCALIZE);
 
   /* BMESH_ONLY, deform dm may not have tessface */
@@ -825,7 +813,13 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
       tpa->foffset = 0.0f;
 
       tpa->num = nearest.index;
-      tpa->num_dmcache = psys_particle_dm_face_lookup(target_mesh, mesh, tpa->num, tpa->fuv, NULL);
+      if (use_dm_final_indices) {
+        tpa->num_dmcache = DMCACHE_ISCHILD;
+      }
+      else {
+        tpa->num_dmcache = psys_particle_dm_face_lookup(
+            target_psmd->mesh_final, target_psmd->mesh_original, tpa->num, tpa->fuv, NULL);
+      }
     }
     else {
       me = &medge[nearest.index];
@@ -930,7 +924,9 @@ static bool connect_hair(Depsgraph *depsgraph, Scene *scene, Object *ob, Particl
                           ob->obmat,
                           psys->flag & PSYS_GLOBAL_HAIR,
                           false);
-  psys->flag &= ~PSYS_GLOBAL_HAIR;
+  if (ok) {
+    psys->flag &= ~PSYS_GLOBAL_HAIR;
+  }
 
   return ok;
 }

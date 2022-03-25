@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -43,7 +29,7 @@ template<typename In1, typename Out1> class CustomMF_SI_SO : public MultiFunctio
   MFSignature signature_;
 
  public:
-  CustomMF_SI_SO(StringRef name, FunctionT function) : function_(std::move(function))
+  CustomMF_SI_SO(const char *name, FunctionT function) : function_(std::move(function))
   {
     MFSignatureBuilder signature{name};
     signature.single_input<In1>("In1");
@@ -53,7 +39,7 @@ template<typename In1, typename Out1> class CustomMF_SI_SO : public MultiFunctio
   }
 
   template<typename ElementFuncT>
-  CustomMF_SI_SO(StringRef name, ElementFuncT element_fn)
+  CustomMF_SI_SO(const char *name, ElementFuncT element_fn)
       : CustomMF_SI_SO(name, CustomMF_SI_SO::create_function(element_fn))
   {
   }
@@ -92,7 +78,7 @@ class CustomMF_SI_SI_SO : public MultiFunction {
   MFSignature signature_;
 
  public:
-  CustomMF_SI_SI_SO(StringRef name, FunctionT function) : function_(std::move(function))
+  CustomMF_SI_SI_SO(const char *name, FunctionT function) : function_(std::move(function))
   {
     MFSignatureBuilder signature{name};
     signature.single_input<In1>("In1");
@@ -103,7 +89,7 @@ class CustomMF_SI_SI_SO : public MultiFunction {
   }
 
   template<typename ElementFuncT>
-  CustomMF_SI_SI_SO(StringRef name, ElementFuncT element_fn)
+  CustomMF_SI_SI_SO(const char *name, ElementFuncT element_fn)
       : CustomMF_SI_SI_SO(name, CustomMF_SI_SI_SO::create_function(element_fn))
   {
   }
@@ -150,7 +136,7 @@ class CustomMF_SI_SI_SI_SO : public MultiFunction {
   MFSignature signature_;
 
  public:
-  CustomMF_SI_SI_SI_SO(StringRef name, FunctionT function) : function_(std::move(function))
+  CustomMF_SI_SI_SI_SO(const char *name, FunctionT function) : function_(std::move(function))
   {
     MFSignatureBuilder signature{name};
     signature.single_input<In1>("In1");
@@ -162,7 +148,7 @@ class CustomMF_SI_SI_SI_SO : public MultiFunction {
   }
 
   template<typename ElementFuncT>
-  CustomMF_SI_SI_SI_SO(StringRef name, ElementFuncT element_fn)
+  CustomMF_SI_SI_SI_SO(const char *name, ElementFuncT element_fn)
       : CustomMF_SI_SI_SI_SO(name, CustomMF_SI_SI_SI_SO::create_function(element_fn))
   {
   }
@@ -211,7 +197,7 @@ class CustomMF_SI_SI_SI_SI_SO : public MultiFunction {
   MFSignature signature_;
 
  public:
-  CustomMF_SI_SI_SI_SI_SO(StringRef name, FunctionT function) : function_(std::move(function))
+  CustomMF_SI_SI_SI_SI_SO(const char *name, FunctionT function) : function_(std::move(function))
   {
     MFSignatureBuilder signature{name};
     signature.single_input<In1>("In1");
@@ -224,7 +210,7 @@ class CustomMF_SI_SI_SI_SI_SO : public MultiFunction {
   }
 
   template<typename ElementFuncT>
-  CustomMF_SI_SI_SI_SI_SO(StringRef name, ElementFuncT element_fn)
+  CustomMF_SI_SI_SI_SI_SO(const char *name, ElementFuncT element_fn)
       : CustomMF_SI_SI_SI_SI_SO(name, CustomMF_SI_SI_SI_SI_SO::create_function(element_fn))
   {
   }
@@ -265,7 +251,7 @@ template<typename Mut1> class CustomMF_SM : public MultiFunction {
   MFSignature signature_;
 
  public:
-  CustomMF_SM(StringRef name, FunctionT function) : function_(std::move(function))
+  CustomMF_SM(const char *name, FunctionT function) : function_(std::move(function))
   {
     MFSignatureBuilder signature{name};
     signature.single_mutable<Mut1>("Mut1");
@@ -274,7 +260,7 @@ template<typename Mut1> class CustomMF_SM : public MultiFunction {
   }
 
   template<typename ElementFuncT>
-  CustomMF_SM(StringRef name, ElementFuncT element_fn)
+  CustomMF_SM(const char *name, ElementFuncT element_fn)
       : CustomMF_SM(name, CustomMF_SM::create_function(element_fn))
   {
   }
@@ -306,8 +292,8 @@ template<typename From, typename To> class CustomMF_Convert : public MultiFuncti
 
   static MFSignature create_signature()
   {
-    std::string name = CPPType::get<From>().name() + " to " + CPPType::get<To>().name();
-    MFSignatureBuilder signature{std::move(name)};
+    static std::string name = CPPType::get<From>().name() + " to " + CPPType::get<To>().name();
+    MFSignatureBuilder signature{name.c_str()};
     signature.single_input<From>("Input");
     signature.single_output<To>("Output");
     return signature.build();
@@ -372,9 +358,7 @@ template<typename T> class CustomMF_Constant : public MultiFunction {
   template<typename U> CustomMF_Constant(U &&value) : value_(std::forward<U>(value))
   {
     MFSignatureBuilder signature{"Constant"};
-    std::stringstream ss;
-    ss << value_;
-    signature.single_output<T>(ss.str());
+    signature.single_output<T>("Value");
     signature_ = signature.build();
     this->set_signature(&signature_);
   }
@@ -414,9 +398,7 @@ class CustomMF_DefaultOutput : public MultiFunction {
   MFSignature signature_;
 
  public:
-  CustomMF_DefaultOutput(StringRef name,
-                         Span<MFDataType> input_types,
-                         Span<MFDataType> output_types);
+  CustomMF_DefaultOutput(Span<MFDataType> input_types, Span<MFDataType> output_types);
   void call(IndexMask mask, MFParams params, MFContext context) const override;
 };
 
@@ -425,7 +407,7 @@ class CustomMF_GenericCopy : public MultiFunction {
   MFSignature signature_;
 
  public:
-  CustomMF_GenericCopy(StringRef name, MFDataType data_type);
+  CustomMF_GenericCopy(MFDataType data_type);
   void call(IndexMask mask, MFParams params, MFContext context) const override;
 };
 

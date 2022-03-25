@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eduv
@@ -237,9 +223,6 @@ static void bm_face_array_uv_scale_y(BMFace **faces,
 /** \name UDIM packing helper functions
  * \{ */
 
-/**
- *  Returns true if UV coordinates lie on a valid tile in UDIM grid or tiled image.
- */
 bool uv_coords_isect_udim(const Image *image, const int udim_grid[2], const float coords[2])
 {
   const float coords_floor[2] = {floorf(coords[0]), floorf(coords[1])};

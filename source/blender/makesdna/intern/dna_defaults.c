@@ -1,20 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * DNA default value access.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -94,15 +78,16 @@
 #include "DNA_cloth_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_fluid_types.h"
 #include "DNA_gpencil_modifier_types.h"
-#include "DNA_hair_types.h"
 #include "DNA_image_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_linestyle_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
@@ -126,9 +111,9 @@
 #include "DNA_camera_defaults.h"
 #include "DNA_collection_defaults.h"
 #include "DNA_curve_defaults.h"
+#include "DNA_curves_defaults.h"
 #include "DNA_fluid_defaults.h"
 #include "DNA_gpencil_modifier_defaults.h"
-#include "DNA_hair_defaults.h"
 #include "DNA_image_defaults.h"
 #include "DNA_lattice_defaults.h"
 #include "DNA_light_defaults.h"
@@ -144,6 +129,7 @@
 #include "DNA_pointcloud_defaults.h"
 #include "DNA_scene_defaults.h"
 #include "DNA_simulation_defaults.h"
+#include "DNA_space_defaults.h"
 #include "DNA_speaker_defaults.h"
 #include "DNA_texture_defaults.h"
 #include "DNA_volume_defaults.h"
@@ -182,8 +168,8 @@ SDNA_DEFAULT_DECL_STRUCT(FluidEffectorSettings);
 /* DNA_image_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Image);
 
-/* DNA_hair_defaults.h */
-SDNA_DEFAULT_DECL_STRUCT(Hair);
+/* DNA_curves_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(Curves);
 
 /* DNA_lattice_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Lattice);
@@ -208,6 +194,8 @@ SDNA_DEFAULT_DECL_STRUCT(MetaBall);
 
 /* DNA_movieclip_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(MovieClip);
+SDNA_DEFAULT_DECL_STRUCT(MovieClipUser);
+SDNA_DEFAULT_DECL_STRUCT(MovieClipScopes);
 
 /* DNA_object_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Object);
@@ -224,6 +212,9 @@ SDNA_DEFAULT_DECL_STRUCT(ToolSettings);
 
 /* DNA_simulation_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Simulation);
+
+/* DNA_space_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(SpaceClip);
 
 /* DNA_speaker_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Speaker);
@@ -324,6 +315,7 @@ SDNA_DEFAULT_DECL_STRUCT(LineartGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(LengthGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(DashGpencilModifierData);
 SDNA_DEFAULT_DECL_STRUCT(DashGpencilModifierSegment);
+SDNA_DEFAULT_DECL_STRUCT(ShrinkwrapGpencilModifierData);
 
 #undef SDNA_DEFAULT_DECL_STRUCT
 
@@ -384,8 +376,8 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     /* DNA_image_defaults.h */
     SDNA_DEFAULT_DECL(Image),
 
-    /* DNA_hair_defaults.h */
-    SDNA_DEFAULT_DECL(Hair),
+    /* DNA_curves_defaults.h */
+    SDNA_DEFAULT_DECL(Curves),
 
     /* DNA_lattice_defaults.h */
     SDNA_DEFAULT_DECL(Lattice),
@@ -405,11 +397,18 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     /* DNA_mesh_defaults.h */
     SDNA_DEFAULT_DECL(Mesh),
 
+    /* DNA_space_defaults.h */
+    SDNA_DEFAULT_DECL(SpaceClip),
+    SDNA_DEFAULT_DECL_EX(MaskSpaceInfo, SpaceClip.mask_info),
+
     /* DNA_meta_defaults.h */
     SDNA_DEFAULT_DECL(MetaBall),
 
     /* DNA_movieclip_defaults.h */
     SDNA_DEFAULT_DECL(MovieClip),
+    SDNA_DEFAULT_DECL(MovieClipUser),
+    SDNA_DEFAULT_DECL(MovieClipScopes),
+    SDNA_DEFAULT_DECL_EX(MovieTrackingMarker, MovieClipScopes.undist_marker),
 
     /* DNA_object_defaults.h */
     SDNA_DEFAULT_DECL(Object),
@@ -555,13 +554,16 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL(LengthGpencilModifierData),
     SDNA_DEFAULT_DECL(DashGpencilModifierData),
     SDNA_DEFAULT_DECL(DashGpencilModifierSegment),
+    SDNA_DEFAULT_DECL(ShrinkwrapGpencilModifierData),
 };
 #undef SDNA_DEFAULT_DECL
 #undef SDNA_DEFAULT_DECL_EX
 
-char *_DNA_struct_default_alloc_impl(const char *data_src, size_t size, const char *alloc_str)
+uint8_t *_DNA_struct_default_alloc_impl(const uint8_t *data_src,
+                                        size_t size,
+                                        const char *alloc_str)
 {
-  char *data_dst = MEM_mallocN(size, alloc_str);
+  uint8_t *data_dst = MEM_mallocN(size, alloc_str);
   memcpy(data_dst, data_src, size);
   return data_dst;
 }

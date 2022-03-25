@@ -1,18 +1,5 @@
-/*
- * Copyright 2021 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2021-2022 Blender Foundation */
 
 #pragma once
 
@@ -38,14 +25,17 @@ class BufferParams;
 
 class PathTraceDisplay {
  public:
-  PathTraceDisplay(unique_ptr<DisplayDriver> driver);
+  explicit PathTraceDisplay(unique_ptr<DisplayDriver> driver);
   virtual ~PathTraceDisplay() = default;
 
   /* Reset the display for the new state of render session. Is called whenever session is reset,
    * which happens on changes like viewport navigation or viewport dimension change.
    *
-   * This call will configure parameters for a changed buffer and reset the texture state. */
-  void reset(const BufferParams &buffer_params);
+   * This call will configure parameters for a changed buffer and reset the texture state.
+   *
+   * When the `reset_rendering` a complete display reset happens. When it is false reset happens
+   * for a new state of the buffer parameters which is assumed to correspond to the next tile. */
+  void reset(const BufferParams &buffer_params, bool reset_rendering);
 
   /* --------------------------------------------------------------------
    * Update procedure.
@@ -76,7 +66,7 @@ class PathTraceDisplay {
 
   /* Copy buffer of rendered pixels of a given size into a given position of the texture.
    *
-   * This function does not acquire a lock. The reason for this is is to allow use of this function
+   * This function does not acquire a lock. The reason for this is to allow use of this function
    * for partial updates from different devices. In this case the caller will acquire the lock
    * once, update all the slices and release
    * the lock once. This will ensure that draw() will never use partially updated texture. */
@@ -150,6 +140,9 @@ class PathTraceDisplay {
    *
    * Returns true if this call did draw an updated state of the texture. */
   bool draw();
+
+  /* Flush outstanding display commands before ending the render loop. */
+  void flush();
 
  private:
   /* Display driver implemented by the host application. */

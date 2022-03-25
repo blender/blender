@@ -1,28 +1,16 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 #pragma once
 
 /** \file
  * \ingroup blenloader
- * \brief external writefile function prototypes.
+ * \brief external `writefile.c` function prototypes.
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct BlendThumbnail;
 struct Main;
@@ -60,15 +48,25 @@ struct BlendFileWriteParams {
   const struct BlendThumbnail *thumb;
 };
 
+/**
+ * \return Success.
+ */
 extern bool BLO_write_file(struct Main *mainvar,
                            const char *filepath,
-                           const int write_flags,
+                           int write_flags,
                            const struct BlendFileWriteParams *params,
                            struct ReportList *reports);
 
+/**
+ * \return Success.
+ */
 extern bool BLO_write_file_mem(struct Main *mainvar,
                                struct MemFile *compare,
                                struct MemFile *current,
                                int write_flags);
 
 /** \} */
+
+#ifdef __cplusplus
+}
+#endif

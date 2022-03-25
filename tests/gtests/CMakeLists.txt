@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 if(WITH_GTESTS)
   # Otherwise we get warnings here that we can't fix in external projects

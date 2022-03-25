@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2012 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2012 Blender Foundation. All rights reserved. */
 
 #pragma once
 
@@ -56,16 +40,20 @@ typedef enum {
   MASK_HANDLE_MODE_INDIVIDUAL_HANDLES = 2,
 } eMaskhandleMode;
 
-struct MaskSplinePoint *BKE_mask_spline_point_array(struct MaskSpline *spline);
-struct MaskSplinePoint *BKE_mask_spline_point_array_from_point(
-    struct MaskSpline *spline, const struct MaskSplinePoint *point_ref);
+/* -------------------------------------------------------------------- */
+/** \name Mask Layers
+ * \{ */
 
-/* mask layers */
 struct MaskLayer *BKE_mask_layer_new(struct Mask *mask, const char *name);
+/**
+ * \note The returned mask-layer may be hidden, caller needs to check.
+ */
 struct MaskLayer *BKE_mask_layer_active(struct Mask *mask);
 void BKE_mask_layer_active_set(struct Mask *mask, struct MaskLayer *masklay);
 void BKE_mask_layer_remove(struct Mask *mask, struct MaskLayer *masklay);
 
+/** \brief Free all animation keys for a mask layer.
+ */
 void BKE_mask_layer_free_shapes(struct MaskLayer *masklay);
 void BKE_mask_layer_free(struct MaskLayer *masklay);
 void BKE_mask_layer_free_list(struct ListBase *masklayers);
@@ -83,7 +71,16 @@ void BKE_mask_layer_rename(struct Mask *mask,
 struct MaskLayer *BKE_mask_layer_copy(const struct MaskLayer *masklay);
 void BKE_mask_layer_copy_list(struct ListBase *masklayers_new, const struct ListBase *masklayers);
 
-/* splines */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Splines
+ * \{ */
+
+struct MaskSplinePoint *BKE_mask_spline_point_array(struct MaskSpline *spline);
+struct MaskSplinePoint *BKE_mask_spline_point_array_from_point(
+    struct MaskSpline *spline, const struct MaskSplinePoint *point_ref);
+
 struct MaskSpline *BKE_mask_spline_add(struct MaskLayer *masklay);
 bool BKE_mask_spline_remove(struct MaskLayer *mask_layer, struct MaskSpline *spline);
 void BKE_mask_point_direction_switch(struct MaskSplinePoint *point);
@@ -102,9 +99,14 @@ float BKE_mask_spline_project_co(struct MaskSpline *spline,
                                  struct MaskSplinePoint *point,
                                  float start_u,
                                  const float co[2],
-                                 const eMaskSign sign);
+                                 eMaskSign sign);
 
-/* point */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Point
+ * \{ */
+
 eMaskhandleMode BKE_mask_point_handles_mode_get(const struct MaskSplinePoint *point);
 void BKE_mask_point_handle(const struct MaskSplinePoint *point,
                            eMaskWhichHandle which_handle,
@@ -126,20 +128,23 @@ void BKE_mask_point_normal(struct MaskSpline *spline,
                            float n[2]);
 float BKE_mask_point_weight_scalar(struct MaskSpline *spline,
                                    struct MaskSplinePoint *point,
-                                   const float u);
-float BKE_mask_point_weight(struct MaskSpline *spline,
-                            struct MaskSplinePoint *point,
-                            const float u);
+                                   float u);
+float BKE_mask_point_weight(struct MaskSpline *spline, struct MaskSplinePoint *point, float u);
 struct MaskSplinePointUW *BKE_mask_point_sort_uw(struct MaskSplinePoint *point,
                                                  struct MaskSplinePointUW *uw);
 void BKE_mask_point_add_uw(struct MaskSplinePoint *point, float u, float w);
 
-void BKE_mask_point_select_set(struct MaskSplinePoint *point, const bool do_select);
+void BKE_mask_point_select_set(struct MaskSplinePoint *point, bool do_select);
 void BKE_mask_point_select_set_handle(struct MaskSplinePoint *point,
-                                      const eMaskWhichHandle which_handle,
-                                      const bool do_select);
+                                      eMaskWhichHandle which_handle,
+                                      bool do_select);
 
-/* general */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name General
+ * \{ */
+
 struct Mask *BKE_mask_new(struct Main *bmain, const char *name);
 
 void BKE_mask_coord_from_frame(float r_co[2], const float co[2], const float frame_size[2]);
@@ -151,6 +156,9 @@ void BKE_mask_coord_from_image(struct Image *image,
                                struct ImageUser *iuser,
                                float r_co[2],
                                const float co[2]);
+/**
+ * Inverse of #BKE_mask_coord_from_image.
+ */
 void BKE_mask_coord_to_frame(float r_co[2], const float co[2], const float frame_size[2]);
 void BKE_mask_coord_to_movieclip(struct MovieClip *clip,
                                  struct MovieClipUser *user,
@@ -161,21 +169,34 @@ void BKE_mask_coord_to_image(struct Image *image,
                              float r_co[2],
                              const float co[2]);
 
-/* parenting */
+/** \} */
 
-void BKE_mask_evaluate(struct Mask *mask, const float ctime, const bool do_newframe);
-void BKE_mask_layer_evaluate(struct MaskLayer *masklay, const float ctime, const bool do_newframe);
+/* -------------------------------------------------------------------- */
+/** \name Parenting
+ * \{ */
+
+void BKE_mask_evaluate(struct Mask *mask, float ctime, bool do_newframe);
+void BKE_mask_layer_evaluate(struct MaskLayer *masklay, float ctime, bool do_newframe);
 void BKE_mask_parent_init(struct MaskParent *parent);
 void BKE_mask_calc_handle_adjacent_interp(struct MaskSpline *spline,
                                           struct MaskSplinePoint *point,
-                                          const float u);
+                                          float u);
+/**
+ * Calculates the tangent of a point by its previous and next
+ * (ignoring handles - as if its a poly line).
+ */
 void BKE_mask_calc_tangent_polyline(struct MaskSpline *spline,
                                     struct MaskSplinePoint *point,
                                     float t[2]);
 void BKE_mask_calc_handle_point(struct MaskSpline *spline, struct MaskSplinePoint *point);
+/**
+ * \brief Resets auto handles even for non-auto bezier points
+ *
+ * Useful for giving sane defaults.
+ */
 void BKE_mask_calc_handle_point_auto(struct MaskSpline *spline,
                                      struct MaskSplinePoint *point,
-                                     const bool do_recalc_length);
+                                     bool do_recalc_length);
 void BKE_mask_get_handle_point_adjacent(struct MaskSpline *spline,
                                         struct MaskSplinePoint *point,
                                         struct MaskSplinePoint **r_point_prev,
@@ -186,24 +207,43 @@ void BKE_mask_point_parent_matrix_get(struct MaskSplinePoint *point,
                                       float ctime,
                                       float parent_matrix[3][3]);
 
-/* animation */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Animation
+ * \{ */
+
 int BKE_mask_layer_shape_totvert(struct MaskLayer *masklay);
+/**
+ * Inverse of #BKE_mask_layer_shape_to_mask
+ */
 void BKE_mask_layer_shape_from_mask(struct MaskLayer *masklay,
                                     struct MaskLayerShape *masklay_shape);
+/**
+ * Inverse of #BKE_mask_layer_shape_from_mask
+ */
 void BKE_mask_layer_shape_to_mask(struct MaskLayer *masklay, struct MaskLayerShape *masklay_shape);
+/**
+ * \note Linear interpolation only.
+ */
 void BKE_mask_layer_shape_to_mask_interp(struct MaskLayer *masklay,
                                          struct MaskLayerShape *masklay_shape_a,
                                          struct MaskLayerShape *masklay_shape_b,
-                                         const float fac);
-struct MaskLayerShape *BKE_mask_layer_shape_find_frame(struct MaskLayer *masklay, const int frame);
+                                         float fac);
+struct MaskLayerShape *BKE_mask_layer_shape_find_frame(struct MaskLayer *masklay, int frame);
+/**
+ * When returning 2 - the frame isn't found but before/after frames are.
+ */
 int BKE_mask_layer_shape_find_frame_range(struct MaskLayer *masklay,
-                                          const float frame,
+                                          float frame,
                                           struct MaskLayerShape **r_masklay_shape_a,
                                           struct MaskLayerShape **r_masklay_shape_b);
-struct MaskLayerShape *BKE_mask_layer_shape_alloc(struct MaskLayer *masklay, const int frame);
+/**
+ * \note Does *not* add to the list.
+ */
+struct MaskLayerShape *BKE_mask_layer_shape_alloc(struct MaskLayer *masklay, int frame);
 void BKE_mask_layer_shape_free(struct MaskLayerShape *masklay_shape);
-struct MaskLayerShape *BKE_mask_layer_shape_verify_frame(struct MaskLayer *masklay,
-                                                         const int frame);
+struct MaskLayerShape *BKE_mask_layer_shape_verify_frame(struct MaskLayer *masklay, int frame);
 struct MaskLayerShape *BKE_mask_layer_shape_duplicate(struct MaskLayerShape *masklay_shape);
 void BKE_mask_layer_shape_unlink(struct MaskLayer *masklay, struct MaskLayerShape *masklay_shape);
 void BKE_mask_layer_shape_sort(struct MaskLayer *masklay);
@@ -214,19 +254,42 @@ bool BKE_mask_layer_shape_spline_from_index(struct MaskLayer *masklay,
                                             int *r_index);
 int BKE_mask_layer_shape_spline_to_index(struct MaskLayer *masklay, struct MaskSpline *spline);
 
+/**
+ * When a new points added, resizing all shape-key arrays.
+ */
 void BKE_mask_layer_shape_changed_add(struct MaskLayer *masklay,
                                       int index,
                                       bool do_init,
                                       bool do_init_interpolate);
 
+/**
+ * Move array elements to account for removed point.
+ */
 void BKE_mask_layer_shape_changed_remove(struct MaskLayer *masklay, int index, int count);
 
 int BKE_mask_get_duration(struct Mask *mask);
 
-/* clipboard */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clipboard
+ * \{ */
+
+/**
+ * Free the clipboard.
+ */
 void BKE_mask_clipboard_free(void);
+/**
+ * Copy selected visible splines from the given layer to clipboard.
+ */
 void BKE_mask_clipboard_copy_from_layer(struct MaskLayer *mask_layer);
+/**
+ * Check clipboard is empty.
+ */
 bool BKE_mask_clipboard_is_empty(void);
+/**
+ * Paste the contents of clipboard to given mask layer.
+ */
 void BKE_mask_clipboard_paste_to_layer(struct Main *bmain, struct MaskLayer *mask_layer);
 
 #define MASKPOINT_ISSEL_ANY(p) ((((p)->bezt.f1 | (p)->bezt.f2 | (p)->bezt.f3) & SELECT) != 0)
@@ -260,29 +323,40 @@ void BKE_mask_clipboard_paste_to_layer(struct Main *bmain, struct MaskLayer *mas
   } \
   (void)0
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Evaluation
+ * \{ */
+
 #define MASK_RESOL_MAX 128
 
 /* mask_evaluate.c */
+
 unsigned int BKE_mask_spline_resolution(struct MaskSpline *spline, int width, int height);
 unsigned int BKE_mask_spline_feather_resolution(struct MaskSpline *spline, int width, int height);
-int BKE_mask_spline_differentiate_calc_total(const struct MaskSpline *spline,
-                                             const unsigned int resol);
+int BKE_mask_spline_differentiate_calc_total(const struct MaskSpline *spline, unsigned int resol);
 
 float (*BKE_mask_spline_differentiate_with_resolution(struct MaskSpline *spline,
-                                                      const unsigned int resol,
+                                                      unsigned int resol,
                                                       unsigned int *r_tot_diff_point))[2];
 void BKE_mask_spline_feather_collapse_inner_loops(struct MaskSpline *spline,
                                                   float (*feather_points)[2],
-                                                  const unsigned int tot_feather_point);
+                                                  unsigned int tot_feather_point);
 float (*BKE_mask_spline_differentiate(
     struct MaskSpline *spline, int width, int height, unsigned int *r_tot_diff_point))[2];
+/**
+ * values align with #BKE_mask_spline_differentiate_with_resolution
+ * when \a resol arguments match.
+ */
 float (*BKE_mask_spline_feather_differentiated_points_with_resolution(
     struct MaskSpline *spline,
-    const unsigned int resol,
-    const bool do_feather_isect,
+    unsigned int resol,
+    bool do_feather_isect,
     unsigned int *r_tot_feather_point))[2];
 
 /* *** mask point functions which involve evaluation *** */
+
 float (*BKE_mask_spline_feather_points(struct MaskSpline *spline, int *tot_feather_point))[2];
 
 float *BKE_mask_point_segment_diff(struct MaskSpline *spline,
@@ -291,19 +365,28 @@ float *BKE_mask_point_segment_diff(struct MaskSpline *spline,
                                    int height,
                                    unsigned int *r_tot_diff_point);
 
+/* *** mask point functions which involve evaluation *** */
+
 float *BKE_mask_point_segment_feather_diff(struct MaskSpline *spline,
                                            struct MaskSplinePoint *point,
                                            int width,
                                            int height,
                                            unsigned int *tot_feather_point);
 
-void BKE_mask_layer_evaluate_animation(struct MaskLayer *masklay, const float ctime);
-void BKE_mask_layer_evaluate_deform(struct MaskLayer *masklay, const float ctime);
+void BKE_mask_layer_evaluate_animation(struct MaskLayer *masklay, float ctime);
+void BKE_mask_layer_evaluate_deform(struct MaskLayer *masklay, float ctime);
 
 void BKE_mask_eval_animation(struct Depsgraph *depsgraph, struct Mask *mask);
 void BKE_mask_eval_update(struct Depsgraph *depsgraph, struct Mask *mask);
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rasterization
+ * \{ */
+
 /* mask_rasterize.c */
+
 struct MaskRasterHandle;
 typedef struct MaskRasterHandle MaskRasterHandle;
 
@@ -311,17 +394,22 @@ MaskRasterHandle *BKE_maskrasterize_handle_new(void);
 void BKE_maskrasterize_handle_free(MaskRasterHandle *mr_handle);
 void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
                                    struct Mask *mask,
-                                   const int width,
-                                   const int height,
-                                   const bool do_aspect_correct,
-                                   const bool do_mask_aa,
-                                   const bool do_feather);
+                                   int width,
+                                   int height,
+                                   bool do_aspect_correct,
+                                   bool do_mask_aa,
+                                   bool do_feather);
 float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float xy[2]);
 
+/**
+ * \brief Rasterize a buffer from a single mask (threaded execution).
+ */
 void BKE_maskrasterize_buffer(MaskRasterHandle *mr_handle,
-                              const unsigned int width,
-                              const unsigned int height,
+                              unsigned int width,
+                              unsigned int height,
                               float *buffer);
+
+/** \} */
 
 #ifdef __cplusplus
 }

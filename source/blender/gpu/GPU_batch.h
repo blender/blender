@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2016 by Mike Erwin.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 by Mike Erwin. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -30,6 +14,7 @@
 
 #include "GPU_index_buffer.h"
 #include "GPU_shader.h"
+#include "GPU_uniform_buffer.h"
 #include "GPU_vertex_buffer.h"
 
 #define GPU_BATCH_VBO_MAX_LEN 16
@@ -102,25 +87,49 @@ void GPU_batch_init_ex(GPUBatch *batch,
                        GPUVertBuf *vert,
                        GPUIndexBuf *elem,
                        eGPUBatchFlag owns_flag);
+/**
+ * This will share the VBOs with the new batch.
+ */
 void GPU_batch_copy(GPUBatch *batch_dst, GPUBatch *batch_src);
 
 #define GPU_batch_create(prim, verts, elem) GPU_batch_create_ex(prim, verts, elem, 0)
 #define GPU_batch_init(batch, prim, verts, elem) GPU_batch_init_ex(batch, prim, verts, elem, 0)
 
-/* Same as discard but does not free. (does not call free callback). */
+/**
+ * Same as discard but does not free. (does not call free callback).
+ */
 void GPU_batch_clear(GPUBatch *);
 
-void GPU_batch_discard(GPUBatch *); /* verts & elem are not discarded */
+/**
+ * \note Verts & elem are not discarded.
+ */
+void GPU_batch_discard(GPUBatch *);
 
+/**
+ * \note Override ONLY the first instance VBO (and free them if owned).
+ */
 void GPU_batch_instbuf_set(GPUBatch *, GPUVertBuf *, bool own_vbo); /* Instancing */
+/**
+ * \note Override any previously assigned elem (and free it if owned).
+ */
 void GPU_batch_elembuf_set(GPUBatch *batch, GPUIndexBuf *elem, bool own_ibo);
 
 int GPU_batch_instbuf_add_ex(GPUBatch *, GPUVertBuf *, bool own_vbo);
+/**
+ * Returns the index of verts in the batch.
+ */
 int GPU_batch_vertbuf_add_ex(GPUBatch *, GPUVertBuf *, bool own_vbo);
+bool GPU_batch_vertbuf_has(GPUBatch *, GPUVertBuf *);
 
 #define GPU_batch_vertbuf_add(batch, verts) GPU_batch_vertbuf_add_ex(batch, verts, false)
 
 void GPU_batch_set_shader(GPUBatch *batch, GPUShader *shader);
+/**
+ * Bind program bound to IMM to the batch.
+ *
+ * XXX Use this with much care. Drawing with the #GPUBatch API is not compatible with IMM.
+ * DO NOT DRAW WITH THE BATCH BEFORE CALLING #immUnbindProgram.
+ */
 void GPU_batch_program_set_imm_shader(GPUBatch *batch);
 void GPU_batch_program_set_builtin(GPUBatch *batch, eGPUBuiltinShader shader_id);
 void GPU_batch_program_set_builtin_with_config(GPUBatch *batch,
@@ -129,6 +138,7 @@ void GPU_batch_program_set_builtin_with_config(GPUBatch *batch,
 
 /* Will only work after setting the batch program. */
 /* TODO(fclem): These need to be replaced by GPU_shader_uniform_* with explicit shader. */
+
 #define GPU_batch_uniform_1i(batch, name, x) GPU_shader_uniform_1i((batch)->shader, name, x);
 #define GPU_batch_uniform_1b(batch, name, x) GPU_shader_uniform_1b((batch)->shader, name, x);
 #define GPU_batch_uniform_1f(batch, name, x) GPU_shader_uniform_1f((batch)->shader, name, x);
@@ -146,19 +156,26 @@ void GPU_batch_program_set_builtin_with_config(GPUBatch *batch,
   GPU_shader_uniform_4fv_array((batch)->shader, name, len, val);
 #define GPU_batch_uniform_mat4(batch, name, val) \
   GPU_shader_uniform_mat4((batch)->shader, name, val);
+#define GPU_batch_uniformbuf_bind(batch, name, ubo) \
+  GPU_uniformbuf_bind(ubo, GPU_shader_get_uniform_block_binding((batch)->shader, name));
 #define GPU_batch_texture_bind(batch, name, tex) \
   GPU_texture_bind(tex, GPU_shader_get_texture_binding((batch)->shader, name));
 
 void GPU_batch_draw(GPUBatch *batch);
 void GPU_batch_draw_range(GPUBatch *batch, int v_first, int v_count);
+/**
+ * Draw multiple instance of a batch without having any instance attributes.
+ */
 void GPU_batch_draw_instanced(GPUBatch *batch, int i_count);
 
-/* This does not bind/unbind shader and does not call GPU_matrix_bind() */
+/**
+ * This does not bind/unbind shader and does not call GPU_matrix_bind().
+ */
 void GPU_batch_draw_advanced(GPUBatch *, int v_first, int v_count, int i_first, int i_count);
 
 #if 0 /* future plans */
 
-/* Can multiple batches share a GPUVertBuf? Use ref count? */
+/* Can multiple batches share a #GPUVertBuf? Use ref count? */
 
 /* We often need a batch with its own data, to be created and discarded together. */
 /* WithOwn variants reduce number of system allocations. */

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2019 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2019 Blender Foundation. All rights reserved. */
 
 #pragma once
 
@@ -133,6 +117,7 @@ struct USDExportParams {
   bool export_armatures;
   eUSDXformOpMode xform_op_mode;
   bool fix_skel_root;
+  bool overwrite_textures;
 };
 
 struct USDImportParams {
@@ -206,14 +191,14 @@ void USD_get_transform(struct CacheReader *reader, float r_mat[4][4], float time
 struct Mesh *USD_read_mesh(struct CacheReader *reader,
                            struct Object *ob,
                            struct Mesh *existing_mesh,
-                           const float time,
+                           float time,
                            const char **err_str,
                            int read_flag);
 
 bool USD_mesh_topology_changed(struct CacheReader *reader,
                                struct Object *ob,
                                struct Mesh *existing_mesh,
-                               const float time,
+                               float time,
                                const char **err_str);
 
 struct CacheReader *CacheReader_open_usd_object(struct CacheArchiveHandle *handle,

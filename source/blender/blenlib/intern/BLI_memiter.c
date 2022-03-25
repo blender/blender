@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -125,15 +111,6 @@ static void memiter_init(BLI_memiter *mi)
 /** \name Public API's
  * \{ */
 
-/**
- * \param chunk_size_min: Should be a power of two and
- * significantly larger than the average element size used.
- *
- * While allocations of any size are supported, they won't be efficient
- * (effectively becoming a single-linked list).
- *
- * Its intended that many elements can be stored per chunk.
- */
 BLI_memiter *BLI_memiter_create(uint chunk_size_min)
 {
   BLI_memiter *mi = MEM_mallocN(sizeof(BLI_memiter), "BLI_memiter");
@@ -261,7 +238,6 @@ uint BLI_memiter_count(const BLI_memiter *mi)
 /** \name Helper API's
  * \{ */
 
-/* Support direct lookup for first. */
 void *BLI_memiter_elem_first(BLI_memiter *mi)
 {
   if (mi->head != NULL) {

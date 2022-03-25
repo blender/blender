@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2016 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -39,7 +23,7 @@ extern "C" {
 /** Returns a cleared vertex format, ready for #add_attr. */
 GPUVertFormat *immVertexFormat(void);
 
-/** Every immBegin must have a program bound first. */
+/** Every #immBegin must have a program bound first. */
 void immBindShader(GPUShader *shader);
 /** Call after your last immEnd, or before binding another program. */
 void immUnbindProgram(void);
@@ -50,10 +34,12 @@ void immBegin(GPUPrimType, uint vertex_len);
 void immBeginAtMost(GPUPrimType, uint max_vertex_len);
 void immEnd(void); /* finishes and draws. */
 
-/* immBegin a batch, then use standard immFunctions as usual. */
-/* immEnd will finalize the batch instead of drawing. */
-/* Then you can draw it as many times as you like!
+/* - #immBegin a batch, then use standard `imm*` functions as usual.
+ * - #immEnd will finalize the batch instead of drawing.
+ *
+ * Then you can draw it as many times as you like!
  * Partially replaces the need for display lists. */
+
 GPUBatch *immBeginBatch(GPUPrimType, uint vertex_len);
 GPUBatch *immBeginBatchAtMost(GPUPrimType, uint vertex_len);
 
@@ -81,12 +67,14 @@ void immAttr4ub(uint attr_id, unsigned char r, unsigned char g, unsigned char b,
 void immAttr3ubv(uint attr_id, const unsigned char data[3]);
 void immAttr4ubv(uint attr_id, const unsigned char data[4]);
 
-/* Explicitly skip an attribute. */
-/* This advanced option kills automatic value copying for this attr_id. */
+/* Explicitly skip an attribute.
+ * This advanced option kills automatic value copying for this attr_id. */
+
 void immAttrSkip(uint attr_id);
 
-/* Provide one last attribute value & end the current vertex. */
-/* This is most often used for 2D or 3D position (similar to glVertex). */
+/* Provide one last attribute value & end the current vertex.
+ * This is most often used for 2D or 3D position (similar to #glVertex). */
+
 void immVertex2f(uint attr_id, float x, float y);
 void immVertex3f(uint attr_id, float x, float y, float z);
 void immVertex4f(uint attr_id, float x, float y, float z, float w);
@@ -101,6 +89,7 @@ void immVertex3fv(uint attr_id, const float data[3]);
 void immVertex2iv(uint attr_id, const int data[2]);
 
 /* Provide uniform values that don't change for the entire draw call. */
+
 void immUniform1i(const char *name, int x);
 void immUniform1f(const char *name, float x);
 void immUniform2f(const char *name, float x, float y);
@@ -109,14 +98,19 @@ void immUniform3f(const char *name, float x, float y, float z);
 void immUniform3fv(const char *name, const float data[3]);
 void immUniform4f(const char *name, float x, float y, float z, float w);
 void immUniform4fv(const char *name, const float data[4]);
+/**
+ * Note array index is not supported for name (i.e: "array[0]").
+ */
 void immUniformArray4fv(const char *bare_name, const float *data, int count);
 void immUniformMatrix4fv(const char *name, const float data[4][4]);
 
 void immBindTexture(const char *name, GPUTexture *tex);
 void immBindTextureSampler(const char *name, GPUTexture *tex, eGPUSamplerState state);
+void immBindUniformBuf(const char *name, GPUUniformBuf *ubo);
 
 /* Convenience functions for setting "uniform vec4 color". */
-/* The rgb functions have implicit alpha = 1.0. */
+/* The RGB functions have implicit alpha = 1.0. */
+
 void immUniformColor4f(float r, float g, float b, float a);
 void immUniformColor4fv(const float rgba[4]);
 void immUniformColor3f(float r, float g, float b);
@@ -135,7 +129,7 @@ void immUniformColor4ubv(const unsigned char rgba[4]);
  */
 void immBindBuiltinProgram(eGPUBuiltinShader shader_id);
 
-/* Extend immUniformColor to take Blender's themes */
+/** Extend #immUniformColor to take Blender's themes. */
 void immUniformThemeColor(int color_id);
 void immUniformThemeColorAlpha(int color_id, float a);
 void immUniformThemeColor3(int color_id);

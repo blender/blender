@@ -1,0 +1,6 @@
+SPDX license identifiers in the source code:
+
+Apache-2.0      Apache-2-license.txt        https://spdx.org/licenses/Apache-2.0.html
+BSD-3-Clause    BSD-3-Clause-license.txt    https://spdx.org/licenses/BSD-3-Clause.html
+MIT             MIT-license.txt             https://spdx.org/licenses/MIT.html
+Zlib            Zlib-license.txt            https://spdx.org/licenses/Zlib.html

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2016 by Mike Erwin.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 by Mike Erwin. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -49,6 +33,10 @@ void GLVertBuf::resize_data()
 
 void GLVertBuf::release_data()
 {
+  if (is_wrapper_) {
+    return;
+  }
+
   if (vbo_id_ != 0) {
     GLContext::buf_free(vbo_id_);
     vbo_id_ = 0;
@@ -137,6 +125,16 @@ void *GLVertBuf::unmap(const void *mapped_data) const
   return result;
 }
 
+void GLVertBuf::wrap_handle(uint64_t handle)
+{
+  BLI_assert(vbo_id_ == 0);
+  BLI_assert(glIsBuffer(static_cast<uint>(handle)));
+  is_wrapper_ = true;
+  vbo_id_ = static_cast<uint>(handle);
+  /* We assume the data is already on the device, so no need to allocate or send it. */
+  flag = GPU_VERTBUF_DATA_UPLOADED;
+}
+
 bool GLVertBuf::is_active() const
 {
   if (!vbo_id_) {
@@ -147,7 +145,7 @@ bool GLVertBuf::is_active() const
   return vbo_id_ == active_vbo_id;
 }
 
-void GLVertBuf::update_sub(uint start, uint len, void *data)
+void GLVertBuf::update_sub(uint start, uint len, const void *data)
 {
   glBufferSubData(GL_ARRAY_BUFFER, start, len, data);
 }

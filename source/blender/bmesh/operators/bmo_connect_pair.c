@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -120,19 +106,18 @@ typedef struct PathLinkState {
   float co_prev[3];
 } PathLinkState;
 
-/**
- * \name Min Dist Dir Util
+/* -------------------------------------------------------------------- */
+/** \name Min Dist Dir Util
  *
  * Simply getting the closest intersecting vert/edge is _not_ good enough. see T43792
  * we need to get the closest in both directions since the absolute closest may be a dead-end.
  *
  * Logic is simple:
  *
- * - first intersection, store the direction.
- * - successive intersections will update the first distance if its aligned with the first hit.
+ * - First intersection, store the direction.
+ * - Successive intersections will update the first distance if its aligned with the first hit.
  *   otherwise update the opposite distance.
- * - caller stores best outcome in both directions.
- *
+ * - Caller stores best outcome in both directions.
  * \{ */
 
 typedef struct MinDistDir {

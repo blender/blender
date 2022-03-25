@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -162,14 +146,12 @@ static Sequence *sequencer_prefetch_get_original_sequence(Sequence *seq, ListBas
   return NULL;
 }
 
-/* for cache context swapping */
 Sequence *seq_prefetch_get_original_sequence(Sequence *seq, Scene *scene)
 {
   Editing *ed = scene->ed;
   return sequencer_prefetch_get_original_sequence(seq, &ed->seqbase);
 }
 
-/* for cache context swapping */
 SeqRenderData *seq_prefetch_get_original_context(const SeqRenderData *context)
 {
   PrefetchJob *pfjob = seq_prefetch_job_get(context->scene);
@@ -268,9 +250,6 @@ void SEQ_prefetch_stop_all(void)
   }
 }
 
-/* Use also to update scene and context changes
- * This function should almost always be called by cache invalidation, not directly.
- */
 void SEQ_prefetch_stop(Scene *scene)
 {
   PrefetchJob *pfjob;
@@ -331,6 +310,20 @@ static void seq_prefetch_update_scene(Scene *scene)
   pfjob->scene = scene;
   seq_prefetch_free_depsgraph(pfjob);
   seq_prefetch_init_depsgraph(pfjob);
+}
+
+static void seq_prefetch_update_active_seqbase(PrefetchJob *pfjob)
+{
+  MetaStack *ms_orig = SEQ_meta_stack_active_get(SEQ_editing_get(pfjob->scene));
+  Editing *ed_eval = SEQ_editing_get(pfjob->scene_eval);
+
+  if (ms_orig != NULL) {
+    Sequence *meta_eval = seq_prefetch_get_original_sequence(ms_orig->parseq, pfjob->scene_eval);
+    SEQ_seqbase_active_set(ed_eval, &meta_eval->seqbase);
+  }
+  else {
+    SEQ_seqbase_active_set(ed_eval, &ed_eval->seqbase);
+  }
 }
 
 static void seq_prefetch_resume(Scene *scene)
@@ -491,7 +484,7 @@ static void *seq_prefetch_frames(void *job)
      */
     pfjob->scene_eval->ed->prefetch_job = pfjob;
 
-    ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(pfjob->scene));
+    ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(pfjob->scene_eval));
     if (seq_prefetch_must_skip_frame(pfjob, seqbase)) {
       pfjob->num_frames_prefetched++;
       continue;
@@ -554,6 +547,7 @@ static PrefetchJob *seq_prefetch_start_ex(const SeqRenderData *context, float cf
 
   seq_prefetch_update_scene(context->scene);
   seq_prefetch_update_context(context);
+  seq_prefetch_update_active_seqbase(pfjob);
 
   BLI_threadpool_remove(&pfjob->threads, pfjob);
   BLI_threadpool_insert(&pfjob->threads, pfjob);
@@ -561,7 +555,6 @@ static PrefetchJob *seq_prefetch_start_ex(const SeqRenderData *context, float cf
   return pfjob;
 }
 
-/* Start or resume prefetching. */
 void seq_prefetch_start(const SeqRenderData *context, float timeline_frame)
 {
   Scene *scene = context->scene;

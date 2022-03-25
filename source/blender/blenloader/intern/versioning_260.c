@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -78,6 +64,7 @@
 #include "IMB_imbuf.h" /* for proxy / time-code versioning stuff. */
 
 #include "NOD_common.h"
+#include "NOD_composite.h"
 #include "NOD_texture.h"
 
 #include "BLO_readfile.h"
@@ -1851,7 +1838,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
         Image *image = blo_do_versions_newlibadr(fd, tex->id.lib, tex->ima);
 
         if (image && (image->flag & IMA_DO_PREMUL) == 0) {
-          const int IMA_IGNORE_ALPHA = (1 << 12);
+          enum { IMA_IGNORE_ALPHA = (1 << 12) };
           image->flag |= IMA_IGNORE_ALPHA;
         }
       }
@@ -1892,7 +1879,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     for (cu = bmain->curves.first; cu; cu = cu->id.next) {
       if (cu->flag & (CU_FRONT | CU_BACK)) {
-        if (cu->ext1 != 0.0f || cu->ext2 != 0.0f) {
+        if (cu->extrude != 0.0f || cu->bevel_radius != 0.0f) {
           Nurb *nu;
 
           for (nu = cu->nurb.first; nu; nu = nu->next) {

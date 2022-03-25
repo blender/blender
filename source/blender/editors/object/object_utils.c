@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edobj
@@ -78,7 +64,7 @@ bool ED_object_calc_active_center_for_editmode(Object *obedit,
 
       break;
     }
-    case OB_CURVE:
+    case OB_CURVES_LEGACY:
     case OB_SURF: {
       Curve *cu = obedit->data;
 
@@ -115,7 +101,7 @@ bool ED_object_calc_active_center_for_posemode(Object *ob,
                                                const bool select_only,
                                                float r_center[3])
 {
-  bPoseChannel *pchan = BKE_pose_channel_active(ob);
+  bPoseChannel *pchan = BKE_pose_channel_active_if_layer_visible(ob);
   if (pchan && (!select_only || (pchan->bone->flag & BONE_SELECTED))) {
     copy_v3_v3(r_center, pchan->pose_head);
     return true;
@@ -369,10 +355,6 @@ void ED_object_data_xform_container_item_ensure(struct XFormObjectData_Container
   }
 }
 
-/**
- * This may be called multiple times with the same data.
- * Each time, the original transformations are re-applied, instead of accumulating the changes.
- */
 void ED_object_data_xform_container_update_all(struct XFormObjectData_Container *xds,
                                                struct Main *bmain,
                                                Depsgraph *depsgraph)

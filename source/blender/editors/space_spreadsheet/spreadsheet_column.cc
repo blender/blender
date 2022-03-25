@@ -1,35 +1,56 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_space_types.h"
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_color.hh"
+#include "BLI_cpp_type.hh"
 #include "BLI_hash.hh"
+#include "BLI_math_vec_types.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 
+#include "BKE_geometry_set.hh"
+
 #include "spreadsheet_column.hh"
+#include "spreadsheet_column_values.hh"
 
 namespace blender::ed::spreadsheet {
 
+eSpreadsheetColumnValueType cpp_type_to_column_type(const CPPType &type)
+{
+  if (type.is<bool>()) {
+    return SPREADSHEET_VALUE_TYPE_BOOL;
+  }
+  if (type.is<int>()) {
+    return SPREADSHEET_VALUE_TYPE_INT32;
+  }
+  if (type.is<float>()) {
+    return SPREADSHEET_VALUE_TYPE_FLOAT;
+  }
+  if (type.is<float2>()) {
+    return SPREADSHEET_VALUE_TYPE_FLOAT2;
+  }
+  if (type.is<float3>()) {
+    return SPREADSHEET_VALUE_TYPE_FLOAT3;
+  }
+  if (type.is<ColorGeometry4f>()) {
+    return SPREADSHEET_VALUE_TYPE_COLOR;
+  }
+  if (type.is<std::string>()) {
+    return SPREADSHEET_VALUE_TYPE_STRING;
+  }
+  if (type.is<InstanceReference>()) {
+    return SPREADSHEET_VALUE_TYPE_INSTANCES;
+  }
+
+  return SPREADSHEET_VALUE_TYPE_UNKNOWN;
+}
+
 SpreadsheetColumnID *spreadsheet_column_id_new()
 {
-  SpreadsheetColumnID *column_id = (SpreadsheetColumnID *)MEM_callocN(sizeof(SpreadsheetColumnID),
-                                                                      __func__);
+  SpreadsheetColumnID *column_id = MEM_cnew<SpreadsheetColumnID>(__func__);
   return column_id;
 }
 
@@ -50,8 +71,7 @@ void spreadsheet_column_id_free(SpreadsheetColumnID *column_id)
 
 SpreadsheetColumn *spreadsheet_column_new(SpreadsheetColumnID *column_id)
 {
-  SpreadsheetColumn *column = (SpreadsheetColumn *)MEM_callocN(sizeof(SpreadsheetColumn),
-                                                               __func__);
+  SpreadsheetColumn *column = MEM_cnew<SpreadsheetColumn>(__func__);
   column->id = column_id;
   return column;
 }

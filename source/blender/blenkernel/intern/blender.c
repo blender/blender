@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -71,7 +55,6 @@ UserDef U;
 /** \name Blender Free on Exit
  * \{ */
 
-/* only to be called on exit blender */
 void BKE_blender_free(void)
 {
   /* samples are in a global list..., also sets G_MAIN->sound->sample NULL */
@@ -272,10 +255,6 @@ static void userdef_free_addons(UserDef *userdef)
   BLI_listbase_clear(&userdef->addons);
 }
 
-/**
- * When loading a new userdef from file,
- * or when exiting Blender.
- */
 void BKE_blender_userdef_data_free(UserDef *userdef, bool clear_fonts)
 {
 #define U BLI_STATIC_ASSERT(false, "Global 'U' not allowed, only use arguments passed in!")
@@ -310,10 +289,6 @@ void BKE_blender_userdef_data_free(UserDef *userdef, bool clear_fonts)
 /** \name Blender Preferences (Application Templates)
  * \{ */
 
-/**
- * Write U from userdef.
- * This function defines which settings a template will override for the user preferences.
- */
 void BKE_blender_userdef_app_template_data_swap(UserDef *userdef_a, UserDef *userdef_b)
 {
   /* TODO:

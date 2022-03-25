@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2021 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2021 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup sequencer
@@ -105,11 +89,6 @@ static void seq_sequence_lookup_update_if_needed(const struct Scene *scene,
   seq_sequence_lookup_rebuild(scene, lookup);
 }
 
-/**
- * Free lookup hash data.
- *
- * \param scene: scene that owns lookup hash
- */
 void SEQ_sequence_lookup_free(const Scene *scene)
 {
   BLI_assert(scene->ed);
@@ -119,16 +98,6 @@ void SEQ_sequence_lookup_free(const Scene *scene)
   BLI_mutex_unlock(&lookup_lock);
 }
 
-/**
- * Find a sequence with a given name.
- * If lookup hash doesn't exist, it will be created. If hash is tagged as invalid, it will be
- * rebuilt.
- *
- * \param scene: scene that owns lookup hash
- * \param key: Sequence name without SQ prefix (seq->name + 2)
- *
- * \return pointer to Sequence
- */
 Sequence *SEQ_sequence_lookup_by_name(const Scene *scene, const char *key)
 {
   BLI_assert(scene->ed);
@@ -140,12 +109,6 @@ Sequence *SEQ_sequence_lookup_by_name(const Scene *scene, const char *key)
   return seq;
 }
 
-/**
- * Find a sequence with a given name.
- *
- * \param scene: scene that owns lookup hash
- * \param tag: tag to set
- */
 void SEQ_sequence_lookup_tag(const Scene *scene, eSequenceLookupTag tag)
 {
   if (!scene->ed) {

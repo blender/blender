@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2021, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2021 Blender Foundation. */
 
 #include "COM_TransformOperation.h"
 #include "COM_RotateOperation.h"
@@ -126,7 +111,7 @@ void TransformOperation::determine_canvas(const rcti &preferred_area, rcti &r_ar
       get_input_socket(IMAGE_INPUT_INDEX)->determine_canvas(preferred_area, r_area);
   if (image_determined) {
     rcti image_canvas = r_area;
-    rcti unused;
+    rcti unused = COM_AREA_NONE;
     get_input_socket(X_INPUT_INDEX)->determine_canvas(image_canvas, unused);
     get_input_socket(Y_INPUT_INDEX)->determine_canvas(image_canvas, unused);
     get_input_socket(DEGREE_INPUT_INDEX)->determine_canvas(image_canvas, unused);
@@ -171,7 +156,6 @@ void TransformOperation::determine_canvas(const rcti &preferred_area, rcti &r_ar
   }
 }
 
-/** Translate -> Rotate -> Scale. */
 void TransformOperation::transform(BuffersIterator<float> &it, const MemoryBuffer *input_img)
 {
   float rotate_center_x, rotate_center_y;
@@ -198,7 +182,6 @@ void TransformOperation::transform(BuffersIterator<float> &it, const MemoryBuffe
   }
 }
 
-/** Scale -> Rotate -> Translate. */
 void TransformOperation::transform_inverted(BuffersIterator<float> &it,
                                             const MemoryBuffer *input_img)
 {

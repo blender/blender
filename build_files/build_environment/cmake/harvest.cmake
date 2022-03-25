@@ -1,23 +1,7 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 ########################################################################
-# Copy all generated files to the proper strucure as blender prefers
+# Copy all generated files to the proper structure as blender prefers
 ########################################################################
 
 if(NOT DEFINED HARVEST_TARGET)
@@ -79,6 +63,8 @@ endfunction()
 harvest(alembic/include alembic/include "*.h")
 harvest(alembic/lib/libAlembic.a alembic/lib/libAlembic.a)
 harvest(alembic/bin alembic/bin "*")
+harvest(brotli/include brotli/include "*.h")
+harvest(brotli/lib brotli/lib "*.a")
 harvest(boost/include boost/include "*")
 harvest(boost/lib boost/lib "*.a")
 harvest(ffmpeg/include ffmpeg/include "*.h")

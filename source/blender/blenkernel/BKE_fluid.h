@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright Blender Foundation. All rights reserved. */
 
 #pragma once
 
@@ -49,7 +33,7 @@ void BKE_fluid_modifier_reset(struct FluidModifierData *fmd);
 void BKE_fluid_modifier_create_type_data(struct FluidModifierData *fmd);
 void BKE_fluid_modifier_copy(const struct FluidModifierData *fmd,
                              struct FluidModifierData *tfmd,
-                             const int flag);
+                             int flag);
 
 bool BKE_fluid_reallocate_fluid(struct FluidDomainSettings *fds, int res[3], int free_old);
 void BKE_fluid_reallocate_copy_fluid(struct FluidDomainSettings *fds,
@@ -64,6 +48,10 @@ void BKE_fluid_cache_free_all(struct FluidDomainSettings *fds, struct Object *ob
 void BKE_fluid_cache_free(struct FluidDomainSettings *fds, struct Object *ob, int cache_map);
 void BKE_fluid_cache_new_name_for_current_session(int maxlen, char *r_name);
 
+/**
+ * Get fluid velocity and density at given coordinates.
+ * \returns fluid density or -1.0f if outside domain.
+ */
 float BKE_fluid_get_velocity_at(struct Object *ob, float position[3], float velocity[3]);
 int BKE_fluid_get_data_flags(struct FluidDomainSettings *fds);
 
@@ -72,8 +60,8 @@ void BKE_fluid_particle_system_create(struct Main *bmain,
                                       const char *pset_name,
                                       const char *parts_name,
                                       const char *psys_name,
-                                      const int psys_type);
-void BKE_fluid_particle_system_destroy(struct Object *ob, const int particle_type);
+                                      int psys_type);
+void BKE_fluid_particle_system_destroy(struct Object *ob, int particle_type);
 
 void BKE_fluid_cache_startframe_set(struct FluidDomainSettings *settings, int value);
 void BKE_fluid_cache_endframe_set(struct FluidDomainSettings *settings, int value);

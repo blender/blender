@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edtransform
@@ -162,9 +146,9 @@ static void calcVertSlideMouseActiveEdges(struct TransInfo *t, const int mval[2]
    * by finding the closest edge in local-space.
    * However this skews the outcome with non-uniform-scale. */
 
-  /* first get the direction of the original mouse position */
+  /* First get the direction of the original mouse position. */
   sub_v2_v2v2(dir, imval_fl, mval_fl);
-  ED_view3d_win_to_delta(t->region, dir, dir, t->zfac);
+  ED_view3d_win_to_delta(t->region, dir, t->zfac, dir);
   normalize_v3(dir);
 
   for (i = 0, sv = sld->sv; i < sld->totsv; i++, sv++) {
@@ -441,18 +425,18 @@ void drawVertSlide(TransInfo *t)
       /* direction from active vertex! */
       if ((t->mval[0] != t->mouse.imval[0]) || (t->mval[1] != t->mouse.imval[1])) {
         float zfac;
-        float mval_ofs[2];
+        float xy_delta[2];
         float co_orig_3d[3];
         float co_dest_3d[3];
 
-        mval_ofs[0] = t->mval[0] - t->mouse.imval[0];
-        mval_ofs[1] = t->mval[1] - t->mouse.imval[1];
+        xy_delta[0] = t->mval[0] - t->mouse.imval[0];
+        xy_delta[1] = t->mval[1] - t->mouse.imval[1];
 
         mul_v3_m4v3(
             co_orig_3d, TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->obmat, curr_sv->co_orig_3d);
-        zfac = ED_view3d_calc_zfac(t->region->regiondata, co_orig_3d, NULL);
+        zfac = ED_view3d_calc_zfac(t->region->regiondata, co_orig_3d);
 
-        ED_view3d_win_to_delta(t->region, mval_ofs, co_dest_3d, zfac);
+        ED_view3d_win_to_delta(t->region, xy_delta, zfac, co_dest_3d);
 
         invert_m4_m4(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->imat,
                      TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->obmat);
@@ -582,7 +566,7 @@ static void applyVertSlide(TransInfo *t, const int UNUSED(mval[2]))
   const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
   const bool is_constrained = !(is_clamp == false || hasNumInput(&t->num));
 
-  final = t->values[0];
+  final = t->values[0] + t->values_modal_offset[0];
 
   applySnapping(t, &final);
   if (!validSnap(t)) {
@@ -687,4 +671,5 @@ void initVertSlide(TransInfo *t)
 {
   initVertSlide_ex(t, false, false, true);
 }
+
 /** \} */

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) Blender Foundation
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -78,7 +62,6 @@ typedef struct SelfColDetectData {
  * Collision modifier code start
  ***********************************/
 
-/* step is limited from 0 (frame start position) to 1 (frame end position) */
 void collision_move_object(CollisionModifierData *collmd,
                            const float step,
                            const float prevstep,
@@ -1261,9 +1244,6 @@ static void add_collision_object(ListBase *relations,
   }
 }
 
-/* Create list of collision relations in the collection or entire scene.
- * This is used by the depsgraph to build relations, as well as faster
- * lookup of colliders during evaluation. */
 ListBase *BKE_collision_relations_create(Depsgraph *depsgraph,
                                          Collection *collection,
                                          unsigned int modifier_type)
@@ -1292,8 +1272,6 @@ void BKE_collision_relations_free(ListBase *relations)
   }
 }
 
-/* Create effective list of colliders from relations built beforehand.
- * Self will be excluded. */
 Object **BKE_collision_objects_create(Depsgraph *depsgraph,
                                       Object *self,
                                       Collection *collection,
@@ -1341,8 +1319,6 @@ void BKE_collision_objects_free(Object **objects)
   }
 }
 
-/* Create effective list of colliders from relations built beforehand.
- * Self will be excluded. */
 ListBase *BKE_collider_cache_create(Depsgraph *depsgraph, Object *self, Collection *collection)
 {
   ListBase *relations = DEG_get_collision_relations(

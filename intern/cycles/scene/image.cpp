@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2013 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #include "scene/image.h"
 #include "device/device.h"
@@ -381,8 +368,15 @@ ImageHandle ImageManager::add_image(const string &filename,
 
   foreach (int tile, tiles) {
     string tile_filename = filename;
+
+    /* Since we don't have information about the exact tile format used in this code location,
+     * just attempt all replacement patterns that Blender supports. */
     if (tile != 0) {
       string_replace(tile_filename, "<UDIM>", string_printf("%04d", tile));
+
+      int u = ((tile - 1001) % 10);
+      int v = ((tile - 1001) / 10);
+      string_replace(tile_filename, "<UVTILE>", string_printf("u%d_v%d", u + 1, v + 1));
     }
     const int slot = add_image_slot(new OIIOImageLoader(tile_filename), params, false);
     handle.tile_slots.push_back(slot);
@@ -569,13 +563,13 @@ bool ImageManager::file_load_image(Image *img, int texture_limit)
         pixels[i * 4 + 3] = one;
       }
     }
+  }
 
-    if (img->metadata.colorspace != u_colorspace_raw &&
-        img->metadata.colorspace != u_colorspace_srgb) {
-      /* Convert to scene linear. */
-      ColorSpaceManager::to_scene_linear(
-          img->metadata.colorspace, pixels, num_pixels, img->metadata.compress_as_srgb);
-    }
+  if (img->metadata.colorspace != u_colorspace_raw &&
+      img->metadata.colorspace != u_colorspace_srgb) {
+    /* Convert to scene linear. */
+    ColorSpaceManager::to_scene_linear(
+        img->metadata.colorspace, pixels, num_pixels, is_rgba, img->metadata.compress_as_srgb);
   }
 
   /* Make sure we don't have buggy values. */
@@ -884,6 +878,10 @@ void ImageManager::device_free(Device *device)
 void ImageManager::collect_statistics(RenderStats *stats)
 {
   foreach (const Image *image, images) {
+    if (!image) {
+      /* Image may have been freed due to lack of users. */
+      continue;
+    }
     stats->image.textures.add_entry(
         NamedSizeEntry(image->loader->name(), image->mem->memory_size()));
   }

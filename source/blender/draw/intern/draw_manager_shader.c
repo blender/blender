@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2016, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 Blender Foundation. */
 
 /** \file
  * \ingroup draw
@@ -46,8 +31,10 @@
 
 #include "draw_manager.h"
 
-extern char datatoc_gpu_shader_2D_vert_glsl[];
-extern char datatoc_gpu_shader_3D_vert_glsl[];
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"draw.manager.shader"};
+
 extern char datatoc_gpu_shader_depth_only_frag_glsl[];
 extern char datatoc_common_fullscreen_vert_glsl[];
 
@@ -567,7 +554,7 @@ void DRW_shader_free(GPUShader *shader)
 #define MAX_LIB_DEPS 8
 
 struct DRWShaderLibrary {
-  char *libs[MAX_LIB];
+  const char *libs[MAX_LIB];
   char libs_name[MAX_LIB][MAX_LIB_NAME];
   uint32_t libs_deps[MAX_LIB];
 };
@@ -616,11 +603,11 @@ static uint32_t drw_shader_dependencies_get(const DRWShaderLibrary *lib, const c
       }
       dbg_name[i + 1] = '\0';
 
-      printf(
-          "Error: Dependency not found: %s\n"
-          "This might be due to bad lib ordering.\n",
-          dbg_name);
-      BLI_assert(0);
+      CLOG_INFO(&LOG,
+                0,
+                "Dependency '%s' not found\n"
+                "This might be due to bad lib ordering or overriding a builtin shader.\n",
+                dbg_name);
     }
     else {
       deps |= 1u << (uint32_t)dep;
@@ -629,7 +616,7 @@ static uint32_t drw_shader_dependencies_get(const DRWShaderLibrary *lib, const c
   return deps;
 }
 
-void DRW_shader_library_add_file(DRWShaderLibrary *lib, char *lib_code, const char *lib_name)
+void DRW_shader_library_add_file(DRWShaderLibrary *lib, const char *lib_code, const char *lib_name)
 {
   int index = -1;
   for (int i = 0; i < MAX_LIB; i++) {
@@ -650,8 +637,6 @@ void DRW_shader_library_add_file(DRWShaderLibrary *lib, char *lib_code, const ch
   }
 }
 
-/* Return an allocN'ed string containing the shader code with its dependencies prepended.
- * Caller must free the string with MEM_freeN after use. */
 char *DRW_shader_library_create_shader_string(const DRWShaderLibrary *lib, const char *shader_code)
 {
   uint32_t deps = drw_shader_dependencies_get(lib, shader_code);

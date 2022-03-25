@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eduv
@@ -2053,7 +2039,7 @@ static float p_collapse_cost(PEdge *edge, PEdge *pair)
     float *co1 = e->next->vert->co;
     float *co2 = e->next->next->vert->co;
 
-    if ((e->face != oldf1) && (e->face != oldf2)) {
+    if (!ELEM(e->face, oldf1, oldf2)) {
       float tetrav2[3], tetrav3[3];
 
       /* tetrahedron volume = (1/3!)*|a.(b x c)| */
@@ -2073,7 +2059,7 @@ static float p_collapse_cost(PEdge *edge, PEdge *pair)
       a1 = a1 - M_PI / 3.0;
       a2 = a2 - M_PI / 3.0;
       a3 = a3 - M_PI / 3.0;
-      shapeold = (a1 * a1 + a2 * a2 + a3 * a3) / ((M_PI / 2) * (M_PI / 2));
+      shapeold = (a1 * a1 + a2 * a2 + a3 * a3) / (M_PI_2 * M_PI_2);
 
       nshapeold++;
     }
@@ -2082,7 +2068,7 @@ static float p_collapse_cost(PEdge *edge, PEdge *pair)
       a1 = a1 - M_PI / 3.0;
       a2 = a2 - M_PI / 3.0;
       a3 = a3 - M_PI / 3.0;
-      shapenew = (a1 * a1 + a2 * a2 + a3 * a3) / ((M_PI / 2) * (M_PI / 2));
+      shapenew = (a1 * a1 + a2 * a2 + a3 * a3) / (M_PI_2 * M_PI_2);
 
       nshapenew++;
     }
@@ -3744,7 +3730,7 @@ static float p_chart_minimum_area_angle(PChart *chart)
   minarea = 1e10;
   minangle = 0.0;
 
-  while (rotated <= (float)(M_PI / 2.0)) { /* INVESTIGATE: how far to rotate? */
+  while (rotated <= (float)M_PI_2) { /* INVESTIGATE: how far to rotate? */
     /* rotate with the smallest angle */
     i_min = 0;
     mina = 1e10;
@@ -3791,8 +3777,8 @@ static float p_chart_minimum_area_angle(PChart *chart)
   }
 
   /* try keeping rotation as small as possible */
-  if (minangle > (float)(M_PI / 4)) {
-    minangle -= (float)(M_PI / 2.0);
+  if (minangle > (float)M_PI_4) {
+    minangle -= (float)M_PI_2;
   }
 
   MEM_freeN(angles);
@@ -4035,7 +4021,7 @@ static void p_smooth(PChart *chart)
   PFace *f;
   int j, it2, maxiter2, it;
   int nedges = chart->nedges, nwheel, gridx, gridy;
-  int edgesx, edgesy, nsize, esize, i, x, y, maxiter, totiter;
+  int edgesx, edgesy, nsize, esize, i, x, y, maxiter;
   float minv[2], maxv[2], median, invmedian, avglen2d, avglen3d;
   float center[2], dx, dy, *nodes, dlimit, d, *oldnodesx, *oldnodesy;
   float *nodesx, *nodesy, *hedges, *vedges, climit, moved, padding;
@@ -4199,7 +4185,6 @@ static void p_smooth(PChart *chart)
 
   /* smooth the grid */
   maxiter = 10;
-  totiter = 0;
   climit = 0.00001f * nsize;
 
   for (it = 0; it < maxiter; it++) {
@@ -4224,7 +4209,6 @@ static void p_smooth(PChart *chart)
 
     for (it2 = 0; it2 < maxiter2; it2++) {
       d = 0.0f;
-      totiter += 1;
 
       memcpy(oldnodesx, nodesx, sizeof(float) * nsize);
       memcpy(oldnodesy, nodesy, sizeof(float) * nsize);

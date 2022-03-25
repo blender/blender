@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eduv
@@ -66,7 +52,7 @@
 
 /** Unordered loop data, stored in #BMLoop.head.index. */
 typedef struct ULData {
-  /** When this UV is selected as well as the next UV. */
+  /** When the specified UV edge is selected. */
   uint is_select_edge : 1;
   /**
    * When only this UV is selected and none of the other UV's
@@ -776,15 +762,17 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
         const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
         if (luv->flag & MLOOPUV_VERTSEL) {
           const MLoopUV *luv_prev = BM_ELEM_CD_GET_VOID_P(l->prev, cd_loop_uv_offset);
-          const MLoopUV *luv_next = BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_uv_offset);
-          if (luv_next->flag & MLOOPUV_VERTSEL) {
+          if (luv->flag & MLOOPUV_EDGESEL) {
             UL(l)->is_select_edge = true;
           }
+          else if ((luv_prev->flag & MLOOPUV_EDGESEL) == 0) {
+            /* #bm_loop_uv_select_single_vert_validate validates below. */
+            UL(l)->is_select_vert_single = true;
+            is_all = false;
+          }
           else {
-            if ((luv_prev->flag & MLOOPUV_VERTSEL) == 0) {
-              /* #bm_loop_uv_select_single_vert_validate validates below. */
-              UL(l)->is_select_vert_single = true;
-            }
+            /* Cases where all vertices of a face are selected but not all edges are selected. */
+            is_all = false;
           }
         }
         else {
@@ -811,7 +799,7 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
     }
   }
 
-  /* Special case: if we have selected faces, isolated them.
+  /* Special case: if we have selected faces, isolate them.
    * This isn't a rip, however it's useful for users as a quick way
    * to detach the selection.
    *
@@ -824,6 +812,10 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
           MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
           if (luv->flag & MLOOPUV_VERTSEL) {
             luv->flag &= ~MLOOPUV_VERTSEL;
+            changed = true;
+          }
+          if (luv->flag & MLOOPUV_EDGESEL) {
+            luv->flag &= ~MLOOPUV_EDGESEL;
             changed = true;
           }
         }
@@ -884,6 +876,9 @@ static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const
         }
       }
     }
+  }
+  if (changed) {
+    uvedit_deselect_flush(scene, em);
   }
   return changed;
 }

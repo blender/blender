@@ -1,24 +1,12 @@
-/*
+/* SPDX-License-Identifier: Apache-2.0
  * Adapted from code copyright 2009-2010 NVIDIA Corporation
- * Modifications Copyright 2011, Blender Foundation.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * Modifications Copyright 2011-2022 Blender Foundation. */
 
 #include "bvh/bvh.h"
 
 #include "bvh/bvh2.h"
 #include "bvh/embree.h"
+#include "bvh/metal.h"
 #include "bvh/multi.h"
 #include "bvh/optix.h"
 
@@ -40,8 +28,12 @@ const char *bvh_layout_name(BVHLayout layout)
       return "EMBREE";
     case BVH_LAYOUT_OPTIX:
       return "OPTIX";
+    case BVH_LAYOUT_METAL:
+      return "METAL";
     case BVH_LAYOUT_MULTI_OPTIX:
+    case BVH_LAYOUT_MULTI_METAL:
     case BVH_LAYOUT_MULTI_OPTIX_EMBREE:
+    case BVH_LAYOUT_MULTI_METAL_EMBREE:
       return "MULTI";
     case BVH_LAYOUT_ALL:
       return "ALL";
@@ -103,8 +95,17 @@ BVH *BVH::create(const BVHParams &params,
       (void)device;
       break;
 #endif
+    case BVH_LAYOUT_METAL:
+#ifdef WITH_METAL
+      return bvh_metal_create(params, geometry, objects, device);
+#else
+      (void)device;
+      break;
+#endif
     case BVH_LAYOUT_MULTI_OPTIX:
+    case BVH_LAYOUT_MULTI_METAL:
     case BVH_LAYOUT_MULTI_OPTIX_EMBREE:
+    case BVH_LAYOUT_MULTI_METAL_EMBREE:
       return new BVHMulti(params, geometry, objects);
     case BVH_LAYOUT_NONE:
     case BVH_LAYOUT_ALL:

@@ -1,17 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spimage
@@ -570,7 +557,8 @@ static void uhandle_restore_list(ListBase *undo_handles, bool use_init)
 
     if (changed) {
       BKE_image_mark_dirty(image, ibuf);
-      BKE_image_free_gputextures(image); /* force OpenGL reload */
+      /* TODO(jbakker): only mark areas that are actually updated to improve performance. */
+      BKE_image_partial_update_mark_full_update(image);
 
       if (ibuf->rect_float) {
         ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
@@ -989,7 +977,6 @@ static void image_undosys_foreach_ID_ref(UndoStep *us_p,
   }
 }
 
-/* Export for ED_undo_sys. */
 void ED_image_undosys_type(UndoType *ut)
 {
   ut->name = "Image";
@@ -1001,7 +988,7 @@ void ED_image_undosys_type(UndoType *ut)
 
   ut->step_foreach_ID_ref = image_undosys_foreach_ID_ref;
 
-  /* NOTE this is actually a confusing case, since it expects a valid context, but only in a
+  /* NOTE: this is actually a confusing case, since it expects a valid context, but only in a
    * specific case, see `image_undosys_step_encode` code. We cannot specify
    * `UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE` though, as it can be called with a NULL context by
    * current code. */
@@ -1040,7 +1027,6 @@ ListBase *ED_image_paint_tile_list_get(void)
   return &us->paint_tiles;
 }
 
-/* Restore painting image to previous state. Used for anchored and drag-dot style brushes. */
 void ED_image_undo_restore(UndoStep *us)
 {
   ListBase *paint_tiles = &((ImageUndoStep *)us)->paint_tiles;
@@ -1059,10 +1045,6 @@ static ImageUndoStep *image_undo_push_begin(const char *name, int paint_mode)
   return us;
 }
 
-/**
- * The caller is responsible for running #ED_image_undo_push_end,
- * failure to do so causes an invalid state for the undo system.
- */
 void ED_image_undo_push_begin(const char *name, int paint_mode)
 {
   image_undo_push_begin(name, paint_mode);

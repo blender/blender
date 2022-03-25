@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -23,31 +9,6 @@
 #include "node_geometry_util.hh"
 
 namespace blender::nodes {
-
-static void geo_node_mesh_primitive_cube_declare(NodeDeclarationBuilder &b)
-{
-  b.add_input<decl::Vector>(N_("Size"))
-      .default_value(float3(1))
-      .min(0.0f)
-      .subtype(PROP_TRANSLATION)
-      .description(N_("Side length along each axis"));
-  b.add_input<decl::Int>(N_("Vertices X"))
-      .default_value(2)
-      .min(2)
-      .max(1000)
-      .description(N_("Number of vertices for the X side of the shape"));
-  b.add_input<decl::Int>(N_("Vertices Y"))
-      .default_value(2)
-      .min(2)
-      .max(1000)
-      .description(N_("Number of vertices for the Y side of the shape"));
-  b.add_input<decl::Int>(N_("Vertices Z"))
-      .default_value(2)
-      .min(2)
-      .max(1000)
-      .description(N_("Number of vertices for the Z side of the shape"));
-  b.add_output<decl::Geometry>(N_("Mesh"));
-}
 
 struct CuboidConfig {
   float3 size;
@@ -102,23 +63,37 @@ static void calculate_vertices(const CuboidConfig &config, MutableSpan<MVert> ve
 
   int vert_index = 0;
 
-  /* Though looping over all possible coordinates inside the cube only to skip them may be slow,
-   * the alternative is similar complexity to below in the poly index calculation. If this loop
-   * becomes a problem in the future it could be optimized, though only after proper performance
-   * testing. */
   for (const int z : IndexRange(config.verts_z)) {
-    for (const int y : IndexRange(config.verts_y)) {
-      for (const int x : IndexRange(config.verts_x)) {
-        /* Only plot vertices on the surface of the cuboid. */
-        if (ELEM(z, 0, config.edges_z) || ELEM(x, 0, config.edges_x) ||
-            ELEM(y, 0, config.edges_y)) {
-
+    if (ELEM(z, 0, config.edges_z)) {
+      /* Fill bottom and top. */
+      const float z_pos = z_bottom + z_delta * z;
+      for (const int y : IndexRange(config.verts_y)) {
+        const float y_pos = y_front + y_delta * y;
+        for (const int x : IndexRange(config.verts_x)) {
           const float x_pos = x_left + x_delta * x;
+          copy_v3_v3(verts[vert_index++].co, float3(x_pos, y_pos, z_pos));
+        }
+      }
+    }
+    else {
+      for (const int y : IndexRange(config.verts_y)) {
+        if (ELEM(y, 0, config.edges_y)) {
+          /* Fill y-sides. */
           const float y_pos = y_front + y_delta * y;
           const float z_pos = z_bottom + z_delta * z;
-          copy_v3_v3(verts[vert_index].co, float3(x_pos, y_pos, z_pos));
-
-          vert_index++;
+          for (const int x : IndexRange(config.verts_x)) {
+            const float x_pos = x_left + x_delta * x;
+            copy_v3_v3(verts[vert_index++].co, float3(x_pos, y_pos, z_pos));
+          }
+        }
+        else {
+          /* Fill x-sides. */
+          const float x_pos = x_left;
+          const float y_pos = y_front + y_delta * y;
+          const float z_pos = z_bottom + z_delta * z;
+          copy_v3_v3(verts[vert_index++].co, float3(x_pos, y_pos, z_pos));
+          const float x_pos2 = x_left + x_delta * config.edges_x;
+          copy_v3_v3(verts[vert_index++].co, float3(x_pos2, y_pos, z_pos));
         }
       }
     }
@@ -166,7 +141,7 @@ static void calculate_polys(const CuboidConfig &config,
   /* Calculate polys for Bottom faces. */
   int vert_1_start = 0;
 
-  for (const int UNUSED(y) : IndexRange(config.edges_y)) {
+  for ([[maybe_unused]] const int y : IndexRange(config.edges_y)) {
     for (const int x : IndexRange(config.edges_x)) {
       const int vert_1 = vert_1_start + x;
       const int vert_2 = vert_1_start + config.verts_x + x;
@@ -184,7 +159,7 @@ static void calculate_polys(const CuboidConfig &config,
   vert_1_start = 0;
   int vert_2_start = config.verts_x * config.verts_y;
 
-  for (const int UNUSED(z) : IndexRange(config.edges_z)) {
+  for ([[maybe_unused]] const int z : IndexRange(config.edges_z)) {
     for (const int x : IndexRange(config.edges_x)) {
       define_quad(polys,
                   loops,
@@ -207,7 +182,7 @@ static void calculate_polys(const CuboidConfig &config,
                                          (config.verts_x - 2) * (config.verts_y - 2));
   vert_2_start = vert_1_start + config.verts_x;
 
-  for (const int UNUSED(y) : IndexRange(config.edges_y)) {
+  for ([[maybe_unused]] const int y : IndexRange(config.edges_y)) {
     for (const int x : IndexRange(config.edges_x)) {
       define_quad(polys,
                   loops,
@@ -439,6 +414,35 @@ Mesh *create_cuboid_mesh(const float3 size,
   return mesh;
 }
 
+}  // namespace blender::nodes
+
+namespace blender::nodes::node_geo_mesh_primitive_cube_cc {
+
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Vector>(N_("Size"))
+      .default_value(float3(1))
+      .min(0.0f)
+      .subtype(PROP_TRANSLATION)
+      .description(N_("Side length along each axis"));
+  b.add_input<decl::Int>(N_("Vertices X"))
+      .default_value(2)
+      .min(2)
+      .max(1000)
+      .description(N_("Number of vertices for the X side of the shape"));
+  b.add_input<decl::Int>(N_("Vertices Y"))
+      .default_value(2)
+      .min(2)
+      .max(1000)
+      .description(N_("Number of vertices for the Y side of the shape"));
+  b.add_input<decl::Int>(N_("Vertices Z"))
+      .default_value(2)
+      .min(2)
+      .max(1000)
+      .description(N_("Number of vertices for the Z side of the shape"));
+  b.add_output<decl::Geometry>(N_("Mesh"));
+}
+
 static Mesh *create_cube_mesh(const float3 size,
                               const int verts_x,
                               const int verts_y,
@@ -484,7 +488,7 @@ static Mesh *create_cube_mesh(const float3 size,
   return create_cuboid_mesh(size, verts_x, verts_y, verts_z);
 }
 
-static void geo_node_mesh_primitive_cube_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   const float3 size = params.extract_input<float3>("Size");
   const int verts_x = params.extract_input<int>("Vertices X");
@@ -492,7 +496,7 @@ static void geo_node_mesh_primitive_cube_exec(GeoNodeExecParams params)
   const int verts_z = params.extract_input<int>("Vertices Z");
   if (verts_x < 1 || verts_y < 1 || verts_z < 1) {
     params.error_message_add(NodeWarningType::Info, TIP_("Vertices must be at least 1"));
-    params.set_output("Mesh", GeometrySet());
+    params.set_default_remaining_outputs();
     return;
   }
 
@@ -501,14 +505,16 @@ static void geo_node_mesh_primitive_cube_exec(GeoNodeExecParams params)
   params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_mesh_primitive_cube_cc
 
 void register_node_type_geo_mesh_primitive_cube()
 {
+  namespace file_ns = blender::nodes::node_geo_mesh_primitive_cube_cc;
+
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CUBE, "Cube", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_mesh_primitive_cube_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_mesh_primitive_cube_exec;
+  geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CUBE, "Cube", NODE_CLASS_GEOMETRY);
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

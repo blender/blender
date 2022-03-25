@@ -1,27 +1,11 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2004 Blender Foundation.
- * All rights reserved.
- * external writefile function prototypes
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2004 Blender Foundation. All rights reserved. */
 
 #pragma once
 
 /** \file
  * \ingroup blenloader
+ * External write-file function prototypes.
  */
 
 #include "BLI_filereader.h"
@@ -77,7 +61,7 @@ typedef struct {
   bool memchunk_identical;
 } UndoReader;
 
-/* actually only used writefile.c */
+/* Actually only used `writefile.c`. */
 
 void BLO_memfile_write_init(MemFileWriteData *mem_data,
                             MemFile *written_memfile,
@@ -87,14 +71,33 @@ void BLO_memfile_write_finalize(MemFileWriteData *mem_data);
 void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t size);
 
 /* exports */
+
+/**
+ * Not memfile itself.
+ */
+/* **************** support for memory-write, for undo buffers *************** */
+
 extern void BLO_memfile_free(MemFile *memfile);
+/**
+ * Result is that 'first' is being freed.
+ * to keep list of memfiles consistent, 'first' is always first in list.
+ */
 extern void BLO_memfile_merge(MemFile *first, MemFile *second);
+/**
+ * Clear is_identical_future before adding next memfile.
+ */
 extern void BLO_memfile_clear_future(MemFile *memfile);
 
-/* utilities */
+/* Utilities. */
+
 extern struct Main *BLO_memfile_main_get(struct MemFile *memfile,
                                          struct Main *bmain,
                                          struct Scene **r_scene);
+/**
+ * Saves .blend using undo buffer.
+ *
+ * \return success.
+ */
 extern bool BLO_memfile_write_file(struct MemFile *memfile, const char *filename);
 
 FileReader *BLO_memfile_new_filereader(MemFile *memfile, int undo_direction);

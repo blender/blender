@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2015 by Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2015 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edinterface
@@ -377,13 +361,6 @@ static void ui_block_align_but_to_region(uiBut *but, const ARegion *region)
   }
 }
 
-/**
- * Compute the alignment of all 'align groups' of buttons in given block.
- *
- * This is using an order-independent algorithm,
- * i.e. alignment of buttons should be OK regardless of order in which
- * they are added to the block.
- */
 void ui_block_align_calc(uiBlock *block, const ARegion *region)
 {
   int num_buttons = 0;

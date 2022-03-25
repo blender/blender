@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright (C) 2018 Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2018 Blender Foundation. */
 
 /** \file
  * \ingroup DNA
@@ -39,10 +24,6 @@
 /** \name Struct Member Evaluation
  * \{ */
 
-/**
- * Parses the `[n1][n2]...` on the end of an array name
- * and returns the number of array elements `n1 * n2 ...`.
- */
 int DNA_elem_array_size(const char *str)
 {
   int result = 1;
@@ -106,9 +87,6 @@ uint DNA_elem_id_offset_end(const char *elem_full)
   return elem_full_offset;
 }
 
-/**
- * \a elem_dst must be at least the size of \a elem_src.
- */
 uint DNA_elem_id_strip_copy(char *elem_dst, const char *elem_src)
 {
   const uint elem_src_offset = DNA_elem_id_offset_start(elem_src);
@@ -129,10 +107,6 @@ uint DNA_elem_id_strip(char *elem)
   return elem_trim_len;
 }
 
-/**
- * Check if 'var' matches '*var[3]' for eg,
- * return true if it does, with start/end offsets.
- */
 bool DNA_elem_id_match(const char *elem_search,
                        const int elem_search_len,
                        const char *elem_full,
@@ -151,9 +125,6 @@ bool DNA_elem_id_match(const char *elem_search,
   return false;
 }
 
-/**
- * Return a renamed dna name, allocated from \a mem_arena.
- */
 char *DNA_elem_id_rename(struct MemArena *mem_arena,
                          const char *elem_src,
                          const int elem_src_len,
@@ -297,19 +268,15 @@ void DNA_alias_maps(enum eDNA_RenameDir version_dir, GHash **r_struct_map, GHash
 /** \name Struct Name Legacy Hack
  * \{ */
 
-/**
- * DNA Compatibility Hack
- * ======================
- *
- * Only keep this for compatibility: **NEVER ADD NEW STRINGS HERE**.
- *
- * The renaming here isn't complete, references to the old struct names
- * are still included in DNA, now fixing these struct names properly
- * breaks forward compatibility. Leave these as-is, but don't add to them!
- * See D4342#98780
- */
 const char *DNA_struct_rename_legacy_hack_static_from_alias(const char *name)
 {
+  /* Only keep this for compatibility: *NEVER ADD NEW STRINGS HERE*.
+   *
+   * The renaming here isn't complete, references to the old struct names
+   * are still included in DNA, now fixing these struct names properly
+   * breaks forward compatibility. Leave these as-is, but don't add to them!
+   * See D4342#98780. */
+
   /* 'bScreen' replaces the old IrisGL 'Screen' struct */
   if (STREQ("bScreen", name)) {
     return "Screen";

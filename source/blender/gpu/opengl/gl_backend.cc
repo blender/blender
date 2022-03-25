@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2020, Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -240,18 +224,23 @@ static void detect_workarounds()
     GLContext::unused_fb_slot_workaround = true;
     /* Turn off extensions. */
     GCaps.shader_image_load_store_support = false;
+    GCaps.shader_storage_buffer_objects_support = false;
     GLContext::base_instance_support = false;
     GLContext::clear_texture_support = false;
     GLContext::copy_image_support = false;
     GLContext::debug_layer_support = false;
     GLContext::direct_state_access_support = false;
     GLContext::fixed_restart_index_support = false;
+    GLContext::geometry_shader_invocations = false;
+    GLContext::layered_rendering_support = false;
+    GLContext::native_barycentric_support = false;
     GLContext::multi_bind_support = false;
     GLContext::multi_draw_indirect_support = false;
     GLContext::shader_draw_parameters_support = false;
     GLContext::texture_cube_map_array_support = false;
     GLContext::texture_filter_anisotropic_support = false;
     GLContext::texture_gather_support = false;
+    GLContext::texture_storage_support = false;
     GLContext::vertex_attrib_binding_support = false;
     return;
   }
@@ -280,6 +269,11 @@ static void detect_workarounds()
     GCaps.mip_render_workaround = true;
     GCaps.shader_image_load_store_support = false;
     GCaps.broken_amd_driver = true;
+  }
+  /* Compute shaders have some issues with those versions (see T94936). */
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) &&
+      (strstr(version, "4.5.14831") || strstr(version, "4.5.14760"))) {
+    GCaps.compute_shader_support = false;
   }
   /* We have issues with this specific renderer. (see T74024) */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE) &&
@@ -412,30 +406,56 @@ static void detect_workarounds()
   if (GLContext::debug_layer_support == false) {
     GLContext::debug_layer_workaround = true;
   }
+
+  /* Broken glGenerateMipmap on macOS 10.15.7 security update. */
+  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_ANY) &&
+      strstr(renderer, "HD Graphics 4000")) {
+    GLContext::generate_mipmap_workaround = true;
+  }
+
+  /* Buggy interface query functions cause crashes when handling SSBOs (T93680) */
+  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY) &&
+      (strstr(renderer, "HD Graphics 4400") || strstr(renderer, "HD Graphics 4600"))) {
+    GCaps.shader_storage_buffer_objects_support = false;
+  }
 }  // namespace blender::gpu
 
 /** Internal capabilities. */
+
 GLint GLContext::max_cubemap_size = 0;
 GLint GLContext::max_texture_3d_size = 0;
 GLint GLContext::max_ubo_binds = 0;
 GLint GLContext::max_ubo_size = 0;
+GLint GLContext::max_ssbo_binds = 0;
+GLint GLContext::max_ssbo_size = 0;
+
 /** Extensions. */
+
 bool GLContext::base_instance_support = false;
 bool GLContext::clear_texture_support = false;
 bool GLContext::copy_image_support = false;
 bool GLContext::debug_layer_support = false;
 bool GLContext::direct_state_access_support = false;
+bool GLContext::explicit_location_support = false;
+bool GLContext::geometry_shader_invocations = false;
 bool GLContext::fixed_restart_index_support = false;
+bool GLContext::layered_rendering_support = false;
+bool GLContext::native_barycentric_support = false;
 bool GLContext::multi_bind_support = false;
 bool GLContext::multi_draw_indirect_support = false;
 bool GLContext::shader_draw_parameters_support = false;
+bool GLContext::stencil_texturing_support = false;
 bool GLContext::texture_cube_map_array_support = false;
 bool GLContext::texture_filter_anisotropic_support = false;
 bool GLContext::texture_gather_support = false;
+bool GLContext::texture_storage_support = false;
 bool GLContext::vertex_attrib_binding_support = false;
+
 /** Workarounds. */
+
 bool GLContext::debug_layer_workaround = false;
 bool GLContext::unused_fb_slot_workaround = false;
+bool GLContext::generate_mipmap_workaround = false;
 float GLContext::derivative_signs[2] = {1.0f, 1.0f};
 
 void GLBackend::capabilities_init()
@@ -468,25 +488,35 @@ void GLBackend::capabilities_init()
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &GCaps.max_work_group_size[0]);
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &GCaps.max_work_group_size[1]);
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &GCaps.max_work_group_size[2]);
+    glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS,
+                  &GCaps.max_shader_storage_buffer_bindings);
   }
   GCaps.shader_storage_buffer_objects_support = GLEW_ARB_shader_storage_buffer_object;
   /* GL specific capabilities. */
   glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &GLContext::max_texture_3d_size);
   glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &GLContext::max_cubemap_size);
   glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_BLOCKS, &GLContext::max_ubo_binds);
+  glGetIntegerv(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, &GLContext::max_ssbo_binds);
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &GLContext::max_ubo_size);
+  glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &GLContext::max_ssbo_size);
   GLContext::base_instance_support = GLEW_ARB_base_instance;
   GLContext::clear_texture_support = GLEW_ARB_clear_texture;
   GLContext::copy_image_support = GLEW_ARB_copy_image;
   GLContext::debug_layer_support = GLEW_VERSION_4_3 || GLEW_KHR_debug || GLEW_ARB_debug_output;
   GLContext::direct_state_access_support = GLEW_ARB_direct_state_access;
+  GLContext::explicit_location_support = GLEW_VERSION_4_3;
+  GLContext::geometry_shader_invocations = GLEW_ARB_gpu_shader5;
   GLContext::fixed_restart_index_support = GLEW_ARB_ES3_compatibility;
+  GLContext::layered_rendering_support = GLEW_AMD_vertex_shader_layer;
+  GLContext::native_barycentric_support = GLEW_AMD_shader_explicit_vertex_parameter;
   GLContext::multi_bind_support = GLEW_ARB_multi_bind;
   GLContext::multi_draw_indirect_support = GLEW_ARB_multi_draw_indirect;
   GLContext::shader_draw_parameters_support = GLEW_ARB_shader_draw_parameters;
+  GLContext::stencil_texturing_support = GLEW_VERSION_4_3;
   GLContext::texture_cube_map_array_support = GLEW_ARB_texture_cube_map_array;
   GLContext::texture_filter_anisotropic_support = GLEW_EXT_texture_filter_anisotropic;
   GLContext::texture_gather_support = GLEW_ARB_texture_gather;
+  GLContext::texture_storage_support = GLEW_VERSION_4_3;
   GLContext::vertex_attrib_binding_support = GLEW_ARB_vertex_attrib_binding;
 
   detect_workarounds();

@@ -140,7 +140,7 @@ void main()
   do_scatter *= dof_scatter_screen_border_rejection(outCoc, uv, halfres);
   /* Only scatter if neighborhood is different enough. */
   do_scatter *= dof_scatter_neighborhood_rejection(outColor.rgb);
-  /* For debuging. */
+  /* For debugging. */
   do_scatter *= float(!no_scatter_pass);
 
   outScatterColor = mix(vec3(0.0), outColor.rgb, do_scatter);

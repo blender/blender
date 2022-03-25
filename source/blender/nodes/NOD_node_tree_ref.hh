@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -262,6 +248,7 @@ class NodeTreeRef : NonCopyable, NonMovable {
   Vector<LinkRef *> links_;
   MultiValueMap<const bNodeType *, NodeRef *> nodes_by_type_;
   Vector<std::unique_ptr<SocketIndexByIdentifierMap>> owned_identifier_maps_;
+  const NodeRef *group_output_node_ = nullptr;
 
  public:
   NodeTreeRef(bNodeTree *btree);
@@ -279,6 +266,14 @@ class NodeTreeRef : NonCopyable, NonMovable {
 
   const NodeRef *find_node(const bNode &bnode) const;
 
+  /**
+   * This is the active group output node if there are multiple.
+   */
+  const NodeRef *group_output_node() const;
+
+  /**
+   * \return True when there is a link cycle. Unavailable sockets are ignored.
+   */
   bool has_link_cycles() const;
   bool has_undefined_nodes_or_sockets() const;
 
@@ -297,6 +292,10 @@ class NodeTreeRef : NonCopyable, NonMovable {
     bool has_cycle = false;
   };
 
+  /**
+   * Sort nodes topologically from left to right or right to left.
+   * In the future the result if this could be cached on #NodeTreeRef.
+   */
   ToposortResult toposort(ToposortDirection direction) const;
 
   bNodeTree *btree() const;
@@ -750,6 +749,11 @@ inline Span<const OutputSocketRef *> NodeTreeRef::output_sockets() const
 inline Span<const LinkRef *> NodeTreeRef::links() const
 {
   return links_;
+}
+
+inline const NodeRef *NodeTreeRef::group_output_node() const
+{
+  return group_output_node_;
 }
 
 inline bNodeTree *NodeTreeRef::btree() const

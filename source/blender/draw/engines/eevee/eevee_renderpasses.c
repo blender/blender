@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2019, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2019 Blender Foundation. */
 
 /** \file
  * \ingroup draw_engine
@@ -75,8 +60,6 @@ bool EEVEE_renderpasses_only_first_sample_pass_active(EEVEE_Data *vedata)
   return (g_data->render_passes & ~EEVEE_RENDERPASSES_POST_PROCESS_ON_FIRST_SAMPLE) == 0;
 }
 
-/* Calculate the hash for an AOV. The least significant bit is used to store the AOV
- * type the rest of the bits are used for the name hash. */
 int EEVEE_renderpasses_aov_hash(const ViewLayerAOV *aov)
 {
   int hash = BLI_hash_string(aov->name) << 1;
@@ -257,15 +240,6 @@ void EEVEE_renderpasses_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ve
   }
 }
 
-/* Post-process data to construct a specific render-pass
- *
- * This method will create a shading group to perform the post-processing for the given
- * `renderpass_type`. The post-processing will be done and the result will be stored in the
- * `vedata->txl->renderpass` texture.
- *
- * Only invoke this function for passes that need post-processing.
- *
- * After invoking this function the active frame-buffer is set to `vedata->fbl->renderpass_fb`. */
 void EEVEE_renderpasses_postprocess(EEVEE_ViewLayerData *UNUSED(sldata),
                                     EEVEE_Data *vedata,
                                     eViewLayerEEVEEPassType renderpass_type,

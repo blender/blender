@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup DNA
@@ -228,16 +212,15 @@ typedef struct Curve {
   /** Creation-time type of curve datablock. */
   short type;
 
-  /** Keep a short because of BKE_object_obdata_texspace_get(). */
-  short texflag;
-  char _pad0[6];
+  char texflag;
+  char _pad0[7];
   short twist_mode;
   float twist_smooth, smallcaps_scale;
 
   int pathlen;
   short bevresol, totcol;
   int flag;
-  float width, ext1, ext2;
+  float offset, extrude, bevel_radius;
 
   /* default */
   short resolu, resolv;
@@ -322,14 +305,6 @@ enum {
   CU_AUTOSPACE = 1,
   CU_AUTOSPACE_EVALUATED = 2,
 };
-
-#if 0 /* Moved to overlay options in 2.8 */
-/* Curve.drawflag */
-enum {
-  CU_HIDE_HANDLES = 1 << 0,
-  CU_HIDE_NORMALS = 1 << 1,
-};
-#endif
 
 /* Curve.flag */
 enum {
@@ -421,10 +396,8 @@ enum {
 enum {
   CU_POLY = 0,
   CU_BEZIER = 1,
-  CU_BSPLINE = 2,
-  CU_CARDINAL = 3,
   CU_NURBS = 4,
-  CU_TYPE = (CU_POLY | CU_BEZIER | CU_BSPLINE | CU_CARDINAL | CU_NURBS),
+  CU_TYPE = (CU_POLY | CU_BEZIER | CU_NURBS),
 
   /* only for adding */
   CU_PRIMITIVE = 0xF00,
@@ -457,6 +430,8 @@ enum {
 typedef enum eBezTriple_Flag {
   /* SELECT */
   BEZT_FLAG_TEMP_TAG = (1 << 1), /* always clear. */
+  /* Can be used to ignore keyframe points for certain operations. */
+  BEZT_FLAG_IGNORE_TAG = (1 << 2),
 } eBezTriple_Flag;
 
 /* h1 h2 (beztriple) */

@@ -1,31 +1,12 @@
-
-
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020 Blender Foundation
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bgpencil
  */
 
-#include "BLI_float2.hh"
-#include "BLI_float3.hh"
 #include "BLI_float4x4.hh"
+#include "BLI_math_vec_types.hh"
 #include "BLI_path_util.h"
 #include "BLI_span.hh"
 
@@ -145,7 +126,6 @@ void GpencilIO::prepare_camera_params(Scene *scene, const GpencilIOParams *ipara
   }
 }
 
-/** Create a list of selected objects sorted from back to front */
 void GpencilIO::create_object_list()
 {
   ViewLayer *view_layer = CTX_data_view_layer(params_.C);
@@ -178,7 +158,7 @@ void GpencilIO::create_object_list()
       float zdepth = 0;
       if (rv3d_) {
         if (rv3d_->is_persp) {
-          zdepth = ED_view3d_calc_zfac(rv3d_, object->obmat[3], nullptr);
+          zdepth = ED_view3d_calc_zfac(rv3d_, object->obmat[3]);
         }
         else {
           zdepth = -dot_v3v3(rv3d_->viewinv[2], object->obmat[3]);
@@ -194,17 +174,12 @@ void GpencilIO::create_object_list()
   });
 }
 
-/**
- * Set file input_text full path.
- * \param filename: Path of the file provided by save dialog.
- */
 void GpencilIO::filename_set(const char *filename)
 {
   BLI_strncpy(filename_, filename, FILE_MAX);
   BLI_path_abs(filename_, BKE_main_blendfile_path(bmain_));
 }
 
-/** Convert to screenspace. */
 bool GpencilIO::gpencil_3D_point_to_screen_space(const float3 co, float2 &r_co)
 {
   float3 parent_co = diff_mat_ * co;
@@ -244,7 +219,6 @@ bool GpencilIO::gpencil_3D_point_to_screen_space(const float3 co, float2 &r_co)
   return false;
 }
 
-/** Convert to render space. */
 float2 GpencilIO::gpencil_3D_point_to_render_space(const float3 co)
 {
   float3 parent_co = diff_mat_ * co;
@@ -266,7 +240,6 @@ float2 GpencilIO::gpencil_3D_point_to_render_space(const float3 co)
   return r_co;
 }
 
-/** Convert to 2D. */
 float2 GpencilIO::gpencil_3D_point_to_2D(const float3 co)
 {
   const bool is_camera = (bool)(rv3d_->persp == RV3D_CAMOB);
@@ -278,7 +251,6 @@ float2 GpencilIO::gpencil_3D_point_to_2D(const float3 co)
   return result;
 }
 
-/** Get radius of point. */
 float GpencilIO::stroke_point_radius_get(bGPDlayer *gpl, bGPDstroke *gps)
 {
   bGPDspoint *pt = &gps->points[0];
@@ -292,7 +264,7 @@ float GpencilIO::stroke_point_radius_get(bGPDlayer *gpl, bGPDstroke *gps)
   const float2 screen_ex = gpencil_3D_point_to_2D(&pt->x);
 
   const float2 v1 = screen_co - screen_ex;
-  float radius = v1.length();
+  float radius = math::length(v1);
   BKE_gpencil_free_stroke(gps_perimeter);
 
   return MAX2(radius, 1.0f);
@@ -338,7 +310,6 @@ bool GpencilIO::is_camera_mode()
   return is_camera_;
 }
 
-/* Calculate selected strokes boundbox. */
 void GpencilIO::selected_objects_boundbox_calc()
 {
   const float gap = 10.0f;

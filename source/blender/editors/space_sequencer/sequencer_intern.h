@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spseq
@@ -33,12 +17,13 @@ struct ARegionType;
 struct Depsgraph;
 struct Main;
 struct Scene;
+struct SeqCollection;
 struct Sequence;
 struct SpaceSeq;
 struct StripElem;
+struct View2D;
 struct bContext;
 struct rctf;
-struct View2D;
 struct wmOperator;
 
 #define OVERLAP_ALPHA 180
@@ -56,15 +41,23 @@ void sequencer_draw_preview(const struct bContext *C,
                             bool draw_backdrop);
 void color3ubv_from_seq(const struct Scene *curscene,
                         const struct Sequence *seq,
-                        const bool show_strip_color_tag,
+                        bool show_strip_color_tag,
                         uchar r_col[3]);
 
 void sequencer_special_update_set(Sequence *seq);
-float sequence_handle_size_get_clamped(struct Sequence *seq, const float pixelx);
+/* Get handle width in 2d-View space. */
+float sequence_handle_size_get_clamped(struct Sequence *seq, float pixelx);
 
 /* UNUSED */
 /* void seq_reset_imageofs(struct SpaceSeq *sseq); */
 
+/**
+ * Rendering using opengl will change the current viewport/context.
+ * This is why we need the \a region, to set back the render area.
+ *
+ * TODO: do not rely on such hack and just update the \a ibuf outside of
+ * the UI drawing code.
+ */
 struct ImBuf *sequencer_ibuf_get(struct Main *bmain,
                                  struct ARegion *region,
                                  struct Depsgraph *depsgraph,
@@ -110,8 +103,28 @@ bool sequencer_edit_poll(struct bContext *C);
 /* UNUSED */
 /* bool sequencer_strip_poll(struct bContext *C); */
 bool sequencer_strip_has_path_poll(struct bContext *C);
-bool sequencer_view_preview_poll(struct bContext *C);
+bool sequencer_view_has_preview_poll(struct bContext *C);
+bool sequencer_view_preview_only_poll(const struct bContext *C);
 bool sequencer_view_strips_poll(struct bContext *C);
+
+/**
+ * Returns collection with all strips presented to user. If operation is done in preview,
+ * collection is limited to all presented strips that can produce image output.
+ *
+ * \param C: context
+ * \return collection of strips (`Sequence`)
+ */
+struct SeqCollection *all_strips_from_context(struct bContext *C);
+
+/**
+ * Returns collection with selected strips presented to user. If operation is done in preview,
+ * collection is limited to selected presented strips, that can produce image output at current
+ * frame.
+ *
+ * \param C: context
+ * \return collection of strips (`Sequence`)
+ */
+struct SeqCollection *selected_strips_from_context(struct bContext *C);
 
 /* Externs. */
 extern EnumPropertyItem sequencer_prop_effect_types[];

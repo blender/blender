@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2020, Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -50,33 +34,47 @@ class GLSharedOrphanLists {
   Vector<GLuint> buffers;
 
  public:
-  void orphans_clear(void);
+  void orphans_clear();
 };
 
 class GLContext : public Context {
  public:
   /** Capabilities. */
+
   static GLint max_cubemap_size;
   static GLint max_texture_3d_size;
   static GLint max_ubo_size;
   static GLint max_ubo_binds;
+  static GLint max_ssbo_size;
+  static GLint max_ssbo_binds;
+
   /** Extensions. */
+
   static bool base_instance_support;
   static bool clear_texture_support;
   static bool copy_image_support;
   static bool debug_layer_support;
   static bool direct_state_access_support;
+  static bool explicit_location_support;
+  static bool geometry_shader_invocations;
   static bool fixed_restart_index_support;
+  static bool layered_rendering_support;
+  static bool native_barycentric_support;
   static bool multi_bind_support;
   static bool multi_draw_indirect_support;
   static bool shader_draw_parameters_support;
+  static bool stencil_texturing_support;
   static bool texture_cube_map_array_support;
   static bool texture_filter_anisotropic_support;
   static bool texture_gather_support;
+  static bool texture_storage_support;
   static bool vertex_attrib_binding_support;
+
   /** Workarounds. */
+
   static bool debug_layer_workaround;
   static bool unused_fb_slot_workaround;
+  static bool generate_mipmap_workaround;
   static float derivative_signs[2];
 
   /** VBO for missing vertex attrib binding. Avoid undefined behavior on some implementation. */
@@ -106,11 +104,11 @@ class GLContext : public Context {
 
   static void check_error(const char *info);
 
-  void activate(void) override;
-  void deactivate(void) override;
+  void activate() override;
+  void deactivate() override;
 
-  void flush(void) override;
-  void finish(void) override;
+  void flush() override;
+  void finish() override;
 
   void memory_statistics_get(int *total_mem, int *free_mem) override;
 
@@ -136,11 +134,11 @@ class GLContext : public Context {
   void vao_cache_unregister(GLVaoCache *cache);
 
   void debug_group_begin(const char *name, int index) override;
-  void debug_group_end(void) override;
+  void debug_group_end() override;
 
  private:
   static void orphans_add(Vector<GLuint> &orphan_list, std::mutex &list_mutex, GLuint id);
-  void orphans_clear(void);
+  void orphans_clear();
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLContext")
 };

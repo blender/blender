@@ -7,19 +7,6 @@
  * Converted and adapted from HLSL to GLSL by Clément Foucault
  */
 
-uniform vec2 invertedViewportSize;
-uniform vec2 nearFar;
-uniform vec3 dofParams;
-uniform float noiseOffset;
-uniform sampler2D inputCocTex;
-uniform sampler2D maxCocTilesTex;
-uniform sampler2D sceneColorTex;
-uniform sampler2D sceneDepthTex;
-uniform sampler2D backgroundTex;
-uniform sampler2D halfResColorTex;
-uniform sampler2D blurTex;
-uniform sampler2D noiseTex;
-
 #define dof_aperturesize dofParams.x
 #define dof_distance dofParams.y
 #define dof_invsensorsize dofParams.z
@@ -52,9 +39,6 @@ float decode_signed_coc(vec2 cocs)
  * Custom Coc aware downsampling. Half res pass.
  */
 #ifdef PREPARE
-
-layout(location = 0) out vec4 halfResColor;
-layout(location = 1) out vec2 normalizedCoc;
 
 void main()
 {
@@ -95,12 +79,9 @@ void main()
 
 /**
  * ----------------- STEP 0.5 ------------------
- * Custom Coc aware downsampling. Quater res pass.
+ * Custom Coc aware downsampling. Quarter res pass.
  */
 #ifdef DOWNSAMPLE
-
-layout(location = 0) out vec4 outColor;
-layout(location = 1) out vec2 outCocs;
 
 void main()
 {
@@ -216,14 +197,6 @@ void main()
  * Outputs vertical blur and combined blur in MRT
  */
 #ifdef BLUR1
-layout(location = 0) out vec4 blurColor;
-
-#  define NUM_SAMPLES 49
-
-layout(std140) uniform dofSamplesBlock
-{
-  vec4 samples[NUM_SAMPLES];
-};
 
 vec2 get_random_vector(float offset)
 {
@@ -281,34 +254,10 @@ void main()
  * Morgan McGuire and Kyle Whitson
  * http://graphics.cs.williams.edu
  *
- *
- * Copyright (c) Morgan McGuire and Williams College, 2006
- * All rights reserved.
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *
- * Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * SPDX-License-Identifier: BSD-2-Clause
+ * Copyright 2006 Morgan McGuire and Williams College, All rights reserved.
  */
 #ifdef BLUR2
-out vec4 finalColor;
 
 void main()
 {
@@ -384,9 +333,6 @@ void main()
  * ----------------- STEP 4 ------------------
  */
 #ifdef RESOLVE
-
-layout(location = 0, index = 0) out vec4 finalColorAdd;
-layout(location = 0, index = 1) out vec4 finalColorMul;
 
 void main()
 {

@@ -1,20 +1,4 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 set(ZLIB_VERSION 1.2.11)
 set(ZLIB_URI https://zlib.net/zlib-${ZLIB_VERSION}.tar.gz)
@@ -83,9 +67,9 @@ else()
   set(OPENEXR_VERSION_POSTFIX)
 endif()
 
-set(FREETYPE_VERSION 2.10.2)
+set(FREETYPE_VERSION 2.11.1)
 set(FREETYPE_URI http://prdownloads.sourceforge.net/freetype/freetype-${FREETYPE_VERSION}.tar.gz)
-set(FREETYPE_HASH b1cb620e4c875cd4d1bfa04945400945)
+set(FREETYPE_HASH bd4e3b007474319909a6b79d50908e85)
 set(FREETYPE_HASH_TYPE MD5)
 set(FREETYPE_FILE freetype-${FREETYPE_VERSION}.tar.gz)
 
@@ -189,11 +173,11 @@ set(OSL_HASH 1abd7ce40481771a9fa937f19595d2f2)
 set(OSL_HASH_TYPE MD5)
 set(OSL_FILE OpenShadingLanguage-${OSL_VERSION}.tar.gz)
 
-set(PYTHON_VERSION 3.9.7)
-set(PYTHON_SHORT_VERSION 3.9)
-set(PYTHON_SHORT_VERSION_NO_DOTS 39)
+set(PYTHON_VERSION 3.10.2)
+set(PYTHON_SHORT_VERSION 3.10)
+set(PYTHON_SHORT_VERSION_NO_DOTS 310)
 set(PYTHON_URI https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tar.xz)
-set(PYTHON_HASH fddb060b483bc01850a3f412eea1d954)
+set(PYTHON_HASH 14e8c22458ed7779a1957b26cde01db9)
 set(PYTHON_HASH_TYPE MD5)
 set(PYTHON_FILE Python-${PYTHON_VERSION}.tar.xz)
 
@@ -215,18 +199,20 @@ set(NANOVDB_HASH e7b9e863ec2f3b04ead171dec2322807)
 set(NANOVDB_HASH_TYPE MD5)
 set(NANOVDB_FILE nano-vdb-${NANOVDB_GIT_UID}.tar.gz)
 
-set(IDNA_VERSION 3.2)
-set(CHARSET_NORMALIZER_VERSION 2.0.6)
-set(URLLIB3_VERSION 1.26.7)
+set(IDNA_VERSION 3.3)
+set(CHARSET_NORMALIZER_VERSION 2.0.10)
+set(URLLIB3_VERSION 1.26.8)
 set(CERTIFI_VERSION 2021.10.8)
-set(REQUESTS_VERSION 2.26.0)
-set(CYTHON_VERSION 0.29.24)
-set(ZSTANDARD_VERSION 0.15.2 )
+set(REQUESTS_VERSION 2.27.1)
+set(CYTHON_VERSION 0.29.26)
+# The version of the zstd library used to build the Python package should match ZSTD_VERSION defined below.
+# At this time of writing, 0.17.0 was already released, but built against zstd 1.5.1, while we use 1.5.0.
+set(ZSTANDARD_VERSION 0.16.0)
 
-set(NUMPY_VERSION 1.21.2)
-set(NUMPY_SHORT_VERSION 1.21)
+set(NUMPY_VERSION 1.22.0)
+set(NUMPY_SHORT_VERSION 1.22)
 set(NUMPY_URI https://github.com/numpy/numpy/releases/download/v${NUMPY_VERSION}/numpy-${NUMPY_VERSION}.zip)
-set(NUMPY_HASH 5638d5dae3ca387be562912312db842e)
+set(NUMPY_HASH 252de134862a27bd66705d29622edbfe)
 set(NUMPY_HASH_TYPE MD5)
 set(NUMPY_FILE numpy-${NUMPY_VERSION}.zip)
 
@@ -456,9 +442,9 @@ set(NASM_HASH aded8b796c996a486a56e0515c83e414116decc3b184d88043480b32eb0a8589)
 set(NASM_HASH_TYPE SHA256)
 set(NASM_FILE nasm-${NASM_VERSION}.tar.gz)
 
-set(XR_OPENXR_SDK_VERSION 1.0.17)
+set(XR_OPENXR_SDK_VERSION 1.0.22)
 set(XR_OPENXR_SDK_URI https://github.com/KhronosGroup/OpenXR-SDK/archive/release-${XR_OPENXR_SDK_VERSION}.tar.gz)
-set(XR_OPENXR_SDK_HASH bf0fd8828837edff01047474e90013e1)
+set(XR_OPENXR_SDK_HASH a2623ebab3d0b340bc16311b14f02075)
 set(XR_OPENXR_SDK_HASH_TYPE MD5)
 set(XR_OPENXR_SDK_FILE OpenXR-SDK-${XR_OPENXR_SDK_VERSION}.tar.gz)
 
@@ -474,9 +460,9 @@ set(ISPC_HASH 2e3abedbc0ea9aaec17d6562c632454d)
 set(ISPC_HASH_TYPE MD5)
 set(ISPC_FILE ispc-${ISPC_VERSION}.tar.gz)
 
-set(GMP_VERSION 6.2.0)
+set(GMP_VERSION 6.2.1)
 set(GMP_URI https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.xz)
-set(GMP_HASH a325e3f09e6d91e62101e59f9bda3ec1)
+set(GMP_HASH 0b82665c4a92fd2ade7440c13fcaa42b)
 set(GMP_HASH_TYPE MD5)
 set(GMP_FILE gmp-${GMP_VERSION}.tar.xz)
 
@@ -500,3 +486,9 @@ set(ZSTD_FILE zstd-${ZSTD_VERSION}.tar.gz)
 
 set(SSE2NEON_GIT https://github.com/DLTcollab/sse2neon.git)
 set(SSE2NEON_GIT_HASH fe5ff00bb8d19b327714a3c290f3e2ce81ba3525)
+
+set(BROTLI_VERSION v1.0.9)
+set(BROTLI_URI https://github.com/google/brotli/archive/refs/tags/${BROTLI_VERSION}.tar.gz)
+set(BROTLI_HASH f9e8d81d0405ba66d181529af42a3354f838c939095ff99930da6aa9cdf6fe46)
+set(BROTLI_HASH_TYPE SHA256)
+set(BROTLI_FILE brotli-${BROTLI_VERSION}.tar.gz)

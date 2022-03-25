@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2017, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2017 Blender Foundation. */
 
 /** \file
  * \ingroup draw
@@ -99,6 +84,11 @@ static void gpencil_vfx_blur(BlurShaderFxData *fx, Object *ob, gpIterVfxData *it
     return;
   }
 
+  if ((fx->flag & FX_BLUR_DOF_MODE) && iter->pd->camera == NULL) {
+    /* No blur outside camera view (or when DOF is disabled on the camera). */
+    return;
+  }
+
   DRWShadingGroup *grp;
   const float s = sin(fx->rotation);
   const float c = cos(fx->rotation);
@@ -108,7 +98,7 @@ static void gpencil_vfx_blur(BlurShaderFxData *fx, Object *ob, gpIterVfxData *it
   DRW_view_persmat_get(NULL, persmat, false);
   const float w = fabsf(mul_project_m4_v3_zfac(persmat, ob->obmat[3]));
 
-  if ((fx->flag & FX_BLUR_DOF_MODE) && iter->pd->camera != NULL) {
+  if ((fx->flag & FX_BLUR_DOF_MODE)) {
     /* Compute circle of confusion size. */
     float coc = (iter->pd->dof_params[0] / -w) - iter->pd->dof_params[1];
     copy_v2_fl(blur_size, fabsf(coc));

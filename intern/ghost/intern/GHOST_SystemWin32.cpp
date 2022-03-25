@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup GHOST
@@ -69,9 +53,6 @@
 #ifndef VK_COMMA
 #  define VK_COMMA 0xBC
 #endif  // VK_COMMA
-#ifndef VK_QUOTE
-#  define VK_QUOTE 0xDE
-#endif  // VK_QUOTE
 #ifndef VK_BACK_QUOTE
 #  define VK_BACK_QUOTE 0xC0
 #endif  // VK_BACK_QUOTE
@@ -104,6 +85,8 @@
  * messages coming in.
  */
 #define BROKEN_PEEK_TOUCHPAD
+
+static bool isStartedFromCommandPrompt();
 
 static void initRawInput()
 {
@@ -166,7 +149,10 @@ GHOST_SystemWin32::~GHOST_SystemWin32()
 {
   // Shutdown COM
   OleUninitialize();
-  toggleConsole(1);
+
+  if (isStartedFromCommandPrompt()) {
+    setConsoleWindowState(GHOST_kConsoleWindowStateShow);
+  }
 }
 
 uint64_t GHOST_SystemWin32::performanceCounterToMillis(__int64 perf_ticks) const
@@ -646,14 +632,32 @@ GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw,
 GHOST_TKey GHOST_SystemWin32::processSpecialKey(short vKey, short scanCode) const
 {
   GHOST_TKey key = GHOST_kKeyUnknown;
-  switch (PRIMARYLANGID(m_langId)) {
-    case LANG_FRENCH:
-      if (vKey == VK_OEM_8)
-        key = GHOST_kKeyF13;  // oem key; used purely for shortcuts .
+  char ch = (char)MapVirtualKeyA(vKey, MAPVK_VK_TO_CHAR);
+  switch (ch) {
+    case u'\"':
+    case u'\'':
+      key = GHOST_kKeyQuote;
       break;
-    case LANG_ENGLISH:
-      if (SUBLANGID(m_langId) == SUBLANG_ENGLISH_UK && vKey == VK_OEM_8)  // "`¬"
-        key = GHOST_kKeyAccentGrave;
+    case u'.':
+      key = GHOST_kKeyNumpadPeriod;
+      break;
+    case u'/':
+      key = GHOST_kKeySlash;
+      break;
+    case u'`':
+    case u'²':
+      key = GHOST_kKeyAccentGrave;
+      break;
+    default:
+      if (vKey == VK_OEM_7) {
+        key = GHOST_kKeyQuote;
+      }
+      else if (vKey == VK_OEM_8) {
+        if (PRIMARYLANGID(m_langId) == LANG_FRENCH) {
+          /* OEM key; used purely for shortcuts. */
+          key = GHOST_kKeyF13;
+        }
+      }
       break;
   }
 
@@ -788,9 +792,6 @@ GHOST_TKey GHOST_SystemWin32::convertKey(short vKey, short scanCode, short exten
       case VK_CLOSE_BRACKET:
         key = GHOST_kKeyRightBracket;
         break;
-      case VK_QUOTE:
-        key = GHOST_kKeyQuote;
-        break;
       case VK_GR_LESS:
         key = GHOST_kKeyGrLess;
         break;
@@ -832,9 +833,6 @@ GHOST_TKey GHOST_SystemWin32::convertKey(short vKey, short scanCode, short exten
       case VK_CAPITAL:
         key = GHOST_kKeyCapsLock;
         break;
-      case VK_OEM_8:
-        key = ((GHOST_SystemWin32 *)getSystem())->processSpecialKey(vKey, scanCode);
-        break;
       case VK_MEDIA_PLAY_PAUSE:
         key = GHOST_kKeyMediaPlay;
         break;
@@ -847,8 +845,10 @@ GHOST_TKey GHOST_SystemWin32::convertKey(short vKey, short scanCode, short exten
       case VK_MEDIA_NEXT_TRACK:
         key = GHOST_kKeyMediaLast;
         break;
+      case VK_OEM_7:
+      case VK_OEM_8:
       default:
-        key = GHOST_kKeyUnknown;
+        key = ((GHOST_SystemWin32 *)getSystem())->processSpecialKey(vKey, scanCode);
         break;
     }
   }
@@ -1002,10 +1002,10 @@ void GHOST_SystemWin32::processWintabEvent(GHOST_WindowWin32 *window)
     DWORD pos = GetMessagePos();
     int x = GET_X_LPARAM(pos);
     int y = GET_Y_LPARAM(pos);
+    GHOST_TabletData td = wt->getLastTabletData();
 
-    /* TODO supply tablet data */
     system->pushEvent(new GHOST_EventCursor(
-        system->getMilliSeconds(), GHOST_kEventCursorMove, window, x, y, GHOST_TABLET_DATA_NONE));
+        system->getMilliSeconds(), GHOST_kEventCursorMove, window, x, y, td));
   }
 }
 
@@ -1220,7 +1220,7 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
     }
 
 #ifdef WITH_INPUT_IME
-    if (window->getImeInput()->IsImeKeyEvent(ascii)) {
+    if (window->getImeInput()->IsImeKeyEvent(ascii, key)) {
       return NULL;
     }
 #endif /* WITH_INPUT_IME */
@@ -1472,6 +1472,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         case WM_IME_SETCONTEXT: {
           GHOST_ImeWin32 *ime = window->getImeInput();
           ime->UpdateInputLanguage();
+          ime->UpdateConversionStatus(hwnd);
           ime->CreateImeWindow(hwnd);
           ime->CleanupComposition(hwnd);
           ime->CheckFirst(hwnd);
@@ -1551,8 +1552,8 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
            * button is press for menu. To prevent this we must return preventing DefWindowProc.
            *
            * Note that the four low-order bits of the wParam parameter are used internally by the
-           * OS. To obtain the correct result when testing the value of wParam, an application
-           * must combine the value 0xFFF0 with the wParam value by using the bitwise AND operator.
+           * OS. To obtain the correct result when testing the value of wParam, an application must
+           * combine the value 0xFFF0 with the wParam value by using the bit-wise AND operator.
            */
           switch (wParam & 0xFFF0) {
             case SC_KEYMENU:
@@ -2215,31 +2216,30 @@ static bool isStartedFromCommandPrompt()
   return false;
 }
 
-int GHOST_SystemWin32::toggleConsole(int action)
+int GHOST_SystemWin32::setConsoleWindowState(GHOST_TConsoleWindowState action)
 {
   HWND wnd = GetConsoleWindow();
 
   switch (action) {
-    case 3:  // startup: hide if not started from command prompt
-    {
+    case GHOST_kConsoleWindowStateHideForNonConsoleLaunch: {
       if (!isStartedFromCommandPrompt()) {
         ShowWindow(wnd, SW_HIDE);
         m_consoleStatus = 0;
       }
       break;
     }
-    case 0:  // hide
+    case GHOST_kConsoleWindowStateHide:
       ShowWindow(wnd, SW_HIDE);
       m_consoleStatus = 0;
       break;
-    case 1:  // show
+    case GHOST_kConsoleWindowStateShow:
       ShowWindow(wnd, SW_SHOW);
       if (!isStartedFromCommandPrompt()) {
         DeleteMenu(GetSystemMenu(wnd, FALSE), SC_CLOSE, MF_BYCOMMAND);
       }
       m_consoleStatus = 1;
       break;
-    case 2:  // toggle
+    case GHOST_kConsoleWindowStateToggle:
       ShowWindow(wnd, m_consoleStatus ? SW_HIDE : SW_SHOW);
       m_consoleStatus = !m_consoleStatus;
       if (m_consoleStatus && !isStartedFromCommandPrompt()) {

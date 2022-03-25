@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -26,6 +12,8 @@
 #include "BLI_rect.h"
 
 #include "spreadsheet_draw.hh"
+
+#define CELL_RIGHT_PADDING (2.0f * UI_DPI_FAC)
 
 namespace blender::ed::spreadsheet {
 
@@ -159,7 +147,7 @@ static void draw_left_column_content(const int scroll_offset_y,
     params.xmin = 0;
     params.ymin = region->winy - drawer.top_row_height - (row_index + 1) * drawer.row_height -
                   scroll_offset_y;
-    params.width = drawer.left_column_width;
+    params.width = drawer.left_column_width - CELL_RIGHT_PADDING;
     params.height = drawer.row_height;
     drawer.draw_left_column_cell(row_index, params);
   }
@@ -194,7 +182,7 @@ static void draw_top_row_content(const bContext *C,
     params.block = first_row_block;
     params.xmin = left_x;
     params.ymin = region->winy - drawer.top_row_height;
-    params.width = column_width;
+    params.width = column_width - CELL_RIGHT_PADDING;
     params.height = drawer.top_row_height;
     drawer.draw_top_row_cell(column_index, params);
 
@@ -242,7 +230,7 @@ static void draw_cell_contents(const bContext *C,
         params.xmin = left_x;
         params.ymin = region->winy - drawer.top_row_height - (row_index + 1) * drawer.row_height -
                       scroll_offset_y;
-        params.width = column_width;
+        params.width = column_width - CELL_RIGHT_PADDING;
         params.height = drawer.row_height;
         drawer.draw_content_cell(row_index, column_index, params);
       }

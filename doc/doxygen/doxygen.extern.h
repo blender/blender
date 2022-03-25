@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 /** \defgroup extern External libraries
  *  \section externabout External libraries
  *  As with \ref intern these libraries are

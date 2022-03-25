@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -623,8 +609,6 @@ bool gimbal_axis_object(Object *ob, float gmat[3][3])
   return 1;
 }
 
-/* centroid, boundbox, of selection */
-/* returns total items selected */
 int ED_transform_calc_gizmo_stats(const bContext *C,
                                   const struct TransformCalcParams *params,
                                   struct TransformBounds *tbounds)
@@ -832,7 +816,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
       }
       FOREACH_EDIT_OBJECT_END();
     }
-    else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
+    else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
         Curve *cu = ob_iter->data;
         Nurb *nu;
@@ -955,32 +939,25 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
       Object *ob_iter = objects[ob_index];
-      const bool use_mat_local = (ob_iter != ob);
-      bPoseChannel *pchan;
-
+      const bool use_mat_local = params->use_local_axis && (ob_iter != ob);
       /* mislead counting bones... bah. We don't know the gizmo mode, could be mixed */
       const int mode = TFM_ROTATION;
 
-      const int totsel_iter = transform_convert_pose_transflags_update(
-          ob_iter, mode, V3D_AROUND_CENTER_BOUNDS, NULL);
+      transform_convert_pose_transflags_update(ob_iter, mode, V3D_AROUND_CENTER_BOUNDS);
 
-      if (totsel_iter) {
-        float mat_local[4][4];
-        if (params->use_local_axis) {
-          if (use_mat_local) {
-            mul_m4_m4m4(mat_local, ob->imat, ob_iter->obmat);
-          }
-        }
+      float mat_local[4][4];
+      if (use_mat_local) {
+        mul_m4_m4m4(mat_local, ob->imat, ob_iter->obmat);
+      }
 
-        /* use channels to get stats */
-        for (pchan = ob_iter->pose->chanbase.first; pchan; pchan = pchan->next) {
-          Bone *bone = pchan->bone;
-          if (bone && (bone->flag & BONE_TRANSFORM)) {
-            calc_tw_center_with_matrix(tbounds, pchan->pose_head, use_mat_local, mat_local);
-            protectflag_to_drawflags_pchan(rv3d, pchan, orient_index);
-          }
+      /* Use channels to get stats. */
+      LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+        if (!(pchan->bone->flag & BONE_TRANSFORM)) {
+          continue;
         }
-        totsel += totsel_iter;
+        calc_tw_center_with_matrix(tbounds, pchan->pose_head, use_mat_local, mat_local);
+        protectflag_to_drawflags_pchan(rv3d, pchan, orient_index);
+        totsel++;
       }
     }
     MEM_freeN(objects);
@@ -1210,7 +1187,6 @@ static void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
   PointerRNA scene_ptr;
   RNA_id_pointer_create(&scene->id, &scene_ptr);
   {
-    extern PropertyRNA rna_Scene_transform_orientation_slots;
     const PropertyRNA *props[] = {
         &rna_Scene_transform_orientation_slots,
     };
@@ -1228,8 +1204,6 @@ static void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
   }
 
   {
-    extern PropertyRNA rna_TransformOrientationSlot_type;
-    extern PropertyRNA rna_TransformOrientationSlot_use;
     const PropertyRNA *props[] = {
         &rna_TransformOrientationSlot_type,
         &rna_TransformOrientationSlot_use,
@@ -1246,7 +1220,6 @@ static void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
   RNA_pointer_create(&scene->id, &RNA_ToolSettings, scene->toolsettings, &toolsettings_ptr);
 
   if (ELEM(type_fn, VIEW3D_GGT_xform_gizmo, VIEW3D_GGT_xform_shear)) {
-    extern PropertyRNA rna_ToolSettings_transform_pivot_point;
     const PropertyRNA *props[] = {
         &rna_ToolSettings_transform_pivot_point,
     };
@@ -1257,7 +1230,6 @@ static void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
   }
 
   {
-    extern PropertyRNA rna_ToolSettings_workspace_tool_type;
     const PropertyRNA *props[] = {
         &rna_ToolSettings_workspace_tool_type,
     };
@@ -1273,9 +1245,6 @@ static void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
   if (type_fn == VIEW3D_GGT_xform_gizmo) {
     GizmoGroup *ggd = gzgroup->customdata;
     if (ggd->use_twtype_refresh) {
-      extern PropertyRNA rna_SpaceView3D_show_gizmo_object_translate;
-      extern PropertyRNA rna_SpaceView3D_show_gizmo_object_rotate;
-      extern PropertyRNA rna_SpaceView3D_show_gizmo_object_scale;
       const PropertyRNA *props[] = {
           &rna_SpaceView3D_show_gizmo_object_translate,
           &rna_SpaceView3D_show_gizmo_object_rotate,
@@ -1847,7 +1816,7 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
 static void WIDGETGROUP_gizmo_invoke_prepare(const bContext *C,
                                              wmGizmoGroup *gzgroup,
                                              wmGizmo *gz,
-                                             const wmEvent *UNUSED(event))
+                                             const wmEvent *event)
 {
 
   GizmoGroup *ggd = gzgroup->customdata;
@@ -1890,9 +1859,8 @@ static void WIDGETGROUP_gizmo_invoke_prepare(const bContext *C,
   }
 
   if (axis != -1) {
-    wmWindow *win = CTX_wm_window(C);
     /* Swap single axis for two-axis constraint. */
-    bool flip = win->eventstate->shift;
+    const bool flip = (event->modifier & KM_SHIFT) != 0;
     BLI_assert(axis_idx != -1);
     const short axis_type = gizmo_get_axis_type(axis_idx);
     if (axis_type != MAN_AXES_ROTATE) {
@@ -2005,7 +1973,6 @@ void VIEW3D_GGT_xform_gizmo(wmGizmoGroupType *gzgt)
                "");
 }
 
-/** Only poll, flag & gzmap_params differ. */
 void VIEW3D_GGT_xform_gizmo_context(wmGizmoGroupType *gzgt)
 {
   gzgt->name = "3D View: Transform Gizmo Context";

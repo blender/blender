@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2016, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 Blender Foundation. */
 
 /** \file
  * \ingroup draw
@@ -41,7 +26,9 @@
 #define UI_COLOR_RGBA_FROM_U8(r, g, b, a, v4) \
   ARRAY_SET_ITEMS(v4, (float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, (float)a / 255.0f)
 
-/* Colors & Constant */
+/**
+ * Colors & Constant.
+ */
 struct DRW_Global G_draw = {{{0}}};
 
 static bool weight_ramp_custom = false;
@@ -148,7 +135,7 @@ void DRW_globals_update(void)
 
   UI_GetThemeColor4fv(TH_CFRAME, gb->colorCurrentFrame);
 
-  /* Metaball */
+  /* Meta-ball. */
   UI_COLOR_RGBA_FROM_U8(0xA0, 0x30, 0x30, 0xFF, gb->colorMballRadius);
   UI_COLOR_RGBA_FROM_U8(0xF0, 0xA0, 0xA0, 0xFF, gb->colorMballRadiusSelect);
   UI_COLOR_RGBA_FROM_U8(0x30, 0xA0, 0x30, 0xFF, gb->colorMballStiffness);
@@ -287,10 +274,6 @@ DRWView *DRW_view_create_with_zoffset(const DRWView *parent_view,
 /* ******************************************** COLOR UTILS ************************************ */
 
 /* TODO: FINISH. */
-/**
- * Get the wire color theme_id of an object based on its state
- * \a r_color is a way to get a pointer to the static color var associated
- */
 int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -429,11 +412,11 @@ bool DRW_object_is_flat(Object *ob, int *r_axis)
 
   if (!ELEM(ob->type,
             OB_MESH,
-            OB_CURVE,
+            OB_CURVES_LEGACY,
             OB_SURF,
             OB_FONT,
             OB_MBALL,
-            OB_HAIR,
+            OB_CURVES,
             OB_POINTCLOUD,
             OB_VOLUME)) {
     /* Non-meshes object cannot be considered as flat. */

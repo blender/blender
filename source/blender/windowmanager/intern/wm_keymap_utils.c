@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -43,65 +29,62 @@
 /** \name Wrappers for #WM_keymap_add_item
  * \{ */
 
-/* menu wrapper for WM_keymap_add_item */
-wmKeyMapItem *WM_keymap_add_menu(
-    wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier)
+wmKeyMapItem *WM_keymap_add_menu(wmKeyMap *keymap,
+                                 const char *idname,
+                                 int type,
+                                 int val,
+                                 int modifier,
+                                 int keymodifier,
+                                 int direction)
 {
   wmKeyMapItem *kmi = WM_keymap_add_item(
-      keymap, "WM_OT_call_menu", type, val, modifier, keymodifier);
+      keymap, "WM_OT_call_menu", type, val, modifier, keymodifier, direction);
   RNA_string_set(kmi->ptr, "name", idname);
   return kmi;
 }
 
-wmKeyMapItem *WM_keymap_add_menu_pie(
-    wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier)
+wmKeyMapItem *WM_keymap_add_menu_pie(wmKeyMap *keymap,
+                                     const char *idname,
+                                     int type,
+                                     int val,
+                                     int modifier,
+                                     int keymodifier,
+                                     int direction)
 {
   wmKeyMapItem *kmi = WM_keymap_add_item(
-      keymap, "WM_OT_call_menu_pie", type, val, modifier, keymodifier);
+      keymap, "WM_OT_call_menu_pie", type, val, modifier, keymodifier, direction);
   RNA_string_set(kmi->ptr, "name", idname);
   return kmi;
 }
 
-wmKeyMapItem *WM_keymap_add_panel(
-    wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier)
+wmKeyMapItem *WM_keymap_add_panel(wmKeyMap *keymap,
+                                  const char *idname,
+                                  int type,
+                                  int val,
+                                  int modifier,
+                                  int keymodifier,
+                                  int direction)
 {
   wmKeyMapItem *kmi = WM_keymap_add_item(
-      keymap, "WM_OT_call_panel", type, val, modifier, keymodifier);
+      keymap, "WM_OT_call_panel", type, val, modifier, keymodifier, direction);
   RNA_string_set(kmi->ptr, "name", idname);
   /* TODO: we might want to disable this. */
   RNA_boolean_set(kmi->ptr, "keep_open", false);
   return kmi;
 }
 
-/* tool wrapper for WM_keymap_add_item */
-wmKeyMapItem *WM_keymap_add_tool(
-    wmKeyMap *keymap, const char *idname, int type, int val, int modifier, int keymodifier)
+wmKeyMapItem *WM_keymap_add_tool(wmKeyMap *keymap,
+                                 const char *idname,
+                                 int type,
+                                 int val,
+                                 int modifier,
+                                 int keymodifier,
+                                 int direction)
 {
   wmKeyMapItem *kmi = WM_keymap_add_item(
-      keymap, "WM_OT_tool_set_by_id", type, val, modifier, keymodifier);
+      keymap, "WM_OT_tool_set_by_id", type, val, modifier, keymodifier, direction);
   RNA_string_set(kmi->ptr, "name", idname);
   return kmi;
-}
-
-/** Useful for mapping numbers to an enum. */
-void WM_keymap_add_context_enum_set_items(wmKeyMap *keymap,
-                                          const EnumPropertyItem *items,
-                                          const char *data_path,
-                                          int type_start,
-                                          int val,
-                                          int modifier,
-                                          int keymodifier)
-{
-  for (int i = 0, type_offset = 0; items[i].identifier; i++) {
-    if (items[i].identifier[0] == '\0') {
-      continue;
-    }
-    wmKeyMapItem *kmi = WM_keymap_add_item(
-        keymap, "WM_OT_context_set_enum", type_start + type_offset, val, modifier, keymodifier);
-    RNA_string_set(kmi->ptr, "data_path", data_path);
-    RNA_string_set(kmi->ptr, "value", items[i].identifier);
-    type_offset += 1;
-  }
 }
 
 /** \} */
@@ -122,6 +105,9 @@ wmKeyMap *WM_keymap_guess_from_context(const bContext *C)
         break;
       case CTX_MODE_EDIT_CURVE:
         km_id = "Curve";
+        break;
+      case CTX_MODE_EDIT_CURVES:
+        km_id = "Curves";
         break;
       case CTX_MODE_EDIT_SURFACE:
         km_id = "Curve";
@@ -174,6 +160,9 @@ wmKeyMap *WM_keymap_guess_from_context(const bContext *C)
       case CTX_MODE_VERTEX_GPENCIL:
         km_id = "Grease Pencil Stroke Vertex Mode";
         break;
+      case CTX_MODE_SCULPT_CURVES:
+        km_id = "Curves Sculpt";
+        break;
     }
   }
   else if (sl->spacetype == SPACE_IMAGE) {
@@ -203,8 +192,6 @@ wmKeyMap *WM_keymap_guess_from_context(const bContext *C)
   return km;
 }
 
-/* Guess an appropriate keymap from the operator name */
-/* Needs to be kept up to date with Keymap and Operator naming */
 wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 {
   /* Op types purposely skipped for now:

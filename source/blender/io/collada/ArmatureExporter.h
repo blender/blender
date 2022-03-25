@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup collada
@@ -62,6 +48,7 @@ class ArmatureExporter : public COLLADASW::LibraryControllers,
   {
   }
 
+  /* write bone nodes */
   void add_armature_bones(Object *ob_arm,
                           ViewLayer *view_layer,
                           SceneExporter *se,
@@ -83,8 +70,11 @@ class ArmatureExporter : public COLLADASW::LibraryControllers,
   void find_objects_using_armature(Object *ob_arm, std::vector<Object *> &objects, Scene *sce);
 #endif
 
-  /* Scene, SceneExporter and the list of child_objects
-   * are required for writing bone parented objects */
+  /**
+   * Scene, SceneExporter and the list of child_objects
+   * are required for writing bone parented objects.
+   * \param parent_mat: is armature-space.
+   */
   void add_bone_node(Bone *bone,
                      Object *ob_arm,
                      SceneExporter *se,

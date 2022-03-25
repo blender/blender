@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -50,8 +36,6 @@
 
 /* own include */
 
-/* copy the face flags, most importantly selection from the mesh to the final derived mesh,
- * use in object mode when selecting faces (while painting) */
 void paintface_flush_flags(struct bContext *C, Object *ob, short flag)
 {
   Mesh *me = BKE_mesh_from_object(ob);
@@ -369,7 +353,7 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
       continue;
     }
 
-    ml = me->mloop + mp->totloop;
+    ml = me->mloop + mp->loopstart;
     for (b = 0; b < mp->totloop; b++, ml++) {
       mul_v3_m3v3(vec, bmat, mvert[ml->v].co);
       add_v3_v3v3(vec, vec, ob->obmat[3]);
@@ -382,64 +366,79 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
   return ok;
 }
 
-bool paintface_mouse_select(
-    struct bContext *C, Object *ob, const int mval[2], bool extend, bool deselect, bool toggle)
+bool paintface_mouse_select(struct bContext *C,
+                            const int mval[2],
+                            const struct SelectPick_Params *params,
+                            Object *ob)
 {
   Mesh *me;
-  MPoly *mpoly_sel;
+  MPoly *mpoly_sel = NULL;
   uint index;
+  bool changed = false;
+  bool found = false;
 
   /* Get the face under the cursor */
   me = BKE_mesh_from_object(ob);
 
-  if (!ED_mesh_pick_face(C, ob, mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &index)) {
-    return false;
-  }
-
-  if (index >= me->totpoly) {
-    return false;
-  }
-
-  mpoly_sel = me->mpoly + index;
-  if (mpoly_sel->flag & ME_HIDE) {
-    return false;
-  }
-
-  /* clear flags */
-  if (!extend && !deselect && !toggle) {
-    paintface_deselect_all_visible(C, ob, SEL_DESELECT, false);
-  }
-
-  me->act_face = (int)index;
-
-  if (extend) {
-    mpoly_sel->flag |= ME_FACE_SEL;
-  }
-  else if (deselect) {
-    mpoly_sel->flag &= ~ME_FACE_SEL;
-  }
-  else if (toggle) {
-    if (mpoly_sel->flag & ME_FACE_SEL) {
-      mpoly_sel->flag &= ~ME_FACE_SEL;
-    }
-    else {
-      mpoly_sel->flag |= ME_FACE_SEL;
+  if (ED_mesh_pick_face(C, ob, mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &index)) {
+    if (index < me->totpoly) {
+      mpoly_sel = me->mpoly + index;
+      if ((mpoly_sel->flag & ME_HIDE) == 0) {
+        found = true;
+      }
     }
   }
-  else {
-    mpoly_sel->flag |= ME_FACE_SEL;
+
+  if (params->sel_op == SEL_OP_SET) {
+    if ((found && params->select_passthrough) && (mpoly_sel->flag & ME_FACE_SEL)) {
+      found = false;
+    }
+    else if (found || params->deselect_all) {
+      /* Deselect everything. */
+      changed |= paintface_deselect_all_visible(C, ob, SEL_DESELECT, false);
+    }
   }
 
-  /* image window redraw */
+  if (found) {
+    me->act_face = (int)index;
 
-  paintface_flush_flags(C, ob, SELECT);
-  ED_region_tag_redraw(CTX_wm_region(C)); /* XXX: should redraw all 3D views. */
-  return true;
+    switch (params->sel_op) {
+      case SEL_OP_ADD: {
+        mpoly_sel->flag |= ME_FACE_SEL;
+        break;
+      }
+      case SEL_OP_SUB: {
+        mpoly_sel->flag &= ~ME_FACE_SEL;
+        break;
+      }
+      case SEL_OP_XOR: {
+        if (mpoly_sel->flag & ME_FACE_SEL) {
+          mpoly_sel->flag &= ~ME_FACE_SEL;
+        }
+        else {
+          mpoly_sel->flag |= ME_FACE_SEL;
+        }
+        break;
+      }
+      case SEL_OP_SET: {
+        mpoly_sel->flag |= ME_FACE_SEL;
+        break;
+      }
+      case SEL_OP_AND: {
+        BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+        break;
+      }
+    }
+
+    /* image window redraw */
+
+    paintface_flush_flags(C, ob, SELECT);
+    ED_region_tag_redraw(CTX_wm_region(C)); /* XXX: should redraw all 3D views. */
+    changed = true;
+  }
+  return changed || found;
 }
 
-/*  (similar to void paintface_flush_flags(Object *ob))
- * copy the vertex flags, most importantly selection from the mesh to the final derived mesh,
- * use in object mode when selecting vertices (while painting) */
 void paintvert_flush_flags(Object *ob)
 {
   Mesh *me = BKE_mesh_from_object(ob);
@@ -492,10 +491,6 @@ void paintvert_tag_select_update(struct bContext *C, struct Object *ob)
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 }
 
-/**
- * \note if the caller passes false to flush_flags,
- * then they will need to run #paintvert_flush_flags(ob) themselves.
- */
 bool paintvert_deselect_all_visible(Object *ob, int action, bool flush_flags)
 {
   Mesh *me;

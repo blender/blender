@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -41,6 +27,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h" /* for defining our own rna */
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -433,6 +420,10 @@ static PyObject *bpy_prop_deferred_data_CreatePyObject(PyObject *fn, PyObject *k
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Shared Property Utilities
+ * \{ */
 
 /* PyObject's */
 static PyObject *pymeth_BoolProperty = NULL;
@@ -1906,7 +1897,6 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
   PyObject *item;
   const Py_ssize_t seq_len = PySequence_Fast_GET_SIZE(seq_fast);
   PyObject **seq_fast_items = PySequence_Fast_ITEMS(seq_fast);
-  Py_ssize_t totbuf = 0;
   int i;
   short default_used = 0;
   const char *default_str_cmp = NULL;
@@ -1996,9 +1986,6 @@ static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast,
       }
 
       items[i] = tmp;
-
-      /* calculate combine string length */
-      totbuf += id_str_size + name_str_size + desc_str_size + 3; /* 3 is for '\0's */
     }
     else if (item == Py_None) {
       /* Only set since the rest is cleared. */
@@ -2605,7 +2592,9 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "   :type step: int\n"
 
 #define BPY_PROPDEF_FLOAT_PREC_DOC \
-  "   :arg precision: Maximum number of decimal digits to display, in [0, 6].\n" \
+  "   :arg precision: Maximum number of decimal digits to display, in [0, 6]. Fraction is " \
+  "automatically hidden for exact integer values of fields with unit 'NONE' or 'TIME' (frame " \
+  "count) and step divisible by 100.\n" \
   "   :type precision: int\n"
 
 #define BPY_PROPDEF_UPDATE_DOC \
@@ -2630,8 +2619,12 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "      This function must take 2 values (self, value) and return None.\n" \
   "   :type set: function\n"
 
-#define BPY_PROPDEF_TYPE_DOC \
+#define BPY_PROPDEF_POINTER_TYPE_DOC \
   "   :arg type: A subclass of :class:`bpy.types.PropertyGroup` or :class:`bpy.types.ID`.\n" \
+  "   :type type: class\n"
+
+#define BPY_PROPDEF_COLLECTION_TYPE_DOC \
+  "   :arg type: A subclass of :class:`bpy.types.PropertyGroup`.\n" \
   "   :type type: class\n"
 
 #define BPY_PROPDEF_TAGS_DOC \
@@ -3981,7 +3974,7 @@ PyDoc_STRVAR(BPy_PointerProperty_doc,
              "update=None)\n"
              "\n"
              "   Returns a new pointer property definition.\n"
-             "\n" BPY_PROPDEF_TYPE_DOC BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC
+             "\n" BPY_PROPDEF_POINTER_TYPE_DOC BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC
                  BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC BPY_PROPDEF_TAGS_DOC
                      BPY_PROPDEF_POLL_DOC BPY_PROPDEF_UPDATE_DOC);
 PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
@@ -4104,7 +4097,7 @@ PyDoc_STRVAR(BPy_CollectionProperty_doc,
              "tags=set())\n"
              "\n"
              "   Returns a new collection property definition.\n"
-             "\n" BPY_PROPDEF_TYPE_DOC BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC
+             "\n" BPY_PROPDEF_COLLECTION_TYPE_DOC BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC
                  BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_COLLECTION_DOC
                      BPY_PROPDEF_TAGS_DOC);
 PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
@@ -4392,10 +4385,6 @@ PyObject *BPY_rna_props(void)
   return submodule;
 }
 
-/**
- * Run this on exit, clearing all Python callback users and disable the RNA callback,
- * as it would be called after Python has already finished.
- */
 void BPY_rna_props_clear_all(void)
 {
   /* Remove all user counts, so this isn't considered a leak from Python's perspective. */

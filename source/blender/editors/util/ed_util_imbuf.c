@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup edutil
@@ -278,13 +262,13 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
     /* XXX node curve integration. */
 #if 0
     {
-      ScrArea *sa, *cur = curarea;
+      ScrArea *area, *cur = curarea;
 
       node_curvemap_sample(fp); /* sends global to node editor */
-      for (sa = G.curscreen->areabase.first; sa; sa = sa->next) {
-        if (sa->spacetype == SPACE_NODE) {
-          areawinset(sa->win);
-          scrarea_do_windraw(sa);
+      for (area = G.curscreen->areabase.first; area; area = area->next) {
+        if (area->spacetype == SPACE_NODE) {
+          areawinset(area->win);
+          scrarea_do_windraw(area);
         }
       }
       node_curvemap_sample(NULL); /* clears global in node editor */
@@ -385,12 +369,12 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
 
 static void ed_imbuf_sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa == NULL) {
+  ScrArea *area = CTX_wm_area(C);
+  if (area == NULL) {
     return;
   }
 
-  switch (sa->spacetype) {
+  switch (area->spacetype) {
     case SPACE_IMAGE: {
       image_sample_apply(C, op, event);
       break;
@@ -432,9 +416,9 @@ void ED_imbuf_sample_draw(const bContext *C, ARegion *region, void *arg_info)
                      info->zfp);
 
   if (info->sample_size > 1) {
-    ScrArea *sa = CTX_wm_area(C);
+    ScrArea *area = CTX_wm_area(C);
 
-    if (sa && sa->spacetype == SPACE_IMAGE) {
+    if (area && area->spacetype == SPACE_IMAGE) {
 
       const wmWindow *win = CTX_wm_window(C);
       const wmEvent *event = win->eventstate;
@@ -482,11 +466,11 @@ void ED_imbuf_sample_exit(bContext *C, wmOperator *op)
 int ED_imbuf_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
-  ScrArea *sa = CTX_wm_area(C);
-  if (sa) {
-    switch (sa->spacetype) {
+  ScrArea *area = CTX_wm_area(C);
+  if (area) {
+    switch (area->spacetype) {
       case SPACE_IMAGE: {
-        SpaceImage *sima = sa->spacedata.first;
+        SpaceImage *sima = area->spacedata.first;
         if (region->regiontype == RGN_TYPE_WINDOW) {
           if (ED_space_image_show_cache_and_mval_over(sima, region, event->mval)) {
             return OPERATOR_PASS_THROUGH;

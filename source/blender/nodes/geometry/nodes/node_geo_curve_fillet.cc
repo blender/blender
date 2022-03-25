@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_task.hh"
 
@@ -25,31 +11,39 @@
 
 #include "BKE_spline.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_curve_fillet_cc {
 
-static void geo_node_curve_fillet_declare(NodeDeclarationBuilder &b)
+NODE_STORAGE_FUNCS(NodeGeometryCurveFillet)
+
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_input<decl::Int>(N_("Count")).default_value(1).min(1).max(1000).supports_field();
+  b.add_input<decl::Int>(N_("Count"))
+      .default_value(1)
+      .min(1)
+      .max(1000)
+      .supports_field()
+      .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_FILLET_POLY; });
   b.add_input<decl::Float>(N_("Radius"))
       .min(0.0f)
       .max(FLT_MAX)
       .subtype(PropertySubType::PROP_DISTANCE)
       .default_value(0.25f)
       .supports_field();
-  b.add_input<decl::Bool>(N_("Limit Radius"));
+  b.add_input<decl::Bool>(N_("Limit Radius"))
+      .description(
+          N_("Limit the maximum value of the radius in order to avoid overlapping fillets"));
   b.add_output<decl::Geometry>(N_("Curve"));
 }
 
-static void geo_node_curve_fillet_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static void geo_node_curve_fillet_init(bNodeTree *UNUSED(tree), bNode *node)
+static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 {
-  NodeGeometryCurveFillet *data = (NodeGeometryCurveFillet *)MEM_callocN(
-      sizeof(NodeGeometryCurveFillet), __func__);
+  NodeGeometryCurveFillet *data = MEM_cnew<NodeGeometryCurveFillet>(__func__);
 
   data->mode = GEO_NODE_CURVE_FILLET_BEZIER;
   node->storage = data;
@@ -76,14 +70,14 @@ struct FilletData {
   Array<int> counts;
 };
 
-static void geo_node_curve_fillet_update(bNodeTree *UNUSED(ntree), bNode *node)
+static void node_update(bNodeTree *ntree, bNode *node)
 {
-  NodeGeometryCurveFillet &node_storage = *(NodeGeometryCurveFillet *)node->storage;
-  const GeometryNodeCurveFilletMode mode = (GeometryNodeCurveFilletMode)node_storage.mode;
+  const NodeGeometryCurveFillet &storage = node_storage(*node);
+  const GeometryNodeCurveFilletMode mode = (GeometryNodeCurveFilletMode)storage.mode;
 
   bNodeSocket *poly_socket = ((bNodeSocket *)node->inputs.first)->next;
 
-  nodeSetSocketAvailability(poly_socket, mode == GEO_NODE_CURVE_FILLET_POLY);
+  nodeSetSocketAvailability(ntree, poly_socket, mode == GEO_NODE_CURVE_FILLET_POLY);
 }
 
 /* Function to get the center of a fillet. */
@@ -116,9 +110,9 @@ static Array<float3> calculate_directions(const Span<float3> positions)
   Array<float3> directions(size);
 
   for (const int i : IndexRange(size - 1)) {
-    directions[i] = (positions[i + 1] - positions[i]).normalized();
+    directions[i] = math::normalize(positions[i + 1] - positions[i]);
   }
-  directions[size - 1] = (positions[0] - positions[size - 1]).normalized();
+  directions[size - 1] = math::normalize(positions[0] - positions[size - 1]);
 
   return directions;
 }
@@ -129,9 +123,9 @@ static Array<float3> calculate_axes(const Span<float3> directions)
   const int size = directions.size();
   Array<float3> axes(size);
 
-  axes[0] = float3::cross(-directions[size - 1], directions[0]).normalized();
+  axes[0] = math::normalize(math::cross(-directions[size - 1], directions[0]));
   for (const int i : IndexRange(1, size - 1)) {
-    axes[i] = float3::cross(-directions[i - 1], directions[i]).normalized();
+    axes[i] = math::normalize(math::cross(-directions[i - 1], directions[i]));
   }
 
   return axes;
@@ -242,8 +236,8 @@ static void limit_radii(FilletData &fd, const bool cyclic)
 
   if (cyclic) {
     /* Calculate lengths between adjacent control points. */
-    const float len_prev = float3::distance(positions[0], positions[size - 1]);
-    const float len_next = float3::distance(positions[0], positions[1]);
+    const float len_prev = math::distance(positions[0], positions[size - 1]);
+    const float len_next = math::distance(positions[0], positions[1]);
 
     /* Calculate tangent lengths of fillets in control points. */
     const float tan_len = radii[0] * tan(angles[0] / 2.0f);
@@ -265,16 +259,16 @@ static void limit_radii(FilletData &fd, const bool cyclic)
   }
 
   /* Initialize max_radii to largest possible radii. */
-  float prev_dist = float3::distance(positions[1], positions[0]);
+  float prev_dist = math::distance(positions[1], positions[0]);
   for (const int i : IndexRange(1, size - 2)) {
-    const float temp_dist = float3::distance(positions[i], positions[i + 1]);
+    const float temp_dist = math::distance(positions[i], positions[i + 1]);
     max_radii[i] = std::min(prev_dist, temp_dist) / tan(angles[i] / 2.0f);
     prev_dist = temp_dist;
   }
 
   /* Max radii calculations for each index. */
   for (const int i : IndexRange(start, fillet_count - 1)) {
-    const float len_next = float3::distance(positions[i], positions[i + 1]);
+    const float len_next = math::distance(positions[i], positions[i + 1]);
     const float tan_len = radii[i] * tan(angles[i] / 2.0f);
     const float tan_len_next = radii[i + 1] * tan(angles[i + 1] / 2.0f);
 
@@ -289,7 +283,7 @@ static void limit_radii(FilletData &fd, const bool cyclic)
 
   /* Assign the max_radii to the fillet data's radii. */
   for (const int i : IndexRange(size)) {
-    radii[i] = max_radii[i];
+    radii[i] = std::min(radii[i], max_radii[i]);
   }
 }
 
@@ -332,14 +326,17 @@ static void copy_common_attributes_by_mapping(const Spline &src,
   copy_attribute_by_mapping(src.radii(), dst.radii(), mapping);
   copy_attribute_by_mapping(src.tilts(), dst.tilts(), mapping);
 
-  dst.attributes.reallocate(1);
   src.attributes.foreach_attribute(
       [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
         std::optional<GSpan> src_attribute = src.attributes.get_for_read(attribute_id);
         if (dst.attributes.create(attribute_id, meta_data.data_type)) {
           std::optional<GMutableSpan> dst_attribute = dst.attributes.get_for_write(attribute_id);
           if (dst_attribute) {
-            src_attribute->type().copy_assign(src_attribute->data(), dst_attribute->data());
+            attribute_math::convert_to_static_type(dst_attribute->type(), [&](auto dummy) {
+              using T = decltype(dummy);
+              copy_attribute_by_mapping(
+                  src_attribute->typed<T>(), dst_attribute->typed<T>(), mapping);
+            });
             return true;
           }
         }
@@ -397,19 +394,20 @@ static void update_bezier_positions(const FilletData &fd,
     dst_spline.handle_positions_left()[end_i] = dst_spline.positions()[end_i] -
                                                 handle_length * next_dir;
     dst_spline.handle_types_right()[i_dst] = dst_spline.handle_types_left()[end_i] =
-        BezierSpline::HandleType::Align;
+        BEZIER_HANDLE_ALIGN;
     dst_spline.handle_types_left()[i_dst] = dst_spline.handle_types_right()[end_i] =
-        BezierSpline::HandleType::Vector;
+        BEZIER_HANDLE_VECTOR;
     dst_spline.mark_cache_invalid();
 
     /* Calculate the center of the radius to be formed. */
     const float3 center = get_center(dst_spline.positions()[i_dst] - positions[i_src], fd, i_src);
     /* Calculate the vector of the radius formed by the first vertex. */
     float3 radius_vec = dst_spline.positions()[i_dst] - center;
-    const float radius = radius_vec.normalize_and_get_length();
+    float radius;
+    radius_vec = math::normalize_and_get_length(radius_vec, radius);
 
-    dst_spline.handle_types_right().slice(1, count - 2).fill(BezierSpline::HandleType::Align);
-    dst_spline.handle_types_left().slice(1, count - 2).fill(BezierSpline::HandleType::Align);
+    dst_spline.handle_types_right().slice(1, count - 2).fill(BEZIER_HANDLE_ALIGN);
+    dst_spline.handle_types_left().slice(1, count - 2).fill(BEZIER_HANDLE_ALIGN);
 
     /* For each of the vertices in between the end points. */
     for (const int j : IndexRange(1, count - 2)) {
@@ -514,12 +512,12 @@ static SplinePtr fillet_spline(const Spline &spline,
   copy_common_attributes_by_mapping(spline, *dst_spline_ptr, dst_to_src);
 
   switch (spline.type()) {
-    case Spline::Type::Bezier: {
+    case CURVE_TYPE_BEZIER: {
       const BezierSpline &src_spline = static_cast<const BezierSpline &>(spline);
       BezierSpline &dst_spline = static_cast<BezierSpline &>(*dst_spline_ptr);
       if (fillet_param.mode == GEO_NODE_CURVE_FILLET_POLY) {
-        dst_spline.handle_types_left().fill(BezierSpline::HandleType::Vector);
-        dst_spline.handle_types_right().fill(BezierSpline::HandleType::Vector);
+        dst_spline.handle_types_left().fill(BEZIER_HANDLE_VECTOR);
+        dst_spline.handle_types_right().fill(BEZIER_HANDLE_VECTOR);
         update_poly_positions(fd, dst_spline, src_spline, point_counts);
       }
       else {
@@ -527,15 +525,19 @@ static SplinePtr fillet_spline(const Spline &spline,
       }
       break;
     }
-    case Spline::Type::Poly: {
+    case CURVE_TYPE_POLY: {
       update_poly_positions(fd, *dst_spline_ptr, spline, point_counts);
       break;
     }
-    case Spline::Type::NURBS: {
+    case CURVE_TYPE_NURBS: {
       const NURBSpline &src_spline = static_cast<const NURBSpline &>(spline);
       NURBSpline &dst_spline = static_cast<NURBSpline &>(*dst_spline_ptr);
       copy_attribute_by_mapping(src_spline.weights(), dst_spline.weights(), dst_to_src);
       update_poly_positions(fd, dst_spline, src_spline, point_counts);
+      break;
+    }
+    case CURVE_TYPE_CATMULL_ROM: {
+      BLI_assert_unreachable();
       break;
     }
   }
@@ -570,7 +572,7 @@ static void calculate_curve_fillet(GeometrySet &geometry_set,
                                    const std::optional<Field<int>> &count_field,
                                    const bool limit_radius)
 {
-  if (!geometry_set.has_curve()) {
+  if (!geometry_set.has_curves()) {
     return;
   }
 
@@ -601,18 +603,18 @@ static void calculate_curve_fillet(GeometrySet &geometry_set,
 
   fillet_param.limit_radius = limit_radius;
 
-  const CurveEval &input_curve = *geometry_set.get_curve_for_read();
-  std::unique_ptr<CurveEval> output_curve = fillet_curve(input_curve, fillet_param);
+  const std::unique_ptr<CurveEval> input_curve = curves_to_curve_eval(*component.get_for_read());
+  std::unique_ptr<CurveEval> output_curve = fillet_curve(*input_curve, fillet_param);
 
-  geometry_set.replace_curve(output_curve.release());
+  geometry_set.replace_curves(curve_eval_to_curves(*output_curve));
 }
 
-static void geo_node_fillet_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
 
-  NodeGeometryCurveFillet &node_storage = *(NodeGeometryCurveFillet *)params.node().storage;
-  const GeometryNodeCurveFilletMode mode = (GeometryNodeCurveFilletMode)node_storage.mode;
+  const NodeGeometryCurveFillet &storage = node_storage(params.node());
+  const GeometryNodeCurveFilletMode mode = (GeometryNodeCurveFilletMode)storage.mode;
 
   Field<float> radius_field = params.extract_input<Field<float>>("Radius");
   const bool limit_radius = params.extract_input<bool>("Limit Radius");
@@ -629,19 +631,21 @@ static void geo_node_fillet_exec(GeoNodeExecParams params)
   params.set_output("Curve", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_curve_fillet_cc
 
 void register_node_type_geo_curve_fillet()
 {
+  namespace file_ns = blender::nodes::node_geo_curve_fillet_cc;
+
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_FILLET_CURVE, "Fillet Curve", NODE_CLASS_GEOMETRY, 0);
-  ntype.draw_buttons = blender::nodes::geo_node_curve_fillet_layout;
+  geo_node_type_base(&ntype, GEO_NODE_FILLET_CURVE, "Fillet Curve", NODE_CLASS_GEOMETRY);
+  ntype.draw_buttons = file_ns::node_layout;
   node_type_storage(
       &ntype, "NodeGeometryCurveFillet", node_free_standard_storage, node_copy_standard_storage);
-  ntype.declare = blender::nodes::geo_node_curve_fillet_declare;
-  node_type_init(&ntype, blender::nodes::geo_node_curve_fillet_init);
-  node_type_update(&ntype, blender::nodes::geo_node_curve_fillet_update);
-  ntype.geometry_node_execute = blender::nodes::geo_node_fillet_exec;
+  ntype.declare = file_ns::node_declare;
+  node_type_init(&ntype, file_ns::node_init);
+  node_type_update(&ntype, file_ns::node_update);
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

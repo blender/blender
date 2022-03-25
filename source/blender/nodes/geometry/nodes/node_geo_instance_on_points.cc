@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_collection_types.h"
 
@@ -22,11 +8,13 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "BKE_attribute_math.hh"
+
 #include "node_geometry_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_geo_instance_on_points_cc {
 
-static void geo_node_instance_on_points_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Points")).description(N_("Points to instance on"));
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
@@ -34,7 +22,8 @@ static void geo_node_instance_on_points_declare(NodeDeclarationBuilder &b)
       .description(N_("Geometry that is instanced on the points"));
   b.add_input<decl::Bool>(N_("Pick Instance"))
       .supports_field()
-      .description("Place different instances on different points");
+      .description(N_("Choose instances from the \"Instance\" input at each point instead of "
+                      "instancing the entire geometry"));
   b.add_input<decl::Int>(N_("Instance Index"))
       .implicit_field()
       .description(N_(
@@ -53,20 +42,34 @@ static void geo_node_instance_on_points_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Instances"));
 }
 
-static void add_instances_from_component(InstancesComponent &dst_component,
-                                         const GeometryComponent &src_component,
-                                         const GeometrySet &instance,
-                                         const GeoNodeExecParams &params)
+static void add_instances_from_component(
+    InstancesComponent &dst_component,
+    const GeometryComponent &src_component,
+    const GeometrySet &instance,
+    const GeoNodeExecParams &params,
+    const Map<AttributeIDRef, AttributeKind> &attributes_to_propagate)
 {
   const AttributeDomain domain = ATTR_DOMAIN_POINT;
   const int domain_size = src_component.attribute_domain_size(domain);
 
+  VArray<bool> pick_instance;
+  VArray<int> indices;
+  VArray<float3> rotations;
+  VArray<float3> scales;
+
   GeometryComponentFieldContext field_context{src_component, domain};
   const Field<bool> selection_field = params.get_input<Field<bool>>("Selection");
-  fn::FieldEvaluator selection_evaluator{field_context, domain_size};
-  selection_evaluator.add(selection_field);
-  selection_evaluator.evaluate();
-  const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
+  fn::FieldEvaluator evaluator{field_context, domain_size};
+  evaluator.set_selection(selection_field);
+  /* The evaluator could use the component's stable IDs as a destination directly, but only the
+   * selected indices should be copied. */
+  evaluator.add(params.get_input<Field<bool>>("Pick Instance"), &pick_instance);
+  evaluator.add(params.get_input<Field<int>>("Instance Index"), &indices);
+  evaluator.add(params.get_input<Field<float3>>("Rotation"), &rotations);
+  evaluator.add(params.get_input<Field<float3>>("Scale"), &scales);
+  evaluator.evaluate();
+
+  const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
   /* The initial size of the component might be non-zero when this function is called for multiple
    * component types. */
@@ -78,19 +81,6 @@ static void add_instances_from_component(InstancesComponent &dst_component,
                                                                                   select_len);
   MutableSpan<float4x4> dst_transforms = dst_component.instance_transforms().slice(start_len,
                                                                                    select_len);
-
-  FieldEvaluator field_evaluator{field_context, domain_size};
-  VArray<bool> pick_instance;
-  VArray<int> indices;
-  VArray<float3> rotations;
-  VArray<float3> scales;
-  /* The evaluator could use the component's stable IDs as a destination directly, but only the
-   * selected indices should be copied. */
-  field_evaluator.add(params.get_input<Field<bool>>("Pick Instance"), &pick_instance);
-  field_evaluator.add(params.get_input<Field<int>>("Instance Index"), &indices);
-  field_evaluator.add(params.get_input<Field<float3>>("Rotation"), &rotations);
-  field_evaluator.add(params.get_input<Field<float3>>("Scale"), &scales);
-  field_evaluator.evaluate();
 
   VArray<float3> positions = src_component.attribute_get_for_read<float3>(
       "position", domain, {0, 0, 0});
@@ -154,17 +144,6 @@ static void add_instances_from_component(InstancesComponent &dst_component,
     }
   });
 
-  VArray<int> ids = src_component
-                        .attribute_try_get_for_read("id", ATTR_DOMAIN_POINT, CD_PROP_INT32)
-                        .typed<int>();
-  if (ids) {
-    VArray_Span<int> ids_span{ids};
-    MutableSpan<int> dst_ids = dst_component.instance_ids_ensure();
-    for (const int64_t i : selection.index_range()) {
-      dst_ids[i] = ids_span[selection[i]];
-    }
-  }
-
   if (pick_instance.is_single()) {
     if (pick_instance.get_internal_single()) {
       if (instance.has_realized_data()) {
@@ -174,9 +153,40 @@ static void add_instances_from_component(InstancesComponent &dst_component,
       }
     }
   }
+
+  bke::CustomDataAttributes &instance_attributes = dst_component.attributes();
+  for (const auto item : attributes_to_propagate.items()) {
+    const AttributeIDRef &attribute_id = item.key;
+    const AttributeKind attribute_kind = item.value;
+
+    const GVArray src_attribute = src_component.attribute_get_for_read(
+        attribute_id, ATTR_DOMAIN_POINT, attribute_kind.data_type);
+    BLI_assert(src_attribute);
+    std::optional<GMutableSpan> dst_attribute_opt = instance_attributes.get_for_write(
+        attribute_id);
+    if (!dst_attribute_opt) {
+      if (!instance_attributes.create(attribute_id, attribute_kind.data_type)) {
+        continue;
+      }
+      dst_attribute_opt = instance_attributes.get_for_write(attribute_id);
+    }
+    BLI_assert(dst_attribute_opt);
+    const GMutableSpan dst_attribute = dst_attribute_opt->slice(start_len, select_len);
+    threading::parallel_for(selection.index_range(), 1024, [&](IndexRange selection_range) {
+      attribute_math::convert_to_static_type(attribute_kind.data_type, [&](auto dummy) {
+        using T = decltype(dummy);
+        VArray<T> src = src_attribute.typed<T>();
+        MutableSpan<T> dst = dst_attribute.typed<T>();
+        for (const int range_i : selection_range) {
+          const int i = selection[range_i];
+          dst[range_i] = src[i];
+        }
+      });
+    });
+  }
 }
 
-static void geo_node_instance_on_points_exec(GeoNodeExecParams params)
+static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Points");
   GeometrySet instance = params.get_input<GeometrySet>("Instance");
@@ -185,23 +195,25 @@ static void geo_node_instance_on_points_exec(GeoNodeExecParams params)
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
 
-    if (geometry_set.has<MeshComponent>()) {
-      add_instances_from_component(
-          instances, *geometry_set.get_component_for_read<MeshComponent>(), instance, params);
-      geometry_set.remove(GEO_COMPONENT_TYPE_MESH);
+    const Array<GeometryComponentType> types{
+        GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE};
+
+    Map<AttributeIDRef, AttributeKind> attributes_to_propagate;
+    geometry_set.gather_attributes_for_propagation(
+        types, GEO_COMPONENT_TYPE_INSTANCES, false, attributes_to_propagate);
+    attributes_to_propagate.remove("position");
+
+    for (const GeometryComponentType type : types) {
+      if (geometry_set.has(type)) {
+        add_instances_from_component(instances,
+                                     *geometry_set.get_component_for_read(type),
+                                     instance,
+                                     params,
+                                     attributes_to_propagate);
+      }
     }
-    if (geometry_set.has<PointCloudComponent>()) {
-      add_instances_from_component(instances,
-                                   *geometry_set.get_component_for_read<PointCloudComponent>(),
-                                   instance,
-                                   params);
-      geometry_set.remove(GEO_COMPONENT_TYPE_POINT_CLOUD);
-    }
-    if (geometry_set.has<CurveComponent>()) {
-      add_instances_from_component(
-          instances, *geometry_set.get_component_for_read<CurveComponent>(), instance, params);
-      geometry_set.remove(GEO_COMPONENT_TYPE_CURVE);
-    }
+
+    geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
   });
 
   /* Unused references may have been added above. Remove those now so that other nodes don't
@@ -214,15 +226,17 @@ static void geo_node_instance_on_points_exec(GeoNodeExecParams params)
   params.set_output("Instances", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes
+}  // namespace blender::nodes::node_geo_instance_on_points_cc
 
 void register_node_type_geo_instance_on_points()
 {
+  namespace file_ns = blender::nodes::node_geo_instance_on_points_cc;
+
   static bNodeType ntype;
 
   geo_node_type_base(
-      &ntype, GEO_NODE_INSTANCE_ON_POINTS, "Instance on Points", NODE_CLASS_GEOMETRY, 0);
-  ntype.declare = blender::nodes::geo_node_instance_on_points_declare;
-  ntype.geometry_node_execute = blender::nodes::geo_node_instance_on_points_exec;
+      &ntype, GEO_NODE_INSTANCE_ON_POINTS, "Instance on Points", NODE_CLASS_GEOMETRY);
+  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);
 }

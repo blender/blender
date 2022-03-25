@@ -1,22 +1,5 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# The Original Code is Copyright (C) 2006, Blender Foundation
-# All rights reserved.
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright 2006 Blender Foundation. All rights reserved.
 
 set(INC
   .
@@ -245,10 +228,10 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     if(WITH_X11_XF86VMODE)
       add_definitions(-DWITH_X11_XF86VMODE)
       list(APPEND INC_SYS
-        ${X11_xf86vmode_INCLUDE_PATH}
+        ${X11_Xxf86vmode_INCLUDE_PATH}
       )
       list(APPEND LIB
-        ${X11_Xf86vmode_LIB}
+        ${X11_Xxf86vmode_LIB}
       )
     endif()
 
@@ -291,7 +274,7 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     include(CheckSymbolExists)
     set(CMAKE_REQUIRED_DEFINITIONS "-D_GNU_SOURCE")
     check_symbol_exists(memfd_create "sys/mman.h" HAVE_MEMFD_CREATE)
-    if (HAVE_MEMFD_CREATE)
+    if(HAVE_MEMFD_CREATE)
       add_definitions(-DHAVE_MEMFD_CREATE)
     endif()
 
@@ -307,7 +290,7 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
 
     pkg_check_modules(wayland-protocols wayland-protocols>=1.15)
-    if (${wayland-protocols_FOUND})
+    if(${wayland-protocols_FOUND})
       pkg_get_variable(WAYLAND_PROTOCOLS_DIR wayland-protocols pkgdatadir)
     else()
       find_path(WAYLAND_PROTOCOLS_DIR
@@ -316,7 +299,7 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       )
     endif()
 
-    if (NOT EXISTS ${WAYLAND_PROTOCOLS_DIR})
+    if(NOT EXISTS ${WAYLAND_PROTOCOLS_DIR})
       message(FATAL_ERROR "path to wayland-protocols not found")
     endif()
 
@@ -518,11 +501,11 @@ if(WITH_XR_OPENXR)
     )
   elseif(UNIX AND NOT APPLE)
     list(APPEND XR_PLATFORM_DEFINES -DXR_OS_LINUX)
-    if (WITH_GHOST_WAYLAND)
+    if(WITH_GHOST_WAYLAND)
       list(APPEND XR_PLATFORM_DEFINES -DXR_USE_PLATFORM_WAYLAND)
     endif()
-    if (WITH_GHOST_X11)
-      if (WITH_GL_EGL)
+    if(WITH_GHOST_X11)
+      if(WITH_GL_EGL)
         list(APPEND XR_PLATFORM_DEFINES -DXR_USE_PLATFORM_EGL)
       else()
         list(APPEND XR_PLATFORM_DEFINES -DXR_USE_PLATFORM_XLIB)

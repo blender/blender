@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -28,9 +14,9 @@
 #include "DNA_simulation_types.h"
 
 #include "BLI_compiler_compat.h"
-#include "BLI_float3.hh"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_rand.h"
 #include "BLI_span.hh"
 #include "BLI_string.h"
@@ -154,6 +140,7 @@ IDTypeInfo IDType_ID_SIM = {
     /* name_plural */ "simulations",
     /* translation_context */ BLT_I18NCONTEXT_ID_SIMULATION,
     /* flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    /* asset_type_info */ nullptr,
 
     /* init_data */ simulation_init_data,
     /* copy_data */ simulation_copy_data,
@@ -161,6 +148,7 @@ IDTypeInfo IDType_ID_SIM = {
     /* make_local */ nullptr,
     /* foreach_id */ simulation_foreach_id,
     /* foreach_cache */ nullptr,
+    /* foreach_path */ nullptr,
     /* owner_get */ nullptr,
 
     /* blend_write */ simulation_blend_write,

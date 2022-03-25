@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -43,6 +29,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "MOD_modifiertypes.h"
 #include "MOD_ui_common.h"
@@ -85,6 +72,7 @@ typedef struct WeightedNormalData {
   const int numPolys;
 
   MVert *mvert;
+  const float (*vert_normals)[3];
   MEdge *medge;
 
   MLoop *mloop;
@@ -93,7 +81,7 @@ typedef struct WeightedNormalData {
   const float split_angle;
 
   MPoly *mpoly;
-  float (*polynors)[3];
+  const float (*polynors)[3];
   int *poly_strength;
 
   MDeformVert *dvert;
@@ -143,7 +131,7 @@ static void aggregate_item_normal(WeightedNormalModifierData *wnmd,
                                   const float curr_val,
                                   const bool use_face_influence)
 {
-  float(*polynors)[3] = wn_data->polynors;
+  const float(*polynors)[3] = wn_data->polynors;
 
   MDeformVert *dvert = wn_data->dvert;
   const int defgrp_index = wn_data->defgrp_index;
@@ -206,7 +194,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
   int *loop_to_poly = wn_data->loop_to_poly;
 
   MPoly *mpoly = wn_data->mpoly;
-  float(*polynors)[3] = wn_data->polynors;
+  const float(*polynors)[3] = wn_data->polynors;
   int *poly_strength = wn_data->poly_strength;
 
   MDeformVert *dvert = wn_data->dvert;
@@ -234,6 +222,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
      * we do not actually care about computed loop_normals for now... */
     loop_normals = MEM_calloc_arrayN((size_t)numLoops, sizeof(*loop_normals), __func__);
     BKE_mesh_normals_loop_split(mvert,
+                                wn_data->vert_normals,
                                 numVerts,
                                 medge,
                                 numEdges,
@@ -360,6 +349,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
     }
 
     BKE_mesh_normals_loop_custom_set(mvert,
+                                     wn_data->vert_normals,
                                      numVerts,
                                      medge,
                                      numEdges,
@@ -390,6 +380,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
       }
 
       BKE_mesh_normals_loop_custom_from_vertices_set(mvert,
+                                                     wn_data->vert_normals,
                                                      vert_normals,
                                                      numVerts,
                                                      medge,
@@ -407,6 +398,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
       loop_normals = MEM_calloc_arrayN((size_t)numLoops, sizeof(*loop_normals), __func__);
 
       BKE_mesh_normals_loop_split(mvert,
+                                  wn_data->vert_normals,
                                   numVerts,
                                   medge,
                                   numEdges,
@@ -430,6 +422,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
       }
 
       BKE_mesh_normals_loop_custom_set(mvert,
+                                       wn_data->vert_normals,
                                        numVerts,
                                        medge,
                                        numEdges,
@@ -609,15 +602,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     weight = (weight - 1) * 25;
   }
 
-  CustomData *pdata = &result->pdata;
-  float(*polynors)[3] = CustomData_get_layer(pdata, CD_NORMAL);
-  if (!polynors) {
-    polynors = CustomData_add_layer(pdata, CD_NORMAL, CD_CALLOC, NULL, numPolys);
-    CustomData_set_layer_flag(pdata, CD_NORMAL, CD_FLAG_TEMPORARY);
-  }
-  BKE_mesh_calc_normals_poly_and_vertex(
-      mvert, numVerts, mloop, numLoops, mpoly, numPolys, polynors, NULL);
-
   const float split_angle = mesh->smoothresh;
   short(*clnors)[2];
   CustomData *ldata = &result->ldata;
@@ -641,6 +625,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       .numPolys = numPolys,
 
       .mvert = mvert,
+      .vert_normals = BKE_mesh_vertex_normals_ensure(result),
       .medge = medge,
 
       .mloop = mloop,
@@ -649,7 +634,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       .split_angle = split_angle,
 
       .mpoly = mpoly,
-      .polynors = polynors,
+      .polynors = BKE_mesh_poly_normals_ensure(mesh),
       .poly_strength = CustomData_get_layer_named(
           &result->pdata, CD_PROP_INT32, MOD_WEIGHTEDNORMALS_FACEWEIGHT_CDLAYER_ID),
 
@@ -676,9 +661,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   MEM_SAFE_FREE(wn_data.loop_to_poly);
   MEM_SAFE_FREE(wn_data.mode_pair);
   MEM_SAFE_FREE(wn_data.items_data);
-
-  /* Currently Modifier stack assumes there is no poly normal data passed around... */
-  CustomData_free_layers(pdata, CD_NORMAL, numPolys);
 
   result->runtime.is_original = false;
 
@@ -762,7 +744,6 @@ ModifierTypeInfo modifierType_WeightedNormal = {
     /* deformVertsEM */ NULL,
     /* deformMatricesEM */ NULL,
     /* modifyMesh */ modifyMesh,
-    /* modifyHair */ NULL,
     /* modifyGeometrySet */ NULL,
 
     /* initData */ initData,

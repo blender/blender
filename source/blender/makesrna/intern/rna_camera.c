@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -150,7 +136,7 @@ static void rna_CameraDOFSettings_aperture_blades_set(PointerRNA *ptr, const int
 {
   CameraDOFSettings *dofsettings = (CameraDOFSettings *)ptr->data;
 
-  if (value == 1 || value == 2) {
+  if (ELEM(value, 1, 2)) {
     if (dofsettings->aperture_blades == 0) {
       dofsettings->aperture_blades = 3;
     }
@@ -406,13 +392,13 @@ static void rna_def_camera_stereo_data(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
   prop = RNA_def_property(srna, "pole_merge_angle_from", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_range(prop, 0.0f, M_PI / 2.0);
+  RNA_def_property_range(prop, 0.0f, M_PI_2);
   RNA_def_property_ui_text(
       prop, "Pole Merge Start Angle", "Angle at which interocular distance starts to fade to 0");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
   prop = RNA_def_property(srna, "pole_merge_angle_to", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_range(prop, 0.0f, M_PI / 2.0);
+  RNA_def_property_range(prop, 0.0f, M_PI_2);
   RNA_def_property_ui_text(
       prop, "Pole Merge End Angle", "Angle at which interocular distance is 0");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);

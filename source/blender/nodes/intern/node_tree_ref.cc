@@ -1,18 +1,4 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <mutex>
 
@@ -20,6 +6,8 @@
 
 #include "BLI_dot_export.hh"
 #include "BLI_stack.hh"
+
+#include "RNA_prototypes.h"
 
 namespace blender::nodes {
 
@@ -70,6 +58,8 @@ NodeTreeRef::NodeTreeRef(bNodeTree *btree) : btree_(btree)
           break;
         }
       }
+      BLI_assert(internal_link.from_ != nullptr);
+      BLI_assert(internal_link.to_ != nullptr);
       node.internal_links_.append(&internal_link);
     }
 
@@ -114,6 +104,22 @@ NodeTreeRef::NodeTreeRef(bNodeTree *btree) : btree_(btree)
   for (NodeRef *node : nodes_by_id_) {
     const bNodeType *nodetype = node->bnode_->typeinfo;
     nodes_by_type_.add(nodetype, node);
+  }
+
+  const Span<const NodeRef *> group_output_nodes = this->nodes_by_type("NodeGroupOutput");
+  if (group_output_nodes.is_empty()) {
+    group_output_node_ = nullptr;
+  }
+  else if (group_output_nodes.size() == 1) {
+    group_output_node_ = group_output_nodes.first();
+  }
+  else {
+    for (const NodeRef *group_output : group_output_nodes) {
+      if (group_output->bnode_->flag & NODE_DO_OUTPUT) {
+        group_output_node_ = group_output;
+        break;
+      }
+    }
   }
 }
 
@@ -262,7 +268,6 @@ void InputSocketRef::foreach_logical_origin(
           skipped_fn.call_safe(origin);
           skipped_fn.call_safe(mute_input);
           mute_input.foreach_logical_origin(origin_fn, skipped_fn, true, seen_sockets_stack);
-          break;
         }
       }
     }
@@ -442,9 +447,6 @@ static bool has_link_cycles_recursive(const NodeRef &node,
   return false;
 }
 
-/**
- * \return True when there is a link cycle. Unavailable sockets are ignored.
- */
 bool NodeTreeRef::has_link_cycles() const
 {
   const int node_amount = nodes_by_id_.size();
@@ -571,10 +573,6 @@ static void toposort_from_start_node(const NodeTreeRef::ToposortDirection direct
   }
 }
 
-/**
- * Sort nodes topologically from left to right or right to left.
- * In the future the result if this could be cached on #NodeTreeRef.
- */
 NodeTreeRef::ToposortResult NodeTreeRef::toposort(const ToposortDirection direction) const
 {
   ToposortResult result;

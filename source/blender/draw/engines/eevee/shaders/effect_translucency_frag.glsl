@@ -40,7 +40,7 @@ float light_translucent_power_with_falloff(LightData ld, vec3 N, vec4 l_vector)
   if (ld.l_type >= AREA_RECT) {
     power = (ld.l_sizex * ld.l_sizey * 4.0 * M_PI) * (1.0 / 80.0);
     if (ld.l_type == AREA_ELLIPSE) {
-      power *= M_PI * 0.25;
+      power *= M_PI_4;
     }
     power *= 0.3 * 20.0 *
              max(0.0, dot(-ld.l_forward, l_vector.xyz / l_vector.w)); /* XXX ad hoc, empirical */
@@ -212,7 +212,7 @@ vec3 view_position_derivative_from_depth(vec2 uvs, vec2 ofs, vec3 vP, float dept
   }
 }
 
-/* TODO(fclem) port to a common place for other effects to use. */
+/* TODO(@fclem): port to a common place for other effects to use. */
 bool reconstruct_view_position_and_normal_from_depth(vec2 uvs, out vec3 vP, out vec3 vNg)
 {
   vec2 texel_size = vec2(abs(dFdx(uvs.x)), abs(dFdy(uvs.y)));

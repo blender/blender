@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) Blender Foundation
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup sim
@@ -625,7 +609,7 @@ static void cloth_calc_force(
   }
 #endif
 
-  /* cloth_calc_volume_force(clmd); */
+  // cloth_calc_volume_force(clmd);
 
 #ifdef CLOTH_FORCE_DRAG
   SIM_mass_spring_force_drag(data, drag);
@@ -804,7 +788,7 @@ static void cloth_calc_force(
   }
 }
 
-/* returns vertexes' motion state */
+/* returns vertices' motion state */
 BLI_INLINE void cloth_get_grid_location(Implicit_Data *data,
                                         float cell_scale,
                                         const float cell_offset[3],
@@ -1295,8 +1279,7 @@ int SIM_cloth_solve(
   BKE_sim_debug_data_clear_category("collision");
 
   if (!clmd->solver_result) {
-    clmd->solver_result = (ClothSolverResult *)MEM_callocN(sizeof(ClothSolverResult),
-                                                           "cloth solver result");
+    clmd->solver_result = MEM_cnew<ClothSolverResult>("cloth solver result");
   }
   cloth_clear_result(clmd);
 

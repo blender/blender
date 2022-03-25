@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -53,6 +37,8 @@ static void mesh_runtime_init_mutexes(Mesh *mesh)
 {
   mesh->runtime.eval_mutex = MEM_mallocN(sizeof(ThreadMutex), "mesh runtime eval_mutex");
   BLI_mutex_init(mesh->runtime.eval_mutex);
+  mesh->runtime.normals_mutex = MEM_mallocN(sizeof(ThreadMutex), "mesh runtime normals_mutex");
+  BLI_mutex_init(mesh->runtime.normals_mutex);
   mesh->runtime.render_mutex = MEM_mallocN(sizeof(ThreadMutex), "mesh runtime render_mutex");
   BLI_mutex_init(mesh->runtime.render_mutex);
 }
@@ -67,6 +53,11 @@ static void mesh_runtime_free_mutexes(Mesh *mesh)
     MEM_freeN(mesh->runtime.eval_mutex);
     mesh->runtime.eval_mutex = NULL;
   }
+  if (mesh->runtime.normals_mutex != NULL) {
+    BLI_mutex_end(mesh->runtime.normals_mutex);
+    MEM_freeN(mesh->runtime.normals_mutex);
+    mesh->runtime.normals_mutex = NULL;
+  }
   if (mesh->runtime.render_mutex != NULL) {
     BLI_mutex_end(mesh->runtime.render_mutex);
     MEM_freeN(mesh->runtime.render_mutex);
@@ -74,28 +65,17 @@ static void mesh_runtime_free_mutexes(Mesh *mesh)
   }
 }
 
-/**
- * \brief Initialize the runtime of the given mesh.
- *
- * Function expects that the runtime is already cleared.
- */
 void BKE_mesh_runtime_init_data(Mesh *mesh)
 {
   mesh_runtime_init_mutexes(mesh);
 }
 
-/**
- * \brief Free all data (and mutexes) inside the runtime of the given mesh.
- */
 void BKE_mesh_runtime_free_data(Mesh *mesh)
 {
   BKE_mesh_runtime_clear_cache(mesh);
   mesh_runtime_free_mutexes(mesh);
 }
 
-/* Clear all pointers which we don't want to be shared on copying the datablock.
- * However, keep all the flags which defines what the mesh is (for example, that
- * it's deformed only, or that its custom data layers are out of date.) */
 void BKE_mesh_runtime_reset_on_copy(Mesh *mesh, const int UNUSED(flag))
 {
   Mesh_Runtime *runtime = &mesh->runtime;
@@ -108,14 +88,14 @@ void BKE_mesh_runtime_reset_on_copy(Mesh *mesh, const int UNUSED(flag))
   runtime->bvh_cache = NULL;
   runtime->shrinkwrap_data = NULL;
 
+  runtime->vert_normals_dirty = true;
+  runtime->poly_normals_dirty = true;
+  runtime->vert_normals = NULL;
+  runtime->poly_normals = NULL;
+
   mesh_runtime_init_mutexes(mesh);
 }
 
-/**
- * \brief This function clears runtime cache of the given mesh.
- *
- * Call this function to recalculate runtime data when used.
- */
 void BKE_mesh_runtime_clear_cache(Mesh *mesh)
 {
   if (mesh->runtime.mesh_eval != NULL) {
@@ -126,9 +106,9 @@ void BKE_mesh_runtime_clear_cache(Mesh *mesh)
   BKE_mesh_runtime_clear_geometry(mesh);
   BKE_mesh_batch_cache_free(mesh);
   BKE_mesh_runtime_clear_edit_data(mesh);
+  BKE_mesh_clear_derived_normals(mesh);
 }
 
-/* This is a ported copy of DM_ensure_looptri_data(dm) */
 /**
  * Ensure the array is large enough
  *
@@ -137,6 +117,7 @@ void BKE_mesh_runtime_clear_cache(Mesh *mesh)
  */
 static void mesh_ensure_looptri_data(Mesh *mesh)
 {
+  /* This is a ported copy of `DM_ensure_looptri_data(dm)`. */
   const uint totpoly = mesh->totpoly;
   const int looptris_len = poly_to_tri_count(totpoly, mesh->totloop);
 
@@ -162,7 +143,6 @@ static void mesh_ensure_looptri_data(Mesh *mesh)
   }
 }
 
-/* This is a ported copy of CDDM_recalc_looptri(dm). */
 void BKE_mesh_runtime_looptri_recalc(Mesh *mesh)
 {
   mesh_ensure_looptri_data(mesh);
@@ -182,9 +162,9 @@ void BKE_mesh_runtime_looptri_recalc(Mesh *mesh)
   mesh->runtime.looptris.array_wip = NULL;
 }
 
-/* This is a ported copy of dm_getNumLoopTri(dm). */
 int BKE_mesh_runtime_looptri_len(const Mesh *mesh)
 {
+  /* This is a ported copy of `dm_getNumLoopTri(dm)`. */
   const int looptri_len = poly_to_tri_count(mesh->totpoly, mesh->totloop);
   BLI_assert(ELEM(mesh->runtime.looptris.len, 0, looptri_len));
   return looptri_len;
@@ -196,11 +176,6 @@ static void mesh_runtime_looptri_recalc_isolated(void *userdata)
   BKE_mesh_runtime_looptri_recalc(mesh);
 }
 
-/**
- * \note This function only fills a cache, and therefore the mesh argument can
- * be considered logically const. Concurrent access is protected by a mutex.
- * \note This is a ported copy of dm_getLoopTriArray(dm).
- */
 const MLoopTri *BKE_mesh_runtime_looptri_ensure(const Mesh *mesh)
 {
   ThreadMutex *mesh_eval_mutex = (ThreadMutex *)mesh->runtime.eval_mutex;
@@ -222,7 +197,6 @@ const MLoopTri *BKE_mesh_runtime_looptri_ensure(const Mesh *mesh)
   return looptri;
 }
 
-/* This is a copy of DM_verttri_from_looptri(). */
 void BKE_mesh_runtime_verttri_from_looptri(MVertTri *r_verttri,
                                            const MLoop *mloop,
                                            const MLoopTri *looptri,
@@ -314,130 +288,10 @@ void BKE_mesh_batch_cache_free(Mesh *me)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Mesh runtime debug helpers.
+/** \name Mesh Runtime Validation
  * \{ */
-/* evaluated mesh info printing function,
- * to help track down differences output */
 
 #ifndef NDEBUG
-#  include "BLI_dynstr.h"
-
-static void mesh_runtime_debug_info_layers(DynStr *dynstr, CustomData *cd)
-{
-  int type;
-
-  for (type = 0; type < CD_NUMTYPES; type++) {
-    if (CustomData_has_layer(cd, type)) {
-      /* NOTE: doesn't account for multiple layers. */
-      const char *name = CustomData_layertype_name(type);
-      const int size = CustomData_sizeof(type);
-      const void *pt = CustomData_get_layer(cd, type);
-      const int pt_size = pt ? (int)(MEM_allocN_len(pt) / size) : 0;
-      const char *structname;
-      int structnum;
-      CustomData_file_write_info(type, &structname, &structnum);
-      BLI_dynstr_appendf(
-          dynstr,
-          "        dict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",
-          name,
-          structname,
-          type,
-          (const void *)pt,
-          size,
-          pt_size);
-    }
-  }
-}
-
-char *BKE_mesh_runtime_debug_info(Mesh *me_eval)
-{
-  DynStr *dynstr = BLI_dynstr_new();
-  char *ret;
-
-  BLI_dynstr_append(dynstr, "{\n");
-  BLI_dynstr_appendf(dynstr, "    'ptr': '%p',\n", (void *)me_eval);
-#  if 0
-  const char *tstr;
-  switch (me_eval->type) {
-    case DM_TYPE_CDDM:
-      tstr = "DM_TYPE_CDDM";
-      break;
-    case DM_TYPE_CCGDM:
-      tstr = "DM_TYPE_CCGDM";
-      break;
-    default:
-      tstr = "UNKNOWN";
-      break;
-  }
-  BLI_dynstr_appendf(dynstr, "    'type': '%s',\n", tstr);
-#  endif
-  BLI_dynstr_appendf(dynstr, "    'totvert': %d,\n", me_eval->totvert);
-  BLI_dynstr_appendf(dynstr, "    'totedge': %d,\n", me_eval->totedge);
-  BLI_dynstr_appendf(dynstr, "    'totface': %d,\n", me_eval->totface);
-  BLI_dynstr_appendf(dynstr, "    'totpoly': %d,\n", me_eval->totpoly);
-  BLI_dynstr_appendf(dynstr, "    'deformed_only': %d,\n", me_eval->runtime.deformed_only);
-
-  BLI_dynstr_append(dynstr, "    'vertexLayers': (\n");
-  mesh_runtime_debug_info_layers(dynstr, &me_eval->vdata);
-  BLI_dynstr_append(dynstr, "    ),\n");
-
-  BLI_dynstr_append(dynstr, "    'edgeLayers': (\n");
-  mesh_runtime_debug_info_layers(dynstr, &me_eval->edata);
-  BLI_dynstr_append(dynstr, "    ),\n");
-
-  BLI_dynstr_append(dynstr, "    'loopLayers': (\n");
-  mesh_runtime_debug_info_layers(dynstr, &me_eval->ldata);
-  BLI_dynstr_append(dynstr, "    ),\n");
-
-  BLI_dynstr_append(dynstr, "    'polyLayers': (\n");
-  mesh_runtime_debug_info_layers(dynstr, &me_eval->pdata);
-  BLI_dynstr_append(dynstr, "    ),\n");
-
-  BLI_dynstr_append(dynstr, "    'tessFaceLayers': (\n");
-  mesh_runtime_debug_info_layers(dynstr, &me_eval->fdata);
-  BLI_dynstr_append(dynstr, "    ),\n");
-
-  BLI_dynstr_append(dynstr, "}\n");
-
-  ret = BLI_dynstr_get_cstring(dynstr);
-  BLI_dynstr_free(dynstr);
-  return ret;
-}
-
-void BKE_mesh_runtime_debug_print(Mesh *me_eval)
-{
-  char *str = BKE_mesh_runtime_debug_info(me_eval);
-  puts(str);
-  fflush(stdout);
-  MEM_freeN(str);
-}
-
-/* XXX Should go in customdata file? */
-void BKE_mesh_runtime_debug_print_cdlayers(CustomData *data)
-{
-  int i;
-  const CustomDataLayer *layer;
-
-  printf("{\n");
-
-  for (i = 0, layer = data->layers; i < data->totlayer; i++, layer++) {
-
-    const char *name = CustomData_layertype_name(layer->type);
-    const int size = CustomData_sizeof(layer->type);
-    const char *structname;
-    int structnum;
-    CustomData_file_write_info(layer->type, &structname, &structnum);
-    printf("        dict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",
-           name,
-           structname,
-           layer->type,
-           (const void *)layer->data,
-           size,
-           (int)(MEM_allocN_len(layer->data) / size));
-  }
-
-  printf("}\n");
-}
 
 bool BKE_mesh_runtime_is_valid(Mesh *me_eval)
 {

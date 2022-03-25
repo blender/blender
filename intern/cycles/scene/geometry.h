@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2020 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 #ifndef __GEOMETRY_H__
 #define __GEOMETRY_H__
@@ -55,6 +42,7 @@ class Geometry : public Node {
     MESH,
     HAIR,
     VOLUME,
+    POINTCLOUD,
   };
 
   Type geometry_type;
@@ -155,6 +143,11 @@ class Geometry : public Node {
     return geometry_type == HAIR;
   }
 
+  bool is_pointcloud() const
+  {
+    return geometry_type == POINTCLOUD;
+  }
+
   bool is_volume() const
   {
     return geometry_type == VOLUME;
@@ -181,12 +174,14 @@ class GeometryManager {
     MESH_REMOVED = (1 << 5),
     HAIR_ADDED = (1 << 6),
     HAIR_REMOVED = (1 << 7),
+    POINT_ADDED = (1 << 12),
+    POINT_REMOVED = (1 << 13),
 
     SHADER_ATTRIBUTE_MODIFIED = (1 << 8),
     SHADER_DISPLACEMENT_MODIFIED = (1 << 9),
 
-    GEOMETRY_ADDED = MESH_ADDED | HAIR_ADDED,
-    GEOMETRY_REMOVED = MESH_REMOVED | HAIR_REMOVED,
+    GEOMETRY_ADDED = MESH_ADDED | HAIR_ADDED | POINT_ADDED,
+    GEOMETRY_REMOVED = MESH_REMOVED | HAIR_REMOVED | POINT_REMOVED,
 
     TRANSFORM_MODIFIED = (1 << 10),
 
@@ -234,7 +229,7 @@ class GeometryManager {
                              vector<AttributeRequestSet> &object_attributes);
 
   /* Compute verts/triangles/curves offsets in global arrays. */
-  void mesh_calc_offset(Scene *scene, BVHLayout bvh_layout);
+  void geom_calc_offset(Scene *scene, BVHLayout bvh_layout);
 
   void device_update_object(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
 
@@ -257,8 +252,10 @@ class GeometryManager {
                                               size_t &attr_float_offset,
                                               device_vector<float2> &attr_float2,
                                               size_t &attr_float2_offset,
-                                              device_vector<float4> &attr_float3,
+                                              device_vector<packed_float3> &attr_float3,
                                               size_t &attr_float3_offset,
+                                              device_vector<float4> &attr_float4,
+                                              size_t &attr_float4_offset,
                                               device_vector<uchar4> &attr_uchar4,
                                               size_t &attr_uchar4_offset,
                                               Attribute *mattr,

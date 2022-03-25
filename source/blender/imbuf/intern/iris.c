@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup imbuf
@@ -121,7 +105,7 @@ static int expandrow2(
     float *optr, const float *optr_end, const uchar *iptr, const uchar *iptr_end, int z);
 static void interleaverow(uchar *lptr, const uchar *cptr, int z, int n);
 static void interleaverow2(float *lptr, const uchar *cptr, int z, int n);
-static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int cnt);
+static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int row_len);
 static void lumrow(const uchar *rgbptr, uchar *lumptr, int n);
 
 /*
@@ -250,12 +234,6 @@ bool imb_is_a_iris(const uchar *mem, size_t size)
   }
   return ((GS(mem) == IMAGIC) || (GSS(mem) == IMAGIC));
 }
-
-/*
- * longimagedata -
- * read in a B/W RGB or RGBA iris image file and return a
- * pointer to an array of ints.
- */
 
 struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
@@ -542,7 +520,7 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
       }
     }
     else if (image.zsize == 2) {
-      /* grayscale with alpha */
+      /* Gray-scale with alpha. */
       rect = (uchar *)ibuf->rect;
       for (size_t x = (size_t)ibuf->x * (size_t)ibuf->y; x > 0; x--) {
         rect[0] = rect[2];
@@ -570,7 +548,7 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
       }
     }
     else if (image.zsize == 2) {
-      /* grayscale with alpha */
+      /* Gray-scale with alpha. */
       fbase = ibuf->rect_float;
       for (size_t x = (size_t)ibuf->x * (size_t)ibuf->y; x > 0; x--) {
         fbase[0] = fbase[2];
@@ -914,7 +892,7 @@ static void lumrow(const uchar *rgbptr, uchar *lumptr, int n)
   }
 }
 
-static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int cnt)
+static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int row_len)
 {
   uchar *iptr, *ibufend, *sptr, *optr;
   short todo, cc;
@@ -922,7 +900,7 @@ static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int cnt)
 
   lbuf += z;
   iptr = lbuf;
-  ibufend = iptr + cnt * 4;
+  ibufend = iptr + row_len * 4;
   optr = rlebuf;
 
   while (iptr < ibufend) {

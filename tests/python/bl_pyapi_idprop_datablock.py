@@ -1,20 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # ./blender.bin --background -noaudio --python tests/python/bl_pyapi_idprop_datablock.py -- --verbose
 
@@ -71,7 +55,7 @@ def expect_exception_or_abort(*, fn, ex):
     print_fail_msg_and_exit("test failed")
 
 
-def expect_ouput_or_abort(*, fn, match_stderr=None, match_stdout=None):
+def expect_output_or_abort(*, fn, match_stderr=None, match_stdout=None):
 
     stdout, stderr = io.StringIO(), io.StringIO()
 
@@ -278,7 +262,7 @@ def test_restrictions1():
             expect_false_or_abort(not hasattr(op, "id_prop"))
 
     bpy.utils.register_class(TEST_PT_DatablockProp)
-    expect_ouput_or_abort(
+    expect_output_or_abort(
         fn=lambda: bpy.utils.register_class(TEST_Op),
         match_stderr="^ValueError: bpy_struct \"SCENE_OT_test_op\" registration error:",
     )

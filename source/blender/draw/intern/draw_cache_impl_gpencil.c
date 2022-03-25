@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2020, Blender Foundation
- * This is a new part of Blender
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2020 Blender Foundation. */
 
 /** \file
  * \ingroup draw
@@ -44,10 +28,15 @@
 #include "draw_cache.h"
 #include "draw_cache_impl.h"
 
+#include "../engines/gpencil/gpencil_defines.h"
+
 #define BEZIER_HANDLE (1 << 3)
 #define COLOR_SHIFT 5
 
-/* ---------------------------------------------------------------------- */
+/* -------------------------------------------------------------------- */
+/** \name Internal Types
+ * \{ */
+
 typedef struct GpencilBatchCache {
   /** Instancing Data */
   GPUVertBuf *vbo;
@@ -73,6 +62,12 @@ typedef struct GpencilBatchCache {
   /** Last cache frame */
   int cache_frame;
 } GpencilBatchCache;
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Utilities
+ * \{ */
 
 static bool gpencil_batch_cache_valid(GpencilBatchCache *cache, bGPdata *gpd, int cfra)
 {
@@ -151,6 +146,12 @@ static GpencilBatchCache *gpencil_batch_cache_get(Object *ob, int cfra)
   return cache;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name BKE Callbacks
+ * \{ */
+
 void DRW_gpencil_batch_cache_dirty_tag(bGPdata *gpd)
 {
   gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
@@ -166,7 +167,7 @@ void DRW_gpencil_batch_cache_free(bGPdata *gpd)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Vertex Formats.
+/** \name Vertex Formats
  * \{ */
 
 /* MUST match the format below. */
@@ -247,7 +248,7 @@ static GPUVertFormat *gpencil_color_format(void)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Vertex Buffers.
+/** \name Vertex Buffers
  * \{ */
 
 typedef struct gpIterData {
@@ -322,7 +323,7 @@ static void gpencil_buffer_add_point(gpStrokeVert *verts,
   vert->point_id = v;
   vert->thickness = max_ff(0.0f, gps->thickness * pt->pressure) * (round_cap1 ? 1.0f : -1.0f);
   /* Tag endpoint material to -1 so they get discarded by vertex shader. */
-  vert->mat = (is_endpoint) ? -1 : (gps->mat_nr % GP_MATERIAL_BUFFER_LEN);
+  vert->mat = (is_endpoint) ? -1 : (gps->mat_nr % GPENCIL_MATERIAL_BUFFER_LEN);
 
   float aspect_ratio = gps->aspect_ratio[0] / max_ff(gps->aspect_ratio[1], 1e-8);
 
@@ -627,7 +628,7 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_stroke, bool do_
       float(*tpoints2d)[2] = MEM_mallocN(sizeof(*tpoints2d) * vert_len, __func__);
       /* Triangulate in 2D. */
       for (int i = 0; i < vert_len; i++) {
-        copy_v2_v2(tpoints2d[i], &tpoints[i].x);
+        copy_v2_v2(tpoints2d[i], tpoints[i].m_xy);
       }
       /* Compute directly inside the IBO data buffer. */
       /* OPTI: This is a bottleneck if the stroke is very long. */
@@ -671,7 +672,6 @@ GPUBatch *DRW_cache_gpencil_sbuffer_fill_get(Object *ob)
   return gpd->runtime.sbuffer_fill_batch;
 }
 
-/* Sbuffer batches are temporary. We need to clear it after drawing */
 void DRW_cache_gpencil_sbuffer_clear(Object *ob)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
@@ -682,8 +682,9 @@ void DRW_cache_gpencil_sbuffer_clear(Object *ob)
 
 /** \} */
 
-/* ---------------------------------------------------------------------- */
-/* Edit GPencil Batches */
+/* -------------------------------------------------------------------- */
+/** \name Edit GPencil Batches
+ * \{ */
 
 #define GP_EDIT_POINT_SELECTED (1 << 0)
 #define GP_EDIT_STROKE_SELECTED (1 << 1)

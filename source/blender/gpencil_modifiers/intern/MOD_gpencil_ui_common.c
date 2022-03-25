@@ -1,17 +1,4 @@
-/* This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -39,6 +26,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -72,7 +60,7 @@ static void gpencil_modifier_reorder(bContext *C, Panel *panel, int new_index)
   WM_operator_properties_create_ptr(&props_ptr, ot);
   RNA_string_set(&props_ptr, "modifier", md->name);
   RNA_int_set(&props_ptr, "index", new_index);
-  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
+  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, NULL);
   WM_operator_properties_free(&props_ptr);
 }
 
@@ -203,9 +191,6 @@ void gpencil_modifier_curve_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiTemplateCurveMapping(layout, ptr, "curve", 0, false, false, false, false);
 }
 
-/**
- * Draw modifier error message.
- */
 void gpencil_modifier_panel_end(uiLayout *layout, PointerRNA *ptr)
 {
   GpencilModifierData *md = ptr->data;
@@ -232,7 +217,7 @@ PointerRNA *gpencil_modifier_panel_get_property_pointers(Panel *panel, PointerRN
   UI_block_lock_clear(block);
   UI_block_lock_set(block, ID_IS_LINKED((Object *)ptr->owner_id), ERROR_LIBDATA_MESSAGE);
 
-  uiLayoutSetContextPointer(panel->layout, "modifier", ptr);
+  UI_panel_context_pointer_set(panel, "modifier", ptr);
 
   return ptr;
 }
@@ -312,7 +297,7 @@ static void gpencil_modifier_panel_header(const bContext *UNUSED(C), Panel *pane
   PointerRNA *ptr = UI_panel_custom_data_get(panel);
   GpencilModifierData *md = (GpencilModifierData *)ptr->data;
 
-  uiLayoutSetContextPointer(panel->layout, "modifier", ptr);
+  UI_panel_context_pointer_set(panel, "modifier", ptr);
 
   const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
   bool narrow_panel = (panel->sizex < UI_UNIT_X * 9 && panel->sizex != 0);
@@ -360,9 +345,6 @@ static void gpencil_modifier_panel_header(const bContext *UNUSED(C), Panel *pane
 /** \name Modifier Registration Helpers
  * \{ */
 
-/**
- * Create a panel in the context's region
- */
 PanelType *gpencil_modifier_panel_register(ARegionType *region_type,
                                            GpencilModifierType type,
                                            PanelDrawFn draw)
@@ -390,12 +372,6 @@ PanelType *gpencil_modifier_panel_register(ARegionType *region_type,
   return panel_type;
 }
 
-/**
- * Add a child panel to the parent.
- *
- * \note To create the panel type's idname, it appends the \a name argument to the \a parent's
- * idname.
- */
 PanelType *gpencil_modifier_subpanel_register(ARegionType *region_type,
                                               const char *name,
                                               const char *label,

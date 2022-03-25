@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup edtransform
@@ -34,6 +18,7 @@
 
 #include "ED_markers.h"
 
+#include "SEQ_animation.h"
 #include "SEQ_edit.h"
 #include "SEQ_effects.h"
 #include "SEQ_iterator.h"
@@ -302,7 +287,7 @@ static SeqCollection *extract_standalone_strips(SeqCollection *transformed_strip
   return collection;
 }
 
-/* Query strips positioned after left edge of transformed strips boundbox. */
+/* Query strips positioned after left edge of transformed strips bound-box. */
 static SeqCollection *query_right_side_strips(ListBase *seqbase, SeqCollection *transformed_strips)
 {
   int minframe = MAXFRAME;
@@ -351,7 +336,7 @@ static ListBase *seqbase_active_get(const TransInfo *t)
   return SEQ_active_seqbase_get(ed);
 }
 
-/* Offset all strips positioned after left edge of transformed strips boundbox by amount equal
+/* Offset all strips positioned after left edge of transformed strips bound-box by amount equal
  * to overlap of transformed strips. */
 static void seq_transform_handle_expand_to_fit(TransInfo *t, SeqCollection *transformed_strips)
 {
@@ -789,7 +774,6 @@ static void flushTransSeq(TransInfo *t)
   SEQ_collection_free(transformed_strips);
 }
 
-/* helper for recalcData() - for sequencer transforms */
 void recalcData_sequencer(TransInfo *t)
 {
   TransData *td;

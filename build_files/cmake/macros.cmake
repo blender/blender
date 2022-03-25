@@ -1,22 +1,5 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# The Original Code is Copyright (C) 2006, Blender Foundation
-# All rights reserved.
-# ***** END GPL LICENSE BLOCK *****
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright 2006 Blender Foundation. All rights reserved.
 
 macro(list_insert_after
   list_id item_check item_add
@@ -488,7 +471,6 @@ function(blender_add_test_executable
 
   include_directories(${includes})
   include_directories(${includes_sys})
-  setup_libdirs()
 
   BLENDER_SRC_GTEST_EX(
     NAME ${name}
@@ -522,83 +504,6 @@ function(setup_heavy_lib_pool)
         set_property(TARGET ${TARGET} PROPERTY JOB_POOL_COMPILE compile_heavy_job_pool)
       endif()
     endforeach()
-  endif()
-endfunction()
-
-function(SETUP_LIBDIRS)
-
-  # NOTE: For all new libraries, use absolute library paths.
-  # This should eventually be phased out.
-  # APPLE platform uses full paths for linking libraries, and avoids link_directories.
-  if(NOT MSVC AND NOT APPLE)
-    link_directories(${JPEG_LIBPATH} ${PNG_LIBPATH} ${ZLIB_LIBPATH} ${FREETYPE_LIBPATH})
-
-    if(WITH_PYTHON)  #  AND NOT WITH_PYTHON_MODULE  # WIN32 needs
-      link_directories(${PYTHON_LIBPATH})
-    endif()
-    if(WITH_SDL AND NOT WITH_SDL_DYNLOAD)
-      link_directories(${SDL_LIBPATH})
-    endif()
-    if(WITH_CODEC_FFMPEG)
-      link_directories(${FFMPEG_LIBPATH})
-    endif()
-    if(WITH_IMAGE_OPENEXR)
-      link_directories(${OPENEXR_LIBPATH})
-    endif()
-    if(WITH_IMAGE_TIFF)
-      link_directories(${TIFF_LIBPATH})
-    endif()
-    if(WITH_BOOST)
-      link_directories(${BOOST_LIBPATH})
-    endif()
-    if(WITH_OPENIMAGEIO)
-      link_directories(${OPENIMAGEIO_LIBPATH})
-    endif()
-    if(WITH_OPENIMAGEDENOISE)
-      link_directories(${OPENIMAGEDENOISE_LIBPATH})
-    endif()
-    if(WITH_OPENCOLORIO)
-      link_directories(${OPENCOLORIO_LIBPATH})
-    endif()
-    if(WITH_OPENVDB)
-      link_directories(${OPENVDB_LIBPATH})
-    endif()
-    if(WITH_OPENAL)
-      link_directories(${OPENAL_LIBPATH})
-    endif()
-    if(WITH_JACK AND NOT WITH_JACK_DYNLOAD)
-      link_directories(${JACK_LIBPATH})
-    endif()
-    if(WITH_PULSEAUDIO AND NOT WITH_PULSEAUDIO_DYNLOAD)
-      link_directories(${LIBPULSE_LIBPATH})
-    endif()
-    if(WITH_CODEC_SNDFILE)
-      link_directories(${LIBSNDFILE_LIBPATH})
-    endif()
-    if(WITH_FFTW3)
-      link_directories(${FFTW3_LIBPATH})
-    endif()
-    if(WITH_OPENCOLLADA)
-      link_directories(${OPENCOLLADA_LIBPATH})
-      # # Never set
-      # link_directories(${PCRE_LIBPATH})
-      # link_directories(${EXPAT_LIBPATH})
-    endif()
-    if(WITH_LLVM)
-      link_directories(${LLVM_LIBPATH})
-    endif()
-
-    if(WITH_ALEMBIC)
-      link_directories(${ALEMBIC_LIBPATH})
-    endif()
-
-    if(WITH_GMP)
-      link_directories(${GMP_LIBPATH})
-    endif()
-
-    if(WIN32 AND NOT UNIX)
-      link_directories(${PTHREADS_LIBPATH})
-    endif()
   endif()
 endfunction()
 
@@ -1275,43 +1180,20 @@ endfunction()
 macro(openmp_delayload
   projectname
   )
-    if(MSVC)
-      if(WITH_OPENMP)
-        if(MSVC_CLANG)
-          set(OPENMP_DLL_NAME "libomp")
-        elseif(MSVC_VERSION EQUAL 1800)
-          set(OPENMP_DLL_NAME "vcomp120")
-        else()
-          set(OPENMP_DLL_NAME "vcomp140")
-        endif()
-        set_property(TARGET ${projectname} APPEND_STRING  PROPERTY LINK_FLAGS_RELEASE " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
-        set_property(TARGET ${projectname} APPEND_STRING  PROPERTY LINK_FLAGS_DEBUG " /DELAYLOAD:${OPENMP_DLL_NAME}d.dll delayimp.lib")
-        set_property(TARGET ${projectname} APPEND_STRING  PROPERTY LINK_FLAGS_RELWITHDEBINFO " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
-        set_property(TARGET ${projectname} APPEND_STRING  PROPERTY LINK_FLAGS_MINSIZEREL " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
-      endif()
-    endif()
-endmacro()
-
-macro(blender_precompile_headers target cpp header)
   if(MSVC)
-    # get the name for the pch output file
-    get_filename_component(pchbase ${cpp} NAME_WE)
-    set(pchfinal "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${pchbase}.pch")
-
-    # mark the cpp as the one outputting the pch
-    set_property(SOURCE ${cpp} APPEND PROPERTY OBJECT_OUTPUTS "${pchfinal}")
-
-    # get all sources for the target
-    get_target_property(sources ${target} SOURCES)
-
-    # make all sources depend on the pch to enforce the build order
-    foreach(src ${sources})
-      set_property(SOURCE ${src} APPEND PROPERTY OBJECT_DEPENDS "${pchfinal}")
-    endforeach()
-
-    target_sources(${target} PRIVATE ${cpp} ${header})
-    set_target_properties(${target} PROPERTIES COMPILE_FLAGS "/Yu${header} /Fp${pchfinal} /FI${header}")
-    set_source_files_properties(${cpp} PROPERTIES COMPILE_FLAGS "/Yc${header} /Fp${pchfinal}")
+    if(WITH_OPENMP)
+      if(MSVC_CLANG)
+        set(OPENMP_DLL_NAME "libomp")
+      elseif(MSVC_VERSION EQUAL 1800)
+        set(OPENMP_DLL_NAME "vcomp120")
+      else()
+        set(OPENMP_DLL_NAME "vcomp140")
+      endif()
+      set_property(TARGET ${projectname} APPEND_STRING  PROPERTY LINK_FLAGS_RELEASE " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
+      set_property(TARGET ${projectname} APPEND_STRING  PROPERTY LINK_FLAGS_DEBUG " /DELAYLOAD:${OPENMP_DLL_NAME}d.dll delayimp.lib")
+      set_property(TARGET ${projectname} APPEND_STRING  PROPERTY LINK_FLAGS_RELWITHDEBINFO " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
+      set_property(TARGET ${projectname} APPEND_STRING  PROPERTY LINK_FLAGS_MINSIZEREL " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
+    endif()
   endif()
 endmacro()
 

@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
 
 /** \file
  * \ingroup spnla
@@ -65,9 +49,6 @@
 
 /* Action-Line ---------------------- */
 
-/* get colors for drawing Action-Line
- * NOTE: color returned includes fine-tuned alpha!
- */
 void nla_action_get_color(AnimData *adt, bAction *act, float color[4])
 {
   if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {
@@ -111,11 +92,11 @@ static void nla_action_draw_keyframes(
 
   /* draw a darkened region behind the strips
    * - get and reset the background color, this time without the alpha to stand out better
-   *   (amplified alpha is used instead)
+   *   (amplified alpha is used instead, but clamped to avoid 100% opacity)
    */
   float color[4];
   nla_action_get_color(adt, act, color);
-  color[3] *= 2.5f;
+  color[3] = min_ff(0.7f, color[3] * 2.5f);
 
   GPUVertFormat *format = immVertexFormat();
   uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -327,7 +308,7 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uin
   GPU_line_smooth(true);
   GPU_blend(GPU_BLEND_ALPHA);
 
-  /* Fully opaque line on selected strips.  */
+  /* Fully opaque line on selected strips. */
   if (strip->flag & NLASTRIP_FLAG_SELECT) {
     /* TODO: Use theme setting. */
     immUniformColor3f(1.0f, 1.0f, 1.0f);
@@ -785,6 +766,11 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
         }
         case ANIMTYPE_NLAACTION: {
           AnimData *adt = ale->adt;
+
+          /* Draw the manually set intended playback frame range highlight. */
+          if (ale->data) {
+            ANIM_draw_action_framerange(adt, ale->data, v2d, ymin, ymax);
+          }
 
           uint pos = GPU_vertformat_attr_add(
               immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);

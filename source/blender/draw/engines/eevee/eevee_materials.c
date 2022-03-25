@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2016, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2016 Blender Foundation. */
 
 /** \file
  * \ingroup draw_engine
@@ -33,7 +18,7 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 
-#include "DNA_hair_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
@@ -76,9 +61,6 @@ struct GPUTexture *EEVEE_materials_get_util_tex(void)
   return e_data.util_tex;
 }
 
-/**
- * ssr_id can be null to disable ssr contribution.
- */
 void EEVEE_material_bind_resources(DRWShadingGroup *shgrp,
                                    GPUMaterial *gpumat,
                                    EEVEE_ViewLayerData *sldata,
@@ -356,7 +338,7 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
   const DRWContextState *draw_ctx = DRW_context_state_get();
 
-  /* Create Material Ghash */
+  /* Create Material #GHash. */
   {
     stl->g_data->material_hash = BLI_ghash_ptr_new("Eevee_material ghash");
 
@@ -820,7 +802,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
                          !DRW_state_is_image_render();
 
   /* First get materials for this mesh. */
-  if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {
+  if (ELEM(ob->type, OB_MESH, OB_SURF, OB_MBALL)) {
     const int materials_len = DRW_cache_object_material_count_get(ob);
 
     EeveeMaterialCache *matcache = BLI_array_alloca(matcache, materials_len);
@@ -928,7 +910,7 @@ void EEVEE_object_hair_cache_populate(EEVEE_Data *vedata,
                                       Object *ob,
                                       bool *cast_shadow)
 {
-  eevee_hair_cache_populate(vedata, sldata, ob, NULL, NULL, HAIR_MATERIAL_NR, cast_shadow);
+  eevee_hair_cache_populate(vedata, sldata, ob, NULL, NULL, CURVES_MATERIAL_NR, cast_shadow);
 }
 
 void EEVEE_materials_cache_finish(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)

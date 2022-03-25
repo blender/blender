@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup wm
@@ -111,6 +95,7 @@
 #include "ED_fileselect.h"
 #include "ED_image.h"
 #include "ED_outliner.h"
+#include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_undo.h"
 #include "ED_util.h"
@@ -170,9 +155,6 @@ void WM_file_tag_modified(void)
   }
 }
 
-/**
- * Check if there is data that would be lost when closing the current file without saving.
- */
 bool wm_file_or_session_data_has_unsaved_changes(const Main *bmain, const wmWindowManager *wm)
 {
   return !wm->file_saved || ED_image_should_save_modified(bmain) ||
@@ -195,7 +177,6 @@ bool wm_file_or_session_data_has_unsaved_changes(const Main *bmain, const wmWind
 static void wm_window_match_init(bContext *C, ListBase *wmlist)
 {
   *wmlist = G_MAIN->wm;
-  BLI_listbase_clear(&G_MAIN->wm);
 
   wmWindow *active_win = CTX_wm_window(C);
 
@@ -221,6 +202,8 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
       wm->message_bus = NULL;
     }
   }
+
+  BLI_listbase_clear(&G_MAIN->wm);
 
   /* reset active window */
   CTX_wm_window_set(C, active_win);
@@ -263,9 +246,11 @@ static void wm_window_substitute_old(wmWindowManager *oldwm,
   oldwin->gpuctx = NULL;
 
   win->eventstate = oldwin->eventstate;
+  win->event_last_handled = oldwin->event_last_handled;
   oldwin->eventstate = NULL;
+  oldwin->event_last_handled = NULL;
 
-  /* ensure proper screen rescaling */
+  /* Ensure proper screen re-scaling. */
   win->sizex = oldwin->sizex;
   win->sizey = oldwin->sizey;
   win->posx = oldwin->posx;
@@ -620,6 +605,8 @@ static void wm_file_read_pre(bContext *C, bool use_data, bool UNUSED(use_userdef
   /* Always do this as both startup and preferences may have loaded in many font's
    * at a different zoom level to the file being loaded. */
   UI_view2d_zoom_cache_reset();
+
+  ED_preview_restart_queue_free();
 }
 
 /**
@@ -873,18 +860,16 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
                 duration_lib_override_recursive_resync_seconds);
   }
 
-  if (bf_reports->count.linked_proxies != 0 ||
-      bf_reports->count.proxies_to_lib_overrides_success != 0 ||
+  if (bf_reports->count.proxies_to_lib_overrides_success != 0 ||
       bf_reports->count.proxies_to_lib_overrides_failures != 0) {
-    BKE_reportf(bf_reports->reports,
-                RPT_WARNING,
-                "Proxies are deprecated (%d proxies were automatically converted to library "
-                "overrides, %d proxies could not be converted and %d linked proxies were kept "
-                "untouched). If you need to keep proxies for the time being, please disable the "
-                "`Proxy to Override Auto Conversion` in Experimental user preferences",
-                bf_reports->count.proxies_to_lib_overrides_success,
-                bf_reports->count.proxies_to_lib_overrides_failures,
-                bf_reports->count.linked_proxies);
+    BKE_reportf(
+        bf_reports->reports,
+        RPT_WARNING,
+        "Proxies have been removed from Blender (%d proxies were automatically converted "
+        "to library overrides, %d proxies could not be converted and were cleared). "
+        "Please also consider re-saving any library .blend file with the newest Blender version.",
+        bf_reports->count.proxies_to_lib_overrides_success,
+        bf_reports->count.proxies_to_lib_overrides_failures);
   }
 
   if (bf_reports->count.sequence_strips_skipped != 0) {
@@ -955,16 +940,6 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
       /* #BKE_blendfile_read_result_setup sets new Main into context. */
       Main *bmain = CTX_data_main(C);
 
-      /* When recovering a session from an unsaved file, this can have a blank path. */
-      if (BKE_main_blendfile_path(bmain)[0] != '\0') {
-        G.save_over = 1;
-        G.relbase_valid = 1;
-      }
-      else {
-        G.save_over = 0;
-        G.relbase_valid = 0;
-      }
-
       /* match the read WM with current WM */
       wm_window_match_do(C, &wmbase, &bmain->wm, &bmain->wm);
       WM_check(C); /* opens window(s), checks keymaps */
@@ -1032,12 +1007,6 @@ static struct {
   bool override;
 } wm_init_state_app_template = {{0}};
 
-/**
- * Used for setting app-template from the command line:
- * - non-empty string: overrides.
- * - empty string: override, using no app template.
- * - NULL: clears override.
- */
 void WM_init_state_app_template_set(const char *app_template)
 {
   if (app_template) {
@@ -1061,16 +1030,6 @@ const char *WM_init_state_app_template_get(void)
 /** \name Read Startup & Preferences Blend-File API
  * \{ */
 
-/**
- * Called on startup, (context entirely filled with NULLs)
- * or called for 'New File' both `startup.blend` and `userpref.blend` are checked.
- *
- * \param r_params_file_read_post: Support postponed initialization,
- * needed for initial startup when only some sub-systems have been initialized.
- * When non-null, #wm_file_read_post doesn't run, instead it's arguments are stored
- * in this return argument.
- * The caller is responsible for calling #wm_homefile_read_post with this return argument.
- */
 void wm_homefile_read_ex(bContext *C,
                          const struct wmHomeFileRead_Params *params_homefile,
                          ReportList *reports,
@@ -1167,8 +1126,6 @@ void wm_homefile_read_ex(bContext *C,
   wm_file_read_pre(C, use_data, use_userdef);
 
   if (use_data) {
-    G.relbase_valid = 0;
-
     /* put aside screens to match with persistent windows later */
     wm_window_match_init(C, &wmbase);
   }
@@ -1372,10 +1329,7 @@ void wm_homefile_read_ex(bContext *C,
   if (use_data) {
     WM_check(C); /* opens window(s), checks keymaps */
 
-    bmain->name[0] = '\0';
-
-    /* start with save preference untitled.blend */
-    G.save_over = 0;
+    bmain->filepath[0] = '\0';
   }
 
   {
@@ -1406,16 +1360,14 @@ void wm_homefile_read(bContext *C,
   wm_homefile_read_ex(C, params_homefile, reports, NULL);
 }
 
-/**
- * Special case, support deferred execution of #wm_file_read_post,
- * Needed when loading for the first time to workaround order of initialization bug, see T89046.
- */
 void wm_homefile_read_post(struct bContext *C,
                            const struct wmFileReadPost_Params *params_file_read_post)
 {
   wm_file_read_post(C, params_file_read_post);
   MEM_freeN((void *)params_file_read_post);
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Blend-File History API
@@ -1514,18 +1466,18 @@ static void wm_history_file_write(void)
 static void wm_history_file_update(void)
 {
   RecentFile *recent;
-  const char *blendfile_name = BKE_main_blendfile_path_from_global();
+  const char *blendfile_path = BKE_main_blendfile_path_from_global();
 
-  /* no write history for recovered startup files */
-  if (blendfile_name[0] == '\0') {
+  /* No write history for recovered startup files. */
+  if (blendfile_path[0] == '\0') {
     return;
   }
 
   recent = G.recent_files.first;
   /* refresh recent-files.txt of recent opened files, when current file was changed */
-  if (!(recent) || (BLI_path_cmp(recent->filepath, blendfile_name) != 0)) {
+  if (!(recent) || (BLI_path_cmp(recent->filepath, blendfile_path) != 0)) {
 
-    recent = wm_file_history_find(blendfile_name);
+    recent = wm_file_history_find(blendfile_path);
     if (recent) {
       BLI_remlink(&G.recent_files, recent);
     }
@@ -1536,7 +1488,7 @@ static void wm_history_file_update(void)
         recent_next = recent->next;
         wm_history_file_free(recent);
       }
-      recent = wm_history_file_new(blendfile_name);
+      recent = wm_history_file_new(blendfile_path);
     }
 
     /* add current file to the beginning of list */
@@ -1546,18 +1498,36 @@ static void wm_history_file_update(void)
     wm_history_file_write();
 
     /* also update most recent files on System */
-    GHOST_addToSystemRecentFiles(blendfile_name);
+    GHOST_addToSystemRecentFiles(blendfile_path);
   }
 }
 
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Save Main Blend-File (internal) Screen-Shot
+/** \name Thumbnail Generation: Screen-Shot / Camera View
  *
- * Screen-shot the active window.
+ * Thumbnail Sizes
+ * ===============
+ *
+ * - `PREVIEW_RENDER_LARGE_HEIGHT * 2` is used to render a large thumbnail,
+ *   giving some over-sampling when scaled down:
+ *
+ * - There are two outputs for this thumbnail:
+ *
+ *   - An image is saved to the thumbnail cache, sized at #PREVIEW_RENDER_LARGE_HEIGHT.
+ *
+ *   - A smaller thumbnail is stored in the `.blend` file it's self, sized at #BLEN_THUMB_SIZE.
+ *     The size is kept small to prevent thumbnails bloating the size of `.blend` files.
+ *
+ *     The this thumbnail will be extracted if the file is shared or the local thumbnail cache
+ *     is cleared. see: `blendthumb_extract.cc` for logic that extracts the thumbnail.
+ *
  * \{ */
 
+/**
+ * Screen-shot the active window.
+ */
 static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **r_thumb)
 {
   *r_thumb = NULL;
@@ -1603,15 +1573,11 @@ static ImBuf *blend_file_thumb_from_screenshot(bContext *C, BlendThumbnail **r_t
   return ibuf;
 }
 
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Save Main Blend-File (internal) Camera View
- *
+/**
  * Render the current scene with the active camera.
- * \{ */
-
-/* screen can be NULL */
+ *
+ * \param screen: can be NULL.
+ */
 static ImBuf *blend_file_thumb_from_camera(const bContext *C,
                                            Scene *scene,
                                            bScreen *screen,
@@ -1649,7 +1615,6 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
     return NULL;
   }
 
-  /* gets scaled to BLEN_THUMB_SIZE */
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   /* Note that with scaling, this ends up being 0.5,
@@ -1721,7 +1686,12 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
   return ibuf;
 }
 
-/* easy access from gdb */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Write Main Blend-File (internal)
+ * \{ */
+
 bool write_crash_blend(void)
 {
   char path[FILE_MAX];
@@ -1817,8 +1787,9 @@ static bool wm_file_write(bContext *C,
 
       if (file_preview_type == USER_FILE_PREVIEW_AUTO) {
         Scene *scene = CTX_data_scene(C);
-        bool do_render = (scene != NULL && scene->camera != NULL &&
-                          (BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_VIEW3D, 0) != NULL));
+        bScreen *screen = CTX_wm_screen(C);
+        bool do_render = (scene != NULL && scene->camera != NULL && screen != NULL &&
+                          (BKE_screen_find_big_area(screen, SPACE_VIEW3D, 0) != NULL));
         file_preview_type = do_render ? USER_FILE_PREVIEW_CAMERA : USER_FILE_PREVIEW_SCREENSHOT;
       }
 
@@ -1846,16 +1817,10 @@ static bool wm_file_write(bContext *C,
 
   ED_editors_flush_edits(bmain);
 
-  /* First time saving. */
-  /* XXX(ton): temp solution to solve bug, real fix coming. */
-  if ((BKE_main_blendfile_path(bmain)[0] == '\0') && (use_save_as_copy == false)) {
-    BLI_strncpy(bmain->name, filepath, sizeof(bmain->name));
-  }
-
   /* XXX(ton): temp solution to solve bug, real fix coming. */
   bmain->recovered = 0;
 
-  if (BLO_write_file(CTX_data_main(C),
+  if (BLO_write_file(bmain,
                      filepath,
                      fileflags,
                      &(const struct BlendFileWriteParams){
@@ -1869,10 +1834,7 @@ static bool wm_file_write(bContext *C,
                                         (CTX_wm_manager(C)->op_undo_depth == 0);
 
     if (use_save_as_copy == false) {
-      G.relbase_valid = 1;
-      BLI_strncpy(bmain->name, filepath, sizeof(bmain->name)); /* is guaranteed current file */
-
-      G.save_over = 1; /* disable untitled.blend convention */
+      STRNCPY(bmain->filepath, filepath); /* is guaranteed current file */
     }
 
     SET_FLAG_FROM_TEST(G.fileflags, fileflags & G_FILE_COMPRESS, G_FILE_COMPRESS);
@@ -1923,8 +1885,13 @@ static void wm_autosave_location(char *filepath)
   const char *savedir;
 #endif
 
-  if (G_MAIN && G.relbase_valid) {
-    const char *basename = BLI_path_basename(BKE_main_blendfile_path_from_global());
+  /* Normally there is no need to check for this to be NULL,
+   * however this runs on exit when it may be cleared. */
+  Main *bmain = G_MAIN;
+  const char *blendfile_path = bmain ? BKE_main_blendfile_path(bmain) : NULL;
+
+  if (blendfile_path && (blendfile_path[0] != '\0')) {
+    const char *basename = BLI_path_basename(blendfile_path);
     int len = strlen(basename) - 6;
     BLI_snprintf(path, sizeof(path), "%.*s_%d_autosave.blend", len, basename, pid);
   }
@@ -2001,14 +1968,11 @@ void wm_autosave_timer_end(wmWindowManager *wm)
   }
 }
 
-void WM_autosave_init(wmWindowManager *wm)
+void WM_file_autosave_init(wmWindowManager *wm)
 {
   wm_autosave_timer_begin(wm);
 }
 
-/**
- * Run the auto-save timer action.
- */
 void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *UNUSED(wt))
 {
   wm_autosave_timer_end(wm);
@@ -2056,7 +2020,7 @@ void wm_autosave_delete(void)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Initialize WM_OT_open_xxx properties
+/** \name Initialize `WM_OT_open_*` Properties
  *
  * Check if load_ui was set by the caller.
  * Fall back to user preference when file flags not specified.
@@ -2137,7 +2101,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
                      fileflags,
                      &(const struct BlendFileWriteParams){
                          /* Make all paths absolute when saving the startup file.
-                          * On load the `G.relbase_valid` will be false so the paths
+                          * On load the `G.main->filepath` will be empty so the paths
                           * won't have a base for resolving the relative paths. */
                          .remap_mode = BLO_WRITE_PATH_REMAP_ABSOLUTE,
                          /* Don't apply any path changes to the current blend file. */
@@ -2150,7 +2114,6 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
 
   printf("ok\n");
   BKE_report(op->reports, RPT_INFO, "Startup file saved");
-  G.save_over = 0;
 
   BKE_callback_exec_null(bmain, BKE_CB_EVT_SAVE_POST);
 
@@ -2461,7 +2424,7 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 static void wm_homefile_read_after_dialog_callback(bContext *C, void *user_data)
 {
   WM_operator_name_call_with_properties(
-      C, "WM_OT_read_homefile", WM_OP_EXEC_DEFAULT, (IDProperty *)user_data);
+      C, "WM_OT_read_homefile", WM_OP_EXEC_DEFAULT, (IDProperty *)user_data, NULL);
 }
 
 static int wm_homefile_read_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
@@ -2614,7 +2577,7 @@ static int wm_open_mainfile_dispatch(bContext *C, wmOperator *op);
 static void wm_open_mainfile_after_dialog_callback(bContext *C, void *user_data)
 {
   WM_operator_name_call_with_properties(
-      C, "WM_OT_open_mainfile", WM_OP_INVOKE_DEFAULT, (IDProperty *)user_data);
+      C, "WM_OT_open_mainfile", WM_OP_INVOKE_DEFAULT, (IDProperty *)user_data, NULL);
 }
 
 static int wm_open_mainfile__discard_changes(bContext *C, wmOperator *op)
@@ -2637,7 +2600,7 @@ static int wm_open_mainfile__select_file_path(bContext *C, wmOperator *op)
   set_next_operator_state(op, OPEN_MAINFILE_STATE_OPEN);
 
   Main *bmain = CTX_data_main(C);
-  const char *openname = BKE_main_blendfile_path(bmain);
+  const char *blendfile_path = BKE_main_blendfile_path(bmain);
 
   if (CTX_wm_window(C) == NULL) {
     /* in rare cases this could happen, when trying to invoke in background
@@ -2650,10 +2613,10 @@ static int wm_open_mainfile__select_file_path(bContext *C, wmOperator *op)
   /* if possible, get the name of the most recently used .blend file */
   if (G.recent_files.first) {
     struct RecentFile *recent = G.recent_files.first;
-    openname = recent->filepath;
+    blendfile_path = recent->filepath;
   }
 
-  RNA_string_set(op->ptr, "filepath", openname);
+  RNA_string_set(op->ptr, "filepath", blendfile_path);
   wm_open_init_load_ui(op, true);
   wm_open_init_use_scripts(op, true);
   op->customdata = NULL;
@@ -2727,7 +2690,7 @@ static char *wm_open_mainfile_description(struct bContext *UNUSED(C),
 
   BLI_stat_t stats;
   if (BLI_stat(path, &stats) == -1) {
-    return BLI_sprintfN("%s\n\n%s", path, N_("File Not Found"));
+    return BLI_sprintfN("%s\n\n%s", path, TIP_("File Not Found"));
   }
 
   /* Date. */
@@ -2737,7 +2700,7 @@ static char *wm_open_mainfile_description(struct bContext *UNUSED(C),
   BLI_filelist_entry_datetime_to_string(
       NULL, (int64_t)stats.st_mtime, false, time_st, date_st, &is_today, &is_yesterday);
   if (is_today || is_yesterday) {
-    BLI_strncpy(date_st, is_today ? N_("Today") : N_("Yesterday"), sizeof(date_st));
+    BLI_strncpy(date_st, is_today ? TIP_("Today") : TIP_("Yesterday"), sizeof(date_st));
   }
 
   /* Size. */
@@ -2745,7 +2708,7 @@ static char *wm_open_mainfile_description(struct bContext *UNUSED(C),
   BLI_filelist_entry_size_to_string(NULL, (uint64_t)stats.st_size, false, size_str);
 
   return BLI_sprintfN(
-      "%s\n\n%s: %s %s\n%s: %s", path, N_("Modified"), date_st, time_st, N_("Size"), size_str);
+      "%s\n\n%s: %s %s\n%s: %s", path, TIP_("Modified"), date_st, time_st, TIP_("Size"), size_str);
 }
 
 /* currently fits in a pointer */
@@ -2876,7 +2839,8 @@ static int wm_revert_mainfile_exec(bContext *C, wmOperator *op)
 
 static bool wm_revert_mainfile_poll(bContext *UNUSED(C))
 {
-  return G.relbase_valid;
+  const char *blendfile_path = BKE_main_blendfile_path_from_global();
+  return (blendfile_path[0] != '\0');
 }
 
 void WM_OT_revert_mainfile(wmOperatorType *ot)
@@ -2898,7 +2862,7 @@ void WM_OT_revert_mainfile(wmOperatorType *ot)
 /** \name Recover Last Session Operator
  * \{ */
 
-bool WM_recover_last_session(bContext *C, ReportList *reports)
+bool WM_file_recover_last_session(bContext *C, ReportList *reports)
 {
   char filepath[FILE_MAX];
   BLI_join_dirfile(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
@@ -2912,7 +2876,7 @@ static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
 {
   wm_open_init_use_scripts(op, true);
   SET_FLAG_FROM_TEST(G.f, RNA_boolean_get(op->ptr, "use_scripts"), G_FLAG_SCRIPT_AUTOEXEC);
-  if (WM_recover_last_session(C, op->reports)) {
+  if (WM_file_recover_last_session(C, op->reports)) {
     if (!G.background) {
       wmOperatorType *ot = op->type;
       PointerRNA *props_ptr = MEM_callocN(sizeof(PointerRNA), __func__);
@@ -2928,7 +2892,7 @@ static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
 static void wm_recover_last_session_after_dialog_callback(bContext *C, void *user_data)
 {
   WM_operator_name_call_with_properties(
-      C, "WM_OT_recover_last_session", WM_OP_EXEC_DEFAULT, (IDProperty *)user_data);
+      C, "WM_OT_recover_last_session", WM_OP_EXEC_DEFAULT, (IDProperty *)user_data, NULL);
 }
 
 static int wm_recover_last_session_invoke(bContext *C,
@@ -3033,9 +2997,9 @@ void WM_OT_recover_auto_save(wmOperatorType *ot)
  * Both #WM_OT_save_as_mainfile & #WM_OT_save_mainfile.
  * \{ */
 
-static void wm_filepath_default(char *filepath)
+static void wm_filepath_default(const Main *bmain, char *filepath)
 {
-  if (G.save_over == false) {
+  if (bmain->filepath[0] == '\0') {
     BLI_path_filename_ensure(filepath, FILE_MAX, "untitled.blend");
   }
 }
@@ -3046,7 +3010,8 @@ static void save_set_compress(wmOperator *op)
 
   prop = RNA_struct_find_property(op->ptr, "compress");
   if (!RNA_property_is_set(op->ptr, prop)) {
-    if (G.save_over) { /* keep flag for existing file */
+    const char *blendfile_path = BKE_main_blendfile_path_from_global();
+    if (blendfile_path[0] != '\0') { /* Keep flag for existing file. */
       RNA_property_boolean_set(op->ptr, prop, (G.fileflags & G_FILE_COMPRESS) != 0);
     }
     else { /* use userdef for new file */
@@ -3059,21 +3024,22 @@ static void save_set_filepath(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   PropertyRNA *prop;
-  char name[FILE_MAX];
+  char filepath[FILE_MAX];
 
   prop = RNA_struct_find_property(op->ptr, "filepath");
   if (!RNA_property_is_set(op->ptr, prop)) {
+    const char *blendfile_path = BKE_main_blendfile_path(bmain);
     /* if not saved before, get the name of the most recently used .blend file */
-    if (BKE_main_blendfile_path(bmain)[0] == '\0' && G.recent_files.first) {
+    if ((blendfile_path[0] == '\0') && G.recent_files.first) {
       struct RecentFile *recent = G.recent_files.first;
-      BLI_strncpy(name, recent->filepath, FILE_MAX);
+      STRNCPY(filepath, recent->filepath);
     }
     else {
-      BLI_strncpy(name, bmain->name, FILE_MAX);
+      STRNCPY(filepath, blendfile_path);
     }
 
-    wm_filepath_default(name);
-    RNA_property_string_set(op->ptr, prop, name);
+    wm_filepath_default(bmain, filepath);
+    RNA_property_string_set(op->ptr, prop, filepath);
   }
 }
 
@@ -3105,12 +3071,32 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
                                              BLO_WRITE_PATH_REMAP_NONE;
   save_set_compress(op);
 
-  if (RNA_struct_property_is_set(op->ptr, "filepath")) {
+  const bool is_filepath_set = RNA_struct_property_is_set(op->ptr, "filepath");
+  if (is_filepath_set) {
     RNA_string_get(op->ptr, "filepath", path);
   }
   else {
-    BLI_strncpy(path, BKE_main_blendfile_path(bmain), FILE_MAX);
-    wm_filepath_default(path);
+    STRNCPY(path, BKE_main_blendfile_path(bmain));
+  }
+
+  if (path[0] == '\0') {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Unable to save an unsaved file with an empty or unset \"filepath\" property");
+    return OPERATOR_CANCELLED;
+  }
+
+  /* NOTE(@campbellbarton): only check this for file-path properties so saving an already
+   * saved file never fails with an error.
+   * Even though this should never happen, there may be some corner case where a malformed
+   * path is stored in `G.main->filepath`: when the file path is initialized from recovering
+   * a blend file - for example, so in this case failing to save isn't ideal. */
+  if (is_filepath_set && !BLI_path_is_abs_from_cwd(path)) {
+    BKE_reportf(op->reports,
+                RPT_ERROR,
+                "The \"filepath\" property was not an absolute path: \"%s\"",
+                path);
+    return OPERATOR_CANCELLED;
   }
 
   const int fileflags_orig = G.fileflags;
@@ -3169,8 +3155,8 @@ static char *wm_save_as_mainfile_get_description(bContext *UNUSED(C),
                                                  PointerRNA *ptr)
 {
   if (RNA_boolean_get(ptr, "copy")) {
-    return BLI_strdup(
-        "Save the current file in the desired location but do not make the saved file active");
+    return BLI_strdup(TIP_(
+        "Save the current file in the desired location but do not make the saved file active"));
   }
   return NULL;
 }
@@ -3227,14 +3213,15 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *U
   /* if we're saving for the first time and prefer relative paths -
    * any existing paths will be absolute,
    * enable the option to remap paths to avoid confusion T37240. */
-  if ((G.relbase_valid == false) && (U.flag & USER_RELPATHS)) {
+  const char *blendfile_path = BKE_main_blendfile_path_from_global();
+  if ((blendfile_path[0] == '\0') && (U.flag & USER_RELPATHS)) {
     PropertyRNA *prop = RNA_struct_find_property(op->ptr, "relative_remap");
     if (!RNA_property_is_set(op->ptr, prop)) {
       RNA_property_boolean_set(op->ptr, prop, true);
     }
   }
 
-  if (G.save_over) {
+  if (blendfile_path[0] != '\0') {
     char path[FILE_MAX];
 
     RNA_string_get(op->ptr, "filepath", path);
@@ -3303,7 +3290,7 @@ static void wm_block_autorun_warning_reload_with_scripts(bContext *C,
 
   /* Save user preferences for permanent execution. */
   if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) {
-    WM_operator_name_call(C, "WM_OT_save_userpref", WM_OP_EXEC_DEFAULT, NULL);
+    WM_operator_name_call(C, "WM_OT_save_userpref", WM_OP_EXEC_DEFAULT, NULL, NULL);
   }
 
   /* Load file again with scripts enabled.
@@ -3322,7 +3309,7 @@ static void wm_block_autorun_warning_enable_scripts(bContext *C,
 
   /* Save user preferences for permanent execution. */
   if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) {
-    WM_operator_name_call(C, "WM_OT_save_userpref", WM_OP_EXEC_DEFAULT, NULL);
+    WM_operator_name_call(C, "WM_OT_save_userpref", WM_OP_EXEC_DEFAULT, NULL, NULL);
   }
 
   /* Force a full refresh, but without reloading the file. */
@@ -3336,6 +3323,7 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
                                              struct ARegion *region,
                                              void *UNUSED(arg1))
 {
+  const char *blendfile_path = BKE_main_blendfile_path_from_global();
   wmWindowManager *wm = CTX_wm_manager(C);
 
   uiBlock *block = UI_block_begin(C, region, "autorun_warning_popup", UI_EMBOSS);
@@ -3383,7 +3371,7 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
 
   /* Allow reload if we have a saved file.
    * Otherwise just enable scripts and reset the depsgraphs. */
-  if (G.relbase_valid && wm->file_saved) {
+  if ((blendfile_path[0] != '\0') && wm->file_saved) {
     but = uiDefIconTextBut(block,
                            UI_BTYPE_BUT,
                            0,
@@ -3490,7 +3478,7 @@ void wm_test_autorun_revert_action_exec(bContext *C)
     wm_test_autorun_revert_action_set(ot, ptr);
   }
 
-  WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, ptr);
+  WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, ptr, NULL);
   wm_test_autorun_revert_action_set(NULL, NULL);
 }
 
@@ -3571,13 +3559,13 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
   bool file_has_been_saved_before = BKE_main_blendfile_path(bmain)[0] != '\0';
 
   if (file_has_been_saved_before) {
-    if (WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_EXEC_DEFAULT, NULL) &
+    if (WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_EXEC_DEFAULT, NULL, NULL) &
         OPERATOR_CANCELLED) {
       execute_callback = false;
     }
   }
   else {
-    WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_INVOKE_DEFAULT, NULL);
+    WM_operator_name_call(C, "WM_OT_save_mainfile", WM_OP_INVOKE_DEFAULT, NULL, NULL);
     execute_callback = false;
   }
 
@@ -3640,10 +3628,10 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
   uiItemL_ex(layout, TIP_("Save changes before closing?"), ICON_NONE, true, false);
 
   /* Filename. */
-  const char *blendfile_pathpath = BKE_main_blendfile_path(CTX_data_main(C));
+  const char *blendfile_path = BKE_main_blendfile_path(CTX_data_main(C));
   char filename[FILE_MAX];
-  if (blendfile_pathpath[0] != '\0') {
-    BLI_split_file_part(blendfile_pathpath, filename, sizeof(filename));
+  if (blendfile_path[0] != '\0') {
+    BLI_split_file_part(blendfile_path, filename, sizeof(filename));
   }
   else {
     STRNCPY(filename, "untitled.blend");
@@ -3810,10 +3798,6 @@ static void wm_free_operator_properties_callback(void *user_data)
   IDP_FreeProperty(properties);
 }
 
-/**
- * \return True if the dialog was created, the calling operator should return #OPERATOR_INTERFACE
- *         then.
- */
 bool wm_operator_close_file_dialog_if_needed(bContext *C,
                                              wmOperator *op,
                                              wmGenericCallbackFn post_action_fn)

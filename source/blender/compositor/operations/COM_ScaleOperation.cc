@@ -1,20 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright 2011, Blender Foundation.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2011 Blender Foundation. */
 
 #include "COM_ScaleOperation.h"
 #include "COM_ConstantOperation.h"
@@ -223,7 +208,7 @@ void ScaleOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
       get_input_socket(IMAGE_INPUT_INDEX)->determine_canvas(preferred_area, r_area);
   if (image_determined) {
     rcti image_canvas = r_area;
-    rcti unused;
+    rcti unused = COM_AREA_NONE;
     NodeOperationInput *x_socket = get_input_socket(X_INPUT_INDEX);
     NodeOperationInput *y_socket = get_input_socket(Y_INPUT_INDEX);
     x_socket->determine_canvas(image_canvas, unused);
@@ -374,7 +359,6 @@ bool ScaleAbsoluteOperation::determine_depending_area_of_interest(
   return ScaleOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
-/* Absolute fixed size. */
 ScaleFixedSizeOperation::ScaleFixedSizeOperation() : BaseScaleOperation()
 {
   this->add_input_socket(DataType::Color, ResizeMode::None);
@@ -503,7 +487,7 @@ void ScaleFixedSizeOperation::determine_canvas(const rcti &preferred_area, rcti 
   rcti local_preferred = preferred_area;
   local_preferred.xmax = local_preferred.xmin + new_width_;
   local_preferred.ymax = local_preferred.ymin + new_height_;
-  rcti input_canvas;
+  rcti input_canvas = COM_AREA_NONE;
   const bool input_determined = get_input_socket(0)->determine_canvas(local_preferred,
                                                                       input_canvas);
   if (input_determined) {

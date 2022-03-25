@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2008 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup spbuttons
@@ -32,6 +16,7 @@
 
 #include "BKE_context.h"
 #include "BKE_gpencil_modifier.h" /* Types for registering panels. */
+#include "BKE_lib_remap.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
 #include "BKE_shader_fx.h"
@@ -166,11 +151,6 @@ static void buttons_main_region_init(wmWindowManager *wm, ARegion *region)
 /** \name Property Editor Layout
  * \{ */
 
-/**
- * Fills an array with the tab context values for the properties editor. -1 signals a separator.
- *
- * \return The total number of items in the array returned.
- */
 int ED_buttons_tabs_list(SpaceProperties *sbuts, short *context_tabs_array)
 {
   int length = 0;
@@ -445,7 +425,7 @@ static void property_search_all_tabs(const bContext *C,
                    i,
                    property_search_for_context(C, region_copy, &sbuts_copy));
 
-    UI_blocklist_free(C, &region_copy->uiblocks);
+    UI_blocklist_free(C, region_copy);
   }
 
   BKE_area_region_free(area_copy.type, region_copy);
@@ -865,54 +845,53 @@ static void buttons_area_listener(const wmSpaceTypeListenerParams *params)
   }
 }
 
-static void buttons_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)
+static void buttons_id_remap(ScrArea *UNUSED(area),
+                             SpaceLink *slink,
+                             const struct IDRemapper *mappings)
 {
   SpaceProperties *sbuts = (SpaceProperties *)slink;
 
-  if (sbuts->pinid == old_id) {
-    sbuts->pinid = new_id;
-    if (new_id == NULL) {
-      sbuts->flag &= ~SB_PIN_CONTEXT;
-    }
+  if (BKE_id_remapper_apply(mappings, &sbuts->pinid, ID_REMAP_APPLY_DEFAULT) ==
+      ID_REMAP_RESULT_SOURCE_UNASSIGNED) {
+    sbuts->flag &= ~SB_PIN_CONTEXT;
   }
 
   if (sbuts->path) {
     ButsContextPath *path = sbuts->path;
+    for (int i = 0; i < path->len; i++) {
+      switch (BKE_id_remapper_apply(mappings, &path->ptr[i].owner_id, ID_REMAP_APPLY_DEFAULT)) {
+        case ID_REMAP_RESULT_SOURCE_UNASSIGNED: {
+          if (i == 0) {
+            MEM_SAFE_FREE(sbuts->path);
+          }
+          else {
+            memset(&path->ptr[i], 0, sizeof(path->ptr[i]) * (path->len - i));
+            path->len = i;
+          }
+          break;
+        }
+        case ID_REMAP_RESULT_SOURCE_REMAPPED: {
+          RNA_id_pointer_create(path->ptr[i].owner_id, &path->ptr[i]);
+          /* There is no easy way to check/make path downwards valid, just nullify it.
+           * Next redraw will rebuild this anyway. */
+          i++;
+          memset(&path->ptr[i], 0, sizeof(path->ptr[i]) * (path->len - i));
+          path->len = i;
+          break;
+        }
 
-    int i;
-    for (i = 0; i < path->len; i++) {
-      if (path->ptr[i].owner_id == old_id) {
-        break;
+        case ID_REMAP_RESULT_SOURCE_NOT_MAPPABLE:
+        case ID_REMAP_RESULT_SOURCE_UNAVAILABLE: {
+          /* Nothing to do. */
+          break;
+        }
       }
-    }
-
-    if (i == path->len) {
-      /* pass */
-    }
-    else if (new_id == NULL) {
-      if (i == 0) {
-        MEM_SAFE_FREE(sbuts->path);
-      }
-      else {
-        memset(&path->ptr[i], 0, sizeof(path->ptr[i]) * (path->len - i));
-        path->len = i;
-      }
-    }
-    else {
-      RNA_id_pointer_create(new_id, &path->ptr[i]);
-      /* There is no easy way to check/make path downwards valid, just nullify it.
-       * Next redraw will rebuild this anyway. */
-      i++;
-      memset(&path->ptr[i], 0, sizeof(path->ptr[i]) * (path->len - i));
-      path->len = i;
     }
   }
 
   if (sbuts->texuser) {
     ButsContextTexture *ct = sbuts->texuser;
-    if ((ID *)ct->texture == old_id) {
-      ct->texture = (Tex *)new_id;
-    }
+    BKE_id_remapper_apply(mappings, (ID **)&ct->texture, ID_REMAP_APPLY_DEFAULT);
     BLI_freelistN(&ct->users);
     ct->user = NULL;
   }
@@ -924,7 +903,6 @@ static void buttons_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id
 /** \name Space Type Initialization
  * \{ */
 
-/* only called once, from space/spacetypes.c */
 void ED_spacetype_buttons(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype buttons");

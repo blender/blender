@@ -1,23 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: some of this file.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bli
@@ -45,7 +27,6 @@ extern "C" {
 #  define UNLIKELY(x) (x)
 #endif
 
-/* powf is really slow for raising to integer powers. */
 MINLINE float pow2f(float x)
 {
   return x * x;
@@ -114,10 +95,10 @@ MINLINE float saacos(float fac)
 MINLINE float saasin(float fac)
 {
   if (UNLIKELY(fac <= -1.0f)) {
-    return (float)-M_PI / 2.0f;
+    return (float)-M_PI_2;
   }
   else if (UNLIKELY(fac >= 1.0f)) {
-    return (float)M_PI / 2.0f;
+    return (float)M_PI_2;
   }
   else {
     return asinf(fac);
@@ -150,10 +131,10 @@ MINLINE float saacosf(float fac)
 MINLINE float saasinf(float fac)
 {
   if (UNLIKELY(fac <= -1.0f)) {
-    return (float)-M_PI / 2.0f;
+    return (float)-M_PI_2;
   }
   else if (UNLIKELY(fac >= 1.0f)) {
-    return (float)M_PI / 2.0f;
+    return (float)M_PI_2;
   }
   else {
     return asinf(fac);
@@ -192,21 +173,18 @@ MINLINE double ratiod(double min, double max, double pos)
   return range == 0 ? 0 : ((pos - min) / range);
 }
 
-/* Map a normalized value, i.e. from interval [0, 1] to interval [a, b]. */
 MINLINE float scalenorm(float a, float b, float x)
 {
   BLI_assert(x <= 1 && x >= 0);
   return (x * (b - a)) + a;
 }
 
-/* Map a normalized value, i.e. from interval [0, 1] to interval [a, b]. */
 MINLINE double scalenormd(double a, double b, double x)
 {
   BLI_assert(x <= 1 && x >= 0);
   return (x * (b - a)) + a;
 }
 
-/* Used for zoom values. */
 MINLINE float power_of_2(float val)
 {
   return (float)pow(2.0, ceil(log((double)val) / M_LN2));
@@ -363,16 +341,11 @@ MINLINE signed char round_db_to_char_clamp(double a){
 #undef _round_clamp_fl_impl
 #undef _round_clamp_db_impl
 
-/**
- * Round to closest even number, halfway cases are rounded away from zero.
- */
 MINLINE float round_to_even(float f)
 {
   return roundf(f * 0.5f) * 2.0f;
 }
 
-/* integer division that rounds 0.5 up, particularly useful for color blending
- * with integers, to avoid gradual darkening when rounding down */
 MINLINE int divide_round_i(int a, int b)
 {
   return (2 * a + b) / (2 * b);
@@ -397,9 +370,6 @@ MINLINE uint divide_ceil_u(uint a, uint b)
   return (a + b - 1) / b;
 }
 
-/**
- * modulo that handles negative numbers, works the same as Python's.
- */
 MINLINE int mod_i(int i, int n)
 {
   return (i % n + n) % n;
@@ -410,7 +380,7 @@ MINLINE float fractf(float a)
   return a - floorf(a);
 }
 
-/* Adapted from godot-engine math_funcs.h. */
+/* Adapted from `godot-engine` math_funcs.h. */
 MINLINE float wrapf(float value, float max, float min)
 {
   float range = max - min;
@@ -629,27 +599,11 @@ MINLINE size_t clamp_z(size_t value, size_t min, size_t max)
   return min_zz(max_zz(value, min), max);
 }
 
-/**
- * Almost-equal for IEEE floats, using absolute difference method.
- *
- * \param max_diff: the maximum absolute difference.
- */
 MINLINE int compare_ff(float a, float b, const float max_diff)
 {
   return fabsf(a - b) <= max_diff;
 }
 
-/**
- * Almost-equal for IEEE floats, using their integer representation
- * (mixing ULP and absolute difference methods).
- *
- * \param max_diff: is the maximum absolute difference (allows to take care of the near-zero area,
- * where relative difference methods cannot really work).
- * \param max_ulps: is the 'maximum number of floats + 1'
- * allowed between \a a and \a b to consider them equal.
- *
- * \see https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
- */
 MINLINE int compare_ff_relative(float a, float b, const float max_diff, const int max_ulps)
 {
   union {
@@ -728,19 +682,11 @@ MINLINE int signum_i(float a)
   }
 }
 
-/**
- * Returns number of (base ten) *significant* digits of integer part of given float
- * (negative in case of decimal-only floats, 0.01 returns -1 e.g.).
- */
 MINLINE int integer_digits_f(const float f)
 {
   return (f == 0.0f) ? 0 : (int)floor(log10(fabs(f))) + 1;
 }
 
-/**
- * Returns number of (base ten) *significant* digits of integer part of given double
- * (negative in case of decimal-only floats, 0.01 returns -1 e.g.).
- */
 MINLINE int integer_digits_d(const double d)
 {
   return (d == 0.0) ? 0 : (int)floor(log10(fabs(d))) + 1;
@@ -758,15 +704,15 @@ MINLINE int integer_digits_i(const int i)
 
 #ifdef BLI_HAVE_SSE2
 
-/* Calculate initial guess for arg^exp based on float representation
+/**
+ * Calculate initial guess for `arg^exp` based on float representation
  * This method gives a constant bias, which can be easily compensated by
  * multiplying with bias_coeff.
- * Gives better results for exponents near 1 (e. g. 4/5).
+ * Gives better results for exponents near 1 (e.g. `4/5`).
  * exp = exponent, encoded as uint32_t
- * e2coeff = 2^(127/exponent - 127) * bias_coeff^(1/exponent), encoded as
- * uint32_t
+ * `e2coeff = 2^(127/exponent - 127) * bias_coeff^(1/exponent)`, encoded as `uint32_t`.
  *
- * We hope that exp and e2coeff gets properly inlined
+ * We hope that exp and e2coeff gets properly inlined.
  */
 MALWAYS_INLINE __m128 _bli_math_fastpow(const int exp, const int e2coeff, const __m128 arg)
 {
@@ -778,7 +724,7 @@ MALWAYS_INLINE __m128 _bli_math_fastpow(const int exp, const int e2coeff, const 
   return ret;
 }
 
-/* Improve x ^ 1.0f/5.0f solution with Newton-Raphson method */
+/** Improve `x ^ 1.0f/5.0f` solution with Newton-Raphson method */
 MALWAYS_INLINE __m128 _bli_math_improve_5throot_solution(const __m128 old_result, const __m128 x)
 {
   __m128 approx2 = _mm_mul_ps(old_result, old_result);
@@ -788,7 +734,7 @@ MALWAYS_INLINE __m128 _bli_math_improve_5throot_solution(const __m128 old_result
   return _mm_mul_ps(summ, _mm_set1_ps(1.0f / 5.0f));
 }
 
-/* Calculate powf(x, 2.4). Working domain: 1e-10 < x < 1e+10 */
+/** Calculate `powf(x, 2.4)`. Working domain: `1e-10 < x < 1e+10`. */
 MALWAYS_INLINE __m128 _bli_math_fastpow24(const __m128 arg)
 {
   /* max, avg and |avg| errors were calculated in gcc without FMA instructions

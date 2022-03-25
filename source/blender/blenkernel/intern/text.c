@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup bke
@@ -49,6 +33,7 @@
 #include "DNA_text_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_bpath.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -158,7 +143,7 @@ static void text_copy_data(Main *UNUSED(bmain),
 /** Free (or release) any data used by this text (does not free the text itself). */
 static void text_free_data(ID *id)
 {
-  /* No animdata here. */
+  /* No animation-data here. */
   Text *text = (Text *)id;
 
   BKE_text_free_lines(text);
@@ -167,6 +152,15 @@ static void text_free_data(ID *id)
 #ifdef WITH_PYTHON
   BPY_text_free_code(text);
 #endif
+}
+
+static void text_foreach_path(ID *id, BPathForeachPathData *bpath_data)
+{
+  Text *text = (Text *)id;
+
+  if (text->filepath != NULL) {
+    BKE_bpath_foreach_path_allocated_process(bpath_data, &text->filepath);
+  }
 }
 
 static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -242,6 +236,7 @@ IDTypeInfo IDType_ID_TXT = {
     .name_plural = "texts",
     .translation_context = BLT_I18NCONTEXT_ID_TEXT,
     .flags = IDTYPE_FLAGS_NO_ANIMDATA | IDTYPE_FLAGS_APPEND_IS_REUSABLE,
+    .asset_type_info = NULL,
 
     .init_data = text_init_data,
     .copy_data = text_copy_data,
@@ -249,6 +244,7 @@ IDTypeInfo IDType_ID_TXT = {
     .make_local = NULL,
     .foreach_id = NULL,
     .foreach_cache = NULL,
+    .foreach_path = text_foreach_path,
     .owner_get = NULL,
 
     .blend_write = text_blend_write,
@@ -267,9 +263,6 @@ IDTypeInfo IDType_ID_TXT = {
 /** \name Text Add, Free, Validation
  * \{ */
 
-/**
- * \note caller must handle `compiled` member.
- */
 void BKE_text_free_lines(Text *text)
 {
   for (TextLine *tmp = text->lines.first, *tmp_next; tmp; tmp = tmp_next) {
@@ -299,8 +292,6 @@ Text *BKE_text_add(Main *bmain, const char *name)
   return ta;
 }
 
-/* this function replaces extended ascii characters */
-/* to a valid utf-8 sequences */
 int txt_extended_ascii_as_utf8(char **str)
 {
   ptrdiff_t bad_char, i = 0;
@@ -463,14 +454,6 @@ bool BKE_text_reload(Text *text)
   return true;
 }
 
-/**
- * Load a text file.
- *
- * \param is_internal: If \a true, this text data-block only exists in memory,
- * not as a file on disk.
- *
- * \note text data-blocks have no real user but have 'fake user' enabled by default
- */
 Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const bool is_internal)
 {
   unsigned char *buffer;
@@ -523,11 +506,6 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
   return ta;
 }
 
-/**
- * Load a text file.
- *
- * \note Text data-blocks have no user by default, only the 'real user' flag.
- */
 Text *BKE_text_load(Main *bmain, const char *file, const char *relpath)
 {
   return BKE_text_load_ex(bmain, file, relpath, false);
@@ -546,11 +524,6 @@ void BKE_text_write(Text *text, const char *str) /* called directly from rna */
   txt_move_eof(text, 0);
   txt_make_dirty(text);
 }
-
-/* returns 0 if file on disk is the same or Text is in memory only
- * returns 1 if file has been modified on disk since last local edit
- * returns 2 if file on disk has been deleted
- * -1 is returned if an error occurs */
 
 int BKE_text_file_modified_check(Text *text)
 {
@@ -1131,7 +1104,6 @@ void txt_move_toline(Text *text, unsigned int line, const bool sel)
   txt_move_to(text, line, 0, sel);
 }
 
-/* Moves to a certain byte in a line, not a certain utf8-character! */
 void txt_move_to(Text *text, unsigned int line, unsigned int ch, const bool sel)
 {
   TextLine **linep;
@@ -1291,11 +1263,6 @@ void txt_sel_all(Text *text)
   text->selc = text->sell->len;
 }
 
-/**
- * Reverse of #txt_pop_sel
- * Clears the selection and ensures the cursor is located
- * at the selection (where the cursor is visually while editing).
- */
 void txt_sel_clear(Text *text)
 {
   if (text->sell) {
@@ -1382,10 +1349,7 @@ void txt_sel_set(Text *text, int startl, int startc, int endl, int endc)
  * - Are not null terminated.
  * \{ */
 
-/**
- * Create a buffer, the only requirement is #txt_from_buf_for_undo can decode it.
- */
-char *txt_to_buf_for_undo(Text *text, int *r_buf_len)
+char *txt_to_buf_for_undo(Text *text, size_t *r_buf_len)
 {
   int buf_len = 0;
   LISTBASE_FOREACH (const TextLine *, l, &text->lines) {
@@ -1402,10 +1366,7 @@ char *txt_to_buf_for_undo(Text *text, int *r_buf_len)
   return buf;
 }
 
-/**
- * Decode a buffer from #txt_to_buf_for_undo.
- */
-void txt_from_buf_for_undo(Text *text, const char *buf, int buf_len)
+void txt_from_buf_for_undo(Text *text, const char *buf, size_t buf_len)
 {
   const char *buf_end = buf + buf_len;
   const char *buf_step = buf;
@@ -1473,87 +1434,29 @@ void txt_from_buf_for_undo(Text *text, const char *buf, int buf_len)
 /** \name Cut and Paste Functions
  * \{ */
 
-char *txt_to_buf(Text *text, int *r_buf_strlen)
+char *txt_to_buf(Text *text, size_t *r_buf_strlen)
 {
-  int length;
-  TextLine *tmp, *linef, *linel;
-  int charf, charl;
-  char *buf;
-
-  if (r_buf_strlen) {
-    *r_buf_strlen = 0;
+  /* Identical to #txt_to_buf_for_undo except that the string is nil terminated. */
+  size_t buf_len = 0;
+  LISTBASE_FOREACH (const TextLine *, l, &text->lines) {
+    buf_len += l->len + 1;
   }
-
-  if (!text->curl) {
-    return NULL;
+  char *buf = MEM_mallocN(buf_len + 1, __func__);
+  char *buf_step = buf;
+  LISTBASE_FOREACH (const TextLine *, l, &text->lines) {
+    memcpy(buf_step, l->line, l->len);
+    buf_step += l->len;
+    *buf_step++ = '\n';
   }
-  if (!text->sell) {
-    return NULL;
-  }
-  if (!text->lines.first) {
-    return NULL;
-  }
-
-  linef = text->lines.first;
-  charf = 0;
-
-  linel = text->lines.last;
-  charl = linel->len;
-
-  if (linef == text->lines.last) {
-    length = charl - charf;
-
-    buf = MEM_mallocN(length + 2, "text buffer");
-
-    BLI_strncpy(buf, linef->line + charf, length + 1);
-    buf[length] = 0;
-  }
-  else {
-    length = linef->len - charf;
-    length += charl;
-    length += 2; /* For the 2 '\n' */
-
-    tmp = linef->next;
-    while (tmp && tmp != linel) {
-      length += tmp->len + 1;
-      tmp = tmp->next;
-    }
-
-    buf = MEM_mallocN(length + 1, "cut buffer");
-
-    strncpy(buf, linef->line + charf, linef->len - charf);
-    length = linef->len - charf;
-
-    buf[length++] = '\n';
-
-    tmp = linef->next;
-    while (tmp && tmp != linel) {
-      strncpy(buf + length, tmp->line, tmp->len);
-      length += tmp->len;
-
-      buf[length++] = '\n';
-
-      tmp = tmp->next;
-    }
-    strncpy(buf + length, linel->line, charl);
-    length += charl;
-
-    /* python compiler wants an empty end line */
-    buf[length++] = '\n';
-    buf[length] = 0;
-  }
-
-  if (r_buf_strlen) {
-    *r_buf_strlen = length;
-  }
-
+  *buf_step = '\0';
+  *r_buf_strlen = buf_len;
   return buf;
 }
 
-char *txt_sel_to_buf(Text *text, int *r_buf_strlen)
+char *txt_sel_to_buf(Text *text, size_t *r_buf_strlen)
 {
   char *buf;
-  int length = 0;
+  size_t length = 0;
   TextLine *tmp, *linef, *linel;
   int charf, charl;
 
@@ -1597,42 +1500,33 @@ char *txt_sel_to_buf(Text *text, int *r_buf_strlen)
 
   if (linef == linel) {
     length = charl - charf;
-
     buf = MEM_mallocN(length + 1, "sel buffer");
-
-    BLI_strncpy(buf, linef->line + charf, length + 1);
+    memcpy(buf, linef->line + charf, length);
+    buf[length] = '\0';
   }
   else {
-    length += linef->len - charf;
-    length += charl;
-    length++; /* For the '\n' */
+    /* Add 1 for the '\n' */
+    length = (linef->len - charf) + charl + 1;
 
-    tmp = linef->next;
-    while (tmp && tmp != linel) {
+    for (tmp = linef->next; tmp && tmp != linel; tmp = tmp->next) {
       length += tmp->len + 1;
-      tmp = tmp->next;
     }
 
     buf = MEM_mallocN(length + 1, "sel buffer");
 
-    strncpy(buf, linef->line + charf, linef->len - charf);
+    memcpy(buf, linef->line + charf, linef->len - charf);
     length = linef->len - charf;
-
     buf[length++] = '\n';
 
-    tmp = linef->next;
-    while (tmp && tmp != linel) {
-      strncpy(buf + length, tmp->line, tmp->len);
+    for (tmp = linef->next; tmp && tmp != linel; tmp = tmp->next) {
+      memcpy(buf + length, tmp->line, tmp->len);
       length += tmp->len;
-
       buf[length++] = '\n';
-
-      tmp = tmp->next;
     }
-    strncpy(buf + length, linel->line, charl);
-    length += charl;
 
-    buf[length] = 0;
+    memcpy(buf + length, linel->line, charl);
+    length += charl;
+    buf[length] = '\0';
   }
 
   if (r_buf_strlen) {
@@ -1977,7 +1871,7 @@ static char tab_to_spaces[] = "    ";
 static void txt_convert_tab_to_spaces(Text *text)
 {
   /* sb aims to pad adjust the tab-width needed so that the right number of spaces
-   * is added so that the indention of the line is the right width (i.e. aligned
+   * is added so that the indentation of the line is the right width (i.e. aligned
    * to multiples of TXT_TABSIZE)
    */
   const char *sb = &tab_to_spaces[text->curc % TXT_TABSIZE];
@@ -2401,10 +2295,11 @@ int text_check_bracket(const char ch)
   return 0;
 }
 
-/* TODO: have a function for operators -
- * http://docs.python.org/py3k/reference/lexical_analysis.html#operators */
 bool text_check_delim(const char ch)
 {
+  /* TODO: have a function for operators:
+   * http://docs.python.org/py3k/reference/lexical_analysis.html#operators */
+
   int a;
   char delims[] = "():\"\' ~!%^&*-+=[]{};/<>|.#\t,@";
 

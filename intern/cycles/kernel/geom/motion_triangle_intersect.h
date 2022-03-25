@@ -1,18 +1,5 @@
-/*
- * Copyright 2011-2016 Blender Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
 
 /* Motion Triangle Primitive
  *
@@ -29,46 +16,19 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Refine triangle intersection to more precise hit point. For rays that travel
- * far the precision is often not so good, this reintersects the primitive from
- * a closer distance.
+/**
+ * Use the barycentric coordinates to get the intersection location
  */
-
-ccl_device_inline float3 motion_triangle_refine(KernelGlobals kg,
-                                                ccl_private ShaderData *sd,
-                                                float3 P,
-                                                float3 D,
-                                                float t,
-                                                const int isect_object,
-                                                const int isect_prim,
-                                                float3 verts[3])
+ccl_device_inline float3 motion_triangle_point_from_uv(KernelGlobals kg,
+                                                       ccl_private ShaderData *sd,
+                                                       const int isect_object,
+                                                       const int isect_prim,
+                                                       const float u,
+                                                       const float v,
+                                                       float3 verts[3])
 {
-#ifdef __INTERSECTION_REFINE__
-  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-    if (UNLIKELY(t == 0.0f)) {
-      return P;
-    }
-    const Transform tfm = object_get_inverse_transform(kg, sd);
-
-    P = transform_point(&tfm, P);
-    D = transform_direction(&tfm, D * t);
-    D = normalize_len(D, &t);
-  }
-
-  P = P + D * t;
-
-  /* Compute refined intersection distance. */
-  const float3 e1 = verts[0] - verts[2];
-  const float3 e2 = verts[1] - verts[2];
-  const float3 s1 = cross(D, e2);
-
-  const float invdivisor = 1.0f / dot(s1, e1);
-  const float3 d = P - verts[2];
-  const float3 s2 = cross(d, e1);
-  float rt = dot(e2, s2) * invdivisor;
-
-  /* Compute refined position. */
-  P = P + D * rt;
+  float w = 1.0f - u - v;
+  float3 P = u * verts[0] + v * verts[1] + w * verts[2];
 
   if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     const Transform tfm = object_get_transform(kg, sd);
@@ -76,70 +36,7 @@ ccl_device_inline float3 motion_triangle_refine(KernelGlobals kg,
   }
 
   return P;
-#else
-  return P + D * t;
-#endif
 }
-
-/* Same as above, except that t is assumed to be in object space
- * for instancing.
- */
-
-#ifdef __BVH_LOCAL__
-#  if defined(__KERNEL_CUDA__) && (defined(i386) || defined(_M_IX86))
-ccl_device_noinline
-#  else
-ccl_device_inline
-#  endif
-    float3
-    motion_triangle_refine_local(KernelGlobals kg,
-                                 ccl_private ShaderData *sd,
-                                 float3 P,
-                                 float3 D,
-                                 float t,
-                                 const int isect_object,
-                                 const int isect_prim,
-                                 float3 verts[3])
-{
-#  ifdef __KERNEL_OPTIX__
-  /* t is always in world space with OptiX. */
-  return motion_triangle_refine(kg, sd, P, D, t, isect_object, isect_prim, verts);
-#  else
-#    ifdef __INTERSECTION_REFINE__
-  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-    const Transform tfm = object_get_inverse_transform(kg, sd);
-
-    P = transform_point(&tfm, P);
-    D = transform_direction(&tfm, D);
-    D = normalize(D);
-  }
-
-  P = P + D * t;
-
-  /* compute refined intersection distance */
-  const float3 e1 = verts[0] - verts[2];
-  const float3 e2 = verts[1] - verts[2];
-  const float3 s1 = cross(D, e2);
-
-  const float invdivisor = 1.0f / dot(s1, e1);
-  const float3 d = P - verts[2];
-  const float3 s2 = cross(d, e1);
-  float rt = dot(e2, s2) * invdivisor;
-
-  P = P + D * rt;
-
-  if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-    const Transform tfm = object_get_transform(kg, sd);
-    P = transform_point(&tfm, P);
-  }
-
-  return P;
-#    else  /* __INTERSECTION_REFINE__ */
-  return P + D * t;
-#    endif /* __INTERSECTION_REFINE__ */
-#  endif
-}
-#endif /* __BVH_LOCAL__ */
 
 /* Ray intersection. We simply compute the vertex positions at the given ray
  * time and do a ray intersection with the resulting triangle.
@@ -153,29 +50,15 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals kg,
                                                  float time,
                                                  uint visibility,
                                                  int object,
+                                                 int prim,
                                                  int prim_addr)
 {
-  /* Primitive index for vertex location lookup. */
-  int prim = kernel_tex_fetch(__prim_index, prim_addr);
-  int fobject = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, prim_addr) : object;
   /* Get vertex locations for intersection. */
   float3 verts[3];
-  motion_triangle_vertices(kg, fobject, prim, time, verts);
+  motion_triangle_vertices(kg, object, prim, time, verts);
   /* Ray-triangle intersection, unoptimized. */
   float t, u, v;
-  if (ray_triangle_intersect(P,
-                             dir,
-                             tmax,
-#if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-                             (ssef *)verts,
-#else
-                             verts[0],
-                             verts[1],
-                             verts[2],
-#endif
-                             &u,
-                             &v,
-                             &t)) {
+  if (ray_triangle_intersect(P, dir, tmax, verts[0], verts[1], verts[2], &u, &v, &t)) {
 #ifdef __VISIBILITY_FLAG__
     /* Visibility flag test. we do it here under the assumption
      * that most triangles are culled by node flags.
@@ -187,8 +70,7 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals kg,
       isect->u = u;
       isect->v = v;
       isect->prim = prim;
-      isect->object = (object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, prim_addr) :
-                                                object;
+      isect->object = object;
       isect->type = PRIMITIVE_MOTION_TRIANGLE;
       return true;
     }
@@ -208,40 +90,18 @@ ccl_device_inline bool motion_triangle_intersect_local(KernelGlobals kg,
                                                        float3 dir,
                                                        float time,
                                                        int object,
-                                                       int local_object,
+                                                       int prim,
                                                        int prim_addr,
                                                        float tmax,
                                                        ccl_private uint *lcg_state,
                                                        int max_hits)
 {
-  /* Only intersect with matching object, for instanced objects we
-   * already know we are only intersecting the right object. */
-  if (object == OBJECT_NONE) {
-    if (kernel_tex_fetch(__prim_object, prim_addr) != local_object) {
-      return false;
-    }
-  }
-
-  /* Primitive index for vertex location lookup. */
-  int prim = kernel_tex_fetch(__prim_index, prim_addr);
   /* Get vertex locations for intersection. */
   float3 verts[3];
-  motion_triangle_vertices(kg, local_object, prim, time, verts);
+  motion_triangle_vertices(kg, object, prim, time, verts);
   /* Ray-triangle intersection, unoptimized. */
   float t, u, v;
-  if (!ray_triangle_intersect(P,
-                              dir,
-                              tmax,
-#  if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-                              (ssef *)verts,
-#  else
-                              verts[0],
-                              verts[1],
-                              verts[2],
-#  endif
-                              &u,
-                              &v,
-                              &t)) {
+  if (!ray_triangle_intersect(P, dir, tmax, verts[0], verts[1], verts[2], &u, &v, &t)) {
     return false;
   }
 
@@ -290,7 +150,7 @@ ccl_device_inline bool motion_triangle_intersect_local(KernelGlobals kg,
   isect->u = u;
   isect->v = v;
   isect->prim = prim;
-  isect->object = local_object;
+  isect->object = object;
   isect->type = PRIMITIVE_MOTION_TRIANGLE;
 
   /* Record geometric normal. */

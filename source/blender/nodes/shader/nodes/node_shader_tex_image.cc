@@ -1,25 +1,9 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
-#include "../node_shader_util.h"
+#include "node_shader_util.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_shader_tex_image_cc {
 
 static void sh_node_tex_image_declare(NodeDeclarationBuilder &b)
 {
@@ -27,13 +11,11 @@ static void sh_node_tex_image_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>(N_("Vector")).implicit_field();
   b.add_output<decl::Color>(N_("Color")).no_muted_links();
   b.add_output<decl::Float>(N_("Alpha")).no_muted_links();
-};
-
-};  // namespace blender::nodes
+}
 
 static void node_shader_init_tex_image(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  NodeTexImage *tex = (NodeTexImage *)MEM_callocN(sizeof(NodeTexImage), "NodeTexImage");
+  NodeTexImage *tex = MEM_cnew<NodeTexImage>(__func__);
   BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
   BKE_texture_colormapping_default(&tex->base.color_mapping);
   BKE_imageuser_default(&tex->iuser);
@@ -173,18 +155,21 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
   return true;
 }
 
-/* node type definition */
-void register_node_type_sh_tex_image(void)
+}  // namespace blender::nodes::node_shader_tex_image_cc
+
+void register_node_type_sh_tex_image()
 {
+  namespace file_ns = blender::nodes::node_shader_tex_image_cc;
+
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_TEX_IMAGE, "Image Texture", NODE_CLASS_TEXTURE, 0);
-  ntype.declare = blender::nodes::sh_node_tex_image_declare;
-  node_type_init(&ntype, node_shader_init_tex_image);
+  sh_node_type_base(&ntype, SH_NODE_TEX_IMAGE, "Image Texture", NODE_CLASS_TEXTURE);
+  ntype.declare = file_ns::sh_node_tex_image_declare;
+  node_type_init(&ntype, file_ns::node_shader_init_tex_image);
   node_type_storage(
       &ntype, "NodeTexImage", node_free_standard_storage, node_copy_standard_storage);
-  node_type_gpu(&ntype, node_shader_gpu_tex_image);
-  node_type_label(&ntype, node_image_label);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_image);
+  ntype.labelfunc = node_image_label;
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
 
   nodeRegisterType(&ntype);

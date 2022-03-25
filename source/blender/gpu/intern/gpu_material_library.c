@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2005 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup gpu
@@ -91,6 +75,7 @@ extern char datatoc_gpu_shader_material_output_aov_glsl[];
 extern char datatoc_gpu_shader_material_output_material_glsl[];
 extern char datatoc_gpu_shader_material_output_world_glsl[];
 extern char datatoc_gpu_shader_material_particle_info_glsl[];
+extern char datatoc_gpu_shader_material_point_info_glsl[];
 extern char datatoc_gpu_shader_material_principled_glsl[];
 extern char datatoc_gpu_shader_material_refraction_glsl[];
 extern char datatoc_gpu_shader_material_rgb_curves_glsl[];
@@ -295,7 +280,7 @@ static GPUMaterialLibrary gpu_shader_material_glass_library = {
 
 static GPUMaterialLibrary gpu_shader_material_hair_info_library = {
     .code = datatoc_gpu_shader_material_hair_info_glsl,
-    .dependencies = {NULL},
+    .dependencies = {&gpu_shader_material_hash_library, NULL},
 };
 
 static GPUMaterialLibrary gpu_shader_material_holdout_library = {
@@ -386,6 +371,11 @@ static GPUMaterialLibrary gpu_shader_material_output_world_library = {
 static GPUMaterialLibrary gpu_shader_material_particle_info_library = {
     .code = datatoc_gpu_shader_material_particle_info_glsl,
     .dependencies = {NULL},
+};
+
+static GPUMaterialLibrary gpu_shader_material_point_info_library = {
+    .code = datatoc_gpu_shader_material_point_info_glsl,
+    .dependencies = {&gpu_shader_material_hash_library, NULL},
 };
 
 static GPUMaterialLibrary gpu_shader_material_principled_library = {
@@ -644,6 +634,7 @@ static GPUMaterialLibrary *gpu_material_libraries[] = {
     &gpu_shader_material_output_material_library,
     &gpu_shader_material_output_world_library,
     &gpu_shader_material_particle_info_library,
+    &gpu_shader_material_point_info_library,
     &gpu_shader_material_principled_library,
     &gpu_shader_material_refraction_library,
     &gpu_shader_material_rgb_curves_library,

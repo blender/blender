@@ -1,19 +1,6 @@
-/*
+/* SPDX-License-Identifier: Apache-2.0
  * Copyright 2019, NVIDIA Corporation.
- * Copyright 2019, Blender Foundation.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * Copyright 2019-2022 Blender Foundation. */
 
 #pragma once
 
@@ -23,6 +10,7 @@
 #  include "device/optix/queue.h"
 #  include "device/optix/util.h"
 #  include "kernel/types.h"
+#  include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -43,6 +31,8 @@ enum {
   PG_HITV, /* __VOLUME__ hit group. */
   PG_HITD_MOTION,
   PG_HITS_MOTION,
+  PG_HITD_POINTCLOUD,
+  PG_HITS_POINTCLOUD,
   PG_CALL_SVM_AO,
   PG_CALL_SVM_BEVEL,
   NUM_PROGRAM_GROUPS
@@ -51,9 +41,9 @@ enum {
 static const int MISS_PROGRAM_GROUP_OFFSET = PG_MISS;
 static const int NUM_MIS_PROGRAM_GROUPS = 1;
 static const int HIT_PROGAM_GROUP_OFFSET = PG_HITD;
-static const int NUM_HIT_PROGRAM_GROUPS = 6;
+static const int NUM_HIT_PROGRAM_GROUPS = 8;
 static const int CALLABLE_PROGRAM_GROUPS_BASE = PG_CALL_SVM_AO;
-static const int NUM_CALLABLE_PROGRAM_GROUPS = 3;
+static const int NUM_CALLABLE_PROGRAM_GROUPS = 2;
 
 /* List of OptiX pipelines. */
 enum { PIP_SHADE_RAYTRACE, PIP_INTERSECT, NUM_PIPELINES };
@@ -76,7 +66,7 @@ class OptiXDevice : public CUDADevice {
   device_only_memory<KernelParamsOptiX> launch_params;
   OptixTraversableHandle tlas_handle = 0;
 
-  vector<device_only_memory<char>> delayed_free_bvh_memory;
+  vector<unique_ptr<device_only_memory<char>>> delayed_free_bvh_memory;
   thread_mutex delayed_free_bvh_mutex;
 
   class Denoiser {
@@ -97,11 +87,11 @@ class OptiXDevice : public CUDADevice {
     /* OptiX denoiser state and scratch buffers, stored in a single memory buffer.
      * The memory layout goes as following: [denoiser state][scratch buffer]. */
     device_only_memory<unsigned char> state;
-    size_t scratch_offset = 0;
-    size_t scratch_size = 0;
+    OptixDenoiserSizes sizes = {};
 
     bool use_pass_albedo = false;
     bool use_pass_normal = false;
+    bool use_pass_flow = false;
   };
   Denoiser denoiser_;
 

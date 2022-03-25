@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2013 Blender Foundation.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2013 Blender Foundation. All rights reserved. */
 
 /** \file
  * \ingroup depsgraph
@@ -58,6 +42,7 @@ struct IDNode : public Node {
     const char *name;
   };
 
+  /** Initialize 'id' node - from pointer data given. */
   virtual void init(const ID *id, const char *subdata) override;
   void init_copy_on_write(ID *id_cow_hint = nullptr);
   ~IDNode();
@@ -119,6 +104,9 @@ struct IDNode : public Node {
 
   /* Accumulated flag from operation. Is initialized and used during updates flush. */
   bool is_user_modified;
+
+  /* Copy-on-Write component has been explicitly tagged for update. */
+  bool is_cow_explicitly_tagged;
 
   /* Accumulate recalc flags from multiple update passes. */
   int id_cow_recalc_backup;

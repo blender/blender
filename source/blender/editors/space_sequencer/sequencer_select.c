@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup spseq
@@ -63,6 +47,34 @@
 /* -------------------------------------------------------------------- */
 /** \name Selection Utilities
  * \{ */
+
+SeqCollection *all_strips_from_context(bContext *C)
+{
+  Scene *scene = CTX_data_scene(C);
+  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
+
+  const bool is_preview = sequencer_view_has_preview_poll(C);
+  if (is_preview) {
+    return SEQ_query_rendered_strips(seqbase, scene->r.cfra, 0);
+  }
+
+  return SEQ_query_all_strips(seqbase);
+}
+
+SeqCollection *selected_strips_from_context(bContext *C)
+{
+  Scene *scene = CTX_data_scene(C);
+  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
+
+  const bool is_preview = sequencer_view_has_preview_poll(C);
+  if (is_preview) {
+    SeqCollection *strips = SEQ_query_rendered_strips(seqbase, scene->r.cfra, 0);
+    SEQ_filter_selected_strips(strips);
+    return strips;
+  }
+
+  return SEQ_query_selected_strips(seqbase);
+}
 
 static void select_surrounding_handles(Scene *scene, Sequence *test) /* XXX BRING BACK */
 {
@@ -411,22 +423,18 @@ static void sequencer_select_do_updates(bContext *C, Scene *scene)
 static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
 {
   int action = RNA_enum_get(op->ptr, "action");
-
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene);
-  Sequence *seq;
 
-  const bool is_preview = sequencer_view_preview_poll(C);
-  if (is_preview) {
-    SEQ_query_rendered_strips_to_tag(ed->seqbasep, scene->r.cfra, 0);
+  if (sequencer_view_has_preview_poll(C) && !sequencer_view_preview_only_poll(C)) {
+    return OPERATOR_CANCELLED;
   }
+
+  SeqCollection *strips = all_strips_from_context(C);
+  Sequence *seq;
 
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
-    for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-      if (is_preview && (seq->tmp_tag == false)) {
-        continue;
-      }
+    SEQ_ITERATOR_FOREACH (seq, strips) {
       if (seq->flag & SEQ_ALLSEL) {
         action = SEL_DESELECT;
         break;
@@ -434,10 +442,7 @@ static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
     }
   }
 
-  for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if (is_preview && (seq->tmp_tag == false)) {
-      continue;
-    }
+  SEQ_ITERATOR_FOREACH (seq, strips) {
     switch (action) {
       case SEL_SELECT:
         seq->flag &= ~(SEQ_LEFTSEL + SEQ_RIGHTSEL);
@@ -458,8 +463,9 @@ static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
     }
   }
 
-  ED_outliner_select_sync_from_sequence_tag(C);
+  SEQ_collection_free(strips);
 
+  ED_outliner_select_sync_from_sequence_tag(C);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
 
   return OPERATOR_FINISHED;
@@ -491,18 +497,15 @@ void SEQUENCER_OT_select_all(struct wmOperatorType *ot)
 static int sequencer_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene);
-  Sequence *seq;
 
-  const bool is_preview = sequencer_view_preview_poll(C);
-  if (is_preview) {
-    SEQ_query_rendered_strips_to_tag(ed->seqbasep, scene->r.cfra, 0);
+  if (sequencer_view_has_preview_poll(C) && !sequencer_view_preview_only_poll(C)) {
+    return OPERATOR_CANCELLED;
   }
 
-  for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if (is_preview && (seq->tmp_tag == false)) {
-      continue;
-    }
+  SeqCollection *strips = all_strips_from_context(C);
+  Sequence *seq;
+
+  SEQ_ITERATOR_FOREACH (seq, strips) {
     if (seq->flag & SELECT) {
       seq->flag &= ~SEQ_ALLSEL;
     }
@@ -512,8 +515,9 @@ static int sequencer_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  ED_outliner_select_sync_from_sequence_tag(C);
+  SEQ_collection_free(strips);
 
+  ED_outliner_select_sync_from_sequence_tag(C);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
 
   return OPERATOR_FINISHED;
@@ -866,6 +870,9 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
   }
 
   if (region->regiontype == RGN_TYPE_PREVIEW) {
+    if (!sequencer_view_preview_only_poll(C)) {
+      return OPERATOR_CANCELLED;
+    }
     const SpaceSeq *sseq = CTX_wm_space_seq(C);
     if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
       return OPERATOR_CANCELLED;
@@ -1612,6 +1619,9 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
 
   ARegion *region = CTX_wm_region(C);
   if (region->regiontype == RGN_TYPE_PREVIEW) {
+    if (!sequencer_view_preview_only_poll(C)) {
+      return OPERATOR_CANCELLED;
+    }
     seq_box_select_seq_from_preview(C, &rectf, sel_op);
     sequencer_select_do_updates(C, scene);
     return OPERATOR_FINISHED;
@@ -1671,6 +1681,11 @@ static int sequencer_box_select_invoke(bContext *C, wmOperator *op, const wmEven
 {
   Scene *scene = CTX_data_scene(C);
   View2D *v2d = &CTX_wm_region(C)->v2d;
+  ARegion *region = CTX_wm_region(C);
+
+  if (region->regiontype == RGN_TYPE_PREVIEW && !sequencer_view_preview_only_poll(C)) {
+    return OPERATOR_CANCELLED;
+  }
 
   const bool tweak = RNA_boolean_get(op->ptr, "tweak");
 
@@ -1710,7 +1725,7 @@ void SEQUENCER_OT_select_box(wmOperatorType *ot)
   WM_operator_properties_select_operation_simple(ot);
 
   prop = RNA_def_boolean(
-      ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a tweak event");
+      ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a click-drag event");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
       ot->srna, "include_handles", 0, "Select Handles", "Select the strips and their handles");
@@ -1767,17 +1782,15 @@ static const EnumPropertyItem sequencer_prop_select_grouped_types[] = {
 
 #define SEQ_CHANNEL_CHECK(_seq, _chan) (ELEM((_chan), 0, (_seq)->machine))
 
-static bool select_grouped_type(ListBase *seqbasep,
-                                const bool is_preview,
+static bool select_grouped_type(SeqCollection *strips,
+                                ListBase *UNUSED(seqbase),
                                 Sequence *actseq,
                                 const int channel)
 {
   bool changed = false;
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbasep) {
-    if (is_preview && (seq->tmp_tag == false)) {
-      continue;
-    }
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, strips) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == actseq->type) {
       seq->flag |= SELECT;
       changed = true;
@@ -1787,18 +1800,16 @@ static bool select_grouped_type(ListBase *seqbasep,
   return changed;
 }
 
-static bool select_grouped_type_basic(ListBase *seqbase,
-                                      const bool is_preview,
+static bool select_grouped_type_basic(SeqCollection *strips,
+                                      ListBase *UNUSED(seqbase),
                                       Sequence *actseq,
                                       const int channel)
 {
   bool changed = false;
   const bool is_sound = SEQ_IS_SOUND(actseq);
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (is_preview && (seq->tmp_tag == false)) {
-      continue;
-    }
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, strips) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && (is_sound ? SEQ_IS_SOUND(seq) : !SEQ_IS_SOUND(seq))) {
       seq->flag |= SELECT;
       changed = true;
@@ -1808,18 +1819,16 @@ static bool select_grouped_type_basic(ListBase *seqbase,
   return changed;
 }
 
-static bool select_grouped_type_effect(ListBase *seqbase,
-                                       const bool is_preview,
+static bool select_grouped_type_effect(SeqCollection *strips,
+                                       ListBase *UNUSED(seqbase),
                                        Sequence *actseq,
                                        const int channel)
 {
   bool changed = false;
   const bool is_effect = SEQ_IS_EFFECT(actseq);
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (is_preview && (seq->tmp_tag == false)) {
-      continue;
-    }
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, strips) {
     if (SEQ_CHANNEL_CHECK(seq, channel) &&
         (is_effect ? SEQ_IS_EFFECT(seq) : !SEQ_IS_EFFECT(seq))) {
       seq->flag |= SELECT;
@@ -1830,8 +1839,8 @@ static bool select_grouped_type_effect(ListBase *seqbase,
   return changed;
 }
 
-static bool select_grouped_data(ListBase *seqbase,
-                                const bool is_preview,
+static bool select_grouped_data(SeqCollection *strips,
+                                ListBase *UNUSED(seqbase),
                                 Sequence *actseq,
                                 const int channel)
 {
@@ -1842,11 +1851,10 @@ static bool select_grouped_data(ListBase *seqbase,
     return changed;
   }
 
+  Sequence *seq;
+
   if (SEQ_HAS_PATH(actseq) && dir) {
-    LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-      if (is_preview && (seq->tmp_tag == false)) {
-        continue;
-      }
+    SEQ_ITERATOR_FOREACH (seq, strips) {
       if (SEQ_CHANNEL_CHECK(seq, channel) && SEQ_HAS_PATH(seq) && seq->strip &&
           STREQ(seq->strip->dir, dir)) {
         seq->flag |= SELECT;
@@ -1856,7 +1864,7 @@ static bool select_grouped_data(ListBase *seqbase,
   }
   else if (actseq->type == SEQ_TYPE_SCENE) {
     Scene *sce = actseq->scene;
-    LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    SEQ_ITERATOR_FOREACH (seq, strips) {
       if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == SEQ_TYPE_SCENE && seq->scene == sce) {
         seq->flag |= SELECT;
         changed = true;
@@ -1865,7 +1873,7 @@ static bool select_grouped_data(ListBase *seqbase,
   }
   else if (actseq->type == SEQ_TYPE_MOVIECLIP) {
     MovieClip *clip = actseq->clip;
-    LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    SEQ_ITERATOR_FOREACH (seq, strips) {
       if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == SEQ_TYPE_MOVIECLIP &&
           seq->clip == clip) {
         seq->flag |= SELECT;
@@ -1875,7 +1883,7 @@ static bool select_grouped_data(ListBase *seqbase,
   }
   else if (actseq->type == SEQ_TYPE_MASK) {
     struct Mask *mask = actseq->mask;
-    LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    SEQ_ITERATOR_FOREACH (seq, strips) {
       if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == SEQ_TYPE_MASK && seq->mask == mask) {
         seq->flag |= SELECT;
         changed = true;
@@ -1886,8 +1894,8 @@ static bool select_grouped_data(ListBase *seqbase,
   return changed;
 }
 
-static bool select_grouped_effect(ListBase *seqbase,
-                                  const bool is_preview,
+static bool select_grouped_effect(SeqCollection *strips,
+                                  ListBase *UNUSED(seqbase),
                                   Sequence *actseq,
                                   const int channel)
 {
@@ -1898,20 +1906,15 @@ static bool select_grouped_effect(ListBase *seqbase,
     effects[i] = false;
   }
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (is_preview && (seq->tmp_tag == false)) {
-      continue;
-    }
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, strips) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && (seq->type & SEQ_TYPE_EFFECT) &&
         ELEM(actseq, seq->seq1, seq->seq2, seq->seq3)) {
       effects[seq->type] = true;
     }
   }
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (is_preview && (seq->tmp_tag == false)) {
-      continue;
-    }
+  SEQ_ITERATOR_FOREACH (seq, strips) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && effects[seq->type]) {
       if (seq->seq1) {
         seq->seq1->flag |= SELECT;
@@ -1929,14 +1932,14 @@ static bool select_grouped_effect(ListBase *seqbase,
   return changed;
 }
 
-static bool select_grouped_time_overlap(ListBase *seqbase, const bool is_preview, Sequence *actseq)
+static bool select_grouped_time_overlap(SeqCollection *strips,
+                                        ListBase *UNUSED(seqbase),
+                                        Sequence *actseq)
 {
   bool changed = false;
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (is_preview && (seq->tmp_tag == false)) {
-      continue;
-    }
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, strips) {
     if (seq->startdisp < actseq->enddisp && seq->enddisp > actseq->startdisp) {
       seq->flag |= SELECT;
       changed = true;
@@ -1965,30 +1968,25 @@ static void query_lower_channel_strips(Sequence *seq_reference,
 
 /* Select all strips within time range and with lower channel of initial selection. Then select
  * effect chains of these strips. */
-static bool select_grouped_effect_link(ListBase *seqbase,
-                                       const bool is_preview,
+static bool select_grouped_effect_link(SeqCollection *strips,
+                                       ListBase *seqbase,
                                        Sequence *UNUSED(actseq),
                                        const int UNUSED(channel))
 {
   /* Get collection of strips. */
-  SeqCollection *collection = SEQ_query_selected_strips(seqbase);
-  const int selected_strip_count = BLI_gset_len(collection->set);
-  SEQ_collection_expand(seqbase, collection, query_lower_channel_strips);
-  SEQ_collection_expand(seqbase, collection, SEQ_query_strip_effect_chain);
+  SEQ_filter_selected_strips(strips);
+  const int selected_strip_count = SEQ_collection_len(strips);
+  SEQ_collection_expand(seqbase, strips, query_lower_channel_strips);
+  SEQ_collection_expand(seqbase, strips, SEQ_query_strip_effect_chain);
 
   /* Check if other strips will be affected. */
-  const bool changed = BLI_gset_len(collection->set) > selected_strip_count;
+  const bool changed = SEQ_collection_len(strips) > selected_strip_count;
 
   /* Actual logic. */
   Sequence *seq;
-  SEQ_ITERATOR_FOREACH (seq, collection) {
-    if (is_preview && (seq->tmp_tag == false)) {
-      continue;
-    }
+  SEQ_ITERATOR_FOREACH (seq, strips) {
     seq->flag |= SELECT;
   }
-
-  SEQ_collection_free(collection);
 
   return changed;
 }
@@ -2003,15 +2001,14 @@ static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
   ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
   Sequence *actseq = SEQ_select_active_get(scene);
 
-  const bool is_preview = sequencer_view_preview_poll(C);
-  if (is_preview) {
-    SEQ_query_rendered_strips_to_tag(seqbase, scene->r.cfra, 0);
-    if (actseq && actseq->tmp_tag == false) {
-      actseq = NULL;
-    }
+  const bool is_preview = sequencer_view_has_preview_poll(C);
+  if (is_preview && !sequencer_view_preview_only_poll(C)) {
+    return OPERATOR_CANCELLED;
   }
 
-  if (actseq == NULL) {
+  SeqCollection *strips = all_strips_from_context(C);
+
+  if (actseq == NULL || (is_preview && !SEQ_collection_has_strip(actseq, strips))) {
     BKE_report(op->reports, RPT_ERROR, "No active sequence!");
     return OPERATOR_CANCELLED;
   }
@@ -2031,30 +2028,32 @@ static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
 
   switch (type) {
     case SEQ_SELECT_GROUP_TYPE:
-      changed |= select_grouped_type(seqbase, is_preview, actseq, channel);
+      changed |= select_grouped_type(strips, seqbase, actseq, channel);
       break;
     case SEQ_SELECT_GROUP_TYPE_BASIC:
-      changed |= select_grouped_type_basic(seqbase, is_preview, actseq, channel);
+      changed |= select_grouped_type_basic(strips, seqbase, actseq, channel);
       break;
     case SEQ_SELECT_GROUP_TYPE_EFFECT:
-      changed |= select_grouped_type_effect(seqbase, is_preview, actseq, channel);
+      changed |= select_grouped_type_effect(strips, seqbase, actseq, channel);
       break;
     case SEQ_SELECT_GROUP_DATA:
-      changed |= select_grouped_data(seqbase, is_preview, actseq, channel);
+      changed |= select_grouped_data(strips, seqbase, actseq, channel);
       break;
     case SEQ_SELECT_GROUP_EFFECT:
-      changed |= select_grouped_effect(seqbase, is_preview, actseq, channel);
+      changed |= select_grouped_effect(strips, seqbase, actseq, channel);
       break;
     case SEQ_SELECT_GROUP_EFFECT_LINK:
-      changed |= select_grouped_effect_link(seqbase, is_preview, actseq, channel);
+      changed |= select_grouped_effect_link(strips, seqbase, actseq, channel);
       break;
     case SEQ_SELECT_GROUP_OVERLAP:
-      changed |= select_grouped_time_overlap(seqbase, is_preview, actseq);
+      changed |= select_grouped_time_overlap(strips, seqbase, actseq);
       break;
     default:
       BLI_assert(0);
       break;
   }
+
+  SEQ_collection_free(strips);
 
   if (changed) {
     ED_outliner_select_sync_from_sequence_tag(C);

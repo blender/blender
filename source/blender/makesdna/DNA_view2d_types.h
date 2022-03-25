@@ -1,21 +1,5 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- */
+/* SPDX-License-Identifier: GPL-2.0-or-later
+ * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
 
 /** \file
  * \ingroup DNA
@@ -31,7 +15,7 @@ extern "C" {
 
 /* ---------------------------------- */
 
-/* View 2D data - stored per region */
+/** View 2D data - stored per region. */
 typedef struct View2D {
   /** Tot - area that data can be drawn in; cur - region of tot that is visible in viewport. */
   rctf tot, cur;
@@ -83,7 +67,7 @@ typedef struct View2D {
 
 /* ---------------------------------- */
 
-/* view zooming restrictions, per axis (v2d->keepzoom) */
+/** View zooming restrictions, per axis (#View2D.keepzoom) */
 enum {
   /* zoom is clamped to lie within limits set by minzoom and maxzoom */
   V2D_LIMITZOOM = (1 << 0),
@@ -97,7 +81,7 @@ enum {
   V2D_LOCKZOOM_Y = (1 << 9),
 };
 
-/* view panning restrictions, per axis (v2d->keepofs) */
+/** View panning restrictions, per axis (#View2D.keepofs). */
 enum {
   /* panning on x-axis is not allowed */
   V2D_LOCKOFS_X = (1 << 1),
@@ -109,7 +93,7 @@ enum {
   V2D_KEEPOFS_Y = (1 << 4),
 };
 
-/* view extent restrictions (v2d->keeptot) */
+/** View extent restrictions (#View2D.keeptot). */
 enum {
   /** 'cur' view can be out of extents of 'tot' */
   V2D_KEEPTOT_FREE = 0,
@@ -120,7 +104,7 @@ enum {
   V2D_KEEPTOT_STRICT = 2,
 };
 
-/* general refresh settings (v2d->flag) */
+/** General refresh settings (#View2D.flag). */
 enum {
   /* global view2d horizontal locking (for showing same time interval) */
   /* TODO: this flag may be set in old files but is not accessible currently,
@@ -138,7 +122,7 @@ enum {
   V2D_IS_INIT = (1 << 10),
 };
 
-/* scroller flags for View2D (v2d->scroll) */
+/** Scroller flags for View2D (#View2D.scroll). */
 enum {
   /* left scrollbar */
   V2D_SCROLL_LEFT = (1 << 0),
@@ -162,13 +146,15 @@ enum {
   V2D_SCROLL_HORIZONTAL_FULLR = (1 << 10),
 };
 
-/* scroll_ui, activate flag for drawing */
+/** scroll_ui, activate flag for drawing. */
 enum {
   V2D_SCROLL_H_ACTIVE = (1 << 0),
   V2D_SCROLL_V_ACTIVE = (1 << 1),
 };
 
-/* alignment flags for totrect, flags use 'shading-out' convention (v2d->align) */
+/**
+ * Alignment flags for `totrect`, flags use 'shading-out' convention (#View2D.align).
+ */
 enum {
   /* all quadrants free */
   V2D_ALIGN_FREE = 0,
