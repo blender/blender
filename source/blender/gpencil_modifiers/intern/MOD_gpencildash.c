@@ -148,6 +148,9 @@ static bool stroke_dash(const bGPDstroke *gps,
 
     bGPDstroke *stroke = BKE_gpencil_stroke_new(
         ds->mat_nr < 0 ? gps->mat_nr : ds->mat_nr, size, gps->thickness);
+    if (ds->flag & GP_DASH_USE_CYCLIC) {
+      stroke->flag |= GP_STROKE_CYCLIC;
+    }
 
     for (int is = 0; is < size; is++) {
       bGPDspoint *p = &gps->points[new_stroke_offset + is];
@@ -337,6 +340,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(sub, &ds_ptr, "radius", 0, NULL, ICON_NONE);
     uiItemR(sub, &ds_ptr, "opacity", 0, NULL, ICON_NONE);
     uiItemR(sub, &ds_ptr, "material_index", 0, NULL, ICON_NONE);
+    uiItemR(sub, &ds_ptr, "use_cyclic", 0, NULL, ICON_NONE);
   }
 
   gpencil_modifier_panel_end(layout, ptr);

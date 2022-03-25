@@ -3743,6 +3743,11 @@ static void rna_def_modifier_gpencildash(BlenderRNA *brna)
       "Use this index on generated segment. -1 means using the existing material");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
+  prop = RNA_def_property(srna, "use_cyclic", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DASH_USE_CYCLIC);
+  RNA_def_property_ui_text(prop, "Use Cyclic", "Enable cyclic on individual stroke dashes");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
   srna = RNA_def_struct(brna, "DashGpencilModifierData", "GpencilModifier");
   RNA_def_struct_ui_text(srna, "Dash Modifier", "Create dot-dash effect for strokes");
   RNA_def_struct_sdna(srna, "DashGpencilModifierData");
@@ -3794,17 +3799,17 @@ static void rna_def_modifier_gpencildash(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "invert_layers", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LENGTH_INVERT_LAYER);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DASH_INVERT_LAYER);
   RNA_def_property_ui_text(prop, "Inverse Layers", "Inverse filter");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "invert_materials", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LENGTH_INVERT_MATERIAL);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DASH_INVERT_MATERIAL);
   RNA_def_property_ui_text(prop, "Inverse Materials", "Inverse filter");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "invert_material_pass", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LENGTH_INVERT_PASS);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DASH_INVERT_PASS);
   RNA_def_property_ui_text(prop, "Inverse Pass", "Inverse filter");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -3815,7 +3820,7 @@ static void rna_def_modifier_gpencildash(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "invert_layer_pass", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LENGTH_INVERT_LAYERPASS);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DASH_INVERT_LAYERPASS);
   RNA_def_property_ui_text(prop, "Inverse Pass", "Inverse filter");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 

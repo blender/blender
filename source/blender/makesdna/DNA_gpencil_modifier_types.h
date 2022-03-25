@@ -522,7 +522,7 @@ typedef struct DashGpencilModifierSegment {
   float radius;
   float opacity;
   int mat_nr;
-  int _pad;
+  int flag;
 } DashGpencilModifierSegment;
 
 typedef struct DashGpencilModifierData {
@@ -545,6 +545,14 @@ typedef struct DashGpencilModifierData {
   int segment_active_index;
 
 } DashGpencilModifierData;
+
+typedef enum eDashGpencil_Flag {
+  GP_DASH_INVERT_LAYER = (1 << 0),
+  GP_DASH_INVERT_PASS = (1 << 1),
+  GP_DASH_INVERT_LAYERPASS = (1 << 2),
+  GP_DASH_INVERT_MATERIAL = (1 << 3),
+  GP_DASH_USE_CYCLIC = (1 << 7),
+} eDashGpencil_Flag;
 
 typedef struct MirrorGpencilModifierData {
   GpencilModifierData modifier;
