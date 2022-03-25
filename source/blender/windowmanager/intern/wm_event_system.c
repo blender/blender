@@ -1063,7 +1063,7 @@ static void wm_operator_finished(bContext *C, wmOperator *op, const bool repeat,
   if (hud_status != NOP) {
     if (hud_status == SET) {
       ScrArea *area = CTX_wm_area(C);
-      if (area) {
+      if (area && ((area->flag & AREA_FLAG_OFFSCREEN) == 0)) {
         ED_area_type_hud_ensure(C, area);
       }
     }
