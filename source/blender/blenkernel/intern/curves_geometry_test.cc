@@ -63,6 +63,28 @@ TEST(curves_geometry, Move)
   EXPECT_EQ(second_other.offsets().data(), offsets_data);
 }
 
+TEST(curves_geometry, TypeCount)
+{
+  CurvesGeometry curves = create_basic_curves(100, 10);
+  curves.curve_types().copy_from({
+      CURVE_TYPE_BEZIER,
+      CURVE_TYPE_NURBS,
+      CURVE_TYPE_NURBS,
+      CURVE_TYPE_NURBS,
+      CURVE_TYPE_CATMULL_ROM,
+      CURVE_TYPE_CATMULL_ROM,
+      CURVE_TYPE_CATMULL_ROM,
+      CURVE_TYPE_POLY,
+      CURVE_TYPE_POLY,
+      CURVE_TYPE_POLY,
+  });
+  std::array<int, CURVE_TYPES_NUM> counts = curves.count_curve_types();
+  EXPECT_EQ(counts[CURVE_TYPE_CATMULL_ROM], 3);
+  EXPECT_EQ(counts[CURVE_TYPE_POLY], 3);
+  EXPECT_EQ(counts[CURVE_TYPE_BEZIER], 1);
+  EXPECT_EQ(counts[CURVE_TYPE_NURBS], 3);
+}
+
 TEST(curves_geometry, CatmullRomEvaluation)
 {
   CurvesGeometry curves(4, 1);

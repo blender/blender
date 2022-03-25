@@ -146,6 +146,8 @@ class CurvesGeometry : public ::CurvesGeometry {
   MutableSpan<int8_t> curve_types();
 
   bool has_curve_with_type(const CurveType type) const;
+  /** Return the number of curves with each type. */
+  std::array<int, CURVE_TYPES_NUM> count_curve_types() const;
 
   MutableSpan<float3> positions();
   Span<float3> positions() const;

@@ -277,6 +277,40 @@ bool CurvesGeometry::has_curve_with_type(const CurveType type) const
   return false;
 }
 
+std::array<int, CURVE_TYPES_NUM> CurvesGeometry::count_curve_types() const
+{
+  using CountsType = std::array<int, CURVE_TYPES_NUM>;
+
+  CountsType identity;
+  identity.fill(0);
+
+  const VArray<int8_t> types = this->curve_types();
+  if (types.is_single()) {
+    identity[types.get_internal_single()] = this->curves_num();
+    return identity;
+  }
+
+  Span<int8_t> types_span = types.get_internal_span();
+  return threading::parallel_reduce(
+      this->curves_range(),
+      2048,
+      identity,
+      [&](const IndexRange curves_range, const CountsType &init) {
+        CountsType result = init;
+        for (const int curve_index : curves_range) {
+          result[types_span[curve_index]]++;
+        }
+        return result;
+      },
+      [](const CountsType &a, const CountsType &b) {
+        CountsType result = a;
+        for (const int i : IndexRange(CURVE_TYPES_NUM)) {
+          result[i] += b[i];
+        }
+        return result;
+      });
+}
+
 MutableSpan<float3> CurvesGeometry::positions()
 {
   this->position = (float(*)[3])CustomData_duplicate_referenced_layer_named(
