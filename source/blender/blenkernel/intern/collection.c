@@ -432,7 +432,8 @@ void BKE_collection_add_from_object(Main *bmain,
   bool is_instantiated = false;
 
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
-    if (!ID_IS_LINKED(collection) && BKE_collection_has_object(collection, ob_src)) {
+    if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDABLE_LIBRARY(collection) &&
+        BKE_collection_has_object(collection, ob_src)) {
       collection_child_add(collection, collection_dst, 0, true);
       is_instantiated = true;
     }
@@ -454,7 +455,8 @@ void BKE_collection_add_from_collection(Main *bmain,
   bool is_instantiated = false;
 
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
-    if (!ID_IS_LINKED(collection) && collection_find_child(collection, collection_src)) {
+    if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDABLE_LIBRARY(collection) &&
+        collection_find_child(collection, collection_src)) {
       collection_child_add(collection, collection_dst, 0, true);
       is_instantiated = true;
     }
