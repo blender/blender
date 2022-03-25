@@ -85,7 +85,6 @@ bool imb_savewebp(struct ImBuf *ibuf, const char *name, int UNUSED(flags))
     }
 
     last_row = (unsigned char *)(rgb_rect + (ibuf->y - 1) * ibuf->x * 3);
-    MEM_freeN(rgb_rect);
 
     if (ibuf->foptions.quality == 100.0f) {
       encoded_data_size = WebPEncodeLosslessRGB(
@@ -95,6 +94,7 @@ bool imb_savewebp(struct ImBuf *ibuf, const char *name, int UNUSED(flags))
       encoded_data_size = WebPEncodeRGB(
           last_row, ibuf->x, ibuf->y, -3 * ibuf->x, ibuf->foptions.quality, &encoded_data);
     }
+    MEM_freeN(rgb_rect);
   }
   else if (bytesperpixel == 4) {
     last_row = (unsigned char *)(ibuf->rect + (ibuf->y - 1) * ibuf->x);
