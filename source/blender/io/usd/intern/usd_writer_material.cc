@@ -163,7 +163,7 @@ void create_usd_preview_surface_material(const USDExporterContext &usd_export_co
       created_shader = create_usd_preview_shader(usd_export_context, usd_material, input_node);
 
       preview_surface.CreateInput(input_spec.input_name, input_spec.input_type)
-          .ConnectToSource(created_shader, input_spec.source_name);
+          .ConnectToSource(created_shader.ConnectableAPI(), input_spec.source_name);
     }
     else if (input_spec.set_default_value) {
       /* Set hardcoded value. */
@@ -217,7 +217,7 @@ void create_usd_viewport_material(const USDExporterContext &usd_export_context,
   shader.CreateInput(usdtokens::metallic, pxr::SdfValueTypeNames->Float).Set(material->metallic);
 
   /* Connect the shader and the material together. */
-  usd_material.CreateSurfaceOutput().ConnectToSource(shader, usdtokens::surface);
+  usd_material.CreateSurfaceOutput().ConnectToSource(shader.ConnectableAPI(), usdtokens::surface);
 }
 
 /* Return USD Preview Surface input map singleton. */
@@ -293,12 +293,12 @@ static void create_uvmap_shader(const USDExporterContext &usd_export_context,
       uv_shader.CreateInput(usdtokens::varname, pxr::SdfValueTypeNames->Token)
           .Set(pxr::TfToken(uv_set));
       usd_tex_shader.CreateInput(usdtokens::st, pxr::SdfValueTypeNames->Float2)
-          .ConnectToSource(uv_shader, usdtokens::result);
+          .ConnectToSource(uv_shader.ConnectableAPI(), usdtokens::result);
     }
     else {
       uv_shader.CreateInput(usdtokens::varname, pxr::SdfValueTypeNames->Token).Set(default_uv);
       usd_tex_shader.CreateInput(usdtokens::st, pxr::SdfValueTypeNames->Float2)
-          .ConnectToSource(uv_shader, usdtokens::result);
+          .ConnectToSource(uv_shader.ConnectableAPI(), usdtokens::result);
     }
   }
 
@@ -313,7 +313,7 @@ static void create_uvmap_shader(const USDExporterContext &usd_export_context,
     if (uv_shader.GetPrim().IsValid()) {
       uv_shader.CreateInput(usdtokens::varname, pxr::SdfValueTypeNames->Token).Set(default_uv);
       usd_tex_shader.CreateInput(usdtokens::st, pxr::SdfValueTypeNames->Float2)
-          .ConnectToSource(uv_shader, usdtokens::result);
+          .ConnectToSource(uv_shader.ConnectableAPI(), usdtokens::result);
     }
   }
 }
@@ -488,7 +488,7 @@ static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &u
     case SH_NODE_BSDF_DIFFUSE:
     case SH_NODE_BSDF_PRINCIPLED: {
       shader.CreateIdAttr(pxr::VtValue(usdtokens::preview_surface));
-      material.CreateSurfaceOutput().ConnectToSource(shader, usdtokens::surface);
+      material.CreateSurfaceOutput().ConnectToSource(shader.ConnectableAPI(), usdtokens::surface);
       break;
     }
 
