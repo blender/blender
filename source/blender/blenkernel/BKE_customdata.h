@@ -589,7 +589,7 @@ void CustomData_layers__print(struct CustomData *data);
 /* External file storage */
 
 void CustomData_external_add(
-    struct CustomData *data, struct ID *id, int type, int totelem, const char *filename);
+    struct CustomData *data, struct ID *id, int type, int totelem, const char *filepath);
 void CustomData_external_remove(struct CustomData *data, struct ID *id, int type, int totelem);
 bool CustomData_external_test(struct CustomData *data, int type);
 

@@ -4472,12 +4472,12 @@ void CustomData_layers__print(CustomData *data)
 
 /****************************** External Files *******************************/
 
-static void customdata_external_filename(char filename[FILE_MAX],
+static void customdata_external_filename(char filepath[FILE_MAX],
                                          ID *id,
                                          CustomDataExternal *external)
 {
-  BLI_strncpy(filename, external->filename, FILE_MAX);
-  BLI_path_abs(filename, ID_BLEND_PATH_FROM_GLOBAL(id));
+  BLI_strncpy(filepath, external->filepath, FILE_MAX);
+  BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(id));
 }
 
 void CustomData_external_reload(CustomData *data, ID *UNUSED(id), CustomDataMask mask, int totelem)
@@ -4502,7 +4502,7 @@ void CustomData_external_read(CustomData *data, ID *id, CustomDataMask mask, int
 {
   CustomDataExternal *external = data->external;
   CustomDataLayer *layer;
-  char filename[FILE_MAX];
+  char filepath[FILE_MAX];
   int update = 0;
 
   if (!external) {
@@ -4528,12 +4528,12 @@ void CustomData_external_read(CustomData *data, ID *id, CustomDataMask mask, int
     return;
   }
 
-  customdata_external_filename(filename, id, external);
+  customdata_external_filename(filepath, id, external);
 
   CDataFile *cdf = cdf_create(CDF_TYPE_MESH);
-  if (!cdf_read_open(cdf, filename)) {
+  if (!cdf_read_open(cdf, filepath)) {
     cdf_free(cdf);
-    CLOG_ERROR(&LOG, "Failed to read %s layer from %s.", layerType_getName(layer->type), filename);
+    CLOG_ERROR(&LOG, "Failed to read %s layer from %s.", layerType_getName(layer->type), filepath);
     return;
   }
 
@@ -4576,7 +4576,7 @@ void CustomData_external_write(
 {
   CustomDataExternal *external = data->external;
   int update = 0;
-  char filename[FILE_MAX];
+  char filepath[FILE_MAX];
 
   if (!external) {
     return;
@@ -4601,7 +4601,7 @@ void CustomData_external_write(
 
   /* make sure data is read before we try to write */
   CustomData_external_read(data, id, mask, totelem);
-  customdata_external_filename(filename, id, external);
+  customdata_external_filename(filepath, id, external);
 
   CDataFile *cdf = cdf_create(CDF_TYPE_MESH);
 
@@ -4621,8 +4621,8 @@ void CustomData_external_write(
     }
   }
 
-  if (!cdf_write_open(cdf, filename)) {
-    CLOG_ERROR(&LOG, "Failed to open %s for writing.", filename);
+  if (!cdf_write_open(cdf, filepath)) {
+    CLOG_ERROR(&LOG, "Failed to open %s for writing.", filepath);
     cdf_free(cdf);
     return;
   }
@@ -4650,7 +4650,7 @@ void CustomData_external_write(
   }
 
   if (i != data->totlayer) {
-    CLOG_ERROR(&LOG, "Failed to write data to %s.", filename);
+    CLOG_ERROR(&LOG, "Failed to write data to %s.", filepath);
     cdf_write_close(cdf);
     cdf_free(cdf);
     return;
@@ -4675,7 +4675,7 @@ void CustomData_external_write(
 }
 
 void CustomData_external_add(
-    CustomData *data, ID *UNUSED(id), int type, int UNUSED(totelem), const char *filename)
+    CustomData *data, ID *UNUSED(id), int type, int UNUSED(totelem), const char *filepath)
 {
   CustomDataExternal *external = data->external;
 
@@ -4694,7 +4694,7 @@ void CustomData_external_add(
     external = MEM_cnew<CustomDataExternal>(__func__);
     data->external = external;
   }
-  BLI_strncpy(external->filename, filename, sizeof(external->filename));
+  BLI_strncpy(external->filepath, filepath, sizeof(external->filepath));
 
   layer->flag |= CD_FLAG_EXTERNAL | CD_FLAG_IN_MEMORY;
 }
