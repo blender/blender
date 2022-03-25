@@ -3113,14 +3113,15 @@ bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *tile_start, i
   int max_udim = 0;
   int id;
 
-  struct direntry *dir;
-  uint totfile = BLI_filelist_dir_contents(dirname, &dir);
-  for (int i = 0; i < totfile; i++) {
-    if (!(dir[i].type & S_IFREG)) {
+  struct direntry *dirs;
+  const uint dirs_num = BLI_filelist_dir_contents(dirname, &dirs);
+  for (int i = 0; i < dirs_num; i++) {
+    if (!(dirs[i].type & S_IFREG)) {
       continue;
     }
 
-    if (!BKE_image_get_tile_number_from_filepath(dir[i].relname, udim_pattern, tile_format, &id)) {
+    if (!BKE_image_get_tile_number_from_filepath(
+            dirs[i].relname, udim_pattern, tile_format, &id)) {
       continue;
     }
 
@@ -3133,7 +3134,7 @@ bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *tile_start, i
     min_udim = min_ii(min_udim, id);
     max_udim = max_ii(max_udim, id);
   }
-  BLI_filelist_free(dir, totfile);
+  BLI_filelist_free(dirs, dirs_num);
   MEM_SAFE_FREE(udim_pattern);
 
   if (is_udim && min_udim <= IMA_UDIM_MAX) {
@@ -3350,15 +3351,15 @@ bool BKE_image_tile_filepath_exists(const char *filepath)
   char *udim_pattern = BKE_image_get_tile_strformat(filepath, &tile_format);
 
   bool found = false;
-  struct direntry *dir;
-  uint totfile = BLI_filelist_dir_contents(dirname, &dir);
-  for (int i = 0; i < totfile; i++) {
-    if (!(dir[i].type & S_IFREG)) {
+  struct direntry *dirs;
+  const uint dirs_num = BLI_filelist_dir_contents(dirname, &dirs);
+  for (int i = 0; i < dirs_num; i++) {
+    if (!(dirs[i].type & S_IFREG)) {
       continue;
     }
 
     int id;
-    if (!BKE_image_get_tile_number_from_filepath(dir[i].path, udim_pattern, tile_format, &id)) {
+    if (!BKE_image_get_tile_number_from_filepath(dirs[i].path, udim_pattern, tile_format, &id)) {
       continue;
     }
 
@@ -3369,7 +3370,7 @@ bool BKE_image_tile_filepath_exists(const char *filepath)
     found = true;
     break;
   }
-  BLI_filelist_free(dir, totfile);
+  BLI_filelist_free(dirs, dirs_num);
   MEM_SAFE_FREE(udim_pattern);
 
   return found;

@@ -2751,17 +2751,17 @@ int get_render_subsurf_level(const RenderData *r, int lvl, bool for_render)
   return lvl;
 }
 
-int get_render_child_particle_number(const RenderData *r, int num, bool for_render)
+int get_render_child_particle_number(const RenderData *r, int child_num, bool for_render)
 {
   if (r->mode & R_SIMPLIFY) {
     if (for_render) {
-      return (int)(r->simplify_particles_render * num);
+      return (int)(r->simplify_particles_render * child_num);
     }
 
-    return (int)(r->simplify_particles * num);
+    return (int)(r->simplify_particles * child_num);
   }
 
-  return num;
+  return child_num;
 }
 
 Base *_setlooper_base_step(Scene **sce_iter, ViewLayer *view_layer, Base *base)

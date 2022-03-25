@@ -577,7 +577,8 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       else if (mp->loopstart + mp->totloop > totloop) {
         /* Invalid loop data. */
         PRINT_ERR(
-            "\tPoly %u uses loops out of range (loopstart: %d, loopend: %d, max nbr of loops: %u)",
+            "\tPoly %u uses loops out of range "
+            "(loopstart: %d, loopend: %d, max number of loops: %u)",
             sp->index,
             mp->loopstart,
             mp->loopstart + mp->totloop - 1,

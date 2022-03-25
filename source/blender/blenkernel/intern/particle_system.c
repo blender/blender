@@ -280,20 +280,20 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
 
 int psys_get_child_number(Scene *scene, ParticleSystem *psys, const bool use_render_params)
 {
-  int nbr;
+  int child_num;
 
   if (!psys->part->childtype) {
     return 0;
   }
 
   if (use_render_params) {
-    nbr = psys->part->ren_child_nbr;
+    child_num = psys->part->ren_child_nbr;
   }
   else {
-    nbr = psys->part->child_nbr;
+    child_num = psys->part->child_nbr;
   }
 
-  return get_render_child_particle_number(&scene->r, nbr, use_render_params);
+  return get_render_child_particle_number(&scene->r, child_num, use_render_params);
 }
 
 int psys_get_tot_child(Scene *scene, ParticleSystem *psys, const bool use_render_params)

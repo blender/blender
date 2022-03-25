@@ -1140,8 +1140,8 @@ typedef struct FileDirEntry {
 #
 typedef struct FileDirEntryArr {
   ListBase entries;
-  int nbr_entries;
-  int nbr_entries_filtered;
+  int entries_num;
+  int entries_filtered_num;
 
   /** FILE_MAX. */
   char root[1024];

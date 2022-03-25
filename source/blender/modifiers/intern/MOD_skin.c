@@ -450,18 +450,18 @@ static Frame **collect_hull_frames(
 {
   SkinNode *f;
   Frame **hull_frames;
-  int nbr, i;
+  int hull_frames_num, i;
 
   (*tothullframe) = emap[v].count;
   hull_frames = MEM_calloc_arrayN(
       (*tothullframe), sizeof(Frame *), "hull_from_frames.hull_frames");
-  i = 0;
-  for (nbr = 0; nbr < emap[v].count; nbr++) {
-    const MEdge *e = &medge[emap[v].indices[nbr]];
+  hull_frames_num = 0;
+  for (i = 0; i < emap[v].count; i++) {
+    const MEdge *e = &medge[emap[v].indices[i]];
     f = &frames[BKE_mesh_edge_other_vert(e, v)];
     /* Can't have adjacent branch nodes yet */
     if (f->totframe) {
-      hull_frames[i++] = &f->frames[0];
+      hull_frames[hull_frames_num++] = &f->frames[0];
     }
     else {
       (*tothullframe)--;

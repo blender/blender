@@ -468,8 +468,8 @@ void DebugInfo::delete_operation_exports()
   const std::string dir = get_operations_export_dir();
   if (BLI_exists(dir.c_str())) {
     struct direntry *file_list;
-    int num_files = BLI_filelist_dir_contents(dir.c_str(), &file_list);
-    for (int i = 0; i < num_files; i++) {
+    int file_list_num = BLI_filelist_dir_contents(dir.c_str(), &file_list);
+    for (int i = 0; i < file_list_num; i++) {
       direntry *file = &file_list[i];
       const eFileAttributes file_attrs = BLI_file_attributes(file->path);
       if (file_attrs & FILE_ATTR_ANY_LINK) {
@@ -480,7 +480,7 @@ void DebugInfo::delete_operation_exports()
         BLI_delete(file->path, false, false);
       }
     }
-    BLI_filelist_free(file_list, num_files);
+    BLI_filelist_free(file_list, file_list_num);
   }
 }
 

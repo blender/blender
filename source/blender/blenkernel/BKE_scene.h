@@ -225,7 +225,7 @@ bool BKE_scene_remove_render_view(struct Scene *scene, struct SceneRenderView *s
 /* Render profile. */
 
 int get_render_subsurf_level(const struct RenderData *r, int lvl, bool for_render);
-int get_render_child_particle_number(const struct RenderData *r, int num, bool for_render);
+int get_render_child_particle_number(const struct RenderData *r, int child_num, bool for_render);
 
 bool BKE_scene_use_shading_nodes_custom(struct Scene *scene);
 bool BKE_scene_use_spherical_stereo(struct Scene *scene);
