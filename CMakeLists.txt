@@ -1974,7 +1974,7 @@ if(FIRST_RUN)
 
     set(_msg "  - ${_setting}")
     string(LENGTH "${_msg}" _len)
-    while("32" GREATER "${_len}")
+    while("36" GREATER "${_len}")
       string(APPEND _msg " ")
       math(EXPR _len "${_len} + 1")
     endwhile()
