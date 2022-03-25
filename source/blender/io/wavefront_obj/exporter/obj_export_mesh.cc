@@ -33,7 +33,7 @@ OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Obj
 {
   /* We need to copy the object because it may be in temporary space. */
   Object *obj_eval = DEG_get_evaluated_object(depsgraph, mesh_object);
-  export_object_eval_ = dna::shallow_copy(*obj_eval);
+  export_object_eval_ = *obj_eval;
   export_mesh_eval_ = export_params.apply_modifiers ?
                           BKE_object_get_evaluated_mesh(&export_object_eval_) :
                           BKE_object_get_pre_modified_mesh(&export_object_eval_);
