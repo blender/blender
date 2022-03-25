@@ -624,7 +624,7 @@ void BKE_pbvh_grids_update(PBVH *pbvh,
                            void **gridfaces,
                            struct DMFlagMat *flagmats,
                            unsigned int **grid_hidden);
-void BKE_pbvh_subdiv_cgg_set(PBVH *pbvh, struct SubdivCCG *subdiv_ccg);
+void BKE_pbvh_subdiv_ccg_set(PBVH *pbvh, struct SubdivCCG *subdiv_ccg);
 void BKE_pbvh_face_sets_set(PBVH *pbvh, int *face_sets);
 
 void BKE_pbvh_face_sets_color_set(PBVH *pbvh, int seed, int color_default);

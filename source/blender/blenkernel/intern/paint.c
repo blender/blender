@@ -1815,7 +1815,9 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   BLI_assert(pbvh == ss->pbvh);
   UNUSED_VARS_NDEBUG(pbvh);
 
-  BKE_pbvh_subdiv_cgg_set(ss->pbvh, ss->subdiv_ccg);
+  if (ss->subdiv_ccg) {
+    BKE_pbvh_subdiv_ccg_set(ss->pbvh, ss->subdiv_ccg);
+  }
   BKE_pbvh_face_sets_set(ss->pbvh, ss->face_sets);
 
   BKE_pbvh_face_sets_color_set(ss->pbvh, me->face_sets_color_seed, me->face_sets_color_default);
@@ -2553,6 +2555,9 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
                          subdiv_ccg->grid_hidden,
                          ob->sculpt->fast_draw,
                          ss->face_areas);
+  }
+  else {
+    BKE_pbvh_subdiv_ccg_set(pbvh, subdiv_ccg);
   }
 
   BKE_pbvh_set_face_areas(pbvh, ss->face_areas);

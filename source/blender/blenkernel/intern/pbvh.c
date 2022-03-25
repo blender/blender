@@ -3734,9 +3734,13 @@ const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3]
   return pbvh->vert_normals;
 }
 
-void BKE_pbvh_subdiv_cgg_set(PBVH *pbvh, SubdivCCG *subdiv_ccg)
+void BKE_pbvh_subdiv_ccg_set(PBVH *pbvh, SubdivCCG *subdiv_ccg)
 {
   pbvh->subdiv_ccg = subdiv_ccg;
+  pbvh->gridfaces = (void**) subdiv_ccg->grid_faces;
+  pbvh->grid_hidden = subdiv_ccg->grid_hidden;
+  pbvh->grid_flag_mats = subdiv_ccg->grid_flag_mats;
+  pbvh->grids = subdiv_ccg->grids;
 }
 
 void BKE_pbvh_face_sets_set(PBVH *pbvh, int *face_sets)
@@ -5193,3 +5197,4 @@ bool BKE_pbvh_pmap_release(SculptPMap *pmap)
 
   return false;
 }
+
