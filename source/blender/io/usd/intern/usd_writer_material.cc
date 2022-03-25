@@ -6,6 +6,7 @@
 #include "usd_exporter_context.h"
 
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 
@@ -335,7 +336,7 @@ static std::string get_in_memory_texture_filename(Image *ima)
   }
 
   ImageFormatData imageFormat;
-  BKE_imbuf_to_image_format(&imageFormat, imbuf);
+  BKE_image_format_from_imbuf(&imageFormat, imbuf);
 
   char file_name[FILE_MAX];
   /* Use the image name for the file name. */
@@ -368,7 +369,7 @@ static void export_in_memory_texture(Image *ima,
   }
 
   ImageFormatData imageFormat;
-  BKE_imbuf_to_image_format(&imageFormat, imbuf);
+  BKE_image_format_from_imbuf(&imageFormat, imbuf);
 
   /* This image in its current state only exists in Blender memory.
    * So we have to export it. The export will keep the image state intact,

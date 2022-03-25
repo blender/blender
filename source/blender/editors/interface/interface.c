@@ -4238,28 +4238,28 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
 
   int totitems = 0;
   int categories = 0;
-  int nbr_entries_nosepr = 0;
+  int entries_nosepr_count = 0;
   for (const EnumPropertyItem *item = item_array; item->identifier; item++, totitems++) {
     if (!item->identifier[0]) {
       /* inconsistent, but menus with categories do not look good flipped */
       if (item->name) {
         block->flag |= UI_BLOCK_NO_FLIP;
         categories++;
-        nbr_entries_nosepr++;
+        entries_nosepr_count++;
       }
-      /* We do not want simple separators in nbr_entries_nosepr count */
+      /* We do not want simple separators in `entries_nosepr_count`. */
       continue;
     }
-    nbr_entries_nosepr++;
+    entries_nosepr_count++;
   }
 
   /* Columns and row estimation. Ignore simple separators here. */
-  int columns = (nbr_entries_nosepr + 20) / 20;
+  int columns = (entries_nosepr_count + 20) / 20;
   if (columns < 1) {
     columns = 1;
   }
   if (columns > 8) {
-    columns = (nbr_entries_nosepr + 25) / 25;
+    columns = (entries_nosepr_count + 25) / 25;
   }
 
   int rows = totitems / columns;

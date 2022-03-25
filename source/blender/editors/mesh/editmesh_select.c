@@ -2016,7 +2016,7 @@ void MESH_OT_select_interior_faces(wmOperatorType *ot)
  * Gets called via generic mouse select operator.
  * \{ */
 
-bool EDBM_select_pick(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
+bool EDBM_select_pick(bContext *C, const int mval[2], const struct SelectPick_Params *params)
 {
   ViewContext vc;
 
@@ -2033,100 +2033,153 @@ bool EDBM_select_pick(bContext *C, const int mval[2], bool extend, bool deselect
   uint bases_len = 0;
   Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(vc.view_layer, vc.v3d, &bases_len);
 
-  bool ok = false;
+  bool changed = false;
+  bool found = unified_findnearest(&vc, bases, bases_len, &base_index_active, &eve, &eed, &efa);
 
-  if (unified_findnearest(&vc, bases, bases_len, &base_index_active, &eve, &eed, &efa)) {
-    Base *basact = bases[base_index_active];
-    ED_view3d_viewcontext_init_object(&vc, basact->object);
-
-    /* Deselect everything */
-    if (extend == false && deselect == false && toggle == false) {
+  if (params->sel_op == SEL_OP_SET) {
+    BMElem *ele = efa ? (BMElem *)efa : (eed ? (BMElem *)eed : (BMElem *)eve);
+    if ((found && params->select_passthrough) && BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
+      found = false;
+    }
+    else if (found || params->deselect_all) {
+      /* Deselect everything. */
       for (uint base_index = 0; base_index < bases_len; base_index++) {
         Base *base_iter = bases[base_index];
         Object *ob_iter = base_iter->object;
         EDBM_flag_disable_all(BKE_editmesh_from_object(ob_iter), BM_ELEM_SELECT);
-        if (basact->object != ob_iter) {
-          DEG_id_tag_update(ob_iter->data, ID_RECALC_SELECT);
-          WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
-        }
+        DEG_id_tag_update(ob_iter->data, ID_RECALC_SELECT);
+        WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
       }
+      changed = true;
     }
+  }
+
+  if (found) {
+    Base *basact = bases[base_index_active];
+    ED_view3d_viewcontext_init_object(&vc, basact->object);
 
     if (efa) {
-      if (extend) {
-        /* set the last selected face */
-        BM_mesh_active_face_set(vc.em->bm, efa);
+      switch (params->sel_op) {
+        case SEL_OP_ADD: {
+          BM_mesh_active_face_set(vc.em->bm, efa);
 
-        /* Work-around: deselect first, so we can guarantee it will */
-        /* be active even if it was already selected */
-        BM_select_history_remove(vc.em->bm, efa);
-        BM_face_select_set(vc.em->bm, efa, false);
-        BM_select_history_store(vc.em->bm, efa);
-        BM_face_select_set(vc.em->bm, efa, true);
-      }
-      else if (deselect) {
-        BM_select_history_remove(vc.em->bm, efa);
-        BM_face_select_set(vc.em->bm, efa, false);
-      }
-      else {
-        /* set the last selected face */
-        BM_mesh_active_face_set(vc.em->bm, efa);
-
-        if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-          BM_select_history_store(vc.em->bm, efa);
-          BM_face_select_set(vc.em->bm, efa, true);
-        }
-        else if (toggle) {
+          /* Work-around: deselect first, so we can guarantee it will
+           * be active even if it was already selected. */
           BM_select_history_remove(vc.em->bm, efa);
           BM_face_select_set(vc.em->bm, efa, false);
+          BM_select_history_store(vc.em->bm, efa);
+          BM_face_select_set(vc.em->bm, efa, true);
+          break;
+        }
+        case SEL_OP_SUB: {
+          BM_select_history_remove(vc.em->bm, efa);
+          BM_face_select_set(vc.em->bm, efa, false);
+          break;
+        }
+        case SEL_OP_XOR: {
+          BM_mesh_active_face_set(vc.em->bm, efa);
+          if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+            BM_select_history_store(vc.em->bm, efa);
+            BM_face_select_set(vc.em->bm, efa, true);
+          }
+          else {
+            BM_select_history_remove(vc.em->bm, efa);
+            BM_face_select_set(vc.em->bm, efa, false);
+          }
+          break;
+        }
+        case SEL_OP_SET: {
+          BM_mesh_active_face_set(vc.em->bm, efa);
+          if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+            BM_select_history_store(vc.em->bm, efa);
+            BM_face_select_set(vc.em->bm, efa, true);
+          }
+          break;
+        }
+        case SEL_OP_AND: {
+          BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+          break;
         }
       }
     }
     else if (eed) {
-      if (extend) {
-        /* Work-around: deselect first, so we can guarantee it will */
-        /* be active even if it was already selected */
-        BM_select_history_remove(vc.em->bm, eed);
-        BM_edge_select_set(vc.em->bm, eed, false);
-        BM_select_history_store(vc.em->bm, eed);
-        BM_edge_select_set(vc.em->bm, eed, true);
-      }
-      else if (deselect) {
-        BM_select_history_remove(vc.em->bm, eed);
-        BM_edge_select_set(vc.em->bm, eed, false);
-      }
-      else {
-        if (!BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-          BM_select_history_store(vc.em->bm, eed);
-          BM_edge_select_set(vc.em->bm, eed, true);
-        }
-        else if (toggle) {
+
+      switch (params->sel_op) {
+        case SEL_OP_ADD: {
+          /* Work-around: deselect first, so we can guarantee it will
+           * be active even if it was already selected. */
           BM_select_history_remove(vc.em->bm, eed);
           BM_edge_select_set(vc.em->bm, eed, false);
+          BM_select_history_store(vc.em->bm, eed);
+          BM_edge_select_set(vc.em->bm, eed, true);
+          break;
+        }
+        case SEL_OP_SUB: {
+          BM_select_history_remove(vc.em->bm, eed);
+          BM_edge_select_set(vc.em->bm, eed, false);
+          break;
+        }
+        case SEL_OP_XOR: {
+          if (!BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+            BM_select_history_store(vc.em->bm, eed);
+            BM_edge_select_set(vc.em->bm, eed, true);
+          }
+          else {
+            BM_select_history_remove(vc.em->bm, eed);
+            BM_edge_select_set(vc.em->bm, eed, false);
+          }
+          break;
+        }
+        case SEL_OP_SET: {
+          if (!BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+            BM_select_history_store(vc.em->bm, eed);
+            BM_edge_select_set(vc.em->bm, eed, true);
+          }
+          break;
+        }
+        case SEL_OP_AND: {
+          BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+          break;
         }
       }
     }
     else if (eve) {
-      if (extend) {
-        /* Work-around: deselect first, so we can guarantee it will */
-        /* be active even if it was already selected */
-        BM_select_history_remove(vc.em->bm, eve);
-        BM_vert_select_set(vc.em->bm, eve, false);
-        BM_select_history_store(vc.em->bm, eve);
-        BM_vert_select_set(vc.em->bm, eve, true);
-      }
-      else if (deselect) {
-        BM_select_history_remove(vc.em->bm, eve);
-        BM_vert_select_set(vc.em->bm, eve, false);
-      }
-      else {
-        if (!BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-          BM_select_history_store(vc.em->bm, eve);
-          BM_vert_select_set(vc.em->bm, eve, true);
-        }
-        else if (toggle) {
+      switch (params->sel_op) {
+        case SEL_OP_ADD: {
+          /* Work-around: deselect first, so we can guarantee it will
+           * be active even if it was already selected. */
           BM_select_history_remove(vc.em->bm, eve);
           BM_vert_select_set(vc.em->bm, eve, false);
+          BM_select_history_store(vc.em->bm, eve);
+          BM_vert_select_set(vc.em->bm, eve, true);
+          break;
+        }
+        case SEL_OP_SUB: {
+          BM_select_history_remove(vc.em->bm, eve);
+          BM_vert_select_set(vc.em->bm, eve, false);
+          break;
+        }
+        case SEL_OP_XOR: {
+          if (!BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+            BM_select_history_store(vc.em->bm, eve);
+            BM_vert_select_set(vc.em->bm, eve, true);
+          }
+          else {
+            BM_select_history_remove(vc.em->bm, eve);
+            BM_vert_select_set(vc.em->bm, eve, false);
+          }
+          break;
+        }
+        case SEL_OP_SET: {
+          if (!BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+            BM_select_history_store(vc.em->bm, eve);
+            BM_vert_select_set(vc.em->bm, eve, true);
+          }
+          break;
+        }
+        case SEL_OP_AND: {
+          BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+          break;
         }
       }
     }
@@ -2168,12 +2221,12 @@ bool EDBM_select_pick(bContext *C, const int mval[2], bool extend, bool deselect
     DEG_id_tag_update(vc.obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
 
-    ok = true;
+    changed = true;
   }
 
   MEM_freeN(bases);
 
-  return ok;
+  return changed;
 }
 
 /** \} */

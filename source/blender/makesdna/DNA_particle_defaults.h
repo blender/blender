@@ -56,8 +56,8 @@
     .rotmode = PART_ROT_VEL, \
     .avemode = PART_AVE_VELOCITY, \
  \
-    .child_nbr = 10, \
-    .ren_child_nbr = 100, \
+    .child_percent = 10, \
+    .child_render_percent = 100, \
     .childrad = 0.2f, \
     .childflat = 0.0f, \
     .clumppow = 0.0f, \

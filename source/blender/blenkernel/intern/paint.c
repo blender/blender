@@ -1099,6 +1099,7 @@ bool BKE_paint_ensure(ToolSettings *ts, struct Paint **r_paint)
   }
   else if ((CurvesSculpt **)r_paint == &ts->curves_sculpt) {
     CurvesSculpt *data = MEM_callocN(sizeof(*data), __func__);
+    data->curve_length = 0.3f;
     paint = &data->paint;
   }
   else if (*r_paint == &ts->imapaint.paint) {

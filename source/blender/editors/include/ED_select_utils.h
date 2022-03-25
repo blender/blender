@@ -70,6 +70,31 @@ bool ED_select_similar_compare_float_tree(const struct KDTree_1d *tree,
  */
 eSelectOp ED_select_op_modal(eSelectOp sel_op, bool is_first);
 
+/** Argument passed to picking functions. */
+struct SelectPick_Params {
+  /**
+   * - #SEL_OP_ADD named "extend" from operators.
+   * - #SEL_OP_SUB named "deselect" from operators.
+   * - #SEL_OP_XOR named "toggle" from operators.
+   * - #SEL_OP_AND (never used for picking).
+   * - #SEL_OP_SET use when "extend", "deselect" and "toggle" are all disabled.
+   */
+  eSelectOp sel_op;
+  /** Deselect all, even when there is nothing found at the cursor location. */
+  bool deselect_all;
+  /**
+   * When selecting an element that is already selected, do nothing (passthrough).
+   * don't even make it active.
+   * Use to implement tweaking to move the selection without first de-selecting.
+   */
+  bool select_passthrough;
+};
+
+/**
+ * Utility to get #eSelectPickMode from booleans for convenience.
+ */
+eSelectOp ED_select_op_from_booleans(bool extend, bool deselect, bool toggle);
+
 #ifdef __cplusplus
 }
 #endif

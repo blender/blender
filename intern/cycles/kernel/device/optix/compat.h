@@ -74,7 +74,6 @@ typedef unsigned long long uint64_t;
 
 #define ccl_gpu_syncthreads() __syncthreads()
 #define ccl_gpu_ballot(predicate) __ballot_sync(0xFFFFFFFF, predicate)
-#define ccl_gpu_shfl_down_sync(mask, var, detla) __shfl_down_sync(mask, var, detla)
 
 /* GPU texture objects */
 

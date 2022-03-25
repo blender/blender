@@ -371,7 +371,7 @@ static void outliner_init(wmWindowManager *UNUSED(wm), ScrArea *area)
 static SpaceLink *outliner_duplicate(SpaceLink *sl)
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
-  SpaceOutliner *space_outliner_new = MEM_new<SpaceOutliner>(__func__, *space_outliner);
+  SpaceOutliner *space_outliner_new = MEM_cnew<SpaceOutliner>(__func__, *space_outliner);
 
   BLI_listbase_clear(&space_outliner_new->tree);
   space_outliner_new->treestore = nullptr;

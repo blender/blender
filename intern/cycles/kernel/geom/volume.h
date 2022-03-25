@@ -75,7 +75,7 @@ ccl_device float4 volume_attribute_float4(KernelGlobals kg,
     return kernel_tex_image_interp_3d(kg, desc.offset, P, interp);
   }
   else {
-    return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    return zero_float4();
   }
 }
 

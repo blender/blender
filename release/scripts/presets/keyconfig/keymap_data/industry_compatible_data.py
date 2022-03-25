@@ -564,9 +564,9 @@ def km_uv_editor(params):
          {"properties": [("type", 'ISLAND')]}),
 
         ("uv.select", {"type": 'LEFTMOUSE', "value": 'CLICK'},
-         {"properties": [("extend", False), ("deselect_all", True)]}),
+         {"properties": [("deselect_all", True)]}),
         ("uv.select", {"type": 'LEFTMOUSE', "value": 'CLICK', "shift": True},
-         {"properties": [("extend", True), ("deselect_all", False)]}),
+         {"properties": [("toggle", True), ("deselect_all", False)]}),
 
         ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
         ("uv.select_loop", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK', "shift": True},

@@ -193,7 +193,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
 
         obj = context.object
         obj_type = obj.type
-        is_geometry = (obj_type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'VOLUME', 'HAIR', 'POINTCLOUD'})
+        is_geometry = (obj_type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'VOLUME', 'CURVES', 'POINTCLOUD'})
         has_bounds = (is_geometry or obj_type in {'LATTICE', 'ARMATURE'})
         is_wire = (obj_type in {'CAMERA', 'EMPTY'})
         is_empty_image = (obj_type == 'EMPTY' and obj.empty_display_type == 'IMAGE')

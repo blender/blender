@@ -238,3 +238,16 @@ void imb_loadtiletiff(
 bool imb_savetiff(struct ImBuf *ibuf, const char *filepath, int flags);
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Format: TIFF (#IMB_FTYPE_WEBP)
+ * \{ */
+
+bool imb_is_a_webp(const unsigned char *buf, size_t size);
+struct ImBuf *imb_loadwebp(const unsigned char *mem,
+                           size_t size,
+                           int flags,
+                           char colorspace[IM_MAX_SPACE]);
+bool imb_savewebp(struct ImBuf *ibuf, const char *name, int flags);
+
+/** \} */

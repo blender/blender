@@ -422,7 +422,7 @@ static float4 lookup_instance_property(BL::DepsgraphObjectInstance &b_instance,
     return value;
   }
 
-  return make_float4(0.0f);
+  return zero_float4();
 }
 
 bool BlenderSync::sync_object_attributes(BL::DepsgraphObjectInstance &b_instance, Object *object)

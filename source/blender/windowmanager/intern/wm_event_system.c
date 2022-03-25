@@ -194,6 +194,10 @@ void wm_event_free(wmEvent *event)
     printf("%s: 'is_repeat=true' for non-keyboard event, this should not happen.\n", __func__);
     WM_event_print(event);
   }
+  if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) && (event->val != KM_NOTHING)) {
+    printf("%s: 'val != NOTHING' for a cursor motion event, this should not happen.\n", __func__);
+    WM_event_print(event);
+  }
 #endif
 
   wm_event_custom_free(event);
@@ -3879,6 +3883,7 @@ void wm_event_do_handlers(bContext *C)
       wmEvent tevent = *(win->eventstate);
       // printf("adding MOUSEMOVE %d %d\n", tevent.xy[0], tevent.xy[1]);
       tevent.type = MOUSEMOVE;
+      tevent.val = KM_NOTHING;
       tevent.prev_xy[0] = tevent.xy[0];
       tevent.prev_xy[1] = tevent.xy[1];
       tevent.flag = 0;
@@ -4423,6 +4428,9 @@ void WM_event_add_mousemove(wmWindow *win)
 /** \name Ghost Event Conversion
  * \{ */
 
+/**
+ * \return The WM enum for key or #EVENT_NONE (which should be ignored).
+ */
 static int convert_key(GHOST_TKey key)
 {
   if (key >= GHOST_kKeyA && key <= GHOST_kKeyZ) {
@@ -4446,7 +4454,7 @@ static int convert_key(GHOST_TKey key)
     case GHOST_kKeyLinefeed:
       return EVT_LINEFEEDKEY;
     case GHOST_kKeyClear:
-      return 0;
+      return EVENT_NONE;
     case GHOST_kKeyEnter:
       return EVT_RETKEY;
 
@@ -4501,9 +4509,9 @@ static int convert_key(GHOST_TKey key)
     case GHOST_kKeyCapsLock:
       return EVT_CAPSLOCKKEY;
     case GHOST_kKeyNumLock:
-      return 0;
+      return EVENT_NONE;
     case GHOST_kKeyScrollLock:
-      return 0;
+      return EVENT_NONE;
 
     case GHOST_kKeyLeftArrow:
       return EVT_LEFTARROWKEY;
@@ -4515,7 +4523,7 @@ static int convert_key(GHOST_TKey key)
       return EVT_DOWNARROWKEY;
 
     case GHOST_kKeyPrintScreen:
-      return 0;
+      return EVENT_NONE;
     case GHOST_kKeyPause:
       return EVT_PAUSEKEY;
 
@@ -4557,9 +4565,28 @@ static int convert_key(GHOST_TKey key)
     case GHOST_kKeyMediaLast:
       return EVT_MEDIALAST;
 
-    default:
-      return EVT_UNKNOWNKEY; /* #GHOST_kKeyUnknown (this could be asserted). */
+    case GHOST_kKeyUnknown:
+      return EVT_UNKNOWNKEY;
+
+#if defined(__GNUC__) || defined(__clang__)
+      /* Ensure all members of this enum are handled, otherwise generate a compiler warning.
+       * Note that these members have been handled, these ranges are to satisfy the compiler. */
+    case GHOST_kKeyF1 ... GHOST_kKeyF24:
+    case GHOST_kKeyA ... GHOST_kKeyZ:
+    case GHOST_kKeyNumpad0 ... GHOST_kKeyNumpad9:
+    case GHOST_kKey0 ... GHOST_kKey9: {
+      BLI_assert_unreachable();
+      break;
+    }
+#else
+    default: {
+      break;
+    }
+#endif
   }
+
+  CLOG_WARN(WM_LOG_EVENTS, "unknown event type %d from ghost", (int)key);
+  return EVENT_NONE;
 }
 
 static void wm_eventemulation(wmEvent *event, bool test_only)
@@ -4822,6 +4849,7 @@ static wmEvent *wm_event_add_mousemove_to_head(wmWindow *win)
   }
 
   tevent.type = MOUSEMOVE;
+  tevent.val = KM_NOTHING;
   copy_v2_v2_int(tevent.prev_xy, tevent.xy);
 
   wmEvent *event_new = wm_event_add(win, &tevent);
@@ -4956,6 +4984,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       wm_tablet_data_from_ghost(&cd->tablet, &event.tablet);
 
       event.type = MOUSEMOVE;
+      event.val = KM_NOTHING;
       {
         wmEvent *event_new = wm_event_add_mousemove(win, &event);
         copy_v2_v2_int(event_state->xy, event_new->xy);
@@ -4974,6 +5003,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
 
         copy_v2_v2_int(event_other.xy, event.xy);
         event_other.type = MOUSEMOVE;
+        event_other.val = KM_NOTHING;
         {
           wmEvent *event_new = wm_event_add_mousemove(win_other, &event_other);
           copy_v2_v2_int(win_other->eventstate->xy, event_new->xy);
@@ -5079,6 +5109,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
     case GHOST_kEventKeyUp: {
       GHOST_TEventKeyData *kd = customdata;
       event.type = convert_key(kd->key);
+      if (UNLIKELY(event.type == EVENT_NONE)) {
+        break;
+      }
+
       event.ascii = kd->ascii;
       /* Might be not NULL terminated. */
       memcpy(event.utf8_buf, kd->utf8_buf, sizeof(event.utf8_buf));

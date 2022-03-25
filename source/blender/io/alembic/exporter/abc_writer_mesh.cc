@@ -158,6 +158,7 @@ void ABCGenericMeshWriter::do_write(HierarchyContext &context)
     BMeshCreateParams bmesh_create_params{};
     BMeshFromMeshParams bmesh_from_mesh_params{};
     bmesh_from_mesh_params.calc_face_normal = true;
+    bmesh_from_mesh_params.calc_vert_normal = true;
     BMesh *bm = BKE_mesh_to_bmesh_ex(mesh, &bmesh_create_params, &bmesh_from_mesh_params);
 
     BM_mesh_triangulate(bm, quad_method, ngon_method, 4, tag_only, nullptr, nullptr, nullptr);

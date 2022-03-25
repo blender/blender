@@ -951,127 +951,180 @@ bool ED_armature_edit_select_pick_bone(bContext *C,
                                        Base *basact,
                                        EditBone *ebone,
                                        const int selmask,
-                                       const bool extend,
-                                       const bool deselect,
-                                       const bool toggle)
+                                       const struct SelectPick_Params *params)
 {
-  if (!ebone) {
-    return false;
-  }
-
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
+  bool changed = false;
+  bool found = false;
 
-  BLI_assert(BKE_object_is_in_editmode(basact->object));
-  bArmature *arm = basact->object->data;
-
-  if (!EBONE_SELECTABLE(arm, ebone)) {
-    return false;
+  if (ebone) {
+    bArmature *arm = basact->object->data;
+    if (EBONE_SELECTABLE(arm, ebone)) {
+      found = true;
+    }
   }
 
-  if (!extend && !deselect && !toggle) {
-    uint bases_len = 0;
-    Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
-        view_layer, v3d, &bases_len);
-    ED_armature_edit_deselect_all_multi_ex(bases, bases_len);
-    MEM_freeN(bases);
+  if (params->sel_op == SEL_OP_SET) {
+    if ((found && params->select_passthrough) &&
+        (ED_armature_ebone_selectflag_get(ebone) & selmask)) {
+      found = false;
+    }
+    else if (found || params->deselect_all) {
+      /* Deselect everything. */
+      uint bases_len = 0;
+      Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
+          view_layer, v3d, &bases_len);
+      ED_armature_edit_deselect_all_multi_ex(bases, bases_len);
+      MEM_freeN(bases);
+      changed = true;
+    }
   }
 
-  /* By definition the non-root connected bones have no root point drawn,
-   * so a root selection needs to be delivered to the parent tip. */
+  if (found) {
+    BLI_assert(BKE_object_is_in_editmode(basact->object));
+    bArmature *arm = basact->object->data;
 
-  if (selmask & BONE_SELECTED) {
-    if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
-      /* Bone is in a chain. */
-      if (extend) {
-        /* Select this bone. */
-        ebone->flag |= BONE_TIPSEL;
-        ebone->parent->flag |= BONE_TIPSEL;
-      }
-      else if (deselect) {
-        /* Deselect this bone. */
-        ebone->flag &= ~(BONE_TIPSEL | BONE_SELECTED);
-        /* Only deselect parent tip if it is not selected. */
-        if (!(ebone->parent->flag & BONE_SELECTED)) {
-          ebone->parent->flag &= ~BONE_TIPSEL;
-        }
-      }
-      else if (toggle) {
-        /* Toggle inverts this bone's selection. */
-        if (ebone->flag & BONE_SELECTED) {
-          /* Deselect this bone. */
-          ebone->flag &= ~(BONE_TIPSEL | BONE_SELECTED);
-          /* Only deselect parent tip if it is not selected. */
-          if (!(ebone->parent->flag & BONE_SELECTED)) {
-            ebone->parent->flag &= ~BONE_TIPSEL;
+    /* By definition the non-root connected bones have no root point drawn,
+     * so a root selection needs to be delivered to the parent tip. */
+
+    if (selmask & BONE_SELECTED) {
+      if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
+
+        /* Bone is in a chain. */
+        switch (params->sel_op) {
+          case SEL_OP_ADD: {
+            /* Select this bone. */
+            ebone->flag |= BONE_TIPSEL;
+            ebone->parent->flag |= BONE_TIPSEL;
+            break;
+          }
+          case SEL_OP_SUB: {
+            /* Deselect this bone. */
+            ebone->flag &= ~(BONE_TIPSEL | BONE_SELECTED);
+            /* Only deselect parent tip if it is not selected. */
+            if (!(ebone->parent->flag & BONE_SELECTED)) {
+              ebone->parent->flag &= ~BONE_TIPSEL;
+            }
+            break;
+          }
+          case SEL_OP_XOR: {
+            /* Toggle inverts this bone's selection. */
+            if (ebone->flag & BONE_SELECTED) {
+              /* Deselect this bone. */
+              ebone->flag &= ~(BONE_TIPSEL | BONE_SELECTED);
+              /* Only deselect parent tip if it is not selected. */
+              if (!(ebone->parent->flag & BONE_SELECTED)) {
+                ebone->parent->flag &= ~BONE_TIPSEL;
+              }
+            }
+            else {
+              /* Select this bone. */
+              ebone->flag |= BONE_TIPSEL;
+              ebone->parent->flag |= BONE_TIPSEL;
+            }
+            break;
+          }
+          case SEL_OP_SET: {
+            /* Select this bone. */
+            ebone->flag |= BONE_TIPSEL;
+            ebone->parent->flag |= BONE_TIPSEL;
+            break;
+          }
+          case SEL_OP_AND: {
+            BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+            break;
           }
         }
-        else {
-          /* Select this bone. */
-          ebone->flag |= BONE_TIPSEL;
-          ebone->parent->flag |= BONE_TIPSEL;
-        }
       }
       else {
-        /* Select this bone. */
-        ebone->flag |= BONE_TIPSEL;
-        ebone->parent->flag |= BONE_TIPSEL;
+        switch (params->sel_op) {
+          case SEL_OP_ADD: {
+            ebone->flag |= (BONE_TIPSEL | BONE_ROOTSEL);
+            break;
+          }
+          case SEL_OP_SUB: {
+            ebone->flag &= ~(BONE_TIPSEL | BONE_ROOTSEL);
+            break;
+          }
+          case SEL_OP_XOR: {
+            /* Toggle inverts this bone's selection. */
+            if (ebone->flag & BONE_SELECTED) {
+              ebone->flag &= ~(BONE_TIPSEL | BONE_ROOTSEL);
+            }
+            else {
+              ebone->flag |= (BONE_TIPSEL | BONE_ROOTSEL);
+            }
+            break;
+          }
+          case SEL_OP_SET: {
+            ebone->flag |= (BONE_TIPSEL | BONE_ROOTSEL);
+            break;
+          }
+          case SEL_OP_AND: {
+            BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+            break;
+          }
+        }
       }
     }
     else {
-      if (extend) {
-        ebone->flag |= (BONE_TIPSEL | BONE_ROOTSEL);
-      }
-      else if (deselect) {
-        ebone->flag &= ~(BONE_TIPSEL | BONE_ROOTSEL);
-      }
-      else if (toggle) {
-        /* Toggle inverts this bone's selection. */
-        if (ebone->flag & BONE_SELECTED) {
-          ebone->flag &= ~(BONE_TIPSEL | BONE_ROOTSEL);
+      switch (params->sel_op) {
+        case SEL_OP_ADD: {
+          ebone->flag |= selmask;
+          break;
         }
-        else {
-          ebone->flag |= (BONE_TIPSEL | BONE_ROOTSEL);
+        case SEL_OP_SUB: {
+          ebone->flag &= ~selmask;
+          break;
+        }
+        case SEL_OP_XOR: {
+          if (ebone->flag & selmask) {
+            ebone->flag &= ~selmask;
+          }
+          else {
+            ebone->flag |= selmask;
+          }
+          break;
+        }
+        case SEL_OP_SET: {
+          ebone->flag |= selmask;
+          break;
+        }
+        case SEL_OP_AND: {
+          BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+          break;
         }
       }
-      else {
-        ebone->flag |= (BONE_TIPSEL | BONE_ROOTSEL);
-      }
     }
-  }
-  else {
-    if (extend) {
-      ebone->flag |= selmask;
+
+    ED_armature_edit_sync_selection(arm->edbo);
+
+    /* Then now check for active status. */
+    if (ED_armature_ebone_selectflag_get(ebone)) {
+      arm->act_edbone = ebone;
     }
-    else if (deselect) {
-      ebone->flag &= ~selmask;
+
+    if (view_layer->basact != basact) {
+      ED_object_base_activate(C, basact);
     }
-    else if (toggle && (ebone->flag & selmask)) {
-      ebone->flag &= ~selmask;
-    }
-    else {
-      ebone->flag |= selmask;
-    }
+
+    WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, basact->object);
+    DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
+    changed = true;
   }
 
-  ED_armature_edit_sync_selection(arm->edbo);
-
-  /* Then now check for active status. */
-  if (ED_armature_ebone_selectflag_get(ebone)) {
-    arm->act_edbone = ebone;
+  if (changed) {
+    ED_outliner_select_sync_from_edit_bone_tag(C);
   }
 
-  if (view_layer->basact != basact) {
-    ED_object_base_activate(C, basact);
-  }
-
-  WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, basact->object);
-  DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
-  return true;
+  return changed || found;
 }
 
-bool ED_armature_edit_select_pick(
-    bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
+bool ED_armature_edit_select_pick(bContext *C,
+                                  const int mval[2],
+                                  const struct SelectPick_Params *params)
+
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
@@ -1084,7 +1137,7 @@ bool ED_armature_edit_select_pick(
   vc.mval[1] = mval[1];
 
   nearBone = get_nearest_editbonepoint(&vc, true, true, &basact, &selmask);
-  return ED_armature_edit_select_pick_bone(C, basact, nearBone, selmask, extend, deselect, toggle);
+  return ED_armature_edit_select_pick_bone(C, basact, nearBone, selmask, params);
 }
 
 /** \} */

@@ -344,7 +344,6 @@ url_manual_mapping = (
 	("bpy.types.sequencerpreviewoverlay.show_metadata*", "editors/video_sequencer/preview/display/overlays.html#bpy-types-sequencerpreviewoverlay-show-metadata"),
 	("bpy.types.sequencertimelineoverlay.show_fcurves*", "editors/video_sequencer/sequencer/display.html#bpy-types-sequencertimelineoverlay-show-fcurves"),
 	("bpy.types.spaceclipeditor.use_grayscale_preview*", "editors/clip/display/clip_display.html#bpy-types-spaceclipeditor-use-grayscale-preview"),
-	("bpy.types.spaceoutliner.use_filter_lib_override*", "editors/outliner/interface.html#bpy-types-spaceoutliner-use-filter-lib-override"),
 	("bpy.types.spaceoutliner.use_filter_object_empty*", "editors/outliner/interface.html#bpy-types-spaceoutliner-use-filter-object-empty"),
 	("bpy.types.spaceoutliner.use_filter_object_light*", "editors/outliner/interface.html#bpy-types-spaceoutliner-use-filter-object-light"),
 	("bpy.types.spacesequenceeditor.proxy_render_size*", "video_editing/preview/sidebar.html#bpy-types-spacesequenceeditor-proxy-render-size"),

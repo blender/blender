@@ -232,7 +232,7 @@ bool USDMeshReader::valid() const
   return static_cast<bool>(mesh_prim_);
 }
 
-bool USDMeshReader::topology_changed(Mesh *existing_mesh, const double motionSampleTime)
+bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const double motionSampleTime)
 {
   /* TODO(makowalski): Is it the best strategy to cache the mesh
    * geometry in this function?  This needs to be revisited. */

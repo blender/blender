@@ -30,6 +30,17 @@ void DRW_texture_pool_free(DRWTexturePool *pool);
 GPUTexture *DRW_texture_pool_query(
     DRWTexturePool *pool, int width, int height, eGPUTextureFormat format, void *user);
 /**
+ * Returns a temporary texture that needs to be released after use. Texture content is undefined.
+ */
+GPUTexture *DRW_texture_pool_texture_acquire(DRWTexturePool *pool,
+                                             int width,
+                                             int height,
+                                             eGPUTextureFormat format);
+/**
+ * Releases a previously acquired texture.
+ */
+void DRW_texture_pool_texture_release(DRWTexturePool *pool, GPUTexture *tmp_tex);
+/**
  * Resets the user bits for each texture in the pool and delete unused ones.
  */
 void DRW_texture_pool_reset(DRWTexturePool *pool);

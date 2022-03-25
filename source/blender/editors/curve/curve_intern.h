@@ -181,6 +181,7 @@ void SURFACE_OT_primitive_nurbs_surface_sphere_add(struct wmOperatorType *ot);
 void SURFACE_OT_primitive_nurbs_surface_torus_add(struct wmOperatorType *ot);
 
 /* editcurve_query.c */
+
 bool ED_curve_pick_vert(struct ViewContext *vc,
                         short sel,
                         struct Nurb **r_nurb,

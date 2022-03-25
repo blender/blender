@@ -318,12 +318,6 @@ extern "C" {
  *     - output nodes can have different priorities in the WorkScheduler.
  * This is implemented in the COM_execute function.
  *
- * \param view_settings:
- *   reference to view settings used for color management
- *
- * \param display_settings:
- *   reference to display settings used for color management
- *
  * OCIO_TODO: this options only used in rare cases, namely in output file node,
  *            so probably this settings could be passed in a nicer way.
  *            should be checked further, probably it'll be also needed for preview
@@ -335,8 +329,6 @@ void COM_execute(RenderData *render_data,
                  Scene *scene,
                  bNodeTree *node_tree,
                  int rendering,
-                 const ColorManagedViewSettings *view_settings,
-                 const ColorManagedDisplaySettings *display_settings,
                  const char *view_name);
 
 /**

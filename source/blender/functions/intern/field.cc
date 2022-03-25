@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_index_mask_ops.hh"
 #include "BLI_map.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_set.hh"
@@ -692,29 +693,21 @@ GPointer FieldConstant::value() const
  * FieldEvaluator.
  */
 
-static Vector<int64_t> indices_from_selection(IndexMask mask, const VArray<bool> &selection)
+static IndexMask index_mask_from_selection(const IndexMask full_mask,
+                                           VArray<bool> &selection,
+                                           ResourceScope &scope)
 {
-  /* If the selection is just a single value, it's best to avoid calling this
-   * function when constructing an IndexMask and use an IndexRange instead. */
-  BLI_assert(!selection.is_single());
-
-  Vector<int64_t> indices;
   if (selection.is_span()) {
     Span<bool> span = selection.get_internal_span();
-    for (const int64_t i : mask) {
-      if (span[i]) {
-        indices.append(i);
-      }
-    }
+    return index_mask_ops::find_indices_based_on_predicate(
+        full_mask, 4096, scope.construct<Vector<int64_t>>(), [&](const int curve_index) {
+          return span[curve_index];
+        });
   }
-  else {
-    for (const int i : mask) {
-      if (selection[i]) {
-        indices.append(i);
-      }
-    }
-  }
-  return indices;
+  return index_mask_ops::find_indices_based_on_predicate(
+      full_mask, 1024, scope.construct<Vector<int64_t>>(), [&](const int curve_index) {
+        return selection[curve_index];
+      });
 }
 
 int FieldEvaluator::add_with_destination(GField field, GVMutableArray dst)
@@ -763,7 +756,7 @@ static IndexMask evaluate_selection(const Field<bool> &selection_field,
       }
       return IndexRange(0);
     }
-    return scope.add_value(indices_from_selection(full_mask, selection)).as_span();
+    return index_mask_from_selection(full_mask, selection, scope);
   }
   return full_mask;
 }
@@ -799,8 +792,7 @@ IndexMask FieldEvaluator::get_evaluated_as_mask(const int field_index)
     }
     return IndexRange(0);
   }
-
-  return scope_.add_value(indices_from_selection(mask_, varray)).as_span();
+  return index_mask_from_selection(mask_, varray, scope_);
 }
 
 IndexMask FieldEvaluator::get_evaluated_selection_as_mask()

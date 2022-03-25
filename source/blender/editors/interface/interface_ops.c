@@ -1976,6 +1976,9 @@ static void UI_OT_drop_name(wmOperatorType *ot)
 static bool ui_list_focused_poll(bContext *C)
 {
   const ARegion *region = CTX_wm_region(C);
+  if (!region) {
+    return false;
+  }
   const wmWindow *win = CTX_wm_window(C);
   const uiList *list = UI_list_find_mouse_over(region, win->eventstate);
 

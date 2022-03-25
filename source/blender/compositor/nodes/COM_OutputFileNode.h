@@ -22,6 +22,7 @@ class OutputFileNode : public Node {
                              const CompositorContext &context) const override;
 
  private:
+  void add_preview_to_first_linked_input(NodeConverter &converter) const;
   void add_input_sockets(OutputOpenExrMultiLayerOperation &operation) const;
   void map_input_sockets(NodeConverter &converter,
                          OutputOpenExrMultiLayerOperation &operation) const;

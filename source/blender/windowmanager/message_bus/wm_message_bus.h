@@ -195,16 +195,6 @@ typedef struct wmMsgSubscribeKey_RNA {
   wmMsg_RNA msg;
 } wmMsgSubscribeKey_RNA;
 
-#ifdef __GNUC__
-#  define _WM_MESSAGE_EXTERN_BEGIN \
-    _Pragma("GCC diagnostic push"); \
-    _Pragma("GCC diagnostic ignored \"-Wredundant-decls\"");
-#  define _WM_MESSAGE_EXTERN_END _Pragma("GCC diagnostic pop");
-#else
-#  define _WM_MESSAGE_EXTERN_BEGIN
-#  define _WM_MESSAGE_EXTERN_END
-#endif
-
 void WM_msgtypeinfo_init_rna(wmMsgTypeInfo *msgtype_info);
 
 wmMsgSubscribeKey_RNA *WM_msg_lookup_rna(struct wmMsgBus *mbus,

@@ -26,6 +26,7 @@ extern "C" {
 
 struct ID;
 struct IDRemapper;
+struct LinkNode;
 
 /* BKE_libblock_free, delete are declared in BKE_lib_id.h for convenience. */
 
@@ -133,6 +134,15 @@ void BKE_libblock_relink_ex(struct Main *bmain,
                             void *old_idv,
                             void *new_idv,
                             short remap_flags) ATTR_NONNULL(1, 2);
+/**
+ * Same as #BKE_libblock_relink_ex, but applies all rules defined in \a id_remapper to \a ids (or
+ * does cleanup if `ID_REMAP_TYPE_CLEANUP` is specified as \a remap_type).
+ */
+void BKE_libblock_relink_multiple(struct Main *bmain,
+                                  struct LinkNode *ids,
+                                  const eIDRemapType remap_type,
+                                  struct IDRemapper *id_remapper,
+                                  const short remap_flags);
 
 /**
  * Remaps ID usages of given ID to their `id->newid` pointer if not None, and proceeds recursively

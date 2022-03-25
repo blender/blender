@@ -146,7 +146,7 @@ extern void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
  * The new window is added to the list of windows managed.
  * Never explicitly delete the window, use disposeWindow() instead.
  * \param systemhandle: The handle to the system.
- * \param parentWindow: Handle of parent (or owner) window, or NULL
+ * \param parent_windowhandle: Handle of parent (or owner) window, or NULL
  * \param title: The name of the window.
  * (displayed in the title bar of the window if the OS supports it).
  * \param left: The coordinate of the left edge of the window.
@@ -175,7 +175,7 @@ extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
  * Create a new off-screen context.
  * Never explicitly delete the context, use #disposeContext() instead.
  * \param systemhandle: The handle to the system.
- * \param platform_support_callback: An optional callback to check platform support.
+ * \param glSettings: Misc OpenGL options.
  * \return A handle to the new context ( == NULL if creation failed).
  */
 extern GHOST_ContextHandle GHOST_CreateOpenGLContext(GHOST_SystemHandle systemhandle,

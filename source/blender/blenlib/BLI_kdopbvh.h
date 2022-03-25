@@ -324,3 +324,32 @@ extern const float bvhtree_kdop_axes[13][3];
 #ifdef __cplusplus
 }
 #endif
+
+#ifdef __cplusplus
+
+#  include "BLI_function_ref.hh"
+#  include "BLI_math_vector.hh"
+
+namespace blender {
+
+using BVHTree_RangeQuery_CPP = FunctionRef<void(int index, const float3 &co, float dist_sq)>;
+
+inline void BLI_bvhtree_range_query_cpp(BVHTree &tree,
+                                        const float3 co,
+                                        float radius,
+                                        BVHTree_RangeQuery_CPP fn)
+{
+  BLI_bvhtree_range_query(
+      &tree,
+      co,
+      radius,
+      [](void *userdata, const int index, const float co[3], const float dist_sq) {
+        BVHTree_RangeQuery_CPP fn = *static_cast<BVHTree_RangeQuery_CPP *>(userdata);
+        fn(index, co, dist_sq);
+      },
+      &fn);
+}
+
+}  // namespace blender
+
+#endif

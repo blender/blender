@@ -199,7 +199,7 @@ class Mesh : public Geometry {
   void add_vertex(float3 P);
   void add_vertex_slow(float3 P);
   void add_triangle(int v0, int v1, int v2, int shader, bool smooth);
-  void add_subd_face(int *corners, int num_corners, int shader_, bool smooth_);
+  void add_subd_face(const int *corners, int num_corners, int shader_, bool smooth_);
   void add_edge_crease(int v0, int v1, float weight);
   void add_vertex_crease(int v, float weight);
 

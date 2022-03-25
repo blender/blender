@@ -268,12 +268,12 @@ void mid_v3_v3v3v3v3(
   v[2] = (v1[2] + v2[2] + v3[2] + v4[2]) / 4.0f;
 }
 
-void mid_v3_v3_array(float r[3], const float (*vec_arr)[3], const uint nbr)
+void mid_v3_v3_array(float r[3], const float (*vec_arr)[3], const uint vec_arr_num)
 {
-  const float factor = 1.0f / (float)nbr;
+  const float factor = 1.0f / (float)vec_arr_num;
   zero_v3(r);
 
-  for (uint i = 0; i < nbr; i++) {
+  for (uint i = 0; i < vec_arr_num; i++) {
     madd_v3_v3fl(r, vec_arr[i], factor);
   }
 }
@@ -904,9 +904,12 @@ void minmax_v2v2_v2(float min[2], float max[2], const float vec[2])
   }
 }
 
-void minmax_v3v3_v3_array(float r_min[3], float r_max[3], const float (*vec_arr)[3], int nbr)
+void minmax_v3v3_v3_array(float r_min[3],
+                          float r_max[3],
+                          const float (*vec_arr)[3],
+                          int var_arr_num)
 {
-  while (nbr--) {
+  while (var_arr_num--) {
     minmax_v3v3_v3(r_min, r_max, *vec_arr++);
   }
 }

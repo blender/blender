@@ -97,12 +97,13 @@ static bool stroke_dash(const bGPDstroke *gps,
   int new_stroke_offset = 0;
   int trim_start = 0;
 
+  int sequence_length = 0;
   for (int i = 0; i < dmd->segments_len; i++) {
-    if (dmd->segments[i].dash + real_gap(&dmd->segments[i]) < 1) {
-      BLI_assert_unreachable();
-      /* This means there's a part that doesn't have any length, can't do dot-dash. */
-      return false;
-    }
+    sequence_length += dmd->segments[i].dash + real_gap(&dmd->segments[i]);
+  }
+  if (sequence_length < 1) {
+    /* This means the whole segment has no length, can't do dot-dash. */
+    return false;
   }
 
   const DashGpencilModifierSegment *const first_segment = &dmd->segments[0];
@@ -204,9 +205,10 @@ static void apply_dash_for_frame(
                                        dmd->flag & GP_LENGTH_INVERT_PASS,
                                        dmd->flag & GP_LENGTH_INVERT_LAYERPASS,
                                        dmd->flag & GP_LENGTH_INVERT_MATERIAL)) {
-      stroke_dash(gps, dmd, &result);
-      BLI_remlink(&gpf->strokes, gps);
-      BKE_gpencil_free_stroke(gps);
+      if (stroke_dash(gps, dmd, &result)) {
+        BLI_remlink(&gpf->strokes, gps);
+        BKE_gpencil_free_stroke(gps);
+      }
     }
   }
   bGPDstroke *gps_dash;
@@ -231,6 +233,18 @@ static void bakeModifier(Main *UNUSED(bmain),
 }
 
 /* -------------------------------- */
+
+static bool isDisabled(GpencilModifierData *md, int UNUSED(userRenderParams))
+{
+  DashGpencilModifierData *dmd = (DashGpencilModifierData *)md;
+
+  int sequence_length = 0;
+  for (int i = 0; i < dmd->segments_len; i++) {
+    sequence_length += dmd->segments[i].dash + real_gap(&dmd->segments[i]);
+  }
+  /* This means the whole segment has no length, can't do dot-dash. */
+  return sequence_length < 1;
+}
 
 /* Generic "generateStrokes" callback */
 static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Object *ob)
@@ -362,7 +376,7 @@ GpencilModifierTypeInfo modifierType_Gpencil_Dash = {
 
     /* initData */ initData,
     /* freeData */ freeData,
-    /* isDisabled */ NULL,
+    /* isDisabled */ isDisabled,
     /* updateDepsgraph */ NULL,
     /* dependsOnTime */ NULL,
     /* foreachIDLink */ foreachIDLink,

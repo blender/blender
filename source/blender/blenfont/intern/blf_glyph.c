@@ -258,7 +258,7 @@ static FT_GlyphSlot blf_glyph_load(FontBLF *font, FT_UInt glyph_index)
     }
   }
 
-  if (FT_Load_Glyph(font->face, glyph_index, load_flags) == 0) {
+  if (FT_Load_Glyph(font->face, glyph_index, load_flags) == FT_Err_Ok) {
     return font->face->glyph;
   }
   return NULL;
@@ -280,7 +280,7 @@ static bool blf_glyph_render_bitmap(FontBLF *font, FT_GlyphSlot glyph)
 
   /* Render the glyph curves to a bitmap. */
   FT_Error err = FT_Render_Glyph(glyph, render_mode);
-  if (err != 0) {
+  if (err != FT_Err_Ok) {
     return false;
   }
 

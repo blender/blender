@@ -492,18 +492,30 @@ class _draw_tool_settings_context_mode:
             header=True
         )
 
-        UnifiedPaintPanel.prop_unified(
-            layout,
-            context,
-            brush,
-            "strength",
-            unified_name="use_unified_strength",
-            header=True
-        )
+        if brush.curves_sculpt_tool not in {'ADD', 'DELETE'}:
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "strength",
+                unified_name="use_unified_strength",
+                header=True
+            )
 
-        if brush.curves_sculpt_tool == "TEST3":
+        if brush.curves_sculpt_tool == 'COMB':
+            layout.prop(brush, "falloff_shape", expand=True)
+            layout.prop(brush, "curve_preset")
+
+        if brush.curves_sculpt_tool == 'ADD':
+            layout.prop(brush, "use_frontface")
+            layout.prop(brush, "falloff_shape", expand=True)
+            layout.prop(brush.curves_sculpt_settings, "add_amount")
+            layout.prop(tool_settings.curves_sculpt, "curve_length")
+            layout.prop(tool_settings.curves_sculpt, "interpolate_length")
+            layout.prop(tool_settings.curves_sculpt, "interpolate_shape")
+
+        if brush.curves_sculpt_tool == 'TEST1':
             layout.prop(tool_settings.curves_sculpt, "distance")
-
 
 
 class VIEW3D_HT_header(Header):
@@ -5285,6 +5297,8 @@ class VIEW3D_MT_pivot_pie(Menu):
         pie.prop_enum(context.scene.tool_settings, "transform_pivot_point", value='ACTIVE_ELEMENT')
         if (obj is None) or (mode in {'OBJECT', 'POSE', 'WEIGHT_PAINT'}):
             pie.prop(context.scene.tool_settings, "use_transform_pivot_point_align")
+        if mode in {'EDIT_GPENCIL'}:
+            pie.prop(context.scene.tool_settings.gpencil_sculpt, "use_scale_thickness")
 
 
 class VIEW3D_MT_orientations_pie(Menu):

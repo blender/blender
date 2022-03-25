@@ -68,12 +68,12 @@ mat2 rot2_from_angle(float a)
 #define avg9(a, b, c, d, e, f, g, h, i) (a + b + c + d + e + f + g + h + i) * (1.0 / 9.0)
 
 /* clang-format off */
-float min_v2(vec2 v) { return min(v.x, v.y); }
-float min_v3(vec3 v) { return min(v.x, min(v.y, v.z)); }
-float min_v4(vec4 v) { return min(min(v.x, v.y), min(v.z, v.w)); }
-float max_v2(vec2 v) { return max(v.x, v.y); }
-float max_v3(vec3 v) { return max(v.x, max(v.y, v.z)); }
-float max_v4(vec4 v) { return max(max(v.x, v.y), max(v.z, v.w)); }
+#define min_v2(v) min((v).x, (v).y)
+#define min_v3(v) min((v).x, min((v).y, (v).z))
+#define min_v4(v) min(min((v).x, (v).y), min((v).z, (v).w))
+#define max_v2(v) max((v).x, (v).y)
+#define max_v3(v) max((v).x, max((v).y, (v).z))
+#define max_v4(v) max(max((v).x, (v).y), max((v).z, (v).w))
 
 float sum(vec2 v) { return dot(vec2(1.0), v); }
 float sum(vec3 v) { return dot(vec3(1.0), v); }
@@ -84,10 +84,13 @@ float avg(vec3 v) { return dot(vec3(1.0 / 3.0), v); }
 float avg(vec4 v) { return dot(vec4(1.0 / 4.0), v); }
 
 float safe_rcp(float a) { return (a != 0.0) ? (1.0 / a) : 0.0; }
-vec2 safe_rcp(vec2 a) { return mix(vec2(0.0), (1.0 / a), notEqual(a, vec2(0.0))); }
-vec4 safe_rcp(vec4 a) { return mix(vec4(0.0), (1.0 / a), notEqual(a, vec4(0.0))); }
+vec2 safe_rcp(vec2 a) { return select(vec2(0.0), (1.0 / a), notEqual(a, vec2(0.0))); }
+vec3 safe_rcp(vec3 a) { return select(vec3(0.0), (1.0 / a), notEqual(a, vec3(0.0))); }
+vec4 safe_rcp(vec4 a) { return select(vec4(0.0), (1.0 / a), notEqual(a, vec4(0.0))); }
 
 float safe_sqrt(float a) { return sqrt(max(a, 0.0)); }
+
+float safe_acos(float a) { return acos(clamp(a, -1.0, 1.0)); }
 
 float sqr(float a) { return a * a; }
 vec2 sqr(vec2 a) { return a * a; }
@@ -102,12 +105,64 @@ float pow8(float x) { return sqr(sqr(sqr(x))); }
 float len_squared(vec3 a) { return dot(a, a); }
 float len_squared(vec2 a) { return dot(a, a); }
 
+bool flag_test(uint flag, uint val) { return (flag & val) != 0u; }
+bool flag_test(int flag, int val) { return (flag & val) != 0; }
+
+void set_flag_from_test(inout uint value, bool test, uint flag) { if (test) { value |= flag; } else { value &= ~flag; } }
+void set_flag_from_test(inout int value, bool test, int flag) { if (test) { value |= flag; } else { value &= ~flag; } }
+
 #define weighted_sum(val0, val1, val2, val3, weights) ((val0 * weights[0] + val1 * weights[1] + val2 * weights[2] + val3 * weights[3]) * safe_rcp(sum(weights)));
 #define weighted_sum_array(val, weights) ((val[0] * weights[0] + val[1] * weights[1] + val[2] * weights[2] + val[3] * weights[3]) * safe_rcp(sum(weights)));
 
 /* clang-format on */
 
 #define saturate(a) clamp(a, 0.0, 1.0)
+
+#define in_range_inclusive(val, min_v, max_v) \
+  (all(greaterThanEqual(val, min_v)) && all(lessThanEqual(val, max_v)))
+#define in_range_exclusive(val, min_v, max_v) \
+  (all(greaterThan(val, min_v)) && all(lessThan(val, max_v)))
+#define in_texture_range(texel, tex) \
+  (all(greaterThanEqual(texel, ivec2(0))) && all(lessThan(texel, textureSize(tex, 0).xy)))
+
+uint divide_ceil_u(uint visible_count, uint divisor)
+{
+  return (visible_count + (divisor - 1u)) / divisor;
+}
+
+int divide_ceil_i(int visible_count, int divisor)
+{
+  return (visible_count + (divisor - 1)) / divisor;
+}
+
+uint bit_field_mask(uint bit_width, uint bit_min)
+{
+  /* Cannot bit shift more than 31 positions. */
+  uint mask = (bit_width > 31u) ? 0x0u : (0xFFFFFFFFu << bit_width);
+  return ~mask << bit_min;
+}
+
+uvec2 unpackUvec2x16(uint data)
+{
+  return (uvec2(data) >> uvec2(0u, 16u)) & uvec2(0xFFFFu);
+}
+
+uint packUvec2x16(uvec2 data)
+{
+  data = (data & 0xFFFFu) << uvec2(0u, 16u);
+  return data.x | data.y;
+}
+
+uvec4 unpackUvec4x8(uint data)
+{
+  return (uvec4(data) >> uvec4(0u, 8u, 16u, 24u)) & uvec4(0xFFu);
+}
+
+uint packUvec4x8(uvec4 data)
+{
+  data = (data & 0xFFu) << uvec4(0u, 8u, 16u, 24u);
+  return data.x | data.y | data.z | data.w;
+}
 
 float distance_squared(vec2 a, vec2 b)
 {
@@ -130,6 +185,21 @@ vec3 safe_normalize(vec3 v)
   return v / len;
 }
 
+vec2 safe_normalize_len(vec2 v, out float len)
+{
+  len = length(v);
+  if (isnan(len) || len == 0.0) {
+    return vec2(1.0, 0.0);
+  }
+  return v / len;
+}
+
+vec2 safe_normalize(vec2 v)
+{
+  float len;
+  return safe_normalize_len(v, len);
+}
+
 vec3 normalize_len(vec3 v, out float len)
 {
   len = length(v);
@@ -140,6 +210,11 @@ vec4 safe_color(vec4 c)
 {
   /* Clamp to avoid black square artifacts if a pixel goes NaN. */
   return clamp(c, vec4(0.0), vec4(1e20)); /* 1e20 arbitrary. */
+}
+vec3 safe_color(vec3 c)
+{
+  /* Clamp to avoid black square artifacts if a pixel goes NaN. */
+  return clamp(c, vec3(0.0), vec3(1e20)); /* 1e20 arbitrary. */
 }
 
 /** \} */
@@ -187,4 +262,17 @@ vec2 fast_acos(vec2 v)
 vec3 neon_gradient(float t)
 {
   return clamp(vec3(t * 1.3 + 0.1, sqr(abs(0.43 - t) * 1.7), (1.0 - t) * 1.7), 0.0, 1.0);
+}
+vec3 heatmap_gradient(float t)
+{
+  float a = pow(t, 1.5) * 0.8 + 0.2;
+  float b = smoothstep(0.0, 0.35, t) + t * 0.5;
+  float c = smoothstep(0.5, 1.0, t);
+  float d = max(1.0 - t * 1.7, t * 7.0 - 6.0);
+  return saturate(a * vec3(b, c, d));
+}
+vec3 hue_gradient(float t)
+{
+  vec3 p = abs(fract(t + vec3(1.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0);
+  return (clamp(p - 1.0, 0.0, 1.0));
 }

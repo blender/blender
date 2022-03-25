@@ -20,7 +20,7 @@ RenderScheduler::RenderScheduler(TileManager &tile_manager, const SessionParams 
       background_(params.background),
       pixel_size_(params.pixel_size),
       tile_manager_(tile_manager),
-      default_start_resolution_divider_(pixel_size_ * 8)
+      default_start_resolution_divider_(params.use_resolution_divider ? pixel_size_ * 8 : 0)
 {
   use_progressive_noise_floor_ = !background_;
 }
@@ -119,7 +119,7 @@ void RenderScheduler::reset(const BufferParams &buffer_params, int num_samples, 
 
   /* In background mode never do lower resolution render preview, as it is not really supported
    * by the software. */
-  if (background_) {
+  if (background_ || start_resolution_divider_ == 0) {
     state_.resolution_divider = 1;
   }
   else {
@@ -1050,6 +1050,10 @@ bool RenderScheduler::work_need_rebalance()
 
 void RenderScheduler::update_start_resolution_divider()
 {
+  if (default_start_resolution_divider_ == 0) {
+    return;
+  }
+
   if (start_resolution_divider_ == 0) {
     /* Resolution divider has never been calculated before: use default resolution, so that we have
      * somewhat good initial behavior, giving a chance to collect real numbers. */

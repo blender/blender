@@ -4,78 +4,38 @@
 
 #include "BLI_array.hh"
 #include "BLI_color.hh"
+#include "BLI_cpp_type.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 
-#include "DNA_customdata_types.h"
-
-#include "FN_cpp_type.hh"
+#include "BKE_customdata.h"
 
 namespace blender::attribute_math {
 
-using fn::CPPType;
-
 /**
- * Utility function that simplifies calling a templated function based on a custom data type.
+ * Utility function that simplifies calling a templated function based on a run-time data type.
  */
 template<typename Func>
-inline void convert_to_static_type(const CustomDataType data_type, const Func &func)
+inline void convert_to_static_type(const CPPType &cpp_type, const Func &func)
 {
-  switch (data_type) {
-    case CD_PROP_FLOAT:
-      func(float());
-      break;
-    case CD_PROP_FLOAT2:
-      func(float2());
-      break;
-    case CD_PROP_FLOAT3:
-      func(float3());
-      break;
-    case CD_PROP_INT32:
-      func(int());
-      break;
-    case CD_PROP_BOOL:
-      func(bool());
-      break;
-    case CD_PROP_INT8:
-      func(int8_t());
-      break;
-    case CD_PROP_COLOR:
-      func(ColorGeometry4f());
-      break;
-    default:
-      BLI_assert_unreachable();
-      break;
-  }
+  cpp_type.to_static_type_tag<float, float2, float3, int, bool, int8_t, ColorGeometry4f>(
+      [&](auto type_tag) {
+        using T = typename decltype(type_tag)::type;
+        if constexpr (std::is_same_v<T, void>) {
+          /* It's expected that the given cpp type is one of the supported ones. */
+          BLI_assert_unreachable();
+        }
+        else {
+          func(T());
+        }
+      });
 }
 
 template<typename Func>
-inline void convert_to_static_type(const fn::CPPType &cpp_type, const Func &func)
+inline void convert_to_static_type(const CustomDataType data_type, const Func &func)
 {
-  if (cpp_type.is<float>()) {
-    func(float());
-  }
-  else if (cpp_type.is<float2>()) {
-    func(float2());
-  }
-  else if (cpp_type.is<float3>()) {
-    func(float3());
-  }
-  else if (cpp_type.is<int>()) {
-    func(int());
-  }
-  else if (cpp_type.is<bool>()) {
-    func(bool());
-  }
-  else if (cpp_type.is<int8_t>()) {
-    func(int8_t());
-  }
-  else if (cpp_type.is<ColorGeometry4f>()) {
-    func(ColorGeometry4f());
-  }
-  else {
-    BLI_assert_unreachable();
-  }
+  const CPPType &cpp_type = *bke::custom_data_type_to_cpp_type(data_type);
+  convert_to_static_type(cpp_type, func);
 }
 
 /* -------------------------------------------------------------------- */

@@ -366,5 +366,14 @@
     .smooth_step = 1, \
   }
 
+#define _DNA_DEFAULT_EnvelopeGpencilModifierData \
+  { \
+    .spread = 10, \
+    .mode = GP_ENVELOPE_SEGMENTS, \
+    .mat_nr = -1, \
+    .thickness = 1.0f, \
+    .strength = 1.0f, \
+  }
+
 
 /* clang-format off */

@@ -143,12 +143,14 @@ class WVertex {
 
  public:
   /** Iterator to iterate over a vertex incoming edges in the CCW order. */
-#if defined(__GNUC__) && (__GNUC__ < 3)
-  class incoming_edge_iterator : public input_iterator<WOEdge *, ptrdiff_t>
-#else
-  class incoming_edge_iterator : public iterator<input_iterator_tag, WOEdge *, ptrdiff_t>
-#endif
-  {
+  class incoming_edge_iterator {
+   public:
+    using iterator_category = input_iterator_tag;
+    using value_type = WOEdge *;
+    using difference_type = ptrdiff_t;
+    using pointer = value_type *;
+    using reference = value_type &;
+
    private:
     WVertex *_vertex;
     //
@@ -156,25 +158,12 @@ class WVertex {
     WOEdge *_current;
 
    public:
-#if defined(__GNUC__) && (__GNUC__ < 3)
-    inline incoming_edge_iterator() : input_iterator<WOEdge *, ptrdiff_t>()
-    {
-    }
-#else
-    inline incoming_edge_iterator() : iterator<input_iterator_tag, WOEdge *, ptrdiff_t>()
-    {
-    }
-#endif
-    virtual ~incoming_edge_iterator(){};  // soc
+    inline incoming_edge_iterator() = default;
+    virtual ~incoming_edge_iterator() = default;
 
    protected:
     friend class WVertex;
     inline incoming_edge_iterator(WVertex *iVertex, WOEdge *iBegin, WOEdge *iCurrent)
-#if defined(__GNUC__) && (__GNUC__ < 3)
-        : input_iterator<WOEdge *, ptrdiff_t>()
-#else
-        : iterator<input_iterator_tag, WOEdge *, ptrdiff_t>()
-#endif
     {
       _vertex = iVertex;
       _begin = iBegin;
@@ -183,11 +172,6 @@ class WVertex {
 
    public:
     inline incoming_edge_iterator(const incoming_edge_iterator &iBrother)
-#if defined(__GNUC__) && (__GNUC__ < 3)
-        : input_iterator<WOEdge *, ptrdiff_t>(iBrother)
-#else
-        : iterator<input_iterator_tag, WOEdge *, ptrdiff_t>(iBrother)
-#endif
     {
       _vertex = iBrother._vertex;
       _begin = iBrother._begin;
@@ -233,47 +217,30 @@ class WVertex {
 #endif
   };
 
-  /** Iterator to iterate over a vertex faces in the CCW order */
-#if defined(__GNUC__) && (__GNUC__ < 3)
-  class face_iterator : public input_iterator<WFace *, ptrdiff_t>
-#else
-  class face_iterator : public iterator<input_iterator_tag, WFace *, ptrdiff_t>
-#endif
-  {
+  class face_iterator {
+   public:
+    using iterator_category = input_iterator_tag;
+    using value_type = WFace *;
+    using difference_type = ptrdiff_t;
+    using pointer = value_type *;
+    using reference = value_type &;
+
    private:
     incoming_edge_iterator _edge_it;
 
    public:
-#if defined(__GNUC__) && (__GNUC__ < 3)
-    inline face_iterator() : input_iterator<WFace *, ptrdiff_t>()
-    {
-    }
-#else
-    inline face_iterator() : iterator<input_iterator_tag, WFace *, ptrdiff_t>()
-    {
-    }
-#endif
-    virtual ~face_iterator(){};  // soc
+    inline face_iterator() = default;
+    virtual ~face_iterator() = default;
 
    protected:
     friend class WVertex;
     inline face_iterator(incoming_edge_iterator it)
-#if defined(__GNUC__) && (__GNUC__ < 3)
-        : input_iterator<WFace *, ptrdiff_t>()
-#else
-        : iterator<input_iterator_tag, WFace *, ptrdiff_t>()
-#endif
     {
       _edge_it = it;
     }
 
    public:
     inline face_iterator(const face_iterator &iBrother)
-#if defined(__GNUC__) && (__GNUC__ < 3)
-        : input_iterator<WFace *, ptrdiff_t>(iBrother)
-#else
-        : iterator<input_iterator_tag, WFace *, ptrdiff_t>(iBrother)
-#endif
     {
       _edge_it = iBrother._edge_it;
     }

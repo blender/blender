@@ -1167,25 +1167,28 @@ typedef struct wmDropBox {
   struct wmDropBox *next, *prev;
 
   /** Test if the dropbox is active. */
-  bool (*poll)(struct bContext *, struct wmDrag *, const wmEvent *);
+  bool (*poll)(struct bContext *C, struct wmDrag *drag, const wmEvent *event);
 
   /** Before exec, this copies drag info to #wmDrop properties. */
-  void (*copy)(struct wmDrag *, struct wmDropBox *);
+  void (*copy)(struct wmDrag *drag, struct wmDropBox *drop);
 
   /**
-   * If the operator is cancelled (returns `OPERATOR_CANCELLED`), this can be used for cleanup of
+   * If the operator is canceled (returns `OPERATOR_CANCELLED`), this can be used for cleanup of
    * `copy()` resources.
    */
-  void (*cancel)(struct Main *, struct wmDrag *, struct wmDropBox *);
+  void (*cancel)(struct Main *bmain, struct wmDrag *drag, struct wmDropBox *drop);
 
-  /** Override the default drawing function. */
-  void (*draw)(struct bContext *, struct wmWindow *, struct wmDrag *, const int *);
+  /**
+   * Override the default drawing function.
+   * \param xy: Cursor location in window coordinates (#wmEvent.xy compatible).
+   */
+  void (*draw)(struct bContext *C, struct wmWindow *win, struct wmDrag *drag, const int xy[2]);
 
   /** Called when pool returns true the first time. */
-  void (*draw_activate)(struct wmDropBox *, struct wmDrag *drag);
+  void (*draw_activate)(struct wmDropBox *drop, struct wmDrag *drag);
 
   /** Called when pool returns false the first time or when the drag event ends. */
-  void (*draw_deactivate)(struct wmDropBox *, struct wmDrag *drag);
+  void (*draw_deactivate)(struct wmDropBox *drop, struct wmDrag *drag);
 
   /** Custom data for drawing. */
   void *draw_data;

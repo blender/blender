@@ -2661,8 +2661,8 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
   int from = PART_FROM_FACE;
   totparent = (int)(totchild * part->parents * 0.3f);
 
-  if (use_render_params && part->child_nbr && part->ren_child_nbr) {
-    totparent *= (float)part->child_nbr / (float)part->ren_child_nbr;
+  if (use_render_params && part->child_percent && part->child_render_percent) {
+    totparent *= (float)part->child_percent / (float)part->child_render_percent;
   }
 
   /* hard limit, workaround for it being ignored above */
@@ -2736,8 +2736,8 @@ static bool psys_thread_context_init_path(ParticleThreadContext *ctx,
   if (totchild && part->childtype == PART_CHILD_FACES) {
     totparent = (int)(totchild * part->parents * 0.3f);
 
-    if (use_render_params && part->child_nbr && part->ren_child_nbr) {
-      totparent *= (float)part->child_nbr / (float)part->ren_child_nbr;
+    if (use_render_params && part->child_percent && part->child_render_percent) {
+      totparent *= (float)part->child_percent / (float)part->child_render_percent;
     }
 
     /* part->parents could still be 0 so we can't test with totparent */

@@ -170,12 +170,8 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   bAnimContext ac;
   View2D *v2d = &region->v2d;
   short marker_flag = 0;
-  short cfra_flag = 0;
 
   UI_view2d_view_ortho(v2d);
-  if (saction->flag & SACTION_DRAWTIME) {
-    cfra_flag |= DRAWCFRA_UNIT_SECONDS;
-  }
 
   /* clear and setup matrix */
   UI_ThemeClearColor(TH_BACK);

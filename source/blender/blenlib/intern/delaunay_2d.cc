@@ -423,7 +423,7 @@ template<typename T> std::ostream &operator<<(std::ostream &os, const CDT_state<
       os << " merge to " << vertname(cdt_state.cdt.verts[v->merge_to_index]) << "\n";
     }
     const SymEdge<T> *se = v->symedge;
-    int cnt = 0;
+    int count = 0;
     constexpr int print_count_limit = 25;
     if (se) {
       os << "  edges out:\n";
@@ -440,8 +440,8 @@ template<typename T> std::ostream &operator<<(std::ostream &os, const CDT_state<
         os << "    " << vertname(vother) << "(e=" << trunc_ptr(se->edge)
            << ", se=" << trunc_ptr(se) << ")\n";
         se = se->rot;
-        cnt++;
-      } while (se != v->symedge && cnt < print_count_limit);
+        count++;
+      } while (se != v->symedge && count < print_count_limit);
       os << "\n";
     }
   }
@@ -2202,7 +2202,6 @@ void add_face_constraints(CDT_state<T> *cdt_state,
 {
   int nv = input.vert.size();
   int nf = input.face.size();
-  int fstart = 0;
   SymEdge<T> *face_symedge0 = nullptr;
   CDTArrangement<T> *cdt = &cdt_state->cdt;
   int maxflen = 0;
@@ -2221,7 +2220,6 @@ void add_face_constraints(CDT_state<T> *cdt_state,
     int flen = input.face[f].size();
     if (flen <= 2) {
       /* Ignore faces with fewer than 3 vertices. */
-      fstart += flen;
       continue;
     }
     int fedge_start = (f + 1) * cdt_state->face_edge_offset;
@@ -2266,7 +2264,6 @@ void add_face_constraints(CDT_state<T> *cdt_state,
         add_face_ids(cdt_state, face_symedge0, f, fedge_start, fedge_end);
       }
     }
-    fstart += flen;
   }
 }
 

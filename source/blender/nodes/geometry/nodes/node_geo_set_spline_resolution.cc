@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_spline.hh"
-
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_set_spline_resolution_cc {

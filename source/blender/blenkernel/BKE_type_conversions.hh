@@ -6,8 +6,6 @@
 
 namespace blender::bke {
 
-using fn::CPPType;
-
 struct ConversionFunctions {
   const fn::MultiFunction *multi_function;
   void (*convert_single_to_initialized)(const void *src, void *dst);
@@ -58,11 +56,11 @@ class DataTypeConversions {
                                 const void *from_value,
                                 void *to_value) const;
 
-  void convert_to_initialized_n(fn::GSpan from_span, fn::GMutableSpan to_span) const;
+  void convert_to_initialized_n(GSpan from_span, GMutableSpan to_span) const;
 
-  fn::GVArray try_convert(fn::GVArray varray, const CPPType &to_type) const;
+  GVArray try_convert(GVArray varray, const CPPType &to_type) const;
 
-  fn::GVMutableArray try_convert(fn::GVMutableArray varray, const CPPType &to_type) const;
+  GVMutableArray try_convert(GVMutableArray varray, const CPPType &to_type) const;
 };
 
 const DataTypeConversions &get_implicit_type_conversions();

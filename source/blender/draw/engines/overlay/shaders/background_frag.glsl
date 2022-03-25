@@ -38,8 +38,8 @@ void main()
    * This removes the alpha channel and put the background behind reference images
    * while masking the reference images by the render alpha.
    */
-  float alpha = texture(colorBuffer, uvcoordsvar.st).a;
-  float depth = texture(depthBuffer, uvcoordsvar.st).r;
+  float alpha = texture(colorBuffer, uvcoordsvar.xy).a;
+  float depth = texture(depthBuffer, uvcoordsvar.xy).r;
 
   vec3 bg_col;
   vec3 col_high;

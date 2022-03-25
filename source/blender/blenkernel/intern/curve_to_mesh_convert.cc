@@ -16,9 +16,6 @@
 
 #include "BKE_curve_to_mesh.hh"
 
-using blender::fn::GMutableSpan;
-using blender::fn::GSpan;
-
 namespace blender::bke {
 
 /** Information about the creation of one curve spline and profile spline combination. */

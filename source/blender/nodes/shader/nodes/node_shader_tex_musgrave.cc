@@ -514,8 +514,7 @@ class MusgraveFunction : public fn::MultiFunction {
   }
 };
 
-static void sh_node_musgrave_build_multi_function(
-    blender::nodes::NodeMultiFunctionBuilder &builder)
+static void sh_node_musgrave_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   bNode &node = builder.node();
   NodeTexMusgrave *tex = (NodeTexMusgrave *)node.storage;

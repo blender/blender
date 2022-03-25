@@ -12,8 +12,6 @@ CompositorContext::CompositorContext()
   quality_ = eCompositorQuality::High;
   hasActiveOpenCLDevices_ = false;
   fast_calculation_ = false;
-  view_settings_ = nullptr;
-  display_settings_ = nullptr;
   bnodetree_ = nullptr;
 }
 

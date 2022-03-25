@@ -206,9 +206,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
   GHOST_TSuccess endProgressBar();
 
   /**
-   * Register a mouse capture state (should be called
-   * for any real button press, controls mouse
-   * capturing).
+   * Set or Release mouse capture (should be called for any real button press).
    *
    * \param event: Whether mouse was pressed and released,
    * or an operator grabbed or ungrabbed the mouse.
@@ -216,8 +214,9 @@ class GHOST_WindowWin32 : public GHOST_Window {
   void updateMouseCapture(GHOST_MouseCaptureEventWin32 event);
 
   /**
-   * Inform the window that it has lost mouse capture,
-   * called in response to native window system messages.
+   * Inform the window that it has lost mouse capture, called in response to native window system
+   * messages (WA_INACTIVE, WM_CAPTURECHANGED) or if ReleaseCapture() is explicitly called (for new
+   * window creation).
    */
   void lostMouseCapture();
 

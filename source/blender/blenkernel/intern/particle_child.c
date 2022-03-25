@@ -142,9 +142,6 @@ static void do_kink_spiral(ParticleThreadContext *ctx,
   float kink_freq = part->kink_freq;
   float kink_shape = part->kink_shape;
   float kink_axis_random = part->kink_axis_random;
-  float rough1 = part->rough1;
-  float rough2 = part->rough2;
-  float rough_end = part->rough_end;
 
   ParticlePathIterator iter;
   ParticleCacheKey *key;
@@ -164,9 +161,6 @@ static void do_kink_spiral(ParticleThreadContext *ctx,
   if (ptex) {
     kink_amp *= ptex->kink_amp;
     kink_freq *= ptex->kink_freq;
-    rough1 *= ptex->rough1;
-    rough2 *= ptex->rough2;
-    rough_end *= ptex->roughe;
   }
 
   cut_time = (totkeys - 1) * ptex->length;

@@ -17,10 +17,8 @@ set(INC_SYS
 )
 
 set(SRC
-  openexr_api.h
-  openexr_multi.h
-
   openexr_api.cpp
+  openexr_api.h
 )
 
 set(LIB

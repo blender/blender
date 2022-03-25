@@ -24,4 +24,4 @@ unsigned int mem_read(Stream &mem, unsigned long long &i);
 unsigned int mem_read(Stream &mem, unsigned int &i);
 unsigned int mem_read(Stream &mem, unsigned short &i);
 unsigned int mem_read(Stream &mem, unsigned char &i);
-unsigned int mem_read(Stream &mem, unsigned char *i, unsigned int cnt);
+unsigned int mem_read(Stream &mem, unsigned char *i, unsigned int count);

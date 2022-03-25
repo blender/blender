@@ -35,7 +35,7 @@
 #  include "BKE_context.h"
 
 #  include "BKE_global.h"
-#  include "BKE_image.h"
+#  include "BKE_image_format.h"
 #  include "BKE_lib_id.h"
 #  include "BKE_main.h"
 #  include "BKE_report.h"
@@ -828,7 +828,7 @@ static int arg_handle_log_show_timestamp_set(int UNUSED(argc),
 }
 
 static const char arg_handle_log_file_set_doc[] =
-    "<filename>\n"
+    "<filepath>\n"
     "\tSet a file to output the log to.";
 static int arg_handle_log_file_set(int argc, const char **argv, void *UNUSED(data))
 {
@@ -1432,7 +1432,7 @@ static const char arg_handle_image_type_set_doc[] =
     "\t'TGA' 'RAWTGA' 'JPEG' 'IRIS' 'IRIZ' 'AVIRAW' 'AVIJPEG' 'PNG' 'BMP'\n"
     "\n"
     "\tFormats that can be compiled into Blender, not available on all systems:\n"
-    "\t'HDR' 'TIFF' 'OPEN_EXR' 'OPEN_EXR_MULTILAYER' 'MPEG' 'CINEON' 'DPX' 'DDS' 'JP2'";
+    "\t'HDR' 'TIFF' 'OPEN_EXR' 'OPEN_EXR_MULTILAYER' 'MPEG' 'CINEON' 'DPX' 'DDS' 'JP2' 'WEBP'";
 static int arg_handle_image_type_set(int argc, const char **argv, void *data)
 {
   bContext *C = data;
@@ -1752,7 +1752,7 @@ static int arg_handle_frame_skip_set(int argc, const char **argv, void *data)
 }
 
 static const char arg_handle_python_file_run_doc[] =
-    "<filename>\n"
+    "<filepath>\n"
     "\tRun the given Python script file.";
 static int arg_handle_python_file_run(int argc, const char **argv, void *data)
 {
@@ -1762,12 +1762,12 @@ static int arg_handle_python_file_run(int argc, const char **argv, void *data)
   /* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
   if (argc > 1) {
     /* Make the path absolute because its needed for relative linked blends to be found */
-    char filename[FILE_MAX];
-    BLI_strncpy(filename, argv[1], sizeof(filename));
-    BLI_path_abs_from_cwd(filename, sizeof(filename));
+    char filepath[FILE_MAX];
+    BLI_strncpy(filepath, argv[1], sizeof(filepath));
+    BLI_path_abs_from_cwd(filepath, sizeof(filepath));
 
     bool ok;
-    BPY_CTX_SETUP(ok = BPY_run_filepath(C, filename, NULL));
+    BPY_CTX_SETUP(ok = BPY_run_filepath(C, filepath, NULL));
     if (!ok && app_state.exit_code_on_error.python) {
       printf("\nError: script failed, file: '%s', exiting.\n", argv[1]);
       BPY_python_end();
@@ -1952,22 +1952,22 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
   bool success;
 
   /* Make the path absolute because its needed for relative linked blends to be found */
-  char filename[FILE_MAX];
+  char filepath[FILE_MAX];
 
   /* NOTE: we could skip these, but so far we always tried to load these files. */
   if (argv[0][0] == '-') {
     fprintf(stderr, "unknown argument, loading as file: %s\n", argv[0]);
   }
 
-  BLI_strncpy(filename, argv[0], sizeof(filename));
-  BLI_path_slash_native(filename);
-  BLI_path_abs_from_cwd(filename, sizeof(filename));
-  BLI_path_normalize(NULL, filename);
+  BLI_strncpy(filepath, argv[0], sizeof(filepath));
+  BLI_path_slash_native(filepath);
+  BLI_path_abs_from_cwd(filepath, sizeof(filepath));
+  BLI_path_normalize(NULL, filepath);
 
   /* load the file */
   BKE_reports_init(&reports, RPT_PRINT);
-  WM_file_autoexec_init(filename);
-  success = WM_file_read(C, filename, &reports);
+  WM_file_autoexec_init(filepath);
+  success = WM_file_read(C, filepath, &reports);
   BKE_reports_clear(&reports);
 
   if (success) {
@@ -1988,16 +1988,16 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
       return -1;
     }
 
-    if (BLO_has_bfile_extension(filename)) {
+    if (BLO_has_bfile_extension(filepath)) {
       /* Just pretend a file was loaded, so the user can press Save and it'll
-       * save at the filename from the CLI. */
-      STRNCPY(G_MAIN->filepath, filename);
-      printf("... opened default scene instead; saving will write to: %s\n", filename);
+       * save at the filepath from the CLI. */
+      STRNCPY(G_MAIN->filepath, filepath);
+      printf("... opened default scene instead; saving will write to: %s\n", filepath);
     }
     else {
       printf(
           "Error: argument has no '.blend' file extension, not using as new file, exiting! %s\n",
-          filename);
+          filepath);
       G.is_break = true;
       WM_exit(C);
     }

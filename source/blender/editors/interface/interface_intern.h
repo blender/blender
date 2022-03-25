@@ -1275,7 +1275,8 @@ void ui_layout_remove_but(uiLayout *layout, const uiBut *but);
  */
 bool ui_layout_replace_but_ptr(uiLayout *layout, const void *old_but_ptr, uiBut *new_but);
 /**
- * \note May reallocate \a but, so the possibly new address is returned.
+ * \note May reallocate \a but, so the possibly new address is returned. May also override the
+ *       #UI_BUT_DISABLED flag depending on if a search pointer-property pair was provided/found.
  */
 uiBut *ui_but_add_search(uiBut *but,
                          PointerRNA *ptr,

@@ -178,7 +178,6 @@ bool space_node_view_flag(
 
 void NODE_OT_view_all(wmOperatorType *ot);
 void NODE_OT_view_selected(wmOperatorType *ot);
-void NODE_OT_geometry_node_view_legacy(wmOperatorType *ot);
 
 void NODE_OT_backimage_move(wmOperatorType *ot);
 void NODE_OT_backimage_zoom(wmOperatorType *ot);
@@ -241,7 +240,6 @@ void NODE_OT_add_reroute(wmOperatorType *ot);
 void NODE_OT_add_group(wmOperatorType *ot);
 void NODE_OT_add_object(wmOperatorType *ot);
 void NODE_OT_add_collection(wmOperatorType *ot);
-void NODE_OT_add_texture(wmOperatorType *ot);
 void NODE_OT_add_file(wmOperatorType *ot);
 void NODE_OT_add_mask(wmOperatorType *ot);
 void NODE_OT_new_node_tree(wmOperatorType *ot);

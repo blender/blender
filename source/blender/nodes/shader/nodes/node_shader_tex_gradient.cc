@@ -137,8 +137,7 @@ class GradientFunction : public fn::MultiFunction {
   }
 };
 
-static void sh_node_gradient_tex_build_multi_function(
-    blender::nodes::NodeMultiFunctionBuilder &builder)
+static void sh_node_gradient_tex_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   bNode &node = builder.node();
   NodeTexGradient *tex = (NodeTexGradient *)node.storage;

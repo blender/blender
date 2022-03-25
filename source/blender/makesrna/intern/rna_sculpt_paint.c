@@ -1518,6 +1518,23 @@ static void rna_def_curves_sculpt(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Distance", "Radius around curves roots in which no new curves can be added");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "interpolate_length", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", CURVES_SCULPT_FLAG_INTERPOLATE_LENGTH);
+  RNA_def_property_ui_text(
+      prop, "Interpolate Length", "Use length of the curves in close proximity");
+
+  prop = RNA_def_property(srna, "interpolate_shape", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE);
+  RNA_def_property_ui_text(
+      prop, "Interpolate Shape", "Use shape of the curves in close proximity");
+
+  prop = RNA_def_property(srna, "curve_length", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_range(prop, 0.0, FLT_MAX);
+  RNA_def_property_ui_text(
+      prop,
+      "Curve Length",
+      "Length of newly added curves when it is not interpolated from other curves");
 }
 
 void RNA_def_sculpt_paint(BlenderRNA *brna)

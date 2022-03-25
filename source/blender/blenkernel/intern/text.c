@@ -143,7 +143,7 @@ static void text_copy_data(Main *UNUSED(bmain),
 /** Free (or release) any data used by this text (does not free the text itself). */
 static void text_free_data(ID *id)
 {
-  /* No animdata here. */
+  /* No animation-data here. */
   Text *text = (Text *)id;
 
   BKE_text_free_lines(text);
@@ -1501,7 +1501,8 @@ char *txt_sel_to_buf(Text *text, size_t *r_buf_strlen)
   if (linef == linel) {
     length = charl - charf;
     buf = MEM_mallocN(length + 1, "sel buffer");
-    memcpy(buf, linef->line + charf, length + 1);
+    memcpy(buf, linef->line + charf, length);
+    buf[length] = '\0';
   }
   else {
     /* Add 1 for the '\n' */

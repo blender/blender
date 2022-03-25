@@ -346,31 +346,48 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
       cscene, "sampling_pattern", SAMPLING_NUM_PATTERNS, SAMPLING_PATTERN_SOBOL);
   integrator->set_sampling_pattern(sampling_pattern);
 
+  int samples = 1;
   bool use_adaptive_sampling = false;
   if (preview) {
+    samples = get_int(cscene, "preview_samples");
     use_adaptive_sampling = RNA_boolean_get(&cscene, "use_preview_adaptive_sampling");
     integrator->set_use_adaptive_sampling(use_adaptive_sampling);
     integrator->set_adaptive_threshold(get_float(cscene, "preview_adaptive_threshold"));
     integrator->set_adaptive_min_samples(get_int(cscene, "preview_adaptive_min_samples"));
   }
   else {
+    samples = get_int(cscene, "samples");
     use_adaptive_sampling = RNA_boolean_get(&cscene, "use_adaptive_sampling");
     integrator->set_use_adaptive_sampling(use_adaptive_sampling);
     integrator->set_adaptive_threshold(get_float(cscene, "adaptive_threshold"));
     integrator->set_adaptive_min_samples(get_int(cscene, "adaptive_min_samples"));
   }
 
-  int samples = get_int(cscene, "samples");
   float scrambling_distance = get_float(cscene, "scrambling_distance");
   bool auto_scrambling_distance = get_boolean(cscene, "auto_scrambling_distance");
   if (auto_scrambling_distance) {
+    if (samples == 0) {
+      /* If samples is 0, then viewport rendering is set to render infinitely. In that case we
+       * override the samples value with 4096 so the Automatic Scrambling Distance algorithm
+       * picks a Scrambling Distance value with a good balance of performance and correlation
+       * artifacts when rendering to high sample counts. */
+      samples = 4096;
+    }
+
+    if (use_adaptive_sampling) {
+      /* If Adaptive Sampling is enabled, use "min_samples" in the Automatic Scrambling Distance
+       * algorithm to avoid artifacts common with Adaptive Sampling + Scrambling Distance. */
+      const AdaptiveSampling adaptive_sampling = integrator->get_adaptive_sampling();
+      samples = min(samples, adaptive_sampling.min_samples);
+    }
     scrambling_distance *= 4.0f / sqrtf(samples);
   }
 
-  /* only use scrambling distance in the viewport if user wants to and disable with AS */
+  /* Only use scrambling distance in the viewport if user wants to. */
   bool preview_scrambling_distance = get_boolean(cscene, "preview_scrambling_distance");
-  if ((preview && !preview_scrambling_distance) || use_adaptive_sampling)
+  if (preview && !preview_scrambling_distance) {
     scrambling_distance = 1.0f;
+  }
 
   if (scrambling_distance != 1.0f) {
     VLOG(3) << "Using scrambling distance: " << scrambling_distance;

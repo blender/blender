@@ -79,6 +79,9 @@ if(WITH_IMAGE_HDR)
   add_definitions(-DWITH_HDR)
 endif()
 
+if(WITH_IMAGE_WEBP)
+  add_definitions(-DWITH_WEBP)
+endif()
 
 if(WITH_FREESTYLE)
   add_definitions(-DWITH_FREESTYLE)

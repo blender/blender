@@ -7969,7 +7969,16 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
   }
 
   if (but->flag & UI_BUT_DISABLED) {
-    return WM_UI_HANDLER_BREAK;
+    /* It's important to continue here instead of breaking since breaking causes the event to be
+     * considered "handled", preventing further click/drag events from being generated.
+     *
+     * An example of where this is needed is dragging node-sockets, where dragging a node-socket
+     * could exit the button before the drag threshold was reached, disable the button then break
+     * handling of the #MOUSEMOVE event preventing the socket being dragged entirely, see: T96255.
+     *
+     * Region level event handling is responsible for preventing events being passed
+     * through to parts of the UI that are logically behind this button, see: T92364. */
+    return WM_UI_HANDLER_CONTINUE;
   }
 
   switch (but->type) {

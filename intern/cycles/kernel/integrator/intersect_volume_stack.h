@@ -59,6 +59,8 @@ ccl_device void integrator_volume_stack_update_for_subsurface(KernelGlobals kg,
 
     /* Move ray forward. */
     volume_ray.P = stack_sd->P;
+    volume_ray.self.object = isect.object;
+    volume_ray.self.prim = isect.prim;
     if (volume_ray.t != FLT_MAX) {
       volume_ray.D = normalize_len(to_P - volume_ray.P, &volume_ray.t);
     }
@@ -198,6 +200,8 @@ ccl_device void integrator_volume_stack_init(KernelGlobals kg, IntegratorState s
 
     /* Move ray forward. */
     volume_ray.P = stack_sd->P;
+    volume_ray.self.object = isect.object;
+    volume_ray.self.prim = isect.prim;
     ++step;
   }
 #endif

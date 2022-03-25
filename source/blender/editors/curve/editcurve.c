@@ -44,6 +44,7 @@
 #include "ED_object.h"
 #include "ED_outliner.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 #include "ED_transform.h"
 #include "ED_transform_snap_object_context.h"
 #include "ED_types.h"
@@ -4722,8 +4723,9 @@ void CURVE_OT_make_segment(wmOperatorType *ot)
 /** \name Pick Select from 3D View
  * \{ */
 
-bool ED_curve_editnurb_select_pick(
-    bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
+bool ED_curve_editnurb_select_pick(bContext *C,
+                                   const int mval[2],
+                                   const struct SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
@@ -4732,18 +4734,21 @@ bool ED_curve_editnurb_select_pick(
   BPoint *bp = NULL;
   Base *basact = NULL;
   short hand;
+  bool changed = false;
 
   view3d_operator_needs_opengl(C);
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
   copy_v2_v2_int(vc.mval, mval);
 
-  if (ED_curve_pick_vert(&vc, 1, &nu, &bezt, &bp, &hand, &basact)) {
-    Object *obedit = basact->object;
-    Curve *cu = obedit->data;
-    ListBase *editnurb = object_editcurve_get(obedit);
-    const void *vert = BKE_curve_vert_active_get(cu);
+  bool found = ED_curve_pick_vert(&vc, 1, &nu, &bezt, &bp, &hand, &basact);
 
-    if (!extend && !deselect && !toggle) {
+  if (params->sel_op == SEL_OP_SET) {
+    if ((found && params->select_passthrough) &&
+        (((bezt ? (&bezt->f1)[hand] : bp->f1) & SELECT) != 0)) {
+      found = false;
+    }
+    else if (found || params->deselect_all) {
+      /* Deselect everything. */
       uint objects_len = 0;
       Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
           vc.view_layer, vc.v3d, &objects_len);
@@ -4756,105 +4761,123 @@ bool ED_curve_editnurb_select_pick(
         WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
       }
       MEM_freeN(objects);
+      changed = true;
     }
+  }
 
-    if (extend) {
-      if (bezt) {
-        if (hand == 1) {
-          select_beztriple(bezt, SELECT, SELECT, HIDDEN);
-        }
-        else {
-          if (hand == 0) {
-            bezt->f1 |= SELECT;
+  if (found) {
+    Object *obedit = basact->object;
+    Curve *cu = obedit->data;
+    ListBase *editnurb = object_editcurve_get(obedit);
+    const void *vert = BKE_curve_vert_active_get(cu);
+
+    switch (params->sel_op) {
+      case SEL_OP_ADD: {
+        if (bezt) {
+          if (hand == 1) {
+            select_beztriple(bezt, SELECT, SELECT, HIDDEN);
           }
           else {
-            bezt->f3 |= SELECT;
-          }
-        }
-        BKE_curve_nurb_vert_active_set(cu, nu, bezt);
-      }
-      else {
-        select_bpoint(bp, SELECT, SELECT, HIDDEN);
-        BKE_curve_nurb_vert_active_set(cu, nu, bp);
-      }
-    }
-    else if (deselect) {
-      if (bezt) {
-        if (hand == 1) {
-          select_beztriple(bezt, DESELECT, SELECT, HIDDEN);
-          if (bezt == vert) {
-            cu->actvert = CU_ACT_NONE;
-          }
-        }
-        else if (hand == 0) {
-          bezt->f1 &= ~SELECT;
-        }
-        else {
-          bezt->f3 &= ~SELECT;
-        }
-      }
-      else {
-        select_bpoint(bp, DESELECT, SELECT, HIDDEN);
-        if (bp == vert) {
-          cu->actvert = CU_ACT_NONE;
-        }
-      }
-    }
-    else if (toggle) {
-      if (bezt) {
-        if (hand == 1) {
-          if (bezt->f2 & SELECT) {
-            select_beztriple(bezt, DESELECT, SELECT, HIDDEN);
-            if (bezt == vert) {
-              cu->actvert = CU_ACT_NONE;
+            if (hand == 0) {
+              bezt->f1 |= SELECT;
+            }
+            else {
+              bezt->f3 |= SELECT;
             }
           }
-          else {
-            select_beztriple(bezt, SELECT, SELECT, HIDDEN);
-            BKE_curve_nurb_vert_active_set(cu, nu, bezt);
-          }
-        }
-        else if (hand == 0) {
-          bezt->f1 ^= SELECT;
-        }
-        else {
-          bezt->f3 ^= SELECT;
-        }
-      }
-      else {
-        if (bp->f1 & SELECT) {
-          select_bpoint(bp, DESELECT, SELECT, HIDDEN);
-          if (bp == vert) {
-            cu->actvert = CU_ACT_NONE;
-          }
+          BKE_curve_nurb_vert_active_set(cu, nu, bezt);
         }
         else {
           select_bpoint(bp, SELECT, SELECT, HIDDEN);
           BKE_curve_nurb_vert_active_set(cu, nu, bp);
         }
+        break;
       }
-    }
-    else {
-      BKE_nurbList_flag_set(editnurb, SELECT, false);
-
-      if (bezt) {
-
-        if (hand == 1) {
-          select_beztriple(bezt, SELECT, SELECT, HIDDEN);
-        }
-        else {
-          if (hand == 0) {
-            bezt->f1 |= SELECT;
+      case SEL_OP_SUB: {
+        if (bezt) {
+          if (hand == 1) {
+            select_beztriple(bezt, DESELECT, SELECT, HIDDEN);
+            if (bezt == vert) {
+              cu->actvert = CU_ACT_NONE;
+            }
+          }
+          else if (hand == 0) {
+            bezt->f1 &= ~SELECT;
           }
           else {
-            bezt->f3 |= SELECT;
+            bezt->f3 &= ~SELECT;
           }
         }
-        BKE_curve_nurb_vert_active_set(cu, nu, bezt);
+        else {
+          select_bpoint(bp, DESELECT, SELECT, HIDDEN);
+          if (bp == vert) {
+            cu->actvert = CU_ACT_NONE;
+          }
+        }
+        break;
       }
-      else {
-        select_bpoint(bp, SELECT, SELECT, HIDDEN);
-        BKE_curve_nurb_vert_active_set(cu, nu, bp);
+      case SEL_OP_XOR: {
+        if (bezt) {
+          if (hand == 1) {
+            if (bezt->f2 & SELECT) {
+              select_beztriple(bezt, DESELECT, SELECT, HIDDEN);
+              if (bezt == vert) {
+                cu->actvert = CU_ACT_NONE;
+              }
+            }
+            else {
+              select_beztriple(bezt, SELECT, SELECT, HIDDEN);
+              BKE_curve_nurb_vert_active_set(cu, nu, bezt);
+            }
+          }
+          else if (hand == 0) {
+            bezt->f1 ^= SELECT;
+          }
+          else {
+            bezt->f3 ^= SELECT;
+          }
+        }
+        else {
+          if (bp->f1 & SELECT) {
+            select_bpoint(bp, DESELECT, SELECT, HIDDEN);
+            if (bp == vert) {
+              cu->actvert = CU_ACT_NONE;
+            }
+          }
+          else {
+            select_bpoint(bp, SELECT, SELECT, HIDDEN);
+            BKE_curve_nurb_vert_active_set(cu, nu, bp);
+          }
+        }
+        break;
+      }
+      case SEL_OP_SET: {
+        BKE_nurbList_flag_set(editnurb, SELECT, false);
+
+        if (bezt) {
+
+          if (hand == 1) {
+            select_beztriple(bezt, SELECT, SELECT, HIDDEN);
+          }
+          else {
+            if (hand == 0) {
+              bezt->f1 |= SELECT;
+            }
+            else {
+              bezt->f3 |= SELECT;
+            }
+          }
+          BKE_curve_nurb_vert_active_set(cu, nu, bezt);
+        }
+        else {
+          select_bpoint(bp, SELECT, SELECT, HIDDEN);
+          BKE_curve_nurb_vert_active_set(cu, nu, bp);
+        }
+        break;
+      }
+      case SEL_OP_AND: {
+        BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+        break;
       }
     }
 
@@ -4876,10 +4899,10 @@ bool ED_curve_editnurb_select_pick(
     DEG_id_tag_update(obedit->data, ID_RECALC_SELECT | ID_RECALC_COPY_ON_WRITE);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
-    return true;
+    changed = true;
   }
 
-  return false;
+  return changed || found;
 }
 
 /** \} */

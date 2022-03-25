@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <ctime>
 #include <fcntl.h>
 #ifndef WIN32
 #  include <unistd.h>
@@ -16,7 +17,8 @@
 #  include <io.h>
 #endif
 
-#include <ctime>
+#include <regex>
+#include <string>
 
 #include "BLI_array.hh"
 
@@ -29,10 +31,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_metadata.h"
 #include "IMB_moviecache.h"
-
-#ifdef WITH_OPENEXR
-#  include "intern/openexr/openexr_multi.h"
-#endif
+#include "IMB_openexr.h"
 
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
@@ -68,6 +67,7 @@
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
@@ -239,7 +239,7 @@ static void image_foreach_cache(ID *id,
 
   auto gputexture_offset = [image](int target, int eye, int resolution) {
     constexpr size_t base_offset = offsetof(Image, gputexture);
-    const auto first = &image->gputexture[0][0][0];
+    struct GPUTexture **first = &image->gputexture[0][0][0];
     const size_t array_offset = sizeof(*first) *
                                 (&image->gputexture[target][eye][resolution] - first);
     return base_offset + array_offset;
@@ -489,9 +489,9 @@ static void image_add_view(Image *ima, const char *viewname, const char *filepat
 /** \name Image Cache
  * \{ */
 
-typedef struct ImageCacheKey {
+struct ImageCacheKey {
   int index;
-} ImageCacheKey;
+};
 
 static unsigned int imagecache_hashhash(const void *key_v)
 {
@@ -1490,607 +1490,6 @@ void BKE_image_all_free_anim_ibufs(Main *bmain, int cfra)
 /** \name Read and Write
  * \{ */
 
-int BKE_image_imtype_to_ftype(const char imtype, ImbFormatOptions *r_options)
-{
-  memset(r_options, 0, sizeof(*r_options));
-
-  if (imtype == R_IMF_IMTYPE_TARGA) {
-    return IMB_FTYPE_TGA;
-  }
-  if (imtype == R_IMF_IMTYPE_RAWTGA) {
-    r_options->flag = RAWTGA;
-    return IMB_FTYPE_TGA;
-  }
-  if (imtype == R_IMF_IMTYPE_IRIS) {
-    return IMB_FTYPE_IMAGIC;
-  }
-#ifdef WITH_HDR
-  if (imtype == R_IMF_IMTYPE_RADHDR) {
-    return IMB_FTYPE_RADHDR;
-  }
-#endif
-  if (imtype == R_IMF_IMTYPE_PNG) {
-    r_options->quality = 15;
-    return IMB_FTYPE_PNG;
-  }
-#ifdef WITH_DDS
-  if (imtype == R_IMF_IMTYPE_DDS) {
-    return IMB_FTYPE_DDS;
-  }
-#endif
-  if (imtype == R_IMF_IMTYPE_BMP) {
-    return IMB_FTYPE_BMP;
-  }
-#ifdef WITH_TIFF
-  if (imtype == R_IMF_IMTYPE_TIFF) {
-    return IMB_FTYPE_TIF;
-  }
-#endif
-  if (ELEM(imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
-    return IMB_FTYPE_OPENEXR;
-  }
-#ifdef WITH_CINEON
-  if (imtype == R_IMF_IMTYPE_CINEON) {
-    return IMB_FTYPE_CINEON;
-  }
-  if (imtype == R_IMF_IMTYPE_DPX) {
-    return IMB_FTYPE_DPX;
-  }
-#endif
-#ifdef WITH_OPENJPEG
-  if (imtype == R_IMF_IMTYPE_JP2) {
-    r_options->flag |= JP2_JP2;
-    r_options->quality = 90;
-    return IMB_FTYPE_JP2;
-  }
-#endif
-
-  r_options->quality = 90;
-  return IMB_FTYPE_JPG;
-}
-
-char BKE_image_ftype_to_imtype(const int ftype, const ImbFormatOptions *options)
-{
-  if (ftype == IMB_FTYPE_NONE) {
-    return R_IMF_IMTYPE_TARGA;
-  }
-  if (ftype == IMB_FTYPE_IMAGIC) {
-    return R_IMF_IMTYPE_IRIS;
-  }
-#ifdef WITH_HDR
-  if (ftype == IMB_FTYPE_RADHDR) {
-    return R_IMF_IMTYPE_RADHDR;
-  }
-#endif
-  if (ftype == IMB_FTYPE_PNG) {
-    return R_IMF_IMTYPE_PNG;
-  }
-#ifdef WITH_DDS
-  if (ftype == IMB_FTYPE_DDS) {
-    return R_IMF_IMTYPE_DDS;
-  }
-#endif
-  if (ftype == IMB_FTYPE_BMP) {
-    return R_IMF_IMTYPE_BMP;
-  }
-#ifdef WITH_TIFF
-  if (ftype == IMB_FTYPE_TIF) {
-    return R_IMF_IMTYPE_TIFF;
-  }
-#endif
-  if (ftype == IMB_FTYPE_OPENEXR) {
-    return R_IMF_IMTYPE_OPENEXR;
-  }
-#ifdef WITH_CINEON
-  if (ftype == IMB_FTYPE_CINEON) {
-    return R_IMF_IMTYPE_CINEON;
-  }
-  if (ftype == IMB_FTYPE_DPX) {
-    return R_IMF_IMTYPE_DPX;
-  }
-#endif
-  if (ftype == IMB_FTYPE_TGA) {
-    if (options && (options->flag & RAWTGA)) {
-      return R_IMF_IMTYPE_RAWTGA;
-    }
-
-    return R_IMF_IMTYPE_TARGA;
-  }
-#ifdef WITH_OPENJPEG
-  if (ftype == IMB_FTYPE_JP2) {
-    return R_IMF_IMTYPE_JP2;
-  }
-#endif
-
-  return R_IMF_IMTYPE_JPEG90;
-}
-
-bool BKE_imtype_is_movie(const char imtype)
-{
-  switch (imtype) {
-    case R_IMF_IMTYPE_AVIRAW:
-    case R_IMF_IMTYPE_AVIJPEG:
-    case R_IMF_IMTYPE_FFMPEG:
-    case R_IMF_IMTYPE_H264:
-    case R_IMF_IMTYPE_THEORA:
-    case R_IMF_IMTYPE_XVID:
-      return true;
-  }
-  return false;
-}
-
-bool BKE_imtype_supports_zbuf(const char imtype)
-{
-  switch (imtype) {
-    case R_IMF_IMTYPE_IRIZ:
-    case R_IMF_IMTYPE_OPENEXR: /* But not #R_IMF_IMTYPE_MULTILAYER. */
-      return true;
-  }
-  return false;
-}
-
-bool BKE_imtype_supports_compress(const char imtype)
-{
-  switch (imtype) {
-    case R_IMF_IMTYPE_PNG:
-      return true;
-  }
-  return false;
-}
-
-bool BKE_imtype_supports_quality(const char imtype)
-{
-  switch (imtype) {
-    case R_IMF_IMTYPE_JPEG90:
-    case R_IMF_IMTYPE_JP2:
-    case R_IMF_IMTYPE_AVIJPEG:
-      return true;
-  }
-  return false;
-}
-
-bool BKE_imtype_requires_linear_float(const char imtype)
-{
-  switch (imtype) {
-    case R_IMF_IMTYPE_CINEON:
-    case R_IMF_IMTYPE_DPX:
-    case R_IMF_IMTYPE_RADHDR:
-    case R_IMF_IMTYPE_OPENEXR:
-    case R_IMF_IMTYPE_MULTILAYER:
-      return true;
-  }
-  return false;
-}
-
-char BKE_imtype_valid_channels(const char imtype, bool write_file)
-{
-  char chan_flag = IMA_CHAN_FLAG_RGB; /* Assume all support RGB. */
-
-  /* Alpha. */
-  switch (imtype) {
-    case R_IMF_IMTYPE_BMP:
-      if (write_file) {
-        break;
-      }
-      ATTR_FALLTHROUGH;
-    case R_IMF_IMTYPE_TARGA:
-    case R_IMF_IMTYPE_RAWTGA:
-    case R_IMF_IMTYPE_IRIS:
-    case R_IMF_IMTYPE_PNG:
-    case R_IMF_IMTYPE_TIFF:
-    case R_IMF_IMTYPE_OPENEXR:
-    case R_IMF_IMTYPE_MULTILAYER:
-    case R_IMF_IMTYPE_DDS:
-    case R_IMF_IMTYPE_JP2:
-    case R_IMF_IMTYPE_DPX:
-      chan_flag |= IMA_CHAN_FLAG_ALPHA;
-      break;
-  }
-
-  /* BW. */
-  switch (imtype) {
-    case R_IMF_IMTYPE_BMP:
-    case R_IMF_IMTYPE_PNG:
-    case R_IMF_IMTYPE_JPEG90:
-    case R_IMF_IMTYPE_TARGA:
-    case R_IMF_IMTYPE_RAWTGA:
-    case R_IMF_IMTYPE_TIFF:
-    case R_IMF_IMTYPE_IRIS:
-      chan_flag |= IMA_CHAN_FLAG_BW;
-      break;
-  }
-
-  return chan_flag;
-}
-
-char BKE_imtype_valid_depths(const char imtype)
-{
-  switch (imtype) {
-    case R_IMF_IMTYPE_RADHDR:
-      return R_IMF_CHAN_DEPTH_32;
-    case R_IMF_IMTYPE_TIFF:
-      return R_IMF_CHAN_DEPTH_8 | R_IMF_CHAN_DEPTH_16;
-    case R_IMF_IMTYPE_OPENEXR:
-      return R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_32;
-    case R_IMF_IMTYPE_MULTILAYER:
-      return R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_32;
-    /* NOTE: CINEON uses an unusual 10bits-LOG per channel. */
-    case R_IMF_IMTYPE_DPX:
-      return R_IMF_CHAN_DEPTH_8 | R_IMF_CHAN_DEPTH_10 | R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16;
-    case R_IMF_IMTYPE_CINEON:
-      return R_IMF_CHAN_DEPTH_10;
-    case R_IMF_IMTYPE_JP2:
-      return R_IMF_CHAN_DEPTH_8 | R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16;
-    case R_IMF_IMTYPE_PNG:
-      return R_IMF_CHAN_DEPTH_8 | R_IMF_CHAN_DEPTH_16;
-    /* Most formats are 8bit only. */
-    default:
-      return R_IMF_CHAN_DEPTH_8;
-  }
-}
-
-char BKE_imtype_from_arg(const char *imtype_arg)
-{
-  if (STREQ(imtype_arg, "TGA")) {
-    return R_IMF_IMTYPE_TARGA;
-  }
-  if (STREQ(imtype_arg, "IRIS")) {
-    return R_IMF_IMTYPE_IRIS;
-  }
-#ifdef WITH_DDS
-  if (STREQ(imtype_arg, "DDS")) {
-    return R_IMF_IMTYPE_DDS;
-  }
-#endif
-  if (STREQ(imtype_arg, "JPEG")) {
-    return R_IMF_IMTYPE_JPEG90;
-  }
-  if (STREQ(imtype_arg, "IRIZ")) {
-    return R_IMF_IMTYPE_IRIZ;
-  }
-  if (STREQ(imtype_arg, "RAWTGA")) {
-    return R_IMF_IMTYPE_RAWTGA;
-  }
-  if (STREQ(imtype_arg, "AVIRAW")) {
-    return R_IMF_IMTYPE_AVIRAW;
-  }
-  if (STREQ(imtype_arg, "AVIJPEG")) {
-    return R_IMF_IMTYPE_AVIJPEG;
-  }
-  if (STREQ(imtype_arg, "PNG")) {
-    return R_IMF_IMTYPE_PNG;
-  }
-  if (STREQ(imtype_arg, "BMP")) {
-    return R_IMF_IMTYPE_BMP;
-  }
-#ifdef WITH_HDR
-  if (STREQ(imtype_arg, "HDR")) {
-    return R_IMF_IMTYPE_RADHDR;
-  }
-#endif
-#ifdef WITH_TIFF
-  if (STREQ(imtype_arg, "TIFF")) {
-    return R_IMF_IMTYPE_TIFF;
-  }
-#endif
-#ifdef WITH_OPENEXR
-  if (STREQ(imtype_arg, "OPEN_EXR")) {
-    return R_IMF_IMTYPE_OPENEXR;
-  }
-  if (STREQ(imtype_arg, "OPEN_EXR_MULTILAYER")) {
-    return R_IMF_IMTYPE_MULTILAYER;
-  }
-  if (STREQ(imtype_arg, "EXR")) {
-    return R_IMF_IMTYPE_OPENEXR;
-  }
-  if (STREQ(imtype_arg, "MULTILAYER")) {
-    return R_IMF_IMTYPE_MULTILAYER;
-  }
-#endif
-  if (STREQ(imtype_arg, "FFMPEG")) {
-    return R_IMF_IMTYPE_FFMPEG;
-  }
-#ifdef WITH_CINEON
-  if (STREQ(imtype_arg, "CINEON")) {
-    return R_IMF_IMTYPE_CINEON;
-  }
-  if (STREQ(imtype_arg, "DPX")) {
-    return R_IMF_IMTYPE_DPX;
-  }
-#endif
-#ifdef WITH_OPENJPEG
-  if (STREQ(imtype_arg, "JP2")) {
-    return R_IMF_IMTYPE_JP2;
-  }
-#endif
-
-  return R_IMF_IMTYPE_INVALID;
-}
-
-static bool do_add_image_extension(char *string,
-                                   const char imtype,
-                                   const ImageFormatData *im_format)
-{
-  const char *extension = nullptr;
-  const char *extension_test;
-  (void)im_format; /* may be unused, depends on build options */
-
-  if (imtype == R_IMF_IMTYPE_IRIS) {
-    if (!BLI_path_extension_check(string, extension_test = ".rgb")) {
-      extension = extension_test;
-    }
-  }
-  else if (imtype == R_IMF_IMTYPE_IRIZ) {
-    if (!BLI_path_extension_check(string, extension_test = ".rgb")) {
-      extension = extension_test;
-    }
-  }
-#ifdef WITH_HDR
-  else if (imtype == R_IMF_IMTYPE_RADHDR) {
-    if (!BLI_path_extension_check(string, extension_test = ".hdr")) {
-      extension = extension_test;
-    }
-  }
-#endif
-  else if (ELEM(imtype,
-                R_IMF_IMTYPE_PNG,
-                R_IMF_IMTYPE_FFMPEG,
-                R_IMF_IMTYPE_H264,
-                R_IMF_IMTYPE_THEORA,
-                R_IMF_IMTYPE_XVID)) {
-    if (!BLI_path_extension_check(string, extension_test = ".png")) {
-      extension = extension_test;
-    }
-  }
-#ifdef WITH_DDS
-  else if (imtype == R_IMF_IMTYPE_DDS) {
-    if (!BLI_path_extension_check(string, extension_test = ".dds")) {
-      extension = extension_test;
-    }
-  }
-#endif
-  else if (ELEM(imtype, R_IMF_IMTYPE_TARGA, R_IMF_IMTYPE_RAWTGA)) {
-    if (!BLI_path_extension_check(string, extension_test = ".tga")) {
-      extension = extension_test;
-    }
-  }
-  else if (imtype == R_IMF_IMTYPE_BMP) {
-    if (!BLI_path_extension_check(string, extension_test = ".bmp")) {
-      extension = extension_test;
-    }
-  }
-#ifdef WITH_TIFF
-  else if (imtype == R_IMF_IMTYPE_TIFF) {
-    if (!BLI_path_extension_check_n(string, extension_test = ".tif", ".tiff", nullptr)) {
-      extension = extension_test;
-    }
-  }
-#endif
-#ifdef WITH_OPENIMAGEIO
-  else if (imtype == R_IMF_IMTYPE_PSD) {
-    if (!BLI_path_extension_check(string, extension_test = ".psd")) {
-      extension = extension_test;
-    }
-  }
-#endif
-#ifdef WITH_OPENEXR
-  else if (ELEM(imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
-    if (!BLI_path_extension_check(string, extension_test = ".exr")) {
-      extension = extension_test;
-    }
-  }
-#endif
-#ifdef WITH_CINEON
-  else if (imtype == R_IMF_IMTYPE_CINEON) {
-    if (!BLI_path_extension_check(string, extension_test = ".cin")) {
-      extension = extension_test;
-    }
-  }
-  else if (imtype == R_IMF_IMTYPE_DPX) {
-    if (!BLI_path_extension_check(string, extension_test = ".dpx")) {
-      extension = extension_test;
-    }
-  }
-#endif
-#ifdef WITH_OPENJPEG
-  else if (imtype == R_IMF_IMTYPE_JP2) {
-    if (im_format) {
-      if (im_format->jp2_codec == R_IMF_JP2_CODEC_JP2) {
-        if (!BLI_path_extension_check(string, extension_test = ".jp2")) {
-          extension = extension_test;
-        }
-      }
-      else if (im_format->jp2_codec == R_IMF_JP2_CODEC_J2K) {
-        if (!BLI_path_extension_check(string, extension_test = ".j2c")) {
-          extension = extension_test;
-        }
-      }
-      else {
-        BLI_assert_msg(0, "Unsupported jp2 codec was specified in im_format->jp2_codec");
-      }
-    }
-    else {
-      if (!BLI_path_extension_check(string, extension_test = ".jp2")) {
-        extension = extension_test;
-      }
-    }
-  }
-#endif
-  else {  //   R_IMF_IMTYPE_AVIRAW, R_IMF_IMTYPE_AVIJPEG, R_IMF_IMTYPE_JPEG90 etc
-    if (!(BLI_path_extension_check_n(string, extension_test = ".jpg", ".jpeg", nullptr))) {
-      extension = extension_test;
-    }
-  }
-
-  if (extension) {
-    /* prefer this in many cases to avoid .png.tga, but in certain cases it breaks */
-    /* remove any other known image extension */
-    if (BLI_path_extension_check_array(string, imb_ext_image)) {
-      return BLI_path_extension_replace(string, FILE_MAX, extension);
-    }
-
-    return BLI_path_extension_ensure(string, FILE_MAX, extension);
-  }
-
-  return false;
-}
-
-int BKE_image_path_ensure_ext_from_imformat(char *string, const ImageFormatData *im_format)
-{
-  return do_add_image_extension(string, im_format->imtype, im_format);
-}
-
-int BKE_image_path_ensure_ext_from_imtype(char *string, const char imtype)
-{
-  return do_add_image_extension(string, imtype, nullptr);
-}
-
-void BKE_imformat_defaults(ImageFormatData *im_format)
-{
-  memset(im_format, 0, sizeof(*im_format));
-  im_format->planes = R_IMF_PLANES_RGBA;
-  im_format->imtype = R_IMF_IMTYPE_PNG;
-  im_format->depth = R_IMF_CHAN_DEPTH_8;
-  im_format->quality = 90;
-  im_format->compress = 15;
-
-  BKE_color_managed_display_settings_init(&im_format->display_settings);
-  BKE_color_managed_view_settings_init_default(&im_format->view_settings,
-                                               &im_format->display_settings);
-}
-
-void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *imbuf)
-{
-  int ftype = imbuf->ftype;
-  int custom_flags = imbuf->foptions.flag;
-  char quality = imbuf->foptions.quality;
-
-  BKE_imformat_defaults(im_format);
-
-  /* file type */
-
-  if (ftype == IMB_FTYPE_IMAGIC) {
-    im_format->imtype = R_IMF_IMTYPE_IRIS;
-  }
-#ifdef WITH_HDR
-  else if (ftype == IMB_FTYPE_RADHDR) {
-    im_format->imtype = R_IMF_IMTYPE_RADHDR;
-  }
-#endif
-  else if (ftype == IMB_FTYPE_PNG) {
-    im_format->imtype = R_IMF_IMTYPE_PNG;
-
-    if (custom_flags & PNG_16BIT) {
-      im_format->depth = R_IMF_CHAN_DEPTH_16;
-    }
-
-    im_format->compress = quality;
-  }
-
-#ifdef WITH_DDS
-  else if (ftype == IMB_FTYPE_DDS) {
-    im_format->imtype = R_IMF_IMTYPE_DDS;
-  }
-#endif
-  else if (ftype == IMB_FTYPE_BMP) {
-    im_format->imtype = R_IMF_IMTYPE_BMP;
-  }
-#ifdef WITH_TIFF
-  else if (ftype == IMB_FTYPE_TIF) {
-    im_format->imtype = R_IMF_IMTYPE_TIFF;
-    if (custom_flags & TIF_16BIT) {
-      im_format->depth = R_IMF_CHAN_DEPTH_16;
-    }
-    if (custom_flags & TIF_COMPRESS_NONE) {
-      im_format->tiff_codec = R_IMF_TIFF_CODEC_NONE;
-    }
-    if (custom_flags & TIF_COMPRESS_DEFLATE) {
-      im_format->tiff_codec = R_IMF_TIFF_CODEC_DEFLATE;
-    }
-    if (custom_flags & TIF_COMPRESS_LZW) {
-      im_format->tiff_codec = R_IMF_TIFF_CODEC_LZW;
-    }
-    if (custom_flags & TIF_COMPRESS_PACKBITS) {
-      im_format->tiff_codec = R_IMF_TIFF_CODEC_PACKBITS;
-    }
-  }
-#endif
-
-#ifdef WITH_OPENEXR
-  else if (ftype == IMB_FTYPE_OPENEXR) {
-    im_format->imtype = R_IMF_IMTYPE_OPENEXR;
-    if (custom_flags & OPENEXR_HALF) {
-      im_format->depth = R_IMF_CHAN_DEPTH_16;
-    }
-    if (custom_flags & OPENEXR_COMPRESS) {
-      im_format->exr_codec = R_IMF_EXR_CODEC_ZIP; /* Can't determine compression */
-    }
-    if (imbuf->zbuf_float) {
-      im_format->flag |= R_IMF_FLAG_ZBUF;
-    }
-  }
-#endif
-
-#ifdef WITH_CINEON
-  else if (ftype == IMB_FTYPE_CINEON) {
-    im_format->imtype = R_IMF_IMTYPE_CINEON;
-  }
-  else if (ftype == IMB_FTYPE_DPX) {
-    im_format->imtype = R_IMF_IMTYPE_DPX;
-  }
-#endif
-  else if (ftype == IMB_FTYPE_TGA) {
-    if (custom_flags & RAWTGA) {
-      im_format->imtype = R_IMF_IMTYPE_RAWTGA;
-    }
-    else {
-      im_format->imtype = R_IMF_IMTYPE_TARGA;
-    }
-  }
-#ifdef WITH_OPENJPEG
-  else if (ftype == IMB_FTYPE_JP2) {
-    im_format->imtype = R_IMF_IMTYPE_JP2;
-    im_format->quality = quality;
-
-    if (custom_flags & JP2_16BIT) {
-      im_format->depth = R_IMF_CHAN_DEPTH_16;
-    }
-    else if (custom_flags & JP2_12BIT) {
-      im_format->depth = R_IMF_CHAN_DEPTH_12;
-    }
-
-    if (custom_flags & JP2_YCC) {
-      im_format->jp2_flag |= R_IMF_JP2_FLAG_YCC;
-    }
-
-    if (custom_flags & JP2_CINE) {
-      im_format->jp2_flag |= R_IMF_JP2_FLAG_CINE_PRESET;
-      if (custom_flags & JP2_CINE_48FPS) {
-        im_format->jp2_flag |= R_IMF_JP2_FLAG_CINE_48;
-      }
-    }
-
-    if (custom_flags & JP2_JP2) {
-      im_format->jp2_codec = R_IMF_JP2_CODEC_JP2;
-    }
-    else if (custom_flags & JP2_J2K) {
-      im_format->jp2_codec = R_IMF_JP2_CODEC_J2K;
-    }
-    else {
-      BLI_assert_msg(0, "Unsupported jp2 codec was specified in file type");
-    }
-  }
-#endif
-
-  else {
-    im_format->imtype = R_IMF_IMTYPE_JPEG90;
-    im_format->quality = quality;
-  }
-
-  /* planes */
-  im_format->planes = imbuf->planes;
-}
-
 #define STAMP_NAME_SIZE ((MAX_ID_NAME - 2) + 16)
 /* could allow access externally - 512 is for long names,
  * STAMP_NAME_SIZE is for id names, allowing them some room for description */
@@ -2943,9 +2342,9 @@ static void metadata_get_field(void *data, const char *propname, char *propvalue
   IMB_metadata_get_field(imbuf->metadata, propname, propvalue, len);
 }
 
-void BKE_imbuf_stamp_info(RenderResult *rr, struct ImBuf *ibuf)
+void BKE_imbuf_stamp_info(const RenderResult *rr, ImBuf *ibuf)
 {
-  struct StampData *stamp_data = rr->stamp_data;
+  StampData *stamp_data = const_cast<StampData *>(rr->stamp_data);
   IMB_metadata_ensure(&ibuf->metadata);
   BKE_stamp_info_callback(ibuf, stamp_data, metadata_set_field, false);
 }
@@ -2959,12 +2358,12 @@ static void metadata_copy_custom_fields(const char *field, const char *value, vo
   BKE_render_result_stamp_data(rr, field, value);
 }
 
-void BKE_stamp_info_from_imbuf(RenderResult *rr, struct ImBuf *ibuf)
+void BKE_stamp_info_from_imbuf(RenderResult *rr, ImBuf *ibuf)
 {
   if (rr->stamp_data == nullptr) {
     rr->stamp_data = MEM_cnew<StampData>("RenderResult.stamp_data");
   }
-  struct StampData *stamp_data = rr->stamp_data;
+  StampData *stamp_data = rr->stamp_data;
   IMB_metadata_ensure(&ibuf->metadata);
   BKE_stamp_info_callback(ibuf, stamp_data, metadata_get_field, true);
   /* Copy render engine specific settings. */
@@ -2994,171 +2393,9 @@ bool BKE_imbuf_alpha_test(ImBuf *ibuf)
   return false;
 }
 
-void BKE_imbuf_write_prepare(ImBuf *ibuf, const ImageFormatData *imf)
-{
-  char imtype = imf->imtype;
-  char compress = imf->compress;
-  char quality = imf->quality;
-
-  /* initialize all from image format */
-  ibuf->foptions.flag = 0;
-
-  if (imtype == R_IMF_IMTYPE_IRIS) {
-    ibuf->ftype = IMB_FTYPE_IMAGIC;
-  }
-#ifdef WITH_HDR
-  else if (imtype == R_IMF_IMTYPE_RADHDR) {
-    ibuf->ftype = IMB_FTYPE_RADHDR;
-  }
-#endif
-  else if (ELEM(imtype,
-                R_IMF_IMTYPE_PNG,
-                R_IMF_IMTYPE_FFMPEG,
-                R_IMF_IMTYPE_H264,
-                R_IMF_IMTYPE_THEORA,
-                R_IMF_IMTYPE_XVID)) {
-    ibuf->ftype = IMB_FTYPE_PNG;
-
-    if (imtype == R_IMF_IMTYPE_PNG) {
-      if (imf->depth == R_IMF_CHAN_DEPTH_16) {
-        ibuf->foptions.flag |= PNG_16BIT;
-      }
-
-      ibuf->foptions.quality = compress;
-    }
-  }
-#ifdef WITH_DDS
-  else if (imtype == R_IMF_IMTYPE_DDS) {
-    ibuf->ftype = IMB_FTYPE_DDS;
-  }
-#endif
-  else if (imtype == R_IMF_IMTYPE_BMP) {
-    ibuf->ftype = IMB_FTYPE_BMP;
-  }
-#ifdef WITH_TIFF
-  else if (imtype == R_IMF_IMTYPE_TIFF) {
-    ibuf->ftype = IMB_FTYPE_TIF;
-
-    if (imf->depth == R_IMF_CHAN_DEPTH_16) {
-      ibuf->foptions.flag |= TIF_16BIT;
-    }
-    if (imf->tiff_codec == R_IMF_TIFF_CODEC_NONE) {
-      ibuf->foptions.flag |= TIF_COMPRESS_NONE;
-    }
-    else if (imf->tiff_codec == R_IMF_TIFF_CODEC_DEFLATE) {
-      ibuf->foptions.flag |= TIF_COMPRESS_DEFLATE;
-    }
-    else if (imf->tiff_codec == R_IMF_TIFF_CODEC_LZW) {
-      ibuf->foptions.flag |= TIF_COMPRESS_LZW;
-    }
-    else if (imf->tiff_codec == R_IMF_TIFF_CODEC_PACKBITS) {
-      ibuf->foptions.flag |= TIF_COMPRESS_PACKBITS;
-    }
-  }
-#endif
-#ifdef WITH_OPENEXR
-  else if (ELEM(imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
-    ibuf->ftype = IMB_FTYPE_OPENEXR;
-    if (imf->depth == R_IMF_CHAN_DEPTH_16) {
-      ibuf->foptions.flag |= OPENEXR_HALF;
-    }
-    ibuf->foptions.flag |= (imf->exr_codec & OPENEXR_COMPRESS);
-
-    if (!(imf->flag & R_IMF_FLAG_ZBUF)) {
-      /* Signal for exr saving. */
-      IMB_freezbuffloatImBuf(ibuf);
-    }
-  }
-#endif
-#ifdef WITH_CINEON
-  else if (imtype == R_IMF_IMTYPE_CINEON) {
-    ibuf->ftype = IMB_FTYPE_CINEON;
-    if (imf->cineon_flag & R_IMF_CINEON_FLAG_LOG) {
-      ibuf->foptions.flag |= CINEON_LOG;
-    }
-    if (imf->depth == R_IMF_CHAN_DEPTH_16) {
-      ibuf->foptions.flag |= CINEON_16BIT;
-    }
-    else if (imf->depth == R_IMF_CHAN_DEPTH_12) {
-      ibuf->foptions.flag |= CINEON_12BIT;
-    }
-    else if (imf->depth == R_IMF_CHAN_DEPTH_10) {
-      ibuf->foptions.flag |= CINEON_10BIT;
-    }
-  }
-  else if (imtype == R_IMF_IMTYPE_DPX) {
-    ibuf->ftype = IMB_FTYPE_DPX;
-    if (imf->cineon_flag & R_IMF_CINEON_FLAG_LOG) {
-      ibuf->foptions.flag |= CINEON_LOG;
-    }
-    if (imf->depth == R_IMF_CHAN_DEPTH_16) {
-      ibuf->foptions.flag |= CINEON_16BIT;
-    }
-    else if (imf->depth == R_IMF_CHAN_DEPTH_12) {
-      ibuf->foptions.flag |= CINEON_12BIT;
-    }
-    else if (imf->depth == R_IMF_CHAN_DEPTH_10) {
-      ibuf->foptions.flag |= CINEON_10BIT;
-    }
-  }
-#endif
-  else if (imtype == R_IMF_IMTYPE_TARGA) {
-    ibuf->ftype = IMB_FTYPE_TGA;
-  }
-  else if (imtype == R_IMF_IMTYPE_RAWTGA) {
-    ibuf->ftype = IMB_FTYPE_TGA;
-    ibuf->foptions.flag = RAWTGA;
-  }
-#ifdef WITH_OPENJPEG
-  else if (imtype == R_IMF_IMTYPE_JP2) {
-    if (quality < 10) {
-      quality = 90;
-    }
-    ibuf->ftype = IMB_FTYPE_JP2;
-    ibuf->foptions.quality = quality;
-
-    if (imf->depth == R_IMF_CHAN_DEPTH_16) {
-      ibuf->foptions.flag |= JP2_16BIT;
-    }
-    else if (imf->depth == R_IMF_CHAN_DEPTH_12) {
-      ibuf->foptions.flag |= JP2_12BIT;
-    }
-
-    if (imf->jp2_flag & R_IMF_JP2_FLAG_YCC) {
-      ibuf->foptions.flag |= JP2_YCC;
-    }
-
-    if (imf->jp2_flag & R_IMF_JP2_FLAG_CINE_PRESET) {
-      ibuf->foptions.flag |= JP2_CINE;
-      if (imf->jp2_flag & R_IMF_JP2_FLAG_CINE_48) {
-        ibuf->foptions.flag |= JP2_CINE_48FPS;
-      }
-    }
-
-    if (imf->jp2_codec == R_IMF_JP2_CODEC_JP2) {
-      ibuf->foptions.flag |= JP2_JP2;
-    }
-    else if (imf->jp2_codec == R_IMF_JP2_CODEC_J2K) {
-      ibuf->foptions.flag |= JP2_J2K;
-    }
-    else {
-      BLI_assert_msg(0, "Unsupported jp2 codec was specified in im_format->jp2_codec");
-    }
-  }
-#endif
-  else {
-    /* #R_IMF_IMTYPE_JPEG90, etc. fallback to JPEG image. */
-    if (quality < 10) {
-      quality = 90;
-    }
-    ibuf->ftype = IMB_FTYPE_JPG;
-    ibuf->foptions.quality = quality;
-  }
-}
-
 int BKE_imbuf_write(ImBuf *ibuf, const char *name, const ImageFormatData *imf)
 {
-  BKE_imbuf_write_prepare(ibuf, imf);
+  BKE_image_format_to_imbuf(ibuf, imf);
 
   BLI_make_existing_file(name);
 
@@ -3190,8 +2427,8 @@ int BKE_imbuf_write_as(ImBuf *ibuf, const char *name, ImageFormatData *imf, cons
   return ok;
 }
 
-int BKE_imbuf_write_stamp(Scene *scene,
-                          struct RenderResult *rr,
+int BKE_imbuf_write_stamp(const Scene *scene,
+                          const struct RenderResult *rr,
                           ImBuf *ibuf,
                           const char *name,
                           const struct ImageFormatData *imf)
@@ -3201,60 +2438,6 @@ int BKE_imbuf_write_stamp(Scene *scene,
   }
 
   return BKE_imbuf_write(ibuf, name, imf);
-}
-
-static void do_makepicstring(char *string,
-                             const char *base,
-                             const char *relbase,
-                             int frame,
-                             const char imtype,
-                             const ImageFormatData *im_format,
-                             const bool use_ext,
-                             const bool use_frames,
-                             const char *suffix)
-{
-  if (string == nullptr) {
-    return;
-  }
-  BLI_strncpy(string, base, FILE_MAX - 10); /* weak assumption */
-  BLI_path_abs(string, relbase);
-
-  if (use_frames) {
-    BLI_path_frame(string, frame, 4);
-  }
-
-  if (suffix) {
-    BLI_path_suffix(string, FILE_MAX, suffix, "");
-  }
-
-  if (use_ext) {
-    do_add_image_extension(string, imtype, im_format);
-  }
-}
-
-void BKE_image_path_from_imformat(char *string,
-                                  const char *base,
-                                  const char *relbase,
-                                  int frame,
-                                  const ImageFormatData *im_format,
-                                  const bool use_ext,
-                                  const bool use_frames,
-                                  const char *suffix)
-{
-  do_makepicstring(
-      string, base, relbase, frame, im_format->imtype, im_format, use_ext, use_frames, suffix);
-}
-
-void BKE_image_path_from_imtype(char *string,
-                                const char *base,
-                                const char *relbase,
-                                int frame,
-                                const char imtype,
-                                const bool use_ext,
-                                const bool use_frames,
-                                const char *suffix)
-{
-  do_makepicstring(string, base, relbase, frame, imtype, nullptr, use_ext, use_frames, suffix);
 }
 
 struct anim *openanim_noload(const char *name,
@@ -3930,14 +3113,15 @@ bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *tile_start, i
   int max_udim = 0;
   int id;
 
-  struct direntry *dir;
-  uint totfile = BLI_filelist_dir_contents(dirname, &dir);
-  for (int i = 0; i < totfile; i++) {
-    if (!(dir[i].type & S_IFREG)) {
+  struct direntry *dirs;
+  const uint dirs_num = BLI_filelist_dir_contents(dirname, &dirs);
+  for (int i = 0; i < dirs_num; i++) {
+    if (!(dirs[i].type & S_IFREG)) {
       continue;
     }
 
-    if (!BKE_image_get_tile_number_from_filepath(dir[i].relname, udim_pattern, tile_format, &id)) {
+    if (!BKE_image_get_tile_number_from_filepath(
+            dirs[i].relname, udim_pattern, tile_format, &id)) {
       continue;
     }
 
@@ -3950,7 +3134,7 @@ bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *tile_start, i
     min_udim = min_ii(min_udim, id);
     max_udim = max_ii(max_udim, id);
   }
-  BLI_filelist_free(dir, totfile);
+  BLI_filelist_free(dirs, dirs_num);
   MEM_SAFE_FREE(udim_pattern);
 
   if (is_udim && min_udim <= IMA_UDIM_MAX) {
@@ -4135,69 +3319,24 @@ void BKE_image_ensure_tile_token(char *filename)
     return;
   }
 
-  /* Is there a sequence of digits in the filename? */
-  ushort digits;
-  char head[FILE_MAX], tail[FILE_MAX];
-  BLI_path_sequence_decode(filename, head, tail, &digits);
-  if (digits == 4) {
-    sprintf(filename, "%s<UDIM>%s", head, tail);
+  std::string path(filename);
+  std::smatch match;
+
+  /* General 4-digit "udim" pattern. As this format is susceptible to ambiguity
+   * with other digit sequences, we can leverage the supported range of roughly
+   * 1000 through 2000 to provide better detection.
+   */
+  std::regex pattern(R"((^|.*?\D)([12]\d{3})(\D.*))");
+  if (std::regex_search(path, match, pattern)) {
+    BLI_strncpy(filename, match.format("$1<UDIM>$3").c_str(), FILE_MAX);
     return;
   }
 
-  /* Is there a sequence like u##_v#### in the filename? */
-  uint cur = 0;
-  uint name_end = strlen(filename);
-  uint u_digits = 0;
-  uint v_digits = 0;
-  uint u_start = (uint)-1;
-  bool u_found = false;
-  bool v_found = false;
-  bool sep_found = false;
-  while (cur < name_end) {
-    if (filename[cur] == 'u') {
-      u_found = true;
-      u_digits = 0;
-      u_start = cur;
-    }
-    else if (filename[cur] == 'v') {
-      v_found = true;
-      v_digits = 0;
-    }
-    else if (u_found && !v_found) {
-      if (isdigit(filename[cur]) && u_digits < 2) {
-        u_digits++;
-      }
-      else if (filename[cur] == '_') {
-        sep_found = true;
-      }
-      else {
-        u_found = false;
-      }
-    }
-    else if (u_found && u_digits > 0 && v_found) {
-      if (isdigit(filename[cur])) {
-        if (v_digits < 4) {
-          v_digits++;
-        }
-        else {
-          u_found = false;
-          v_found = false;
-        }
-      }
-      else if (v_digits > 0) {
-        break;
-      }
-    }
-
-    cur++;
-  }
-
-  if (u_found && sep_found && v_found && (u_digits + v_digits > 1)) {
-    const char *token = "<UVTILE>";
-    const size_t token_length = strlen(token);
-    memmove(filename + u_start + token_length, filename + cur, name_end - cur);
-    memcpy(filename + u_start, token, token_length);
-    filename[u_start + token_length + (name_end - cur)] = '\0';
+  /* General `u##_v###` `uvtile` pattern. */
+  pattern = std::regex(R"((.*)(u\d{1,2}_v\d{1,3})(\D.*))");
+  if (std::regex_search(path, match, pattern)) {
+    BLI_strncpy(filename, match.format("$1<UVTILE>$3").c_str(), FILE_MAX);
+    return;
   }
 }
 
@@ -4212,15 +3351,15 @@ bool BKE_image_tile_filepath_exists(const char *filepath)
   char *udim_pattern = BKE_image_get_tile_strformat(filepath, &tile_format);
 
   bool found = false;
-  struct direntry *dir;
-  uint totfile = BLI_filelist_dir_contents(dirname, &dir);
-  for (int i = 0; i < totfile; i++) {
-    if (!(dir[i].type & S_IFREG)) {
+  struct direntry *dirs;
+  const uint dirs_num = BLI_filelist_dir_contents(dirname, &dirs);
+  for (int i = 0; i < dirs_num; i++) {
+    if (!(dirs[i].type & S_IFREG)) {
       continue;
     }
 
     int id;
-    if (!BKE_image_get_tile_number_from_filepath(dir[i].path, udim_pattern, tile_format, &id)) {
+    if (!BKE_image_get_tile_number_from_filepath(dirs[i].path, udim_pattern, tile_format, &id)) {
       continue;
     }
 
@@ -4231,7 +3370,7 @@ bool BKE_image_tile_filepath_exists(const char *filepath)
     found = true;
     break;
   }
-  BLI_filelist_free(dir, totfile);
+  BLI_filelist_free(dirs, dirs_num);
   MEM_SAFE_FREE(udim_pattern);
 
   return found;
@@ -5105,31 +4244,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
     RE_AcquireResultImage(re, &rres, actview);
   }
   else if ((slot = BKE_image_get_renderslot(ima, ima->render_slot))->render) {
-    /* Unfortunately each field needs to be set individually because RenderResult
-     * contains volatile fields and using memcpy would invoke undefined behavior with c++. */
-    rres.next = slot->render->next;
-    rres.prev = slot->render->prev;
-    rres.rectx = slot->render->rectx;
-    rres.recty = slot->render->recty;
-    rres.sample_nr = slot->render->sample_nr;
-    rres.rect32 = slot->render->rect32;
-    rres.rectf = slot->render->rectf;
-    rres.rectz = slot->render->rectz;
-    rres.tilerect = slot->render->tilerect;
-    rres.xof = slot->render->xof;
-    rres.yof = slot->render->yof;
-    rres.layers = slot->render->layers;
-    rres.views = slot->render->views;
-    rres.renrect.xmin = slot->render->renrect.xmin;
-    rres.renrect.xmax = slot->render->renrect.xmax;
-    rres.renrect.ymin = slot->render->renrect.ymin;
-    rres.renrect.ymax = slot->render->renrect.ymax;
-    rres.renlay = slot->render->renlay;
-    rres.framenr = slot->render->framenr;
-    rres.text = slot->render->text;
-    rres.error = slot->render->error;
-    rres.stamp_data = slot->render->stamp_data;
-    rres.passes_allocated = slot->render->passes_allocated;
+    rres = *(slot->render);
     rres.have_combined = ((RenderView *)rres.views.first)->rectf != nullptr;
   }
 
@@ -5292,7 +4407,7 @@ static int image_get_multiview_index(Image *ima, ImageUser *iuser)
   }
   if (is_backdrop) {
     if (BKE_image_is_stereo(ima)) {
-      /* backdrop hackaround (since there is no iuser */
+      /* Backdrop hack / workaround (since there is no `iuser`). */
       return ima->eye;
     }
   }
@@ -5939,7 +5054,7 @@ void BKE_image_user_file_path_ex(ImageUser *iuser, Image *ima, char *filepath, b
 bool BKE_image_has_alpha(Image *image)
 {
   void *lock;
-  ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
+  ImBuf *ibuf = BKE_image_acquire_ibuf(image, nullptr, &lock);
   const int planes = (ibuf ? ibuf->planes : 0);
   BKE_image_release_ibuf(image, ibuf, lock);
 
@@ -6140,8 +5255,8 @@ bool BKE_image_buffer_format_writable(ImBuf *ibuf)
 {
   ImageFormatData im_format;
   ImbFormatOptions options_dummy;
-  BKE_imbuf_to_image_format(&im_format, ibuf);
-  return (BKE_image_imtype_to_ftype(im_format.imtype, &options_dummy) == ibuf->ftype);
+  BKE_image_format_from_imbuf(&im_format, ibuf);
+  return (BKE_imtype_to_ftype(im_format.imtype, &options_dummy) == ibuf->ftype);
 }
 
 void BKE_image_file_format_set(Image *image, int ftype, const ImbFormatOptions *options)

@@ -338,9 +338,9 @@ ccl_device float4 triangle_attribute_float4(KernelGlobals kg,
   else {
 #ifdef __RAY_DIFFERENTIALS__
     if (dx)
-      *dx = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+      *dx = zero_float4();
     if (dy)
-      *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+      *dy = zero_float4();
 #endif
 
     if (desc.element & (ATTR_ELEMENT_FACE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
@@ -349,7 +349,7 @@ ccl_device float4 triangle_attribute_float4(KernelGlobals kg,
       return kernel_tex_fetch(__attributes_float4, offset);
     }
     else {
-      return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+      return zero_float4();
     }
   }
 }

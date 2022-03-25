@@ -319,6 +319,7 @@ void DRW_state_reset(void)
 
   GPU_texture_unbind_all();
   GPU_uniformbuf_unbind_all();
+  GPU_storagebuf_unbind_all();
 
   /* Should stay constant during the whole rendering. */
   GPU_point_size(5);
@@ -621,6 +622,12 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
         case DRW_UNIFORM_BLOCK_REF:
           GPU_uniformbuf_bind(*uni->block_ref, uni->location);
           break;
+        case DRW_UNIFORM_STORAGE_BLOCK:
+          GPU_storagebuf_bind(uni->ssbo, uni->location);
+          break;
+        case DRW_UNIFORM_STORAGE_BLOCK_REF:
+          GPU_storagebuf_bind(*uni->ssbo_ref, uni->location);
+          break;
         case DRW_UNIFORM_BLOCK_OBMATS:
           state->obmats_loc = uni->location;
           GPU_uniformbuf_bind(DST.vmempool->matrices_ubo[0], uni->location);
@@ -915,6 +922,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
       if (G.debug & G_DEBUG_GPU) {
         GPU_texture_unbind_all();
         GPU_uniformbuf_unbind_all();
+        GPU_storagebuf_unbind_all();
       }
     }
     GPU_shader_bind(shgroup->shader);
@@ -1043,6 +1051,9 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
                                cmd->compute_ref.groups_ref[1],
                                cmd->compute_ref.groups_ref[2]);
           break;
+        case DRW_CMD_COMPUTE_INDIRECT:
+          GPU_compute_dispatch_indirect(shgroup->shader, cmd->compute_indirect.indirect_buf);
+          break;
         case DRW_CMD_BARRIER:
           GPU_memory_barrier(cmd->barrier.type);
           break;
@@ -1057,8 +1068,13 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
   }
 }
 
-static void drw_update_view(void)
+static void drw_update_view(const float viewport_size[2])
 {
+  ViewInfos *storage = &DST.view_active->storage;
+  copy_v2_v2(storage->viewport_size, viewport_size);
+  copy_v2_v2(storage->viewport_size_inverse, viewport_size);
+  invert_v2(storage->viewport_size_inverse);
+
   /* TODO(fclem): update a big UBO and only bind ranges here. */
   GPU_uniformbuf_update(G_draw.view_ubo, &DST.view_active->storage);
 
@@ -1086,8 +1102,11 @@ static void drw_draw_pass_ex(DRWPass *pass,
   BLI_assert(DST.buffer_finish_called &&
              "DRW_render_instance_buffer_finish had not been called before drawing");
 
-  if (DST.view_previous != DST.view_active || DST.view_active->is_dirty) {
-    drw_update_view();
+  float viewport[4];
+  GPU_viewport_size_get_f(viewport);
+  if (DST.view_previous != DST.view_active || DST.view_active->is_dirty ||
+      !equals_v2v2(DST.view_active->storage.viewport_size, &viewport[2])) {
+    drw_update_view(&viewport[2]);
     DST.view_active->is_dirty = false;
     DST.view_previous = DST.view_active;
   }

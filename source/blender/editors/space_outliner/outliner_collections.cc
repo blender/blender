@@ -301,7 +301,7 @@ static TreeTraversalAction collection_find_data_to_edit(TreeElement *te, void *c
 
   if (ID_IS_OVERRIDE_LIBRARY_REAL(collection)) {
     if (ID_IS_OVERRIDE_LIBRARY_HIERARCHY_ROOT(collection)) {
-      if (!data->is_liboverride_hierarchy_root_allowed) {
+      if (!(data->is_liboverride_hierarchy_root_allowed || data->is_liboverride_allowed)) {
         return TRAVERSE_SKIP_CHILDS;
       }
     }

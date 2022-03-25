@@ -251,7 +251,7 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
     const int totvert = SCULPT_vertex_count_get(ss);
     ss->cache->detail_directions = MEM_malloc_arrayN(
-        totvert, 3 * sizeof(float), "details directions");
+        totvert, sizeof(float[3]), "details directions");
 
     for (int i = 0; i < totvert; i++) {
       float avg[3];

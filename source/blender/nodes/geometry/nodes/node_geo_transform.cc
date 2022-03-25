@@ -13,7 +13,6 @@
 #include "BKE_curves.hh"
 #include "BKE_mesh.h"
 #include "BKE_pointcloud.h"
-#include "BKE_spline.hh"
 #include "BKE_volume.h"
 
 #include "DEG_depsgraph_query.h"
@@ -127,9 +126,7 @@ static void translate_geometry_set(GeometrySet &geometry,
                                    const Depsgraph &depsgraph)
 {
   if (Curves *curves = geometry.get_curves_for_write()) {
-    std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curves);
-    curve->translate(translation);
-    geometry.replace_curves(curve_eval_to_curves(*curve));
+    bke::CurvesGeometry::wrap(curves->geometry).translate(translation);
   }
   if (Mesh *mesh = geometry.get_mesh_for_write()) {
     translate_mesh(*mesh, translation);
@@ -150,9 +147,7 @@ void transform_geometry_set(GeometrySet &geometry,
                             const Depsgraph &depsgraph)
 {
   if (Curves *curves = geometry.get_curves_for_write()) {
-    std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curves);
-    curve->transform(transform);
-    geometry.replace_curves(curve_eval_to_curves(*curve));
+    bke::CurvesGeometry::wrap(curves->geometry).transform(transform);
   }
   if (Mesh *mesh = geometry.get_mesh_for_write()) {
     transform_mesh(*mesh, transform);

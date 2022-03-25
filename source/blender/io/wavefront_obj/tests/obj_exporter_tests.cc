@@ -405,6 +405,16 @@ TEST_F(obj_exporter_regression_test, vertices)
       "io_tests/blend_geometry/vertices.blend", "io_tests/obj/vertices.obj", "", _export.params);
 }
 
+TEST_F(obj_exporter_regression_test, non_uniform_scale)
+{
+  OBJExportParamsDefault _export;
+  _export.params.export_materials = false;
+  compare_obj_export_to_golden("io_tests/blend_geometry/non_uniform_scale.blend",
+                               "io_tests/obj/non_uniform_scale.obj",
+                               "",
+                               _export.params);
+}
+
 TEST_F(obj_exporter_regression_test, nurbs_as_nurbs)
 {
   OBJExportParamsDefault _export;
@@ -465,6 +475,17 @@ TEST_F(obj_exporter_regression_test, cube_normal_edit)
                                _export.params);
 }
 
+TEST_F(obj_exporter_regression_test, cubes_positioned)
+{
+  OBJExportParamsDefault _export;
+  _export.params.export_materials = false;
+  _export.params.scaling_factor = 2.0f;
+  compare_obj_export_to_golden("io_tests/blend_geometry/cubes_positioned.blend",
+                               "io_tests/obj/cubes_positioned.obj",
+                               "",
+                               _export.params);
+}
+
 TEST_F(obj_exporter_regression_test, suzanne_all_data)
 {
   OBJExportParamsDefault _export;
@@ -487,6 +508,19 @@ TEST_F(obj_exporter_regression_test, all_objects)
   compare_obj_export_to_golden("io_tests/blend_scene/all_objects.blend",
                                "io_tests/obj/all_objects.obj",
                                "io_tests/obj/all_objects.mtl",
+                               _export.params);
+}
+
+TEST_F(obj_exporter_regression_test, all_objects_mat_groups)
+{
+  OBJExportParamsDefault _export;
+  _export.params.forward_axis = OBJ_AXIS_Y_FORWARD;
+  _export.params.up_axis = OBJ_AXIS_Z_UP;
+  _export.params.export_smooth_groups = true;
+  _export.params.export_material_groups = true;
+  compare_obj_export_to_golden("io_tests/blend_scene/all_objects.blend",
+                               "io_tests/obj/all_objects_mat_groups.obj",
+                               "io_tests/obj/all_objects_mat_groups.mtl",
                                _export.params);
 }
 

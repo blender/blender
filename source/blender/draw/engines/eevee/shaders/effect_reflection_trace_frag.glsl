@@ -60,11 +60,11 @@ void main()
   vec3 P = transform_point(ViewMatrixInverse, vP);
   vec3 vV = viewCameraVec(vP);
   vec3 V = cameraVec(P);
-  vec3 vN = normal_decode(texture(normalBuffer, uvs, 0).rg, vV);
+  vec3 vN = normal_decode(textureLod(normalBuffer, uvs, 0.0).rg, vV);
   vec3 N = transform_direction(ViewMatrixInverse, vN);
 
   /* Retrieve pixel data */
-  vec4 speccol_roughness = texture(specroughBuffer, uvs, 0).rgba;
+  vec4 speccol_roughness = textureLod(specroughBuffer, uvs, 0.0).rgba;
 
   /* Early out */
   if (dot(speccol_roughness.rgb, vec3(1.0)) == 0.0) {

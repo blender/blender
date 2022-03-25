@@ -27,6 +27,7 @@ struct MeshDeformModifierData;
 struct Object;
 struct ReportList;
 struct Scene;
+struct SelectPick_Params;
 struct UndoType;
 struct View3D;
 struct ViewLayer;
@@ -164,18 +165,20 @@ bool ED_armature_edit_deselect_all_visible(struct Object *obedit);
 bool ED_armature_edit_deselect_all_multi_ex(struct Base **bases, uint bases_len);
 bool ED_armature_edit_deselect_all_visible_multi_ex(struct Base **bases, uint bases_len);
 bool ED_armature_edit_deselect_all_visible_multi(struct bContext *C);
+/**
+ * \return True when pick finds an element or the selection changed.
+ */
 bool ED_armature_edit_select_pick_bone(struct bContext *C,
                                        struct Base *basact,
                                        struct EditBone *ebone,
                                        int selmask,
-                                       bool extend,
-                                       bool deselect,
-                                       bool toggle);
+                                       const struct SelectPick_Params *params);
 /**
  * Bone selection picking for armature edit-mode in the view3d.
  */
-bool ED_armature_edit_select_pick(
-    struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
+bool ED_armature_edit_select_pick(struct bContext *C,
+                                  const int mval[2],
+                                  const struct SelectPick_Params *params);
 /**
  * Perform a selection operation on elements which have been 'touched',
  * use for lasso & border select but can be used elsewhere too.
@@ -305,25 +308,26 @@ void ED_pose_recalculate_paths(struct bContext *C,
 
 /* pose_select.c */
 
-void ED_armature_pose_select_pick_bone(struct ViewLayer *view_layer,
+/**
+ * \return True when pick finds an element or the selection changed.
+ */
+bool ED_armature_pose_select_pick_bone(struct ViewLayer *view_layer,
                                        struct View3D *v3d,
                                        struct Object *ob,
                                        struct Bone *bone,
-                                       bool extend,
-                                       bool deselect,
-                                       bool toggle);
+                                       const struct SelectPick_Params *params);
 /**
  * Called for mode-less pose selection.
  * assumes the active object is still on old situation.
+ *
+ * \return True when pick finds an element or the selection changed.
  */
 bool ED_armature_pose_select_pick_with_buffer(struct ViewLayer *view_layer,
                                               struct View3D *v3d,
                                               struct Base *base,
                                               const struct GPUSelectResult *buffer,
                                               short hits,
-                                              bool extend,
-                                              bool deselect,
-                                              bool toggle,
+                                              const struct SelectPick_Params *params,
                                               bool do_nearest);
 /**
  * While in weight-paint mode, a single pose may be active as well.

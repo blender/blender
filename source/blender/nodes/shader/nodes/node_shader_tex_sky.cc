@@ -10,6 +10,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "NOD_socket_search_link.hh"
+
 namespace blender::nodes::node_shader_tex_sky_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -229,6 +231,24 @@ static void node_shader_update_sky(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, sockVector, !(tex->sky_model == 2 && tex->sun_disc == 1));
 }
 
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
+  if (params.in_out() == SOCK_OUT) {
+    search_link_ops_for_declarations(params, declaration.outputs());
+    return;
+  }
+  if (params.node_tree().typeinfo->validate_link(
+          static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_FLOAT)) {
+    params.add_item(IFACE_("Vector"), [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("ShaderNodeTexSky");
+      NodeTexSky *tex = (NodeTexSky *)node.storage;
+      tex->sun_disc = false;
+      params.update_and_connect_available_socket(node, "Vector");
+    });
+  }
+}
+
 }  // namespace blender::nodes::node_shader_tex_sky_cc
 
 /* node type definition */
@@ -247,6 +267,7 @@ void register_node_type_sh_tex_sky()
   node_type_gpu(&ntype, file_ns::node_shader_gpu_tex_sky);
   /* Remove vector input for Nishita sky model. */
   node_type_update(&ntype, file_ns::node_shader_update_sky);
+  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
 
   nodeRegisterType(&ntype);
 }

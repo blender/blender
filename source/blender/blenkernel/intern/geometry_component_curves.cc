@@ -15,7 +15,7 @@
 
 #include "attribute_access_intern.hh"
 
-using blender::fn::GVArray;
+using blender::GVArray;
 
 /* -------------------------------------------------------------------- */
 /** \name Geometry Component Implementation
@@ -236,10 +236,10 @@ int CurveComponent::attribute_domain_size(const AttributeDomain domain) const
   const blender::bke::CurvesGeometry &geometry = blender::bke::CurvesGeometry::wrap(
       curves_->geometry);
   if (domain == ATTR_DOMAIN_POINT) {
-    return geometry.points_size();
+    return geometry.points_num();
   }
   if (domain == ATTR_DOMAIN_CURVE) {
-    return geometry.curves_size();
+    return geometry.curves_num();
   }
   return 0;
 }

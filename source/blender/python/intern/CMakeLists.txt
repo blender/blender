@@ -224,6 +224,10 @@ if(WITH_IMAGE_TIFF)
   add_definitions(-DWITH_TIFF)
 endif()
 
+if(WITH_WEBP)
+	add_definitions(-DWITH_WEBP)
+endif()
+
 if(WITH_INPUT_NDOF)
   add_definitions(-DWITH_INPUT_NDOF)
 endif()

@@ -169,7 +169,7 @@ void diag_dir(bvec4 edges1, bvec4 edges2, out vec2 line_start, out vec2 line_end
 
 void main()
 {
-  uint ref = textureLod(outlineId, uvcoordsvar.st, 0.0).r;
+  uint ref = textureLod(outlineId, uvcoordsvar.xy, 0.0).r;
   uint ref_col = ref;
 
   vec2 uvs = gl_FragCoord.xy * sizeViewportInv.xy;

@@ -137,6 +137,11 @@ typedef struct BrushGpencilSettings {
   struct Material *material;
 } BrushGpencilSettings;
 
+typedef struct BrushCurvesSculptSettings {
+  /* Number of curves added by the add brush.  */
+  int add_amount;
+} BrushCurvesSculptSettings;
+
 typedef struct Brush {
   ID id;
 
@@ -256,7 +261,7 @@ typedef struct Brush {
   char gpencil_sculpt_tool;
   /** Active grease pencil weight tool. */
   char gpencil_weight_tool;
-  /** Active curves sculpt tool. */
+  /** Active curves sculpt tool (#eBrushCurvesSculptTool). */
   char curves_sculpt_tool;
   char _pad1[5];
 
@@ -360,7 +365,7 @@ typedef struct Brush {
   float mask_stencil_dimension[2];
 
   struct BrushGpencilSettings *gpencil_settings;
-
+  struct BrushCurvesSculptSettings *curves_sculpt_settings;
 } Brush;
 
 /* Struct to hold palette colors for sorting. */

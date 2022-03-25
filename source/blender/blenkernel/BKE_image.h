@@ -64,7 +64,7 @@ struct StampData *BKE_stamp_info_from_scene_static(const struct Scene *scene);
  * Check whether the given metadata field name translates to a known field of a stamp.
  */
 bool BKE_stamp_is_known_field(const char *field_name);
-void BKE_imbuf_stamp_info(struct RenderResult *rr, struct ImBuf *ibuf);
+void BKE_imbuf_stamp_info(const struct RenderResult *rr, struct ImBuf *ibuf);
 void BKE_stamp_info_from_imbuf(struct RenderResult *rr, struct ImBuf *ibuf);
 void BKE_stamp_info_callback(void *data,
                              struct StampData *stamp_data,
@@ -82,15 +82,14 @@ void BKE_image_stamp_buf(struct Scene *scene,
                          int height,
                          int channels);
 bool BKE_imbuf_alpha_test(struct ImBuf *ibuf);
-int BKE_imbuf_write_stamp(struct Scene *scene,
-                          struct RenderResult *rr,
+int BKE_imbuf_write_stamp(const struct Scene *scene,
+                          const struct RenderResult *rr,
                           struct ImBuf *ibuf,
                           const char *name,
                           const struct ImageFormatData *imf);
 /**
  * \note imf->planes is ignored here, its assumed the image channels are already set.
  */
-void BKE_imbuf_write_prepare(struct ImBuf *ibuf, const struct ImageFormatData *imf);
 int BKE_imbuf_write(struct ImBuf *ibuf, const char *name, const struct ImageFormatData *imf);
 /**
  * Same as #BKE_imbuf_write() but crappy workaround not to permanently modify _some_,
@@ -100,43 +99,6 @@ int BKE_imbuf_write_as(struct ImBuf *ibuf,
                        const char *name,
                        struct ImageFormatData *imf,
                        bool save_copy);
-void BKE_image_path_from_imformat(char *string,
-                                  const char *base,
-                                  const char *relbase,
-                                  int frame,
-                                  const struct ImageFormatData *im_format,
-                                  bool use_ext,
-                                  bool use_frames,
-                                  const char *suffix);
-void BKE_image_path_from_imtype(char *string,
-                                const char *base,
-                                const char *relbase,
-                                int frame,
-                                char imtype,
-                                bool use_ext,
-                                bool use_frames,
-                                const char *suffix);
-int BKE_image_path_ensure_ext_from_imformat(char *string, const struct ImageFormatData *im_format);
-int BKE_image_path_ensure_ext_from_imtype(char *string, char imtype);
-char BKE_image_ftype_to_imtype(int ftype, const struct ImbFormatOptions *options);
-int BKE_image_imtype_to_ftype(char imtype, struct ImbFormatOptions *r_options);
-
-bool BKE_imtype_is_movie(char imtype);
-bool BKE_imtype_supports_zbuf(char imtype);
-bool BKE_imtype_supports_compress(char imtype);
-bool BKE_imtype_supports_quality(char imtype);
-bool BKE_imtype_requires_linear_float(char imtype);
-char BKE_imtype_valid_channels(char imtype, bool write_file);
-char BKE_imtype_valid_depths(char imtype);
-
-/**
- * String is from command line `--render-format` argument,
- * keep in sync with `creator_args.c` help info.
- */
-char BKE_imtype_from_arg(const char *arg);
-
-void BKE_imformat_defaults(struct ImageFormatData *im_format);
-void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const struct ImBuf *imbuf);
 
 /**
  * Used by sequencer too.
@@ -170,10 +132,6 @@ struct RenderResult;
 /* image-user gets a new image, check settings */
 #define IMA_SIGNAL_USER_NEW_IMAGE 6
 #define IMA_SIGNAL_COLORMANAGE 7
-
-#define IMA_CHAN_FLAG_BW 1
-#define IMA_CHAN_FLAG_RGB 2
-#define IMA_CHAN_FLAG_ALPHA 4
 
 /**
  * Checks whether there's an image buffer for given image and user.

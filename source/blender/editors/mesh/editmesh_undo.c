@@ -673,6 +673,7 @@ static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em)
                      (&(struct BMeshFromMeshParams){
                          /* Handled with tessellation. */
                          .calc_face_normal = false,
+                         .calc_vert_normal = false,
                          .active_shapekey = um->shapenr,
                      }));
 

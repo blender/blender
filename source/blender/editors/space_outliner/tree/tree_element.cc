@@ -107,7 +107,6 @@ void tree_element_expand(const AbstractTreeElement &tree_element, SpaceOutliner 
     return;
   }
   tree_element.expand(space_outliner);
-  tree_element.postExpand(space_outliner);
 }
 
 bool tree_element_warnings_get(TreeElement *te, int *r_icon, const char **r_message)

@@ -16,6 +16,7 @@ struct PTCacheEdit;
 struct ParticleEditSettings;
 struct ParticleSystem;
 struct Scene;
+struct SelectPick_Params;
 struct UndoType;
 struct ViewLayer;
 struct bContext;
@@ -54,8 +55,9 @@ void PE_update_object(struct Depsgraph *depsgraph,
 
 /* selection tools */
 
-bool PE_mouse_particles(
-    struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
+bool PE_mouse_particles(struct bContext *C,
+                        const int mval[2],
+                        const struct SelectPick_Params *params);
 bool PE_box_select(struct bContext *C, const struct rcti *rect, int sel_op);
 bool PE_circle_select(struct bContext *C,
                       struct wmGenericUserData *wm_userdata,

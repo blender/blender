@@ -121,43 +121,27 @@ void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
   }
 }
 
-void ED_armature_pose_select_pick_bone(ViewLayer *view_layer,
+bool ED_armature_pose_select_pick_bone(ViewLayer *view_layer,
                                        View3D *v3d,
                                        Object *ob,
                                        Bone *bone,
-                                       const bool extend,
-                                       const bool deselect,
-                                       const bool toggle)
+                                       const struct SelectPick_Params *params)
 {
-  if (!ob || !ob->pose) {
-    return;
-  }
+  bool found = false;
+  bool changed = false;
 
-  Object *ob_act = OBACT(view_layer);
-  BLI_assert(OBEDIT_FROM_VIEW_LAYER(view_layer) == NULL);
-
-  /* If the bone cannot be affected, don't do anything. */
-  if (bone == NULL || (bone->flag & BONE_UNSELECTABLE)) {
-    return;
-  }
-  bArmature *arm = ob->data;
-
-  /* Since we do unified select, we don't shift+select a bone if the
-   * armature object was not active yet.
-   * NOTE(campbell): special exception for armature mode so we can do multi-select
-   * we could check for multi-select explicitly but think its fine to
-   * always give predictable behavior in weight paint mode. */
-  if ((ob_act == NULL) || ((ob_act != ob) && (ob_act->mode & OB_MODE_ALL_WEIGHT_PAINT) == 0)) {
-    /* When we are entering into posemode via toggle-select,
-     * from another active object - always select the bone. */
-    if (!extend && !deselect && toggle) {
-      /* Re-select the bone again later in this function. */
-      bone->flag &= ~BONE_SELECTED;
+  if (ob || ob->pose) {
+    if (bone && ((bone->flag & BONE_UNSELECTABLE) == 0)) {
+      found = true;
     }
   }
 
-  if (!extend && !deselect && !toggle) {
-    {
+  if (params->sel_op == SEL_OP_SET) {
+    if ((found && params->select_passthrough) && (bone->flag & BONE_SELECTED)) {
+      found = false;
+    }
+    else if (found || params->deselect_all) {
+      /* Deselect everything. */
       /* Don't use 'BKE_object_pose_base_array_get_unique'
        * because we may be selecting from object mode. */
       FOREACH_VISIBLE_BASE_BEGIN (view_layer, v3d, base_iter) {
@@ -169,56 +153,94 @@ void ED_armature_pose_select_pick_bone(ViewLayer *view_layer,
         }
       }
       FOREACH_VISIBLE_BASE_END;
+      changed = true;
     }
-    bone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-    arm->act_bone = bone;
   }
-  else {
-    if (extend) {
-      bone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-      arm->act_bone = bone;
-    }
-    else if (deselect) {
-      bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-    }
-    else if (toggle) {
-      if (bone->flag & BONE_SELECTED) {
-        /* If not active, we make it active. */
-        if (bone != arm->act_bone) {
-          arm->act_bone = bone;
-        }
-        else {
-          bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-        }
+
+  if (found) {
+    Object *ob_act = OBACT(view_layer);
+    BLI_assert(OBEDIT_FROM_VIEW_LAYER(view_layer) == NULL);
+
+    /* If the bone cannot be affected, don't do anything. */
+    bArmature *arm = ob->data;
+
+    /* Since we do unified select, we don't shift+select a bone if the
+     * armature object was not active yet.
+     * NOTE(campbell): special exception for armature mode so we can do multi-select
+     * we could check for multi-select explicitly but think its fine to
+     * always give predictable behavior in weight paint mode. */
+    if ((ob_act == NULL) || ((ob_act != ob) && (ob_act->mode & OB_MODE_ALL_WEIGHT_PAINT) == 0)) {
+      /* When we are entering into posemode via toggle-select,
+       * from another active object - always select the bone. */
+      if (params->sel_op == SEL_OP_SET) {
+        /* Re-select the bone again later in this function. */
+        bone->flag &= ~BONE_SELECTED;
       }
-      else {
+    }
+
+    switch (params->sel_op) {
+      case SEL_OP_ADD: {
         bone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
         arm->act_bone = bone;
+        break;
+      }
+      case SEL_OP_SUB: {
+        bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+        break;
+      }
+      case SEL_OP_XOR: {
+        if (bone->flag & BONE_SELECTED) {
+          /* If not active, we make it active. */
+          if (bone != arm->act_bone) {
+            arm->act_bone = bone;
+          }
+          else {
+            bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+          }
+        }
+        else {
+          bone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+          arm->act_bone = bone;
+        }
+        break;
+      }
+      case SEL_OP_SET: {
+        bone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+        arm->act_bone = bone;
+        break;
+      }
+      case SEL_OP_AND: {
+        BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+        break;
       }
     }
-  }
 
-  if (ob_act) {
-    /* In weightpaint we select the associated vertex group too. */
-    if (ob_act->mode & OB_MODE_ALL_WEIGHT_PAINT) {
-      if (bone == arm->act_bone) {
-        ED_vgroup_select_by_name(ob_act, bone->name);
-        DEG_id_tag_update(&ob_act->id, ID_RECALC_GEOMETRY);
+    if (ob_act) {
+      /* In weightpaint we select the associated vertex group too. */
+      if (ob_act->mode & OB_MODE_ALL_WEIGHT_PAINT) {
+        if (bone == arm->act_bone) {
+          ED_vgroup_select_by_name(ob_act, bone->name);
+          DEG_id_tag_update(&ob_act->id, ID_RECALC_GEOMETRY);
+        }
       }
-    }
-    /* If there are some dependencies for visualizing armature state
-     * (e.g. Mask Modifier in 'Armature' mode), force update.
-     */
-    else if (arm->flag & ARM_HAS_VIZ_DEPS) {
-      /* NOTE: ob not ob_act here is intentional - it's the source of the
-       *       bones being selected  [T37247]
+      /* If there are some dependencies for visualizing armature state
+       * (e.g. Mask Modifier in 'Armature' mode), force update.
        */
-      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+      else if (arm->flag & ARM_HAS_VIZ_DEPS) {
+        /* NOTE: ob not ob_act here is intentional - it's the source of the
+         *       bones being selected  [T37247]
+         */
+        DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+      }
+
+      /* Tag armature for copy-on-write update (since act_bone is in armature not object). */
+      DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
     }
 
-    /* Tag armature for copy-on-write update (since act_bone is in armature not object). */
-    DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
+    changed = true;
   }
+
+  return changed || found;
 }
 
 bool ED_armature_pose_select_pick_with_buffer(ViewLayer *view_layer,
@@ -226,9 +248,7 @@ bool ED_armature_pose_select_pick_with_buffer(ViewLayer *view_layer,
                                               Base *base,
                                               const struct GPUSelectResult *buffer,
                                               const short hits,
-                                              bool extend,
-                                              bool deselect,
-                                              bool toggle,
+                                              const struct SelectPick_Params *params,
                                               bool do_nearest)
 {
   Object *ob = base->object;
@@ -243,9 +263,7 @@ bool ED_armature_pose_select_pick_with_buffer(ViewLayer *view_layer,
   nearBone = ED_armature_pick_bone_from_selectbuffer(
       &base, 1, buffer, hits, 1, do_nearest, &base_dummy);
 
-  ED_armature_pose_select_pick_bone(view_layer, v3d, ob, nearBone, extend, deselect, toggle);
-
-  return nearBone != NULL;
+  return ED_armature_pose_select_pick_bone(view_layer, v3d, ob, nearBone, params);
 }
 
 void ED_armature_pose_select_in_wpaint_mode(ViewLayer *view_layer, Base *base_select)

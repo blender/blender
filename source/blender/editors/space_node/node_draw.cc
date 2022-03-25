@@ -73,11 +73,10 @@
 
 #include "node_intern.hh" /* own include */
 
-using blender::fn::CPPType;
+using blender::GPointer;
 using blender::fn::FieldCPPType;
 using blender::fn::FieldInput;
 using blender::fn::GField;
-using blender::fn::GPointer;
 namespace geo_log = blender::nodes::geometry_nodes_eval_log;
 
 extern "C" {
@@ -1418,8 +1417,6 @@ static int node_error_type_to_icon(const geo_log::NodeWarningType type)
       return ICON_ERROR;
     case geo_log::NodeWarningType::Info:
       return ICON_INFO;
-    case geo_log::NodeWarningType::Legacy:
-      return ICON_ERROR;
   }
 
   BLI_assert(false);
@@ -1430,8 +1427,6 @@ static uint8_t node_error_type_priority(const geo_log::NodeWarningType type)
 {
   switch (type) {
     case geo_log::NodeWarningType::Error:
-      return 4;
-    case geo_log::NodeWarningType::Legacy:
       return 3;
     case geo_log::NodeWarningType::Warning:
       return 2;

@@ -26,6 +26,7 @@
 #  include "BLI_math_vector.h"
 #  include "BLI_polyfill_2d.h"
 #  include "BLI_set.hh"
+#  include "BLI_sort.hh"
 #  include "BLI_span.hh"
 #  include "BLI_task.h"
 #  include "BLI_task.hh"
@@ -36,10 +37,6 @@
 #  include "PIL_time.h"
 
 #  include "BLI_mesh_intersect.hh"
-
-#  ifdef WITH_TBB
-#    include <tbb/parallel_sort.h>
-#  endif
 
 // #  define PERFDEBUG
 
@@ -672,11 +669,7 @@ void IMesh::populate_vert(int max_verts)
    * TODO: when all debugged, set fix_order = false. */
   const bool fix_order = true;
   if (fix_order) {
-#  ifdef WITH_TBB
-    tbb::parallel_sort(vert_.begin(), vert_.end(), [](const Vert *a, const Vert *b) {
-#  else
-    std::sort(vert_.begin(), vert_.end(), [](const Vert *a, const Vert *b) {
-#  endif
+    blender::parallel_sort(vert_.begin(), vert_.end(), [](const Vert *a, const Vert *b) {
       if (a->orig != NO_INDEX && b->orig != NO_INDEX) {
         return a->orig < b->orig;
       }

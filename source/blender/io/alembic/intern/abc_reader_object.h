@@ -139,7 +139,7 @@ class AbcObjectReader {
                                  const char *velocity_name,
                                  float velocity_scale,
                                  const char **err_str);
-  virtual bool topology_changed(Mesh *existing_mesh,
+  virtual bool topology_changed(const Mesh *existing_mesh,
                                 const Alembic::Abc::ISampleSelector &sample_sel);
 
   /** Reads the object matrix and sets up an object transform if animated. */

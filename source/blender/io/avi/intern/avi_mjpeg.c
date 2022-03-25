@@ -525,14 +525,14 @@ static boolean jpegmemsrcmgr_fill_input_buffer(j_decompress_ptr dinfo)
   return true;
 }
 
-static void jpegmemsrcmgr_skip_input_data(j_decompress_ptr dinfo, long skipcnt)
+static void jpegmemsrcmgr_skip_input_data(j_decompress_ptr dinfo, long skip_count)
 {
-  if (dinfo->src->bytes_in_buffer < skipcnt) {
-    skipcnt = dinfo->src->bytes_in_buffer;
+  if (dinfo->src->bytes_in_buffer < skip_count) {
+    skip_count = dinfo->src->bytes_in_buffer;
   }
 
-  dinfo->src->next_input_byte += skipcnt;
-  dinfo->src->bytes_in_buffer -= skipcnt;
+  dinfo->src->next_input_byte += skip_count;
+  dinfo->src->bytes_in_buffer -= skip_count;
 }
 
 static void jpegmemsrcmgr_term_source(j_decompress_ptr dinfo)

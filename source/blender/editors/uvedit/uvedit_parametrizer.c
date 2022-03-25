@@ -4021,7 +4021,7 @@ static void p_smooth(PChart *chart)
   PFace *f;
   int j, it2, maxiter2, it;
   int nedges = chart->nedges, nwheel, gridx, gridy;
-  int edgesx, edgesy, nsize, esize, i, x, y, maxiter, totiter;
+  int edgesx, edgesy, nsize, esize, i, x, y, maxiter;
   float minv[2], maxv[2], median, invmedian, avglen2d, avglen3d;
   float center[2], dx, dy, *nodes, dlimit, d, *oldnodesx, *oldnodesy;
   float *nodesx, *nodesy, *hedges, *vedges, climit, moved, padding;
@@ -4185,7 +4185,6 @@ static void p_smooth(PChart *chart)
 
   /* smooth the grid */
   maxiter = 10;
-  totiter = 0;
   climit = 0.00001f * nsize;
 
   for (it = 0; it < maxiter; it++) {
@@ -4210,7 +4209,6 @@ static void p_smooth(PChart *chart)
 
     for (it2 = 0; it2 < maxiter2; it2++) {
       d = 0.0f;
-      totiter += 1;
 
       memcpy(oldnodesx, nodesx, sizeof(float) * nsize);
       memcpy(oldnodesy, nodesy, sizeof(float) * nsize);

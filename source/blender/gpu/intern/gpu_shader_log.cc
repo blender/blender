@@ -78,6 +78,9 @@ void Shader::print_log(Span<const char *> sources,
     }
 #endif
   }
+  if (sources_end_line.size() == 0) {
+    sources_end_line.append(0);
+  }
 
   char *log_line = log, *line_end;
 

@@ -331,7 +331,8 @@ class GRAPH_MT_slider(Menu):
         layout = self.layout
 
         layout.operator("graph.breakdown", text="Breakdown")
-        layout.operator("graph.blend_to_neighbor", text="Blend To Neighbor")
+        layout.operator("graph.blend_to_neighbor", text="Blend to Neighbor")
+        layout.operator("graph.blend_to_default", text="Blend to Default Value")
 
 
 class GRAPH_MT_view_pie(Menu):

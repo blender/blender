@@ -203,7 +203,7 @@ BVHObjectBinning::BVHObjectBinning(const BVHRange &job,
     bestSAH = min(sah, bestSAH);
   }
 
-  int4 mask = float3_to_float4(cent_bounds_.size()) <= make_float4(0.0f);
+  int4 mask = float3_to_float4(cent_bounds_.size()) <= zero_float4();
   bestSAH = insert<3>(select(mask, make_float4(FLT_MAX), bestSAH), FLT_MAX);
 
   /* find best dimension */

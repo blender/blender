@@ -472,6 +472,21 @@ void BKE_mesh_calc_normals_poly(const struct MVert *mvert,
                                 float (*r_poly_normals)[3]);
 
 /**
+ * Calculate face and vertex normals directly into result arrays.
+ *
+ * \note Usually #BKE_mesh_vertex_normals_ensure is the preferred way to access vertex normals,
+ * since they may already be calculated and cached on the mesh.
+ */
+void BKE_mesh_calc_normals_poly_and_vertex(const struct MVert *mvert,
+                                           int mvert_len,
+                                           const struct MLoop *mloop,
+                                           int mloop_len,
+                                           const struct MPoly *mpoly,
+                                           int mpoly_len,
+                                           float (*r_poly_normals)[3],
+                                           float (*r_vert_normals)[3]);
+
+/**
  * Calculate vertex and face normals, storing the result in custom data layers on the mesh.
  *
  * \note It is usually preferable to calculate normals lazily with

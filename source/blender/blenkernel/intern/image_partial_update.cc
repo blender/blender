@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * Copyright 2021 Blender Foundation. */
 /**
- * \file image_gpu_partial_update.cc
+ * \file
  * \ingroup bke
  *
  * To reduce the overhead of image processing this file contains a mechanism to detect areas of the

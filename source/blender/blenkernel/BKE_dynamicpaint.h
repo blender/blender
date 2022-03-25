@@ -129,7 +129,7 @@ int dynamicPaint_calculateFrame(struct DynamicPaintSurface *surface,
                                 struct Object *cObject,
                                 int frame);
 void dynamicPaint_outputSurfaceImage(struct DynamicPaintSurface *surface,
-                                     char *filename,
+                                     const char *filepath,
                                      short output_layer);
 
 /* PaintPoint state */

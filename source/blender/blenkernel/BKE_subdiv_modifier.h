@@ -13,6 +13,10 @@
 extern "C" {
 #endif
 
+/* Hardcoded for until GPU shaders are automatically generated, then we will have a more
+ * programmatic way of detecting this. */
+#define MAX_GPU_SUBDIV_SSBOS 12
+
 struct Mesh;
 struct Object;
 struct Scene;

@@ -25,10 +25,10 @@ set(INC
   ../windowmanager
 
   ../../../intern/atomic
+  ../../../intern/clog
   ../../../intern/glew-mx
   ../../../intern/guardedalloc
   ../../../intern/opensubdiv
-  ../../../intern/clog
 
   # dna_type_offsets.h
   ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
@@ -129,6 +129,7 @@ set(SRC
   engines/eevee/eevee_subsurface.c
   engines/eevee/eevee_temporal_sampling.c
   engines/eevee/eevee_volumes.c
+  engines/eevee_next/eevee_engine.cc
   engines/workbench/workbench_data.c
   engines/workbench/workbench_effect_antialiasing.c
   engines/workbench/workbench_effect_cavity.c
@@ -210,17 +211,19 @@ set(SRC
   engines/eevee/eevee_lightcache.h
   engines/eevee/eevee_lut.h
   engines/eevee/eevee_private.h
+  engines/eevee_next/eevee_engine.h
   engines/external/external_engine.h
   engines/image/image_batches.hh
+  engines/image/image_buffer_cache.hh
   engines/image/image_drawing_mode.hh
   engines/image/image_engine.h
   engines/image/image_instance_data.hh
   engines/image/image_partial_updater.hh
   engines/image/image_private.hh
   engines/image/image_shader_params.hh
+  engines/image/image_space.hh
   engines/image/image_space_image.hh
   engines/image/image_space_node.hh
-  engines/image/image_space.hh
   engines/image/image_texture_info.hh
   engines/image/image_usage.hh
   engines/image/image_wrappers.hh
@@ -362,6 +365,7 @@ set(GLSL_SRC
 
   intern/shaders/common_colormanagement_lib.glsl
   intern/shaders/common_globals_lib.glsl
+  intern/shaders/common_gpencil_lib.glsl
   intern/shaders/common_pointcloud_lib.glsl
   intern/shaders/common_hair_lib.glsl
   intern/shaders/common_hair_refine_vert.glsl
@@ -399,6 +403,9 @@ set(GLSL_SRC
   engines/gpencil/shaders/gpencil_depth_merge_frag.glsl
   engines/gpencil/shaders/gpencil_depth_merge_vert.glsl
   engines/gpencil/shaders/gpencil_vfx_frag.glsl
+
+  engines/gpencil/gpencil_defines.h
+  engines/gpencil/gpencil_shader_shared.h
 
   engines/select/shaders/selection_id_3D_vert.glsl
   engines/select/shaders/selection_id_frag.glsl

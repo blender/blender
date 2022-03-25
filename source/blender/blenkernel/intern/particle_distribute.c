@@ -64,14 +64,14 @@ static void distribute_simple_children(Scene *scene,
 {
   ChildParticle *cpa = NULL;
   int i, p;
-  int child_nbr = psys_get_child_number(scene, psys, use_render_params);
-  int totpart = psys_get_tot_child(scene, psys, use_render_params);
+  const int child_num = psys_get_child_number(scene, psys, use_render_params);
+  const int totpart = psys_get_tot_child(scene, psys, use_render_params);
   RNG *rng = BLI_rng_new_srandom(31415926 + psys->seed + psys->child_seed);
 
   alloc_child_particles(psys, totpart);
 
   cpa = psys->child;
-  for (i = 0; i < child_nbr; i++) {
+  for (i = 0; i < child_num; i++) {
     for (p = 0; p < psys->totpart; p++, cpa++) {
       float length = 2.0;
       cpa->parent = p;

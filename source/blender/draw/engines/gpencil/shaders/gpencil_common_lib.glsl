@@ -149,6 +149,8 @@ void blend_mode_output(
   }
 }
 
+#ifndef USE_GPU_SHADER_CREATE_INFO
+
 IN_OUT ShaderStageInterface
 {
   vec4 finalColorMul;
@@ -164,6 +166,8 @@ IN_OUT ShaderStageInterface
   flat int matFlag;
   flat float depth;
 };
+
+#endif
 
 #ifdef GPU_FRAGMENT_SHADER
 

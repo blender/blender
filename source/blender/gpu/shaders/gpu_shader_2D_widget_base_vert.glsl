@@ -53,7 +53,7 @@ flat out float lineWidth;
 noperspective out float butCo;
 flat out float discardFac;
 
-#  ifdef OS_MAC
+#  if defined(OS_MAC) && defined(GPU_OPENGL)
 in float dummy;
 #  endif
 #endif

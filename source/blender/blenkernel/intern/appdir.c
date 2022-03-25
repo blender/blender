@@ -1022,16 +1022,16 @@ void BKE_appdir_app_templates(ListBase *templates)
       continue;
     }
 
-    struct direntry *dir;
-    uint totfile = BLI_filelist_dir_contents(subdir, &dir);
-    for (int f = 0; f < totfile; f++) {
-      if (!FILENAME_IS_CURRPAR(dir[f].relname) && S_ISDIR(dir[f].type)) {
-        char *template = BLI_strdup(dir[f].relname);
+    struct direntry *dirs;
+    const uint dir_num = BLI_filelist_dir_contents(subdir, &dirs);
+    for (int f = 0; f < dir_num; f++) {
+      if (!FILENAME_IS_CURRPAR(dirs[f].relname) && S_ISDIR(dirs[f].type)) {
+        char *template = BLI_strdup(dirs[f].relname);
         BLI_addtail(templates, BLI_genericNodeN(template));
       }
     }
 
-    BLI_filelist_free(dir, totfile);
+    BLI_filelist_free(dirs, dir_num);
   }
 }
 

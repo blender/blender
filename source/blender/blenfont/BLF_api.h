@@ -44,7 +44,7 @@ int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size
 void BLF_unload(const char *name) ATTR_NONNULL();
 void BLF_unload_id(int fontid);
 
-char *BLF_display_name_from_file(const char *filename);
+char *BLF_display_name_from_file(const char *filepath);
 
 /**
  * Check if font supports a particular glyph.
@@ -279,7 +279,7 @@ void BLF_dir_free(char **dirs, int count) ATTR_NONNULL();
  *
  * \note called from a thread, so it bypasses the normal BLF_* api (which isn't thread-safe).
  */
-void BLF_thumb_preview(const char *filename,
+void BLF_thumb_preview(const char *filepath,
                        const char **draw_str,
                        const char **i18n_draw_str,
                        unsigned char draw_str_lines,

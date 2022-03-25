@@ -160,8 +160,6 @@ class ExecutionSystem {
                   bNodeTree *editingtree,
                   bool rendering,
                   bool fastcalculation,
-                  const ColorManagedViewSettings *view_settings,
-                  const ColorManagedDisplaySettings *display_settings,
                   const char *view_name);
 
   /**

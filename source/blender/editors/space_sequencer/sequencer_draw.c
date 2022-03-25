@@ -2681,7 +2681,6 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   Editing *ed = SEQ_editing_get(scene);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   View2D *v2d = &region->v2d;
-  short cfra_flag = 0;
   float col[3];
 
   seq_prefetch_wm_notify(C, scene);
@@ -2728,9 +2727,6 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   }
 
   UI_view2d_view_ortho(v2d);
-  if ((sseq->flag & SEQ_DRAWFRAMES) == 0) {
-    cfra_flag |= DRAWCFRA_UNIT_SECONDS;
-  }
 
   UI_view2d_view_orthoSpecial(region, v2d, 1);
   int marker_draw_flag = DRAW_MARKERS_MARGIN;

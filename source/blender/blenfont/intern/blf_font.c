@@ -1213,14 +1213,14 @@ static void blf_font_fill(FontBLF *font)
   font->glyph_cache_mutex = &blf_glyph_cache_mutex;
 }
 
-FontBLF *blf_font_new(const char *name, const char *filename)
+FontBLF *blf_font_new(const char *name, const char *filepath)
 {
   FontBLF *font;
   FT_Error err;
   char *mfile;
 
   font = (FontBLF *)MEM_callocN(sizeof(FontBLF), "blf_font_new");
-  err = FT_New_Face(ft_lib, filename, 0, &font->face);
+  err = FT_New_Face(ft_lib, filepath, 0, &font->face);
   if (err) {
     if (ELEM(err, FT_Err_Unknown_File_Format, FT_Err_Unimplemented_Feature)) {
       printf("Format of this font file is not supported\n");
@@ -1246,17 +1246,17 @@ FontBLF *blf_font_new(const char *name, const char *filename)
     return NULL;
   }
 
-  mfile = blf_dir_metrics_search(filename);
+  mfile = blf_dir_metrics_search(filepath);
   if (mfile) {
     err = FT_Attach_File(font->face, mfile);
     if (err) {
-      fprintf(stderr, "FT_Attach_File failed to load '%s' with error %d\n", filename, (int)err);
+      fprintf(stderr, "FT_Attach_File failed to load '%s' with error %d\n", filepath, (int)err);
     }
     MEM_freeN(mfile);
   }
 
   font->name = BLI_strdup(name);
-  font->filename = BLI_strdup(filename);
+  font->filepath = BLI_strdup(filepath);
   blf_font_fill(font);
 
   if (FT_HAS_KERNING(font->face)) {
@@ -1303,7 +1303,7 @@ FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, int m
   }
 
   font->name = BLI_strdup(name);
-  font->filename = NULL;
+  font->filepath = NULL;
   blf_font_fill(font);
   return font;
 }
@@ -1317,8 +1317,8 @@ void blf_font_free(FontBLF *font)
   }
 
   FT_Done_Face(font->face);
-  if (font->filename) {
-    MEM_freeN(font->filename);
+  if (font->filepath) {
+    MEM_freeN(font->filepath);
   }
   if (font->name) {
     MEM_freeN(font->name);
@@ -1340,7 +1340,7 @@ bool blf_font_size(FontBLF *font, float size, unsigned int dpi)
   size = (float)ft_size / 64.0f;
 
   if (font->size != size || font->dpi != dpi) {
-    if (FT_Set_Char_Size(font->face, 0, ft_size, dpi, dpi) == 0) {
+    if (FT_Set_Char_Size(font->face, 0, ft_size, dpi, dpi) == FT_Err_Ok) {
       font->size = size;
       font->dpi = dpi;
     }

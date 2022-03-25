@@ -226,7 +226,7 @@ typedef struct ParticleSettings {
   /* children */
   int child_flag;
   char _pad3[4];
-  int child_nbr, ren_child_nbr;
+  int child_percent, child_render_percent;
   float parents, childsize, childrandsize;
   float childrad, childflat;
   /* clumping */

@@ -108,6 +108,7 @@ static int geometry_extract_apply(bContext *C,
                      new_mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
+                         .calc_vert_normal = true,
                      }));
 
   BMEditMesh *em = BKE_editmesh_create(bm);

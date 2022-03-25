@@ -21,7 +21,7 @@ namespace blender::io::gpencil {
 class GpencilImporterSVG : public GpencilImporter {
 
  public:
-  GpencilImporterSVG(const char *filename, const struct GpencilIOParams *iparams);
+  GpencilImporterSVG(const char *filepath, const struct GpencilIOParams *iparams);
 
   bool read();
 

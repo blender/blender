@@ -567,10 +567,10 @@ static char snap_flag_from_spacetype(TransInfo *t)
   if (t->spacetype == SPACE_NODE) {
     return ts->snap_flag_node;
   }
-  else if (t->spacetype == SPACE_IMAGE) {
+  if (t->spacetype == SPACE_IMAGE) {
     return ts->snap_uv_flag;
   }
-  else if (t->spacetype == SPACE_SEQ) {
+  if (t->spacetype == SPACE_SEQ) {
     return ts->snap_flag_seq;
   }
   return ts->snap_flag;

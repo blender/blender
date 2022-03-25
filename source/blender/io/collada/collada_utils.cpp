@@ -411,6 +411,7 @@ void bc_triangulate_mesh(Mesh *me)
   BMesh *bm = BM_mesh_create(&bm_mesh_allocsize_default, &bm_create_params);
   BMeshFromMeshParams bm_from_me_params{};
   bm_from_me_params.calc_face_normal = true;
+  bm_from_me_params.calc_vert_normal = true;
   BM_mesh_bm_from_me(bm, me, &bm_from_me_params);
   BM_mesh_triangulate(bm, quad_method, use_beauty, 4, tag_only, nullptr, nullptr, nullptr);
 

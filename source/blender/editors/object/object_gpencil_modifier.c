@@ -403,7 +403,7 @@ void OBJECT_OT_gpencil_modifier_add(wmOperatorType *ot)
   /* properties */
   prop = RNA_def_enum(ot->srna,
                       "type",
-                      rna_enum_object_modifier_type_items,
+                      rna_enum_object_greasepencil_modifier_type_items,
                       eGpencilModifierType_Thick,
                       "Type",
                       "");

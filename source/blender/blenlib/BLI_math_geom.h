@@ -202,7 +202,7 @@ float dist_to_line_v3(const float p[3], const float l1[3], const float l2[3]);
  * \return the lowest squared distance to either of the planes.
  * where `(return < 0.0)` is outside.
  *
- * <pre>
+ * \code{.unparsed}
  *            v1
  *            +
  *           /
@@ -211,7 +211,7 @@ float dist_to_line_v3(const float p[3], const float l1[3], const float l2[3]);
  *        +----+
  *        v2   v3
  *           x - also outside
- * </pre>
+ * \endcode
  */
 float dist_signed_squared_to_corner_v3v3v3(const float p[3],
                                            const float v1[3],
@@ -322,18 +322,22 @@ double closest_to_line_v2_db(double r_close[2],
 float closest_to_line_v3(float r_close[3], const float p[3], const float l1[3], const float l2[3]);
 /**
  * Point closest to v1 on line v2-v3 in 2D.
+ *
+ * \return A value in [0, 1] that corresponds to the position of #r_close on the line segment.
  */
-void closest_to_line_segment_v2(float r_close[2],
-                                const float p[2],
-                                const float l1[2],
-                                const float l2[2]);
+float closest_to_line_segment_v2(float r_close[2],
+                                 const float p[2],
+                                 const float l1[2],
+                                 const float l2[2]);
 /**
  * Point closest to v1 on line v2-v3 in 3D.
+ *
+ * \return A value in [0, 1] that corresponds to the position of #r_close on the line segment.
  */
-void closest_to_line_segment_v3(float r_close[3],
-                                const float p[3],
-                                const float l1[3],
-                                const float l2[3]);
+float closest_to_line_segment_v3(float r_close[3],
+                                 const float p[3],
+                                 const float l1[3],
+                                 const float l2[3]);
 void closest_to_plane_normalized_v3(float r_close[3], const float plane[4], const float pt[3]);
 /**
  * Find the closest point on a plane.

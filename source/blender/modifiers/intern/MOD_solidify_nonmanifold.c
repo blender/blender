@@ -1982,6 +1982,18 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     result->dvert = dvert;
   }
 
+  /* Get vertex crease layer and ensure edge creases are active if vertex creases are found, since
+   * they will introduce edge creases in the used custom interpolation method. */
+  const float *vertex_crease = CustomData_get_layer(&mesh->vdata, CD_CREASE);
+  if (vertex_crease) {
+    result->cd_flag |= ME_CDFLAG_EDGE_CREASE;
+    /* delete all vertex creases in the result if a rim is used. */
+    if (do_rim) {
+      CustomData_free_layers(&result->vdata, CD_CREASE, result->totvert);
+      result->cd_flag &= (char)(~ME_CDFLAG_VERT_CREASE);
+    }
+  }
+
   /* Make_new_verts. */
   {
     gs_ptr = orig_vert_groups_arr;
@@ -2105,6 +2117,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
         EdgeGroup *g2 = gs;
         EdgeGroup *last_g = NULL;
         EdgeGroup *first_g = NULL;
+        char mv_crease = vertex_crease ? (char)(vertex_crease[i] * 255.0f) : 0;
         /* Data calculation cache. */
         char max_crease;
         char last_max_crease = 0;
@@ -2174,7 +2187,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               medge[edge_index].v2 = g->new_vert;
               medge[edge_index].flag = ME_EDGEDRAW | ME_EDGERENDER |
                                        ((last_flag | flag) & (ME_SEAM | ME_SHARP));
-              medge[edge_index].crease = min_cc(last_max_crease, max_crease);
+              medge[edge_index].crease = max_cc(mv_crease, min_cc(last_max_crease, max_crease));
               medge[edge_index++].bweight = max_cc(mv->bweight,
                                                    min_cc(last_max_bweight, max_bweight));
             }
@@ -2202,7 +2215,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               medge[edge_index].v2 = first_g->new_vert;
               medge[edge_index].flag = ME_EDGEDRAW | ME_EDGERENDER |
                                        ((last_flag | first_flag) & (ME_SEAM | ME_SHARP));
-              medge[edge_index].crease = min_cc(last_max_crease, first_max_crease);
+              medge[edge_index].crease = max_cc(mv_crease,
+                                                min_cc(last_max_crease, first_max_crease));
               medge[edge_index++].bweight = max_cc(mv->bweight,
                                                    min_cc(last_max_bweight, first_max_bweight));
 

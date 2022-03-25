@@ -13,11 +13,11 @@
 
 #include <mutex>
 
+#include "BLI_generic_pointer.hh"
+#include "BLI_generic_vector_array.hh"
+#include "BLI_generic_virtual_vector_array.hh"
 #include "BLI_resource_scope.hh"
 
-#include "FN_generic_pointer.hh"
-#include "FN_generic_vector_array.hh"
-#include "FN_generic_virtual_vector_array.hh"
 #include "FN_multi_function_signature.hh"
 
 namespace blender::fn {

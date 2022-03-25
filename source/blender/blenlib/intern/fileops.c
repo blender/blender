@@ -382,9 +382,9 @@ static bool delete_recursive(const char *dir)
 {
   struct direntry *filelist, *fl;
   bool err = false;
-  uint nbr, i;
+  uint filelist_num, i;
 
-  i = nbr = BLI_filelist_dir_contents(dir, &filelist);
+  i = filelist_num = BLI_filelist_dir_contents(dir, &filelist);
   fl = filelist;
   while (i--) {
     const char *file = BLI_path_basename(fl->path);
@@ -415,7 +415,7 @@ static bool delete_recursive(const char *dir)
     err = true;
   }
 
-  BLI_filelist_free(filelist, nbr);
+  BLI_filelist_free(filelist, filelist_num);
 
   return err;
 }

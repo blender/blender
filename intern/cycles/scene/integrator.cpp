@@ -109,8 +109,10 @@ NODE_DEFINE(Integrator)
   SOCKET_INT(denoise_start_sample, "Start Sample to Denoise", 0);
   SOCKET_BOOLEAN(use_denoise_pass_albedo, "Use Albedo Pass for Denoiser", true);
   SOCKET_BOOLEAN(use_denoise_pass_normal, "Use Normal Pass for Denoiser", true);
-  SOCKET_ENUM(
-      denoiser_prefilter, "Denoiser Type", denoiser_prefilter_enum, DENOISER_PREFILTER_ACCURATE);
+  SOCKET_ENUM(denoiser_prefilter,
+              "Denoiser Prefilter",
+              denoiser_prefilter_enum,
+              DENOISER_PREFILTER_ACCURATE);
 
   return type;
 }

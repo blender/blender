@@ -61,6 +61,7 @@ static Mesh *triangulate_mesh(Mesh *mesh,
                             &((struct BMeshCreateParams){0}),
                             &((struct BMeshFromMeshParams){
                                 .calc_face_normal = true,
+                                .calc_vert_normal = false,
                                 .cd_mask_extra = cd_mask_extra,
                             }));
 

@@ -73,7 +73,8 @@ void TreeElementOverridesBase::expand(SpaceOutliner &space_outliner) const
       }
     }
 
-    TreeElementOverridesData data = {id, *override_prop, is_rna_path_valid};
+    TreeElementOverridesData data = {
+        id, *override_prop, override_rna_ptr, *override_rna_prop, is_rna_path_valid};
     outliner_add_element(
         &space_outliner, &legacy_te_.subtree, &data, &legacy_te_, TSE_LIBRARY_OVERRIDE, index++);
   }
@@ -81,11 +82,13 @@ void TreeElementOverridesBase::expand(SpaceOutliner &space_outliner) const
 
 TreeElementOverridesProperty::TreeElementOverridesProperty(TreeElement &legacy_te,
                                                            TreeElementOverridesData &override_data)
-    : AbstractTreeElement(legacy_te), override_prop_(override_data.override_property)
+    : AbstractTreeElement(legacy_te),
+      override_rna_ptr(override_data.override_rna_ptr),
+      override_rna_prop(override_data.override_rna_prop)
 {
   BLI_assert(legacy_te.store_elem->type == TSE_LIBRARY_OVERRIDE);
 
-  legacy_te.name = override_prop_.rna_path;
+  legacy_te.name = override_data.override_property.rna_path;
   /* Abusing this for now, better way to do it is also pending current refactor of the whole tree
    * code to use C++. */
   legacy_te.directdata = POINTER_FROM_UINT(override_data.is_rna_path_valid);

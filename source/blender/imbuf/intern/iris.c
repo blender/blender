@@ -105,7 +105,7 @@ static int expandrow2(
     float *optr, const float *optr_end, const uchar *iptr, const uchar *iptr_end, int z);
 static void interleaverow(uchar *lptr, const uchar *cptr, int z, int n);
 static void interleaverow2(float *lptr, const uchar *cptr, int z, int n);
-static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int cnt);
+static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int row_len);
 static void lumrow(const uchar *rgbptr, uchar *lumptr, int n);
 
 /*
@@ -892,7 +892,7 @@ static void lumrow(const uchar *rgbptr, uchar *lumptr, int n)
   }
 }
 
-static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int cnt)
+static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int row_len)
 {
   uchar *iptr, *ibufend, *sptr, *optr;
   short todo, cc;
@@ -900,7 +900,7 @@ static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int cnt)
 
   lbuf += z;
   iptr = lbuf;
-  ibufend = iptr + cnt * 4;
+  ibufend = iptr + row_len * 4;
   optr = rlebuf;
 
   while (iptr < ibufend) {

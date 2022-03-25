@@ -274,6 +274,7 @@ static std::pair<bool, AbcObjectReader *> visit_object(
     children_claiming_this_object += child_claims_this_object ? 1 : 0;
   }
   BLI_assert(children_claiming_this_object == claiming_child_readers.size());
+  UNUSED_VARS_NDEBUG(children_claiming_this_object);
 
   AbcObjectReader *reader = nullptr;
   const MetaData &md = object.getMetaData();
@@ -800,8 +801,11 @@ Mesh *ABC_read_mesh(CacheReader *reader,
       existing_mesh, sample_sel, read_flag, velocity_name, velocity_scale, err_str);
 }
 
-bool ABC_mesh_topology_changed(
-    CacheReader *reader, Object *ob, Mesh *existing_mesh, const float time, const char **err_str)
+bool ABC_mesh_topology_changed(CacheReader *reader,
+                               Object *ob,
+                               const Mesh *existing_mesh,
+                               const float time,
+                               const char **err_str)
 {
   AbcObjectReader *abc_reader = get_abc_reader(reader, ob, err_str);
   if (abc_reader == nullptr) {

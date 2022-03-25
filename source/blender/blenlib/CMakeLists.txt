@@ -50,6 +50,7 @@ set(SRC
   intern/boxpack_2d.c
   intern/buffer.c
   intern/convexhull_2d.c
+  intern/cpp_type.cc
   intern/delaunay_2d.cc
   intern/dot_export.cc
   intern/dynlib.c
@@ -64,6 +65,9 @@ set(SRC
   intern/filereader_memory.c
   intern/filereader_zstd.c
   intern/fnmatch.c
+  intern/generic_vector_array.cc
+  intern/generic_virtual_array.cc
+  intern/generic_virtual_vector_array.cc
   intern/gsqueue.c
   intern/hash_md5.c
   intern/hash_mm2a.c
@@ -161,8 +165,8 @@ set(SRC
   BLI_bitmap.h
   BLI_bitmap_draw_2d.h
   BLI_blenlib.h
-  BLI_boxpack_2d.h
   BLI_bounds.hh
+  BLI_boxpack_2d.h
   BLI_buffer.h
   BLI_color.hh
   BLI_compiler_attrs.h
@@ -170,6 +174,8 @@ set(SRC
   BLI_compiler_typecheck.h
   BLI_console.h
   BLI_convexhull_2d.h
+  BLI_cpp_type.hh
+  BLI_cpp_type_make.hh
   BLI_delaunay_2d.h
   BLI_dial_2d.h
   BLI_disjoint_set.hh
@@ -192,6 +198,13 @@ set(SRC
   BLI_float4x4.hh
   BLI_fnmatch.h
   BLI_function_ref.hh
+  BLI_generic_array.hh
+  BLI_generic_pointer.hh
+  BLI_generic_span.hh
+  BLI_generic_value_map.hh
+  BLI_generic_vector_array.hh
+  BLI_generic_virtual_array.hh
+  BLI_generic_virtual_vector_array.hh
   BLI_ghash.h
   BLI_gsqueue.h
   BLI_hash.h
@@ -222,8 +235,8 @@ set(SRC
   BLI_map.hh
   BLI_map_slots.hh
   BLI_math.h
-  BLI_math_base.hh
   BLI_math_base.h
+  BLI_math_base.hh
   BLI_math_base_safe.h
   BLI_math_bits.h
   BLI_math_boolean.hh
@@ -272,6 +285,7 @@ set(SRC
   BLI_simd.h
   BLI_smallhash.h
   BLI_sort.h
+  BLI_sort.hh
   BLI_sort_utils.h
   BLI_span.hh
   BLI_stack.h
@@ -403,12 +417,16 @@ if(WITH_GTESTS)
     tests/BLI_array_utils_test.cc
     tests/BLI_bounds_test.cc
     tests/BLI_color_test.cc
+    tests/BLI_cpp_type_test.cc
     tests/BLI_delaunay_2d_test.cc
     tests/BLI_disjoint_set_test.cc
     tests/BLI_edgehash_test.cc
     tests/BLI_expr_pylike_eval_test.cc
     tests/BLI_fileops_test.cc
     tests/BLI_function_ref_test.cc
+    tests/BLI_generic_array_test.cc
+    tests/BLI_generic_span_test.cc
+    tests/BLI_generic_vector_array_test.cc
     tests/BLI_ghash_test.cc
     tests/BLI_hash_mm2a_test.cc
     tests/BLI_heap_simple_test.cc

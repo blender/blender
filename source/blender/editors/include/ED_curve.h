@@ -19,6 +19,7 @@ struct EditNurb;
 struct Main;
 struct Nurb;
 struct Object;
+struct SelectPick_Params;
 struct Text;
 struct UndoType;
 struct View3D;
@@ -46,8 +47,12 @@ void ED_curve_editnurb_load(struct Main *bmain, struct Object *obedit);
 void ED_curve_editnurb_make(struct Object *obedit);
 void ED_curve_editnurb_free(struct Object *obedit);
 
-bool ED_curve_editnurb_select_pick(
-    struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
+/**
+ * \return True when pick finds an element or the selection changed.
+ */
+bool ED_curve_editnurb_select_pick(struct bContext *C,
+                                   const int mval[2],
+                                   const struct SelectPick_Params *params);
 
 struct Nurb *ED_curve_add_nurbs_primitive(
     struct bContext *C, struct Object *obedit, float mat[4][4], int type, int newob);
@@ -100,10 +105,13 @@ int ED_curve_updateAnimPaths(struct Main *bmain, struct Curve *cu);
 bool ED_curve_active_center(struct Curve *cu, float center[3]);
 
 /**
- * TextBox selection
+ * Text box selection.
+ *
+ * \return True when pick finds an element or the selection changed.
  */
-bool ED_curve_editfont_select_pick(
-    struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
+bool ED_curve_editfont_select_pick(struct bContext *C,
+                                   const int mval[2],
+                                   const struct SelectPick_Params *params);
 
 /* editfont_undo.c */
 

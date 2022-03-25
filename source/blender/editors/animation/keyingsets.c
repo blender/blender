@@ -715,54 +715,55 @@ const EnumPropertyItem *ANIM_keying_sets_enum_itemf(bContext *C,
                                                     PropertyRNA *UNUSED(prop),
                                                     bool *r_free)
 {
+  Scene *scene = CTX_data_scene(C);
   KeyingSet *ks;
   EnumPropertyItem *item = NULL, item_tmp = {0};
   int totitem = 0;
   int i = 0;
 
-  if (C != NULL) {
-    Scene *scene = CTX_data_scene(C);
-    /* active Keying Set
-     * - only include entry if it exists
-     */
-    if (scene->active_keyingset) {
-      /* active Keying Set */
-      item_tmp.identifier = "__ACTIVE__";
-      item_tmp.name = "Active Keying Set";
-      item_tmp.value = i;
-      RNA_enum_item_add(&item, &totitem, &item_tmp);
+  if (C == NULL) {
+    return DummyRNA_DEFAULT_items;
+  }
 
-      /* separator */
-      RNA_enum_item_add_separator(&item, &totitem);
-    }
+  /* active Keying Set
+   * - only include entry if it exists
+   */
+  if (scene->active_keyingset) {
+    /* active Keying Set */
+    item_tmp.identifier = "__ACTIVE__";
+    item_tmp.name = "Active Keying Set";
+    item_tmp.value = i;
+    RNA_enum_item_add(&item, &totitem, &item_tmp);
 
-    i++;
+    /* separator */
+    RNA_enum_item_add_separator(&item, &totitem);
+  }
 
-    /* user-defined Keying Sets
-     * - these are listed in the order in which they were defined for the active scene
-     */
-    if (scene->keyingsets.first) {
-      for (ks = scene->keyingsets.first; ks; ks = ks->next, i++) {
-        if (ANIM_keyingset_context_ok_poll(C, ks)) {
-          item_tmp.identifier = ks->idname;
-          item_tmp.name = ks->name;
-          item_tmp.description = ks->description;
-          item_tmp.value = i;
-          RNA_enum_item_add(&item, &totitem, &item_tmp);
-        }
+  i++;
+
+  /* user-defined Keying Sets
+   * - these are listed in the order in which they were defined for the active scene
+   */
+  if (scene->keyingsets.first) {
+    for (ks = scene->keyingsets.first; ks; ks = ks->next, i++) {
+      if (ANIM_keyingset_context_ok_poll(C, ks)) {
+        item_tmp.identifier = ks->idname;
+        item_tmp.name = ks->name;
+        item_tmp.description = ks->description;
+        item_tmp.value = i;
+        RNA_enum_item_add(&item, &totitem, &item_tmp);
       }
-
-      /* separator */
-      RNA_enum_item_add_separator(&item, &totitem);
     }
+
+    /* separator */
+    RNA_enum_item_add_separator(&item, &totitem);
   }
 
   /* builtin Keying Sets */
   i = -1;
   for (ks = builtin_keyingsets.first; ks; ks = ks->next, i--) {
-    /* Only show #KeyingSet if context is suitable or if there is no context which is needed
-     * to support key-bindings to be assigned since key bindings are not context aware. */
-    if ((C == NULL) || ANIM_keyingset_context_ok_poll(C, ks)) {
+    /* only show KeyingSet if context is suitable */
+    if (ANIM_keyingset_context_ok_poll(C, ks)) {
       item_tmp.identifier = ks->idname;
       item_tmp.name = ks->name;
       item_tmp.description = ks->description;

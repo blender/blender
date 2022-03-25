@@ -161,32 +161,32 @@ static bool gpencil_io_export_frame_svg(GpencilExporterSVG *exporter,
 }
 #endif
 
-bool gpencil_io_import(const char *filename, GpencilIOParams *iparams)
+bool gpencil_io_import(const char *filepath, GpencilIOParams *iparams)
 {
-  GpencilImporterSVG importer = GpencilImporterSVG(filename, iparams);
+  GpencilImporterSVG importer = GpencilImporterSVG(filepath, iparams);
 
   return gpencil_io_import_frame(&importer, *iparams);
 }
 
-bool gpencil_io_export(const char *filename, GpencilIOParams *iparams)
+bool gpencil_io_export(const char *filepath, GpencilIOParams *iparams)
 {
   Depsgraph *depsgraph_ = CTX_data_depsgraph_pointer(iparams->C);
   Scene *scene_ = CTX_data_scene(iparams->C);
   Object *ob = CTX_data_active_object(iparams->C);
 
-  UNUSED_VARS(filename, depsgraph_, scene_, ob);
+  UNUSED_VARS(filepath, depsgraph_, scene_, ob);
 
   switch (iparams->mode) {
 #ifdef WITH_PUGIXML
     case GP_EXPORT_TO_SVG: {
-      GpencilExporterSVG exporter = GpencilExporterSVG(filename, iparams);
+      GpencilExporterSVG exporter = GpencilExporterSVG(filepath, iparams);
       return gpencil_io_export_frame_svg(&exporter, scene_, iparams, true, true, true);
       break;
     }
 #endif
 #ifdef WITH_HARU
     case GP_EXPORT_TO_PDF: {
-      GpencilExporterPDF exporter = GpencilExporterPDF(filename, iparams);
+      GpencilExporterPDF exporter = GpencilExporterPDF(filepath, iparams);
       return gpencil_io_export_pdf(depsgraph_, scene_, ob, &exporter, iparams);
       break;
     }

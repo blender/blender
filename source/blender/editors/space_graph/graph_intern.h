@@ -113,6 +113,7 @@ void GRAPH_OT_clean(struct wmOperatorType *ot);
 void GRAPH_OT_blend_to_neighbor(struct wmOperatorType *ot);
 void GRAPH_OT_breakdown(struct wmOperatorType *ot);
 void GRAPH_OT_decimate(struct wmOperatorType *ot);
+void GRAPH_OT_blend_to_default(struct wmOperatorType *ot);
 void GRAPH_OT_sample(struct wmOperatorType *ot);
 void GRAPH_OT_bake(struct wmOperatorType *ot);
 void GRAPH_OT_unbake(struct wmOperatorType *ot);

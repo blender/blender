@@ -7,8 +7,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BKE_curves.hh"
 #include "BKE_mesh.h"
-#include "BKE_spline.hh"
 
 #include "BLI_task.hh"
 
@@ -40,43 +40,42 @@ static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
-static blender::meshintersect::CDT_result<double> do_cdt(const CurveEval &curve,
-                                                         const CDT_output_type output_type)
+static meshintersect::CDT_result<double> do_cdt(const bke::CurvesGeometry &curves,
+                                                const CDT_output_type output_type)
 {
-  Span<SplinePtr> splines = curve.splines();
-  blender::meshintersect::CDT_input<double> input;
+  meshintersect::CDT_input<double> input;
   input.need_ids = false;
-  Array<int> offsets = curve.evaluated_point_offsets();
-  input.vert.reinitialize(offsets.last());
-  input.face.reinitialize(splines.size());
+  input.vert.reinitialize(curves.evaluated_points_num());
+  input.face.reinitialize(curves.curves_num());
 
-  for (const int i_spline : splines.index_range()) {
-    const SplinePtr &spline = splines[i_spline];
-    const int vert_offset = offsets[i_spline];
+  VArray<bool> cyclic = curves.cyclic();
+  Span<float3> positions = curves.evaluated_positions();
 
-    Span<float3> positions = spline->evaluated_positions();
-    for (const int i : positions.index_range()) {
-      input.vert[vert_offset + i] = double2(positions[i].x, positions[i].y);
+  for (const int i_curve : curves.curves_range()) {
+    const IndexRange points = curves.evaluated_points_for_curve(i_curve);
+    const int segment_size = bke::curves::curve_segment_size(points.size(), cyclic[i_curve]);
+
+    for (const int i : points) {
+      input.vert[i] = double2(positions[i].x, positions[i].y);
     }
 
-    input.face[i_spline].resize(spline->evaluated_edges_size());
-    MutableSpan<int> face_verts = input.face[i_spline];
-    for (const int i : IndexRange(spline->evaluated_edges_size())) {
-      face_verts[i] = vert_offset + i;
+    input.face[i_curve].resize(segment_size);
+    MutableSpan<int> face_verts = input.face[i_curve];
+    for (const int i : IndexRange(segment_size)) {
+      face_verts[i] = points[i];
     }
   }
-  blender::meshintersect::CDT_result<double> result = delaunay_2d_calc(input, output_type);
+  meshintersect::CDT_result<double> result = delaunay_2d_calc(input, output_type);
   return result;
 }
 
 /* Converts the CDT result into a Mesh. */
-static Mesh *cdt_to_mesh(const blender::meshintersect::CDT_result<double> &result)
+static Mesh *cdt_to_mesh(const meshintersect::CDT_result<double> &result)
 {
-  int vert_len = result.vert.size();
-  int edge_len = result.edge.size();
-  int poly_len = result.face.size();
+  const int vert_len = result.vert.size();
+  const int edge_len = result.edge.size();
+  const int poly_len = result.face.size();
   int loop_len = 0;
-
   for (const Vector<int> &face : result.face) {
     loop_len += face.size();
   }
@@ -117,9 +116,9 @@ static void curve_fill_calculate(GeometrySet &geometry_set, const GeometryNodeCu
     return;
   }
 
-  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
-      *geometry_set.get_curves_for_read());
-  if (curve->splines().is_empty()) {
+  const Curves &curves_id = *geometry_set.get_curves_for_read();
+  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  if (curves.curves_num() == 0) {
     geometry_set.replace_curves(nullptr);
     return;
   }
@@ -128,7 +127,7 @@ static void curve_fill_calculate(GeometrySet &geometry_set, const GeometryNodeCu
                                           CDT_CONSTRAINTS_VALID_BMESH_WITH_HOLES :
                                           CDT_INSIDE_WITH_HOLES;
 
-  const blender::meshintersect::CDT_result<double> results = do_cdt(*curve, output_type);
+  const meshintersect::CDT_result<double> results = do_cdt(curves, output_type);
   Mesh *mesh = cdt_to_mesh(results);
 
   geometry_set.replace_mesh(mesh);

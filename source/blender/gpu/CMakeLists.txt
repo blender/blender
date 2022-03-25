@@ -2,16 +2,17 @@
 # Copyright 2006 Blender Foundation. All rights reserved.
 
 # WITH_OPENGL limits the visibility of the opengl headers to just GPU and bg_gpu,
-# to more easily highlight codepadths in other libraries that need to be refactored,
+# to more easily highlight code-paths in other libraries that need to be refactored,
 # bf_gpu is allowed to have opengl regardless of this option.
 
-if(NOT WITH_OPENGL)
+if(NOT WITH_OPENGL AND NOT WITH_METAL_BACKEND)
   add_definitions(-DWITH_OPENGL)
 endif()
 
 set(INC
   .
   intern
+  metal
   opengl
   ../blenkernel
   ../blenlib
@@ -71,31 +72,12 @@ set(SRC
   intern/gpu_shader_interface.cc
   intern/gpu_shader_log.cc
   intern/gpu_state.cc
+  intern/gpu_storage_buffer.cc
   intern/gpu_texture.cc
   intern/gpu_uniform_buffer.cc
   intern/gpu_vertex_buffer.cc
   intern/gpu_vertex_format.cc
   intern/gpu_viewport.c
-
-  opengl/gl_backend.cc
-  opengl/gl_batch.cc
-  opengl/gl_compute.cc
-  opengl/gl_context.cc
-  opengl/gl_debug.cc
-  opengl/gl_debug_layer.cc
-  opengl/gl_drawlist.cc
-  opengl/gl_framebuffer.cc
-  opengl/gl_immediate.cc
-  opengl/gl_index_buffer.cc
-  opengl/gl_query.cc
-  opengl/gl_shader.cc
-  opengl/gl_shader_interface.cc
-  opengl/gl_shader_log.cc
-  opengl/gl_state.cc
-  opengl/gl_texture.cc
-  opengl/gl_uniform_buffer.cc
-  opengl/gl_vertex_array.cc
-  opengl/gl_vertex_buffer.cc
 
   GPU_batch.h
   GPU_batch_presets.h
@@ -122,6 +104,7 @@ set(SRC
   GPU_shader.h
   GPU_shader_shared.h
   GPU_state.h
+  GPU_storage_buffer.h
   GPU_texture.h
   GPU_uniform_buffer.h
   GPU_vertex_buffer.h
@@ -151,10 +134,35 @@ set(SRC
   intern/gpu_shader_interface.hh
   intern/gpu_shader_private.hh
   intern/gpu_state_private.hh
+  intern/gpu_storage_buffer_private.hh
   intern/gpu_texture_private.hh
   intern/gpu_uniform_buffer_private.hh
   intern/gpu_vertex_buffer_private.hh
   intern/gpu_vertex_format_private.h
+)
+
+set(OPENGL_SRC
+
+  opengl/gl_backend.cc
+  opengl/gl_batch.cc
+  opengl/gl_compute.cc
+  opengl/gl_context.cc
+  opengl/gl_debug.cc
+  opengl/gl_debug_layer.cc
+  opengl/gl_drawlist.cc
+  opengl/gl_framebuffer.cc
+  opengl/gl_immediate.cc
+  opengl/gl_index_buffer.cc
+  opengl/gl_query.cc
+  opengl/gl_shader.cc
+  opengl/gl_shader_interface.cc
+  opengl/gl_shader_log.cc
+  opengl/gl_state.cc
+  opengl/gl_storage_buffer.cc
+  opengl/gl_texture.cc
+  opengl/gl_uniform_buffer.cc
+  opengl/gl_vertex_array.cc
+  opengl/gl_vertex_buffer.cc
 
   opengl/gl_backend.hh
   opengl/gl_batch.hh
@@ -170,11 +178,28 @@ set(SRC
   opengl/gl_shader.hh
   opengl/gl_shader_interface.hh
   opengl/gl_state.hh
+  opengl/gl_storage_buffer.hh
   opengl/gl_texture.hh
   opengl/gl_uniform_buffer.hh
   opengl/gl_vertex_array.hh
   opengl/gl_vertex_buffer.hh
 )
+
+set(METAL_SRC
+  metal/mtl_backend.mm
+
+  metal/mtl_backend.hh
+  metal/mtl_capabilities.hh
+)
+
+# Select Backend source based on availability
+if(WITH_OPENGL)
+  list(APPEND SRC ${OPENGL_SRC})
+endif()
+
+if(WITH_METAL_BACKEND)
+  list(APPEND SRC ${METAL_SRC})
+endif()
 
 set(LIB
   ${BLENDER_GL_LIBRARIES}
@@ -188,6 +213,7 @@ endif()
 
 set(GLSL_SRC
   GPU_shader_shared.h
+  shaders/opengl/glsl_shader_defines.glsl
 
   shaders/gpu_shader_depth_only_frag.glsl
   shaders/gpu_shader_uniform_color_frag.glsl
@@ -386,6 +412,8 @@ list(APPEND SRC ${glsl_source_list_file})
 list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
 
 set(SRC_SHADER_CREATE_INFOS
+  ../draw/engines/gpencil/shaders/infos/gpencil_info.hh
+  ../draw/engines/gpencil/shaders/infos/gpencil_vfx_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_composite_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_effect_antialiasing_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_effect_cavity_info.hh
@@ -398,9 +426,9 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/workbench/shaders/infos/workbench_volume_info.hh
   ../draw/engines/image/shaders/infos/engine_image_info.hh
   ../draw/intern/shaders/draw_fullscreen_info.hh
+  ../draw/intern/shaders/draw_hair_refine_info.hh
   ../draw/intern/shaders/draw_object_infos_info.hh
   ../draw/intern/shaders/draw_view_info.hh
-  ../draw/intern/shaders/draw_hair_refine_info.hh
 
   shaders/infos/gpu_clip_planes_info.hh
   shaders/infos/gpu_shader_2D_area_borders_info.hh

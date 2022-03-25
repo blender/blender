@@ -391,11 +391,11 @@ ccl_device float4 patch_eval_float4(KernelGlobals kg,
   int num_control = patch_eval_control_verts(
       kg, sd->object, patch, u, v, channel, indices, weights, weights_du, weights_dv);
 
-  float4 val = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+  float4 val = zero_float4();
   if (du)
-    *du = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    *du = zero_float4();
   if (dv)
-    *dv = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    *dv = zero_float4();
 
   for (int i = 0; i < num_control; i++) {
     float4 v = kernel_tex_fetch(__attributes_float4, offset + indices[i]);
@@ -428,11 +428,11 @@ ccl_device float4 patch_eval_uchar4(KernelGlobals kg,
   int num_control = patch_eval_control_verts(
       kg, sd->object, patch, u, v, channel, indices, weights, weights_du, weights_dv);
 
-  float4 val = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+  float4 val = zero_float4();
   if (du)
-    *du = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    *du = zero_float4();
   if (dv)
-    *dv = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    *dv = zero_float4();
 
   for (int i = 0; i < num_control; i++) {
     float4 v = color_srgb_to_linear_v4(

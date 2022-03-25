@@ -129,7 +129,7 @@ static void collection_free_data(ID *id)
 {
   Collection *collection = (Collection *)id;
 
-  /* No animdata here. */
+  /* No animation-data here. */
   BKE_previewimg_free(&collection->preview);
 
   BLI_freelistN(&collection->gobject);

@@ -135,17 +135,17 @@ static void task_listbase_test_do(ListBase *list,
          NUM_RUN_AVERAGED);
 }
 
-static void task_listbase_test(const char *id, const int nbr, const bool use_threads)
+static void task_listbase_test(const char *id, const int count, const bool use_threads)
 {
   printf("\n========== STARTING %s ==========\n", id);
 
   ListBase list = {nullptr, nullptr};
-  LinkData *items_buffer = (LinkData *)MEM_calloc_arrayN(nbr, sizeof(*items_buffer), __func__);
+  LinkData *items_buffer = (LinkData *)MEM_calloc_arrayN(count, sizeof(*items_buffer), __func__);
 
   BLI_threadapi_init();
 
   int num_items = 0;
-  for (int i = 0; i < nbr; i++) {
+  for (int i = 0; i < count; i++) {
     BLI_addtail(&list, &items_buffer[i]);
     num_items++;
   }

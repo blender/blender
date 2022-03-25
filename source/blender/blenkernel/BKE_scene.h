@@ -225,7 +225,7 @@ bool BKE_scene_remove_render_view(struct Scene *scene, struct SceneRenderView *s
 /* Render profile. */
 
 int get_render_subsurf_level(const struct RenderData *r, int lvl, bool for_render);
-int get_render_child_particle_number(const struct RenderData *r, int num, bool for_render);
+int get_render_child_particle_number(const struct RenderData *r, int child_num, bool for_render);
 
 bool BKE_scene_use_shading_nodes_custom(struct Scene *scene);
 bool BKE_scene_use_spherical_stereo(struct Scene *scene);
@@ -282,7 +282,7 @@ struct SceneRenderView *BKE_scene_multiview_render_view_findindex(const struct R
                                                                   int view_id);
 const char *BKE_scene_multiview_render_view_name_get(const struct RenderData *rd, int view_id);
 int BKE_scene_multiview_view_id_get(const struct RenderData *rd, const char *viewname);
-void BKE_scene_multiview_filepath_get(struct SceneRenderView *srv,
+void BKE_scene_multiview_filepath_get(const struct SceneRenderView *srv,
                                       const char *filepath,
                                       char *r_filepath);
 /**

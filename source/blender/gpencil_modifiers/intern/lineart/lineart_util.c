@@ -244,4 +244,6 @@ void lineart_count_and_print_render_buffer_memory(LineartRenderBuffer *rb)
   total += sum_this;
   sum_this = 0;
   count_this = 0;
+
+  (void)total; /* Ignored. */
 }

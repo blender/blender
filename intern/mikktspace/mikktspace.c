@@ -1114,7 +1114,7 @@ static tbool GenerateTSpaces(STSpace psTspace[],
   STSpace *pSubGroupTspace = NULL;
   SSubGroup *pUniSubGroups = NULL;
   int *pTmpMembers = NULL;
-  int iMaxNrFaces = 0, iUniqueTspaces = 0, g = 0, i = 0;
+  int iMaxNrFaces = 0, g = 0, i = 0;
   for (g = 0; g < iNrActiveGroups; g++)
     if (iMaxNrFaces < pGroups[g].iNrFaces)
       iMaxNrFaces = pGroups[g].iNrFaces;
@@ -1136,7 +1136,6 @@ static tbool GenerateTSpaces(STSpace psTspace[],
     return TFALSE;
   }
 
-  iUniqueTspaces = 0;
   for (g = 0; g < iNrActiveGroups; g++) {
     const SGroup *pGroup = &pGroups[g];
     int iUniqueSubGroups = 0, s = 0;
@@ -1211,9 +1210,7 @@ static tbool GenerateTSpaces(STSpace psTspace[],
           ++l;
       }
 
-      // assign tangent space index
       assert(bFound || l == iUniqueSubGroups);
-      // piTempTangIndices[f*3+index] = iUniqueTspaces+l;
 
       // if no match was found we allocate a new subgroup
       if (!bFound) {
@@ -1262,10 +1259,9 @@ static tbool GenerateTSpaces(STSpace psTspace[],
       }
     }
 
-    // clean up and offset iUniqueTspaces
+    // clean up
     for (s = 0; s < iUniqueSubGroups; s++)
       free(pUniSubGroups[s].pTriMembers);
-    iUniqueTspaces += iUniqueSubGroups;
   }
 
   // clean up

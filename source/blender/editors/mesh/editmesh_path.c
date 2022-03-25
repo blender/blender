@@ -28,6 +28,7 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
 
@@ -700,7 +701,10 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
     /* TODO(dfelinto): right now we try to find the closest element twice.
      * The ideal is to refactor EDBM_select_pick so it doesn't
      * have to pick the nearest vert/edge/face again. */
-    EDBM_select_pick(C, event->mval, true, false, false);
+    const struct SelectPick_Params params = {
+        .sel_op = SEL_OP_ADD,
+    };
+    EDBM_select_pick(C, event->mval, &params);
     return OPERATOR_FINISHED;
   }
 

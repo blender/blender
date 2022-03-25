@@ -40,9 +40,6 @@ class AbstractTreeElement {
   {
     return true;
   }
-  virtual void postExpand(SpaceOutliner &) const
-  {
-  }
 
   /**
    * Just while transitioning to the new tree-element design: Some types are only partially ported,
