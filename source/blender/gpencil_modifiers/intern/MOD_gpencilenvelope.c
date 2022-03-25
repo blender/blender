@@ -570,7 +570,6 @@ static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, 
 
 static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
-  uiLayout *row;
   uiLayout *layout = panel->layout;
 
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
@@ -600,7 +599,7 @@ static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = gpencil_modifier_panel_register(
       region_type, eGpencilModifierType_Envelope, panel_draw);
-  PanelType *mask_panel_type = gpencil_modifier_subpanel_register(
+  gpencil_modifier_subpanel_register(
       region_type, "mask", "Influence", NULL, mask_panel_draw, panel_type);
 }
 
