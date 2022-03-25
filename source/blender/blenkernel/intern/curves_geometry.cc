@@ -702,27 +702,24 @@ void CurvesGeometry::interpolate_to_evaluated(const int curve_index,
     case CURVE_TYPE_CATMULL_ROM:
       curves::catmull_rom::interpolate_to_evaluated(
           src, this->cyclic()[curve_index], this->resolution()[curve_index], dst);
-      break;
+      return;
     case CURVE_TYPE_POLY:
       dst.type().copy_assign_n(src.data(), dst.data(), src.size());
-      break;
+      return;
     case CURVE_TYPE_BEZIER:
       curves::bezier::interpolate_to_evaluated(
           src, this->runtime->bezier_evaluated_offsets.as_span().slice(points), dst);
-      break;
+      return;
     case CURVE_TYPE_NURBS:
       curves::nurbs::interpolate_to_evaluated(this->runtime->nurbs_basis_cache[curve_index],
                                               this->nurbs_orders()[curve_index],
                                               this->nurbs_weights().slice(points),
                                               src,
                                               dst);
-      break;
-    default:
-      BLI_assert_unreachable();
-      break;
+      return;
   }
+  BLI_assert_unreachable();
 }
-
 
 /** \} */
 

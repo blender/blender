@@ -149,6 +149,10 @@ static void interpolate_to_evaluated(const Span<T> src,
                                      const Span<int> evaluated_offsets,
                                      MutableSpan<T> dst)
 {
+  BLI_assert(!src.is_empty());
+  BLI_assert(dst.size() == src.size());
+  BLI_assert(evaluated_offsets.last() == dst.size());
+
   linear_interpolation(src.first(), src[1], dst.take_front(evaluated_offsets.first()));
 
   threading::parallel_for(
