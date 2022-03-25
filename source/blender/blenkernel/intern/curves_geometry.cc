@@ -469,16 +469,25 @@ IndexRange CurvesGeometry::evaluated_points_for_curve(int index) const
   return offsets_to_range(this->runtime->evaluated_offsets_cache.as_span(), index);
 }
 
-Span<int> CurvesGeometry::evaluated_offsets() const
+IndexRange CurvesGeometry::evaluated_points_for_curves(const IndexRange curves) const
+{
+  BLI_assert(!this->runtime->offsets_cache_dirty);
+  BLI_assert(this->curve_size > 0);
+  const int offset = this->runtime->evaluated_offsets_cache[curves.start()];
+  const int offset_next = this->runtime->evaluated_offsets_cache[curves.one_after_last()];
+  return {offset, offset_next - offset};
+}
+
+void CurvesGeometry::ensure_evaluated_offsets() const
 {
   if (!this->runtime->offsets_cache_dirty) {
-    return this->runtime->evaluated_offsets_cache;
+    return;
   }
 
   /* A double checked lock. */
   std::scoped_lock lock{this->runtime->offsets_cache_mutex};
   if (!this->runtime->offsets_cache_dirty) {
-    return this->runtime->evaluated_offsets_cache;
+    return;
   }
 
   threading::isolate_task([&]() {
@@ -496,6 +505,11 @@ Span<int> CurvesGeometry::evaluated_offsets() const
   });
 
   this->runtime->offsets_cache_dirty = false;
+}
+
+Span<int> CurvesGeometry::evaluated_offsets() const
+{
+  this->ensure_evaluated_offsets();
   return this->runtime->evaluated_offsets_cache;
 }
 

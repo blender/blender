@@ -250,6 +250,7 @@ class CurvesGeometry : public ::CurvesGeometry {
    * Call #evaluated_offsets() first to ensure that the evaluated offsets cache is current.
    */
   IndexRange evaluated_points_for_curve(int index) const;
+  IndexRange evaluated_points_for_curves(IndexRange curves) const;
 
   /**
    * The index of the first evaluated point for every curve. The size of this span is one larger
@@ -257,6 +258,9 @@ class CurvesGeometry : public ::CurvesGeometry {
    * offsets directly.
    */
   Span<int> evaluated_offsets() const;
+
+  /** Makes sure the data described by #evaluated_offsets if necessary. */
+  void ensure_evaluated_offsets() const;
 
   Span<float3> evaluated_positions() const;
 
