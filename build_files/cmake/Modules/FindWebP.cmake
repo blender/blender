@@ -33,10 +33,10 @@ FIND_PATH(WEBP_INCLUDE_DIR
 )
 
 SET(_webp_FIND_COMPONENTS
-    webp
-    webpmux
-    webpdemux
-  )
+  webp
+  webpmux
+  webpdemux
+)
 
 SET(_webp_LIBRARIES)
 FOREACH(COMPONENT ${_webp_FIND_COMPONENTS})

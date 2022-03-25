@@ -165,8 +165,8 @@ set(SRC
   BLI_bitmap.h
   BLI_bitmap_draw_2d.h
   BLI_blenlib.h
-  BLI_boxpack_2d.h
   BLI_bounds.hh
+  BLI_boxpack_2d.h
   BLI_buffer.h
   BLI_color.hh
   BLI_compiler_attrs.h
@@ -174,8 +174,8 @@ set(SRC
   BLI_compiler_typecheck.h
   BLI_console.h
   BLI_convexhull_2d.h
-  BLI_cpp_type_make.hh
   BLI_cpp_type.hh
+  BLI_cpp_type_make.hh
   BLI_delaunay_2d.h
   BLI_dial_2d.h
   BLI_disjoint_set.hh
@@ -235,8 +235,8 @@ set(SRC
   BLI_map.hh
   BLI_map_slots.hh
   BLI_math.h
-  BLI_math_base.hh
   BLI_math_base.h
+  BLI_math_base.hh
   BLI_math_base_safe.h
   BLI_math_bits.h
   BLI_math_boolean.hh

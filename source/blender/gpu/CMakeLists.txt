@@ -12,8 +12,8 @@ endif()
 set(INC
   .
   intern
-  opengl
   metal
+  opengl
   ../blenkernel
   ../blenlib
   ../bmesh
@@ -104,12 +104,12 @@ set(SRC
   GPU_shader.h
   GPU_shader_shared.h
   GPU_state.h
+  GPU_storage_buffer.h
   GPU_texture.h
   GPU_uniform_buffer.h
   GPU_vertex_buffer.h
   GPU_vertex_format.h
   GPU_viewport.h
-  GPU_storage_buffer.h
 
   intern/gpu_backend.hh
   intern/gpu_batch_private.hh
@@ -426,9 +426,9 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/workbench/shaders/infos/workbench_volume_info.hh
   ../draw/engines/image/shaders/infos/engine_image_info.hh
   ../draw/intern/shaders/draw_fullscreen_info.hh
+  ../draw/intern/shaders/draw_hair_refine_info.hh
   ../draw/intern/shaders/draw_object_infos_info.hh
   ../draw/intern/shaders/draw_view_info.hh
-  ../draw/intern/shaders/draw_hair_refine_info.hh
 
   shaders/infos/gpu_clip_planes_info.hh
   shaders/infos/gpu_shader_2D_area_borders_info.hh
