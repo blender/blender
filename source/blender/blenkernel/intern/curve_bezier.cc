@@ -121,8 +121,8 @@ void calculate_evaluated_positions(const Span<float3> positions,
       });
 
   /* Evaluate the final cyclic segment if necessary. */
-  const IndexRange evaluated_range = offsets_to_range(evaluated_offsets, positions.size() - 2);
-  if (evaluated_range.size() == 1) {
+  const IndexRange last_segment_points = offsets_to_range(evaluated_offsets, positions.size() - 2);
+  if (last_segment_points.size() == 1) {
     evaluated_positions.last() = positions.last();
   }
   else {
@@ -130,7 +130,7 @@ void calculate_evaluated_positions(const Span<float3> positions,
                      handles_right.last(),
                      handles_left.first(),
                      positions.first(),
-                     evaluated_positions.slice(evaluated_range));
+                     evaluated_positions.slice(last_segment_points));
   }
 }
 
