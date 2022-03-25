@@ -134,6 +134,46 @@ void calculate_evaluated_positions(const Span<float3> positions,
   }
 }
 
+template<typename T>
+static inline void linear_interpolation(const T &a, const T &b, MutableSpan<T> dst)
+{
+  dst.first() = a;
+  const float step = 1.0f / dst.size();
+  for (const int i : dst.index_range().drop_front(1)) {
+    dst[i] = attribute_math::mix2(i * step, a, b);
+  }
+}
+
+template<typename T>
+static void interpolate_to_evaluated(const Span<T> src,
+                                     const Span<int> evaluated_offsets,
+                                     MutableSpan<T> dst)
+{
+  linear_interpolation(src.first(), src[1], dst.take_front(evaluated_offsets.first()));
+
+  threading::parallel_for(
+      src.index_range().drop_back(1).drop_front(1), 512, [&](IndexRange range) {
+        for (const int i : range) {
+          const IndexRange segment_points = offsets_to_range(evaluated_offsets, i - 1);
+          linear_interpolation(src[i], src[i + 1], dst.slice(segment_points));
+        }
+      });
+
+  const IndexRange last_segment_points(evaluated_offsets.last(1),
+                                       evaluated_offsets.last() - evaluated_offsets.last(1));
+  linear_interpolation(src.last(), src.first(), dst.slice(last_segment_points));
+}
+
+void interpolate_to_evaluated(const GSpan src, const Span<int> evaluated_offsets, GMutableSpan dst)
+{
+  attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
+    using T = decltype(dummy);
+    if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
+      interpolate_to_evaluated(src.typed<T>(), evaluated_offsets, dst.typed<T>());
+    }
+  });
+}
+
 /** \} */
 
 }  // namespace blender::bke::curves::bezier

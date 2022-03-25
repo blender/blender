@@ -266,6 +266,15 @@ class CurvesGeometry : public ::CurvesGeometry {
 
   Span<float3> evaluated_positions() const;
 
+  /**
+   * Evaluate a generic data to the standard evaluated points of a specific curve,
+   * defined by the resolution attribute or other factors, depending on the curve type.
+   *
+   * \warning This function expects offsets to the evaluated points for each curve to be
+   * calculated. That can be ensured with #ensure_evaluated_offsets.
+   */
+  void interpolate_to_evaluated(int curve_index, GSpan src, GMutableSpan dst) const;
+
  private:
   /**
    * Make sure the basis weights for NURBS curve's evaluated points are calculated.
@@ -380,6 +389,13 @@ void calculate_evaluated_positions(Span<float3> positions,
                                    Span<float3> handles_right,
                                    Span<int> evaluated_offsets,
                                    MutableSpan<float3> evaluated_positions);
+
+/**
+ * Evaluate generic data to the evaluated points, with counts for each segment described by
+ * #evaluated_offsets. Unlike other curve types, for Bezier curves generic data and positions
+ * are treated separately, since attribute values aren't stored for the handle control points.
+ */
+void interpolate_to_evaluated(GSpan src, Span<int> evaluated_offsets, GMutableSpan dst);
 
 }  // namespace bezier
 

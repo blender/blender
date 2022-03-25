@@ -689,6 +689,41 @@ Span<float3> CurvesGeometry::evaluated_positions() const
   return this->runtime->evaluated_position_cache;
 }
 
+void CurvesGeometry::interpolate_to_evaluated(const int curve_index,
+                                              const GSpan src,
+                                              GMutableSpan dst) const
+{
+  BLI_assert(!this->runtime->offsets_cache_dirty);
+  BLI_assert(!this->runtime->nurbs_basis_cache_dirty);
+  const IndexRange points = this->points_for_curve(curve_index);
+  BLI_assert(src.size() == points.size());
+  BLI_assert(dst.size() == this->evaluated_points_for_curve(curve_index).size());
+  switch (this->curve_types()[curve_index]) {
+    case CURVE_TYPE_CATMULL_ROM:
+      curves::catmull_rom::interpolate_to_evaluated(
+          src, this->cyclic()[curve_index], this->resolution()[curve_index], dst);
+      break;
+    case CURVE_TYPE_POLY:
+      dst.type().copy_assign_n(src.data(), dst.data(), src.size());
+      break;
+    case CURVE_TYPE_BEZIER:
+      curves::bezier::interpolate_to_evaluated(
+          src, this->runtime->bezier_evaluated_offsets.as_span().slice(points), dst);
+      break;
+    case CURVE_TYPE_NURBS:
+      curves::nurbs::interpolate_to_evaluated(this->runtime->nurbs_basis_cache[curve_index],
+                                              this->nurbs_orders()[curve_index],
+                                              this->nurbs_weights().slice(points),
+                                              src,
+                                              dst);
+      break;
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
+}
+
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
