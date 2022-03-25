@@ -154,7 +154,6 @@ void calculate_basis_cache(const int points_num,
                            BasisCache &basis_cache)
 {
   BLI_assert(points_num > 0);
-  BLI_assert(evaluated_size > 0);
 
   const int8_t degree = order - 1;
 

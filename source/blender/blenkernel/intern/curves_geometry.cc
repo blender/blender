@@ -578,6 +578,8 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
       }
     });
   });
+
+  this->runtime->nurbs_basis_cache_dirty = false;
 }
 
 Span<float3> CurvesGeometry::evaluated_positions() const
