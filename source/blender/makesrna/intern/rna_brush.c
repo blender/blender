@@ -1355,7 +1355,8 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   /* Smoothing factor for new strokes */
   prop = RNA_def_property(srna, "pen_smooth_factor", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "draw_smoothfac");
-  RNA_def_property_range(prop, 0.0, 2.0f);
+  RNA_def_property_range(prop, 0.0, 2.0);
+  RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 3);
   RNA_def_property_ui_text(
       prop,
       "Smooth",
@@ -1366,7 +1367,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   /* Iterations of the Smoothing factor */
   prop = RNA_def_property(srna, "pen_smooth_steps", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "draw_smoothlvl");
-  RNA_def_property_range(prop, 1, 3);
+  RNA_def_property_range(prop, 0, 100);
   RNA_def_property_ui_text(prop, "Iterations", "Number of times to smooth newly created strokes");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);

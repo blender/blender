@@ -750,6 +750,7 @@ typedef enum eSmoothGpencil_Flag {
   GP_SMOOTH_INVERT_LAYERPASS = (1 << 7),
   GP_SMOOTH_INVERT_MATERIAL = (1 << 4),
   GP_SMOOTH_CUSTOM_CURVE = (1 << 8),
+  GP_SMOOTH_KEEP_SHAPE = (1 << 9),
 } eSmoothGpencil_Flag;
 
 typedef struct ArmatureGpencilModifierData {

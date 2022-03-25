@@ -1638,14 +1638,9 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
     }
   }
 
-  /* smooth stroke */
-  float reduce = 0.0f;
-  float smoothfac = 1.0f;
-  for (int r = 0; r < 1; r++) {
-    for (int i = 0; i < gps->totpoints; i++) {
-      BKE_gpencil_stroke_smooth_point(gps, i, smoothfac - reduce, false);
-    }
-    reduce += 0.25f; /* reduce the factor */
+  /* Smooth stroke. No copy of the stroke since there only a minor improvement here. */
+  for (int i = 0; i < gps->totpoints; i++) {
+    BKE_gpencil_stroke_smooth_point(gps, i, 1.0f, 2, false, true, gps);
   }
 
   /* if axis locked, reproject to plane locked */

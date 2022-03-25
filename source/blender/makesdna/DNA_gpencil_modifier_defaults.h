@@ -193,7 +193,7 @@
     .vgname = "", \
     .pass_index = 0, \
     .flag = GP_SMOOTH_MOD_LOCATION, \
-    .factor = 0.5f, \
+    .factor = 1.0f, \
     .step = 1, \
     .layer_pass = 0, \
     .curve_intensity = NULL, \

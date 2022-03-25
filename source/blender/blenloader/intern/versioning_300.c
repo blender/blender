@@ -2415,6 +2415,24 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    /* Change grease pencil smooth iterations to match old results with new algorithm. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
+        if (md->type == eGpencilModifierType_Smooth) {
+          SmoothGpencilModifierData *gpmd = (SmoothGpencilModifierData *)md;
+          if (gpmd->step == 1 && gpmd->factor <= 0.5f) {
+            gpmd->factor *= 2.0f;
+          }
+          else {
+            gpmd->step = 1 + (int)(gpmd->factor * max_ff(0.0f,
+                                                         min_ff(5.1f * sqrtf(gpmd->step) - 3.0f,
+                                                                gpmd->step + 2.0f)));
+            gpmd->factor = 1.0f;
+          }
+        }
+      }
+    }
   }
 
   /**
