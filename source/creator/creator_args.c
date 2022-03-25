@@ -1432,7 +1432,7 @@ static const char arg_handle_image_type_set_doc[] =
     "\t'TGA' 'RAWTGA' 'JPEG' 'IRIS' 'IRIZ' 'AVIRAW' 'AVIJPEG' 'PNG' 'BMP'\n"
     "\n"
     "\tFormats that can be compiled into Blender, not available on all systems:\n"
-    "\t'HDR' 'TIFF' 'OPEN_EXR' 'OPEN_EXR_MULTILAYER' 'MPEG' 'CINEON' 'DPX' 'DDS' 'JP2'";
+    "\t'HDR' 'TIFF' 'OPEN_EXR' 'OPEN_EXR_MULTILAYER' 'MPEG' 'CINEON' 'DPX' 'DDS' 'JP2' 'WEBP'";
 static int arg_handle_image_type_set(int argc, const char **argv, void *data)
 {
   bContext *C = data;
