@@ -45,8 +45,8 @@ static meshintersect::CDT_result<double> do_cdt(const bke::CurvesGeometry &curve
 {
   meshintersect::CDT_input<double> input;
   input.need_ids = false;
-  input.vert.reinitialize(curves.evaluated_points_size());
-  input.face.reinitialize(curves.num_curves());
+  input.vert.reinitialize(curves.evaluated_points_num());
+  input.face.reinitialize(curves.curves_num());
 
   VArray<bool> cyclic = curves.cyclic();
   Span<float3> positions = curves.evaluated_positions();
@@ -118,7 +118,7 @@ static void curve_fill_calculate(GeometrySet &geometry_set, const GeometryNodeCu
 
   const Curves &curves_id = *geometry_set.get_curves_for_read();
   const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
-  if (curves.num_curves() == 0) {
+  if (curves.curves_num() == 0) {
     geometry_set.replace_curves(nullptr);
     return;
   }

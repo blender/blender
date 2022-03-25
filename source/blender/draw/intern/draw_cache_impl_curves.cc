@@ -218,7 +218,7 @@ static void curves_batch_cache_fill_strands_data(Curves *curves,
   const blender::bke::CurvesGeometry &geometry = blender::bke::CurvesGeometry::wrap(
       curves->geometry);
 
-  for (const int i : IndexRange(geometry.num_curves())) {
+  for (const int i : IndexRange(geometry.curves_num())) {
     const IndexRange curve_range = geometry.points_for_curve(i);
 
     *(uint *)GPU_vertbuf_raw_step(data_step) = curve_range.start();

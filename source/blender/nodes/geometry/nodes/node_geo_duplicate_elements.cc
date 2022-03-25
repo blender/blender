@@ -345,7 +345,7 @@ static void duplicate_curves(GeometrySet &geometry_set,
   const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
 
   GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_CURVE};
-  FieldEvaluator evaluator{field_context, curves.num_curves()};
+  FieldEvaluator evaluator{field_context, curves.curves_num()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
@@ -800,12 +800,12 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
   const CurveComponent &src_component = *geometry_set.get_component_for_read<CurveComponent>();
   const Curves &src_curves_id = *src_component.get_for_read();
   const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(src_curves_id.geometry);
-  if (src_curves.num_points() == 0) {
+  if (src_curves.points_num() == 0) {
     return;
   }
 
   GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_POINT};
-  FieldEvaluator evaluator{field_context, src_curves.num_points()};
+  FieldEvaluator evaluator{field_context, src_curves.points_num()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
@@ -815,7 +815,7 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
   Array<int> offsets = accumulate_counts_to_offsets(selection, counts);
   const int dst_size = offsets.last();
 
-  Array<int> point_to_curve_map(src_curves.num_points());
+  Array<int> point_to_curve_map(src_curves.points_num());
   threading::parallel_for(src_curves.curves_range(), 1024, [&](const IndexRange range) {
     for (const int i_curve : range) {
       const IndexRange point_range = src_curves.points_for_curve(i_curve);

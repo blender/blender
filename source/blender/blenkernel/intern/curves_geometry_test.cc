@@ -46,7 +46,7 @@ TEST(curves_geometry, Move)
   CurvesGeometry other = std::move(curves);
 
   /* The old curves should be empty, and the offsets are expected to be null. */
-  EXPECT_EQ(curves.num_points(), 0);        /* NOLINT: bugprone-use-after-move */
+  EXPECT_EQ(curves.points_num(), 0);        /* NOLINT: bugprone-use-after-move */
   EXPECT_EQ(curves.curve_offsets, nullptr); /* NOLINT: bugprone-use-after-move */
 
   /* Just a basic check that the new curves work okay. */
@@ -206,7 +206,7 @@ TEST(curves_geometry, CatmullRomTwoPointCyclic)
 
   /* The cyclic value should be ignored when there are only two control points. There should
    * be 12 evaluated points for the single segment and an extra for the last point. */
-  EXPECT_EQ(curves.evaluated_points_size(), 13);
+  EXPECT_EQ(curves.evaluated_points_num(), 13);
 }
 
 TEST(curves_geometry, BezierPositionEvaluation)

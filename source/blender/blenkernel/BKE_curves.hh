@@ -122,8 +122,8 @@ class CurvesGeometry : public ::CurvesGeometry {
    * Accessors.
    */
 
-  int num_points() const;
-  int num_curves() const;
+  int points_num() const;
+  int curves_num() const;
   IndexRange points_range() const;
   IndexRange curves_range() const;
 
@@ -243,7 +243,7 @@ class CurvesGeometry : public ::CurvesGeometry {
    * The total number of points in the evaluated poly curve.
    * This can depend on the resolution attribute if it exists.
    */
-  int evaluated_points_size() const;
+  int evaluated_points_num() const;
 
   /**
    * Access a range of indices of point data for a specific curve.
@@ -275,7 +275,7 @@ class CurvesGeometry : public ::CurvesGeometry {
    * Change the number of elements. New values for existing attributes should be properly
    * initialized afterwards.
    */
-  void resize(int num_points, int num_curves);
+  void resize(int points_num, int curves_num);
 
   /** Call after deforming the position attribute. */
   void tag_positions_changed();
@@ -314,9 +314,9 @@ namespace curves {
  * and the fact that curves with two points cannot be cyclic. The logic is simple, but this
  * function should be used to make intentions clearer.
  */
-inline int curve_segment_size(const int num_points, const bool cyclic)
+inline int curve_segment_size(const int points_num, const bool cyclic)
 {
-  return (cyclic && num_points > 2) ? num_points : num_points - 1;
+  return (cyclic && points_num > 2) ? points_num : points_num - 1;
 }
 
 namespace bezier {
@@ -381,10 +381,10 @@ namespace catmull_rom {
 
 /**
  * Calculate the number of evaluated points that #interpolate_to_evaluated is expected to produce.
- * \param num_points: The number of points in the curve.
+ * \param points_num: The number of points in the curve.
  * \param resolution: The resolution for each segment.
  */
-int calculate_evaluated_size(int num_points, bool cyclic, int resolution);
+int calculate_evaluated_size(int points_num, bool cyclic, int resolution);
 
 /**
  * Evaluate the Catmull Rom curve. The length of the #dst span should be calculated with
@@ -399,7 +399,7 @@ namespace nurbs {
 /**
  * Checks the conditions that a NURBS curve needs to evaluate.
  */
-bool check_valid_size_and_order(int num_points, int8_t order, bool cyclic, KnotsMode knots_mode);
+bool check_valid_size_and_order(int points_num, int8_t order, bool cyclic, KnotsMode knots_mode);
 
 /**
  * Calculate the standard evaluated size for a NURBS curve, using the standard that
@@ -410,14 +410,14 @@ bool check_valid_size_and_order(int num_points, int8_t order, bool cyclic, Knots
  * shared.
  */
 int calculate_evaluated_size(
-    int num_points, int8_t order, bool cyclic, int resolution, KnotsMode knots_mode);
+    int points_num, int8_t order, bool cyclic, int resolution, KnotsMode knots_mode);
 
 /**
  * Calculate the length of the knot vector for a NURBS curve with the given properties.
  * The knots must be longer for a cyclic curve, for example, in order to provide weights for the
  * last evaluated points that are also influenced by the first control points.
  */
-int knots_size(int num_points, int8_t order, bool cyclic);
+int knots_size(int points_num, int8_t order, bool cyclic);
 
 /**
  * Calculate the knots for a spline given its properties, based on built-in standards defined by
@@ -428,7 +428,7 @@ int knots_size(int num_points, int8_t order, bool cyclic);
  * changes, and is generally more intuitive than defining the knot vector manually.
  */
 void calculate_knots(
-    int num_points, KnotsMode mode, int8_t order, bool cyclic, MutableSpan<float> knots);
+    int points_num, KnotsMode mode, int8_t order, bool cyclic, MutableSpan<float> knots);
 
 /**
  * Based on the knots, the order, and other properties of a NURBS curve, calculate a cache that can
@@ -436,7 +436,7 @@ void calculate_knots(
  * two pieces of information for every evaluated point: the first control point that influences it,
  * and a weight for each control point.
  */
-void calculate_basis_cache(int num_points,
+void calculate_basis_cache(int points_num,
                            int evaluated_size,
                            int8_t order,
                            bool cyclic,
@@ -461,11 +461,11 @@ void interpolate_to_evaluated(const BasisCache &basis_cache,
 
 }  // namespace curves
 
-Curves *curves_new_nomain(int num_points, int num_curves);
+Curves *curves_new_nomain(int points_num, int curves_num);
 
 /**
  * Create a new curves data-block containing a single curve with the given length and type.
  */
-Curves *curves_new_nomain_single(int num_points, CurveType type);
+Curves *curves_new_nomain_single(int points_num, CurveType type);
 
 }  // namespace blender::bke

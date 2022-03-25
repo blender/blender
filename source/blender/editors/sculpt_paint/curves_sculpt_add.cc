@@ -174,8 +174,8 @@ struct AddOperationExecutor {
     use_interpolation_ = interpolate_length_ || interpolate_shape_;
     new_curve_length_ = curves_sculpt_->curve_length;
 
-    tot_old_curves_ = curves_->num_curves();
-    tot_old_points_ = curves_->num_points();
+    tot_old_curves_ = curves_->curves_num();
+    tot_old_points_ = curves_->points_num();
 
     if (add_amount_ == 0) {
       return;
@@ -216,8 +216,8 @@ struct AddOperationExecutor {
     const int tot_added_curves = added_points.bary_coords.size();
     const int tot_added_points = tot_added_curves * points_per_curve_;
 
-    curves_->resize(curves_->num_points() + tot_added_points,
-                    curves_->num_curves() + tot_added_curves);
+    curves_->resize(curves_->points_num() + tot_added_points,
+                    curves_->curves_num() + tot_added_curves);
 
     threading::parallel_invoke([&]() { this->initialize_curve_offsets(tot_added_curves); },
                                [&]() { this->initialize_attributes(added_points); });
@@ -515,7 +515,7 @@ struct AddOperationExecutor {
   void ensure_curve_roots_kdtree()
   {
     if (self_->curve_roots_kdtree_ == nullptr) {
-      self_->curve_roots_kdtree_ = BLI_kdtree_3d_new(curves_->num_curves());
+      self_->curve_roots_kdtree_ = BLI_kdtree_3d_new(curves_->curves_num());
       for (const int curve_i : curves_->curves_range()) {
         const int root_point_i = curves_->offsets()[curve_i];
         const float3 &root_pos_cu = curves_->positions()[root_point_i];

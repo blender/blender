@@ -304,7 +304,7 @@ class DensityAddOperation : public CurvesSculptStrokeOperation {
 
     if (old_kdtree_ == nullptr && minimum_distance > 0.0f) {
       old_kdtree_ = this->kdtree_from_curve_roots_and_positions(curves, curves.curves_range(), {});
-      old_kdtree_size_ = curves.num_curves();
+      old_kdtree_size_ = curves.curves_num();
     }
 
     float density;
@@ -525,7 +525,7 @@ class DensityAddOperation : public CurvesSculptStrokeOperation {
   {
     Array<bool> elimination_mask(points.positions.size(), false);
 
-    const int curves_added_previously = curves.num_curves() - old_kdtree_size_;
+    const int curves_added_previously = curves.curves_num() - old_kdtree_size_;
     KDTree_3d *new_points_kdtree = this->kdtree_from_curve_roots_and_positions(
         curves, IndexRange(old_kdtree_size_, curves_added_previously), points.positions);
 
@@ -589,14 +589,14 @@ class DensityAddOperation : public CurvesSculptStrokeOperation {
     const int tot_new_curves = new_points.positions.size();
 
     const int points_per_curve = 8;
-    curves.resize(curves.num_points() + tot_new_curves * points_per_curve,
-                  curves.num_curves() + tot_new_curves);
+    curves.resize(curves.points_num() + tot_new_curves * points_per_curve,
+                  curves.curves_num() + tot_new_curves);
 
     MutableSpan<int> offsets = curves.offsets();
     MutableSpan<float3> positions = curves.positions();
 
     for (const int i : IndexRange(tot_new_curves)) {
-      const int curve_i = curves.num_curves() - tot_new_curves + i;
+      const int curve_i = curves.curves_num() - tot_new_curves + i;
       const int first_point_i = offsets[curve_i];
       offsets[curve_i + 1] = offsets[curve_i] + points_per_curve;
 

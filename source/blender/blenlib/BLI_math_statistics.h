@@ -50,7 +50,7 @@ void BLI_covariance_m_vn_ex(int n,
  * \return r_center the computed center (mean) of 3D points (may be NULL).
  */
 void BLI_covariance_m3_v3n(const float (*cos_v3)[3],
-                           int cos_vn_num,
+                           int cos_v3_num,
                            bool use_sample_correction,
                            float r_covmat[3][3],
                            float r_center[3]);

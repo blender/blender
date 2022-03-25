@@ -241,7 +241,7 @@ static void read_curve_positions(const Curves &curves_id,
                                  Vector<float3> *r_coords)
 {
   const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
-  const int total_size = curves.evaluated_points_size();
+  const int total_size = curves.evaluated_points_num();
   r_coords->reserve(r_coords->size() + total_size * transforms.size());
   r_coords->as_mutable_span().take_back(total_size).copy_from(curves.evaluated_positions());
   for (const float3 &position : curves.evaluated_positions()) {

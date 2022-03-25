@@ -324,7 +324,7 @@ struct CombOperationExecutor {
   void initialize_segment_lengths()
   {
     const Span<float3> positions_cu = curves_->positions();
-    self_->segment_lengths_cu_.reinitialize(curves_->num_points());
+    self_->segment_lengths_cu_.reinitialize(curves_->points_num());
     threading::parallel_for(curves_->curves_range(), 128, [&](const IndexRange range) {
       for (const int curve_i : range) {
         const IndexRange points = curves_->points_for_curve(curve_i);

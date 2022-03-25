@@ -149,21 +149,21 @@ CurvesGeometry::~CurvesGeometry()
 /** \name Accessors
  * \{ */
 
-int CurvesGeometry::num_points() const
+int CurvesGeometry::points_num() const
 {
   return this->point_size;
 }
-int CurvesGeometry::num_curves() const
+int CurvesGeometry::curves_num() const
 {
   return this->curve_size;
 }
 IndexRange CurvesGeometry::points_range() const
 {
-  return IndexRange(this->num_points());
+  return IndexRange(this->points_num());
 }
 IndexRange CurvesGeometry::curves_range() const
 {
-  return IndexRange(this->num_curves());
+  return IndexRange(this->curves_num());
 }
 
 IndexRange CurvesGeometry::points_for_curve(const int index) const
@@ -186,7 +186,7 @@ IndexRange CurvesGeometry::points_for_curves(const IndexRange curves) const
 
 static int domain_size(const CurvesGeometry &curves, const AttributeDomain domain)
 {
-  return domain == ATTR_DOMAIN_POINT ? curves.num_points() : curves.num_curves();
+  return domain == ATTR_DOMAIN_POINT ? curves.points_num() : curves.curves_num();
 }
 
 static CustomData &domain_custom_data(CurvesGeometry &curves, const AttributeDomain domain)
@@ -457,7 +457,7 @@ static void calculate_evaluated_offsets(const CurvesGeometry &curves,
   });
 }
 
-int CurvesGeometry::evaluated_points_size() const
+int CurvesGeometry::evaluated_points_num() const
 {
   /* This could avoid calculating offsets in the future in simple circumstances. */
   return this->evaluated_offsets().last();
@@ -482,10 +482,10 @@ Span<int> CurvesGeometry::evaluated_offsets() const
   }
 
   threading::isolate_task([&]() {
-    this->runtime->evaluated_offsets_cache.resize(this->num_curves() + 1);
+    this->runtime->evaluated_offsets_cache.resize(this->curves_num() + 1);
 
     if (this->has_curve_with_type(CURVE_TYPE_BEZIER)) {
-      this->runtime->bezier_evaluated_offsets.resize(this->num_points());
+      this->runtime->bezier_evaluated_offsets.resize(this->points_num());
     }
     else {
       this->runtime->bezier_evaluated_offsets.clear_and_make_inline();
@@ -536,7 +536,7 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
       return;
     }
 
-    this->runtime->nurbs_basis_cache.resize(this->num_curves());
+    this->runtime->nurbs_basis_cache.resize(this->curves_num());
     MutableSpan<curves::nurbs::BasisCache> basis_caches(this->runtime->nurbs_basis_cache);
 
     VArray<bool> cyclic = this->cyclic();
@@ -579,7 +579,7 @@ Span<float3> CurvesGeometry::evaluated_positions() const
   }
 
   threading::isolate_task([&]() {
-    this->runtime->evaluated_position_cache.resize(this->evaluated_points_size());
+    this->runtime->evaluated_position_cache.resize(this->evaluated_points_num());
     MutableSpan<float3> evaluated_positions = this->runtime->evaluated_position_cache;
 
     VArray<int8_t> types = this->curve_types();
@@ -645,16 +645,16 @@ Span<float3> CurvesGeometry::evaluated_positions() const
 /** \name Operations
  * \{ */
 
-void CurvesGeometry::resize(const int num_points, const int num_curves)
+void CurvesGeometry::resize(const int points_num, const int curves_num)
 {
-  if (num_points != this->point_size) {
-    CustomData_realloc(&this->point_data, num_points);
-    this->point_size = num_points;
+  if (points_num != this->point_size) {
+    CustomData_realloc(&this->point_data, points_num);
+    this->point_size = points_num;
   }
-  if (num_curves != this->curve_size) {
-    CustomData_realloc(&this->curve_data, num_curves);
-    this->curve_size = num_curves;
-    this->curve_offsets = (int *)MEM_reallocN(this->curve_offsets, sizeof(int) * (num_curves + 1));
+  if (curves_num != this->curve_size) {
+    CustomData_realloc(&this->curve_data, curves_num);
+    this->curve_size = curves_num;
+    this->curve_offsets = (int *)MEM_reallocN(this->curve_offsets, sizeof(int) * (curves_num + 1));
   }
   this->tag_topology_changed();
   this->update_customdata_pointers();
@@ -727,7 +727,7 @@ static std::optional<bounds::MinMaxResult<float3>> curves_bounds(const CurvesGeo
 {
   Span<float3> positions = curves.positions();
   if (curves.radius) {
-    Span<float> radii{curves.radius, curves.num_points()};
+    Span<float> radii{curves.radius, curves.points_num()};
     return bounds::min_max_with_radii(positions, radii);
   }
   return bounds::min_max(positions);
@@ -926,7 +926,7 @@ static bool layer_matches_name_and_type(const CustomDataLayer &layer,
 
 void CurvesGeometry::reverse_curves(const IndexMask curves_to_reverse)
 {
-  CustomData_duplicate_referenced_layers(&this->point_data, this->num_points());
+  CustomData_duplicate_referenced_layers(&this->point_data, this->points_num());
 
   /* Collect the Bezier handle attributes while iterating through the point custom data layers;
    * they need special treatment later. */
@@ -940,22 +940,22 @@ void CurvesGeometry::reverse_curves(const IndexMask curves_to_reverse)
 
     if (positions_left.is_empty() &&
         layer_matches_name_and_type(layer, ATTR_HANDLE_POSITION_LEFT, CD_PROP_FLOAT3)) {
-      positions_left = {static_cast<float3 *>(layer.data), this->num_points()};
+      positions_left = {static_cast<float3 *>(layer.data), this->points_num()};
       continue;
     }
     if (positions_right.is_empty() &&
         layer_matches_name_and_type(layer, ATTR_HANDLE_POSITION_RIGHT, CD_PROP_FLOAT3)) {
-      positions_right = {static_cast<float3 *>(layer.data), this->num_points()};
+      positions_right = {static_cast<float3 *>(layer.data), this->points_num()};
       continue;
     }
     if (types_left.is_empty() &&
         layer_matches_name_and_type(layer, ATTR_HANDLE_TYPE_LEFT, CD_PROP_INT8)) {
-      types_left = {static_cast<int8_t *>(layer.data), this->num_points()};
+      types_left = {static_cast<int8_t *>(layer.data), this->points_num()};
       continue;
     }
     if (types_right.is_empty() &&
         layer_matches_name_and_type(layer, ATTR_HANDLE_TYPE_RIGHT, CD_PROP_INT8)) {
-      types_right = {static_cast<int8_t *>(layer.data), this->num_points()};
+      types_right = {static_cast<int8_t *>(layer.data), this->points_num()};
       continue;
     }
 
@@ -963,7 +963,7 @@ void CurvesGeometry::reverse_curves(const IndexMask curves_to_reverse)
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
       reverse_curve_point_data<T>(
-          *this, curves_to_reverse, {static_cast<T *>(layer.data), this->num_points()});
+          *this, curves_to_reverse, {static_cast<T *>(layer.data), this->points_num()});
     });
   }
 
@@ -1001,7 +1001,7 @@ static void adapt_curve_domain_point_to_curve_impl(const CurvesGeometry &curves,
                                                    MutableSpan<T> r_values)
 {
   attribute_math::DefaultMixer<T> mixer(r_values);
-  for (const int i_curve : IndexRange(curves.num_curves())) {
+  for (const int i_curve : IndexRange(curves.curves_num())) {
     for (const int i_point : curves.points_for_curve(i_curve)) {
       mixer.mix_in(i_curve, old_values[i_point]);
     }
@@ -1022,7 +1022,7 @@ void adapt_curve_domain_point_to_curve_impl(const CurvesGeometry &curves,
                                             MutableSpan<bool> r_values)
 {
   r_values.fill(true);
-  for (const int i_curve : IndexRange(curves.num_curves())) {
+  for (const int i_curve : IndexRange(curves.curves_num())) {
     for (const int i_point : curves.points_for_curve(i_curve)) {
       if (!old_values[i_point]) {
         r_values[i_curve] = false;
@@ -1039,7 +1039,7 @@ static GVArray adapt_curve_domain_point_to_curve(const CurvesGeometry &curves,
   attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
-      Array<T> values(curves.num_curves());
+      Array<T> values(curves.curves_num());
       adapt_curve_domain_point_to_curve_impl<T>(curves, varray.typed<T>(), values);
       new_varray = VArray<T>::ForContainer(std::move(values));
     }
@@ -1059,7 +1059,7 @@ static void adapt_curve_domain_curve_to_point_impl(const CurvesGeometry &curves,
                                                    const VArray<T> &old_values,
                                                    MutableSpan<T> r_values)
 {
-  for (const int i_curve : IndexRange(curves.num_curves())) {
+  for (const int i_curve : IndexRange(curves.curves_num())) {
     r_values.slice(curves.points_for_curve(i_curve)).fill(old_values[i_curve]);
   }
 }
@@ -1070,7 +1070,7 @@ static GVArray adapt_curve_domain_curve_to_point(const CurvesGeometry &curves,
   GVArray new_varray;
   attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
-    Array<T> values(curves.num_points());
+    Array<T> values(curves.points_num());
     adapt_curve_domain_curve_to_point_impl<T>(curves, varray.typed<T>(), values);
     new_varray = VArray<T>::ForContainer(std::move(values));
   });
