@@ -2064,8 +2064,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     }
 
     for (part = bmain->particles.first; part; part = part->id.next) {
-      if (part->ren_child_nbr == 0) {
-        part->ren_child_nbr = part->child_nbr;
+      if (part->child_render_percent == 0) {
+        part->child_render_percent = part->child_percent;
       }
     }
 
