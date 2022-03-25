@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later
  * Copyright 2009 Ruben Smits. */
 
-/** \file itasc/WSDLSSolver.cpp
+/** \file
  * \ingroup intern_itasc
  */
 

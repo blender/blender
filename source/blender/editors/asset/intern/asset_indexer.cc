@@ -39,7 +39,6 @@ using namespace blender::bke;
 using namespace blender::bke::idprop;
 
 /**
- * \file asset_indexer.cc
  * \brief Indexer for asset libraries.
  *
  * Indexes are stored per input file. Each index can contain zero to multiple asset entries.

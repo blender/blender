@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file blender/imbuf/intern/webp.c
+/** \file
  *  \ingroup imbuf
  */
 
