@@ -1292,8 +1292,8 @@ void ANIM_fcurve_equalize_keyframes_loop(FCurve *fcu,
 {
   uint i;
   BezTriple *bezt;
-  const float flat_direction_left[2] = {-handle_length, 0.f};
-  const float flat_direction_right[2] = {handle_length, 0.f};
+  const float flat_direction_left[2] = {-handle_length, 0.0f};
+  const float flat_direction_right[2] = {handle_length, 0.0f};
 
   /* Loop through an F-Curves keyframes. */
   for (bezt = fcu->bezt, i = 0; i < fcu->totvert; bezt++, i++) {

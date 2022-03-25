@@ -331,7 +331,7 @@ class TextureMarginMap {
     float destx, desty;
     int foundpoly;
 
-    float mindist = -1.f;
+    float mindist = -1.0f;
 
     /* Loop over all adjacent polygons and determine which edge is closest.
      * This could be optimized by only inspecting neighbors which are on the edge of an island.
@@ -356,7 +356,7 @@ class TextureMarginMap {
       }
     }
 
-    return mindist >= 0.f;
+    return mindist >= 0.0f;
   }
 
   /**
