@@ -1991,7 +1991,7 @@ static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
 {
   ot->name = "Toggle Window Fullscreen";
   ot->idname = "WM_OT_window_fullscreen_toggle";
-  ot->description = "Toggle the current window fullscreen";
+  ot->description = "Toggle the current window full-screen";
 
   ot->exec = wm_window_fullscreen_toggle_exec;
   ot->poll = WM_operator_winactive;

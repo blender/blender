@@ -68,7 +68,7 @@ class ScopedTimerAveraged {
 #define SCOPED_TIMER(name) blender::timeit::ScopedTimer scoped_timer(name)
 
 /**
- * Print the average and minumum runtime of the timer's scope.
+ * Print the average and minimum runtime of the timer's scope.
  * \warning This uses static variables, so it is not thread-safe.
  */
 #define SCOPED_TIMER_AVERAGED(name) \

@@ -3331,7 +3331,7 @@ void BKE_image_ensure_tile_token(char *filename)
     return;
   }
 
-  /* General u##_v### "uvtile" pattern. */
+  /* General `u##_v###` `uvtile` pattern. */
   pattern = std::regex(R"((.*)(u\d{1,2}_v\d{1,3})(\D.*))");
   if (std::regex_search(path, match, pattern)) {
     BLI_strncpy(filename, match.format("$1<UVTILE>$3").c_str(), FILE_MAX);

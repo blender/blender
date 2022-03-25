@@ -30,7 +30,7 @@ struct ViewInfos {
   float2 viewport_size_inverse;
 
   /** Frustum culling data. */
-  /** NOTE: vec3 arrays are paded to vec4. */
+  /** NOTE: vec3 arrays are padded to vec4. */
   float4 frustum_corners[8];
   float4 frustum_planes[6];
 };
