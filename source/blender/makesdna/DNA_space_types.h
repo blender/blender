@@ -989,12 +989,6 @@ typedef enum eFileSelectType {
   FILE_SPECIAL = 9,
 } eFileSelectType;
 
-/** File-selector op property -> action. */
-typedef enum eFileSel_Action {
-  FILE_OPENFILE = 0,
-  FILE_SAVE = 1,
-} eFileSel_Action;
-
 /**
  * #FileSelectParams.flag / `sfile->params->flag`.
  * \note short flag, also used as 16 lower bits of flags in link/append code

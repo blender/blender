@@ -58,12 +58,12 @@ static const EnumPropertyItem *wm_operator_properties_filesel_sort_items_itemf(
 }
 
 void WM_operator_properties_filesel(wmOperatorType *ot,
-                                    int filter,
-                                    short type,
-                                    short action,
-                                    short flag,
-                                    short display,
-                                    short sort)
+                                    const int filter,
+                                    const short type,
+                                    const eFileSel_Action action,
+                                    const eFileSel_Flag flag,
+                                    const short display,
+                                    const short sort)
 {
   PropertyRNA *prop;
 
