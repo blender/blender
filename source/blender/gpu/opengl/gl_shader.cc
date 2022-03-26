@@ -868,7 +868,7 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage, MutableSpan<const char *> 
 {
   GLuint shader = glCreateShader(gl_stage);
   if (shader == 0) {
-    fprintf(stderr, "GLShader: Error: Could not create shader object.");
+    fprintf(stderr, "GLShader: Error: Could not create shader object.\n");
     return 0;
   }
 

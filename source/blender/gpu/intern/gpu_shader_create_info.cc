@@ -264,9 +264,14 @@ bool gpu_shader_create_info_compile_all()
 {
   using namespace blender::gpu;
   int success = 0;
+  int skipped = 0;
   int total = 0;
   for (ShaderCreateInfo *info : g_create_infos->values()) {
     if (info->do_static_compilation_) {
+      if (GPU_compute_shader_support() == false && info->compute_source_ != nullptr) {
+        skipped++;
+        continue;
+      }
       total++;
       GPUShader *shader = GPU_shader_create_from_info(
           reinterpret_cast<const GPUShaderCreateInfo *>(info));
@@ -322,12 +327,11 @@ bool gpu_shader_create_info_compile_all()
       GPU_shader_free(shader);
     }
   }
-  printf("===============================\n");
-  printf("Shader Test compilation result: \n");
-  printf("%d Total\n", total);
-  printf("%d Passed\n", success);
-  printf("%d Failed\n", total - success);
-  printf("===============================\n");
+  printf("Shader Test compilation result: %d / %d passed", success, total);
+  if (skipped > 0) {
+    printf(" (skipped %d for compatibility reasons)", skipped);
+  }
+  printf("\n");
   return success == total;
 }
 
