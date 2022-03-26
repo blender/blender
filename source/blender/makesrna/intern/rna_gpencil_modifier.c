@@ -1031,7 +1031,7 @@ static void rna_def_modifier_gpencilsmooth(BlenderRNA *brna)
       prop, "Step", "Number of times to apply smooth (high numbers can reduce fps)");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "keep_shape", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_keep_shape", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_SMOOTH_KEEP_SHAPE);
   RNA_def_property_ui_text(prop, "Keep Shape", "Smooth the details, but keep the overall shape");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
