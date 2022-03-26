@@ -54,7 +54,7 @@ void deg_invalidate_iterator_work_data(DEGObjectIterData *data)
 {
 #ifdef INVALIDATE_WORK_DATA
   BLI_assert(data != nullptr);
-  memset(&data->temp_dupli_object, 0xff, sizeof(data->temp_dupli_object));
+  memset((void *)&data->temp_dupli_object, 0xff, sizeof(data->temp_dupli_object));
 #else
   (void)data;
 #endif
