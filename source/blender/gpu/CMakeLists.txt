@@ -414,6 +414,7 @@ list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
 set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/gpencil/shaders/infos/gpencil_info.hh
   ../draw/engines/gpencil/shaders/infos/gpencil_vfx_info.hh
+  ../draw/engines/overlay/shaders/infos/edit_mode_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_composite_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_effect_antialiasing_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_effect_cavity_info.hh

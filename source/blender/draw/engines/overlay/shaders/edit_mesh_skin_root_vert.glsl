@@ -1,12 +1,6 @@
 
-/* ---- Instantiated Attrs ---- */
-in vec3 pos;
-
-/* ---- Per instance Attrs ---- */
-in float size;
-in vec3 local_pos;
-
-flat out vec4 finalColor;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {
@@ -19,7 +13,5 @@ void main()
   /* Manual stipple: one segment out of 2 is transparent. */
   finalColor = ((gl_VertexID & 1) == 0) ? colorSkinRoot : vec4(0.0);
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(pos_4d.xyz);
-#endif
+  view_clipping_distances(pos_4d.xyz);
 }
