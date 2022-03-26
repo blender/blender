@@ -277,6 +277,40 @@ bool CurvesGeometry::has_curve_with_type(const CurveType type) const
   return false;
 }
 
+std::array<int, CURVE_TYPES_NUM> CurvesGeometry::count_curve_types() const
+{
+  using CountsType = std::array<int, CURVE_TYPES_NUM>;
+
+  CountsType identity;
+  identity.fill(0);
+
+  const VArray<int8_t> types = this->curve_types();
+  if (types.is_single()) {
+    identity[types.get_internal_single()] = this->curves_num();
+    return identity;
+  }
+
+  Span<int8_t> types_span = types.get_internal_span();
+  return threading::parallel_reduce(
+      this->curves_range(),
+      2048,
+      identity,
+      [&](const IndexRange curves_range, const CountsType &init) {
+        CountsType result = init;
+        for (const int curve_index : curves_range) {
+          result[types_span[curve_index]]++;
+        }
+        return result;
+      },
+      [](const CountsType &a, const CountsType &b) {
+        CountsType result = a;
+        for (const int i : IndexRange(CURVE_TYPES_NUM)) {
+          result[i] += b[i];
+        }
+        return result;
+      });
+}
+
 MutableSpan<float3> CurvesGeometry::positions()
 {
   this->position = (float(*)[3])CustomData_duplicate_referenced_layer_named(
@@ -653,6 +687,38 @@ Span<float3> CurvesGeometry::evaluated_positions() const
   });
 
   return this->runtime->evaluated_position_cache;
+}
+
+void CurvesGeometry::interpolate_to_evaluated(const int curve_index,
+                                              const GSpan src,
+                                              GMutableSpan dst) const
+{
+  BLI_assert(!this->runtime->offsets_cache_dirty);
+  BLI_assert(!this->runtime->nurbs_basis_cache_dirty);
+  const IndexRange points = this->points_for_curve(curve_index);
+  BLI_assert(src.size() == points.size());
+  BLI_assert(dst.size() == this->evaluated_points_for_curve(curve_index).size());
+  switch (this->curve_types()[curve_index]) {
+    case CURVE_TYPE_CATMULL_ROM:
+      curves::catmull_rom::interpolate_to_evaluated(
+          src, this->cyclic()[curve_index], this->resolution()[curve_index], dst);
+      return;
+    case CURVE_TYPE_POLY:
+      dst.type().copy_assign_n(src.data(), dst.data(), src.size());
+      return;
+    case CURVE_TYPE_BEZIER:
+      curves::bezier::interpolate_to_evaluated(
+          src, this->runtime->bezier_evaluated_offsets.as_span().slice(points), dst);
+      return;
+    case CURVE_TYPE_NURBS:
+      curves::nurbs::interpolate_to_evaluated(this->runtime->nurbs_basis_cache[curve_index],
+                                              this->nurbs_orders()[curve_index],
+                                              this->nurbs_weights().slice(points),
+                                              src,
+                                              dst);
+      return;
+  }
+  BLI_assert_unreachable();
 }
 
 /** \} */

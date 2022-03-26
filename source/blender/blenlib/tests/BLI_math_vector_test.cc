@@ -85,4 +85,24 @@ TEST(math_vector, Clamp)
   EXPECT_EQ(result_2.z, -50);
 }
 
+TEST(math_vector, InterpolateInt)
+{
+  const int3 a(0, -100, 50);
+  const int3 b(0, 100, 100);
+  const int3 result = math::interpolate(a, b, 0.75);
+  EXPECT_EQ(result.x, 0);
+  EXPECT_EQ(result.y, 50);
+  EXPECT_EQ(result.z, 87);
+}
+
+TEST(math_vector, InterpolateFloat)
+{
+  const float3 a(40.0f, -100.0f, 50.0f);
+  const float3 b(20.0f, 100.0f, 100.0f);
+  const float3 result = math::interpolate(a, b, 0.5);
+  EXPECT_FLOAT_EQ(result.x, 30.0f);
+  EXPECT_FLOAT_EQ(result.y, 0.0f);
+  EXPECT_FLOAT_EQ(result.z, 75.0f);
+}
+
 }  // namespace blender::tests

@@ -220,30 +220,78 @@ bool BKE_gpencil_stroke_sample(struct bGPdata *gpd,
  * \param gps: Stroke to smooth
  * \param i: Point index
  * \param inf: Amount of smoothing to apply
+ * \param iterations: Radius of points to consider, equivalent to iterations
  * \param smooth_caps: Apply smooth to stroke extremes
+ * \param keep_shape: Smooth out fine details first
+ * \param r_gps: Stroke to put the result into
  */
-bool BKE_gpencil_stroke_smooth_point(struct bGPDstroke *gps, int i, float inf, bool smooth_caps);
+bool BKE_gpencil_stroke_smooth_point(struct bGPDstroke *gps,
+                                     int point_index,
+                                     float influence,
+                                     int iterations,
+                                     bool smooth_caps,
+                                     bool keep_shape,
+                                     struct bGPDstroke *r_gps);
 /**
  * Apply smooth strength to stroke point.
  * \param gps: Stroke to smooth
  * \param point_index: Point index
  * \param influence: Amount of smoothing to apply
+ * \param iterations: Radius of points to consider, equivalent to iterations
+ * \param r_gps: Stroke to put the result into
  */
-bool BKE_gpencil_stroke_smooth_strength(struct bGPDstroke *gps, int point_index, float influence);
+bool BKE_gpencil_stroke_smooth_strength(struct bGPDstroke *gps,
+                                        int point_index,
+                                        float influence,
+                                        int iterations,
+                                        struct bGPDstroke *r_gps);
 /**
  * Apply smooth for thickness to stroke point (use pressure).
  * \param gps: Stroke to smooth
  * \param point_index: Point index
  * \param influence: Amount of smoothing to apply
+ * \param iterations: Radius of points to consider, equivalent to iterations
+ * \param r_gps: Stroke to put the result into
  */
-bool BKE_gpencil_stroke_smooth_thickness(struct bGPDstroke *gps, int point_index, float influence);
+bool BKE_gpencil_stroke_smooth_thickness(struct bGPDstroke *gps,
+                                         int point_index,
+                                         float influence,
+                                         int iterations,
+                                         struct bGPDstroke *r_gps);
 /**
- * Apply smooth for UV rotation to stroke point (use pressure).
+ * Apply smooth for UV rotation/factor to stroke point.
  * \param gps: Stroke to smooth
  * \param point_index: Point index
  * \param influence: Amount of smoothing to apply
+ * \param iterations: Radius of points to consider, equivalent to iterations
+ * \param r_gps: Stroke to put the result into
  */
-bool BKE_gpencil_stroke_smooth_uv(struct bGPDstroke *gps, int point_index, float influence);
+bool BKE_gpencil_stroke_smooth_uv(struct bGPDstroke *gps,
+                                  int point_index,
+                                  float influence,
+                                  int iterations,
+                                  struct bGPDstroke *r_gps);
+/**
+ * Apply smooth operation to the stroke.
+ * \param gps: Stroke to smooth
+ * \param influence: The interpolation factor for the smooth and the original stroke
+ * \param iterations: Radius of points to consider, equivalent to iterations
+ * \param smooth_position: Smooth point locations
+ * \param smooth_strength: Smooth point strength
+ * \param smooth_thickness: Smooth point thickness
+ * \param smooth_uv: Smooth uv rotation/factor
+ * \param keep_shape: Use different distribution for smooth locations to keep the shape
+ * \param weights: per point weights to multiply influence with (optional, can be null)
+ */
+void BKE_gpencil_stroke_smooth(struct bGPDstroke *gps,
+                               const float influence,
+                               const int iterations,
+                               const bool smooth_position,
+                               const bool smooth_strength,
+                               const bool smooth_thickness,
+                               const bool smooth_uv,
+                               const bool keep_shape,
+                               const float *weights);
 /**
  * Close grease pencil stroke.
  * \param gps: Stroke to close

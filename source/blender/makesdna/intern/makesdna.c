@@ -620,6 +620,7 @@ static int preprocess_include(char *maindata, const int maindata_len)
   int newlen = 0;
   comment = 0;
   a = maindata_len;
+  bool skip_until_closing_brace = false;
   while (a--) {
 
     if (cp[0] == '/' && cp[1] == '*') {
@@ -645,6 +646,17 @@ static int preprocess_include(char *maindata, const int maindata_len)
       /* single values are skipped already, so decrement 1 less */
       a -= 13;
       cp += 13;
+    }
+    else if (match_identifier(cp, "DNA_DEFINE_CXX_METHODS")) {
+      /* single values are skipped already, so decrement 1 less */
+      a -= 21;
+      cp += 21;
+      skip_until_closing_brace = true;
+    }
+    else if (skip_until_closing_brace) {
+      if (cp[0] == ')') {
+        skip_until_closing_brace = false;
+      }
     }
     else {
       md[0] = cp[0];
