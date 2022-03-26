@@ -190,6 +190,7 @@ set(SRC
   intern/draw_cache_inline.h
   intern/draw_color_management.h
   intern/draw_common.h
+  intern/draw_common_shader_shared.h
   intern/draw_debug.h
   intern/draw_hair_private.h
   intern/draw_instance_data.h

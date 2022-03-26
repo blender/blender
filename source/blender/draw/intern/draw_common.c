@@ -184,9 +184,10 @@ void DRW_globals_update(void)
 
   gb->pixelFac = *DRW_viewport_pixelsize_get();
 
-  copy_v2_v2(gb->sizeViewport, DRW_viewport_size_get());
-  copy_v2_v2(gb->sizeViewportInv, gb->sizeViewport);
-  invert_v2(gb->sizeViewportInv);
+  /* Deprecated, use drw_view.viewport_size instead */
+  copy_v2_v2(&gb->sizeViewport[0], DRW_viewport_size_get());
+  copy_v2_v2(&gb->sizeViewport[2], &gb->sizeViewport[0]);
+  invert_v2(&gb->sizeViewport[2]);
 
   /* Color management. */
   {
