@@ -241,7 +241,7 @@ TEST(obj_exporter_writer, mtllib)
 TEST(obj_exporter_writer, format_handler_buffer_chunking)
 {
   /* Use a tiny buffer chunk size, so that the test below ends up creating several blocks. */
-  FormatHandler<eFileType::OBJ, 16, 8> h;
+  FormatHandler<eFileType::OBJ, 16> h;
   h.write<eOBJSyntaxElement::object_name>("abc");
   h.write<eOBJSyntaxElement::object_name>("abcd");
   h.write<eOBJSyntaxElement::object_name>("abcde");
