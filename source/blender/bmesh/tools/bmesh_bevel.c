@@ -571,7 +571,7 @@ static EdgeHalf *next_bev(BevVert *bv, EdgeHalf *from_e)
 /* Return the count of edges between e1 and e2 when going around bv CCW. */
 static int count_ccw_edges_between(EdgeHalf *e1, EdgeHalf *e2)
 {
-  int cnt = 0;
+  int count = 0;
   EdgeHalf *e = e1;
 
   do {
@@ -579,9 +579,9 @@ static int count_ccw_edges_between(EdgeHalf *e1, EdgeHalf *e2)
       break;
     }
     e = e->next;
-    cnt++;
+    count++;
   } while (e != e1);
-  return cnt;
+  return count;
 }
 
 /* Assume bme1 and bme2 both share some vert. Do they share a face?
@@ -1859,7 +1859,7 @@ static void move_weld_profile_planes(BevVert *bv, BoundVert *bndv1, BoundVert *b
   float l1 = normalize_v3(no);
 
   /* "no" is new normal projection plane, but don't move if it is coplanar with both of the
-   * projection dirs. */
+   * projection directions. */
   float no2[3], no3[3];
   cross_v3_v3v3(no2, d1, bndv1->profile.proj_dir);
   float l2 = normalize_v3(no2);
@@ -5571,7 +5571,7 @@ static void bevel_build_cutoff(BevelParams *bp, BMesh *bm, BevVert *bv)
       /* Add verts from each cutoff face. */
       face_bmverts[i] = mesh_vert(bv->vmesh, i, 1, 0)->v;
     }
-    /* BLI_array_append(bmfaces, repface); */
+    // BLI_array_append(bmfaces, repface);
     bev_create_ngon(bm, face_bmverts, n_bndv, bmfaces, NULL, bmedges, bp->mat_nr, true);
 
     BLI_array_free(bmedges);
@@ -7106,7 +7106,7 @@ static void find_even_superellipse_chords(int n, float r, double *xvals, double 
     return;
   }
   if (r == PRO_CIRCLE_R) {
-    double temp = (M_PI / 2) / n;
+    double temp = M_PI_2 / n;
     /* Angle spacing. */
     for (int i = 0; i <= n; i++) {
       xvals[i] = sin(i * temp);

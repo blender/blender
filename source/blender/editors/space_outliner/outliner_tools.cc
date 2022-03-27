@@ -1677,6 +1677,12 @@ void OUTLINER_OT_object_operation(wmOperatorType *ot)
 
 using OutlinerDeleteFn = void (*)(bContext *C, ReportList *reports, Scene *scene, Object *ob);
 
+typedef struct ObjectEditData {
+  GSet *objects_set;
+  bool is_liboverride_allowed;
+  bool is_liboverride_hierarchy_root_allowed;
+} ObjectEditData;
+
 static void outliner_do_object_delete(bContext *C,
                                       ReportList *reports,
                                       Scene *scene,
@@ -1693,7 +1699,8 @@ static void outliner_do_object_delete(bContext *C,
 
 static TreeTraversalAction outliner_find_objects_to_delete(TreeElement *te, void *customdata)
 {
-  GSet *objects_to_delete = (GSet *)customdata;
+  ObjectEditData *data = reinterpret_cast<ObjectEditData *>(customdata);
+  GSet *objects_to_delete = data->objects_set;
   TreeStoreElem *tselem = TREESTORE(te);
 
   if (outliner_is_collection_tree_element(te)) {
@@ -1705,13 +1712,26 @@ static TreeTraversalAction outliner_find_objects_to_delete(TreeElement *te, void
     return TRAVERSE_SKIP_CHILDS;
   }
 
-  BLI_gset_add(objects_to_delete, tselem->id);
+  ID *id = tselem->id;
+
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    if (ID_IS_OVERRIDE_LIBRARY_HIERARCHY_ROOT(id)) {
+      if (!(data->is_liboverride_hierarchy_root_allowed || data->is_liboverride_allowed)) {
+        return TRAVERSE_SKIP_CHILDS;
+      }
+    }
+    else {
+      if (!data->is_liboverride_allowed) {
+        return TRAVERSE_SKIP_CHILDS;
+      }
+    }
+  }
+
+  BLI_gset_add(objects_to_delete, id);
 
   return TRAVERSE_CONTINUE;
 }
 
-/* FIXME: See comment above #WM_msg_publish_rna_prop(). */
-extern "C" {
 static int outliner_delete_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -1725,27 +1745,31 @@ static int outliner_delete_exec(bContext *C, wmOperator *op)
 
   /* Get selected objects skipping duplicates to prevent deleting objects linked to multiple
    * collections twice */
-  GSet *objects_to_delete = BLI_gset_ptr_new(__func__);
+  ObjectEditData object_delete_data = {};
+  object_delete_data.objects_set = BLI_gset_ptr_new(__func__);
+  object_delete_data.is_liboverride_allowed = false;
+  object_delete_data.is_liboverride_hierarchy_root_allowed = delete_hierarchy;
   outliner_tree_traverse(space_outliner,
                          &space_outliner->tree,
                          0,
                          TSE_SELECTED,
                          outliner_find_objects_to_delete,
-                         objects_to_delete);
+                         &object_delete_data);
 
   if (delete_hierarchy) {
     BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
 
     outliner_do_object_delete(
-        C, op->reports, scene, objects_to_delete, object_batch_delete_hierarchy_fn);
+        C, op->reports, scene, object_delete_data.objects_set, object_batch_delete_hierarchy_fn);
 
     BKE_id_multi_tagged_delete(bmain);
   }
   else {
-    outliner_do_object_delete(C, op->reports, scene, objects_to_delete, outliner_object_delete_fn);
+    outliner_do_object_delete(
+        C, op->reports, scene, object_delete_data.objects_set, outliner_object_delete_fn);
   }
 
-  BLI_gset_free(objects_to_delete, nullptr);
+  BLI_gset_free(object_delete_data.objects_set, nullptr);
 
   outliner_collection_delete(C, bmain, scene, op->reports, delete_hierarchy);
 
@@ -1770,7 +1794,6 @@ static int outliner_delete_exec(bContext *C, wmOperator *op)
   ED_outliner_select_sync_from_object_tag(C);
 
   return OPERATOR_FINISHED;
-}
 }
 
 void OUTLINER_OT_delete(wmOperatorType *ot)
@@ -2216,14 +2239,14 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
     }
     case OUTLINER_IDOP_COPY: {
       wm->op_undo_depth++;
-      WM_operator_name_call(C, "OUTLINER_OT_id_copy", WM_OP_INVOKE_DEFAULT, nullptr);
+      WM_operator_name_call(C, "OUTLINER_OT_id_copy", WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
       wm->op_undo_depth--;
       /* No need for undo, this operation does not change anything... */
       break;
     }
     case OUTLINER_IDOP_PASTE: {
       wm->op_undo_depth++;
-      WM_operator_name_call(C, "OUTLINER_OT_id_paste", WM_OP_INVOKE_DEFAULT, nullptr);
+      WM_operator_name_call(C, "OUTLINER_OT_id_paste", WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
       wm->op_undo_depth--;
       ED_outliner_select_sync_from_all_tag(C);
       ED_undo_push(C, "Paste");
@@ -2595,7 +2618,8 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
     case OUTLINER_ANIMOP_SET_ACT:
       /* delegate once again... */
       wm->op_undo_depth++;
-      WM_operator_name_call(C, "OUTLINER_OT_action_set", WM_OP_INVOKE_REGION_WIN, nullptr);
+      WM_operator_name_call(
+          C, "OUTLINER_OT_action_set", WM_OP_INVOKE_REGION_WIN, nullptr, nullptr);
       wm->op_undo_depth--;
       ED_undo_push(C, "Set active action");
       break;
@@ -2618,7 +2642,7 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
                                  nullptr);
 
       WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, nullptr);
-      /* ED_undo_push(C, "Refresh Drivers"); No undo needed - shouldn't have any impact? */
+      // ED_undo_push(C, "Refresh Drivers"); /* No undo needed - shouldn't have any impact? */
       break;
 
     case OUTLINER_ANIMOP_CLEAR_DRV:

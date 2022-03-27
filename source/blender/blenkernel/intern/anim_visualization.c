@@ -153,11 +153,6 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports,
     if ((mpath->start_frame != mpath->end_frame) && (mpath->length > 0)) {
       /* outer check ensures that we have some curve data for this path */
       if (mpath->length == expected_length) {
-        /* The length might be the same, but the start and end could be different */
-        if (mpath->start_frame != avs->path_sf) {
-          mpath->start_frame = avs->path_sf;
-          mpath->end_frame = avs->path_ef;
-        }
         /* return/use this as it is already valid length */
         return mpath;
       }

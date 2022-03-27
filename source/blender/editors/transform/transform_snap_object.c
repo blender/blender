@@ -440,6 +440,44 @@ typedef void (*IterSnapObjsCallback)(SnapObjectContext *sctx,
                                      bool is_object_active,
                                      void *data);
 
+static bool snap_object_is_snappable(const SnapObjectContext *sctx,
+                                     const eSnapSelect snap_select,
+                                     const Base *base_act,
+                                     const Base *base,
+                                     const bool is_in_object_mode)
+{
+  if (!BASE_VISIBLE(sctx->runtime.v3d, base)) {
+    return false;
+  }
+
+  if ((snap_select == SNAP_ALL) || (base->flag_legacy & BA_TRANSFORM_LOCKED_IN_PLACE)) {
+    return true;
+  }
+
+  if (base->flag_legacy & BA_SNAP_FIX_DEPS_FIASCO) {
+    return false;
+  }
+
+  if (snap_select == SNAP_NOT_ACTIVE) {
+    return base_act == base;
+  }
+
+  if (snap_select == SNAP_NOT_SELECTED) {
+    if (is_in_object_mode) {
+      return !((base->flag & BASE_SELECTED) || (base->flag_legacy & BA_WAS_SEL));
+    }
+
+    /* What is selectable or not is part of the object and depends on the mode. */
+    return true;
+  }
+
+  if (snap_select == SNAP_SELECTABLE) {
+    return (base->flag & BASE_SELECTABLE) != 0;
+  }
+
+  return true;
+}
+
 /**
  * Walks through all objects in the scene to create the list of objects to snap.
  */
@@ -458,38 +496,13 @@ static void iter_snap_objects(SnapObjectContext *sctx,
     return;
   }
 
+  const bool is_in_object_mode = !base_act || base_act->object->mode == OB_MODE_OBJECT;
   for (Base *base = view_layer->object_bases.first; base != NULL; base = base->next) {
-    if (!BASE_VISIBLE(sctx->runtime.v3d, base)) {
-      continue;
-    }
-
-    if ((snap_select == SNAP_ALL) || (base->flag_legacy & BA_TRANSFORM_LOCKED_IN_PLACE)) {
-      /* pass */
-    }
-    else if (base->flag_legacy & BA_SNAP_FIX_DEPS_FIASCO) {
+    if (!snap_object_is_snappable(sctx, snap_select, base_act, base, is_in_object_mode)) {
       continue;
     }
 
     const bool is_object_active = (base == base_act);
-    if (snap_select == SNAP_NOT_ACTIVE) {
-      if (is_object_active) {
-        continue;
-      }
-    }
-    else if (snap_select == SNAP_NOT_SELECTED) {
-      if (is_object_active && base->object->mode != OB_MODE_OBJECT) {
-        /* Pass. Consider the selection of elements being edited. */
-      }
-      else if ((base->flag & BASE_SELECTED) || (base->flag_legacy & BA_WAS_SEL)) {
-        continue;
-      }
-    }
-    else if (snap_select == SNAP_SELECTABLE) {
-      if (!(base->flag & BASE_SELECTABLE)) {
-        continue;
-      }
-    }
-
     Object *obj_eval = DEG_get_evaluated_object(sctx->runtime.depsgraph, base->object);
     if (obj_eval->transflag & OB_DUPLI || BKE_object_has_geometry_set_instances(obj_eval)) {
       ListBase *lb = object_duplilist(sctx->runtime.depsgraph, sctx->scene, obj_eval);

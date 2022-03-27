@@ -11,7 +11,9 @@
 
 #include "outliner_intern.hh"
 
-/* ************************** registration **********************************/
+/* -------------------------------------------------------------------- */
+/** \name Registration
+ * \{ */
 
 void outliner_operatortypes(void)
 {
@@ -97,3 +99,5 @@ void outliner_keymap(wmKeyConfig *keyconf)
 {
   WM_keymap_ensure(keyconf, "Outliner", SPACE_OUTLINER, 0);
 }
+
+/** \} */

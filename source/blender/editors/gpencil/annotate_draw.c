@@ -110,7 +110,9 @@ static void annotation_draw_stroke_arrow_buffer(uint pos,
   immEnd();
 }
 
-/* draw stroke defined in buffer (simple ogl lines/points for now, as dotted lines) */
+/**
+ * Draw stroke defined in buffer (simple GPU lines/points for now, as dotted lines).
+ */
 static void annotation_draw_stroke_buffer(bGPdata *gps,
                                           short thickness,
                                           short dflag,
@@ -298,7 +300,9 @@ static void annotation_draw_stroke_point(const bGPDspoint *points,
   immUnbindProgram();
 }
 
-/* draw a given stroke in 3d (i.e. in 3d-space), using simple ogl lines */
+/**
+ * Draw a given stroke in 3d (i.e. in 3d-space), using simple GPU lines.
+ */
 static void annotation_draw_stroke_3d(
     const bGPDspoint *points, int totpoints, short thickness, const float ink[4], bool cyclic)
 {

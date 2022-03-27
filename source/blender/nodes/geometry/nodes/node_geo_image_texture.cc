@@ -257,8 +257,8 @@ class ImageFieldsFunction : public fn::MultiFunction {
     const int width = ibuf->x;
     const int height = ibuf->y;
     int ix, iy;
-    const float tx = frac(px * (float)width - 0.5f, &ix);
-    const float ty = frac(py * (float)height - 0.5f, &iy);
+    const float tx = frac(px * (float)width, &ix);
+    const float ty = frac(py * (float)height, &iy);
 
     switch (extension) {
       case SHD_IMAGE_EXTENSION_REPEAT: {

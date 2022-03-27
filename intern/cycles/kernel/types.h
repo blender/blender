@@ -1307,6 +1307,7 @@ typedef struct KernelObject {
   float pass_id;
   float random_number;
   float color[3];
+  float alpha;
   int particle_index;
 
   float dupli_generated[3];
@@ -1330,6 +1331,7 @@ typedef struct KernelObject {
 
   uint visibility;
   int primitive_type;
+  int pad[2];
 } KernelObject;
 static_assert_align(KernelObject, 16);
 

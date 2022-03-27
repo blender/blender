@@ -779,6 +779,8 @@ enum {
   SEQ_TRANSFORM_FILTER_BILINEAR = 1,
 };
 
+/** \} */
+
 #ifdef __cplusplus
 }
 #endif

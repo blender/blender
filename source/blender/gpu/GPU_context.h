@@ -11,18 +11,15 @@
 
 #include "GPU_batch.h"
 #include "GPU_common.h"
+#include "GPU_platform.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef enum eGPUBackendType {
-  GPU_BACKEND_NONE = 0,
-  GPU_BACKEND_OPENGL,
-} eGPUBackendType;
-
 void GPU_backend_init(eGPUBackendType backend);
 void GPU_backend_exit(void);
+bool GPU_backend_supported(eGPUBackendType type);
 
 eGPUBackendType GPU_backend_get_type(void);
 
@@ -48,6 +45,14 @@ GPUContext *GPU_context_active_get(void);
  * using it by locking the main context using these two functions. */
 void GPU_context_main_lock(void);
 void GPU_context_main_unlock(void);
+
+/* GPU Begin/end work blocks */
+void GPU_render_begin(void);
+void GPU_render_end(void);
+
+/* For operations which need to run exactly once per frame -- even if there are no render updates.
+ */
+void GPU_render_step(void);
 
 #ifdef __cplusplus
 }

@@ -2568,11 +2568,13 @@ void BKE_gpencil_visible_stroke_advanced_iter(ViewLayer *view_layer,
         layer_cb(gpl, gpf, NULL, thunk);
       }
 
-      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-        if (gps->totpoints == 0) {
-          continue;
+      if (stroke_cb) {
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+          if (gps->totpoints == 0) {
+            continue;
+          }
+          stroke_cb(gpl, gpf, gps, thunk);
         }
-        stroke_cb(gpl, gpf, gps, thunk);
       }
     }
     /* Draw Active frame on top. */
@@ -2590,12 +2592,13 @@ void BKE_gpencil_visible_stroke_advanced_iter(ViewLayer *view_layer,
         gpl->opacity = prev_opacity;
         continue;
       }
-
-      LISTBASE_FOREACH (bGPDstroke *, gps, &act_gpf->strokes) {
-        if (gps->totpoints == 0) {
-          continue;
+      if (stroke_cb) {
+        LISTBASE_FOREACH (bGPDstroke *, gps, &act_gpf->strokes) {
+          if (gps->totpoints == 0) {
+            continue;
+          }
+          stroke_cb(gpl, act_gpf, gps, thunk);
         }
-        stroke_cb(gpl, act_gpf, gps, thunk);
       }
     }
 

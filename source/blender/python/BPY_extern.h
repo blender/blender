@@ -50,7 +50,7 @@ BPy_ThreadStatePtr BPY_thread_save(void);
  */
 void BPY_thread_restore(BPy_ThreadStatePtr tstate);
 
-/* our own wrappers to Py_BEGIN_ALLOW_THREADS/Py_END_ALLOW_THREADS */
+/** Our own wrappers to #Py_BEGIN_ALLOW_THREADS / #Py_END_ALLOW_THREADS */
 #define BPy_BEGIN_ALLOW_THREADS \
   { \
     BPy_ThreadStatePtr _bpy_saved_tstate = BPY_thread_save(); \
@@ -70,10 +70,9 @@ void BPY_modules_load_user(struct bContext *C);
 void BPY_app_handlers_reset(short do_all);
 
 /**
- * Update function, it gets rid of py-drivers global dictionary, forcing
- * BPY_driver_exec to recreate it. This function is used to force
- * reloading the Blender text module "pydrivers.py", if available, so
- * updates in it reach py-driver evaluation.
+ * Update function, it gets rid of python-drivers global dictionary: `bpy.app.driver_namespace`,
+ * forcing #BPY_driver_exec to recreate it. Use this when loading a new `.blend` file
+ * so any variables setup by the previous blend file are cleared.
  */
 void BPY_driver_reset(void);
 
@@ -86,7 +85,12 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
                       struct ChannelDriver *driver_orig,
                       const struct AnimationEvalContext *anim_eval_context);
 
-void BPY_DECREF(void *pyob_ptr); /* Py_DECREF() */
+/**
+ * Acquire the global-interpreter-lock (GIL) and wrap `Py_DECREF`.
+ * as there are some cases when this needs to be called outside the Python API code.
+ */
+void BPY_DECREF(void *pyob_ptr);
+
 void BPY_DECREF_RNA_INVALIDATE(void *pyob_ptr);
 int BPY_context_member_get(struct bContext *C,
                            const char *member,
@@ -125,6 +129,7 @@ void BPY_id_release(struct ID *id);
 bool BPY_string_is_keyword(const char *str);
 
 /* bpy_rna_callback.c */
+
 void BPY_callback_screen_free(struct ARegionType *art);
 void BPY_callback_wm_free(struct wmWindowManager *wm);
 

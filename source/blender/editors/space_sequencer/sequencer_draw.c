@@ -54,6 +54,8 @@
 
 #include "BIF_glutil.h"
 
+#include "RNA_prototypes.h"
+
 #include "SEQ_effects.h"
 #include "SEQ_iterator.h"
 #include "SEQ_prefetch.h"
@@ -476,7 +478,7 @@ static void draw_seq_waveform_overlay(View2D *v2d,
 
       bool is_line_strip = (value_max - value_min < 0.05f);
 
-      if (was_line_strip != -1 && is_line_strip != was_line_strip) {
+      if (!ELEM(was_line_strip, -1, is_line_strip)) {
         /* If the previously added strip type isn't the same as the current one,
          * add transition areas so they transition smoothly between each other. */
         if (is_line_strip) {
@@ -2679,7 +2681,6 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   Editing *ed = SEQ_editing_get(scene);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   View2D *v2d = &region->v2d;
-  short cfra_flag = 0;
   float col[3];
 
   seq_prefetch_wm_notify(C, scene);
@@ -2690,12 +2691,7 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   GPU_depth_test(GPU_DEPTH_NONE);
 
   UI_GetThemeColor3fv(TH_BACK, col);
-  if (ed && ed->metastack.first) {
-    GPU_clear_color(col[0], col[1], col[2] - 0.1f, 0.0f);
-  }
-  else {
-    GPU_clear_color(col[0], col[1], col[2], 0.0f);
-  }
+  GPU_clear_color(col[0], col[1], col[2], 0.0f);
 
   UI_view2d_view_ortho(v2d);
   draw_seq_timeline_channels(v2d);
@@ -2731,9 +2727,6 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   }
 
   UI_view2d_view_ortho(v2d);
-  if ((sseq->flag & SEQ_DRAWFRAMES) == 0) {
-    cfra_flag |= DRAWCFRA_UNIT_SECONDS;
-  }
 
   UI_view2d_view_orthoSpecial(region, v2d, 1);
   int marker_draw_flag = DRAW_MARKERS_MARGIN;

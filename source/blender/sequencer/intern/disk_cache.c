@@ -160,10 +160,11 @@ static DiskCacheFile *seq_disk_cache_add_file_to_list(SeqDiskCache *disk_cache, 
 static void seq_disk_cache_get_files(SeqDiskCache *disk_cache, char *path)
 {
   struct direntry *filelist, *fl;
-  uint nbr, i;
+  uint i;
   disk_cache->size_total = 0;
 
-  i = nbr = BLI_filelist_dir_contents(path, &filelist);
+  const int filelist_num = BLI_filelist_dir_contents(path, &filelist);
+  i = filelist_num;
   fl = filelist;
   while (i--) {
     /* Don't follow links. */
@@ -194,7 +195,7 @@ static void seq_disk_cache_get_files(SeqDiskCache *disk_cache, char *path)
     }
     fl++;
   }
-  BLI_filelist_free(filelist, nbr);
+  BLI_filelist_free(filelist, filelist_num);
 }
 
 static DiskCacheFile *seq_disk_cache_get_oldest_file(SeqDiskCache *disk_cache)

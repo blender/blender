@@ -8,6 +8,7 @@ set(INC
   ../../depsgraph
   ../../makesdna
   ../../makesrna
+  ../../sequencer
   ../../windowmanager
 )
 

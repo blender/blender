@@ -314,7 +314,7 @@ bool outliner_tree_traverse(const SpaceOutliner *space_outliner,
   return true;
 }
 
-float outliner_restrict_columns_width(const SpaceOutliner *space_outliner)
+float outliner_right_columns_width(const SpaceOutliner *space_outliner)
 {
   int num_columns = 0;
 
@@ -322,8 +322,10 @@ float outliner_restrict_columns_width(const SpaceOutliner *space_outliner)
     case SO_DATA_API:
     case SO_SEQUENCE:
     case SO_LIBRARIES:
-    case SO_OVERRIDES_LIBRARY:
       return 0.0f;
+    case SO_OVERRIDES_LIBRARY:
+      num_columns = OL_RNA_COL_SIZEX / UI_UNIT_X;
+      break;
     case SO_ID_ORPHANS:
       num_columns = 3;
       break;
@@ -384,6 +386,11 @@ bool outliner_is_element_visible(const TreeElement *te)
   }
 
   return true;
+}
+
+bool outliner_is_element_in_view(const TreeElement *te, const View2D *v2d)
+{
+  return ((te->ys + UI_UNIT_Y) >= v2d->cur.ymin) && (te->ys <= v2d->cur.ymax);
 }
 
 bool outliner_item_is_co_over_name_icons(const TreeElement *te, float view_co_x)

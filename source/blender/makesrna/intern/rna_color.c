@@ -173,11 +173,7 @@ static char *rna_ColorRamp_path(PointerRNA *ptr)
         char *node_path;
 
         for (node = ntree->nodes.first; node; node = node->next) {
-          if (ELEM(node->type,
-                   SH_NODE_VALTORGB,
-                   CMP_NODE_VALTORGB,
-                   TEX_NODE_VALTORGB,
-                   GEO_NODE_LEGACY_ATTRIBUTE_COLOR_RAMP)) {
+          if (ELEM(node->type, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
             if (node->storage == ptr->data) {
               /* all node color ramp properties called 'color_ramp'
                * prepend path from ID to the node
@@ -304,11 +300,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
         bNode *node;
 
         for (node = ntree->nodes.first; node; node = node->next) {
-          if (ELEM(node->type,
-                   SH_NODE_VALTORGB,
-                   CMP_NODE_VALTORGB,
-                   TEX_NODE_VALTORGB,
-                   GEO_NODE_LEGACY_ATTRIBUTE_COLOR_RAMP)) {
+          if (ELEM(node->type, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
             BKE_ntree_update_tag_node_property(ntree, node);
             ED_node_tree_propagate_change(NULL, bmain, ntree);
           }
@@ -612,6 +604,11 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
                                                              PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
+
+  if (!id) {
+    /* Happens for color space settings on operators. */
+    return;
+  }
 
   if (GS(id->name) == ID_IM) {
     Image *ima = (Image *)id;

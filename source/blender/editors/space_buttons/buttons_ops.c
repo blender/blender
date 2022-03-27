@@ -31,6 +31,7 @@
 #include "ED_undo.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -295,7 +296,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     WM_operator_properties_create_ptr(&props_ptr, ot);
     RNA_string_set(&props_ptr, "filepath", str);
-    WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &props_ptr);
+    WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &props_ptr, NULL);
     WM_operator_properties_free(&props_ptr);
 
     MEM_freeN(str);

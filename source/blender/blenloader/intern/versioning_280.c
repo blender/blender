@@ -1550,7 +1550,7 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
 
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 69)) {
     /* Unify DOF settings (EEVEE part only) */
-    const int SCE_EEVEE_DOF_ENABLED = (1 << 7);
+    enum { SCE_EEVEE_DOF_ENABLED = (1 << 7) };
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE)) {
         if (scene->eevee.flag & SCE_EEVEE_DOF_ENABLED) {
@@ -2312,7 +2312,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     } \
   } \
   ((void)0)
-        const int SCE_EEVEE_DOF_ENABLED = (1 << 7);
+        enum { SCE_EEVEE_DOF_ENABLED = (1 << 7) };
         IDProperty *props = IDP_GetPropertyFromGroup(scene->layer_properties,
                                                      RE_engine_id_BLENDER_EEVEE);
         // EEVEE_GET_BOOL(props, volumetric_enable, SCE_EEVEE_VOLUMETRIC_ENABLED);
@@ -4032,7 +4032,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 70)) {
     /* New image alpha modes. */
     LISTBASE_FOREACH (Image *, image, &bmain->images) {
-      const int IMA_IGNORE_ALPHA = (1 << 12);
+      enum { IMA_IGNORE_ALPHA = (1 << 12) };
       if (image->flag & IMA_IGNORE_ALPHA) {
         image->alpha_mode = IMA_ALPHA_IGNORE;
         image->flag &= ~IMA_IGNORE_ALPHA;
@@ -4497,7 +4497,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
           clmd->sim_parms->max_internal_tension = 15.0f;
           clmd->sim_parms->internal_compression = 15.0f;
           clmd->sim_parms->max_internal_compression = 15.0f;
-          clmd->sim_parms->internal_spring_max_diversion = M_PI / 4.0f;
+          clmd->sim_parms->internal_spring_max_diversion = M_PI_4;
         }
       }
     }

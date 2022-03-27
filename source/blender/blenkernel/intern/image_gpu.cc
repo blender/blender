@@ -280,7 +280,7 @@ static GPUTexture **get_image_gpu_texture_ptr(Image *ima,
 {
   const bool in_range = (textarget >= 0) && (textarget < TEXTARGET_COUNT);
   BLI_assert(in_range);
-  BLI_assert(multiview_eye == 0 || multiview_eye == 1);
+  BLI_assert(ELEM(multiview_eye, 0, 1));
   const int resolution = (texture_resolution == IMA_TEXTURE_RESOLUTION_LIMITED) ? 1 : 0;
 
   if (in_range) {

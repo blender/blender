@@ -204,8 +204,7 @@ class WaveFunction : public fn::MultiFunction {
   }
 };
 
-static void sh_node_wave_tex_build_multi_function(
-    blender::nodes::NodeMultiFunctionBuilder &builder)
+static void sh_node_wave_tex_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   bNode &node = builder.node();
   NodeTexWave *tex = (NodeTexWave *)node.storage;

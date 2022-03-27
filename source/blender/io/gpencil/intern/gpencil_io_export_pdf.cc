@@ -43,10 +43,10 @@ static void error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no, void *UNU
 }
 
 /* Constructor. */
-GpencilExporterPDF::GpencilExporterPDF(const char *filename, const GpencilIOParams *iparams)
+GpencilExporterPDF::GpencilExporterPDF(const char *filepath, const GpencilIOParams *iparams)
     : GpencilExporter(iparams)
 {
-  filename_set(filename);
+  filepath_set(filepath);
 
   invert_axis_[0] = false;
   invert_axis_[1] = false;
@@ -78,16 +78,16 @@ bool GpencilExporterPDF::write()
 
   /* TODO: It looks `libharu` does not support unicode. */
 #if 0 /* `ifdef WIN32` */
-  char filename_cstr[FILE_MAX];
-  BLI_strncpy(filename_cstr, filename_, FILE_MAX);
+  char filepath_cstr[FILE_MAX];
+  BLI_strncpy(filepath_cstr, filepath_, FILE_MAX);
 
-  UTF16_ENCODE(filename_cstr);
-  std::wstring wstr(filename_cstr_16);
+  UTF16_ENCODE(filepath_cstr);
+  std::wstring wstr(filepath_cstr_16);
   res = HPDF_SaveToFile(pdf_, wstr.c_str());
 
-  UTF16_UN_ENCODE(filename_cstr);
+  UTF16_UN_ENCODE(filepath_cstr);
 #else
-  res = HPDF_SaveToFile(pdf_, filename_);
+  res = HPDF_SaveToFile(pdf_, filepath_);
 #endif
 
   return (res == 0) ? true : false;

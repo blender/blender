@@ -3385,7 +3385,8 @@ Base *ED_object_add_duplicate(
   const int remap_flag = BKE_object_is_in_editmode(ob) ? ID_REMAP_FORCE_OBDATA_IN_EDITMODE : 0;
   BKE_libblock_relink_to_newid(bmain, &ob->id, remap_flag);
 
-  /* DAG_relations_tag_update(bmain); */ /* caller must do */
+  /* Correct but the caller must do this. */
+  // DAG_relations_tag_update(bmain);
 
   if (ob->data != nullptr) {
     DEG_id_tag_update_ex(bmain, (ID *)ob->data, ID_RECALC_EDITORS);

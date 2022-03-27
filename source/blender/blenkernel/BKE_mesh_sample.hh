@@ -6,8 +6,7 @@
  * \ingroup bke
  */
 
-#include "FN_generic_virtual_array.hh"
-
+#include "BLI_generic_virtual_array.hh"
 #include "BLI_math_vec_types.hh"
 
 #include "BKE_attribute.h"
@@ -20,11 +19,6 @@ class OutputAttribute;
 }  // namespace blender::bke
 
 namespace blender::bke::mesh_surface_sample {
-
-using fn::CPPType;
-using fn::GMutableSpan;
-using fn::GSpan;
-using fn::GVArray;
 
 void sample_point_attribute(const Mesh &mesh,
                             Span<int> looptri_indices,

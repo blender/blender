@@ -17,6 +17,7 @@
 #include "CLG_log.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "GHOST_Path-api.h"
 

@@ -43,6 +43,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -2545,7 +2546,7 @@ static StitchState *stitch_select(bContext *C,
       return state;
     }
   }
-  else if (uv_find_nearest_edge_multi(scene, ssc->objects, ssc->objects_len, co, &hit)) {
+  else if (uv_find_nearest_edge_multi(scene, ssc->objects, ssc->objects_len, co, 0.0f, &hit)) {
     /* find StitchState from hit->ob */
     StitchState *state = NULL;
     for (uint ob_index = 0; ob_index < ssc->objects_len; ob_index++) {

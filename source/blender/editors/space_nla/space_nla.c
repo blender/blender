@@ -216,7 +216,6 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
   Scene *scene = CTX_data_scene(C);
   bAnimContext ac;
   View2D *v2d = &region->v2d;
-  short cfra_flag = 0;
 
   /* clear and setup matrix */
   UI_ThemeClearColor(TH_BACK);
@@ -238,11 +237,6 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
 
     /* text draw cached, in pixelspace now */
     UI_view2d_text_cache_draw(region);
-  }
-
-  /* current frame */
-  if (snla->flag & SNLA_DRAWTIME) {
-    cfra_flag |= DRAWCFRA_UNIT_SECONDS;
   }
 
   /* markers */
@@ -424,12 +418,6 @@ static void nla_main_region_message_subscribe(const wmRegionMessageSubscribePara
   /* Timeline depends on scene properties. */
   {
     bool use_preview = (scene->r.flag & SCER_PRV_RANGE);
-    extern PropertyRNA rna_Scene_frame_start;
-    extern PropertyRNA rna_Scene_frame_end;
-    extern PropertyRNA rna_Scene_frame_preview_start;
-    extern PropertyRNA rna_Scene_frame_preview_end;
-    extern PropertyRNA rna_Scene_use_preview_range;
-    extern PropertyRNA rna_Scene_frame_current;
     const PropertyRNA *props[] = {
         use_preview ? &rna_Scene_frame_preview_start : &rna_Scene_frame_start,
         use_preview ? &rna_Scene_frame_preview_end : &rna_Scene_frame_end,

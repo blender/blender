@@ -1374,6 +1374,7 @@ void ACTION_OT_interpolation_type(wmOperatorType *ot)
   /* id-props */
   ot->prop = RNA_def_enum(
       ot->srna, "type", rna_enum_beztriple_interpolation_mode_items, 0, "Type", "");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_ACTION);
 }
 
 /* ******************** Set Easing Operator *********************** */
@@ -1705,8 +1706,8 @@ static const EnumPropertyItem prop_actkeys_snap_types[] = {
      "NEAREST_FRAME",
      0,
      "Selection to Nearest Frame",
-     "Snap selected keyframes to the nearest (whole) frame (use to fix accidental subframe "
-     "offsets)"},
+     "Snap selected keyframes to the nearest (whole) frame "
+     "(use to fix accidental sub-frame offsets)"},
     {ACTKEYS_SNAP_NEAREST_SECOND,
      "NEAREST_SECOND",
      0,

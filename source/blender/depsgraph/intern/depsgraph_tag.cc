@@ -483,7 +483,7 @@ void deg_graph_node_tag_zero(Main *bmain,
     if (comp_node->type == NodeType::ANIMATION) {
       continue;
     }
-    else if (comp_node->type == NodeType::COPY_ON_WRITE) {
+    if (comp_node->type == NodeType::COPY_ON_WRITE) {
       id_node->is_cow_explicitly_tagged = true;
     }
 
@@ -865,7 +865,7 @@ void DEG_ids_clear_recalc(Depsgraph *depsgraph, const bool backup)
   if (!DEG_id_type_any_updated(depsgraph)) {
     return;
   }
-  /* Go over all ID nodes nodes, clearing tags. */
+  /* Go over all ID nodes, clearing tags. */
   for (deg::IDNode *id_node : deg_graph->id_nodes) {
     if (backup) {
       id_node->id_cow_recalc_backup |= id_node->id_cow->recalc;

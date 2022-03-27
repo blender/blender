@@ -172,6 +172,14 @@ class TestIdPropertyGroupView(TestHelper, unittest.TestCase):
         self.assertEqual(list(self.id.items()), [(k, v) for v, k in enumerate(text)])
         self.assertEqual(list(reversed(self.id.items())), list(reversed([(k, v) for v, k in enumerate(text)])))
 
+        # Check direct iteration is working as expected.
+        self.id["group"] = {ch: i for i, ch in enumerate(text)}
+        group = self.id["group"]
+
+        self.assertEqual(len(group), len(text))
+        self.assertEqual(list(iter(group)), text)
+
+
     def test_contains(self):
         # Check `idprop.types.IDPropertyGroupView{Keys/Values/Items}.__contains__`
         text = ["A", "B", "C"]

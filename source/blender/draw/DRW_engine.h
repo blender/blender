@@ -37,6 +37,7 @@ struct bContext;
 struct rcti;
 
 void DRW_engines_register(void);
+void DRW_engines_register_experimental(void);
 void DRW_engines_free(void);
 
 bool DRW_engine_render_support(struct DrawEngineType *draw_engine_type);

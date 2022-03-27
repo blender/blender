@@ -28,6 +28,7 @@ extern PyObject *bpy_intern_str_frame;
 extern PyObject *bpy_intern_str_properties;
 extern PyObject *bpy_intern_str_register;
 extern PyObject *bpy_intern_str_self;
+extern PyObject *bpy_intern_str_depsgraph;
 extern PyObject *bpy_intern_str_unregister;
 
 #ifdef __cplusplus

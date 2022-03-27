@@ -86,6 +86,7 @@ struct OBJExportParamsDefault {
     params.up_axis = OBJ_AXIS_Y_UP;
     params.scaling_factor = 1.f;
 
+    params.apply_modifiers = true;
     params.export_eval_mode = DAG_EVAL_VIEWPORT;
     params.export_selected_objects = false;
     params.export_uv = true;

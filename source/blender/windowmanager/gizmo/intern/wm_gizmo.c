@@ -16,6 +16,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -225,7 +226,7 @@ PointerRNA *WM_gizmo_operator_set(wmGizmo *gz,
   return &gzop->ptr;
 }
 
-int WM_gizmo_operator_invoke(bContext *C, wmGizmo *gz, wmGizmoOpElem *gzop)
+int WM_gizmo_operator_invoke(bContext *C, wmGizmo *gz, wmGizmoOpElem *gzop, const wmEvent *event)
 {
   if (gz->flag & WM_GIZMO_OPERATOR_TOOL_INIT) {
     /* Merge toolsettings into the gizmo properties. */
@@ -239,7 +240,7 @@ int WM_gizmo_operator_invoke(bContext *C, wmGizmo *gz, wmGizmoOpElem *gzop)
       IDP_MergeGroup(gzop->ptr.data, tref_ptr.data, false);
     }
   }
-  return WM_operator_name_call_ptr(C, gzop->type, WM_OP_INVOKE_DEFAULT, &gzop->ptr);
+  return WM_operator_name_call_ptr(C, gzop->type, WM_OP_INVOKE_DEFAULT, &gzop->ptr, event);
 }
 
 static void wm_gizmo_set_matrix_rotation_from_z_axis__internal(float matrix[4][4],
@@ -425,7 +426,7 @@ void WM_gizmo_modal_set_from_setup(struct wmGizmoMap *gzmap,
   }
   else {
     /* WEAK: but it works. */
-    WM_operator_name_call(C, "GIZMOGROUP_OT_gizmo_tweak", WM_OP_INVOKE_DEFAULT, NULL);
+    WM_operator_name_call(C, "GIZMOGROUP_OT_gizmo_tweak", WM_OP_INVOKE_DEFAULT, NULL, event);
   }
 }
 

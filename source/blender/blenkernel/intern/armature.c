@@ -2164,8 +2164,8 @@ void vec_roll_to_mat3_normalized(const float nor[3], const float roll, float r_m
   const float y = nor[1];
   const float z = nor[2];
 
-  float theta = 1.0f + y;                /* remapping Y from [-1,+1] to [0,2]. */
-  const float theta_alt = x * x + z * z; /* squared distance from origin in x,z plane. */
+  float theta = 1.0f + y;                /* Remapping Y from [-1,+1] to [0,2]. */
+  const float theta_alt = x * x + z * z; /* Squared distance from origin in x,z plane. */
   float rMatrix[3][3], bMatrix[3][3];
 
   BLI_ASSERT_UNIT_V3(nor);

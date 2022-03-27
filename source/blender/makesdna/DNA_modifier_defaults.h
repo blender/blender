@@ -145,7 +145,7 @@
     .compression_damp = 5.0f, \
     .shear_damp = 5.0f, \
     .internal_spring_max_length = 0.0f, \
-    .internal_spring_max_diversion = M_PI / 4.0f, \
+    .internal_spring_max_diversion = M_PI_4, \
     .vgroup_intern = 0, \
     .internal_tension = 15.0f, \
     .internal_compression = 15.0f, \

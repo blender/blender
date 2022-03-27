@@ -13,6 +13,7 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"

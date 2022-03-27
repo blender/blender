@@ -313,8 +313,8 @@ bool BLI_filename_make_safe(char *fname)
 
 bool BLI_path_make_safe(char *path)
 {
-  /* Simply apply BLI_filename_make_safe() over each component of the path.
-   * Luckily enough, same 'safe' rules applies to filenames and dirnames. */
+  /* Simply apply #BLI_filename_make_safe() over each component of the path.
+   * Luckily enough, same 'safe' rules applies to file & directory names. */
   char *curr_slash, *curr_path = path;
   bool changed = false;
   bool skip_first = false;
@@ -470,7 +470,7 @@ void BLI_path_rel(char *file, const char *relfile)
      * can happen with old recent-files.txt files */
     BLI_windows_get_default_root_dir(temp);
     ptemp = &temp[2];
-    if (relfile[0] != '\\' && relfile[0] != '/') {
+    if (!ELEM(relfile[0], '\\', '/')) {
       ptemp++;
     }
     BLI_strncpy(ptemp, relfile, FILE_MAX - 3);
@@ -629,7 +629,7 @@ bool BLI_path_parent_dir(char *path)
   BLI_path_normalize(NULL, tmp); /* does all the work of normalizing the path for us */
 
   if (!BLI_path_extension_check(tmp, parent_dir)) {
-    strcpy(path, tmp); /* We assume pardir is always shorter... */
+    strcpy(path, tmp); /* We assume the parent directory is always shorter. */
     return true;
   }
 

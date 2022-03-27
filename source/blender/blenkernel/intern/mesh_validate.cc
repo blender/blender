@@ -577,7 +577,8 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       else if (mp->loopstart + mp->totloop > totloop) {
         /* Invalid loop data. */
         PRINT_ERR(
-            "\tPoly %u uses loops out of range (loopstart: %d, loopend: %d, max nbr of loops: %u)",
+            "\tPoly %u uses loops out of range "
+            "(loopstart: %d, loopend: %d, max number of loops: %u)",
             sp->index,
             mp->loopstart,
             mp->loopstart + mp->totloop - 1,
@@ -1049,41 +1050,40 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata,
 
 bool BKE_mesh_validate(Mesh *me, const bool do_verbose, const bool cddata_check_mask)
 {
-  bool is_valid = true;
   bool changed;
 
   if (do_verbose) {
     CLOG_INFO(&LOG, 0, "MESH: %s", me->id.name + 2);
   }
 
-  is_valid &= BKE_mesh_validate_all_customdata(&me->vdata,
-                                               me->totvert,
-                                               &me->edata,
-                                               me->totedge,
-                                               &me->ldata,
-                                               me->totloop,
-                                               &me->pdata,
-                                               me->totpoly,
-                                               cddata_check_mask,
-                                               do_verbose,
-                                               true,
-                                               &changed);
+  BKE_mesh_validate_all_customdata(&me->vdata,
+                                   me->totvert,
+                                   &me->edata,
+                                   me->totedge,
+                                   &me->ldata,
+                                   me->totloop,
+                                   &me->pdata,
+                                   me->totpoly,
+                                   cddata_check_mask,
+                                   do_verbose,
+                                   true,
+                                   &changed);
 
-  is_valid &= BKE_mesh_validate_arrays(me,
-                                       me->mvert,
-                                       me->totvert,
-                                       me->medge,
-                                       me->totedge,
-                                       me->mface,
-                                       me->totface,
-                                       me->mloop,
-                                       me->totloop,
-                                       me->mpoly,
-                                       me->totpoly,
-                                       me->dvert,
-                                       do_verbose,
-                                       true,
-                                       &changed);
+  BKE_mesh_validate_arrays(me,
+                           me->mvert,
+                           me->totvert,
+                           me->medge,
+                           me->totedge,
+                           me->mface,
+                           me->totface,
+                           me->mloop,
+                           me->totloop,
+                           me->mpoly,
+                           me->totpoly,
+                           me->dvert,
+                           do_verbose,
+                           true,
+                           &changed);
 
   if (changed) {
     DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY_ALL_MODES);

@@ -32,6 +32,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "transform.h"
 #include "transform_snap.h"

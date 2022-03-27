@@ -39,7 +39,6 @@ using namespace blender::bke;
 using namespace blender::bke::idprop;
 
 /**
- * \file asset_indexer.cc
  * \brief Indexer for asset libraries.
  *
  * Indexes are stored per input file. Each index can contain zero to multiple asset entries.
@@ -494,15 +493,15 @@ struct AssetLibraryIndex {
       return;
     }
     struct direntry *dir_entries = nullptr;
-    int num_entries = BLI_filelist_dir_contents(index_path, &dir_entries);
-    for (int i = 0; i < num_entries; i++) {
+    const int dir_entries_num = BLI_filelist_dir_contents(index_path, &dir_entries);
+    for (int i = 0; i < dir_entries_num; i++) {
       struct direntry *entry = &dir_entries[i];
       if (BLI_str_endswith(entry->relname, ".index.json")) {
         unused_file_indices.add_as(std::string(entry->path));
       }
     }
 
-    BLI_filelist_free(dir_entries, num_entries);
+    BLI_filelist_free(dir_entries, dir_entries_num);
   }
 
   void mark_as_used(const std::string &filename)

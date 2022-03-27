@@ -131,7 +131,6 @@ void render_result_views_shallowcopy(struct RenderResult *dst, struct RenderResu
  * Free the views created temporarily.
  */
 void render_result_views_shallowdelete(struct RenderResult *rr);
-bool render_result_has_views(const struct RenderResult *rr);
 
 #define FOREACH_VIEW_LAYER_TO_RENDER_BEGIN(re_, iter_) \
   { \

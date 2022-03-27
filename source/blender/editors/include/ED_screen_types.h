@@ -13,7 +13,9 @@ extern "C" {
 
 /* ----------------------------------------------------- */
 
-/* for animplayer */
+/**
+ * For animation playback operator, stored in #bScreen.animtimer.customdata.
+ */
 typedef struct ScreenAnimData {
   ARegion *region; /* do not read from this, only for comparing if region exists */
   short redraws;
@@ -24,7 +26,7 @@ typedef struct ScreenAnimData {
   bool from_anim_edit;        /* playback was invoked from animation editor */
 } ScreenAnimData;
 
-/* for animplayer */
+/** #ScreenAnimData.flag */
 enum {
   /* user-setting - frame range is played backwards */
   ANIMPLAY_FLAG_REVERSE = (1 << 0),

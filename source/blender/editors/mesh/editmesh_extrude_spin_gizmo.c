@@ -44,7 +44,7 @@
 #  include "BKE_editmesh.h"
 #endif
 
-static const float dial_angle_partial = M_PI / 2;
+static const float dial_angle_partial = M_PI_2;
 static const float dial_angle_partial_margin = 0.92f;
 
 #define ORTHO_AXIS_OFFSET 2

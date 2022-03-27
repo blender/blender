@@ -71,7 +71,7 @@ void IMB_thumb_delete(const char *path, ThumbSize size);
 struct ImBuf *IMB_thumb_manage(const char *path, ThumbSize size, ThumbSource source);
 
 /**
- * Create the necessary dirs to store the thumbnails.
+ * Create the necessary directories to store the thumbnails.
  */
 void IMB_thumb_makedirs(void);
 

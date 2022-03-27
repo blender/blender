@@ -3,7 +3,7 @@
 /** \file
  * \ingroup bmesh
  *
- * Fill discreet edge loop(s) with faces.
+ * Fill discrete edge loop(s) with faces.
  */
 
 #include "MEM_guardedalloc.h"

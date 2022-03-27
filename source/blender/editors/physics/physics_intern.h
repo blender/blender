@@ -58,7 +58,7 @@ void PE_create_particle_edit(struct Depsgraph *depsgraph,
  */
 void recalc_lengths(struct PTCacheEdit *edit);
 /**
- * Calculate a tree for finding nearest emitter's vertice.
+ * Calculate a tree for finding nearest emitter's vertices.
  */
 void recalc_emitter_field(struct Depsgraph *depsgraph,
                           struct Object *ob,

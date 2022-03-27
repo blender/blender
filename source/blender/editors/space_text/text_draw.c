@@ -36,7 +36,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-/******************** text font drawing ******************/
+/* -------------------------------------------------------------------- */
+/** \name Text Font Drawing
+ * \{ */
 
 typedef struct TextDrawContext {
   int font_id;
@@ -141,11 +143,14 @@ static void format_draw_color(const TextDrawContext *tdc, char formatchar)
   }
 }
 
-/************************** draw text *****************************/
+/** \} */
 
-/**
- * Notes on word-wrap
- * --
+/* -------------------------------------------------------------------- */
+/** \name Draw Text
+ *
+ * Notes on Word-Wrap
+ * ==================
+ *
  * All word-wrap functions follow the algorithm below to maintain consistency:
  * - line:
  *   The line to wrap (tabs converted to spaces)
@@ -170,7 +175,8 @@ static void format_draw_color(const TextDrawContext *tdc, char formatchar)
  *         pos += 1
  *     print line[draw_start:]
  * \encode
- */
+ *
+ * \{ */
 
 int wrap_width(const SpaceText *st, ARegion *region)
 {
@@ -556,7 +562,11 @@ static void text_draw(const SpaceText *st,
   flatten_string_free(&fs);
 }
 
-/************************ cache utilities *****************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Cache Utilities
+ * \{ */
 
 typedef struct DrawCache {
   int *line_height;
@@ -766,7 +776,11 @@ void text_free_caches(SpaceText *st)
   }
 }
 
-/************************ word-wrap utilities *****************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Word-Wrap Utilities
+ * \{ */
 
 /* cache should be updated in caller */
 static int text_get_visible_lines_no(const SpaceText *st, int lineno)
@@ -845,7 +859,11 @@ int text_get_total_lines(SpaceText *st, ARegion *region)
   return drawcache->total_lines;
 }
 
-/************************ draw scrollbar *****************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Draw Scroll-Bar
+ * \{ */
 
 static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *scroll, rcti *back)
 {
@@ -1006,9 +1024,14 @@ static void draw_textscroll(const SpaceText *st, rcti *scroll, rcti *back)
       col);
 }
 
-/*********************** draw documentation *******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Draw Documentation
+ * \{ */
 
 #if 0
+
 static void draw_documentation(const SpaceText *st, ARegion *region)
 {
   TextDrawContext tdc = {0};
@@ -1086,7 +1109,7 @@ static void draw_documentation(const SpaceText *st, ARegion *region)
     if (*p == '\r' && *(++p) != '\n') {
       *(--p) = '\n'; /* Fix line endings */
     }
-    if (*p == ' ' || *p == '\t') {
+    if (ELEM(*p, ' ', '\t')) {
       br = i;
     }
     else if (*p == '\n') {
@@ -1116,9 +1139,14 @@ static void draw_documentation(const SpaceText *st, ARegion *region)
     }
   }
 }
+
 #endif
 
-/*********************** draw suggestion list *******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Draw Suggestion List
+ * \{ */
 
 static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc, ARegion *region)
 {
@@ -1221,7 +1249,11 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
   }
 }
 
-/*********************** draw cursor ************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Draw Cursor
+ * \{ */
 
 static void draw_text_decoration(SpaceText *st, ARegion *region)
 {
@@ -1383,7 +1415,11 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
   immUnbindProgram();
 }
 
-/******************* draw matching brackets *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Draw Matching Brackets
+ * \{ */
 
 static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegion *region)
 {
@@ -1544,7 +1580,11 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
   }
 }
 
-/*********************** main region drawing *************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Main Region Drawing
+ * \{ */
 
 void draw_text_main(SpaceText *st, ARegion *region)
 {
@@ -1707,7 +1747,11 @@ void draw_text_main(SpaceText *st, ARegion *region)
   text_font_end(&tdc);
 }
 
-/************************** update ***************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Update & Coordinate Conversion
+ * \{ */
 
 void text_update_character_width(SpaceText *st)
 {
@@ -1861,3 +1905,5 @@ error:
   r_pixel_co[0] = r_pixel_co[1] = -1;
   return false;
 }
+
+/** \} */

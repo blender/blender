@@ -64,6 +64,8 @@ static PyStructSequence_Field app_cb_info_fields[] = {
     {"load_factory_preferences_post", "on loading factory preferences (after)"},
     {"load_factory_startup_post", "on loading factory startup (after)"},
     {"xr_session_start_pre", "on starting an xr session (before)"},
+    {"annotation_pre", "on drawing an annotation (before)"},
+    {"annotation_post", "on drawing an annotation (after)"},
 
 /* sets the permanent tag */
 #define APP_CB_OTHER_FIELDS 1
@@ -276,7 +278,7 @@ void BPY_app_handlers_reset(const short do_all)
         }
         else {
           /* remove */
-          /* PySequence_DelItem(ls, i); */ /* more obvious but slower */
+          // PySequence_DelItem(ls, i); /* more obvious but slower */
           PyList_SetSlice(ls, i, i + 1, NULL);
         }
       }

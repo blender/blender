@@ -208,7 +208,7 @@ void BLI_bitmap_draw_2d_tri_v2i(
     void (*callback)(int x, int x_end, int y, void *),
     void *user_data)
 {
-  /* At first sort the three vertices by y-coordinate ascending so p1 is the top-most vertice */
+  /* At first sort the three vertices by y-coordinate ascending so p1 is the top-most vertex */
   ORDER_VARS3_BY(const int *, p1, p2, p3, [1]);
 
   BLI_assert(p1[1] <= p2[1] && p2[1] <= p3[1]);

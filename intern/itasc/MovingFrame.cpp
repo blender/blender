@@ -1,11 +1,8 @@
-/** \file itasc/MovingFrame.cpp
+/* SPDX-License-Identifier: LGPL-2.1-or-later
+ * Copyright 2009 Benoit Bolsee. */
+
+/** \file
  * \ingroup intern_itasc
- */
-/*
- * MovingFrame.cpp
- *
- *  Created on: Feb 10, 2009
- *      Author: benoitbolsee
  */
 
 #include "MovingFrame.hpp"

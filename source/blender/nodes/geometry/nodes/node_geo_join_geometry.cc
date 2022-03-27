@@ -1,15 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_material.h"
-#include "BKE_mesh.h"
-#include "BKE_mesh_runtime.h"
-#include "BKE_pointcloud.h"
-#include "BKE_spline.hh"
-#include "BKE_type_conversions.hh"
-
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
 #include "GEO_realize_instances.hh"
 
 #include "node_geometry_util.hh"

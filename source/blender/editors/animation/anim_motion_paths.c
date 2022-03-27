@@ -340,55 +340,6 @@ static void motionpath_free_free_tree_data(ListBase *targets)
   }
 }
 
-void animviz_motionpath_compute_range(Object *ob, Scene *scene)
-{
-  struct AnimKeylist *keylist = ED_keylist_create();
-  bAnimVizSettings *avs;
-  if (ob->mode == OB_MODE_POSE) {
-    avs = &ob->pose->avs;
-    bArmature *arm = ob->data;
-
-    if (!ELEM(NULL, ob->adt, ob->adt->action, arm->adt)) {
-      /* Loop through all the fcurves and get only the keylists for the bone location fcurves */
-      LISTBASE_FOREACH (FCurve *, fcu, &ob->adt->action->curves) {
-        if (strstr(fcu->rna_path, "pose.bones[") && strstr(fcu->rna_path, "location")) {
-          fcurve_to_keylist(arm->adt, fcu, keylist, 0);
-        }
-      }
-    }
-  }
-  else {
-    avs = &ob->avs;
-
-    if (!ELEM(NULL, ob->adt, ob->adt->action)) {
-      /* Loop through all the fcurves and get only the keylists for the location fcurves */
-      LISTBASE_FOREACH (FCurve *, fcu, &ob->adt->action->curves) {
-        if (strcmp(fcu->rna_path, "location") == 0) {
-          fcurve_to_keylist(ob->adt, fcu, keylist, 0);
-        }
-      }
-    }
-  }
-
-  if (ED_keylist_is_empty(keylist) || (avs->path_range == MOTIONPATH_RANGE_SCENE)) {
-    /* Apply scene frame range if no keys where found or if scene range is selected */
-    avs->path_sf = PSFRA;
-    avs->path_ef = PEFRA;
-  }
-  else {
-    /* Compute keys range */
-    Range2f frame_range;
-    const bool only_selected = avs->path_range == MOTIONPATH_RANGE_KEYS_SELECTED;
-    /* Get range for all keys if selected_only is false or if no keys are selected */
-    if (!(only_selected && ED_keylist_selected_keys_frame_range(keylist, &frame_range))) {
-      ED_keylist_all_keys_frame_range(keylist, &frame_range);
-    }
-    avs->path_sf = frame_range.min;
-    avs->path_ef = frame_range.max;
-  }
-  ED_keylist_free(keylist);
-}
-
 void animviz_calc_motionpaths(Depsgraph *depsgraph,
                               Main *bmain,
                               Scene *scene,

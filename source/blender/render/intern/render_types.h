@@ -99,7 +99,7 @@ struct Render {
   void *dih;
   void (*display_clear)(void *handle, RenderResult *rr);
   void *dch;
-  void (*display_update)(void *handle, RenderResult *rr, volatile rcti *rect);
+  void (*display_update)(void *handle, RenderResult *rr, rcti *rect);
   void *duh;
   void (*current_scene_update)(void *handle, struct Scene *scene);
   void *suh;

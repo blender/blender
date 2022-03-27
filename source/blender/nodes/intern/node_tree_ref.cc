@@ -7,6 +7,8 @@
 #include "BLI_dot_export.hh"
 #include "BLI_stack.hh"
 
+#include "RNA_prototypes.h"
+
 namespace blender::nodes {
 
 NodeTreeRef::NodeTreeRef(bNodeTree *btree) : btree_(btree)

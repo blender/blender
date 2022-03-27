@@ -28,21 +28,6 @@ bool geo_node_poll_default(struct bNodeType *ntype,
                            const char **r_disabled_hint);
 
 namespace blender::nodes {
-/**
- * Update the availability of a group of input sockets with the same name,
- * used for switching between attribute inputs or single values.
- *
- * \param mode: Controls which socket of the group to make available.
- * \param name_is_available: If false, make all sockets with this name unavailable.
- */
-void update_attribute_input_socket_availabilities(bNodeTree &ntree,
-                                                  bNode &node,
-                                                  const StringRef name,
-                                                  GeometryNodeAttributeInputMode mode,
-                                                  bool name_is_available = true);
-
-Array<uint32_t> get_geometry_element_ids_as_uints(const GeometryComponent &component,
-                                                  AttributeDomain domain);
 
 void transform_mesh(Mesh &mesh,
                     const float3 translation,
@@ -92,28 +77,6 @@ void separate_geometry(GeometrySet &geometry_set,
                        const Field<bool> &selection_field,
                        bool invert,
                        bool &r_is_error);
-
-struct CurveToPointsResults {
-  int result_size;
-  MutableSpan<float3> positions;
-  MutableSpan<float> radii;
-  MutableSpan<float> tilts;
-
-  Map<AttributeIDRef, GMutableSpan> point_attributes;
-
-  MutableSpan<float3> tangents;
-  MutableSpan<float3> normals;
-  MutableSpan<float3> rotations;
-};
-/**
- * Create references for all result point cloud attributes to simplify accessing them later on.
- */
-CurveToPointsResults curve_to_points_create_result_attributes(PointCloudComponent &points,
-                                                              const CurveEval &curve);
-
-void curve_create_default_rotation_attribute(Span<float3> tangents,
-                                             Span<float3> normals,
-                                             MutableSpan<float3> rotations);
 
 std::optional<CustomDataType> node_data_type_to_custom_data_type(eNodeSocketDatatype type);
 std::optional<CustomDataType> node_socket_to_custom_data_type(const bNodeSocket &socket);

@@ -445,6 +445,16 @@ const char *FallbackImpl::colorSpaceGetFamily(OCIO_ConstColorSpaceRcPtr * /*cs*/
   return "";
 }
 
+int FallbackImpl::colorSpaceGetNumAliases(OCIO_ConstColorSpaceRcPtr * /*cs*/)
+{
+  return 0;
+}
+const char *FallbackImpl::colorSpaceGetAlias(OCIO_ConstColorSpaceRcPtr * /*cs*/,
+                                             const int /*index*/)
+{
+  return "";
+}
+
 OCIO_ConstProcessorRcPtr *FallbackImpl::createDisplayProcessor(OCIO_ConstConfigRcPtr * /*config*/,
                                                                const char * /*input*/,
                                                                const char * /*view*/,

@@ -233,7 +233,7 @@ static bool use_sequencer_snapping(bContext *C)
 
   Scene *scene = CTX_data_scene(C);
   short snap_flag = SEQ_tool_settings_snap_flag_get(scene);
-  return (scene->toolsettings->snap_flag & SCE_SNAP_SEQ) &&
+  return (scene->toolsettings->snap_flag_seq & SCE_SNAP) &&
          (snap_flag & SEQ_SNAP_CURRENT_FRAME_TO_STRIPS);
 }
 

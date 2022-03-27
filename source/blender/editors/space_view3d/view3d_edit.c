@@ -507,19 +507,17 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
  * Wraps walk/fly modes.
  * \{ */
 
-static int view3d_navigate_invoke(bContext *C,
-                                  wmOperator *UNUSED(op),
-                                  const wmEvent *UNUSED(event))
+static int view3d_navigate_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
   eViewNavigation_Method mode = U.navigation_mode;
 
   switch (mode) {
     case VIEW_NAVIGATION_FLY:
-      WM_operator_name_call(C, "VIEW3D_OT_fly", WM_OP_INVOKE_DEFAULT, NULL);
+      WM_operator_name_call(C, "VIEW3D_OT_fly", WM_OP_INVOKE_DEFAULT, NULL, event);
       break;
     case VIEW_NAVIGATION_WALK:
     default:
-      WM_operator_name_call(C, "VIEW3D_OT_walk", WM_OP_INVOKE_DEFAULT, NULL);
+      WM_operator_name_call(C, "VIEW3D_OT_walk", WM_OP_INVOKE_DEFAULT, NULL, event);
       break;
   }
 
@@ -1063,7 +1061,8 @@ static int view3d_cursor3d_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   const enum eV3DCursorOrient orientation = RNA_enum_get(op->ptr, "orientation");
   ED_view3d_cursor3d_update(C, event->mval, use_depth, orientation);
 
-  return OPERATOR_FINISHED;
+  /* Use pass-through to allow click-drag to transform the cursor. */
+  return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
 }
 
 void VIEW3D_OT_cursor3d(wmOperatorType *ot)

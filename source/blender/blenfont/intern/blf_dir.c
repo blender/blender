@@ -132,12 +132,12 @@ char *blf_dir_search(const char *file)
   return s;
 }
 
-char *blf_dir_metrics_search(const char *filename)
+char *blf_dir_metrics_search(const char *filepath)
 {
   char *mfile;
   char *s;
 
-  mfile = BLI_strdup(filename);
+  mfile = BLI_strdup(filepath);
   s = strrchr(mfile, '.');
   if (s) {
     if (BLI_strnlen(s, 4) < 4) {

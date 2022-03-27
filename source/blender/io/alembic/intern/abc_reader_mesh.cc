@@ -658,7 +658,7 @@ bool AbcMeshReader::accepts_object_type(
   return true;
 }
 
-bool AbcMeshReader::topology_changed(Mesh *existing_mesh, const ISampleSelector &sample_sel)
+bool AbcMeshReader::topology_changed(const Mesh *existing_mesh, const ISampleSelector &sample_sel)
 {
   IPolyMeshSchema::Sample sample;
   try {

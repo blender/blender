@@ -28,7 +28,7 @@ extern "C" {
  *
  * \param n: the dimension of the vectors (and hence, of the covariance matrix to compute).
  * \param cos_vn: the nD points to compute covariance from.
- * \param nbr_cos_vn: the number of nD coordinates in cos_vn.
+ * \param cos_vn_num: the number of nD coordinates in cos_vn.
  * \param center: the center (or mean point) of cos_vn. If NULL,
  * it is assumed cos_vn is already centered.
  * \param use_sample_correction: whether to apply sample correction
@@ -37,7 +37,7 @@ extern "C" {
  */
 void BLI_covariance_m_vn_ex(int n,
                             const float *cos_vn,
-                            int nbr_cos_vn,
+                            int cos_vn_num,
                             const float *center,
                             bool use_sample_correction,
                             float *r_covmat);
@@ -45,12 +45,12 @@ void BLI_covariance_m_vn_ex(int n,
  * \brief Compute the covariance matrix of given set of 3D coordinates.
  *
  * \param cos_v3: the 3D points to compute covariance from.
- * \param nbr_cos_v3: the number of 3D coordinates in cos_v3.
+ * \param cos_v3_num: the number of 3D coordinates in cos_v3.
  * \return r_covmat the computed covariance matrix.
  * \return r_center the computed center (mean) of 3D points (may be NULL).
  */
 void BLI_covariance_m3_v3n(const float (*cos_v3)[3],
-                           int nbr_cos_v3,
+                           int cos_v3_num,
                            bool use_sample_correction,
                            float r_covmat[3][3],
                            float r_center[3]);

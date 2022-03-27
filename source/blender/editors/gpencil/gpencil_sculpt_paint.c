@@ -54,6 +54,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "UI_view2d.h"
 
@@ -328,16 +329,16 @@ static bool gpencil_brush_smooth_apply(tGP_BrushEditData *gso,
 
   /* perform smoothing */
   if (gso->brush->gpencil_settings->sculpt_mode_flag & GP_SCULPT_FLAGMODE_APPLY_POSITION) {
-    BKE_gpencil_stroke_smooth_point(gps, pt_index, inf, false);
+    BKE_gpencil_stroke_smooth_point(gps, pt_index, inf, 2, false, false, gps);
   }
   if (gso->brush->gpencil_settings->sculpt_mode_flag & GP_SCULPT_FLAGMODE_APPLY_STRENGTH) {
-    BKE_gpencil_stroke_smooth_strength(gps, pt_index, inf);
+    BKE_gpencil_stroke_smooth_strength(gps, pt_index, inf, 2, gps);
   }
   if (gso->brush->gpencil_settings->sculpt_mode_flag & GP_SCULPT_FLAGMODE_APPLY_THICKNESS) {
-    BKE_gpencil_stroke_smooth_thickness(gps, pt_index, inf);
+    BKE_gpencil_stroke_smooth_thickness(gps, pt_index, inf, 2, gps);
   }
   if (gso->brush->gpencil_settings->sculpt_mode_flag & GP_SCULPT_FLAGMODE_APPLY_UV) {
-    BKE_gpencil_stroke_smooth_uv(gps, pt_index, inf);
+    BKE_gpencil_stroke_smooth_uv(gps, pt_index, inf, 2, gps);
   }
 
   return true;

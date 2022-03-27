@@ -2,11 +2,10 @@
 
 #include "BLI_index_mask.hh"
 
-#include "BKE_spline.hh"
-
 #pragma once
 
 struct Mesh;
+struct Curves;
 class MeshComponent;
 
 /** \file
@@ -20,7 +19,6 @@ namespace blender::geometry {
  * intersections of more than three edges will become breaks in splines. Attributes that
  * are not built-in on meshes and not curves are transferred to the result curve.
  */
-std::unique_ptr<CurveEval> mesh_to_curve_convert(const MeshComponent &mesh_component,
-                                                 const IndexMask selection);
+Curves *mesh_to_curve_convert(const MeshComponent &mesh_component, const IndexMask selection);
 
 }  // namespace blender::geometry

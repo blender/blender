@@ -295,16 +295,14 @@ static void graph_main_region_draw_overlay(const bContext *C, ARegion *region)
   /* draw entirely, view changes should be handled here */
   const SpaceGraph *sipo = CTX_wm_space_graph(C);
 
-  /* Driver Editor's X axis is not time. */
-  if (sipo->mode == SIPO_MODE_DRIVERS) {
-    return;
-  }
-
   const Scene *scene = CTX_data_scene(C);
   View2D *v2d = &region->v2d;
 
-  /* scrubbing region */
-  ED_time_scrub_draw_current_frame(region, scene, sipo->flag & SIPO_DRAWTIME);
+  /* Driver Editor's X axis is not time. */
+  if (sipo->mode != SIPO_MODE_DRIVERS) {
+    /* scrubbing region */
+    ED_time_scrub_draw_current_frame(region, scene, sipo->flag & SIPO_DRAWTIME);
+  }
 
   /* scrollers */
   /* FIXME: args for scrollers depend on the type of data being shown. */
@@ -479,12 +477,6 @@ static void graph_region_message_subscribe(const wmRegionMessageSubscribeParams 
   /* Timeline depends on scene properties. */
   {
     bool use_preview = (scene->r.flag & SCER_PRV_RANGE);
-    extern PropertyRNA rna_Scene_frame_start;
-    extern PropertyRNA rna_Scene_frame_end;
-    extern PropertyRNA rna_Scene_frame_preview_start;
-    extern PropertyRNA rna_Scene_frame_preview_end;
-    extern PropertyRNA rna_Scene_use_preview_range;
-    extern PropertyRNA rna_Scene_frame_current;
     const PropertyRNA *props[] = {
         use_preview ? &rna_Scene_frame_preview_start : &rna_Scene_frame_start,
         use_preview ? &rna_Scene_frame_preview_end : &rna_Scene_frame_end,

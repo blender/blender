@@ -51,6 +51,7 @@
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
@@ -80,6 +81,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -383,7 +385,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
  *   since there is no convenient way to calculate partial RNA paths.
  *
  * \note While the path to the ID is typically sufficient to calculate the remainder of the path,
- * in practice this would cause #WM_context_path_resolve_property_full to crate a path such as:
+ * in practice this would cause #WM_context_path_resolve_property_full to create a path such as:
  * `object.data.bones["Bones"].use_deform` such paths are not useful for key-shortcuts,
  * so this function supports returning data-paths directly to context members that aren't ID types.
  */
@@ -947,7 +949,7 @@ int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
       return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
     }
     /* Important not to return anything other than PASS_THROUGH here,
-     * otherwise it prevents underlying tweak detection code to work properly. */
+     * otherwise it prevents underlying drag detection code to work properly. */
     return OPERATOR_PASS_THROUGH;
   }
 
@@ -956,8 +958,13 @@ int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 int WM_generic_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  RNA_int_set(op->ptr, "mouse_x", event->mval[0]);
-  RNA_int_set(op->ptr, "mouse_y", event->mval[1]);
+  ARegion *region = CTX_wm_region(C);
+
+  int mval[2];
+  WM_event_drag_start_mval(event, region, mval);
+
+  RNA_int_set(op->ptr, "mouse_x", mval[0]);
+  RNA_int_set(op->ptr, "mouse_y", mval[1]);
 
   op->customdata = POINTER_FROM_INT(0);
 
@@ -1984,7 +1991,7 @@ static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
 {
   ot->name = "Toggle Window Fullscreen";
   ot->idname = "WM_OT_window_fullscreen_toggle";
-  ot->description = "Toggle the current window fullscreen";
+  ot->description = "Toggle the current window full-screen";
 
   ot->exec = wm_window_fullscreen_toggle_exec;
   ot->poll = WM_operator_winactive;
@@ -3592,8 +3599,11 @@ static int doc_view_manual_ui_context_exec(bContext *C, wmOperator *UNUSED(op))
     WM_operator_properties_create(&ptr_props, "WM_OT_doc_view_manual");
     RNA_string_set(&ptr_props, "doc_id", buf);
 
-    retval = WM_operator_name_call_ptr(
-        C, WM_operatortype_find("WM_OT_doc_view_manual", false), WM_OP_EXEC_DEFAULT, &ptr_props);
+    retval = WM_operator_name_call_ptr(C,
+                                       WM_operatortype_find("WM_OT_doc_view_manual", false),
+                                       WM_OP_EXEC_DEFAULT,
+                                       &ptr_props,
+                                       NULL);
 
     WM_operator_properties_free(&ptr_props);
   }

@@ -19,6 +19,8 @@ set(INC
 
   # dna_type_offsets.h
   ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 
@@ -91,9 +93,9 @@ set(SRC
   nodes/node_composite_scene_time.cc
   nodes/node_composite_sepcomb_hsva.cc
   nodes/node_composite_sepcomb_rgba.cc
+  nodes/node_composite_sepcomb_xyz.cc
   nodes/node_composite_sepcomb_ycca.cc
   nodes/node_composite_sepcomb_yuva.cc
-  nodes/node_composite_sepcomb_xyz.cc
   nodes/node_composite_setalpha.cc
   nodes/node_composite_split_viewer.cc
   nodes/node_composite_stabilize2d.cc
@@ -141,3 +143,5 @@ endif()
 
 # Needed so we can use dna_type_offsets.h for defaults initialization.
 add_dependencies(bf_nodes_composite bf_dna)
+# RNA_prototypes.h
+add_dependencies(bf_nodes_composite bf_rna)

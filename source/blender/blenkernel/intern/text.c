@@ -143,7 +143,7 @@ static void text_copy_data(Main *UNUSED(bmain),
 /** Free (or release) any data used by this text (does not free the text itself). */
 static void text_free_data(ID *id)
 {
-  /* No animdata here. */
+  /* No animation-data here. */
   Text *text = (Text *)id;
 
   BKE_text_free_lines(text);
@@ -1349,7 +1349,7 @@ void txt_sel_set(Text *text, int startl, int startc, int endl, int endc)
  * - Are not null terminated.
  * \{ */
 
-char *txt_to_buf_for_undo(Text *text, int *r_buf_len)
+char *txt_to_buf_for_undo(Text *text, size_t *r_buf_len)
 {
   int buf_len = 0;
   LISTBASE_FOREACH (const TextLine *, l, &text->lines) {
@@ -1366,7 +1366,7 @@ char *txt_to_buf_for_undo(Text *text, int *r_buf_len)
   return buf;
 }
 
-void txt_from_buf_for_undo(Text *text, const char *buf, int buf_len)
+void txt_from_buf_for_undo(Text *text, const char *buf, size_t buf_len)
 {
   const char *buf_end = buf + buf_len;
   const char *buf_step = buf;
@@ -1434,87 +1434,29 @@ void txt_from_buf_for_undo(Text *text, const char *buf, int buf_len)
 /** \name Cut and Paste Functions
  * \{ */
 
-char *txt_to_buf(Text *text, int *r_buf_strlen)
+char *txt_to_buf(Text *text, size_t *r_buf_strlen)
 {
-  int length;
-  TextLine *tmp, *linef, *linel;
-  int charf, charl;
-  char *buf;
-
-  if (r_buf_strlen) {
-    *r_buf_strlen = 0;
+  /* Identical to #txt_to_buf_for_undo except that the string is nil terminated. */
+  size_t buf_len = 0;
+  LISTBASE_FOREACH (const TextLine *, l, &text->lines) {
+    buf_len += l->len + 1;
   }
-
-  if (!text->curl) {
-    return NULL;
+  char *buf = MEM_mallocN(buf_len + 1, __func__);
+  char *buf_step = buf;
+  LISTBASE_FOREACH (const TextLine *, l, &text->lines) {
+    memcpy(buf_step, l->line, l->len);
+    buf_step += l->len;
+    *buf_step++ = '\n';
   }
-  if (!text->sell) {
-    return NULL;
-  }
-  if (!text->lines.first) {
-    return NULL;
-  }
-
-  linef = text->lines.first;
-  charf = 0;
-
-  linel = text->lines.last;
-  charl = linel->len;
-
-  if (linef == text->lines.last) {
-    length = charl - charf;
-
-    buf = MEM_mallocN(length + 2, "text buffer");
-
-    BLI_strncpy(buf, linef->line + charf, length + 1);
-    buf[length] = 0;
-  }
-  else {
-    length = linef->len - charf;
-    length += charl;
-    length += 2; /* For the 2 '\n' */
-
-    tmp = linef->next;
-    while (tmp && tmp != linel) {
-      length += tmp->len + 1;
-      tmp = tmp->next;
-    }
-
-    buf = MEM_mallocN(length + 1, "cut buffer");
-
-    strncpy(buf, linef->line + charf, linef->len - charf);
-    length = linef->len - charf;
-
-    buf[length++] = '\n';
-
-    tmp = linef->next;
-    while (tmp && tmp != linel) {
-      strncpy(buf + length, tmp->line, tmp->len);
-      length += tmp->len;
-
-      buf[length++] = '\n';
-
-      tmp = tmp->next;
-    }
-    strncpy(buf + length, linel->line, charl);
-    length += charl;
-
-    /* python compiler wants an empty end line */
-    buf[length++] = '\n';
-    buf[length] = 0;
-  }
-
-  if (r_buf_strlen) {
-    *r_buf_strlen = length;
-  }
-
+  *buf_step = '\0';
+  *r_buf_strlen = buf_len;
   return buf;
 }
 
-char *txt_sel_to_buf(Text *text, int *r_buf_strlen)
+char *txt_sel_to_buf(Text *text, size_t *r_buf_strlen)
 {
   char *buf;
-  int length = 0;
+  size_t length = 0;
   TextLine *tmp, *linef, *linel;
   int charf, charl;
 
@@ -1558,42 +1500,33 @@ char *txt_sel_to_buf(Text *text, int *r_buf_strlen)
 
   if (linef == linel) {
     length = charl - charf;
-
     buf = MEM_mallocN(length + 1, "sel buffer");
-
-    BLI_strncpy(buf, linef->line + charf, length + 1);
+    memcpy(buf, linef->line + charf, length);
+    buf[length] = '\0';
   }
   else {
-    length += linef->len - charf;
-    length += charl;
-    length++; /* For the '\n' */
+    /* Add 1 for the '\n' */
+    length = (linef->len - charf) + charl + 1;
 
-    tmp = linef->next;
-    while (tmp && tmp != linel) {
+    for (tmp = linef->next; tmp && tmp != linel; tmp = tmp->next) {
       length += tmp->len + 1;
-      tmp = tmp->next;
     }
 
     buf = MEM_mallocN(length + 1, "sel buffer");
 
-    strncpy(buf, linef->line + charf, linef->len - charf);
+    memcpy(buf, linef->line + charf, linef->len - charf);
     length = linef->len - charf;
-
     buf[length++] = '\n';
 
-    tmp = linef->next;
-    while (tmp && tmp != linel) {
-      strncpy(buf + length, tmp->line, tmp->len);
+    for (tmp = linef->next; tmp && tmp != linel; tmp = tmp->next) {
+      memcpy(buf + length, tmp->line, tmp->len);
       length += tmp->len;
-
       buf[length++] = '\n';
-
-      tmp = tmp->next;
     }
-    strncpy(buf + length, linel->line, charl);
-    length += charl;
 
-    buf[length] = 0;
+    memcpy(buf + length, linel->line, charl);
+    length += charl;
+    buf[length] = '\0';
   }
 
   if (r_buf_strlen) {

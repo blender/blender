@@ -719,7 +719,7 @@ void AnimationImporter::Assign_float_animations(const COLLADAFW::UniqueId &listi
           fcurve_deg_to_rad(fcu);
         }
       }
-      /** XXX What About animtype "rotation" ? */
+      /** XXX What About animation-type "rotation" ? */
 
       BLI_addtail(AnimCurves, fcu);
       fcurve_is_used(fcu);
@@ -1938,7 +1938,7 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm,
           return false;
         }
 
-        /* TODO: support other animclasses. */
+        /* TODO: support other animation-classes. */
         if (animclass != COLLADAFW::AnimationList::ANGLE) {
           report_class_type_unsupported(path, animclass, type);
           return false;

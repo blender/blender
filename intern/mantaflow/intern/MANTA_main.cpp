@@ -263,6 +263,8 @@ MANTA::MANTA(int *res, FluidModifierData *fmd)
   }
   /* All requested initializations must not fail in constructor. */
   BLI_assert(initSuccess);
+  (void)initSuccess; /* Ignored in release. */
+
   updatePointers(fmd);
 }
 

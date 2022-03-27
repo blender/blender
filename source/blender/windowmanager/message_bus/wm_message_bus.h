@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "RNA_prototypes.h"
 #include "RNA_types.h"
 #include <stdio.h>
 
@@ -194,16 +195,6 @@ typedef struct wmMsgSubscribeKey_RNA {
   wmMsg_RNA msg;
 } wmMsgSubscribeKey_RNA;
 
-#ifdef __GNUC__
-#  define _WM_MESSAGE_EXTERN_BEGIN \
-    _Pragma("GCC diagnostic push"); \
-    _Pragma("GCC diagnostic ignored \"-Wredundant-decls\"");
-#  define _WM_MESSAGE_EXTERN_END _Pragma("GCC diagnostic pop");
-#else
-#  define _WM_MESSAGE_EXTERN_BEGIN
-#  define _WM_MESSAGE_EXTERN_END
-#endif
-
 void WM_msgtypeinfo_init_rna(wmMsgTypeInfo *msgtype_info);
 
 wmMsgSubscribeKey_RNA *WM_msg_lookup_rna(struct wmMsgBus *mbus,
@@ -230,23 +221,9 @@ void WM_msg_subscribe_ID(struct wmMsgBus *mbus,
                          const char *id_repr);
 void WM_msg_publish_ID(struct wmMsgBus *mbus, struct ID *id);
 
-/* FIXME
- *
- * For C++ code, some of the following macros need to be called in functions wrapped in
- * `extern "C"` blocks. That is, the ones doing `extern PropertyRNA` declarations (trips up the
- * MSVC linker).
- * Although this shouldn't cause problems normally, if it does, the bits calling the macros can be
- * moved to a separate function wrapped in `extern "C"`.
- *
- * Obviously this should be fixed properly (by not relying on inline `extern` declarations).
- */
-
 #define WM_msg_publish_rna_prop(mbus, id_, data_, type_, prop_) \
   { \
     wmMsgParams_RNA msg_key_params_ = {{0}}; \
-    _WM_MESSAGE_EXTERN_BEGIN; \
-    extern PropertyRNA rna_##type_##_##prop_; \
-    _WM_MESSAGE_EXTERN_END; \
     RNA_pointer_create(id_, &RNA_##type_, data_, &msg_key_params_.ptr); \
     msg_key_params_.prop = &rna_##type_##_##prop_; \
     WM_msg_publish_rna_params(mbus, &msg_key_params_); \
@@ -255,9 +232,6 @@ void WM_msg_publish_ID(struct wmMsgBus *mbus, struct ID *id);
 #define WM_msg_subscribe_rna_prop(mbus, id_, data_, type_, prop_, value) \
   { \
     wmMsgParams_RNA msg_key_params_ = {{0}}; \
-    _WM_MESSAGE_EXTERN_BEGIN; \
-    extern PropertyRNA rna_##type_##_##prop_; \
-    _WM_MESSAGE_EXTERN_END; \
     RNA_pointer_create(id_, &RNA_##type_, data_, &msg_key_params_.ptr); \
     msg_key_params_.prop = &rna_##type_##_##prop_; \
     WM_msg_subscribe_rna_params(mbus, &msg_key_params_, value, __func__); \
@@ -276,10 +250,6 @@ void WM_msg_publish_ID(struct wmMsgBus *mbus, struct ID *id);
   ((void)0)
 #define WM_msg_subscribe_rna_anon_prop(mbus, type_, prop_, value) \
   { \
-    _WM_MESSAGE_EXTERN_BEGIN; \
-    extern PropertyRNA rna_##type_##_##prop_; \
-    _WM_MESSAGE_EXTERN_END; \
-\
     PointerRNA msg_ptr_ = {0, &RNA_##type_}; \
     wmMsgParams_RNA msg_key_params_ = {{0}}; \
     msg_key_params_.ptr = msg_ptr_; \

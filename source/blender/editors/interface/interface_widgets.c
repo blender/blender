@@ -3320,6 +3320,8 @@ static void ui_draw_separator(const rcti *rect, const uiWidgetColors *wcol)
 /** \name Button Draw Callbacks
  * \{ */
 
+#define NUM_BUT_PADDING_FACTOR 0.425f
+
 static void widget_numbut_draw(
     uiWidgetColors *wcol, rcti *rect, const float zoom, int state, int roundboxalign, bool emboss)
 {
@@ -3414,11 +3416,10 @@ static void widget_numbut_draw(
   }
 
   if (!(state & UI_STATE_TEXT_INPUT)) {
-    const float textofs = 0.425f * BLI_rcti_size_y(rect);
+    const float text_padding = NUM_BUT_PADDING_FACTOR * BLI_rcti_size_y(rect);
 
-    /* text space */
-    rect->xmin += textofs;
-    rect->xmax -= textofs;
+    rect->xmin += text_padding;
+    rect->xmax -= text_padding;
   }
 }
 
@@ -3753,7 +3754,6 @@ static void widget_numslider(
 
   /* Backdrop first. */
   const float ofs = widget_radius_from_zoom(zoom, wcol);
-  const float toffs = ofs * 0.75f;
   round_box_edges(&wtb, roundboxalign, rect, ofs);
 
   wtb.draw_outline = false;
@@ -3846,8 +3846,9 @@ static void widget_numslider(
   /* Add space at either side of the button so text aligns with number-buttons
    * (which have arrow icons). */
   if (!(state & UI_STATE_TEXT_INPUT)) {
-    rect->xmax -= toffs;
-    rect->xmin += toffs;
+    const float text_padding = NUM_BUT_PADDING_FACTOR * BLI_rcti_size_y(rect);
+    rect->xmax -= text_padding;
+    rect->xmin += text_padding;
   }
 }
 
@@ -4981,6 +4982,9 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
     }
   }
 #endif
+  if (but->block->flag & UI_BLOCK_NO_DRAW_OVERRIDDEN_STATE) {
+    state &= ~UI_BUT_OVERRIDDEN;
+  }
 
   const float zoom = 1.0f / but->block->aspect;
   wt->state(wt, state, drawflag, but->emboss);

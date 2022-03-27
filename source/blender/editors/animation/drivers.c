@@ -39,6 +39,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "anim_intern.h"
 
@@ -979,7 +980,7 @@ static int add_driver_button_menu_exec(bContext *C, wmOperator *op)
 
   /* XXX: We assume that it's fine to use the same set of properties,
    * since they're actually the same. */
-  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, op->ptr);
+  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, op->ptr, NULL);
 
   return OPERATOR_FINISHED;
 }

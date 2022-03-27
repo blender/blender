@@ -308,3 +308,21 @@ const char *DNA_struct_rename_legacy_hack_alias_from_static(const char *name)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal helpers for C++
+ * \{ */
+
+void _DNA_internal_memcpy(void *dst, const void *src, size_t size);
+void _DNA_internal_memcpy(void *dst, const void *src, const size_t size)
+{
+  memcpy(dst, src, size);
+}
+
+void _DNA_internal_memzero(void *dst, size_t size);
+void _DNA_internal_memzero(void *dst, const size_t size)
+{
+  memset(dst, 0, size);
+}
+
+/** \} */

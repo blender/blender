@@ -526,16 +526,16 @@ static bool font_paste_utf8(bContext *C, const char *str, const size_t str_len)
 /** \name Paste From File Operator
  * \{ */
 
-static int paste_from_file(bContext *C, ReportList *reports, const char *filename)
+static int paste_from_file(bContext *C, ReportList *reports, const char *filepath)
 {
   Object *obedit = CTX_data_edit_object(C);
   char *strp;
   size_t filelen;
   int retval;
 
-  strp = BLI_file_read_text_as_mem(filename, 1, &filelen);
+  strp = BLI_file_read_text_as_mem(filepath, 1, &filelen);
   if (strp == NULL) {
-    BKE_reportf(reports, RPT_ERROR, "Failed to open file '%s'", filename);
+    BKE_reportf(reports, RPT_ERROR, "Failed to open file '%s'", filepath);
     return OPERATOR_CANCELLED;
   }
   strp[filelen] = 0;
@@ -545,7 +545,7 @@ static int paste_from_file(bContext *C, ReportList *reports, const char *filenam
     retval = OPERATOR_FINISHED;
   }
   else {
-    BKE_reportf(reports, RPT_ERROR, "File too long %s", filename);
+    BKE_reportf(reports, RPT_ERROR, "File too long %s", filepath);
     retval = OPERATOR_CANCELLED;
   }
 
@@ -556,12 +556,12 @@ static int paste_from_file(bContext *C, ReportList *reports, const char *filenam
 
 static int paste_from_file_exec(bContext *C, wmOperator *op)
 {
-  char *path;
+  char *filepath;
   int retval;
 
-  path = RNA_string_get_alloc(op->ptr, "filepath", NULL, 0, NULL);
-  retval = paste_from_file(C, op->reports, path);
-  MEM_freeN(path);
+  filepath = RNA_string_get_alloc(op->ptr, "filepath", NULL, 0, NULL);
+  retval = paste_from_file(C, op->reports, filepath);
+  MEM_freeN(filepath);
 
   return retval;
 }
@@ -2091,7 +2091,7 @@ static int font_open_exec(bContext *C, wmOperator *op)
 static int open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   VFont *vfont = NULL;
-  const char *path;
+  const char *filepath;
 
   PointerRNA idptr;
   PropertyPointerRNA *pprop;
@@ -2106,13 +2106,13 @@ static int open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
     vfont = (VFont *)idptr.owner_id;
   }
 
-  path = (vfont && !BKE_vfont_is_builtin(vfont)) ? vfont->filepath : U.fontdir;
+  filepath = (vfont && !BKE_vfont_is_builtin(vfont)) ? vfont->filepath : U.fontdir;
 
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     return font_open_exec(C, op);
   }
 
-  RNA_string_set(op->ptr, "filepath", path);
+  RNA_string_set(op->ptr, "filepath", filepath);
   WM_event_add_fileselect(C, op);
 
   return OPERATOR_RUNNING_MODAL;
@@ -2184,7 +2184,10 @@ void FONT_OT_unlink(wmOperatorType *ot)
 }
 
 bool ED_curve_editfont_select_pick(
-    bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
+    bContext *C,
+    const int mval[2],
+    /* NOTE: `params->deselect_all` is ignored as only one text-box is active at once. */
+    const struct SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obedit = CTX_data_edit_object(C);
@@ -2203,9 +2206,7 @@ bool ED_curve_editfont_select_pick(
   ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
   /* currently only select active */
-  (void)extend;
-  (void)deselect;
-  (void)toggle;
+  (void)params;
 
   for (i_iter = 0; i_iter < cu->totbox; i_iter++) {
     int i = (i_iter + i_actbox) % cu->totbox;
@@ -2257,6 +2258,8 @@ bool ED_curve_editfont_select_pick(
     if (cu->actbox != actbox_select) {
       cu->actbox = actbox_select;
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+      /* TODO: support #ID_RECALC_SELECT. */
+      DEG_id_tag_update(obedit->data, ID_RECALC_COPY_ON_WRITE);
     }
     return true;
   }

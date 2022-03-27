@@ -9,6 +9,7 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_ID.h"
 #include "DNA_collection_types.h"
 #include "DNA_object_types.h"
 
@@ -275,6 +276,12 @@ struct CollectionEditData {
   Scene *scene;
   SpaceOutliner *space_outliner;
   GSet *collections_to_edit;
+
+  /* Whether the processed operation should be allowed on liboverride collections, or not. */
+  bool is_liboverride_allowed;
+  /* Whether the processed operation should be allowed on hierarchy roots of liboverride
+   * collections, or not. */
+  bool is_liboverride_hierarchy_root_allowed;
 };
 
 static TreeTraversalAction collection_find_data_to_edit(TreeElement *te, void *customdata)
@@ -287,27 +294,40 @@ static TreeTraversalAction collection_find_data_to_edit(TreeElement *te, void *c
   }
 
   if (collection->flag & COLLECTION_IS_MASTER) {
-    /* skip - showing warning/error message might be misleading
-     * when deleting multiple collections, so just do nothing */
-  }
-  else {
-    /* Delete, duplicate and link don't edit children, those will come along
-     * with the parents. */
-    BLI_gset_add(data->collections_to_edit, collection);
-    return TRAVERSE_SKIP_CHILDS;
+    /* Skip - showing warning/error message might be misleading
+     * when deleting multiple collections, so just do nothing. */
+    return TRAVERSE_CONTINUE;
   }
 
-  return TRAVERSE_CONTINUE;
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(collection)) {
+    if (ID_IS_OVERRIDE_LIBRARY_HIERARCHY_ROOT(collection)) {
+      if (!(data->is_liboverride_hierarchy_root_allowed || data->is_liboverride_allowed)) {
+        return TRAVERSE_SKIP_CHILDS;
+      }
+    }
+    else {
+      if (!data->is_liboverride_allowed) {
+        return TRAVERSE_SKIP_CHILDS;
+      }
+    }
+  }
+
+  /* Delete, duplicate and link don't edit children, those will come along
+   * with the parents. */
+  BLI_gset_add(data->collections_to_edit, collection);
+  return TRAVERSE_SKIP_CHILDS;
 }
 
 void outliner_collection_delete(
-    bContext *C, Main *bmain, Scene *scene, ReportList *reports, bool hierarchy)
+    bContext *C, Main *bmain, Scene *scene, ReportList *reports, bool do_hierarchy)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
   CollectionEditData data{};
   data.scene = scene;
   data.space_outliner = space_outliner;
+  data.is_liboverride_allowed = false;
+  data.is_liboverride_hierarchy_root_allowed = do_hierarchy;
 
   data.collections_to_edit = BLI_gset_ptr_new(__func__);
 
@@ -356,14 +376,14 @@ void outliner_collection_delete(
       }
 
       if (!skip) {
-        BKE_collection_delete(bmain, collection, hierarchy);
+        BKE_collection_delete(bmain, collection, do_hierarchy);
       }
       else {
-        BKE_reportf(
-            reports,
-            RPT_WARNING,
-            "Cannot delete linked collection '%s', it is used by other linked scenes/collections",
-            collection->id.name + 2);
+        BKE_reportf(reports,
+                    RPT_WARNING,
+                    "Cannot delete collection '%s', it is either a linked one used by other "
+                    "linked scenes/collections, or a library override one",
+                    collection->id.name + 2);
       }
     }
   }
@@ -371,8 +391,6 @@ void outliner_collection_delete(
   BLI_gset_free(data.collections_to_edit, nullptr);
 }
 
-/* FIXME: See comment above #WM_msg_publish_rna_prop(). */
-extern "C" {
 static int collection_hierarchy_delete_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -395,7 +413,6 @@ static int collection_hierarchy_delete_exec(bContext *C, wmOperator *op)
   ED_outliner_select_sync_from_object_tag(C);
 
   return OPERATOR_FINISHED;
-}
 }
 
 void OUTLINER_OT_collection_hierarchy_delete(wmOperatorType *ot)
@@ -662,6 +679,8 @@ static int collection_link_exec(bContext *C, wmOperator *op)
   CollectionEditData data{};
   data.scene = scene;
   data.space_outliner = space_outliner;
+  data.is_liboverride_allowed = false; /* No linking of non-root collections. */
+  data.is_liboverride_hierarchy_root_allowed = true;
 
   if ((ID_IS_LINKED(active_collection) || ID_IS_OVERRIDE_LIBRARY(active_collection)) ||
       ((active_collection->flag & COLLECTION_IS_MASTER) &&
@@ -726,6 +745,8 @@ static int collection_instance_exec(bContext *C, wmOperator *UNUSED(op))
   CollectionEditData data{};
   data.scene = scene;
   data.space_outliner = space_outliner;
+  data.is_liboverride_allowed = false; /* No instancing of non-root collections. */
+  data.is_liboverride_hierarchy_root_allowed = true;
 
   data.collections_to_edit = BLI_gset_ptr_new(__func__);
 
@@ -825,6 +846,8 @@ static bool collections_view_layer_poll(bContext *C, bool clear, int flag)
   CollectionEditData data{};
   data.scene = scene;
   data.space_outliner = space_outliner;
+  data.is_liboverride_allowed = true;
+  data.is_liboverride_hierarchy_root_allowed = true;
   data.collections_to_edit = BLI_gset_ptr_new(__func__);
   bool result = false;
 
@@ -891,6 +914,8 @@ static int collection_view_layer_exec(bContext *C, wmOperator *op)
   CollectionEditData data{};
   data.scene = scene;
   data.space_outliner = space_outliner;
+  data.is_liboverride_allowed = true;
+  data.is_liboverride_hierarchy_root_allowed = true;
   bool clear = strstr(op->idname, "clear") != nullptr;
   int flag = strstr(op->idname, "holdout")       ? LAYER_COLLECTION_HOLDOUT :
              strstr(op->idname, "indirect_only") ? LAYER_COLLECTION_INDIRECT_ONLY :
@@ -1029,6 +1054,8 @@ static int collection_isolate_exec(bContext *C, wmOperator *op)
   CollectionEditData data{};
   data.scene = scene;
   data.space_outliner = space_outliner;
+  data.is_liboverride_allowed = true;
+  data.is_liboverride_hierarchy_root_allowed = true;
   data.collections_to_edit = BLI_gset_ptr_new(__func__);
   outliner_tree_traverse(space_outliner,
                          &space_outliner->tree,
@@ -1126,6 +1153,8 @@ static int collection_visibility_exec(bContext *C, wmOperator *op)
   CollectionEditData data{};
   data.scene = scene;
   data.space_outliner = space_outliner;
+  data.is_liboverride_allowed = true;
+  data.is_liboverride_hierarchy_root_allowed = true;
   data.collections_to_edit = BLI_gset_ptr_new(__func__);
 
   outliner_tree_traverse(space_outliner,
@@ -1273,6 +1302,8 @@ static int collection_flag_exec(bContext *C, wmOperator *op)
   CollectionEditData data{};
   data.scene = scene;
   data.space_outliner = space_outliner;
+  data.is_liboverride_allowed = true;
+  data.is_liboverride_hierarchy_root_allowed = true;
   data.collections_to_edit = BLI_gset_ptr_new(__func__);
   const bool has_layer_collection = space_outliner->outlinevis == SO_VIEW_LAYER;
 

@@ -22,7 +22,8 @@ set(INC
 
   # for writefile.c: dna_type_offsets.h
   ${CMAKE_BINARY_DIR}/source/blender/makesdna/intern
-
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -84,6 +85,8 @@ blender_add_lib(bf_blenloader "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # needed so writefile.c can use dna_type_offsets.h
 add_dependencies(bf_blenloader bf_dna)
+# RNA_prototypes.h
+add_dependencies(bf_blenloader bf_rna)
 
 if(WITH_GTESTS)
   set(TEST_SRC

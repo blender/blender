@@ -135,7 +135,7 @@ void DRW_globals_update(void)
 
   UI_GetThemeColor4fv(TH_CFRAME, gb->colorCurrentFrame);
 
-  /* Metaball */
+  /* Meta-ball. */
   UI_COLOR_RGBA_FROM_U8(0xA0, 0x30, 0x30, 0xFF, gb->colorMballRadius);
   UI_COLOR_RGBA_FROM_U8(0xF0, 0xA0, 0xA0, 0xFF, gb->colorMballRadiusSelect);
   UI_COLOR_RGBA_FROM_U8(0x30, 0xA0, 0x30, 0xFF, gb->colorMballStiffness);
@@ -184,9 +184,10 @@ void DRW_globals_update(void)
 
   gb->pixelFac = *DRW_viewport_pixelsize_get();
 
-  copy_v2_v2(gb->sizeViewport, DRW_viewport_size_get());
-  copy_v2_v2(gb->sizeViewportInv, gb->sizeViewport);
-  invert_v2(gb->sizeViewportInv);
+  /* Deprecated, use drw_view.viewport_size instead */
+  copy_v2_v2(&gb->sizeViewport[0], DRW_viewport_size_get());
+  copy_v2_v2(&gb->sizeViewport[2], &gb->sizeViewport[0]);
+  invert_v2(&gb->sizeViewport[2]);
 
   /* Color management. */
   {

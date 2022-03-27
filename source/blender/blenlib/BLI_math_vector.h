@@ -389,7 +389,7 @@ void mid_v3_v3v3v3(float v[3], const float v1[3], const float v2[3], const float
 void mid_v2_v2v2v2(float v[2], const float v1[2], const float v2[2], const float v3[2]);
 void mid_v3_v3v3v3v3(
     float v[3], const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
-void mid_v3_v3_array(float r[3], const float (*vec_arr)[3], unsigned int nbr);
+void mid_v3_v3_array(float r[3], const float (*vec_arr)[3], unsigned int vec_arr_num);
 
 /**
  * Specialized function for calculating normals.
@@ -660,7 +660,10 @@ void minmax_v4v4_v4(float min[4], float max[4], const float vec[4]);
 void minmax_v3v3_v3(float min[3], float max[3], const float vec[3]);
 void minmax_v2v2_v2(float min[2], float max[2], const float vec[2]);
 
-void minmax_v3v3_v3_array(float r_min[3], float r_max[3], const float (*vec_arr)[3], int nbr);
+void minmax_v3v3_v3_array(float r_min[3],
+                          float r_max[3],
+                          const float (*vec_arr)[3],
+                          int var_arr_num);
 
 /** ensure \a v1 is \a dist from \a v2 */
 void dist_ensure_v3_v3fl(float v1[3], const float v2[3], float dist);

@@ -43,6 +43,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "libmv-capi.h"
 #include "tracking_private.h"
@@ -1473,7 +1474,7 @@ static const MovieTrackingMarker *get_usable_marker_for_interpolation(
     const MovieTrackingMarker *anchor_marker,
     const int direction)
 {
-  BLI_assert(direction == -1 || direction == 1);
+  BLI_assert(ELEM(direction, -1, 1));
 
   const MovieTrackingMarker *last_marker = track->markers + track->markersnr - 1;
   const MovieTrackingMarker *current_marker = anchor_marker;

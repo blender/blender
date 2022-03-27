@@ -19,7 +19,11 @@ void main()
   gl_Position.xy = floor(gl_Position.xy * half_viewport_res) / half_viewport_res +
                    half_pixel_offset;
 
+#ifdef USE_EDGE_SELECT
+  bool is_select = (flag & EDGE_UV_SELECT) != 0;
+#else
   bool is_select = (flag & VERT_UV_SELECT) != 0;
+#endif
   selectionFac = is_select ? 1.0 : 0.0;
   /* Move selected edges to the top
    * Vertices are between 0.0 and 0.2, Edges between 0.2 and 0.4

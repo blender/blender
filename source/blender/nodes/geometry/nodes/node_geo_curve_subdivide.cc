@@ -206,6 +206,10 @@ static void subdivide_bezier_spline(const BezierSpline &src,
   }
   else {
     dst_positions.last() = src_positions.last();
+    dst_type_left.first() = src.handle_types_left().first();
+    dst_type_right.last() = src.handle_types_right().last();
+    dst_handles_left.first() = src_handles_left.first();
+    dst_handles_right.last() = src_handles_right.last();
   }
 }
 
@@ -342,7 +346,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     std::unique_ptr<CurveEval> output_curve = subdivide_curve(
         *curves_to_curve_eval(*component.get_for_read()), cuts);
-    geometry_set.replace_curve(curve_eval_to_curves(*output_curve));
+    geometry_set.replace_curves(curve_eval_to_curves(*output_curve));
   });
   params.set_output("Curve", geometry_set);
 }

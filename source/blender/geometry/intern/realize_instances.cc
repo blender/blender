@@ -18,7 +18,6 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_pointcloud.h"
-#include "BKE_spline.hh"
 #include "BKE_type_conversions.hh"
 
 namespace blender::geometry {
@@ -30,12 +29,6 @@ using blender::bke::object_get_evaluated_geometry_set;
 using blender::bke::OutputAttribute;
 using blender::bke::OutputAttribute_Typed;
 using blender::bke::ReadAttributeLookup;
-using blender::fn::CPPType;
-using blender::fn::GArray;
-using blender::fn::GMutableSpan;
-using blender::fn::GSpan;
-using blender::fn::GVArray;
-using blender::fn::GVArray_GSpan;
 
 /**
  * An ordered set of attribute ids. Attributes are ordered to avoid name lookups in many places.
@@ -121,15 +114,37 @@ struct RealizeMeshTask {
 struct RealizeCurveInfo {
   const Curves *curves;
   /**
-   * Matches the order in #AllCurvesInfo.attributes. For point attributes, the `std::optional`
-   * will be empty.
+   * Matches the order in #AllCurvesInfo.attributes.
    */
-  Array<std::optional<GVArray_GSpan>> spline_attributes;
+  Array<std::optional<GVArray_GSpan>> attributes;
+
+  /** ID attribute on the curves. If there are no ids, this #Span is empty. */
+  Span<int> stored_ids;
+
+  /**
+   * Handle position attributes must be transformed along with positions. Accessing them in
+   * advance isn't necessary theoretically, but is done to simplify other code and to avoid
+   * some overhead.
+   */
+  Span<float3> handle_left;
+  Span<float3> handle_right;
+
+  /**
+   * The radius attribute must be filled with a default of 1.0 if it
+   * doesn't exist on some (but not all) of the input curves data-blocks.
+   */
+  Span<float> radius;
+};
+
+/** Start indices in the final output curves data-block. */
+struct CurvesElementStartIndices {
+  int point = 0;
+  int curve = 0;
 };
 
 struct RealizeCurveTask {
-  /* Start index in the final curve. */
-  int start_spline_index = 0;
+  CurvesElementStartIndices start_indices;
+
   const RealizeCurveInfo *curve_info;
   /* Transformation applied to the position of control points and handles. */
   float4x4 transform;
@@ -168,6 +183,8 @@ struct AllCurvesInfo {
   /** Preprocessed data about every original curve. This is ordered by #order. */
   Array<RealizeCurveInfo> realize_info;
   bool create_id_attribute = false;
+  bool create_handle_postion_attributes = false;
+  bool create_radius_attribute = false;
 };
 
 /** Collects all tasks that need to be executed to realize all instances. */
@@ -185,7 +202,7 @@ struct GatherTasks {
 struct GatherOffsets {
   int pointcloud_offset = 0;
   MeshElementStartIndices mesh_offsets;
-  int spline_offset = 0;
+  CurvesElementStartIndices curves_offsets;
 };
 
 struct GatherTasksInfo {
@@ -229,6 +246,92 @@ struct InstanceContext {
   {
   }
 };
+
+static void copy_transformed_positions(const Span<float3> src,
+                                       const float4x4 &transform,
+                                       MutableSpan<float3> dst)
+{
+  threading::parallel_for(src.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      dst[i] = transform * src[i];
+    }
+  });
+}
+
+static void threaded_copy(const GSpan src, GMutableSpan dst)
+{
+  BLI_assert(src.size() == dst.size());
+  BLI_assert(src.type() == dst.type());
+  threading::parallel_for(IndexRange(src.size()), 1024, [&](const IndexRange range) {
+    src.type().copy_construct_n(src.slice(range).data(), dst.slice(range).data(), range.size());
+  });
+}
+
+static void threaded_fill(const GPointer value, GMutableSpan dst)
+{
+  BLI_assert(*value.type() == dst.type());
+  threading::parallel_for(IndexRange(dst.size()), 1024, [&](const IndexRange range) {
+    value.type()->fill_construct_n(value.get(), dst.slice(range).data(), range.size());
+  });
+}
+
+static void copy_generic_attributes_to_result(
+    const Span<std::optional<GVArray_GSpan>> src_attributes,
+    const AttributeFallbacksArray &attribute_fallbacks,
+    const OrderedAttributes &ordered_attributes,
+    const FunctionRef<IndexRange(AttributeDomain)> &range_fn,
+    MutableSpan<GMutableSpan> dst_attributes)
+{
+  threading::parallel_for(dst_attributes.index_range(), 10, [&](const IndexRange attribute_range) {
+    for (const int attribute_index : attribute_range) {
+      const AttributeDomain domain = ordered_attributes.kinds[attribute_index].domain;
+      const IndexRange element_slice = range_fn(domain);
+
+      GMutableSpan dst_span = dst_attributes[attribute_index].slice(element_slice);
+      if (src_attributes[attribute_index].has_value()) {
+        threaded_copy(*src_attributes[attribute_index], dst_span);
+      }
+      else {
+        const CPPType &cpp_type = dst_span.type();
+        const void *fallback = attribute_fallbacks.array[attribute_index] == nullptr ?
+                                   cpp_type.default_value() :
+                                   attribute_fallbacks.array[attribute_index];
+        threaded_fill({cpp_type, fallback}, dst_span);
+      }
+    }
+  });
+}
+
+static void create_result_ids(const RealizeInstancesOptions &options,
+                              Span<int> stored_ids,
+                              const int task_id,
+                              MutableSpan<int> dst_ids)
+{
+  if (options.keep_original_ids) {
+    if (stored_ids.is_empty()) {
+      dst_ids.fill(0);
+    }
+    else {
+      dst_ids.copy_from(stored_ids);
+    }
+  }
+  else {
+    if (stored_ids.is_empty()) {
+      threading::parallel_for(dst_ids.index_range(), 1024, [&](const IndexRange range) {
+        for (const int i : range) {
+          dst_ids[i] = noise::hash(task_id, i);
+        }
+      });
+    }
+    else {
+      threading::parallel_for(dst_ids.index_range(), 1024, [&](const IndexRange range) {
+        for (const int i : range) {
+          dst_ids[i] = noise::hash(task_id, stored_ids[i]);
+        }
+      });
+    }
+  }
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Gather Realize Tasks
@@ -448,12 +551,13 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
         if (curves != nullptr && curves->geometry.curve_size > 0) {
           const int curve_index = gather_info.curves.order.index_of(curves);
           const RealizeCurveInfo &curve_info = gather_info.curves.realize_info[curve_index];
-          gather_info.r_tasks.curve_tasks.append({gather_info.r_offsets.spline_offset,
+          gather_info.r_tasks.curve_tasks.append({gather_info.r_offsets.curves_offsets,
                                                   &curve_info,
                                                   base_transform,
                                                   base_instance_context.curves,
                                                   base_instance_context.id});
-          gather_info.r_offsets.spline_offset += curves->geometry.curve_size;
+          gather_info.r_offsets.curves_offsets.point += curves->geometry.point_size;
+          gather_info.r_offsets.curves_offsets.curve += curves->geometry.curve_size;
         }
         break;
       }
@@ -559,6 +663,7 @@ static AllPointCloudsInfo preprocess_pointclouds(const GeometrySet &geometry_set
 
 static void execute_realize_pointcloud_task(const RealizeInstancesOptions &options,
                                             const RealizePointCloudTask &task,
+                                            const OrderedAttributes &ordered_attributes,
                                             PointCloud &dst_pointcloud,
                                             MutableSpan<GMutableSpan> dst_attribute_spans,
                                             MutableSpan<int> all_dst_ids)
@@ -569,68 +674,25 @@ static void execute_realize_pointcloud_task(const RealizeInstancesOptions &optio
   const IndexRange point_slice{task.start_index, pointcloud.totpoint};
   MutableSpan<float3> dst_positions{(float3 *)dst_pointcloud.co + task.start_index,
                                     pointcloud.totpoint};
-  MutableSpan<int> dst_ids = all_dst_ids.slice(task.start_index, pointcloud.totpoint);
 
-  /* Copy transformed positions. */
-  threading::parallel_for(IndexRange(pointcloud.totpoint), 1024, [&](const IndexRange range) {
-    for (const int i : range) {
-      dst_positions[i] = task.transform * src_positions[i];
-    }
-  });
+  copy_transformed_positions(src_positions, task.transform, dst_positions);
+
   /* Create point ids. */
   if (!all_dst_ids.is_empty()) {
-    if (options.keep_original_ids) {
-      if (pointcloud_info.stored_ids.is_empty()) {
-        dst_ids.fill(0);
-      }
-      else {
-        dst_ids.copy_from(pointcloud_info.stored_ids);
-      }
-    }
-    else {
-      threading::parallel_for(IndexRange(pointcloud.totpoint), 1024, [&](const IndexRange range) {
-        if (pointcloud_info.stored_ids.is_empty()) {
-          for (const int i : range) {
-            dst_ids[i] = noise::hash(task.id, i);
-          }
-        }
-        else {
-          for (const int i : range) {
-            dst_ids[i] = noise::hash(task.id, pointcloud_info.stored_ids[i]);
-          }
-        }
-      });
-    }
+    create_result_ids(
+        options, pointcloud_info.stored_ids, task.id, all_dst_ids.slice(point_slice));
   }
-  /* Copy generic attributes. */
-  threading::parallel_for(
-      dst_attribute_spans.index_range(), 10, [&](const IndexRange attribute_range) {
-        for (const int attribute_index : attribute_range) {
-          GMutableSpan dst_span = dst_attribute_spans[attribute_index].slice(point_slice);
-          const CPPType &cpp_type = dst_span.type();
-          const void *attribute_fallback = task.attribute_fallbacks.array[attribute_index];
-          if (pointcloud_info.attributes[attribute_index].has_value()) {
-            /* Copy attribute from the original point cloud. */
-            const GSpan src_span = *pointcloud_info.attributes[attribute_index];
-            threading::parallel_for(
-                IndexRange(pointcloud.totpoint), 1024, [&](const IndexRange range) {
-                  cpp_type.copy_assign_n(
-                      src_span.slice(range).data(), dst_span.slice(range).data(), range.size());
-                });
-          }
-          else {
-            if (attribute_fallback == nullptr) {
-              attribute_fallback = cpp_type.default_value();
-            }
-            /* As the fallback value for the attribute. */
-            threading::parallel_for(
-                IndexRange(pointcloud.totpoint), 1024, [&](const IndexRange range) {
-                  cpp_type.fill_assign_n(
-                      attribute_fallback, dst_span.slice(range).data(), range.size());
-                });
-          }
-        }
-      });
+
+  copy_generic_attributes_to_result(
+      pointcloud_info.attributes,
+      task.attribute_fallbacks,
+      ordered_attributes,
+      [&](const AttributeDomain domain) {
+        BLI_assert(domain == ATTR_DOMAIN_POINT);
+        UNUSED_VARS_NDEBUG(domain);
+        return point_slice;
+      },
+      dst_attribute_spans);
 }
 
 static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &options,
@@ -678,7 +740,7 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
     for (const int task_index : task_range) {
       const RealizePointCloudTask &task = tasks[task_index];
       execute_realize_pointcloud_task(
-          options, task, *dst_pointcloud, dst_attribute_spans, point_ids_span);
+          options, task, ordered_attributes, *dst_pointcloud, dst_attribute_spans, point_ids_span);
     }
   });
 
@@ -810,9 +872,6 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
   MutableSpan<MLoop> dst_loops{dst_mesh.mloop + task.start_indices.loop, mesh.totloop};
   MutableSpan<MPoly> dst_polys{dst_mesh.mpoly + task.start_indices.poly, mesh.totpoly};
 
-  MutableSpan<int> dst_vertex_ids = all_dst_vertex_ids.slice(task.start_indices.vertex,
-                                                             mesh.totvert);
-
   const Span<int> material_index_map = mesh_info.material_index_map;
 
   threading::parallel_for(IndexRange(mesh.totvert), 1024, [&](const IndexRange vert_range) {
@@ -856,78 +915,34 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
       }
     }
   });
-  /* Create id attribute. */
+
   if (!all_dst_vertex_ids.is_empty()) {
-    if (options.keep_original_ids) {
-      if (mesh_info.stored_vertex_ids.is_empty()) {
-        dst_vertex_ids.fill(0);
-      }
-      else {
-        dst_vertex_ids.copy_from(mesh_info.stored_vertex_ids);
-      }
-    }
-    else {
-      threading::parallel_for(IndexRange(mesh.totvert), 1024, [&](const IndexRange vert_range) {
-        if (mesh_info.stored_vertex_ids.is_empty()) {
-          for (const int i : vert_range) {
-            dst_vertex_ids[i] = noise::hash(task.id, i);
-          }
-        }
-        else {
-          for (const int i : vert_range) {
-            const int original_id = mesh_info.stored_vertex_ids[i];
-            dst_vertex_ids[i] = noise::hash(task.id, original_id);
-          }
-        }
-      });
-    }
+    create_result_ids(options,
+                      mesh_info.stored_vertex_ids,
+                      task.id,
+                      all_dst_vertex_ids.slice(task.start_indices.vertex, mesh.totvert));
   }
-  /* Copy generic attributes. */
-  threading::parallel_for(
-      dst_attribute_spans.index_range(), 10, [&](const IndexRange attribute_range) {
-        for (const int attribute_index : attribute_range) {
-          const AttributeDomain domain = ordered_attributes.kinds[attribute_index].domain;
-          IndexRange element_slice;
-          switch (domain) {
-            case ATTR_DOMAIN_POINT:
-              element_slice = IndexRange(task.start_indices.vertex, mesh.totvert);
-              break;
-            case ATTR_DOMAIN_EDGE:
-              element_slice = IndexRange(task.start_indices.edge, mesh.totedge);
-              break;
-            case ATTR_DOMAIN_CORNER:
-              element_slice = IndexRange(task.start_indices.loop, mesh.totloop);
-              break;
-            case ATTR_DOMAIN_FACE:
-              element_slice = IndexRange(task.start_indices.poly, mesh.totpoly);
-              break;
-            default:
-              BLI_assert_unreachable();
-          }
-          GMutableSpan dst_span = dst_attribute_spans[attribute_index].slice(element_slice);
-          const CPPType &cpp_type = dst_span.type();
-          const void *attribute_fallback = task.attribute_fallbacks.array[attribute_index];
-          if (mesh_info.attributes[attribute_index].has_value()) {
-            const GSpan src_span = *mesh_info.attributes[attribute_index];
-            threading::parallel_for(
-                IndexRange(element_slice.size()), 1024, [&](const IndexRange sub_range) {
-                  cpp_type.copy_assign_n(src_span.slice(sub_range).data(),
-                                         dst_span.slice(sub_range).data(),
-                                         sub_range.size());
-                });
-          }
-          else {
-            if (attribute_fallback == nullptr) {
-              attribute_fallback = cpp_type.default_value();
-            }
-            threading::parallel_for(
-                IndexRange(element_slice.size()), 1024, [&](const IndexRange sub_range) {
-                  cpp_type.fill_assign_n(
-                      attribute_fallback, dst_span.slice(sub_range).data(), sub_range.size());
-                });
-          }
+
+  copy_generic_attributes_to_result(
+      mesh_info.attributes,
+      task.attribute_fallbacks,
+      ordered_attributes,
+      [&](const AttributeDomain domain) {
+        switch (domain) {
+          case ATTR_DOMAIN_POINT:
+            return IndexRange(task.start_indices.vertex, mesh.totvert);
+          case ATTR_DOMAIN_EDGE:
+            return IndexRange(task.start_indices.edge, mesh.totedge);
+          case ATTR_DOMAIN_CORNER:
+            return IndexRange(task.start_indices.loop, mesh.totloop);
+          case ATTR_DOMAIN_FACE:
+            return IndexRange(task.start_indices.poly, mesh.totpoly);
+          default:
+            BLI_assert_unreachable();
+            return IndexRange();
         }
-      });
+      },
+      dst_attribute_spans);
 }
 
 static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
@@ -1007,7 +1022,7 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Curve
+/** \name Curves
  * \{ */
 
 static OrderedAttributes gather_generic_curve_attributes_to_propagate(
@@ -1023,9 +1038,6 @@ static OrderedAttributes gather_generic_curve_attributes_to_propagate(
   in_geometry_set.gather_attributes_for_propagation(
       src_component_types, GEO_COMPONENT_TYPE_CURVE, true, attributes_to_propagate);
   attributes_to_propagate.remove("position");
-  attributes_to_propagate.remove("cyclic");
-  attributes_to_propagate.remove("resolution");
-  attributes_to_propagate.remove("tilt");
   attributes_to_propagate.remove("radius");
   attributes_to_propagate.remove("handle_right");
   attributes_to_propagate.remove("handle_left");
@@ -1071,18 +1083,42 @@ static AllCurvesInfo preprocess_curves(const GeometrySet &geometry_set,
     /* Access attributes. */
     CurveComponent component;
     component.replace(const_cast<Curves *>(curves), GeometryOwnershipType::ReadOnly);
-    curve_info.spline_attributes.reinitialize(info.attributes.size());
+    curve_info.attributes.reinitialize(info.attributes.size());
     for (const int attribute_index : info.attributes.index_range()) {
       const AttributeDomain domain = info.attributes.kinds[attribute_index].domain;
-      if (domain != ATTR_DOMAIN_CURVE) {
-        continue;
-      }
       const AttributeIDRef &attribute_id = info.attributes.ids[attribute_index];
       const CustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
       if (component.attribute_exists(attribute_id)) {
         GVArray attribute = component.attribute_get_for_read(attribute_id, domain, data_type);
-        curve_info.spline_attributes[attribute_index].emplace(std::move(attribute));
+        curve_info.attributes[attribute_index].emplace(std::move(attribute));
       }
+    }
+    if (info.create_id_attribute) {
+      ReadAttributeLookup ids_lookup = component.attribute_try_get_for_read("id");
+      if (ids_lookup) {
+        curve_info.stored_ids = ids_lookup.varray.get_internal_span().typed<int>();
+      }
+    }
+
+    /* Retrieve the radius attribute, if it exists. */
+    if (component.attribute_exists("radius")) {
+      curve_info.radius = component
+                              .attribute_get_for_read<float>("radius", ATTR_DOMAIN_POINT, 0.0f)
+                              .get_internal_span();
+      info.create_radius_attribute = true;
+    }
+
+    /* Retrieve handle position attributes, if they exist. */
+    if (component.attribute_exists("handle_right")) {
+      curve_info.handle_left = component
+                                   .attribute_get_for_read<float3>(
+                                       "handle_left", ATTR_DOMAIN_POINT, float3(0))
+                                   .get_internal_span();
+      curve_info.handle_right = component
+                                    .attribute_get_for_read<float3>(
+                                        "handle_right", ATTR_DOMAIN_POINT, float3(0))
+                                    .get_internal_span();
+      info.create_handle_postion_attributes = true;
     }
   }
   return info;
@@ -1092,108 +1128,81 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
                                        const AllCurvesInfo &all_curves_info,
                                        const RealizeCurveTask &task,
                                        const OrderedAttributes &ordered_attributes,
-                                       MutableSpan<SplinePtr> dst_splines,
-                                       MutableSpan<GMutableSpan> dst_spline_attributes)
+                                       bke::CurvesGeometry &dst_curves,
+                                       MutableSpan<GMutableSpan> dst_attribute_spans,
+                                       MutableSpan<int> all_dst_ids,
+                                       MutableSpan<float3> all_handle_left,
+                                       MutableSpan<float3> all_handle_right,
+                                       MutableSpan<float> all_radii)
 {
-  const RealizeCurveInfo &curve_info = *task.curve_info;
-  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curve_info.curves);
+  const RealizeCurveInfo &curves_info = *task.curve_info;
+  const Curves &curves_id = *curves_info.curves;
+  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
 
-  const Span<SplinePtr> src_splines = curve->splines();
+  const IndexRange dst_point_range{task.start_indices.point, curves.points_num()};
+  const IndexRange dst_curve_range{task.start_indices.curve, curves.curves_num()};
 
-  /* Initialize point attributes. */
-  threading::parallel_for(src_splines.index_range(), 100, [&](const IndexRange src_spline_range) {
-    for (const int src_spline_index : src_spline_range) {
-      const int dst_spline_index = src_spline_index + task.start_spline_index;
-      const Spline &src_spline = *src_splines[src_spline_index];
-      SplinePtr dst_spline = src_spline.copy_without_attributes();
-      dst_spline->transform(task.transform);
-      const int spline_size = dst_spline->size();
+  copy_transformed_positions(
+      curves.positions(), task.transform, dst_curves.positions().slice(dst_point_range));
 
-      const CustomDataAttributes &src_point_attributes = src_spline.attributes;
-      CustomDataAttributes &dst_point_attributes = dst_spline->attributes;
-
-      /* Create point ids. */
-      if (all_curves_info.create_id_attribute) {
-        dst_point_attributes.create("id", CD_PROP_INT32);
-        MutableSpan<int> dst_point_ids = dst_point_attributes.get_for_write("id")->typed<int>();
-        std::optional<GSpan> src_point_ids_opt = src_point_attributes.get_for_read("id");
-        if (options.keep_original_ids) {
-          if (src_point_ids_opt.has_value()) {
-            const Span<int> src_point_ids = src_point_ids_opt->typed<int>();
-            dst_point_ids.copy_from(src_point_ids);
-          }
-          else {
-            dst_point_ids.fill(0);
-          }
-        }
-        else {
-          if (src_point_ids_opt.has_value()) {
-            const Span<int> src_point_ids = src_point_ids_opt->typed<int>();
-            for (const int i : IndexRange(dst_spline->size())) {
-              dst_point_ids[i] = noise::hash(task.id, src_point_ids[i]);
-            }
-          }
-          else {
-            for (const int i : IndexRange(dst_spline->size())) {
-              /* Mix spline index into the id, because otherwise points on different splines will
-               * get the same id. */
-              dst_point_ids[i] = noise::hash(task.id, src_spline_index, i);
-            }
-          }
-        }
-      }
-
-      /* Copy generic point attributes. */
-      for (const int attribute_index : ordered_attributes.index_range()) {
-        const AttributeDomain domain = ordered_attributes.kinds[attribute_index].domain;
-        if (domain != ATTR_DOMAIN_POINT) {
-          continue;
-        }
-        const CustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
-        const CPPType &cpp_type = *custom_data_type_to_cpp_type(data_type);
-        const AttributeIDRef &attribute_id = ordered_attributes.ids[attribute_index];
-        const void *attribute_fallback = task.attribute_fallbacks.array[attribute_index];
-        const std::optional<GSpan> src_span_opt = src_point_attributes.get_for_read(attribute_id);
-        void *dst_buffer = MEM_malloc_arrayN(spline_size, cpp_type.size(), "Curve Attribute");
-        if (src_span_opt.has_value()) {
-          const GSpan src_span = *src_span_opt;
-          cpp_type.copy_construct_n(src_span.data(), dst_buffer, spline_size);
-        }
-        else {
-          if (attribute_fallback == nullptr) {
-            attribute_fallback = cpp_type.default_value();
-          }
-          cpp_type.fill_construct_n(attribute_fallback, dst_buffer, spline_size);
-        }
-        dst_point_attributes.create_by_move(attribute_id, data_type, dst_buffer);
-      }
-
-      dst_splines[dst_spline_index] = std::move(dst_spline);
-    }
-  });
-  /* Initialize spline attributes. */
-  for (const int attribute_index : ordered_attributes.index_range()) {
-    const AttributeDomain domain = ordered_attributes.kinds[attribute_index].domain;
-    if (domain != ATTR_DOMAIN_CURVE) {
-      continue;
-    }
-    const CustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
-    const CPPType &cpp_type = *custom_data_type_to_cpp_type(data_type);
-
-    GMutableSpan dst_span = dst_spline_attributes[attribute_index].slice(task.start_spline_index,
-                                                                         src_splines.size());
-    if (curve_info.spline_attributes[attribute_index].has_value()) {
-      const GSpan src_span = *curve_info.spline_attributes[attribute_index];
-      cpp_type.copy_construct_n(src_span.data(), dst_span.data(), src_splines.size());
+  /* Copy and transform handle positions if necessary. */
+  if (all_curves_info.create_handle_postion_attributes) {
+    if (curves_info.handle_left.is_empty()) {
+      all_handle_left.slice(dst_point_range).fill(float3(0));
     }
     else {
-      const void *attribute_fallback = task.attribute_fallbacks.array[attribute_index];
-      if (attribute_fallback == nullptr) {
-        attribute_fallback = cpp_type.default_value();
-      }
-      cpp_type.fill_construct_n(attribute_fallback, dst_span.data(), src_splines.size());
+      copy_transformed_positions(
+          curves_info.handle_left, task.transform, all_handle_left.slice(dst_point_range));
+    }
+    if (curves_info.handle_right.is_empty()) {
+      all_handle_right.slice(dst_point_range).fill(float3(0));
+    }
+    else {
+      copy_transformed_positions(
+          curves_info.handle_right, task.transform, all_handle_right.slice(dst_point_range));
     }
   }
+
+  /* Copy radius attribute with 1.0 default if it doesn't exist. */
+  if (all_curves_info.create_radius_attribute) {
+    if (curves_info.radius.is_empty()) {
+      all_radii.slice(dst_point_range).fill(1.0f);
+    }
+    else {
+      all_radii.slice(dst_point_range).copy_from(curves_info.radius);
+    }
+  }
+
+  /* Copy curve offsets. */
+  const Span<int> src_offsets = curves.offsets();
+  const MutableSpan<int> dst_offsets = dst_curves.offsets().slice(dst_curve_range);
+  threading::parallel_for(curves.curves_range(), 2048, [&](const IndexRange range) {
+    for (const int i : range) {
+      dst_offsets[i] = task.start_indices.point + src_offsets[i];
+    }
+  });
+
+  if (!all_dst_ids.is_empty()) {
+    create_result_ids(
+        options, curves_info.stored_ids, task.id, all_dst_ids.slice(dst_point_range));
+  }
+
+  copy_generic_attributes_to_result(
+      curves_info.attributes,
+      task.attribute_fallbacks,
+      ordered_attributes,
+      [&](const AttributeDomain domain) {
+        switch (domain) {
+          case ATTR_DOMAIN_POINT:
+            return IndexRange(task.start_indices.point, curves.points_num());
+          case ATTR_DOMAIN_CURVE:
+            return IndexRange(task.start_indices.curve, curves.curves_num());
+          default:
+            BLI_assert_unreachable();
+            return IndexRange();
+        }
+      },
+      dst_attribute_spans);
 }
 
 static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
@@ -1208,42 +1217,90 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
 
   const RealizeCurveTask &last_task = tasks.last();
   const Curves &last_curves = *last_task.curve_info->curves;
-  const int tot_splines = last_task.start_spline_index + last_curves.geometry.curve_size;
+  const int points_size = last_task.start_indices.point + last_curves.geometry.point_size;
+  const int curves_size = last_task.start_indices.curve + last_curves.geometry.curve_size;
 
-  Array<SplinePtr> dst_splines(tot_splines);
+  /* Allocate new curves data-block. */
+  Curves *dst_curves_id = bke::curves_new_nomain(points_size, curves_size);
+  bke::CurvesGeometry &dst_curves = bke::CurvesGeometry::wrap(dst_curves_id->geometry);
+  dst_curves.offsets().last() = points_size;
+  CurveComponent &dst_component = r_realized_geometry.get_component_for_write<CurveComponent>();
+  dst_component.replace(dst_curves_id);
 
-  std::unique_ptr<CurveEval> dst_curve = std::make_unique<CurveEval>();
-  dst_curve->attributes.reallocate(tot_splines);
-  CustomDataAttributes &spline_attributes = dst_curve->attributes;
+  /* Prepare id attribute. */
+  OutputAttribute_Typed<int> point_ids;
+  MutableSpan<int> point_ids_span;
+  if (all_curves_info.create_id_attribute) {
+    point_ids = dst_component.attribute_try_get_for_output_only<int>("id", ATTR_DOMAIN_POINT);
+    point_ids_span = point_ids.as_span();
+  }
 
-  /* Prepare spline attributes. */
-  Vector<GMutableSpan> dst_spline_attributes;
+  /* Prepare generic output attributes. */
+  Vector<OutputAttribute> dst_attributes;
+  Vector<GMutableSpan> dst_attribute_spans;
   for (const int attribute_index : ordered_attributes.index_range()) {
     const AttributeIDRef &attribute_id = ordered_attributes.ids[attribute_index];
-    const CustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
     const AttributeDomain domain = ordered_attributes.kinds[attribute_index].domain;
-    if (domain == ATTR_DOMAIN_CURVE) {
-      spline_attributes.create(attribute_id, data_type);
-      dst_spline_attributes.append(*spline_attributes.get_for_write(attribute_id));
-    }
-    else {
-      dst_spline_attributes.append({CPPType::get<float>()});
-    }
+    const CustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
+    OutputAttribute dst_attribute = dst_component.attribute_try_get_for_output_only(
+        attribute_id, domain, data_type);
+    dst_attribute_spans.append(dst_attribute.as_span());
+    dst_attributes.append(std::move(dst_attribute));
+  }
+
+  /* Prepare handle position attributes if necessary. */
+  OutputAttribute_Typed<float3> handle_left;
+  OutputAttribute_Typed<float3> handle_right;
+  MutableSpan<float3> handle_left_span;
+  MutableSpan<float3> handle_right_span;
+  if (all_curves_info.create_handle_postion_attributes) {
+    handle_left = dst_component.attribute_try_get_for_output_only<float3>("handle_left",
+                                                                          ATTR_DOMAIN_POINT);
+    handle_right = dst_component.attribute_try_get_for_output_only<float3>("handle_right",
+                                                                           ATTR_DOMAIN_POINT);
+    handle_left_span = handle_left.as_span();
+    handle_right_span = handle_right.as_span();
+  }
+
+  /* Prepare radius attribute if necessary. */
+  OutputAttribute_Typed<float> radius;
+  MutableSpan<float> radius_span;
+  if (all_curves_info.create_radius_attribute) {
+    radius = dst_component.attribute_try_get_for_output_only<float>("radius", ATTR_DOMAIN_POINT);
+    radius_span = radius.as_span();
   }
 
   /* Actually execute all tasks. */
   threading::parallel_for(tasks.index_range(), 100, [&](const IndexRange task_range) {
     for (const int task_index : task_range) {
       const RealizeCurveTask &task = tasks[task_index];
-      execute_realize_curve_task(
-          options, all_curves_info, task, ordered_attributes, dst_splines, dst_spline_attributes);
+      execute_realize_curve_task(options,
+                                 all_curves_info,
+                                 task,
+                                 ordered_attributes,
+                                 dst_curves,
+                                 dst_attribute_spans,
+                                 point_ids_span,
+                                 handle_left_span,
+                                 handle_right_span,
+                                 radius_span);
     }
   });
 
-  dst_curve->add_splines(dst_splines);
-
-  CurveComponent &dst_component = r_realized_geometry.get_component_for_write<CurveComponent>();
-  dst_component.replace(curve_eval_to_curves(*dst_curve));
+  /* Save modified attributes. */
+  for (OutputAttribute &dst_attribute : dst_attributes) {
+    dst_attribute.save();
+  }
+  if (point_ids) {
+    point_ids.save();
+  }
+  if (radius) {
+    radius.save();
+  }
+  if (all_curves_info.create_handle_postion_attributes) {
+    handle_left.save();
+    handle_right.save();
+  }
 }
 
 /** \} */

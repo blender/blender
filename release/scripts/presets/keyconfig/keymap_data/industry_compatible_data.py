@@ -554,19 +554,19 @@ def km_uv_editor(params):
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         # Selection modes.
         *_template_items_editmode_mesh_select_mode(params),
-        ("wm.context_set_enum", {"type": 'ONE', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'VERTEX')]}),
-        ("wm.context_set_enum", {"type": 'TWO', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'EDGE')]}),
-        ("wm.context_set_enum", {"type": 'THREE', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'FACE')]}),
-        ("wm.context_set_enum", {"type": 'FOUR', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.uv_select_mode'), ("value", 'ISLAND')]}),
+        ("uv.select_mode", {"type": 'ONE', "value": 'PRESS'},
+         {"properties": [("type", 'VERTEX')]}),
+        ("uv.select_mode", {"type": 'TWO', "value": 'PRESS'},
+         {"properties": [("type", 'EDGE')]}),
+        ("uv.select_mode", {"type": 'THREE', "value": 'PRESS'},
+         {"properties": [("type", 'FACE')]}),
+        ("uv.select_mode", {"type": 'FOUR', "value": 'PRESS'},
+         {"properties": [("type", 'ISLAND')]}),
 
         ("uv.select", {"type": 'LEFTMOUSE', "value": 'CLICK'},
-         {"properties": [("extend", False), ("deselect_all", True)]}),
+         {"properties": [("deselect_all", True)]}),
         ("uv.select", {"type": 'LEFTMOUSE', "value": 'CLICK', "shift": True},
-         {"properties": [("extend", True), ("deselect_all", False)]}),
+         {"properties": [("toggle", True), ("deselect_all", False)]}),
 
         ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
         ("uv.select_loop", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK', "shift": True},
@@ -1152,7 +1152,7 @@ def km_node_editor(params):
         ("node.move_detach_links_release", {"type": params.action_mouse, "value": 'CLICK_DRAG', "alt": True}, None),
         ("node.move_detach_links", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "alt": True}, None),
         ("wm.context_toggle", {"type": 'X', "value": 'PRESS'},
-         {"properties": [("data_path", 'tool_settings.use_snap')]}),
+         {"properties": [("data_path", 'tool_settings.use_snap_node')]}),
     ])
 
     return keymap
@@ -4174,7 +4174,7 @@ def keymap_transform_tool_mmb(keymap):
         r".*\bSelect Lasso$|"
         r".*\bTweak$)",
     )
-    for km_name, km_args, km_content in keymap:
+    for km_name, _km_args, km_content in keymap:
         if re_fallback_tool.match(km_name):
             km_items = km_content["items"]
             km_items_new = []

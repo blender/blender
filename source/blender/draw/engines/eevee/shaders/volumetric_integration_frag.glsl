@@ -52,7 +52,7 @@ void main()
   ivec2 texco = ivec2(gl_FragCoord.xy);
 #endif
   for (int i = 0; i <= slice; i++) {
-    ivec3 volume_cell = ivec3(gl_FragCoord.xy, i);
+    ivec3 volume_cell = ivec3(ivec2(gl_FragCoord.xy), i);
 
     vec3 Lscat = texelFetch(volumeScattering, volume_cell, 0).rgb;
     vec3 s_extinction = texelFetch(volumeExtinction, volume_cell, 0).rgb;

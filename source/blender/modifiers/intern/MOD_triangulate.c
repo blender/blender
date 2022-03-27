@@ -27,6 +27,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
@@ -60,6 +61,7 @@ static Mesh *triangulate_mesh(Mesh *mesh,
                             &((struct BMeshCreateParams){0}),
                             &((struct BMeshFromMeshParams){
                                 .calc_face_normal = true,
+                                .calc_vert_normal = false,
                                 .cd_mask_extra = cd_mask_extra,
                             }));
 

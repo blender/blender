@@ -320,6 +320,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                    -1,
                                    -1,
                                    NULL);
+      ui_but_add_search(but, ptr, prop, NULL, NULL);
       break;
     }
     case PROP_COLLECTION: {
@@ -336,6 +337,29 @@ uiBut *uiDefAutoButR(uiBlock *block,
   }
 
   return but;
+}
+
+void uiDefAutoButsArrayR(uiBlock *block,
+                         PointerRNA *ptr,
+                         PropertyRNA *prop,
+                         const int icon,
+                         const int x,
+                         const int y,
+                         const int tot_width,
+                         const int height)
+{
+  const int len = RNA_property_array_length(ptr, prop);
+  if (len == 0) {
+    return;
+  }
+
+  const int item_width = tot_width / len;
+
+  UI_block_align_begin(block);
+  for (int i = 0; i < len; i++) {
+    uiDefAutoButR(block, ptr, prop, i, "", icon, x + i * item_width, y, item_width, height);
+  }
+  UI_block_align_end(block);
 }
 
 eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,

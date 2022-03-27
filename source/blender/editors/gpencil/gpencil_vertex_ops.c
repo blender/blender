@@ -959,7 +959,7 @@ static int gpencil_material_to_vertex_exec(bContext *C, wmOperator *op)
   /* Clean unused materials. */
   if (remove) {
     WM_operator_name_call(
-        C, "OBJECT_OT_material_slot_remove_unused", WM_OP_INVOKE_REGION_WIN, NULL);
+        C, "OBJECT_OT_material_slot_remove_unused", WM_OP_INVOKE_REGION_WIN, NULL, NULL);
   }
 
   return OPERATOR_FINISHED;

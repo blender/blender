@@ -36,10 +36,6 @@
 
 namespace blender::ed::geometry {
 
-using fn::CPPType;
-using fn::GArray;
-using fn::GVArray;
-
 /*********************** Attribute Operators ************************/
 
 static bool geometry_attributes_poll(bContext *C)

@@ -30,6 +30,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -621,11 +622,6 @@ static bool node_collection_drop_poll(bContext *UNUSED(C),
   return WM_drag_is_ID_type(drag, ID_GR);
 }
 
-static bool node_texture_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
-{
-  return WM_drag_is_ID_type(drag, ID_TE);
-}
-
 static bool node_ima_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
 {
   if (drag->type == WM_DRAG_PATH) {
@@ -682,12 +678,6 @@ static void node_dropboxes()
   WM_dropbox_add(lb,
                  "NODE_OT_add_collection",
                  node_collection_drop_poll,
-                 node_id_drop_copy,
-                 WM_drag_free_imported_drag_ID,
-                 nullptr);
-  WM_dropbox_add(lb,
-                 "NODE_OT_add_texture",
-                 node_texture_drop_poll,
                  node_id_drop_copy,
                  WM_drag_free_imported_drag_ID,
                  nullptr);

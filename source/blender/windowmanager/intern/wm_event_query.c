@@ -38,6 +38,30 @@
 /** \name Event Printing
  * \{ */
 
+struct FlagIdentifierPair {
+  const char *id;
+  uint flag;
+};
+
+static void event_ids_from_flag(char *str,
+                                const int str_maxlen,
+                                const struct FlagIdentifierPair *flag_data,
+                                const int flag_data_len,
+                                const uint flag)
+{
+  int ofs = 0;
+  ofs += BLI_strncpy_rlen(str + ofs, "{", str_maxlen - ofs);
+  for (int i = 0; i < flag_data_len; i++) {
+    if (flag & flag_data[i].flag) {
+      if (ofs != 1) {
+        ofs += BLI_strncpy_rlen(str + ofs, "|", str_maxlen - ofs);
+      }
+      ofs += BLI_strncpy_rlen(str + ofs, flag_data[i].id, str_maxlen - ofs);
+    }
+  }
+  ofs += BLI_strncpy_rlen(str + ofs, "}", str_maxlen - ofs);
+}
+
 static void event_ids_from_type_and_value(const short type,
                                           const short val,
                                           const char **r_type_id,
@@ -62,11 +86,33 @@ void WM_event_print(const wmEvent *event)
     event_ids_from_type_and_value(event->type, event->val, &type_id, &val_id);
     event_ids_from_type_and_value(event->prev_type, event->prev_val, &prev_type_id, &prev_val_id);
 
+    char modifier_id[128];
+    {
+      struct FlagIdentifierPair flag_data[] = {
+          {"SHIFT", KM_SHIFT},
+          {"CTRL", KM_CTRL},
+          {"ALT", KM_ALT},
+          {"OS", KM_OSKEY},
+      };
+      event_ids_from_flag(
+          modifier_id, sizeof(modifier_id), flag_data, ARRAY_SIZE(flag_data), event->modifier);
+    }
+
+    char flag_id[128];
+    {
+      struct FlagIdentifierPair flag_data[] = {
+          {"SCROLL_INVERT", WM_EVENT_SCROLL_INVERT},
+          {"IS_REPEAT", WM_EVENT_IS_REPEAT},
+          {"FORCE_DRAG_THRESHOLD", WM_EVENT_FORCE_DRAG_THRESHOLD},
+      };
+      event_ids_from_flag(flag_id, sizeof(flag_id), flag_data, ARRAY_SIZE(flag_data), event->flag);
+    }
+
     printf(
-        "wmEvent type:%d / %s, val:%d / %s,\n"
-        "        prev_type:%d / %s, prev_val:%d / %s,\n"
-        "        shift:%d, ctrl:%d, alt:%d, oskey:%d, keymodifier:%d, is_repeat:%d,\n"
-        "        mouse:(%d,%d), ascii:'%c', utf8:'%.*s', pointer:%p\n",
+        "wmEvent type:%d/%s, val:%d/%s, "
+        "prev_type:%d/%s, prev_val:%d/%s, "
+        "modifier=%s, keymodifier:%d, flag:%s, "
+        "mouse:(%d,%d), ascii:'%c', utf8:'%.*s', pointer:%p",
         event->type,
         type_id,
         event->val,
@@ -75,12 +121,9 @@ void WM_event_print(const wmEvent *event)
         prev_type_id,
         event->prev_val,
         prev_val_id,
-        (event->modifier & KM_SHIFT) != 0,
-        (event->modifier & KM_CTRL) != 0,
-        (event->modifier & KM_ALT) != 0,
-        (event->modifier & KM_OSKEY) != 0,
+        modifier_id,
         event->keymodifier,
-        (event->flag & WM_EVENT_IS_REPEAT) != 0,
+        flag_id,
         event->xy[0],
         event->xy[1],
         event->ascii,
@@ -92,7 +135,7 @@ void WM_event_print(const wmEvent *event)
     if (ISNDOF(event->type)) {
       const wmNDOFMotionData *ndof = event->customdata;
       if (event->type == NDOF_MOTION) {
-        printf("   ndof: rot: (%.4f %.4f %.4f), tx: (%.4f %.4f %.4f), dt: %.4f, progress: %u\n",
+        printf(", ndof: rot: (%.4f %.4f %.4f), tx: (%.4f %.4f %.4f), dt: %.4f, progress: %u",
                UNPACK3(ndof->rvec),
                UNPACK3(ndof->tvec),
                ndof->dt,
@@ -106,12 +149,13 @@ void WM_event_print(const wmEvent *event)
 
     if (event->tablet.active != EVT_TABLET_NONE) {
       const wmTabletData *wmtab = &event->tablet;
-      printf(" tablet: active: %d, pressure %.4f, tilt: (%.4f %.4f)\n",
+      printf(", tablet: active: %d, pressure %.4f, tilt: (%.4f %.4f)",
              wmtab->active,
              wmtab->pressure,
              wmtab->x_tilt,
              wmtab->y_tilt);
     }
+    printf("\n");
   }
   else {
     printf("wmEvent - NULL\n");
@@ -227,8 +271,8 @@ bool WM_event_is_mouse_drag_or_press(const wmEvent *event)
 int WM_event_drag_direction(const wmEvent *event)
 {
   const int delta[2] = {
-      event->xy[0] - event->prev_click_xy[0],
-      event->xy[1] - event->prev_click_xy[1],
+      event->xy[0] - event->prev_press_xy[0],
+      event->xy[1] - event->prev_press_xy[1],
   };
 
   int theta = round_fl_to_int(4.0f * atan2f((float)delta[1], (float)delta[0]) / (float)M_PI);
@@ -306,8 +350,8 @@ bool WM_cursor_test_motion_and_update(const int mval[2])
 int WM_event_drag_threshold(const struct wmEvent *event)
 {
   int drag_threshold;
-  if (ISMOUSE(event->prev_click_type)) {
-    BLI_assert(event->prev_click_type != MOUSEMOVE);
+  if (ISMOUSE(event->prev_press_type)) {
+    BLI_assert(event->prev_press_type != MOUSEMOVE);
     /* Using the previous type is important is we want to check the last pressed/released button,
      * The `event->type` would include #MOUSEMOVE which is always the case when dragging
      * and does not help us know which threshold to use. */
@@ -336,6 +380,25 @@ bool WM_event_drag_test(const wmEvent *event, const int prev_xy[2])
   int drag_delta[2];
   sub_v2_v2v2_int(drag_delta, prev_xy, event->xy);
   return WM_event_drag_test_with_delta(event, drag_delta);
+}
+
+void WM_event_drag_start_mval(const wmEvent *event, const ARegion *region, int r_mval[2])
+{
+  const int *xy = (event->val == KM_CLICK_DRAG) ? event->prev_press_xy : event->xy;
+  r_mval[0] = xy[0] - region->winrct.xmin;
+  r_mval[1] = xy[1] - region->winrct.ymin;
+}
+
+void WM_event_drag_start_mval_fl(const wmEvent *event, const ARegion *region, float r_mval[2])
+{
+  const int *xy = (event->val == KM_CLICK_DRAG) ? event->prev_press_xy : event->xy;
+  r_mval[0] = xy[0] - region->winrct.xmin;
+  r_mval[1] = xy[1] - region->winrct.ymin;
+}
+
+void WM_event_drag_start_xy(const wmEvent *event, int r_xy[2])
+{
+  copy_v2_v2_int(r_xy, (event->val == KM_CLICK_DRAG) ? event->prev_press_xy : event->xy);
 }
 
 /** \} */

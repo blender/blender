@@ -1451,7 +1451,7 @@ static int rna_property_override_diff_propptr(Main *bmain,
         *r_override_changed = true;
       }
 
-      if (extended_rna_path != extended_rna_path_buffer && extended_rna_path != rna_path) {
+      if (!ELEM(extended_rna_path, extended_rna_path_buffer, rna_path)) {
         MEM_freeN(extended_rna_path);
       }
 

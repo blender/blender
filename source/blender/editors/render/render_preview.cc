@@ -259,7 +259,7 @@ static bool render_engine_supports_ray_visibility(const Scene *sce)
   return !STREQ(sce->r.engine, RE_engine_id_BLENDER_EEVEE);
 }
 
-static void switch_preview_collection_visibilty(ViewLayer *view_layer, const ePreviewType pr_type)
+static void switch_preview_collection_visibility(ViewLayer *view_layer, const ePreviewType pr_type)
 {
   /* Set appropriate layer as visible. */
   LayerCollection *lc = static_cast<LayerCollection *>(view_layer->layer_collections.first);
@@ -329,7 +329,7 @@ static void set_preview_visibility(Main *pr_main,
                                    const ePreviewType pr_type,
                                    const ePreviewRenderMethod pr_method)
 {
-  switch_preview_collection_visibilty(view_layer, pr_type);
+  switch_preview_collection_visibility(view_layer, pr_type);
   switch_preview_floor_visibility(pr_main, scene, view_layer, pr_method);
   BKE_layer_collection_sync(scene, view_layer);
 }
@@ -459,11 +459,11 @@ static Scene *preview_prepare_scene(
   if (sce) {
     ViewLayer *view_layer = static_cast<ViewLayer *>(sce->view_layers.first);
 
-    /* Only enable the combined renderpass */
+    /* Only enable the combined render-pass. */
     view_layer->passflag = SCE_PASS_COMBINED;
     view_layer->eevee.render_passes = 0;
 
-    /* this flag tells render to not execute depsgraph or ipos etc */
+    /* This flag tells render to not execute depsgraph or F-Curves etc. */
     sce->r.scemode |= R_BUTS_PREVIEW;
     BLI_strncpy(sce->r.engine, scene->r.engine, sizeof(sce->r.engine));
 
@@ -987,9 +987,7 @@ static void action_preview_render(IconPreview *preview, IconPreviewSize *preview
  * \{ */
 
 /* inside thread, called by renderer, sets job update value */
-static void shader_preview_update(void *spv,
-                                  RenderResult *UNUSED(rr),
-                                  volatile struct rcti *UNUSED(rect))
+static void shader_preview_update(void *spv, RenderResult *UNUSED(rr), struct rcti *UNUSED(rect))
 {
   ShaderPreview *sp = static_cast<ShaderPreview *>(spv);
 
@@ -1681,19 +1679,19 @@ class PreviewLoadJob {
   PreviewLoadJob();
   ~PreviewLoadJob();
 
-  static PreviewLoadJob &ensure_job(wmWindowManager *, wmWindow *);
-  static void load_jobless(PreviewImage *, eIconSizes);
+  static PreviewLoadJob &ensure_job(wmWindowManager *wm, wmWindow *win);
+  static void load_jobless(PreviewImage *preview, eIconSizes icon_size);
 
-  void push_load_request(PreviewImage *, eIconSizes);
+  void push_load_request(PreviewImage *preview, eIconSizes icon_size);
 
  private:
-  static void run_fn(void *, short *, short *, float *);
-  static void update_fn(void *);
-  static void end_fn(void *);
-  static void free_fn(void *);
+  static void run_fn(void *customdata, short *stop, short *do_update, float *progress);
+  static void update_fn(void *customdata);
+  static void end_fn(void *customdata);
+  static void free_fn(void *customdata);
 
   /** Mark a single requested preview as being done, remove the request. */
-  static void finish_request(RequestedPreview &);
+  static void finish_request(RequestedPreview &request);
 };
 
 PreviewLoadJob::PreviewLoadJob() : todo_queue_(BLI_thread_queue_init())

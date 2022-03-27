@@ -1,8 +1,8 @@
-/*
- * ConstraintSet.hpp
- *
- *  Created on: Jan 5, 2009
- *      Author: rubensmits
+/* SPDX-License-Identifier: LGPL-2.1-or-later
+ * Copyright 2009 Ruben Smits. */
+
+/** \file
+ * \ingroup intern_itasc
  */
 
 #ifndef CONSTRAINTSET_HPP_

@@ -556,15 +556,18 @@ void LATTICE_OT_select_ungrouped(wmOperatorType *ot)
  * Gets called via generic mouse select operator.
  * \{ */
 
-static void findnearestLattvert__doClosest(void *userData, BPoint *bp, const float screen_co[2])
+struct NearestLatticeVert_UserData {
+  BPoint *bp;
+  float dist;
+  /** When true, the existing selection gets a disadvantage. */
+  bool select;
+  float mval_fl[2];
+  bool is_changed;
+};
+
+static void findnearestLattvert__doClosest(void *user_data, BPoint *bp, const float screen_co[2])
 {
-  struct {
-    BPoint *bp;
-    float dist;
-    int select;
-    float mval_fl[2];
-    bool is_changed;
-  } *data = userData;
+  struct NearestLatticeVert_UserData *data = user_data;
   float dist_test = len_manhattan_v2v2(data->mval_fl, screen_co);
 
   if ((bp->f1 & SELECT) && data->select) {
@@ -578,21 +581,12 @@ static void findnearestLattvert__doClosest(void *userData, BPoint *bp, const flo
   }
 }
 
-static BPoint *findnearestLattvert(ViewContext *vc, int sel, Base **r_base)
+static BPoint *findnearestLattvert(ViewContext *vc, bool select, Base **r_base)
 {
-  /* (sel == 1): selected gets a disadvantage */
-  /* in nurb and bezt or bp the nearest is written */
-  /* return 0 1 2: handlepunt */
-  struct {
-    BPoint *bp;
-    float dist;
-    int select;
-    float mval_fl[2];
-    bool is_changed;
-  } data = {NULL};
+  struct NearestLatticeVert_UserData data = {NULL};
 
   data.dist = ED_view3d_select_dist_px();
-  data.select = sel;
+  data.select = select;
   data.mval_fl[0] = vc->mval[0];
   data.mval_fl[1] = vc->mval[1];
 
@@ -616,24 +610,27 @@ static BPoint *findnearestLattvert(ViewContext *vc, int sel, Base **r_base)
   return data.bp;
 }
 
-bool ED_lattice_select_pick(
-    bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
+bool ED_lattice_select_pick(bContext *C, const int mval[2], const struct SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
   BPoint *bp = NULL;
   Base *basact = NULL;
+  bool changed = false;
 
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
   vc.mval[0] = mval[0];
   vc.mval[1] = mval[1];
 
   bp = findnearestLattvert(&vc, true, &basact);
-  if (bp) {
-    ED_view3d_viewcontext_init_object(&vc, basact->object);
-    Lattice *lt = ((Lattice *)vc.obedit->data)->editlatt->latt;
+  bool found = (bp != NULL);
 
-    if (!extend && !deselect && !toggle) {
+  if (params->sel_op == SEL_OP_SET) {
+    if ((found && params->select_passthrough) && (bp->f1 & SELECT)) {
+      found = false;
+    }
+    else if (found || params->deselect_all) {
+      /* Deselect everything. */
       uint objects_len = 0;
       Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
           vc.view_layer, vc.v3d, &objects_len);
@@ -645,20 +642,36 @@ bool ED_lattice_select_pick(
         }
       }
       MEM_freeN(objects);
+      changed = true;
     }
+  }
 
-    if (extend) {
-      bp->f1 |= SELECT;
-    }
-    else if (deselect) {
-      bp->f1 &= ~SELECT;
-    }
-    else if (toggle) {
-      bp->f1 ^= SELECT; /* swap */
-    }
-    else {
-      ED_lattice_flags_set(vc.obedit, 0);
-      bp->f1 |= SELECT;
+  if (found) {
+    ED_view3d_viewcontext_init_object(&vc, basact->object);
+    Lattice *lt = ((Lattice *)vc.obedit->data)->editlatt->latt;
+
+    switch (params->sel_op) {
+      case SEL_OP_ADD: {
+        bp->f1 |= SELECT;
+        break;
+      }
+      case SEL_OP_SUB: {
+        bp->f1 &= ~SELECT;
+        break;
+      }
+      case SEL_OP_XOR: {
+        bp->f1 ^= SELECT; /* swap */
+        break;
+      }
+      case SEL_OP_SET: {
+        ED_lattice_flags_set(vc.obedit, 0);
+        bp->f1 |= SELECT;
+        break;
+      }
+      case SEL_OP_AND: {
+        BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+        break;
+      }
     }
 
     if (bp->f1 & SELECT) {
@@ -675,10 +688,10 @@ bool ED_lattice_select_pick(
     DEG_id_tag_update(vc.obedit->data, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
 
-    return true;
+    changed = true;
   }
 
-  return false;
+  return changed || found;
 }
 
 /** \} */

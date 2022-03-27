@@ -42,7 +42,7 @@ static void apply_row_filter(const SpreadsheetRowFilter &row_filter,
                              Vector<int64_t> &new_indices)
 {
   const ColumnValues &column = *columns.lookup(row_filter.column_name);
-  const fn::GVArray &column_data = column.data();
+  const GVArray &column_data = column.data();
   if (column_data.type().is<float>()) {
     const float value = row_filter.value_float;
     switch (row_filter.operation) {

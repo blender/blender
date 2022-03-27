@@ -98,9 +98,9 @@ float psys_get_current_display_percentage(ParticleSystem *psys, const bool use_r
   ParticleSettings *part = psys->part;
 
   if ((use_render_params &&
-       !particles_are_dynamic(psys)) ||          /* non-dynamic particles can be rendered fully */
-      (part->child_nbr && part->childtype) ||    /* display percentage applies to children */
-      (psys->pointcache->flag & PTCACHE_BAKING)) /* baking is always done with full amount */
+       !particles_are_dynamic(psys)) ||           /* non-dynamic particles can be rendered fully */
+      (part->child_percent && part->childtype) || /* display percentage applies to children */
+      (psys->pointcache->flag & PTCACHE_BAKING))  /* baking is always done with full amount */
   {
     return 1.0f;
   }
@@ -280,20 +280,20 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
 
 int psys_get_child_number(Scene *scene, ParticleSystem *psys, const bool use_render_params)
 {
-  int nbr;
+  int child_num;
 
   if (!psys->part->childtype) {
     return 0;
   }
 
   if (use_render_params) {
-    nbr = psys->part->ren_child_nbr;
+    child_num = psys->part->child_render_percent;
   }
   else {
-    nbr = psys->part->child_nbr;
+    child_num = psys->part->child_percent;
   }
 
-  return get_render_child_particle_number(&scene->r, nbr, use_render_params);
+  return get_render_child_particle_number(&scene->r, child_num, use_render_params);
 }
 
 int psys_get_tot_child(Scene *scene, ParticleSystem *psys, const bool use_render_params)

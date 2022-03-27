@@ -45,6 +45,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "ED_gpencil.h"
 #include "ED_screen.h"
@@ -309,23 +310,6 @@ static void gpencil_stroke_pair_table(bContext *C,
   }
 }
 
-static void gpencil_interpolate_smooth_stroke(bGPDstroke *gps,
-                                              float smooth_factor,
-                                              int smooth_steps)
-{
-  if (smooth_factor == 0.0f) {
-    return;
-  }
-
-  float reduce = 0.0f;
-  for (int r = 0; r < smooth_steps; r++) {
-    for (int i = 0; i < gps->totpoints - 1; i++) {
-      BKE_gpencil_stroke_smooth_point(gps, i, smooth_factor - reduce, false);
-      BKE_gpencil_stroke_smooth_strength(gps, i, smooth_factor);
-    }
-    reduce += 0.25f; /* reduce the factor */
-  }
-}
 /* Perform interpolation */
 static void gpencil_interpolate_update_points(const bGPDstroke *gps_from,
                                               const bGPDstroke *gps_to,
@@ -552,7 +536,15 @@ static void gpencil_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
 
       /* Update points position. */
       gpencil_interpolate_update_points(gps_from, gps_to, new_stroke, tgpil->factor);
-      gpencil_interpolate_smooth_stroke(new_stroke, tgpi->smooth_factor, tgpi->smooth_steps);
+      BKE_gpencil_stroke_smooth(new_stroke,
+                                tgpi->smooth_factor,
+                                tgpi->smooth_steps,
+                                true,
+                                true,
+                                false,
+                                false,
+                                true,
+                                NULL);
 
       /* Calc geometry data. */
       BKE_gpencil_stroke_geometry_update(gpd, new_stroke);
@@ -1384,7 +1376,8 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
 
         /* Update points position. */
         gpencil_interpolate_update_points(gps_from, gps_to, new_stroke, factor);
-        gpencil_interpolate_smooth_stroke(new_stroke, smooth_factor, smooth_steps);
+        BKE_gpencil_stroke_smooth(
+            new_stroke, smooth_factor, smooth_steps, true, true, false, false, true, NULL);
 
         /* Calc geometry data. */
         BKE_gpencil_stroke_geometry_update(gpd, new_stroke);
@@ -1574,6 +1567,8 @@ void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
       {0, NULL, 0, NULL, NULL},
   };
 
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Interpolate Sequence";
   ot->idname = "GPENCIL_OT_interpolate_sequence";
@@ -1634,14 +1629,15 @@ void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
                 0.0f,
                 2.0f);
 
-  RNA_def_enum(ot->srna,
-               "type",
-               gpencil_interpolation_type_items,
-               0,
-               "Type",
-               "Interpolation method to use the next time 'Interpolate Sequence' is run");
+  prop = RNA_def_enum(ot->srna,
+                      "type",
+                      gpencil_interpolation_type_items,
+                      0,
+                      "Type",
+                      "Interpolation method to use the next time 'Interpolate Sequence' is run");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
 
-  RNA_def_enum(
+  prop = RNA_def_enum(
       ot->srna,
       "easing",
       gpencil_interpolation_easing_items,
@@ -1649,6 +1645,7 @@ void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
       "Easing",
       "Which ends of the segment between the preceding and following grease pencil frames "
       "easing interpolation is applied to");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
 
   RNA_def_float(ot->srna,
                 "back",

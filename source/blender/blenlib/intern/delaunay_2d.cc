@@ -423,7 +423,7 @@ template<typename T> std::ostream &operator<<(std::ostream &os, const CDT_state<
       os << " merge to " << vertname(cdt_state.cdt.verts[v->merge_to_index]) << "\n";
     }
     const SymEdge<T> *se = v->symedge;
-    int cnt = 0;
+    int count = 0;
     constexpr int print_count_limit = 25;
     if (se) {
       os << "  edges out:\n";
@@ -440,8 +440,8 @@ template<typename T> std::ostream &operator<<(std::ostream &os, const CDT_state<
         os << "    " << vertname(vother) << "(e=" << trunc_ptr(se->edge)
            << ", se=" << trunc_ptr(se) << ")\n";
         se = se->rot;
-        cnt++;
-      } while (se != v->symedge && cnt < print_count_limit);
+        count++;
+      } while (se != v->symedge && count < print_count_limit);
       os << "\n";
     }
   }
@@ -2188,21 +2188,22 @@ static int power_of_10_greater_equal_to(int x)
 }
 
 /**
-   Incrementally each edge of each input face as an edge constraint.
+ * Incrementally each edge of each input face as an edge constraint.
  * The code will ensure that the #CDTEdge's created will have ids that tie them
  * back to the original face edge (using a numbering system for those edges
  * that starts with cdt->face_edge_offset, and continues with the edges in
  * order around each face in turn. And then the next face starts at
  * cdt->face_edge_offset beyond the start for the previous face.
+ * Return the number of faces added, which may be less than input.face.size()
+ * in the case that some faces have less than 3 sides.
  */
 template<typename T>
-void add_face_constraints(CDT_state<T> *cdt_state,
-                          const CDT_input<T> &input,
-                          CDT_output_type output_type)
+int add_face_constraints(CDT_state<T> *cdt_state,
+                         const CDT_input<T> &input,
+                         CDT_output_type output_type)
 {
   int nv = input.vert.size();
   int nf = input.face.size();
-  int fstart = 0;
   SymEdge<T> *face_symedge0 = nullptr;
   CDTArrangement<T> *cdt = &cdt_state->cdt;
   int maxflen = 0;
@@ -2217,11 +2218,11 @@ void add_face_constraints(CDT_state<T> *cdt_state,
    * together the are >= INT_MAX, then the Delaunay calculation will take unreasonably long anyway.
    */
   BLI_assert(INT_MAX / cdt_state->face_edge_offset > nf);
+  int faces_added = 0;
   for (int f = 0; f < nf; f++) {
     int flen = input.face[f].size();
     if (flen <= 2) {
       /* Ignore faces with fewer than 3 vertices. */
-      fstart += flen;
       continue;
     }
     int fedge_start = (f + 1) * cdt_state->face_edge_offset;
@@ -2233,6 +2234,7 @@ void add_face_constraints(CDT_state<T> *cdt_state,
         /* Ignore face edges with invalid vertices. */
         continue;
       }
+      ++faces_added;
       CDTVert<T> *v1 = cdt->get_vert_resolve_merge(iv1);
       CDTVert<T> *v2 = cdt->get_vert_resolve_merge(iv2);
       LinkNode *edge_list;
@@ -2266,8 +2268,8 @@ void add_face_constraints(CDT_state<T> *cdt_state,
         add_face_ids(cdt_state, face_symedge0, f, fedge_start, fedge_end);
       }
     }
-    fstart += flen;
   }
+  return faces_added;
 }
 
 /* Delete_edge but try not to mess up outer face.
@@ -2645,7 +2647,8 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state,
                              const CDT_input<T> UNUSED(input),
                              CDT_output_type output_type)
 {
-  prepare_cdt_for_output(cdt_state, output_type);
+  CDT_output_type oty = output_type;
+  prepare_cdt_for_output(cdt_state, oty);
   CDT_result<T> result;
   CDTArrangement<T> *cdt = &cdt_state->cdt;
   result.face_edge_offset = cdt_state->face_edge_offset;
@@ -2777,7 +2780,11 @@ CDT_result<T> delaunay_calc(const CDT_input<T> &input, CDT_output_type output_ty
   add_input_verts(&cdt_state, input);
   initial_triangulation(&cdt_state.cdt);
   add_edge_constraints(&cdt_state, input);
-  add_face_constraints(&cdt_state, input, output_type);
+  int actual_nf = add_face_constraints(&cdt_state, input, output_type);
+  if (actual_nf == 0 && !ELEM(output_type, CDT_FULL, CDT_INSIDE, CDT_CONSTRAINTS)) {
+    /* Can't look for faces or holes if there were no valid input faces. */
+    output_type = CDT_INSIDE;
+  }
   return get_cdt_output(&cdt_state, input, output_type);
 }
 

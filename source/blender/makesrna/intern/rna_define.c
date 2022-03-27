@@ -2394,8 +2394,7 @@ void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const 
       iprop->hardmax = iprop->softmax = INT8_MAX;
     }
 
-    if (prop->subtype == PROP_UNSIGNED || prop->subtype == PROP_PERCENTAGE ||
-        prop->subtype == PROP_FACTOR) {
+    if (ELEM(prop->subtype, PROP_UNSIGNED, PROP_PERCENTAGE, PROP_FACTOR)) {
       iprop->hardmin = iprop->softmin = 0;
     }
 

@@ -1468,7 +1468,7 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
 
       /* set the DerivedMesh to only copy needed data */
       CustomData_MeshMasks_update(&mask, &append_mask);
-      /* XXX WHAT? ovewrites mask ??? */
+      /* XXX WHAT? overwrites mask ??? */
       /* CD_MASK_ORCO may have been cleared above */
       mask = md_datamask->mask;
       mask.vmask |= CD_MASK_ORIGINDEX;

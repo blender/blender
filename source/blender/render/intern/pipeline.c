@@ -44,6 +44,8 @@
 #include "BKE_context.h" /* XXX needed by wm_window.h */
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_image_format.h"
+#include "BKE_image_save.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_remap.h"
@@ -116,14 +118,20 @@
  * - save file or append in movie
  */
 
-/* ********* globals ******** */
+/* -------------------------------------------------------------------- */
+/** \name Globals
+ * \{ */
 
 /* here we store all renders */
 static struct {
   ListBase renderlist;
 } RenderGlobal = {{NULL, NULL}};
 
-/* ********* callbacks ******** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks
+ * \{ */
 
 static void render_callback_exec_null(Render *re, Main *bmain, eCbEvent evt)
 {
@@ -141,7 +149,11 @@ static void render_callback_exec_id(Render *re, Main *bmain, ID *id, eCbEvent ev
   BKE_callback_exec_id(bmain, id, evt);
 }
 
-/* ********* alloc and free ******** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Allocation & Free
+ * \{ */
 
 static int do_write_image_or_movie(Render *re,
                                    Main *bmain,
@@ -156,7 +168,7 @@ static void result_nothing(void *UNUSED(arg), RenderResult *UNUSED(rr))
 }
 static void result_rcti_nothing(void *UNUSED(arg),
                                 RenderResult *UNUSED(rr),
-                                volatile struct rcti *UNUSED(rect))
+                                struct rcti *UNUSED(rect))
 {
 }
 static void current_scene_nothing(void *UNUSED(arg), Scene *UNUSED(scene))
@@ -212,47 +224,12 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
   fflush(stdout);
 }
 
-static void render_print_save_message(ReportList *reports, const char *name, int ok, int err)
-{
-  if (ok) {
-    /* no need to report, just some helpful console info */
-    printf("Saved: '%s'\n", name);
-  }
-  else {
-    /* report on error since users will want to know what failed */
-    BKE_reportf(reports, RPT_ERROR, "Render error (%s) cannot save: '%s'", strerror(err), name);
-  }
-}
-
-static int render_imbuf_write_stamp_test(ReportList *reports,
-                                         Scene *scene,
-                                         struct RenderResult *rr,
-                                         ImBuf *ibuf,
-                                         const char *name,
-                                         const ImageFormatData *imf,
-                                         bool stamp)
-{
-  int ok;
-
-  if (stamp) {
-    /* writes the name of the individual cameras */
-    ok = BKE_imbuf_write_stamp(scene, rr, ibuf, name, imf);
-  }
-  else {
-    ok = BKE_imbuf_write(ibuf, name, imf);
-  }
-
-  render_print_save_message(reports, name, ok, errno);
-
-  return ok;
-}
-
 void RE_FreeRenderResult(RenderResult *rr)
 {
   render_result_free(rr);
 }
 
-float *RE_RenderLayerGetPass(volatile RenderLayer *rl, const char *name, const char *viewname)
+float *RE_RenderLayerGetPass(RenderLayer *rl, const char *name, const char *viewname)
 {
   RenderPass *rpass = RE_pass_find_by_name(rl, name, viewname);
   return rpass ? rpass->rect : NULL;
@@ -308,7 +285,11 @@ static bool render_scene_has_layers_to_render(Scene *scene, ViewLayer *single_la
   return false;
 }
 
-/* *************************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public Render API
+ * \{ */
 
 Render *RE_GetRender(const char *name)
 {
@@ -686,18 +667,20 @@ void RE_FreePersistentData(const Scene *scene)
   }
 }
 
-/* ********* initialize state ******** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Initialize State
+ * \{ */
 
 static void re_init_resolution(Render *re, Render *source, int winx, int winy, rcti *disprect)
 {
   re->winx = winx;
   re->winy = winy;
   if (source && (source->r.mode & R_BORDER)) {
-    /* eeh, doesn't seem original bordered disprect is storing anywhere
-     * after insertion on black happening in do_render_engine(),
-     * so for now simply re-calculate disprect using border from source
-     * renderer (sergey)
-     */
+    /* NOTE(@sergey): doesn't seem original bordered `disprect` is storing anywhere
+     * after insertion on black happening in #do_render_engine(),
+     * so for now simply re-calculate `disprect` using border from source renderer. */
 
     re->disprect.xmin = source->r.border.xmin * winx;
     re->disprect.xmax = source->r.border.xmax * winx;
@@ -872,7 +855,7 @@ void RE_display_clear_cb(Render *re, void *handle, void (*f)(void *handle, Rende
 }
 void RE_display_update_cb(Render *re,
                           void *handle,
-                          void (*f)(void *handle, RenderResult *rr, volatile rcti *rect))
+                          void (*f)(void *handle, RenderResult *rr, rcti *rect))
 {
   re->display_update = f;
   re->duh = handle;
@@ -905,7 +888,11 @@ void RE_test_break_cb(Render *re, void *handle, int (*f)(void *handle))
   re->tbh = handle;
 }
 
-/* ********* GL Context ******** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name OpenGL Context
+ * \{ */
 
 void RE_gl_context_create(Render *re)
 {
@@ -943,6 +930,16 @@ void *RE_gpu_context_get(Render *re)
   }
   return re->gpu_context;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Render & Composite Scenes (Implementation & Public API)
+ *
+ * Main high-level functions defined here are:
+ * - #RE_RenderFrame
+ * - #RE_RenderAnim
+ * \{ */
 
 /* ************  This part uses API, for rendering Blender scenes ********** */
 
@@ -1215,14 +1212,8 @@ static void do_render_compositor(Render *re)
 
         RenderView *rv;
         for (rv = re->result->views.first; rv; rv = rv->next) {
-          ntreeCompositExecTree(re->pipeline_scene_eval,
-                                ntree,
-                                &re->r,
-                                true,
-                                G.background == 0,
-                                &re->scene->view_settings,
-                                &re->scene->display_settings,
-                                rv->name);
+          ntreeCompositExecTree(
+              re->pipeline_scene_eval, ntree, &re->r, true, G.background == 0, rv->name);
         }
 
         ntree->stats_draw = NULL;
@@ -1354,7 +1345,7 @@ static void do_render_sequencer(Render *re)
 
     if (ibuf_arr[view_id]) {
       /* copy ibuf into combined pixel rect */
-      RE_render_result_rect_from_ibuf(rr, &re->r, ibuf_arr[view_id], view_id);
+      RE_render_result_rect_from_ibuf(rr, ibuf_arr[view_id], view_id);
 
       if (ibuf_arr[view_id]->metadata && (re->r.stamp & R_STAMP_STRIPMETA)) {
         /* ensure render stamp info first */
@@ -1812,7 +1803,8 @@ void RE_RenderFrame(Render *re,
                     Scene *scene,
                     ViewLayer *single_layer,
                     Object *camera_override,
-                    int frame,
+                    const int frame,
+                    const float subframe,
                     const bool write_still)
 {
   render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_INIT);
@@ -1822,6 +1814,7 @@ void RE_RenderFrame(Render *re,
   G.is_rendering = true;
 
   scene->r.cfra = frame;
+  scene->r.subframe = subframe;
 
   if (render_init_from_main(re, &scene->r, bmain, scene, single_layer, camera_override, 0, 0)) {
     const RenderData rd = scene->r;
@@ -1940,128 +1933,11 @@ void RE_RenderFreestyleExternal(Render *re)
 }
 #endif
 
-bool RE_WriteRenderViewsImage(
-    ReportList *reports, RenderResult *rr, Scene *scene, const bool stamp, char *name)
-{
-  bool ok = true;
-  RenderData *rd = &scene->r;
+/** \} */
 
-  if (!rr) {
-    return false;
-  }
-
-  bool is_mono = BLI_listbase_count_at_most(&rr->views, 2) < 2;
-  bool is_exr_rr = ELEM(rd->im_format.imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER) &&
-                   RE_HasFloatPixels(rr);
-
-  if (rd->im_format.views_format == R_IMF_VIEWS_MULTIVIEW && is_exr_rr) {
-    ok = RE_WriteRenderResult(reports, rr, name, &rd->im_format, NULL, -1);
-    render_print_save_message(reports, name, ok, errno);
-  }
-
-  /* mono, legacy code */
-  else if (is_mono || (rd->im_format.views_format == R_IMF_VIEWS_INDIVIDUAL)) {
-    RenderView *rv;
-    int view_id;
-    char filepath[FILE_MAX];
-
-    BLI_strncpy(filepath, name, sizeof(filepath));
-
-    for (view_id = 0, rv = rr->views.first; rv; rv = rv->next, view_id++) {
-      if (!is_mono) {
-        BKE_scene_multiview_view_filepath_get(&scene->r, filepath, rv->name, name);
-      }
-
-      if (is_exr_rr) {
-        ok = RE_WriteRenderResult(reports, rr, name, &rd->im_format, rv->name, -1);
-        render_print_save_message(reports, name, ok, errno);
-
-        /* optional preview images for exr */
-        if (ok && (rd->im_format.flag & R_IMF_FLAG_PREVIEW_JPG)) {
-          ImageFormatData imf = rd->im_format;
-          imf.imtype = R_IMF_IMTYPE_JPEG90;
-
-          if (BLI_path_extension_check(name, ".exr")) {
-            name[strlen(name) - 4] = 0;
-          }
-          BKE_image_path_ensure_ext_from_imformat(name, &imf);
-
-          ImBuf *ibuf = render_result_rect_to_ibuf(rr, rd, view_id);
-          ibuf->planes = 24;
-          IMB_colormanagement_imbuf_for_write(
-              ibuf, true, false, &scene->view_settings, &scene->display_settings, &imf);
-
-          ok = render_imbuf_write_stamp_test(reports, scene, rr, ibuf, name, &imf, stamp);
-
-          IMB_freeImBuf(ibuf);
-        }
-      }
-      else {
-        ImBuf *ibuf = render_result_rect_to_ibuf(rr, rd, view_id);
-
-        IMB_colormanagement_imbuf_for_write(
-            ibuf, true, false, &scene->view_settings, &scene->display_settings, &rd->im_format);
-
-        ok = render_imbuf_write_stamp_test(reports, scene, rr, ibuf, name, &rd->im_format, stamp);
-
-        /* imbuf knows which rects are not part of ibuf */
-        IMB_freeImBuf(ibuf);
-      }
-    }
-  }
-  else { /* R_IMF_VIEWS_STEREO_3D */
-    BLI_assert(scene->r.im_format.views_format == R_IMF_VIEWS_STEREO_3D);
-
-    if (rd->im_format.imtype == R_IMF_IMTYPE_MULTILAYER) {
-      printf("Stereo 3D not supported for MultiLayer image: %s\n", name);
-    }
-    else {
-      ImBuf *ibuf_arr[3] = {NULL};
-      const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
-      int i;
-
-      for (i = 0; i < 2; i++) {
-        int view_id = BLI_findstringindex(&rr->views, names[i], offsetof(RenderView, name));
-        ibuf_arr[i] = render_result_rect_to_ibuf(rr, rd, view_id);
-        IMB_colormanagement_imbuf_for_write(ibuf_arr[i],
-                                            true,
-                                            false,
-                                            &scene->view_settings,
-                                            &scene->display_settings,
-                                            &scene->r.im_format);
-        IMB_prepare_write_ImBuf(IMB_isfloat(ibuf_arr[i]), ibuf_arr[i]);
-      }
-
-      ibuf_arr[2] = IMB_stereo3d_ImBuf(&scene->r.im_format, ibuf_arr[0], ibuf_arr[1]);
-
-      ok = render_imbuf_write_stamp_test(
-          reports, scene, rr, ibuf_arr[2], name, &rd->im_format, stamp);
-
-      /* optional preview images for exr */
-      if (ok && is_exr_rr && (rd->im_format.flag & R_IMF_FLAG_PREVIEW_JPG)) {
-        ImageFormatData imf = rd->im_format;
-        imf.imtype = R_IMF_IMTYPE_JPEG90;
-
-        if (BLI_path_extension_check(name, ".exr")) {
-          name[strlen(name) - 4] = 0;
-        }
-
-        BKE_image_path_ensure_ext_from_imformat(name, &imf);
-        ibuf_arr[2]->planes = 24;
-
-        ok = render_imbuf_write_stamp_test(
-            reports, scene, rr, ibuf_arr[2], name, &rd->im_format, stamp);
-      }
-
-      /* imbuf knows which rects are not part of ibuf */
-      for (i = 0; i < 3; i++) {
-        IMB_freeImBuf(ibuf_arr[i]);
-      }
-    }
-  }
-
-  return ok;
-}
+/* -------------------------------------------------------------------- */
+/** \name Read/Write Render Result (Images & Movies)
+ * \{ */
 
 bool RE_WriteRenderViewsMovie(ReportList *reports,
                               RenderResult *rr,
@@ -2072,23 +1948,25 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
                               const int totvideos,
                               bool preview)
 {
-  bool is_mono;
   bool ok = true;
 
   if (!rr) {
     return false;
   }
 
-  is_mono = BLI_listbase_count_at_most(&rr->views, 2) < 2;
+  ImageFormatData image_format;
+  BKE_image_format_init_for_write(&image_format, scene, NULL);
 
-  if (is_mono || (scene->r.im_format.views_format == R_IMF_VIEWS_INDIVIDUAL)) {
+  const bool is_mono = BLI_listbase_count_at_most(&rr->views, 2) < 2;
+  const float dither = scene->r.dither_intensity;
+
+  if (is_mono || (image_format.views_format == R_IMF_VIEWS_INDIVIDUAL)) {
     int view_id;
     for (view_id = 0; view_id < totvideos; view_id++) {
       const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, view_id);
-      ImBuf *ibuf = render_result_rect_to_ibuf(rr, &scene->r, view_id);
+      ImBuf *ibuf = RE_render_result_rect_to_ibuf(rr, &rd->im_format, dither, view_id);
 
-      IMB_colormanagement_imbuf_for_write(
-          ibuf, true, false, &scene->view_settings, &scene->display_settings, &scene->r.im_format);
+      IMB_colormanagement_imbuf_for_write(ibuf, true, false, &image_format);
 
       ok &= mh->append_movie(movie_ctx_arr[view_id],
                              rd,
@@ -2110,21 +1988,16 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
     ImBuf *ibuf_arr[3] = {NULL};
     int i;
 
-    BLI_assert((totvideos == 1) && (scene->r.im_format.views_format == R_IMF_VIEWS_STEREO_3D));
+    BLI_assert((totvideos == 1) && (image_format.views_format == R_IMF_VIEWS_STEREO_3D));
 
     for (i = 0; i < 2; i++) {
       int view_id = BLI_findstringindex(&rr->views, names[i], offsetof(RenderView, name));
-      ibuf_arr[i] = render_result_rect_to_ibuf(rr, &scene->r, view_id);
+      ibuf_arr[i] = RE_render_result_rect_to_ibuf(rr, &rd->im_format, dither, view_id);
 
-      IMB_colormanagement_imbuf_for_write(ibuf_arr[i],
-                                          true,
-                                          false,
-                                          &scene->view_settings,
-                                          &scene->display_settings,
-                                          &scene->r.im_format);
+      IMB_colormanagement_imbuf_for_write(ibuf_arr[i], true, false, &image_format);
     }
 
-    ibuf_arr[2] = IMB_stereo3d_ImBuf(&scene->r.im_format, ibuf_arr[0], ibuf_arr[1]);
+    ibuf_arr[2] = IMB_stereo3d_ImBuf(&image_format, ibuf_arr[0], ibuf_arr[1]);
 
     ok = mh->append_movie(movie_ctx_arr[0],
                           rd,
@@ -2141,6 +2014,8 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
       IMB_freeImBuf(ibuf_arr[i]);
     }
   }
+
+  BKE_image_format_free(&image_format);
 
   return ok;
 }
@@ -2186,7 +2061,7 @@ static int do_write_image_or_movie(Render *re,
       }
 
       /* write images as individual images or stereo */
-      ok = RE_WriteRenderViewsImage(re->reports, &rres, scene, true, name);
+      ok = BKE_image_render_write(re->reports, &rres, scene, true, name);
     }
 
     RE_ReleaseResultImageViews(re, &rres);
@@ -2267,7 +2142,8 @@ void RE_RenderAnim(Render *re,
 
   const RenderData rd = scene->r;
   bMovieHandle *mh = NULL;
-  const int cfrao = rd.cfra;
+  const int cfra_old = rd.cfra;
+  const float subframe_old = rd.subframe;
   int nfra, totrendered = 0, totskipped = 0;
   const int totvideos = BKE_scene_multiview_num_videos_get(&rd);
   const bool is_movie = BKE_imtype_is_movie(rd.im_format.imtype);
@@ -2335,6 +2211,7 @@ void RE_RenderAnim(Render *re,
   re->flag |= R_ANIMATION;
 
   {
+    scene->r.subframe = 0.0f;
     for (nfra = sfra, scene->r.cfra = sfra; scene->r.cfra <= efra; scene->r.cfra++) {
       char name[FILE_MAX];
 
@@ -2443,6 +2320,7 @@ void RE_RenderAnim(Render *re,
       }
 
       re->r.cfra = scene->r.cfra; /* weak.... */
+      re->r.subframe = scene->r.subframe;
 
       /* run callbacks before rendering, before the scene is updated */
       render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_PRE);
@@ -2511,7 +2389,8 @@ void RE_RenderAnim(Render *re,
     BKE_report(re->reports, RPT_INFO, "No frames rendered, skipped to not overwrite");
   }
 
-  scene->r.cfra = cfrao;
+  scene->r.cfra = cfra_old;
+  scene->r.subframe = subframe_old;
 
   re->flag &= ~R_ANIMATION;
 
@@ -2600,16 +2479,11 @@ bool RE_ReadRenderResult(Scene *scene, Scene *scenode)
   return success;
 }
 
-void RE_init_threadcount(Render *re)
-{
-  re->r.threads = BKE_render_num_threads(&re->r);
-}
-
 void RE_layer_load_from_file(
-    RenderLayer *layer, ReportList *reports, const char *filename, int x, int y)
+    RenderLayer *layer, ReportList *reports, const char *filepath, int x, int y)
 {
   /* OCIO_TODO: assume layer was saved in default color space */
-  ImBuf *ibuf = IMB_loadiffname(filename, IB_rect, NULL);
+  ImBuf *ibuf = IMB_loadiffname(filepath, IB_rect, NULL);
   RenderPass *rpass = NULL;
 
   /* multiview: since the API takes no 'view', we use the first combined pass found */
@@ -2624,7 +2498,7 @@ void RE_layer_load_from_file(
                 RPT_ERROR,
                 "%s: no Combined pass found in the render layer '%s'",
                 __func__,
-                filename);
+                filepath);
   }
 
   if (ibuf && (ibuf->rect || ibuf->rect_float)) {
@@ -2653,7 +2527,7 @@ void RE_layer_load_from_file(
         }
         else {
           BKE_reportf(
-              reports, RPT_ERROR, "%s: failed to allocate clip buffer '%s'", __func__, filename);
+              reports, RPT_ERROR, "%s: failed to allocate clip buffer '%s'", __func__, filepath);
         }
       }
       else {
@@ -2661,21 +2535,21 @@ void RE_layer_load_from_file(
                     RPT_ERROR,
                     "%s: incorrect dimensions for partial copy '%s'",
                     __func__,
-                    filename);
+                    filepath);
       }
     }
 
     IMB_freeImBuf(ibuf);
   }
   else {
-    BKE_reportf(reports, RPT_ERROR, "%s: failed to load '%s'", __func__, filename);
+    BKE_reportf(reports, RPT_ERROR, "%s: failed to load '%s'", __func__, filepath);
   }
 }
 
-void RE_result_load_from_file(RenderResult *result, ReportList *reports, const char *filename)
+void RE_result_load_from_file(RenderResult *result, ReportList *reports, const char *filepath)
 {
-  if (!render_result_exr_file_read_path(result, NULL, filename)) {
-    BKE_reportf(reports, RPT_ERROR, "%s: failed to load '%s'", __func__, filename);
+  if (!render_result_exr_file_read_path(result, NULL, filepath)) {
+    BKE_reportf(reports, RPT_ERROR, "%s: failed to load '%s'", __func__, filepath);
     return;
   }
 }
@@ -2704,7 +2578,7 @@ bool RE_passes_have_name(struct RenderLayer *rl)
   return false;
 }
 
-RenderPass *RE_pass_find_by_name(volatile RenderLayer *rl, const char *name, const char *viewname)
+RenderPass *RE_pass_find_by_name(RenderLayer *rl, const char *name, const char *viewname)
 {
   RenderPass *rp = NULL;
 
@@ -2721,7 +2595,7 @@ RenderPass *RE_pass_find_by_name(volatile RenderLayer *rl, const char *name, con
   return rp;
 }
 
-RenderPass *RE_pass_find_by_type(volatile RenderLayer *rl, int passtype, const char *viewname)
+RenderPass *RE_pass_find_by_type(RenderLayer *rl, int passtype, const char *viewname)
 {
 #define CHECK_PASS(NAME) \
   if (passtype == SCE_PASS_##NAME) { \
@@ -2785,6 +2659,12 @@ RenderPass *RE_create_gp_pass(RenderResult *rr, const char *layername, const cha
   return render_layer_add_pass(rr, rl, 4, RE_PASSNAME_COMBINED, viewname, "RGBA", true);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Miscellaneous Public Render API
+ * \{ */
+
 bool RE_allow_render_generic_object(Object *ob)
 {
   /* override not showing object when duplis are used with particles */
@@ -2796,3 +2676,10 @@ bool RE_allow_render_generic_object(Object *ob)
   }
   return true;
 }
+
+void RE_init_threadcount(Render *re)
+{
+  re->r.threads = BKE_render_num_threads(&re->r);
+}
+
+/** \} */

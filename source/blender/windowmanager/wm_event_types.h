@@ -244,6 +244,7 @@ enum {
   NDOF_MOTION = 0x0190, /* 400 */
 
 #define _NDOF_MIN NDOF_MOTION
+#define _NDOF_BUTTON_MIN NDOF_BUTTON_MENU
 
   /* used internally, never sent */
   NDOF_BUTTON_NONE = NDOF_MOTION,
@@ -274,11 +275,17 @@ enum {
   NDOF_BUTTON_DOMINANT = 0x01a3, /* 419 */
   NDOF_BUTTON_PLUS = 0x01a4,     /* 420 */
   NDOF_BUTTON_MINUS = 0x01a5,    /* 421 */
+
+/* Disabled as GHOST converts these to keyboard events
+ * which use regular keyboard event handling logic. */
+#if 0
   /* keyboard emulation */
   NDOF_BUTTON_ESC = 0x01a6,   /* 422 */
   NDOF_BUTTON_ALT = 0x01a7,   /* 423 */
   NDOF_BUTTON_SHIFT = 0x01a8, /* 424 */
   NDOF_BUTTON_CTRL = 0x01a9,  /* 425 */
+#endif
+
   /* general-purpose buttons */
   NDOF_BUTTON_1 = 0x01aa,  /* 426 */
   NDOF_BUTTON_2 = 0x01ab,  /* 427 */
@@ -296,6 +303,7 @@ enum {
   NDOF_BUTTON_C = 0x01b6, /* 438 */
 
 #define _NDOF_MAX NDOF_BUTTON_C
+#define _NDOF_BUTTON_MAX NDOF_BUTTON_C
 
   /* ********** End of Input devices. ********** */
 
@@ -361,6 +369,17 @@ enum {
   (((event_type) >= _EVT_KEYBOARD_MIN && (event_type) <= _EVT_KEYBOARD_MAX) || \
    ((event_type) >= EVT_F1KEY && (event_type) <= EVT_F24KEY))
 
+/**
+ * Test whether the event is a key on the keyboard
+ * or any other kind of button that supports press & release
+ * (use for click & click-drag detection).
+ *
+ * \note Mouse wheel events are excluded from this macro, while they do generate press events it
+ * doesn't make sense to have click & click-drag events for a mouse-wheel as it can't be held down.
+ */
+#define ISKEYBOARD_OR_BUTTON(event_type) \
+  (ISMOUSE_BUTTON(event_type) || ISKEYBOARD(event_type) || ISNDOF_BUTTON(event_type))
+
 /** Test whether the event is a modifier key. */
 #define ISKEYMODIFIER(event_type) \
   (((event_type) >= EVT_LEFTCTRLKEY && (event_type) <= EVT_LEFTSHIFTKEY) || \
@@ -386,13 +405,16 @@ enum {
 
 /** Test whether the event is a NDOF event. */
 #define ISNDOF(event_type) ((event_type) >= _NDOF_MIN && (event_type) <= _NDOF_MAX)
+#define ISNDOF_BUTTON(event_type) \
+  ((event_type) >= _NDOF_BUTTON_MIN && (event_type) <= _NDOF_BUTTON_MAX)
 
 #define IS_EVENT_ACTIONZONE(event_type) \
   ELEM(event_type, EVT_ACTIONZONE_AREA, EVT_ACTIONZONE_REGION, EVT_ACTIONZONE_FULLSCREEN)
 
 /** Test whether event type is acceptable as hotkey (excluding modifiers). */
 #define ISHOTKEY(event_type) \
-  ((ISKEYBOARD(event_type) || ISMOUSE(event_type) || ISNDOF(event_type)) && \
+  ((ISKEYBOARD(event_type) || ISMOUSE_BUTTON(event_type) || ISMOUSE_WHEEL(event_type) || \
+    ISNDOF_BUTTON(event_type)) && \
    (ISKEYMODIFIER(event_type) == false))
 
 enum eEventType_Mask {

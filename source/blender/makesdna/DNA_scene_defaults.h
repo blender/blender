@@ -360,6 +360,10 @@
     /* GP Stroke Placement */ \
     .gpencil_v3d_align = GP_PROJECT_VIEWSPACE, \
     .gpencil_v2d_align = GP_PROJECT_VIEWSPACE, \
+ \
+    /* UV painting */ \
+    .uv_sculpt_settings = 0, \
+    .uv_relax_method = UV_SCULPT_TOOL_RELAX_LAPLACIAN, \
   }
 
 /* clang-format off */

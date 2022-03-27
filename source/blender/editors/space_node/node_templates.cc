@@ -26,6 +26,7 @@
 #include "BKE_node_tree_update.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.h"
@@ -68,11 +69,11 @@ static bool node_link_item_compare(bNode *node, NodeLinkItem *item)
   return true;
 }
 
-static void node_link_item_apply(Main *bmain, bNode *node, NodeLinkItem *item)
+static void node_link_item_apply(bNodeTree *ntree, bNode *node, NodeLinkItem *item)
 {
   if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
     node->id = (ID *)item->ngroup;
-    BKE_ntree_update_main_tree(bmain, item->ngroup, nullptr);
+    BKE_ntree_update_tag_node_property(ntree, node);
   }
   else {
     /* nothing to do for now */
@@ -236,7 +237,8 @@ static void node_socket_add_replace(const bContext *C,
       nodePositionRelative(node_from, node_to, sock_from_tmp, sock_to);
     }
 
-    node_link_item_apply(bmain, node_from, item);
+    node_link_item_apply(ntree, node_from, item);
+    ED_node_tree_propagate_change(C, bmain, ntree);
   }
 
   nodeSetActive(ntree, node_from);

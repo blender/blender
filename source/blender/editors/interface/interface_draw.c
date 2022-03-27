@@ -411,6 +411,8 @@ static void histogram_draw_one(float r,
       immVertex2f(pos_attr, x2, y + (data[i] * h));
     }
     immEnd();
+
+    GPU_line_width(1.0f);
   }
   else {
     /* under the curve */
@@ -544,13 +546,13 @@ void ui_draw_but_HISTOGRAM(ARegion *UNUSED(region),
 
 #undef HISTOGRAM_TOT_GRID_LINES
 
-static void waveform_draw_one(float *waveform, int nbr, const float col[3])
+static void waveform_draw_one(float *waveform, int waveform_num, const float col[3])
 {
   GPUVertFormat format = {0};
   const uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
-  GPU_vertbuf_data_alloc(vbo, nbr);
+  GPU_vertbuf_data_alloc(vbo, waveform_num);
 
   GPU_vertbuf_attr_fill(vbo, pos_id, waveform);
 

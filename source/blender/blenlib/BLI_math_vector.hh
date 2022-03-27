@@ -10,7 +10,7 @@
 #include <cmath>
 #include <type_traits>
 
-#include "BLI_math_base_safe.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_vec_types.hh"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
@@ -79,13 +79,13 @@ inline vec_base<T, Size> max(const vec_base<T, Size> &a, const vec_base<T, Size>
 }
 
 template<typename T, int Size>
-inline T clamp(const vec_base<T, Size> &a,
-               const vec_base<T, Size> &min,
-               const vec_base<T, Size> &max)
+inline vec_base<T, Size> clamp(const vec_base<T, Size> &a,
+                               const vec_base<T, Size> &min,
+                               const vec_base<T, Size> &max)
 {
   vec_base<T, Size> result = a;
   for (int i = 0; i < Size; i++) {
-    std::clamp(result[i], min[i], max[i]);
+    result[i] = std::clamp(result[i], min[i], max[i]);
   }
   return result;
 }
@@ -95,7 +95,7 @@ inline vec_base<T, Size> clamp(const vec_base<T, Size> &a, const T &min, const T
 {
   vec_base<T, Size> result = a;
   for (int i = 0; i < Size; i++) {
-    std::clamp(result[i], min, max);
+    result[i] = std::clamp(result[i], min, max);
   }
   return result;
 }
@@ -339,10 +339,10 @@ inline vec_base<T, 3> cross_poly(Span<vec_base<T, 3>> poly)
   return n;
 }
 
-template<typename T, int Size, BLI_ENABLE_IF((is_math_float_type<T>))>
+template<typename T, typename FactorT, int Size, BLI_ENABLE_IF((is_math_float_type<FactorT>))>
 inline vec_base<T, Size> interpolate(const vec_base<T, Size> &a,
                                      const vec_base<T, Size> &b,
-                                     const T &t)
+                                     const FactorT &t)
 {
   return a * (1 - t) + b * t;
 }

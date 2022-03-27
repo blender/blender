@@ -63,7 +63,6 @@ bool ED_mask_selected_minmax(const struct bContext *C,
 
 /* mask_draw.c */
 
-void ED_mask_draw(const struct bContext *C, char draw_flag, char draw_type);
 /**
  * Sets up the opengl context.
  * width, height are to match the values from #ED_mask_get_size().

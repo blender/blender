@@ -137,7 +137,11 @@ const struct IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
      ICON_OUTLINER_COLLECTION,
      "Collections",
      "Show Collection data-blocks"},
-    {FILTER_ID_CV, "filter_hair", ICON_CURVES_DATA, "Hairs", "Show/hide Hair data-blocks"},
+    {FILTER_ID_CV,
+     "filter_curves",
+     ICON_CURVES_DATA,
+     "Hair Curves",
+     "Show/hide Curves data-blocks"},
     {FILTER_ID_IM, "filter_image", ICON_IMAGE_DATA, "Images", "Show Image data-blocks"},
     {FILTER_ID_LA, "filter_light", ICON_LIGHT_DATA, "Lights", "Show Light data-blocks"},
     {FILTER_ID_LP,
@@ -741,6 +745,11 @@ static void rna_ID_override_library_operations_update(ID *id,
 {
   if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
     BKE_reportf(reports, RPT_ERROR, "ID '%s' isn't an override", id->name);
+    return;
+  }
+
+  if (ID_IS_LINKED(id)) {
+    BKE_reportf(reports, RPT_ERROR, "ID '%s' is linked, cannot edit its overrides", id->name);
     return;
   }
 

@@ -1,16 +1,5 @@
 
-uniform sampler2D colorBuf;
-uniform sampler2D revealBuf;
-uniform sampler2D maskBuf;
-uniform int blendMode;
-uniform float blendOpacity;
-
-in vec4 uvcoordsvar;
-
-/* Reminder: This is considered SRC color in blend equations.
- * Same operation on all buffers. */
-layout(location = 0) out vec4 fragColor;
-layout(location = 1) out vec4 fragRevealage;
+#pragma BLENDER_REQUIRE(gpencil_common_lib.glsl)
 
 void main()
 {

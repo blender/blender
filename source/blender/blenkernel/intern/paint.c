@@ -551,6 +551,8 @@ ePaintMode BKE_paintmode_get_active_from_context(const bContext *C)
           return PAINT_MODE_TEXTURE_3D;
         case OB_MODE_EDIT:
           return PAINT_MODE_SCULPT_UV;
+        case OB_MODE_SCULPT_CURVES:
+          return PAINT_MODE_SCULPT_CURVES;
         default:
           return PAINT_MODE_TEXTURE_2D;
       }
@@ -1097,6 +1099,7 @@ bool BKE_paint_ensure(ToolSettings *ts, struct Paint **r_paint)
   }
   else if ((CurvesSculpt **)r_paint == &ts->curves_sculpt) {
     CurvesSculpt *data = MEM_callocN(sizeof(*data), __func__);
+    data->curve_length = 0.3f;
     paint = &data->paint;
   }
   else if (*r_paint == &ts->imapaint.paint) {

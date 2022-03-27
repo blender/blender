@@ -46,6 +46,7 @@ Mesh *BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(MirrorModifierData *mm
                             &(struct BMeshCreateParams){0},
                             &(struct BMeshFromMeshParams){
                                 .calc_face_normal = true,
+                                .calc_vert_normal = true,
                                 .cd_mask_extra = {.vmask = CD_MASK_ORIGINDEX,
                                                   .emask = CD_MASK_ORIGINDEX,
                                                   .pmask = CD_MASK_ORIGINDEX},
@@ -92,6 +93,7 @@ void BKE_mesh_mirror_apply_mirror_on_axis(struct Main *bmain,
                                    },
                                    &(struct BMeshFromMeshParams){
                                        .calc_face_normal = true,
+                                       .calc_vert_normal = true,
                                        .cd_mask_extra =
                                            {
                                                .vmask = CD_MASK_SHAPEKEY,

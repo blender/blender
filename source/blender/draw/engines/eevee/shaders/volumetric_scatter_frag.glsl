@@ -22,7 +22,7 @@ layout(location = 1) out vec4 outTransmittance;
 
 void main()
 {
-  ivec3 volume_cell = ivec3(gl_FragCoord.xy, slice);
+  ivec3 volume_cell = ivec3(ivec2(gl_FragCoord.xy), slice);
 
   /* Emission */
   outScattering = texelFetch(volumeEmission, volume_cell, 0);

@@ -19,6 +19,9 @@
 extern "C" {
 #endif
 
+#include "gpencil_defines.h"
+#include "gpencil_shader_shared.h"
+
 extern DrawEngineType draw_engine_gpencil_type;
 
 struct GPENCIL_Data;
@@ -39,69 +42,17 @@ struct bGPDstroke;
 
 #define GP_MAX_MASKBITS 256
 
-/* UBO structure. Watch out for padding. Must match GLSL declaration. */
-typedef struct gpMaterial {
-  float stroke_color[4];
-  float fill_color[4];
-  float fill_mix_color[4];
-  float fill_uv_transform[3][2], alignment_rot_cos, alignment_rot_sin;
-  float stroke_texture_mix;
-  float stroke_u_scale;
-  float fill_texture_mix;
-  int flag;
-} gpMaterial;
-
-/* gpMaterial->flag */
-/* WATCH Keep in sync with GLSL declaration. */
-#define GP_STROKE_ALIGNMENT_STROKE 1
-#define GP_STROKE_ALIGNMENT_OBJECT 2
-#define GP_STROKE_ALIGNMENT_FIXED 3
-#define GP_STROKE_ALIGNMENT 0x3
-#define GP_STROKE_OVERLAP (1 << 2)
-#define GP_STROKE_TEXTURE_USE (1 << 3)
-#define GP_STROKE_TEXTURE_STENCIL (1 << 4)
-#define GP_STROKE_TEXTURE_PREMUL (1 << 5)
-#define GP_STROKE_DOTS (1 << 6)
-#define GP_STROKE_HOLDOUT (1 << 7)
-#define GP_FILL_HOLDOUT (1 << 8)
-#define GP_FILL_TEXTURE_USE (1 << 10)
-#define GP_FILL_TEXTURE_PREMUL (1 << 11)
-#define GP_FILL_TEXTURE_CLIP (1 << 12)
-#define GP_FILL_GRADIENT_USE (1 << 13)
-#define GP_FILL_GRADIENT_RADIAL (1 << 14)
-
-#define GPENCIL_LIGHT_BUFFER_LEN 128
-
-/* UBO structure. Watch out for padding. Must match GLSL declaration. */
-typedef struct gpLight {
-  float color[3], type;
-  float right[3], spotsize;
-  float up[3], spotblend;
-  float forward[4];
-  float position[4];
-} gpLight;
-
-/* gpLight->type */
-/* WATCH Keep in sync with GLSL declaration. */
-#define GP_LIGHT_TYPE_POINT 0.0
-#define GP_LIGHT_TYPE_SPOT 1.0
-#define GP_LIGHT_TYPE_SUN 2.0
-#define GP_LIGHT_TYPE_AMBIENT 3.0
-
-BLI_STATIC_ASSERT_ALIGN(gpMaterial, 16)
-BLI_STATIC_ASSERT_ALIGN(gpLight, 16)
-
 /* *********** Draw Data *********** */
 typedef struct GPENCIL_MaterialPool {
   /* Single linked-list. */
   struct GPENCIL_MaterialPool *next;
   /* GPU representation of materials. */
-  gpMaterial mat_data[GP_MATERIAL_BUFFER_LEN];
+  gpMaterial mat_data[GPENCIL_MATERIAL_BUFFER_LEN];
   /* Matching ubo. */
   struct GPUUniformBuf *ubo;
   /* Texture per material. NULL means none. */
-  struct GPUTexture *tex_fill[GP_MATERIAL_BUFFER_LEN];
-  struct GPUTexture *tex_stroke[GP_MATERIAL_BUFFER_LEN];
+  struct GPUTexture *tex_fill[GPENCIL_MATERIAL_BUFFER_LEN];
+  struct GPUTexture *tex_stroke[GPENCIL_MATERIAL_BUFFER_LEN];
   /* Number of material used in this pool. */
   int used_count;
 } GPENCIL_MaterialPool;

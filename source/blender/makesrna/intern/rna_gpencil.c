@@ -356,6 +356,12 @@ static void set_parent(bGPDlayer *gpl, Object *par, const int type, const char *
       gpl->partype |= PARBONE;
       BLI_strncpy(gpl->parsubstr, substr, sizeof(gpl->parsubstr));
     }
+    else {
+      invert_m4_m4(gpl->inverse, par->obmat);
+      gpl->parent = par;
+      gpl->partype |= PAROBJECT;
+      gpl->parsubstr[0] = 0;
+    }
   }
 }
 

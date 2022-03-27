@@ -1995,24 +1995,20 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Cyclic V", "Make this surface a closed loop in the V direction");
   RNA_def_property_update(prop, 0, "rna_Nurb_update_cyclic_v");
 
-  /* NOTE: endpoint and bezier flags should never be on at the same time! */
   prop = RNA_def_property(srna, "use_endpoint_u", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flagu", CU_NURB_ENDPOINT);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
       prop,
       "Endpoint U",
-      "Make this nurbs curve or surface meet the endpoints in the U direction "
-      "(Cyclic U must be disabled)");
+      "Make this nurbs curve or surface meet the endpoints in the U direction");
   RNA_def_property_update(prop, 0, "rna_Nurb_update_knot_u");
 
   prop = RNA_def_property(srna, "use_endpoint_v", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flagv", CU_NURB_ENDPOINT);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop,
-                           "Endpoint V",
-                           "Make this nurbs surface meet the endpoints in the V direction "
-                           "(Cyclic V must be disabled)");
+  RNA_def_property_ui_text(
+      prop, "Endpoint V", "Make this nurbs surface meet the endpoints in the V direction ");
   RNA_def_property_update(prop, 0, "rna_Nurb_update_knot_v");
 
   prop = RNA_def_property(srna, "use_bezier_u", PROP_BOOLEAN, PROP_NONE);
@@ -2021,17 +2017,14 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Bezier U",
-      "Make this nurbs curve or surface act like a Bezier spline in the U direction "
-      "(Order U must be 3 or 4, Cyclic U must be disabled)");
+      "Make this nurbs curve or surface act like a Bezier spline in the U direction");
   RNA_def_property_update(prop, 0, "rna_Nurb_update_knot_u");
 
   prop = RNA_def_property(srna, "use_bezier_v", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flagv", CU_NURB_BEZIER);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop,
-                           "Bezier V",
-                           "Make this nurbs surface act like a Bezier spline in the V direction "
-                           "(Order V must be 3 or 4, Cyclic V must be disabled)");
+  RNA_def_property_ui_text(
+      prop, "Bezier V", "Make this nurbs surface act like a Bezier spline in the V direction");
   RNA_def_property_update(prop, 0, "rna_Nurb_update_knot_v");
 
   prop = RNA_def_property(srna, "use_smooth", PROP_BOOLEAN, PROP_NONE);

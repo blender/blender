@@ -1,8 +1,8 @@
-/*
- * Solver.hpp
- *
- *  Created on: Jan 8, 2009
- *      Author: rubensmits
+/* SPDX-License-Identifier: LGPL-2.1-or-later
+ * Copyright 2009 Ruben Smits. */
+
+/** \file
+ * \ingroup intern_itasc
  */
 
 #ifndef SOLVER_HPP_

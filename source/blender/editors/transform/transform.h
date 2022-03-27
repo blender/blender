@@ -137,6 +137,9 @@ typedef enum {
   /** Runs auto-merge & splits. */
   T_AUTOSPLIT = 1 << 21,
 
+  /** Use drag-start position of the event, otherwise use the cursor coordinates (unmodified). */
+  T_EVENT_DRAG_START = (1 << 22),
+
   /** No cursor wrapping on region bounds */
   T_NO_CURSOR_WRAP = 1 << 23,
 } eTFlag;
@@ -292,7 +295,8 @@ typedef struct TransSnapPoint {
 } TransSnapPoint;
 
 typedef struct TransSnap {
-  short mode;
+  char flag;
+  char mode;
   short target;
   short modePoint;
   short modeSelect;

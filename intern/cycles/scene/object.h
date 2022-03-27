@@ -44,6 +44,7 @@ class Object : public Node {
   NODE_SOCKET_API(uint, random_id)
   NODE_SOCKET_API(int, pass_id)
   NODE_SOCKET_API(float3, color)
+  NODE_SOCKET_API(float, alpha)
   NODE_SOCKET_API(ustring, asset_name)
   vector<ParamValue> attributes;
   NODE_SOCKET_API(uint, visibility)

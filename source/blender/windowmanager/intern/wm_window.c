@@ -209,6 +209,9 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
   if (win->eventstate) {
     MEM_freeN(win->eventstate);
   }
+  if (win->event_last_handled) {
+    MEM_freeN(win->event_last_handled);
+  }
 
   if (win->cursor_keymap_status) {
     MEM_freeN(win->cursor_keymap_status);
@@ -614,10 +617,10 @@ static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, boo
   }
 
   if (win->ghostwin != NULL) {
-    /* If we have no ghostwin this is a buggy window that should be removed.
+    /* If we have no `ghostwin` this is a buggy window that should be removed.
      * However we still need to initialize it correctly so the screen doesn't hang. */
 
-    /* happens after fileread */
+    /* Happens after file-read. */
     wm_window_ensure_eventstate(win);
 
     WM_window_set_dpi(win);
@@ -1212,6 +1215,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
         wmEvent event;
         wm_event_init_from_window(win, &event);
         event.type = MOUSEMOVE;
+        event.val = KM_NOTHING;
         copy_v2_v2_int(event.prev_xy, event.xy);
         event.flag = 0;
 
@@ -1325,7 +1329,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
           WM_operator_properties_create_ptr(&props_ptr, ot);
           RNA_string_set(&props_ptr, "filepath", path);
           RNA_boolean_set(&props_ptr, "display_file_selector", false);
-          WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
+          WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, NULL);
           WM_operator_properties_free(&props_ptr);
 
           CTX_wm_window_set(C, NULL);
@@ -1343,6 +1347,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 
         /* activate region */
         event.type = MOUSEMOVE;
+        event.val = KM_NOTHING;
         copy_v2_v2_int(event.prev_xy, event.xy);
         event.flag = 0;
 

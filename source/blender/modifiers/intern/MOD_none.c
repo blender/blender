@@ -14,6 +14,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 /* We only need to define isDisabled; because it always returns 1,
  * no other functions will be called

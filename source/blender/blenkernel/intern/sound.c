@@ -87,7 +87,7 @@ static void sound_free_data(ID *id)
 {
   bSound *sound = (bSound *)id;
 
-  /* No animdata here. */
+  /* No animation-data here. */
 
   if (sound->packedfile) {
     BKE_packedfile_free(sound->packedfile);
@@ -727,16 +727,11 @@ void *BKE_sound_add_scene_sound(
   }
   sound_verify_evaluated_id(&sequence->sound->id);
   const double fps = FPS;
-  void *handle = AUD_Sequence_add(scene->sound_scene,
-                                  sequence->sound->playback_handle,
-                                  startframe / fps,
-                                  endframe / fps,
-                                  frameskip / fps + sequence->sound->offset_time);
-  AUD_SequenceEntry_setMuted(handle, (sequence->flag & SEQ_MUTE) != 0);
-  AUD_SequenceEntry_setAnimationData(handle, AUD_AP_VOLUME, CFRA, &sequence->volume, 0);
-  AUD_SequenceEntry_setAnimationData(handle, AUD_AP_PITCH, CFRA, &sequence->pitch, 0);
-  AUD_SequenceEntry_setAnimationData(handle, AUD_AP_PANNING, CFRA, &sequence->pan, 0);
-  return handle;
+  return AUD_Sequence_add(scene->sound_scene,
+                          sequence->sound->playback_handle,
+                          startframe / fps,
+                          endframe / fps,
+                          frameskip / fps + sequence->sound->offset_time);
 }
 
 void *BKE_sound_add_scene_sound_defaults(Scene *scene, Sequence *sequence)

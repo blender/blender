@@ -151,6 +151,12 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
     ::SetWindowPos(m_hWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
   }
 
+  if (parentwindow) {
+    /* Release any parent capture to allow immediate interaction (T90110). */
+    ::ReleaseCapture();
+    parentwindow->lostMouseCapture();
+  }
+
   /* Show the window. */
   int nCmdShow;
   switch (state) {

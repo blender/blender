@@ -311,8 +311,6 @@ class OUTLINER_MT_asset(Menu):
     def draw(self, context):
         layout = self.layout
 
-        space = context.space_data
-
         layout.operator("asset.mark")
         layout.operator("asset.clear", text="Clear Asset").set_fake_user = False
         layout.operator("asset.clear", text="Clear Asset (Set Fake User)").set_fake_user = True
@@ -443,15 +441,6 @@ class OUTLINER_PT_filter(Panel):
             row = sub.row()
             row.label(icon='BLANK1')
             row.prop(space, "use_filter_object_others", text="Others")
-
-        if bpy.data.libraries:
-            col.separator()
-            row = col.row()
-            row.label(icon='LIBRARY_DATA_OVERRIDE')
-            row.prop(space, "use_filter_lib_override", text="Library Overrides")
-            row = col.row()
-            row.label(icon='LIBRARY_DATA_OVERRIDE')
-            row.prop(space, "use_filter_lib_override_system", text="System Overrides")
 
 
 classes = (

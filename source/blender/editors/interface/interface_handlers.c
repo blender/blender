@@ -59,6 +59,7 @@
 #include "interface_intern.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -922,10 +923,8 @@ static void ui_apply_but_undo(uiBut *but)
     if (but->rnapoin.owner_id) {
       /* Exception for renaming ID data, we always need undo pushes in this case,
        * because undo systems track data by their ID, see: T67002. */
-      extern PropertyRNA rna_ID_name;
       /* Exception for active shape-key, since changing this in edit-mode updates
        * the shape key from object mode data. */
-      extern PropertyRNA rna_Object_active_shape_key_index;
       if (ELEM(but->rnaprop, &rna_ID_name, &rna_Object_active_shape_key_index)) {
         /* pass */
       }
@@ -1007,7 +1006,7 @@ static void ui_apply_but_funcs_after(bContext *C)
 
     if (after.optype) {
       WM_operator_name_call_ptr_with_depends_on_cursor(
-          C, after.optype, after.opcontext, (after.opptr) ? &opptr : NULL, after.drawstr);
+          C, after.optype, after.opcontext, (after.opptr) ? &opptr : NULL, NULL, after.drawstr);
     }
 
     if (after.opptr) {
@@ -2132,11 +2131,7 @@ static bool ui_but_drag_init(bContext *C,
       but->dragpoin = NULL;
 
       if (but->imb) {
-        WM_event_drag_image(drag,
-                            but->imb,
-                            but->imb_scale,
-                            BLI_rctf_size_x(&but->rect),
-                            BLI_rctf_size_y(&but->rect));
+        WM_event_drag_image(drag, but->imb, but->imb_scale);
       }
 
       /* Special feature for assets: We add another drag item that supports multiple assets. It
@@ -3910,8 +3905,8 @@ static void ui_do_but_textedit(
       char ascii = event->ascii;
       const char *utf8_buf = event->utf8_buf;
 
-      /* exception that's useful for number buttons, some keyboard
-       * numpads have a comma instead of a period */
+      /* Exception that's useful for number buttons, some keyboard
+       * numpads have a comma instead of a period. */
       if (ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER)) { /* Could use `data->min`. */
         if (event->type == EVT_PADPERIOD && ascii == ',') {
           ascii = '.';
@@ -3937,7 +3932,7 @@ static void ui_do_but_textedit(
   }
 
 #ifdef WITH_INPUT_IME
-  if (event->type == WM_IME_COMPOSITE_START || event->type == WM_IME_COMPOSITE_EVENT) {
+  if (ELEM(event->type, WM_IME_COMPOSITE_START, WM_IME_COMPOSITE_EVENT)) {
     changed = true;
 
     if (event->type == WM_IME_COMPOSITE_START && but->selend > but->selsta) {
@@ -4197,6 +4192,7 @@ static void ui_but_extra_operator_icon_apply(bContext *C, uiBut *but, uiButExtra
                                                    op_icon->optype_params->optype,
                                                    op_icon->optype_params->opcontext,
                                                    op_icon->optype_params->opptr,
+                                                   NULL,
                                                    NULL);
 
   /* Force recreation of extra operator icons (pseudo update). */
@@ -8021,7 +8017,16 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
   }
 
   if (but->flag & UI_BUT_DISABLED) {
-    return WM_UI_HANDLER_BREAK;
+    /* It's important to continue here instead of breaking since breaking causes the event to be
+     * considered "handled", preventing further click/drag events from being generated.
+     *
+     * An example of where this is needed is dragging node-sockets, where dragging a node-socket
+     * could exit the button before the drag threshold was reached, disable the button then break
+     * handling of the #MOUSEMOVE event preventing the socket being dragged entirely, see: T96255.
+     *
+     * Region level event handling is responsible for preventing events being passed
+     * through to parts of the UI that are logically behind this button, see: T92364. */
+    return WM_UI_HANDLER_CONTINUE;
   }
 
   switch (but->type) {
@@ -9428,7 +9433,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 /**
  * Activate the underlying list-row button, so the row is highlighted.
  * Early exits if \a activate_dragging is true, but the custom drag operator fails to execute.
- * Gives the wanted behavior where the item is activated on a tweak event when the custom drag
+ * Gives the wanted behavior where the item is activated on a click-drag event when the custom drag
  * operator is executed.
  */
 static int ui_list_activate_hovered_row(bContext *C,
@@ -9449,7 +9454,9 @@ static int ui_list_activate_hovered_row(bContext *C,
     }
   }
 
-  const int *mouse_xy = (event->val == KM_CLICK_DRAG) ? event->prev_click_xy : event->xy;
+  int mouse_xy[2];
+  WM_event_drag_start_xy(event, mouse_xy);
+
   uiBut *listrow = ui_list_row_find_mouse_over(region, mouse_xy);
   if (listrow) {
     wmOperatorType *custom_activate_optype = ui_list->dyn_data->custom_activate_optype;
@@ -9476,7 +9483,9 @@ static bool ui_list_is_hovering_draggable_but(bContext *C,
                                               const wmEvent *event)
 {
   /* On a tweak event, uses the coordinates from where tweaking was started. */
-  const int *mouse_xy = (event->val == KM_CLICK_DRAG) ? event->prev_click_xy : event->xy;
+  int mouse_xy[2];
+  WM_event_drag_start_xy(event, mouse_xy);
+
   const uiBut *hovered_but = ui_but_find_mouse_over_ex(region, mouse_xy, false, NULL, NULL);
 
   if (list->dyn_data->custom_drag_optype) {

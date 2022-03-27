@@ -201,6 +201,8 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
   ot->poll = WM_operator_winactive;
   ot->ui = wm_usd_export_draw;
 
+  ot->flag = OPTYPE_REGISTER; /* No UNDO possible. */
+
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER | FILE_TYPE_USD,
                                  FILE_BLENDER,
@@ -458,6 +460,8 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
   ot->exec = wm_usd_import_exec;
   ot->poll = WM_operator_winactive;
   ot->ui = wm_usd_import_draw;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER | FILE_TYPE_USD,

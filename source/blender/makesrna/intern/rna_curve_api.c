@@ -36,6 +36,36 @@ static float rna_Nurb_calc_length(Nurb *nu, int resolution_u)
   return BKE_nurb_calc_length(nu, resolution_u);
 }
 
+static void rna_Nurb_valid_message(Nurb *nu, int direction, int *result_len, const char **r_result)
+{
+  const bool is_surf = nu->pntsv > 1;
+  const short type = nu->type;
+
+  int pnts;
+  short order, flag;
+  if (direction == 0) {
+    pnts = nu->pntsu;
+    order = nu->orderu;
+    flag = nu->flagu;
+  }
+  else {
+    pnts = nu->pntsv;
+    order = nu->orderv;
+    flag = nu->flagv;
+  }
+
+  char buf[64];
+  if (BKE_nurb_valid_message(pnts, order, flag, type, is_surf, direction, buf, sizeof(buf))) {
+    const int buf_len = strlen(buf);
+    *r_result = BLI_strdupn(buf, buf_len);
+    *result_len = buf_len;
+  }
+  else {
+    *r_result = NULL;
+    *result_len = 0;
+  }
+}
+
 #else
 
 void RNA_api_curve(StructRNA *srna)
@@ -86,6 +116,22 @@ void RNA_api_curve_nurb(StructRNA *srna)
                                 0.0f,
                                 FLT_MAX);
   RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "valid_message", "rna_Nurb_valid_message");
+  RNA_def_function_ui_description(func, "Return the message");
+  parm = RNA_def_int(
+      func, "direction", 0, 0, 1, "Direction", "The direction where 0-1 maps to U-V", 0, 1);
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  /* return value */
+  parm = RNA_def_string(func,
+                        "result",
+                        "nothing",
+                        64,
+                        "Return value",
+                        "The message or an empty string when there is no error");
+
+  RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_OUTPUT);
+  RNA_def_property_clear_flag(parm, PROP_NEVER_NULL);
 }
 
 #endif

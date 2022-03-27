@@ -33,6 +33,7 @@
 #include "interface_intern.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
@@ -1036,7 +1037,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
 
     /* We do have a shortcut, but only keyboard ones are editable that way... */
     if (kmi) {
-      if (ISKEYBOARD(kmi->type)) {
+      if (ISKEYBOARD(kmi->type) || ISNDOF_BUTTON(kmi->type)) {
 #if 0 /* would rather use a block but, but gets weirdly positioned... */
         uiDefBlockBut(block,
                       menu_change_shortcut,

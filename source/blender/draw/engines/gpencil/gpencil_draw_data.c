@@ -58,7 +58,8 @@ static struct GPUTexture *gpencil_image_texture_get(Image *image, bool *r_alpha_
 static void gpencil_uv_transform_get(const float ofs[2],
                                      const float scale[2],
                                      const float rotation,
-                                     float r_uvmat[3][2])
+                                     float r_rot_scale[2][2],
+                                     float r_offset[2])
 {
   /* OPTI this could use 3x2 matrices and reduce the number of operations drastically. */
   float mat[4][4];
@@ -70,9 +71,9 @@ static void gpencil_uv_transform_get(const float ofs[2],
   rotate_m4(mat, 'Z', -rotation);
   translate_m4(mat, ofs[0], ofs[1], 0.0f);
   /* Convert to 3x2 */
-  copy_v2_v2(r_uvmat[0], mat[0]);
-  copy_v2_v2(r_uvmat[1], mat[1]);
-  copy_v2_v2(r_uvmat[2], mat[3]);
+  copy_v2_v2(r_rot_scale[0], mat[0]);
+  copy_v2_v2(r_rot_scale[1], mat[1]);
+  copy_v2_v2(r_offset, mat[3]);
 }
 
 static void gpencil_shade_color(float color[3])
@@ -167,7 +168,7 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd, Obje
 
   int mat_len = max_ii(1, BKE_object_material_count_eval(ob));
 
-  bool reuse_matpool = matpool && ((matpool->used_count + mat_len) <= GP_MATERIAL_BUFFER_LEN);
+  bool reuse_matpool = matpool && ((matpool->used_count + mat_len) <= GPENCIL_MATERIAL_BUFFER_LEN);
 
   if (reuse_matpool) {
     /* Share the matpool with other objects. Return offset to first material. */
@@ -188,7 +189,7 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd, Obje
 
   GPENCIL_MaterialPool *pool = matpool;
   for (int i = 0; i < mat_len; i++) {
-    if ((i > 0) && (pool->used_count == GP_MATERIAL_BUFFER_LEN)) {
+    if ((i > 0) && (pool->used_count == GPENCIL_MATERIAL_BUFFER_LEN)) {
       pool->next = gpencil_material_pool_add(pd);
       pool = pool->next;
     }
@@ -235,8 +236,8 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd, Obje
     gp_style = gpencil_viewport_material_overrides(pd, ob, color_type, gp_style, lighting_mode);
 
     /* Dots or Squares rotation. */
-    mat_data->alignment_rot_cos = cosf(gp_style->alignment_rotation);
-    mat_data->alignment_rot_sin = sinf(gp_style->alignment_rotation);
+    mat_data->alignment_rot[0] = cosf(gp_style->alignment_rotation);
+    mat_data->alignment_rot[1] = sinf(gp_style->alignment_rotation);
 
     /* Stroke Style */
     if ((gp_style->stroke_style == GP_MATERIAL_STROKE_STYLE_TEXTURE) && (gp_style->sima)) {
@@ -266,7 +267,8 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd, Obje
       gpencil_uv_transform_get(gp_style->texture_offset,
                                gp_style->texture_scale,
                                gp_style->texture_angle,
-                               mat_data->fill_uv_transform);
+                               (float(*)[2])mat_data->fill_uv_rot_scale,
+                               mat_data->fill_uv_offset);
       copy_v4_v4(mat_data->fill_color, gp_style->fill_rgba);
       mat_data->fill_texture_mix = 1.0f - gp_style->mix_factor;
     }
@@ -278,7 +280,8 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd, Obje
       gpencil_uv_transform_get(gp_style->texture_offset,
                                gp_style->texture_scale,
                                gp_style->texture_angle,
-                               mat_data->fill_uv_transform);
+                               (float(*)[2])mat_data->fill_uv_rot_scale,
+                               mat_data->fill_uv_offset);
       copy_v4_v4(mat_data->fill_color, gp_style->fill_rgba);
       copy_v4_v4(mat_data->fill_mix_color, gp_style->mix_rgba);
       mat_data->fill_texture_mix = 1.0f - gp_style->mix_factor;
@@ -303,11 +306,11 @@ void gpencil_material_resources_get(GPENCIL_MaterialPool *first_pool,
                                     GPUUniformBuf **r_ubo_mat)
 {
   GPENCIL_MaterialPool *matpool = first_pool;
-  int pool_id = mat_id / GP_MATERIAL_BUFFER_LEN;
+  int pool_id = mat_id / GPENCIL_MATERIAL_BUFFER_LEN;
   for (int i = 0; i < pool_id; i++) {
     matpool = matpool->next;
   }
-  mat_id = mat_id % GP_MATERIAL_BUFFER_LEN;
+  mat_id = mat_id % GPENCIL_MATERIAL_BUFFER_LEN;
   *r_ubo_mat = matpool->ubo;
   if (r_tex_fill) {
     *r_tex_fill = matpool->tex_fill[mat_id];
@@ -379,16 +382,16 @@ void gpencil_light_pool_populate(GPENCIL_LightPool *lightpool, Object *ob)
   if (la->type == LA_SPOT) {
     copy_m4_m4(mat, ob->imat);
     gp_light->type = GP_LIGHT_TYPE_SPOT;
-    gp_light->spotsize = cosf(la->spotsize * 0.5f);
-    gp_light->spotblend = (1.0f - gp_light->spotsize) * la->spotblend;
+    gp_light->spot_size = cosf(la->spotsize * 0.5f);
+    gp_light->spot_blend = (1.0f - gp_light->spot_size) * la->spotblend;
   }
   else if (la->type == LA_AREA) {
     /* Simulate area lights using a spot light. */
     normalize_m4_m4(mat, ob->obmat);
     invert_m4(mat);
     gp_light->type = GP_LIGHT_TYPE_SPOT;
-    gp_light->spotsize = cosf(M_PI * 0.5f);
-    gp_light->spotblend = (1.0f - gp_light->spotsize) * 1.0f;
+    gp_light->spot_size = cosf(M_PI_2);
+    gp_light->spot_blend = (1.0f - gp_light->spot_size) * 1.0f;
   }
   else if (la->type == LA_SUN) {
     normalize_v3_v3(gp_light->forward, ob->obmat[2]);

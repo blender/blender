@@ -116,6 +116,9 @@ ccl_device_noinline void svm_node_object_info(KernelGlobals kg,
       stack_store_float3(stack, out_offset, object_color(kg, sd->object));
       return;
     }
+    case NODE_INFO_OB_ALPHA:
+      data = object_alpha(kg, sd->object);
+      break;
     case NODE_INFO_OB_INDEX:
       data = object_pass_id(kg, sd->object);
       break;

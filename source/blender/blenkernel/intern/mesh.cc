@@ -142,11 +142,11 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
 
   mesh_dst->mselect = (MSelect *)MEM_dupallocN(mesh_dst->mselect);
 
-  /* Set normal layers dirty, since they aren't included in CD_MASK_MESH and are therefore not
-   * copied to the destination mesh. Alternatively normal layers could be copied if they aren't
-   * dirty, avoiding recomputation in some cases. However, a copied mesh is often changed anyway,
-   * so that idea is not clearly better. With proper reference counting, all custom data layers
-   * could be copied as the cost would be much lower. */
+  /* Set normal layers dirty. They should be dirty by default on new meshes anyway, but being
+   * explicit about it is safer. Alternatively normal layers could be copied if they aren't dirty,
+   * avoiding recomputation in some cases. However, a copied mesh is often changed anyway, so that
+   * idea is not clearly better. With proper reference counting, all custom data layers could be
+   * copied as the cost would be much lower. */
   BKE_mesh_normals_tag_dirty(mesh_dst);
 
   /* TODO: Do we want to add flag to prevent this? */
@@ -199,7 +199,7 @@ static void mesh_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
   Mesh *me = (Mesh *)id;
   if (me->ldata.external) {
-    BKE_bpath_foreach_path_fixed_process(bpath_data, me->ldata.external->filename);
+    BKE_bpath_foreach_path_fixed_process(bpath_data, me->ldata.external->filepath);
   }
 }
 
@@ -510,7 +510,6 @@ static int customdata_compare(
                 return MESHCMP_VERTCOMISMATCH;
               }
             }
-            /* I don't care about normals, let's just do coordinates. */
           }
           break;
         }
@@ -1167,6 +1166,7 @@ BMesh *BKE_mesh_to_bmesh(Mesh *me,
 {
   BMeshFromMeshParams bmesh_from_mesh_params{};
   bmesh_from_mesh_params.calc_face_normal = false;
+  bmesh_from_mesh_params.calc_vert_normal = false;
   bmesh_from_mesh_params.add_key_index = add_key_index;
   bmesh_from_mesh_params.use_shapekey = true;
   bmesh_from_mesh_params.active_shapekey = ob->shapenr;

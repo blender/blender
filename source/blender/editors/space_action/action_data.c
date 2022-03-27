@@ -24,6 +24,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "BKE_action.h"
 #include "BKE_context.h"

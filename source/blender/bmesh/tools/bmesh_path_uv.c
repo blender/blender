@@ -185,7 +185,8 @@ struct LinkNode *BM_mesh_calc_path_uv_vert(BMesh *bm,
 /** \name BM_mesh_calc_path_uv_edge
  * \{ */
 
-/* TODO(campbell): not very urgent, since the operator fakes this using vertex path. */
+/* TODO(@sidd017): Setting this as todo, since we now support proper UV edge selection (D12028).
+ * Till then, continue using vertex path to fake shortest path calculation for edges. */
 
 /** \} */
 

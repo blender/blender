@@ -36,6 +36,7 @@
 #include "DNA_space_types.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "BKE_appdir.h"
 #include "BKE_context.h"

@@ -174,7 +174,7 @@ class WhiteNoiseFunction : public fn::MultiFunction {
   }
 };
 
-static void sh_node_noise_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void sh_node_noise_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   bNode &node = builder.node();
   builder.construct_and_set_matching_fn<WhiteNoiseFunction>((int)node.custom1);

@@ -16,11 +16,11 @@ void main()
 {
 #if 0
   /* Reconstructing Target uvs like this avoid missing pixels if NPO2 */
-  vec2 uvs = gl_FragCoord.xy * 2.0 / vec2(textureSize(source, 0));
+  vec2 uvs = gl_FragCoord.xy * 2.0 / vec2(textureSize(source, 0).xy);
 
   FragColor = textureLod(source, vec3(uvs, layer), 0.0);
 #else
-  vec2 texel_size = 1.0 / vec2(textureSize(source, 0));
+  vec2 texel_size = 1.0 / vec2(textureSize(source, 0).xy);
   vec2 uvs = gl_FragCoord.xy * 2.0 * texel_size;
   vec4 ofs = texel_size.xyxy * vec4(0.75, 0.75, -0.75, -0.75);
 

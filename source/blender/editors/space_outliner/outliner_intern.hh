@@ -33,6 +33,7 @@ struct ViewLayer;
 struct bContext;
 struct bContextDataResult;
 struct bPoseChannel;
+struct View2D;
 struct wmKeyConfig;
 struct wmOperatorType;
 
@@ -218,8 +219,9 @@ typedef enum {
 
 /* is the current element open? if so we also show children */
 #define TSELEM_OPEN(telm, sv) \
-  (((telm)->flag & TSE_CLOSED) == 0 || \
-   (SEARCHING_OUTLINER(sv) && ((telm)->flag & TSE_CHILDSEARCH)))
+  (CHECK_TYPE_INLINE(telm, TreeStoreElem *), \
+   (((telm)->flag & TSE_CLOSED) == 0 || \
+    (SEARCHING_OUTLINER(sv) && ((telm)->flag & TSE_CHILDSEARCH))))
 
 /**
  * Container to avoid passing around these variables to many functions.
@@ -545,7 +547,7 @@ void outliner_collection_delete(struct bContext *C,
                                 struct Main *bmain,
                                 struct Scene *scene,
                                 struct ReportList *reports,
-                                bool hierarchy);
+                                bool do_hierarchy);
 
 void OUTLINER_OT_collection_new(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_duplicate_linked(struct wmOperatorType *ot);
@@ -636,15 +638,21 @@ bool outliner_tree_traverse(const SpaceOutliner *space_outliner,
                             int filter_tselem_flag,
                             TreeTraversalFunc func,
                             void *customdata);
-float outliner_restrict_columns_width(const struct SpaceOutliner *space_outliner);
+float outliner_right_columns_width(const struct SpaceOutliner *space_outliner);
 /**
  * Find first tree element in tree with matching tree-store flag.
  */
 TreeElement *outliner_find_element_with_flag(const ListBase *lb, short flag);
 /**
- * Find if element is visible in the outliner tree.
+ * Find if element is visible in the outliner tree, i.e. if all of its parents are expanded.
+ * Doesn't check if the item is in view-bounds, for that use #outliner_is_element_in_view().
  */
 bool outliner_is_element_visible(const TreeElement *te);
+/**
+ * Check if the element is displayed within the view bounds. Doesn't check if all parents are
+ * open/uncollapsed.
+ */
+bool outliner_is_element_in_view(const TreeElement *te, const struct View2D *v2d);
 /**
  * Scroll view vertically while keeping within total bounds.
  */

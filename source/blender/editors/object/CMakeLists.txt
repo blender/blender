@@ -26,6 +26,8 @@ set(INC
 
   # dna_type_offsets.h in BLO_read_write.h
   ${CMAKE_BINARY_DIR}/source/blender/makesdna/intern
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(SRC
@@ -49,7 +51,7 @@ set(SRC
   object_select.c
   object_shader_fx.c
   object_shapekey.c
-  object_transform.c
+  object_transform.cc
   object_utils.c
   object_vgroup.c
   object_volume.c
@@ -80,3 +82,5 @@ endif()
 blender_add_lib(bf_editor_object "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 add_dependencies(bf_editor_object bf_dna)
+# RNA_prototypes.h
+add_dependencies(bf_editor_object bf_rna)

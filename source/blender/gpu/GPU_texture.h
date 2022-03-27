@@ -230,6 +230,7 @@ GPUTexture *GPU_texture_create_error(int dimension, bool array);
  * Create an alias of the source texture data.
  * If \a src is freed, the texture view will continue to be valid.
  * If \a mip_start or \a mip_len is bigger than available mips they will be clamped.
+ * If \a cube_as_array is true, then the texture cube (array) becomes a 2D array texture.
  * TODO(@fclem): Target conversion is not implemented yet.
  */
 GPUTexture *GPU_texture_create_view(const char *name,
@@ -238,7 +239,8 @@ GPUTexture *GPU_texture_create_view(const char *name,
                                     int mip_start,
                                     int mip_len,
                                     int layer_start,
-                                    int layer_len);
+                                    int layer_len,
+                                    bool cube_as_array);
 
 void GPU_texture_update_mipmap(GPUTexture *tex,
                                int miplvl,
@@ -299,6 +301,11 @@ void GPU_texture_filter_mode(GPUTexture *tex, bool use_filter);
 void GPU_texture_mipmap_mode(GPUTexture *tex, bool use_mipmap, bool use_filter);
 void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat, bool use_clamp);
 void GPU_texture_swizzle_set(GPUTexture *tex, const char swizzle[4]);
+/**
+ * Set depth stencil texture sampling behavior. Can work on texture views.
+ * If stencil sampling is enabled, an unsigned integer sampler is required.
+ */
+void GPU_texture_stencil_texture_mode_set(GPUTexture *tex, bool use_stencil);
 
 /**
  * Return the number of dimensions of the texture ignoring dimension of layers (1, 2 or 3).
@@ -308,6 +315,8 @@ int GPU_texture_dimensions(const GPUTexture *tex);
 
 int GPU_texture_width(const GPUTexture *tex);
 int GPU_texture_height(const GPUTexture *tex);
+int GPU_texture_layer_count(const GPUTexture *tex);
+int GPU_texture_mip_count(const GPUTexture *tex);
 int GPU_texture_orig_width(const GPUTexture *tex);
 int GPU_texture_orig_height(const GPUTexture *tex);
 void GPU_texture_orig_size_set(GPUTexture *tex, int w, int h);

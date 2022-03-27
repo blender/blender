@@ -29,6 +29,7 @@
  * because 'near' is disabled through BLI_windstuff. */
 #  include "BLI_winstuff.h"
 #  include <shlobj.h>
+#  include <shlwapi.h>
 #endif
 
 #include "UI_interface_icons.h"
@@ -642,14 +643,29 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
         tmps[3] = '\0';
         name = NULL;
 
-        /* Flee from horrible win querying hover floppy drives! */
+        /* Skip over floppy disks A & B. */
         if (i > 1) {
-          /* Try to get a friendly drive description. */
-          SHFILEINFOW shFile = {0};
+          /* Friendly volume descriptions without using SHGetFileInfoW (T85689). */
           BLI_strncpy_wchar_from_utf8(wline, tmps, 4);
-          if (SHGetFileInfoW(wline, 0, &shFile, sizeof(SHFILEINFOW), SHGFI_DISPLAYNAME)) {
-            BLI_strncpy_wchar_as_utf8(line, shFile.szDisplayName, FILE_MAXDIR);
-            name = line;
+          IShellFolder *desktop;
+          if (SHGetDesktopFolder(&desktop) == S_OK) {
+            PIDLIST_RELATIVE volume;
+            if (desktop->lpVtbl->ParseDisplayName(
+                    desktop, NULL, NULL, wline, NULL, &volume, NULL) == S_OK) {
+              STRRET volume_name;
+              volume_name.uType = STRRET_WSTR;
+              if (desktop->lpVtbl->GetDisplayNameOf(
+                      desktop, volume, SHGDN_FORADDRESSBAR, &volume_name) == S_OK) {
+                wchar_t *volume_name_wchar;
+                if (StrRetToStrW(&volume_name, volume, &volume_name_wchar) == S_OK) {
+                  BLI_strncpy_wchar_as_utf8(line, volume_name_wchar, FILE_MAXDIR);
+                  name = line;
+                  CoTaskMemFree(volume_name_wchar);
+                }
+              }
+              CoTaskMemFree(volume);
+            }
+            desktop->lpVtbl->Release(desktop);
           }
         }
         if (name == NULL) {
@@ -952,13 +968,13 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
       /* Check gvfs shares. */
       const char *const xdg_runtime_dir = BLI_getenv("XDG_RUNTIME_DIR");
       if (xdg_runtime_dir != NULL) {
-        struct direntry *dir;
+        struct direntry *dirs;
         char name[FILE_MAX];
         BLI_join_dirfile(name, sizeof(name), xdg_runtime_dir, "gvfs/");
-        const uint dir_len = BLI_filelist_dir_contents(name, &dir);
-        for (uint i = 0; i < dir_len; i++) {
-          if (dir[i].type & S_IFDIR) {
-            const char *dirname = dir[i].relname;
+        const uint dirs_num = BLI_filelist_dir_contents(name, &dirs);
+        for (uint i = 0; i < dirs_num; i++) {
+          if (dirs[i].type & S_IFDIR) {
+            const char *dirname = dirs[i].relname;
             if (dirname[0] != '.') {
               /* Dir names contain a lot of unwanted text.
                * Assuming every entry ends with the share name */
@@ -976,7 +992,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
             }
           }
         }
-        BLI_filelist_free(dir, dir_len);
+        BLI_filelist_free(dirs, dirs_num);
       }
 #  endif
 

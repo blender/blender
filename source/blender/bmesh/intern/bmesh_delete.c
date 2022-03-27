@@ -173,7 +173,7 @@ void BMO_mesh_delete_oflag_context(BMesh *bm, const short oflag, const int type)
       bmo_remove_tagged_faces(bm, oflag);
       /* delete marked edge */
       bmo_remove_tagged_edges(bm, oflag);
-      /* remove loose vertice */
+      /* remove loose vertices */
       bmo_remove_tagged_verts(bm, oflag);
 
       break;
@@ -335,7 +335,7 @@ void BM_mesh_delete_hflag_context(BMesh *bm, const char hflag, const int type)
       bm_remove_tagged_faces(bm, hflag);
       /* delete marked edge */
       bm_remove_tagged_edges(bm, hflag);
-      /* remove loose vertice */
+      /* remove loose vertices */
       bm_remove_tagged_verts(bm, hflag);
 
       break;

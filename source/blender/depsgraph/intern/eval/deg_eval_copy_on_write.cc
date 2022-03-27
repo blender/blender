@@ -41,6 +41,7 @@
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -731,6 +732,16 @@ void update_id_after_copy(const Depsgraph *depsgraph,
       scene_cow->toolsettings = scene_orig->toolsettings;
       scene_cow->eevee.light_cache_data = scene_orig->eevee.light_cache_data;
       scene_setup_view_layers_after_remap(depsgraph, id_node, reinterpret_cast<Scene *>(id_cow));
+      break;
+    }
+    /* FIXME: This is a temporary fix to update the runtime pointers properly, see T96216. Should
+     * be removed at some point. */
+    case ID_GD: {
+      bGPdata *gpd_cow = (bGPdata *)id_cow;
+      bGPDlayer *gpl = (bGPDlayer *)(gpd_cow->layers.first);
+      if (gpl != nullptr && gpl->runtime.gpl_orig == nullptr) {
+        BKE_gpencil_data_update_orig_pointers((bGPdata *)id_orig, gpd_cow);
+      }
       break;
     }
     default:

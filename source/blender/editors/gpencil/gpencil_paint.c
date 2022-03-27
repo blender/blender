@@ -64,6 +64,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1114,7 +1115,8 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       }
 
       if (found_depth == false) {
-        /* eeh... not much we can do.. :/, ignore depth in this case, use the 3D cursor */
+        /* Unfortunately there is not much we can do when the depth isn't found,
+         * ignore depth in this case, use the 3D cursor. */
         for (i = gpd->runtime.sbuffer_used - 1; i >= 0; i--) {
           depth_arr[i] = 0.9999f;
         }
@@ -1195,29 +1197,21 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       gpencil_subdivide_stroke(gpd, gps, subdivide);
     }
 
-    /* Smooth stroke after subdiv - only if there's something to do for each iteration,
-     * the factor is reduced to get a better smoothing
-     * without changing too much the original stroke. */
-    if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_SETTINGS) &&
-        (brush->gpencil_settings->draw_smoothfac > 0.0f)) {
-      float reduce = 0.0f;
-      for (int r = 0; r < brush->gpencil_settings->draw_smoothlvl; r++) {
-        for (i = 0; i < gps->totpoints - 1; i++) {
-          BKE_gpencil_stroke_smooth_point(
-              gps, i, brush->gpencil_settings->draw_smoothfac - reduce, false);
-          BKE_gpencil_stroke_smooth_strength(gps, i, brush->gpencil_settings->draw_smoothfac);
-        }
-        reduce += 0.25f; /* reduce the factor */
-      }
+    /* Smooth stroke after subdiv - only if there's something to do for each iteration.
+     * Keep the original stroke shape as much as possible. */
+    const float smoothfac = brush->gpencil_settings->draw_smoothfac;
+    const int iterations = brush->gpencil_settings->draw_smoothlvl;
+    if (brush->gpencil_settings->flag & GP_BRUSH_GROUP_SETTINGS) {
+      BKE_gpencil_stroke_smooth(gps, smoothfac, iterations, true, true, false, false, true, NULL);
     }
     /* If reproject the stroke using Stroke mode, need to apply a smooth because
      * the reprojection creates small jitter. */
     if (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) {
       float ifac = (float)brush->gpencil_settings->input_samples / 10.0f;
       float sfac = interpf(1.0f, 0.2f, ifac);
-      for (i = 0; i < gps->totpoints - 1; i++) {
-        BKE_gpencil_stroke_smooth_point(gps, i, sfac, false);
-        BKE_gpencil_stroke_smooth_strength(gps, i, sfac);
+      for (i = 0; i < gps->totpoints; i++) {
+        BKE_gpencil_stroke_smooth_point(gps, i, sfac, 2, false, true, gps);
+        BKE_gpencil_stroke_smooth_strength(gps, i, sfac, 2, gps);
       }
     }
 
@@ -3325,7 +3319,7 @@ static void gpencil_brush_angle_segment(tGPsdata *p, tGPspoint *pt_prev, tGPspoi
   CLAMP(pt->pressure, GPENCIL_ALPHA_OPACITY_THRESH, 1.0f);
 }
 
-/* Add arc points between two mouse events using the previous segment to determine the vertice of
+/* Add arc points between two mouse events using the previous segment to determine the vertex of
  * the arc.
  *        /+ CTL
  *       / |
@@ -3335,7 +3329,7 @@ static void gpencil_brush_angle_segment(tGPsdata *p, tGPspoint *pt_prev, tGPspoi
  *   /
  *  + PtA - 1
  * /
- * CTL is the vertice of the triangle created between PtA and PtB */
+ * CTL is the vertex of the triangle created between PtA and PtB */
 static void gpencil_add_arc_points(tGPsdata *p, const float mval[2], int segments)
 {
   bGPdata *gpd = p->gpd;
@@ -3649,10 +3643,10 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
                   EVT_PAD7,
                   EVT_PAD8,
                   EVT_PAD9)) {
-      /* allow numpad keys so that camera/view manipulations can still take place
-       * - PAD0 in particular is really important for Grease Pencil drawing,
+      /* Allow numpad keys so that camera/view manipulations can still take place
+       * - #EVT_PAD0 in particular is really important for Grease Pencil drawing,
        *   as animators may be working "to camera", so having this working
-       *   is essential for ensuring that they can quickly return to that view
+       *   is essential for ensuring that they can quickly return to that view.
        */
     }
     else if ((!ELEM(p->paintmode, GP_PAINTMODE_ERASER, GP_PAINTMODE_SET_CP))) {

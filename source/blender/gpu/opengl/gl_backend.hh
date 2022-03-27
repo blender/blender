@@ -19,6 +19,7 @@
 #include "gl_index_buffer.hh"
 #include "gl_query.hh"
 #include "gl_shader.hh"
+#include "gl_storage_buffer.hh"
 #include "gl_texture.hh"
 #include "gl_uniform_buffer.hh"
 #include "gl_vertex_buffer.hh"
@@ -101,6 +102,11 @@ class GLBackend : public GPUBackend {
     return new GLUniformBuf(size, name);
   };
 
+  StorageBuf *storagebuf_alloc(int size, GPUUsageType usage, const char *name) override
+  {
+    return new GLStorageBuf(size, usage, name);
+  };
+
   VertBuf *vertbuf_alloc() override
   {
     return new GLVertBuf();
@@ -116,6 +122,24 @@ class GLBackend : public GPUBackend {
     GLContext::get()->state_manager_active_get()->apply_state();
     GLCompute::dispatch(groups_x_len, groups_y_len, groups_z_len);
   }
+
+  void compute_dispatch_indirect(StorageBuf *indirect_buf) override
+  {
+    GLContext::get()->state_manager_active_get()->apply_state();
+
+    dynamic_cast<GLStorageBuf *>(indirect_buf)->bind_as(GL_DISPATCH_INDIRECT_BUFFER);
+    /* This barrier needs to be here as it only work on the currently bound indirect buffer. */
+    glMemoryBarrier(GL_DRAW_INDIRECT_BUFFER);
+
+    glDispatchComputeIndirect((GLintptr)0);
+    /* Unbind. */
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+  }
+
+  /* Render Frame Coordination */
+  void render_begin(void) override{};
+  void render_end(void) override{};
+  void render_step(void) override{};
 
  private:
   static void platform_init();

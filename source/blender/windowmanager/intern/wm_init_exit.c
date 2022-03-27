@@ -163,15 +163,15 @@ static bool opengl_is_init = false;
 
 void WM_init_opengl(void)
 {
-  /* must be called only once */
+  /* Must be called only once. */
   BLI_assert(opengl_is_init == false);
 
   if (G.background) {
-    /* Ghost is still not init elsewhere in background mode. */
+    /* Ghost is still not initialized elsewhere in background mode. */
     wm_ghost_init(NULL);
   }
 
-  /* Needs to be first to have an ogl context bound. */
+  /* Needs to be first to have an OpenGL context bound. */
   DRW_opengl_context_create();
 
   GPU_init();
@@ -365,7 +365,7 @@ void WM_init_splash(bContext *C)
 
     if (wm->windows.first) {
       CTX_wm_window_set(C, wm->windows.first);
-      WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, NULL);
+      WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, NULL, NULL);
       CTX_wm_window_set(C, prevwin);
     }
   }
@@ -440,19 +440,19 @@ void WM_exit_ex(bContext *C, const bool do_python)
       if (undo_memfile != NULL) {
         /* save the undo state as quit.blend */
         Main *bmain = CTX_data_main(C);
-        char filename[FILE_MAX];
+        char filepath[FILE_MAX];
         bool has_edited;
         const int fileflags = G.fileflags & ~G_FILE_COMPRESS;
 
-        BLI_join_dirfile(filename, sizeof(filename), BKE_tempdir_base(), BLENDER_QUIT_FILE);
+        BLI_join_dirfile(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
 
         has_edited = ED_editors_flush_edits(bmain);
 
         if ((has_edited &&
              BLO_write_file(
-                 bmain, filename, fileflags, &(const struct BlendFileWriteParams){0}, NULL)) ||
-            (BLO_memfile_write_file(undo_memfile, filename))) {
-          printf("Saved session recovery to '%s'\n", filename);
+                 bmain, filepath, fileflags, &(const struct BlendFileWriteParams){0}, NULL)) ||
+            (BLO_memfile_write_file(undo_memfile, filepath))) {
+          printf("Saved session recovery to '%s'\n", filepath);
         }
       }
     }

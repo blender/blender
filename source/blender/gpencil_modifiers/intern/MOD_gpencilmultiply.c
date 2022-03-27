@@ -175,53 +175,6 @@ static void duplicateStroke(Object *ob,
   MEM_freeN(t2_array);
 }
 
-static void bakeModifier(Main *UNUSED(bmain),
-                         Depsgraph *UNUSED(depsgraph),
-                         GpencilModifierData *md,
-                         Object *ob)
-{
-  bGPdata *gpd = ob->data;
-
-  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-      ListBase duplicates = {0};
-      MultiplyGpencilModifierData *mmd = (MultiplyGpencilModifierData *)md;
-      bGPDstroke *gps;
-      for (gps = gpf->strokes.first; gps; gps = gps->next) {
-        if (!is_stroke_affected_by_modifier(ob,
-                                            mmd->layername,
-                                            mmd->material,
-                                            mmd->pass_index,
-                                            mmd->layer_pass,
-                                            1,
-                                            gpl,
-                                            gps,
-                                            mmd->flag & GP_MIRROR_INVERT_LAYER,
-                                            mmd->flag & GP_MIRROR_INVERT_PASS,
-                                            mmd->flag & GP_MIRROR_INVERT_LAYERPASS,
-                                            mmd->flag & GP_MIRROR_INVERT_MATERIAL)) {
-          continue;
-        }
-        if (mmd->duplications > 0) {
-          duplicateStroke(ob,
-                          gps,
-                          mmd->duplications,
-                          mmd->distance,
-                          mmd->offset,
-                          &duplicates,
-                          mmd->flags & GP_MULTIPLY_ENABLE_FADING,
-                          mmd->fading_center,
-                          mmd->fading_thickness,
-                          mmd->fading_opacity);
-        }
-      }
-      if (!BLI_listbase_is_empty(&duplicates)) {
-        BLI_movelisttolist(&gpf->strokes, &duplicates);
-      }
-    }
-  }
-}
-
 /* -------------------------------- */
 static void generate_geometry(GpencilModifierData *md, Object *ob, bGPDlayer *gpl, bGPDframe *gpf)
 {
@@ -258,6 +211,20 @@ static void generate_geometry(GpencilModifierData *md, Object *ob, bGPDlayer *gp
   }
   if (!BLI_listbase_is_empty(&duplicates)) {
     BLI_movelisttolist(&gpf->strokes, &duplicates);
+  }
+}
+
+static void bakeModifier(Main *UNUSED(bmain),
+                         Depsgraph *UNUSED(depsgraph),
+                         GpencilModifierData *md,
+                         Object *ob)
+{
+  bGPdata *gpd = ob->data;
+
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+      generate_geometry(md, ob, gpl, gpf);
+    }
   }
 }
 

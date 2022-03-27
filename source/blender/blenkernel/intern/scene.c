@@ -70,6 +70,7 @@
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
@@ -201,15 +202,8 @@ static void scene_init_data(ID *id)
               colorspace_name,
               sizeof(scene->sequencer_colorspace_settings.name));
 
-  /* Those next two sets (render and baking settings) are not currently in use,
-   * but are exposed to RNA API and hence must have valid data. */
-  BKE_color_managed_display_settings_init(&scene->r.im_format.display_settings);
-  BKE_color_managed_view_settings_init_render(
-      &scene->r.im_format.view_settings, &scene->r.im_format.display_settings, "Filmic");
-
-  BKE_color_managed_display_settings_init(&scene->r.bake.im_format.display_settings);
-  BKE_color_managed_view_settings_init_render(
-      &scene->r.bake.im_format.view_settings, &scene->r.bake.im_format.display_settings, "Filmic");
+  BKE_image_format_init(&scene->r.im_format, true);
+  BKE_image_format_init(&scene->r.bake.im_format, true);
 
   /* Curve Profile */
   scene->toolsettings->custom_bevel_profile_preset = BKE_curveprofile_add(PROF_PRESET_LINE);
@@ -295,15 +289,8 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
   BKE_color_managed_colorspace_settings_copy(&scene_dst->sequencer_colorspace_settings,
                                              &scene_src->sequencer_colorspace_settings);
 
-  BKE_color_managed_display_settings_copy(&scene_dst->r.im_format.display_settings,
-                                          &scene_src->r.im_format.display_settings);
-  BKE_color_managed_view_settings_copy(&scene_dst->r.im_format.view_settings,
-                                       &scene_src->r.im_format.view_settings);
-
-  BKE_color_managed_display_settings_copy(&scene_dst->r.bake.im_format.display_settings,
-                                          &scene_src->r.bake.im_format.display_settings);
-  BKE_color_managed_view_settings_copy(&scene_dst->r.bake.im_format.view_settings,
-                                       &scene_src->r.bake.im_format.view_settings);
+  BKE_image_format_copy(&scene_dst->r.im_format, &scene_src->r.im_format);
+  BKE_image_format_copy(&scene_dst->r.bake.im_format, &scene_src->r.bake.im_format);
 
   BKE_curvemapping_copy_data(&scene_dst->r.mblur_shutter_curve, &scene_src->r.mblur_shutter_curve);
 
@@ -402,6 +389,8 @@ static void scene_free_data(ID *id)
   BKE_sound_destroy_scene(scene);
 
   BKE_color_managed_view_settings_free(&scene->view_settings);
+  BKE_image_format_free(&scene->r.im_format);
+  BKE_image_format_free(&scene->r.bake.im_format);
 
   BKE_previewimg_free(&scene->preview);
   BKE_curvemapping_free_data(&scene->r.mblur_shutter_curve);
@@ -1044,6 +1033,8 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   }
 
   BKE_color_managed_view_settings_blend_write(writer, &sce->view_settings);
+  BKE_image_format_blend_write(writer, &sce->r.im_format);
+  BKE_image_format_blend_write(writer, &sce->r.bake.im_format);
 
   /* writing RigidBodyWorld data to the blend file */
   if (sce->rigidbody_world) {
@@ -1276,6 +1267,8 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
   }
 
   BKE_color_managed_view_settings_blend_read_data(reader, &sce->view_settings);
+  BKE_image_format_blend_read_data(reader, &sce->r.im_format);
+  BKE_image_format_blend_read_data(reader, &sce->r.bake.im_format);
 
   BLO_read_data_address(reader, &sce->rigidbody_world);
   RigidBodyWorld *rbw = sce->rigidbody_world;
@@ -1855,15 +1848,8 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     BKE_color_managed_colorspace_settings_copy(&sce_copy->sequencer_colorspace_settings,
                                                &sce->sequencer_colorspace_settings);
 
-    BKE_color_managed_display_settings_copy(&sce_copy->r.im_format.display_settings,
-                                            &sce->r.im_format.display_settings);
-    BKE_color_managed_view_settings_copy(&sce_copy->r.im_format.view_settings,
-                                         &sce->r.im_format.view_settings);
-
-    BKE_color_managed_display_settings_copy(&sce_copy->r.bake.im_format.display_settings,
-                                            &sce->r.bake.im_format.display_settings);
-    BKE_color_managed_view_settings_copy(&sce_copy->r.bake.im_format.view_settings,
-                                         &sce->r.bake.im_format.view_settings);
+    BKE_image_format_copy(&sce_copy->r.im_format, &sce->r.im_format);
+    BKE_image_format_copy(&sce_copy->r.bake.im_format, &sce->r.bake.im_format);
 
     BKE_curvemapping_copy_data(&sce_copy->r.mblur_shutter_curve, &sce->r.mblur_shutter_curve);
 
@@ -2765,17 +2751,17 @@ int get_render_subsurf_level(const RenderData *r, int lvl, bool for_render)
   return lvl;
 }
 
-int get_render_child_particle_number(const RenderData *r, int num, bool for_render)
+int get_render_child_particle_number(const RenderData *r, int child_num, bool for_render)
 {
   if (r->mode & R_SIMPLIFY) {
     if (for_render) {
-      return (int)(r->simplify_particles_render * num);
+      return (int)(r->simplify_particles_render * child_num);
     }
 
-    return (int)(r->simplify_particles * num);
+    return (int)(r->simplify_particles * child_num);
   }
 
-  return num;
+  return child_num;
 }
 
 Base *_setlooper_base_step(Scene **sce_iter, ViewLayer *view_layer, Base *base)
@@ -3137,7 +3123,9 @@ int BKE_scene_multiview_view_id_get(const RenderData *rd, const char *viewname)
   return 0;
 }
 
-void BKE_scene_multiview_filepath_get(SceneRenderView *srv, const char *filepath, char *r_filepath)
+void BKE_scene_multiview_filepath_get(const SceneRenderView *srv,
+                                      const char *filepath,
+                                      char *r_filepath)
 {
   BLI_strncpy(r_filepath, filepath, FILE_MAX);
   BLI_path_suffix(r_filepath, FILE_MAX, srv->suffix, "");

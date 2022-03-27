@@ -48,6 +48,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -56,6 +57,7 @@
 #include "ED_object.h"
 #include "ED_outliner.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 #include "ED_transform.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
@@ -2300,7 +2302,7 @@ static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
   BMIter iter;
   const bool use_ccw = RNA_boolean_get(op->ptr, "use_ccw");
 
-  int tot_rotate_all = 0, tot_failed_all = 0;
+  int tot_failed_all = 0;
   bool no_selected_edges = true, invalid_selected_edges = true;
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -2358,7 +2360,6 @@ static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
     const int tot_rotate = BMO_slot_buffer_len(bmop.slots_out, "edges.out");
     const int tot_failed = tot - tot_rotate;
 
-    tot_rotate_all += tot_rotate;
     tot_failed_all += tot_failed;
 
     if (tot_failed != 0) {
@@ -4349,7 +4350,7 @@ static Base *mesh_separate_tagged(
   Base *base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_old, dupflag);
 
   /* normally would call directly after but in this case delay recalc */
-  /* DAG_relations_tag_update(bmain); */
+  // DAG_relations_tag_update(bmain);
 
   /* new in 2.5 */
   BKE_object_material_array_assign(bmain,
@@ -4423,7 +4424,7 @@ static Base *mesh_separate_arrays(Main *bmain,
   Base *base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_old, dupflag);
 
   /* normally would call directly after but in this case delay recalc */
-  /* DAG_relations_tag_update(bmain); */
+  // DAG_relations_tag_update(bmain);
 
   /* new in 2.5 */
   BKE_object_material_array_assign(bmain,
@@ -8539,7 +8540,10 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
       case EDBM_CLNOR_MODAL_POINTTO_SET_USE_SELECTED:
         new_mode = EDBM_CLNOR_POINTTO_MODE_COORDINATES;
         view3d_operator_needs_opengl(C);
-        if (EDBM_select_pick(C, event->mval, false, false, false)) {
+        const struct SelectPick_Params params = {
+            .sel_op = SEL_OP_SET,
+        };
+        if (EDBM_select_pick(C, event->mval, &params)) {
           /* Point to newly selected active. */
           ED_object_calc_active_center_for_editmode(obedit, false, target);
 

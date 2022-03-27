@@ -180,11 +180,9 @@ ccl_device_inline float3 shadow_ray_smooth_surface_offset(
 
 ccl_device_inline float3 shadow_ray_offset(KernelGlobals kg,
                                            ccl_private const ShaderData *ccl_restrict sd,
-                                           float3 L)
+                                           float3 L,
+                                           ccl_private bool *r_skip_self)
 {
-  float NL = dot(sd->N, L);
-  bool transmit = (NL < 0.0f);
-  float3 Ng = (transmit ? -sd->Ng : sd->Ng);
   float3 P = sd->P;
 
   if ((sd->type & PRIMITIVE_TRIANGLE) && (sd->shader & SHADER_SMOOTH_NORMAL)) {
@@ -194,19 +192,25 @@ ccl_device_inline float3 shadow_ray_offset(KernelGlobals kg,
      * offset_cutoff = 0.1f means that 10-20% of rays will be affected. Also
      * make a smooth transition near the threshold. */
     if (offset_cutoff > 0.0f) {
-      float NgL = dot(Ng, L);
-      float offset_amount = 0.0f;
+      float NL = dot(sd->N, L);
+      const bool transmit = (NL < 0.0f);
       if (NL < 0) {
         NL = -NL;
       }
-      if (NL < offset_cutoff) {
-        offset_amount = clamp(2.0f - (NgL + NL) / offset_cutoff, 0.0f, 1.0f);
-      }
-      else {
-        offset_amount = clamp(1.0f - NgL / offset_cutoff, 0.0f, 1.0f);
-      }
+
+      const float3 Ng = (transmit ? -sd->Ng : sd->Ng);
+      const float NgL = dot(Ng, L);
+
+      const float offset_amount = (NL < offset_cutoff) ?
+                                      clamp(2.0f - (NgL + NL) / offset_cutoff, 0.0f, 1.0f) :
+                                      clamp(1.0f - NgL / offset_cutoff, 0.0f, 1.0f);
+
       if (offset_amount > 0.0f) {
         P += shadow_ray_smooth_surface_offset(kg, sd, Ng) * offset_amount;
+
+        /* Only skip self intersections if light direction and geometric normal point in the same
+         * direction, otherwise we're meant to hit this surface. */
+        *r_skip_self = (NgL > 0.0f);
       }
     }
   }
@@ -217,7 +221,8 @@ ccl_device_inline float3 shadow_ray_offset(KernelGlobals kg,
 ccl_device_inline void shadow_ray_setup(ccl_private const ShaderData *ccl_restrict sd,
                                         ccl_private const LightSample *ccl_restrict ls,
                                         const float3 P,
-                                        ccl_private Ray *ray)
+                                        ccl_private Ray *ray,
+                                        const bool skip_self)
 {
   if (ls->shader & SHADER_CAST_SHADOW) {
     /* setup ray */
@@ -246,10 +251,10 @@ ccl_device_inline void shadow_ray_setup(ccl_private const ShaderData *ccl_restri
   ray->time = sd->time;
 
   /* Fill in intersection surface and light details. */
-  ray->self.prim = sd->prim;
-  ray->self.object = sd->object;
-  ray->self.light_prim = ls->prim;
+  ray->self.object = (skip_self) ? sd->object : OBJECT_NONE;
+  ray->self.prim = (skip_self) ? sd->prim : PRIM_NONE;
   ray->self.light_object = ls->object;
+  ray->self.light_prim = ls->prim;
 }
 
 /* Create shadow ray towards light sample. */
@@ -259,8 +264,9 @@ ccl_device_inline void light_sample_to_surface_shadow_ray(
     ccl_private const LightSample *ccl_restrict ls,
     ccl_private Ray *ray)
 {
-  const float3 P = shadow_ray_offset(kg, sd, ls->D);
-  shadow_ray_setup(sd, ls, P, ray);
+  bool skip_self = true;
+  const float3 P = shadow_ray_offset(kg, sd, ls->D, &skip_self);
+  shadow_ray_setup(sd, ls, P, ray, skip_self);
 }
 
 /* Create shadow ray towards light sample. */
@@ -271,7 +277,7 @@ ccl_device_inline void light_sample_to_volume_shadow_ray(
     const float3 P,
     ccl_private Ray *ray)
 {
-  shadow_ray_setup(sd, ls, P, ray);
+  shadow_ray_setup(sd, ls, P, ray, false);
 }
 
 ccl_device_inline float light_sample_mis_weight_forward(KernelGlobals kg,

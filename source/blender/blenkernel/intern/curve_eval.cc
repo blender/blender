@@ -20,6 +20,8 @@
 using blender::Array;
 using blender::float3;
 using blender::float4x4;
+using blender::GVArray;
+using blender::GVArray_GSpan;
 using blender::IndexRange;
 using blender::Map;
 using blender::MutableSpan;
@@ -32,8 +34,6 @@ using blender::bke::AttributeIDRef;
 using blender::bke::OutputAttribute;
 using blender::bke::OutputAttribute_Typed;
 using blender::bke::ReadAttributeLookup;
-using blender::fn::GVArray;
-using blender::fn::GVArray_GSpan;
 
 blender::Span<SplinePtr> CurveEval::splines() const
 {
@@ -203,19 +203,21 @@ static Spline::NormalCalculationMode normal_mode_from_dna_curve(const int twist_
   return Spline::NormalCalculationMode::Minimum;
 }
 
-static NURBSpline::KnotsMode knots_mode_from_dna_nurb(const short flag)
+static KnotsMode knots_mode_from_dna_nurb(const short flag)
 {
   switch (flag & (CU_NURB_ENDPOINT | CU_NURB_BEZIER)) {
     case CU_NURB_ENDPOINT:
-      return NURBSpline::KnotsMode::EndPoint;
+      return NURBS_KNOT_MODE_ENDPOINT;
     case CU_NURB_BEZIER:
-      return NURBSpline::KnotsMode::Bezier;
+      return NURBS_KNOT_MODE_BEZIER;
+    case CU_NURB_ENDPOINT | CU_NURB_BEZIER:
+      return NURBS_KNOT_MODE_ENDPOINT_BEZIER;
     default:
-      return NURBSpline::KnotsMode::Normal;
+      return NURBS_KNOT_MODE_NORMAL;
   }
 
   BLI_assert_unreachable();
-  return NURBSpline::KnotsMode::Normal;
+  return NURBS_KNOT_MODE_NORMAL;
 }
 
 static SplinePtr spline_from_dna_bezier(const Nurb &nurb)
@@ -396,7 +398,7 @@ std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves)
   VArray<int8_t> curve_types = geometry.curve_types();
   std::unique_ptr<CurveEval> curve_eval = std::make_unique<CurveEval>();
   for (const int curve_index : curve_types.index_range()) {
-    const IndexRange point_range = geometry.range_for_curve(curve_index);
+    const IndexRange point_range = geometry.points_for_curve(curve_index);
 
     std::unique_ptr<Spline> spline;
     switch (curve_types[curve_index]) {
@@ -419,8 +421,7 @@ std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves)
         nurb_spline->resize(point_range.size());
         nurb_spline->weights().copy_from(nurbs_weights.slice(point_range));
         nurb_spline->set_order(nurbs_orders[curve_index]);
-        nurb_spline->knots_mode = static_cast<NURBSpline::KnotsMode>(
-            nurbs_knots_modes[curve_index]);
+        nurb_spline->knots_mode = static_cast<KnotsMode>(nurbs_knots_modes[curve_index]);
 
         spline = std::move(nurb_spline);
         break;
@@ -435,6 +436,8 @@ std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves)
     spline->radii().fill(1.0f);
     curve_eval->add_spline(std::move(spline));
   }
+
+  curve_eval->attributes.reallocate(curve_eval->splines().size());
 
   CurveComponentLegacy dst_component;
   dst_component.replace(curve_eval.get(), GeometryOwnershipType::Editable);
@@ -486,7 +489,7 @@ Curves *curve_eval_to_curves(const CurveEval &curve_eval)
     const Spline &spline = *curve_eval.splines()[curve_index];
     curve_types[curve_index] = curve_eval.splines()[curve_index]->type();
 
-    const IndexRange point_range = geometry.range_for_curve(curve_index);
+    const IndexRange point_range = geometry.points_for_curve(curve_index);
 
     switch (spline.type()) {
       case CURVE_TYPE_POLY:

@@ -34,6 +34,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE. */
 
+#include "BLI_utildefines.h"
+#undef CLAMP
+
 #include <BlockDXT.h>
 #include <DirectDrawSurface.h>
 #include <PixelFormat.h>
@@ -596,7 +599,7 @@ void DDSHeader::setDepth(uint d)
 
 void DDSHeader::setMipmapCount(uint count)
 {
-  if (count == 0 || count == 1) {
+  if (ELEM(count, 0, 1)) {
     this->flags &= ~DDSD_MIPMAPCOUNT;
     this->mipmapcount = 1;
 
@@ -904,11 +907,12 @@ bool DirectDrawSurface::isValid() const
 bool DirectDrawSurface::isSupported() const
 {
   if (header.hasDX10Header()) {
-    if (header.header10.dxgiFormat == DXGI_FORMAT_BC1_UNORM ||
-        header.header10.dxgiFormat == DXGI_FORMAT_BC2_UNORM ||
-        header.header10.dxgiFormat == DXGI_FORMAT_BC3_UNORM ||
-        header.header10.dxgiFormat == DXGI_FORMAT_BC4_UNORM ||
-        header.header10.dxgiFormat == DXGI_FORMAT_BC5_UNORM) {
+    if (ELEM(header.header10.dxgiFormat,
+             DXGI_FORMAT_BC1_UNORM,
+             DXGI_FORMAT_BC2_UNORM,
+             DXGI_FORMAT_BC3_UNORM,
+             DXGI_FORMAT_BC4_UNORM,
+             DXGI_FORMAT_BC5_UNORM)) {
       return true;
     }
 
@@ -916,10 +920,15 @@ bool DirectDrawSurface::isSupported() const
   }
 
   if (header.pf.flags & DDPF_FOURCC) {
-    if (header.pf.fourcc != FOURCC_DXT1 && header.pf.fourcc != FOURCC_DXT2 &&
-        header.pf.fourcc != FOURCC_DXT3 && header.pf.fourcc != FOURCC_DXT4 &&
-        header.pf.fourcc != FOURCC_DXT5 && header.pf.fourcc != FOURCC_RXGB &&
-        header.pf.fourcc != FOURCC_ATI1 && header.pf.fourcc != FOURCC_ATI2) {
+    if (!ELEM(header.pf.fourcc,
+              FOURCC_DXT1,
+              FOURCC_DXT2,
+              FOURCC_DXT3,
+              FOURCC_DXT4,
+              FOURCC_DXT5,
+              FOURCC_RXGB,
+              FOURCC_ATI1,
+              FOURCC_ATI2)) {
       /* Unknown fourcc code. */
       return false;
     }

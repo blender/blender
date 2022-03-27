@@ -82,6 +82,7 @@
 #include "BKE_world.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 #include "RNA_types.h"
 
 #include "SEQ_iterator.h"
@@ -1597,6 +1598,14 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
       OperationKey parameters_key(id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL);
       add_relation(property_exit_key, parameters_key, "Driven Property -> Properties");
     }
+  }
+
+  /* Assume drivers on a node tree affect the evaluated output of the node tree. In theory we could
+   * check if the driven value actually affects the output, i.e. if it drives a node that is linked
+   * to the output. */
+  if (GS(id_ptr->name) == ID_NT) {
+    ComponentKey ntree_output_key(id_ptr, NodeType::NTREE_OUTPUT);
+    add_relation(driver_key, ntree_output_key, "Drivers -> NTree Output");
   }
 }
 

@@ -24,55 +24,55 @@ class MotionPathButtonsPanel:
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        # Display Range
-        col = layout.column(align=True)
-        col.prop(mps, "type")
-        col = layout.column(align=True)
+        row = layout.row(align=True)
+        row.prop(mps, "type")
+        if mps.type == 'RANGE':
+            if bones:
+                row.operator("pose.paths_range_update", text="", icon='TIME')
+            else:
+                row.operator("object.paths_range_update", text="", icon='TIME')
+
         if mps.type == 'CURRENT_FRAME':
+            col = layout.column(align=True)
             col.prop(mps, "frame_before", text="Frame Range Before")
             col.prop(mps, "frame_after", text="After")
-        col.prop(mps, "frame_step", text="Step")
-
-        # Calculation Range
-        col = layout.column(align=True)
-        row = col.row(align=True)
-        row.prop(mps, "range", text="Calculation Range")
+            col.prop(mps, "frame_step", text="Step")
+        elif mps.type == 'RANGE':
+            col = layout.column(align=True)
+            col.prop(mps, "frame_start", text="Frame Range Start")
+            col.prop(mps, "frame_end", text="End")
+            col.prop(mps, "frame_step", text="Step")
 
         if mpath:
             col = layout.column(align=True)
-            row = col.row(align=True)
-            row.enabled = False
-            row.prop(mpath, "frame_start", text="Cached Range")
-            row.prop(mpath, "frame_end", text="")
+            col.enabled = False
+            if bones:
+                col.prop(mpath, "frame_start", text="Bone Cache From")
+            else:
+                col.prop(mpath, "frame_start", text="Cache From")
+            col.prop(mpath, "frame_end", text="To")
 
             col = layout.column(align=True)
-            row = col.row(align=True)
+
             if bones:
-                row.operator("pose.paths_update", text="Update Paths", icon='BONE_DATA')
-                row.operator("pose.paths_clear", text="", icon='X').only_selected = True
-                row = col.row(align=True)
-                row.operator("object.paths_update_visible", text="Update All Paths", icon='WORLD')
-                row.operator("pose.paths_clear", text="", icon='X').only_selected = False
+                col.operator("pose.paths_update", text="Update Paths", icon='BONE_DATA')
             else:
-                row.operator("object.paths_update", text="Update Paths", icon='OBJECT_DATA')
-                row.operator("object.paths_clear", text="", icon='X').only_selected = True
-                row = col.row(align=True)
-                row.operator("object.paths_update_visible", text="Update All Paths", icon='WORLD')
-                row.operator("object.paths_clear", text="", icon='X').only_selected = False
+                col.operator("object.paths_update", text="Update Paths", icon='OBJECT_DATA')
         else:
             col = layout.column(align=True)
-            col.label(text="No Motion Path generated yet", icon='ERROR')
+            col.label(text="Nothing to show yet...", icon='ERROR')
 
-            # Don't invoke settings popup because settings are right above
-            col.operator_context = 'EXEC_REGION_WIN'
             if bones:
-                col.operator(
-                    "pose.paths_calculate", text="Generate for selected bones", icon='BONE_DATA')
+                col.operator("pose.paths_calculate", text="Calculate...", icon='BONE_DATA')
             else:
-                col.operator("object.paths_calculate", text="Generate", icon='OBJECT_DATA')
-            row = col.row(align=True)
-            row.operator("object.paths_update_visible", text="Update All Paths", icon='WORLD')
-            row.operator("object.paths_clear", text="", icon='X').only_selected = False
+                col.operator("object.paths_calculate", text="Calculate...", icon='OBJECT_DATA')
+
+        row = col.row(align=True)
+        row.operator("object.paths_update_visible", text="Update All Paths", icon='WORLD')
+        if bones:
+            row.operator("pose.paths_clear", text="", icon='X')
+        else:
+            row.operator("object.paths_clear", text="", icon='X')
 
 
 class MotionPathButtonsPanel_display:

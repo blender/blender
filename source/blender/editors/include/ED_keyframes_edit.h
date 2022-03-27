@@ -382,6 +382,7 @@ void delete_fcurve_key(struct FCurve *fcu, int index, bool do_recalc);
 bool delete_fcurve_keys(struct FCurve *fcu);
 void clear_fcurve_keys(struct FCurve *fcu);
 void duplicate_fcurve_keys(struct FCurve *fcu);
+float get_default_rna_value(struct FCurve *fcu, struct PropertyRNA *prop, struct PointerRNA *ptr);
 
 typedef struct FCurveSegment {
   struct FCurveSegment *next, *prev;
@@ -404,6 +405,7 @@ void blend_to_neighbor_fcurve_segment(struct FCurve *fcu,
                                       float factor);
 void breakdown_fcurve_segment(struct FCurve *fcu, struct FCurveSegment *segment, float factor);
 bool decimate_fcurve(struct bAnimListElem *ale, float remove_ratio, float error_sq_max);
+void blend_to_default_fcurve(struct PointerRNA *id_ptr, struct FCurve *fcu, float factor);
 /**
  * Use a weighted moving-means method to reduce intensity of fluctuations.
  */

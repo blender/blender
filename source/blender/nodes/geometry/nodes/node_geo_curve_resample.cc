@@ -242,7 +242,7 @@ static void geometry_set_curve_resample(GeometrySet &geometry_set,
   std::unique_ptr<CurveEval> output_curve = resample_curve(
       geometry_set.get_component_for_read<CurveComponent>(), mode_param);
 
-  geometry_set.replace_curve(curve_eval_to_curves(*output_curve));
+  geometry_set.replace_curves(curve_eval_to_curves(*output_curve));
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

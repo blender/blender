@@ -32,72 +32,22 @@ TreeDisplayOverrideLibrary::TreeDisplayOverrideLibrary(SpaceOutliner &space_outl
 
 ListBase TreeDisplayOverrideLibrary::buildTree(const TreeSourceData &source_data)
 {
-  ListBase tree = {nullptr};
+  ListBase tree = add_library_contents(*source_data.bmain);
 
-  {
-    /* current file first - mainvar provides tselem with unique pointer - not used */
-    TreeElement *ten = add_library_contents(*source_data.bmain, tree, nullptr);
-    TreeStoreElem *tselem;
-
-    if (ten) {
-      tselem = TREESTORE(ten);
-      if (!tselem->used) {
-        tselem->flag &= ~TSE_CLOSED;
-      }
+  for (TreeElement *top_level_te : List<TreeElement>(tree)) {
+    TreeStoreElem *tselem = TREESTORE(top_level_te);
+    if (!tselem->used) {
+      tselem->flag &= ~TSE_CLOSED;
     }
-  }
-
-  for (ID *id : List<ID>(source_data.bmain->libraries)) {
-    Library *lib = reinterpret_cast<Library *>(id);
-    TreeElement *ten = add_library_contents(*source_data.bmain, tree, lib);
-    /* NULL-check matters, due to filtering there may not be a new element. */
-    if (ten) {
-      lib->id.newid = (ID *)ten;
-    }
-  }
-
-  /* make hierarchy */
-  for (TreeElement *ten : List<TreeElement>(tree)) {
-    if (ten == tree.first) {
-      /* First item is main, skip. */
-      continue;
-    }
-
-    TreeStoreElem *tselem = TREESTORE(ten);
-    Library *lib = (Library *)tselem->id;
-    BLI_assert(!lib || (GS(lib->id.name) == ID_LI));
-    if (!lib || !lib->parent) {
-      continue;
-    }
-
-    TreeElement *parent = (TreeElement *)lib->parent->id.newid;
-
-    if (tselem->id->tag & LIB_TAG_INDIRECT) {
-      /* Only remove from 'first level' if lib is not also directly used. */
-      BLI_remlink(&tree, ten);
-      BLI_addtail(&parent->subtree, ten);
-      ten->parent = parent;
-    }
-    else {
-      /* Else, make a new copy of the libtree for our parent. */
-      TreeElement *dupten = add_library_contents(*source_data.bmain, parent->subtree, lib);
-      if (dupten) {
-        dupten->parent = parent;
-      }
-    }
-  }
-  /* restore newid pointers */
-  for (ID *library_id : List<ID>(source_data.bmain->libraries)) {
-    library_id->newid = nullptr;
   }
 
   return tree;
 }
 
-TreeElement *TreeDisplayOverrideLibrary::add_library_contents(Main &mainvar,
-                                                              ListBase &lb,
-                                                              Library *lib)
+ListBase TreeDisplayOverrideLibrary::add_library_contents(Main &mainvar)
 {
+  ListBase tree = {nullptr};
+
   const short filter_id_type = id_filter_get();
 
   ListBase *lbarray[INDEX_ID_MAX];
@@ -110,7 +60,6 @@ TreeElement *TreeDisplayOverrideLibrary::add_library_contents(Main &mainvar,
     tot = set_listbasepointers(&mainvar, lbarray);
   }
 
-  TreeElement *tenlib = nullptr;
   for (int a = 0; a < tot; a++) {
     if (!lbarray[a] || !lbarray[a]->first) {
       continue;
@@ -118,56 +67,51 @@ TreeElement *TreeDisplayOverrideLibrary::add_library_contents(Main &mainvar,
 
     ID *id = nullptr;
 
-    /* check if there's data in current lib */
+    /* check if there's data in current id list */
     for (ID *id_iter : List<ID>(lbarray[a])) {
-      if (id_iter->lib == lib && ID_IS_OVERRIDE_LIBRARY_REAL(id_iter)) {
+      if (ID_IS_OVERRIDE_LIBRARY_REAL(id_iter)) {
         id = id_iter;
         break;
       }
     }
 
-    if (id != nullptr) {
-      if (!tenlib) {
-        /* Create library tree element on demand, depending if there are any data-blocks. */
-        if (lib) {
-          tenlib = outliner_add_element(&space_outliner_, &lb, lib, nullptr, TSE_SOME_ID, 0);
-        }
-        else {
-          tenlib = outliner_add_element(&space_outliner_, &lb, &mainvar, nullptr, TSE_ID_BASE, 0);
-          tenlib->name = IFACE_("Current File");
-        }
-        if (tenlib->flag & TE_HAS_WARNING) {
-          has_warnings = true;
-        }
-      }
+    if (id == nullptr) {
+      continue;
+    }
 
-      /* Create data-block list parent element on demand. */
-      TreeElement *ten;
+    /* Create data-block list parent element on demand. */
+    TreeElement *id_base_te = nullptr;
+    ListBase *lb_to_expand = &tree;
 
-      if (filter_id_type) {
-        ten = tenlib;
-      }
-      else {
-        ten = outliner_add_element(
-            &space_outliner_, &tenlib->subtree, lbarray[a], nullptr, TSE_ID_BASE, 0);
-        ten->directdata = lbarray[a];
-        ten->name = outliner_idcode_to_plural(GS(id->name));
-      }
+    if (!filter_id_type) {
+      id_base_te = outliner_add_element(
+          &space_outliner_, &tree, lbarray[a], nullptr, TSE_ID_BASE, 0);
+      id_base_te->directdata = lbarray[a];
+      id_base_te->name = outliner_idcode_to_plural(GS(id->name));
 
-      for (ID *id : List<ID>(lbarray[a])) {
-        if (override_library_id_filter_poll(lib, id)) {
-          TreeElement *override_tree_element = outliner_add_element(
-              &space_outliner_, &ten->subtree, id, ten, TSE_LIBRARY_OVERRIDE_BASE, 0);
+      lb_to_expand = &id_base_te->subtree;
+    }
 
-          if (BLI_listbase_is_empty(&override_tree_element->subtree)) {
-            outliner_free_tree_element(override_tree_element, &ten->subtree);
-          }
+    for (ID *id : List<ID>(lbarray[a])) {
+      if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+        TreeElement *override_tree_element = outliner_add_element(
+            &space_outliner_, lb_to_expand, id, id_base_te, TSE_LIBRARY_OVERRIDE_BASE, 0);
+
+        if (BLI_listbase_is_empty(&override_tree_element->subtree)) {
+          outliner_free_tree_element(override_tree_element, lb_to_expand);
         }
       }
     }
   }
 
-  return tenlib;
+  /* Remove ID base elements that turn out to be empty. */
+  LISTBASE_FOREACH_MUTABLE (TreeElement *, te, &tree) {
+    if (BLI_listbase_is_empty(&te->subtree)) {
+      outliner_free_tree_element(te, &tree);
+    }
+  }
+
+  return tree;
 }
 
 short TreeDisplayOverrideLibrary::id_filter_get() const
@@ -176,19 +120,6 @@ short TreeDisplayOverrideLibrary::id_filter_get() const
     return space_outliner_.filter_id_type;
   }
   return 0;
-}
-
-bool TreeDisplayOverrideLibrary::override_library_id_filter_poll(const Library *lib, ID *id) const
-{
-  if (id->lib != lib) {
-    return false;
-  }
-
-  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
-    return false;
-  }
-
-  return true;
 }
 
 }  // namespace blender::ed::outliner

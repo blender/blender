@@ -2,8 +2,12 @@
 # Copyright 2011-2022 Blender Foundation
 
 # Standalone or with Blender
-if(NOT WITH_BLENDER AND WITH_CYCLES_STANDALONE)
-  set(CYCLES_INSTALL_PATH ${CMAKE_INSTALL_PREFIX})
+if(NOT WITH_BLENDER)
+  if(WITH_CYCLES_STANDALONE OR NOT WITH_CYCLES_HYDRA_RENDER_DELEGATE)
+    set(CYCLES_INSTALL_PATH ${CMAKE_INSTALL_PREFIX})
+  else()
+    set(CYCLES_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/hdCycles/resources)
+  endif()
 else()
   set(WITH_CYCLES_BLENDER ON)
   # WINDOWS_PYTHON_DEBUG needs to write into the user addons folder since it will
@@ -335,6 +339,11 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_C_COMPILER_ID MATCHES "Clang")
   unset(_has_no_error_unused_macros)
 endif()
 
+if(WITH_CYCLES_HYDRA_RENDER_DELEGATE AND NOT WITH_USD)
+  message(STATUS "USD not found, disabling WITH_CYCLES_HYDRA_RENDER_DELEGATE")
+  set(WITH_CYCLES_HYDRA_RENDER_DELEGATE OFF)
+endif()
+
 if(WITH_CYCLES_CUDA_BINARIES AND (NOT WITH_CYCLES_CUBIN_COMPILER))
   if(MSVC)
     set(MAX_MSVC 1800)
@@ -395,6 +404,10 @@ if(WITH_GTESTS)
   add_subdirectory(test)
 endif()
 
-if(NOT WITH_BLENDER AND WITH_CYCLES_STANDALONE)
+if(WITH_CYCLES_HYDRA_RENDER_DELEGATE)
+  add_subdirectory(hydra)
+endif()
+
+if(NOT WITH_BLENDER)
   delayed_do_install(${CMAKE_BINARY_DIR}/bin)
 endif()

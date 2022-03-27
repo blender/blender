@@ -5,7 +5,6 @@
 from __future__ import annotations
 
 import bpy
-import math
 
 from bpy.app.handlers import persistent
 

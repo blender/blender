@@ -1113,7 +1113,8 @@ static void init_TransDataContainers(TransInfo *t,
           &objects_len,
           {
               .object_mode = object_mode,
-              .no_dup_data = true,
+              /* Pose transform operates on `ob->pose` so don't skip duplicate object-data. */
+              .no_dup_data = (object_mode & OB_MODE_POSE) == 0,
           });
       free_objects = true;
     }

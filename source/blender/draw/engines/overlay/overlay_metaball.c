@@ -92,6 +92,11 @@ void OVERLAY_edit_metaball_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
     select_id += 0x10000;
   }
+
+  /* Needed so object centers and geometry are not detected as meta-elements. */
+  if (is_select) {
+    DRW_select_load_id(-1);
+  }
 }
 
 void OVERLAY_metaball_cache_populate(OVERLAY_Data *vedata, Object *ob)

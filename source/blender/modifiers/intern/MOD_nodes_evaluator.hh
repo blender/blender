@@ -2,13 +2,12 @@
 
 #pragma once
 
+#include "BLI_generic_pointer.hh"
 #include "BLI_map.hh"
 
 #include "NOD_derived_node_tree.hh"
 #include "NOD_geometry_nodes_eval_log.hh"
 #include "NOD_multi_function.hh"
-
-#include "FN_generic_pointer.hh"
 
 #include "DNA_modifier_types.h"
 
@@ -19,8 +18,6 @@ namespace geo_log = blender::nodes::geometry_nodes_eval_log;
 namespace blender::modifiers::geometry_nodes {
 
 using namespace nodes::derived_node_tree_types;
-using fn::GMutablePointer;
-using fn::GPointer;
 
 struct GeometryNodesEvaluationParams {
   blender::LinearAllocator<> allocator;

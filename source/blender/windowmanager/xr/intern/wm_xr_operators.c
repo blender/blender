@@ -867,7 +867,7 @@ static void wm_xr_fly_compute_turn(eXrFlyMode mode,
                                    const float nav_inv[4][4],
                                    float r_delta[4][4])
 {
-  BLI_assert(mode == XR_FLY_TURNLEFT || mode == XR_FLY_TURNRIGHT);
+  BLI_assert(ELEM(mode, XR_FLY_TURNLEFT, XR_FLY_TURNRIGHT));
 
   float z_axis[3], m[3][3], prev[4][4], curr[4][4];
 

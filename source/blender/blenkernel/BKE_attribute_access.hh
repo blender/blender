@@ -4,15 +4,13 @@
 
 #include <mutex>
 
-#include "FN_cpp_type.hh"
-#include "FN_generic_span.hh"
-#include "FN_generic_virtual_array.hh"
-
 #include "BKE_anonymous_attribute.hh"
 #include "BKE_attribute.h"
 
 #include "BLI_color.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_generic_span.hh"
+#include "BLI_generic_virtual_array.hh"
 #include "BLI_math_vec_types.hh"
 
 /**
@@ -133,9 +131,9 @@ struct AttributeInitDefault : public AttributeInit {
  * Note that this can be used to fill the new attribute with the default
  */
 struct AttributeInitVArray : public AttributeInit {
-  blender::fn::GVArray varray;
+  blender::GVArray varray;
 
-  AttributeInitVArray(blender::fn::GVArray varray)
+  AttributeInitVArray(blender::GVArray varray)
       : AttributeInit(Type::VArray), varray(std::move(varray))
   {
   }
@@ -166,12 +164,6 @@ using AttributeForeachCallback = blender::FunctionRef<bool(
 
 namespace blender::bke {
 
-using fn::CPPType;
-using fn::GVArray;
-using fn::GVMutableArray;
-
-const CPPType *custom_data_type_to_cpp_type(const CustomDataType type);
-CustomDataType cpp_type_to_custom_data_type(const CPPType &type);
 CustomDataType attribute_data_type_highest_complexity(Span<CustomDataType> data_types);
 /**
  * Domains with a higher "information density" have a higher priority,
@@ -239,7 +231,7 @@ class OutputAttribute {
   GVMutableArray varray_;
   AttributeDomain domain_ = ATTR_DOMAIN_AUTO;
   SaveFn save_;
-  std::unique_ptr<fn::GVMutableArray_GSpan> optional_span_varray_;
+  std::unique_ptr<GVMutableArray_GSpan> optional_span_varray_;
   bool ignore_old_values_ = false;
   bool save_has_been_called_ = false;
 
@@ -256,13 +248,13 @@ class OutputAttribute {
   operator bool() const;
 
   GVMutableArray &operator*();
-  fn::GVMutableArray *operator->();
+  GVMutableArray *operator->();
   GVMutableArray &varray();
   AttributeDomain domain() const;
   const CPPType &cpp_type() const;
   CustomDataType custom_data_type() const;
 
-  fn::GMutableSpan as_span();
+  GMutableSpan as_span();
   template<typename T> MutableSpan<T> as_span();
 
   void save();
@@ -376,27 +368,27 @@ class CustomDataAttributes {
 
   void clear();
 
-  std::optional<blender::fn::GSpan> get_for_read(const AttributeIDRef &attribute_id) const;
+  std::optional<blender::GSpan> get_for_read(const AttributeIDRef &attribute_id) const;
 
   /**
    * Return a virtual array for a stored attribute, or a single value virtual array with the
    * default value if the attribute doesn't exist. If no default value is provided, the default
    * value for the type will be used.
    */
-  blender::fn::GVArray get_for_read(const AttributeIDRef &attribute_id,
-                                    const CustomDataType data_type,
-                                    const void *default_value) const;
+  blender::GVArray get_for_read(const AttributeIDRef &attribute_id,
+                                const CustomDataType data_type,
+                                const void *default_value) const;
 
   template<typename T>
   blender::VArray<T> get_for_read(const AttributeIDRef &attribute_id, const T &default_value) const
   {
-    const blender::fn::CPPType &cpp_type = blender::fn::CPPType::get<T>();
+    const blender::CPPType &cpp_type = blender::CPPType::get<T>();
     const CustomDataType type = blender::bke::cpp_type_to_custom_data_type(cpp_type);
     GVArray varray = this->get_for_read(attribute_id, type, &default_value);
     return varray.typed<T>();
   }
 
-  std::optional<blender::fn::GMutableSpan> get_for_write(const AttributeIDRef &attribute_id);
+  std::optional<blender::GMutableSpan> get_for_write(const AttributeIDRef &attribute_id);
   bool create(const AttributeIDRef &attribute_id, const CustomDataType data_type);
   bool create_by_move(const AttributeIDRef &attribute_id,
                       const CustomDataType data_type,
@@ -516,7 +508,7 @@ inline GVMutableArray &OutputAttribute::operator*()
   return varray_;
 }
 
-inline fn::GVMutableArray *OutputAttribute::operator->()
+inline GVMutableArray *OutputAttribute::operator->()
 {
   return &varray_;
 }

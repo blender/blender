@@ -580,7 +580,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
     /* We validate clnors data on the fly - cheapest way to do! */
     int clnors_avg[2] = {0, 0};
     const short(*clnor_ref)[2] = NULL;
-    int clnors_nbr = 0;
+    int clnors_count = 0;
     bool clnors_invalid = false;
 
     const float *co_pivot = vcos ? vcos[BM_elem_index_get(v_pivot)] : v_pivot->co;
@@ -649,7 +649,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
           const short(*clnor)[2] = clnors_data ? &clnors_data[lfan_pivot_index] :
                                                  (const void *)BM_ELEM_CD_GET_VOID_P(
                                                      lfan_pivot, cd_loop_clnors_offset);
-          if (clnors_nbr) {
+          if (clnors_count) {
             clnors_invalid |= ((*clnor_ref)[0] != (*clnor)[0] || (*clnor_ref)[1] != (*clnor)[1]);
           }
           else {
@@ -657,7 +657,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
           }
           clnors_avg[0] += (*clnor)[0];
           clnors_avg[1] += (*clnor)[1];
-          clnors_nbr++;
+          clnors_count++;
           /* We store here a pointer to all custom lnors processed. */
           BLI_SMALLSTACK_PUSH(clnors, (short *)*clnor);
         }
@@ -706,8 +706,8 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
           if (clnors_invalid) {
             short *clnor;
 
-            clnors_avg[0] /= clnors_nbr;
-            clnors_avg[1] /= clnors_nbr;
+            clnors_avg[0] /= clnors_count;
+            clnors_avg[1] /= clnors_count;
             /* Fix/update all clnors of this fan with computed average value. */
 
             /* Prints continuously when merge custom normals, so commenting. */
@@ -1517,7 +1517,7 @@ static void bm_mesh_loops_assign_normal_data(BMesh *bm,
         BLI_BITMAP_ENABLE(done_loops, i);
       }
       else {
-        int nbr_nors = 0;
+        int avg_nor_count = 0;
         float avg_nor[3];
         short clnor_data_tmp[2], *clnor_data;
 
@@ -1530,7 +1530,7 @@ static void bm_mesh_loops_assign_normal_data(BMesh *bm,
           short *clnor = r_clnors_data ? &r_clnors_data[lidx] :
                                          BM_ELEM_CD_GET_VOID_P(ml, cd_loop_clnors_offset);
 
-          nbr_nors++;
+          avg_nor_count++;
           add_v3_v3(avg_nor, nor);
           BLI_SMALLSTACK_PUSH(clnors_data, clnor);
 
@@ -1538,7 +1538,7 @@ static void bm_mesh_loops_assign_normal_data(BMesh *bm,
           BLI_BITMAP_ENABLE(done_loops, lidx);
         }
 
-        mul_v3_fl(avg_nor, 1.0f / (float)nbr_nors);
+        mul_v3_fl(avg_nor, 1.0f / (float)avg_nor_count);
         BKE_lnor_space_custom_normal_to_data(
             lnors_spacearr->lspacearr[i], avg_nor, clnor_data_tmp);
 

@@ -441,7 +441,7 @@ static bool gizmo_tweak_start_and_finish(
         gz->parent_gzgroup->type->invoke_prepare(C, gz->parent_gzgroup, gz, event);
       }
       /* Allow for 'button' gizmos, single click to run an action. */
-      WM_gizmo_operator_invoke(C, gz, gzop);
+      WM_gizmo_operator_invoke(C, gz, gzop, event);
     }
     return true;
   }
@@ -607,7 +607,7 @@ void GIZMOGROUP_OT_gizmo_tweak(wmOperatorType *ot)
   ot->invoke = gizmo_tweak_invoke;
   ot->modal = gizmo_tweak_modal;
 
-  /* TODO(campbell): This causes problems tweaking settings for operators,
+  /* TODO(@campbellbarton): This causes problems tweaking settings for operators,
    * need to find a way to support this. */
 #if 0
   ot->flag = OPTYPE_UNDO;
@@ -1137,7 +1137,7 @@ void WM_gizmo_group_refresh(const bContext *C, wmGizmoGroup *gzgroup)
       BLI_assert(region->gizmo_map == gzmap);
       /* Check if the tweak event originated from this region. */
       if ((win->eventstate != NULL) && (win->event_queue_check_drag) &&
-          BLI_rcti_isect_pt_v(&region->winrct, win->eventstate->prev_click_xy)) {
+          BLI_rcti_isect_pt_v(&region->winrct, win->eventstate->prev_press_xy)) {
         /* We need to run refresh again. */
         gzgroup->init_flag &= ~WM_GIZMOGROUP_INIT_REFRESH;
         WM_gizmomap_tag_refresh_drawstep(gzmap, WM_gizmomap_drawstep_from_gizmo_group(gzgroup));

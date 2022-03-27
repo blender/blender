@@ -69,6 +69,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -1421,7 +1422,7 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, const wmEvent *event)
                                     area->winy,
                                     SPACE_EMPTY,
                                     false,
-                                    true,
+                                    false,
                                     false,
                                     WIN_ALIGN_ABSOLUTE);
 

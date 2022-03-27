@@ -269,6 +269,14 @@ void BKE_nurb_knot_calc_v(struct Nurb *nu);
 bool BKE_nurb_check_valid_u(const struct Nurb *nu);
 bool BKE_nurb_check_valid_v(const struct Nurb *nu);
 bool BKE_nurb_check_valid_uv(const struct Nurb *nu);
+bool BKE_nurb_valid_message(int pnts,
+                            short order,
+                            short flag,
+                            short type,
+                            bool is_surf,
+                            int dir,
+                            char *message_dst,
+                            size_t maxncpy);
 
 bool BKE_nurb_order_clamp_u(struct Nurb *nu);
 bool BKE_nurb_order_clamp_v(struct Nurb *nu);

@@ -14,10 +14,10 @@
 
 #include "attribute_access_intern.hh"
 
-using blender::fn::GMutableSpan;
-using blender::fn::GSpan;
-using blender::fn::GVArray;
-using blender::fn::GVArray_GSpan;
+using blender::GMutableSpan;
+using blender::GSpan;
+using blender::GVArray;
+using blender::GVArray_GSpan;
 
 /* -------------------------------------------------------------------- */
 /** \name Geometry Component Implementation

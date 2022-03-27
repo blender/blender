@@ -353,7 +353,7 @@ void GeometrySet::replace_mesh(Mesh *mesh, GeometryOwnershipType ownership)
   component.replace(mesh, ownership);
 }
 
-void GeometrySet::replace_curve(Curves *curves, GeometryOwnershipType ownership)
+void GeometrySet::replace_curves(Curves *curves, GeometryOwnershipType ownership)
 {
   if (curves == nullptr) {
     this->remove<CurveComponent>();

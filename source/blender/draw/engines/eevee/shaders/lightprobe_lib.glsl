@@ -289,7 +289,7 @@ vec3 probe_evaluate_grid(GridData gd, vec3 P, vec3 N, vec3 localpos)
     weight += prbIrradianceSmooth;
 
     /* Trilinear weights */
-    vec3 trilinear = mix(1.0 - trilinear_weight, trilinear_weight, offset);
+    vec3 trilinear = mix(1.0 - trilinear_weight, trilinear_weight, vec3(offset));
     weight *= trilinear.x * trilinear.y * trilinear.z;
 
     /* Avoid zero weight */

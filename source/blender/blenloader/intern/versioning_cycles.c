@@ -330,7 +330,7 @@ static void image_node_colorspace(bNode *node)
     return;
   }
 
-  const int SHD_COLORSPACE_NONE = 0;
+  enum { SHD_COLORSPACE_NONE = 0 };
   Image *image = (Image *)node->id;
   if (color_space == SHD_COLORSPACE_NONE) {
     STRNCPY(image->colorspace_settings.name,
@@ -1362,10 +1362,12 @@ void blo_do_versions_cycles(FileData *UNUSED(fd), Library *UNUSED(lib), Main *bm
 
 void do_versions_after_linking_cycles(Main *bmain)
 {
-  const int DENOISER_AUTO = 0;
-  const int DENOISER_NLM = 1;
-  const int DENOISER_OPTIX = 2;
-  const int DENOISER_OPENIMAGEDENOISE = 4;
+  enum {
+    DENOISER_AUTO = 0,
+    DENOISER_NLM = 1,
+    DENOISER_OPTIX = 2,
+    DENOISER_OPENIMAGEDENOISE = 4,
+  };
 
   if (!MAIN_VERSION_ATLEAST(bmain, 280, 66)) {
     /* Shader node tree changes. After lib linking so we have all the typeinfo

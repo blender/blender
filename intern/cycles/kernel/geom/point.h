@@ -83,16 +83,16 @@ ccl_device float4 point_attribute_float4(KernelGlobals kg,
 {
 #  ifdef __RAY_DIFFERENTIALS__
   if (dx)
-    *dx = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    *dx = zero_float4();
   if (dy)
-    *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    *dy = zero_float4();
 #  endif
 
   if (desc.element == ATTR_ELEMENT_VERTEX) {
     return kernel_tex_fetch(__attributes_float4, desc.offset + sd->prim);
   }
   else {
-    return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    return zero_float4();
   }
 }
 

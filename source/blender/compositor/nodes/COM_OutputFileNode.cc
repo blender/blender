@@ -35,11 +35,21 @@ void OutputFileNode::map_input_sockets(NodeConverter &converter,
   }
 }
 
+void OutputFileNode::add_preview_to_first_linked_input(NodeConverter &converter) const
+{
+  NodeInput *first_socket = this->get_input_socket(0);
+  if (first_socket->is_linked()) {
+    converter.add_node_input_preview(first_socket);
+  }
+}
+
 void OutputFileNode::convert_to_operations(NodeConverter &converter,
                                            const CompositorContext &context) const
 {
   NodeImageMultiFile *storage = (NodeImageMultiFile *)this->get_bnode()->storage;
   const bool is_multiview = (context.get_render_data()->scemode & R_MULTIVIEW) != 0;
+
+  add_preview_to_first_linked_input(converter);
 
   if (!context.is_rendering()) {
     /* only output files when rendering a sequence -
@@ -81,7 +91,6 @@ void OutputFileNode::convert_to_operations(NodeConverter &converter,
     map_input_sockets(converter, *output_operation);
   }
   else { /* single layer format */
-    bool preview_added = false;
     for (NodeInput *input : inputs_) {
       if (input->is_linked()) {
         NodeImageMultiFileSocket *sockdata =
@@ -97,47 +106,39 @@ void OutputFileNode::convert_to_operations(NodeConverter &converter,
 
         if (is_multiview && format->views_format == R_IMF_VIEWS_MULTIVIEW) {
           output_operation = new OutputOpenExrSingleLayerMultiViewOperation(
+              context.get_scene(),
               context.get_render_data(),
               context.get_bnodetree(),
               input->get_data_type(),
               format,
               path,
-              context.get_view_settings(),
-              context.get_display_settings(),
               context.get_view_name(),
               sockdata->save_as_render);
         }
         else if ((!is_multiview) || (format->views_format == R_IMF_VIEWS_INDIVIDUAL)) {
-          output_operation = new OutputSingleLayerOperation(context.get_render_data(),
+          output_operation = new OutputSingleLayerOperation(context.get_scene(),
+                                                            context.get_render_data(),
                                                             context.get_bnodetree(),
                                                             input->get_data_type(),
                                                             format,
                                                             path,
-                                                            context.get_view_settings(),
-                                                            context.get_display_settings(),
                                                             context.get_view_name(),
                                                             sockdata->save_as_render);
         }
         else { /* R_IMF_VIEWS_STEREO_3D */
-          output_operation = new OutputStereoOperation(context.get_render_data(),
+          output_operation = new OutputStereoOperation(context.get_scene(),
+                                                       context.get_render_data(),
                                                        context.get_bnodetree(),
                                                        input->get_data_type(),
                                                        format,
                                                        path,
                                                        sockdata->layer,
-                                                       context.get_view_settings(),
-                                                       context.get_display_settings(),
                                                        context.get_view_name(),
                                                        sockdata->save_as_render);
         }
 
         converter.add_operation(output_operation);
         converter.map_input_socket(input, output_operation->get_input_socket(0));
-
-        if (!preview_added) {
-          converter.add_node_input_preview(input);
-          preview_added = true;
-        }
       }
     }
   }

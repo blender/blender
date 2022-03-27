@@ -154,9 +154,6 @@ inline MFParamsBuilder::MFParamsBuilder(const MultiFunction &fn, const IndexMask
 }
 
 namespace multi_function_types {
-using fn::CPPType;
-using fn::GMutableSpan;
-using fn::GSpan;
 using fn::MFContext;
 using fn::MFContextBuilder;
 using fn::MFDataType;

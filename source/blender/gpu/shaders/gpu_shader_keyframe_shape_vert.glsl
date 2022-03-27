@@ -43,7 +43,7 @@ bool test(int bit)
 
 vec2 line_thresholds(float width)
 {
-  return vec2(max(0, width - line_falloff), width);
+  return vec2(max(0.0, width - line_falloff), width);
 }
 
 void main()

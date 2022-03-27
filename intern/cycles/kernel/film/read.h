@@ -451,7 +451,7 @@ ccl_device_inline float4 film_calculate_shadow_catcher_matte_with_shadow(
 
   float scale, scale_exposure;
   if (!film_get_scale_and_scale_exposure(kfilm_convert, buffer, &scale, &scale_exposure)) {
-    return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    return zero_float4();
   }
 
   ccl_global const float *in_matte = buffer + kfilm_convert->pass_shadow_catcher_matte;

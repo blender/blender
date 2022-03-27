@@ -121,9 +121,6 @@ static void gather_socket_link_operations(bNodeTree &node_tree,
                                           Vector<SocketLinkOperation> &search_link_ops)
 {
   NODE_TYPES_BEGIN (node_type) {
-    if (StringRef(node_type->idname).find("Legacy") != StringRef::not_found) {
-      continue;
-    }
     const char *disabled_hint;
     if (!(node_type->poll && node_type->poll(node_type, &node_tree, &disabled_hint))) {
       continue;
@@ -235,7 +232,7 @@ static void link_drag_search_exec_fn(bContext *C, void *arg1, void *arg2)
   PointerRNA ptr;
   WM_operator_properties_create_ptr(&ptr, ot);
   RNA_boolean_set(&ptr, "view2d_edge_pan", true);
-  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr);
+  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, nullptr);
   WM_operator_properties_free(&ptr);
 }
 

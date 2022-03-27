@@ -165,6 +165,7 @@ class ImageTileData : AbstractTileData {
    * Can be nullptr when the file doesn't exist or when the tile hasn't been initialized.
    */
   ImBuf *tile_buffer = nullptr;
+  void *tile_buffer_lock = nullptr;
 
   ImageTileData(Image *image, ImageUser *image_user) : image(image)
   {
@@ -177,14 +178,15 @@ class ImageTileData : AbstractTileData {
   {
     image_user.tile = new_tile_number;
     tile = BKE_image_get_tile(image, new_tile_number);
-    tile_buffer = BKE_image_acquire_ibuf(image, &image_user, NULL);
+    tile_buffer = BKE_image_acquire_ibuf(image, &image_user, &tile_buffer_lock);
   }
 
   void free_data() override
   {
-    BKE_image_release_ibuf(image, tile_buffer, nullptr);
+    BKE_image_release_ibuf(image, tile_buffer, tile_buffer_lock);
     tile = nullptr;
     tile_buffer = nullptr;
+    tile_buffer_lock = nullptr;
   }
 };
 
@@ -212,7 +214,7 @@ template<typename TileData = NoTileData> struct PartialUpdateChecker {
     ePartialUpdateCollectResult result_code;
 
    private:
-    TileNumber last_tile_number;
+    TileNumber last_tile_number = 0;
 
    public:
     CollectResult(PartialUpdateChecker<TileData> *checker, ePartialUpdateCollectResult result_code)

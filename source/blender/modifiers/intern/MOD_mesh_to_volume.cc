@@ -37,6 +37,7 @@
 #include "BLI_span.hh"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #ifdef WITH_OPENVDB
 #  include <openvdb/openvdb.h>

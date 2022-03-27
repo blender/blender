@@ -136,8 +136,7 @@ class TreeDisplayOverrideLibrary final : public AbstractTreeDisplay {
   ListBase buildTree(const TreeSourceData &source_data) override;
 
  private:
-  TreeElement *add_library_contents(Main &, ListBase &, Library *);
-  bool override_library_id_filter_poll(const Library *lib, ID *id) const;
+  ListBase add_library_contents(Main &);
   short id_filter_get() const;
 };
 

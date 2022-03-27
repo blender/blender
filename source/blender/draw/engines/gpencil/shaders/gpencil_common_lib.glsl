@@ -149,6 +149,8 @@ void blend_mode_output(
   }
 }
 
+#ifndef USE_GPU_SHADER_CREATE_INFO
+
 IN_OUT ShaderStageInterface
 {
   vec4 finalColorMul;
@@ -164,6 +166,8 @@ IN_OUT ShaderStageInterface
   flat int matFlag;
   flat float depth;
 };
+
+#endif
 
 #ifdef GPU_FRAGMENT_SHADER
 
@@ -442,7 +446,7 @@ void stroke_vertex()
   if (is_dot) {
 #  ifdef GP_MATERIAL_BUFFER_LEN
     int alignement = GP_FLAG(m) & GP_STROKE_ALIGNMENT;
-    /* For one point strokes use object aligment. */
+    /* For one point strokes use object alignment. */
     if (ma.x == -1 && ma2.x == -1 && alignement == GP_STROKE_ALIGNMENT_STROKE) {
       alignement = GP_STROKE_ALIGNMENT_OBJECT;
     }

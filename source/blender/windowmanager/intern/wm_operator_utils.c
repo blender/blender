@@ -32,9 +32,15 @@
 
 int WM_operator_flag_only_pass_through_on_press(int retval, const struct wmEvent *event)
 {
-  if ((event->val != KM_PRESS) &&
-      ((retval & OPERATOR_PASS_THROUGH) && (retval & OPERATOR_FINISHED))) {
-    retval &= ~OPERATOR_PASS_THROUGH;
+  if (event->val != KM_PRESS) {
+    if (retval & OPERATOR_PASS_THROUGH) {
+      /* Operators that use this function should either finish or cancel,
+       * otherwise non-press events will be passed through to other key-map items. */
+      BLI_assert((retval & ~OPERATOR_PASS_THROUGH) != 0);
+      if (retval & (OPERATOR_FINISHED | OPERATOR_CANCELLED)) {
+        retval &= ~OPERATOR_PASS_THROUGH;
+      }
+    }
   }
   return retval;
 }

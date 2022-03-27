@@ -237,8 +237,7 @@ static const EnumPropertyItem *rna_DynamicPaint_surface_type_itemf(bContext *UNU
   RNA_enum_item_add(&item, &totitem, &tmp);
 
   /* Displace */
-  if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX ||
-      surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
+  if (ELEM(surface->format, MOD_DPAINT_SURFACE_F_VERTEX, MOD_DPAINT_SURFACE_F_IMAGESEQ)) {
     tmp.value = MOD_DPAINT_SURFACE_T_DISPLACE;
     tmp.identifier = "DISPLACE";
     tmp.name = "Displace";

@@ -683,8 +683,7 @@ static int ptcache_dynamicpaint_write(PTCacheFile *pf, void *dp_v)
     if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
       in_len = sizeof(PaintPoint) * total_points;
     }
-    else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
-             surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
+    else if (ELEM(surface->type, MOD_DPAINT_SURFACE_T_DISPLACE, MOD_DPAINT_SURFACE_T_WEIGHT)) {
       in_len = sizeof(float) * total_points;
     }
     else if (surface->type == MOD_DPAINT_SURFACE_T_WAVE) {

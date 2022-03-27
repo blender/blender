@@ -405,7 +405,7 @@ void NLA_OT_select_box(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
 
   PropertyRNA *prop = RNA_def_boolean(
-      ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a tweak event");
+      ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a click-drag event");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   WM_operator_properties_gesture_box(ot);
@@ -439,7 +439,7 @@ static void nlaedit_select_leftright(bContext *C,
 
   /* if currently in tweak-mode, exit tweak-mode first */
   if (scene->flag & SCE_NLA_EDIT_ON) {
-    WM_operator_name_call(C, "NLA_OT_tweakmode_exit", WM_OP_EXEC_DEFAULT, NULL);
+    WM_operator_name_call(C, "NLA_OT_tweakmode_exit", WM_OP_EXEC_DEFAULT, NULL, NULL);
   }
 
   /* if select mode is replace, deselect all keyframes (and channels) first */
@@ -600,7 +600,7 @@ static int mouse_nla_strips(bContext *C,
    * now that we've found our target...
    */
   if (scene->flag & SCE_NLA_EDIT_ON) {
-    WM_operator_name_call(C, "NLA_OT_tweakmode_exit", WM_OP_EXEC_DEFAULT, NULL);
+    WM_operator_name_call(C, "NLA_OT_tweakmode_exit", WM_OP_EXEC_DEFAULT, NULL, NULL);
   }
 
   if (select_mode != SELECT_REPLACE) {

@@ -2446,8 +2446,10 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "cfl_condition", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "cfl_condition");
   RNA_def_property_range(prop, 0.0, 10.0);
-  RNA_def_property_ui_text(
-      prop, "CFL", "Maximal velocity per cell (higher value results in greater timesteps)");
+  RNA_def_property_ui_text(prop,
+                           "CFL",
+                           "Maximal velocity per cell (greater CFL numbers will minimize the "
+                           "number of simulation steps and the computation time.)");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_datacache_reset");
 
   prop = RNA_def_property(srna, "use_adaptive_timesteps", PROP_BOOLEAN, PROP_NONE);

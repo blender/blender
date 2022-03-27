@@ -23,6 +23,7 @@
 #include "BKE_global.h" /* XXX, G_MAIN only */
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 #include "RNA_types.h"
 
 #include "GPU_state.h"

@@ -37,6 +37,7 @@
 #include "BLO_read_write.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "DEG_depsgraph_query.h"
 
@@ -928,7 +929,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
   ctime = BKE_scene_ctime_get(scene);
 
-  /* hash table for vertice <-> particle relations */
+  /* hash table for vertex <-> particle relations */
   vertpahash = BLI_edgehash_new(__func__);
 
   for (i = 0; i < totface; i++) {
@@ -966,7 +967,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
     }
   }
 
-  /* make new vertice indexes & count total vertices after duplication */
+  /* make new vertex indexes & count total vertices after duplication */
   ehi = BLI_edgehashIterator_new(vertpahash);
   for (; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
     BLI_edgehashIterator_setValue(ehi, POINTER_FROM_INT(totdup));

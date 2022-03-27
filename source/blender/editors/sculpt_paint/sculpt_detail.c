@@ -408,7 +408,7 @@ static void sculpt_detail_size_set_radial_control(bContext *C)
     RNA_string_set(&props_ptr, "data_path_primary", "tool_settings.sculpt.detail_size");
   }
 
-  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
+  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, NULL);
 
   WM_operator_properties_free(&props_ptr);
 }

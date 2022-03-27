@@ -88,6 +88,16 @@ static void standard_defines(Vector<const char *> &sources)
   else if (GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_UNIX, GPU_DRIVER_ANY)) {
     sources.append("#define OS_UNIX\n");
   }
+  /* API Definition */
+  eGPUBackendType backend = GPU_backend_get_type();
+  switch (backend) {
+    case GPU_BACKEND_OPENGL:
+      sources.append("#define GPU_OPENGL\n");
+      break;
+    default:
+      BLI_assert(false && "Invalid GPU Backend Type");
+      break;
+  }
 
   if (GPU_crappy_amd_driver()) {
     sources.append("#define GPU_DEPRECATED_AMD_DRIVER\n");

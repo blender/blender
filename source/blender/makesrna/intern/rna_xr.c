@@ -33,7 +33,7 @@ static wmXrData *rna_XrSession_wm_xr_data_get(PointerRNA *ptr)
   /* Callers could also get XrSessionState pointer through ptr->data, but prefer if we just
    * consistently pass wmXrData pointers to the WM_xr_xxx() API. */
 
-  BLI_assert((ptr->type == &RNA_XrSessionSettings) || (ptr->type == &RNA_XrSessionState));
+  BLI_assert(ELEM(ptr->type, &RNA_XrSessionSettings, &RNA_XrSessionState));
 
   wmWindowManager *wm = (wmWindowManager *)ptr->owner_id;
   BLI_assert(wm && (GS(wm->id.name) == ID_WM));
@@ -739,7 +739,7 @@ static bool rna_XrSessionState_action_create(bContext *C,
     return false;
   }
 
-  const bool is_float_action = (ami->type == XR_FLOAT_INPUT || ami->type == XR_VECTOR2F_INPUT);
+  const bool is_float_action = ELEM(ami->type, XR_FLOAT_INPUT, XR_VECTOR2F_INPUT);
   const bool is_button_action = (is_float_action || ami->type == XR_BOOLEAN_INPUT);
   wmOperatorType *ot = NULL;
   IDProperty *op_properties = NULL;
@@ -791,7 +791,7 @@ static bool rna_XrSessionState_action_binding_create(bContext *C,
     return false;
   }
 
-  const bool is_float_action = (ami->type == XR_FLOAT_INPUT || ami->type == XR_VECTOR2F_INPUT);
+  const bool is_float_action = ELEM(ami->type, XR_FLOAT_INPUT, XR_VECTOR2F_INPUT);
   const bool is_button_action = (is_float_action || ami->type == XR_BOOLEAN_INPUT);
   const bool is_pose_action = (ami->type == XR_POSE_INPUT);
   float float_thresholds[2];

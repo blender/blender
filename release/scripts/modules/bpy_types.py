@@ -580,15 +580,6 @@ class MeshPolygon(StructRNA):
 class Text(bpy_types.ID):
     __slots__ = ()
 
-    def as_string(self):
-        """Return the text as a string."""
-        return "\n".join(line.body for line in self.lines)
-
-    def from_string(self, string):
-        """Replace text with this string."""
-        self.clear()
-        self.write(string)
-
     def as_module(self):
         import bpy
         from os.path import splitext, join

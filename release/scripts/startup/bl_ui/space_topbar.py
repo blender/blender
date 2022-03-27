@@ -796,7 +796,6 @@ class TOPBAR_PT_name(Panel):
             return row
 
         mode = context.mode
-        scene = context.scene
         space = context.space_data
         space_type = None if (space is None) else space.type
         found = False

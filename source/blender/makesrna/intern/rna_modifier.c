@@ -1074,7 +1074,7 @@ static void rna_MultiresModifier_filepath_get(PointerRNA *ptr, char *value)
   Object *ob = (Object *)ptr->owner_id;
   CustomDataExternal *external = ((Mesh *)ob->data)->ldata.external;
 
-  BLI_strncpy(value, (external) ? external->filename : "", sizeof(external->filename));
+  BLI_strncpy(value, (external) ? external->filepath : "", sizeof(external->filepath));
 }
 
 static void rna_MultiresModifier_filepath_set(PointerRNA *ptr, const char *value)
@@ -1082,8 +1082,8 @@ static void rna_MultiresModifier_filepath_set(PointerRNA *ptr, const char *value
   Object *ob = (Object *)ptr->owner_id;
   CustomDataExternal *external = ((Mesh *)ob->data)->ldata.external;
 
-  if (external && !STREQ(external->filename, value)) {
-    BLI_strncpy(external->filename, value, sizeof(external->filename));
+  if (external && !STREQ(external->filepath, value)) {
+    BLI_strncpy(external->filepath, value, sizeof(external->filepath));
     multires_force_external_reload(ob);
   }
 }
@@ -1093,7 +1093,7 @@ static int rna_MultiresModifier_filepath_length(PointerRNA *ptr)
   Object *ob = (Object *)ptr->owner_id;
   CustomDataExternal *external = ((Mesh *)ob->data)->ldata.external;
 
-  return strlen((external) ? external->filename : "");
+  return strlen((external) ? external->filepath : "");
 }
 
 static int rna_ShrinkwrapModifier_face_cull_get(PointerRNA *ptr)
@@ -4081,7 +4081,7 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "segments", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "res");
-  RNA_def_property_range(prop, 1, 100);
+  RNA_def_property_range(prop, 1, 1000);
   RNA_def_property_ui_text(prop, "Segments", "Number of segments for round edges/verts");
   RNA_def_property_update(prop, 0, "rna_BevelModifier_update_segments");
 

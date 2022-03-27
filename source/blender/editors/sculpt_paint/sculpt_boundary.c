@@ -532,9 +532,8 @@ static void sculpt_boundary_bend_data_init(SculptSession *ss, SculptBoundary *bo
 {
   const int totvert = SCULPT_vertex_count_get(ss);
   boundary->bend.pivot_rotation_axis = MEM_calloc_arrayN(
-      totvert, 3 * sizeof(float), "pivot rotation axis");
-  boundary->bend.pivot_positions = MEM_calloc_arrayN(
-      totvert, 3 * sizeof(float), "pivot positions");
+      totvert, sizeof(float[3]), "pivot rotation axis");
+  boundary->bend.pivot_positions = MEM_calloc_arrayN(totvert, sizeof(float[3]), "pivot positions");
 
   for (int i = 0; i < totvert; i++) {
     if (boundary->edit_info[i].num_propagation_steps != boundary->max_propagation_steps) {
@@ -567,7 +566,7 @@ static void sculpt_boundary_bend_data_init(SculptSession *ss, SculptBoundary *bo
 static void sculpt_boundary_slide_data_init(SculptSession *ss, SculptBoundary *boundary)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
-  boundary->slide.directions = MEM_calloc_arrayN(totvert, 3 * sizeof(float), "slide directions");
+  boundary->slide.directions = MEM_calloc_arrayN(totvert, sizeof(float[3]), "slide directions");
 
   for (int i = 0; i < totvert; i++) {
     if (boundary->edit_info[i].num_propagation_steps != boundary->max_propagation_steps) {
@@ -592,7 +591,7 @@ static void sculpt_boundary_twist_data_init(SculptSession *ss, SculptBoundary *b
 {
   zero_v3(boundary->twist.pivot_position);
   float(*poly_verts)[3] = MEM_malloc_arrayN(
-      boundary->num_vertices, sizeof(float) * 3, "poly verts");
+      boundary->num_vertices, sizeof(float[3]), "poly verts");
   for (int i = 0; i < boundary->num_vertices; i++) {
     add_v3_v3(boundary->twist.pivot_position, SCULPT_vertex_co_get(ss, boundary->vertices[i]));
     copy_v3_v3(poly_verts[i], SCULPT_vertex_co_get(ss, boundary->vertices[i]));
