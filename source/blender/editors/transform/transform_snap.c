@@ -598,21 +598,19 @@ static short snap_mode_from_spacetype(TransInfo *t)
     return SEQ_tool_settings_snap_mode_get(t->scene);
   }
 
-  if ((t->spacetype == SPACE_VIEW3D) && !(t->options & CTX_CAMERA)) {
-    /* All obedit types will match. */
-    const int obedit_type = t->obedit_type;
-    if ((t->options & (CTX_GPENCIL_STROKES | CTX_CURSOR | CTX_OBMODE_XFORM_OBDATA)) ||
-        ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVES_LEGACY, OB_LATTICE, OB_MBALL, -1)) {
-      short snap_mode = ts->snap_mode;
-      if ((snap_mode & SCE_SNAP_MODE_INCREMENT) && (ts->snap_flag & SCE_SNAP_ABS_GRID) &&
-          (t->mode == TFM_TRANSLATION)) {
-        /* Special case in which snap to increments is transformed to snap to grid. */
-        snap_mode &= ~SCE_SNAP_MODE_INCREMENT;
-        snap_mode |= SCE_SNAP_MODE_GRID;
-      }
-      return snap_mode;
+  if (t->spacetype == SPACE_VIEW3D) {
+    if (t->options & (CTX_CAMERA | CTX_EDGE_DATA | CTX_PAINT_CURVE)) {
+      return SCE_SNAP_MODE_INCREMENT;
     }
-    return SCE_SNAP_MODE_INCREMENT;
+
+    short snap_mode = ts->snap_mode;
+    if ((snap_mode & SCE_SNAP_MODE_INCREMENT) && (ts->snap_flag & SCE_SNAP_ABS_GRID) &&
+        (t->mode == TFM_TRANSLATION)) {
+      /* Special case in which snap to increments is transformed to snap to grid. */
+      snap_mode &= ~SCE_SNAP_MODE_INCREMENT;
+      snap_mode |= SCE_SNAP_MODE_GRID;
+    }
+    return snap_mode;
   }
 
   if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA)) {
