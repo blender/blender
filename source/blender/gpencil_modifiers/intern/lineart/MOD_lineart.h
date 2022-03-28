@@ -132,7 +132,7 @@ typedef struct LineartEdge {
   char min_occ;
 
   /** Also for line type determination on chaining. */
-  unsigned char flags;
+  uint16_t flags;
   unsigned char intersection_mask;
 
   /**
@@ -171,7 +171,7 @@ typedef struct LineartEdgeChainItem {
   /** For restoring position to 3d space. */
   float gpos[3];
   float normal[3];
-  unsigned char line_type;
+  uint16_t line_type;
   char occlusion;
   unsigned char material_mask_bits;
   unsigned char intersection_mask;
@@ -188,6 +188,12 @@ typedef struct LineartChainRegisterEntry {
    * Because we revert list in chaining so we need the flag. */
   char is_left;
 } LineartChainRegisterEntry;
+
+typedef struct LineartAdjacentEdge {
+  unsigned int v1;
+  unsigned int v2;
+  unsigned int e;
+} LineartAdjacentEdge;
 
 enum eLineArtTileRecursiveLimit {
   /* If tile gets this small, it's already much smaller than a pixel. No need to continue
@@ -396,7 +402,7 @@ typedef struct LineartObjectInfo {
 
 typedef struct LineartObjectLoadTaskInfo {
   struct LineartRenderBuffer *rb;
-  struct Depsgraph *dg;
+  int thread_id;
   /* LinkNode styled list */
   LineartObjectInfo *pending;
   /* Used to spread the load across several threads. This can not overflow. */
