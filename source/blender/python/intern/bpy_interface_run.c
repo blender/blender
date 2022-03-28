@@ -37,12 +37,14 @@
 
 static void python_script_error_jump_text(Text *text, const char *filepath)
 {
-  int lineno;
-  int offset;
-  python_script_error_jump(filepath, &lineno, &offset);
+  int lineno, lineno_end;
+  int offset, offset_end;
+  python_script_error_jump(filepath, &lineno, &offset, &lineno_end, &offset_end);
   if (lineno != -1) {
-    /* select the line with the error */
-    txt_move_to(text, lineno - 1, INT_MAX, false);
+    /* Start at the end so cursor motion that looses the selection,
+     * leaves the cursor from the most useful place.
+     * Also, the end can't always be set, so don't give it priority. */
+    txt_move_to(text, lineno_end - 1, offset_end, false);
     txt_move_to(text, lineno - 1, offset, true);
   }
 }

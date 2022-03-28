@@ -24,7 +24,7 @@ static const char *traceback_filepath(PyTracebackObject *tb, PyObject **coerce)
   return PyBytes_AS_STRING(*coerce);
 }
 
-/* copied from pythonrun.c, 3.4.0 */
+/* copied from pythonrun.c, 3.10.0 */
 _Py_static_string(PyId_string, "<string>");
 
 static int parse_syntax_error(PyObject *err,
@@ -32,14 +32,18 @@ static int parse_syntax_error(PyObject *err,
                               PyObject **filename,
                               int *lineno,
                               int *offset,
+                              int *end_lineno,
+                              int *end_offset,
                               PyObject **text)
 {
-  long hold;
+  Py_ssize_t hold;
   PyObject *v;
   _Py_IDENTIFIER(msg);
   _Py_IDENTIFIER(filename);
   _Py_IDENTIFIER(lineno);
   _Py_IDENTIFIER(offset);
+  _Py_IDENTIFIER(end_lineno);
+  _Py_IDENTIFIER(end_offset);
   _Py_IDENTIFIER(text);
 
   *message = NULL;
@@ -71,7 +75,7 @@ static int parse_syntax_error(PyObject *err,
   if (!v) {
     goto finally;
   }
-  hold = PyLong_AsLong(v);
+  hold = PyLong_AsSsize_t(v);
   Py_DECREF(v);
   if (hold < 0 && PyErr_Occurred()) {
     goto finally;
@@ -87,12 +91,55 @@ static int parse_syntax_error(PyObject *err,
     Py_DECREF(v);
   }
   else {
-    hold = PyLong_AsLong(v);
+    hold = PyLong_AsSsize_t(v);
     Py_DECREF(v);
     if (hold < 0 && PyErr_Occurred()) {
       goto finally;
     }
     *offset = (int)hold;
+  }
+
+  if (Py_TYPE(err) == (PyTypeObject *)PyExc_SyntaxError) {
+    v = _PyObject_GetAttrId(err, &PyId_end_lineno);
+    if (!v) {
+      PyErr_Clear();
+      *end_lineno = *lineno;
+    }
+    else if (v == Py_None) {
+      *end_lineno = *lineno;
+      Py_DECREF(v);
+    }
+    else {
+      hold = PyLong_AsSsize_t(v);
+      Py_DECREF(v);
+      if (hold < 0 && PyErr_Occurred()) {
+        goto finally;
+      }
+      *end_lineno = hold;
+    }
+
+    v = _PyObject_GetAttrId(err, &PyId_end_offset);
+    if (!v) {
+      PyErr_Clear();
+      *end_offset = -1;
+    }
+    else if (v == Py_None) {
+      *end_offset = -1;
+      Py_DECREF(v);
+    }
+    else {
+      hold = PyLong_AsSsize_t(v);
+      Py_DECREF(v);
+      if (hold < 0 && PyErr_Occurred()) {
+        goto finally;
+      }
+      *end_offset = hold;
+    }
+  }
+  else {
+    /* `SyntaxError` subclasses. */
+    *end_lineno = *lineno;
+    *end_offset = -1;
   }
 
   v = _PyObject_GetAttrId(err, &PyId_text);
@@ -115,13 +162,17 @@ finally:
 }
 /* end copied function! */
 
-void python_script_error_jump(const char *filepath, int *r_lineno, int *r_offset)
+void python_script_error_jump(
+    const char *filepath, int *r_lineno, int *r_offset, int *r_lineno_end, int *r_offset_end)
 {
   PyObject *exception, *value;
   PyTracebackObject *tb;
 
   *r_lineno = -1;
   *r_offset = 0;
+
+  *r_lineno_end = -1;
+  *r_offset_end = 0;
 
   PyErr_Fetch(&exception, &value, (PyObject **)&tb);
   if (exception == NULL) {
@@ -137,7 +188,14 @@ void python_script_error_jump(const char *filepath, int *r_lineno, int *r_offset
       PyObject *message;
       PyObject *filepath_exc_py, *text_py;
 
-      if (parse_syntax_error(value, &message, &filepath_exc_py, r_lineno, r_offset, &text_py)) {
+      if (parse_syntax_error(value,
+                             &message,
+                             &filepath_exc_py,
+                             r_lineno,
+                             r_offset,
+                             r_lineno_end,
+                             r_offset_end,
+                             &text_py)) {
         const char *filepath_exc = PyUnicode_AsUTF8(filepath_exc_py);
         /* python adds a '/', prefix, so check for both */
         if ((BLI_path_cmp(filepath_exc, filepath) == 0) ||
@@ -170,7 +228,7 @@ void python_script_error_jump(const char *filepath, int *r_lineno, int *r_offset
       Py_DECREF(coerce);
 
       if (match) {
-        *r_lineno = tb->tb_lineno;
+        *r_lineno = *r_lineno_end = tb->tb_lineno;
         /* used to break here, but better find the inner most line */
       }
     }
