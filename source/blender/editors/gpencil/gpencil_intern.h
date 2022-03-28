@@ -13,6 +13,10 @@
 
 #define DEPTH_INVALID 1.0f
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* internal exports only */
 struct Material;
 struct bGPDspoint;
@@ -826,3 +830,7 @@ struct GP_EditableStrokes_Iter {
 extern const EnumPropertyItem rna_gpencil_reproject_type_items[];
 
 /* ****************************************************** */
+
+#ifdef __cplusplus
+}
+#endif
