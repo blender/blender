@@ -115,13 +115,13 @@ finally:
 }
 /* end copied function! */
 
-void python_script_error_jump(const char *filepath, int *lineno, int *offset)
+void python_script_error_jump(const char *filepath, int *r_lineno, int *r_offset)
 {
   PyObject *exception, *value;
   PyTracebackObject *tb;
 
-  *lineno = -1;
-  *offset = 0;
+  *r_lineno = -1;
+  *r_offset = 0;
 
   PyErr_Fetch(&exception, &value, (PyObject **)&tb);
   if (exception == NULL) {
@@ -129,27 +129,27 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
   }
 
   if (PyErr_GivenExceptionMatches(exception, PyExc_SyntaxError)) {
-    /* no trace-back available when `SyntaxError`.
-     * python has no API's to this. reference #parse_syntax_error() from pythonrun.c */
+    /* No trace-back available when `SyntaxError`.
+     * Python has no API's to this. reference #parse_syntax_error() from `pythonrun.c`. */
     PyErr_NormalizeException(&exception, &value, (PyObject **)&tb);
 
-    if (value) { /* should always be true */
+    if (value) { /* Should always be true. */
       PyObject *message;
-      PyObject *filename_py, *text_py;
+      PyObject *filepath_exc_py, *text_py;
 
-      if (parse_syntax_error(value, &message, &filename_py, lineno, offset, &text_py)) {
-        const char *filename = PyUnicode_AsUTF8(filename_py);
+      if (parse_syntax_error(value, &message, &filepath_exc_py, r_lineno, r_offset, &text_py)) {
+        const char *filepath_exc = PyUnicode_AsUTF8(filepath_exc_py);
         /* python adds a '/', prefix, so check for both */
-        if ((BLI_path_cmp(filename, filepath) == 0) ||
-            (ELEM(filename[0], '\\', '/') && BLI_path_cmp(filename + 1, filepath) == 0)) {
+        if ((BLI_path_cmp(filepath_exc, filepath) == 0) ||
+            (ELEM(filepath_exc[0], '\\', '/') && BLI_path_cmp(filepath_exc + 1, filepath) == 0)) {
           /* good */
         }
         else {
-          *lineno = -1;
+          *r_lineno = -1;
         }
       }
       else {
-        *lineno = -1;
+        *r_lineno = -1;
       }
     }
     PyErr_Restore(exception, value, (PyObject *)tb); /* takes away reference! */
@@ -170,7 +170,7 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
       Py_DECREF(coerce);
 
       if (match) {
-        *lineno = tb->tb_lineno;
+        *r_lineno = tb->tb_lineno;
         /* used to break here, but better find the inner most line */
       }
     }
