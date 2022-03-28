@@ -459,7 +459,11 @@ static bool snap_object_is_snappable(const SnapObjectContext *sctx,
   }
 
   if (snap_select == SNAP_NOT_ACTIVE) {
-    return base_act == base;
+    return base_act != base;
+  }
+
+  if (snap_select == SNAP_NOT_EDITED) {
+    return base->object->mode != OB_MODE_EDIT;
   }
 
   if (snap_select == SNAP_NOT_SELECTED) {
