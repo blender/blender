@@ -1068,7 +1068,7 @@ static Mesh *mesh_new_from_mesh_object_with_layers(Depsgraph *depsgraph,
   }
 
   Object object_for_eval;
-  blender::dna::zero_memory(object_for_eval);
+  blender::dna::copy_memory(object_for_eval, *object);
   if (object_for_eval.runtime.data_orig != nullptr) {
     object_for_eval.data = object_for_eval.runtime.data_orig;
   }
