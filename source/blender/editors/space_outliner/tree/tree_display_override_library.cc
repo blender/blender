@@ -69,7 +69,7 @@ ListBase TreeDisplayOverrideLibrary::add_library_contents(Main &mainvar)
 
     /* check if there's data in current id list */
     for (ID *id_iter : List<ID>(lbarray[a])) {
-      if (ID_IS_OVERRIDE_LIBRARY_REAL(id_iter)) {
+      if (ID_IS_OVERRIDE_LIBRARY_REAL(id_iter) && !ID_IS_LINKED(id_iter)) {
         id = id_iter;
         break;
       }
@@ -93,7 +93,7 @@ ListBase TreeDisplayOverrideLibrary::add_library_contents(Main &mainvar)
     }
 
     for (ID *id : List<ID>(lbarray[a])) {
-      if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+      if (ID_IS_OVERRIDE_LIBRARY_REAL(id) && !ID_IS_LINKED(id)) {
         TreeElement *override_tree_element = outliner_add_element(
             &space_outliner_, lb_to_expand, id, id_base_te, TSE_LIBRARY_OVERRIDE_BASE, 0);
 
