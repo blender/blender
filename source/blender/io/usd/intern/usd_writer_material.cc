@@ -259,15 +259,15 @@ static InputSpecMap &preview_surface_input_map()
 {
   static InputSpecMap input_map = {
       {"Base Color",
-       {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3, usdtokens::rgb, true}},
-      {"Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Float3, usdtokens::rgb, true}},
+       {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Color3f, usdtokens::rgb, true}},
+      {"Color", {usdtokens::diffuse_color, pxr::SdfValueTypeNames->Color3f, usdtokens::rgb, true}},
       {"Roughness", {usdtokens::roughness, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
       {"Metallic", {usdtokens::metallic, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
       {"Specular", {usdtokens::specular, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
       {"Alpha", {usdtokens::opacity, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
       {"IOR", {usdtokens::ior, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
       /* Note that for the Normal input set_default_value is false. */
-      {"Normal", {usdtokens::normal, pxr::SdfValueTypeNames->Float3, usdtokens::rgb, false}},
+      {"Normal", {usdtokens::normal, pxr::SdfValueTypeNames->Normal3f, usdtokens::rgb, false}},
       {"Clearcoat", {usdtokens::clearcoat, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
       {"Clearcoat Roughness",
        {usdtokens::clearcoatRoughness, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},

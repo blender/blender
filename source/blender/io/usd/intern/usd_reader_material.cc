@@ -26,6 +26,7 @@
 #include <pxr/usd/usdShade/shader.h>
 
 #include <iostream>
+#include <optional>
 #include <vector>
 
 namespace usdtokens {
@@ -122,115 +123,48 @@ static pxr::SdfLayerHandle get_layer_handle(const pxr::UsdAttribute &Attribute)
   return pxr::SdfLayerHandle();
 }
 
-/* If the given file path contains a UDIM token, examine files
- * on disk to determine the indices of the UDIM tiles that are available
- * to load.  Returns the path to the file corresponding to the lowest tile
- * index and an array containing valid tile indices in 'r_first_tile_path'
- * and 'r_tile_indices', respctively.  The function returns true if the
- * given arguments are valid, if 'file_path' is a UDIM path and
- * if any tiles were found on disk; it returns false otherwise. */
-static bool get_udim_tiles(const std::string &file_path,
-                           std::string *r_first_tile_path,
-                           std::vector<int> *r_tile_indices)
+static bool is_udim_path(const std::string &path)
 {
-  if (file_path.empty()) {
-    return false;
-  }
+  return path.find("<UDIM>") != std::string::npos;
+}
 
-  if (!(r_first_tile_path && r_tile_indices)) {
-    return false;
-  }
+/* For the given UDIM path (assumed to contain the UDIM token), returns an array
+ * containing valid tile indices.
+ * Returns std::nullopt if no tiles were found. */
+static std::optional<blender::Vector<int>> get_udim_tiles(const std::string &file_path)
+{
+  char base_udim_path[FILE_MAX];
+  BLI_strncpy(base_udim_path, file_path.c_str(), sizeof(base_udim_path));
 
-  /* Check if we have a UDIM path. */
-  std::size_t udim_token_offset = file_path.find("<UDIM>");
+  blender::Vector<int> udim_tiles;
 
-  if (udim_token_offset == std::string::npos) {
-    /* No UDIM token. */
-    return false;
-  }
-
-  /* Create a dummy UDIM path by replacing the '<UDIM>' token
-   * with an arbitrary index, since this is the format expected
-   * as input to the call BLI_path_sequence_decode().  We use the
-   * index 1001, but this will be rplaced by the actual index
-   * of the first tile found on disk. */
-  std::string base_udim_path(file_path);
-  base_udim_path.replace(udim_token_offset, 6, "1001");
-
-  /* Exctract the file and directory names from the path. */
-  char filename[FILE_MAX], dirname[FILE_MAXDIR];
-  BLI_split_dirfile(base_udim_path.c_str(), dirname, filename, sizeof(dirname), sizeof(filename));
-
-  /* Split the base and head portions of the file name. */
-  ushort digits = 0;
-  char base_head[FILE_MAX], base_tail[FILE_MAX];
-  base_head[0] = '\0';
-  base_tail[0] = '\0';
-  int id = BLI_path_sequence_decode(filename, base_head, base_tail, &digits);
-
-  /* As a sanity check, confirm that we got our original index. */
-  if (id != 1001) {
-    return false;
-  }
-
-  /* Iterate over the directory contents to find files
-   * with matching names and with the expected index format
-   * for UDIMS. */
-  struct direntry *dir = nullptr;
-  uint totfile = BLI_filelist_dir_contents(dirname, &dir);
-
-  if (!dir) {
-    return false;
-  }
-
-  for (int i = 0; i < totfile; ++i) {
-    if (!(dir[i].type & S_IFREG)) {
-      continue;
+  /* Extract the tile numbers from all files on disk. */
+  ListBase tiles = {nullptr, nullptr};
+  int tile_start, tile_range;
+  bool result = BKE_image_get_tile_info(base_udim_path, &tiles, &tile_start, &tile_range);
+  if (result) {
+    LISTBASE_FOREACH (LinkData *, tile, &tiles) {
+      int tile_number = POINTER_AS_INT(tile->data);
+      udim_tiles.append(tile_number);
     }
-
-    char head[FILE_MAX], tail[FILE_MAX];
-    head[0] = '\0';
-    tail[0] = '\0';
-    int id = BLI_path_sequence_decode(dir[i].relname, head, tail, &digits);
-
-    if (digits == 0 || digits > 4 || !(STREQLEN(base_head, head, FILE_MAX)) ||
-        !(STREQLEN(base_tail, tail, FILE_MAX))) {
-      continue;
-    }
-
-    if (id < 1001 || id >= IMA_UDIM_MAX) {
-      continue;
-    }
-
-    r_tile_indices->push_back(id);
   }
 
-  BLI_filelist_free(dir, totfile);
+  BLI_freelistN(&tiles);
 
-  if (r_tile_indices->empty()) {
-    return false;
+  if (udim_tiles.is_empty()) {
+    return std::nullopt;
   }
 
-  std::sort(r_tile_indices->begin(), r_tile_indices->end());
-
-  /* Finally, use the lowest index we found to create the first tile path. */
-  (*r_first_tile_path) = file_path;
-  r_first_tile_path->replace(udim_token_offset, 6, std::to_string(r_tile_indices->front()));
-
-  return true;
+  return udim_tiles;
 }
 
 /* Add tiles with the given indices to the given image. */
-static void add_udim_tiles(Image *image, const std::vector<int> &indices)
+static void add_udim_tiles(Image *image, const blender::Vector<int> &indices)
 {
-  if (!image || indices.empty()) {
-    return;
-  }
-
   image->source = IMA_SRC_TILED;
 
-  for (int i = 0; i < indices.size(); ++i) {
-    BKE_image_add_tile(image, indices[i], nullptr);
+  for (int tile_number : indices) {
+    BKE_image_add_tile(image, tile_number, nullptr);
   }
 }
 
@@ -819,15 +753,18 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
     }
   }
 
-  /* If this is a UDIM texture, this array will store the
-   * UDIM tile indices. */
-  std::vector<int> udim_tile_indices;
-  get_udim_tiles(file_path, &file_path, &udim_tile_indices);
-
   if (file_path.empty()) {
     std::cerr << "WARNING: Couldn't resolve image asset '" << asset_path
               << "' for Texture Image node." << std::endl;
     return;
+  }
+
+  /* If this is a UDIM texture, this will store the
+   * UDIM tile indices. */
+  std::optional<blender::Vector<int>> udim_tiles;
+
+  if (is_udim_path(file_path)) {
+    udim_tiles = get_udim_tiles(file_path);
   }
 
   const char *im_file = file_path.c_str();
@@ -840,8 +777,10 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
     return;
   }
 
-  if (!udim_tile_indices.empty()) {
-    add_udim_tiles(image, udim_tile_indices);
+  if (udim_tiles) {
+    /* Not calling udim_tiles.value(), which is not
+     * supported in macOS versions prior to 10.14.1. */
+    add_udim_tiles(image, *udim_tiles);
   }
 
   tex_image->id = &image->id;
