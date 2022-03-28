@@ -4765,7 +4765,7 @@ bool BKE_nurb_valid_message(const int pnts,
         message_dst[0] = 0;
         return false;
       }
-      msg_template = TIP_("At least two points required.");
+      msg_template = TIP_("At least two points required");
       break;
     case NURBSValidationStatus::MorePointsThanOrderRequired:
       msg_template = TIP_("Must have more control points than Order");
