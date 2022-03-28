@@ -131,17 +131,17 @@ struct SnapObjectContext {
 
 /* Mesh used for snapping.
  * If nullptr the BMesh should be used. */
-static Mesh *mesh_for_snap(Object *ob_eval, eSnapEditType edit_mode_type, bool *r_use_hide)
+static const Mesh *mesh_for_snap(Object *ob_eval, eSnapEditType edit_mode_type, bool *r_use_hide)
 {
-  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
   bool use_hide = false;
   if (BKE_object_is_in_editmode(ob_eval)) {
     if (edit_mode_type == SNAP_GEOM_EDIT) {
       return nullptr;
     }
 
-    Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob_eval);
-    Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob_eval);
+    const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob_eval);
+    const Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob_eval);
 
     if ((edit_mode_type == SNAP_GEOM_FINAL) && editmesh_eval_final) {
       if (editmesh_eval_final->runtime.wrapper_type == ME_WRAPPER_TYPE_BMESH) {
@@ -903,7 +903,7 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
                                        0.0f,
                                        4,
                                        6,
-                                       BVHTREE_FROM_VERTS,
+                                       BVHTREE_FROM_EM_LOOPTRI,
                                        nullptr,
                                        nullptr);
 
@@ -1041,7 +1041,7 @@ static void raycast_obj_fn(SnapObjectContext *sctx,
     case OB_MESH: {
       const eSnapEditType edit_mode_type = params->edit_mode_type;
       bool use_hide = false;
-      Mesh *me_eval = mesh_for_snap(ob_eval, edit_mode_type, &use_hide);
+      const Mesh *me_eval = mesh_for_snap(ob_eval, edit_mode_type, &use_hide);
       if (me_eval == nullptr) {
         /* Operators only update the editmesh looptris of the original mesh. */
         BMEditMesh *em_orig = BKE_editmesh_from_object(DEG_get_original_object(ob_eval));
@@ -2325,7 +2325,7 @@ static short snapCamera(const SnapObjectContext *sctx,
 static short snapMesh(SnapObjectContext *sctx,
                       const struct SnapObjectParams *params,
                       Object *ob_eval,
-                      Mesh *me_eval,
+                      const Mesh *me_eval,
                       const float obmat[4][4],
                       bool use_hide,
                       /* read/write args */
@@ -2741,7 +2741,7 @@ static void snap_obj_fn(SnapObjectContext *sctx,
     case OB_MESH: {
       const eSnapEditType edit_mode_type = params->edit_mode_type;
       bool use_hide;
-      Mesh *me_eval = mesh_for_snap(ob_eval, edit_mode_type, &use_hide);
+      const Mesh *me_eval = mesh_for_snap(ob_eval, edit_mode_type, &use_hide);
       if (me_eval == nullptr) {
         /* Operators only update the editmesh looptris of the original mesh. */
         BMEditMesh *em_orig = BKE_editmesh_from_object(DEG_get_original_object(ob_eval));
@@ -2783,7 +2783,7 @@ static void snap_obj_fn(SnapObjectContext *sctx,
       break; /* Use ATTR_FALLTHROUGH if we want to snap to the generated mesh. */
     case OB_SURF:
     case OB_FONT: {
-      Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+      const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
       if (mesh_eval) {
         retval |= snapMesh(sctx,
                            params,
