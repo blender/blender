@@ -181,7 +181,7 @@ static void warpModifier_do(WarpModifierData *wmd,
                             const ModifierEvalContext *ctx,
                             Mesh *mesh,
                             float (*vertexCos)[3],
-                            int numVerts)
+                            int verts_num)
 {
   Object *ob = ctx->object;
   float obinv[4][4];
@@ -245,13 +245,13 @@ static void warpModifier_do(WarpModifierData *wmd,
 
   Tex *tex_target = wmd->texture;
   if (mesh != NULL && tex_target != NULL) {
-    tex_co = MEM_malloc_arrayN(numVerts, sizeof(*tex_co), "warpModifier_do tex_co");
+    tex_co = MEM_malloc_arrayN(verts_num, sizeof(*tex_co), "warpModifier_do tex_co");
     MOD_get_texture_coords((MappingInfoModifierData *)wmd, ctx, ob, mesh, vertexCos, tex_co);
 
     MOD_init_texture((MappingInfoModifierData *)wmd, ctx);
   }
 
-  for (i = 0; i < numVerts; i++) {
+  for (i = 0; i < verts_num; i++) {
     float *co = vertexCos[i];
 
     if (wmd->falloff_type == eWarp_Falloff_None ||
@@ -344,17 +344,17 @@ static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
                         Mesh *mesh,
                         float (*vertexCos)[3],
-                        int numVerts)
+                        int verts_num)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
   Mesh *mesh_src = NULL;
 
   if (wmd->defgrp_name[0] != '\0' || wmd->texture != NULL) {
     /* mesh_src is only needed for vgroups and textures. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false, false);
   }
 
-  warpModifier_do(wmd, ctx, mesh_src, vertexCos, numVerts);
+  warpModifier_do(wmd, ctx, mesh_src, vertexCos, verts_num);
 
   if (!ELEM(mesh_src, NULL, mesh)) {
     BKE_id_free(NULL, mesh_src);
@@ -366,14 +366,14 @@ static void deformVertsEM(ModifierData *md,
                           struct BMEditMesh *em,
                           Mesh *mesh,
                           float (*vertexCos)[3],
-                          int numVerts)
+                          int verts_num)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
   Mesh *mesh_src = NULL;
 
   if (wmd->defgrp_name[0] != '\0' || wmd->texture != NULL) {
     /* mesh_src is only needed for vgroups and textures. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, numVerts, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, NULL, verts_num, false, false);
   }
 
   /* TODO(Campbell): use edit-mode data only (remove this line). */
@@ -381,7 +381,7 @@ static void deformVertsEM(ModifierData *md,
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }
 
-  warpModifier_do(wmd, ctx, mesh_src, vertexCos, numVerts);
+  warpModifier_do(wmd, ctx, mesh_src, vertexCos, verts_num);
 
   if (!ELEM(mesh_src, NULL, mesh)) {
     BKE_id_free(NULL, mesh_src);

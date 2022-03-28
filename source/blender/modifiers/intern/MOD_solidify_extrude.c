@@ -55,14 +55,14 @@ BLI_INLINE bool edgeref_is_init(const EdgeFaceRef *edge_ref)
  */
 static void mesh_calc_hq_normal(Mesh *mesh, const float (*poly_nors)[3], float (*r_vert_nors)[3])
 {
-  int i, numVerts, numEdges, numPolys;
+  int i, verts_num, edges_num, polys_num;
   MPoly *mpoly, *mp;
   MLoop *mloop, *ml;
   MEdge *medge, *ed;
 
-  numVerts = mesh->totvert;
-  numEdges = mesh->totedge;
-  numPolys = mesh->totpoly;
+  verts_num = mesh->totvert;
+  edges_num = mesh->totedge;
+  polys_num = mesh->totpoly;
   mpoly = mesh->mpoly;
   medge = mesh->medge;
   mloop = mesh->mloop;
@@ -71,7 +71,7 @@ static void mesh_calc_hq_normal(Mesh *mesh, const float (*poly_nors)[3], float (
 
   /* Doesn't work here! */
 #if 0
-  mv = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, numVerts);
+  mv = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, verts_num);
   cddm->mvert = mv;
 #endif
 
@@ -79,12 +79,12 @@ static void mesh_calc_hq_normal(Mesh *mesh, const float (*poly_nors)[3], float (
 
   {
     EdgeFaceRef *edge_ref_array = MEM_calloc_arrayN(
-        (size_t)numEdges, sizeof(EdgeFaceRef), "Edge Connectivity");
+        (size_t)edges_num, sizeof(EdgeFaceRef), "Edge Connectivity");
     EdgeFaceRef *edge_ref;
     float edge_normal[3];
 
     /* Add an edge reference if it's not there, pointing back to the face index. */
-    for (i = 0; i < numPolys; i++, mp++) {
+    for (i = 0; i < polys_num; i++, mp++) {
       int j;
 
       ml = mloop + mp->loopstart;
@@ -110,7 +110,7 @@ static void mesh_calc_hq_normal(Mesh *mesh, const float (*poly_nors)[3], float (
       }
     }
 
-    for (i = 0, ed = medge, edge_ref = edge_ref_array; i < numEdges; i++, ed++, edge_ref++) {
+    for (i = 0, ed = medge, edge_ref = edge_ref_array; i < edges_num; i++, ed++, edge_ref++) {
       /* Get the edge vert indices, and edge value (the face indices that use it) */
 
       if (edgeref_is_init(edge_ref) && (edge_ref->p1 != -1)) {
@@ -141,7 +141,7 @@ static void mesh_calc_hq_normal(Mesh *mesh, const float (*poly_nors)[3], float (
 
   /* normalize vertex normals and assign */
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
-  for (i = 0; i < numVerts; i++) {
+  for (i = 0; i < verts_num; i++) {
     if (normalize_v3(r_vert_nors[i]) == 0.0f) {
       copy_v3_v3(r_vert_nors[i], vert_normals[i]);
     }
@@ -164,10 +164,10 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   MEdge *ed, *medge, *orig_medge;
   MLoop *ml, *mloop, *orig_mloop;
   MPoly *mp, *mpoly, *orig_mpoly;
-  const uint numVerts = (uint)mesh->totvert;
-  const uint numEdges = (uint)mesh->totedge;
-  const uint numPolys = (uint)mesh->totpoly;
-  const uint numLoops = (uint)mesh->totloop;
+  const uint verts_num = (uint)mesh->totvert;
+  const uint edges_num = (uint)mesh->totedge;
+  const uint polys_num = (uint)mesh->totpoly;
+  const uint loops_num = (uint)mesh->totloop;
   uint newLoops = 0, newPolys = 0, newEdges = 0, newVerts = 0, rimVerts = 0;
 
   /* Only use material offsets if we have 2 or more materials. */
@@ -184,7 +184,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   STACK_DECLARE(new_edge_arr);
 
   uint *old_vert_arr = MEM_calloc_arrayN(
-      numVerts, sizeof(*old_vert_arr), "old_vert_arr in solidify");
+      verts_num, sizeof(*old_vert_arr), "old_vert_arr in solidify");
 
   uint *edge_users = NULL;
   int *edge_order = NULL;
@@ -233,33 +233,34 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     poly_nors = BKE_mesh_poly_normals_ensure(mesh);
   }
 
-  STACK_INIT(new_vert_arr, numVerts * 2);
-  STACK_INIT(new_edge_arr, numEdges * 2);
+  STACK_INIT(new_vert_arr, verts_num * 2);
+  STACK_INIT(new_edge_arr, edges_num * 2);
 
   if (do_rim) {
-    BLI_bitmap *orig_mvert_tag = BLI_BITMAP_NEW(numVerts, __func__);
+    BLI_bitmap *orig_mvert_tag = BLI_BITMAP_NEW(verts_num, __func__);
     uint eidx;
     uint i;
 
 #define INVALID_UNUSED ((uint)-1)
 #define INVALID_PAIR ((uint)-2)
 
-    new_vert_arr = MEM_malloc_arrayN(numVerts, 2 * sizeof(*new_vert_arr), __func__);
-    new_edge_arr = MEM_malloc_arrayN(((numEdges * 2) + numVerts), sizeof(*new_edge_arr), __func__);
+    new_vert_arr = MEM_malloc_arrayN(verts_num, 2 * sizeof(*new_vert_arr), __func__);
+    new_edge_arr = MEM_malloc_arrayN(
+        ((edges_num * 2) + verts_num), sizeof(*new_edge_arr), __func__);
 
-    edge_users = MEM_malloc_arrayN(numEdges, sizeof(*edge_users), "solid_mod edges");
-    edge_order = MEM_malloc_arrayN(numEdges, sizeof(*edge_order), "solid_mod order");
+    edge_users = MEM_malloc_arrayN(edges_num, sizeof(*edge_users), "solid_mod edges");
+    edge_order = MEM_malloc_arrayN(edges_num, sizeof(*edge_order), "solid_mod order");
 
     /* save doing 2 loops here... */
 #if 0
-    copy_vn_i(edge_users, numEdges, INVALID_UNUSED);
+    copy_vn_i(edge_users, edges_num, INVALID_UNUSED);
 #endif
 
-    for (eidx = 0, ed = orig_medge; eidx < numEdges; eidx++, ed++) {
+    for (eidx = 0, ed = orig_medge; eidx < edges_num; eidx++, ed++) {
       edge_users[eidx] = INVALID_UNUSED;
     }
 
-    for (i = 0, mp = orig_mpoly; i < numPolys; i++, mp++) {
+    for (i = 0, mp = orig_mpoly; i < polys_num; i++, mp++) {
       MLoop *ml_prev;
       int j;
 
@@ -272,7 +273,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
         if (edge_users[eidx] == INVALID_UNUSED) {
           ed = orig_medge + eidx;
           BLI_assert(ELEM(ml_prev->v, ed->v1, ed->v2) && ELEM(ml->v, ed->v1, ed->v2));
-          edge_users[eidx] = (ml_prev->v > ml->v) == (ed->v1 < ed->v2) ? i : (i + numPolys);
+          edge_users[eidx] = (ml_prev->v > ml->v) == (ed->v1 < ed->v2) ? i : (i + polys_num);
           edge_order[eidx] = j;
         }
         else {
@@ -282,7 +283,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       }
     }
 
-    for (eidx = 0, ed = orig_medge; eidx < numEdges; eidx++, ed++) {
+    for (eidx = 0, ed = orig_medge; eidx < edges_num; eidx++, ed++) {
       if (!ELEM(edge_users[eidx], INVALID_UNUSED, INVALID_PAIR)) {
         BLI_BITMAP_ENABLE(orig_mvert_tag, ed->v1);
         BLI_BITMAP_ENABLE(orig_mvert_tag, ed->v2);
@@ -292,7 +293,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       }
     }
 
-    for (i = 0; i < numVerts; i++) {
+    for (i = 0; i < verts_num; i++) {
       if (BLI_BITMAP_TEST(orig_mvert_tag, i)) {
         old_vert_arr[i] = STACK_SIZE(new_vert_arr);
         STACK_PUSH(new_vert_arr, i);
@@ -319,16 +320,16 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   }
 
   if (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) {
-    vert_nors = MEM_calloc_arrayN(numVerts, sizeof(float[3]), "mod_solid_vno_hq");
+    vert_nors = MEM_calloc_arrayN(verts_num, sizeof(float[3]), "mod_solid_vno_hq");
     mesh_calc_hq_normal(mesh, poly_nors, vert_nors);
   }
 
   result = BKE_mesh_new_nomain_from_template(mesh,
-                                             (int)((numVerts * stride) + newVerts),
-                                             (int)((numEdges * stride) + newEdges + rimVerts),
+                                             (int)((verts_num * stride) + newVerts),
+                                             (int)((edges_num * stride) + newEdges + rimVerts),
                                              0,
-                                             (int)((numLoops * stride) + newLoops),
-                                             (int)((numPolys * stride) + newPolys));
+                                             (int)((loops_num * stride) + newLoops),
+                                             (int)((polys_num * stride) + newPolys));
 
   mpoly = result->mpoly;
   mloop = result->mloop;
@@ -341,69 +342,69 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   }
 
   if (do_shell) {
-    CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, (int)numVerts);
-    CustomData_copy_data(&mesh->vdata, &result->vdata, 0, (int)numVerts, (int)numVerts);
+    CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, (int)verts_num);
+    CustomData_copy_data(&mesh->vdata, &result->vdata, 0, (int)verts_num, (int)verts_num);
 
-    CustomData_copy_data(&mesh->edata, &result->edata, 0, 0, (int)numEdges);
-    CustomData_copy_data(&mesh->edata, &result->edata, 0, (int)numEdges, (int)numEdges);
+    CustomData_copy_data(&mesh->edata, &result->edata, 0, 0, (int)edges_num);
+    CustomData_copy_data(&mesh->edata, &result->edata, 0, (int)edges_num, (int)edges_num);
 
-    CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, (int)numLoops);
+    CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, (int)loops_num);
     /* DO NOT copy here the 'copied' part of loop data, we want to reverse loops
      * (so that winding of copied face get reversed, so that normals get reversed
      * and point in expected direction...).
      * If we also copy data here, then this data get overwritten
      * (and allocated memory becomes memleak). */
 
-    CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, (int)numPolys);
-    CustomData_copy_data(&mesh->pdata, &result->pdata, 0, (int)numPolys, (int)numPolys);
+    CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, (int)polys_num);
+    CustomData_copy_data(&mesh->pdata, &result->pdata, 0, (int)polys_num, (int)polys_num);
   }
   else {
     int i, j;
-    CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, (int)numVerts);
-    for (i = 0, j = (int)numVerts; i < numVerts; i++) {
+    CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, (int)verts_num);
+    for (i = 0, j = (int)verts_num; i < verts_num; i++) {
       if (old_vert_arr[i] != INVALID_UNUSED) {
         CustomData_copy_data(&mesh->vdata, &result->vdata, i, j, 1);
         j++;
       }
     }
 
-    CustomData_copy_data(&mesh->edata, &result->edata, 0, 0, (int)numEdges);
+    CustomData_copy_data(&mesh->edata, &result->edata, 0, 0, (int)edges_num);
 
-    for (i = 0, j = (int)numEdges; i < numEdges; i++) {
+    for (i = 0, j = (int)edges_num; i < edges_num; i++) {
       if (!ELEM(edge_users[i], INVALID_UNUSED, INVALID_PAIR)) {
         MEdge *ed_src, *ed_dst;
         CustomData_copy_data(&mesh->edata, &result->edata, i, j, 1);
 
         ed_src = &medge[i];
         ed_dst = &medge[j];
-        ed_dst->v1 = old_vert_arr[ed_src->v1] + numVerts;
-        ed_dst->v2 = old_vert_arr[ed_src->v2] + numVerts;
+        ed_dst->v1 = old_vert_arr[ed_src->v1] + verts_num;
+        ed_dst->v2 = old_vert_arr[ed_src->v2] + verts_num;
         j++;
       }
     }
 
     /* will be created later */
-    CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, (int)numLoops);
-    CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, (int)numPolys);
+    CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, (int)loops_num);
+    CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, (int)polys_num);
   }
 
   /* initializes: (i_end, do_shell_align, mv). */
 #define INIT_VERT_ARRAY_OFFSETS(test) \
   if (((ofs_new >= ofs_orig) == do_flip) == test) { \
-    i_end = numVerts; \
+    i_end = verts_num; \
     do_shell_align = true; \
     mv = mvert; \
   } \
   else { \
     if (do_shell) { \
-      i_end = numVerts; \
+      i_end = verts_num; \
       do_shell_align = true; \
     } \
     else { \
       i_end = newVerts; \
       do_shell_align = false; \
     } \
-    mv = &mvert[numVerts]; \
+    mv = &mvert[verts_num]; \
   } \
   (void)0
 
@@ -412,7 +413,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   if (do_shell) {
     uint i;
 
-    mp = mpoly + numPolys;
+    mp = mpoly + polys_num;
     for (i = 0; i < mesh->totpoly; i++, mp++) {
       const int loop_end = mp->totloop - 1;
       MLoop *ml2;
@@ -457,14 +458,14 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       mp->loopstart += mesh->totloop;
 
       for (j = 0; j < mp->totloop; j++) {
-        ml2[j].e += numEdges;
-        ml2[j].v += numVerts;
+        ml2[j].e += edges_num;
+        ml2[j].v += verts_num;
       }
     }
 
-    for (i = 0, ed = medge + numEdges; i < numEdges; i++, ed++) {
-      ed->v1 += numVerts;
-      ed->v2 += numVerts;
+    for (i = 0, ed = medge + edges_num; i < edges_num; i++, ed++) {
+      ed->v1 += verts_num;
+      ed->v2 += verts_num;
     }
   }
 
@@ -483,9 +484,9 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     float *edge_angs = NULL;
 
     if (do_clamp) {
-      vert_lens = MEM_malloc_arrayN(numVerts, sizeof(float), "vert_lens");
-      copy_vn_fl(vert_lens, (int)numVerts, FLT_MAX);
-      for (uint i = 0; i < numEdges; i++) {
+      vert_lens = MEM_malloc_arrayN(verts_num, sizeof(float), "vert_lens");
+      copy_vn_fl(vert_lens, (int)verts_num, FLT_MAX);
+      for (uint i = 0; i < edges_num; i++) {
         const float ed_len_sq = len_squared_v3v3(mvert[medge[i].v1].co, mvert[medge[i].v2].co);
         vert_lens[medge[i].v1] = min_ff(vert_lens[medge[i].v1], ed_len_sq);
         vert_lens[medge[i].v2] = min_ff(vert_lens[medge[i].v2], ed_len_sq);
@@ -495,23 +496,23 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     if (do_angle_clamp || do_bevel_convex) {
       uint eidx;
       if (do_angle_clamp) {
-        vert_angs = MEM_malloc_arrayN(numVerts, sizeof(float), "vert_angs");
-        copy_vn_fl(vert_angs, (int)numVerts, 0.5f * M_PI);
+        vert_angs = MEM_malloc_arrayN(verts_num, sizeof(float), "vert_angs");
+        copy_vn_fl(vert_angs, (int)verts_num, 0.5f * M_PI);
       }
       if (do_bevel_convex) {
-        edge_angs = MEM_malloc_arrayN(numEdges, sizeof(float), "edge_angs");
+        edge_angs = MEM_malloc_arrayN(edges_num, sizeof(float), "edge_angs");
         if (!do_rim) {
-          edge_users = MEM_malloc_arrayN(numEdges, sizeof(*edge_users), "solid_mod edges");
+          edge_users = MEM_malloc_arrayN(edges_num, sizeof(*edge_users), "solid_mod edges");
         }
       }
       uint(*edge_user_pairs)[2] = MEM_malloc_arrayN(
-          numEdges, sizeof(*edge_user_pairs), "edge_user_pairs");
-      for (eidx = 0; eidx < numEdges; eidx++) {
+          edges_num, sizeof(*edge_user_pairs), "edge_user_pairs");
+      for (eidx = 0; eidx < edges_num; eidx++) {
         edge_user_pairs[eidx][0] = INVALID_UNUSED;
         edge_user_pairs[eidx][1] = INVALID_UNUSED;
       }
       mp = orig_mpoly;
-      for (uint i = 0; i < numPolys; i++, mp++) {
+      for (uint i = 0; i < polys_num; i++, mp++) {
         ml = orig_mloop + mp->loopstart;
         MLoop *ml_prev = ml + (mp->totloop - 1);
 
@@ -533,7 +534,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       }
       ed = orig_medge;
       float e[3];
-      for (uint i = 0; i < numEdges; i++, ed++) {
+      for (uint i = 0; i < edges_num; i++, ed++) {
         if (!ELEM(edge_user_pairs[i][0], INVALID_UNUSED, INVALID_PAIR) &&
             !ELEM(edge_user_pairs[i][1], INVALID_UNUSED, INVALID_PAIR)) {
           const float *n0 = poly_nors[edge_user_pairs[i][0]];
@@ -658,7 +659,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     }
 
     if (do_bevel_convex) {
-      for (uint i = 0; i < numEdges; i++) {
+      for (uint i = 0; i < edges_num; i++) {
         if (edge_users[i] == INVALID_PAIR) {
           float angle = edge_angs[i];
           medge[i].bweight = (char)clamp_i(
@@ -668,8 +669,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
               0,
               255);
           if (do_shell) {
-            medge[i + numEdges].bweight = (char)clamp_i(
-                (int)medge[i + numEdges].bweight +
+            medge[i + edges_num].bweight = (char)clamp_i(
+                (int)medge[i + edges_num].bweight +
                     (int)((angle > M_PI ? clamp_f(bevel_convex, 0.0f, 1.0f) :
                                           clamp_f(bevel_convex, -1.0f, 0.0f)) *
                           255),
@@ -697,19 +698,19 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 #endif
     /* same as EM_solidify() in editmesh_lib.c */
     float *vert_angles = MEM_calloc_arrayN(
-        numVerts, sizeof(float[2]), "mod_solid_pair"); /* 2 in 1 */
-    float *vert_accum = vert_angles + numVerts;
+        verts_num, sizeof(float[2]), "mod_solid_pair"); /* 2 in 1 */
+    float *vert_accum = vert_angles + verts_num;
     uint vidx;
     uint i;
 
     if (vert_nors == NULL) {
-      vert_nors = MEM_malloc_arrayN(numVerts, sizeof(float[3]), "mod_solid_vno");
-      for (i = 0, mv = mvert; i < numVerts; i++, mv++) {
+      vert_nors = MEM_malloc_arrayN(verts_num, sizeof(float[3]), "mod_solid_vno");
+      for (i = 0, mv = mvert; i < verts_num; i++, mv++) {
         copy_v3_v3(vert_nors[i], mesh_vert_normals[i]);
       }
     }
 
-    for (i = 0, mp = mpoly; i < numPolys; i++, mp++) {
+    for (i = 0, mp = mpoly; i < polys_num; i++, mp++) {
       /* #BKE_mesh_calc_poly_angles logic is inlined here */
       float nor_prev[3];
       float nor_next[3];
@@ -765,14 +766,14 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       float scalar;
 
       if (defgrp_invert) {
-        for (i = 0; i < numVerts; i++, dv++) {
+        for (i = 0; i < verts_num; i++, dv++) {
           scalar = 1.0f - BKE_defvert_find_weight(dv, defgrp_index);
           scalar = offset_fac_vg + (scalar * offset_fac_vg_inv);
           vert_angles[i] *= scalar;
         }
       }
       else {
-        for (i = 0; i < numVerts; i++, dv++) {
+        for (i = 0; i < verts_num; i++, dv++) {
           scalar = BKE_defvert_find_weight(dv, defgrp_index);
           scalar = offset_fac_vg + (scalar * offset_fac_vg_inv);
           vert_angles[i] *= scalar;
@@ -788,22 +789,22 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     if (do_angle_clamp || do_bevel_convex) {
       uint eidx;
       if (do_angle_clamp) {
-        vert_angs = MEM_malloc_arrayN(numVerts, sizeof(float), "vert_angs even");
-        copy_vn_fl(vert_angs, (int)numVerts, 0.5f * M_PI);
+        vert_angs = MEM_malloc_arrayN(verts_num, sizeof(float), "vert_angs even");
+        copy_vn_fl(vert_angs, (int)verts_num, 0.5f * M_PI);
       }
       if (do_bevel_convex) {
-        edge_angs = MEM_malloc_arrayN(numEdges, sizeof(float), "edge_angs even");
+        edge_angs = MEM_malloc_arrayN(edges_num, sizeof(float), "edge_angs even");
         if (!do_rim) {
-          edge_users = MEM_malloc_arrayN(numEdges, sizeof(*edge_users), "solid_mod edges");
+          edge_users = MEM_malloc_arrayN(edges_num, sizeof(*edge_users), "solid_mod edges");
         }
       }
       uint(*edge_user_pairs)[2] = MEM_malloc_arrayN(
-          numEdges, sizeof(*edge_user_pairs), "edge_user_pairs");
-      for (eidx = 0; eidx < numEdges; eidx++) {
+          edges_num, sizeof(*edge_user_pairs), "edge_user_pairs");
+      for (eidx = 0; eidx < edges_num; eidx++) {
         edge_user_pairs[eidx][0] = INVALID_UNUSED;
         edge_user_pairs[eidx][1] = INVALID_UNUSED;
       }
-      for (i = 0, mp = orig_mpoly; i < numPolys; i++, mp++) {
+      for (i = 0, mp = orig_mpoly; i < polys_num; i++, mp++) {
         ml = orig_mloop + mp->loopstart;
         MLoop *ml_prev = ml + (mp->totloop - 1);
 
@@ -825,7 +826,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       }
       ed = orig_medge;
       float e[3];
-      for (i = 0; i < numEdges; i++, ed++) {
+      for (i = 0; i < edges_num; i++, ed++) {
         if (!ELEM(edge_user_pairs[i][0], INVALID_UNUSED, INVALID_PAIR) &&
             !ELEM(edge_user_pairs[i][1], INVALID_UNUSED, INVALID_PAIR)) {
           const float *n0 = poly_nors[edge_user_pairs[i][0]];
@@ -852,16 +853,16 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       const float clamp_fac = 1 + (do_angle_clamp ? fabsf(smd->offset_fac) : 0);
       const float offset = fabsf(smd->offset) * smd->offset_clamp * clamp_fac;
       if (offset > FLT_EPSILON) {
-        float *vert_lens_sq = MEM_malloc_arrayN(numVerts, sizeof(float), "vert_lens_sq");
+        float *vert_lens_sq = MEM_malloc_arrayN(verts_num, sizeof(float), "vert_lens_sq");
         const float offset_sq = offset * offset;
-        copy_vn_fl(vert_lens_sq, (int)numVerts, FLT_MAX);
-        for (i = 0; i < numEdges; i++) {
+        copy_vn_fl(vert_lens_sq, (int)verts_num, FLT_MAX);
+        for (i = 0; i < edges_num; i++) {
           const float ed_len = len_squared_v3v3(mvert[medge[i].v1].co, mvert[medge[i].v2].co);
           vert_lens_sq[medge[i].v1] = min_ff(vert_lens_sq[medge[i].v1], ed_len);
           vert_lens_sq[medge[i].v2] = min_ff(vert_lens_sq[medge[i].v2], ed_len);
         }
         if (do_angle_clamp) {
-          for (i = 0; i < numVerts; i++) {
+          for (i = 0; i < verts_num; i++) {
             float cos_ang = cosf(vert_angs[i] * 0.5f);
             if (cos_ang > 0) {
               float max_off = sqrtf(vert_lens_sq[i]) * 0.5f / cos_ang;
@@ -873,7 +874,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
           MEM_freeN(vert_angs);
         }
         else {
-          for (i = 0; i < numVerts; i++) {
+          for (i = 0; i < verts_num; i++) {
             if (vert_lens_sq[i] < offset_sq) {
               float scalar = sqrtf(vert_lens_sq[i]) / offset;
               vert_angles[i] *= scalar;
@@ -885,7 +886,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     }
 
     if (do_bevel_convex) {
-      for (i = 0; i < numEdges; i++) {
+      for (i = 0; i < edges_num; i++) {
         if (edge_users[i] == INVALID_PAIR) {
           float angle = edge_angs[i];
           medge[i].bweight = (char)clamp_i(
@@ -895,8 +896,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
               0,
               255);
           if (do_shell) {
-            medge[i + numEdges].bweight = (char)clamp_i(
-                (int)medge[i + numEdges].bweight +
+            medge[i + edges_num].bweight = (char)clamp_i(
+                (int)medge[i + edges_num].bweight +
                     (int)((angle > M_PI ? clamp_f(bevel_convex, 0, 1) :
                                           clamp_f(bevel_convex, -1, 0)) *
                           255),
@@ -959,8 +960,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   else if (do_shell) {
     uint i;
     /* flip vertex normals for copied verts */
-    mv = mvert + numVerts;
-    for (i = 0; i < numVerts; i++) {
+    mv = mvert + verts_num;
+    for (i = 0; i < verts_num; i++) {
       negate_v3((float *)mesh_vert_normals[i]);
     }
   }
@@ -982,14 +983,14 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
         for (uint i = 0; i < rimVerts; i++) {
           BKE_defvert_ensure_index(&result->dvert[new_vert_arr[i]], rim_defgrp_index)->weight =
               1.0f;
-          BKE_defvert_ensure_index(&result->dvert[(do_shell ? new_vert_arr[i] : i) + numVerts],
+          BKE_defvert_ensure_index(&result->dvert[(do_shell ? new_vert_arr[i] : i) + verts_num],
                                    rim_defgrp_index)
               ->weight = 1.0f;
         }
       }
 
       if (shell_defgrp_index != -1) {
-        for (uint i = numVerts; i < result->totvert; i++) {
+        for (uint i = verts_num; i < result->totvert; i++) {
           BKE_defvert_ensure_index(&result->dvert[i], shell_defgrp_index)->weight = 1.0f;
         }
       }
@@ -1014,7 +1015,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     const bool do_side_normals = !BKE_mesh_vertex_normals_are_dirty(result);
     /* annoying to allocate these since we only need the edge verts, */
     float(*edge_vert_nos)[3] = do_side_normals ?
-                                   MEM_calloc_arrayN(numVerts, sizeof(float[3]), __func__) :
+                                   MEM_calloc_arrayN(verts_num, sizeof(float[3]), __func__) :
                                    NULL;
     float nor[3];
 #endif
@@ -1032,11 +1033,11 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
     /* add faces & edges */
     origindex_edge = CustomData_get_layer(&result->edata, CD_ORIGINDEX);
-    orig_ed = (origindex_edge) ? &origindex_edge[(numEdges * stride) + newEdges] : NULL;
-    ed = &medge[(numEdges * stride) + newEdges]; /* start after copied edges */
+    orig_ed = (origindex_edge) ? &origindex_edge[(edges_num * stride) + newEdges] : NULL;
+    ed = &medge[(edges_num * stride) + newEdges]; /* start after copied edges */
     for (i = 0; i < rimVerts; i++, ed++) {
       ed->v1 = new_vert_arr[i];
-      ed->v2 = (do_shell ? new_vert_arr[i] : i) + numVerts;
+      ed->v2 = (do_shell ? new_vert_arr[i] : i) + verts_num;
       ed->flag |= ME_EDGEDRAW | ME_EDGERENDER;
 
       if (orig_ed) {
@@ -1050,8 +1051,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     }
 
     /* faces */
-    mp = mpoly + (numPolys * stride);
-    ml = mloop + (numLoops * stride);
+    mp = mpoly + (polys_num * stride);
+    ml = mloop + (loops_num * stride);
     j = 0;
     for (i = 0; i < newPolys; i++, mp++) {
       uint eidx = new_edge_arr[i];
@@ -1059,8 +1060,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       int k1, k2;
       bool flip;
 
-      if (pidx >= numPolys) {
-        pidx -= numPolys;
+      if (pidx >= polys_num) {
+        pidx -= polys_num;
         flip = true;
       }
       else {
@@ -1071,8 +1072,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
       /* copy most of the face settings */
       CustomData_copy_data(
-          &mesh->pdata, &result->pdata, (int)pidx, (int)((numPolys * stride) + i), 1);
-      mp->loopstart = (int)(j + (numLoops * stride));
+          &mesh->pdata, &result->pdata, (int)pidx, (int)((polys_num * stride) + i), 1);
+      mp->loopstart = (int)(j + (loops_num * stride));
       mp->flag = mpoly[pidx].flag;
 
       /* notice we use 'mp->totloop' which is later overwritten,
@@ -1087,39 +1088,39 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       mp->totloop = 4;
 
       CustomData_copy_data(
-          &mesh->ldata, &result->ldata, k2, (int)((numLoops * stride) + j + 0), 1);
+          &mesh->ldata, &result->ldata, k2, (int)((loops_num * stride) + j + 0), 1);
       CustomData_copy_data(
-          &mesh->ldata, &result->ldata, k1, (int)((numLoops * stride) + j + 1), 1);
+          &mesh->ldata, &result->ldata, k1, (int)((loops_num * stride) + j + 1), 1);
       CustomData_copy_data(
-          &mesh->ldata, &result->ldata, k1, (int)((numLoops * stride) + j + 2), 1);
+          &mesh->ldata, &result->ldata, k1, (int)((loops_num * stride) + j + 2), 1);
       CustomData_copy_data(
-          &mesh->ldata, &result->ldata, k2, (int)((numLoops * stride) + j + 3), 1);
+          &mesh->ldata, &result->ldata, k2, (int)((loops_num * stride) + j + 3), 1);
 
       if (flip == false) {
         ml[j].v = ed->v1;
         ml[j++].e = eidx;
 
         ml[j].v = ed->v2;
-        ml[j++].e = (numEdges * stride) + old_vert_arr[ed->v2] + newEdges;
+        ml[j++].e = (edges_num * stride) + old_vert_arr[ed->v2] + newEdges;
 
-        ml[j].v = (do_shell ? ed->v2 : old_vert_arr[ed->v2]) + numVerts;
-        ml[j++].e = (do_shell ? eidx : i) + numEdges;
+        ml[j].v = (do_shell ? ed->v2 : old_vert_arr[ed->v2]) + verts_num;
+        ml[j++].e = (do_shell ? eidx : i) + edges_num;
 
-        ml[j].v = (do_shell ? ed->v1 : old_vert_arr[ed->v1]) + numVerts;
-        ml[j++].e = (numEdges * stride) + old_vert_arr[ed->v1] + newEdges;
+        ml[j].v = (do_shell ? ed->v1 : old_vert_arr[ed->v1]) + verts_num;
+        ml[j++].e = (edges_num * stride) + old_vert_arr[ed->v1] + newEdges;
       }
       else {
         ml[j].v = ed->v2;
         ml[j++].e = eidx;
 
         ml[j].v = ed->v1;
-        ml[j++].e = (numEdges * stride) + old_vert_arr[ed->v1] + newEdges;
+        ml[j++].e = (edges_num * stride) + old_vert_arr[ed->v1] + newEdges;
 
-        ml[j].v = (do_shell ? ed->v1 : old_vert_arr[ed->v1]) + numVerts;
-        ml[j++].e = (do_shell ? eidx : i) + numEdges;
+        ml[j].v = (do_shell ? ed->v1 : old_vert_arr[ed->v1]) + verts_num;
+        ml[j++].e = (do_shell ? eidx : i) + edges_num;
 
-        ml[j].v = (do_shell ? ed->v2 : old_vert_arr[ed->v2]) + numVerts;
-        ml[j++].e = (numEdges * stride) + old_vert_arr[ed->v2] + newEdges;
+        ml[j].v = (do_shell ? ed->v2 : old_vert_arr[ed->v2]) + verts_num;
+        ml[j++].e = (edges_num * stride) + old_vert_arr[ed->v2] + newEdges;
       }
 
       if (origindex_edge) {
@@ -1141,7 +1142,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
       if (crease_inner) {
         /* crease += crease_inner; without wrapping */
-        char *cr = &(medge[numEdges + (do_shell ? eidx : i)].crease);
+        char *cr = &(medge[edges_num + (do_shell ? eidx : i)].crease);
         int tcr = *cr + crease_inner;
         *cr = tcr > 255 ? 255 : tcr;
       }
@@ -1163,13 +1164,13 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 #ifdef SOLIDIFY_SIDE_NORMALS
     if (do_side_normals) {
       const MEdge *ed_orig = medge;
-      ed = medge + (numEdges * stride);
+      ed = medge + (edges_num * stride);
       for (i = 0; i < rimVerts; i++, ed++, ed_orig++) {
         float nor_cpy[3];
         int k;
 
         /* NOTE: only the first vertex (lower half of the index) is calculated. */
-        BLI_assert(ed->v1 < numVerts);
+        BLI_assert(ed->v1 < verts_num);
         normalize_v3_v3(nor_cpy, edge_vert_nos[ed_orig->v1]);
 
         for (k = 0; k < 2; k++) { /* loop over both verts of the edge */

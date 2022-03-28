@@ -766,7 +766,7 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
     hmd->indexar = hook->indexar;
     hmd->object = hook->parent;
     memcpy(hmd->parentinv, hook->parentinv, sizeof(hmd->parentinv));
-    hmd->totindex = hook->totindex;
+    hmd->indexar_num = hook->totindex;
 
     BLI_addhead(&ob->modifiers, hmd);
     BLI_remlink(&ob->hooks, hook);

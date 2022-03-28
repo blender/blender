@@ -203,7 +203,7 @@ typedef struct Object_Runtime {
 
   float (*crazyspace_deform_imats)[3][3];
   float (*crazyspace_deform_cos)[3];
-  int crazyspace_num_verts;
+  int crazyspace_verts_num;
 
   int _pad3[3];
 } Object_Runtime;

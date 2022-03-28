@@ -541,36 +541,36 @@ bool ED_object_modifier_convert(ReportList *UNUSED(reports),
     return false;
   }
 
-  int totpart = psys_eval->totcached;
-  int totchild = psys_eval->totchildcache;
+  int part_num = psys_eval->totcached;
+  int child_num = psys_eval->totchildcache;
 
-  if (totchild && (part->draw & PART_DRAW_PARENT) == 0) {
-    totpart = 0;
+  if (child_num && (part->draw & PART_DRAW_PARENT) == 0) {
+    part_num = 0;
   }
 
   /* count */
-  int totvert = 0, totedge = 0;
+  int verts_num = 0, edges_num = 0;
   ParticleCacheKey **cache = psys_eval->pathcache;
-  for (int a = 0; a < totpart; a++) {
+  for (int a = 0; a < part_num; a++) {
     ParticleCacheKey *key = cache[a];
 
     if (key->segments > 0) {
-      totvert += key->segments + 1;
-      totedge += key->segments;
+      verts_num += key->segments + 1;
+      edges_num += key->segments;
     }
   }
 
   cache = psys_eval->childcache;
-  for (int a = 0; a < totchild; a++) {
+  for (int a = 0; a < child_num; a++) {
     ParticleCacheKey *key = cache[a];
 
     if (key->segments > 0) {
-      totvert += key->segments + 1;
-      totedge += key->segments;
+      verts_num += key->segments + 1;
+      edges_num += key->segments;
     }
   }
 
-  if (totvert == 0) {
+  if (verts_num == 0) {
     return false;
   }
 
@@ -578,11 +578,11 @@ bool ED_object_modifier_convert(ReportList *UNUSED(reports),
   Object *obn = BKE_object_add(bmain, view_layer, OB_MESH, NULL);
   Mesh *me = obn->data;
 
-  me->totvert = totvert;
-  me->totedge = totedge;
+  me->totvert = verts_num;
+  me->totedge = edges_num;
 
-  me->mvert = CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
-  me->medge = CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
+  me->mvert = CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, verts_num);
+  me->medge = CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, edges_num);
   me->mface = CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, 0);
 
   MVert *mvert = me->mvert;
@@ -590,7 +590,7 @@ bool ED_object_modifier_convert(ReportList *UNUSED(reports),
 
   /* copy coordinates */
   cache = psys_eval->pathcache;
-  for (int a = 0; a < totpart; a++) {
+  for (int a = 0; a < part_num; a++) {
     ParticleCacheKey *key = cache[a];
     int kmax = key->segments;
     for (int k = 0; k <= kmax; k++, key++, cvert++, mvert++) {
@@ -609,7 +609,7 @@ bool ED_object_modifier_convert(ReportList *UNUSED(reports),
   }
 
   cache = psys_eval->childcache;
-  for (int a = 0; a < totchild; a++) {
+  for (int a = 0; a < child_num; a++) {
     ParticleCacheKey *key = cache[a];
     int kmax = key->segments;
     for (int k = 0; k <= kmax; k++, key++, cvert++, mvert++) {
@@ -774,9 +774,9 @@ static bool modifier_apply_obdata(
                RPT_INFO,
                "Applied modifier only changed CV points, not tessellated/bevel vertices");
 
-    int numVerts;
-    float(*vertexCos)[3] = BKE_curve_nurbs_vert_coords_alloc(&curve_eval->nurb, &numVerts);
-    mti->deformVerts(md_eval, &mectx, NULL, vertexCos, numVerts);
+    int verts_num;
+    float(*vertexCos)[3] = BKE_curve_nurbs_vert_coords_alloc(&curve_eval->nurb, &verts_num);
+    mti->deformVerts(md_eval, &mectx, NULL, vertexCos, verts_num);
     BKE_curve_nurbs_vert_coords_apply(&curve->nurb, vertexCos, false);
 
     MEM_freeN(vertexCos);
@@ -793,9 +793,9 @@ static bool modifier_apply_obdata(
       return false;
     }
 
-    int numVerts;
-    float(*vertexCos)[3] = BKE_lattice_vert_coords_alloc(lattice, &numVerts);
-    mti->deformVerts(md_eval, &mectx, NULL, vertexCos, numVerts);
+    int verts_num;
+    float(*vertexCos)[3] = BKE_lattice_vert_coords_alloc(lattice, &verts_num);
+    mti->deformVerts(md_eval, &mectx, NULL, vertexCos, verts_num);
     BKE_lattice_vert_coords_apply(lattice, vertexCos);
 
     MEM_freeN(vertexCos);
@@ -2781,9 +2781,9 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
     MEM_SAFE_FREE(mmd->dynverts);
     MEM_SAFE_FREE(mmd->bindweights); /* Deprecated */
     MEM_SAFE_FREE(mmd->bindcos);     /* Deprecated */
-    mmd->totvert = 0;
-    mmd->totcagevert = 0;
-    mmd->totinfluence = 0;
+    mmd->verts_num = 0;
+    mmd->cage_verts_num = 0;
+    mmd->influences_num = 0;
   }
   else {
     /* Force modifier to run, it will call binding routine
@@ -3119,7 +3119,7 @@ static int laplaciandeform_bind_exec(bContext *C, wmOperator *op)
 
   /* This is hard to know from the modifier itself whether the evaluation is
    * happening for binding or not. So we copy all the required data here. */
-  lmd->total_verts = lmd_eval->total_verts;
+  lmd->verts_num = lmd_eval->verts_num;
   if (lmd_eval->vertexco == NULL) {
     MEM_SAFE_FREE(lmd->vertexco);
   }

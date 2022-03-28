@@ -1209,7 +1209,7 @@ static void remap_hooks_and_vertex_parents(Main *bmain, Object *obedit)
             old_to_new_map = init_index_map(obedit, &old_totvert);
           }
 
-          for (i = j = 0; i < hmd->totindex; i++) {
+          for (i = j = 0; i < hmd->indexar_num; i++) {
             if (hmd->indexar[i] < old_totvert) {
               index = old_to_new_map[hmd->indexar[i]];
               if (index != -1) {
@@ -1221,7 +1221,7 @@ static void remap_hooks_and_vertex_parents(Main *bmain, Object *obedit)
             }
           }
 
-          hmd->totindex = j;
+          hmd->indexar_num = j;
         }
       }
     }

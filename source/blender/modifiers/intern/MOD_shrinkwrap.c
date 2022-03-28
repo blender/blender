@@ -98,7 +98,7 @@ static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
                         Mesh *mesh,
                         float (*vertexCos)[3],
-                        int numVerts)
+                        int verts_num)
 {
   ShrinkwrapModifierData *swmd = (ShrinkwrapModifierData *)md;
   struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
@@ -108,7 +108,7 @@ static void deformVerts(ModifierData *md,
       (swmd->shrinkType == MOD_SHRINKWRAP_PROJECT)) {
     /* mesh_src is needed for vgroups, but also used as ShrinkwrapCalcData.vert when projecting.
      * Avoid time-consuming mesh conversion for curves when not projecting. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false, false);
   }
 
   struct MDeformVert *dvert = NULL;
@@ -116,7 +116,7 @@ static void deformVerts(ModifierData *md,
   MOD_get_vgroup(ctx->object, mesh_src, swmd->vgroup_name, &dvert, &defgrp_index);
 
   shrinkwrapModifier_deform(
-      swmd, ctx, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, numVerts);
+      swmd, ctx, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, verts_num);
 
   if (!ELEM(mesh_src, NULL, mesh)) {
     BKE_id_free(NULL, mesh_src);
@@ -128,14 +128,15 @@ static void deformVertsEM(ModifierData *md,
                           struct BMEditMesh *editData,
                           Mesh *mesh,
                           float (*vertexCos)[3],
-                          int numVerts)
+                          int verts_num)
 {
   ShrinkwrapModifierData *swmd = (ShrinkwrapModifierData *)md;
   struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   Mesh *mesh_src = NULL;
 
   if ((swmd->vgroup_name[0] != '\0') || (swmd->shrinkType == MOD_SHRINKWRAP_PROJECT)) {
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, numVerts, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(
+        ctx->object, editData, mesh, NULL, verts_num, false, false);
   }
 
   /* TODO(Campbell): use edit-mode data only (remove this line). */
@@ -150,7 +151,7 @@ static void deformVertsEM(ModifierData *md,
   }
 
   shrinkwrapModifier_deform(
-      swmd, ctx, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, numVerts);
+      swmd, ctx, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, verts_num);
 
   if (!ELEM(mesh_src, NULL, mesh)) {
     BKE_id_free(NULL, mesh_src);

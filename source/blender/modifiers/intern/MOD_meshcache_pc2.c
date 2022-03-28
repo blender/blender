@@ -137,13 +137,13 @@ bool MOD_meshcache_read_pc2_index(FILE *fp,
     return false;
   }
 
-  size_t num_verts_read = 0;
+  size_t verts_read_num = 0;
   errno = 0;
   if (factor >= 1.0f) {
     float *vco = *vertexCos;
     uint i;
     for (i = pc2_head.verts_tot; i != 0; i--, vco += 3) {
-      num_verts_read += fread(vco, sizeof(float[3]), 1, fp);
+      verts_read_num += fread(vco, sizeof(float[3]), 1, fp);
 
 #ifdef __BIG_ENDIAN__
       BLI_endian_switch_float(vco + 0);
@@ -158,7 +158,7 @@ bool MOD_meshcache_read_pc2_index(FILE *fp,
     uint i;
     for (i = pc2_head.verts_tot; i != 0; i--, vco += 3) {
       float tvec[3];
-      num_verts_read += fread(tvec, sizeof(float[3]), 1, fp);
+      verts_read_num += fread(tvec, sizeof(float[3]), 1, fp);
 
 #ifdef __BIG_ENDIAN__
       BLI_endian_switch_float(tvec + 0);
@@ -172,7 +172,7 @@ bool MOD_meshcache_read_pc2_index(FILE *fp,
     }
   }
 
-  if (num_verts_read != pc2_head.verts_tot) {
+  if (verts_read_num != pc2_head.verts_tot) {
     *err_str = errno ? strerror(errno) : "Vertex coordinate read failed";
     return false;
   }
