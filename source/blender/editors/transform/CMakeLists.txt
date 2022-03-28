@@ -90,7 +90,7 @@ set(SRC
   transform_orientations.c
   transform_snap.c
   transform_snap_animation.c
-  transform_snap_object.c
+  transform_snap_object.cc
   transform_snap_sequencer.c
 
   transform.h
