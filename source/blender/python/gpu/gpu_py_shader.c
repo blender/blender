@@ -381,11 +381,11 @@ static PyObject *pygpu_shader_uniform_float(BPyGPUShader *self, PyObject *args)
     if (BaseMath_ReadCallback(mat) == -1) {
       return NULL;
     }
-    if ((mat->num_row != mat->num_col) || !ELEM(mat->num_row, 3, 4)) {
+    if ((mat->row_num != mat->col_num) || !ELEM(mat->row_num, 3, 4)) {
       PyErr_SetString(PyExc_ValueError, "Expected 3x3 or 4x4 matrix");
       return NULL;
     }
-    length = mat->num_row * mat->num_col;
+    length = mat->row_num * mat->col_num;
     memcpy(values, mat->matrix, sizeof(float) * length);
   }
   else {

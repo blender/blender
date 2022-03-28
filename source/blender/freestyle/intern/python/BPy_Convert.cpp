@@ -569,7 +569,7 @@ bool Vec3r_ptr_from_PyObject(PyObject *obj, Vec3r &vec)
 
 bool Vec2f_ptr_from_Vector(PyObject *obj, Vec2f &vec)
 {
-  if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 2) {
+  if (!VectorObject_Check(obj) || ((VectorObject *)obj)->vec_num != 2) {
     return false;
   }
   if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1) {
@@ -582,7 +582,7 @@ bool Vec2f_ptr_from_Vector(PyObject *obj, Vec2f &vec)
 
 bool Vec3f_ptr_from_Vector(PyObject *obj, Vec3f &vec)
 {
-  if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 3) {
+  if (!VectorObject_Check(obj) || ((VectorObject *)obj)->vec_num != 3) {
     return false;
   }
   if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1) {
@@ -596,7 +596,7 @@ bool Vec3f_ptr_from_Vector(PyObject *obj, Vec3f &vec)
 
 bool Vec3r_ptr_from_Vector(PyObject *obj, Vec3r &vec)
 {
-  if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 3) {
+  if (!VectorObject_Check(obj) || ((VectorObject *)obj)->vec_num != 3) {
     return false;
   }
   if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1) {
@@ -758,7 +758,7 @@ bool Vec3r_ptr_from_PyTuple(PyObject *obj, Vec3r &vec)
 
 bool float_array_from_PyObject(PyObject *obj, float *v, int n)
 {
-  if (VectorObject_Check(obj) && ((VectorObject *)obj)->size == n) {
+  if (VectorObject_Check(obj) && ((VectorObject *)obj)->vec_num == n) {
     if (BaseMath_ReadCallback((BaseMathObject *)obj) == -1) {
       return false;
     }
