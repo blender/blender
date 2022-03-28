@@ -639,7 +639,7 @@ static short snap_select_type_get(TransInfo *t)
 
       if ((obedit_type == OB_MESH) && (t->flag & T_PROP_EDIT)) {
         /* Exclude editmesh if using proportional edit */
-        r_snap_select = SNAP_NOT_ACTIVE;
+        r_snap_select = SNAP_NOT_EDITED;
       }
       else if (!t->tsnap.snap_self) {
         r_snap_select = SNAP_NOT_ACTIVE;
