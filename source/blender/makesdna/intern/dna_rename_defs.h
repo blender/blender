@@ -82,6 +82,7 @@ DNA_STRUCT_RENAME_ELEM(LineartGpencilModifierData, transparency_mask, material_m
 DNA_STRUCT_RENAME_ELEM(MaskLayer, restrictflag, visibility_flag)
 DNA_STRUCT_RENAME_ELEM(MaterialLineArt, transparency_mask, material_mask_bits)
 DNA_STRUCT_RENAME_ELEM(MovieClip, name, filepath)
+DNA_STRUCT_RENAME_ELEM(NodeCryptomatte, num_inputs, inputs_num)
 DNA_STRUCT_RENAME_ELEM(Object, col, color)
 DNA_STRUCT_RENAME_ELEM(Object, dup_group, instance_collection)
 DNA_STRUCT_RENAME_ELEM(Object, dupfacesca, instance_faces_scale)

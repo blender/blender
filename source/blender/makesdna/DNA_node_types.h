@@ -1189,7 +1189,7 @@ typedef struct NodeCryptomatte {
 
   /** Legacy attributes */
   /* Number of input sockets. */
-  int num_inputs;
+  int inputs_num;
 
   char _pad[4];
   NodeCryptomatte_Runtime runtime;
