@@ -35,11 +35,11 @@
 /** \name Private Utilities
  * \{ */
 
-static void python_script_error_jump_text(Text *text)
+static void python_script_error_jump_text(Text *text, const char *filepath)
 {
   int lineno;
   int offset;
-  python_script_error_jump(text->id.name + 2, &lineno, &offset);
+  python_script_error_jump(filepath, &lineno, &offset);
   if (lineno != -1) {
     /* select the line with the error */
     txt_move_to(text, lineno - 1, INT_MAX, false);
@@ -82,6 +82,10 @@ static bool python_script_exec(
   PyObject *py_dict = NULL, *py_result = NULL;
   PyGILState_STATE gilstate;
 
+  char fn_dummy[FILE_MAX];
+  /** The `__file__` added into the name-space. */
+  const char *fn_namespace = NULL;
+
   BLI_assert(fn || text);
 
   if (fn == NULL && text == NULL) {
@@ -93,8 +97,8 @@ static bool python_script_exec(
   PyC_MainModule_Backup(&main_mod);
 
   if (text) {
-    char fn_dummy[FILE_MAXDIR];
     bpy_text_filename_get(fn_dummy, bmain_old, sizeof(fn_dummy), text);
+    fn_namespace = fn_dummy;
 
     if (text->compiled == NULL) { /* if it wasn't already compiled, do it now */
       char *buf;
@@ -111,7 +115,7 @@ static bool python_script_exec(
 
       if (PyErr_Occurred()) {
         if (do_jump) {
-          python_script_error_jump_text(text);
+          python_script_error_jump_text(text, fn_namespace);
         }
         BPY_text_free_code(text);
       }
@@ -124,6 +128,7 @@ static bool python_script_exec(
   }
   else {
     FILE *fp = BLI_fopen(fn, "r");
+    fn_namespace = fn;
 
     if (fp) {
       py_dict = PyC_DefaultNameSpace(fn);
@@ -170,7 +175,7 @@ static bool python_script_exec(
         /* ensure text is valid before use, the script may have freed itself */
         Main *bmain_new = CTX_data_main(C);
         if ((bmain_old == bmain_new) && (BLI_findindex(&bmain_new->texts, text) != -1)) {
-          python_script_error_jump_text(text);
+          python_script_error_jump_text(text, fn_namespace);
         }
       }
     }
