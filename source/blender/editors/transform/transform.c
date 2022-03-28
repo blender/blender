@@ -843,10 +843,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
     handled = true;
   }
   else if (event->type == MOUSEMOVE) {
-    if (t->modifiers & (MOD_CONSTRAINT_SELECT_AXIS | MOD_CONSTRAINT_SELECT_PLANE)) {
-      t->con.mode |= CON_SELECT;
-    }
-
     copy_v2_v2_int(t->mval, event->mval);
 
     /* Use this for soft redraw. Might cause flicker in object mode */
@@ -1095,6 +1091,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
             /* Confirm. */
             postSelectConstraint(t);
             t->modifiers &= ~(MOD_CONSTRAINT_SELECT_AXIS | MOD_CONSTRAINT_SELECT_PLANE);
+            t->redraw = TREDRAW_HARD;
           }
           else {
             if (t->options & CTX_CAMERA) {
@@ -1106,6 +1103,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
                 restoreTransObjects(t);
                 transform_mode_init(t, NULL, TFM_TRACKBALL);
               }
+              t->redraw = TREDRAW_HARD;
             }
             else {
               t->modifiers |= (event->val == TFM_MODAL_AUTOCONSTRAINT) ?
@@ -1114,13 +1112,13 @@ int transformEvent(TransInfo *t, const wmEvent *event)
               if (t->con.mode & CON_APPLY) {
                 stopConstraint(t);
               }
-              else {
-                initSelectConstraint(t);
-                postSelectConstraint(t);
-              }
+
+              initSelectConstraint(t);
+              /* Use #TREDRAW_SOFT so that #selectConstraint is only called on the next event.
+               * This allows us to "deselect" the contraint. */
+              t->redraw = TREDRAW_SOFT;
             }
           }
-          t->redraw |= TREDRAW_HARD;
           handled = true;
         }
         break;
