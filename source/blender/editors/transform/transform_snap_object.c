@@ -494,12 +494,6 @@ static void iter_snap_objects(SnapObjectContext *sctx,
   const eSnapSelect snap_select = params->snap_select;
 
   Base *base_act = view_layer->basact;
-  if (snap_select == SNAP_ONLY_ACTIVE) {
-    Object *obj_eval = DEG_get_evaluated_object(sctx->runtime.depsgraph, base_act->object);
-    sob_callback(sctx, params, obj_eval, obj_eval->obmat, true, data);
-    return;
-  }
-
   const bool is_in_object_mode = !base_act || base_act->object->mode == OB_MODE_OBJECT;
   for (Base *base = view_layer->object_bases.first; base != NULL; base = base->next) {
     if (!snap_object_is_snappable(sctx, snap_select, base_act, base, is_in_object_mode)) {

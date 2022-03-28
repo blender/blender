@@ -620,9 +620,6 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
       snap_elements &= ~SCE_SNAP_MODE_EDGE_PERPENDICULAR;
     }
 
-    eSnapSelect snap_select = (state->flag & V3D_SNAPCURSOR_SNAP_ONLY_ACTIVE) ? SNAP_ONLY_ACTIVE :
-                                                                                SNAP_ALL;
-
     eSnapEditType edit_mode_type = (state->flag & V3D_SNAPCURSOR_SNAP_EDIT_GEOM_FINAL) ?
                                        SNAP_GEOM_FINAL :
                                    (state->flag & V3D_SNAPCURSOR_SNAP_EDIT_GEOM_CAGE) ?
@@ -640,7 +637,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
         v3d,
         snap_elements,
         &(const struct SnapObjectParams){
-            .snap_select = snap_select,
+            .snap_select = SNAP_ALL,
             .edit_mode_type = edit_mode_type,
             .use_occlusion_test = use_occlusion_test,
         },
