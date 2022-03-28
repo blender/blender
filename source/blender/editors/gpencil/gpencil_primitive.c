@@ -1481,7 +1481,7 @@ static void gpencil_primitive_edit_event_handling(
       break;
     }
     case MOUSEMOVE: {
-      if ((event->val == KM_PRESS) && tgpi->sel_cp != SELECT_NONE) {
+      if (tgpi->sel_cp != SELECT_NONE) {
         if (tgpi->sel_cp == SELECT_START && tgpi->tot_stored_edges == 0) {
           copy_v2_v2(tgpi->start, tgpi->mval);
         }
