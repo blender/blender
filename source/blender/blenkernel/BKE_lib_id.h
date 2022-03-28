@@ -515,7 +515,7 @@ void BKE_main_id_flag_listbase(struct ListBase *lb, int flag, bool value);
 void BKE_main_id_flag_all(struct Main *bmain, int flag, bool value);
 
 /**
- * Next to indirect usage in `readfile.c/writefile.c` also in `editobject.c`, `scene.c`.
+ * Next to indirect usage in `readfile.c/writefile.c` also in `editobject.c`, `scene.cc`.
  */
 void BKE_main_id_newptr_and_tag_clear(struct Main *bmain);
 

@@ -247,7 +247,7 @@ set(SRC
   intern/preferences.c
   intern/report.c
   intern/rigidbody.c
-  intern/scene.c
+  intern/scene.cc
   intern/screen.c
   intern/shader_fx.c
   intern/shrinkwrap.c
