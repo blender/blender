@@ -2165,8 +2165,10 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
   /* Mode toggling handles its own undo state because undo steps need to be grouped. */
   UI_but_flag_disable(but, UI_BUT_UNDO);
 
-  if (ID_IS_LINKED(&ob->id)) {
-    UI_but_disable(but, TIP_("Can't edit external library data"));
+  if (ID_IS_LINKED(&ob->id) ||
+      (ID_IS_OVERRIDE_LIBRARY_REAL(ob) &&
+       (ob->id.override_library->flag & IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED) != 0)) {
+    UI_but_disable(but, TIP_("Can't edit library or non-editable override data"));
   }
 }
 

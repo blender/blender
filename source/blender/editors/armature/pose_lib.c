@@ -170,7 +170,7 @@ static bool has_poselib_pose_data_poll(bContext *C)
 static bool has_poselib_pose_data_for_editing_poll(bContext *C)
 {
   Object *ob = get_poselib_object(C);
-  return (ob && ob->poselib && !ID_IS_LINKED(ob->poselib));
+  return (ob && ob->poselib && BKE_id_is_editable(CTX_data_main(C), &ob->poselib->id));
 }
 
 /* ----------------------------------- */
@@ -377,7 +377,7 @@ static bool poselib_add_poll(bContext *C)
   if (ED_operator_posemode(C)) {
     Object *ob = get_poselib_object(C);
     if (ob) {
-      if ((ob->poselib == NULL) || !ID_IS_LINKED(ob->poselib)) {
+      if ((ob->poselib == NULL) || BKE_id_is_editable(CTX_data_main(C), &ob->poselib->id)) {
         return true;
       }
     }

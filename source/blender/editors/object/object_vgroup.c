@@ -3062,7 +3062,7 @@ static int vertex_group_select_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Object *ob = ED_object_context(C);
 
-  if (!ob || ID_IS_LINKED(ob)) {
+  if (!ob || ID_IS_LINKED(ob) || ID_IS_OVERRIDE_LIBRARY(ob)) {
     return OPERATOR_CANCELLED;
   }
 

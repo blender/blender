@@ -1350,7 +1350,7 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (ID_IS_LINKED(scene_to)) {
+  if (!BKE_id_is_editable(bmain, &scene_to->id)) {
     BKE_report(op->reports, RPT_ERROR, "Cannot link objects into a linked scene");
     return OPERATOR_CANCELLED;
   }
@@ -1481,7 +1481,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
           case MAKE_LINKS_ANIMDATA:
             BKE_animdata_copy_id(bmain, (ID *)ob_dst, (ID *)ob_src, 0);
             if (ob_dst->data && ob_src->data) {
-              if (ID_IS_LINKED(obdata_id)) {
+              if (!BKE_id_is_editable(bmain, obdata_id)) {
                 is_lib = true;
                 break;
               }
@@ -1525,7 +1525,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
             Curve *cu_src = ob_src->data;
             Curve *cu_dst = ob_dst->data;
 
-            if (ID_IS_LINKED(obdata_id)) {
+            if (!BKE_id_is_editable(bmain, obdata_id)) {
               is_lib = true;
               break;
             }
@@ -1792,7 +1792,7 @@ static void single_obdata_users(
   ID *id;
 
   FOREACH_OBJECT_FLAG_BEGIN (scene, view_layer, v3d, flag, ob) {
-    if (!ID_IS_LINKED(ob)) {
+    if (BKE_id_is_editable(bmain, &ob->id)) {
       id = ob->data;
       if (single_data_needs_duplication(id)) {
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -1897,7 +1897,7 @@ static void single_object_action_users(
     Main *bmain, Scene *scene, ViewLayer *view_layer, View3D *v3d, const int flag)
 {
   FOREACH_OBJECT_FLAG_BEGIN (scene, view_layer, v3d, flag, ob) {
-    if (!ID_IS_LINKED(ob)) {
+    if (BKE_id_is_editable(bmain, &ob->id)) {
       AnimData *adt = BKE_animdata_from_id(&ob->id);
       if (adt == NULL) {
         continue;
@@ -1917,7 +1917,7 @@ static void single_objectdata_action_users(
     Main *bmain, Scene *scene, ViewLayer *view_layer, View3D *v3d, const int flag)
 {
   FOREACH_OBJECT_FLAG_BEGIN (scene, view_layer, v3d, flag, ob) {
-    if (!ID_IS_LINKED(ob) && ob->data != NULL) {
+    if (BKE_id_is_editable(bmain, &ob->id) && ob->data != NULL) {
       ID *id_obdata = (ID *)ob->data;
       AnimData *adt = BKE_animdata_from_id(id_obdata);
       if (adt == NULL) {
@@ -1941,7 +1941,7 @@ static void single_mat_users(
   int a;
 
   FOREACH_OBJECT_FLAG_BEGIN (scene, view_layer, v3d, flag, ob) {
-    if (!ID_IS_LINKED(ob)) {
+    if (BKE_id_is_editable(bmain, &ob->id)) {
       for (a = 1; a <= ob->totcol; a++) {
         ma = BKE_object_material_get(ob, (short)a);
         if (single_data_needs_duplication(&ma->id)) {

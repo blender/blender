@@ -659,7 +659,8 @@ void draw_fcurve_channel(AnimKeylistDrawList *draw_list,
 {
   const bool locked = (fcu->flag & FCURVE_PROTECTED) ||
                       ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ||
-                      ((adt && adt->action) && ID_IS_LINKED(adt->action));
+                      ((adt && adt->action) &&
+                       (ID_IS_LINKED(adt->action) || ID_IS_OVERRIDE_LIBRARY(adt->action)));
 
   AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
       draw_list, ANIM_KEYLIST_FCURVE, ypos, yscale_fac, saction_flag);
@@ -676,7 +677,8 @@ void draw_agroup_channel(AnimKeylistDrawList *draw_list,
                          int saction_flag)
 {
   bool locked = (agrp->flag & AGRP_PROTECTED) ||
-                ((adt && adt->action) && ID_IS_LINKED(adt->action));
+                ((adt && adt->action) &&
+                 (ID_IS_LINKED(adt->action) || ID_IS_OVERRIDE_LIBRARY(adt->action)));
 
   AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
       draw_list, ANIM_KEYLIST_AGROUP, ypos, yscale_fac, saction_flag);
@@ -692,7 +694,7 @@ void draw_action_channel(AnimKeylistDrawList *draw_list,
                          float yscale_fac,
                          int saction_flag)
 {
-  const bool locked = (act && ID_IS_LINKED(act));
+  const bool locked = (act && (ID_IS_LINKED(act) || ID_IS_OVERRIDE_LIBRARY(act)));
   saction_flag &= ~SACTION_SHOW_EXTREMES;
 
   AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(

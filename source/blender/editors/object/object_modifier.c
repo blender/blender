@@ -1016,6 +1016,7 @@ bool edit_modifier_poll_generic(bContext *C,
                                 const bool is_editmode_allowed,
                                 const bool is_liboverride_allowed)
 {
+  Main *bmain = CTX_data_main(C);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", rna_type);
   Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : ED_object_active_context(C);
   ModifierData *mod = ptr.data; /* May be NULL. */
@@ -1024,13 +1025,13 @@ bool edit_modifier_poll_generic(bContext *C,
     mod = BKE_object_active_modifier(ob);
   }
 
-  if (!ob || ID_IS_LINKED(ob)) {
+  if (!ob || !BKE_id_is_editable(bmain, &ob->id)) {
     return false;
   }
   if (obtype_flag && ((1 << ob->type) & obtype_flag) == 0) {
     return false;
   }
-  if (ptr.owner_id && ID_IS_LINKED(ptr.owner_id)) {
+  if (ptr.owner_id && !BKE_id_is_editable(bmain, ptr.owner_id)) {
     return false;
   }
 

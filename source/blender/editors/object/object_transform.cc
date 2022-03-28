@@ -622,10 +622,10 @@ static int apply_objects_internal(bContext *C,
         changed = false;
       }
 
-      if (ID_IS_LINKED(obdata)) {
+      if (ID_IS_LINKED(obdata) || ID_IS_OVERRIDE_LIBRARY(obdata)) {
         BKE_reportf(reports,
                     RPT_ERROR,
-                    R"(Cannot apply to library data: Object "%s", %s "%s", aborting)",
+                    R"(Cannot apply to library or override data: Object "%s", %s "%s", aborting)",
                     ob->id.name + 2,
                     BKE_idtype_idcode_to_name(GS(obdata->name)),
                     obdata->name + 2);
@@ -1138,7 +1138,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       /* Special support for instanced collections. */
       if ((ob->transflag & OB_DUPLICOLLECTION) && ob->instance_collection &&
           (ob->instance_collection->id.tag & LIB_TAG_DOIT) == 0) {
-        if (ID_IS_LINKED(ob->instance_collection)) {
+        if (!BKE_id_is_editable(bmain, &ob->instance_collection->id)) {
           tot_lib_error++;
         }
         else {
@@ -1163,7 +1163,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         }
       }
     }
-    else if (ID_IS_LINKED(ob->data)) {
+    else if (ID_IS_LINKED(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob->data)) {
       tot_lib_error++;
     }
     else if (ob->type == OB_MESH) {

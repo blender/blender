@@ -103,7 +103,8 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
   }
 
   AnimData *adt = BKE_animdata_from_id(&pbd->ob->id);
-  if (adt != NULL && adt->action != NULL && ID_IS_LINKED(&adt->action->id)) {
+  if (adt != NULL && adt->action != NULL &&
+      !BKE_id_is_editable(CTX_data_main(C), &adt->action->id)) {
     /* Changes to linked-in Actions are not allowed. */
     return;
   }

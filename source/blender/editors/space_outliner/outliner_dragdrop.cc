@@ -22,6 +22,7 @@
 #include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_layer.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
@@ -374,7 +375,7 @@ static void parent_drop_set_parents(bContext *C,
       Object *object = (Object *)drag_id->id;
 
       /* Do nothing to linked data */
-      if (ID_IS_LINKED(object)) {
+      if (!BKE_id_is_editable(bmain, &object->id)) {
         linked_objects = true;
         continue;
       }
@@ -387,7 +388,7 @@ static void parent_drop_set_parents(bContext *C,
   }
 
   if (linked_objects) {
-    BKE_report(reports, RPT_INFO, "Can't edit library linked object(s)");
+    BKE_report(reports, RPT_INFO, "Can't edit library linked or non-editable override object(s)");
   }
 
   if (parent_set) {
@@ -556,7 +557,7 @@ static int scene_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent 
   Scene *scene = (Scene *)outliner_ID_drop_find(C, event, ID_SCE);
   Object *ob = (Object *)WM_drag_get_local_ID_from_event(event, ID_OB);
 
-  if (ELEM(nullptr, ob, scene) || ID_IS_LINKED(scene)) {
+  if (ELEM(nullptr, ob, scene) || !BKE_id_is_editable(bmain, &scene->id)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -748,7 +749,7 @@ static bool datastack_drop_init(bContext *C, const wmEvent *event, StackDropData
     ob = nullptr;
   }
 
-  if (ob && ID_IS_LINKED(&ob->id)) {
+  if (ob && !BKE_id_is_editable(CTX_data_main(C), &ob->id)) {
     return false;
   }
 
@@ -1107,8 +1108,8 @@ struct CollectionDrop {
 
 static Collection *collection_parent_from_ID(ID *id)
 {
-  /* Can't change linked parent collections. */
-  if (!id || ID_IS_LINKED(id)) {
+  /* Can't change linked or override parent collections. */
+  if (!id || ID_IS_LINKED(id) || ID_IS_OVERRIDE_LIBRARY(id)) {
     return nullptr;
   }
 
@@ -1134,7 +1135,7 @@ static bool collection_drop_init(
   }
 
   Collection *to_collection = outliner_collection_from_tree_element(te);
-  if (ID_IS_LINKED(to_collection)) {
+  if (ID_IS_LINKED(to_collection) || ID_IS_OVERRIDE_LIBRARY(to_collection)) {
     return false;
   }
 

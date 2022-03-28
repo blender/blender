@@ -5406,10 +5406,10 @@ static bool particle_edit_toggle_poll(bContext *C)
   Object *ob = CTX_data_active_object(C);
 
   if (ob == NULL || ob->type != OB_MESH) {
-    return 0;
+    return false;
   }
-  if (!ob->data || ID_IS_LINKED(ob->data)) {
-    return 0;
+  if (!ob->data || ID_IS_LINKED(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob->data)) {
+    return false;
   }
 
   return ED_object_particle_edit_mode_supported(ob);

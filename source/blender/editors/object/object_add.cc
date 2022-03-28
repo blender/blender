@@ -1280,7 +1280,7 @@ static bool object_gpencil_add_poll(bContext *C)
   Scene *scene = CTX_data_scene(C);
   Object *obact = CTX_data_active_object(C);
 
-  if ((scene == nullptr) || (ID_IS_LINKED(scene))) {
+  if ((scene == nullptr) || ID_IS_LINKED(scene) || ID_IS_OVERRIDE_LIBRARY(scene)) {
     return false;
   }
 
@@ -2752,12 +2752,14 @@ static int object_convert_exec(bContext *C, wmOperator *op)
        * However, changing this is more design than bug-fix, not to mention convoluted code below,
        * so that will be for later.
        * But at the very least, do not do that with linked IDs! */
-      if ((ID_IS_LINKED(ob) || (ob->data && ID_IS_LINKED(ob->data))) && !keep_original) {
+      if ((!BKE_id_is_editable(bmain, &ob->id) ||
+           (ob->data && !BKE_id_is_editable(bmain, static_cast<ID *>(ob->data)))) &&
+          !keep_original) {
         keep_original = true;
-        BKE_report(
-            op->reports,
-            RPT_INFO,
-            "Converting some linked object/object data, enforcing 'Keep Original' option to True");
+        BKE_report(op->reports,
+                   RPT_INFO,
+                   "Converting some non-editable object/object data, enforcing 'Keep Original' "
+                   "option to True");
       }
 
       DEG_id_tag_update(&base->object->id, ID_RECALC_GEOMETRY);
@@ -3631,7 +3633,7 @@ static int object_transform_to_mouse_exec(bContext *C, wmOperator *op)
 
   /* Don't transform a linked object. There's just nothing to do here in this case, so return
    * #OPERATOR_FINISHED. */
-  if (ID_IS_LINKED(ob)) {
+  if (!BKE_id_is_editable(bmain, &ob->id)) {
     return OPERATOR_FINISHED;
   }
 

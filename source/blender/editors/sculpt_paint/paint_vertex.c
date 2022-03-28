@@ -1404,7 +1404,7 @@ static bool paint_mode_toggle_poll_test(bContext *C)
   if (ob == NULL || ob->type != OB_MESH) {
     return false;
   }
-  if (!ob->data || ID_IS_LINKED(ob->data)) {
+  if (!ob->data || ID_IS_LINKED(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob->data)) {
     return false;
   }
   return true;

@@ -594,6 +594,16 @@ bool BKE_id_is_in_global_main(struct ID *id);
 
 bool BKE_id_can_be_asset(const struct ID *id);
 
+/** Check if that ID can be considered as editable from a high-level (editor) perspective.
+ *
+ * NOTE: This used to be done with a check on whether ID was linked or not, but now with system
+ * overrides this is not enough anymore.
+ *
+ * NOTE: Execution of this function can be somewhat expensive currently. If this becomes an issue,
+ * we should either cache that status info also in virtual override IDs, or address the
+ * long-standing TODO of geting an efficient 'owner_id' access for all embeded ID types. */
+bool BKE_id_is_editable(struct Main *bmain, struct ID *id);
+
 /**
  * Returns ordered list of data-blocks for display in the UI.
  * Result is list of #LinkData of IDs that must be freed.

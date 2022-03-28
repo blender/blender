@@ -185,7 +185,7 @@ static bool text_edit_poll(bContext *C)
     return false;
   }
 
-  if (ID_IS_LINKED(text)) {
+  if (!BKE_id_is_editable(CTX_data_main(C), &text->id)) {
     // BKE_report(op->reports, RPT_ERROR, "Cannot edit external library data");
     return false;
   }
@@ -202,7 +202,7 @@ bool text_space_edit_poll(bContext *C)
     return false;
   }
 
-  if (ID_IS_LINKED(text)) {
+  if (!BKE_id_is_editable(CTX_data_main(C), &text->id)) {
     // BKE_report(op->reports, RPT_ERROR, "Cannot edit external library data");
     return false;
   }
@@ -224,7 +224,7 @@ static bool text_region_edit_poll(bContext *C)
     return false;
   }
 
-  if (ID_IS_LINKED(text)) {
+  if (!BKE_id_is_editable(CTX_data_main(C), &text->id)) {
     // BKE_report(op->reports, RPT_ERROR, "Cannot edit external library data");
     return false;
   }
