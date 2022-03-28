@@ -124,8 +124,11 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
   *offset = 0;
 
   PyErr_Fetch(&exception, &value, (PyObject **)&tb);
+  if (exception == NULL) {
+    return;
+  }
 
-  if (exception && PyErr_GivenExceptionMatches(exception, PyExc_SyntaxError)) {
+  if (PyErr_GivenExceptionMatches(exception, PyExc_SyntaxError)) {
     /* no trace-back available when `SyntaxError`.
      * python has no API's to this. reference #parse_syntax_error() from pythonrun.c */
     PyErr_NormalizeException(&exception, &value, (PyObject **)&tb);
