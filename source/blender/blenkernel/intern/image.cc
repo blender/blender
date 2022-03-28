@@ -468,7 +468,9 @@ constexpr IDTypeInfo get_type_info()
 IDTypeInfo IDType_ID_IM = get_type_info();
 
 /* prototypes */
-static int image_num_files(struct Image *ima);
+static int image_num_viewfiles(Image *ima);
+static ImBuf *image_load_image_file(
+    Image *ima, ImageUser *iuser, int entry, int cfra, bool is_sequence);
 static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock);
 static void image_update_views_format(Image *ima, ImageUser *iuser);
 static void image_add_view(Image *ima, const char *viewname, const char *filepath);
@@ -1277,9 +1279,9 @@ bool BKE_image_memorypack(Image *ima)
 
 void BKE_image_packfiles(ReportList *reports, Image *ima, const char *basepath)
 {
-  const int totfiles = image_num_files(ima);
+  const int tot_viewfiles = image_num_viewfiles(ima);
 
-  if (totfiles == 1) {
+  if (tot_viewfiles == 1) {
     ImagePackedFile *imapf = static_cast<ImagePackedFile *>(
         MEM_mallocN(sizeof(ImagePackedFile), "Image packed file"));
     BLI_addtail(&ima->packedfiles, imapf);
@@ -1313,9 +1315,9 @@ void BKE_image_packfiles_from_mem(ReportList *reports,
                                   char *data,
                                   const size_t data_len)
 {
-  const int totfiles = image_num_files(ima);
+  const int tot_viewfiles = image_num_viewfiles(ima);
 
-  if (totfiles != 1) {
+  if (tot_viewfiles != 1) {
     BKE_report(reports, RPT_ERROR, "Cannot pack multiview images from raw data currently...");
   }
   else {
@@ -2944,9 +2946,9 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
     case IMA_SIGNAL_RELOAD:
       /* try to repack file */
       if (BKE_image_has_packedfile(ima)) {
-        const int totfiles = image_num_files(ima);
+        const int tot_viewfiles = image_num_viewfiles(ima);
 
-        if (totfiles != BLI_listbase_count_at_most(&ima->packedfiles, totfiles + 1)) {
+        if (tot_viewfiles != BLI_listbase_count_at_most(&ima->packedfiles, tot_viewfiles + 1)) {
           /* in case there are new available files to be loaded */
           image_free_packedfiles(ima);
           BKE_image_packfiles(nullptr, ima, ID_BLEND_PATH(bmain, &ima->id));
@@ -3739,7 +3741,7 @@ static int imbuf_alpha_flags_for_image(Image *ima)
 /**
  * \return the number of files will vary according to the stereo format.
  */
-static int image_num_files(Image *ima)
+static int image_num_viewfiles(Image *ima)
 {
   const bool is_multiview = BKE_image_is_multiview(ima);
 
@@ -3752,117 +3754,6 @@ static int image_num_files(Image *ima)
   /* R_IMF_VIEWS_INDIVIDUAL */
 
   return BLI_listbase_count(&ima->views);
-}
-
-static ImBuf *load_sequence_single(
-    Image *ima, ImageUser *iuser, int frame, const int view_id, bool *r_cache_ibuf)
-{
-  struct ImBuf *ibuf;
-  char name[FILE_MAX];
-  int flag;
-  ImageUser iuser_t{};
-
-  *r_cache_ibuf = true;
-
-  ima->lastframe = frame;
-
-  if (iuser) {
-    iuser_t = *iuser;
-  }
-  else {
-    /* BKE_image_user_file_path() uses this value for file name for sequences. */
-    iuser_t.framenr = frame;
-    /* TODO(sergey): Do we need to initialize something else here? */
-  }
-
-  iuser_t.view = view_id;
-  BKE_image_user_file_path(&iuser_t, ima, name);
-
-  flag = IB_rect | IB_multilayer | IB_metadata;
-  flag |= imbuf_alpha_flags_for_image(ima);
-
-  /* read ibuf */
-  ibuf = IMB_loadiffname(name, flag, ima->colorspace_settings.name);
-
-#if 0
-  if (ibuf) {
-    printf(AT " loaded %s\n", name);
-  }
-  else {
-    printf(AT " missed %s\n", name);
-  }
-#endif
-
-  if (ibuf) {
-#ifdef WITH_OPENEXR
-    if (ibuf->ftype == IMB_FTYPE_OPENEXR && ibuf->userdata) {
-      /* Handle multilayer and multiview cases, don't assign ibuf here.
-       * will be set layer in BKE_image_acquire_ibuf from ima->rr. */
-      if (IMB_exr_has_multilayer(ibuf->userdata)) {
-        image_create_multilayer(ima, ibuf, frame);
-        ima->type = IMA_TYPE_MULTILAYER;
-        IMB_freeImBuf(ibuf);
-        ibuf = nullptr;
-        /* Null ibuf in the cache means the image failed to load. However for multilayer we load
-         * pixels into RenderResult instead and intentionally leave ibuf null. */
-        *r_cache_ibuf = false;
-      }
-    }
-    else {
-      image_init_after_load(ima, iuser, ibuf);
-    }
-#else
-    image_init_after_load(ima, iuser, ibuf);
-#endif
-  }
-
-  return ibuf;
-}
-
-static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int entry, int frame)
-{
-  struct ImBuf *ibuf = nullptr;
-  const bool is_multiview = BKE_image_is_multiview(ima);
-  const int totfiles = image_num_files(ima);
-
-  if (!is_multiview) {
-    bool put_in_cache;
-    ibuf = load_sequence_single(ima, iuser, frame, 0, &put_in_cache);
-    if (put_in_cache) {
-      image_assign_ibuf(ima, ibuf, 0, entry);
-    }
-  }
-  else {
-    const int totviews = BLI_listbase_count(&ima->views);
-    Array<ImBuf *> ibuf_arr(totviews);
-    Array<bool> cache_ibuf_arr(totviews);
-
-    for (int i = 0; i < totfiles; i++) {
-      ibuf_arr[i] = load_sequence_single(ima, iuser, frame, i, &cache_ibuf_arr[i]);
-    }
-
-    if (BKE_image_is_stereo(ima) && ima->views_format == R_IMF_VIEWS_STEREO_3D) {
-      IMB_ImBufFromStereo3d(ima->stereo3d_format, ibuf_arr[0], &ibuf_arr[0], &ibuf_arr[1]);
-    }
-
-    /* return the original requested ImBuf */
-    ibuf = ibuf_arr[(iuser ? iuser->multi_index : 0)];
-
-    for (int i = 0; i < totviews; i++) {
-      if (cache_ibuf_arr[i]) {
-        image_assign_ibuf(ima, ibuf_arr[i], i, entry);
-      }
-    }
-
-    /* "remove" the others (decrease their refcount) */
-    for (int i = 0; i < totviews; i++) {
-      if (ibuf_arr[i] != ibuf) {
-        IMB_freeImBuf(ibuf_arr[i]);
-      }
-    }
-  }
-
-  return ibuf;
 }
 
 static ImBuf *image_load_sequence_multilayer(Image *ima, ImageUser *iuser, int entry, int frame)
@@ -3883,7 +3774,7 @@ static ImBuf *image_load_sequence_multilayer(Image *ima, ImageUser *iuser, int e
       ima->rr = nullptr;
     }
 
-    ibuf = image_load_sequence_file(ima, iuser, entry, frame);
+    ibuf = image_load_image_file(ima, iuser, entry, frame, true);
 
     if (ibuf) { /* actually an error */
       ima->type = IMA_TYPE_IMAGE;
@@ -3970,12 +3861,12 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 {
   struct ImBuf *ibuf = nullptr;
   const bool is_multiview = BKE_image_is_multiview(ima);
-  const int totfiles = image_num_files(ima);
+  const int tot_viewfiles = image_num_viewfiles(ima);
 
-  if (totfiles != BLI_listbase_count_at_most(&ima->anims, totfiles + 1)) {
+  if (tot_viewfiles != BLI_listbase_count_at_most(&ima->anims, tot_viewfiles + 1)) {
     image_free_anims(ima);
 
-    for (int i = 0; i < totfiles; i++) {
+    for (int i = 0; i < tot_viewfiles; i++) {
       /* allocate the ImageAnim */
       ImageAnim *ia = MEM_cnew<ImageAnim>("Image Anim");
       BLI_addtail(&ima->anims, ia);
@@ -3990,7 +3881,7 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
     const int totviews = BLI_listbase_count(&ima->views);
     Array<ImBuf *> ibuf_arr(totviews);
 
-    for (int i = 0; i < totfiles; i++) {
+    for (int i = 0; i < tot_viewfiles; i++) {
       ibuf_arr[i] = load_movie_single(ima, iuser, frame, i);
     }
 
@@ -4021,23 +3912,21 @@ static ImBuf *load_image_single(Image *ima,
                                 int cfra,
                                 const int view_id,
                                 const bool has_packed,
+                                const bool is_sequence,
                                 bool *r_cache_ibuf)
 {
   char filepath[FILE_MAX];
   struct ImBuf *ibuf = nullptr;
-  int flag;
+  int flag = IB_rect | IB_multilayer;
 
   *r_cache_ibuf = true;
 
   /* is there a PackedFile with this image ? */
-  if (has_packed) {
-    ImagePackedFile *imapf;
-
-    flag = IB_rect | IB_multilayer;
-    flag |= imbuf_alpha_flags_for_image(ima);
-
-    imapf = static_cast<ImagePackedFile *>(BLI_findlink(&ima->packedfiles, view_id));
+  if (has_packed && !is_sequence) {
+    ImagePackedFile *imapf = static_cast<ImagePackedFile *>(
+        BLI_findlink(&ima->packedfiles, view_id));
     if (imapf->packedfile) {
+      flag |= imbuf_alpha_flags_for_image(ima);
       ibuf = IMB_ibImageFromMemory((unsigned char *)imapf->packedfile->data,
                                    imapf->packedfile->size,
                                    flag,
@@ -4046,14 +3935,17 @@ static ImBuf *load_image_single(Image *ima,
     }
   }
   else {
-    ImageUser iuser_t{};
-
-    flag = IB_rect | IB_multilayer | IB_metadata;
-    flag |= imbuf_alpha_flags_for_image(ima);
+    if (is_sequence) {
+      ima->lastframe = cfra;
+    }
 
     /* get the correct filepath */
-    BKE_image_user_frame_calc(ima, iuser, cfra);
+    const bool is_tiled = (ima->source == IMA_SRC_TILED);
+    if (!(is_sequence || is_tiled)) {
+      BKE_image_user_frame_calc(ima, iuser, cfra);
+    }
 
+    ImageUser iuser_t{};
     if (iuser) {
       iuser_t = *iuser;
     }
@@ -4066,6 +3958,8 @@ static ImBuf *load_image_single(Image *ima,
     BKE_image_user_file_path(&iuser_t, ima, filepath);
 
     /* read ibuf */
+    flag |= IB_metadata;
+    flag |= imbuf_alpha_flags_for_image(ima);
     ibuf = IMB_loadiffname(filepath, flag, ima->colorspace_settings.name);
   }
 
@@ -4090,7 +3984,7 @@ static ImBuf *load_image_single(Image *ima,
       image_init_after_load(ima, iuser, ibuf);
 
       /* Make packed file for auto-pack. */
-      if ((has_packed == false) && (G.fileflags & G_FILE_AUTOPACK)) {
+      if (!is_sequence && (has_packed == false) && (G.fileflags & G_FILE_AUTOPACK)) {
         ImagePackedFile *imapf = static_cast<ImagePackedFile *>(
             MEM_mallocN(sizeof(ImagePackedFile), "Image Pack-file"));
         BLI_addtail(&ima->packedfiles, imapf);
@@ -4108,18 +4002,23 @@ static ImBuf *load_image_single(Image *ima,
 /* warning, 'iuser' can be null
  * NOTE: Image->views was already populated (in image_update_views_format)
  */
-static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
+static ImBuf *image_load_image_file(
+    Image *ima, ImageUser *iuser, int entry, int cfra, bool is_sequence)
 {
   struct ImBuf *ibuf = nullptr;
   const bool is_multiview = BKE_image_is_multiview(ima);
-  const int totfiles = image_num_files(ima);
+  const bool is_tiled = (ima->source == IMA_SRC_TILED);
+  const int tot_viewfiles = image_num_viewfiles(ima);
   bool has_packed = BKE_image_has_packedfile(ima);
 
-  /* always ensure clean ima */
-  BKE_image_free_buffers(ima);
+  if (!(is_sequence || is_tiled)) {
+    /* ensure clean ima */
+    BKE_image_free_buffers(ima);
+  }
 
   /* this should never happen, but just playing safe */
-  if (has_packed) {
+  if (!is_sequence && has_packed) {
+    const int totfiles = tot_viewfiles * BLI_listbase_count(&ima->tiles);
     if (totfiles != BLI_listbase_count_at_most(&ima->packedfiles, totfiles + 1)) {
       image_free_packedfiles(ima);
       has_packed = false;
@@ -4128,9 +4027,10 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 
   if (!is_multiview) {
     bool put_in_cache;
-    ibuf = load_image_single(ima, iuser, cfra, 0, has_packed, &put_in_cache);
+    ibuf = load_image_single(ima, iuser, cfra, 0, has_packed, is_sequence, &put_in_cache);
     if (put_in_cache) {
-      image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
+      const int index = (is_sequence || is_tiled) ? 0 : IMA_NO_INDEX;
+      image_assign_ibuf(ima, ibuf, index, entry);
     }
   }
   else {
@@ -4140,28 +4040,29 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
     Array<ImBuf *> ibuf_arr(totviews);
     Array<bool> cache_ibuf_arr(totviews);
 
-    for (int i = 0; i < totfiles; i++) {
-      ibuf_arr[i] = load_image_single(ima, iuser, cfra, i, has_packed, &cache_ibuf_arr[i]);
+    for (int i = 0; i < tot_viewfiles; i++) {
+      ibuf_arr[i] = load_image_single(
+          ima, iuser, cfra, i, has_packed, is_sequence, &cache_ibuf_arr[i]);
     }
 
     /* multi-views/multi-layers OpenEXR files directly populate ima, and return null ibuf... */
     if (BKE_image_is_stereo(ima) && ima->views_format == R_IMF_VIEWS_STEREO_3D && ibuf_arr[0] &&
-        totfiles == 1 && totviews >= 2) {
+        tot_viewfiles == 1 && totviews >= 2) {
       IMB_ImBufFromStereo3d(ima->stereo3d_format, ibuf_arr[0], &ibuf_arr[0], &ibuf_arr[1]);
     }
 
     /* return the original requested ImBuf */
-    int i = (iuser && iuser->multi_index < totviews) ? iuser->multi_index : 0;
-    ibuf = ibuf_arr[i];
+    const int ibuf_index = (iuser && iuser->multi_index < totviews) ? iuser->multi_index : 0;
+    ibuf = ibuf_arr[ibuf_index];
 
-    for (i = 0; i < totviews; i++) {
+    for (int i = 0; i < totviews; i++) {
       if (cache_ibuf_arr[i]) {
-        image_assign_ibuf(ima, ibuf_arr[i], i, 0);
+        image_assign_ibuf(ima, ibuf_arr[i], i, entry);
       }
     }
 
     /* "remove" the others (decrease their refcount) */
-    for (i = 0; i < totviews; i++) {
+    for (int i = 0; i < totviews; i++) {
       if (ibuf_arr[i] != ibuf) {
         IMB_freeImBuf(ibuf_arr[i]);
       }
@@ -4176,7 +4077,7 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
   ImBuf *ibuf = nullptr;
 
   if (ima->rr == nullptr) {
-    ibuf = image_load_image_file(ima, iuser, 0);
+    ibuf = image_load_image_file(ima, iuser, 0, 0, false);
     if (ibuf) { /* actually an error */
       ima->type = IMA_TYPE_IMAGE;
       return ibuf;
@@ -4553,7 +4454,7 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock)
     else if (ima->source == IMA_SRC_SEQUENCE) {
       if (ima->type == IMA_TYPE_IMAGE) {
         /* Regular files, ibufs in flip-book, allows saving. */
-        ibuf = image_load_sequence_file(ima, iuser, entry, entry);
+        ibuf = image_load_image_file(ima, iuser, entry, entry, true);
       }
       /* no else; on load the ima type can change */
       if (ima->type == IMA_TYPE_MULTILAYER) {
@@ -4564,7 +4465,7 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock)
     else if (ima->source == IMA_SRC_TILED) {
       if (ima->type == IMA_TYPE_IMAGE) {
         /* Regular files, ibufs in flip-book, allows saving */
-        ibuf = image_load_sequence_file(ima, iuser, entry, 0);
+        ibuf = image_load_image_file(ima, iuser, entry, 0, false);
       }
       /* no else; on load the ima type can change */
       if (ima->type == IMA_TYPE_MULTILAYER) {
@@ -4575,7 +4476,8 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock)
     else if (ima->source == IMA_SRC_FILE) {
 
       if (ima->type == IMA_TYPE_IMAGE) {
-        ibuf = image_load_image_file(ima, iuser, entry); /* cfra only for '#', this global is OK */
+        ibuf = image_load_image_file(
+            ima, iuser, 0, entry, false); /* cfra only for '#', this global is OK */
       }
       /* no else; on load the ima type can change */
       if (ima->type == IMA_TYPE_MULTILAYER) {
