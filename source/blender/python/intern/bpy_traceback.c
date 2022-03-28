@@ -162,9 +162,10 @@ finally:
 }
 /* end copied function! */
 
-void python_script_error_jump(
+bool python_script_error_jump(
     const char *filepath, int *r_lineno, int *r_offset, int *r_lineno_end, int *r_offset_end)
 {
+  bool success = false;
   PyObject *exception, *value;
   PyTracebackObject *tb;
 
@@ -176,7 +177,7 @@ void python_script_error_jump(
 
   PyErr_Fetch(&exception, &value, (PyObject **)&tb);
   if (exception == NULL) {
-    return;
+    return false;
   }
 
   if (PyErr_GivenExceptionMatches(exception, PyExc_SyntaxError)) {
@@ -200,14 +201,8 @@ void python_script_error_jump(
         /* python adds a '/', prefix, so check for both */
         if ((BLI_path_cmp(filepath_exc, filepath) == 0) ||
             (ELEM(filepath_exc[0], '\\', '/') && BLI_path_cmp(filepath_exc + 1, filepath) == 0)) {
-          /* good */
+          success = true;
         }
-        else {
-          *r_lineno = -1;
-        }
-      }
-      else {
-        *r_lineno = -1;
       }
     }
     PyErr_Restore(exception, value, (PyObject *)tb); /* takes away reference! */
@@ -228,9 +223,12 @@ void python_script_error_jump(
       Py_DECREF(coerce);
 
       if (match) {
+        success = true;
         *r_lineno = *r_lineno_end = tb->tb_lineno;
         /* used to break here, but better find the inner most line */
       }
     }
   }
+
+  return success;
 }

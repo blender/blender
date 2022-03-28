@@ -39,8 +39,7 @@ static void python_script_error_jump_text(Text *text, const char *filepath)
 {
   int lineno, lineno_end;
   int offset, offset_end;
-  python_script_error_jump(filepath, &lineno, &offset, &lineno_end, &offset_end);
-  if (lineno != -1) {
+  if (python_script_error_jump(filepath, &lineno, &offset, &lineno_end, &offset_end)) {
     /* Start at the end so cursor motion that looses the selection,
      * leaves the cursor from the most useful place.
      * Also, the end can't always be set, so don't give it priority. */
