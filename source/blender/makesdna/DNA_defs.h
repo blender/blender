@@ -133,13 +133,6 @@ template<class T> inline void zero_memory(T &object)
   _DNA_internal_memzero(&object, sizeof(T));
 }
 
-/* Copy memory from one DNA object to another. */
-template<class T> inline void copy_memory(T &dst, const T &src)
-{
-  /* TODO(sergey): Consider adding static assert for T being a trivial type. */
-  _DNA_internal_memcpy(&dst, &src, sizeof(T));
-}
-
 }  // namespace blender::dna
 
 #endif
