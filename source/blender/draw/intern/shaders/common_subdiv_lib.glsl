@@ -107,6 +107,10 @@ struct PosNorLoop {
   float flag;
 };
 
+struct LoopNormal {
+  float nx, ny, nz, flag;
+};
+
 vec3 get_vertex_pos(PosNorLoop vertex_data)
 {
   return vec3(vertex_data.x, vertex_data.y, vertex_data.z);
@@ -115,6 +119,16 @@ vec3 get_vertex_pos(PosNorLoop vertex_data)
 vec3 get_vertex_nor(PosNorLoop vertex_data)
 {
   return vec3(vertex_data.nx, vertex_data.ny, vertex_data.nz);
+}
+
+LoopNormal get_normal_and_flag(PosNorLoop vertex_data)
+{
+  LoopNormal loop_nor;
+  loop_nor.nx = vertex_data.nx;
+  loop_nor.ny = vertex_data.ny;
+  loop_nor.nz = vertex_data.nz;
+  loop_nor.flag = vertex_data.flag;
+  return loop_nor;
 }
 
 void set_vertex_pos(inout PosNorLoop vertex_data, vec3 pos)

@@ -13,8 +13,13 @@ layout(std430, binding = 2) readonly buffer extraCoarseFaceData
 
 layout(std430, binding = 3) writeonly buffer outputLoopNormals
 {
-  vec3 output_lnor[];
+  LoopNormal output_lnor[];
 };
+
+bool is_face_selected(uint coarse_quad_index)
+{
+  return (extra_coarse_face_data[coarse_quad_index] & coarse_face_select_mask) != 0;
+}
 
 void main()
 {
@@ -34,7 +39,7 @@ void main()
     /* Face is smooth, use vertex normals. */
     for (int i = 0; i < 4; i++) {
       PosNorLoop pos_nor_loop = pos_nor[start_loop_index + i];
-      output_lnor[start_loop_index + i] = get_vertex_nor(pos_nor_loop);
+      output_lnor[start_loop_index + i] = get_normal_and_flag(pos_nor_loop);
     }
   }
   else {
@@ -50,8 +55,19 @@ void main()
     add_newell_cross_v3_v3v3(face_normal, v3, v0);
 
     face_normal = normalize(face_normal);
+
+    LoopNormal loop_normal;
+    loop_normal.nx = face_normal.x;
+    loop_normal.ny = face_normal.y;
+    loop_normal.nz = face_normal.z;
+    loop_normal.flag = 0.0;
+
+    if (is_face_selected(coarse_quad_index)) {
+      loop_normal.flag = 1.0;
+    }
+
     for (int i = 0; i < 4; i++) {
-      output_lnor[start_loop_index + i] = face_normal;
+      output_lnor[start_loop_index + i] = loop_normal;
     }
   }
 }
