@@ -476,6 +476,21 @@ static void vicon_strip_color_draw_library_data_indirect(
       x, y, ICON_LIBRARY_DATA_DIRECT, aspect, ICON_INDIRECT_DATA_ALPHA * alpha, 0.0f, NULL, false);
 }
 
+static void vicon_strip_color_draw_library_data_override_noneditable(
+    int x, int y, int w, int UNUSED(h), float alpha)
+{
+  const float aspect = (float)ICON_DEFAULT_WIDTH / (float)w;
+
+  UI_icon_draw_ex(x,
+                  y,
+                  ICON_LIBRARY_DATA_OVERRIDE,
+                  aspect,
+                  ICON_INDIRECT_DATA_ALPHA * alpha * 0.75f,
+                  0.0f,
+                  NULL,
+                  false);
+}
+
 /* Dynamically render icon instead of rendering a plain color to a texture/buffer
  * This is not strictly a "vicon", as it needs access to icon->obj to get the color info,
  * but it works in a very similar way.
@@ -987,6 +1002,8 @@ static void init_internal_icons(void)
   def_internal_vicon(ICON_SEQUENCE_COLOR_09, vicon_strip_color_draw_09);
 
   def_internal_vicon(ICON_LIBRARY_DATA_INDIRECT, vicon_strip_color_draw_library_data_indirect);
+  def_internal_vicon(ICON_LIBRARY_DATA_OVERRIDE_NONEDITABLE,
+                     vicon_strip_color_draw_library_data_override_noneditable);
 }
 
 static void init_iconfile_list(struct ListBase *list)
@@ -2192,6 +2209,10 @@ int UI_icon_from_library(const ID *id)
     return ICON_LIBRARY_DATA_DIRECT;
   }
   if (ID_IS_OVERRIDE_LIBRARY(id)) {
+    if (!ID_IS_OVERRIDE_LIBRARY_REAL(id) ||
+        (id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED) != 0) {
+      return ICON_LIBRARY_DATA_OVERRIDE_NONEDITABLE;
+    }
     return ICON_LIBRARY_DATA_OVERRIDE;
   }
   if (ID_IS_ASSET(id)) {
