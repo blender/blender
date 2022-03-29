@@ -322,6 +322,18 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
   return local_id;
 }
 
+static void lib_override_prefill_newid_from_existing_overrides(Main *bmain, ID *id_hierarchy_root)
+{
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    if (ID_IS_OVERRIDE_LIBRARY_REAL(id_iter) &&
+        id_iter->override_library->hierarchy_root == id_hierarchy_root) {
+      id_iter->override_library->reference->newid = id_iter;
+    }
+  }
+  FOREACH_MAIN_ID_END;
+}
+
 /* TODO: Make this static local function instead? API is becoming complex, and it's not used
  * outside of this file anyway. */
 bool BKE_lib_override_library_create_from_tag(Main *bmain,
@@ -345,6 +357,13 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
      * resync process mainly). */
     BLI_assert((ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root) &&
                 id_hierarchy_root->override_library->reference->lib == id_root_reference->lib));
+
+    if (!do_no_main) {
+      /* When processing within Main, set existing overrides in given hierarchy as 'newid' of their
+       * linked reference. This allows to re-use existing overrides instead of creating new ones in
+       * partial override cases. */
+      lib_override_prefill_newid_from_existing_overrides(bmain, id_hierarchy_root);
+    }
   }
   if (!ELEM(id_hierarchy_root_reference, NULL, id_root_reference)) {
     /* If the reference hierarchy root is given, it must be from the same library as the reference
