@@ -514,6 +514,10 @@ class _draw_tool_settings_context_mode:
             layout.prop(tool_settings.curves_sculpt, "interpolate_length")
             layout.prop(tool_settings.curves_sculpt, "interpolate_shape")
 
+        if brush.curves_sculpt_tool == 'SNAKE_HOOK':
+            layout.prop(brush, "falloff_shape", expand=True)
+            layout.prop(brush, "curve_preset")
+
         if brush.curves_sculpt_tool == 'TEST1':
             layout.prop(tool_settings.curves_sculpt, "distance")
 
