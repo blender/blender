@@ -1,15 +1,6 @@
 
-/* ---- Instantiated Attrs ---- */
-in vec2 pos;
-
-/* ---- Per instance Attrs ---- */
-in vec4 color;
-in mat4 inst_obmat;
-
-flat out vec3 finalStateColor;
-flat out vec3 finalBoneColor;
-flat out mat4 sphereMatrix;
-out vec3 viewPosition;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 /* Sphere radius */
 const float rad = 0.05;
@@ -80,8 +71,6 @@ void main()
   finalStateColor = state_color.xyz;
   finalBoneColor = bone_color.xyz;
 
-#ifdef USE_WORLD_CLIP_PLANES
-  vec4 worldPosition = model_mat * pos_4d;
-  world_clip_planes_calc_clip_distance(worldPosition.xyz);
-#endif
+  vec4 world_pos = model_mat * pos_4d;
+  view_clipping_distances(world_pos.xyz);
 }

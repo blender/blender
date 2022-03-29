@@ -1,13 +1,6 @@
 
-/* ---- Instantiated Attrs ---- */
-in vec2 pos;
-
-/* ---- Per instance Attrs ---- */
-in mat4 inst_obmat;
-
-flat out vec4 finalColor;
-flat out vec2 edgeStart;
-noperspective out vec2 edgePos;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 /* project to screen space */
 vec2 proj(vec4 pos)
@@ -70,14 +63,12 @@ void main()
 
   /* Offset away from the center to avoid overlap with solid shape. */
   vec2 ofs_dir = normalize(proj(gl_Position) - proj(center));
-  gl_Position.xy += ofs_dir * sizeViewportInv.xy * gl_Position.w;
+  gl_Position.xy += ofs_dir * drw_view.viewport_size_inverse * gl_Position.w;
 
   edgeStart = edgePos = proj(gl_Position);
 
   finalColor = vec4(bone_color.rgb, 1.0);
 
-#ifdef USE_WORLD_CLIP_PLANES
-  vec4 worldPosition = model_mat * vec4(cam_pos0, 1.0);
-  world_clip_planes_calc_clip_distance(worldPosition.xyz);
-#endif
+  vec4 world_pos = model_mat * vec4(cam_pos0, 1.0);
+  view_clipping_distances(world_pos.xyz);
 }

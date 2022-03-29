@@ -325,35 +325,16 @@ GPUShader *OVERLAY_shader_edit_mesh_edge(bool use_flat_interp)
 GPUShader *OVERLAY_shader_armature_sphere(bool use_outline)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
-  const char extensions[] = "";
   if (use_outline && !sh_data->armature_sphere_outline) {
-    sh_data->armature_sphere_outline = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_armature_sphere_outline_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){extensions,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_armature_wire_frag_glsl,
-                                 NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->armature_sphere_outline = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_armature_sphere_outline_clipped" :
+                           "overlay_armature_sphere_outline");
   }
   else if (!sh_data->armature_sphere_solid) {
-    sh_data->armature_sphere_solid = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_armature_sphere_solid_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){extensions,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_armature_sphere_solid_frag_glsl,
-                                 NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->armature_sphere_solid = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_armature_sphere_solid_clipped" :
+                           "overlay_armature_sphere_solid");
   }
   return use_outline ? sh_data->armature_sphere_outline : sh_data->armature_sphere_solid;
 }
@@ -361,34 +342,16 @@ GPUShader *OVERLAY_shader_armature_sphere(bool use_outline)
 GPUShader *OVERLAY_shader_armature_shape(bool use_outline)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (use_outline && !sh_data->armature_shape_outline) {
-    sh_data->armature_shape_outline = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_armature_shape_outline_vert_glsl,
-                                 NULL},
-        .geom = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_armature_shape_outline_geom_glsl,
-                                 NULL},
-        .frag =
-            (const char *[]){datatoc_common_view_lib_glsl, datatoc_armature_wire_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->armature_shape_outline = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_armature_shape_outline_clipped" :
+                           "overlay_armature_shape_outline");
   }
   else if (!sh_data->armature_shape_solid) {
-    sh_data->armature_shape_solid = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_armature_shape_solid_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_armature_shape_solid_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->armature_shape_solid = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_armature_shape_solid_clipped" :
+                           "overlay_armature_shape_solid");
   }
   return use_outline ? sh_data->armature_shape_outline : sh_data->armature_shape_solid;
 }
@@ -396,19 +359,10 @@ GPUShader *OVERLAY_shader_armature_shape(bool use_outline)
 GPUShader *OVERLAY_shader_armature_shape_wire(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->armature_shape_wire) {
-    sh_data->armature_shape_wire = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_armature_shape_wire_vert_glsl,
-                                 NULL},
-        .frag =
-            (const char *[]){datatoc_common_view_lib_glsl, datatoc_armature_wire_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->armature_shape_wire = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_armature_shape_wire_clipped" : "overlay_armature_shape_wire");
   }
   return sh_data->armature_shape_wire;
 }
@@ -416,29 +370,16 @@ GPUShader *OVERLAY_shader_armature_shape_wire(void)
 GPUShader *OVERLAY_shader_armature_envelope(bool use_outline)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (use_outline && !sh_data->armature_envelope_outline) {
-    sh_data->armature_envelope_outline = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_armature_envelope_outline_vert_glsl,
-                                 NULL},
-        .frag =
-            (const char *[]){datatoc_common_view_lib_glsl, datatoc_armature_wire_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->armature_envelope_outline = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_armature_envelope_outline_clipped" :
+                           "overlay_armature_envelope_outline");
   }
   else if (!sh_data->armature_envelope_solid) {
-    sh_data->armature_envelope_solid = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_armature_envelope_solid_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_armature_envelope_solid_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->armature_envelope_solid = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_armature_envelope_solid_clipped" :
+                           "overlay_armature_envelope_solid");
   }
   return use_outline ? sh_data->armature_envelope_outline : sh_data->armature_envelope_solid;
 }
@@ -446,18 +387,10 @@ GPUShader *OVERLAY_shader_armature_envelope(bool use_outline)
 GPUShader *OVERLAY_shader_armature_stick(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->armature_stick) {
-    sh_data->armature_stick = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_armature_stick_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_armature_stick_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->armature_stick = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_armature_stick_clipped" : "overlay_armature_stick");
   }
   return sh_data->armature_stick;
 }
@@ -465,19 +398,10 @@ GPUShader *OVERLAY_shader_armature_stick(void)
 GPUShader *OVERLAY_shader_armature_degrees_of_freedom_wire(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->armature_dof_wire) {
-    sh_data->armature_dof_wire = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_armature_dof_vert_glsl,
-                                 NULL},
-        .frag =
-            (const char *[]){datatoc_common_view_lib_glsl, datatoc_armature_wire_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, "#define EDGE\n", NULL},
-    });
+    sh_data->armature_dof_wire = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_armature_dof_wire_clipped" : "overlay_armature_dof_wire");
   }
   return sh_data->armature_dof_wire;
 }
@@ -485,20 +409,10 @@ GPUShader *OVERLAY_shader_armature_degrees_of_freedom_wire(void)
 GPUShader *OVERLAY_shader_armature_degrees_of_freedom_solid(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->armature_dof_solid) {
-    sh_data->armature_dof_solid = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_armature_dof_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_common_view_lib_glsl,
-                                 datatoc_armature_dof_solid_frag_glsl,
-                                 NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->armature_dof_solid = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_armature_dof_solid_clipped" : "overlay_armature_dof_solid");
   }
   return sh_data->armature_dof_solid;
 }
@@ -506,19 +420,10 @@ GPUShader *OVERLAY_shader_armature_degrees_of_freedom_solid(void)
 GPUShader *OVERLAY_shader_armature_wire(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->armature_wire) {
-    sh_data->armature_wire = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_armature_wire_vert_glsl,
-                                 NULL},
-        .frag =
-            (const char *[]){datatoc_common_view_lib_glsl, datatoc_armature_wire_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->armature_wire = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_armature_wire_clipped" : "overlay_armature_wire");
   }
   return sh_data->armature_wire;
 }

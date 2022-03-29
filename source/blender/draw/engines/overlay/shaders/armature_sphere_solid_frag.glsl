@@ -1,18 +1,5 @@
 
-uniform float alpha = 0.4;
-
-flat in vec3 finalStateColor;
-flat in vec3 finalBoneColor;
-flat in mat4 sphereMatrix;
-in vec3 viewPosition;
-
-#ifdef GL_ARB_conservative_depth
-/* Saves a lot of overdraw! */
-layout(depth_greater) out float gl_FragDepth;
-#endif
-
-layout(location = 0) out vec4 fragColor;
-layout(location = 1) out vec4 lineOutput;
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {
