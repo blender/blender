@@ -493,7 +493,7 @@ class NearestTransferFunction : public fn::MultiFunction {
     GMutableSpan dst = params.uninitialized_single_output_if_required(1, "Attribute");
 
     if (!use_mesh_ && !use_points_) {
-      dst.type().fill_construct_indices(dst.type().default_value(), dst.data(), mask);
+      dst.type().value_initialize_indices(dst.data(), mask);
       return;
     }
 
@@ -673,7 +673,7 @@ class IndexTransferFunction : public fn::MultiFunction {
 
     const CPPType &type = dst.type();
     if (src_data_ == nullptr) {
-      type.fill_construct_indices(type.default_value(), dst.data(), mask);
+      type.value_initialize_indices(dst.data(), mask);
       return;
     }
 
