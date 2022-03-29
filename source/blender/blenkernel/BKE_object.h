@@ -163,9 +163,12 @@ int BKE_object_visibility(const struct Object *ob, int dag_eval_mode);
 
 /**
  * More general add: creates minimum required data, but without vertices etc.
+ *
+ * \param bmain: The main to add the object to. May be null for #LIB_ID_CREATE_NO_MAIN behavior.
  */
-struct Object *BKE_object_add_only_object(struct Main *bmain, int type, const char *name)
-    ATTR_NONNULL(1) ATTR_RETURNS_NONNULL;
+struct Object *BKE_object_add_only_object(struct Main *bmain,
+                                          int type,
+                                          const char *name) ATTR_RETURNS_NONNULL;
 /**
  * General add: to scene, with layer from area and default name.
  *
