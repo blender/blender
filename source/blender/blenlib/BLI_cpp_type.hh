@@ -110,6 +110,9 @@ class CPPType : NonCopyable, NonMovable {
   void (*default_construct_)(void *ptr) = nullptr;
   void (*default_construct_indices_)(void *ptr, IndexMask mask) = nullptr;
 
+  void (*value_initialize_)(void *ptr) = nullptr;
+  void (*value_initialize_indices_)(void *ptr, IndexMask mask) = nullptr;
+
   void (*destruct_)(void *ptr) = nullptr;
   void (*destruct_indices_)(void *ptr, IndexMask mask) = nullptr;
 
@@ -323,6 +326,31 @@ class CPPType : NonCopyable, NonMovable {
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(ptr));
 
     default_construct_indices_(ptr, mask);
+  }
+
+  /**
+   * Same as #default_construct, but does zero initialization for trivial types.
+   *
+   * C++ equivalent:
+   *   new (ptr) T();
+   */
+  void value_initialize(void *ptr) const
+  {
+    BLI_assert(this->pointer_can_point_to_instance(ptr));
+
+    value_initialize_(ptr);
+  }
+
+  void value_initialize_n(void *ptr, int64_t n) const
+  {
+    this->value_initialize_indices(ptr, IndexMask(n));
+  }
+
+  void value_initialize_indices(void *ptr, IndexMask mask) const
+  {
+    BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(ptr));
+
+    value_initialize_indices_(ptr, mask);
   }
 
   /**
