@@ -1556,7 +1556,6 @@ bool node_link_bezier_handles(const View2D *v2d,
   }
 
   /* in v0 and v3 we put begin/end points */
-  int toreroute, fromreroute;
   if (link.fromsock) {
     vec[0][0] = link.fromsock->locx;
     vec[0][1] = link.fromsock->locy;
@@ -1567,14 +1566,12 @@ bool node_link_bezier_handles(const View2D *v2d,
           link.fromsock->total_inputs);
       copy_v2_v2(vec[0], position);
     }
-    fromreroute = (link.fromnode && link.fromnode->type == NODE_REROUTE);
   }
   else {
     if (snode == nullptr) {
       return false;
     }
     copy_v2_v2(vec[0], cursor);
-    fromreroute = 0;
   }
   if (link.tosock) {
     vec[3][0] = link.tosock->locx;
@@ -1586,14 +1583,12 @@ bool node_link_bezier_handles(const View2D *v2d,
           link.tosock->total_inputs);
       copy_v2_v2(vec[3], position);
     }
-    toreroute = (link.tonode && link.tonode->type == NODE_REROUTE);
   }
   else {
     if (snode == nullptr) {
       return false;
     }
     copy_v2_v2(vec[3], cursor);
-    toreroute = 0;
   }
 
   /* may be called outside of drawing (so pass spacetype) */
@@ -1607,37 +1602,12 @@ bool node_link_bezier_handles(const View2D *v2d,
   }
 
   const float dist = curving * 0.10f * fabsf(vec[0][0] - vec[3][0]);
-  const float deltax = vec[3][0] - vec[0][0];
-  const float deltay = vec[3][1] - vec[0][1];
-  /* check direction later, for top sockets */
-  if (fromreroute) {
-    if (fabsf(deltax) > fabsf(deltay)) {
-      vec[1][1] = vec[0][1];
-      vec[1][0] = vec[0][0] + (deltax > 0 ? dist : -dist);
-    }
-    else {
-      vec[1][0] = vec[0][0];
-      vec[1][1] = vec[0][1] + (deltay > 0 ? dist : -dist);
-    }
-  }
-  else {
-    vec[1][0] = vec[0][0] + dist;
-    vec[1][1] = vec[0][1];
-  }
-  if (toreroute) {
-    if (fabsf(deltax) > fabsf(deltay)) {
-      vec[2][1] = vec[3][1];
-      vec[2][0] = vec[3][0] + (deltax > 0 ? -dist : dist);
-    }
-    else {
-      vec[2][0] = vec[3][0];
-      vec[2][1] = vec[3][1] + (deltay > 0 ? -dist : dist);
-    }
-  }
-  else {
-    vec[2][0] = vec[3][0] - dist;
-    vec[2][1] = vec[3][1];
-  }
+
+  vec[1][0] = vec[0][0] + dist;
+  vec[1][1] = vec[0][1];
+
+  vec[2][0] = vec[3][0] - dist;
+  vec[2][1] = vec[3][1];
 
   if (v2d && min_ffff(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) > v2d->cur.xmax) {
     return false; /* clipped */
