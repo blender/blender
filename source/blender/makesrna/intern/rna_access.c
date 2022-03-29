@@ -6012,13 +6012,29 @@ char *RNA_path_struct_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 
 char *RNA_path_property_py(const PointerRNA *UNUSED(ptr), PropertyRNA *prop, int index)
 {
+  const bool is_rna = (prop->magic == RNA_MAGIC);
+  const char *propname = RNA_property_identifier(prop);
   char *ret;
 
   if ((index == -1) || (RNA_property_array_check(prop) == false)) {
-    ret = BLI_sprintfN("%s", RNA_property_identifier(prop));
+    if (is_rna) {
+      ret = BLI_strdup(propname);
+    }
+    else {
+      char propname_esc[MAX_IDPROP_NAME * 2];
+      BLI_str_escape(propname_esc, propname, sizeof(propname_esc));
+      ret = BLI_sprintfN("[\"%s\"]", propname_esc);
+    }
   }
   else {
-    ret = BLI_sprintfN("%s[%d]", RNA_property_identifier(prop), index);
+    if (is_rna) {
+      ret = BLI_sprintfN("%s[%d]", propname, index);
+    }
+    else {
+      char propname_esc[MAX_IDPROP_NAME * 2];
+      BLI_str_escape(propname_esc, propname, sizeof(propname_esc));
+      ret = BLI_sprintfN("[\"%s\"][%d]", propname_esc, index);
+    }
   }
 
   return ret;
