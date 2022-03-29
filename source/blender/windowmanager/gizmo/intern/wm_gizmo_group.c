@@ -1130,7 +1130,12 @@ void WM_gizmo_group_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   const wmGizmoGroupType *gzgt = gzgroup->type;
   if (gzgt->flag & WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK) {
     wmGizmoMap *gzmap = gzgroup->parent_gzmap;
-    wmGizmo *gz = wm_gizmomap_highlight_get(gzmap);
+    wmGizmo *gz = NULL;
+    /* Without the check for refresh, any highlighted gizmo will prevent hiding
+     * when selecting with RMB when the cursor happens to be over a gizmo. */
+    if ((gzgroup->init_flag & WM_GIZMOGROUP_INIT_REFRESH) == 0) {
+      gz = wm_gizmomap_highlight_get(gzmap);
+    }
     if (!gz || gz->parent_gzgroup != gzgroup) {
       wmWindow *win = CTX_wm_window(C);
       ARegion *region = CTX_wm_region(C);

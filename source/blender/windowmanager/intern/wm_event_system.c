@@ -1297,6 +1297,23 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
   return op;
 }
 
+/**
+ * This isn't very nice but needed to redraw gizmos which are hidden while tweaking,
+ * See #WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK for details.
+ */
+static void wm_region_tag_draw_on_gizmo_delay_refresh_for_tweak(wmWindow *win, bScreen *screen)
+{
+  ED_screen_areas_iter (win, screen, area) {
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+      if (region->gizmo_map != NULL) {
+        if (WM_gizmomap_tag_delay_refresh_for_tweak_check(region->gizmo_map)) {
+          ED_region_tag_redraw(region);
+        }
+      }
+    }
+  }
+}
+
 static void wm_region_mouse_co(bContext *C, wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
@@ -3711,6 +3728,7 @@ void wm_event_do_handlers(bContext *C)
           event->flag |= WM_EVENT_FORCE_DRAG_THRESHOLD;
         }
       }
+      const bool event_queue_check_drag_prev = win->event_queue_check_drag;
 
       /* Active screen might change during handlers, update pointer. */
       screen = WM_window_get_active_screen(win);
@@ -3868,6 +3886,10 @@ void wm_event_do_handlers(bContext *C)
       if (win->event_queue_check_drag_handled) {
         win->event_queue_check_drag = false;
         win->event_queue_check_drag_handled = false;
+      }
+
+      if (event_queue_check_drag_prev && (win->event_queue_check_drag == false)) {
+        wm_region_tag_draw_on_gizmo_delay_refresh_for_tweak(win, screen);
       }
 
       /* Update previous mouse position for following events to use. */
