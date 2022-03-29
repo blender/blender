@@ -50,6 +50,9 @@ class NewGeometryNodesModifier(Operator):
         if not modifier:
             return {'CANCELLED'}
 
+        group = geometry_node_group_empty_new()
+        modifier.node_group = group
+
         return {'FINISHED'}
 
 
