@@ -3785,7 +3785,7 @@ static void rna_def_modifier_gpencildash(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_cyclic", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DASH_USE_CYCLIC);
-  RNA_def_property_ui_text(prop, "Use Cyclic", "Enable cyclic on individual stroke dashes");
+  RNA_def_property_ui_text(prop, "Cyclic", "Enable cyclic on individual stroke dashes");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   srna = RNA_def_struct(brna, "DashGpencilModifierData", "GpencilModifier");
