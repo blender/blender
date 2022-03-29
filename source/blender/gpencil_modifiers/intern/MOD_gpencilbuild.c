@@ -756,7 +756,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiItemS(layout);
 
-  row = uiLayoutRowWithHeading(layout, true, IFACE_("Use Factor"));
+  row = uiLayoutRowWithHeading(layout, true, IFACE_("Factor"));
   uiLayoutSetPropDecorate(row, false);
   uiItemR(row, ptr, "use_percentage", 0, "", ICON_NONE);
   sub = uiLayoutRow(row, true);
@@ -809,7 +809,7 @@ static void fading_header_draw(const bContext *UNUSED(C), Panel *panel)
 
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
-  uiItemR(layout, ptr, "use_fading", 0, IFACE_("Fading"), ICON_NONE);
+  uiItemR(layout, ptr, "use_fading", 0, IFACE_("Fade"), ICON_NONE);
 }
 
 static void fading_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -825,8 +825,8 @@ static void fading_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "fade_factor", 0, IFACE_("Factor"), ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "fade_thickness_strength", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "fade_opacity_strength", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "fade_thickness_strength", 0, IFACE_("Thickness"), ICON_NONE);
+  uiItemR(col, ptr, "fade_opacity_strength", 0, IFACE_("Opacity"), ICON_NONE);
 
   uiItemPointerR(layout,
                  ptr,
