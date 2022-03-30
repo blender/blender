@@ -106,17 +106,17 @@ static void gpf_clear_all_strokes(bGPDframe *gpf)
 static void reduce_stroke_points(bGPdata *gpd,
                                  bGPDframe *gpf,
                                  bGPDstroke *gps,
-                                 const int num_points,
+                                 const int points_num,
                                  const eBuildGpencil_Transition transition)
 {
-  if (num_points == 0) {
+  if (points_num == 0) {
     clear_stroke(gpf, gps);
     return;
   }
-  bGPDspoint *new_points = MEM_callocN(sizeof(bGPDspoint) * num_points, __func__);
+  bGPDspoint *new_points = MEM_callocN(sizeof(bGPDspoint) * points_num, __func__);
   MDeformVert *new_dvert = NULL;
-  if ((gps->dvert != NULL) && (num_points > 0)) {
-    new_dvert = MEM_callocN(sizeof(MDeformVert) * num_points, __func__);
+  if ((gps->dvert != NULL) && (points_num > 0)) {
+    new_dvert = MEM_callocN(sizeof(MDeformVert) * points_num, __func__);
   }
 
   /* Which end should points be removed from. */
@@ -127,12 +127,12 @@ static void reduce_stroke_points(bGPdata *gpd,
                                       * Remove dead-points from end of stroke. */
     {
       /* copy over point data */
-      memcpy(new_points, gps->points, sizeof(bGPDspoint) * num_points);
-      if ((gps->dvert != NULL) && (num_points > 0)) {
-        memcpy(new_dvert, gps->dvert, sizeof(MDeformVert) * num_points);
+      memcpy(new_points, gps->points, sizeof(bGPDspoint) * points_num);
+      if ((gps->dvert != NULL) && (points_num > 0)) {
+        memcpy(new_dvert, gps->dvert, sizeof(MDeformVert) * points_num);
 
         /* free unused point weights */
-        for (int i = num_points; i < gps->totpoints; i++) {
+        for (int i = points_num; i < gps->totpoints; i++) {
           MDeformVert *dvert = &gps->dvert[i];
           BKE_gpencil_free_point_weights(dvert);
         }
@@ -142,15 +142,15 @@ static void reduce_stroke_points(bGPdata *gpd,
 
     /* Hide in forward order = Remove points from start of stroke */
     case GP_BUILD_TRANSITION_VANISH: {
-      /* num_points is the number of points left after reducing.
+      /* points_num is the number of points left after reducing.
        * We need to know how many to remove
        */
-      const int offset = gps->totpoints - num_points;
+      const int offset = gps->totpoints - points_num;
 
       /* copy over point data */
-      memcpy(new_points, gps->points + offset, sizeof(bGPDspoint) * num_points);
-      if ((gps->dvert != NULL) && (num_points > 0)) {
-        memcpy(new_dvert, gps->dvert + offset, sizeof(MDeformVert) * num_points);
+      memcpy(new_points, gps->points + offset, sizeof(bGPDspoint) * points_num);
+      if ((gps->dvert != NULL) && (points_num > 0)) {
+        memcpy(new_dvert, gps->dvert + offset, sizeof(MDeformVert) * points_num);
 
         /* free unused weights */
         for (int i = 0; i < offset; i++) {
@@ -171,7 +171,7 @@ static void reduce_stroke_points(bGPdata *gpd,
   MEM_SAFE_FREE(gps->dvert);
   gps->points = new_points;
   gps->dvert = new_dvert;
-  gps->totpoints = num_points;
+  gps->totpoints = points_num;
 
   /* Calc geometry data. */
   BKE_gpencil_stroke_geometry_update(gpd, gps);
@@ -420,13 +420,13 @@ static void build_sequential(Object *ob,
       }
       else if (first_visible > cell->start_idx) {
         /* Starts partway through this stroke */
-        int num_points = cell->end_idx - first_visible;
-        reduce_stroke_points(gpd, gpf, cell->gps, num_points, mmd->transition);
+        int points_num = cell->end_idx - first_visible;
+        reduce_stroke_points(gpd, gpf, cell->gps, points_num, mmd->transition);
       }
       else {
         /* Ends partway through this stroke */
-        int num_points = last_visible - cell->start_idx;
-        reduce_stroke_points(gpd, gpf, cell->gps, num_points, mmd->transition);
+        int points_num = last_visible - cell->start_idx;
+        reduce_stroke_points(gpd, gpf, cell->gps, points_num, mmd->transition);
       }
     }
   }
@@ -477,7 +477,7 @@ static void build_concurrent(BuildGpencilModifierData *mmd,
     const float relative_len = (float)gps->totpoints / (float)max_points;
 
     /* Determine how many points should be left in the stroke */
-    int num_points = 0;
+    int points_num = 0;
 
     switch (mmd->time_alignment) {
       case GP_BUILD_TIMEALIGN_START: /* all start on frame 1 */
@@ -486,10 +486,10 @@ static void build_concurrent(BuildGpencilModifierData *mmd,
         const float scaled_fac = use_fac / MAX2(relative_len, PSEUDOINVERSE_EPSILON);
 
         if (reverse) {
-          num_points = (int)roundf((1.0f - scaled_fac) * gps->totpoints);
+          points_num = (int)roundf((1.0f - scaled_fac) * gps->totpoints);
         }
         else {
-          num_points = (int)roundf(scaled_fac * gps->totpoints);
+          points_num = (int)roundf(scaled_fac * gps->totpoints);
         }
 
         break;
@@ -503,10 +503,10 @@ static void build_concurrent(BuildGpencilModifierData *mmd,
         const float scaled_fac = (use_fac - start_fac) / MAX2(relative_len, PSEUDOINVERSE_EPSILON);
 
         if (reverse) {
-          num_points = (int)roundf((1.0f - scaled_fac) * gps->totpoints);
+          points_num = (int)roundf((1.0f - scaled_fac) * gps->totpoints);
         }
         else {
-          num_points = (int)roundf(scaled_fac * gps->totpoints);
+          points_num = (int)roundf(scaled_fac * gps->totpoints);
         }
 
         break;
@@ -514,21 +514,21 @@ static void build_concurrent(BuildGpencilModifierData *mmd,
     }
 
     /* Modify the stroke geometry */
-    if (num_points <= 0) {
+    if (points_num <= 0) {
       /* Nothing Left - Delete the stroke */
       clear_stroke(gpf, gps);
     }
     else {
-      int more_points = num_points - gps->totpoints;
+      int more_points = points_num - gps->totpoints;
       CLAMP(more_points, 0, fade_points + 1);
-      float max_weight = (float)(num_points + more_points) / fade_points;
+      float max_weight = (float)(points_num + more_points) / fade_points;
       CLAMP(max_weight, 0.0f, 1.0f);
       int starting_index = mmd->transition == GP_BUILD_TRANSITION_VANISH ?
-                               gps->totpoints - num_points - more_points :
-                               num_points - 1 - fade_points + more_points;
+                               gps->totpoints - points_num - more_points :
+                               points_num - 1 - fade_points + more_points;
       int ending_index = mmd->transition == GP_BUILD_TRANSITION_VANISH ?
-                             gps->totpoints - num_points + fade_points - more_points :
-                             num_points - 1 + more_points;
+                             gps->totpoints - points_num + fade_points - more_points :
+                             points_num - 1 + more_points;
       float starting_weight = mmd->transition == GP_BUILD_TRANSITION_VANISH ?
                                   ((float)more_points / fade_points) :
                                   max_weight;
@@ -546,9 +546,9 @@ static void build_concurrent(BuildGpencilModifierData *mmd,
                          mmd->transition,
                          mmd->fade_thickness_strength,
                          mmd->fade_opacity_strength);
-      if (num_points < gps->totpoints) {
+      if (points_num < gps->totpoints) {
         /* Remove some points */
-        reduce_stroke_points(gpd, gpf, gps, num_points, mmd->transition);
+        reduce_stroke_points(gpd, gpf, gps, points_num, mmd->transition);
       }
     }
   }
