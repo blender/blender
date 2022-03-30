@@ -461,7 +461,14 @@ MeshRenderData *mesh_render_data_create(Object *object,
       mr->bm_poly_centers = mr->edit_data->polyCos;
     }
 
-    bool has_mdata = is_mode_active && (mr->me->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA);
+    /* A subdivision wrapper may be created in edit mode when X-ray is turned on to ensure that the
+     * topology seen by the user matches the one used for the selection routines. This wrapper
+     * seemingly takes precedence over the MDATA one, however the mesh we use for rendering is not
+     * the subdivided one, but the one where the MDATA wrapper would have been added. So consider
+     * the subdivision wrapper as well for the `has_mdata` case. */
+    bool has_mdata = is_mode_active && ELEM(mr->me->runtime.wrapper_type,
+                                            ME_WRAPPER_TYPE_MDATA,
+                                            ME_WRAPPER_TYPE_SUBD);
     bool use_mapped = is_mode_active &&
                       (has_mdata && !do_uvedit && mr->me && !mr->me->runtime.is_original);
 
