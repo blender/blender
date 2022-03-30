@@ -172,8 +172,8 @@ static ParticleHairCache *drw_hair_particle_cache_get(Object *object,
         object, psys, md, &cache, gpu_material, subdiv, thickness_res);
   }
   else {
-    /* New hair object. */
-    update = hair_ensure_procedural_data(object, &cache, gpu_material, subdiv, thickness_res);
+    /* New curves object. */
+    update = curves_ensure_procedural_data(object, &cache, gpu_material, subdiv, thickness_res);
   }
 
   if (update) {
@@ -230,7 +230,7 @@ void DRW_hair_duplimat_get(Object *object,
     }
   }
   else {
-    /* New hair object. */
+    /* New curves object. */
     copy_m4_m4(dupli_mat, object->obmat);
   }
 }
@@ -291,7 +291,7 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
     hair_close_tip = (part->shape_flag & PART_SHAPE_CLOSE_TIP) != 0;
   }
   else {
-    /* TODO: implement for new hair object. */
+    /* TODO: implement for new curves object. */
     hair_rad_shape = 1.0f;
     hair_rad_root = 0.005f;
     hair_rad_tip = 0.0f;

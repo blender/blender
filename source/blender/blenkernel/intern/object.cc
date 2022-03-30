@@ -4000,7 +4000,7 @@ void BKE_object_foreach_display_point(Object *ob,
                                       void (*func_cb)(const float[3], void *),
                                       void *user_data)
 {
-  /* TODO: pointcloud and hair objects support */
+  /* TODO: pointcloud and curves object support */
   const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
   float co[3];
 
