@@ -436,15 +436,26 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter);
     IteratorBeginCb func_begin; \
     IteratorCb func_next, func_end; \
     void *data_in; \
-    struct ObjectsVisibleIteratorData data_ = {NULL}; \
-    data_.view_layer = _view_layer; \
-    data_.v3d = _v3d; \
+\
+    struct ObjectsVisibleIteratorData data_select_ = {NULL}; \
+    data_select_.view_layer = _view_layer; \
+    data_select_.v3d = _v3d; \
+\
+    struct SceneObjectsIteratorExData data_flag_ = {NULL}; \
+    data_flag_.scene = scene; \
+    data_flag_.flag = flag; \
 \
     if (flag == SELECT) { \
       func_begin = &BKE_view_layer_selected_objects_iterator_begin; \
       func_next = &BKE_view_layer_selected_objects_iterator_next; \
       func_end = &BKE_view_layer_selected_objects_iterator_end; \
-      data_in = &data_; \
+      data_in = &data_select_; \
+    } \
+    else if (flag != 0) { \
+      func_begin = BKE_scene_objects_iterator_begin_ex; \
+      func_next = BKE_scene_objects_iterator_next_ex; \
+      func_end = BKE_scene_objects_iterator_end_ex; \
+      data_in = &data_flag_; \
     } \
     else { \
       func_begin = BKE_scene_objects_iterator_begin; \
