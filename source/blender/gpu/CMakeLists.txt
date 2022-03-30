@@ -508,6 +508,13 @@ if(WITH_GPU_SHADER_BUILDER)
     add_executable(shader_builder
       intern/gpu_shader_builder.cc
       ${shader_create_info_list_file}
+      )
+
+    setup_platform_linker_flags(shader_builder)
+
+    target_link_libraries(shader_builder PUBLIC
+      bf_blenkernel
+      buildinfoobj
     )
   else()
     add_executable(shader_builder
@@ -515,18 +522,10 @@ if(WITH_GPU_SHADER_BUILDER)
       intern/gpu_shader_builder_stubs.cc
       ${shader_create_info_list_file}
     )
-  endif()
 
-  setup_platform_linker_flags(shader_builder)
-
-  if(APPLE)
     target_link_libraries(shader_builder PUBLIC
       bf_blenkernel
-      buildinfoobj
-    )
-  else()
-    target_link_libraries(shader_builder PUBLIC
-      bf_blenkernel
+      ${PLATFORM_LINKLIBS}
     )
   endif()
 
