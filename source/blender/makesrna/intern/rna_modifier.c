@@ -4082,6 +4082,7 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
   prop = RNA_def_property(srna, "segments", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "res");
   RNA_def_property_range(prop, 1, 1000);
+  RNA_def_property_ui_range(prop, 1, 100, 1, -1);
   RNA_def_property_ui_text(prop, "Segments", "Number of segments for round edges/verts");
   RNA_def_property_update(prop, 0, "rna_BevelModifier_update_segments");
 
