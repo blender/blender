@@ -498,9 +498,13 @@ void DRW_shgroup_uniform_vec4_array_copy(DRWShadingGroup *shgroup,
     return;
   }
 
+  /* Each array element stored as an individual entry in the uniform list.
+   * All entries from the same array share the same base location,
+   * and array-size used to determine the number of elements
+   * copied in draw_update_uniforms. */
   for (int i = 0; i < arraysize; i++) {
     drw_shgroup_uniform_create_ex(
-        shgroup, location + i, DRW_UNIFORM_FLOAT_COPY, &value[i], 0, 4, 1);
+        shgroup, location, DRW_UNIFORM_FLOAT_COPY, &value[i], 0, 4, arraysize);
   }
 }
 

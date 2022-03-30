@@ -26,6 +26,7 @@
 
 #include "GPU_batch.h"
 #include "GPU_batch_utils.h"
+#include "GPU_capabilities.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -395,12 +396,12 @@ GPUBatch *DRW_cache_quad_get(void)
 
     int v = 0;
     int flag = VCLASS_EMPTY_SCALED;
-    const float p[4][2] = {{-1.0f, -1.0f}, {-1.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, -1.0f}};
+    const float p[4][2] = {{-1.0f, 1.0f}, {1.0f, 1.0f}, {-1.0f, -1.0f}, {1.0f, -1.0f}};
     for (int a = 0; a < 4; a++) {
       GPU_vertbuf_vert_set(vbo, v++, &(Vert){{p[a][0], p[a][1], 0.0f}, flag});
     }
 
-    SHC.drw_quad = GPU_batch_create_ex(GPU_PRIM_TRI_FAN, vbo, NULL, GPU_BATCH_OWNS_VBO);
+    SHC.drw_quad = GPU_batch_create_ex(GPU_PRIM_TRI_STRIP, vbo, NULL, GPU_BATCH_OWNS_VBO);
   }
   return SHC.drw_quad;
 }

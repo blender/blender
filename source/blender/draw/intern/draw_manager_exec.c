@@ -584,21 +584,85 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
                                  DRWCommandsState *state,
                                  bool *use_tfeedback)
 {
+#define MAX_UNIFORM_STACK_SIZE 64
+
+  /* Uniform array elements stored as separate entries. We need to batch these together */
+  int current_uniform_array_loc = -1;
+  unsigned int current_array_index = 0;
+  static union {
+    int istack[MAX_UNIFORM_STACK_SIZE];
+    float fstack[MAX_UNIFORM_STACK_SIZE];
+  } uniform_stack;
+
+  /* Loop through uniforms. */
   for (DRWUniformChunk *unichunk = shgroup->uniforms; unichunk; unichunk = unichunk->next) {
     DRWUniform *uni = unichunk->uniforms;
+
     for (int i = 0; i < unichunk->uniform_used; i++, uni++) {
+
+      /* For uniform array copies, copy per-array-element data into local buffer before upload. */
+      if (uni->arraysize > 1 &&
+          (uni->type == DRW_UNIFORM_INT_COPY || uni->type == DRW_UNIFORM_FLOAT_COPY)) {
+
+        /* Begin copying uniform array. */
+        if (current_array_index == 0) {
+          current_uniform_array_loc = uni->location;
+        }
+
+        /* Debug check same array loc. */
+        BLI_assert(current_uniform_array_loc > -1);
+        BLI_assert(current_uniform_array_loc == uni->location);
+
+        /* Copy array element data to local buffer. */
+        BLI_assert(((current_array_index + 1) * uni->length) <= MAX_UNIFORM_STACK_SIZE);
+        if (uni->type == DRW_UNIFORM_INT_COPY) {
+          memcpy(&uniform_stack.istack[current_array_index * uni->length],
+                 uni->ivalue,
+                 sizeof(int) * uni->length);
+        }
+        else {
+          memcpy(&uniform_stack.fstack[current_array_index * uni->length],
+                 uni->fvalue,
+                 sizeof(float) * uni->length);
+        }
+        current_array_index++;
+        BLI_assert(current_array_index <= uni->arraysize);
+
+        /* Flush array data to shader. */
+        if (current_array_index == uni->arraysize) {
+          if (uni->type == DRW_UNIFORM_INT_COPY) {
+            GPU_shader_uniform_vector_int(
+                shgroup->shader, uni->location, uni->length, uni->arraysize, uniform_stack.istack);
+          }
+          else {
+            GPU_shader_uniform_vector(
+                shgroup->shader, uni->location, uni->length, uni->arraysize, uniform_stack.fstack);
+          }
+          current_array_index = 0;
+          current_uniform_array_loc = -1;
+        }
+        continue;
+      }
+
+      /* Handle standard cases. */
       switch (uni->type) {
         case DRW_UNIFORM_INT_COPY:
-          GPU_shader_uniform_vector_int(
-              shgroup->shader, uni->location, uni->length, uni->arraysize, uni->ivalue);
+          BLI_assert(uni->arraysize == 1);
+          if (uni->arraysize == 1) {
+            GPU_shader_uniform_vector_int(
+                shgroup->shader, uni->location, uni->length, uni->arraysize, uni->ivalue);
+          }
           break;
         case DRW_UNIFORM_INT:
           GPU_shader_uniform_vector_int(
               shgroup->shader, uni->location, uni->length, uni->arraysize, uni->pvalue);
           break;
         case DRW_UNIFORM_FLOAT_COPY:
-          GPU_shader_uniform_vector(
-              shgroup->shader, uni->location, uni->length, uni->arraysize, uni->fvalue);
+          BLI_assert(uni->arraysize == 1);
+          if (uni->arraysize == 1) {
+            GPU_shader_uniform_vector(
+                shgroup->shader, uni->location, uni->length, uni->arraysize, uni->fvalue);
+          }
           break;
         case DRW_UNIFORM_FLOAT:
           GPU_shader_uniform_vector(
@@ -673,6 +737,9 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
       }
     }
   }
+  /* Ensure uniform arrays copied. */
+  BLI_assert(current_array_index == 0);
+  BLI_assert(current_uniform_array_loc == -1);
 }
 
 BLI_INLINE void draw_select_buffer(DRWShadingGroup *shgroup,
