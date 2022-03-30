@@ -139,107 +139,131 @@ BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 #ifdef GPU_SHADER
 /* Keep compatibility_with old global scope syntax. */
 /* TODO(@fclem) Mass rename and remove the camel case. */
-#  define colorWire drw_globals.colorWire
-#  define colorWireEdit drw_globals.colorWireEdit
-#  define colorActive drw_globals.colorActive
-#  define colorSelect drw_globals.colorSelect
-#  define colorLibrarySelect drw_globals.colorLibrarySelect
-#  define colorLibrary drw_globals.colorLibrary
-#  define colorTransform drw_globals.colorTransform
-#  define colorLight drw_globals.colorLight
-#  define colorSpeaker drw_globals.colorSpeaker
-#  define colorCamera drw_globals.colorCamera
-#  define colorCameraPath drw_globals.colorCameraPath
-#  define colorEmpty drw_globals.colorEmpty
-#  define colorVertex drw_globals.colorVertex
-#  define colorVertexSelect drw_globals.colorVertexSelect
-#  define colorVertexUnreferenced drw_globals.colorVertexUnreferenced
-#  define colorVertexMissingData drw_globals.colorVertexMissingData
-#  define colorEditMeshActive drw_globals.colorEditMeshActive
-#  define colorEdgeSelect drw_globals.colorEdgeSelect
-#  define colorEdgeSeam drw_globals.colorEdgeSeam
-#  define colorEdgeSharp drw_globals.colorEdgeSharp
-#  define colorEdgeCrease drw_globals.colorEdgeCrease
-#  define colorEdgeBWeight drw_globals.colorEdgeBWeight
-#  define colorEdgeFaceSelect drw_globals.colorEdgeFaceSelect
-#  define colorEdgeFreestyle drw_globals.colorEdgeFreestyle
-#  define colorFace drw_globals.colorFace
-#  define colorFaceSelect drw_globals.colorFaceSelect
-#  define colorFaceFreestyle drw_globals.colorFaceFreestyle
-#  define colorGpencilVertex drw_globals.colorGpencilVertex
-#  define colorGpencilVertexSelect drw_globals.colorGpencilVertexSelect
-#  define colorNormal drw_globals.colorNormal
-#  define colorVNormal drw_globals.colorVNormal
-#  define colorLNormal drw_globals.colorLNormal
-#  define colorFaceDot drw_globals.colorFaceDot
-#  define colorSkinRoot drw_globals.colorSkinRoot
-#  define colorDeselect drw_globals.colorDeselect
-#  define colorOutline drw_globals.colorOutline
-#  define colorLightNoAlpha drw_globals.colorLightNoAlpha
-#  define colorBackground drw_globals.colorBackground
-#  define colorBackgroundGradient drw_globals.colorBackgroundGradient
-#  define colorCheckerPrimary drw_globals.colorCheckerPrimary
-#  define colorCheckerSecondary drw_globals.colorCheckerSecondary
-#  define colorClippingBorder drw_globals.colorClippingBorder
-#  define colorEditMeshMiddle drw_globals.colorEditMeshMiddle
-#  define colorHandleFree drw_globals.colorHandleFree
-#  define colorHandleAuto drw_globals.colorHandleAuto
-#  define colorHandleVect drw_globals.colorHandleVect
-#  define colorHandleAlign drw_globals.colorHandleAlign
-#  define colorHandleAutoclamp drw_globals.colorHandleAutoclamp
-#  define colorHandleSelFree drw_globals.colorHandleSelFree
-#  define colorHandleSelAuto drw_globals.colorHandleSelAuto
-#  define colorHandleSelVect drw_globals.colorHandleSelVect
-#  define colorHandleSelAlign drw_globals.colorHandleSelAlign
-#  define colorHandleSelAutoclamp drw_globals.colorHandleSelAutoclamp
-#  define colorNurbUline drw_globals.colorNurbUline
-#  define colorNurbVline drw_globals.colorNurbVline
-#  define colorNurbSelUline drw_globals.colorNurbSelUline
-#  define colorNurbSelVline drw_globals.colorNurbSelVline
-#  define colorActiveSpline drw_globals.colorActiveSpline
-#  define colorBonePose drw_globals.colorBonePose
-#  define colorBonePoseActive drw_globals.colorBonePoseActive
-#  define colorBonePoseActiveUnsel drw_globals.colorBonePoseActiveUnsel
-#  define colorBonePoseConstraint drw_globals.colorBonePoseConstraint
-#  define colorBonePoseIK drw_globals.colorBonePoseIK
-#  define colorBonePoseSplineIK drw_globals.colorBonePoseSplineIK
-#  define colorBonePoseTarget drw_globals.colorBonePoseTarget
-#  define colorBoneSolid drw_globals.colorBoneSolid
-#  define colorBoneLocked drw_globals.colorBoneLocked
-#  define colorBoneActive drw_globals.colorBoneActive
-#  define colorBoneActiveUnsel drw_globals.colorBoneActiveUnsel
-#  define colorBoneSelect drw_globals.colorBoneSelect
-#  define colorBoneIKLine drw_globals.colorBoneIKLine
-#  define colorBoneIKLineNoTarget drw_globals.colorBoneIKLineNoTarget
-#  define colorBoneIKLineSpline drw_globals.colorBoneIKLineSpline
-#  define colorText drw_globals.colorText
-#  define colorTextHi drw_globals.colorTextHi
-#  define colorBundleSolid drw_globals.colorBundleSolid
-#  define colorMballRadius drw_globals.colorMballRadius
-#  define colorMballRadiusSelect drw_globals.colorMballRadiusSelect
-#  define colorMballStiffness drw_globals.colorMballStiffness
-#  define colorMballStiffnessSelect drw_globals.colorMballStiffnessSelect
-#  define colorCurrentFrame drw_globals.colorCurrentFrame
-#  define colorGrid drw_globals.colorGrid
-#  define colorGridEmphasis drw_globals.colorGridEmphasis
-#  define colorGridAxisX drw_globals.colorGridAxisX
-#  define colorGridAxisY drw_globals.colorGridAxisY
-#  define colorGridAxisZ drw_globals.colorGridAxisZ
-#  define colorFaceBack drw_globals.colorFaceBack
-#  define colorFaceFront drw_globals.colorFaceFront
-#  define colorUVShadow drw_globals.colorUVShadow
-#  define screenVecs drw_globals.screenVecs
-#  define sizeViewport drw_globals.sizeViewport
-#  define sizePixel drw_globals.sizePixel
-#  define pixelFac drw_globals.pixelFac
-#  define sizeObjectCenter drw_globals.sizeObjectCenter
-#  define sizeLightCenter drw_globals.sizeLightCenter
-#  define sizeLightCircle drw_globals.sizeLightCircle
-#  define sizeLightCircleShadow drw_globals.sizeLightCircleShadow
-#  define sizeVertex drw_globals.sizeVertex
-#  define sizeEdge drw_globals.sizeEdge
-#  define sizeEdgeFix drw_globals.sizeEdgeFix
-#  define sizeFaceDot drw_globals.sizeFaceDot
-#  define sizeChecker drw_globals.sizeChecker
-#  define sizeVertexGpencil drw_globals.sizeVertexGpencil
+#  define colorWire globalsBlock.colorWire
+#  define colorWireEdit globalsBlock.colorWireEdit
+#  define colorActive globalsBlock.colorActive
+#  define colorSelect globalsBlock.colorSelect
+#  define colorLibrarySelect globalsBlock.colorLibrarySelect
+#  define colorLibrary globalsBlock.colorLibrary
+#  define colorTransform globalsBlock.colorTransform
+#  define colorLight globalsBlock.colorLight
+#  define colorSpeaker globalsBlock.colorSpeaker
+#  define colorCamera globalsBlock.colorCamera
+#  define colorCameraPath globalsBlock.colorCameraPath
+#  define colorEmpty globalsBlock.colorEmpty
+#  define colorVertex globalsBlock.colorVertex
+#  define colorVertexSelect globalsBlock.colorVertexSelect
+#  define colorVertexUnreferenced globalsBlock.colorVertexUnreferenced
+#  define colorVertexMissingData globalsBlock.colorVertexMissingData
+#  define colorEditMeshActive globalsBlock.colorEditMeshActive
+#  define colorEdgeSelect globalsBlock.colorEdgeSelect
+#  define colorEdgeSeam globalsBlock.colorEdgeSeam
+#  define colorEdgeSharp globalsBlock.colorEdgeSharp
+#  define colorEdgeCrease globalsBlock.colorEdgeCrease
+#  define colorEdgeBWeight globalsBlock.colorEdgeBWeight
+#  define colorEdgeFaceSelect globalsBlock.colorEdgeFaceSelect
+#  define colorEdgeFreestyle globalsBlock.colorEdgeFreestyle
+#  define colorFace globalsBlock.colorFace
+#  define colorFaceSelect globalsBlock.colorFaceSelect
+#  define colorFaceFreestyle globalsBlock.colorFaceFreestyle
+#  define colorGpencilVertex globalsBlock.colorGpencilVertex
+#  define colorGpencilVertexSelect globalsBlock.colorGpencilVertexSelect
+#  define colorNormal globalsBlock.colorNormal
+#  define colorVNormal globalsBlock.colorVNormal
+#  define colorLNormal globalsBlock.colorLNormal
+#  define colorFaceDot globalsBlock.colorFaceDot
+#  define colorSkinRoot globalsBlock.colorSkinRoot
+#  define colorDeselect globalsBlock.colorDeselect
+#  define colorOutline globalsBlock.colorOutline
+#  define colorLightNoAlpha globalsBlock.colorLightNoAlpha
+#  define colorBackground globalsBlock.colorBackground
+#  define colorBackgroundGradient globalsBlock.colorBackgroundGradient
+#  define colorCheckerPrimary globalsBlock.colorCheckerPrimary
+#  define colorCheckerSecondary globalsBlock.colorCheckerSecondary
+#  define colorClippingBorder globalsBlock.colorClippingBorder
+#  define colorEditMeshMiddle globalsBlock.colorEditMeshMiddle
+#  define colorHandleFree globalsBlock.colorHandleFree
+#  define colorHandleAuto globalsBlock.colorHandleAuto
+#  define colorHandleVect globalsBlock.colorHandleVect
+#  define colorHandleAlign globalsBlock.colorHandleAlign
+#  define colorHandleAutoclamp globalsBlock.colorHandleAutoclamp
+#  define colorHandleSelFree globalsBlock.colorHandleSelFree
+#  define colorHandleSelAuto globalsBlock.colorHandleSelAuto
+#  define colorHandleSelVect globalsBlock.colorHandleSelVect
+#  define colorHandleSelAlign globalsBlock.colorHandleSelAlign
+#  define colorHandleSelAutoclamp globalsBlock.colorHandleSelAutoclamp
+#  define colorNurbUline globalsBlock.colorNurbUline
+#  define colorNurbVline globalsBlock.colorNurbVline
+#  define colorNurbSelUline globalsBlock.colorNurbSelUline
+#  define colorNurbSelVline globalsBlock.colorNurbSelVline
+#  define colorActiveSpline globalsBlock.colorActiveSpline
+#  define colorBonePose globalsBlock.colorBonePose
+#  define colorBonePoseActive globalsBlock.colorBonePoseActive
+#  define colorBonePoseActiveUnsel globalsBlock.colorBonePoseActiveUnsel
+#  define colorBonePoseConstraint globalsBlock.colorBonePoseConstraint
+#  define colorBonePoseIK globalsBlock.colorBonePoseIK
+#  define colorBonePoseSplineIK globalsBlock.colorBonePoseSplineIK
+#  define colorBonePoseTarget globalsBlock.colorBonePoseTarget
+#  define colorBoneSolid globalsBlock.colorBoneSolid
+#  define colorBoneLocked globalsBlock.colorBoneLocked
+#  define colorBoneActive globalsBlock.colorBoneActive
+#  define colorBoneActiveUnsel globalsBlock.colorBoneActiveUnsel
+#  define colorBoneSelect globalsBlock.colorBoneSelect
+#  define colorBoneIKLine globalsBlock.colorBoneIKLine
+#  define colorBoneIKLineNoTarget globalsBlock.colorBoneIKLineNoTarget
+#  define colorBoneIKLineSpline globalsBlock.colorBoneIKLineSpline
+#  define colorText globalsBlock.colorText
+#  define colorTextHi globalsBlock.colorTextHi
+#  define colorBundleSolid globalsBlock.colorBundleSolid
+#  define colorMballRadius globalsBlock.colorMballRadius
+#  define colorMballRadiusSelect globalsBlock.colorMballRadiusSelect
+#  define colorMballStiffness globalsBlock.colorMballStiffness
+#  define colorMballStiffnessSelect globalsBlock.colorMballStiffnessSelect
+#  define colorCurrentFrame globalsBlock.colorCurrentFrame
+#  define colorGrid globalsBlock.colorGrid
+#  define colorGridEmphasis globalsBlock.colorGridEmphasis
+#  define colorGridAxisX globalsBlock.colorGridAxisX
+#  define colorGridAxisY globalsBlock.colorGridAxisY
+#  define colorGridAxisZ globalsBlock.colorGridAxisZ
+#  define colorFaceBack globalsBlock.colorFaceBack
+#  define colorFaceFront globalsBlock.colorFaceFront
+#  define colorUVShadow globalsBlock.colorUVShadow
+#  define screenVecs globalsBlock.screenVecs
+#  define sizeViewport globalsBlock.sizeViewport.xy
+#  define sizeViewportInv globalsBlock.sizeViewport.zw
+#  define sizePixel globalsBlock.sizePixel
+#  define pixelFac globalsBlock.pixelFac
+#  define sizeObjectCenter globalsBlock.sizeObjectCenter
+#  define sizeLightCenter globalsBlock.sizeLightCenter
+#  define sizeLightCircle globalsBlock.sizeLightCircle
+#  define sizeLightCircleShadow globalsBlock.sizeLightCircleShadow
+#  define sizeVertex globalsBlock.sizeVertex
+#  define sizeEdge globalsBlock.sizeEdge
+#  define sizeEdgeFix globalsBlock.sizeEdgeFix
+#  define sizeFaceDot globalsBlock.sizeFaceDot
+#  define sizeChecker globalsBlock.sizeChecker
+#  define sizeVertexGpencil globalsBlock.sizeVertexGpencil
 #endif
+
+/* See: 'draw_cache_impl.h' for matching includes. */
+#define VERT_GPENCIL_BEZT_HANDLE (1 << 30)
+/* data[0] (1st byte flags) */
+#define FACE_ACTIVE (1 << 0)
+#define FACE_SELECTED (1 << 1)
+#define FACE_FREESTYLE (1 << 2)
+#define VERT_UV_SELECT (1 << 3)
+#define VERT_UV_PINNED (1 << 4)
+#define EDGE_UV_SELECT (1 << 5)
+#define FACE_UV_ACTIVE (1 << 6)
+#define FACE_UV_SELECT (1 << 7)
+/* data[1] (2st byte flags) */
+#define VERT_ACTIVE (1 << 0)
+#define VERT_SELECTED (1 << 1)
+#define VERT_SELECTED_BEZT_HANDLE (1 << 2)
+#define EDGE_ACTIVE (1 << 3)
+#define EDGE_SELECTED (1 << 4)
+#define EDGE_SEAM (1 << 5)
+#define EDGE_SHARP (1 << 6)
+#define EDGE_FREESTYLE (1 << 7)
+
+#define COMMON_GLOBALS_LIB

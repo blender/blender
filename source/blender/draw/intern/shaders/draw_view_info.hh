@@ -80,7 +80,7 @@ GPU_SHADER_CREATE_INFO(drw_clipped).define("USE_WORLD_CLIP_PLANES");
 
 GPU_SHADER_CREATE_INFO(draw_globals)
     .typedef_source("draw_common_shader_shared.h")
-    .uniform_buf(1, "ObjectMatrices", "drw_globals", Frequency::PASS);
+    .uniform_buf(1, "GlobalsUboStorage", "globalsBlock", Frequency::PASS);
 
 /** \} */
 
