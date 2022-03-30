@@ -102,8 +102,6 @@ void ShaderCreateInfo::finalize()
       assert_no_overlap(compute_source_.is_empty(), "Compute source already existing");
       compute_source_ = info.compute_source_;
     }
-
-    do_static_compilation_ = do_static_compilation_ || info.do_static_compilation_;
   }
 
   if (auto_resource_location_) {
