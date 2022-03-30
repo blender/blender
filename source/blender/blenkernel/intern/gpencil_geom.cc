@@ -572,11 +572,11 @@ static bool BKE_gpencil_stroke_extra_points(bGPDstroke *gps,
   bGPDspoint *new_pts = (bGPDspoint *)MEM_mallocN(sizeof(bGPDspoint) * new_count, __func__);
 
   for (int i = 0; i < count_before; i++) {
-    memcpy(&new_pts[i], &pts[0], sizeof(bGPDspoint));
+    new_pts[i] = blender::dna::shallow_copy(pts[0]);
   }
-  memcpy(&new_pts[count_before], pts, sizeof(bGPDspoint) * gps->totpoints);
+  memcpy(static_cast<void *>(&new_pts[count_before]), pts, sizeof(bGPDspoint) * gps->totpoints);
   for (int i = new_count - count_after; i < new_count; i++) {
-    memcpy(&new_pts[i], &pts[gps->totpoints - 1], sizeof(bGPDspoint));
+    new_pts[i] = blender::dna::shallow_copy(pts[gps->totpoints - 1]);
   }
 
   if (gps->dvert) {
@@ -809,7 +809,7 @@ bool BKE_gpencil_stroke_trim_points(bGPDstroke *gps, const int index_from, const
   }
 
   new_pt = (bGPDspoint *)MEM_mallocN(sizeof(bGPDspoint) * new_count, "gp_stroke_points_trimmed");
-  memcpy(new_pt, &pt[index_from], sizeof(bGPDspoint) * new_count);
+  memcpy(static_cast<void *>(new_pt), &pt[index_from], sizeof(bGPDspoint) * new_count);
 
   if (gps->dvert) {
     new_dv = (MDeformVert *)MEM_mallocN(sizeof(MDeformVert) * new_count,
@@ -866,7 +866,7 @@ bool BKE_gpencil_stroke_split(bGPdata *gpd,
       gpf, gps, gps->mat_nr, new_count, gps->thickness);
 
   new_pt = new_gps->points; /* Allocated from above. */
-  memcpy(new_pt, &pt[before_index], sizeof(bGPDspoint) * new_count);
+  memcpy(static_cast<void *>(new_pt), &pt[before_index], sizeof(bGPDspoint) * new_count);
 
   if (gps->dvert) {
     new_dv = (MDeformVert *)MEM_mallocN(sizeof(MDeformVert) * new_count,
@@ -1765,7 +1765,7 @@ bool BKE_gpencil_stroke_trim(bGPdata *gpd, bGPDstroke *gps)
       int idx = start + i;
       bGPDspoint *pt_src = &old_points[idx];
       bGPDspoint *pt_new = &gps->points[i];
-      memcpy(pt_new, pt_src, sizeof(bGPDspoint));
+      *pt_new = blender::dna::shallow_copy(*pt_src);
       if (gps->dvert != nullptr) {
         dvert_src = &old_dvert[idx];
         MDeformVert *dvert = &gps->dvert[i];
@@ -2080,7 +2080,7 @@ void BKE_gpencil_stroke_simplify_adaptive(bGPdata *gpd, bGPDstroke *gps, float e
     bGPDspoint *pt = &gps->points[j];
 
     if ((marked[i]) || (i == 0) || (i == totpoints - 1)) {
-      memcpy(pt, pt_src, sizeof(bGPDspoint));
+      *pt = blender::dna::shallow_copy(*pt_src);
       if (gps->dvert != nullptr) {
         dvert_src = &old_dvert[i];
         MDeformVert *dvert = &gps->dvert[j];
@@ -2142,7 +2142,7 @@ void BKE_gpencil_stroke_simplify_fixed(bGPdata *gpd, bGPDstroke *gps)
     bGPDspoint *pt = &gps->points[j];
 
     if ((i == 0) || (i == gps->totpoints - 1) || ((i % 2) > 0.0)) {
-      memcpy(pt, pt_src, sizeof(bGPDspoint));
+      *pt = blender::dna::shallow_copy(*pt_src);
       if (gps->dvert != nullptr) {
         dvert_src = &old_dvert[i];
         MDeformVert *dvert = &gps->dvert[j];
@@ -3158,7 +3158,7 @@ bGPDstroke *BKE_gpencil_stroke_delete_tagged_points(bGPdata *gpd,
       /* Copy over the relevant point data */
       new_stroke->points = (bGPDspoint *)MEM_callocN(sizeof(bGPDspoint) * new_stroke->totpoints,
                                                      "gp delete stroke fragment");
-      memcpy(new_stroke->points,
+      memcpy(static_cast<void *>(new_stroke->points),
              gps->points + island->start_idx,
              sizeof(bGPDspoint) * new_stroke->totpoints);
 
