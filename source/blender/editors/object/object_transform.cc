@@ -621,7 +621,7 @@ static bool apply_objects_internal_can_multiuser(bContext *C)
 }
 
 /**
- * Check if the current selection need to be made into single user
+ * Check if the current selection need to be made into single user.
  *
  * It assumes that all selected objects share the same object data.
  */
@@ -648,10 +648,10 @@ static int apply_objects_internal(bContext *C,
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   float rsmat[3][3], obmat[3][3], iobmat[3][3], mat[4][4], scale;
   bool changed = true;
-  bool do_multi_user = apply_objects_internal_can_multiuser(C);
+  bool const do_multi_user = apply_objects_internal_can_multiuser(C);
   float obact_invmat[4][4], obact_parent[4][4], obact_parentinv[4][4];
 
-  /* Only used when do_multi_user is set .*/
+  /* Only used when do_multi_user is set. */
   Object *obact = NULL;
   bool make_single_user = false;
 
