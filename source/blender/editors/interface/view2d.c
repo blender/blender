@@ -1268,59 +1268,67 @@ static void grid_axis_start_and_count(
   }
 }
 
-typedef struct DotGridLevelInfo {
-  /* The factor applied to the #min_step argument. This could be easily computed in runtime,
-   * but seeing it together with the other values is helpful. */
-  float step_factor;
-  /* The normalized zoom level at which the grid level starts to fade in.
-   * At lower zoom levels, the points will not be visible and the level will be skipped. */
-  float fade_in_start_zoom;
-  /* The normalized zoom level at which the grid finishes fading in.
-   * At higher zoom levels, the points will be opaque. */
-  float fade_in_end_zoom;
-} DotGridLevelInfo;
-
-static const DotGridLevelInfo level_info[9] = {
-    {6.4f, -0.1f, 0.01f},
-    {3.2f, 0.0f, 0.025f},
-    {1.6f, 0.025f, 0.15f},
-    {0.8f, 0.05f, 0.2f},
-    {0.4f, 0.1f, 0.25f},
-    {0.2f, 0.125f, 0.3f},
-    {0.1f, 0.25f, 0.5f},
-    {0.05f, 0.7f, 0.9f},
-    {0.025f, 0.6f, 0.9f},
-};
-
 void UI_view2d_dot_grid_draw(const View2D *v2d,
                              const int grid_color_id,
                              const float min_step,
-                             const int grid_levels)
+                             const int grid_subdivisions)
 {
-  BLI_assert(grid_levels >= 0 && grid_levels < 10);
+  BLI_assert(grid_subdivisions >= 0 && grid_subdivisions < 4);
+  if (grid_subdivisions == 0) {
+    return;
+  }
+
   const float zoom_x = (float)(BLI_rcti_size_x(&v2d->mask) + 1) / BLI_rctf_size_x(&v2d->cur);
-  const float zoom_normalized = (zoom_x - v2d->minzoom) / (v2d->maxzoom - v2d->minzoom);
 
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   const uint color_id = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-  GPU_point_size(3.0f * UI_DPI_FAC);
 
-  float color[4];
-  UI_GetThemeColor3fv(grid_color_id, color);
+  /* Scaling the dots fully with the zoom looks too busy, but a bit of size variation is nice. */
+  const float min_point_size = 2.0f * UI_DPI_FAC;
+  const float point_size_factor = 1.5f;
+  const float max_point_size = point_size_factor * min_point_size;
 
-  for (int level = 0; level < grid_levels; level++) {
-    const DotGridLevelInfo *info = &level_info[level];
-    const float step = min_step * info->step_factor * U.widget_unit;
+  /* Each consecutive grid level is five times larger than the previous. */
+  const int subdivision_scale = 5;
 
-    const float alpha_factor = (zoom_normalized - info->fade_in_start_zoom) /
-                               (info->fade_in_end_zoom - info->fade_in_start_zoom);
-    color[3] = clamp_f(BLI_easing_cubic_ease_in_out(alpha_factor, 0.0f, 1.0f, 1.0f), 0.0f, 1.0f);
-    if (color[3] == 0.0f) {
+  const float view_level = logf(min_step / zoom_x) / logf(subdivision_scale);
+  const int largest_visible_level = (int)view_level;
+
+  for (int level_offset = 0; level_offset <= grid_subdivisions; level_offset++) {
+    const int level = largest_visible_level - level_offset;
+
+    if (level < 0) {
       break;
     }
 
+    const float level_scale = powf(subdivision_scale, level);
+    const float point_size_precise = min_point_size * level_scale * zoom_x;
+    const float point_size_draw = ceilf(
+        clamp_f(point_size_precise, min_point_size, max_point_size));
+
+    /* To compensate the for the clamped point_size we adjust the alpha to make the overall
+     * brightness of the grid background more consistent. */
+    const float alpha = pow2f(point_size_precise / point_size_draw);
+
+    /* Make sure we don't draw points once the alpha gets too low. */
+    const float alpha_cutoff = 0.01f;
+    if (alpha < alpha_cutoff) {
+      break;
+    }
+    const float alpha_clamped = clamp_f((1.0f + alpha_cutoff) * alpha - alpha_cutoff, 0.0f, 1.0f);
+
+    /* If we have don't draw enough subdivision levels so they fade out naturally, we apply an
+     * additional fade to the last level to avoid pop in. */
+    const bool last_level = level_offset == grid_subdivisions;
+    const float subdivision_fade = last_level ? (1.0f - fractf(view_level)) : 1.0f;
+
+    float color[4];
+    UI_GetThemeColor3fv(grid_color_id, color);
+    color[3] = alpha_clamped * subdivision_fade;
+
+    const float step = min_step * level_scale;
     int count_x;
     float start_x;
     grid_axis_start_and_count(step, v2d->cur.xmin, v2d->cur.xmax, &start_x, &count_x);
@@ -1331,6 +1339,7 @@ void UI_view2d_dot_grid_draw(const View2D *v2d,
       continue;
     }
 
+    GPU_point_size(point_size_draw);
     immBegin(GPU_PRIM_POINTS, count_x * count_y);
 
     /* Theoretically drawing on top of lower grid levels could be avoided, but it would also

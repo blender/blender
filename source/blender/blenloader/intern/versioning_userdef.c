@@ -324,6 +324,10 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
   if (!USER_VERSION_ATLEAST(301, 2)) {
     FROM_DEFAULT_V4_UCHAR(space_sequencer.mask);
   }
+
+  if (!USER_VERSION_ATLEAST(302, 8)) {
+    btheme->space_node.grid_levels = U_theme_default.space_node.grid_levels;
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *
