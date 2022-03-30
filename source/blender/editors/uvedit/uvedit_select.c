@@ -2622,13 +2622,9 @@ static int uv_select_exec(bContext *C, wmOperator *op)
   float co[2];
 
   RNA_float_get_array(op->ptr, "location", co);
-  const struct SelectPick_Params params = {
-      .sel_op = ED_select_op_from_booleans(RNA_boolean_get(op->ptr, "extend"),
-                                           RNA_boolean_get(op->ptr, "deselect"),
-                                           RNA_boolean_get(op->ptr, "toggle")),
-      .deselect_all = RNA_boolean_get(op->ptr, "deselect_all"),
-      .select_passthrough = RNA_boolean_get(op->ptr, "select_passthrough"),
-  };
+
+  struct SelectPick_Params params = {0};
+  ED_select_pick_params_from_operator(op, &params);
 
   const bool changed = uv_mouse_select(C, co, &params);
 

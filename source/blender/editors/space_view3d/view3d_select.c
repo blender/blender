@@ -1646,9 +1646,7 @@ static int bone_select_menu_exec(bContext *C, wmOperator *op)
   const int name_index = RNA_enum_get(op->ptr, "name");
 
   const struct SelectPick_Params params = {
-      .sel_op = ED_select_op_from_booleans(RNA_boolean_get(op->ptr, "extend"),
-                                           RNA_boolean_get(op->ptr, "deselect"),
-                                           RNA_boolean_get(op->ptr, "toggle")),
+      .sel_op = ED_select_op_from_operator(op),
   };
 
   View3D *v3d = CTX_wm_view3d(C);
@@ -2918,14 +2916,10 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Object *obedit = CTX_data_edit_object(C);
   Object *obact = CTX_data_active_object(C);
-  const struct SelectPick_Params params = {
-      .sel_op = ED_select_op_from_booleans(RNA_boolean_get(op->ptr, "extend"),
-                                           RNA_boolean_get(op->ptr, "deselect"),
-                                           RNA_boolean_get(op->ptr, "toggle")),
-      .deselect_all = RNA_boolean_get(op->ptr, "deselect_all"),
-      .select_passthrough = RNA_boolean_get(op->ptr, "select_passthrough"),
 
-  };
+  struct SelectPick_Params params = {0};
+  ED_select_pick_params_from_operator(op, &params);
+
   bool center = RNA_boolean_get(op->ptr, "center");
   bool enumerate = RNA_boolean_get(op->ptr, "enumerate");
   /* Only force object select for edit-mode to support vertex parenting,

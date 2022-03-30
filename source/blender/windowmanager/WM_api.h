@@ -39,6 +39,7 @@ struct MenuType;
 struct PointerRNA;
 struct PropertyRNA;
 struct ScrArea;
+struct SelectPick_Params;
 struct View3D;
 struct ViewLayer;
 struct bContext;
@@ -796,6 +797,9 @@ void WM_operator_properties_gesture_straightline(struct wmOperatorType *ot, int 
  * Use with #WM_gesture_circle_invoke
  */
 void WM_operator_properties_gesture_circle(struct wmOperatorType *ot);
+/**
+ * See #ED_select_pick_params_from_operator to initialize parameters defined here.
+ */
 void WM_operator_properties_mouse_select(struct wmOperatorType *ot);
 void WM_operator_properties_select_all(struct wmOperatorType *ot);
 void WM_operator_properties_select_action(struct wmOperatorType *ot,
