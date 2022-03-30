@@ -351,13 +351,12 @@ class CurvesGeometry : public ::CurvesGeometry {
 namespace curves {
 
 /**
- * The number of segments between control points, accounting for the last segment of cyclic curves,
- * and the fact that curves with two points cannot be cyclic. The logic is simple, but this
- * function should be used to make intentions clearer.
+ * The number of segments between control points, accounting for the last segment of cyclic
+ * curves. The logic is simple, but this function should be used to make intentions clearer.
  */
 inline int curve_segment_size(const int points_num, const bool cyclic)
 {
-  return (cyclic && points_num > 2) ? points_num : points_num - 1;
+  return cyclic ? points_num : points_num - 1;
 }
 
 namespace bezier {
