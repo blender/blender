@@ -1027,11 +1027,11 @@ bool BKE_gpencil_stroke_smooth_point(bGPDstroke *gps,
    * smooth. To solve that problem, choose a different n/2, which does not match the range and
    * normalize the weights on finish. This may cause some artifacts at low values.
    *
-   * keep_shape is a new option to stop the stroke from severly deforming.
+   * keep_shape is a new option to stop the stroke from severely deforming.
    * It uses different partially negative weights.
    * w = 2 * (nCr(n, j + n/2) / 2^n) - (nCr(3*n, j + n) / 2^(3*n))
    *   ~ 2 * sqrt(2/(pi*n)) * exp(-2*j*j/n) - sqrt(2/(pi*3*n)) * exp(-2*j*j/(3*n))
-   * All weigths still sum up to 1.
+   * All weights still sum up to 1.
    * Note these weights only work because the averaging is done in relative coordinates.
    */
   float sco[3] = {0.0f, 0.0f, 0.0f};

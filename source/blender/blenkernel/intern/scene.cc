@@ -139,7 +139,7 @@ static void scene_init_data(ID *id)
 
   scene->toolsettings->autokey_mode = (uchar)U.autokey_mode;
 
-  /* grease pencil multiframe falloff curve */
+  /* Grease pencil multi-frame falloff curve. */
   scene->toolsettings->gp_sculpt.cur_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
   CurveMapping *gp_falloff_curve = scene->toolsettings->gp_sculpt.cur_falloff;
   BKE_curvemapping_init(gp_falloff_curve);
@@ -423,7 +423,7 @@ static void scene_free_data(ID *id)
     scene->display.shading.prop = nullptr;
   }
 
-  /* These are freed on doversion. */
+  /* These are freed on `do_versions`. */
   BLI_assert(scene->layer_properties == nullptr);
 }
 
@@ -967,7 +967,7 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   if (tos->gp_interpolate.custom_ipo) {
     BKE_curvemapping_blend_write(writer, tos->gp_interpolate.custom_ipo);
   }
-  /* write grease-pencil multiframe falloff curve to file */
+  /* write grease-pencil multi-frame falloff curve to file */
   if (tos->gp_sculpt.cur_falloff) {
     BKE_curvemapping_blend_write(writer, tos->gp_sculpt.cur_falloff);
   }
@@ -1058,7 +1058,7 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
     BKE_collection_blend_write_nolib(writer, sce->master_collection);
   }
 
-  /* Eevee Lightcache */
+  /* Eevee Light-cache */
   if (sce->eevee.light_cache_data && !BLO_write_is_undo(writer)) {
     BLO_write_struct(writer, LightCache, sce->eevee.light_cache_data);
     EEVEE_lightcache_blend_write(writer, sce->eevee.light_cache_data);
@@ -1066,7 +1066,7 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
   BKE_screen_view3d_shading_blend_write(writer, &sce->display.shading);
 
-  /* Freed on doversion. */
+  /* Freed on `do_versions()`. */
   BLI_assert(sce->layer_properties == nullptr);
 }
 
@@ -1147,23 +1147,23 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     sce->toolsettings->particle.object = nullptr;
     sce->toolsettings->gp_sculpt.paintcursor = nullptr;
 
-    /* relink grease pencil interpolation curves */
+    /* Relink grease pencil interpolation curves. */
     BLO_read_data_address(reader, &sce->toolsettings->gp_interpolate.custom_ipo);
     if (sce->toolsettings->gp_interpolate.custom_ipo) {
       BKE_curvemapping_blend_read(reader, sce->toolsettings->gp_interpolate.custom_ipo);
     }
-    /* relink grease pencil multiframe falloff curve */
+    /* Relink grease pencil multi-frame falloff curve. */
     BLO_read_data_address(reader, &sce->toolsettings->gp_sculpt.cur_falloff);
     if (sce->toolsettings->gp_sculpt.cur_falloff) {
       BKE_curvemapping_blend_read(reader, sce->toolsettings->gp_sculpt.cur_falloff);
     }
-    /* relink grease pencil primitive curve */
+    /* Relink grease pencil primitive curve. */
     BLO_read_data_address(reader, &sce->toolsettings->gp_sculpt.cur_primitive);
     if (sce->toolsettings->gp_sculpt.cur_primitive) {
       BKE_curvemapping_blend_read(reader, sce->toolsettings->gp_sculpt.cur_primitive);
     }
 
-    /* Relink toolsettings curve profile */
+    /* Relink toolsettings curve profile. */
     BLO_read_data_address(reader, &sce->toolsettings->custom_bevel_profile_preset);
     if (sce->toolsettings->custom_bevel_profile_preset) {
       BKE_curveprofile_blend_read(reader, sce->toolsettings->custom_bevel_profile_preset);
@@ -1729,7 +1729,7 @@ ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, const int flag)
 
   /* duplicate Grease Pencil interpolation curve */
   ts->gp_interpolate.custom_ipo = BKE_curvemapping_copy(ts->gp_interpolate.custom_ipo);
-  /* Duplicate Grease Pencil multiframe falloff. */
+  /* Duplicate Grease Pencil multi-frame falloff. */
   ts->gp_sculpt.cur_falloff = BKE_curvemapping_copy(ts->gp_sculpt.cur_falloff);
   ts->gp_sculpt.cur_primitive = BKE_curvemapping_copy(ts->gp_sculpt.cur_primitive);
 
@@ -1786,7 +1786,7 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
   if (toolsettings->gp_interpolate.custom_ipo) {
     BKE_curvemapping_free(toolsettings->gp_interpolate.custom_ipo);
   }
-  /* free Grease Pencil multiframe falloff curve */
+  /* free Grease Pencil multi-frame falloff curve */
   if (toolsettings->gp_sculpt.cur_falloff) {
     BKE_curvemapping_free(toolsettings->gp_sculpt.cur_falloff);
   }
@@ -2030,7 +2030,7 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
   /* check for cyclic sets, for reading old files but also for definite security (py?) */
   BKE_scene_validate_setscene(bmain, scene);
 
-  /* deselect objects (for dataselect) */
+  /* Deselect objects (for data select). */
   LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
     ob->flag &= ~SELECT;
   }
@@ -2625,7 +2625,7 @@ void BKE_scene_graph_update_for_newframe_ex(Depsgraph *depsgraph, const bool cle
     BKE_sound_set_cfra(scene->r.cfra);
     DEG_graph_relations_update(depsgraph);
     /* Update all objects: drivers, matrices, #DispList, etc. flags set
-     * by depgraph or manual, no layer check here, gets correct flushed.
+     * by depsgraph or manual, no layer check here, gets correct flushed.
      *
      * NOTE: Only update for new frame on first iteration. Second iteration is for ensuring user
      * edits from callback are properly taken into account. Doing a time update on those would

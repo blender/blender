@@ -33,7 +33,7 @@
 
 #include "ED_transverts.h" /* own include */
 
-/* copied from editobject.c, now uses (almost) proper depgraph */
+/* copied from editobject.c, now uses (almost) proper depsgraph. */
 void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
 {
   const int mode = tvs->mode;

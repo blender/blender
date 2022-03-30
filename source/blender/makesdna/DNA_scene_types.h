@@ -1113,7 +1113,7 @@ typedef struct GP_Sculpt_Settings {
   /** Threshold for intersections */
   float isect_threshold;
   char _pad[4];
-  /** Multiframe edit falloff effect by frame. */
+  /** Multi-frame edit falloff effect by frame. */
   struct CurveMapping *cur_falloff;
   /** Curve used for primitive tools. */
   struct CurveMapping *cur_primitive;

@@ -122,7 +122,7 @@ IDOverrideLibrary *BKE_lib_override_library_init(ID *local_id, ID *reference_id)
   local_id->override_library->reference = reference_id;
   id_us_plus(local_id->override_library->reference);
   local_id->tag &= ~LIB_TAG_OVERRIDE_LIBRARY_REFOK;
-  /* By default initialized libioverrides are 'system overrides', higher-level code is responsible
+  /* By default initialized liboverrides are 'system overrides', higher-level code is responsible
    * to unset this flag for specific IDs. */
   local_id->override_library->flag |= IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
   /* TODO: do we want to add tag or flag to referee to mark it as such? */

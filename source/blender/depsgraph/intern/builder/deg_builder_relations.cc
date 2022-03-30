@@ -1839,9 +1839,8 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
         /* We do not have to update the objects final transform after the simulation if it is
          * passive or controlled by the animation system in blender.
          * (Bullet doesn't move the object at all in these cases).
-         * But we can't update the depgraph when the animated property in changed during playback.
-         * So always assume that active bodies needs updating.
-         */
+         * But we can't update the depsgraph when the animated property in changed during playback.
+         * So always assume that active bodies needs updating. */
         OperationKey rb_transform_copy_key(
             &object->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
         /* Rigid body synchronization depends on the actual simulation. */

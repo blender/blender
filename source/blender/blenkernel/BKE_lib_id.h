@@ -601,7 +601,8 @@ bool BKE_id_can_be_asset(const struct ID *id);
  *
  * NOTE: Execution of this function can be somewhat expensive currently. If this becomes an issue,
  * we should either cache that status info also in virtual override IDs, or address the
- * long-standing TODO of geting an efficient 'owner_id' access for all embeded ID types. */
+ * long-standing TODO of getting an efficient 'owner_id' access for all embedded ID types.
+ */
 bool BKE_id_is_editable(struct Main *bmain, struct ID *id);
 
 /**

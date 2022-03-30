@@ -15,7 +15,7 @@ CCL_NAMESPACE_BEGIN
 #define TEX_IMAGE_MISSING_A 1
 
 /* Interpolation types for textures
- * cuda also use texture space to store other objects */
+ * CUDA also use texture space to store other objects. */
 typedef enum InterpolationType {
   INTERPOLATION_NONE = -1,
   INTERPOLATION_LINEAR = 0,

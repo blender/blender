@@ -3184,7 +3184,7 @@ static void calchandleNurb_intern(BezTriple *bezt,
     len *= 2.5614f;
 
     if (len != 0.0f) {
-      /* only for fcurves */
+      /* Only for F-curves. */
       bool leftviolate = false, rightviolate = false;
 
       if (!is_fcurve || fcurve_smoothing == FCURVE_SMOOTH_NONE) {

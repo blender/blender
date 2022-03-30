@@ -2437,7 +2437,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 302, 7)) {
     /* Generate 'system' liboverrides IDs.
-     * NOTE: This is a fairly rough process, based on very basic euristics. Should be enough for a
+     * NOTE: This is a fairly rough process, based on very basic heuristics. Should be enough for a
      * do_version code though, this is a new optional feature, not a critical conversion. */
     ID *id;
     FOREACH_MAIN_ID_BEGIN (bmain, id) {

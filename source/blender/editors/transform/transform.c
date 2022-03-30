@@ -1115,7 +1115,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 
               initSelectConstraint(t);
               /* Use #TREDRAW_SOFT so that #selectConstraint is only called on the next event.
-               * This allows us to "deselect" the contraint. */
+               * This allows us to "deselect" the constraint. */
               t->redraw = TREDRAW_SOFT;
             }
           }
