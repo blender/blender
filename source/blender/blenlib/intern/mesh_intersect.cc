@@ -635,8 +635,8 @@ void IMesh::populate_vert()
   /* This is likely an overestimate, since verts are shared between
    * faces. It is ok if estimate is over or even under. */
   constexpr int ESTIMATE_VERTS_PER_FACE = 4;
-  int estimate_num_verts = ESTIMATE_VERTS_PER_FACE * face_.size();
-  populate_vert(estimate_num_verts);
+  int estimate_verts_num = ESTIMATE_VERTS_PER_FACE * face_.size();
+  populate_vert(estimate_verts_num);
 }
 
 void IMesh::populate_vert(int max_verts)
@@ -693,16 +693,16 @@ bool IMesh::erase_face_positions(int f_index, Span<bool> face_pos_erase, IMeshAr
 {
   const Face *cur_f = this->face(f_index);
   int cur_len = cur_f->size();
-  int num_to_erase = 0;
+  int to_erase_num = 0;
   for (int i : cur_f->index_range()) {
     if (face_pos_erase[i]) {
-      ++num_to_erase;
+      ++to_erase_num;
     }
   }
-  if (num_to_erase == 0) {
+  if (to_erase_num == 0) {
     return false;
   }
-  int new_len = cur_len - num_to_erase;
+  int new_len = cur_len - to_erase_num;
   if (new_len < 3) {
     /* This erase causes removal of whole face.
      * Because this may be called from a loop over the face array,
@@ -2324,7 +2324,7 @@ class TriOverlaps {
   BVHTree *tree_b_{nullptr};
   BVHTreeOverlap *overlap_{nullptr};
   Array<int> first_overlap_;
-  uint overlap_tot_{0};
+  uint overlap_num_{0};
 
   struct CBData {
     const IMesh &tm;
@@ -2386,16 +2386,16 @@ class TriOverlaps {
     if (two_trees_no_self) {
       BLI_bvhtree_balance(tree_b_);
       /* Don't expect a lot of trivial intersects in this case. */
-      overlap_ = BLI_bvhtree_overlap(tree_, tree_b_, &overlap_tot_, nullptr, nullptr);
+      overlap_ = BLI_bvhtree_overlap(tree_, tree_b_, &overlap_num_, nullptr, nullptr);
     }
     else {
       CBData cbdata{tm, shape_fn, nshapes, use_self};
       if (nshapes == 1) {
-        overlap_ = BLI_bvhtree_overlap(tree_, tree_, &overlap_tot_, nullptr, nullptr);
+        overlap_ = BLI_bvhtree_overlap(tree_, tree_, &overlap_num_, nullptr, nullptr);
       }
       else {
         overlap_ = BLI_bvhtree_overlap(
-            tree_, tree_, &overlap_tot_, only_different_shapes, &cbdata);
+            tree_, tree_, &overlap_num_, only_different_shapes, &cbdata);
       }
     }
     /* The rest of the code is simpler and easier to parallelize if, in the two-trees case,
@@ -2403,23 +2403,23 @@ class TriOverlaps {
      * in the repeated part, sorting will then bring things with indexB together. */
     if (two_trees_no_self) {
       overlap_ = static_cast<BVHTreeOverlap *>(
-          MEM_reallocN(overlap_, 2 * overlap_tot_ * sizeof(overlap_[0])));
-      for (uint i = 0; i < overlap_tot_; ++i) {
-        overlap_[overlap_tot_ + i].indexA = overlap_[i].indexB;
-        overlap_[overlap_tot_ + i].indexB = overlap_[i].indexA;
+          MEM_reallocN(overlap_, 2 * overlap_num_ * sizeof(overlap_[0])));
+      for (uint i = 0; i < overlap_num_; ++i) {
+        overlap_[overlap_num_ + i].indexA = overlap_[i].indexB;
+        overlap_[overlap_num_ + i].indexB = overlap_[i].indexA;
       }
-      overlap_tot_ += overlap_tot_;
+      overlap_num_ += overlap_num_;
     }
     /* Sort the overlaps to bring all the intersects with a given indexA together. */
-    std::sort(overlap_, overlap_ + overlap_tot_, bvhtreeverlap_cmp);
+    std::sort(overlap_, overlap_ + overlap_num_, bvhtreeverlap_cmp);
     if (dbg_level > 0) {
-      std::cout << overlap_tot_ << " overlaps found:\n";
+      std::cout << overlap_num_ << " overlaps found:\n";
       for (BVHTreeOverlap ov : overlap()) {
         std::cout << "A: " << ov.indexA << ", B: " << ov.indexB << "\n";
       }
     }
     first_overlap_ = Array<int>(tm.face_size(), -1);
-    for (int i = 0; i < static_cast<int>(overlap_tot_); ++i) {
+    for (int i = 0; i < static_cast<int>(overlap_num_); ++i) {
       int t = overlap_[i].indexA;
       if (first_overlap_[t] == -1) {
         first_overlap_[t] = i;
@@ -2442,7 +2442,7 @@ class TriOverlaps {
 
   Span<BVHTreeOverlap> overlap() const
   {
-    return Span<BVHTreeOverlap>(overlap_, overlap_tot_);
+    return Span<BVHTreeOverlap>(overlap_, overlap_num_);
   }
 
   int first_overlap_index(int t) const
@@ -2557,13 +2557,13 @@ static void calc_subdivided_non_cluster_tris(Array<IMesh> &r_tri_subdivided,
     int len;
   };
   Vector<OverlapTriRange> overlap_tri_range;
-  int overlap_tot = overlap.size();
-  overlap_tri_range.reserve(overlap_tot);
+  int overlap_num = overlap.size();
+  overlap_tri_range.reserve(overlap_num);
   int overlap_index = 0;
-  while (overlap_index < overlap_tot) {
+  while (overlap_index < overlap_num) {
     int t = overlap[overlap_index].indexA;
     int i = overlap_index;
-    while (i + 1 < overlap_tot && overlap[i + 1].indexA == t) {
+    while (i + 1 < overlap_num && overlap[i + 1].indexA == t) {
       ++i;
     }
     /* Now overlap[overlap_index] to overlap[i] have indexA == t.
@@ -2581,8 +2581,8 @@ static void calc_subdivided_non_cluster_tris(Array<IMesh> &r_tri_subdivided,
     }
     overlap_index = i + 1;
   }
-  int overlap_tri_range_tot = overlap_tri_range.size();
-  Array<CDT_data> cd_data(overlap_tri_range_tot);
+  int overlap_tri_range_num = overlap_tri_range.size();
+  Array<CDT_data> cd_data(overlap_tri_range_num);
   int grain_size = 64;
   threading::parallel_for(overlap_tri_range.index_range(), grain_size, [&](IndexRange range) {
     for (int otr_index : range) {

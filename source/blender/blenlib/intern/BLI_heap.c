@@ -35,7 +35,7 @@ struct HeapNode_Chunk {
  * or we allocate past the reserved number.
  *
  * \note Optimize number for 64kb allocs.
- * \note keep type in sync with tot_nodes in heap_node_alloc_chunk.
+ * \note keep type in sync with nodes_num in heap_node_alloc_chunk.
  */
 #define HEAP_CHUNK_DEFAULT_NUM \
   ((uint)((MEM_SIZE_OPTIMAL((1 << 16) - sizeof(struct HeapNode_Chunk))) / sizeof(HeapNode)))
@@ -137,13 +137,13 @@ static void heap_up(Heap *heap, uint i)
 /** \name Internal Memory Management
  * \{ */
 
-static struct HeapNode_Chunk *heap_node_alloc_chunk(uint tot_nodes,
+static struct HeapNode_Chunk *heap_node_alloc_chunk(uint nodes_num,
                                                     struct HeapNode_Chunk *chunk_prev)
 {
   struct HeapNode_Chunk *chunk = MEM_mallocN(
-      sizeof(struct HeapNode_Chunk) + (sizeof(HeapNode) * tot_nodes), __func__);
+      sizeof(struct HeapNode_Chunk) + (sizeof(HeapNode) * nodes_num), __func__);
   chunk->prev = chunk_prev;
-  chunk->bufsize = tot_nodes;
+  chunk->bufsize = nodes_num;
   chunk->size = 0;
   return chunk;
 }
@@ -179,16 +179,16 @@ static void heap_node_free(Heap *heap, HeapNode *node)
 /** \name Public Heap API
  * \{ */
 
-Heap *BLI_heap_new_ex(uint tot_reserve)
+Heap *BLI_heap_new_ex(uint reserve_num)
 {
   Heap *heap = MEM_mallocN(sizeof(Heap), __func__);
   /* ensure we have at least one so we can keep doubling it */
   heap->size = 0;
-  heap->bufsize = MAX2(1u, tot_reserve);
+  heap->bufsize = MAX2(1u, reserve_num);
   heap->tree = MEM_mallocN(heap->bufsize * sizeof(HeapNode *), "BLIHeapTree");
 
   heap->nodes.chunk = heap_node_alloc_chunk(
-      (tot_reserve > 1) ? tot_reserve : HEAP_CHUNK_DEFAULT_NUM, NULL);
+      (reserve_num > 1) ? reserve_num : HEAP_CHUNK_DEFAULT_NUM, NULL);
   heap->nodes.free = NULL;
 
   return heap;

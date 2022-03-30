@@ -890,7 +890,7 @@ bool clip_segment_v3_plane(
 bool clip_segment_v3_plane_n(const float p1[3],
                              const float p2[3],
                              const float plane_array[][4],
-                             int plane_tot,
+                             int plane_num,
                              float r_p1[3],
                              float r_p2[3]);
 

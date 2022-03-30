@@ -133,12 +133,12 @@ static void heapsimple_up(HeapSimple *heap, uint i, float active_val, void *acti
 /** \name Public HeapSimple API
  * \{ */
 
-HeapSimple *BLI_heapsimple_new_ex(uint tot_reserve)
+HeapSimple *BLI_heapsimple_new_ex(uint reserve_num)
 {
   HeapSimple *heap = MEM_mallocN(sizeof(HeapSimple), __func__);
   /* ensure we have at least one so we can keep doubling it */
   heap->size = 0;
-  heap->bufsize = MAX2(1u, tot_reserve);
+  heap->bufsize = MAX2(1u, reserve_num);
   heap->tree = MEM_mallocN(heap->bufsize * sizeof(HeapSimpleNode), "BLIHeapSimpleTree");
   return heap;
 }

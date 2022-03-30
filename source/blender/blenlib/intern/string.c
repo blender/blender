@@ -1131,11 +1131,11 @@ void BLI_str_format_byte_unit(char dst[15], long long int bytes, const bool base
   const int base = base_10 ? 1000 : 1024;
   const char *units_base_10[] = {"B", "KB", "MB", "GB", "TB", "PB"};
   const char *units_base_2[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB"};
-  const int tot_units = ARRAY_SIZE(units_base_2);
+  const int units_num = ARRAY_SIZE(units_base_2);
 
   BLI_STATIC_ASSERT(ARRAY_SIZE(units_base_2) == ARRAY_SIZE(units_base_10), "array size mismatch");
 
-  while ((fabs(bytes_converted) >= base) && ((order + 1) < tot_units)) {
+  while ((fabs(bytes_converted) >= base) && ((order + 1) < units_num)) {
     bytes_converted /= base;
     order++;
   }
@@ -1155,9 +1155,9 @@ void BLI_str_format_attribute_domain_size(char dst[7], int number_to_format)
   int order = 0;
   const float base = 1000;
   const char *units[] = {"", "K", "M", "B"};
-  const int tot_units = ARRAY_SIZE(units);
+  const int units_num = ARRAY_SIZE(units);
 
-  while ((fabsf(number_to_format_converted) >= base) && ((order + 1) < tot_units)) {
+  while ((fabsf(number_to_format_converted) >= base) && ((order + 1) < units_num)) {
     number_to_format_converted /= base;
     order++;
   }

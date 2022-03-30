@@ -3404,7 +3404,7 @@ bool clip_segment_v3_plane(
 bool clip_segment_v3_plane_n(const float p1[3],
                              const float p2[3],
                              const float plane_array[][4],
-                             const int plane_tot,
+                             const int plane_num,
                              float r_p1[3],
                              float r_p2[3])
 {
@@ -3414,7 +3414,7 @@ bool clip_segment_v3_plane_n(const float p1[3],
   float dp[3];
   sub_v3_v3v3(dp, p2, p1);
 
-  for (int i = 0; i < plane_tot; i++) {
+  for (int i = 0; i < plane_num; i++) {
     const float *plane = plane_array[i];
     const float div = dot_v3v3(dp, plane);
 

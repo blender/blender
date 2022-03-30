@@ -69,9 +69,9 @@ void BLI_rng_get_tri_sample_float_v3(RNG *rng,
 void BLI_rng_shuffle_array(struct RNG *rng,
                            void *data,
                            unsigned int elem_size_i,
-                           unsigned int elem_tot) ATTR_NONNULL(1, 2);
+                           unsigned int elem_num) ATTR_NONNULL(1, 2);
 
-void BLI_rng_shuffle_bitmap(struct RNG *rng, unsigned int *bitmap, unsigned int bits_tot)
+void BLI_rng_shuffle_bitmap(struct RNG *rng, unsigned int *bitmap, unsigned int bits_num)
     ATTR_NONNULL(1, 2);
 
 /** Note that skipping is as slow as generating n numbers! */
@@ -96,10 +96,10 @@ float BLI_hash_frand(unsigned int seed) ATTR_WARN_UNUSED_RESULT;
  */
 void BLI_array_randomize(void *data,
                          unsigned int elem_size,
-                         unsigned int elem_tot,
+                         unsigned int elem_num,
                          unsigned int seed);
 
-void BLI_bitmap_randomize(unsigned int *bitmap, unsigned int bits_tot, unsigned int seed)
+void BLI_bitmap_randomize(unsigned int *bitmap, unsigned int bits_num, unsigned int seed)
     ATTR_NONNULL(1);
 
 /** Better seed for the random number generator, using noise.c hash[] */

@@ -109,7 +109,7 @@ static pthread_mutex_t _fftw_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _view3d_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t mainid;
 static unsigned int thread_levels = 0; /* threads can be invoked inside threads */
-static int num_threads_override = 0;
+static int threads_override_num = 0;
 
 /* just a max for security reasons */
 #define RE_MAX_THREAD BLENDER_MAX_THREADS
@@ -282,8 +282,8 @@ int BLI_system_thread_count()
 {
   static int t = -1;
 
-  if (num_threads_override != 0) {
-    return num_threads_override;
+  if (threads_override_num != 0) {
+    return threads_override_num;
   }
   if (LIKELY(t != -1)) {
     return t;
@@ -316,12 +316,12 @@ int BLI_system_thread_count()
 
 void BLI_system_num_threads_override_set(int num)
 {
-  num_threads_override = num;
+  threads_override_num = num;
 }
 
 int BLI_system_num_threads_override_get()
 {
-  return num_threads_override;
+  return threads_override_num;
 }
 
 /* Global Mutex Locks */

@@ -20,7 +20,7 @@ struct BLI_mempool_chunk;
 typedef struct BLI_mempool BLI_mempool;
 
 BLI_mempool *BLI_mempool_create(unsigned int esize,
-                                unsigned int totelem,
+                                unsigned int elem_num,
                                 unsigned int pchunk,
                                 unsigned int flag)
     ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;

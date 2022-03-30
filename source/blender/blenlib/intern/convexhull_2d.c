@@ -165,7 +165,7 @@ int BLI_convexhull_2d(const float (*points)[2], const int n, int r_points[])
   struct PointRef *points_ref = MEM_mallocN(sizeof(*points_ref) * (size_t)n, __func__);
   float(*points_sort)[2] = MEM_mallocN(sizeof(*points_sort) * (size_t)n, __func__);
   int *points_map;
-  int tot, i;
+  int points_hull_num, i;
 
   for (i = 0; i < n; i++) {
     points_ref[i].pt = points[i];
@@ -178,20 +178,20 @@ int BLI_convexhull_2d(const float (*points)[2], const int n, int r_points[])
     memcpy(points_sort[i], points_ref[i].pt, sizeof(float[2]));
   }
 
-  tot = BLI_convexhull_2d_sorted(points_sort, n, r_points);
+  points_hull_num = BLI_convexhull_2d_sorted(points_sort, n, r_points);
 
   /* map back to the original index values */
   points_map = (int *)points_sort; /* abuse float array for temp storage */
-  for (i = 0; i < tot; i++) {
+  for (i = 0; i < points_hull_num; i++) {
     points_map[i] = (int)((const float(*)[2])points_ref[r_points[i]].pt - points);
   }
 
-  memcpy(r_points, points_map, (size_t)tot * sizeof(*points_map));
+  memcpy(r_points, points_map, (size_t)points_hull_num * sizeof(*points_map));
 
   MEM_freeN(points_ref);
   MEM_freeN(points_sort);
 
-  return tot;
+  return points_hull_num;
 }
 
 /** \} */
@@ -252,24 +252,24 @@ float BLI_convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], unsigned in
 float BLI_convexhull_aabb_fit_points_2d(const float (*points)[2], unsigned int n)
 {
   int *index_map;
-  int tot;
+  int points_hull_num;
 
   float angle;
 
   index_map = MEM_mallocN(sizeof(*index_map) * n * 2, __func__);
 
-  tot = BLI_convexhull_2d(points, (int)n, index_map);
+  points_hull_num = BLI_convexhull_2d(points, (int)n, index_map);
 
-  if (tot) {
+  if (points_hull_num) {
     float(*points_hull)[2];
     int j;
 
-    points_hull = MEM_mallocN(sizeof(*points_hull) * (size_t)tot, __func__);
-    for (j = 0; j < tot; j++) {
+    points_hull = MEM_mallocN(sizeof(*points_hull) * (size_t)points_hull_num, __func__);
+    for (j = 0; j < points_hull_num; j++) {
       copy_v2_v2(points_hull[j], points[index_map[j]]);
     }
 
-    angle = BLI_convexhull_aabb_fit_hull_2d(points_hull, (unsigned int)tot);
+    angle = BLI_convexhull_aabb_fit_hull_2d(points_hull, (unsigned int)points_hull_num);
     MEM_freeN(points_hull);
   }
   else {

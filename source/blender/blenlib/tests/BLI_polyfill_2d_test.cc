@@ -29,19 +29,19 @@
 
 static void polyfill_to_obj(const char *id,
                             const float poly[][2],
-                            const unsigned int poly_tot,
+                            const unsigned int poly_num,
                             const unsigned int tris[][3],
-                            const unsigned int tris_tot);
+                            const unsigned int tris_num);
 
 /* -------------------------------------------------------------------- */
 /* test utility functions */
 
 #define TRI_ERROR_VALUE (unsigned int)-1
 
-static void test_valid_polyfill_prepare(unsigned int tris[][3], unsigned int tris_tot)
+static void test_valid_polyfill_prepare(unsigned int tris[][3], unsigned int tris_num)
 {
   unsigned int i;
-  for (i = 0; i < tris_tot; i++) {
+  for (i = 0; i < tris_num; i++) {
     unsigned int j;
     for (j = 0; j < 3; j++) {
       tris[i][j] = TRI_ERROR_VALUE;
@@ -57,37 +57,37 @@ static void test_valid_polyfill_prepare(unsigned int tris[][3], unsigned int tri
  * - all verts used at least once.
  */
 static void test_polyfill_simple(const float /*poly*/[][2],
-                                 const unsigned int poly_tot,
+                                 const unsigned int poly_num,
                                  const unsigned int tris[][3],
-                                 const unsigned int tris_tot)
+                                 const unsigned int tris_num)
 {
   unsigned int i;
-  int *tot_used = (int *)MEM_callocN(poly_tot * sizeof(int), __func__);
-  for (i = 0; i < tris_tot; i++) {
+  int *used_num = (int *)MEM_callocN(poly_num * sizeof(int), __func__);
+  for (i = 0; i < tris_num; i++) {
     unsigned int j;
     for (j = 0; j < 3; j++) {
       EXPECT_NE(TRI_ERROR_VALUE, tris[i][j]);
-      tot_used[tris[i][j]] += 1;
+      used_num[tris[i][j]] += 1;
     }
     EXPECT_NE(tris[i][0], tris[i][1]);
     EXPECT_NE(tris[i][1], tris[i][2]);
     EXPECT_NE(tris[i][2], tris[i][0]);
   }
-  for (i = 0; i < poly_tot; i++) {
-    EXPECT_NE(0, tot_used[i]);
+  for (i = 0; i < poly_num; i++) {
+    EXPECT_NE(0, used_num[i]);
   }
-  MEM_freeN(tot_used);
+  MEM_freeN(used_num);
 }
 
 static void test_polyfill_topology(const float /*poly*/[][2],
-                                   const unsigned int poly_tot,
+                                   const unsigned int poly_num,
                                    const unsigned int tris[][3],
-                                   const unsigned int tris_tot)
+                                   const unsigned int tris_num)
 {
   EdgeHash *edgehash = BLI_edgehash_new(__func__);
   EdgeHashIterator *ehi;
   unsigned int i;
-  for (i = 0; i < tris_tot; i++) {
+  for (i = 0; i < tris_num; i++) {
     unsigned int j;
     for (j = 0; j < 3; j++) {
       const unsigned int v1 = tris[i][j];
@@ -101,11 +101,11 @@ static void test_polyfill_topology(const float /*poly*/[][2],
       }
     }
   }
-  EXPECT_EQ(BLI_edgehash_len(edgehash), poly_tot + (poly_tot - 3));
+  EXPECT_EQ(BLI_edgehash_len(edgehash), poly_num + (poly_num - 3));
 
-  for (i = 0; i < poly_tot; i++) {
+  for (i = 0; i < poly_num; i++) {
     const unsigned int v1 = i;
-    const unsigned int v2 = (i + 1) % poly_tot;
+    const unsigned int v2 = (i + 1) % poly_num;
     void **p = BLI_edgehash_lookup_p(edgehash, v1, v2);
     EXPECT_NE((void *)p, nullptr);
     EXPECT_EQ((intptr_t)*p, 1);
@@ -125,13 +125,13 @@ static void test_polyfill_topology(const float /*poly*/[][2],
  * Check all faces are flipped the same way
  */
 static void test_polyfill_winding(const float poly[][2],
-                                  const unsigned int /*poly_tot*/,
+                                  const unsigned int /*poly_num*/,
                                   const unsigned int tris[][3],
-                                  const unsigned int tris_tot)
+                                  const unsigned int tris_num)
 {
   unsigned int i;
   unsigned int count[2] = {0, 0};
-  for (i = 0; i < tris_tot; i++) {
+  for (i = 0; i < tris_num; i++) {
     float winding_test = cross_tri_v2(poly[tris[i][0]], poly[tris[i][1]], poly[tris[i][2]]);
     if (fabsf(winding_test) > FLT_EPSILON) {
       count[winding_test < 0.0f] += 1;
@@ -144,19 +144,19 @@ static void test_polyfill_winding(const float poly[][2],
  * Check the accumulated triangle area is close to the original area.
  */
 static void test_polyfill_area(const float poly[][2],
-                               const unsigned int poly_tot,
+                               const unsigned int poly_num,
                                const unsigned int tris[][3],
-                               const unsigned int tris_tot)
+                               const unsigned int tris_num)
 {
   unsigned int i;
-  const float area_tot = area_poly_v2(poly, poly_tot);
-  float area_tot_tris = 0.0f;
+  const float area_total = area_poly_v2(poly, poly_num);
+  float area_total_tris = 0.0f;
   const float eps_abs = 0.00001f;
-  const float eps = area_tot > 1.0f ? (area_tot * eps_abs) : eps_abs;
-  for (i = 0; i < tris_tot; i++) {
-    area_tot_tris += area_tri_v2(poly[tris[i][0]], poly[tris[i][1]], poly[tris[i][2]]);
+  const float eps = area_total > 1.0f ? (area_total * eps_abs) : eps_abs;
+  for (i = 0; i < tris_num; i++) {
+    area_total_tris += area_tri_v2(poly[tris[i][0]], poly[tris[i][1]], poly[tris[i][2]]);
   }
-  EXPECT_NEAR(area_tot, area_tot_tris, eps);
+  EXPECT_NEAR(area_total, area_total_tris, eps);
 }
 
 /* -------------------------------------------------------------------- */
@@ -167,32 +167,32 @@ static void test_polyfill_area(const float poly[][2],
 static void test_polyfill_template_check(const char *id,
                                          bool is_degenerate,
                                          const float poly[][2],
-                                         const unsigned int poly_tot,
+                                         const unsigned int poly_num,
                                          const unsigned int tris[][3],
-                                         const unsigned int tris_tot)
+                                         const unsigned int tris_num)
 {
-  test_polyfill_simple(poly, poly_tot, tris, tris_tot);
-  test_polyfill_topology(poly, poly_tot, tris, tris_tot);
+  test_polyfill_simple(poly, poly_num, tris, tris_num);
+  test_polyfill_topology(poly, poly_num, tris, tris_num);
   if (!is_degenerate) {
-    test_polyfill_winding(poly, poly_tot, tris, tris_tot);
+    test_polyfill_winding(poly, poly_num, tris, tris_num);
 
-    test_polyfill_area(poly, poly_tot, tris, tris_tot);
+    test_polyfill_area(poly, poly_num, tris, tris_num);
   }
-  polyfill_to_obj(id, poly, poly_tot, tris, tris_tot);
+  polyfill_to_obj(id, poly, poly_num, tris, tris_num);
 }
 
 static void test_polyfill_template(const char *id,
                                    bool is_degenerate,
                                    const float poly[][2],
-                                   const unsigned int poly_tot,
+                                   const unsigned int poly_num,
                                    unsigned int tris[][3],
-                                   const unsigned int tris_tot)
+                                   const unsigned int tris_num)
 {
-  test_valid_polyfill_prepare(tris, tris_tot);
-  BLI_polyfill_calc(poly, poly_tot, 0, tris);
+  test_valid_polyfill_prepare(tris, tris_num);
+  BLI_polyfill_calc(poly, poly_num, 0, tris);
 
   /* check all went well */
-  test_polyfill_template_check(id, is_degenerate, poly, poly_tot, tris, tris_tot);
+  test_polyfill_template_check(id, is_degenerate, poly, poly_num, tris, tris_num);
 
 #ifdef USE_BEAUTIFY
   /* check beautify gives good results too */
@@ -200,9 +200,9 @@ static void test_polyfill_template(const char *id,
     MemArena *pf_arena = BLI_memarena_new(BLI_POLYFILL_ARENA_SIZE, __func__);
     Heap *pf_heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
 
-    BLI_polyfill_beautify(poly, poly_tot, tris, pf_arena, pf_heap);
+    BLI_polyfill_beautify(poly, poly_num, tris, pf_arena, pf_heap);
 
-    test_polyfill_template_check(id, is_degenerate, poly, poly_tot, tris, tris_tot);
+    test_polyfill_template_check(id, is_degenerate, poly, poly_num, tris, tris_num);
 
     BLI_memarena_free(pf_arena);
     BLI_heap_free(pf_heap, nullptr);
@@ -213,20 +213,20 @@ static void test_polyfill_template(const char *id,
 static void test_polyfill_template_flip_sign(const char *id,
                                              bool is_degenerate,
                                              const float poly[][2],
-                                             const unsigned int poly_tot,
+                                             const unsigned int poly_num,
                                              unsigned int tris[][3],
-                                             const unsigned int tris_tot)
+                                             const unsigned int tris_num)
 {
-  float(*poly_copy)[2] = (float(*)[2])MEM_mallocN(sizeof(float[2]) * poly_tot, id);
+  float(*poly_copy)[2] = (float(*)[2])MEM_mallocN(sizeof(float[2]) * poly_num, id);
   for (int flip_x = 0; flip_x < 2; flip_x++) {
     for (int flip_y = 0; flip_y < 2; flip_y++) {
       float sign_x = flip_x ? -1.0f : 1.0f;
       float sign_y = flip_y ? -1.0f : 1.0f;
-      for (int i = 0; i < poly_tot; i++) {
+      for (int i = 0; i < poly_num; i++) {
         poly_copy[i][0] = poly[i][0] * sign_x;
         poly_copy[i][1] = poly[i][1] * sign_y;
       }
-      test_polyfill_template(id, is_degenerate, poly_copy, poly_tot, tris, tris_tot);
+      test_polyfill_template(id, is_degenerate, poly_copy, poly_num, tris, tris_num);
     }
   }
   MEM_freeN(poly_copy);
@@ -236,32 +236,32 @@ static void test_polyfill_template_flip_sign(const char *id,
 static void test_polyfill_template_main(const char *id,
                                         bool is_degenerate,
                                         const float poly[][2],
-                                        const unsigned int poly_tot,
+                                        const unsigned int poly_num,
                                         unsigned int tris[][3],
-                                        const unsigned int tris_tot)
+                                        const unsigned int tris_num)
 {
   /* overkill? - try at _every_ offset & reverse */
   unsigned int poly_reverse;
-  float(*poly_copy)[2] = (float(*)[2])MEM_mallocN(sizeof(float[2]) * poly_tot, id);
+  float(*poly_copy)[2] = (float(*)[2])MEM_mallocN(sizeof(float[2]) * poly_num, id);
   float tmp[2];
 
-  memcpy(poly_copy, poly, sizeof(float[2]) * poly_tot);
+  memcpy(poly_copy, poly, sizeof(float[2]) * poly_num);
 
   for (poly_reverse = 0; poly_reverse < 2; poly_reverse++) {
     unsigned int poly_cycle;
 
     if (poly_reverse) {
-      BLI_array_reverse(poly_copy, poly_tot);
+      BLI_array_reverse(poly_copy, poly_num);
     }
 
-    for (poly_cycle = 0; poly_cycle < poly_tot; poly_cycle++) {
+    for (poly_cycle = 0; poly_cycle < poly_num; poly_cycle++) {
       // printf("polytest %s ofs=%d, reverse=%d\n", id, poly_cycle, poly_reverse);
-      test_polyfill_template_flip_sign(id, is_degenerate, poly, poly_tot, tris, tris_tot);
+      test_polyfill_template_flip_sign(id, is_degenerate, poly, poly_num, tris, tris_num);
 
       /* cycle */
       copy_v2_v2(tmp, poly_copy[0]);
-      memmove(&poly_copy[0], &poly_copy[1], (poly_tot - 1) * sizeof(float[2]));
-      copy_v2_v2(poly_copy[poly_tot - 1], tmp);
+      memmove(&poly_copy[0], &poly_copy[1], (poly_num - 1) * sizeof(float[2]));
+      copy_v2_v2(poly_copy[poly_num - 1], tmp);
     }
   }
 
@@ -271,22 +271,22 @@ static void test_polyfill_template_main(const char *id,
 static void test_polyfill_template_main(const char *id,
                                         bool is_degenerate,
                                         const float poly[][2],
-                                        const unsigned int poly_tot,
+                                        const unsigned int poly_num,
                                         unsigned int tris[][3],
-                                        const unsigned int tris_tot)
+                                        const unsigned int tris_num)
 {
-  test_polyfill_template_flip_sign(id, is_degenerate, poly, poly_tot, tris, tris_tot);
+  test_polyfill_template_flip_sign(id, is_degenerate, poly, poly_num, tris, tris_num);
 }
 #endif /* USE_COMBINATIONS_ALL */
 
 #define TEST_POLYFILL_TEMPLATE_STATIC(poly, is_degenerate) \
   { \
     unsigned int tris[POLY_TRI_COUNT(ARRAY_SIZE(poly))][3]; \
-    const unsigned int poly_tot = ARRAY_SIZE(poly); \
-    const unsigned int tris_tot = ARRAY_SIZE(tris); \
+    const unsigned int poly_num = ARRAY_SIZE(poly); \
+    const unsigned int tris_num = ARRAY_SIZE(tris); \
     const char *id = typeid(*this).name(); \
 \
-    test_polyfill_template_main(id, is_degenerate, poly, poly_tot, tris, tris_tot); \
+    test_polyfill_template_main(id, is_degenerate, poly, poly_num, tris, tris_num); \
   } \
   (void)0
 
@@ -296,9 +296,9 @@ static void test_polyfill_template_main(const char *id,
 #ifdef USE_OBJ_PREVIEW
 static void polyfill_to_obj(const char *id,
                             const float poly[][2],
-                            const unsigned int poly_tot,
+                            const unsigned int poly_num,
                             const unsigned int tris[][3],
-                            const unsigned int tris_tot)
+                            const unsigned int tris_num)
 {
   char path[1024];
   FILE *f;
@@ -311,11 +311,11 @@ static void polyfill_to_obj(const char *id,
     return;
   }
 
-  for (i = 0; i < poly_tot; i++) {
+  for (i = 0; i < poly_num; i++) {
     fprintf(f, "v %f %f 0.0\n", UNPACK2(poly[i]));
   }
 
-  for (i = 0; i < tris_tot; i++) {
+  for (i = 0; i < tris_num; i++) {
     fprintf(f, "f %u %u %u\n", UNPACK3_EX(1 +, tris[i], ));
   }
 
@@ -324,13 +324,13 @@ static void polyfill_to_obj(const char *id,
 #else
 static void polyfill_to_obj(const char *id,
                             const float poly[][2],
-                            const unsigned int poly_tot,
+                            const unsigned int poly_num,
                             const unsigned int tris[][3],
-                            const unsigned int tris_tot)
+                            const unsigned int tris_num)
 {
   (void)id;
-  (void)poly, (void)poly_tot;
-  (void)tris, (void)tris_tot;
+  (void)poly, (void)poly_num;
+  (void)tris, (void)tris_num;
 }
 #endif /* USE_OBJ_PREVIEW */
 

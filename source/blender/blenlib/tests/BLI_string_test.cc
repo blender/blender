@@ -324,35 +324,35 @@ TEST(string, StrPartitionExUtf8)
 /* BLI_str_format_int_grouped */
 TEST(string, StrFormatIntGrouped)
 {
-  char num_str[16];
-  int num;
+  char number_str[16];
+  int number;
 
-  BLI_str_format_int_grouped(num_str, num = 0);
-  EXPECT_STREQ("0", num_str);
+  BLI_str_format_int_grouped(number_str, number = 0);
+  EXPECT_STREQ("0", number_str);
 
-  BLI_str_format_int_grouped(num_str, num = 1);
-  EXPECT_STREQ("1", num_str);
+  BLI_str_format_int_grouped(number_str, number = 1);
+  EXPECT_STREQ("1", number_str);
 
-  BLI_str_format_int_grouped(num_str, num = -1);
-  EXPECT_STREQ("-1", num_str);
+  BLI_str_format_int_grouped(number_str, number = -1);
+  EXPECT_STREQ("-1", number_str);
 
-  BLI_str_format_int_grouped(num_str, num = -2147483648);
-  EXPECT_STREQ("-2,147,483,648", num_str);
+  BLI_str_format_int_grouped(number_str, number = -2147483648);
+  EXPECT_STREQ("-2,147,483,648", number_str);
 
-  BLI_str_format_int_grouped(num_str, num = 2147483647);
-  EXPECT_STREQ("2,147,483,647", num_str);
+  BLI_str_format_int_grouped(number_str, number = 2147483647);
+  EXPECT_STREQ("2,147,483,647", number_str);
 
-  BLI_str_format_int_grouped(num_str, num = 1000);
-  EXPECT_STREQ("1,000", num_str);
+  BLI_str_format_int_grouped(number_str, number = 1000);
+  EXPECT_STREQ("1,000", number_str);
 
-  BLI_str_format_int_grouped(num_str, num = -1000);
-  EXPECT_STREQ("-1,000", num_str);
+  BLI_str_format_int_grouped(number_str, number = -1000);
+  EXPECT_STREQ("-1,000", number_str);
 
-  BLI_str_format_int_grouped(num_str, num = 999);
-  EXPECT_STREQ("999", num_str);
+  BLI_str_format_int_grouped(number_str, number = 999);
+  EXPECT_STREQ("999", number_str);
 
-  BLI_str_format_int_grouped(num_str, num = -999);
-  EXPECT_STREQ("-999", num_str);
+  BLI_str_format_int_grouped(number_str, number = -999);
+  EXPECT_STREQ("-999", number_str);
 }
 
 /* BLI_str_format_byte_unit */

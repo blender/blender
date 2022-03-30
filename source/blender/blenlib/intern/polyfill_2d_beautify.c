@@ -288,15 +288,15 @@ static void polyedge_rotate(struct HalfEdge *edges, struct HalfEdge *e)
 }
 
 void BLI_polyfill_beautify(const float (*coords)[2],
-                           const uint coords_tot,
+                           const uint coords_num,
                            uint (*tris)[3],
 
                            /* structs for reuse */
                            MemArena *arena,
                            Heap *eheap)
 {
-  const uint coord_last = coords_tot - 1;
-  const uint tris_len = coords_tot - 2;
+  const uint coord_last = coords_num - 1;
+  const uint tris_len = coords_num - 2;
   /* internal edges only (between 2 tris) */
   const uint edges_len = tris_len - 1;
 

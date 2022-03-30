@@ -11,17 +11,17 @@
 
 /* only validate array-bounds in debug mode */
 #ifdef DEBUG
-#  define STACK_DECLARE(stack) unsigned int _##stack##_index, _##stack##_totalloc
-#  define STACK_INIT(stack, tot) \
-    ((void)stack, (void)((_##stack##_index) = 0), (void)((_##stack##_totalloc) = (tot)))
+#  define STACK_DECLARE(stack) unsigned int _##stack##_index, _##stack##_num_alloc
+#  define STACK_INIT(stack, stack_num) \
+    ((void)stack, (void)((_##stack##_index) = 0), (void)((_##stack##_num_alloc) = (stack_num)))
 #  define _STACK_SIZETEST(stack, off) \
-    (BLI_assert((_##stack##_index) + (off) <= _##stack##_totalloc))
+    (BLI_assert((_##stack##_index) + (off) <= _##stack##_num_alloc))
 #  define _STACK_SWAP_TOTALLOC(stack_a, stack_b) \
-    SWAP(unsigned int, _##stack_a##_totalloc, _##stack_b##_totalloc)
+    SWAP(unsigned int, _##stack_a##_num_alloc, _##stack_b##_num_alloc)
 #else
 #  define STACK_DECLARE(stack) unsigned int _##stack##_index
-#  define STACK_INIT(stack, tot) \
-    ((void)stack, (void)((_##stack##_index) = 0), (void)(0 ? (tot) : 0))
+#  define STACK_INIT(stack, stack_num) \
+    ((void)stack, (void)((_##stack##_index) = 0), (void)(0 ? (stack_num) : 0))
 #  define _STACK_SIZETEST(stack, off) (void)(stack), (void)(off)
 #  define _STACK_SWAP_TOTALLOC(stack_a, stack_b) (void)(stack_a), (void)(stack_b)
 #endif
