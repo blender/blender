@@ -4,7 +4,7 @@
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 
 uniform samplerCube probeHdr;
-uniform float roughness;
+uniform float probe_roughness;
 uniform float texelSize;
 uniform float lodFactor;
 uniform float lodMax;
@@ -51,7 +51,7 @@ void main()
 
     float pdf;
     /* Microfacet normal */
-    vec3 H = sample_ggx(Xi, roughness, V, N, T, B, pdf);
+    vec3 H = sample_ggx(Xi, probe_roughness, V, N, T, B, pdf);
     vec3 L = -reflect(V, H);
     float NL = dot(N, L);
 

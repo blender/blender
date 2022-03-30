@@ -62,7 +62,7 @@ void main()
 #endif
 
 #ifdef V3D_LIGHTING_STUDIO
-  vec3 shaded_color = get_world_lighting(color, roughness, metallic, N, I);
+  vec3 shaded_color = get_world_lighting(color, _roughness, metallic, N, I);
 #endif
 
 #ifdef V3D_LIGHTING_FLAT
