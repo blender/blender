@@ -2747,11 +2747,6 @@ static bool ed_object_select_pick(bContext *C,
     if (params->sel_op == SEL_OP_SET) {
       if ((found && params->select_passthrough) && (basact->flag & BASE_SELECTED)) {
         found = false;
-        /* NOTE(@campbellbarton): Experimental behavior to set active even keeping the selection
-         * without this it's inconvenient to set the active object. */
-        if (basact != oldbasact) {
-          use_activate_selected_base = true;
-        }
       }
       else if (found || params->deselect_all) {
         /* Deselect everything. */

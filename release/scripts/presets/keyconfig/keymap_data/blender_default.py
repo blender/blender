@@ -4690,7 +4690,7 @@ def _template_paint_radial_control(paint, rotation=False, secondary_rotation=Fal
 def _template_view3d_select(*, type, value, legacy, select_passthrough, exclude_mod=None):
     # NOTE: `exclude_mod` is needed since we don't want this tool to exclude Control-RMB actions when this is used
     # as a tool key-map with RMB-select and `use_fallback_tool_rmb` is enabled. See T92467.
-    return [(
+    items = [(
         "view3d.select",
         {"type": type, "value": value, **{m: True for m in mods}},
         {"properties": [(c, True) for c in props]},
@@ -4705,6 +4705,17 @@ def _template_view3d_select(*, type, value, legacy, select_passthrough, exclude_
         (("toggle", "enumerate"), ("shift", "alt")),
         (("toggle", "center", "enumerate"), ("shift", "ctrl", "alt")),
     ) if exclude_mod is None or exclude_mod not in mods]
+
+    if select_passthrough and (value == 'PRESS'):
+        # Add an additional click item to de-select all other items,
+        # needed so pass-through is able to de-select other items.
+        items.append((
+            "view3d.select",
+            {"type": type, "value": 'CLICK'},
+            {"properties": [("deselect_all", True)]},
+        ))
+
+    return items
 
 
 def _template_view3d_gpencil_select(*, type, value, legacy, use_select_mouse=True):
@@ -4723,7 +4734,7 @@ def _template_view3d_gpencil_select(*, type, value, legacy, use_select_mouse=Tru
 
 
 def _template_uv_select(*, type, value, select_passthrough, legacy):
-    return [
+    items = [
         ("uv.select", {"type": type, "value": value},
          {"properties": [
              *((("deselect_all", True),) if not legacy else ()),
@@ -4732,6 +4743,17 @@ def _template_uv_select(*, type, value, select_passthrough, legacy):
         ("uv.select", {"type": type, "value": value, "shift": True},
          {"properties": [("toggle", True)]}),
     ]
+
+    if select_passthrough and (value == 'PRESS'):
+        # Add an additional click item to de-select all other items,
+        # needed so pass-through is able to de-select other items.
+        items.append((
+            "uv.select",
+            {"type": type, "value": 'CLICK'},
+            {"properties": [("deselect_all", True)]},
+        ))
+
+    return items
 
 
 def _template_sequencer_generic_select(*, type, value, legacy):
