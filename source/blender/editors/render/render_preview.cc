@@ -927,6 +927,8 @@ static bool collection_preview_contains_geometry_recursive(const Collection *col
   return false;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Action Preview
  * \{ */

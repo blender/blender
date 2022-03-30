@@ -178,6 +178,4 @@ void interpolate_to_evaluated(const GSpan src, const Span<int> evaluated_offsets
   });
 }
 
-/** \} */
-
 }  // namespace blender::bke::curves::bezier
