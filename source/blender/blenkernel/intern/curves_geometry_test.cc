@@ -226,9 +226,8 @@ TEST(curves_geometry, CatmullRomTwoPointCyclic)
   curves.offsets().last() = 2;
   curves.cyclic().fill(true);
 
-  /* The cyclic value should be ignored when there are only two control points. There should
-   * be 12 evaluated points for the single segment and an extra for the last point. */
-  EXPECT_EQ(curves.evaluated_points_num(), 13);
+  /* The curve should still be cyclic when there are only two control points. */
+  EXPECT_EQ(curves.evaluated_points_num(), 24);
 }
 
 TEST(curves_geometry, BezierPositionEvaluation)
