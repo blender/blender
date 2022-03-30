@@ -4,13 +4,7 @@
 
 #include "BKE_curves.hh"
 
-namespace blender::nodes::node_geo_input_spline_length_cc {
-
-static void node_declare(NodeDeclarationBuilder &b)
-{
-  b.add_output<decl::Float>(N_("Length")).field_source();
-  b.add_output<decl::Int>(N_("Point Count")).field_source();
-}
+namespace blender::nodes {
 
 /* --------------------------------------------------------------------
  * Spline Length
@@ -45,35 +39,43 @@ static VArray<float> construct_spline_length_gvarray(const CurveComponent &compo
   return {};
 }
 
-class SplineLengthFieldInput final : public GeometryFieldInput {
- public:
-  SplineLengthFieldInput() : GeometryFieldInput(CPPType::get<float>(), "Spline Length node")
-  {
-    category_ = Category::Generated;
-  }
+SplineLengthFieldInput::SplineLengthFieldInput()
+    : GeometryFieldInput(CPPType::get<float>(), "Spline Length node")
+{
+  category_ = Category::Generated;
+}
 
-  GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
-                                 IndexMask UNUSED(mask)) const final
-  {
-    if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
-      const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-      return construct_spline_length_gvarray(curve_component, domain);
-    }
-    return {};
+GVArray SplineLengthFieldInput::get_varray_for_context(const GeometryComponent &component,
+                                                       const AttributeDomain domain,
+                                                       IndexMask UNUSED(mask)) const
+{
+  if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
+    const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
+    return construct_spline_length_gvarray(curve_component, domain);
   }
+  return {};
+}
 
-  uint64_t hash() const override
-  {
-    /* Some random constant hash. */
-    return 3549623580;
-  }
+uint64_t SplineLengthFieldInput::hash() const
+{
+  /* Some random constant hash. */
+  return 3549623580;
+}
 
-  bool is_equal_to(const fn::FieldNode &other) const override
-  {
-    return dynamic_cast<const SplineLengthFieldInput *>(&other) != nullptr;
-  }
-};
+bool SplineLengthFieldInput::is_equal_to(const fn::FieldNode &other) const
+{
+  return dynamic_cast<const SplineLengthFieldInput *>(&other) != nullptr;
+}
+
+}  // namespace blender::nodes
+
+namespace blender::nodes::node_geo_input_spline_length_cc {
+
+static void node_declare(NodeDeclarationBuilder &b)
+{
+  b.add_output<decl::Float>(N_("Length")).field_source();
+  b.add_output<decl::Int>(N_("Point Count")).field_source();
+}
 
 /* --------------------------------------------------------------------
  * Spline Count
