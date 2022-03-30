@@ -791,6 +791,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
       ntype->draw_buttons = node_composit_buts_image;
       ntype->draw_buttons_ex = node_composit_buts_image_ex;
       break;
+    case CMP_NODE_NORMAL:
+      ntype->draw_buttons = node_buts_normal;
+      break;
     case CMP_NODE_CURVE_RGB:
       ntype->draw_buttons = node_buts_curvecol;
       break;
