@@ -2,7 +2,7 @@
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
 uniform sampler2D colorTex;
-uniform sampler2D depthTex;
+uniform depth2D depthTex;
 uniform sampler2D lineTex;
 uniform bool doSmoothLines;
 

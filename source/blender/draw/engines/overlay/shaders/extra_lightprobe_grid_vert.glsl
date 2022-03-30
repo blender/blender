@@ -1,5 +1,5 @@
 
-uniform sampler2D depthBuffer;
+uniform depth2D depthBuffer;
 uniform vec4 gridModelMatrix[4];
 uniform bool isTransform;
 

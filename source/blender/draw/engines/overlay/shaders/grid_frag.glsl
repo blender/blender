@@ -12,7 +12,7 @@ uniform vec3 planeAxes;
 uniform float gridDistance;
 uniform vec3 gridSize;
 uniform float lineKernel = 0.0;
-uniform sampler2D depthBuffer;
+uniform depth2D depthBuffer;
 
 uniform int gridFlag;
 uniform float zoomFactor;
@@ -49,7 +49,7 @@ float get_grid(vec2 co, vec2 fwidthCos, float grid_size)
 {
   float half_size = grid_size / 2.0;
   /* triangular wave pattern, amplitude is [0, half_size] */
-  vec2 grid_domain = abs(mod(co + half_size, grid_size) - half_size);
+  vec2 grid_domain = abs(mod(co + half_size, vec2(grid_size)) - half_size);
   /* modulate by the absolute rate of change of the coordinates
    * (make lines have the same width under perspective) */
   grid_domain /= fwidthCos;

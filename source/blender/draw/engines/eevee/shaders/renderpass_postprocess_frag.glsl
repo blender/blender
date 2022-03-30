@@ -16,7 +16,7 @@
 uniform int postProcessType;
 uniform int currentSample;
 
-uniform sampler2D depthBuffer;
+uniform depth2D depthBuffer;
 uniform sampler2D inputBuffer;
 uniform sampler2D inputSecondLightBuffer;
 uniform sampler2D inputColorBuffer;
