@@ -1893,6 +1893,19 @@ static void single_obdata_users(
   }
 }
 
+void ED_object_single_obdata_user(Main *bmain, Scene *scene, Object *ob)
+{
+  FOREACH_SCENE_OBJECT_BEGIN (scene, ob_iter) {
+    ob_iter->flag &= ~OB_DONE;
+  }
+  FOREACH_SCENE_OBJECT_END;
+
+  /* Tag only the one object. */
+  ob->flag |= OB_DONE;
+
+  single_obdata_users(bmain, scene, NULL, NULL, OB_DONE);
+}
+
 static void single_object_action_users(
     Main *bmain, Scene *scene, ViewLayer *view_layer, View3D *v3d, const int flag)
 {
