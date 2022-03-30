@@ -77,6 +77,15 @@ class CurvesGeometryRuntime {
   mutable std::mutex position_cache_mutex;
   mutable bool position_cache_dirty = true;
 
+  /**
+   * Cache of lengths along each evaluated curve for for each evaluated point. If a curve is
+   * cyclic, it needs one more length value to correspond to the last segment, so in order to
+   * make slicing this array for a curve fast, an extra float is stored for every curve.
+   */
+  mutable Vector<float> evaluated_length_cache;
+  mutable std::mutex length_cache_mutex;
+  mutable bool length_cache_dirty = true;
+
   /** Direction of the spline at each evaluated point. */
   mutable Vector<float3> evaluated_tangents_cache;
   mutable std::mutex tangent_cache_mutex;
@@ -267,6 +276,20 @@ class CurvesGeometry : public ::CurvesGeometry {
   Span<float3> evaluated_positions() const;
 
   /**
+   * Return a cache of accumulated lengths along the curve. Each item is the length of the
+   * subsequent segment (the first value is the length of the first segment rather than 0).
+   * This calculation is rather trivial, and only depends on the evaluated positions, but
+   * the results are used often, and it is necessarily single threaded per curve, so it is cached.
+   *
+   * \param cyclic: This argument is redundant with the data stored for the curve,
+   * but is passed for performance reasons to avoid looking up the attribute.
+   */
+  Span<float> evaluated_lengths_for_curve(int curve_index, bool cyclic) const;
+
+  /** Calculates the data described by #evaluated_lengths_for_curve if necessary. */
+  void ensure_evaluated_lengths() const;
+
+  /**
    * Evaluate a generic data to the standard evaluated points of a specific curve,
    * defined by the resolution attribute or other factors, depending on the curve type.
    *
@@ -280,6 +303,9 @@ class CurvesGeometry : public ::CurvesGeometry {
    * Make sure the basis weights for NURBS curve's evaluated points are calculated.
    */
   void ensure_nurbs_basis_cache() const;
+
+  /** Return the slice of #evaluated_length_cache that corresponds to this curve index. */
+  IndexRange lengths_range_for_curve(int curve_index, bool cyclic) const;
 
   /* --------------------------------------------------------------------
    * Operations.
