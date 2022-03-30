@@ -273,6 +273,12 @@ class CurvesGeometry : public ::CurvesGeometry {
   /** Makes sure the data described by #evaluated_offsets if necessary. */
   void ensure_evaluated_offsets() const;
 
+  /**
+   * Retrieve offsets into a Bezier curve's avaluated points for each control point.
+   * Call #ensure_evaluated_offsets() first to ensure that the evaluated offsets cache is current.
+   */
+  Span<int> bezier_evaluated_offsets_for_curve(int curve_index) const;
+
   Span<float3> evaluated_positions() const;
 
   /**
@@ -285,6 +291,7 @@ class CurvesGeometry : public ::CurvesGeometry {
    * but is passed for performance reasons to avoid looking up the attribute.
    */
   Span<float> evaluated_lengths_for_curve(int curve_index, bool cyclic) const;
+  float evaluated_length_total_for_curve(int curve_index, bool cyclic) const;
 
   /** Calculates the data described by #evaluated_lengths_for_curve if necessary. */
   void ensure_evaluated_lengths() const;

@@ -548,6 +548,12 @@ Span<int> CurvesGeometry::evaluated_offsets() const
   return this->runtime->evaluated_offsets_cache;
 }
 
+Span<int> CurvesGeometry::bezier_evaluated_offsets_for_curve(const int curve_index) const
+{
+  const IndexRange points = this->points_for_curve(curve_index);
+  return this->runtime->bezier_evaluated_offsets.as_span().slice(points);
+}
+
 IndexMask CurvesGeometry::indices_for_curve_type(const CurveType type,
                                                  Vector<int64_t> &r_indices) const
 {
@@ -777,6 +783,12 @@ Span<float> CurvesGeometry::evaluated_lengths_for_curve(const int curve_index,
   BLI_assert(!this->runtime->length_cache_dirty);
   const IndexRange range = this->lengths_range_for_curve(curve_index, cyclic);
   return this->runtime->evaluated_length_cache.as_span().slice(range);
+}
+
+float CurvesGeometry::evaluated_length_total_for_curve(const int curve_index,
+                                                       const bool cyclic) const
+{
+  return this->evaluated_lengths_for_curve(curve_index, cyclic).last();
 }
 
 /** \} */
