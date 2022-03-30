@@ -322,7 +322,8 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
     fly->rv3d->persp = RV3D_PERSP;
   }
 
-  if (fly->rv3d->persp == RV3D_CAMOB && !BKE_id_is_editable(CTX_data_main(C), &fly->v3d->camera->id)) {
+  if (fly->rv3d->persp == RV3D_CAMOB &&
+      !BKE_id_is_editable(CTX_data_main(C), &fly->v3d->camera->id)) {
     BKE_report(op->reports,
                RPT_ERROR,
                "Cannot navigate a camera from an external library or non-editable override");
