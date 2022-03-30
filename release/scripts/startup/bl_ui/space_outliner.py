@@ -351,7 +351,7 @@ class OUTLINER_PT_filter(Panel):
             col = layout.column(align=True)
             col.prop(space, "use_sort_alpha")
 
-        if display_mode not in {'LIBRARY_OVERRIDES'}:
+        if display_mode != 'LIBRARY_OVERRIDES':
             row = layout.row(align=True)
             row.prop(space, "use_sync_select", text="Sync Selection")
 
@@ -364,13 +364,13 @@ class OUTLINER_PT_filter(Panel):
         col.prop(space, "use_filter_complete", text="Exact Match")
         col.prop(space, "use_filter_case_sensitive", text="Case Sensitive")
 
-        if display_mode in {'LIBRARY_OVERRIDES'} and bpy.data.libraries:
+        if display_mode == 'LIBRARY_OVERRIDES' and bpy.data.libraries:
             col.separator()
             row = col.row()
             row.label(icon='LIBRARY_DATA_OVERRIDE')
             row.prop(space, "use_filter_lib_override_system", text="System Overrides")
 
-        if display_mode not in {'VIEW_LAYER'}:
+        if display_mode != 'VIEW_LAYER':
             return
 
         layout.separator()

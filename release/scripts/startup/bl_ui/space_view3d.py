@@ -5301,7 +5301,7 @@ class VIEW3D_MT_pivot_pie(Menu):
         pie.prop_enum(context.scene.tool_settings, "transform_pivot_point", value='ACTIVE_ELEMENT')
         if (obj is None) or (mode in {'OBJECT', 'POSE', 'WEIGHT_PAINT'}):
             pie.prop(context.scene.tool_settings, "use_transform_pivot_point_align")
-        if mode in {'EDIT_GPENCIL'}:
+        if mode == 'EDIT_GPENCIL':
             pie.prop(context.scene.tool_settings.gpencil_sculpt, "use_scale_thickness")
 
 

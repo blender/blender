@@ -41,7 +41,7 @@ class MATERIAL_UL_matslots_example(bpy.types.UIList):
             else:
                 layout.label(text="", translate=False, icon_value=icon)
         # 'GRID' layout type should be as compact as possible (typically a single icon!).
-        elif self.layout_type in {'GRID'}:
+        elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(text="", icon_value=icon)
 

@@ -73,7 +73,7 @@ class MESH_UL_vgroups_slow(bpy.types.UIList):
                 layout.prop(vgroup, "name", text="", emboss=False, icon_value=icon)
             icon = 'LOCKED' if vgroup.lock_weight else 'UNLOCKED'
             layout.prop(vgroup, "lock_weight", text="", icon=icon, emboss=False)
-        elif self.layout_type in {'GRID'}:
+        elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             if flt_flag & self.VGROUP_EMPTY:
                 layout.enabled = False
