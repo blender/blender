@@ -363,7 +363,7 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
                                            MTLBackend::capabilities.supports_family_mac2);
   GCaps.compute_shader_support = false; /* TODO(Metal): Add compute support. */
   GCaps.shader_storage_buffer_objects_support =
-      false; /* TODO(Metal): implement Storage Buffer support.*/
+      false; /* TODO(Metal): implement Storage Buffer support. */
 
   /* Maximum buffer bindings: 31. Consider required slot for uniforms/UBOs/Vertex attributes.
    * Can use argument buffers if a higher limit is required. */

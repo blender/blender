@@ -284,7 +284,7 @@ struct ShaderCreateInfo {
   bool auto_resource_location_ = false;
   /** If true, force depth and stencil tests to always happen before fragment shader invocation. */
   bool early_fragment_test_ = false;
-  /** Allow optimisation when fragment shader writes to gl_FragDepth. */
+  /** Allow optimization when fragment shader writes to `gl_FragDepth`. */
   DepthWrite depth_write_ = DepthWrite::ANY;
   /**
    * Maximum length of all the resource names including each null terminator.

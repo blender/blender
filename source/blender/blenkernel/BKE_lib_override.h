@@ -383,7 +383,7 @@ bool BKE_lib_override_library_main_operations_create(struct Main *bmain, bool fo
 /**
  * Reset all overrides in given \a id_root, while preserving ID relations.
  *
- * \param do_reset_system_override If \a true, reset the given ID as a system override one (i.e.
+ * \param do_reset_system_override: If \a true, reset the given ID as a system override one (i.e.
  * non-editable).
  */
 void BKE_lib_override_library_id_reset(struct Main *bmain,
@@ -392,8 +392,8 @@ void BKE_lib_override_library_id_reset(struct Main *bmain,
 /**
  * Reset all overrides in given \a id_root and its dependencies, while preserving ID relations.
  *
- * \param do_reset_system_override If \a true, reset the given ID and all of its descendants in the
- * override hierarchy as system override ones (i.e. non-editable).
+ * \param do_reset_system_override: If \a true, reset the given ID and all of its descendants in
+ * the override hierarchy as system override ones (i.e. non-editable).
  */
 void BKE_lib_override_library_id_hierarchy_reset(struct Main *bmain,
                                                  struct ID *id_root,

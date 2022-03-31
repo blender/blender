@@ -2119,7 +2119,7 @@ static void p_collapse_cost_vertex(PVert *vert, float *r_mincost, PEdge **r_mine
     enext = p_wheel_edge_next(e);
 
     if (enext == NULL) {
-      /* the other boundary edge, where we only have the pair halfedge */
+      /* The other boundary edge, where we only have the pair half-edge. */
       pair = e->next->next;
 
       if (p_collapse_allowed(NULL, pair)) {

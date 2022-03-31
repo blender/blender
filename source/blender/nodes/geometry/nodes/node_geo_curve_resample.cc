@@ -332,7 +332,7 @@ static Curves *resample_to_uniform_count(const CurveComponent &src_component,
 
   /* Sampling arbitrary attributes works by first interpolating them to the curve's standard
    * "evaluated points" and then interpolating that result with the uniform samples. This is
-   * potentially wasteful when downsampling a curve to many fewer points. There are two possible
+   * potentially wasteful when down-sampling a curve to many fewer points. There are two possible
    * solutions: only sample the necessary points for interpolation, or first sample curve
    * parameter/segment indices and evaluate the curve directly. */
   Array<int> sample_indices(dst_curves.points_num());

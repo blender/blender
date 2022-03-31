@@ -523,7 +523,7 @@ static void extrude_mesh_edges(MeshComponent &component,
         }
         case ATTR_DOMAIN_FACE: {
           /* Attribute values for new faces are a mix of the values of faces connected to the its
-           * original edge.  */
+           * original edge. */
           copy_with_mixing(data.slice(new_poly_range), data.as_span(), [&](const int i) {
             return edge_to_poly_map[edge_selection[i]].as_span();
           });

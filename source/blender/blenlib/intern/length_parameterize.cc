@@ -58,7 +58,7 @@ void create_uniform_samples(const Span<float> lengths,
   }
 
   /* Add the samples on the last cyclic segment if necessary, and also the samples
-   * that weren't created in the previous loop due to floating point inacuracy. */
+   * that weren't created in the previous loop due to floating point inaccuracy. */
   if (cyclic && lengths.size() > 1) {
     indices.drop_front(i_dst).fill(points_num - 1);
     const float segment_length = lengths.last() - lengths.last(1);

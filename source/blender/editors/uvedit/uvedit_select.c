@@ -2052,7 +2052,7 @@ static int uv_select_more_less(bContext *C, const bool select)
               }
 
               /* If the current face is not selected and at least one neighboring face is
-               * selected, then tag the current face to grow selection.*/
+               * selected, then tag the current face to grow selection. */
               if (sel_state == (NEIGHBORING_FACE_IS_SEL | CURR_FACE_IS_UNSEL)) {
                 BM_elem_flag_enable(efa, BM_ELEM_TAG);
                 changed = true;
@@ -3378,7 +3378,8 @@ static void uv_select_flush_from_tag_loop(const Scene *scene, Object *obedit, co
  * but dealing with sticky modes for vertex selections is best done in a separate function.
  *
  * \note Current behavior is selecting only; deselecting can be added but the behavior isn't
- * required anywhere.*/
+ * required anywhere.
+ */
 static void uv_select_flush_from_loop_edge_flag(const Scene *scene, BMEditMesh *em)
 {
   const ToolSettings *ts = scene->toolsettings;

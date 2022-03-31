@@ -2222,7 +2222,7 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
             /* Hash of selected frames. */
             GHash *frame_list = BLI_ghash_int_new_ex(__func__, 64);
 
-            /* If not multiframe and there is no frame in CFRA for the active layer, create
+            /* If not multi-frame and there is no frame in CFRA for the active layer, create
              * a new frame. */
             if (!is_multiedit) {
               tgpf->gpf = BKE_gpencil_layer_frame_get(

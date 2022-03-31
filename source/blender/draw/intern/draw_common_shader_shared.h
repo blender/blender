@@ -13,7 +13,7 @@ typedef struct GlobalsUboStorage GlobalsUboStorage;
 
 /* Future Plan: These globals were once shared between multiple overlay engines. But now that they
  * have been merged into one engine, there is no reasons to keep these globals out of the overlay
- * engine.  */
+ * engine. */
 
 #define UBO_FIRST_COLOR colorWire
 #define UBO_LAST_COLOR colorUVShadow

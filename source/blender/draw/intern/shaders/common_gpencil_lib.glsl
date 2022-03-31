@@ -81,7 +81,7 @@ float gpencil_stroke_thickness_modulate(float thickness, vec4 ndc_pos, vec4 view
 float gpencil_clamp_small_stroke_thickness(float thickness, vec4 ndc_pos)
 {
   /* To avoid aliasing artifacts, we clamp the line thickness and
-   * reduce its opacity in the fragment shader.*/
+   * reduce its opacity in the fragment shader. */
   float min_thickness = ndc_pos.w * 1.3;
   thickness = max(min_thickness, thickness);
 

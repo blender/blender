@@ -47,7 +47,7 @@ static Array<float> accumulated_lengths_curve_domain(const bke::CurvesGeometry &
 
 /**
  * Return the length of each control point along each curve, starting at zero for the first point.
- * Importantly, this is different than the length at each evaluated point. The implemenation is
+ * Importantly, this is different than the length at each evaluated point. The implementation is
  * different for every curve type:
  *  - Catmull Rom Curves: Use the resolution to find the evaluated point for each control point.
  *  - Poly Curves: Copy the evaluated lengths, but we need to add a zero to the front of the array.

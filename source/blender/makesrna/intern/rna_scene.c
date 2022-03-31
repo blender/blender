@@ -1878,7 +1878,7 @@ static void rna_Scene_editmesh_select_mode_update(bContext *C, PointerRNA *UNUSE
 static void rna_Scene_uv_select_mode_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
   /* Makes sure that the UV selection states are consistent with the current UV select mode and
-   * sticky mode.*/
+   * sticky mode. */
   ED_uvedit_selectmode_clean_multi(C);
 }
 

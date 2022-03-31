@@ -274,7 +274,7 @@ class CurvesGeometry : public ::CurvesGeometry {
   void ensure_evaluated_offsets() const;
 
   /**
-   * Retrieve offsets into a Bezier curve's avaluated points for each control point.
+   * Retrieve offsets into a Bezier curve's evaluated points for each control point.
    * Call #ensure_evaluated_offsets() first to ensure that the evaluated offsets cache is current.
    */
   Span<int> bezier_evaluated_offsets_for_curve(int curve_index) const;

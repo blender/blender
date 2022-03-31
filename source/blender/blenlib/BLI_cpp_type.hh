@@ -679,9 +679,9 @@ class CPPType : NonCopyable, NonMovable {
    * compile-time. This allows the compiler to optimize a function for specific types, while all
    * other types can still use a generic fallback function.
    *
-   * \param Types The types that code should be generated for.
-   * \param fn The function object to call. This is expected to have a templated `operator()` and a
-   *   non-templated `operator()`. The templated version will be called if the current #CPPType
+   * \param Types: The types that code should be generated for.
+   * \param fn: The function object to call. This is expected to have a templated `operator()` and
+   * a non-templated `operator()`. The templated version will be called if the current #CPPType
    *   matches any of the given types. Otherwise, the non-templated function is called.
    */
   template<typename... Types, typename Fn> void to_static_type(const Fn &fn) const
