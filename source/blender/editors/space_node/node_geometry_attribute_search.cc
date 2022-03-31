@@ -60,9 +60,9 @@ static void attribute_search_update_fn(
   if (node_log == nullptr) {
     return;
   }
-  blender::Vector<const GeometryAttributeInfo *> infos = node_log->lookup_available_attributes();
+  Vector<const GeometryAttributeInfo *> infos = node_log->lookup_available_attributes();
 
-  blender::ui::attribute_search_add_items(str, true, infos, items, is_first);
+  ui::attribute_search_add_items(str, true, infos, items, is_first);
 }
 
 static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
