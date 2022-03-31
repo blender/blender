@@ -740,6 +740,7 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
   /* Ensure uniform arrays copied. */
   BLI_assert(current_array_index == 0);
   BLI_assert(current_uniform_array_loc == -1);
+  UNUSED_VARS_NDEBUG(current_uniform_array_loc);
 }
 
 BLI_INLINE void draw_select_buffer(DRWShadingGroup *shgroup,
