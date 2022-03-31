@@ -631,10 +631,10 @@ static void draw_subdiv_cache_extra_coarse_face_data_mesh(Mesh *mesh, uint32_t *
   for (int i = 0; i < mesh->totpoly; i++) {
     uint32_t flag = 0;
     if ((mesh->mpoly[i].flag & ME_SMOOTH) != 0) {
-      flag = SUBDIV_COARSE_FACE_FLAG_SMOOTH;
+      flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
     }
     if ((mesh->mpoly[i].flag & ME_FACE_SEL) != 0) {
-      flag = SUBDIV_COARSE_FACE_FLAG_SELECT;
+      flag |= SUBDIV_COARSE_FACE_FLAG_SELECT;
     }
     flags_data[i] = (uint)(mesh->mpoly[i].loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
   }
