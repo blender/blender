@@ -613,8 +613,7 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
         memcpy(&mat4_stack[array_index], uni->fvalue, sizeof(float) * uni->length);
         /* Flush array data to shader. */
         if (array_index <= 0) {
-          GPU_shader_uniform_vector(
-              shgroup->shader, uni->location, uni->length, uni->arraysize, mat4_stack);
+          GPU_shader_uniform_vector(shgroup->shader, uni->location, 16, 1, mat4_stack);
           array_uniform_loc = -1;
         }
         continue;

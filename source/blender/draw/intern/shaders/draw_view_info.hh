@@ -102,7 +102,7 @@ GPU_SHADER_CREATE_INFO(draw_hair)
     .push_constant(Type::FLOAT, "hairRadShape")
     .push_constant(Type::BOOL, "hairCloseTip")
     .push_constant(Type::INT, "hairStrandOffset")
-    .push_constant(Type::VEC4, "hairDupliMatrix", 4)
+    .push_constant(Type::MAT4, "hairDupliMatrix")
     .additional_info("draw_modelmat", "draw_resource_id");
 
 GPU_SHADER_CREATE_INFO(draw_pointcloud)
