@@ -40,8 +40,6 @@ TF_DEFINE_PRIVATE_TOKENS(CyclesMaterialTokens,
 );
 // clang-format on
 
-namespace {
-
 // Simple class to handle remapping of USDPreviewSurface nodes and parameters to Cycles equivalents
 class UsdToCyclesMapping {
   using ParamMap = std::unordered_map<TfToken, ustring, TfToken::HashFunctor>;
@@ -130,6 +128,8 @@ class UsdToCyclesTexture : public UsdToCyclesMapping {
   }
 };
 
+namespace {
+
 class UsdToCycles {
   const UsdToCyclesMapping UsdPreviewSurface = {
       "principled_bsdf",
@@ -182,11 +182,6 @@ class UsdToCycles {
 TfStaticData<UsdToCycles> sUsdToCyles;
 
 }  // namespace
-
-struct HdCyclesMaterial::NodeDesc {
-  ShaderNode *node;
-  const UsdToCyclesMapping *mapping;
-};
 
 HdCyclesMaterial::HdCyclesMaterial(const SdfPath &sprimId) : HdMaterial(sprimId)
 {

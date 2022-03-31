@@ -401,7 +401,7 @@ if(WITH_CODEC_FFMPEG)
     ${LIBDIR}/ffmpeg/include/msvc
   )
   windows_find_package(FFmpeg)
-  if(NOT FFMPEG_FOUND)
+  if(NOT FFmpeg_FOUND)
     warn_hardcoded_paths(FFmpeg)
     set(FFMPEG_LIBRARIES
       ${LIBDIR}/ffmpeg/lib/avcodec.lib
@@ -415,7 +415,7 @@ endif()
 
 if(WITH_IMAGE_OPENEXR)
   windows_find_package(OpenEXR REQUIRED)
-  if(NOT OPENEXR_FOUND)
+  if(NOT OpenEXR_FOUND)
     set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
     set(OPENEXR_VERSION "2.1")
     warn_hardcoded_paths(OpenEXR)
@@ -531,17 +531,20 @@ if(WITH_BOOST)
     set(BOOST_LIBRARIES ${Boost_LIBRARIES})
     set(BOOST_LIBPATH ${Boost_LIBRARY_DIRS})
   endif()
+
   set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
 endif()
 
 if(WITH_OPENIMAGEIO)
   windows_find_package(OpenImageIO)
-  set(OPENIMAGEIO ${LIBDIR}/OpenImageIO)
-  set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
-  set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO}/include)
-  set(OIIO_OPTIMIZED optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO.lib optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util.lib)
-  set(OIIO_DEBUG debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_d.lib debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util_d.lib)
-  set(OPENIMAGEIO_LIBRARIES ${OIIO_OPTIMIZED} ${OIIO_DEBUG})
+  if(NOT OpenImageIO_FOUND)
+    set(OPENIMAGEIO ${LIBDIR}/OpenImageIO)
+    set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
+    set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO}/include)
+    set(OIIO_OPTIMIZED optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO.lib optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util.lib)
+    set(OIIO_DEBUG debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_d.lib debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util_d.lib)
+    set(OPENIMAGEIO_LIBRARIES ${OIIO_OPTIMIZED} ${OIIO_DEBUG})
+  endif()
 
   set(OPENIMAGEIO_DEFINITIONS "-DUSE_TBB=0")
   set(OPENIMAGEIO_IDIFF "${OPENIMAGEIO}/bin/idiff.exe")
@@ -572,31 +575,38 @@ if(WITH_LLVM)
     message(WARNING "LLVM debug libs not present on this system. Using release libs for debug builds.")
     set(LLVM_LIBRARY ${LLVM_LIBRARY_OPTIMIZED})
   endif()
-
 endif()
 
 if(WITH_OPENCOLORIO)
-  set(OPENCOLORIO ${LIBDIR}/OpenColorIO)
-  set(OPENCOLORIO_INCLUDE_DIRS ${OPENCOLORIO}/include)
-  set(OPENCOLORIO_LIBPATH ${OPENCOLORIO}/lib)
-  set(OPENCOLORIO_LIBRARIES
-    optimized ${OPENCOLORIO_LIBPATH}/OpenColorIO.lib
-    optimized ${OPENCOLORIO_LIBPATH}/libyaml-cpp.lib
-    optimized ${OPENCOLORIO_LIBPATH}/libexpatMD.lib
-    optimized ${OPENCOLORIO_LIBPATH}/pystring.lib
-    debug ${OPENCOLORIO_LIBPATH}/OpencolorIO_d.lib
-    debug ${OPENCOLORIO_LIBPATH}/libyaml-cpp_d.lib
-    debug ${OPENCOLORIO_LIBPATH}/libexpatdMD.lib
-    debug ${OPENCOLORIO_LIBPATH}/pystring_d.lib
-  )
+  windows_find_package(OpenColorIO)
+  if(NOT OpenColorIO_FOUND)
+    set(OPENCOLORIO ${LIBDIR}/OpenColorIO)
+    set(OPENCOLORIO_INCLUDE_DIRS ${OPENCOLORIO}/include)
+    set(OPENCOLORIO_LIBPATH ${OPENCOLORIO}/lib)
+    set(OPENCOLORIO_LIBRARIES
+      optimized ${OPENCOLORIO_LIBPATH}/OpenColorIO.lib
+      optimized ${OPENCOLORIO_LIBPATH}/libyaml-cpp.lib
+      optimized ${OPENCOLORIO_LIBPATH}/libexpatMD.lib
+      optimized ${OPENCOLORIO_LIBPATH}/pystring.lib
+      debug ${OPENCOLORIO_LIBPATH}/OpencolorIO_d.lib
+      debug ${OPENCOLORIO_LIBPATH}/libyaml-cpp_d.lib
+      debug ${OPENCOLORIO_LIBPATH}/libexpatdMD.lib
+      debug ${OPENCOLORIO_LIBPATH}/pystring_d.lib
+    )
+  endif()
+
   set(OPENCOLORIO_DEFINITIONS "-DOpenColorIO_SKIP_IMPORTS")
 endif()
 
 if(WITH_OPENVDB)
-  set(OPENVDB ${LIBDIR}/openVDB)
-  set(OPENVDB_LIBPATH ${OPENVDB}/lib)
-  set(OPENVDB_INCLUDE_DIRS ${OPENVDB}/include)
-  set(OPENVDB_LIBRARIES optimized ${OPENVDB_LIBPATH}/openvdb.lib debug ${OPENVDB_LIBPATH}/openvdb_d.lib )
+  windows_find_package(OpenVDB)
+  if(NOT OpenVDB_FOUND)
+    set(OPENVDB ${LIBDIR}/openVDB)
+    set(OPENVDB_LIBPATH ${OPENVDB}/lib)
+    set(OPENVDB_INCLUDE_DIRS ${OPENVDB}/include)
+    set(OPENVDB_LIBRARIES optimized ${OPENVDB_LIBPATH}/openvdb.lib debug ${OPENVDB_LIBPATH}/openvdb_d.lib)
+  endif()
+
   set(OPENVDB_DEFINITIONS -DNOMINMAX -D_USE_MATH_DEFINES)
 endif()
 
@@ -636,9 +646,10 @@ endif()
 
 if(WITH_OPENSUBDIV)
   windows_find_package(OpenSubdiv)
-  if (NOT OpenSubdiv_FOUND)
-    set(OPENSUBDIV_INCLUDE_DIRS ${LIBDIR}/opensubdiv/include)
-    set(OPENSUBDIV_LIBPATH ${LIBDIR}/opensubdiv/lib)
+  if(NOT OpenSubdiv_FOUND)
+    set(OPENSUBDIV ${LIBDIR}/opensubdiv)
+    set(OPENSUBDIV_INCLUDE_DIRS ${OPENSUBDIV}/include)
+    set(OPENSUBDIV_LIBPATH ${OPENSUBDIV}/lib)
     set(OPENSUBDIV_LIBRARIES
       optimized ${OPENSUBDIV_LIBPATH}/osdCPU.lib
       optimized ${OPENSUBDIV_LIBPATH}/osdGPU.lib
@@ -673,7 +684,7 @@ endif()
 
 if(WITH_TBB)
   windows_find_package(TBB)
-  if (NOT TBB_FOUND)
+  if(NOT TBB_FOUND)
     set(TBB_LIBRARIES optimized ${LIBDIR}/tbb/lib/tbb.lib debug ${LIBDIR}/tbb/lib/tbb_debug.lib)
     set(TBB_INCLUDE_DIR ${LIBDIR}/tbb/include)
     set(TBB_INCLUDE_DIRS ${TBB_INCLUDE_DIR})
@@ -699,7 +710,6 @@ if(WITH_OPENAL)
   else()
     set(OPENAL_LIBRARY ${OPENAL_LIBPATH}/wrap_oal.lib)
   endif()
-
 endif()
 
 if(WITH_CODEC_SNDFILE)
@@ -744,7 +754,7 @@ endif()
 
 if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
   windows_find_package(Embree)
-  if(NOT EMBREE_FOUND)
+  if(NOT Embree_FOUND)
     set(EMBREE_INCLUDE_DIRS ${LIBDIR}/embree/include)
     set(EMBREE_LIBRARIES
       optimized ${LIBDIR}/embree/lib/embree3.lib
@@ -772,7 +782,6 @@ endif()
 if(WITH_USD)
   windows_find_package(USD)
   if(NOT USD_FOUND)
-    set(USD_FOUND ON)
     set(USD_INCLUDE_DIRS ${LIBDIR}/usd/include)
     set(USD_RELEASE_LIB ${LIBDIR}/usd/lib/libusd_m.lib)
     set(USD_DEBUG_LIB ${LIBDIR}/usd/lib/libusd_m_d.lib)
