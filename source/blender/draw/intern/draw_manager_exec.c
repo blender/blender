@@ -587,59 +587,35 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
 #define MAX_UNIFORM_STACK_SIZE 64
 
   /* Uniform array elements stored as separate entries. We need to batch these together */
-  int current_uniform_array_loc = -1;
-  unsigned int current_array_index = 0;
-  static union {
-    int istack[MAX_UNIFORM_STACK_SIZE];
-    float fstack[MAX_UNIFORM_STACK_SIZE];
-  } uniform_stack;
+  int array_uniform_loc = -1;
+  int array_index = 0;
+  float mat4_stack[4 * 4];
 
-  /* Loop through uniforms. */
+  /* Loop through uniforms in reverse order. */
   for (DRWUniformChunk *unichunk = shgroup->uniforms; unichunk; unichunk = unichunk->next) {
-    DRWUniform *uni = unichunk->uniforms;
+    DRWUniform *uni = unichunk->uniforms + unichunk->uniform_used - 1;
 
-    for (int i = 0; i < unichunk->uniform_used; i++, uni++) {
-
+    for (int i = 0; i < unichunk->uniform_used; i++, uni--) {
       /* For uniform array copies, copy per-array-element data into local buffer before upload. */
-      if (uni->arraysize > 1 &&
-          (uni->type == DRW_UNIFORM_INT_COPY || uni->type == DRW_UNIFORM_FLOAT_COPY)) {
-
+      if (uni->arraysize > 1 && uni->type == DRW_UNIFORM_FLOAT_COPY) {
+        /* Only written for mat4 copy for now and is not meant to become generalized. */
+        /* TODO(@fclem): Use UBOs/SSBOs instead of inline mat4 copies. */
+        BLI_assert(uni->arraysize == 4 && uni->length == 4);
         /* Begin copying uniform array. */
-        if (current_array_index == 0) {
-          current_uniform_array_loc = uni->location;
+        if (array_uniform_loc == -1) {
+          array_uniform_loc = uni->location;
+          array_index = uni->arraysize * uni->length;
         }
-
         /* Debug check same array loc. */
-        BLI_assert(current_uniform_array_loc > -1);
-        BLI_assert(current_uniform_array_loc == uni->location);
-
+        BLI_assert(array_uniform_loc > -1 && array_uniform_loc == uni->location);
         /* Copy array element data to local buffer. */
-        BLI_assert(((current_array_index + 1) * uni->length) <= MAX_UNIFORM_STACK_SIZE);
-        if (uni->type == DRW_UNIFORM_INT_COPY) {
-          memcpy(&uniform_stack.istack[current_array_index * uni->length],
-                 uni->ivalue,
-                 sizeof(int) * uni->length);
-        }
-        else {
-          memcpy(&uniform_stack.fstack[current_array_index * uni->length],
-                 uni->fvalue,
-                 sizeof(float) * uni->length);
-        }
-        current_array_index++;
-        BLI_assert(current_array_index <= uni->arraysize);
-
+        array_index -= uni->length;
+        memcpy(&mat4_stack[array_index], uni->fvalue, sizeof(float) * uni->length);
         /* Flush array data to shader. */
-        if (current_array_index == uni->arraysize) {
-          if (uni->type == DRW_UNIFORM_INT_COPY) {
-            GPU_shader_uniform_vector_int(
-                shgroup->shader, uni->location, uni->length, uni->arraysize, uniform_stack.istack);
-          }
-          else {
-            GPU_shader_uniform_vector(
-                shgroup->shader, uni->location, uni->length, uni->arraysize, uniform_stack.fstack);
-          }
-          current_array_index = 0;
-          current_uniform_array_loc = -1;
+        if (array_index <= 0) {
+          GPU_shader_uniform_vector(
+              shgroup->shader, uni->location, uni->length, uni->arraysize, mat4_stack);
+          array_uniform_loc = -1;
         }
         continue;
       }
@@ -738,9 +714,9 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
     }
   }
   /* Ensure uniform arrays copied. */
-  BLI_assert(current_array_index == 0);
-  BLI_assert(current_uniform_array_loc == -1);
-  UNUSED_VARS_NDEBUG(current_uniform_array_loc);
+  BLI_assert(array_index == 0);
+  BLI_assert(array_uniform_loc == -1);
+  UNUSED_VARS_NDEBUG(array_uniform_loc);
 }
 
 BLI_INLINE void draw_select_buffer(DRWShadingGroup *shgroup,
