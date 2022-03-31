@@ -113,7 +113,7 @@ ccl_device float3 sky_radiance_hosek(KernelGlobals kg,
 /* Nishita improved sky model */
 ccl_device float3 geographical_to_direction(float lat, float lon)
 {
-  return make_float3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
+  return make_float3(cosf(lat) * cosf(lon), cosf(lat) * sinf(lon), sinf(lat));
 }
 
 ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
