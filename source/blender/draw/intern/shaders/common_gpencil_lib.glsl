@@ -169,7 +169,7 @@ vec4 gpencil_vertex(ivec4 ma,
 
   if (GPENCIL_IS_STROKE_VERTEX) {
     bool is_dot = flag_test(material_flags, GP_STROKE_ALIGNMENT);
-    bool is_squares = !flag_test(material_flags, GP_STROKE_ALIGNMENT);
+    bool is_squares = !flag_test(material_flags, GP_STROKE_DOTS);
 
     /* Special Case. Stroke with single vert are rendered as dots. Do not discard them. */
     if (!is_dot && ma.x == -1 && ma2.x == -1) {
