@@ -964,10 +964,8 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
       if (totsel_iter) {
         float mat_local[4][4];
-        if (params->use_local_axis) {
-          if (use_mat_local) {
-            mul_m4_m4m4(mat_local, ob->imat, ob_iter->obmat);
-          }
+        if (use_mat_local) {
+          mul_m4_m4m4(mat_local, ob->imat, ob_iter->obmat);
         }
 
         /* use channels to get stats */
