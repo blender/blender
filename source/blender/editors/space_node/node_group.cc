@@ -842,7 +842,7 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
     }
     else if (toselect && !fromselect) {
       /* Remove hidden links to not create unconnected sockets in the interface. */
-      if (nodeLinkIsHidden(link)){
+      if (nodeLinkIsHidden(link)) {
         nodeRemLink(&ntree, link);
         continue;
       }
@@ -868,7 +868,7 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
     }
     else if (fromselect && !toselect) {
       /* Remove hidden links to not create unconnected sockets in the interface. */
-      if (nodeLinkIsHidden(link)){
+      if (nodeLinkIsHidden(link)) {
         nodeRemLink(&ntree, link);
         continue;
       }
