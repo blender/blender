@@ -1251,7 +1251,7 @@ IDTypeInfo IDType_ID_OB = {
 
 void BKE_object_workob_clear(Object *workob)
 {
-  *workob = blender::dna::shallow_zero_initialize<Object>();
+  *workob = blender::dna::shallow_zero_initialize();
 
   workob->scale[0] = workob->scale[1] = workob->scale[2] = 1.0f;
   workob->dscale[0] = workob->dscale[1] = workob->dscale[2] = 1.0f;
