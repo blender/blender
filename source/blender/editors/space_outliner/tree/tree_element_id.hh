@@ -35,6 +35,11 @@ class TreeElementID : public AbstractTreeElement {
     return false;
   }
 
+  ID &get_ID()
+  {
+    return id_;
+  }
+
  protected:
   /* ID types with animation data can use this. */
   void expand_animation_data(SpaceOutliner &, const AnimData *) const;

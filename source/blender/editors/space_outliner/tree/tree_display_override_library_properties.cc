@@ -25,12 +25,12 @@ namespace blender::ed::outliner {
 /* Convenience/readability. */
 template<typename T> using List = ListBaseWrapper<T>;
 
-TreeDisplayOverrideLibrary::TreeDisplayOverrideLibrary(SpaceOutliner &space_outliner)
+TreeDisplayOverrideLibraryProperties::TreeDisplayOverrideLibraryProperties(SpaceOutliner &space_outliner)
     : AbstractTreeDisplay(space_outliner)
 {
 }
 
-ListBase TreeDisplayOverrideLibrary::buildTree(const TreeSourceData &source_data)
+ListBase TreeDisplayOverrideLibraryProperties::buildTree(const TreeSourceData &source_data)
 {
   ListBase tree = add_library_contents(*source_data.bmain);
 
@@ -44,7 +44,7 @@ ListBase TreeDisplayOverrideLibrary::buildTree(const TreeSourceData &source_data
   return tree;
 }
 
-ListBase TreeDisplayOverrideLibrary::add_library_contents(Main &mainvar)
+ListBase TreeDisplayOverrideLibraryProperties::add_library_contents(Main &mainvar)
 {
   ListBase tree = {nullptr};
 
@@ -114,7 +114,7 @@ ListBase TreeDisplayOverrideLibrary::add_library_contents(Main &mainvar)
   return tree;
 }
 
-short TreeDisplayOverrideLibrary::id_filter_get() const
+short TreeDisplayOverrideLibraryProperties::id_filter_get() const
 {
   if (space_outliner_.filter & SO_FILTER_ID_TYPE) {
     return space_outliner_.filter_id_type;

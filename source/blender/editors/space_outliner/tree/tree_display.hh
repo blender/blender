@@ -35,6 +35,8 @@ struct ViewLayer;
 
 namespace blender::ed::outliner {
 
+class TreeElementID;
+
 /**
  * \brief The data to build the tree from.
  */
@@ -127,17 +129,33 @@ class TreeDisplayLibraries final : public AbstractTreeDisplay {
 /* Library Overrides Tree-Display. */
 
 /**
- * \brief Tree-Display for the Library Overrides display mode.
+ * \brief Tree-Display for the Library Overrides display mode, Properties view mode.
  */
-class TreeDisplayOverrideLibrary final : public AbstractTreeDisplay {
+class TreeDisplayOverrideLibraryProperties final : public AbstractTreeDisplay {
  public:
-  TreeDisplayOverrideLibrary(SpaceOutliner &space_outliner);
+  TreeDisplayOverrideLibraryProperties(SpaceOutliner &space_outliner);
 
   ListBase buildTree(const TreeSourceData &source_data) override;
 
  private:
   ListBase add_library_contents(Main &);
   short id_filter_get() const;
+};
+
+/**
+ * \brief Tree-Display for the Library Overrides display mode, Hierarchies view mode.
+ */
+class TreeDisplayOverrideLibraryHierarchies final : public AbstractTreeDisplay {
+ public:
+  TreeDisplayOverrideLibraryHierarchies(SpaceOutliner &space_outliner);
+
+  ListBase buildTree(const TreeSourceData &source_data) override;
+
+ private:
+  ListBase build_hierarchy_for_lib_or_main(Main *bmain,
+                                           TreeElement &parent_te,
+                                           Library *lib = nullptr);
+  void build_hierarchy_for_ID(Main *bmain, ID &override_root_id, TreeElementID &te_id) const;
 };
 
 /* -------------------------------------------------------------------- */

@@ -3593,6 +3593,21 @@ static void rna_def_space_outliner(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem lib_override_view_mode[] = {
+      {SO_LIB_OVERRIDE_VIEW_PROPERTIES,
+       "PROPERTIES",
+       ICON_NONE,
+       "Properties",
+       "Display all local override data-blocks with their overridden properties and buttons to "
+       "edit them"},
+      {SO_LIB_OVERRIDE_VIEW_HIERARCHIES,
+       "HIERARCHIES",
+       ICON_NONE,
+       "Hierarchies",
+       "Display library override relationships"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   static const EnumPropertyItem filter_state_items[] = {
       {SO_FILTER_OB_ALL, "ALL", 0, "All", "Show all objects in the view layer"},
       {SO_FILTER_OB_VISIBLE, "VISIBLE", 0, "Visible", "Show visible objects"},
@@ -3610,6 +3625,13 @@ static void rna_def_space_outliner(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "outlinevis");
   RNA_def_property_enum_items(prop, display_mode_items);
   RNA_def_property_ui_text(prop, "Display Mode", "Type of information to display");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
+
+  prop = RNA_def_property(srna, "lib_override_view_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, lib_override_view_mode);
+  RNA_def_property_ui_text(prop,
+                           "Library Override View Mode",
+                           "Choose different visualizations of library override data");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
   prop = RNA_def_property(srna, "filter_text", PROP_STRING, PROP_NONE);
