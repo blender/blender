@@ -225,6 +225,11 @@ OutputSingleLayerOperation::OutputSingleLayerOperation(const Scene *scene,
   save_as_render_ = save_as_render;
 }
 
+OutputSingleLayerOperation::~OutputSingleLayerOperation()
+{
+  BKE_image_format_free(&format_);
+}
+
 void OutputSingleLayerOperation::init_execution()
 {
   image_input_ = get_input_socket_reader(0);
