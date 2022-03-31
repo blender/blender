@@ -353,6 +353,8 @@ class ModifierLog {
   static const TreeLog *find_tree_by_node_editor_context(const SpaceNode &snode);
   static const NodeLog *find_node_by_node_editor_context(const SpaceNode &snode,
                                                          const bNode &node);
+  static const NodeLog *find_node_by_node_editor_context(const SpaceNode &snode,
+                                                         const StringRef node_name);
   static const SocketLog *find_socket_by_node_editor_context(const SpaceNode &snode,
                                                              const bNode &node,
                                                              const bNodeSocket &socket);
