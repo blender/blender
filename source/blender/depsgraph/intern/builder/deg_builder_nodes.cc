@@ -1085,7 +1085,7 @@ void DepsgraphNodeBuilder::build_animation_images(ID *id)
    * tree. */
   const bool can_have_gpu_material = ELEM(GS(id->name), ID_MA, ID_WO);
 
-  if (BKE_image_user_id_has_animation(id) || can_have_gpu_material) {
+  if (can_have_gpu_material || BKE_image_user_id_has_animation(id)) {
     ID *id_cow = get_cow_id(id);
     add_operation_node(
         id,
