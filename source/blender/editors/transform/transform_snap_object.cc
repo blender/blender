@@ -2349,7 +2349,7 @@ static short snapMesh(SnapObjectContext *sctx,
   float dist_px_sq = square_f(*dist_px);
 
   /* Test BoundBox */
-  BoundBox *bb = BKE_object_boundbox_get(ob_eval);
+  const BoundBox *bb = BKE_object_boundbox_get(ob_eval);
   if (bb &&
       !snap_bound_box_check_dist(
           bb->vec[0], bb->vec[6], lpmat, sctx->runtime.win_size, sctx->runtime.mval, dist_px_sq)) {

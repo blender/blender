@@ -3587,7 +3587,7 @@ void BKE_boundbox_minmax(const BoundBox *bb,
   }
 }
 
-BoundBox *BKE_object_boundbox_get(Object *ob)
+const BoundBox *BKE_object_boundbox_get(Object *ob)
 {
   BoundBox *bb = nullptr;
 

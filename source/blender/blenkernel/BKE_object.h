@@ -337,7 +337,7 @@ void BKE_boundbox_minmax(const struct BoundBox *bb,
                          float r_min[3],
                          float r_max[3]);
 
-struct BoundBox *BKE_object_boundbox_get(struct Object *ob);
+const struct BoundBox *BKE_object_boundbox_get(struct Object *ob);
 void BKE_object_dimensions_get(struct Object *ob, float r_vec[3]);
 /**
  * The original scale and object matrix can be passed in so any difference
