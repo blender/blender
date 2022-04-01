@@ -409,9 +409,6 @@ bool ED_view3d_boundbox_clip_ex(const RegionView3D *rv3d, const BoundBox *bb, fl
   if (bb == NULL) {
     return true;
   }
-  if (bb->flag & BOUNDBOX_DISABLED) {
-    return true;
-  }
 
   mul_m4_m4m4(persmatob, (float(*)[4])rv3d->persmat, obmat);
 
@@ -423,10 +420,6 @@ bool ED_view3d_boundbox_clip(RegionView3D *rv3d, const BoundBox *bb)
   if (bb == NULL) {
     return true;
   }
-  if (bb->flag & BOUNDBOX_DISABLED) {
-    return true;
-  }
-
   return view3d_boundbox_clip_m4(bb, rv3d->persmatob);
 }
 

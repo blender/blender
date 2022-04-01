@@ -93,7 +93,7 @@ typedef struct BoundBox {
 
 /** #BoundBox.flag */
 enum {
-  BOUNDBOX_DISABLED = (1 << 0),
+  /* BOUNDBOX_DISABLED = (1 << 0), */ /* UNUSED */
   BOUNDBOX_DIRTY = (1 << 1),
 };
 
