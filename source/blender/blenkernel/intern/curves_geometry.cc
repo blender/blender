@@ -851,6 +851,34 @@ static void transform_positions(MutableSpan<float3> positions, const float4x4 &m
   });
 }
 
+void CurvesGeometry::calculate_bezier_auto_handles()
+{
+  const VArray<int8_t> types = std::as_const(*this).curve_types();
+  if (types.is_single() && types.get_internal_single() != CURVE_TYPE_BEZIER) {
+    return;
+  }
+  const VArray<bool> cyclic = std::as_const(*this).cyclic();
+  const Span<int8_t> types_left = this->handle_types_left();
+  const Span<int8_t> types_right = this->handle_types_right();
+  const Span<float3> positions = this->positions();
+  MutableSpan<float3> positions_left = this->handle_positions_left();
+  MutableSpan<float3> positions_right = this->handle_positions_right();
+
+  threading::parallel_for(this->curves_range(), 128, [&](IndexRange range) {
+    for (const int i_curve : range) {
+      if (types[i_curve] == CURVE_TYPE_BEZIER) {
+        const IndexRange points = this->points_for_curve(i_curve);
+        curves::bezier::calculate_auto_handles(cyclic[i_curve],
+                                               types_left.slice(points),
+                                               types_right.slice(points),
+                                               positions.slice(points),
+                                               positions_left.slice(points),
+                                               positions_right.slice(points));
+      }
+    }
+  });
+}
+
 void CurvesGeometry::translate(const float3 &translation)
 {
   /* Use `as_const` because the non-const functions can add the handle attributes. */

@@ -338,6 +338,8 @@ class CurvesGeometry : public ::CurvesGeometry {
   void translate(const float3 &translation);
   void transform(const float4x4 &matrix);
 
+  void calculate_bezier_auto_handles();
+
   void update_customdata_pointers();
 
   void remove_curves(IndexMask curves_to_delete);
@@ -397,9 +399,37 @@ void calculate_evaluated_offsets(Span<int8_t> handle_types_left,
                                  MutableSpan<int> evaluated_offsets);
 
 /**
+ * Recalculate all auto (#BEZIER_HANDLE_AUTO) and vector (#BEZIER_HANDLE_VECTOR) handles with
+ * positions automatically derived from the neighboring control points, and update aligned
+ * (#BEZIER_HANDLE_ALIGN) handles to line up with neighboring non-aligned handles. The choices
+ * made here are relatively arbitrary, but having standardized behavior is essential.
+ */
+void calculate_auto_handles(bool cyclic,
+                            Span<int8_t> types_left,
+                            Span<int8_t> types_right,
+                            Span<float3> positions,
+                            MutableSpan<float3> positions_left,
+                            MutableSpan<float3> positions_right);
+
+/**
+ * Change the handles of a single control point, aligning any aligned (#BEZIER_HANDLE_ALIGN)
+ * handles on the other side of the control point.
+ *
+ * \note This ignores the inputs if the handle types are automatically calculated,
+ * so the types should be updated before-hand to be editable.
+ */
+void set_handle_position(const float3 &position,
+                         HandleType type,
+                         HandleType type_other,
+                         const float3 &new_handle,
+                         float3 &handle,
+                         float3 &handle_other);
+
+/**
  * Evaluate a cubic Bezier segment, using the "forward differencing" method.
- * A generic Bezier curve is made up by four points, but in many cases the first and last points
- * are referred to as the control points, and the middle points are the corresponding handles.
+ * A generic Bezier curve is made up by four points, but in many cases the first and last
+ * points are referred to as the control points, and the middle points are the corresponding
+ * handles.
  */
 void evaluate_segment(const float3 &point_0,
                       const float3 &point_1,
