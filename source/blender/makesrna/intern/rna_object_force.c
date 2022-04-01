@@ -49,6 +49,8 @@ static const EnumPropertyItem effector_shape_items[] = {
 
 #  include "BLI_math_base.h"
 
+#  include "RNA_access.h"
+
 /* type specific return values only used from functions */
 static const EnumPropertyItem curve_shape_items[] = {
     {PFIELD_SHAPE_POINT, "POINT", 0, "Point", "Field originates from the object center"},
@@ -237,6 +239,33 @@ static void rna_Cache_toggle_disk_cache(Main *UNUSED(bmain), Scene *UNUSED(scene
   else {
     cache->flag ^= PTCACHE_DISK_CACHE;
   }
+}
+
+bool rna_Cache_use_disk_cache_override_apply(Main *UNUSED(bmain),
+                                             PointerRNA *ptr_dst,
+                                             PointerRNA *ptr_src,
+                                             PointerRNA *UNUSED(ptr_storage),
+                                             PropertyRNA *prop_dst,
+                                             PropertyRNA *prop_src,
+                                             PropertyRNA *UNUSED(prop_storage),
+                                             const int UNUSED(len_dst),
+                                             const int UNUSED(len_src),
+                                             const int UNUSED(len_storage),
+                                             PointerRNA *UNUSED(ptr_item_dst),
+                                             PointerRNA *UNUSED(ptr_item_src),
+                                             PointerRNA *UNUSED(ptr_item_storage),
+                                             IDOverrideLibraryPropertyOperation *opop)
+{
+  BLI_assert(RNA_property_type(prop_dst) == PROP_BOOLEAN);
+  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_REPLACE);
+  UNUSED_VARS_NDEBUG(opop);
+
+  RNA_property_boolean_set(ptr_dst, prop_dst, RNA_property_boolean_get(ptr_src, prop_src));
+
+  /* DO NOT call `RNA_property_update_main(bmain, NULL, ptr_dst, prop_dst);`, that would trigger
+   * the whole 'update from mem point cache' process, ending up in the complete deletion of an
+   * existing diskcache if any. */
+  return true;
 }
 
 static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -983,6 +1012,7 @@ static void rna_def_pointcache_common(StructRNA *srna)
   RNA_def_property_ui_text(
       prop, "Disk Cache", "Save cache files to disk (.blend file must be saved first)");
   RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_toggle_disk_cache");
+  RNA_def_property_override_funcs(prop, NULL, NULL, "rna_Cache_use_disk_cache_override_apply");
 
   prop = RNA_def_property(srna, "is_outdated", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_OUTDATED);
