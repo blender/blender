@@ -260,6 +260,10 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
   else {
     ob_dst->preview = nullptr;
   }
+
+  if (ob_src->lightgroup) {
+    ob_dst->lightgroup = (LightgroupMembership *)MEM_dupallocN(ob_src->lightgroup);
+  }
 }
 
 static void object_free_data(ID *id)
@@ -310,6 +314,8 @@ static void object_free_data(ID *id)
   }
 
   BKE_previewimg_free(&ob->preview);
+
+  MEM_SAFE_FREE(ob->lightgroup);
 }
 
 static void library_foreach_modifiersForeachIDLink(void *user_data,
@@ -584,6 +590,10 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   BLO_write_struct_list(writer, LinkData, &ob->pc_ids);
 
   BKE_previewimg_blend_write(writer, ob->preview);
+
+  if (ob->lightgroup) {
+    BLO_write_struct(writer, LightgroupMembership, ob->lightgroup);
+  }
 }
 
 /* XXX deprecated - old animation system */
@@ -800,6 +810,8 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
 
   BLO_read_data_address(reader, &ob->preview);
   BKE_previewimg_blend_read(reader, ob->preview);
+
+  BLO_read_data_address(reader, &ob->lightgroup);
 }
 
 /* XXX deprecated - old animation system */

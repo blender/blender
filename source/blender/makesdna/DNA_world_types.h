@@ -16,6 +16,7 @@ extern "C" {
 
 struct AnimData;
 struct Ipo;
+struct LightgroupMembership;
 struct bNodeTree;
 
 #ifndef MAX_MTEX
@@ -69,6 +70,9 @@ typedef struct World {
 
   /* nodes */
   struct bNodeTree *nodetree;
+
+  /* Lightgroup membership information. */
+  struct LightgroupMembership *lightgroup;
 
   /** Runtime. */
   ListBase gpumaterial;

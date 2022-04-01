@@ -251,6 +251,11 @@ void Scene::device_update(Device *device_, Progress &progress)
    * - Lookup tables are done a second time to handle film tables
    */
 
+  if (film->update_lightgroups(this)) {
+    light_manager->tag_update(this, ccl::LightManager::LIGHT_MODIFIED);
+    object_manager->tag_update(this, ccl::ObjectManager::OBJECT_MODIFIED);
+  }
+
   progress.set_status("Updating Shaders");
   shader_manager->device_update(device, &dscene, this, progress);
 

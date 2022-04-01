@@ -2292,6 +2292,21 @@ static int rna_Object_mesh_symmetry_yz_editable(PointerRNA *ptr, const char **UN
   return PROP_EDITABLE;
 }
 
+void rna_Object_lightgroup_get(PointerRNA *ptr, char *value)
+{
+  BKE_lightgroup_membership_get(((Object *)ptr->owner_id)->lightgroup, value);
+}
+
+int rna_Object_lightgroup_length(PointerRNA *ptr)
+{
+  return BKE_lightgroup_membership_length(((Object *)ptr->owner_id)->lightgroup);
+}
+
+void rna_Object_lightgroup_set(PointerRNA *ptr, const char *value)
+{
+  BKE_lightgroup_membership_set(&((Object *)ptr->owner_id)->lightgroup, value);
+}
+
 #else
 
 static void rna_def_vertex_group(BlenderRNA *brna)
@@ -3774,6 +3789,15 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_editable_func(prop, "rna_Object_mesh_symmetry_yz_editable");
   RNA_def_property_ui_text(prop, "Z", "Enable mesh symmetry in the Z axis");
+
+  /* Lightgroup Membership */
+  prop = RNA_def_property(srna, "lightgroup", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_funcs(prop,
+                                "rna_Object_lightgroup_get",
+                                "rna_Object_lightgroup_length",
+                                "rna_Object_lightgroup_set");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Lightgroup", "Lightgroup that the object belongs to");
 
   RNA_define_lib_overridable(false);
 

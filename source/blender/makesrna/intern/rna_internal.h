@@ -355,6 +355,10 @@ void rna_ViewLayer_active_aov_index_range(
     PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax);
 int rna_ViewLayer_active_aov_index_get(PointerRNA *ptr);
 void rna_ViewLayer_active_aov_index_set(PointerRNA *ptr, int value);
+void rna_ViewLayer_active_lightgroup_index_range(
+    PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax);
+int rna_ViewLayer_active_lightgroup_index_get(PointerRNA *ptr);
+void rna_ViewLayer_active_lightgroup_index_set(PointerRNA *ptr, int value);
 /**
  *  Set `r_rna_path` with the base view-layer path.
  *  `rna_path_buffer_size` should be at least `sizeof(ViewLayer.name) * 3`.

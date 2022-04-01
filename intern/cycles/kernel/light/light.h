@@ -23,6 +23,7 @@ typedef struct LightSample {
   int prim;       /* primitive id for triangle/curve lights */
   int shader;     /* shader id */
   int lamp;       /* lamp id */
+  int group;      /* lightgroup */
   LightType type; /* type of light */
 } LightSample;
 
@@ -52,6 +53,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
   ls->lamp = lamp;
   ls->u = randu;
   ls->v = randv;
+  ls->group = lamp_lightgroup(kg, lamp);
 
   if (in_volume_segment && (type == LIGHT_DISTANT || type == LIGHT_BACKGROUND)) {
     /* Distant lights in a volume get a dummy sample, position will not actually
@@ -413,6 +415,7 @@ ccl_device bool light_sample_from_distant_ray(KernelGlobals kg,
   ls->P = -ray_D;
   ls->Ng = -ray_D;
   ls->D = ray_D;
+  ls->group = lamp_lightgroup(kg, lamp);
 
   /* compute pdf */
   float invarea = klight->distant.invarea;
@@ -441,6 +444,7 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
   ls->t = isect->t;
   ls->P = ray_P + ray_D * ls->t;
   ls->D = ray_D;
+  ls->group = lamp_lightgroup(kg, lamp);
 
   if (type == LIGHT_SPOT) {
     const float3 center = make_float3(klight->co[0], klight->co[1], klight->co[2]);
@@ -706,6 +710,7 @@ ccl_device_forceinline void triangle_light_sample(KernelGlobals kg,
   ls->lamp = LAMP_NONE;
   ls->shader |= SHADER_USE_MIS;
   ls->type = LIGHT_TRIANGLE;
+  ls->group = object_lightgroup(kg, object);
 
   float distance_to_plane = fabsf(dot(N0, V[0] - P) / dot(N0, N0));
 

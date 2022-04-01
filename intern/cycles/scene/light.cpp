@@ -134,6 +134,8 @@ NODE_DEFINE(Light)
 
   SOCKET_NODE(shader, "Shader", Shader::get_node_type());
 
+  SOCKET_STRING(lightgroup, "Light Group", ustring());
+
   return type;
 }
 
@@ -901,6 +903,14 @@ void LightManager::device_update_points(Device *, DeviceScene *dscene, Scene *sc
 
     klights[light_index].tfm = light->tfm;
     klights[light_index].itfm = transform_inverse(light->tfm);
+
+    auto it = scene->lightgroups.find(light->lightgroup);
+    if (it != scene->lightgroups.end()) {
+      klights[light_index].lightgroup = it->second;
+    }
+    else {
+      klights[light_index].lightgroup = LIGHTGROUP_NONE;
+    }
 
     light_index++;
   }

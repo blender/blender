@@ -87,7 +87,8 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
   }
 
   const float3 throughput = INTEGRATOR_STATE(state, path, throughput);
-  kernel_accum_emission(kg, state, throughput * L, render_buffer);
+  kernel_accum_emission(
+      kg, state, throughput * L, render_buffer, object_lightgroup(kg, sd->object));
 }
 #endif /* __EMISSION__ */
 
@@ -258,6 +259,12 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   if (kernel_data.kernel_features & KERNEL_FEATURE_SHADOW_PASS) {
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, unshadowed_throughput) = throughput;
   }
+
+  /* Write Lightgroup, +1 as lightgroup is int but we need to encode into a uint8_t. */
+  INTEGRATOR_STATE_WRITE(
+      shadow_state, shadow_path, lightgroup) = (ls.type != LIGHT_BACKGROUND) ?
+                                                   ls.group + 1 :
+                                                   kernel_data.background.lightgroup + 1;
 }
 #endif
 

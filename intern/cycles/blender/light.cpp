@@ -143,6 +143,9 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   light->set_use_scatter((visibility & PATH_RAY_VOLUME_SCATTER) != 0);
   light->set_is_shadow_catcher(b_ob_info.real_object.is_shadow_catcher());
 
+  /* lightgroup */
+  light->set_lightgroup(ustring(b_ob_info.real_object.lightgroup()));
+
   /* tag */
   light->tag_update(scene);
 }

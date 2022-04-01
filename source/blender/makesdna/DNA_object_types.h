@@ -31,6 +31,7 @@ struct Curve;
 struct FluidsimSettings;
 struct GeometrySet;
 struct Ipo;
+struct LightgroupMembership;
 struct Material;
 struct Mesh;
 struct Object;
@@ -434,8 +435,10 @@ typedef struct Object {
 
   ObjectLineArt lineart;
 
+  /** Lightgroup membership information. */
+  struct LightgroupMembership *lightgroup;
+
   /** Runtime evaluation data (keep last). */
-  void *_pad9;
   Object_Runtime runtime;
 } Object;
 
