@@ -3801,21 +3801,24 @@ static void widget_numslider(
 
     const float width = (float)BLI_rcti_size_x(rect);
     factor_ui = factor * width;
+    /* The rectangle width needs to be at least twice the corner radius for the round corners
+     * to be drawn properly. */
+    const float min_width = 2.0f * ofs;
 
-    if (factor_ui <= ofs) {
-      /* Left part only. */
-      roundboxalign_slider &= ~(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT);
-      rect1.xmax = rect1.xmin + ofs;
-      factor_discard = factor_ui / ofs;
+    if (factor_ui > width - ofs) {
+      /* Left part + middle part + right part. */
+      factor_discard = factor;
     }
-    else if (factor_ui <= width - ofs) {
+    else if (factor_ui > min_width) {
       /* Left part + middle part. */
       roundboxalign_slider &= ~(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT);
       rect1.xmax = rect1.xmin + factor_ui;
     }
     else {
-      /* Left part + middle part + right part. */
-      factor_discard = factor;
+      /* Left part */
+      roundboxalign_slider &= ~(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT);
+      rect1.xmax = rect1.xmin + min_width;
+      factor_discard = factor_ui / min_width;
     }
 
     round_box_edges(&wtb1, roundboxalign_slider, &rect1, ofs);
