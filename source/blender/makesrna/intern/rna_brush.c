@@ -33,7 +33,7 @@ static const EnumPropertyItem prop_direction_items[] = {
 
 #ifdef RNA_RUNTIME
 static const EnumPropertyItem prop_smooth_direction_items[] = {
-    {0, "SMOOTH", ICON_ADD, "Smooth", "Smooth the surfae"},
+    {0, "SMOOTH", ICON_ADD, "Smooth", "Smooth the surface"},
     {BRUSH_DIR_IN,
      "ENHANCE_DETAILS",
      ICON_REMOVE,
@@ -257,6 +257,7 @@ const EnumPropertyItem rna_enum_brush_curves_sculpt_tool_items[] = {
     {CURVES_SCULPT_TOOL_COMB, "COMB", ICON_NONE, "Comb", ""},
     {CURVES_SCULPT_TOOL_DELETE, "DELETE", ICON_NONE, "Delete", ""},
     {CURVES_SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", ICON_NONE, "Snake Hook", ""},
+    {CURVES_SCULPT_TOOL_ADD, "ADD", ICON_NONE, "Add", ""},
     {CURVES_SCULPT_TOOL_TEST1, "TEST1", ICON_NONE, "Test 1", ""},
     {CURVES_SCULPT_TOOL_TEST2, "TEST2", ICON_NONE, "Test 2", ""},
     {0, NULL, 0, NULL, NULL},
@@ -1546,7 +1547,8 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   /* Smoothing factor for new strokes */
   prop = RNA_def_property(srna, "pen_smooth_factor", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "draw_smoothfac");
-  RNA_def_property_range(prop, 0.0, 2.0f);
+  RNA_def_property_range(prop, 0.0, 2.0);
+  RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 3);
   RNA_def_property_ui_text(
       prop,
       "Smooth",
@@ -1557,7 +1559,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   /* Iterations of the Smoothing factor */
   prop = RNA_def_property(srna, "pen_smooth_steps", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "draw_smoothlvl");
-  RNA_def_property_range(prop, 1, 3);
+  RNA_def_property_range(prop, 0, 100);
   RNA_def_property_ui_text(prop, "Iterations", "Number of times to smooth newly created strokes");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
@@ -2118,6 +2120,20 @@ const EnumPropertyItem brush_curve_preset_items[] = {
     {BRUSH_CURVE_CONSTANT, "CONSTANT", ICON_NOCURVE, "Constant", ""},
     {0, NULL, 0, NULL, NULL},
 };
+
+static void rna_def_curves_sculpt_options(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "BrushCurvesSculptSettings", NULL);
+  RNA_def_struct_sdna(srna, "BrushCurvesSculptSettings");
+  RNA_def_struct_ui_text(srna, "Curves Sculpt Brush Settings", "");
+
+  prop = RNA_def_property(srna, "add_amount", PROP_INT, PROP_NONE);
+  RNA_def_property_range(prop, 1, INT32_MAX);
+  RNA_def_property_ui_text(prop, "Add Amount", "Number of curves added by the Add brush");
+}
 
 static void rna_def_brush(BlenderRNA *brna)
 {
@@ -3935,6 +3951,11 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "dyntopo");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Dyntopo Settings", "");
+
+  prop = RNA_def_property(srna, "curves_sculpt_settings", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "BrushCurvesSculptSettings");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Curves Sculpt Settings", "");
 }
 
 /**
@@ -4022,6 +4043,7 @@ void RNA_def_brush(BlenderRNA *brna)
   rna_def_vertex_paint_capabilities(brna);
   rna_def_weight_paint_capabilities(brna);
   rna_def_gpencil_options(brna);
+  rna_def_curves_sculpt_options(brna);
   rna_def_brush_texture_slot(brna);
   rna_def_operator_stroke_element(brna);
 }

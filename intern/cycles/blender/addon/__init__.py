@@ -83,6 +83,17 @@ class CyclesRender(bpy.types.RenderEngine):
     # viewport render
     def view_update(self, context, depsgraph):
         if not self.session:
+            # When starting a new render session in viewport (by switching
+            # viewport to Rendered shading) unpause the render. The way to think
+            # of it is: artist requests render, so we start to render.
+            # Do it for both original and evaluated scene so that Cycles
+            # immediately reacts to un-paused render.
+            cscene = context.scene.cycles
+            cscene_eval = depsgraph.scene_eval.cycles
+            if cscene.preview_pause or cscene_eval.preview_pause:
+                cscene.preview_pause = False
+                cscene_eval.preview_pause = False
+
             engine.create(self, context.blend_data,
                           context.region, context.space_data, context.region_data)
 

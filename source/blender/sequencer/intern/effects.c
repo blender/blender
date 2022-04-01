@@ -40,6 +40,7 @@
 #include "BLI_math_color_blend.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "RE_pipeline.h"
 
@@ -1680,7 +1681,7 @@ static void do_wipe_effect_byte(Sequence *seq,
 
   for (int i = 0; i < y; i++) {
     for (int j = 0; j < x; j++) {
-      float check = check_zone(&wipezone, x, y, seq, fac);
+      float check = check_zone(&wipezone, j, i, seq, fac);
       if (check) {
         if (cp1) {
           float rt1[4], rt2[4], tempc[4];
@@ -1741,7 +1742,7 @@ static void do_wipe_effect_float(
 
   for (int i = 0; i < y; i++) {
     for (int j = 0; j < x; j++) {
-      float check = check_zone(&wipezone, x, y, seq, fac);
+      float check = check_zone(&wipezone, j, i, seq, fac);
       if (check) {
         if (rt1) {
           rt[0] = rt1[0] * check + rt2[0] * (1 - check);
@@ -3736,9 +3737,9 @@ int SEQ_effect_get_num_inputs(int seq_type)
 {
   struct SeqEffectHandle rval = get_sequence_effect_impl(seq_type);
 
-  int cnt = rval.num_inputs();
+  int count = rval.num_inputs();
   if (rval.execute || (rval.execute_slice && rval.init_execution)) {
-    return cnt;
+    return count;
   }
   return 0;
 }

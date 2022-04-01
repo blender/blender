@@ -53,7 +53,7 @@ vec4 flag_to_color(uint flag)
   if (bool(flag & uint(16))) {
     color.rgb += vec3(0.9, 0.3, 0.0); /* orange */
   }
-  if (color.rgb == vec3(0.0)) {
+  if (is_zero(color.rgb)) {
     color.rgb += vec3(0.5, 0.0, 0.0); /* medium red */
   }
   return color;

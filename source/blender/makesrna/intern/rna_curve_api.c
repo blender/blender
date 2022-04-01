@@ -43,22 +43,19 @@ static void rna_Nurb_valid_message(Nurb *nu, int direction, int *result_len, con
 
   int pnts;
   short order, flag;
-  const char *dir;
   if (direction == 0) {
     pnts = nu->pntsu;
     order = nu->orderu;
     flag = nu->flagu;
-    dir = "U";
   }
   else {
     pnts = nu->pntsv;
     order = nu->orderv;
     flag = nu->flagv;
-    dir = "V";
   }
 
   char buf[64];
-  if (BKE_nurb_valid_message(pnts, order, flag, type, is_surf, dir, buf, sizeof(buf))) {
+  if (BKE_nurb_valid_message(pnts, order, flag, type, is_surf, direction, buf, sizeof(buf))) {
     const int buf_len = strlen(buf);
     *r_result = BLI_strdupn(buf, buf_len);
     *result_len = buf_len;

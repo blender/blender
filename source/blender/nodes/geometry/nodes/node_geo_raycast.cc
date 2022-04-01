@@ -298,7 +298,7 @@ class RaycastFunction : public fn::MultiFunction {
       GMutableSpan result = params.uninitialized_single_output_if_required(7, "Attribute");
       if (!result.is_empty()) {
         MeshAttributeInterpolator interp(&mesh, hit_mask, hit_positions, hit_indices);
-        result.type().fill_assign_indices(result.type().default_value(), result.data(), mask);
+        result.type().value_initialize_indices(result.data(), mask);
         interp.sample_data(*target_data_, domain_, get_map_mode(mapping_), result);
       }
     }

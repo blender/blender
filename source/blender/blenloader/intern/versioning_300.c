@@ -60,6 +60,7 @@
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "BLO_readfile.h"
 #include "MEM_guardedalloc.h"
@@ -541,7 +542,6 @@ static void version_geometry_nodes_add_realize_instance_nodes(bNodeTree *ntree)
              GEO_NODE_TRIM_CURVE,
              GEO_NODE_REPLACE_MATERIAL,
              GEO_NODE_SUBDIVIDE_MESH,
-             GEO_NODE_ATTRIBUTE_REMOVE,
              GEO_NODE_TRIANGULATE)) {
       bNodeSocket *geometry_socket = node->inputs.first;
       add_realize_instances_before_socket(ntree, node, geometry_socket);
@@ -614,30 +614,6 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 3)) {
-    /* Use new texture socket in Attribute Sample Texture node. */
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      if (ntree->type != NTREE_GEOMETRY) {
-        continue;
-      }
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type != GEO_NODE_LEGACY_ATTRIBUTE_SAMPLE_TEXTURE) {
-          continue;
-        }
-        if (node->id == NULL) {
-          continue;
-        }
-        LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-          if (socket->type == SOCK_TEXTURE) {
-            bNodeSocketValueTexture *socket_value = (bNodeSocketValueTexture *)
-                                                        socket->default_value;
-            socket_value->value = (Tex *)node->id;
-            break;
-          }
-        }
-        node->id = NULL;
-      }
-    }
-
     sort_linked_ids(bmain);
     assert_sorted_ids(bmain);
   }
@@ -963,141 +939,6 @@ static bNodeSocket *do_version_replace_float_size_with_vector(bNodeTree *ntree,
   bNodeSocketValueVector *value_vector = (bNodeSocketValueVector *)new_socket->default_value;
   copy_v3_fl(value_vector->value, old_value);
   return new_socket;
-}
-
-static bool geometry_node_is_293_legacy(const short node_type)
-{
-  switch (node_type) {
-    /* Not legacy: No attribute inputs or outputs. */
-    case GEO_NODE_TRIANGULATE:
-    case GEO_NODE_TRANSFORM:
-    case GEO_NODE_MESH_BOOLEAN:
-    case GEO_NODE_IS_VIEWPORT:
-    case GEO_NODE_SUBDIVIDE_MESH:
-    case GEO_NODE_MESH_PRIMITIVE_CUBE:
-    case GEO_NODE_MESH_PRIMITIVE_CIRCLE:
-    case GEO_NODE_MESH_PRIMITIVE_UV_SPHERE:
-    case GEO_NODE_MESH_PRIMITIVE_CYLINDER:
-    case GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE:
-    case GEO_NODE_MESH_PRIMITIVE_CONE:
-    case GEO_NODE_MESH_PRIMITIVE_LINE:
-    case GEO_NODE_MESH_PRIMITIVE_GRID:
-    case GEO_NODE_BOUNDING_BOX:
-    case GEO_NODE_RESAMPLE_CURVE:
-    case GEO_NODE_INPUT_MATERIAL:
-    case GEO_NODE_REPLACE_MATERIAL:
-    case GEO_NODE_CURVE_LENGTH:
-    case GEO_NODE_CONVEX_HULL:
-    case GEO_NODE_SEPARATE_COMPONENTS:
-    case GEO_NODE_CURVE_PRIMITIVE_STAR:
-    case GEO_NODE_CURVE_PRIMITIVE_SPIRAL:
-    case GEO_NODE_CURVE_PRIMITIVE_QUADRATIC_BEZIER:
-    case GEO_NODE_CURVE_PRIMITIVE_BEZIER_SEGMENT:
-    case GEO_NODE_CURVE_PRIMITIVE_CIRCLE:
-    case GEO_NODE_VIEWER:
-    case GEO_NODE_CURVE_PRIMITIVE_LINE:
-    case GEO_NODE_CURVE_PRIMITIVE_QUADRILATERAL:
-    case GEO_NODE_FILL_CURVE:
-    case GEO_NODE_TRIM_CURVE:
-    case GEO_NODE_CURVE_TO_MESH:
-      return false;
-
-    /* Not legacy: Newly added with fields patch. */
-    case GEO_NODE_INPUT_POSITION:
-    case GEO_NODE_SET_POSITION:
-    case GEO_NODE_INPUT_INDEX:
-    case GEO_NODE_INPUT_NORMAL:
-    case GEO_NODE_CAPTURE_ATTRIBUTE:
-      return false;
-
-    /* Maybe legacy: Might need special attribute handling, depending on design. */
-    case GEO_NODE_SWITCH:
-    case GEO_NODE_JOIN_GEOMETRY:
-    case GEO_NODE_ATTRIBUTE_REMOVE:
-    case GEO_NODE_OBJECT_INFO:
-    case GEO_NODE_COLLECTION_INFO:
-      return false;
-
-    /* Maybe legacy: Special case for grid names? Or finish patch from level set branch to
-     * generate a mesh for all grids in the volume. */
-    case GEO_NODE_LEGACY_VOLUME_TO_MESH:
-      return false;
-
-    /* Legacy: Transferred *all* attributes before, will not transfer all built-ins now. */
-    case GEO_NODE_LEGACY_CURVE_ENDPOINTS:
-    case GEO_NODE_LEGACY_CURVE_TO_POINTS:
-      return true;
-
-    /* Legacy: Attribute operation completely replaced by field nodes. */
-    case GEO_NODE_LEGACY_ATTRIBUTE_RANDOMIZE:
-    case GEO_NODE_LEGACY_ATTRIBUTE_MATH:
-    case GEO_NODE_LEGACY_ATTRIBUTE_FILL:
-    case GEO_NODE_LEGACY_ATTRIBUTE_MIX:
-    case GEO_NODE_LEGACY_ATTRIBUTE_COLOR_RAMP:
-    case GEO_NODE_LEGACY_ATTRIBUTE_COMPARE:
-    case GEO_NODE_LEGACY_POINT_ROTATE:
-    case GEO_NODE_LEGACY_ALIGN_ROTATION_TO_VECTOR:
-    case GEO_NODE_LEGACY_POINT_SCALE:
-    case GEO_NODE_LEGACY_ATTRIBUTE_SAMPLE_TEXTURE:
-    case GEO_NODE_LEGACY_ATTRIBUTE_VECTOR_ROTATE:
-    case GEO_NODE_LEGACY_ATTRIBUTE_CURVE_MAP:
-    case GEO_NODE_LEGACY_ATTRIBUTE_MAP_RANGE:
-    case GEO_NODE_LEGACY_ATTRIBUTE_CLAMP:
-    case GEO_NODE_LEGACY_ATTRIBUTE_VECTOR_MATH:
-    case GEO_NODE_LEGACY_ATTRIBUTE_COMBINE_XYZ:
-    case GEO_NODE_LEGACY_ATTRIBUTE_SEPARATE_XYZ:
-      return true;
-
-    /* Legacy: Replaced by field node depending on another geometry. */
-    case GEO_NODE_LEGACY_RAYCAST:
-    case GEO_NODE_LEGACY_ATTRIBUTE_TRANSFER:
-    case GEO_NODE_LEGACY_ATTRIBUTE_PROXIMITY:
-      return true;
-
-    /* Legacy: Simple selection attribute input. */
-    case GEO_NODE_LEGACY_MESH_TO_CURVE:
-    case GEO_NODE_LEGACY_POINT_SEPARATE:
-    case GEO_NODE_LEGACY_CURVE_SELECT_HANDLES:
-    case GEO_NODE_LEGACY_CURVE_SPLINE_TYPE:
-    case GEO_NODE_LEGACY_CURVE_REVERSE:
-    case GEO_NODE_LEGACY_MATERIAL_ASSIGN:
-    case GEO_NODE_LEGACY_CURVE_SET_HANDLES:
-      return true;
-
-      /* Legacy: More complex attribute inputs or outputs. */
-    case GEO_NODE_LEGACY_SUBDIVISION_SURFACE: /* Used "crease" attribute. */
-    case GEO_NODE_LEGACY_EDGE_SPLIT:          /* Needs selection input version. */
-    case GEO_NODE_LEGACY_DELETE_GEOMETRY:     /* Needs field input, domain drop-down. */
-    case GEO_NODE_LEGACY_CURVE_SUBDIVIDE:     /* Needs field count input. */
-    case GEO_NODE_LEGACY_POINTS_TO_VOLUME:    /* Needs field radius input. */
-    case GEO_NODE_LEGACY_SELECT_BY_MATERIAL:  /* Output anonymous attribute. */
-    case GEO_NODE_LEGACY_POINT_TRANSLATE:     /* Needs field inputs. */
-    case GEO_NODE_LEGACY_POINT_INSTANCE:      /* Needs field inputs. */
-    case GEO_NODE_LEGACY_POINT_DISTRIBUTE:    /* Needs field input, remove max for random mode. */
-    case GEO_NODE_LEGACY_ATTRIBUTE_CONVERT:   /* Attribute Capture, Store Attribute. */
-      return true;
-  }
-  return false;
-}
-
-static void version_geometry_nodes_change_legacy_names(bNodeTree *ntree)
-{
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (geometry_node_is_293_legacy(node->type)) {
-      if (strstr(node->idname, "Legacy")) {
-        /* Make sure we haven't changed this idname already, better safe than sorry. */
-        continue;
-      }
-
-      char temp_idname[sizeof(node->idname)];
-      BLI_strncpy(temp_idname, node->idname, sizeof(node->idname));
-
-      BLI_snprintf(node->idname,
-                   sizeof(node->idname),
-                   "GeometryNodeLegacy%s",
-                   temp_idname + strlen("GeometryNode"));
-    }
-  }
 }
 
 static bool seq_transform_origin_set(Sequence *seq, void *UNUSED(user_data))
@@ -1743,10 +1584,10 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_SurfaceDeform) {
             SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
-            if (smd->num_bind_verts && smd->verts) {
-              smd->num_mesh_verts = smd->num_bind_verts;
+            if (smd->bind_verts_num && smd->verts) {
+              smd->mesh_verts_num = smd->bind_verts_num;
 
-              for (unsigned int i = 0; i < smd->num_bind_verts; i++) {
+              for (unsigned int i = 0; i < smd->bind_verts_num; i++) {
                 smd->verts[i].vertex_idx = i;
               }
             }
@@ -1887,24 +1728,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 19)) {
-    /* Add node storage for subdivision surface node. */
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (ntree->type == NTREE_GEOMETRY) {
-        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == GEO_NODE_LEGACY_SUBDIVISION_SURFACE) {
-            if (node->storage == NULL) {
-              NodeGeometrySubdivisionSurface *data = MEM_callocN(
-                  sizeof(NodeGeometrySubdivisionSurface), __func__);
-              data->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES;
-              data->boundary_smooth = SUBSURF_BOUNDARY_SMOOTH_ALL;
-              node->storage = data;
-            }
-          }
-        }
-      }
-    }
-    FOREACH_NODETREE_END;
-
     /* Disable Fade Inactive Overlay by default as it is redundant after introducing flash on
      * mode transfer. */
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
@@ -2158,30 +1981,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
-
-    /* Deprecate the random float node in favor of the random value node. */
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      if (ntree->type != NTREE_GEOMETRY) {
-        continue;
-      }
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type != FN_NODE_LEGACY_RANDOM_FLOAT) {
-          continue;
-        }
-        if (strstr(node->idname, "Legacy")) {
-          /* Make sure we haven't changed this idname already. */
-          continue;
-        }
-
-        char temp_idname[sizeof(node->idname)];
-        BLI_strncpy(temp_idname, node->idname, sizeof(node->idname));
-
-        BLI_snprintf(node->idname,
-                     sizeof(node->idname),
-                     "FunctionNodeLegacy%s",
-                     temp_idname + strlen("FunctionNode"));
-      }
-    }
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 29)) {
@@ -2206,12 +2005,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             }
           }
         }
-      }
-    }
-
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      if (ntree->type == NTREE_GEOMETRY) {
-        version_geometry_nodes_change_legacy_names(ntree);
       }
     }
   }
@@ -2371,7 +2164,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
       version_node_id(ntree, FN_NODE_SLICE_STRING, "FunctionNodeSliceString");
       version_geometry_nodes_set_position_node_offset(ntree);
-      version_node_id(ntree, GEO_NODE_LEGACY_VOLUME_TO_MESH, "GeometryNodeLegacyVolumeToMesh");
     }
 
     /* Add storage to viewer node. */
@@ -3188,6 +2980,76 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         /* Bezier NURBS of order 3 were clamped to first control point. */
         else if (nurb->orderv == 3 && (nurb->flagv & CU_NURB_BEZIER)) {
           nurb->flagv |= CU_NURB_ENDPOINT;
+        }
+      }
+    }
+
+    /* Change grease pencil smooth iterations to match old results with new algorithm. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
+        if (md->type == eGpencilModifierType_Smooth) {
+          SmoothGpencilModifierData *gpmd = (SmoothGpencilModifierData *)md;
+          if (gpmd->step == 1 && gpmd->factor <= 0.5f) {
+            gpmd->factor *= 2.0f;
+          }
+          else {
+            gpmd->step = 1 + (int)(gpmd->factor * max_ff(0.0f,
+                                                         min_ff(5.1f * sqrtf(gpmd->step) - 3.0f,
+                                                                gpmd->step + 2.0f)));
+            gpmd->factor = 1.0f;
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 302, 7)) {
+    /* Generate 'system' liboverrides IDs.
+     * NOTE: This is a fairly rough process, based on very basic heuristics. Should be enough for a
+     * do_version code though, this is a new optional feature, not a critical conversion. */
+    ID *id;
+    FOREACH_MAIN_ID_BEGIN (bmain, id) {
+      if (!ID_IS_OVERRIDE_LIBRARY_REAL(id) || ID_IS_LINKED(id)) {
+        /* Ignore non-real liboverrides, and linked ones. */
+        continue;
+      }
+      if (GS(id->name) == ID_OB) {
+        /* Never 'lock' an object into a system override for now. */
+        continue;
+      }
+      if (BKE_lib_override_library_is_user_edited(id)) {
+        /* Do not 'lock' an ID already edited by the user. */
+        continue;
+      }
+      id->override_library->flag |= IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+    }
+    FOREACH_MAIN_ID_END;
+
+    /* Initialize brush curves sculpt settings. */
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->ob_mode != OB_MODE_SCULPT_CURVES) {
+        continue;
+      }
+      if (brush->curves_sculpt_settings != NULL) {
+        continue;
+      }
+      brush->curves_sculpt_settings = MEM_callocN(sizeof(BrushCurvesSculptSettings), __func__);
+      brush->curves_sculpt_settings->add_amount = 1;
+    }
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->toolsettings && scene->toolsettings->curves_sculpt &&
+          scene->toolsettings->curves_sculpt->curve_length == 0.0f) {
+        scene->toolsettings->curves_sculpt->curve_length = 0.3f;
+      }
+    }
+
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_OUTLINER) {
+            SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+            space_outliner->filter &= ~SO_FILTER_CLEARED_1;
+          }
         }
       }
     }

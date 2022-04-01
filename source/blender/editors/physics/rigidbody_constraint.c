@@ -40,12 +40,21 @@
 /* ********************************************** */
 /* Helper API's for RigidBody Constraint Editing */
 
+static bool operator_rigidbody_constraints_editable_poll(Scene *scene)
+{
+  if (scene == NULL || ID_IS_LINKED(scene) || ID_IS_OVERRIDE_LIBRARY(scene) ||
+      (scene->rigidbody_world != NULL && scene->rigidbody_world->constraints != NULL &&
+       (ID_IS_LINKED(scene->rigidbody_world->constraints) ||
+        ID_IS_OVERRIDE_LIBRARY(scene->rigidbody_world->constraints)))) {
+    return false;
+  }
+  return true;
+}
+
 static bool ED_operator_rigidbody_con_active_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
-  if (scene == NULL || ID_IS_LINKED(&scene->id) ||
-      (scene->rigidbody_world != NULL && scene->rigidbody_world->constraints != NULL &&
-       ID_IS_LINKED(&scene->rigidbody_world->constraints->id))) {
+  if (!operator_rigidbody_constraints_editable_poll(scene)) {
     return false;
   }
 
@@ -59,9 +68,7 @@ static bool ED_operator_rigidbody_con_active_poll(bContext *C)
 static bool ED_operator_rigidbody_con_add_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
-  if (scene == NULL || ID_IS_LINKED(&scene->id) ||
-      (scene->rigidbody_world != NULL && scene->rigidbody_world->constraints != NULL &&
-       ID_IS_LINKED(&scene->rigidbody_world->constraints->id))) {
+  if (!operator_rigidbody_constraints_editable_poll(scene)) {
     return false;
   }
   return ED_operator_object_active_editable(C);

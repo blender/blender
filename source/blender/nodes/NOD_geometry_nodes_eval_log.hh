@@ -18,12 +18,11 @@
 
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_generic_pointer.hh"
 #include "BLI_linear_allocator.hh"
 #include "BLI_map.hh"
 
 #include "BKE_geometry_set.hh"
-
-#include "FN_generic_pointer.hh"
 
 #include "NOD_derived_node_tree.hh"
 
@@ -33,9 +32,6 @@ struct SpaceNode;
 struct SpaceSpreadsheet;
 
 namespace blender::nodes::geometry_nodes_eval_log {
-
-using fn::GMutablePointer;
-using fn::GPointer;
 
 /** Contains information about a value that has been computed during geometry nodes evaluation. */
 class ValueLog {
@@ -67,7 +63,7 @@ class GenericValueLog : public ValueLog {
 class GFieldValueLog : public ValueLog {
  private:
   fn::GField field_;
-  const fn::CPPType &type_;
+  const CPPType &type_;
   Vector<std::string> input_tooltips_;
 
  public:
@@ -83,7 +79,7 @@ class GFieldValueLog : public ValueLog {
     return input_tooltips_;
   }
 
-  const fn::CPPType &type() const
+  const CPPType &type() const
   {
     return type_;
   }
@@ -144,7 +140,6 @@ enum class NodeWarningType {
   Error,
   Warning,
   Info,
-  Legacy,
 };
 
 struct NodeWarning {
@@ -358,6 +353,8 @@ class ModifierLog {
   static const TreeLog *find_tree_by_node_editor_context(const SpaceNode &snode);
   static const NodeLog *find_node_by_node_editor_context(const SpaceNode &snode,
                                                          const bNode &node);
+  static const NodeLog *find_node_by_node_editor_context(const SpaceNode &snode,
+                                                         const StringRef node_name);
   static const SocketLog *find_socket_by_node_editor_context(const SpaceNode &snode,
                                                              const bNode &node,
                                                              const bNodeSocket &socket);

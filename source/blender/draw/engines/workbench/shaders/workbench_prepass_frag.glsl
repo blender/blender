@@ -7,7 +7,7 @@ void main()
 {
   normalData = workbench_normal_encode(gl_FrontFacing, normal_interp);
 
-  materialData = vec4(color_interp, workbench_float_pair_encode(roughness, metallic));
+  materialData = vec4(color_interp, workbench_float_pair_encode(_roughness, metallic));
 
   objectId = uint(object_id);
 

@@ -1314,14 +1314,14 @@ static void index_rebuild_fallback(FallbackIndexBuilderContext *context,
                                    short *do_update,
                                    float *progress)
 {
-  int cnt = IMB_anim_get_duration(context->anim, IMB_TC_NONE);
+  int count = IMB_anim_get_duration(context->anim, IMB_TC_NONE);
   int i, pos;
   struct anim *anim = context->anim;
 
-  for (pos = 0; pos < cnt; pos++) {
+  for (pos = 0; pos < count; pos++) {
     struct ImBuf *ibuf = IMB_anim_absolute(anim, pos, IMB_TC_NONE, IMB_PROXY_NONE);
     struct ImBuf *tmp_ibuf = IMB_dupImBuf(ibuf);
-    float next_progress = (float)pos / (float)cnt;
+    float next_progress = (float)pos / (float)count;
 
     if (*progress != next_progress) {
       *progress = next_progress;

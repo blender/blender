@@ -692,7 +692,7 @@ static void rna_UVProject_projectors_begin(CollectionPropertyIterator *iter, Poi
 {
   UVProjectModifierData *uvp = (UVProjectModifierData *)ptr->data;
   rna_iterator_array_begin(
-      iter, (void *)uvp->projectors, sizeof(Object *), uvp->num_projectors, 0, NULL);
+      iter, (void *)uvp->projectors, sizeof(Object *), uvp->projectors_num, 0, NULL);
 }
 
 static StructRNA *rna_Modifier_refine(struct PointerRNA *ptr)
@@ -954,15 +954,15 @@ static int rna_HookModifier_vertex_indices_get_length(PointerRNA *ptr,
                                                       int length[RNA_MAX_ARRAY_DIMENSION])
 {
   HookModifierData *hmd = ptr->data;
-  int totindex = hmd->indexar ? hmd->totindex : 0;
-  return (length[0] = totindex);
+  int indexar_num = hmd->indexar ? hmd->indexar_num : 0;
+  return (length[0] = indexar_num);
 }
 
 static void rna_HookModifier_vertex_indices_get(PointerRNA *ptr, int *values)
 {
   HookModifierData *hmd = ptr->data;
   if (hmd->indexar != NULL) {
-    memcpy(values, hmd->indexar, sizeof(int) * hmd->totindex);
+    memcpy(values, hmd->indexar, sizeof(int) * hmd->indexar_num);
   }
 }
 
@@ -973,7 +973,7 @@ static void rna_HookModifier_vertex_indices_set(HookModifierData *hmd,
 {
   if (indices_len == 0) {
     MEM_SAFE_FREE(hmd->indexar);
-    hmd->totindex = 0;
+    hmd->indexar_num = 0;
   }
   else {
     /* Reject negative indices. */
@@ -1003,7 +1003,7 @@ static void rna_HookModifier_vertex_indices_set(HookModifierData *hmd,
     /* Success - save the new array. */
     MEM_SAFE_FREE(hmd->indexar);
     hmd->indexar = buffer;
-    hmd->totindex = indices_len;
+    hmd->indexar_num = indices_len;
   }
 }
 
@@ -1079,7 +1079,7 @@ static void rna_MultiresModifier_filepath_get(PointerRNA *ptr, char *value)
   Object *ob = (Object *)ptr->owner_id;
   CustomDataExternal *external = ((Mesh *)ob->data)->ldata.external;
 
-  BLI_strncpy(value, (external) ? external->filename : "", sizeof(external->filename));
+  BLI_strncpy(value, (external) ? external->filepath : "", sizeof(external->filepath));
 }
 
 static void rna_MultiresModifier_filepath_set(PointerRNA *ptr, const char *value)
@@ -1087,8 +1087,8 @@ static void rna_MultiresModifier_filepath_set(PointerRNA *ptr, const char *value
   Object *ob = (Object *)ptr->owner_id;
   CustomDataExternal *external = ((Mesh *)ob->data)->ldata.external;
 
-  if (external && !STREQ(external->filename, value)) {
-    BLI_strncpy(external->filename, value, sizeof(external->filename));
+  if (external && !STREQ(external->filepath, value)) {
+    BLI_strncpy(external->filepath, value, sizeof(external->filepath));
     multires_force_external_reload(ob);
   }
 }
@@ -1098,7 +1098,7 @@ static int rna_MultiresModifier_filepath_length(PointerRNA *ptr)
   Object *ob = (Object *)ptr->owner_id;
   CustomDataExternal *external = ((Mesh *)ob->data)->ldata.external;
 
-  return strlen((external) ? external->filename : "");
+  return strlen((external) ? external->filepath : "");
 }
 
 static int rna_ShrinkwrapModifier_face_cull_get(PointerRNA *ptr)
@@ -1165,8 +1165,8 @@ static void rna_UVProjectModifier_num_projectors_set(PointerRNA *ptr, int value)
   UVProjectModifierData *md = (UVProjectModifierData *)ptr->data;
   int a;
 
-  md->num_projectors = CLAMPIS(value, 1, MOD_UVPROJECT_MAXPROJECTORS);
-  for (a = md->num_projectors; a < MOD_UVPROJECT_MAXPROJECTORS; a++) {
+  md->projectors_num = CLAMPIS(value, 1, MOD_UVPROJECT_MAXPROJECTORS);
+  for (a = md->projectors_num; a < MOD_UVPROJECT_MAXPROJECTORS; a++) {
     md->projectors[a] = NULL;
   }
 }
@@ -3121,7 +3121,7 @@ static void rna_def_modifier_uvproject(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "projector_count", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "num_projectors");
+  RNA_def_property_int_sdna(prop, NULL, "projectors_num");
   RNA_def_property_ui_text(prop, "Number of Projectors", "Number of projectors to use");
   RNA_def_property_int_funcs(prop, NULL, "rna_UVProjectModifier_num_projectors_set", NULL);
   RNA_def_property_range(prop, 1, MOD_UVPROJECT_MAXPROJECTORS);
@@ -4105,7 +4105,8 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "segments", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "res");
-  RNA_def_property_range(prop, 1, 100);
+  RNA_def_property_range(prop, 1, 1000);
+  RNA_def_property_ui_range(prop, 1, 100, 1, -1);
   RNA_def_property_ui_text(prop, "Segments", "Number of segments for round edges/verts");
   RNA_def_property_update(prop, 0, "rna_BevelModifier_update_segments");
 

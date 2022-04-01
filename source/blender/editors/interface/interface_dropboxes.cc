@@ -15,6 +15,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 
@@ -71,6 +72,8 @@ static void ui_drop_name_copy(wmDrag *drag, wmDropBox *drop)
   const ID *id = WM_drag_get_local_ID(drag, 0);
   RNA_string_set(drop->ptr, "string", id->name + 2);
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Material Drag/Drop Callbacks

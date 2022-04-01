@@ -510,6 +510,7 @@ void BKE_tracking_refine_marker(struct MovieClip *clip,
 struct AutoTrackContext *BKE_autotrack_context_new(struct MovieClip *clip,
                                                    struct MovieClipUser *user,
                                                    bool is_backwards);
+void BKE_autotrack_context_start(struct AutoTrackContext *context);
 bool BKE_autotrack_context_step(struct AutoTrackContext *context);
 void BKE_autotrack_context_sync(struct AutoTrackContext *context);
 void BKE_autotrack_context_sync_user(struct AutoTrackContext *context, struct MovieClipUser *user);

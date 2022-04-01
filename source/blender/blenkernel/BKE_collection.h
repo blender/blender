@@ -346,6 +346,20 @@ void BKE_scene_objects_iterator_begin(struct BLI_Iterator *iter, void *data_in);
 void BKE_scene_objects_iterator_next(struct BLI_Iterator *iter);
 void BKE_scene_objects_iterator_end(struct BLI_Iterator *iter);
 
+/** Iterate over objects in the scene based on a flag.
+ *
+ * \note The object->flag is tested against flag.
+ * */
+typedef struct SceneObjectsIteratorExData {
+  struct Scene *scene;
+  int flag;
+  void *iter_data;
+} SceneObjectsIteratorExData;
+
+void BKE_scene_objects_iterator_begin_ex(struct BLI_Iterator *iter, void *data_in);
+void BKE_scene_objects_iterator_next_ex(struct BLI_Iterator *iter);
+void BKE_scene_objects_iterator_end_ex(struct BLI_Iterator *iter);
+
 /**
  * Generate a new #GSet (or extend given `objects_gset` if not NULL) with all objects referenced by
  * all collections of given `scene`.

@@ -566,9 +566,9 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals kg,
 #endif /* __PATCH_EVAL__ */
       if (desc.element == ATTR_ELEMENT_FACE) {
     if (dx)
-      *dx = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+      *dx = zero_float4();
     if (dy)
-      *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+      *dy = zero_float4();
 
     return kernel_tex_fetch(__attributes_float4,
                             desc.offset + subd_triangle_patch_face(kg, patch));
@@ -648,19 +648,19 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals kg,
   }
   else if (desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
     if (dx)
-      *dx = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+      *dx = zero_float4();
     if (dy)
-      *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+      *dy = zero_float4();
 
     return kernel_tex_fetch(__attributes_float4, desc.offset);
   }
   else {
     if (dx)
-      *dx = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+      *dx = zero_float4();
     if (dy)
-      *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+      *dy = zero_float4();
 
-    return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    return zero_float4();
   }
 }
 

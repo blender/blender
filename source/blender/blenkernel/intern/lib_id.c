@@ -2165,6 +2165,11 @@ bool BKE_id_can_be_asset(const ID *id)
          BKE_idtype_idcode_is_linkable(GS(id->name));
 }
 
+bool BKE_id_is_editable(Main *bmain, ID *id)
+{
+  return !(ID_IS_LINKED(id) || BKE_lib_override_library_is_system_defined(bmain, id));
+}
+
 /************************* Datablock order in UI **************************/
 
 static int *id_order_get(ID *id)

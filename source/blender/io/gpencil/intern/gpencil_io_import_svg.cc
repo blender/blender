@@ -33,17 +33,17 @@ using blender::MutableSpan;
 namespace blender::io::gpencil {
 
 /* Constructor. */
-GpencilImporterSVG::GpencilImporterSVG(const char *filename, const GpencilIOParams *iparams)
+GpencilImporterSVG::GpencilImporterSVG(const char *filepath, const GpencilIOParams *iparams)
     : GpencilImporter(iparams)
 {
-  filename_set(filename);
+  filepath_set(filepath);
 }
 
 bool GpencilImporterSVG::read()
 {
   bool result = true;
   NSVGimage *svg_data = nullptr;
-  svg_data = nsvgParseFromFile(filename_, "mm", 96.0f);
+  svg_data = nsvgParseFromFile(filepath_, "mm", 96.0f);
   if (svg_data == nullptr) {
     std::cout << " Could not open SVG.\n ";
     return false;

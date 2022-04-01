@@ -136,13 +136,16 @@ bool Texture::init_view(const GPUTexture *src_,
                         int mip_start,
                         int mip_len,
                         int layer_start,
-                        int layer_len)
+                        int layer_len,
+                        bool cube_as_array)
 {
   const Texture *src = unwrap(src_);
   w_ = src->w_;
   h_ = src->h_;
   d_ = src->d_;
-  switch (type_) {
+  layer_start = min_ii(layer_start, src->layer_count() - 1);
+  layer_len = min_ii(layer_len, (src->layer_count() - layer_start));
+  switch (src->type_) {
     case GPU_TEXTURE_1D_ARRAY:
       h_ = layer_len;
       break;
@@ -163,6 +166,10 @@ bool Texture::init_view(const GPUTexture *src_,
   format_flag_ = to_format_flag(format);
   /* For now always copy the target. Target aliasing could be exposed later. */
   type_ = src->type_;
+  if (cube_as_array) {
+    BLI_assert(type_ & GPU_TEXTURE_CUBE);
+    type_ = (type_ & ~GPU_TEXTURE_CUBE) | GPU_TEXTURE_2D_ARRAY;
+  }
   sampler_state = src->sampler_state;
   return this->init_internal(src_, mip_start, layer_start);
 }
@@ -385,12 +392,13 @@ GPUTexture *GPU_texture_create_view(const char *name,
                                     int mip_start,
                                     int mip_len,
                                     int layer_start,
-                                    int layer_len)
+                                    int layer_len,
+                                    bool cube_as_array)
 {
   BLI_assert(mip_len > 0);
   BLI_assert(layer_len > 0);
   Texture *view = GPUBackend::get()->texture_alloc(name);
-  view->init_view(src, format, mip_start, mip_len, layer_start, layer_len);
+  view->init_view(src, format, mip_start, mip_len, layer_start, layer_len, cube_as_array);
   return wrap(view);
 }
 
@@ -548,6 +556,12 @@ void GPU_texture_swizzle_set(GPUTexture *tex, const char swizzle[4])
   reinterpret_cast<Texture *>(tex)->swizzle_set(swizzle);
 }
 
+void GPU_texture_stencil_texture_mode_set(GPUTexture *tex, bool use_stencil)
+{
+  BLI_assert(GPU_texture_stencil(tex) || !use_stencil);
+  reinterpret_cast<Texture *>(tex)->stencil_texture_mode_set(use_stencil);
+}
+
 void GPU_texture_free(GPUTexture *tex_)
 {
   Texture *tex = reinterpret_cast<Texture *>(tex_);
@@ -573,13 +587,13 @@ int GPU_texture_dimensions(const GPUTexture *tex_)
   if (type & GPU_TEXTURE_1D) {
     return 1;
   }
-  else if (type & GPU_TEXTURE_2D) {
+  if (type & GPU_TEXTURE_2D) {
     return 2;
   }
-  else if (type & GPU_TEXTURE_3D) {
+  if (type & GPU_TEXTURE_3D) {
     return 3;
   }
-  else if (type & GPU_TEXTURE_CUBE) {
+  if (type & GPU_TEXTURE_CUBE) {
     return 2;
   }
   /* GPU_TEXTURE_BUFFER */
@@ -594,6 +608,16 @@ int GPU_texture_width(const GPUTexture *tex)
 int GPU_texture_height(const GPUTexture *tex)
 {
   return reinterpret_cast<const Texture *>(tex)->height_get();
+}
+
+int GPU_texture_layer_count(const GPUTexture *tex)
+{
+  return reinterpret_cast<const Texture *>(tex)->layer_count();
+}
+
+int GPU_texture_mip_count(const GPUTexture *tex)
+{
+  return reinterpret_cast<const Texture *>(tex)->mip_count();
 }
 
 int GPU_texture_orig_width(const GPUTexture *tex)

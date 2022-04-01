@@ -62,8 +62,8 @@ typedef struct RenderView {
 typedef struct RenderPass {
   struct RenderPass *next, *prev;
   int channels;
-  char name[64];   /* amount defined in openexr_multi.h */
-  char chan_id[8]; /* amount defined in openexr_multi.h */
+  char name[64];   /* amount defined in IMB_openexr.h */
+  char chan_id[8]; /* amount defined in IMB_openexr.h */
   float *rect;
   int rectx, recty;
 
@@ -123,8 +123,8 @@ typedef struct RenderResult {
   ListBase views; /* RenderView */
 
   /* allowing live updates: */
-  volatile rcti renrect;
-  volatile RenderLayer *renlay;
+  rcti renrect;
+  RenderLayer *renlay;
 
   /* for render results in Image, verify validity for sequences */
   int framenr;
@@ -242,15 +242,23 @@ void RE_AcquiredResultGet32(struct Render *re,
                             unsigned int *rect,
                             int view_id);
 
+void RE_render_result_full_channel_name(char *fullname,
+                                        const char *layname,
+                                        const char *passname,
+                                        const char *viewname,
+                                        const char *chan_id,
+                                        const int channel);
+
+struct ImBuf *RE_render_result_rect_to_ibuf(struct RenderResult *rr,
+                                            const struct ImageFormatData *imf,
+                                            const float dither,
+                                            const int view_id);
 void RE_render_result_rect_from_ibuf(struct RenderResult *rr,
-                                     struct RenderData *rd,
-                                     struct ImBuf *ibuf,
-                                     int view_id);
+                                     const struct ImBuf *ibuf,
+                                     const int view_id);
 
 struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name);
-float *RE_RenderLayerGetPass(volatile struct RenderLayer *rl,
-                             const char *name,
-                             const char *viewname);
+float *RE_RenderLayerGetPass(struct RenderLayer *rl, const char *name, const char *viewname);
 
 bool RE_HasSingleLayer(struct Render *re);
 
@@ -307,11 +315,6 @@ void RE_GetViewPlane(struct Render *re, rctf *r_viewplane, rcti *r_disprect);
  */
 void RE_init_threadcount(Render *re);
 
-bool RE_WriteRenderViewsImage(struct ReportList *reports,
-                              struct RenderResult *rr,
-                              struct Scene *scene,
-                              bool stamp,
-                              char *name);
 bool RE_WriteRenderViewsMovie(struct ReportList *reports,
                               struct RenderResult *rr,
                               struct Scene *scene,
@@ -336,6 +339,7 @@ void RE_RenderFrame(struct Render *re,
                     struct ViewLayer *single_layer,
                     struct Object *camera_override,
                     int frame,
+                    float subframe,
                     bool write_still);
 /**
  * A version of #RE_RenderFrame that saves images to disk.
@@ -373,16 +377,7 @@ void RE_PreviewRender(struct Render *re, struct Main *bmain, struct Scene *scene
  * Only the temp file!
  */
 bool RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
-/**
- * Called from the UI and render pipeline, to save multi-layer and multi-view
- * images, optionally isolating a specific, view, layer or RGBA/Z pass.
- */
-bool RE_WriteRenderResult(struct ReportList *reports,
-                          RenderResult *rr,
-                          const char *filename,
-                          struct ImageFormatData *imf,
-                          const char *view,
-                          int layer);
+
 struct RenderResult *RE_MultilayerConvert(
     void *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
 
@@ -399,7 +394,7 @@ void RE_display_clear_cb(struct Render *re,
                          void (*f)(void *handle, RenderResult *rr));
 void RE_display_update_cb(struct Render *re,
                           void *handle,
-                          void (*f)(void *handle, RenderResult *rr, volatile struct rcti *rect));
+                          void (*f)(void *handle, RenderResult *rr, struct rcti *rect));
 void RE_stats_draw_cb(struct Render *re, void *handle, void (*f)(void *handle, RenderStats *rs));
 void RE_progress_cb(struct Render *re, void *handle, void (*f)(void *handle, float));
 void RE_draw_lock_cb(struct Render *re, void *handle, void (*f)(void *handle, bool lock));
@@ -428,13 +423,13 @@ int RE_seq_render_active(struct Scene *scene, struct RenderData *rd);
 bool RE_layers_have_name(struct RenderResult *result);
 bool RE_passes_have_name(struct RenderLayer *rl);
 
-struct RenderPass *RE_pass_find_by_name(volatile struct RenderLayer *rl,
+struct RenderPass *RE_pass_find_by_name(struct RenderLayer *rl,
                                         const char *name,
                                         const char *viewname);
 /**
  * Only provided for API compatibility, don't use this in new code!
  */
-struct RenderPass *RE_pass_find_by_type(volatile struct RenderLayer *rl,
+struct RenderPass *RE_pass_find_by_type(struct RenderLayer *rl,
                                         int passtype,
                                         const char *viewname);
 
@@ -464,9 +459,9 @@ bool RE_allow_render_generic_object(struct Object *ob);
 
 /******* defined in render_result.c *********/
 
-bool RE_HasCombinedLayer(RenderResult *res);
-bool RE_HasFloatPixels(RenderResult *res);
-bool RE_RenderResult_is_stereo(RenderResult *res);
+bool RE_HasCombinedLayer(const RenderResult *res);
+bool RE_HasFloatPixels(const RenderResult *res);
+bool RE_RenderResult_is_stereo(const RenderResult *res);
 struct RenderView *RE_RenderViewGetById(struct RenderResult *rr, int view_id);
 struct RenderView *RE_RenderViewGetByName(struct RenderResult *rr, const char *viewname);
 

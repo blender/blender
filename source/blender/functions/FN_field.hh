@@ -33,11 +33,11 @@
  */
 
 #include "BLI_function_ref.hh"
+#include "BLI_generic_virtual_array.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
-#include "FN_generic_virtual_array.hh"
 #include "FN_multi_function_builder.hh"
 
 namespace blender::fn {
@@ -119,7 +119,7 @@ template<typename NodePtr> class GFieldBase {
     return get_default_hash_2(*node_, node_output_index_);
   }
 
-  const fn::CPPType &cpp_type() const
+  const CPPType &cpp_type() const
   {
     return node_->output_cpp_type(node_output_index_);
   }
@@ -476,12 +476,12 @@ template<typename T> T evaluate_constant_field(const Field<T> &field)
   return value;
 }
 
+GField make_constant_field(const CPPType &type, const void *value);
+
 template<typename T> Field<T> make_constant_field(T value)
 {
   return make_constant_field(CPPType::get<T>(), &value);
 }
-
-GField make_constant_field(const CPPType &type, const void *value);
 
 /**
  * If the field depends on some input, the same field is returned.

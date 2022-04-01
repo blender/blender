@@ -122,10 +122,10 @@ set(SRC
   ../DNA_camera_defaults.h
   ../DNA_collection_defaults.h
   ../DNA_curve_defaults.h
+  ../DNA_curves_defaults.h
   ../DNA_defaults.h
   ../DNA_fluid_defaults.h
   ../DNA_gpencil_modifier_defaults.h
-  ../DNA_curves_defaults.h
   ../DNA_image_defaults.h
   ../DNA_lattice_defaults.h
   ../DNA_light_defaults.h

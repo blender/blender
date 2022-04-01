@@ -399,27 +399,27 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
      * Save output images
      */
     {
-      char filename[FILE_MAX];
+      char filepath[FILE_MAX];
 
       /* primary output layer */
       if (surface->flags & MOD_DPAINT_OUT1) {
         /* set filepath */
         BLI_join_dirfile(
-            filename, sizeof(filename), surface->image_output_path, surface->output_name);
-        BLI_path_frame(filename, frame, 4);
+            filepath, sizeof(filepath), surface->image_output_path, surface->output_name);
+        BLI_path_frame(filepath, frame, 4);
 
         /* save image */
-        dynamicPaint_outputSurfaceImage(surface, filename, 0);
+        dynamicPaint_outputSurfaceImage(surface, filepath, 0);
       }
       /* secondary output */
       if (surface->flags & MOD_DPAINT_OUT2 && surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
         /* set filepath */
         BLI_join_dirfile(
-            filename, sizeof(filename), surface->image_output_path, surface->output_name2);
-        BLI_path_frame(filename, frame, 4);
+            filepath, sizeof(filepath), surface->image_output_path, surface->output_name2);
+        BLI_path_frame(filepath, frame, 4);
 
         /* save image */
-        dynamicPaint_outputSurfaceImage(surface, filename, 1);
+        dynamicPaint_outputSurfaceImage(surface, filepath, 1);
       }
     }
   }

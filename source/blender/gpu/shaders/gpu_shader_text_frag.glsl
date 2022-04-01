@@ -52,7 +52,7 @@ bool is_inside_box(ivec2 v)
 
 float texture_1D_custom_bilinear_filter(vec2 uv)
 {
-  vec2 texel_2d = uv * glyph_dim + 0.5;
+  vec2 texel_2d = uv * vec2(glyph_dim) + vec2(0.5);
   ivec2 texel_2d_near = ivec2(texel_2d) - 1;
   int frag_offset = glyph_offset + texel_2d_near.y * glyph_dim.x + texel_2d_near.x;
 
@@ -100,7 +100,7 @@ void main()
     fragColor.a = texture_1D_custom_bilinear_filter(texCoord_interp);
   }
   else {
-    vec2 texel = 1.0 / glyph_dim;
+    vec2 texel = 1.0 / vec2(glyph_dim);
     fragColor.a = 0.0;
 
     if (interp_size == 1) {

@@ -174,10 +174,10 @@ void GpencilIO::create_object_list()
   });
 }
 
-void GpencilIO::filename_set(const char *filename)
+void GpencilIO::filepath_set(const char *filepath)
 {
-  BLI_strncpy(filename_, filename, FILE_MAX);
-  BLI_path_abs(filename_, BKE_main_blendfile_path(bmain_));
+  BLI_strncpy(filepath_, filepath, FILE_MAX);
+  BLI_path_abs(filepath_, BKE_main_blendfile_path(bmain_));
 }
 
 bool GpencilIO::gpencil_3D_point_to_screen_space(const float3 co, float2 &r_co)

@@ -30,7 +30,7 @@ ccl_device_noinline int svm_node_tex_voxel(
 
   float4 r = kernel_tex_image_interp_3d(kg, id, co, INTERPOLATION_NONE);
 #else
-  float4 r = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+  float4 r = zero_float4();
 #endif
   if (stack_valid(density_out_offset))
     stack_store_float(stack, density_out_offset, r.w);

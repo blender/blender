@@ -215,13 +215,13 @@ static int testsort_listbase_str_cmp_reverse(const void *a, const void *b)
 }
 
 /* check array and listbase compare */
-static bool testsort_listbase_array_str_cmp(ListBase *lb, char **arr, int arr_tot)
+static bool testsort_listbase_array_str_cmp(ListBase *lb, char **arr, int arr_num)
 {
   LinkData *link_step;
   int i;
 
   link_step = (LinkData *)lb->first;
-  for (i = 0; i < arr_tot; i++) {
+  for (i = 0; i < arr_num; i++) {
     if (strcmp(arr[i], (char *)link_step->data) != 0) {
       return false;
     }
@@ -255,7 +255,7 @@ TEST(listbase, Sort)
 {
   const int words_len = sizeof(words10k) - 1;
   char *words = BLI_strdupn(words10k, words_len);
-  int words_tot;
+  int words_num;
   char **words_arr; /* qsort for comparison */
   int i;
   char *w_step;
@@ -263,15 +263,15 @@ TEST(listbase, Sort)
   LinkData *words_linkdata_arr;
 
   /* delimit words */
-  words_tot = 1 + char_switch(words, ' ', '\0');
+  words_num = 1 + char_switch(words, ' ', '\0');
 
-  words_arr = (char **)MEM_mallocN(sizeof(*words_arr) * words_tot, __func__);
+  words_arr = (char **)MEM_mallocN(sizeof(*words_arr) * words_num, __func__);
 
-  words_linkdata_arr = (LinkData *)MEM_mallocN(sizeof(*words_linkdata_arr) * words_tot, __func__);
+  words_linkdata_arr = (LinkData *)MEM_mallocN(sizeof(*words_linkdata_arr) * words_num, __func__);
 
   /* create array */
   w_step = words;
-  for (i = 0; i < words_tot; i++) {
+  for (i = 0; i < words_num; i++) {
     words_arr[i] = w_step;
     w_step += strlen(w_step) + 1;
   }
@@ -296,7 +296,7 @@ TEST(listbase, Sort)
   /* create listbase */
   BLI_listbase_clear(&words_lb);
   w_step = words;
-  for (i = 0; i < words_tot; i++) {
+  for (i = 0; i < words_num; i++) {
     LinkData *link = &words_linkdata_arr[i];
     link->data = w_step;
     BLI_addtail(&words_lb, link);
@@ -306,37 +306,37 @@ TEST(listbase, Sort)
 
   /* sort (forward) */
   {
-    qsort(words_arr, words_tot, sizeof(*words_arr), testsort_array_str_cmp);
+    qsort(words_arr, words_num, sizeof(*words_arr), testsort_array_str_cmp);
 
     BLI_listbase_sort(&words_lb, testsort_listbase_str_cmp);
     EXPECT_TRUE(listbase_is_valid(&words_lb));
-    EXPECT_TRUE(testsort_listbase_array_str_cmp(&words_lb, words_arr, words_tot));
+    EXPECT_TRUE(testsort_listbase_array_str_cmp(&words_lb, words_arr, words_num));
     EXPECT_TRUE(testsort_listbase_sort_is_stable(&words_lb, true));
   }
 
   /* sort (reverse) */
   {
-    qsort(words_arr, words_tot, sizeof(*words_arr), testsort_array_str_cmp_reverse);
+    qsort(words_arr, words_num, sizeof(*words_arr), testsort_array_str_cmp_reverse);
 
     BLI_listbase_sort(&words_lb, testsort_listbase_str_cmp_reverse);
     EXPECT_TRUE(listbase_is_valid(&words_lb));
-    EXPECT_TRUE(testsort_listbase_array_str_cmp(&words_lb, words_arr, words_tot));
+    EXPECT_TRUE(testsort_listbase_array_str_cmp(&words_lb, words_arr, words_num));
     EXPECT_TRUE(testsort_listbase_sort_is_stable(&words_lb, true));
   }
 
   /* sort (forward but after reversing, test stability in alternate direction) */
   {
-    BLI_array_reverse(words_arr, words_tot);
+    BLI_array_reverse(words_arr, words_num);
     BLI_listbase_reverse(&words_lb);
 
     EXPECT_TRUE(listbase_is_valid(&words_lb));
-    EXPECT_TRUE(testsort_listbase_array_str_cmp(&words_lb, words_arr, words_tot));
+    EXPECT_TRUE(testsort_listbase_array_str_cmp(&words_lb, words_arr, words_num));
     EXPECT_TRUE(testsort_listbase_sort_is_stable(&words_lb, false));
 
     /* and again */
-    BLI_array_reverse(words_arr, words_tot);
+    BLI_array_reverse(words_arr, words_num);
     BLI_listbase_sort(&words_lb, testsort_listbase_str_cmp_reverse);
-    EXPECT_TRUE(testsort_listbase_array_str_cmp(&words_lb, words_arr, words_tot));
+    EXPECT_TRUE(testsort_listbase_array_str_cmp(&words_lb, words_arr, words_num));
     EXPECT_TRUE(testsort_listbase_sort_is_stable(&words_lb, false));
   }
 

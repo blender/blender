@@ -34,6 +34,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -42,11 +43,11 @@
 
 #include "node_intern.hh" /* own include */
 
+namespace blender::ed::space_node {
+
 /* -------------------------------------------------------------------- */
 /** \name Utilities
  * \{ */
-
-namespace blender::ed::space_node {
 
 bNode *node_add_node(const bContext &C, const char *idname, int type, float locx, float locy)
 {
@@ -501,113 +502,6 @@ void NODE_OT_add_object(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
   RNA_def_string(ot->srna, "name", "Object", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
-  prop = RNA_def_int(ot->srna,
-                     "session_uuid",
-                     0,
-                     INT32_MIN,
-                     INT32_MAX,
-                     "Session UUID",
-                     "Session UUID of the data-block to assign",
-                     INT32_MIN,
-                     INT32_MAX);
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Add Node Texture Operator
- * \{ */
-
-static Tex *node_add_texture_get_and_poll_texture_node_tree(Main *bmain, wmOperator *op)
-{
-  if (RNA_struct_property_is_set(op->ptr, "session_uuid")) {
-    const uint32_t session_uuid = (uint32_t)RNA_int_get(op->ptr, "session_uuid");
-    return (Tex *)BKE_libblock_find_session_uuid(bmain, ID_TE, session_uuid);
-  }
-
-  char name[MAX_ID_NAME - 2];
-  RNA_string_get(op->ptr, "name", name);
-  return (Tex *)BKE_libblock_find_name(bmain, ID_TE, name);
-}
-
-static int node_add_texture_exec(bContext *C, wmOperator *op)
-{
-  Main *bmain = CTX_data_main(C);
-  SpaceNode *snode = CTX_wm_space_node(C);
-  bNodeTree *ntree = snode->edittree;
-  Tex *texture;
-
-  if (!(texture = node_add_texture_get_and_poll_texture_node_tree(bmain, op))) {
-    return OPERATOR_CANCELLED;
-  }
-
-  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
-
-  bNode *texture_node = node_add_node(*C,
-                                      nullptr,
-                                      GEO_NODE_LEGACY_ATTRIBUTE_SAMPLE_TEXTURE,
-                                      snode->runtime->cursor[0],
-                                      snode->runtime->cursor[1]);
-  if (!texture_node) {
-    BKE_report(op->reports, RPT_WARNING, "Could not add texture node");
-    return OPERATOR_CANCELLED;
-  }
-
-  texture_node->id = &texture->id;
-  id_us_plus(&texture->id);
-
-  nodeSetActive(ntree, texture_node);
-  ED_node_tree_propagate_change(C, bmain, ntree);
-  DEG_relations_tag_update(bmain);
-
-  return OPERATOR_FINISHED;
-}
-
-static int node_add_texture_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  ARegion *region = CTX_wm_region(C);
-  SpaceNode *snode = CTX_wm_space_node(C);
-
-  /* Convert mouse coordinates to v2d space. */
-  UI_view2d_region_to_view(&region->v2d,
-                           event->mval[0],
-                           event->mval[1],
-                           &snode->runtime->cursor[0],
-                           &snode->runtime->cursor[1]);
-
-  snode->runtime->cursor[0] /= UI_DPI_FAC;
-  snode->runtime->cursor[1] /= UI_DPI_FAC;
-
-  return node_add_texture_exec(C, op);
-}
-
-static bool node_add_texture_poll(bContext *C)
-{
-  const SpaceNode *snode = CTX_wm_space_node(C);
-  return ED_operator_node_editable(C) && ELEM(snode->nodetree->type, NTREE_GEOMETRY) &&
-         !UI_but_active_drop_name(C);
-}
-
-void NODE_OT_add_texture(wmOperatorType *ot)
-{
-  PropertyRNA *prop;
-
-  /* identifiers */
-  ot->name = "Add Node Texture";
-  ot->description = "Add a texture to the current node editor";
-  ot->idname = "NODE_OT_add_texture";
-
-  /* callbacks */
-  ot->exec = node_add_texture_exec;
-  ot->invoke = node_add_texture_invoke;
-  ot->poll = node_add_texture_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-
-  RNA_def_string(
-      ot->srna, "name", "Texture", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
   prop = RNA_def_int(ot->srna,
                      "session_uuid",
                      0,

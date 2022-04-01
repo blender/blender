@@ -62,6 +62,13 @@ void ShaderCreateInfo::finalize()
     pass_resources_.extend(info.pass_resources_);
     typedef_sources_.extend_non_duplicates(info.typedef_sources_);
 
+    if (info.early_fragment_test_) {
+      early_fragment_test_ = true;
+    }
+    if (info.depth_write_ != DepthWrite::ANY) {
+      depth_write_ = info.depth_write_;
+    }
+
     validate(info);
 
     auto assert_no_overlap = [&](const bool test, const StringRefNull error) {
@@ -98,8 +105,6 @@ void ShaderCreateInfo::finalize()
       assert_no_overlap(compute_source_.is_empty(), "Compute source already existing");
       compute_source_ = info.compute_source_;
     }
-
-    do_static_compilation_ = do_static_compilation_ || info.do_static_compilation_;
   }
 
   if (auto_resource_location_) {
@@ -260,9 +265,14 @@ bool gpu_shader_create_info_compile_all()
 {
   using namespace blender::gpu;
   int success = 0;
+  int skipped = 0;
   int total = 0;
   for (ShaderCreateInfo *info : g_create_infos->values()) {
     if (info->do_static_compilation_) {
+      if (GPU_compute_shader_support() == false && info->compute_source_ != nullptr) {
+        skipped++;
+        continue;
+      }
       total++;
       GPUShader *shader = GPU_shader_create_from_info(
           reinterpret_cast<const GPUShaderCreateInfo *>(info));
@@ -318,12 +328,11 @@ bool gpu_shader_create_info_compile_all()
       GPU_shader_free(shader);
     }
   }
-  printf("===============================\n");
-  printf("Shader Test compilation result: \n");
-  printf("%d Total\n", total);
-  printf("%d Passed\n", success);
-  printf("%d Failed\n", total - success);
-  printf("===============================\n");
+  printf("Shader Test compilation result: %d / %d passed", success, total);
+  if (skipped > 0) {
+    printf(" (skipped %d for compatibility reasons)", skipped);
+  }
+  printf("\n");
   return success == total;
 }
 

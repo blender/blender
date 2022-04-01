@@ -100,7 +100,7 @@ struct KDTree2D {
   KDTreeNode2D *nodes;
   const float (*coords)[2];
   uint root;
-  uint totnode;
+  uint node_num;
   uint *nodes_map; /* index -> node lookup */
 };
 
@@ -119,14 +119,14 @@ typedef struct PolyFill {
   struct PolyIndex *indices; /* vertex aligned */
 
   const float (*coords)[2];
-  uint coords_tot;
+  uint coords_num;
 #ifdef USE_CONVEX_SKIP
-  uint coords_tot_concave;
+  uint coords_num_concave;
 #endif
 
   /* A polygon with n vertices has a triangulation of n-2 triangles. */
   uint (*tris)[3];
-  uint tris_tot;
+  uint tris_num;
 
 #ifdef USE_KDTREE
   struct KDTree2D kdtree;
@@ -202,18 +202,18 @@ static void kdtree2d_new(struct KDTree2D *tree, uint tot, const float (*coords)[
   // tree->nodes = nodes;
   tree->coords = coords;
   tree->root = KDNODE_UNSET;
-  tree->totnode = tot;
+  tree->node_num = tot;
 }
 
 /**
  * no need for kdtree2d_insert, since we know the coords array.
  */
-static void kdtree2d_init(struct KDTree2D *tree, const uint coords_tot, const PolyIndex *indices)
+static void kdtree2d_init(struct KDTree2D *tree, const uint coords_num, const PolyIndex *indices)
 {
   KDTreeNode2D *node;
   uint i;
 
-  for (i = 0, node = tree->nodes; i < coords_tot; i++) {
+  for (i = 0, node = tree->nodes; i < coords_num; i++) {
     if (indices[i].sign != CONVEX) {
       node->neg = node->pos = KDNODE_UNSET;
       node->index = indices[i].index;
@@ -223,26 +223,26 @@ static void kdtree2d_init(struct KDTree2D *tree, const uint coords_tot, const Po
     }
   }
 
-  BLI_assert(tree->totnode == (uint)(node - tree->nodes));
+  BLI_assert(tree->node_num == (uint)(node - tree->nodes));
 }
 
 static uint kdtree2d_balance_recursive(
-    KDTreeNode2D *nodes, uint totnode, axis_t axis, const float (*coords)[2], const uint ofs)
+    KDTreeNode2D *nodes, uint node_num, axis_t axis, const float (*coords)[2], const uint ofs)
 {
   KDTreeNode2D *node;
   uint neg, pos, median, i, j;
 
-  if (totnode <= 0) {
+  if (node_num <= 0) {
     return KDNODE_UNSET;
   }
-  if (totnode == 1) {
+  if (node_num == 1) {
     return 0 + ofs;
   }
 
   /* Quick-sort style sorting around median. */
   neg = 0;
-  pos = totnode - 1;
-  median = totnode / 2;
+  pos = node_num - 1;
+  median = node_num / 2;
 
   while (pos > neg) {
     const float co = coords[nodes[pos].index][axis];
@@ -276,14 +276,14 @@ static uint kdtree2d_balance_recursive(
   axis = !axis;
   node->neg = kdtree2d_balance_recursive(nodes, median, axis, coords, ofs);
   node->pos = kdtree2d_balance_recursive(
-      &nodes[median + 1], (totnode - (median + 1)), axis, coords, (median + 1) + ofs);
+      &nodes[median + 1], (node_num - (median + 1)), axis, coords, (median + 1) + ofs);
 
   return median + ofs;
 }
 
 static void kdtree2d_balance(struct KDTree2D *tree)
 {
-  tree->root = kdtree2d_balance_recursive(tree->nodes, tree->totnode, 0, tree->coords, 0);
+  tree->root = kdtree2d_balance_recursive(tree->nodes, tree->node_num, 0, tree->coords, 0);
 }
 
 static void kdtree2d_init_mapping(struct KDTree2D *tree)
@@ -291,7 +291,7 @@ static void kdtree2d_init_mapping(struct KDTree2D *tree)
   uint i;
   KDTreeNode2D *node;
 
-  for (i = 0, node = tree->nodes; i < tree->totnode; i++, node++) {
+  for (i = 0, node = tree->nodes; i < tree->node_num; i++, node++) {
     if (node->neg != KDNODE_UNSET) {
       tree->nodes[node->neg].parent = i;
     }
@@ -319,7 +319,7 @@ static void kdtree2d_node_remove(struct KDTree2D *tree, uint index)
   tree->nodes_map[index] = KDNODE_UNSET;
 
   node = &tree->nodes[node_index];
-  tree->totnode -= 1;
+  tree->node_num -= 1;
 
   BLI_assert((node->flag & KDNODE_FLAG_REMOVED) == 0);
   node->flag |= KDNODE_FLAG_REMOVED;
@@ -435,14 +435,14 @@ static bool kdtree2d_isect_tri(struct KDTree2D *tree, const uint ind[3])
 
 static uint *pf_tri_add(PolyFill *pf)
 {
-  return pf->tris[pf->tris_tot++];
+  return pf->tris[pf->tris_num++];
 }
 
 static void pf_coord_remove(PolyFill *pf, PolyIndex *pi)
 {
 #ifdef USE_KDTREE
   /* avoid double lookups, since convex coords are ignored when testing intersections */
-  if (pf->kdtree.totnode) {
+  if (pf->kdtree.node_num) {
     kdtree2d_node_remove(&pf->kdtree, pi->index);
   }
 #endif
@@ -458,7 +458,7 @@ static void pf_coord_remove(PolyFill *pf, PolyIndex *pi)
   pi->next = pi->prev = NULL;
 #endif
 
-  pf->coords_tot -= 1;
+  pf->coords_num -= 1;
 }
 
 static void pf_triangulate(PolyFill *pf)
@@ -473,7 +473,7 @@ static void pf_triangulate(PolyFill *pf)
   bool reverse = false;
 #endif
 
-  while (pf->coords_tot > 3) {
+  while (pf->coords_num > 3) {
     PolyIndex *pi_prev, *pi_next;
     eSign sign_orig_prev, sign_orig_next;
 
@@ -490,7 +490,7 @@ static void pf_triangulate(PolyFill *pf)
 
 #ifdef USE_CONVEX_SKIP
     if (pi_ear->sign != CONVEX) {
-      pf->coords_tot_concave -= 1;
+      pf->coords_num_concave -= 1;
     }
 #endif
 
@@ -509,7 +509,7 @@ static void pf_triangulate(PolyFill *pf)
       pf_coord_sign_calc(pf, pi_prev);
 #ifdef USE_CONVEX_SKIP
       if (pi_prev->sign == CONVEX) {
-        pf->coords_tot_concave -= 1;
+        pf->coords_num_concave -= 1;
 #  ifdef USE_KDTREE
         kdtree2d_node_remove(&pf->kdtree, pi_prev->index);
 #  endif
@@ -520,7 +520,7 @@ static void pf_triangulate(PolyFill *pf)
       pf_coord_sign_calc(pf, pi_next);
 #ifdef USE_CONVEX_SKIP
       if (pi_next->sign == CONVEX) {
-        pf->coords_tot_concave -= 1;
+        pf->coords_num_concave -= 1;
 #  ifdef USE_KDTREE
         kdtree2d_node_remove(&pf->kdtree, pi_next->index);
 #  endif
@@ -551,7 +551,7 @@ static void pf_triangulate(PolyFill *pf)
 #endif
   }
 
-  if (pf->coords_tot == 3) {
+  if (pf->coords_num == 3) {
     uint *tri = pf_tri_add(pf);
     pi_ear = pf->indices;
     tri[0] = pi_ear->index;
@@ -585,7 +585,7 @@ static PolyIndex *pf_ear_tip_find(PolyFill *pf
 )
 {
   /* localize */
-  const uint coords_tot = pf->coords_tot;
+  const uint coords_num = pf->coords_num;
   PolyIndex *pi_ear;
 
   uint i;
@@ -596,7 +596,7 @@ static PolyIndex *pf_ear_tip_find(PolyFill *pf
   pi_ear = pf->indices;
 #endif
 
-  i = coords_tot;
+  i = coords_num;
   while (i--) {
     if (pf_ear_tip_check(pf, pi_ear)) {
       return pi_ear;
@@ -626,7 +626,7 @@ static PolyIndex *pf_ear_tip_find(PolyFill *pf
   pi_ear = pf->indices;
 #endif
 
-  i = coords_tot;
+  i = coords_num;
   while (i--) {
     if (pi_ear->sign != CONCAVE) {
       return pi_ear;
@@ -649,7 +649,7 @@ static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip)
 #endif
 
 #if defined(USE_CONVEX_SKIP) && !defined(USE_KDTREE)
-  uint coords_tot_concave_checked = 0;
+  uint coords_num_concave_checked = 0;
 #endif
 
 #ifdef USE_CONVEX_SKIP
@@ -657,19 +657,19 @@ static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip)
 #  ifdef USE_CONVEX_SKIP_TEST
   /* check if counting is wrong */
   {
-    uint coords_tot_concave_test = 0;
+    uint coords_num_concave_test = 0;
     PolyIndex *pi_iter = pi_ear_tip;
     do {
       if (pi_iter->sign != CONVEX) {
-        coords_tot_concave_test += 1;
+        coords_num_concave_test += 1;
       }
     } while ((pi_iter = pi_iter->next) != pi_ear_tip);
-    BLI_assert(coords_tot_concave_test == pf->coords_tot_concave);
+    BLI_assert(coords_num_concave_test == pf->coords_num_concave);
   }
 #  endif
 
   /* fast-path for circles */
-  if (pf->coords_tot_concave == 0) {
+  if (pf->coords_num_concave == 0) {
     return true;
   }
 #endif
@@ -715,8 +715,8 @@ static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip)
       }
 
 #  ifdef USE_CONVEX_SKIP
-      coords_tot_concave_checked += 1;
-      if (coords_tot_concave_checked == pf->coords_tot_concave) {
+      coords_num_concave_checked += 1;
+      if (coords_num_concave_checked == pf->coords_num_concave) {
         break;
       }
 #  endif
@@ -743,7 +743,7 @@ static void pf_ear_tip_cut(PolyFill *pf, PolyIndex *pi_ear_tip)
  */
 static void polyfill_prepare(PolyFill *pf,
                              const float (*coords)[2],
-                             const uint coords_tot,
+                             const uint coords_num,
                              int coords_sign,
                              uint (*r_tris)[3],
                              PolyIndex *r_indices)
@@ -756,32 +756,32 @@ static void polyfill_prepare(PolyFill *pf,
   /* assign all polyfill members here */
   pf->indices = r_indices;
   pf->coords = coords;
-  pf->coords_tot = coords_tot;
+  pf->coords_num = coords_num;
 #ifdef USE_CONVEX_SKIP
-  pf->coords_tot_concave = 0;
+  pf->coords_num_concave = 0;
 #endif
   pf->tris = r_tris;
-  pf->tris_tot = 0;
+  pf->tris_num = 0;
 
   if (coords_sign == 0) {
-    coords_sign = (cross_poly_v2(coords, coords_tot) >= 0.0f) ? 1 : -1;
+    coords_sign = (cross_poly_v2(coords, coords_num) >= 0.0f) ? 1 : -1;
   }
   else {
     /* check we're passing in correct args */
 #ifdef USE_STRICT_ASSERT
 #  ifndef NDEBUG
     if (coords_sign == 1) {
-      BLI_assert(cross_poly_v2(coords, coords_tot) >= 0.0f);
+      BLI_assert(cross_poly_v2(coords, coords_num) >= 0.0f);
     }
     else {
-      BLI_assert(cross_poly_v2(coords, coords_tot) <= 0.0f);
+      BLI_assert(cross_poly_v2(coords, coords_num) <= 0.0f);
     }
 #  endif
 #endif
   }
 
   if (coords_sign == 1) {
-    for (i = 0; i < coords_tot; i++) {
+    for (i = 0; i < coords_num; i++) {
       indices[i].next = &indices[i + 1];
       indices[i].prev = &indices[i - 1];
       indices[i].index = i;
@@ -789,22 +789,22 @@ static void polyfill_prepare(PolyFill *pf,
   }
   else {
     /* reversed */
-    uint n = coords_tot - 1;
-    for (i = 0; i < coords_tot; i++) {
+    uint n = coords_num - 1;
+    for (i = 0; i < coords_num; i++) {
       indices[i].next = &indices[i + 1];
       indices[i].prev = &indices[i - 1];
       indices[i].index = (n - i);
     }
   }
-  indices[0].prev = &indices[coords_tot - 1];
-  indices[coords_tot - 1].next = &indices[0];
+  indices[0].prev = &indices[coords_num - 1];
+  indices[coords_num - 1].next = &indices[0];
 
-  for (i = 0; i < coords_tot; i++) {
+  for (i = 0; i < coords_num; i++) {
     PolyIndex *pi = &indices[i];
     pf_coord_sign_calc(pf, pi);
 #ifdef USE_CONVEX_SKIP
     if (pi->sign != CONVEX) {
-      pf->coords_tot_concave += 1;
+      pf->coords_num_concave += 1;
     }
 #endif
   }
@@ -814,11 +814,11 @@ static void polyfill_calc(PolyFill *pf)
 {
 #ifdef USE_KDTREE
 #  ifdef USE_CONVEX_SKIP
-  if (pf->coords_tot_concave)
+  if (pf->coords_num_concave)
 #  endif
   {
-    kdtree2d_new(&pf->kdtree, pf->coords_tot_concave, pf->coords);
-    kdtree2d_init(&pf->kdtree, pf->coords_tot, pf->indices);
+    kdtree2d_new(&pf->kdtree, pf->coords_num_concave, pf->coords);
+    kdtree2d_init(&pf->kdtree, pf->coords_num, pf->indices);
     kdtree2d_balance(&pf->kdtree);
     kdtree2d_init_mapping(&pf->kdtree);
   }
@@ -828,14 +828,14 @@ static void polyfill_calc(PolyFill *pf)
 }
 
 void BLI_polyfill_calc_arena(const float (*coords)[2],
-                             const uint coords_tot,
+                             const uint coords_num,
                              const int coords_sign,
                              uint (*r_tris)[3],
 
                              struct MemArena *arena)
 {
   PolyFill pf;
-  PolyIndex *indices = BLI_memarena_alloc(arena, sizeof(*indices) * coords_tot);
+  PolyIndex *indices = BLI_memarena_alloc(arena, sizeof(*indices) * coords_num);
 
 #ifdef DEBUG_TIME
   TIMEIT_START(polyfill2d);
@@ -843,22 +843,22 @@ void BLI_polyfill_calc_arena(const float (*coords)[2],
 
   polyfill_prepare(&pf,
                    coords,
-                   coords_tot,
+                   coords_num,
                    coords_sign,
                    r_tris,
                    /* cache */
                    indices);
 
 #ifdef USE_KDTREE
-  if (pf.coords_tot_concave) {
-    pf.kdtree.nodes = BLI_memarena_alloc(arena, sizeof(*pf.kdtree.nodes) * pf.coords_tot_concave);
+  if (pf.coords_num_concave) {
+    pf.kdtree.nodes = BLI_memarena_alloc(arena, sizeof(*pf.kdtree.nodes) * pf.coords_num_concave);
     pf.kdtree.nodes_map = memset(
-        BLI_memarena_alloc(arena, sizeof(*pf.kdtree.nodes_map) * coords_tot),
+        BLI_memarena_alloc(arena, sizeof(*pf.kdtree.nodes_map) * coords_num),
         0xff,
-        sizeof(*pf.kdtree.nodes_map) * coords_tot);
+        sizeof(*pf.kdtree.nodes_map) * coords_num);
   }
   else {
-    pf.kdtree.totnode = 0;
+    pf.kdtree.node_num = 0;
   }
 #endif
 
@@ -873,25 +873,25 @@ void BLI_polyfill_calc_arena(const float (*coords)[2],
 }
 
 void BLI_polyfill_calc(const float (*coords)[2],
-                       const uint coords_tot,
+                       const uint coords_num,
                        const int coords_sign,
                        uint (*r_tris)[3])
 {
   /* Fallback to heap memory for large allocations.
    * Avoid running out of stack memory on systems with 512kb stack (macOS).
    * This happens at around 13,000 points, use a much lower value to be safe. */
-  if (UNLIKELY(coords_tot > 8192)) {
+  if (UNLIKELY(coords_num > 8192)) {
     /* The buffer size only accounts for the index allocation,
      * worst case we do two allocations when concave, while we should try to be efficient,
      * any caller that relies on this frequently should use #BLI_polyfill_calc_arena directly. */
-    MemArena *arena = BLI_memarena_new(sizeof(PolyIndex) * coords_tot, __func__);
-    BLI_polyfill_calc_arena(coords, coords_tot, coords_sign, r_tris, arena);
+    MemArena *arena = BLI_memarena_new(sizeof(PolyIndex) * coords_num, __func__);
+    BLI_polyfill_calc_arena(coords, coords_num, coords_sign, r_tris, arena);
     BLI_memarena_free(arena);
     return;
   }
 
   PolyFill pf;
-  PolyIndex *indices = BLI_array_alloca(indices, coords_tot);
+  PolyIndex *indices = BLI_array_alloca(indices, coords_num);
 
 #ifdef DEBUG_TIME
   TIMEIT_START(polyfill2d);
@@ -899,21 +899,21 @@ void BLI_polyfill_calc(const float (*coords)[2],
 
   polyfill_prepare(&pf,
                    coords,
-                   coords_tot,
+                   coords_num,
                    coords_sign,
                    r_tris,
                    /* cache */
                    indices);
 
 #ifdef USE_KDTREE
-  if (pf.coords_tot_concave) {
-    pf.kdtree.nodes = BLI_array_alloca(pf.kdtree.nodes, pf.coords_tot_concave);
-    pf.kdtree.nodes_map = memset(BLI_array_alloca(pf.kdtree.nodes_map, coords_tot),
+  if (pf.coords_num_concave) {
+    pf.kdtree.nodes = BLI_array_alloca(pf.kdtree.nodes, pf.coords_num_concave);
+    pf.kdtree.nodes_map = memset(BLI_array_alloca(pf.kdtree.nodes_map, coords_num),
                                  0xff,
-                                 sizeof(*pf.kdtree.nodes_map) * coords_tot);
+                                 sizeof(*pf.kdtree.nodes_map) * coords_num);
   }
   else {
-    pf.kdtree.totnode = 0;
+    pf.kdtree.node_num = 0;
   }
 #endif
 

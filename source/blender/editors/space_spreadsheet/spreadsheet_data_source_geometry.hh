@@ -21,10 +21,10 @@ namespace blender::ed::spreadsheet {
 class ExtraColumns {
  private:
   /** Maps column names to their data. The data is actually stored in the spreadsheet cache. */
-  Map<std::string, fn::GSpan> columns_;
+  Map<std::string, GSpan> columns_;
 
  public:
-  void add(std::string name, fn::GSpan data)
+  void add(std::string name, GSpan data)
   {
     columns_.add(std::move(name), data);
   }

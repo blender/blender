@@ -140,7 +140,7 @@ void GLBackend::platform_init()
     }
   }
 
-  GPG.init(device, os, driver, support_level, vendor, renderer, version);
+  GPG.init(device, os, driver, support_level, GPU_BACKEND_OPENGL, vendor, renderer, version);
 }
 
 void GLBackend::platform_exit()
@@ -418,6 +418,12 @@ static void detect_workarounds()
       (strstr(renderer, "HD Graphics 4400") || strstr(renderer, "HD Graphics 4600"))) {
     GCaps.shader_storage_buffer_objects_support = false;
   }
+
+  /* Metal-related Workarounds. */
+
+  /* Minimum Per-Vertex stride is 1 byte for OpenGL. */
+  GCaps.minimum_per_vertex_stride = 1;
+
 }  // namespace blender::gpu
 
 /** Internal capabilities. */
@@ -426,6 +432,8 @@ GLint GLContext::max_cubemap_size = 0;
 GLint GLContext::max_texture_3d_size = 0;
 GLint GLContext::max_ubo_binds = 0;
 GLint GLContext::max_ubo_size = 0;
+GLint GLContext::max_ssbo_binds = 0;
+GLint GLContext::max_ssbo_size = 0;
 
 /** Extensions. */
 
@@ -442,6 +450,7 @@ bool GLContext::native_barycentric_support = false;
 bool GLContext::multi_bind_support = false;
 bool GLContext::multi_draw_indirect_support = false;
 bool GLContext::shader_draw_parameters_support = false;
+bool GLContext::stencil_texturing_support = false;
 bool GLContext::texture_cube_map_array_support = false;
 bool GLContext::texture_filter_anisotropic_support = false;
 bool GLContext::texture_gather_support = false;
@@ -470,7 +479,14 @@ void GLBackend::capabilities_init()
   glGetIntegerv(GL_MAX_ELEMENTS_INDICES, &GCaps.max_batch_indices);
   glGetIntegerv(GL_MAX_ELEMENTS_VERTICES, &GCaps.max_batch_vertices);
   glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &GCaps.max_vertex_attribs);
-  glGetIntegerv(GL_MAX_VARYING_FLOATS, &GCaps.max_varying_floats);
+  if (GPU_type_matches(GPU_DEVICE_APPLE, GPU_OS_MAC, GPU_DRIVER_OFFICIAL)) {
+    /* Due to a bug, querying GL_MAX_VARYING_FLOATS is emitting GL_INVALID_ENUM.
+     * Force use minimum required value. */
+    GCaps.max_varying_floats = 32;
+  }
+  else {
+    glGetIntegerv(GL_MAX_VARYING_FLOATS, &GCaps.max_varying_floats);
+  }
 
   glGetIntegerv(GL_NUM_EXTENSIONS, &GCaps.extensions_len);
   GCaps.extension_get = gl_extension_get;
@@ -485,6 +501,8 @@ void GLBackend::capabilities_init()
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &GCaps.max_work_group_size[0]);
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &GCaps.max_work_group_size[1]);
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &GCaps.max_work_group_size[2]);
+    glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS,
+                  &GCaps.max_shader_storage_buffer_bindings);
   }
   GCaps.shader_storage_buffer_objects_support = GLEW_ARB_shader_storage_buffer_object;
   /* GL specific capabilities. */
@@ -492,6 +510,10 @@ void GLBackend::capabilities_init()
   glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &GLContext::max_cubemap_size);
   glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_BLOCKS, &GLContext::max_ubo_binds);
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &GLContext::max_ubo_size);
+  if (GCaps.shader_storage_buffer_objects_support) {
+    glGetIntegerv(GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS, &GLContext::max_ssbo_binds);
+    glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &GLContext::max_ssbo_size);
+  }
   GLContext::base_instance_support = GLEW_ARB_base_instance;
   GLContext::clear_texture_support = GLEW_ARB_clear_texture;
   GLContext::copy_image_support = GLEW_ARB_copy_image;
@@ -505,6 +527,7 @@ void GLBackend::capabilities_init()
   GLContext::multi_bind_support = GLEW_ARB_multi_bind;
   GLContext::multi_draw_indirect_support = GLEW_ARB_multi_draw_indirect;
   GLContext::shader_draw_parameters_support = GLEW_ARB_shader_draw_parameters;
+  GLContext::stencil_texturing_support = GLEW_VERSION_4_3;
   GLContext::texture_cube_map_array_support = GLEW_ARB_texture_cube_map_array;
   GLContext::texture_filter_anisotropic_support = GLEW_EXT_texture_filter_anisotropic;
   GLContext::texture_gather_support = GLEW_ARB_texture_gather;

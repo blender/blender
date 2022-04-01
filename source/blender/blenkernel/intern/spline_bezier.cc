@@ -8,11 +8,11 @@
 
 using blender::Array;
 using blender::float3;
+using blender::GVArray;
 using blender::IndexRange;
 using blender::MutableSpan;
 using blender::Span;
 using blender::VArray;
-using blender::fn::GVArray;
 
 void BezierSpline::copy_settings(Spline &dst) const
 {

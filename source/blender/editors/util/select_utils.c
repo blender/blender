@@ -10,6 +10,12 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_windowmanager_types.h"
+
+#include "RNA_access.h"
+
+#include "WM_types.h"
+
 #include "ED_select_utils.h"
 
 int ED_select_op_action(const eSelectOp sel_op, const bool is_select, const bool is_inside)
@@ -111,4 +117,30 @@ bool ED_select_similar_compare_float_tree(const KDTree_1d *tree,
   }
 
   return false;
+}
+
+eSelectOp ED_select_op_from_operator(wmOperator *op)
+{
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
+  const bool deselect = RNA_boolean_get(op->ptr, "deselect");
+  const bool toggle = RNA_boolean_get(op->ptr, "toggle");
+
+  if (extend) {
+    return SEL_OP_ADD;
+  }
+  if (deselect) {
+    return SEL_OP_SUB;
+  }
+  if (toggle) {
+    return SEL_OP_XOR;
+  }
+  return SEL_OP_SET;
+}
+
+void ED_select_pick_params_from_operator(wmOperator *op, struct SelectPick_Params *params)
+{
+  memset(params, 0x0, sizeof(*params));
+  params->sel_op = ED_select_op_from_operator(op);
+  params->deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
+  params->select_passthrough = RNA_boolean_get(op->ptr, "select_passthrough");
 }

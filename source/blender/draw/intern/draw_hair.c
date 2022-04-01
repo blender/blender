@@ -172,8 +172,8 @@ static ParticleHairCache *drw_hair_particle_cache_get(Object *object,
         object, psys, md, &cache, gpu_material, subdiv, thickness_res);
   }
   else {
-    /* New hair object. */
-    update = hair_ensure_procedural_data(object, &cache, gpu_material, subdiv, thickness_res);
+    /* New curves object. */
+    update = curves_ensure_procedural_data(object, &cache, gpu_material, subdiv, thickness_res);
   }
 
   if (update) {
@@ -230,7 +230,7 @@ void DRW_hair_duplimat_get(Object *object,
     }
   }
   else {
-    /* New hair object. */
+    /* New curves object. */
     copy_m4_m4(dupli_mat, object->obmat);
   }
 }
@@ -291,7 +291,7 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
     hair_close_tip = (part->shape_flag & PART_SHAPE_CLOSE_TIP) != 0;
   }
   else {
-    /* TODO: implement for new hair object. */
+    /* TODO: implement for new curves object. */
     hair_rad_shape = 1.0f;
     hair_rad_root = 0.005f;
     hair_rad_tip = 0.0f;
@@ -305,7 +305,7 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
   DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &hair_cache->final[subdiv].strands_res, 1);
   DRW_shgroup_uniform_int_copy(shgrp, "hairThicknessRes", thickness_res);
   DRW_shgroup_uniform_float_copy(shgrp, "hairRadShape", hair_rad_shape);
-  DRW_shgroup_uniform_vec4_array_copy(shgrp, "hairDupliMatrix", dupli_mat, 4);
+  DRW_shgroup_uniform_mat4_copy(shgrp, "hairDupliMatrix", dupli_mat);
   DRW_shgroup_uniform_float_copy(shgrp, "hairRadRoot", hair_rad_root);
   DRW_shgroup_uniform_float_copy(shgrp, "hairRadTip", hair_rad_tip);
   DRW_shgroup_uniform_bool_copy(shgrp, "hairCloseTip", hair_close_tip);

@@ -23,9 +23,6 @@
  * \ingroup bke
  * \brief New brush engine for sculpt
  */
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "RNA_types.h"
 
@@ -47,6 +44,10 @@ This should completely replace UnifiedPaintSettings.
 
 #include "DNA_sculpt_brush_types.h"
 #include "DNA_texture_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct BrushChannel;
 struct BlendWriter;

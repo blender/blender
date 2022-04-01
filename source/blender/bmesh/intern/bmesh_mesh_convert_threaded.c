@@ -967,7 +967,7 @@ void BM_mesh_bm_to_me_threaded(
               vertMap = bm_to_mesh_vertex_map(bm, ototvert);
             }
 
-            for (i = j = 0; i < hmd->totindex; i++) {
+            for (i = j = 0; i < hmd->indexar_num; i++) {
               if (hmd->indexar[i] < ototvert) {
                 eve = vertMap[hmd->indexar[i]];
 
@@ -980,7 +980,7 @@ void BM_mesh_bm_to_me_threaded(
               }
             }
 
-            hmd->totindex = j;
+            hmd->indexar_num = j;
           }
         }
       }

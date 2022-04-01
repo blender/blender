@@ -30,6 +30,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
@@ -57,6 +58,7 @@ Mesh *doEdgeSplit(const Mesh *mesh, EdgeSplitModifierData *emd)
                             &(struct BMeshCreateParams){0},
                             &(struct BMeshFromMeshParams){
                                 .calc_face_normal = calc_face_normals,
+                                .calc_vert_normal = false,
                                 .add_key_index = false,
                                 .use_shapekey = false,
                                 .active_shapekey = 0,

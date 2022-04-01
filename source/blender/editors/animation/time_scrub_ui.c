@@ -30,6 +30,7 @@
 #include "BLI_timecode.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 static void get_time_scrub_region_rect(const ARegion *region, rcti *rect)
 {

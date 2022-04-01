@@ -11,7 +11,7 @@
  * by Jorge Jimenez
  */
 uniform sampler2D colorBuffer;
-uniform sampler2D depthBuffer;
+uniform depth2D depthBuffer;
 uniform sampler2D velocityBuffer;
 uniform sampler2D tileMaxBuffer;
 

@@ -308,7 +308,7 @@ struct ImBuf *imb_loadhdr(const unsigned char *mem,
 static int fwritecolrs(
     FILE *file, int width, int channels, const unsigned char *ibufscan, const float *fpscan)
 {
-  int beg, c2, cnt = 0;
+  int beg, c2, count = 0;
   fCOLOR fcol;
   RGBE rgbe, *rgbe_scan;
 
@@ -347,14 +347,14 @@ static int fwritecolrs(
   putc((unsigned char)(width & 255), file);
   /* put components separately */
   for (size_t i = 0; i < 4; i++) {
-    for (size_t j = 0; j < width; j += cnt) { /* find next run */
-      for (beg = j; beg < width; beg += cnt) {
-        for (cnt = 1; (cnt < 127) && ((beg + cnt) < width) &&
-                      (rgbe_scan[beg + cnt][i] == rgbe_scan[beg][i]);
-             cnt++) {
+    for (size_t j = 0; j < width; j += count) { /* find next run */
+      for (beg = j; beg < width; beg += count) {
+        for (count = 1; (count < 127) && ((beg + count) < width) &&
+                        (rgbe_scan[beg + count][i] == rgbe_scan[beg][i]);
+             count++) {
           /* pass */
         }
-        if (cnt >= MINRUN) {
+        if (count >= MINRUN) {
           break; /* long enough */
         }
       }
@@ -378,12 +378,12 @@ static int fwritecolrs(
           putc(rgbe_scan[j++][i], file);
         }
       }
-      if (cnt >= MINRUN) { /* write out run */
-        putc((unsigned char)(128 + cnt), file);
+      if (count >= MINRUN) { /* write out run */
+        putc((unsigned char)(128 + count), file);
         putc(rgbe_scan[beg][i], file);
       }
       else {
-        cnt = 0;
+        count = 0;
       }
     }
   }

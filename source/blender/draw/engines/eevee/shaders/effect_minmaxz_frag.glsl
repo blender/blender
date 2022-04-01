@@ -38,7 +38,7 @@ uniform vec2 texelSize;
 
 /* On some AMD card / driver combination, it is needed otherwise,
  * the shader does not write anything. */
-#if defined(GPU_INTEL) || defined(GPU_ATI)
+#if (defined(GPU_INTEL) || defined(GPU_ATI)) && defined(GPU_OPENGL)
 out vec4 fragColor;
 #endif
 
@@ -68,9 +68,14 @@ void main()
   float val = minmax4(samp.x, samp.y, samp.z, samp.w);
 #endif
 
-#if defined(GPU_INTEL) || defined(GPU_ATI)
+#if (defined(GPU_INTEL) || defined(GPU_ATI)) && defined(GPU_OPENGL)
   /* Use color format instead of 24bit depth texture */
   fragColor = vec4(val);
 #endif
+
+#if !(defined(GPU_INTEL) && defined(GPU_OPENGL))
+  /* If using Intel workaround, do not write out depth as there will be no depth target and this is
+   * invalid. */
   gl_FragDepth = val;
+#endif
 }

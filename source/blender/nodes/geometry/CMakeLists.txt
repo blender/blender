@@ -19,55 +19,15 @@ set(INC
   ../../render
   ../../windowmanager
   ../../../../intern/guardedalloc
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 
 set(SRC
-  nodes/legacy/node_geo_legacy_align_rotation_to_vector.cc
-  nodes/legacy/node_geo_legacy_attribute_clamp.cc
-  nodes/legacy/node_geo_legacy_attribute_color_ramp.cc
-  nodes/legacy/node_geo_legacy_attribute_combine_xyz.cc
-  nodes/legacy/node_geo_legacy_attribute_compare.cc
-  nodes/legacy/node_geo_legacy_attribute_convert.cc
-  nodes/legacy/node_geo_legacy_attribute_curve_map.cc
-  nodes/legacy/node_geo_legacy_attribute_fill.cc
-  nodes/legacy/node_geo_legacy_attribute_map_range.cc
-  nodes/legacy/node_geo_legacy_attribute_math.cc
-  nodes/legacy/node_geo_legacy_attribute_mix.cc
-  nodes/legacy/node_geo_legacy_attribute_proximity.cc
-  nodes/legacy/node_geo_legacy_attribute_randomize.cc
-  nodes/legacy/node_geo_legacy_attribute_sample_texture.cc
-  nodes/legacy/node_geo_legacy_attribute_separate_xyz.cc
-  nodes/legacy/node_geo_legacy_attribute_transfer.cc
-  nodes/legacy/node_geo_legacy_attribute_vector_math.cc
-  nodes/legacy/node_geo_legacy_attribute_vector_rotate.cc
-  nodes/legacy/node_geo_legacy_curve_endpoints.cc
-  nodes/legacy/node_geo_legacy_curve_reverse.cc
-  nodes/legacy/node_geo_legacy_curve_select_by_handle_type.cc
-  nodes/legacy/node_geo_legacy_curve_set_handles.cc
-  nodes/legacy/node_geo_legacy_curve_spline_type.cc
-  nodes/legacy/node_geo_legacy_curve_subdivide.cc
-  nodes/legacy/node_geo_legacy_curve_to_points.cc
-  nodes/legacy/node_geo_legacy_delete_geometry.cc
-  nodes/legacy/node_geo_legacy_edge_split.cc
-  nodes/legacy/node_geo_legacy_material_assign.cc
-  nodes/legacy/node_geo_legacy_mesh_to_curve.cc
-  nodes/legacy/node_geo_legacy_point_distribute.cc
-  nodes/legacy/node_geo_legacy_point_instance.cc
-  nodes/legacy/node_geo_legacy_point_rotate.cc
-  nodes/legacy/node_geo_legacy_point_scale.cc
-  nodes/legacy/node_geo_legacy_point_separate.cc
-  nodes/legacy/node_geo_legacy_point_translate.cc
-  nodes/legacy/node_geo_legacy_points_to_volume.cc
-  nodes/legacy/node_geo_legacy_raycast.cc
-  nodes/legacy/node_geo_legacy_select_by_material.cc
-  nodes/legacy/node_geo_legacy_subdivision_surface.cc
-  nodes/legacy/node_geo_legacy_volume_to_mesh.cc
-
   nodes/node_geo_accumulate_field.cc
   nodes/node_geo_attribute_capture.cc
   nodes/node_geo_attribute_domain_size.cc
-  nodes/node_geo_attribute_remove.cc
   nodes/node_geo_attribute_statistic.cc
   nodes/node_geo_boolean.cc
   nodes/node_geo_bounding_box.cc
@@ -98,9 +58,9 @@ set(SRC
   nodes/node_geo_curve_to_points.cc
   nodes/node_geo_curve_trim.cc
   nodes/node_geo_delete_geometry.cc
-  nodes/node_geo_duplicate_elements.cc
   nodes/node_geo_distribute_points_on_faces.cc
   nodes/node_geo_dual_mesh.cc
+  nodes/node_geo_duplicate_elements.cc
   nodes/node_geo_edge_split.cc
   nodes/node_geo_extrude_mesh.cc
   nodes/node_geo_field_at_index.cc
@@ -121,6 +81,7 @@ set(SRC
   nodes/node_geo_input_mesh_face_neighbors.cc
   nodes/node_geo_input_mesh_island.cc
   nodes/node_geo_input_mesh_vertex_neighbors.cc
+  nodes/node_geo_input_named_attribute.cc
   nodes/node_geo_input_normal.cc
   nodes/node_geo_input_position.cc
   nodes/node_geo_input_radius.cc
@@ -154,6 +115,7 @@ set(SRC
   nodes/node_geo_proximity.cc
   nodes/node_geo_raycast.cc
   nodes/node_geo_realize_instances.cc
+  nodes/node_geo_remove_attribute.cc
   nodes/node_geo_rotate_instances.cc
   nodes/node_geo_scale_elements.cc
   nodes/node_geo_scale_instances.cc
@@ -170,6 +132,7 @@ set(SRC
   nodes/node_geo_set_shade_smooth.cc
   nodes/node_geo_set_spline_cyclic.cc
   nodes/node_geo_set_spline_resolution.cc
+  nodes/node_geo_store_named_attribute.cc
   nodes/node_geo_string_join.cc
   nodes/node_geo_string_to_curves.cc
   nodes/node_geo_subdivision_surface.cc
@@ -192,6 +155,7 @@ set(LIB
   bf_bmesh
   bf_functions
   bf_geometry
+  bf_nodes
 )
 
 if(WITH_BULLET)
@@ -270,3 +234,6 @@ if(WITH_UNITY_BUILD)
   set_target_properties(bf_nodes_geometry PROPERTIES UNITY_BUILD ON)
   set_target_properties(bf_nodes_geometry PROPERTIES UNITY_BUILD_BATCH_SIZE 10)
 endif()
+
+# RNA_prototypes.h
+add_dependencies(bf_nodes_geometry bf_rna)

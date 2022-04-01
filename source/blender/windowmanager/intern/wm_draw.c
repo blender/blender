@@ -1038,6 +1038,10 @@ void wm_draw_update(bContext *C)
   wmWindowManager *wm = CTX_wm_manager(C);
 
   GPU_context_main_lock();
+
+  GPU_render_begin();
+  GPU_render_step();
+
   BKE_image_free_unused_gpu_textures();
 
   /*We can save GPU bandwidth for PBVH drawing if we know for sure that no
@@ -1113,6 +1117,7 @@ void wm_draw_update(bContext *C)
   /* Draw non-windows (surfaces) */
   wm_surfaces_iter(C, wm_draw_surface);
 
+  GPU_render_end();
   GPU_context_main_unlock();
 }
 

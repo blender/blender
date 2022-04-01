@@ -41,6 +41,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "DEG_depsgraph.h"
 
@@ -219,5 +220,3 @@ ModifierTypeInfo modifierType_Weld = {
     /* blendWrite */ nullptr,
     /* blendRead */ nullptr,
 };
-
-/** \} */

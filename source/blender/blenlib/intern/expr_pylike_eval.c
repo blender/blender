@@ -829,18 +829,18 @@ static bool parse_unary(ExprParseState *state)
 
       /* Specially supported functions. */
       if (STREQ(state->tokenbuf, "min")) {
-        int cnt = parse_function_args(state);
-        CHECK_ERROR(cnt > 0);
+        int count = parse_function_args(state);
+        CHECK_ERROR(count > 0);
 
-        parse_add_op(state, OPCODE_MIN, 1 - cnt)->arg.ival = cnt;
+        parse_add_op(state, OPCODE_MIN, 1 - count)->arg.ival = count;
         return true;
       }
 
       if (STREQ(state->tokenbuf, "max")) {
-        int cnt = parse_function_args(state);
-        CHECK_ERROR(cnt > 0);
+        int count = parse_function_args(state);
+        CHECK_ERROR(count > 0);
 
-        parse_add_op(state, OPCODE_MAX, 1 - cnt)->arg.ival = cnt;
+        parse_add_op(state, OPCODE_MAX, 1 - count)->arg.ival = count;
         return true;
       }
 

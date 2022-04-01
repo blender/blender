@@ -551,8 +551,8 @@ static std::unique_ptr<CurveEval> fillet_curve(const CurveEval &input_curve,
   Span<SplinePtr> input_splines = input_curve.splines();
 
   std::unique_ptr<CurveEval> output_curve = std::make_unique<CurveEval>();
-  const int num_splines = input_splines.size();
-  output_curve->resize(num_splines);
+  const int splines_num = input_splines.size();
+  output_curve->resize(splines_num);
   MutableSpan<SplinePtr> output_splines = output_curve->splines();
   Array<int> spline_offsets = input_curve.control_point_offsets();
 

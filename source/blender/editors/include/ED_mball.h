@@ -12,7 +12,9 @@ extern "C" {
 #endif
 
 struct Base;
+struct MetaElem;
 struct Object;
+struct SelectPick_Params;
 struct UndoType;
 struct bContext;
 struct wmKeyConfig;
@@ -31,11 +33,19 @@ struct MetaElem *ED_mball_add_primitive(struct bContext *C,
                                         float dia,
                                         int type);
 
+struct Base *ED_mball_base_and_elem_from_select_buffer(struct Base **bases,
+                                                       uint bases_len,
+                                                       const uint select_id,
+                                                       struct MetaElem **r_ml);
+
 /**
- * Select MetaElement with mouse click (user can select radius circle or stiffness circle).
+ * Select meta-element with mouse click (user can select radius circle or stiffness circle).
+ *
+ * \return True when pick finds an element or the selection changed.
  */
-bool ED_mball_select_pick(
-    struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
+bool ED_mball_select_pick(struct bContext *C,
+                          const int mval[2],
+                          const struct SelectPick_Params *params);
 
 bool ED_mball_deselect_all_multi_ex(struct Base **bases, uint bases_len);
 bool ED_mball_deselect_all_multi(struct bContext *C);

@@ -19,6 +19,7 @@
 
 #include "BKE_collection.h"
 #include "BKE_global.h"
+#include "BKE_lib_id.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -124,8 +125,9 @@ void ED_editors_init(bContext *C)
     if (obact == NULL || ob->type != obact->type) {
       continue;
     }
-    /* Object mode is enforced for linked data (or their obdata). */
-    if (ID_IS_LINKED(ob) || (ob_data != NULL && ID_IS_LINKED(ob_data))) {
+    /* Object mode is enforced for non-editable data (or their obdata). */
+    if (!BKE_id_is_editable(bmain, &ob->id) ||
+        (ob_data != NULL && !BKE_id_is_editable(bmain, ob_data))) {
       continue;
     }
 

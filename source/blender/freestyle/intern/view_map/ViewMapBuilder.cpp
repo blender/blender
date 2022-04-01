@@ -430,8 +430,8 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
   int nSamples = 0;
   vector<WFace *> wFaces;
   WFace *wFace = nullptr;
-  unsigned cnt = 0;
-  unsigned cntStep = (unsigned)ceil(0.01f * vedges.size());
+  unsigned count = 0;
+  unsigned count_step = (unsigned)ceil(0.01f * vedges.size());
   unsigned tmpQI = 0;
   unsigned qiClasses[256];
   unsigned maxIndex, maxCard;
@@ -441,13 +441,13 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
       if (iRenderMonitor->testBreak()) {
         break;
       }
-      if (cnt % cntStep == 0) {
+      if (count % count_step == 0) {
         stringstream ss;
-        ss << "Freestyle: Visibility computations " << (100 * cnt / vedges.size()) << "%";
+        ss << "Freestyle: Visibility computations " << (100 * count / vedges.size()) << "%";
         iRenderMonitor->setInfo(ss.str());
-        iRenderMonitor->progress((float)cnt / vedges.size());
+        iRenderMonitor->progress((float)count / vedges.size());
       }
-      cnt++;
+      count++;
     }
 #if LOGGING
     if (_global.debug & G_DEBUG_FREESTYLE) {
@@ -621,9 +621,9 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap,
   }
   if (iRenderMonitor && !vedges.empty()) {
     stringstream ss;
-    ss << "Freestyle: Visibility computations " << (100 * cnt / vedges.size()) << "%";
+    ss << "Freestyle: Visibility computations " << (100 * count / vedges.size()) << "%";
     iRenderMonitor->setInfo(ss.str());
-    iRenderMonitor->progress((float)cnt / vedges.size());
+    iRenderMonitor->progress((float)count / vedges.size());
   }
 }
 

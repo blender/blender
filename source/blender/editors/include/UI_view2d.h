@@ -178,12 +178,12 @@ void UI_view2d_multi_grid_draw(
  * \param grid_color_id: The theme color used for the points. Faded dynamically based on zoom.
  * \param min_step: The base size of the grid. At different zoom levels, the visible grid may have
  * a larger step size.
- * \param grid_levels: The maximum grid depth. Larger grid levels will subdivide the grid more.
+ * \param grid_subdivisions: The maximum number of sub-levels drawn at once.
  */
 void UI_view2d_dot_grid_draw(const struct View2D *v2d,
                              int grid_color_id,
                              float min_step,
-                             int grid_levels);
+                             int grid_subdivisions);
 
 void UI_view2d_draw_lines_y__values(const struct View2D *v2d);
 void UI_view2d_draw_lines_x__values(const struct View2D *v2d);

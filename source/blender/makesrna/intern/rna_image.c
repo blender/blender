@@ -13,6 +13,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_node_tree_update.h"
 
 #include "DEG_depsgraph.h"
@@ -238,8 +239,8 @@ static int rna_Image_file_format_get(PointerRNA *ptr)
 {
   Image *image = (Image *)ptr->data;
   ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
-  int imtype = BKE_image_ftype_to_imtype(ibuf ? ibuf->ftype : IMB_FTYPE_NONE,
-                                         ibuf ? &ibuf->foptions : NULL);
+  int imtype = BKE_ftype_to_imtype(ibuf ? ibuf->ftype : IMB_FTYPE_NONE,
+                                   ibuf ? &ibuf->foptions : NULL);
 
   BKE_image_release_ibuf(image, ibuf, NULL);
 
@@ -251,7 +252,7 @@ static void rna_Image_file_format_set(PointerRNA *ptr, int value)
   Image *image = (Image *)ptr->data;
   if (BKE_imtype_is_movie(value) == 0) { /* should be able to throw an error here */
     ImbFormatOptions options;
-    int ftype = BKE_image_imtype_to_ftype(value, &options);
+    int ftype = BKE_imtype_to_ftype(value, &options);
     BKE_image_file_format_set(image, ftype, &options);
   }
 }

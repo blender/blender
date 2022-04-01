@@ -103,6 +103,12 @@ class RandomNumberGenerator {
     return float3(rand1, rand2, 1.0f - rand1 - rand2);
   }
 
+  /**
+   * Round value to the next integer randomly.
+   * 4.9f is more likely to round to 5 than 4.6f.
+   */
+  int round_probabilistic(float x);
+
   float2 get_unit_float2();
   float3 get_unit_float3();
   /**

@@ -24,6 +24,7 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
+#include "BKE_lib_id.h"
 #include "BKE_report.h"
 
 #include "BLT_translation.h"
@@ -321,8 +322,12 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
     fly->rv3d->persp = RV3D_PERSP;
   }
 
-  if (fly->rv3d->persp == RV3D_CAMOB && ID_IS_LINKED(fly->v3d->camera)) {
-    BKE_report(op->reports, RPT_ERROR, "Cannot fly a camera from an external library");
+  if (fly->rv3d->persp == RV3D_CAMOB &&
+      !BKE_id_is_editable(CTX_data_main(C), &fly->v3d->camera->id)) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Cannot navigate a camera from an external library or non-editable override");
+
     return false;
   }
 

@@ -35,6 +35,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1099,7 +1100,7 @@ static void pchan_clear_rot(bPoseChannel *pchan)
         copy_v3_v3(pchan->eul, eul);
       }
     }
-  } /* Duplicated in source/blender/editors/object/object_transform.c */
+  } /* Duplicated in source/blender/editors/object/object_transform.cc */
   else {
     if (pchan->rotmode == ROT_MODE_QUAT) {
       unit_qt(pchan->quat);

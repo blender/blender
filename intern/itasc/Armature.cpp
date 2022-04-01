@@ -1,11 +1,8 @@
-/** \file itasc/Armature.cpp
+/* SPDX-License-Identifier: LGPL-2.1-or-later
+ * Copyright 2009 Benoit Bolsee. */
+
+/** \file
  * \ingroup intern_itasc
- */
-/*
- * Armature.cpp
- *
- *  Created on: Feb 3, 2009
- *      Author: benoitbolsee
  */
 
 #include "Armature.hpp"

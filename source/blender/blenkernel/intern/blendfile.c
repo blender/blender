@@ -352,7 +352,7 @@ static void setup_app_data(bContext *C,
     do_versions_ipos_to_animato(bmain);
   }
 
-  /* NOTE: readfile's `do_version` does not allow to create new IDs, and only operates on a single
+  /* NOTE: readfile's `do_versions` does not allow to create new IDs, and only operates on a single
    * library at a time. This code needs to operate on the whole Main at once. */
   /* NOTE: Check bmain version (i.e. current blend file version), AND the versions of all the
    * linked libraries. */

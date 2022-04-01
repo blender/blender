@@ -147,8 +147,8 @@ typedef struct FontBLF {
   /* # of times this font was loaded */
   unsigned int reference_count;
 
-  /* filename or NULL. */
-  char *filename;
+  /** File-path or NULL. */
+  char *filepath;
 
   /* aspect ratio or scale. */
   float aspect[3];

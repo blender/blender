@@ -321,7 +321,7 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
     BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] * b[i]);
   }
 
-  friend vec_base operator*(const vec_base &a, T b)
+  template<typename FactorT> friend vec_base operator*(const vec_base &a, FactorT b)
   {
     BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] * b);
   }
@@ -578,14 +578,5 @@ using float4 = vec_base<float, 4>;
 using double2 = vec_base<double, 2>;
 using double3 = vec_base<double, 3>;
 using double4 = vec_base<double, 4>;
-
-template<typename T>
-inline constexpr bool is_math_float_type = (std::is_floating_point_v<T>
-#ifdef WITH_GMP
-                                            || std::is_same_v<T, mpq_class>
-#endif
-);
-
-template<typename T> inline constexpr bool is_math_integral_type = std::is_integral_v<T>;
 
 }  // namespace blender

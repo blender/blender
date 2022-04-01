@@ -842,7 +842,7 @@ static int paint_space_stroke(bContext *C,
   Paint *paint = BKE_paint_get_active_from_context(C);
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
-  int cnt = 0;
+  int count = 0;
 
   const bool use_scene_spacing = paint_stroke_use_scene_spacing(scene->toolsettings, brush, mode);
   float d_world_space_position[3] = {0.0f};
@@ -915,14 +915,14 @@ static int paint_space_stroke(bContext *C,
       pressure = stroke->last_pressure;
       dpressure = final_pressure - stroke->last_pressure;
 
-      cnt++;
+      count++;
     }
     else {
       break;
     }
   }
 
-  return cnt;
+  return count;
 }
 
 /**** Public API ****/
@@ -1046,6 +1046,11 @@ static void stroke_done(bContext *C, wmOperator *op, PaintStroke *stroke)
   paint_stroke_free(C, op, stroke);
 }
 
+static bool curves_sculpt_brush_uses_spacing(const eBrushCurvesSculptTool tool)
+{
+  return ELEM(tool, CURVES_SCULPT_TOOL_ADD);
+}
+
 bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
 {
   if ((br->flag & BRUSH_SPACE) == 0) {
@@ -1060,7 +1065,8 @@ bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
     return true;
   }
 
-  if (mode == PAINT_MODE_SCULPT_CURVES) {
+  if (mode == PAINT_MODE_SCULPT_CURVES &&
+      !curves_sculpt_brush_uses_spacing(br->curves_sculpt_tool)) {
     return false;
   }
 

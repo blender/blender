@@ -8,8 +8,8 @@ set(INC
   ../../depsgraph
   ../../makesdna
   ../../makesrna
-  ../../windowmanager
   ../../sequencer
+  ../../windowmanager
 )
 
 set(INC_SYS

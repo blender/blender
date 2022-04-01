@@ -264,9 +264,9 @@ BLI_INLINE BLI_mempool_chunk *mempool_chunk_find(BLI_mempool_chunk *head, uint i
  * \note for small pools 1 is a good default, the elements need to be initialized,
  * adding overhead on creation which is redundant if they aren't used.
  */
-BLI_INLINE uint mempool_maxchunks(const uint totelem, const uint pchunk)
+BLI_INLINE uint mempool_maxchunks(const uint elem_num, const uint pchunk)
 {
-  return (totelem <= pchunk) ? 1 : ((totelem / pchunk) + 1);
+  return (elem_num <= pchunk) ? 1 : ((elem_num / pchunk) + 1);
 }
 
 static BLI_mempool_chunk *mempool_chunk_alloc(BLI_mempool *pool)
@@ -381,14 +381,13 @@ static BLI_freenode *mempool_chunk_add(BLI_mempool *pool,
   return curnode;
 }
 
-/*
-This preallocates a mempool suitable for threading.  totelem elements are preallocated
-in chunks of size pchunk, and returned in r_chunks.  The idea is to pass these
-to tasks.
-*/
-
+/**
+ * Preallocates a mempool suitable for threading.  elem_num elements are preallocated
+ * in chunks of size pchunk, and returned in r_chunks.  The idea is to pass these
+ * to tasks.
+ */
 BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
-                                          int totelem,
+                                          int elem_num,
                                           const int pchunk,
                                           void ***r_chunks,
                                           int *r_totchunk,
@@ -403,14 +402,14 @@ BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
   pool->pchunk = (uint)pchunk;
   pool->csize = (uint)pchunk * pool->esize;
 
-  if (totelem % pchunk == 0) {
-    pool->maxchunks = (uint)totelem / (uint)pchunk;
+  if (elem_num % pchunk == 0) {
+    pool->maxchunks = (uint)elem_num / (uint)pchunk;
   }
   else {
-    pool->maxchunks = (uint)totelem / (uint)pchunk + 1;
+    pool->maxchunks = (uint)elem_num / (uint)pchunk + 1;
   }
 
-  if (totelem) {
+  if (elem_num) {
     BLI_freenode *last_tail = NULL;
 
     /* Allocate the actual chunks. */
@@ -439,7 +438,7 @@ BLI_mempool *BLI_mempool_create_for_tasks(const unsigned int esize,
 
   int i = (int)pool->pchunk - 1;
 
-  while (lastchunk && totalloc > (uint)totelem) {
+  while (lastchunk && totalloc > (uint)elem_num) {
     if (i < 0) {
       BLI_mempool_chunk *lastchunk2 = NULL;
 
@@ -504,13 +503,13 @@ static void mempool_chunk_free_all(BLI_mempool_chunk *mpchunk, BLI_mempool *pool
 #  undef BLI_mempool_create
 #endif
 
-BLI_mempool *BLI_mempool_create(uint esize, uint totelem, uint pchunk, uint flag)
+BLI_mempool *BLI_mempool_create(uint esize, uint elem_num, uint pchunk, uint flag)
 {
-  return BLI_mempool_create_ex(esize, totelem, pchunk, flag, "");
+  return BLI_mempool_create_ex(esize, elem_num, pchunk, flag, "");
 }
 
 BLI_mempool *BLI_mempool_create_ex(
-    uint esize, uint totelem, uint pchunk, uint flag, const char *tag)
+    uint esize, uint elem_num, uint pchunk, uint flag, const char *tag)
 {
   BLI_mempool *pool;
   BLI_freenode *last_tail = NULL;
@@ -552,7 +551,7 @@ BLI_mempool *BLI_mempool_create_ex(
 
   esize += POISON_REDZONE_SIZE;
 
-  maxchunks = mempool_maxchunks(totelem, pchunk);
+  maxchunks = mempool_maxchunks(elem_num, pchunk);
 
   pool->chunks = NULL;
   pool->chunk_tail = NULL;
@@ -585,7 +584,7 @@ BLI_mempool *BLI_mempool_create_ex(
 #endif
   pool->totused = 0;
 
-  if (totelem) {
+  if (elem_num) {
     /* Allocate the actual chunks. */
     for (i = 0; i < maxchunks; i++) {
       BLI_mempool_chunk *mpchunk = mempool_chunk_alloc(pool);
@@ -692,7 +691,7 @@ int BLI_mempool_find_elems_fuzzy(
   int istart = idx - range, iend = idx + range;
   istart = MAX2(istart, 0);
 
-  int totelem = 0;
+  int elem_num = 0;
 
   for (int i = istart; i < iend; i++) {
     int chunki = i / (int)pool->pchunk;
@@ -714,15 +713,15 @@ int BLI_mempool_find_elems_fuzzy(
       continue;
     }
 
-    r_elems[totelem++] = ptr;
+    r_elems[elem_num++] = ptr;
 
-    if (totelem == r_elems_size) {
+    if (elem_num == r_elems_size) {
       break;
     }
   }
 
   mempool_poison(pool);
-  return totelem;
+  return elem_num;
 }
 
 int BLI_mempool_get_size(BLI_mempool *pool)
@@ -954,18 +953,18 @@ static void mempool_threadsafe_iternew(BLI_mempool *pool, BLI_mempool_threadsafe
   ts_iter->curchunk_threaded_shared = NULL;
 }
 
-ParallelMempoolTaskData *mempool_iter_threadsafe_create(BLI_mempool *pool, const size_t num_iter)
+ParallelMempoolTaskData *mempool_iter_threadsafe_create(BLI_mempool *pool, const size_t iter_num)
 {
   BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
 
-  ParallelMempoolTaskData *iter_arr = MEM_mallocN(sizeof(*iter_arr) * num_iter, __func__);
+  ParallelMempoolTaskData *iter_arr = MEM_mallocN(sizeof(*iter_arr) * iter_num, __func__);
   BLI_mempool_chunk **curchunk_threaded_shared = MEM_mallocN(sizeof(void *), __func__);
 
   mempool_threadsafe_iternew(pool, &iter_arr->ts_iter);
 
   *curchunk_threaded_shared = iter_arr->ts_iter.iter.curchunk;
   iter_arr->ts_iter.curchunk_threaded_shared = curchunk_threaded_shared;
-  for (size_t i = 1; i < num_iter; i++) {
+  for (size_t i = 1; i < iter_num; i++) {
     iter_arr[i].ts_iter = iter_arr[0].ts_iter;
     *curchunk_threaded_shared = iter_arr[i].ts_iter.iter.curchunk =
         ((*curchunk_threaded_shared) ? (*curchunk_threaded_shared)->next : NULL);
@@ -1133,7 +1132,7 @@ void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
 
 #endif
 
-void BLI_mempool_clear_ex(BLI_mempool *pool, const int totelem_reserve)
+void BLI_mempool_clear_ex(BLI_mempool *pool, const int elem_num_reserve)
 {
   mempool_unpoison(pool);
 
@@ -1149,11 +1148,11 @@ void BLI_mempool_clear_ex(BLI_mempool *pool, const int totelem_reserve)
   VALGRIND_CREATE_MEMPOOL(pool, 0, false);
 #endif
 
-  if (totelem_reserve == -1) {
+  if (elem_num_reserve == -1) {
     maxchunks = pool->maxchunks;
   }
   else {
-    maxchunks = mempool_maxchunks((uint)totelem_reserve, pool->pchunk);
+    maxchunks = mempool_maxchunks((uint)elem_num_reserve, pool->pchunk);
   }
 
   /* Free all after 'pool->maxchunks'. */

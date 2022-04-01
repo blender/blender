@@ -15,7 +15,6 @@
 
 namespace blender::nodes::geometry_nodes_eval_log {
 
-using fn::CPPType;
 using fn::FieldCPPType;
 using fn::FieldInput;
 using fn::GField;
@@ -336,6 +335,16 @@ const NodeLog *ModifierLog::find_node_by_node_editor_context(const SpaceNode &sn
     return nullptr;
   }
   return tree_log->lookup_node_log(node);
+}
+
+const NodeLog *ModifierLog::find_node_by_node_editor_context(const SpaceNode &snode,
+                                                             const StringRef node_name)
+{
+  const TreeLog *tree_log = ModifierLog::find_tree_by_node_editor_context(snode);
+  if (tree_log == nullptr) {
+    return nullptr;
+  }
+  return tree_log->lookup_node_log(node_name);
 }
 
 const SocketLog *ModifierLog::find_socket_by_node_editor_context(const SpaceNode &snode,

@@ -540,6 +540,8 @@ enum {
   AREA_FLAG_STACKED_FULLSCREEN = (1 << 7),
   /** Update action zones (even if the mouse is not intersecting them). */
   AREA_FLAG_ACTIONZONES_UPDATE = (1 << 8),
+  /** For off-screen areas. */
+  AREA_FLAG_OFFSCREEN = (1 << 9),
 };
 
 #define AREAGRID 4

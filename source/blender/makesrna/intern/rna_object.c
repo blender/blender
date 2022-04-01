@@ -200,12 +200,6 @@ static EnumPropertyItem instance_items_nogroup[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-static EnumPropertyItem instance_items_pointcloud[] = {
-    {0, "NONE", 0, "None", ""},
-    {OB_DUPLIVERTS, "POINTS", 0, "Points", "Instantiate child objects on all points"},
-    {0, NULL, 0, NULL, NULL},
-};
-
 static EnumPropertyItem instance_items_empty[] = {
     {0, "NONE", 0, "None", ""},
     INSTANCE_ITEM_COLLECTION,
@@ -759,9 +753,6 @@ static const EnumPropertyItem *rna_Object_instance_type_itemf(bContext *UNUSED(C
 
   if (ob->type == OB_EMPTY) {
     item = instance_items_empty;
-  }
-  else if (ob->type == OB_POINTCLOUD) {
-    item = instance_items_pointcloud;
   }
   else if (ob->type == OB_FONT) {
     item = instance_items_font;

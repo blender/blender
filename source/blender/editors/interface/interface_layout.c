@@ -33,6 +33,7 @@
 #include "BKE_screen.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "UI_interface.h"
 
@@ -1026,10 +1027,10 @@ static uiBut *ui_item_with_label(uiLayout *layout,
     {
       int w_label;
       if (ui_layout_variable_size(layout)) {
-        /* w_hint is width for label in this case.
-         * Use a default width for property button(s) */
+        /* In this case, a pure label without additional padding.
+         * Use a default width for property button(s). */
         prop_but_width = UI_UNIT_X * 5;
-        w_label = w_hint;
+        w_label = ui_text_icon_width_ex(layout, name, ICON_NONE, &ui_text_pad_none);
       }
       else {
         w_label = w_hint / 3;
@@ -2750,6 +2751,10 @@ uiBut *ui_but_add_search(
                            ui_rna_collection_search_arg_free_fn,
                            NULL,
                            NULL);
+    /* If this is called multiple times for the same button, an earlier call may have taken the
+     * else branch below so the button was disabled. Now we have a searchprop, so it can be enabled
+     * again. */
+    but->flag &= ~UI_BUT_DISABLED;
   }
   else if (but->type == UI_BTYPE_SEARCH_MENU) {
     /* In case we fail to find proper searchprop,

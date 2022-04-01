@@ -867,7 +867,7 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
         RPT_WARNING,
         "Proxies have been removed from Blender (%d proxies were automatically converted "
         "to library overrides, %d proxies could not be converted and were cleared). "
-        "Please also consider re-saving any library .blend file with the newest Blender version.",
+        "Please also consider re-saving any library .blend file with the newest Blender version",
         bf_reports->count.proxies_to_lib_overrides_success,
         bf_reports->count.proxies_to_lib_overrides_failures);
   }
@@ -1999,20 +1999,20 @@ void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *UNUSED(wt))
 
 void wm_autosave_delete(void)
 {
-  char filename[FILE_MAX];
+  char filepath[FILE_MAX];
 
-  wm_autosave_location(filename);
+  wm_autosave_location(filepath);
 
-  if (BLI_exists(filename)) {
+  if (BLI_exists(filepath)) {
     char str[FILE_MAX];
     BLI_join_dirfile(str, sizeof(str), BKE_tempdir_base(), BLENDER_QUIT_FILE);
 
     /* if global undo; remove tempsave, otherwise rename */
     if (U.uiflag & USER_GLOBALUNDO) {
-      BLI_delete(filename, false, false);
+      BLI_delete(filepath, false, false);
     }
     else {
-      BLI_rename(filename, str);
+      BLI_rename(filepath, str);
     }
   }
 }
@@ -2959,10 +2959,10 @@ static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
 
 static int wm_recover_auto_save_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  char filename[FILE_MAX];
+  char filepath[FILE_MAX];
 
-  wm_autosave_location(filename);
-  RNA_string_set(op->ptr, "filepath", filename);
+  wm_autosave_location(filepath);
+  RNA_string_set(op->ptr, "filepath", filepath);
   wm_open_init_use_scripts(op, true);
   WM_event_add_fileselect(C, op);
 

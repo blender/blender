@@ -3139,15 +3139,19 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
   /* children */
+
+  /* NOTE(@campbellbarton): name is not following conventions: `nbr`.
+   * Could be changed next major version. */
   prop = RNA_def_property(srna, "child_nbr", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "child_nbr"); /* Optional if prop names are the same. */
+  RNA_def_property_int_sdna(
+      prop, NULL, "child_percent"); /* Optional if prop names are the same. */
   RNA_def_property_range(prop, 0, 100000);
   RNA_def_property_ui_range(prop, 0, 1000, 1, -1);
   RNA_def_property_ui_text(prop, "Children Per Parent", "Number of children per parent");
   RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
   prop = RNA_def_property(srna, "rendered_child_count", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "ren_child_nbr");
+  RNA_def_property_int_sdna(prop, NULL, "child_render_percent");
   RNA_def_property_range(prop, 0, 100000);
   RNA_def_property_ui_range(prop, 0, 10000, 1, -1);
   RNA_def_property_ui_text(

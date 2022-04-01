@@ -4520,6 +4520,12 @@ static void update_brush_local_mat(Sculpt *sd, Object *ob)
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Generic Brush Plane & Symmetry Utilities
+ * \{ */
+
 typedef struct {
   SculptSession *ss;
   const float *ray_start;

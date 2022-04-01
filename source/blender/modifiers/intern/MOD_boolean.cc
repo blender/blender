@@ -40,6 +40,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "MOD_ui_common.h"
 #include "MOD_util.h"
@@ -243,10 +244,7 @@ static BMesh *BMD_mesh_bm_create(
   BMeshFromMeshParams bmesh_from_mesh_params = {0};
 
   bmesh_from_mesh_params.calc_face_normal = true;
-  bmesh_from_mesh_params.active_shapekey = object->shapenr;
-  bmesh_from_mesh_params.use_shapekey = true;
-  bmesh_from_mesh_params.create_shapekey_layers = true,
-
+  bmesh_from_mesh_params.calc_vert_normal = true;
   BM_mesh_bm_from_me(object, bm, mesh_operand_ob, &bmesh_from_mesh_params);
 
   if (UNLIKELY(*r_is_flip)) {

@@ -423,6 +423,7 @@ TEST(atomic, atomic_fetch_and_and_uint32)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name 32 bit signed int atomics
  * \{ */
 
@@ -559,6 +560,7 @@ TEST(atomic, atomic_fetch_and_and_int32)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name 16 bit signed int atomics
  * \{ */
 
@@ -592,6 +594,9 @@ TEST(atomic, atomic_fetch_and_and_int16)
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name 8 bit unsigned int atomics
  * \{ */
 
@@ -638,6 +643,7 @@ TEST(atomic, atomic_fetch_and_and_int8)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name char aliases
  * \{ */
 
@@ -661,6 +667,7 @@ TEST(atomic, atomic_fetch_and_and_char)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name size_t aliases
  * \{ */
 
@@ -772,6 +779,7 @@ TEST(atomic, atomic_fetch_and_update_max_z)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name unsigned int aliases
  * \{ */
 
@@ -867,6 +875,7 @@ TEST(atomic, atomic_cas_u)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name pointer aliases
  * \{ */
 
@@ -885,6 +894,7 @@ TEST(atomic, atomic_cas_ptr)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name floating point atomics
  * \{ */
 

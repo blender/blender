@@ -18,6 +18,8 @@ set(INC
   ../../../../intern/glew-mx
   ../../../../intern/atomic
   ../../../../intern/guardedalloc
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 
@@ -89,7 +91,7 @@ set(SRC
   transform_orientations.c
   transform_snap.c
   transform_snap_animation.c
-  transform_snap_object.c
+  transform_snap_object.cc
   transform_snap_sequencer.c
 
   transform.h
@@ -113,3 +115,6 @@ set(LIB
 
 
 blender_add_lib(bf_editor_transform "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+# RNA_prototypes.h
+add_dependencies(bf_editor_transform bf_rna)

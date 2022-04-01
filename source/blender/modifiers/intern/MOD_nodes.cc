@@ -63,6 +63,7 @@
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
@@ -88,9 +89,14 @@
 
 using blender::Array;
 using blender::ColorGeometry4f;
+using blender::CPPType;
 using blender::destruct_ptr;
 using blender::float3;
 using blender::FunctionRef;
+using blender::GMutablePointer;
+using blender::GMutableSpan;
+using blender::GPointer;
+using blender::GVArray;
 using blender::IndexRange;
 using blender::Map;
 using blender::MultiValueMap;
@@ -103,9 +109,6 @@ using blender::Vector;
 using blender::bke::OutputAttribute;
 using blender::fn::Field;
 using blender::fn::GField;
-using blender::fn::GMutablePointer;
-using blender::fn::GPointer;
-using blender::fn::GVArray;
 using blender::fn::ValueOrField;
 using blender::fn::ValueOrFieldCPPType;
 using blender::nodes::FieldInferencingInterface;
@@ -727,33 +730,6 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
   }
 
   DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
-}
-
-void MOD_nodes_init(Main *bmain, NodesModifierData *nmd)
-{
-  bNodeTree *ntree = ntreeAddTree(bmain, "Geometry Nodes", ntreeType_Geometry->idname);
-  nmd->node_group = ntree;
-
-  ntreeAddSocketInterface(ntree, SOCK_IN, "NodeSocketGeometry", "Geometry");
-  ntreeAddSocketInterface(ntree, SOCK_OUT, "NodeSocketGeometry", "Geometry");
-
-  bNode *group_input_node = nodeAddStaticNode(nullptr, ntree, NODE_GROUP_INPUT);
-  bNode *group_output_node = nodeAddStaticNode(nullptr, ntree, NODE_GROUP_OUTPUT);
-
-  nodeSetSelected(group_input_node, false);
-  nodeSetSelected(group_output_node, false);
-
-  group_input_node->locx = -200 - group_input_node->width;
-  group_output_node->locx = 200;
-  group_output_node->flag |= NODE_DO_OUTPUT;
-
-  nodeAddLink(ntree,
-              group_output_node,
-              (bNodeSocket *)group_output_node->inputs.first,
-              group_input_node,
-              (bNodeSocket *)group_input_node->outputs.first);
-
-  BKE_ntree_update_main_tree(bmain, ntree, nullptr);
 }
 
 static void initialize_group_input(NodesModifierData &nmd,
@@ -1606,27 +1582,15 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   /* Draw node warnings. */
-  bool has_legacy_node = false;
   if (nmd->runtime_eval_log != nullptr) {
     const geo_log::ModifierLog &log = *static_cast<geo_log::ModifierLog *>(nmd->runtime_eval_log);
     log.foreach_node_log([&](const geo_log::NodeLog &node_log) {
       for (const geo_log::NodeWarning &warning : node_log.warnings()) {
-        if (warning.type == geo_log::NodeWarningType::Legacy) {
-          has_legacy_node = true;
-        }
-        else if (warning.type != geo_log::NodeWarningType::Info) {
+        if (warning.type != geo_log::NodeWarningType::Info) {
           uiItemL(layout, warning.message.c_str(), ICON_ERROR);
         }
       }
     });
-  }
-
-  if (has_legacy_node) {
-    uiLayout *row = uiLayoutRow(layout, false);
-    uiItemL(row, TIP_("Node tree has legacy node"), ICON_ERROR);
-    uiLayout *sub = uiLayoutRow(row, false);
-    uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
-    uiItemO(sub, "", ICON_VIEWZOOM, "NODE_OT_geometry_node_view_legacy");
   }
 
   modifier_panel_end(layout, ptr);

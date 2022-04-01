@@ -13,7 +13,6 @@
 #include "BKE_curves.hh"
 #include "BKE_mesh.h"
 #include "BKE_pointcloud.h"
-#include "BKE_spline.hh"
 #include "BKE_volume.h"
 
 #include "DEG_depsgraph_query.h"
@@ -104,8 +103,8 @@ static void transform_volume(Volume &volume, const float4x4 &transform, const De
   memcpy(vdb_matrix.asPointer(), &scale_limited_transform, sizeof(float[4][4]));
   openvdb::Mat4d vdb_matrix_d{vdb_matrix};
 
-  const int num_grids = BKE_volume_num_grids(&volume);
-  for (const int i : IndexRange(num_grids)) {
+  const int grids_num = BKE_volume_num_grids(&volume);
+  for (const int i : IndexRange(grids_num)) {
     VolumeGrid *volume_grid = BKE_volume_grid_get_for_write(&volume, i);
 
     openvdb::GridBase::Ptr grid = BKE_volume_grid_openvdb_for_write(&volume, volume_grid, false);
@@ -127,9 +126,7 @@ static void translate_geometry_set(GeometrySet &geometry,
                                    const Depsgraph &depsgraph)
 {
   if (Curves *curves = geometry.get_curves_for_write()) {
-    std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curves);
-    curve->translate(translation);
-    geometry.replace_curves(curve_eval_to_curves(*curve));
+    bke::CurvesGeometry::wrap(curves->geometry).translate(translation);
   }
   if (Mesh *mesh = geometry.get_mesh_for_write()) {
     translate_mesh(*mesh, translation);
@@ -150,9 +147,7 @@ void transform_geometry_set(GeometrySet &geometry,
                             const Depsgraph &depsgraph)
 {
   if (Curves *curves = geometry.get_curves_for_write()) {
-    std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curves);
-    curve->transform(transform);
-    geometry.replace_curves(curve_eval_to_curves(*curve));
+    bke::CurvesGeometry::wrap(curves->geometry).transform(transform);
   }
   if (Mesh *mesh = geometry.get_mesh_for_write()) {
     transform_mesh(*mesh, transform);

@@ -602,18 +602,34 @@ class _draw_tool_settings_context_mode:
             header=True
         )
 
-        UnifiedPaintPanel.prop_unified(
-            layout,
-            context,
-            brush,
-            "strength",
-            unified_name="use_unified_strength",
-            header=True
-        )
+        if brush.curves_sculpt_tool not in {'ADD', 'DELETE'}:
+            UnifiedPaintPanel.prop_unified(
+                layout,
+                context,
+                brush,
+                "strength",
+                unified_name="use_unified_strength",
+                header=True
+            )
 
-        if brush.curves_sculpt_tool == "TEST3":
+        if brush.curves_sculpt_tool == 'COMB':
+            layout.prop(brush, "falloff_shape", expand=True)
+            layout.prop(brush, "curve_preset")
+
+        if brush.curves_sculpt_tool == 'ADD':
+            layout.prop(brush, "use_frontface")
+            layout.prop(brush, "falloff_shape", expand=True)
+            layout.prop(brush.curves_sculpt_settings, "add_amount")
+            layout.prop(tool_settings.curves_sculpt, "curve_length")
+            layout.prop(tool_settings.curves_sculpt, "interpolate_length")
+            layout.prop(tool_settings.curves_sculpt, "interpolate_shape")
+
+        if brush.curves_sculpt_tool == 'SNAKE_HOOK':
+            layout.prop(brush, "falloff_shape", expand=True)
+            layout.prop(brush, "curve_preset")
+
+        if brush.curves_sculpt_tool == 'TEST1':
             layout.prop(tool_settings.curves_sculpt, "distance")
-
 
 
 class VIEW3D_HT_header(Header):
@@ -1319,6 +1335,7 @@ class VIEW3D_MT_view_navigation(Menu):
         layout.operator("view3d.zoom", text="Zoom In").delta = 1
         layout.operator("view3d.zoom", text="Zoom Out").delta = -1
         layout.operator("view3d.zoom_border", text="Zoom Region...")
+        layout.operator("view3d.dolly", text="Dolly View...")
         layout.operator("view3d.zoom_camera_1_to_1", text="Zoom Camera 1:1")
 
         layout.separator()
@@ -2461,25 +2478,6 @@ class VIEW3D_MT_object_clear(Menu):
         layout.operator("object.origin_clear", text="Origin")
 
 
-class VIEW3D_MT_motion_path(Menu):
-    bl_label = "Motion Paths"
-
-    def draw(self, _context):
-        layout = self.layout
-        ob = _context.object
-        if ob.mode == 'OBJECT':
-            layout.operator("object.paths_calculate")
-            layout.operator("object.paths_update")
-            layout.operator("object.paths_update_visible")
-            layout.operator("object.paths_clear", text="Clear all").only_selected = False
-            layout.operator("object.paths_clear", text="Clear selected").only_selected = True
-        elif ob.mode == 'POSE':
-            layout.operator("pose.paths_calculate")
-            layout.operator("pose.paths_update")
-            layout.operator("pose.paths_clear", text="Clear all").only_selected = False
-            layout.operator("pose.paths_clear", text="Clear selected").only_selected = True
-
-
 class VIEW3D_MT_object_context_menu(Menu):
     bl_label = "Object Context Menu"
 
@@ -2678,7 +2676,6 @@ class VIEW3D_MT_object_context_menu(Menu):
         layout.menu("VIEW3D_MT_mirror")
         layout.menu("VIEW3D_MT_snap")
         layout.menu("VIEW3D_MT_object_parent")
-        layout.menu("VIEW3D_MT_motion_path")
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         if view and view.local_view:
@@ -2711,6 +2708,8 @@ class VIEW3D_MT_object_apply(Menu):
 
     def draw(self, _context):
         layout = self.layout
+        # Need invoke for the popup confirming the multi-user data operation
+        layout.operator_context = 'INVOKE_DEFAULT'
 
         props = layout.operator("object.transform_apply", text="Location", text_ctxt=i18n_contexts.default)
         props.location, props.rotation, props.scale = True, False, False
@@ -2922,6 +2921,9 @@ class VIEW3D_MT_object_convert(Menu):
         # Potrace lib dependency.
         if bpy.app.build_options.potrace:
             layout.operator("gpencil.trace_image", icon='OUTLINER_OB_GREASEPENCIL')
+
+        if ob and ob.type == 'CURVES':
+            layout.operator("curves.convert_to_particle_system", text="Particle System")
 
 
 class VIEW3D_MT_make_links(Menu):
@@ -3713,10 +3715,10 @@ class VIEW3D_MT_pose_context_menu(Menu):
 
         layout.separator()
 
-        layout.operator("pose.paths_calculate")
-        layout.operator("pose.paths_update")
-        layout.operator("pose.paths_clear", text="Clear all").only_selected = False
-        layout.operator("pose.paths_clear", text="Clear selected").only_selected = True
+        layout.operator("pose.paths_calculate", text="Calculate Motion Paths")
+        layout.operator("pose.paths_clear", text="Clear Motion Paths")
+        layout.operator("pose.paths_update", text="Update Armature Motion Paths")
+        layout.operator("object.paths_update_visible", text="Update All Motion Paths")
 
         layout.separator()
 
@@ -5351,6 +5353,8 @@ class VIEW3D_MT_pivot_pie(Menu):
         pie.prop_enum(context.scene.tool_settings, "transform_pivot_point", value='ACTIVE_ELEMENT')
         if (obj is None) or (mode in {'OBJECT', 'POSE', 'WEIGHT_PAINT'}):
             pie.prop(context.scene.tool_settings, "use_transform_pivot_point_align")
+        if mode == 'EDIT_GPENCIL':
+            pie.prop(context.scene.tool_settings.gpencil_sculpt, "use_scale_thickness")
 
 
 class VIEW3D_MT_orientations_pie(Menu):
@@ -7575,7 +7579,7 @@ class VIEW3D_PT_sculpt_context_menu(Panel):
         UnifiedPaintPanel.prop_unified(layout,
             context,
             brush,
-            "size",
+            size,
             unified_name="use_unified_size",
             pressure_name="use_pressure_size",
             slider=True,)
@@ -7735,7 +7739,6 @@ classes = (VIEW3D_HT_header,
     VIEW3D_MT_object_quick_effects,
     VIEW3D_MT_object_showhide,
     VIEW3D_MT_object_cleanup,
-    VIEW3D_MT_motion_path,
     VIEW3D_MT_make_single_user,
     VIEW3D_MT_make_links,
     VIEW3D_MT_brush_paint_modes,

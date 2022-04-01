@@ -8,11 +8,10 @@
 
 #include <mutex>
 
-#include "FN_generic_virtual_array.hh"
-
 #include "DNA_curves_types.h"
 
 #include "BLI_float4x4.hh"
+#include "BLI_generic_virtual_array.hh"
 #include "BLI_math_vec_types.hh"
 #include "BLI_vector.hh"
 
@@ -205,16 +204,16 @@ class Spline {
    * points) to arbitrary parameters in between the evaluated points. The interpolation is quite
    * simple, but this handles the cyclic and end point special cases.
    */
-  void sample_with_index_factors(const blender::fn::GVArray &src,
+  void sample_with_index_factors(const blender::GVArray &src,
                                  blender::Span<float> index_factors,
-                                 blender::fn::GMutableSpan dst) const;
+                                 blender::GMutableSpan dst) const;
   template<typename T>
   void sample_with_index_factors(const blender::VArray<T> &src,
                                  blender::Span<float> index_factors,
                                  blender::MutableSpan<T> dst) const
   {
     this->sample_with_index_factors(
-        blender::fn::GVArray(src), index_factors, blender::fn::GMutableSpan(dst));
+        blender::GVArray(src), index_factors, blender::GMutableSpan(dst));
   }
   template<typename T>
   void sample_with_index_factors(blender::Span<T> src,
@@ -229,11 +228,11 @@ class Spline {
    * evaluated points. For poly splines, the lifetime of the returned virtual array must not
    * exceed the lifetime of the input data.
    */
-  virtual blender::fn::GVArray interpolate_to_evaluated(const blender::fn::GVArray &src) const = 0;
-  blender::fn::GVArray interpolate_to_evaluated(blender::fn::GSpan data) const;
+  virtual blender::GVArray interpolate_to_evaluated(const blender::GVArray &src) const = 0;
+  blender::GVArray interpolate_to_evaluated(blender::GSpan data) const;
   template<typename T> blender::VArray<T> interpolate_to_evaluated(blender::Span<T> data) const
   {
-    return this->interpolate_to_evaluated(blender::fn::GSpan(data)).typed<T>();
+    return this->interpolate_to_evaluated(blender::GSpan(data)).typed<T>();
   }
 
  protected:
@@ -244,7 +243,7 @@ class Spline {
 };
 
 /**
- * A Bézier spline is made up of a many curve segments, possibly achieving continuity of curvature
+ * A Bezier spline is made up of a many curve segments, possibly achieving continuity of curvature
  * by constraining the alignment of curve handles. Evaluation stores the positions and a map of
  * factors and indices in a list of floats, which is then used to interpolate any other data.
  */
@@ -386,8 +385,7 @@ class BezierSpline final : public Spline {
    */
   InterpolationData interpolation_data_from_index_factor(float index_factor) const;
 
-  virtual blender::fn::GVArray interpolate_to_evaluated(
-      const blender::fn::GVArray &src) const override;
+  virtual blender::GVArray interpolate_to_evaluated(const blender::GVArray &src) const override;
 
   void evaluate_segment(int index,
                         int next_index,
@@ -453,12 +451,15 @@ class NURBSpline final : public Spline {
   KnotsMode knots_mode;
 
   struct BasisCache {
-    /** The influence at each control point `i + #start_index`. */
+    /**
+     * For each evaluated point, the weight for all control points that influences it.
+     * The vector's size is the evaluated point count multiplied by the spline's order.
+     */
     blender::Vector<float> weights;
     /**
      * An offset for the start of #weights: the first control point index with a non-zero weight.
      */
-    int start_index;
+    blender::Vector<int> start_indices;
   };
 
  private:
@@ -484,7 +485,7 @@ class NURBSpline final : public Spline {
   mutable bool knots_dirty_ = true;
 
   /** Cache of control point influences on each evaluated point. */
-  mutable blender::Vector<BasisCache> basis_cache_;
+  mutable BasisCache basis_cache_;
   mutable std::mutex basis_cache_mutex_;
   mutable bool basis_cache_dirty_ = true;
 
@@ -538,7 +539,7 @@ class NURBSpline final : public Spline {
 
   blender::Span<blender::float3> evaluated_positions() const final;
 
-  blender::fn::GVArray interpolate_to_evaluated(const blender::fn::GVArray &src) const final;
+  blender::GVArray interpolate_to_evaluated(const blender::GVArray &src) const final;
 
  protected:
   void correct_end_tangents() const final;
@@ -547,11 +548,11 @@ class NURBSpline final : public Spline {
   void reverse_impl() override;
 
   void calculate_knots() const;
-  blender::Span<BasisCache> calculate_basis_cache() const;
+  const BasisCache &calculate_basis_cache() const;
 };
 
 /**
- * A Poly spline is like a Bézier spline with a resolution of one. The main reason to distinguish
+ * A Poly spline is like a Bezier spline with a resolution of one. The main reason to distinguish
  * the two is for reduced complexity and increased performance, since interpolating data to control
  * points does not change it.
  *
@@ -596,7 +597,7 @@ class PolySpline final : public Spline {
    * the original data. Therefore the lifetime of the returned virtual array must not be longer
    * than the source data.
    */
-  blender::fn::GVArray interpolate_to_evaluated(const blender::fn::GVArray &src) const final;
+  blender::GVArray interpolate_to_evaluated(const blender::GVArray &src) const final;
 
  protected:
   void correct_end_tangents() const final;

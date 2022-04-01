@@ -54,12 +54,12 @@ void main()
   bvec4 focus = lessThanEqual(cocs, vec4(0.5));
   if (any(defocus) && any(focus)) {
     /* For the same reason as in the flatten pass. This is a case we cannot optimize for. */
-    cocs = mix(cocs, vec4(DOF_TILE_MIXED), focus);
-    cocs = mix(cocs, vec4(DOF_TILE_MIXED), defocus);
+    cocs = select(cocs, vec4(DOF_TILE_MIXED), focus);
+    cocs = select(cocs, vec4(DOF_TILE_MIXED), defocus);
   }
   else {
-    cocs = mix(cocs, vec4(DOF_TILE_FOCUS), focus);
-    cocs = mix(cocs, vec4(DOF_TILE_DEFOCUS), defocus);
+    cocs = select(cocs, vec4(DOF_TILE_FOCUS), focus);
+    cocs = select(cocs, vec4(DOF_TILE_DEFOCUS), defocus);
   }
   outCoc.y = max_v4(cocs);
 }

@@ -59,7 +59,7 @@ typedef struct TextState {
 
 static void text_state_encode(TextState *state, Text *text, BArrayStore *buffer_store)
 {
-  int buf_len = 0;
+  size_t buf_len = 0;
   uchar *buf = (uchar *)txt_to_buf_for_undo(text, &buf_len);
   state->buf_array_state = BLI_array_store_state_add(buffer_store, buf, buf_len, NULL);
   MEM_freeN(buf);

@@ -28,7 +28,7 @@ enum eObject_Hook_Add_Mode {
 
 /* internal exports only */
 
-/* object_transform.c */
+/* object_transform.cc */
 
 void OBJECT_OT_location_clear(struct wmOperatorType *ot);
 void OBJECT_OT_rotation_clear(struct wmOperatorType *ot);
@@ -76,6 +76,7 @@ void OBJECT_OT_shade_flat(struct wmOperatorType *ot);
 void OBJECT_OT_paths_calculate(struct wmOperatorType *ot);
 void OBJECT_OT_paths_update(struct wmOperatorType *ot);
 void OBJECT_OT_paths_clear(struct wmOperatorType *ot);
+void OBJECT_OT_paths_range_update(struct wmOperatorType *ot);
 void OBJECT_OT_paths_update_visible(struct wmOperatorType *ot);
 void OBJECT_OT_forcefield_toggle(struct wmOperatorType *ot);
 

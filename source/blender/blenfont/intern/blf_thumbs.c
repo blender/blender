@@ -29,7 +29,7 @@
 
 #include "BLI_strict_flags.h"
 
-void BLF_thumb_preview(const char *filename,
+void BLF_thumb_preview(const char *filepath,
                        const char **draw_str,
                        const char **i18n_draw_str,
                        const unsigned char draw_str_lines,
@@ -49,9 +49,9 @@ void BLF_thumb_preview(const char *filename,
   FontBLF *font;
 
   /* Create a new blender font obj and fill it with default values */
-  font = blf_font_new("thumb_font", filename);
+  font = blf_font_new("thumb_font", filepath);
   if (!font) {
-    printf("Info: Can't load font '%s', no preview possible\n", filename);
+    printf("Info: Can't load font '%s', no preview possible\n", filepath);
     return;
   }
 
@@ -73,7 +73,7 @@ void BLF_thumb_preview(const char *filename,
   for (int i = 0; i < draw_str_lines; i++) {
     const char *draw_str_i18n = i18n_draw_str[i] != NULL ? i18n_draw_str[i] : draw_str[i];
     const size_t draw_str_i18n_len = strlen(draw_str_i18n);
-    int draw_str_i18n_nbr = 0;
+    int draw_str_i18_count = 0;
 
     CLAMP_MIN(font_size_curr, font_size_min);
     if (!blf_font_size(font, (float)font_size_curr, dpi)) {
@@ -91,8 +91,8 @@ void BLF_thumb_preview(const char *filename,
      * since many fonts will then show nothing but ugly 'missing char' in their preview).
      * Does not handle all cases, but much better than nothing.
      */
-    if (blf_font_count_missing_chars(font, draw_str_i18n, draw_str_i18n_len, &draw_str_i18n_nbr) >
-        (draw_str_i18n_nbr / 2)) {
+    if (blf_font_count_missing_chars(font, draw_str_i18n, draw_str_i18n_len, &draw_str_i18_count) >
+        (draw_str_i18_count / 2)) {
       blf_font_draw_buffer(font, draw_str[i], strlen(draw_str[i]), NULL);
     }
     else {

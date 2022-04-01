@@ -637,7 +637,6 @@ typedef struct UserDef_Experimental {
   char use_undo_legacy;
   char no_override_auto_resync;
   char use_cycles_debug;
-  char use_geometry_nodes_legacy;
   char show_asset_debug_info;
   char no_asset_indexing;
   char SANITIZE_AFTER_HERE;
@@ -653,7 +652,12 @@ typedef struct UserDef_Experimental {
 
   char use_sculpt_uvsmooth;
 
-  char _pad[1];
+  char _pad[7];
+
+  char use_named_attribute_nodes;
+  char use_select_nearest_on_first_click;
+  char enable_eevee_next;
+  // char _pad[0];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 

@@ -20,9 +20,11 @@
 #include "BLI_asan.h"
 #include "BLI_bitmap.h"
 #include "BLI_compiler_attrs.h"
+#include "BLI_color.hh"
 #include "BLI_endian_switch.h"
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
+#include "BLI_math_vector.hh"
 #include "BLI_mempool.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -90,7 +92,10 @@ bool CustomData_layout_is_same(const CustomData *_a, const CustomData *_b)
   return true;
 }
 
-/** Update mask_dst with layers defined in mask_src (equivalent to a bitwise OR). */
+/* -------------------------------------------------------------------- */
+/** \name Mesh Mask Utilities
+ * \{ */
+
 void CustomData_MeshMasks_update(CustomData_MeshMasks *mask_dst,
                                  const CustomData_MeshMasks *mask_src)
 {
@@ -111,7 +116,12 @@ bool CustomData_MeshMasks_are_matching(const CustomData_MeshMasks *mask_ref,
           ((mask_required->lmask & mask_ref->lmask) == mask_required->lmask));
 }
 
-/********************* Layer type information **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Layer Type Information
+ * \{ */
+
 struct LayerTypeInfo {
   int size; /* the memory size of one element of this layer's data */
 
@@ -192,6 +202,12 @@ struct LayerTypeInfo {
    * should be null or return -1 if no limit */
   int (*layers_max)();
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (#MDeformVert, #CD_MDEFORMVERT)
+ * \{ */
 
 static void layerCopy_mdeformvert(const void *source, void *dest, int count)
 {
@@ -344,6 +360,12 @@ static void layerInterp_mdeformvert(const void **sources,
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (#vec3f, #CD_NORMAL)
+ * \{ */
+
 static void layerInterp_normal(const void **sources,
                                const float *weights,
                                const float *UNUSED(sub_weights),
@@ -399,6 +421,12 @@ static void layerCopyValue_normal(const void *source,
     interp_v3_v3v3_slerp_safe(no_dst, no_dst, no_tmp, mixfactor);
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (#MTFace, #CD_MTFACE)
+ * \{ */
 
 static void layerCopy_tface(const void *source, void *dest, int count)
 {
@@ -465,6 +493,12 @@ static int layerMaxNum_tface()
   return MAX_MTFACE;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (#MFloatProperty, #CD_PROP_FLOAT)
+ * \{ */
+
 static void layerCopy_propFloat(const void *source, void *dest, int count)
 {
   memcpy(dest, source, sizeof(MFloatProperty) * count);
@@ -502,15 +536,33 @@ static bool layerValidate_propFloat(void *data, const uint totitems, const bool 
   return has_errors;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (#MIntProperty, #CD_PROP_INT32)
+ * \{ */
+
 static void layerCopy_propInt(const void *source, void *dest, int count)
 {
   memcpy(dest, source, sizeof(MIntProperty) * count);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (#MStringProperty, #CD_PROP_STRING)
+ * \{ */
+
 static void layerCopy_propString(const void *source, void *dest, int count)
 {
   memcpy(dest, source, sizeof(MStringProperty) * count);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (#OrigSpaceFace, #CD_ORIGSPACE)
+ * \{ */
 
 static void layerCopy_origspace_face(const void *source, void *dest, int count)
 {
@@ -569,6 +621,12 @@ static void layerDefault_origspace_face(void *data, int count)
     osf[i] = default_osf;
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (#MDisps, #CD_MDISPS)
+ * \{ */
 
 static void layerSwap_mdisps(void *data, const int *ci)
 {
@@ -682,6 +740,13 @@ static size_t layerFilesize_mdisps(CDataFile *UNUSED(cdf), const void *data, int
 
   return size;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (`float`, #CD_PAINT_MASK)
+ * \{ */
+
 static void layerInterp_paint_mask(const void **sources,
                                    const float *weights,
                                    const float *UNUSED(sub_weights),
@@ -696,6 +761,12 @@ static void layerInterp_paint_mask(const void **sources,
   }
   *(float *)dest = mask;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (#GridPaintMask, #CD_GRID_PAINT_MASK)
+ * \{ */
 
 static void layerCopy_grid_paint_mask(const void *source, void *dest, int count)
 {
@@ -1208,6 +1279,12 @@ static void layerInterp_shapekey(const void **sources,
   copy_v3_v3((float *)dest, co);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (#MVertSkin, #CD_MVERT_SKIN)
+ * \{ */
+
 static void layerDefault_mvert_skin(void *data, int count)
 {
   MVertSkin *vs = static_cast<MVertSkin *>(data);
@@ -1245,6 +1322,12 @@ static void layerInterp_mvert_skin(const void **sources,
   vs_dst->flag &= ~MVERT_SKIN_ROOT;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (`short[4][3]`, #CD_TESSLOOPNORMAL)
+ * \{ */
+
 static void layerSwap_flnor(void *data, const int *corner_indices)
 {
   short(*flnors)[4][3] = static_cast<short(*)[4][3]>(data);
@@ -1258,6 +1341,12 @@ static void layerSwap_flnor(void *data, const int *corner_indices)
   memcpy(flnors, nors, sizeof(nors));
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (`int`, #CD_FACEMAP)
+ * \{ */
+
 static void layerDefault_fmap(void *data, int count)
 {
   int *fmap_num = (int *)data;
@@ -1265,6 +1354,12 @@ static void layerDefault_fmap(void *data, int count)
     fmap_num[i] = -1;
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (#MPropCol, #CD_PROP_COLOR)
+ * \{ */
 
 static void layerCopyValue_propcol(const void *source,
                                    void *dest,
@@ -1389,6 +1484,12 @@ static int layerMaxNum_propcol()
   return MAX_MCOL;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (#vec3f, #CD_PROP_FLOAT3)
+ * \{ */
+
 static void layerInterp_propfloat3(const void **sources,
                                    const float *weights,
                                    const float *UNUSED(sub_weights),
@@ -1435,6 +1536,12 @@ static bool layerValidate_propfloat3(void *data, const uint totitems, const bool
   }
   return has_errors;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (#vec2f, #CD_PROP_FLOAT2)
+ * \{ */
 
 static void layerInterp_propfloat2(const void **sources,
                                    const float *weights,
@@ -1565,6 +1672,11 @@ static void layerDefault_mesh_id(void *data, int count)
     val[i] = 0;
   }
 }
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (`bool`, #CD_PROP_BOOL)
+ * \{ */
 
 static void layerInterp_propbool(const void **sources,
                                  const float *weights,
@@ -2218,7 +2330,12 @@ void customData_mask_layers__print(const CustomData_MeshMasks *mask)
   }
 }
 
-/********************* CustomData functions *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name CustomData Functions
+ * \{ */
+
 static void customData_update_offsets(CustomData *data);
 
 static CustomDataLayer *customData_add_layer__internal(CustomData *data,
@@ -5122,14 +5239,18 @@ void CustomData_layers__print(CustomData *data)
   printf("}\n");
 }
 
-/****************************** External Files *******************************/
+/** \} */
 
-static void customdata_external_filename(char filename[FILE_MAX],
+/* -------------------------------------------------------------------- */
+/** \name External Files
+ * \{ */
+
+static void customdata_external_filename(char filepath[FILE_MAX],
                                          ID *id,
                                          CustomDataExternal *external)
 {
-  BLI_strncpy(filename, external->filename, FILE_MAX);
-  BLI_path_abs(filename, ID_BLEND_PATH_FROM_GLOBAL(id));
+  BLI_strncpy(filepath, external->filepath, FILE_MAX);
+  BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(id));
 }
 
 void CustomData_external_reload(CustomData *data, ID *UNUSED(id), CustomDataMask mask, int totelem)
@@ -5154,7 +5275,7 @@ void CustomData_external_read(CustomData *data, ID *id, CustomDataMask mask, int
 {
   CustomDataExternal *external = data->external;
   CustomDataLayer *layer;
-  char filename[FILE_MAX];
+  char filepath[FILE_MAX];
   int update = 0;
 
   if (!external) {
@@ -5180,12 +5301,12 @@ void CustomData_external_read(CustomData *data, ID *id, CustomDataMask mask, int
     return;
   }
 
-  customdata_external_filename(filename, id, external);
+  customdata_external_filename(filepath, id, external);
 
   CDataFile *cdf = cdf_create(CDF_TYPE_MESH);
-  if (!cdf_read_open(cdf, filename)) {
+  if (!cdf_read_open(cdf, filepath)) {
     cdf_free(cdf);
-    CLOG_ERROR(&LOG, "Failed to read %s layer from %s.", layerType_getName(layer->type), filename);
+    CLOG_ERROR(&LOG, "Failed to read %s layer from %s.", layerType_getName(layer->type), filepath);
     return;
   }
 
@@ -5228,7 +5349,7 @@ void CustomData_external_write(
 {
   CustomDataExternal *external = data->external;
   int update = 0;
-  char filename[FILE_MAX];
+  char filepath[FILE_MAX];
 
   if (!external) {
     return;
@@ -5253,7 +5374,7 @@ void CustomData_external_write(
 
   /* make sure data is read before we try to write */
   CustomData_external_read(data, id, mask, totelem);
-  customdata_external_filename(filename, id, external);
+  customdata_external_filename(filepath, id, external);
 
   CDataFile *cdf = cdf_create(CDF_TYPE_MESH);
 
@@ -5273,8 +5394,8 @@ void CustomData_external_write(
     }
   }
 
-  if (!cdf_write_open(cdf, filename)) {
-    CLOG_ERROR(&LOG, "Failed to open %s for writing.", filename);
+  if (!cdf_write_open(cdf, filepath)) {
+    CLOG_ERROR(&LOG, "Failed to open %s for writing.", filepath);
     cdf_free(cdf);
     return;
   }
@@ -5302,7 +5423,7 @@ void CustomData_external_write(
   }
 
   if (i != data->totlayer) {
-    CLOG_ERROR(&LOG, "Failed to write data to %s.", filename);
+    CLOG_ERROR(&LOG, "Failed to write data to %s.", filepath);
     cdf_write_close(cdf);
     cdf_free(cdf);
     return;
@@ -5327,7 +5448,7 @@ void CustomData_external_write(
 }
 
 void CustomData_external_add(
-    CustomData *data, ID *UNUSED(id), int type, int UNUSED(totelem), const char *filename)
+    CustomData *data, ID *UNUSED(id), int type, int UNUSED(totelem), const char *filepath)
 {
   CustomDataExternal *external = data->external;
 
@@ -5346,7 +5467,7 @@ void CustomData_external_add(
     external = MEM_cnew<CustomDataExternal>(__func__);
     data->external = external;
   }
-  BLI_strncpy(external->filename, filename, sizeof(external->filename));
+  BLI_strncpy(external->filepath, filepath, sizeof(external->filepath));
 
   layer->flag |= CD_FLAG_EXTERNAL | CD_FLAG_IN_MEMORY;
 }
@@ -5386,7 +5507,12 @@ bool CustomData_external_test(CustomData *data, int type)
   return (layer->flag & CD_FLAG_EXTERNAL) != 0;
 }
 
-/* ********** Mesh-to-mesh data transfer ********** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Mesh-to-Mesh Data Transfer
+ * \{ */
+
 static void copy_bit_flag(void *dst, const void *src, const size_t data_size, const uint64_t flag)
 {
 #define COPY_BIT_FLAG(_type, _dst, _src, _f) \
@@ -5665,6 +5791,12 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap,
   MEM_SAFE_FREE(tmp_data_src);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Custom Data IO
+ * \{ */
+
 static void write_mdisps(BlendWriter *writer, int count, MDisps *mdlist, int external)
 {
   if (mdlist) {
@@ -5918,6 +6050,12 @@ void CustomData_interpData(CustomDataType type,
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Custom Data Debugging
+ * \{ */
+
 #ifndef NDEBUG
 
 void CustomData_debug_info_from_layers(const CustomData *data, const char *indent, DynStr *dynstr)
@@ -5947,3 +6085,64 @@ void CustomData_debug_info_from_layers(const CustomData *data, const char *inden
 }
 
 #endif /* NDEBUG */
+
+/** \} */
+
+namespace blender::bke {
+
+/* -------------------------------------------------------------------- */
+/** \name Custom Data C++ API
+ * \{ */
+
+const blender::CPPType *custom_data_type_to_cpp_type(const CustomDataType type)
+{
+  switch (type) {
+    case CD_PROP_FLOAT:
+      return &CPPType::get<float>();
+    case CD_PROP_FLOAT2:
+      return &CPPType::get<float2>();
+    case CD_PROP_FLOAT3:
+      return &CPPType::get<float3>();
+    case CD_PROP_INT32:
+      return &CPPType::get<int>();
+    case CD_PROP_COLOR:
+      return &CPPType::get<ColorGeometry4f>();
+    case CD_PROP_BOOL:
+      return &CPPType::get<bool>();
+    case CD_PROP_INT8:
+      return &CPPType::get<int8_t>();
+    default:
+      return nullptr;
+  }
+  return nullptr;
+}
+
+CustomDataType cpp_type_to_custom_data_type(const blender::CPPType &type)
+{
+  if (type.is<float>()) {
+    return CD_PROP_FLOAT;
+  }
+  if (type.is<float2>()) {
+    return CD_PROP_FLOAT2;
+  }
+  if (type.is<float3>()) {
+    return CD_PROP_FLOAT3;
+  }
+  if (type.is<int>()) {
+    return CD_PROP_INT32;
+  }
+  if (type.is<ColorGeometry4f>()) {
+    return CD_PROP_COLOR;
+  }
+  if (type.is<bool>()) {
+    return CD_PROP_BOOL;
+  }
+  if (type.is<int8_t>()) {
+    return CD_PROP_INT8;
+  }
+  return static_cast<CustomDataType>(-1);
+}
+
+/** \} */
+
+}  // namespace blender::bke

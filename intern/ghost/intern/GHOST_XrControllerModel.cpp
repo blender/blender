@@ -234,7 +234,7 @@ static void calc_node_transforms(const tinygltf::Node &gltf_node,
                      {(float)dm[4], (float)dm[5], (float)dm[6], (float)dm[7]},
                      {(float)dm[8], (float)dm[9], (float)dm[10], (float)dm[11]},
                      {(float)dm[12], (float)dm[13], (float)dm[14], (float)dm[15]}};
-    memcpy(r_local_transform, m, sizeof(float) * 16);
+    memcpy(r_local_transform, m, sizeof(float[4][4]));
   }
   else {
     /* No matrix is present, so construct a matrix from the TRS values (each one is optional). */

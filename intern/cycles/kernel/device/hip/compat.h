@@ -62,7 +62,7 @@ typedef unsigned long long uint64_t;
 #define ccl_gpu_block_idx_x (blockIdx.x)
 #define ccl_gpu_grid_dim_x (gridDim.x)
 #define ccl_gpu_warp_size (warpSize)
-#define ccl_gpu_thread_mask(thread_warp) uint(0xFFFFFFFF >> (ccl_gpu_warp_size - thread_warp))
+#define ccl_gpu_thread_mask(thread_warp) uint64_t(0xFFFFFFFFFFFFFFFF >> (64 - thread_warp))
 
 #define ccl_gpu_global_id_x() (ccl_gpu_block_idx_x * ccl_gpu_block_dim_x + ccl_gpu_thread_idx_x)
 #define ccl_gpu_global_size_x() (ccl_gpu_grid_dim_x * ccl_gpu_block_dim_x)
@@ -71,7 +71,6 @@ typedef unsigned long long uint64_t;
 
 #define ccl_gpu_syncthreads() __syncthreads()
 #define ccl_gpu_ballot(predicate) __ballot(predicate)
-#define ccl_gpu_shfl_down_sync(mask, var, detla) __shfl_down(var, detla)
 
 /* GPU texture objects */
 typedef hipTextureObject_t ccl_gpu_tex_object;

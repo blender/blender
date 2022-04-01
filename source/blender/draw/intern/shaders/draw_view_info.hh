@@ -75,6 +75,16 @@ GPU_SHADER_CREATE_INFO(drw_clipped).define("USE_WORLD_CLIP_PLANES");
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Draw Globals
+ * \{ */
+
+GPU_SHADER_CREATE_INFO(draw_globals)
+    .typedef_source("draw_common_shader_shared.h")
+    .uniform_buf(1, "GlobalsUboStorage", "globalsBlock", Frequency::PASS);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Geometry Type
  * \{ */
 
@@ -92,7 +102,7 @@ GPU_SHADER_CREATE_INFO(draw_hair)
     .push_constant(Type::FLOAT, "hairRadShape")
     .push_constant(Type::BOOL, "hairCloseTip")
     .push_constant(Type::INT, "hairStrandOffset")
-    .push_constant(Type::VEC4, "hairDupliMatrix", 4)
+    .push_constant(Type::MAT4, "hairDupliMatrix")
     .additional_info("draw_modelmat", "draw_resource_id");
 
 GPU_SHADER_CREATE_INFO(draw_pointcloud)
@@ -102,5 +112,29 @@ GPU_SHADER_CREATE_INFO(draw_pointcloud)
     .additional_info("draw_modelmat_instanced_attr", "draw_resource_id_uniform");
 
 GPU_SHADER_CREATE_INFO(draw_volume).additional_info("draw_modelmat", "draw_resource_id_uniform");
+
+GPU_SHADER_CREATE_INFO(draw_gpencil)
+    .typedef_source("gpencil_shader_shared.h")
+    .define("DRW_GPENCIL_INFO")
+    .vertex_in(0, Type::IVEC4, "ma")
+    .vertex_in(1, Type::IVEC4, "ma1")
+    .vertex_in(2, Type::IVEC4, "ma2")
+    .vertex_in(3, Type::IVEC4, "ma3")
+    .vertex_in(4, Type::VEC4, "pos")
+    .vertex_in(5, Type::VEC4, "pos1")
+    .vertex_in(6, Type::VEC4, "pos2")
+    .vertex_in(7, Type::VEC4, "pos3")
+    .vertex_in(8, Type::VEC4, "uv1")
+    .vertex_in(9, Type::VEC4, "uv2")
+    .vertex_in(10, Type::VEC4, "col1")
+    .vertex_in(11, Type::VEC4, "col2")
+    .vertex_in(12, Type::VEC4, "fcol1")
+    /* Per Object */
+    .push_constant(Type::FLOAT, "gpThicknessScale") /* TODO(fclem): Replace with object info. */
+    .push_constant(Type::FLOAT, "gpThicknessWorldScale") /* TODO(fclem): Same as above. */
+    .define("gpThicknessIsScreenSpace", "(gpThicknessWorldScale < 0.0)")
+    /* Per Layer */
+    .push_constant(Type::FLOAT, "gpThicknessOffset")
+    .additional_info("draw_modelmat", "draw_resource_id_uniform", "draw_object_infos");
 
 /** \} */

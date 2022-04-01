@@ -18,6 +18,7 @@
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 #include "BKE_paint.h"
+#include "BKE_lib_id.h"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
 
@@ -40,17 +41,14 @@
 
 namespace blender::ed::geometry {
 
-using fn::CPPType;
-using fn::GArray;
-using fn::GVArray;
-
 /*********************** Attribute Operators ************************/
 
 static bool geometry_attributes_poll(bContext *C)
 {
   Object *ob = ED_object_context(C);
+  Main *bmain = CTX_data_main(C);
   ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
-  return (ob && !ID_IS_LINKED(ob) && data && !ID_IS_LINKED(data)) &&
+  return (ob && BKE_id_is_editable(bmain, &ob->id) && data && BKE_id_is_editable(bmain, data)) &&
          BKE_id_attributes_supported(data);
 }
 

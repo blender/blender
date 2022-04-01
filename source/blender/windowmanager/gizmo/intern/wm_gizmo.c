@@ -16,6 +16,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 #include "BKE_global.h"
 #include "BKE_idprop.h"

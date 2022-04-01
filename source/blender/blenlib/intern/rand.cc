@@ -117,18 +117,18 @@ void BLI_rng_get_tri_sample_float_v3(
   copy_v3_v3(r_pt, rng->rng.get_triangle_sample_3d(v1, v2, v3));
 }
 
-void BLI_rng_shuffle_array(RNG *rng, void *data, unsigned int elem_size_i, unsigned int elem_tot)
+void BLI_rng_shuffle_array(RNG *rng, void *data, unsigned int elem_size_i, unsigned int elem_num)
 {
-  if (elem_tot <= 1) {
+  if (elem_num <= 1) {
     return;
   }
 
   const uint elem_size = elem_size_i;
-  unsigned int i = elem_tot;
+  unsigned int i = elem_num;
   void *temp = malloc(elem_size);
 
   while (i--) {
-    const unsigned int j = BLI_rng_get_uint(rng) % elem_tot;
+    const unsigned int j = BLI_rng_get_uint(rng) % elem_num;
     if (i != j) {
       void *iElem = (unsigned char *)data + i * elem_size_i;
       void *jElem = (unsigned char *)data + j * elem_size_i;
@@ -141,15 +141,15 @@ void BLI_rng_shuffle_array(RNG *rng, void *data, unsigned int elem_size_i, unsig
   free(temp);
 }
 
-void BLI_rng_shuffle_bitmap(struct RNG *rng, BLI_bitmap *bitmap, unsigned int bits_tot)
+void BLI_rng_shuffle_bitmap(struct RNG *rng, BLI_bitmap *bitmap, unsigned int bits_num)
 {
-  if (bits_tot <= 1) {
+  if (bits_num <= 1) {
     return;
   }
 
-  unsigned int i = bits_tot;
+  unsigned int i = bits_num;
   while (i--) {
-    const unsigned int j = BLI_rng_get_uint(rng) % bits_tot;
+    const unsigned int j = BLI_rng_get_uint(rng) % bits_num;
     if (i != j) {
       const bool i_bit = BLI_BITMAP_TEST(bitmap, i);
       const bool j_bit = BLI_BITMAP_TEST(bitmap, j);
@@ -187,21 +187,21 @@ float BLI_hash_frand(unsigned int seed)
 
 void BLI_array_randomize(void *data,
                          unsigned int elem_size,
-                         unsigned int elem_tot,
+                         unsigned int elem_num,
                          unsigned int seed)
 {
   RNG rng;
 
   BLI_rng_seed(&rng, seed);
-  BLI_rng_shuffle_array(&rng, data, elem_size, elem_tot);
+  BLI_rng_shuffle_array(&rng, data, elem_size, elem_num);
 }
 
-void BLI_bitmap_randomize(BLI_bitmap *bitmap, unsigned int bits_tot, unsigned int seed)
+void BLI_bitmap_randomize(BLI_bitmap *bitmap, unsigned int bits_num, unsigned int seed)
 {
   RNG rng;
 
   BLI_rng_seed(&rng, seed);
-  BLI_rng_shuffle_bitmap(&rng, bitmap, bits_tot);
+  BLI_rng_shuffle_bitmap(&rng, bitmap, bits_num);
 }
 
 /* ********* for threaded random ************** */
@@ -372,6 +372,15 @@ void RandomNumberGenerator::seed_random(uint32_t seed)
   this->seed(seed + hash[seed & 255]);
   seed = this->get_uint32();
   this->seed(seed + hash[seed & 255]);
+}
+
+int RandomNumberGenerator::round_probabilistic(float x)
+{
+  /* Support for negative values can be added when necessary. */
+  BLI_assert(x >= 0.0f);
+  const float round_up_probability = fractf(x);
+  const bool round_up = round_up_probability > this->get_float();
+  return (int)x + (int)round_up;
 }
 
 float2 RandomNumberGenerator::get_unit_float2()

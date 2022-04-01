@@ -8,7 +8,7 @@ in vec4 uvcoordsvar;
 
 out vec4 FragColor;
 
-uniform sampler2D depthBuffer;
+uniform depth2D depthBuffer;
 uniform sampler1D sssTexProfile;
 uniform sampler2D sssRadius;
 uniform sampler2DArray sssShadowCubes;
@@ -21,7 +21,7 @@ uniform sampler2DArray sssShadowCascades;
 
 layout(std140) uniform sssProfile
 {
-  vec4 kernel[MAX_SSS_SAMPLES];
+  vec4 sss_kernel[MAX_SSS_SAMPLES];
   vec4 radii_max_radius;
   int sss_samples;
 };

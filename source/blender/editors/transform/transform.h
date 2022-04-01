@@ -188,8 +188,8 @@ typedef enum {
 /** #TransInfo.redraw */
 typedef enum {
   TREDRAW_NOTHING = 0,
-  TREDRAW_HARD = 1,
-  TREDRAW_SOFT = 2,
+  TREDRAW_SOFT = (1 << 0),
+  TREDRAW_HARD = (1 << 1) | TREDRAW_SOFT,
 } eRedrawFlag;
 
 /** #TransInfo.helpline */
@@ -663,7 +663,6 @@ typedef struct TransInfo {
   int mval[2];
   /** use for 3d view. */
   float zfac;
-  void *draw_handle_apply;
   void *draw_handle_view;
   void *draw_handle_pixel;
   void *draw_handle_cursor;

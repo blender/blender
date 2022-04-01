@@ -40,6 +40,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "DEG_depsgraph_physics.h"
 #include "DEG_depsgraph_query.h"
@@ -77,7 +78,7 @@ static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
                         Mesh *mesh,
                         float (*vertexCos)[3],
-                        int numVerts)
+                        int verts_num)
 {
   Mesh *mesh_src;
   ClothModifierData *clmd = (ClothModifierData *)md;
@@ -93,7 +94,7 @@ static void deformVerts(ModifierData *md,
   }
 
   if (mesh == NULL) {
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, NULL, NULL, numVerts, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, NULL, NULL, verts_num, false, false);
   }
   else {
     /* Not possible to use get_mesh() in this case as we'll modify its vertices
@@ -117,7 +118,7 @@ static void deformVerts(ModifierData *md,
             &mesh_src->vdata, CD_CLOTH_ORCO, CD_CALLOC, NULL, mesh_src->totvert);
       }
 
-      memcpy(layerorco, kb->data, sizeof(float[3]) * numVerts);
+      memcpy(layerorco, kb->data, sizeof(float[3]) * verts_num);
     }
   }
 

@@ -26,6 +26,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -39,11 +40,11 @@ static void deformVerts(ModifierData *UNUSED(md),
                         const ModifierEvalContext *ctx,
                         Mesh *UNUSED(derivedData),
                         float (*vertexCos)[3],
-                        int numVerts)
+                        int verts_num)
 {
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   sbObjectStep(
-      ctx->depsgraph, scene, ctx->object, DEG_get_ctime(ctx->depsgraph), vertexCos, numVerts);
+      ctx->depsgraph, scene, ctx->object, DEG_get_ctime(ctx->depsgraph), vertexCos, verts_num);
 }
 
 static bool dependsOnTime(struct Scene *UNUSED(scene),

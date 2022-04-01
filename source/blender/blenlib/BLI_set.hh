@@ -515,8 +515,13 @@ class Set {
    */
   void clear()
   {
-    this->~Set();
-    new (this) Set();
+    for (Slot &slot : slots_) {
+      slot.~Slot();
+      new (&slot) Slot();
+    }
+
+    removed_slots_ = 0;
+    occupied_and_removed_slots_ = 0;
   }
 
   /**

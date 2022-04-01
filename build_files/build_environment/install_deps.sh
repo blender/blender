@@ -432,8 +432,8 @@ PYTHON_MODULES_PIP=(
 )
 
 
-BOOST_VERSION="1.73.0"
-BOOST_VERSION_SHORT="1.73"
+BOOST_VERSION="1.78.0"
+BOOST_VERSION_SHORT="1.78"
 BOOST_VERSION_MIN="1.49"
 BOOST_VERSION_MEX="2.0"
 BOOST_FORCE_BUILD=false
@@ -442,15 +442,15 @@ BOOST_SKIP=false
 
 TBB_VERSION="2020"
 TBB_VERSION_SHORT="2020"
-TBB_VERSION_UPDATE="_U2"  # Used for source packages...
+TBB_VERSION_UPDATE="_U3"  # Used for source packages...
 TBB_VERSION_MIN="2018"
 TBB_VERSION_MEX="2022"
 TBB_FORCE_BUILD=false
 TBB_FORCE_REBUILD=false
 TBB_SKIP=false
 
-OCIO_VERSION="2.0.0"
-OCIO_VERSION_SHORT="2.0"
+OCIO_VERSION="2.1.1"
+OCIO_VERSION_SHORT="2.1"
 OCIO_VERSION_MIN="2.0"
 OCIO_VERSION_MEX="3.0"
 OCIO_FORCE_BUILD=false
@@ -466,10 +466,10 @@ OPENEXR_FORCE_REBUILD=false
 OPENEXR_SKIP=false
 _with_built_openexr=false
 
-OIIO_VERSION="2.2.15.1"
-OIIO_VERSION_SHORT="2.2"
+OIIO_VERSION="2.3.13.0"
+OIIO_VERSION_SHORT="2.3"
 OIIO_VERSION_MIN="2.1.12"
-OIIO_VERSION_MEX="2.3.0"
+OIIO_VERSION_MEX="2.4.0"
 OIIO_FORCE_BUILD=false
 OIIO_FORCE_REBUILD=false
 OIIO_SKIP=false
@@ -502,12 +502,12 @@ OSD_FORCE_REBUILD=false
 OSD_SKIP=false
 
 # OpenVDB needs to be compiled for now
-OPENVDB_BLOSC_VERSION="1.5.0"
+OPENVDB_BLOSC_VERSION="1.21.1"
 
-OPENVDB_VERSION="8.0.1"
-OPENVDB_VERSION_SHORT="8.0"
-OPENVDB_VERSION_MIN="8.0"
-OPENVDB_VERSION_MEX="8.1"
+OPENVDB_VERSION="9.0.0"
+OPENVDB_VERSION_SHORT="9.0"
+OPENVDB_VERSION_MIN="9.0"
+OPENVDB_VERSION_MEX="9.1"
 OPENVDB_FORCE_BUILD=false
 OPENVDB_FORCE_REBUILD=false
 OPENVDB_SKIP=false
@@ -1029,7 +1029,7 @@ OPENEXR_SOURCE_REPO_UID="0ac2ea34c8f3134148a5df4052e40f155b76f6fb"
 #~ OPENEXR_SOURCE=( "https://github.com/openexr/openexr/archive/$OPENEXR_SOURCE_REPO_UID.tar.gz" )
 
 OIIO_USE_REPO=false
-OIIO_SOURCE=( "https://github.com/OpenImageIO/oiio/archive/Release-$OIIO_VERSION.tar.gz" )
+OIIO_SOURCE=( "https://github.com/OpenImageIO/oiio/archive/refs/tags/v$OIIO_VERSION.tar.gz" )
 #~ OIIO_SOURCE_REPO=( "https://github.com/OpenImageIO/oiio.git" )
 #~ OIIO_SOURCE_REPO_UID="c9e67275a0b248ead96152f6d2221cc0c0f278a4"
 
@@ -2034,7 +2034,7 @@ compile_OIIO() {
       else
         download OIIO_SOURCE[@] "$_src.tar.gz"
         INFO "Unpacking OpenImageIO-$OIIO_VERSION"
-        tar -C $SRC --transform "s,(.*/?)oiio-Release-[^/]*(.*),\1OpenImageIO-$OIIO_VERSION\2,x" -xf $_src.tar.gz
+        tar -C $SRC --transform "s,(.*/?)oiio-[^/]*(.*),\1OpenImageIO-$OIIO_VERSION\2,x" -xf $_src.tar.gz
       fi
     fi
 

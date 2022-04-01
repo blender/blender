@@ -775,7 +775,7 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
     hmd->indexar = hook->indexar;
     hmd->object = hook->parent;
     memcpy(hmd->parentinv, hook->parentinv, sizeof(hmd->parentinv));
-    hmd->totindex = hook->totindex;
+    hmd->indexar_num = hook->totindex;
 
     BLI_addhead(&ob->modifiers, hmd);
     BLI_remlink(&ob->hooks, hook);
@@ -1245,7 +1245,7 @@ IDTypeInfo IDType_ID_OB = {
 
 void BKE_object_workob_clear(Object *workob)
 {
-  memset(workob, 0, sizeof(Object));
+  *workob = blender::dna::shallow_zero_initialize<Object>();
 
   workob->scale[0] = workob->scale[1] = workob->scale[2] = 1.0f;
   workob->dscale[0] = workob->dscale[1] = workob->dscale[2] = 1.0f;
@@ -2226,7 +2226,7 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
   }
 
   /* We cannot use #BKE_id_new here as we need some custom initialization code. */
-  Object *ob = (Object *)BKE_libblock_alloc(bmain, ID_OB, name, 0);
+  Object *ob = (Object *)BKE_libblock_alloc(bmain, ID_OB, name, bmain ? 0 : LIB_ID_CREATE_NO_MAIN);
 
   /* We increase object user count when linking to Collections. */
   id_us_min(&ob->id);
@@ -3955,7 +3955,7 @@ bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
       /* pass */
     }
     else {
-      Object temp_ob = *dob->ob;
+      Object temp_ob = blender::dna::shallow_copy(*dob->ob);
       /* Do not modify the original boundbox. */
       temp_ob.runtime.bb = nullptr;
       BKE_object_replace_data_on_shallow_copy(&temp_ob, dob->ob_data);
@@ -4009,7 +4009,7 @@ void BKE_object_foreach_display_point(Object *ob,
                                       void (*func_cb)(const float[3], void *),
                                       void *user_data)
 {
-  /* TODO: pointcloud and hair objects support */
+  /* TODO: pointcloud and curves object support */
   const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
   float co[3];
 
@@ -4639,9 +4639,11 @@ bool BKE_object_shapekey_remove(Main *bmain, Object *ob, KeyBlock *kb)
     if (key->refkey) {
       /* apply new basis key on original data */
       switch (ob->type) {
-        case OB_MESH:
-          BKE_keyblock_convert_to_mesh(key->refkey, (Mesh *)ob->data);
+        case OB_MESH: {
+          Mesh *mesh = (Mesh *)ob->data;
+          BKE_keyblock_convert_to_mesh(key->refkey, mesh->mvert, mesh->totvert);
           break;
+        }
         case OB_CURVES_LEGACY:
         case OB_SURF:
           BKE_keyblock_convert_to_curve(

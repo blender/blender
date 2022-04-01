@@ -36,6 +36,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "WM_types.h" /* For subdivide operator UI. */
 
@@ -280,7 +281,7 @@ static void deformMatrices(ModifierData *md,
                            Mesh *mesh,
                            float (*vertex_cos)[3],
                            float (*deform_matrices)[3][3],
-                           int num_verts)
+                           int verts_num)
 
 {
 #if !defined(WITH_OPENSUBDIV)
@@ -312,7 +313,7 @@ static void deformMatrices(ModifierData *md,
     return;
   }
   BKE_subdiv_displacement_attach_from_multires(subdiv, mesh, mmd);
-  BKE_subdiv_deform_coarse_vertices(subdiv, mesh, vertex_cos, num_verts);
+  BKE_subdiv_deform_coarse_vertices(subdiv, mesh, vertex_cos, verts_num);
   if (subdiv != runtime_data->subdiv) {
     BKE_subdiv_free(subdiv);
   }

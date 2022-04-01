@@ -9,8 +9,6 @@
 #include "DNA_light_types.h"
 #include "DNA_object_types.h"
 
-#include <pxr/usd/usdLux/light.h>
-
 #include <pxr/usd/usdLux/diskLight.h>
 #include <pxr/usd/usdLux/distantLight.h>
 #include <pxr/usd/usdLux/rectLight.h>
@@ -40,14 +38,17 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
   if (!prim_) {
     return;
   }
+#if PXR_VERSION >= 2111
+  pxr::UsdLuxLightAPI light_api(prim_);
+#else
+  pxr::UsdLuxLight light_api(prim_);
+#endif
 
-  pxr::UsdLuxLight light_prim(prim_);
-
-  if (!light_prim) {
+  if (!light_api) {
     return;
   }
 
-  pxr::UsdLuxShapingAPI shaping_api(light_prim);
+  pxr::UsdLuxShapingAPI shaping_api;
 
   /* Set light type. */
 
@@ -63,6 +64,8 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
   else if (prim_.IsA<pxr::UsdLuxSphereLight>()) {
     blight->type = LA_LOCAL;
 
+    shaping_api = pxr::UsdLuxShapingAPI(prim_);
+
     if (shaping_api && shaping_api.GetShapingConeAngleAttr().IsAuthored()) {
       blight->type = LA_SPOT;
     }
@@ -73,7 +76,7 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
 
   /* Set light values. */
 
-  if (pxr::UsdAttribute intensity_attr = light_prim.GetIntensityAttr()) {
+  if (pxr::UsdAttribute intensity_attr = light_api.GetIntensityAttr()) {
     float intensity = 0.0f;
     if (intensity_attr.Get(&intensity, motionSampleTime)) {
       blight->energy = intensity * this->import_params_.light_intensity_scale;
@@ -92,14 +95,14 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
   light_prim.GetDiffuseAttr().Get(&diffuse, motionSampleTime);
 #endif
 
-  if (pxr::UsdAttribute spec_attr = light_prim.GetSpecularAttr()) {
+  if (pxr::UsdAttribute spec_attr = light_api.GetSpecularAttr()) {
     float spec = 0.0f;
     if (spec_attr.Get(&spec, motionSampleTime)) {
       blight->spec_fac = spec;
     }
   }
 
-  if (pxr::UsdAttribute color_attr = light_prim.GetColorAttr()) {
+  if (pxr::UsdAttribute color_attr = light_api.GetColorAttr()) {
     pxr::GfVec3f color;
     if (color_attr.Get(&color, motionSampleTime)) {
       blight->r = color[0];

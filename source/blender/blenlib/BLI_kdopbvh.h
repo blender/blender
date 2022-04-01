@@ -181,18 +181,18 @@ int BLI_bvhtree_overlap_thread_num(const BVHTree *tree);
  */
 BVHTreeOverlap *BLI_bvhtree_overlap_ex(const BVHTree *tree1,
                                        const BVHTree *tree2,
-                                       uint *r_overlap_tot,
+                                       uint *r_overlap_num,
                                        BVHTree_OverlapCallback callback,
                                        void *userdata,
                                        uint max_interactions,
                                        int flag);
 BVHTreeOverlap *BLI_bvhtree_overlap(const BVHTree *tree1,
                                     const BVHTree *tree2,
-                                    unsigned int *r_overlap_tot,
+                                    unsigned int *r_overlap_num,
                                     BVHTree_OverlapCallback callback,
                                     void *userdata);
 
-int *BLI_bvhtree_intersect_plane(BVHTree *tree, float plane[4], uint *r_intersect_tot);
+int *BLI_bvhtree_intersect_plane(BVHTree *tree, float plane[4], uint *r_intersect_num);
 
 /**
  * Number of times #BLI_bvhtree_insert has been called.
@@ -323,4 +323,33 @@ extern const float bvhtree_kdop_axes[13][3];
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+
+#  include "BLI_function_ref.hh"
+#  include "BLI_math_vector.hh"
+
+namespace blender {
+
+using BVHTree_RangeQuery_CPP = FunctionRef<void(int index, const float3 &co, float dist_sq)>;
+
+inline void BLI_bvhtree_range_query_cpp(BVHTree &tree,
+                                        const float3 co,
+                                        float radius,
+                                        BVHTree_RangeQuery_CPP fn)
+{
+  BLI_bvhtree_range_query(
+      &tree,
+      co,
+      radius,
+      [](void *userdata, const int index, const float co[3], const float dist_sq) {
+        BVHTree_RangeQuery_CPP fn = *static_cast<BVHTree_RangeQuery_CPP *>(userdata);
+        fn(index, co, dist_sq);
+      },
+      &fn);
+}
+
+}  // namespace blender
+
 #endif

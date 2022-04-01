@@ -6348,7 +6348,7 @@ bool ED_paint_proj_mesh_data_check(
       for (int i = 1; i < ob->totcol + 1; i++) {
         Material *ma = BKE_object_material_get(ob, i);
 
-        if (ma && !ID_IS_LINKED(ma)) {
+        if (ma && !ID_IS_LINKED(ma) && !ID_IS_OVERRIDE_LIBRARY(ma)) {
           hasmat = true;
           if (ma->texpaintslot == NULL) {
             /* refresh here just in case */
@@ -6356,7 +6356,8 @@ bool ED_paint_proj_mesh_data_check(
           }
           if (ma->texpaintslot != NULL &&
               (ma->texpaintslot[ma->paint_active_slot].ima == NULL ||
-               !ID_IS_LINKED(ma->texpaintslot[ma->paint_active_slot].ima))) {
+               !ID_IS_LINKED(ma->texpaintslot[ma->paint_active_slot].ima) ||
+               !ID_IS_OVERRIDE_LIBRARY(ma->texpaintslot[ma->paint_active_slot].ima))) {
             hastex = true;
             break;
           }

@@ -1131,7 +1131,7 @@ static void rearrange_nla_channels(bAnimContext *ac, AnimData *adt, eRearrangeAn
 {
   AnimChanRearrangeFp rearrange_func;
   ListBase anim_data_visible = {NULL, NULL};
-  const bool is_liboverride = ID_IS_OVERRIDE_LIBRARY(ac->obact);
+  const bool is_liboverride = (ac->obact != NULL) ? ID_IS_OVERRIDE_LIBRARY(ac->obact) : false;
 
   /* hack: invert mode so that functions will work in right order */
   mode *= -1;
@@ -2789,8 +2789,9 @@ static bool rename_anim_channels(bAnimContext *ac, int channel_index)
   }
 
   /* don't allow renaming linked channels */
-  if ((ale->fcurve_owner_id != NULL && ID_IS_LINKED(ale->fcurve_owner_id)) ||
-      (ale->id != NULL && ID_IS_LINKED(ale->id))) {
+  if ((ale->fcurve_owner_id != NULL &&
+       (ID_IS_LINKED(ale->fcurve_owner_id) || ID_IS_OVERRIDE_LIBRARY(ale->fcurve_owner_id))) ||
+      (ale->id != NULL && (ID_IS_LINKED(ale->id) || ID_IS_OVERRIDE_LIBRARY(ale->id)))) {
     ANIM_animdata_freelist(&anim_data);
     return false;
   }

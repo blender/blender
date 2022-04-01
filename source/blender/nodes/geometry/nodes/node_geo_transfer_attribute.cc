@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_generic_array.hh"
 #include "BLI_kdopbvh.h"
 #include "BLI_task.hh"
 
@@ -12,8 +13,6 @@
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_sample.hh"
 
-#include "FN_generic_array.hh"
-
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -24,7 +23,6 @@
 namespace blender::nodes::node_geo_transfer_attribute_cc {
 
 using namespace blender::bke::mesh_surface_sample;
-using blender::fn::GArray;
 
 NODE_STORAGE_FUNCS(NodeGeometryTransferAttribute)
 
@@ -495,7 +493,7 @@ class NearestTransferFunction : public fn::MultiFunction {
     GMutableSpan dst = params.uninitialized_single_output_if_required(1, "Attribute");
 
     if (!use_mesh_ && !use_points_) {
-      dst.type().fill_construct_indices(dst.type().default_value(), dst.data(), mask);
+      dst.type().value_initialize_indices(dst.data(), mask);
       return;
     }
 
@@ -675,7 +673,7 @@ class IndexTransferFunction : public fn::MultiFunction {
 
     const CPPType &type = dst.type();
     if (src_data_ == nullptr) {
-      type.fill_construct_indices(type.default_value(), dst.data(), mask);
+      type.value_initialize_indices(dst.data(), mask);
       return;
     }
 

@@ -567,10 +567,10 @@ static char snap_flag_from_spacetype(TransInfo *t)
   if (t->spacetype == SPACE_NODE) {
     return ts->snap_flag_node;
   }
-  else if (t->spacetype == SPACE_IMAGE) {
+  if (t->spacetype == SPACE_IMAGE) {
     return ts->snap_uv_flag;
   }
-  else if (t->spacetype == SPACE_SEQ) {
+  if (t->spacetype == SPACE_SEQ) {
     return ts->snap_flag_seq;
   }
   return ts->snap_flag;
@@ -579,89 +579,97 @@ static char snap_flag_from_spacetype(TransInfo *t)
 static short snap_mode_from_spacetype(TransInfo *t)
 {
   ToolSettings *ts = t->settings;
-  short r_snap_mode = SCE_SNAP_MODE_INCREMENT;
 
   if (t->spacetype == SPACE_NODE) {
-    r_snap_mode = ts->snap_node_mode;
-  }
-  else if (t->spacetype == SPACE_IMAGE) {
-    r_snap_mode = ts->snap_uv_mode;
-    if ((r_snap_mode & SCE_SNAP_MODE_INCREMENT) && (ts->snap_uv_flag & SCE_SNAP_ABS_GRID) &&
-        (t->mode == TFM_TRANSLATION)) {
-      r_snap_mode &= ~SCE_SNAP_MODE_INCREMENT;
-      r_snap_mode |= SCE_SNAP_MODE_GRID;
-    }
-  }
-  else if (t->spacetype == SPACE_SEQ) {
-    r_snap_mode = SEQ_tool_settings_snap_mode_get(t->scene);
-  }
-  else if ((t->spacetype == SPACE_VIEW3D) && !(t->options & CTX_CAMERA)) {
-    /* All obedit types will match. */
-    const int obedit_type = t->obedit_type;
-    if ((t->options & (CTX_GPENCIL_STROKES | CTX_CURSOR | CTX_OBMODE_XFORM_OBDATA)) ||
-        ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVES_LEGACY, OB_LATTICE, OB_MBALL, -1)) {
-      r_snap_mode = ts->snap_mode;
-      if ((r_snap_mode & SCE_SNAP_MODE_INCREMENT) && (ts->snap_flag & SCE_SNAP_ABS_GRID) &&
-          (t->mode == TFM_TRANSLATION)) {
-        /* Special case in which snap to increments is transformed to snap to grid. */
-        r_snap_mode &= ~SCE_SNAP_MODE_INCREMENT;
-        r_snap_mode |= SCE_SNAP_MODE_GRID;
-      }
-    }
-  }
-  else if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA)) {
-    /* No incremental snapping. */
-    r_snap_mode = 0;
+    return ts->snap_node_mode;
   }
 
-  return r_snap_mode;
+  if (t->spacetype == SPACE_IMAGE) {
+    short snap_mode = ts->snap_uv_mode;
+    if ((snap_mode & SCE_SNAP_MODE_INCREMENT) && (ts->snap_uv_flag & SCE_SNAP_ABS_GRID) &&
+        (t->mode == TFM_TRANSLATION)) {
+      snap_mode &= ~SCE_SNAP_MODE_INCREMENT;
+      snap_mode |= SCE_SNAP_MODE_GRID;
+    }
+    return snap_mode;
+  }
+
+  if (t->spacetype == SPACE_SEQ) {
+    return SEQ_tool_settings_snap_mode_get(t->scene);
+  }
+
+  if (t->spacetype == SPACE_VIEW3D) {
+    if (t->options & (CTX_CAMERA | CTX_EDGE_DATA | CTX_PAINT_CURVE)) {
+      return SCE_SNAP_MODE_INCREMENT;
+    }
+
+    short snap_mode = ts->snap_mode;
+    if ((snap_mode & SCE_SNAP_MODE_INCREMENT) && (ts->snap_flag & SCE_SNAP_ABS_GRID) &&
+        (t->mode == TFM_TRANSLATION)) {
+      /* Special case in which snap to increments is transformed to snap to grid. */
+      snap_mode &= ~SCE_SNAP_MODE_INCREMENT;
+      snap_mode |= SCE_SNAP_MODE_GRID;
+    }
+    return snap_mode;
+  }
+
+  if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA)) {
+    /* No incremental snapping. */
+    return 0;
+  }
+
+  return SCE_SNAP_MODE_INCREMENT;
 }
 
 static short snap_select_type_get(TransInfo *t)
 {
-  short r_snap_select = SNAP_ALL;
-
   ViewLayer *view_layer = t->view_layer;
   Base *base_act = view_layer->basact;
   if (ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE) && !(t->options & CTX_CAMERA)) {
-    const int obedit_type = t->obedit_type;
     if (t->options & (CTX_GPENCIL_STROKES | CTX_CURSOR | CTX_OBMODE_XFORM_OBDATA)) {
       /* In "Edit Strokes" mode,
        * snap tool can perform snap to selected or active objects (see T49632)
        * TODO: perform self snap in gpencil_strokes.
        *
        * When we're moving the origins, allow snapping onto our own geometry (see T69132). */
+      return SNAP_ALL;
     }
-    else if ((obedit_type != -1) &&
-             ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVES_LEGACY, OB_LATTICE, OB_MBALL)) {
+
+    const int obedit_type = t->obedit_type;
+    if (obedit_type != -1) {
       /* Edit mode */
-      /* Temporary limited to edit mode meshes, armature, curves, metaballs. */
+      if (ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVES_LEGACY, OB_LATTICE, OB_MBALL)) {
+        /* Temporary limited to edit mode meshes, armature, curves, lattice and metaballs. */
 
-      if ((obedit_type == OB_MESH) && (t->flag & T_PROP_EDIT)) {
-        /* Exclude editmesh if using proportional edit */
-        r_snap_select = SNAP_NOT_ACTIVE;
+        if ((obedit_type == OB_MESH) && (t->flag & T_PROP_EDIT)) {
+          /* Exclude editmesh if using proportional edit */
+          return SNAP_NOT_EDITED;
+        }
+
+        if (!t->tsnap.snap_self) {
+          return SNAP_NOT_ACTIVE;
+        }
+
+        return SNAP_NOT_SELECTED;
       }
-      else if (!t->tsnap.snap_self) {
-        r_snap_select = SNAP_NOT_ACTIVE;
-      }
-      else {
-        r_snap_select = SNAP_NOT_SELECTED;
-      }
+
+      return SNAP_ALL;
     }
-    else if ((obedit_type == -1) && base_act && base_act->object &&
-             (base_act->object->mode & OB_MODE_PARTICLE_EDIT)) {
+
+    if (base_act && (base_act->object->mode & OB_MODE_PARTICLE_EDIT)) {
       /* Particles edit mode. */
+      return SNAP_ALL;
     }
-    else if (obedit_type == -1) {
-      /* Object or pose mode. */
-      r_snap_select = SNAP_NOT_SELECTED;
-    }
-  }
-  else if (ELEM(t->spacetype, SPACE_NODE, SPACE_SEQ)) {
-    r_snap_select = SNAP_NOT_SELECTED;
+
+    /* Object or pose mode. */
+    return SNAP_NOT_SELECTED;
   }
 
-  return r_snap_select;
+  if (ELEM(t->spacetype, SPACE_NODE, SPACE_SEQ)) {
+    return SNAP_NOT_SELECTED;
+  }
+
+  return SNAP_ALL;
 }
 
 static void initSnappingMode(TransInfo *t)

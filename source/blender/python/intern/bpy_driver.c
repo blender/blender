@@ -5,11 +5,8 @@
  *
  * This file defines the 'BPY_driver_exec' to execute python driver expressions,
  * called by the animation system, there are also some utility functions
- * to deal with the namespace used for driver execution.
+ * to deal with the name-space used for driver execution.
  */
-
-/* ****************************************** */
-/* Drivers - PyExpression Evaluation */
 
 #include <Python.h>
 
@@ -24,9 +21,10 @@
 #include "BKE_global.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 #include "RNA_types.h"
 
-#include "bpy_rna_driver.h" /* for pyrna_driver_get_variable_value */
+#include "bpy_rna_driver.h" /* For #pyrna_driver_get_variable_value. */
 
 #include "bpy_intern_string.h"
 
@@ -53,7 +51,7 @@ int bpy_pydriver_create_dict(void)
 {
   PyObject *d, *mod;
 
-  /* validate namespace for driver evaluation */
+  /* Validate name-space for driver evaluation. */
   if (bpy_pydriver_Dict) {
     return -1;
   }
@@ -65,7 +63,7 @@ int bpy_pydriver_create_dict(void)
 
   bpy_pydriver_Dict = d;
 
-  /* Import some modules: builtins, bpy, math, `Blender.noise`. */
+  /* Import some modules: `builtins`, `bpy`, `math`, `mathutils.noise`. */
   PyDict_SetItemString(d, "__builtins__", PyEval_GetBuiltins());
 
   mod = PyImport_ImportModule("math");
@@ -77,14 +75,14 @@ int bpy_pydriver_create_dict(void)
   PyObject *mod_math = mod;
 #endif
 
-  /* add bpy to global namespace */
+  /* Add `bpy` to global name-space. */
   mod = PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);
   if (mod) {
     PyDict_SetItemString(bpy_pydriver_Dict, "bpy", mod);
     Py_DECREF(mod);
   }
 
-  /* add noise to global namespace */
+  /* Add noise to global name-space. */
   mod = PyImport_ImportModuleLevel("mathutils", NULL, NULL, NULL, 0);
   if (mod) {
     PyObject *modsub = PyDict_GetItemString(PyModule_GetDict(mod), "noise");
@@ -106,7 +104,7 @@ int bpy_pydriver_create_dict(void)
   }
 
 #ifdef USE_BYTECODE_WHITELIST
-  /* setup the whitelist */
+  /* Setup the whitelist. */
   {
     bpy_pydriver_Dict__whitelist = PyDict_New();
     const char *whitelist[] = {
@@ -136,7 +134,7 @@ int bpy_pydriver_create_dict(void)
       PyDict_SetItemString(bpy_pydriver_Dict__whitelist, whitelist[i], Py_None);
     }
 
-    /* Add all of 'math' functions. */
+    /* Add all of `math` functions. */
     if (mod_math != NULL) {
       PyObject *mod_math_dict = PyModule_GetDict(mod_math);
       PyObject *arg_key, *arg_value;
@@ -154,12 +152,14 @@ int bpy_pydriver_create_dict(void)
   return 0;
 }
 
-/* NOTE: this function should do nothing most runs, only when changing frame. */
-/* not thread safe but neither is python */
+/**
+ * \note this function should do nothing most runs, only when changing frame.
+ * Not thread safe but neither is Python.
+ */
 static struct {
   float evaltime;
 
-  /* borrowed reference to the 'self' in 'bpy_pydriver_Dict'
+  /* Borrowed reference to the `self` in `bpy_pydriver_Dict`
    * keep for as long as the same self is used. */
   PyObject *self;
   BPy_StructRNA *depsgraph;
@@ -209,7 +209,7 @@ static PyObject *bpy_pydriver_depsgraph_as_pyobject(struct Depsgraph *depsgraph)
 }
 
 /**
- * Adds a variable 'depsgraph' to the name-space. This can then be used to obtain evaluated
+ * Adds a variable `depsgraph` to the name-space. This can then be used to obtain evaluated
  * data-blocks, and the current view layer and scene. See T75553.
  */
 static void bpy_pydriver_namespace_update_depsgraph(struct Depsgraph *depsgraph)
@@ -242,7 +242,7 @@ void BPY_driver_reset(void)
     gilstate = PyGILState_Ensure();
   }
 
-  if (bpy_pydriver_Dict) { /* free the global dict used by pydrivers */
+  if (bpy_pydriver_Dict) { /* Free the global dict used by python-drivers. */
     PyDict_Clear(bpy_pydriver_Dict);
     Py_DECREF(bpy_pydriver_Dict);
     bpy_pydriver_Dict = NULL;
@@ -258,7 +258,7 @@ void BPY_driver_reset(void)
 
   g_pydriver_state_prev.evaltime = FLT_MAX;
 
-  /* freed when clearing driver dict */
+  /* Freed when clearing driver dictionary. */
   g_pydriver_state_prev.self = NULL;
   g_pydriver_state_prev.depsgraph = NULL;
 
@@ -267,10 +267,10 @@ void BPY_driver_reset(void)
   }
 }
 
-/* error return function for BPY_eval_pydriver */
+/** Error return function for #BPY_eval_pydriver. */
 static void pydriver_error(ChannelDriver *driver)
 {
-  driver->flag |= DRIVER_FLAG_INVALID; /* py expression failed */
+  driver->flag |= DRIVER_FLAG_INVALID; /* Python expression failed. */
   fprintf(stderr,
           "\nError in Driver: The following Python expression failed:\n\t'%s'\n\n",
           driver->expression);
@@ -341,10 +341,10 @@ static const char secure_opcodes[255] = {
     OK_OP(LOAD_DEREF),
     OK_OP(STORE_DEREF),
 
-    /* special cases */
-    OK_OP(LOAD_CONST),    /* ok because constants are accepted */
-    OK_OP(LOAD_NAME),     /* ok, because PyCodeObject.names is checked */
-    OK_OP(CALL_FUNCTION), /* ok, because we check its 'name' before calling */
+    /* Special cases. */
+    OK_OP(LOAD_CONST),    /* Ok because constants are accepted. */
+    OK_OP(LOAD_NAME),     /* Ok, because `PyCodeObject.names` is checked. */
+    OK_OP(CALL_FUNCTION), /* Ok, because we check its "name" before calling. */
     OK_OP(CALL_FUNCTION_KW),
     OK_OP(CALL_FUNCTION_EX),
 };
@@ -433,12 +433,12 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
   bool use_gil;
 
   DriverVar *dvar;
-  double result = 0.0; /* default return */
+  double result = 0.0; /* Default return. */
   const char *expr;
   short targets_ok = 1;
   int i;
 
-  /* get the py expression to be evaluated */
+  /* Get the python expression to be evaluated. */
   expr = driver_orig->expression;
   if (expr[0] == '\0') {
     return 0.0f;
@@ -464,11 +464,10 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
     gilstate = PyGILState_Ensure();
   }
 
-  /* needed since drivers are updated directly after undo where 'main' is
-   * re-allocated T28807. */
+  /* Needed since drivers are updated directly after undo where `main` is re-allocated T28807. */
   BPY_update_rna_module();
 
-  /* init global dictionary for py-driver evaluation settings */
+  /* Initialize global dictionary for Python driver evaluation settings. */
   if (!bpy_pydriver_Dict) {
     if (bpy_pydriver_create_dict() != 0) {
       fprintf(stderr, "PyDriver error: couldn't create Python dictionary\n");
@@ -479,7 +478,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
     }
   }
 
-  /* update global namespace */
+  /* Update global name-space. */
   bpy_pydriver_namespace_update_frame(anim_eval_context->eval_time);
 
   if (driver_orig->flag & DRIVER_FLAG_USE_SELF) {
@@ -495,7 +494,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
     driver_orig->flag |= DRIVER_FLAG_RECOMPILE;
   }
 
-  /* compile the expression first if it hasn't been compiled or needs to be rebuilt */
+  /* Compile the expression first if it hasn't been compiled or needs to be rebuilt. */
   if (driver_orig->flag & DRIVER_FLAG_RECOMPILE) {
     Py_XDECREF(driver_orig->expr_comp);
     driver_orig->expr_comp = PyTuple_New(2);
@@ -516,7 +515,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
   }
 
   if (driver_orig->flag & DRIVER_FLAG_RENAMEVAR) {
-    /* may not be set */
+    /* May not be set. */
     expr_vars = PyTuple_GET_ITEM(((PyObject *)driver_orig->expr_comp), 1);
     Py_XDECREF(expr_vars);
 
@@ -533,12 +532,12 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
     expr_vars = PyTuple_GET_ITEM(((PyObject *)driver_orig->expr_comp), 1);
   }
 
-  /* add target values to a dict that will be used as '__locals__' dict */
+  /* Add target values to a dict that will be used as `__locals__` dict. */
   driver_vars = _PyDict_NewPresized(PyTuple_GET_SIZE(expr_vars));
   for (dvar = driver->variables.first, i = 0; dvar; dvar = dvar->next) {
     PyObject *driver_arg = NULL;
 
-    /* support for any RNA data */
+    /* Support for any RNA data. */
 #ifdef USE_RNA_AS_PYOBJECT
     if (dvar->type == DVAR_TYPE_SINGLE_PROP) {
       driver_arg = pyrna_driver_get_variable_value(driver, &dvar->targets[0]);
@@ -548,7 +547,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
         dvar->curval = 0.0f;
       }
       else {
-        /* no need to worry about overflow here, values from RNA are within limits. */
+        /* No need to worry about overflow here, values from RNA are within limits. */
         if (PyFloat_CheckExact(driver_arg)) {
           dvar->curval = (float)PyFloat_AsDouble(driver_arg);
         }
@@ -566,20 +565,20 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
     else
 #endif
     {
-      /* try to get variable value */
+      /* Try to get variable value. */
       const float tval = driver_get_variable_value(driver, dvar);
       driver_arg = PyFloat_FromDouble((double)tval);
     }
 
-    /* try to add to dictionary */
-    /* if (PyDict_SetItemString(driver_vars, dvar->name, driver_arg)) { */
+    /* Try to add to dictionary. */
+    /* `if (PyDict_SetItemString(driver_vars, dvar->name, driver_arg)) {` */
     if (PyDict_SetItem(driver_vars, PyTuple_GET_ITEM(expr_vars, i++), driver_arg) != -1) {
-      Py_DECREF(driver_arg);
+      /* Pass. */
     }
     else {
-      /* this target failed - bad name */
+      /* This target failed - bad name. */
       if (targets_ok) {
-        /* first one - print some extra info for easier identification */
+        /* First one, print some extra info for easier identification. */
         fprintf(stderr, "\nBPY_driver_eval() - Error while evaluating PyDriver:\n");
         targets_ok = 0;
       }
@@ -590,6 +589,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
       PyErr_Print();
       PyErr_Clear();
     }
+    Py_DECREF(driver_arg);
   }
 
 #ifdef USE_BYTECODE_WHITELIST
@@ -619,27 +619,28 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
   /* execute expression to get a value */
   retval = PyRun_String(expr, Py_eval_input, bpy_pydriver_Dict, driver_vars);
 #else
-  /* evaluate the compiled expression */
+  /* Evaluate the compiled expression. */
   if (expr_code) {
     retval = PyEval_EvalCode((void *)expr_code, bpy_pydriver_Dict, driver_vars);
   }
 #endif
 
-  /* decref the driver vars first. */
+  /* Decref the driver variables first. */
   Py_DECREF(driver_vars);
 
-  /* process the result */
+  /* Process the result. */
   if (retval == NULL) {
     pydriver_error(driver);
   }
-  else if ((result = PyFloat_AsDouble(retval)) == -1.0 && PyErr_Occurred()) {
-    pydriver_error(driver);
-    Py_DECREF(retval);
-    result = 0.0;
-  }
   else {
-    /* all fine, make sure the "invalid expression" flag is cleared */
-    driver->flag &= ~DRIVER_FLAG_INVALID;
+    if ((result = PyFloat_AsDouble(retval)) == -1.0 && PyErr_Occurred()) {
+      pydriver_error(driver);
+      result = 0.0;
+    }
+    else {
+      /* All fine, make sure the "invalid expression" flag is cleared. */
+      driver->flag &= ~DRIVER_FLAG_INVALID;
+    }
     Py_DECREF(retval);
   }
 

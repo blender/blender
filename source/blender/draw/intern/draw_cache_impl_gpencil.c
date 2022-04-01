@@ -28,6 +28,8 @@
 #include "draw_cache.h"
 #include "draw_cache_impl.h"
 
+#include "../engines/gpencil/gpencil_defines.h"
+
 #define BEZIER_HANDLE (1 << 3)
 #define COLOR_SHIFT 5
 
@@ -321,7 +323,7 @@ static void gpencil_buffer_add_point(gpStrokeVert *verts,
   vert->point_id = v;
   vert->thickness = max_ff(0.0f, gps->thickness * pt->pressure) * (round_cap1 ? 1.0f : -1.0f);
   /* Tag endpoint material to -1 so they get discarded by vertex shader. */
-  vert->mat = (is_endpoint) ? -1 : (gps->mat_nr % GP_MATERIAL_BUFFER_LEN);
+  vert->mat = (is_endpoint) ? -1 : (gps->mat_nr % GPENCIL_MATERIAL_BUFFER_LEN);
 
   float aspect_ratio = gps->aspect_ratio[0] / max_ff(gps->aspect_ratio[1], 1e-8);
 

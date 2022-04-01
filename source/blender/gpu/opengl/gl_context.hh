@@ -45,6 +45,8 @@ class GLContext : public Context {
   static GLint max_texture_3d_size;
   static GLint max_ubo_size;
   static GLint max_ubo_binds;
+  static GLint max_ssbo_size;
+  static GLint max_ssbo_binds;
 
   /** Extensions. */
 
@@ -61,6 +63,7 @@ class GLContext : public Context {
   static bool multi_bind_support;
   static bool multi_draw_indirect_support;
   static bool shader_draw_parameters_support;
+  static bool stencil_texturing_support;
   static bool texture_cube_map_array_support;
   static bool texture_filter_anisotropic_support;
   static bool texture_gather_support;

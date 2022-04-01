@@ -33,7 +33,12 @@ void USDLightWriter::do_write(HierarchyContext &context)
   pxr::UsdTimeCode timecode = get_export_time_code();
 
   Light *light = static_cast<Light *>(context.object->data);
-  pxr::UsdLuxLight usd_light;
+#if PXR_VERSION >= 2111
+  pxr::UsdLuxLightAPI usd_light_api;
+#else
+  pxr::UsdLuxLight usd_light_api;
+
+#endif
 
   switch (light->type) {
     case LA_AREA:
@@ -42,21 +47,33 @@ void USDLightWriter::do_write(HierarchyContext &context)
         case LA_AREA_ELLIPSE: { /* An ellipse light will deteriorate into a disk light. */
           pxr::UsdLuxDiskLight disk_light = pxr::UsdLuxDiskLight::Define(stage, usd_path);
           disk_light.CreateRadiusAttr().Set(light->area_size, timecode);
-          usd_light = disk_light;
+#if PXR_VERSION >= 2111
+          usd_light_api = disk_light.LightAPI();
+#else
+          usd_light_api = disk_light;
+#endif
           break;
         }
         case LA_AREA_RECT: {
           pxr::UsdLuxRectLight rect_light = pxr::UsdLuxRectLight::Define(stage, usd_path);
           rect_light.CreateWidthAttr().Set(light->area_size, timecode);
           rect_light.CreateHeightAttr().Set(light->area_sizey, timecode);
-          usd_light = rect_light;
+#if PXR_VERSION >= 2111
+          usd_light_api = rect_light.LightAPI();
+#else
+          usd_light_api = rect_light;
+#endif
           break;
         }
         case LA_AREA_SQUARE: {
           pxr::UsdLuxRectLight rect_light = pxr::UsdLuxRectLight::Define(stage, usd_path);
           rect_light.CreateWidthAttr().Set(light->area_size, timecode);
           rect_light.CreateHeightAttr().Set(light->area_size, timecode);
-          usd_light = rect_light;
+#if PXR_VERSION >= 2111
+          usd_light_api = rect_light.LightAPI();
+#else
+          usd_light_api = rect_light;
+#endif
           break;
         }
       }
@@ -64,12 +81,23 @@ void USDLightWriter::do_write(HierarchyContext &context)
     case LA_LOCAL: {
       pxr::UsdLuxSphereLight sphere_light = pxr::UsdLuxSphereLight::Define(stage, usd_path);
       sphere_light.CreateRadiusAttr().Set(light->area_size, timecode);
-      usd_light = sphere_light;
+#if PXR_VERSION >= 2111
+      usd_light_api = sphere_light.LightAPI();
+#else
+      usd_light_api = sphere_light;
+#endif
       break;
     }
-    case LA_SUN:
-      usd_light = pxr::UsdLuxDistantLight::Define(stage, usd_path);
+    case LA_SUN: {
+      pxr::UsdLuxDistantLight distant_light = pxr::UsdLuxDistantLight::Define(stage, usd_path);
+      /* TODO(makowalski): set angle attribute here. */
+#if PXR_VERSION >= 2111
+      usd_light_api = distant_light.LightAPI();
+#else
+      usd_light_api = distant_light;
+#endif
       break;
+    }
     default:
       BLI_assert_msg(0, "is_supported() returned true for unsupported light type");
   }
@@ -85,10 +113,10 @@ void USDLightWriter::do_write(HierarchyContext &context)
   else {
     usd_intensity = light->energy / 100.0f;
   }
-  usd_light.CreateIntensityAttr().Set(usd_intensity, timecode);
+  usd_light_api.CreateIntensityAttr().Set(usd_intensity, timecode);
 
-  usd_light.CreateColorAttr().Set(pxr::GfVec3f(light->r, light->g, light->b), timecode);
-  usd_light.CreateSpecularAttr().Set(light->spec_fac, timecode);
+  usd_light_api.CreateColorAttr().Set(pxr::GfVec3f(light->r, light->g, light->b), timecode);
+  usd_light_api.CreateSpecularAttr().Set(light->spec_fac, timecode);
 }
 
 }  // namespace blender::io::usd

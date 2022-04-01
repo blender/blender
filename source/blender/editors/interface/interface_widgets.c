@@ -1178,7 +1178,7 @@ static bool draw_widgetbase_batch_skip_draw_cache(void)
 {
   /* MacOS is known to have issues on Mac Mini and MacBook Pro with Intel Iris GPU.
    * For example, T78307. */
-  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_ANY)) {
+  if (GPU_type_matches_ex(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
     return true;
   }
 
@@ -4963,6 +4963,9 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
     }
   }
 #endif
+  if (but->block->flag & UI_BLOCK_NO_DRAW_OVERRIDDEN_STATE) {
+    state &= ~UI_BUT_OVERRIDDEN;
+  }
 
   const float zoom = 1.0f / but->block->aspect;
   wt->state(wt, state, drawflag, but->emboss);

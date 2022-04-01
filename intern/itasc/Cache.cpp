@@ -1,12 +1,10 @@
-/** \file itasc/Cache.cpp
+/* SPDX-License-Identifier: LGPL-2.1-or-later
+ * Copyright 2009 Benoit Bolsee. */
+
+/** \file
  * \ingroup intern_itasc
  */
-/*
- * Cache.cpp
- *
- *  Created on: Feb 24, 2009
- *      Author: benoit bolsee
- */
+
 #include <string.h>
 #include <assert.h>
 #include <math.h>

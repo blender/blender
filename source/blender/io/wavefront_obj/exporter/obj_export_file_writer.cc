@@ -43,16 +43,33 @@ void OBJWriter::write_vert_uv_normal_indices(FormatHandler<eFileType::OBJ> &fh,
                                              const IndexOffsets &offsets,
                                              Span<int> vert_indices,
                                              Span<int> uv_indices,
-                                             Span<int> normal_indices) const
+                                             Span<int> normal_indices,
+                                             bool flip) const
 {
   BLI_assert(vert_indices.size() == uv_indices.size() &&
              vert_indices.size() == normal_indices.size());
+  const int vertex_offset = offsets.vertex_offset + 1;
+  const int uv_offset = offsets.uv_vertex_offset + 1;
+  const int normal_offset = offsets.normal_offset + 1;
+  const int n = vert_indices.size();
   fh.write<eOBJSyntaxElement::poly_element_begin>();
-  for (int j = 0; j < vert_indices.size(); j++) {
-    fh.write<eOBJSyntaxElement::vertex_uv_normal_indices>(
-        vert_indices[j] + offsets.vertex_offset + 1,
-        uv_indices[j] + offsets.uv_vertex_offset + 1,
-        normal_indices[j] + offsets.normal_offset + 1);
+  if (!flip) {
+    for (int j = 0; j < n; ++j) {
+      fh.write<eOBJSyntaxElement::vertex_uv_normal_indices>(vert_indices[j] + vertex_offset,
+                                                            uv_indices[j] + uv_offset,
+                                                            normal_indices[j] + normal_offset);
+    }
+  }
+  else {
+    /* For a transform that is mirrored (negative scale on odd number of axes),
+     * we want to flip the face index order. Start from the same index, and
+     * then go backwards. Same logic in other write_*_indices functions below. */
+    for (int k = 0; k < n; ++k) {
+      int j = k == 0 ? 0 : n - k;
+      fh.write<eOBJSyntaxElement::vertex_uv_normal_indices>(vert_indices[j] + vertex_offset,
+                                                            uv_indices[j] + uv_offset,
+                                                            normal_indices[j] + normal_offset);
+    }
   }
   fh.write<eOBJSyntaxElement::poly_element_end>();
 }
@@ -61,14 +78,26 @@ void OBJWriter::write_vert_normal_indices(FormatHandler<eFileType::OBJ> &fh,
                                           const IndexOffsets &offsets,
                                           Span<int> vert_indices,
                                           Span<int> /*uv_indices*/,
-                                          Span<int> normal_indices) const
+                                          Span<int> normal_indices,
+                                          bool flip) const
 {
   BLI_assert(vert_indices.size() == normal_indices.size());
+  const int vertex_offset = offsets.vertex_offset + 1;
+  const int normal_offset = offsets.normal_offset + 1;
+  const int n = vert_indices.size();
   fh.write<eOBJSyntaxElement::poly_element_begin>();
-  for (int j = 0; j < vert_indices.size(); j++) {
-    fh.write<eOBJSyntaxElement::vertex_normal_indices>(vert_indices[j] + offsets.vertex_offset + 1,
-                                                       normal_indices[j] + offsets.normal_offset +
-                                                           1);
+  if (!flip) {
+    for (int j = 0; j < n; ++j) {
+      fh.write<eOBJSyntaxElement::vertex_normal_indices>(vert_indices[j] + vertex_offset,
+                                                         normal_indices[j] + normal_offset);
+    }
+  }
+  else {
+    for (int k = 0; k < n; ++k) {
+      int j = k == 0 ? 0 : n - k;
+      fh.write<eOBJSyntaxElement::vertex_normal_indices>(vert_indices[j] + vertex_offset,
+                                                         normal_indices[j] + normal_offset);
+    }
   }
   fh.write<eOBJSyntaxElement::poly_element_end>();
 }
@@ -77,13 +106,26 @@ void OBJWriter::write_vert_uv_indices(FormatHandler<eFileType::OBJ> &fh,
                                       const IndexOffsets &offsets,
                                       Span<int> vert_indices,
                                       Span<int> uv_indices,
-                                      Span<int> /*normal_indices*/) const
+                                      Span<int> /*normal_indices*/,
+                                      bool flip) const
 {
   BLI_assert(vert_indices.size() == uv_indices.size());
+  const int vertex_offset = offsets.vertex_offset + 1;
+  const int uv_offset = offsets.uv_vertex_offset + 1;
+  const int n = vert_indices.size();
   fh.write<eOBJSyntaxElement::poly_element_begin>();
-  for (int j = 0; j < vert_indices.size(); j++) {
-    fh.write<eOBJSyntaxElement::vertex_uv_indices>(vert_indices[j] + offsets.vertex_offset + 1,
-                                                   uv_indices[j] + offsets.uv_vertex_offset + 1);
+  if (!flip) {
+    for (int j = 0; j < n; ++j) {
+      fh.write<eOBJSyntaxElement::vertex_uv_indices>(vert_indices[j] + vertex_offset,
+                                                     uv_indices[j] + uv_offset);
+    }
+  }
+  else {
+    for (int k = 0; k < n; ++k) {
+      int j = k == 0 ? 0 : n - k;
+      fh.write<eOBJSyntaxElement::vertex_uv_indices>(vert_indices[j] + vertex_offset,
+                                                     uv_indices[j] + uv_offset);
+    }
   }
   fh.write<eOBJSyntaxElement::poly_element_end>();
 }
@@ -92,11 +134,22 @@ void OBJWriter::write_vert_indices(FormatHandler<eFileType::OBJ> &fh,
                                    const IndexOffsets &offsets,
                                    Span<int> vert_indices,
                                    Span<int> /*uv_indices*/,
-                                   Span<int> /*normal_indices*/) const
+                                   Span<int> /*normal_indices*/,
+                                   bool flip) const
 {
+  const int vertex_offset = offsets.vertex_offset + 1;
+  const int n = vert_indices.size();
   fh.write<eOBJSyntaxElement::poly_element_begin>();
-  for (const int vert_index : vert_indices) {
-    fh.write<eOBJSyntaxElement::vertex_indices>(vert_index + offsets.vertex_offset + 1);
+  if (!flip) {
+    for (int j = 0; j < n; ++j) {
+      fh.write<eOBJSyntaxElement::vertex_indices>(vert_indices[j] + vertex_offset);
+    }
+  }
+  else {
+    for (int k = 0; k < n; ++k) {
+      int j = k == 0 ? 0 : n - k;
+      fh.write<eOBJSyntaxElement::vertex_indices>(vert_indices[j] + vertex_offset);
+    }
   }
   fh.write<eOBJSyntaxElement::poly_element_end>();
 }
@@ -121,34 +174,14 @@ void OBJWriter::write_mtllib_name(const StringRefNull mtl_filepath) const
   fh.write_to_file(outfile_);
 }
 
-void OBJWriter::write_object_group(FormatHandler<eFileType::OBJ> &fh,
-                                   const OBJMesh &obj_mesh_data) const
-{
-  /* "o object_name" is not mandatory. A valid .OBJ file may contain neither
-   * "o name" nor "g group_name". */
-  BLI_assert(export_params_.export_object_groups);
-  if (!export_params_.export_object_groups) {
-    return;
-  }
-  const std::string object_name = obj_mesh_data.get_object_name();
-  const char *object_mesh_name = obj_mesh_data.get_object_mesh_name();
-  const char *object_material_name = obj_mesh_data.get_object_material_name(0);
-  if (export_params_.export_materials && export_params_.export_material_groups &&
-      object_material_name) {
-    fh.write<eOBJSyntaxElement::object_group>(object_name + "_" + object_mesh_name + "_" +
-                                              object_material_name);
-  }
-  else {
-    fh.write<eOBJSyntaxElement::object_group>(object_name + "_" + object_mesh_name);
-  }
-}
-
 void OBJWriter::write_object_name(FormatHandler<eFileType::OBJ> &fh,
                                   const OBJMesh &obj_mesh_data) const
 {
   const char *object_name = obj_mesh_data.get_object_name();
   if (export_params_.export_object_groups) {
-    write_object_group(fh, obj_mesh_data);
+    const std::string object_name = obj_mesh_data.get_object_name();
+    const char *mesh_name = obj_mesh_data.get_object_mesh_name();
+    fh.write<eOBJSyntaxElement::object_group>(object_name + "_" + mesh_name);
     return;
   }
   fh.write<eOBJSyntaxElement::object_name>(object_name);
@@ -275,14 +308,20 @@ void OBJWriter::write_poly_elements(FormatHandler<eFileType::OBJ> &fh,
       obj_mesh_data.tot_uv_vertices());
 
   const int tot_polygons = obj_mesh_data.tot_polygons();
-  obj_parallel_chunked_output(fh, tot_polygons, [&](FormatHandler<eFileType::OBJ> &buf, int i) {
+  obj_parallel_chunked_output(fh, tot_polygons, [&](FormatHandler<eFileType::OBJ> &buf, int idx) {
+    /* Polygon order for writing into the file is not necessarily the same
+     * as order in the mesh; it will be sorted by material indices. Remap current
+     * and previous indices here according to the order. */
+    int prev_i = obj_mesh_data.remap_poly_index(idx - 1);
+    int i = obj_mesh_data.remap_poly_index(idx);
+
     Vector<int> poly_vertex_indices = obj_mesh_data.calc_poly_vertex_indices(i);
     Span<int> poly_uv_indices = obj_mesh_data.calc_poly_uv_indices(i);
     Vector<int> poly_normal_indices = obj_mesh_data.calc_poly_normal_indices(i);
 
     /* Write smoothing group if different from previous. */
     {
-      const int prev_group = get_smooth_group(obj_mesh_data, export_params_, i - 1);
+      const int prev_group = get_smooth_group(obj_mesh_data, export_params_, prev_i);
       const int group = get_smooth_group(obj_mesh_data, export_params_, i);
       if (group != prev_group) {
         buf.write<eOBJSyntaxElement::smooth_group>(group);
@@ -291,8 +330,8 @@ void OBJWriter::write_poly_elements(FormatHandler<eFileType::OBJ> &fh,
 
     /* Write vertex group if different from previous. */
     if (export_params_.export_vertex_groups) {
-      const int16_t prev_group = i == 0 ? NEGATIVE_INIT :
-                                          obj_mesh_data.get_poly_deform_group_index(i - 1);
+      const int16_t prev_group = idx == 0 ? NEGATIVE_INIT :
+                                            obj_mesh_data.get_poly_deform_group_index(prev_i);
       const int16_t group = obj_mesh_data.get_poly_deform_group_index(i);
       if (group != prev_group) {
         buf.write<eOBJSyntaxElement::object_group>(
@@ -303,19 +342,20 @@ void OBJWriter::write_poly_elements(FormatHandler<eFileType::OBJ> &fh,
 
     /* Write material name and material group if different from previous. */
     if (export_params_.export_materials && obj_mesh_data.tot_materials() > 0) {
-      const int16_t prev_mat = i == 0 ? NEGATIVE_INIT : obj_mesh_data.ith_poly_matnr(i - 1);
+      const int16_t prev_mat = idx == 0 ? NEGATIVE_INIT : obj_mesh_data.ith_poly_matnr(prev_i);
       const int16_t mat = obj_mesh_data.ith_poly_matnr(i);
       if (mat != prev_mat) {
         if (mat == NOT_FOUND) {
           buf.write<eOBJSyntaxElement::poly_usemtl>(MATERIAL_GROUP_DISABLED);
         }
         else {
-          if (export_params_.export_object_groups) {
-            write_object_group(buf, obj_mesh_data);
-          }
           const char *mat_name = matname_fn(mat);
           if (!mat_name) {
             mat_name = MATERIAL_GROUP_DISABLED;
+          }
+          if (export_params_.export_material_groups) {
+            const std::string object_name = obj_mesh_data.get_object_name();
+            fh.write<eOBJSyntaxElement::object_group>(object_name + "_" + mat_name);
           }
           buf.write<eOBJSyntaxElement::poly_usemtl>(mat_name);
         }
@@ -323,8 +363,12 @@ void OBJWriter::write_poly_elements(FormatHandler<eFileType::OBJ> &fh,
     }
 
     /* Write polygon elements. */
-    (this->*poly_element_writer)(
-        buf, offsets, poly_vertex_indices, poly_uv_indices, poly_normal_indices);
+    (this->*poly_element_writer)(buf,
+                                 offsets,
+                                 poly_vertex_indices,
+                                 poly_uv_indices,
+                                 poly_normal_indices,
+                                 obj_mesh_data.is_mirrored_transform());
   });
 }
 

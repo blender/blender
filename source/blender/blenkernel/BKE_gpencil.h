@@ -34,7 +34,8 @@ struct bGPDlayer_Mask;
 struct bGPDstroke;
 struct bGPdata;
 
-#define GPENCIL_SIMPLIFY(scene) (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_ENABLE)
+#define GPENCIL_SIMPLIFY(scene) \
+  ((scene->r.mode & R_SIMPLIFY) && (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_ENABLE))
 #define GPENCIL_SIMPLIFY_ONPLAY(playing) \
   (((playing == true) && (scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_ON_PLAY)) || \
    ((scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_ON_PLAY) == 0))

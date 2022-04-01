@@ -102,8 +102,8 @@ ccl_device_noinline int svm_node_rgb_ramp(
 ccl_device_noinline int svm_node_curves(
     KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
 {
-  uint fac_offset, color_offset, out_offset;
-  svm_unpack_node_uchar3(node.y, &fac_offset, &color_offset, &out_offset);
+  uint fac_offset, color_offset, out_offset, extrapolate;
+  svm_unpack_node_uchar4(node.y, &fac_offset, &color_offset, &out_offset, &extrapolate);
 
   uint table_size = read_node(kg, &offset).x;
 
@@ -114,9 +114,9 @@ ccl_device_noinline int svm_node_curves(
   const float range_x = max_x - min_x;
   const float3 relpos = (color - make_float3(min_x, min_x, min_x)) / range_x;
 
-  float r = rgb_ramp_lookup(kg, offset, relpos.x, true, true, table_size).x;
-  float g = rgb_ramp_lookup(kg, offset, relpos.y, true, true, table_size).y;
-  float b = rgb_ramp_lookup(kg, offset, relpos.z, true, true, table_size).z;
+  float r = rgb_ramp_lookup(kg, offset, relpos.x, true, extrapolate, table_size).x;
+  float g = rgb_ramp_lookup(kg, offset, relpos.y, true, extrapolate, table_size).y;
+  float b = rgb_ramp_lookup(kg, offset, relpos.z, true, extrapolate, table_size).z;
 
   color = (1.0f - fac) * color + fac * make_float3(r, g, b);
   stack_store_float3(stack, out_offset, color);
@@ -128,8 +128,8 @@ ccl_device_noinline int svm_node_curves(
 ccl_device_noinline int svm_node_curve(
     KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
 {
-  uint fac_offset, value_in_offset, out_offset;
-  svm_unpack_node_uchar3(node.y, &fac_offset, &value_in_offset, &out_offset);
+  uint fac_offset, value_in_offset, out_offset, extrapolate;
+  svm_unpack_node_uchar4(node.y, &fac_offset, &value_in_offset, &out_offset, &extrapolate);
 
   uint table_size = read_node(kg, &offset).x;
 
@@ -140,7 +140,7 @@ ccl_device_noinline int svm_node_curve(
   const float range = max - min;
   const float relpos = (in - min) / range;
 
-  float v = float_ramp_lookup(kg, offset, relpos, true, true, table_size);
+  float v = float_ramp_lookup(kg, offset, relpos, true, extrapolate, table_size);
 
   in = (1.0f - fac) * in + fac * v;
   stack_store_float(stack, out_offset, in);

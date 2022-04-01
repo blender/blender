@@ -64,10 +64,6 @@ class CompositorContext {
    */
   bool fast_calculation_;
 
-  /* \brief color management settings */
-  const ColorManagedViewSettings *view_settings_;
-  const ColorManagedDisplaySettings *display_settings_;
-
   /**
    * \brief active rendering view name
    */
@@ -150,38 +146,6 @@ class CompositorContext {
   bNodeInstanceHash *get_preview_hash() const
   {
     return previews_;
-  }
-
-  /**
-   * \brief set view settings of color management
-   */
-  void set_view_settings(const ColorManagedViewSettings *view_settings)
-  {
-    view_settings_ = view_settings;
-  }
-
-  /**
-   * \brief get view settings of color management
-   */
-  const ColorManagedViewSettings *get_view_settings() const
-  {
-    return view_settings_;
-  }
-
-  /**
-   * \brief set display settings of color management
-   */
-  void set_display_settings(const ColorManagedDisplaySettings *display_settings)
-  {
-    display_settings_ = display_settings;
-  }
-
-  /**
-   * \brief get display settings of color management
-   */
-  const ColorManagedDisplaySettings *get_display_settings() const
-  {
-    return display_settings_;
   }
 
   /**

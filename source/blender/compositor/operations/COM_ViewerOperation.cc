@@ -202,7 +202,7 @@ void ViewerOperation::update_image(const rcti *rect)
                                     rect->ymax);
 
   /* This could be improved to use partial updates. For now disabled as the full frame compositor
-   * would not use partial frames anymore and the image engine requires more testing.*/
+   * would not use partial frames anymore and the image engine requires more testing. */
   BKE_image_partial_update_mark_full_update(image_);
   this->update_draw();
 }

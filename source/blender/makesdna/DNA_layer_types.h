@@ -113,7 +113,7 @@ typedef struct ViewLayerEEVEE {
   int _pad[1];
 } ViewLayerEEVEE;
 
-/* AOV Renderpass definition. */
+/** AOV Render-pass definition. */
 typedef struct ViewLayerAOV {
   struct ViewLayerAOV *next, *prev;
 

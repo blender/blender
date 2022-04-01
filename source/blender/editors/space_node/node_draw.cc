@@ -64,6 +64,7 @@
 #include "UI_view2d.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "NOD_geometry_nodes_eval_log.hh"
 #include "NOD_node_declaration.hh"
@@ -72,11 +73,10 @@
 
 #include "node_intern.hh" /* own include */
 
-using blender::fn::CPPType;
+using blender::GPointer;
 using blender::fn::FieldCPPType;
 using blender::fn::FieldInput;
 using blender::fn::GField;
-using blender::fn::GPointer;
 namespace geo_log = blender::nodes::geometry_nodes_eval_log;
 
 extern "C" {
@@ -1417,8 +1417,6 @@ static int node_error_type_to_icon(const geo_log::NodeWarningType type)
       return ICON_ERROR;
     case geo_log::NodeWarningType::Info:
       return ICON_INFO;
-    case geo_log::NodeWarningType::Legacy:
-      return ICON_ERROR;
   }
 
   BLI_assert(false);
@@ -1429,8 +1427,6 @@ static uint8_t node_error_type_priority(const geo_log::NodeWarningType type)
 {
   switch (type) {
     case geo_log::NodeWarningType::Error:
-      return 4;
-    case geo_log::NodeWarningType::Legacy:
       return 3;
     case geo_log::NodeWarningType::Warning:
       return 2;
@@ -2578,20 +2574,14 @@ static void reroute_node_draw(
   if (node.label[0] != '\0') {
     /* draw title (node label) */
     BLI_strncpy(showname, node.label, sizeof(showname));
-    uiDefBut(&block,
-             UI_BTYPE_LABEL,
-             0,
-             showname,
-             (int)(rct.xmin - NODE_DYS),
-             (int)(rct.ymax),
-             (short)512,
-             (short)NODE_DY,
-             nullptr,
-             0,
-             0,
-             0,
-             0,
-             nullptr);
+    const short width = 512;
+    const int x = BLI_rctf_cent_x(&node.totr) - (width / 2);
+    const int y = node.totr.ymax;
+
+    uiBut *label_but = uiDefBut(
+        &block, UI_BTYPE_LABEL, 0, showname, x, y, width, (short)NODE_DY, NULL, 0, 0, 0, 0, NULL);
+
+    UI_but_drawflag_disable(label_but, UI_BUT_TEXT_LEFT);
   }
 
   /* only draw input socket. as they all are placed on the same position.

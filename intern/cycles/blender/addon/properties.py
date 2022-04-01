@@ -348,8 +348,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     scrambling_distance: FloatProperty(
         name="Scrambling Distance",
         default=1.0,
-        min=0.0, max=1.0,
-        description="Reduce randomization between pixels to improve GPU rendering performance, at the cost of possible rendering artifacts if set too low. Only works when not using adaptive sampling",
+        min=0.0, soft_max=1.0,
+        description="Reduce randomization between pixels to improve GPU rendering performance, at the cost of possible rendering artifacts if set too low",
     )
     preview_scrambling_distance: BoolProperty(
         name="Scrambling Distance viewport",
@@ -360,7 +360,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     auto_scrambling_distance: BoolProperty(
         name="Automatic Scrambling Distance",
         default=False,
-        description="Automatically reduce the randomization between pixels to improve GPU rendering performance, at the cost of possible rendering artifacts. Only works when not using adaptive sampling",
+        description="Automatically reduce the randomization between pixels to improve GPU rendering performance, at the cost of possible rendering artifacts",
     )
 
     use_layer_samples: EnumProperty(
@@ -1480,7 +1480,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 col.label(text="and NVIDIA driver version 470 or newer", icon='BLANK1')
             elif device_type == 'HIP':
                 import sys
-                col.label(text="Requires discrete AMD GPU with RDNA architecture", icon='BLANK1')
+                col.label(text="Requires discrete AMD GPU with Vega architecture", icon='BLANK1')
                 if sys.platform[:3] == "win":
                     col.label(text="and AMD Radeon Pro 21.Q4 driver or newer", icon='BLANK1')
             elif device_type == 'METAL':

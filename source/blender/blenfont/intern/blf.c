@@ -129,7 +129,7 @@ bool BLF_has_glyph(int fontid, unsigned int unicode)
 {
   FontBLF *font = blf_get(fontid);
   if (font) {
-    return FT_Get_Char_Index(font->face, unicode) != 0;
+    return FT_Get_Char_Index(font->face, unicode) != FT_Err_Ok;
   }
   return false;
 }
@@ -158,14 +158,14 @@ int BLF_load_unique(const char *name)
     return -1;
   }
 
-  char *filename = blf_dir_search(name);
-  if (!filename) {
+  char *filepath = blf_dir_search(name);
+  if (!filepath) {
     printf("Can't find font: %s\n", name);
     return -1;
   }
 
-  FontBLF *font = blf_font_new(name, filename);
-  MEM_freeN(filename);
+  FontBLF *font = blf_font_new(name, filepath);
+  MEM_freeN(filepath);
 
   if (!font) {
     printf("Can't load font: %s\n", name);
@@ -869,9 +869,9 @@ void BLF_draw_buffer(int fontid, const char *str, const size_t str_len)
   BLF_draw_buffer_ex(fontid, str, str_len, NULL);
 }
 
-char *BLF_display_name_from_file(const char *filename)
+char *BLF_display_name_from_file(const char *filepath)
 {
-  FontBLF *font = blf_font_new("font_name", filename);
+  FontBLF *font = blf_font_new("font_name", filepath);
   if (!font) {
     return NULL;
   }

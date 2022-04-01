@@ -848,10 +848,6 @@ static float rna_GPencilStrokePoints_weight_get(bGPDstroke *stroke,
   }
 
   MDeformVert *pt_dvert = stroke->dvert + point_index;
-  if ((pt_dvert) && (pt_dvert->totweight <= vertex_group_index || vertex_group_index < 0)) {
-    BKE_report(reports, RPT_ERROR, "Groups: index out of range");
-    return -1.0f;
-  }
 
   MDeformWeight *dw = BKE_defvert_find_index(pt_dvert, vertex_group_index);
   if (dw) {

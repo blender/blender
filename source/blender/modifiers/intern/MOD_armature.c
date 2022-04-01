@@ -34,6 +34,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "BLO_read_write.h"
 
@@ -131,7 +132,7 @@ static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
                         Mesh *mesh,
                         float (*vertexCos)[3],
-                        int numVerts)
+                        int verts_num)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
@@ -141,7 +142,7 @@ static void deformVerts(ModifierData *md,
                                        ctx->object,
                                        vertexCos,
                                        NULL,
-                                       numVerts,
+                                       verts_num,
                                        amd->deformflag,
                                        amd->vert_coords_prev,
                                        amd->defgrp_name,
@@ -156,10 +157,10 @@ static void deformVertsEM(ModifierData *md,
                           struct BMEditMesh *em,
                           Mesh *mesh,
                           float (*vertexCos)[3],
-                          int numVerts)
+                          int verts_num)
 {
   if (mesh != NULL) {
-    deformVerts(md, ctx, mesh, vertexCos, numVerts);
+    deformVerts(md, ctx, mesh, vertexCos, verts_num);
     return;
   }
 
@@ -171,7 +172,7 @@ static void deformVertsEM(ModifierData *md,
                                            ctx->object,
                                            vertexCos,
                                            NULL,
-                                           numVerts,
+                                           verts_num,
                                            amd->deformflag,
                                            amd->vert_coords_prev,
                                            amd->defgrp_name,
@@ -187,7 +188,7 @@ static void deformMatricesEM(ModifierData *md,
                              Mesh *UNUSED(mesh),
                              float (*vertexCos)[3],
                              float (*defMats)[3][3],
-                             int numVerts)
+                             int verts_num)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
@@ -195,7 +196,7 @@ static void deformMatricesEM(ModifierData *md,
                                            ctx->object,
                                            vertexCos,
                                            defMats,
-                                           numVerts,
+                                           verts_num,
                                            amd->deformflag,
                                            NULL,
                                            amd->defgrp_name,
@@ -207,16 +208,17 @@ static void deformMatrices(ModifierData *md,
                            Mesh *mesh,
                            float (*vertexCos)[3],
                            float (*defMats)[3][3],
-                           int numVerts)
+                           int verts_num)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(
+      ctx->object, NULL, mesh, NULL, verts_num, false, false);
 
   BKE_armature_deform_coords_with_mesh(amd->object,
                                        ctx->object,
                                        vertexCos,
                                        defMats,
-                                       numVerts,
+                                       verts_num,
                                        amd->deformflag,
                                        NULL,
                                        amd->defgrp_name,

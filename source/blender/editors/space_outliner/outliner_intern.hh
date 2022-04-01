@@ -638,7 +638,7 @@ bool outliner_tree_traverse(const SpaceOutliner *space_outliner,
                             int filter_tselem_flag,
                             TreeTraversalFunc func,
                             void *customdata);
-float outliner_restrict_columns_width(const struct SpaceOutliner *space_outliner);
+float outliner_right_columns_width(const struct SpaceOutliner *space_outliner);
 /**
  * Find first tree element in tree with matching tree-store flag.
  */

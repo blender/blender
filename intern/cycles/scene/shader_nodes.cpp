@@ -6529,9 +6529,9 @@ void CurvesNode::constant_fold(const ConstantFolder &folder, ShaderInput *value_
     float3 pos = (value - make_float3(min_x, min_x, min_x)) / (max_x - min_x);
     float3 result;
 
-    result[0] = rgb_ramp_lookup(curves.data(), pos[0], true, true, curves.size()).x;
-    result[1] = rgb_ramp_lookup(curves.data(), pos[1], true, true, curves.size()).y;
-    result[2] = rgb_ramp_lookup(curves.data(), pos[2], true, true, curves.size()).z;
+    result[0] = rgb_ramp_lookup(curves.data(), pos[0], true, extrapolate, curves.size()).x;
+    result[1] = rgb_ramp_lookup(curves.data(), pos[1], true, extrapolate, curves.size()).y;
+    result[2] = rgb_ramp_lookup(curves.data(), pos[2], true, extrapolate, curves.size()).z;
 
     folder.make_constant(interp(value, result, fac));
   }
@@ -6555,7 +6555,8 @@ void CurvesNode::compile(SVMCompiler &compiler,
   compiler.add_node(type,
                     compiler.encode_uchar4(compiler.stack_assign(fac_in),
                                            compiler.stack_assign(value_in),
-                                           compiler.stack_assign(value_out)),
+                                           compiler.stack_assign(value_out),
+                                           extrapolate),
                     __float_as_int(min_x),
                     __float_as_int(max_x));
 
@@ -6572,6 +6573,7 @@ void CurvesNode::compile(OSLCompiler &compiler, const char *name)
   compiler.parameter_color_array("ramp", curves);
   compiler.parameter(this, "min_x");
   compiler.parameter(this, "max_x");
+  compiler.parameter(this, "extrapolate");
   compiler.add(this, name);
 }
 
@@ -6594,6 +6596,7 @@ NODE_DEFINE(RGBCurvesNode)
   SOCKET_COLOR_ARRAY(curves, "Curves", array<float3>());
   SOCKET_FLOAT(min_x, "Min X", 0.0f);
   SOCKET_FLOAT(max_x, "Max X", 1.0f);
+  SOCKET_BOOLEAN(extrapolate, "Extrapolate", true);
 
   SOCKET_IN_FLOAT(fac, "Fac", 0.0f);
   SOCKET_IN_COLOR(value, "Color", zero_float3());
@@ -6631,6 +6634,7 @@ NODE_DEFINE(VectorCurvesNode)
   SOCKET_VECTOR_ARRAY(curves, "Curves", array<float3>());
   SOCKET_FLOAT(min_x, "Min X", 0.0f);
   SOCKET_FLOAT(max_x, "Max X", 1.0f);
+  SOCKET_BOOLEAN(extrapolate, "Extrapolate", true);
 
   SOCKET_IN_FLOAT(fac, "Fac", 0.0f);
   SOCKET_IN_VECTOR(value, "Vector", zero_float3());
@@ -6668,6 +6672,7 @@ NODE_DEFINE(FloatCurveNode)
   SOCKET_FLOAT_ARRAY(curve, "Curve", array<float>());
   SOCKET_FLOAT(min_x, "Min X", 0.0f);
   SOCKET_FLOAT(max_x, "Max X", 1.0f);
+  SOCKET_BOOLEAN(extrapolate, "Extrapolate", true);
 
   SOCKET_IN_FLOAT(fac, "Factor", 0.0f);
   SOCKET_IN_FLOAT(value, "Value", 0.0f);
@@ -6693,7 +6698,7 @@ void FloatCurveNode::constant_fold(const ConstantFolder &folder)
     }
 
     float pos = (value - min_x) / (max_x - min_x);
-    float result = float_ramp_lookup(curve.data(), pos, true, true, curve.size());
+    float result = float_ramp_lookup(curve.data(), pos, true, extrapolate, curve.size());
 
     folder.make_constant(value + fac * (result - value));
   }
@@ -6716,7 +6721,8 @@ void FloatCurveNode::compile(SVMCompiler &compiler)
   compiler.add_node(NODE_FLOAT_CURVE,
                     compiler.encode_uchar4(compiler.stack_assign(fac_in),
                                            compiler.stack_assign(value_in),
-                                           compiler.stack_assign(value_out)),
+                                           compiler.stack_assign(value_out),
+                                           extrapolate),
                     __float_as_int(min_x),
                     __float_as_int(max_x));
 
@@ -6733,6 +6739,7 @@ void FloatCurveNode::compile(OSLCompiler &compiler)
   compiler.parameter_array("ramp", curve.data(), curve.size());
   compiler.parameter(this, "min_x");
   compiler.parameter(this, "max_x");
+  compiler.parameter(this, "extrapolate");
   compiler.add(this, "node_float_curve");
 }
 

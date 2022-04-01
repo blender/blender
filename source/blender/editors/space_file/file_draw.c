@@ -38,6 +38,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "ED_fileselect.h"
 #include "ED_screen.h"

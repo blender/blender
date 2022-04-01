@@ -638,21 +638,6 @@ static void draw_mask_layers(const bContext *C,
   GPU_blend(GPU_BLEND_NONE);
 }
 
-void ED_mask_draw(const bContext *C, const char draw_flag, const char draw_type)
-{
-  ScrArea *area = CTX_wm_area(C);
-  Mask *mask = CTX_data_edit_mask(C);
-  int width, height;
-
-  if (!mask) {
-    return;
-  }
-
-  ED_mask_get_size(area, &width, &height);
-
-  draw_mask_layers(C, mask, draw_flag, draw_type, width, height);
-}
-
 static float *mask_rasterize(Mask *mask, const int width, const int height)
 {
   MaskRasterHandle *handle;

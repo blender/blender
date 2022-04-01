@@ -663,10 +663,6 @@ class DOPESHEET_MT_context_menu(Menu):
         layout.operator_menu_enum("action.mirror", "type", text="Mirror")
         layout.operator_menu_enum("action.snap", "type", text="Snap")
 
-        if st.mode == 'DOPESHEET':
-            layout.separator()
-            layout.menu("VIEW3D_MT_motion_path")
-
 
 class DOPESHEET_MT_channel_context_menu(Menu):
     bl_label = "Dope Sheet Channel Context Menu"

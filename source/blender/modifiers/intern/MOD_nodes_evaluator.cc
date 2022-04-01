@@ -11,12 +11,12 @@
 
 #include "FN_field.hh"
 #include "FN_field_cpp_type.hh"
-#include "FN_generic_value_map.hh"
 #include "FN_multi_function.hh"
 
 #include "BLT_translation.h"
 
 #include "BLI_enumerable_thread_specific.hh"
+#include "BLI_generic_value_map.hh"
 #include "BLI_stack.hh"
 #include "BLI_task.h"
 #include "BLI_task.hh"
@@ -26,11 +26,8 @@
 
 namespace blender::modifiers::geometry_nodes {
 
-using fn::CPPType;
 using fn::Field;
 using fn::GField;
-using fn::GValueMap;
-using fn::GVArray;
 using fn::ValueOrField;
 using fn::ValueOrFieldCPPType;
 using nodes::GeoNodeExecParams;
@@ -980,15 +977,11 @@ class GeometryNodesEvaluator {
 
   void execute_geometry_node(const DNode node, NodeState &node_state, NodeTaskRunState *run_state)
   {
+    using Clock = std::chrono::steady_clock;
     const bNode &bnode = *node->bnode();
 
     NodeParamsProvider params_provider{*this, node, node_state, run_state};
     GeoNodeExecParams params{params_provider};
-    if (node->idname().find("Legacy") != StringRef::not_found) {
-      params.error_message_add(geo_log::NodeWarningType::Legacy,
-                               TIP_("Legacy node will be removed before Blender 4.0"));
-    }
-    using Clock = std::chrono::steady_clock;
     Clock::time_point begin = Clock::now();
     bnode.typeinfo->geometry_node_execute(params);
     Clock::time_point end = Clock::now();
@@ -1004,14 +997,6 @@ class GeometryNodesEvaluator {
                                    NodeState &node_state,
                                    NodeTaskRunState *run_state)
   {
-    if (node->idname().find("Legacy") != StringRef::not_found) {
-      /* Create geometry nodes params just for creating an error message. */
-      NodeParamsProvider params_provider{*this, node, node_state, run_state};
-      GeoNodeExecParams params{params_provider};
-      params.error_message_add(geo_log::NodeWarningType::Legacy,
-                               TIP_("Legacy node will be removed before Blender 4.0"));
-    }
-
     LinearAllocator<> &allocator = local_allocators_.local();
 
     bool any_input_is_field = false;
@@ -1677,7 +1662,7 @@ class GeometryNodesEvaluator {
 
   void construct_default_value(const CPPType &type, void *r_value)
   {
-    type.copy_construct(type.default_value(), r_value);
+    type.value_initialize(r_value);
   }
 
   NodeState &get_node_state(const DNode node)
@@ -1930,7 +1915,7 @@ void NodeParamsProvider::set_default_remaining_outputs()
     const CPPType *type = get_socket_cpp_type(socket);
     BLI_assert(type != nullptr);
     void *buffer = allocator.allocate(type->size(), type->alignment());
-    type->copy_construct(type->default_value(), buffer);
+    type->value_initialize(buffer);
     evaluator_.forward_output(socket, {type, buffer}, run_state_);
     output_state.has_been_computed = true;
   }

@@ -4,6 +4,7 @@
 #include "COM_OutputFileMultiViewOperation.h"
 
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
 
@@ -16,24 +17,16 @@ namespace blender::compositor {
 /************************************ OpenEXR Singlelayer Multiview ******************************/
 
 OutputOpenExrSingleLayerMultiViewOperation::OutputOpenExrSingleLayerMultiViewOperation(
+    const Scene *scene,
     const RenderData *rd,
     const bNodeTree *tree,
     DataType datatype,
     ImageFormatData *format,
     const char *path,
-    const ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings,
     const char *view_name,
     const bool save_as_render)
-    : OutputSingleLayerOperation(rd,
-                                 tree,
-                                 datatype,
-                                 format,
-                                 path,
-                                 view_settings,
-                                 display_settings,
-                                 view_name,
-                                 save_as_render)
+    : OutputSingleLayerOperation(
+          scene, rd, tree, datatype, format, path, view_name, save_as_render)
 {
 }
 
@@ -67,7 +60,7 @@ void *OutputOpenExrSingleLayerMultiViewOperation::get_handle(const char *filenam
 
     /* prepare the file with all the channels */
 
-    if (!IMB_exr_begin_write(exrhandle, filename, width, height, format_->exr_codec, nullptr)) {
+    if (!IMB_exr_begin_write(exrhandle, filename, width, height, format_.exr_codec, nullptr)) {
       printf("Error Writing Singlelayer Multiview Openexr\n");
       IMB_exr_close(exrhandle);
     }
@@ -103,7 +96,7 @@ void OutputOpenExrSingleLayerMultiViewOperation::deinit_execution()
                      datatype_,
                      view_name_,
                      width,
-                     format_->depth == R_IMF_CHAN_DEPTH_16,
+                     format_.depth == R_IMF_CHAN_DEPTH_16,
                      output_buffer_);
 
     /* memory can only be freed after we write all views to the file */
@@ -246,25 +239,17 @@ void OutputOpenExrMultiLayerMultiViewOperation::deinit_execution()
 
 /******************************** Stereo3D ******************************/
 
-OutputStereoOperation::OutputStereoOperation(const RenderData *rd,
+OutputStereoOperation::OutputStereoOperation(const Scene *scene,
+                                             const RenderData *rd,
                                              const bNodeTree *tree,
                                              DataType datatype,
                                              ImageFormatData *format,
                                              const char *path,
                                              const char *name,
-                                             const ColorManagedViewSettings *view_settings,
-                                             const ColorManagedDisplaySettings *display_settings,
                                              const char *view_name,
                                              const bool save_as_render)
-    : OutputSingleLayerOperation(rd,
-                                 tree,
-                                 datatype,
-                                 format,
-                                 path,
-                                 view_settings,
-                                 display_settings,
-                                 view_name,
-                                 save_as_render)
+    : OutputSingleLayerOperation(
+          scene, rd, tree, datatype, format, path, view_name, save_as_render)
 {
   BLI_strncpy(name_, name, sizeof(name_));
   channels_ = get_datatype_size(datatype);
@@ -316,7 +301,7 @@ void OutputStereoOperation::deinit_execution()
                         1,
                         channels_ * width * height,
                         buf,
-                        format_->depth == R_IMF_CHAN_DEPTH_16);
+                        format_.depth == R_IMF_CHAN_DEPTH_16);
 
     image_input_ = nullptr;
     output_buffer_ = nullptr;
@@ -331,7 +316,7 @@ void OutputStereoOperation::deinit_execution()
       /* get rectf from EXR */
       for (i = 0; i < 2; i++) {
         float *rectf = IMB_exr_channel_rect(exrhandle, nullptr, name_, names[i]);
-        ibuf[i] = IMB_allocImBuf(width, height, format_->planes, 0);
+        ibuf[i] = IMB_allocImBuf(width, height, format_.planes, 0);
 
         ibuf[i]->channels = channels_;
         ibuf[i]->rect_float = rectf;
@@ -339,24 +324,23 @@ void OutputStereoOperation::deinit_execution()
         ibuf[i]->dither = rd_->dither_intensity;
 
         /* do colormanagement in the individual views, so it doesn't need to do in the stereo */
-        IMB_colormanagement_imbuf_for_write(
-            ibuf[i], true, false, view_settings_, display_settings_, format_);
+        IMB_colormanagement_imbuf_for_write(ibuf[i], true, false, &format_);
         IMB_prepare_write_ImBuf(IMB_isfloat(ibuf[i]), ibuf[i]);
       }
 
       /* create stereo buffer */
-      ibuf[2] = IMB_stereo3d_ImBuf(format_, ibuf[0], ibuf[1]);
+      ibuf[2] = IMB_stereo3d_ImBuf(&format_, ibuf[0], ibuf[1]);
 
       BKE_image_path_from_imformat(filename,
                                    path_,
                                    BKE_main_blendfile_path_from_global(),
                                    rd_->cfra,
-                                   format_,
+                                   &format_,
                                    (rd_->scemode & R_EXTENSION) != 0,
                                    true,
                                    nullptr);
 
-      BKE_imbuf_write(ibuf[2], filename, format_);
+      BKE_imbuf_write(ibuf[2], filename, &format_);
 
       /* imbuf knows which rects are not part of ibuf */
       for (i = 0; i < 3; i++) {

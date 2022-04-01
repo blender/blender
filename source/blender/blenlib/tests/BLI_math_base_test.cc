@@ -151,4 +151,9 @@ TEST(math_base, Midpoint)
   EXPECT_NEAR(math::midpoint(100.0f, 200.0f), 150.0f, 1e-4f);
 }
 
+TEST(math_base, InterpolateInt)
+{
+  EXPECT_EQ(math::interpolate(100, 200, 0.4f), 140);
+}
+
 }  // namespace blender::tests

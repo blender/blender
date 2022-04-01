@@ -142,7 +142,7 @@ void dof_resolve_load_layer(sampler2D color_tex,
                             out float out_weight)
 {
   vec2 pixel_co = gl_FragCoord.xy / 2.0;
-  vec2 uv = pixel_co / textureSize(color_tex, 0).xy;
+  vec2 uv = pixel_co / vec2(textureSize(color_tex, 0).xy);
   out_color = textureLod(color_tex, uv, 0.0);
   out_weight = textureLod(weight_tex, uv, 0.0).r;
 }

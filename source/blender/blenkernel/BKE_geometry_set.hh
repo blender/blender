@@ -131,9 +131,9 @@ class GeometryComponent {
    * interpolate from one domain to another.
    * \return null if the interpolation is not implemented.
    */
-  blender::fn::GVArray attribute_try_adapt_domain(const blender::fn::GVArray &varray,
-                                                  const AttributeDomain from_domain,
-                                                  const AttributeDomain to_domain) const
+  blender::GVArray attribute_try_adapt_domain(const blender::GVArray &varray,
+                                              const AttributeDomain from_domain,
+                                              const AttributeDomain to_domain) const
   {
     return this->attribute_try_adapt_domain_impl(varray, from_domain, to_domain);
   }
@@ -177,17 +177,17 @@ class GeometryComponent {
    * and converted to the data type. Returns null when the attribute does not exist or cannot be
    * interpolated or converted.
    */
-  blender::fn::GVArray attribute_try_get_for_read(const blender::bke::AttributeIDRef &attribute_id,
-                                                  AttributeDomain domain,
-                                                  const CustomDataType data_type) const;
+  blender::GVArray attribute_try_get_for_read(const blender::bke::AttributeIDRef &attribute_id,
+                                              AttributeDomain domain,
+                                              const CustomDataType data_type) const;
 
   /**
    * Get a virtual array that refers to the data of an attribute, interpolated to the given domain.
    * The data type is left unchanged. Returns null when the attribute does not exist or cannot be
    * interpolated.
    */
-  blender::fn::GVArray attribute_try_get_for_read(const blender::bke::AttributeIDRef &attribute_id,
-                                                  AttributeDomain domain) const;
+  blender::GVArray attribute_try_get_for_read(const blender::bke::AttributeIDRef &attribute_id,
+                                              AttributeDomain domain) const;
 
   /**
    * Get a virtual array that refers to the data of an attribute converted to the given data type.
@@ -202,17 +202,17 @@ class GeometryComponent {
    * and converted to the data type. If that is not possible, the returned virtual array will
    * contain a default value. This never returns null.
    */
-  blender::fn::GVArray attribute_get_for_read(const blender::bke::AttributeIDRef &attribute_id,
-                                              AttributeDomain domain,
-                                              const CustomDataType data_type,
-                                              const void *default_value = nullptr) const;
+  blender::GVArray attribute_get_for_read(const blender::bke::AttributeIDRef &attribute_id,
+                                          AttributeDomain domain,
+                                          const CustomDataType data_type,
+                                          const void *default_value = nullptr) const;
   /* Use instead of the method above when the type is known at compile time for type safety. */
   template<typename T>
   blender::VArray<T> attribute_get_for_read(const blender::bke::AttributeIDRef &attribute_id,
                                             const AttributeDomain domain,
                                             const T &default_value) const
   {
-    const blender::fn::CPPType &cpp_type = blender::fn::CPPType::get<T>();
+    const blender::CPPType &cpp_type = blender::CPPType::get<T>();
     const CustomDataType type = blender::bke::cpp_type_to_custom_data_type(cpp_type);
     return this->attribute_get_for_read(attribute_id, domain, type, &default_value)
         .template typed<T>();
@@ -240,7 +240,7 @@ class GeometryComponent {
       const AttributeDomain domain,
       const T default_value)
   {
-    const blender::fn::CPPType &cpp_type = blender::fn::CPPType::get<T>();
+    const blender::CPPType &cpp_type = blender::CPPType::get<T>();
     const CustomDataType data_type = blender::bke::cpp_type_to_custom_data_type(cpp_type);
     return this->attribute_try_get_for_output(attribute_id, domain, data_type, &default_value);
   }
@@ -260,7 +260,7 @@ class GeometryComponent {
   blender::bke::OutputAttribute_Typed<T> attribute_try_get_for_output_only(
       const blender::bke::AttributeIDRef &attribute_id, const AttributeDomain domain)
   {
-    const blender::fn::CPPType &cpp_type = blender::fn::CPPType::get<T>();
+    const blender::CPPType &cpp_type = blender::CPPType::get<T>();
     const CustomDataType data_type = blender::bke::cpp_type_to_custom_data_type(cpp_type);
     return this->attribute_try_get_for_output_only(attribute_id, domain, data_type);
   }
@@ -268,9 +268,9 @@ class GeometryComponent {
  private:
   virtual const blender::bke::ComponentAttributeProviders *get_attribute_providers() const;
 
-  virtual blender::fn::GVArray attribute_try_adapt_domain_impl(const blender::fn::GVArray &varray,
-                                                               AttributeDomain from_domain,
-                                                               AttributeDomain to_domain) const;
+  virtual blender::GVArray attribute_try_adapt_domain_impl(const blender::GVArray &varray,
+                                                           AttributeDomain from_domain,
+                                                           AttributeDomain to_domain) const;
 };
 
 template<typename T>
@@ -568,9 +568,9 @@ class MeshComponent : public GeometryComponent {
  private:
   const blender::bke::ComponentAttributeProviders *get_attribute_providers() const final;
 
-  blender::fn::GVArray attribute_try_adapt_domain_impl(const blender::fn::GVArray &varray,
-                                                       AttributeDomain from_domain,
-                                                       AttributeDomain to_domain) const final;
+  blender::GVArray attribute_try_adapt_domain_impl(const blender::GVArray &varray,
+                                                   AttributeDomain from_domain,
+                                                   AttributeDomain to_domain) const final;
 };
 
 /**
@@ -672,9 +672,9 @@ class CurveComponentLegacy : public GeometryComponent {
  private:
   const blender::bke::ComponentAttributeProviders *get_attribute_providers() const final;
 
-  blender::fn::GVArray attribute_try_adapt_domain_impl(const blender::fn::GVArray &varray,
-                                                       AttributeDomain from_domain,
-                                                       AttributeDomain to_domain) const final;
+  blender::GVArray attribute_try_adapt_domain_impl(const blender::GVArray &varray,
+                                                   AttributeDomain from_domain,
+                                                   AttributeDomain to_domain) const final;
 };
 
 /**
@@ -729,9 +729,9 @@ class CurveComponent : public GeometryComponent {
  private:
   const blender::bke::ComponentAttributeProviders *get_attribute_providers() const final;
 
-  blender::fn::GVArray attribute_try_adapt_domain_impl(const blender::fn::GVArray &varray,
-                                                       AttributeDomain from_domain,
-                                                       AttributeDomain to_domain) const final;
+  blender::GVArray attribute_try_adapt_domain_impl(const blender::GVArray &varray,
+                                                   AttributeDomain from_domain,
+                                                   AttributeDomain to_domain) const final;
 };
 
 /**

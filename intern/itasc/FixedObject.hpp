@@ -1,8 +1,8 @@
-/*
- * FixedObject.h
- *
- *  Created on: Feb 10, 2009
- *      Author: benoitbolsee
+/* SPDX-License-Identifier: LGPL-2.1-or-later
+ * Copyright 2009 Benoit Bolsee. */
+
+/** \file
+ * \ingroup intern_itasc
  */
 
 #ifndef FIXEDOBJECT_HPP_

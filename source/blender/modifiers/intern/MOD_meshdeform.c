@@ -37,6 +37,7 @@
 #include "BLO_read_write.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -221,7 +222,7 @@ static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3
 
     cell = &mmd->dyngrid[a];
     inf = mmd->dyninfluences + cell->offset;
-    for (j = 0; j < cell->totinfluence; j++, inf++) {
+    for (j = 0; j < cell->influences_num; j++, inf++) {
       cageco = dco[inf->vertex];
       cageweight = weight * inf->weight;
 #ifdef BLI_HAVE_SSE2
@@ -323,7 +324,7 @@ static void meshdeformModifier_do(ModifierData *md,
                                   const ModifierEvalContext *ctx,
                                   Mesh *mesh,
                                   float (*vertexCos)[3],
-                                  int numVerts)
+                                  const int verts_num)
 {
   MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
   Object *ob = ctx->object;
@@ -332,7 +333,7 @@ static void meshdeformModifier_do(ModifierData *md,
   MDeformVert *dvert = NULL;
   float imat[4][4], cagemat[4][4], iobmat[4][4], icagemat[3][3], cmat[4][4];
   float(*dco)[3] = NULL, (*bindcagecos)[3];
-  int a, totvert, totcagevert, defgrp_index;
+  int a, cage_verts_num, defgrp_index;
   MeshdeformUserdata data;
 
   static int recursive_bind_sentinel = 0;
@@ -374,7 +375,7 @@ static void meshdeformModifier_do(ModifierData *md,
     }
     if (!recursive_bind_sentinel) {
       recursive_bind_sentinel = 1;
-      mmd->bindfunc(ob, mmd, cagemesh, (float *)vertexCos, numVerts, cagemat);
+      mmd->bindfunc(ob, mmd, cagemesh, (float *)vertexCos, verts_num, cagemat);
       recursive_bind_sentinel = 0;
     }
 
@@ -382,16 +383,15 @@ static void meshdeformModifier_do(ModifierData *md,
   }
 
   /* verify we have compatible weights */
-  totvert = numVerts;
-  totcagevert = BKE_mesh_wrapper_vert_len(cagemesh);
+  cage_verts_num = BKE_mesh_wrapper_vert_len(cagemesh);
 
-  if (mmd->totvert != totvert) {
-    BKE_modifier_set_error(ob, md, "Vertices changed from %d to %d", mmd->totvert, totvert);
+  if (mmd->verts_num != verts_num) {
+    BKE_modifier_set_error(ob, md, "Vertices changed from %d to %d", mmd->verts_num, verts_num);
     goto finally;
   }
-  else if (mmd->totcagevert != totcagevert) {
+  else if (mmd->cage_verts_num != cage_verts_num) {
     BKE_modifier_set_error(
-        ob, md, "Cage vertices changed from %d to %d", mmd->totcagevert, totcagevert);
+        ob, md, "Cage vertices changed from %d to %d", mmd->cage_verts_num, cage_verts_num);
     goto finally;
   }
   else if (mmd->bindcagecos == NULL) {
@@ -402,14 +402,14 @@ static void meshdeformModifier_do(ModifierData *md,
   /* We allocate 1 element extra to make it possible to
    * load the values to SSE registers, which are float4.
    */
-  dco = MEM_calloc_arrayN((totcagevert + 1), sizeof(*dco), "MDefDco");
-  zero_v3(dco[totcagevert]);
+  dco = MEM_calloc_arrayN((cage_verts_num + 1), sizeof(*dco), "MDefDco");
+  zero_v3(dco[cage_verts_num]);
 
   /* setup deformation data */
-  BKE_mesh_wrapper_vert_coords_copy(cagemesh, dco, totcagevert);
+  BKE_mesh_wrapper_vert_coords_copy(cagemesh, dco, cage_verts_num);
   bindcagecos = (float(*)[3])mmd->bindcagecos;
 
-  for (a = 0; a < totcagevert; a++) {
+  for (a = 0; a < cage_verts_num; a++) {
     /* Get cage vertex in world-space with binding transform. */
     float co[3];
     mul_v3_m4v3(co, mmd->bindmat, dco[a]);
@@ -432,7 +432,7 @@ static void meshdeformModifier_do(ModifierData *md,
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.min_iter_per_thread = 16;
-  BLI_task_parallel_range(0, totvert, &data, meshdeform_vert_task, &settings);
+  BLI_task_parallel_range(0, verts_num, &data, meshdeform_vert_task, &settings);
 
 finally:
   MEM_SAFE_FREE(dco);
@@ -442,13 +442,14 @@ static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
                         Mesh *mesh,
                         float (*vertexCos)[3],
-                        int numVerts)
+                        int verts_num)
 {
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(
+      ctx->object, NULL, mesh, NULL, verts_num, false, false);
 
   MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
 
-  meshdeformModifier_do(md, ctx, mesh_src, vertexCos, numVerts);
+  meshdeformModifier_do(md, ctx, mesh_src, vertexCos, verts_num);
 
   if (!ELEM(mesh_src, NULL, mesh)) {
     BKE_id_free(NULL, mesh_src);
@@ -460,17 +461,17 @@ static void deformVertsEM(ModifierData *md,
                           struct BMEditMesh *editData,
                           Mesh *mesh,
                           float (*vertexCos)[3],
-                          int numVerts)
+                          int verts_num)
 {
   Mesh *mesh_src = MOD_deform_mesh_eval_get(
-      ctx->object, editData, mesh, NULL, numVerts, false, false);
+      ctx->object, editData, mesh, NULL, verts_num, false, false);
 
   /* TODO(Campbell): use edit-mode data only (remove this line). */
   if (mesh_src != NULL) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }
 
-  meshdeformModifier_do(md, ctx, mesh_src, vertexCos, numVerts);
+  meshdeformModifier_do(md, ctx, mesh_src, vertexCos, verts_num);
 
   if (!ELEM(mesh_src, NULL, mesh)) {
     BKE_id_free(NULL, mesh_src);
@@ -483,42 +484,42 @@ void BKE_modifier_mdef_compact_influences(ModifierData *md)
 {
   MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
   float weight, *weights, totweight;
-  int totinfluence, totvert, totcagevert, a, b;
+  int influences_num, verts_num, cage_verts_num, a, b;
 
   weights = mmd->bindweights;
   if (!weights) {
     return;
   }
 
-  totvert = mmd->totvert;
-  totcagevert = mmd->totcagevert;
+  verts_num = mmd->verts_num;
+  cage_verts_num = mmd->cage_verts_num;
 
   /* count number of influences above threshold */
-  for (b = 0; b < totvert; b++) {
-    for (a = 0; a < totcagevert; a++) {
-      weight = weights[a + b * totcagevert];
+  for (b = 0; b < verts_num; b++) {
+    for (a = 0; a < cage_verts_num; a++) {
+      weight = weights[a + b * cage_verts_num];
 
       if (weight > MESHDEFORM_MIN_INFLUENCE) {
-        mmd->totinfluence++;
+        mmd->influences_num++;
       }
     }
   }
 
   /* allocate bind influences */
   mmd->bindinfluences = MEM_calloc_arrayN(
-      mmd->totinfluence, sizeof(MDefInfluence), "MDefBindInfluence");
-  mmd->bindoffsets = MEM_calloc_arrayN((totvert + 1), sizeof(int), "MDefBindOffset");
+      mmd->influences_num, sizeof(MDefInfluence), "MDefBindInfluence");
+  mmd->bindoffsets = MEM_calloc_arrayN((verts_num + 1), sizeof(int), "MDefBindOffset");
 
   /* write influences */
-  totinfluence = 0;
+  influences_num = 0;
 
-  for (b = 0; b < totvert; b++) {
-    mmd->bindoffsets[b] = totinfluence;
+  for (b = 0; b < verts_num; b++) {
+    mmd->bindoffsets[b] = influences_num;
     totweight = 0.0f;
 
     /* sum total weight */
-    for (a = 0; a < totcagevert; a++) {
-      weight = weights[a + b * totcagevert];
+    for (a = 0; a < cage_verts_num; a++) {
+      weight = weights[a + b * cage_verts_num];
 
       if (weight > MESHDEFORM_MIN_INFLUENCE) {
         totweight += weight;
@@ -526,18 +527,18 @@ void BKE_modifier_mdef_compact_influences(ModifierData *md)
     }
 
     /* assign weights normalized */
-    for (a = 0; a < totcagevert; a++) {
-      weight = weights[a + b * totcagevert];
+    for (a = 0; a < cage_verts_num; a++) {
+      weight = weights[a + b * cage_verts_num];
 
       if (weight > MESHDEFORM_MIN_INFLUENCE) {
-        mmd->bindinfluences[totinfluence].weight = weight / totweight;
-        mmd->bindinfluences[totinfluence].vertex = a;
-        totinfluence++;
+        mmd->bindinfluences[influences_num].weight = weight / totweight;
+        mmd->bindinfluences[influences_num].vertex = a;
+        influences_num++;
       }
     }
   }
 
-  mmd->bindoffsets[b] = totinfluence;
+  mmd->bindoffsets[b] = influences_num;
 
   /* free */
   MEM_freeN(mmd->bindweights);
@@ -585,12 +586,12 @@ static void blendWrite(BlendWriter *writer, const ModifierData *md)
   MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
   int size = mmd->dyngridsize;
 
-  BLO_write_struct_array(writer, MDefInfluence, mmd->totinfluence, mmd->bindinfluences);
-  BLO_write_int32_array(writer, mmd->totvert + 1, mmd->bindoffsets);
-  BLO_write_float3_array(writer, mmd->totcagevert, mmd->bindcagecos);
+  BLO_write_struct_array(writer, MDefInfluence, mmd->influences_num, mmd->bindinfluences);
+  BLO_write_int32_array(writer, mmd->verts_num + 1, mmd->bindoffsets);
+  BLO_write_float3_array(writer, mmd->cage_verts_num, mmd->bindcagecos);
   BLO_write_struct_array(writer, MDefCell, size * size * size, mmd->dyngrid);
-  BLO_write_struct_array(writer, MDefInfluence, mmd->totinfluence, mmd->dyninfluences);
-  BLO_write_int32_array(writer, mmd->totvert, mmd->dynverts);
+  BLO_write_struct_array(writer, MDefInfluence, mmd->influences_num, mmd->dyninfluences);
+  BLO_write_int32_array(writer, mmd->verts_num, mmd->dynverts);
 }
 
 static void blendRead(BlendDataReader *reader, ModifierData *md)
@@ -598,15 +599,15 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
   MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
 
   BLO_read_data_address(reader, &mmd->bindinfluences);
-  BLO_read_int32_array(reader, mmd->totvert + 1, &mmd->bindoffsets);
-  BLO_read_float3_array(reader, mmd->totcagevert, &mmd->bindcagecos);
+  BLO_read_int32_array(reader, mmd->verts_num + 1, &mmd->bindoffsets);
+  BLO_read_float3_array(reader, mmd->cage_verts_num, &mmd->bindcagecos);
   BLO_read_data_address(reader, &mmd->dyngrid);
   BLO_read_data_address(reader, &mmd->dyninfluences);
-  BLO_read_int32_array(reader, mmd->totvert, &mmd->dynverts);
+  BLO_read_int32_array(reader, mmd->verts_num, &mmd->dynverts);
 
   /* Deprecated storage. */
-  BLO_read_float_array(reader, mmd->totvert, &mmd->bindweights);
-  BLO_read_float3_array(reader, mmd->totcagevert, &mmd->bindcos);
+  BLO_read_float_array(reader, mmd->verts_num, &mmd->bindweights);
+  BLO_read_float3_array(reader, mmd->cage_verts_num, &mmd->bindcos);
 }
 
 ModifierTypeInfo modifierType_MeshDeform = {

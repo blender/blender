@@ -221,14 +221,6 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
   export_settings.limit_precision = limit_precision != 0;
   export_settings.keep_bind_info = keep_bind_info != 0;
 
-  int includeFilter = OB_REL_NONE;
-  if (export_settings.include_armatures) {
-    includeFilter |= OB_REL_MOD_ARMATURE;
-  }
-  if (export_settings.include_children) {
-    includeFilter |= OB_REL_CHILDREN_RECURSIVE;
-  }
-
   export_count = collada_export(C, &export_settings);
 
   if (export_count == 0) {

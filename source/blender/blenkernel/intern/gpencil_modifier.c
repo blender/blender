@@ -743,7 +743,7 @@ void BKE_gpencil_prepare_eval_data(Depsgraph *depsgraph, Scene *scene, Object *o
   }
 
   BLI_assert(ob->data != NULL);
-  /* Only copy strokes from visible frames to evaluated data.*/
+  /* Only copy strokes from visible frames to evaluated data. */
   gpencil_copy_visible_frames_to_eval(depsgraph, scene, ob);
 }
 

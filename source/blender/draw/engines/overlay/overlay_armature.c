@@ -2123,7 +2123,7 @@ static bool pchan_culling_test_bbone(const DRWView *view,
     BoundSphere bsphere;
     float size[3];
     mat4_to_size(size, bbones_mat->mat);
-    copy_v3_v3(bsphere.center, bbones_mat->mat[3]);
+    mul_v3_m4v3(bsphere.center, ob->obmat, bbones_mat->mat[3]);
     bsphere.radius = len_v3(size) * ob_scale;
     if (DRW_culling_sphere_test(view, &bsphere)) {
       return true;

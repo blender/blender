@@ -177,17 +177,17 @@ TEST(ghash, TextMurmur2a)
 
 /* Int: uniform 100M first integers. */
 
-static void int_ghash_tests(GHash *ghash, const char *id, const unsigned int nbr)
+static void int_ghash_tests(GHash *ghash, const char *id, const unsigned int count)
 {
   printf("\n========== STARTING %s ==========\n", id);
 
   {
-    unsigned int i = nbr;
+    unsigned int i = count;
 
     TIMEIT_START(int_insert);
 
 #ifdef GHASH_RESERVE
-    BLI_ghash_reserve(ghash, nbr);
+    BLI_ghash_reserve(ghash, count);
 #endif
 
     while (i--) {
@@ -200,7 +200,7 @@ static void int_ghash_tests(GHash *ghash, const char *id, const unsigned int nbr
   PRINTF_GHASH_STATS(ghash);
 
   {
-    unsigned int i = nbr;
+    unsigned int i = count;
 
     TIMEIT_START(int_lookup);
 
@@ -266,17 +266,17 @@ TEST(ghash, IntMurmur2a100000000)
 
 /* Int: random 50M integers. */
 
-static void randint_ghash_tests(GHash *ghash, const char *id, const unsigned int nbr)
+static void randint_ghash_tests(GHash *ghash, const char *id, const unsigned int count)
 {
   printf("\n========== STARTING %s ==========\n", id);
 
-  unsigned int *data = (unsigned int *)MEM_mallocN(sizeof(*data) * (size_t)nbr, __func__);
+  unsigned int *data = (unsigned int *)MEM_mallocN(sizeof(*data) * (size_t)count, __func__);
   unsigned int *dt;
   unsigned int i;
 
   {
     RNG *rng = BLI_rng_new(1);
-    for (i = nbr, dt = data; i--; dt++) {
+    for (i = count, dt = data; i--; dt++) {
       *dt = BLI_rng_get_uint(rng);
     }
     BLI_rng_free(rng);
@@ -286,10 +286,10 @@ static void randint_ghash_tests(GHash *ghash, const char *id, const unsigned int
     TIMEIT_START(int_insert);
 
 #ifdef GHASH_RESERVE
-    BLI_ghash_reserve(ghash, nbr);
+    BLI_ghash_reserve(ghash, count);
 #endif
 
-    for (i = nbr, dt = data; i--; dt++) {
+    for (i = count, dt = data; i--; dt++) {
       BLI_ghash_insert(ghash, POINTER_FROM_UINT(*dt), POINTER_FROM_UINT(*dt));
     }
 
@@ -301,7 +301,7 @@ static void randint_ghash_tests(GHash *ghash, const char *id, const unsigned int
   {
     TIMEIT_START(int_lookup);
 
-    for (i = nbr, dt = data; i--; dt++) {
+    for (i = count, dt = data; i--; dt++) {
       void *v = BLI_ghash_lookup(ghash, POINTER_FROM_UINT(*dt));
       EXPECT_EQ(POINTER_AS_UINT(v), *dt);
     }
@@ -375,18 +375,18 @@ TEST(ghash, Int4NoHash50000000)
 
 /* Int_v4: 20M of randomly-generated integer vectors. */
 
-static void int4_ghash_tests(GHash *ghash, const char *id, const unsigned int nbr)
+static void int4_ghash_tests(GHash *ghash, const char *id, const unsigned int count)
 {
   printf("\n========== STARTING %s ==========\n", id);
 
-  void *data_v = MEM_mallocN(sizeof(unsigned int[4]) * (size_t)nbr, __func__);
+  void *data_v = MEM_mallocN(sizeof(unsigned int[4]) * (size_t)count, __func__);
   unsigned int(*data)[4] = (unsigned int(*)[4])data_v;
   unsigned int(*dt)[4];
   unsigned int i, j;
 
   {
     RNG *rng = BLI_rng_new(1);
-    for (i = nbr, dt = data; i--; dt++) {
+    for (i = count, dt = data; i--; dt++) {
       for (j = 4; j--;) {
         (*dt)[j] = BLI_rng_get_uint(rng);
       }
@@ -398,10 +398,10 @@ static void int4_ghash_tests(GHash *ghash, const char *id, const unsigned int nb
     TIMEIT_START(int_v4_insert);
 
 #ifdef GHASH_RESERVE
-    BLI_ghash_reserve(ghash, nbr);
+    BLI_ghash_reserve(ghash, count);
 #endif
 
-    for (i = nbr, dt = data; i--; dt++) {
+    for (i = count, dt = data; i--; dt++) {
       BLI_ghash_insert(ghash, *dt, POINTER_FROM_UINT(i));
     }
 
@@ -413,7 +413,7 @@ static void int4_ghash_tests(GHash *ghash, const char *id, const unsigned int nb
   {
     TIMEIT_START(int_v4_lookup);
 
-    for (i = nbr, dt = data; i--; dt++) {
+    for (i = count, dt = data; i--; dt++) {
       void *v = BLI_ghash_lookup(ghash, (void *)(*dt));
       EXPECT_EQ(POINTER_AS_UINT(v), i);
     }
@@ -483,25 +483,25 @@ TEST(ghash, Int2NoHash50000000)
 /* MultiSmall: create and manipulate a lot of very small ghash's
  * (90% < 10 items, 9% < 100 items, 1% < 1000 items). */
 
-static void multi_small_ghash_tests_one(GHash *ghash, RNG *rng, const unsigned int nbr)
+static void multi_small_ghash_tests_one(GHash *ghash, RNG *rng, const unsigned int count)
 {
-  unsigned int *data = (unsigned int *)MEM_mallocN(sizeof(*data) * (size_t)nbr, __func__);
+  unsigned int *data = (unsigned int *)MEM_mallocN(sizeof(*data) * (size_t)count, __func__);
   unsigned int *dt;
   unsigned int i;
 
-  for (i = nbr, dt = data; i--; dt++) {
+  for (i = count, dt = data; i--; dt++) {
     *dt = BLI_rng_get_uint(rng);
   }
 
 #ifdef GHASH_RESERVE
-  BLI_ghash_reserve(ghash, nbr);
+  BLI_ghash_reserve(ghash, count);
 #endif
 
-  for (i = nbr, dt = data; i--; dt++) {
+  for (i = count, dt = data; i--; dt++) {
     BLI_ghash_insert(ghash, POINTER_FROM_UINT(*dt), POINTER_FROM_UINT(*dt));
   }
 
-  for (i = nbr, dt = data; i--; dt++) {
+  for (i = count, dt = data; i--; dt++) {
     void *v = BLI_ghash_lookup(ghash, POINTER_FROM_UINT(*dt));
     EXPECT_EQ(POINTER_AS_UINT(v), *dt);
   }
@@ -510,7 +510,7 @@ static void multi_small_ghash_tests_one(GHash *ghash, RNG *rng, const unsigned i
   MEM_freeN(data);
 }
 
-static void multi_small_ghash_tests(GHash *ghash, const char *id, const unsigned int nbr)
+static void multi_small_ghash_tests(GHash *ghash, const char *id, const unsigned int count)
 {
   printf("\n========== STARTING %s ==========\n", id);
 
@@ -518,22 +518,22 @@ static void multi_small_ghash_tests(GHash *ghash, const char *id, const unsigned
 
   TIMEIT_START(multi_small_ghash);
 
-  unsigned int i = nbr;
+  unsigned int i = count;
   while (i--) {
-    const int nbr = 1 + (BLI_rng_get_int(rng) % TESTCASE_SIZE_SMALL) *
-                            (!(i % 100) ? 100 : (!(i % 10) ? 10 : 1));
-    multi_small_ghash_tests_one(ghash, rng, nbr);
+    const int count = 1 + (BLI_rng_get_int(rng) % TESTCASE_SIZE_SMALL) *
+                              (!(i % 100) ? 100 : (!(i % 10) ? 10 : 1));
+    multi_small_ghash_tests_one(ghash, rng, count);
   }
 
   TIMEIT_END(multi_small_ghash);
 
   TIMEIT_START(multi_small2_ghash);
 
-  unsigned int i = nbr;
+  unsigned int i = count;
   while (i--) {
-    const int nbr = 1 + (BLI_rng_get_int(rng) % TESTCASE_SIZE_SMALL) / 2 *
-                            (!(i % 100) ? 100 : (!(i % 10) ? 10 : 1));
-    multi_small_ghash_tests_one(ghash, rng, nbr);
+    const int count = 1 + (BLI_rng_get_int(rng) % TESTCASE_SIZE_SMALL) / 2 *
+                              (!(i % 100) ? 100 : (!(i % 10) ? 10 : 1));
+    multi_small_ghash_tests_one(ghash, rng, count);
   }
 
   TIMEIT_END(multi_small2_ghash);

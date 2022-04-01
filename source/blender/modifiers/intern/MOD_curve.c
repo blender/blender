@@ -32,6 +32,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -103,14 +104,14 @@ static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
                         Mesh *mesh,
                         float (*vertexCos)[3],
-                        int numVerts)
+                        int verts_num)
 {
   CurveModifierData *cmd = (CurveModifierData *)md;
   Mesh *mesh_src = NULL;
 
   if (ctx->object->type == OB_MESH && cmd->name[0] != '\0') {
     /* mesh_src is only needed for vgroups. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false, false);
   }
 
   struct MDeformVert *dvert = NULL;
@@ -123,7 +124,7 @@ static void deformVerts(ModifierData *md,
   BKE_curve_deform_coords(cmd->object,
                           ctx->object,
                           vertexCos,
-                          numVerts,
+                          verts_num,
                           dvert,
                           defgrp_index,
                           cmd->flag,
@@ -139,10 +140,10 @@ static void deformVertsEM(ModifierData *md,
                           BMEditMesh *em,
                           Mesh *mesh,
                           float (*vertexCos)[3],
-                          int numVerts)
+                          int verts_num)
 {
   if (mesh != NULL) {
-    deformVerts(md, ctx, mesh, vertexCos, numVerts);
+    deformVerts(md, ctx, mesh, vertexCos, verts_num);
     return;
   }
 
@@ -161,7 +162,7 @@ static void deformVertsEM(ModifierData *md,
     BKE_curve_deform_coords_with_editmesh(cmd->object,
                                           ctx->object,
                                           vertexCos,
-                                          numVerts,
+                                          verts_num,
                                           defgrp_index,
                                           cmd->flag,
                                           cmd->defaxis - 1,
@@ -171,7 +172,7 @@ static void deformVertsEM(ModifierData *md,
     BKE_curve_deform_coords(cmd->object,
                             ctx->object,
                             vertexCos,
-                            numVerts,
+                            verts_num,
                             NULL,
                             defgrp_index,
                             cmd->flag,

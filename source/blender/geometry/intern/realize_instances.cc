@@ -18,7 +18,6 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_pointcloud.h"
-#include "BKE_spline.hh"
 #include "BKE_type_conversions.hh"
 
 namespace blender::geometry {
@@ -30,12 +29,6 @@ using blender::bke::object_get_evaluated_geometry_set;
 using blender::bke::OutputAttribute;
 using blender::bke::OutputAttribute_Typed;
 using blender::bke::ReadAttributeLookup;
-using blender::fn::CPPType;
-using blender::fn::GArray;
-using blender::fn::GMutableSpan;
-using blender::fn::GSpan;
-using blender::fn::GVArray;
-using blender::fn::GVArray_GSpan;
 
 /**
  * An ordered set of attribute ids. Attributes are ordered to avoid name lookups in many places.
@@ -274,7 +267,7 @@ static void threaded_copy(const GSpan src, GMutableSpan dst)
   });
 }
 
-static void threaded_fill(const fn::GPointer value, GMutableSpan dst)
+static void threaded_fill(const GPointer value, GMutableSpan dst)
 {
   BLI_assert(*value.type() == dst.type());
   threading::parallel_for(IndexRange(dst.size()), 1024, [&](const IndexRange range) {
@@ -1146,8 +1139,8 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
   const Curves &curves_id = *curves_info.curves;
   const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
 
-  const IndexRange dst_point_range{task.start_indices.point, curves.points_size()};
-  const IndexRange dst_curve_range{task.start_indices.curve, curves.curves_size()};
+  const IndexRange dst_point_range{task.start_indices.point, curves.points_num()};
+  const IndexRange dst_curve_range{task.start_indices.curve, curves.curves_num()};
 
   copy_transformed_positions(
       curves.positions(), task.transform, dst_curves.positions().slice(dst_point_range));
@@ -1201,9 +1194,9 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
       [&](const AttributeDomain domain) {
         switch (domain) {
           case ATTR_DOMAIN_POINT:
-            return IndexRange(task.start_indices.point, curves.points_size());
+            return IndexRange(task.start_indices.point, curves.points_num());
           case ATTR_DOMAIN_CURVE:
-            return IndexRange(task.start_indices.curve, curves.curves_size());
+            return IndexRange(task.start_indices.curve, curves.curves_num());
           default:
             BLI_assert_unreachable();
             return IndexRange();

@@ -40,6 +40,7 @@
 #include "RE_engine.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -282,7 +283,7 @@ static void deformMatrices(ModifierData *md,
                            Mesh *mesh,
                            float (*vertex_cos)[3],
                            float (*deform_matrices)[3][3],
-                           int num_verts)
+                           int verts_num)
 {
 #if !defined(WITH_OPENSUBDIV)
   BKE_modifier_set_error(ctx->object, md, "Disabled, built without OpenSubdiv");
@@ -306,7 +307,7 @@ static void deformMatrices(ModifierData *md,
     /* Happens on bad topology, but also on empty input mesh. */
     return;
   }
-  BKE_subdiv_deform_coarse_vertices(subdiv, mesh, vertex_cos, num_verts);
+  BKE_subdiv_deform_coarse_vertices(subdiv, mesh, vertex_cos, verts_num);
   if (subdiv != runtime_data->subdiv) {
     BKE_subdiv_free(subdiv);
   }

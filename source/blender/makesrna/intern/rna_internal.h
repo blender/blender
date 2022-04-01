@@ -403,7 +403,15 @@ char *rna_TextureSlot_path(struct PointerRNA *ptr);
 char *rna_Node_ImageUser_path(struct PointerRNA *ptr);
 
 /* Set U.is_dirty and redraw. */
+
+/**
+ * Use single function so we can more easily break-point it.
+ */
 void rna_userdef_is_dirty_update_impl(void);
+/**
+ * Use as a fallback update handler to ensure #U.runtime.is_dirty is set.
+ * So the preferences are saved when modified.
+ */
 void rna_userdef_is_dirty_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 
 /* API functions */
@@ -502,18 +510,6 @@ void RNA_def_main_simulations(BlenderRNA *brna, PropertyRNA *cprop);
 #endif
 
 /* ID Properties */
-
-extern StringPropertyRNA rna_PropertyGroupItem_string;
-extern IntPropertyRNA rna_PropertyGroupItem_int;
-extern IntPropertyRNA rna_PropertyGroupItem_int_array;
-extern FloatPropertyRNA rna_PropertyGroupItem_float;
-extern FloatPropertyRNA rna_PropertyGroupItem_float_array;
-extern PointerPropertyRNA rna_PropertyGroupItem_group;
-extern PointerPropertyRNA rna_PropertyGroupItem_id;
-extern CollectionPropertyRNA rna_PropertyGroupItem_collection;
-extern CollectionPropertyRNA rna_PropertyGroupItem_idp_array;
-extern FloatPropertyRNA rna_PropertyGroupItem_double;
-extern FloatPropertyRNA rna_PropertyGroupItem_double_array;
 
 #ifndef __RNA_ACCESS_H__
 extern StructRNA RNA_PropertyGroupItem;

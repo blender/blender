@@ -6,7 +6,7 @@
  * \ingroup fn
  */
 
-#include "FN_cpp_type_make.hh"
+#include "BLI_cpp_type_make.hh"
 #include "FN_field.hh"
 
 namespace blender::fn {
@@ -127,16 +127,14 @@ class ValueOrFieldCPPType : public CPPType {
 }  // namespace blender::fn
 
 #define MAKE_FIELD_CPP_TYPE(DEBUG_NAME, FIELD_TYPE) \
-  template<> \
-  const blender::fn::CPPType &blender::fn::CPPType::get_impl<blender::fn::Field<FIELD_TYPE>>() \
+  template<> const blender::CPPType &blender::CPPType::get_impl<blender::fn::Field<FIELD_TYPE>>() \
   { \
     static blender::fn::FieldCPPType cpp_type{ \
         blender::fn::FieldCPPTypeParam<blender::fn::Field<FIELD_TYPE>>(), STRINGIFY(DEBUG_NAME)}; \
     return cpp_type; \
   } \
   template<> \
-  const blender::fn::CPPType & \
-  blender::fn::CPPType::get_impl<blender::fn::ValueOrField<FIELD_TYPE>>() \
+  const blender::CPPType &blender::CPPType::get_impl<blender::fn::ValueOrField<FIELD_TYPE>>() \
   { \
     static blender::fn::ValueOrFieldCPPType cpp_type{ \
         blender::fn::FieldCPPTypeParam<blender::fn::ValueOrField<FIELD_TYPE>>(), \

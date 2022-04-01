@@ -51,7 +51,7 @@ typedef struct ScanFillVert {
   unsigned int keyindex;
   unsigned short poly_nr;
   /** number of edges using this vertex */
-  unsigned char edge_tot;
+  unsigned char edge_count;
   /** vert status */
   unsigned int f : 4;
   /** flag callers can use as they like */

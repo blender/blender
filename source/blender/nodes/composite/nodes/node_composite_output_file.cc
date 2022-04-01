@@ -12,17 +12,19 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_image_format.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "WM_api.h"
 
-#include "node_composite_util.hh"
+#include "IMB_openexr.h"
 
-#include "intern/openexr/openexr_multi.h"
+#include "node_composite_util.hh"
 
 /* **************** OUTPUT FILE ******************** */
 
@@ -134,7 +136,7 @@ bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,
     }
   }
   else {
-    BKE_imformat_defaults(&sockdata->format);
+    BKE_image_format_init(&sockdata->format, false);
   }
   /* use node data format by default */
   sockdata->use_node_format = true;
@@ -204,7 +206,7 @@ static void init_output_file(const bContext *C, PointerRNA *ptr)
     format = &nimf->format;
   }
   else {
-    BKE_imformat_defaults(&nimf->format);
+    BKE_image_format_init(&nimf->format, false);
   }
 
   /* add one socket by default */
@@ -215,9 +217,13 @@ static void free_output_file(bNode *node)
 {
   /* free storage data in sockets */
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+    NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
+    BKE_image_format_free(&sockdata->format);
     MEM_freeN(sock->storage);
   }
 
+  NodeImageMultiFile *nimf = (NodeImageMultiFile *)node->storage;
+  BKE_image_format_free(&nimf->format);
   MEM_freeN(node->storage);
 }
 
@@ -228,6 +234,9 @@ static void copy_output_file(bNodeTree *UNUSED(dest_ntree),
   bNodeSocket *src_sock, *dest_sock;
 
   dest_node->storage = MEM_dupallocN(src_node->storage);
+  NodeImageMultiFile *dest_nimf = (NodeImageMultiFile *)dest_node->storage;
+  NodeImageMultiFile *src_nimf = (NodeImageMultiFile *)src_node->storage;
+  BKE_image_format_copy(&dest_nimf->format, &src_nimf->format);
 
   /* duplicate storage data in sockets */
   for (src_sock = (bNodeSocket *)src_node->inputs.first,
@@ -235,6 +244,9 @@ static void copy_output_file(bNodeTree *UNUSED(dest_ntree),
        src_sock && dest_sock;
        src_sock = src_sock->next, dest_sock = (bNodeSocket *)dest_sock->next) {
     dest_sock->storage = MEM_dupallocN(src_sock->storage);
+    NodeImageMultiFileSocket *dest_sockdata = (NodeImageMultiFileSocket *)dest_sock->storage;
+    NodeImageMultiFileSocket *src_sockdata = (NodeImageMultiFileSocket *)src_sock->storage;
+    BKE_image_format_copy(&dest_sockdata->format, &src_sockdata->format);
   }
 }
 
@@ -291,7 +303,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
   const bool is_multiview = (scene->r.scemode & R_MULTIVIEW) != 0;
 
   node_composit_buts_file_output(layout, C, ptr);
-  uiTemplateImageSettings(layout, &imfptr, false);
+  uiTemplateImageSettings(layout, &imfptr, true);
 
   /* disable stereo output for multilayer, too much work for something that no one will use */
   /* if someone asks for that we can implement it */
@@ -410,12 +422,16 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
                 ICON_NONE);
       }
 
-      col = uiLayoutColumn(layout, false);
-      uiLayoutSetActive(col, use_node_format == false);
-      uiTemplateImageSettings(col, &imfptr, false);
+      if (!use_node_format) {
+        const bool use_color_management = RNA_boolean_get(&active_input_ptr, "save_as_render");
 
-      if (is_multiview) {
-        uiTemplateImageFormatViews(layout, &imfptr, nullptr);
+        col = uiLayoutColumn(layout, false);
+        uiTemplateImageSettings(col, &imfptr, use_color_management);
+
+        if (is_multiview) {
+          col = uiLayoutColumn(layout, false);
+          uiTemplateImageFormatViews(col, &imfptr, nullptr);
+        }
       }
     }
   }

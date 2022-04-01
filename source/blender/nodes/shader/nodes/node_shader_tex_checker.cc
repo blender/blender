@@ -61,9 +61,7 @@ class NodeTexChecker : public fn::MultiFunction {
     return signature.build();
   }
 
-  void call(blender::IndexMask mask,
-            fn::MFParams params,
-            fn::MFContext UNUSED(context)) const override
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<ColorGeometry4f> &color1 = params.readonly_single_input<ColorGeometry4f>(
@@ -94,8 +92,7 @@ class NodeTexChecker : public fn::MultiFunction {
   }
 };
 
-static void sh_node_tex_checker_build_multi_function(
-    blender::nodes::NodeMultiFunctionBuilder &builder)
+static void sh_node_tex_checker_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   static NodeTexChecker fn;
   builder.set_matching_fn(fn);

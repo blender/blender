@@ -14,6 +14,7 @@
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 
@@ -48,7 +49,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
   bool is_dirty = BKE_image_is_dirty(image);
 
   ImageFormatData imageFormat;
-  BKE_imbuf_to_image_format(&imageFormat, imbuf);
+  BKE_image_format_from_imbuf(&imageFormat, imbuf);
 
   short image_source = image->source;
   bool is_generated = image_source == IMA_SRC_GENERATED;

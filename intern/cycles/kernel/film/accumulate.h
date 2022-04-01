@@ -352,6 +352,12 @@ ccl_device_inline void kernel_accum_emission_or_background_pass(KernelGlobals kg
     pass_offset = pass;
   }
   else if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
+    /* Don't write any light passes for shadow catcher, for easier
+     * compositing back together of the combined pass. */
+    if (path_flag & PATH_RAY_SHADOW_CATCHER_HIT) {
+      return;
+    }
+
     if (path_flag & PATH_RAY_SURFACE_PASS) {
       /* Indirectly visible through reflection. */
       const float3 diffuse_weight = INTEGRATOR_STATE(state, path, pass_diffuse_weight);
@@ -436,6 +442,12 @@ ccl_device_inline void kernel_accum_light(KernelGlobals kg,
 #ifdef __PASSES__
   if (kernel_data.film.light_pass_flag & PASS_ANY) {
     const uint32_t path_flag = INTEGRATOR_STATE(state, shadow_path, flag);
+
+    /* Don't write any light passes for shadow catcher, for easier
+     * compositing back together of the combined pass. */
+    if (path_flag & PATH_RAY_SHADOW_CATCHER_HIT) {
+      return;
+    }
 
     if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
       int pass_offset = PASS_UNUSED;

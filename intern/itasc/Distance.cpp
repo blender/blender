@@ -1,11 +1,8 @@
-/** \file itasc/Distance.cpp
+/* SPDX-License-Identifier: LGPL-2.1-or-later
+ * Copyright 2009 Ruben Smits. */
+
+/** \file
  * \ingroup intern_itasc
- */
-/*
- * Distance.cpp
- *
- *  Created on: Jan 30, 2009
- *      Author: rsmits
  */
 
 #include "Distance.hpp"

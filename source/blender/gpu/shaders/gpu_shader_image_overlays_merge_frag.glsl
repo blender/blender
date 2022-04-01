@@ -32,8 +32,8 @@ void linearrgb_to_srgb(vec4 col_from, out vec4 col_to)
 
 void main()
 {
-  fragColor = texture(image_texture, texCoord_interp.st);
-  vec4 overlay_col = texture(overlays_texture, texCoord_interp.st);
+  fragColor = texture(image_texture, texCoord_interp.xy);
+  vec4 overlay_col = texture(overlays_texture, texCoord_interp.xy);
 
   if (overlay) {
     fragColor = clamp(fragColor, 0.0, 1.0);

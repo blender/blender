@@ -359,7 +359,7 @@ bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
                                   ListBase *remvertbase,
                                   ListBase *remedgebase)
 {
-  const unsigned int poly_tot = (unsigned int)sf_ctx->poly_nr + 1;
+  const unsigned int poly_num = (unsigned int)sf_ctx->poly_nr + 1;
   unsigned int eed_index = 0;
   int totvert_new = 0;
   bool changed = false;
@@ -370,7 +370,7 @@ bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
     return false;
   }
 
-  poly_info = MEM_callocN(sizeof(*poly_info) * poly_tot, __func__);
+  poly_info = MEM_callocN(sizeof(*poly_info) * poly_num, __func__);
 
   /* get the polygon span */
   if (sf_ctx->poly_nr == 0) {
@@ -408,7 +408,7 @@ bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
   /* self-intersect each polygon */
   {
     unsigned short poly_nr;
-    for (poly_nr = 0; poly_nr < poly_tot; poly_nr++) {
+    for (poly_nr = 0; poly_nr < poly_num; poly_nr++) {
       changed |= scanfill_preprocess_self_isect(sf_ctx, poly_info, poly_nr, remedgebase);
     }
   }

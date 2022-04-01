@@ -121,9 +121,6 @@ static void gather_socket_link_operations(bNodeTree &node_tree,
                                           Vector<SocketLinkOperation> &search_link_ops)
 {
   NODE_TYPES_BEGIN (node_type) {
-    if (StringRef(node_type->idname).find("Legacy") != StringRef::not_found) {
-      continue;
-    }
     const char *disabled_hint;
     if (!(node_type->poll && node_type->poll(node_type, &node_tree, &disabled_hint))) {
       continue;

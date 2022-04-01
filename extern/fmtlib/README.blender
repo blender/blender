@@ -1,0 +1,8 @@
+Project: {fmt}
+URL: https://github.com/fmtlib/fmt
+License: MIT
+Upstream version: 8.1.1 (b6f4cea)
+Local modifications:
+
+- Took only files needed for Blender: LICENSE, README and include/fmt
+  folder's core.h, format-inl.h, format.h

@@ -20,11 +20,13 @@ namespace blender::gpu {
  */
 struct GPUCapabilities {
   int max_texture_size = 0;
+  int max_texture_3d_size = 0;
   int max_texture_layers = 0;
   int max_textures = 0;
   int max_textures_vert = 0;
   int max_textures_geom = 0;
   int max_textures_frag = 0;
+  int max_samplers = 0;
   int max_work_group_count[3] = {0, 0, 0};
   int max_work_group_size[3] = {0, 0, 0};
   int max_uniforms_vert = 0;
@@ -33,6 +35,7 @@ struct GPUCapabilities {
   int max_batch_vertices = 0;
   int max_vertex_attribs = 0;
   int max_varying_floats = 0;
+  int max_shader_storage_buffer_bindings = 0;
   int extensions_len = 0;
   const char *(*extension_get)(int);
 
@@ -40,6 +43,8 @@ struct GPUCapabilities {
   bool compute_shader_support = false;
   bool shader_storage_buffer_objects_support = false;
   bool shader_image_load_store_support = false;
+  bool transform_feedback_support = false;
+
   /* OpenGL related workarounds. */
   bool mip_render_workaround = false;
   bool depth_blitting_workaround = false;
@@ -47,6 +52,10 @@ struct GPUCapabilities {
   bool broken_amd_driver = false;
   bool use_hq_normals_workaround = false;
   /* Vulkan related workarounds. */
+
+  /* Metal related workarounds. */
+  /* Minimum per-vertex stride in bytes (For a vertex buffer). */
+  int minimum_per_vertex_stride = 1;
 };
 
 extern GPUCapabilities GCaps;

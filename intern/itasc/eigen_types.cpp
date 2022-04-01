@@ -1,11 +1,8 @@
-/** \file itasc/eigen_types.cpp
+/* SPDX-License-Identifier: LGPL-2.1-or-later
+ * Copyright 2009 Benoit Bolsee. */
+
+/** \file
  * \ingroup intern_itasc
- */
-/*
- * eigen_types.cpp
- *
- *  Created on: March 19, 2009
- *      Author: benoit bolsee
  */
 
 #include "eigen_types.hpp"

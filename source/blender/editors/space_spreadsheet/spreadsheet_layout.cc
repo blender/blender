@@ -89,7 +89,7 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       return;
     }
 
-    const fn::GVArray &data = column.data();
+    const GVArray &data = column.data();
 
     if (data.type().is<int>()) {
       const int value = data.get<int>(real_index);

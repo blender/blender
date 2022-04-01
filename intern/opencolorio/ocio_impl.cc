@@ -640,6 +640,15 @@ const char *OCIOImpl::colorSpaceGetFamily(OCIO_ConstColorSpaceRcPtr *cs)
   return (*(ConstColorSpaceRcPtr *)cs)->getFamily();
 }
 
+int OCIOImpl::colorSpaceGetNumAliases(OCIO_ConstColorSpaceRcPtr *cs)
+{
+  return (*(ConstColorSpaceRcPtr *)cs)->getNumAliases();
+}
+const char *OCIOImpl::colorSpaceGetAlias(OCIO_ConstColorSpaceRcPtr *cs, const int index)
+{
+  return (*(ConstColorSpaceRcPtr *)cs)->getAlias(index);
+}
+
 OCIO_ConstProcessorRcPtr *OCIOImpl::createDisplayProcessor(OCIO_ConstConfigRcPtr *config_,
                                                            const char *input,
                                                            const char *view,

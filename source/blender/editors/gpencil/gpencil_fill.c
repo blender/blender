@@ -1387,6 +1387,15 @@ static void gpencil_get_outline_points(tGPDfill *tgpf, const bool dilate)
       current_check_co[1] = boundary_co[1] + offset[offset_idx][1];
 
       int image_idx = ibuf->x * current_check_co[1] + current_check_co[0];
+      /* Check if the index is inside the image. If the index is outside is
+       * because the algorithm is unable to find the outline of the figure. This is
+       * possible for negative filling when click inside a figure instead of
+       * clicking outside.
+       * If the index is out of range, finish the filling. */
+      if (image_idx > imagesize - 1) {
+        start_found = false;
+        break;
+      }
       get_pixel(ibuf, image_idx, rgba);
 
       /* find next boundary pixel */
@@ -1629,14 +1638,9 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
     }
   }
 
-  /* smooth stroke */
-  float reduce = 0.0f;
-  float smoothfac = 1.0f;
-  for (int r = 0; r < 1; r++) {
-    for (int i = 0; i < gps->totpoints; i++) {
-      BKE_gpencil_stroke_smooth_point(gps, i, smoothfac - reduce, false);
-    }
-    reduce += 0.25f; /* reduce the factor */
+  /* Smooth stroke. No copy of the stroke since there only a minor improvement here. */
+  for (int i = 0; i < gps->totpoints; i++) {
+    BKE_gpencil_stroke_smooth_point(gps, i, 1.0f, 2, false, true, gps);
   }
 
   /* if axis locked, reproject to plane locked */
@@ -2104,18 +2108,18 @@ static bool gpencil_do_frame_fill(tGPDfill *tgpf, const bool is_inverted)
       int totpoints_prv = 0;
       int loop_limit = 0;
       while (totpoints > 0) {
-        /* analyze outline */
+        /* Analyze outline. */
         gpencil_get_outline_points(tgpf, (totpoints == 1) ? true : false);
 
-        /* create array of points from stack */
+        /* Create array of points from stack. */
         totpoints = gpencil_points_from_stack(tgpf);
+        if (totpoints > 0) {
+          /* Create z-depth array for reproject. */
+          gpencil_get_depth_array(tgpf);
 
-        /* create z-depth array for reproject */
-        gpencil_get_depth_array(tgpf);
-
-        /* create stroke and reproject */
-        gpencil_stroke_from_buffer(tgpf);
-
+          /* Create stroke and reproject. */
+          gpencil_stroke_from_buffer(tgpf);
+        }
         if (is_inverted) {
           gpencil_erase_processed_area(tgpf);
         }
@@ -2218,7 +2222,7 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
             /* Hash of selected frames. */
             GHash *frame_list = BLI_ghash_int_new_ex(__func__, 64);
 
-            /* If not multiframe and there is no frame in CFRA for the active layer, create
+            /* If not multi-frame and there is no frame in CFRA for the active layer, create
              * a new frame. */
             if (!is_multiedit) {
               tgpf->gpf = BKE_gpencil_layer_frame_get(

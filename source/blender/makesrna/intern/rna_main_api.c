@@ -92,6 +92,7 @@
 #  include "DNA_volume_types.h"
 #  include "DNA_world_types.h"
 
+#  include "ED_node.h"
 #  include "ED_screen.h"
 
 #  include "BLT_translation.h"
@@ -291,6 +292,7 @@ static struct bNodeTree *rna_Main_nodetree_new(Main *bmain, const char *name, in
   bNodeTreeType *typeinfo = rna_node_tree_type_from_enum(type);
   if (typeinfo) {
     bNodeTree *ntree = ntreeAddTree(bmain, safe_name, typeinfo->idname);
+    ED_node_tree_propagate_change(NULL, bmain, ntree);
 
     id_us_min(&ntree->id);
     return ntree;

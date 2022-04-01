@@ -28,6 +28,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
@@ -173,16 +174,16 @@ PackedFile *BKE_packedfile_new_from_memory(void *mem, int memlen)
   return pf;
 }
 
-PackedFile *BKE_packedfile_new(ReportList *reports, const char *filename, const char *basepath)
+PackedFile *BKE_packedfile_new(ReportList *reports, const char *filepath, const char *basepath)
 {
   PackedFile *pf = NULL;
   int file, filelen;
   char name[FILE_MAX];
   void *data;
 
-  /* render result has no filename and can be ignored
+  /* render result has no filepath and can be ignored
    * any other files with no name can be ignored too */
-  if (filename[0] == '\0') {
+  if (filepath[0] == '\0') {
     return pf;
   }
 
@@ -190,7 +191,7 @@ PackedFile *BKE_packedfile_new(ReportList *reports, const char *filename, const 
 
   /* convert relative filenames to absolute filenames */
 
-  BLI_strncpy(name, filename, sizeof(name));
+  BLI_strncpy(name, filepath, sizeof(name));
   BLI_path_abs(name, basepath);
 
   /* open the file
@@ -284,7 +285,7 @@ void BKE_packedfile_pack_all(Main *bmain, ReportList *reports, bool verbose)
 
 int BKE_packedfile_write_to_file(ReportList *reports,
                                  const char *ref_file_name,
-                                 const char *filename,
+                                 const char *filepath,
                                  PackedFile *pf,
                                  const bool guimode)
 {
@@ -298,7 +299,7 @@ int BKE_packedfile_write_to_file(ReportList *reports,
   if (guimode) {
   }  // XXX  waitcursor(1);
 
-  BLI_strncpy(name, filename, sizeof(name));
+  BLI_strncpy(name, filepath, sizeof(name));
   BLI_path_abs(name, ref_file_name);
 
   if (BLI_exists(name)) {
@@ -357,7 +358,7 @@ int BKE_packedfile_write_to_file(ReportList *reports,
 }
 
 enum ePF_FileCompare BKE_packedfile_compare_to_file(const char *ref_file_name,
-                                                    const char *filename,
+                                                    const char *filepath,
                                                     PackedFile *pf)
 {
   BLI_stat_t st;
@@ -365,7 +366,7 @@ enum ePF_FileCompare BKE_packedfile_compare_to_file(const char *ref_file_name,
   char buf[4096];
   char name[FILE_MAX];
 
-  BLI_strncpy(name, filename, sizeof(name));
+  BLI_strncpy(name, filepath, sizeof(name));
   BLI_path_abs(name, ref_file_name);
 
   if (BLI_stat(name, &st) == -1) {
@@ -503,7 +504,7 @@ static void unpack_generate_paths(const char *name,
         const PackedFile *pf = imapf->packedfile;
         enum eImbFileType ftype = IMB_ispic_type_from_memory((const uchar *)pf->data, pf->size);
         if (ftype != IMB_FTYPE_NONE) {
-          const int imtype = BKE_image_ftype_to_imtype(ftype, NULL);
+          const int imtype = BKE_ftype_to_imtype(ftype, NULL);
           BKE_image_path_ensure_ext_from_imtype(tempname, imtype);
         }
       }

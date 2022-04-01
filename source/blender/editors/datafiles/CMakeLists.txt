@@ -191,7 +191,6 @@ set(ICON_NAMES
   library_data_broken
   boids
   strands
-  library_data_indirect
   greasepencil
   line_data
   library_data_override
@@ -595,9 +594,9 @@ set(ICON_NAMES
   axis_top
   layer_used
   layer_active
-  outliner_ob_hair
-  outliner_data_hair
-  hair_data
+  outliner_ob_curves
+  outliner_data_curves
+  curves_data
   outliner_ob_pointcloud
   outliner_data_pointcloud
   pointcloud_data
@@ -652,7 +651,7 @@ set(ICON_NAMES
   matsphere
   matcube
   monkey
-  hair
+  curves
   aliased
   antialiased
   mat_sphere_sky
@@ -779,6 +778,11 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.curve.extrude_move
   ops.curve.radius
   ops.curve.vertex_random
+  ops.curves.sculpt_add
+  ops.curves.sculpt_comb
+  ops.curves.sculpt_cut
+  ops.curves.sculpt_delete
+  ops.curves.sculpt_grow
   ops.generic.cursor
   ops.generic.select
   ops.generic.select_box

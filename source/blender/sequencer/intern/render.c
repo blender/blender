@@ -45,6 +45,7 @@
 #include "IMB_metadata.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
@@ -1500,7 +1501,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
       }
 
       RE_RenderFrame(
-          re, context->bmain, scene, have_comp ? NULL : view_layer, camera, frame, false);
+          re, context->bmain, scene, have_comp ? NULL : view_layer, camera, frame, 0.0f, false);
 
       /* restore previous state after it was toggled on & off by RE_RenderFrame */
       G.is_rendering = is_rendering;

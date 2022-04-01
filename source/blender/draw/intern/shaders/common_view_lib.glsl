@@ -47,6 +47,7 @@ layout(std140) uniform viewBlock
 #endif
 
 #ifdef COMMON_GLOBALS_LIB
+/* TODO move to overlay engine. */
 float mul_project_m4_v3_zfac(in vec3 co)
 {
   return pixelFac * ((ViewProjectionMatrix[0][3] * co.x) + (ViewProjectionMatrix[1][3] * co.y) +
@@ -174,7 +175,7 @@ flat in int resourceIDFrag;
 
 /* Breaking this across multiple lines causes issues for some older GLSL compilers. */
 /* clang-format off */
-#if !defined(GPU_INTEL) && !defined(GPU_DEPRECATED_AMD_DRIVER) && !defined(OS_MAC) && !defined(INSTANCED_ATTR) && !defined(DRW_LEGACY_MODEL_MATRIX)
+#if !defined(GPU_INTEL) && !defined(GPU_DEPRECATED_AMD_DRIVER) && (!defined(OS_MAC) || defined(GPU_METAL)) && !defined(INSTANCED_ATTR) && !defined(DRW_LEGACY_MODEL_MATRIX)
 /* clang-format on */
 
 /* Temporary until we fully make the switch. */
@@ -251,7 +252,7 @@ uniform mat4 ModelMatrixInverse;
 
 /* Due to some shader compiler bug, we somewhat need to access gl_VertexID
  * to make vertex shaders work. even if it's actually dead code. */
-#ifdef GPU_INTEL
+#if defined(GPU_INTEL) && defined(GPU_OPENGL)
 #  define GPU_INTEL_VERTEX_SHADER_WORKAROUND gl_Position.x = float(gl_VertexID);
 #else
 #  define GPU_INTEL_VERTEX_SHADER_WORKAROUND

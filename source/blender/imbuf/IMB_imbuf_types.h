@@ -80,6 +80,9 @@ enum eImbFileType {
 #ifdef WITH_DDS
   IMB_FTYPE_DDS = 13,
 #endif
+#ifdef WITH_WEBP
+  IMB_FTYPE_WEBP = 14,
+#endif
 };
 
 /* Only for readability. */

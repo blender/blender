@@ -438,7 +438,7 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
     const float3 dir = make_float3(klight->spot.dir[0], klight->spot.dir[1], klight->spot.dir[2]);
     /* the normal of the oriented disk */
     const float3 lightN = normalize(ray_P - center);
-    /* we set the light normal to the outgoing direction to support texturing*/
+    /* We set the light normal to the outgoing direction to support texturing. */
     ls->Ng = -ls->D;
 
     float invarea = klight->spot.invarea;
@@ -467,7 +467,7 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
     const float3 center = make_float3(klight->co[0], klight->co[1], klight->co[2]);
     const float3 lighN = normalize(ray_P - center);
 
-    /* we set the light normal to the outgoing direction to support texturing*/
+    /* We set the light normal to the outgoing direction to support texturing. */
     ls->Ng = -ls->D;
 
     float invarea = klight->spot.invarea;

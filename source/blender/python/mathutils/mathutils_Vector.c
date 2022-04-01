@@ -45,7 +45,7 @@ static int row_vector_multiplication(float r_vec[MAX_DIMENSIONS],
 static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
   float *vec = NULL;
-  int size = 3; /* default to a 3D vector */
+  int vec_num = 3; /* default to a 3D vector */
 
   if (kwds && PyDict_Size(kwds)) {
     PyErr_SetString(PyExc_TypeError,
@@ -56,7 +56,7 @@ static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
   switch (PyTuple_GET_SIZE(args)) {
     case 0:
-      vec = PyMem_Malloc(size * sizeof(float));
+      vec = PyMem_Malloc(vec_num * sizeof(float));
 
       if (vec == NULL) {
         PyErr_SetString(PyExc_MemoryError,
@@ -65,10 +65,10 @@ static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         return NULL;
       }
 
-      copy_vn_fl(vec, size, 0.0f);
+      copy_vn_fl(vec, vec_num, 0.0f);
       break;
     case 1:
-      if ((size = mathutils_array_parse_alloc(
+      if ((vec_num = mathutils_array_parse_alloc(
                &vec, 2, PyTuple_GET_ITEM(args, 0), "mathutils.Vector()")) == -1) {
         return NULL;
       }
@@ -79,7 +79,7 @@ static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
                       "more than a single arg given");
       return NULL;
   }
-  return Vector_CreatePyObject_alloc(vec, size, type);
+  return Vector_CreatePyObject_alloc(vec, vec_num, type);
 }
 
 static PyObject *vec__apply_to_copy(PyObject *(*vec_func)(VectorObject *), VectorObject *self)
@@ -108,19 +108,19 @@ PyDoc_STRVAR(C_Vector_Fill_doc,
 static PyObject *C_Vector_Fill(PyObject *cls, PyObject *args)
 {
   float *vec;
-  int size;
+  int vec_num;
   float fill = 0.0f;
 
-  if (!PyArg_ParseTuple(args, "i|f:Vector.Fill", &size, &fill)) {
+  if (!PyArg_ParseTuple(args, "i|f:Vector.Fill", &vec_num, &fill)) {
     return NULL;
   }
 
-  if (size < 2) {
+  if (vec_num < 2) {
     PyErr_SetString(PyExc_RuntimeError, "Vector(): invalid size");
     return NULL;
   }
 
-  vec = PyMem_Malloc(size * sizeof(float));
+  vec = PyMem_Malloc(vec_num * sizeof(float));
 
   if (vec == NULL) {
     PyErr_SetString(PyExc_MemoryError,
@@ -129,9 +129,9 @@ static PyObject *C_Vector_Fill(PyObject *cls, PyObject *args)
     return NULL;
   }
 
-  copy_vn_fl(vec, size, fill);
+  copy_vn_fl(vec, vec_num, fill);
 
-  return Vector_CreatePyObject_alloc(vec, size, (PyTypeObject *)cls);
+  return Vector_CreatePyObject_alloc(vec, vec_num, (PyTypeObject *)cls);
 }
 
 PyDoc_STRVAR(C_Vector_Range_doc,
@@ -148,7 +148,7 @@ PyDoc_STRVAR(C_Vector_Range_doc,
 static PyObject *C_Vector_Range(PyObject *cls, PyObject *args)
 {
   float *vec;
-  int stop, size;
+  int stop, vec_num;
   int start = 0;
   int step = 1;
 
@@ -158,7 +158,7 @@ static PyObject *C_Vector_Range(PyObject *cls, PyObject *args)
 
   switch (PyTuple_GET_SIZE(args)) {
     case 1:
-      size = start;
+      vec_num = start;
       start = 0;
       break;
     case 2:
@@ -169,7 +169,7 @@ static PyObject *C_Vector_Range(PyObject *cls, PyObject *args)
         return NULL;
       }
 
-      size = stop - start;
+      vec_num = stop - start;
       break;
     default:
       if (start >= stop) {
@@ -179,23 +179,23 @@ static PyObject *C_Vector_Range(PyObject *cls, PyObject *args)
         return NULL;
       }
 
-      size = (stop - start);
+      vec_num = (stop - start);
 
-      if ((size % step) != 0) {
-        size += step;
+      if ((vec_num % step) != 0) {
+        vec_num += step;
       }
 
-      size /= step;
+      vec_num /= step;
 
       break;
   }
 
-  if (size < 2) {
+  if (vec_num < 2) {
     PyErr_SetString(PyExc_RuntimeError, "Vector(): invalid size");
     return NULL;
   }
 
-  vec = PyMem_Malloc(size * sizeof(float));
+  vec = PyMem_Malloc(vec_num * sizeof(float));
 
   if (vec == NULL) {
     PyErr_SetString(PyExc_MemoryError,
@@ -204,9 +204,9 @@ static PyObject *C_Vector_Range(PyObject *cls, PyObject *args)
     return NULL;
   }
 
-  range_vn_fl(vec, size, (float)start, (float)step);
+  range_vn_fl(vec, vec_num, (float)start, (float)step);
 
-  return Vector_CreatePyObject_alloc(vec, size, (PyTypeObject *)cls);
+  return Vector_CreatePyObject_alloc(vec, vec_num, (PyTypeObject *)cls);
 }
 
 PyDoc_STRVAR(C_Vector_Linspace_doc,
@@ -224,21 +224,21 @@ PyDoc_STRVAR(C_Vector_Linspace_doc,
 static PyObject *C_Vector_Linspace(PyObject *cls, PyObject *args)
 {
   float *vec;
-  int size;
+  int vec_num;
   float start, end, step;
 
-  if (!PyArg_ParseTuple(args, "ffi:Vector.Linspace", &start, &end, &size)) {
+  if (!PyArg_ParseTuple(args, "ffi:Vector.Linspace", &start, &end, &vec_num)) {
     return NULL;
   }
 
-  if (size < 2) {
+  if (vec_num < 2) {
     PyErr_SetString(PyExc_RuntimeError, "Vector.Linspace(): invalid size");
     return NULL;
   }
 
-  step = (end - start) / (float)(size - 1);
+  step = (end - start) / (float)(vec_num - 1);
 
-  vec = PyMem_Malloc(size * sizeof(float));
+  vec = PyMem_Malloc(vec_num * sizeof(float));
 
   if (vec == NULL) {
     PyErr_SetString(PyExc_MemoryError,
@@ -247,9 +247,9 @@ static PyObject *C_Vector_Linspace(PyObject *cls, PyObject *args)
     return NULL;
   }
 
-  range_vn_fl(vec, size, start, step);
+  range_vn_fl(vec, vec_num, start, step);
 
-  return Vector_CreatePyObject_alloc(vec, size, (PyTypeObject *)cls);
+  return Vector_CreatePyObject_alloc(vec, vec_num, (PyTypeObject *)cls);
 }
 
 PyDoc_STRVAR(
@@ -266,20 +266,20 @@ static PyObject *C_Vector_Repeat(PyObject *cls, PyObject *args)
 {
   float *vec;
   float *iter_vec = NULL;
-  int i, size, value_size;
+  int i, vec_num, value_num;
   PyObject *value;
 
-  if (!PyArg_ParseTuple(args, "Oi:Vector.Repeat", &value, &size)) {
+  if (!PyArg_ParseTuple(args, "Oi:Vector.Repeat", &value, &vec_num)) {
     return NULL;
   }
 
-  if (size < 2) {
-    PyErr_SetString(PyExc_RuntimeError, "Vector.Repeat(): invalid size");
+  if (vec_num < 2) {
+    PyErr_SetString(PyExc_RuntimeError, "Vector.Repeat(): invalid vec_num");
     return NULL;
   }
 
-  if ((value_size = mathutils_array_parse_alloc(
-           &iter_vec, 2, value, "Vector.Repeat(vector, size), invalid 'vector' arg")) == -1) {
+  if ((value_num = mathutils_array_parse_alloc(
+           &iter_vec, 2, value, "Vector.Repeat(vector, vec_num), invalid 'vector' arg")) == -1) {
     return NULL;
   }
 
@@ -290,7 +290,7 @@ static PyObject *C_Vector_Repeat(PyObject *cls, PyObject *args)
     return NULL;
   }
 
-  vec = PyMem_Malloc(size * sizeof(float));
+  vec = PyMem_Malloc(vec_num * sizeof(float));
 
   if (vec == NULL) {
     PyMem_Free(iter_vec);
@@ -301,14 +301,14 @@ static PyObject *C_Vector_Repeat(PyObject *cls, PyObject *args)
   }
 
   i = 0;
-  while (i < size) {
-    vec[i] = iter_vec[i % value_size];
+  while (i < vec_num) {
+    vec[i] = iter_vec[i % value_num];
     i++;
   }
 
   PyMem_Free(iter_vec);
 
-  return Vector_CreatePyObject_alloc(vec, size, (PyTypeObject *)cls);
+  return Vector_CreatePyObject_alloc(vec, vec_num, (PyTypeObject *)cls);
 }
 
 /*-----------------------------METHODS---------------------------- */
@@ -322,7 +322,7 @@ static PyObject *Vector_zero(VectorObject *self)
     return NULL;
   }
 
-  copy_vn_fl(self->vec, self->size, 0.0f);
+  copy_vn_fl(self->vec, self->vec_num, 0.0f);
 
   if (BaseMath_WriteCallback(self) == -1) {
     return NULL;
@@ -342,12 +342,12 @@ PyDoc_STRVAR(Vector_normalize_doc,
              "      however 4D Vectors w axis is left untouched.\n");
 static PyObject *Vector_normalize(VectorObject *self)
 {
-  const int size = (self->size == 4 ? 3 : self->size);
+  const int vec_num = (self->vec_num == 4 ? 3 : self->vec_num);
   if (BaseMath_ReadCallback_ForWrite(self) == -1) {
     return NULL;
   }
 
-  normalize_vn(self->vec, size);
+  normalize_vn(self->vec, vec_num);
 
   (void)BaseMath_WriteCallback(self);
   Py_RETURN_NONE;
@@ -370,7 +370,7 @@ PyDoc_STRVAR(Vector_resize_doc,
              "   Resize the vector to have size number of elements.\n");
 static PyObject *Vector_resize(VectorObject *self, PyObject *value)
 {
-  int size;
+  int vec_num;
 
   if (self->flag & BASE_MATH_FLAG_IS_WRAP) {
     PyErr_SetString(PyExc_TypeError,
@@ -385,19 +385,19 @@ static PyObject *Vector_resize(VectorObject *self, PyObject *value)
     return NULL;
   }
 
-  if ((size = PyC_Long_AsI32(value)) == -1) {
+  if ((vec_num = PyC_Long_AsI32(value)) == -1) {
     PyErr_SetString(PyExc_TypeError,
                     "Vector.resize(size): "
                     "expected size argument to be an integer");
     return NULL;
   }
 
-  if (size < 2) {
+  if (vec_num < 2) {
     PyErr_SetString(PyExc_RuntimeError, "Vector.resize(): invalid size");
     return NULL;
   }
 
-  self->vec = PyMem_Realloc(self->vec, (size * sizeof(float)));
+  self->vec = PyMem_Realloc(self->vec, (vec_num * sizeof(float)));
   if (self->vec == NULL) {
     PyErr_SetString(PyExc_MemoryError,
                     "Vector.resize(): "
@@ -406,11 +406,11 @@ static PyObject *Vector_resize(VectorObject *self, PyObject *value)
   }
 
   /* If the vector has increased in length, set all new elements to 0.0f */
-  if (size > self->size) {
-    copy_vn_fl(self->vec + self->size, size - self->size, 0.0f);
+  if (vec_num > self->vec_num) {
+    copy_vn_fl(self->vec + self->vec_num, vec_num - self->vec_num, 0.0f);
   }
 
-  self->size = size;
+  self->vec_num = vec_num;
   Py_RETURN_NONE;
 }
 
@@ -423,19 +423,19 @@ PyDoc_STRVAR(Vector_resized_doc,
              "   :rtype: :class:`Vector`\n");
 static PyObject *Vector_resized(VectorObject *self, PyObject *value)
 {
-  int size;
+  int vec_num;
   float *vec;
 
-  if ((size = PyLong_AsLong(value)) == -1) {
+  if ((vec_num = PyLong_AsLong(value)) == -1) {
     return NULL;
   }
 
-  if (size < 2) {
+  if (vec_num < 2) {
     PyErr_SetString(PyExc_RuntimeError, "Vector.resized(): invalid size");
     return NULL;
   }
 
-  vec = PyMem_Malloc(size * sizeof(float));
+  vec = PyMem_Malloc(vec_num * sizeof(float));
 
   if (vec == NULL) {
     PyErr_SetString(PyExc_MemoryError,
@@ -444,10 +444,10 @@ static PyObject *Vector_resized(VectorObject *self, PyObject *value)
     return NULL;
   }
 
-  copy_vn_fl(vec, size, 0.0f);
-  memcpy(vec, self->vec, self->size * sizeof(float));
+  copy_vn_fl(vec, vec_num, 0.0f);
+  memcpy(vec, self->vec, self->vec_num * sizeof(float));
 
-  return Vector_CreatePyObject_alloc(vec, size, NULL);
+  return Vector_CreatePyObject_alloc(vec, vec_num, NULL);
 }
 
 PyDoc_STRVAR(Vector_resize_2d_doc,
@@ -477,7 +477,7 @@ static PyObject *Vector_resize_2d(VectorObject *self)
     return NULL;
   }
 
-  self->size = 2;
+  self->vec_num = 2;
   Py_RETURN_NONE;
 }
 
@@ -508,11 +508,11 @@ static PyObject *Vector_resize_3d(VectorObject *self)
     return NULL;
   }
 
-  if (self->size == 2) {
+  if (self->vec_num == 2) {
     self->vec[2] = 0.0f;
   }
 
-  self->size = 3;
+  self->vec_num = 3;
   Py_RETURN_NONE;
 }
 
@@ -543,14 +543,14 @@ static PyObject *Vector_resize_4d(VectorObject *self)
     return NULL;
   }
 
-  if (self->size == 2) {
+  if (self->vec_num == 2) {
     self->vec[2] = 0.0f;
     self->vec[3] = 1.0f;
   }
-  else if (self->size == 3) {
+  else if (self->vec_num == 3) {
     self->vec[3] = 1.0f;
   }
-  self->size = 4;
+  self->vec_num = 4;
   Py_RETURN_NONE;
 }
 PyDoc_STRVAR(Vector_to_2d_doc,
@@ -583,7 +583,7 @@ static PyObject *Vector_to_3d(VectorObject *self)
     return NULL;
   }
 
-  memcpy(tvec, self->vec, sizeof(float) * MIN2(self->size, 3));
+  memcpy(tvec, self->vec, sizeof(float) * MIN2(self->vec_num, 3));
   return Vector_CreatePyObject(tvec, 3, Py_TYPE(self));
 }
 PyDoc_STRVAR(Vector_to_4d_doc,
@@ -601,7 +601,7 @@ static PyObject *Vector_to_4d(VectorObject *self)
     return NULL;
   }
 
-  memcpy(tvec, self->vec, sizeof(float) * MIN2(self->size, 4));
+  memcpy(tvec, self->vec, sizeof(float) * MIN2(self->vec_num, 4));
   return Vector_CreatePyObject(tvec, 4, Py_TYPE(self));
 }
 
@@ -620,15 +620,15 @@ static PyObject *Vector_to_tuple_ex(VectorObject *self, int ndigits)
   PyObject *ret;
   int i;
 
-  ret = PyTuple_New(self->size);
+  ret = PyTuple_New(self->vec_num);
 
   if (ndigits >= 0) {
-    for (i = 0; i < self->size; i++) {
+    for (i = 0; i < self->vec_num; i++) {
       PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(double_round((double)self->vec[i], ndigits)));
     }
   }
   else {
-    for (i = 0; i < self->size; i++) {
+    for (i = 0; i < self->vec_num; i++) {
       PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(self->vec[i]));
     }
   }
@@ -684,7 +684,7 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
     return NULL;
   }
 
-  if (self->size != 3) {
+  if (self->vec_num != 3) {
     PyErr_SetString(PyExc_TypeError,
                     "Vector.to_track_quat(): "
                     "only for 3D vectors");
@@ -795,7 +795,7 @@ static PyObject *Vector_orthogonal(VectorObject *self)
 {
   float vec[3];
 
-  if (self->size > 3) {
+  if (self->vec_num > 3) {
     PyErr_SetString(PyExc_TypeError,
                     "Vector.orthogonal(): "
                     "Vector must be 3D or 2D");
@@ -806,14 +806,14 @@ static PyObject *Vector_orthogonal(VectorObject *self)
     return NULL;
   }
 
-  if (self->size == 3) {
+  if (self->vec_num == 3) {
     ortho_v3_v3(vec, self->vec);
   }
   else {
     ortho_v2_v2(vec, self->vec);
   }
 
-  return Vector_CreatePyObject(vec, self->size, Py_TYPE(self));
+  return Vector_CreatePyObject(vec, self->vec_num, Py_TYPE(self));
 }
 
 /**
@@ -833,7 +833,7 @@ PyDoc_STRVAR(Vector_reflect_doc,
              "   :rtype: :class:`Vector`\n");
 static PyObject *Vector_reflect(VectorObject *self, PyObject *value)
 {
-  int value_size;
+  int value_num;
   float mirror[3], vec[3];
   float reflect[3] = {0.0f};
   float tvec[MAX_DIMENSIONS];
@@ -842,28 +842,28 @@ static PyObject *Vector_reflect(VectorObject *self, PyObject *value)
     return NULL;
   }
 
-  if ((value_size = mathutils_array_parse(
+  if ((value_num = mathutils_array_parse(
            tvec, 2, 4, value, "Vector.reflect(other), invalid 'other' arg")) == -1) {
     return NULL;
   }
 
-  if (self->size < 2 || self->size > 4) {
+  if (self->vec_num < 2 || self->vec_num > 4) {
     PyErr_SetString(PyExc_ValueError, "Vector must be 2D, 3D or 4D");
     return NULL;
   }
 
   mirror[0] = tvec[0];
   mirror[1] = tvec[1];
-  mirror[2] = (value_size > 2) ? tvec[2] : 0.0f;
+  mirror[2] = (value_num > 2) ? tvec[2] : 0.0f;
 
   vec[0] = self->vec[0];
   vec[1] = self->vec[1];
-  vec[2] = (value_size > 2) ? self->vec[2] : 0.0f;
+  vec[2] = (value_num > 2) ? self->vec[2] : 0.0f;
 
   normalize_v3(mirror);
   reflect_v3_v3v3(reflect, vec, mirror);
 
-  return Vector_CreatePyObject(reflect, self->size, Py_TYPE(self));
+  return Vector_CreatePyObject(reflect, self->vec_num, Py_TYPE(self));
 }
 
 PyDoc_STRVAR(Vector_cross_doc,
@@ -886,17 +886,18 @@ static PyObject *Vector_cross(VectorObject *self, PyObject *value)
     return NULL;
   }
 
-  if (self->size > 3) {
+  if (self->vec_num > 3) {
     PyErr_SetString(PyExc_ValueError, "Vector must be 2D or 3D");
     return NULL;
   }
 
   if (mathutils_array_parse(
-          tvec, self->size, self->size, value, "Vector.cross(other), invalid 'other' arg") == -1) {
+          tvec, self->vec_num, self->vec_num, value, "Vector.cross(other), invalid 'other' arg") ==
+      -1) {
     return NULL;
   }
 
-  if (self->size == 3) {
+  if (self->vec_num == 3) {
     ret = Vector_CreatePyObject(NULL, 3, Py_TYPE(self));
     cross_v3_v3v3(((VectorObject *)ret)->vec, self->vec, tvec);
   }
@@ -926,11 +927,11 @@ static PyObject *Vector_dot(VectorObject *self, PyObject *value)
   }
 
   if (mathutils_array_parse_alloc(
-          &tvec, self->size, value, "Vector.dot(other), invalid 'other' arg") == -1) {
+          &tvec, self->vec_num, value, "Vector.dot(other), invalid 'other' arg") == -1) {
     return NULL;
   }
 
-  ret = PyFloat_FromDouble(dot_vn_vn(self->vec, tvec, self->size));
+  ret = PyFloat_FromDouble(dot_vn_vn(self->vec, tvec, self->vec_num));
   PyMem_Free(tvec);
   return ret;
 }
@@ -950,7 +951,7 @@ PyDoc_STRVAR(
     "   :rtype: float\n");
 static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 {
-  const int size = MIN2(self->size, 3); /* 4D angle makes no sense */
+  const int vec_num = MIN2(self->vec_num, 3); /* 4D angle makes no sense */
   float tvec[MAX_DIMENSIONS];
   PyObject *value;
   double dot = 0.0f, dot_self = 0.0f, dot_other = 0.0f;
@@ -968,16 +969,17 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
   /* don't use clamped size, rule of thumb is vector sizes must match,
    * even though n this case 'w' is ignored */
   if (mathutils_array_parse(
-          tvec, self->size, self->size, value, "Vector.angle(other), invalid 'other' arg") == -1) {
+          tvec, self->vec_num, self->vec_num, value, "Vector.angle(other), invalid 'other' arg") ==
+      -1) {
     return NULL;
   }
 
-  if (self->size > 4) {
+  if (self->vec_num > 4) {
     PyErr_SetString(PyExc_ValueError, "Vector must be 2D, 3D or 4D");
     return NULL;
   }
 
-  for (x = 0; x < size; x++) {
+  for (x = 0; x < vec_num; x++) {
     dot_self += (double)self->vec[x] * (double)self->vec[x];
     dot_other += (double)tvec[x] * (double)tvec[x];
     dot += (double)self->vec[x] * (double)tvec[x];
@@ -1032,7 +1034,7 @@ static PyObject *Vector_angle_signed(VectorObject *self, PyObject *args)
     return NULL;
   }
 
-  if (self->size != 2) {
+  if (self->vec_num != 2) {
     PyErr_SetString(PyExc_ValueError, "Vector must be 2D");
     return NULL;
   }
@@ -1069,7 +1071,7 @@ static PyObject *Vector_rotation_difference(VectorObject *self, PyObject *value)
 {
   float quat[4], vec_a[3], vec_b[3];
 
-  if (self->size < 3 || self->size > 4) {
+  if (self->vec_num < 3 || self->vec_num > 4) {
     PyErr_SetString(PyExc_ValueError,
                     "vec.difference(value): "
                     "expects both vectors to be size 3 or 4");
@@ -1105,7 +1107,7 @@ PyDoc_STRVAR(Vector_project_doc,
              "   :rtype: :class:`Vector`\n");
 static PyObject *Vector_project(VectorObject *self, PyObject *value)
 {
-  const int size = self->size;
+  const int vec_num = self->vec_num;
   float *tvec;
   double dot = 0.0f, dot2 = 0.0f;
   int x;
@@ -1115,21 +1117,21 @@ static PyObject *Vector_project(VectorObject *self, PyObject *value)
   }
 
   if (mathutils_array_parse_alloc(
-          &tvec, size, value, "Vector.project(other), invalid 'other' arg") == -1) {
+          &tvec, vec_num, value, "Vector.project(other), invalid 'other' arg") == -1) {
     return NULL;
   }
 
   /* get dot products */
-  for (x = 0; x < size; x++) {
+  for (x = 0; x < vec_num; x++) {
     dot += (double)(self->vec[x] * tvec[x]);
     dot2 += (double)(tvec[x] * tvec[x]);
   }
   /* projection */
   dot /= dot2;
-  for (x = 0; x < size; x++) {
+  for (x = 0; x < vec_num; x++) {
     tvec[x] *= (float)dot;
   }
-  return Vector_CreatePyObject_alloc(tvec, size, Py_TYPE(self));
+  return Vector_CreatePyObject_alloc(tvec, vec_num, Py_TYPE(self));
 }
 
 PyDoc_STRVAR(Vector_lerp_doc,
@@ -1145,7 +1147,7 @@ PyDoc_STRVAR(Vector_lerp_doc,
              "   :rtype: :class:`Vector`\n");
 static PyObject *Vector_lerp(VectorObject *self, PyObject *args)
 {
-  const int size = self->size;
+  const int vec_num = self->vec_num;
   PyObject *value = NULL;
   float fac;
   float *tvec;
@@ -1158,14 +1160,14 @@ static PyObject *Vector_lerp(VectorObject *self, PyObject *args)
     return NULL;
   }
 
-  if (mathutils_array_parse_alloc(&tvec, size, value, "Vector.lerp(other), invalid 'other' arg") ==
-      -1) {
+  if (mathutils_array_parse_alloc(
+          &tvec, vec_num, value, "Vector.lerp(other), invalid 'other' arg") == -1) {
     return NULL;
   }
 
-  interp_vn_vn(tvec, self->vec, 1.0f - fac, size);
+  interp_vn_vn(tvec, self->vec, 1.0f - fac, vec_num);
 
-  return Vector_CreatePyObject_alloc(tvec, size, Py_TYPE(self));
+  return Vector_CreatePyObject_alloc(tvec, vec_num, Py_TYPE(self));
 }
 
 PyDoc_STRVAR(Vector_slerp_doc,
@@ -1185,7 +1187,7 @@ PyDoc_STRVAR(Vector_slerp_doc,
              "   :rtype: :class:`Vector`\n");
 static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
 {
-  const int size = self->size;
+  const int vec_num = self->vec_num;
   PyObject *value = NULL;
   float fac, cosom, w[2];
   float self_vec[3], other_vec[3], ret_vec[3];
@@ -1201,18 +1203,18 @@ static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
     return NULL;
   }
 
-  if (self->size > 3) {
+  if (self->vec_num > 3) {
     PyErr_SetString(PyExc_ValueError, "Vector must be 2D or 3D");
     return NULL;
   }
 
   if (mathutils_array_parse(
-          other_vec, size, size, value, "Vector.slerp(other), invalid 'other' arg") == -1) {
+          other_vec, vec_num, vec_num, value, "Vector.slerp(other), invalid 'other' arg") == -1) {
     return NULL;
   }
 
-  self_len_sq = normalize_vn_vn(self_vec, self->vec, size);
-  other_len_sq = normalize_vn(other_vec, size);
+  self_len_sq = normalize_vn_vn(self_vec, self->vec, vec_num);
+  other_len_sq = normalize_vn(other_vec, vec_num);
 
   /* use fallbacks for zero length vectors */
   if (UNLIKELY((self_len_sq < FLT_EPSILON) || (other_len_sq < FLT_EPSILON))) {
@@ -1229,7 +1231,7 @@ static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
   }
 
   /* We have sane state, execute slerp */
-  cosom = (float)dot_vn_vn(self_vec, other_vec, size);
+  cosom = (float)dot_vn_vn(self_vec, other_vec, vec_num);
 
   /* direct opposite, can't slerp */
   if (UNLIKELY(cosom < (-1.0f + FLT_EPSILON))) {
@@ -1247,11 +1249,11 @@ static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
 
   interp_dot_slerp(fac, cosom, w);
 
-  for (x = 0; x < size; x++) {
+  for (x = 0; x < vec_num; x++) {
     ret_vec[x] = (w[0] * self_vec[x]) + (w[1] * other_vec[x]);
   }
 
-  return Vector_CreatePyObject(ret_vec, size, Py_TYPE(self));
+  return Vector_CreatePyObject(ret_vec, vec_num, Py_TYPE(self));
 }
 
 PyDoc_STRVAR(
@@ -1270,7 +1272,7 @@ static PyObject *Vector_rotate(VectorObject *self, PyObject *value)
     return NULL;
   }
 
-  if (self->size == 2) {
+  if (self->vec_num == 2) {
     /* Special case for 2D Vector with 2x2 matrix, so we avoid resizing it to a 3x3. */
     float other_rmat[2][2];
     MatrixObject *pymat;
@@ -1311,7 +1313,7 @@ static PyObject *Vector_copy(VectorObject *self)
     return NULL;
   }
 
-  return Vector_CreatePyObject(self->vec, self->size, Py_TYPE(self));
+  return Vector_CreatePyObject(self->vec, self->vec_num, Py_TYPE(self));
 }
 static PyObject *Vector_deepcopy(VectorObject *self, PyObject *args)
 {
@@ -1350,7 +1352,7 @@ static PyObject *Vector_str(VectorObject *self)
 
   BLI_dynstr_append(ds, "<Vector (");
 
-  for (i = 0; i < self->size; i++) {
+  for (i = 0; i < self->vec_num; i++) {
     BLI_dynstr_appendf(ds, i ? ", %.4f" : "%.4f", self->vec[i]);
   }
 
@@ -1364,21 +1366,21 @@ static PyObject *Vector_str(VectorObject *self)
 /* sequence length len(vector) */
 static int Vector_len(VectorObject *self)
 {
-  return self->size;
+  return self->vec_num;
 }
 /* sequence accessor (get): vector[index] */
 static PyObject *vector_item_internal(VectorObject *self, int i, const bool is_attr)
 {
   if (i < 0) {
-    i = self->size - i;
+    i = self->vec_num - i;
   }
 
-  if (i < 0 || i >= self->size) {
+  if (i < 0 || i >= self->vec_num) {
     if (is_attr) {
       PyErr_Format(PyExc_AttributeError,
                    "Vector.%c: unavailable on %dd vector",
                    *(((const char *)"xyzw") + i),
-                   self->size);
+                   self->vec_num);
     }
     else {
       PyErr_SetString(PyExc_IndexError, "vector[index]: out of range");
@@ -1415,15 +1417,15 @@ static int vector_ass_item_internal(VectorObject *self, int i, PyObject *value, 
   }
 
   if (i < 0) {
-    i = self->size - i;
+    i = self->vec_num - i;
   }
 
-  if (i < 0 || i >= self->size) {
+  if (i < 0 || i >= self->vec_num) {
     if (is_attr) {
       PyErr_Format(PyExc_AttributeError,
                    "Vector.%c = x: unavailable on %dd vector",
                    *(((const char *)"xyzw") + i),
-                   self->size);
+                   self->vec_num);
     }
     else {
       PyErr_SetString(PyExc_IndexError,
@@ -1455,11 +1457,11 @@ static PyObject *Vector_slice(VectorObject *self, int begin, int end)
     return NULL;
   }
 
-  CLAMP(begin, 0, self->size);
+  CLAMP(begin, 0, self->vec_num);
   if (end < 0) {
-    end = self->size + end + 1;
+    end = self->vec_num + end + 1;
   }
-  CLAMP(end, 0, self->size);
+  CLAMP(end, 0, self->vec_num);
   begin = MIN2(begin, end);
 
   tuple = PyTuple_New(end - begin);
@@ -1472,19 +1474,19 @@ static PyObject *Vector_slice(VectorObject *self, int begin, int end)
 /* sequence slice (set): vector[a:b] = value */
 static int Vector_ass_slice(VectorObject *self, int begin, int end, PyObject *seq)
 {
-  int size = 0;
+  int vec_num = 0;
   float *vec = NULL;
 
   if (BaseMath_ReadCallback_ForWrite(self) == -1) {
     return -1;
   }
 
-  CLAMP(begin, 0, self->size);
-  CLAMP(end, 0, self->size);
+  CLAMP(begin, 0, self->vec_num);
+  CLAMP(end, 0, self->vec_num);
   begin = MIN2(begin, end);
 
-  size = (end - begin);
-  if (mathutils_array_parse_alloc(&vec, size, seq, "vector[begin:end] = [...]") == -1) {
+  vec_num = (end - begin);
+  if (mathutils_array_parse_alloc(&vec, vec_num, seq, "vector[begin:end] = [...]") == -1) {
     return -1;
   }
 
@@ -1496,7 +1498,7 @@ static int Vector_ass_slice(VectorObject *self, int begin, int end, PyObject *se
   }
 
   /* Parsed well - now set in vector. */
-  memcpy(self->vec + begin, vec, size * sizeof(float));
+  memcpy(self->vec + begin, vec, vec_num * sizeof(float));
 
   PyMem_Free(vec);
 
@@ -1530,14 +1532,14 @@ static PyObject *Vector_add(PyObject *v1, PyObject *v2)
   }
 
   /* VECTOR + VECTOR. */
-  if (vec1->size != vec2->size) {
+  if (vec1->vec_num != vec2->vec_num) {
     PyErr_SetString(PyExc_AttributeError,
                     "Vector addition: "
                     "vectors must have the same dimensions for this operation");
     return NULL;
   }
 
-  vec = PyMem_Malloc(vec1->size * sizeof(float));
+  vec = PyMem_Malloc(vec1->vec_num * sizeof(float));
   if (vec == NULL) {
     PyErr_SetString(PyExc_MemoryError,
                     "Vector(): "
@@ -1545,9 +1547,9 @@ static PyObject *Vector_add(PyObject *v1, PyObject *v2)
     return NULL;
   }
 
-  add_vn_vnvn(vec, vec1->vec, vec2->vec, vec1->size);
+  add_vn_vnvn(vec, vec1->vec, vec2->vec, vec1->vec_num);
 
-  return Vector_CreatePyObject_alloc(vec, vec1->size, Py_TYPE(v1));
+  return Vector_CreatePyObject_alloc(vec, vec1->vec_num, Py_TYPE(v1));
 }
 
 /* addition in-place: obj += obj */
@@ -1566,7 +1568,7 @@ static PyObject *Vector_iadd(PyObject *v1, PyObject *v2)
   vec1 = (VectorObject *)v1;
   vec2 = (VectorObject *)v2;
 
-  if (vec1->size != vec2->size) {
+  if (vec1->vec_num != vec2->vec_num) {
     PyErr_SetString(PyExc_AttributeError,
                     "Vector addition: "
                     "vectors must have the same dimensions for this operation");
@@ -1577,7 +1579,7 @@ static PyObject *Vector_iadd(PyObject *v1, PyObject *v2)
     return NULL;
   }
 
-  add_vn_vn(vec1->vec, vec2->vec, vec1->size);
+  add_vn_vn(vec1->vec, vec2->vec, vec1->vec_num);
 
   (void)BaseMath_WriteCallback(vec1);
   Py_INCREF(v1);
@@ -1605,14 +1607,14 @@ static PyObject *Vector_sub(PyObject *v1, PyObject *v2)
     return NULL;
   }
 
-  if (vec1->size != vec2->size) {
+  if (vec1->vec_num != vec2->vec_num) {
     PyErr_SetString(PyExc_AttributeError,
                     "Vector subtraction: "
                     "vectors must have the same dimensions for this operation");
     return NULL;
   }
 
-  vec = PyMem_Malloc(vec1->size * sizeof(float));
+  vec = PyMem_Malloc(vec1->vec_num * sizeof(float));
   if (vec == NULL) {
     PyErr_SetString(PyExc_MemoryError,
                     "Vector(): "
@@ -1620,9 +1622,9 @@ static PyObject *Vector_sub(PyObject *v1, PyObject *v2)
     return NULL;
   }
 
-  sub_vn_vnvn(vec, vec1->vec, vec2->vec, vec1->size);
+  sub_vn_vnvn(vec, vec1->vec, vec2->vec, vec1->vec_num);
 
-  return Vector_CreatePyObject_alloc(vec, vec1->size, Py_TYPE(v1));
+  return Vector_CreatePyObject_alloc(vec, vec1->vec_num, Py_TYPE(v1));
 }
 
 /* subtraction in-place: obj -= obj */
@@ -1641,7 +1643,7 @@ static PyObject *Vector_isub(PyObject *v1, PyObject *v2)
   vec1 = (VectorObject *)v1;
   vec2 = (VectorObject *)v2;
 
-  if (vec1->size != vec2->size) {
+  if (vec1->vec_num != vec2->vec_num) {
     PyErr_SetString(PyExc_AttributeError,
                     "Vector subtraction: "
                     "vectors must have the same dimensions for this operation");
@@ -1652,7 +1654,7 @@ static PyObject *Vector_isub(PyObject *v1, PyObject *v2)
     return NULL;
   }
 
-  sub_vn_vn(vec1->vec, vec2->vec, vec1->size);
+  sub_vn_vn(vec1->vec, vec2->vec, vec1->vec_num);
 
   (void)BaseMath_WriteCallback(vec1);
   Py_INCREF(v1);
@@ -1667,8 +1669,8 @@ int column_vector_multiplication(float r_vec[MAX_DIMENSIONS], VectorObject *vec,
   float vec_cpy[MAX_DIMENSIONS];
   int row, col, z = 0;
 
-  if (mat->num_col != vec->size) {
-    if (mat->num_col == 4 && vec->size == 3) {
+  if (mat->col_num != vec->vec_num) {
+    if (mat->col_num == 4 && vec->vec_num == 3) {
       vec_cpy[3] = 1.0f;
     }
     else {
@@ -1680,13 +1682,13 @@ int column_vector_multiplication(float r_vec[MAX_DIMENSIONS], VectorObject *vec,
     }
   }
 
-  memcpy(vec_cpy, vec->vec, vec->size * sizeof(float));
+  memcpy(vec_cpy, vec->vec, vec->vec_num * sizeof(float));
 
   r_vec[3] = 1.0f;
 
-  for (row = 0; row < mat->num_row; row++) {
+  for (row = 0; row < mat->row_num; row++) {
     double dot = 0.0f;
-    for (col = 0; col < mat->num_col; col++) {
+    for (col = 0; col < mat->col_num; col++) {
       dot += (double)(MATRIX_ITEM(mat, row, col) * vec_cpy[col]);
     }
     r_vec[z++] = (float)dot;
@@ -1697,7 +1699,7 @@ int column_vector_multiplication(float r_vec[MAX_DIMENSIONS], VectorObject *vec,
 
 static PyObject *vector_mul_float(VectorObject *vec, const float scalar)
 {
-  float *tvec = PyMem_Malloc(vec->size * sizeof(float));
+  float *tvec = PyMem_Malloc(vec->vec_num * sizeof(float));
   if (tvec == NULL) {
     PyErr_SetString(PyExc_MemoryError,
                     "vec * float: "
@@ -1705,13 +1707,13 @@ static PyObject *vector_mul_float(VectorObject *vec, const float scalar)
     return NULL;
   }
 
-  mul_vn_vn_fl(tvec, vec->vec, vec->size, scalar);
-  return Vector_CreatePyObject_alloc(tvec, vec->size, Py_TYPE(vec));
+  mul_vn_vn_fl(tvec, vec->vec, vec->vec_num, scalar);
+  return Vector_CreatePyObject_alloc(tvec, vec->vec_num, Py_TYPE(vec));
 }
 
 static PyObject *vector_mul_vec(VectorObject *vec1, VectorObject *vec2)
 {
-  float *tvec = PyMem_Malloc(vec1->size * sizeof(float));
+  float *tvec = PyMem_Malloc(vec1->vec_num * sizeof(float));
   if (tvec == NULL) {
     PyErr_SetString(PyExc_MemoryError,
                     "vec * vec: "
@@ -1719,8 +1721,8 @@ static PyObject *vector_mul_vec(VectorObject *vec1, VectorObject *vec2)
     return NULL;
   }
 
-  mul_vn_vnvn(tvec, vec1->vec, vec2->vec, vec1->size);
-  return Vector_CreatePyObject_alloc(tvec, vec1->size, Py_TYPE(vec1));
+  mul_vn_vnvn(tvec, vec1->vec, vec2->vec, vec1->vec_num);
+  return Vector_CreatePyObject_alloc(tvec, vec1->vec_num, Py_TYPE(vec1));
 }
 
 static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
@@ -1745,7 +1747,7 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 
   /* make sure v1 is always the vector */
   if (vec1 && vec2) {
-    if (vec1->size != vec2->size) {
+    if (vec1->vec_num != vec2->vec_num) {
       PyErr_SetString(PyExc_ValueError,
                       "Vector multiplication: "
                       "vectors must have the same dimensions for this operation");
@@ -1800,7 +1802,7 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
   /* Intentionally don't support (Quaternion, Matrix) here, uses reverse order instead. */
 
   if (vec1 && vec2) {
-    if (vec1->size != vec2->size) {
+    if (vec1->vec_num != vec2->vec_num) {
       PyErr_SetString(PyExc_ValueError,
                       "Vector multiplication: "
                       "vectors must have the same dimensions for this operation");
@@ -1808,11 +1810,11 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
     }
 
     /* Element-wise product in-place. */
-    mul_vn_vn(vec1->vec, vec2->vec, vec1->size);
+    mul_vn_vn(vec1->vec, vec2->vec, vec1->vec_num);
   }
   else if (vec1 && (((scalar = PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred()) ==
                     0)) { /* VEC *= FLOAT */
-    mul_vn_fl(vec1->vec, vec1->size, scalar);
+    mul_vn_fl(vec1->vec, vec1->vec_num, scalar);
   }
   else {
     PyErr_Format(PyExc_TypeError,
@@ -1831,7 +1833,7 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 static PyObject *Vector_matmul(PyObject *v1, PyObject *v2)
 {
   VectorObject *vec1 = NULL, *vec2 = NULL;
-  int vec_size;
+  int vec_num;
 
   if (VectorObject_Check(v1)) {
     vec1 = (VectorObject *)v1;
@@ -1850,7 +1852,7 @@ static PyObject *Vector_matmul(PyObject *v1, PyObject *v2)
 
   /* make sure v1 is always the vector */
   if (vec1 && vec2) {
-    if (vec1->size != vec2->size) {
+    if (vec1->vec_num != vec2->vec_num) {
       PyErr_SetString(PyExc_ValueError,
                       "Vector multiplication: "
                       "vectors must have the same dimensions for this operation");
@@ -1858,7 +1860,7 @@ static PyObject *Vector_matmul(PyObject *v1, PyObject *v2)
     }
 
     /* Dot product. */
-    return PyFloat_FromDouble(dot_vn_vn(vec1->vec, vec2->vec, vec1->size));
+    return PyFloat_FromDouble(dot_vn_vn(vec1->vec, vec2->vec, vec1->vec_num));
   }
   if (vec1) {
     if (MatrixObject_Check(v2)) {
@@ -1872,14 +1874,14 @@ static PyObject *Vector_matmul(PyObject *v1, PyObject *v2)
         return NULL;
       }
 
-      if (((MatrixObject *)v2)->num_row == 4 && vec1->size == 3) {
-        vec_size = 3;
+      if (((MatrixObject *)v2)->row_num == 4 && vec1->vec_num == 3) {
+        vec_num = 3;
       }
       else {
-        vec_size = ((MatrixObject *)v2)->num_col;
+        vec_num = ((MatrixObject *)v2)->col_num;
       }
 
-      return Vector_CreatePyObject(tvec, vec_size, Py_TYPE(vec1));
+      return Vector_CreatePyObject(tvec, vec_num, Py_TYPE(vec1));
     }
   }
 
@@ -1934,7 +1936,7 @@ static PyObject *Vector_div(PyObject *v1, PyObject *v2)
     return NULL;
   }
 
-  vec = PyMem_Malloc(vec1->size * sizeof(float));
+  vec = PyMem_Malloc(vec1->vec_num * sizeof(float));
 
   if (vec == NULL) {
     PyErr_SetString(PyExc_MemoryError,
@@ -1943,9 +1945,9 @@ static PyObject *Vector_div(PyObject *v1, PyObject *v2)
     return NULL;
   }
 
-  mul_vn_vn_fl(vec, vec1->vec, vec1->size, 1.0f / scalar);
+  mul_vn_vn_fl(vec, vec1->vec, vec1->vec_num, 1.0f / scalar);
 
-  return Vector_CreatePyObject_alloc(vec, vec1->size, Py_TYPE(v1));
+  return Vector_CreatePyObject_alloc(vec, vec1->vec_num, Py_TYPE(v1));
 }
 
 /* divide in-place: obj /= obj */
@@ -1973,7 +1975,7 @@ static PyObject *Vector_idiv(PyObject *v1, PyObject *v2)
     return NULL;
   }
 
-  mul_vn_fl(vec1->vec, vec1->size, 1.0f / scalar);
+  mul_vn_fl(vec1->vec, vec1->vec_num, 1.0f / scalar);
 
   (void)BaseMath_WriteCallback(vec1);
 
@@ -1991,9 +1993,9 @@ static PyObject *Vector_neg(VectorObject *self)
     return NULL;
   }
 
-  tvec = PyMem_Malloc(self->size * sizeof(float));
-  negate_vn_vn(tvec, self->vec, self->size);
-  return Vector_CreatePyObject_alloc(tvec, self->size, Py_TYPE(self));
+  tvec = PyMem_Malloc(self->vec_num * sizeof(float));
+  negate_vn_vn(tvec, self->vec, self->vec_num);
+  return Vector_CreatePyObject_alloc(tvec, self->vec_num, Py_TYPE(self));
 }
 
 /*------------------------tp_richcmpr
@@ -2019,7 +2021,7 @@ static PyObject *Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
     return NULL;
   }
 
-  if (vecA->size != vecB->size) {
+  if (vecA->vec_num != vecB->vec_num) {
     if (comparison_type == Py_NE) {
       Py_RETURN_TRUE;
     }
@@ -2029,15 +2031,15 @@ static PyObject *Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 
   switch (comparison_type) {
     case Py_LT:
-      lenA = len_squared_vn(vecA->vec, vecA->size);
-      lenB = len_squared_vn(vecB->vec, vecB->size);
+      lenA = len_squared_vn(vecA->vec, vecA->vec_num);
+      lenB = len_squared_vn(vecB->vec, vecB->vec_num);
       if (lenA < lenB) {
         result = 1;
       }
       break;
     case Py_LE:
-      lenA = len_squared_vn(vecA->vec, vecA->size);
-      lenB = len_squared_vn(vecB->vec, vecB->size);
+      lenA = len_squared_vn(vecA->vec, vecA->vec_num);
+      lenB = len_squared_vn(vecB->vec, vecB->vec_num);
       if (lenA < lenB) {
         result = 1;
       }
@@ -2046,21 +2048,21 @@ static PyObject *Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
       }
       break;
     case Py_EQ:
-      result = EXPP_VectorsAreEqual(vecA->vec, vecB->vec, vecA->size, 1);
+      result = EXPP_VectorsAreEqual(vecA->vec, vecB->vec, vecA->vec_num, 1);
       break;
     case Py_NE:
-      result = !EXPP_VectorsAreEqual(vecA->vec, vecB->vec, vecA->size, 1);
+      result = !EXPP_VectorsAreEqual(vecA->vec, vecB->vec, vecA->vec_num, 1);
       break;
     case Py_GT:
-      lenA = len_squared_vn(vecA->vec, vecA->size);
-      lenB = len_squared_vn(vecB->vec, vecB->size);
+      lenA = len_squared_vn(vecA->vec, vecA->vec_num);
+      lenB = len_squared_vn(vecB->vec, vecB->vec_num);
       if (lenA > lenB) {
         result = 1;
       }
       break;
     case Py_GE:
-      lenA = len_squared_vn(vecA->vec, vecA->size);
-      lenB = len_squared_vn(vecB->vec, vecB->size);
+      lenA = len_squared_vn(vecA->vec, vecA->vec_num);
+      lenB = len_squared_vn(vecB->vec, vecB->vec_num);
       if (lenA > lenB) {
         result = 1;
       }
@@ -2089,7 +2091,7 @@ static Py_hash_t Vector_hash(VectorObject *self)
     return -1;
   }
 
-  return mathutils_array_hash(self->vec, self->size);
+  return mathutils_array_hash(self->vec, self->vec_num);
 }
 
 /*-----------------PROTCOL DECLARATIONS--------------------------*/
@@ -2115,14 +2117,14 @@ static PyObject *Vector_subscript(VectorObject *self, PyObject *item)
       return NULL;
     }
     if (i < 0) {
-      i += self->size;
+      i += self->vec_num;
     }
     return Vector_item(self, i);
   }
   if (PySlice_Check(item)) {
     Py_ssize_t start, stop, step, slicelength;
 
-    if (PySlice_GetIndicesEx(item, self->size, &start, &stop, &step, &slicelength) < 0) {
+    if (PySlice_GetIndicesEx(item, self->vec_num, &start, &stop, &step, &slicelength) < 0) {
       return NULL;
     }
 
@@ -2150,14 +2152,14 @@ static int Vector_ass_subscript(VectorObject *self, PyObject *item, PyObject *va
       return -1;
     }
     if (i < 0) {
-      i += self->size;
+      i += self->vec_num;
     }
     return Vector_ass_item(self, i, value);
   }
   if (PySlice_Check(item)) {
     Py_ssize_t start, stop, step, slicelength;
 
-    if (PySlice_GetIndicesEx(item, self->size, &start, &stop, &step, &slicelength) < 0) {
+    if (PySlice_GetIndicesEx(item, self->vec_num, &start, &stop, &step, &slicelength) < 0) {
       return -1;
     }
 
@@ -2247,7 +2249,7 @@ static PyObject *Vector_length_get(VectorObject *self, void *UNUSED(closure))
     return NULL;
   }
 
-  return PyFloat_FromDouble(sqrt(dot_vn_vn(self->vec, self->vec, self->size)));
+  return PyFloat_FromDouble(sqrt(dot_vn_vn(self->vec, self->vec, self->vec_num)));
 }
 
 static int Vector_length_set(VectorObject *self, PyObject *value)
@@ -2268,11 +2270,11 @@ static int Vector_length_set(VectorObject *self, PyObject *value)
     return -1;
   }
   if (param == 0.0) {
-    copy_vn_fl(self->vec, self->size, 0.0f);
+    copy_vn_fl(self->vec, self->vec_num, 0.0f);
     return 0;
   }
 
-  dot = dot_vn_vn(self->vec, self->vec, self->size);
+  dot = dot_vn_vn(self->vec, self->vec, self->vec_num);
 
   if (!dot) {
     /* can't sqrt zero */
@@ -2287,7 +2289,7 @@ static int Vector_length_set(VectorObject *self, PyObject *value)
 
   dot = dot / param;
 
-  mul_vn_fl(self->vec, self->size, 1.0 / dot);
+  mul_vn_fl(self->vec, self->vec_num, 1.0 / dot);
 
   (void)BaseMath_WriteCallback(self); /* checked already */
 
@@ -2302,7 +2304,7 @@ static PyObject *Vector_length_squared_get(VectorObject *self, void *UNUSED(clos
     return NULL;
   }
 
-  return PyFloat_FromDouble(dot_vn_vn(self->vec, self->vec, self->size));
+  return PyFloat_FromDouble(dot_vn_vn(self->vec, self->vec, self->vec_num));
 }
 
 /**
@@ -2382,7 +2384,7 @@ static PyObject *Vector_swizzle_get(VectorObject *self, void *closure)
   swizzleClosure = POINTER_AS_INT(closure);
   while (swizzleClosure & SWIZZLE_VALID_AXIS) {
     axis_from = swizzleClosure & SWIZZLE_AXIS;
-    if (axis_from >= self->size) {
+    if (axis_from >= self->vec_num) {
       PyErr_SetString(PyExc_AttributeError,
                       "Vector swizzle: "
                       "specified axis not present");
@@ -2432,7 +2434,7 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 
   while (swizzleClosure & SWIZZLE_VALID_AXIS) {
     axis_to = swizzleClosure & SWIZZLE_AXIS;
-    if (axis_to >= self->size) {
+    if (axis_to >= self->vec_num) {
       PyErr_SetString(PyExc_AttributeError,
                       "Vector swizzle: "
                       "specified axis not present");
@@ -2468,8 +2470,8 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 
   /* We must first copy current vec into tvec, else some org values may be lost.
    * See T31760.
-   * Assuming self->size can't be higher than MAX_DIMENSIONS! */
-  memcpy(tvec, self->vec, self->size * sizeof(float));
+   * Assuming self->vec_num can't be higher than MAX_DIMENSIONS! */
+  memcpy(tvec, self->vec, self->vec_num * sizeof(float));
 
   while (swizzleClosure & SWIZZLE_VALID_AXIS) {
     axis_to = swizzleClosure & SWIZZLE_AXIS;
@@ -2480,7 +2482,7 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 
   /* We must copy back the whole tvec into vec, else some changes may be lost (e.g. xz...).
    * See T31760. */
-  memcpy(self->vec, tvec, self->size * sizeof(float));
+  memcpy(self->vec, tvec, self->vec_num * sizeof(float));
   /* continue with BaseMathObject_WriteCallback at the end */
 
   if (BaseMath_WriteCallback(self) == -1) {
@@ -2898,10 +2900,10 @@ static int row_vector_multiplication(float r_vec[MAX_DIMENSIONS],
                                      MatrixObject *mat)
 {
   float vec_cpy[MAX_DIMENSIONS];
-  int row, col, z = 0, vec_size = vec->size;
+  int row, col, z = 0, vec_num = vec->vec_num;
 
-  if (mat->num_row != vec_size) {
-    if (mat->num_row == 4 && vec_size == 3) {
+  if (mat->row_num != vec_num) {
+    if (mat->row_num == 4 && vec_num == 3) {
       vec_cpy[3] = 1.0f;
     }
     else {
@@ -2916,13 +2918,13 @@ static int row_vector_multiplication(float r_vec[MAX_DIMENSIONS],
     return -1;
   }
 
-  memcpy(vec_cpy, vec->vec, vec_size * sizeof(float));
+  memcpy(vec_cpy, vec->vec, vec_num * sizeof(float));
 
   r_vec[3] = 1.0f;
   /* Multiplication. */
-  for (col = 0; col < mat->num_col; col++) {
+  for (col = 0; col < mat->col_num; col++) {
     double dot = 0.0;
-    for (row = 0; row < mat->num_row; row++) {
+    for (row = 0; row < mat->row_num; row++) {
       dot += (double)(MATRIX_ITEM(mat, row, col) * vec_cpy[row]);
     }
     r_vec[z++] = (float)dot;
@@ -2941,7 +2943,7 @@ static PyObject *Vector_negate(VectorObject *self)
     return NULL;
   }
 
-  negate_vn(self->vec, self->size);
+  negate_vn(self->vec, self->vec_num);
 
   (void)BaseMath_WriteCallback(self); /* already checked for error */
   Py_RETURN_NONE;
@@ -3096,17 +3098,17 @@ PyTypeObject vector_Type = {
     NULL,
 };
 
-PyObject *Vector_CreatePyObject(const float *vec, const int size, PyTypeObject *base_type)
+PyObject *Vector_CreatePyObject(const float *vec, const int vec_num, PyTypeObject *base_type)
 {
   VectorObject *self;
   float *vec_alloc;
 
-  if (size < 2) {
+  if (vec_num < 2) {
     PyErr_SetString(PyExc_RuntimeError, "Vector(): invalid size");
     return NULL;
   }
 
-  vec_alloc = PyMem_Malloc(size * sizeof(float));
+  vec_alloc = PyMem_Malloc(vec_num * sizeof(float));
   if (UNLIKELY(vec_alloc == NULL)) {
     PyErr_SetString(PyExc_MemoryError,
                     "Vector(): "
@@ -3117,18 +3119,18 @@ PyObject *Vector_CreatePyObject(const float *vec, const int size, PyTypeObject *
   self = BASE_MATH_NEW(VectorObject, vector_Type, base_type);
   if (self) {
     self->vec = vec_alloc;
-    self->size = size;
+    self->vec_num = vec_num;
 
     /* init callbacks as NULL */
     self->cb_user = NULL;
     self->cb_type = self->cb_subtype = 0;
 
     if (vec) {
-      memcpy(self->vec, vec, size * sizeof(float));
+      memcpy(self->vec, vec, vec_num * sizeof(float));
     }
     else { /* new empty */
-      copy_vn_fl(self->vec, size, 0.0f);
-      if (size == 4) { /* do the homogeneous thing */
+      copy_vn_fl(self->vec, vec_num, 0.0f);
+      if (vec_num == 4) { /* do the homogeneous thing */
         self->vec[3] = 1.0f;
       }
     }
@@ -3141,18 +3143,18 @@ PyObject *Vector_CreatePyObject(const float *vec, const int size, PyTypeObject *
   return (PyObject *)self;
 }
 
-PyObject *Vector_CreatePyObject_wrap(float *vec, const int size, PyTypeObject *base_type)
+PyObject *Vector_CreatePyObject_wrap(float *vec, const int vec_num, PyTypeObject *base_type)
 {
   VectorObject *self;
 
-  if (size < 2) {
+  if (vec_num < 2) {
     PyErr_SetString(PyExc_RuntimeError, "Vector(): invalid size");
     return NULL;
   }
 
   self = BASE_MATH_NEW(VectorObject, vector_Type, base_type);
   if (self) {
-    self->size = size;
+    self->vec_num = vec_num;
 
     /* init callbacks as NULL */
     self->cb_user = NULL;
@@ -3164,9 +3166,9 @@ PyObject *Vector_CreatePyObject_wrap(float *vec, const int size, PyTypeObject *b
   return (PyObject *)self;
 }
 
-PyObject *Vector_CreatePyObject_cb(PyObject *cb_user, int size, uchar cb_type, uchar cb_subtype)
+PyObject *Vector_CreatePyObject_cb(PyObject *cb_user, int vec_num, uchar cb_type, uchar cb_subtype)
 {
-  VectorObject *self = (VectorObject *)Vector_CreatePyObject(NULL, size, NULL);
+  VectorObject *self = (VectorObject *)Vector_CreatePyObject(NULL, vec_num, NULL);
   if (self) {
     Py_INCREF(cb_user);
     self->cb_user = cb_user;
@@ -3178,10 +3180,10 @@ PyObject *Vector_CreatePyObject_cb(PyObject *cb_user, int size, uchar cb_type, u
   return (PyObject *)self;
 }
 
-PyObject *Vector_CreatePyObject_alloc(float *vec, const int size, PyTypeObject *base_type)
+PyObject *Vector_CreatePyObject_alloc(float *vec, const int vec_num, PyTypeObject *base_type)
 {
   VectorObject *self;
-  self = (VectorObject *)Vector_CreatePyObject_wrap(vec, size, base_type);
+  self = (VectorObject *)Vector_CreatePyObject_wrap(vec, vec_num, base_type);
   if (self) {
     self->flag &= ~BASE_MATH_FLAG_IS_WRAP;
   }

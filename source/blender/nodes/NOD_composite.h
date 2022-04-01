@@ -143,8 +143,6 @@ void ntreeCompositExecTree(struct Scene *scene,
                            struct RenderData *rd,
                            int rendering,
                            int do_previews,
-                           const struct ColorManagedViewSettings *view_settings,
-                           const struct ColorManagedDisplaySettings *display_settings,
                            const char *view_name);
 
 /**

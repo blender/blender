@@ -27,6 +27,7 @@
 #include "GPU_viewport.h"
 
 #include "draw_instance_data.h"
+#include "draw_shader_shared.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -191,6 +192,7 @@ typedef enum {
   /* Compute Commands. */
   DRW_CMD_COMPUTE = 8,
   DRW_CMD_COMPUTE_REF = 9,
+  DRW_CMD_COMPUTE_INDIRECT = 10,
 
   /* Other Commands */
   DRW_CMD_BARRIER = 11,
@@ -240,6 +242,10 @@ typedef struct DRWCommandComputeRef {
   int *groups_ref;
 } DRWCommandComputeRef;
 
+typedef struct DRWCommandComputeIndirect {
+  GPUStorageBuf *indirect_buf;
+} DRWCommandComputeIndirect;
+
 typedef struct DRWCommandBarrier {
   eGPUBarrier type;
 } DRWCommandBarrier;
@@ -282,6 +288,7 @@ typedef union DRWCommand {
   DRWCommandDrawProcedural procedural;
   DRWCommandCompute compute;
   DRWCommandComputeRef compute_ref;
+  DRWCommandComputeIndirect compute_indirect;
   DRWCommandBarrier barrier;
   DRWCommandSetMutableState state;
   DRWCommandSetStencil stencil;
@@ -309,6 +316,8 @@ typedef enum {
   DRW_UNIFORM_IMAGE_REF,
   DRW_UNIFORM_BLOCK,
   DRW_UNIFORM_BLOCK_REF,
+  DRW_UNIFORM_STORAGE_BLOCK,
+  DRW_UNIFORM_STORAGE_BLOCK_REF,
   DRW_UNIFORM_TFEEDBACK_TARGET,
   DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE,
   DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE_REF,
@@ -342,6 +351,11 @@ struct DRWUniform {
     union {
       GPUUniformBuf *block;
       GPUUniformBuf **block_ref;
+    };
+    /* DRW_UNIFORM_STORAGE_BLOCK */
+    union {
+      GPUStorageBuf *ssbo;
+      GPUStorageBuf **ssbo_ref;
     };
     /* DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE */
     union {
@@ -411,32 +425,14 @@ struct DRWPass {
   char name[MAX_PASS_NAME];
 };
 
-/* keep in sync with viewBlock */
-typedef struct DRWViewUboStorage {
-  /* View matrices */
-  float persmat[4][4];
-  float persinv[4][4];
-  float viewmat[4][4];
-  float viewinv[4][4];
-  float winmat[4][4];
-  float wininv[4][4];
-
-  float clipplanes[6][4];
-  float viewvecs[2][4];
-  /* Should not be here. Not view dependent (only main view). */
-  float viewcamtexcofac[4];
-} DRWViewUboStorage;
-
-BLI_STATIC_ASSERT_ALIGN(DRWViewUboStorage, 16)
-
 #define MAX_CULLED_VIEWS 32
 
 struct DRWView {
   /** Parent view if this is a sub view. NULL otherwise. */
   struct DRWView *parent;
 
-  DRWViewUboStorage storage;
-  /** Number of active clipplanes. */
+  ViewInfos storage;
+  /** Number of active clip planes. */
   int clip_planes_len;
   /** Does culling result needs to be updated. */
   bool is_dirty;
@@ -620,7 +616,7 @@ typedef struct DRWManager {
   uint primary_view_ct;
   /** TODO(@fclem): Remove this. Only here to support
    * shaders without common_view_lib.glsl */
-  DRWViewUboStorage view_storage_cpy;
+  ViewInfos view_storage_cpy;
 
 #ifdef USE_GPU_SELECT
   uint select_id;

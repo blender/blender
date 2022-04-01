@@ -965,13 +965,13 @@ void IMB_stereo3d_write_dimensions(
     char mode, bool is_squeezed, size_t width, size_t height, size_t *r_width, size_t *r_height);
 void IMB_stereo3d_read_dimensions(
     char mode, bool is_squeezed, size_t width, size_t height, size_t *r_width, size_t *r_height);
-int *IMB_stereo3d_from_rect(struct ImageFormatData *im_format,
+int *IMB_stereo3d_from_rect(const struct ImageFormatData *im_format,
                             size_t x,
                             size_t y,
                             size_t channels,
                             int *rect_left,
                             int *rect_right);
-float *IMB_stereo3d_from_rectf(struct ImageFormatData *im_format,
+float *IMB_stereo3d_from_rectf(const struct ImageFormatData *im_format,
                                size_t x,
                                size_t y,
                                size_t channels,
@@ -980,13 +980,13 @@ float *IMB_stereo3d_from_rectf(struct ImageFormatData *im_format,
 /**
  * Left/right are always float.
  */
-struct ImBuf *IMB_stereo3d_ImBuf(struct ImageFormatData *im_format,
+struct ImBuf *IMB_stereo3d_ImBuf(const struct ImageFormatData *im_format,
                                  struct ImBuf *ibuf_left,
                                  struct ImBuf *ibuf_right);
 /**
  * Reading a stereo encoded ibuf (*left) and generating two ibufs from it (*left and *right).
  */
-void IMB_ImBufFromStereo3d(struct Stereo3dFormat *s3d,
+void IMB_ImBufFromStereo3d(const struct Stereo3dFormat *s3d,
                            struct ImBuf *ibuf_stereo,
                            struct ImBuf **r_ibuf_left,
                            struct ImBuf **r_ibuf_right);

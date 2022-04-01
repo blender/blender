@@ -429,8 +429,11 @@ typedef struct ImageFormatData {
   Stereo3dFormat stereo3d_format;
 
   /* color management */
+  char color_management;
+  char _pad1[7];
   ColorManagedViewSettings view_settings;
   ColorManagedDisplaySettings display_settings;
+  ColorManagedColorspaceSettings linear_colorspace_settings;
 } ImageFormatData;
 
 /** #ImageFormatData.imtype */
@@ -462,12 +465,13 @@ typedef struct ImageFormatData {
 #define R_IMF_IMTYPE_XVID 32
 #define R_IMF_IMTYPE_THEORA 33
 #define R_IMF_IMTYPE_PSD 34
+#define R_IMF_IMTYPE_WEBP 35
 
 #define R_IMF_IMTYPE_INVALID 255
 
 /** #ImageFormatData.flag */
-#define R_IMF_FLAG_ZBUF (1 << 0)        /* was R_OPENEXR_ZBUF */
-#define R_IMF_FLAG_PREVIEW_JPG (1 << 1) /* was R_PREVIEW_JPG */
+#define R_IMF_FLAG_ZBUF (1 << 0)
+#define R_IMF_FLAG_PREVIEW_JPG (1 << 1)
 
 /* Return values from #BKE_imtype_valid_depths, note this is depths per channel. */
 /** #ImageFormatData.depth */
@@ -525,6 +529,10 @@ enum {
   R_IMF_TIFF_CODEC_PACKBITS = 2,
   R_IMF_TIFF_CODEC_NONE = 3,
 };
+
+/** #ImageFormatData.color_management */
+#define R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE 0
+#define R_IMF_COLOR_MANAGEMENT_OVERRIDE 1
 
 typedef struct BakeData {
   struct ImageFormatData im_format;
@@ -1006,11 +1014,23 @@ typedef struct Sculpt {
   struct BrushChannelSet *channels;
 } Sculpt;
 
+typedef enum CurvesSculptFlag {
+  CURVES_SCULPT_FLAG_INTERPOLATE_LENGTH = (1 << 0),
+  CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE = (1 << 1),
+} CurvesSculptFlag;
+
 typedef struct CurvesSculpt {
   Paint paint;
   /** Minimum distance between newly added curves on a surface. */
   float distance;
-  char _pad1[4];
+
+  /** CurvesSculptFlag. */
+  uint32_t flag;
+
+  /** Length of newly added curves when it is not interpolated from other curves. */
+  float curve_length;
+
+  char _pad[4];
 } CurvesSculpt;
 
 typedef struct UvSculpt {
@@ -1107,7 +1127,7 @@ typedef struct GP_Sculpt_Settings {
   /** Threshold for intersections */
   float isect_threshold;
   char _pad[4];
-  /** Multiframe edit falloff effect by frame. */
+  /** Multi-frame edit falloff effect by frame. */
   struct CurveMapping *cur_falloff;
   /** Curve used for primitive tools. */
   struct CurveMapping *cur_primitive;
@@ -1985,7 +2005,7 @@ enum {
 
 /* sequencer seq_prev_type seq_rend_type */
 
-/** #RenderData.engine (scene.c) */
+/** #RenderData.engine (scene.cc) */
 extern const char *RE_engine_id_BLENDER_EEVEE;
 extern const char *RE_engine_id_BLENDER_WORKBENCH;
 extern const char *RE_engine_id_CYCLES;
@@ -2012,7 +2032,10 @@ extern const char *RE_engine_id_CYCLES;
    ((v3d == NULL) || (((1 << (base)->object->type) & (v3d)->object_type_exclude_select) == 0)) && \
    (((base)->flag & BASE_SELECTABLE) != 0))
 #define BASE_SELECTED(v3d, base) (BASE_VISIBLE(v3d, base) && (((base)->flag & BASE_SELECTED) != 0))
-#define BASE_EDITABLE(v3d, base) (BASE_VISIBLE(v3d, base) && !ID_IS_LINKED((base)->object))
+#define BASE_EDITABLE(v3d, base) \
+  (BASE_VISIBLE(v3d, base) && !ID_IS_LINKED((base)->object) && \
+   (!ID_IS_OVERRIDE_LIBRARY_REAL((base)->object) || \
+    ((base)->object->id.override_library->flag & IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED) == 0))
 #define BASE_SELECTED_EDITABLE(v3d, base) \
   (BASE_EDITABLE(v3d, base) && (((base)->flag & BASE_SELECTED) != 0))
 

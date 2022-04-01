@@ -294,46 +294,48 @@ float dist_to_line_segment_v2(const float p[2], const float l1[2], const float l
   return sqrtf(dist_squared_to_line_segment_v2(p, l1, l2));
 }
 
-void closest_to_line_segment_v2(float r_close[2],
-                                const float p[2],
-                                const float l1[2],
-                                const float l2[2])
+float closest_to_line_segment_v2(float r_close[2],
+                                 const float p[2],
+                                 const float l1[2],
+                                 const float l2[2])
 {
   float lambda, cp[2];
 
   lambda = closest_to_line_v2(cp, p, l1, l2);
 
   /* flip checks for !finite case (when segment is a point) */
-  if (!(lambda > 0.0f)) {
+  if (lambda <= 0.0f) {
     copy_v2_v2(r_close, l1);
+    return 0.0f;
   }
-  else if (!(lambda < 1.0f)) {
+  if (lambda >= 1.0f) {
     copy_v2_v2(r_close, l2);
+    return 1.0f;
   }
-  else {
-    copy_v2_v2(r_close, cp);
-  }
+  copy_v2_v2(r_close, cp);
+  return lambda;
 }
 
-void closest_to_line_segment_v3(float r_close[3],
-                                const float p[3],
-                                const float l1[3],
-                                const float l2[3])
+float closest_to_line_segment_v3(float r_close[3],
+                                 const float p[3],
+                                 const float l1[3],
+                                 const float l2[3])
 {
   float lambda, cp[3];
 
   lambda = closest_to_line_v3(cp, p, l1, l2);
 
   /* flip checks for !finite case (when segment is a point) */
-  if (!(lambda > 0.0f)) {
+  if (lambda <= 0.0f) {
     copy_v3_v3(r_close, l1);
+    return 0.0f;
   }
-  else if (!(lambda < 1.0f)) {
+  if (lambda >= 1.0f) {
     copy_v3_v3(r_close, l2);
+    return 1.0f;
   }
-  else {
-    copy_v3_v3(r_close, cp);
-  }
+  copy_v3_v3(r_close, cp);
+  return lambda;
 }
 
 void closest_to_plane_v3(float r_close[3], const float plane[4], const float pt[3])
@@ -3402,7 +3404,7 @@ bool clip_segment_v3_plane(
 bool clip_segment_v3_plane_n(const float p1[3],
                              const float p2[3],
                              const float plane_array[][4],
-                             const int plane_tot,
+                             const int plane_num,
                              float r_p1[3],
                              float r_p2[3])
 {
@@ -3412,7 +3414,7 @@ bool clip_segment_v3_plane_n(const float p1[3],
   float dp[3];
   sub_v3_v3v3(dp, p2, p1);
 
-  for (int i = 0; i < plane_tot; i++) {
+  for (int i = 0; i < plane_num; i++) {
     const float *plane = plane_array[i];
     const float div = dot_v3v3(dp, plane);
 

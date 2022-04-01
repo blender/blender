@@ -4,7 +4,7 @@
 
 /* Convert depth to Mist factor */
 uniform vec3 mistSettings;
-uniform sampler2D depthBuffer;
+uniform depth2D depthBuffer;
 
 #define mistStart mistSettings.x
 #define mistInvDistance mistSettings.y

@@ -21,7 +21,7 @@ using namespace Freestyle;
 PyDoc_STRVAR(MediumType_doc,
              "Class hierarchy: int > :class:`MediumType`\n"
              "\n"
-             "The different blending modes available to similate the interaction\n"
+             "The different blending modes available to simulate the interaction\n"
              "media-medium:\n"
              "\n"
              "* Stroke.DRY_MEDIUM: To simulate a dry medium such as Pencil or Charcoal.\n"

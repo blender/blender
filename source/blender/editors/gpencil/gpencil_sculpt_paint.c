@@ -54,6 +54,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_prototypes.h"
 
 #include "UI_view2d.h"
 
@@ -328,16 +329,16 @@ static bool gpencil_brush_smooth_apply(tGP_BrushEditData *gso,
 
   /* perform smoothing */
   if (gso->brush->gpencil_settings->sculpt_mode_flag & GP_SCULPT_FLAGMODE_APPLY_POSITION) {
-    BKE_gpencil_stroke_smooth_point(gps, pt_index, inf, false);
+    BKE_gpencil_stroke_smooth_point(gps, pt_index, inf, 2, false, false, gps);
   }
   if (gso->brush->gpencil_settings->sculpt_mode_flag & GP_SCULPT_FLAGMODE_APPLY_STRENGTH) {
-    BKE_gpencil_stroke_smooth_strength(gps, pt_index, inf);
+    BKE_gpencil_stroke_smooth_strength(gps, pt_index, inf, 2, gps);
   }
   if (gso->brush->gpencil_settings->sculpt_mode_flag & GP_SCULPT_FLAGMODE_APPLY_THICKNESS) {
-    BKE_gpencil_stroke_smooth_thickness(gps, pt_index, inf);
+    BKE_gpencil_stroke_smooth_thickness(gps, pt_index, inf, 2, gps);
   }
   if (gso->brush->gpencil_settings->sculpt_mode_flag & GP_SCULPT_FLAGMODE_APPLY_UV) {
-    BKE_gpencil_stroke_smooth_uv(gps, pt_index, inf);
+    BKE_gpencil_stroke_smooth_uv(gps, pt_index, inf, 2, gps);
   }
 
   return true;
@@ -1441,20 +1442,22 @@ static bool gpencil_sculpt_brush_do_stroke(tGP_BrushEditData *gso,
   if (gps->totpoints == 1) {
     bGPDspoint pt_temp;
     pt = &gps->points[0];
-    gpencil_point_to_parent_space(gps->points, diff_mat, &pt_temp);
-    gpencil_point_to_xy(gsc, gps, &pt_temp, &pc1[0], &pc1[1]);
+    if (GPENCIL_ANY_SCULPT_MASK(gso->mask) && (pt->flag & GP_SPOINT_SELECT) != 0) {
+      gpencil_point_to_parent_space(gps->points, diff_mat, &pt_temp);
+      gpencil_point_to_xy(gsc, gps, &pt_temp, &pc1[0], &pc1[1]);
 
-    pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
-    /* Do bound-box check first. */
-    if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
-      /* only check if point is inside */
-      int mval_i[2];
-      round_v2i_v2fl(mval_i, gso->mval);
-      if (len_v2v2_int(mval_i, pc1) <= radius) {
-        /* apply operation to this point */
-        if (pt_active != NULL) {
-          rot_eval = gpencil_sculpt_rotation_eval_get(gso, gps, pt, 0);
-          changed = apply(gso, gps_active, rot_eval, 0, radius, pc1);
+      pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
+      /* Do bound-box check first. */
+      if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
+        /* only check if point is inside */
+        int mval_i[2];
+        round_v2i_v2fl(mval_i, gso->mval);
+        if (len_v2v2_int(mval_i, pc1) <= radius) {
+          /* apply operation to this point */
+          if (pt_active != NULL) {
+            rot_eval = gpencil_sculpt_rotation_eval_get(gso, gps, pt, 0);
+            changed = apply(gso, gps_active, rot_eval, 0, radius, pc1);
+          }
         }
       }
     }

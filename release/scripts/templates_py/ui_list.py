@@ -18,7 +18,7 @@ class MESH_UL_mylist(bpy.types.UIList):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             pass
         # 'GRID' layout type should be as compact as possible (typically a single icon!).
-        elif self.layout_type in {'GRID'}:
+        elif self.layout_type == 'GRID':
             pass
 
     # Called once to draw filtering/reordering options.

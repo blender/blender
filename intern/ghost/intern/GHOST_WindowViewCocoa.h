@@ -64,7 +64,7 @@
   ime.event.target_end = -1;
 
   /* Register a function to be executed when Input Method is changed using
-   * 'Control + Space' or language-specific keys (such as 'Eisu / Kana' key for Japanese).*/
+   * 'Control + Space' or language-specific keys (such as 'Eisu / Kana' key for Japanese). */
   NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
   [center addObserver:self
              selector:@selector(ImeDidChangeCallback:)

@@ -33,6 +33,8 @@ using namespace blender;
 using namespace blender::gpu;
 using namespace blender::gpu::shader;
 
+extern "C" char datatoc_glsl_shader_defines_glsl[];
+
 /* -------------------------------------------------------------------- */
 /** \name Creation / Destruction
  * \{ */
@@ -183,6 +185,10 @@ static const char *to_string(const eGPUTextureFormat &type)
       return "r16f";
     case GPU_R16:
       return "r16";
+    case GPU_R11F_G11F_B10F:
+      return "r11f_g11f_b10f";
+    case GPU_RGB10_A2:
+      return "rgb10_a2";
     default:
       return "unknown";
   }
@@ -217,6 +223,20 @@ static const char *to_string(const PrimitiveOut &layout)
       return "triangle_strip";
     default:
       return "unknown";
+  }
+}
+
+static const char *to_string(const DepthWrite &value)
+{
+  switch (value) {
+    case DepthWrite::ANY:
+      return "depth_any";
+    case DepthWrite::GREATER:
+      return "depth_greater";
+    case DepthWrite::LESS:
+      return "depth_less";
+    default:
+      return "depth_unchanged";
   }
 }
 
@@ -585,6 +605,12 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
       pre_main += "  gpu_BaryCoordNoPersp = stable_bary_(gl_BaryCoordNoPerspAMD);\n";
     }
   }
+  if (info.early_fragment_test_) {
+    ss << "layout(early_fragment_tests) in;\n";
+  }
+  if (GLEW_VERSION_4_2 || GLEW_ARB_conservative_depth) {
+    ss << "layout(" << to_string(info.depth_write_) << ") out float gl_FragDepth;\n";
+  }
   ss << "\n/* Outputs. */\n";
   for (const ShaderCreateInfo::FragOut &output : info.fragment_outputs_) {
     ss << "layout(location = " << output.index;
@@ -676,7 +702,7 @@ std::string GLShader::compute_layout_declare(const ShaderCreateInfo &info) const
     ss << ", local_size_y = " << info.compute_layout_.local_size_y;
   }
   if (info.compute_layout_.local_size_z != -1) {
-    ss << ", local_size_y = " << info.compute_layout_.local_size_z;
+    ss << ", local_size_z = " << info.compute_layout_.local_size_z;
   }
   ss << ") in;\n";
   ss << "\n";
@@ -762,7 +788,7 @@ bool GLShader::do_geometry_shader_injection(const shader::ShaderCreateInfo *info
 static char *glsl_patch_default_get()
 {
   /** Used for shader patching. Init once. */
-  static char patch[1024] = "\0";
+  static char patch[2048] = "\0";
   if (patch[0] != '\0') {
     return patch;
   }
@@ -829,6 +855,9 @@ static char *glsl_patch_default_get()
   STR_CONCATF(patch, slen, "#define DFDX_SIGN %1.1f\n", GLContext::derivative_signs[0]);
   STR_CONCATF(patch, slen, "#define DFDY_SIGN %1.1f\n", GLContext::derivative_signs[1]);
 
+  /* GLSL Backend Lib. */
+  STR_CONCAT(patch, slen, datatoc_glsl_shader_defines_glsl);
+
   BLI_assert(slen < sizeof(patch));
   return patch;
 }
@@ -845,6 +874,10 @@ static char *glsl_patch_compute_get()
   /* Version need to go first. */
   STR_CONCAT(patch, slen, "#version 430\n");
   STR_CONCAT(patch, slen, "#extension GL_ARB_compute_shader :enable\n");
+
+  /* Array compat. */
+  STR_CONCAT(patch, slen, "#define array(_type) _type[]\n");
+
   BLI_assert(slen < sizeof(patch));
   return patch;
 }
@@ -861,7 +894,7 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage, MutableSpan<const char *> 
 {
   GLuint shader = glCreateShader(gl_stage);
   if (shader == 0) {
-    fprintf(stderr, "GLShader: Error: Could not create shader object.");
+    fprintf(stderr, "GLShader: Error: Could not create shader object.\n");
     return 0;
   }
 

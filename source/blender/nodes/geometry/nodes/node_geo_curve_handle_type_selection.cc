@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_spline.hh"
+#include "BKE_curves.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -47,24 +47,24 @@ static HandleType handle_type_from_input_type(const GeometryNodeCurveHandleType 
   return BEZIER_HANDLE_AUTO;
 }
 
-static void select_by_handle_type(const CurveEval &curve,
+static void select_by_handle_type(const bke::CurvesGeometry &curves,
                                   const HandleType type,
                                   const GeometryNodeCurveHandleMode mode,
                                   const MutableSpan<bool> r_selection)
 {
-  int offset = 0;
-  for (const SplinePtr &spline : curve.splines()) {
-    if (spline->type() != CURVE_TYPE_BEZIER) {
-      r_selection.slice(offset, spline->size()).fill(false);
-      offset += spline->size();
+  VArray<int8_t> curve_types = curves.curve_types();
+  VArray<int8_t> left = curves.handle_types_left();
+  VArray<int8_t> right = curves.handle_types_right();
+
+  for (const int i_curve : curves.curves_range()) {
+    const IndexRange points = curves.points_for_curve(i_curve);
+    if (curve_types[i_curve] != CURVE_TYPE_BEZIER) {
+      r_selection.slice(points).fill(false);
     }
     else {
-      BezierSpline *b = static_cast<BezierSpline *>(spline.get());
-      for (int i : IndexRange(b->size())) {
-        r_selection[offset++] = (mode & GEO_NODE_CURVE_HANDLE_LEFT &&
-                                 b->handle_types_left()[i] == type) ||
-                                (mode & GEO_NODE_CURVE_HANDLE_RIGHT &&
-                                 b->handle_types_right()[i] == type);
+      for (const int i_point : points) {
+        r_selection[i_point] = (mode & GEO_NODE_CURVE_HANDLE_LEFT && left[i_point] == type) ||
+                               (mode & GEO_NODE_CURVE_HANDLE_RIGHT && right[i_point] == type);
       }
     }
   }
@@ -87,22 +87,19 @@ class HandleTypeFieldInput final : public GeometryFieldInput {
                                  const AttributeDomain domain,
                                  IndexMask mask) const final
   {
-    if (component.type() != GEO_COMPONENT_TYPE_CURVE) {
+    if (component.type() != GEO_COMPONENT_TYPE_CURVE || domain != ATTR_DOMAIN_POINT) {
       return {};
     }
 
     const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-    const Curves *curve = curve_component.get_for_read();
-    if (curve == nullptr) {
+    const Curves *curves_id = curve_component.get_for_read();
+    if (curves_id == nullptr) {
       return {};
     }
 
-    if (domain == ATTR_DOMAIN_POINT) {
-      Array<bool> selection(mask.min_array_size());
-      select_by_handle_type(*curves_to_curve_eval(*curve), type_, mode_, selection);
-      return VArray<bool>::ForContainer(std::move(selection));
-    }
-    return {};
+    Array<bool> selection(mask.min_array_size());
+    select_by_handle_type(bke::CurvesGeometry::wrap(curves_id->geometry), type_, mode_, selection);
+    return VArray<bool>::ForContainer(std::move(selection));
   }
 
   uint64_t hash() const override

@@ -366,59 +366,77 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
   return ok;
 }
 
-bool paintface_mouse_select(
-    struct bContext *C, Object *ob, const int mval[2], bool extend, bool deselect, bool toggle)
+bool paintface_mouse_select(struct bContext *C,
+                            const int mval[2],
+                            const struct SelectPick_Params *params,
+                            Object *ob)
 {
   Mesh *me;
-  MPoly *mpoly_sel;
+  MPoly *mpoly_sel = NULL;
   uint index;
+  bool changed = false;
+  bool found = false;
 
   /* Get the face under the cursor */
   me = BKE_mesh_from_object(ob);
 
-  if (!ED_mesh_pick_face(C, ob, mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &index)) {
-    return false;
-  }
-
-  if (index >= me->totpoly) {
-    return false;
-  }
-
-  mpoly_sel = me->mpoly + index;
-  if (mpoly_sel->flag & ME_HIDE) {
-    return false;
-  }
-
-  /* clear flags */
-  if (!extend && !deselect && !toggle) {
-    paintface_deselect_all_visible(C, ob, SEL_DESELECT, false);
-  }
-
-  me->act_face = (int)index;
-
-  if (extend) {
-    mpoly_sel->flag |= ME_FACE_SEL;
-  }
-  else if (deselect) {
-    mpoly_sel->flag &= ~ME_FACE_SEL;
-  }
-  else if (toggle) {
-    if (mpoly_sel->flag & ME_FACE_SEL) {
-      mpoly_sel->flag &= ~ME_FACE_SEL;
-    }
-    else {
-      mpoly_sel->flag |= ME_FACE_SEL;
+  if (ED_mesh_pick_face(C, ob, mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &index)) {
+    if (index < me->totpoly) {
+      mpoly_sel = me->mpoly + index;
+      if ((mpoly_sel->flag & ME_HIDE) == 0) {
+        found = true;
+      }
     }
   }
-  else {
-    mpoly_sel->flag |= ME_FACE_SEL;
+
+  if (params->sel_op == SEL_OP_SET) {
+    if ((found && params->select_passthrough) && (mpoly_sel->flag & ME_FACE_SEL)) {
+      found = false;
+    }
+    else if (found || params->deselect_all) {
+      /* Deselect everything. */
+      changed |= paintface_deselect_all_visible(C, ob, SEL_DESELECT, false);
+    }
   }
 
-  /* image window redraw */
+  if (found) {
+    me->act_face = (int)index;
 
-  paintface_flush_flags(C, ob, SELECT);
-  ED_region_tag_redraw(CTX_wm_region(C)); /* XXX: should redraw all 3D views. */
-  return true;
+    switch (params->sel_op) {
+      case SEL_OP_ADD: {
+        mpoly_sel->flag |= ME_FACE_SEL;
+        break;
+      }
+      case SEL_OP_SUB: {
+        mpoly_sel->flag &= ~ME_FACE_SEL;
+        break;
+      }
+      case SEL_OP_XOR: {
+        if (mpoly_sel->flag & ME_FACE_SEL) {
+          mpoly_sel->flag &= ~ME_FACE_SEL;
+        }
+        else {
+          mpoly_sel->flag |= ME_FACE_SEL;
+        }
+        break;
+      }
+      case SEL_OP_SET: {
+        mpoly_sel->flag |= ME_FACE_SEL;
+        break;
+      }
+      case SEL_OP_AND: {
+        BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+        break;
+      }
+    }
+
+    /* image window redraw */
+
+    paintface_flush_flags(C, ob, SELECT);
+    ED_region_tag_redraw(CTX_wm_region(C)); /* XXX: should redraw all 3D views. */
+    changed = true;
+  }
+  return changed || found;
 }
 
 void paintvert_flush_flags(Object *ob)

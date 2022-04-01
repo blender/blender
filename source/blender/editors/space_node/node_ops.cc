@@ -37,7 +37,6 @@ void node_operatortypes()
 
   WM_operatortype_append(NODE_OT_view_all);
   WM_operatortype_append(NODE_OT_view_selected);
-  WM_operatortype_append(NODE_OT_geometry_node_view_legacy);
 
   WM_operatortype_append(NODE_OT_mute_toggle);
   WM_operatortype_append(NODE_OT_hide_toggle);
@@ -79,7 +78,6 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_add_group);
   WM_operatortype_append(NODE_OT_add_object);
   WM_operatortype_append(NODE_OT_add_collection);
-  WM_operatortype_append(NODE_OT_add_texture);
   WM_operatortype_append(NODE_OT_add_file);
   WM_operatortype_append(NODE_OT_add_mask);
 

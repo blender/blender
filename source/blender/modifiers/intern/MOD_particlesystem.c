@@ -29,6 +29,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "DEG_depsgraph_query.h"
 
@@ -99,7 +100,7 @@ static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
                         Mesh *mesh,
                         float (*vertexCos)[3],
-                        int numVerts)
+                        int verts_num)
 {
   Mesh *mesh_src = mesh;
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
@@ -117,7 +118,8 @@ static void deformVerts(ModifierData *md,
   }
 
   if (mesh_src == NULL) {
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, NULL, vertexCos, numVerts, false, true);
+    mesh_src = MOD_deform_mesh_eval_get(
+        ctx->object, NULL, NULL, vertexCos, verts_num, false, true);
     if (mesh_src == NULL) {
       return;
     }
@@ -234,7 +236,7 @@ static void deformVertsEM(ModifierData *md,
                           BMEditMesh *editData,
                           Mesh *mesh,
                           float (*vertexCos)[3],
-                          int numVerts)
+                          int verts_num)
 {
   const bool do_temp_mesh = (mesh == NULL);
   if (do_temp_mesh) {
@@ -242,7 +244,7 @@ static void deformVertsEM(ModifierData *md,
     BM_mesh_bm_to_me(NULL, NULL, editData->bm, mesh, &((BMeshToMeshParams){0}));
   }
 
-  deformVerts(md, ob, mesh, vertexCos, numVerts);
+  deformVerts(md, ob, mesh, vertexCos, verts_num);
 
   if (derivedData) {
     BKE_id_free(NULL, mesh);

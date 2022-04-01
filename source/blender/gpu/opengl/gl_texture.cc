@@ -453,6 +453,19 @@ void GLTexture::swizzle_set(const char swizzle[4])
   }
 }
 
+void GLTexture::stencil_texture_mode_set(bool use_stencil)
+{
+  BLI_assert(GLContext::stencil_texturing_support);
+  GLint value = use_stencil ? GL_STENCIL_INDEX : GL_DEPTH_COMPONENT;
+  if (GLContext::direct_state_access_support) {
+    glTextureParameteri(tex_id_, GL_DEPTH_STENCIL_TEXTURE_MODE, value);
+  }
+  else {
+    GLContext::state_manager_active_get()->texture_bind_temp(this);
+    glTexParameteri(target_, GL_DEPTH_STENCIL_TEXTURE_MODE, value);
+  }
+}
+
 void GLTexture::mip_range_set(int min, int max)
 {
   BLI_assert(min <= max && min >= 0 && max <= mipmaps_);
@@ -556,7 +569,7 @@ void GLTexture::samplers_update()
   float max_anisotropy = 1.0f;
   glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
 
-  float aniso_filter = max_ff(max_anisotropy, U.anisotropic_filter);
+  float aniso_filter = min_ff(max_anisotropy, U.anisotropic_filter);
 
   for (int i = 0; i <= GPU_SAMPLER_ICON - 1; i++) {
     eGPUSamplerState state = static_cast<eGPUSamplerState>(i);
@@ -686,6 +699,11 @@ void GLTexture::check_feedback_loop()
   /* Recursive down sample workaround break this check.
    * See #recursive_downsample() for more information. */
   if (GPU_mip_render_workaround()) {
+    return;
+  }
+  /* Do not check if using compute shader. */
+  GLShader *sh = dynamic_cast<GLShader *>(Context::get()->shader);
+  if (sh && sh->is_compute()) {
     return;
   }
   GLFrameBuffer *fb = static_cast<GLFrameBuffer *>(GLContext::get()->active_fb);

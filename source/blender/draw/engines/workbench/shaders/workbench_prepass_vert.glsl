@@ -16,7 +16,7 @@ void main()
 
   normal_interp = normalize(normal_object_to_view(nor));
 
-  workbench_material_data_get(resource_handle, color_interp, alpha_interp, roughness, metallic);
+  workbench_material_data_get(resource_handle, color_interp, alpha_interp, _roughness, metallic);
 
   if (materialIndex == 0) {
     color_interp = ac.rgb;

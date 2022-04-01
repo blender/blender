@@ -15,6 +15,8 @@ set(INC
   ../../../../intern/clog
   ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 
@@ -36,7 +38,8 @@ set(SRC
   tree/tree_display_data.cc
   tree/tree_display_libraries.cc
   tree/tree_display_orphaned.cc
-  tree/tree_display_override_library.cc
+  tree/tree_display_override_library_properties.cc
+  tree/tree_display_override_library_hierarchies.cc
   tree/tree_display_scenes.cc
   tree/tree_display_sequencer.cc
   tree/tree_display_view_layer.cc
@@ -82,3 +85,6 @@ set(LIB
 
 
 blender_add_lib(bf_editor_space_outliner "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+# RNA_prototypes.h
+add_dependencies(bf_editor_space_outliner bf_rna)

@@ -129,6 +129,10 @@ void createTransNodeData(TransInfo *t)
     }
   }
 
+  if (tc->data_len == 0) {
+    return;
+  }
+
   TransData *td = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransNode TransData");
   TransData2D *td2d = tc->data_2d = MEM_callocN(tc->data_len * sizeof(TransData2D),
                                                 "TransNode TransData2D");

@@ -1391,6 +1391,7 @@ class CurvesNode : public ShaderNode {
   NODE_SOCKET_API(float, max_x)
   NODE_SOCKET_API(float, fac)
   NODE_SOCKET_API(float3, value)
+  NODE_SOCKET_API(bool, extrapolate)
 
  protected:
   using ShaderNode::constant_fold;
@@ -1421,6 +1422,7 @@ class FloatCurveNode : public ShaderNode {
   NODE_SOCKET_API(float, max_x)
   NODE_SOCKET_API(float, fac)
   NODE_SOCKET_API(float, value)
+  NODE_SOCKET_API(bool, extrapolate)
 };
 
 class RGBRampNode : public ShaderNode {

@@ -60,6 +60,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_moviecache.h"
+#include "IMB_openexr.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -67,10 +68,6 @@
 #include "GPU_texture.h"
 
 #include "BLO_read_write.h"
-
-#ifdef WITH_OPENEXR
-#  include "intern/openexr/openexr_multi.h"
-#endif
 
 static void free_buffers(MovieClip *clip);
 

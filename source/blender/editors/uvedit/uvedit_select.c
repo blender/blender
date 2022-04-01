@@ -2052,7 +2052,7 @@ static int uv_select_more_less(bContext *C, const bool select)
               }
 
               /* If the current face is not selected and at least one neighboring face is
-               * selected, then tag the current face to grow selection.*/
+               * selected, then tag the current face to grow selection. */
               if (sel_state == (NEIGHBORING_FACE_IS_SEL | CURR_FACE_IS_UNSEL)) {
                 BM_elem_flag_enable(efa, BM_ELEM_TAG);
                 changed = true;
@@ -2388,12 +2388,11 @@ void UV_OT_select_all(wmOperatorType *ot)
 /** \name Mouse Select Operator
  * \{ */
 
-static int uv_mouse_select_multi(bContext *C,
-                                 Object **objects,
-                                 uint objects_len,
-                                 const float co[2],
-                                 const bool extend,
-                                 const bool deselect_all)
+static bool uv_mouse_select_multi(bContext *C,
+                                  Object **objects,
+                                  uint objects_len,
+                                  const float co[2],
+                                  const struct SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   const ARegion *region = CTX_wm_region(C);
@@ -2477,117 +2476,145 @@ static int uv_mouse_select_multi(bContext *C,
     }
   }
 
-  if (!found_item) {
-    if (deselect_all) {
-      uv_select_all_perform_multi(scene, objects, objects_len, SEL_DESELECT);
+  bool found = found_item;
+  bool changed = false;
 
+  bool is_selected = false;
+  if (found) {
+    Object *obedit = hit.ob;
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+    if (selectmode == UV_SELECT_FACE) {
+      is_selected = uvedit_face_select_test(scene, hit.efa, cd_loop_uv_offset);
+    }
+    else if (selectmode == UV_SELECT_EDGE) {
+      is_selected = uvedit_edge_select_test(scene, hit.l, cd_loop_uv_offset);
+    }
+    else { /* Vertex or island. */
+      is_selected = uvedit_uv_select_test(scene, hit.l, cd_loop_uv_offset);
+    }
+  }
+
+  if (params->sel_op == SEL_OP_SET) {
+    if ((found && params->select_passthrough) && is_selected) {
+      found = false;
+    }
+    else if (found || params->deselect_all) {
+      /* Deselect everything. */
+      uv_select_all_perform_multi(scene, objects, objects_len, SEL_DESELECT);
       for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
         Object *obedit = objects[ob_index];
         uv_select_tag_update_for_object(depsgraph, ts, obedit);
       }
-
-      return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
+      changed = true;
     }
-    return OPERATOR_CANCELLED;
   }
 
-  Object *obedit = hit.ob;
-  BMEditMesh *em = BKE_editmesh_from_object(obedit);
-  const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+  if (found) {
+    Object *obedit = hit.ob;
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-  /* do selection */
-  if (selectmode == UV_SELECT_ISLAND) {
-    if (!extend) {
-      uv_select_all_perform_multi_ex(scene, objects, objects_len, SEL_DESELECT, obedit);
+    if (selectmode == UV_SELECT_ISLAND) {
+      const bool extend = params->sel_op == SEL_OP_ADD;
+      const bool deselect = params->sel_op == SEL_OP_SUB;
+      const bool toggle = params->sel_op == SEL_OP_XOR;
+      /* Current behavior of 'extend'
+       * is actually toggling, so pass extend flag as 'toggle' here */
+      uv_select_linked_multi(scene, objects, objects_len, &hit, extend, deselect, toggle, false);
+      /* TODO: check if this actually changed. */
+      changed = true;
     }
-    /* Current behavior of 'extend'
-     * is actually toggling, so pass extend flag as 'toggle' here */
-    uv_select_linked_multi(scene, objects, objects_len, &hit, false, false, extend, false);
-  }
-  else if (extend) {
-    bool select = true;
-    if (selectmode == UV_SELECT_VERTEX) {
-      /* (de)select uv vertex */
-      select = !uvedit_uv_select_test(scene, hit.l, cd_loop_uv_offset);
-      uvedit_uv_select_set_with_sticky(scene, em, hit.l, select, true, cd_loop_uv_offset);
-      flush = 1;
-    }
-    else if (selectmode == UV_SELECT_EDGE) {
-      /* (de)select edge */
-      select = !(uvedit_edge_select_test(scene, hit.l, cd_loop_uv_offset));
-      uvedit_edge_select_set_with_sticky(scene, em, hit.l, select, true, cd_loop_uv_offset);
-      flush = 1;
-    }
-    else if (selectmode == UV_SELECT_FACE) {
-      /* (de)select face */
-      select = !(uvedit_face_select_test(scene, hit.efa, cd_loop_uv_offset));
-      uvedit_face_select_set_with_sticky(scene, em, hit.efa, select, true, cd_loop_uv_offset);
-      flush = -1;
+    else {
+      BLI_assert(ELEM(selectmode, UV_SELECT_VERTEX, UV_SELECT_EDGE, UV_SELECT_FACE));
+      bool select_value = false;
+      switch (params->sel_op) {
+        case SEL_OP_ADD: {
+          select_value = true;
+          break;
+        }
+        case SEL_OP_SUB: {
+          select_value = false;
+          break;
+        }
+        case SEL_OP_XOR: {
+          select_value = !is_selected;
+          break;
+        }
+        case SEL_OP_SET: {
+          /* Deselect has already been performed. */
+          select_value = true;
+          break;
+        }
+        case SEL_OP_AND: {
+          BLI_assert_unreachable(); /* Doesn't make sense for picking. */
+          break;
+        }
+      }
+
+      if (selectmode == UV_SELECT_FACE) {
+        uvedit_face_select_set_with_sticky(
+            scene, em, hit.efa, select_value, true, cd_loop_uv_offset);
+        flush = 1;
+      }
+      else if (selectmode == UV_SELECT_EDGE) {
+        uvedit_edge_select_set_with_sticky(
+            scene, em, hit.l, select_value, true, cd_loop_uv_offset);
+        flush = 1;
+      }
+      else if (selectmode == UV_SELECT_VERTEX) {
+        uvedit_uv_select_set_with_sticky(scene, em, hit.l, select_value, true, cd_loop_uv_offset);
+        flush = 1;
+      }
+      else {
+        BLI_assert_unreachable();
+      }
+
+      /* De-selecting an edge may deselect a face too - validate. */
+      if (ts->uv_flag & UV_SYNC_SELECTION) {
+        if (select_value == false) {
+          BM_select_history_validate(em->bm);
+        }
+      }
+
+      /* (de)select sticky UV nodes. */
+      if (sticky != SI_STICKY_DISABLE) {
+        flush = select_value ? 1 : -1;
+      }
+
+      changed = true;
     }
 
-    /* de-selecting an edge may deselect a face too - validate */
     if (ts->uv_flag & UV_SYNC_SELECTION) {
-      if (select == false) {
-        BM_select_history_validate(em->bm);
+      if (flush != 0) {
+        EDBM_selectmode_flush(em);
       }
     }
-
-    /* (de)select sticky uv nodes */
-    if (sticky != SI_STICKY_DISABLE) {
-      flush = select ? 1 : -1;
-    }
-  }
-  else {
-    const bool select = true;
-    /* deselect all */
-    uv_select_all_perform_multi(scene, objects, objects_len, SEL_DESELECT);
-
-    if (selectmode == UV_SELECT_VERTEX) {
-      /* select vertex */
-      uvedit_uv_select_set_with_sticky(scene, em, hit.l, select, true, cd_loop_uv_offset);
-      flush = 1;
-    }
-    else if (selectmode == UV_SELECT_EDGE) {
-      /* select edge */
-      uvedit_edge_select_set_with_sticky(scene, em, hit.l, select, true, cd_loop_uv_offset);
-      flush = 1;
-    }
-    else if (selectmode == UV_SELECT_FACE) {
-      /* select face */
-      uvedit_face_select_set_with_sticky(scene, em, hit.efa, select, true, cd_loop_uv_offset);
-      flush = 1;
+    else {
+      /* Setting the selection implies a single element, which doesn't need to be flushed. */
+      if (params->sel_op != SEL_OP_SET) {
+        ED_uvedit_selectmode_flush(scene, em);
+      }
     }
   }
 
-  if (ts->uv_flag & UV_SYNC_SELECTION) {
-    if (flush != 0) {
-      EDBM_selectmode_flush(em);
-    }
-  }
-  /* #extend=false implies single vertex selection, which doesn't need to be flushed. */
-  else if (extend) {
-    ED_uvedit_selectmode_flush(scene, em);
+  if (changed && found) {
+    /* Only update the `hit` object as de-selecting all will have refreshed the others. */
+    Object *obedit = hit.ob;
+    uv_select_tag_update_for_object(depsgraph, ts, obedit);
   }
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obiter = objects[ob_index];
-    uv_select_tag_update_for_object(depsgraph, ts, obiter);
-  }
-
-  return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
+  return changed || found;
 }
-static int uv_mouse_select(bContext *C,
-                           const float co[2],
-                           const bool extend,
-                           const bool deselect_all)
+static bool uv_mouse_select(bContext *C, const float co[2], const struct SelectPick_Params *params)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       view_layer, ((View3D *)NULL), &objects_len);
-  int ret = uv_mouse_select_multi(C, objects, objects_len, co, extend, deselect_all);
+  bool changed = uv_mouse_select_multi(C, objects, objects_len, co, params);
   MEM_freeN(objects);
-  return ret;
+  return changed;
 }
 
 static int uv_select_exec(bContext *C, wmOperator *op)
@@ -2595,10 +2622,16 @@ static int uv_select_exec(bContext *C, wmOperator *op)
   float co[2];
 
   RNA_float_get_array(op->ptr, "location", co);
-  const bool extend = RNA_boolean_get(op->ptr, "extend");
-  const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
 
-  return uv_mouse_select(C, co, extend, deselect_all);
+  struct SelectPick_Params params = {0};
+  ED_select_pick_params_from_operator(op, &params);
+
+  const bool changed = uv_mouse_select(C, co, &params);
+
+  if (changed) {
+    return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
+  }
+  return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
 }
 
 static int uv_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -2629,18 +2662,8 @@ void UV_OT_select(wmOperatorType *ot)
 
   /* properties */
   PropertyRNA *prop;
-  prop = RNA_def_boolean(ot->srna,
-                         "extend",
-                         0,
-                         "Extend",
-                         "Extend selection rather than clearing the existing selection");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna,
-                         "deselect_all",
-                         false,
-                         "Deselect On Nothing",
-                         "Deselect all when nothing under the cursor");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  WM_operator_properties_mouse_select(ot);
 
   prop = RNA_def_float_vector(
       ot->srna,
@@ -3355,7 +3378,8 @@ static void uv_select_flush_from_tag_loop(const Scene *scene, Object *obedit, co
  * but dealing with sticky modes for vertex selections is best done in a separate function.
  *
  * \note Current behavior is selecting only; deselecting can be added but the behavior isn't
- * required anywhere.*/
+ * required anywhere.
+ */
 static void uv_select_flush_from_loop_edge_flag(const Scene *scene, BMEditMesh *em)
 {
   const ToolSettings *ts = scene->toolsettings;

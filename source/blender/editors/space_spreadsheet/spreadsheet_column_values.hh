@@ -4,15 +4,14 @@
 
 #include "DNA_space_types.h"
 
+#include "BLI_generic_virtual_array.hh"
 #include "BLI_string_ref.hh"
-
-#include "FN_generic_virtual_array.hh"
 
 namespace blender::ed::spreadsheet {
 
 struct CellDrawParams;
 
-eSpreadsheetColumnValueType cpp_type_to_column_type(const fn::CPPType &type);
+eSpreadsheetColumnValueType cpp_type_to_column_type(const CPPType &type);
 
 /**
  * This represents a column in a spreadsheet. It has a name and provides a value for all the cells
@@ -22,10 +21,10 @@ class ColumnValues final {
  protected:
   std::string name_;
 
-  fn::GVArray data_;
+  GVArray data_;
 
  public:
-  ColumnValues(std::string name, fn::GVArray data) : name_(std::move(name)), data_(std::move(data))
+  ColumnValues(std::string name, GVArray data) : name_(std::move(name)), data_(std::move(data))
   {
     /* The array should not be empty. */
     BLI_assert(data_);
@@ -48,7 +47,7 @@ class ColumnValues final {
     return data_.size();
   }
 
-  const fn::GVArray &data() const
+  const GVArray &data() const
   {
     return data_;
   }

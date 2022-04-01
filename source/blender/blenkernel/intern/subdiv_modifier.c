@@ -77,6 +77,10 @@ static bool is_subdivision_evaluation_possible_on_gpu(void)
     return false;
   }
 
+  if (GPU_max_shader_storage_buffer_bindings() < MAX_GPU_SUBDIV_SSBOS) {
+    return false;
+  }
+
   const int available_evaluators = openSubdiv_getAvailableEvaluators();
   if ((available_evaluators & OPENSUBDIV_EVALUATOR_GLSL_COMPUTE) == 0) {
     return false;

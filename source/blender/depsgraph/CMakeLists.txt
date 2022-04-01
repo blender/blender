@@ -15,6 +15,8 @@ set(INC
   ../windowmanager
   ../../../intern/atomic
   ../../../intern/guardedalloc
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -154,6 +156,9 @@ if(WITH_PYTHON)
 endif()
 
 blender_add_lib(bf_depsgraph "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+# RNA_prototypes.h
+add_dependencies(bf_depsgraph bf_rna)
 
 if(WITH_GTESTS)
   set(TEST_SRC

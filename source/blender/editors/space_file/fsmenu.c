@@ -463,7 +463,12 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu,
 
   ED_fsmenu_entry_set_icon(fsm_iter, icon);
 
-  fsmenu_entry_refresh_valid(fsm_iter);
+  if (flag & FS_INSERT_NO_VALIDATE) {
+    fsm_iter->valid = true;
+  }
+  else {
+    fsmenu_entry_refresh_valid(fsm_iter);
+  }
 
   if (fsm_prev) {
     if (flag & FS_INSERT_FIRST) {
@@ -689,7 +694,12 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
             break;
         }
 
-        fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, tmps, name, icon, FS_INSERT_SORTED);
+        fsmenu_insert_entry(fsmenu,
+                            FS_CATEGORY_SYSTEM,
+                            tmps,
+                            name,
+                            icon,
+                            FS_INSERT_SORTED | FS_INSERT_NO_VALIDATE);
       }
     }
 
@@ -968,13 +978,13 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
       /* Check gvfs shares. */
       const char *const xdg_runtime_dir = BLI_getenv("XDG_RUNTIME_DIR");
       if (xdg_runtime_dir != NULL) {
-        struct direntry *dir;
+        struct direntry *dirs;
         char name[FILE_MAX];
         BLI_join_dirfile(name, sizeof(name), xdg_runtime_dir, "gvfs/");
-        const uint dir_len = BLI_filelist_dir_contents(name, &dir);
-        for (uint i = 0; i < dir_len; i++) {
-          if (dir[i].type & S_IFDIR) {
-            const char *dirname = dir[i].relname;
+        const uint dirs_num = BLI_filelist_dir_contents(name, &dirs);
+        for (uint i = 0; i < dirs_num; i++) {
+          if (dirs[i].type & S_IFDIR) {
+            const char *dirname = dirs[i].relname;
             if (dirname[0] != '.') {
               /* Dir names contain a lot of unwanted text.
                * Assuming every entry ends with the share name */
@@ -992,7 +1002,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
             }
           }
         }
-        BLI_filelist_free(dir, dir_len);
+        BLI_filelist_free(dirs, dirs_num);
       }
 #  endif
 

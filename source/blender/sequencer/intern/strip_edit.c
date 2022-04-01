@@ -457,11 +457,18 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
     return NULL;
   }
 
-  /* Move strips in collection from seqbase to new ListBase. */
+  /* Store `F-curves`, so original ones aren't renamed. */
+  ListBase fcurves_original_backup = {NULL, NULL};
+  SEQ_animation_backup_original(scene, &fcurves_original_backup);
+
   ListBase left_strips = {NULL, NULL};
   SEQ_ITERATOR_FOREACH (seq, collection) {
+    /* Move strips in collection from seqbase to new ListBase. */
     BLI_remlink(seqbase, seq);
     BLI_addtail(&left_strips, seq);
+
+    /* Duplicate curves from backup, so they can be renamed along with split strips. */
+    SEQ_animation_duplicate(scene, seq, &fcurves_original_backup);
   }
 
   SEQ_collection_free(collection);
@@ -510,6 +517,8 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
   for (; seq_rename; seq_rename = seq_rename->next) {
     SEQ_ensure_unique_name(seq_rename, scene);
   }
+
+  SEQ_animation_restore_original(scene, &fcurves_original_backup);
 
   return return_seq;
 }

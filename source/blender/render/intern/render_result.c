@@ -26,14 +26,15 @@
 #include "BKE_camera.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_image_format.h"
+#include "BKE_image_save.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-
-#include "intern/openexr/openexr_multi.h"
+#include "IMB_openexr.h"
 
 #include "RE_engine.h"
 
@@ -161,37 +162,6 @@ void render_result_views_shallowdelete(RenderResult *rr)
   }
 }
 
-static char *set_pass_name(char *outname, const char *name, int channel, const char *chan_id)
-{
-  const char *strings[2];
-  int strings_len = 0;
-  strings[strings_len++] = name;
-  char token[2];
-  if (channel >= 0) {
-    ARRAY_SET_ITEMS(token, chan_id[channel], '\0');
-    strings[strings_len++] = token;
-  }
-  BLI_string_join_array_by_sep_char(outname, EXR_PASS_MAXNAME, '.', strings, strings_len);
-  return outname;
-}
-
-static void set_pass_full_name(
-    char *fullname, const char *name, int channel, const char *view, const char *chan_id)
-{
-  const char *strings[3];
-  int strings_len = 0;
-  strings[strings_len++] = name;
-  if (view && view[0]) {
-    strings[strings_len++] = view;
-  }
-  char token[2];
-  if (channel >= 0) {
-    ARRAY_SET_ITEMS(token, chan_id[channel], '\0');
-    strings[strings_len++] = token;
-  }
-  BLI_string_join_array_by_sep_char(fullname, EXR_PASS_MAXNAME, '.', strings, strings_len);
-}
-
 /********************************** New **************************************/
 
 static void render_layer_allocate_pass(RenderResult *rr, RenderPass *rp)
@@ -237,20 +207,15 @@ RenderPass *render_layer_add_pass(RenderResult *rr,
   BLI_strncpy(rpass->name, name, sizeof(rpass->name));
   BLI_strncpy(rpass->chan_id, chan_id, sizeof(rpass->chan_id));
   BLI_strncpy(rpass->view, viewname, sizeof(rpass->view));
-  set_pass_full_name(rpass->fullname, rpass->name, -1, rpass->view, rpass->chan_id);
+  RE_render_result_full_channel_name(
+      rpass->fullname, NULL, rpass->name, rpass->view, rpass->chan_id, -1);
 
   if (rl->exrhandle) {
     int a;
     for (a = 0; a < channels; a++) {
       char passname[EXR_PASS_MAXNAME];
-      IMB_exr_add_channel(rl->exrhandle,
-                          rl->name,
-                          set_pass_name(passname, rpass->name, a, rpass->chan_id),
-                          viewname,
-                          0,
-                          0,
-                          NULL,
-                          false);
+      RE_render_result_full_channel_name(passname, NULL, rpass->name, NULL, rpass->chan_id, a);
+      IMB_exr_add_channel(rl->exrhandle, rl->name, passname, viewname, 0, 0, NULL, false);
     }
   }
 
@@ -437,7 +402,7 @@ RenderResult *render_result_new(Render *re,
       render_layer_add_pass(rr, rl, 4, RE_PASSNAME_COMBINED, view, "RGBA", false);
     }
 
-    /* NOTE: this has to be in sync with `scene.c`. */
+    /* NOTE: this has to be in sync with `scene.cc`. */
     rl->layflag = SCE_LAY_FLAG_DEFAULT;
     rl->passflag = SCE_PASS_COMBINED;
 
@@ -448,6 +413,11 @@ RenderResult *render_result_new(Render *re,
   /* XXX(ton): obsolete? I now use it for drawing border render offset. */
   rr->xof = re->disprect.xmin + BLI_rcti_cent_x(&re->disprect) - (re->winx / 2);
   rr->yof = re->disprect.ymin + BLI_rcti_cent_y(&re->disprect) - (re->winy / 2);
+
+  /* Preview does not support deferred render result allocation. */
+  if (re->r.scemode & R_BUTS_PREVIEW) {
+    render_result_passes_allocated_ensure(rr);
+  }
 
   return rr;
 }
@@ -543,6 +513,36 @@ void RE_create_render_pass(RenderResult *rr,
   }
 }
 
+void RE_render_result_full_channel_name(char *fullname,
+                                        const char *layname,
+                                        const char *passname,
+                                        const char *viewname,
+                                        const char *chan_id,
+                                        const int channel)
+{
+  /* OpenEXR compatible full channel name. */
+  const char *strings[4];
+  int strings_len = 0;
+
+  if (layname && layname[0]) {
+    strings[strings_len++] = layname;
+  }
+  if (passname && passname[0]) {
+    strings[strings_len++] = passname;
+  }
+  if (viewname && viewname[0]) {
+    strings[strings_len++] = viewname;
+  }
+
+  char token[2];
+  if (channel >= 0) {
+    ARRAY_SET_ITEMS(token, chan_id[channel], '\0');
+    strings[strings_len++] = token;
+  }
+
+  BLI_string_join_array_by_sep_char(fullname, EXR_PASS_MAXNAME, '.', strings, strings_len);
+}
+
 static int passtype_from_name(const char *name)
 {
   const char delim[] = {'.', '\0'};
@@ -619,7 +619,7 @@ static void ml_addpass_cb(void *base,
   rpass->rect = rect;
   BLI_strncpy(rpass->name, name, EXR_PASS_MAXNAME);
   BLI_strncpy(rpass->view, view, sizeof(rpass->view));
-  set_pass_full_name(rpass->fullname, name, -1, view, rpass->chan_id);
+  RE_render_result_full_channel_name(rpass->fullname, NULL, name, view, rpass->chan_id, -1);
 
   if (view[0] != '\0') {
     rpass->view_id = BLI_findstringindex(&rr->views, view, offsetof(RenderView, name));
@@ -663,7 +663,7 @@ static void *ml_addview_cb(void *base, const char *str)
 
 static int order_render_passes(const void *a, const void *b)
 {
-  // 1 if a is after b
+  /* 1 if `a` is after `b`. */
   RenderPass *rpa = (RenderPass *)a;
   RenderPass *rpb = (RenderPass *)b;
   unsigned int passtype_a = passtype_from_name(rpa->name);
@@ -785,12 +785,6 @@ void render_result_views_new(RenderResult *rr, const RenderData *rd)
   }
 }
 
-bool render_result_has_views(const RenderResult *rr)
-{
-  const RenderView *rv = rr->views.first;
-  return (rv && (rv->next || rv->name[0]));
-}
-
 /*********************************** Merge ***********************************/
 
 static void do_merge_tile(
@@ -843,162 +837,6 @@ void render_result_merge(RenderResult *rr, RenderResult *rrpart)
       }
     }
   }
-}
-
-bool RE_WriteRenderResult(ReportList *reports,
-                          RenderResult *rr,
-                          const char *filename,
-                          ImageFormatData *imf,
-                          const char *view,
-                          int layer)
-{
-  void *exrhandle = IMB_exr_get_handle();
-  const bool half_float = (imf && imf->depth == R_IMF_CHAN_DEPTH_16);
-  const bool multi_layer = !(imf && imf->imtype == R_IMF_IMTYPE_OPENEXR);
-  const bool write_z = !multi_layer && (imf && (imf->flag & R_IMF_FLAG_ZBUF));
-
-  /* Write first layer if not multilayer and no layer was specified. */
-  if (!multi_layer && layer == -1) {
-    layer = 0;
-  }
-
-  /* First add views since IMB_exr_add_channel checks number of views. */
-  if (render_result_has_views(rr)) {
-    LISTBASE_FOREACH (RenderView *, rview, &rr->views) {
-      if (!view || STREQ(view, rview->name)) {
-        IMB_exr_add_view(exrhandle, rview->name);
-      }
-    }
-  }
-
-  /* Compositing result. */
-  if (rr->have_combined) {
-    LISTBASE_FOREACH (RenderView *, rview, &rr->views) {
-      if (!rview->rectf) {
-        continue;
-      }
-
-      const char *viewname = rview->name;
-      if (view) {
-        if (!STREQ(view, viewname)) {
-          continue;
-        }
-
-        viewname = "";
-      }
-
-      /* Skip compositing if only a single other layer is requested. */
-      if (!multi_layer && layer != 0) {
-        continue;
-      }
-
-      for (int a = 0; a < 4; a++) {
-        char passname[EXR_PASS_MAXNAME];
-        char layname[EXR_PASS_MAXNAME];
-        const char *chan_id = "RGBA";
-
-        if (multi_layer) {
-          set_pass_name(passname, "Combined", a, chan_id);
-          BLI_strncpy(layname, "Composite", sizeof(layname));
-        }
-        else {
-          passname[0] = chan_id[a];
-          passname[1] = '\0';
-          layname[0] = '\0';
-        }
-
-        IMB_exr_add_channel(exrhandle,
-                            layname,
-                            passname,
-                            viewname,
-                            4,
-                            4 * rr->rectx,
-                            rview->rectf + a,
-                            half_float);
-      }
-
-      if (write_z && rview->rectz) {
-        const char *layname = (multi_layer) ? "Composite" : "";
-        IMB_exr_add_channel(exrhandle, layname, "Z", viewname, 1, rr->rectx, rview->rectz, false);
-      }
-    }
-  }
-
-  /* Other render layers. */
-  int nr = (rr->have_combined) ? 1 : 0;
-  for (RenderLayer *rl = rr->layers.first; rl; rl = rl->next, nr++) {
-    /* Skip other render layers if requested. */
-    if (!multi_layer && nr != layer) {
-      continue;
-    }
-
-    LISTBASE_FOREACH (RenderPass *, rp, &rl->passes) {
-      /* Skip non-RGBA and Z passes if not using multi layer. */
-      if (!multi_layer && !(STREQ(rp->name, RE_PASSNAME_COMBINED) || STREQ(rp->name, "") ||
-                            (STREQ(rp->name, RE_PASSNAME_Z) && write_z))) {
-        continue;
-      }
-
-      /* Skip pass if it does not match the requested view(s). */
-      const char *viewname = rp->view;
-      if (view) {
-        if (!STREQ(view, viewname)) {
-          continue;
-        }
-
-        viewname = "";
-      }
-
-      /* We only store RGBA passes as half float, for
-       * others precision loss can be problematic. */
-      bool pass_half_float = half_float &&
-                             (STR_ELEM(rp->chan_id, "RGB", "RGBA", "R", "G", "B", "A"));
-
-      for (int a = 0; a < rp->channels; a++) {
-        /* Save Combined as RGBA if single layer save. */
-        char passname[EXR_PASS_MAXNAME];
-        char layname[EXR_PASS_MAXNAME];
-
-        if (multi_layer) {
-          set_pass_name(passname, rp->name, a, rp->chan_id);
-          BLI_strncpy(layname, rl->name, sizeof(layname));
-        }
-        else {
-          passname[0] = rp->chan_id[a];
-          passname[1] = '\0';
-          layname[0] = '\0';
-        }
-
-        IMB_exr_add_channel(exrhandle,
-                            layname,
-                            passname,
-                            viewname,
-                            rp->channels,
-                            rp->channels * rr->rectx,
-                            rp->rect + a,
-                            pass_half_float);
-      }
-    }
-  }
-
-  errno = 0;
-
-  BLI_make_existing_file(filename);
-
-  int compress = (imf ? imf->exr_codec : 0);
-  bool success = IMB_exr_begin_write(
-      exrhandle, filename, rr->rectx, rr->recty, compress, rr->stamp_data);
-  if (success) {
-    IMB_exr_write_channels(exrhandle);
-  }
-  else {
-    /* TODO: get the error from openexr's exception. */
-    BKE_reportf(
-        reports, RPT_ERROR, "Error writing render result, %s (see console)", strerror(errno));
-  }
-
-  IMB_exr_close(exrhandle);
-  return success;
 }
 
 /**************************** Single Layer Rendering *************************/
@@ -1096,12 +934,14 @@ int render_result_exr_file_read_path(RenderResult *rr,
       char fullname[EXR_PASS_MAXNAME];
 
       for (a = 0; a < xstride; a++) {
-        set_pass_full_name(fullname, rpass->name, a, rpass->view, rpass->chan_id);
+        RE_render_result_full_channel_name(
+            fullname, NULL, rpass->name, rpass->view, rpass->chan_id, a);
         IMB_exr_set_channel(
             exrhandle, rl->name, fullname, xstride, xstride * rectx, rpass->rect + a);
       }
 
-      set_pass_full_name(rpass->fullname, rpass->name, -1, rpass->view, rpass->chan_id);
+      RE_render_result_full_channel_name(
+          rpass->fullname, NULL, rpass->name, rpass->view, rpass->chan_id, -1);
     }
   }
 
@@ -1153,7 +993,7 @@ void render_result_exr_file_cache_write(Render *re)
   render_result_exr_file_cache_path(re->scene, root, str);
   printf("Caching exr file, %dx%d, %s\n", rr->rectx, rr->recty, str);
 
-  RE_WriteRenderResult(NULL, rr, str, NULL, NULL, -1);
+  BKE_image_render_write_exr(NULL, rr, str, NULL, true, NULL, -1);
 }
 
 bool render_result_exr_file_cache_read(Render *re)
@@ -1189,9 +1029,12 @@ bool render_result_exr_file_cache_read(Render *re)
 
 /*************************** Combined Pixel Rect *****************************/
 
-ImBuf *render_result_rect_to_ibuf(RenderResult *rr, const RenderData *rd, const int view_id)
+ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
+                                     const ImageFormatData *imf,
+                                     const float dither,
+                                     const int view_id)
 {
-  ImBuf *ibuf = IMB_allocImBuf(rr->rectx, rr->recty, rd->im_format.planes, 0);
+  ImBuf *ibuf = IMB_allocImBuf(rr->rectx, rr->recty, imf->planes, 0);
   RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
   /* if not exists, BKE_imbuf_write makes one */
@@ -1200,15 +1043,15 @@ ImBuf *render_result_rect_to_ibuf(RenderResult *rr, const RenderData *rd, const 
   ibuf->zbuf_float = rv->rectz;
 
   /* float factor for random dither, imbuf takes care of it */
-  ibuf->dither = rd->dither_intensity;
+  ibuf->dither = dither;
 
   /* prepare to gamma correct to sRGB color space
    * note that sequence editor can generate 8bpc render buffers
    */
   if (ibuf->rect) {
-    if (BKE_imtype_valid_depths(rd->im_format.imtype) &
+    if (BKE_imtype_valid_depths(imf->imtype) &
         (R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_24 | R_IMF_CHAN_DEPTH_32)) {
-      if (rd->im_format.depth == R_IMF_CHAN_DEPTH_8) {
+      if (imf->depth == R_IMF_CHAN_DEPTH_8) {
         /* Higher depth bits are supported but not needed for current file output. */
         ibuf->rect_float = NULL;
       }
@@ -1224,7 +1067,7 @@ ImBuf *render_result_rect_to_ibuf(RenderResult *rr, const RenderData *rd, const 
 
   /* Color -> gray-scale. */
   /* editing directly would alter the render view */
-  if (rd->im_format.planes == R_IMF_PLANES_BW) {
+  if (imf->planes == R_IMF_PLANES_BW) {
     ImBuf *ibuf_bw = IMB_dupImBuf(ibuf);
     IMB_color_to_bw(ibuf_bw);
     IMB_freeImBuf(ibuf);
@@ -1234,10 +1077,7 @@ ImBuf *render_result_rect_to_ibuf(RenderResult *rr, const RenderData *rd, const 
   return ibuf;
 }
 
-void RE_render_result_rect_from_ibuf(RenderResult *rr,
-                                     RenderData *UNUSED(rd),
-                                     ImBuf *ibuf,
-                                     const int view_id)
+void RE_render_result_rect_from_ibuf(RenderResult *rr, const ImBuf *ibuf, const int view_id)
 {
   RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
@@ -1314,15 +1154,13 @@ void render_result_rect_get_pixels(RenderResult *rr,
 
 /*************************** multiview functions *****************************/
 
-bool RE_HasCombinedLayer(RenderResult *rr)
+bool RE_HasCombinedLayer(const RenderResult *rr)
 {
-  RenderView *rv;
-
   if (rr == NULL) {
     return false;
   }
 
-  rv = rr->views.first;
+  const RenderView *rv = rr->views.first;
   if (rv == NULL) {
     return false;
   }
@@ -1330,11 +1168,9 @@ bool RE_HasCombinedLayer(RenderResult *rr)
   return (rv->rect32 || rv->rectf);
 }
 
-bool RE_HasFloatPixels(RenderResult *rr)
+bool RE_HasFloatPixels(const RenderResult *rr)
 {
-  RenderView *rview;
-
-  for (rview = rr->views.first; rview; rview = rview->next) {
+  for (const RenderView *rview = rr->views.first; rview; rview = rview->next) {
     if (rview->rect32 && !rview->rectf) {
       return false;
     }
@@ -1343,7 +1179,7 @@ bool RE_HasFloatPixels(RenderResult *rr)
   return true;
 }
 
-bool RE_RenderResult_is_stereo(RenderResult *rr)
+bool RE_RenderResult_is_stereo(const RenderResult *rr)
 {
   if (!BLI_findstring(&rr->views, STEREO_LEFT_NAME, offsetof(RenderView, name))) {
     return false;

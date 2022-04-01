@@ -6,8 +6,6 @@
 extern "C" {
 #endif
 
-void register_node_type_fn_legacy_random_float(void);
-
 void register_node_type_fn_align_euler_to_vector(void);
 void register_node_type_fn_boolean_math(void);
 void register_node_type_fn_compare(void);

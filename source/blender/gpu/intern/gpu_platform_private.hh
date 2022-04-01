@@ -23,12 +23,14 @@ class GPUPlatformGlobal {
   char *version = nullptr;
   char *support_key = nullptr;
   char *gpu_name = nullptr;
+  eGPUBackendType backend = GPU_BACKEND_NONE;
 
  public:
   void init(eGPUDeviceType gpu_device,
             eGPUOSType os_type,
             eGPUDriverType driver_type,
             eGPUSupportLevel gpu_support_level,
+            eGPUBackendType backend,
             const char *vendor_str,
             const char *renderer_str,
             const char *version_str);

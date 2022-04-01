@@ -42,12 +42,12 @@ static int gpu_shader_clamp(GPUMaterial *mat,
              GPU_stack_link(mat, node, "clamp_range", in, out);
 }
 
-static void sh_node_clamp_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
+static void sh_node_clamp_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  static blender::fn::CustomMF_SI_SI_SI_SO<float, float, float, float> minmax_fn{
+  static fn::CustomMF_SI_SI_SI_SO<float, float, float, float> minmax_fn{
       "Clamp (Min Max)",
       [](float value, float min, float max) { return std::min(std::max(value, min), max); }};
-  static blender::fn::CustomMF_SI_SI_SI_SO<float, float, float, float> range_fn{
+  static fn::CustomMF_SI_SI_SI_SO<float, float, float, float> range_fn{
       "Clamp (Range)", [](float value, float a, float b) {
         if (a < b) {
           return clamp_f(value, a, b);

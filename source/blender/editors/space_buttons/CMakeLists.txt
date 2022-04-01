@@ -12,6 +12,8 @@ set(INC
   ../../../../intern/glew-mx
   ../../../../intern/atomic
   ../../../../intern/guardedalloc
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(SRC
@@ -38,3 +40,6 @@ if(WITH_EXPERIMENTAL_FEATURES)
 endif()
 
 blender_add_lib(bf_editor_space_buttons "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+# RNA_prototypes.h
+add_dependencies(bf_editor_space_buttons bf_rna)

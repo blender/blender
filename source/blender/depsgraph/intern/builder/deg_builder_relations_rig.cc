@@ -29,6 +29,8 @@
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 
+#include "RNA_prototypes.h"
+
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 

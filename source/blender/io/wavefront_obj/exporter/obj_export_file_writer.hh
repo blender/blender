@@ -67,10 +67,6 @@ class OBJWriter : NonMovable, NonCopyable {
    */
   void write_object_name(FormatHandler<eFileType::OBJ> &fh, const OBJMesh &obj_mesh_data) const;
   /**
-   * Write an object's group with mesh and/or material name appended conditionally.
-   */
-  void write_object_group(FormatHandler<eFileType::OBJ> &fh, const OBJMesh &obj_mesh_data) const;
-  /**
    * Write file name of Material Library in .OBJ file.
    */
   void write_mtllib_name(const StringRefNull mtl_filepath) const;
@@ -115,7 +111,8 @@ class OBJWriter : NonMovable, NonCopyable {
                                                           const IndexOffsets &offsets,
                                                           Span<int> vert_indices,
                                                           Span<int> uv_indices,
-                                                          Span<int> normal_indices) const;
+                                                          Span<int> normal_indices,
+                                                          bool flip) const;
   /**
    * \return Writer function with appropriate polygon-element syntax.
    */
@@ -128,7 +125,8 @@ class OBJWriter : NonMovable, NonCopyable {
                                     const IndexOffsets &offsets,
                                     Span<int> vert_indices,
                                     Span<int> uv_indices,
-                                    Span<int> normal_indices) const;
+                                    Span<int> normal_indices,
+                                    bool flip) const;
   /**
    * Write one line of polygon indices as "f v1//vn1 v2//vn2 ...".
    */
@@ -136,7 +134,8 @@ class OBJWriter : NonMovable, NonCopyable {
                                  const IndexOffsets &offsets,
                                  Span<int> vert_indices,
                                  Span<int> /*uv_indices*/,
-                                 Span<int> normal_indices) const;
+                                 Span<int> normal_indices,
+                                 bool flip) const;
   /**
    * Write one line of polygon indices as "f v1/vt1 v2/vt2 ...".
    */
@@ -144,7 +143,8 @@ class OBJWriter : NonMovable, NonCopyable {
                              const IndexOffsets &offsets,
                              Span<int> vert_indices,
                              Span<int> uv_indices,
-                             Span<int> /*normal_indices*/) const;
+                             Span<int> /*normal_indices*/,
+                             bool flip) const;
   /**
    * Write one line of polygon indices as "f v1 v2 ...".
    */
@@ -152,7 +152,8 @@ class OBJWriter : NonMovable, NonCopyable {
                           const IndexOffsets &offsets,
                           Span<int> vert_indices,
                           Span<int> /*uv_indices*/,
-                          Span<int> /*normal_indices*/) const;
+                          Span<int> /*normal_indices*/,
+                          bool flip) const;
 };
 
 /**

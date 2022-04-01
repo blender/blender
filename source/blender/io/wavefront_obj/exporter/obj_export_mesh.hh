@@ -59,6 +59,8 @@ class OBJMesh : NonCopyable {
    * object's world transform matrix.
    */
   float world_and_axes_transform_[4][4];
+  float world_and_axes_normal_transform_[3][3];
+  bool mirrored_transform_;
 
   /**
    * Total UV vertices in a mesh's texture map.
@@ -93,6 +95,10 @@ class OBJMesh : NonCopyable {
    * Polygon aligned array of their smooth groups.
    */
   int *poly_smooth_groups_ = nullptr;
+  /**
+   * Order in which the polygons should be written into the file (sorted by material index).
+   */
+  Vector<int> poly_order_;
 
  public:
   /**
@@ -110,6 +116,10 @@ class OBJMesh : NonCopyable {
   int tot_uv_vertices() const;
   int tot_normal_indices() const;
   int tot_edges() const;
+  bool is_mirrored_transform() const
+  {
+    return mirrored_transform_;
+  }
 
   /**
    * \return Total materials in the object.
@@ -211,6 +221,22 @@ class OBJMesh : NonCopyable {
    * Calculate vertex indices of an edge's corners if it is a loose edge.
    */
   std::optional<std::array<int, 2>> calc_loose_edge_vert_indices(int edge_index) const;
+
+  /**
+   * Calculate the order in which the polygons should be written into the file (sorted by material
+   * index).
+   */
+  void calc_poly_order();
+
+  /**
+   * Remap polygon index according to polygon writing order.
+   * When materials are not being written, the polygon order array
+   * might be empty, in which case remap is a no-op.
+   */
+  int remap_poly_index(int i) const
+  {
+    return i < 0 || i >= poly_order_.size() ? i : poly_order_[i];
+  }
 
  private:
   /**

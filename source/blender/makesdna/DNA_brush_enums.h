@@ -514,8 +514,9 @@ typedef enum eBrushCurvesSculptTool {
   CURVES_SCULPT_TOOL_COMB = 0,
   CURVES_SCULPT_TOOL_DELETE = 1,
   CURVES_SCULPT_TOOL_SNAKE_HOOK = 2,
-  CURVES_SCULPT_TOOL_TEST1 = 3,
-  CURVES_SCULPT_TOOL_TEST2 = 4,
+  CURVES_SCULPT_TOOL_ADD = 3,
+  CURVES_SCULPT_TOOL_TEST1 = 4,
+  CURVES_SCULPT_TOOL_TEST2 = 5,
 } eBrushCurvesSculptTool;
 
 #define SCULPT_TOOL_HAS_VCOL_BOUNDARY_SMOOTH(t) ELEM(t, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)
@@ -651,10 +652,10 @@ typedef enum eBlurKernelType {
 } eBlurKernelType;
 
 /* Brush.falloff_shape */
-enum {
+typedef enum eBrushFalloffShape {
   PAINT_FALLOFF_SHAPE_SPHERE = 0,
   PAINT_FALLOFF_SHAPE_TUBE = 1,
-};
+} eBrushFalloffShape;
 
 // dyntopo flags
 // synced with PBVHTopologyUpdateMode

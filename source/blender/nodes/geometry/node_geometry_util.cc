@@ -14,29 +14,6 @@
 
 namespace blender::nodes {
 
-using bke::GeometryInstanceGroup;
-
-void update_attribute_input_socket_availabilities(bNodeTree &ntree,
-                                                  bNode &node,
-                                                  const StringRef name,
-                                                  const GeometryNodeAttributeInputMode mode,
-                                                  const bool name_is_available)
-{
-  const GeometryNodeAttributeInputMode mode_ = (GeometryNodeAttributeInputMode)mode;
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
-    if (name == socket->name) {
-      const bool socket_is_available =
-          name_is_available &&
-          ((socket->type == SOCK_STRING && mode_ == GEO_NODE_ATTRIBUTE_INPUT_ATTRIBUTE) ||
-           (socket->type == SOCK_FLOAT && mode_ == GEO_NODE_ATTRIBUTE_INPUT_FLOAT) ||
-           (socket->type == SOCK_INT && mode_ == GEO_NODE_ATTRIBUTE_INPUT_INTEGER) ||
-           (socket->type == SOCK_VECTOR && mode_ == GEO_NODE_ATTRIBUTE_INPUT_VECTOR) ||
-           (socket->type == SOCK_RGBA && mode_ == GEO_NODE_ATTRIBUTE_INPUT_COLOR));
-      nodeSetSocketAvailability(&ntree, socket, socket_is_available);
-    }
-  }
-}
-
 std::optional<CustomDataType> node_data_type_to_custom_data_type(const eNodeSocketDatatype type)
 {
   switch (type) {

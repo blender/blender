@@ -1516,6 +1516,7 @@ static void sculpt_boundary_twist_data_init(SculptSession *ss, SculptBoundary *b
   zero_v3(boundary->twist.pivot_position);
   float(*poly_verts)[3] = MEM_malloc_arrayN(
       boundary->num_vertices, sizeof(float) * 3 * TSTN, "poly verts");
+
   for (int i = 0; i < boundary->num_vertices; i++) {
     add_v3_v3(boundary->twist.pivot_position, SCULPT_vertex_co_get(ss, boundary->vertices[i]));
     copy_v3_v3(poly_verts[i], SCULPT_vertex_co_get(ss, boundary->vertices[i]));

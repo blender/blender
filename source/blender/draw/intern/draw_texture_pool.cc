@@ -23,6 +23,10 @@ struct DRWTexturePool {
   Vector<DRWTexturePoolHandle> handles;
   /* Cache last result to avoid linear search each time. */
   int last_user_id = -1;
+
+  Vector<GPUTexture *> tmp_tex_pruned;
+  Vector<GPUTexture *> tmp_tex_released;
+  Vector<GPUTexture *> tmp_tex_acquired;
 };
 
 DRWTexturePool *DRW_texture_pool_create()
@@ -94,6 +98,68 @@ GPUTexture *DRW_texture_pool_query(
   return handle.texture;
 }
 
+GPUTexture *DRW_texture_pool_texture_acquire(DRWTexturePool *pool,
+                                             int width,
+                                             int height,
+                                             eGPUTextureFormat format)
+{
+  GPUTexture *tmp_tex = nullptr;
+  int64_t found_index = 0;
+
+  auto texture_match = [&](GPUTexture *tex) -> bool {
+    /* TODO(@fclem): We could reuse texture using texture views if the formats are compatible. */
+    return (GPU_texture_format(tex) == format) && (GPU_texture_width(tex) == width) &&
+           (GPU_texture_height(tex) == height);
+  };
+
+  /* Search released texture first. */
+  for (auto i : pool->tmp_tex_released.index_range()) {
+    if (texture_match(pool->tmp_tex_released[i])) {
+      tmp_tex = pool->tmp_tex_released[i];
+      found_index = i;
+      break;
+    }
+  }
+
+  if (tmp_tex) {
+    pool->tmp_tex_released.remove_and_reorder(found_index);
+  }
+  else {
+    /* Then search pruned texture. */
+    for (auto i : pool->tmp_tex_pruned.index_range()) {
+      if (texture_match(pool->tmp_tex_pruned[i])) {
+        tmp_tex = pool->tmp_tex_pruned[i];
+        found_index = i;
+        break;
+      }
+    }
+
+    if (tmp_tex) {
+      pool->tmp_tex_pruned.remove_and_reorder(found_index);
+    }
+  }
+
+  if (!tmp_tex) {
+    /* Create a new texture in last resort. */
+    char name[16] = "DRW_tex_pool";
+    if (G.debug & G_DEBUG_GPU) {
+      int texture_id = pool->handles.size();
+      SNPRINTF(name, "DRW_tex_pool_%d", texture_id);
+    }
+    tmp_tex = GPU_texture_create_2d(name, width, height, 1, format, nullptr);
+  }
+
+  pool->tmp_tex_acquired.append(tmp_tex);
+
+  return tmp_tex;
+}
+
+void DRW_texture_pool_texture_release(DRWTexturePool *pool, GPUTexture *tmp_tex)
+{
+  pool->tmp_tex_acquired.remove_first_occurrence_and_reorder(tmp_tex);
+  pool->tmp_tex_released.append(tmp_tex);
+}
+
 void DRW_texture_pool_reset(DRWTexturePool *pool)
 {
   pool->last_user_id = -1;
@@ -117,4 +183,11 @@ void DRW_texture_pool_reset(DRWTexturePool *pool)
       pool->handles.remove_and_reorder(i);
     }
   }
+
+  BLI_assert(pool->tmp_tex_acquired.is_empty());
+  for (GPUTexture *tmp_tex : pool->tmp_tex_pruned) {
+    GPU_texture_free(tmp_tex);
+  }
+  pool->tmp_tex_pruned = pool->tmp_tex_released;
+  pool->tmp_tex_released.clear();
 }
