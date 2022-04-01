@@ -644,11 +644,11 @@ static bConstraint *rna_PoseChannel_constraints_copy(ID *id,
   return new_con;
 }
 
-bool rna_PoseChannel_constraints_override_apply(Main *UNUSED(bmain),
+bool rna_PoseChannel_constraints_override_apply(Main *bmain,
                                                 PointerRNA *ptr_dst,
                                                 PointerRNA *ptr_src,
                                                 PointerRNA *UNUSED(ptr_storage),
-                                                PropertyRNA *UNUSED(prop_dst),
+                                                PropertyRNA *prop_dst,
                                                 PropertyRNA *UNUSED(prop_src),
                                                 PropertyRNA *UNUSED(prop_storage),
                                                 const int UNUSED(len_dst),
@@ -694,6 +694,7 @@ bool rna_PoseChannel_constraints_override_apply(Main *UNUSED(bmain),
   BKE_constraint_unique_name(con_dst, &pchan_dst->constraints);
 
   //  printf("%s: We inserted a constraint...\n", __func__);
+  RNA_property_update_main(bmain, NULL, ptr_dst, prop_dst);
   return true;
 }
 

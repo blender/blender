@@ -680,7 +680,7 @@ static FCurve *rna_Driver_find(AnimData *adt,
   return BKE_fcurve_find(&adt->drivers, data_path, index);
 }
 
-bool rna_AnimaData_override_apply(Main *UNUSED(bmain),
+bool rna_AnimaData_override_apply(Main *bmain,
                                   PointerRNA *ptr_dst,
                                   PointerRNA *ptr_src,
                                   PointerRNA *ptr_storage,
@@ -707,11 +707,13 @@ bool rna_AnimaData_override_apply(Main *UNUSED(bmain),
   if (adt_dst == NULL && adt_src != NULL) {
     /* Copy anim data from reference into final local ID. */
     BKE_animdata_copy_id(NULL, ptr_dst->owner_id, ptr_src->owner_id, 0);
+    RNA_property_update_main(bmain, NULL, ptr_dst, prop_dst);
     return true;
   }
   else if (adt_dst != NULL && adt_src == NULL) {
     /* Override has cleared/removed anim data from its reference. */
     BKE_animdata_free(ptr_dst->owner_id, true);
+    RNA_property_update_main(bmain, NULL, ptr_dst, prop_dst);
     return true;
   }
 
@@ -722,7 +724,7 @@ bool rna_NLA_tracks_override_apply(Main *bmain,
                                    PointerRNA *ptr_dst,
                                    PointerRNA *ptr_src,
                                    PointerRNA *UNUSED(ptr_storage),
-                                   PropertyRNA *UNUSED(prop_dst),
+                                   PropertyRNA *prop_dst,
                                    PropertyRNA *UNUSED(prop_src),
                                    PropertyRNA *UNUSED(prop_storage),
                                    const int UNUSED(len_dst),
@@ -771,6 +773,8 @@ bool rna_NLA_tracks_override_apply(Main *bmain,
   BLI_insertlinkafter(&anim_data_dst->nla_tracks, nla_track_anchor, nla_track_dst);
 
   // printf("%s: We inserted a NLA Track...\n", __func__);
+
+  RNA_property_update_main(bmain, NULL, ptr_dst, prop_dst);
   return true;
 }
 
