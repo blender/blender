@@ -132,6 +132,7 @@ void kernel_gpu_##name::run(thread MetalKernelContext& context, \
                   uint simd_group_index, \
                   uint num_simd_groups) ccl_global const
 
+#define ccl_gpu_kernel_postfix
 #define ccl_gpu_kernel_call(x) context.x
 
 /* define a function object where "func" is the lambda body, and additional parameters are used to specify captured state  */

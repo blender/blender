@@ -88,6 +88,7 @@
   extern "C" __global__ void __launch_bounds__(block_num_threads)
 
 #define ccl_gpu_kernel_signature(name, ...) kernel_gpu_##name(__VA_ARGS__)
+#define ccl_gpu_kernel_postfix
 
 #define ccl_gpu_kernel_call(x) x
 
