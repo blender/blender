@@ -3745,8 +3745,8 @@ static void widget_numslider(
   widget_init(&wtb1);
 
   /* Backdrop first. */
-  const float ofs = widget_radius_from_zoom(zoom, wcol);
-  round_box_edges(&wtb, roundboxalign, rect, ofs);
+  const float rad = widget_radius_from_zoom(zoom, wcol);
+  round_box_edges(&wtb, roundboxalign, rect, rad);
 
   wtb.draw_outline = false;
   widgetbase_draw(&wtb, wcol);
@@ -3803,9 +3803,9 @@ static void widget_numslider(
     factor_ui = factor * width;
     /* The rectangle width needs to be at least twice the corner radius for the round corners
      * to be drawn properly. */
-    const float min_width = 2.0f * ofs;
+    const float min_width = 2.0f * rad;
 
-    if (factor_ui > width - ofs) {
+    if (factor_ui > width - rad) {
       /* Left part + middle part + right part. */
       factor_discard = factor;
     }
@@ -3821,7 +3821,7 @@ static void widget_numslider(
       factor_discard = factor_ui / min_width;
     }
 
-    round_box_edges(&wtb1, roundboxalign_slider, &rect1, ofs);
+    round_box_edges(&wtb1, roundboxalign_slider, &rect1, rad);
     wtb1.draw_outline = false;
     widgetbase_set_uniform_discard_factor(&wtb1, factor_discard);
     widgetbase_draw(&wtb1, wcol);
