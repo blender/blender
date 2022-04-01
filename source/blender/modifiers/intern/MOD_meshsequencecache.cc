@@ -271,7 +271,7 @@ static bool dependsOnTime(Scene *scene, ModifierData *md)
   return (mcmd->cache_file != nullptr) &&
          !BKE_cache_file_uses_render_procedural(mcmd->cache_file, scene);
 #else
-  UNUSED_VARS(scene, md, dag_eval_mode);
+  UNUSED_VARS(scene, md);
   return false;
 #endif
 }
