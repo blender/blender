@@ -718,7 +718,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
   }
 
   /* Test BoundBox */
-  BoundBox *bb = BKE_object_boundbox_get(ob_eval);
+  const BoundBox *bb = BKE_object_boundbox_get(ob_eval);
   if (bb) {
     /* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
     if (!isect_ray_aabb_v3_simple(
@@ -1866,7 +1866,7 @@ static short snapArmature(SnapObjectContext *sctx,
 
   if (is_editmode == false) {
     /* Test BoundBox */
-    BoundBox *bb = BKE_armature_boundbox_get(ob_eval);
+    const BoundBox *bb = BKE_armature_boundbox_get(ob_eval);
     if (bb && !snap_bound_box_check_dist(bb->vec[0],
                                          bb->vec[6],
                                          lpmat,

@@ -473,7 +473,6 @@ static rbCollisionShape *rigidbody_validate_sim_shape_helper(RigidBodyWorld *rbw
 {
   RigidBodyOb *rbo = ob->rigidbody_object;
   rbCollisionShape *new_shape = NULL;
-  BoundBox *bb = NULL;
   float size[3] = {1.0f, 1.0f, 1.0f};
   float radius = 1.0f;
   float height = 1.0f;
@@ -494,7 +493,7 @@ static rbCollisionShape *rigidbody_validate_sim_shape_helper(RigidBodyWorld *rbw
    */
   /* XXX: all dimensions are auto-determined now... later can add stored settings for this */
   /* get object dimensions without scaling */
-  bb = BKE_object_boundbox_get(ob);
+  const BoundBox *bb = BKE_object_boundbox_get(ob);
   if (bb) {
     size[0] = (bb->vec[4][0] - bb->vec[0][0]);
     size[1] = (bb->vec[2][1] - bb->vec[0][1]);
@@ -1678,7 +1677,7 @@ static void rigidbody_update_sim_ob(
     if (mesh) {
       MVert *mvert = mesh->mvert;
       int totvert = mesh->totvert;
-      BoundBox *bb = BKE_object_boundbox_get(ob);
+      const BoundBox *bb = BKE_object_boundbox_get(ob);
 
       RB_shape_trimesh_update(rbo->shared->physics_shape,
                               (float *)mvert,

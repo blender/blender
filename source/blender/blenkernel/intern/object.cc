@@ -3705,7 +3705,7 @@ bool BKE_object_boundbox_calc_from_evaluated_geometry(Object *ob)
 
 void BKE_object_dimensions_get(Object *ob, float r_vec[3])
 {
-  BoundBox *bb = BKE_object_boundbox_get(ob);
+  const BoundBox *bb = BKE_object_boundbox_get(ob);
   if (bb) {
     float scale[3];
 
@@ -3726,7 +3726,7 @@ void BKE_object_dimensions_set_ex(Object *ob,
                                   const float ob_scale_orig[3],
                                   const float ob_obmat_orig[4][4])
 {
-  BoundBox *bb = BKE_object_boundbox_get(ob);
+  const BoundBox *bb = BKE_object_boundbox_get(ob);
   if (bb) {
     float len[3];
 
@@ -3767,19 +3767,19 @@ void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], const bool us
     case OB_CURVES_LEGACY:
     case OB_FONT:
     case OB_SURF: {
-      BoundBox bb = *BKE_curve_boundbox_get(ob);
+      const BoundBox bb = *BKE_curve_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
       changed = true;
       break;
     }
     case OB_MESH: {
-      BoundBox bb = *BKE_mesh_boundbox_get(ob);
+      const BoundBox bb = *BKE_mesh_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
       changed = true;
       break;
     }
     case OB_GPENCIL: {
-      BoundBox bb = *BKE_gpencil_boundbox_get(ob);
+      const BoundBox bb = *BKE_gpencil_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
       changed = true;
       break;
@@ -3815,20 +3815,20 @@ void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], const bool us
       break;
     }
     case OB_CURVES: {
-      BoundBox bb = *BKE_curves_boundbox_get(ob);
+      const BoundBox bb = *BKE_curves_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
       changed = true;
       break;
     }
 
     case OB_POINTCLOUD: {
-      BoundBox bb = *BKE_pointcloud_boundbox_get(ob);
+      const BoundBox bb = *BKE_pointcloud_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
       changed = true;
       break;
     }
     case OB_VOLUME: {
-      BoundBox bb = *BKE_volume_boundbox_get(ob);
+      const BoundBox bb = *BKE_volume_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
       changed = true;
       break;
@@ -3950,7 +3950,7 @@ bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
       /* Do not modify the original boundbox. */
       temp_ob.runtime.bb = nullptr;
       BKE_object_replace_data_on_shallow_copy(&temp_ob, dob->ob_data);
-      BoundBox *bb = BKE_object_boundbox_get(&temp_ob);
+      const BoundBox *bb = BKE_object_boundbox_get(&temp_ob);
 
       if (bb) {
         int i;

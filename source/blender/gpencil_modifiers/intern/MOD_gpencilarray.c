@@ -132,7 +132,7 @@ static void generate_geometry(GpencilModifierData *md,
   /* Get bounbox for relative offset. */
   float size[3] = {0.0f, 0.0f, 0.0f};
   if (mmd->flag & GP_ARRAY_USE_RELATIVE) {
-    BoundBox *bb = BKE_object_boundbox_get(ob);
+    const BoundBox *bb = BKE_object_boundbox_get(ob);
     const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
     BKE_boundbox_init_from_minmax(bb, min, max);
     BKE_boundbox_calc_size_aabb(bb, size);

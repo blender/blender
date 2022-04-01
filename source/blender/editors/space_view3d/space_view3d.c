@@ -702,7 +702,7 @@ static void view3d_ob_drop_matrix_from_snap(V3DSnapCursorState *snap_state,
   mat4_to_size(scale, ob->obmat);
   rescale_m4(obmat_final, scale);
 
-  BoundBox *bb = BKE_object_boundbox_get(ob);
+  const BoundBox *bb = BKE_object_boundbox_get(ob);
   if (bb) {
     float offset[3];
     BKE_boundbox_calc_center_aabb(bb, offset);

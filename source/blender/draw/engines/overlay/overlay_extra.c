@@ -345,18 +345,17 @@ static void OVERLAY_bounds(OVERLAY_ExtraCallBuffers *cb,
                            bool around_origin)
 {
   float center[3], size[3], tmp[4][4], final_mat[4][4];
-  BoundBox bb_local;
 
   if (ob->type == OB_MBALL && !BKE_mball_is_basis(ob)) {
     return;
   }
 
-  BoundBox *bb = BKE_object_boundbox_get(ob);
-
+  const BoundBox *bb = BKE_object_boundbox_get(ob);
+  BoundBox bb_local;
   if (bb == NULL) {
     const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
+    BKE_boundbox_init_from_minmax(&bb_local, min, max);
     bb = &bb_local;
-    BKE_boundbox_init_from_minmax(bb, min, max);
   }
 
   BKE_boundbox_calc_size_aabb(bb, size);

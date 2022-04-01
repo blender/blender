@@ -106,7 +106,7 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
 
 static Mesh *generate_bounding_box_mesh(Object *object, Mesh *org_mesh)
 {
-  BoundBox *bb = BKE_object_boundbox_get(object);
+  const BoundBox *bb = BKE_object_boundbox_get(object);
   Mesh *result = BKE_mesh_new_nomain_from_template(org_mesh, 8, 0, 0, 24, 6);
 
   MVert *mvert = result->mvert;

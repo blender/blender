@@ -1971,7 +1971,7 @@ static void rna_Object_shaderfx_clear(Object *object, bContext *C)
 static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
 {
   Object *ob = (Object *)ptr->owner_id;
-  BoundBox *bb = BKE_object_boundbox_get(ob);
+  const BoundBox *bb = BKE_object_boundbox_get(ob);
   if (bb) {
     memcpy(values, bb->vec, sizeof(bb->vec));
   }
