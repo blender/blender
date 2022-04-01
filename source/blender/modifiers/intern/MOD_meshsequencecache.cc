@@ -169,7 +169,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   /* Do not process data if using a render procedural, return a box instead for displaying in the
    * viewport. */
-  if (BKE_cache_file_uses_render_procedural(cache_file, scene, DEG_get_mode(ctx->depsgraph))) {
+  if (BKE_cache_file_uses_render_procedural(cache_file, scene)) {
     return generate_bounding_box_mesh(ctx->object, org_mesh);
   }
 
@@ -263,13 +263,13 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 #endif
 }
 
-static bool dependsOnTime(Scene *scene, ModifierData *md, const int dag_eval_mode)
+static bool dependsOnTime(Scene *scene, ModifierData *md)
 {
 #if defined(WITH_USD) || defined(WITH_ALEMBIC)
   MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
   /* Do not evaluate animations if using the render engine procedural. */
   return (mcmd->cache_file != nullptr) &&
-         !BKE_cache_file_uses_render_procedural(mcmd->cache_file, scene, dag_eval_mode);
+         !BKE_cache_file_uses_render_procedural(mcmd->cache_file, scene);
 #else
   UNUSED_VARS(scene, md, dag_eval_mode);
   return false;

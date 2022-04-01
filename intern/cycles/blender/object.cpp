@@ -621,10 +621,8 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
       bool has_subdivision_modifier = false;
       BL::MeshSequenceCacheModifier b_mesh_cache(PointerRNA_NULL);
 
-      /* Experimental as Blender does not have good support for procedurals at the moment, also
-       * only available in preview renders since currently do not have a good cache policy, the
-       * data being loaded at once for all the frames. */
-      if (experimental && b_v3d) {
+      /* Experimental as Blender does not have good support for procedurals at the moment. */
+      if (experimental) {
         b_mesh_cache = object_mesh_cache_find(b_ob, &has_subdivision_modifier);
         use_procedural = b_mesh_cache && b_mesh_cache.cache_file().use_render_procedural();
       }
