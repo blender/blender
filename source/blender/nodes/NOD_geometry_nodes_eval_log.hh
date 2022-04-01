@@ -26,6 +26,8 @@
 
 #include "NOD_derived_node_tree.hh"
 
+#include "FN_field.hh"
+
 #include <chrono>
 
 struct SpaceNode;

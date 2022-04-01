@@ -69,6 +69,7 @@
 #include "NOD_geometry_nodes_eval_log.hh"
 #include "NOD_node_declaration.hh"
 
+#include "FN_field.hh"
 #include "FN_field_cpp_type.hh"
 
 #include "node_intern.hh" /* own include */

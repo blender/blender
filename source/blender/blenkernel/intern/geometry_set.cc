@@ -8,6 +8,7 @@
 #include "BKE_attribute.h"
 #include "BKE_attribute_access.hh"
 #include "BKE_curves.hh"
+#include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
