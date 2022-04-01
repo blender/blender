@@ -298,6 +298,12 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   }
   object->set_ao_distance(ao_distance);
 
+  bool is_caustics_caster = get_boolean(cobject, "is_caustics_caster");
+  object->set_is_caustics_caster(is_caustics_caster);
+
+  bool is_caustics_receiver = get_boolean(cobject, "is_caustics_receiver");
+  object->set_is_caustics_receiver(is_caustics_receiver);
+
   /* sync the asset name for Cryptomatte */
   BL::Object parent = b_ob.parent();
   ustring parent_name;

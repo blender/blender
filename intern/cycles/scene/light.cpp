@@ -123,6 +123,7 @@ NODE_DEFINE(Light)
   SOCKET_BOOLEAN(use_glossy, "Use Glossy", true);
   SOCKET_BOOLEAN(use_transmission, "Use Transmission", true);
   SOCKET_BOOLEAN(use_scatter, "Use Scatter", true);
+  SOCKET_BOOLEAN(use_caustics, "Shadow Caustics", false);
 
   SOCKET_INT(max_bounces, "Max Bounces", 1024);
   SOCKET_UINT(random_id, "Random ID", 0);
@@ -896,6 +897,7 @@ void LightManager::device_update_points(Device *, DeviceScene *dscene, Scene *sc
 
     klights[light_index].max_bounces = max_bounces;
     klights[light_index].random = random;
+    klights[light_index].use_caustics = light->use_caustics;
 
     klights[light_index].tfm = light->tfm;
     klights[light_index].itfm = transform_inverse(light->tfm);

@@ -90,6 +90,9 @@ NODE_DEFINE(Object)
 
   SOCKET_BOOLEAN(is_shadow_catcher, "Shadow Catcher", false);
 
+  SOCKET_BOOLEAN(is_caustics_caster, "Cast Shadow Caustics", false);
+  SOCKET_BOOLEAN(is_caustics_receiver, "Receive Shadow Caustics", false);
+
   SOCKET_NODE(particle_system, "Particle System", ParticleSystem::get_node_type());
   SOCKET_INT(particle_index, "Particle Index", 0);
 
@@ -509,6 +512,14 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 
   kobject.visibility = ob->visibility_for_tracing();
   kobject.primitive_type = geom->primitive_type();
+
+  /* Object shadow caustics flag */
+  if (ob->is_caustics_caster) {
+    flag |= SD_OBJECT_CAUSTICS_CASTER;
+  }
+  if (ob->is_caustics_receiver) {
+    flag |= SD_OBJECT_CAUSTICS_RECEIVER;
+  }
 
   /* Object flag. */
   if (ob->use_holdout) {

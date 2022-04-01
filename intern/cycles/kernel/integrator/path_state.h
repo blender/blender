@@ -57,6 +57,10 @@ ccl_device_inline void path_state_init_integrator(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, continuation_probability) = 1.0f;
   INTEGRATOR_STATE_WRITE(state, path, throughput) = make_float3(1.0f, 1.0f, 1.0f);
 
+#ifdef __MNEE__
+  INTEGRATOR_STATE_WRITE(state, path, mnee) = 0;
+#endif
+
   INTEGRATOR_STATE_WRITE(state, isect, object) = OBJECT_NONE;
   INTEGRATOR_STATE_WRITE(state, isect, prim) = PRIM_NONE;
 

@@ -223,6 +223,7 @@ set(SRC_KERNEL_INTEGRATOR_HEADERS
   integrator/intersect_subsurface.h
   integrator/intersect_volume_stack.h
   integrator/megakernel.h
+  integrator/mnee.h
   integrator/path_state.h
   integrator/shade_background.h
   integrator/shade_light.h

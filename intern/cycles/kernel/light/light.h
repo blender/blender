@@ -246,6 +246,15 @@ ccl_device bool lights_intersect(KernelGlobals kg,
       if (!(klight->shader_id & SHADER_USE_MIS)) {
         continue;
       }
+
+#ifdef __MNEE__
+      /* This path should have been resolved with mnee, it will
+       * generate a firefly for small lights since it is improbable. */
+      if ((INTEGRATOR_STATE(state, path, mnee) & PATH_MNEE_CULL_LIGHT_CONNECTION) &&
+          klight->use_caustics) {
+        continue;
+      }
+#endif
     }
 
     if (path_flag & PATH_RAY_SHADOW_CATCHER_PASS) {

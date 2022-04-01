@@ -32,6 +32,11 @@ BLACKLIST_OPTIX = [
     'T43865.blend',
 ]
 
+BLACKLIST_METAL = [
+    # No MNEE for Metal currently
+    "underwater_caustics.blend",
+]
+
 BLACKLIST_GPU = [
     # Uninvestigated differences with GPU.
     'image_log.blend',
@@ -116,6 +121,8 @@ def main():
         blacklist += BLACKLIST_OSL
     if device == 'OPTIX':
         blacklist += BLACKLIST_OPTIX
+    if device == 'METAL':
+        blacklist += BLACKLIST_METAL
 
     from modules import render_report
     report = render_report.Report('Cycles', output_dir, idiff, device, blacklist)
