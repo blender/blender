@@ -3627,19 +3627,6 @@ BoundBox *BKE_object_boundbox_get(Object *ob)
   return bb;
 }
 
-void BKE_object_boundbox_flag(Object *ob, int flag, const bool set)
-{
-  BoundBox *bb = BKE_object_boundbox_get(ob);
-  if (bb) {
-    if (set) {
-      bb->flag |= flag;
-    }
-    else {
-      bb->flag &= ~flag;
-    }
-  }
-}
-
 void BKE_object_boundbox_calc_from_mesh(Object *ob, const Mesh *me_eval)
 {
   float3 min(FLT_MAX);
