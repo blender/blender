@@ -1263,12 +1263,12 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
   }
 
   /* reset flags */
-  for (int object_index = 0; object_index < objects.size(); object_index++) {
+  for (const int object_index : objects.index_range()) {
     Object *ob = objects[object_index];
     ob->flag &= ~OB_DONE;
 
     /* move active first */
-    if (ob == obact) {
+    if (ob == obact && objects.size() > 1) {
       memmove(&objects[1], objects.data(), object_index * sizeof(Object *));
       objects[0] = ob;
     }
