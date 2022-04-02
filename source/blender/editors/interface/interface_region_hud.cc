@@ -7,7 +7,7 @@
  * Floating Persistent Region
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -49,7 +49,7 @@ struct HudRegionData {
 static bool last_redo_poll(const bContext *C, short region_type)
 {
   wmOperator *op = WM_operator_last_redo(C);
-  if (op == NULL) {
+  if (op == nullptr) {
     return false;
   }
 
@@ -60,7 +60,8 @@ static bool last_redo_poll(const bContext *C, short region_type)
      * wrong context.
      */
     ScrArea *area = CTX_wm_area(C);
-    ARegion *region_op = (region_type != -1) ? BKE_area_find_region_type(area, region_type) : NULL;
+    ARegion *region_op = (region_type != -1) ? BKE_area_find_region_type(area, region_type) :
+                                               nullptr;
     ARegion *region_prev = CTX_wm_region(C);
     CTX_wm_region_set((bContext *)C, region_op);
 
@@ -90,9 +91,9 @@ static bool hud_panel_operator_redo_poll(const bContext *C, PanelType *UNUSED(pt
 {
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_HUD);
-  if (region != NULL) {
-    struct HudRegionData *hrd = region->regiondata;
-    if (hrd != NULL) {
+  if (region != nullptr) {
+    HudRegionData *hrd = static_cast<HudRegionData *>(region->regiondata);
+    if (hrd != nullptr) {
       return last_redo_poll(C, hrd->regionid);
     }
   }
@@ -108,7 +109,7 @@ static void hud_panel_operator_redo_draw_header(const bContext *C, Panel *panel)
 static void hud_panel_operator_redo_draw(const bContext *C, Panel *panel)
 {
   wmOperator *op = WM_operator_last_redo(C);
-  if (op == NULL) {
+  if (op == nullptr) {
     return;
   }
   if (!WM_operator_check_ui_enabled(C, op->type->name)) {
@@ -120,9 +121,7 @@ static void hud_panel_operator_redo_draw(const bContext *C, Panel *panel)
 
 static void hud_panels_register(ARegionType *art, int space_type, int region_type)
 {
-  PanelType *pt;
-
-  pt = MEM_callocN(sizeof(PanelType), __func__);
+  PanelType *pt = MEM_cnew<PanelType>(__func__);
   strcpy(pt->idname, "OPERATOR_PT_redo");
   strcpy(pt->label, N_("Redo"));
   strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
@@ -155,8 +154,8 @@ static void hud_region_free(ARegion *region)
 
 static void hud_region_layout(const bContext *C, ARegion *region)
 {
-  struct HudRegionData *hrd = region->regiondata;
-  if (hrd == NULL || !last_redo_poll(C, hrd->regionid)) {
+  HudRegionData *hrd = static_cast<HudRegionData *>(region->regiondata);
+  if (hrd == nullptr || !last_redo_poll(C, hrd->regionid)) {
     ED_region_tag_redraw(region);
     hud_region_hide(region);
     return;
@@ -205,19 +204,17 @@ static void hud_region_draw(const bContext *C, ARegion *region)
   GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
 
   if ((region->flag & RGN_FLAG_HIDDEN) == 0) {
-    ui_draw_menu_back(NULL,
-                      NULL,
-                      &(rcti){
-                          .xmax = region->winx,
-                          .ymax = region->winy,
-                      });
+    rcti reset_rect = {};
+    reset_rect.xmax = region->winx;
+    reset_rect.ymax = region->winy;
+    ui_draw_menu_back(nullptr, nullptr, &reset_rect);
     ED_region_panels_draw(C, region);
   }
 }
 
 ARegionType *ED_area_type_hud(int space_type)
 {
-  ARegionType *art = MEM_callocN(sizeof(ARegionType), __func__);
+  ARegionType *art = MEM_cnew<ARegionType>(__func__);
   art->regionid = RGN_TYPE_HUD;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
   art->layout = hud_region_layout;
@@ -238,7 +235,7 @@ ARegionType *ED_area_type_hud(int space_type)
 
 static ARegion *hud_region_add(ScrArea *area)
 {
-  ARegion *region = MEM_callocN(sizeof(ARegion), "area region");
+  ARegion *region = MEM_cnew<ARegion>(__func__);
   ARegion *region_win = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
   if (region_win) {
     BLI_insertlinkbefore(&area->regionbase, region_win, region);
@@ -288,7 +285,7 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *area)
   ED_area_type_hud_clear(wm, area);
 
   ARegionType *art = BKE_regiontype_from_id(area->type, RGN_TYPE_HUD);
-  if (art == NULL) {
+  if (art == nullptr) {
     return;
   }
 
@@ -301,9 +298,9 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *area)
   }
 
   bool init = false;
-  const bool was_hidden = region == NULL || region->visible == false;
+  const bool was_hidden = region == nullptr || region->visible == false;
   ARegion *region_op = CTX_wm_region(C);
-  BLI_assert((region_op == NULL) || (region_op->regiontype != RGN_TYPE_HUD));
+  BLI_assert((region_op == nullptr) || (region_op->regiontype != RGN_TYPE_HUD));
   if (!last_redo_poll(C, region_op ? region_op->regiontype : -1)) {
     if (region) {
       ED_region_tag_redraw(region);
@@ -312,7 +309,7 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *area)
     return;
   }
 
-  if (region == NULL) {
+  if (region == nullptr) {
     init = true;
     region = hud_region_add(area);
     region->type = art;
@@ -332,9 +329,9 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *area)
   }
 
   {
-    struct HudRegionData *hrd = region->regiondata;
-    if (hrd == NULL) {
-      hrd = MEM_callocN(sizeof(*hrd), __func__);
+    HudRegionData *hrd = static_cast<HudRegionData *>(region->regiondata);
+    if (hrd == nullptr) {
+      hrd = MEM_cnew<HudRegionData>(__func__);
       region->regiondata = hrd;
     }
     if (region_op) {
@@ -355,10 +352,10 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *area)
   ED_region_tag_redraw(region);
 
   /* Reset zoom level (not well supported). */
-  region->v2d.cur = region->v2d.tot = (rctf){
-      .xmax = region->winx,
-      .ymax = region->winy,
-  };
+  rctf reset_rect = {};
+  reset_rect.xmax = region->winx;
+  reset_rect.ymax = region->winy;
+  region->v2d.cur = region->v2d.tot = reset_rect;
   region->v2d.minzoom = 1.0f;
   region->v2d.maxzoom = 1.0f;
 
@@ -373,10 +370,7 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *area)
     if (was_hidden) {
       region->winx = region->v2d.winx;
       region->winy = region->v2d.winy;
-      region->v2d.cur = region->v2d.tot = (rctf){
-          .xmax = region->winx,
-          .ymax = region->winy,
-      };
+      region->v2d.cur = region->v2d.tot = reset_rect;
     }
     CTX_wm_region_set((bContext *)C, region_prev);
   }

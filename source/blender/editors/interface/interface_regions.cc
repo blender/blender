@@ -25,7 +25,7 @@
 
 ARegion *ui_region_temp_add(bScreen *screen)
 {
-  ARegion *region = MEM_callocN(sizeof(ARegion), __func__);
+  ARegion *region = MEM_cnew<ARegion>(__func__);
   BLI_addtail(&screen->regionbase, region);
 
   region->regiontype = RGN_TYPE_TEMPORARY;
@@ -45,6 +45,6 @@ void ui_region_temp_remove(bContext *C, bScreen *screen, ARegion *region)
   }
 
   ED_region_exit(C, region);
-  BKE_area_region_free(NULL, region); /* NULL: no spacetype */
+  BKE_area_region_free(nullptr, region); /* nullptr: no spacetype */
   BLI_freelinkN(&screen->regionbase, region);
 }

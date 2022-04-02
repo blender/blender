@@ -5,17 +5,16 @@
  * \ingroup edinterface
  */
 
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cctype>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
 #include "ED_screen.h"
 
-#include "BLI_alloca.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
@@ -55,12 +54,12 @@ uiBut *uiDefAutoButR(uiBlock *block,
                      int width,
                      int height)
 {
-  uiBut *but = NULL;
+  uiBut *but = nullptr;
 
   switch (RNA_property_type(prop)) {
     case PROP_BOOLEAN: {
       if (RNA_property_array_check(prop) && index == -1) {
-        return NULL;
+        return nullptr;
       }
 
       if (icon && name && name[0] == '\0') {
@@ -79,7 +78,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                  0,
                                  -1,
                                  -1,
-                                 NULL);
+                                 nullptr);
       }
       else if (icon) {
         but = uiDefIconTextButR_prop(block,
@@ -98,7 +97,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                      0,
                                      -1,
                                      -1,
-                                     NULL);
+                                     nullptr);
       }
       else {
         but = uiDefButR_prop(block,
@@ -116,7 +115,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
                              0,
                              -1,
                              -1,
-                             NULL);
+                             nullptr);
       }
       break;
     }
@@ -139,10 +138,10 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                0,
                                0,
                                0,
-                               NULL);
+                               nullptr);
         }
         else {
-          return NULL;
+          return nullptr;
         }
       }
       else if (RNA_property_subtype(prop) == PROP_PERCENTAGE ||
@@ -162,11 +161,25 @@ uiBut *uiDefAutoButR(uiBlock *block,
                              0,
                              -1,
                              -1,
-                             NULL);
+                             nullptr);
       }
       else {
-        but = uiDefButR_prop(
-            block, UI_BTYPE_NUM, 0, name, x, y, width, height, ptr, prop, index, 0, 0, 0, 0, NULL);
+        but = uiDefButR_prop(block,
+                             UI_BTYPE_NUM,
+                             0,
+                             name,
+                             x,
+                             y,
+                             width,
+                             height,
+                             ptr,
+                             prop,
+                             index,
+                             0,
+                             0,
+                             0,
+                             0,
+                             nullptr);
       }
 
       if (RNA_property_flag(prop) & PROP_TEXTEDIT_UPDATE) {
@@ -191,14 +204,14 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                  0,
                                  -1,
                                  -1,
-                                 NULL);
+                                 nullptr);
       }
       else if (icon) {
         but = uiDefIconTextButR_prop(block,
                                      UI_BTYPE_MENU,
                                      0,
                                      icon,
-                                     NULL,
+                                     nullptr,
                                      x,
                                      y,
                                      width,
@@ -210,7 +223,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                      0,
                                      -1,
                                      -1,
-                                     NULL);
+                                     nullptr);
       }
       else {
         but = uiDefButR_prop(block,
@@ -228,7 +241,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
                              0,
                              -1,
                              -1,
-                             NULL);
+                             nullptr);
       }
       break;
     case PROP_STRING:
@@ -248,7 +261,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                  0,
                                  -1,
                                  -1,
-                                 NULL);
+                                 nullptr);
       }
       else if (icon) {
         but = uiDefIconTextButR_prop(block,
@@ -267,7 +280,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                      0,
                                      -1,
                                      -1,
-                                     NULL);
+                                     nullptr);
       }
       else {
         but = uiDefButR_prop(block,
@@ -285,7 +298,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
                              0,
                              -1,
                              -1,
-                             NULL);
+                             nullptr);
       }
 
       if (RNA_property_flag(prop) & PROP_TEXTEDIT_UPDATE) {
@@ -319,20 +332,21 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                    0,
                                    -1,
                                    -1,
-                                   NULL);
-      ui_but_add_search(but, ptr, prop, NULL, NULL);
+                                   nullptr);
+      ui_but_add_search(but, ptr, prop, nullptr, nullptr);
       break;
     }
     case PROP_COLLECTION: {
       char text[256];
       BLI_snprintf(
           text, sizeof(text), IFACE_("%d items"), RNA_property_collection_length(ptr, prop));
-      but = uiDefBut(block, UI_BTYPE_LABEL, 0, text, x, y, width, height, NULL, 0, 0, 0, 0, NULL);
+      but = uiDefBut(
+          block, UI_BTYPE_LABEL, 0, text, x, y, width, height, nullptr, 0, 0, 0, 0, nullptr);
       UI_but_flag_enable(but, UI_BUT_DISABLED);
       break;
     }
     default:
-      but = NULL;
+      but = nullptr;
       break;
   }
 
@@ -414,7 +428,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
       case UI_BUT_LABEL_ALIGN_NONE:
       default:
         col = layout;
-        name = NULL; /* no smart label alignment, show default name with button */
+        name = nullptr; /* no smart label alignment, show default name with button */
         break;
     }
 
@@ -440,7 +454,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
 
 /* *** RNA collection search menu *** */
 
-typedef struct CollItemSearch {
+struct CollItemSearch {
   struct CollItemSearch *next, *prev;
   void *data;
   char *name;
@@ -449,7 +463,7 @@ typedef struct CollItemSearch {
   bool is_id;
   int name_prefix_offset;
   uint has_sep_char : 1;
-} CollItemSearch;
+};
 
 static bool add_collection_search_item(CollItemSearch *cis,
                                        const bool requires_exact_data_name,
@@ -462,10 +476,11 @@ static bool add_collection_search_item(CollItemSearch *cis,
    * name prefix for showing the library status. */
   int name_prefix_offset = cis->name_prefix_offset;
   if (!has_id_icon && cis->is_id && !requires_exact_data_name) {
-    cis->iconid = UI_icon_from_library(cis->data);
+    cis->iconid = UI_icon_from_library(static_cast<const ID *>(cis->data));
     /* No need to re-allocate, string should be shorter than before (lib status prefix is
      * removed). */
-    BKE_id_full_name_ui_prefix_get(name_buf, cis->data, false, UI_SEP_CHAR, &name_prefix_offset);
+    BKE_id_full_name_ui_prefix_get(
+        name_buf, static_cast<const ID *>(cis->data), false, UI_SEP_CHAR, &name_prefix_offset);
     BLI_assert(strlen(name_buf) <= MEM_allocN_len(cis->name));
     strcpy(cis->name, name_buf);
   }
@@ -478,15 +493,12 @@ static bool add_collection_search_item(CollItemSearch *cis,
                             name_prefix_offset);
 }
 
-void ui_rna_collection_search_update_fn(const struct bContext *C,
-                                        void *arg,
-                                        const char *str,
-                                        uiSearchItems *items,
-                                        const bool is_first)
+void ui_rna_collection_search_update_fn(
+    const bContext *C, void *arg, const char *str, uiSearchItems *items, const bool is_first)
 {
-  uiRNACollectionSearch *data = arg;
+  uiRNACollectionSearch *data = static_cast<uiRNACollectionSearch *>(arg);
   const int flag = RNA_property_flag(data->target_prop);
-  ListBase *items_list = MEM_callocN(sizeof(ListBase), "items_list");
+  ListBase *items_list = MEM_cnew<ListBase>("items_list");
   const bool is_ptr_target = (RNA_property_type(data->target_prop) == PROP_POINTER);
   /* For non-pointer properties, UI code acts entirely based on the item's name. So the name has to
    * match the RNA name exactly. So only for pointer properties, the name can be modified to add
@@ -497,7 +509,7 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
   char *name;
   bool has_id_icon = false;
 
-  StringSearch *search = skip_filter ? NULL : BLI_string_search_new();
+  StringSearch *search = skip_filter ? nullptr : BLI_string_search_new();
 
   /* build a temporary list of relevant items first */
   int item_index = 0;
@@ -522,18 +534,17 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
     const bool is_id = itemptr.type && RNA_struct_is_ID(itemptr.type);
 
     if (is_id) {
-      iconid = ui_id_icon_get(C, itemptr.data, false);
+      iconid = ui_id_icon_get(C, static_cast<ID *>(itemptr.data), false);
       if (!ELEM(iconid, 0, ICON_BLANK1)) {
         has_id_icon = true;
       }
 
       if (requires_exact_data_name) {
-        name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), NULL);
+        name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), nullptr);
       }
       else {
-        const ID *id = itemptr.data;
-        BKE_id_full_name_ui_prefix_get(
-            name_buf, itemptr.data, true, UI_SEP_CHAR, &name_prefix_offset);
+        const ID *id = static_cast<ID *>(itemptr.data);
+        BKE_id_full_name_ui_prefix_get(name_buf, id, true, UI_SEP_CHAR, &name_prefix_offset);
         BLI_STATIC_ASSERT(sizeof(name_buf) >= MAX_ID_FULL_NAME_UI,
                           "Name string buffer should be big enough to hold full UI ID name");
         name = name_buf;
@@ -541,11 +552,11 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
       }
     }
     else {
-      name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), NULL);
+      name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), nullptr);
     }
 
     if (name) {
-      CollItemSearch *cis = MEM_callocN(sizeof(CollItemSearch), "CollectionItemSearch");
+      CollItemSearch *cis = MEM_cnew<CollItemSearch>(__func__);
       cis->data = itemptr.data;
       cis->name = BLI_strdup(name);
       cis->index = item_index;
@@ -597,7 +608,7 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
 
 int UI_icon_from_id(const ID *id)
 {
-  if (id == NULL) {
+  if (id == nullptr) {
     return ICON_NONE;
   }
 
@@ -608,7 +619,7 @@ int UI_icon_from_id(const ID *id)
     if (ob->type == OB_EMPTY) {
       return ICON_EMPTY_DATA;
     }
-    return UI_icon_from_id(ob->data);
+    return UI_icon_from_id(static_cast<const ID *>(ob->data));
   }
 
   /* otherwise get it through RNA, creating the pointer
@@ -761,7 +772,7 @@ bool UI_but_online_manual_id(const uiBut *but, char *r_str, size_t maxlength)
   return false;
 }
 
-bool UI_but_online_manual_id_from_active(const struct bContext *C, char *r_str, size_t maxlength)
+bool UI_but_online_manual_id_from_active(const bContext *C, char *r_str, size_t maxlength)
 {
   uiBut *but = UI_context_active_but_get(C);
 
@@ -861,7 +872,7 @@ void UI_but_ensure_in_view(const bContext *C, ARegion *region, const uiBut *but)
  * Modal Button Store API.
  *
  * Store for modal operators & handlers to register button pointers
- * which are maintained while drawing or NULL when removed.
+ * which are maintained while drawing or nullptr when removed.
  *
  * This is needed since button pointers are continuously freed and re-allocated.
  *
@@ -880,7 +891,7 @@ struct uiButStoreElem {
 
 uiButStore *UI_butstore_create(uiBlock *block)
 {
-  uiButStore *bs_handle = MEM_callocN(sizeof(uiButStore), __func__);
+  uiButStore *bs_handle = MEM_cnew<uiButStore>(__func__);
 
   bs_handle->block = block;
   BLI_addtail(&block->butstore, bs_handle);
@@ -899,7 +910,7 @@ void UI_butstore_free(uiBlock *block, uiButStore *bs_handle)
    * Ideally we would manage moving the 'uiButStore', keeping a correct state.
    * All things considered this is the most straightforward fix - Campbell.
    */
-  if (block != bs_handle->block && bs_handle->block != NULL) {
+  if (block != bs_handle->block && bs_handle->block != nullptr) {
     block = bs_handle->block;
   }
 
@@ -912,7 +923,7 @@ void UI_butstore_free(uiBlock *block, uiButStore *bs_handle)
 
 bool UI_butstore_is_valid(uiButStore *bs)
 {
-  return (bs->block != NULL);
+  return (bs->block != nullptr);
 }
 
 bool UI_butstore_is_registered(uiBlock *block, uiBut *but)
@@ -930,7 +941,7 @@ bool UI_butstore_is_registered(uiBlock *block, uiBut *but)
 
 void UI_butstore_register(uiButStore *bs_handle, uiBut **but_p)
 {
-  uiButStoreElem *bs_elem = MEM_callocN(sizeof(uiButStoreElem), __func__);
+  uiButStoreElem *bs_elem = MEM_cnew<uiButStoreElem>(__func__);
   BLI_assert(*but_p);
   bs_elem->but_p = but_p;
 
@@ -968,9 +979,9 @@ bool UI_butstore_register_update(uiBlock *block, uiBut *but_dst, const uiBut *bu
 void UI_butstore_clear(uiBlock *block)
 {
   LISTBASE_FOREACH (uiButStore *, bs_handle, &block->butstore) {
-    bs_handle->block = NULL;
+    bs_handle->block = nullptr;
     LISTBASE_FOREACH (uiButStoreElem *, bs_elem, &bs_handle->items) {
-      *bs_elem->but_p = NULL;
+      *bs_elem->but_p = nullptr;
     }
   }
 }
@@ -984,14 +995,14 @@ void UI_butstore_update(uiBlock *block)
     }
   }
 
-  if (LIKELY(block->butstore.first == NULL)) {
+  if (LIKELY(block->butstore.first == nullptr)) {
     return;
   }
 
   /* warning, loop-in-loop, in practice we only store <10 buttons at a time,
    * so this isn't going to be a problem, if that changes old-new mapping can be cached first */
   LISTBASE_FOREACH (uiButStore *, bs_handle, &block->butstore) {
-    BLI_assert(ELEM(bs_handle->block, NULL, block) ||
+    BLI_assert(ELEM(bs_handle->block, nullptr, block) ||
                (block->oldblock && block->oldblock == bs_handle->block));
 
     if (bs_handle->block == block->oldblock) {
@@ -1001,7 +1012,7 @@ void UI_butstore_update(uiBlock *block)
         if (*bs_elem->but_p) {
           uiBut *but_new = ui_but_find_new(block, *bs_elem->but_p);
 
-          /* can be NULL if the buttons removed,
+          /* can be nullptr if the buttons removed,
            * NOTE: we could allow passing in a callback when buttons are removed
            * so the caller can cleanup */
           *bs_elem->but_p = but_new;

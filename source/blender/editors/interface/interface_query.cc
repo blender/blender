@@ -61,7 +61,7 @@ bool ui_but_is_toggle(const uiBut *but)
 bool ui_but_is_interactive(const uiBut *but, const bool labeledit)
 {
   /* NOTE: #UI_BTYPE_LABEL is included for highlights, this allows drags. */
-  if ((but->type == UI_BTYPE_LABEL) && but->dragpoin == NULL) {
+  if ((but->type == UI_BTYPE_LABEL) && but->dragpoin == nullptr) {
     return false;
   }
   if (ELEM(but->type, UI_BTYPE_ROUNDBOX, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE, UI_BTYPE_LISTBOX)) {
@@ -119,12 +119,12 @@ bool ui_but_has_array_value(const uiBut *but)
                PROP_COORDS));
 }
 
-static wmOperatorType *g_ot_tool_set_by_id = NULL;
+static wmOperatorType *g_ot_tool_set_by_id = nullptr;
 bool UI_but_is_tool(const uiBut *but)
 {
   /* very evil! */
-  if (but->optype != NULL) {
-    if (g_ot_tool_set_by_id == NULL) {
+  if (but->optype != nullptr) {
+    if (g_ot_tool_set_by_id == nullptr) {
       g_ot_tool_set_by_id = WM_operatortype_find("WM_OT_tool_set_by_id", false);
     }
     if (but->optype == g_ot_tool_set_by_id) {
@@ -198,7 +198,7 @@ bool ui_but_contains_pt(const uiBut *but, float mx, float my)
 
 bool ui_but_contains_rect(const uiBut *but, const rctf *rect)
 {
-  return BLI_rctf_isect(&but->rect, rect, NULL);
+  return BLI_rctf_isect(&but->rect, rect, nullptr);
 }
 
 bool ui_but_contains_point_px(const uiBut *but, const ARegion *region, const int xy[2])
@@ -260,7 +260,7 @@ static uiBut *ui_but_find(const ARegion *region,
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 uiBut *ui_but_find_mouse_over_ex(const ARegion *region,
@@ -269,10 +269,10 @@ uiBut *ui_but_find_mouse_over_ex(const ARegion *region,
                                  const uiButFindPollFn find_poll,
                                  const void *find_custom_data)
 {
-  uiBut *butover = NULL;
+  uiBut *butover = nullptr;
 
   if (!ui_region_contains_point_px(region, xy)) {
-    return NULL;
+    return nullptr;
   }
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     float mx = xy[0], my = xy[1];
@@ -310,20 +310,20 @@ uiBut *ui_but_find_mouse_over_ex(const ARegion *region,
 
 uiBut *ui_but_find_mouse_over(const ARegion *region, const wmEvent *event)
 {
-  return ui_but_find_mouse_over_ex(region, event->xy, event->modifier & KM_CTRL, NULL, NULL);
+  return ui_but_find_mouse_over_ex(region, event->xy, event->modifier & KM_CTRL, nullptr, nullptr);
 }
 
 uiBut *ui_but_find_rect_over(const struct ARegion *region, const rcti *rect_px)
 {
   if (!ui_region_contains_rect_px(region, rect_px)) {
-    return NULL;
+    return nullptr;
   }
 
   /* Currently no need to expose this at the moment. */
   const bool labeledit = true;
   rctf rect_px_fl;
   BLI_rctf_rcti_copy(&rect_px_fl, rect_px);
-  uiBut *butover = NULL;
+  uiBut *butover = nullptr;
 
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     rctf rect_block;
@@ -343,7 +343,7 @@ uiBut *ui_but_find_rect_over(const struct ARegion *region, const rcti *rect_px)
     /* CLIP_EVENTS prevents the event from reaching other blocks */
     if (block->flag & UI_BLOCK_CLIP_EVENTS) {
       /* check if mouse is inside block */
-      if (BLI_rctf_isect(&block->rect, &rect_block, NULL)) {
+      if (BLI_rctf_isect(&block->rect, &rect_block, nullptr)) {
         break;
       }
     }
@@ -354,7 +354,7 @@ uiBut *ui_but_find_rect_over(const struct ARegion *region, const rcti *rect_px)
 uiBut *ui_list_find_mouse_over_ex(const ARegion *region, const int xy[2])
 {
   if (!ui_region_contains_point_px(region, xy)) {
-    return NULL;
+    return nullptr;
   }
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     float mx = xy[0], my = xy[1];
@@ -366,14 +366,14 @@ uiBut *ui_list_find_mouse_over_ex(const ARegion *region, const int xy[2])
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 uiBut *ui_list_find_mouse_over(const ARegion *region, const wmEvent *event)
 {
-  if (event == NULL) {
+  if (event == nullptr) {
     /* If there is no info about the mouse, just act as if there is nothing underneath it. */
-    return NULL;
+    return nullptr;
   }
   return ui_list_find_mouse_over_ex(region, event->xy);
 }
@@ -382,10 +382,10 @@ uiList *UI_list_find_mouse_over(const ARegion *region, const wmEvent *event)
 {
   uiBut *list_but = ui_list_find_mouse_over(region, event);
   if (!list_but) {
-    return NULL;
+    return nullptr;
   }
 
-  return list_but->custom_data;
+  return static_cast<uiList *>(list_but->custom_data);
 }
 
 static bool ui_list_contains_row(const uiBut *listbox_but, const uiBut *listrow_but)
@@ -398,7 +398,7 @@ static bool ui_list_contains_row(const uiBut *listbox_but, const uiBut *listrow_
 
 static bool ui_but_is_listbox_with_row(const uiBut *but, const void *customdata)
 {
-  const uiBut *row_but = customdata;
+  const uiBut *row_but = static_cast<const uiBut *>(customdata);
   return (but->type == UI_BTYPE_LISTBOX) && ui_list_contains_row(but, row_but);
 }
 
@@ -414,7 +414,7 @@ static bool ui_but_is_listrow(const uiBut *but, const void *UNUSED(customdata))
 
 uiBut *ui_list_row_find_mouse_over(const ARegion *region, const int xy[2])
 {
-  return ui_but_find_mouse_over_ex(region, xy, false, ui_but_is_listrow, NULL);
+  return ui_but_find_mouse_over_ex(region, xy, false, ui_but_is_listrow, nullptr);
 }
 
 struct ListRowFindIndexData {
@@ -424,19 +424,18 @@ struct ListRowFindIndexData {
 
 static bool ui_but_is_listrow_at_index(const uiBut *but, const void *customdata)
 {
-  const struct ListRowFindIndexData *find_data = customdata;
+  const ListRowFindIndexData *find_data = static_cast<const ListRowFindIndexData *>(customdata);
 
-  return ui_but_is_listrow(but, NULL) && ui_list_contains_row(find_data->listbox, but) &&
+  return ui_but_is_listrow(but, nullptr) && ui_list_contains_row(find_data->listbox, but) &&
          (but->hardmax == find_data->index);
 }
 
 uiBut *ui_list_row_find_from_index(const ARegion *region, const int index, uiBut *listbox)
 {
   BLI_assert(listbox->type == UI_BTYPE_LISTBOX);
-  struct ListRowFindIndexData data = {
-      .index = index,
-      .listbox = listbox,
-  };
+  ListRowFindIndexData data = {};
+  data.index = index;
+  data.listbox = listbox;
   return ui_but_find(region, ui_but_is_listrow_at_index, &data);
 }
 
@@ -447,7 +446,7 @@ static bool ui_but_is_treerow(const uiBut *but, const void *UNUSED(customdata))
 
 uiBut *ui_tree_row_find_mouse_over(const ARegion *region, const int xy[2])
 {
-  return ui_but_find_mouse_over_ex(region, xy, false, ui_but_is_treerow, NULL);
+  return ui_but_find_mouse_over_ex(region, xy, false, ui_but_is_treerow, nullptr);
 }
 
 static bool ui_but_is_active_treerow(const uiBut *but, const void *customdata)
@@ -462,7 +461,7 @@ static bool ui_but_is_active_treerow(const uiBut *but, const void *customdata)
 
 uiBut *ui_tree_row_find_active(const ARegion *region)
 {
-  return ui_but_find(region, ui_but_is_active_treerow, NULL);
+  return ui_but_find(region, ui_but_is_active_treerow, nullptr);
 }
 
 /** \} */
@@ -479,7 +478,7 @@ uiBut *ui_but_prev(uiBut *but)
       return but;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 uiBut *ui_but_next(uiBut *but)
@@ -490,7 +489,7 @@ uiBut *ui_but_next(uiBut *but)
       return but;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 uiBut *ui_but_first(uiBlock *block)
@@ -500,21 +499,19 @@ uiBut *ui_but_first(uiBlock *block)
       return but;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 uiBut *ui_but_last(uiBlock *block)
 {
-  uiBut *but;
-
-  but = block->buttons.last;
+  uiBut *but = static_cast<uiBut *>(block->buttons.last);
   while (but) {
     if (ui_but_is_editable(but)) {
       return but;
     }
     but = but->prev;
   }
-  return NULL;
+  return nullptr;
 }
 
 bool ui_but_is_cursor_warp(const uiBut *but)
@@ -550,7 +547,7 @@ size_t ui_but_drawstr_len_without_sep_char(const uiBut *but)
 {
   if (but->flag & UI_BUT_HAS_SEP_CHAR) {
     const char *str_sep = strrchr(but->drawstr, UI_SEP_CHAR);
-    if (str_sep != NULL) {
+    if (str_sep != nullptr) {
       return (str_sep - but->drawstr);
     }
   }
@@ -565,12 +562,12 @@ size_t ui_but_drawstr_without_sep_char(const uiBut *but, char *str, size_t str_m
 
 size_t ui_but_tip_len_only_first_line(const uiBut *but)
 {
-  if (but->tip == NULL) {
+  if (but->tip == nullptr) {
     return 0;
   }
 
   const char *str_sep = strchr(but->tip, '\n');
-  if (str_sep != NULL) {
+  if (str_sep != nullptr) {
     return (str_sep - but->tip);
   }
   return strlen(but->tip);
@@ -590,7 +587,7 @@ uiBut *ui_block_active_but_get(const uiBlock *block)
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 bool ui_block_is_menu(const uiBlock *block)
@@ -622,12 +619,12 @@ static const uiBut *ui_but_next_non_separator(const uiBut *but)
       return but;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 bool UI_block_is_empty_ex(const uiBlock *block, const bool skip_title)
 {
-  const uiBut *but = block->buttons.first;
+  const uiBut *but = static_cast<const uiBut *>(block->buttons.first);
   if (skip_title) {
     /* Skip the first label, since popups often have a title,
      * we may want to consider the block empty in this case. */
@@ -636,7 +633,7 @@ bool UI_block_is_empty_ex(const uiBlock *block, const bool skip_title)
       but = but->next;
     }
   }
-  return (ui_but_next_non_separator(but) == NULL);
+  return (ui_but_next_non_separator(but) == nullptr);
 }
 
 bool UI_block_is_empty(const uiBlock *block)
@@ -647,7 +644,7 @@ bool UI_block_is_empty(const uiBlock *block)
 bool UI_block_can_add_separator(const uiBlock *block)
 {
   if (ui_block_is_menu(block) && !ui_block_is_pie_menu(block)) {
-    const uiBut *but = block->buttons.last;
+    const uiBut *but = static_cast<const uiBut *>(block->buttons.last);
     return (but && !ELEM(but->type, UI_BTYPE_SEPR_LINE, UI_BTYPE_SEPR));
   }
   return true;
@@ -662,7 +659,7 @@ bool UI_block_can_add_separator(const uiBlock *block)
 uiBlock *ui_block_find_mouse_over_ex(const ARegion *region, const int xy[2], bool only_clip)
 {
   if (!ui_region_contains_point_px(region, xy)) {
-    return NULL;
+    return nullptr;
   }
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     if (only_clip) {
@@ -676,7 +673,7 @@ uiBlock *ui_block_find_mouse_over_ex(const ARegion *region, const int xy[2], boo
       return block;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 uiBlock *ui_block_find_mouse_over(const ARegion *region, const wmEvent *event, bool only_clip)
@@ -699,7 +696,7 @@ uiBut *ui_region_find_active_but(ARegion *region)
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 uiBut *ui_region_find_first_but_test_flag(ARegion *region, int flag_include, int flag_exclude)
@@ -712,7 +709,7 @@ uiBut *ui_region_find_first_but_test_flag(ARegion *region, int flag_include, int
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 /** \} */
@@ -752,7 +749,7 @@ bool ui_region_contains_rect_px(const ARegion *region, const rcti *rect_px)
 {
   rcti winrct;
   ui_region_winrct_get_no_margin(region, &winrct);
-  if (!BLI_rcti_isect(&winrct, rect_px, NULL)) {
+  if (!BLI_rcti_isect(&winrct, rect_px, nullptr)) {
     return false;
   }
 
@@ -761,7 +758,7 @@ bool ui_region_contains_rect_px(const ARegion *region, const rcti *rect_px)
     const View2D *v2d = &region->v2d;
     rcti rect_region;
     ui_window_to_region_rcti(region, &rect_region, rect_px);
-    if (!BLI_rcti_isect(&v2d->mask, &rect_region, NULL) ||
+    if (!BLI_rcti_isect(&v2d->mask, &rect_region, nullptr) ||
         UI_view2d_rect_in_scrollers(region, &region->v2d, rect_px)) {
       return false;
     }
@@ -787,7 +784,7 @@ ARegion *ui_screen_region_find_mouse_over_ex(bScreen *screen, const int xy[2])
       return region;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 ARegion *ui_screen_region_find_mouse_over(bScreen *screen, const wmEvent *event)
@@ -803,7 +800,7 @@ ARegion *ui_screen_region_find_mouse_over(bScreen *screen, const wmEvent *event)
 
 void ui_interface_tag_script_reload_queries(void)
 {
-  g_ot_tool_set_by_id = NULL;
+  g_ot_tool_set_by_id = nullptr;
 }
 
 /** \} */

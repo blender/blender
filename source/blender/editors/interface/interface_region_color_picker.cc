@@ -7,9 +7,9 @@
  * Color Picker Region & Color Utils
  */
 
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdarg>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -168,7 +168,7 @@ static void ui_color_picker_update_hsv(ColorPicker *cpicker,
 void ui_but_hsv_set(uiBut *but)
 {
   float rgb_perceptual[3];
-  ColorPicker *cpicker = but->custom_data;
+  ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
   float *hsv_perceptual = cpicker->hsv_perceptual;
 
   ui_color_picker_hsv_to_rgb(hsv_perceptual, rgb_perceptual);
@@ -255,7 +255,8 @@ static void ui_colorpicker_rgba_update_cb(bContext *UNUSED(C), void *bt1, void *
 
   if (prop) {
     RNA_property_float_get_array(&ptr, prop, rgb_scene_linear);
-    ui_update_color_picker_buts_rgb(but, but->block, but->custom_data, rgb_scene_linear);
+    ui_update_color_picker_buts_rgb(
+        but, but->block, static_cast<ColorPicker *>(but->custom_data), rgb_scene_linear);
   }
 
   if (popup) {
@@ -268,7 +269,7 @@ static void ui_colorpicker_hsv_update_cb(bContext *UNUSED(C), void *bt1, void *U
   uiBut *but = (uiBut *)bt1;
   uiPopupBlockHandle *popup = but->block->handle;
   float rgb_scene_linear[3];
-  ColorPicker *cpicker = but->custom_data;
+  ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
 
   ui_color_picker_hsv_to_rgb(cpicker->hsv_scene_linear, rgb_scene_linear);
   ui_update_color_picker_buts_rgb(but, but->block, cpicker, rgb_scene_linear);
@@ -282,7 +283,7 @@ static void ui_colorpicker_hex_rna_cb(bContext *UNUSED(C), void *bt1, void *hexc
 {
   uiBut *but = (uiBut *)bt1;
   uiPopupBlockHandle *popup = but->block->handle;
-  ColorPicker *cpicker = but->custom_data;
+  ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
   char *hexcol = (char *)hexcl;
   float rgb[3];
 
@@ -307,7 +308,7 @@ static void ui_popup_close_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
   uiPopupBlockHandle *popup = but->block->handle;
 
   if (popup) {
-    ColorPicker *cpicker = but->custom_data;
+    ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
     BLI_assert(cpicker->is_init);
     popup->menuretval = (equals_v3v3(cpicker->hsv_perceptual, cpicker->hsv_perceptual_init) ?
                              UI_RETURN_CANCEL :
@@ -315,7 +316,7 @@ static void ui_popup_close_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
   }
 }
 
-static void ui_colorpicker_hide_reveal(uiBlock *block, enum ePickerType colormode)
+static void ui_colorpicker_hide_reveal(uiBlock *block, ePickerType colormode)
 {
   /* tag buttons */
   LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
@@ -337,9 +338,9 @@ static void ui_colorpicker_hide_reveal(uiBlock *block, enum ePickerType colormod
 
 static void ui_colorpicker_create_mode_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
 {
-  uiBut *bt = bt1;
+  uiBut *bt = static_cast<uiBut *>(bt1);
   const short colormode = ui_but_value_get(bt);
-  ui_colorpicker_hide_reveal(bt->block, colormode);
+  ui_colorpicker_hide_reveal(bt->block, (ePickerType)colormode);
 }
 
 #define PICKER_H (7.5f * U.widget_unit)
@@ -374,7 +375,7 @@ static void ui_colorpicker_circle(uiBlock *block,
                       0.0,
                       0,
                       TIP_("Color"));
-  UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, NULL);
+  UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, nullptr);
   bt->custom_data = cpicker;
 
   /* value */
@@ -396,7 +397,7 @@ static void ui_colorpicker_circle(uiBlock *block,
                                              0,
                                              "Lightness");
     hsv_but->gradient_type = UI_GRAD_L_ALT;
-    UI_but_func_set(&hsv_but->but, ui_colorpicker_rgba_update_cb, &hsv_but->but, NULL);
+    UI_but_func_set(&hsv_but->but, ui_colorpicker_rgba_update_cb, &hsv_but->but, nullptr);
   }
   else {
     hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
@@ -416,7 +417,7 @@ static void ui_colorpicker_circle(uiBlock *block,
                                              0,
                                              TIP_("Value"));
     hsv_but->gradient_type = UI_GRAD_V_ALT;
-    UI_but_func_set(&hsv_but->but, ui_colorpicker_rgba_update_cb, &hsv_but->but, NULL);
+    UI_but_func_set(&hsv_but->but, ui_colorpicker_rgba_update_cb, &hsv_but->but, nullptr);
   }
   hsv_but->but.custom_data = cpicker;
 }
@@ -449,7 +450,7 @@ static void ui_colorpicker_square(uiBlock *block,
                                            0,
                                            TIP_("Color"));
   hsv_but->gradient_type = type;
-  UI_but_func_set(&hsv_but->but, ui_colorpicker_rgba_update_cb, &hsv_but->but, NULL);
+  UI_but_func_set(&hsv_but->but, ui_colorpicker_rgba_update_cb, &hsv_but->but, nullptr);
   hsv_but->but.custom_data = cpicker;
 
   /* value */
@@ -469,8 +470,8 @@ static void ui_colorpicker_square(uiBlock *block,
                                            0,
                                            0,
                                            TIP_("Value"));
-  hsv_but->gradient_type = type + 3;
-  UI_but_func_set(&hsv_but->but, ui_colorpicker_rgba_update_cb, &hsv_but->but, NULL);
+  hsv_but->gradient_type = (eButGradientType)(type + 3);
+  UI_but_func_set(&hsv_but->but, ui_colorpicker_rgba_update_cb, &hsv_but->but, nullptr);
   hsv_but->but.custom_data = cpicker;
 }
 
@@ -547,7 +548,7 @@ static void ui_block_colorpicker(uiBlock *block,
                  "");
   UI_but_flag_disable(bt, UI_BUT_UNDO);
   UI_but_drawflag_disable(bt, UI_BUT_TEXT_LEFT);
-  UI_but_func_set(bt, ui_colorpicker_create_mode_cb, bt, NULL);
+  UI_but_func_set(bt, ui_colorpicker_create_mode_cb, bt, nullptr);
   bt->custom_data = cpicker;
   bt = uiDefButC(block,
                  UI_BTYPE_ROW,
@@ -565,7 +566,7 @@ static void ui_block_colorpicker(uiBlock *block,
                  "");
   UI_but_flag_disable(bt, UI_BUT_UNDO);
   UI_but_drawflag_disable(bt, UI_BUT_TEXT_LEFT);
-  UI_but_func_set(bt, ui_colorpicker_create_mode_cb, bt, NULL);
+  UI_but_func_set(bt, ui_colorpicker_create_mode_cb, bt, nullptr);
   bt->custom_data = cpicker;
   bt = uiDefButC(block,
                  UI_BTYPE_ROW,
@@ -583,7 +584,7 @@ static void ui_block_colorpicker(uiBlock *block,
                  "");
   UI_but_flag_disable(bt, UI_BUT_UNDO);
   UI_but_drawflag_disable(bt, UI_BUT_TEXT_LEFT);
-  UI_but_func_set(bt, ui_colorpicker_create_mode_cb, bt, NULL);
+  UI_but_func_set(bt, ui_colorpicker_create_mode_cb, bt, nullptr);
   bt->custom_data = cpicker;
   UI_block_align_end(block);
 
@@ -598,10 +599,10 @@ static void ui_block_colorpicker(uiBlock *block,
                        yco,
                        UI_UNIT_X,
                        UI_UNIT_Y,
-                       NULL);
+                       nullptr);
     UI_but_flag_disable(bt, UI_BUT_UNDO);
     UI_but_drawflag_disable(bt, UI_BUT_ICON_LEFT);
-    UI_but_func_set(bt, ui_popup_close_cb, bt, NULL);
+    UI_but_func_set(bt, ui_popup_close_cb, bt, nullptr);
     bt->custom_data = cpicker;
   }
 
@@ -625,7 +626,7 @@ static void ui_block_colorpicker(uiBlock *block,
                       0,
                       3,
                       TIP_("Red"));
-  UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, NULL);
+  UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, nullptr);
   bt->custom_data = cpicker;
   bt = uiDefButR_prop(block,
                       UI_BTYPE_NUM_SLIDER,
@@ -643,7 +644,7 @@ static void ui_block_colorpicker(uiBlock *block,
                       0,
                       3,
                       TIP_("Green"));
-  UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, NULL);
+  UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, nullptr);
   bt->custom_data = cpicker;
   bt = uiDefButR_prop(block,
                       UI_BTYPE_NUM_SLIDER,
@@ -661,7 +662,7 @@ static void ui_block_colorpicker(uiBlock *block,
                       0,
                       3,
                       TIP_("Blue"));
-  UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, NULL);
+  UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, nullptr);
   bt->custom_data = cpicker;
 
   /* Could use:
@@ -686,7 +687,7 @@ static void ui_block_colorpicker(uiBlock *block,
                  3,
                  TIP_("Hue"));
   UI_but_flag_disable(bt, UI_BUT_UNDO);
-  UI_but_func_set(bt, ui_colorpicker_hsv_update_cb, bt, NULL);
+  UI_but_func_set(bt, ui_colorpicker_hsv_update_cb, bt, nullptr);
   bt->custom_data = cpicker;
   bt = uiDefButF(block,
                  UI_BTYPE_NUM_SLIDER,
@@ -703,7 +704,7 @@ static void ui_block_colorpicker(uiBlock *block,
                  3,
                  TIP_("Saturation"));
   UI_but_flag_disable(bt, UI_BUT_UNDO);
-  UI_but_func_set(bt, ui_colorpicker_hsv_update_cb, bt, NULL);
+  UI_but_func_set(bt, ui_colorpicker_hsv_update_cb, bt, nullptr);
   bt->custom_data = cpicker;
   if (U.color_picker_type == USER_CP_CIRCLE_HSL) {
     bt = uiDefButF(block,
@@ -740,7 +741,7 @@ static void ui_block_colorpicker(uiBlock *block,
   UI_but_flag_disable(bt, UI_BUT_UNDO);
 
   bt->hardmax = hardmax; /* not common but rgb  may be over 1.0 */
-  UI_but_func_set(bt, ui_colorpicker_hsv_update_cb, bt, NULL);
+  UI_but_func_set(bt, ui_colorpicker_hsv_update_cb, bt, nullptr);
   bt->custom_data = cpicker;
 
   UI_block_align_end(block);
@@ -762,7 +763,7 @@ static void ui_block_colorpicker(uiBlock *block,
                         0,
                         3,
                         TIP_("Alpha"));
-    UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, NULL);
+    UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, nullptr);
     bt->custom_data = cpicker;
   }
   else {
@@ -809,14 +810,14 @@ static void ui_block_colorpicker(uiBlock *block,
            yco - UI_UNIT_Y,
            butwidth,
            UI_UNIT_Y,
-           NULL,
+           nullptr,
            0.0,
            0.0,
            0,
            0,
            "");
 
-  ui_colorpicker_hide_reveal(block, colormode);
+  ui_colorpicker_hide_reveal(block, (ePickerType)colormode);
 }
 
 static int ui_colorpicker_small_wheel_cb(const bContext *UNUSED(C),
@@ -834,9 +835,9 @@ static int ui_colorpicker_small_wheel_cb(const bContext *UNUSED(C),
 
   if (add != 0.0f) {
     LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-      if (but->type == UI_BTYPE_HSVCUBE && but->active == NULL) {
+      if (but->type == UI_BTYPE_HSVCUBE && but->active == nullptr) {
         uiPopupBlockHandle *popup = block->handle;
-        ColorPicker *cpicker = but->custom_data;
+        ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
         float *hsv_perceptual = cpicker->hsv_perceptual;
 
         float rgb_perceptual[3];
@@ -865,7 +866,7 @@ static int ui_colorpicker_small_wheel_cb(const bContext *UNUSED(C),
 
 uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_but)
 {
-  uiBut *but = arg_but;
+  uiBut *but = static_cast<uiBut *>(arg_but);
   uiBlock *block;
   bool show_picker = true;
 
@@ -901,7 +902,7 @@ uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_
 
 ColorPicker *ui_block_colorpicker_create(struct uiBlock *block)
 {
-  ColorPicker *cpicker = MEM_callocN(sizeof(ColorPicker), "color_picker");
+  ColorPicker *cpicker = MEM_cnew<ColorPicker>(__func__);
   BLI_addhead(&block->color_pickers.list, cpicker);
 
   return cpicker;
