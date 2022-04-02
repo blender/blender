@@ -1088,7 +1088,7 @@ class CYCLES_OBJECT_PT_shading(CyclesButtonsPanel, Panel):
             return False
 
         ob = context.object
-        return ob and has_geometry_visibility(ob) and ob.type != 'LIGHT'
+        return ob and has_geometry_visibility(ob)
 
     def draw(self, context):
         pass
@@ -1098,6 +1098,10 @@ class CYCLES_OBJECT_PT_shading_shadow_terminator(CyclesButtonsPanel, Panel):
     bl_label = "Shadow Terminator"
     bl_parent_id = "CYCLES_OBJECT_PT_shading"
     bl_context = "object"
+
+    @classmethod
+    def poll(cls, context):
+        return context.object.type != 'LIGHT'
 
     def draw(self, context):
         layout = self.layout
@@ -1115,6 +1119,10 @@ class CYCLES_OBJECT_PT_shading_gi_approximation(CyclesButtonsPanel, Panel):
     bl_label = "Fast GI Approximation"
     bl_parent_id = "CYCLES_OBJECT_PT_shading"
     bl_context = "object"
+
+    @classmethod
+    def poll(cls, context):
+        return context.object.type != 'LIGHT'
 
     def draw(self, context):
         layout = self.layout
@@ -1138,7 +1146,7 @@ class CYCLES_OBJECT_PT_shading_caustics(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return CyclesButtonsPanel.poll(context) and not use_metal(context)
+        return CyclesButtonsPanel.poll(context) and not use_metal(context) and context.object.type != 'LIGHT'
 
     def draw(self, context):
         layout = self.layout
