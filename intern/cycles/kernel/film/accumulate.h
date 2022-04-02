@@ -348,63 +348,61 @@ ccl_device_inline void kernel_accum_emission_or_background_pass(
   }
 #  endif /* __DENOISING_FEATURES__ */
 
+  if (lightgroup != LIGHTGROUP_NONE && kernel_data.film.pass_lightgroup != PASS_UNUSED) {
+    kernel_write_pass_float3(buffer + kernel_data.film.pass_lightgroup + 3 * lightgroup,
+                             contribution);
+  }
+
   if (!(path_flag & PATH_RAY_ANY_PASS)) {
     /* Directly visible, write to emission or background pass. */
     pass_offset = pass;
   }
-  else {
+  else if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
     /* Don't write any light passes for shadow catcher, for easier
      * compositing back together of the combined pass. */
     if (path_flag & PATH_RAY_SHADOW_CATCHER_HIT) {
       return;
     }
 
-    if (lightgroup != LIGHTGROUP_NONE && kernel_data.film.pass_lightgroup != PASS_UNUSED) {
-      kernel_write_pass_float3(buffer + kernel_data.film.pass_lightgroup + 3 * lightgroup,
-                               contribution);
+    if (path_flag & PATH_RAY_SURFACE_PASS) {
+      /* Indirectly visible through reflection. */
+      const float3 diffuse_weight = INTEGRATOR_STATE(state, path, pass_diffuse_weight);
+      const float3 glossy_weight = INTEGRATOR_STATE(state, path, pass_glossy_weight);
+
+      /* Glossy */
+      const int glossy_pass_offset = ((INTEGRATOR_STATE(state, path, bounce) == 1) ?
+                                          kernel_data.film.pass_glossy_direct :
+                                          kernel_data.film.pass_glossy_indirect);
+      if (glossy_pass_offset != PASS_UNUSED) {
+        kernel_write_pass_float3(buffer + glossy_pass_offset, glossy_weight * contribution);
+      }
+
+      /* Transmission */
+      const int transmission_pass_offset = ((INTEGRATOR_STATE(state, path, bounce) == 1) ?
+                                                kernel_data.film.pass_transmission_direct :
+                                                kernel_data.film.pass_transmission_indirect);
+
+      if (transmission_pass_offset != PASS_UNUSED) {
+        /* Transmission is what remains if not diffuse and glossy, not stored explicitly to save
+         * GPU memory. */
+        const float3 transmission_weight = one_float3() - diffuse_weight - glossy_weight;
+        kernel_write_pass_float3(buffer + transmission_pass_offset,
+                                 transmission_weight * contribution);
+      }
+
+      /* Reconstruct diffuse subset of throughput. */
+      pass_offset = (INTEGRATOR_STATE(state, path, bounce) == 1) ?
+                        kernel_data.film.pass_diffuse_direct :
+                        kernel_data.film.pass_diffuse_indirect;
+      if (pass_offset != PASS_UNUSED) {
+        contribution *= diffuse_weight;
+      }
     }
-
-    if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
-      if (path_flag & PATH_RAY_SURFACE_PASS) {
-        /* Indirectly visible through reflection. */
-        const float3 diffuse_weight = INTEGRATOR_STATE(state, path, pass_diffuse_weight);
-        const float3 glossy_weight = INTEGRATOR_STATE(state, path, pass_glossy_weight);
-
-        /* Glossy */
-        const int glossy_pass_offset = ((INTEGRATOR_STATE(state, path, bounce) == 1) ?
-                                            kernel_data.film.pass_glossy_direct :
-                                            kernel_data.film.pass_glossy_indirect);
-        if (glossy_pass_offset != PASS_UNUSED) {
-          kernel_write_pass_float3(buffer + glossy_pass_offset, glossy_weight * contribution);
-        }
-
-        /* Transmission */
-        const int transmission_pass_offset = ((INTEGRATOR_STATE(state, path, bounce) == 1) ?
-                                                  kernel_data.film.pass_transmission_direct :
-                                                  kernel_data.film.pass_transmission_indirect);
-
-        if (transmission_pass_offset != PASS_UNUSED) {
-          /* Transmission is what remains if not diffuse and glossy, not stored explicitly to save
-           * GPU memory. */
-          const float3 transmission_weight = one_float3() - diffuse_weight - glossy_weight;
-          kernel_write_pass_float3(buffer + transmission_pass_offset,
-                                   transmission_weight * contribution);
-        }
-
-        /* Reconstruct diffuse subset of throughput. */
-        pass_offset = (INTEGRATOR_STATE(state, path, bounce) == 1) ?
-                          kernel_data.film.pass_diffuse_direct :
-                          kernel_data.film.pass_diffuse_indirect;
-        if (pass_offset != PASS_UNUSED) {
-          contribution *= diffuse_weight;
-        }
-      }
-      else if (path_flag & PATH_RAY_VOLUME_PASS) {
-        /* Indirectly visible through volume. */
-        pass_offset = (INTEGRATOR_STATE(state, path, bounce) == 1) ?
-                          kernel_data.film.pass_volume_direct :
-                          kernel_data.film.pass_volume_indirect;
-      }
+    else if (path_flag & PATH_RAY_VOLUME_PASS) {
+      /* Indirectly visible through volume. */
+      pass_offset = (INTEGRATOR_STATE(state, path, bounce) == 1) ?
+                        kernel_data.film.pass_volume_direct :
+                        kernel_data.film.pass_volume_indirect;
     }
   }
 
