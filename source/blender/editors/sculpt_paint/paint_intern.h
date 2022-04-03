@@ -88,7 +88,7 @@ struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf);
 int paint_stroke_modal(struct bContext *C,
                        struct wmOperator *op,
                        const struct wmEvent *event,
-                       struct PaintStroke *stroke);
+                       struct PaintStroke **stroke_p);
 int paint_stroke_exec(struct bContext *C, struct wmOperator *op, struct PaintStroke *stroke);
 void paint_stroke_cancel(struct bContext *C, struct wmOperator *op, struct PaintStroke *stroke);
 bool paint_stroke_flipped(struct PaintStroke *stroke);

@@ -710,7 +710,7 @@ static int sculpt_curves_stroke_modal(bContext *C, wmOperator *op, const wmEvent
 {
   SculptCurvesBrushStrokeData *op_data = static_cast<SculptCurvesBrushStrokeData *>(
       op->customdata);
-  int return_value = paint_stroke_modal(C, op, event, op_data->stroke);
+  int return_value = paint_stroke_modal(C, op, event, &op_data->stroke);
   if (ELEM(return_value, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
     MEM_delete(op_data);
   }
