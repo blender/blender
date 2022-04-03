@@ -1642,7 +1642,7 @@ static bool wm_xr_select_raycast(bContext *C,
 
   wm_xr_raycast(vc.scene,
                 depsgraph,
-                vc.em ? SNAP_ONLY_ACTIVE : (selectable_only ? SNAP_SELECTABLE : SNAP_ALL),
+                selectable_only ? SNAP_SELECTABLE : SNAP_ALL,
                 origin,
                 direction,
                 ray_dist,
