@@ -4727,6 +4727,14 @@ bool ED_curve_editnurb_select_pick(bContext *C,
                                    const int mval[2],
                                    const struct SelectPick_Params *params)
 {
+  return ED_curve_editnurb_select_pick_ex(C, mval, 1.0f, params);
+}
+
+bool ED_curve_editnurb_select_pick_ex(bContext *C,
+                                      const int mval[2],
+                                      const float sel_dist_mul,
+                                      const struct SelectPick_Params *params)
+{
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
   Nurb *nu;
@@ -4740,7 +4748,8 @@ bool ED_curve_editnurb_select_pick(bContext *C,
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
   copy_v2_v2_int(vc.mval, mval);
 
-  bool found = ED_curve_pick_vert(&vc, 1, &nu, &bezt, &bp, &hand, &basact);
+  bool found = ED_curve_pick_vert_ex(
+      &vc, 1, sel_dist_mul * ED_view3d_select_dist_px(), &nu, &bezt, &bp, &hand, &basact);
 
   if (params->sel_op == SEL_OP_SET) {
     if ((found && params->select_passthrough) &&
@@ -5344,10 +5353,7 @@ static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb, View3D *v3d)
 /** \name Add Vertex Operator
  * \{ */
 
-static int ed_editcurve_addvert(Curve *cu,
-                                EditNurb *editnurb,
-                                View3D *v3d,
-                                const float location_init[3])
+int ed_editcurve_addvert(Curve *cu, EditNurb *editnurb, View3D *v3d, const float location_init[3])
 {
   float center[3];
   float temp[3];
@@ -5719,7 +5725,7 @@ void CURVE_OT_extrude(wmOperatorType *ot)
 /** \name Make Cyclic Operator
  * \{ */
 
-static bool curve_toggle_cyclic(View3D *v3d, ListBase *editnurb, int direction)
+bool curve_toggle_cyclic(View3D *v3d, ListBase *editnurb, int direction)
 {
   BezTriple *bezt;
   BPoint *bp;
@@ -6502,6 +6508,70 @@ static bool test_bezt_is_sel_any(const void *bezt_v, void *user_data)
   return BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt);
 }
 
+void ed_dissolve_bez_segment(BezTriple *bezt_prev,
+                             BezTriple *bezt_next,
+                             const Nurb *nu,
+                             const Curve *cu,
+                             const int span_len,
+                             const int span_step[2])
+{
+  int i_span_edge_len = span_len + 1;
+  const int dims = 3;
+
+  const int points_len = ((cu->resolu - 1) * i_span_edge_len) + 1;
+  float *points = MEM_mallocN(points_len * dims * sizeof(float), __func__);
+  float *points_stride = points;
+  const int points_stride_len = (cu->resolu - 1);
+
+  for (int segment = 0; segment < i_span_edge_len; segment++) {
+    BezTriple *bezt_a = &nu->bezt[mod_i((span_step[0] + segment) - 1, nu->pntsu)];
+    BezTriple *bezt_b = &nu->bezt[mod_i((span_step[0] + segment), nu->pntsu)];
+
+    for (int axis = 0; axis < dims; axis++) {
+      BKE_curve_forward_diff_bezier(bezt_a->vec[1][axis],
+                                    bezt_a->vec[2][axis],
+                                    bezt_b->vec[0][axis],
+                                    bezt_b->vec[1][axis],
+                                    points_stride + axis,
+                                    points_stride_len,
+                                    dims * sizeof(float));
+    }
+
+    points_stride += dims * points_stride_len;
+  }
+
+  BLI_assert(points_stride + dims == points + (points_len * dims));
+
+  float tan_l[3], tan_r[3], error_sq_dummy;
+  uint error_index_dummy;
+
+  sub_v3_v3v3(tan_l, bezt_prev->vec[1], bezt_prev->vec[2]);
+  normalize_v3(tan_l);
+  sub_v3_v3v3(tan_r, bezt_next->vec[0], bezt_next->vec[1]);
+  normalize_v3(tan_r);
+
+  curve_fit_cubic_to_points_single_fl(points,
+                                      points_len,
+                                      NULL,
+                                      dims,
+                                      FLT_EPSILON,
+                                      tan_l,
+                                      tan_r,
+                                      bezt_prev->vec[2],
+                                      bezt_next->vec[0],
+                                      &error_sq_dummy,
+                                      &error_index_dummy);
+
+  if (!ELEM(bezt_prev->h2, HD_FREE, HD_ALIGN)) {
+    bezt_prev->h2 = (bezt_prev->h2 == HD_VECT) ? HD_FREE : HD_ALIGN;
+  }
+  if (!ELEM(bezt_next->h1, HD_FREE, HD_ALIGN)) {
+    bezt_next->h1 = (bezt_next->h1 == HD_VECT) ? HD_FREE : HD_ALIGN;
+  }
+
+  MEM_freeN(points);
+}
+
 static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
@@ -6523,8 +6593,8 @@ static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
 
     LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       if ((nu->type == CU_BEZIER) && (nu->pntsu > 2)) {
-        uint span_step[2] = {nu->pntsu, nu->pntsu};
-        uint span_len;
+        int span_step[2] = {nu->pntsu, nu->pntsu};
+        int span_len;
 
         while (BLI_array_iter_span(nu->bezt,
                                    nu->pntsu,
@@ -6537,61 +6607,7 @@ static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
           BezTriple *bezt_prev = &nu->bezt[mod_i(span_step[0] - 1, nu->pntsu)];
           BezTriple *bezt_next = &nu->bezt[mod_i(span_step[1] + 1, nu->pntsu)];
 
-          int i_span_edge_len = span_len + 1;
-          const uint dims = 3;
-
-          const uint points_len = ((cu->resolu - 1) * i_span_edge_len) + 1;
-          float *points = MEM_mallocN(points_len * dims * sizeof(float), __func__);
-          float *points_stride = points;
-          const int points_stride_len = (cu->resolu - 1);
-
-          for (int segment = 0; segment < i_span_edge_len; segment++) {
-            BezTriple *bezt_a = &nu->bezt[mod_i((span_step[0] + segment) - 1, nu->pntsu)];
-            BezTriple *bezt_b = &nu->bezt[mod_i((span_step[0] + segment), nu->pntsu)];
-
-            for (int axis = 0; axis < dims; axis++) {
-              BKE_curve_forward_diff_bezier(bezt_a->vec[1][axis],
-                                            bezt_a->vec[2][axis],
-                                            bezt_b->vec[0][axis],
-                                            bezt_b->vec[1][axis],
-                                            points_stride + axis,
-                                            points_stride_len,
-                                            dims * sizeof(float));
-            }
-
-            points_stride += dims * points_stride_len;
-          }
-
-          BLI_assert(points_stride + dims == points + (points_len * dims));
-
-          float tan_l[3], tan_r[3], error_sq_dummy;
-          uint error_index_dummy;
-
-          sub_v3_v3v3(tan_l, bezt_prev->vec[1], bezt_prev->vec[2]);
-          normalize_v3(tan_l);
-          sub_v3_v3v3(tan_r, bezt_next->vec[0], bezt_next->vec[1]);
-          normalize_v3(tan_r);
-
-          curve_fit_cubic_to_points_single_fl(points,
-                                              points_len,
-                                              NULL,
-                                              dims,
-                                              FLT_EPSILON,
-                                              tan_l,
-                                              tan_r,
-                                              bezt_prev->vec[2],
-                                              bezt_next->vec[0],
-                                              &error_sq_dummy,
-                                              &error_index_dummy);
-
-          if (!ELEM(bezt_prev->h2, HD_FREE, HD_ALIGN)) {
-            bezt_prev->h2 = (bezt_prev->h2 == HD_VECT) ? HD_FREE : HD_ALIGN;
-          }
-          if (!ELEM(bezt_next->h1, HD_FREE, HD_ALIGN)) {
-            bezt_next->h1 = (bezt_next->h1 == HD_VECT) ? HD_FREE : HD_ALIGN;
-          }
-
-          MEM_freeN(points);
+          ed_dissolve_bez_segment(bezt_prev, bezt_next, nu, cu, span_len, span_step);
         }
       }
     }

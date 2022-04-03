@@ -131,6 +131,16 @@ void CURVE_OT_match_texture_space(struct wmOperatorType *ot);
 struct GHash *ED_curve_keyindex_hash_duplicate(struct GHash *keyindex);
 void ED_curve_keyindex_update_nurb(struct EditNurb *editnurb, struct Nurb *nu, struct Nurb *newnu);
 
+/* exported for editcurve_pen.c */
+int ed_editcurve_addvert(Curve *cu, EditNurb *editnurb, View3D *v3d, const float location_init[3]);
+bool curve_toggle_cyclic(View3D *v3d, ListBase *editnurb, int direction);
+void ed_dissolve_bez_segment(BezTriple *bezt_prev,
+                             BezTriple *bezt_next,
+                             const Nurb *nu,
+                             const Curve *cu,
+                             const int span_len,
+                             const int span_step[2]);
+
 /* helper functions */
 void ed_editnurb_translate_flag(struct ListBase *editnurb,
                                 uint8_t flag,
@@ -189,8 +199,23 @@ bool ED_curve_pick_vert(struct ViewContext *vc,
                         struct BPoint **r_bp,
                         short *r_handle,
                         struct Base **r_base);
+/**
+ * \param sel_dist_mul: A multiplier on the default select distance.
+ */
+bool ED_curve_pick_vert_ex(struct ViewContext *vc,
+                           short sel,
+                           float dist_px,
+                           struct Nurb **r_nurb,
+                           struct BezTriple **r_bezt,
+                           struct BPoint **r_bp,
+                           short *r_handle,
+                           struct Base **r_base);
 void ED_curve_nurb_vert_selected_find(
     Curve *cu, View3D *v3d, Nurb **r_nu, BezTriple **r_bezt, BPoint **r_bp);
 
 /* editcurve_paint.c */
 void CURVE_OT_draw(struct wmOperatorType *ot);
+
+/* editcurve_pen.c */
+void CURVE_OT_pen(struct wmOperatorType *ot);
+struct wmKeyMap *curve_pen_modal_keymap(struct wmKeyConfig *keyconf);

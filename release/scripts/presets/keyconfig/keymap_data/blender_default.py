@@ -6158,6 +6158,25 @@ def km_sculpt_expand_modal(_params):
     return keymap
 
 
+def km_curve_pen_modal_map(_params):
+    items = []
+    keymap = (
+        "Curve Pen Modal Map",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW', "modal": True},
+        {"items": items},
+    )
+
+    items.extend([
+        ("FREE_ALIGN_TOGGLE", {"type": 'LEFT_SHIFT', "value": 'ANY', "any": True}, None),
+        ("MOVE_ADJACENT", {"type": 'LEFT_CTRL', "value": 'ANY', "any": True}, None),
+        ("MOVE_ENTIRE", {"type": 'SPACE', "value": 'ANY', "any": True}, None),
+        ("LOCK_ANGLE", {"type": 'LEFT_ALT', "value": 'ANY', "any": True}, None),
+        ("LINK_HANDLES", {"type": 'RIGHT_CTRL', "value": 'PRESS', "any": True}, None),
+    ])
+
+    return keymap
+
+
 # Fallback for gizmos that don't have custom a custom key-map.
 def km_generic_gizmo(_params):
     keymap = (
@@ -7078,6 +7097,27 @@ def km_3d_view_tool_edit_curve_draw(params):
     )
 
 
+def km_3d_view_tool_edit_curve_pen(params):
+    return (
+        "3D View Tool: Edit Curve, Curve Pen",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("curve.pen", {"type": params.tool_mouse, "value": 'PRESS'},
+             {"properties": [
+                 ("extrude_point", True),
+                 ("move_segment", True),
+                 ("select_point", True),
+                 ("move_point", True),
+                 ("close_spline_method", "ON_CLICK"),
+                ]}),
+            ("curve.pen", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
+             {"properties": [("insert_point", True), ("delete_point", True)]}),
+            ("curve.pen", {"type": params.tool_mouse, "value": 'DOUBLE_CLICK'},
+             {"properties": [("toggle_vector", True), ("cycle_handle_type", True),]}),
+        ]},
+    )
+
+
 def km_3d_view_tool_edit_curve_tilt(params):
     return (
         "3D View Tool: Edit Curve, Tilt",
@@ -7882,6 +7922,7 @@ def generate_keymaps(params=None):
         km_view3d_dolly_modal(params),
         km_paint_stroke_modal(params),
         km_sculpt_expand_modal(params),
+        km_curve_pen_modal_map(params),
 
         # Gizmos.
         km_generic_gizmo(params),
@@ -7960,6 +8001,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_edit_mesh_rip_region(params),
         km_3d_view_tool_edit_mesh_rip_edge(params),
         km_3d_view_tool_edit_curve_draw(params),
+        km_3d_view_tool_edit_curve_pen(params),
         km_3d_view_tool_edit_curve_radius(params),
         km_3d_view_tool_edit_curve_tilt(params),
         km_3d_view_tool_edit_curve_randomize(params),
