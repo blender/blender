@@ -69,11 +69,11 @@ set(SRC
   interface_widgets.c
   resources.c
   tree_view.cc
-  view2d.c
-  view2d_draw.c
-  view2d_edge_pan.c
-  view2d_gizmo_navigate.c
-  view2d_ops.c
+  view2d.cc
+  view2d_draw.cc
+  view2d_edge_pan.cc
+  view2d_gizmo_navigate.cc
+  view2d_ops.cc
 
   interface_eyedropper_intern.h
   interface_intern.h

@@ -34,7 +34,7 @@ bool UI_view2d_edge_pan_poll(bContext *C)
   ARegion *region = CTX_wm_region(C);
 
   /* Check if there's a region in context to work with. */
-  if (region == NULL) {
+  if (region == nullptr) {
     return false;
   }
 

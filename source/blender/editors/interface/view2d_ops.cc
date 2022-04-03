@@ -5,7 +5,7 @@
  * \ingroup edinterface
  */
 
-#include <math.h>
+#include <cmath>
 
 #include "MEM_guardedalloc.h"
 
@@ -40,7 +40,7 @@ static bool view2d_poll(bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
 
-  return (region != NULL) && (region->v2d.flag & V2D_IS_INIT);
+  return (region != nullptr) && (region->v2d.flag & V2D_IS_INIT);
 }
 
 /** \} */
@@ -61,7 +61,7 @@ static bool view2d_poll(bContext *C)
 /**
  * Temporary custom-data for operator.
  */
-typedef struct v2dViewPanData {
+struct v2dViewPanData {
   /** screen where view pan was initiated */
   bScreen *screen;
   /** area where view pan was initiated */
@@ -88,14 +88,14 @@ typedef struct v2dViewPanData {
   /* View2D Edge Panning */
   double edge_pan_last_time;
   double edge_pan_start_time_x, edge_pan_start_time_y;
-} v2dViewPanData;
+};
 
 static bool view_pan_poll(bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
 
   /* check if there's a region in context to work with */
-  if (region == NULL) {
+  if (region == nullptr) {
     return false;
   }
 
@@ -117,7 +117,7 @@ static void view_pan_init(bContext *C, wmOperator *op)
   BLI_assert(view_pan_poll(C));
 
   /* set custom-data for operator */
-  v2dViewPanData *vpd = MEM_callocN(sizeof(v2dViewPanData), "v2dViewPanData");
+  v2dViewPanData *vpd = MEM_cnew<v2dViewPanData>(__func__);
   op->customdata = vpd;
 
   /* set pointers to owners */
@@ -168,7 +168,7 @@ static void view_pan_apply_ex(bContext *C, v2dViewPanData *vpd, float dx, float 
 
 static void view_pan_apply(bContext *C, wmOperator *op)
 {
-  v2dViewPanData *vpd = op->customdata;
+  v2dViewPanData *vpd = static_cast<v2dViewPanData *>(op->customdata);
 
   view_pan_apply_ex(C, vpd, RNA_int_get(op->ptr, "deltax"), RNA_int_get(op->ptr, "deltay"));
 }
@@ -176,7 +176,7 @@ static void view_pan_apply(bContext *C, wmOperator *op)
 /* Cleanup temp custom-data. */
 static void view_pan_exit(wmOperator *op)
 {
-  v2dViewPanData *vpd = op->customdata;
+  v2dViewPanData *vpd = static_cast<v2dViewPanData *>(op->customdata);
   vpd->v2d->flag &= ~V2D_IS_NAVIGATING;
   MEM_SAFE_FREE(op->customdata);
 }
@@ -204,7 +204,7 @@ static int view_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   /* set up customdata */
   view_pan_init(C, op);
 
-  v2dViewPanData *vpd = op->customdata;
+  v2dViewPanData *vpd = static_cast<v2dViewPanData *>(op->customdata);
   View2D *v2d = vpd->v2d;
 
   /* set initial settings */
@@ -244,7 +244,7 @@ static int view_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
  * need to be done here, not in the apply callback! */
 static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  v2dViewPanData *vpd = op->customdata;
+  v2dViewPanData *vpd = static_cast<v2dViewPanData *>(op->customdata);
 
   /* execute the events */
   switch (event->type) {
@@ -270,7 +270,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
         view_pan_exit(op);
         WM_cursor_modal_restore(CTX_wm_window(C));
-        WM_operator_name_call(C, "VIEW2D_OT_zoom", WM_OP_INVOKE_DEFAULT, NULL, event);
+        WM_operator_name_call(C, "VIEW2D_OT_zoom", WM_OP_INVOKE_DEFAULT, nullptr, event);
         return OPERATOR_FINISHED;
       }
 #endif
@@ -333,7 +333,7 @@ static void VIEW2D_OT_pan(wmOperatorType *ot)
 static int view_edge_pan_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   op->customdata = MEM_callocN(sizeof(View2DEdgePanData), "View2DEdgePanData");
-  View2DEdgePanData *vpd = op->customdata;
+  View2DEdgePanData *vpd = static_cast<View2DEdgePanData *>(op->customdata);
   UI_view2d_edge_pan_operator_init(C, vpd, op);
 
   WM_event_add_modal_handler(C, op);
@@ -343,7 +343,7 @@ static int view_edge_pan_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 
 static int view_edge_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  View2DEdgePanData *vpd = op->customdata;
+  View2DEdgePanData *vpd = static_cast<View2DEdgePanData *>(op->customdata);
 
   if (event->val == KM_RELEASE || event->type == EVT_ESCKEY) {
     vpd->v2d->flag &= ~V2D_IS_NAVIGATING;
@@ -360,7 +360,7 @@ static int view_edge_pan_modal(bContext *C, wmOperator *op, const wmEvent *event
 
 static void view_edge_pan_cancel(bContext *UNUSED(C), wmOperator *op)
 {
-  v2dViewPanData *vpd = op->customdata;
+  v2dViewPanData *vpd = static_cast<v2dViewPanData *>(op->customdata);
   vpd->v2d->flag &= ~V2D_IS_NAVIGATING;
   MEM_SAFE_FREE(op->customdata);
 }
@@ -392,13 +392,11 @@ static void VIEW2D_OT_edge_pan(wmOperatorType *ot)
 /* this operator only needs this single callback, where it calls the view_pan_*() methods */
 static int view_scrollright_exec(bContext *C, wmOperator *op)
 {
-  v2dViewPanData *vpd;
-
   /* initialize default settings (and validate if ok to run) */
   view_pan_init(C, op);
 
   /* also, check if can pan in horizontal axis */
-  vpd = op->customdata;
+  v2dViewPanData *vpd = static_cast<v2dViewPanData *>(op->customdata);
   if (vpd->v2d->keepofs & V2D_LOCKOFS_X) {
     view_pan_exit(op);
     return OPERATOR_PASS_THROUGH;
@@ -434,13 +432,11 @@ static void VIEW2D_OT_scroll_right(wmOperatorType *ot)
 /* this operator only needs this single callback, where it calls the view_pan_*() methods */
 static int view_scrollleft_exec(bContext *C, wmOperator *op)
 {
-  v2dViewPanData *vpd;
-
   /* initialize default settings (and validate if ok to run) */
   view_pan_init(C, op);
 
   /* also, check if can pan in horizontal axis */
-  vpd = op->customdata;
+  v2dViewPanData *vpd = static_cast<v2dViewPanData *>(op->customdata);
   if (vpd->v2d->keepofs & V2D_LOCKOFS_X) {
     view_pan_exit(op);
     return OPERATOR_PASS_THROUGH;
@@ -476,13 +472,11 @@ static void VIEW2D_OT_scroll_left(wmOperatorType *ot)
 /* this operator only needs this single callback, where it calls the view_pan_*() methods */
 static int view_scrolldown_exec(bContext *C, wmOperator *op)
 {
-  v2dViewPanData *vpd;
-
   /* initialize default settings (and validate if ok to run) */
   view_pan_init(C, op);
 
   /* also, check if can pan in vertical axis */
-  vpd = op->customdata;
+  v2dViewPanData *vpd = static_cast<v2dViewPanData *>(op->customdata);
   if (vpd->v2d->keepofs & V2D_LOCKOFS_Y) {
     view_pan_exit(op);
     return OPERATOR_PASS_THROUGH;
@@ -519,19 +513,17 @@ static void VIEW2D_OT_scroll_down(wmOperatorType *ot)
   /* rna - must keep these in sync with the other operators */
   RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
   RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
-  RNA_def_boolean(ot->srna, "page", 0, "Page", "Scroll down one page");
+  RNA_def_boolean(ot->srna, "page", false, "Page", "Scroll down one page");
 }
 
 /* this operator only needs this single callback, where it calls the view_pan_*() methods */
 static int view_scrollup_exec(bContext *C, wmOperator *op)
 {
-  v2dViewPanData *vpd;
-
   /* initialize default settings (and validate if ok to run) */
   view_pan_init(C, op);
 
   /* also, check if can pan in vertical axis */
-  vpd = op->customdata;
+  v2dViewPanData *vpd = static_cast<v2dViewPanData *>(op->customdata);
   if (vpd->v2d->keepofs & V2D_LOCKOFS_Y) {
     view_pan_exit(op);
     return OPERATOR_PASS_THROUGH;
@@ -568,7 +560,7 @@ static void VIEW2D_OT_scroll_up(wmOperatorType *ot)
   /* rna - must keep these in sync with the other operators */
   RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
   RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
-  RNA_def_boolean(ot->srna, "page", 0, "Page", "Scroll up one page");
+  RNA_def_boolean(ot->srna, "page", false, "Page", "Scroll up one page");
 }
 
 /** \} */
@@ -594,7 +586,7 @@ static void VIEW2D_OT_scroll_up(wmOperatorType *ot)
 /**
  * Temporary custom-data for operator.
  */
-typedef struct v2dViewZoomData {
+struct v2dViewZoomData {
   View2D *v2d; /* view2d we're operating in */
   ARegion *region;
 
@@ -607,7 +599,7 @@ typedef struct v2dViewZoomData {
   float dx, dy;       /* running tally of previous delta values (for obtaining final zoom) */
   float mx_2d, my_2d; /* initial mouse location in v2d coords */
   bool zoom_to_mouse_pos;
-} v2dViewZoomData;
+};
 
 /**
  * Clamp by convention rather than locking flags,
@@ -636,7 +628,7 @@ static bool view_zoom_poll(bContext *C)
   ARegion *region = CTX_wm_region(C);
 
   /* check if there's a region in context to work with */
-  if (region == NULL) {
+  if (region == nullptr) {
     return false;
   }
 
@@ -663,7 +655,7 @@ static void view_zoomdrag_init(bContext *C, wmOperator *op)
   BLI_assert(view_zoom_poll(C));
 
   /* set custom-data for operator */
-  v2dViewZoomData *vzd = MEM_callocN(sizeof(v2dViewZoomData), "v2dViewZoomData");
+  v2dViewZoomData *vzd = MEM_cnew<v2dViewZoomData>(__func__);
   op->customdata = vzd;
 
   /* set pointers to owners */
@@ -777,7 +769,7 @@ static void view_zoomstep_apply_ex(bContext *C,
   if (ED_region_snap_size_apply(region, snap_test)) {
     ScrArea *area = CTX_wm_area(C);
     ED_area_tag_redraw(area);
-    WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
+    WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
   }
 
   /* request updates to be done... */
@@ -787,7 +779,7 @@ static void view_zoomstep_apply_ex(bContext *C,
 
 static void view_zoomstep_apply(bContext *C, wmOperator *op)
 {
-  v2dViewZoomData *vzd = op->customdata;
+  v2dViewZoomData *vzd = static_cast<v2dViewZoomData *>(op->customdata);
   view_zoomstep_apply_ex(
       C, vzd, RNA_float_get(op->ptr, "zoomfacx"), RNA_float_get(op->ptr, "zoomfacy"));
 }
@@ -802,7 +794,7 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 static void view_zoomstep_exit(wmOperator *op)
 {
   UI_view2d_zoom_cache_reset();
-  v2dViewZoomData *vzd = op->customdata;
+  v2dViewZoomData *vzd = static_cast<v2dViewZoomData *>(op->customdata);
   vzd->v2d->flag &= ~V2D_IS_NAVIGATING;
   MEM_SAFE_FREE(op->customdata);
 }
@@ -810,7 +802,7 @@ static void view_zoomstep_exit(wmOperator *op)
 /* this operator only needs this single callback, where it calls the view_zoom_*() methods */
 static int view_zoomin_exec(bContext *C, wmOperator *op)
 {
-  if (op->customdata == NULL) { /* Might have been setup in _invoke() already. */
+  if (op->customdata == nullptr) { /* Might have been setup in _invoke() already. */
     view_zoomdrag_init(C, op);
   }
 
@@ -833,7 +825,7 @@ static int view_zoomin_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   view_zoomdrag_init(C, op);
 
-  v2dViewZoomData *vzd = op->customdata;
+  v2dViewZoomData *vzd = static_cast<v2dViewZoomData *>(op->customdata);
 
   if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
     ARegion *region = CTX_wm_region(C);
@@ -875,7 +867,7 @@ static int view_zoomout_exec(bContext *C, wmOperator *op)
 {
   bool do_zoom_xy[2];
 
-  if (op->customdata == NULL) { /* Might have been setup in _invoke() already. */
+  if (op->customdata == nullptr) { /* Might have been setup in _invoke() already. */
     view_zoomdrag_init(C, op);
   }
 
@@ -897,7 +889,7 @@ static int view_zoomout_invoke(bContext *C, wmOperator *op, const wmEvent *event
 {
   view_zoomdrag_init(C, op);
 
-  v2dViewZoomData *vzd = op->customdata;
+  v2dViewZoomData *vzd = static_cast<v2dViewZoomData *>(op->customdata);
 
   if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
     ARegion *region = CTX_wm_region(C);
@@ -951,7 +943,7 @@ static void VIEW2D_OT_zoom_out(wmOperatorType *ot)
 /* apply transform to view (i.e. adjust 'cur' rect) */
 static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 {
-  v2dViewZoomData *vzd = op->customdata;
+  v2dViewZoomData *vzd = static_cast<v2dViewZoomData *>(op->customdata);
   View2D *v2d = vzd->v2d;
   const int snap_test = ED_region_snap_size_test(vzd->region);
 
@@ -1020,7 +1012,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
   if (ED_region_snap_size_apply(vzd->region, snap_test)) {
     ScrArea *area = CTX_wm_area(C);
     ED_area_tag_redraw(area);
-    WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
+    WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
   }
 
   /* request updates to be done... */
@@ -1034,7 +1026,7 @@ static void view_zoomdrag_exit(bContext *C, wmOperator *op)
   UI_view2d_zoom_cache_reset();
 
   if (op->customdata) {
-    v2dViewZoomData *vzd = op->customdata;
+    v2dViewZoomData *vzd = static_cast<v2dViewZoomData *>(op->customdata);
     vzd->v2d->flag &= ~V2D_IS_NAVIGATING;
 
     if (vzd->timer) {
@@ -1042,7 +1034,7 @@ static void view_zoomdrag_exit(bContext *C, wmOperator *op)
     }
 
     MEM_freeN(op->customdata);
-    op->customdata = NULL;
+    op->customdata = nullptr;
   }
 }
 
@@ -1068,7 +1060,7 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, const wmEvent *even
   /* set up customdata */
   view_zoomdrag_init(C, op);
 
-  v2dViewZoomData *vzd = op->customdata;
+  v2dViewZoomData *vzd = static_cast<v2dViewZoomData *>(op->customdata);
   View2D *v2d = vzd->v2d;
 
   if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
@@ -1174,7 +1166,7 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, const wmEvent *even
  * not in the apply callback! */
 static int view_zoomdrag_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  v2dViewZoomData *vzd = op->customdata;
+  v2dViewZoomData *vzd = static_cast<v2dViewZoomData *>(op->customdata);
   View2D *v2d = vzd->v2d;
 
   /* execute the events */
@@ -1444,7 +1436,7 @@ static int view2d_ndof_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  const wmNDOFMotionData *ndof = event->customdata;
+  const wmNDOFMotionData *ndof = static_cast<const wmNDOFMotionData *>(event->customdata);
 
   /* tune these until it feels right */
   const float zoom_sensitivity = 0.5f;
@@ -1462,7 +1454,7 @@ static int view2d_ndof_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     view_pan_init(C, op);
 
-    v2dViewPanData *vpd = op->customdata;
+    v2dViewPanData *vpd = static_cast<v2dViewPanData *>(op->customdata);
     view_pan_apply_ex(C, vpd, pan_vec[0], pan_vec[1]);
 
     view_pan_exit(op);
@@ -1481,7 +1473,7 @@ static int view2d_ndof_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     view_zoomdrag_init(C, op);
 
-    v2dViewZoomData *vzd = op->customdata;
+    v2dViewZoomData *vzd = static_cast<v2dViewZoomData *>(op->customdata);
     view_zoomstep_apply_ex(
         C, vzd, do_zoom_xy[0] ? zoom_factor : 0.0f, do_zoom_xy[1] ? zoom_factor : 0.0f);
 
@@ -1560,7 +1552,7 @@ void UI_view2d_smooth_view(bContext *C, ARegion *region, const rctf *cur, const 
   wmWindow *win = CTX_wm_window(C);
 
   View2D *v2d = &region->v2d;
-  struct SmoothView2DStore sms = {{0}};
+  SmoothView2DStore sms = {{0}};
   bool ok = false;
   float fac = 1.0f;
 
@@ -1594,8 +1586,8 @@ void UI_view2d_smooth_view(bContext *C, ARegion *region, const rctf *cur, const 
       sms.time_allowed *= (double)fac;
 
       /* keep track of running timer! */
-      if (v2d->sms == NULL) {
-        v2d->sms = MEM_mallocN(sizeof(struct SmoothView2DStore), "smoothview v2d");
+      if (v2d->sms == nullptr) {
+        v2d->sms = MEM_new<SmoothView2DStore>(__func__);
       }
       *v2d->sms = sms;
       if (v2d->smooth_timer) {
@@ -1624,10 +1616,10 @@ static int view2d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const w
   wmWindow *win = CTX_wm_window(C);
   ARegion *region = CTX_wm_region(C);
   View2D *v2d = &region->v2d;
-  struct SmoothView2DStore *sms = v2d->sms;
+  SmoothView2DStore *sms = v2d->sms;
 
   /* escape if not our timer */
-  if (v2d->smooth_timer == NULL || v2d->smooth_timer != event->customdata) {
+  if (v2d->smooth_timer == nullptr || v2d->smooth_timer != event->customdata) {
     return OPERATOR_PASS_THROUGH;
   }
 
@@ -1644,10 +1636,10 @@ static int view2d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const w
     v2d->cur = sms->new_cur;
 
     MEM_freeN(v2d->sms);
-    v2d->sms = NULL;
+    v2d->sms = nullptr;
 
     WM_event_remove_timer(CTX_wm_manager(C), win, v2d->smooth_timer);
-    v2d->smooth_timer = NULL;
+    v2d->smooth_timer = nullptr;
 
     /* Event handling won't know if a UI item has been moved under the pointer. */
     WM_event_add_mousemove(win);
@@ -1663,7 +1655,7 @@ static int view2d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const w
   UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
   ED_region_tag_redraw_no_rebuild(region);
 
-  if (v2d->sms == NULL) {
+  if (v2d->sms == nullptr) {
     UI_view2d_zoom_cache_reset();
   }
 
@@ -1704,7 +1696,7 @@ static void VIEW2D_OT_smoothview(wmOperatorType *ot)
  */
 
 /* customdata for scroller-invoke data */
-typedef struct v2dScrollerMove {
+struct v2dScrollerMove {
   /** View2D data that this operation affects */
   View2D *v2d;
   /** region that the scroller is in */
@@ -1731,7 +1723,7 @@ typedef struct v2dScrollerMove {
 
   /** previous mouse coordinates (in screen coordinates) for determining movement */
   int lastx, lasty;
-} v2dScrollerMove;
+};
 
 /**
  * #View2DScrollers is typedef'd in UI_view2d.h
@@ -1840,7 +1832,7 @@ static void scroller_activate_init(bContext *C,
   View2D *v2d = &region->v2d;
 
   /* set custom-data for operator */
-  v2dScrollerMove *vsm = MEM_callocN(sizeof(v2dScrollerMove), "v2dScrollerMove");
+  v2dScrollerMove *vsm = MEM_cnew<v2dScrollerMove>(__func__);
   op->customdata = vsm;
 
   /* set general data */
@@ -1855,7 +1847,7 @@ static void scroller_activate_init(bContext *C,
    * - zooming must be allowed on this axis, otherwise, default to pan
    */
   View2DScrollers scrollers;
-  UI_view2d_scrollers_calc(v2d, NULL, &scrollers);
+  UI_view2d_scrollers_calc(v2d, nullptr, &scrollers);
 
   /* Use a union of 'cur' & 'tot' in case the current view is far outside 'tot'. In this cases
    * moving the scroll bars has far too little effect and the view can get stuck T31476. */
@@ -1912,13 +1904,13 @@ static void scroller_activate_init(bContext *C,
 static void scroller_activate_exit(bContext *C, wmOperator *op)
 {
   if (op->customdata) {
-    v2dScrollerMove *vsm = op->customdata;
+    v2dScrollerMove *vsm = static_cast<v2dScrollerMove *>(op->customdata);
 
     vsm->v2d->scroll_ui &= ~(V2D_SCROLL_H_ACTIVE | V2D_SCROLL_V_ACTIVE);
     vsm->v2d->flag &= ~V2D_IS_NAVIGATING;
 
     MEM_freeN(op->customdata);
-    op->customdata = NULL;
+    op->customdata = nullptr;
 
     ED_region_tag_redraw_no_rebuild(CTX_wm_region(C));
   }
@@ -1932,7 +1924,7 @@ static void scroller_activate_cancel(bContext *C, wmOperator *op)
 /* apply transform to view (i.e. adjust 'cur' rect) */
 static void scroller_activate_apply(bContext *C, wmOperator *op)
 {
-  v2dScrollerMove *vsm = op->customdata;
+  v2dScrollerMove *vsm = static_cast<v2dScrollerMove *>(op->customdata);
   View2D *v2d = vsm->v2d;
 
   /* calculate amount to move view by */
@@ -1994,7 +1986,7 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
  */
 static int scroller_activate_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  v2dScrollerMove *vsm = op->customdata;
+  v2dScrollerMove *vsm = static_cast<v2dScrollerMove *>(op->customdata);
 
   /* execute the events */
   switch (event->type) {
@@ -2217,7 +2209,7 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
   if (ED_region_snap_size_apply(region, snap_test)) {
     ScrArea *area = CTX_wm_area(C);
     ED_area_tag_redraw(area);
-    WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
+    WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
   }
 
   /* request updates to be done... */

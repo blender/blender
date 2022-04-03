@@ -5,22 +5,22 @@
  * \ingroup edinterface
  */
 
-#include <float.h>
-#include <limits.h>
-#include <math.h>
-#include <string.h>
+#include <cfloat>
+#include <climits>
+#include <cmath>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_array.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
@@ -97,40 +97,38 @@ static float view2d_major_step_x__time(const View2D *v2d, const Scene *scene)
 {
   const double fps = FPS;
 
-  float *possible_distances = NULL;
-  BLI_array_staticdeclare(possible_distances, 32);
+  blender::Vector<float, 32> possible_distances;
 
-  for (uint step = 1; step < fps; step *= 2) {
-    BLI_array_append(possible_distances, step);
+  for (int step = 1; step < fps; step *= 2) {
+    possible_distances.append(step);
   }
-  BLI_array_append(possible_distances, fps);
-  BLI_array_append(possible_distances, 2 * fps);
-  BLI_array_append(possible_distances, 5 * fps);
-  BLI_array_append(possible_distances, 10 * fps);
-  BLI_array_append(possible_distances, 30 * fps);
-  BLI_array_append(possible_distances, 60 * fps);
-  BLI_array_append(possible_distances, 2 * 60 * fps);
-  BLI_array_append(possible_distances, 5 * 60 * fps);
-  BLI_array_append(possible_distances, 10 * 60 * fps);
-  BLI_array_append(possible_distances, 30 * 60 * fps);
-  BLI_array_append(possible_distances, 60 * 60 * fps);
+  possible_distances.append(fps);
+  possible_distances.append(2 * fps);
+  possible_distances.append(5 * fps);
+  possible_distances.append(10 * fps);
+  possible_distances.append(30 * fps);
+  possible_distances.append(60 * fps);
+  possible_distances.append(2 * 60 * fps);
+  possible_distances.append(5 * 60 * fps);
+  possible_distances.append(10 * 60 * fps);
+  possible_distances.append(30 * 60 * fps);
+  possible_distances.append(60 * 60 * fps);
 
-  float distance = select_major_distance(possible_distances,
-                                         BLI_array_len(possible_distances),
+  float distance = select_major_distance(possible_distances.data(),
+                                         possible_distances.size(),
                                          BLI_rcti_size_x(&v2d->mask),
                                          BLI_rctf_size_x(&v2d->cur));
 
-  BLI_array_free(possible_distances);
   return distance;
 }
 
 /* Draw parallel lines
  ************************************/
 
-typedef struct ParallelLinesSet {
+struct ParallelLinesSet {
   float offset;
   float distance;
-} ParallelLinesSet;
+};
 
 static void get_parallel_lines_draw_steps(const ParallelLinesSet *lines,
                                           float region_start,
@@ -266,8 +264,8 @@ static void view2d_draw_lines(const View2D *v2d,
 /* Scale indicator text drawing
  **************************************************/
 
-typedef void (*PositionToString)(
-    void *user_data, float v2d_pos, float v2d_step, uint max_len, char *r_str);
+using PositionToString =
+    void (*)(void *user_data, float v2d_pos, float v2d_step, uint max_len, char *r_str);
 
 static void draw_horizontal_scale_indicators(const ARegion *region,
                                              const View2D *v2d,
@@ -530,7 +528,7 @@ static void UI_view2d_draw_scale_x__discrete_values(const ARegion *region,
 {
   const float number_step = view2d_major_step_x__discrete(v2d);
   draw_horizontal_scale_indicators(
-      region, v2d, number_step, rect, view_to_string__frame_number, NULL, colorid);
+      region, v2d, number_step, rect, view_to_string__frame_number, nullptr, colorid);
 }
 
 static void UI_view2d_draw_scale_x__discrete_time(
@@ -547,7 +545,8 @@ static void UI_view2d_draw_scale_x__values(const ARegion *region,
                                            int colorid)
 {
   const float step = view2d_major_step_x__continuous(v2d);
-  draw_horizontal_scale_indicators(region, v2d, step, rect, view_to_string__value, NULL, colorid);
+  draw_horizontal_scale_indicators(
+      region, v2d, step, rect, view_to_string__value, nullptr, colorid);
 }
 
 void UI_view2d_draw_scale_y__values(const ARegion *region,
@@ -557,7 +556,7 @@ void UI_view2d_draw_scale_y__values(const ARegion *region,
 {
   const float step = view2d_major_step_y__continuous(v2d);
   draw_vertical_scale_indicators(
-      region, v2d, step, 0.0f, rect, view_to_string__value, NULL, colorid);
+      region, v2d, step, 0.0f, rect, view_to_string__value, nullptr, colorid);
 }
 
 void UI_view2d_draw_scale_y__block(const ARegion *region,
@@ -566,7 +565,7 @@ void UI_view2d_draw_scale_y__block(const ARegion *region,
                                    int colorid)
 {
   draw_vertical_scale_indicators(
-      region, v2d, 1.0f, 0.5f, rect, view_to_string__value, NULL, colorid);
+      region, v2d, 1.0f, 0.5f, rect, view_to_string__value, nullptr, colorid);
 }
 
 void UI_view2d_draw_scale_x__discrete_frames_or_seconds(const struct ARegion *region,
