@@ -50,6 +50,19 @@ class AbstractTreeElement {
     return true;
   }
 
+  TreeElement &getLegacyElement()
+  {
+    return legacy_te_;
+  }
+
+  /**
+   * Expand this tree element if it is displayed for the first time (as identified by its
+   * tree-store element).
+   *
+   * Static for now to allow doing this from the legacy tree element.
+   */
+  static void uncollapse_by_default(TreeElement *legacy_te);
+
   friend void tree_element_expand(const AbstractTreeElement &tree_element,
                                   SpaceOutliner &space_outliner);
 

@@ -841,6 +841,12 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
       nodeRemLink(&ntree, link);
     }
     else if (toselect && !fromselect) {
+      /* Remove hidden links to not create unconnected sockets in the interface. */
+      if (nodeLinkIsHidden(link)) {
+        nodeRemLink(&ntree, link);
+        continue;
+      }
+
       bNodeSocket *link_sock;
       bNode *link_node;
       node_socket_skip_reroutes(&ntree.links, link->tonode, link->tosock, &link_node, &link_sock);
@@ -861,6 +867,12 @@ static void node_group_make_insert_selected(const bContext &C, bNodeTree &ntree,
       link->tosock = node_group_find_input_socket(gnode, iosock->identifier);
     }
     else if (fromselect && !toselect) {
+      /* Remove hidden links to not create unconnected sockets in the interface. */
+      if (nodeLinkIsHidden(link)) {
+        nodeRemLink(&ntree, link);
+        continue;
+      }
+
       /* First check whether the source of this link is already connected to an output.
        * If yes, reuse that output instead of duplicating it. */
       bool connected = false;

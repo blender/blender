@@ -138,7 +138,7 @@ typedef struct BrushGpencilSettings {
 } BrushGpencilSettings;
 
 typedef struct BrushCurvesSculptSettings {
-  /* Number of curves added by the add brush.  */
+  /** Number of curves added by the add brush. */
   int add_amount;
 } BrushCurvesSculptSettings;
 

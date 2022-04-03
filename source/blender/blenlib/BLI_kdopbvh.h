@@ -181,18 +181,18 @@ int BLI_bvhtree_overlap_thread_num(const BVHTree *tree);
  */
 BVHTreeOverlap *BLI_bvhtree_overlap_ex(const BVHTree *tree1,
                                        const BVHTree *tree2,
-                                       uint *r_overlap_tot,
+                                       uint *r_overlap_num,
                                        BVHTree_OverlapCallback callback,
                                        void *userdata,
                                        uint max_interactions,
                                        int flag);
 BVHTreeOverlap *BLI_bvhtree_overlap(const BVHTree *tree1,
                                     const BVHTree *tree2,
-                                    unsigned int *r_overlap_tot,
+                                    unsigned int *r_overlap_num,
                                     BVHTree_OverlapCallback callback,
                                     void *userdata);
 
-int *BLI_bvhtree_intersect_plane(BVHTree *tree, float plane[4], uint *r_intersect_tot);
+int *BLI_bvhtree_intersect_plane(BVHTree *tree, float plane[4], uint *r_intersect_num);
 
 /**
  * Number of times #BLI_bvhtree_insert has been called.

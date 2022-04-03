@@ -80,9 +80,7 @@ static void requiredDataMask(Object *UNUSED(ob),
   }
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene),
-                          ModifierData *md,
-                          const int UNUSED(dag_eval_mode))
+static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *md)
 {
   DisplaceModifierData *dmd = (DisplaceModifierData *)md;
 
@@ -269,7 +267,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
                                 const ModifierEvalContext *ctx,
                                 Mesh *mesh,
                                 float (*vertexCos)[3],
-                                const int numVerts)
+                                const int verts_num)
 {
   Object *ob = ctx->object;
   MVert *mvert;
@@ -299,7 +297,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
 
   Tex *tex_target = dmd->texture;
   if (tex_target != NULL) {
-    tex_co = MEM_calloc_arrayN((size_t)numVerts, sizeof(*tex_co), "displaceModifier_do tex_co");
+    tex_co = MEM_calloc_arrayN((size_t)verts_num, sizeof(*tex_co), "displaceModifier_do tex_co");
     MOD_get_texture_coords((MappingInfoModifierData *)dmd, ctx, ob, mesh, vertexCos, tex_co);
 
     MOD_init_texture((MappingInfoModifierData *)dmd, ctx);
@@ -319,9 +317,9 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
       }
 
       clnors = CustomData_get_layer(ldata, CD_NORMAL);
-      vert_clnors = MEM_malloc_arrayN(numVerts, sizeof(*vert_clnors), __func__);
+      vert_clnors = MEM_malloc_arrayN(verts_num, sizeof(*vert_clnors), __func__);
       BKE_mesh_normals_loop_to_vertex(
-          numVerts, mesh->mloop, mesh->totloop, (const float(*)[3])clnors, vert_clnors);
+          verts_num, mesh->mloop, mesh->totloop, (const float(*)[3])clnors, vert_clnors);
     }
     else {
       direction = MOD_DISP_DIR_NOR;
@@ -355,8 +353,8 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   }
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = (numVerts > 512);
-  BLI_task_parallel_range(0, numVerts, &data, displaceModifier_do_task, &settings);
+  settings.use_threading = (verts_num > 512);
+  BLI_task_parallel_range(0, verts_num, &data, displaceModifier_do_task, &settings);
 
   if (data.pool != NULL) {
     BKE_image_pool_free(data.pool);
@@ -375,11 +373,12 @@ static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
                         Mesh *mesh,
                         float (*vertexCos)[3],
-                        int numVerts)
+                        int verts_num)
 {
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(
+      ctx->object, NULL, mesh, NULL, verts_num, false, false);
 
-  displaceModifier_do((DisplaceModifierData *)md, ctx, mesh_src, vertexCos, numVerts);
+  displaceModifier_do((DisplaceModifierData *)md, ctx, mesh_src, vertexCos, verts_num);
 
   if (!ELEM(mesh_src, NULL, mesh)) {
     BKE_id_free(NULL, mesh_src);
@@ -391,17 +390,17 @@ static void deformVertsEM(ModifierData *md,
                           struct BMEditMesh *editData,
                           Mesh *mesh,
                           float (*vertexCos)[3],
-                          int numVerts)
+                          int verts_num)
 {
   Mesh *mesh_src = MOD_deform_mesh_eval_get(
-      ctx->object, editData, mesh, NULL, numVerts, false, false);
+      ctx->object, editData, mesh, NULL, verts_num, false, false);
 
   /* TODO(Campbell): use edit-mode data only (remove this line). */
   if (mesh_src != NULL) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }
 
-  displaceModifier_do((DisplaceModifierData *)md, ctx, mesh_src, vertexCos, numVerts);
+  displaceModifier_do((DisplaceModifierData *)md, ctx, mesh_src, vertexCos, verts_num);
 
   if (!ELEM(mesh_src, NULL, mesh)) {
     BKE_id_free(NULL, mesh_src);

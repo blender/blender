@@ -31,6 +31,7 @@ struct Curve;
 struct FluidsimSettings;
 struct GeometrySet;
 struct Ipo;
+struct LightgroupMembership;
 struct Material;
 struct Mesh;
 struct Object;
@@ -93,7 +94,7 @@ typedef struct BoundBox {
 
 /** #BoundBox.flag */
 enum {
-  BOUNDBOX_DISABLED = (1 << 0),
+  /* BOUNDBOX_DISABLED = (1 << 0), */ /* UNUSED */
   BOUNDBOX_DIRTY = (1 << 1),
 };
 
@@ -203,7 +204,7 @@ typedef struct Object_Runtime {
 
   float (*crazyspace_deform_imats)[3][3];
   float (*crazyspace_deform_cos)[3];
-  int crazyspace_num_verts;
+  int crazyspace_verts_num;
 
   int _pad3[3];
 } Object_Runtime;
@@ -434,8 +435,10 @@ typedef struct Object {
 
   ObjectLineArt lineart;
 
+  /** Lightgroup membership information. */
+  struct LightgroupMembership *lightgroup;
+
   /** Runtime evaluation data (keep last). */
-  void *_pad9;
   Object_Runtime runtime;
 } Object;
 

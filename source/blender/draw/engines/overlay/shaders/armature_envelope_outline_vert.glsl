@@ -1,19 +1,6 @@
 
-/* ---- Instantiated Attrs ---- */
-in vec2 pos0;
-in vec2 pos1;
-in vec2 pos2;
-
-/* ---- Per instance Attrs ---- */
-/* Assumed to be in world coordinate already. */
-in vec4 headSphere;
-in vec4 tailSphere;
-in vec4 outlineColorSize;
-in vec3 xAxis;
-
-flat out vec4 finalColor;
-flat out vec2 edgeStart;
-noperspective out vec2 edgePos;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 /* project to screen space */
 vec2 proj(vec4 pos)
@@ -134,9 +121,7 @@ void main()
   vec3 wpos2 = get_outline_point(
       pos2, sph_near, sph_far, mat_near, mat_far, z_ofs_near, z_ofs_far, b);
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(wpos1);
-#endif
+  view_clipping_distances(wpos1);
 
   vec4 p0 = point_world_to_ndc(wpos0);
   vec4 p1 = point_world_to_ndc(wpos1);
@@ -152,7 +137,7 @@ void main()
   vec2 ofs_dir = compute_dir(ss0, ss1, ss2);
 
   /* Offset away from the center to avoid overlap with solid shape. */
-  gl_Position.xy += ofs_dir * sizeViewportInv.xy * gl_Position.w;
+  gl_Position.xy += ofs_dir * drw_view.viewport_size_inverse * gl_Position.w;
 
   edgeStart = edgePos = proj(gl_Position);
 

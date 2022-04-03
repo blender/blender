@@ -2961,6 +2961,8 @@ Copyright (c) 2009, 2010, 2013-2016 by the Brotli Authors.
 ** Expat; version 2.2.10 -- https://github.com/libexpat/libexpat/
 Copyright (c) 1998-2000 Thai Open Source Software Center Ltd and Clark Cooper
 Copyright (c) 2001-2019 Expat maintainers
+** {fmt}; version 8.1.1 -- https://github.com/fmtlib/fmt
+Copyright (c) 2012 - present, Victor Zverovich
 ** JSON for Modern C++; version 3.10.2 -- https://github.com/nlohmann/json/
 Copyright (c) 2013-2021 Niels Lohmann
 ** Libxml2; version 2.9.10 -- http://xmlsoft.org/

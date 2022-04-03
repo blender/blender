@@ -322,7 +322,7 @@ static bool gpencil_weightpaint_brush_init(bContext *C, wmOperator *op)
 
   gso->region = CTX_wm_region(C);
 
-  /* Multiframe settings. */
+  /* Multi-frame settings. */
   gso->is_multiframe = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gso->gpd);
   gso->use_multiframe_falloff = (ts->gp_sculpt.flag & GP_SCULPT_SETT_FLAG_FRAME_FALLOFF) != 0;
 

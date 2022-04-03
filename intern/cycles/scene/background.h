@@ -30,6 +30,8 @@ class Background : public Node {
 
   NODE_SOCKET_API(float, volume_step_size)
 
+  NODE_SOCKET_API(ustring, lightgroup)
+
   Background();
   ~Background();
 

@@ -192,7 +192,7 @@ void RIGIDBODY_OT_world_export(wmOperatorType *ot)
                                  FILE_TYPE_FOLDER,
                                  FILE_SPECIAL,
                                  FILE_SAVE,
-                                 FILE_RELPATH,
+                                 WM_FILESEL_RELPATH,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
 }

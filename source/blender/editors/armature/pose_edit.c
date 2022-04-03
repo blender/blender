@@ -23,6 +23,7 @@
 #include "BKE_deform.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -78,7 +79,7 @@ Object *ED_pose_object_from_context(bContext *C)
 
 bool ED_object_posemode_enter_ex(struct Main *bmain, Object *ob)
 {
-  BLI_assert(!ID_IS_LINKED(ob));
+  BLI_assert(BKE_id_is_editable(bmain, &ob->id));
   bool ok = false;
 
   switch (ob->type) {
@@ -99,11 +100,11 @@ bool ED_object_posemode_enter_ex(struct Main *bmain, Object *ob)
 bool ED_object_posemode_enter(bContext *C, Object *ob)
 {
   ReportList *reports = CTX_wm_reports(C);
-  if (ID_IS_LINKED(ob)) {
+  struct Main *bmain = CTX_data_main(C);
+  if (!BKE_id_is_editable(bmain, &ob->id)) {
     BKE_report(reports, RPT_WARNING, "Cannot pose libdata");
     return false;
   }
-  struct Main *bmain = CTX_data_main(C);
   bool ok = ED_object_posemode_enter_ex(bmain, ob);
   if (ok) {
     WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_POSE, NULL);

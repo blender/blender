@@ -91,6 +91,7 @@ static void drw_deferred_shader_compilation_exec(
     short *do_update,
     float *progress)
 {
+  GPU_render_begin();
   DRWShaderCompiler *comp = (DRWShaderCompiler *)custom_data;
   void *gl_context = comp->gl_context;
   GPUContext *gpu_context = comp->gpu_context;
@@ -138,7 +139,9 @@ static void drw_deferred_shader_compilation_exec(
     *progress = (float)comp->shaders_done / (float)total;
     *do_update = true;
 
-    GPU_flush();
+    if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
+      GPU_flush();
+    }
     BLI_mutex_unlock(&comp->compilation_lock);
 
     BLI_spin_lock(&comp->list_lock);
@@ -157,6 +160,7 @@ static void drw_deferred_shader_compilation_exec(
   if (use_main_context_workaround) {
     GPU_context_main_unlock();
   }
+  GPU_render_end();
 }
 
 static void drw_deferred_shader_compilation_free(void *custom_data)

@@ -165,7 +165,7 @@ BLI_INLINE int text_pixel_x_to_column(SpaceText *st, const int x)
 
 static bool text_new_poll(bContext *UNUSED(C))
 {
-  return 1;
+  return true;
 }
 
 static bool text_data_poll(bContext *C)
@@ -182,15 +182,15 @@ static bool text_edit_poll(bContext *C)
   Text *text = CTX_data_edit_text(C);
 
   if (!text) {
-    return 0;
+    return false;
   }
 
-  if (ID_IS_LINKED(text)) {
+  if (!BKE_id_is_editable(CTX_data_main(C), &text->id)) {
     // BKE_report(op->reports, RPT_ERROR, "Cannot edit external library data");
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 bool text_space_edit_poll(bContext *C)
@@ -199,15 +199,15 @@ bool text_space_edit_poll(bContext *C)
   Text *text = CTX_data_edit_text(C);
 
   if (!st || !text) {
-    return 0;
+    return false;
   }
 
-  if (ID_IS_LINKED(text)) {
+  if (!BKE_id_is_editable(CTX_data_main(C), &text->id)) {
     // BKE_report(op->reports, RPT_ERROR, "Cannot edit external library data");
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 static bool text_region_edit_poll(bContext *C)
@@ -217,19 +217,19 @@ static bool text_region_edit_poll(bContext *C)
   ARegion *region = CTX_wm_region(C);
 
   if (!st || !text) {
-    return 0;
+    return false;
   }
 
   if (!region || region->regiontype != RGN_TYPE_WINDOW) {
-    return 0;
+    return false;
   }
 
-  if (ID_IS_LINKED(text)) {
+  if (!BKE_id_is_editable(CTX_data_main(C), &text->id)) {
     // BKE_report(op->reports, RPT_ERROR, "Cannot edit external library data");
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 /** \} */

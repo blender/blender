@@ -481,7 +481,8 @@ static bool layers_poll(bContext *C)
 {
   Object *ob = ED_object_context(C);
   ID *data = (ob) ? ob->data : NULL;
-  return (ob && !ID_IS_LINKED(ob) && ob->type == OB_MESH && data && !ID_IS_LINKED(data));
+  return (ob && !ID_IS_LINKED(ob) && !ID_IS_OVERRIDE_LIBRARY(ob) && ob->type == OB_MESH && data &&
+          !ID_IS_LINKED(data) && !ID_IS_OVERRIDE_LIBRARY(data));
 }
 
 /*********************** Sculpt Vertex colors operators ************************/
@@ -867,7 +868,7 @@ static bool mesh_customdata_mask_clear_poll(bContext *C)
       return false;
     }
 
-    if (!ID_IS_LINKED(me)) {
+    if (!ID_IS_LINKED(me) && !ID_IS_OVERRIDE_LIBRARY(me)) {
       CustomData *data = GET_CD_DATA(me, vdata);
       if (CustomData_has_layer(data, CD_PAINT_MASK)) {
         return true;
@@ -918,7 +919,7 @@ static int mesh_customdata_skin_state(bContext *C)
 
   if (ob && ob->type == OB_MESH) {
     Mesh *me = ob->data;
-    if (!ID_IS_LINKED(me)) {
+    if (!ID_IS_LINKED(me) && !ID_IS_OVERRIDE_LIBRARY(me)) {
       CustomData *data = GET_CD_DATA(me, vdata);
       return CustomData_has_layer(data, CD_MVERT_SKIN);
     }

@@ -58,6 +58,131 @@ void calculate_evaluated_offsets(const Span<int8_t> handle_types_left,
   evaluated_offsets.last() = offset;
 }
 
+static float3 calculate_aligned_handle(const float3 &position,
+                                       const float3 &other_handle,
+                                       const float3 &aligned_handle)
+{
+  /* Keep track of the old length of the opposite handle. */
+  const float length = math::distance(aligned_handle, position);
+  /* Set the other handle to directly opposite from the current handle. */
+  const float3 dir = math::normalize(other_handle - position);
+  return position - dir * length;
+}
+
+static void calculate_point_handles(const HandleType type_left,
+                                    const HandleType type_right,
+                                    const float3 position,
+                                    const float3 prev_position,
+                                    const float3 next_position,
+                                    float3 &left,
+                                    float3 &right)
+{
+  if (ELEM(BEZIER_HANDLE_AUTO, type_left, type_right)) {
+    const float3 prev_diff = position - prev_position;
+    const float3 next_diff = next_position - position;
+    float prev_len = math::length(prev_diff);
+    float next_len = math::length(next_diff);
+    if (prev_len == 0.0f) {
+      prev_len = 1.0f;
+    }
+    if (next_len == 0.0f) {
+      next_len = 1.0f;
+    }
+    const float3 dir = next_diff / next_len + prev_diff / prev_len;
+
+    /* This magic number is unfortunate, but comes from elsewhere in Blender. */
+    const float len = math::length(dir) * 2.5614f;
+    if (len != 0.0f) {
+      if (type_left == BEZIER_HANDLE_AUTO) {
+        const float prev_len_clamped = std::min(prev_len, next_len * 5.0f);
+        left = position + dir * -(prev_len_clamped / len);
+      }
+      if (type_right == BEZIER_HANDLE_AUTO) {
+        const float next_len_clamped = std::min(next_len, prev_len * 5.0f);
+        right = position + dir * (next_len_clamped / len);
+      }
+    }
+  }
+
+  if (type_left == BEZIER_HANDLE_VECTOR) {
+    left = math::interpolate(position, prev_position, 1.0f / 3.0f);
+  }
+
+  if (type_right == BEZIER_HANDLE_VECTOR) {
+    right = math::interpolate(position, next_position, 1.0f / 3.0f);
+  }
+
+  /* When one of the handles is "aligned" handle, it must be aligned with the other, i.e. point in
+   * the opposite direction. Don't handle the case of two aligned handles, because code elsewhere
+   * should keep the pair consistent, and the relative locations aren't affected by other points
+   * anyway. */
+  if (type_left == BEZIER_HANDLE_ALIGN && type_right != BEZIER_HANDLE_ALIGN) {
+    left = calculate_aligned_handle(position, right, left);
+  }
+  else if (type_left != BEZIER_HANDLE_ALIGN && type_right == BEZIER_HANDLE_ALIGN) {
+    right = calculate_aligned_handle(position, left, right);
+  }
+}
+
+void set_handle_position(const float3 &position,
+                         const HandleType type,
+                         const HandleType type_other,
+                         const float3 &new_handle,
+                         float3 &handle,
+                         float3 &handle_other)
+{
+  /* Don't bother when the handle positions are calculated automatically anyway. */
+  if (ELEM(type, BEZIER_HANDLE_AUTO, BEZIER_HANDLE_VECTOR)) {
+    return;
+  }
+
+  handle = new_handle;
+  if (type_other == BEZIER_HANDLE_ALIGN) {
+    handle_other = calculate_aligned_handle(position, handle, handle_other);
+  }
+}
+
+void calculate_auto_handles(const bool cyclic,
+                            const Span<int8_t> types_left,
+                            const Span<int8_t> types_right,
+                            const Span<float3> positions,
+                            MutableSpan<float3> positions_left,
+                            MutableSpan<float3> positions_right)
+{
+  const int points_num = positions.size();
+  if (points_num == 1) {
+    return;
+  }
+
+  calculate_point_handles(HandleType(types_left.first()),
+                          HandleType(types_right.first()),
+                          positions.first(),
+                          cyclic ? positions.last() : 2.0f * positions.first() - positions[1],
+                          positions[1],
+                          positions_left.first(),
+                          positions_right.first());
+
+  threading::parallel_for(IndexRange(1, points_num - 2), 1024, [&](IndexRange range) {
+    for (const int i : range) {
+      calculate_point_handles(HandleType(types_left[i]),
+                              HandleType(types_right[i]),
+                              positions[i],
+                              positions[i - 1],
+                              positions[i + 1],
+                              positions_left[i],
+                              positions_right[i]);
+    }
+  });
+
+  calculate_point_handles(HandleType(types_left.last()),
+                          HandleType(types_right.last()),
+                          positions.last(),
+                          positions.last(1),
+                          cyclic ? positions.first() : 2.0f * positions.last() - positions.last(1),
+                          positions_left.last(),
+                          positions_right.last());
+}
+
 void evaluate_segment(const float3 &point_0,
                       const float3 &point_1,
                       const float3 &point_2,
@@ -150,7 +275,7 @@ static void interpolate_to_evaluated(const Span<T> src,
                                      MutableSpan<T> dst)
 {
   BLI_assert(!src.is_empty());
-  BLI_assert(dst.size() == src.size());
+  BLI_assert(evaluated_offsets.size() == src.size());
   BLI_assert(evaluated_offsets.last() == dst.size());
 
   linear_interpolation(src.first(), src[1], dst.take_front(evaluated_offsets.first()));
@@ -177,7 +302,5 @@ void interpolate_to_evaluated(const GSpan src, const Span<int> evaluated_offsets
     }
   });
 }
-
-/** \} */
 
 }  // namespace blender::bke::curves::bezier

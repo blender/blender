@@ -1,10 +1,10 @@
 #ifndef USE_GPU_SHADER_CREATE_INFO
 in vec4 finalColor;
 out vec4 fragColor;
-#endif
 
-#if defined(VERT)
+#  if defined(VERT)
 in float vertexCrease;
+#  endif
 #endif
 
 void main()

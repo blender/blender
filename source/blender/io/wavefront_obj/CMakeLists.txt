@@ -13,6 +13,7 @@ set(INC
   ../../makesrna
   ../../nodes
   ../../windowmanager
+  ../../../../extern/fmtlib/include
   ../../../../intern/guardedalloc
 )
 

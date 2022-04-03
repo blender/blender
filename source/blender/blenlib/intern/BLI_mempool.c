@@ -159,9 +159,9 @@ BLI_INLINE BLI_mempool_chunk *mempool_chunk_find(BLI_mempool_chunk *head, uint i
  * \note for small pools 1 is a good default, the elements need to be initialized,
  * adding overhead on creation which is redundant if they aren't used.
  */
-BLI_INLINE uint mempool_maxchunks(const uint totelem, const uint pchunk)
+BLI_INLINE uint mempool_maxchunks(const uint elem_num, const uint pchunk)
 {
-  return (totelem <= pchunk) ? 1 : ((totelem / pchunk) + 1);
+  return (elem_num <= pchunk) ? 1 : ((elem_num / pchunk) + 1);
 }
 
 static BLI_mempool_chunk *mempool_chunk_alloc(BLI_mempool *pool)
@@ -250,7 +250,7 @@ static void mempool_chunk_free_all(BLI_mempool_chunk *mpchunk)
   }
 }
 
-BLI_mempool *BLI_mempool_create(uint esize, uint totelem, uint pchunk, uint flag)
+BLI_mempool *BLI_mempool_create(uint esize, uint elem_num, uint pchunk, uint flag)
 {
   BLI_mempool *pool;
   BLI_freenode *last_tail = NULL;
@@ -268,7 +268,7 @@ BLI_mempool *BLI_mempool_create(uint esize, uint totelem, uint pchunk, uint flag
     esize = MAX2(esize, (uint)sizeof(BLI_freenode));
   }
 
-  maxchunks = mempool_maxchunks(totelem, pchunk);
+  maxchunks = mempool_maxchunks(elem_num, pchunk);
 
   pool->chunks = NULL;
   pool->chunk_tail = NULL;
@@ -301,7 +301,7 @@ BLI_mempool *BLI_mempool_create(uint esize, uint totelem, uint pchunk, uint flag
 #endif
   pool->totused = 0;
 
-  if (totelem) {
+  if (elem_num) {
     /* Allocate the actual chunks. */
     for (i = 0; i < maxchunks; i++) {
       BLI_mempool_chunk *mpchunk = mempool_chunk_alloc(pool);
@@ -510,18 +510,18 @@ static void mempool_threadsafe_iternew(BLI_mempool *pool, BLI_mempool_threadsafe
   ts_iter->curchunk_threaded_shared = NULL;
 }
 
-ParallelMempoolTaskData *mempool_iter_threadsafe_create(BLI_mempool *pool, const size_t num_iter)
+ParallelMempoolTaskData *mempool_iter_threadsafe_create(BLI_mempool *pool, const size_t iter_num)
 {
   BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
 
-  ParallelMempoolTaskData *iter_arr = MEM_mallocN(sizeof(*iter_arr) * num_iter, __func__);
+  ParallelMempoolTaskData *iter_arr = MEM_mallocN(sizeof(*iter_arr) * iter_num, __func__);
   BLI_mempool_chunk **curchunk_threaded_shared = MEM_mallocN(sizeof(void *), __func__);
 
   mempool_threadsafe_iternew(pool, &iter_arr->ts_iter);
 
   *curchunk_threaded_shared = iter_arr->ts_iter.iter.curchunk;
   iter_arr->ts_iter.curchunk_threaded_shared = curchunk_threaded_shared;
-  for (size_t i = 1; i < num_iter; i++) {
+  for (size_t i = 1; i < iter_num; i++) {
     iter_arr[i].ts_iter = iter_arr[0].ts_iter;
     *curchunk_threaded_shared = iter_arr[i].ts_iter.iter.curchunk =
         ((*curchunk_threaded_shared) ? (*curchunk_threaded_shared)->next : NULL);

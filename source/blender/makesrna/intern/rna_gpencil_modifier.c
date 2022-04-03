@@ -382,6 +382,7 @@ RNA_GP_MOD_VGROUP_NAME_SET(WeightAngle, vgname);
 RNA_GP_MOD_VGROUP_NAME_SET(Lineart, vgname);
 RNA_GP_MOD_VGROUP_NAME_SET(Shrinkwrap, vgname);
 RNA_GP_MOD_VGROUP_NAME_SET(Envelope, vgname);
+RNA_GP_MOD_VGROUP_NAME_SET(Build, target_vgname);
 
 #  undef RNA_GP_MOD_VGROUP_NAME_SET
 
@@ -416,6 +417,7 @@ RNA_GP_MOD_OBJECT_SET(Mirror, object, OB_EMPTY);
 RNA_GP_MOD_OBJECT_SET(WeightProx, object, OB_EMPTY);
 RNA_GP_MOD_OBJECT_SET(Shrinkwrap, target, OB_MESH);
 RNA_GP_MOD_OBJECT_SET(Shrinkwrap, aux_target, OB_MESH);
+RNA_GP_MOD_OBJECT_SET(Build, object, OB_EMPTY);
 
 #  undef RNA_GP_MOD_OBJECT_SET
 
@@ -1031,7 +1033,7 @@ static void rna_def_modifier_gpencilsmooth(BlenderRNA *brna)
       prop, "Step", "Number of times to apply smooth (high numbers can reduce fps)");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "keep_shape", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_keep_shape", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_SMOOTH_KEEP_SHAPE);
   RNA_def_property_ui_text(prop, "Keep Shape", "Smooth the details, but keep the overall shape");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
@@ -2133,10 +2135,10 @@ static void rna_def_modifier_gpencilbuild(BlenderRNA *brna)
        "Shrink",
        "Hide points from the end of each stroke to the start "
        "(e.g. for animating lines being erased)"},
-      {GP_BUILD_TRANSITION_FADE,
-       "FADE",
+      {GP_BUILD_TRANSITION_VANISH,
+       "FADE", /* "Fade" is the original id string kept for compatibility purpose. */
        0,
-       "Fade",
+       "Vanish",
        "Hide points in the order they occur in each stroke "
        "(e.g. for animating ink fading or vanishing after getting drawn)"},
       {0, NULL, 0, NULL, NULL},
@@ -2241,6 +2243,43 @@ static void rna_def_modifier_gpencilbuild(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "End Frame", "End Frame (when Restrict Frame Range is enabled)");
   RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "use_fading", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BUILD_USE_FADING);
+  RNA_def_property_ui_text(prop, "Use Fading", "Fade out strokes instead of directly cutting off");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "fade_factor", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "fade_fac");
+  RNA_def_property_ui_text(prop, "Fade Factor", "Defines how much of the stroke is fading in/out");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "target_vertex_group", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, NULL, "target_vgname");
+  RNA_def_property_ui_text(prop, "Vertex Group", "Output Vertex group");
+  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_BuildGpencilModifier_target_vgname_set");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "fade_opacity_strength", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "fade_opacity_strength");
+  RNA_def_property_ui_text(
+      prop, "Opacity Strength", "How much strength fading applies on top of stroke opacity");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "fade_thickness_strength", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "fade_thickness_strength");
+  RNA_def_property_ui_text(
+      prop, "Thickness Strength", "How much strength fading applies on top of stroke thickness");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Object", "Object used as build starting position");
+  RNA_def_property_pointer_funcs(prop, NULL, "rna_BuildGpencilModifier_object_set", NULL, NULL);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
 
   /* Filters - Layer */
   prop = RNA_def_property(srna, "layer", PROP_STRING, PROP_NONE);
@@ -3745,7 +3784,7 @@ static void rna_def_modifier_gpencildash(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_cyclic", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DASH_USE_CYCLIC);
-  RNA_def_property_ui_text(prop, "Use Cyclic", "Enable cyclic on individual stroke dashes");
+  RNA_def_property_ui_text(prop, "Cyclic", "Enable cyclic on individual stroke dashes");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   srna = RNA_def_struct(brna, "DashGpencilModifierData", "GpencilModifier");

@@ -20,7 +20,7 @@ struct MemArena;
  * are ignored since the edges won't share 2 faces.
  */
 void BLI_polyfill_beautify(const float (*coords)[2],
-                           unsigned int coords_tot,
+                           unsigned int coords_num,
                            unsigned int (*tris)[3],
 
                            /* structs for reuse */

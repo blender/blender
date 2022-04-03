@@ -2651,7 +2651,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
   }
 
-  return OPERATOR_FINISHED;
+  return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
 }
 
 static int gpencil_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -2662,7 +2662,9 @@ static int gpencil_select_invoke(bContext *C, wmOperator *op, const wmEvent *eve
     RNA_boolean_set(op->ptr, "use_shift_extend", event->modifier & KM_SHIFT);
   }
 
-  return gpencil_select_exec(C, op);
+  const int retval = gpencil_select_exec(C, op);
+
+  return WM_operator_flag_only_pass_through_on_press(retval, event);
 }
 
 void GPENCIL_OT_select(wmOperatorType *ot)

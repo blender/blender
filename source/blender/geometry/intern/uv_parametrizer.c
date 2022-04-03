@@ -16,7 +16,7 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
-#include "uvedit_parametrizer.h"
+#include "GEO_uv_parametrizer.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -622,14 +622,14 @@ static void p_chart_topological_sanity_check(PChart *chart)
   PEdge *e;
 
   for (v = chart->verts; v; v = v->nextlink) {
-    param_test_equals_ptr("v->edge->vert", v, v->edge->vert);
+    GEO_uv_parametrizer_test_equals_ptr("v->edge->vert", v, v->edge->vert);
   }
 
   for (e = chart->edges; e; e = e->nextlink) {
     if (e->pair) {
-      param_test_equals_ptr("e->pair->pair", e, e->pair->pair);
-      param_test_equals_ptr("pair->vert", e->vert, e->pair->next->vert);
-      param_test_equals_ptr("pair->next->vert", e->next->vert, e->pair->vert);
+      GEO_uv_parametrizer_test_equals_ptr("e->pair->pair", e, e->pair->pair);
+      GEO_uv_parametrizer_test_equals_ptr("pair->vert", e->vert, e->pair->next->vert);
+      GEO_uv_parametrizer_test_equals_ptr("pair->next->vert", e->next->vert, e->pair->vert);
     }
   }
 }
@@ -2119,7 +2119,7 @@ static void p_collapse_cost_vertex(PVert *vert, float *r_mincost, PEdge **r_mine
     enext = p_wheel_edge_next(e);
 
     if (enext == NULL) {
-      /* the other boundary edge, where we only have the pair halfedge */
+      /* The other boundary edge, where we only have the pair half-edge. */
       pair = e->next->next;
 
       if (p_collapse_allowed(NULL, pair)) {
@@ -4359,7 +4359,7 @@ static void p_smooth(PChart *chart)
 
 /* Exported */
 
-ParamHandle *param_construct_begin(void)
+ParamHandle *GEO_uv_parametrizer_construct_begin(void)
 {
   PHandle *handle = MEM_callocN(sizeof(*handle), "PHandle");
   handle->construction_chart = p_chart_new(handle);
@@ -4378,7 +4378,7 @@ ParamHandle *param_construct_begin(void)
   return (ParamHandle *)handle;
 }
 
-void param_aspect_ratio(ParamHandle *handle, float aspx, float aspy)
+void GEO_uv_parametrizer_aspect_ratio(ParamHandle *handle, float aspx, float aspy)
 {
   PHandle *phandle = (PHandle *)handle;
 
@@ -4387,7 +4387,7 @@ void param_aspect_ratio(ParamHandle *handle, float aspx, float aspy)
   phandle->do_aspect = true;
 }
 
-void param_delete(ParamHandle *handle)
+void GEO_uv_parametrizer_delete(ParamHandle *handle)
 {
   PHandle *phandle = (PHandle *)handle;
   int i;
@@ -4472,20 +4472,20 @@ static void p_add_ngon(ParamHandle *handle,
     ParamBool tri_pin[3] = {pin[v0], pin[v1], pin[v2]};
     ParamBool tri_select[3] = {select[v0], select[v1], select[v2]};
 
-    param_face_add(handle, key, 3, tri_vkeys, tri_co, tri_uv, tri_pin, tri_select);
+    GEO_uv_parametrizer_face_add(handle, key, 3, tri_vkeys, tri_co, tri_uv, tri_pin, tri_select);
   }
 
   BLI_memarena_clear(arena);
 }
 
-void param_face_add(ParamHandle *handle,
-                    ParamKey key,
-                    int nverts,
-                    ParamKey *vkeys,
-                    float *co[4],
-                    float *uv[4],
-                    ParamBool *pin,
-                    ParamBool *select)
+void GEO_uv_parametrizer_face_add(ParamHandle *handle,
+                                  ParamKey key,
+                                  int nverts,
+                                  ParamKey *vkeys,
+                                  float *co[4],
+                                  float *uv[4],
+                                  ParamBool *pin,
+                                  ParamBool *select)
 {
   PHandle *phandle = (PHandle *)handle;
 
@@ -4514,7 +4514,7 @@ void param_face_add(ParamHandle *handle,
   }
 }
 
-void param_edge_set_seam(ParamHandle *handle, ParamKey *vkeys)
+void GEO_uv_parametrizer_edge_set_seam(ParamHandle *handle, ParamKey *vkeys)
 {
   PHandle *phandle = (PHandle *)handle;
   PEdge *e;
@@ -4527,10 +4527,10 @@ void param_edge_set_seam(ParamHandle *handle, ParamKey *vkeys)
   }
 }
 
-void param_construct_end(ParamHandle *handle,
-                         ParamBool fill,
-                         ParamBool topology_from_uvs,
-                         int *count_fail)
+void GEO_uv_parametrizer_construct_end(ParamHandle *handle,
+                                       ParamBool fill,
+                                       ParamBool topology_from_uvs,
+                                       int *count_fail)
 {
   PHandle *phandle = (PHandle *)handle;
   PChart *chart = phandle->construction_chart;
@@ -4581,7 +4581,7 @@ void param_construct_end(ParamHandle *handle,
   phandle->state = PHANDLE_STATE_CONSTRUCTED;
 }
 
-void param_lscm_begin(ParamHandle *handle, ParamBool live, ParamBool abf)
+void GEO_uv_parametrizer_lscm_begin(ParamHandle *handle, ParamBool live, ParamBool abf)
 {
   PHandle *phandle = (PHandle *)handle;
   PFace *f;
@@ -4598,7 +4598,7 @@ void param_lscm_begin(ParamHandle *handle, ParamBool live, ParamBool abf)
   }
 }
 
-void param_lscm_solve(ParamHandle *handle, int *count_changed, int *count_failed)
+void GEO_uv_parametrizer_lscm_solve(ParamHandle *handle, int *count_changed, int *count_failed)
 {
   PHandle *phandle = (PHandle *)handle;
   PChart *chart;
@@ -4638,7 +4638,7 @@ void param_lscm_solve(ParamHandle *handle, int *count_changed, int *count_failed
   }
 }
 
-void param_lscm_end(ParamHandle *handle)
+void GEO_uv_parametrizer_lscm_end(ParamHandle *handle)
 {
   PHandle *phandle = (PHandle *)handle;
   int i;
@@ -4655,7 +4655,7 @@ void param_lscm_end(ParamHandle *handle)
   phandle->state = PHANDLE_STATE_CONSTRUCTED;
 }
 
-void param_stretch_begin(ParamHandle *handle)
+void GEO_uv_parametrizer_stretch_begin(ParamHandle *handle)
 {
   PHandle *phandle = (PHandle *)handle;
   PChart *chart;
@@ -4685,7 +4685,7 @@ void param_stretch_begin(ParamHandle *handle)
   }
 }
 
-void param_stretch_blend(ParamHandle *handle, float blend)
+void GEO_uv_parametrizer_stretch_blend(ParamHandle *handle, float blend)
 {
   PHandle *phandle = (PHandle *)handle;
 
@@ -4693,7 +4693,7 @@ void param_stretch_blend(ParamHandle *handle, float blend)
   phandle->blend = blend;
 }
 
-void param_stretch_iter(ParamHandle *handle)
+void GEO_uv_parametrizer_stretch_iter(ParamHandle *handle)
 {
   PHandle *phandle = (PHandle *)handle;
   PChart *chart;
@@ -4707,7 +4707,7 @@ void param_stretch_iter(ParamHandle *handle)
   }
 }
 
-void param_stretch_end(ParamHandle *handle)
+void GEO_uv_parametrizer_stretch_end(ParamHandle *handle)
 {
   PHandle *phandle = (PHandle *)handle;
 
@@ -4718,7 +4718,7 @@ void param_stretch_end(ParamHandle *handle)
   phandle->rng = NULL;
 }
 
-void param_smooth_area(ParamHandle *handle)
+void GEO_uv_parametrizer_smooth_area(ParamHandle *handle)
 {
   PHandle *phandle = (PHandle *)handle;
   int i;
@@ -4738,7 +4738,7 @@ void param_smooth_area(ParamHandle *handle)
 }
 
 /* don't pack, just rotate (used for better packing) */
-static void param_pack_rotate(ParamHandle *handle, bool ignore_pinned)
+static void GEO_uv_parametrizer_pack_rotate(ParamHandle *handle, bool ignore_pinned)
 {
   PChart *chart;
   int i;
@@ -4756,7 +4756,10 @@ static void param_pack_rotate(ParamHandle *handle, bool ignore_pinned)
   }
 }
 
-void param_pack(ParamHandle *handle, float margin, bool do_rotate, bool ignore_pinned)
+void GEO_uv_parametrizer_pack(ParamHandle *handle,
+                              float margin,
+                              bool do_rotate,
+                              bool ignore_pinned)
 {
   /* box packing variables */
   BoxPack *boxarray, *box;
@@ -4775,11 +4778,11 @@ void param_pack(ParamHandle *handle, float margin, bool do_rotate, bool ignore_p
 
   /* this could be its own function */
   if (do_rotate) {
-    param_pack_rotate(handle, ignore_pinned);
+    GEO_uv_parametrizer_pack_rotate(handle, ignore_pinned);
   }
 
   if (phandle->aspx != phandle->aspy) {
-    param_scale(handle, 1.0f / phandle->aspx, 1.0f / phandle->aspy);
+    GEO_uv_parametrizer_scale(handle, 1.0f / phandle->aspx, 1.0f / phandle->aspy);
   }
 
   /* we may not use all these boxes */
@@ -4856,11 +4859,11 @@ void param_pack(ParamHandle *handle, float margin, bool do_rotate, bool ignore_p
   MEM_freeN(boxarray);
 
   if (phandle->aspx != phandle->aspy) {
-    param_scale(handle, phandle->aspx, phandle->aspy);
+    GEO_uv_parametrizer_scale(handle, phandle->aspx, phandle->aspy);
   }
 }
 
-void param_average(ParamHandle *handle, bool ignore_pinned)
+void GEO_uv_parametrizer_average(ParamHandle *handle, bool ignore_pinned)
 {
   PChart *chart;
   int i;
@@ -4927,7 +4930,7 @@ void param_average(ParamHandle *handle, bool ignore_pinned)
   }
 }
 
-void param_scale(ParamHandle *handle, float x, float y)
+void GEO_uv_parametrizer_scale(ParamHandle *handle, float x, float y)
 {
   PHandle *phandle = (PHandle *)handle;
   PChart *chart;
@@ -4939,7 +4942,7 @@ void param_scale(ParamHandle *handle, float x, float y)
   }
 }
 
-void param_flush(ParamHandle *handle)
+void GEO_uv_parametrizer_flush(ParamHandle *handle)
 {
   PHandle *phandle = (PHandle *)handle;
   PChart *chart;
@@ -4961,7 +4964,7 @@ void param_flush(ParamHandle *handle)
   }
 }
 
-void param_flush_restore(ParamHandle *handle)
+void GEO_uv_parametrizer_flush_restore(ParamHandle *handle)
 {
   PHandle *phandle = (PHandle *)handle;
   PChart *chart;

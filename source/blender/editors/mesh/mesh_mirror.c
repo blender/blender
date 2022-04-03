@@ -166,7 +166,7 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
   const bool is_editmode = (em != NULL);
   MEdge *medge = NULL, *med;
 
-  /* editmode*/
+  /* Edit-mode variables. */
   BMEdge *eed;
   BMIter iter;
 

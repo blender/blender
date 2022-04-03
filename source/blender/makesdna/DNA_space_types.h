@@ -280,8 +280,12 @@ typedef struct SpaceOutliner {
   char search_string[64];
   struct TreeStoreElem search_tse;
 
-  short flag, outlinevis, storeflag;
+  short flag;
+  short outlinevis;
+  short lib_override_view_mode;
+  short storeflag;
   char search_flags;
+  char _pad[6];
 
   /** Selection syncing flag (#WM_OUTLINER_SYNC_SELECT_FROM_OBJECT and similar flags). */
   char sync_select_dirty;
@@ -387,6 +391,14 @@ typedef enum eSpaceOutliner_Mode {
   SO_VIEW_LAYER = 15,
   SO_OVERRIDES_LIBRARY = 16,
 } eSpaceOutliner_Mode;
+
+/** #SpaceOutliner.outlinevis */
+typedef enum eSpaceOutliner_LibOverrideViewMode {
+  /* View all overrides with RNA buttons to edit the overridden values. */
+  SO_LIB_OVERRIDE_VIEW_PROPERTIES = 0,
+  /* View entire override hierarchies (relationships between overriden data-blocks). */
+  SO_LIB_OVERRIDE_VIEW_HIERARCHIES = 1,
+} eSpaceOutliner_LibOverrideViewMode;
 
 /** #SpaceOutliner.storeflag */
 typedef enum eSpaceOutliner_StoreFlag {
@@ -988,12 +1000,6 @@ typedef enum eFileSelectType {
   FILE_BLENDER = 8, /* don't display relative paths */
   FILE_SPECIAL = 9,
 } eFileSelectType;
-
-/** File-selector op property -> action. */
-typedef enum eFileSel_Action {
-  FILE_OPENFILE = 0,
-  FILE_SAVE = 1,
-} eFileSel_Action;
 
 /**
  * #FileSelectParams.flag / `sfile->params->flag`.

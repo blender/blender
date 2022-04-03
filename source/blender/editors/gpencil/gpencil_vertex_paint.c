@@ -738,7 +738,7 @@ static bool gpencil_vertexpaint_brush_init(bContext *C, wmOperator *op)
   /* Save mask. */
   gso->mask = ts->gpencil_selectmode_vertex;
 
-  /* Multiframe settings. */
+  /* Multi-frame settings. */
   gso->is_multiframe = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gso->gpd);
   gso->use_multiframe_falloff = (ts->gp_sculpt.flag & GP_SCULPT_SETT_FLAG_FRAME_FALLOFF) != 0;
 

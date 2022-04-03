@@ -463,7 +463,12 @@ void fsmenu_insert_entry(struct FSMenu *fsmenu,
 
   ED_fsmenu_entry_set_icon(fsm_iter, icon);
 
-  fsmenu_entry_refresh_valid(fsm_iter);
+  if (flag & FS_INSERT_NO_VALIDATE) {
+    fsm_iter->valid = true;
+  }
+  else {
+    fsmenu_entry_refresh_valid(fsm_iter);
+  }
 
   if (fsm_prev) {
     if (flag & FS_INSERT_FIRST) {
@@ -689,7 +694,12 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
             break;
         }
 
-        fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, tmps, name, icon, FS_INSERT_SORTED);
+        fsmenu_insert_entry(fsmenu,
+                            FS_CATEGORY_SYSTEM,
+                            tmps,
+                            name,
+                            icon,
+                            FS_INSERT_SORTED | FS_INSERT_NO_VALIDATE);
       }
     }
 

@@ -130,6 +130,8 @@ typedef struct DRWSubdivCache {
 
   /* Maps subdivision loop to subdivided vertex index. */
   int *subdiv_loop_subdiv_vert_index;
+  /* Maps subdivision loop to subdivided edge index. */
+  int *subdiv_loop_subdiv_edge_index;
   /* Maps subdivision loop to original coarse poly index. */
   int *subdiv_loop_poly_index;
 

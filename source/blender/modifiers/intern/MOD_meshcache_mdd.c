@@ -96,22 +96,22 @@ static bool meshcache_read_mdd_range_from_time(FILE *fp,
     return false;
   }
 
-  size_t num_frames_read = 0;
-  size_t num_frames_expect = mdd_head.frame_tot;
+  size_t frames_num_read = 0;
+  size_t frames_num_expect = mdd_head.frame_tot;
   errno = 0;
   for (i = 0; i < mdd_head.frame_tot; i++) {
-    num_frames_read += fread(&f_time, sizeof(float), 1, fp);
+    frames_num_read += fread(&f_time, sizeof(float), 1, fp);
 #ifdef __LITTLE_ENDIAN__
     BLI_endian_switch_float(&f_time);
 #endif
     if (f_time >= time) {
-      num_frames_expect = i + 1;
+      frames_num_expect = i + 1;
       break;
     }
     f_time_prev = f_time;
   }
 
-  if (num_frames_read != num_frames_expect) {
+  if (frames_num_read != frames_num_expect) {
     *err_str = errno ? strerror(errno) : "Timestamp read failed";
     return false;
   }
@@ -160,14 +160,14 @@ bool MOD_meshcache_read_mdd_index(FILE *fp,
     return false;
   }
 
-  size_t num_verts_read = 0;
+  size_t verts_read_num = 0;
   errno = 0;
   if (factor >= 1.0f) {
 #if 1
     float *vco = *vertexCos;
     uint i;
     for (i = mdd_head.verts_tot; i != 0; i--, vco += 3) {
-      num_verts_read += fread(vco, sizeof(float[3]), 1, fp);
+      verts_read_num += fread(vco, sizeof(float[3]), 1, fp);
 
 #  ifdef __LITTLE_ENDIAN__
       BLI_endian_switch_float(vco + 0);
@@ -192,7 +192,7 @@ bool MOD_meshcache_read_mdd_index(FILE *fp,
     uint i;
     for (i = mdd_head.verts_tot; i != 0; i--, vco += 3) {
       float tvec[3];
-      num_verts_read += fread(tvec, sizeof(float[3]), 1, fp);
+      verts_read_num += fread(tvec, sizeof(float[3]), 1, fp);
 
 #ifdef __LITTLE_ENDIAN__
       BLI_endian_switch_float(tvec + 0);
@@ -206,7 +206,7 @@ bool MOD_meshcache_read_mdd_index(FILE *fp,
     }
   }
 
-  if (num_verts_read != mdd_head.verts_tot) {
+  if (verts_read_num != mdd_head.verts_tot) {
     *err_str = errno ? strerror(errno) : "Vertex coordinate read failed";
     return false;
   }

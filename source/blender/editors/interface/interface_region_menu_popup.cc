@@ -7,9 +7,9 @@
  * PopUp Menu Region
  */
 
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdarg>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -50,7 +50,7 @@ bool ui_but_menu_step_poll(const uiBut *but)
   BLI_assert(but->type == UI_BTYPE_MENU);
 
   /* currently only RNA buttons */
-  return ((but->menu_step_func != NULL) ||
+  return ((but->menu_step_func != nullptr) ||
           (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM));
 }
 
@@ -58,12 +58,16 @@ int ui_but_menu_step(uiBut *but, int direction)
 {
   if (ui_but_menu_step_poll(but)) {
     if (but->menu_step_func) {
-      return but->menu_step_func(but->block->evil_C, direction, but->poin);
+      return but->menu_step_func(
+          static_cast<bContext *>(but->block->evil_C), direction, but->poin);
     }
 
     const int curval = RNA_property_enum_get(&but->rnapoin, but->rnaprop);
-    return RNA_property_enum_step(
-        but->block->evil_C, &but->rnapoin, but->rnaprop, curval, direction);
+    return RNA_property_enum_step(static_cast<bContext *>(but->block->evil_C),
+                                  &but->rnapoin,
+                                  but->rnaprop,
+                                  curval,
+                                  direction);
   }
 
   printf("%s: cannot cycle button '%s'\n", __func__, but->str);
@@ -85,7 +89,7 @@ static uint ui_popup_string_hash(const char *str, const bool use_sep)
 {
   /* sometimes button contains hotkey, sometimes not, strip for proper compare */
   int hash;
-  const char *delimit = use_sep ? strrchr(str, UI_SEP_CHAR) : NULL;
+  const char *delimit = use_sep ? strrchr(str, UI_SEP_CHAR) : nullptr;
 
   if (delimit) {
     hash = BLI_ghashutil_strhash_n(str, delimit - str);
@@ -102,7 +106,7 @@ uint ui_popup_menu_hash(const char *str)
   return BLI_ghashutil_strhash(str);
 }
 
-/* but == NULL read, otherwise set */
+/* but == nullptr read, otherwise set */
 static uiBut *ui_popup_menu_memory__internal(uiBlock *block, uiBut *but)
 {
   static uint mem[256];
@@ -114,13 +118,13 @@ static uiBut *ui_popup_menu_memory__internal(uiBlock *block, uiBut *but)
   if (first) {
     /* init */
     memset(mem, -1, sizeof(mem));
-    first = 0;
+    first = false;
   }
 
   if (but) {
     /* set */
     mem[hash_mod] = ui_popup_string_hash(but->str, but->flag & UI_BUT_HAS_SEP_CHAR);
-    return NULL;
+    return nullptr;
   }
 
   /* get */
@@ -131,12 +135,12 @@ static uiBut *ui_popup_menu_memory__internal(uiBlock *block, uiBut *but)
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 uiBut *ui_popup_menu_memory_get(uiBlock *block)
 {
-  return ui_popup_menu_memory__internal(block, NULL);
+  return ui_popup_menu_memory__internal(block, nullptr);
 }
 
 void ui_popup_menu_memory_set(uiBlock *block, uiBut *but)
@@ -166,7 +170,7 @@ struct uiPopupMenu {
 static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, void *arg_pup)
 {
   uiBlock *block;
-  uiPopupMenu *pup = arg_pup;
+  uiPopupMenu *pup = static_cast<uiPopupMenu *>(arg_pup);
   int minwidth, width, height;
   char direction;
   bool flip;
@@ -174,7 +178,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
   if (pup->menu_func) {
     pup->block->handle = handle;
     pup->menu_func(C, pup->layout, pup->menu_arg);
-    pup->block->handle = NULL;
+    pup->block->handle = nullptr;
   }
 
   /* Find block minimum width. */
@@ -229,7 +233,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
   if (pup->popup) {
     int offset[2];
 
-    uiBut *but_activate = NULL;
+    uiBut *but_activate = nullptr;
     UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_NUMSELECT);
     UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
     UI_block_direction_set(block, direction);
@@ -309,10 +313,9 @@ uiPopupBlockHandle *ui_popup_menu_create(
   wmWindow *window = CTX_wm_window(C);
   const uiStyle *style = UI_style_get_dpi();
   uiPopupBlockHandle *handle;
-  uiPopupMenu *pup;
 
-  pup = MEM_callocN(sizeof(uiPopupMenu), __func__);
-  pup->block = UI_block_begin(C, NULL, __func__, UI_EMBOSS_PULLDOWN);
+  uiPopupMenu *pup = MEM_cnew<uiPopupMenu>(__func__);
+  pup->block = UI_block_begin(C, nullptr, __func__, UI_EMBOSS_PULLDOWN);
   pup->block->flag |= UI_BLOCK_NUMSELECT; /* default menus to numselect */
   pup->layout = UI_block_layout(
       pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, UI_MENU_PADDING, style);
@@ -348,7 +351,7 @@ uiPopupBlockHandle *ui_popup_menu_create(
   pup->menu_func = menu_func;
   pup->menu_arg = arg;
 
-  handle = ui_popup_block_create(C, butregion, but, NULL, ui_block_func_POPUP, pup, NULL);
+  handle = ui_popup_block_create(C, butregion, but, nullptr, ui_block_func_POPUP, pup, nullptr);
 
   if (!but) {
     handle->popup = true;
@@ -374,10 +377,10 @@ uiPopupMenu *UI_popup_menu_begin_ex(bContext *C,
                                     int icon)
 {
   const uiStyle *style = UI_style_get_dpi();
-  uiPopupMenu *pup = MEM_callocN(sizeof(uiPopupMenu), "popup menu");
+  uiPopupMenu *pup = MEM_cnew<uiPopupMenu>(__func__);
   uiBut *but;
 
-  pup->block = UI_block_begin(C, NULL, block_name, UI_EMBOSS_PULLDOWN);
+  pup->block = UI_block_begin(C, nullptr, block_name, UI_EMBOSS_PULLDOWN);
   pup->block->flag |= UI_BLOCK_POPUP_MEMORY | UI_BLOCK_IS_FLIP;
   pup->block->puphash = ui_popup_menu_hash(title);
   pup->layout = UI_block_layout(
@@ -389,7 +392,7 @@ uiPopupMenu *UI_popup_menu_begin_ex(bContext *C,
   uiLayoutSetOperatorContext(pup->layout, WM_OP_EXEC_REGION_WIN);
 
   /* create in advance so we can let buttons point to retval already */
-  pup->block->handle = MEM_callocN(sizeof(uiPopupBlockHandle), "uiPopupBlockHandle");
+  pup->block->handle = MEM_cnew<uiPopupBlockHandle>(__func__);
 
   /* create title button */
   if (title[0]) {
@@ -406,7 +409,7 @@ uiPopupMenu *UI_popup_menu_begin_ex(bContext *C,
                        0,
                        200,
                        UI_UNIT_Y,
-                       NULL,
+                       nullptr,
                        0.0,
                        0.0,
                        0,
@@ -415,7 +418,7 @@ uiPopupMenu *UI_popup_menu_begin_ex(bContext *C,
     }
     else {
       but = uiDefBut(
-          pup->block, UI_BTYPE_LABEL, 0, title, 0, 0, 200, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+          pup->block, UI_BTYPE_LABEL, 0, title, 0, 0, 200, UI_UNIT_Y, nullptr, 0.0, 0.0, 0, 0, "");
       but->drawflag = UI_BUT_TEXT_LEFT;
     }
 
@@ -440,8 +443,8 @@ void UI_popup_menu_end(bContext *C, uiPopupMenu *pup)
 {
   wmWindow *window = CTX_wm_window(C);
   uiPopupBlockHandle *menu;
-  uiBut *but = NULL;
-  ARegion *butregion = NULL;
+  uiBut *but = nullptr;
+  ARegion *butregion = nullptr;
 
   pup->popup = true;
   pup->mx = window->eventstate->xy[0];
@@ -452,7 +455,7 @@ void UI_popup_menu_end(bContext *C, uiPopupMenu *pup)
     butregion = pup->butregion;
   }
 
-  menu = ui_popup_block_create(C, butregion, but, NULL, ui_block_func_POPUP, pup, NULL);
+  menu = ui_popup_block_create(C, butregion, but, nullptr, ui_block_func_POPUP, pup, nullptr);
   menu->popup = true;
 
   UI_popup_handlers_add(C, &window->modalhandlers, menu, 0);
@@ -467,7 +470,7 @@ bool UI_popup_menu_end_or_cancel(bContext *C, uiPopupMenu *pup)
     UI_popup_menu_end(C, pup);
     return true;
   }
-  UI_block_layout_resolve(pup->block, NULL, NULL);
+  UI_block_layout_resolve(pup->block, nullptr, nullptr);
   MEM_freeN(pup->block->handle);
   UI_block_free(C, pup->block);
   MEM_freeN(pup);
@@ -487,7 +490,7 @@ uiLayout *UI_popup_menu_layout(uiPopupMenu *pup)
 
 void UI_popup_menu_reports(bContext *C, ReportList *reports)
 {
-  uiPopupMenu *pup = NULL;
+  uiPopupMenu *pup = nullptr;
   uiLayout *layout;
 
   if (!CTX_wm_window(C)) {
@@ -502,7 +505,7 @@ void UI_popup_menu_reports(bContext *C, ReportList *reports)
       continue;
     }
 
-    if (pup == NULL) {
+    if (pup == nullptr) {
       char title[UI_MAX_DRAW_STR];
       BLI_snprintf(title, sizeof(title), "%s: %s", IFACE_("Report"), report->typestr);
       /* popup_menu stuff does just what we need (but pass meaningful block name) */
@@ -540,7 +543,7 @@ int UI_popup_menu_invoke(bContext *C, const char *idname, ReportList *reports)
   uiLayout *layout;
   MenuType *mt = WM_menutype_find(idname, true);
 
-  if (mt == NULL) {
+  if (mt == nullptr) {
     BKE_reportf(reports, RPT_ERROR, "Menu \"%s\" not found", idname);
     return OPERATOR_CANCELLED;
   }
@@ -572,7 +575,7 @@ void UI_popup_block_invoke_ex(
   wmWindow *window = CTX_wm_window(C);
   uiPopupBlockHandle *handle;
 
-  handle = ui_popup_block_create(C, NULL, NULL, func, NULL, arg, arg_free);
+  handle = ui_popup_block_create(C, nullptr, nullptr, func, nullptr, arg, arg_free);
   handle->popup = true;
 
   /* It can be useful to disable refresh (even though it will work)
@@ -580,7 +583,8 @@ void UI_popup_block_invoke_ex(
   handle->can_refresh = can_refresh;
 
   UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
-  UI_block_active_only_flagged_buttons(C, handle->region, handle->region->uiblocks.first);
+  UI_block_active_only_flagged_buttons(
+      C, handle->region, static_cast<uiBlock *>(handle->region->uiblocks.first));
   WM_event_add_mousemove(window);
 }
 
@@ -599,7 +603,7 @@ void UI_popup_block_ex(bContext *C,
   wmWindow *window = CTX_wm_window(C);
   uiPopupBlockHandle *handle;
 
-  handle = ui_popup_block_create(C, NULL, NULL, func, NULL, arg, NULL);
+  handle = ui_popup_block_create(C, nullptr, nullptr, func, nullptr, arg, nullptr);
   handle->popup = true;
   handle->retvalue = 1;
   handle->can_refresh = true;
@@ -611,7 +615,8 @@ void UI_popup_block_ex(bContext *C,
   // handle->opcontext = opcontext;
 
   UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
-  UI_block_active_only_flagged_buttons(C, handle->region, handle->region->uiblocks.first);
+  UI_block_active_only_flagged_buttons(
+      C, handle->region, static_cast<uiBlock *>(handle->region->uiblocks.first));
   WM_event_add_mousemove(window);
 }
 
@@ -621,7 +626,7 @@ void uiPupBlockOperator(bContext *C, uiBlockCreateFunc func, wmOperator *op, wmO
   wmWindow *window = CTX_wm_window(C);
   uiPopupBlockHandle *handle;
 
-  handle = ui_popup_block_create(C, NULL, NULL, func, NULL, op, NULL);
+  handle = ui_popup_block_create(C, nullptr, nullptr, func, nullptr, op, nullptr);
   handle->popup = 1;
   handle->retvalue = 1;
   handle->can_refresh = true;
@@ -638,7 +643,7 @@ void uiPupBlockOperator(bContext *C, uiBlockCreateFunc func, wmOperator *op, wmO
 
 void UI_popup_block_close(bContext *C, wmWindow *win, uiBlock *block)
 {
-  /* if loading new .blend while popup is open, window will be NULL */
+  /* if loading new .blend while popup is open, window will be nullptr */
   if (block->handle) {
     if (win) {
       const bScreen *screen = WM_window_get_active_screen(win);

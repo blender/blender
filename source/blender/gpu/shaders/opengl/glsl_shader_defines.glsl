@@ -1,3 +1,13 @@
+
+/* Texture format tokens -- Type explictness required by other Graphics APIs. */
+#define depth2D sampler2D
+#define depth2DArray sampler2DArray
+#define depth2DMS sampler2DMS
+#define depth2DMSArray sampler2DMSArray
+#define depthCube samplerCube
+#define depthCubeArray samplerCubeArray
+#define depth2DArrayShadow sampler2DArrayShadow
+
 /* Backend Functions. */
 #define select(A, B, mask) mix(A, B, mask)
 

@@ -653,7 +653,8 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
 
   /* Write accumulated emission. */
   if (!is_zero(accum_emission)) {
-    kernel_accum_emission(kg, state, accum_emission, render_buffer);
+    kernel_accum_emission(
+        kg, state, accum_emission, render_buffer, object_lightgroup(kg, sd->object));
   }
 
 #  ifdef __DENOISING_FEATURES__
@@ -832,6 +833,12 @@ ccl_device_forceinline void integrate_volume_direct_light(
   if (kernel_data.kernel_features & KERNEL_FEATURE_SHADOW_PASS) {
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, unshadowed_throughput) = throughput;
   }
+
+  /* Write Lightgroup, +1 as lightgroup is int but we need to encode into a uint8_t. */
+  INTEGRATOR_STATE_WRITE(
+      shadow_state, shadow_path, lightgroup) = (ls->type != LIGHT_BACKGROUND) ?
+                                                   ls->group + 1 :
+                                                   kernel_data.background.lightgroup + 1;
 
   integrator_state_copy_volume_stack_to_shadow(kg, shadow_state, state);
 }

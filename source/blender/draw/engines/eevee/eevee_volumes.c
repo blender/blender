@@ -346,7 +346,7 @@ static bool eevee_volume_object_grids_init(Object *ob, ListBase *gpu_grids, DRWS
   if (multiple_transforms) {
     /* For multiple grids with different transform, we first transform from object space
      * to bounds, then for each individual grid from bounds to texture. */
-    BoundBox *bb = BKE_volume_boundbox_get(ob);
+    const BoundBox *bb = BKE_volume_boundbox_get(ob);
     float bb_size[3];
     sub_v3_v3v3(bb_size, bb->vec[6], bb->vec[0]);
     size_to_mat4(bounds_to_object, bb_size);

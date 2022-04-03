@@ -1,14 +1,6 @@
 
-/* ---- Instantiated Attrs ---- */
-in vec3 pos;
-in vec3 nor;
-
-/* ---- Per instance Attrs ---- */
-in mat4 inst_obmat;
-
-flat out vec4 finalColor;
-flat out vec2 edgeStart;
-noperspective out vec2 edgePos;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {
@@ -23,7 +15,5 @@ void main()
 
   edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(world_pos);
-#endif
+  view_clipping_distances(world_pos);
 }

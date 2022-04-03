@@ -745,6 +745,20 @@ void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_v
     }
   }
 
+  /* Light Group passes. */
+  BL::ViewLayer::lightgroups_iterator b_lightgroup_iter;
+  for (b_view_layer.lightgroups.begin(b_lightgroup_iter);
+       b_lightgroup_iter != b_view_layer.lightgroups.end();
+       ++b_lightgroup_iter) {
+    BL::Lightgroup b_lightgroup(*b_lightgroup_iter);
+
+    string name = string_printf("Combined_%s", b_lightgroup.name().c_str());
+
+    b_engine.add_pass(name.c_str(), 3, "RGB", b_view_layer.name().c_str());
+    Pass *pass = pass_add(scene, PASS_COMBINED, name.c_str(), PassMode::NOISY);
+    pass->set_lightgroup(ustring(b_lightgroup.name()));
+  }
+
   scene->film->set_pass_alpha_threshold(b_view_layer.pass_alpha_threshold());
 }
 

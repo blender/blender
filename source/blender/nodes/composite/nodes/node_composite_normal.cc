@@ -14,11 +14,15 @@ namespace blender::nodes::node_composite_normal_cc {
 static void cmp_node_normal_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Vector>(N_("Normal"))
-      .default_value({1.0f, 1.0f, 1.0f})
+      .default_value({0.0f, 0.0f, 1.0f})
       .min(-1.0f)
       .max(1.0f)
       .subtype(PROP_DIRECTION);
-  b.add_output<decl::Vector>(N_("Normal"));
+  b.add_output<decl::Vector>(N_("Normal"))
+      .default_value({0.0f, 0.0f, 1.0f})
+      .min(-1.0f)
+      .max(1.0f)
+      .subtype(PROP_DIRECTION);
   b.add_output<decl::Float>(N_("Dot"));
 }
 

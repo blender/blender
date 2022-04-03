@@ -104,3 +104,32 @@ void SEQ_free_animdata(Scene *scene, Sequence *seq)
   GSET_FOREACH_END();
   BLI_gset_free(fcurves, NULL);
 }
+
+void SEQ_animation_backup_original(Scene *scene, ListBase *list)
+{
+  if (scene->adt == NULL || scene->adt->action == NULL ||
+      BLI_listbase_is_empty(&scene->adt->action->curves)) {
+    return;
+  }
+
+  BLI_movelisttolist(list, &scene->adt->action->curves);
+}
+
+void SEQ_animation_restore_original(Scene *scene, ListBase *list)
+{
+  if (scene->adt == NULL || scene->adt->action == NULL || BLI_listbase_is_empty(list)) {
+    return;
+  }
+
+  BLI_movelisttolist(&scene->adt->action->curves, list);
+}
+
+void SEQ_animation_duplicate(Scene *scene, Sequence *seq, ListBase *list)
+{
+  GSet *fcurves = SEQ_fcurves_by_strip_get(seq, list);
+  GSET_FOREACH_BEGIN (FCurve *, fcu, fcurves) {
+    FCurve *fcu_cpy = BKE_fcurve_copy(fcu);
+    BLI_addtail(&scene->adt->action->curves, fcu_cpy);
+  }
+  GSET_FOREACH_END();
+}

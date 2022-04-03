@@ -61,7 +61,9 @@ void main()
                                gp_interp.hardness);
 
   if (GPENCIL_IS_STROKE_VERTEX) {
-    gp_interp.uv.x *= gp_mat._stroke_u_scale;
+    if (!flag_test(gp_flag, GP_STROKE_ALIGNMENT)) {
+      gp_interp.uv.x *= gp_mat._stroke_u_scale;
+    }
 
     /* Special case: We don't use vertex color if material Holdout. */
     if (flag_test(gp_flag, GP_STROKE_HOLDOUT)) {

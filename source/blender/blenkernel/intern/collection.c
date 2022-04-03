@@ -1929,6 +1929,48 @@ void BKE_scene_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
   scene_objects_iterator_begin(iter, scene, NULL);
 }
 
+void BKE_scene_objects_iterator_begin_ex(BLI_Iterator *iter, void *data_in)
+{
+  SceneObjectsIteratorExData *data = data_in;
+
+  BKE_scene_objects_iterator_begin(iter, data->scene);
+
+  /* Pack the data. */
+  data->iter_data = iter->data;
+  iter->data = data_in;
+}
+
+void BKE_scene_objects_iterator_next_ex(struct BLI_Iterator *iter)
+{
+  /* Unpack the data. */
+  SceneObjectsIteratorExData *data = iter->data;
+  iter->data = data->iter_data;
+
+  BKE_scene_objects_iterator_next(iter);
+
+  Object *ob = iter->current;
+  if (ob && (ob->flag & data->flag) == 0) {
+    iter->skip = true;
+  }
+
+  /* Pack the data. */
+  data->iter_data = iter->data;
+  iter->data = data;
+}
+
+void BKE_scene_objects_iterator_end_ex(struct BLI_Iterator *iter)
+{
+  /* Unpack the data. */
+  SceneObjectsIteratorExData *data = iter->data;
+  iter->data = data->iter_data;
+
+  BKE_scene_objects_iterator_end(iter);
+
+  /* Pack the data. */
+  data->iter_data = iter->data;
+  iter->data = data;
+}
+
 /**
  * Ensures we only get each object once, even when included in several collections.
  */

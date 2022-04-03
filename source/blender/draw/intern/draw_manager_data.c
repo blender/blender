@@ -485,10 +485,9 @@ void DRW_shgroup_uniform_vec4_copy(DRWShadingGroup *shgroup, const char *name, c
   drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_FLOAT_COPY, value, 4, 1);
 }
 
-void DRW_shgroup_uniform_vec4_array_copy(DRWShadingGroup *shgroup,
-                                         const char *name,
-                                         const float (*value)[4],
-                                         int arraysize)
+void DRW_shgroup_uniform_mat4_copy(DRWShadingGroup *shgroup,
+                                   const char *name,
+                                   const float (*value)[4])
 {
   int location = GPU_shader_get_uniform(shgroup->shader, name);
 
@@ -498,9 +497,12 @@ void DRW_shgroup_uniform_vec4_array_copy(DRWShadingGroup *shgroup,
     return;
   }
 
-  for (int i = 0; i < arraysize; i++) {
-    drw_shgroup_uniform_create_ex(
-        shgroup, location + i, DRW_UNIFORM_FLOAT_COPY, &value[i], 0, 4, 1);
+  /* Each array element stored as an individual entry in the uniform list.
+   * All entries from the same array share the same base location,
+   * and array-size used to determine the number of elements
+   * copied in draw_update_uniforms. */
+  for (int i = 0; i < 4; i++) {
+    drw_shgroup_uniform_create_ex(shgroup, location, DRW_UNIFORM_FLOAT_COPY, &value[i], 0, 4, 4);
   }
 }
 
@@ -612,7 +614,7 @@ static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
   drw_call_calc_orco(ob, ob_infos->orcotexfac);
   /* Random float value. */
   uint random = (DST.dupli_source) ?
-                     DST.dupli_source->random_id :
+                    DST.dupli_source->random_id :
                      /* TODO(fclem): this is rather costly to do at runtime. Maybe we can
                       * put it in ob->runtime and make depsgraph ensure it is up to date. */
                      BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);
@@ -636,7 +638,7 @@ static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
 
 static void drw_call_culling_init(DRWCullingState *cull, Object *ob)
 {
-  BoundBox *bbox;
+  const BoundBox *bbox;
   if (ob != NULL && (bbox = BKE_object_boundbox_get(ob))) {
     float corner[3];
     /* Get BoundSphere center and radius from the BoundBox. */

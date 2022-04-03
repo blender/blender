@@ -525,24 +525,21 @@ void MTLWriter::write_texture_map(
     const MTLMaterial &mtl_material,
     const Map<const eMTLSyntaxElement, tex_map_XX>::Item &texture_map)
 {
-  std::string translation;
-  std::string scale;
-  std::string map_bump_strength;
-  /* Optional strings should have their own leading spaces. */
+  std::string options;
+  /* Option strings should have their own leading spaces. */
   if (texture_map.value.translation != float3{0.0f, 0.0f, 0.0f}) {
-    translation.append(" -s ").append(float3_to_string(texture_map.value.translation));
+    options.append(" -o ").append(float3_to_string(texture_map.value.translation));
   }
   if (texture_map.value.scale != float3{1.0f, 1.0f, 1.0f}) {
-    scale.append(" -o ").append(float3_to_string(texture_map.value.scale));
+    options.append(" -s ").append(float3_to_string(texture_map.value.scale));
   }
   if (texture_map.key == eMTLSyntaxElement::map_Bump && mtl_material.map_Bump_strength > 0.0001f) {
-    map_bump_strength.append(" -bm ").append(std::to_string(mtl_material.map_Bump_strength));
+    options.append(" -bm ").append(std::to_string(mtl_material.map_Bump_strength));
   }
 
 #define SYNTAX_DISPATCH(eMTLSyntaxElement) \
   if (texture_map.key == eMTLSyntaxElement) { \
-    fmt_handler_.write<eMTLSyntaxElement>(translation + scale + map_bump_strength, \
-                                          texture_map.value.image_path); \
+    fmt_handler_.write<eMTLSyntaxElement>(options, texture_map.value.image_path); \
     return; \
   }
 

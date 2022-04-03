@@ -122,6 +122,9 @@ IDOverrideLibrary *BKE_lib_override_library_init(ID *local_id, ID *reference_id)
   local_id->override_library->reference = reference_id;
   id_us_plus(local_id->override_library->reference);
   local_id->tag &= ~LIB_TAG_OVERRIDE_LIBRARY_REFOK;
+  /* By default initialized liboverrides are 'system overrides', higher-level code is responsible
+   * to unset this flag for specific IDs. */
+  local_id->override_library->flag |= IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
   /* TODO: do we want to add tag or flag to referee to mark it as such? */
   return local_id->override_library;
 }
@@ -276,6 +279,44 @@ bool BKE_lib_override_library_is_user_edited(struct ID *id)
   return false;
 }
 
+bool BKE_lib_override_library_is_system_defined(Main *bmain, ID *id)
+{
+
+  if (ID_IS_OVERRIDE_LIBRARY(id)) {
+    ID *override_owner_id;
+    lib_override_get(bmain, id, &override_owner_id);
+    return (override_owner_id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED) !=
+           0;
+  }
+  return false;
+}
+
+static int foreachid_is_hierarchy_leaf_fn(LibraryIDLinkCallbackData *cb_data)
+{
+  ID *id_owner = cb_data->id_owner;
+  ID *id = *cb_data->id_pointer;
+  bool *is_leaf = cb_data->user_data;
+
+  if (id != NULL && ID_IS_OVERRIDE_LIBRARY_REAL(id) &&
+      id->override_library->hierarchy_root == id_owner->override_library->hierarchy_root) {
+    *is_leaf = false;
+    return IDWALK_RET_STOP_ITER;
+  }
+  return IDWALK_RET_NOP;
+}
+
+bool BKE_lib_override_library_is_hierarchy_leaf(Main *bmain, ID *id)
+{
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    bool is_leaf = true;
+    BKE_library_foreach_ID_link(
+        bmain, id, foreachid_is_hierarchy_leaf_fn, &is_leaf, IDWALK_READONLY);
+    return is_leaf;
+  }
+
+  return false;
+}
+
 ID *BKE_lib_override_library_create_from_id(Main *bmain,
                                             ID *reference_id,
                                             const bool do_tagged_remap)
@@ -288,6 +329,7 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
    * mess in case there are a lot of hidden, non-instantiated, non-properly organized dependencies.
    * Ref T94650. */
   local_id->override_library->flag |= IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY;
+  local_id->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
   local_id->override_library->hierarchy_root = local_id;
 
   if (do_tagged_remap) {
@@ -322,6 +364,18 @@ ID *BKE_lib_override_library_create_from_id(Main *bmain,
   return local_id;
 }
 
+static void lib_override_prefill_newid_from_existing_overrides(Main *bmain, ID *id_hierarchy_root)
+{
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    if (ID_IS_OVERRIDE_LIBRARY_REAL(id_iter) &&
+        id_iter->override_library->hierarchy_root == id_hierarchy_root) {
+      id_iter->override_library->reference->newid = id_iter;
+    }
+  }
+  FOREACH_MAIN_ID_END;
+}
+
 /* TODO: Make this static local function instead? API is becoming complex, and it's not used
  * outside of this file anyway. */
 bool BKE_lib_override_library_create_from_tag(Main *bmain,
@@ -345,6 +399,13 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
      * resync process mainly). */
     BLI_assert((ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root) &&
                 id_hierarchy_root->override_library->reference->lib == id_root_reference->lib));
+
+    if (!do_no_main) {
+      /* When processing within Main, set existing overrides in given hierarchy as 'newid' of their
+       * linked reference. This allows to re-use existing overrides instead of creating new ones in
+       * partial override cases. */
+      lib_override_prefill_newid_from_existing_overrides(bmain, id_hierarchy_root);
+    }
   }
   if (!ELEM(id_hierarchy_root_reference, NULL, id_root_reference)) {
     /* If the reference hierarchy root is given, it must be from the same library as the reference
@@ -1615,6 +1676,8 @@ static bool lib_override_library_resync(Main *bmain,
 
           if (ID_IS_OVERRIDE_LIBRARY_REAL(id_override_new)) {
             BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_override_old));
+
+            id_override_new->override_library->flag = id_override_old->override_library->flag;
 
             /* Copy over overrides rules from old override ID to new one. */
             BLI_duplicatelist(&id_override_new->override_library->properties,
@@ -3021,9 +3084,15 @@ bool BKE_lib_override_library_main_operations_create(Main *bmain, const bool for
   return create_pool_data.changed;
 }
 
-static bool lib_override_library_id_reset_do(Main *bmain, ID *id_root)
+static bool lib_override_library_id_reset_do(Main *bmain,
+                                             ID *id_root,
+                                             const bool do_reset_system_override)
 {
   bool was_op_deleted = false;
+
+  if (do_reset_system_override) {
+    id_root->override_library->flag |= IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+  }
 
   LISTBASE_FOREACH_MUTABLE (
       IDOverrideLibraryProperty *, op, &id_root->override_library->properties) {
@@ -3080,13 +3149,15 @@ static bool lib_override_library_id_reset_do(Main *bmain, ID *id_root)
   return was_op_deleted;
 }
 
-void BKE_lib_override_library_id_reset(Main *bmain, ID *id_root)
+void BKE_lib_override_library_id_reset(Main *bmain,
+                                       ID *id_root,
+                                       const bool do_reset_system_override)
 {
   if (!ID_IS_OVERRIDE_LIBRARY_REAL(id_root)) {
     return;
   }
 
-  if (lib_override_library_id_reset_do(bmain, id_root)) {
+  if (lib_override_library_id_reset_do(bmain, id_root, do_reset_system_override)) {
     if (id_root->override_library->runtime != NULL &&
         (id_root->override_library->runtime->tag & IDOVERRIDE_LIBRARY_RUNTIME_TAG_NEEDS_RELOAD) !=
             0) {
@@ -3096,7 +3167,9 @@ void BKE_lib_override_library_id_reset(Main *bmain, ID *id_root)
   }
 }
 
-static void lib_override_library_id_hierarchy_recursive_reset(Main *bmain, ID *id_root)
+static void lib_override_library_id_hierarchy_recursive_reset(Main *bmain,
+                                                              ID *id_root,
+                                                              const bool do_reset_system_override)
 {
   if (!ID_IS_OVERRIDE_LIBRARY_REAL(id_root)) {
     return;
@@ -3105,7 +3178,7 @@ static void lib_override_library_id_hierarchy_recursive_reset(Main *bmain, ID *i
   void **entry_vp = BLI_ghash_lookup_p(bmain->relations->relations_from_pointers, id_root);
   if (entry_vp == NULL) {
     /* This ID is not used by nor using any other ID. */
-    lib_override_library_id_reset_do(bmain, id_root);
+    lib_override_library_id_reset_do(bmain, id_root, do_reset_system_override);
     return;
   }
 
@@ -3115,7 +3188,7 @@ static void lib_override_library_id_hierarchy_recursive_reset(Main *bmain, ID *i
     return;
   }
 
-  lib_override_library_id_reset_do(bmain, id_root);
+  lib_override_library_id_reset_do(bmain, id_root, do_reset_system_override);
 
   /* This way we won't process again that ID, should we encounter it again through another
    * relationship hierarchy. */
@@ -3132,17 +3205,19 @@ static void lib_override_library_id_hierarchy_recursive_reset(Main *bmain, ID *i
     if (*to_id_entry->id_pointer.to != NULL) {
       ID *to_id = *to_id_entry->id_pointer.to;
       if (to_id->override_library != NULL) {
-        lib_override_library_id_hierarchy_recursive_reset(bmain, to_id);
+        lib_override_library_id_hierarchy_recursive_reset(bmain, to_id, do_reset_system_override);
       }
     }
   }
 }
 
-void BKE_lib_override_library_id_hierarchy_reset(Main *bmain, ID *id_root)
+void BKE_lib_override_library_id_hierarchy_reset(Main *bmain,
+                                                 ID *id_root,
+                                                 const bool do_reset_system_override)
 {
   BKE_main_relations_create(bmain, 0);
 
-  lib_override_library_id_hierarchy_recursive_reset(bmain, id_root);
+  lib_override_library_id_hierarchy_recursive_reset(bmain, id_root, do_reset_system_override);
 
   BKE_main_relations_free(bmain);
 

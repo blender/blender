@@ -1569,10 +1569,10 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_SurfaceDeform) {
             SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
-            if (smd->num_bind_verts && smd->verts) {
-              smd->num_mesh_verts = smd->num_bind_verts;
+            if (smd->bind_verts_num && smd->verts) {
+              smd->mesh_verts_num = smd->bind_verts_num;
 
-              for (unsigned int i = 0; i < smd->num_bind_verts; i++) {
+              for (unsigned int i = 0; i < smd->bind_verts_num; i++) {
                 smd->verts[i].vertex_idx = i;
               }
             }
@@ -2435,17 +2435,27 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 302, 7)) {
+    /* Generate 'system' liboverrides IDs.
+     * NOTE: This is a fairly rough process, based on very basic heuristics. Should be enough for a
+     * do_version code though, this is a new optional feature, not a critical conversion. */
+    ID *id;
+    FOREACH_MAIN_ID_BEGIN (bmain, id) {
+      if (!ID_IS_OVERRIDE_LIBRARY_REAL(id) || ID_IS_LINKED(id)) {
+        /* Ignore non-real liboverrides, and linked ones. */
+        continue;
+      }
+      if (GS(id->name) == ID_OB) {
+        /* Never 'lock' an object into a system override for now. */
+        continue;
+      }
+      if (BKE_lib_override_library_is_user_edited(id)) {
+        /* Do not 'lock' an ID already edited by the user. */
+        continue;
+      }
+      id->override_library->flag |= IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+    }
+    FOREACH_MAIN_ID_END;
 
     /* Initialize brush curves sculpt settings. */
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
@@ -2475,5 +2485,18 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }

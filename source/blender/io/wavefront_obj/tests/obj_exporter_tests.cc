@@ -241,7 +241,7 @@ TEST(obj_exporter_writer, mtllib)
 TEST(obj_exporter_writer, format_handler_buffer_chunking)
 {
   /* Use a tiny buffer chunk size, so that the test below ends up creating several blocks. */
-  FormatHandler<eFileType::OBJ, 16, 8> h;
+  FormatHandler<eFileType::OBJ, 16> h;
   h.write<eOBJSyntaxElement::object_name>("abc");
   h.write<eOBJSyntaxElement::object_name>("abcd");
   h.write<eOBJSyntaxElement::object_name>("abcde");
@@ -483,6 +483,19 @@ TEST_F(obj_exporter_regression_test, cubes_positioned)
   compare_obj_export_to_golden("io_tests/blend_geometry/cubes_positioned.blend",
                                "io_tests/obj/cubes_positioned.obj",
                                "",
+                               _export.params);
+}
+
+/* Note: texture paths in the resulting mtl file currently are always
+ * as they are stored in the source .blend file; not relative to where
+ * the export is done. When that is properly fixed, the expected .mtl
+ * file should be updated. */
+TEST_F(obj_exporter_regression_test, cubes_with_textures)
+{
+  OBJExportParamsDefault _export;
+  compare_obj_export_to_golden("io_tests/blend_geometry/cubes_with_textures.blend",
+                               "io_tests/obj/cubes_with_textures.obj",
+                               "io_tests/obj/cubes_with_textures.mtl",
                                _export.params);
 }
 

@@ -571,7 +571,7 @@ typedef struct MLoopNorSpaceArray {
   struct LinkNode
       *loops_pool; /* Allocated once, avoids to call BLI_linklist_prepend_arena() for each loop! */
   char data_type;  /* Whether we store loop indices, or pointers to BMLoop. */
-  int num_spaces;  /* Number of clnors spaces defined in this array. */
+  int spaces_num;  /* Number of clnors spaces defined in this array. */
   struct MemArena *mem;
 } MLoopNorSpaceArray;
 /**

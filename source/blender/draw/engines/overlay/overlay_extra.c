@@ -345,18 +345,17 @@ static void OVERLAY_bounds(OVERLAY_ExtraCallBuffers *cb,
                            bool around_origin)
 {
   float center[3], size[3], tmp[4][4], final_mat[4][4];
-  BoundBox bb_local;
 
   if (ob->type == OB_MBALL && !BKE_mball_is_basis(ob)) {
     return;
   }
 
-  BoundBox *bb = BKE_object_boundbox_get(ob);
-
+  const BoundBox *bb = BKE_object_boundbox_get(ob);
+  BoundBox bb_local;
   if (bb == NULL) {
     const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
+    BKE_boundbox_init_from_minmax(&bb_local, min, max);
     bb = &bb_local;
-    BKE_boundbox_init_from_minmax(bb, min, max);
   }
 
   BKE_boundbox_calc_size_aabb(bb, size);
@@ -756,7 +755,7 @@ void OVERLAY_lightprobe_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
         uint cell_count = prb->grid_resolution_x * prb->grid_resolution_y * prb->grid_resolution_z;
         DRWShadingGroup *grp = DRW_shgroup_create_sub(vedata->stl->pd->extra_grid_grp);
-        DRW_shgroup_uniform_vec4_array_copy(grp, "gridModelMatrix", instdata.mat, 4);
+        DRW_shgroup_uniform_mat4_copy(grp, "gridModelMatrix", instdata.mat);
         DRW_shgroup_call_procedural_points(grp, NULL, cell_count);
       }
       break;

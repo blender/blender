@@ -6,7 +6,7 @@ uniform bool isTransform;
 uniform bool isObjectColor;
 uniform bool isRandomColor;
 uniform bool isHair;
-uniform vec4 hairDupliMatrix[4];
+uniform mat4 hairDupliMatrix;
 
 in vec3 pos;
 in vec3 nor;
@@ -94,9 +94,7 @@ void main()
   vec3 wpos = point_object_to_world(pos);
 
   if (isHair) {
-    mat4 obmat = mat4(
-        hairDupliMatrix[0], hairDupliMatrix[1], hairDupliMatrix[2], hairDupliMatrix[3]);
-
+    mat4 obmat = hairDupliMatrix;
     wpos = (obmat * vec4(pos, 1.0)).xyz;
     wnor = -normalize(mat3(obmat) * nor);
   }

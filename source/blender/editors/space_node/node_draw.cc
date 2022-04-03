@@ -69,6 +69,7 @@
 #include "NOD_geometry_nodes_eval_log.hh"
 #include "NOD_node_declaration.hh"
 
+#include "FN_field.hh"
 #include "FN_field_cpp_type.hh"
 
 #include "node_intern.hh" /* own include */
@@ -2574,20 +2575,14 @@ static void reroute_node_draw(
   if (node.label[0] != '\0') {
     /* draw title (node label) */
     BLI_strncpy(showname, node.label, sizeof(showname));
-    uiDefBut(&block,
-             UI_BTYPE_LABEL,
-             0,
-             showname,
-             (int)(rct.xmin - NODE_DYS),
-             (int)(rct.ymax),
-             (short)512,
-             (short)NODE_DY,
-             nullptr,
-             0,
-             0,
-             0,
-             0,
-             nullptr);
+    const short width = 512;
+    const int x = BLI_rctf_cent_x(&node.totr) - (width / 2);
+    const int y = node.totr.ymax;
+
+    uiBut *label_but = uiDefBut(
+        &block, UI_BTYPE_LABEL, 0, showname, x, y, width, (short)NODE_DY, NULL, 0, 0, 0, 0, NULL);
+
+    UI_but_drawflag_disable(label_but, UI_BUT_TEXT_LEFT);
   }
 
   /* only draw input socket. as they all are placed on the same position.

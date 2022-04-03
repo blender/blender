@@ -996,19 +996,10 @@ void selectConstraint(TransInfo *t)
 
 void postSelectConstraint(TransInfo *t)
 {
-  if (!(t->con.mode & CON_SELECT)) {
-    return;
-  }
-
-  t->con.mode &= ~CON_AXIS0;
-  t->con.mode &= ~CON_AXIS1;
-  t->con.mode &= ~CON_AXIS2;
   t->con.mode &= ~CON_SELECT;
-
-  setNearestAxis(t);
-
-  startConstraint(t);
-  t->redraw = TREDRAW_HARD;
+  if (!(t->con.mode & (CON_AXIS0 | CON_AXIS1 | CON_AXIS2))) {
+    t->con.mode &= ~CON_APPLY;
+  }
 }
 
 static void setNearestAxis2d(TransInfo *t)

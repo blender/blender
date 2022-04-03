@@ -53,7 +53,7 @@ static bool BLI_path_is_abs(const char *name);
 
 /* implementation */
 
-int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort *r_num_len)
+int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort *r_digits_len)
 {
   uint nums = 0, nume = 0;
   int i;
@@ -98,8 +98,8 @@ int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort 
         strcpy(head, string);
         head[nums] = 0;
       }
-      if (r_num_len) {
-        *r_num_len = nume - nums + 1;
+      if (r_digits_len) {
+        *r_digits_len = nume - nums + 1;
       }
       return (int)ret;
     }
@@ -114,8 +114,8 @@ int BLI_path_sequence_decode(const char *string, char *head, char *tail, ushort 
      */
     BLI_strncpy(head, string, name_end + 1);
   }
-  if (r_num_len) {
-    *r_num_len = 0;
+  if (r_digits_len) {
+    *r_digits_len = 0;
   }
   return 0;
 }
@@ -750,14 +750,14 @@ bool BLI_path_frame_range(char *path, int sta, int end, int digits)
   return false;
 }
 
-bool BLI_path_frame_get(char *path, int *r_frame, int *r_numdigits)
+bool BLI_path_frame_get(char *path, int *r_frame, int *r_digits_len)
 {
   if (*path) {
     char *file = (char *)BLI_path_slash_rfind(path);
     char *c;
-    int len, numdigits;
+    int len, digits_len;
 
-    numdigits = *r_numdigits = 0;
+    digits_len = *r_digits_len = 0;
 
     if (file == NULL) {
       file = path;
@@ -779,21 +779,21 @@ bool BLI_path_frame_get(char *path, int *r_frame, int *r_numdigits)
     /* find start of number */
     while (c != (file - 1) && isdigit(*c)) {
       c--;
-      numdigits++;
+      digits_len++;
     }
 
-    if (numdigits) {
+    if (digits_len) {
       char prevchar;
 
       c++;
-      prevchar = c[numdigits];
-      c[numdigits] = 0;
+      prevchar = c[digits_len];
+      c[digits_len] = 0;
 
       /* was the number really an extension? */
       *r_frame = atoi(c);
-      c[numdigits] = prevchar;
+      c[digits_len] = prevchar;
 
-      *r_numdigits = numdigits;
+      *r_digits_len = digits_len;
 
       return true;
     }
@@ -812,7 +812,7 @@ void BLI_path_frame_strip(char *path, char *r_ext)
   char *file = (char *)BLI_path_slash_rfind(path);
   char *c, *suffix;
   int len;
-  int numdigits = 0;
+  int digits_len = 0;
 
   if (file == NULL) {
     file = path;
@@ -836,7 +836,7 @@ void BLI_path_frame_strip(char *path, char *r_ext)
   /* find start of number */
   while (c != (file - 1) && isdigit(*c)) {
     c--;
-    numdigits++;
+    digits_len++;
   }
 
   c++;
@@ -845,7 +845,7 @@ void BLI_path_frame_strip(char *path, char *r_ext)
   BLI_strncpy(r_ext, suffix, suffix_length + 1);
 
   /* replace the number with the suffix and terminate the string */
-  while (numdigits--) {
+  while (digits_len--) {
     *c++ = '#';
   }
   *c = '\0';

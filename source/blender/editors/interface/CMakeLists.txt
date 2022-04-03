@@ -46,17 +46,17 @@ set(SRC
   interface_layout.c
   interface_ops.c
   interface_panel.c
-  interface_query.c
-  interface_region_color_picker.c
-  interface_region_hud.c
-  interface_region_menu_pie.c
-  interface_region_menu_popup.c
-  interface_region_popover.c
-  interface_region_popup.c
+  interface_query.cc
+  interface_region_color_picker.cc
+  interface_region_hud.cc
+  interface_region_menu_pie.cc
+  interface_region_menu_popup.cc
+  interface_region_popover.cc
+  interface_region_popup.cc
   interface_region_search.cc
   interface_region_tooltip.c
-  interface_regions.c
-  interface_style.c
+  interface_regions.cc
+  interface_style.cc
   interface_template_asset_view.cc
   interface_template_attribute_search.cc
   interface_template_list.cc
@@ -64,7 +64,7 @@ set(SRC
   interface_template_search_operator.c
   interface_templates.c
   interface_undo.c
-  interface_utils.c
+  interface_utils.cc
   interface_view.cc
   interface_widgets.c
   resources.c

@@ -62,6 +62,7 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
   ob_proxy->proxy->id.tag |= LIB_TAG_DOIT;
   ob_proxy->proxy->id.newid = &ob_proxy->id;
   BKE_lib_override_library_init(&ob_proxy->id, &ob_proxy->proxy->id);
+  ob_proxy->id.override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
 
   ob_proxy->proxy->proxy_from = NULL;
   ob_proxy->proxy = ob_proxy->proxy_group = NULL;

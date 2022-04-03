@@ -204,7 +204,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
 
     DRW_shgroup_uniform_float(grp, "intensityFac", &pinfo->intensity_fac, 1);
     DRW_shgroup_uniform_float(grp, "sampleCount", &pinfo->samples_len, 1);
-    DRW_shgroup_uniform_float(grp, "roughness", &pinfo->roughness, 1);
+    DRW_shgroup_uniform_float(grp, "probe_roughness", &pinfo->roughness, 1);
     DRW_shgroup_uniform_float(grp, "lodFactor", &pinfo->lodfactor, 1);
     DRW_shgroup_uniform_float(grp, "lodMax", &pinfo->lod_rt_max, 1);
     DRW_shgroup_uniform_float(grp, "texelSize", &pinfo->texel_size, 1);

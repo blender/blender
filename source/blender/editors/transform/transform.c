@@ -59,8 +59,6 @@
  * and being able to set it to zero is handy. */
 /* #define USE_NUM_NO_ZERO */
 
-static void drawTransformApply(const struct bContext *C, ARegion *region, void *arg);
-
 static void initSnapSpatial(TransInfo *t, float r_snap[2]);
 
 bool transdata_check_local_islands(TransInfo *t, short around)
@@ -845,10 +843,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
     handled = true;
   }
   else if (event->type == MOUSEMOVE) {
-    if (t->modifiers & (MOD_CONSTRAINT_SELECT_AXIS | MOD_CONSTRAINT_SELECT_PLANE)) {
-      t->con.mode |= CON_SELECT;
-    }
-
     copy_v2_v2_int(t->mval, event->mval);
 
     /* Use this for soft redraw. Might cause flicker in object mode */
@@ -1097,6 +1091,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
             /* Confirm. */
             postSelectConstraint(t);
             t->modifiers &= ~(MOD_CONSTRAINT_SELECT_AXIS | MOD_CONSTRAINT_SELECT_PLANE);
+            t->redraw = TREDRAW_HARD;
           }
           else {
             if (t->options & CTX_CAMERA) {
@@ -1108,6 +1103,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
                 restoreTransObjects(t);
                 transform_mode_init(t, NULL, TFM_TRACKBALL);
               }
+              t->redraw = TREDRAW_HARD;
             }
             else {
               t->modifiers |= (event->val == TFM_MODAL_AUTOCONSTRAINT) ?
@@ -1116,13 +1112,13 @@ int transformEvent(TransInfo *t, const wmEvent *event)
               if (t->con.mode & CON_APPLY) {
                 stopConstraint(t);
               }
-              else {
-                initSelectConstraint(t);
-                postSelectConstraint(t);
-              }
+
+              initSelectConstraint(t);
+              /* Use #TREDRAW_SOFT so that #selectConstraint is only called on the next event.
+               * This allows us to "deselect" the constraint. */
+              t->redraw = TREDRAW_SOFT;
             }
           }
-          t->redraw |= TREDRAW_HARD;
           handled = true;
         }
         break;
@@ -1733,8 +1729,6 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   initTransInfo(C, t, op, event);
 
   if (t->spacetype == SPACE_VIEW3D) {
-    t->draw_handle_apply = ED_region_draw_cb_activate(
-        t->region->type, drawTransformApply, t, REGION_DRAW_PRE_VIEW);
     t->draw_handle_view = ED_region_draw_cb_activate(
         t->region->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
     t->draw_handle_pixel = ED_region_draw_cb_activate(
@@ -1925,17 +1919,18 @@ void transformApply(bContext *C, TransInfo *t)
 {
   t->context = C;
 
-  if ((t->redraw & TREDRAW_HARD) || (t->draw_handle_apply == NULL && (t->redraw & TREDRAW_SOFT))) {
+  if (t->redraw == TREDRAW_HARD) {
     selectConstraint(t);
     if (t->transform) {
       t->transform(t, t->mval); /* calls recalcData() */
-      viewRedrawForce(C, t);
     }
-    t->redraw = TREDRAW_NOTHING;
   }
-  else if (t->redraw & TREDRAW_SOFT) {
+
+  if (t->redraw & TREDRAW_SOFT) {
     viewRedrawForce(C, t);
   }
+
+  t->redraw = TREDRAW_NOTHING;
 
   /* If auto confirm is on, break after one pass */
   if (t->options & CTX_AUTOCONFIRM) {
@@ -1943,16 +1938,6 @@ void transformApply(bContext *C, TransInfo *t)
   }
 
   t->context = NULL;
-}
-
-static void drawTransformApply(const bContext *C, ARegion *UNUSED(region), void *arg)
-{
-  TransInfo *t = arg;
-
-  if (t->redraw & TREDRAW_SOFT) {
-    t->redraw |= TREDRAW_HARD;
-    transformApply((bContext *)C, t);
-  }
 }
 
 int transformEnd(bContext *C, TransInfo *t)

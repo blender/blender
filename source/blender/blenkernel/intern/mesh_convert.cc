@@ -910,20 +910,18 @@ static void curve_to_mesh_eval_ensure(Object &object)
    *
    * So we create temporary copy of the object which will use same data as the original bevel, but
    * will have no modifiers. */
-  Object bevel_object;
-  blender::dna::zero_memory(bevel_object);
+  Object bevel_object = blender::dna::shallow_zero_initialize<Object>();
   if (curve.bevobj != nullptr) {
-    blender::dna::copy_memory(bevel_object, *curve.bevobj);
+    bevel_object = blender::dna::shallow_copy(*curve.bevobj);
     BLI_listbase_clear(&bevel_object.modifiers);
     BKE_object_runtime_reset(&bevel_object);
     curve.bevobj = &bevel_object;
   }
 
   /* Same thing for taper. */
-  Object taper_object;
-  blender::dna::zero_memory(taper_object);
+  Object taper_object = blender::dna::shallow_zero_initialize<Object>();
   if (curve.taperobj != nullptr) {
-    blender::dna::copy_memory(taper_object, *curve.taperobj);
+    taper_object = blender::dna::shallow_copy(*curve.taperobj);
     BLI_listbase_clear(&taper_object.modifiers);
     BKE_object_runtime_reset(&taper_object);
     curve.taperobj = &taper_object;
@@ -1067,8 +1065,7 @@ static Mesh *mesh_new_from_mesh_object_with_layers(Depsgraph *depsgraph,
     return nullptr;
   }
 
-  Object object_for_eval;
-  blender::dna::zero_memory(object_for_eval);
+  Object object_for_eval = blender::dna::shallow_copy(*object);
   if (object_for_eval.runtime.data_orig != nullptr) {
     object_for_eval.data = object_for_eval.runtime.data_orig;
   }

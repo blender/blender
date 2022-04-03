@@ -489,7 +489,7 @@ void evaluate_constant_field(const GField &field, void *r_value)
 {
   if (field.node().depends_on_input()) {
     const CPPType &type = field.cpp_type();
-    type.copy_construct(type.default_value(), r_value);
+    type.value_initialize(r_value);
     return;
   }
 

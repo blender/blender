@@ -1662,7 +1662,7 @@ class GeometryNodesEvaluator {
 
   void construct_default_value(const CPPType &type, void *r_value)
   {
-    type.copy_construct(type.default_value(), r_value);
+    type.value_initialize(r_value);
   }
 
   NodeState &get_node_state(const DNode node)
@@ -1915,7 +1915,7 @@ void NodeParamsProvider::set_default_remaining_outputs()
     const CPPType *type = get_socket_cpp_type(socket);
     BLI_assert(type != nullptr);
     void *buffer = allocator.allocate(type->size(), type->alignment());
-    type->copy_construct(type->default_value(), buffer);
+    type->value_initialize(buffer);
     evaluator_.forward_output(socket, {type, buffer}, run_state_);
     output_state.has_been_computed = true;
   }

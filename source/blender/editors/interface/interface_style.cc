@@ -5,11 +5,11 @@
  * \ingroup edinterface
  */
 
-#include <limits.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <climits>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -57,7 +57,7 @@
 
 static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id)
 {
-  uiStyle *style = MEM_callocN(sizeof(uiStyle), "new style");
+  uiStyle *style = MEM_cnew<uiStyle>(__func__);
 
   BLI_addtail(styles, style);
   BLI_strncpy(style->name, name, MAX_STYLE_NAME);
@@ -108,14 +108,14 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id
 
 static uiFont *uifont_to_blfont(int id)
 {
-  uiFont *font = U.uifonts.first;
+  uiFont *font = static_cast<uiFont *>(U.uifonts.first);
 
   for (; font; font = font->next) {
     if (font->uifont_id == id) {
       return font;
     }
   }
-  return U.uifonts.first;
+  return static_cast<uiFont *>(U.uifonts.first);
 }
 
 /* *************** draw ************************ */
@@ -198,7 +198,7 @@ void UI_fontstyle_draw(const uiFontStyle *fs,
                        const uchar col[4],
                        const struct uiFontStyleDraw_Params *fs_params)
 {
-  UI_fontstyle_draw_ex(fs, rect, str, str_len, col, fs_params, NULL, NULL, NULL);
+  UI_fontstyle_draw_ex(fs, rect, str, str_len, col, fs_params, nullptr, nullptr, nullptr);
 }
 
 void UI_fontstyle_draw_rotated(const uiFontStyle *fs,
@@ -284,17 +284,13 @@ void UI_fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
     const float decent = BLF_descender(fs->uifont_id);
     const float margin = height / 4.0f;
 
+    rctf rect;
+    rect.xmin = x - margin;
+    rect.xmax = x + width + margin;
+    rect.ymin = (y + decent) - margin;
+    rect.ymax = (y + decent) + height + margin;
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
-    UI_draw_roundbox_4fv(
-        &(const rctf){
-            .xmin = x - margin,
-            .xmax = x + width + margin,
-            .ymin = (y + decent) - margin,
-            .ymax = (y + decent) + height + margin,
-        },
-        true,
-        margin,
-        col_bg);
+    UI_draw_roundbox_4fv(&rect, true, margin, col_bg);
   }
 
   BLF_position(fs->uifont_id, x, y, 0.0f);
@@ -307,12 +303,12 @@ void UI_fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
 const uiStyle *UI_style_get(void)
 {
 #if 0
-  uiStyle *style = NULL;
+  uiStyle *style = nullptr;
   /* offset is two struct uiStyle pointers */
   style = BLI_findstring(&U.uistyles, "Unifont Style", sizeof(style) * 2);
-  return (style != NULL) ? style : U.uistyles.first;
+  return (style != nullptr) ? style : U.uistyles.first;
 #else
-  return U.uistyles.first;
+  return static_cast<const uiStyle *>(U.uistyles.first);
 #endif
 }
 
@@ -378,7 +374,7 @@ int UI_fontstyle_height_max(const uiFontStyle *fs)
 
 void uiStyleInit(void)
 {
-  const uiStyle *style = U.uistyles.first;
+  const uiStyle *style = static_cast<uiStyle *>(U.uistyles.first);
 
   /* recover from uninitialized dpi */
   if (U.dpi == 0) {
@@ -400,11 +396,11 @@ void uiStyleInit(void)
     blf_mono_font_render = -1;
   }
 
-  uiFont *font_first = U.uifonts.first;
+  uiFont *font_first = static_cast<uiFont *>(U.uifonts.first);
 
   /* default builtin */
-  if (font_first == NULL) {
-    font_first = MEM_callocN(sizeof(uiFont), "ui font");
+  if (font_first == nullptr) {
+    font_first = MEM_cnew<uiFont>(__func__);
     BLI_addtail(&U.uifonts, font_first);
   }
 
@@ -439,7 +435,7 @@ void uiStyleInit(void)
     }
   }
 
-  if (style == NULL) {
+  if (style == nullptr) {
     style = ui_style_new(&U.uistyles, "Default Style", UIFONT_DEFAULT);
   }
 

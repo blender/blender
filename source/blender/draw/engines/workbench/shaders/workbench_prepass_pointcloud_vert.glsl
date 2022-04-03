@@ -19,7 +19,7 @@ void main()
 
   uv_interp = vec2(0.0);
 
-  workbench_material_data_get(resource_handle, color_interp, alpha_interp, roughness, metallic);
+  workbench_material_data_get(resource_handle, color_interp, alpha_interp, _roughness, metallic);
 
   if (materialIndex == 0) {
     color_interp = vec3(1.0);

@@ -1681,7 +1681,7 @@ static void do_wipe_effect_byte(Sequence *seq,
 
   for (int i = 0; i < y; i++) {
     for (int j = 0; j < x; j++) {
-      float check = check_zone(&wipezone, x, y, seq, fac);
+      float check = check_zone(&wipezone, j, i, seq, fac);
       if (check) {
         if (cp1) {
           float rt1[4], rt2[4], tempc[4];
@@ -1742,7 +1742,7 @@ static void do_wipe_effect_float(
 
   for (int i = 0; i < y; i++) {
     for (int j = 0; j < x; j++) {
-      float check = check_zone(&wipezone, x, y, seq, fac);
+      float check = check_zone(&wipezone, j, i, seq, fac);
       if (check) {
         if (rt1) {
           rt[0] = rt1[0] * check + rt2[0] * (1 - check);

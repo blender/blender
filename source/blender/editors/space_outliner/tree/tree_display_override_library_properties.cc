@@ -25,12 +25,12 @@ namespace blender::ed::outliner {
 /* Convenience/readability. */
 template<typename T> using List = ListBaseWrapper<T>;
 
-TreeDisplayOverrideLibrary::TreeDisplayOverrideLibrary(SpaceOutliner &space_outliner)
+TreeDisplayOverrideLibraryProperties::TreeDisplayOverrideLibraryProperties(SpaceOutliner &space_outliner)
     : AbstractTreeDisplay(space_outliner)
 {
 }
 
-ListBase TreeDisplayOverrideLibrary::buildTree(const TreeSourceData &source_data)
+ListBase TreeDisplayOverrideLibraryProperties::buildTree(const TreeSourceData &source_data)
 {
   ListBase tree = add_library_contents(*source_data.bmain);
 
@@ -44,7 +44,7 @@ ListBase TreeDisplayOverrideLibrary::buildTree(const TreeSourceData &source_data
   return tree;
 }
 
-ListBase TreeDisplayOverrideLibrary::add_library_contents(Main &mainvar)
+ListBase TreeDisplayOverrideLibraryProperties::add_library_contents(Main &mainvar)
 {
   ListBase tree = {nullptr};
 
@@ -69,7 +69,7 @@ ListBase TreeDisplayOverrideLibrary::add_library_contents(Main &mainvar)
 
     /* check if there's data in current id list */
     for (ID *id_iter : List<ID>(lbarray[a])) {
-      if (ID_IS_OVERRIDE_LIBRARY_REAL(id_iter)) {
+      if (ID_IS_OVERRIDE_LIBRARY_REAL(id_iter) && !ID_IS_LINKED(id_iter)) {
         id = id_iter;
         break;
       }
@@ -93,7 +93,7 @@ ListBase TreeDisplayOverrideLibrary::add_library_contents(Main &mainvar)
     }
 
     for (ID *id : List<ID>(lbarray[a])) {
-      if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+      if (ID_IS_OVERRIDE_LIBRARY_REAL(id) && !ID_IS_LINKED(id)) {
         TreeElement *override_tree_element = outliner_add_element(
             &space_outliner_, lb_to_expand, id, id_base_te, TSE_LIBRARY_OVERRIDE_BASE, 0);
 
@@ -114,7 +114,7 @@ ListBase TreeDisplayOverrideLibrary::add_library_contents(Main &mainvar)
   return tree;
 }
 
-short TreeDisplayOverrideLibrary::id_filter_get() const
+short TreeDisplayOverrideLibraryProperties::id_filter_get() const
 {
   if (space_outliner_.filter & SO_FILTER_ID_TYPE) {
     return space_outliner_.filter_id_type;

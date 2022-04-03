@@ -61,7 +61,7 @@ const EnumPropertyItem rna_gpencil_reproject_type_items[] = {
      0,
      "Cursor",
      "Reproject the strokes using the orientation of 3D cursor"},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 /* Check frame_end is always > start frame! */
@@ -86,7 +86,7 @@ static bool gpencil_bake_grease_pencil_animation_poll(bContext *C)
   }
 
   /* Check if grease pencil or empty for dupli groups. */
-  if ((obact == NULL) || (!ELEM(obact->type, OB_GPENCIL, OB_EMPTY))) {
+  if ((obact == nullptr) || (!ELEM(obact->type, OB_GPENCIL, OB_EMPTY))) {
     return false;
   }
 
@@ -95,10 +95,10 @@ static bool gpencil_bake_grease_pencil_animation_poll(bContext *C)
   return (area && area->spacetype);
 }
 
-typedef struct GpBakeOb {
+struct GpBakeOb {
   struct GpBakeOb *next, *prev;
   Object *ob;
-} GpBakeOb;
+};
 
 /* Get list of keyframes used by selected objects. */
 static void animdata_keyframe_list_get(ListBase *ob_list,
@@ -109,7 +109,7 @@ static void animdata_keyframe_list_get(ListBase *ob_list,
   LISTBASE_FOREACH (GpBakeOb *, elem, ob_list) {
     Object *ob = elem->ob;
     AnimData *adt = BKE_animdata_from_id(&ob->id);
-    if ((adt == NULL) || (adt->action == NULL)) {
+    if ((adt == nullptr) || (adt->action == nullptr)) {
       continue;
     }
     LISTBASE_FOREACH (FCurve *, fcurve, &adt->action->curves) {
@@ -131,16 +131,15 @@ static void animdata_keyframe_list_get(ListBase *ob_list,
 
 static void gpencil_bake_duplilist(Depsgraph *depsgraph, Scene *scene, Object *ob, ListBase *list)
 {
-  GpBakeOb *elem = NULL;
+  GpBakeOb *elem = nullptr;
   ListBase *lb;
-  DupliObject *dob;
   lb = object_duplilist(depsgraph, scene, ob);
-  for (dob = lb->first; dob; dob = dob->next) {
+  LISTBASE_FOREACH (DupliObject *, dob, lb) {
     if (dob->ob->type != OB_GPENCIL) {
       continue;
     }
 
-    elem = MEM_callocN(sizeof(GpBakeOb), __func__);
+    elem = MEM_cnew<GpBakeOb>(__func__);
     elem->ob = dob->ob;
     BLI_addtail(list, elem);
   }
@@ -150,13 +149,13 @@ static void gpencil_bake_duplilist(Depsgraph *depsgraph, Scene *scene, Object *o
 
 static void gpencil_bake_ob_list(bContext *C, Depsgraph *depsgraph, Scene *scene, ListBase *list)
 {
-  GpBakeOb *elem = NULL;
+  GpBakeOb *elem = nullptr;
 
   /* Add active object. In some files this could not be in selected array. */
   Object *obact = CTX_data_active_object(C);
 
   if (obact->type == OB_GPENCIL) {
-    elem = MEM_callocN(sizeof(GpBakeOb), __func__);
+    elem = MEM_cnew<GpBakeOb>(__func__);
     elem->ob = obact;
     BLI_addtail(list, elem);
   }
@@ -172,7 +171,7 @@ static void gpencil_bake_ob_list(bContext *C, Depsgraph *depsgraph, Scene *scene
     }
     /* Add selected objects. */
     if (ob->type == OB_GPENCIL) {
-      elem = MEM_callocN(sizeof(GpBakeOb), __func__);
+      elem = MEM_cnew<GpBakeOb>(__func__);
       elem->ob = ob;
       BLI_addtail(list, elem);
     }
@@ -199,7 +198,7 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
   Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
 
-  ListBase ob_selected_list = {NULL, NULL};
+  ListBase ob_selected_list = {nullptr, nullptr};
   gpencil_bake_ob_list(C, depsgraph, scene, &ob_selected_list);
 
   /* Grab all relevant settings. */
@@ -215,10 +214,11 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
 
   const bool only_selected = RNA_boolean_get(op->ptr, "only_selected");
   const int frame_offset = RNA_int_get(op->ptr, "frame_target") - frame_start;
-  const int project_type = RNA_enum_get(op->ptr, "project_type");
+  const eGP_ReprojectModes project_type = (eGP_ReprojectModes)RNA_enum_get(op->ptr,
+                                                                           "project_type");
 
   /* Create a new grease pencil object. */
-  Object *ob_gpencil = NULL;
+  Object *ob_gpencil = nullptr;
   ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
   ob_gpencil = ED_gpencil_add_object(C, scene->cursor.location, local_view_bits);
   float invmat[4][4];
@@ -230,8 +230,8 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
   /* Set cursor to indicate working. */
   WM_cursor_wait(true);
 
-  GP_SpaceConversion gsc = {NULL};
-  SnapObjectContext *sctx = NULL;
+  GP_SpaceConversion gsc = {nullptr};
+  SnapObjectContext *sctx = nullptr;
   if (project_type != GP_REPROJECT_KEEP) {
     /* Init space conversion stuff. */
     gpencil_point_conversion_init(C, &gsc);
@@ -271,14 +271,14 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
     /* Loop all objects in the list. */
     LISTBASE_FOREACH (GpBakeOb *, elem, &ob_selected_list) {
       Object *ob_eval = (Object *)DEG_get_evaluated_object(depsgraph, elem->ob);
-      bGPdata *gpd_src = ob_eval->data;
+      bGPdata *gpd_src = static_cast<bGPdata *>(ob_eval->data);
 
       LISTBASE_FOREACH (bGPDlayer *, gpl_src, &gpd_src->layers) {
         /* Create destination layer. */
         char *layer_name;
         layer_name = BLI_sprintfN("%s_%s", elem->ob->id.name + 2, gpl_src->info);
         bGPDlayer *gpl_dst = BKE_gpencil_layer_named_get(gpd_dst, layer_name);
-        if (gpl_dst == NULL) {
+        if (gpl_dst == nullptr) {
           gpl_dst = BKE_gpencil_layer_addnew(gpd_dst, layer_name, true, false);
         }
         MEM_freeN(layer_name);
@@ -293,7 +293,7 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
         /* Duplicate frame. */
         bGPDframe *gpf_src = BKE_gpencil_layer_frame_get(
             gpl_src, remap_cfra, GP_GETFRAME_USE_PREV);
-        if (gpf_src == NULL) {
+        if (gpf_src == nullptr) {
           continue;
         }
         bGPDframe *gpf_dst = BKE_gpencil_frame_duplicate(gpf_src, true);
@@ -346,19 +346,19 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
 
   /* Free memory. */
   gpencil_bake_free_ob_list(&ob_selected_list);
-  if (sctx != NULL) {
+  if (sctx != nullptr) {
     ED_transform_snap_object_context_destroy(sctx);
   }
   /* Free temp hash table. */
-  if (keyframe_list != NULL) {
-    BLI_ghash_free(keyframe_list, NULL, NULL);
+  if (keyframe_list != nullptr) {
+    BLI_ghash_free(keyframe_list, nullptr, nullptr);
   }
 
   /* Notifiers. */
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   DEG_id_tag_update(&gpd_dst->id, ID_RECALC_COPY_ON_WRITE);
-  WM_event_add_notifier(C, NC_OBJECT | NA_ADDED, NULL);
+  WM_event_add_notifier(C, NC_OBJECT | NA_ADDED, nullptr);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 
   /* Reset cursor. */
@@ -418,12 +418,15 @@ void GPENCIL_OT_bake_grease_pencil_animation(wmOperatorType *ot)
 
   prop = RNA_def_int(
       ot->srna, "frame_end", 250, 1, 100000, "End Frame", "The end frame of animation", 1, 100000);
-  RNA_def_property_update_runtime(prop, gpencil_bake_set_frame_end);
+  RNA_def_property_update_runtime(prop, (void *)gpencil_bake_set_frame_end);
 
   prop = RNA_def_int(ot->srna, "step", 1, 1, 100, "Step", "Step between generated frames", 1, 100);
 
-  RNA_def_boolean(
-      ot->srna, "only_selected", 0, "Only Selected Keyframes", "Convert only selected keyframes");
+  RNA_def_boolean(ot->srna,
+                  "only_selected",
+                  false,
+                  "Only Selected Keyframes",
+                  "Convert only selected keyframes");
   RNA_def_int(
       ot->srna, "frame_target", 1, 1, 100000, "Target Frame", "Destination frame", 1, 100000);
 

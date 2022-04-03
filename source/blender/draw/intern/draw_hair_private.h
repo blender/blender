@@ -91,11 +91,11 @@ bool particles_ensure_procedural_data(struct Object *object,
 /**
  * Ensure all textures and buffers needed for GPU accelerated drawing.
  */
-bool hair_ensure_procedural_data(struct Object *object,
-                                 struct ParticleHairCache **r_hair_cache,
-                                 struct GPUMaterial *gpu_material,
-                                 int subdiv,
-                                 int thickness_res);
+bool curves_ensure_procedural_data(struct Object *object,
+                                   struct ParticleHairCache **r_hair_cache,
+                                   struct GPUMaterial *gpu_material,
+                                   int subdiv,
+                                   int thickness_res);
 
 #ifdef __cplusplus
 }

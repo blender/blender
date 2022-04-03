@@ -381,6 +381,8 @@ struct Object *ED_object_add_type(struct bContext *C,
  */
 void ED_object_single_user(struct Main *bmain, struct Scene *scene, struct Object *ob);
 
+void ED_object_single_obdata_user(struct Main *bmain, struct Scene *scene, struct Object *ob);
+
 /* object motion paths */
 
 /**

@@ -19,6 +19,7 @@
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h" /* own include */
 #include "GPU_batch_utils.h"
+#include "GPU_context.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Local Structures
@@ -320,11 +321,12 @@ GPUBatch *GPU_batch_preset_quad(void)
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(preset_2d_format());
     GPU_vertbuf_data_alloc(vbo, 4);
 
-    float pos_data[4][2] = {{0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 0.0f}};
+    float pos_data[4][2] = {{0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}};
     GPU_vertbuf_attr_fill(vbo, g_presets_2d.attr_id.pos, pos_data);
     /* Don't fill the color. */
 
-    g_presets_2d.batch.quad = GPU_batch_create_ex(GPU_PRIM_TRI_FAN, vbo, NULL, GPU_BATCH_OWNS_VBO);
+    g_presets_2d.batch.quad = GPU_batch_create_ex(
+        GPU_PRIM_TRI_STRIP, vbo, NULL, GPU_BATCH_OWNS_VBO);
 
     gpu_batch_presets_register(g_presets_2d.batch.quad);
   }

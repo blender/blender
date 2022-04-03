@@ -288,7 +288,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
                                     struct Object *ob,
                                     struct Mesh *mesh,
                                     float (*vertexCos)[3],
-                                    int numVerts)
+                                    int verts_num)
 {
   int i;
   float smd_limit[2], smd_factor;
@@ -355,7 +355,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
     float lower = FLT_MAX;
     float upper = -FLT_MAX;
 
-    for (i = 0; i < numVerts; i++) {
+    for (i = 0; i < verts_num; i++) {
       float tmp[3];
       copy_v3_v3(tmp, vertexCos[i]);
 
@@ -401,7 +401,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd,
   /* Do deformation. */
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  BLI_task_parallel_range(0, numVerts, (void *)&deform_pool_data, simple_helper, &settings);
+  BLI_task_parallel_range(0, verts_num, (void *)&deform_pool_data, simple_helper, &settings);
 }
 
 /* SimpleDeform */
@@ -446,17 +446,17 @@ static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
                         struct Mesh *mesh,
                         float (*vertexCos)[3],
-                        int numVerts)
+                        int verts_num)
 {
   SimpleDeformModifierData *sdmd = (SimpleDeformModifierData *)md;
   Mesh *mesh_src = NULL;
 
   if (ctx->object->type == OB_MESH && sdmd->vgroup_name[0] != '\0') {
     /* mesh_src is only needed for vgroups. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, verts_num, false, false);
   }
 
-  SimpleDeformModifier_do(sdmd, ctx, ctx->object, mesh_src, vertexCos, numVerts);
+  SimpleDeformModifier_do(sdmd, ctx, ctx->object, mesh_src, vertexCos, verts_num);
 
   if (!ELEM(mesh_src, NULL, mesh)) {
     BKE_id_free(NULL, mesh_src);
@@ -468,14 +468,15 @@ static void deformVertsEM(ModifierData *md,
                           struct BMEditMesh *editData,
                           struct Mesh *mesh,
                           float (*vertexCos)[3],
-                          int numVerts)
+                          int verts_num)
 {
   SimpleDeformModifierData *sdmd = (SimpleDeformModifierData *)md;
   Mesh *mesh_src = NULL;
 
   if (ctx->object->type == OB_MESH && sdmd->vgroup_name[0] != '\0') {
     /* mesh_src is only needed for vgroups. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, NULL, numVerts, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(
+        ctx->object, editData, mesh, NULL, verts_num, false, false);
   }
 
   /* TODO(Campbell): use edit-mode data only (remove this line). */
@@ -483,7 +484,7 @@ static void deformVertsEM(ModifierData *md,
     BKE_mesh_wrapper_ensure_mdata(mesh_src);
   }
 
-  SimpleDeformModifier_do(sdmd, ctx, ctx->object, mesh_src, vertexCos, numVerts);
+  SimpleDeformModifier_do(sdmd, ctx, ctx->object, mesh_src, vertexCos, verts_num);
 
   if (!ELEM(mesh_src, NULL, mesh)) {
     BKE_id_free(NULL, mesh_src);

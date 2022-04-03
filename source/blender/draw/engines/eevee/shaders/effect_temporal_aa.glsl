@@ -3,7 +3,7 @@
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 uniform sampler2D colorBuffer;
-uniform sampler2D depthBuffer;
+uniform depth2D depthBuffer;
 uniform sampler2D colorHistoryBuffer;
 
 uniform mat4 prevViewProjectionMatrix;

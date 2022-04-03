@@ -30,25 +30,25 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
 {
   plConvexHull hull = plConvexHullCompute((float(*)[3])coords.data(), coords.size());
 
-  const int num_verts = plConvexHullNumVertices(hull);
-  const int num_faces = num_verts <= 2 ? 0 : plConvexHullNumFaces(hull);
-  const int num_loops = num_verts <= 2 ? 0 : plConvexHullNumLoops(hull);
+  const int verts_num = plConvexHullNumVertices(hull);
+  const int faces_num = verts_num <= 2 ? 0 : plConvexHullNumFaces(hull);
+  const int loops_num = verts_num <= 2 ? 0 : plConvexHullNumLoops(hull);
   /* Half as many edges as loops, because the mesh is manifold. */
-  const int num_edges = num_verts == 2 ? 1 : num_verts < 2 ? 0 : num_loops / 2;
+  const int edges_num = verts_num == 2 ? 1 : verts_num < 2 ? 0 : loops_num / 2;
 
   /* Create Mesh *result with proper capacity. */
   Mesh *result;
   if (mesh) {
     result = BKE_mesh_new_nomain_from_template(
-        mesh, num_verts, num_edges, 0, num_loops, num_faces);
+        mesh, verts_num, edges_num, 0, loops_num, faces_num);
   }
   else {
-    result = BKE_mesh_new_nomain(num_verts, num_edges, 0, num_loops, num_faces);
+    result = BKE_mesh_new_nomain(verts_num, edges_num, 0, loops_num, faces_num);
     BKE_id_material_eval_ensure_default_slot(&result->id);
   }
 
   /* Copy vertices. */
-  for (const int i : IndexRange(num_verts)) {
+  for (const int i : IndexRange(verts_num)) {
     float co[3];
     int original_index;
     plConvexHullGetVertex(hull, i, co, &original_index);
@@ -73,9 +73,9 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
   /* NOTE: ConvexHull from Bullet uses a half-edge data structure
    * for its mesh. To convert that, each half-edge needs to be converted
    * to a loop and edges need to be created from that. */
-  Array<MLoop> mloop_src(num_loops);
+  Array<MLoop> mloop_src(loops_num);
   uint edge_index = 0;
-  for (const int i : IndexRange(num_loops)) {
+  for (const int i : IndexRange(loops_num)) {
     int v_from;
     int v_to;
     plConvexHullGetLoop(hull, i, &v_from, &v_to);
@@ -95,7 +95,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
       edge_index++;
     }
   }
-  if (num_edges == 1) {
+  if (edges_num == 1) {
     /* In this case there are no loops. */
     MEdge &edge = result->medge[0];
     edge.v1 = 0;
@@ -103,13 +103,13 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
     edge.flag |= ME_EDGEDRAW | ME_EDGERENDER | ME_LOOSEEDGE;
     edge_index++;
   }
-  BLI_assert(edge_index == num_edges);
+  BLI_assert(edge_index == edges_num);
 
   /* Copy faces. */
   Array<int> loops;
   int j = 0;
   MLoop *loop = result->mloop;
-  for (const int i : IndexRange(num_faces)) {
+  for (const int i : IndexRange(faces_num)) {
     const int len = plConvexHullGetFaceSize(hull, i);
 
     BLI_assert(len > 2);

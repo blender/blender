@@ -32,8 +32,10 @@
 #include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
+#include "BKE_lib_override.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
@@ -1930,17 +1932,29 @@ static bool rna_property_editable_do(PointerRNA *ptr,
 
   /* Handle linked or liboverride ID cases. */
   const bool is_linked_prop_exception = (prop->flag & PROP_LIB_EXCEPTION) != 0;
-  if (ID_IS_LINKED(id) && !is_linked_prop_exception) {
+  if (ID_IS_LINKED(id)) {
+    if (is_linked_prop_exception) {
+      return true;
+    }
     if (r_info != NULL && (*r_info)[0] == '\0') {
       *r_info = N_("Can't edit this property from a linked data-block");
     }
     return false;
   }
-  if (ID_IS_OVERRIDE_LIBRARY(id) && !RNA_property_overridable_get(ptr, prop_orig)) {
-    if (r_info != NULL && (*r_info)[0] == '\0') {
-      *r_info = N_("Can't edit this property from an override data-block");
+  if (ID_IS_OVERRIDE_LIBRARY(id)) {
+    const bool is_liboverride_system = BKE_lib_override_library_is_system_defined(G_MAIN, id);
+    if (!RNA_property_overridable_get(ptr, prop_orig)) {
+      if (r_info != NULL && (*r_info)[0] == '\0') {
+        *r_info = N_("Can't edit this property from an override data-block");
+      }
+      return false;
     }
-    return false;
+    if (is_liboverride_system && !is_linked_prop_exception) {
+      if (r_info != NULL && (*r_info)[0] == '\0') {
+        *r_info = N_("Can't edit this property from a system override data-block");
+      }
+      return false;
+    }
   }
 
   /* At this point, property is owned by a local ID and therefore fully editable. */
@@ -6012,13 +6026,29 @@ char *RNA_path_struct_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 
 char *RNA_path_property_py(const PointerRNA *UNUSED(ptr), PropertyRNA *prop, int index)
 {
+  const bool is_rna = (prop->magic == RNA_MAGIC);
+  const char *propname = RNA_property_identifier(prop);
   char *ret;
 
   if ((index == -1) || (RNA_property_array_check(prop) == false)) {
-    ret = BLI_sprintfN("%s", RNA_property_identifier(prop));
+    if (is_rna) {
+      ret = BLI_strdup(propname);
+    }
+    else {
+      char propname_esc[MAX_IDPROP_NAME * 2];
+      BLI_str_escape(propname_esc, propname, sizeof(propname_esc));
+      ret = BLI_sprintfN("[\"%s\"]", propname_esc);
+    }
   }
   else {
-    ret = BLI_sprintfN("%s[%d]", RNA_property_identifier(prop), index);
+    if (is_rna) {
+      ret = BLI_sprintfN("%s[%d]", propname, index);
+    }
+    else {
+      char propname_esc[MAX_IDPROP_NAME * 2];
+      BLI_str_escape(propname_esc, propname, sizeof(propname_esc));
+      ret = BLI_sprintfN("[\"%s\"][%d]", propname_esc, index);
+    }
   }
 
   return ret;

@@ -7,9 +7,9 @@
  * Pie Menu Region
  */
 
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdarg>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -51,7 +51,7 @@ struct uiPieMenu {
 static uiBlock *ui_block_func_PIE(bContext *UNUSED(C), uiPopupBlockHandle *handle, void *arg_pie)
 {
   uiBlock *block;
-  uiPieMenu *pie = arg_pie;
+  uiPieMenu *pie = static_cast<uiPieMenu *>(arg_pie);
   int minwidth, width, height;
 
   minwidth = UI_MENU_WIDTH_MIN;
@@ -89,14 +89,13 @@ static float ui_pie_menu_title_width(const char *name, int icon)
 uiPieMenu *UI_pie_menu_begin(struct bContext *C, const char *title, int icon, const wmEvent *event)
 {
   const uiStyle *style = UI_style_get_dpi();
-  uiPieMenu *pie;
   short event_type;
 
   wmWindow *win = CTX_wm_window(C);
 
-  pie = MEM_callocN(sizeof(*pie), "pie menu");
+  uiPieMenu *pie = MEM_cnew<uiPieMenu>(__func__);
 
-  pie->block_radial = UI_block_begin(C, NULL, __func__, UI_EMBOSS);
+  pie->block_radial = UI_block_begin(C, nullptr, __func__, UI_EMBOSS);
   /* may be useful later to allow spawning pies
    * from old positions */
   /* pie->block_radial->flag |= UI_BLOCK_POPUP_MEMORY; */
@@ -153,7 +152,7 @@ uiPieMenu *UI_pie_menu_begin(struct bContext *C, const char *title, int icon, co
                              0,
                              w,
                              UI_UNIT_Y,
-                             NULL,
+                             nullptr,
                              0.0,
                              0.0,
                              0,
@@ -170,7 +169,7 @@ uiPieMenu *UI_pie_menu_begin(struct bContext *C, const char *title, int icon, co
                      0,
                      w,
                      UI_UNIT_Y,
-                     NULL,
+                     nullptr,
                      0.0,
                      0.0,
                      0,
@@ -191,7 +190,7 @@ void UI_pie_menu_end(bContext *C, uiPieMenu *pie)
   wmWindow *window = CTX_wm_window(C);
   uiPopupBlockHandle *menu;
 
-  menu = ui_popup_block_create(C, NULL, NULL, NULL, ui_block_func_PIE, pie, NULL);
+  menu = ui_popup_block_create(C, nullptr, nullptr, nullptr, ui_block_func_PIE, pie, nullptr);
   menu->popup = true;
   menu->towardstime = PIL_check_seconds_timer();
 
@@ -212,7 +211,7 @@ int UI_pie_menu_invoke(struct bContext *C, const char *idname, const wmEvent *ev
   uiLayout *layout;
   MenuType *mt = WM_menutype_find(idname, true);
 
-  if (mt == NULL) {
+  if (mt == nullptr) {
     printf("%s: named menu \"%s\" not found\n", __func__, idname);
     return OPERATOR_CANCELLED;
   }
@@ -263,7 +262,7 @@ int UI_pie_menu_invoke_from_rna_enum(struct bContext *C,
   uiPieMenu *pie;
   uiLayout *layout;
 
-  RNA_pointer_create(NULL, &RNA_Context, C, &ctx_ptr);
+  RNA_pointer_create(nullptr, &RNA_Context, C, &ctx_ptr);
 
   if (!RNA_path_resolve(&ctx_ptr, path, &r_ptr, &r_prop)) {
     return OPERATOR_CANCELLED;
@@ -280,7 +279,7 @@ int UI_pie_menu_invoke_from_rna_enum(struct bContext *C,
   layout = UI_pie_menu_layout(pie);
 
   layout = uiLayoutRadial(layout);
-  uiItemFullR(layout, &r_ptr, r_prop, RNA_NO_INDEX, 0, UI_ITEM_R_EXPAND, NULL, 0);
+  uiItemFullR(layout, &r_ptr, r_prop, RNA_NO_INDEX, 0, UI_ITEM_R_EXPAND, nullptr, 0);
 
   UI_pie_menu_end(C, pie);
 
@@ -304,7 +303,7 @@ int UI_pie_menu_invoke_from_rna_enum(struct bContext *C,
  * - Julian (Feb 2016)
  * \{ */
 
-typedef struct PieMenuLevelData {
+ struct PieMenuLevelData {
   char title[UI_MAX_NAME_STR]; /* parent pie title, copied for level */
   int icon;                    /* parent pie icon, copied for level */
   int totitem;                 /* total count of *remaining* items */
@@ -314,7 +313,7 @@ typedef struct PieMenuLevelData {
   const char *propname;
   IDProperty *properties;
   wmOperatorCallContext context, flag;
-} PieMenuLevelData;
+} ;
 
 /**
  * Invokes a new pie menu for a new level.
@@ -362,17 +361,17 @@ void ui_pie_menu_level_create(uiBlock *block,
                               const EnumPropertyItem *items,
                               int totitem,
                               wmOperatorCallContext context,
-                              int flag)
+                              wmOperatorCallContext flag)
 {
   const int totitem_parent = PIE_MAX_ITEMS - 1;
   const int totitem_remain = totitem - totitem_parent;
   const size_t array_size = sizeof(EnumPropertyItem) * totitem_remain;
 
   /* used as but->func_argN so freeing is handled elsewhere */
-  EnumPropertyItem *remaining = MEM_mallocN(array_size + sizeof(EnumPropertyItem),
-                                            "pie_level_item_array");
+  EnumPropertyItem *remaining = static_cast<EnumPropertyItem *>(
+      MEM_mallocN(array_size + sizeof(EnumPropertyItem), "pie_level_item_array"));
   memcpy(remaining, items + totitem_parent, array_size);
-  /* A NULL terminating sentinel element is required. */
+  /* A nullptr terminating sentinel element is required. */
   memset(&remaining[totitem_remain], 0, sizeof(EnumPropertyItem));
 
   /* yuk, static... issue is we can't reliably free this without doing dangerous changes */
@@ -395,7 +394,7 @@ void ui_pie_menu_level_create(uiBlock *block,
                                 0,
                                 UI_UNIT_X * 3,
                                 UI_UNIT_Y,
-                                NULL,
+                                nullptr,
                                 0.0f,
                                 0.0f,
                                 0.0f,

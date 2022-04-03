@@ -20,8 +20,8 @@ void BLI_bitmap_set_all(BLI_bitmap *bitmap, bool set, size_t bits)
 
 void BLI_bitmap_flip_all(BLI_bitmap *bitmap, size_t bits)
 {
-  size_t num_blocks = _BITMAP_NUM_BLOCKS(bits);
-  for (size_t i = 0; i < num_blocks; i++) {
+  size_t blocks_num = _BITMAP_NUM_BLOCKS(bits);
+  for (size_t i = 0; i < blocks_num; i++) {
     bitmap[i] ^= ~(BLI_bitmap)0;
   }
 }
@@ -33,16 +33,16 @@ void BLI_bitmap_copy_all(BLI_bitmap *dst, const BLI_bitmap *src, size_t bits)
 
 void BLI_bitmap_and_all(BLI_bitmap *dst, const BLI_bitmap *src, size_t bits)
 {
-  size_t num_blocks = _BITMAP_NUM_BLOCKS(bits);
-  for (size_t i = 0; i < num_blocks; i++) {
+  size_t blocks_num = _BITMAP_NUM_BLOCKS(bits);
+  for (size_t i = 0; i < blocks_num; i++) {
     dst[i] &= src[i];
   }
 }
 
 void BLI_bitmap_or_all(BLI_bitmap *dst, const BLI_bitmap *src, size_t bits)
 {
-  size_t num_blocks = _BITMAP_NUM_BLOCKS(bits);
-  for (size_t i = 0; i < num_blocks; i++) {
+  size_t blocks_num = _BITMAP_NUM_BLOCKS(bits);
+  for (size_t i = 0; i < blocks_num; i++) {
     dst[i] |= src[i];
   }
 }

@@ -130,7 +130,7 @@ static void uv_warp_compute(void *__restrict userdata,
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   UVWarpModifierData *umd = (UVWarpModifierData *)md;
-  int numPolys, numLoops;
+  int polys_num, loops_num;
   MPoly *mpoly;
   MLoop *mloop;
   MLoopUV *mloopuv;
@@ -196,14 +196,14 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   /* make sure we're using an existing layer */
   CustomData_validate_layer_name(&mesh->ldata, CD_MLOOPUV, umd->uvlayer_name, uvname);
 
-  numPolys = mesh->totpoly;
-  numLoops = mesh->totloop;
+  polys_num = mesh->totpoly;
+  loops_num = mesh->totloop;
 
   mpoly = mesh->mpoly;
   mloop = mesh->mloop;
   /* make sure we are not modifying the original UV map */
   mloopuv = CustomData_duplicate_referenced_layer_named(
-      &mesh->ldata, CD_MLOOPUV, uvname, numLoops);
+      &mesh->ldata, CD_MLOOPUV, uvname, loops_num);
   MOD_get_vgroup(ctx->object, mesh, umd->vgroup_name, &dvert, &defgrp_index);
 
   UVWarpData data = {
@@ -217,8 +217,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   };
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = (numPolys > 1000);
-  BLI_task_parallel_range(0, numPolys, &data, uv_warp_compute, &settings);
+  settings.use_threading = (polys_num > 1000);
+  BLI_task_parallel_range(0, polys_num, &data, uv_warp_compute, &settings);
 
   mesh->runtime.is_original = false;
 

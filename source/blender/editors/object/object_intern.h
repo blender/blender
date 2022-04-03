@@ -119,6 +119,7 @@ void OBJECT_OT_pointcloud_add(struct wmOperatorType *ot);
  * Only used as menu.
  */
 void OBJECT_OT_collection_instance_add(struct wmOperatorType *ot);
+void OBJECT_OT_collection_external_asset_drop(struct wmOperatorType *ot);
 void OBJECT_OT_data_instance_add(struct wmOperatorType *ot);
 
 void OBJECT_OT_duplicates_make_real(struct wmOperatorType *ot);

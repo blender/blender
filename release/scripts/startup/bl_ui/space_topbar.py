@@ -464,7 +464,6 @@ class TOPBAR_MT_file_export(Menu):
     bl_owner_use_filter = False
 
     def draw(self, _context):
-        self.layout.operator("wm.obj_export", text="Wavefront OBJ (.obj)")
         if bpy.app.build_options.collada:
             self.layout.operator("wm.collada_export", text="Collada (.dae)")
         if bpy.app.build_options.alembic:
@@ -479,6 +478,8 @@ class TOPBAR_MT_file_export(Menu):
         # Haru lib dependency
         if bpy.app.build_options.haru:
             self.layout.operator("wm.gpencil_export_pdf", text="Grease Pencil as PDF")
+
+        self.layout.operator("wm.obj_export", text="Wavefront (.obj) (experimental)")
 
 
 class TOPBAR_MT_file_external_data(Menu):

@@ -319,11 +319,11 @@ static void data_transfer_exec_preprocess_objects(bContext *C,
     }
 
     me = ob->data;
-    if (ID_IS_LINKED(me)) {
-      /* Do not transfer to linked data, not supported. */
+    if (ID_IS_LINKED(me) || ID_IS_OVERRIDE_LIBRARY(me)) {
+      /* Do not transfer to linked/override data, not supported. */
       BKE_reportf(op->reports,
                   RPT_WARNING,
-                  "Skipping object '%s', linked data '%s' cannot be modified",
+                  "Skipping object '%s', linked or override data '%s' cannot be modified",
                   ob->id.name + 2,
                   me->id.name + 2);
       me->id.tag &= ~LIB_TAG_DOIT;

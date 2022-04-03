@@ -1254,7 +1254,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       }
       cam = cam->id.next;
     }
-    /* Force oops draw if depgraph was set. */
+    /* Force oops draw if depsgraph was set. */
     /* Set time line var. */
 
     /* softbody init new vars */

@@ -86,6 +86,9 @@ template<class T> class ShallowDataConstRef {
   const T &ref_;
 };
 
+template<class T> class ShallowZeroInitializeTag {
+};
+
 }  // namespace blender::dna::internal
 
 #  define DNA_DEFINE_CXX_METHODS(class_name) \
@@ -108,6 +111,18 @@ template<class T> class ShallowDataConstRef {
         _DNA_internal_memcpy(this, ref.get_pointer(), sizeof(class_name)); \
       } \
       return *this; \
+    } \
+    /* Create object which memory is filled with zeros. */ \
+    class_name(const blender::dna::internal::ShallowZeroInitializeTag<class_name> /*tag*/) \
+        : class_name() \
+    { \
+      _DNA_internal_memzero(this, sizeof(class_name)); \
+    } \
+    class_name &operator=( \
+        const blender::dna::internal::ShallowZeroInitializeTag<class_name> /*tag*/) \
+    { \
+      _DNA_internal_memzero(this, sizeof(class_name)); \
+      return *this; \
     }
 
 namespace blender::dna {
@@ -126,18 +141,12 @@ template<class T>
   return internal::ShallowDataConstRef(other);
 }
 
-/* Fill underlying memory used by DNA object with zeroes. */
-template<class T> inline void zero_memory(T &object)
+/* DNA object initializer which leads to an object which underlying memory is filled with zeroes.
+ */
+template<class T>
+[[nodiscard]] inline internal::ShallowZeroInitializeTag<T> shallow_zero_initialize()
 {
-  /* TODO(sergey): Consider adding static assert for T being a trivial type. */
-  _DNA_internal_memzero(&object, sizeof(T));
-}
-
-/* Copy memory from one DNA object to another. */
-template<class T> inline void copy_memory(T &dst, const T &src)
-{
-  /* TODO(sergey): Consider adding static assert for T being a trivial type. */
-  _DNA_internal_memcpy(&dst, &src, sizeof(T));
+  return internal::ShallowZeroInitializeTag<T>();
 }
 
 }  // namespace blender::dna

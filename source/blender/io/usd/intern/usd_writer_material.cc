@@ -255,8 +255,8 @@ void create_input(pxr::UsdShadeShader &shader, const InputSpec &spec, const void
 
 /* Find the UVMAP node input to the given texture image node and convert it
  * to a USD primvar reader shader. If no UVMAP node is found, create a primvar
- * reader for the given default uv set.  The primvar reader will be attached to
- * the 'st' input of the given USD texture shader.  */
+ * reader for the given default uv set. The primvar reader will be attached to
+ * the 'st' input of the given USD texture shader. */
 static void create_uvmap_shader(const USDExporterContext &usd_export_context,
                                 bNode *tex_node,
                                 pxr::UsdShadeMaterial &usd_material,
@@ -359,7 +359,7 @@ static void export_in_memory_texture(Image *ima,
     BLI_split_file_part(image_abs_path, file_name, FILE_MAX);
   }
   else {
-    /* Use the image name for the file name.  */
+    /* Use the image name for the file name. */
     strcpy(file_name, ima->id.name + 2);
   }
 
@@ -452,7 +452,7 @@ static bNode *traverse_channel(bNodeSocket *input, const short target_type)
 }
 
 /* Returns the first occurrence of a principled BSDF or a diffuse BSDF node found in the given
- * material's node tree.  Returns null if no instance of either type was found.*/
+ * material's node tree.  Returns null if no instance of either type was found. */
 static bNode *find_bsdf_node(Material *material)
 {
   LISTBASE_FOREACH (bNode *, node, &material->nodetree->nodes) {

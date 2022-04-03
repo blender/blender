@@ -204,12 +204,12 @@ bool BLI_path_filename_ensure(char *filepath, size_t maxlen, const char *filenam
  * or before dot if no digits.
  * \param tail: Optional area to return copy of part of string following digits,
  * or from dot if no digits.
- * \param r_num_len: Optional to return number of digits found.
+ * \param r_digits_len: Optional to return number of digits found.
  */
 int BLI_path_sequence_decode(const char *string,
                              char *head,
                              char *tail,
-                             unsigned short *r_num_len);
+                             unsigned short *r_digits_len);
 /**
  * Returns in area pointed to by string a string of the form `<head><pic><tail>`,
  * where pic is formatted as `numlen` digits with leading zeroes.
@@ -310,7 +310,7 @@ bool BLI_path_frame_range(char *path, int sta, int end, int digits) ATTR_NONNULL
 /**
  * Get the frame from a filename formatted by blender's frame scheme
  */
-bool BLI_path_frame_get(char *path, int *r_frame, int *numdigits) ATTR_NONNULL();
+bool BLI_path_frame_get(char *path, int *r_frame, int *r_digits_len) ATTR_NONNULL();
 /**
  * Given a `path` with digits representing frame numbers, replace the digits with the '#'
  * character and extract the extension.

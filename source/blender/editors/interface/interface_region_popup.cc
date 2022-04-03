@@ -7,9 +7,9 @@
  * PopUp Region (Generic)
  */
 
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdarg>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -120,7 +120,7 @@ static void ui_popup_block_position(wmWindow *window,
   short dir1 = 0, dir2 = 0;
 
   if (!handle->refresh) {
-    bool left = 0, right = 0, top = 0, down = 0;
+    bool left = false, right = false, top = false, down = false;
 
     const int win_x = WM_window_pixels_x(window);
     const int win_y = WM_window_pixels_y(window);
@@ -131,24 +131,24 @@ static void ui_popup_block_position(wmWindow *window,
 
     /* check if there's space at all */
     if (butrct.xmin - max_size_x + center_x > 0.0f) {
-      left = 1;
+      left = true;
     }
     if (butrct.xmax + max_size_x - center_x < win_x) {
-      right = 1;
+      right = true;
     }
     if (butrct.ymin - max_size_y + center_y > 0.0f) {
-      down = 1;
+      down = true;
     }
     if (butrct.ymax + max_size_y - center_y < win_y) {
-      top = 1;
+      top = true;
     }
 
     if (top == 0 && down == 0) {
       if (butrct.ymin - max_size_y < win_y - butrct.ymax - max_size_y) {
-        top = 1;
+        top = true;
       }
       else {
-        down = 1;
+        down = true;
       }
     }
 
@@ -335,7 +335,7 @@ static void ui_popup_block_position(wmWindow *window,
   }
 
   /* Keep a list of these, needed for pull-down menus. */
-  uiSafetyRct *saferct = MEM_callocN(sizeof(uiSafetyRct), "uiSafetyRct");
+  uiSafetyRct *saferct = MEM_cnew<uiSafetyRct>(__func__);
   saferct->parent = butrct;
   saferct->safety = block->safety;
   BLI_freelistN(&block->saferct);
@@ -520,7 +520,7 @@ static void ui_popup_block_remove(bContext *C, uiPopupBlockHandle *handle)
   CTX_wm_window_set(C, win);
   ui_region_temp_remove(C, screen, handle->region);
 
-  /* Reset context (area and region were NULL'ed when changing context window). */
+  /* Reset context (area and region were nullptr'ed when changing context window). */
   CTX_wm_window_set(C, ctx_win);
   CTX_wm_area_set(C, ctx_area);
   CTX_wm_region_set(C, ctx_region);
@@ -548,10 +548,10 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   const uiBlockHandleCreateFunc handle_create_func = handle->popup_create_vars.handle_create_func;
   void *arg = handle->popup_create_vars.arg;
 
-  uiBlock *block_old = region->uiblocks.first;
+  uiBlock *block_old = static_cast<uiBlock *>(region->uiblocks.first);
   uiBlock *block;
 
-  handle->refresh = (block_old != NULL);
+  handle->refresh = (block_old != nullptr);
 
   BLI_assert(!handle->refresh || handle->can_refresh);
 
@@ -573,7 +573,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
 
   /* ensure we don't use mouse coords here! */
 #ifdef DEBUG
-  window->eventstate = NULL;
+  window->eventstate = nullptr;
 #endif
 
   if (block->handle) {
@@ -588,7 +588,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   region->regiondata = handle;
 
   /* set UI_BLOCK_NUMSELECT before UI_block_end() so we get alphanumeric keys assigned */
-  if (but == NULL) {
+  if (but == nullptr) {
     block->flag |= UI_BLOCK_POPUP;
   }
 
@@ -596,7 +596,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
   /* defer this until blocks are translated (below) */
-  block->oldblock = NULL;
+  block->oldblock = nullptr;
 
   if (!block->endblock) {
     UI_block_end_ex(
@@ -610,9 +610,8 @@ uiBlock *ui_popup_block_refresh(bContext *C,
     handle->direction = block->direction;
   }
   else {
-    uiSafetyRct *saferct;
     /* Keep a list of these, needed for pull-down menus. */
-    saferct = MEM_callocN(sizeof(uiSafetyRct), "uiSafetyRct");
+    uiSafetyRct *saferct = MEM_cnew<uiSafetyRct>(__func__);
     saferct->safety = block->safety;
     BLI_addhead(&block->saferct, saferct);
   }
@@ -760,7 +759,6 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
   static ARegionType type;
   ARegion *region;
   uiBlock *block;
-  uiPopupBlockHandle *handle;
 
   /* disable tooltips from buttons below */
   if (activebut) {
@@ -770,7 +768,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
   WM_cursor_set(window, WM_CURSOR_DEFAULT);
 
   /* create handle */
-  handle = MEM_callocN(sizeof(uiPopupBlockHandle), "uiPopupBlockHandle");
+  uiPopupBlockHandle *handle = MEM_cnew<uiPopupBlockHandle>(__func__);
 
   /* store context for operator */
   handle->ctx_area = CTX_wm_area(C);
@@ -782,7 +780,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
   handle->popup_create_vars.arg = arg;
   handle->popup_create_vars.arg_free = arg_free;
   handle->popup_create_vars.but = but;
-  handle->popup_create_vars.butregion = but ? butregion : NULL;
+  handle->popup_create_vars.butregion = but ? butregion : nullptr;
   copy_v2_v2_int(handle->popup_create_vars.event_xy, window->eventstate->xy);
 
   /* don't allow by default, only if popup type explicitly supports it */
@@ -816,7 +814,7 @@ void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
   /* If this popup is created from a popover which does NOT have keep-open flag set,
    * then close the popover too. We could extend this to other popup types too. */
   ARegion *region = handle->popup_create_vars.butregion;
-  if (region != NULL) {
+  if (region != nullptr) {
     LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
       if (block->handle && (block->flag & UI_BLOCK_POPOVER) &&
           (block->flag & UI_BLOCK_KEEP_OPEN) == 0) {

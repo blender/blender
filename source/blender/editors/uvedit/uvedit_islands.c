@@ -5,7 +5,7 @@
  *
  * Utilities for manipulating UV islands.
  *
- * \note This is similar to `uvedit_parametrizer.c`,
+ * \note This is similar to `GEO_uv_parametrizer.h`,
  * however the data structures there don't support arbitrary topology
  * such as an edge with 3 or more faces using it.
  * This API uses #BMesh data structures and doesn't have limitations for manifold meshes.

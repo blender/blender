@@ -178,7 +178,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_edit_position"));
-  uiItemR(col, ptr, "keep_shape", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_keep_shape", 0, NULL, ICON_NONE);
 
   gpencil_modifier_panel_end(layout, ptr);
 }

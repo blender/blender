@@ -47,6 +47,7 @@ layout(std140) uniform viewBlock
 #endif
 
 #ifdef COMMON_GLOBALS_LIB
+/* TODO move to overlay engine. */
 float mul_project_m4_v3_zfac(in vec3 co)
 {
   return pixelFac * ((ViewProjectionMatrix[0][3] * co.x) + (ViewProjectionMatrix[1][3] * co.y) +

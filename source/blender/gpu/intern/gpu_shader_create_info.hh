@@ -130,6 +130,17 @@ enum class BuiltinBits {
 };
 ENUM_OPERATORS(BuiltinBits, BuiltinBits::WORK_GROUP_SIZE);
 
+/**
+ * Follow convention described in:
+ * https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_conservative_depth.txt
+ */
+enum class DepthWrite {
+  ANY = 0,
+  GREATER,
+  LESS,
+  UNCHANGED,
+};
+
 /* Samplers & images. */
 enum class ImageType {
   /** Color samplers/image. */
@@ -273,6 +284,8 @@ struct ShaderCreateInfo {
   bool auto_resource_location_ = false;
   /** If true, force depth and stencil tests to always happen before fragment shader invocation. */
   bool early_fragment_test_ = false;
+  /** Allow optimization when fragment shader writes to `gl_FragDepth`. */
+  DepthWrite depth_write_ = DepthWrite::ANY;
   /**
    * Maximum length of all the resource names including each null terminator.
    * Only for names used by gpu::ShaderInterface.
@@ -692,6 +705,13 @@ struct ShaderCreateInfo {
   Self &builtins(BuiltinBits builtin)
   {
     builtins_ |= builtin;
+    return *(Self *)this;
+  }
+
+  /* Defines how the fragment shader will write to gl_FragDepth. */
+  Self &depth_write(DepthWrite value)
+  {
+    depth_write_ = value;
     return *(Self *)this;
   }
 

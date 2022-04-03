@@ -884,7 +884,7 @@ static void ui_node_draw_input(
           if (node_tree->type == NTREE_GEOMETRY && snode != nullptr) {
             /* Only add the attribute search in the node editor, in other places there is not
              * enough context. */
-            node_geometry_add_attribute_search_button(*C, *node_tree, *node, inputptr, *row);
+            node_geometry_add_attribute_search_button(*C, *node, inputptr, *row);
           }
           else {
             uiItemR(sub, &inputptr, "default_value", 0, "", ICON_NONE);

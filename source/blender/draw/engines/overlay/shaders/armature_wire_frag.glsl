@@ -1,12 +1,5 @@
 
-uniform float alpha = 1.0;
-
-flat in vec4 finalColor;
-flat in vec2 edgeStart;
-noperspective in vec2 edgePos;
-
-layout(location = 0) out vec4 fragColor;
-layout(location = 1) out vec4 lineOutput;
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {

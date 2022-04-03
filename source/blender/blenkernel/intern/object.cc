@@ -54,6 +54,7 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_math_vec_types.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -142,6 +143,8 @@
 
 #include "CCGSubSurf.h"
 #include "atomic_ops.h"
+
+using blender::float3;
 
 static CLG_LogRef LOG = {"bke.object"};
 
@@ -257,6 +260,10 @@ static void object_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const in
   else {
     ob_dst->preview = nullptr;
   }
+
+  if (ob_src->lightgroup) {
+    ob_dst->lightgroup = (LightgroupMembership *)MEM_dupallocN(ob_src->lightgroup);
+  }
 }
 
 static void object_free_data(ID *id)
@@ -307,6 +314,8 @@ static void object_free_data(ID *id)
   }
 
   BKE_previewimg_free(&ob->preview);
+
+  MEM_SAFE_FREE(ob->lightgroup);
 }
 
 static void library_foreach_modifiersForeachIDLink(void *user_data,
@@ -581,6 +590,10 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   BLO_write_struct_list(writer, LinkData, &ob->pc_ids);
 
   BKE_previewimg_blend_write(writer, ob->preview);
+
+  if (ob->lightgroup) {
+    BLO_write_struct(writer, LightgroupMembership, ob->lightgroup);
+  }
 }
 
 /* XXX deprecated - old animation system */
@@ -766,7 +779,7 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
     hmd->indexar = hook->indexar;
     hmd->object = hook->parent;
     memcpy(hmd->parentinv, hook->parentinv, sizeof(hmd->parentinv));
-    hmd->totindex = hook->totindex;
+    hmd->indexar_num = hook->totindex;
 
     BLI_addhead(&ob->modifiers, hmd);
     BLI_remlink(&ob->hooks, hook);
@@ -797,6 +810,8 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
 
   BLO_read_data_address(reader, &ob->preview);
   BKE_previewimg_blend_read(reader, ob->preview);
+
+  BLO_read_data_address(reader, &ob->lightgroup);
 }
 
 /* XXX deprecated - old animation system */
@@ -1172,7 +1187,7 @@ static void object_lib_override_apply_post(ID *id_dst, ID *id_src)
 
 static IDProperty *object_asset_dimensions_property(Object *ob)
 {
-  float dimensions[3];
+  float3 dimensions;
   BKE_object_dimensions_get(ob, dimensions);
   if (is_zero_v3(dimensions)) {
     return nullptr;
@@ -1236,7 +1251,7 @@ IDTypeInfo IDType_ID_OB = {
 
 void BKE_object_workob_clear(Object *workob)
 {
-  blender::dna::zero_memory(*workob);
+  *workob = blender::dna::shallow_zero_initialize<Object>();
 
   workob->scale[0] = workob->scale[1] = workob->scale[2] = 1.0f;
   workob->dscale[0] = workob->dscale[1] = workob->dscale[2] = 1.0f;
@@ -2217,7 +2232,7 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
   }
 
   /* We cannot use #BKE_id_new here as we need some custom initialization code. */
-  Object *ob = (Object *)BKE_libblock_alloc(bmain, ID_OB, name, 0);
+  Object *ob = (Object *)BKE_libblock_alloc(bmain, ID_OB, name, bmain ? 0 : LIB_ID_CREATE_NO_MAIN);
 
   /* We increase object user count when linking to Collections. */
   id_us_min(&ob->id);
@@ -2837,7 +2852,7 @@ void BKE_object_obdata_size_init(struct Object *ob, const float size)
 
 void BKE_object_scale_to_mat3(Object *ob, float mat[3][3])
 {
-  float vec[3];
+  float3 vec;
   mul_v3_v3v3(vec, ob->scale, ob->dscale);
   size_to_mat3(mat, vec);
 }
@@ -3119,7 +3134,7 @@ static bool ob_parcurve(Object *ob, Object *par, float r_mat[4][4])
 
 static void ob_parbone(Object *ob, Object *par, float r_mat[4][4])
 {
-  float vec[3];
+  float3 vec;
 
   if (par->type != OB_ARMATURE) {
     unit_m4(r_mat);
@@ -3540,11 +3555,8 @@ void BKE_object_apply_mat4(Object *ob,
 
 BoundBox *BKE_boundbox_alloc_unit()
 {
-  const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
-
-  BoundBox *bb = MEM_cnew<BoundBox>("OB-BoundBox");
-  BKE_boundbox_init_from_minmax(bb, min, max);
-
+  BoundBox *bb = MEM_cnew<BoundBox>(__func__);
+  BKE_boundbox_init_from_minmax(bb, float3(-1), float3(1));
   return bb;
 }
 
@@ -3587,7 +3599,7 @@ void BKE_boundbox_minmax(const BoundBox *bb,
   }
 }
 
-BoundBox *BKE_object_boundbox_get(Object *ob)
+const BoundBox *BKE_object_boundbox_get(Object *ob)
 {
   BoundBox *bb = nullptr;
 
@@ -3627,28 +3639,14 @@ BoundBox *BKE_object_boundbox_get(Object *ob)
   return bb;
 }
 
-void BKE_object_boundbox_flag(Object *ob, int flag, const bool set)
-{
-  BoundBox *bb = BKE_object_boundbox_get(ob);
-  if (bb) {
-    if (set) {
-      bb->flag |= flag;
-    }
-    else {
-      bb->flag &= ~flag;
-    }
-  }
-}
-
 void BKE_object_boundbox_calc_from_mesh(Object *ob, const Mesh *me_eval)
 {
-  float min[3], max[3];
-
-  INIT_MINMAX(min, max);
+  float3 min(FLT_MAX);
+  float3 max(-FLT_MAX);
 
   if (!BKE_mesh_wrapper_minmax(me_eval, min, max)) {
-    zero_v3(min);
-    zero_v3(max);
+    min = float3(0);
+    max = float3(0);
   }
 
   if (ob->runtime.bb == nullptr) {
@@ -3662,19 +3660,19 @@ void BKE_object_boundbox_calc_from_mesh(Object *ob, const Mesh *me_eval)
 
 bool BKE_object_boundbox_calc_from_evaluated_geometry(Object *ob)
 {
-  blender::float3 min, max;
-  INIT_MINMAX(min, max);
+  float3 min(FLT_MAX);
+  float3 max(-FLT_MAX);
 
   if (ob->runtime.geometry_set_eval) {
     if (!ob->runtime.geometry_set_eval->compute_boundbox_without_instances(&min, &max)) {
-      zero_v3(min);
-      zero_v3(max);
+      min = float3(0);
+      max = float3(0);
     }
   }
   else if (const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob)) {
     if (!BKE_mesh_wrapper_minmax(mesh_eval, min, max)) {
-      zero_v3(min);
-      zero_v3(max);
+      min = float3(0);
+      max = float3(0);
     }
   }
   else if (ob->runtime.curve_cache) {
@@ -3705,10 +3703,9 @@ bool BKE_object_boundbox_calc_from_evaluated_geometry(Object *ob)
 
 void BKE_object_dimensions_get(Object *ob, float r_vec[3])
 {
-  BoundBox *bb = BKE_object_boundbox_get(ob);
+  const BoundBox *bb = BKE_object_boundbox_get(ob);
   if (bb) {
-    float scale[3];
-
+    float3 scale;
     mat4_to_size(scale, ob->obmat);
 
     r_vec[0] = fabsf(scale[0]) * (bb->vec[4][0] - bb->vec[0][0]);
@@ -3726,13 +3723,12 @@ void BKE_object_dimensions_set_ex(Object *ob,
                                   const float ob_scale_orig[3],
                                   const float ob_obmat_orig[4][4])
 {
-  BoundBox *bb = BKE_object_boundbox_get(ob);
+  const BoundBox *bb = BKE_object_boundbox_get(ob);
   if (bb) {
-    float len[3];
-
-    len[0] = bb->vec[4][0] - bb->vec[0][0];
-    len[1] = bb->vec[2][1] - bb->vec[0][1];
-    len[2] = bb->vec[1][2] - bb->vec[0][2];
+    float3 len;
+    len.x = bb->vec[4][0] - bb->vec[0][0];
+    len.y = bb->vec[2][1] - bb->vec[0][1];
+    len.z = bb->vec[1][2] - bb->vec[0][2];
 
     for (int i = 0; i < 3; i++) {
       if (((1 << i) & axis_mask) == 0) {
@@ -3760,26 +3756,25 @@ void BKE_object_dimensions_set(Object *ob, const float value[3], int axis_mask)
 
 void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], const bool use_hidden)
 {
-  float vec[3];
   bool changed = false;
 
   switch (ob->type) {
     case OB_CURVES_LEGACY:
     case OB_FONT:
     case OB_SURF: {
-      BoundBox bb = *BKE_curve_boundbox_get(ob);
+      const BoundBox bb = *BKE_curve_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
       changed = true;
       break;
     }
     case OB_MESH: {
-      BoundBox bb = *BKE_mesh_boundbox_get(ob);
+      const BoundBox bb = *BKE_mesh_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
       changed = true;
       break;
     }
     case OB_GPENCIL: {
-      BoundBox bb = *BKE_gpencil_boundbox_get(ob);
+      const BoundBox bb = *BKE_gpencil_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
       changed = true;
       break;
@@ -3792,6 +3787,7 @@ void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], const bool us
       for (w = 0; w < lt->pntsw; w++) {
         for (v = 0; v < lt->pntsv; v++) {
           for (u = 0; u < lt->pntsu; u++, bp++) {
+            float3 vec;
             mul_v3_m4v3(vec, ob->obmat, bp->vec);
             minmax_v3v3_v3(r_min, r_max, vec);
           }
@@ -3815,20 +3811,20 @@ void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], const bool us
       break;
     }
     case OB_CURVES: {
-      BoundBox bb = *BKE_curves_boundbox_get(ob);
+      const BoundBox bb = *BKE_curves_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
       changed = true;
       break;
     }
 
     case OB_POINTCLOUD: {
-      BoundBox bb = *BKE_pointcloud_boundbox_get(ob);
+      const BoundBox bb = *BKE_pointcloud_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
       changed = true;
       break;
     }
     case OB_VOLUME: {
-      BoundBox bb = *BKE_volume_boundbox_get(ob);
+      const BoundBox bb = *BKE_volume_boundbox_get(ob);
       BKE_boundbox_minmax(&bb, ob->obmat, r_min, r_max);
       changed = true;
       break;
@@ -3836,15 +3832,16 @@ void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3], const bool us
   }
 
   if (changed == false) {
-    float size[3];
+    float3 size = ob->scale;
 
     copy_v3_v3(size, ob->scale);
     if (ob->type == OB_EMPTY) {
-      mul_v3_fl(size, ob->empty_drawsize);
+      size *= ob->empty_drawsize;
     }
 
     minmax_v3v3_v3(r_min, r_max, ob->obmat[3]);
 
+    float3 vec;
     copy_v3_v3(vec, ob->obmat[3]);
     add_v3_v3(vec, size);
     minmax_v3v3_v3(r_min, r_max, vec);
@@ -3895,7 +3892,7 @@ bool BKE_object_empty_image_data_is_visible_in_view3d(const Object *ob, const Re
       /* NOTE: we could normalize the 'view_dir' then use 'eps'
        * however the issue with empty objects being visible when viewed from the side
        * is only noticeable in orthographic views. */
-      float view_dir[3];
+      float3 view_dir;
       sub_v3_v3v3(view_dir, rv3d->viewinv[3], ob->obmat[3]);
       dot = dot_v3v3(ob->obmat[2], view_dir);
       eps = 0.0f;
@@ -3917,7 +3914,7 @@ bool BKE_object_empty_image_data_is_visible_in_view3d(const Object *ob, const Re
   }
 
   if (visibility_flag & OB_EMPTY_IMAGE_HIDE_NON_AXIS_ALIGNED) {
-    float proj[3];
+    float3 proj;
     project_plane_v3_v3v3(proj, ob->obmat[2], rv3d->viewinv[2]);
     const float proj_length_sq = len_squared_v3(proj);
     if (proj_length_sq > 1e-5f) {
@@ -3950,12 +3947,12 @@ bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
       /* Do not modify the original boundbox. */
       temp_ob.runtime.bb = nullptr;
       BKE_object_replace_data_on_shallow_copy(&temp_ob, dob->ob_data);
-      BoundBox *bb = BKE_object_boundbox_get(&temp_ob);
+      const BoundBox *bb = BKE_object_boundbox_get(&temp_ob);
 
       if (bb) {
         int i;
         for (i = 0; i < 8; i++) {
-          float vec[3];
+          float3 vec;
           mul_v3_m4v3(vec, dob->mat, bb->vec[i]);
           minmax_v3v3_v3(r_min, r_max, vec);
         }
@@ -3988,7 +3985,7 @@ static void foreach_display_point_gpencil_stroke_fn(bGPDlayer *UNUSED(layer),
     bGPDspoint *pt;
     int i;
     for (i = 0, pt = stroke->points; i < stroke->totpoints; i++, pt++) {
-      float co[3];
+      float3 co;
       mul_v3_m4v3(co, iter_data->obmat, &pt->x);
       iter_data->point_func_cb(co, iter_data->user_data);
     }
@@ -4000,9 +3997,9 @@ void BKE_object_foreach_display_point(Object *ob,
                                       void (*func_cb)(const float[3], void *),
                                       void *user_data)
 {
-  /* TODO: pointcloud and hair objects support */
+  /* TODO: pointcloud and curves object support */
   const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
-  float co[3];
+  float3 co;
 
   if (mesh_eval != nullptr) {
     const MVert *mv = mesh_eval->mvert;
@@ -5236,12 +5233,9 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
 /** \name Object Modifier Utilities
  * \{ */
 
-bool BKE_object_modifier_use_time(Scene *scene,
-                                  Object *ob,
-                                  ModifierData *md,
-                                  const int dag_eval_mode)
+bool BKE_object_modifier_use_time(Scene *scene, Object *ob, ModifierData *md)
 {
-  if (BKE_modifier_depends_ontime(scene, md, dag_eval_mode)) {
+  if (BKE_modifier_depends_ontime(scene, md)) {
     return true;
   }
 

@@ -247,7 +247,7 @@ set(SRC
   intern/preferences.c
   intern/report.c
   intern/rigidbody.c
-  intern/scene.c
+  intern/scene.cc
   intern/screen.c
   intern/shader_fx.c
   intern/shrinkwrap.c
@@ -370,6 +370,7 @@ set(SRC
   BKE_fcurve_driver.h
   BKE_fluid.h
   BKE_freestyle.h
+  BKE_geometry_fields.hh
   BKE_geometry_set.h
   BKE_geometry_set.hh
   BKE_geometry_set_instances.hh
@@ -597,10 +598,6 @@ endif()
 
 if(WITH_IMAGE_CINEON)
   add_definitions(-DWITH_CINEON)
-endif()
-
-if(WITH_IMAGE_FRAMESERVER)
-  add_definitions(-DWITH_FRAMESERVER)
 endif()
 
 if(WITH_IMAGE_HDR)

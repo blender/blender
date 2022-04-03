@@ -38,6 +38,7 @@
 
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
+#include "GPU_context.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
@@ -1084,12 +1085,23 @@ static void ui_draw_colorband_handle_tri(
 static void ui_draw_colorband_handle_box(
     uint pos, float x1, float y1, float x2, float y2, bool fill)
 {
-  immBegin(fill ? GPU_PRIM_TRI_FAN : GPU_PRIM_LINE_LOOP, 4);
-  immVertex2f(pos, x1, y1);
-  immVertex2f(pos, x1, y2);
-  immVertex2f(pos, x2, y2);
-  immVertex2f(pos, x2, y1);
-  immEnd();
+  if (fill) {
+    immBegin(GPU_PRIM_TRI_STRIP, 4);
+    immVertex2f(pos, x2, y1);
+    immVertex2f(pos, x1, y1);
+    immVertex2f(pos, x2, y2);
+    immVertex2f(pos, x1, y2);
+    immEnd();
+  }
+  else {
+    immBegin(GPU_PRIM_LINE_STRIP, 5);
+    immVertex2f(pos, x1, y1);
+    immVertex2f(pos, x1, y2);
+    immVertex2f(pos, x2, y2);
+    immVertex2f(pos, x2, y1);
+    immVertex2f(pos, x1, y1);
+    immEnd();
+  }
 }
 
 static void ui_draw_colorband_handle(uint shdr_pos,

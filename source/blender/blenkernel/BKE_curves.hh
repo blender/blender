@@ -77,6 +77,15 @@ class CurvesGeometryRuntime {
   mutable std::mutex position_cache_mutex;
   mutable bool position_cache_dirty = true;
 
+  /**
+   * Cache of lengths along each evaluated curve for for each evaluated point. If a curve is
+   * cyclic, it needs one more length value to correspond to the last segment, so in order to
+   * make slicing this array for a curve fast, an extra float is stored for every curve.
+   */
+  mutable Vector<float> evaluated_length_cache;
+  mutable std::mutex length_cache_mutex;
+  mutable bool length_cache_dirty = true;
+
   /** Direction of the spline at each evaluated point. */
   mutable Vector<float3> evaluated_tangents_cache;
   mutable std::mutex tangent_cache_mutex;
@@ -264,7 +273,28 @@ class CurvesGeometry : public ::CurvesGeometry {
   /** Makes sure the data described by #evaluated_offsets if necessary. */
   void ensure_evaluated_offsets() const;
 
+  /**
+   * Retrieve offsets into a Bezier curve's evaluated points for each control point.
+   * Call #ensure_evaluated_offsets() first to ensure that the evaluated offsets cache is current.
+   */
+  Span<int> bezier_evaluated_offsets_for_curve(int curve_index) const;
+
   Span<float3> evaluated_positions() const;
+
+  /**
+   * Return a cache of accumulated lengths along the curve. Each item is the length of the
+   * subsequent segment (the first value is the length of the first segment rather than 0).
+   * This calculation is rather trivial, and only depends on the evaluated positions, but
+   * the results are used often, and it is necessarily single threaded per curve, so it is cached.
+   *
+   * \param cyclic: This argument is redundant with the data stored for the curve,
+   * but is passed for performance reasons to avoid looking up the attribute.
+   */
+  Span<float> evaluated_lengths_for_curve(int curve_index, bool cyclic) const;
+  float evaluated_length_total_for_curve(int curve_index, bool cyclic) const;
+
+  /** Calculates the data described by #evaluated_lengths_for_curve if necessary. */
+  void ensure_evaluated_lengths() const;
 
   /**
    * Evaluate a generic data to the standard evaluated points of a specific curve,
@@ -280,6 +310,9 @@ class CurvesGeometry : public ::CurvesGeometry {
    * Make sure the basis weights for NURBS curve's evaluated points are calculated.
    */
   void ensure_nurbs_basis_cache() const;
+
+  /** Return the slice of #evaluated_length_cache that corresponds to this curve index. */
+  IndexRange lengths_range_for_curve(int curve_index, bool cyclic) const;
 
   /* --------------------------------------------------------------------
    * Operations.
@@ -305,6 +338,8 @@ class CurvesGeometry : public ::CurvesGeometry {
   void translate(const float3 &translation);
   void transform(const float4x4 &matrix);
 
+  void calculate_bezier_auto_handles();
+
   void update_customdata_pointers();
 
   void remove_curves(IndexMask curves_to_delete);
@@ -325,13 +360,12 @@ class CurvesGeometry : public ::CurvesGeometry {
 namespace curves {
 
 /**
- * The number of segments between control points, accounting for the last segment of cyclic curves,
- * and the fact that curves with two points cannot be cyclic. The logic is simple, but this
- * function should be used to make intentions clearer.
+ * The number of segments between control points, accounting for the last segment of cyclic
+ * curves. The logic is simple, but this function should be used to make intentions clearer.
  */
 inline int curve_segment_size(const int points_num, const bool cyclic)
 {
-  return (cyclic && points_num > 2) ? points_num : points_num - 1;
+  return cyclic ? points_num : points_num - 1;
 }
 
 namespace bezier {
@@ -365,9 +399,37 @@ void calculate_evaluated_offsets(Span<int8_t> handle_types_left,
                                  MutableSpan<int> evaluated_offsets);
 
 /**
+ * Recalculate all auto (#BEZIER_HANDLE_AUTO) and vector (#BEZIER_HANDLE_VECTOR) handles with
+ * positions automatically derived from the neighboring control points, and update aligned
+ * (#BEZIER_HANDLE_ALIGN) handles to line up with neighboring non-aligned handles. The choices
+ * made here are relatively arbitrary, but having standardized behavior is essential.
+ */
+void calculate_auto_handles(bool cyclic,
+                            Span<int8_t> types_left,
+                            Span<int8_t> types_right,
+                            Span<float3> positions,
+                            MutableSpan<float3> positions_left,
+                            MutableSpan<float3> positions_right);
+
+/**
+ * Change the handles of a single control point, aligning any aligned (#BEZIER_HANDLE_ALIGN)
+ * handles on the other side of the control point.
+ *
+ * \note This ignores the inputs if the handle types are automatically calculated,
+ * so the types should be updated before-hand to be editable.
+ */
+void set_handle_position(const float3 &position,
+                         HandleType type,
+                         HandleType type_other,
+                         const float3 &new_handle,
+                         float3 &handle,
+                         float3 &handle_other);
+
+/**
  * Evaluate a cubic Bezier segment, using the "forward differencing" method.
- * A generic Bezier curve is made up by four points, but in many cases the first and last points
- * are referred to as the control points, and the middle points are the corresponding handles.
+ * A generic Bezier curve is made up by four points, but in many cases the first and last
+ * points are referred to as the control points, and the middle points are the corresponding
+ * handles.
  */
 void evaluate_segment(const float3 &point_0,
                       const float3 &point_1,

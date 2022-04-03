@@ -886,7 +886,7 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph, const IDNode 
       return id_cow;
     }
     /* In case we don't need to do a copy-on-write, we can use the update cache of the grease
-     * pencil data to do an update-on-write.*/
+     * pencil data to do an update-on-write. */
     if (id_type == ID_GD && BKE_gpencil_can_avoid_full_copy_on_write(
                                 (const ::Depsgraph *)depsgraph, (bGPdata *)id_orig)) {
       BKE_gpencil_update_on_write((bGPdata *)id_orig, (bGPdata *)id_cow);

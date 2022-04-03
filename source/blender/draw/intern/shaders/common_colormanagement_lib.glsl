@@ -12,19 +12,19 @@ vec4 texture_read_as_linearrgb(sampler2D tex, bool premultiplied, vec2 co)
 {
   /* By convention image textures return scene linear colors, but
    * overlays still assume srgb. */
-  vec4 color = texture(tex, co);
+  vec4 col = texture(tex, co);
   /* Unpremultiply if stored multiplied, since straight alpha is expected by shaders. */
-  if (premultiplied && !(color.a == 0.0 || color.a == 1.0)) {
-    color.rgb = color.rgb / color.a;
+  if (premultiplied && !(col.a == 0.0 || col.a == 1.0)) {
+    col.rgb = col.rgb / col.a;
   }
-  return color;
+  return col;
 }
 
 vec4 texture_read_as_srgb(sampler2D tex, bool premultiplied, vec2 co)
 {
-  vec4 color = texture_read_as_linearrgb(tex, premultiplied, co);
-  color.r = linearrgb_to_srgb(color.r);
-  color.g = linearrgb_to_srgb(color.g);
-  color.b = linearrgb_to_srgb(color.b);
-  return color;
+  vec4 col = texture_read_as_linearrgb(tex, premultiplied, co);
+  col.r = linearrgb_to_srgb(col.r);
+  col.g = linearrgb_to_srgb(col.g);
+  col.b = linearrgb_to_srgb(col.b);
+  return col;
 }

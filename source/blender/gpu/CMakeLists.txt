@@ -414,6 +414,8 @@ list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
 set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/gpencil/shaders/infos/gpencil_info.hh
   ../draw/engines/gpencil/shaders/infos/gpencil_vfx_info.hh
+  ../draw/engines/overlay/shaders/infos/armature_info.hh
+  ../draw/engines/overlay/shaders/infos/edit_mode_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_composite_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_effect_antialiasing_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_effect_cavity_info.hh
@@ -503,16 +505,32 @@ endif()
 
 
 if(WITH_GPU_SHADER_BUILDER)
-  add_executable(shader_builder
-    intern/gpu_shader_builder.cc
-    intern/gpu_shader_builder_stubs.cc
-    ${shader_create_info_list_file}
-  )
+  # TODO(@fclem) Fix this mess.
+  if(APPLE)
+    add_executable(shader_builder
+      intern/gpu_shader_builder.cc
+      ${shader_create_info_list_file}
+      )
 
-  target_link_libraries(shader_builder PUBLIC
-    bf_blenkernel
-    ${PLATFORM_LINKLIBS}
-  )
+    setup_platform_linker_flags(shader_builder)
+
+    target_link_libraries(shader_builder PUBLIC
+      bf_blenkernel
+      buildinfoobj
+    )
+  else()
+    add_executable(shader_builder
+      intern/gpu_shader_builder.cc
+      intern/gpu_shader_builder_stubs.cc
+      ${shader_create_info_list_file}
+    )
+
+    target_link_libraries(shader_builder PUBLIC
+      bf_blenkernel
+      ${PLATFORM_LINKLIBS}
+    )
+  endif()
+
   target_include_directories(shader_builder PRIVATE ${INC} ${CMAKE_CURRENT_BINARY_DIR})
 
   set(SRC_BAKED_CREATE_INFOS_FILE ${CMAKE_CURRENT_BINARY_DIR}/shader_baked.hh)

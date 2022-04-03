@@ -1012,6 +1012,12 @@ class CyclesLightSettings(bpy.types.PropertyGroup):
         "note that this will make the light invisible",
         default=False,
     )
+    is_caustics_light: BoolProperty(
+        name="Shadow Caustics",
+        description="Generate approximate caustics in shadows of refractive surfaces. "
+        "Lights, caster and receiver objects must have shadow caustics options set to enable this",
+        default=False,
+    )
 
     @classmethod
     def register(cls):
@@ -1028,6 +1034,12 @@ class CyclesLightSettings(bpy.types.PropertyGroup):
 
 class CyclesWorldSettings(bpy.types.PropertyGroup):
 
+    is_caustics_light: BoolProperty(
+        name="Shadow Caustics",
+        description="Generate approximate caustics in shadows of refractive surfaces. "
+        "Lights, caster and receiver objects must have shadow caustics options set to enable this",
+        default=False,
+    )
     sampling_method: EnumProperty(
         name="Sampling Method",
         description="How to sample the background light",
@@ -1224,6 +1236,21 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
         min=0.0,
         default=0.0,
         subtype='DISTANCE',
+    )
+
+    is_caustics_caster: BoolProperty(
+        name="Cast Shadow Caustics",
+        description="With refractive materials, generate approximate caustics in shadows of this object. "
+        "Up to 10 bounces inside this object are taken into account. Lights, caster and receiver objects "
+        "must have shadow caustics options set to enable this",
+        default=False,
+    )
+
+    is_caustics_receiver: BoolProperty(
+        name="Receive Shadow Caustics",
+        description="Receive approximate caustics from refractive materials in shadows on this object. "
+        "Lights, caster and receiver objects must have shadow caustics options set to enable this",
+        default=False,
     )
 
     @classmethod

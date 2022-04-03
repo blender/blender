@@ -73,6 +73,7 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
 
   Nurb *nurbs = static_cast<Nurb *>(curve->nurb.first);
   for (; nurbs; nurbs = nurbs->next) {
+    const size_t current_point_count = verts.size();
     if (nurbs->bp) {
       curve_basis = Alembic::AbcGeom::kNoBasis;
       curve_type = Alembic::AbcGeom::kVariableOrder;
@@ -142,7 +143,7 @@ void ABCCurveWriter::do_write(HierarchyContext &context)
     }
 
     orders.push_back(nurbs->orderu);
-    vert_counts.push_back(verts.size());
+    vert_counts.push_back(verts.size() - current_point_count);
   }
 
   Alembic::AbcGeom::OFloatGeomParam::Sample width_sample;

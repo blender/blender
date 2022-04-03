@@ -616,7 +616,7 @@ static int vertex_to_loop_colors_exec(bContext *C, wmOperator *UNUSED(op))
 
   ID *data;
   data = ob->data;
-  if (data && ID_IS_LINKED(data)) {
+  if (data == NULL || ID_IS_LINKED(data) || ID_IS_OVERRIDE_LIBRARY(data)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -681,7 +681,7 @@ static int loop_to_vertex_colors_exec(bContext *C, wmOperator *UNUSED(op))
 
   ID *data;
   data = ob->data;
-  if (data && ID_IS_LINKED(data)) {
+  if (data == NULL || ID_IS_LINKED(data) || ID_IS_OVERRIDE_LIBRARY(data)) {
     return OPERATOR_CANCELLED;
   }
 

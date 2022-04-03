@@ -51,10 +51,8 @@ static void cache_node_free(void *node);
 
 static void update_cache_free(GPencilUpdateCache *cache)
 {
-  if (cache->children != NULL) {
-    BLI_dlrbTree_free(cache->children, cache_node_free);
-    MEM_freeN(cache->children);
-  }
+  BLI_dlrbTree_free(cache->children, cache_node_free);
+  MEM_SAFE_FREE(cache->children);
   MEM_freeN(cache);
 }
 
@@ -83,9 +81,8 @@ static void cache_node_update(void *node, void *data)
 
   /* In case the new cache does a full update, remove its children since they will be all
    * updated by this cache. */
-  if (new_update_cache->flag == GP_UPDATE_NODE_FULL_COPY && update_cache->children != NULL) {
+  if (new_update_cache->flag == GP_UPDATE_NODE_FULL_COPY) {
     BLI_dlrbTree_free(update_cache->children, cache_node_free);
-    MEM_freeN(update_cache->children);
   }
 
   update_cache_free(new_update_cache);

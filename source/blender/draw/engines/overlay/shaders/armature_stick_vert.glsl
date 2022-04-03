@@ -1,8 +1,8 @@
 
-/* ---- Instantiated Attrs ---- */
-in vec2 pos; /* bone aligned screen space */
-in uint flag;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
+/* TODO(@fclem): Share definition with C code. */
 #define COL_WIRE 1u /* (1 << 0) */
 #define COL_HEAD 2u /* (1 << 1) */
 #define COL_TAIL 4u /* (1 << 2) */
@@ -12,21 +12,8 @@ in uint flag;
 #define POS_TAIL 32u /* (1 << 5) */ /* UNUSED */
 #define POS_BONE 64u                /* (1 << 6) */
 
-/* ---- Per instance Attrs ---- */
-in vec3 boneStart;
-in vec3 boneEnd;
-in vec4 wireColor; /* alpha encode if we do wire. If 0.0 we don't. */
-in vec4 boneColor; /* alpha encode if we do bone. If 0.0 we don't. */
-in vec4 headColor; /* alpha encode if we do head. If 0.0 we don't. */
-in vec4 tailColor; /* alpha encode if we do tail. If 0.0 we don't. */
-
-#define do_wire (wireColor.a > 0.0)
 #define is_head bool(flag & POS_HEAD)
 #define is_bone bool(flag & POS_BONE)
-
-noperspective out float colorFac;
-flat out vec4 finalWireColor;
-flat out vec4 finalInnerColor;
 
 /* project to screen space */
 vec2 proj(vec4 pos)
@@ -77,12 +64,9 @@ void main()
   if (finalInnerColor.a > 0.0) {
     float stick_size = sizePixel * 5.0;
     gl_Position = (is_head) ? p0 : p1;
-    gl_Position.xy += stick_size * (vpos * sizeViewportInv.xy);
+    gl_Position.xy += stick_size * (vpos * drw_view.viewport_size_inverse);
     gl_Position.z += (is_bone) ? 0.0 : 1e-6; /* Avoid Z fighting of head/tails. */
-
-#ifdef USE_WORLD_CLIP_PLANES
-    world_clip_planes_calc_clip_distance((is_head ? boneStart_4d : boneEnd_4d).xyz);
-#endif
+    view_clipping_distances((is_head ? boneStart_4d : boneEnd_4d).xyz);
   }
   else {
     gl_Position = vec4(0.0);

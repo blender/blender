@@ -3184,7 +3184,7 @@ static void calchandleNurb_intern(BezTriple *bezt,
     len *= 2.5614f;
 
     if (len != 0.0f) {
-      /* only for fcurves */
+      /* Only for F-curves. */
       bool leftviolate = false, rightviolate = false;
 
       if (!is_fcurve || fcurve_smoothing == FCURVE_SMOOTH_NONE) {
@@ -4765,7 +4765,7 @@ bool BKE_nurb_valid_message(const int pnts,
         message_dst[0] = 0;
         return false;
       }
-      msg_template = TIP_("At least two points required.");
+      msg_template = TIP_("At least two points required");
       break;
     case NURBSValidationStatus::MorePointsThanOrderRequired:
       msg_template = TIP_("Must have more control points than Order");

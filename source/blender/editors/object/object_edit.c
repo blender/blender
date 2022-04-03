@@ -51,6 +51,7 @@
 #include "BKE_image.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
@@ -973,7 +974,7 @@ static int posemode_exec(bContext *C, wmOperator *op)
       const View3D *v3d = CTX_wm_view3d(C);
       FOREACH_SELECTED_OBJECT_BEGIN (view_layer, v3d, ob) {
         if ((ob != obact) && (ob->type == OB_ARMATURE) && (ob->mode == OB_MODE_OBJECT) &&
-            (!ID_IS_LINKED(ob))) {
+            BKE_id_is_editable(bmain, &ob->id)) {
           ED_object_posemode_enter_ex(bmain, ob);
         }
       }
@@ -1528,6 +1529,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
     }
   }
 
+  Main *bmain = CTX_data_main(C);
   LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob, &ctx_objects) {
     /* Always un-tag all object data-blocks irrespective of our ability to operate on them. */
     Object *ob = ctx_ob->ptr.data;
@@ -1538,7 +1540,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
     data->tag &= ~LIB_TAG_DOIT;
     /* Finished un-tagging, continue with regular logic. */
 
-    if (data && ID_IS_LINKED(data)) {
+    if (data && !BKE_id_is_editable(bmain, data)) {
       has_linked_data = true;
       continue;
     }

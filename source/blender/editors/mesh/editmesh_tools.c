@@ -4712,7 +4712,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
       Object *ob = base_iter->object;
       if (ob->type == OB_MESH) {
         Mesh *me = ob->data;
-        if (!ID_IS_LINKED(me)) {
+        if (BKE_id_is_editable(bmain, &me->id)) {
           BMesh *bm_old = NULL;
           bool changed = false;
 

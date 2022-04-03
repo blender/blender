@@ -762,7 +762,8 @@ static void rna_ID_override_library_reset(ID *id,
                                           IDOverrideLibrary *UNUSED(override_library),
                                           Main *bmain,
                                           ReportList *reports,
-                                          bool do_hierarchy)
+                                          bool do_hierarchy,
+                                          bool set_system_override)
 {
   if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
     BKE_reportf(reports, RPT_ERROR, "ID '%s' isn't an override", id->name);
@@ -770,10 +771,10 @@ static void rna_ID_override_library_reset(ID *id,
   }
 
   if (do_hierarchy) {
-    BKE_lib_override_library_id_hierarchy_reset(bmain, id);
+    BKE_lib_override_library_id_hierarchy_reset(bmain, id, set_system_override);
   }
   else {
-    BKE_lib_override_library_id_reset(bmain, id);
+    BKE_lib_override_library_id_reset(bmain, id, set_system_override);
   }
 
   WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
@@ -1832,6 +1833,17 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
                          "hierarchy, or as a single, isolated and autonomous override");
   RNA_def_property_update(prop, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+
+  prop = RNA_def_boolean(srna,
+                         "is_system_override",
+                         false,
+                         "Is System Override",
+                         "Whether this library override exists only for the override hierarchy, "
+                         "or if it is actually editable by the user");
+  RNA_def_property_update(prop, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_collection(srna,
                             "properties",
@@ -1858,6 +1870,11 @@ static void rna_def_ID_override_library(BlenderRNA *brna)
       true,
       "",
       "Also reset all the dependencies of this override to match their reference linked IDs");
+  RNA_def_boolean(func,
+                  "set_system_override",
+                  false,
+                  "",
+                  "Reset all user-editable overrides as (non-editable) system overrides");
 
   func = RNA_def_function(srna, "destroy", "rna_ID_override_library_destroy");
   RNA_def_function_ui_description(
@@ -1987,6 +2004,8 @@ static void rna_def_ID(BlenderRNA *brna)
   prop = RNA_def_pointer(
       srna, "override_library", "IDOverrideLibrary", "Library Override", "Library override data");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop,
+                                 PROPOVERRIDE_NO_COMPARISON | PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   prop = RNA_def_pointer(srna,
                          "preview",

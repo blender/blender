@@ -98,6 +98,13 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
   return nullptr;
 }
 
+void AbstractTreeElement::uncollapse_by_default(TreeElement *legacy_te)
+{
+  if (!TREESTORE(legacy_te)->used) {
+    TREESTORE(legacy_te)->flag &= ~TSE_CLOSED;
+  }
+}
+
 void tree_element_expand(const AbstractTreeElement &tree_element, SpaceOutliner &space_outliner)
 {
   /* Most types can just expand. IDs optionally expand (hence the poll) and do additional, common

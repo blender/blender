@@ -2165,8 +2165,10 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
   /* Mode toggling handles its own undo state because undo steps need to be grouped. */
   UI_but_flag_disable(but, UI_BUT_UNDO);
 
-  if (ID_IS_LINKED(&ob->id)) {
-    UI_but_disable(but, TIP_("Can't edit external library data"));
+  if (ID_IS_LINKED(&ob->id) ||
+      (ID_IS_OVERRIDE_LIBRARY_REAL(ob) &&
+       (ob->id.override_library->flag & IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED) != 0)) {
+    UI_but_disable(but, TIP_("Can't edit library or non-editable override data"));
   }
 }
 
@@ -3897,6 +3899,12 @@ void draw_outliner(const bContext *C)
   /* Default to no emboss for outliner UI. */
   UI_block_emboss_set(block, UI_EMBOSS_NONE_OR_STATUS);
 
+  if (space_outliner->outlinevis == SO_OVERRIDES_LIBRARY) {
+    /* Draw overrides status columns. */
+    outliner_draw_overrides_warning_buts(
+        block, region, space_outliner, &space_outliner->tree, true);
+  }
+
   if (space_outliner->outlinevis == SO_DATA_API) {
     int buttons_start_x = outliner_data_api_buttons_start_x(tree_width);
     /* draw rna buttons */
@@ -3911,11 +3919,8 @@ void draw_outliner(const bContext *C)
     /* draw user toggle columns */
     outliner_draw_userbuts(block, region, space_outliner, &space_outliner->tree);
   }
-  else if (space_outliner->outlinevis == SO_OVERRIDES_LIBRARY) {
-    /* Draw overrides status columns. */
-    outliner_draw_overrides_warning_buts(
-        block, region, space_outliner, &space_outliner->tree, true);
-
+  else if ((space_outliner->outlinevis == SO_OVERRIDES_LIBRARY) &&
+           (space_outliner->lib_override_view_mode == SO_LIB_OVERRIDE_VIEW_PROPERTIES)) {
     UI_block_emboss_set(block, UI_EMBOSS);
     UI_block_flag_enable(block, UI_BLOCK_NO_DRAW_OVERRIDDEN_STATE);
     const int x = region->v2d.cur.xmax - right_column_width;

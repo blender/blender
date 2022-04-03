@@ -634,7 +634,7 @@ uiPopupMenu *UI_popup_menu_begin_ex(struct bContext *C,
  * Set the whole structure to work.
  */
 void UI_popup_menu_end(struct bContext *C, struct uiPopupMenu *pup);
-bool UI_popup_menu_end_or_cancel(struct bContext *C, struct uiPopupMenu *head);
+bool UI_popup_menu_end_or_cancel(struct bContext *C, struct uiPopupMenu *pup);
 struct uiLayout *UI_popup_menu_layout(uiPopupMenu *pup);
 
 void UI_popup_menu_reports(struct bContext *C, struct ReportList *reports) ATTR_NONNULL();
@@ -1595,12 +1595,14 @@ typedef enum {
 } eButLabelAlign;
 
 /* Return info for uiDefAutoButsRNA */
-typedef enum {
+typedef enum eAutoPropButsReturn {
   /* Returns when no buttons were added */
   UI_PROP_BUTS_NONE_ADDED = 1 << 0,
   /* Returned when any property failed the custom check callback (check_prop) */
   UI_PROP_BUTS_ANY_FAILED_CHECK = 1 << 1,
 } eAutoPropButsReturn;
+
+ENUM_OPERATORS(eAutoPropButsReturn, UI_PROP_BUTS_ANY_FAILED_CHECK);
 
 uiBut *uiDefAutoButR(uiBlock *block,
                      struct PointerRNA *ptr,

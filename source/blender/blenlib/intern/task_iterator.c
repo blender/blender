@@ -40,8 +40,8 @@
  * \{ */
 
 BLI_INLINE void task_parallel_calc_chunk_size(const TaskParallelSettings *settings,
-                                              const int tot_items,
-                                              int num_tasks,
+                                              const int items_num,
+                                              int tasks_num,
                                               int *r_chunk_size)
 {
   int chunk_size = 0;
@@ -50,7 +50,7 @@ BLI_INLINE void task_parallel_calc_chunk_size(const TaskParallelSettings *settin
     /* Some users of this helper will still need a valid chunk size in case processing is not
      * threaded. We can use a bigger one than in default threaded case then. */
     chunk_size = 1024;
-    num_tasks = 1;
+    tasks_num = 1;
   }
   else if (settings->min_iter_per_thread > 0) {
     /* Already set by user, no need to do anything here. */
@@ -61,24 +61,24 @@ BLI_INLINE void task_parallel_calc_chunk_size(const TaskParallelSettings *settin
      * The idea here is to increase the chunk size to compensate for a rather measurable threading
      * overhead caused by fetching tasks. With too many CPU threads we are starting
      * to spend too much time in those overheads.
-     * First values are: 1 if num_tasks < 16;
-     *              else 2 if num_tasks < 32;
-     *              else 3 if num_tasks < 48;
-     *              else 4 if num_tasks < 64;
+     * First values are: 1 if tasks_num < 16;
+     *              else 2 if tasks_num < 32;
+     *              else 3 if tasks_num < 48;
+     *              else 4 if tasks_num < 64;
      *                   etc.
      * NOTE: If we wanted to keep the 'power of two' multiplier, we'd need something like:
-     *     1 << max_ii(0, (int)(sizeof(int) * 8) - 1 - bitscan_reverse_i(num_tasks) - 3)
+     *     1 << max_ii(0, (int)(sizeof(int) * 8) - 1 - bitscan_reverse_i(tasks_num) - 3)
      */
-    const int num_tasks_factor = max_ii(1, num_tasks >> 3);
+    const int tasks_num_factor = max_ii(1, tasks_num >> 3);
 
     /* We could make that 'base' 32 number configurable in TaskParallelSettings too, or maybe just
      * always use that heuristic using TaskParallelSettings.min_iter_per_thread as basis? */
-    chunk_size = 32 * num_tasks_factor;
+    chunk_size = 32 * tasks_num_factor;
 
     /* Basic heuristic to avoid threading on low amount of items.
      * We could make that limit configurable in settings too. */
-    if (tot_items > 0 && tot_items < max_ii(256, chunk_size * 2)) {
-      chunk_size = tot_items;
+    if (items_num > 0 && items_num < max_ii(256, chunk_size * 2)) {
+      chunk_size = items_num;
     }
   }
 
@@ -95,7 +95,7 @@ typedef struct TaskParallelIteratorState {
   /* Common data also passed to the generator callback. */
   TaskParallelIteratorStateShared iter_shared;
   /* Total number of items. If unknown, set it to a negative number. */
-  int tot_items;
+  int items_num;
 } TaskParallelIteratorState;
 
 static void parallel_iterator_func_do(TaskParallelIteratorState *__restrict state,
@@ -188,10 +188,10 @@ static void task_parallel_iterator_no_threads(const TaskParallelSettings *settin
 static void task_parallel_iterator_do(const TaskParallelSettings *settings,
                                       TaskParallelIteratorState *state)
 {
-  const int num_threads = BLI_task_scheduler_num_threads();
+  const int threads_num = BLI_task_scheduler_num_threads();
 
   task_parallel_calc_chunk_size(
-      settings, state->tot_items, num_threads, &state->iter_shared.chunk_size);
+      settings, state->items_num, threads_num, &state->iter_shared.chunk_size);
 
   if (!settings->use_threading) {
     task_parallel_iterator_no_threads(settings, state);
@@ -199,13 +199,13 @@ static void task_parallel_iterator_do(const TaskParallelSettings *settings,
   }
 
   const int chunk_size = state->iter_shared.chunk_size;
-  const int tot_items = state->tot_items;
-  const size_t num_tasks = tot_items >= 0 ?
-                               (size_t)min_ii(num_threads, state->tot_items / chunk_size) :
-                               (size_t)num_threads;
+  const int items_num = state->items_num;
+  const size_t tasks_num = items_num >= 0 ?
+                               (size_t)min_ii(threads_num, state->items_num / chunk_size) :
+                               (size_t)threads_num;
 
-  BLI_assert(num_tasks > 0);
-  if (num_tasks == 1) {
+  BLI_assert(tasks_num > 0);
+  if (tasks_num == 1) {
     task_parallel_iterator_no_threads(settings, state);
     return;
   }
@@ -223,10 +223,10 @@ static void task_parallel_iterator_do(const TaskParallelSettings *settings,
   TaskPool *task_pool = BLI_task_pool_create(state, TASK_PRIORITY_HIGH);
 
   if (use_userdata_chunk) {
-    userdata_chunk_array = MALLOCA(userdata_chunk_size * num_tasks);
+    userdata_chunk_array = MALLOCA(userdata_chunk_size * tasks_num);
   }
 
-  for (size_t i = 0; i < num_tasks; i++) {
+  for (size_t i = 0; i < tasks_num; i++) {
     if (use_userdata_chunk) {
       userdata_chunk_local = (char *)userdata_chunk_array + (userdata_chunk_size * i);
       memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
@@ -243,7 +243,7 @@ static void task_parallel_iterator_do(const TaskParallelSettings *settings,
 
   if (use_userdata_chunk) {
     if (settings->func_reduce != NULL || settings->func_free != NULL) {
-      for (size_t i = 0; i < num_tasks; i++) {
+      for (size_t i = 0; i < tasks_num; i++) {
         userdata_chunk_local = (char *)userdata_chunk_array + (userdata_chunk_size * i);
         if (settings->func_reduce != NULL) {
           settings->func_reduce(state->userdata, userdata_chunk, userdata_chunk_local);
@@ -253,7 +253,7 @@ static void task_parallel_iterator_do(const TaskParallelSettings *settings,
         }
       }
     }
-    MALLOCA_FREE(userdata_chunk_array, userdata_chunk_size * num_tasks);
+    MALLOCA_FREE(userdata_chunk_array, userdata_chunk_size * tasks_num);
   }
 
   BLI_spin_end(&spin_lock);
@@ -264,13 +264,13 @@ void BLI_task_parallel_iterator(void *userdata,
                                 TaskParallelIteratorIterFunc iter_func,
                                 void *init_item,
                                 const int init_index,
-                                const int tot_items,
+                                const int items_num,
                                 TaskParallelIteratorFunc func,
                                 const TaskParallelSettings *settings)
 {
   TaskParallelIteratorState state = {0};
 
-  state.tot_items = tot_items;
+  state.items_num = items_num;
   state.iter_shared.next_index = init_index;
   state.iter_shared.next_item = init_item;
   state.iter_shared.is_finished = false;
@@ -314,7 +314,7 @@ void BLI_task_parallel_listbase(ListBase *listbase,
 
   TaskParallelIteratorState state = {0};
 
-  state.tot_items = BLI_listbase_count(listbase);
+  state.items_num = BLI_listbase_count(listbase);
   state.iter_shared.next_index = 0;
   state.iter_shared.next_item = listbase->first;
   state.iter_shared.is_finished = false;
@@ -391,25 +391,25 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
 
   ParallelMempoolState state;
   TaskPool *task_pool = BLI_task_pool_create(&state, TASK_PRIORITY_HIGH);
-  const int num_threads = BLI_task_scheduler_num_threads();
+  const int threads_num = BLI_task_scheduler_num_threads();
 
   /* The idea here is to prevent creating task for each of the loop iterations
    * and instead have tasks which are evenly distributed across CPU cores and
    * pull next item to be crunched using the threaded-aware BLI_mempool_iter.
    */
-  const int num_tasks = num_threads + 2;
+  const int tasks_num = threads_num + 2;
 
   state.userdata = userdata;
   state.func = func;
 
   if (use_userdata_chunk) {
-    userdata_chunk_array = MALLOCA(userdata_chunk_size * num_tasks);
+    userdata_chunk_array = MALLOCA(userdata_chunk_size * tasks_num);
   }
 
   ParallelMempoolTaskData *mempool_iterator_data = mempool_iter_threadsafe_create(
-      mempool, (size_t)num_tasks);
+      mempool, (size_t)tasks_num);
 
-  for (int i = 0; i < num_tasks; i++) {
+  for (int i = 0; i < tasks_num; i++) {
     void *userdata_chunk_local = NULL;
     if (use_userdata_chunk) {
       userdata_chunk_local = (char *)userdata_chunk_array + (userdata_chunk_size * i);
@@ -429,7 +429,7 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
 
   if (use_userdata_chunk) {
     if ((settings->func_free != NULL) || (settings->func_reduce != NULL)) {
-      for (int i = 0; i < num_tasks; i++) {
+      for (int i = 0; i < tasks_num; i++) {
         if (settings->func_reduce) {
           settings->func_reduce(
               userdata, userdata_chunk, mempool_iterator_data[i].tls.userdata_chunk);
@@ -439,7 +439,7 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
         }
       }
     }
-    MALLOCA_FREE(userdata_chunk_array, userdata_chunk_size * num_tasks);
+    MALLOCA_FREE(userdata_chunk_array, userdata_chunk_size * tasks_num);
   }
 
   mempool_iter_threadsafe_destroy(mempool_iterator_data);

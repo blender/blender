@@ -65,6 +65,19 @@ void BKE_lib_override_library_free(struct IDOverrideLibrary **override, bool do_
 bool BKE_lib_override_library_is_user_edited(struct ID *id);
 
 /**
+ * Check if given ID is a system override.
+ */
+bool BKE_lib_override_library_is_system_defined(struct Main *bmain, struct ID *id);
+
+/**
+ * Check if given ID is a leaf in its liboverride hierarchy (i.e. if it does not use any other
+ * override ID).
+ *
+ * NOTE: Embedded IDs of override IDs are not considered as leaves.
+ */
+bool BKE_lib_override_library_is_hierarchy_leaf(struct Main *bmain, struct ID *id);
+
+/**
  * Create an overridden local copy of linked reference.
  *
  * \note This function is very basic, low-level. It does not consider any hierarchical dependency,
@@ -369,12 +382,22 @@ bool BKE_lib_override_library_main_operations_create(struct Main *bmain, bool fo
 
 /**
  * Reset all overrides in given \a id_root, while preserving ID relations.
+ *
+ * \param do_reset_system_override: If \a true, reset the given ID as a system override one (i.e.
+ * non-editable).
  */
-void BKE_lib_override_library_id_reset(struct Main *bmain, struct ID *id_root);
+void BKE_lib_override_library_id_reset(struct Main *bmain,
+                                       struct ID *id_root,
+                                       bool do_reset_system_override);
 /**
  * Reset all overrides in given \a id_root and its dependencies, while preserving ID relations.
+ *
+ * \param do_reset_system_override: If \a true, reset the given ID and all of its descendants in
+ * the override hierarchy as system override ones (i.e. non-editable).
  */
-void BKE_lib_override_library_id_hierarchy_reset(struct Main *bmain, struct ID *id_root);
+void BKE_lib_override_library_id_hierarchy_reset(struct Main *bmain,
+                                                 struct ID *id_root,
+                                                 bool do_reset_system_override);
 
 /**
  * Set or clear given tag in all operations in that override property data.

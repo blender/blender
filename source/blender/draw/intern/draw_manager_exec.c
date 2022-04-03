@@ -584,21 +584,60 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
                                  DRWCommandsState *state,
                                  bool *use_tfeedback)
 {
+#define MAX_UNIFORM_STACK_SIZE 64
+
+  /* Uniform array elements stored as separate entries. We need to batch these together */
+  int array_uniform_loc = -1;
+  int array_index = 0;
+  float mat4_stack[4 * 4];
+
+  /* Loop through uniforms in reverse order. */
   for (DRWUniformChunk *unichunk = shgroup->uniforms; unichunk; unichunk = unichunk->next) {
-    DRWUniform *uni = unichunk->uniforms;
-    for (int i = 0; i < unichunk->uniform_used; i++, uni++) {
+    DRWUniform *uni = unichunk->uniforms + unichunk->uniform_used - 1;
+
+    for (int i = 0; i < unichunk->uniform_used; i++, uni--) {
+      /* For uniform array copies, copy per-array-element data into local buffer before upload. */
+      if (uni->arraysize > 1 && uni->type == DRW_UNIFORM_FLOAT_COPY) {
+        /* Only written for mat4 copy for now and is not meant to become generalized. */
+        /* TODO(@fclem): Use UBOs/SSBOs instead of inline mat4 copies. */
+        BLI_assert(uni->arraysize == 4 && uni->length == 4);
+        /* Begin copying uniform array. */
+        if (array_uniform_loc == -1) {
+          array_uniform_loc = uni->location;
+          array_index = uni->arraysize * uni->length;
+        }
+        /* Debug check same array loc. */
+        BLI_assert(array_uniform_loc > -1 && array_uniform_loc == uni->location);
+        /* Copy array element data to local buffer. */
+        array_index -= uni->length;
+        memcpy(&mat4_stack[array_index], uni->fvalue, sizeof(float) * uni->length);
+        /* Flush array data to shader. */
+        if (array_index <= 0) {
+          GPU_shader_uniform_vector(shgroup->shader, uni->location, 16, 1, mat4_stack);
+          array_uniform_loc = -1;
+        }
+        continue;
+      }
+
+      /* Handle standard cases. */
       switch (uni->type) {
         case DRW_UNIFORM_INT_COPY:
-          GPU_shader_uniform_vector_int(
-              shgroup->shader, uni->location, uni->length, uni->arraysize, uni->ivalue);
+          BLI_assert(uni->arraysize == 1);
+          if (uni->arraysize == 1) {
+            GPU_shader_uniform_vector_int(
+                shgroup->shader, uni->location, uni->length, uni->arraysize, uni->ivalue);
+          }
           break;
         case DRW_UNIFORM_INT:
           GPU_shader_uniform_vector_int(
               shgroup->shader, uni->location, uni->length, uni->arraysize, uni->pvalue);
           break;
         case DRW_UNIFORM_FLOAT_COPY:
-          GPU_shader_uniform_vector(
-              shgroup->shader, uni->location, uni->length, uni->arraysize, uni->fvalue);
+          BLI_assert(uni->arraysize == 1);
+          if (uni->arraysize == 1) {
+            GPU_shader_uniform_vector(
+                shgroup->shader, uni->location, uni->length, uni->arraysize, uni->fvalue);
+          }
           break;
         case DRW_UNIFORM_FLOAT:
           GPU_shader_uniform_vector(
@@ -673,6 +712,10 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
       }
     }
   }
+  /* Ensure uniform arrays copied. */
+  BLI_assert(array_index == 0);
+  BLI_assert(array_uniform_loc == -1);
+  UNUSED_VARS_NDEBUG(array_uniform_loc);
 }
 
 BLI_INLINE void draw_select_buffer(DRWShadingGroup *shgroup,

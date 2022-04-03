@@ -8,6 +8,7 @@
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -1280,7 +1281,7 @@ static bool object_gpencil_add_poll(bContext *C)
   Scene *scene = CTX_data_scene(C);
   Object *obact = CTX_data_active_object(C);
 
-  if ((scene == nullptr) || (ID_IS_LINKED(scene))) {
+  if ((scene == nullptr) || ID_IS_LINKED(scene) || ID_IS_OVERRIDE_LIBRARY(scene)) {
     return false;
   }
 
@@ -1629,66 +1630,100 @@ void OBJECT_OT_light_add(wmOperatorType *ot)
 /** \name Add Collection Instance Operator
  * \{ */
 
-static int collection_instance_add_exec(bContext *C, wmOperator *op)
-{
-  Main *bmain = CTX_data_main(C);
+struct CollectionAddInfo {
+  /* The collection that is supposed to be added, determined through operator properties. */
   Collection *collection;
+  /* The local-view bits (if any) the object should have set to become visible in current context.
+   */
   ushort local_view_bits;
+  /* The transform that should be applied to the collection, determined through operator properties
+   * if set (e.g. to place the collection under the cursor), otherwise through context (e.g. 3D
+   * cursor location).  */
   float loc[3], rot[3];
+};
 
-  PropertyRNA *prop_name = RNA_struct_find_property(op->ptr, "name");
+static std::optional<CollectionAddInfo> collection_add_info_get_from_op(bContext *C,
+                                                                        wmOperator *op)
+{
+  CollectionAddInfo add_info{};
+
+  Main *bmain = CTX_data_main(C);
+
   PropertyRNA *prop_location = RNA_struct_find_property(op->ptr, "location");
   PropertyRNA *prop_session_uuid = RNA_struct_find_property(op->ptr, "session_uuid");
+  PropertyRNA *prop_name = RNA_struct_find_property(op->ptr, "name");
 
   bool update_location_if_necessary = false;
-  if (RNA_property_is_set(op->ptr, prop_name)) {
+  if (prop_name && RNA_property_is_set(op->ptr, prop_name)) {
     char name[MAX_ID_NAME - 2];
     RNA_property_string_get(op->ptr, prop_name, name);
-    collection = (Collection *)BKE_libblock_find_name(bmain, ID_GR, name);
+    add_info.collection = (Collection *)BKE_libblock_find_name(bmain, ID_GR, name);
     update_location_if_necessary = true;
   }
   else if (RNA_property_is_set(op->ptr, prop_session_uuid)) {
     const uint32_t session_uuid = (uint32_t)RNA_property_int_get(op->ptr, prop_session_uuid);
-    collection = (Collection *)BKE_libblock_find_session_uuid(bmain, ID_GR, session_uuid);
+    add_info.collection = (Collection *)BKE_libblock_find_session_uuid(bmain, ID_GR, session_uuid);
     update_location_if_necessary = true;
   }
   else {
-    collection = static_cast<Collection *>(
+    add_info.collection = static_cast<Collection *>(
         BLI_findlink(&bmain->collections, RNA_enum_get(op->ptr, "collection")));
   }
 
   if (update_location_if_necessary) {
     int mval[2];
     if (!RNA_property_is_set(op->ptr, prop_location) && object_add_drop_xy_get(C, op, &mval)) {
-      ED_object_location_from_view(C, loc);
-      ED_view3d_cursor3d_position(C, mval, false, loc);
-      RNA_property_float_set_array(op->ptr, prop_location, loc);
+      ED_object_location_from_view(C, add_info.loc);
+      ED_view3d_cursor3d_position(C, mval, false, add_info.loc);
+      RNA_property_float_set_array(op->ptr, prop_location, add_info.loc);
     }
   }
 
-  if (collection == nullptr) {
-    return OPERATOR_CANCELLED;
+  if (add_info.collection == nullptr) {
+    return std::nullopt;
   }
 
-  if (!ED_object_add_generic_get_opts(
-          C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr)) {
-    return OPERATOR_CANCELLED;
+  if (!ED_object_add_generic_get_opts(C,
+                                      op,
+                                      'Z',
+                                      add_info.loc,
+                                      add_info.rot,
+                                      nullptr,
+                                      nullptr,
+                                      &add_info.local_view_bits,
+                                      nullptr)) {
+    return std::nullopt;
   }
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   /* Avoid dependency cycles. */
   LayerCollection *active_lc = BKE_layer_collection_get_active(view_layer);
-  while (BKE_collection_cycle_find(active_lc->collection, collection)) {
+  while (BKE_collection_cycle_find(active_lc->collection, add_info.collection)) {
     active_lc = BKE_layer_collection_activate_parent(view_layer, active_lc);
   }
 
-  Object *ob = ED_object_add_type(
-      C, OB_EMPTY, collection->id.name + 2, loc, rot, false, local_view_bits);
-  ob->instance_collection = collection;
+  return add_info;
+}
+
+static int collection_instance_add_exec(bContext *C, wmOperator *op)
+{
+  std::optional<CollectionAddInfo> add_info = collection_add_info_get_from_op(C, op);
+  if (!add_info) {
+    return OPERATOR_CANCELLED;
+  }
+
+  Object *ob = ED_object_add_type(C,
+                                  OB_EMPTY,
+                                  add_info->collection->id.name + 2,
+                                  add_info->loc,
+                                  add_info->rot,
+                                  false,
+                                  add_info->local_view_bits);
+  ob->instance_collection = add_info->collection;
   ob->empty_drawsize = U.collection_instance_empty_size;
   ob->transflag |= OB_DUPLICOLLECTION;
-  id_us_plus(&collection->id);
+  id_us_plus(&add_info->collection->id);
 
   return OPERATOR_FINISHED;
 }
@@ -1745,6 +1780,128 @@ void OBJECT_OT_collection_instance_add(wmOperatorType *ot)
   RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
 
   object_add_drop_xy_props(ot);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Collection Drop Operator
+ *
+ * Internal operator for collection dropping.
+ *
+ * \warning This is tied closely together to the drop-box callbacks, so it shouldn't be used on its
+ *          own.
+ *
+ * The drop-box callback imports the collection, links it into the view-layer, selects all imported
+ * objects (which may include peripheral objects like parents or boolean-objects of an object in
+ * the collection) and activates one. Only the callback has enough info to do this reliably. Based
+ * on the instancing operator option, this operator then does one of two things:
+ * - Instancing enabled: Unlink the collection again, and instead add a collection instance empty
+ *   at the drop position.
+ * - Instancing disabled: Transform the objects to the drop position, keeping all relative
+ *   transforms of the objects to each other as is.
+ *
+ * \{ */
+
+static int collection_drop_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  LayerCollection *active_collection = CTX_data_layer_collection(C);
+  std::optional<CollectionAddInfo> add_info = collection_add_info_get_from_op(C, op);
+  if (!add_info) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (RNA_boolean_get(op->ptr, "use_instance")) {
+    BKE_collection_child_remove(bmain, active_collection->collection, add_info->collection);
+    DEG_id_tag_update(&active_collection->collection->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_relations_tag_update(bmain);
+
+    Object *ob = ED_object_add_type(C,
+                                    OB_EMPTY,
+                                    add_info->collection->id.name + 2,
+                                    add_info->loc,
+                                    add_info->rot,
+                                    false,
+                                    add_info->local_view_bits);
+    ob->instance_collection = add_info->collection;
+    ob->empty_drawsize = U.collection_instance_empty_size;
+    ob->transflag |= OB_DUPLICOLLECTION;
+    id_us_plus(&add_info->collection->id);
+  }
+  else {
+    ViewLayer *view_layer = CTX_data_view_layer(C);
+    float delta_mat[4][4];
+    unit_m4(delta_mat);
+
+    const float scale[3] = {1.0f, 1.0f, 1.0f};
+    loc_eul_size_to_mat4(delta_mat, add_info->loc, add_info->rot, scale);
+
+    float offset[3];
+    /* Reverse apply the instance offset, so toggling the Instance option doesn't cause the
+     * collection to jump. */
+    negate_v3_v3(offset, add_info->collection->instance_offset);
+    translate_m4(delta_mat, UNPACK3(offset));
+
+    ObjectsInViewLayerParams params = {0};
+    uint objects_len;
+    Object **objects = BKE_view_layer_array_selected_objects_params(
+        view_layer, nullptr, &objects_len, &params);
+    ED_object_xform_array_m4(objects, objects_len, delta_mat);
+
+    MEM_freeN(objects);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_collection_external_asset_drop(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  /* identifiers */
+  /* Name should only be displayed in the drag tooltip. */
+  ot->name = "Add Collection";
+  ot->description = "Add the dragged collection to the scene";
+  ot->idname = "OBJECT_OT_collection_external_asset_drop";
+
+  /* api callbacks */
+  ot->invoke = object_instance_add_invoke;
+  ot->exec = collection_drop_exec;
+  ot->poll = ED_operator_objectmode;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+
+  /* properties */
+  prop = RNA_def_int(ot->srna,
+                     "session_uuid",
+                     0,
+                     INT32_MIN,
+                     INT32_MAX,
+                     "Session UUID",
+                     "Session UUID of the collection to add",
+                     INT32_MIN,
+                     INT32_MAX);
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
+
+  ED_object_add_generic_props(ot, false);
+
+  /* Important: Instancing option. Intentionally remembered across executions (no #PROP_SKIP_SAVE).
+   */
+  RNA_def_boolean(ot->srna,
+                  "use_instance",
+                  true,
+                  "Instance",
+                  "Add the dropped collection as collection instance");
+
+  object_add_drop_xy_props(ot);
+
+  prop = RNA_def_enum(ot->srna, "collection", DummyRNA_NULL_items, 0, "Collection", "");
+  RNA_def_enum_funcs(prop, RNA_collection_itemf);
+  RNA_def_property_flag(prop,
+                        (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN | PROP_ENUM_NO_TRANSLATE));
+  ot->prop = prop;
 }
 
 /** \} */
@@ -2752,12 +2909,14 @@ static int object_convert_exec(bContext *C, wmOperator *op)
        * However, changing this is more design than bug-fix, not to mention convoluted code below,
        * so that will be for later.
        * But at the very least, do not do that with linked IDs! */
-      if ((ID_IS_LINKED(ob) || (ob->data && ID_IS_LINKED(ob->data))) && !keep_original) {
+      if ((!BKE_id_is_editable(bmain, &ob->id) ||
+           (ob->data && !BKE_id_is_editable(bmain, static_cast<ID *>(ob->data)))) &&
+          !keep_original) {
         keep_original = true;
-        BKE_report(
-            op->reports,
-            RPT_INFO,
-            "Converting some linked object/object data, enforcing 'Keep Original' option to True");
+        BKE_report(op->reports,
+                   RPT_INFO,
+                   "Converting some non-editable object/object data, enforcing 'Keep Original' "
+                   "option to True");
       }
 
       DEG_id_tag_update(&base->object->id, ID_RECALC_GEOMETRY);
@@ -3631,7 +3790,7 @@ static int object_transform_to_mouse_exec(bContext *C, wmOperator *op)
 
   /* Don't transform a linked object. There's just nothing to do here in this case, so return
    * #OPERATOR_FINISHED. */
-  if (ID_IS_LINKED(ob)) {
+  if (!BKE_id_is_editable(bmain, &ob->id)) {
     return OPERATOR_FINISHED;
   }
 

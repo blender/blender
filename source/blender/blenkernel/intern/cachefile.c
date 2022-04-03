@@ -417,9 +417,7 @@ float BKE_cachefile_time_offset(const CacheFile *cache_file, const float time, c
   return cache_file->is_sequence ? frame : frame / fps - time_offset;
 }
 
-bool BKE_cache_file_uses_render_procedural(const CacheFile *cache_file,
-                                           Scene *scene,
-                                           const int dag_eval_mode)
+bool BKE_cache_file_uses_render_procedural(const CacheFile *cache_file, Scene *scene)
 {
   RenderEngineType *render_engine_type = RE_engines_find(scene->r.engine);
 
@@ -428,9 +426,7 @@ bool BKE_cache_file_uses_render_procedural(const CacheFile *cache_file,
     return false;
   }
 
-  /* The render time procedural is only enabled during viewport rendering. */
-  const bool is_final_render = (eEvaluationMode)dag_eval_mode == DAG_EVAL_RENDER;
-  return cache_file->use_render_procedural && !is_final_render;
+  return cache_file->use_render_procedural;
 }
 
 CacheFileLayer *BKE_cachefile_add_layer(CacheFile *cache_file, const char filename[1024])

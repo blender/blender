@@ -228,6 +228,10 @@ def list_render_passes(scene, srl):
         else:
             yield (aov.name, "RGB", 'COLOR')
 
+    # Light groups.
+    for lightgroup in srl.lightgroups:
+        yield ("Combined_%s" % lightgroup.name, "RGB", 'COLOR')
+
 
 def register_passes(engine, scene, view_layer):
     for name, channelids, channeltype in list_render_passes(scene, view_layer):

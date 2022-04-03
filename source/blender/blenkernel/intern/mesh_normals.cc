@@ -532,7 +532,7 @@ void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr,
     lnors_spacearr->loops_pool = (LinkNode *)BLI_memarena_alloc(
         mem, sizeof(LinkNode) * (size_t)numLoops);
 
-    lnors_spacearr->num_spaces = 0;
+    lnors_spacearr->spaces_num = 0;
   }
   BLI_assert(ELEM(data_type, MLNOR_SPACEARR_BMLOOP_PTR, MLNOR_SPACEARR_LOOP_INDEX));
   lnors_spacearr->data_type = data_type;
@@ -550,7 +550,7 @@ void BKE_lnor_spacearr_tls_join(MLoopNorSpaceArray *lnors_spacearr,
 {
   BLI_assert(lnors_spacearr->data_type == lnors_spacearr_tls->data_type);
   BLI_assert(lnors_spacearr->mem != lnors_spacearr_tls->mem);
-  lnors_spacearr->num_spaces += lnors_spacearr_tls->num_spaces;
+  lnors_spacearr->spaces_num += lnors_spacearr_tls->spaces_num;
   BLI_memarena_merge(lnors_spacearr->mem, lnors_spacearr_tls->mem);
   BLI_memarena_free(lnors_spacearr_tls->mem);
   lnors_spacearr_tls->mem = nullptr;
@@ -559,7 +559,7 @@ void BKE_lnor_spacearr_tls_join(MLoopNorSpaceArray *lnors_spacearr,
 
 void BKE_lnor_spacearr_clear(MLoopNorSpaceArray *lnors_spacearr)
 {
-  lnors_spacearr->num_spaces = 0;
+  lnors_spacearr->spaces_num = 0;
   lnors_spacearr->lspacearr = nullptr;
   lnors_spacearr->loops_pool = nullptr;
   if (lnors_spacearr->mem != nullptr) {
@@ -569,7 +569,7 @@ void BKE_lnor_spacearr_clear(MLoopNorSpaceArray *lnors_spacearr)
 
 void BKE_lnor_spacearr_free(MLoopNorSpaceArray *lnors_spacearr)
 {
-  lnors_spacearr->num_spaces = 0;
+  lnors_spacearr->spaces_num = 0;
   lnors_spacearr->lspacearr = nullptr;
   lnors_spacearr->loops_pool = nullptr;
   BLI_memarena_free(lnors_spacearr->mem);
@@ -578,7 +578,7 @@ void BKE_lnor_spacearr_free(MLoopNorSpaceArray *lnors_spacearr)
 
 MLoopNorSpace *BKE_lnor_space_create(MLoopNorSpaceArray *lnors_spacearr)
 {
-  lnors_spacearr->num_spaces++;
+  lnors_spacearr->spaces_num++;
   return (MLoopNorSpace *)BLI_memarena_calloc(lnors_spacearr->mem, sizeof(MLoopNorSpace));
 }
 
