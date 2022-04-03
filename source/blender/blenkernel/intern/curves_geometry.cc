@@ -772,6 +772,10 @@ void CurvesGeometry::calculate_bezier_auto_handles()
   if (types.is_single() && types.get_internal_single() != CURVE_TYPE_BEZIER) {
     return;
   }
+  if (std::as_const(*this).handle_positions_left().is_empty() ||
+      std::as_const(*this).handle_positions_right().is_empty()) {
+    return;
+  }
   const VArray<bool> cyclic = std::as_const(*this).cyclic();
   const Span<int8_t> types_left = this->handle_types_left();
   const Span<int8_t> types_right = this->handle_types_right();
