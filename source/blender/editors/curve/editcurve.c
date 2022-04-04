@@ -4725,15 +4725,8 @@ void CURVE_OT_make_segment(wmOperatorType *ot)
 
 bool ED_curve_editnurb_select_pick(bContext *C,
                                    const int mval[2],
+                                   const int dist_px,
                                    const struct SelectPick_Params *params)
-{
-  return ED_curve_editnurb_select_pick_ex(C, mval, 1.0f, params);
-}
-
-bool ED_curve_editnurb_select_pick_ex(bContext *C,
-                                      const int mval[2],
-                                      const float sel_dist_mul,
-                                      const struct SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
@@ -4748,8 +4741,7 @@ bool ED_curve_editnurb_select_pick_ex(bContext *C,
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
   copy_v2_v2_int(vc.mval, mval);
 
-  bool found = ED_curve_pick_vert_ex(
-      &vc, 1, sel_dist_mul * ED_view3d_select_dist_px(), &nu, &bezt, &bp, &hand, &basact);
+  bool found = ED_curve_pick_vert_ex(&vc, 1, dist_px, &nu, &bezt, &bp, &hand, &basact);
 
   if (params->sel_op == SEL_OP_SET) {
     if ((found && params->select_passthrough) &&

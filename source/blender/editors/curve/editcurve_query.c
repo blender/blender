@@ -90,7 +90,7 @@ static void ED_curve_pick_vert__do_closest(void *userData,
 
 bool ED_curve_pick_vert_ex(ViewContext *vc,
                            short sel,
-                           float dist_px,
+                           const int dist_px,
                            Nurb **r_nurb,
                            BezTriple **r_bezt,
                            BPoint **r_bp,

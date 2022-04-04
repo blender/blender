@@ -48,18 +48,12 @@ void ED_curve_editnurb_make(struct Object *obedit);
 void ED_curve_editnurb_free(struct Object *obedit);
 
 /**
- * \return True when pick finds an element or the selection changed.
+ * \param dist_px: Maximum distance to pick (in pixels).
  */
 bool ED_curve_editnurb_select_pick(struct bContext *C,
                                    const int mval[2],
+                                   int dist_px,
                                    const struct SelectPick_Params *params);
-/**
- * \param sel_dist_mul: A multiplier on the default select distance.
- */
-bool ED_curve_editnurb_select_pick_ex(struct bContext *C,
-                                      const int mval[2],
-                                      const float sel_dist_mul,
-                                      const struct SelectPick_Params *params);
 
 struct Nurb *ED_curve_add_nurbs_primitive(
     struct bContext *C, struct Object *obedit, float mat[4][4], int type, int newob);
