@@ -347,6 +347,11 @@ void channel_draw_context_init(const bContext *C,
 
 void draw_channels(const bContext *C, ARegion *region)
 {
+  Editing *ed = SEQ_editing_get(CTX_data_scene(C));
+  if (ed == NULL) {
+    return;
+  }
+
   SeqChannelDrawContext context;
   channel_draw_context_init(C, region, &context);
 
