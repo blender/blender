@@ -20,11 +20,13 @@ struct wmKeyConfig;
 struct wmOperator;
 
 /* paint_ops.c */
+
 void ED_operatortypes_paint(void);
 void ED_operatormacros_paint(void);
 void ED_keymap_paint(struct wmKeyConfig *keyconf);
 
 /* paint_image.c */
+
 void ED_imapaint_clear_partial_redraw(void);
 void ED_imapaint_dirty_region(struct Image *ima,
                               struct ImBuf *ibuf,

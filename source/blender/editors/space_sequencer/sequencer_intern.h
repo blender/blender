@@ -29,6 +29,7 @@ struct wmOperator;
 #define OVERLAP_ALPHA 180
 
 /* sequencer_draw.c */
+
 void draw_timeline_seq(const struct bContext *C, struct ARegion *region);
 void draw_timeline_seq_display(const struct bContext *C, struct ARegion *region);
 void sequencer_draw_preview(const struct bContext *C,
@@ -68,6 +69,7 @@ struct ImBuf *sequencer_ibuf_get(struct Main *bmain,
                                  const char *viewname);
 
 /* sequencer_thumbnails.c */
+
 void last_displayed_thumbnails_list_free(void *val);
 void draw_seq_strip_thumbnail(struct View2D *v2d,
                               const struct bContext *C,
@@ -79,6 +81,7 @@ void draw_seq_strip_thumbnail(struct View2D *v2d,
                               float pixely);
 
 /* sequencer_edit.c */
+
 struct View2D;
 void seq_rectf(struct Sequence *seq, struct rctf *rectf);
 struct Sequence *find_nearest_seq(struct Scene *scene,
@@ -181,6 +184,7 @@ void SEQUENCER_OT_strip_color_tag_set(struct wmOperatorType *ot);
 void SEQUENCER_OT_cursor_set(struct wmOperatorType *ot);
 
 /* sequencer_select.c */
+
 void SEQUENCER_OT_select_all(struct wmOperatorType *ot);
 void SEQUENCER_OT_select(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_side_of_frame(struct wmOperatorType *ot);
@@ -195,6 +199,7 @@ void SEQUENCER_OT_select_inverse(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_grouped(struct wmOperatorType *ot);
 
 /* sequencer_add.c */
+
 void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_movieclip_strip_add(struct wmOperatorType *ot);
@@ -204,10 +209,12 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot);
 
 /* sequencer_ops.c */
+
 void sequencer_operatortypes(void);
 void sequencer_keymap(struct wmKeyConfig *keyconf);
 
 /* sequencer_scope.c */
+
 struct ImBuf *make_waveform_view_from_ibuf(struct ImBuf *ibuf);
 struct ImBuf *make_sep_waveform_view_from_ibuf(struct ImBuf *ibuf);
 struct ImBuf *make_vectorscope_view_from_ibuf(struct ImBuf *ibuf);
@@ -215,15 +222,18 @@ struct ImBuf *make_zebra_view_from_ibuf(struct ImBuf *ibuf, float perc);
 struct ImBuf *make_histogram_view_from_ibuf(struct ImBuf *ibuf);
 
 /* sequencer_buttons.c */
+
 void sequencer_buttons_register(struct ARegionType *art);
 
 /* sequencer_modifiers.c */
+
 void SEQUENCER_OT_strip_modifier_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_strip_modifier_remove(struct wmOperatorType *ot);
 void SEQUENCER_OT_strip_modifier_move(struct wmOperatorType *ot);
 void SEQUENCER_OT_strip_modifier_copy(struct wmOperatorType *ot);
 
 /* sequencer_view.c */
+
 void SEQUENCER_OT_sample(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_all(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_frame(struct wmOperatorType *ot);
@@ -233,9 +243,11 @@ void SEQUENCER_OT_view_selected(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_ghost_border(struct wmOperatorType *ot);
 
 /* sequencer_preview.c */
+
 void sequencer_preview_add_sound(const struct bContext *C, struct Sequence *seq);
 
 /* sequencer_add.c */
+
 int sequencer_image_seq_get_minmax_frame(struct wmOperator *op,
                                          int sfra,
                                          int *r_minframe,

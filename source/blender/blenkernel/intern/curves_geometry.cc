@@ -150,41 +150,6 @@ CurvesGeometry::~CurvesGeometry()
 /** \name Accessors
  * \{ */
 
-int CurvesGeometry::points_num() const
-{
-  return this->point_size;
-}
-int CurvesGeometry::curves_num() const
-{
-  return this->curve_size;
-}
-IndexRange CurvesGeometry::points_range() const
-{
-  return IndexRange(this->points_num());
-}
-IndexRange CurvesGeometry::curves_range() const
-{
-  return IndexRange(this->curves_num());
-}
-
-IndexRange CurvesGeometry::points_for_curve(const int index) const
-{
-  BLI_assert(this->curve_size > 0);
-  BLI_assert(this->curve_offsets != nullptr);
-  const int offset = this->curve_offsets[index];
-  const int offset_next = this->curve_offsets[index + 1];
-  return {offset, offset_next - offset};
-}
-
-IndexRange CurvesGeometry::points_for_curves(const IndexRange curves) const
-{
-  BLI_assert(this->curve_size > 0);
-  BLI_assert(this->curve_offsets != nullptr);
-  const int offset = this->curve_offsets[curves.start()];
-  const int offset_next = this->curve_offsets[curves.one_after_last()];
-  return {offset, offset_next - offset};
-}
-
 static int domain_size(const CurvesGeometry &curves, const AttributeDomain domain)
 {
   return domain == ATTR_DOMAIN_POINT ? curves.points_num() : curves.curves_num();
@@ -492,27 +457,6 @@ static void calculate_evaluated_offsets(const CurvesGeometry &curves,
   });
 }
 
-int CurvesGeometry::evaluated_points_num() const
-{
-  /* This could avoid calculating offsets in the future in simple circumstances. */
-  return this->evaluated_offsets().last();
-}
-
-IndexRange CurvesGeometry::evaluated_points_for_curve(int index) const
-{
-  BLI_assert(!this->runtime->offsets_cache_dirty);
-  return offsets_to_range(this->runtime->evaluated_offsets_cache.as_span(), index);
-}
-
-IndexRange CurvesGeometry::evaluated_points_for_curves(const IndexRange curves) const
-{
-  BLI_assert(!this->runtime->offsets_cache_dirty);
-  BLI_assert(this->curve_size > 0);
-  const int offset = this->runtime->evaluated_offsets_cache[curves.start()];
-  const int offset_next = this->runtime->evaluated_offsets_cache[curves.one_after_last()];
-  return {offset, offset_next - offset};
-}
-
 void CurvesGeometry::ensure_evaluated_offsets() const
 {
   if (!this->runtime->offsets_cache_dirty) {
@@ -546,12 +490,6 @@ Span<int> CurvesGeometry::evaluated_offsets() const
 {
   this->ensure_evaluated_offsets();
   return this->runtime->evaluated_offsets_cache;
-}
-
-Span<int> CurvesGeometry::bezier_evaluated_offsets_for_curve(const int curve_index) const
-{
-  const IndexRange points = this->points_for_curve(curve_index);
-  return this->runtime->bezier_evaluated_offsets.as_span().slice(points);
 }
 
 IndexMask CurvesGeometry::indices_for_curve_type(const CurveType type,
@@ -728,15 +666,6 @@ void CurvesGeometry::interpolate_to_evaluated(const int curve_index,
   BLI_assert_unreachable();
 }
 
-IndexRange CurvesGeometry::lengths_range_for_curve(const int curve_index, const bool cyclic) const
-{
-  BLI_assert(cyclic == this->cyclic()[curve_index]);
-  const IndexRange points = this->evaluated_points_for_curve(curve_index);
-  const int start = points.start() + curve_index;
-  const int size = curves::curve_segment_size(points.size(), cyclic);
-  return {start, size};
-}
-
 void CurvesGeometry::ensure_evaluated_lengths() const
 {
   if (!this->runtime->length_cache_dirty) {
@@ -775,20 +704,6 @@ void CurvesGeometry::ensure_evaluated_lengths() const
   });
 
   this->runtime->length_cache_dirty = false;
-}
-
-Span<float> CurvesGeometry::evaluated_lengths_for_curve(const int curve_index,
-                                                        const bool cyclic) const
-{
-  BLI_assert(!this->runtime->length_cache_dirty);
-  const IndexRange range = this->lengths_range_for_curve(curve_index, cyclic);
-  return this->runtime->evaluated_length_cache.as_span().slice(range);
-}
-
-float CurvesGeometry::evaluated_length_total_for_curve(const int curve_index,
-                                                       const bool cyclic) const
-{
-  return this->evaluated_lengths_for_curve(curve_index, cyclic).last();
 }
 
 /** \} */
@@ -855,6 +770,10 @@ void CurvesGeometry::calculate_bezier_auto_handles()
 {
   const VArray<int8_t> types = std::as_const(*this).curve_types();
   if (types.is_single() && types.get_internal_single() != CURVE_TYPE_BEZIER) {
+    return;
+  }
+  if (std::as_const(*this).handle_positions_left().is_empty() ||
+      std::as_const(*this).handle_positions_right().is_empty()) {
     return;
   }
   const VArray<bool> cyclic = std::as_const(*this).cyclic();

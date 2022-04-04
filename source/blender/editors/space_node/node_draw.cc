@@ -2580,7 +2580,7 @@ static void reroute_node_draw(
     const int y = node.totr.ymax;
 
     uiBut *label_but = uiDefBut(
-        &block, UI_BTYPE_LABEL, 0, showname, x, y, width, (short)NODE_DY, NULL, 0, 0, 0, 0, NULL);
+        &block, UI_BTYPE_LABEL, 0, showname, x, y, width, (short)NODE_DY, nullptr, 0, 0, 0, 0, nullptr);
 
     UI_but_drawflag_disable(label_but, UI_BUT_TEXT_LEFT);
   }

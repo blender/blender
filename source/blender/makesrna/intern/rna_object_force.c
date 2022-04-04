@@ -264,7 +264,7 @@ bool rna_Cache_use_disk_cache_override_apply(Main *UNUSED(bmain),
 
   /* DO NOT call `RNA_property_update_main(bmain, NULL, ptr_dst, prop_dst);`, that would trigger
    * the whole 'update from mem point cache' process, ending up in the complete deletion of an
-   * existing diskcache if any. */
+   * existing disk-cache if any. */
   return true;
 }
 

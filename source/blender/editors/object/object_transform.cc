@@ -7,6 +7,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <numeric>
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -29,6 +30,7 @@
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
+#include "BKE_curves.hh"
 #include "BKE_editmesh.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
@@ -68,6 +70,7 @@
 
 using blender::Array;
 using blender::float2;
+using blender::float3;
 using blender::Vector;
 
 /* -------------------------------------------------------------------- */
@@ -652,7 +655,7 @@ static int apply_objects_internal(bContext *C,
   float obact_invmat[4][4], obact_parent[4][4], obact_parentinv[4][4];
 
   /* Only used when do_multi_user is set. */
-  Object *obact = NULL;
+  Object *obact = nullptr;
   bool make_single_user = false;
 
   if (do_multi_user) {
@@ -672,7 +675,7 @@ static int apply_objects_internal(bContext *C,
         ID *obact_data = static_cast<ID *>(obact->data);
         BKE_reportf(reports,
                     RPT_ERROR,
-                    "Cannot apply to a multi user: Object \"%s\", %s \"%s\", aborting",
+                    R"(Cannot apply to a multi user: Object "%s", %s "%s", aborting)",
                     obact->id.name + 2,
                     BKE_idtype_idcode_to_name(GS(obact_data->name)),
                     obact_data->name + 2);
@@ -691,7 +694,8 @@ static int apply_objects_internal(bContext *C,
              OB_CURVES_LEGACY,
              OB_SURF,
              OB_FONT,
-             OB_GPENCIL)) {
+             OB_GPENCIL,
+             OB_CURVES)) {
       ID *obdata = static_cast<ID *>(ob->data);
       if (!do_multi_user && ID_REAL_USERS(obdata) > 1) {
         BKE_reportf(reports,
@@ -814,7 +818,7 @@ static int apply_objects_internal(bContext *C,
     /* Make single user. */
     ED_object_single_obdata_user(bmain, scene, obact);
     BKE_main_id_newptr_and_tag_clear(bmain);
-    WM_event_add_notifier(C, NC_WINDOW, NULL);
+    WM_event_add_notifier(C, NC_WINDOW, nullptr);
     DEG_relations_tag_update(bmain);
   }
 
@@ -922,6 +926,11 @@ static int apply_objects_internal(bContext *C,
     else if (ob->type == OB_GPENCIL) {
       bGPdata *gpd = static_cast<bGPdata *>(ob->data);
       BKE_gpencil_transform(gpd, mat);
+    }
+    else if (ob->type == OB_CURVES) {
+      Curves &curves = *static_cast<Curves *>(ob->data);
+      blender::bke::CurvesGeometry::wrap(curves.geometry).transform(mat);
+      blender::bke::CurvesGeometry::wrap(curves.geometry).calculate_bezier_auto_handles();
     }
     else if (ob->type == OB_CAMERA) {
       MovieClip *clip = BKE_object_movieclip_get(scene, ob, false);
@@ -1119,7 +1128,7 @@ static int object_transform_apply_invoke(bContext *C, wmOperator *op, const wmEv
   bool can_handle_multiuser = apply_objects_internal_can_multiuser(C);
   bool need_single_user = can_handle_multiuser && apply_objects_internal_need_single_user(C);
 
-  if ((ob->data != NULL) && need_single_user) {
+  if ((ob->data != nullptr) && need_single_user) {
     PropertyRNA *prop = RNA_struct_find_property(op->ptr, "isolate_users");
     if (!RNA_property_is_set(op->ptr, prop)) {
       RNA_property_boolean_set(op->ptr, prop, true);
@@ -1185,7 +1194,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
   Object *obact = CTX_data_active_object(C);
   Object *obedit = CTX_data_edit_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  float cent[3], cent_neg[3], centn[3];
+  float3 cent, cent_neg, centn;
   const float *cursor = scene->cursor.location;
   int centermode = RNA_enum_get(op->ptr, "type");
 
@@ -1573,6 +1582,42 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
                      "Grease Pencil Object does not support this set origin option");
         }
       }
+    }
+    else if (ob->type == OB_CURVES) {
+      using namespace blender;
+      Curves &curves_id = *static_cast<Curves *>(ob->data);
+      bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+      if (ELEM(centermode, ORIGIN_TO_CENTER_OF_MASS_SURFACE, ORIGIN_TO_CENTER_OF_MASS_VOLUME) ||
+          !ELEM(around, V3D_AROUND_CENTER_BOUNDS, V3D_AROUND_CENTER_MEDIAN)) {
+        BKE_report(
+            op->reports, RPT_WARNING, "Curves Object does not support this set origin operation");
+        continue;
+      }
+
+      if (curves.points_num() == 0) {
+        continue;
+      }
+
+      if (centermode == ORIGIN_TO_CURSOR) {
+        /* done */
+      }
+      else if (around == V3D_AROUND_CENTER_BOUNDS) {
+        float3 min;
+        float3 max;
+        if (curves.bounds_min_max(min, max)) {
+          cent = math::midpoint(min, max);
+        }
+      }
+      else if (around == V3D_AROUND_CENTER_MEDIAN) {
+        Span<float3> positions = curves.positions();
+        cent = std::accumulate(positions.begin(), positions.end(), float3(0)) /
+               curves.points_num();
+      }
+
+      tot_change++;
+      curves.translate(-cent);
+      curves_id.id.tag |= LIB_TAG_DOIT;
+      do_inverse_offset = true;
     }
 
     /* offset other selected objects */

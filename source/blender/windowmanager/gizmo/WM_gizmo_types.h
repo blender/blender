@@ -84,6 +84,8 @@ typedef enum eWM_GizmoFlag {
   WM_GIZMO_NO_TOOLTIP = (1 << 12),
 } eWM_GizmoFlag;
 
+ENUM_OPERATORS(eWM_GizmoFlag, WM_GIZMO_NO_TOOLTIP);
+
 /**
  * #wmGizmoGroupType.flag
  * Flags that influence the behavior of all gizmos in the group.

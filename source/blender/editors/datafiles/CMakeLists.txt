@@ -765,6 +765,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.armature.extrude_cursor
   ops.armature.extrude_move
   ops.curve.draw
+  ops.curve.pen
   ops.curve.extrude_cursor
   ops.curve.extrude_move
   ops.curve.radius

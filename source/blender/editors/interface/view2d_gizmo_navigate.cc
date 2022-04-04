@@ -54,39 +54,39 @@ struct NavigateGizmoInfo {
 
 static struct NavigateGizmoInfo g_navigate_params_for_space_image[GZ_INDEX_TOTAL] = {
     {
-        .opname = "IMAGE_OT_view_pan",
-        .gizmo = "GIZMO_GT_button_2d",
+        "IMAGE_OT_view_pan",
+        "GIZMO_GT_button_2d",
         ICON_VIEW_PAN,
     },
     {
-        .opname = "IMAGE_OT_view_zoom",
-        .gizmo = "GIZMO_GT_button_2d",
+        "IMAGE_OT_view_zoom",
+        "GIZMO_GT_button_2d",
         ICON_VIEW_ZOOM,
     },
 };
 
 static struct NavigateGizmoInfo g_navigate_params_for_space_clip[GZ_INDEX_TOTAL] = {
     {
-        .opname = "CLIP_OT_view_pan",
-        .gizmo = "GIZMO_GT_button_2d",
+        "CLIP_OT_view_pan",
+        "GIZMO_GT_button_2d",
         ICON_VIEW_PAN,
     },
     {
-        .opname = "CLIP_OT_view_zoom",
-        .gizmo = "GIZMO_GT_button_2d",
+        "CLIP_OT_view_zoom",
+        "GIZMO_GT_button_2d",
         ICON_VIEW_ZOOM,
     },
 };
 
 static struct NavigateGizmoInfo g_navigate_params_for_view2d[GZ_INDEX_TOTAL] = {
     {
-        .opname = "VIEW2D_OT_pan",
-        .gizmo = "GIZMO_GT_button_2d",
+        "VIEW2D_OT_pan",
+        "GIZMO_GT_button_2d",
         ICON_VIEW_PAN,
     },
     {
-        .opname = "VIEW2D_OT_zoom",
-        .gizmo = "GIZMO_GT_button_2d",
+        "VIEW2D_OT_zoom",
+        "GIZMO_GT_button_2d",
         ICON_VIEW_ZOOM,
     },
 };
@@ -119,12 +119,12 @@ static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType *UNUSE
     return false;
   }
   ScrArea *area = CTX_wm_area(C);
-  if (area == NULL) {
+  if (area == nullptr) {
     return false;
   }
   switch (area->spacetype) {
     case SPACE_SEQ: {
-      const SpaceSeq *sseq = area->spacedata.first;
+      const SpaceSeq *sseq = static_cast<const SpaceSeq *>(area->spacedata.first);
       if (sseq->gizmo_flag & (SEQ_GIZMO_HIDE | SEQ_GIZMO_HIDE_NAVIGATE)) {
         return false;
       }
@@ -136,7 +136,7 @@ static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType *UNUSE
 
 static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
-  struct NavigateWidgetGroup *navgroup = MEM_callocN(sizeof(struct NavigateWidgetGroup), __func__);
+  NavigateWidgetGroup *navgroup = MEM_cnew<NavigateWidgetGroup>(__func__);
 
   navgroup->region_size[0] = -1;
   navgroup->region_size[1] = -1;
@@ -146,7 +146,7 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmGizmoGroup *
 
   for (int i = 0; i < GZ_INDEX_TOTAL; i++) {
     const struct NavigateGizmoInfo *info = &navigate_params[i];
-    navgroup->gz_array[i] = WM_gizmo_new(info->gizmo, gzgroup, NULL);
+    navgroup->gz_array[i] = WM_gizmo_new(info->gizmo, gzgroup, nullptr);
     wmGizmo *gz = navgroup->gz_array[i];
     gz->flag |= WM_GIZMO_MOVE_CURSOR | WM_GIZMO_DRAW_MODAL;
 
@@ -180,7 +180,7 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmGizmoGroup *
     }
 
     wmOperatorType *ot = WM_operatortype_find(info->opname, true);
-    WM_gizmo_operator_set(gz, 0, ot, NULL);
+    WM_gizmo_operator_set(gz, 0, ot, nullptr);
   }
 
   /* Modal operators, don't use initial mouse location since we're clicking on a button. */
@@ -198,7 +198,7 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmGizmoGroup *
 
 static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  struct NavigateWidgetGroup *navgroup = gzgroup->customdata;
+  NavigateWidgetGroup *navgroup = static_cast<NavigateWidgetGroup *>(gzgroup->customdata);
   ARegion *region = CTX_wm_region(C);
 
   const rcti *rect_visible = ED_region_visible_rect(region);

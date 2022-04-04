@@ -552,4 +552,100 @@ Curves *curves_new_nomain(int points_num, int curves_num);
  */
 Curves *curves_new_nomain_single(int points_num, CurveType type);
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #CurvesGeometry Inline Methods
+ * \{ */
+
+inline int CurvesGeometry::points_num() const
+{
+  return this->point_size;
+}
+inline int CurvesGeometry::curves_num() const
+{
+  return this->curve_size;
+}
+inline IndexRange CurvesGeometry::points_range() const
+{
+  return IndexRange(this->points_num());
+}
+inline IndexRange CurvesGeometry::curves_range() const
+{
+  return IndexRange(this->curves_num());
+}
+
+inline IndexRange CurvesGeometry::points_for_curve(const int index) const
+{
+  /* Offsets are not allocated when there are no curves. */
+  BLI_assert(this->curve_size > 0);
+  BLI_assert(this->curve_offsets != nullptr);
+  const int offset = this->curve_offsets[index];
+  const int offset_next = this->curve_offsets[index + 1];
+  return {offset, offset_next - offset};
+}
+
+inline IndexRange CurvesGeometry::points_for_curves(const IndexRange curves) const
+{
+  /* Offsets are not allocated when there are no curves. */
+  BLI_assert(this->curve_size > 0);
+  BLI_assert(this->curve_offsets != nullptr);
+  const int offset = this->curve_offsets[curves.start()];
+  const int offset_next = this->curve_offsets[curves.one_after_last()];
+  return {offset, offset_next - offset};
+}
+
+inline int CurvesGeometry::evaluated_points_num() const
+{
+  /* This could avoid calculating offsets in the future in simple circumstances. */
+  return this->evaluated_offsets().last();
+}
+
+inline IndexRange CurvesGeometry::evaluated_points_for_curve(int index) const
+{
+  BLI_assert(!this->runtime->offsets_cache_dirty);
+  return offsets_to_range(this->runtime->evaluated_offsets_cache.as_span(), index);
+}
+
+inline IndexRange CurvesGeometry::evaluated_points_for_curves(const IndexRange curves) const
+{
+  BLI_assert(!this->runtime->offsets_cache_dirty);
+  BLI_assert(this->curve_size > 0);
+  const int offset = this->runtime->evaluated_offsets_cache[curves.start()];
+  const int offset_next = this->runtime->evaluated_offsets_cache[curves.one_after_last()];
+  return {offset, offset_next - offset};
+}
+
+inline Span<int> CurvesGeometry::bezier_evaluated_offsets_for_curve(const int curve_index) const
+{
+  const IndexRange points = this->points_for_curve(curve_index);
+  return this->runtime->bezier_evaluated_offsets.as_span().slice(points);
+}
+
+inline IndexRange CurvesGeometry::lengths_range_for_curve(const int curve_index,
+                                                          const bool cyclic) const
+{
+  BLI_assert(cyclic == this->cyclic()[curve_index]);
+  const IndexRange points = this->evaluated_points_for_curve(curve_index);
+  const int start = points.start() + curve_index;
+  const int size = curves::curve_segment_size(points.size(), cyclic);
+  return {start, size};
+}
+
+inline Span<float> CurvesGeometry::evaluated_lengths_for_curve(const int curve_index,
+                                                               const bool cyclic) const
+{
+  BLI_assert(!this->runtime->length_cache_dirty);
+  const IndexRange range = this->lengths_range_for_curve(curve_index, cyclic);
+  return this->runtime->evaluated_length_cache.as_span().slice(range);
+}
+
+inline float CurvesGeometry::evaluated_length_total_for_curve(const int curve_index,
+                                                              const bool cyclic) const
+{
+  return this->evaluated_lengths_for_curve(curve_index, cyclic).last();
+}
+
+/** \} */
+
 }  // namespace blender::bke

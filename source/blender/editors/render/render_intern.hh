@@ -85,4 +85,5 @@ void RENDER_OT_view_show(struct wmOperatorType *ot);
 void RENDER_OT_view_cancel(struct wmOperatorType *ot);
 
 /* render_opengl.c */
+
 void RENDER_OT_opengl(struct wmOperatorType *ot);

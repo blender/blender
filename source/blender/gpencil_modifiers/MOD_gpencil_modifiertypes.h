@@ -38,4 +38,5 @@ extern GpencilModifierTypeInfo modifierType_Gpencil_Shrinkwrap;
 extern GpencilModifierTypeInfo modifierType_Gpencil_Envelope;
 
 /* MOD_gpencil_util.c */
+
 void gpencil_modifier_type_init(GpencilModifierTypeInfo *types[]);

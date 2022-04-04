@@ -5,10 +5,10 @@
  * \ingroup edinterface
  */
 
-#include <float.h>
-#include <limits.h>
-#include <math.h>
-#include <string.h>
+#include <cfloat>
+#include <climits>
+#include <cmath>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -123,7 +123,7 @@ static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
 
   /* mask - view frame */
   UI_view2d_mask_from_win(v2d, &v2d->mask);
-  if (mask_scroll == NULL) {
+  if (mask_scroll == nullptr) {
     mask_scroll = &v2d->mask;
   }
 
@@ -356,7 +356,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
   v2d->winx = winx;
   v2d->winy = winy;
 
-  view2d_masks(v2d, NULL);
+  view2d_masks(v2d, nullptr);
 
   if (do_init) {
     /* Visible by default. */
@@ -820,7 +820,7 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
   }
 
   /* set masks */
-  view2d_masks(v2d, NULL);
+  view2d_masks(v2d, nullptr);
 }
 
 void UI_view2d_curRect_validate(View2D *v2d)
@@ -834,7 +834,7 @@ void UI_view2d_curRect_changed(const bContext *C, View2D *v2d)
 
   ARegion *region = CTX_wm_region(C);
 
-  if (region->type->on_view2d_changed != NULL) {
+  if (region->type->on_view2d_changed != nullptr) {
     region->type->on_view2d_changed(C, region);
   }
 }
@@ -1662,7 +1662,8 @@ void UI_view2d_region_to_view(
 void UI_view2d_region_to_view_rctf(const View2D *v2d, const rctf *rect_src, rctf *rect_dst)
 {
   const float cur_size[2] = {BLI_rctf_size_x(&v2d->cur), BLI_rctf_size_y(&v2d->cur)};
-  const float mask_size[2] = {BLI_rcti_size_x(&v2d->mask), BLI_rcti_size_y(&v2d->mask)};
+  const float mask_size[2] = {(float)BLI_rcti_size_x(&v2d->mask),
+                              (float)BLI_rcti_size_y(&v2d->mask)};
 
   rect_dst->xmin = (v2d->cur.xmin +
                     (cur_size[0] * (rect_src->xmin - v2d->mask.xmin) / mask_size[0]));
@@ -1737,7 +1738,8 @@ void UI_view2d_view_to_region_fl(
 void UI_view2d_view_to_region_rcti(const View2D *v2d, const rctf *rect_src, rcti *rect_dst)
 {
   const float cur_size[2] = {BLI_rctf_size_x(&v2d->cur), BLI_rctf_size_y(&v2d->cur)};
-  const float mask_size[2] = {BLI_rcti_size_x(&v2d->mask), BLI_rcti_size_y(&v2d->mask)};
+  const float mask_size[2] = {(float)BLI_rcti_size_x(&v2d->mask),
+                              (float)BLI_rcti_size_y(&v2d->mask)};
   rctf rect_tmp;
 
   /* Step 1: express given coordinates as proportional values. */
@@ -1766,7 +1768,8 @@ void UI_view2d_view_to_region_m4(const View2D *v2d, float matrix[4][4])
 bool UI_view2d_view_to_region_rcti_clip(const View2D *v2d, const rctf *rect_src, rcti *rect_dst)
 {
   const float cur_size[2] = {BLI_rctf_size_x(&v2d->cur), BLI_rctf_size_y(&v2d->cur)};
-  const float mask_size[2] = {BLI_rcti_size_x(&v2d->mask), BLI_rcti_size_y(&v2d->mask)};
+  const float mask_size[2] = {(float)BLI_rcti_size_x(&v2d->mask),
+                              (float)BLI_rcti_size_y(&v2d->mask)};
   rctf rect_tmp;
 
   BLI_assert(rect_src->xmin <= rect_src->xmax && rect_src->ymin <= rect_src->ymax);
@@ -1805,11 +1808,11 @@ View2D *UI_view2d_fromcontext(const bContext *C)
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
 
-  if (area == NULL) {
-    return NULL;
+  if (area == nullptr) {
+    return nullptr;
   }
-  if (region == NULL) {
-    return NULL;
+  if (region == nullptr) {
+    return nullptr;
   }
   return &(region->v2d);
 }
@@ -1819,15 +1822,15 @@ View2D *UI_view2d_fromcontext_rwin(const bContext *C)
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
 
-  if (area == NULL) {
-    return NULL;
+  if (area == nullptr) {
+    return nullptr;
   }
-  if (region == NULL) {
-    return NULL;
+  if (region == nullptr) {
+    return nullptr;
   }
   if (region->regiontype != RGN_TYPE_WINDOW) {
     ARegion *region_win = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
-    return region_win ? &(region_win->v2d) : NULL;
+    return region_win ? &(region_win->v2d) : nullptr;
   }
   return &(region->v2d);
 }
@@ -1997,7 +2000,7 @@ char UI_view2d_rect_in_scrollers(const ARegion *region, const View2D *v2d, const
 /** \name View2D Text Drawing Cache
  * \{ */
 
-typedef struct View2DString {
+struct View2DString {
   struct View2DString *next;
   union {
     uchar ub[4];
@@ -2008,11 +2011,11 @@ typedef struct View2DString {
 
   /* str is allocated past the end */
   char str[0];
-} View2DString;
+};
 
 /* assumes caches are used correctly, so for time being no local storage in v2d */
-static MemArena *g_v2d_strings_arena = NULL;
-static View2DString *g_v2d_strings = NULL;
+static MemArena *g_v2d_strings_arena = nullptr;
+static View2DString *g_v2d_strings = nullptr;
 
 void UI_view2d_text_cache_add(
     View2D *v2d, float x, float y, const char *str, size_t str_len, const uchar col[4])
@@ -2023,13 +2026,13 @@ void UI_view2d_text_cache_add(
 
   if (UI_view2d_view_to_region_clip(v2d, x, y, &mval[0], &mval[1])) {
     const int alloc_len = str_len + 1;
-    View2DString *v2s;
 
-    if (g_v2d_strings_arena == NULL) {
+    if (g_v2d_strings_arena == nullptr) {
       g_v2d_strings_arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 14), __func__);
     }
 
-    v2s = BLI_memarena_alloc(g_v2d_strings_arena, sizeof(View2DString) + alloc_len);
+    View2DString *v2s = static_cast<View2DString *>(
+        BLI_memarena_alloc(g_v2d_strings_arena, sizeof(View2DString) + alloc_len));
 
     BLI_LINKS_PREPEND(g_v2d_strings, v2s);
 
@@ -2053,13 +2056,13 @@ void UI_view2d_text_cache_add_rectf(
 
   if (UI_view2d_view_to_region_rcti_clip(v2d, rect_view, &rect)) {
     const int alloc_len = str_len + 1;
-    View2DString *v2s;
 
-    if (g_v2d_strings_arena == NULL) {
+    if (g_v2d_strings_arena == nullptr) {
       g_v2d_strings_arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 14), __func__);
     }
 
-    v2s = BLI_memarena_alloc(g_v2d_strings_arena, sizeof(View2DString) + alloc_len);
+    View2DString *v2s = static_cast<View2DString *>(
+        BLI_memarena_alloc(g_v2d_strings_arena, sizeof(View2DString) + alloc_len));
 
     BLI_LINKS_PREPEND(g_v2d_strings, v2s);
 
@@ -2116,11 +2119,11 @@ void UI_view2d_text_cache_draw(ARegion *region)
       BLF_disable(font_id, BLF_CLIPPING);
     }
   }
-  g_v2d_strings = NULL;
+  g_v2d_strings = nullptr;
 
   if (g_v2d_strings_arena) {
     BLI_memarena_free(g_v2d_strings_arena);
-    g_v2d_strings_arena = NULL;
+    g_v2d_strings_arena = nullptr;
   }
 }
 

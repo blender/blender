@@ -2596,7 +2596,7 @@ static void wpaint_cancel(bContext *C, wmOperator *op)
 
 static int wpaint_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  return paint_stroke_modal(C, op, event, op->customdata);
+  return paint_stroke_modal(C, op, event, (struct PaintStroke **)&op->customdata);
 }
 
 void PAINT_OT_weight_paint(wmOperatorType *ot)
@@ -3551,7 +3551,7 @@ static void vpaint_cancel(bContext *C, wmOperator *op)
 
 static int vpaint_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  return paint_stroke_modal(C, op, event, op->customdata);
+  return paint_stroke_modal(C, op, event, (struct PaintStroke **)&op->customdata);
 }
 
 void PAINT_OT_vertex_paint(wmOperatorType *ot)

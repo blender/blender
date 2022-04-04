@@ -1167,7 +1167,6 @@ static void id_override_library_clear_single_fn(bContext *C,
   }
 
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
-  return;
 }
 
 static void id_fake_user_set_fn(bContext *UNUSED(C),
@@ -1813,11 +1812,11 @@ void OUTLINER_OT_object_operation(wmOperatorType *ot)
 
 using OutlinerDeleteFn = void (*)(bContext *C, ReportList *reports, Scene *scene, Object *ob);
 
-typedef struct ObjectEditData {
+using ObjectEditData = struct ObjectEditData {
   GSet *objects_set;
   bool is_liboverride_allowed;
   bool is_liboverride_hierarchy_root_allowed;
-} ObjectEditData;
+};
 
 static void outliner_do_object_delete(bContext *C,
                                       ReportList *reports,

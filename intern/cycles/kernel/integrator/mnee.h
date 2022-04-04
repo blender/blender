@@ -97,7 +97,7 @@ ccl_device_inline float mat22_determinant(const float4 m)
 }
 
 /* Inverse of a 2x2 matrix encoded in a row-major order float4 */
-ccl_device_inline float mat22_inverse(const float4 m, ccl_private float4& m_inverse)
+ccl_device_inline float mat22_inverse(const float4 m, ccl_private float4 &m_inverse)
 {
   float det = mat22_determinant(m);
   if (fabsf(det) < MNEE_MIN_DETERMINANT)
@@ -276,7 +276,7 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
     object_normal_transform_auto(kg, sd_vtx, &normals[2]);
   }
 
-  /* Tangent space (position derivatives) wrt barycentric (u, v). */
+  /* Tangent space (position derivatives) WRT barycentric (u, v). */
   vtx->dp_du = verts[0] - verts[2];
   vtx->dp_dv = verts[1] - verts[2];
 
@@ -297,7 +297,7 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
                                normals[2] * (1.0f - sd_vtx->u - sd_vtx->v),
                            &n_len);
 
-    /* Shading normal derivatives wrt barycentric (u, v)
+    /* Shading normal derivatives WRT barycentric (u, v)
      * we calculate the derivative of n = |u*n0 + v*n1 + (1-u-v)*n2| using:
      * d/du [f(u)/|f(u)|] = [d/du f(u)]/|f(u)| - f(u)/|f(u)|^3 <f(u), d/du f(u)>. */
     const float inv_n_len = 1.f / n_len;
@@ -340,13 +340,13 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
     if (det != 0.f) {
       const float inv_det = 1.f / det;
 
-      /* Tangent space (position derivatives) wrt texture (u, v). */
+      /* Tangent space (position derivatives) WRT texture (u, v). */
       const float3 dp_du = vtx->dp_du;
       const float3 dp_dv = vtx->dp_dv;
       vtx->dp_du = (duv1.y * dp_du - duv0.y * dp_dv) * inv_det;
       vtx->dp_dv = (-duv1.x * dp_du + duv0.x * dp_dv) * inv_det;
 
-      /* Shading normal derivatives wrt texture (u, v). */
+      /* Shading normal derivatives WRT texture (u, v). */
       const float3 dn_du = vtx->dn_du;
       const float3 dn_dv = vtx->dn_dv;
       vtx->dn_du = (duv1.y * dn_du - duv0.y * dn_dv) * inv_det;
@@ -434,7 +434,7 @@ ccl_device_forceinline bool mnee_compute_constraint_derivatives(
 
     float3 dH_du, dH_dv;
 
-    /* Constraint derivatives wrt previous vertex. */
+    /* Constraint derivatives WRT previous vertex. */
     if (vi > 0) {
       ccl_private ManifoldVertex &v_prev = vertices[vi - 1];
       dH_du = (v_prev.dp_du - wi * dot(wi, v_prev.dp_du)) * ili;
@@ -447,7 +447,7 @@ ccl_device_forceinline bool mnee_compute_constraint_derivatives(
       v.a = make_float4(dot(dH_du, s), dot(dH_dv, s), dot(dH_du, t), dot(dH_dv, t));
     }
 
-    /* Constraint derivatives wrt current vertex. */
+    /* Constraint derivatives WRT current vertex. */
     if (vi == vertex_count - 1 && light_fixed_direction) {
       dH_du = ili * (-v.dp_du + wi * dot(wi, v.dp_du));
       dH_dv = ili * (-v.dp_dv + wi * dot(wi, v.dp_dv));
@@ -475,7 +475,7 @@ ccl_device_forceinline bool mnee_compute_constraint_derivatives(
                       dot(dH_du, t) + dot(H, dt_du),
                       dot(dH_dv, t) + dot(H, dt_dv));
 
-    /* Constraint derivatives wrt next vertex. */
+    /* Constraint derivatives WRT next vertex. */
     if (vi < vertex_count - 1) {
       ccl_private ManifoldVertex &v_next = vertices[vi + 1];
       dH_du = (v_next.dp_du - wo * dot(wo, v_next.dp_du)) * ilo;
@@ -488,7 +488,7 @@ ccl_device_forceinline bool mnee_compute_constraint_derivatives(
       v.c = make_float4(dot(dH_du, s), dot(dH_dv, s), dot(dH_du, t), dot(dH_dv, t));
     }
 
-    /* Constraint vector wrt. the local shading frame. */
+    /* Constraint vector WRT. the local shading frame. */
     v.constraint = make_float2(dot(s, H), dot(t, H)) - v.n_offset;
   }
   return true;
@@ -561,7 +561,7 @@ ccl_device_forceinline bool mnee_newton_solver(KernelGlobals kg,
   bool resolve_constraint = true;
   for (int iteration = 0; iteration < MNEE_MAX_ITERATIONS; iteration++) {
     if (resolve_constraint) {
-      /* Calculate constraintand its derivatives for vertices. */
+      /* Calculate constraint and its derivatives for vertices. */
       if (!mnee_compute_constraint_derivatives(
               vertex_count, vertices, sd->P, light_fixed_direction, light_sample))
         return false;
@@ -797,7 +797,7 @@ ccl_device_forceinline bool mnee_compute_transfer_matrix(ccl_private const Shade
     det_dh_dx *= Lk_det;
   }
 
-  /* Fill out constraint derivatives wrt light vertex param. */
+  /* Fill out constraint derivatives WRT light vertex param. */
 
   /* Local shading frame at last free vertex. */
   int mi = vertex_count - 1;
@@ -845,7 +845,7 @@ ccl_device_forceinline bool mnee_compute_transfer_matrix(ccl_private const Shade
     dH_dtheta -= H * dot(dH_dtheta, H);
     dH_dphi -= H * dot(dH_dphi, H);
 
-    /* constraint derivatives wrt light direction expressed
+    /* Constraint derivatives WRT light direction expressed
      * in spherical coordinates (theta, phi). */
     dc_dlight = make_float4(
         dot(dH_dtheta, s), dot(dH_dphi, s), dot(dH_dtheta, t), dot(dH_dphi, t));
@@ -909,7 +909,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
    * and keep pdf in vertex area measure */
   mnee_update_light_sample(kg, vertices[vertex_count - 1].p, ls);
 
-  /* Evaluate light sam.ple
+  /* Evaluate light sample
    * in case the light has a node-based shader:
    * 1. sd_mnee will be used to store light data, which is why we need to do
    *    this evaluation here. sd_mnee needs to contain the solution's last
@@ -952,7 +952,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
   for (int vi = 0; vi < vertex_count; vi++) {
     ccl_private const ManifoldVertex &v = vertices[vi];
 
-    /* Check visiblity. */
+    /* Check visibility. */
     probe_ray.D = normalize_len(v.p - probe_ray.P, &probe_ray.t);
     if (scene_intersect(kg, &probe_ray, PATH_RAY_TRANSMIT, &probe_isect)) {
       int hit_object = (probe_isect.object == OBJECT_NONE) ?
