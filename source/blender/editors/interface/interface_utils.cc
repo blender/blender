@@ -333,7 +333,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                    -1,
                                    -1,
                                    nullptr);
-      ui_but_add_search(but, ptr, prop, nullptr, nullptr);
+      ui_but_add_search(but, ptr, prop, nullptr, nullptr, false);
       break;
     }
     case PROP_COLLECTION: {

@@ -2712,7 +2712,8 @@ void uiItemPointerR_prop(uiLayout *layout,
                          struct PointerRNA *searchptr,
                          struct PropertyRNA *searchprop,
                          const char *name,
-                         int icon);
+                         int icon,
+                         bool results_are_suggestions);
 void uiItemPointerR(uiLayout *layout,
                     struct PointerRNA *ptr,
                     const char *propname,

@@ -2535,11 +2535,17 @@ static void viewlayer_lightgroup_active_set(ViewLayer *view_layer, ViewLayerLigh
   }
 }
 
-struct ViewLayerLightgroup *BKE_view_layer_add_lightgroup(struct ViewLayer *view_layer)
+struct ViewLayerLightgroup *BKE_view_layer_add_lightgroup(struct ViewLayer *view_layer,
+                                                          const char *name)
 {
   ViewLayerLightgroup *lightgroup;
   lightgroup = MEM_callocN(sizeof(ViewLayerLightgroup), __func__);
-  BLI_strncpy(lightgroup->name, DATA_("Lightgroup"), sizeof(lightgroup->name));
+  if (name && name[0]) {
+    BLI_strncpy(lightgroup->name, name, sizeof(lightgroup->name));
+  }
+  else {
+    BLI_strncpy(lightgroup->name, DATA_("Lightgroup"), sizeof(lightgroup->name));
+  }
   BLI_addtail(&view_layer->lightgroups, lightgroup);
   viewlayer_lightgroup_active_set(view_layer, lightgroup);
   viewlayer_lightgroup_make_name_unique(view_layer, lightgroup);

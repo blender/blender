@@ -1118,12 +1118,25 @@ void SCENE_OT_view_layer_remove_aov(wmOperatorType *ot)
 /** \name View Layer Add Lightgroup Operator
  * \{ */
 
-static int view_layer_add_lightgroup_exec(bContext *C, wmOperator *UNUSED(op))
+static int view_layer_add_lightgroup_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  BKE_view_layer_add_lightgroup(view_layer);
+  char name[MAX_NAME];
+  RNA_string_get(op->ptr, "name", name);
+  /* If a name is provided, ensure that it is unique. */
+  if (name[0]) {
+    /* Ensure that there are no dots in the name. */
+    BLI_str_replace_char(name, '.', '_');
+    LISTBASE_FOREACH (ViewLayerLightgroup *, lightgroup, &view_layer->lightgroups) {
+      if (strcmp(lightgroup->name, name) == 0) {
+        return OPERATOR_CANCELLED;
+      }
+    }
+  }
+
+  BKE_view_layer_add_lightgroup(view_layer, name);
 
   if (scene->nodetree) {
     ntreeCompositUpdateRLayers(scene->nodetree);
@@ -1148,6 +1161,14 @@ void SCENE_OT_view_layer_add_lightgroup(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+
+  /* properties */
+  ot->prop = RNA_def_string(ot->srna,
+                            "name",
+                            nullptr,
+                            sizeof(((ViewLayerLightgroup *)NULL)->name),
+                            "Name",
+                            "Name of newly created lightgroup");
 }
 
 /** \} */
