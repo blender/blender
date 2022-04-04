@@ -133,6 +133,7 @@ class Params:
                 self.tool_maybe_tweak_value = 'PRESS'
             else:
                 self.tool_maybe_tweak_value = 'CLICK_DRAG'
+
             self.use_tweak_tool_lmb_interaction = use_tweak_tool_lmb_interaction
 
             self.context_menu_event = {"type": 'W', "value": 'PRESS'}
@@ -574,18 +575,18 @@ def km_window(params):
              {"type": k, "value": 'PRESS', "shift": True},
              {"properties": [("space_type", t)]})
             for k, t in (
-                ('F1', 'FILE_BROWSER'),
-                ('F2', 'CLIP_EDITOR'),
-                ('F3', 'NODE_EDITOR'),
-                ('F4', 'CONSOLE'),
-                ('F5', 'VIEW_3D'),
-                ('F6', 'GRAPH_EDITOR'),
-                ('F7', 'PROPERTIES'),
-                ('F8', 'SEQUENCE_EDITOR'),
-                ('F9', 'OUTLINER'),
-                ('F10', 'IMAGE_EDITOR'),
-                ('F11', 'TEXT_EDITOR'),
-                ('F12', 'DOPESHEET_EDITOR'),
+                    ('F1', 'FILE_BROWSER'),
+                    ('F2', 'CLIP_EDITOR'),
+                    ('F3', 'NODE_EDITOR'),
+                    ('F4', 'CONSOLE'),
+                    ('F5', 'VIEW_3D'),
+                    ('F6', 'GRAPH_EDITOR'),
+                    ('F7', 'PROPERTIES'),
+                    ('F8', 'SEQUENCE_EDITOR'),
+                    ('F9', 'OUTLINER'),
+                    ('F10', 'IMAGE_EDITOR'),
+                    ('F11', 'TEXT_EDITOR'),
+                    ('F12', 'DOPESHEET_EDITOR'),
             )
         ),
 
@@ -2136,7 +2137,7 @@ def km_node_editor(params):
         ("wm.context_menu_enum", {"type": 'TAB', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("data_path", 'tool_settings.snap_node_element')]}),
         ("wm.context_toggle", {"type": 'Z', "value": 'PRESS', "alt": True, "shift": True},
-            {"properties": [("data_path", "space_data.overlay.show_overlays")]}),
+         {"properties": [("data_path", "space_data.overlay.show_overlays")]}),
         *_template_items_context_menu("NODE_MT_context_menu", params.context_menu_event),
     ])
 
@@ -7109,7 +7110,7 @@ def km_3d_view_tool_edit_curve_pen(params):
                  ("select_point", True),
                  ("move_point", True),
                  ("close_spline_method", "ON_CLICK"),
-                ]}),
+             ]}),
             ("curve.pen", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
              {"properties": [("insert_point", True), ("delete_point", True)]}),
             ("curve.pen", {"type": params.tool_mouse, "value": 'DOUBLE_CLICK'},
