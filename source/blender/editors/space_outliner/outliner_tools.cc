@@ -795,7 +795,6 @@ static void id_override_library_create_hierarchy_pre_process_fn(bContext *UNUSED
     Collection *root_collection = reinterpret_cast<Collection *>(id_root_reference);
     FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (root_collection, object_iter) {
       if (id_root_reference->lib == object_iter->id.lib && object_iter->type == OB_ARMATURE) {
-        printf("Foooo\n");
         data->selected_id_uid.add(object_iter->id.session_uuid);
       }
     }
