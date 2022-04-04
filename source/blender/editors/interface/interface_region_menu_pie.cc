@@ -303,7 +303,7 @@ int UI_pie_menu_invoke_from_rna_enum(struct bContext *C,
  * - Julian (Feb 2016)
  * \{ */
 
- struct PieMenuLevelData {
+struct PieMenuLevelData {
   char title[UI_MAX_NAME_STR]; /* parent pie title, copied for level */
   int icon;                    /* parent pie icon, copied for level */
   int totitem;                 /* total count of *remaining* items */
@@ -313,7 +313,7 @@ int UI_pie_menu_invoke_from_rna_enum(struct bContext *C,
   const char *propname;
   IDProperty *properties;
   wmOperatorCallContext context, flag;
-} ;
+};
 
 /**
  * Invokes a new pie menu for a new level.

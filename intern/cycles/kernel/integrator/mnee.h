@@ -97,7 +97,7 @@ ccl_device_inline float mat22_determinant(const float4 m)
 }
 
 /* Inverse of a 2x2 matrix encoded in a row-major order float4 */
-ccl_device_inline float mat22_inverse(const float4 m, ccl_private float4& m_inverse)
+ccl_device_inline float mat22_inverse(const float4 m, ccl_private float4 &m_inverse)
 {
   float det = mat22_determinant(m);
   if (fabsf(det) < MNEE_MIN_DETERMINANT)

@@ -167,8 +167,8 @@ void workbench_shadow_cache_init(WORKBENCH_Data *data)
 }
 
 static const BoundBox *workbench_shadow_object_shadow_bbox_get(WORKBENCH_PrivateData *wpd,
-                                                         Object *ob,
-                                                         WORKBENCH_ObjectData *oed)
+                                                               Object *ob,
+                                                               WORKBENCH_ObjectData *oed)
 {
   if (oed->shadow_bbox_dirty || wpd->shadow_changed) {
     float tmp_mat[4][4];

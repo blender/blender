@@ -211,8 +211,8 @@ static int build_hierarchy_foreach_ID_cb(LibraryIDLinkCallbackData *cb_data)
 }
 
 void TreeDisplayOverrideLibraryHierarchies::build_hierarchy_for_ID(Main *bmain,
-                                                                 ID &override_root_id,
-                                                                 TreeElementID &te_id) const
+                                                                   ID &override_root_id,
+                                                                   TreeElementID &te_id) const
 {
   BuildHierarchyForeachIDCbData build_data{*bmain, space_outliner_, override_root_id, &te_id};
   build_data.parent_ids.add(&override_root_id);

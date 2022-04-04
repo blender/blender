@@ -25,7 +25,8 @@ namespace blender::ed::outliner {
 /* Convenience/readability. */
 template<typename T> using List = ListBaseWrapper<T>;
 
-TreeDisplayOverrideLibraryProperties::TreeDisplayOverrideLibraryProperties(SpaceOutliner &space_outliner)
+TreeDisplayOverrideLibraryProperties::TreeDisplayOverrideLibraryProperties(
+    SpaceOutliner &space_outliner)
     : AbstractTreeDisplay(space_outliner)
 {
 }
