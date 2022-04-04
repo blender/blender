@@ -193,7 +193,7 @@ static void geom_add_polygon(Geometry *geom,
                                                  -offsets.get_index_offset() - 1;
     if (corner.vert_index < 0 || corner.vert_index >= global_vertices.vertices.size()) {
       fprintf(stderr,
-              "Invalid vertex index %i (valid range [0, %zi)), ignoring face\n",
+              "Invalid vertex index %i (valid range [0, %zu)), ignoring face\n",
               corner.vert_index,
               (size_t)global_vertices.vertices.size());
       face_valid = false;
@@ -202,7 +202,7 @@ static void geom_add_polygon(Geometry *geom,
       corner.uv_vert_index += corner.uv_vert_index < 0 ? global_vertices.uv_vertices.size() : -1;
       if (corner.uv_vert_index < 0 || corner.uv_vert_index >= global_vertices.uv_vertices.size()) {
         fprintf(stderr,
-                "Invalid UV index %i (valid range [0, %zi)), ignoring face\n",
+                "Invalid UV index %i (valid range [0, %zu)), ignoring face\n",
                 corner.uv_vert_index,
                 (size_t)global_vertices.uv_vertices.size());
         face_valid = false;
@@ -215,7 +215,7 @@ static void geom_add_polygon(Geometry *geom,
       if (corner.vertex_normal_index < 0 ||
           corner.vertex_normal_index >= global_vertices.vertex_normals.size()) {
         fprintf(stderr,
-                "Invalid normal index %i (valid range [0, %zi)), ignoring face\n",
+                "Invalid normal index %i (valid range [0, %zu)), ignoring face\n",
                 corner.vertex_normal_index,
                 (size_t)global_vertices.vertex_normals.size());
         face_valid = false;
