@@ -35,6 +35,13 @@
 #include "transform.h"
 #include "transform_convert.h"
 
+#define SEQ_EDGE_PAN_INSIDE_PAD 2
+#define SEQ_EDGE_PAN_OUTSIDE_PAD 0 /* Disable clamping for panning, use whole screen. */
+#define SEQ_EDGE_PAN_SPEED_RAMP 1
+#define SEQ_EDGE_PAN_MAX_SPEED 4 /* In UI units per second, slower than default. */
+#define SEQ_EDGE_PAN_DELAY 1.0f
+#define SEQ_EDGE_PAN_ZOOM_INFLUENCE 0.5f
+
 /** Used for sequencer transform. */
 typedef struct TransDataSeq {
   struct Sequence *seq;
@@ -55,6 +62,10 @@ typedef struct TransSeq {
   TransDataSeq *tdseq;
   int selection_channel_range_min;
   int selection_channel_range_max;
+
+  /* Initial rect of the view2d, used for computing offset during edge panning */
+  rctf initial_v2d_cur;
+  View2DEdgePanData edge_pan;
 } TransSeq;
 
 /* -------------------------------------------------------------------- */
@@ -673,6 +684,18 @@ void createTransSeqData(TransInfo *t)
   td2d = tc->data_2d = MEM_callocN(tc->data_len * sizeof(TransData2D), "TransSeq TransData2D");
   ts->tdseq = tdsq = MEM_callocN(tc->data_len * sizeof(TransDataSeq), "TransSeq TransDataSeq");
 
+  /* Custom data to enable edge panning during transformation. */
+  UI_view2d_edge_pan_init(t->context,
+                          &ts->edge_pan,
+                          SEQ_EDGE_PAN_INSIDE_PAD,
+                          SEQ_EDGE_PAN_OUTSIDE_PAD,
+                          SEQ_EDGE_PAN_SPEED_RAMP,
+                          SEQ_EDGE_PAN_MAX_SPEED,
+                          SEQ_EDGE_PAN_DELAY,
+                          SEQ_EDGE_PAN_ZOOM_INFLUENCE);
+  UI_view2d_edge_pan_set_limits(&ts->edge_pan, -FLT_MAX, FLT_MAX, 1, MAXSEQ + 1);
+  ts->initial_v2d_cur = t->region->v2d.cur;
+
   /* loop 2: build transdata array */
   SeqToTransData_build(t, ed->seqbasep, td, td2d, tdsq);
 
@@ -710,8 +733,36 @@ BLI_INLINE void trans_update_seq(Scene *sce, Sequence *seq, int old_start, int s
   }
 }
 
+static void view2d_edge_pan_loc_compensate(TransInfo *t, float loc_in[2], float r_loc[2])
+{
+  TransSeq *ts = (TransSeq *)TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data;
+
+  /* Initial and current view2D rects for additional transform due to view panning and zooming */
+  const rctf *rect_src = &ts->initial_v2d_cur;
+  const rctf *rect_dst = &t->region->v2d.cur;
+
+  copy_v2_v2(r_loc, loc_in);
+  /* Additional offset due to change in view2D rect. */
+  BLI_rctf_transform_pt_v(rect_dst, rect_src, r_loc, r_loc);
+}
+
 static void flushTransSeq(TransInfo *t)
 {
+  TransSeq *ts = (TransSeq *)TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data;
+  if (t->options & CTX_VIEW2D_EDGE_PAN) {
+    if (t->state == TRANS_CANCEL) {
+      UI_view2d_edge_pan_cancel(t->context, &ts->edge_pan);
+    }
+    else {
+      /* Edge panning functions expect window coordinates, mval is relative to region */
+      const int xy[2] = {
+          t->region->winrct.xmin + t->mval[0],
+          t->region->winrct.ymin + t->mval[1],
+      };
+      UI_view2d_edge_pan_apply(t->context, &ts->edge_pan, xy);
+    }
+  }
+
   /* Editing null check already done */
   ListBase *seqbasep = seqbase_active_get(t);
 
@@ -727,7 +778,9 @@ static void flushTransSeq(TransInfo *t)
   for (a = 0, td = tc->data, td2d = tc->data_2d; a < tc->data_len; a++, td++, td2d++) {
     tdsq = (TransDataSeq *)td->extra;
     seq = tdsq->seq;
-    new_frame = round_fl_to_int(td2d->loc[0]);
+    float loc[2];
+    view2d_edge_pan_loc_compensate(t, td->loc, loc);
+    new_frame = round_fl_to_int(loc[0]);
 
     switch (tdsq->sel_flag) {
       case SELECT:
@@ -735,7 +788,7 @@ static void flushTransSeq(TransInfo *t)
           const int offset = new_frame - tdsq->start_offset - seq->start;
           SEQ_transform_translate_sequence(t->scene, seq, offset);
         }
-        seq->machine = round_fl_to_int(td2d->loc[1]);
+        seq->machine = round_fl_to_int(loc[1]);
         CLAMP(seq->machine, 1, MAXSEQ);
         break;
 

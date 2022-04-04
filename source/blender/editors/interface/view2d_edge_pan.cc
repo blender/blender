@@ -67,6 +67,7 @@ void UI_view2d_edge_pan_init(bContext *C,
   vpd->area = CTX_wm_area(C);
   vpd->region = CTX_wm_region(C);
   vpd->v2d = &vpd->region->v2d;
+  BLI_rctf_init(&vpd->limit, -FLT_MAX, FLT_MAX, -FLT_MAX, FLT_MAX);
 
   BLI_assert(speed_ramp > 0.0f);
   vpd->inside_pad = inside_pad;
@@ -85,6 +86,12 @@ void UI_view2d_edge_pan_init(bContext *C,
   vpd->facy = (BLI_rctf_size_y(&vpd->v2d->cur)) / winy;
 
   UI_view2d_edge_pan_reset(vpd);
+}
+
+void UI_view2d_edge_pan_set_limits(
+    View2DEdgePanData *vpd, float xmin, float xmax, float ymin, float ymax)
+{
+  BLI_rctf_init(&vpd->limit, xmin, xmax, ymin, ymax);
 }
 
 void UI_view2d_edge_pan_reset(View2DEdgePanData *vpd)
@@ -220,20 +227,23 @@ void UI_view2d_edge_pan_apply(bContext *C, View2DEdgePanData *vpd, const int xy[
     vpd->enabled = true;
   }
 
+  rctf *cur = &vpd->v2d->cur;
+  rctf *limit = &vpd->limit;
+
   int pan_dir_x = 0;
   int pan_dir_y = 0;
   if (vpd->enabled && ((vpd->outside_pad == 0) || BLI_rcti_isect_pt_v(&outside_rect, xy))) {
     /* Find whether the mouse is beyond X and Y edges. */
-    if (xy[0] > inside_rect.xmax) {
+    if (xy[0] > inside_rect.xmax && cur->xmax < limit->xmax) {
       pan_dir_x = 1;
     }
-    else if (xy[0] < inside_rect.xmin) {
+    else if (xy[0] < inside_rect.xmin && cur->xmin > limit->xmin) {
       pan_dir_x = -1;
     }
-    if (xy[1] > inside_rect.ymax) {
+    if (xy[1] > inside_rect.ymax && cur->ymax < limit->ymax) {
       pan_dir_y = 1;
     }
-    else if (xy[1] < inside_rect.ymin) {
+    else if (xy[1] < inside_rect.ymin && cur->ymin > limit->ymin) {
       pan_dir_y = -1;
     }
   }
