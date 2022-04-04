@@ -100,7 +100,7 @@ typedef struct CurvePenData {
   bool multi_point;
   /* Whether a point has already been selected. */
   bool selection_made;
-  /* Whether a shift-click occured. */
+  /* Whether a shift-click occurred. */
   bool select_multi;
 
   /* Whether the current handle type of the moved handle is free. */
