@@ -254,7 +254,7 @@ static int curves_convert_to_particle_system_exec(bContext *C, wmOperator *UNUSE
   }
   CTX_DATA_END;
 
-  WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
+  WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
 }

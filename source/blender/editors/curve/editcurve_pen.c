@@ -1162,16 +1162,14 @@ static void move_segment(ViewContext *vc, MoveSegmentData *seg_data, const wmEve
     if (bezt2->hide) {
       return;
     }
-    else {
-      /*
-       * Swap bezt1 and bezt2 in all calculations if only bezt2 is visible.
-       * (The first point needs to be visible for the calculations of the second point to be valid)
-       */
-      BezTriple *temp_bezt = bezt2;
-      bezt2 = bezt1;
-      bezt1 = temp_bezt;
-      h1 = 0, h2 = 2;
-    }
+    /*
+     * Swap bezt1 and bezt2 in all calculations if only bezt2 is visible.
+     * (The first point needs to be visible for the calculations of the second point to be valid)
+     */
+    BezTriple *temp_bezt = bezt2;
+    bezt2 = bezt1;
+    bezt1 = temp_bezt;
+    h1 = 0, h2 = 2;
   }
 
   const float t = max_ff(min_ff(seg_data->t, 0.9f), 0.1f);

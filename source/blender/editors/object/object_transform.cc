@@ -655,7 +655,7 @@ static int apply_objects_internal(bContext *C,
   float obact_invmat[4][4], obact_parent[4][4], obact_parentinv[4][4];
 
   /* Only used when do_multi_user is set. */
-  Object *obact = NULL;
+  Object *obact = nullptr;
   bool make_single_user = false;
 
   if (do_multi_user) {
@@ -675,7 +675,7 @@ static int apply_objects_internal(bContext *C,
         ID *obact_data = static_cast<ID *>(obact->data);
         BKE_reportf(reports,
                     RPT_ERROR,
-                    "Cannot apply to a multi user: Object \"%s\", %s \"%s\", aborting",
+                    R"(Cannot apply to a multi user: Object "%s", %s "%s", aborting)",
                     obact->id.name + 2,
                     BKE_idtype_idcode_to_name(GS(obact_data->name)),
                     obact_data->name + 2);
@@ -818,7 +818,7 @@ static int apply_objects_internal(bContext *C,
     /* Make single user. */
     ED_object_single_obdata_user(bmain, scene, obact);
     BKE_main_id_newptr_and_tag_clear(bmain);
-    WM_event_add_notifier(C, NC_WINDOW, NULL);
+    WM_event_add_notifier(C, NC_WINDOW, nullptr);
     DEG_relations_tag_update(bmain);
   }
 
@@ -1128,7 +1128,7 @@ static int object_transform_apply_invoke(bContext *C, wmOperator *op, const wmEv
   bool can_handle_multiuser = apply_objects_internal_can_multiuser(C);
   bool need_single_user = can_handle_multiuser && apply_objects_internal_need_single_user(C);
 
-  if ((ob->data != NULL) && need_single_user) {
+  if ((ob->data != nullptr) && need_single_user) {
     PropertyRNA *prop = RNA_struct_find_property(op->ptr, "isolate_users");
     if (!RNA_property_is_set(op->ptr, prop)) {
       RNA_property_boolean_set(op->ptr, prop, true);
