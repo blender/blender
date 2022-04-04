@@ -1104,6 +1104,10 @@ static void extrude_points_from_selected_vertices(const ViewContext *vc,
     Nurb *new_last_nu = editnurb->nurbs.last;
 
     if (old_last_nu != new_last_nu) {
+      BKE_curve_nurb_vert_active_set(cu,
+                                     new_last_nu,
+                                     new_last_nu->bezt ? (const void *)new_last_nu->bezt :
+                                                         (const void *)new_last_nu->bp);
       new_last_nu->flagu = ~CU_NURB_CYCLIC;
     }
   }
