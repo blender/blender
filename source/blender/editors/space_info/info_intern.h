@@ -28,6 +28,7 @@ void FILE_OT_find_missing_files(struct wmOperatorType *ot);
 void INFO_OT_reports_display_update(struct wmOperatorType *ot);
 
 /* info_draw.c */
+
 void *info_text_pick(const struct SpaceInfo *sinfo,
                      const struct ARegion *region,
                      const struct ReportList *reports,
@@ -40,6 +41,7 @@ void info_textview_main(const struct SpaceInfo *sinfo,
                         const struct ReportList *reports);
 
 /* info_report.c */
+
 int info_report_mask(const struct SpaceInfo *sinfo);
 void INFO_OT_select_pick(struct wmOperatorType *ot); /* report selection */
 void INFO_OT_select_all(struct wmOperatorType *ot);

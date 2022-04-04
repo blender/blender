@@ -137,6 +137,7 @@ void blf_glyph_draw(
 
 #ifdef WIN32
 /* blf_font_win32_compat.c */
+
 #  ifdef FT_FREETYPE_H
 extern FT_Error FT_New_Face__win32_compat(FT_Library library,
                                           const char *pathname,

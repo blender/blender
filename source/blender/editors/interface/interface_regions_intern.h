@@ -13,6 +13,7 @@ extern "C" {
 #endif
 
 /* interface_region_menu_popup.c */
+
 uint ui_popup_menu_hash(const char *str);
 
 /* interface_regions_intern.h */

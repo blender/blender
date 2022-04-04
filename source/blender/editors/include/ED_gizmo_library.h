@@ -39,6 +39,7 @@ struct wmWindowManager;
  */
 
 /* gizmo_library_presets.c */
+
 void ED_gizmo_draw_preset_box(const struct wmGizmo *gz, float mat[4][4], int select_id);
 void ED_gizmo_draw_preset_arrow(const struct wmGizmo *gz,
                                 float mat[4][4],
@@ -223,6 +224,7 @@ enum {
 /* Specific gizmos utils */
 
 /* dial3d_gizmo.c */
+
 struct Dial3dParams {
   int draw_options;
   float angle_ofs;
@@ -240,6 +242,7 @@ void ED_gizmotypes_dial_3d_draw_util(const float matrix_basis[4][4],
                                      struct Dial3dParams *params);
 
 /* snap3d_gizmo.c */
+
 struct SnapObjectContext *ED_gizmotypes_snap_3d_context_ensure(struct Scene *scene,
                                                                struct wmGizmo *gz);
 

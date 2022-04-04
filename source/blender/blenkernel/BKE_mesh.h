@@ -1067,6 +1067,7 @@ extern void (*BKE_mesh_batch_cache_dirty_tag_cb)(struct Mesh *me, eMeshBatchDirt
 extern void (*BKE_mesh_batch_cache_free_cb)(struct Mesh *me);
 
 /* mesh_debug.c */
+
 #ifndef NDEBUG
 char *BKE_mesh_debug_info(const struct Mesh *me)
     ATTR_NONNULL(1) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;

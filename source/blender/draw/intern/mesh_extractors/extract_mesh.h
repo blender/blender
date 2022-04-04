@@ -290,6 +290,7 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
                                       eMRDataType data_flag);
 
 /* draw_cache_extract_mesh_extractors.c */
+
 typedef struct EditLoopData {
   uchar v_flag;
   uchar e_flag;

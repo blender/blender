@@ -263,11 +263,13 @@ typedef enum {
    V3D_PROJ_TEST_CLIP_WIN)
 
 /* view3d_snap.c */
+
 bool ED_view3d_snap_selected_to_location(struct bContext *C,
                                          const float snap_target_global[3],
                                          int pivot_point);
 
 /* view3d_cursor_snap.c */
+
 #define USE_SNAP_DETECT_FROM_KEYMAP_HACK
 typedef enum {
   V3D_SNAPCURSOR_TOGGLE_ALWAYS_TRUE = 1 << 0,
@@ -939,6 +941,7 @@ int view3d_opengl_select_with_id_filter(struct ViewContext *vc,
                                         uint select_id);
 
 /* view3d_select.c */
+
 float ED_view3d_select_dist_px(void);
 void ED_view3d_viewcontext_init(struct bContext *C,
                                 struct ViewContext *vc,

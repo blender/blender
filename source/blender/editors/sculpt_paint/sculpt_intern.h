@@ -1716,6 +1716,7 @@ void SCULPT_bmesh_topology_rake(
 /* end sculpt_brush_types.c */
 
 /* sculpt_ops.c */
+
 void SCULPT_OT_brush_stroke(struct wmOperatorType *ot);
 
 /* end sculpt_ops.c */

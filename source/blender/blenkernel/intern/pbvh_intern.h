@@ -168,6 +168,7 @@ struct PBVH {
 };
 
 /* pbvh.c */
+
 void BB_reset(BB *bb);
 /**
  * Expand the bounding box to include a new coordinate.
@@ -216,6 +217,7 @@ bool ray_face_nearest_tri(const float ray_start[3],
 void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag);
 
 /* pbvh_bmesh.c */
+
 bool pbvh_bmesh_node_raycast(PBVHNode *node,
                              const float ray_start[3],
                              const float ray_normal[3],

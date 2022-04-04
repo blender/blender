@@ -42,6 +42,7 @@ void ED_text_undosys_type(struct UndoType *ut);
 struct UndoStep *ED_text_undo_push_init(struct bContext *C);
 
 /* text_format.c */
+
 bool ED_text_is_syntax_highlight_supported(struct Text *text);
 
 #ifdef __cplusplus

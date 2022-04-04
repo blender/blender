@@ -194,6 +194,7 @@ void PAINT_OT_weight_sample(struct wmOperatorType *ot);
 void PAINT_OT_weight_sample_group(struct wmOperatorType *ot);
 
 /* paint_vertex_proj.c */
+
 struct VertProjHandle;
 struct VertProjHandle *ED_vpaint_proj_handle_create(struct Depsgraph *depsgraph,
                                                     struct Scene *scene,
@@ -207,6 +208,7 @@ void ED_vpaint_proj_handle_update(struct Depsgraph *depsgraph,
 void ED_vpaint_proj_handle_free(struct VertProjHandle *vp_handle);
 
 /* paint_image.c */
+
 typedef struct ImagePaintPartialRedraw {
   rcti dirty_region;
 } ImagePaintPartialRedraw;
@@ -282,6 +284,7 @@ void PAINT_OT_image_paint(struct wmOperatorType *ot);
 void PAINT_OT_add_simple_uvs(struct wmOperatorType *ot);
 
 /* paint_image_2d_curve_mask.cc */
+
 /**
  * \brief Caching structure for curve mask.
  *
@@ -482,6 +485,7 @@ void PAINT_OT_mask_box_gesture(struct wmOperatorType *ot);
 void PAINT_OT_mask_line_gesture(struct wmOperatorType *ot);
 
 /* paint_curve.c */
+
 void PAINTCURVE_OT_new(struct wmOperatorType *ot);
 void PAINTCURVE_OT_add_point(struct wmOperatorType *ot);
 void PAINTCURVE_OT_delete_point(struct wmOperatorType *ot);

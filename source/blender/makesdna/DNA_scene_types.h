@@ -2169,6 +2169,7 @@ enum {
 };
 
 /* object_vgroup.c */
+
 /** #ToolSettings.vgroupsubset */
 typedef enum eVGroupSelect {
   WT_VGROUP_ALL = 0,
