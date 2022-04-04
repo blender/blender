@@ -227,7 +227,6 @@ set(SRC
   engines/image/image_space_node.hh
   engines/image/image_texture_info.hh
   engines/image/image_usage.hh
-  engines/image/image_wrappers.hh
   engines/workbench/workbench_engine.h
   engines/workbench/workbench_private.h
   engines/workbench/workbench_shader_shared.h

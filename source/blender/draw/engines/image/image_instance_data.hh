@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "BKE_image_wrappers.hh"
+
 #include "image_batches.hh"
 #include "image_buffer_cache.hh"
 #include "image_partial_updater.hh"
@@ -14,14 +16,11 @@
 #include "image_shader_params.hh"
 #include "image_texture_info.hh"
 #include "image_usage.hh"
-#include "image_wrappers.hh"
 
 #include "DRW_render.h"
 
 /**
  * \brief max allowed textures to use by the ScreenSpaceDrawingMode.
- *
- * 4 textures are used to reduce uploading screen space textures when translating the image.
  */
 constexpr int SCREEN_SPACE_DRAWING_MODE_TEXTURE_LEN = 1;
 

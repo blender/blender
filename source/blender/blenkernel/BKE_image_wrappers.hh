@@ -2,12 +2,16 @@
  * Copyright 2022 Blender Foundation. */
 
 /** \file
- * \ingroup draw_engine
+ * \ingroup imbuf
  */
 
 #pragma once
 
 #include "DNA_image_types.h"
+
+#include "BLI_math_vec_types.hh"
+
+namespace blender::bke::image {
 
 struct ImageTileWrapper {
   ImageTile *image_tile;
@@ -18,6 +22,11 @@ struct ImageTileWrapper {
   int get_tile_number() const
   {
     return image_tile->tile_number;
+  }
+
+  int2 get_tile_offset() const
+  {
+    return int2(get_tile_x_offset(), get_tile_y_offset());
   }
 
   int get_tile_x_offset() const
@@ -32,3 +41,4 @@ struct ImageTileWrapper {
     return (tile_number - 1001) / 10;
   }
 };
+}  // namespace blender::bke::image
