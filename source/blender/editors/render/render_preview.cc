@@ -830,7 +830,8 @@ static Scene *object_preview_scene_create(const struct ObjectPreviewData *previe
   DEG_graph_build_from_view_layer(depsgraph);
   DEG_evaluate_on_refresh(depsgraph);
 
-  ED_view3d_camera_to_view_selected(preview_data->pr_main, depsgraph, scene, camera_object);
+  ED_view3d_camera_to_view_selected_with_set_clipping(
+      preview_data->pr_main, depsgraph, scene, camera_object);
 
   BKE_scene_graph_update_tagged(depsgraph, preview_data->pr_main);
 

@@ -163,6 +163,11 @@ bool ED_view3d_camera_to_view_selected(struct Main *bmain,
                                        const struct Scene *scene,
                                        struct Object *camera_ob);
 
+bool ED_view3d_camera_to_view_selected_with_set_clipping(struct Main *bmain,
+                                                         struct Depsgraph *depsgraph,
+                                                         const struct Scene *scene,
+                                                         struct Object *camera_ob);
+
 /**
  * Use to store the last view, before entering camera view.
  */
