@@ -218,6 +218,10 @@ void calculate_evaluated_positions(const Span<float3> positions,
 {
   BLI_assert(evaluated_offsets.last() == evaluated_positions.size());
   BLI_assert(evaluated_offsets.size() == positions.size());
+  if (evaluated_offsets.last() == 1) {
+    evaluated_positions.first() = positions.first();
+    return;
+  }
 
   /* Evaluate the first segment. */
   evaluate_segment(positions.first(),
