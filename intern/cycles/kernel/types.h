@@ -666,7 +666,7 @@ typedef struct AttributeDescriptor {
 /* For manifold next event estimation, we need space to store and evaluate
  * 2 closures (with extra data) on the refractive interfaces, in addition
  * to keeping the full sd at the current shading point. We need 4 because a
- * refractive bsdf is instanced with a companion reflection bsdf, even though
+ * refractive BSDF is instanced with a companion reflection BSDF, even though
  * we only need the refractive one, and each of them requires 2 slots. */
 #ifndef __CAUSTICS_MAX_CLOSURE__
 #  define CAUSTICS_MAX_CLOSURE 4

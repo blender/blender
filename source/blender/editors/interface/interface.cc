@@ -6516,7 +6516,7 @@ uiBut *uiDefSearchButO_ptr(uiBlock *block,
 
   if (properties) {
     PointerRNA *ptr = UI_but_operator_ptr_get(but);
-    /* Copy idproperties. */
+    /* Copy id-properties. */
     ptr->data = IDP_CopyProperty(properties);
   }
 
@@ -6755,7 +6755,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
         PointerRNA *opptr = UI_but_operator_ptr_get(but);
         wmOperatorType *ot = but->optype;
 
-        /* so the context is passed to itemf functions */
+        /* So the context is passed to `itemf` functions. */
         WM_operator_properties_sanitize(opptr, false);
 
         /* if the default property of the operator is enum and it is set,

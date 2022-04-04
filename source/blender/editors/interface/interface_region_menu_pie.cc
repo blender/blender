@@ -332,7 +332,7 @@ static void ui_pie_menu_level_invoke(bContext *C, void *argN, void *arg2)
   PointerRNA ptr;
 
   WM_operator_properties_create_ptr(&ptr, lvl->ot);
-  /* so the context is passed to itemf functions (some need it) */
+  /* So the context is passed to `itemf` functions (some need it). */
   WM_operator_properties_sanitize(&ptr, false);
   PropertyRNA *prop = RNA_struct_find_property(&ptr, lvl->propname);
 

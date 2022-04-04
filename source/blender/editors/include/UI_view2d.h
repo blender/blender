@@ -447,7 +447,7 @@ typedef struct View2DEdgePanData {
   struct ARegion *region;
   /** View2d we're operating in. */
   struct View2D *v2d;
-    /* Limit maximum pannable area */
+  /** Limit maximum pannable area. */
   struct rctf limit;
 
   /** Panning should only start once being in the inside rect once (e.g. adding nodes can happen
