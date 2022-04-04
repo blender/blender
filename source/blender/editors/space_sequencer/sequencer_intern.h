@@ -25,8 +25,30 @@ struct View2D;
 struct bContext;
 struct rctf;
 struct wmOperator;
+struct ScrArea;
+struct Editing;
+struct ListBase;
 
 #define OVERLAP_ALPHA 180
+
+typedef struct SeqChannelDrawContext {
+  const struct bContext *C;
+  struct ScrArea *area;
+  struct ARegion *region;
+  struct ARegion *timeline_region;
+  struct View2D *v2d;
+  struct View2D *timeline_region_v2d;
+
+  struct Scene *scene;
+  struct Editing *ed;
+  struct ListBase *seqbase;  /* Displayed seqbase. */
+  struct ListBase *channels; /* Displayed channels. */
+
+  float draw_offset;
+  float channel_height;
+  float frame_width;
+  float scale;
+} SeqChannelDrawContext;
 
 /* sequencer_draw.c */
 
@@ -79,6 +101,12 @@ void draw_seq_strip_thumbnail(struct View2D *v2d,
                               float y2,
                               float pixelx,
                               float pixely);
+
+/* sequencer_draw_channels.c */
+void draw_channels(const struct bContext *C, struct ARegion *region);
+void channel_draw_context_init(const struct bContext *C,
+                               struct ARegion *region,
+                               struct SeqChannelDrawContext *r_context);
 
 /* sequencer_edit.c */
 
@@ -241,6 +269,9 @@ void SEQUENCER_OT_view_all_preview(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_zoom_ratio(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_selected(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_ghost_border(struct wmOperatorType *ot);
+
+/* sequencer_channels_edit.c */
+void SEQUENCER_OT_rename_channel(struct wmOperatorType *ot);
 
 /* sequencer_preview.c */
 

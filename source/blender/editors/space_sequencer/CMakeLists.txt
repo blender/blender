@@ -26,6 +26,8 @@ set(SRC
   sequencer_add.c
   sequencer_buttons.c
   sequencer_draw.c
+  sequencer_channels_draw.c
+  sequencer_channels_edit.c
   sequencer_edit.c
   sequencer_modifier.c
   sequencer_ops.c

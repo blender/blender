@@ -617,6 +617,8 @@ typedef struct SpaceSeqRuntime {
   struct rctf last_thumbnail_area;
   /** Stores lists of most recently displayed thumbnails. */
   struct GHash *last_displayed_thumbnails;
+  int rename_channel_index;
+  char _pad0[4];
 } SpaceSeqRuntime;
 
 /** Sequencer. */

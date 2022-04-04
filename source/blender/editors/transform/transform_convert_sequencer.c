@@ -17,8 +17,10 @@
 #include "BKE_report.h"
 
 #include "ED_markers.h"
+#include "ED_time_scrub_ui.h"
 
 #include "SEQ_animation.h"
+#include "SEQ_channels.h"
 #include "SEQ_edit.h"
 #include "SEQ_effects.h"
 #include "SEQ_iterator.h"
@@ -66,17 +68,19 @@ typedef struct TransSeq {
  */
 static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_count, int *r_flag)
 {
+  Scene *scene = t->scene;
+  Editing *ed = SEQ_editing_get(t->scene);
+  ListBase *channels = SEQ_channels_displayed_get(ed);
+
   /* for extend we need to do some tricks */
   if (t->mode == TFM_TIME_EXTEND) {
 
     /* *** Extend Transform *** */
-
-    Scene *scene = t->scene;
     int cfra = CFRA;
     int left = SEQ_transform_get_left_handle_frame(seq);
     int right = SEQ_transform_get_right_handle_frame(seq);
 
-    if (((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK))) {
+    if (((seq->flag & SELECT) == 0 || SEQ_transform_is_locked(channels, seq))) {
       *r_count = 0;
       *r_flag = 0;
     }
@@ -115,7 +119,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_count, int *r_flag)
     /* Count */
 
     /* Non nested strips (resect selection and handles) */
-    if ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK)) {
+    if ((seq->flag & SELECT) == 0 || SEQ_transform_is_locked(channels, seq)) {
       *r_count = 0;
       *r_flag = 0;
     }
@@ -771,6 +775,7 @@ static void flushTransSeq(TransInfo *t)
       seq->flag |= SEQ_OVERLAP;
     }
   }
+
   SEQ_collection_free(transformed_strips);
 }
 

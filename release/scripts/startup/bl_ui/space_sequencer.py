@@ -418,6 +418,7 @@ class SEQUENCER_MT_view(Menu):
 
         if is_sequencer_view:
             layout.prop(st, "show_region_hud")
+            layout.prop(st, "show_region_channels")
 
         layout.separator()
 

@@ -225,3 +225,10 @@ void version_socket_update_is_used(bNodeTree *ntree)
     link->tosock->flag |= SOCK_IN_USE;
   }
 }
+
+ARegion *do_versions_add_region(int regiontype, const char *name)
+{
+  ARegion *region = (ARegion *)MEM_callocN(sizeof(ARegion), name);
+  region->regiontype = regiontype;
+  return region;
+}

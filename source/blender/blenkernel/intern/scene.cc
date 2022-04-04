@@ -321,6 +321,7 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
                                       &scene_src->ed->seqbase,
                                       SEQ_DUPE_ALL,
                                       flag_subdata);
+    BLI_duplicatelist(&scene_dst->ed->channels, &scene_src->ed->channels);
   }
 
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
@@ -990,6 +991,9 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
     BLO_write_struct(writer, Editing, ed);
 
     SEQ_blend_write(writer, &ed->seqbase);
+    LISTBASE_FOREACH (SeqTimelineChannel *, channel, &ed->channels) {
+      BLO_write_struct(writer, SeqTimelineChannel, channel);
+    }
     /* new; meta stack too, even when its nasty restore code */
     LISTBASE_FOREACH (MetaStack *, ms, &ed->metastack) {
       BLO_write_struct(writer, MetaStack, ms);
@@ -1174,6 +1178,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
 
   if (sce->ed) {
     ListBase *old_seqbasep = &sce->ed->seqbase;
+    ListBase *old_displayed_channels = &sce->ed->channels;
 
     BLO_read_data_address(reader, &sce->ed);
     Editing *ed = sce->ed;
@@ -1188,32 +1193,53 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
 
     /* Read in sequence member data. */
     SEQ_blend_read(reader, &ed->seqbase);
+    BLO_read_list(reader, &ed->channels);
 
     /* link metastack, slight abuse of structs here,
      * have to restore pointer to internal part in struct */
     {
       Sequence temp;
-      void *poin;
-      intptr_t offset;
+      void *seqbase_poin;
+      void *channels_poin;
+      intptr_t seqbase_offset;
+      intptr_t channels_offset;
 
-      offset = ((intptr_t) & (temp.seqbase)) - ((intptr_t)&temp);
+      seqbase_offset = ((intptr_t) & (temp.seqbase)) - ((intptr_t)&temp);
+      channels_offset = ((intptr_t) & (temp.channels)) - ((intptr_t)&temp);
 
-      /* root pointer */
+      /* seqbase root pointer */
       if (ed->seqbasep == old_seqbasep) {
         ed->seqbasep = &ed->seqbase;
       }
       else {
-        poin = POINTER_OFFSET(ed->seqbasep, -offset);
+        seqbase_poin = POINTER_OFFSET(ed->seqbasep, -seqbase_offset);
 
-        poin = BLO_read_get_new_data_address(reader, poin);
+        seqbase_poin = BLO_read_get_new_data_address(reader, seqbase_poin);
 
-        if (poin) {
-          ed->seqbasep = (ListBase *)POINTER_OFFSET(poin, offset);
+        if (seqbase_poin) {
+          ed->seqbasep = (ListBase *)POINTER_OFFSET(seqbase_poin, seqbase_offset);
         }
         else {
           ed->seqbasep = &ed->seqbase;
         }
       }
+
+      /* Active channels root pointer. */
+      if (ed->displayed_channels == old_displayed_channels || ed->displayed_channels == NULL) {
+        ed->displayed_channels = &ed->channels;
+      }
+      else {
+        channels_poin = POINTER_OFFSET(ed->displayed_channels, -channels_offset);
+        channels_poin = BLO_read_get_new_data_address(reader, channels_poin);
+
+        if (channels_poin) {
+          ed->displayed_channels = (ListBase *)POINTER_OFFSET(channels_poin, channels_offset);
+        }
+        else {
+          ed->displayed_channels = &ed->channels;
+        }
+      }
+
       /* stack */
       BLO_read_list(reader, &(ed->metastack));
 
@@ -1224,13 +1250,28 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
           ms->oldbasep = &ed->seqbase;
         }
         else {
-          poin = POINTER_OFFSET(ms->oldbasep, -offset);
-          poin = BLO_read_get_new_data_address(reader, poin);
-          if (poin) {
-            ms->oldbasep = (ListBase *)POINTER_OFFSET(poin, offset);
+          seqbase_poin = POINTER_OFFSET(ms->oldbasep, -seqbase_offset);
+          seqbase_poin = BLO_read_get_new_data_address(reader, seqbase_poin);
+          if (seqbase_poin) {
+            ms->oldbasep = (ListBase *)POINTER_OFFSET(seqbase_poin, seqbase_offset);
           }
           else {
             ms->oldbasep = &ed->seqbase;
+          }
+        }
+
+        if (ms->old_channels == old_displayed_channels || ms->old_channels == NULL) {
+          ms->old_channels = &ed->channels;
+        }
+        else {
+          channels_poin = POINTER_OFFSET(ms->old_channels, -channels_offset);
+          channels_poin = BLO_read_get_new_data_address(reader, channels_poin);
+
+          if (channels_poin) {
+            ms->old_channels = (ListBase *)POINTER_OFFSET(channels_poin, channels_offset);
+          }
+          else {
+            ms->old_channels = &ed->channels;
           }
         }
       }

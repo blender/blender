@@ -53,6 +53,7 @@
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
+#include "BKE_screen.h"
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
@@ -62,6 +63,7 @@
 #include "MEM_guardedalloc.h"
 #include "readfile.h"
 
+#include "SEQ_channels.h"
 #include "SEQ_iterator.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
@@ -940,6 +942,14 @@ static bool seq_transform_filter_set(Sequence *seq, void *UNUSED(user_data))
   StripTransform *transform = seq->strip->transform;
   if (seq->strip->transform != NULL) {
     transform->filter = SEQ_TRANSFORM_FILTER_BILINEAR;
+  }
+  return true;
+}
+
+static bool seq_meta_channels_ensure(Sequence *seq, void *UNUSED(user_data))
+{
+  if (seq->type == SEQ_TYPE_META) {
+    SEQ_channels_ensure(&seq->channels);
   }
   return true;
 }
@@ -2483,6 +2493,58 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             space_outliner->filter &= ~SO_FILTER_CLEARED_1;
           }
         }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 302, 9)) {
+    /* Sequencer channels region. */
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype != SPACE_SEQ) {
+            continue;
+          }
+          if (ELEM(((SpaceSeq *)sl)->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW)) {
+            continue;
+          }
+
+          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
+          ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_CHANNELS);
+          if (!region) {
+            ARegion *tools_region = BKE_area_find_region_type(area, RGN_TYPE_TOOLS);
+            region = do_versions_add_region(RGN_TYPE_CHANNELS, "channels region");
+            BLI_insertlinkafter(regionbase, tools_region, region);
+            region->alignment = RGN_ALIGN_LEFT;
+            region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
+          }
+
+          ARegion *timeline_region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+          if (timeline_region != NULL) {
+            timeline_region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
+          }
+        }
+      }
+    }
+
+    /* Initialize channels. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      if (ed == NULL) {
+        continue;
+      }
+      SEQ_channels_ensure(&ed->channels);
+      SEQ_for_each_callback(&scene->ed->seqbase, seq_meta_channels_ensure, NULL);
+
+      ed->displayed_channels = &ed->channels;
+
+      ListBase *previous_channels = &ed->channels;
+      LISTBASE_FOREACH (MetaStack *, ms, &ed->metastack) {
+        ms->old_channels = previous_channels;
+        previous_channels = &ms->parseq->channels;
+        /* If `MetaStack` exists, active channels must point to last link. */
+        ed->displayed_channels = &ms->parseq->channels;
       }
     }
   }

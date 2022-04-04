@@ -205,6 +205,7 @@ typedef struct Sequence {
 
   /** List of strips for metastrips. */
   ListBase seqbase;
+  ListBase channels; /* SeqTimelineChannel */
 
   /** The linked "bSound" object. */
   struct bSound *sound;
@@ -254,10 +255,18 @@ typedef struct Sequence {
 typedef struct MetaStack {
   struct MetaStack *next, *prev;
   ListBase *oldbasep;
+  ListBase *old_channels;
   Sequence *parseq;
   /* the startdisp/enddisp when entering the meta */
   int disp_range[2];
 } MetaStack;
+
+typedef struct SeqTimelineChannel {
+  struct SeqTimelineChannel *next, *prev;
+  char name[64];
+  int index;
+  int flag;
+} SeqTimelineChannel;
 
 typedef struct EditingRuntime {
   struct SequenceLookup *sequence_lookup;
@@ -266,9 +275,12 @@ typedef struct EditingRuntime {
 typedef struct Editing {
   /** Pointer to the current list of seq's being edited (can be within a meta strip). */
   ListBase *seqbasep;
+  ListBase *displayed_channels;
+  void *_pad0;
   /** Pointer to the top-most seq's. */
   ListBase seqbase;
   ListBase metastack;
+  ListBase channels; /* SeqTimelineChannel */
 
   /* Context vars, used to be static */
   Sequence *act_seq;
@@ -778,6 +790,11 @@ enum {
   SEQ_TRANSFORM_FILTER_NEAREST = 0,
   SEQ_TRANSFORM_FILTER_BILINEAR = 1,
 };
+
+typedef enum eSeqChannelFlag {
+  SEQ_CHANNEL_LOCK = (1 << 0),
+  SEQ_CHANNEL_MUTE = (1 << 1),
+} eSeqChannelFlag;
 
 /** \} */
 

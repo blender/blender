@@ -17,6 +17,7 @@
 #include "BKE_sound.h"
 
 #include "SEQ_animation.h"
+#include "SEQ_channels.h"
 #include "SEQ_effects.h"
 #include "SEQ_iterator.h"
 #include "SEQ_relations.h"
@@ -389,6 +390,12 @@ void SEQ_transform_offset_after_frame(Scene *scene,
       }
     }
   }
+}
+
+bool SEQ_transform_is_locked(ListBase *channels, Sequence *seq)
+{
+  SeqTimelineChannel *channel = SEQ_channel_get_by_index(channels, seq->machine);
+  return seq->flag & SEQ_LOCK || SEQ_channel_is_locked(channel);
 }
 
 void SEQ_image_transform_mirror_factor_get(const Sequence *seq, float r_mirror[2])
