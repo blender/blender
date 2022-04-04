@@ -1299,6 +1299,7 @@ static bool delete_point_under_mouse(ViewContext *vc, const wmEvent *event)
 
       if (nu->pntsu == 0) {
         delete_nurb(cu, nu);
+        nu = NULL;
       }
       deleted = true;
       cu->actvert = CU_ACT_NONE;
