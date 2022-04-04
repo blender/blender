@@ -126,10 +126,15 @@ void SEQ_animation_restore_original(Scene *scene, ListBase *list)
 
 void SEQ_animation_duplicate(Scene *scene, Sequence *seq, ListBase *list)
 {
+  if (BLI_listbase_is_empty(list)) {
+    return;
+  }
+
   GSet *fcurves = SEQ_fcurves_by_strip_get(seq, list);
   GSET_FOREACH_BEGIN (FCurve *, fcu, fcurves) {
     FCurve *fcu_cpy = BKE_fcurve_copy(fcu);
     BLI_addtail(&scene->adt->action->curves, fcu_cpy);
   }
   GSET_FOREACH_END();
+  BLI_gset_free(fcurves, NULL);
 }
