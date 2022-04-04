@@ -19,10 +19,12 @@ namespace blender::io::obj {
  * Given an invalid polygon (with holes or duplicated vertex indices),
  * turn it into possibly multiple polygons that are valid.
  *
- * \param vertex_coords Polygon's vertex coordinate list.
- * \param face_vertex_indices A polygon's indices that index into the given vertex coordinate list.
- * \return List of polygons with each element containing indices of one polygon.
- *    The indices are into face_vertex_indices array.
+ * \param vertex_coords: Polygon's vertex coordinate list.
+ * \param face_vertex_indices: A polygon's indices that index into the given vertex coordinate
+ * list.
+ *
+ * \return List of polygons with each element containing indices of one polygon. The indices
+ * are into face_vertex_indices array.
  */
 Vector<Vector<int>> fixup_invalid_polygon(Span<float3> vertex_coords,
                                           Span<int> face_vertex_indices);

@@ -33,6 +33,9 @@ class CurveFromGeometry : NonMovable, NonCopyable {
   Object *create_curve(Main *bmain, const OBJImportParams &import_params);
 
  private:
+  /**
+   * Create a NURBS spline for the Curve converted from Geometry.
+   */
   void create_nurbs(Curve *curve);
 };
 }  // namespace blender::io::obj

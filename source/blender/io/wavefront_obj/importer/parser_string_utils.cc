@@ -17,10 +17,6 @@
 namespace blender::io::obj {
 using std::string;
 
-/**
- * Store multiple lines separated by an escaped newline character: `\\n`.
- * Use this before doing any parse operations on the read string.
- */
 void read_next_line(std::fstream &file, string &r_line)
 {
   std::string new_line;
@@ -36,11 +32,6 @@ void read_next_line(std::fstream &file, string &r_line)
   }
 }
 
-/**
- * Split a line string into the first word (key) and the rest of the line.
- * Also remove leading & trailing spaces as well as `\r` carriage return
- * character if present.
- */
 void split_line_key_rest(const StringRef line, StringRef &r_line_key, StringRef &r_rest_line)
 {
   if (line.is_empty()) {
@@ -83,11 +74,6 @@ void split_line_key_rest(const StringRef line, StringRef &r_line_key, StringRef 
   }
 }
 
-/**
- * Split the given string by the delimiter and fill the given vector.
- * If an intermediate string is empty, or space or null character, it is not appended to the
- * vector.
- */
 void split_by_char(StringRef in_string, const char delimiter, Vector<StringRef> &r_out_list)
 {
   r_out_list.clear();
@@ -114,11 +100,6 @@ void split_by_char(StringRef in_string, const char delimiter, Vector<StringRef> 
   }
 }
 
-/**
- * Convert the given string to float and assign it to the destination value.
- *
- * If the string cannot be converted to a float, the fallback value is used.
- */
 void copy_string_to_float(StringRef src, const float fallback_value, float &r_dst)
 {
   try {
@@ -135,12 +116,6 @@ void copy_string_to_float(StringRef src, const float fallback_value, float &r_ds
   }
 }
 
-/**
- * Convert all members of the Span of strings to floats and assign them to the float
- * array members. Usually used for values like coordinates.
- *
- * If a string cannot be converted to a float, the fallback value is used.
- */
 void copy_string_to_float(Span<StringRef> src,
                           const float fallback_value,
                           MutableSpan<float> r_dst)
@@ -155,11 +130,6 @@ void copy_string_to_float(Span<StringRef> src,
   }
 }
 
-/**
- * Convert the given string to int and assign it to the destination value.
- *
- * If the string cannot be converted to an integer, the fallback value is used.
- */
 void copy_string_to_int(StringRef src, const int fallback_value, int &r_dst)
 {
   try {
@@ -176,11 +146,6 @@ void copy_string_to_int(StringRef src, const int fallback_value, int &r_dst)
   }
 }
 
-/**
- * Convert the given strings to ints and fill the destination int buffer.
- *
- * If a string cannot be converted to an integer, the fallback value is used.
- */
 void copy_string_to_int(Span<StringRef> src, const int fallback_value, MutableSpan<int> r_dst)
 {
   for (int i = 0; i < r_dst.size(); ++i) {

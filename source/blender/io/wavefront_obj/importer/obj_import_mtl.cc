@@ -111,10 +111,6 @@ static bool load_texture_image(Main *bmain, const tex_map_XX &tex_map, bNode *r_
   return false;
 }
 
-/**
- * Initializes a nodetree with a p-BSDF node's BSDF socket connected to shader output node's
- * surface socket.
- */
 ShaderNodetreeWrap::ShaderNodetreeWrap(Main *bmain, const MTLMaterial &mtl_mat, Material *mat)
     : mtl_mat_(mtl_mat)
 {
@@ -141,10 +137,6 @@ ShaderNodetreeWrap::~ShaderNodetreeWrap()
   }
 }
 
-/**
- * Release nodetree for materials to own it. nodetree has its unique deleter
- * if destructor is not reached for some reason.
- */
 bNodeTree *ShaderNodetreeWrap::get_nodetree()
 {
   /* If this function has been reached, we know that nodes and the nodetree
@@ -152,19 +144,11 @@ bNodeTree *ShaderNodetreeWrap::get_nodetree()
   return nodetree_.release();
 }
 
-/**
- * Add a new static node to the tree.
- * No two nodes are linked here.
- */
 bNode *ShaderNodetreeWrap::add_node_to_tree(const int node_type)
 {
   return nodeAddStaticNode(nullptr, nodetree_.get(), node_type);
 }
 
-/**
- * Return x-y coordinates for a node where y is determined by other nodes present in
- * the same vertical column.
- */
 std::pair<float, float> ShaderNodetreeWrap::set_node_locations(const int pos_x)
 {
   int pos_y = 0;
@@ -186,11 +170,6 @@ std::pair<float, float> ShaderNodetreeWrap::set_node_locations(const int pos_x)
   }
 }
 
-/**
- * Link two nodes by the sockets of given IDs.
- * Also releases the ownership of the "from" node for nodetree to free it.
- * \param from_node_pos_x 0 to 4 value as per nodetree arrangement.
- */
 void ShaderNodetreeWrap::link_sockets(bNode *from_node,
                                       StringRef from_node_id,
                                       bNode *to_node,
@@ -205,9 +184,6 @@ void ShaderNodetreeWrap::link_sockets(bNode *from_node,
   nodeAddLink(nodetree_.get(), from_node, from_sock, to_node, to_sock);
 }
 
-/**
- * Set values of sockets in p-BSDF node of the nodetree.
- */
 void ShaderNodetreeWrap::set_bsdf_socket_values()
 {
   const int illum = mtl_mat_.illum;
@@ -331,10 +307,6 @@ void ShaderNodetreeWrap::set_bsdf_socket_values()
   set_property_of_socket(SOCK_FLOAT, "Alpha", {alpha}, bsdf_);
 }
 
-/**
- * Create image texture, vector and normal mapping nodes from MTL materials and link the
- * nodes to p-BSDF node.
- */
 void ShaderNodetreeWrap::add_image_textures(Main *bmain, Material *mat)
 {
   for (const Map<const eMTLSyntaxElement, tex_map_XX>::Item texture_map :

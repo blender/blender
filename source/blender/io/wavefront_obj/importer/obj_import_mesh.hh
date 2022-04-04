@@ -37,11 +37,32 @@ class MeshFromGeometry : NonMovable, NonCopyable {
                       const OBJImportParams &import_params);
 
  private:
+  /**
+   * OBJ files coming from the wild might have faces that are invalid in Blender
+   * (mostly with duplicate vertex indices, used by some software to indicate
+   * polygons with holes). This method tries to fix them up.
+   */
   void fixup_invalid_faces();
   void create_vertices(Mesh *mesh);
+  /**
+   * Create polygons for the Mesh, set smooth shading flag, deform group name,
+   * assigned material also.
+   *
+   * It must receive all polygons to be added to the mesh.
+   * Remove holes from polygons before * calling this.
+   */
   void create_polys_loops(Object *obj, Mesh *mesh);
+  /**
+   * Add explicitly imported OBJ edges to the mesh.
+   */
   void create_edges(Mesh *mesh);
+  /**
+   * Add UV layer and vertices to the Mesh.
+   */
   void create_uv_verts(Mesh *mesh);
+  /**
+   * Add materials and the nodetree to the Mesh Object.
+   */
   void create_materials(Main *bmain,
                         const Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
                         Map<std::string, Material *> &created_materials,

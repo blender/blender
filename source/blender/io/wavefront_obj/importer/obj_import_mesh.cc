@@ -68,11 +68,6 @@ Object *MeshFromGeometry::create_mesh(
   return obj;
 }
 
-/**
- * OBJ files coming from the wild might have faces that are invalid in Blender
- * (mostly with duplicate vertex indices, used by some software to indicate
- * polygons with holes). This method tries to fix them up.
- */
 void MeshFromGeometry::fixup_invalid_faces()
 {
   for (int64_t face_idx = 0; face_idx < mesh_geometry_.face_elements_.size(); ++face_idx) {
@@ -158,13 +153,6 @@ void MeshFromGeometry::create_vertices(Mesh *mesh)
   }
 }
 
-/**
- * Create polygons for the Mesh, set smooth shading flag, deform group name, assigned material
- * also.
- *
- * It must receive all polygons to be added to the mesh. Remove holes from polygons before
- * calling this.
- */
 void MeshFromGeometry::create_polys_loops(Object *obj, Mesh *mesh)
 {
   /* Will not be used if vertex groups are not imported. */
@@ -245,9 +233,6 @@ void MeshFromGeometry::create_polys_loops(Object *obj, Mesh *mesh)
   }
 }
 
-/**
- * Add explicitly imported OBJ edges to the mesh.
- */
 void MeshFromGeometry::create_edges(Mesh *mesh)
 {
   const int64_t tot_edges{mesh_geometry_.edges_.size()};
@@ -268,9 +253,6 @@ void MeshFromGeometry::create_edges(Mesh *mesh)
   BKE_mesh_calc_edges_loose(mesh);
 }
 
-/**
- * Add UV layer and vertices to the Mesh.
- */
 void MeshFromGeometry::create_uv_verts(Mesh *mesh)
 {
   if (global_vertices_.uv_vertices.size() <= 0) {
@@ -329,9 +311,6 @@ static Material *get_or_create_material(
   return mat;
 }
 
-/**
- * Add materials and the nodetree to the Mesh Object.
- */
 void MeshFromGeometry::create_materials(
     Main *bmain,
     const Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
@@ -348,11 +327,10 @@ void MeshFromGeometry::create_materials(
   }
 }
 
-/**
- * Needs more clarity about what is expected in the viewport if the function works.
- */
 void MeshFromGeometry::create_normals(Mesh *mesh)
 {
+  /* NOTE: Needs more clarity about what is expected in the viewport if the function works. */
+
   /* No normal data: nothing to do. */
   if (global_vertices_.vertex_normals.is_empty() || !mesh_geometry_.has_vertex_normals_) {
     return;

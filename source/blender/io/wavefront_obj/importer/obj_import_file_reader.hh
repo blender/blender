@@ -22,10 +22,20 @@ class OBJParser {
   Vector<std::string> mtl_libraries_;
 
  public:
+  /**
+   * Open OBJ file at the path given in import parameters.
+   */
   OBJParser(const OBJImportParams &import_params);
 
+  /**
+   * Read the OBJ file line by line and create OBJ Geometry instances. Also store all the vertex
+   * and UV vertex coordinates in a struct accessible by all objects.
+   */
   void parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
              GlobalVertices &r_global_vertices);
+  /**
+   * Return a list of all material library filepaths referenced by the OBJ file.
+   */
   Span<std::string> mtl_libraries() const;
 };
 
@@ -144,8 +154,14 @@ class MTLParser {
   blender::fstream mtl_file_;
 
  public:
+  /**
+   * Open material library file.
+   */
   MTLParser(StringRef mtl_library_, StringRefNull obj_filepath);
 
+  /**
+   * Read MTL file(s) and add MTLMaterial instances to the given Map reference.
+   */
   void parse_and_store(Map<std::string, std::unique_ptr<MTLMaterial>> &r_mtl_materials);
 };
 }  // namespace blender::io::obj

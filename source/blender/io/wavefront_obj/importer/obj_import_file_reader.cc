@@ -318,9 +318,6 @@ static void geom_update_smooth_group(const StringRef rest_line, bool &r_state_sh
   }
 }
 
-/**
- * Open OBJ file at the path given in import parameters.
- */
 OBJParser::OBJParser(const OBJImportParams &import_params) : import_params_(import_params)
 {
   obj_file_.open(import_params_.filepath);
@@ -330,10 +327,6 @@ OBJParser::OBJParser(const OBJImportParams &import_params) : import_params_(impo
   }
 }
 
-/**
- * Read the OBJ file line by line and create OBJ Geometry instances. Also store all the vertex
- * and UV vertex coordinates in a struct accessible by all objects.
- */
 void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
                       GlobalVertices &r_global_vertices)
 {
@@ -499,17 +492,11 @@ static string fix_bad_map_keys(StringRef map_key)
   return new_map_key;
 }
 
-/**
- * Return a list of all material library filepaths referenced by the OBJ file.
- */
 Span<std::string> OBJParser::mtl_libraries() const
 {
   return mtl_libraries_;
 }
 
-/**
- * Open material library file.
- */
 MTLParser::MTLParser(StringRef mtl_library, StringRefNull obj_filepath)
 {
   char obj_file_dir[FILE_MAXDIR];
@@ -523,9 +510,6 @@ MTLParser::MTLParser(StringRef mtl_library, StringRefNull obj_filepath)
   }
 }
 
-/**
- * Read MTL file(s) and add MTLMaterial instances to the given Map reference.
- */
 void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_mtl_materials)
 {
   if (!mtl_file_.good()) {

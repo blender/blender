@@ -45,9 +45,6 @@ Object *CurveFromGeometry::create_curve(Main *bmain, const OBJImportParams &impo
   return obj;
 }
 
-/**
- * Create a NURBS spline for the Curve converted from Geometry.
- */
 void CurveFromGeometry::create_nurbs(Curve *curve)
 {
   const NurbsElement &nurbs_geometry = curve_geometry_.nurbs_element_;

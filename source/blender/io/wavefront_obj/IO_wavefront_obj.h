@@ -86,8 +86,14 @@ struct OBJImportParams {
   eTransformAxisUp up_axis;
 };
 
+/**
+ * Time the full import process.
+ */
 void OBJ_import(bContext *C, const struct OBJImportParams *import_params);
 
+/**
+ * C-interface for the exporter.
+ */
 void OBJ_export(bContext *C, const struct OBJExportParams *export_params);
 
 #ifdef __cplusplus
