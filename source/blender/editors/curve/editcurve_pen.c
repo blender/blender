@@ -1288,7 +1288,7 @@ static bool delete_point_under_mouse(ViewContext *vc, const wmEvent *event)
         BezTriple *prev_bezt = BKE_nurb_bezt_get_prev(nu, bezt);
         if (next_bezt && prev_bezt) {
           const int bez_index = BKE_curve_nurb_vert_index_get(nu, bezt);
-          const int span_step[2] = {bez_index, bez_index};
+          const uint span_step[2] = {bez_index, bez_index};
           ed_dissolve_bez_segment(prev_bezt, next_bezt, nu, cu, 1, span_step);
         }
         delete_bezt_from_nurb(bezt, nu, editnurb);

@@ -138,8 +138,8 @@ void ed_dissolve_bez_segment(BezTriple *bezt_prev,
                              BezTriple *bezt_next,
                              const Nurb *nu,
                              const Curve *cu,
-                             const int span_len,
-                             const int span_step[2]);
+                             const uint span_len,
+                             const uint span_step[2]);
 
 /* helper functions */
 void ed_editnurb_translate_flag(struct ListBase *editnurb,

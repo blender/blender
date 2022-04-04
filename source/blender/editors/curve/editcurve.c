@@ -6512,8 +6512,8 @@ void ed_dissolve_bez_segment(BezTriple *bezt_prev,
                              BezTriple *bezt_next,
                              const Nurb *nu,
                              const Curve *cu,
-                             const int span_len,
-                             const int span_step[2])
+                             const uint span_len,
+                             const uint span_step[2])
 {
   int i_span_edge_len = span_len + 1;
   const int dims = 3;
@@ -6593,8 +6593,8 @@ static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
 
     LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       if ((nu->type == CU_BEZIER) && (nu->pntsu > 2)) {
-        int span_step[2] = {nu->pntsu, nu->pntsu};
-        int span_len;
+        uint span_step[2] = {nu->pntsu, nu->pntsu};
+        uint span_len;
 
         while (BLI_array_iter_span(nu->bezt,
                                    nu->pntsu,
