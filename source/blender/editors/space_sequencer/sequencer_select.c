@@ -1700,7 +1700,9 @@ static int sequencer_box_select_invoke(bContext *C, wmOperator *op, const wmEven
 
   if (tweak) {
     int hand_dummy;
-    Sequence *seq = find_nearest_seq(scene, v2d, &hand_dummy, event->mval);
+    int mval[2];
+    WM_event_drag_start_mval(event, region, mval);
+    Sequence *seq = find_nearest_seq(scene, v2d, &hand_dummy, mval);
     if (seq != NULL) {
       return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
     }
