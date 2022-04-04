@@ -103,6 +103,7 @@ void draw_seq_strip_thumbnail(struct View2D *v2d,
                               float pixely);
 
 /* sequencer_draw_channels.c */
+
 void draw_channels(const struct bContext *C, struct ARegion *region);
 void channel_draw_context_init(const struct bContext *C,
                                struct ARegion *region,
@@ -271,6 +272,7 @@ void SEQUENCER_OT_view_selected(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_ghost_border(struct wmOperatorType *ot);
 
 /* sequencer_channels_edit.c */
+
 void SEQUENCER_OT_rename_channel(struct wmOperatorType *ot);
 
 /* sequencer_preview.c */
