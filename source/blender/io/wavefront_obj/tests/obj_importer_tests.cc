@@ -338,8 +338,8 @@ TEST_F(obj_importer_test, import_invalid_syntax)
        3,
        float3(1, 2, 3),
        float3(10, 11, 12),
-       float3(0.4082f, -0.8165f, 0.4082f),
-       float2(0, 0)},
+       float3(0, 1, 0),
+       float2(0.5f, 0.25f)},
   };
   import_and_check("invalid_syntax.obj", expect, std::size(expect), 0);
 }

@@ -184,6 +184,10 @@ static void geom_add_polygon(Geometry *geom,
         }
       }
     }
+    else {
+      fprintf(stderr, "Invalid face syntax '%s', ignoring\n", std::string(str_corner).c_str());
+      face_valid = false;
+    }
     /* Always keep stored indices non-negative and zero-based. */
     corner.vert_index += corner.vert_index < 0 ? global_vertices.vertices.size() :
                                                  -offsets.get_index_offset() - 1;
@@ -191,7 +195,7 @@ static void geom_add_polygon(Geometry *geom,
       fprintf(stderr,
               "Invalid vertex index %i (valid range [0, %zi)), ignoring face\n",
               corner.vert_index,
-              global_vertices.vertices.size());
+              (size_t)global_vertices.vertices.size());
       face_valid = false;
     }
     if (got_uv) {
@@ -200,7 +204,7 @@ static void geom_add_polygon(Geometry *geom,
         fprintf(stderr,
                 "Invalid UV index %i (valid range [0, %zi)), ignoring face\n",
                 corner.uv_vert_index,
-                global_vertices.uv_vertices.size());
+                (size_t)global_vertices.uv_vertices.size());
         face_valid = false;
       }
     }
@@ -213,7 +217,7 @@ static void geom_add_polygon(Geometry *geom,
         fprintf(stderr,
                 "Invalid normal index %i (valid range [0, %zi)), ignoring face\n",
                 corner.vertex_normal_index,
-                global_vertices.vertex_normals.size());
+                (size_t)global_vertices.vertex_normals.size());
         face_valid = false;
       }
     }
