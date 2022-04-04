@@ -456,32 +456,35 @@ bool WM_keymap_poll(bContext *C, wmKeyMap *keymap)
   return true;
 }
 
-static void keymap_event_set(
-    wmKeyMapItem *kmi, short type, short val, int modifier, short keymodifier, int direction)
+static void keymap_event_set(wmKeyMapItem *kmi, const KeyMapItem_Params *params)
 {
-  kmi->type = type;
-  kmi->val = val;
-  kmi->keymodifier = keymodifier;
-  kmi->direction = direction;
+  kmi->type = params->type;
+  kmi->val = params->value;
+  kmi->keymodifier = params->keymodifier;
+  kmi->direction = params->direction;
 
-  if (modifier == KM_ANY) {
+  if (params->modifier == KM_ANY) {
     kmi->shift = kmi->ctrl = kmi->alt = kmi->oskey = KM_ANY;
   }
   else {
     /* Only one of the flags should be set. */
-    BLI_assert(((modifier & (KM_SHIFT | KM_SHIFT_ANY)) != (KM_SHIFT | KM_SHIFT_ANY)) &&
-               ((modifier & (KM_CTRL | KM_CTRL_ANY)) != (KM_CTRL | KM_CTRL_ANY)) &&
-               ((modifier & (KM_ALT | KM_ALT_ANY)) != (KM_ALT | KM_ALT_ANY)) &&
-               ((modifier & (KM_OSKEY | KM_OSKEY_ANY)) != (KM_OSKEY | KM_OSKEY_ANY)));
+    BLI_assert(((params->modifier & (KM_SHIFT | KM_SHIFT_ANY)) != (KM_SHIFT | KM_SHIFT_ANY)) &&
+               ((params->modifier & (KM_CTRL | KM_CTRL_ANY)) != (KM_CTRL | KM_CTRL_ANY)) &&
+               ((params->modifier & (KM_ALT | KM_ALT_ANY)) != (KM_ALT | KM_ALT_ANY)) &&
+               ((params->modifier & (KM_OSKEY | KM_OSKEY_ANY)) != (KM_OSKEY | KM_OSKEY_ANY)));
 
-    kmi->shift = ((modifier & KM_SHIFT) ? KM_MOD_HELD :
-                                          ((modifier & KM_SHIFT_ANY) ? KM_ANY : KM_NOTHING));
-    kmi->ctrl = ((modifier & KM_CTRL) ? KM_MOD_HELD :
-                                        ((modifier & KM_CTRL_ANY) ? KM_ANY : KM_NOTHING));
-    kmi->alt = ((modifier & KM_ALT) ? KM_MOD_HELD :
-                                      ((modifier & KM_ALT_ANY) ? KM_ANY : KM_NOTHING));
-    kmi->oskey = ((modifier & KM_OSKEY) ? KM_MOD_HELD :
-                                          ((modifier & KM_OSKEY_ANY) ? KM_ANY : KM_NOTHING));
+    kmi->shift = ((params->modifier & KM_SHIFT) ?
+                      KM_MOD_HELD :
+                      ((params->modifier & KM_SHIFT_ANY) ? KM_ANY : KM_NOTHING));
+    kmi->ctrl = ((params->modifier & KM_CTRL) ?
+                     KM_MOD_HELD :
+                     ((params->modifier & KM_CTRL_ANY) ? KM_ANY : KM_NOTHING));
+    kmi->alt = ((params->modifier & KM_ALT) ?
+                    KM_MOD_HELD :
+                    ((params->modifier & KM_ALT_ANY) ? KM_ANY : KM_NOTHING));
+    kmi->oskey = ((params->modifier & KM_OSKEY) ?
+                      KM_MOD_HELD :
+                      ((params->modifier & KM_OSKEY_ANY) ? KM_ANY : KM_NOTHING));
   }
 }
 
@@ -498,18 +501,14 @@ static void keymap_item_set_id(wmKeyMap *keymap, wmKeyMapItem *kmi)
 
 wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap,
                                  const char *idname,
-                                 int type,
-                                 int val,
-                                 int modifier,
-                                 int keymodifier,
-                                 int direction)
+                                 const KeyMapItem_Params *params)
 {
   wmKeyMapItem *kmi = MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
 
   BLI_addtail(&keymap->items, kmi);
   BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
 
-  keymap_event_set(kmi, type, val, modifier, keymodifier, direction);
+  keymap_event_set(kmi, params);
   wm_keymap_item_properties_set(kmi);
 
   keymap_item_set_id(keymap, kmi);
@@ -922,15 +921,14 @@ wmKeyMap *WM_modalkeymap_find(wmKeyConfig *keyconf, const char *idname)
   return NULL;
 }
 
-wmKeyMapItem *WM_modalkeymap_add_item(
-    wmKeyMap *km, int type, int val, int modifier, int keymodifier, int direction, int value)
+wmKeyMapItem *WM_modalkeymap_add_item(wmKeyMap *km, const KeyMapItem_Params *params, int value)
 {
   wmKeyMapItem *kmi = MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
 
   BLI_addtail(&km->items, kmi);
   kmi->propvalue = value;
 
-  keymap_event_set(kmi, type, val, modifier, keymodifier, direction);
+  keymap_event_set(kmi, params);
 
   keymap_item_set_id(km, kmi);
 
@@ -940,11 +938,7 @@ wmKeyMapItem *WM_modalkeymap_add_item(
 }
 
 wmKeyMapItem *WM_modalkeymap_add_item_str(wmKeyMap *km,
-                                          int type,
-                                          int val,
-                                          int modifier,
-                                          int keymodifier,
-                                          int direction,
+                                          const KeyMapItem_Params *params,
                                           const char *value)
 {
   wmKeyMapItem *kmi = MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
@@ -952,7 +946,7 @@ wmKeyMapItem *WM_modalkeymap_add_item_str(wmKeyMap *km,
   BLI_addtail(&km->items, kmi);
   BLI_strncpy(kmi->propvalue_str, value, sizeof(kmi->propvalue_str));
 
-  keymap_event_set(kmi, type, val, modifier, keymodifier, direction);
+  keymap_event_set(kmi, params);
 
   keymap_item_set_id(km, kmi);
 

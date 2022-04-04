@@ -276,7 +276,15 @@ static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km,
   WM_operator_bl_idname(idname_bl, idname);
 
   /* create keymap item */
-  kmi = WM_keymap_add_item(km, idname_bl, type, value, modifier, keymodifier, direction);
+  kmi = WM_keymap_add_item(km,
+                           idname_bl,
+                           &(const KeyMapItem_Params){
+                               .type = type,
+                               .value = value,
+                               .modifier = modifier,
+                               .keymodifier = keymodifier,
+                               .direction = direction,
+                           });
 
   if (!repeat) {
     kmi->flag |= KMI_REPEAT_IGNORE;
@@ -338,16 +346,23 @@ static wmKeyMapItem *rna_KeyMap_item_new_modal(wmKeyMap *km,
   const int modifier = keymap_item_modifier_flag_from_args(any, shift, ctrl, alt, oskey);
   int propvalue = 0;
 
+  KeyMapItem_Params params = {
+      .type = type,
+      .value = value,
+      .modifier = modifier,
+      .keymodifier = keymodifier,
+      .direction = direction,
+  };
+
   /* not initialized yet, do delayed lookup */
   if (!km->modal_items) {
-    kmi = WM_modalkeymap_add_item_str(
-        km, type, value, modifier, keymodifier, direction, propvalue_str);
+    kmi = WM_modalkeymap_add_item_str(km, &params, propvalue_str);
   }
   else {
     if (RNA_enum_value_from_id(km->modal_items, propvalue_str, &propvalue) == 0) {
       BKE_report(reports, RPT_WARNING, "Property value not in enumeration");
     }
-    kmi = WM_modalkeymap_add_item(km, type, value, modifier, keymodifier, direction, propvalue);
+    kmi = WM_modalkeymap_add_item(km, &params, propvalue);
   }
 
   if (!repeat) {
