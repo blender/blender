@@ -80,7 +80,7 @@ typedef struct CustomData {
   CustomDataExternal *external;
 } CustomData;
 
-/* CustomData.type */
+/** #CustomData.type */
 typedef enum CustomDataType {
   /* Used by GLSL attributes in the cases when we need a delayed CD type
    * assignment (in the cases when we don't know in advance which layer
@@ -235,7 +235,7 @@ typedef struct CustomData_MeshMasks {
   uint64_t lmask;
 } CustomData_MeshMasks;
 
-/* CustomData.flag */
+/** #CustomData.flag */
 enum {
   /* Indicates layer should not be copied by CustomData_from_template or CustomData_copy_data */
   CD_FLAG_NOCOPY = (1 << 0),

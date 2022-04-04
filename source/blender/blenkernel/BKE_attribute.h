@@ -21,7 +21,7 @@ struct CustomDataLayer;
 struct ID;
 struct ReportList;
 
-/* Attribute.domain */
+/** #Attribute.domain */
 typedef enum AttributeDomain {
   ATTR_DOMAIN_AUTO = -1,    /* Use for nodes to choose automatically based on other data. */
   ATTR_DOMAIN_POINT = 0,    /* Mesh, Curve or Point Cloud Point */

@@ -38,7 +38,7 @@ extern "C" {
 
 /* External Engine */
 
-/* RenderEngineType.flag */
+/** #RenderEngineType.flag */
 #define RE_INTERNAL 1
 /* #define RE_FLAG_DEPRECATED   2 */
 #define RE_USE_PREVIEW 4
@@ -53,7 +53,7 @@ extern "C" {
 #define RE_USE_NO_IMAGE_SAVE 2048
 #define RE_USE_ALEMBIC_PROCEDURAL 4096
 
-/* RenderEngine.flag */
+/** #RenderEngine.flag */
 #define RE_ENGINE_ANIMATION 1
 #define RE_ENGINE_PREVIEW 2
 #define RE_ENGINE_DO_DRAW 4

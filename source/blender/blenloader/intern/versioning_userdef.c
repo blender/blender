@@ -354,7 +354,7 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
 #undef USER_VERSION_ATLEAST
 }
 
-/* UserDef.flag */
+/** #UserDef.flag */
 #define USER_LMOUSESELECT (1 << 14) /* deprecated */
 
 static void do_version_select_mouse(UserDef *userdef, wmKeyMapItem *kmi)

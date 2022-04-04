@@ -43,7 +43,7 @@ typedef struct NumInput {
   int str_cur;
 } NumInput;
 
-/* NumInput.flag */
+/** #NumInput.flag */
 enum {
   NUM_AFFECT_ALL = (1 << 0),
   /* (1 << 9) and above are reserved for internal flags! */

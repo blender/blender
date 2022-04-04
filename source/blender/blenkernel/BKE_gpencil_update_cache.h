@@ -20,7 +20,7 @@ struct bGPDlayer;
 struct bGPDstroke;
 struct bGPdata;
 
-/* GPencilUpdateCache.flag */
+/** #GPencilUpdateCache.flag */
 typedef enum eGPUpdateCacheNodeFlag {
   /* Node is a placeholder (e.g. when only an index is needed). */
   GP_UPDATE_NODE_NO_COPY = 0,

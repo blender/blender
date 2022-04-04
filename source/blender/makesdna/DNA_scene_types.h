@@ -2447,11 +2447,11 @@ typedef enum eGPencil_Guide_Reference {
 /* UnitSettings */
 
 #define USER_UNIT_ADAPTIVE 0xFF
-/* UnitSettings.system */
+/** #UnitSettings.system */
 #define USER_UNIT_NONE 0
 #define USER_UNIT_METRIC 1
 #define USER_UNIT_IMPERIAL 2
-/* UnitSettings.flag */
+/** #UnitSettings.flag */
 #define USER_UNIT_OPT_SPLIT 1
 #define USER_UNIT_ROT_RADIANS 2
 

@@ -277,7 +277,7 @@ typedef enum eBrushSnakeHookDeformType {
   BRUSH_SNAKE_HOOK_DEFORM_ELASTIC = 1,
 } eBrushSnakeHookDeformType;
 
-/* Gpencilsettings.Vertex_mode */
+/** #Gpencilsettings.Vertex_mode */
 typedef enum eGp_Vertex_Mode {
   /* Affect to Stroke only. */
   GPPAINT_MODE_STROKE = 0,
@@ -327,7 +327,7 @@ typedef enum ePaintBrush_flag {
   BRUSH_PAINT_DENSITY_PRESSURE_INVERT = (1 << 9),
 } ePaintBrush_flag;
 
-/* Brush.gradient_source */
+/** #Brush.gradient_source */
 typedef enum eBrushGradientSourceStroke {
   BRUSH_GRADIENT_PRESSURE = 0,       /* gradient from pressure */
   BRUSH_GRADIENT_SPACING_REPEAT = 1, /* gradient from spacing */
@@ -339,7 +339,7 @@ typedef enum eBrushGradientSourceFill {
   BRUSH_GRADIENT_RADIAL = 1, /* gradient from spacing */
 } eBrushGradientSourceFill;
 
-/* Brush.flag */
+/** #Brush.flag */
 typedef enum eBrushFlags {
   BRUSH_AIRBRUSH = (1 << 0),
   BRUSH_INVERT_TO_SCRAPE_FILL = (1 << 1),
@@ -375,12 +375,12 @@ typedef enum eBrushFlags {
   BRUSH_CURVE = (1u << 31),
 } eBrushFlags;
 
-/* Brush.sampling_flag */
+/** #Brush.sampling_flag */
 typedef enum eBrushSamplingFlags {
   BRUSH_PAINT_ANTIALIASING = (1 << 0),
 } eBrushSamplingFlags;
 
-/* Brush.flag2 */
+/** #Brush.flag2 */
 typedef enum eBrushFlags2 {
   BRUSH_MULTIPLANE_SCRAPE_DYNAMIC = (1 << 0),
   BRUSH_MULTIPLANE_SCRAPE_PLANES_PREVIEW = (1 << 1),
@@ -398,7 +398,7 @@ typedef enum {
   BRUSH_MASK_PRESSURE_CUTOFF = (1 << 2),
 } BrushMaskPressureFlags;
 
-/* Brush.overlay_flags */
+/** #Brush.overlay_flags */
 typedef enum eOverlayFlags {
   BRUSH_OVERLAY_CURSOR = (1),
   BRUSH_OVERLAY_PRIMARY = (1 << 1),
@@ -412,7 +412,7 @@ typedef enum eOverlayFlags {
   (BRUSH_OVERLAY_CURSOR_OVERRIDE_ON_STROKE | BRUSH_OVERLAY_PRIMARY_OVERRIDE_ON_STROKE | \
    BRUSH_OVERLAY_SECONDARY_OVERRIDE_ON_STROKE)
 
-/* Brush.sculpt_tool */
+/** #Brush.sculpt_tool */
 typedef enum eBrushSculptTool {
   SCULPT_TOOL_DRAW = 1,
   SCULPT_TOOL_SMOOTH = 2,
@@ -448,7 +448,7 @@ typedef enum eBrushSculptTool {
   SCULPT_TOOL_DISPLACEMENT_SMEAR = 32,
 } eBrushSculptTool;
 
-/* Brush.uv_sculpt_tool */
+/** #Brush.uv_sculpt_tool */
 typedef enum eBrushUVSculptTool {
   UV_SCULPT_TOOL_GRAB = 0,
   UV_SCULPT_TOOL_RELAX = 1,
@@ -602,7 +602,7 @@ typedef enum eBlurKernelType {
   KERNEL_BOX = 1,
 } eBlurKernelType;
 
-/* Brush.falloff_shape */
+/** #Brush.falloff_shape */
 typedef enum eBrushFalloffShape {
   PAINT_FALLOFF_SHAPE_SPHERE = 0,
   PAINT_FALLOFF_SHAPE_TUBE = 1,
