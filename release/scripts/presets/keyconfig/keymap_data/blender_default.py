@@ -457,7 +457,36 @@ def _template_items_change_frame(params):
 
 # Tool System Templates
 
-def _template_items_tool_select(params, operator, cursor_operator, *, cursor_prioritize=False, fallback=False):
+def _template_items_tool_select(
+        params, operator, cursor_operator, *,
+        # Always use the cursor operator where possible,
+        # needed for time-line views where we always want to be able to scrub time.
+        cursor_prioritize=False,
+        fallback=False,
+):
+    if not params.legacy and not fallback:
+        # Experimental support for LMB interaction for the tweak tool. see: T96544.
+        # NOTE: For RMB-select this is a much bigger change as it disables 3D cursor placement on LMB.
+        # For LMB-select this means an LMB -drag will not first de-select all (similar to node/graph editor).
+        select_passthrough = False
+        if params.select_mouse == 'LEFTMOUSE':
+            select_passthrough = params.use_tweak_select_passthrough
+        else:
+            if not cursor_prioritize:
+                select_passthrough = params.use_tweak_tool_lmb_interaction
+
+        if select_passthrough:
+            return [
+                (operator, {"type": 'LEFTMOUSE', "value": 'PRESS'},
+                 {"properties": [("deselect_all", True), ("select_passthrough", True)]}),
+                (operator, {"type": 'LEFTMOUSE', "value": 'CLICK'},
+                 {"properties": [("deselect_all", True)]}),
+                (operator, {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
+                 {"properties": [("deselect_all", False), ("toggle", True)]}),
+                ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
+                 {"properties": [("release_confirm", True)]}),
+            ]
+
     if params.select_mouse == 'LEFTMOUSE':
         # By default use 'PRESS' for immediate select without quick delay.
         # Fallback key-maps 'CLICK' since 'PRESS' events passes through (allowing either click or drag).
@@ -479,19 +508,6 @@ def _template_items_tool_select(params, operator, cursor_operator, *, cursor_pri
             ))
         ]
     else:
-        # Experimental support for LMB interaction for the tweak tool.
-        if params.use_tweak_tool_lmb_interaction and (not cursor_prioritize) and (not fallback):
-            return [
-                (operator, {"type": 'LEFTMOUSE', "value": 'PRESS'},
-                 {"properties": [("deselect_all", True), ("select_passthrough", True)]}),
-                (operator, {"type": 'LEFTMOUSE', "value": 'CLICK'},
-                 {"properties": [("deselect_all", True)]}),
-                (operator, {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
-                 {"properties": [("deselect_all", False), ("toggle", True)]}),
-                ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
-                 {"properties": [("release_confirm", True)]}),
-            ]
-
         # For right mouse, set the cursor.
         return [
             (cursor_operator, {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
