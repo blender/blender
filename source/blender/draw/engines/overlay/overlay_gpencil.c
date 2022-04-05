@@ -174,7 +174,7 @@ void OVERLAY_edit_gpencil_cache_init(OVERLAY_Data *vedata)
         bGPDcontrolpoint *cp = &gpd->runtime.cp_points[i];
         grp = DRW_shgroup_create_sub(grp);
         DRW_shgroup_uniform_vec3_copy(grp, "pPosition", &cp->x);
-        DRW_shgroup_uniform_float_copy(grp, "pSize", cp->size * 0.8f * G_draw.block.sizePixel);
+        DRW_shgroup_uniform_float_copy(grp, "pSize", cp->size * 0.8f * G_draw.block.size_pixel);
         DRW_shgroup_uniform_vec4_copy(grp, "pColor", cp->color);
         DRW_shgroup_call_procedural_points(grp, NULL, 1);
       }
@@ -196,7 +196,7 @@ void OVERLAY_edit_gpencil_cache_init(OVERLAY_Data *vedata)
         DRW_shgroup_uniform_vec3_copy(grp, "pPosition", scene->cursor.location);
       }
       DRW_shgroup_uniform_vec4_copy(grp, "pColor", color);
-      DRW_shgroup_uniform_float_copy(grp, "pSize", 8.0f * G_draw.block.sizePixel);
+      DRW_shgroup_uniform_float_copy(grp, "pSize", 8.0f * G_draw.block.size_pixel);
       DRW_shgroup_call_procedural_points(grp, NULL, 1);
     }
   }

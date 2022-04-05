@@ -63,7 +63,7 @@ void OVERLAY_antialiasing_init(OVERLAY_Data *vedata)
     return;
   }
 
-  bool need_wire_expansion = (G_draw.block.sizePixel > 1.0f);
+  bool need_wire_expansion = (G_draw.block.size_pixel > 1.0f);
   pd->antialiasing.enabled = need_wire_expansion ||
                              ((U.gpu_flag & USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE) != 0);
 
