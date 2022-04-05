@@ -606,6 +606,11 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
   SeqCollection *transformed_strips = seq_transform_collection_from_transdata(tc);
   SEQ_collection_expand(seqbase_active_get(t), transformed_strips, SEQ_query_strip_effect_chain);
 
+  Sequence *seq;
+  SEQ_ITERATOR_FOREACH (seq, transformed_strips) {
+    seq->flag &= ~SEQ_IGNORE_CHANNEL_LOCK;
+  }
+
   if (t->state == TRANS_CANCEL) {
     seq_transform_cancel(t, transformed_strips);
     SEQ_collection_free(transformed_strips);

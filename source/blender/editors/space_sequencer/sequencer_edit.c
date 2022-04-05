@@ -1687,6 +1687,7 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
       SEQ_select_active_set(scene, seq);
     }
     seq->flag &= ~(SEQ_LEFTSEL + SEQ_RIGHTSEL + SEQ_LOCK);
+    seq->flag |= SEQ_IGNORE_CHANNEL_LOCK;
     SEQ_animation_duplicate(scene, seq, &fcurves_original_backup);
     SEQ_ensure_unique_name(seq, scene);
   }

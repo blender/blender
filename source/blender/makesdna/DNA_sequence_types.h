@@ -562,7 +562,7 @@ enum {
   SEQ_MAKE_FLOAT = (1 << 13),
   SEQ_LOCK = (1 << 14),
   SEQ_USE_PROXY = (1 << 15),
-  SEQ_FLAG_UNUSED_23 = (1 << 16), /* cleared */
+  SEQ_IGNORE_CHANNEL_LOCK = (1 << 16),
   SEQ_FLAG_UNUSED_22 = (1 << 17), /* cleared */
   SEQ_FLAG_UNUSED_18 = (1 << 18), /* cleared */
   SEQ_FLAG_UNUSED_19 = (1 << 19), /* cleared */
