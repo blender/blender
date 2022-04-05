@@ -3564,6 +3564,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const bool linked = RNA_boolean_get(op->ptr, "linked");
   const eDupli_ID_Flags dupflag = (linked) ? (eDupli_ID_Flags)0 : (eDupli_ID_Flags)U.dupflag;
+  bool changed = false;
 
   /* We need to handle that here ourselves, because we may duplicate several objects, in which case
    * we also want to remap pointers between those... */
@@ -3582,6 +3583,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
      * the list is made in advance */
     ED_object_base_select(base, BA_DESELECT);
     ED_object_base_select(basen, BA_SELECT);
+    changed = true;
 
     if (basen == nullptr) {
       continue;
@@ -3597,6 +3599,10 @@ static int duplicate_exec(bContext *C, wmOperator *op)
     }
   }
   CTX_DATA_END;
+
+  if (!changed) {
+    return OPERATOR_CANCELLED;
+  }
 
   /* Note that this will also clear newid pointers and tags. */
   copy_object_set_idnew(C);

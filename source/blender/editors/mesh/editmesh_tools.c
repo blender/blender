@@ -2014,6 +2014,7 @@ static int edbm_duplicate_exec(bContext *C, wmOperator *op)
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       view_layer, CTX_wm_view3d(C), &objects_len);
+  bool changed = false;
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
@@ -2024,6 +2025,7 @@ static int edbm_duplicate_exec(bContext *C, wmOperator *op)
 
     BMOperator bmop;
     BMesh *bm = em->bm;
+    changed = true;
 
     EDBM_op_init(em,
                  &bmop,
@@ -2058,16 +2060,16 @@ static int edbm_duplicate_exec(bContext *C, wmOperator *op)
   }
   MEM_freeN(objects);
 
-  return OPERATOR_FINISHED;
+  return (changed) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 static int edbm_duplicate_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   WM_cursor_wait(true);
-  edbm_duplicate_exec(C, op);
+  const int retval = edbm_duplicate_exec(C, op);
   WM_cursor_wait(false);
 
-  return OPERATOR_FINISHED;
+  return retval;
 }
 
 void MESH_OT_duplicate(wmOperatorType *ot)
