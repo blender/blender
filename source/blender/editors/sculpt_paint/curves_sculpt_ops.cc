@@ -796,7 +796,7 @@ static int curves_sculptmode_toggle_exec(bContext *C, wmOperator *op)
 
   WM_toolsystem_update_from_context_view3d(C);
   WM_event_add_notifier(C, NC_SCENE | ND_MODE, nullptr);
-  return OPERATOR_CANCELLED;
+  return OPERATOR_FINISHED;
 }
 
 static void CURVES_OT_sculptmode_toggle(wmOperatorType *ot)
