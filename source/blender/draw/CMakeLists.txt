@@ -448,8 +448,6 @@ set(GLSL_SRC
   engines/overlay/shaders/edit_lattice_point_vert.glsl
   engines/overlay/shaders/edit_lattice_wire_vert.glsl
   engines/overlay/shaders/edit_mesh_common_lib.glsl
-  engines/overlay/shaders/edit_mesh_facefill_frag.glsl
-  engines/overlay/shaders/edit_mesh_facefill_vert.glsl
   engines/overlay/shaders/edit_mesh_frag.glsl
   engines/overlay/shaders/edit_mesh_geom.glsl
   engines/overlay/shaders/edit_mesh_normal_vert.glsl
