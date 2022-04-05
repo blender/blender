@@ -135,7 +135,7 @@ class OUTLINER_MT_context_menu_view(Menu):
 class OUTLINER_MT_view_pie(Menu):
     bl_label = "View"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         pie = layout.menu_pie()
@@ -314,7 +314,7 @@ class OUTLINER_MT_object(Menu):
 class OUTLINER_MT_asset(Menu):
     bl_label = "Assets"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("asset.mark")

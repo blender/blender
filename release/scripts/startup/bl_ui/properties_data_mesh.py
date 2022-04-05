@@ -69,7 +69,7 @@ class MESH_MT_shape_key_context_menu(Menu):
 class MESH_MT_attribute_context_menu(Menu):
     bl_label = "Attribute Specials"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("geometry.attribute_convert")
@@ -581,15 +581,16 @@ class MESH_UL_color_attributes(UIList):
         'CORNER': "Face Corner",
     }
 
-    def filter_items(self, context, data, property):
+    def filter_items(self, _context, data, property):
         attrs = getattr(data, property)
         ret = []
         idxs = []
 
         for idx, item in enumerate(attrs):
-            skip = item.domain not in {"POINT", "CORNER"}
-            skip = skip or item.data_type not in {"FLOAT_COLOR", "BYTE_COLOR"}
-
+            skip = (
+                (item.domain not in {"POINT", "CORNER"}) or
+                (item.data_type not in {"FLOAT_COLOR", "BYTE_COLOR"})
+            )
             ret.append(self.bitflag_filter_item if not skip else 0)
             idxs.append(idx)
 
@@ -606,9 +607,11 @@ class MESH_UL_color_attributes(UIList):
 
         active_render = _index == data.color_attributes.render_color_index
 
-        props = split.operator("geometry.color_attribute_render_set", text="", icon = 'RESTRICT_RENDER_OFF'if \
-                                active_render else 'RESTRICT_RENDER_ON'
-                               )
+        props = split.operator(
+            "geometry.color_attribute_render_set",
+            text="",
+            icon='RESTRICT_RENDER_OFF' if active_render else 'RESTRICT_RENDER_ON',
+        )
 
         props.name = attribute.name
 
@@ -643,7 +646,7 @@ class DATA_PT_vertex_colors(DATA_PT_mesh_attributes, Panel):
         col = row.column(align=True)
         col.operator("geometry.color_attribute_add", icon='ADD', text="")
         col.operator("geometry.color_attribute_remove", icon='REMOVE', text="")
-        
+
         self.draw_attribute_warnings(context, layout)
 
 classes = (

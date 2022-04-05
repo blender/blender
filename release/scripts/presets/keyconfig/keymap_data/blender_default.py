@@ -3041,7 +3041,7 @@ def km_sequencer_channels(params):
         # Rename.
         ("sequencer.rename_channel", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True}, None),
         ("sequencer.rename_channel", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'}, None),
-        ])
+    ])
     return keymap
 
 
