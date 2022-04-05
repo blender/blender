@@ -660,6 +660,10 @@ static void curves_sculptmode_enter(bContext *C)
   ob->mode = OB_MODE_SCULPT_CURVES;
 
   paint_cursor_start(&curves_sculpt->paint, CURVES_SCULPT_mode_poll_view3d);
+
+  /* Update for mode change. */
+  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+  WM_event_add_notifier(C, NC_SCENE | ND_MODE, nullptr);
 }
 
 static void curves_sculptmode_exit(bContext *C)
