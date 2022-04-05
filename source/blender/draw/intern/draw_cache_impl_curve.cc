@@ -19,9 +19,9 @@
 #include "DNA_curve_types.h"
 
 #include "BKE_curve.h"
+#include "BKE_curves.hh"
 #include "BKE_displist.h"
 #include "BKE_geometry_set.hh"
-#include "BKE_spline.hh"
 #include "BKE_vfont.h"
 
 #include "GPU_batch.h"
@@ -96,18 +96,19 @@ static void curve_render_overlay_verts_edges_len_get(ListBase *lb,
   }
 }
 
-static void curve_eval_render_wire_verts_edges_len_get(const CurveEval &curve_eval,
+static void curve_eval_render_wire_verts_edges_len_get(const blender::bke::CurvesGeometry &curves,
                                                        int *r_curve_len,
                                                        int *r_vert_len,
                                                        int *r_edge_len)
 {
-  Span<SplinePtr> splines = curve_eval.splines();
-  *r_curve_len = splines.size();
-  *r_vert_len = 0;
+  *r_curve_len = curves.curves_num();
+  *r_vert_len = curves.evaluated_points_num();
+
   *r_edge_len = 0;
-  for (const SplinePtr &spline : splines) {
-    *r_vert_len += spline->evaluated_points_size();
-    *r_edge_len += spline->evaluated_edges_size();
+  const blender::VArray<bool> cyclic = curves.cyclic();
+  for (const int i : curves.curves_range()) {
+    const IndexRange points = curves.evaluated_points_for_curve(i);
+    *r_edge_len += blender::bke::curves::curve_segment_size(points.size(), cyclic[i]);
   }
 }
 
@@ -165,7 +166,7 @@ struct CurveRenderData {
   CurveCache *ob_curve_cache;
 
   /* Owned by the evaluated object's geometry set (#geometry_set_eval). */
-  const CurveEval *curve_eval;
+  const Curves *curve_eval;
 
   /* borrow from 'Curve' */
   ListBase *nurbs;
@@ -209,10 +210,11 @@ static CurveRenderData *curve_render_data_create(Curve *cu,
 
   if (types & CU_DATATYPE_WIRE) {
     if (rdata->curve_eval != nullptr) {
-      curve_eval_render_wire_verts_edges_len_get(*rdata->curve_eval,
-                                                 &rdata->wire.curve_len,
-                                                 &rdata->wire.vert_len,
-                                                 &rdata->wire.edge_len);
+      curve_eval_render_wire_verts_edges_len_get(
+          blender::bke::CurvesGeometry::wrap(rdata->curve_eval->geometry),
+          &rdata->wire.curve_len,
+          &rdata->wire.vert_len,
+          &rdata->wire.edge_len);
     }
   }
 
@@ -466,18 +468,10 @@ static void curve_create_curves_pos(CurveRenderData *rdata, GPUVertBuf *vbo_curv
   GPU_vertbuf_init_with_format(vbo_curves_pos, &format);
   GPU_vertbuf_data_alloc(vbo_curves_pos, vert_len);
 
-  const CurveEval &curve_eval = *rdata->curve_eval;
-  Span<SplinePtr> splines = curve_eval.splines();
-  Array<int> offsets = curve_eval.evaluated_point_offsets();
-  BLI_assert(offsets.last() == vert_len);
-
-  for (const int i_spline : splines.index_range()) {
-    Span<float3> positions = splines[i_spline]->evaluated_positions();
-    for (const int i_point : positions.index_range()) {
-      GPU_vertbuf_attr_set(
-          vbo_curves_pos, attr_id.pos, offsets[i_spline] + i_point, positions[i_point]);
-    }
-  }
+  const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
+      rdata->curve_eval->geometry);
+  const Span<float3> positions = curves.evaluated_positions();
+  GPU_vertbuf_attr_fill(vbo_curves_pos, attr_id.pos, positions.data());
 }
 
 static void curve_create_curves_lines(CurveRenderData *rdata, GPUIndexBuf *ibo_curve_lines)
@@ -495,18 +489,16 @@ static void curve_create_curves_lines(CurveRenderData *rdata, GPUIndexBuf *ibo_c
   GPUIndexBufBuilder elb;
   GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, index_len, vert_len);
 
-  const CurveEval &curve_eval = *rdata->curve_eval;
-  Span<SplinePtr> splines = curve_eval.splines();
-  Array<int> offsets = curve_eval.evaluated_point_offsets();
-  BLI_assert(offsets.last() == vert_len);
-
-  for (const int i_spline : splines.index_range()) {
-    const int eval_size = splines[i_spline]->evaluated_points_size();
-    if (splines[i_spline]->is_cyclic() && splines[i_spline]->evaluated_edges_size() > 1) {
-      GPU_indexbuf_add_generic_vert(&elb, offsets[i_spline] + eval_size - 1);
+  const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
+      rdata->curve_eval->geometry);
+  const blender::VArray<bool> cyclic = curves.cyclic();
+  for (const int i : curves.curves_range()) {
+    const IndexRange points = curves.evaluated_points_for_curve(i);
+    if (cyclic[i] && points.size() > 1) {
+      GPU_indexbuf_add_generic_vert(&elb, points.last());
     }
-    for (const int i_point : IndexRange(eval_size)) {
-      GPU_indexbuf_add_generic_vert(&elb, offsets[i_spline] + i_point);
+    for (const int i_point : points) {
+      GPU_indexbuf_add_generic_vert(&elb, i_point);
     }
     GPU_indexbuf_add_primitive_restart(&elb);
   }

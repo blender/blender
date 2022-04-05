@@ -1494,7 +1494,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
        * the CurveEval data type was introduced, when an evaluated object's curve data was just a
        * copy of the original curve and everything else ended up in #CurveCache. */
       CurveComponent &curve_component = geometry.get_component_for_write<CurveComponent>();
-      cow_curve.curve_eval = curves_to_curve_eval(*curve_component.get_for_read()).release();
+      cow_curve.curve_eval = curve_component.get_for_read();
       BKE_object_eval_assign_data(ob, &cow_curve.id, false);
     }
 

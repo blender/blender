@@ -19,7 +19,7 @@ extern "C" {
 #define MAXTEXTBOX 256 /* used in readfile.c and editfont.c */
 
 struct AnimData;
-struct CurveEval;
+struct Curves;
 struct CurveProfile;
 struct EditFont;
 struct GHash;
@@ -291,7 +291,7 @@ typedef struct Curve {
    * since it also contains the result of geometry nodes evaluation, and isn't just a copy of the
    * original object data.
    */
-  struct CurveEval *curve_eval;
+  const struct Curves *curve_eval;
 
   void *batch_cache;
 } Curve;
