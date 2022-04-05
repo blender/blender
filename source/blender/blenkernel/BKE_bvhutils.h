@@ -107,8 +107,7 @@ BVHTree *bvhtree_from_editmesh_verts_ex(BVHTreeFromEditMesh *data,
                                         int verts_num_active,
                                         float epsilon,
                                         int tree_type,
-                                        int axis,
-                                        const bool isolate);
+                                        int axis);
 
 /**
  * Builds a BVH-tree where nodes are the given vertices (NOTE: does not copy given `vert`!).
@@ -124,8 +123,7 @@ BVHTree *bvhtree_from_mesh_verts_ex(struct BVHTreeFromMesh *data,
                                     int verts_num_active,
                                     float epsilon,
                                     int tree_type,
-                                    int axis,
-                                    const bool isolate);
+                                    int axis);
 
 BVHTree *bvhtree_from_editmesh_edges(
     BVHTreeFromEditMesh *data, struct BMEditMesh *em, float epsilon, int tree_type, int axis);
@@ -139,8 +137,7 @@ BVHTree *bvhtree_from_editmesh_edges_ex(BVHTreeFromEditMesh *data,
                                         int edges_num_active,
                                         float epsilon,
                                         int tree_type,
-                                        int axis,
-                                        const bool isolate);
+                                        int axis);
 
 /**
  * Builds a BVH-tree where nodes are the given edges.
@@ -158,8 +155,7 @@ BVHTree *bvhtree_from_mesh_edges_ex(struct BVHTreeFromMesh *data,
                                     int edges_num_active,
                                     float epsilon,
                                     int tree_type,
-                                    int axis,
-                                    const bool isolate);
+                                    int axis);
 
 /**
  * Builds a BVH-tree where nodes are the given tessellated faces
@@ -178,8 +174,7 @@ BVHTree *bvhtree_from_mesh_faces_ex(struct BVHTreeFromMesh *data,
                                     int faces_num_active,
                                     float epsilon,
                                     int tree_type,
-                                    int axis,
-                                    const bool isolate);
+                                    int axis);
 
 BVHTree *bvhtree_from_editmesh_looptri(
     BVHTreeFromEditMesh *data, struct BMEditMesh *em, float epsilon, int tree_type, int axis);
@@ -193,8 +188,7 @@ BVHTree *bvhtree_from_editmesh_looptri_ex(BVHTreeFromEditMesh *data,
                                           int looptri_num_active,
                                           float epsilon,
                                           int tree_type,
-                                          int axis,
-                                          const bool isolate);
+                                          int axis);
 
 /**
  * Builds a BVH-tree where nodes are the looptri faces of the given mesh.
@@ -210,8 +204,7 @@ BVHTree *bvhtree_from_mesh_looptri_ex(struct BVHTreeFromMesh *data,
                                       int looptri_num_active,
                                       float epsilon,
                                       int tree_type,
-                                      int axis,
-                                      const bool isolate);
+                                      int axis);
 
 /**
  * Builds or queries a BVH-cache for the cache BVH-tree of the request type.
