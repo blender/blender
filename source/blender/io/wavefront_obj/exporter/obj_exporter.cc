@@ -88,8 +88,8 @@ filter_supported_objects(Depsgraph *depsgraph, const OBJExportParams &export_par
     }
     switch (object->type) {
       case OB_SURF:
-        /* Export in mesh form: vertices and polygons. */
-        ATTR_FALLTHROUGH;
+        /* Evaluated surface objects appear as mesh objects from the iterator. */
+        break;
       case OB_MESH:
         r_exportable_meshes.append(std::make_unique<OBJMesh>(depsgraph, export_params, object));
         break;

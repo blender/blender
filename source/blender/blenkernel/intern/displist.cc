@@ -948,12 +948,11 @@ static void displist_surf_indices(DispList *dl)
   }
 }
 
-static void evaluate_surface_object(Depsgraph *depsgraph,
-                                    const Scene *scene,
-                                    Object *ob,
-                                    const bool for_render,
-                                    ListBase *r_dispbase,
-                                    Mesh **r_final)
+static GeometrySet evaluate_surface_object(Depsgraph *depsgraph,
+                                           const Scene *scene,
+                                           Object *ob,
+                                           const bool for_render,
+                                           ListBase *r_dispbase)
 {
   BLI_assert(ob->type == OB_SURF);
   const Curve *cu = (const Curve *)ob->data;
@@ -1036,8 +1035,7 @@ static void evaluate_surface_object(Depsgraph *depsgraph,
   if (!geometry_set.has_mesh()) {
     geometry_set.replace_mesh(BKE_mesh_new_nomain(0, 0, 0, 0, 0));
   }
-  MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-  *r_final = mesh_component.release();
+  return geometry_set;
 }
 
 static void rotateBevelPiece(const Curve *cu,
@@ -1483,9 +1481,8 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
   ListBase *dispbase = &ob->runtime.curve_cache->disp;
 
   if (ob->type == OB_SURF) {
-    Mesh *mesh_eval;
-    evaluate_surface_object(depsgraph, scene, ob, for_render, dispbase, &mesh_eval);
-    BKE_object_eval_assign_data(ob, &mesh_eval->id, true);
+    GeometrySet geometry = evaluate_surface_object(depsgraph, scene, ob, for_render, dispbase);
+    ob->runtime.geometry_set_eval = new GeometrySet(std::move(geometry));
   }
   else {
     GeometrySet geometry = evaluate_curve_type_object(depsgraph, scene, ob, for_render, dispbase);

@@ -817,7 +817,7 @@ GPUBatch *DRW_cache_object_edge_detection_get(Object *ob, bool *r_is_manifold)
     case OB_CURVES_LEGACY:
       return NULL;
     case OB_SURF:
-      return DRW_cache_surf_edge_detection_get(ob, r_is_manifold);
+      return NULL;
     case OB_FONT:
       return NULL;
     case OB_MBALL:
@@ -841,7 +841,7 @@ GPUBatch *DRW_cache_object_face_wireframe_get(Object *ob)
     case OB_CURVES_LEGACY:
       return NULL;
     case OB_SURF:
-      return DRW_cache_surf_face_wireframe_get(ob);
+      return NULL;
     case OB_FONT:
       return NULL;
     case OB_MBALL:
@@ -868,7 +868,7 @@ GPUBatch *DRW_cache_object_loose_edges_get(struct Object *ob)
     case OB_CURVES_LEGACY:
       return NULL;
     case OB_SURF:
-      return DRW_cache_surf_loose_edges_get(ob);
+      return NULL;
     case OB_FONT:
       return NULL;
     case OB_MBALL:
@@ -892,7 +892,7 @@ GPUBatch *DRW_cache_object_surface_get(Object *ob)
     case OB_CURVES_LEGACY:
       return NULL;
     case OB_SURF:
-      return DRW_cache_surf_surface_get(ob);
+      return NULL;
     case OB_FONT:
       return NULL;
     case OB_MBALL:
@@ -919,7 +919,7 @@ GPUVertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob)
     case OB_CURVES_LEGACY:
     case OB_SURF:
     case OB_FONT:
-      return DRW_curve_batch_cache_pos_vertbuf_get(ob->data);
+      return NULL;
     case OB_MBALL:
       return DRW_mball_batch_cache_pos_vertbuf_get(ob);
     case OB_CURVES:
@@ -976,7 +976,7 @@ GPUBatch **DRW_cache_object_surface_material_get(struct Object *ob,
     case OB_CURVES_LEGACY:
       return NULL;
     case OB_SURF:
-      return DRW_cache_surf_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
+      return NULL;
     case OB_FONT:
       return NULL;
     case OB_MBALL:
@@ -3003,85 +3003,11 @@ GPUBatch *DRW_cache_text_edge_wire_get(Object *ob)
 /** \name Surface
  * \{ */
 
-GPUBatch *DRW_cache_surf_surface_get(Object *ob)
-{
-  BLI_assert(ob->type == OB_SURF);
-
-  struct Curve *cu = ob->data;
-  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
-  if (mesh_eval != NULL) {
-    return DRW_mesh_batch_cache_get_surface(mesh_eval);
-  }
-
-  return DRW_curve_batch_cache_get_triangles_with_normals(cu);
-}
-
 GPUBatch *DRW_cache_surf_edge_wire_get(Object *ob)
 {
   BLI_assert(ob->type == OB_SURF);
-
   struct Curve *cu = ob->data;
-  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
-  if (mesh_eval != NULL) {
-    return DRW_mesh_batch_cache_get_loose_edges(mesh_eval);
-  }
-
   return DRW_curve_batch_cache_get_wire_edge(cu);
-}
-
-GPUBatch *DRW_cache_surf_face_wireframe_get(Object *ob)
-{
-  BLI_assert(ob->type == OB_SURF);
-
-  struct Curve *cu = ob->data;
-  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
-  if (mesh_eval != NULL) {
-    return DRW_mesh_batch_cache_get_wireframes_face(mesh_eval);
-  }
-
-  return DRW_curve_batch_cache_get_wireframes_face(cu);
-}
-
-GPUBatch *DRW_cache_surf_edge_detection_get(Object *ob, bool *r_is_manifold)
-{
-  BLI_assert(ob->type == OB_SURF);
-  struct Curve *cu = ob->data;
-  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
-  if (mesh_eval != NULL) {
-    return DRW_mesh_batch_cache_get_edge_detection(mesh_eval, r_is_manifold);
-  }
-
-  return DRW_curve_batch_cache_get_edge_detection(cu, r_is_manifold);
-}
-
-GPUBatch *DRW_cache_surf_loose_edges_get(Object *ob)
-{
-  BLI_assert(ob->type == OB_SURF);
-
-  struct Curve *cu = ob->data;
-  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
-  if (mesh_eval != NULL) {
-    return DRW_mesh_batch_cache_get_loose_edges(mesh_eval);
-  }
-
-  /* TODO */
-  UNUSED_VARS(cu);
-  return NULL;
-}
-
-GPUBatch **DRW_cache_surf_surface_shaded_get(Object *ob,
-                                             struct GPUMaterial **gpumat_array,
-                                             uint gpumat_array_len)
-{
-  BLI_assert(ob->type == OB_SURF);
-
-  struct Curve *cu = ob->data;
-  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
-  if (mesh_eval != NULL) {
-    return DRW_mesh_batch_cache_get_surface_shaded(ob, mesh_eval, gpumat_array, gpumat_array_len);
-  }
-
-  return DRW_curve_batch_cache_get_surface_shaded(cu, gpumat_array, gpumat_array_len);
 }
 
 /** \} */
@@ -3369,19 +3295,13 @@ GPUBatch *DRW_cache_cursor_get(bool crosshair_lines)
 
 void drw_batch_cache_validate(Object *ob)
 {
-  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
   switch (ob->type) {
     case OB_MESH:
       DRW_mesh_batch_cache_validate(ob, (Mesh *)ob->data);
       break;
     case OB_CURVES_LEGACY:
     case OB_FONT:
-      DRW_curve_batch_cache_validate((Curve *)ob->data);
-      break;
     case OB_SURF:
-      if (mesh_eval != NULL) {
-        DRW_mesh_batch_cache_validate(ob, mesh_eval);
-      }
       DRW_curve_batch_cache_validate((Curve *)ob->data);
       break;
     case OB_MBALL:
@@ -3418,7 +3338,6 @@ void drw_batch_cache_generate_requested(Object *ob)
                            DRW_object_use_hide_faces(ob)) ||
                           ((mode == CTX_MODE_EDIT_MESH) && DRW_object_is_in_edit_mode(ob))));
 
-  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
   switch (ob->type) {
     case OB_MESH:
       DRW_mesh_batch_cache_create_requested(
@@ -3426,13 +3345,7 @@ void drw_batch_cache_generate_requested(Object *ob)
       break;
     case OB_CURVES_LEGACY:
     case OB_FONT:
-      DRW_curve_batch_cache_create_requested(ob, scene);
-      break;
     case OB_SURF:
-      if (mesh_eval) {
-        DRW_mesh_batch_cache_create_requested(
-            DST.task_graph, ob, mesh_eval, scene, is_paint_mode, use_hide);
-      }
       DRW_curve_batch_cache_create_requested(ob, scene);
       break;
     /* TODO: all cases. */
@@ -3468,16 +3381,9 @@ void drw_batch_cache_generate_requested_delayed(Object *ob)
 
 void DRW_batch_cache_free_old(Object *ob, int ctime)
 {
-  struct Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
-
   switch (ob->type) {
     case OB_MESH:
       DRW_mesh_batch_cache_free_old((Mesh *)ob->data, ctime);
-      break;
-    case OB_SURF:
-      if (mesh_eval) {
-        DRW_mesh_batch_cache_free_old(mesh_eval, ctime);
-      }
       break;
     /* TODO: all cases. */
     default:

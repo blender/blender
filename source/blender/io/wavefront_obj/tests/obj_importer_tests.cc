@@ -82,7 +82,7 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
         EXPECT_V3_NEAR(object->rot, float3(M_PI_2, 0, 0), 0.0001f);
       }
       EXPECT_V3_NEAR(object->scale, float3(1, 1, 1), 0.0001f);
-      if (object->type == OB_MESH || object->type == OB_SURF) {
+      if (object->type == OB_MESH) {
         Mesh *mesh = BKE_object_get_evaluated_mesh(object);
         EXPECT_EQ(mesh->totvert, exp.totvert);
         EXPECT_EQ(mesh->totedge, exp.mesh_totedge_or_curve_endp);

@@ -66,9 +66,8 @@ bool BlenderSync::object_is_geometry(BObjectInfo &b_ob_info)
   }
 
   /* Other object types that are not meshes but evaluate to meshes are presented to render engines
-   * as separate instance objects. Metaballs and surface objects have not been affected by that
-   * change yet. */
-  if (type == BL::Object::type_SURFACE || type == BL::Object::type_META) {
+   * as separate instance objects. Metaballs have not been affected by that change yet. */
+  if (type == BL::Object::type_META) {
     return true;
   }
 
