@@ -31,6 +31,12 @@ class Params:
         "context_menu_event",
         "cursor_set_event",
         "cursor_tweak_event",
+        # NOTE: this is intended to be used so pressing a button can then drag the current selection.
+        # This should not be used for button release values such as `CLICK` or `RELEASE` which should
+        # instead be bound to a binding that doesn't de-select all, this way:
+        # - Click-drag moves the current selection.
+        # - Click selects only the item at the cursor position.
+        # See: T97032.
         "use_tweak_select_passthrough",
         "use_tweak_tool_lmb_interaction",
         "use_mouse_emulate_3_button",
@@ -4705,6 +4711,11 @@ def _template_paint_radial_control(paint, rotation=False, secondary_rotation=Fal
 def _template_view3d_select(*, type, value, legacy, select_passthrough, exclude_mod=None):
     # NOTE: `exclude_mod` is needed since we don't want this tool to exclude Control-RMB actions when this is used
     # as a tool key-map with RMB-select and `use_fallback_tool_rmb` is enabled. See T92467.
+
+    # See: `use_tweak_select_passthrough` doc-string.
+    if select_passthrough and (value in {'CLICK', 'RELEASE'}):
+        select_passthrough = False
+
     items = [(
         "view3d.select",
         {"type": type, "value": value, **{m: True for m in mods}},
@@ -4721,7 +4732,7 @@ def _template_view3d_select(*, type, value, legacy, select_passthrough, exclude_
         (("toggle", "center", "enumerate"), ("shift", "ctrl", "alt")),
     ) if exclude_mod is None or exclude_mod not in mods]
 
-    if select_passthrough and (value == 'PRESS'):
+    if select_passthrough:
         # Add an additional click item to de-select all other items,
         # needed so pass-through is able to de-select other items.
         items.append((
@@ -4749,6 +4760,11 @@ def _template_view3d_gpencil_select(*, type, value, legacy, use_select_mouse=Tru
 
 
 def _template_uv_select(*, type, value, select_passthrough, legacy):
+
+    # See: `use_tweak_select_passthrough` doc-string.
+    if select_passthrough and (value in {'CLICK', 'RELEASE'}):
+        select_passthrough = False
+
     items = [
         ("uv.select", {"type": type, "value": value},
          {"properties": [
@@ -4759,7 +4775,7 @@ def _template_uv_select(*, type, value, select_passthrough, legacy):
          {"properties": [("toggle", True)]}),
     ]
 
-    if select_passthrough and (value == 'PRESS'):
+    if select_passthrough:
         # Add an additional click item to de-select all other items,
         # needed so pass-through is able to de-select other items.
         items.append((
