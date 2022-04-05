@@ -346,8 +346,8 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
 }
 
 #ifdef __VOLUME__
-ccl_device_forceinline bool integrate_surface_volume_only_bounce(IntegratorState state,
-                                                                 ccl_private ShaderData *sd)
+ccl_device_forceinline int integrate_surface_volume_only_bounce(IntegratorState state,
+                                                                ccl_private ShaderData *sd)
 {
   if (!path_state_volume_next(state)) {
     return LABEL_NONE;

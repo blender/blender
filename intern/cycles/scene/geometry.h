@@ -110,8 +110,8 @@ class Geometry : public Node {
                    DeviceScene *dscene,
                    SceneParams *params,
                    Progress *progress,
-                   int n,
-                   int total);
+                   size_t n,
+                   size_t total);
 
   virtual PrimitiveType primitive_type() const = 0;
 

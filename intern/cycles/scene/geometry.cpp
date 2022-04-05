@@ -180,7 +180,7 @@ bool Geometry::has_true_displacement() const
 }
 
 void Geometry::compute_bvh(
-    Device *device, DeviceScene *dscene, SceneParams *params, Progress *progress, int n, int total)
+    Device *device, DeviceScene *dscene, SceneParams *params, Progress *progress, size_t n, size_t total)
 {
   if (progress->get_cancel())
     return;
