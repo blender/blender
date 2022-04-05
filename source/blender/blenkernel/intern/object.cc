@@ -3974,8 +3974,9 @@ bool BKE_object_empty_image_data_is_visible_in_view3d(const Object *ob, const Re
   }
 
   if (visibility_flag & OB_EMPTY_IMAGE_HIDE_NON_AXIS_ALIGNED) {
-    float3 proj;
-    project_plane_v3_v3v3(proj, ob->obmat[2], rv3d->viewinv[2]);
+    float3 proj, ob_z_axis;
+    normalize_v3_v3(ob_z_axis, ob->obmat[2]);
+    project_plane_v3_v3v3(proj, ob_z_axis, rv3d->viewinv[2]);
     const float proj_length_sq = len_squared_v3(proj);
     if (proj_length_sq > 1e-5f) {
       return false;
