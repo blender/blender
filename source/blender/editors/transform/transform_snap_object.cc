@@ -8,10 +8,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_float4x4.hh"
 #include "BLI_ghash.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_math_vector.hh"
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
 
@@ -42,6 +44,9 @@
 #include "ED_armature.h"
 #include "ED_transform_snap_object_context.h"
 #include "ED_view3d.h"
+
+using blender::float3;
+using blender::float4x4;
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Data Types
@@ -441,7 +446,7 @@ static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
 using IterSnapObjsCallback = void (*)(SnapObjectContext *sctx,
                                       const struct SnapObjectParams *params,
                                       Object *ob_eval,
-                                      float obmat[4][4],
+                                      const float obmat[4][4],
                                       bool is_object_active,
                                       void *data);
 
@@ -1018,7 +1023,7 @@ struct RaycastObjUserData {
 static void raycast_obj_fn(SnapObjectContext *sctx,
                            const struct SnapObjectParams *params,
                            Object *ob_eval,
-                           float obmat[4][4],
+                           const float obmat[4][4],
                            bool is_object_active,
                            void *data)
 {
@@ -2230,7 +2235,7 @@ static short snap_object_center(const SnapObjectContext *sctx,
 
 static short snapCamera(const SnapObjectContext *sctx,
                         Object *object,
-                        float obmat[4][4],
+                        const float obmat[4][4],
                         /* read/write args */
                         float *dist_px,
                         /* return args */
@@ -2271,7 +2276,7 @@ static short snapCamera(const SnapObjectContext *sctx,
     LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
       ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
       float reconstructed_camera_mat[4][4], reconstructed_camera_imat[4][4];
-      float(*vertex_obmat)[4];
+      const float(*vertex_obmat)[4];
 
       if ((tracking_object->flag & TRACKING_OBJECT_CAMERA) == 0) {
         BKE_tracking_camera_get_reconstructed_interpolate(
@@ -2730,7 +2735,7 @@ struct SnapObjUserData {
 static void snap_obj_fn(SnapObjectContext *sctx,
                         const struct SnapObjectParams *params,
                         Object *ob_eval,
-                        float obmat[4][4],
+                        const float obmat[4][4],
                         bool is_object_active,
                         void *data)
 {
