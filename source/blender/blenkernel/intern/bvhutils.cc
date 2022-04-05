@@ -759,7 +759,6 @@ BVHTree *bvhtree_from_editmesh_verts(
 BVHTree *bvhtree_from_mesh_verts_ex(BVHTreeFromMesh *data,
                                     const MVert *vert,
                                     const int verts_num,
-                                    const bool vert_allocated,
                                     const BLI_bitmap *verts_mask,
                                     int verts_num_active,
                                     float epsilon,
@@ -777,7 +776,6 @@ BVHTree *bvhtree_from_mesh_verts_ex(BVHTreeFromMesh *data,
     /* Setup BVHTreeFromMesh */
     bvhtree_from_mesh_setup_data(
         tree, BVHTREE_FROM_VERTS, vert, nullptr, nullptr, nullptr, nullptr, nullptr, data);
-    data->vert_allocated = vert_allocated;
   }
 
   return tree;
@@ -896,10 +894,8 @@ BVHTree *bvhtree_from_editmesh_edges(
 
 BVHTree *bvhtree_from_mesh_edges_ex(BVHTreeFromMesh *data,
                                     const MVert *vert,
-                                    const bool vert_allocated,
                                     const MEdge *edge,
                                     const int edges_num,
-                                    const bool edge_allocated,
                                     const BLI_bitmap *edges_mask,
                                     int edges_num_active,
                                     float epsilon,
@@ -917,8 +913,6 @@ BVHTree *bvhtree_from_mesh_edges_ex(BVHTreeFromMesh *data,
     /* Setup BVHTreeFromMesh */
     bvhtree_from_mesh_setup_data(
         tree, BVHTREE_FROM_EDGES, vert, edge, nullptr, nullptr, nullptr, nullptr, data);
-    data->vert_allocated = vert_allocated;
-    data->vert_allocated = edge_allocated;
   }
 
   return tree;
@@ -979,10 +973,8 @@ static BVHTree *bvhtree_from_mesh_faces_create_tree(float epsilon,
 
 BVHTree *bvhtree_from_mesh_faces_ex(BVHTreeFromMesh *data,
                                     const MVert *vert,
-                                    const bool vert_allocated,
                                     const MFace *face,
                                     const int numFaces,
-                                    const bool face_allocated,
                                     const BLI_bitmap *faces_mask,
                                     int faces_num_active,
                                     float epsilon,
@@ -1000,8 +992,6 @@ BVHTree *bvhtree_from_mesh_faces_ex(BVHTreeFromMesh *data,
     /* Setup BVHTreeFromMesh */
     bvhtree_from_mesh_setup_data(
         tree, BVHTREE_FROM_FACES, vert, nullptr, face, nullptr, nullptr, nullptr, data);
-    data->vert_allocated = vert_allocated;
-    data->face_allocated = face_allocated;
   }
 
   return tree;
@@ -1139,12 +1129,9 @@ BVHTree *bvhtree_from_editmesh_looptri(
 
 BVHTree *bvhtree_from_mesh_looptri_ex(BVHTreeFromMesh *data,
                                       const struct MVert *vert,
-                                      const bool vert_allocated,
                                       const struct MLoop *mloop,
-                                      const bool loop_allocated,
                                       const struct MLoopTri *looptri,
                                       const int looptri_num,
-                                      const bool looptri_allocated,
                                       const BLI_bitmap *looptri_mask,
                                       int looptri_num_active,
                                       float epsilon,
@@ -1169,9 +1156,6 @@ BVHTree *bvhtree_from_mesh_looptri_ex(BVHTreeFromMesh *data,
     /* Setup BVHTreeFromMesh */
     bvhtree_from_mesh_setup_data(
         tree, BVHTREE_FROM_LOOPTRI, vert, nullptr, nullptr, mloop, looptri, nullptr, data);
-    data->vert_allocated = vert_allocated;
-    data->loop_allocated = loop_allocated;
-    data->looptri_allocated = looptri_allocated;
   }
 
   return tree;
@@ -1306,7 +1290,6 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
       data->tree = bvhtree_from_mesh_verts_ex(nullptr,
                                               mesh->mvert,
                                               verts_len,
-                                              false,
                                               loose_verts_mask,
                                               loose_vert_len,
                                               0.0f,
@@ -1331,10 +1314,8 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
 
       data->tree = bvhtree_from_mesh_edges_ex(nullptr,
                                               mesh->mvert,
-                                              false,
                                               mesh->medge,
                                               edges_len,
-                                              false,
                                               loose_edges_mask,
                                               loose_edges_len,
                                               0.0,
@@ -1353,10 +1334,8 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
 
       data->tree = bvhtree_from_mesh_faces_ex(nullptr,
                                               mesh->mvert,
-                                              false,
                                               mesh->mface,
                                               num_faces,
-                                              false,
                                               nullptr,
                                               -1,
                                               0.0,
@@ -1378,12 +1357,9 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
 
       data->tree = bvhtree_from_mesh_looptri_ex(nullptr,
                                                 mesh->mvert,
-                                                false,
                                                 mesh->mloop,
-                                                false,
                                                 data->looptri,
                                                 looptri_len,
-                                                false,
                                                 looptri_mask,
                                                 looptri_mask_active_len,
                                                 0.0,
@@ -1511,22 +1487,6 @@ void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data)
 {
   if (data->tree && !data->cached) {
     BLI_bvhtree_free(data->tree);
-  }
-
-  if (data->vert_allocated) {
-    MEM_freeN((void *)data->vert);
-  }
-  if (data->edge_allocated) {
-    MEM_freeN((void *)data->edge);
-  }
-  if (data->face_allocated) {
-    MEM_freeN((void *)data->face);
-  }
-  if (data->loop_allocated) {
-    MEM_freeN((void *)data->loop);
-  }
-  if (data->looptri_allocated) {
-    MEM_freeN((void *)data->looptri);
   }
 
   memset(data, 0, sizeof(*data));

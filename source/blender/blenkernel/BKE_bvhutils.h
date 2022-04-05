@@ -56,15 +56,10 @@ typedef struct BVHTreeFromMesh {
   /* Vertex array, so that callbacks have instant access to data. */
   const struct MVert *vert;
   const float (*vert_normals)[3];
-  const struct MEdge *edge; /* only used for #BVHTreeFromMeshEdges */
+  const struct MEdge *edge;
   const struct MFace *face;
   const struct MLoop *loop;
   const struct MLoopTri *looptri;
-  bool vert_allocated;
-  bool edge_allocated;
-  bool face_allocated;
-  bool loop_allocated;
-  bool looptri_allocated;
 
   /* Private data */
   bool cached;
@@ -125,7 +120,6 @@ BVHTree *bvhtree_from_editmesh_verts_ex(BVHTreeFromEditMesh *data,
 BVHTree *bvhtree_from_mesh_verts_ex(struct BVHTreeFromMesh *data,
                                     const struct MVert *vert,
                                     int verts_num,
-                                    bool vert_allocated,
                                     const BLI_bitmap *verts_mask,
                                     int verts_num_active,
                                     float epsilon,
@@ -158,10 +152,8 @@ BVHTree *bvhtree_from_editmesh_edges_ex(BVHTreeFromEditMesh *data,
  */
 BVHTree *bvhtree_from_mesh_edges_ex(struct BVHTreeFromMesh *data,
                                     const struct MVert *vert,
-                                    bool vert_allocated,
                                     const struct MEdge *edge,
                                     int edges_num,
-                                    bool edge_allocated,
                                     const BLI_bitmap *edges_mask,
                                     int edges_num_active,
                                     float epsilon,
@@ -180,10 +172,8 @@ BVHTree *bvhtree_from_mesh_edges_ex(struct BVHTreeFromMesh *data,
  */
 BVHTree *bvhtree_from_mesh_faces_ex(struct BVHTreeFromMesh *data,
                                     const struct MVert *vert,
-                                    bool vert_allocated,
                                     const struct MFace *face,
                                     int numFaces,
-                                    bool face_allocated,
                                     const BLI_bitmap *faces_mask,
                                     int faces_num_active,
                                     float epsilon,
@@ -213,12 +203,9 @@ BVHTree *bvhtree_from_editmesh_looptri_ex(BVHTreeFromEditMesh *data,
  */
 BVHTree *bvhtree_from_mesh_looptri_ex(struct BVHTreeFromMesh *data,
                                       const struct MVert *vert,
-                                      bool vert_allocated,
                                       const struct MLoop *mloop,
-                                      bool loop_allocated,
                                       const struct MLoopTri *looptri,
                                       int looptri_num,
-                                      bool looptri_allocated,
                                       const BLI_bitmap *mask,
                                       int looptri_num_active,
                                       float epsilon,

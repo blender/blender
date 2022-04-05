@@ -275,17 +275,16 @@ static SnapObjectData *snap_object_data_mesh_get(SnapObjectContext *sctx,
       /* The tree is owned by the Mesh and may have been freed since we last used. */
       is_dirty = true;
     }
-    else if (!sod->treedata_mesh.looptri_allocated &&
-             sod->treedata_mesh.looptri != me_eval->runtime.looptris.array) {
+    else if (sod->treedata_mesh.looptri != me_eval->runtime.looptris.array) {
       is_dirty = true;
     }
-    else if (!sod->treedata_mesh.vert_allocated && sod->treedata_mesh.vert != me_eval->mvert) {
+    else if (sod->treedata_mesh.vert != me_eval->mvert) {
       is_dirty = true;
     }
-    else if (!sod->treedata_mesh.loop_allocated && sod->treedata_mesh.loop != me_eval->mloop) {
+    else if (sod->treedata_mesh.loop != me_eval->mloop) {
       is_dirty = true;
     }
-    else if (!sod->treedata_mesh.edge_allocated && sod->treedata_mesh.edge != me_eval->medge) {
+    else if (sod->treedata_mesh.edge != me_eval->medge) {
       is_dirty = true;
     }
     else if (sod->poly != me_eval->mpoly) {
@@ -901,7 +900,8 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
           sctx->callbacks.edit_mesh.test_face_fn,
           sctx->callbacks.edit_mesh.user_data);
 
-      bvhtree_from_editmesh_looptri_ex(treedata, em, elem_mask, looptri_num_active, 0.0f, 4, 6, false);
+      bvhtree_from_editmesh_looptri_ex(
+          treedata, em, elem_mask, looptri_num_active, 0.0f, 4, 6, false);
 
       MEM_freeN(elem_mask);
     }
@@ -2364,12 +2364,6 @@ static short snapMesh(SnapObjectContext *sctx,
       sod->has_loose_edge = false;
     }
     sod->cached[0] = treedata_tmp.cached;
-    BLI_assert(!ELEM(true,
-                     treedata_tmp.vert_allocated,
-                     treedata_tmp.edge_allocated,
-                     treedata_tmp.face_allocated,
-                     treedata_tmp.loop_allocated,
-                     treedata_tmp.looptri_allocated));
   }
 
   if (sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX) {
@@ -2380,12 +2374,6 @@ static short snapMesh(SnapObjectContext *sctx,
         sod->has_loose_vert = false;
       }
       sod->cached[1] = treedata_tmp.cached;
-      BLI_assert(!ELEM(true,
-                       treedata_tmp.vert_allocated,
-                       treedata_tmp.edge_allocated,
-                       treedata_tmp.face_allocated,
-                       treedata_tmp.loop_allocated,
-                       treedata_tmp.looptri_allocated));
     }
   }
   else {
@@ -2565,7 +2553,8 @@ static short snapEditMesh(SnapObjectContext *sctx,
             (bool (*)(BMElem *, void *))sctx->callbacks.edit_mesh.test_vert_fn,
             sctx->callbacks.edit_mesh.user_data);
 
-        bvhtree_from_editmesh_verts_ex(&treedata, em, verts_mask, verts_num_active, 0.0f, 2, 6, false);
+        bvhtree_from_editmesh_verts_ex(
+            &treedata, em, verts_mask, verts_num_active, 0.0f, 2, 6, false);
         MEM_freeN(verts_mask);
       }
       else {
@@ -2597,7 +2586,8 @@ static short snapEditMesh(SnapObjectContext *sctx,
             (bool (*)(BMElem *, void *))sctx->callbacks.edit_mesh.test_edge_fn,
             sctx->callbacks.edit_mesh.user_data);
 
-        bvhtree_from_editmesh_edges_ex(&treedata, em, edges_mask, edges_num_active, 0.0f, 2, 6, false);
+        bvhtree_from_editmesh_edges_ex(
+            &treedata, em, edges_mask, edges_num_active, 0.0f, 2, 6, false);
         MEM_freeN(edges_mask);
       }
       else {
