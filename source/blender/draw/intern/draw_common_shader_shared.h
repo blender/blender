@@ -171,8 +171,8 @@ BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 #  define colorNormal globalsBlock.color_normal
 #  define colorVNormal globalsBlock.color_vnormal
 #  define colorLNormal globalsBlock.color_lnormal
-#  define colorFaceDot globalsBlock.color_face_dot
-#  define colorSkinRoot globalsBlock.color_skin_root
+#  define colorFaceDot globalsBlock.color_facedot
+#  define colorSkinRoot globalsBlock.color_skinroot
 #  define colorDeselect globalsBlock.color_deselect
 #  define colorOutline globalsBlock.color_outline
 #  define colorLightNoAlpha globalsBlock.color_light_no_alpha
