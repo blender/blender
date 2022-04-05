@@ -49,7 +49,7 @@ static blender::Vector<VColRef> get_vcol_refs(const CustomData *cd_vdata,
         continue;
       }
 
-      VColRef ref;
+      VColRef ref = {};
       ref.domain = domain;
       ref.layer = layer;
 
