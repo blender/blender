@@ -1516,9 +1516,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                      0.0,
                                      2,
                                      6,
-                                     0,
-                                     NULL,
-                                     NULL);
+                                     false);
         }
 
         MEM_freeN(verts_active);
@@ -1560,9 +1558,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                        0.0,
                                        2,
                                        6,
-                                       0,
-                                       NULL,
-                                       NULL);
+                                       false);
         }
 
         MEM_freeN(looptri_active);

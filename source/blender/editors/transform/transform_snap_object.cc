@@ -901,16 +901,7 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
           sctx->callbacks.edit_mesh.test_face_fn,
           sctx->callbacks.edit_mesh.user_data);
 
-      bvhtree_from_editmesh_looptri_ex(treedata,
-                                       em,
-                                       elem_mask,
-                                       looptri_num_active,
-                                       0.0f,
-                                       4,
-                                       6,
-                                       BVHTREE_FROM_EM_LOOPTRI,
-                                       nullptr,
-                                       nullptr);
+      bvhtree_from_editmesh_looptri_ex(treedata, em, elem_mask, looptri_num_active, 0.0f, 4, 6, false);
 
       MEM_freeN(elem_mask);
     }
@@ -2574,16 +2565,7 @@ static short snapEditMesh(SnapObjectContext *sctx,
             (bool (*)(BMElem *, void *))sctx->callbacks.edit_mesh.test_vert_fn,
             sctx->callbacks.edit_mesh.user_data);
 
-        bvhtree_from_editmesh_verts_ex(&treedata,
-                                       em,
-                                       verts_mask,
-                                       verts_num_active,
-                                       0.0f,
-                                       2,
-                                       6,
-                                       BVHTREE_FROM_VERTS,
-                                       nullptr,
-                                       nullptr);
+        bvhtree_from_editmesh_verts_ex(&treedata, em, verts_mask, verts_num_active, 0.0f, 2, 6, false);
         MEM_freeN(verts_mask);
       }
       else {
@@ -2615,16 +2597,7 @@ static short snapEditMesh(SnapObjectContext *sctx,
             (bool (*)(BMElem *, void *))sctx->callbacks.edit_mesh.test_edge_fn,
             sctx->callbacks.edit_mesh.user_data);
 
-        bvhtree_from_editmesh_edges_ex(&treedata,
-                                       em,
-                                       edges_mask,
-                                       edges_num_active,
-                                       0.0f,
-                                       2,
-                                       6,
-                                       BVHTREE_FROM_VERTS,
-                                       nullptr,
-                                       nullptr);
+        bvhtree_from_editmesh_edges_ex(&treedata, em, edges_mask, edges_num_active, 0.0f, 2, 6, false);
         MEM_freeN(edges_mask);
       }
       else {
