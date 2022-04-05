@@ -1011,6 +1011,10 @@ void blo_do_versions_userdef(UserDef *userdef)
                                     NULL);
   }
 
+  if (!USER_VERSION_ATLEAST(302, 11)) {
+    userdef->dupflag |= USER_DUP_CURVES | USER_DUP_POINTCLOUD;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
