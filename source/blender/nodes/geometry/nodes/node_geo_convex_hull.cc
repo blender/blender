@@ -245,7 +245,7 @@ static void read_curve_positions(const Curves &curves_id,
   r_coords->reserve(r_coords->size() + total_size * transforms.size());
   r_coords->as_mutable_span().take_back(total_size).copy_from(curves.evaluated_positions());
   for (const float3 &position : curves.evaluated_positions()) {
-    r_coords->append(transform * postition);
+    r_coords->append(transform * position);
   }
 }
 
