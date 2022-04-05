@@ -774,7 +774,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.curves.sculpt_comb
   ops.curves.sculpt_cut
   ops.curves.sculpt_delete
-  ops.curves.sculpt_grow
+  ops.curves.sculpt_grow_shrink
   ops.generic.cursor
   ops.generic.select
   ops.generic.select_box

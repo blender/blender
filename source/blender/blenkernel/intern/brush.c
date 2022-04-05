@@ -1558,6 +1558,7 @@ void BKE_brush_init_curves_sculpt_settings(Brush *brush)
     brush->curves_sculpt_settings = MEM_callocN(sizeof(BrushCurvesSculptSettings), __func__);
   }
   brush->curves_sculpt_settings->add_amount = 1;
+  brush->curves_sculpt_settings->minimum_length = 0.01f;
 }
 
 struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mode)

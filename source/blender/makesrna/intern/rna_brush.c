@@ -248,8 +248,8 @@ const EnumPropertyItem rna_enum_brush_curves_sculpt_tool_items[] = {
     {CURVES_SCULPT_TOOL_DELETE, "DELETE", ICON_NONE, "Delete", ""},
     {CURVES_SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", ICON_NONE, "Snake Hook", ""},
     {CURVES_SCULPT_TOOL_ADD, "ADD", ICON_NONE, "Add", ""},
+    {CURVES_SCULPT_TOOL_GROW_SHRINK, "GROW_SHRINK", ICON_NONE, "Grow / Shrink", ""},
     {CURVES_SCULPT_TOOL_TEST1, "TEST1", ICON_NONE, "Test 1", ""},
-    {CURVES_SCULPT_TOOL_TEST2, "TEST2", ICON_NONE, "Test 2", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -883,7 +883,13 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
         default:
           return DummyRNA_DEFAULT_items;
       }
-
+    case PAINT_MODE_SCULPT_CURVES:
+      switch (me->curves_sculpt_tool) {
+        case CURVES_SCULPT_TOOL_GROW_SHRINK:
+          return prop_direction_items;
+        default:
+          return DummyRNA_DEFAULT_items;
+      }
     default:
       return DummyRNA_DEFAULT_items;
   }
@@ -1927,6 +1933,18 @@ static void rna_def_curves_sculpt_options(BlenderRNA *brna)
   prop = RNA_def_property(srna, "add_amount", PROP_INT, PROP_NONE);
   RNA_def_property_range(prop, 1, INT32_MAX);
   RNA_def_property_ui_text(prop, "Add Amount", "Number of curves added by the Add brush");
+
+  prop = RNA_def_property(srna, "scale_uniform", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_CURVES_SCULPT_FLAG_SCALE_UNIFORM);
+  RNA_def_property_ui_text(prop,
+                           "Scale Uniform",
+                           "Grow or shrink curves by changing their size uniformly instead of "
+                           "using trimming or extrapolation");
+
+  prop = RNA_def_property(srna, "minimum_length", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_text(
+      prop, "Minimum Length", "Avoid shrinking curves shorter than this length");
 }
 
 static void rna_def_brush(BlenderRNA *brna)

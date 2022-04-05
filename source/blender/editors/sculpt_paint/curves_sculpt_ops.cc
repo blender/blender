@@ -74,118 +74,6 @@ using blender::bke::CurvesGeometry;
 /** \name * SCULPT_CURVES_OT_brush_stroke
  * \{ */
 
-/**
- * Resamples the curves to a shorter length.
- */
-class ShrinkOperation : public CurvesSculptStrokeOperation {
- private:
-  float2 last_mouse_position_;
-
- public:
-  void on_stroke_extended(bContext *C, const StrokeExtension &stroke_extension) override
-  {
-    BLI_SCOPED_DEFER([&]() { last_mouse_position_ = stroke_extension.mouse_position; });
-
-    if (stroke_extension.is_first) {
-      return;
-    }
-
-    Scene &scene = *CTX_data_scene(C);
-    Object &object = *CTX_data_active_object(C);
-    ARegion *region = CTX_wm_region(C);
-    View3D *v3d = CTX_wm_view3d(C);
-    RegionView3D *rv3d = CTX_wm_region_view3d(C);
-
-    CurvesSculpt &curves_sculpt = *scene.toolsettings->curves_sculpt;
-    Brush &brush = *BKE_paint_brush(&curves_sculpt.paint);
-    const float brush_radius = BKE_brush_size_get(&scene, &brush);
-    const float brush_strength = BKE_brush_alpha_get(&scene, &brush);
-
-    const float4x4 ob_mat = object.obmat;
-    const float4x4 ob_imat = ob_mat.inverted();
-
-    float4x4 projection;
-    ED_view3d_ob_project_mat_get(rv3d, &object, projection.values);
-
-    Curves &curves_id = *static_cast<Curves *>(object.data);
-    CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
-    MutableSpan<float3> positions = curves.positions();
-
-    const float2 mouse_prev = last_mouse_position_;
-    const float2 mouse_cur = stroke_extension.mouse_position;
-    const float2 mouse_diff = mouse_cur - mouse_prev;
-
-    threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange curves_range) {
-      for (const int curve_i : curves_range) {
-        const IndexRange curve_points = curves.points_for_curve(curve_i);
-        const int last_point_i = curve_points.last();
-
-        const float3 old_tip_position = positions[last_point_i];
-
-        float2 old_tip_position_screen;
-        ED_view3d_project_float_v2_m4(
-            region, old_tip_position, old_tip_position_screen, projection.values);
-
-        const float distance_screen = math::distance(old_tip_position_screen, mouse_prev);
-        if (distance_screen > brush_radius) {
-          continue;
-        }
-
-        const float radius_falloff = pow2f(1.0f - distance_screen / brush_radius);
-        const float weight = brush_strength * radius_falloff;
-
-        const float2 offset_tip_position_screen = old_tip_position_screen + weight * mouse_diff;
-        float3 offset_tip_position;
-        ED_view3d_win_to_3d(v3d,
-                            region,
-                            ob_mat * old_tip_position,
-                            offset_tip_position_screen,
-                            offset_tip_position);
-        offset_tip_position = ob_imat * offset_tip_position;
-        const float shrink_length = math::distance(offset_tip_position, old_tip_position);
-
-        this->shrink_curve(positions, curve_points, shrink_length);
-      }
-    });
-
-    curves.tag_positions_changed();
-    DEG_id_tag_update(&curves_id.id, ID_RECALC_GEOMETRY);
-    ED_region_tag_redraw(region);
-  }
-
-  void shrink_curve(MutableSpan<float3> positions,
-                    const IndexRange curve_points,
-                    const float shrink_length) const
-  {
-    PolySpline spline;
-    spline.resize(curve_points.size());
-    MutableSpan<float3> spline_positions = spline.positions();
-    spline_positions.copy_from(positions.slice(curve_points));
-    spline.mark_cache_invalid();
-    const float old_length = spline.length();
-    const float new_length = std::max(0.0f, old_length - shrink_length);
-    const float length_factor = new_length / old_length;
-
-    Vector<float> old_point_lengths;
-    old_point_lengths.append(0.0f);
-    for (const int i : spline_positions.index_range().drop_back(1)) {
-      const float3 &p1 = spline_positions[i];
-      const float3 &p2 = spline_positions[i + 1];
-      const float length = math::distance(p1, p2);
-      old_point_lengths.append(old_point_lengths.last() + length);
-    }
-
-    for (const int i : spline_positions.index_range()) {
-      const float eval_length = old_point_lengths[i] * length_factor;
-      const Spline::LookupResult lookup = spline.lookup_evaluated_length(eval_length);
-      const float index_factor = lookup.evaluated_index + lookup.factor;
-      float3 p;
-      spline.sample_with_index_factors<float3>(spline_positions, {&index_factor, 1}, {&p, 1});
-      positions[curve_points[i]] = p;
-    }
-  }
-};
-
 class DensityAddOperation : public CurvesSculptStrokeOperation {
  private:
   /** Contains the root points of the curves that existed before this operation started. */
@@ -612,8 +500,10 @@ class DensityAddOperation : public CurvesSculptStrokeOperation {
 };
 
 static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(bContext *C,
-                                                                          wmOperator *UNUSED(op))
+                                                                          wmOperator *op)
 {
+  const BrushStrokeMode mode = static_cast<BrushStrokeMode>(RNA_enum_get(op->ptr, "mode"));
+
   Scene &scene = *CTX_data_scene(C);
   CurvesSculpt &curves_sculpt = *scene.toolsettings->curves_sculpt;
   Brush &brush = *BKE_paint_brush(&curves_sculpt.paint);
@@ -626,10 +516,10 @@ static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(bConte
       return new_snake_hook_operation();
     case CURVES_SCULPT_TOOL_ADD:
       return new_add_operation();
+    case CURVES_SCULPT_TOOL_GROW_SHRINK:
+      return new_grow_shrink_operation(mode, C);
     case CURVES_SCULPT_TOOL_TEST1:
       return std::make_unique<DensityAddOperation>();
-    case CURVES_SCULPT_TOOL_TEST2:
-      return std::make_unique<ShrinkOperation>();
   }
   BLI_assert_unreachable();
   return {};
@@ -674,7 +564,9 @@ static void stroke_update_step(bContext *C,
     stroke_extension.is_first = false;
   }
 
-  op_data->operation->on_stroke_extended(C, stroke_extension);
+  if (op_data->operation) {
+    op_data->operation->on_stroke_extended(C, stroke_extension);
+  }
 }
 
 static void stroke_done(const bContext *C, PaintStroke *stroke)
