@@ -93,7 +93,7 @@ static CustomData *attribute_customdata_find(ID *id, CustomDataLayer *layer)
   for (AttributeDomain domain = 0; domain < ATTR_DOMAIN_NUM; domain++) {
     CustomData *customdata = info[domain].customdata;
     if (customdata &&
-        ARRAY_HAS_ITEM(layer, (CustomDataLayer const *)customdata->layers, customdata->totlayer)) {
+        ARRAY_HAS_ITEM((CustomDataLayer *)layer, customdata->layers, customdata->totlayer)) {
       return customdata;
     }
   }
@@ -299,7 +299,8 @@ AttributeDomain BKE_id_attribute_domain(ID *id, const CustomDataLayer *layer)
 
   for (AttributeDomain domain = 0; domain < ATTR_DOMAIN_NUM; domain++) {
     CustomData *customdata = info[domain].customdata;
-    if (customdata && ARRAY_HAS_ITEM(layer, customdata->layers, customdata->totlayer)) {
+    if (customdata &&
+        ARRAY_HAS_ITEM((CustomDataLayer *)layer, customdata->layers, customdata->totlayer)) {
       return domain;
     }
   }
@@ -315,7 +316,8 @@ int BKE_id_attribute_data_length(ID *id, CustomDataLayer *layer)
 
   for (AttributeDomain domain = 0; domain < ATTR_DOMAIN_NUM; domain++) {
     CustomData *customdata = info[domain].customdata;
-    if (customdata && ARRAY_HAS_ITEM(layer, customdata->layers, customdata->totlayer)) {
+    if (customdata &&
+        ARRAY_HAS_ITEM((CustomDataLayer *)layer, customdata->layers, customdata->totlayer)) {
       return info[domain].length;
     }
   }
