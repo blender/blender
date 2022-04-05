@@ -133,7 +133,7 @@ struct GlyphBLF *blf_glyph_ensure(struct FontBLF *font, struct GlyphCacheBLF *gc
 
 void blf_glyph_free(struct GlyphBLF *g);
 void blf_glyph_draw(
-    struct FontBLF *font, struct GlyphCacheBLF *gc, struct GlyphBLF *g, float x, float y);
+    struct FontBLF *font, struct GlyphCacheBLF *gc, struct GlyphBLF *g, int x, int y);
 
 #ifdef WIN32
 /* blf_font_win32_compat.c */

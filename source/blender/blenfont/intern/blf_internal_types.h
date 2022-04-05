@@ -10,6 +10,79 @@
 #include "GPU_texture.h"
 #include "GPU_vertex_buffer.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Sub-Pixel Offset & Utilities
+ *
+ * Free-type uses fixed point precision for sub-pixel offsets.
+ * Utility functions here avoid exposing the details in the BLF API.
+ * \{ */
+
+/**
+ * This is an internal type that represents sub-pixel positioning,
+ * users of this type are to use `ft_pix_*` functions to keep scaling/rounding in one place.
+ */
+typedef int32_t ft_pix;
+
+/* Macros copied from `include/freetype/internal/ftobjs.h`. */
+
+/* FIXME(@campbellbarton): Follow rounding from Blender 3.1x and older.
+ * This is what users will expect and changing this creates wider spaced text.
+ * Use this macro to communicate that rounding should be used, using floor is to avoid
+ * user visible changes, which can be reviewed and handled separately. */
+#define USE_LEGACY_SPACING
+
+#define FT_PIX_FLOOR(x) ((x) & ~63)
+#define FT_PIX_ROUND(x) FT_PIX_FLOOR((x) + 32)
+#define FT_PIX_CEIL(x) ((x) + 63)
+
+#ifdef USE_LEGACY_SPACING
+#  define FT_PIX_DEFAULT_ROUNDING(x) FT_PIX_FLOOR(x)
+#else
+#  define FT_PIX_DEFAULT_ROUNDING(x) FT_PIX_ROUND(x)
+#endif
+
+BLI_INLINE int ft_pix_to_int(ft_pix v)
+{
+#ifdef USE_LEGACY_SPACING
+  return (int)(v >> 6);
+#else
+  return (int)(FT_PIX_DEFAULT_ROUNDING(v) >> 6);
+#endif
+}
+
+BLI_INLINE int ft_pix_to_int_floor(ft_pix v)
+{
+  return (int)(v >> 6); /* No need for explicit floor as the bits are removed when shifting. */
+}
+
+BLI_INLINE int ft_pix_to_int_ceil(ft_pix v)
+{
+  return (int)(FT_PIX_CEIL(v) >> 6);
+}
+
+BLI_INLINE ft_pix ft_pix_from_int(int v)
+{
+  return v * 64;
+}
+
+BLI_INLINE ft_pix ft_pix_from_float(float v)
+{
+  return lroundf(v * 64.0f);
+}
+
+BLI_INLINE ft_pix ft_pix_round_advance(ft_pix v, ft_pix step)
+{
+  /* See #USE_LEGACY_SPACING, rounding logic could change here. */
+  return FT_PIX_DEFAULT_ROUNDING(v) + FT_PIX_DEFAULT_ROUNDING(step);
+}
+
+#undef FT_PIX_FLOOR
+#undef FT_PIX_ROUND
+#undef FT_PIX_CEIL
+#undef FT_PIX_DEFAULT_ROUNDING
+
+/** \} */
+
 #define BLF_BATCH_DRAW_LEN_MAX 2048 /* in glyph */
 
 /* Number of characters in GlyphCacheBLF.glyph_ascii_table. */
@@ -86,12 +159,16 @@ typedef struct GlyphBLF {
   FT_UInt idx;
 
   /* glyph box. */
-  rctf box;
+  ft_pix box_xmin;
+  ft_pix box_xmax;
+  ft_pix box_ymin;
+  ft_pix box_ymax;
 
-  /* advance size. */
-  float advance;
-  /* avoid conversion to int while drawing */
-  int advance_i;
+  ft_pix advance_x;
+
+  /* The difference in bearings when hinting is active, zero otherwise. */
+  ft_pix lsb_delta;
+  ft_pix rsb_delta;
 
   /* position inside the texture where this glyph is store. */
   int offset;
