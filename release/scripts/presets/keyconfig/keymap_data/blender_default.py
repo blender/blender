@@ -2898,7 +2898,7 @@ def km_sequencer(params):
         ("transform.seq_slide", {"type": params.select_mouse, "value": 'CLICK_DRAG'},
          {"properties": [("view2d_edge_pan", True)]}),
         ("transform.transform", {"type": 'E', "value": 'PRESS'},
-         {"properties": [("mode", 'TIME_EXTEND'), ("view2d_edge_pan", True)]}),
+         {"properties": [("mode", 'TIME_EXTEND')]}),
         ("marker.add", {"type": 'M', "value": 'PRESS'}, None),
         ("marker.rename", {"type": 'M', "value": 'PRESS', "ctrl": True}, None),
         ("sequencer.select_side_of_frame", {"type": 'LEFT_BRACKET', "value": 'PRESS'},
