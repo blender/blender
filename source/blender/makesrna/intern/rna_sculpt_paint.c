@@ -78,8 +78,8 @@ static const EnumPropertyItem rna_enum_gpencil_paint_mode[] = {
     {GPPAINT_FLAG_USE_VERTEXCOLOR,
      "VERTEXCOLOR",
      0,
-     "Vertex Color",
-     "Paint the material with custom vertex color"},
+     "Color Attribute",
+     "Paint the material with a color attribute"},
     {0, NULL, 0, NULL, NULL},
 };
 #endif

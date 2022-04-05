@@ -27,6 +27,7 @@
 
 #include "RNA_access.h"
 
+#include "BKE_attribute.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -190,7 +191,14 @@ bool vertex_paint_mode_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
 
-  return ob && ob->mode == OB_MODE_VERTEX_PAINT && ((Mesh *)ob->data)->totpoly;
+  if (!(ob && ob->mode == OB_MODE_VERTEX_PAINT && ((Mesh *)ob->data)->totpoly)) {
+    return false;
+  }
+
+  CustomDataLayer *layer = BKE_id_attributes_active_color_get((ID *)ob->data);
+  AttributeDomain domain = BKE_id_attribute_domain((ID *)ob->data, layer);
+
+  return layer && layer->type == CD_MLOOPCOL && domain == ATTR_DOMAIN_CORNER;
 }
 
 static bool vertex_paint_poll_ex(bContext *C, bool check_tool)
@@ -3559,7 +3567,7 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Vertex Paint";
   ot->idname = "PAINT_OT_vertex_paint";
-  ot->description = "Paint a stroke in the active vertex color layer";
+  ot->description = "Paint a stroke in the active color attribute layer";
 
   /* api callbacks */
   ot->invoke = vpaint_invoke;

@@ -30,8 +30,8 @@ class GPENCIL_MT_material_context_menu(Menu):
 
         layout.separator()
 
-        layout.operator("gpencil.material_to_vertex_color", text="Convert Materials to Vertex Color")
-        layout.operator("gpencil.extract_palette_vertex", text="Extract Palette from Vertex Color")
+        layout.operator("gpencil.material_to_vertex_color", text="Convert Materials to Color Attribute")
+        layout.operator("gpencil.extract_palette_vertex", text="Extract Palette from Color Attribute")
 
         layout.separator()
 

@@ -110,6 +110,10 @@ void SCULPT_filter_cache_init(bContext *C, Object *ob, Sculpt *sd, const int und
 
   ss->filter_cache->random_seed = rand();
 
+  if (undo_type == SCULPT_UNDO_COLOR) {
+    BKE_pbvh_ensure_node_loops(ss->pbvh);
+  }
+
   const float center[3] = {0.0f};
   SculptSearchSphereData search_data = {
       .original = true,
@@ -597,7 +601,7 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
 
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
     SCULPT_filter_cache_free(ss);
-    SCULPT_undo_push_end();
+    SCULPT_undo_push_end(ob);
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
     return OPERATOR_FINISHED;
   }

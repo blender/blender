@@ -18,6 +18,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
+#include "BKE_pbvh.h"
 
 #include "DNA_curves_types.h"
 #include "DNA_fluid_types.h"
@@ -170,12 +171,7 @@ static void workbench_cache_common_populate(WORKBENCH_PrivateData *wpd,
         geom = DRW_cache_mesh_surface_vertpaint_get(ob);
       }
       else {
-        if (U.experimental.use_sculpt_vertex_colors) {
-          geom = DRW_cache_mesh_surface_sculptcolors_get(ob);
-        }
-        else {
-          geom = DRW_cache_mesh_surface_vertpaint_get(ob);
-        }
+        geom = DRW_cache_mesh_surface_sculptcolors_get(ob);
       }
     }
     else {
@@ -258,7 +254,6 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
   eV3DShadingColorType color_type = wpd->shading.color_type;
   const Mesh *me = (ob->type == OB_MESH) ? ob->data : NULL;
   const CustomData *ldata = (me == NULL) ? NULL : workbench_mesh_get_loop_custom_data(me);
-  const CustomData *vdata = (me == NULL) ? NULL : workbench_mesh_get_vert_custom_data(me);
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool is_active = (ob == draw_ctx->obact);
@@ -267,6 +262,14 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
   const bool is_render = DRW_state_is_image_render() && (draw_ctx->v3d == NULL);
   const bool is_texpaint_mode = is_active && (wpd->ctx_mode == CTX_MODE_PAINT_TEXTURE);
   const bool is_vertpaint_mode = is_active && (wpd->ctx_mode == CTX_MODE_PAINT_VERTEX);
+
+  /* Needed for mesh cache validation, to prevent two copies of
+   * of vertex color arrays from being sent to the GPU (e.g.
+   * when switching from eevee to workbench).
+   */
+  if (ob->sculpt && ob->sculpt->pbvh) {
+    BKE_pbvh_is_drawing_set(ob->sculpt->pbvh, is_sculpt_pbvh);
+  }
 
   if (color_type == V3D_SHADING_TEXTURE_COLOR) {
     if (ob->dt < OB_TEXTURE) {
@@ -278,13 +281,19 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
     }
   }
   else if (color_type == V3D_SHADING_VERTEX_COLOR) {
-    if (U.experimental.use_sculpt_vertex_colors) {
-      if ((me == NULL) || !CustomData_has_layer(vdata, CD_PROP_COLOR)) {
-        color_type = V3D_SHADING_OBJECT_COLOR;
-      }
+    if (!me) {
+      color_type = V3D_SHADING_OBJECT_COLOR;
     }
     else {
-      if ((me == NULL) || !CustomData_has_layer(ldata, CD_MLOOPCOL)) {
+      const CustomData *cd_vdata = workbench_mesh_get_vert_custom_data(me);
+      const CustomData *cd_ldata = workbench_mesh_get_loop_custom_data(me);
+
+      bool has_color = (CustomData_has_layer(cd_vdata, CD_PROP_COLOR) ||
+                        CustomData_has_layer(cd_vdata, CD_MLOOPCOL) ||
+                        CustomData_has_layer(cd_ldata, CD_PROP_COLOR) ||
+                        CustomData_has_layer(cd_ldata, CD_MLOOPCOL));
+
+      if (!has_color) {
         color_type = V3D_SHADING_OBJECT_COLOR;
       }
     }

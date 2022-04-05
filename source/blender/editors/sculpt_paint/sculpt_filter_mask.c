@@ -239,7 +239,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 
   MEM_SAFE_FREE(nodes);
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   SCULPT_tag_update_overlays(C);
 
@@ -447,7 +447,7 @@ static int sculpt_dirty_mask_exec(bContext *C, wmOperator *op)
 
   BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   ED_region_tag_redraw(region);
 

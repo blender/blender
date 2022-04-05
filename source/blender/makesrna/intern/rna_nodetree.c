@@ -6056,7 +6056,7 @@ static void def_sh_vertex_color(StructRNA *srna)
   RNA_def_struct_sdna_from(srna, "NodeShaderVertexColor", "storage");
 
   prop = RNA_def_property(srna, "layer_name", PROP_STRING, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Vertex Color", "Vertex Color");
+  RNA_def_property_ui_text(prop, "Color Attribute", "Color Attribute");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   RNA_def_struct_sdna_from(srna, "bNode", NULL);

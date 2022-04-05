@@ -27,6 +27,7 @@
 #include "BLI_sort_utils.h"
 #include "BLI_string.h"
 
+#include "BKE_attribute.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
@@ -37,6 +38,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_texture.h"
 
@@ -726,7 +728,7 @@ void MESH_OT_edge_collapse(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Collapse Edges & Faces";
   ot->description =
-      "Collapse isolated edge and face regions, merging data such as UV's and vertex colors. "
+      "Collapse isolated edge and face regions, merging data such as UV's and color attributes. "
       "This can collapse edge-rings as well as regions of connected faces into vertices";
   ot->idname = "MESH_OT_edge_collapse";
 
@@ -3090,7 +3092,22 @@ static int edbm_rotate_colors_exec(bContext *C, wmOperator *op)
 
     BMOperator bmop;
 
-    EDBM_op_init(em, &bmop, op, "rotate_colors faces=%hf use_ccw=%b", BM_ELEM_SELECT, use_ccw);
+    Mesh *me = BKE_object_get_original_mesh(ob);
+    CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
+
+    if (!layer || BKE_id_attribute_domain(&me->id, layer) != ATTR_DOMAIN_CORNER) {
+      continue;
+    }
+
+    int color_index = BKE_id_attribute_to_index(
+        &me->id, layer, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
+    EDBM_op_init(em,
+                 &bmop,
+                 op,
+                 "rotate_colors faces=%hf use_ccw=%b color_index=%i",
+                 BM_ELEM_SELECT,
+                 use_ccw,
+                 color_index);
 
     BMO_op_exec(em->bm, &bmop);
 
@@ -3127,9 +3144,17 @@ static int edbm_reverse_colors_exec(bContext *C, wmOperator *op)
       continue;
     }
 
+    Mesh *me = BKE_object_get_original_mesh(obedit);
+    CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
+
+    if (!layer || BKE_id_attribute_domain(&me->id, layer) != ATTR_DOMAIN_CORNER) {
+      continue;
+    }
+
     BMOperator bmop;
 
-    EDBM_op_init(em, &bmop, op, "reverse_colors faces=%hf", BM_ELEM_SELECT);
+    int color_index = BKE_id_attribute_to_index(&me->id, layer, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
+    EDBM_op_init(em, &bmop, op, "reverse_colors faces=%hf color_index=%i", BM_ELEM_SELECT, color_index);
 
     BMO_op_exec(em->bm, &bmop);
 
@@ -3190,7 +3215,7 @@ void MESH_OT_colors_rotate(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Rotate Colors";
   ot->idname = "MESH_OT_colors_rotate";
-  ot->description = "Rotate vertex colors inside faces";
+  ot->description = "Rotate color attributes inside faces";
 
   /* api callbacks */
   ot->exec = edbm_rotate_colors_exec;

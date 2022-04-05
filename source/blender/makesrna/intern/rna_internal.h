@@ -217,6 +217,11 @@ void rna_AttributeGroup_iterator_next(CollectionPropertyIterator *iter);
 PointerRNA rna_AttributeGroup_iterator_get(CollectionPropertyIterator *iter);
 int rna_AttributeGroup_length(PointerRNA *ptr);
 
+void rna_AttributeGroup_color_iterator_begin(CollectionPropertyIterator *iter, PointerRNA *ptr);
+void rna_AttributeGroup_color_iterator_next(CollectionPropertyIterator *iter);
+PointerRNA rna_AttributeGroup_color_iterator_get(CollectionPropertyIterator *iter);
+int rna_AttributeGroup_color_length(PointerRNA *ptr);
+
 void rna_def_animdata_common(struct StructRNA *srna);
 
 bool rna_AnimaData_override_apply(struct Main *bmain,

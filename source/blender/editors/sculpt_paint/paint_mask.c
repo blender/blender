@@ -173,7 +173,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 
   BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   if (nodes) {
     MEM_freeN(nodes);
@@ -707,7 +707,8 @@ static void sculpt_gesture_apply(bContext *C, SculptGestureContext *sgcontext)
 
   operation->sculpt_gesture_end(C, sgcontext);
 
-  SCULPT_undo_push_end();
+  Object *ob = CTX_data_active_object(C);
+  SCULPT_undo_push_end(ob);
 
   SCULPT_tag_update_overlays(C);
 }

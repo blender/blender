@@ -203,7 +203,7 @@ void ED_sculpt_end_transform(struct bContext *C, Object *ob)
    * undo system works separate from regular undo and this is require to properly
    * finish an undo step also when canceling. */
   const bool use_nested_undo = true;
-  SCULPT_undo_push_end_ex(use_nested_undo);
+  SCULPT_undo_push_end_ex(ob, use_nested_undo);
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
 }
 

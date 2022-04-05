@@ -117,7 +117,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   MEM_SAFE_FREE(nodes);
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   /* Force rebuild of PBVH for better BB placement. */
   SCULPT_pbvh_clear(ob);

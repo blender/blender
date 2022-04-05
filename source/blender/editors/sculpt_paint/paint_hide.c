@@ -376,7 +376,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
   }
 
   /* End undo. */
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   /* Ensure that edges and faces get hidden as well (not used by
    * sculpt but it looks wrong when entering editmode otherwise). */

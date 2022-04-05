@@ -2103,9 +2103,9 @@ typedef struct DataTransferModifierData {
   char _pad1[4];
 
   /** DT_MULTILAYER_INDEX_MAX; See DT_FROMLAYERS_ enum in ED_object.h. */
-  int layers_select_src[4];
+  int layers_select_src[5];
   /** DT_MULTILAYER_INDEX_MAX; See DT_TOLAYERS_ enum in ED_object.h. */
-  int layers_select_dst[4];
+  int layers_select_dst[5];
 
   /** See CDT_MIX_ enum in BKE_customdata.h. */
   int mix_mode;

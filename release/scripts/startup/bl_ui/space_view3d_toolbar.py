@@ -419,6 +419,9 @@ class VIEW3D_PT_tools_brush_color(Panel, View3DPaintPanel):
         elif context.vertex_paint_object:
             capabilities = brush.vertex_paint_capabilities
             return capabilities.has_color
+        elif context.sculpt_object:
+            capabilities = brush.sculpt_capabilities
+            return capabilities.has_color
 
         return False
 
@@ -864,8 +867,7 @@ class VIEW3D_PT_sculpt_voxel_remesh(Panel, View3DPaintPanel):
         col.prop(mesh, "use_remesh_preserve_volume", text="Volume")
         col.prop(mesh, "use_remesh_preserve_paint_mask", text="Paint Mask")
         col.prop(mesh, "use_remesh_preserve_sculpt_face_sets", text="Face Sets")
-        if context.preferences.experimental.use_sculpt_vertex_colors:
-            col.prop(mesh, "use_remesh_preserve_vertex_colors", text="Vertex Colors")
+        col.prop(mesh, "use_remesh_preserve_vertex_colors", text="Color Attributes")
 
         layout.operator("object.voxel_remesh", text="Remesh")
 

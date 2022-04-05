@@ -23,6 +23,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_animsys.h"
+#include "BKE_attribute.h"
 #include "BKE_curveprofile.h"
 #include "BKE_data_transfer.h"
 #include "BKE_dynamicpaint.h"
@@ -1360,29 +1361,47 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
       }
     }
   }
-  else if (STREQ(RNA_property_identifier(prop), "layers_vcol_select_src")) {
+  else if (STREQ(RNA_property_identifier(prop), "layers_vcol_select_vert_src") ||
+           STREQ(RNA_property_identifier(prop), "layers_vcol_select_loop_src")) {
     Object *ob_src = dtmd->ob_source;
 
     if (ob_src) {
-      Mesh *me_eval;
-      int num_data, i;
+      AttributeDomain domain = STREQ(RNA_property_identifier(prop),
+                                     "layers_vcol_select_vert_src") ?
+                                   ATTR_DOMAIN_POINT :
+                                   ATTR_DOMAIN_CORNER;
 
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
       Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
 
       CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
-      cddata_masks.lmask |= CD_MASK_MLOOPCOL;
-      me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, &cddata_masks);
-      num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPCOL);
+      CustomData *cdata;
 
-      RNA_enum_item_add_separator(&item, &totitem);
+      Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, &cddata_masks);
 
-      for (i = 0; i < num_data; i++) {
-        tmp_item.value = i;
-        tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(
-            &me_eval->ldata, CD_MLOOPCOL, i);
-        RNA_enum_item_add(&item, &totitem, &tmp_item);
+      if (domain == ATTR_DOMAIN_POINT) {
+        cddata_masks.vmask |= CD_MASK_COLOR_ALL;
+        cdata = &me_eval->vdata;
+      }
+      else {
+        cddata_masks.lmask |= CD_MASK_COLOR_ALL;
+        cdata = &me_eval->ldata;
+      }
+
+      CustomDataType types[2] = {CD_PROP_COLOR, CD_MLOOPCOL};
+
+      int idx = 0;
+      for (int i = 0; i < 2; i++) {
+        int num_data = CustomData_number_of_layers(cdata, types[i]);
+
+        RNA_enum_item_add_separator(&item, &totitem);
+
+        for (int j = 0; j < num_data; j++) {
+          tmp_item.value = idx++;
+          tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(cdata, types[i], j);
+          RNA_enum_item_add(&item, &totitem, &tmp_item);
+        }
       }
     }
   }
@@ -1459,26 +1478,31 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
       }
     }
   }
-  else if (STREQ(RNA_property_identifier(prop), "layers_vcol_select_dst")) {
+  else if (STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_dst") ||
+           STREQ(RNA_property_identifier(prop), "layers_vcol_loop_select_dst")) {
     /* Only list destination layers if we have a single source! */
-    if (dtmd->layers_select_src[DT_MULTILAYER_INDEX_VCOL] >= 0) {
+    if (dtmd->layers_select_src[DT_MULTILAYER_INDEX_VCOL_LOOP] >= 0) {
       Object *ob_dst = CTX_data_active_object(C); /* XXX Is this OK? */
 
       if (ob_dst && ob_dst->data) {
-        Mesh *me_dst;
-        CustomData *ldata;
-        int num_data, i;
+        CustomDataType types[2] = {CD_PROP_COLOR, CD_MLOOPCOL};
 
-        me_dst = ob_dst->data;
-        ldata = &me_dst->ldata;
-        num_data = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
+        Mesh *me_dst = ob_dst->data;
+        CustomData *cdata = STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_dst") ?
+                                &me_dst->vdata :
+                                &me_dst->ldata;
 
-        RNA_enum_item_add_separator(&item, &totitem);
+        int idx = 0;
+        for (int i = 0; i < 2; i++) {
+          int num_data = CustomData_number_of_layers(cdata, types[i]);
 
-        for (i = 0; i < num_data; i++) {
-          tmp_item.value = i;
-          tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(ldata, CD_MLOOPCOL, i);
-          RNA_enum_item_add(&item, &totitem, &tmp_item);
+          RNA_enum_item_add_separator(&item, &totitem);
+
+          for (int j = 0; j < num_data; j++) {
+            tmp_item.value = idx++;
+            tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(cdata, types[i], j);
+            RNA_enum_item_add(&item, &totitem, &tmp_item);
+          }
         }
       }
     }
@@ -6330,6 +6354,11 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
     {DT_TYPE_SKIN, "SKIN", 0, "Skin Weight", "Transfer skin weights"},
 #  endif
     {DT_TYPE_BWEIGHT_VERT, "BEVEL_WEIGHT_VERT", 0, "Bevel Weight", "Transfer bevel weights"},
+    {DT_TYPE_MPROPCOL_VERT | DT_TYPE_MLOOPCOL_VERT,
+     "VCOL",
+     0,
+     "Colors",
+     "Transfer color attributes"},
     {0, NULL, 0, NULL, NULL},
   };
 
@@ -6344,7 +6373,11 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
 
   static const EnumPropertyItem DT_layer_loop_items[] = {
       {DT_TYPE_LNOR, "CUSTOM_NORMAL", 0, "Custom Normals", "Transfer custom normals"},
-      {DT_TYPE_VCOL, "VCOL", 0, "Vertex Colors", "Vertex (face corners) colors"},
+      {DT_TYPE_MPROPCOL_LOOP | DT_TYPE_MLOOPCOL_LOOP,
+       "VCOL",
+       0,
+       "Colors",
+       "Transfer color attributes"},
       {DT_TYPE_UV, "UV", 0, "UVs", "Transfer UV layers"},
       {0, NULL, 0, NULL, NULL},
   };
@@ -6562,12 +6595,23 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
 #  endif
 
   prop = RNA_def_enum(srna,
-                      "layers_vcol_select_src",
+                      "layers_vcol_vert_select_src",
                       rna_enum_dt_layers_select_src_items,
                       DT_LAYERS_ALL_SRC,
                       "Source Layers Selection",
                       "Which layers to transfer, in case of multi-layers types");
-  RNA_def_property_enum_sdna(prop, NULL, "layers_select_src[DT_MULTILAYER_INDEX_VCOL]");
+  RNA_def_property_enum_sdna(prop, NULL, "layers_select_src[DT_MULTILAYER_INDEX_VCOL_VERT]");
+  RNA_def_property_enum_funcs(
+      prop, NULL, NULL, "rna_DataTransferModifier_layers_select_src_itemf");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_enum(srna,
+                      "layers_vcol_loop_select_src",
+                      rna_enum_dt_layers_select_src_items,
+                      DT_LAYERS_ALL_SRC,
+                      "Source Layers Selection",
+                      "Which layers to transfer, in case of multi-layers types");
+  RNA_def_property_enum_sdna(prop, NULL, "layers_select_src[DT_MULTILAYER_INDEX_VCOL_LOOP]");
   RNA_def_property_enum_funcs(
       prop, NULL, NULL, "rna_DataTransferModifier_layers_select_src_itemf");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
@@ -6608,12 +6652,23 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
 #  endif
 
   prop = RNA_def_enum(srna,
-                      "layers_vcol_select_dst",
+                      "layers_vcol_vert_select_dst",
                       rna_enum_dt_layers_select_dst_items,
                       DT_LAYERS_NAME_DST,
                       "Destination Layers Matching",
                       "How to match source and destination layers");
-  RNA_def_property_enum_sdna(prop, NULL, "layers_select_dst[DT_MULTILAYER_INDEX_VCOL]");
+  RNA_def_property_enum_sdna(prop, NULL, "layers_select_dst[DT_MULTILAYER_INDEX_VCOL_VERT]");
+  RNA_def_property_enum_funcs(
+      prop, NULL, NULL, "rna_DataTransferModifier_layers_select_dst_itemf");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_enum(srna,
+                      "layers_vcol_loop_select_dst",
+                      rna_enum_dt_layers_select_dst_items,
+                      DT_LAYERS_NAME_DST,
+                      "Destination Layers Matching",
+                      "How to match source and destination layers");
+  RNA_def_property_enum_sdna(prop, NULL, "layers_select_dst[DT_MULTILAYER_INDEX_VCOL_LOOP]");
   RNA_def_property_enum_funcs(
       prop, NULL, NULL, "rna_DataTransferModifier_layers_select_dst_itemf");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");

@@ -17,6 +17,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_attribute.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
@@ -429,6 +430,9 @@ bool ED_mesh_color_ensure(struct Mesh *me, const char *name)
 
   if (!me->mloopcol && me->totloop) {
     CustomData_add_layer_named(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop, name);
+    int layer_i = CustomData_get_layer_index(&me->ldata, CD_MLOOPCOL);
+
+    BKE_id_attributes_active_color_set(&me->id, me->ldata.layers + layer_i);
     BKE_mesh_update_customdata_pointers(me, true);
   }
 

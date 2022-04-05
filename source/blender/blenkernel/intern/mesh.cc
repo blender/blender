@@ -433,7 +433,7 @@ static const char *cmpcode_to_str(int code)
     case MESHCMP_DVERT_TOTGROUPMISMATCH:
       return "Vertex Doesn't Belong To Same Number Of Groups";
     case MESHCMP_LOOPCOLMISMATCH:
-      return "Vertex Color Mismatch";
+      return "Color Attribute Mismatch";
     case MESHCMP_LOOPUVMISMATCH:
       return "UV Mismatch";
     case MESHCMP_LOOPMISMATCH:

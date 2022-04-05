@@ -227,6 +227,9 @@ typedef enum CustomDataType {
    CD_MASK_PROP_COLOR | CD_MASK_PROP_STRING | CD_MASK_MLOOPCOL | CD_MASK_PROP_BOOL | \
    CD_MASK_PROP_INT8)
 
+/* All color attributes */
+#define CD_MASK_COLOR_ALL (CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL)
+
 typedef struct CustomData_MeshMasks {
   uint64_t vmask;
   uint64_t emask;
@@ -247,6 +250,8 @@ enum {
   CD_FLAG_EXTERNAL = (1 << 3),
   /* Indicates external data is read into memory */
   CD_FLAG_IN_MEMORY = (1 << 4),
+  CD_FLAG_COLOR_ACTIVE = (1 << 5),
+  CD_FLAG_COLOR_RENDER = (1 << 6)
 };
 
 /* Limits */
