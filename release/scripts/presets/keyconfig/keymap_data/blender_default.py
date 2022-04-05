@@ -470,6 +470,13 @@ def _template_items_tool_select(params, operator, cursor_operator, fallback):
              {"properties": [("deselect_all", True)]}),
             (operator, {"type": 'LEFTMOUSE', "value": 'CLICK' if fallback else 'PRESS', "shift": True},
              {"properties": [("toggle", True)]}),
+
+            # Fallback key-map must transform as the primary tool is expected
+            # to be accessed via gizmos in this case. See: T96885.
+            *(() if not fallback else (
+                ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
+                 {"properties": [("release_confirm", True)]}),
+            ))
         ]
     else:
         # Experimental support for LMB interaction for the tweak tool.
