@@ -120,7 +120,7 @@ static bool is_object_data_in_editmode(const ID *id, const Object *obact)
   }
 
   return ((obact && (obact->mode & OB_MODE_EDIT)) && (id && OB_DATA_SUPPORT_EDITMODE(id_type)) &&
-          (GS(((ID *)obact->data)->name) == id_type) && BKE_object_data_is_in_editmode(id));
+          (GS(((ID *)obact->data)->name) == id_type) && BKE_object_data_is_in_editmode(obact, id));
 }
 
 /** \} */

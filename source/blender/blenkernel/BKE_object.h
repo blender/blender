@@ -140,7 +140,7 @@ bool BKE_object_is_in_wpaint_select_vert(const struct Object *ob);
 bool BKE_object_has_mode_data(const struct Object *ob, eObjectMode object_mode);
 bool BKE_object_is_mode_compat(const struct Object *ob, eObjectMode object_mode);
 
-bool BKE_object_data_is_in_editmode(const struct ID *id);
+bool BKE_object_data_is_in_editmode(const struct Object *ob, const struct ID *id);
 
 char *BKE_object_data_editmode_flush_ptr_get(struct ID *id);
 
