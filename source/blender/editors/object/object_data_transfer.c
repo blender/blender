@@ -137,7 +137,7 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
   RNA_enum_items_add_value(
       &item, &totitem, rna_enum_dt_layers_select_src_items, DT_LAYERS_ALL_SRC);
 
-  Object *ob_src = CTX_data_active_object(C);
+  Object *ob_src = ED_object_active_context(C);
   if (ob_src == NULL) {
     RNA_enum_item_end(&item, &totitem);
     *r_free = true;
