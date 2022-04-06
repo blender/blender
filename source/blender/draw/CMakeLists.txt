@@ -227,7 +227,6 @@ set(SRC
   engines/image/image_space_node.hh
   engines/image/image_texture_info.hh
   engines/image/image_usage.hh
-  engines/image/image_wrappers.hh
   engines/workbench/workbench_engine.h
   engines/workbench/workbench_private.h
   engines/workbench/workbench_shader_shared.h
@@ -393,6 +392,7 @@ set(GLSL_SRC
   intern/shaders/common_subdiv_vbo_sculpt_data_comp.glsl
 
   intern/draw_shader_shared.h
+  intern/draw_common_shader_shared.h
 
   engines/gpencil/shaders/gpencil_frag.glsl
   engines/gpencil/shaders/gpencil_vert.glsl
@@ -448,8 +448,6 @@ set(GLSL_SRC
   engines/overlay/shaders/edit_lattice_point_vert.glsl
   engines/overlay/shaders/edit_lattice_wire_vert.glsl
   engines/overlay/shaders/edit_mesh_common_lib.glsl
-  engines/overlay/shaders/edit_mesh_facefill_frag.glsl
-  engines/overlay/shaders/edit_mesh_facefill_vert.glsl
   engines/overlay/shaders/edit_mesh_frag.glsl
   engines/overlay/shaders/edit_mesh_geom.glsl
   engines/overlay/shaders/edit_mesh_normal_vert.glsl

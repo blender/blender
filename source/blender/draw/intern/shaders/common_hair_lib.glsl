@@ -29,7 +29,7 @@ uniform float hairRadTip = 0.0;
 uniform float hairRadShape = 0.5;
 uniform bool hairCloseTip = true;
 
-uniform vec4 hairDupliMatrix[4];
+uniform mat4 hairDupliMatrix;
 
 /* Strand batch offset when used in compute shaders. */
 uniform int hairStrandOffset = 0;
@@ -192,9 +192,7 @@ void hair_get_pos_tan_binor_time(bool is_persp,
     wtan = wpos - texelFetch(hairPointBuffer, id - 1).point_position;
   }
 
-  mat4 obmat = mat4(
-      hairDupliMatrix[0], hairDupliMatrix[1], hairDupliMatrix[2], hairDupliMatrix[3]);
-
+  mat4 obmat = hairDupliMatrix;
   wpos = (obmat * vec4(wpos, 1.0)).xyz;
   wtan = -normalize(mat3(obmat) * wtan);
 

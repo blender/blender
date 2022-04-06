@@ -1209,7 +1209,7 @@ static void remap_hooks_and_vertex_parents(Main *bmain, Object *obedit)
             old_to_new_map = init_index_map(obedit, &old_totvert);
           }
 
-          for (i = j = 0; i < hmd->totindex; i++) {
+          for (i = j = 0; i < hmd->indexar_num; i++) {
             if (hmd->indexar[i] < old_totvert) {
               index = old_to_new_map[hmd->indexar[i]];
               if (index != -1) {
@@ -1221,7 +1221,7 @@ static void remap_hooks_and_vertex_parents(Main *bmain, Object *obedit)
             }
           }
 
-          hmd->totindex = j;
+          hmd->indexar_num = j;
         }
       }
     }
@@ -1471,7 +1471,8 @@ static int curve_split_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
-  int ok = -1;
+  bool changed = false;
+  int count_failed = 0;
 
   uint objects_len;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
@@ -1489,7 +1490,7 @@ static int curve_split_exec(bContext *C, wmOperator *op)
     adduplicateflagNurb(obedit, v3d, &newnurb, SELECT, true);
 
     if (BLI_listbase_is_empty(&newnurb)) {
-      ok = MAX2(ok, 0);
+      count_failed += 1;
       continue;
     }
 
@@ -1504,14 +1505,16 @@ static int curve_split_exec(bContext *C, wmOperator *op)
       WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
     }
 
-    ok = 1;
+    changed = true;
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
     DEG_id_tag_update(obedit->data, 0);
   }
   MEM_freeN(objects);
 
-  if (ok == 0) {
-    BKE_report(op->reports, RPT_ERROR, "Cannot split current selection");
+  if (changed == false) {
+    if (count_failed != 0) {
+      BKE_report(op->reports, RPT_ERROR, "Cannot split current selection");
+    }
     return OPERATOR_CANCELLED;
   }
   return OPERATOR_FINISHED;
@@ -4725,6 +4728,7 @@ void CURVE_OT_make_segment(wmOperatorType *ot)
 
 bool ED_curve_editnurb_select_pick(bContext *C,
                                    const int mval[2],
+                                   const int dist_px,
                                    const struct SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -4740,7 +4744,7 @@ bool ED_curve_editnurb_select_pick(bContext *C,
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
   copy_v2_v2_int(vc.mval, mval);
 
-  bool found = ED_curve_pick_vert(&vc, 1, &nu, &bezt, &bp, &hand, &basact);
+  bool found = ED_curve_pick_vert_ex(&vc, 1, dist_px, &nu, &bezt, &bp, &hand, &basact);
 
   if (params->sel_op == SEL_OP_SET) {
     if ((found && params->select_passthrough) &&
@@ -4997,7 +5001,8 @@ static int spin_exec(bContext *C, wmOperator *op)
   View3D *v3d = CTX_wm_view3d(C);
   RegionView3D *rv3d = ED_view3d_context_rv3d(C);
   float cent[3], axis[3], viewmat[4][4];
-  int ok = -1;
+  bool changed = false;
+  int count_failed = 0;
 
   RNA_float_get_array(op->ptr, "center", cent);
   RNA_float_get_array(op->ptr, "axis", axis);
@@ -5024,11 +5029,11 @@ static int spin_exec(bContext *C, wmOperator *op)
     mul_m4_v3(obedit->imat, cent);
 
     if (!ed_editnurb_spin(viewmat, v3d, obedit, axis, cent)) {
-      ok = MAX2(ok, 0);
+      count_failed += 1;
       continue;
     }
 
-    ok = 1;
+    changed = true;
     if (ED_curve_updateAnimPaths(bmain, cu)) {
       WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
     }
@@ -5038,8 +5043,11 @@ static int spin_exec(bContext *C, wmOperator *op)
   }
   MEM_freeN(objects);
 
-  if (ok == 0) {
-    BKE_report(op->reports, RPT_ERROR, "Cannot spin");
+  if (changed == false) {
+    if (count_failed != 0) {
+      BKE_report(op->reports, RPT_ERROR, "Cannot spin");
+    }
+    return OPERATOR_CANCELLED;
   }
   return OPERATOR_FINISHED;
 }
@@ -5344,10 +5352,7 @@ static bool ed_editcurve_extrude(Curve *cu, EditNurb *editnurb, View3D *v3d)
 /** \name Add Vertex Operator
  * \{ */
 
-static int ed_editcurve_addvert(Curve *cu,
-                                EditNurb *editnurb,
-                                View3D *v3d,
-                                const float location_init[3])
+int ed_editcurve_addvert(Curve *cu, EditNurb *editnurb, View3D *v3d, const float location_init[3])
 {
   float center[3];
   float temp[3];
@@ -5719,7 +5724,7 @@ void CURVE_OT_extrude(wmOperatorType *ot)
 /** \name Make Cyclic Operator
  * \{ */
 
-static bool curve_toggle_cyclic(View3D *v3d, ListBase *editnurb, int direction)
+bool curve_toggle_cyclic(View3D *v3d, ListBase *editnurb, int direction)
 {
   BezTriple *bezt;
   BPoint *bp;
@@ -5891,7 +5896,9 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
-  int ok = -1;
+
+  bool changed = false;
+  int count_failed = 0;
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
@@ -5908,19 +5915,21 @@ static int duplicate_exec(bContext *C, wmOperator *op)
     adduplicateflagNurb(obedit, v3d, &newnurb, SELECT, false);
 
     if (BLI_listbase_is_empty(&newnurb)) {
-      ok = MAX2(ok, 0);
+      count_failed += 1;
       continue;
     }
 
-    ok = 1;
+    changed = true;
     BLI_movelisttolist(object_editcurve_get(obedit), &newnurb);
     DEG_id_tag_update(&cu->id, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, &cu->id);
   }
   MEM_freeN(objects);
 
-  if (ok == 0) {
-    BKE_report(op->reports, RPT_ERROR, "Cannot duplicate current selection");
+  if (changed == false) {
+    if (count_failed != 0) {
+      BKE_report(op->reports, RPT_ERROR, "Cannot duplicate current selection");
+    }
     return OPERATOR_CANCELLED;
   }
   return OPERATOR_FINISHED;
@@ -6502,6 +6511,70 @@ static bool test_bezt_is_sel_any(const void *bezt_v, void *user_data)
   return BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt);
 }
 
+void ed_dissolve_bez_segment(BezTriple *bezt_prev,
+                             BezTriple *bezt_next,
+                             const Nurb *nu,
+                             const Curve *cu,
+                             const uint span_len,
+                             const uint span_step[2])
+{
+  int i_span_edge_len = span_len + 1;
+  const int dims = 3;
+
+  const int points_len = ((cu->resolu - 1) * i_span_edge_len) + 1;
+  float *points = MEM_mallocN(points_len * dims * sizeof(float), __func__);
+  float *points_stride = points;
+  const int points_stride_len = (cu->resolu - 1);
+
+  for (int segment = 0; segment < i_span_edge_len; segment++) {
+    BezTriple *bezt_a = &nu->bezt[mod_i((span_step[0] + segment) - 1, nu->pntsu)];
+    BezTriple *bezt_b = &nu->bezt[mod_i((span_step[0] + segment), nu->pntsu)];
+
+    for (int axis = 0; axis < dims; axis++) {
+      BKE_curve_forward_diff_bezier(bezt_a->vec[1][axis],
+                                    bezt_a->vec[2][axis],
+                                    bezt_b->vec[0][axis],
+                                    bezt_b->vec[1][axis],
+                                    points_stride + axis,
+                                    points_stride_len,
+                                    dims * sizeof(float));
+    }
+
+    points_stride += dims * points_stride_len;
+  }
+
+  BLI_assert(points_stride + dims == points + (points_len * dims));
+
+  float tan_l[3], tan_r[3], error_sq_dummy;
+  uint error_index_dummy;
+
+  sub_v3_v3v3(tan_l, bezt_prev->vec[1], bezt_prev->vec[2]);
+  normalize_v3(tan_l);
+  sub_v3_v3v3(tan_r, bezt_next->vec[0], bezt_next->vec[1]);
+  normalize_v3(tan_r);
+
+  curve_fit_cubic_to_points_single_fl(points,
+                                      points_len,
+                                      NULL,
+                                      dims,
+                                      FLT_EPSILON,
+                                      tan_l,
+                                      tan_r,
+                                      bezt_prev->vec[2],
+                                      bezt_next->vec[0],
+                                      &error_sq_dummy,
+                                      &error_index_dummy);
+
+  if (!ELEM(bezt_prev->h2, HD_FREE, HD_ALIGN)) {
+    bezt_prev->h2 = (bezt_prev->h2 == HD_VECT) ? HD_FREE : HD_ALIGN;
+  }
+  if (!ELEM(bezt_next->h1, HD_FREE, HD_ALIGN)) {
+    bezt_next->h1 = (bezt_next->h1 == HD_VECT) ? HD_FREE : HD_ALIGN;
+  }
+
+  MEM_freeN(points);
+}
+
 static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
@@ -6537,61 +6610,7 @@ static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
           BezTriple *bezt_prev = &nu->bezt[mod_i(span_step[0] - 1, nu->pntsu)];
           BezTriple *bezt_next = &nu->bezt[mod_i(span_step[1] + 1, nu->pntsu)];
 
-          int i_span_edge_len = span_len + 1;
-          const uint dims = 3;
-
-          const uint points_len = ((cu->resolu - 1) * i_span_edge_len) + 1;
-          float *points = MEM_mallocN(points_len * dims * sizeof(float), __func__);
-          float *points_stride = points;
-          const int points_stride_len = (cu->resolu - 1);
-
-          for (int segment = 0; segment < i_span_edge_len; segment++) {
-            BezTriple *bezt_a = &nu->bezt[mod_i((span_step[0] + segment) - 1, nu->pntsu)];
-            BezTriple *bezt_b = &nu->bezt[mod_i((span_step[0] + segment), nu->pntsu)];
-
-            for (int axis = 0; axis < dims; axis++) {
-              BKE_curve_forward_diff_bezier(bezt_a->vec[1][axis],
-                                            bezt_a->vec[2][axis],
-                                            bezt_b->vec[0][axis],
-                                            bezt_b->vec[1][axis],
-                                            points_stride + axis,
-                                            points_stride_len,
-                                            dims * sizeof(float));
-            }
-
-            points_stride += dims * points_stride_len;
-          }
-
-          BLI_assert(points_stride + dims == points + (points_len * dims));
-
-          float tan_l[3], tan_r[3], error_sq_dummy;
-          uint error_index_dummy;
-
-          sub_v3_v3v3(tan_l, bezt_prev->vec[1], bezt_prev->vec[2]);
-          normalize_v3(tan_l);
-          sub_v3_v3v3(tan_r, bezt_next->vec[0], bezt_next->vec[1]);
-          normalize_v3(tan_r);
-
-          curve_fit_cubic_to_points_single_fl(points,
-                                              points_len,
-                                              NULL,
-                                              dims,
-                                              FLT_EPSILON,
-                                              tan_l,
-                                              tan_r,
-                                              bezt_prev->vec[2],
-                                              bezt_next->vec[0],
-                                              &error_sq_dummy,
-                                              &error_index_dummy);
-
-          if (!ELEM(bezt_prev->h2, HD_FREE, HD_ALIGN)) {
-            bezt_prev->h2 = (bezt_prev->h2 == HD_VECT) ? HD_FREE : HD_ALIGN;
-          }
-          if (!ELEM(bezt_next->h1, HD_FREE, HD_ALIGN)) {
-            bezt_next->h1 = (bezt_next->h1 == HD_VECT) ? HD_FREE : HD_ALIGN;
-          }
-
-          MEM_freeN(points);
+          ed_dissolve_bez_segment(bezt_prev, bezt_next, nu, cu, span_len, span_step);
         }
       }
     }

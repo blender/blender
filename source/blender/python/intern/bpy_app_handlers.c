@@ -24,7 +24,7 @@
 
 void bpy_app_generic_callback(struct Main *main,
                               struct PointerRNA **pointers,
-                              const int num_pointers,
+                              const int pointers_num,
                               void *arg);
 
 static PyTypeObject BlenderAppCbType;
@@ -305,7 +305,7 @@ static PyObject *choose_arguments(PyObject *func, PyObject *args_all, PyObject *
 /* the actual callback - not necessarily called from py */
 void bpy_app_generic_callback(struct Main *UNUSED(main),
                               struct PointerRNA **pointers,
-                              const int num_pointers,
+                              const int pointers_num,
                               void *arg)
 {
   PyObject *cb_list = py_cb_array[POINTER_AS_INT(arg)];
@@ -320,14 +320,14 @@ void bpy_app_generic_callback(struct Main *UNUSED(main),
     Py_ssize_t pos;
 
     /* setup arguments */
-    for (int i = 0; i < num_pointers; ++i) {
+    for (int i = 0; i < pointers_num; ++i) {
       PyTuple_SET_ITEM(args_all, i, pyrna_struct_CreatePyObject(pointers[i]));
     }
-    for (int i = num_pointers; i < num_arguments; ++i) {
+    for (int i = pointers_num; i < num_arguments; ++i) {
       PyTuple_SET_ITEM(args_all, i, Py_INCREF_RET(Py_None));
     }
 
-    if (num_pointers == 0) {
+    if (pointers_num == 0) {
       PyTuple_SET_ITEM(args_single, 0, Py_INCREF_RET(Py_None));
     }
     else {

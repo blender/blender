@@ -80,7 +80,7 @@ typedef struct CustomData {
   CustomDataExternal *external;
 } CustomData;
 
-/* CustomData.type */
+/** #CustomData.type */
 typedef enum CustomDataType {
   /* Used by GLSL attributes in the cases when we need a delayed CD type
    * assignment (in the cases when we don't know in advance which layer
@@ -227,6 +227,9 @@ typedef enum CustomDataType {
    CD_MASK_PROP_COLOR | CD_MASK_PROP_STRING | CD_MASK_MLOOPCOL | CD_MASK_PROP_BOOL | \
    CD_MASK_PROP_INT8)
 
+/* All color attributes */
+#define CD_MASK_COLOR_ALL (CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL)
+
 typedef struct CustomData_MeshMasks {
   uint64_t vmask;
   uint64_t emask;
@@ -235,7 +238,7 @@ typedef struct CustomData_MeshMasks {
   uint64_t lmask;
 } CustomData_MeshMasks;
 
-/* CustomData.flag */
+/** #CustomData.flag */
 enum {
   /* Indicates layer should not be copied by CustomData_from_template or CustomData_copy_data */
   CD_FLAG_NOCOPY = (1 << 0),
@@ -247,6 +250,8 @@ enum {
   CD_FLAG_EXTERNAL = (1 << 3),
   /* Indicates external data is read into memory */
   CD_FLAG_IN_MEMORY = (1 << 4),
+  CD_FLAG_COLOR_ACTIVE = (1 << 5),
+  CD_FLAG_COLOR_RENDER = (1 << 6)
 };
 
 /* Limits */

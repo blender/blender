@@ -2195,8 +2195,9 @@ static bool gpencil_vertex_group_poll(bContext *C)
   Object *ob = CTX_data_active_object(C);
 
   if ((ob) && (ob->type == OB_GPENCIL)) {
+    Main *bmain = CTX_data_main(C);
     const bGPdata *gpd = (const bGPdata *)ob->data;
-    if (!ID_IS_LINKED(ob) && !ID_IS_LINKED(ob->data) &&
+    if (BKE_id_is_editable(bmain, &ob->id) && BKE_id_is_editable(bmain, ob->data) &&
         !BLI_listbase_is_empty(&gpd->vertex_group_names)) {
       if (ELEM(ob->mode, OB_MODE_EDIT_GPENCIL, OB_MODE_SCULPT_GPENCIL)) {
         return true;
@@ -2212,8 +2213,9 @@ static bool gpencil_vertex_group_weight_poll(bContext *C)
   Object *ob = CTX_data_active_object(C);
 
   if ((ob) && (ob->type == OB_GPENCIL)) {
+    Main *bmain = CTX_data_main(C);
     const bGPdata *gpd = (const bGPdata *)ob->data;
-    if (!ID_IS_LINKED(ob) && !ID_IS_LINKED(ob->data) &&
+    if (BKE_id_is_editable(bmain, &ob->id) && BKE_id_is_editable(bmain, ob->data) &&
         !BLI_listbase_is_empty(&gpd->vertex_group_names)) {
       if (ob->mode == OB_MODE_WEIGHT_GPENCIL) {
         return true;

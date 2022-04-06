@@ -249,8 +249,8 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
 
   GenerateOceanGeometryData gogd;
 
-  int num_verts;
-  int num_polys;
+  int verts_num;
+  int polys_num;
 
   const bool use_threading = resolution > 4;
 
@@ -259,8 +259,8 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
   gogd.res_x = gogd.rx * omd->repeat_x;
   gogd.res_y = gogd.ry * omd->repeat_y;
 
-  num_verts = (gogd.res_x + 1) * (gogd.res_y + 1);
-  num_polys = gogd.res_x * gogd.res_y;
+  verts_num = (gogd.res_x + 1) * (gogd.res_y + 1);
+  polys_num = gogd.res_x * gogd.res_y;
 
   gogd.sx = omd->size * omd->spatial_size;
   gogd.sy = omd->size * omd->spatial_size;
@@ -270,7 +270,7 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
   gogd.sx /= gogd.rx;
   gogd.sy /= gogd.ry;
 
-  result = BKE_mesh_new_nomain(num_verts, 0, 0, num_polys * 4, num_polys);
+  result = BKE_mesh_new_nomain(verts_num, 0, 0, polys_num * 4, polys_num);
   BKE_mesh_copy_parameters_for_eval(result, mesh_orig);
 
   gogd.mverts = result->mvert;
@@ -292,7 +292,7 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
   /* add uvs */
   if (CustomData_number_of_layers(&result->ldata, CD_MLOOPUV) < MAX_MTFACE) {
     gogd.mloopuvs = CustomData_add_layer(
-        &result->ldata, CD_MLOOPUV, CD_CALLOC, NULL, num_polys * 4);
+        &result->ldata, CD_MLOOPUV, CD_CALLOC, NULL, polys_num * 4);
 
     if (gogd.mloopuvs) { /* unlikely to fail */
       gogd.ix = 1.0 / gogd.rx;
@@ -377,23 +377,23 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
 
   if (omd->flag & MOD_OCEAN_GENERATE_FOAM) {
     if (CustomData_number_of_layers(&result->ldata, CD_MLOOPCOL) < MAX_MCOL) {
-      const int num_polys = result->totpoly;
-      const int num_loops = result->totloop;
+      const int polys_num = result->totpoly;
+      const int loops_num = result->totloop;
       MLoop *mloops = result->mloop;
       MLoopCol *mloopcols = CustomData_add_layer_named(
-          &result->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, num_loops, omd->foamlayername);
+          &result->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, loops_num, omd->foamlayername);
 
       MLoopCol *mloopcols_spray = NULL;
       if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
         mloopcols_spray = CustomData_add_layer_named(
-            &result->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, num_loops, omd->spraylayername);
+            &result->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, loops_num, omd->spraylayername);
       }
 
       if (mloopcols) { /* unlikely to fail */
         MPoly *mpolys = result->mpoly;
         MPoly *mp;
 
-        for (i = 0, mp = mpolys; i < num_polys; i++, mp++) {
+        for (i = 0, mp = mpolys; i < polys_num; i++, mp++) {
           MLoop *ml = &mloops[mp->loopstart];
           MLoopCol *mlcol = &mloopcols[mp->loopstart];
 
@@ -449,9 +449,9 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
   /* NOTE: tried to parallelized that one and previous foam loop,
    * but gives 20% slower results... odd. */
   {
-    const int num_verts = result->totvert;
+    const int verts_num = result->totvert;
 
-    for (i = 0; i < num_verts; i++) {
+    for (i = 0; i < verts_num; i++) {
       float *vco = mverts[i].co;
       const float u = OCEAN_CO(size_co_inv, vco[0]);
       const float v = OCEAN_CO(size_co_inv, vco[1]);

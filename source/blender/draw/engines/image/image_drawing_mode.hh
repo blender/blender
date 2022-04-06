@@ -16,7 +16,6 @@
 
 #include "image_batches.hh"
 #include "image_private.hh"
-#include "image_wrappers.hh"
 
 namespace blender::draw::image_engine {
 
@@ -58,7 +57,7 @@ struct OneTextureMethod {
   {
     /* Although this works, computing an inverted matrix adds some precision issues and leads to
      * tearing artifacts. This should be modified to use the scaling and transformation from the
-     * not inverted matrix.*/
+     * not inverted matrix. */
     float4x4 mat(instance_data->ss_to_texture);
     float4x4 mat_inv = mat.inverted();
     float3 min_uv = mat_inv * float3(0.0f, 0.0f, 0.0f);
@@ -74,6 +73,7 @@ struct OneTextureMethod {
 };
 
 using namespace blender::bke::image::partial_update;
+using namespace blender::bke::image;
 
 template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractDrawingMode {
  private:
@@ -420,7 +420,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
 
     /* IMB_transform works in a non-consistent space. This should be documented or fixed!.
      * Construct a variant of the info_uv_to_texture that adds the texel space
-     * transformation.*/
+     * transformation. */
     float uv_to_texel[4][4];
     copy_m4_m4(uv_to_texel, instance_data.ss_to_texture);
     float scale[3] = {static_cast<float>(texture_width) / static_cast<float>(tile_buffer.x),

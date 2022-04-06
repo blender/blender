@@ -150,7 +150,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
 
   multires_stitch_grids(ob);
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
   MEM_SAFE_FREE(nodes);

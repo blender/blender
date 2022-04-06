@@ -1202,6 +1202,22 @@ class _defs_edit_curve:
         )
 
     @ToolDef.from_fn
+    def pen():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("curve.pen")
+            layout.prop(props, "close_spline")
+            layout.prop(props, "extrude_handle")
+        return dict(
+            idname="builtin.pen",
+            label="Curve Pen",
+            cursor='CROSSHAIR',
+            icon="ops.curve.pen",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
     def tilt():
         return dict(
             idname="builtin.tilt",
@@ -1291,19 +1307,12 @@ class _defs_sculpt:
 
     @staticmethod
     def generate_from_brushes(context):
-        exclude_filter = {}
-        # Use 'bpy.context' instead of 'context' since it can be None.
-        prefs = bpy.context.preferences
-        if not prefs.experimental.use_sculpt_vertex_colors:
-            exclude_filter = {'PAINT', 'SMEAR'}
-
         return generate_from_enum_ex(
             context,
             idname_prefix="builtin_brush.",
             icon_prefix="brush.sculpt.",
             type=bpy.types.Brush,
             attr="sculpt_tool",
-            exclude_filter=exclude_filter,
         )
 
     @ToolDef.from_fn
@@ -2881,6 +2890,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_default,
             None,
             _defs_edit_curve.draw,
+            _defs_edit_curve.pen,
             (
                 _defs_edit_curve.extrude,
                 _defs_edit_curve.extrude_cursor,
@@ -2937,24 +2947,11 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 _defs_sculpt.trim_lasso,
             ),
             _defs_sculpt.project_line,
+            _defs_sculpt.mask_by_color,
             None,
             _defs_sculpt.mesh_filter,
             _defs_sculpt.cloth_filter,
-            lambda context: (
-                (_defs_sculpt.color_filter,)
-                if context is None or (
-                        context.preferences.view.show_developer_ui and
-                        context.preferences.experimental.use_sculpt_vertex_colors)
-                else ()
-            ),
-            None,
-            lambda context: (
-                (_defs_sculpt.mask_by_color,)
-                if context is None or (
-                        context.preferences.view.show_developer_ui and
-                        context.preferences.experimental.use_sculpt_vertex_colors)
-                else ()
-            ),
+            _defs_sculpt.color_filter,
             None,
             _defs_sculpt.face_set_edit,
             None,

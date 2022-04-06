@@ -2052,7 +2052,7 @@ static int uv_select_more_less(bContext *C, const bool select)
               }
 
               /* If the current face is not selected and at least one neighboring face is
-               * selected, then tag the current face to grow selection.*/
+               * selected, then tag the current face to grow selection. */
               if (sel_state == (NEIGHBORING_FACE_IS_SEL | CURR_FACE_IS_UNSEL)) {
                 BM_elem_flag_enable(efa, BM_ELEM_TAG);
                 changed = true;
@@ -2622,13 +2622,9 @@ static int uv_select_exec(bContext *C, wmOperator *op)
   float co[2];
 
   RNA_float_get_array(op->ptr, "location", co);
-  const struct SelectPick_Params params = {
-      .sel_op = ED_select_op_from_booleans(RNA_boolean_get(op->ptr, "extend"),
-                                           RNA_boolean_get(op->ptr, "deselect"),
-                                           RNA_boolean_get(op->ptr, "toggle")),
-      .deselect_all = RNA_boolean_get(op->ptr, "deselect_all"),
-      .select_passthrough = RNA_boolean_get(op->ptr, "select_passthrough"),
-  };
+
+  struct SelectPick_Params params = {0};
+  ED_select_pick_params_from_operator(op, &params);
 
   const bool changed = uv_mouse_select(C, co, &params);
 
@@ -3382,7 +3378,8 @@ static void uv_select_flush_from_tag_loop(const Scene *scene, Object *obedit, co
  * but dealing with sticky modes for vertex selections is best done in a separate function.
  *
  * \note Current behavior is selecting only; deselecting can be added but the behavior isn't
- * required anywhere.*/
+ * required anywhere.
+ */
 static void uv_select_flush_from_loop_edge_flag(const Scene *scene, BMEditMesh *em)
 {
   const ToolSettings *ts = scene->toolsettings;

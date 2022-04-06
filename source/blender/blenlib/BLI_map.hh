@@ -962,7 +962,13 @@ class Map {
    */
   void clear()
   {
-    this->noexcept_reset();
+    for (Slot &slot : slots_) {
+      slot.~Slot();
+      new (&slot) Slot();
+    }
+
+    removed_slots_ = 0;
+    occupied_and_removed_slots_ = 0;
   }
 
   /**

@@ -197,7 +197,12 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
               }
               else {
                 brush = BKE_brush_add(bmain, items[i].name, paint->runtime.ob_mode);
+
                 BKE_brush_tool_set(brush, paint, slot_index);
+
+                if (paint_mode == PAINT_MODE_SCULPT) {
+                  BKE_brush_sculpt_reset(brush);
+                }
               }
               BKE_paint_brush_set(paint, brush);
             }

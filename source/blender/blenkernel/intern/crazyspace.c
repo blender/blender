@@ -236,7 +236,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgra
   ModifierData *md;
   Mesh *me_input = ob->data;
   Mesh *me = NULL;
-  int i, a, numleft = 0, numVerts = 0;
+  int i, a, modifiers_left_num = 0, verts_num = 0;
   int cageIndex = BKE_modifiers_get_cage_index(scene, ob, NULL, 1);
   float(*defmats)[3][3] = NULL, (*deformedVerts)[3] = NULL;
   VirtualModifierData virtualModifierData;
@@ -266,14 +266,14 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgra
         BLI_linklist_free((LinkNode *)datamasks, NULL);
 
         me = BKE_mesh_wrapper_from_editmesh_with_coords(em, &cd_mask_extra, NULL, me_input);
-        deformedVerts = editbmesh_vert_coords_alloc(em, &numVerts);
-        defmats = MEM_mallocN(sizeof(*defmats) * numVerts, "defmats");
+        deformedVerts = editbmesh_vert_coords_alloc(em, &verts_num);
+        defmats = MEM_mallocN(sizeof(*defmats) * verts_num, "defmats");
 
-        for (a = 0; a < numVerts; a++) {
+        for (a = 0; a < verts_num; a++) {
           unit_m3(defmats[a]);
         }
       }
-      mti->deformMatricesEM(md, &mectx, em, me, deformedVerts, defmats, numVerts);
+      mti->deformMatricesEM(md, &mectx, em, me, deformedVerts, defmats, verts_num);
     }
     else {
       break;
@@ -283,7 +283,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgra
   for (; md && i <= cageIndex; md = md->next, i++) {
     if (editbmesh_modifier_is_enabled(scene, ob, md, me != NULL) &&
         BKE_modifier_is_correctable_deformed(md)) {
-      numleft++;
+      modifiers_left_num++;
     }
   }
 
@@ -294,7 +294,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgra
   *deformmats = defmats;
   *deformcos = deformedVerts;
 
-  return numleft;
+  return modifiers_left_num;
 }
 
 /**
@@ -319,13 +319,13 @@ static void crazyspace_init_verts_and_matrices(const Mesh *mesh,
                                                float (**deformmats)[3][3],
                                                float (**deformcos)[3])
 {
-  int num_verts;
-  *deformcos = BKE_mesh_vert_coords_alloc(mesh, &num_verts);
-  *deformmats = MEM_callocN(sizeof(**deformmats) * num_verts, "defmats");
-  for (int a = 0; a < num_verts; a++) {
+  int verts_num;
+  *deformcos = BKE_mesh_vert_coords_alloc(mesh, &verts_num);
+  *deformmats = MEM_callocN(sizeof(**deformmats) * verts_num, "defmats");
+  for (int a = 0; a < verts_num; a++) {
     unit_m3((*deformmats)[a]);
   }
-  BLI_assert(num_verts == mesh->totvert);
+  BLI_assert(verts_num == mesh->totvert);
 }
 
 static bool crazyspace_modifier_supports_deform_matrices(ModifierData *md)
@@ -352,7 +352,7 @@ int BKE_sculpt_get_first_deform_matrices(struct Depsgraph *depsgraph,
   ModifierData *md;
   Mesh *me_eval = NULL;
   float(*defmats)[3][3] = NULL, (*deformedVerts)[3] = NULL;
-  int numleft = 0;
+  int modifiers_left_num = 0;
   VirtualModifierData virtualModifierData;
   Object object_eval;
   crazyspace_init_object_for_eval(depsgraph, object, &object_eval);
@@ -364,7 +364,7 @@ int BKE_sculpt_get_first_deform_matrices(struct Depsgraph *depsgraph,
   if (is_sculpt_mode && has_multires) {
     *deformmats = NULL;
     *deformcos = NULL;
-    return numleft;
+    return modifiers_left_num;
   }
 
   md = BKE_modifiers_get_virtual_modifierlist(&object_eval, &virtualModifierData);
@@ -401,7 +401,7 @@ int BKE_sculpt_get_first_deform_matrices(struct Depsgraph *depsgraph,
     }
 
     if (crazyspace_modifier_supports_deform(md)) {
-      numleft++;
+      modifiers_left_num++;
     }
   }
 
@@ -412,7 +412,7 @@ int BKE_sculpt_get_first_deform_matrices(struct Depsgraph *depsgraph,
   *deformmats = defmats;
   *deformcos = deformedVerts;
 
-  return numleft;
+  return modifiers_left_num;
 }
 
 void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph,
@@ -489,13 +489,13 @@ void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph,
   }
 
   if (*deformmats == NULL) {
-    int a, numVerts;
+    int a, verts_num;
     Mesh *mesh = (Mesh *)object->data;
 
-    *deformcos = BKE_mesh_vert_coords_alloc(mesh, &numVerts);
-    *deformmats = MEM_callocN(sizeof(*(*deformmats)) * numVerts, "defmats");
+    *deformcos = BKE_mesh_vert_coords_alloc(mesh, &verts_num);
+    *deformmats = MEM_callocN(sizeof(*(*deformmats)) * verts_num, "defmats");
 
-    for (a = 0; a < numVerts; a++) {
+    for (a = 0; a < verts_num; a++) {
       unit_m3((*deformmats)[a]);
     }
   }
@@ -523,7 +523,7 @@ void BKE_crazyspace_api_eval(Depsgraph *depsgraph,
   }
 
   const Mesh *mesh = (const Mesh *)object->data;
-  object->runtime.crazyspace_num_verts = mesh->totvert;
+  object->runtime.crazyspace_verts_num = mesh->totvert;
   BKE_crazyspace_build_sculpt(depsgraph,
                               scene,
                               object,
@@ -537,12 +537,12 @@ void BKE_crazyspace_api_displacement_to_deformed(struct Object *object,
                                                  float displacement[3],
                                                  float r_displacement_deformed[3])
 {
-  if (vertex_index < 0 || vertex_index >= object->runtime.crazyspace_num_verts) {
+  if (vertex_index < 0 || vertex_index >= object->runtime.crazyspace_verts_num) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Invalid vertex index %d (expected to be within 0 to %d range)",
                 vertex_index,
-                object->runtime.crazyspace_num_verts);
+                object->runtime.crazyspace_verts_num);
     return;
   }
 
@@ -557,12 +557,12 @@ void BKE_crazyspace_api_displacement_to_original(struct Object *object,
                                                  float displacement_deformed[3],
                                                  float r_displacement[3])
 {
-  if (vertex_index < 0 || vertex_index >= object->runtime.crazyspace_num_verts) {
+  if (vertex_index < 0 || vertex_index >= object->runtime.crazyspace_verts_num) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Invalid vertex index %d (expected to be within 0 to %d range))",
                 vertex_index,
-                object->runtime.crazyspace_num_verts);
+                object->runtime.crazyspace_verts_num);
     return;
   }
 

@@ -35,22 +35,33 @@
 /** \name Private Utilities
  * \{ */
 
-static void python_script_error_jump_text(Text *text)
+static void python_script_error_jump_text(Text *text, const char *filepath)
 {
-  int lineno;
-  int offset;
-  python_script_error_jump(text->id.name + 2, &lineno, &offset);
-  if (lineno != -1) {
-    /* select the line with the error */
-    txt_move_to(text, lineno - 1, INT_MAX, false);
-    txt_move_to(text, lineno - 1, offset, true);
+  int lineno, lineno_end;
+  int offset, offset_end;
+  if (python_script_error_jump(filepath, &lineno, &offset, &lineno_end, &offset_end)) {
+    /* Start at the end so cursor motion that looses the selection,
+     * leaves the cursor from the most useful place.
+     * Also, the end can't always be set, so don't give it priority. */
+    txt_move_to(text, lineno_end - 1, offset_end - 1, false);
+    txt_move_to(text, lineno - 1, offset - 1, true);
   }
 }
 
-/* returns a dummy filename for a textblock so we can tell what file a text block comes from */
-static void bpy_text_filename_get(char *fn, const Main *bmain, size_t fn_len, const Text *text)
+/**
+ * Generate a `filepath` from a text-block so we can tell what file a text block comes from.
+ */
+static void bpy_text_filepath_get(char *filepath,
+                                  const size_t filepath_maxlen,
+                                  const Main *bmain,
+                                  const Text *text)
 {
-  BLI_snprintf(fn, fn_len, "%s%c%s", ID_BLEND_PATH(bmain, &text->id), SEP, text->id.name + 2);
+  BLI_snprintf(filepath,
+               filepath_maxlen,
+               "%s%c%s",
+               ID_BLEND_PATH(bmain, &text->id),
+               SEP,
+               text->id.name + 2);
 }
 
 /* Very annoying! Undo #_PyModule_Clear(), see T23871. */
@@ -74,17 +85,24 @@ typedef struct {
  *
  * \note Share a function for this since setup/cleanup logic is the same.
  */
-static bool python_script_exec(
-    bContext *C, const char *fn, struct Text *text, struct ReportList *reports, const bool do_jump)
+static bool python_script_exec(bContext *C,
+                               const char *filepath,
+                               struct Text *text,
+                               struct ReportList *reports,
+                               const bool do_jump)
 {
   Main *bmain_old = CTX_data_main(C);
   PyObject *main_mod = NULL;
   PyObject *py_dict = NULL, *py_result = NULL;
   PyGILState_STATE gilstate;
 
-  BLI_assert(fn || text);
+  char filepath_dummy[FILE_MAX];
+  /** The `__file__` added into the name-space. */
+  const char *filepath_namespace = NULL;
 
-  if (fn == NULL && text == NULL) {
+  BLI_assert(filepath || text);
+
+  if (filepath == NULL && text == NULL) {
     return 0;
   }
 
@@ -93,40 +111,41 @@ static bool python_script_exec(
   PyC_MainModule_Backup(&main_mod);
 
   if (text) {
-    char fn_dummy[FILE_MAXDIR];
-    bpy_text_filename_get(fn_dummy, bmain_old, sizeof(fn_dummy), text);
+    bpy_text_filepath_get(filepath_dummy, sizeof(filepath_dummy), bmain_old, text);
+    filepath_namespace = filepath_dummy;
 
     if (text->compiled == NULL) { /* if it wasn't already compiled, do it now */
       char *buf;
-      PyObject *fn_dummy_py;
+      PyObject *filepath_dummy_py;
 
-      fn_dummy_py = PyC_UnicodeFromByte(fn_dummy);
+      filepath_dummy_py = PyC_UnicodeFromByte(filepath_dummy);
 
       size_t buf_len_dummy;
       buf = txt_to_buf(text, &buf_len_dummy);
-      text->compiled = Py_CompileStringObject(buf, fn_dummy_py, Py_file_input, NULL, -1);
+      text->compiled = Py_CompileStringObject(buf, filepath_dummy_py, Py_file_input, NULL, -1);
       MEM_freeN(buf);
 
-      Py_DECREF(fn_dummy_py);
+      Py_DECREF(filepath_dummy_py);
 
       if (PyErr_Occurred()) {
         if (do_jump) {
-          python_script_error_jump_text(text);
+          python_script_error_jump_text(text, filepath_dummy);
         }
         BPY_text_free_code(text);
       }
     }
 
     if (text->compiled) {
-      py_dict = PyC_DefaultNameSpace(fn_dummy);
+      py_dict = PyC_DefaultNameSpace(filepath_dummy);
       py_result = PyEval_EvalCode(text->compiled, py_dict, py_dict);
     }
   }
   else {
-    FILE *fp = BLI_fopen(fn, "r");
+    FILE *fp = BLI_fopen(filepath, "r");
+    filepath_namespace = filepath;
 
     if (fp) {
-      py_dict = PyC_DefaultNameSpace(fn);
+      py_dict = PyC_DefaultNameSpace(filepath);
 
 #ifdef _WIN32
       /* Previously we used PyRun_File to run directly the code on a FILE
@@ -153,13 +172,13 @@ static bool python_script_exec(
         py_result = PyRun_String(pystring, Py_file_input, py_dict, py_dict);
       }
 #else
-      py_result = PyRun_File(fp, fn, Py_file_input, py_dict, py_dict);
+      py_result = PyRun_File(fp, filepath, Py_file_input, py_dict, py_dict);
       fclose(fp);
 #endif
     }
     else {
       PyErr_Format(
-          PyExc_IOError, "Python file \"%s\" could not be opened: %s", fn, strerror(errno));
+          PyExc_IOError, "Python file \"%s\" could not be opened: %s", filepath, strerror(errno));
       py_result = NULL;
     }
   }
@@ -170,7 +189,7 @@ static bool python_script_exec(
         /* ensure text is valid before use, the script may have freed itself */
         Main *bmain_new = CTX_data_main(C);
         if ((bmain_old == bmain_new) && (BLI_findindex(&bmain_new->texts, text) != -1)) {
-          python_script_error_jump_text(text);
+          python_script_error_jump_text(text, filepath_namespace);
         }
       }
     }
@@ -252,7 +271,23 @@ static bool bpy_run_string_impl(bContext *C,
 
   if (retval == NULL) {
     ok = false;
-    BPy_errors_to_report(CTX_wm_reports(C));
+
+    ReportList reports;
+    BKE_reports_init(&reports, RPT_STORE);
+    BPy_errors_to_report(&reports);
+
+    /* Ensure the reports are printed. */
+    if (!BKE_reports_print_test(&reports, RPT_ERROR)) {
+      BKE_reports_print(&reports, RPT_ERROR);
+    }
+
+    ReportList *wm_reports = CTX_wm_reports(C);
+    if (wm_reports) {
+      BLI_movelisttolist(&wm_reports->list, &reports.list);
+    }
+    else {
+      BKE_reports_clear(&reports);
+    }
   }
   else {
     Py_DECREF(retval);
@@ -309,6 +344,14 @@ static void run_string_handle_error(struct BPy_RunErrInfo *err_info)
     else {
       BKE_report(err_info->reports, RPT_ERROR, err_str);
     }
+  }
+
+  /* Print the reports if they were not printed already. */
+  if ((err_info->reports == NULL) || !BKE_reports_print_test(err_info->reports, RPT_ERROR)) {
+    if (err_info->report_prefix) {
+      fprintf(stderr, "%s: ", err_info->report_prefix);
+    }
+    fprintf(stderr, "%s\n", err_str);
   }
 
   if (err_info->r_string != NULL) {

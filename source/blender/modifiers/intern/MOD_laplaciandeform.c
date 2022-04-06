@@ -58,10 +58,10 @@ enum {
 typedef struct LaplacianSystem {
   bool is_matrix_computed;
   bool has_solution;
-  int total_verts;
-  int total_edges;
-  int total_tris;
-  int total_anchors;
+  int verts_num;
+  int edges_num;
+  int tris_num;
+  int anchors_num;
   int repeat;
   char anchor_grp_name[64]; /* Vertex Group name */
   float (*co)[3];           /* Original vertex coordinates */
@@ -84,20 +84,20 @@ static LaplacianSystem *newLaplacianSystem(void)
 
   sys->is_matrix_computed = false;
   sys->has_solution = false;
-  sys->total_verts = 0;
-  sys->total_edges = 0;
-  sys->total_anchors = 0;
-  sys->total_tris = 0;
+  sys->verts_num = 0;
+  sys->edges_num = 0;
+  sys->anchors_num = 0;
+  sys->tris_num = 0;
   sys->repeat = 1;
   sys->anchor_grp_name[0] = '\0';
 
   return sys;
 }
 
-static LaplacianSystem *initLaplacianSystem(int totalVerts,
-                                            int totalEdges,
-                                            int totalTris,
-                                            int totalAnchors,
+static LaplacianSystem *initLaplacianSystem(int verts_num,
+                                            int edges_num,
+                                            int tris_num,
+                                            int anchors_num,
                                             const char defgrpName[64],
                                             int iterations)
 {
@@ -105,18 +105,18 @@ static LaplacianSystem *initLaplacianSystem(int totalVerts,
 
   sys->is_matrix_computed = false;
   sys->has_solution = false;
-  sys->total_verts = totalVerts;
-  sys->total_edges = totalEdges;
-  sys->total_tris = totalTris;
-  sys->total_anchors = totalAnchors;
+  sys->verts_num = verts_num;
+  sys->edges_num = edges_num;
+  sys->tris_num = tris_num;
+  sys->anchors_num = anchors_num;
   sys->repeat = iterations;
   BLI_strncpy(sys->anchor_grp_name, defgrpName, sizeof(sys->anchor_grp_name));
-  sys->co = MEM_malloc_arrayN(totalVerts, sizeof(float[3]), "DeformCoordinates");
-  sys->no = MEM_calloc_arrayN(totalVerts, sizeof(float[3]), "DeformNormals");
-  sys->delta = MEM_calloc_arrayN(totalVerts, sizeof(float[3]), "DeformDeltas");
-  sys->tris = MEM_malloc_arrayN(totalTris, sizeof(int[3]), "DeformFaces");
-  sys->index_anchors = MEM_malloc_arrayN((totalAnchors), sizeof(int), "DeformAnchors");
-  sys->unit_verts = MEM_calloc_arrayN(totalVerts, sizeof(int), "DeformUnitVerts");
+  sys->co = MEM_malloc_arrayN(verts_num, sizeof(float[3]), "DeformCoordinates");
+  sys->no = MEM_calloc_arrayN(verts_num, sizeof(float[3]), "DeformNormals");
+  sys->delta = MEM_calloc_arrayN(verts_num, sizeof(float[3]), "DeformDeltas");
+  sys->tris = MEM_malloc_arrayN(tris_num, sizeof(int[3]), "DeformFaces");
+  sys->index_anchors = MEM_malloc_arrayN((anchors_num), sizeof(int), "DeformAnchors");
+  sys->unit_verts = MEM_calloc_arrayN(verts_num, sizeof(int), "DeformUnitVerts");
   return sys;
 }
 
@@ -146,7 +146,7 @@ static void createFaceRingMap(const int mvert_tot,
                               MeshElemMap **r_map,
                               int **r_indices)
 {
-  int i, j, totalr = 0;
+  int i, j, indices_num = 0;
   int *indices, *index_iter;
   MeshElemMap *map = MEM_calloc_arrayN(mvert_tot, sizeof(MeshElemMap), "DeformRingMap");
   const MLoopTri *mlt;
@@ -156,10 +156,10 @@ static void createFaceRingMap(const int mvert_tot,
     for (j = 0; j < 3; j++) {
       const uint v_index = mloop[mlt->tri[j]].v;
       map[v_index].count++;
-      totalr++;
+      indices_num++;
     }
   }
-  indices = MEM_calloc_arrayN(totalr, sizeof(int), "DeformRingIndex");
+  indices = MEM_calloc_arrayN(indices_num, sizeof(int), "DeformRingIndex");
   index_iter = indices;
   for (i = 0; i < mvert_tot; i++) {
     map[i].indices = index_iter;
@@ -184,7 +184,7 @@ static void createVertRingMap(const int mvert_tot,
                               int **r_indices)
 {
   MeshElemMap *map = MEM_calloc_arrayN(mvert_tot, sizeof(MeshElemMap), "DeformNeighborsMap");
-  int i, vid[2], totalr = 0;
+  int i, vid[2], indices_num = 0;
   int *indices, *index_iter;
   const MEdge *me;
 
@@ -193,9 +193,9 @@ static void createVertRingMap(const int mvert_tot,
     vid[1] = me->v2;
     map[vid[0]].count++;
     map[vid[1]].count++;
-    totalr += 2;
+    indices_num += 2;
   }
-  indices = MEM_calloc_arrayN(totalr, sizeof(int), "DeformNeighborsIndex");
+  indices = MEM_calloc_arrayN(indices_num, sizeof(int), "DeformNeighborsIndex");
   index_iter = indices;
   for (i = 0; i < mvert_tot; i++) {
     map[i].indices = index_iter;
@@ -253,7 +253,7 @@ static void initLaplacianMatrix(LaplacianSystem *sys)
   int i = 3, j, ti;
   int idv[3];
 
-  for (ti = 0; ti < sys->total_tris; ti++) {
+  for (ti = 0; ti < sys->tris_num; ti++) {
     const uint *vidt = sys->tris[ti];
     const float *co[3];
 
@@ -305,7 +305,7 @@ static void computeImplictRotations(LaplacianSystem *sys)
   float minj, mjt, qj[3], vj[3];
   int i, j, ln;
 
-  for (i = 0; i < sys->total_verts; i++) {
+  for (i = 0; i < sys->verts_num; i++) {
     normalize_v3(sys->no[i]);
     vidn = sys->ringv_map[i].indices;
     ln = sys->ringv_map[i].count;
@@ -329,10 +329,10 @@ static void rotateDifferentialCoordinates(LaplacianSystem *sys)
   float alpha, beta, gamma;
   float pj[3], ni[3], di[3];
   float uij[3], dun[3], e2[3], pi[3], fni[3], vn[3][3];
-  int i, j, num_fni, k, fi;
+  int i, j, fidn_num, k, fi;
   int *fidn;
 
-  for (i = 0; i < sys->total_verts; i++) {
+  for (i = 0; i < sys->verts_num; i++) {
     copy_v3_v3(pi, sys->co[i]);
     copy_v3_v3(ni, sys->no[i]);
     k = sys->unit_verts[i];
@@ -351,8 +351,8 @@ static void rotateDifferentialCoordinates(LaplacianSystem *sys)
     pi[1] = EIG_linear_solver_variable_get(sys->context, 1, i);
     pi[2] = EIG_linear_solver_variable_get(sys->context, 2, i);
     zero_v3(ni);
-    num_fni = sys->ringf_map[i].count;
-    for (fi = 0; fi < num_fni; fi++) {
+    fidn_num = sys->ringf_map[i].count;
+    for (fi = 0; fi < fidn_num; fi++) {
       const uint *vin;
       fidn = sys->ringf_map[i].indices;
       vin = sys->tris[fidn[fi]];
@@ -395,8 +395,8 @@ static void rotateDifferentialCoordinates(LaplacianSystem *sys)
 static void laplacianDeformPreview(LaplacianSystem *sys, float (*vertexCos)[3])
 {
   int vid, i, j, n, na;
-  n = sys->total_verts;
-  na = sys->total_anchors;
+  n = sys->verts_num;
+  na = sys->anchors_num;
 
   if (!sys->is_matrix_computed) {
     sys->context = EIG_linear_least_squares_solver_new(n + na, n, 3);
@@ -447,7 +447,7 @@ static void laplacianDeformPreview(LaplacianSystem *sys, float (*vertexCos)[3])
         }
       }
       if (sys->has_solution) {
-        for (vid = 0; vid < sys->total_verts; vid++) {
+        for (vid = 0; vid < sys->verts_num; vid++) {
           vertexCos[vid][0] = EIG_linear_solver_variable_get(sys->context, 0, vid);
           vertexCos[vid][1] = EIG_linear_solver_variable_get(sys->context, 1, vid);
           vertexCos[vid][2] = EIG_linear_solver_variable_get(sys->context, 2, vid);
@@ -493,7 +493,7 @@ static void laplacianDeformPreview(LaplacianSystem *sys, float (*vertexCos)[3])
         }
       }
       if (sys->has_solution) {
-        for (vid = 0; vid < sys->total_verts; vid++) {
+        for (vid = 0; vid < sys->verts_num; vid++) {
           vertexCos[vid][0] = EIG_linear_solver_variable_get(sys->context, 0, vid);
           vertexCos[vid][1] = EIG_linear_solver_variable_get(sys->context, 1, vid);
           vertexCos[vid][2] = EIG_linear_solver_variable_get(sys->context, 2, vid);
@@ -520,11 +520,11 @@ static bool isValidVertexGroup(LaplacianDeformModifierData *lmd, Object *ob, Mes
 }
 
 static void initSystem(
-    LaplacianDeformModifierData *lmd, Object *ob, Mesh *mesh, float (*vertexCos)[3], int numVerts)
+    LaplacianDeformModifierData *lmd, Object *ob, Mesh *mesh, float (*vertexCos)[3], int verts_num)
 {
   int i;
   int defgrp_index;
-  int total_anchors;
+  int anchors_num;
   float wpaint;
   MDeformVert *dvert = NULL;
   MDeformVert *dv = NULL;
@@ -532,18 +532,18 @@ static void initSystem(
   const bool invert_vgroup = (lmd->flag & MOD_LAPLACIANDEFORM_INVERT_VGROUP) != 0;
 
   if (isValidVertexGroup(lmd, ob, mesh)) {
-    int *index_anchors = MEM_malloc_arrayN(numVerts, sizeof(int), __func__); /* over-alloc */
+    int *index_anchors = MEM_malloc_arrayN(verts_num, sizeof(int), __func__); /* over-alloc */
     const MLoopTri *mlooptri;
     const MLoop *mloop;
 
     STACK_DECLARE(index_anchors);
 
-    STACK_INIT(index_anchors, numVerts);
+    STACK_INIT(index_anchors, verts_num);
 
     MOD_get_vgroup(ob, mesh, lmd->anchor_grp_name, &dvert, &defgrp_index);
     BLI_assert(dvert != NULL);
     dv = dvert;
-    for (i = 0; i < numVerts; i++) {
+    for (i = 0; i < verts_num; i++) {
       wpaint = invert_vgroup ? 1.0f - BKE_defvert_find_weight(dv, defgrp_index) :
                                BKE_defvert_find_weight(dv, defgrp_index);
       dv++;
@@ -552,20 +552,20 @@ static void initSystem(
       }
     }
 
-    total_anchors = STACK_SIZE(index_anchors);
-    lmd->cache_system = initLaplacianSystem(numVerts,
+    anchors_num = STACK_SIZE(index_anchors);
+    lmd->cache_system = initLaplacianSystem(verts_num,
                                             mesh->totedge,
                                             BKE_mesh_runtime_looptri_len(mesh),
-                                            total_anchors,
+                                            anchors_num,
                                             lmd->anchor_grp_name,
                                             lmd->repeat);
     sys = (LaplacianSystem *)lmd->cache_system;
-    memcpy(sys->index_anchors, index_anchors, sizeof(int) * total_anchors);
-    memcpy(sys->co, vertexCos, sizeof(float[3]) * numVerts);
+    memcpy(sys->index_anchors, index_anchors, sizeof(int) * anchors_num);
+    memcpy(sys->co, vertexCos, sizeof(float[3]) * verts_num);
     MEM_freeN(index_anchors);
-    lmd->vertexco = MEM_malloc_arrayN(numVerts, sizeof(float[3]), "ModDeformCoordinates");
-    memcpy(lmd->vertexco, vertexCos, sizeof(float[3]) * numVerts);
-    lmd->total_verts = numVerts;
+    lmd->vertexco = MEM_malloc_arrayN(verts_num, sizeof(float[3]), "ModDeformCoordinates");
+    memcpy(lmd->vertexco, vertexCos, sizeof(float[3]) * verts_num);
+    lmd->verts_num = verts_num;
 
     createFaceRingMap(mesh->totvert,
                       BKE_mesh_runtime_looptri_ensure(mesh),
@@ -579,7 +579,7 @@ static void initSystem(
     mlooptri = BKE_mesh_runtime_looptri_ensure(mesh);
     mloop = mesh->mloop;
 
-    for (i = 0; i < sys->total_tris; i++) {
+    for (i = 0; i < sys->tris_num; i++) {
       sys->tris[i][0] = mloop[mlooptri[i].tri[0]].v;
       sys->tris[i][1] = mloop[mlooptri[i].tri[1]].v;
       sys->tris[i][2] = mloop[mlooptri[i].tri[2]].v;
@@ -590,21 +590,21 @@ static void initSystem(
 static int isSystemDifferent(LaplacianDeformModifierData *lmd,
                              Object *ob,
                              Mesh *mesh,
-                             int numVerts)
+                             int verts_num)
 {
   int i;
   int defgrp_index;
-  int total_anchors = 0;
+  int anchors_num = 0;
   float wpaint;
   MDeformVert *dvert = NULL;
   MDeformVert *dv = NULL;
   LaplacianSystem *sys = (LaplacianSystem *)lmd->cache_system;
   const bool invert_vgroup = (lmd->flag & MOD_LAPLACIANDEFORM_INVERT_VGROUP) != 0;
 
-  if (sys->total_verts != numVerts) {
+  if (sys->verts_num != verts_num) {
     return LAPDEFORM_SYSTEM_CHANGE_VERTEXES;
   }
-  if (sys->total_edges != mesh->totedge) {
+  if (sys->edges_num != mesh->totedge) {
     return LAPDEFORM_SYSTEM_CHANGE_EDGES;
   }
   if (!STREQ(lmd->anchor_grp_name, sys->anchor_grp_name)) {
@@ -615,15 +615,15 @@ static int isSystemDifferent(LaplacianDeformModifierData *lmd,
     return LAPDEFORM_SYSTEM_CHANGE_NOT_VALID_GROUP;
   }
   dv = dvert;
-  for (i = 0; i < numVerts; i++) {
+  for (i = 0; i < verts_num; i++) {
     wpaint = invert_vgroup ? 1.0f - BKE_defvert_find_weight(dv, defgrp_index) :
                              BKE_defvert_find_weight(dv, defgrp_index);
     dv++;
     if (wpaint > 0.0f) {
-      total_anchors++;
+      anchors_num++;
     }
   }
-  if (sys->total_anchors != total_anchors) {
+  if (sys->anchors_num != anchors_num) {
     return LAPDEFORM_SYSTEM_ONLY_CHANGE_ANCHORS;
   }
 
@@ -631,7 +631,7 @@ static int isSystemDifferent(LaplacianDeformModifierData *lmd,
 }
 
 static void LaplacianDeformModifier_do(
-    LaplacianDeformModifierData *lmd, Object *ob, Mesh *mesh, float (*vertexCos)[3], int numVerts)
+    LaplacianDeformModifierData *lmd, Object *ob, Mesh *mesh, float (*vertexCos)[3], int verts_num)
 {
   float(*filevertexCos)[3];
   int sysdif;
@@ -643,22 +643,22 @@ static void LaplacianDeformModifier_do(
       deleteLaplacianSystem(sys);
       lmd->cache_system = NULL;
     }
-    lmd->total_verts = 0;
+    lmd->verts_num = 0;
     MEM_SAFE_FREE(lmd->vertexco);
     return;
   }
   if (lmd->cache_system) {
-    sysdif = isSystemDifferent(lmd, ob, mesh, numVerts);
+    sysdif = isSystemDifferent(lmd, ob, mesh, verts_num);
     sys = lmd->cache_system;
     if (sysdif) {
       if (ELEM(sysdif, LAPDEFORM_SYSTEM_ONLY_CHANGE_ANCHORS, LAPDEFORM_SYSTEM_ONLY_CHANGE_GROUP)) {
-        filevertexCos = MEM_malloc_arrayN(numVerts, sizeof(float[3]), "TempModDeformCoordinates");
-        memcpy(filevertexCos, lmd->vertexco, sizeof(float[3]) * numVerts);
+        filevertexCos = MEM_malloc_arrayN(verts_num, sizeof(float[3]), "TempModDeformCoordinates");
+        memcpy(filevertexCos, lmd->vertexco, sizeof(float[3]) * verts_num);
         MEM_SAFE_FREE(lmd->vertexco);
-        lmd->total_verts = 0;
+        lmd->verts_num = 0;
         deleteLaplacianSystem(sys);
         lmd->cache_system = NULL;
-        initSystem(lmd, ob, mesh, filevertexCos, numVerts);
+        initSystem(lmd, ob, mesh, filevertexCos, verts_num);
         sys = lmd->cache_system; /* may have been reallocated */
         MEM_SAFE_FREE(filevertexCos);
         if (sys) {
@@ -668,11 +668,11 @@ static void LaplacianDeformModifier_do(
       else {
         if (sysdif == LAPDEFORM_SYSTEM_CHANGE_VERTEXES) {
           BKE_modifier_set_error(
-              ob, &lmd->modifier, "Vertices changed from %d to %d", lmd->total_verts, numVerts);
+              ob, &lmd->modifier, "Vertices changed from %d to %d", lmd->verts_num, verts_num);
         }
         else if (sysdif == LAPDEFORM_SYSTEM_CHANGE_EDGES) {
           BKE_modifier_set_error(
-              ob, &lmd->modifier, "Edges changed from %d to %d", sys->total_edges, mesh->totedge);
+              ob, &lmd->modifier, "Edges changed from %d to %d", sys->edges_num, mesh->totedge);
         }
         else if (sysdif == LAPDEFORM_SYSTEM_CHANGE_NOT_VALID_GROUP) {
           BKE_modifier_set_error(ob,
@@ -695,18 +695,18 @@ static void LaplacianDeformModifier_do(
                              lmd->anchor_grp_name);
       lmd->flag &= ~MOD_LAPLACIANDEFORM_BIND;
     }
-    else if (lmd->total_verts > 0 && lmd->total_verts == numVerts) {
-      filevertexCos = MEM_malloc_arrayN(numVerts, sizeof(float[3]), "TempDeformCoordinates");
-      memcpy(filevertexCos, lmd->vertexco, sizeof(float[3]) * numVerts);
+    else if (lmd->verts_num > 0 && lmd->verts_num == verts_num) {
+      filevertexCos = MEM_malloc_arrayN(verts_num, sizeof(float[3]), "TempDeformCoordinates");
+      memcpy(filevertexCos, lmd->vertexco, sizeof(float[3]) * verts_num);
       MEM_SAFE_FREE(lmd->vertexco);
-      lmd->total_verts = 0;
-      initSystem(lmd, ob, mesh, filevertexCos, numVerts);
+      lmd->verts_num = 0;
+      initSystem(lmd, ob, mesh, filevertexCos, verts_num);
       sys = lmd->cache_system;
       MEM_SAFE_FREE(filevertexCos);
       laplacianDeformPreview(sys, vertexCos);
     }
     else {
-      initSystem(lmd, ob, mesh, vertexCos, numVerts);
+      initSystem(lmd, ob, mesh, vertexCos, verts_num);
       sys = lmd->cache_system;
       laplacianDeformPreview(sys, vertexCos);
     }
@@ -762,12 +762,13 @@ static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
                         Mesh *mesh,
                         float (*vertexCos)[3],
-                        int numVerts)
+                        int verts_num)
 {
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, mesh, NULL, numVerts, false, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(
+      ctx->object, NULL, mesh, NULL, verts_num, false, false);
 
   LaplacianDeformModifier_do(
-      (LaplacianDeformModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts);
+      (LaplacianDeformModifierData *)md, ctx->object, mesh_src, vertexCos, verts_num);
 
   if (!ELEM(mesh_src, NULL, mesh)) {
     BKE_id_free(NULL, mesh_src);
@@ -779,10 +780,10 @@ static void deformVertsEM(ModifierData *md,
                           struct BMEditMesh *editData,
                           Mesh *mesh,
                           float (*vertexCos)[3],
-                          int numVerts)
+                          int verts_num)
 {
   Mesh *mesh_src = MOD_deform_mesh_eval_get(
-      ctx->object, editData, mesh, NULL, numVerts, false, false);
+      ctx->object, editData, mesh, NULL, verts_num, false, false);
 
   /* TODO(Campbell): use edit-mode data only (remove this line). */
   if (mesh_src != NULL) {
@@ -790,7 +791,7 @@ static void deformVertsEM(ModifierData *md,
   }
 
   LaplacianDeformModifier_do(
-      (LaplacianDeformModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts);
+      (LaplacianDeformModifierData *)md, ctx->object, mesh_src, vertexCos, verts_num);
 
   if (!ELEM(mesh_src, NULL, mesh)) {
     BKE_id_free(NULL, mesh_src);
@@ -805,7 +806,7 @@ static void freeData(ModifierData *md)
     deleteLaplacianSystem(sys);
   }
   MEM_SAFE_FREE(lmd->vertexco);
-  lmd->total_verts = 0;
+  lmd->verts_num = 0;
 }
 
 static void panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -846,14 +847,14 @@ static void blendWrite(BlendWriter *writer, const ModifierData *md)
 {
   LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
 
-  BLO_write_float3_array(writer, lmd->total_verts, lmd->vertexco);
+  BLO_write_float3_array(writer, lmd->verts_num, lmd->vertexco);
 }
 
 static void blendRead(BlendDataReader *reader, ModifierData *md)
 {
   LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
 
-  BLO_read_float3_array(reader, lmd->total_verts, &lmd->vertexco);
+  BLO_read_float3_array(reader, lmd->verts_num, &lmd->vertexco);
   lmd->cache_system = NULL;
 }
 

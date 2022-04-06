@@ -392,9 +392,20 @@ typedef struct BuildGpencilModifierData {
    * For the "Concurrent" mode, when should "shorter" strips start/end.
    */
   short time_alignment;
+
+  /** Build origin control object. */
+  struct Object *object;
+
   /** Factor of the stroke (used instead of frame evaluation. */
   float percentage_fac;
-  char _pad[4];
+
+  /** Weight fading at the end of the stroke. */
+  float fade_fac;
+  /** Target vertexgroup name, MAX_VGROUP_NAME. */
+  char target_vgname[64];
+  /** Fading strength of opacity and thickness */
+  float fade_opacity_strength;
+  float fade_thickness_strength;
 } BuildGpencilModifierData;
 
 typedef enum eBuildGpencil_Mode {
@@ -412,7 +423,7 @@ typedef enum eBuildGpencil_Transition {
   /* Hide in reverse order */
   GP_BUILD_TRANSITION_SHRINK = 1,
   /* Hide in forward order */
-  GP_BUILD_TRANSITION_FADE = 2,
+  GP_BUILD_TRANSITION_VANISH = 2,
 } eBuildGpencil_Transition;
 
 typedef enum eBuildGpencil_TimeAlignment {
@@ -435,6 +446,7 @@ typedef enum eBuildGpencil_Flag {
 
   /* Use a percentage instead of frame number to evaluate strokes. */
   GP_BUILD_PERCENTAGE = (1 << 4),
+  GP_BUILD_USE_FADING = (1 << 5),
 } eBuildGpencil_Flag;
 
 typedef struct LatticeGpencilModifierData {

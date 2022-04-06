@@ -274,15 +274,15 @@ TEST(string, Utf8InvalidBytes)
   for (int i = 0; utf8_invalid_tests[i][0] != nullptr; i++) {
     const char *tst = utf8_invalid_tests[i][0];
     const char *tst_stripped = utf8_invalid_tests[i][1];
-    const int num_errors = (int)utf8_invalid_tests[i][2][0];
+    const int errors_num = (int)utf8_invalid_tests[i][2][0];
 
     char buff[80];
     memcpy(buff, tst, sizeof(buff));
 
-    const int num_errors_found = BLI_str_utf8_invalid_strip(buff, sizeof(buff) - 1);
+    const int errors_found_num = BLI_str_utf8_invalid_strip(buff, sizeof(buff) - 1);
 
-    printf("[%02d] -> [%02d] \"%s\"  ->  \"%s\"\n", num_errors, num_errors_found, tst, buff);
-    EXPECT_EQ(num_errors_found, num_errors);
+    printf("[%02d] -> [%02d] \"%s\"  ->  \"%s\"\n", errors_num, errors_found_num, tst, buff);
+    EXPECT_EQ(errors_found_num, errors_num);
     EXPECT_STREQ(buff, tst_stripped);
   }
 }

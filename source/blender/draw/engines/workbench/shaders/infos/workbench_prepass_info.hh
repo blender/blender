@@ -74,7 +74,7 @@ GPU_SHADER_INTERFACE_INFO(workbench_material_iface, "")
     .smooth(Type::FLOAT, "alpha_interp")
     .smooth(Type::VEC2, "uv_interp")
     .flat(Type::INT, "object_id")
-    .flat(Type::FLOAT, "roughness")
+    .flat(Type::FLOAT, "_roughness")
     .flat(Type::FLOAT, "metallic");
 
 GPU_SHADER_CREATE_INFO(workbench_material)

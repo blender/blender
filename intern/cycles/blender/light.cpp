@@ -114,6 +114,9 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   light->set_cast_shadow(get_boolean(clight, "cast_shadow"));
   light->set_use_mis(get_boolean(clight, "use_multiple_importance_sampling"));
 
+  /* caustics light */
+  light->set_use_caustics(get_boolean(clight, "is_caustics_light"));
+
   light->set_max_bounces(get_int(clight, "max_bounces"));
 
   if (b_ob_info.real_object != b_ob_info.iter_object) {
@@ -139,6 +142,9 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   light->set_use_transmission((visibility & PATH_RAY_TRANSMIT) != 0);
   light->set_use_scatter((visibility & PATH_RAY_VOLUME_SCATTER) != 0);
   light->set_is_shadow_catcher(b_ob_info.real_object.is_shadow_catcher());
+
+  /* lightgroup */
+  light->set_lightgroup(ustring(b_ob_info.real_object.lightgroup()));
 
   /* tag */
   light->tag_update(scene);
@@ -175,6 +181,9 @@ void BlenderSync::sync_background_light(BL::SpaceView3D &b_v3d, bool use_portal)
 
         /* force enable light again when world is resynced */
         light->set_is_enabled(true);
+
+        /* caustic light */
+        light->set_use_caustics(get_boolean(cworld, "is_caustics_light"));
 
         light->tag_update(scene);
         light_map.set_recalc(b_world);

@@ -712,7 +712,8 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
       else {
         /* do not extend Armature when we have posemode */
         tselem = TREESTORE(te->parent);
-        if (GS(tselem->id->name) == ID_OB && ((Object *)tselem->id)->mode & OB_MODE_POSE) {
+        if (TSE_IS_REAL_ID(tselem) && GS(tselem->id->name) == ID_OB &&
+            ((Object *)tselem->id)->mode & OB_MODE_POSE) {
           /* pass */
         }
         else {

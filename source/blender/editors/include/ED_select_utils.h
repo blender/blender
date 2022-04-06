@@ -6,11 +6,14 @@
 
 #pragma once
 
+#include "BLI_compiler_attrs.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct KDTree_1d;
+struct wmOperator;
 
 enum {
   SEL_TOGGLE = 0,
@@ -93,7 +96,15 @@ struct SelectPick_Params {
 /**
  * Utility to get #eSelectPickMode from booleans for convenience.
  */
-eSelectOp ED_select_op_from_booleans(bool extend, bool deselect, bool toggle);
+eSelectOp ED_select_op_from_operator(struct wmOperator *op)
+    ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
+
+/**
+ * Initialize `params` from `op`,
+ * these properties are defined by #WM_operator_properties_mouse_select.
+ */
+void ED_select_pick_params_from_operator(struct wmOperator *op, struct SelectPick_Params *params)
+    ATTR_NONNULL(1, 2);
 
 #ifdef __cplusplus
 }

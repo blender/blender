@@ -51,8 +51,7 @@ void BKE_cachefile_reader_free(struct CacheFile *cache_file, struct CacheReader 
  * load the data directly if they support it.
  */
 bool BKE_cache_file_uses_render_procedural(const struct CacheFile *cache_file,
-                                           struct Scene *scene,
-                                           int dag_eval_mode);
+                                           struct Scene *scene);
 
 /* Add a layer to the cache_file. Return NULL if the filename is already that of an existing layer
  * or if the number of layers exceeds the maximum allowed layer count. */

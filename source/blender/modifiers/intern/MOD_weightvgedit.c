@@ -97,9 +97,7 @@ static void requiredDataMask(Object *UNUSED(ob),
   /* No need to ask for CD_PREVIEW_MLOOPCOL... */
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene),
-                          ModifierData *md,
-                          const int UNUSED(dag_eval_mode))
+static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *md)
 {
   WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
 
@@ -176,12 +174,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 #endif
 
   /* Get number of verts. */
-  const int numVerts = mesh->totvert;
+  const int verts_num = mesh->totvert;
 
   /* Check if we can just return the original mesh.
    * Must have verts and therefore verts assigned to vgroups to do anything useful!
    */
-  if ((numVerts == 0) || BLI_listbase_is_empty(&mesh->vertex_group_names)) {
+  if ((verts_num == 0) || BLI_listbase_is_empty(&mesh->vertex_group_names)) {
     return mesh;
   }
 
@@ -201,11 +199,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   if (has_mdef) {
-    dvert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MDEFORMVERT, numVerts);
+    dvert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MDEFORMVERT, verts_num);
   }
   else {
     /* Add a valid data layer! */
-    dvert = CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, numVerts);
+    dvert = CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, verts_num);
   }
   /* Ultimate security check. */
   if (!dvert) {
@@ -214,10 +212,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   mesh->dvert = dvert;
 
   /* Get org weights, assuming 0.0 for vertices not in given vgroup. */
-  org_w = MEM_malloc_arrayN(numVerts, sizeof(float), "WeightVGEdit Modifier, org_w");
-  new_w = MEM_malloc_arrayN(numVerts, sizeof(float), "WeightVGEdit Modifier, new_w");
-  dw = MEM_malloc_arrayN(numVerts, sizeof(MDeformWeight *), "WeightVGEdit Modifier, dw");
-  for (i = 0; i < numVerts; i++) {
+  org_w = MEM_malloc_arrayN(verts_num, sizeof(float), "WeightVGEdit Modifier, org_w");
+  new_w = MEM_malloc_arrayN(verts_num, sizeof(float), "WeightVGEdit Modifier, new_w");
+  dw = MEM_malloc_arrayN(verts_num, sizeof(MDeformWeight *), "WeightVGEdit Modifier, dw");
+  for (i = 0; i < verts_num; i++) {
     dw[i] = BKE_defvert_find_index(&dvert[i], defgrp_index);
     if (dw[i]) {
       org_w[i] = new_w[i] = dw[i]->weight;
@@ -237,7 +235,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       rng = BLI_rng_new_srandom(BLI_ghashutil_strhash(ctx->object->id.name + 2));
     }
 
-    weightvg_do_map(numVerts, new_w, wmd->falloff_type, do_invert_mapping, wmd->cmap_curve, rng);
+    weightvg_do_map(verts_num, new_w, wmd->falloff_type, do_invert_mapping, wmd->cmap_curve, rng);
 
     if (rng) {
       BLI_rng_free(rng);
@@ -247,7 +245,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   /* Do masking. */
   struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   weightvg_do_mask(ctx,
-                   numVerts,
+                   verts_num,
                    NULL,
                    org_w,
                    new_w,
@@ -268,7 +266,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   weightvg_update_vg(dvert,
                      defgrp_index,
                      dw,
-                     numVerts,
+                     verts_num,
                      NULL,
                      org_w,
                      do_add,

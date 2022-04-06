@@ -414,6 +414,8 @@ list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
 set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/gpencil/shaders/infos/gpencil_info.hh
   ../draw/engines/gpencil/shaders/infos/gpencil_vfx_info.hh
+  ../draw/engines/overlay/shaders/infos/armature_info.hh
+  ../draw/engines/overlay/shaders/infos/edit_mode_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_composite_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_effect_antialiasing_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_effect_cavity_info.hh
@@ -508,6 +510,13 @@ if(WITH_GPU_SHADER_BUILDER)
     add_executable(shader_builder
       intern/gpu_shader_builder.cc
       ${shader_create_info_list_file}
+      )
+
+    setup_platform_linker_flags(shader_builder)
+
+    target_link_libraries(shader_builder PUBLIC
+      bf_blenkernel
+      buildinfoobj
     )
   else()
     add_executable(shader_builder
@@ -515,18 +524,10 @@ if(WITH_GPU_SHADER_BUILDER)
       intern/gpu_shader_builder_stubs.cc
       ${shader_create_info_list_file}
     )
-  endif()
 
-  setup_platform_linker_flags(shader_builder)
-
-  if(APPLE)
     target_link_libraries(shader_builder PUBLIC
       bf_blenkernel
-      buildinfoobj
-    )
-  else()
-    target_link_libraries(shader_builder PUBLIC
-      bf_blenkernel
+      ${PLATFORM_LINKLIBS}
     )
   endif()
 

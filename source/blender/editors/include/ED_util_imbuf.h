@@ -20,6 +20,7 @@ struct wmEvent;
 struct wmOperator;
 
 /* ed_util_imbuf.c */
+
 void ED_imbuf_sample_draw(const struct bContext *C, struct ARegion *region, void *arg_info);
 void ED_imbuf_sample_exit(struct bContext *C, struct wmOperator *op);
 int ED_imbuf_sample_invoke(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);

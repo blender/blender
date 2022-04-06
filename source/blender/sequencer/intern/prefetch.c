@@ -37,6 +37,7 @@
 #include "DEG_depsgraph_debug.h"
 #include "DEG_depsgraph_query.h"
 
+#include "SEQ_channels.h"
 #include "SEQ_iterator.h"
 #include "SEQ_prefetch.h"
 #include "SEQ_relations.h"
@@ -387,19 +388,20 @@ static bool seq_prefetch_seq_has_disk_cache(PrefetchJob *pfjob,
 }
 
 static bool seq_prefetch_scene_strip_is_rendered(PrefetchJob *pfjob,
+                                                 ListBase *channels,
                                                  ListBase *seqbase,
                                                  SeqCollection *scene_strips,
                                                  bool is_recursive_check)
 {
   float cfra = seq_prefetch_cfra(pfjob);
   Sequence *seq_arr[MAXSEQ + 1];
-  int count = seq_get_shown_sequences(seqbase, cfra, 0, seq_arr);
+  int count = seq_get_shown_sequences(channels, seqbase, cfra, 0, seq_arr);
 
   /* Iterate over rendered strips. */
   for (int i = 0; i < count; i++) {
     Sequence *seq = seq_arr[i];
     if (seq->type == SEQ_TYPE_META &&
-        seq_prefetch_scene_strip_is_rendered(pfjob, &seq->seqbase, scene_strips, true)) {
+        seq_prefetch_scene_strip_is_rendered(pfjob, channels, &seq->seqbase, scene_strips, true)) {
       return true;
     }
 
@@ -433,10 +435,10 @@ static SeqCollection *query_scene_strips(ListBase *seqbase)
 
 /* Prefetch must avoid rendering scene strips, because rendering in background locks UI and can
  * make it unresponsive for long time periods. */
-static bool seq_prefetch_must_skip_frame(PrefetchJob *pfjob, ListBase *seqbase)
+static bool seq_prefetch_must_skip_frame(PrefetchJob *pfjob, ListBase *channels, ListBase *seqbase)
 {
   SeqCollection *scene_strips = query_scene_strips(seqbase);
-  if (seq_prefetch_scene_strip_is_rendered(pfjob, seqbase, scene_strips, false)) {
+  if (seq_prefetch_scene_strip_is_rendered(pfjob, channels, seqbase, scene_strips, false)) {
     SEQ_collection_free(scene_strips);
     return true;
   }
@@ -485,7 +487,8 @@ static void *seq_prefetch_frames(void *job)
     pfjob->scene_eval->ed->prefetch_job = pfjob;
 
     ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(pfjob->scene_eval));
-    if (seq_prefetch_must_skip_frame(pfjob, seqbase)) {
+    ListBase *channels = SEQ_channels_displayed_get(SEQ_editing_get(pfjob->scene_eval));
+    if (seq_prefetch_must_skip_frame(pfjob, channels, seqbase)) {
       pfjob->num_frames_prefetched++;
       continue;
     }

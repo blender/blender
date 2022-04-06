@@ -11,6 +11,7 @@
 extern "C" {
 #endif
 
+struct Editing;
 struct ListBase;
 struct Scene;
 struct SeqCollection;
@@ -66,6 +67,12 @@ void SEQ_transform_offset_after_frame(struct Scene *scene,
                                       struct ListBase *seqbase,
                                       int delta,
                                       int timeline_frame);
+
+/**
+ * Check if `seq` can be moved.
+ * This function also checks `SeqTimelineChannel` flag.
+ */
+bool SEQ_transform_is_locked(struct ListBase *channels, struct Sequence *seq);
 
 /* Image transformation. */
 

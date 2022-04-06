@@ -251,6 +251,11 @@ void Scene::device_update(Device *device_, Progress &progress)
    * - Lookup tables are done a second time to handle film tables
    */
 
+  if (film->update_lightgroups(this)) {
+    light_manager->tag_update(this, ccl::LightManager::LIGHT_MODIFIED);
+    object_manager->tag_update(this, ccl::ObjectManager::OBJECT_MODIFIED);
+  }
+
   progress.set_status("Updating Shaders");
   shader_manager->device_update(device, &dscene, this, progress);
 
@@ -489,7 +494,21 @@ void Scene::update_kernel_features()
   if (use_motion && camera->use_motion()) {
     kernel_features |= KERNEL_FEATURE_CAMERA_MOTION;
   }
+
+  /* Figure out whether the scene will use shader raytrace we need at least
+   * one caustic light, one caustic caster and one caustic receiver to use
+   * and enable the mnee code path. */
+  bool has_caustics_receiver = false;
+  bool has_caustics_caster = false;
+  bool has_caustics_light = false;
+
   foreach (Object *object, objects) {
+    if (object->get_is_caustics_caster()) {
+      has_caustics_caster = true;
+    }
+    else if (object->get_is_caustics_receiver()) {
+      has_caustics_receiver = true;
+    }
     Geometry *geom = object->get_geometry();
     if (use_motion) {
       if (object->use_motion() || geom->get_use_motion_blur()) {
@@ -516,6 +535,18 @@ void Scene::update_kernel_features()
     else if (geom->is_pointcloud()) {
       kernel_features |= KERNEL_FEATURE_POINTCLOUD;
     }
+  }
+
+  foreach (Light *light, lights) {
+    if (light->get_use_caustics()) {
+      has_caustics_light = true;
+    }
+  }
+
+  dscene.data.integrator.use_caustics = false;
+  if (has_caustics_caster && has_caustics_receiver && has_caustics_light) {
+    dscene.data.integrator.use_caustics = true;
+    kernel_features |= KERNEL_FEATURE_NODE_RAYTRACE;
   }
 
   if (bake_manager->get_baking()) {

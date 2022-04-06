@@ -108,7 +108,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
    * MinMax Pyramid
    */
 
-  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+  if (GPU_type_matches_ex(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
     /* Intel gpu seems to have problem rendering to only depth hiz_format */
     DRW_texture_ensure_2d(&txl->maxzbuffer, UNPACK2(effects->hiz_size), GPU_R32F, DRW_TEX_MIPMAP);
     GPU_framebuffer_ensure_config(&fbl->maxzbuffer_fb,
@@ -230,7 +230,7 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   /* Intel gpu seems to have problem rendering to only depth format.
    * Use color texture instead. */
-  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+  if (GPU_type_matches_ex(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
     downsample_write = DRW_STATE_WRITE_COLOR;
   }
 

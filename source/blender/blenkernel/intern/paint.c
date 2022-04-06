@@ -29,6 +29,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_attribute.h"
 #include "BKE_brush.h"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
@@ -1666,7 +1667,28 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->multires.modifier = NULL;
     ss->multires.level = 0;
     ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
-    ss->vcol = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
+
+    CustomDataLayer *layer;
+    AttributeDomain domain;
+
+    if (BKE_pbvh_get_color_layer(me, &layer, &domain)) {
+      if (layer->type == CD_PROP_COLOR) {
+        ss->vcol = layer->data;
+      }
+      else {
+        ss->mcol = layer->data;
+      }
+
+      ss->vcol_domain = domain;
+      ss->vcol_type = layer->type;
+    }
+    else {
+      ss->vcol = NULL;
+      ss->mcol = NULL;
+
+      ss->vcol_type = -1;
+      ss->vcol_domain = ATTR_DOMAIN_NUM;
+    }
   }
 
   /* Sculpt Face Sets. */
@@ -1692,6 +1714,10 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   if (need_pmap && ob->type == OB_MESH && !ss->pmap) {
     BKE_mesh_vert_poly_map_create(
         &ss->pmap, &ss->pmap_mem, me->mpoly, me->mloop, me->totvert, me->totpoly, me->totloop);
+
+    if (ss->pbvh) {
+      BKE_pbvh_pmap_set(ss->pbvh, ss->pmap);
+    }
   }
 
   pbvh_show_mask_set(ss->pbvh, ss->show_mask);
@@ -1791,16 +1817,30 @@ void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval)
 void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
 {
   Mesh *orig_me = BKE_object_get_original_mesh(object);
-  if (!U.experimental.use_sculpt_vertex_colors) {
-    return;
+
+  int types[] = {CD_PROP_COLOR, CD_MLOOPCOL};
+  bool has_color = false;
+
+  for (int i = 0; i < ARRAY_SIZE(types); i++) {
+    has_color = CustomData_has_layer(&orig_me->vdata, types[i]) ||
+                CustomData_has_layer(&orig_me->ldata, types[i]);
+
+    if (has_color) {
+      break;
+    }
   }
 
-  if (CustomData_has_layer(&orig_me->vdata, CD_PROP_COLOR)) {
+  if (has_color) {
     return;
   }
 
   CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, orig_me->totvert);
+  CustomDataLayer *layer = orig_me->vdata.layers +
+                        CustomData_get_layer_index(&orig_me->vdata, CD_PROP_COLOR);
+
   BKE_mesh_update_customdata_pointers(orig_me, true);
+
+  BKE_id_attributes_active_color_set(&orig_me->id, layer);
   DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
 }
 
@@ -2173,6 +2213,10 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
         BKE_sculpt_bvh_update_from_ccg(pbvh, subdiv_ccg);
       }
     }
+
+    BKE_pbvh_update_active_vcol(pbvh, BKE_object_get_original_mesh(ob));
+    BKE_pbvh_pmap_set(pbvh, ob->sculpt->pmap);
+
     return pbvh;
   }
 
@@ -2191,6 +2235,8 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
       pbvh = build_pbvh_from_regular_mesh(ob, me_eval_deform, respect_hide);
     }
   }
+
+  BKE_pbvh_pmap_set(pbvh, ob->sculpt->pmap);
 
   ob->sculpt->pbvh = pbvh;
   return pbvh;

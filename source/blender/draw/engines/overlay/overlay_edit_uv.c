@@ -238,6 +238,10 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_uniform_float_copy(
           pd->edit_uv_verts_grp, "pointSize", (point_size + 1.5f) * M_SQRT2);
       DRW_shgroup_uniform_float_copy(pd->edit_uv_verts_grp, "outlineWidth", 0.75f);
+      float theme_color[4];
+      UI_GetThemeColor4fv(TH_VERTEX, theme_color);
+      srgb_to_linearrgb_v4(theme_color, theme_color);
+      DRW_shgroup_uniform_vec4_copy(pd->edit_uv_verts_grp, "color", theme_color);
     }
 
     /* uv faces */

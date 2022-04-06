@@ -18,6 +18,7 @@ struct bContext;
 struct wmOperatorType;
 
 /* text_draw.c */
+
 void draw_text_main(struct SpaceText *st, struct ARegion *region);
 
 void text_update_line_edited(struct TextLine *line);
@@ -94,6 +95,7 @@ int text_get_span_wrap(const struct SpaceText *st,
 int text_get_total_lines(struct SpaceText *st, struct ARegion *region);
 
 /* text_ops.c */
+
 enum {
   LINE_BEGIN,
   LINE_END,
@@ -168,7 +170,9 @@ void TEXT_OT_resolve_conflict(struct wmOperatorType *ot);
 bool text_space_edit_poll(struct bContext *C);
 
 /* text_autocomplete.c */
+
 void TEXT_OT_autocomplete(struct wmOperatorType *ot);
 
 /* space_text.c */
+
 extern const char *text_context_dir[]; /* doc access */

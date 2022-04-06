@@ -571,6 +571,8 @@ using uint2 = vec_base<uint32_t, 2>;
 using uint3 = vec_base<uint32_t, 3>;
 using uint4 = vec_base<uint32_t, 4>;
 
+using ushort2 = vec_base<uint16_t, 2>;
+
 using float2 = vec_base<float, 2>;
 using float3 = vec_base<float, 3>;
 using float4 = vec_base<float, 4>;

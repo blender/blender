@@ -188,8 +188,8 @@ typedef enum {
 /** #TransInfo.redraw */
 typedef enum {
   TREDRAW_NOTHING = 0,
-  TREDRAW_HARD = 1,
-  TREDRAW_SOFT = 2,
+  TREDRAW_SOFT = (1 << 0),
+  TREDRAW_HARD = (1 << 1) | TREDRAW_SOFT,
 } eRedrawFlag;
 
 /** #TransInfo.helpline */
@@ -663,7 +663,6 @@ typedef struct TransInfo {
   int mval[2];
   /** use for 3d view. */
   float zfac;
-  void *draw_handle_apply;
   void *draw_handle_view;
   void *draw_handle_pixel;
   void *draw_handle_cursor;
@@ -722,6 +721,7 @@ struct wmKeyMap *transform_modal_keymap(struct wmKeyConfig *keyconf);
  * \{ */
 
 /* transform_gizmo.c */
+
 #define GIZMO_AXIS_LINE_WIDTH 2.0f
 
 bool gimbal_axis_pose(struct Object *ob, const struct bPoseChannel *pchan, float gmat[3][3]);

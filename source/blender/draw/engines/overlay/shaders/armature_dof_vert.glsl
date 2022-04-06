@@ -1,17 +1,6 @@
 
-/* ---- Instantiated Attrs ---- */
-in vec2 pos;
-
-/* ---- Per instance Attrs ---- */
-/* Assumed to be in world coordinate already. */
-in vec4 color;
-in mat4 inst_obmat;
-
-flat out vec4 finalColor;
-#ifdef EDGE
-flat out vec2 edgeStart;
-noperspective out vec2 edgePos;
-#endif
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 vec3 sphere_project(float ax, float az)
 {
@@ -37,11 +26,7 @@ void main()
   gl_Position = point_world_to_ndc(world_pos);
   finalColor = color;
 
-#ifdef EDGE
-  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
-#endif
+  edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport;
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(world_pos);
-#endif
+  view_clipping_distances(world_pos);
 }

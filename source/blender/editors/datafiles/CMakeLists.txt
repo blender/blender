@@ -191,7 +191,6 @@ set(ICON_NAMES
   library_data_broken
   boids
   strands
-  library_data_indirect
   greasepencil
   line_data
   library_data_override
@@ -749,11 +748,13 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   brush.sculpt.mask
   brush.sculpt.multiplane_scrape
   brush.sculpt.nudge
+  brush.sculpt.paint
   brush.sculpt.pinch
   brush.sculpt.pose
   brush.sculpt.rotate
   brush.sculpt.scrape
   brush.sculpt.simplify
+  brush.sculpt.smear
   brush.sculpt.smooth
   brush.sculpt.snake_hook
   brush.sculpt.thumb
@@ -766,6 +767,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.armature.extrude_cursor
   ops.armature.extrude_move
   ops.curve.draw
+  ops.curve.pen
   ops.curve.extrude_cursor
   ops.curve.extrude_move
   ops.curve.radius
@@ -774,7 +776,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.curves.sculpt_comb
   ops.curves.sculpt_cut
   ops.curves.sculpt_delete
-  ops.curves.sculpt_grow
+  ops.curves.sculpt_grow_shrink
   ops.generic.cursor
   ops.generic.select
   ops.generic.select_box
@@ -845,6 +847,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.sculpt.border_hide
   ops.sculpt.border_mask
   ops.sculpt.box_trim
+  ops.sculpt.color_filter
   ops.sculpt.cloth_filter
   ops.sculpt.face_set_edit
   ops.sculpt.lasso_face_set
@@ -852,6 +855,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.sculpt.lasso_trim
   ops.sculpt.line_mask
   ops.sculpt.line_project
+  ops.sculpt.mask_by_color
   ops.sculpt.mesh_filter
   ops.sequencer.blade
   ops.transform.bone_envelope

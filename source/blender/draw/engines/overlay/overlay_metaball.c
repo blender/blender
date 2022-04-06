@@ -60,10 +60,10 @@ void OVERLAY_edit_metaball_cache_populate(OVERLAY_Data *vedata, Object *ob)
   MetaBall *mb = ob->data;
 
   const float *color;
-  const float *col_radius = G_draw.block.colorMballRadius;
-  const float *col_radius_select = G_draw.block.colorMballRadiusSelect;
-  const float *col_stiffness = G_draw.block.colorMballStiffness;
-  const float *col_stiffness_select = G_draw.block.colorMballStiffnessSelect;
+  const float *col_radius = G_draw.block.color_mball_radius;
+  const float *col_radius_select = G_draw.block.color_mball_radius_select;
+  const float *col_stiffness = G_draw.block.color_mball_stiffness;
+  const float *col_stiffness_select = G_draw.block.color_mball_stiffness_select;
 
   int select_id = 0;
   if (is_select) {

@@ -1268,6 +1268,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
   const bool keep_inputs = RNA_boolean_get(op->ptr, "keep_inputs");
+  bool changed = false;
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
@@ -1280,12 +1281,17 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
       bNode *new_node = blender::bke::node_copy_with_mapping(
           ntree, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
       node_map.add_new(node, new_node);
+      changed = true;
     }
 
     /* make sure we don't copy new nodes again! */
     if (node == lastnode) {
       break;
     }
+  }
+
+  if (!changed) {
+    return OPERATOR_CANCELLED;
   }
 
   /* Copy links between selected nodes. */

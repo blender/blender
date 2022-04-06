@@ -46,9 +46,30 @@ void viewrotate_modal_keymap(wmKeyConfig *keyconf)
 
   /* disabled mode switching for now, can re-implement better, later on */
 #if 0
-  WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ZOOM);
-  WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ZOOM);
-  WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_MOVE);
+  WM_modalkeymap_add_item(keymap,
+                          &(const KeyMapItem_Params){
+                              .type = LEFTMOUSE,
+                              .value = KM_PRESS,
+                              .modifier = KM_ANY,
+                              .direction = KM_ANY,
+                          },
+                          VIEWROT_MODAL_SWITCH_ZOOM);
+  WM_modalkeymap_add_item(keymap,
+                          &(const KeyMapItem_Params){
+                              .type = EVT_LEFTCTRLKEY,
+                              .value = KM_PRESS,
+                              .modifier = KM_ANY,
+                              .direction = KM_ANY,
+                          },
+                          VIEWROT_MODAL_SWITCH_ZOOM);
+  WM_modalkeymap_add_item(keymap,
+                          &(const KeyMapItem_Params){
+                              .type = EVT_LEFTSHIFTKEY,
+                              .value = KM_PRESS,
+                              .modifier = KM_ANY,
+                              .direction = KM_ANY,
+                          },
+                          VIEWROT_MODAL_SWITCH_MOVE);
 #endif
 
   /* assign map to operators */

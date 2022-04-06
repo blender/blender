@@ -234,7 +234,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
 
       /* Finish undo. */
       BM_log_all_added(ss->bm, ss->bm_log);
-      SCULPT_undo_push_end();
+      SCULPT_undo_push_end(ob);
 
       break;
     case PBVH_FACES:
@@ -396,7 +396,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
       SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, scene, ob);
       if (has_undo) {
         SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
-        SCULPT_undo_push_end();
+        SCULPT_undo_push_end(ob);
       }
     }
     else {
@@ -508,6 +508,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
         wmWindowManager *wm = CTX_wm_manager(C);
         if (wm->op_undo_depth <= 1) {
           SCULPT_undo_push_begin(ob, op->type->name);
+          SCULPT_undo_push_end(ob);
         }
       }
     }
@@ -616,7 +617,7 @@ static int vertex_to_loop_colors_exec(bContext *C, wmOperator *UNUSED(op))
 
   ID *data;
   data = ob->data;
-  if (data && ID_IS_LINKED(data)) {
+  if (data == NULL || ID_IS_LINKED(data) || ID_IS_OVERRIDE_LIBRARY(data)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -681,7 +682,7 @@ static int loop_to_vertex_colors_exec(bContext *C, wmOperator *UNUSED(op))
 
   ID *data;
   data = ob->data;
-  if (data && ID_IS_LINKED(data)) {
+  if (data == NULL || ID_IS_LINKED(data) || ID_IS_OVERRIDE_LIBRARY(data)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -749,10 +750,13 @@ static int sculpt_sample_color_invoke(bContext *C,
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
   int active_vertex = SCULPT_active_vertex_get(ss);
-  const float *active_vertex_color = SCULPT_vertex_color_get(ss, active_vertex);
-  if (!active_vertex_color) {
+  float active_vertex_color[4];
+
+  if (!SCULPT_has_colors(ss)) {
     return OPERATOR_CANCELLED;
   }
+
+  SCULPT_vertex_color_get(ss, active_vertex, active_vertex_color);
 
   float color_srgb[3];
   copy_v3_v3(color_srgb, active_vertex_color);
@@ -862,7 +866,7 @@ static void do_mask_by_color_contiguous_update_nodes_cb(
   }
   BKE_pbvh_vertex_iter_end;
   if (update_node) {
-    BKE_pbvh_node_mark_redraw(data->nodes[n]);
+    BKE_pbvh_node_mark_update_mask(data->nodes[n]);
   }
 }
 
@@ -870,7 +874,10 @@ static bool sculpt_mask_by_color_contiguous_floodfill_cb(
     SculptSession *ss, int from_v, int to_v, bool is_duplicate, void *userdata)
 {
   MaskByColorContiguousFloodFillData *data = userdata;
-  const float *current_color = SCULPT_vertex_color_get(ss, to_v);
+  float current_color[4];
+
+  SCULPT_vertex_color_get(ss, to_v, current_color);
+
   float new_vertex_mask = sculpt_mask_by_color_delta_get(
       current_color, data->initial_color, data->threshold, data->invert);
   data->new_mask[to_v] = new_vertex_mask;
@@ -909,7 +916,11 @@ static void sculpt_mask_by_color_contiguous(Object *object,
   ffd.threshold = threshold;
   ffd.invert = invert;
   ffd.new_mask = new_mask;
-  copy_v3_v3(ffd.initial_color, SCULPT_vertex_color_get(ss, vertex));
+
+  float color[4];
+  SCULPT_vertex_color_get(ss, vertex, color);
+
+  copy_v3_v3(ffd.initial_color, color);
 
   SCULPT_floodfill_execute(ss, &flood, sculpt_mask_by_color_contiguous_floodfill_cb, &ffd);
   SCULPT_floodfill_free(&flood);
@@ -951,12 +962,17 @@ static void do_mask_by_color_task_cb(void *__restrict userdata,
   const float threshold = data->mask_by_color_threshold;
   const bool invert = data->mask_by_color_invert;
   const bool preserve_mask = data->mask_by_color_preserve_mask;
-  const float *active_color = SCULPT_vertex_color_get(ss, data->mask_by_color_vertex);
+  float active_color[4];
+
+  SCULPT_vertex_color_get(ss, data->mask_by_color_vertex, active_color);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    float col[4];
+    SCULPT_vertex_color_get(ss, vd.index, col);
+
     const float current_mask = *vd.mask;
-    const float new_mask = sculpt_mask_by_color_delta_get(active_color, vd.col, threshold, invert);
+    const float new_mask = sculpt_mask_by_color_delta_get(active_color, col, threshold, invert);
     *vd.mask = sculpt_mask_by_color_final_mask_get(current_mask, new_mask, invert, preserve_mask);
 
     if (current_mask == *vd.mask) {
@@ -1014,8 +1030,12 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
     return OPERATOR_CANCELLED;
   }
 
-  if (!ss->vcol) {
+  if (!SCULPT_has_colors(ss)) {
     return OPERATOR_CANCELLED;
+  }
+
+  if (SCULPT_has_loop_colors(ob)) {
+    BKE_pbvh_ensure_node_loops(ss->pbvh);
   }
 
   SCULPT_vertex_random_access_ensure(ss);
@@ -1043,9 +1063,10 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   }
 
   BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
   return OPERATOR_FINISHED;
 }

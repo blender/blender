@@ -68,6 +68,7 @@ void wm_window_keymap(wmKeyConfig *keyconf);
 void wm_operatortypes_register(void);
 
 /* wm_gesture.c */
+
 /* called in wm_draw.c */
 
 void wm_gesture_draw(struct wmWindow *win);

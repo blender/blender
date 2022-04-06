@@ -32,6 +32,7 @@
 
 #include "SEQ_add.h"
 #include "SEQ_animation.h"
+#include "SEQ_channels.h"
 #include "SEQ_clipboard.h"
 #include "SEQ_edit.h"
 #include "SEQ_effects.h"
@@ -345,6 +346,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 
   Editing *ed = SEQ_editing_get(scene);
   ListBase *seqbase = SEQ_active_seqbase_get(ed);
+  ListBase *channels = SEQ_channels_displayed_get(ed);
   Sequence *seq;
   int snap_frame;
 
@@ -352,7 +354,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 
   /* Check meta-strips. */
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if (seq->flag & SELECT && !(seq->flag & SEQ_LOCK) &&
+    if (seq->flag & SELECT && !SEQ_transform_is_locked(channels, seq) &&
         SEQ_transform_sequence_can_be_translated(seq)) {
       if ((seq->flag & (SEQ_LEFTSEL + SEQ_RIGHTSEL)) == 0) {
         SEQ_transform_translate_sequence(
@@ -374,7 +376,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 
   /* Test for effects and overlap. */
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if (seq->flag & SELECT && !(seq->flag & SEQ_LOCK)) {
+    if (seq->flag & SELECT && !SEQ_transform_is_locked(channels, seq)) {
       seq->flag &= ~SEQ_OVERLAP;
       if (SEQ_transform_test_overlap(ed->seqbasep, seq)) {
         SEQ_transform_seqbase_shuffle(ed->seqbasep, seq, scene);
@@ -918,13 +920,14 @@ static int sequencer_mute_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
+  ListBase *channels = SEQ_channels_displayed_get(ed);
   Sequence *seq;
   bool selected;
 
   selected = !RNA_boolean_get(op->ptr, "unselected");
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if ((seq->flag & SEQ_LOCK) == 0) {
+    if (!SEQ_transform_is_locked(channels, seq)) {
       if (selected) {
         if (seq->flag & SELECT) {
           seq->flag |= SEQ_MUTE;
@@ -974,13 +977,14 @@ static int sequencer_unmute_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
+  ListBase *channels = SEQ_channels_displayed_get(ed);
   Sequence *seq;
   bool selected;
 
   selected = !RNA_boolean_get(op->ptr, "unselected");
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if ((seq->flag & SEQ_LOCK) == 0) {
+    if (!SEQ_transform_is_locked(channels, seq)) {
       if (selected) {
         if (seq->flag & SELECT) {
           seq->flag &= ~SEQ_MUTE;
@@ -1643,35 +1647,6 @@ void SEQUENCER_OT_split(struct wmOperatorType *ot)
 /** \name Duplicate Strips Operator
  * \{ */
 
-static void sequencer_backup_original_animation(Scene *scene, ListBase *list)
-{
-  if (scene->adt == NULL || scene->adt->action == NULL ||
-      BLI_listbase_is_empty(&scene->adt->action->curves)) {
-    return;
-  }
-
-  BLI_movelisttolist(list, &scene->adt->action->curves);
-}
-
-static void sequencer_restore_original_animation(Scene *scene, ListBase *list)
-{
-  if (scene->adt == NULL || scene->adt->action == NULL || BLI_listbase_is_empty(list)) {
-    return;
-  }
-
-  BLI_movelisttolist(&scene->adt->action->curves, list);
-}
-
-static void sequencer_duplicate_animation(Scene *scene, Sequence *seq, ListBase *curves_backup)
-{
-  GSet *fcurves = SEQ_fcurves_by_strip_get(seq, curves_backup);
-  GSET_FOREACH_BEGIN (FCurve *, fcu, fcurves) {
-    FCurve *fcu_cpy = BKE_fcurve_copy(fcu);
-    BLI_addtail(&scene->adt->action->curves, fcu_cpy);
-  }
-  GSET_FOREACH_END();
-}
-
 static int sequencer_add_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
@@ -1697,7 +1672,7 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
    * original curves from backup.
    */
   ListBase fcurves_original_backup = {NULL, NULL};
-  sequencer_backup_original_animation(scene, &fcurves_original_backup);
+  SEQ_animation_backup_original(scene, &fcurves_original_backup);
 
   Sequence *seq = duplicated_strips.first;
 
@@ -1712,11 +1687,12 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
       SEQ_select_active_set(scene, seq);
     }
     seq->flag &= ~(SEQ_LEFTSEL + SEQ_RIGHTSEL + SEQ_LOCK);
-    sequencer_duplicate_animation(scene, seq, &fcurves_original_backup);
+    seq->flag |= SEQ_IGNORE_CHANNEL_LOCK;
+    SEQ_animation_duplicate(scene, seq, &fcurves_original_backup);
     SEQ_ensure_unique_name(seq, scene);
   }
 
-  sequencer_restore_original_animation(scene, &fcurves_original_backup);
+  SEQ_animation_restore_original(scene, &fcurves_original_backup);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
   return OPERATOR_FINISHED;
@@ -1987,6 +1963,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
     /* Enter meta-strip. */
     SEQ_meta_stack_alloc(ed, active_seq);
     SEQ_seqbase_active_set(ed, &active_seq->seqbase);
+    SEQ_channels_displayed_set(ed, &active_seq->channels);
     SEQ_select_active_set(scene, NULL);
   }
   else {
@@ -1997,6 +1974,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
     MetaStack *ms = SEQ_meta_stack_active_get(ed);
     SEQ_seqbase_active_set(ed, ms->oldbasep);
+    SEQ_channels_displayed_set(ed, ms->old_channels);
     SEQ_select_active_set(scene, ms->parseq);
     SEQ_meta_stack_free(ed, ms);
   }
@@ -2480,6 +2458,9 @@ static void sequencer_copy_animation(Scene *scene, Sequence *seq)
   }
 
   GSet *fcurves = SEQ_fcurves_by_strip_get(seq, &scene->adt->action->curves);
+  if (fcurves == NULL) {
+    return;
+  }
 
   GSET_FOREACH_BEGIN (FCurve *, fcu, fcurves) {
     BLI_addtail(&fcurves_clipboard, BKE_fcurve_copy(fcu));
@@ -2622,7 +2603,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
    */
 
   ListBase fcurves_original_backup = {NULL, NULL};
-  sequencer_backup_original_animation(scene, &fcurves_original_backup);
+  SEQ_animation_backup_original(scene, &fcurves_original_backup);
   sequencer_paste_animation(C);
 
   /* Copy strips, temporarily restoring pointers to actual data-blocks. This
@@ -2654,7 +2635,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
     }
   }
 
-  sequencer_restore_original_animation(scene, &fcurves_original_backup);
+  SEQ_animation_restore_original(scene, &fcurves_original_backup);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   DEG_relations_tag_update(bmain);
@@ -3111,8 +3092,10 @@ typedef struct Seq_get_text_cb_data {
 static bool seq_get_text_strip_cb(Sequence *seq, void *user_data)
 {
   Seq_get_text_cb_data *cd = (Seq_get_text_cb_data *)user_data;
+  Editing *ed = SEQ_editing_get(cd->scene);
+  ListBase *channels = SEQ_channels_displayed_get(ed);
   /* Only text strips that are not muted and don't end with negative frame. */
-  if ((seq->type == SEQ_TYPE_TEXT) && ((seq->flag & SEQ_MUTE) == 0) &&
+  if ((seq->type == SEQ_TYPE_TEXT) && !SEQ_render_is_muted(channels, seq) &&
       (seq->enddisp > cd->scene->r.sfra)) {
     BLI_addtail(cd->text_seq, MEM_dupallocN(seq));
   }

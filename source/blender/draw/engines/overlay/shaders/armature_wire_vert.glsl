@@ -1,22 +1,16 @@
 
-in vec3 color;
-in vec3 pos;
-
-flat out vec4 finalColor;
-flat out vec2 edgeStart;
-noperspective out vec2 edgePos;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {
-  finalColor.rgb = color;
+  finalColor.rgb = color.rgb;
   finalColor.a = 1.0;
 
-  vec3 worldPosition = point_object_to_world(pos);
-  gl_Position = point_world_to_ndc(worldPosition);
+  vec3 world_pos = point_object_to_world(pos);
+  gl_Position = point_world_to_ndc(world_pos);
 
   edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(worldPosition);
-#endif
+  view_clipping_distances(world_pos);
 }

@@ -22,6 +22,7 @@
 #include "BLI_string.h"
 
 #include "BKE_context.h"
+#include "BKE_lib_id.h"
 #include "BKE_screen.h"
 #include "BKE_unit.h"
 
@@ -88,7 +89,8 @@ static int depthdropper_init(bContext *C, wmOperator *op)
     RegionView3D *rv3d = CTX_wm_region_view3d(C);
     if (rv3d && rv3d->persp == RV3D_CAMOB) {
       View3D *v3d = CTX_wm_view3d(C);
-      if (v3d->camera && v3d->camera->data && !ID_IS_LINKED(v3d->camera->data)) {
+      if (v3d->camera && v3d->camera->data &&
+          BKE_id_is_editable(CTX_data_main(C), v3d->camera->data)) {
         Camera *camera = (Camera *)v3d->camera->data;
         RNA_pointer_create(&camera->id, &RNA_CameraDOFSettings, &camera->dof, &ddr->ptr);
         ddr->prop = RNA_struct_find_property(&ddr->ptr, "focus_distance");
@@ -348,7 +350,8 @@ static bool depthdropper_poll(bContext *C)
     RegionView3D *rv3d = CTX_wm_region_view3d(C);
     if (rv3d && rv3d->persp == RV3D_CAMOB) {
       View3D *v3d = CTX_wm_view3d(C);
-      if (v3d->camera && v3d->camera->data && !ID_IS_LINKED(v3d->camera->data)) {
+      if (v3d->camera && v3d->camera->data &&
+          BKE_id_is_editable(CTX_data_main(C), v3d->camera->data)) {
         return true;
       }
     }

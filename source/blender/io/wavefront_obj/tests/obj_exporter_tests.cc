@@ -486,6 +486,19 @@ TEST_F(obj_exporter_regression_test, cubes_positioned)
                                _export.params);
 }
 
+/* Note: texture paths in the resulting mtl file currently are always
+ * as they are stored in the source .blend file; not relative to where
+ * the export is done. When that is properly fixed, the expected .mtl
+ * file should be updated. */
+TEST_F(obj_exporter_regression_test, cubes_with_textures)
+{
+  OBJExportParamsDefault _export;
+  compare_obj_export_to_golden("io_tests/blend_geometry/cubes_with_textures.blend",
+                               "io_tests/obj/cubes_with_textures.obj",
+                               "io_tests/obj/cubes_with_textures.mtl",
+                               _export.params);
+}
+
 TEST_F(obj_exporter_regression_test, suzanne_all_data)
 {
   OBJExportParamsDefault _export;

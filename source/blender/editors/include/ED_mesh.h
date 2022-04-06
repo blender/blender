@@ -335,6 +335,7 @@ bool EDBM_selectmode_disable_multi(struct bContext *C,
                                    short selectmode_fallback);
 
 /* editmesh_preselect_edgering.c */
+
 struct EditMesh_PreSelEdgeRing;
 struct EditMesh_PreSelEdgeRing *EDBM_preselect_edgering_create(void);
 void EDBM_preselect_edgering_destroy(struct EditMesh_PreSelEdgeRing *psel);
@@ -347,6 +348,7 @@ void EDBM_preselect_edgering_update_from_edge(struct EditMesh_PreSelEdgeRing *ps
                                               const float (*coords)[3]);
 
 /* editmesh_preselect_elem.c */
+
 struct EditMesh_PreSelElem;
 typedef enum eEditMesh_PreSelPreviewAction {
   PRESELECT_ACTION_TRANSFORM = 1,
@@ -441,6 +443,7 @@ void ED_mesh_mirrtopo_init(struct BMEditMesh *em,
 void ED_mesh_mirrtopo_free(MirrTopoStore_t *mesh_topo_store);
 
 /* object_vgroup.c */
+
 #define WEIGHT_REPLACE 1
 #define WEIGHT_ADD 2
 #define WEIGHT_SUBTRACT 3

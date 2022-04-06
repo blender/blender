@@ -104,6 +104,11 @@ struct StripElem *SEQ_render_give_stripelem(struct Sequence *seq, int timeline_f
 
 void SEQ_render_imbuf_from_sequencer_space(struct Scene *scene, struct ImBuf *ibuf);
 void SEQ_render_pixel_from_sequencer_space_v4(struct Scene *scene, float pixel[4]);
+/**
+ * Check if `seq` is muted for rendering.
+ * This function also checks `SeqTimelineChannel` flag.
+ */
+bool SEQ_render_is_muted(const struct ListBase *channels, const struct Sequence *seq);
 
 #ifdef __cplusplus
 }

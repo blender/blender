@@ -20,10 +20,12 @@ typedef enum {
   GPU_PRIM_LINES,
   GPU_PRIM_TRIS,
   GPU_PRIM_LINE_STRIP,
-  GPU_PRIM_LINE_LOOP, /* GL has this, Vulkan does not */
+  GPU_PRIM_LINE_LOOP, /* GL has this, Vulkan and Metal do not */
   GPU_PRIM_TRI_STRIP,
-  GPU_PRIM_TRI_FAN,
+  GPU_PRIM_TRI_FAN, /* Metal API does not support this. */
 
+  /* Metal API does not support ADJ primitive types but
+   * handled via the geometry-shader-alternative path. */
   GPU_PRIM_LINES_ADJ,
   GPU_PRIM_TRIS_ADJ,
   GPU_PRIM_LINE_STRIP_ADJ,

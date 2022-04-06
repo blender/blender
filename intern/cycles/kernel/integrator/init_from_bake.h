@@ -230,7 +230,11 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
     /* Setup next kernel to execute. */
     const int shader_index = shader & SHADER_MASK;
     const int shader_flags = kernel_tex_fetch(__shaders, shader_index).flags;
-    if (shader_flags & SD_HAS_RAYTRACE) {
+    const bool use_caustics = kernel_data.integrator.use_caustics &&
+                              (object_flag & SD_OBJECT_CAUSTICS);
+    const bool use_raytrace_kernel = (shader_flags & SD_HAS_RAYTRACE) || use_caustics;
+
+    if (use_raytrace_kernel) {
       INTEGRATOR_PATH_INIT_SORTED(DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE, shader_index);
     }
     else {

@@ -4,6 +4,7 @@
 
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
+#include "BKE_geometry_fields.hh"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"

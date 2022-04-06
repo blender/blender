@@ -634,10 +634,9 @@ void DRW_shgroup_uniform_float_copy(DRWShadingGroup *shgroup, const char *name, 
 void DRW_shgroup_uniform_vec2_copy(DRWShadingGroup *shgroup, const char *name, const float *value);
 void DRW_shgroup_uniform_vec3_copy(DRWShadingGroup *shgroup, const char *name, const float *value);
 void DRW_shgroup_uniform_vec4_copy(DRWShadingGroup *shgroup, const char *name, const float *value);
-void DRW_shgroup_uniform_vec4_array_copy(DRWShadingGroup *shgroup,
-                                         const char *name,
-                                         const float (*value)[4],
-                                         int arraysize);
+void DRW_shgroup_uniform_mat4_copy(DRWShadingGroup *shgroup,
+                                   const char *name,
+                                   const float (*value)[4]);
 void DRW_shgroup_vertex_buffer_ex(DRWShadingGroup *shgroup,
                                   const char *name,
                                   struct GPUVertBuf *vertex_buffer DRW_DEBUG_FILE_LINE_ARGS);

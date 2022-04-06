@@ -39,7 +39,7 @@ typedef struct ParallelMempoolTaskData {
  * See #BLI_task_parallel_mempool implementation for detailed usage example.
  */
 ParallelMempoolTaskData *mempool_iter_threadsafe_create(BLI_mempool *pool,
-                                                        size_t num_iter) ATTR_WARN_UNUSED_RESULT
+                                                        size_t iter_num) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 void mempool_iter_threadsafe_destroy(ParallelMempoolTaskData *iter_arr) ATTR_NONNULL();
 

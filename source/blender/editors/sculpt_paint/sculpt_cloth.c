@@ -1493,7 +1493,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
 
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
     SCULPT_filter_cache_free(ss);
-    SCULPT_undo_push_end();
+    SCULPT_undo_push_end(ob);
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
     return OPERATOR_FINISHED;
   }

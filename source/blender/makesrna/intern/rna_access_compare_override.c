@@ -612,10 +612,6 @@ static bool rna_property_override_operation_apply(Main *bmain,
                                       ptr_item_src,
                                       ptr_item_storage,
                                       opop);
-  if (success) {
-    RNA_property_update_main(bmain, NULL, ptr_dst, prop_dst);
-  }
-
   return success;
 }
 

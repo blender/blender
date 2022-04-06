@@ -16,6 +16,8 @@ typedef struct {
   float bmin[3], bmax[3], bcentroid[3];
 } BBC;
 
+struct MeshElemMap;
+
 /* NOTE: this structure is getting large, might want to split it into
  * union'd structs */
 struct PBVHNode {
@@ -59,6 +61,13 @@ struct PBVHNode {
    */
   const int *vert_indices;
   unsigned int uniq_verts, face_verts;
+
+  /* Array of indices into the Mesh's MLoop array.
+   * PBVH_FACES only.  The first part of the array
+   * are loops unique to this node, see comment for
+   * vert_indices for more details.*/
+  int *loop_indices;
+  unsigned int loop_indices_num;
 
   /* An array mapping face corners into the vert_indices
    * array. The array is sized to match 'totprim', and each of
@@ -165,9 +174,17 @@ struct PBVH {
 
   struct BMLog *bm_log;
   struct SubdivCCG *subdiv_ccg;
+
+  const struct MeshElemMap *pmap;
+
+  CustomDataLayer *color_layer;
+  AttributeDomain color_domain;
+
+  bool is_drawing;
 };
 
 /* pbvh.c */
+
 void BB_reset(BB *bb);
 /**
  * Expand the bounding box to include a new coordinate.
@@ -216,6 +233,7 @@ bool ray_face_nearest_tri(const float ray_start[3],
 void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag);
 
 /* pbvh_bmesh.c */
+
 bool pbvh_bmesh_node_raycast(PBVHNode *node,
                              const float ray_start[3],
                              const float ray_normal[3],

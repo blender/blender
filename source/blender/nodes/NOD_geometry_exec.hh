@@ -6,6 +6,7 @@
 #include "FN_multi_function_builder.hh"
 
 #include "BKE_attribute_access.hh"
+#include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_geometry_set_instances.hh"
 

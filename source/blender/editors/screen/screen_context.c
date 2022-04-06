@@ -43,8 +43,10 @@
 #include "ED_clip.h"
 #include "ED_gpencil.h"
 
+#include "SEQ_channels.h"
 #include "SEQ_select.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_transform.h"
 
 #include "UI_interface.h"
 #include "WM_api.h"
@@ -645,17 +647,20 @@ static eContextResult screen_ctx_selected_editable_sequences(const bContext *C,
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = WM_window_get_active_scene(win);
   Editing *ed = SEQ_editing_get(scene);
-  if (ed) {
-    LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
-      if (seq->flag & SELECT && !(seq->flag & SEQ_LOCK)) {
-        CTX_data_list_add(result, &scene->id, &RNA_Sequence, seq);
-      }
-    }
-    CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-    return CTX_RESULT_OK;
+  if (ed == NULL) {
+    return CTX_RESULT_NO_DATA;
   }
-  return CTX_RESULT_NO_DATA;
+
+  ListBase *channels = SEQ_channels_displayed_get(ed);
+  LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
+    if (seq->flag & SELECT && !SEQ_transform_is_locked(channels, seq)) {
+      CTX_data_list_add(result, &scene->id, &RNA_Sequence, seq);
+    }
+  }
+  CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+  return CTX_RESULT_OK;
 }
+
 static eContextResult screen_ctx_active_nla_track(const bContext *C, bContextDataResult *result)
 {
   PointerRNA ptr;

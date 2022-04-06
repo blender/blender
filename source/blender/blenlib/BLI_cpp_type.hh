@@ -110,6 +110,9 @@ class CPPType : NonCopyable, NonMovable {
   void (*default_construct_)(void *ptr) = nullptr;
   void (*default_construct_indices_)(void *ptr, IndexMask mask) = nullptr;
 
+  void (*value_initialize_)(void *ptr) = nullptr;
+  void (*value_initialize_indices_)(void *ptr, IndexMask mask) = nullptr;
+
   void (*destruct_)(void *ptr) = nullptr;
   void (*destruct_indices_)(void *ptr, IndexMask mask) = nullptr;
 
@@ -323,6 +326,31 @@ class CPPType : NonCopyable, NonMovable {
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(ptr));
 
     default_construct_indices_(ptr, mask);
+  }
+
+  /**
+   * Same as #default_construct, but does zero initialization for trivial types.
+   *
+   * C++ equivalent:
+   *   new (ptr) T();
+   */
+  void value_initialize(void *ptr) const
+  {
+    BLI_assert(this->pointer_can_point_to_instance(ptr));
+
+    value_initialize_(ptr);
+  }
+
+  void value_initialize_n(void *ptr, int64_t n) const
+  {
+    this->value_initialize_indices(ptr, IndexMask(n));
+  }
+
+  void value_initialize_indices(void *ptr, IndexMask mask) const
+  {
+    BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(ptr));
+
+    value_initialize_indices_(ptr, mask);
   }
 
   /**
@@ -651,9 +679,9 @@ class CPPType : NonCopyable, NonMovable {
    * compile-time. This allows the compiler to optimize a function for specific types, while all
    * other types can still use a generic fallback function.
    *
-   * \param Types The types that code should be generated for.
-   * \param fn The function object to call. This is expected to have a templated `operator()` and a
-   *   non-templated `operator()`. The templated version will be called if the current #CPPType
+   * \param Types: The types that code should be generated for.
+   * \param fn: The function object to call. This is expected to have a templated `operator()` and
+   * a non-templated `operator()`. The templated version will be called if the current #CPPType
    *   matches any of the given types. Otherwise, the non-templated function is called.
    */
   template<typename... Types, typename Fn> void to_static_type(const Fn &fn) const

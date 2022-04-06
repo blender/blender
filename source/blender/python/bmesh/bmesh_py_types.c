@@ -1309,7 +1309,7 @@ static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject 
   if (BaseMath_ReadCallback(mat) == -1) {
     return NULL;
   }
-  if (mat->num_col != 4 || mat->num_row != 4) {
+  if (mat->col_num != 4 || mat->row_num != 4) {
     PyErr_SetString(PyExc_ValueError, "expected a 4x4 matrix");
     return NULL;
   }

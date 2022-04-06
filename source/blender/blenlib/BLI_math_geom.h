@@ -329,6 +329,24 @@ float closest_to_line_segment_v2(float r_close[2],
                                  const float p[2],
                                  const float l1[2],
                                  const float l2[2]);
+
+/**
+ * Finds the points where two line segments are closest to each other.
+ *
+ * `lambda_*` is a value between 0 and 1 for each segment that indicates where `r_closest_*` is on
+ * the corresponding segment.
+ *
+ * \return Squared distance between both segments.
+ */
+float closest_seg_seg_v2(float r_closest_a[2],
+                         float r_closest_b[2],
+                         float *r_lambda_a,
+                         float *r_lambda_b,
+                         const float a1[2],
+                         const float a2[2],
+                         const float b1[2],
+                         const float b2[2]);
+
 /**
  * Point closest to v1 on line v2-v3 in 3D.
  *
@@ -890,7 +908,7 @@ bool clip_segment_v3_plane(
 bool clip_segment_v3_plane_n(const float p1[3],
                              const float p2[3],
                              const float plane_array[][4],
-                             int plane_tot,
+                             int plane_num,
                              float r_p1[3],
                              float r_p2[3]);
 

@@ -7,6 +7,7 @@
 #pragma once
 
 /* MOD_meshcache_mdd.c */
+
 bool MOD_meshcache_read_mdd_index(FILE *fp,
                                   float (*vertexCos)[3],
                                   int vertex_tot,
@@ -29,6 +30,7 @@ bool MOD_meshcache_read_mdd_times(const char *filepath,
                                   const char **err_str);
 
 /* MOD_meshcache_pc2.c */
+
 bool MOD_meshcache_read_pc2_index(
     FILE *fp, float (*vertexCos)[3], int verts_tot, int index, float factor, const char **err_str);
 bool MOD_meshcache_read_pc2_frame(FILE *fp,
@@ -47,6 +49,7 @@ bool MOD_meshcache_read_pc2_times(const char *filepath,
                                   const char **err_str);
 
 /* MOD_meshcache_util.c */
+
 void MOD_meshcache_calc_range(
     float frame, char interp, int frame_tot, int r_index_range[2], float *r_factor);
 

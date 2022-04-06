@@ -1646,9 +1646,7 @@ static int bone_select_menu_exec(bContext *C, wmOperator *op)
   const int name_index = RNA_enum_get(op->ptr, "name");
 
   const struct SelectPick_Params params = {
-      .sel_op = ED_select_op_from_booleans(RNA_boolean_get(op->ptr, "extend"),
-                                           RNA_boolean_get(op->ptr, "deselect"),
-                                           RNA_boolean_get(op->ptr, "toggle")),
+      .sel_op = ED_select_op_from_operator(op),
   };
 
   View3D *v3d = CTX_wm_view3d(C);
@@ -2747,11 +2745,6 @@ static bool ed_object_select_pick(bContext *C,
     if (params->sel_op == SEL_OP_SET) {
       if ((found && params->select_passthrough) && (basact->flag & BASE_SELECTED)) {
         found = false;
-        /* NOTE(@campbellbarton): Experimental behavior to set active even keeping the selection
-         * without this it's inconvenient to set the active object. */
-        if (basact != oldbasact) {
-          use_activate_selected_base = true;
-        }
       }
       else if (found || params->deselect_all) {
         /* Deselect everything. */
@@ -2923,14 +2916,10 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Object *obedit = CTX_data_edit_object(C);
   Object *obact = CTX_data_active_object(C);
-  const struct SelectPick_Params params = {
-      .sel_op = ED_select_op_from_booleans(RNA_boolean_get(op->ptr, "extend"),
-                                           RNA_boolean_get(op->ptr, "deselect"),
-                                           RNA_boolean_get(op->ptr, "toggle")),
-      .deselect_all = RNA_boolean_get(op->ptr, "deselect_all"),
-      .select_passthrough = RNA_boolean_get(op->ptr, "select_passthrough"),
 
-  };
+  struct SelectPick_Params params = {0};
+  ED_select_pick_params_from_operator(op, &params);
+
   bool center = RNA_boolean_get(op->ptr, "center");
   bool enumerate = RNA_boolean_get(op->ptr, "enumerate");
   /* Only force object select for edit-mode to support vertex parenting,
@@ -2985,7 +2974,7 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
       changed = ED_lattice_select_pick(C, mval, &params);
     }
     else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
-      changed = ED_curve_editnurb_select_pick(C, mval, &params);
+      changed = ED_curve_editnurb_select_pick(C, mval, ED_view3d_select_dist_px(), &params);
     }
     else if (obedit->type == OB_MBALL) {
       changed = ED_mball_select_pick(C, mval, &params);

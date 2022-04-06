@@ -126,7 +126,7 @@ void BLI_jitterate2(float (*jit1)[2], float (*jit2)[2], int num, float radius2)
 void BLI_jitter_init(float (*jitarr)[2], int num)
 {
   float(*jit2)[2];
-  float num_fl, num_fl_sqrt;
+  float number_fl, number_fl_sqrt;
   float x, rad1, rad2, rad3;
   RNG *rng;
   int i;
@@ -135,20 +135,20 @@ void BLI_jitter_init(float (*jitarr)[2], int num)
     return;
   }
 
-  num_fl = (float)num;
-  num_fl_sqrt = sqrtf(num_fl);
+  number_fl = (float)num;
+  number_fl_sqrt = sqrtf(number_fl);
 
   jit2 = MEM_mallocN(12 + (unsigned int)num * sizeof(float[2]), "initjit");
-  rad1 = 1.0f / num_fl_sqrt;
-  rad2 = 1.0f / num_fl;
-  rad3 = num_fl_sqrt / num_fl;
+  rad1 = 1.0f / number_fl_sqrt;
+  rad2 = 1.0f / number_fl;
+  rad3 = number_fl_sqrt / number_fl;
 
   rng = BLI_rng_new(31415926 + (unsigned int)num);
 
   x = 0;
   for (i = 0; i < num; i++) {
     jitarr[i][0] = x + rad1 * (float)(0.5 - BLI_rng_get_double(rng));
-    jitarr[i][1] = (float)i / num_fl + rad1 * (float)(0.5 - BLI_rng_get_double(rng));
+    jitarr[i][1] = (float)i / number_fl + rad1 * (float)(0.5 - BLI_rng_get_double(rng));
     x += rad3;
     x -= floorf(x);
   }

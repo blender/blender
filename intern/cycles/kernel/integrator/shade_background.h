@@ -101,6 +101,22 @@ ccl_device_inline void integrate_background(KernelGlobals kg,
 #endif
   }
 
+#ifdef __MNEE__
+  if (INTEGRATOR_STATE(state, path, mnee) & PATH_MNEE_CULL_LIGHT_CONNECTION) {
+    if (kernel_data.background.use_mis) {
+      for (int lamp = 0; lamp < kernel_data.integrator.num_all_lights; lamp++) {
+        /* This path should have been resolved with mnee, it will
+         * generate a firefly for small lights since it is improbable. */
+        const ccl_global KernelLight *klight = &kernel_tex_fetch(__lights, lamp);
+        if (klight->type == LIGHT_BACKGROUND && klight->use_caustics) {
+          eval_background = false;
+          break;
+        }
+      }
+    }
+  }
+#endif /* __MNEE__ */
+
   /* Evaluate background shader. */
   float3 L = (eval_background) ? integrator_eval_background_shader(kg, state, render_buffer) :
                                  zero_float3();
@@ -140,6 +156,16 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
       }
 #endif
 
+#ifdef __MNEE__
+      if (INTEGRATOR_STATE(state, path, mnee) & PATH_MNEE_CULL_LIGHT_CONNECTION) {
+        /* This path should have been resolved with mnee, it will
+         * generate a firefly for small lights since it is improbable. */
+        const ccl_global KernelLight *klight = &kernel_tex_fetch(__lights, lamp);
+        if (klight->use_caustics)
+          return;
+      }
+#endif /* __MNEE__ */
+
       /* Evaluate light shader. */
       /* TODO: does aliasing like this break automatic SoA in CUDA? */
       ShaderDataTinyStorage emission_sd_storage;
@@ -160,7 +186,8 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
 
       /* Write to render buffer. */
       const float3 throughput = INTEGRATOR_STATE(state, path, throughput);
-      kernel_accum_emission(kg, state, throughput * light_eval, render_buffer);
+      kernel_accum_emission(
+          kg, state, throughput * light_eval, render_buffer, kernel_data.background.lightgroup);
     }
   }
 }

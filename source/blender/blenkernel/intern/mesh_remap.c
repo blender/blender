@@ -1510,15 +1510,11 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
           bvhtree_from_mesh_verts_ex(&treedata[tindex],
                                      verts_src,
                                      num_verts_src,
-                                     false,
                                      verts_active,
                                      num_verts_active,
                                      0.0,
                                      2,
-                                     6,
-                                     0,
-                                     NULL,
-                                     NULL);
+                                     6);
         }
 
         MEM_freeN(verts_active);
@@ -1549,20 +1545,14 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
           }
           bvhtree_from_mesh_looptri_ex(&treedata[tindex],
                                        verts_src,
-                                       false,
                                        loops_src,
-                                       false,
                                        looptri_src,
                                        num_looptri_src,
-                                       false,
                                        looptri_active,
                                        num_looptri_active,
                                        0.0,
                                        2,
-                                       6,
-                                       0,
-                                       NULL,
-                                       NULL);
+                                       6);
         }
 
         MEM_freeN(looptri_active);

@@ -55,7 +55,7 @@ class PhysicButtonsPanel:
         md = context.fluid
         if md and (md.fluid_type == 'DOMAIN'):
             domain = md.domain_settings
-            return domain.domain_type in {'GAS'}
+            return domain.domain_type == 'GAS'
         return False
 
     @staticmethod
@@ -66,7 +66,7 @@ class PhysicButtonsPanel:
         md = context.fluid
         if md and (md.fluid_type == 'DOMAIN'):
             domain = md.domain_settings
-            return domain.domain_type in {'LIQUID'}
+            return domain.domain_type == 'LIQUID'
         return False
 
     @staticmethod
@@ -812,7 +812,7 @@ class PHYSICS_PT_mesh(PhysicButtonsPanel, Panel):
         col.separator()
         col.prop(domain, "mesh_generator", text="Mesh Generator")
 
-        if domain.mesh_generator in {'IMPROVED'}:
+        if domain.mesh_generator == 'IMPROVED':
             col = flow.column(align=True)
             col.prop(domain, "mesh_smoothen_pos", text="Smoothing Positive")
             col.prop(domain, "mesh_smoothen_neg", text="Negative")
@@ -1227,7 +1227,7 @@ class PHYSICS_PT_cache(PhysicButtonsPanel, Panel):
         row.enabled = not is_baking_any and not has_baked_data
         row.prop(domain, "cache_data_format", text="Format Volumes")
 
-        if md.domain_settings.domain_type in {'LIQUID'} and domain.use_mesh:
+        if md.domain_settings.domain_type == 'LIQUID' and domain.use_mesh:
             row = col.row()
             row.enabled = not is_baking_any and not has_baked_mesh
             row.prop(domain, "cache_mesh_format", text="Meshes")

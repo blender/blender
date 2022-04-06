@@ -39,6 +39,8 @@ void ED_operatortypes_render()
   WM_operatortype_append(SCENE_OT_view_layer_remove);
   WM_operatortype_append(SCENE_OT_view_layer_add_aov);
   WM_operatortype_append(SCENE_OT_view_layer_remove_aov);
+  WM_operatortype_append(SCENE_OT_view_layer_add_lightgroup);
+  WM_operatortype_append(SCENE_OT_view_layer_remove_lightgroup);
 
   WM_operatortype_append(SCENE_OT_render_view_add);
   WM_operatortype_append(SCENE_OT_render_view_remove);

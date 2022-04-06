@@ -22,6 +22,7 @@
 #  include "MEM_guardedalloc.h"
 
 #  include "BKE_context.h"
+#  include "BKE_layer.h"
 #  include "BKE_main.h"
 #  include "BKE_texture.h"
 
@@ -82,6 +83,21 @@ static void rna_World_use_nodes_update(bContext *C, PointerRNA *ptr)
   DEG_relations_tag_update(bmain);
   rna_World_update(bmain, scene, ptr);
   rna_World_draw_update(bmain, scene, ptr);
+}
+
+void rna_World_lightgroup_get(PointerRNA *ptr, char *value)
+{
+  BKE_lightgroup_membership_get(((World *)ptr->owner_id)->lightgroup, value);
+}
+
+int rna_World_lightgroup_length(PointerRNA *ptr)
+{
+  return BKE_lightgroup_membership_length(((World *)ptr->owner_id)->lightgroup);
+}
+
+void rna_World_lightgroup_set(PointerRNA *ptr, const char *value)
+{
+  BKE_lightgroup_membership_set(&((World *)ptr->owner_id)->lightgroup, value);
 }
 
 #else
@@ -233,6 +249,13 @@ void RNA_def_world(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_ui_text(prop, "Use Nodes", "Use shader nodes to render the world");
   RNA_def_property_update(prop, 0, "rna_World_use_nodes_update");
+
+  /* Lightgroup Membership */
+  prop = RNA_def_property(srna, "lightgroup", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_funcs(
+      prop, "rna_World_lightgroup_get", "rna_World_lightgroup_length", "rna_World_lightgroup_set");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Lightgroup", "Lightgroup that the world belongs to");
 
   rna_def_lighting(brna);
   rna_def_world_mist(brna);

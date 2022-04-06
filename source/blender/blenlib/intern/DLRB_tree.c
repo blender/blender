@@ -578,7 +578,7 @@ DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree,
       }
       default: /* update the duplicate node as appropriate */
       {
-        /* Return the updated node after calling the callback.  */
+        /* Return the updated node after calling the callback. */
         node = parNode;
         if (update_cb) {
           update_cb(node, data);

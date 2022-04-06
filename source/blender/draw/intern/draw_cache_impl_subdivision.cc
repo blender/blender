@@ -544,6 +544,7 @@ void draw_subdiv_cache_free(DRWSubdivCache *cache)
   GPU_VERTBUF_DISCARD_SAFE(cache->subdiv_polygon_offset_buffer);
   GPU_VERTBUF_DISCARD_SAFE(cache->extra_coarse_face_data);
   MEM_SAFE_FREE(cache->subdiv_loop_subdiv_vert_index);
+  MEM_SAFE_FREE(cache->subdiv_loop_subdiv_edge_index);
   MEM_SAFE_FREE(cache->subdiv_loop_poly_index);
   MEM_SAFE_FREE(cache->subdiv_polygon_offset);
   GPU_VERTBUF_DISCARD_SAFE(cache->subdiv_vertex_face_adjacency_offsets);
@@ -630,7 +631,10 @@ static void draw_subdiv_cache_extra_coarse_face_data_mesh(Mesh *mesh, uint32_t *
   for (int i = 0; i < mesh->totpoly; i++) {
     uint32_t flag = 0;
     if ((mesh->mpoly[i].flag & ME_SMOOTH) != 0) {
-      flag = SUBDIV_COARSE_FACE_FLAG_SMOOTH;
+      flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
+    }
+    if ((mesh->mpoly[i].flag & ME_FACE_SEL) != 0) {
+      flag |= SUBDIV_COARSE_FACE_FLAG_SELECT;
     }
     flags_data[i] = (uint)(mesh->mpoly[i].loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
   }
@@ -720,6 +724,7 @@ struct DRWCacheBuildingContext {
   int *subdiv_loop_vert_index;
   int *subdiv_loop_subdiv_vert_index;
   int *subdiv_loop_edge_index;
+  int *subdiv_loop_subdiv_edge_index;
   int *subdiv_loop_poly_index;
 
   /* Temporary buffers used during traversal. */
@@ -781,6 +786,9 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
   cache->subdiv_loop_subdiv_vert_index = static_cast<int *>(
       MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_subdiv_vert_index"));
 
+  cache->subdiv_loop_subdiv_edge_index = static_cast<int *>(
+      MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_subdiv_edge_index"));
+
   cache->subdiv_loop_poly_index = static_cast<int *>(
       MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_poly_index"));
 
@@ -789,6 +797,7 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
   ctx->subdiv_loop_vert_index = (int *)GPU_vertbuf_get_data(cache->verts_orig_index);
   ctx->subdiv_loop_edge_index = (int *)GPU_vertbuf_get_data(cache->edges_orig_index);
   ctx->subdiv_loop_subdiv_vert_index = cache->subdiv_loop_subdiv_vert_index;
+  ctx->subdiv_loop_subdiv_edge_index = cache->subdiv_loop_subdiv_edge_index;
   ctx->subdiv_loop_poly_index = cache->subdiv_loop_poly_index;
 
   ctx->v_origindex = static_cast<int *>(
@@ -887,9 +896,7 @@ static void draw_subdiv_loop_cb(const SubdivForeachContext *foreach_context,
   int coarse_vertex_index = ctx->vert_origindex_map[subdiv_vertex_index];
 
   ctx->subdiv_loop_subdiv_vert_index[subdiv_loop_index] = subdiv_vertex_index;
-  /* For now index the subdiv_edge_index, it will be replaced by the actual coarse edge index
-   * at the end of the traversal as some edges are only then traversed. */
-  ctx->subdiv_loop_edge_index[subdiv_loop_index] = subdiv_edge_index;
+  ctx->subdiv_loop_subdiv_edge_index[subdiv_loop_index] = subdiv_edge_index;
   ctx->subdiv_loop_poly_index[subdiv_loop_index] = coarse_poly_index;
   ctx->subdiv_loop_vert_index[subdiv_loop_index] = coarse_vertex_index;
 }
@@ -915,12 +922,13 @@ static void do_subdiv_traversal(DRWCacheBuildingContext *cache_building_context,
                                      cache_building_context->settings,
                                      cache_building_context->coarse_mesh);
 
-  /* Now that traversal is done, we can set up the right original indices for the loop-to-edge map.
+  /* Now that traversal is done, we can set up the right original indices for the
+   * subdiv-loop-to-coarse-edge map.
    */
   for (int i = 0; i < cache_building_context->cache->num_subdiv_loops; i++) {
     cache_building_context->subdiv_loop_edge_index[i] =
         cache_building_context
-            ->edge_origindex_map[cache_building_context->subdiv_loop_edge_index[i]];
+            ->edge_origindex_map[cache_building_context->subdiv_loop_subdiv_edge_index[i]];
   }
 }
 

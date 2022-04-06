@@ -2948,8 +2948,8 @@ static void rna_def_userdef_theme_space_node(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "grid_levels", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "grid_levels");
-  RNA_def_property_int_default(prop, 7);
-  RNA_def_property_range(prop, 0, 9);
+  RNA_def_property_int_default(prop, 3);
+  RNA_def_property_range(prop, 0, 3);
   RNA_def_property_ui_text(
       prop, "Grid Levels", "Number of subdivisions for the dot grid displayed in the background");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
@@ -3174,6 +3174,7 @@ static void rna_def_userdef_theme_space_seq(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Theme Sequence Editor", "Theme settings for the Sequence Editor");
 
   rna_def_userdef_theme_spaces_main(srna);
+  rna_def_userdef_theme_spaces_list_main(srna);
 
   prop = RNA_def_property(srna, "grid", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
@@ -6432,14 +6433,14 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Cycles Debug", "Enable Cycles debugging options for developers");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-  prop = RNA_def_property(srna, "use_sculpt_vertex_colors", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_sculpt_vertex_colors", 1);
-  RNA_def_property_ui_text(prop, "Sculpt Vertex Colors", "Use the new Vertex Painting system");
-
   prop = RNA_def_property(srna, "use_sculpt_tools_tilt", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_sculpt_tools_tilt", 1);
   RNA_def_property_ui_text(
       prop, "Sculpt Mode Tilt Support", "Support for pen tablet tilt events in Sculpt Mode");
+
+  prop = RNA_def_property(srna, "use_sculpt_texture_paint", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_sculpt_texture_paint", 1);
+  RNA_def_property_ui_text(prop, "Sculpt Texture Paint", "Use texture painting in Sculpt Mode");
 
   prop = RNA_def_property(srna, "use_extended_asset_browser", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(prop,

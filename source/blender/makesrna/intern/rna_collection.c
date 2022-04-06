@@ -138,7 +138,7 @@ static bool rna_Collection_objects_override_apply(Main *bmain,
                                                   PointerRNA *ptr_dst,
                                                   PointerRNA *UNUSED(ptr_src),
                                                   PointerRNA *UNUSED(ptr_storage),
-                                                  PropertyRNA *UNUSED(prop_dst),
+                                                  PropertyRNA *prop_dst,
                                                   PropertyRNA *UNUSED(prop_src),
                                                   PropertyRNA *UNUSED(prop_storage),
                                                   const int UNUSED(len_dst),
@@ -185,6 +185,7 @@ static bool rna_Collection_objects_override_apply(Main *bmain,
     BKE_main_collection_sync(bmain);
   }
 
+  RNA_property_update_main(bmain, NULL, ptr_dst, prop_dst);
   return true;
 }
 
@@ -245,7 +246,7 @@ static bool rna_Collection_children_override_apply(Main *bmain,
                                                    PointerRNA *ptr_dst,
                                                    PointerRNA *UNUSED(ptr_src),
                                                    PointerRNA *UNUSED(ptr_storage),
-                                                   PropertyRNA *UNUSED(prop_dst),
+                                                   PropertyRNA *prop_dst,
                                                    PropertyRNA *UNUSED(prop_src),
                                                    PropertyRNA *UNUSED(prop_storage),
                                                    const int UNUSED(len_dst),
@@ -287,6 +288,7 @@ static bool rna_Collection_children_override_apply(Main *bmain,
   BKE_collection_object_cache_free(coll_dst);
   BKE_main_collection_sync(bmain);
 
+  RNA_property_update_main(bmain, NULL, ptr_dst, prop_dst);
   return true;
 }
 

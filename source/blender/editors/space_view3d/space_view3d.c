@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "DNA_collection_types.h"
 #include "DNA_defaults.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_lightprobe_types.h"
@@ -47,6 +48,7 @@
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_transform.h"
+#include "ED_undo.h"
 
 #include "GPU_matrix.h"
 
@@ -562,6 +564,24 @@ static bool view3d_collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent
   return view3d_drop_id_in_main_region_poll(C, drag, event, ID_GR);
 }
 
+static bool view3d_collection_drop_poll_local_id(bContext *C, wmDrag *drag, const wmEvent *event)
+{
+  if (!view3d_collection_drop_poll(C, drag, event) || (drag->type != WM_DRAG_ID)) {
+    return false;
+  }
+  return true;
+}
+
+static bool view3d_collection_drop_poll_external_asset(bContext *C,
+                                                       wmDrag *drag,
+                                                       const wmEvent *event)
+{
+  if (!view3d_collection_drop_poll(C, drag, event) || (drag->type != WM_DRAG_ASSET)) {
+    return false;
+  }
+  return true;
+}
+
 static bool view3d_mat_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   return view3d_drop_id_in_main_region_poll(C, drag, event, ID_MA);
@@ -682,7 +702,7 @@ static void view3d_ob_drop_matrix_from_snap(V3DSnapCursorState *snap_state,
   mat4_to_size(scale, ob->obmat);
   rescale_m4(obmat_final, scale);
 
-  BoundBox *bb = BKE_object_boundbox_get(ob);
+  const BoundBox *bb = BKE_object_boundbox_get(ob);
   if (bb) {
     float offset[3];
     BKE_boundbox_calc_center_aabb(bb, offset);
@@ -708,6 +728,8 @@ static void view3d_ob_drop_copy_local_id(wmDrag *drag, wmDropBox *drop)
   RNA_float_set_array(drop->ptr, "matrix", &obmat_final[0][0]);
 }
 
+/* Mostly the same logic as #view3d_collection_drop_copy_external_asset(), just different enough to
+ * make sharing code a bit difficult. */
 static void view3d_ob_drop_copy_external_asset(wmDrag *drag, wmDropBox *drop)
 {
   /* NOTE(@campbellbarton): Selection is handled here, de-selecting objects before append,
@@ -749,11 +771,48 @@ static void view3d_ob_drop_copy_external_asset(wmDrag *drag, wmDropBox *drop)
   }
 }
 
-static void view3d_collection_drop_copy(wmDrag *drag, wmDropBox *drop)
+static void view3d_collection_drop_copy_local_id(wmDrag *drag, wmDropBox *drop)
 {
-  ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, ID_GR);
+  ID *id = WM_drag_get_local_ID(drag, ID_GR);
+  RNA_int_set(drop->ptr, "session_uuid", (int)id->session_uuid);
+}
+
+/* Mostly the same logic as #view3d_ob_drop_copy_external_asset(), just different enough to make
+ * sharing code a bit difficult. */
+static void view3d_collection_drop_copy_external_asset(wmDrag *drag, wmDropBox *drop)
+{
+  BLI_assert(drag->type == WM_DRAG_ASSET);
+
+  wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
+  bContext *C = asset_drag->evil_C;
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  BKE_view_layer_base_deselect_all(view_layer);
+
+  ID *id = WM_drag_asset_id_import(asset_drag, FILE_AUTOSELECT);
+  Collection *collection = (Collection *)id;
+
+  /* TODO(sergey): Only update relations for the current scene. */
+  DEG_relations_tag_update(CTX_data_main(C));
+  WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
   RNA_int_set(drop->ptr, "session_uuid", (int)id->session_uuid);
+
+  /* Make an object active, just use the first one in the collection. */
+  CollectionObject *cobject = collection->gobject.first;
+  Base *base = cobject ? BKE_view_layer_base_find(view_layer, cobject->ob) : NULL;
+  if (base) {
+    BLI_assert((base->flag & BASE_SELECTABLE) && (base->flag & BASE_ENABLED_VIEWPORT));
+    BKE_view_layer_base_select_and_set_active(view_layer, base);
+    WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
+  }
+  DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+  ED_outliner_select_sync_from_object_tag(C);
+
+  /* XXX Without an undo push here, there will be a crash when the user modifies operator
+   * properties. The stuff we do in these drop callbacks just isn't safe over undo/redo. */
+  ED_undo_push(C, "Collection_Drop");
 }
 
 static void view3d_id_drop_copy(wmDrag *drag, wmDropBox *drop)
@@ -835,6 +894,19 @@ static void view3d_dropboxes(void)
   drop->draw_deactivate = view3d_ob_drop_draw_deactivate;
 
   WM_dropbox_add(lb,
+                 "OBJECT_OT_collection_external_asset_drop",
+                 view3d_collection_drop_poll_external_asset,
+                 view3d_collection_drop_copy_external_asset,
+                 WM_drag_free_imported_drag_ID,
+                 NULL);
+  WM_dropbox_add(lb,
+                 "OBJECT_OT_collection_instance_add",
+                 view3d_collection_drop_poll_local_id,
+                 view3d_collection_drop_copy_local_id,
+                 WM_drag_free_imported_drag_ID,
+                 NULL);
+
+  WM_dropbox_add(lb,
                  "OBJECT_OT_drop_named_material",
                  view3d_mat_drop_poll,
                  view3d_id_drop_copy,
@@ -856,12 +928,6 @@ static void view3d_dropboxes(void)
                  "OBJECT_OT_volume_import",
                  view3d_volume_drop_poll,
                  view3d_id_path_drop_copy,
-                 WM_drag_free_imported_drag_ID,
-                 NULL);
-  WM_dropbox_add(lb,
-                 "OBJECT_OT_collection_instance_add",
-                 view3d_collection_drop_poll,
-                 view3d_collection_drop_copy,
                  WM_drag_free_imported_drag_ID,
                  NULL);
   WM_dropbox_add(lb,

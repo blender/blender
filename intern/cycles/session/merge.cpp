@@ -531,7 +531,7 @@ static void read_layer_samples(vector<MergeImage> &images,
         current_layer_samples.total = 0;
         current_layer_samples.per_pixel.resize(in_spec.width * in_spec.height);
         std::fill(
-            current_layer_samples.per_pixel.begin(), current_layer_samples.per_pixel.end(), 0);
+            current_layer_samples.per_pixel.begin(), current_layer_samples.per_pixel.end(), 0.0f);
       }
 
       if (layer.has_sample_pass) {

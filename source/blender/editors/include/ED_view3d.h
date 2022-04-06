@@ -163,6 +163,11 @@ bool ED_view3d_camera_to_view_selected(struct Main *bmain,
                                        const struct Scene *scene,
                                        struct Object *camera_ob);
 
+bool ED_view3d_camera_to_view_selected_with_set_clipping(struct Main *bmain,
+                                                         struct Depsgraph *depsgraph,
+                                                         const struct Scene *scene,
+                                                         struct Object *camera_ob);
+
 /**
  * Use to store the last view, before entering camera view.
  */
@@ -263,19 +268,20 @@ typedef enum {
    V3D_PROJ_TEST_CLIP_WIN)
 
 /* view3d_snap.c */
+
 bool ED_view3d_snap_selected_to_location(struct bContext *C,
                                          const float snap_target_global[3],
                                          int pivot_point);
 
 /* view3d_cursor_snap.c */
+
 #define USE_SNAP_DETECT_FROM_KEYMAP_HACK
 typedef enum {
   V3D_SNAPCURSOR_TOGGLE_ALWAYS_TRUE = 1 << 0,
   V3D_SNAPCURSOR_OCCLUSION_ALWAYS_TRUE = 1 << 1,
   V3D_SNAPCURSOR_OCCLUSION_ALWAYS_FALSE = 1 << 2, /* TODO. */
-  V3D_SNAPCURSOR_SNAP_ONLY_ACTIVE = 1 << 3,
-  V3D_SNAPCURSOR_SNAP_EDIT_GEOM_FINAL = 1 << 4,
-  V3D_SNAPCURSOR_SNAP_EDIT_GEOM_CAGE = 1 << 5,
+  V3D_SNAPCURSOR_SNAP_EDIT_GEOM_FINAL = 1 << 3,
+  V3D_SNAPCURSOR_SNAP_EDIT_GEOM_CAGE = 1 << 4,
 } eV3DSnapCursor;
 
 typedef enum {
@@ -940,6 +946,7 @@ int view3d_opengl_select_with_id_filter(struct ViewContext *vc,
                                         uint select_id);
 
 /* view3d_select.c */
+
 float ED_view3d_select_dist_px(void);
 void ED_view3d_viewcontext_init(struct bContext *C,
                                 struct ViewContext *vc,

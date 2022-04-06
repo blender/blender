@@ -80,6 +80,7 @@ set(SRC
   intern/kdtree_4d.c
   intern/lasso_2d.c
   intern/listbase.c
+  intern/length_parameterize.cc
   intern/math_base.c
   intern/math_base_inline.c
   intern/math_base_safe_inline.c
@@ -225,6 +226,7 @@ set(SRC
   BLI_kdtree.h
   BLI_kdtree_impl.h
   BLI_lasso_2d.h
+  BLI_length_parameterize.hh
   BLI_linear_allocator.hh
   BLI_link_utils.h
   BLI_linklist.h
@@ -241,6 +243,7 @@ set(SRC
   BLI_math_bits.h
   BLI_math_boolean.hh
   BLI_math_color.h
+  BLI_math_color.hh
   BLI_math_color_blend.h
   BLI_math_geom.h
   BLI_math_inline.h
@@ -435,6 +438,7 @@ if(WITH_GTESTS)
     tests/BLI_index_range_test.cc
     tests/BLI_inplace_priority_queue_test.cc
     tests/BLI_kdopbvh_test.cc
+    tests/BLI_length_parameterize_test.cc
     tests/BLI_linear_allocator_test.cc
     tests/BLI_linklist_lockfree_test.cc
     tests/BLI_listbase_test.cc

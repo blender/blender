@@ -9,6 +9,8 @@
 
 #include <stddef.h>
 
+#include "BKE_attribute.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -82,11 +84,12 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const struct MVert *mvert,
                                   const float (*vert_normals)[3],
                                   const float *vmask,
-                                  const struct MLoopCol *vcol,
+                                  const void *vcol_data,
+                                  int vcol_type,
+                                  AttributeDomain vcol_domain,
                                   const int *sculpt_face_sets,
                                   int face_sets_color_seed,
                                   int face_sets_color_default,
-                                  const struct MPropCol *vtcol,
                                   int update_flags);
 
 /**

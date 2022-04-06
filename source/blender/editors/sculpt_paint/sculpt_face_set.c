@@ -398,7 +398,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 
   MEM_SAFE_FREE(nodes);
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   SCULPT_tag_update_overlays(C);
 
@@ -737,7 +737,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
       break;
   }
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   /* Sync face sets visibility and vertex visibility as now all Face Sets are visible. */
   SCULPT_visibility_sync_all_face_sets_to_vertices(ob);
@@ -927,7 +927,7 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
   /* Sync face sets visibility and vertex visibility. */
   SCULPT_visibility_sync_all_face_sets_to_vertices(ob);
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   for (int i = 0; i < totnode; i++) {
     BKE_pbvh_node_mark_update_visibility(nodes[i]);
@@ -1354,7 +1354,7 @@ static void sculpt_face_set_edit_modify_face_sets(Object *ob,
   SCULPT_undo_push_begin(ob, "face set edit");
   SCULPT_undo_push_node(ob, nodes[0], SCULPT_UNDO_FACE_SETS);
   sculpt_face_set_apply_edit(ob, abs(active_face_set), mode, modify_hidden);
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
   face_set_edit_do_post_visibility_updates(ob, nodes, totnode);
   MEM_freeN(nodes);
 }
@@ -1382,7 +1382,7 @@ static void sculpt_face_set_edit_modify_coordinates(bContext *C,
   }
   SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
   MEM_freeN(nodes);
 }
 

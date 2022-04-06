@@ -139,7 +139,7 @@ typedef struct Curves {
   void *batch_cache;
 } Curves;
 
-/* Curves.flag */
+/** #Curves.flag */
 enum {
   HA_DS_EXPAND = (1 << 0),
 };

@@ -26,6 +26,7 @@
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -418,17 +419,18 @@ static bool gpencil_edit_modifier_poll_generic(bContext *C,
                                                int obtype_flag,
                                                const bool is_liboverride_allowed)
 {
+  Main *bmain = CTX_data_main(C);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", rna_type);
   Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : ED_object_active_context(C);
   GpencilModifierData *mod = ptr.data; /* May be NULL. */
 
-  if (!ob || ID_IS_LINKED(ob)) {
+  if (!ob || !BKE_id_is_editable(bmain, &ob->id)) {
     return false;
   }
   if (obtype_flag && ((1 << ob->type) & obtype_flag) == 0) {
     return false;
   }
-  if (ptr.owner_id && ID_IS_LINKED(ptr.owner_id)) {
+  if (ptr.owner_id && !BKE_id_is_editable(bmain, ptr.owner_id)) {
     return false;
   }
 

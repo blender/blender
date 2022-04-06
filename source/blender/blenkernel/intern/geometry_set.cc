@@ -8,6 +8,7 @@
 #include "BKE_attribute.h"
 #include "BKE_attribute_access.hh"
 #include "BKE_curves.hh"
+#include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
@@ -175,20 +176,16 @@ Vector<const GeometryComponent *> GeometrySet::get_components_for_read() const
 bool GeometrySet::compute_boundbox_without_instances(float3 *r_min, float3 *r_max) const
 {
   bool have_minmax = false;
-  const PointCloud *pointcloud = this->get_pointcloud_for_read();
-  if (pointcloud != nullptr) {
+  if (const PointCloud *pointcloud = this->get_pointcloud_for_read()) {
     have_minmax |= BKE_pointcloud_minmax(pointcloud, *r_min, *r_max);
   }
-  const Mesh *mesh = this->get_mesh_for_read();
-  if (mesh != nullptr) {
+  if (const Mesh *mesh = this->get_mesh_for_read()) {
     have_minmax |= BKE_mesh_wrapper_minmax(mesh, *r_min, *r_max);
   }
-  const Volume *volume = this->get_volume_for_read();
-  if (volume != nullptr) {
+  if (const Volume *volume = this->get_volume_for_read()) {
     have_minmax |= BKE_volume_min_max(volume, *r_min, *r_max);
   }
-  const Curves *curves = this->get_curves_for_read();
-  if (curves != nullptr) {
+  if (const Curves *curves = this->get_curves_for_read()) {
     std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curves);
     /* Using the evaluated positions is somewhat arbitrary, but it is probably expected. */
     have_minmax |= curve->bounds_min_max(*r_min, *r_max, true);

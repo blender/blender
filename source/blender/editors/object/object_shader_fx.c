@@ -25,6 +25,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -278,8 +279,8 @@ static bool edit_shaderfx_poll_generic(bContext *C,
     CTX_wm_operator_poll_msg_set(C, "Object type is not supported");
     return false;
   }
-  if (ptr.owner_id != NULL && ID_IS_LINKED(ptr.owner_id)) {
-    CTX_wm_operator_poll_msg_set(C, "Cannot edit library data");
+  if (ptr.owner_id != NULL && !BKE_id_is_editable(CTX_data_main(C), ptr.owner_id)) {
+    CTX_wm_operator_poll_msg_set(C, "Cannot edit library or override data");
     return false;
   }
   if (!is_liboverride_allowed && BKE_shaderfx_is_nonlocal_in_liboverride(ob, fx)) {

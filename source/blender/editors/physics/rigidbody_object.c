@@ -44,12 +44,21 @@
 /* ********************************************** */
 /* Helper API's for RigidBody Objects Editing */
 
+static bool operator_rigidbody_editable_poll(Scene *scene)
+{
+  if (scene == NULL || ID_IS_LINKED(scene) || ID_IS_OVERRIDE_LIBRARY(scene) ||
+      (scene->rigidbody_world != NULL && scene->rigidbody_world->group != NULL &&
+       (ID_IS_LINKED(scene->rigidbody_world->group) ||
+        ID_IS_OVERRIDE_LIBRARY(scene->rigidbody_world->group)))) {
+    return false;
+  }
+  return true;
+}
+
 static bool ED_operator_rigidbody_active_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
-  if (scene == NULL || ID_IS_LINKED(&scene->id) ||
-      (scene->rigidbody_world != NULL && scene->rigidbody_world->group != NULL &&
-       ID_IS_LINKED(&scene->rigidbody_world->group->id))) {
+  if (!operator_rigidbody_editable_poll(scene)) {
     return false;
   }
 
@@ -57,15 +66,14 @@ static bool ED_operator_rigidbody_active_poll(bContext *C)
     Object *ob = ED_object_active_context(C);
     return (ob && ob->rigidbody_object);
   }
-  return 0;
+
+  return false;
 }
 
 static bool ED_operator_rigidbody_add_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
-  if (scene == NULL || ID_IS_LINKED(&scene->id) ||
-      (scene->rigidbody_world != NULL && scene->rigidbody_world->group != NULL &&
-       ID_IS_LINKED(&scene->rigidbody_world->group->id))) {
+  if (!operator_rigidbody_editable_poll(scene)) {
     return false;
   }
 
@@ -73,6 +81,7 @@ static bool ED_operator_rigidbody_add_poll(bContext *C)
     Object *ob = ED_object_active_context(C);
     return (ob && ob->type == OB_MESH);
   }
+
   return false;
 }
 

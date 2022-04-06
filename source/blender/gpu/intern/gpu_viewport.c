@@ -197,7 +197,7 @@ void GPU_viewport_bind_from_offscreen(GPUViewport *viewport,
   /* XR surfaces will already check for texture size changes and free if necessary (see
    * #wm_xr_session_surface_offscreen_ensure()), so don't free here as it has a significant
    * performance impact (leads to texture re-creation in #gpu_viewport_textures_create() every VR
-   * drawing iteration).*/
+   * drawing iteration). */
   if (!is_xr_surface) {
     gpu_viewport_textures_free(viewport);
   }

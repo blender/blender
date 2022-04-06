@@ -12,6 +12,8 @@
 #include "DNA_brush_enums.h"
 #include "DNA_object_enums.h"
 
+#include "BKE_attribute.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -493,6 +495,11 @@ typedef struct SculptSession {
 
   struct KeyBlock *shapekey_active;
   struct MPropCol *vcol;
+  struct MLoopCol *mcol;
+
+  AttributeDomain vcol_domain;
+  CustomDataType vcol_type;
+
   float *vmask;
 
   /* Mesh connectivity maps. */

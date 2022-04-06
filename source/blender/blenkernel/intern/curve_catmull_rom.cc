@@ -13,7 +13,7 @@ int calculate_evaluated_size(const int points_num, const bool cyclic, const int 
 {
   const int eval_size = resolution * curve_segment_size(points_num, cyclic);
   /* If the curve isn't cyclic, one last point is added to the final point. */
-  return (cyclic && points_num > 2) ? eval_size : eval_size + 1;
+  return cyclic ? eval_size : eval_size + 1;
 }
 
 /* Adapted from Cycles #catmull_rom_basis_eval function. */
@@ -58,8 +58,14 @@ static void interpolate_to_evaluated(const Span<T> src,
     return;
   }
   if (src.size() == 2) {
-    evaluate_segment(src.first(), src.first(), src.last(), src.last(), dst);
-    dst.last() = src.last();
+    evaluate_segment(src.first(), src.first(), src.last(), src.last(), dst.take_front(resolution));
+    if (cyclic) {
+      evaluate_segment(
+          src.last(), src.last(), src.first(), src.first(), dst.take_back(resolution));
+    }
+    else {
+      dst.last() = src.last();
+    }
     return;
   }
 

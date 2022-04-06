@@ -12,7 +12,7 @@ from bpy.types import Panel
 
 from bl_ui.properties_grease_pencil_common import GreasePencilSimplifyPanel
 from bl_ui.properties_render import draw_hair_settings
-from bl_ui.properties_view_layer import ViewLayerCryptomattePanel, ViewLayerAOVPanel
+from bl_ui.properties_view_layer import ViewLayerCryptomattePanel, ViewLayerAOVPanel, ViewLayerLightgroupsPanel
 
 class CyclesPresetPanel(PresetPanel, Panel):
     COMPAT_ENGINES = {'CYCLES'}
@@ -883,6 +883,12 @@ class CYCLES_RENDER_PT_passes_aov(CyclesButtonsPanel, ViewLayerAOVPanel):
     bl_parent_id = "CYCLES_RENDER_PT_passes"
 
 
+class CYCLES_RENDER_PT_passes_lightgroups(CyclesButtonsPanel, ViewLayerLightgroupsPanel):
+    bl_label = "Light Groups"
+    bl_context = "view_layer"
+    bl_parent_id = "CYCLES_RENDER_PT_passes"
+
+
 class CYCLES_PT_post_processing(CyclesButtonsPanel, Panel):
     bl_label = "Post Processing"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1093,6 +1099,10 @@ class CYCLES_OBJECT_PT_shading_shadow_terminator(CyclesButtonsPanel, Panel):
     bl_parent_id = "CYCLES_OBJECT_PT_shading"
     bl_context = "object"
 
+    @classmethod
+    def poll(cls, context):
+        return context.object.type != 'LIGHT'
+
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -1110,6 +1120,10 @@ class CYCLES_OBJECT_PT_shading_gi_approximation(CyclesButtonsPanel, Panel):
     bl_parent_id = "CYCLES_OBJECT_PT_shading"
     bl_context = "object"
 
+    @classmethod
+    def poll(cls, context):
+        return context.object.type != 'LIGHT'
+
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -1123,6 +1137,45 @@ class CYCLES_OBJECT_PT_shading_gi_approximation(CyclesButtonsPanel, Panel):
         col = layout.column()
         col.active = cscene.use_fast_gi
         col.prop(cob, "ao_distance")
+
+
+class CYCLES_OBJECT_PT_shading_caustics(CyclesButtonsPanel, Panel):
+    bl_label = "Caustics"
+    bl_parent_id = "CYCLES_OBJECT_PT_shading"
+    bl_context = "object"
+
+    @classmethod
+    def poll(cls, context):
+        return CyclesButtonsPanel.poll(context) and not use_metal(context) and context.object.type != 'LIGHT'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        col = layout.column()
+
+        ob = context.object
+        cob = ob.cycles
+        col.prop(cob, "is_caustics_caster")
+        col.prop(cob, "is_caustics_receiver")
+
+
+class CYCLES_OBJECT_PT_lightgroup(CyclesButtonsPanel, Panel):
+    bl_label = "Light Group"
+    bl_parent_id = "CYCLES_OBJECT_PT_shading"
+    bl_context = "object"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        ob = context.object
+
+        view_layer = context.view_layer
+
+        col = layout.column(align=True)
+        col.prop_search(ob, "lightgroup", view_layer, "lightgroups", text="Light Group")
 
 
 class CYCLES_OBJECT_PT_visibility(CyclesButtonsPanel, Panel):
@@ -1300,6 +1353,8 @@ class CYCLES_LIGHT_PT_light(CyclesButtonsPanel, Panel):
         sub.active = not (light.type == 'AREA' and clamp.is_portal)
         sub.prop(clamp, "cast_shadow")
         sub.prop(clamp, "use_multiple_importance_sampling", text="Multiple Importance")
+        if not use_metal(context):
+            sub.prop(clamp, "is_caustics_light", text="Shadow Caustics")
 
         if light.type == 'AREA':
             col.prop(clamp, "is_portal", text="Portal")
@@ -1375,9 +1430,13 @@ class CYCLES_WORLD_PT_surface(CyclesButtonsPanel, Panel):
         layout.use_property_split = True
 
         world = context.world
+        view_layer = context.view_layer
 
         if not panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Surface'):
             layout.prop(world, "color")
+
+        col = layout.column(align=True)
+        col.prop_search(world, "lightgroup", view_layer, "lightgroups", text="Light Group")
 
 
 class CYCLES_WORLD_PT_volume(CyclesButtonsPanel, Panel):
@@ -1496,6 +1555,8 @@ class CYCLES_WORLD_PT_settings_surface(CyclesButtonsPanel, Panel):
         subsub.active = cworld.sampling_method == 'MANUAL'
         subsub.prop(cworld, "sample_map_resolution")
         sub.prop(cworld, "max_bounces")
+        sub.prop(cworld, "is_caustics_light", text="Shadow Caustics")
+
 
 
 class CYCLES_WORLD_PT_settings_volume(CyclesButtonsPanel, Panel):
@@ -2183,6 +2244,7 @@ classes = (
     CYCLES_RENDER_PT_passes_light,
     CYCLES_RENDER_PT_passes_crypto,
     CYCLES_RENDER_PT_passes_aov,
+    CYCLES_RENDER_PT_passes_lightgroups,
     CYCLES_RENDER_PT_filter,
     CYCLES_RENDER_PT_override,
     CYCLES_PT_post_processing,
@@ -2193,6 +2255,8 @@ classes = (
     CYCLES_OBJECT_PT_shading,
     CYCLES_OBJECT_PT_shading_shadow_terminator,
     CYCLES_OBJECT_PT_shading_gi_approximation,
+    CYCLES_OBJECT_PT_shading_caustics,
+    CYCLES_OBJECT_PT_lightgroup,
     CYCLES_OBJECT_PT_visibility,
     CYCLES_OBJECT_PT_visibility_ray_visibility,
     CYCLES_OBJECT_PT_visibility_culling,

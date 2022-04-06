@@ -26,7 +26,7 @@ def geometry_node_group_empty_new():
 def geometry_modifier_poll(context):
     ob = context.object
 
-    # Test object support for geometry node modifier (No hair object support yet)
+    # Test object support for geometry node modifier (No curves object support yet)
     if not ob or ob.type not in {'MESH', 'POINTCLOUD', 'VOLUME', 'CURVE', 'FONT'}:
         return False
 
@@ -49,6 +49,9 @@ class NewGeometryNodesModifier(Operator):
 
         if not modifier:
             return {'CANCELLED'}
+
+        group = geometry_node_group_empty_new()
+        modifier.node_group = group
 
         return {'FINISHED'}
 

@@ -571,7 +571,7 @@ typedef struct MLoopNorSpaceArray {
   struct LinkNode
       *loops_pool; /* Allocated once, avoids to call BLI_linklist_prepend_arena() for each loop! */
   char data_type;  /* Whether we store loop indices, or pointers to BMLoop. */
-  int num_spaces;  /* Number of clnors spaces defined in this array. */
+  int spaces_num;  /* Number of clnors spaces defined in this array. */
   struct MemArena *mem;
 } MLoopNorSpaceArray;
 /**
@@ -1067,6 +1067,7 @@ extern void (*BKE_mesh_batch_cache_dirty_tag_cb)(struct Mesh *me, eMeshBatchDirt
 extern void (*BKE_mesh_batch_cache_free_cb)(struct Mesh *me);
 
 /* mesh_debug.c */
+
 #ifndef NDEBUG
 char *BKE_mesh_debug_info(const struct Mesh *me)
     ATTR_NONNULL(1) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;

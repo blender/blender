@@ -20,6 +20,10 @@
 #include "BLI_gsqueue.h"
 #include "BLI_threads.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct AutomaskingCache;
 struct KeyBlock;
 struct Object;
@@ -139,9 +143,16 @@ typedef struct SculptUndoNode {
   float *mask;
   int totvert;
 
+  float (*loop_col)[4];
+  float (*orig_loop_col)[4];
+  int totloop;
+
   /* non-multires */
   int maxvert; /* to verify if totvert it still the same */
-  int *index;  /* to restore into right location */
+  int *index;  /* Unique vertex indices, to restore into right location */
+  int maxloop;
+  int *loop_index;
+
   BLI_bitmap *vert_hidden;
 
   /* multires */
@@ -857,7 +868,14 @@ const float *SCULPT_vertex_co_get(struct SculptSession *ss, int index);
 void SCULPT_vertex_normal_get(SculptSession *ss, int index, float no[3]);
 
 float SCULPT_vertex_mask_get(struct SculptSession *ss, int index);
-const float *SCULPT_vertex_color_get(SculptSession *ss, int index);
+void SCULPT_vertex_color_get(const SculptSession *ss, int index, float r_color[4]);
+void SCULPT_vertex_color_set(SculptSession *ss, int index, const float color[4]);
+
+/** Returns true if a color attribute exists in the current sculpt session. */
+bool SCULPT_has_colors(const SculptSession *ss);
+
+/** Returns true if the active color attribute is on loop (ATTR_DOMAIN_CORNER) domain. */
+bool SCULPT_has_loop_colors(const struct Object *ob);
 
 const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, int index);
 void SCULPT_vertex_persistent_normal_get(SculptSession *ss, int index, float no[3]);
@@ -1416,8 +1434,8 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
 SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node);
 SculptUndoNode *SCULPT_undo_get_first_node(void);
 void SCULPT_undo_push_begin(struct Object *ob, const char *name);
-void SCULPT_undo_push_end(void);
-void SCULPT_undo_push_end_ex(bool use_nested_undo);
+void SCULPT_undo_push_end(struct Object *ob);
+void SCULPT_undo_push_end_ex(struct Object *ob, const bool use_nested_undo);
 
 /** \} */
 
@@ -1716,6 +1734,13 @@ void SCULPT_bmesh_topology_rake(
 /* end sculpt_brush_types.c */
 
 /* sculpt_ops.c */
+
 void SCULPT_OT_brush_stroke(struct wmOperatorType *ot);
 
 /* end sculpt_ops.c */
+
+#define SCULPT_TOOL_NEEDS_COLOR(tool) ELEM(tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)
+
+#ifdef __cplusplus
+}
+#endif

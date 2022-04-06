@@ -68,6 +68,8 @@ class Film : public Node {
 
   int get_aov_offset(Scene *scene, string name, bool &is_color);
 
+  bool update_lightgroups(Scene *scene);
+
   /* Update passes so that they contain all passes required for the configured functionality.
    *
    * If `add_sample_count_pass` is true then the SAMPLE_COUNT pass is ensured to be added. */

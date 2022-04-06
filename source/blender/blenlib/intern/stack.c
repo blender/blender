@@ -34,7 +34,7 @@ struct BLI_Stack {
   size_t chunk_elem_max;         /* number of elements per chunk */
   size_t elem_size;
 #ifdef USE_TOTELEM
-  size_t totelem;
+  size_t elem_num;
 #endif
 };
 
@@ -119,7 +119,7 @@ void *BLI_stack_push_r(BLI_Stack *stack)
   BLI_assert(stack->chunk_index < stack->chunk_elem_max);
 
 #ifdef USE_TOTELEM
-  stack->totelem++;
+  stack->elem_num++;
 #endif
 
   /* Return end of stack */
@@ -175,7 +175,7 @@ void BLI_stack_discard(BLI_Stack *stack)
   BLI_assert(BLI_stack_is_empty(stack) == false);
 
 #ifdef USE_TOTELEM
-  stack->totelem--;
+  stack->elem_num--;
 #endif
   if (UNLIKELY(--stack->chunk_index == CHUNK_EMPTY)) {
     struct StackChunk *chunk_free;
@@ -193,10 +193,10 @@ void BLI_stack_discard(BLI_Stack *stack)
 void BLI_stack_clear(BLI_Stack *stack)
 {
 #ifdef USE_TOTELEM
-  if (UNLIKELY(stack->totelem == 0)) {
+  if (UNLIKELY(stack->elem_num == 0)) {
     return;
   }
-  stack->totelem = 0;
+  stack->elem_num = 0;
 #else
   if (UNLIKELY(stack->chunk_curr == NULL)) {
     return;
@@ -225,29 +225,29 @@ void BLI_stack_clear(BLI_Stack *stack)
 size_t BLI_stack_count(const BLI_Stack *stack)
 {
 #ifdef USE_TOTELEM
-  return stack->totelem;
+  return stack->elem_num;
 #else
   struct StackChunk *data = stack->chunk_curr;
-  size_t totelem = stack->chunk_index + 1;
+  size_t elem_num = stack->chunk_index + 1;
   size_t i;
-  if (totelem != stack->chunk_elem_max) {
+  if (elem_num != stack->chunk_elem_max) {
     data = data->next;
   }
   else {
-    totelem = 0;
+    elem_num = 0;
   }
   for (i = 0; data; data = data->next) {
     i++;
   }
-  totelem += stack->chunk_elem_max * i;
-  return totelem;
+  elem_num += stack->chunk_elem_max * i;
+  return elem_num;
 #endif
 }
 
 bool BLI_stack_is_empty(const BLI_Stack *stack)
 {
 #ifdef USE_TOTELEM
-  BLI_assert((stack->chunk_curr == NULL) == (stack->totelem == 0));
+  BLI_assert((stack->chunk_curr == NULL) == (stack->elem_num == 0));
 #endif
   return (stack->chunk_curr == NULL);
 }

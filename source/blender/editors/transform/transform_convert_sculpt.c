@@ -10,6 +10,7 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
+#include "BKE_lib_id.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 
@@ -27,7 +28,7 @@ void createTransSculpt(bContext *C, TransInfo *t)
   TransData *td;
 
   Scene *scene = t->scene;
-  if (ID_IS_LINKED(scene)) {
+  if (!BKE_id_is_editable(CTX_data_main(C), &scene->id)) {
     BKE_report(t->reports, RPT_ERROR, "Linked data can't text-space transform");
     return;
   }
@@ -102,7 +103,7 @@ void recalcData_sculpt(TransInfo *t)
 void special_aftertrans_update__sculpt(bContext *C, TransInfo *t)
 {
   Scene *scene = t->scene;
-  if (ID_IS_LINKED(scene)) {
+  if (!BKE_id_is_editable(CTX_data_main(C), &scene->id)) {
     /* `ED_sculpt_init_transform` was not called in this case. */
     return;
   }

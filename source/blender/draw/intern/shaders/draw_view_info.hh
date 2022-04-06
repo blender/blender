@@ -80,7 +80,7 @@ GPU_SHADER_CREATE_INFO(drw_clipped).define("USE_WORLD_CLIP_PLANES");
 
 GPU_SHADER_CREATE_INFO(draw_globals)
     .typedef_source("draw_common_shader_shared.h")
-    .uniform_buf(1, "ObjectMatrices", "drw_globals", Frequency::PASS);
+    .uniform_buf(1, "GlobalsUboStorage", "globalsBlock", Frequency::PASS);
 
 /** \} */
 
@@ -102,7 +102,7 @@ GPU_SHADER_CREATE_INFO(draw_hair)
     .push_constant(Type::FLOAT, "hairRadShape")
     .push_constant(Type::BOOL, "hairCloseTip")
     .push_constant(Type::INT, "hairStrandOffset")
-    .push_constant(Type::VEC4, "hairDupliMatrix", 4)
+    .push_constant(Type::MAT4, "hairDupliMatrix")
     .additional_info("draw_modelmat", "draw_resource_id");
 
 GPU_SHADER_CREATE_INFO(draw_pointcloud)

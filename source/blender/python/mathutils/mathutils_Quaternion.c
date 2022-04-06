@@ -1035,7 +1035,7 @@ static PyObject *Quaternion_matmul(PyObject *q1, PyObject *q2)
       VectorObject *vec2 = (VectorObject *)q2;
       float tvec[3];
 
-      if (vec2->size != 3) {
+      if (vec2->vec_num != 3) {
         PyErr_SetString(PyExc_ValueError,
                         "Vector multiplication: "
                         "only 3D vector rotations (with quats) "

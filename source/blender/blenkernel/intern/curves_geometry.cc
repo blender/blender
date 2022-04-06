@@ -11,6 +11,7 @@
 
 #include "BLI_bounds.hh"
 #include "BLI_index_mask_ops.hh"
+#include "BLI_length_parameterize.hh"
 
 #include "DNA_curves_types.h"
 
@@ -148,41 +149,6 @@ CurvesGeometry::~CurvesGeometry()
 /* -------------------------------------------------------------------- */
 /** \name Accessors
  * \{ */
-
-int CurvesGeometry::points_num() const
-{
-  return this->point_size;
-}
-int CurvesGeometry::curves_num() const
-{
-  return this->curve_size;
-}
-IndexRange CurvesGeometry::points_range() const
-{
-  return IndexRange(this->points_num());
-}
-IndexRange CurvesGeometry::curves_range() const
-{
-  return IndexRange(this->curves_num());
-}
-
-IndexRange CurvesGeometry::points_for_curve(const int index) const
-{
-  BLI_assert(this->curve_size > 0);
-  BLI_assert(this->curve_offsets != nullptr);
-  const int offset = this->curve_offsets[index];
-  const int offset_next = this->curve_offsets[index + 1];
-  return {offset, offset_next - offset};
-}
-
-IndexRange CurvesGeometry::points_for_curves(const IndexRange curves) const
-{
-  BLI_assert(this->curve_size > 0);
-  BLI_assert(this->curve_offsets != nullptr);
-  const int offset = this->curve_offsets[curves.start()];
-  const int offset_next = this->curve_offsets[curves.one_after_last()];
-  return {offset, offset_next - offset};
-}
 
 static int domain_size(const CurvesGeometry &curves, const AttributeDomain domain)
 {
@@ -491,27 +457,6 @@ static void calculate_evaluated_offsets(const CurvesGeometry &curves,
   });
 }
 
-int CurvesGeometry::evaluated_points_num() const
-{
-  /* This could avoid calculating offsets in the future in simple circumstances. */
-  return this->evaluated_offsets().last();
-}
-
-IndexRange CurvesGeometry::evaluated_points_for_curve(int index) const
-{
-  BLI_assert(!this->runtime->offsets_cache_dirty);
-  return offsets_to_range(this->runtime->evaluated_offsets_cache.as_span(), index);
-}
-
-IndexRange CurvesGeometry::evaluated_points_for_curves(const IndexRange curves) const
-{
-  BLI_assert(!this->runtime->offsets_cache_dirty);
-  BLI_assert(this->curve_size > 0);
-  const int offset = this->runtime->evaluated_offsets_cache[curves.start()];
-  const int offset_next = this->runtime->evaluated_offsets_cache[curves.one_after_last()];
-  return {offset, offset_next - offset};
-}
-
 void CurvesGeometry::ensure_evaluated_offsets() const
 {
   if (!this->runtime->offsets_cache_dirty) {
@@ -721,6 +666,46 @@ void CurvesGeometry::interpolate_to_evaluated(const int curve_index,
   BLI_assert_unreachable();
 }
 
+void CurvesGeometry::ensure_evaluated_lengths() const
+{
+  if (!this->runtime->length_cache_dirty) {
+    return;
+  }
+
+  /* A double checked lock. */
+  std::scoped_lock lock{this->runtime->length_cache_mutex};
+  if (!this->runtime->length_cache_dirty) {
+    return;
+  }
+
+  threading::isolate_task([&]() {
+    /* Use an extra length value for the final cyclic segment for a consistent size
+     * (see comment on #evaluated_length_cache). */
+    const int total_size = this->evaluated_points_num() + this->curves_num();
+    this->runtime->evaluated_length_cache.resize(total_size);
+    MutableSpan<float> evaluated_lengths = this->runtime->evaluated_length_cache;
+
+    Span<float3> evaluated_positions = this->evaluated_positions();
+    VArray<bool> curves_cyclic = this->cyclic();
+
+    threading::parallel_for(this->curves_range(), 128, [&](IndexRange curves_range) {
+      for (const int curve_index : curves_range) {
+        const bool cyclic = curves_cyclic[curve_index];
+        const IndexRange evaluated_points = this->evaluated_points_for_curve(curve_index);
+        if (UNLIKELY(evaluated_points.is_empty())) {
+          continue;
+        }
+        const IndexRange lengths_range = this->lengths_range_for_curve(curve_index, cyclic);
+        length_parameterize::accumulate_lengths(evaluated_positions.slice(evaluated_points),
+                                                cyclic,
+                                                evaluated_lengths.slice(lengths_range));
+      }
+    });
+  });
+
+  this->runtime->length_cache_dirty = false;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -747,6 +732,7 @@ void CurvesGeometry::tag_positions_changed()
   this->runtime->position_cache_dirty = true;
   this->runtime->tangent_cache_dirty = true;
   this->runtime->normal_cache_dirty = true;
+  this->runtime->length_cache_dirty = true;
 }
 void CurvesGeometry::tag_topology_changed()
 {
@@ -755,6 +741,7 @@ void CurvesGeometry::tag_topology_changed()
   this->runtime->normal_cache_dirty = true;
   this->runtime->offsets_cache_dirty = true;
   this->runtime->nurbs_basis_cache_dirty = true;
+  this->runtime->length_cache_dirty = true;
 }
 void CurvesGeometry::tag_normals_changed()
 {
@@ -775,6 +762,38 @@ static void transform_positions(MutableSpan<float3> positions, const float4x4 &m
   threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
     for (float3 &position : positions.slice(range)) {
       position = matrix * position;
+    }
+  });
+}
+
+void CurvesGeometry::calculate_bezier_auto_handles()
+{
+  const VArray<int8_t> types = std::as_const(*this).curve_types();
+  if (types.is_single() && types.get_internal_single() != CURVE_TYPE_BEZIER) {
+    return;
+  }
+  if (std::as_const(*this).handle_positions_left().is_empty() ||
+      std::as_const(*this).handle_positions_right().is_empty()) {
+    return;
+  }
+  const VArray<bool> cyclic = std::as_const(*this).cyclic();
+  const Span<int8_t> types_left = this->handle_types_left();
+  const Span<int8_t> types_right = this->handle_types_right();
+  const Span<float3> positions = this->positions();
+  MutableSpan<float3> positions_left = this->handle_positions_left();
+  MutableSpan<float3> positions_right = this->handle_positions_right();
+
+  threading::parallel_for(this->curves_range(), 128, [&](IndexRange range) {
+    for (const int i_curve : range) {
+      if (types[i_curve] == CURVE_TYPE_BEZIER) {
+        const IndexRange points = this->points_for_curve(i_curve);
+        curves::bezier::calculate_auto_handles(cyclic[i_curve],
+                                               types_left.slice(points),
+                                               types_right.slice(points),
+                                               positions.slice(points),
+                                               positions_left.slice(points),
+                                               positions_right.slice(points));
+      }
     }
   });
 }

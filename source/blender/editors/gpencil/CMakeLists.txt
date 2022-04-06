@@ -28,7 +28,7 @@ set(SRC
   gpencil_add_monkey.c
   gpencil_add_stroke.c
   gpencil_armature.c
-  gpencil_bake_animation.c
+  gpencil_bake_animation.cc
   gpencil_convert.c
   gpencil_data.c
   gpencil_edit.c
@@ -36,7 +36,7 @@ set(SRC
   gpencil_fill.c
   gpencil_interpolate.c
   gpencil_merge.c
-  gpencil_mesh.c
+  gpencil_mesh.cc
   gpencil_ops.c
   gpencil_ops_versioning.c
   gpencil_paint.c

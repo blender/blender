@@ -46,6 +46,7 @@ CCL_NAMESPACE_BEGIN
 #define LAMP_NONE (~0)
 #define ID_NONE (0.0f)
 #define PASS_UNUSED (~0)
+#define LIGHTGROUP_NONE (~0)
 
 #define INTEGRATOR_SHADOW_ISECT_SIZE_CPU 1024U
 #define INTEGRATOR_SHADOW_ISECT_SIZE_GPU 4U
@@ -101,6 +102,12 @@ CCL_NAMESPACE_BEGIN
 #ifdef __KERNEL_GPU_RAYTRACING__
 #  undef __BAKING__
 #endif /* __KERNEL_GPU_RAYTRACING__ */
+
+/* MNEE currently causes "Compute function exceeds available temporary registers"
+ * on Metal, disabled for now. */
+#ifndef __KERNEL_METAL__
+#  define __MNEE__
+#endif
 
 /* Scene-based selective features compilation. */
 #ifdef __KERNEL_FEATURES__
@@ -291,6 +298,13 @@ enum PathRayFlag : uint32_t {
 
   /* Path is evaluating background for an approximate shadow catcher with non-transparent film. */
   PATH_RAY_SHADOW_CATCHER_BACKGROUND = (1U << 31U),
+};
+
+// 8bit enum, just in case we need to move more variables in it
+enum PathRayMNEE {
+  PATH_MNEE_VALID = (1U << 0U),
+  PATH_MNEE_RECEIVER_ANCESTOR = (1U << 1U),
+  PATH_MNEE_CULL_LIGHT_CONNECTION = (1U << 2U),
 };
 
 /* Configure ray visibility bits for rays and objects respectively,
@@ -649,6 +663,17 @@ typedef struct AttributeDescriptor {
 #  define MAX_CLOSURE __MAX_CLOSURE__
 #endif
 
+/* For manifold next event estimation, we need space to store and evaluate
+ * 2 closures (with extra data) on the refractive interfaces, in addition
+ * to keeping the full sd at the current shading point. We need 4 because a
+ * refractive BSDF is instanced with a companion reflection BSDF, even though
+ * we only need the refractive one, and each of them requires 2 slots. */
+#ifndef __CAUSTICS_MAX_CLOSURE__
+#  define CAUSTICS_MAX_CLOSURE 4
+#else
+#  define CAUSTICS_MAX_CLOSURE __CAUSTICS_MAX_CLOSURE__
+#endif
+
 #ifndef __MAX_VOLUME_STACK_SIZE__
 #  define MAX_VOLUME_STACK_SIZE 32
 #else
@@ -779,11 +804,18 @@ enum ShaderDataObjectFlag {
   SD_OBJECT_SHADOW_CATCHER = (1 << 7),
   /* object has volume attributes */
   SD_OBJECT_HAS_VOLUME_ATTRIBUTES = (1 << 8),
+  /* object is caustics caster */
+  SD_OBJECT_CAUSTICS_CASTER = (1 << 9),
+  /* object is caustics receiver */
+  SD_OBJECT_CAUSTICS_RECEIVER = (1 << 10),
+
+  /* object is using caustics */
+  SD_OBJECT_CAUSTICS = (SD_OBJECT_CAUSTICS_CASTER | SD_OBJECT_CAUSTICS_RECEIVER),
 
   SD_OBJECT_FLAGS = (SD_OBJECT_HOLDOUT_MASK | SD_OBJECT_MOTION | SD_OBJECT_TRANSFORM_APPLIED |
                      SD_OBJECT_NEGATIVE_SCALE_APPLIED | SD_OBJECT_HAS_VOLUME |
                      SD_OBJECT_INTERSECTS_VOLUME | SD_OBJECT_SHADOW_CATCHER |
-                     SD_OBJECT_HAS_VOLUME_ATTRIBUTES)
+                     SD_OBJECT_HAS_VOLUME_ATTRIBUTES | SD_OBJECT_CAUSTICS)
 };
 
 typedef struct ccl_align(16) ShaderData
@@ -882,6 +914,15 @@ typedef struct ccl_align(16) ShaderDataTinyStorage
   char pad[sizeof(ShaderData) - sizeof(ShaderClosure) * MAX_CLOSURE];
 }
 ShaderDataTinyStorage;
+
+/* ShaderDataCausticsStorage needs the same alignment as ShaderData, or else
+ * the pointer cast in AS_SHADER_DATA invokes undefined behavior. */
+typedef struct ccl_align(16) ShaderDataCausticsStorage
+{
+  char pad[sizeof(ShaderData) - sizeof(ShaderClosure) * (MAX_CLOSURE - CAUSTICS_MAX_CLOSURE)];
+}
+ShaderDataCausticsStorage;
+
 #define AS_SHADER_DATA(shader_data_tiny_storage) \
   ((ccl_private ShaderData *)shader_data_tiny_storage)
 
@@ -1068,6 +1109,7 @@ typedef struct KernelFilm {
 
   int pass_aov_color;
   int pass_aov_value;
+  int pass_lightgroup;
 
   /* XYZ to rendering color space transform. float4 instead of float3 to
    * ensure consistent padding/alignment across devices. */
@@ -1152,8 +1194,10 @@ typedef struct KernelBackground {
 
   int use_mis;
 
+  int lightgroup;
+
   /* Padding */
-  int pad1, pad2, pad3;
+  int pad1, pad2;
 } KernelBackground;
 static_assert_align(KernelBackground, 16);
 
@@ -1201,6 +1245,9 @@ typedef struct KernelIntegrator {
   /* mis */
   int use_lamp_mis;
 
+  /* caustics */
+  int use_caustics;
+
   /* sampler */
   int sampling_pattern;
 
@@ -1219,7 +1266,7 @@ typedef struct KernelIntegrator {
   int direct_light_sampling_type;
 
   /* padding */
-  int pad1, pad2;
+  int pad1;
 } KernelIntegrator;
 static_assert_align(KernelIntegrator, 16);
 
@@ -1329,9 +1376,12 @@ typedef struct KernelObject {
 
   float ao_distance;
 
+  int lightgroup;
+
   uint visibility;
   int primitive_type;
-  int pad[2];
+
+  int pad1;
 } KernelObject;
 static_assert_align(KernelObject, 16);
 
@@ -1383,7 +1433,8 @@ typedef struct KernelLight {
   float max_bounces;
   float random;
   float strength[3];
-  float pad1, pad2;
+  int use_caustics;
+  int lightgroup;
   Transform tfm;
   Transform itfm;
   union {

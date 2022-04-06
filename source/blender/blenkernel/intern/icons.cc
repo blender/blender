@@ -416,7 +416,7 @@ void BKE_previewimg_id_custom_set(ID *id, const char *path)
 
 bool BKE_previewimg_id_supports_jobs(const ID *id)
 {
-  return ELEM(GS(id->name), ID_OB, ID_MA, ID_TE, ID_LA, ID_WO, ID_IM, ID_BR);
+  return ELEM(GS(id->name), ID_OB, ID_MA, ID_TE, ID_LA, ID_WO, ID_IM, ID_BR, ID_GR);
 }
 
 void BKE_previewimg_deferred_release(PreviewImage *prv)

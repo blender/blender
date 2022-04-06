@@ -31,6 +31,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_attribute.h"
 #include "BKE_brush.h"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
@@ -143,19 +144,27 @@ const float *SCULPT_vertex_co_get(SculptSession *ss, int index)
   return NULL;
 }
 
-const float *SCULPT_vertex_color_get(SculptSession *ss, int index)
+bool SCULPT_has_loop_colors(const Object *ob)
 {
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-      if (ss->vcol) {
-        return ss->vcol[index].color;
-      }
-      break;
-    case PBVH_BMESH:
-    case PBVH_GRIDS:
-      break;
-  }
-  return NULL;
+  Mesh *me = BKE_object_get_original_mesh(ob);
+  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
+
+  return layer && BKE_id_attribute_domain(&me->id, layer) == ATTR_DOMAIN_CORNER;
+}
+
+bool SCULPT_has_colors(const SculptSession *ss)
+{
+  return ss->vcol || ss->mcol;
+}
+
+void SCULPT_vertex_color_get(const SculptSession *ss, int index, float r_color[4])
+{
+  BKE_pbvh_vertex_color_get(ss->pbvh, index, r_color);
+}
+
+void SCULPT_vertex_color_set(SculptSession *ss, int index, const float color[4])
+{
+  BKE_pbvh_vertex_color_set(ss->pbvh, index, color);
 }
 
 void SCULPT_vertex_normal_get(SculptSession *ss, int index, float no[3])
@@ -1045,6 +1054,7 @@ void SCULPT_tag_update_overlays(bContext *C)
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
+
   View3D *v3d = CTX_wm_view3d(C);
   if (!BKE_sculptsession_use_pbvh_draw(ob, v3d)) {
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -1378,7 +1388,7 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
       *vd.mask = orig_data.mask;
     }
     else if (orig_data.unode->type == SCULPT_UNDO_COLOR) {
-      copy_v4_v4(vd.col, orig_data.col);
+      SCULPT_vertex_color_set(ss, vd.index, orig_data.col);
     }
 
     if (vd.mvert) {
@@ -3149,7 +3159,7 @@ static void do_brush_action_task_cb(void *__restrict userdata,
     SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_MASK);
     BKE_pbvh_node_mark_update_mask(data->nodes[n]);
   }
-  else if (ELEM(data->brush->sculpt_tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
+  else if (SCULPT_TOOL_NEEDS_COLOR(data->brush->sculpt_tool)) {
     SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COLOR);
     BKE_pbvh_node_mark_update_color(data->nodes[n]);
   }
@@ -3167,12 +3177,13 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
 
   /* Check for unsupported features. */
   PBVHType type = BKE_pbvh_type(ss->pbvh);
-  if (brush->sculpt_tool == SCULPT_TOOL_PAINT && type != PBVH_FACES) {
-    return;
-  }
 
-  if (brush->sculpt_tool == SCULPT_TOOL_SMEAR && type != PBVH_FACES) {
-    return;
+  if (SCULPT_TOOL_NEEDS_COLOR(brush->sculpt_tool) && SCULPT_has_loop_colors(ob)) {
+    if (type != PBVH_FACES) {
+      return;
+    }
+
+    BKE_pbvh_ensure_node_loops(ss->pbvh);
   }
 
   /* Build a list of all nodes that are potentially within the brush's area of influence */
@@ -3188,6 +3199,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
                                                                                ss->cache->original;
     float radius_scale = 1.0f;
+
     /* With these options enabled not all required nodes are inside the original brush radius, so
      * the brush can produce artifacts in some situations. */
     if (brush->sculpt_tool == SCULPT_TOOL_DRAW && brush->flag & BRUSH_ORIGINAL_NORMAL) {
@@ -3699,7 +3711,7 @@ static void do_tiled(
   SculptSession *ss = ob->sculpt;
   StrokeCache *cache = ss->cache;
   const float radius = cache->radius;
-  BoundBox *bb = BKE_object_boundbox_get(ob);
+  const BoundBox *bb = BKE_object_boundbox_get(ob);
   const float *bbMin = bb->vec[0];
   const float *bbMax = bb->vec[6];
   const float *step = sd->paint.tile_offset;
@@ -3849,10 +3861,12 @@ bool SCULPT_mode_poll(bContext *C)
 
 bool SCULPT_vertex_colors_poll(bContext *C)
 {
-  if (!U.experimental.use_sculpt_vertex_colors) {
+  if (!SCULPT_mode_poll(C)) {
     return false;
   }
-  return SCULPT_mode_poll(C);
+
+  Object *ob = CTX_data_active_object(C);
+  return ob->sculpt && SCULPT_has_colors(ob->sculpt);
 }
 
 bool SCULPT_mode_poll_view3d(bContext *C)
@@ -4591,6 +4605,7 @@ static bool sculpt_needs_connectivity_info(const Sculpt *sd,
           (brush->sculpt_tool == SCULPT_TOOL_POSE) ||
           (brush->sculpt_tool == SCULPT_TOOL_BOUNDARY) ||
           (brush->sculpt_tool == SCULPT_TOOL_SLIDE_RELAX) ||
+          SCULPT_TOOL_NEEDS_COLOR(brush->sculpt_tool) ||
           (brush->sculpt_tool == SCULPT_TOOL_CLOTH) || (brush->sculpt_tool == SCULPT_TOOL_SMEAR) ||
           (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) ||
           (brush->sculpt_tool == SCULPT_TOOL_DISPLACEMENT_SMEAR));
@@ -4950,7 +4965,7 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
   SculptSession *ss = CTX_data_active_object(C)->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
   int mode = RNA_enum_get(op->ptr, "mode");
-  bool is_smooth, needs_colors;
+  bool need_pmap, needs_colors;
   bool need_mask = false;
 
   if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
@@ -4965,8 +4980,8 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
   view3d_operator_needs_opengl(C);
   sculpt_brush_init_tex(scene, sd, ss);
 
-  is_smooth = sculpt_needs_connectivity_info(sd, brush, ss, mode);
-  needs_colors = ELEM(brush->sculpt_tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR);
+  need_pmap = sculpt_needs_connectivity_info(sd, brush, ss, mode);
+  needs_colors = SCULPT_TOOL_NEEDS_COLOR(brush->sculpt_tool);
 
   if (needs_colors) {
     BKE_sculpt_color_layer_create_if_needed(ob);
@@ -4975,7 +4990,7 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
   /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the updates of
    * earlier steps modifying the data. */
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, is_smooth, need_mask, needs_colors);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, need_pmap, need_mask, needs_colors);
 }
 
 static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
@@ -5174,6 +5189,14 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
     Object *ob = CTX_data_active_object(C);
     SculptSession *ss = ob->sculpt;
     Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+    Brush *brush = BKE_paint_brush(&sd->paint);
+
+    if (brush && SCULPT_TOOL_NEEDS_COLOR(brush->sculpt_tool)) {
+      View3D *v3d = CTX_wm_view3d(C);
+      if (v3d) {
+        v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
+      }
+    }
 
     ED_view3d_init_mats_rv3d(ob, CTX_wm_region_view3d(C));
 
@@ -5302,7 +5325,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
   SCULPT_cache_free(ss->cache);
   ss->cache = NULL;
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
@@ -5399,7 +5422,7 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
 
 static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  return paint_stroke_modal(C, op, event, op->customdata);
+  return paint_stroke_modal(C, op, event, (struct PaintStroke **)&op->customdata);
 }
 
 void SCULPT_OT_brush_stroke(wmOperatorType *ot)

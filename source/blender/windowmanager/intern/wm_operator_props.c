@@ -383,7 +383,7 @@ void WM_operator_properties_select_operation(wmOperatorType *ot)
       {SEL_OP_SET, "SET", ICON_SELECT_SET, "Set", "Set a new selection"},
       {SEL_OP_ADD, "ADD", ICON_SELECT_EXTEND, "Extend", "Extend existing selection"},
       {SEL_OP_SUB, "SUB", ICON_SELECT_SUBTRACT, "Subtract", "Subtract existing selection"},
-      {SEL_OP_XOR, "XOR", ICON_SELECT_DIFFERENCE, "Difference", "Inverts existing selection"},
+      {SEL_OP_XOR, "XOR", ICON_SELECT_DIFFERENCE, "Difference", "Invert existing selection"},
       {SEL_OP_AND, "AND", ICON_SELECT_INTERSECT, "Intersect", "Intersect existing selection"},
       {0, NULL, 0, NULL, NULL},
   };

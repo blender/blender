@@ -371,16 +371,6 @@ static int imapaint_pick_face(ViewContext *vc, const int mval[2], uint *r_index,
   return 1;
 }
 
-static Image *imapaint_face_image(Object *ob, Mesh *me, int face_index)
-{
-  Image *ima;
-  MPoly *mp = me->mpoly + face_index;
-  Material *ma = BKE_object_material_get(ob, mp->mat_nr + 1);
-  ima = ma && ma->texpaintslot ? ma->texpaintslot[ma->paint_active_slot].ima : NULL;
-
-  return ima;
-}
-
 void paint_sample_color(
     bContext *C, ARegion *region, int x, int y, bool texpaint_proj, bool use_palette)
 {
@@ -432,13 +422,26 @@ void paint_sample_color(
         view3d_operator_needs_opengl(C);
 
         if (imapaint_pick_face(&vc, mval, &faceindex, totpoly)) {
-          Image *image;
+          Image *image = NULL;
+          int interp = SHD_INTERP_LINEAR;
 
           if (use_material) {
-            image = imapaint_face_image(ob_eval, me_eval, faceindex);
+            /* Image and texture interpolation from material. */
+            MPoly *mp = me_eval->mpoly + faceindex;
+            Material *ma = BKE_object_material_get(ob_eval, mp->mat_nr + 1);
+
+            /* Force refresh since paint slots are not updated when changing interpolation. */
+            BKE_texpaint_slot_refresh_cache(scene, ma);
+
+            if (ma && ma->texpaintslot) {
+              image = ma->texpaintslot[ma->paint_active_slot].ima;
+              interp = ma->texpaintslot[ma->paint_active_slot].interp;
+            }
           }
           else {
+            /* Image and texture interpolation from tool settings. */
             image = imapaint->canvas;
+            interp = imapaint->interp;
           }
 
           if (image) {
@@ -476,7 +479,12 @@ void paint_sample_color(
 
               if (ibuf->rect_float) {
                 float rgba_f[4];
-                bilinear_interpolation_color_wrap(ibuf, NULL, rgba_f, u, v);
+                if (interp == SHD_INTERP_CLOSEST) {
+                  nearest_interpolation_color_wrap(ibuf, NULL, rgba_f, u, v);
+                }
+                else {
+                  bilinear_interpolation_color_wrap(ibuf, NULL, rgba_f, u, v);
+                }
                 straight_to_premul_v4(rgba_f);
                 if (use_palette) {
                   linearrgb_to_srgb_v3_v3(color->rgb, rgba_f);
@@ -488,7 +496,12 @@ void paint_sample_color(
               }
               else {
                 uchar rgba[4];
-                bilinear_interpolation_color_wrap(ibuf, rgba, NULL, u, v);
+                if (interp == SHD_INTERP_CLOSEST) {
+                  nearest_interpolation_color_wrap(ibuf, rgba, NULL, u, v);
+                }
+                else {
+                  bilinear_interpolation_color_wrap(ibuf, rgba, NULL, u, v);
+                }
                 if (use_palette) {
                   rgb_uchar_to_float(color->rgb, rgba);
                 }

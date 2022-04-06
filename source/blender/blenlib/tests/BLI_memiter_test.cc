@@ -16,11 +16,11 @@ TEST(memiter, Nop)
   BLI_memiter_destroy(mi);
 }
 
-static void memiter_empty_test(int num_elems, const int chunk_size)
+static void memiter_empty_test(int elems_num, const int chunk_size)
 {
   BLI_memiter *mi = BLI_memiter_create(chunk_size);
   void *data;
-  for (int index = 0; index < num_elems; index++) {
+  for (int index = 0; index < elems_num; index++) {
     data = BLI_memiter_alloc(mi, 0);
   }
   int index = 0, total_size = 0;
@@ -32,17 +32,17 @@ static void memiter_empty_test(int num_elems, const int chunk_size)
     total_size += elem_size;
   }
   EXPECT_EQ(0, total_size);
-  EXPECT_EQ(num_elems, index);
+  EXPECT_EQ(elems_num, index);
 
   BLI_memiter_destroy(mi);
 }
 
 #define MEMITER_NUMBER_TEST_FN(fn, number_type) \
-  static void fn(int num_elems, const int chunk_size) \
+  static void fn(int elems_num, const int chunk_size) \
   { \
     BLI_memiter *mi = BLI_memiter_create(chunk_size); \
     number_type *data; \
-    for (int index = 0; index < num_elems; index++) { \
+    for (int index = 0; index < elems_num; index++) { \
       data = (number_type *)BLI_memiter_alloc(mi, sizeof(number_type)); \
       *data = index; \
     } \

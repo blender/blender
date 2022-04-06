@@ -36,6 +36,7 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_customdata.h"
+#include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -315,9 +316,7 @@ static bool check_tree_for_time_node(const bNodeTree &tree,
   return false;
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene),
-                          ModifierData *md,
-                          const int UNUSED(dag_eval_mode))
+static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *md)
 {
   const NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
   const bNodeTree *tree = nmd->node_group;
@@ -730,33 +729,6 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
   }
 
   DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
-}
-
-void MOD_nodes_init(Main *bmain, NodesModifierData *nmd)
-{
-  bNodeTree *ntree = ntreeAddTree(bmain, "Geometry Nodes", ntreeType_Geometry->idname);
-  nmd->node_group = ntree;
-
-  ntreeAddSocketInterface(ntree, SOCK_IN, "NodeSocketGeometry", "Geometry");
-  ntreeAddSocketInterface(ntree, SOCK_OUT, "NodeSocketGeometry", "Geometry");
-
-  bNode *group_input_node = nodeAddStaticNode(nullptr, ntree, NODE_GROUP_INPUT);
-  bNode *group_output_node = nodeAddStaticNode(nullptr, ntree, NODE_GROUP_OUTPUT);
-
-  nodeSetSelected(group_input_node, false);
-  nodeSetSelected(group_output_node, false);
-
-  group_input_node->locx = -200 - group_input_node->width;
-  group_output_node->locx = 200;
-  group_output_node->flag |= NODE_DO_OUTPUT;
-
-  nodeAddLink(ntree,
-              group_output_node,
-              (bNodeSocket *)group_output_node->inputs.first,
-              group_input_node,
-              (bNodeSocket *)group_input_node->outputs.first);
-
-  BKE_ntree_update_main_tree(bmain, ntree, nullptr);
 }
 
 static void initialize_group_input(NodesModifierData &nmd,

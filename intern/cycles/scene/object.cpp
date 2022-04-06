@@ -90,10 +90,15 @@ NODE_DEFINE(Object)
 
   SOCKET_BOOLEAN(is_shadow_catcher, "Shadow Catcher", false);
 
+  SOCKET_BOOLEAN(is_caustics_caster, "Cast Shadow Caustics", false);
+  SOCKET_BOOLEAN(is_caustics_receiver, "Receive Shadow Caustics", false);
+
   SOCKET_NODE(particle_system, "Particle System", ParticleSystem::get_node_type());
   SOCKET_INT(particle_index, "Particle Index", 0);
 
   SOCKET_FLOAT(ao_distance, "AO Distance", 0.0f);
+
+  SOCKET_STRING(lightgroup, "Light Group", ustring());
 
   return type;
 }
@@ -390,7 +395,8 @@ static float object_volume_density(const Transform &tfm, Geometry *geom)
 
 void ObjectManager::device_update_object_transform(UpdateObjectTransformState *state,
                                                    Object *ob,
-                                                   bool update_all)
+                                                   bool update_all,
+                                                   const Scene *scene)
 {
   KernelObject &kobject = state->objects[ob->index];
   Transform *object_motion_pass = state->object_motion_pass;
@@ -510,6 +516,14 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.visibility = ob->visibility_for_tracing();
   kobject.primitive_type = geom->primitive_type();
 
+  /* Object shadow caustics flag */
+  if (ob->is_caustics_caster) {
+    flag |= SD_OBJECT_CAUSTICS_CASTER;
+  }
+  if (ob->is_caustics_receiver) {
+    flag |= SD_OBJECT_CAUSTICS_RECEIVER;
+  }
+
   /* Object flag. */
   if (ob->use_holdout) {
     flag |= SD_OBJECT_HOLDOUT_MASK;
@@ -520,6 +534,15 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   /* Have curves. */
   if (geom->geometry_type == Geometry::HAIR) {
     state->have_curves = true;
+  }
+
+  /* Light group. */
+  auto it = scene->lightgroups.find(ob->lightgroup);
+  if (it != scene->lightgroups.end()) {
+    kobject.lightgroup = it->second;
+  }
+  else {
+    kobject.lightgroup = LIGHTGROUP_NONE;
   }
 }
 
@@ -607,7 +630,7 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, 
                [&](const blocked_range<size_t> &r) {
                  for (size_t i = r.begin(); i != r.end(); i++) {
                    Object *ob = state.scene->objects[i];
-                   device_update_object_transform(&state, ob, update_all);
+                   device_update_object_transform(&state, ob, update_all, scene);
                  }
                });
 

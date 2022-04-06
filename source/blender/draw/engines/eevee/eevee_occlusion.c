@@ -200,7 +200,8 @@ void EEVEE_occlusion_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     }
 
     if (GPU_mip_render_workaround() ||
-        GPU_type_matches(GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_ANY)) {
+        GPU_type_matches_ex(
+            GPU_DEVICE_INTEL_UHD, GPU_OS_WIN, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
       /* Fix dot corruption on intel HD5XX/HD6XX series. */
       GPU_flush();
     }

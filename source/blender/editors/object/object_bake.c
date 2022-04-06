@@ -515,7 +515,7 @@ static void multiresbake_freejob(void *bkv)
     /* delete here, since this delete will be called from main thread */
     for (link = data->images.first; link; link = link->next) {
       Image *ima = (Image *)link->data;
-      BKE_image_free_gputextures(ima);
+      BKE_image_partial_update_mark_full_update(ima);
     }
 
     MEM_freeN(data->ob_image.array);

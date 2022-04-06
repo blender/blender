@@ -217,6 +217,20 @@ static const char *to_string(const PrimitiveOut &layout)
   }
 }
 
+static const char *to_string(const DepthWrite &value)
+{
+  switch (value) {
+    case DepthWrite::ANY:
+      return "depth_any";
+    case DepthWrite::GREATER:
+      return "depth_greater";
+    case DepthWrite::LESS:
+      return "depth_less";
+    default:
+      return "depth_unchanged";
+  }
+}
+
 static void print_image_type(std::ostream &os,
                              const ImageType &type,
                              const ShaderCreateInfo::Resource::BindType bind_type)
@@ -584,6 +598,9 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
   }
   if (info.early_fragment_test_) {
     ss << "layout(early_fragment_tests) in;\n";
+  }
+  if (GLEW_VERSION_4_2 || GLEW_ARB_conservative_depth) {
+    ss << "layout(" << to_string(info.depth_write_) << ") out float gl_FragDepth;\n";
   }
   ss << "\n/* Outputs. */\n";
   for (const ShaderCreateInfo::FragOut &output : info.fragment_outputs_) {

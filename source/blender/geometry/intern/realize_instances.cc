@@ -1378,14 +1378,6 @@ GeometrySet realize_instances(GeometrySet geometry_set, const RealizeInstancesOp
   return new_geometry_set;
 }
 
-GeometrySet realize_instances_legacy(GeometrySet geometry_set)
-{
-  RealizeInstancesOptions options;
-  options.keep_original_ids = true;
-  options.realize_instance_attributes = false;
-  return realize_instances(std::move(geometry_set), options);
-}
-
 /** \} */
 
 }  // namespace blender::geometry

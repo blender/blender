@@ -402,7 +402,7 @@ RenderResult *render_result_new(Render *re,
       render_layer_add_pass(rr, rl, 4, RE_PASSNAME_COMBINED, view, "RGBA", false);
     }
 
-    /* NOTE: this has to be in sync with `scene.c`. */
+    /* NOTE: this has to be in sync with `scene.cc`. */
     rl->layflag = SCE_LAY_FLAG_DEFAULT;
     rl->passflag = SCE_PASS_COMBINED;
 

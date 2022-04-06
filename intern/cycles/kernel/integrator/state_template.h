@@ -34,6 +34,8 @@ KERNEL_STRUCT_MEMBER(path, uint32_t, rng_hash, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(path, uint16_t, rng_offset, KERNEL_FEATURE_PATH_TRACING)
 /* enum PathRayFlag */
 KERNEL_STRUCT_MEMBER(path, uint32_t, flag, KERNEL_FEATURE_PATH_TRACING)
+/* enum PathRayMNEE */
+KERNEL_STRUCT_MEMBER(path, uint8_t, mnee, KERNEL_FEATURE_PATH_TRACING)
 /* Multiple importance sampling
  * The PDF of BSDF sampling at the last scatter point, and distance to the
  * last scatter point minus the last ray segment. This distance lets us

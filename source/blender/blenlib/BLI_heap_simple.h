@@ -21,7 +21,7 @@ typedef void (*HeapSimpleFreeFP)(void *ptr);
  *
  * \note Use when the size of the heap is known in advance.
  */
-HeapSimple *BLI_heapsimple_new_ex(unsigned int tot_reserve) ATTR_WARN_UNUSED_RESULT;
+HeapSimple *BLI_heapsimple_new_ex(unsigned int reserve_num) ATTR_WARN_UNUSED_RESULT;
 HeapSimple *BLI_heapsimple_new(void) ATTR_WARN_UNUSED_RESULT;
 void BLI_heapsimple_clear(HeapSimple *heap, HeapSimpleFreeFP ptrfreefp) ATTR_NONNULL(1);
 void BLI_heapsimple_free(HeapSimple *heap, HeapSimpleFreeFP ptrfreefp) ATTR_NONNULL(1);

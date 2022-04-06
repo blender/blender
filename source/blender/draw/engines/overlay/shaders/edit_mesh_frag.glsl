@@ -12,35 +12,33 @@
 #define GRID_LINE_SMOOTH_START (0.5 - DISC_RADIUS)
 #define GRID_LINE_SMOOTH_END (0.5 + DISC_RADIUS)
 
-uniform sampler2D depthTex;
-uniform float alpha = 1.0;
-
-flat in vec4 finalColorOuter_f;
-in vec4 finalColor_f;
-noperspective in float edgeCoord_f;
-
-out vec4 FragColor;
-
 bool test_occlusion()
 {
   return gl_FragCoord.z > texelFetch(depthTex, ivec2(gl_FragCoord.xy), 0).r;
 }
 
+float edge_step(float dist)
+{
+  if (do_smooth_wire) {
+    return smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, dist);
+  }
+  else {
+    return step(0.5, dist);
+  }
+}
+
 void main()
 {
-  float dist = abs(edgeCoord_f) - max(sizeEdge - 0.5, 0.0);
+  float dist = abs(geometry_out.edgeCoord) - max(sizeEdge - 0.5, 0.0);
   float dist_outer = dist - max(sizeEdge, 1.0);
-#ifdef USE_SMOOTH_WIRE
-  float mix_w = smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, dist);
-  float mix_w_outer = smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, dist_outer);
-#else
-  float mix_w = step(0.5, dist);
-  float mix_w_outer = step(0.5, dist_outer);
-#endif
+  float mix_w = edge_step(dist);
+  float mix_w_outer = edge_step(dist_outer);
   /* Line color & alpha. */
-  FragColor = mix(finalColorOuter_f, finalColor_f, 1.0 - mix_w * finalColorOuter_f.a);
+  fragColor = mix(geometry_out.finalColorOuter,
+                  geometry_out.finalColor,
+                  1.0 - mix_w * geometry_out.finalColorOuter.a);
   /* Line edges shape. */
-  FragColor.a *= 1.0 - (finalColorOuter_f.a > 0.0 ? mix_w_outer : mix_w);
+  fragColor.a *= 1.0 - (geometry_out.finalColorOuter.a > 0.0 ? mix_w_outer : mix_w);
 
-  FragColor.a *= test_occlusion() ? alpha : 1.0;
+  fragColor.a *= test_occlusion() ? alpha : 1.0;
 }

@@ -153,12 +153,12 @@ void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self);
  * \return length of `value`, -1 on error.
  */
 int mathutils_array_parse(
-    float *array, int array_min, int array_max, PyObject *value, const char *error_prefix);
+    float *array, int array_num_min, int array_num_max, PyObject *value, const char *error_prefix);
 /**
  * \return -1 is returned on error and no allocation is made.
  */
 int mathutils_array_parse_alloc(float **array,
-                                int array_min,
+                                int array_num_min,
                                 PyObject *value,
                                 const char *error_prefix);
 /**

@@ -1123,6 +1123,9 @@ static int indexer_performance_get_decode_rate(FFmpegIndexBuilderContext *contex
     }
   }
 
+  av_packet_free(&packet);
+  av_frame_free(&in_frame);
+
   avcodec_flush_buffers(context->iCodecCtx);
   av_seek_frame(context->iFormatCtx, -1, 0, AVSEEK_FLAG_BACKWARD);
   return frames_decoded;
@@ -1156,6 +1159,8 @@ static int indexer_performance_get_max_gop_size(FFmpegIndexBuilderContext *conte
       break;
     }
   }
+
+  av_packet_free(&packet);
 
   av_seek_frame(context->iFormatCtx, -1, 0, AVSEEK_FLAG_BACKWARD);
   return max_gop;

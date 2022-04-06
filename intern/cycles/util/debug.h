@@ -87,7 +87,7 @@ class DebugFlags {
     /* Reset flags to their defaults. */
     void reset();
 
-    /* Whether adaptive feature based runtime compile is enabled or not.*/
+    /* Whether adaptive feature based runtime compile is enabled or not. */
     bool adaptive_compile;
   };
 
@@ -110,7 +110,7 @@ class DebugFlags {
     /* Reset flags to their defaults. */
     void reset();
 
-    /* Whether adaptive feature based runtime compile is enabled or not.*/
+    /* Whether adaptive feature based runtime compile is enabled or not. */
     bool adaptive_compile;
   };
 

@@ -20,6 +20,16 @@ template<typename T> void default_construct_indices_cb(void *ptr, IndexMask mask
   mask.foreach_index([&](int64_t i) { new (static_cast<T *>(ptr) + i) T; });
 }
 
+template<typename T> void value_initialize_cb(void *ptr)
+{
+  new (ptr) T();
+}
+
+template<typename T> void value_initialize_indices_cb(void *ptr, IndexMask mask)
+{
+  mask.foreach_index([&](int64_t i) { new (static_cast<T *>(ptr) + i) T(); });
+}
+
 template<typename T> void destruct_cb(void *ptr)
 {
   (static_cast<T *>(ptr))->~T();
@@ -186,6 +196,8 @@ CPPType::CPPType(CPPTypeParam<T, Flags> /* unused */, StringRef debug_name)
   if constexpr (std::is_default_constructible_v<T>) {
     default_construct_ = default_construct_cb<T>;
     default_construct_indices_ = default_construct_indices_cb<T>;
+    value_initialize_ = value_initialize_cb<T>;
+    value_initialize_indices_ = value_initialize_indices_cb<T>;
     static T default_value;
     default_value_ = (void *)&default_value;
   }

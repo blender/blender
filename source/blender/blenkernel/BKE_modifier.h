@@ -301,10 +301,8 @@ typedef struct ModifierTypeInfo {
    * changes.
    *
    * This function is optional (assumes false if not present).
-   *
-   * The dag_eval_mode should be of type eEvaluationMode.
    */
-  bool (*dependsOnTime)(struct Scene *scene, struct ModifierData *md, int dag_eval_mode);
+  bool (*dependsOnTime)(struct Scene *scene, struct ModifierData *md);
 
   /**
    * True when a deform modifier uses normals, the requiredDataMask
@@ -421,7 +419,7 @@ void BKE_modifier_copydata(const struct ModifierData *md, struct ModifierData *t
 void BKE_modifier_copydata_ex(const struct ModifierData *md,
                               struct ModifierData *target,
                               int flag);
-bool BKE_modifier_depends_ontime(struct Scene *scene, struct ModifierData *md, int dag_eval_mode);
+bool BKE_modifier_depends_ontime(struct Scene *scene, struct ModifierData *md);
 bool BKE_modifier_supports_mapping(struct ModifierData *md);
 bool BKE_modifier_supports_cage(struct Scene *scene, struct ModifierData *md);
 bool BKE_modifier_couldbe_cage(struct Scene *scene, struct ModifierData *md);

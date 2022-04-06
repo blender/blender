@@ -98,6 +98,7 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_transform_to_mouse);
   WM_operatortype_append(OBJECT_OT_effector_add);
   WM_operatortype_append(OBJECT_OT_collection_instance_add);
+  WM_operatortype_append(OBJECT_OT_collection_external_asset_drop);
   WM_operatortype_append(OBJECT_OT_data_instance_add);
   WM_operatortype_append(OBJECT_OT_metaball_add);
   WM_operatortype_append(OBJECT_OT_duplicates_make_real);
