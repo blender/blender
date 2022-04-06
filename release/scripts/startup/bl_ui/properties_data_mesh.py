@@ -4,7 +4,6 @@
 import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
-from collections import defaultdict
 
 
 class MESH_MT_vertex_group_context_menu(Menu):
@@ -542,35 +541,28 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
         self.draw_attribute_warnings(context, layout)
 
     def draw_attribute_warnings(self, context, layout):
-        attributes_by_name = defaultdict(list)
-
         ob = context.object
         mesh = ob.data
 
-        builtin_attribute = object()
+        unique_names = set()
+        colliding_names = []
+        for collection in (
+                # Built-in names.
+                {"position": None, "material_index": None, "shade_smooth": None, "normal": None, "crease": None},
+                mesh.attributes,
+                mesh.uv_layers,
+                ob.vertex_groups,
+        ):
+            for name in collection.keys():
+                unique_names_len = len(unique_names)
+                unique_names.add(name)
+                if len(unique_names) == unique_names_len:
+                    colliding_names.append(name)
 
-        def add_builtin(name):
-            attributes_by_name[name].append(builtin_attribute)
-
-        def add_attributes(layers):
-            for layer in layers:
-                attributes_by_name[layer.name].append(layer)
-
-        add_builtin("position")
-        add_builtin("material_index")
-        add_builtin("shade_smooth")
-        add_builtin("normal")
-        add_builtin("crease")
-
-        add_attributes(mesh.attributes)
-        add_attributes(mesh.uv_layers)
-        add_attributes(ob.vertex_groups)
-
-        colliding_names = [name for name, layers in attributes_by_name.items() if len(layers) >= 2]
-        if len(colliding_names) == 0:
+        if not colliding_names:
             return
 
-        layout.label(text="Name collisions: {}".format(", ".join(colliding_names)), icon='ERROR')
+        layout.label(text="Name collisions: " + ", ".join(set(colliding_names)), icon='ERROR')
 
 
 class MESH_UL_color_attributes(UIList):
