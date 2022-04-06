@@ -382,6 +382,8 @@ std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves)
   const blender::bke::CurvesGeometry &geometry = blender::bke::CurvesGeometry::wrap(
       curves.geometry);
 
+  VArray<int> resolution = geometry.resolution();
+  
   VArray_Span<float> nurbs_weights{
       src_component.attribute_get_for_read<float>("nurbs_weight", ATTR_DOMAIN_POINT, 0.0f)};
   VArray_Span<int> nurbs_orders{
@@ -410,6 +412,7 @@ std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves)
       case CURVE_TYPE_BEZIER: {
         std::unique_ptr<BezierSpline> bezier_spline = std::make_unique<BezierSpline>();
         bezier_spline->resize(point_range.size());
+        bezier_spline->set_resolution(resolution[curve_index]);
         bezier_spline->handle_types_left().copy_from(handle_types_left.slice(point_range));
         bezier_spline->handle_types_right().copy_from(handle_types_right.slice(point_range));
 
@@ -419,6 +422,7 @@ std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves)
       case CURVE_TYPE_NURBS: {
         std::unique_ptr<NURBSpline> nurb_spline = std::make_unique<NURBSpline>();
         nurb_spline->resize(point_range.size());
+        nurb_spline->set_resolution(resolution[curve_index]);
         nurb_spline->weights().copy_from(nurbs_weights.slice(point_range));
         nurb_spline->set_order(nurbs_orders[curve_index]);
         nurb_spline->knots_mode = static_cast<KnotsMode>(nurbs_knots_modes[curve_index]);
@@ -445,6 +449,7 @@ std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves)
   copy_attributes_between_components(src_component,
                                      dst_component,
                                      {"curve_type",
+                                      "resolution",
                                       "nurbs_weight",
                                       "nurbs_order",
                                       "knots_mode",
