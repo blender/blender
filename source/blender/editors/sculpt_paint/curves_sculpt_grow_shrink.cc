@@ -57,6 +57,7 @@ using bke::CurvesGeometry;
  */
 class CurvesEffect {
  public:
+  virtual ~CurvesEffect() = default;
   virtual void execute(CurvesGeometry &curves,
                        Span<int> curve_indices,
                        Span<float> move_distances_cu) = 0;
