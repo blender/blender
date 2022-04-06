@@ -139,6 +139,13 @@ void SEQ_animation_duplicate(Scene *scene, Sequence *seq, ListBase *list)
   if (BLI_listbase_is_empty(list)) {
     return;
   }
+
+  if (seq->type == SEQ_TYPE_META) {
+    LISTBASE_FOREACH (Sequence*, meta_child, &seq->seqbase){
+      SEQ_animation_duplicate(scene, meta_child, list);
+    }
+  }
+
   GSet *fcurves = SEQ_fcurves_by_strip_get(seq, list);
   if (fcurves == NULL) {
     return;
