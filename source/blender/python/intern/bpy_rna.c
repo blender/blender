@@ -4210,7 +4210,17 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
       ListBase newlb;
       short newtype;
 
-      const eContextResult done = CTX_data_get(C, name, &newptr, &newlb, &newtype);
+      /* An empty string is used to implement #CTX_data_dir_get,
+       * without this check `getattr(context, "")` succeeds. */
+      eContextResult done;
+      if (name[0]) {
+        done = CTX_data_get(C, name, &newptr, &newlb, &newtype);
+      }
+      else {
+        /* Fall through to built-in `getattr`. */
+        done = CTX_RESULT_MEMBER_NOT_FOUND;
+        BLI_listbase_clear(&newlb);
+      }
 
       if (done == CTX_RESULT_OK) {
         switch (newtype) {
