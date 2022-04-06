@@ -65,8 +65,8 @@ enum_panorama_types = (
 )
 
 enum_curve_shape = (
-    ('RIBBONS', "Rounded Ribbons", "Render hair as flat ribbon with rounded normals, for fast rendering"),
-    ('THICK', "3D Curves", "Render hair as 3D curve, for accurate results when viewing hair close up"),
+    ('RIBBONS', "Rounded Ribbons", "Render curves as flat ribbons with rounded normals, for fast rendering"),
+    ('THICK', "3D Curves", "Render curves as circular 3D geometry, for accurate results when viewing closely"),
 )
 
 enum_use_layer_samples = (
@@ -428,14 +428,14 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     min_light_bounces: IntProperty(
         name="Min Light Bounces",
         description="Minimum number of light bounces. Setting this higher reduces noise in the first bounces, "
-        "but can also be less efficient for more complex geometry like hair and volumes",
+        "but can also be less efficient for more complex geometry like curves and volumes",
         min=0, max=1024,
         default=0,
     )
     min_transparent_bounces: IntProperty(
         name="Min Transparent Bounces",
         description="Minimum number of transparent bounces. Setting this higher reduces noise in the first bounces, "
-        "but can also be less efficient for more complex geometry like hair and volumes",
+        "but can also be less efficient for more complex geometry like curves and volumes",
         min=0, max=1024,
         default=0,
     )
@@ -649,8 +649,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         default=False,
     )
     debug_use_hair_bvh: BoolProperty(
-        name="Use Hair BVH",
-        description="Use special type BVH optimized for hair (uses more ram but renders faster)",
+        name="Use Curves BVH",
+        description="Use special type BVH optimized for curves (uses more ram but renders faster)",
         default=True,
     )
     debug_use_compact_bvh: BoolProperty(
@@ -1270,7 +1270,7 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
 
     shape: EnumProperty(
         name="Shape",
-        description="Form of hair",
+        description="Form of curves",
         items=enum_curve_shape,
         default='RIBBONS',
     )
@@ -1284,8 +1284,8 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):
         bpy.types.Scene.cycles_curves = PointerProperty(
-            name="Cycles Hair Rendering Settings",
-            description="Cycles hair rendering settings",
+            name="Cycles Curves Rendering Settings",
+            description="Cycles curves rendering settings",
             type=cls,
         )
 

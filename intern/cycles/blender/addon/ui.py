@@ -11,7 +11,7 @@ from bl_ui.utils import PresetPanel
 from bpy.types import Panel
 
 from bl_ui.properties_grease_pencil_common import GreasePencilSimplifyPanel
-from bl_ui.properties_render import draw_hair_settings
+from bl_ui.properties_render import draw_curves_settings
 from bl_ui.properties_view_layer import ViewLayerCryptomattePanel, ViewLayerAOVPanel, ViewLayerLightgroupsPanel
 
 class CyclesPresetPanel(PresetPanel, Panel):
@@ -336,8 +336,8 @@ class CYCLES_RENDER_PT_subdivision(CyclesButtonsPanel, Panel):
         col.prop(cscene, "dicing_camera")
 
 
-class CYCLES_RENDER_PT_hair(CyclesButtonsPanel, Panel):
-    bl_label = "Hair"
+class CYCLES_RENDER_PT_curves(CyclesButtonsPanel, Panel):
+    bl_label = "Curves"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -353,13 +353,13 @@ class CYCLES_RENDER_PT_hair(CyclesButtonsPanel, Panel):
         if ccscene.shape == 'RIBBONS':
             col.prop(ccscene, "subdivisions", text="Curve Subdivisions")
 
-class CYCLES_RENDER_PT_hair_viewport_display(CyclesButtonsPanel, Panel):
+class CYCLES_RENDER_PT_curves_viewport_display(CyclesButtonsPanel, Panel):
     bl_label = "Viewport Display"
-    bl_parent_id = "CYCLES_RENDER_PT_hair"
+    bl_parent_id = "CYCLES_RENDER_PT_curves"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
-        draw_hair_settings(self, context)
+        draw_curves_settings(self, context)
 
 class CYCLES_RENDER_PT_volumes(CyclesButtonsPanel, Panel):
     bl_label = "Volumes"
@@ -757,7 +757,7 @@ class CYCLES_RENDER_PT_filter(CyclesButtonsPanel, Panel):
         col = layout.column(heading="Include")
         col.prop(view_layer, "use_sky", text="Environment")
         col.prop(view_layer, "use_solid", text="Surfaces")
-        col.prop(view_layer, "use_strand", text="Hair")
+        col.prop(view_layer, "use_strand", text="Curves")
         col.prop(view_layer, "use_volumes", text="Volumes")
 
         col = layout.column(heading="Use")
@@ -2218,8 +2218,8 @@ classes = (
     CYCLES_RENDER_PT_light_paths_fast_gi,
     CYCLES_RENDER_PT_volumes,
     CYCLES_RENDER_PT_subdivision,
-    CYCLES_RENDER_PT_hair,
-    CYCLES_RENDER_PT_hair_viewport_display,
+    CYCLES_RENDER_PT_curves,
+    CYCLES_RENDER_PT_curves_viewport_display,
     CYCLES_RENDER_PT_simplify,
     CYCLES_RENDER_PT_simplify_viewport,
     CYCLES_RENDER_PT_simplify_render,

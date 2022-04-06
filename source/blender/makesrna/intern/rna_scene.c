@@ -6318,13 +6318,13 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   /* Hairs */
   prop = RNA_def_property(srna, "hair_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, hair_shape_type_items);
-  RNA_def_property_ui_text(prop, "Hair Shape Type", "Hair shape type");
+  RNA_def_property_ui_text(prop, "Curves Shape Type", "Curves shape type");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 
   prop = RNA_def_property(srna, "hair_subdiv", PROP_INT, PROP_NONE);
   RNA_def_property_range(prop, 0, 3);
   RNA_def_property_ui_text(
-      prop, "Additional Subdivision", "Additional subdivision along the hair");
+      prop, "Additional Subdivision", "Additional subdivision along the curves");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 
   /* Performance */
