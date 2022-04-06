@@ -606,6 +606,19 @@ static void add_orco_mesh(Object *ob, BMEditMesh *em, Mesh *mesh, Mesh *mesh_orc
   }
 }
 
+static bool mesh_has_modifier_final_normals(const Mesh *mesh_input,
+                                            const CustomData_MeshMasks *final_datamask,
+                                            Mesh *mesh_final)
+{
+  /* Test if mesh has the required loop normals, in case an additional modifier
+   * evaluation from another instance or from an operator requests it but the
+   * initial normals were not loop normals. */
+  const bool do_loop_normals = ((mesh_input->flag & ME_AUTOSMOOTH) != 0 ||
+                                (final_datamask->lmask & CD_MASK_NORMAL) != 0);
+
+  return (!do_loop_normals || CustomData_has_layer(&mesh_final->ldata, CD_NORMAL));
+}
+
 static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
                                              const CustomData_MeshMasks *final_datamask,
                                              const bool sculpt_dyntopo,
@@ -1190,7 +1203,8 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       BLI_assert(runtime->eval_mutex != nullptr);
       BLI_mutex_lock((ThreadMutex *)runtime->eval_mutex);
       if (runtime->mesh_eval == nullptr) {
-        /* Isolate since computing normals is multithreaded and we are holding a lock. */
+        /* Not yet finalized by any instance, do it now
+         * Isolate since computing normals is multithreaded and we are holding a lock. */
         blender::threading::isolate_task([&] {
           mesh_final = BKE_mesh_copy_for_eval(mesh_input, true);
           mesh_calc_modifier_final_normals(
@@ -1199,9 +1213,23 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
           runtime->mesh_eval = mesh_final;
         });
       }
+      else {
+        /* Already finalized by another instance, reuse. */
+        mesh_final = runtime->mesh_eval;
+      }
       BLI_mutex_unlock((ThreadMutex *)runtime->eval_mutex);
     }
-    mesh_final = runtime->mesh_eval;
+    else if (!mesh_has_modifier_final_normals(mesh_input, &final_datamask, runtime->mesh_eval)) {
+      /* Modifier stack was (re-)evaluated with a request for additional normals
+       * different than the instanced mesh, can't instance anymore now. */
+      mesh_final = BKE_mesh_copy_for_eval(mesh_input, true);
+      mesh_calc_modifier_final_normals(mesh_input, &final_datamask, sculpt_dyntopo, mesh_final);
+      mesh_calc_finalize(mesh_input, mesh_final);
+    }
+    else {
+      /* Already finalized by another instance, reuse. */
+      mesh_final = runtime->mesh_eval;
+    }
   }
 
   if (is_own_mesh) {
