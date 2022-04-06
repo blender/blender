@@ -45,6 +45,8 @@
 #include "ED_mask.h"
 #include "ED_screen.h"
 
+#include "DEG_depsgraph.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -334,6 +336,13 @@ static int action_pushdown_exec(bContext *C, wmOperator *op)
 
     /* action can be safely added */
     BKE_nla_action_pushdown(adt, ID_IS_OVERRIDE_LIBRARY(adt_id_owner));
+
+    struct Main *bmain = CTX_data_main(C);
+    DEG_id_tag_update_ex(bmain, adt_id_owner, ID_RECALC_ANIMATION);
+
+    /* The action needs updating too, as FCurve modifiers are to be reevaluated. They won't extend
+     * beyond the NLA strip after pushing down to the NLA. */
+    DEG_id_tag_update_ex(bmain, &adt->action->id, ID_RECALC_ANIMATION);
 
     /* Stop displaying this action in this editor
      * NOTE: The editor itself doesn't set a user...
