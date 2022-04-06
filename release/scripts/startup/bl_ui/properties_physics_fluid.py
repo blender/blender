@@ -5,7 +5,7 @@
 import bpy
 from bpy.types import Panel
 from bl_ui.utils import PresetPanel
-from .properties_physics_common import (
+from bl_ui.properties_physics_common import (
     effector_weights_ui,
 )
 
@@ -306,21 +306,15 @@ class PHYSICS_PT_borders(PhysicButtonsPanel, Panel):
         is_baking_any = domain.is_cache_baking_any
         has_baked_data = domain.has_cache_baked_data
 
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
-        flow.enabled = not is_baking_any and not has_baked_data
+        col = layout.column(align=True)
+        col.enabled = not is_baking_any and not has_baked_data
 
-        col = flow.column()
-        col.prop(domain, "use_collision_border_front", text="Front")
-        col = flow.column()
-        col.prop(domain, "use_collision_border_back", text="Back")
-        col = flow.column()
-        col.prop(domain, "use_collision_border_right", text="Right")
-        col = flow.column()
-        col.prop(domain, "use_collision_border_left", text="Left")
-        col = flow.column()
-        col.prop(domain, "use_collision_border_top", text="Top")
-        col = flow.column()
-        col.prop(domain, "use_collision_border_bottom", text="Bottom")
+        col.prop(domain, "use_collision_border_front")
+        col.prop(domain, "use_collision_border_back")
+        col.prop(domain, "use_collision_border_right")
+        col.prop(domain, "use_collision_border_left")
+        col.prop(domain, "use_collision_border_top")
+        col.prop(domain, "use_collision_border_bottom")
 
 
 class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
