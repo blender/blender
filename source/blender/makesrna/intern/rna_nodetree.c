@@ -9846,6 +9846,32 @@ static void def_geo_mesh_cone(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
+static void def_geo_merge_by_distance(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  static EnumPropertyItem mode_items[] = {
+      {GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL,
+       "ALL",
+       0,
+       "All",
+       "Merge all close selected points, whether or not they are connected"},
+      {GEO_NODE_MERGE_BY_DISTANCE_MODE_CONNECTED,
+       "CONNECTED",
+       0,
+       "Connected",
+       "Only merge mesh vertices along existing edges. This method can be much faster"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  RNA_def_struct_sdna_from(srna, "NodeGeometryMergeByDistance", "storage");
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, mode_items);
+  RNA_def_property_ui_text(prop, "Mode", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
+}
+
 static void def_geo_mesh_line(StructRNA *srna)
 {
   PropertyRNA *prop;

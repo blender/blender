@@ -2648,5 +2648,22 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Add node storage for the merge by distance node. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == GEO_NODE_MERGE_BY_DISTANCE) {
+            if (node->storage == NULL) {
+              NodeGeometryMergeByDistance *data = MEM_callocN(sizeof(NodeGeometryMergeByDistance),
+                                                              __func__);
+              data->mode = GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL;
+              node->storage = data;
+            }
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 }
