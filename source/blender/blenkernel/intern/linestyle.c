@@ -784,7 +784,7 @@ static const char *modifier_name[LS_MODIFIER_NUM] = {
     "Noise",
     "Crease Angle",
     "Simplification",
-    "3D Curvature",
+    "Curvature 3D",
 };
 
 void BKE_linestyle_init(FreestyleLineStyle *linestyle)
