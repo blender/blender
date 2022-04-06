@@ -1241,19 +1241,23 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
   BVHCache **bvh_cache_p = (BVHCache **)&mesh->runtime.bvh_cache;
   ThreadMutex *mesh_eval_mutex = (ThreadMutex *)mesh->runtime.eval_mutex;
 
+  const MLoopTri *looptri = nullptr;
+  int looptri_len = 0;
+  if (ELEM(bvh_cache_type, BVHTREE_FROM_LOOPTRI, BVHTREE_FROM_LOOPTRI_NO_HIDDEN)) {
+    looptri = BKE_mesh_runtime_looptri_ensure(mesh);
+    looptri_len = BKE_mesh_runtime_looptri_len(mesh);
+  }
+
   /* Setup BVHTreeFromMesh */
-  bvhtree_from_mesh_setup_data(
-      nullptr,
-      bvh_cache_type,
-      mesh->mvert,
-      mesh->medge,
-      mesh->mface,
-      mesh->mloop,
-      ELEM(bvh_cache_type, BVHTREE_FROM_LOOPTRI, BVHTREE_FROM_LOOPTRI_NO_HIDDEN) ?
-          BKE_mesh_runtime_looptri_ensure(mesh) :
-          nullptr,
-      BKE_mesh_vertex_normals_ensure(mesh),
-      data);
+  bvhtree_from_mesh_setup_data(nullptr,
+                               bvh_cache_type,
+                               mesh->mvert,
+                               mesh->medge,
+                               mesh->mface,
+                               mesh->mloop,
+                               looptri,
+                               BKE_mesh_vertex_normals_ensure(mesh),
+                               data);
 
   bool lock_started = false;
   data->cached = bvhcache_find(
@@ -1268,88 +1272,57 @@ BVHTree *BKE_bvhtree_from_mesh_get(struct BVHTreeFromMesh *data,
 
   /* Create BVHTree. */
 
+  BLI_bitmap *mask = nullptr;
+  int mask_bits_act_len = -1;
+
   switch (bvh_cache_type) {
+    case BVHTREE_FROM_LOOSEVERTS:
+      mask = loose_verts_map_get(
+          mesh->medge, mesh->totedge, mesh->mvert, mesh->totvert, &mask_bits_act_len);
+      ATTR_FALLTHROUGH;
     case BVHTREE_FROM_VERTS:
-    case BVHTREE_FROM_LOOSEVERTS: {
-      BLI_bitmap *loose_verts_mask = nullptr;
-      int loose_vert_len = -1;
-      int verts_len = mesh->totvert;
-
-      if (bvh_cache_type == BVHTREE_FROM_LOOSEVERTS) {
-        loose_verts_mask = loose_verts_map_get(
-            mesh->medge, mesh->totedge, mesh->mvert, verts_len, &loose_vert_len);
-      }
-
       data->tree = bvhtree_from_mesh_verts_create_tree(
-          0.0f, tree_type, 6, mesh->mvert, verts_len, loose_verts_mask, loose_vert_len);
+          0.0f, tree_type, 6, mesh->mvert, mesh->totvert, mask, mask_bits_act_len);
+      break;
 
-      if (loose_verts_mask != nullptr) {
-        MEM_freeN(loose_verts_mask);
-      }
-    } break;
-
+    case BVHTREE_FROM_LOOSEEDGES:
+      mask = loose_edges_map_get(mesh->medge, mesh->totedge, &mask_bits_act_len);
+      ATTR_FALLTHROUGH;
     case BVHTREE_FROM_EDGES:
-    case BVHTREE_FROM_LOOSEEDGES: {
-      BLI_bitmap *loose_edges_mask = nullptr;
-      int loose_edges_len = -1;
-      int edges_len = mesh->totedge;
+      data->tree = bvhtree_from_mesh_edges_create_tree(
+          mesh->mvert, mesh->medge, mesh->totedge, mask, mask_bits_act_len, 0.0f, tree_type, 6);
+      break;
 
-      if (bvh_cache_type == BVHTREE_FROM_LOOSEEDGES) {
-        loose_edges_mask = loose_edges_map_get(mesh->medge, edges_len, &loose_edges_len);
-      }
-
-      data->tree = bvhtree_from_mesh_edges_create_tree(mesh->mvert,
-                                                       mesh->medge,
-                                                       edges_len,
-                                                       loose_edges_mask,
-                                                       loose_edges_len,
-                                                       0.0f,
-                                                       tree_type,
-                                                       6);
-
-      if (loose_edges_mask != nullptr) {
-        MEM_freeN(loose_edges_mask);
-      }
-    } break;
-
-    case BVHTREE_FROM_FACES: {
+    case BVHTREE_FROM_FACES:
       BLI_assert(!(mesh->totface == 0 && mesh->totpoly != 0));
-
       data->tree = bvhtree_from_mesh_faces_create_tree(
           0.0f, tree_type, 6, mesh->mvert, mesh->mface, mesh->totface, nullptr, -1);
-    } break;
+      break;
 
+    case BVHTREE_FROM_LOOPTRI_NO_HIDDEN:
+      mask = looptri_no_hidden_map_get(mesh->mpoly, looptri_len, &mask_bits_act_len);
+      ATTR_FALLTHROUGH;
     case BVHTREE_FROM_LOOPTRI:
-    case BVHTREE_FROM_LOOPTRI_NO_HIDDEN: {
-      int looptri_len = BKE_mesh_runtime_looptri_len(mesh);
-
-      int looptri_mask_active_len = -1;
-      BLI_bitmap *looptri_mask = nullptr;
-      if (bvh_cache_type == BVHTREE_FROM_LOOPTRI_NO_HIDDEN) {
-        looptri_mask = looptri_no_hidden_map_get(
-            mesh->mpoly, looptri_len, &looptri_mask_active_len);
-      }
-
       data->tree = bvhtree_from_mesh_looptri_create_tree(0.0f,
                                                          tree_type,
                                                          6,
                                                          mesh->mvert,
                                                          mesh->mloop,
-                                                         data->looptri,
+                                                         looptri,
                                                          looptri_len,
-                                                         looptri_mask,
-                                                         looptri_mask_active_len);
-
-      if (looptri_mask != nullptr) {
-        MEM_freeN(looptri_mask);
-      }
-    } break;
+                                                         mask,
+                                                         mask_bits_act_len);
+      break;
     case BVHTREE_FROM_EM_VERTS:
     case BVHTREE_FROM_EM_EDGES:
     case BVHTREE_FROM_EM_LOOPTRI:
     case BVHTREE_MAX_ITEM:
       BLI_assert(false);
       break;
+  }
+
+  if (mask != nullptr) {
+    MEM_freeN(mask);
   }
 
   bvhtree_balance(data->tree, lock_started);
