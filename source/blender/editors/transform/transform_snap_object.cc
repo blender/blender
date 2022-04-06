@@ -312,20 +312,13 @@ static SnapObjectData *snap_object_data_mesh_get(SnapObjectContext *sctx,
                               use_hide ? BVHTREE_FROM_LOOPTRI_NO_HIDDEN : BVHTREE_FROM_LOOPTRI,
                               4);
 
-    if (sod->treedata_mesh.tree == nullptr) {
-      sod->treedata_mesh.vert = me_eval->mvert;
-      sod->treedata_mesh.vert_normals = BKE_mesh_vertex_normals_ensure(me_eval);
-      sod->treedata_mesh.loop = me_eval->mloop;
-      sod->treedata_mesh.looptri = BKE_mesh_runtime_looptri_ensure(me_eval);
-      BLI_assert(sod->has_looptris == false);
-    }
-    else {
-      BLI_assert(sod->treedata_mesh.vert != nullptr);
-      BLI_assert(sod->treedata_mesh.vert_normals != nullptr);
-      BLI_assert(sod->treedata_mesh.loop != nullptr);
-      BLI_assert(sod->treedata_mesh.looptri != nullptr);
-      sod->has_looptris = true;
-    }
+    BLI_assert(sod->treedata_mesh.vert != nullptr);
+    BLI_assert(sod->treedata_mesh.vert_normals != nullptr);
+    BLI_assert(sod->treedata_mesh.loop != nullptr);
+    BLI_assert(sod->treedata_mesh.looptri != nullptr);
+    BLI_assert(sod->has_looptris == false);
+
+    sod->has_looptris = sod->treedata_mesh.tree != nullptr;
 
     /* Required for snapping with occlusion. */
     sod->treedata_mesh.edge = me_eval->medge;
