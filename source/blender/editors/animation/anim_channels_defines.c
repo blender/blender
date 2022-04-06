@@ -51,6 +51,7 @@
 #include "BKE_curve.h"
 #include "BKE_gpencil.h"
 #include "BKE_key.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_nla.h"
 
@@ -5117,11 +5118,11 @@ static void draw_setting_widget(bAnimContext *ac,
           break;
       }
 
-      if ((ale->fcurve_owner_id != NULL &&
-           (ID_IS_LINKED(ale->fcurve_owner_id) || ID_IS_OVERRIDE_LIBRARY(ale->fcurve_owner_id))) ||
-          (ale->id != NULL && (ID_IS_LINKED(ale->id) || ID_IS_OVERRIDE_LIBRARY(ale->id)))) {
+      if ((ale->fcurve_owner_id != NULL && !BKE_id_is_editable(ac->bmain, ale->fcurve_owner_id)) ||
+          (ale->fcurve_owner_id == NULL && ale->id != NULL &&
+           !BKE_id_is_editable(ac->bmain, ale->id))) {
         if (setting != ACHANNEL_SETTING_EXPAND) {
-          UI_but_flag_enable(but, UI_BUT_DISABLED);
+          UI_but_disable(but, TIP_("Can't edit this property from a linked data-block"));
         }
       }
     }
