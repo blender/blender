@@ -63,6 +63,7 @@ import os
 import sys
 import inspect
 import shutil
+import time
 import logging
 import warnings
 
@@ -399,6 +400,7 @@ MODULE_GROUPING = {
 
 # converting bytes to strings, due to T30154
 BLENDER_REVISION = str(bpy.app.build_hash, 'utf_8')
+BLENDER_REVISION_TIMESTAMP = bpy.app.build_commit_timestamp
 
 # '2.83.0 Beta' or '2.83.0' or '2.83.1'
 BLENDER_VERSION_STRING = bpy.app.version_string
@@ -407,9 +409,13 @@ BLENDER_VERSION_DOTS = "%d.%d" % (bpy.app.version[0], bpy.app.version[1])
 if BLENDER_REVISION != "Unknown":
     # SHA1 Git hash
     BLENDER_VERSION_HASH = BLENDER_REVISION
+    BLENDER_VERSION_HASH_HTML_LINK = "<a href=https://developer.blender.org/rB%s>%s</a>" % (BLENDER_VERSION_HASH, BLENDER_VERSION_HASH)
+    BLENDER_VERSION_DATE = time.strftime("%d/%m/%Y", time.localtime(BLENDER_REVISION_TIMESTAMP))
 else:
     # Fallback: Should not be used
     BLENDER_VERSION_HASH = "Hash Unknown"
+    BLENDER_VERSION_HASH_HTML_LINK = BLENDER_VERSION_HASH
+    BLENDER_VERSION_DATE = time.strftime("%Y-%m-%d")
 
 # '2_83'
 BLENDER_VERSION_PATH = "%d_%d" % (bpy.app.version[0], bpy.app.version[1])
@@ -1752,11 +1758,12 @@ except ModuleNotFoundError:
     fw("html_split_index = True\n")
     fw("html_static_path = ['static']\n")
     fw("templates_path = ['templates']\n")
-    fw("html_context = {'commit': '%s'}\n" % BLENDER_VERSION_HASH)
+    fw("html_context = {'commit': '%s - %s'}\n" % (BLENDER_VERSION_HASH_HTML_LINK, BLENDER_VERSION_DATE))
     fw("html_extra_path = ['static/favicon.ico', 'static/blender_logo.svg']\n")
     fw("html_favicon = 'static/favicon.ico'\n")
     fw("html_logo = 'static/blender_logo.svg'\n")
-    fw("html_last_updated_fmt = '%m/%d/%Y'\n\n")
+    # Disable default `last_updated` value, since this is the date of doc generation, not the one of the source commit.
+    fw("html_last_updated_fmt = None\n\n")
     fw("if html_theme == 'sphinx_rtd_theme':\n")
     fw("    html_css_files = ['css/version_switch.css']\n")
     fw("    html_js_files = ['js/version_switch.js']\n")
