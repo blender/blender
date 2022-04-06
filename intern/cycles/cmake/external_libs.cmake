@@ -19,7 +19,11 @@ endmacro()
 
 if(CYCLES_STANDALONE_REPOSITORY)
   if(APPLE)
-    set(_cycles_lib_dir "${CMAKE_SOURCE_DIR}/../lib/darwin")
+    if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
+      set(_cycles_lib_dir "${CMAKE_SOURCE_DIR}/../lib/darwin")
+    else()
+      set(_cycles_lib_dir "${CMAKE_SOURCE_DIR}/../lib/darwin_arm64")
+    endif()
   elseif(WIN32)
     if(CMAKE_CL_64)
       set(_cycles_lib_dir "${CMAKE_SOURCE_DIR}/../lib/win64_vc15")
@@ -48,18 +52,24 @@ if(CYCLES_STANDALONE_REPOSITORY)
       endif()
     endif()
 
+    if(DEFINED _cycles_lib_dir)
+      message(STATUS "Using precompiled libraries at ${_cycles_lib_dir}")
+    endif()
+
     # Avoid namespace pollustion.
     unset(LIBDIR_NATIVE_ABI)
     unset(LIBDIR_CENTOS7_ABI)
   endif()
 
   if(EXISTS ${_cycles_lib_dir})
+    _set_default(ALEMBIC_ROOT_DIR "${_cycles_lib_dir}/alembic")
     _set_default(BOOST_ROOT "${_cycles_lib_dir}/boost")
     _set_default(BLOSC_ROOT_DIR "${_cycles_lib_dir}/blosc")
     _set_default(EMBREE_ROOT_DIR "${_cycles_lib_dir}/embree")
     _set_default(GLEW_ROOT_DIR "${_cycles_lib_dir}/glew")
     _set_default(JPEG_ROOT "${_cycles_lib_dir}/jpeg")
     _set_default(LLVM_ROOT_DIR "${_cycles_lib_dir}/llvm")
+    _set_default(CLANG_ROOT_DIR "${_cycles_lib_dir}/llvm")
     _set_default(OPENCOLORIO_ROOT_DIR "${_cycles_lib_dir}/opencolorio")
     _set_default(OPENEXR_ROOT_DIR "${_cycles_lib_dir}/openexr")
     _set_default(OPENIMAGEDENOISE_ROOT_DIR "${_cycles_lib_dir}/openimagedenoise")
@@ -110,7 +120,7 @@ if(CYCLES_STANDALONE_REPOSITORY)
     set(ZLIB_LIBRARY ${_cycles_lib_dir}/zlib/lib/libz_st.lib)
     set(ZLIB_DIR ${_cycles_lib_dir}/zlib)
     set(ZLIB_FOUND ON)
-  else()
+  elseif(NOT APPLE)
     find_package(ZLIB REQUIRED)
   endif()
 endif()
@@ -179,6 +189,10 @@ if(CYCLES_STANDALONE_REPOSITORY)
 
   find_package(JPEG REQUIRED)
   find_package(TIFF REQUIRED)
+
+  if(EXISTS ${_cycles_lib_dir})
+    set(PNG_NAMES png16 libpng16 png libpng)
+  endif()
   find_package(PNG REQUIRED)
 endif()
 
@@ -252,6 +266,7 @@ if(CYCLES_STANDALONE_REPOSITORY AND WITH_CYCLES_OSL)
   else()
     find_package(OSL REQUIRED)
     find_package(LLVM REQUIRED)
+    find_package(Clang REQUIRED)
   endif()
 endif()
 
@@ -312,12 +327,14 @@ if(CYCLES_STANDALONE_REPOSITORY)
     set(BOOST_DEBUG_POSTFIX "vc141-mt-gd-x64-${BOOST_VERSION}.lib")
     set(BOOST_LIBRARIES
       optimized ${BOOST_ROOT}/lib/libboost_date_time-${BOOST_POSTFIX}
+      optimized ${BOOST_ROOT}/lib/libboost_iostreams-${BOOST_POSTFIX}
       optimized ${BOOST_ROOT}/lib/libboost_filesystem-${BOOST_POSTFIX}
       optimized ${BOOST_ROOT}/lib/libboost_regex-${BOOST_POSTFIX}
       optimized ${BOOST_ROOT}/lib/libboost_system-${BOOST_POSTFIX}
       optimized ${BOOST_ROOT}/lib/libboost_thread-${BOOST_POSTFIX}
       optimized ${BOOST_ROOT}/lib/libboost_chrono-${BOOST_POSTFIX}
       debug ${BOOST_ROOT}/lib/libboost_date_time-${BOOST_DEBUG_POSTFIX}
+      debug ${BOOST_ROOT}/lib/libboost_iostreams-${BOOST_DEBUG_POSTFIX}
       debug ${BOOST_ROOT}/lib/libboost_filesystem-${BOOST_DEBUG_POSTFIX}
       debug ${BOOST_ROOT}/lib/libboost_regex-${BOOST_DEBUG_POSTFIX}
       debug ${BOOST_ROOT}/lib/libboost_system-${BOOST_DEBUG_POSTFIX}
@@ -330,7 +347,7 @@ if(CYCLES_STANDALONE_REPOSITORY)
         debug ${BOOST_ROOT}/lib/libboost_wave-${BOOST_DEBUG_POSTFIX})
     endif()
   else()
-    set(__boost_packages filesystem regex system thread date_time)
+    set(__boost_packages iostreams filesystem regex system thread date_time)
     if(WITH_CYCLES_OSL)
       list(APPEND __boost_packages wave)
     endif()
@@ -517,17 +534,42 @@ endif()
 # GLEW
 ###########################################################################
 
-if(CYCLES_STANDALONE_REPOSITORY)
-  if(MSVC AND EXISTS ${_cycles_lib_dir})
-    set(GLEW_LIBRARY "${_cycles_lib_dir}/opengl/lib/glew.lib")
-    set(GLEW_INCLUDE_DIR "${_cycles_lib_dir}/opengl/include")
-    add_definitions(-DGLEW_STATIC)
+if((WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI) OR
+   WITH_CYCLES_HYDRA_RENDER_DELEGATE)
+  if(CYCLES_STANDALONE_REPOSITORY)
+    if(MSVC AND EXISTS ${_cycles_lib_dir})
+      set(GLEW_LIBRARY "${_cycles_lib_dir}/opengl/lib/glew.lib")
+      set(GLEW_INCLUDE_DIR "${_cycles_lib_dir}/opengl/include")
+      add_definitions(-DGLEW_STATIC)
+    else()
+      find_package(GLEW REQUIRED)
+    endif()
+
+    set(CYCLES_GLEW_LIBRARIES ${GLEW_LIBRARY})
   else()
-    find_package(GLEW REQUIRED)
+    # Workaround for unconventional variable name use in Blender.
+    set(GLEW_INCLUDE_DIR "${GLEW_INCLUDE_PATH}")
+    set(CYCLES_GLEW_LIBRARIES bf_intern_glew_mx ${BLENDER_GLEW_LIBRARIES})
   endif()
-else()
-  # Workaround for unconventional variable name use in Blender.
-  set(GLEW_INCLUDE_DIR "${GLEW_INCLUDE_PATH}")
+endif()
+
+###########################################################################
+# Alembic
+###########################################################################
+
+if(WITH_CYCLES_ALEMBIC)
+  if(CYCLES_STANDALONE_REPOSITORY)
+    if(MSVC AND EXISTS ${_cycles_lib_dir})
+      set(ALEMBIC_INCLUDE_DIRS ${_cycles_lib_dir}/alembic/include)
+      set(ALEMBIC_LIBRARIES
+        optimized ${_cycles_lib_dir}/alembic/lib/Alembic.lib
+        debug ${_cycles_lib_dir}/alembic/lib/Alembic_d.lib)
+    else()
+      find_package(Alembic REQUIRED)
+    endif()
+
+    set(WITH_ALEMBIC ON)
+  endif()
 endif()
 
 ###########################################################################
@@ -537,29 +579,25 @@ endif()
 # Detect system libraries again
 if(EXISTS ${_cycles_lib_dir})
   unset(CMAKE_IGNORE_PATH)
+  unset(_cycles_lib_dir)
 endif()
 
 ###########################################################################
 # OpenGL
 ###########################################################################
 
-if(CYCLES_STANDALONE_REPOSITORY)
-  if(NOT DEFINED OpenGL_GL_PREFERENCE)
-    set(OpenGL_GL_PREFERENCE "LEGACY")
+if(WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI)
+  if(CYCLES_STANDALONE_REPOSITORY)
+    if(NOT DEFINED OpenGL_GL_PREFERENCE)
+      set(OpenGL_GL_PREFERENCE "LEGACY")
+    endif()
+
+    find_package(OpenGL REQUIRED)
+
+    set(CYCLES_GL_LIBRARIES ${OPENGL_gl_LIBRARY})
+  else()
+    set(CYCLES_GL_LIBRARIES ${BLENDER_GL_LIBRARIES})
   endif()
-
-  find_package(OpenGL REQUIRED)
-
-    set(CYCLES_GL_LIBRARIES
-      ${OPENGL_gl_LIBRARY}
-      ${OPENGL_glu_LIBRARY}
-      ${GLEW_LIBRARY}
-    )
-else()
-  set(CYCLES_GL_LIBRARIES
-    bf_intern_glew_mx
-    ${BLENDER_GL_LIBRARIES}
-    ${BLENDER_GLEW_LIBRARIES})
 endif()
 
 ###########################################################################
@@ -569,7 +607,7 @@ endif()
 if(WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI)
   # We can't use the version from the Blender precompiled libraries because
   # it does not include the video subsystem.
-  find_package(SDL2)
+  find_package(SDL2 REQUIRED)
 
   if(NOT SDL2_FOUND)
     set(WITH_CYCLES_STANDALONE_GUI OFF)
@@ -599,7 +637,6 @@ if(WITH_CYCLES_CUDA_BINARIES OR NOT WITH_CUDA_DYNLOAD)
     endif()
   endif()
 endif()
-
 
 ###########################################################################
 # HIP
@@ -638,4 +675,15 @@ if(WITH_CYCLES_DEVICE_METAL)
   endif()
 endif()
 
-unset(_cycles_lib_dir)
+###########################################################################
+# macOS
+###########################################################################
+
+if(CYCLES_STANDALONE_REPOSITORY)
+  # On macOS, always use zlib from system.
+  if(APPLE)
+    set(ZLIB_ROOT /usr)
+    find_package(ZLIB REQUIRED)
+    find_package(PNG REQUIRED)
+  endif()
+endif()

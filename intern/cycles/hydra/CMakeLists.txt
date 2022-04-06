@@ -13,6 +13,14 @@ set(INC_SYS
   ${GLEW_INCLUDE_DIR}
 )
 
+set(LIB
+  cycles_scene
+  cycles_session
+  cycles_graph
+  ${CYCLES_GLEW_LIBRARIES}
+)
+cycles_external_libraries_append(LIB)
+
 set(INC_HD_CYCLES
   attribute.h
   camera.h
@@ -63,9 +71,6 @@ if(WITH_OPENVDB)
   list(APPEND INC_SYS
     ${OPENVDB_INCLUDE_DIRS}
   )
-  list(APPEND LIB
-    ${OPENVDB_LIBRARIES}
-  )
 endif()
 
 include_directories(${INC})
@@ -94,10 +99,9 @@ target_link_libraries(hdCyclesStatic
   PUBLIC
   hd
   hgi
+  hgiGL
   PRIVATE
-  cycles_scene
-  cycles_session
-  cycles_graph
+  ${LIB}
 )
 
 set(HdCyclesPluginName hdCycles)
@@ -123,8 +127,6 @@ target_compile_definitions(${HdCyclesPluginName}
 target_link_libraries(${HdCyclesPluginName}
   hdCyclesStatic
 )
-
-cycles_target_link_libraries(${HdCyclesPluginName})
 
 if(WITH_CYCLES_BLENDER)
   set(CYCLES_HYDRA_INSTALL_PATH "../")

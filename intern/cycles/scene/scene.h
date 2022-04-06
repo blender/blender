@@ -159,7 +159,7 @@ class SceneParams {
   SceneParams()
   {
     shadingsystem = SHADINGSYSTEM_SVM;
-    bvh_layout = BVH_LAYOUT_BVH2;
+    bvh_layout = BVH_LAYOUT_AUTO;
     bvh_type = BVH_TYPE_DYNAMIC;
     use_bvh_spatial_split = false;
     use_bvh_compact_structure = true;
