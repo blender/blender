@@ -69,8 +69,7 @@ bool BPy_errors_to_report_ex(ReportList *reports,
     return 0;
   }
 
-  /* Trim trailing newlines so the report doesn't contain a trailing new-line.
-   * This would add a blank-line in the info space. */
+  /* Strip trailing newlines so the report doesn't show a blank-line in the info space. */
   Py_ssize_t err_str_len;
   const char *err_str = PyUnicode_AsUTF8AndSize(err_str_py, &err_str_len);
   while (err_str_len > 0 && err_str[err_str_len - 1] == '\n') {

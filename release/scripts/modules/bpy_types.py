@@ -9,7 +9,7 @@ StructMetaPropGroup = bpy_types.bpy_struct_meta_idprop
 # StructRNA = bpy_types.Struct
 
 # Private dummy object use for comparison only.
-_sentinal = object()
+_sentinel = object()
 
 # Note that methods extended in C are defined in: 'bpy_rna_types_capi.c'
 
@@ -51,8 +51,8 @@ class Context(StructRNA):
         # Retrieve the value for `attr`.
         # Match the value error exception with that of "path_resolve"
         # to simplify exception handling for the caller.
-        value = getattr(self, attr, _sentinal)
-        if value is _sentinal:
+        value = getattr(self, attr, _sentinel)
+        if value is _sentinel:
             raise ValueError("Path could not be resolved: %r" % attr)
 
         if value is None:

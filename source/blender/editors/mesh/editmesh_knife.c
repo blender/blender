@@ -4399,7 +4399,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
         knifetool_exit(op);
         ED_workspace_status_text(C, NULL);
 
-        /* Exit early to prevent undo push for empty cuts. */
+        /* Cancel to prevent undo push for empty cuts. */
         if (kcd->totkvert == 0) {
           return OPERATOR_CANCELLED;
         }

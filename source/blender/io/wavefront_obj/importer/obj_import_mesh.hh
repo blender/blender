@@ -61,7 +61,7 @@ class MeshFromGeometry : NonMovable, NonCopyable {
    */
   void create_uv_verts(Mesh *mesh);
   /**
-   * Add materials and the nodetree to the Mesh Object.
+   * Add materials and the node-tree to the Mesh Object.
    */
   void create_materials(Main *bmain,
                         const Map<std::string, std::unique_ptr<MTLMaterial>> &materials,

@@ -562,7 +562,7 @@ static void mesh_edges_spherecast(void *userdata,
  */
 
 /* -------------------------------------------------------------------- */
-/** \name Commom Utils
+/** \name Common Utils
  * \{ */
 
 static void bvhtree_from_mesh_setup_data(BVHTree *tree,
