@@ -788,9 +788,7 @@ static int text_run_script(bContext *C, ReportList *reports)
       }
     }
 
-    BKE_report(
-        reports, RPT_ERROR, "Python script failed, check the message in the system console");
-
+    /* No need to report the error, this has already been handled by #BPY_run_text. */
     return OPERATOR_FINISHED;
   }
 #else
