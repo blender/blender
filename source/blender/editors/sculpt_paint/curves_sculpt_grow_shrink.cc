@@ -79,7 +79,7 @@ class ShrinkCurvesEffect : public CurvesEffect {
                const Span<int> curve_indices,
                const Span<float> move_distances_cu) override
   {
-    MutableSpan<float3> positions_cu = curves.positions();
+    MutableSpan<float3> positions_cu = curves.positions_for_write();
     threading::parallel_for(curve_indices.index_range(), 256, [&](const IndexRange range) {
       for (const int influence_i : range) {
         const int curve_i = curve_indices[influence_i];
@@ -132,7 +132,7 @@ class ExtrapolateCurvesEffect : public CurvesEffect {
                const Span<int> curve_indices,
                const Span<float> move_distances_cu) override
   {
-    MutableSpan<float3> positions_cu = curves.positions();
+    MutableSpan<float3> positions_cu = curves.positions_for_write();
     threading::parallel_for(curve_indices.index_range(), 256, [&](const IndexRange range) {
       for (const int influence_i : range) {
         const int curve_i = curve_indices[influence_i];
@@ -214,7 +214,7 @@ class ScaleCurvesEffect : public CurvesEffect {
                const Span<int> curve_indices,
                const Span<float> move_distances_cu) override
   {
-    MutableSpan<float3> positions_cu = curves.positions();
+    MutableSpan<float3> positions_cu = curves.positions_for_write();
     threading::parallel_for(curve_indices.index_range(), 256, [&](const IndexRange range) {
       for (const int influence_i : range) {
         const int curve_i = curve_indices[influence_i];

@@ -218,9 +218,9 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   Curves *curves_id = bke::curves_new_nomain_single(4, CURVE_TYPE_POLY);
   bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
-  curves.cyclic().first() = true;
+  curves.cyclic_for_write().first() = true;
 
-  MutableSpan<float3> positions = curves.positions();
+  MutableSpan<float3> positions = curves.positions_for_write();
 
   switch (mode) {
     case GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_RECTANGLE:

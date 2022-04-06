@@ -480,8 +480,8 @@ class DensityAddOperation : public CurvesSculptStrokeOperation {
     curves.resize(curves.points_num() + tot_new_curves * points_per_curve,
                   curves.curves_num() + tot_new_curves);
 
-    MutableSpan<int> offsets = curves.offsets();
-    MutableSpan<float3> positions = curves.positions();
+    MutableSpan<int> offsets = curves.offsets_for_write();
+    MutableSpan<float3> positions = curves.positions_for_write();
 
     for (const int i : IndexRange(tot_new_curves)) {
       const int curve_i = curves.curves_num() - tot_new_curves + i;

@@ -527,7 +527,7 @@ struct AddOperationExecutor {
 
   void initialize_curve_offsets(const int tot_added_curves)
   {
-    MutableSpan<int> offsets = curves_->offsets();
+    MutableSpan<int> offsets = curves_->offsets_for_write();
     threading::parallel_for(IndexRange(tot_added_curves), 1024, [&](const IndexRange range) {
       for (const int i : range) {
         const int curve_i = tot_old_curves_ + i;
@@ -656,8 +656,8 @@ struct AddOperationExecutor {
 
   void initialize_surface_attachment(const AddedPoints &added_points)
   {
-    MutableSpan<int> surface_triangle_indices = curves_->surface_triangle_indices();
-    MutableSpan<float2> surface_triangle_coords = curves_->surface_triangle_coords();
+    MutableSpan<int> surface_triangle_indices = curves_->surface_triangle_indices_for_write();
+    MutableSpan<float2> surface_triangle_coords = curves_->surface_triangle_coords_for_write();
     threading::parallel_for(
         added_points.bary_coords.index_range(), 1024, [&](const IndexRange range) {
           for (const int i : range) {
@@ -675,7 +675,7 @@ struct AddOperationExecutor {
                                                  const Span<float> lengths_cu,
                                                  const MutableSpan<float3> normals_su)
   {
-    MutableSpan<float3> positions_cu = curves_->positions();
+    MutableSpan<float3> positions_cu = curves_->positions_for_write();
 
     threading::parallel_for(
         added_points.bary_coords.index_range(), 256, [&](const IndexRange range) {
@@ -701,8 +701,8 @@ struct AddOperationExecutor {
                                               const Span<float3> new_normals_su,
                                               const Span<float> new_lengths_cu)
   {
-    MutableSpan<float3> positions_cu = curves_->positions();
-    const Span<int> surface_triangle_indices = curves_->surface_triangle_indices();
+    MutableSpan<float3> positions_cu = curves_->positions_for_write();
+    const VArray_Span<int> surface_triangle_indices{curves_->surface_triangle_indices()};
     const Span<float2> surface_triangle_coords = curves_->surface_triangle_coords();
 
     threading::parallel_for(

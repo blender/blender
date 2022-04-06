@@ -318,7 +318,7 @@ static Curves *curves_evaluate_modifiers(struct Depsgraph *depsgraph,
       /* Created deformed coordinates array on demand. */
       blender::bke::CurvesGeometry &geometry = blender::bke::CurvesGeometry::wrap(
           curves->geometry);
-      MutableSpan<float3> positions = geometry.positions();
+      MutableSpan<float3> positions = geometry.positions_for_write();
 
       mti->deformVerts(md,
                        &mectx,
@@ -378,8 +378,8 @@ Curves *curves_new_nomain_single(const int points_num, const CurveType type)
 {
   Curves *curves = curves_new_nomain(points_num, 1);
   CurvesGeometry &geometry = CurvesGeometry::wrap(curves->geometry);
-  geometry.offsets().last() = points_num;
-  geometry.curve_types().first() = type;
+  geometry.offsets_for_write().last() = points_num;
+  geometry.curve_types_for_write().first() = type;
   return curves;
 }
 

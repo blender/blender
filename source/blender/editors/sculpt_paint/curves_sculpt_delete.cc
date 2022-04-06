@@ -60,7 +60,7 @@ class DeleteOperation : public CurvesSculptStrokeOperation {
 
     Curves &curves_id = *static_cast<Curves *>(object.data);
     CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
-    MutableSpan<float3> positions = curves.positions();
+    Span<float3> positions = curves.positions();
 
     const float2 mouse_start = stroke_extension.is_first ? stroke_extension.mouse_position :
                                                            last_mouse_position_;

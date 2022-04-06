@@ -141,7 +141,7 @@ class CurvesGeometry : public ::CurvesGeometry {
    * number of curves. Consider using #points_for_curve rather than using the offsets directly.
    */
   Span<int> offsets() const;
-  MutableSpan<int> offsets();
+  MutableSpan<int> offsets_for_write();
 
   /**
    * Access a range of indices of point data for a specific curve.
@@ -152,19 +152,19 @@ class CurvesGeometry : public ::CurvesGeometry {
   /** The type (#CurveType) of each curve, or potentially a single if all are the same type. */
   VArray<int8_t> curve_types() const;
   /** Mutable access to curve types. Call #tag_topology_changed after changing any type. */
-  MutableSpan<int8_t> curve_types();
+  MutableSpan<int8_t> curve_types_for_write();
 
   bool has_curve_with_type(const CurveType type) const;
   /** Return the number of curves with each type. */
   std::array<int, CURVE_TYPES_NUM> count_curve_types() const;
 
-  MutableSpan<float3> positions();
   Span<float3> positions() const;
+  MutableSpan<float3> positions_for_write();
 
   /** Whether the curve loops around to connect to itself, on the curve domain. */
   VArray<bool> cyclic() const;
   /** Mutable access to curve cyclic values. Call #tag_topology_changed after changes. */
-  MutableSpan<bool> cyclic();
+  MutableSpan<bool> cyclic_for_write();
 
   /**
    * How many evaluated points to create for each segment when evaluating Bezier,
@@ -172,15 +172,15 @@ class CurvesGeometry : public ::CurvesGeometry {
    */
   VArray<int> resolution() const;
   /** Mutable access to curve resolution. Call #tag_topology_changed after changes. */
-  MutableSpan<int> resolution();
+  MutableSpan<int> resolution_for_write();
 
   /**
    * Handle types for Bezier control points. Call #tag_topology_changed after changes.
    */
   VArray<int8_t> handle_types_left() const;
-  MutableSpan<int8_t> handle_types_left();
+  MutableSpan<int8_t> handle_types_left_for_write();
   VArray<int8_t> handle_types_right() const;
-  MutableSpan<int8_t> handle_types_right();
+  MutableSpan<int8_t> handle_types_right_for_write();
 
   /**
    * The positions of Bezier curve handles. Though these are really control points for the Bezier
@@ -189,36 +189,36 @@ class CurvesGeometry : public ::CurvesGeometry {
    * after changes.
    */
   Span<float3> handle_positions_left() const;
-  MutableSpan<float3> handle_positions_left();
+  MutableSpan<float3> handle_positions_left_for_write();
   Span<float3> handle_positions_right() const;
-  MutableSpan<float3> handle_positions_right();
+  MutableSpan<float3> handle_positions_right_for_write();
 
   /**
    * The order (degree plus one) of each NURBS curve, on the curve domain.
    * Call #tag_topology_changed after changes.
    */
   VArray<int8_t> nurbs_orders() const;
-  MutableSpan<int8_t> nurbs_orders();
+  MutableSpan<int8_t> nurbs_orders_for_write();
 
   /**
    * The automatic generation mode for each NURBS curve's knots vector, on the curve domain.
    * Call #tag_topology_changed after changes.
    */
   VArray<int8_t> nurbs_knots_modes() const;
-  MutableSpan<int8_t> nurbs_knots_modes();
+  MutableSpan<int8_t> nurbs_knots_modes_for_write();
 
   /**
    * The weight for each control point for NURBS curves. Call #tag_positions_changed after changes.
    */
   Span<float> nurbs_weights() const;
-  MutableSpan<float> nurbs_weights();
+  MutableSpan<float> nurbs_weights_for_write();
 
   /**
    * The index of a triangle (#MLoopTri) that a curve is attached to.
    * The index is -1, if the curve is not attached.
    */
   VArray<int> surface_triangle_indices() const;
-  MutableSpan<int> surface_triangle_indices();
+  MutableSpan<int> surface_triangle_indices_for_write();
 
   /**
    * Barycentric coordinates of the attachment point within a triangle.
@@ -229,7 +229,7 @@ class CurvesGeometry : public ::CurvesGeometry {
    * The span can be empty, when all triangle indices are -1.
    */
   Span<float2> surface_triangle_coords() const;
-  MutableSpan<float2> surface_triangle_coords();
+  MutableSpan<float2> surface_triangle_coords_for_write();
 
   /**
    * Calculate the largest and smallest position values, only including control points

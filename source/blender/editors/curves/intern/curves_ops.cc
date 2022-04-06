@@ -134,7 +134,7 @@ static int curves_convert_to_particle_system_exec(bContext *C, wmOperator *UNUSE
     Mesh &surface_me = *static_cast<Mesh *>(surface_ob.data);
 
     const Span<float3> positions_cu = curves.positions();
-    const VArray<int> looptri_indices = std::as_const(curves).surface_triangle_indices();
+    const VArray<int> looptri_indices = curves.surface_triangle_indices();
     const Span<MLoopTri> looptris{BKE_mesh_runtime_looptri_ensure(&surface_me),
                                   BKE_mesh_runtime_looptri_len(&surface_me)};
 

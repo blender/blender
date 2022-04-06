@@ -462,8 +462,8 @@ Curves *curve_eval_to_curves(const CurveEval &curve_eval)
   dst_component.replace(curves, GeometryOwnershipType::Editable);
 
   blender::bke::CurvesGeometry &geometry = blender::bke::CurvesGeometry::wrap(curves->geometry);
-  geometry.offsets().copy_from(curve_eval.control_point_offsets());
-  MutableSpan<int8_t> curve_types = geometry.curve_types();
+  geometry.offsets_for_write().copy_from(curve_eval.control_point_offsets());
+  MutableSpan<int8_t> curve_types = geometry.curve_types_for_write();
 
   OutputAttribute_Typed<float> nurbs_weight;
   OutputAttribute_Typed<int> nurbs_order;

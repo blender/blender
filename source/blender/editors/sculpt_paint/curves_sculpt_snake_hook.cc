@@ -148,7 +148,7 @@ struct SnakeHookOperatorExecutor {
 
   void projected_snake_hook()
   {
-    MutableSpan<float3> positions_cu = curves_->positions();
+    MutableSpan<float3> positions_cu = curves_->positions_for_write();
 
     float4x4 projection;
     ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);
@@ -184,7 +184,7 @@ struct SnakeHookOperatorExecutor {
 
   void spherical_snake_hook()
   {
-    MutableSpan<float3> positions_cu = curves_->positions();
+    MutableSpan<float3> positions_cu = curves_->positions_for_write();
 
     float4x4 projection;
     ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);

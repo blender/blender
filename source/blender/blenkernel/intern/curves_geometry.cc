@@ -78,7 +78,7 @@ static void copy_curves_geometry(CurvesGeometry &dst, const CurvesGeometry &src)
 
   MEM_SAFE_FREE(dst.curve_offsets);
   dst.curve_offsets = (int *)MEM_calloc_arrayN(dst.point_size + 1, sizeof(int), __func__);
-  dst.offsets().copy_from(src.offsets());
+  dst.offsets_for_write().copy_from(src.offsets());
 
   dst.tag_topology_changed();
 
@@ -224,7 +224,7 @@ VArray<int8_t> CurvesGeometry::curve_types() const
       *this, ATTR_DOMAIN_CURVE, ATTR_CURVE_TYPE, CURVE_TYPE_CATMULL_ROM);
 }
 
-MutableSpan<int8_t> CurvesGeometry::curve_types()
+MutableSpan<int8_t> CurvesGeometry::curve_types_for_write()
 {
   return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_CURVE_TYPE);
 }
@@ -277,22 +277,22 @@ std::array<int, CURVE_TYPES_NUM> CurvesGeometry::count_curve_types() const
       });
 }
 
-MutableSpan<float3> CurvesGeometry::positions()
+Span<float3> CurvesGeometry::positions() const
+{
+  return {(const float3 *)this->position, this->point_size};
+}
+MutableSpan<float3> CurvesGeometry::positions_for_write()
 {
   this->position = (float(*)[3])CustomData_duplicate_referenced_layer_named(
       &this->point_data, CD_PROP_FLOAT3, ATTR_POSITION.c_str(), this->point_size);
   return {(float3 *)this->position, this->point_size};
 }
-Span<float3> CurvesGeometry::positions() const
-{
-  return {(const float3 *)this->position, this->point_size};
-}
 
-MutableSpan<int> CurvesGeometry::offsets()
+Span<int> CurvesGeometry::offsets() const
 {
   return {this->curve_offsets, this->curve_size + 1};
 }
-Span<int> CurvesGeometry::offsets() const
+MutableSpan<int> CurvesGeometry::offsets_for_write()
 {
   return {this->curve_offsets, this->curve_size + 1};
 }
@@ -301,8 +301,7 @@ VArray<bool> CurvesGeometry::cyclic() const
 {
   return get_varray_attribute<bool>(*this, ATTR_DOMAIN_CURVE, ATTR_CYCLIC, false);
 }
-
-MutableSpan<bool> CurvesGeometry::cyclic()
+MutableSpan<bool> CurvesGeometry::cyclic_for_write()
 {
   return get_mutable_attribute<bool>(*this, ATTR_DOMAIN_CURVE, ATTR_CYCLIC);
 }
@@ -311,8 +310,7 @@ VArray<int> CurvesGeometry::resolution() const
 {
   return get_varray_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_RESOLUTION, 12);
 }
-
-MutableSpan<int> CurvesGeometry::resolution()
+MutableSpan<int> CurvesGeometry::resolution_for_write()
 {
   return get_mutable_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_RESOLUTION);
 }
@@ -321,7 +319,7 @@ VArray<int8_t> CurvesGeometry::handle_types_left() const
 {
   return get_varray_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_LEFT, 0);
 }
-MutableSpan<int8_t> CurvesGeometry::handle_types_left()
+MutableSpan<int8_t> CurvesGeometry::handle_types_left_for_write()
 {
   return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_LEFT);
 }
@@ -330,7 +328,7 @@ VArray<int8_t> CurvesGeometry::handle_types_right() const
 {
   return get_varray_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_RIGHT, 0);
 }
-MutableSpan<int8_t> CurvesGeometry::handle_types_right()
+MutableSpan<int8_t> CurvesGeometry::handle_types_right_for_write()
 {
   return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_RIGHT);
 }
@@ -339,7 +337,7 @@ Span<float3> CurvesGeometry::handle_positions_left() const
 {
   return get_span_attribute<float3>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_POSITION_LEFT);
 }
-MutableSpan<float3> CurvesGeometry::handle_positions_left()
+MutableSpan<float3> CurvesGeometry::handle_positions_left_for_write()
 {
   return get_mutable_attribute<float3>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_POSITION_LEFT);
 }
@@ -348,7 +346,7 @@ Span<float3> CurvesGeometry::handle_positions_right() const
 {
   return get_span_attribute<float3>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_POSITION_RIGHT);
 }
-MutableSpan<float3> CurvesGeometry::handle_positions_right()
+MutableSpan<float3> CurvesGeometry::handle_positions_right_for_write()
 {
   return get_mutable_attribute<float3>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_POSITION_RIGHT);
 }
@@ -357,7 +355,7 @@ VArray<int8_t> CurvesGeometry::nurbs_orders() const
 {
   return get_varray_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_ORDER, 4);
 }
-MutableSpan<int8_t> CurvesGeometry::nurbs_orders()
+MutableSpan<int8_t> CurvesGeometry::nurbs_orders_for_write()
 {
   return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_ORDER);
 }
@@ -366,7 +364,7 @@ Span<float> CurvesGeometry::nurbs_weights() const
 {
   return get_span_attribute<float>(*this, ATTR_DOMAIN_POINT, ATTR_NURBS_WEIGHT);
 }
-MutableSpan<float> CurvesGeometry::nurbs_weights()
+MutableSpan<float> CurvesGeometry::nurbs_weights_for_write()
 {
   return get_mutable_attribute<float>(*this, ATTR_DOMAIN_POINT, ATTR_NURBS_WEIGHT);
 }
@@ -375,7 +373,7 @@ VArray<int8_t> CurvesGeometry::nurbs_knots_modes() const
 {
   return get_varray_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_KNOTS_MODE, 0);
 }
-MutableSpan<int8_t> CurvesGeometry::nurbs_knots_modes()
+MutableSpan<int8_t> CurvesGeometry::nurbs_knots_modes_for_write()
 {
   return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_KNOTS_MODE);
 }
@@ -385,7 +383,7 @@ VArray<int> CurvesGeometry::surface_triangle_indices() const
   return get_varray_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_TRIANGLE_INDEX, -1);
 }
 
-MutableSpan<int> CurvesGeometry::surface_triangle_indices()
+MutableSpan<int> CurvesGeometry::surface_triangle_indices_for_write()
 {
   return get_mutable_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_TRIANGLE_INDEX);
 }
@@ -395,7 +393,7 @@ Span<float2> CurvesGeometry::surface_triangle_coords() const
   return get_span_attribute<float2>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_TRIANGLE_COORDINATE);
 }
 
-MutableSpan<float2> CurvesGeometry::surface_triangle_coords()
+MutableSpan<float2> CurvesGeometry::surface_triangle_coords_for_write()
 {
   return get_mutable_attribute<float2>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_TRIANGLE_COORDINATE);
 }
@@ -768,20 +766,19 @@ static void transform_positions(MutableSpan<float3> positions, const float4x4 &m
 
 void CurvesGeometry::calculate_bezier_auto_handles()
 {
-  const VArray<int8_t> types = std::as_const(*this).curve_types();
+  const VArray<int8_t> types = this->curve_types();
   if (types.is_single() && types.get_internal_single() != CURVE_TYPE_BEZIER) {
     return;
   }
-  if (std::as_const(*this).handle_positions_left().is_empty() ||
-      std::as_const(*this).handle_positions_right().is_empty()) {
+  if (this->handle_positions_left().is_empty() || this->handle_positions_right().is_empty()) {
     return;
   }
-  const VArray<bool> cyclic = std::as_const(*this).cyclic();
-  const Span<int8_t> types_left = this->handle_types_left();
-  const Span<int8_t> types_right = this->handle_types_right();
+  const VArray<bool> cyclic = this->cyclic();
+  const VArray_Span<int8_t> types_left{this->handle_types_left()};
+  const VArray_Span<int8_t> types_right{this->handle_types_right()};
   const Span<float3> positions = this->positions();
-  MutableSpan<float3> positions_left = this->handle_positions_left();
-  MutableSpan<float3> positions_right = this->handle_positions_right();
+  MutableSpan<float3> positions_left = this->handle_positions_left_for_write();
+  MutableSpan<float3> positions_right = this->handle_positions_right_for_write();
 
   threading::parallel_for(this->curves_range(), 128, [&](IndexRange range) {
     for (const int i_curve : range) {
@@ -800,26 +797,24 @@ void CurvesGeometry::calculate_bezier_auto_handles()
 
 void CurvesGeometry::translate(const float3 &translation)
 {
-  /* Use `as_const` because the non-const functions can add the handle attributes. */
-  translate_positions(this->positions(), translation);
-  if (!std::as_const(*this).handle_positions_left().is_empty()) {
-    translate_positions(this->handle_positions_left(), translation);
+  translate_positions(this->positions_for_write(), translation);
+  if (!this->handle_positions_left().is_empty()) {
+    translate_positions(this->handle_positions_left_for_write(), translation);
   }
-  if (!std::as_const(*this).handle_positions_right().is_empty()) {
-    translate_positions(this->handle_positions_right(), translation);
+  if (!this->handle_positions_right().is_empty()) {
+    translate_positions(this->handle_positions_right_for_write(), translation);
   }
   this->tag_positions_changed();
 }
 
 void CurvesGeometry::transform(const float4x4 &matrix)
 {
-  /* Use `as_const` because the non-const functions can add the handle attributes. */
-  transform_positions(this->positions(), matrix);
-  if (!std::as_const(*this).handle_positions_left().is_empty()) {
-    transform_positions(this->handle_positions_left(), matrix);
+  transform_positions(this->positions_for_write(), matrix);
+  if (!this->handle_positions_left().is_empty()) {
+    transform_positions(this->handle_positions_left_for_write(), matrix);
   }
-  if (!std::as_const(*this).handle_positions_right().is_empty()) {
-    transform_positions(this->handle_positions_right(), matrix);
+  if (!this->handle_positions_right().is_empty()) {
+    transform_positions(this->handle_positions_right_for_write(), matrix);
   }
   this->tag_positions_changed();
 }
@@ -896,7 +891,7 @@ static CurvesGeometry copy_with_removed_curves(const CurvesGeometry &curves,
   threading::parallel_invoke(
       /* Initialize curve offsets. */
       [&]() {
-        MutableSpan<int> new_offsets = new_curves.offsets();
+        MutableSpan<int> new_offsets = new_curves.offsets_for_write();
         new_offsets.last() = new_tot_points;
         threading::parallel_for(
             old_curve_ranges.index_range(), 128, [&](const IndexRange ranges_range) {

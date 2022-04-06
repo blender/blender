@@ -365,7 +365,7 @@ static void duplicate_curves(GeometrySet &geometry_set,
 
   Curves *new_curves_id = bke::curves_new_nomain(dst_points_size, dst_curves_size);
   bke::CurvesGeometry &new_curves = bke::CurvesGeometry::wrap(new_curves_id->geometry);
-  MutableSpan<int> all_dst_offsets = new_curves.offsets();
+  MutableSpan<int> all_dst_offsets = new_curves.offsets_for_write();
 
   threading::parallel_for(selection.index_range(), 512, [&](IndexRange range) {
     for (const int i_selection : range) {
@@ -818,7 +818,7 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
 
   Curves *new_curves_id = bke::curves_new_nomain(dst_size, dst_size);
   bke::CurvesGeometry &new_curves = bke::CurvesGeometry::wrap(new_curves_id->geometry);
-  MutableSpan<int> new_curve_offsets = new_curves.offsets();
+  MutableSpan<int> new_curve_offsets = new_curves.offsets_for_write();
   for (const int i : new_curves.curves_range()) {
     new_curve_offsets[i] = i;
   }
