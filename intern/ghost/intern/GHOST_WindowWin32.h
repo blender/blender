@@ -13,6 +13,7 @@
 #endif  // WIN32
 
 #include "GHOST_TaskbarWin32.h"
+#include "GHOST_TrackpadWin32.h"
 #include "GHOST_Window.h"
 #include "GHOST_Wintab.h"
 #ifdef WITH_INPUT_IME
@@ -286,6 +287,8 @@ class GHOST_WindowWin32 : public GHOST_Window {
     return GHOST_kFailure;
   }
 
+  void updateDPI();
+
   uint16_t getDPIHint() override;
 
   /** True if the mouse is either over or captured by the window. */
@@ -307,6 +310,19 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   void endIME();
 #endif /* WITH_INPUT_IME */
+
+  /*
+   * Drive DirectManipulation context.
+   */
+  void updateDirectManipulation();
+
+  /*
+   * Handle DM_POINTERHITTEST events.
+   * \param wParam: wParam from the event.
+   */
+  void onPointerHitTest(WPARAM wParam);
+
+  GHOST_TTrackpadInfo getTrackpadInfo();
 
  private:
   /**
@@ -390,6 +406,8 @@ class GHOST_WindowWin32 : public GHOST_Window {
   HMODULE m_user32;
 
   HWND m_parentWindowHwnd;
+
+  GHOST_DirectManipulationHelper *m_directManipulationHelper;
 
 #ifdef WITH_INPUT_IME
   /** Handle input method editors event */

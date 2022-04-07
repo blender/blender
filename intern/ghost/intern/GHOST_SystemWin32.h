@@ -407,6 +407,16 @@ class GHOST_SystemWin32 : public GHOST_System {
 #endif
 
   /**
+   * Drives Direct Manipulation update.
+   */
+  void driveTrackpad();
+
+  /**
+   * Creates trackpad events for the active window.
+   */
+  void processTrackpad();
+
+  /**
    * Returns the local state of the modifier keys (from the message queue).
    * \param keys: The state of the keys.
    */
