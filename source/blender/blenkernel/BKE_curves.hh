@@ -368,6 +368,17 @@ inline int curve_segment_size(const int points_num, const bool cyclic)
   return cyclic ? points_num : points_num - 1;
 }
 
+inline float2 encode_surface_bary_coord(const float3 &v)
+{
+  BLI_assert(std::abs(v.x + v.y + v.z - 1.0f) < 0.00001f);
+  return {v.x, v.y};
+}
+
+inline float3 decode_surface_bary_coord(const float2 &v)
+{
+  return {v.x, v.y, 1.0f - v.x - v.y};
+}
+
 namespace bezier {
 
 /**

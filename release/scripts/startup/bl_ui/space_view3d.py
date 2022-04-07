@@ -935,6 +935,8 @@ class VIEW3D_MT_editor_menus(Menu):
             if mode_string == 'SCULPT':
                 layout.menu("VIEW3D_MT_mask")
                 layout.menu("VIEW3D_MT_face_sets")
+            if mode_string == 'SCULPT_CURVES':
+                layout.menu("VIEW3D_MT_sculpt_curves")
 
         else:
             layout.menu("VIEW3D_MT_object")
@@ -3122,6 +3124,15 @@ class VIEW3D_MT_sculpt(Menu):
         layout.separator()
 
         layout.operator("object.transfer_mode", text="Transfer Sculpt Mode")
+
+
+class VIEW3D_MT_sculpt_curves(Menu):
+    bl_label = "Curves"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("curves.snap_curves_to_surface")
 
 
 class VIEW3D_MT_mask(Menu):
@@ -7759,6 +7770,7 @@ classes = (
     VIEW3D_MT_sculpt_automasking_pie,
     VIEW3D_MT_wpaint_vgroup_lock_pie,
     VIEW3D_MT_sculpt_face_sets_edit_pie,
+    VIEW3D_MT_sculpt_curves,
     VIEW3D_PT_active_tool,
     VIEW3D_PT_active_tool_duplicate,
     VIEW3D_PT_view3d_properties,
