@@ -39,6 +39,7 @@
  */
 
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <iostream>
 
@@ -288,6 +289,12 @@ class IndexRange {
     stream << "[" << range.start() << ", " << range.one_after_last() << ")";
     return stream;
   }
+
+ private:
+  static std::atomic<int64_t> s_current_array_size;
+  static std::atomic<int64_t *> s_current_array;
+
+  Span<int64_t> as_span_internal() const;
 };
 
 }  // namespace blender
