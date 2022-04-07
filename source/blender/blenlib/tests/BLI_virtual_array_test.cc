@@ -180,4 +180,46 @@ TEST(virtual_array, MutableToImmutable)
   }
 }
 
+TEST(virtual_array, MaterializeCompressed)
+{
+  {
+    std::array<int, 10> array = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90};
+    VArray<int> varray = VArray<int>::ForSpan(array);
+    std::array<int, 3> compressed_array;
+    varray.materialize_compressed({3, 6, 7}, compressed_array);
+    EXPECT_EQ(compressed_array[0], 30);
+    EXPECT_EQ(compressed_array[1], 60);
+    EXPECT_EQ(compressed_array[2], 70);
+    varray.materialize_compressed_to_uninitialized({2, 8, 9}, compressed_array);
+    EXPECT_EQ(compressed_array[0], 20);
+    EXPECT_EQ(compressed_array[1], 80);
+    EXPECT_EQ(compressed_array[2], 90);
+  }
+  {
+    VArray<int> varray = VArray<int>::ForSingle(4, 10);
+    std::array<int, 3> compressed_array;
+    varray.materialize_compressed({2, 6, 7}, compressed_array);
+    EXPECT_EQ(compressed_array[0], 4);
+    EXPECT_EQ(compressed_array[1], 4);
+    EXPECT_EQ(compressed_array[2], 4);
+    compressed_array.fill(0);
+    varray.materialize_compressed_to_uninitialized({0, 1, 2}, compressed_array);
+    EXPECT_EQ(compressed_array[0], 4);
+    EXPECT_EQ(compressed_array[1], 4);
+    EXPECT_EQ(compressed_array[2], 4);
+  }
+  {
+    VArray<int> varray = VArray<int>::ForFunc(10, [](const int64_t i) { return (int)(i * i); });
+    std::array<int, 3> compressed_array;
+    varray.materialize_compressed({5, 7, 8}, compressed_array);
+    EXPECT_EQ(compressed_array[0], 25);
+    EXPECT_EQ(compressed_array[1], 49);
+    EXPECT_EQ(compressed_array[2], 64);
+    varray.materialize_compressed_to_uninitialized({1, 2, 3}, compressed_array);
+    EXPECT_EQ(compressed_array[0], 1);
+    EXPECT_EQ(compressed_array[1], 4);
+    EXPECT_EQ(compressed_array[2], 9);
+  }
+}
+
 }  // namespace blender::tests
