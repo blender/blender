@@ -526,7 +526,9 @@ static void rna_AttributeGroup_active_color_index_range(
   *softmax = *max;
 }
 
-static void rna_AttributeGroup_update_active_color(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_AttributeGroup_update_active_color(Main *UNUSED(bmain),
+                                                   Scene *UNUSED(scene),
+                                                   PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
 

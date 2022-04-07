@@ -141,7 +141,7 @@ void SEQ_animation_duplicate(Scene *scene, Sequence *seq, ListBase *list)
   }
 
   if (seq->type == SEQ_TYPE_META) {
-    LISTBASE_FOREACH (Sequence*, meta_child, &seq->seqbase){
+    LISTBASE_FOREACH (Sequence *, meta_child, &seq->seqbase) {
       SEQ_animation_duplicate(scene, meta_child, list);
     }
   }

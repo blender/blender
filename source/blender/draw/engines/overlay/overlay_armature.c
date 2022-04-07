@@ -798,7 +798,8 @@ static void drw_shgroup_bone_ik_no_target_lines(ArmatureDrawContext *ctx,
                                                 const float start[3],
                                                 const float end[3])
 {
-  drw_shgroup_bone_relationship_lines_ex(ctx, start, end, G_draw.block.color_bone_ik_line_no_target);
+  drw_shgroup_bone_relationship_lines_ex(
+      ctx, start, end, G_draw.block.color_bone_ik_line_no_target);
 }
 
 static void drw_shgroup_bone_ik_spline_lines(ArmatureDrawContext *ctx,

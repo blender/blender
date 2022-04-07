@@ -383,7 +383,7 @@ std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves)
       curves.geometry);
 
   VArray<int> resolution = geometry.resolution();
-  
+
   VArray_Span<float> nurbs_weights{
       src_component.attribute_get_for_read<float>("nurbs_weight", ATTR_DOMAIN_POINT, 0.0f)};
   VArray_Span<int> nurbs_orders{

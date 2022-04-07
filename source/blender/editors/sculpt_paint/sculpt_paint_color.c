@@ -158,7 +158,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     float noise = 1.0f;
     const float density = ss->cache->paint_brush.density;
     if (density < 1.0f) {
-      const float hash_noise = (float) BLI_hash_int_01(ss->cache->density_seed * 1000 * vd.index);
+      const float hash_noise = (float)BLI_hash_int_01(ss->cache->density_seed * 1000 * vd.index);
       if (hash_noise > density) {
         noise = density * hash_noise;
         fade = fade * noise;
@@ -251,7 +251,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
     if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
-      ss->cache->density_seed = (float) BLI_hash_int_01(ss->cache->location[0] * 1000);
+      ss->cache->density_seed = (float)BLI_hash_int_01(ss->cache->location[0] * 1000);
     }
     return;
   }

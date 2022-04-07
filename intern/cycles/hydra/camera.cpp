@@ -88,9 +88,9 @@ void HdCyclesCamera::Sync(HdSceneDelegate *sceneDelegate,
     if (!value.IsEmpty()) {
       _projectionMatrix = value.Get<GfMatrix4d>();
       const float focalLength = _data.GetFocalLength();  // Get default focal length
-#if PXR_VERSION >= 2102
+#  if PXR_VERSION >= 2102
       _data.SetFromViewAndProjectionMatrix(GetViewMatrix(), _projectionMatrix, focalLength);
-#else
+#  else
       if (_projectionMatrix[2][3] < -0.5) {
         _data.SetProjection(GfCamera::Perspective);
 
@@ -120,7 +120,7 @@ void HdCyclesCamera::Sync(HdSceneDelegate *sceneDelegate,
         _data.SetClippingRange(
             GfRange1f(nearPlusFarHalf + nearMinusFarHalf, nearPlusFarHalf - nearMinusFarHalf));
       }
-#endif
+#  endif
     }
   }
 #endif
@@ -150,9 +150,8 @@ void HdCyclesCamera::Sync(HdSceneDelegate *sceneDelegate,
 #else
     value = sceneDelegate->GetCameraParamValue(id, _tokens->projection);
     if (!value.IsEmpty()) {
-      _data.SetProjection(value.Get<TfToken>() != _tokens->orthographic ?
-                              GfCamera::Perspective :
-                              GfCamera::Orthographic);
+      _data.SetProjection(value.Get<TfToken>() != _tokens->orthographic ? GfCamera::Perspective :
+                                                                          GfCamera::Orthographic);
     }
 #endif
 

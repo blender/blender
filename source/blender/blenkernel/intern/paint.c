@@ -1836,7 +1836,7 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
 
   CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, orig_me->totvert);
   CustomDataLayer *layer = orig_me->vdata.layers +
-                        CustomData_get_layer_index(&orig_me->vdata, CD_PROP_COLOR);
+                           CustomData_get_layer_index(&orig_me->vdata, CD_PROP_COLOR);
 
   BKE_mesh_update_customdata_pointers(orig_me, true);
 
