@@ -47,11 +47,46 @@ template<typename In1, typename Out1> class CustomMF_SI_SO : public MultiFunctio
   template<typename ElementFuncT> static FunctionT create_function(ElementFuncT element_fn)
   {
     return [=](IndexMask mask, const VArray<In1> &in1, MutableSpan<Out1> out1) {
-      /* Devirtualization results in a 2-3x speedup for some simple functions. */
-      devirtualize_varray(in1, [&](const auto &in1) {
+      if (in1.is_single()) {
+        /* Only evaluate the function once when the input is a single value. */
+        const In1 in1_single = in1.get_internal_single();
+        const Out1 out1_single = element_fn(in1_single);
+        out1.fill_indices(mask, out1_single);
+        return;
+      }
+
+      if (in1.is_span()) {
+        const Span<In1> in1_span = in1.get_internal_span();
         mask.to_best_mask_type(
-            [&](const auto &mask) { execute_SI_SO(element_fn, mask, in1, out1.data()); });
-      });
+            [&](auto mask) { execute_SI_SO(element_fn, mask, in1_span, out1.data()); });
+        return;
+      }
+
+      /* The input is an unknown virtual array type. To avoid virtual function call overhead for
+       * every element, elements are retrieved and processed in chunks. */
+
+      static constexpr int64_t MaxChunkSize = 32;
+      TypedBuffer<In1, MaxChunkSize> in1_buffer_owner;
+      MutableSpan<In1> in1_buffer{in1_buffer_owner.ptr(), MaxChunkSize};
+
+      const int64_t mask_size = mask.size();
+      for (int64_t chunk_start = 0; chunk_start < mask_size; chunk_start += MaxChunkSize) {
+        const int64_t chunk_size = std::min(mask_size - chunk_start, MaxChunkSize);
+        const IndexMask sliced_mask = mask.slice(chunk_start, chunk_size);
+
+        /* Load input from the virtual array. */
+        MutableSpan<In1> in1_chunk = in1_buffer.take_front(chunk_size);
+        in1.materialize_compressed_to_uninitialized(sliced_mask, in1_chunk);
+
+        if (sliced_mask.is_range()) {
+          execute_SI_SO(
+              element_fn, IndexRange(chunk_size), in1_chunk, out1.data() + sliced_mask[0]);
+        }
+        else {
+          execute_SI_SO_compressed(element_fn, sliced_mask, in1_chunk, out1.data());
+        }
+        destruct_n(in1_chunk.data(), chunk_size);
+      }
     };
   }
 
@@ -63,6 +98,18 @@ template<typename In1, typename Out1> class CustomMF_SI_SO : public MultiFunctio
   {
     for (const int64_t i : mask) {
       new (r_out + i) Out1(element_fn(in1[i]));
+    }
+  }
+
+  /** Expects the input array to be "compressed", i.e. there are no gaps between the elements. */
+  template<typename ElementFuncT, typename MaskT, typename In1Array>
+  BLI_NOINLINE static void execute_SI_SO_compressed(const ElementFuncT &element_fn,
+                                                    MaskT mask,
+                                                    const In1Array &in1,
+                                                    Out1 *__restrict r_out)
+  {
+    for (const int64_t i : IndexRange(mask.size())) {
+      new (r_out + mask[i]) Out1(element_fn(in1[i]));
     }
   }
 
