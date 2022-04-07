@@ -177,7 +177,7 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
         col.label(text="which was replaced by the Asset Browser.")
 
         url = self.get_manual_url()
-        col.operator('wm.url_open', text="More Info", icon="WORLD").url = url
+        col.operator('wm.url_open', text="More Info", icon="URL").url = url
 
         layout.separator()
 
