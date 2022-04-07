@@ -226,7 +226,7 @@ def list_render_passes(scene, srl):
         if aov.type == 'VALUE':
             yield (aov.name, "X", 'VALUE')
         else:
-            yield (aov.name, "RGB", 'COLOR')
+            yield (aov.name, "RGBA", 'COLOR')
 
     # Light groups.
     for lightgroup in srl.lightgroups:
