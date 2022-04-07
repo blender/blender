@@ -185,10 +185,25 @@ class CustomMF_SI_SI_SI_SO : public MultiFunction {
                MutableSpan<Out1> out1) {
       /* Virtual arrays are not devirtualized yet, to avoid generating lots of code without further
        * consideration. */
-      for (const int64_t i : mask) {
-        new (static_cast<void *>(&out1[i])) Out1(element_fn(in1[i], in2[i], in3[i]));
-      }
+      execute_SI_SI_SI_SO(element_fn, mask, in1, in2, in3, out1.data());
     };
+  }
+
+  template<typename ElementFuncT,
+           typename MaskT,
+           typename In1Array,
+           typename In2Array,
+           typename In3Array>
+  BLI_NOINLINE static void execute_SI_SI_SI_SO(const ElementFuncT &element_fn,
+                                               MaskT mask,
+                                               const In1Array &in1,
+                                               const In2Array &in2,
+                                               const In3Array &in3,
+                                               Out1 *__restrict r_out)
+  {
+    for (const int64_t i : mask) {
+      new (r_out + i) Out1(element_fn(in1[i], in2[i], in3[i]));
+    }
   }
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
@@ -250,10 +265,27 @@ class CustomMF_SI_SI_SI_SI_SO : public MultiFunction {
                MutableSpan<Out1> out1) {
       /* Virtual arrays are not devirtualized yet, to avoid generating lots of code without further
        * consideration. */
-      for (const int64_t i : mask) {
-        new (static_cast<void *>(&out1[i])) Out1(element_fn(in1[i], in2[i], in3[i], in4[i]));
-      }
+      execute_SI_SI_SI_SI_SO(element_fn, mask, in1, in2, in3, in4, out1.data());
     };
+  }
+
+  template<typename ElementFuncT,
+           typename MaskT,
+           typename In1Array,
+           typename In2Array,
+           typename In3Array,
+           typename In4Array>
+  BLI_NOINLINE static void execute_SI_SI_SI_SI_SO(const ElementFuncT &element_fn,
+                                                  MaskT mask,
+                                                  const In1Array &in1,
+                                                  const In2Array &in2,
+                                                  const In3Array &in3,
+                                                  const In4Array &in4,
+                                                  Out1 *__restrict r_out)
+  {
+    for (const int64_t i : mask) {
+      new (r_out + i) Out1(element_fn(in1[i], in2[i], in3[i], in4[i]));
+    }
   }
 
   void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
