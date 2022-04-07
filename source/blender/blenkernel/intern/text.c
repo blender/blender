@@ -518,9 +518,9 @@ void BKE_text_clear(Text *text) /* called directly from rna */
   txt_make_dirty(text);
 }
 
-void BKE_text_write(Text *text, const char *str) /* called directly from rna */
+void BKE_text_write(Text *text, const char *str, int str_len) /* called directly from rna */
 {
-  txt_insert_buf(text, str);
+  txt_insert_buf(text, str, str_len);
   txt_move_eof(text, 0);
   txt_make_dirty(text);
 }
@@ -1536,33 +1536,30 @@ char *txt_sel_to_buf(Text *text, size_t *r_buf_strlen)
   return buf;
 }
 
-void txt_insert_buf(Text *text, const char *in_buffer)
+void txt_insert_buf(Text *text, const char *in_buffer, int in_buffer_len)
 {
-  int l = 0, len;
+  BLI_assert(in_buffer_len == strlen(in_buffer));
+
+  int l = 0;
   size_t i = 0, j;
   TextLine *add;
   char *buffer;
 
-  if (!in_buffer) {
-    return;
-  }
-
   txt_delete_sel(text);
 
-  len = strlen(in_buffer);
-  buffer = BLI_strdupn(in_buffer, len);
-  len += txt_extended_ascii_as_utf8(&buffer);
+  buffer = BLI_strdupn(in_buffer, in_buffer_len);
+  in_buffer_len += txt_extended_ascii_as_utf8(&buffer);
 
   /* Read the first line (or as close as possible */
   while (buffer[i] && buffer[i] != '\n') {
-    txt_add_raw_char(text, BLI_str_utf8_as_unicode_step(buffer, len, &i));
+    txt_add_raw_char(text, BLI_str_utf8_as_unicode_step(buffer, in_buffer_len, &i));
   }
 
   if (buffer[i] == '\n') {
     txt_split_curline(text);
     i++;
 
-    while (i < len) {
+    while (i < in_buffer_len) {
       l = 0;
 
       while (buffer[i] && buffer[i] != '\n') {
@@ -1576,8 +1573,8 @@ void txt_insert_buf(Text *text, const char *in_buffer)
         i++;
       }
       else {
-        for (j = i - l; j < i && j < len;) {
-          txt_add_raw_char(text, BLI_str_utf8_as_unicode_step(buffer, len, &j));
+        for (j = i - l; j < i && j < in_buffer_len;) {
+          txt_add_raw_char(text, BLI_str_utf8_as_unicode_step(buffer, in_buffer_len, &j));
         }
         break;
       }
@@ -1875,7 +1872,7 @@ static void txt_convert_tab_to_spaces(Text *text)
    * to multiples of TXT_TABSIZE)
    */
   const char *sb = &tab_to_spaces[text->curc % TXT_TABSIZE];
-  txt_insert_buf(text, sb);
+  txt_insert_buf(text, sb, strlen(sb));
 }
 
 static bool txt_add_char_intern(Text *text, unsigned int add, bool replace_tabs)

@@ -921,7 +921,7 @@ static int text_paste_exec(bContext *C, wmOperator *op)
     buf = new_buf;
   }
 
-  txt_insert_buf(text, buf);
+  txt_insert_buf(text, buf, buf_len);
   text_update_edited(text);
 
   MEM_freeN(buf);
@@ -3587,7 +3587,7 @@ static int text_find_and_replace(bContext *C, wmOperator *op, short mode)
     if (found) {
       if (mode == TEXT_REPLACE) {
         ED_text_undo_push_init(C);
-        txt_insert_buf(text, st->replacestr);
+        txt_insert_buf(text, st->replacestr, strlen(st->replacestr));
         if (text->curl && text->curl->format) {
           MEM_freeN(text->curl->format);
           text->curl->format = NULL;
@@ -3671,7 +3671,7 @@ static int text_replace_all(bContext *C)
     ED_text_undo_push_init(C);
 
     do {
-      txt_insert_buf(text, st->replacestr);
+      txt_insert_buf(text, st->replacestr, strlen(st->replacestr));
       if (text->curl && text->curl->format) {
         MEM_freeN(text->curl->format);
         text->curl->format = NULL;

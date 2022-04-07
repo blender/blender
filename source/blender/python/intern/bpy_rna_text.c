@@ -6,6 +6,8 @@
  * This file extends the text editor with C/Python API methods and attributes.
  */
 
+#define PY_SSIZE_T_CLEAN
+
 #include <Python.h>
 
 #include "DNA_text_types.h"
@@ -103,9 +105,16 @@ static PyObject *bpy_rna_region_from_string(PyObject *self, PyObject *args)
 
   /* Parse the region range. */
   const char *buf;
+  Py_ssize_t buf_len;
   TextRegion region;
-  if (!PyArg_ParseTuple(
-          args, "s|((ii)(ii))", &buf, &region.curl, &region.curc, &region.sell, &region.selc)) {
+  if (!PyArg_ParseTuple(args,
+                        "s#|((ii)(ii))",
+                        &buf,
+                        &buf_len,
+                        &region.curl,
+                        &region.curc,
+                        &region.sell,
+                        &region.selc)) {
     return NULL;
   }
 
@@ -114,7 +123,7 @@ static PyObject *bpy_rna_region_from_string(PyObject *self, PyObject *args)
   }
 
   /* Set the selected text. */
-  txt_insert_buf(text, buf);
+  txt_insert_buf(text, buf, buf_len);
   /* Update the text editor. */
   WM_main_add_notifier(NC_TEXT | NA_EDITED, text);
 
