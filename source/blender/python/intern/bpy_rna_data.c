@@ -157,7 +157,13 @@ static PyObject *bpy_rna_data_temp_data(PyObject *UNUSED(self), PyObject *args, 
   BPy_DataContext *ret;
   const char *filepath = NULL;
   static const char *_keywords[] = {"filepath", NULL};
-  static _PyArg_Parser _parser = {"|$z:temp_data", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "|$" /* Optional keyword only arguments. */
+      "z"  /* `filepath` */
+      ":temp_data",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &filepath)) {
     return NULL;
   }

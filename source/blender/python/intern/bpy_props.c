@@ -2730,7 +2730,23 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
       "set",
       NULL,
   };
-  static _PyArg_Parser _parser = {"O&|$ssO&O&O&O&O&OOO:BoolProperty", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O&" /* `attr` */
+      "|$" /* Optional, keyword only arguments. */
+      "s"  /* `name` */
+      "s"  /* `description` */
+      "O&" /* `default` */
+      "O&" /* `options` */
+      "O&" /* `override` */
+      "O&" /* `tags` */
+      "O&" /* `subtype` */
+      "O"  /* `update` */
+      "O"  /* `get` */
+      "O"  /* `set` */
+      ":BoolProperty",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
@@ -2862,7 +2878,24 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
       "set",
       NULL,
   };
-  static _PyArg_Parser _parser = {"O&|$ssOO&O&O&O&O&OOO:BoolVectorProperty", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O&" /* `attr` */
+      "|$" /* Optional, keyword only arguments. */
+      "s"  /* `name` */
+      "s"  /* `description` */
+      "O"  /* `default` */
+      "O&" /* `options` */
+      "O&" /* `override` */
+      "O&" /* `tags` */
+      "O&" /* `subtype` */
+      "O&" /* `size` */
+      "O"  /* `update` */
+      "O"  /* `get` */
+      "O"  /* `set` */
+      ":BoolVectorProperty",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
@@ -3025,7 +3058,28 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
       "set",
       NULL,
   };
-  static _PyArg_Parser _parser = {"O&|$ssiiiiiiO&O&O&O&OOO:IntProperty", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O&" /* `attr` */
+      "|$" /* Optional, keyword only arguments. */
+      "s"  /* `name` */
+      "s"  /* `description` */
+      "i"  /* `default` */
+      "i"  /* `min` */
+      "i"  /* `max` */
+      "i"  /* `soft_min` */
+      "i"  /* `soft_max` */
+      "i"  /* `step` */
+      "O&" /* `options` */
+      "O&" /* `override` */
+      "O&" /* `tags` */
+      "O&" /* `subtype` */
+      "O"  /* `update` */
+      "O"  /* `get` */
+      "O"  /* `set` */
+      ":IntProperty",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
@@ -3178,7 +3232,29 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
       "set",
       NULL,
   };
-  static _PyArg_Parser _parser = {"O&|$ssOiiiiiO&O&O&O&O&OOO:IntVectorProperty", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O&" /* `attr` */
+      "|$" /* Optional, keyword only arguments. */
+      "s"  /* `name` */
+      "s"  /* `description` */
+      "O"  /* `default` */
+      "i"  /* `min` */
+      "i"  /* `max` */
+      "i"  /* `soft_min` */
+      "i"  /* `soft_max` */
+      "i"  /* `step` */
+      "O&" /* `options` */
+      "O&" /* `override` */
+      "O&" /* `tags` */
+      "O&" /* `subtype` */
+      "O&" /* `size` */
+      "O"  /* `update` */
+      "O"  /* `get` */
+      "O"  /* `set` */
+      ":IntVectorProperty",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
@@ -3343,7 +3419,30 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
       "soft_max", "step",   "precision",   "options", "override", "tags", "subtype",
       "unit",     "update", "get",         "set",     NULL,
   };
-  static _PyArg_Parser _parser = {"O&|$ssffffffiO&O&O&O&O&OOO:FloatProperty", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O&" /* `attr` */
+      "|$" /* Optional, keyword only arguments. */
+      "s"  /* `name` */
+      "s"  /* `description` */
+      "f"  /* `default` */
+      "f"  /* `min` */
+      "f"  /* `max` */
+      "f"  /* `soft_min` */
+      "f"  /* `soft_max` */
+      "f"  /* `step` */
+      "i"  /* `precision` */
+      "O&" /* `options` */
+      "O&" /* `override` */
+      "O&" /* `tags` */
+      "O&" /* `subtype` */
+      "O&" /* `unit` */
+      "O"  /* `update` */
+      "O"  /* `get` */
+      "O"  /* `set` */
+      ":FloatProperty",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
@@ -3493,7 +3592,30 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
       "unit",     "size", "update",      "get",     "set",      NULL,
   };
   static _PyArg_Parser _parser = {
-      "O&|$ssOfffffiO&O&O&O&O&O&OOO:FloatVectorProperty", _keywords, 0};
+      "O&" /* `attr` */
+      "|$" /* Optional, keyword only arguments. */
+      "s"  /* `name` */
+      "s"  /* `description` */
+      "O"  /* `default` */
+      "f"  /* `min` */
+      "f"  /* `max` */
+      "f"  /* `soft_min` */
+      "f"  /* `soft_max` */
+      "f"  /* `step` */
+      "i"  /* `precision` */
+      "O&" /* `options` */
+      "O&" /* `override` */
+      "O&" /* `tags` */
+      "O&" /* `subtype` */
+      "O&" /* `unit` */
+      "O&" /* `size` */
+      "O"  /* `update` */
+      "O"  /* `get` */
+      "O"  /* `set` */
+      ":FloatVectorProperty",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
@@ -3661,7 +3783,24 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
       "set",
       NULL,
   };
-  static _PyArg_Parser _parser = {"O&|$sssiO&O&O&O&OOO:StringProperty", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O&" /* `attr` */
+      "|$" /* Optional, keyword only arguments. */
+      "s"  /* `name` */
+      "s"  /* `description` */
+      "s"  /* `default` */
+      "i"  /* `maxlen` */
+      "O&" /* `options` */
+      "O&" /* `override` */
+      "O&" /* `tags` */
+      "O&" /* `subtype` */
+      "O"  /* `update` */
+      "O"  /* `get` */
+      "O"  /* `set` */
+      ":StringProperty",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
@@ -3831,7 +3970,23 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
       "set",
       NULL,
   };
-  static _PyArg_Parser _parser = {"O&O|$ssOO&O&O&OOO:EnumProperty", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O&" /* `attr` */
+      "O"  /* `items` */
+      "|$" /* Optional, keyword only arguments. */
+      "s"  /* `name` */
+      "s"  /* `description` */
+      "O"  /* `default` */
+      "O&" /* `options` */
+      "O&" /* `override` */
+      "O&" /* `tags` */
+      "O"  /* `update` */
+      "O"  /* `get` */
+      "O"  /* `set` */
+      ":EnumProperty",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
@@ -4031,7 +4186,21 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
       "update",
       NULL,
   };
-  static _PyArg_Parser _parser = {"O&O|$ssO&O&O&OO:PointerProperty", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O&" /* `attr` */
+      "O"  /* `type` */
+      "|$" /* Optional, keyword only arguments. */
+      "s"  /* `name` */
+      "s"  /* `description` */
+      "O&" /* `options` */
+      "O&" /* `override` */
+      "O&" /* `tags` */
+      "O"  /* `poll` */
+      "O"  /* `update` */
+      ":PointerProperty",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
@@ -4151,7 +4320,19 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
       "tags",
       NULL,
   };
-  static _PyArg_Parser _parser = {"O&O|$ssO&O&O&:CollectionProperty", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O&" /* `attr` */
+      "O"  /* `type` */
+      "|$" /* Optional, keyword only arguments. */
+      "s"  /* `name` */
+      "s"  /* `description` */
+      "O&" /* `options` */
+      "O&" /* `override` */
+      "O&" /* `tags` */
+      ":CollectionProperty",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
@@ -4251,7 +4432,12 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
       "attr",
       NULL,
   };
-  static _PyArg_Parser _parser = {"s:RemoveProperty", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "s" /* `attr` */
+      ":RemoveProperty",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &id)) {
     return NULL;
   }

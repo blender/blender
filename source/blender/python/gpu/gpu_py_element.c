@@ -40,7 +40,13 @@ static PyObject *pygpu_IndexBuf__tp_new(PyTypeObject *UNUSED(type), PyObject *ar
   GPUIndexBufBuilder builder;
 
   static const char *_keywords[] = {"type", "seq", NULL};
-  static _PyArg_Parser _parser = {"$O&O:IndexBuf.__new__", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "$O" /* `type` */
+      "&O" /* `seq` */
+      ":IndexBuf.__new__",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kwds, &_parser, PyC_ParseStringEnum, &prim_type, &seq)) {
     return NULL;

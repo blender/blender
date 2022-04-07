@@ -336,7 +336,17 @@ static PyObject *bpy_gizmo_target_set_handler(PyObject *UNUSED(self), PyObject *
    * 'Gizmo.target_set_prop & target_set_operator'
    * (see: rna_wm_gizmo_api.c). conventions should match. */
   static const char *const _keywords[] = {"self", "target", "get", "set", "range", NULL};
-  static _PyArg_Parser _parser = {"O&O&|$OOO:target_set_handler", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O&" /* `self` */
+      "O&" /* `target` */
+      "|$" /* Optional keyword only arguments. */
+      "O"  /* `get` */
+      "O"  /* `set` */
+      "O"  /* `range` */
+      ":target_set_handler",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
@@ -423,7 +433,13 @@ static PyObject *bpy_gizmo_target_get_value(PyObject *UNUSED(self), PyObject *ar
   };
 
   static const char *const _keywords[] = {"self", "target", NULL};
-  static _PyArg_Parser _parser = {"O&O&:target_get_value", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O&" /* `self` */
+      "O&" /* `target` */
+      ":target_get_value",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
@@ -481,7 +497,14 @@ static PyObject *bpy_gizmo_target_set_value(PyObject *UNUSED(self), PyObject *ar
   };
 
   static const char *const _keywords[] = {"self", "target", "value", NULL};
-  static _PyArg_Parser _parser = {"O&O&O:target_set_value", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O&" /* `self` */
+      "O&" /* `target` */
+      "O"  /* `value` */
+      ":target_set_value",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
@@ -550,7 +573,13 @@ static PyObject *bpy_gizmo_target_get_range(PyObject *UNUSED(self), PyObject *ar
   };
 
   static const char *const _keywords[] = {"self", "target", NULL};
-  static _PyArg_Parser _parser = {"O&O&:target_get_range", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O&" /* `self` */
+      "O&" /* `target` */
+      ":target_get_range",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,

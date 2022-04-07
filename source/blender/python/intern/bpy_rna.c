@@ -3462,7 +3462,14 @@ static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *arg
   PYRNA_STRUCT_CHECK_OBJ(self);
 
   static const char *_keywords[] = {"", "ghost", NULL};
-  static _PyArg_Parser _parser = {"s|$O&:is_property_set", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "s"  /* `name` (positional). */
+      "|$" /* Optional keyword only arguments. */
+      "O&" /* `ghost` */
+      ":is_property_set",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &name, PyC_ParseBool, &use_ghost)) {
     return NULL;
   }

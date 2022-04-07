@@ -236,7 +236,13 @@ static PyObject *pygpu_vertbuf__tp_new(PyTypeObject *UNUSED(type), PyObject *arg
   } params;
 
   static const char *_keywords[] = {"format", "len", NULL};
-  static _PyArg_Parser _parser = {"O!I:GPUVertBuf.__new__", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O!" /* `format` */
+      "I"  /* `len` */
+      ":GPUVertBuf.__new__",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kwds, &_parser, &BPyGPUVertFormat_Type, &params.py_fmt, &params.len)) {
     return NULL;
@@ -265,7 +271,13 @@ static PyObject *pygpu_vertbuf_attr_fill(BPyGPUVertBuf *self, PyObject *args, Py
   PyObject *identifier;
 
   static const char *_keywords[] = {"id", "data", NULL};
-  static _PyArg_Parser _parser = {"OO:attr_fill", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O" /* `id` */
+      "O" /* `data` */
+      ":attr_fill",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kwds, &_parser, &identifier, &data)) {
     return NULL;
   }
