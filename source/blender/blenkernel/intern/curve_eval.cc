@@ -189,18 +189,17 @@ static HandleType handle_type_from_dna_bezt(const eBezTriple_Handle dna_handle_t
   return BEZIER_HANDLE_AUTO;
 }
 
-static Spline::NormalCalculationMode normal_mode_from_dna_curve(const int twist_mode)
+static NormalMode normal_mode_from_dna_curve(const int twist_mode)
 {
   switch (twist_mode) {
     case CU_TWIST_Z_UP:
-      return Spline::NormalCalculationMode::ZUp;
-    case CU_TWIST_MINIMUM:
-      return Spline::NormalCalculationMode::Minimum;
     case CU_TWIST_TANGENT:
-      return Spline::NormalCalculationMode::Tangent;
+      return NORMAL_MODE_Z_UP;
+    case CU_TWIST_MINIMUM:
+      return NORMAL_MODE_MINIMUM_TWIST;
   }
   BLI_assert_unreachable();
-  return Spline::NormalCalculationMode::Minimum;
+  return NORMAL_MODE_MINIMUM_TWIST;
 }
 
 static KnotsMode knots_mode_from_dna_nurb(const short flag)
@@ -333,8 +332,7 @@ std::unique_ptr<CurveEval> curve_eval_from_dna_curve(const Curve &dna_curve,
 
   /* Normal mode is stored separately in each spline to facilitate combining
    * splines from multiple curve objects, where the value may be different. */
-  const Spline::NormalCalculationMode normal_mode = normal_mode_from_dna_curve(
-      dna_curve.twist_mode);
+  const NormalMode normal_mode = normal_mode_from_dna_curve(dna_curve.twist_mode);
   for (SplinePtr &spline : curve->splines()) {
     spline->normal_mode = normal_mode;
   }

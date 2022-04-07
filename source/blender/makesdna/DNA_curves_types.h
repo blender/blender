@@ -49,6 +49,12 @@ typedef enum KnotsMode {
   NURBS_KNOT_MODE_ENDPOINT_BEZIER = 3,
 } KnotsMode;
 
+/** Method used to calculate the normals of a curve's evaluated points. */
+typedef enum NormalMode {
+  NORMAL_MODE_Z_UP = 0,
+  NORMAL_MODE_MINIMUM_TWIST = 1,
+} NormalMode;
+
 /**
  * A reusable data structure for geometry consisting of many curves. All control point data is
  * stored contiguously for better efficiency. Data for each curve is stored as a slice of the

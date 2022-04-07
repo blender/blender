@@ -377,17 +377,12 @@ Span<float3> Spline::evaluated_normals() const
 
   /* Only Z up normals are supported at the moment. */
   switch (this->normal_mode) {
-    case ZUp: {
+    case NORMAL_MODE_Z_UP: {
       calculate_normals_z_up(tangents, normals);
       break;
     }
-    case Minimum: {
+    case NORMAL_MODE_MINIMUM_TWIST: {
       calculate_normals_minimum(tangents, is_cyclic_, normals);
-      break;
-    }
-    case Tangent: {
-      /* Tangent mode is not yet supported. */
-      calculate_normals_z_up(tangents, normals);
       break;
     }
   }
