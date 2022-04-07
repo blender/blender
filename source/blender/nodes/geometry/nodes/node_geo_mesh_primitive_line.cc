@@ -3,6 +3,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BLI_task.hh"
+
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 
