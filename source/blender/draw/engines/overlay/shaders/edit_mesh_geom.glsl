@@ -46,7 +46,7 @@ void main()
   vec2 line = ss_pos[0] - ss_pos[1];
   line = abs(line) * sizeViewport.xy;
 
-  geometry_out.finalColorOuter = geometry_in[0].finalColorOuter;
+  geometry_out.finalColorOuter = geometry_in[0].finalColorOuter_;
   float half_size = sizeEdge;
   /* Enlarge edge for flag display. */
   half_size += (geometry_out.finalColorOuter.a > 0.0) ? max(sizeEdge, 1.0) : 0.0;
@@ -64,12 +64,12 @@ void main()
   /* Due to an AMD glitch, this line was moved out of the `do_vertex`
    * function (see T62792). */
   view_clipping_distances_set(gl_in[0]);
-  do_vertex(geometry_in[0].finalColor, pos0, half_size, edge_ofs.xy);
-  do_vertex(geometry_in[0].finalColor, pos0, -half_size, -edge_ofs.xy);
+  do_vertex(geometry_in[0].finalColor_, pos0, half_size, edge_ofs.xy);
+  do_vertex(geometry_in[0].finalColor_, pos0, -half_size, -edge_ofs.xy);
 
   view_clipping_distances_set(gl_in[1]);
-  vec4 final_color = (geometry_in[0].selectOverride == 0) ? geometry_in[1].finalColor :
-                                                            geometry_in[0].finalColor;
+  vec4 final_color = (geometry_in[0].selectOverride_ == 0) ? geometry_in[1].finalColor_ :
+                                                             geometry_in[0].finalColor_;
   do_vertex(final_color, pos1, half_size, edge_ofs.xy);
   do_vertex(final_color, pos1, -half_size, -edge_ofs.xy);
 
