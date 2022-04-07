@@ -188,8 +188,12 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
         col.template_ID(ob, "pose_library", new="poselib.new", unlink="poselib.unlink")
 
         if poselib:
-            col.operator('poselib.convert_old_object_poselib',
-                text="Convert to Pose Assets", icon="ASSET_MANAGER")
+            if hasattr(bpy.types, 'POSELIB_OT_convert_old_object_poselib'):
+                col.operator('poselib.convert_old_object_poselib',
+                    text="Convert to Pose Assets", icon="ASSET_MANAGER")
+            else:
+                col.label(text="Enable the Pose Library add-on to convert", icon="ERROR")
+                col.label(text="this legacy pose library to pose assets.", icon="BLANK1")
 
             # Put the deprecated stuff in its own sub-layout.
 
@@ -226,7 +230,6 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
                 ).pose_index = poselib.pose_markers.active_index
 
             col.operator("poselib.action_sanitize", icon='HELP', text="")  # XXX: put in menu?
-            col.operator("poselib.convert_old_poselib", icon='ASSET_MANAGER', text="")
 
             if pose_marker_active is not None:
                 col.operator("poselib.pose_move", icon='TRIA_UP', text="").direction = 'UP'
