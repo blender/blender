@@ -295,7 +295,7 @@ template<typename T> class VArrayImpl_For_Span : public VMutableArrayImpl<T> {
     return data_ == other_span.data();
   }
 
-  void materialize_compressed(IndexMask mask, MutableSpan<T> r_span) const
+  void materialize_compressed(IndexMask mask, MutableSpan<T> r_span) const override
   {
     mask.to_best_mask_type([&](auto best_mask) {
       for (const int64_t i : IndexRange(best_mask.size())) {
@@ -304,7 +304,8 @@ template<typename T> class VArrayImpl_For_Span : public VMutableArrayImpl<T> {
     });
   }
 
-  void materialize_compressed_to_uninitialized(IndexMask mask, MutableSpan<T> r_span) const
+  void materialize_compressed_to_uninitialized(IndexMask mask,
+                                               MutableSpan<T> r_span) const override
   {
     T *dst = r_span.data();
     mask.to_best_mask_type([&](auto best_mask) {
