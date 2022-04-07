@@ -51,7 +51,8 @@ typedef enum AttributeDomainMask {
 
 bool BKE_id_attributes_supported(struct ID *id);
 
-/**  Create a new attribute layer.
+/**
+ * Create a new attribute layer.
  */
 struct CustomDataLayer *BKE_id_attribute_new(
     struct ID *id, const char *name, int type, AttributeDomain domain, struct ReportList *reports);
@@ -103,11 +104,11 @@ void BKE_id_attribute_subset_active_set(struct ID *id,
                                         CustomDataMask mask);
 
 /**
- * Sets up a temporary ID with arbitrary CustomData domains.  r_id will
+ * Sets up a temporary ID with arbitrary CustomData domains. `r_id` will
  * be zero initialized with ID type id_type and any non-nullptr
  * CustomData parameter will be copied into the appropriate struct members.
  *
- * \param r_id Pointer to storage sufficient for ID typecode id_type.
+ * \param r_id: Pointer to storage sufficient for ID type-code id_type.
  */
 void BKE_id_attribute_copy_domains_temp(short id_type,
                                         const struct CustomData *vdata,

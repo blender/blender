@@ -272,7 +272,7 @@ int IMB_indexer_get_frame_index(struct anim_index *idx, int frameno)
   int middle;
   int first = 0;
 
-  /* bsearch (lower bound) the right index */
+  /* Binary-search (lower bound) the right index. */
 
   while (len > 0) {
     half = len >> 1;

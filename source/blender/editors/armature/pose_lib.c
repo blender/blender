@@ -450,7 +450,7 @@ static int poselib_add_menu_invoke(bContext *C, wmOperator *op, const wmEvent *U
                "frame",
                CFRA);
 
-    /* replace existing - submenu */
+    /* Replace existing - sub-menu. */
     uiItemMenuF(
         layout, IFACE_("Replace Existing..."), 0, poselib_add_menu_invoke__replacemenu, NULL);
   }

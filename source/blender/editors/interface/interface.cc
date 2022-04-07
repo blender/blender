@@ -722,7 +722,7 @@ bool ui_but_rna_equals_ex(const uiBut *but,
   return true;
 }
 
-/* NOTE: if but->poin is allocated memory for every defbut, things fail... */
+/* NOTE: if `but->poin` is allocated memory for every `uiDefBut*`, things fail. */
 static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
 {
   /* various properties are being compared here, hopefully sufficient
