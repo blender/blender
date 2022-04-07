@@ -118,9 +118,11 @@ class CPPType : NonCopyable, NonMovable {
 
   void (*copy_assign_)(const void *src, void *dst) = nullptr;
   void (*copy_assign_indices_)(const void *src, void *dst, IndexMask mask) = nullptr;
+  void (*copy_assign_compressed_)(const void *src, void *dst, IndexMask mask) = nullptr;
 
   void (*copy_construct_)(const void *src, void *dst) = nullptr;
   void (*copy_construct_indices_)(const void *src, void *dst, IndexMask mask) = nullptr;
+  void (*copy_construct_compressed_)(const void *src, void *dst, IndexMask mask) = nullptr;
 
   void (*move_assign_)(void *src, void *dst) = nullptr;
   void (*move_assign_indices_)(void *src, void *dst, IndexMask mask) = nullptr;
@@ -409,6 +411,18 @@ class CPPType : NonCopyable, NonMovable {
   }
 
   /**
+   * Similar to #copy_assign_indices, but does not leave gaps in the #dst array.
+   */
+  void copy_assign_compressed(const void *src, void *dst, IndexMask mask) const
+  {
+    BLI_assert(mask.size() == 0 || src != dst);
+    BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(src));
+    BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(dst));
+
+    copy_assign_compressed_(src, dst, mask);
+  }
+
+  /**
    * Copy an instance of this type from src to dst.
    *
    * The memory pointed to by dst should be uninitialized.
@@ -437,6 +451,18 @@ class CPPType : NonCopyable, NonMovable {
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(dst));
 
     copy_construct_indices_(src, dst, mask);
+  }
+
+  /**
+   * Similar to #copy_construct_indices, but does not leave gaps in the #dst array.
+   */
+  void copy_construct_compressed(const void *src, void *dst, IndexMask mask) const
+  {
+    BLI_assert(mask.size() == 0 || src != dst);
+    BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(src));
+    BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(dst));
+
+    copy_construct_compressed_(src, dst, mask);
   }
 
   /**
