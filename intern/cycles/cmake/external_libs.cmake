@@ -24,6 +24,9 @@ if(CYCLES_STANDALONE_REPOSITORY)
     else()
       set(_cycles_lib_dir "${CMAKE_SOURCE_DIR}/../lib/darwin_arm64")
     endif()
+
+    # Always use system zlib
+    find_package(ZLIB REQUIRED)
   elseif(WIN32)
     if(CMAKE_CL_64)
       set(_cycles_lib_dir "${CMAKE_SOURCE_DIR}/../lib/win64_vc15")
@@ -66,10 +69,12 @@ if(CYCLES_STANDALONE_REPOSITORY)
     _set_default(BOOST_ROOT "${_cycles_lib_dir}/boost")
     _set_default(BLOSC_ROOT_DIR "${_cycles_lib_dir}/blosc")
     _set_default(EMBREE_ROOT_DIR "${_cycles_lib_dir}/embree")
+    _set_default(IMATH_ROOT_DIR "${_cycles_lib_dir}/imath")
     _set_default(GLEW_ROOT_DIR "${_cycles_lib_dir}/glew")
     _set_default(JPEG_ROOT "${_cycles_lib_dir}/jpeg")
     _set_default(LLVM_ROOT_DIR "${_cycles_lib_dir}/llvm")
     _set_default(CLANG_ROOT_DIR "${_cycles_lib_dir}/llvm")
+    _set_default(NANOVDB_ROOT_DIR "${_cycles_lib_dir}/openvdb")
     _set_default(OPENCOLORIO_ROOT_DIR "${_cycles_lib_dir}/opencolorio")
     _set_default(OPENEXR_ROOT_DIR "${_cycles_lib_dir}/openexr")
     _set_default(OPENIMAGEDENOISE_ROOT_DIR "${_cycles_lib_dir}/openimagedenoise")
@@ -80,31 +85,17 @@ if(CYCLES_STANDALONE_REPOSITORY)
     _set_default(OSL_ROOT_DIR "${_cycles_lib_dir}/osl")
     _set_default(PNG_ROOT "${_cycles_lib_dir}/png")
     _set_default(PUGIXML_ROOT_DIR "${_cycles_lib_dir}/pugixml")
+    _set_default(SDL2_ROOT_DIR "${_cycles_lib_dir}/sdl")
     _set_default(TBB_ROOT_DIR "${_cycles_lib_dir}/tbb")
     _set_default(TIFF_ROOT "${_cycles_lib_dir}/tiff")
+    _set_default(USD_ROOT_DIR "${_cycles_lib_dir}/usd")
+    _set_default(WEBP_ROOT_DIR "${_cycles_lib_dir}/webp")
     _set_default(ZLIB_ROOT "${_cycles_lib_dir}/zlib")
 
     # Ignore system libraries
     set(CMAKE_IGNORE_PATH "${CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES};${CMAKE_SYSTEM_INCLUDE_PATH};${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES};${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES}")
   else()
     unset(_cycles_lib_dir)
-  endif()
-endif()
-
-###########################################################################
-# USD
-###########################################################################
-
-if(CYCLES_STANDALONE_REPOSITORY AND WITH_CYCLES_HYDRA_RENDER_DELEGATE)
-  set(WITH_USD ON)
-endif()
-if(WITH_CYCLES_HYDRA_RENDER_DELEGATE)
-  find_package(pxr CONFIG REQUIRED PATHS ${PXR_ROOT} ${USD_ROOT} NO_DEFAULT_PATH)
-  if(pxr_FOUND)
-    set(PXR_LIBRARY_DIR ${PXR_CMAKE_DIR}/lib)
-    set(USD_INCLUDE_DIRS ${PXR_INCLUDE_DIRS})
-  else()
-    set(WITH_USD OFF)
   endif()
 endif()
 
@@ -189,6 +180,7 @@ if(CYCLES_STANDALONE_REPOSITORY)
 
   find_package(JPEG REQUIRED)
   find_package(TIFF REQUIRED)
+  find_package(WebP)
 
   if(EXISTS ${_cycles_lib_dir})
     set(PNG_NAMES png16 libpng16 png libpng)
@@ -277,20 +269,22 @@ endif()
 if(CYCLES_STANDALONE_REPOSITORY AND WITH_CYCLES_OPENCOLORIO)
   set(WITH_OPENCOLORIO ON)
 
-  if(MSVC AND EXISTS ${_cycles_lib_dir})
-    set(OPENCOLORIO_INCLUDE_DIRS ${OPENCOLORIO_ROOT_DIR}/include)
-    set(OPENCOLORIO_LIBRARIES
-      optimized ${OPENCOLORIO_ROOT_DIR}/lib/OpenColorIO.lib
-      optimized ${OPENCOLORIO_ROOT_DIR}/lib/libyaml-cpp.lib
-      optimized ${OPENCOLORIO_ROOT_DIR}/lib/libexpatMD.lib
-      optimized ${OPENCOLORIO_ROOT_DIR}/lib/pystring.lib
-      debug ${OPENCOLORIO_ROOT_DIR}/lib/OpencolorIO_d.lib
-      debug ${OPENCOLORIO_ROOT_DIR}/lib/libyaml-cpp_d.lib
-      debug ${OPENCOLORIO_ROOT_DIR}/lib/libexpatdMD.lib
-      debug ${OPENCOLORIO_ROOT_DIR}/lib/pystring_d.lib
-    )
-  else()
-    find_package(OpenColorIO REQUIRED)
+  if(NOT USD_OVERRIDE_OPENCOLORIO)
+    if(MSVC AND EXISTS ${_cycles_lib_dir})
+      set(OPENCOLORIO_INCLUDE_DIRS ${OPENCOLORIO_ROOT_DIR}/include)
+      set(OPENCOLORIO_LIBRARIES
+        optimized ${OPENCOLORIO_ROOT_DIR}/lib/OpenColorIO.lib
+        optimized ${OPENCOLORIO_ROOT_DIR}/lib/libyaml-cpp.lib
+        optimized ${OPENCOLORIO_ROOT_DIR}/lib/libexpatMD.lib
+        optimized ${OPENCOLORIO_ROOT_DIR}/lib/pystring.lib
+        debug ${OPENCOLORIO_ROOT_DIR}/lib/OpencolorIO_d.lib
+        debug ${OPENCOLORIO_ROOT_DIR}/lib/libyaml-cpp_d.lib
+        debug ${OPENCOLORIO_ROOT_DIR}/lib/libexpatdMD.lib
+        debug ${OPENCOLORIO_ROOT_DIR}/lib/pystring_d.lib
+      )
+    else()
+      find_package(OpenColorIO REQUIRED)
+    endif()
   endif()
 endif()
 
@@ -366,7 +360,7 @@ if(CYCLES_STANDALONE_REPOSITORY)
     set(BOOST_LIBPATH ${Boost_LIBRARY_DIRS})
   endif()
 
-  set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
+  set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB ${BOOST_DEFINITIONS}")
 endif()
 
 ###########################################################################
@@ -414,26 +408,10 @@ endif()
 # OpenSubdiv
 ###########################################################################
 
-if(WITH_CYCLES_HYDRA_RENDER_DELEGATE AND PXR_LIBRARY_DIR AND (WITH_OPENSUBDIV OR WITH_CYCLES_OPENSUBDIV))
-  find_library(OPENSUBDIV_LIBRARY_CPU_DEBUG_PXR NAMES osdCPU_d osdCPU PATHS ${PXR_LIBRARY_DIR} NO_CACHE NO_DEFAULT_PATH)
-  find_library(OPENSUBDIV_LIBRARY_GPU_DEBUG_PXR NAMES osdGPU_d osdGPU PATHS ${PXR_LIBRARY_DIR} NO_CACHE NO_DEFAULT_PATH)
-  find_library(OPENSUBDIV_LIBRARY_CPU_RELEASE_PXR NAMES osdCPU PATHS ${PXR_LIBRARY_DIR} NO_CACHE NO_DEFAULT_PATH)
-  find_library(OPENSUBDIV_LIBRARY_GPU_RELEASE_PXR NAMES osdGPU PATHS ${PXR_LIBRARY_DIR} NO_CACHE NO_DEFAULT_PATH)
-  if(OPENSUBDIV_LIBRARY_CPU_RELEASE_PXR AND OPENSUBDIV_LIBRARY_GPU_RELEASE_PXR)
-    set(OPENSUBDIV_INCLUDE_DIRS ${PXR_INCLUDE_DIRS})
-    set(OPENSUBDIV_LIBRARIES
-      optimized ${OPENSUBDIV_LIBRARY_CPU_RELEASE_PXR}
-      optimized ${OPENSUBDIV_LIBRARY_GPU_RELEASE_PXR}
-      debug ${OPENSUBDIV_LIBRARY_CPU_DEBUG_PXR}
-      debug ${OPENSUBDIV_LIBRARY_GPU_DEBUG_PXR}
-    )
-  endif()
-endif()
-
 if(CYCLES_STANDALONE_REPOSITORY AND WITH_CYCLES_OPENSUBDIV)
   set(WITH_OPENSUBDIV ON)
 
-  if(NOT OPENSUBDIV_LIBRARY_CPU_RELEASE_PXR OR NOT OPENSUBDIV_LIBRARY_GPU_RELEASE_PXR)
+  if(NOT USD_OVERRIDE_OPENSUBDIV)
     if(MSVC AND EXISTS ${_cycles_lib_dir})
       set(OPENSUBDIV_INCLUDE_DIRS ${OPENSUBDIV_ROOT_DIR}/include)
       set(OPENSUBDIV_LIBRARIES
@@ -452,19 +430,11 @@ endif()
 # OpenVDB
 ###########################################################################
 
-if(WITH_CYCLES_HYDRA_RENDER_DELEGATE AND PXR_LIBRARY_DIR AND (WITH_OPENVDB OR WITH_CYCLES_OPENVDB))
-  find_library(OPENVDB_LIBRARY_PXR NAMES openvdb PATHS ${PXR_LIBRARY_DIR} NO_CACHE NO_DEFAULT_PATH)
-  if(OPENVDB_LIBRARY_PXR)
-    set(OPENVDB_INCLUDE_DIRS ${PXR_INCLUDE_DIRS})
-    set(OPENVDB_LIBRARIES ${OPENVDB_LIBRARY_PXR})
-  endif()
-endif()
-
 if(CYCLES_STANDALONE_REPOSITORY AND WITH_CYCLES_OPENVDB)
   set(WITH_OPENVDB ON)
   set(OPENVDB_DEFINITIONS -DNOMINMAX -D_USE_MATH_DEFINES)
 
-  if(NOT OPENVDB_LIBRARY_PXR)
+  if(NOT USD_OVERRIDE_OPENVDB)
     find_package(OpenVDB REQUIRED)
 
     if(MSVC AND EXISTS ${_cycles_lib_dir})
@@ -475,6 +445,20 @@ if(CYCLES_STANDALONE_REPOSITORY AND WITH_CYCLES_OPENVDB)
     else()
       find_package(Blosc REQUIRED)
     endif()
+  endif()
+endif()
+
+###########################################################################
+# NanoVDB
+###########################################################################
+
+if(CYCLES_STANDALONE_REPOSITORY AND WITH_CYCLES_NANOVDB)
+  set(WITH_NANOVDB ON)
+
+  if(MSVC AND EXISTS ${_cycles_lib_dir})
+    set(NANOVDB_INCLUDE_DIR ${NANOVDB_ROOT_DIR}/include)
+  else()
+    find_package(NanoVDB REQUIRED)
   endif()
 endif()
 
@@ -504,20 +488,8 @@ endif()
 # TBB
 ###########################################################################
 
-if(WITH_CYCLES_HYDRA_RENDER_DELEGATE AND PXR_LIBRARY_DIR)
-  find_library(TBB_LIBRARY_DEBUG_PXR NAMES tbb_debug tbb PATHS ${PXR_LIBRARY_DIR} NO_CACHE NO_DEFAULT_PATH)
-  find_library(TBB_LIBRARY_RELEASE_PXR NAMES tbb PATHS ${PXR_LIBRARY_DIR} NO_CACHE NO_DEFAULT_PATH)
-  if(TBB_LIBRARY_RELEASE_PXR)
-    set(TBB_INCLUDE_DIRS ${PXR_INCLUDE_DIRS})
-    set(TBB_LIBRARIES
-      optimized ${TBB_LIBRARY_RELEASE_PXR}
-      debug ${TBB_LIBRARY_DEBUG_PXR}
-    )
-  endif()
-endif()
-
 if(CYCLES_STANDALONE_REPOSITORY)
-  if(NOT TBB_LIBRARY_RELEASE_PXR)
+  if(NOT USD_OVERRIDE_TBB)
     if(MSVC AND EXISTS ${_cycles_lib_dir})
       set(TBB_INCLUDE_DIRS ${TBB_ROOT_DIR}/include)
       set(TBB_LIBRARIES
@@ -586,7 +558,8 @@ endif()
 # OpenGL
 ###########################################################################
 
-if(WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI)
+if((WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI) OR
+   WITH_CYCLES_HYDRA_RENDER_DELEGATE)
   if(CYCLES_STANDALONE_REPOSITORY)
     if(NOT DEFINED OpenGL_GL_PREFERENCE)
       set(OpenGL_GL_PREFERENCE "LEGACY")
@@ -624,7 +597,7 @@ endif()
 # CUDA
 ###########################################################################
 
-if(WITH_CYCLES_CUDA_BINARIES OR NOT WITH_CUDA_DYNLOAD)
+if(WITH_CYCLES_DEVICE_CUDA AND (WITH_CYCLES_CUDA_BINARIES OR NOT WITH_CUDA_DYNLOAD))
   find_package(CUDA) # Try to auto locate CUDA toolkit
   if(CUDA_FOUND)
     message(STATUS "Found CUDA ${CUDA_NVCC_EXECUTABLE} (${CUDA_VERSION})")
@@ -672,18 +645,5 @@ if(WITH_CYCLES_DEVICE_METAL)
     set(WITH_CYCLES_DEVICE_METAL OFF)
   else()
     message(STATUS "Found Metal: ${METAL_LIBRARY}")
-  endif()
-endif()
-
-###########################################################################
-# macOS
-###########################################################################
-
-if(CYCLES_STANDALONE_REPOSITORY)
-  # On macOS, always use zlib from system.
-  if(APPLE)
-    set(ZLIB_ROOT /usr)
-    find_package(ZLIB REQUIRED)
-    find_package(PNG REQUIRED)
   endif()
 endif()
