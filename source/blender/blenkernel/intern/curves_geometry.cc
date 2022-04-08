@@ -108,7 +108,7 @@ static void move_curves_geometry(CurvesGeometry &dst, CurvesGeometry &src)
   src.point_size = 0;
 
   dst.curve_size = src.curve_size;
-  std::swap(dst.curve_data, dst.curve_data);
+  std::swap(dst.curve_data, src.curve_data);
   CustomData_free(&src.curve_data, src.curve_size);
   src.curve_size = 0;
 
