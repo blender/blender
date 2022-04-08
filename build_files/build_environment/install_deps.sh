@@ -1059,14 +1059,10 @@ OSD_SOURCE=( "https://github.com/PixarAnimationStudios/OpenSubdiv/archive/v${OSD
 
 OPENVDB_USE_REPO=false
 OPENVDB_BLOSC_SOURCE=( "https://github.com/Blosc/c-blosc/archive/v${OPENVDB_BLOSC_VERSION}.tar.gz" )
-OPENVDB_SOURCE=( "https://github.com/AcademySoftwareFoundation/openvdb/archive/v${OPENVDB_VERSION}.tar.gz" )
+OPENVDB_SOURCE=( "https://github.com/AcademySoftwareFoundation/openvdb/archive/refs/tags/v${OPENVDB_VERSION}.tar.gz" )
 #~ OPENVDB_SOURCE_REPO=( "https://github.com/AcademySoftwareFoundation/openvdb.git" )
 #~ OPENVDB_SOURCE_REPO_UID="404659fffa659da075d1c9416e4fc939139a84ee"
 #~ OPENVDB_SOURCE_REPO_BRANCH="dev"
-
-NANOVDB_USE_REPO=false
-NANOVDB_SOURCE_REPO_UID="dc37d8a631922e7bef46712947dc19b755f3e841"
-NANOVDB_SOURCE=( "https://github.com/AcademySoftwareFoundation/openvdb/archive/${NANOVDB_SOURCE_REPO_UID}.tar.gz" )
 
 ALEMBIC_USE_REPO=false
 ALEMBIC_SOURCE=( "https://github.com/alembic/alembic/archive/${ALEMBIC_VERSION}.tar.gz" )
@@ -2634,119 +2630,11 @@ compile_BLOSC() {
 # ----------------------------------------------------------------------------
 # Build OpenVDB
 
-_init_nanovdb() {
-  _src=$SRC/openvdb-$OPENVDB_VERSION/nanovdb
-  _inst=$INST/nanovdb-$OPENVDB_VERSION_SHORT
-  _inst_shortcut=$INST/nanovdb
-}
-
-_update_deps_nanovdb() {
-  :
-}
-
-clean_nanovdb() {
-  _init_nanovdb
-  if [ -d $_inst ]; then
-    # Force rebuilding the dependencies if needed.
-    _update_deps_nanovdb false true
-  fi
-  _git=true  # Mere trick to prevent clean from removing $_src...
-  _clean
-}
-
-install_NanoVDB() {
-  # To be changed each time we make edits that would modify the compiled results!
-  nanovdb_magic=1
-  _init_nanovdb
-
-  # Force having own builds for the dependencies.
-  _update_deps_nanovdb true false
-
-  # Clean install if needed!
-  magic_compile_check nanovdb-$OPENVDB_VERSION $nanovdb_magic
-  if [ $? -eq 1 ]; then
-    clean_nanovdb
-  fi
-
-  if [ ! -d $_inst ]; then
-    INFO "Installing NanoVDB v$OPENVDB_VERSION"
-
-    # Force rebuilding the dependencies.
-    _update_deps_nanovdb true true
-
-    prepare_inst
-
-    if [ ! -d $_src ]; then
-      ERROR "NanoVDB not found in openvdb-$OPENVDB_VERSION ($_src), exiting"
-      exit 1
-    fi
-
-    # Always refresh the whole build!
-    if [ -d build ]; then
-      rm -rf build
-    fi
-    mkdir build
-    cd build
-
-    cmake_d="-D CMAKE_BUILD_TYPE=Release"
-    cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
-
-    # NanoVDB is header-only, so only need the install target
-    cmake_d="$cmake_d -D NANOVDB_BUILD_UNITTESTS=OFF"
-    cmake_d="$cmake_d -D NANOVDB_BUILD_EXAMPLES=OFF"
-    cmake_d="$cmake_d -D NANOVDB_BUILD_BENCHMARK=OFF"
-    cmake_d="$cmake_d -D NANOVDB_BUILD_DOCS=OFF"
-    cmake_d="$cmake_d -D NANOVDB_BUILD_TOOLS=OFF"
-    cmake_d="$cmake_d -D NANOVDB_CUDA_KEEP_PTX=OFF"
-
-    # Do not need to include any of the dependencies because of this
-    cmake_d="$cmake_d -D NANOVDB_USE_OPENVDB=OFF"
-    cmake_d="$cmake_d -D NANOVDB_USE_OPENGL=OFF"
-    cmake_d="$cmake_d -D NANOVDB_USE_OPENCL=OFF"
-    cmake_d="$cmake_d -D NANOVDB_USE_CUDA=OFF"
-    cmake_d="$cmake_d -D NANOVDB_USE_TBB=OFF"
-    cmake_d="$cmake_d -D NANOVDB_USE_BLOSC=OFF"
-    cmake_d="$cmake_d -D NANOVDB_USE_ZLIB=OFF"
-    cmake_d="$cmake_d -D NANOVDB_USE_OPTIX=OFF"
-    cmake_d="$cmake_d -D NANOVDB_ALLOW_FETCHCONTENT=OFF"
-
-    cmake $cmake_d $_src
-
-    make -j$THREADS install
-    make clean
-
-    #~ mkdir -p $_inst
-    #~ cp -r $_src/include $_inst/include
-
-    if [ ! -d $_inst ]; then
-      ERROR "NanoVDB-v$OPENVDB_VERSION failed to install, exiting"
-      exit 1
-    fi
-
-    magic_compile_set nanovdb-$OPENVDB_VERSION $nanovdb_magic
-
-    cd $CWD
-    INFO "Done compiling NanoVDB-v$OPENVDB_VERSION!"
-  else
-    INFO "Own NanoVDB-v$OPENVDB_VERSION is up to date, nothing to do!"
-  fi
-
-  if [ -d $_inst ]; then
-    _create_inst_shortcut
-  fi
-}
-
-
 _init_openvdb() {
   _src=$SRC/openvdb-$OPENVDB_VERSION
   _git=false
   _inst=$INST/openvdb-$OPENVDB_VERSION_SHORT
   _inst_shortcut=$INST/openvdb
-
-  _openvdb_source=$OPENVDB_SOURCE
-  if [ "$WITH_NANOVDB" = true ]; then
-    _openvdb_source=$NANOVDB_SOURCE
-  fi
 }
 
 _update_deps_openvdb() {
@@ -2772,7 +2660,7 @@ compile_OPENVDB() {
   PRINT ""
 
   # To be changed each time we make edits that would modify the compiled result!
-  openvdb_magic=2
+  openvdb_magic=4
   _init_openvdb
 
   # Force having own builds for the dependencies.
@@ -2794,15 +2682,10 @@ compile_OPENVDB() {
 
     if [ ! -d $_src ]; then
       mkdir -p $SRC
-      download _openvdb_source[@] "$_src.tar.gz"
+      download OPENVDB_SOURCE[@] "$_src.tar.gz"
 
       INFO "Unpacking OpenVDB-$OPENVDB_VERSION"
-      if [ "$WITH_NANOVDB" = true ]; then
-        tar -C $SRC --transform "s,(.*/?)openvdb-$NANOVDB_SOURCE_REPO_UID[^/]*(.*),\1openvdb-$OPENVDB_VERSION\2,x" \
-            -xf $_src.tar.gz
-      else
-        tar -C $SRC -xf $_src.tar.gz
-      fi
+      tar -C $SRC -xf $_src.tar.gz
     fi
 
     cd $_src
@@ -2827,6 +2710,12 @@ compile_OPENVDB() {
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D USE_STATIC_DEPENDENCIES=OFF"
     cmake_d="$cmake_d -D OPENVDB_BUILD_BINARIES=OFF"
+
+    if [ "$WITH_NANOVDB" = true ]; then
+      cmake_d="$cmake_d -D USE_NANOVDB=ON"
+    else
+      cmake_d="$cmake_d -D USE_NANOVDB=OFF"
+    fi
 
     if [ -d $INST/boost ]; then
       cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost"
@@ -2871,10 +2760,6 @@ compile_OPENVDB() {
     _create_inst_shortcut
   fi
   run_ldconfig "openvdb"
-
-  if [ "$WITH_NANOVDB" = true ]; then
-    install_NanoVDB
-  fi
 }
 
 # ----------------------------------------------------------------------------
