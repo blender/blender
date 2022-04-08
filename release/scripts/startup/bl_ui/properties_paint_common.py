@@ -238,7 +238,7 @@ class ClonePanel(BrushPanel):
                 col.label(text="Source Clone Slot")
                 col.template_list(
                     "TEXTURE_UL_texpaintslots", "",
-                    mat, "texture_paint_images",
+                    mat, "texture_paint_slots",
                     mat, "paint_clone_slot",
                     rows=2,
                 )

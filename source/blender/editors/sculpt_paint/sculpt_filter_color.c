@@ -36,6 +36,7 @@
 #include "WM_types.h"
 
 #include "ED_object.h"
+#include "ED_paint.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "paint_intern.h"
@@ -293,6 +294,7 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   FilterCache *filter_cache = ss->filter_cache;
   filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
   filter_cache->automasking = SCULPT_automasking_cache_init(sd, NULL, ob);
+  ED_paint_tool_update_sticky_shading_color(C, ob);
 
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
