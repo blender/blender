@@ -273,34 +273,26 @@ parm u 0.0
 /* Return true if string #a and string #b are equal after their first newline. */
 static bool strings_equal_after_first_lines(const std::string &a, const std::string &b)
 {
-  /* If `dbg_level` is true then a failing test will print context around the first mismatch. */
-  const bool dbg_level = false;
   const size_t a_len = a.size();
   const size_t b_len = b.size();
   const size_t a_next = a.find_first_of('\n');
   const size_t b_next = b.find_first_of('\n');
   if (a_next == std::string::npos || b_next == std::string::npos) {
-    if (dbg_level) {
-      std::cout << "Couldn't find newline in one of args\n";
+    std::cout << "Couldn't find newline in one of args\n";
+    return false;
+  }
+  if (a.compare(a_next, a_len - a_next, b, b_next, b_len - b_next) != 0) {
+    for (int i = 0; i < a_len - a_next && i < b_len - b_next; ++i) {
+      if (a[a_next + i] != b[b_next + i]) {
+        std::cout << "Difference found at pos " << a_next + i << " of a\n";
+        std::cout << "a: " << a.substr(a_next + i, 100) << " ...\n";
+        std::cout << "b: " << b.substr(b_next + i, 100) << " ... \n";
+        return false;
+      }
     }
     return false;
   }
-  if (dbg_level) {
-    if (a.compare(a_next, a_len - a_next, b, b_next, b_len - b_next) != 0) {
-      for (int i = 0; i < a_len - a_next && i < b_len - b_next; ++i) {
-        if (a[a_next + i] != b[b_next + i]) {
-          std::cout << "Difference found at pos " << a_next + i << " of a\n";
-          std::cout << "a: " << a.substr(a_next + i, 100) << " ...\n";
-          std::cout << "b: " << b.substr(b_next + i, 100) << " ... \n";
-          return false;
-        }
-      }
-    }
-    else {
-      return true;
-    }
-  }
-  return a.compare(a_next, a_len - a_next, b, b_next, b_len - b_next) == 0;
+  return true;
 }
 
 /* From here on, tests are whole file tests, testing for golden output. */
