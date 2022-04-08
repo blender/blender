@@ -121,7 +121,7 @@ struct AbcMeshData {
 static void read_mverts_interp(MVert *mverts,
                                const P3fArraySamplePtr &positions,
                                const P3fArraySamplePtr &ceil_positions,
-                               const float weight)
+                               const double weight)
 {
   float tmp[3];
   for (int i = 0; i < positions->size(); i++) {
@@ -129,7 +129,7 @@ static void read_mverts_interp(MVert *mverts,
     const Imath::V3f &floor_pos = (*positions)[i];
     const Imath::V3f &ceil_pos = (*ceil_positions)[i];
 
-    interp_v3_v3v3(tmp, floor_pos.getValue(), ceil_pos.getValue(), weight);
+    interp_v3_v3v3(tmp, floor_pos.getValue(), ceil_pos.getValue(), static_cast<float>(weight));
     copy_zup_from_yup(mvert.co, tmp);
 
     mvert.bweight = 0;

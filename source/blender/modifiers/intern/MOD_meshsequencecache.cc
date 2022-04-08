@@ -154,7 +154,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   CacheFile *cache_file = mcmd->cache_file;
   const float frame = DEG_get_ctime(ctx->depsgraph);
-  const float time = BKE_cachefile_time_offset(cache_file, frame, FPS);
+  const double time = BKE_cachefile_time_offset(cache_file, (double)frame, FPS);
   const char *err_str = nullptr;
 
   if (!mcmd->reader || !STREQ(mcmd->reader_object_path, mcmd->object_path)) {

@@ -5417,7 +5417,7 @@ static void transformcache_evaluate(bConstraint *con, bConstraintOb *cob, ListBa
   }
 
   const float frame = DEG_get_ctime(cob->depsgraph);
-  const float time = BKE_cachefile_time_offset(cache_file, frame, FPS);
+  const double time = BKE_cachefile_time_offset(cache_file, (double)frame, FPS);
 
   if (!data->reader || !STREQ(data->reader_object_path, data->object_path)) {
     STRNCPY(data->reader_object_path, data->object_path);

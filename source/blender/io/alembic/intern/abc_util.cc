@@ -73,7 +73,7 @@ Imath::M44d convert_matrix_datatype(float mat[4][4])
 
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 4; j++) {
-      m[i][j] = mat[i][j];
+      m[i][j] = static_cast<double>(mat[i][j]);
     }
   }
 
@@ -112,35 +112,35 @@ bool has_property(const Alembic::Abc::ICompoundProperty &prop, const std::string
   return prop.getPropertyHeader(name) != nullptr;
 }
 
-using index_time_pair_t = std::pair<Alembic::AbcCoreAbstract::index_t, float>;
+using index_time_pair_t = std::pair<Alembic::AbcCoreAbstract::index_t, Alembic::AbcGeom::chrono_t>;
 
-float get_weight_and_index(float time,
-                           const Alembic::AbcCoreAbstract::TimeSamplingPtr &time_sampling,
-                           int samples_number,
-                           Alembic::AbcGeom::index_t &i0,
-                           Alembic::AbcGeom::index_t &i1)
+double get_weight_and_index(Alembic::AbcGeom::chrono_t time,
+                            const Alembic::AbcCoreAbstract::TimeSamplingPtr &time_sampling,
+                            int samples_number,
+                            Alembic::AbcGeom::index_t &i0,
+                            Alembic::AbcGeom::index_t &i1)
 {
   samples_number = std::max(samples_number, 1);
 
   index_time_pair_t t0 = time_sampling->getFloorIndex(time, samples_number);
   i0 = i1 = t0.first;
 
-  if (samples_number == 1 || (fabs(time - t0.second) < 0.0001f)) {
-    return 0.0f;
+  if (samples_number == 1 || (fabs(time - t0.second) < 0.0001)) {
+    return 0.0;
   }
 
   index_time_pair_t t1 = time_sampling->getCeilIndex(time, samples_number);
   i1 = t1.first;
 
   if (i0 == i1) {
-    return 0.0f;
+    return 0.0;
   }
 
-  const float bias = (time - t0.second) / (t1.second - t0.second);
+  const double bias = (time - t0.second) / (t1.second - t0.second);
 
-  if (fabs(1.0f - bias) < 0.0001f) {
+  if (fabs(1.0 - bias) < 0.0001) {
     i0 = i1;
-    return 0.0f;
+    return 0.0;
   }
 
   return bias;

@@ -35,7 +35,7 @@ bool BKE_cachefile_filepath_get(const struct Main *bmain,
                                 const struct CacheFile *cache_file,
                                 char r_filename[1024]);
 
-float BKE_cachefile_time_offset(const struct CacheFile *cache_file, float time, float fps);
+double BKE_cachefile_time_offset(const struct CacheFile *cache_file, double time, double fps);
 
 /* Modifiers and constraints open and free readers through these. */
 void BKE_cachefile_reader_open(struct CacheFile *cache_file,
