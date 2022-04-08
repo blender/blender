@@ -38,15 +38,15 @@ getopt \
 with-all,with-opencollada,with-jack,with-pulseaudio,with-embree,with-oidn,with-nanovdb,\
 ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,ver-osd:,ver-openvdb:,ver-xr-openxr:,\
 force-all,force-python,force-boost,force-tbb,\
-force-ocio,force-openexr,force-oiio,force-llvm,force-osl,force-osd,force-openvdb,\
+force-ocio,force-imath,force-openexr,force-oiio,force-llvm,force-osl,force-osd,force-openvdb,\
 force-ffmpeg,force-opencollada,force-alembic,force-embree,force-oidn,force-usd,\
 force-xr-openxr,\
 build-all,build-python,build-boost,build-tbb,\
-build-ocio,build-openexr,build-oiio,build-llvm,build-osl,build-osd,build-openvdb,\
+build-ocio,build-imath,build-openexr,build-oiio,build-llvm,build-osl,build-osd,build-openvdb,\
 build-ffmpeg,build-opencollada,build-alembic,build-embree,build-oidn,build-usd,\
 build-xr-openxr,\
 skip-python,skip-boost,skip-tbb,\
-skip-ocio,skip-openexr,skip-oiio,skip-llvm,skip-osl,skip-osd,skip-openvdb,\
+skip-ocio,skip-imath,skip-openexr,skip-oiio,skip-llvm,skip-osl,skip-osd,skip-openvdb,\
 skip-ffmpeg,skip-opencollada,skip-alembic,skip-embree,skip-oidn,skip-usd,\
 skip-xr-openxr \
 -- "$@" \
@@ -184,6 +184,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --build-ocio
         Force the build of OpenColorIO.
 
+    --build-imath
+        Force the build of Imath.
+
     --build-openexr
         Force the build of OpenEXR.
 
@@ -248,6 +251,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --force-ocio
         Force the rebuild of OpenColorIO.
 
+    --force-imath
+        Force the rebuild of Imath.
+
     --force-openexr
         Force the rebuild of OpenEXR.
 
@@ -304,6 +310,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     --skip-ocio
         Unconditionally skip OpenColorIO installation/building.
+
+    --skip-imath
+        Unconditionally skip IMath installation/building.
 
     --skip-openexr
         Unconditionally skip OpenEXR installation/building.
@@ -457,10 +466,19 @@ OCIO_FORCE_BUILD=false
 OCIO_FORCE_REBUILD=false
 OCIO_SKIP=false
 
-OPENEXR_VERSION="2.5.5"
-OPENEXR_VERSION_SHORT="2.5"
-OPENEXR_VERSION_MIN="2.4"
-OPENEXR_VERSION_MEX="3.0"
+IMATH_VERSION="3.1.4"
+IMATH_VERSION_SHORT="3.1"
+IMATH_VERSION_MIN="3.0"
+IMATH_VERSION_MEX="4.0"
+IMATH_FORCE_BUILD=false
+IMATH_FORCE_REBUILD=false
+IMATH_SKIP=false
+_with_built_imath=false
+
+OPENEXR_VERSION="3.1.4"
+OPENEXR_VERSION_SHORT="3.1"
+OPENEXR_VERSION_MIN="3.0"
+OPENEXR_VERSION_MEX="4.0"
 OPENEXR_FORCE_BUILD=false
 OPENEXR_FORCE_REBUILD=false
 OPENEXR_SKIP=false
@@ -766,6 +784,7 @@ while true; do
       BOOST_FORCE_BUILD=true
       TBB_FORCE_BUILD=true
       OCIO_FORCE_BUILD=true
+      IMATH_FORCE_BUILD=true
       OPENEXR_FORCE_BUILD=true
       OIIO_FORCE_BUILD=true
       LLVM_FORCE_BUILD=true
@@ -793,6 +812,9 @@ while true; do
     ;;
     --build-ocio)
       OCIO_FORCE_BUILD=true; shift; continue
+    ;;
+    --build-imath)
+      IMATH_FORCE_BUILD=true; shift; continue
     ;;
     --build-openexr)
       OPENEXR_FORCE_BUILD=true; shift; continue
@@ -838,6 +860,7 @@ while true; do
       BOOST_FORCE_REBUILD=true
       TBB_FORCE_REBUILD=true
       OCIO_FORCE_REBUILD=true
+      IMATH_FORCE_REBUILD=true
       OPENEXR_FORCE_REBUILD=true
       OIIO_FORCE_REBUILD=true
       LLVM_FORCE_REBUILD=true
@@ -865,6 +888,9 @@ while true; do
     ;;
     --force-ocio)
       OCIO_FORCE_REBUILD=true; shift; continue
+    ;;
+    --force-imath)
+      IMATH_FORCE_REBUILD=true; shift; continue
     ;;
     --force-openexr)
       OPENEXR_FORCE_REBUILD=true; shift; continue
@@ -916,6 +942,9 @@ while true; do
     ;;
     --skip-ocio)
       OCIO_SKIP=true; shift; continue
+    ;;
+    --skip-imath)
+      IMATH_SKIP=true; shift; continue
     ;;
     --skip-openexr)
       OPENEXR_SKIP=true; shift; continue
@@ -1021,6 +1050,11 @@ OCIO_USE_REPO=false
 OCIO_SOURCE=( "https://github.com/AcademySoftwareFoundation/OpenColorIO/archive/v$OCIO_VERSION.tar.gz")
 #~ OCIO_SOURCE_REPO=( "https://github.com/imageworks/OpenColorIO.git" )
 #~ OCIO_SOURCE_REPO_UID="6de971097c7f552300f669ed69ca0b6cf5a70843"
+
+IMATH_USE_REPO=false
+IMATH_SOURCE=( "https://github.com/AcademySoftwareFoundation/Imath/archive/refs/tags/v$OPENEXR_VERSION.tar.gz" )
+IMATH_SOURCE_REPO=( "https://github.com/AcademySoftwareFoundation/Imath.git" )
+IMATH_SOURCE_REPO_UID="42ad7e94ea0ddb9a1b420698bedebba9f5a99ac5"
 
 OPENEXR_USE_REPO=false
 OPENEXR_SOURCE=( "https://github.com/AcademySoftwareFoundation/openexr/archive/v$OPENEXR_VERSION.tar.gz" )
@@ -1139,7 +1173,7 @@ You may also want to build them yourself (optional ones are [between brackets]):
     * TBB $TBB_VERSION (from $TBB_SOURCE).
     * [FFMpeg $FFMPEG_VERSION (needs libvorbis, libogg, libtheora, libx264, libmp3lame, libxvidcore, libvpx, ...)] (from $FFMPEG_SOURCE).
     * [OpenColorIO $OCIO_VERSION] (from $OCIO_SOURCE).
-    * ILMBase $OPENEXR_VERSION (from $OPENEXR_SOURCE).
+    * Imath $IMATH_VERSION (from $IMATH_SOURCE).
     * OpenEXR $OPENEXR_VERSION (from $OPENEXR_SOURCE).
     * OpenImageIO $OIIO_VERSION (from $OIIO_SOURCE).
     * [LLVM $LLVM_VERSION (with clang)] (from $LLVM_SOURCE, and $LLVM_CLANG_SOURCE).
@@ -1834,7 +1868,137 @@ compile_OCIO() {
 }
 
 # ----------------------------------------------------------------------------
-# Build OpenEXR (and ILMBase).
+# Build Imath.
+
+_init_imath() {
+  _src=$SRC/Imath-$IMATH_VERSION
+  _git=false
+  _inst=$INST/imath-$IMATH_VERSION_SHORT
+  _inst_shortcut=$INST/imath
+}
+
+_update_deps_imath() {
+  if [ "$1" = true ]; then
+    OPENEXR_FORCE_BUILD=true
+  fi
+  if [ "$2" = true ]; then
+    OPENEXR_FORCE_REBUILD=true
+  fi
+}
+
+clean_IMATH() {
+  _init_imath
+  if [ -d $_inst ]; then
+    # Force rebuilding the dependencies if needed.
+    _update_deps_imath false true
+  fi
+  _clean
+}
+
+compile_IMATH() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, Imath will not be compiled!"
+    return
+  fi
+
+  # To be changed each time we make edits that would modify the compiled result!
+  imath_magic=1
+  _init_imath
+
+  # Force having own builds for the dependencies.
+  _update_deps_imath true false
+
+  # Clean install if needed!
+  magic_compile_check imath-$IMATH_VERSION $imath_magic
+  if [ $? -eq 1 -o "$IMATH_FORCE_REBUILD" = true ]; then
+    clean_IMATH
+  fi
+
+  PRINT ""
+
+  if [ ! -d $_inst ]; then
+    INFO "Building Imath-$IMATH_VERSION"
+
+    # Force rebuilding the dependencies.
+    _update_deps_imath true true
+
+    prepare_inst
+
+    if [ ! -d $_src ]; then
+      INFO "Downloading Imath-$IMATH_VERSION"
+      mkdir -p $SRC
+
+      if [ "$IMATH_USE_REPO" = true ]; then
+        git clone ${IMATH_SOURCE_REPO[0]} $_src
+      else
+        download IMATH_SOURCE[@] $_src.tar.gz
+        INFO "Unpacking Imath-$IMATH_VERSION"
+        tar -C $SRC --transform "s,(.*/?)imath[^/]*(.*),\1Imath-$IMATH_VERSION\2,x" -xf $_src.tar.gz
+      fi
+
+    fi
+
+    cd $_src
+
+    if [ "$IMATH_USE_REPO" = true ]; then
+      # XXX For now, always update from latest repo...
+      git pull origin master
+      git checkout $IMATH_SOURCE_REPO_UID
+      git reset --hard
+      imath_src_path="../Imath"
+    else
+      imath_src_path=".."
+    fi
+
+    # Always refresh the whole build!
+    if [ -d build ]; then
+      rm -rf build
+    fi
+    mkdir build
+    cd build
+
+    cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
+    cmake_d="$cmake_d -D CMAKE_INSTALL_DOCDIR=/dev/null"  # Hack, there is no option to disable that currently...
+    cmake_d="$cmake_d -D BUILD_SHARED_LIBS=ON"
+    cmake_d="$cmake_d -D BUILD_TESTING=OFF"
+    cmake_d="$cmake_d -D PYIMATH_ENABLE=OFF"
+
+    if file /bin/cp | grep -q '32-bit'; then
+      cflags="-fPIC -m32 -march=i686"
+    else
+      cflags="-fPIC"
+    fi
+
+    cmake $cmake_d -D CMAKE_BUILD_TYPE=Release -D CMAKE_CXX_FLAGS="$cflags" -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" $imath_src_path
+
+    make -j$THREADS && make install
+
+    make clean
+
+    if [ ! -d $_inst ]; then
+      ERROR "Imath-$IMATH_VERSION failed to compile, exiting"
+      exit 1
+    fi
+
+    magic_compile_set imath-$IMATH_VERSION $imath_magic
+
+    cd $CWD
+    INFO "Done compiling Imath-$imath_VERSION!"
+  else
+    INFO "Own Imath-$IMATH_VERSION is up to date, nothing to do!"
+    INFO "If you want to force rebuild of this lib, use the --force-imath option."
+  fi
+
+  _with_built_imath=true
+
+  if [ -d $_inst ]; then
+    _create_inst_shortcut
+  fi
+  run_ldconfig "openexr"
+}
+
+# ----------------------------------------------------------------------------
+# Build OpenEXR.
 
 _init_openexr() {
   _src=$SRC/OpenEXR-$OPENEXR_VERSION
@@ -1846,10 +2010,12 @@ _init_openexr() {
 _update_deps_openexr() {
   if [ "$1" = true ]; then
     OIIO_FORCE_BUILD=true
+    OPENVDB_FORCE_BUILD=true
     ALEMBIC_FORCE_BUILD=true
   fi
   if [ "$2" = true ]; then
     OIIO_FORCE_REBUILD=true
+    OPENVDB_FORCE_REBUILD=true
     ALEMBIC_FORCE_REBUILD=true
   fi
 }
@@ -1870,7 +2036,7 @@ compile_OPENEXR() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  openexr_magic=15
+  openexr_magic=16
   _init_openexr
 
   # Force having own builds for the dependencies.
@@ -1885,7 +2051,7 @@ compile_OPENEXR() {
   PRINT ""
 
   if [ ! -d $_inst ]; then
-    INFO "Building ILMBase-$OPENEXR_VERSION and OpenEXR-$OPENEXR_VERSION"
+    INFO "Building OpenEXR-$OPENEXR_VERSION"
 
     # Force rebuilding the dependencies.
     _update_deps_openexr true true
@@ -1901,7 +2067,7 @@ compile_OPENEXR() {
       else
         download OPENEXR_SOURCE[@] $_src.tar.gz
         INFO "Unpacking OpenEXR-$OPENEXR_VERSION"
-        tar -C $SRC --transform "s,(.*/?)openexr[^/]*(.*),\1OpenEXR-$OPENEXR_VERSION\2,x" -xf $_src.tar.gz
+        tar -C $SRC --transform "s,([^/]*/?)openexr[^/]*(.*),\1OpenEXR-$OPENEXR_VERSION\2,x" -xf $_src.tar.gz
       fi
 
     fi
@@ -1926,12 +2092,11 @@ compile_OPENEXR() {
     cd build
 
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
-    cmake_d="$cmake_d -D CMAKE_INSTALL_DOCDIR=/dev/null"  # Hack, there is no option to disable that currently...
+    #cmake_d="$cmake_d -D CMAKE_INSTALL_DOCDIR=/dev/null"  # Hack, there is no option to disable that currently...
     cmake_d="$cmake_d -D BUILD_SHARED_LIBS=ON"
     cmake_d="$cmake_d -D BUILD_TESTING=OFF"
-    cmake_d="$cmake_d -D OPENEXR_BUILD_UTILS=OFF"
-    cmake_d="$cmake_d -D PYILMBASE_ENABLE=OFF"
-    cmake_d="$cmake_d -D OPENEXR_VIEWERS_ENABLE=OFF"
+    cmake_d="$cmake_d -D DOCS=OFF"
+    cmake_d="$cmake_d -D PYTHON=OFF"
 
     if file /bin/cp | grep -q '32-bit'; then
       cflags="-fPIC -m32 -march=i686"
@@ -2063,10 +2228,12 @@ compile_OIIO() {
 
     cmake_d="$cmake_d -D OPENEXR_VERSION=$OPENEXR_VERSION"
 
+    if [ "$_with_built_imath" = true ]; then
+      cmake_d="$cmake_d -D Imath_ROOT=$INST/imath"
+      INFO "Ilmbase_ROOT=$INST/imath"
+    fi
     if [ "$_with_built_openexr" = true ]; then
-      cmake_d="$cmake_d -D ILMBASE_ROOT=$INST/openexr"
-      cmake_d="$cmake_d -D OPENEXR_ROOT=$INST/openexr"
-      INFO "Ilmbase_ROOT=$INST/openexr"
+      cmake_d="$cmake_d -D OpenEXR_ROOT=$INST/openexr"
     fi
 
     # ptex is only needed when nicholas bishop is ready
@@ -2352,13 +2519,14 @@ compile_OSL() {
 
     cmake_d="$cmake_d -D CMAKE_CXX_STANDARD=14"
 
-    #~ cmake_d="$cmake_d -D ILMBASE_VERSION=$ILMBASE_VERSION"
+    #~ cmake_d="$cmake_d -D IMATH_VERSION=$IMATH_VERSION"
 
+    if [ "$_with_built_imath" = true ]; then
+      cmake_d="$cmake_d -D Imath_ROOT=$INST/imath"
+      INFO "Imath_ROOT=$INST/imath"
+    fi
     if [ "$_with_built_openexr" = true ]; then
-      cmake_d="$cmake_d -D ILMBASE_ROOT=$INST/openexr"
-      cmake_d="$cmake_d -D OPENEXR_ROOT=$INST/openexr"
-      INFO "Ilmbase_ROOT=$INST/openexr"
-      # XXX Temp workaround... sigh, ILMBase really messed the things up by defining their custom names ON by default :(
+      cmake_d="$cmake_d -D OpenEXR_ROOT=$INST/openexr"
     fi
 
     if [ -d $INST/boost ]; then
@@ -2728,8 +2896,10 @@ compile_OPENVDB() {
       cmake_d="$cmake_d -D TBB_ROOT=$INST/tbb"
     fi
 
+    if [ "$_with_built_imath" = true ]; then
+      cmake_d="$cmake_d -D Imath_ROOT=$INST/imath"
+    fi
     if [ "$_with_built_openexr" = true ]; then
-      cmake_d="$cmake_d -D IlmBase_ROOT=$INST/openexr"
       cmake_d="$cmake_d -D OpenEXR_ROOT=$INST/openexr"
     fi
 
@@ -2833,8 +3003,12 @@ compile_ALEMBIC() {
       cmake_d="$cmake_d -D USE_STATIC_BOOST=OFF"
     fi
 
+    if [ "$_with_built_imath" = true ]; then
+      cmake_d="$cmake_d -D Imath_ROOT=$INST/imath"
+      cmake_d="$cmake_d -D ALEMBIC_IMATH_LINK_STATIC=OFF"
+      INFO "Imath_ROOT=$INST/imath"
+    fi
     if [ "$_with_built_openexr" = true ]; then
-      cmake_d="$cmake_d -D ILMBASE_ROOT=$INST/openexr"
       cmake_d="$cmake_d -D USE_ARNOLD=OFF"
       cmake_d="$cmake_d -D USE_BINARIES=OFF"
       cmake_d="$cmake_d -D USE_EXAMPLES=OFF"
@@ -2843,9 +3017,7 @@ compile_ALEMBIC() {
       cmake_d="$cmake_d -D USE_PRMAN=OFF"
       cmake_d="$cmake_d -D USE_PYALEMBIC=OFF"
       cmake_d="$cmake_d -D USE_STATIC_HDF5=OFF"
-      cmake_d="$cmake_d -D ALEMBIC_ILMBASE_LINK_STATIC=OFF"
       cmake_d="$cmake_d -D ALEMBIC_SHARED_LIBS=OFF"
-      INFO "ILMBASE_ROOT=$INST/openexr"
     fi
 
     cmake $cmake_d ./
@@ -3993,25 +4165,39 @@ install_DEB() {
     fi
   fi
 
+  PRINT ""
+  if [ "$IMATH_SKIP" = true ]; then
+    WARNING "Skipping Imath installation, as requested..."
+  elif [ "$IMATH_FORCE_BUILD" = true ]; then
+    INFO "Forced Imath building, as requested..."
+    compile_IMATH
+  else
+    check_package_version_ge_lt_DEB libimath-dev $IMATH_VERSION_MIN $IMATH_VERSION_MEX
+    if [ $? -eq 0 ]; then
+      install_packages_DEB libimath-dev
+      IMATH_VERSION=`get_package_version_DEB libimath-dev`
+      clean_IMATH
+    else
+      compile_IMATH
+    fi
+  fi
 
   PRINT ""
   if [ "$OPENEXR_SKIP" = true ]; then
-    WARNING "Skipping ILMBase/OpenEXR installation, as requested..."
+    WARNING "Skipping OpenEXR installation, as requested..."
   elif [ "$OPENEXR_FORCE_BUILD" = true ]; then
-    INFO "Forced ILMBase/OpenEXR building, as requested..."
+    INFO "Forced OpenEXR building, as requested..."
     compile_OPENEXR
   else
     check_package_version_ge_lt_DEB libopenexr-dev $OPENEXR_VERSION_MIN $OPENEXR_VERSION_MEX
-    if [ $? -eq 0 ]; then
+    if [ $? -eq 0 -a "$_with_built_imath" = false ]; then
       install_packages_DEB libopenexr-dev
       OPENEXR_VERSION=`get_package_version_DEB libopenexr-dev`
-      ILMBASE_VERSION=$OPENEXR_VERSION
       clean_OPENEXR
     else
       compile_OPENEXR
     fi
   fi
-
 
   PRINT ""
   # Debian OIIO includes again libopencv, without even properly dealing with this dependency...
@@ -4648,17 +4834,33 @@ install_RPM() {
   fi
 
   PRINT ""
+  if [ "$IMATH_SKIP" = true ]; then
+    WARNING "Skipping Imath installation, as requested..."
+  elif [ "$IMATH_FORCE_BUILD" = true ]; then
+    INFO "Forced Imath building, as requested..."
+    compile_IMATH
+  else
+    check_package_version_ge_lt_RPM imath-devel $IMATH_VERSION_MIN $IMATH_VERSION_MEX
+    if [ $? -eq 0 ]; then
+      install_packages_RPM imath-devel
+      IMATH_VERSION=`get_package_version_RPM imath-devel`
+      clean_IMATH
+    else
+      compile_IMATH
+    fi
+  fi
+
+  PRINT ""
   if [ "$OPENEXR_SKIP" = true ]; then
-    WARNING "Skipping ILMBase/OpenEXR installation, as requested..."
+    WARNING "Skipping OpenEXR installation, as requested..."
   elif [ "$OPENEXR_FORCE_BUILD" = true ]; then
-    INFO "Forced ILMBase/OpenEXR building, as requested..."
+    INFO "Forced OpenEXR building, as requested..."
     compile_OPENEXR
   else
     check_package_version_ge_lt_RPM openexr-devel $OPENEXR_VERSION_MIN $OPENEXR_VERSION_MEX
-    if [ $? -eq 0 ]; then
+    if [ $? -eq 0 -a $_with_built_imath == false ]; then
       install_packages_RPM openexr-devel
       OPENEXR_VERSION=`get_package_version_RPM openexr-devel`
-      ILMBASE_VERSION=$OPENEXR_VERSION
       clean_OPENEXR
     else
       compile_OPENEXR
@@ -5175,19 +5377,35 @@ install_ARCH() {
     fi
   fi
 
+  PRINT ""
+  if [ "$IMATH_SKIP" = true ]; then
+    WARNING "Skipping Imath installation, as requested..."
+  elif [ "$IMATH_FORCE_BUILD" = true ]; then
+    INFO "Forced Imath building, as requested..."
+    compile_IMATH
+  else
+    check_package_version_ge_lt_ARCH imath $IMATH_VERSION_MIN $IMATH_VERSION_MEX
+    if [ $? -eq 0 ]; then
+      install_packages_ARCH imath
+      IMATH_VERSION=`get_package_version_ARCH imath`
+      clean_IMATH
+    else
+      compile_IMATH
+    fi
+  fi
 
   PRINT ""
   if [ "$OPENEXR_SKIP" = true ]; then
-    WARNING "Skipping ILMBase/OpenEXR installation, as requested..."
+    WARNING "Skipping OpenEXR installation, as requested..."
   elif [ "$OPENEXR_FORCE_BUILD" = true ]; then
-    INFO "Forced ILMBase/OpenEXR building, as requested..."
+    INFO "Forced OpenEXR building, as requested..."
     compile_OPENEXR
   else
     check_package_version_ge_lt_ARCH openexr $OPENEXR_VERSION_MIN $OPENEXR_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_ARCH openexr
       OPENEXR_VERSION=`get_package_version_ARCH openexr`
-      ILMBASE_VERSION=$OPENEXR_VERSION
+      IMATH_VERSION=$OPENEXR_VERSION
       clean_OPENEXR
     else
       compile_OPENEXR
@@ -5489,10 +5707,18 @@ install_OTHER() {
 
 
   PRINT ""
+  if [ "$IMATH_SKIP" = true ]; then
+    WARNING "Skipping Imath installation, as requested..."
+  elif [ "$IMATH_FORCE_BUILD" = true ]; then
+    INFO "Forced Imath building, as requested..."
+    compile_IMATH
+  fi
+
+  PRINT ""
   if [ "$OPENEXR_SKIP" = true ]; then
-    WARNING "Skipping ILMBase/OpenEXR installation, as requested..."
+    WARNING "Skipping OpenEXR installation, as requested..."
   elif [ "$OPENEXR_FORCE_BUILD" = true ]; then
-    INFO "Forced ILMBase/OpenEXR building, as requested..."
+    INFO "Forced OpenEXR building, as requested..."
     compile_OPENEXR
   fi
 
