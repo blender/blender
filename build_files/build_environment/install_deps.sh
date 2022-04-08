@@ -602,6 +602,8 @@ XVID_DEV=""
 X264_USE=false
 X264_DEV=""
 X264_VERSION_MIN=0.118
+WEBP_USE=false
+WEBP_DEV=""
 VPX_USE=false
 VPX_VERSION_MIN=0.9.7
 VPX_DEV=""
@@ -1171,7 +1173,7 @@ You may also want to build them yourself (optional ones are [between brackets]):
     ** [NumPy $PYTHON_NUMPY_VERSION] (use pip).
     * Boost $BOOST_VERSION (from $BOOST_SOURCE, modules: $BOOST_BUILD_MODULES).
     * TBB $TBB_VERSION (from $TBB_SOURCE).
-    * [FFMpeg $FFMPEG_VERSION (needs libvorbis, libogg, libtheora, libx264, libmp3lame, libxvidcore, libvpx, ...)] (from $FFMPEG_SOURCE).
+    * [FFMpeg $FFMPEG_VERSION (needs libvorbis, libogg, libtheora, libx264, libmp3lame, libxvidcore, libvpx, libwebp, ...)] (from $FFMPEG_SOURCE).
     * [OpenColorIO $OCIO_VERSION] (from $OCIO_SOURCE).
     * Imath $IMATH_VERSION (from $IMATH_SOURCE).
     * OpenEXR $OPENEXR_VERSION (from $OPENEXR_SOURCE).
@@ -3649,6 +3651,10 @@ compile_FFmpeg() {
       extra="$extra --enable-libvpx"
     fi
 
+    if [ "$WEBP_USE" = true ]; then
+      extra="$extra --enable-libwebp"
+    fi
+
     if [ "$OPUS_USE" = true ]; then
       extra="$extra --enable-libopus"
     fi
@@ -3918,7 +3924,7 @@ install_DEB() {
              libbz2-dev libncurses5-dev libssl-dev liblzma-dev libreadline-dev \
              libopenal-dev libglew-dev yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV \
              libsdl2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev libjemalloc-dev \
-             libgmp-dev libpugixml-dev libpotrace-dev libhpdf-dev libzstd-dev"
+             libgmp-dev libpugixml-dev libpotrace-dev libhpdf-dev libzstd-dev libpystring-dev"
              # libglewmx-dev  (broken in deb testing currently...)
 
   VORBIS_USE=true
@@ -3995,6 +4001,14 @@ install_DEB() {
   if [ $? -eq 0 ]; then
     install_packages_DEB $X264_DEV
     X264_USE=true
+  fi
+
+  PRINT ""
+  WEBP_DEV="libwebp-dev"
+  check_package_DEB $WEBP_DEV
+  if [ $? -eq 0 ]; then
+    install_packages_DEB $WEBP_DEV
+    WEBP_USE=true
   fi
 
   if [ "$WITH_ALL" = true ]; then
@@ -4604,7 +4618,7 @@ install_RPM() {
              wget ncurses-devel readline-devel $OPENJPEG_DEV openal-soft-devel \
              glew-devel yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV patch \
              libxml2-devel yaml-cpp-devel tinyxml-devel jemalloc-devel \
-             gmp-devel pugixml-devel potrace-devel libharu-devel libzstd-devel"
+             gmp-devel pugixml-devel potrace-devel libharu-devel libzstd-devel pystring-devel"
 
   OPENJPEG_USE=true
   VORBIS_USE=true
@@ -4693,6 +4707,14 @@ install_RPM() {
   check_package_RPM $LIBSNDFILE_DEV
   if [ $? -eq 0 ]; then
     install_packages_RPM $LIBSNDFILE_DEV
+  fi
+
+  PRINT ""
+  WEBP_DEV="libwebp-devel"
+  check_package_RPM $WEBP_DEV
+  if [ $? -eq 0 ]; then
+    install_packages_RPM $WEBP_DEV
+    WEBP_USE=true
   fi
 
   if [ "$WITH_ALL" = true ]; then
@@ -5202,7 +5224,7 @@ install_ARCH() {
              libxi libxcursor libxrandr libxinerama glew libpng libtiff wget openal \
              $OPENJPEG_DEV $VORBIS_DEV $OGG_DEV $THEORA_DEV yasm sdl2 fftw \
              libxml2 yaml-cpp tinyxml python-requests jemalloc gmp potrace pugixml libharu \
-             zstd"
+             zstd pystring"
 
   OPENJPEG_USE=true
   VORBIS_USE=true
@@ -5237,6 +5259,14 @@ install_ARCH() {
   if [ $? -eq 0 ]; then
     install_packages_ARCH $X264_DEV
     X264_USE=true
+  fi
+
+  PRINT ""
+  WEBP_DEV="libwebp"
+  check_package_ARCH $WEBP_DEV
+  if [ $? -eq 0 ]; then
+    install_packages_ARCH $WEBP_DEV
+    WEBP_USE=true
   fi
 
   if [ "$WITH_ALL" = true ]; then
