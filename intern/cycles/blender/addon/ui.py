@@ -1916,13 +1916,20 @@ class CYCLES_RENDER_PT_bake_output_margin(CyclesButtonsPanel, Panel):
         cbk = scene.render.bake
         rd = scene.render
 
-        if rd.use_bake_multires:
-            layout.prop(rd, "bake_margin_type", text="Type")
-            layout.prop(rd, "bake_margin", text="Size")
+        if (cscene.bake_type == 'NORMAL' and cbk.normal_space == 'TANGENT') or cscene.bake_type == 'UV':
+            if rd.use_bake_multires:
+                layout.prop(rd, "bake_margin", text="Size")
+            else:
+                if cbk.target == 'IMAGE_TEXTURES':
+                    layout.prop(cbk, "margin", text="Size")
         else:
-            if cbk.target == 'IMAGE_TEXTURES':
-                layout.prop(cbk, "margin_type", text="Type")
-                layout.prop(cbk, "margin", text="Size")
+            if rd.use_bake_multires:
+                layout.prop(rd, "bake_margin_type", text="Type")
+                layout.prop(rd, "bake_margin", text="Size")
+            else:
+                if cbk.target == 'IMAGE_TEXTURES':
+                    layout.prop(cbk, "margin_type", text="Type")
+                    layout.prop(cbk, "margin", text="Size")
 
 
 

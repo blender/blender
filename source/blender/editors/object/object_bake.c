@@ -359,7 +359,12 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
     /* copy data stored in job descriptor */
     bkr.scene = scene;
     bkr.bake_margin = scene->r.bake_margin;
-    bkr.bake_margin_type = scene->r.bake_margin_type;
+    if (scene->r.bake_mode == RE_BAKE_NORMALS) {
+      bkr.bake_margin_type = R_BAKE_EXTEND;
+    }
+    else {
+      bkr.bake_margin_type = scene->r.bake_margin_type;
+    }
     bkr.mode = scene->r.bake_mode;
     bkr.use_lores_mesh = scene->r.bake_flag & R_BAKE_LORES_MESH;
     bkr.bias = scene->r.bake_biasdist;
@@ -404,7 +409,12 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
   /* backup scene settings, so their changing in UI would take no effect on baker */
   bkj->scene = scene;
   bkj->bake_margin = scene->r.bake_margin;
-  bkj->bake_margin_type = scene->r.bake_margin_type;
+  if (scene->r.bake_mode == RE_BAKE_NORMALS) {
+    bkj->bake_margin_type = R_BAKE_EXTEND;
+  }
+  else {
+    bkj->bake_margin_type = scene->r.bake_margin_type;
+  }
   bkj->mode = scene->r.bake_mode;
   bkj->use_lores_mesh = scene->r.bake_flag & R_BAKE_LORES_MESH;
   bkj->bake_clear = scene->r.bake_flag & R_BAKE_CLEAR;
