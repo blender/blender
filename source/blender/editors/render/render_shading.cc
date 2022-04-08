@@ -1124,9 +1124,10 @@ static int view_layer_add_lightgroup_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   char name[MAX_NAME];
-  RNA_string_get(op->ptr, "name", name);
+  name[0] = '\0';
   /* If a name is provided, ensure that it is unique. */
-  if (name[0]) {
+  if (RNA_struct_property_is_set(op->ptr, "name")) {
+    RNA_string_get(op->ptr, "name", name);
     /* Ensure that there are no dots in the name. */
     BLI_str_replace_char(name, '.', '_');
     LISTBASE_FOREACH (ViewLayerLightgroup *, lightgroup, &view_layer->lightgroups) {
