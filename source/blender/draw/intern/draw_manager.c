@@ -197,7 +197,7 @@ bool DRW_object_is_renderable(const Object *ob)
 bool DRW_object_is_in_edit_mode(const Object *ob)
 {
   if (BKE_object_is_in_editmode(ob)) {
-    if (ob->type == OB_MESH) {
+    if (ELEM(ob->type, OB_MESH, OB_CURVES)) {
       if ((ob->mode & OB_MODE_EDIT) == 0) {
         return false;
       }

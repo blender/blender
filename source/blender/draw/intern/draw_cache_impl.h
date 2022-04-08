@@ -351,6 +351,16 @@ struct GPUBatch *DRW_particles_batch_cache_get_edit_tip_points(struct Object *ob
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Curves
+ * \{ */
+
+struct GPUBatch *DRW_curves_batch_cache_get_edit_points(struct Curves *curves);
+
+void DRW_curves_batch_cache_create_requested(const struct Object *ob);
+
+/** \} */
+
 #ifdef __cplusplus
 }
 #endif

@@ -72,6 +72,7 @@ typedef struct OVERLAY_PassList {
   DRWPass *edit_mesh_edges_ps[2];
   DRWPass *edit_mesh_faces_ps[2];
   DRWPass *edit_mesh_faces_cage_ps[2];
+  DRWPass *edit_curves_points_ps[2];
   DRWPass *edit_mesh_analysis_ps;
   DRWPass *edit_mesh_normals_ps;
   DRWPass *edit_particle_ps;
@@ -266,6 +267,7 @@ typedef struct OVERLAY_PrivateData {
   DRWShadingGroup *edit_uv_faces_grp;
   DRWShadingGroup *edit_uv_face_dots_grp;
   DRWShadingGroup *edit_uv_stretching_grp;
+  DRWShadingGroup *edit_curves_points_grp[2];
   DRWShadingGroup *extra_grid_grp;
   DRWShadingGroup *facing_grp[2];
   DRWShadingGroup *fade_grp[2];
@@ -299,6 +301,7 @@ typedef struct OVERLAY_PrivateData {
   DRWView *view_edit_verts;
   DRWView *view_edit_text;
   DRWView *view_reference_images;
+  DRWView *view_edit_curves_points;
 
   /** TODO: get rid of this. */
   ListBase smoke_domains;
@@ -346,6 +349,9 @@ typedef struct OVERLAY_PrivateData {
     bool select_edge;
     int flag; /** Copy of #v3d->overlay.edit_flag. */
   } edit_mesh;
+  struct {
+    bool do_zbufclip;
+  } edit_curves;
   struct {
     bool use_weight;
     int select_mode;
@@ -668,6 +674,11 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
                                       bool init_dupli);
 void OVERLAY_wireframe_draw(OVERLAY_Data *vedata);
 void OVERLAY_wireframe_in_front_draw(OVERLAY_Data *vedata);
+
+void OVERLAY_edit_curves_init(OVERLAY_Data *vedata);
+void OVERLAY_edit_curves_cache_init(OVERLAY_Data *vedata);
+void OVERLAY_edit_curves_cache_populate(OVERLAY_Data *vedata, Object *ob);
+void OVERLAY_edit_curves_draw(OVERLAY_Data *vedata);
 
 void OVERLAY_shader_library_ensure(void);
 GPUShader *OVERLAY_shader_antialiasing(void);

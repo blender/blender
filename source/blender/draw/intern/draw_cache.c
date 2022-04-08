@@ -3348,6 +3348,9 @@ void drw_batch_cache_generate_requested(Object *ob)
     case OB_SURF:
       DRW_curve_batch_cache_create_requested(ob, scene);
       break;
+    case OB_CURVES:
+      DRW_curves_batch_cache_create_requested(ob);
+      break;
     /* TODO: all cases. */
     default:
       break;
