@@ -3146,6 +3146,7 @@ class VIEW3D_MT_sculpt_curves(Menu):
         layout = self.layout
 
         layout.operator("curves.snap_curves_to_surface")
+        layout.operator("curves.convert_to_particle_system", text="Convert to Particle System")
 
 
 class VIEW3D_MT_mask(Menu):
