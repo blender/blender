@@ -1136,7 +1136,7 @@ void BKE_pbvh_set_vemap(PBVH *pbvh, struct MeshElemMap *vemap);
 void BKE_pbvh_ignore_uvs_set(PBVH *pbvh, bool value);
 bool BKE_pbvh_cache_is_valid(const struct Object *ob,
                              const struct Mesh *me,
-                             const PBVH *old,
+                             const PBVH *pbvh,
                              int pbvh_type);
 bool BKE_pbvh_cache(const struct Mesh *me, PBVH *pbvh);
 PBVH *BKE_pbvh_get_or_free_cached(struct Object *ob, struct Mesh *me, PBVHType pbvh_type);
@@ -1148,9 +1148,10 @@ SculptPMap *BKE_pbvh_get_pmap(PBVH *pbvh);
 void BKE_pbvh_cache_remove(PBVH *pbvh);
 void BKE_pbvh_set_bmesh(PBVH *pbvh, struct BMesh *bm);
 void BKE_pbvh_free_bmesh(PBVH *pbvh, struct BMesh *bm);
-void BKE_pbvh_system_init();
-void BKE_pbvh_system_exit();
+void BKE_pbvh_system_init(void);
+void BKE_pbvh_system_exit(void);
 
 SculptPMap *BKE_pbvh_make_pmap(const struct Mesh *me);
 void BKE_pbvh_pmap_aquire(SculptPMap *pmap);
 bool BKE_pbvh_pmap_release(SculptPMap *pmap);
+void BKE_pbvh_clear_cache(PBVH *preserve);

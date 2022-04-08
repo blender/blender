@@ -42,6 +42,10 @@ static bool mesh_extract_uv_format_init(GPUVertFormat *format,
       char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
       const char *layer_name = CustomData_get_layer_name(cd_ldata, CD_MLOOPUV, i);
 
+      if (!layer_name) {
+        continue;
+      }
+
       GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
       /* UV layer name. */
       BLI_snprintf(attr_name, sizeof(attr_name), "u%s", attr_safe_name);

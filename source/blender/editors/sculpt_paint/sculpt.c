@@ -2896,7 +2896,7 @@ static bool sculpt_tool_needs_original(const char sculpt_tool)
 
 bool sculpt_tool_is_proxy_used(const char sculpt_tool)
 {
-  return ELEM(sculpt_tool,
+  return (ELEM(sculpt_tool,
               SCULPT_TOOL_SMOOTH,
               SCULPT_TOOL_LAYER,
               SCULPT_TOOL_FAIRING,
@@ -2910,7 +2910,7 @@ bool sculpt_tool_is_proxy_used(const char sculpt_tool)
               SCULPT_TOOL_PAINT,
               SCULPT_TOOL_SMEAR,
               SCULPT_TOOL_SYMMETRIZE,
-              SCULPT_TOOL_DRAW_FACE_SETS);
+              SCULPT_TOOL_DRAW_FACE_SETS));
 }
 
 static bool sculpt_brush_use_topology_rake(const SculptSession *ss, const Brush *brush)
@@ -3550,7 +3550,7 @@ typedef struct AreaNormalCenterTLSData {
   int count_co[2];
 } AreaNormalCenterTLSData;
 
-ATTR_NO_OPT static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
+static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
                                                 const int n,
                                                 const TaskParallelTLS *__restrict tls)
 {
@@ -3816,7 +3816,7 @@ void SCULPT_calc_area_normal(
   SCULPT_pbvh_calc_area_normal(brush, ob, nodes, totnode, true, r_area_no);
 }
 
-ATTR_NO_OPT bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
+bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
                                   Object *ob,
                                   PBVHNode **nodes,
                                   int totnode,
@@ -7474,7 +7474,7 @@ float SCULPT_raycast_init(ViewContext *vc,
  * also updates the active vertex and cursor related data of the SculptSession using the mouse
  * position
  */
-ATTR_NO_OPT bool SCULPT_cursor_geometry_info_update(bContext *C,
+bool SCULPT_cursor_geometry_info_update(bContext *C,
                                         SculptCursorGeometryInfo *out,
                                         const float mouse[2],
                                         bool use_sampled_normal,
@@ -8577,7 +8577,10 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
         reports, RPT_WARNING, "Object has non-uniform scale, sculpting may be unpredictable");
   }
   else if (is_negative_m4(ob->obmat)) {
-    BKE_report(reports, RPT_ERROR, "Object has negative scale. \nSculpting may be unpredictable.\nApply scale in object mode with Ctrl A->Scale.");
+    BKE_report(reports,
+               RPT_ERROR,
+               "Object has negative scale. \nSculpting may be unpredictable.\nApply scale in "
+               "object mode with Ctrl A->Scale.");
   }
 
   Paint *paint = BKE_paint_get_active_from_paintmode(scene, PAINT_MODE_SCULPT);

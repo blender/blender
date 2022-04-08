@@ -160,8 +160,8 @@ static void update_node_vb(PBVH *pbvh, PBVHNode *node, int updateflag)
   BB_reset(&vb);
   BB_reset(&orig_vb);
 
-  bool do_orig = updateflag | PBVH_UpdateOriginalBB;
-  bool do_normal = updateflag | PBVH_UpdateBB;
+  bool do_orig = updateflag & PBVH_UpdateOriginalBB;
+  bool do_normal = updateflag & PBVH_UpdateBB;
 
   if (node->flag & PBVH_Leaf) {
     PBVHVertexIter vd;
@@ -792,7 +792,7 @@ PBVH *BKE_pbvh_new(void)
   return pbvh;
 }
 
-ATTR_NO_OPT void BKE_pbvh_free(PBVH *pbvh)
+void BKE_pbvh_free(PBVH *pbvh)
 {
   BKE_pbvh_cache_remove(pbvh);
 
@@ -956,6 +956,11 @@ static PBVHNode *pbvh_iter_next_occluded(PBVHIter *iter)
      * can remove this check if we know meshes have at least 1 face */
     if (node == NULL) {
       return NULL;
+    }
+
+    float ff = dot_v3v3(node->vb.bmin, node->vb.bmax);
+    if (isnan(ff) || !isfinite(ff)) {
+      printf("%s: nan!\n", __func__);
     }
 
     if (iter->scb && !iter->scb(node, iter->search_data)) {
@@ -1173,8 +1178,9 @@ static void pbvh_update_normals_clear_task_cb(void *__restrict userdata,
   }
 }
 
-ATTR_NO_OPT static void pbvh_update_normals_accum_task_cb(
-    void *__restrict userdata, const int n, const TaskParallelTLS *__restrict UNUSED(tls))
+static void pbvh_update_normals_accum_task_cb(void *__restrict userdata,
+                                              const int n,
+                                              const TaskParallelTLS *__restrict UNUSED(tls))
 {
   PBVHUpdateData *data = userdata;
 
@@ -3737,7 +3743,7 @@ const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3]
 void BKE_pbvh_subdiv_ccg_set(PBVH *pbvh, SubdivCCG *subdiv_ccg)
 {
   pbvh->subdiv_ccg = subdiv_ccg;
-  pbvh->gridfaces = (void**) subdiv_ccg->grid_faces;
+  pbvh->gridfaces = (void **)subdiv_ccg->grid_faces;
   pbvh->grid_hidden = subdiv_ccg->grid_hidden;
   pbvh->grid_flag_mats = subdiv_ccg->grid_flag_mats;
   pbvh->grids = subdiv_ccg->grids;
@@ -4860,10 +4866,10 @@ static bool customdata_is_same(const CustomData *a, const CustomData *b)
   return memcmp(a, b, sizeof(CustomData)) == 0;
 }
 
-ATTR_NO_OPT bool BKE_pbvh_cache_is_valid(const Object *ob,
-                                         const Mesh *me,
-                                         const PBVH *pbvh,
-                                         PBVHType pbvh_type)
+bool BKE_pbvh_cache_is_valid(const struct Object *ob,
+                             const struct Mesh *me,
+                             const PBVH *pbvh,
+                             int pbvh_type)
 {
   if (pbvh->invalid) {
     printf("pbvh invalid!\n");
@@ -4980,7 +4986,7 @@ void BKE_pbvh_clear_cache(PBVH *preserve)
   pbvh_clear_cached_pbvhs(NULL);
 }
 
-ATTR_NO_OPT PBVH *BKE_pbvh_get_or_free_cached(Object *ob, Mesh *me, PBVHType pbvh_type)
+PBVH *BKE_pbvh_get_or_free_cached(Object *ob, Mesh *me, PBVHType pbvh_type)
 {
   Object *ob_orig = DEG_get_original_object(ob);
 
@@ -5019,7 +5025,7 @@ ATTR_NO_OPT PBVH *BKE_pbvh_get_or_free_cached(Object *ob, Mesh *me, PBVHType pbv
   return NULL;
 }
 
-ATTR_NO_OPT void BKE_pbvh_set_cached(Object *ob, PBVH *pbvh)
+void BKE_pbvh_set_cached(Object *ob, PBVH *pbvh)
 {
   if (!pbvh) {
     return;
@@ -5087,7 +5093,7 @@ void BKE_pbvh_set_bmesh(PBVH *pbvh, BMesh *bm)
   pbvh->bm = bm;
 }
 
-ATTR_NO_OPT void BKE_pbvh_free_bmesh(PBVH *pbvh, BMesh *bm)
+void BKE_pbvh_free_bmesh(PBVH *pbvh, BMesh *bm)
 {
   if (pbvh) {
     pbvh->bm = NULL;
@@ -5159,15 +5165,15 @@ SculptPMap *BKE_pbvh_make_pmap(const struct Mesh *me)
   SculptPMap *pmap = MEM_callocN(sizeof(*pmap), "SculptPMap");
 
   BKE_mesh_vert_poly_map_create(&pmap->pmap,
-                            &pmap->pmap_mem,
-                            me->mvert,
-                            me->medge,
-                            me->mpoly,
-                            me->mloop,
-                            me->totvert,
-                            me->totpoly,
-                            me->totloop,
-                            false);
+                                &pmap->pmap_mem,
+                                me->mvert,
+                                me->medge,
+                                me->mpoly,
+                                me->mloop,
+                                me->totvert,
+                                me->totpoly,
+                                me->totloop,
+                                false);
 
   pmap->refcount = 1;
 
@@ -5197,4 +5203,3 @@ bool BKE_pbvh_pmap_release(SculptPMap *pmap)
 
   return false;
 }
-

@@ -18,7 +18,7 @@ typedef struct MinMaxHeap {
   int totnode, reserved;
 } MinMaxHeap;
 
-ATTR_NO_OPT static void heap_reserve(MinMaxHeap *heap, unsigned int n)
+static void heap_reserve(MinMaxHeap *heap, unsigned int n)
 {
   if (heap->reserved >= n) {
     return;
@@ -42,7 +42,7 @@ ATTR_NO_OPT static void heap_reserve(MinMaxHeap *heap, unsigned int n)
  *
  * \note Use when the size of the heap is known in advance.
  */
-ATTR_NO_OPT MinMaxHeap *BLI_mm_heap_new_ex(unsigned int tot_reserve)
+MinMaxHeap *BLI_mm_heap_new_ex(unsigned int tot_reserve)
 {
   MinMaxHeap *heap = MEM_callocN(sizeof(*heap), __func__);
   if (tot_reserve) {
@@ -52,7 +52,7 @@ ATTR_NO_OPT MinMaxHeap *BLI_mm_heap_new_ex(unsigned int tot_reserve)
   return heap;
 }
 
-ATTR_NO_OPT MinMaxHeap *BLI_mm_heap_new()
+MinMaxHeap *BLI_mm_heap_new()
 {
   return BLI_mm_heap_new_ex(256);
 }
@@ -69,13 +69,13 @@ void BLI_mm_heap_clear(MinMaxHeap *heap, MinMaxHeapFreeFP ptrfreefp)
   heap->totnode = 0;
 }
 
-ATTR_NO_OPT void BLI_mm_heap_free(MinMaxHeap *heap, MinMaxHeapFreeFP ptrfreefp)
+void BLI_mm_heap_free(MinMaxHeap *heap, MinMaxHeapFreeFP ptrfreefp)
 {
   BLI_mm_heap_clear(heap, ptrfreefp);
   MEM_freeN(heap);
 }
 
-ATTR_NO_OPT static MinMaxHeapNode *heap_make_node(MinMaxHeap *heap)
+static MinMaxHeapNode *heap_make_node(MinMaxHeap *heap)
 {
   heap_reserve(heap, heap->totnode + 1);
 
@@ -87,8 +87,7 @@ ATTR_NO_OPT static MinMaxHeapNode *heap_make_node(MinMaxHeap *heap)
   return node;
 }
 
-ATTR_NO_OPT static MinMaxHeapNode *heap_descent_min2(MinMaxHeap *heap,
-                                                     MinMaxHeapNode *n)
+static MinMaxHeapNode *heap_descent_min2(MinMaxHeap *heap, MinMaxHeapNode *n)
 {
   if (n->child1 != -1 && n->child2 != -1) {
     MinMaxHeapNode *n1 = heap->nodes + n->child1;
@@ -107,7 +106,7 @@ ATTR_NO_OPT static MinMaxHeapNode *heap_descent_min2(MinMaxHeap *heap,
 }
 
 /* find node grandchild */
-ATTR_NO_OPT static MinMaxHeapNode *heap_descent_min(MinMaxHeap *heap, MinMaxHeapNode *node)
+static MinMaxHeapNode *heap_descent_min(MinMaxHeap *heap, MinMaxHeapNode *node)
 {
   if (node->child1 != -1 && node->child2 != -1) {
     MinMaxHeapNode *n1 = heap->nodes + node->child1;
@@ -128,8 +127,7 @@ ATTR_NO_OPT static MinMaxHeapNode *heap_descent_min(MinMaxHeap *heap, MinMaxHeap
   return NULL;
 }
 
-
-ATTR_NO_OPT static MinMaxHeapNode *heap_descent_max2(MinMaxHeap *heap, MinMaxHeapNode *n)
+static MinMaxHeapNode *heap_descent_max2(MinMaxHeap *heap, MinMaxHeapNode *n)
 {
   if (n->child1 != -1 && n->child2 != -1) {
     MinMaxHeapNode *n1 = heap->nodes + n->child1;
@@ -148,7 +146,7 @@ ATTR_NO_OPT static MinMaxHeapNode *heap_descent_max2(MinMaxHeap *heap, MinMaxHea
 }
 
 /* find node grandchild */
-ATTR_NO_OPT static MinMaxHeapNode *heap_descent_max(MinMaxHeap *heap, MinMaxHeapNode *node)
+static MinMaxHeapNode *heap_descent_max(MinMaxHeap *heap, MinMaxHeapNode *node)
 {
   if (node->child1 != -1 && node->child2 != -1) {
     MinMaxHeapNode *n1 = heap->nodes + node->child1;
@@ -169,7 +167,7 @@ ATTR_NO_OPT static MinMaxHeapNode *heap_descent_max(MinMaxHeap *heap, MinMaxHeap
   return NULL;
 }
 
-ATTR_NO_OPT static MinMaxHeapNode *heap_push_down_min(MinMaxHeap *heap, MinMaxHeapNode *node)
+static MinMaxHeapNode *heap_push_down_min(MinMaxHeap *heap, MinMaxHeapNode *node)
 {
   MinMaxHeapNode *ret = NULL;
 
@@ -209,7 +207,7 @@ ATTR_NO_OPT static MinMaxHeapNode *heap_push_down_min(MinMaxHeap *heap, MinMaxHe
   return ret ? ret : node;
 }
 
-ATTR_NO_OPT static MinMaxHeapNode *heap_push_down_max(MinMaxHeap *heap, MinMaxHeapNode *node)
+static MinMaxHeapNode *heap_push_down_max(MinMaxHeap *heap, MinMaxHeapNode *node)
 {
   MinMaxHeapNode *ret = NULL;
 
@@ -245,7 +243,7 @@ ATTR_NO_OPT static MinMaxHeapNode *heap_push_down_max(MinMaxHeap *heap, MinMaxHe
   return ret ? ret : node;
 }
 
-ATTR_NO_OPT static int heap_get_level(const MinMaxHeap *heap, const MinMaxHeapNode *node)
+static int heap_get_level(const MinMaxHeap *heap, const MinMaxHeapNode *node)
 {
   int i = 0;
 
@@ -257,7 +255,7 @@ ATTR_NO_OPT static int heap_get_level(const MinMaxHeap *heap, const MinMaxHeapNo
   return i;
 }
 
-ATTR_NO_OPT static MinMaxHeapNode *heap_push_down(MinMaxHeap *heap, MinMaxHeapNode *node)
+static MinMaxHeapNode *heap_push_down(MinMaxHeap *heap, MinMaxHeapNode *node)
 {
   int i = heap_get_level(heap, node);
 
@@ -269,7 +267,7 @@ ATTR_NO_OPT static MinMaxHeapNode *heap_push_down(MinMaxHeap *heap, MinMaxHeapNo
   }
 }
 
-ATTR_NO_OPT static MinMaxHeapNode *heap_push_up_min(MinMaxHeap *heap, MinMaxHeapNode *node)
+static MinMaxHeapNode *heap_push_up_min(MinMaxHeap *heap, MinMaxHeapNode *node)
 {
   while (node->parent != -1) {
     MinMaxHeapNode *parent = heap->nodes + node->parent;
@@ -290,7 +288,7 @@ ATTR_NO_OPT static MinMaxHeapNode *heap_push_up_min(MinMaxHeap *heap, MinMaxHeap
   return node;
 }
 
-ATTR_NO_OPT static MinMaxHeapNode *heap_push_up_max(MinMaxHeap *heap, MinMaxHeapNode *node)
+static MinMaxHeapNode *heap_push_up_max(MinMaxHeap *heap, MinMaxHeapNode *node)
 {
   while (node->parent != -1) {
     MinMaxHeapNode *parent = heap->nodes + node->parent;
@@ -311,7 +309,7 @@ ATTR_NO_OPT static MinMaxHeapNode *heap_push_up_max(MinMaxHeap *heap, MinMaxHeap
   return node;
 }
 
-ATTR_NO_OPT static MinMaxHeapNode *heap_push_up(MinMaxHeap *heap, MinMaxHeapNode *node)
+static MinMaxHeapNode *heap_push_up(MinMaxHeap *heap, MinMaxHeapNode *node)
 {
   int i = heap_get_level(heap, node);
 
@@ -349,7 +347,7 @@ ATTR_NO_OPT static MinMaxHeapNode *heap_push_up(MinMaxHeap *heap, MinMaxHeapNode
  * Insert heap node with a value (often a 'cost') and pointer into the heap,
  * duplicate values are allowed.
  */
-ATTR_NO_OPT MinMaxHeapNode *BLI_mm_heap_insert(MinMaxHeap *heap, float value, void *ptr)
+MinMaxHeapNode *BLI_mm_heap_insert(MinMaxHeap *heap, float value, void *ptr)
 {
   MinMaxHeapNode *node = heap_make_node(heap);
 
@@ -378,10 +376,10 @@ ATTR_NO_OPT MinMaxHeapNode *BLI_mm_heap_insert(MinMaxHeap *heap, float value, vo
 /**
  * Convenience function since this is a common pattern.
  */
-ATTR_NO_OPT void BLI_mm_heap_insert_or_update(MinMaxHeap *heap,
-                                              MinMaxHeapNode **node_p,
-                                              float value,
-                                              void *ptr)
+void BLI_mm_heap_insert_or_update(MinMaxHeap *heap,
+                                  MinMaxHeapNode **node_p,
+                                  float value,
+                                  void *ptr)
 {
   MinMaxHeapNode *node = *node_p;
 
@@ -396,27 +394,27 @@ ATTR_NO_OPT void BLI_mm_heap_insert_or_update(MinMaxHeap *heap,
   *node_p = node;
 }
 
-ATTR_NO_OPT bool BLI_mm_heap_is_empty(const MinMaxHeap *heap)
+bool BLI_mm_heap_is_empty(const MinMaxHeap *heap)
 {
   return heap->totnode == 0;
 }
 
-ATTR_NO_OPT unsigned int BLI_mm_heap_len(const MinMaxHeap *heap)
+unsigned int BLI_mm_heap_len(const MinMaxHeap *heap)
 {
   return heap->totnode;
 }
 
-ATTR_NO_OPT MinMaxHeapNode *BLI_mm_heap_min(const MinMaxHeap *heap)
+MinMaxHeapNode *BLI_mm_heap_min(const MinMaxHeap *heap)
 {
   return heap->nodes;
 }
 
-ATTR_NO_OPT float BLI_mm_heap_min_value(const MinMaxHeap *heap)
+float BLI_mm_heap_min_value(const MinMaxHeap *heap)
 {
   return heap->nodes[0].value;
 }
 
-ATTR_NO_OPT MinMaxHeapNode *BLI_mm_heap_max(const MinMaxHeap *heap)
+MinMaxHeapNode *BLI_mm_heap_max(const MinMaxHeap *heap)
 {
   if (heap->totnode == 1) {
     return heap->nodes;
@@ -430,12 +428,12 @@ ATTR_NO_OPT MinMaxHeapNode *BLI_mm_heap_max(const MinMaxHeap *heap)
   }
 }
 
-ATTR_NO_OPT float BLI_mm_heap_max_value(const MinMaxHeap *heap)
+float BLI_mm_heap_max_value(const MinMaxHeap *heap)
 {
   return BLI_mm_heap_max(heap)->value;
 }
 
-ATTR_NO_OPT static MinMaxHeapNode *heap_pop_last(MinMaxHeap *heap)
+static MinMaxHeapNode *heap_pop_last(MinMaxHeap *heap)
 {
   MinMaxHeapNode *last = heap->nodes + heap->totnode - 1;
 
@@ -454,7 +452,7 @@ ATTR_NO_OPT static MinMaxHeapNode *heap_pop_last(MinMaxHeap *heap)
   return last;
 }
 
-ATTR_NO_OPT void *BLI_mm_heap_pop_min(MinMaxHeap *heap)
+void *BLI_mm_heap_pop_min(MinMaxHeap *heap)
 {
   void *ret = heap->nodes[0].ptr;
 
@@ -485,7 +483,7 @@ ATTR_NO_OPT void *BLI_mm_heap_pop_min(MinMaxHeap *heap)
   return ret;
 }
 
-ATTR_NO_OPT void *BLI_mm_heap_pop_max(MinMaxHeap *heap)
+void *BLI_mm_heap_pop_max(MinMaxHeap *heap)
 {
   MinMaxHeapNode *node = BLI_mm_heap_max(heap);
 
@@ -535,9 +533,7 @@ ATTR_NO_OPT void *BLI_mm_heap_pop_max(MinMaxHeap *heap)
   return ret;
 }
 
-ATTR_NO_OPT MinMaxHeapNode *BLI_mm_heap_node_value_update(MinMaxHeap *heap,
-                                                          MinMaxHeapNode *node,
-                                                          float value)
+MinMaxHeapNode *BLI_mm_heap_node_value_update(MinMaxHeap *heap, MinMaxHeapNode *node, float value)
 {
   node->value = value;
 
@@ -547,10 +543,10 @@ ATTR_NO_OPT MinMaxHeapNode *BLI_mm_heap_node_value_update(MinMaxHeap *heap,
   return node;
 }
 
-ATTR_NO_OPT MinMaxHeapNode *BLI_mm_heap_node_value_update_ptr(MinMaxHeap *heap,
-                                                              MinMaxHeapNode *node,
-                                                              float value,
-                                                              void *ptr)
+MinMaxHeapNode *BLI_mm_heap_node_value_update_ptr(MinMaxHeap *heap,
+                                                  MinMaxHeapNode *node,
+                                                  float value,
+                                                  void *ptr)
 {
   node->value = value;
   node->ptr = ptr;
@@ -564,26 +560,26 @@ ATTR_NO_OPT MinMaxHeapNode *BLI_mm_heap_node_value_update_ptr(MinMaxHeap *heap,
 /**
  * Return the value or pointer of a heap node.
  */
-ATTR_NO_OPT float BLI_mm_heap_node_value(const MinMaxHeapNode *node)
+float BLI_mm_heap_node_value(const MinMaxHeapNode *node)
 {
   return node->value;
 }
 
-ATTR_NO_OPT void *BLI_mm_heap_node_ptr(const MinMaxHeapNode *node)
+void *BLI_mm_heap_node_ptr(const MinMaxHeapNode *node)
 {
   return node->ptr;
 }
 /**
  * Only for checking internal errors (gtest).
  */
-ATTR_NO_OPT bool BLI_mm_heap_is_valid(const MinMaxHeap *heap)
+bool BLI_mm_heap_is_valid(const MinMaxHeap *heap)
 {
   for (int i = 0; i < heap->totnode; i++) {
     MinMaxHeapNode *node = heap->nodes + i;
 
     int level = heap_get_level(heap, node);
 
-    if (i > 0 && node->parent < 0 || node->parent >= heap->totnode) {
+    if (i > 0 && (node->parent < 0 || node->parent >= heap->totnode)) {
       return false;
     }
 
@@ -616,7 +612,7 @@ ATTR_NO_OPT bool BLI_mm_heap_is_valid(const MinMaxHeap *heap)
 
 #include "BLI_rand.h"
 
-ATTR_NO_OPT void test_mm_heap()
+void test_mm_heap()
 {
   MinMaxHeap *heap = BLI_mm_heap_new();
   RNG *rng = BLI_rng_new(0);

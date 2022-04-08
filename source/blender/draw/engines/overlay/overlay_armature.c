@@ -2529,7 +2529,7 @@ void OVERLAY_armature_cache_finish(OVERLAY_Data *vedata)
   }
 }
 
-ATTR_NO_OPT void OVERLAY_armature_draw(OVERLAY_Data *vedata)
+void OVERLAY_armature_draw(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
 
@@ -2537,7 +2537,7 @@ ATTR_NO_OPT void OVERLAY_armature_draw(OVERLAY_Data *vedata)
   DRW_draw_pass(psl->armature_ps[0]);
 }
 
-ATTR_NO_OPT void OVERLAY_armature_in_front_draw(OVERLAY_Data *vedata)
+void OVERLAY_armature_in_front_draw(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
 

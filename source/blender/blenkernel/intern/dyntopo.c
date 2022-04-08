@@ -3132,7 +3132,7 @@ typedef struct TraceData {
   BMEdge *e;
 } TraceData;
 
-ATTR_NO_OPT void col_on_vert_kill(BMesh *bm, BMVert *v, void *userdata)
+void col_on_vert_kill(BMesh *bm, BMVert *v, void *userdata)
 {
   TraceData *data = (TraceData *)userdata;
   PBVH *pbvh = data->pbvh;
@@ -3149,7 +3149,7 @@ ATTR_NO_OPT void col_on_vert_kill(BMesh *bm, BMVert *v, void *userdata)
   }
 }
 
-ATTR_NO_OPT void col_on_edge_kill(BMesh *bm, BMEdge *e, void *userdata)
+void col_on_edge_kill(BMesh *bm, BMEdge *e, void *userdata)
 {
   TraceData *data = (TraceData *)userdata;
   PBVH *pbvh = data->pbvh;
@@ -3161,7 +3161,7 @@ ATTR_NO_OPT void col_on_edge_kill(BMesh *bm, BMEdge *e, void *userdata)
   }
 }
 
-ATTR_NO_OPT void col_on_face_kill(BMesh *bm, BMFace *f, void *userdata)
+void col_on_face_kill(BMesh *bm, BMFace *f, void *userdata)
 {
   TraceData *data = (TraceData *)userdata;
   PBVH *pbvh = data->pbvh;
@@ -3176,7 +3176,7 @@ ATTR_NO_OPT void col_on_face_kill(BMesh *bm, BMFace *f, void *userdata)
   }
 }
 
-ATTR_NO_OPT void col_on_vert_add(BMesh *bm, BMVert *v, void *userdata)
+void col_on_vert_add(BMesh *bm, BMVert *v, void *userdata)
 {
   TraceData *data = (TraceData *)userdata;
   PBVH *pbvh = data->pbvh;
@@ -3187,7 +3187,7 @@ ATTR_NO_OPT void col_on_vert_add(BMesh *bm, BMVert *v, void *userdata)
   BM_log_vert_topo_post(pbvh->bm_log, v);
 }
 
-ATTR_NO_OPT void col_on_edge_add(BMesh *bm, BMEdge *e, void *userdata)
+void col_on_edge_add(BMesh *bm, BMEdge *e, void *userdata)
 {
   TraceData *data = (TraceData *)userdata;
   PBVH *pbvh = data->pbvh;
@@ -3195,7 +3195,7 @@ ATTR_NO_OPT void col_on_edge_add(BMesh *bm, BMEdge *e, void *userdata)
   BM_log_edge_topo_post(pbvh->bm_log, e);
 }
 
-ATTR_NO_OPT void col_on_face_add(BMesh *bm, BMFace *f, void *userdata)
+void col_on_face_add(BMesh *bm, BMFace *f, void *userdata)
 {
   TraceData *data = (TraceData *)userdata;
   PBVH *pbvh = data->pbvh;
@@ -3343,12 +3343,12 @@ void vert_ring_do_apply(BMVert *v,
 const int COLLAPSE_TAG = BM_ELEM_INTERNAL_TAG;
 const int COLLAPSE_FACE_TAG = BM_ELEM_TAG_ALT;
 
-ATTR_NO_OPT static void vert_ring_do(BMVert *v,
-                                     void (*callback)(BMElem *elem, void *userdata),
-                                     void *userdata,
-                                     int tag,
-                                     int facetag,
-                                     int depth)
+static void vert_ring_do(BMVert *v,
+                         void (*callback)(BMElem *elem, void *userdata),
+                         void *userdata,
+                         int tag,
+                         int facetag,
+                         int depth)
 {
   if (!v->e) {
     v->head.hflag &= ~tag;
@@ -3361,12 +3361,12 @@ ATTR_NO_OPT static void vert_ring_do(BMVert *v,
   vert_ring_do_apply(v, callback, userdata, tag, facetag, depth);
 }
 
-ATTR_NO_OPT static void edge_ring_do(BMEdge *e,
-                                     void (*callback)(BMElem *elem, void *userdata),
-                                     void *userdata,
-                                     int tag,
-                                     int facetag,
-                                     int depth)
+static void edge_ring_do(BMEdge *e,
+                         void (*callback)(BMElem *elem, void *userdata),
+                         void *userdata,
+                         int tag,
+                         int facetag,
+                         int depth)
 {
 
   vert_ring_do_tag(e->v1, tag, facetag, depth);
@@ -3449,7 +3449,7 @@ ATTR_NO_OPT static void edge_ring_do(BMEdge *e,
   }
 }
 
-ATTR_NO_OPT static void collapse_ring_callback_pre2(BMElem *elem, void *userdata)
+static void collapse_ring_callback_pre2(BMElem *elem, void *userdata)
 {
   TraceData *data = (TraceData *)userdata;
   PBVH *pbvh = data->pbvh;
@@ -3470,7 +3470,7 @@ ATTR_NO_OPT static void collapse_ring_callback_pre2(BMElem *elem, void *userdata
   }
 }
 
-ATTR_NO_OPT static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
+static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
 {
   bm_logstack_push();
 
@@ -3537,7 +3537,7 @@ ATTR_NO_OPT static void collapse_ring_callback_pre(BMElem *elem, void *userdata)
   bm_logstack_pop();
 }
 
-ATTR_NO_OPT static void collapse_ring_callback_post(BMElem *elem, void *userdata)
+static void collapse_ring_callback_post(BMElem *elem, void *userdata)
 {
   bm_logstack_push();
 
@@ -3581,13 +3581,13 @@ ATTR_NO_OPT static void collapse_ring_callback_post(BMElem *elem, void *userdata
   bm_logstack_pop();
 }
 
-ATTR_NO_OPT static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
-                                                    BMEdge *e,
-                                                    BMVert *v1,
-                                                    BMVert *v2,
-                                                    GHash *deleted_verts,
-                                                    BLI_Buffer *deleted_faces,
-                                                    EdgeQueueContext *eq_ctx)
+static BMVert *pbvh_bmesh_collapse_edge(PBVH *pbvh,
+                                        BMEdge *e,
+                                        BMVert *v1,
+                                        BMVert *v2,
+                                        GHash *deleted_verts,
+                                        BLI_Buffer *deleted_faces,
+                                        EdgeQueueContext *eq_ctx)
 {
   bm_logstack_push();
 
@@ -3983,7 +3983,7 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
                     const bool use_frontface,
                     const bool use_projected)
 {
-  return false; //XXX not working with local collapse/subdivide mode
+  return false;  // XXX not working with local collapse/subdivide mode
   bool modified = false;
 
   bm_logstack_push();
@@ -4473,20 +4473,20 @@ float mask_cb_nop(SculptVertRef vertex, void *userdata)
 }
 
 /* Collapse short edges, subdivide long edges */
-ATTR_NO_OPT bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
-                                                PBVHTopologyUpdateMode mode,
-                                                const float center[3],
-                                                const float view_normal[3],
-                                                float radius,
-                                                const bool use_frontface,
-                                                const bool use_projected,
-                                                int sym_axis,
-                                                bool updatePBVH,
-                                                DyntopoMaskCB mask_cb,
-                                                void *mask_cb_data,
-                                                int custom_max_steps,
-                                                bool disable_surface_relax,
-                                                bool is_snake_hook)
+bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
+                                    PBVHTopologyUpdateMode mode,
+                                    const float center[3],
+                                    const float view_normal[3],
+                                    float radius,
+                                    const bool use_frontface,
+                                    const bool use_projected,
+                                    int sym_axis,
+                                    bool updatePBVH,
+                                    DyntopoMaskCB mask_cb,
+                                    void *mask_cb_data,
+                                    int custom_max_steps,
+                                    bool disable_surface_relax,
+                                    bool is_snake_hook)
 {
   /* Disable surface smooth if uv layers are present, to avoid expensive reprojection operation. */
   if (!is_snake_hook && CustomData_has_layer(&pbvh->bm->ldata, CD_MLOOPUV)) {
@@ -4953,12 +4953,12 @@ static const int splitmap[43][16] = {
     {6, -1, 3, -1, 5, -1, 1, -1},  // 42
 };
 
-ATTR_NO_OPT static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
-                                         PBVH *pbvh,
-                                         BMesh *bm,
-                                         BMEdge **edges1,
-                                         int totedge,
-                                         bool ignore_isolated_edges)
+static void pbvh_split_edges(EdgeQueueContext *eq_ctx,
+                             PBVH *pbvh,
+                             BMesh *bm,
+                             BMEdge **edges1,
+                             int totedge,
+                             bool ignore_isolated_edges)
 {
   bm_logstack_push();
 

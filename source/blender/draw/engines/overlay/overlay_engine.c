@@ -513,7 +513,7 @@ static void OVERLAY_cache_finish(void *vedata)
   OVERLAY_image_cache_finish(vedata);
 }
 
-ATTR_NO_OPT static void OVERLAY_draw_scene(void *vedata)
+static void OVERLAY_draw_scene(void *vedata)
 {
   OVERLAY_Data *data = vedata;
   OVERLAY_PrivateData *pd = data->stl->pd;

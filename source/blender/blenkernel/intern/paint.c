@@ -1859,6 +1859,18 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
       for (a = 0; a < me->totvert; a++) {
         invert_m3(ss->deform_imats[a]);
+
+        float *co = ss->deform_cos[a];
+        float ff = dot_v3v3(co, co);
+        if (isnan(ff) || !isfinite(ff)) {
+          printf("%s: nan1! %.4f %.4f %.4f\n", __func__, co[0], co[1], co[2]);
+        }
+
+        ff = determinant_m3_array(ss->deform_imats[a]);
+
+        if (isnan(ff) || !isfinite(ff)) {
+          printf("%s: nan2!\n", __func__);
+        }
       }
     }
   }
@@ -2403,7 +2415,7 @@ void BKE_sculpt_ensure_orig_mesh_data(Scene *scene, Object *object)
   DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
 }
 
-ATTR_NO_OPT static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool update_sculptverts)
+static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool update_sculptverts)
 {
   Mesh *me = BKE_object_get_original_mesh(ob);
 
@@ -2454,9 +2466,7 @@ ATTR_NO_OPT static PBVH *build_pbvh_for_dynamic_topology(Object *ob, bool update
   return pbvh;
 }
 
-ATTR_NO_OPT static PBVH *build_pbvh_from_regular_mesh(Object *ob,
-                                                      Mesh *me_eval_deform,
-                                                      bool respect_hide)
+static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform, bool respect_hide)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *me = BKE_object_get_original_mesh(ob);
