@@ -1217,6 +1217,114 @@ void SCENE_OT_view_layer_remove_lightgroup(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name View Layer Add Used Lightgroups Operator
+ * \{ */
+
+static GSet *get_used_lightgroups(Scene *scene)
+{
+  GSet *used_lightgroups = BLI_gset_str_new(__func__);
+
+  FOREACH_SCENE_OBJECT_BEGIN (scene, ob) {
+    if (ob->lightgroup && ob->lightgroup->name[0]) {
+      BLI_gset_add(used_lightgroups, ob->lightgroup->name);
+    }
+  }
+  FOREACH_SCENE_OBJECT_END;
+
+  if (scene->world && scene->world->lightgroup && scene->world->lightgroup->name[0]) {
+    BLI_gset_add(used_lightgroups, scene->world->lightgroup->name);
+  }
+
+  return used_lightgroups;
+}
+
+static int view_layer_add_used_lightgroups_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  GSet *used_lightgroups = get_used_lightgroups(scene);
+  GSET_FOREACH_BEGIN (const char *, used_lightgroup, used_lightgroups) {
+    if (!BLI_findstring(
+            &view_layer->lightgroups, used_lightgroup, offsetof(ViewLayerLightgroup, name))) {
+      BKE_view_layer_add_lightgroup(view_layer, used_lightgroup);
+    }
+  }
+  GSET_FOREACH_END();
+  BLI_gset_free(used_lightgroups, nullptr);
+
+  if (scene->nodetree) {
+    ntreeCompositUpdateRLayers(scene->nodetree);
+  }
+
+  DEG_id_tag_update(&scene->id, 0);
+  DEG_relations_tag_update(CTX_data_main(C));
+  WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
+
+  return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_view_layer_add_used_lightgroups(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Add Used Lightgroups";
+  ot->idname = "SCENE_OT_view_layer_add_used_lightgroups";
+  ot->description = "Add all used Light Groups";
+
+  /* api callbacks */
+  ot->exec = view_layer_add_used_lightgroups_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Layer Remove Unussed Lightgroups Operator
+ * \{ */
+
+static int view_layer_remove_unused_lightgroups_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  GSet *used_lightgroups = get_used_lightgroups(scene);
+  LISTBASE_FOREACH_MUTABLE (ViewLayerLightgroup *, lightgroup, &view_layer->lightgroups) {
+    if (!BLI_gset_haskey(used_lightgroups, lightgroup->name)) {
+      BKE_view_layer_remove_lightgroup(view_layer, lightgroup);
+    }
+  }
+  BLI_gset_free(used_lightgroups, nullptr);
+
+  if (scene->nodetree) {
+    ntreeCompositUpdateRLayers(scene->nodetree);
+  }
+
+  DEG_id_tag_update(&scene->id, 0);
+  DEG_relations_tag_update(CTX_data_main(C));
+  WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
+
+  return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_view_layer_remove_unused_lightgroups(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Remove Unused Lightgroups";
+  ot->idname = "SCENE_OT_view_layer_remove_unused_lightgroups";
+  ot->description = "Remove all unused Light Groups";
+
+  /* api callbacks */
+  ot->exec = view_layer_remove_unused_lightgroups_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Light Cache Bake Operator
  * \{ */
 
