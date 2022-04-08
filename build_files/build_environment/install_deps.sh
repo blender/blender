@@ -3922,7 +3922,7 @@ install_DEB() {
              libxcursor-dev libxi-dev wget libsqlite3-dev libxrandr-dev libxinerama-dev \
              libwayland-dev wayland-protocols libegl-dev libxkbcommon-dev libdbus-1-dev linux-libc-dev \
              libbz2-dev libncurses5-dev libssl-dev liblzma-dev libreadline-dev \
-             libopenal-dev libglew-dev yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV \
+             libopenal-dev libglew-dev yasm \
              libsdl2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev libjemalloc-dev \
              libgmp-dev libpugixml-dev libpotrace-dev libhpdf-dev libzstd-dev libpystring-dev"
              # libglewmx-dev  (broken in deb testing currently...)
@@ -3995,52 +3995,40 @@ install_DEB() {
     install_packages_DEB $LIBSNDFILE_DEV
   fi
 
-  PRINT ""
   X264_DEV="libx264-dev"
   check_package_version_ge_DEB $X264_DEV $X264_VERSION_MIN
   if [ $? -eq 0 ]; then
-    install_packages_DEB $X264_DEV
     X264_USE=true
   fi
 
-  PRINT ""
   WEBP_DEV="libwebp-dev"
   check_package_DEB $WEBP_DEV
   if [ $? -eq 0 ]; then
-    install_packages_DEB $WEBP_DEV
     WEBP_USE=true
   fi
 
   if [ "$WITH_ALL" = true ]; then
-    PRINT ""
     XVID_DEV="libxvidcore-dev"
     check_package_DEB $XVID_DEV
     if [ $? -eq 0 ]; then
-      install_packages_DEB $XVID_DEV
       XVID_USE=true
     fi
 
-    PRINT ""
     MP3LAME_DEV="libmp3lame-dev"
     check_package_DEB $MP3LAME_DEV
     if [ $? -eq 0 ]; then
-      install_packages_DEB $MP3LAME_DEV
       MP3LAME_USE=true
     fi
 
-    PRINT ""
     VPX_DEV="libvpx-dev"
     check_package_version_ge_DEB $VPX_DEV $VPX_VERSION_MIN
     if [ $? -eq 0 ]; then
-      install_packages_DEB $VPX_DEV
       VPX_USE=true
     fi
 
-    PRINT ""
     OPUS_DEV="libopus-dev"
     check_package_version_ge_DEB $OPUS_DEV $OPUS_VERSION_MIN
     if [ $? -eq 0 ]; then
-      install_packages_DEB $OPUS_DEV
       OPUS_USE=true
     fi
   fi
@@ -4406,11 +4394,12 @@ install_DEB() {
   fi
 
   PRINT ""
+  _do_compile_ffmpeg=false
   if [ "$FFMPEG_SKIP" = true ]; then
     WARNING "Skipping FFMpeg installation, as requested..."
   elif [ "$FFMPEG_FORCE_BUILD" = true ]; then
     INFO "Forced FFMpeg building, as requested..."
-    compile_FFmpeg
+    _do_compile_ffmpeg=true
   else
     # XXX Debian Testing / Ubuntu 16.04 finally includes FFmpeg, so check as usual
     check_package_DEB ffmpeg
@@ -4420,11 +4409,44 @@ install_DEB() {
         install_packages_DEB libavdevice-dev
         clean_FFmpeg
       else
-        compile_FFmpeg
+        _do_compile_ffmpeg=true
       fi
     else
-      compile_FFmpeg
+      _do_compile_ffmpeg=true
     fi
+  fi
+  if [ "$_do_compile_ffmpeg" = true ]; then
+    _packages=""
+    if [ "$VORBIS_USE" = true ]; then
+      _packages="$_packages $VORBIS_DEV"
+    fi
+    if [ "$THEORA_USE" = true ]; then
+      _packages="$_packages $THEORA_DEV"
+    fi
+    if [ "$OGG_USE" = true ]; then
+      _packages="$_packages $OGG_DEV"
+    fi
+    if [ "$XVID_USE" = true ]; then
+      _packages="$_packages $XVID_DEV"
+    fi
+    if [ "$X264_USE" = true ]; then
+      _packages="$_packages $X264_DEV"
+    fi
+    if [ "$VPX_USE" = true ]; then
+      _packages="$_packages $VPX_DEV"
+    fi
+    if [ "$WEBP_USE" = true ]; then
+      _packages="$_packages $WEBP_DEV"
+    fi
+    if [ "$OPUS_USE" = true ]; then
+      _packages="$_packages $OPUS_DEV"
+    fi
+    if [ "$MP3LAME_USE" = true ]; then
+      _packages="$_packages $MP3LAME_DEV"
+    fi
+    install_packages_DEB $_packages
+
+    compile_FFmpeg
   fi
 
   PRINT ""
@@ -4616,7 +4638,7 @@ install_RPM() {
              libX11-devel libXi-devel libXcursor-devel libXrandr-devel libXinerama-devel \
              wayland-devel wayland-protocols-devel mesa-libEGL-devel libxkbcommon-devel dbus-devel kernel-headers \
              wget ncurses-devel readline-devel $OPENJPEG_DEV openal-soft-devel \
-             glew-devel yasm $THEORA_DEV $VORBIS_DEV $OGG_DEV patch \
+             glew-devel yasm patch \
              libxml2-devel yaml-cpp-devel tinyxml-devel jemalloc-devel \
              gmp-devel pugixml-devel potrace-devel libharu-devel libzstd-devel pystring-devel"
 
@@ -4639,28 +4661,22 @@ install_RPM() {
     PRINT ""
     install_packages_RPM $_packages
 
-    PRINT ""
     X264_DEV="x264-devel"
     check_package_version_ge_RPM $X264_DEV $X264_VERSION_MIN
     if [ $? -eq 0 ]; then
-      install_packages_RPM $X264_DEV
       X264_USE=true
     fi
 
     if [ "$WITH_ALL" = true ]; then
-      PRINT ""
       XVID_DEV="xvidcore-devel"
       check_package_RPM $XVID_DEV
       if [ $? -eq 0 ]; then
-        install_packages_RPM $XVID_DEV
         XVID_USE=true
       fi
 
-      PRINT ""
       MP3LAME_DEV="lame-devel"
       check_package_RPM $MP3LAME_DEV
       if [ $? -eq 0 ]; then
-        install_packages_RPM $MP3LAME_DEV
         MP3LAME_USE=true
       fi
     fi
@@ -4668,35 +4684,29 @@ install_RPM() {
   elif [ "$RPM" = "SUSE" ]; then
     _packages="$_packages freetype2-devel"
 
-    PRINT ""
-    install_packages_RPM $_packages
-
-    PRINT ""
-    X264_DEV="libx264-devel"
-    check_package_version_ge_RPM $X264_DEV $X264_VERSION_MIN
-    if [ $? -eq 0 ]; then
-      install_packages_RPM $X264_DEV
-      X264_USE=true
-    fi
-
     if [ "$WITH_PULSEAUDIO" = true ]; then
       _packages="$_packages libpulse-devel"
     fi
 
+    PRINT ""
+    install_packages_RPM $_packages
+
+    X264_DEV="libx264-devel"
+    check_package_version_ge_RPM $X264_DEV $X264_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      X264_USE=true
+    fi
+
     if [ "$WITH_ALL" = true ]; then
-      PRINT ""
       XVID_DEV="libxvidcore-devel"
       check_package_RPM $XVID_DEV
       if [ $? -eq 0 ]; then
-        install_packages_RPM $XVID_DEV
         XVID_USE=true
       fi
 
-      PRINT ""
       MP3LAME_DEV="libmp3lame-devel"
       check_package_RPM $MP3LAME_DEV
       if [ $? -eq 0 ]; then
-        install_packages_RPM $MP3LAME_DEV
         MP3LAME_USE=true
       fi
     fi
@@ -4709,31 +4719,25 @@ install_RPM() {
     install_packages_RPM $LIBSNDFILE_DEV
   fi
 
-  PRINT ""
   WEBP_DEV="libwebp-devel"
   check_package_RPM $WEBP_DEV
   if [ $? -eq 0 ]; then
-    install_packages_RPM $WEBP_DEV
     WEBP_USE=true
   fi
 
   if [ "$WITH_ALL" = true ]; then
-    PRINT ""
     VPX_DEV="libvpx-devel"
     check_package_version_ge_RPM $VPX_DEV $VPX_VERSION_MIN
     if [ $? -eq 0 ]; then
-      install_packages_RPM $VPX_DEV
       VPX_USE=true
     fi
 
     PRINT ""
     install_packages_RPM libspnav-devel
 
-    PRINT ""
     OPUS_DEV="libopus-devel"
     check_package_version_ge_RPM $OPUS_DEV $OPUS_VERSION_MIN
     if [ $? -eq 0 ]; then
-      install_packages_RPM $OPUS_DEV
       OPUS_USE=true
     fi
   fi
@@ -5085,19 +5089,53 @@ install_RPM() {
   fi
 
   PRINT ""
+  _do_compile_ffmpeg=false
   if [ "$FFMPEG_SKIP" = true ]; then
     WARNING "Skipping FFMpeg installation, as requested..."
   elif [ "$FFMPEG_FORCE_BUILD" = true ]; then
     INFO "Forced FFMpeg building, as requested..."
-    compile_FFmpeg
+    _do_compile_ffmpeg=true
   else
     check_package_version_ge_lt_RPM ffmpeg-devel $FFMPEG_VERSION_MIN $FFMPEG_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_RPM ffmpeg ffmpeg-devel
       clean_FFmpeg
     else
-      compile_FFmpeg
+      _do_compile_ffmpeg=true
     fi
+  fi
+  if [ "$_do_compile_ffmpeg" = true ]; then
+    _packages=""
+    if [ "$VORBIS_USE" = true ]; then
+      _packages="$_packages $VORBIS_DEV"
+    fi
+    if [ "$THEORA_USE" = true ]; then
+      _packages="$_packages $THEORA_DEV"
+    fi
+    if [ "$OGG_USE" = true ]; then
+      _packages="$_packages $OGG_DEV"
+    fi
+    if [ "$XVID_USE" = true ]; then
+      _packages="$_packages $XVID_DEV"
+    fi
+    if [ "$X264_USE" = true ]; then
+      _packages="$_packages $X264_DEV"
+    fi
+    if [ "$VPX_USE" = true ]; then
+      _packages="$_packages $VPX_DEV"
+    fi
+    if [ "$WEBP_USE" = true ]; then
+      _packages="$_packages $WEBP_DEV"
+    fi
+    if [ "$OPUS_USE" = true ]; then
+      _packages="$_packages $OPUS_DEV"
+    fi
+    if [ "$MP3LAME_USE" = true ]; then
+      _packages="$_packages $MP3LAME_DEV"
+    fi
+    install_packages_RPM $_packages
+
+    compile_FFmpeg
   fi
 
   PRINT ""
@@ -5222,7 +5260,7 @@ install_ARCH() {
 
   _packages="$BASE_DEVEL git cmake fontconfig flex \
              libxi libxcursor libxrandr libxinerama glew libpng libtiff wget openal \
-             $OPENJPEG_DEV $VORBIS_DEV $OGG_DEV $THEORA_DEV yasm sdl2 fftw \
+             $OPENJPEG_DEV yasm sdl2 fftw \
              libxml2 yaml-cpp tinyxml python-requests jemalloc gmp potrace pugixml libharu \
              zstd pystring"
 
@@ -5253,52 +5291,40 @@ install_ARCH() {
     install_packages_ARCH $LIBSNDFILE_DEV
   fi
 
-  PRINT ""
   X264_DEV="x264"
   check_package_version_ge_ARCH $X264_DEV $X264_VERSION_MIN
   if [ $? -eq 0 ]; then
-    install_packages_ARCH $X264_DEV
     X264_USE=true
   fi
 
-  PRINT ""
   WEBP_DEV="libwebp"
   check_package_ARCH $WEBP_DEV
   if [ $? -eq 0 ]; then
-    install_packages_ARCH $WEBP_DEV
     WEBP_USE=true
   fi
 
   if [ "$WITH_ALL" = true ]; then
-    PRINT ""
     XVID_DEV="xvidcore"
     check_package_ARCH $XVID_DEV
     if [ $? -eq 0 ]; then
-      install_packages_ARCH $XVID_DEV
       XVID_USE=true
     fi
 
-    PRINT ""
     MP3LAME_DEV="lame"
     check_package_ARCH $MP3LAME_DEV
     if [ $? -eq 0 ]; then
-      install_packages_ARCH $MP3LAME_DEV
       MP3LAME_USE=true
     fi
 
-    PRINT ""
     VPX_DEV="libvpx"
     check_package_version_ge_ARCH $VPX_DEV $VPX_VERSION_MIN
     if [ $? -eq 0 ]; then
-      install_packages_ARCH $VPX_DEV
       VPX_USE=true
     fi
 
-    PRINT ""
     OPUS_DEV="opus"
     check_package_version_ge_ARCH $OPUS_DEV $OPUS_VERSION_MIN
     if [ $? -eq 0 ]; then
-      install_packages_ARCH $OPUS_DEV
       OPUS_USE=true
     fi
   fi
@@ -5643,19 +5669,53 @@ install_ARCH() {
   fi
 
   PRINT ""
+  _do_compile_ffmpeg=false
   if [ "$FFMPEG_SKIP" = true ]; then
     WARNING "Skipping FFMpeg installation, as requested..."
   elif [ "$FFMPEG_FORCE_BUILD" = true ]; then
     INFO "Forced FFMpeg building, as requested..."
-    compile_FFmpeg
+    _do_compile_ffmpeg=true
   else
     check_package_version_ge_lt_ARCH ffmpeg $FFMPEG_VERSION_MIN $FFMPEG_VERSION_MEX
     if [ $? -eq 0 ]; then
       install_packages_ARCH ffmpeg
       clean_FFmpeg
     else
-      compile_FFmpeg
+      _do_compile_ffmpeg=true
     fi
+  fi
+  if [ "$_do_compile_ffmpeg" = true ]; then
+    _packages=""
+    if [ "$VORBIS_USE" = true ]; then
+      _packages="$_packages $VORBIS_DEV"
+    fi
+    if [ "$THEORA_USE" = true ]; then
+      _packages="$_packages $THEORA_DEV"
+    fi
+    if [ "$OGG_USE" = true ]; then
+      _packages="$_packages $OGG_DEV"
+    fi
+    if [ "$XVID_USE" = true ]; then
+      _packages="$_packages $XVID_DEV"
+    fi
+    if [ "$X264_USE" = true ]; then
+      _packages="$_packages $X264_DEV"
+    fi
+    if [ "$VPX_USE" = true ]; then
+      _packages="$_packages $VPX_DEV"
+    fi
+    if [ "$WEBP_USE" = true ]; then
+      _packages="$_packages $WEBP_DEV"
+    fi
+    if [ "$OPUS_USE" = true ]; then
+      _packages="$_packages $OPUS_DEV"
+    fi
+    if [ "$MP3LAME_USE" = true ]; then
+      _packages="$_packages $MP3LAME_DEV"
+    fi
+    install_packages_ARCH $_packages
+
+    compile_FFmpeg
   fi
 
   PRINT ""
