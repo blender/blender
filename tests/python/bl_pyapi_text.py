@@ -40,9 +40,9 @@ class TestText(unittest.TestCase):
         )
         self.text.write(tmp_text)
         # Get string in the middle of the text.
-        self.assertEqual(self.text.region_as_string(((1, 0), (1, -1))), "Line 2: test line 2")
+        self.assertEqual(self.text.region_as_string(range=((1, 0), (1, -1))), "Line 2: test line 2")
         # Big range test.
-        self.assertEqual(self.text.region_as_string(((-10000, -10000), (10000, 10000))), tmp_text)
+        self.assertEqual(self.text.region_as_string(range=((-10000, -10000), (10000, 10000))), tmp_text)
 
     def test_text_region_from_string(self):
         tmp_text = (
@@ -52,10 +52,10 @@ class TestText(unittest.TestCase):
         )
         self.text.write(tmp_text)
         # Set string in the middle of the text.
-        self.text.region_from_string("line 2", ((1, 0), (1, -1)))
+        self.text.region_from_string("line 2", range=((1, 0), (1, -1)))
         self.assertEqual(self.text.as_string(), tmp_text.replace("Line 2: test line 2", "line 2") + "\n")
         # Large range test.
-        self.text.region_from_string("New Text", ((-10000, -10000), (10000, 10000)))
+        self.text.region_from_string("New Text", range=((-10000, -10000), (10000, 10000)))
         self.assertEqual(self.text.as_string(), "New Text\n")
 
 

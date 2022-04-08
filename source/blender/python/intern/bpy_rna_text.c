@@ -36,6 +36,8 @@ typedef struct TextRegion {
   int selc;
 } TextRegion;
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Text Editor Get / Set region text API
  * \{ */
@@ -53,18 +55,27 @@ PyDoc_STRVAR(bpy_rna_region_as_string_doc,
              "   :return: The specified region as a string.\n"
              "   :rtype: str.\n");
 /* Receive a Python Tuple as parameter to represent the region range. */
-static PyObject *bpy_rna_region_as_string(PyObject *self, PyObject *args)
+static PyObject *bpy_rna_region_as_string(PyObject *self, PyObject *args, PyObject *kwds)
 {
   BPy_StructRNA *pyrna = (BPy_StructRNA *)self;
   Text *text = pyrna->ptr.data;
   /* Parse the region range. */
   TextRegion region;
-  if (!PyArg_ParseTuple(
-          args, "|((ii)(ii))", &region.curl, &region.curc, &region.sell, &region.selc)) {
+
+  static const char *_keywords[] = {"range", NULL};
+  static _PyArg_Parser _parser = {
+      "|$"         /* Optional keyword only arguments. */
+      "((ii)(ii))" /* `range` */
+      ":region_as_string",
+      _keywords,
+      0,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(
+          args, kwds, &_parser, &region.curl, &region.curc, &region.sell, &region.selc)) {
     return NULL;
   }
 
-  if (PyTuple_GET_SIZE(args) > 0) {
+  if (PyDict_GET_SIZE(kwds) > 0) {
     txt_sel_set(text, region.curl, region.curc, region.sell, region.selc);
   }
 
@@ -98,7 +109,7 @@ PyDoc_STRVAR(bpy_rna_region_from_string_doc,
              "      The values match Python's slicing logic "
              "(negative values count backwards from the end, the end value is not inclusive).\n"
              "   :type range: Two pairs of ints\n");
-static PyObject *bpy_rna_region_from_string(PyObject *self, PyObject *args)
+static PyObject *bpy_rna_region_from_string(PyObject *self, PyObject *args, PyObject *kwds)
 {
   BPy_StructRNA *pyrna = (BPy_StructRNA *)self;
   Text *text = pyrna->ptr.data;
@@ -107,18 +118,29 @@ static PyObject *bpy_rna_region_from_string(PyObject *self, PyObject *args)
   const char *buf;
   Py_ssize_t buf_len;
   TextRegion region;
-  if (!PyArg_ParseTuple(args,
-                        "s#|((ii)(ii))",
-                        &buf,
-                        &buf_len,
-                        &region.curl,
-                        &region.curc,
-                        &region.sell,
-                        &region.selc)) {
+
+  static const char *_keywords[] = {"", "range", NULL};
+  static _PyArg_Parser _parser = {
+      "s#"         /* `buf` (positional). */
+      "|$"         /* Optional keyword only arguments. */
+      "((ii)(ii))" /* `range` */
+      ":region_from_string",
+      _keywords,
+      0,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(args,
+                                        kwds,
+                                        &_parser,
+                                        &buf,
+                                        &buf_len,
+                                        &region.curl,
+                                        &region.curc,
+                                        &region.sell,
+                                        &region.selc)) {
     return NULL;
   }
 
-  if (PyTuple_GET_SIZE(args) > 1) {
+  if (PyDict_GET_SIZE(kwds) > 0) {
     txt_sel_set(text, region.curl, region.curc, region.sell, region.selc);
   }
 
@@ -133,7 +155,7 @@ static PyObject *bpy_rna_region_from_string(PyObject *self, PyObject *args)
 PyMethodDef BPY_rna_region_from_string_method_def = {
     "region_from_string",
     (PyCFunction)bpy_rna_region_from_string,
-    METH_VARARGS,
+    METH_VARARGS | METH_KEYWORDS,
     bpy_rna_region_from_string_doc,
 };
 
