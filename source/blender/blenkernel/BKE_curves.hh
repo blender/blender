@@ -40,7 +40,7 @@ namespace curves::nurbs {
 struct BasisCache {
   /**
    * For each evaluated point, the weight for all control points that influences it.
-   * The vector's size is the evaluated point count multiplied by the spline's order.
+   * The vector's size is the evaluated point count multiplied by the curve's order.
    */
   Vector<float> weights;
   /**
@@ -61,7 +61,7 @@ class CurvesGeometryRuntime {
  public:
   /**
    * Cache of offsets into the evaluated array for each curve, accounting for all previous
-   * evaluated points, Bezier curve vector segments, different resolutions per spline, etc.
+   * evaluated points, Bezier curve vector segments, different resolutions per curve, etc.
    */
   mutable Vector<int> evaluated_offsets_cache;
   mutable Vector<int> bezier_evaluated_offsets;
@@ -86,13 +86,13 @@ class CurvesGeometryRuntime {
   mutable std::mutex length_cache_mutex;
   mutable bool length_cache_dirty = true;
 
-  /** Direction of the spline at each evaluated point. */
-  mutable Vector<float3> evaluated_tangents_cache;
+  /** Direction of the curve at each evaluated point. */
+  mutable Vector<float3> evaluated_tangent_cache;
   mutable std::mutex tangent_cache_mutex;
   mutable bool tangent_cache_dirty = true;
 
   /** Normal direction vectors for each evaluated point. */
-  mutable Vector<float3> evaluated_normals_cache;
+  mutable Vector<float3> evaluated_normal_cache;
   mutable std::mutex normal_cache_mutex;
   mutable bool normal_cache_dirty = true;
 };
@@ -515,7 +515,7 @@ int calculate_evaluated_size(
 int knots_size(int points_num, int8_t order, bool cyclic);
 
 /**
- * Calculate the knots for a spline given its properties, based on built-in standards defined by
+ * Calculate the knots for a curve given its properties, based on built-in standards defined by
  * #KnotsMode.
  *
  * \note Theoretically any sorted values can be used for NURBS knots, but calculating based
