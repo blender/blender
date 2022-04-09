@@ -1627,7 +1627,7 @@ static bool gpencil_sculpt_brush_do_frame(bContext *C,
              */
             gpencil_brush_grab_stroke_init(gso, gps_active);
             changed |= gpencil_sculpt_brush_do_stroke(
-                gso, gps_active, diff_mat, gpencil_brush_grab_store_points);
+                gso, gps_active, bound_mat, gpencil_brush_grab_store_points);
           }
           else {
             /* Apply effect to the stored points */
