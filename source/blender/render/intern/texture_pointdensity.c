@@ -843,7 +843,7 @@ void RE_point_density_minmax(struct Depsgraph *depsgraph,
   }
   else {
     const float radius[3] = {pd->radius, pd->radius, pd->radius};
-    BoundBox *bb = BKE_object_boundbox_get(object);
+    const BoundBox *bb = BKE_object_boundbox_get(object);
 
     if (bb != NULL) {
       BLI_assert((bb->flag & BOUNDBOX_DIRTY) == 0);

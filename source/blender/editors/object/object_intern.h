@@ -113,12 +113,14 @@ void OBJECT_OT_light_add(struct wmOperatorType *ot);
 void OBJECT_OT_effector_add(struct wmOperatorType *ot);
 void OBJECT_OT_camera_add(struct wmOperatorType *ot);
 void OBJECT_OT_speaker_add(struct wmOperatorType *ot);
-void OBJECT_OT_hair_curves_add(struct wmOperatorType *ot);
+void OBJECT_OT_curves_random_add(struct wmOperatorType *ot);
+void OBJECT_OT_curves_empty_hair_add(struct wmOperatorType *ot);
 void OBJECT_OT_pointcloud_add(struct wmOperatorType *ot);
 /**
  * Only used as menu.
  */
 void OBJECT_OT_collection_instance_add(struct wmOperatorType *ot);
+void OBJECT_OT_collection_external_asset_drop(struct wmOperatorType *ot);
 void OBJECT_OT_data_instance_add(struct wmOperatorType *ot);
 
 void OBJECT_OT_duplicates_make_real(struct wmOperatorType *ot);
@@ -200,6 +202,7 @@ void OBJECT_OT_surfacedeform_bind(struct wmOperatorType *ot);
 void OBJECT_OT_geometry_nodes_input_attribute_toggle(struct wmOperatorType *ot);
 
 /* object_gpencil_modifiers.c */
+
 void OBJECT_OT_gpencil_modifier_add(struct wmOperatorType *ot);
 void OBJECT_OT_gpencil_modifier_remove(struct wmOperatorType *ot);
 void OBJECT_OT_gpencil_modifier_move_up(struct wmOperatorType *ot);
@@ -214,6 +217,7 @@ void GPENCIL_OT_segment_remove(struct wmOperatorType *ot);
 void GPENCIL_OT_segment_move(struct wmOperatorType *ot);
 
 /* object_shader_fx.c */
+
 void OBJECT_OT_shaderfx_add(struct wmOperatorType *ot);
 void OBJECT_OT_shaderfx_copy(struct wmOperatorType *ot);
 void OBJECT_OT_shaderfx_remove(struct wmOperatorType *ot);
@@ -222,6 +226,7 @@ void OBJECT_OT_shaderfx_move_down(struct wmOperatorType *ot);
 void OBJECT_OT_shaderfx_move_to_index(struct wmOperatorType *ot);
 
 /* object_constraint.c */
+
 void OBJECT_OT_constraint_add(struct wmOperatorType *ot);
 void OBJECT_OT_constraint_add_with_targets(struct wmOperatorType *ot);
 void POSE_OT_constraint_add(struct wmOperatorType *ot);

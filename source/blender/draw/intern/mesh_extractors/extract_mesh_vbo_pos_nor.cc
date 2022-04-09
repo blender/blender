@@ -233,7 +233,7 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
     Mesh *coarse_mesh = subdiv_cache->mesh;
     float(*lnors)[3] = static_cast<float(*)[3]>(
         CustomData_get_layer(&coarse_mesh->ldata, CD_NORMAL));
-    BLI_assert(lnors != NULL);
+    BLI_assert(lnors != nullptr);
 
     GPUVertBuf *src_custom_normals = GPU_vertbuf_calloc();
     GPU_vertbuf_init_with_format(src_custom_normals, get_custom_normals_format());

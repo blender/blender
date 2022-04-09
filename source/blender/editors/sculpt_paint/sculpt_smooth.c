@@ -1126,15 +1126,12 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
 
     MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v_other);
     float *co2;
-    float *no2;
 
     if (!do_origco || mv2->stroke_id != ss->stroke_id) {
       co2 = v_other->co;
-      no2 = v_other->no;
     }
     else {
       co2 = mv2->origco;
-      no2 = mv2->origno;
     }
 
     SculptBoundaryType bflag = SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_MESH |
@@ -1841,11 +1838,6 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
   const int thread_id = BLI_task_parallel_thread_id(tls);
   const bool weighted = ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
   const bool check_fsets = ss->cache->brush->flag2 & BRUSH_SMOOTH_PRESERVE_FACE_SETS;
-
-  SculptCornerType ctype = SCULPT_CORNER_MESH | SCULPT_CORNER_SHARP;
-  if (check_fsets) {
-    ctype |= SCULPT_CORNER_FACE_SET | SCULPT_CORNER_SEAM;
-  }
 
   if (weighted || ss->cache->brush->boundary_smooth_factor > 0.0f) {
     BKE_pbvh_check_tri_areas(ss->pbvh, data->nodes[n]);

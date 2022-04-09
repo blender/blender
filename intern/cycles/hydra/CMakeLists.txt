@@ -13,6 +13,14 @@ set(INC_SYS
   ${GLEW_INCLUDE_DIR}
 )
 
+set(LIB
+  cycles_scene
+  cycles_session
+  cycles_graph
+  ${CYCLES_GLEW_LIBRARIES}
+)
+cycles_external_libraries_append(LIB)
+
 set(INC_HD_CYCLES
   attribute.h
   camera.h
@@ -63,9 +71,6 @@ if(WITH_OPENVDB)
   list(APPEND INC_SYS
     ${OPENVDB_INCLUDE_DIRS}
   )
-  list(APPEND LIB
-    ${OPENVDB_LIBRARIES}
-  )
 endif()
 
 include_directories(${INC})
@@ -91,34 +96,13 @@ target_compile_definitions(hdCyclesStatic
 )
 
 target_link_libraries(hdCyclesStatic
+  PUBLIC
+  hd
+  hgi
+  hgiGL
   PRIVATE
-  ${USD_LIBRARY_DIR}/${PXR_LIB_PREFIX}hd${CMAKE_LINK_LIBRARY_SUFFIX}
-  ${USD_LIBRARY_DIR}/${PXR_LIB_PREFIX}plug${CMAKE_LINK_LIBRARY_SUFFIX}
-  ${USD_LIBRARY_DIR}/${PXR_LIB_PREFIX}tf${CMAKE_LINK_LIBRARY_SUFFIX}
-  ${USD_LIBRARY_DIR}/${PXR_LIB_PREFIX}trace${CMAKE_LINK_LIBRARY_SUFFIX}
-  ${USD_LIBRARY_DIR}/${PXR_LIB_PREFIX}vt${CMAKE_LINK_LIBRARY_SUFFIX}
-  ${USD_LIBRARY_DIR}/${PXR_LIB_PREFIX}work${CMAKE_LINK_LIBRARY_SUFFIX}
-  ${USD_LIBRARY_DIR}/${PXR_LIB_PREFIX}sdf${CMAKE_LINK_LIBRARY_SUFFIX}
-  ${USD_LIBRARY_DIR}/${PXR_LIB_PREFIX}cameraUtil${CMAKE_LINK_LIBRARY_SUFFIX}
-  ${USD_LIBRARY_DIR}/${PXR_LIB_PREFIX}hf${CMAKE_LINK_LIBRARY_SUFFIX}
-  ${USD_LIBRARY_DIR}/${PXR_LIB_PREFIX}pxOsd${CMAKE_LINK_LIBRARY_SUFFIX}
-  ${USD_LIBRARY_DIR}/${PXR_LIB_PREFIX}gf${CMAKE_LINK_LIBRARY_SUFFIX}
-  ${USD_LIBRARY_DIR}/${PXR_LIB_PREFIX}arch${CMAKE_LINK_LIBRARY_SUFFIX}
-  ${USD_LIBRARY_DIR}/${PXR_LIB_PREFIX}hgi${CMAKE_LINK_LIBRARY_SUFFIX}
-  ${USD_LIBRARY_DIR}/${PXR_LIB_PREFIX}glf${CMAKE_LINK_LIBRARY_SUFFIX}
-  ${USD_LIBRARY_DIR}/${PXR_LIB_PREFIX}hdx${CMAKE_LINK_LIBRARY_SUFFIX}
-  ${USD_LIBRARY_DIR}/${PXR_LIB_PREFIX}usdGeom${CMAKE_LINK_LIBRARY_SUFFIX}
-  cycles_scene
-  cycles_session
-  cycles_graph
+  ${LIB}
 )
-
-if(USD_PYTHON_LIBRARIES)
-  target_link_libraries(hdCyclesStatic
-    PRIVATE
-    ${USD_PYTHON_LIBRARIES}
-  )
-endif()
 
 set(HdCyclesPluginName hdCycles)
 add_library(${HdCyclesPluginName} SHARED
@@ -144,14 +128,6 @@ target_link_libraries(${HdCyclesPluginName}
   hdCyclesStatic
 )
 
-target_link_directories(${HdCyclesPluginName}
-  BEFORE
-  PRIVATE
-  ${USD_LIBRARY_DIR}
-)
-
-cycles_target_link_libraries(${HdCyclesPluginName})
-
 if(WITH_CYCLES_BLENDER)
   set(CYCLES_HYDRA_INSTALL_PATH "../")
 else()
@@ -162,9 +138,10 @@ endif()
 
 delayed_install("" $<TARGET_FILE:${HdCyclesPluginName}> ${CYCLES_HYDRA_INSTALL_PATH})
 
-set(PLUG_INFO_ROOT          "..")
-set(PLUG_INFO_LIBRARY_PATH  "../${HdCyclesPluginName}${CMAKE_SHARED_LIBRARY_SUFFIX}")
-set(PLUG_INFO_RESOURCE_PATH "resources")
+set(PLUG_INFO_ROOT "..")
+
+file(RELATIVE_PATH PLUG_INFO_LIBRARY_PATH "${CYCLES_HYDRA_INSTALL_PATH}/${HdCyclesPluginName}" "${CYCLES_HYDRA_INSTALL_PATH}/${HdCyclesPluginName}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+file(RELATIVE_PATH PLUG_INFO_RESOURCE_PATH "${CYCLES_HYDRA_INSTALL_PATH}/${HdCyclesPluginName}" "${CYCLES_INSTALL_PATH}")
 
 configure_file(resources/plugInfo.json
   ${CMAKE_CURRENT_BINARY_DIR}/resources/plugInfo.json

@@ -34,9 +34,12 @@ class HdCyclesMaterial final : public PXR_NS::HdMaterial {
     return _shader;
   }
 
-  struct NodeDesc;
-
  private:
+  struct NodeDesc {
+    CCL_NS::ShaderNode *node;
+    const class UsdToCyclesMapping *mapping;
+  };
+
   void Initialize(PXR_NS::HdRenderParam *renderParam);
 
   void UpdateParameters(NodeDesc &nodeDesc,

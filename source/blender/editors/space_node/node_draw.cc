@@ -69,6 +69,7 @@
 #include "NOD_geometry_nodes_eval_log.hh"
 #include "NOD_node_declaration.hh"
 
+#include "FN_field.hh"
 #include "FN_field_cpp_type.hh"
 
 #include "node_intern.hh" /* own include */
@@ -2578,8 +2579,20 @@ static void reroute_node_draw(
     const int x = BLI_rctf_cent_x(&node.totr) - (width / 2);
     const int y = node.totr.ymax;
 
-    uiBut *label_but = uiDefBut(
-        &block, UI_BTYPE_LABEL, 0, showname, x, y, width, (short)NODE_DY, NULL, 0, 0, 0, 0, NULL);
+    uiBut *label_but = uiDefBut(&block,
+                                UI_BTYPE_LABEL,
+                                0,
+                                showname,
+                                x,
+                                y,
+                                width,
+                                (short)NODE_DY,
+                                nullptr,
+                                0,
+                                0,
+                                0,
+                                0,
+                                nullptr);
 
     UI_but_drawflag_disable(label_but, UI_BUT_TEXT_LEFT);
   }

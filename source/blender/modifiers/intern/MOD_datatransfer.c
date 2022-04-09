@@ -346,7 +346,7 @@ static void face_corner_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "loop_mapping", 0, IFACE_("Mapping"), ICON_NONE);
 }
 
-static void vert_propcol_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void vert_vcol_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -354,10 +354,12 @@ static void vert_propcol_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiLayoutSetActive(layout, RNA_enum_get(ptr, "data_types_verts") & DT_TYPE_PROPCOL);
+  uiLayoutSetActive(layout,
+                    RNA_enum_get(ptr, "data_types_verts") &
+                        (DT_TYPE_MPROPCOL_VERT | DT_TYPE_MLOOPCOL_VERT));
 
-  uiItemR(layout, ptr, "layers_propcol_select_src", 0, IFACE_("Layer Selection"), ICON_NONE);
-  uiItemR(layout, ptr, "layers_propcol_select_dst", 0, IFACE_("Layer Mapping"), ICON_NONE);
+  uiItemR(layout, ptr, "layers_vcol_vert_select_src", 0, IFACE_("Layer Selection"), ICON_NONE);
+  uiItemR(layout, ptr, "layers_vcol_vert_select_dst", 0, IFACE_("Layer Mapping"), ICON_NONE);
 }
 
 static void face_corner_vcol_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -368,10 +370,12 @@ static void face_corner_vcol_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiLayoutSetActive(layout, RNA_enum_get(ptr, "data_types_loops") & DT_TYPE_VCOL);
+  uiLayoutSetActive(layout,
+                    RNA_enum_get(ptr, "data_types_loops") &
+                        (DT_TYPE_MPROPCOL_LOOP | DT_TYPE_MLOOPCOL_LOOP));
 
-  uiItemR(layout, ptr, "layers_vcol_select_src", 0, IFACE_("Layer Selection"), ICON_NONE);
-  uiItemR(layout, ptr, "layers_vcol_select_dst", 0, IFACE_("Layer Mapping"), ICON_NONE);
+  uiItemR(layout, ptr, "layers_vcol_loop_select_src", 0, IFACE_("Layer Selection"), ICON_NONE);
+  uiItemR(layout, ptr, "layers_vcol_loop_select_dst", 0, IFACE_("Layer Mapping"), ICON_NONE);
 }
 
 static void face_corner_uv_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -441,7 +445,7 @@ static void panelRegister(ARegionType *region_type)
       region_type, "vertex_vgroup", "Vertex Groups", NULL, vertex_vgroup_panel_draw, vertex_panel);
 
   modifier_subpanel_register(
-      region_type, "vert_propcol", "Colors", NULL, vert_propcol_panel_draw, vertex_panel);
+      region_type, "vert_vcol", "Colors", NULL, vert_vcol_panel_draw, vertex_panel);
 
   modifier_subpanel_register(
       region_type, "edge", "", edge_panel_draw_header, edge_panel_draw, panel_type);

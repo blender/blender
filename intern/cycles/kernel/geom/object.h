@@ -283,6 +283,26 @@ ccl_device_inline float object_pass_id(KernelGlobals kg, int object)
   return kernel_tex_fetch(__objects, object).pass_id;
 }
 
+/* Lightgroup of lamp */
+
+ccl_device_inline int lamp_lightgroup(KernelGlobals kg, int lamp)
+{
+  if (lamp == LAMP_NONE)
+    return LIGHTGROUP_NONE;
+
+  return kernel_tex_fetch(__lights, lamp).lightgroup;
+}
+
+/* Lightgroup of object */
+
+ccl_device_inline int object_lightgroup(KernelGlobals kg, int object)
+{
+  if (object == OBJECT_NONE)
+    return LIGHTGROUP_NONE;
+
+  return kernel_tex_fetch(__objects, object).lightgroup;
+}
+
 /* Per lamp random number for shader variation */
 
 ccl_device_inline float lamp_random_number(KernelGlobals kg, int lamp)

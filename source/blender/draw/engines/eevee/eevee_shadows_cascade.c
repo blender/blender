@@ -311,7 +311,7 @@ static void eevee_shadow_cascade_setup(EEVEE_LightsInfo *linfo,
     if (c < 3) {
       dbg_col[c] = 1.0f;
     }
-    DRW_debug_bbox((BoundBox *)&corners, dbg_col);
+    DRW_debug_bbox((const BoundBox *)&corners, dbg_col);
     DRW_debug_sphere(center, csm_render->radius[c], dbg_col);
 #endif
 

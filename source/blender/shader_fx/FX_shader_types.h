@@ -22,4 +22,5 @@ extern ShaderFxTypeInfo shaderfx_Type_Swirl;
 extern ShaderFxTypeInfo shaderfx_Type_Wave;
 
 /* FX_shaderfx_util.c */
+
 void shaderfx_type_init(ShaderFxTypeInfo *types[]);

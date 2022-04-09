@@ -497,7 +497,7 @@ static int paint_exec(bContext *C, wmOperator *op)
 
 static int paint_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  return paint_stroke_modal(C, op, event, static_cast<PaintStroke *>(op->customdata));
+  return paint_stroke_modal(C, op, event, reinterpret_cast<PaintStroke **>(&op->customdata));
 }
 
 static void paint_cancel(bContext *C, wmOperator *op)

@@ -9,6 +9,10 @@
 
 #include "draw_common_shader_shared.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct DRWShadingGroup;
 struct FluidModifierData;
 struct GPUMaterial;
@@ -92,3 +96,7 @@ struct DRW_Global {
   struct GPUUniformBuf *view_ubo;
 };
 extern struct DRW_Global G_draw;
+
+#ifdef __cplusplus
+}
+#endif

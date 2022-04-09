@@ -54,9 +54,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(mcmd, DNA_struct_default_get(MeshCacheModifierData), modifier);
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene),
-                          ModifierData *md,
-                          const int UNUSED(dag_eval_mode))
+static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *md)
 {
   MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
   return (mcmd->play_mode == MOD_MESHCACHE_PLAY_CFEA);

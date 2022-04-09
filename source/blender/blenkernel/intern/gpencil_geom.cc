@@ -1308,7 +1308,7 @@ void BKE_gpencil_stroke_smooth(bGPDstroke *gps,
   /* Smooth stroke. */
   for (int i = 0; i < gps->totpoints; i++) {
     float val = influence;
-    if (weights != NULL) {
+    if (weights != nullptr) {
       val *= weights[i];
       if (val <= 0.0f) {
         continue;

@@ -2491,7 +2491,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
     CustomDataLayer *cl;
     AttributeDomain domain;
 
-    BKE_pbvh_get_color_layer(pbvh, me, &cl, &domain);
+    BKE_pbvh_get_color_layer(me, &cl, &domain);
   }
 
   /*final check that nodes are sufficiently subdivided*/

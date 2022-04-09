@@ -32,7 +32,7 @@ class StrokeTesselator {
   /** Builds a line rep contained from a Stroke */
   LineRep *Tesselate(Stroke *iStroke);
 
-  /** Builds a set of lines rep contained under a a NodeShape, itself contained under a NodeGroup
+  /** Builds a set of lines rep contained under a NodeShape, itself contained under a NodeGroup
    *  from a set of strokes.
    */
   template<class StrokeIterator> NodeGroup *Tesselate(StrokeIterator begin, StrokeIterator end);

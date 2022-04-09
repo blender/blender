@@ -43,8 +43,8 @@ static void python_script_error_jump_text(Text *text, const char *filepath)
     /* Start at the end so cursor motion that looses the selection,
      * leaves the cursor from the most useful place.
      * Also, the end can't always be set, so don't give it priority. */
-    txt_move_to(text, lineno_end - 1, offset_end, false);
-    txt_move_to(text, lineno - 1, offset, true);
+    txt_move_to(text, lineno_end - 1, offset_end - 1, false);
+    txt_move_to(text, lineno - 1, offset - 1, true);
   }
 }
 
@@ -271,7 +271,23 @@ static bool bpy_run_string_impl(bContext *C,
 
   if (retval == NULL) {
     ok = false;
-    BPy_errors_to_report(CTX_wm_reports(C));
+
+    ReportList reports;
+    BKE_reports_init(&reports, RPT_STORE);
+    BPy_errors_to_report(&reports);
+
+    /* Ensure the reports are printed. */
+    if (!BKE_reports_print_test(&reports, RPT_ERROR)) {
+      BKE_reports_print(&reports, RPT_ERROR);
+    }
+
+    ReportList *wm_reports = CTX_wm_reports(C);
+    if (wm_reports) {
+      BLI_movelisttolist(&wm_reports->list, &reports.list);
+    }
+    else {
+      BKE_reports_clear(&reports);
+    }
   }
   else {
     Py_DECREF(retval);
@@ -328,6 +344,14 @@ static void run_string_handle_error(struct BPy_RunErrInfo *err_info)
     else {
       BKE_report(err_info->reports, RPT_ERROR, err_str);
     }
+  }
+
+  /* Print the reports if they were not printed already. */
+  if ((err_info->reports == NULL) || !BKE_reports_print_test(err_info->reports, RPT_ERROR)) {
+    if (err_info->report_prefix) {
+      fprintf(stderr, "%s: ", err_info->report_prefix);
+    }
+    fprintf(stderr, "%s\n", err_str);
   }
 
   if (err_info->r_string != NULL) {

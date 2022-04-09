@@ -8,10 +8,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_float4x4.hh"
 #include "BLI_ghash.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_math_vector.hh"
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
 
@@ -42,6 +44,9 @@
 #include "ED_armature.h"
 #include "ED_transform_snap_object_context.h"
 #include "ED_view3d.h"
+
+using blender::float3;
+using blender::float4x4;
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Data Types
@@ -270,17 +275,16 @@ static SnapObjectData *snap_object_data_mesh_get(SnapObjectContext *sctx,
       /* The tree is owned by the Mesh and may have been freed since we last used. */
       is_dirty = true;
     }
-    else if (!sod->treedata_mesh.looptri_allocated &&
-             sod->treedata_mesh.looptri != me_eval->runtime.looptris.array) {
+    else if (sod->treedata_mesh.looptri != me_eval->runtime.looptris.array) {
       is_dirty = true;
     }
-    else if (!sod->treedata_mesh.vert_allocated && sod->treedata_mesh.vert != me_eval->mvert) {
+    else if (sod->treedata_mesh.vert != me_eval->mvert) {
       is_dirty = true;
     }
-    else if (!sod->treedata_mesh.loop_allocated && sod->treedata_mesh.loop != me_eval->mloop) {
+    else if (sod->treedata_mesh.loop != me_eval->mloop) {
       is_dirty = true;
     }
-    else if (!sod->treedata_mesh.edge_allocated && sod->treedata_mesh.edge != me_eval->medge) {
+    else if (sod->treedata_mesh.edge != me_eval->medge) {
       is_dirty = true;
     }
     else if (sod->poly != me_eval->mpoly) {
@@ -308,20 +312,13 @@ static SnapObjectData *snap_object_data_mesh_get(SnapObjectContext *sctx,
                               use_hide ? BVHTREE_FROM_LOOPTRI_NO_HIDDEN : BVHTREE_FROM_LOOPTRI,
                               4);
 
-    if (sod->treedata_mesh.tree == nullptr) {
-      sod->treedata_mesh.vert = me_eval->mvert;
-      sod->treedata_mesh.vert_normals = BKE_mesh_vertex_normals_ensure(me_eval);
-      sod->treedata_mesh.loop = me_eval->mloop;
-      sod->treedata_mesh.looptri = BKE_mesh_runtime_looptri_ensure(me_eval);
-      BLI_assert(sod->has_looptris == false);
-    }
-    else {
-      BLI_assert(sod->treedata_mesh.vert != nullptr);
-      BLI_assert(sod->treedata_mesh.vert_normals != nullptr);
-      BLI_assert(sod->treedata_mesh.loop != nullptr);
-      BLI_assert(sod->treedata_mesh.looptri != nullptr);
-      sod->has_looptris = true;
-    }
+    BLI_assert(sod->treedata_mesh.vert != nullptr);
+    BLI_assert(sod->treedata_mesh.vert_normals != nullptr);
+    BLI_assert(sod->treedata_mesh.loop != nullptr);
+    BLI_assert(sod->treedata_mesh.looptri != nullptr);
+    BLI_assert(sod->has_looptris == false);
+
+    sod->has_looptris = sod->treedata_mesh.tree != nullptr;
 
     /* Required for snapping with occlusion. */
     sod->treedata_mesh.edge = me_eval->medge;
@@ -441,7 +438,7 @@ static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
 using IterSnapObjsCallback = void (*)(SnapObjectContext *sctx,
                                       const struct SnapObjectParams *params,
                                       Object *ob_eval,
-                                      float obmat[4][4],
+                                      const float obmat[4][4],
                                       bool is_object_active,
                                       void *data);
 
@@ -718,7 +715,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
   }
 
   /* Test BoundBox */
-  BoundBox *bb = BKE_object_boundbox_get(ob_eval);
+  const BoundBox *bb = BKE_object_boundbox_get(ob_eval);
   if (bb) {
     /* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
     if (!isect_ray_aabb_v3_simple(
@@ -896,16 +893,7 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
           sctx->callbacks.edit_mesh.test_face_fn,
           sctx->callbacks.edit_mesh.user_data);
 
-      bvhtree_from_editmesh_looptri_ex(treedata,
-                                       em,
-                                       elem_mask,
-                                       looptri_num_active,
-                                       0.0f,
-                                       4,
-                                       6,
-                                       BVHTREE_FROM_EM_LOOPTRI,
-                                       nullptr,
-                                       nullptr);
+      bvhtree_from_editmesh_looptri_ex(treedata, em, elem_mask, looptri_num_active, 0.0f, 4, 6);
 
       MEM_freeN(elem_mask);
     }
@@ -1018,7 +1006,7 @@ struct RaycastObjUserData {
 static void raycast_obj_fn(SnapObjectContext *sctx,
                            const struct SnapObjectParams *params,
                            Object *ob_eval,
-                           float obmat[4][4],
+                           const float obmat[4][4],
                            bool is_object_active,
                            void *data)
 {
@@ -1866,7 +1854,7 @@ static short snapArmature(SnapObjectContext *sctx,
 
   if (is_editmode == false) {
     /* Test BoundBox */
-    BoundBox *bb = BKE_armature_boundbox_get(ob_eval);
+    const BoundBox *bb = BKE_armature_boundbox_get(ob_eval);
     if (bb && !snap_bound_box_check_dist(bb->vec[0],
                                          bb->vec[6],
                                          lpmat,
@@ -2230,7 +2218,7 @@ static short snap_object_center(const SnapObjectContext *sctx,
 
 static short snapCamera(const SnapObjectContext *sctx,
                         Object *object,
-                        float obmat[4][4],
+                        const float obmat[4][4],
                         /* read/write args */
                         float *dist_px,
                         /* return args */
@@ -2271,7 +2259,7 @@ static short snapCamera(const SnapObjectContext *sctx,
     LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
       ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
       float reconstructed_camera_mat[4][4], reconstructed_camera_imat[4][4];
-      float(*vertex_obmat)[4];
+      const float(*vertex_obmat)[4];
 
       if ((tracking_object->flag & TRACKING_OBJECT_CAMERA) == 0) {
         BKE_tracking_camera_get_reconstructed_interpolate(
@@ -2349,7 +2337,7 @@ static short snapMesh(SnapObjectContext *sctx,
   float dist_px_sq = square_f(*dist_px);
 
   /* Test BoundBox */
-  BoundBox *bb = BKE_object_boundbox_get(ob_eval);
+  const BoundBox *bb = BKE_object_boundbox_get(ob_eval);
   if (bb &&
       !snap_bound_box_check_dist(
           bb->vec[0], bb->vec[6], lpmat, sctx->runtime.win_size, sctx->runtime.mval, dist_px_sq)) {
@@ -2368,12 +2356,6 @@ static short snapMesh(SnapObjectContext *sctx,
       sod->has_loose_edge = false;
     }
     sod->cached[0] = treedata_tmp.cached;
-    BLI_assert(!ELEM(true,
-                     treedata_tmp.vert_allocated,
-                     treedata_tmp.edge_allocated,
-                     treedata_tmp.face_allocated,
-                     treedata_tmp.loop_allocated,
-                     treedata_tmp.looptri_allocated));
   }
 
   if (sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX) {
@@ -2384,12 +2366,6 @@ static short snapMesh(SnapObjectContext *sctx,
         sod->has_loose_vert = false;
       }
       sod->cached[1] = treedata_tmp.cached;
-      BLI_assert(!ELEM(true,
-                       treedata_tmp.vert_allocated,
-                       treedata_tmp.edge_allocated,
-                       treedata_tmp.face_allocated,
-                       treedata_tmp.loop_allocated,
-                       treedata_tmp.looptri_allocated));
     }
   }
   else {
@@ -2569,16 +2545,7 @@ static short snapEditMesh(SnapObjectContext *sctx,
             (bool (*)(BMElem *, void *))sctx->callbacks.edit_mesh.test_vert_fn,
             sctx->callbacks.edit_mesh.user_data);
 
-        bvhtree_from_editmesh_verts_ex(&treedata,
-                                       em,
-                                       verts_mask,
-                                       verts_num_active,
-                                       0.0f,
-                                       2,
-                                       6,
-                                       BVHTREE_FROM_VERTS,
-                                       nullptr,
-                                       nullptr);
+        bvhtree_from_editmesh_verts_ex(&treedata, em, verts_mask, verts_num_active, 0.0f, 2, 6);
         MEM_freeN(verts_mask);
       }
       else {
@@ -2610,16 +2577,7 @@ static short snapEditMesh(SnapObjectContext *sctx,
             (bool (*)(BMElem *, void *))sctx->callbacks.edit_mesh.test_edge_fn,
             sctx->callbacks.edit_mesh.user_data);
 
-        bvhtree_from_editmesh_edges_ex(&treedata,
-                                       em,
-                                       edges_mask,
-                                       edges_num_active,
-                                       0.0f,
-                                       2,
-                                       6,
-                                       BVHTREE_FROM_VERTS,
-                                       nullptr,
-                                       nullptr);
+        bvhtree_from_editmesh_edges_ex(&treedata, em, edges_mask, edges_num_active, 0.0f, 2, 6);
         MEM_freeN(edges_mask);
       }
       else {
@@ -2730,7 +2688,7 @@ struct SnapObjUserData {
 static void snap_obj_fn(SnapObjectContext *sctx,
                         const struct SnapObjectParams *params,
                         Object *ob_eval,
-                        float obmat[4][4],
+                        const float obmat[4][4],
                         bool is_object_active,
                         void *data)
 {

@@ -116,6 +116,11 @@ add_blender_test(
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_prop_array.py
 )
 
+add_blender_test(
+  script_pyapi_text
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_text.py
+)
+
 # ------------------------------------------------------------------------------
 # DATA MANAGEMENT TESTS
 

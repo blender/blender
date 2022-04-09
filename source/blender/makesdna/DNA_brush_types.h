@@ -153,6 +153,10 @@ typedef struct DynTopoSettings {
 typedef struct BrushCurvesSculptSettings {
   /** Number of curves added by the add brush. */
   int add_amount;
+  /* eBrushCurvesSculptFlag. */
+  uint32_t flag;
+  /** When shrinking curves, they shouldn't become shorter than this length. */
+  float minimum_length;
 } BrushCurvesSculptSettings;
 
 typedef struct Brush {

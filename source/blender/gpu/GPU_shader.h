@@ -363,6 +363,7 @@ typedef struct GPUShaderConfigData {
   const char *def;
 } GPUShaderConfigData;
 /* gpu_shader.c */
+
 extern const GPUShaderConfigData GPU_shader_cfg_data[GPU_SHADER_CFG_LEN];
 
 GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,

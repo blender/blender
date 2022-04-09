@@ -28,14 +28,14 @@ static void rna_Text_clear(Text *text)
 
 static void rna_Text_write(Text *text, const char *str)
 {
-  BKE_text_write(text, str);
+  BKE_text_write(text, str, strlen(str));
   WM_main_add_notifier(NC_TEXT | NA_EDITED, text);
 }
 
 static void rna_Text_from_string(Text *text, const char *str)
 {
   BKE_text_clear(text);
-  BKE_text_write(text, str);
+  BKE_text_write(text, str, strlen(str));
 }
 
 static void rna_Text_as_string(Text *text, int *r_result_len, const char **result)

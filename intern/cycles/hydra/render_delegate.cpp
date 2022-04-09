@@ -457,8 +457,9 @@ void HdCyclesDelegate::SetRenderSetting(const PXR_NS::TfToken &key, const PXR_NS
         VtValue::Cast<double>(value).GetWithDefault(session->params.time_limit));
   }
   else if (key == HdCyclesRenderSettingsTokens->samples) {
+    static const int max_samples = Integrator::MAX_SAMPLES;
     int samples = VtValue::Cast<int>(value).GetWithDefault(session->params.samples);
-    samples = std::min(std::max(1, samples), Integrator::MAX_SAMPLES);
+    samples = std::min(std::max(1, samples), max_samples);
     session->set_samples(samples);
   }
   else if (key == HdCyclesRenderSettingsTokens->sample_offset) {

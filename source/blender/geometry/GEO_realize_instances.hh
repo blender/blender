@@ -33,6 +33,4 @@ struct RealizeInstancesOptions {
  */
 GeometrySet realize_instances(GeometrySet geometry_set, const RealizeInstancesOptions &options);
 
-GeometrySet realize_instances_legacy(GeometrySet geometry_set);
-
 }  // namespace blender::geometry

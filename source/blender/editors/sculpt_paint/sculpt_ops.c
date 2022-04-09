@@ -100,8 +100,8 @@
 #include "UI_resources.h"
 
 #include "bmesh.h"
-#include "bmesh_tools.h"
 #include "bmesh_log.h"
+#include "bmesh_tools.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -399,6 +399,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
         wmWindowManager *wm = CTX_wm_manager(C);
         if (wm->op_undo_depth <= 1) {
           SCULPT_undo_push_begin(ob, op->type->name);
+          SCULPT_undo_push_end(ob);
         }
       }
     }
@@ -708,37 +709,35 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
   Object *ob = CTX_data_active_object(C);
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
-  SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
-  float active_vertex_color[4];
 
-  if (!SCULPT_vertex_color_get(ss, active_vertex, active_vertex_color)) {
+  if (!SCULPT_has_colors(ss)) {
     return OPERATOR_CANCELLED;
   }
-  else {
-    const SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
-    float active_vertex_color[4];
 
-    SCULPT_vertex_color_get(ss, active_vertex, active_vertex_color);
+  const SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
+  float active_vertex_color[4];
 
-    if (!active_vertex_color) {
-      return OPERATOR_CANCELLED;
-    }
+  SCULPT_vertex_color_get(ss, active_vertex, active_vertex_color);
 
-    SampleColorCustomData *sccd = MEM_callocN(sizeof(SampleColorCustomData),
-                                              "Sample Color Custom Data");
-    copy_v4_v4(sccd->sampled_color, active_vertex_color);
-    copy_v4_v4(sccd->initial_color, BKE_brush_color_get(scene, brush));
+  float color_srgb[3];
+  copy_v3_v3(color_srgb, active_vertex_color);
+  IMB_colormanagement_scene_linear_to_srgb_v3(color_srgb);
+  BKE_brush_color_set(scene, brush, color_srgb, ob->mode == OB_MODE_SCULPT);
 
-    sccd->draw_handle = ED_region_draw_cb_activate(
-        region->type, sculpt_sample_color_draw, sccd, REGION_DRAW_POST_PIXEL);
+  SampleColorCustomData *sccd = MEM_callocN(sizeof(SampleColorCustomData),
+                                            "Sample Color Custom Data");
+  copy_v4_v4(sccd->sampled_color, active_vertex_color);
+  copy_v4_v4(sccd->initial_color, BKE_brush_color_get(scene, brush));
 
-    op->customdata = sccd;
+  sccd->draw_handle = ED_region_draw_cb_activate(
+      region->type, sculpt_sample_color_draw, sccd, REGION_DRAW_POST_PIXEL);
 
-    WM_event_add_modal_handler(C, op);
-    ED_region_tag_redraw(region);
+  op->customdata = sccd;
 
-    return OPERATOR_RUNNING_MODAL;
-  }
+  WM_event_add_modal_handler(C, op);
+  ED_region_tag_redraw(region);
+
+  return OPERATOR_RUNNING_MODAL;
 }
 
 static void SCULPT_OT_sample_color(wmOperatorType *ot)
@@ -840,7 +839,7 @@ static void do_mask_by_color_contiguous_update_nodes_cb(
   }
   BKE_pbvh_vertex_iter_end;
   if (update_node) {
-    BKE_pbvh_node_mark_redraw(data->nodes[n]);
+    BKE_pbvh_node_mark_update_mask(data->nodes[n]);
   }
 }
 
@@ -893,7 +892,11 @@ static void sculpt_mask_by_color_contiguous(Object *object,
   ffd.threshold = threshold;
   ffd.invert = invert;
   ffd.new_mask = new_mask;
-  SCULPT_vertex_color_get(ss, vertex, ffd.initial_color);
+
+  float color[4];
+  SCULPT_vertex_color_get(ss, vertex, color);
+
+  copy_v3_v3(ffd.initial_color, color);
 
   SCULPT_floodfill_execute(ss, &flood, sculpt_mask_by_color_contiguous_floodfill_cb, &ffd);
   SCULPT_floodfill_free(&flood);
@@ -1003,9 +1006,12 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
     return OPERATOR_CANCELLED;
   }
 
-  /* Color data is not available in Multires. */
-  if (!ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_BMESH)) {
+  if (!SCULPT_has_colors(ss)) {
     return OPERATOR_CANCELLED;
+  }
+
+  if (SCULPT_has_loop_colors(ob)) {
+    BKE_pbvh_ensure_node_loops(ss->pbvh);
   }
 
   SCULPT_vertex_random_access_ensure(ss);
@@ -1036,6 +1042,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   SCULPT_undo_push_end(ob);
 
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
   return OPERATOR_FINISHED;
 }

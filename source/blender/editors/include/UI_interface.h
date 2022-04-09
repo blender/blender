@@ -598,6 +598,7 @@ typedef bool (*uiMenuStepFunc)(struct bContext *C, int direction, void *arg1);
 typedef void (*uiFreeArgFunc)(void *arg);
 
 /* interface_query.c */
+
 bool UI_but_has_tooltip_label(const uiBut *but);
 bool UI_but_is_tool(const uiBut *but);
 /* file selectors are exempt from utf-8 checks */
@@ -611,6 +612,7 @@ bool UI_block_can_add_separator(const uiBlock *block);
 struct uiList *UI_list_find_mouse_over(const struct ARegion *region, const struct wmEvent *event);
 
 /* interface_region_menu_popup.c */
+
 /**
  * Popup Menus
  *
@@ -634,7 +636,7 @@ uiPopupMenu *UI_popup_menu_begin_ex(struct bContext *C,
  * Set the whole structure to work.
  */
 void UI_popup_menu_end(struct bContext *C, struct uiPopupMenu *pup);
-bool UI_popup_menu_end_or_cancel(struct bContext *C, struct uiPopupMenu *head);
+bool UI_popup_menu_end_or_cancel(struct bContext *C, struct uiPopupMenu *pup);
 struct uiLayout *UI_popup_menu_layout(uiPopupMenu *pup);
 
 void UI_popup_menu_reports(struct bContext *C, struct ReportList *reports) ATTR_NONNULL();
@@ -676,6 +678,7 @@ struct uiLayout *UI_popover_layout(uiPopover *pup);
 void UI_popover_once_clear(uiPopover *pup);
 
 /* interface_region_menu_pie.c */
+
 /* Pie menus */
 typedef struct uiPieMenu uiPieMenu;
 
@@ -1595,12 +1598,14 @@ typedef enum {
 } eButLabelAlign;
 
 /* Return info for uiDefAutoButsRNA */
-typedef enum {
+typedef enum eAutoPropButsReturn {
   /* Returns when no buttons were added */
   UI_PROP_BUTS_NONE_ADDED = 1 << 0,
   /* Returned when any property failed the custom check callback (check_prop) */
   UI_PROP_BUTS_ANY_FAILED_CHECK = 1 << 1,
 } eAutoPropButsReturn;
+
+ENUM_OPERATORS(eAutoPropButsReturn, UI_PROP_BUTS_ANY_FAILED_CHECK);
 
 uiBut *uiDefAutoButR(uiBlock *block,
                      struct PointerRNA *ptr,
@@ -2707,7 +2712,8 @@ void uiItemPointerR_prop(uiLayout *layout,
                          struct PointerRNA *searchptr,
                          struct PropertyRNA *searchprop,
                          const char *name,
-                         int icon);
+                         int icon,
+                         bool results_are_suggestions);
 void uiItemPointerR(uiLayout *layout,
                     struct PointerRNA *ptr,
                     const char *propname,
@@ -2943,7 +2949,7 @@ uiBlock *UI_region_block_find_mouse_over(const struct ARegion *region,
  */
 struct ARegion *UI_region_searchbox_region_get(const struct ARegion *button_region);
 
-/* uiFontStyle.align */
+/** #uiFontStyle.align */
 typedef enum eFontStyle_Align {
   UI_STYLE_TEXT_LEFT = 0,
   UI_STYLE_TEXT_CENTER = 1,

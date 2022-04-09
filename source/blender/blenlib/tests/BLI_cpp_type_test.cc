@@ -381,4 +381,14 @@ TEST(cpp_type, ToStaticType)
   EXPECT_EQ(types[1], &CPPType::get<float>());
 }
 
+TEST(cpp_type, CopyAssignCompressed)
+{
+  std::array<std::string, 5> array = {"a", "b", "c", "d", "e"};
+  std::array<std::string, 3> array_compressed;
+  CPPType::get<std::string>().copy_assign_compressed(&array, &array_compressed, {0, 2, 3});
+  EXPECT_EQ(array_compressed[0], "a");
+  EXPECT_EQ(array_compressed[1], "c");
+  EXPECT_EQ(array_compressed[2], "d");
+}
+
 }  // namespace blender::tests

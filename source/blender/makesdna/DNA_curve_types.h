@@ -19,7 +19,7 @@ extern "C" {
 #define MAXTEXTBOX 256 /* used in readfile.c and editfont.c */
 
 struct AnimData;
-struct CurveEval;
+struct Curves;
 struct CurveProfile;
 struct EditFont;
 struct GHash;
@@ -291,7 +291,7 @@ typedef struct Curve {
    * since it also contains the result of geometry nodes evaluation, and isn't just a copy of the
    * original object data.
    */
-  struct CurveEval *curve_eval;
+  const struct Curves *curve_eval;
 
   void *batch_cache;
 } Curve;
@@ -300,13 +300,13 @@ typedef struct Curve {
 
 /* **************** CURVE ********************* */
 
-/* Curve.texflag */
+/** #Curve.texflag */
 enum {
   CU_AUTOSPACE = 1,
   CU_AUTOSPACE_EVALUATED = 2,
 };
 
-/* Curve.flag */
+/** #Curve.flag */
 enum {
   CU_3D = 1 << 0,
   CU_FRONT = 1 << 1,
@@ -329,7 +329,7 @@ enum {
   CU_MAP_TAPER = 1 << 15,
 };
 
-/* Curve.twist_mode */
+/** #Curve.twist_mode */
 enum {
   CU_TWIST_Z_UP = 0,
   /* CU_TWIST_Y_UP      = 1, */ /* not used yet */
@@ -345,7 +345,7 @@ enum {
   CU_BEVFAC_MAP_SPLINE = 2,
 };
 
-/* Curve.spacemode */
+/** #Curve.spacemode */
 enum {
   CU_ALIGN_X_LEFT = 0,
   CU_ALIGN_X_MIDDLE = 1,
@@ -354,7 +354,7 @@ enum {
   CU_ALIGN_X_FLUSH = 4,
 };
 
-/* Curve.align_y */
+/** #Curve.align_y */
 enum {
   CU_ALIGN_Y_TOP_BASELINE = 0,
   CU_ALIGN_Y_TOP = 1,
@@ -363,7 +363,7 @@ enum {
   CU_ALIGN_Y_BOTTOM = 4,
 };
 
-/* Curve.bevel_mode */
+/** #Curve.bevel_mode */
 enum {
   CU_BEV_MODE_ROUND = 0,
   CU_BEV_MODE_OBJECT = 1,
@@ -387,12 +387,12 @@ enum {
   CU_OVERFLOW_TRUNCATE = 2,
 };
 
-/* Nurb.flag */
+/** #Nurb.flag */
 enum {
   CU_SMOOTH = 1 << 0,
 };
 
-/* Nurb.type */
+/** #Nurb.type */
 enum {
   CU_POLY = 0,
   CU_BEZIER = 1,
@@ -573,7 +573,7 @@ typedef enum eBezTriple_KeyframeType {
 
 /* *************** CHARINFO **************** */
 
-/* CharInfo.flag */
+/** #CharInfo.flag */
 enum {
   /* NOTE: CU_CHINFO_WRAP, CU_CHINFO_SMALLCAPS_TEST and CU_CHINFO_TRUNCATE are set dynamically. */
   CU_CHINFO_BOLD = 1 << 0,

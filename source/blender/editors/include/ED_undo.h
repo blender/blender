@@ -22,6 +22,7 @@ struct wmOperator;
 struct wmOperatorType;
 
 /* undo.c */
+
 /**
  * Run from the main event loop, basic checks that undo is left in a correct state.
  */
@@ -91,7 +92,8 @@ struct Base **ED_undo_editmode_bases_from_view_layer(struct ViewLayer *view_laye
  */
 struct UndoStack *ED_undo_stack_get(void);
 
-/* helpers */
+/* Helpers. */
+
 void ED_undo_object_set_active_or_warn(struct Scene *scene,
                                        struct ViewLayer *view_layer,
                                        struct Object *ob,

@@ -139,12 +139,10 @@ static void movie_clip_foreach_cache(ID *id,
   IDCacheKey key = {
       .id_session_uuid = id->session_uuid,
       .offset_in_ID = offsetof(MovieClip, cache),
-      .cache_v = movie_clip->cache,
   };
   function_callback(id, &key, (void **)&movie_clip->cache, 0, user_data);
 
   key.offset_in_ID = offsetof(MovieClip, tracking.camera.intrinsics);
-  key.cache_v = movie_clip->tracking.camera.intrinsics;
   function_callback(id, &key, (void **)&movie_clip->tracking.camera.intrinsics, 0, user_data);
 }
 

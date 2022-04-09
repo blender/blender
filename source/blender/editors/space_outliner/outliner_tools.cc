@@ -795,7 +795,6 @@ static void id_override_library_create_hierarchy_pre_process_fn(bContext *UNUSED
     Collection *root_collection = reinterpret_cast<Collection *>(id_root_reference);
     FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (root_collection, object_iter) {
       if (id_root_reference->lib == object_iter->id.lib && object_iter->type == OB_ARMATURE) {
-        printf("Foooo\n");
         data->selected_id_uid.add(object_iter->id.session_uuid);
       }
     }
@@ -1167,7 +1166,6 @@ static void id_override_library_clear_single_fn(bContext *C,
   }
 
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
-  return;
 }
 
 static void id_fake_user_set_fn(bContext *UNUSED(C),
@@ -1813,11 +1811,11 @@ void OUTLINER_OT_object_operation(wmOperatorType *ot)
 
 using OutlinerDeleteFn = void (*)(bContext *C, ReportList *reports, Scene *scene, Object *ob);
 
-typedef struct ObjectEditData {
+using ObjectEditData = struct ObjectEditData {
   GSet *objects_set;
   bool is_liboverride_allowed;
   bool is_liboverride_hierarchy_root_allowed;
-} ObjectEditData;
+};
 
 static void outliner_do_object_delete(bContext *C,
                                       ReportList *reports,

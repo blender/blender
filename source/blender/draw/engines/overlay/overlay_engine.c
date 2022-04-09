@@ -111,6 +111,9 @@ static void OVERLAY_engine_init(void *vedata)
     case CTX_MODE_EDIT_MESH:
       OVERLAY_edit_mesh_init(vedata);
       break;
+    case CTX_MODE_EDIT_CURVES:
+      OVERLAY_edit_curves_init(vedata);
+      break;
     default:
       /* Nothing to do. */
       break;
@@ -182,9 +185,11 @@ static void OVERLAY_cache_init(void *vedata)
     case CTX_MODE_WEIGHT_GPENCIL:
       OVERLAY_edit_gpencil_cache_init(vedata);
       break;
+    case CTX_MODE_EDIT_CURVES:
+      OVERLAY_edit_curves_cache_init(vedata);
+      break;
     case CTX_MODE_SCULPT_CURVES:
     case CTX_MODE_OBJECT:
-    case CTX_MODE_EDIT_CURVES:
       break;
     default:
       BLI_assert_msg(0, "Draw mode invalid");
@@ -250,6 +255,7 @@ static bool overlay_object_is_edit_mode(const OVERLAY_PrivateData *pd, const Obj
       case OB_FONT:
         return pd->ctx_mode == CTX_MODE_EDIT_TEXT;
       case OB_CURVES:
+        return pd->ctx_mode == CTX_MODE_EDIT_CURVES;
       case OB_POINTCLOUD:
       case OB_VOLUME:
         /* No edit mode yet. */
@@ -388,6 +394,9 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
         break;
       case OB_FONT:
         OVERLAY_edit_text_cache_populate(vedata, ob);
+        break;
+      case OB_CURVES:
+        OVERLAY_edit_curves_cache_populate(vedata, ob);
         break;
     }
   }
@@ -670,6 +679,9 @@ static void OVERLAY_draw_scene(void *vedata)
       OVERLAY_edit_gpencil_draw(vedata);
       break;
     case CTX_MODE_SCULPT_CURVES:
+      break;
+    case CTX_MODE_EDIT_CURVES:
+      OVERLAY_edit_curves_draw(vedata);
       break;
     default:
       break;

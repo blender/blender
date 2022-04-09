@@ -770,6 +770,14 @@ void nodeClearActive(struct bNodeTree *ntree);
  * Two active flags, ID nodes have special flag for buttons display.
  */
 struct bNode *nodeGetActiveTexture(struct bNodeTree *ntree);
+struct bNode *nodeGetActivePaintCanvas(struct bNodeTree *ntree);
+
+/**
+ * @brief Does the given node supports the sub active flag.
+ *
+ * @param sub_active The active flag to check. NODE_ACTIVE_TEXTURE/NODE_ACTIVE_PAINT_CANVAS
+ */
+bool nodeSupportsActiveFlag(const struct bNode *node, int sub_active);
 
 int nodeSocketIsHidden(const struct bNodeSocket *sock);
 void nodeSetSocketAvailability(struct bNodeTree *ntree,

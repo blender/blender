@@ -18,10 +18,8 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_pointcloud_types.h"
 
-#include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_attribute.h"
 #include "BKE_curves.h"
@@ -94,7 +92,8 @@ static CustomData *attribute_customdata_find(ID *id, CustomDataLayer *layer)
 
   for (AttributeDomain domain = 0; domain < ATTR_DOMAIN_NUM; domain++) {
     CustomData *customdata = info[domain].customdata;
-    if (customdata && ARRAY_HAS_ITEM(layer, customdata->layers, customdata->totlayer)) {
+    if (customdata &&
+        ARRAY_HAS_ITEM(layer, (CustomDataLayer const *)customdata->layers, customdata->totlayer)) {
       return customdata;
     }
   }
@@ -137,7 +136,6 @@ bool BKE_id_attribute_rename(ID *id,
 
 typedef struct AttrUniqueData {
   ID *id;
-  CustomDataMask mask;
 } AttrUniqueData;
 
 static bool unique_name_cb(void *arg, const char *name)
@@ -156,7 +154,7 @@ static bool unique_name_cb(void *arg, const char *name)
     for (int i = 0; i < cdata->totlayer; i++) {
       CustomDataLayer *layer = cdata->layers + i;
 
-      if ((CD_TYPE_AS_MASK(layer->type) & data->mask) && STREQ(layer->name, name)) {
+      if (STREQ(layer->name, name)) {
         return true;
       }
     }
@@ -165,24 +163,17 @@ static bool unique_name_cb(void *arg, const char *name)
   return false;
 }
 
-bool BKE_id_attribute_find_unique_name(ID *id,
-                                       const char *name,
-                                       char *outname,
-                                       CustomDataMask mask)
+bool BKE_id_attribute_calc_unique_name(ID *id, const char *name, char *outname)
 {
-  AttrUniqueData data = {.id = id, .mask = mask};
+  AttrUniqueData data = {.id = id};
 
   BLI_strncpy_utf8(outname, name, MAX_CUSTOMDATA_LAYER_NAME);
 
   return BLI_uniquename_cb(unique_name_cb, &data, NULL, '.', outname, MAX_CUSTOMDATA_LAYER_NAME);
 }
 
-CustomDataLayer *BKE_id_attribute_new(ID *id,
-                                      const char *name,
-                                      const int type,
-                                      CustomDataMask list_mask,
-                                      const AttributeDomain domain,
-                                      ReportList *reports)
+CustomDataLayer *BKE_id_attribute_new(
+    ID *id, const char *name, const int type, const AttributeDomain domain, ReportList *reports)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(id, info);
@@ -194,8 +185,7 @@ CustomDataLayer *BKE_id_attribute_new(ID *id,
   }
 
   char uniquename[MAX_CUSTOMDATA_LAYER_NAME];
-
-  BKE_id_attribute_find_unique_name(id, name, uniquename, list_mask);
+  BKE_id_attribute_calc_unique_name(id, name, uniquename);
 
   switch (GS(id->name)) {
     case ID_ME: {
@@ -284,38 +274,7 @@ CustomDataLayer *BKE_id_attribute_find(const ID *id,
   return NULL;
 }
 
-CustomDataLayer *BKE_id_attribute_from_index(const ID *id,
-                                             int lookup_index,
-                                             const AttributeDomainMask domain_mask)
-{
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
-
-  int index = 0;
-  for (AttributeDomain domain = 0; domain < ATTR_DOMAIN_NUM; domain++) {
-    CustomData *customdata = info[domain].customdata;
-
-    if (!customdata || !((1 << (int)domain) & domain_mask)) {
-      continue;
-    }
-
-    for (int i = 0; i < customdata->totlayer; i++) {
-      if (CD_MASK_PROP_ALL & CD_TYPE_AS_MASK(customdata->layers[i].type)) {
-        if (index == lookup_index) {
-          return customdata->layers + i;
-        }
-
-        index++;
-      }
-    }
-  }
-
-  return NULL;
-}
-
-int BKE_id_attributes_length(const ID *id,
-                             const AttributeDomainMask domain_mask,
-                             const CustomDataMask mask)
+int BKE_id_attributes_length(const ID *id, AttributeDomainMask domain_mask, CustomDataMask mask)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(id, info);
@@ -333,7 +292,7 @@ int BKE_id_attributes_length(const ID *id,
   return length;
 }
 
-AttributeDomain BKE_id_attribute_domain(ID *id, CustomDataLayer *layer)
+AttributeDomain BKE_id_attribute_domain(ID *id, const CustomDataLayer *layer)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(id, info);
@@ -450,219 +409,6 @@ int *BKE_id_attributes_active_index_p(ID *id)
   }
 }
 
-CustomDataLayer *BKE_id_attributes_active_color_get(ID *id)
-{
-  AttributeRef *ref = BKE_id_attributes_active_color_ref_p(id);
-
-  if (!ref) {
-    fprintf(stderr, "%s: vertex colors not supported for this type\n", __func__);
-    return NULL;
-  }
-
-  if (!ref->type) {
-    //fprintf(stderr, "%s: invalid active color attribute\n", __func__);
-    return NULL;
-  }
-
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
-
-  int idx = CustomData_get_named_layer_index(info[ref->domain].customdata, ref->type, ref->name);
-
-  return idx != -1 ? info[ref->domain].customdata->layers + idx : NULL;
-}
-
-void BKE_id_attributes_active_color_set(ID *id, CustomDataLayer *active_layer)
-{
-  AttributeRef *ref = BKE_id_attributes_active_color_ref_p(id);
-
-  if (!ref) {
-    fprintf(stderr, "%s: vertex colors not supported for this type\n", __func__);
-    return;
-  }
-
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
-
-  if (!active_layer || !ELEM(active_layer->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
-    fprintf(stderr,
-            "bad active color layer %p; type was %d\n",
-            active_layer,
-            active_layer ? active_layer->type : -1);
-    return;
-  }
-
-  for (AttributeDomain domain = 0; domain < ATTR_DOMAIN_NUM; domain++) {
-    CustomData *customdata = info[domain].customdata;
-
-    if (customdata) {
-      for (int i = 0; i < customdata->totlayer; i++) {
-        CustomDataLayer *layer = &customdata->layers[i];
-        
-        if (layer == active_layer && ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
-          ref->type = layer->type;
-          ref->domain = domain;
-          BLI_strncpy_utf8(ref->name, layer->name, MAX_CUSTOMDATA_LAYER_NAME);
-          return;
-        }
-      }
-    }
-  }
-}
-
-AttributeRef *BKE_id_attributes_active_color_ref_p(ID *id)
-{
-  switch (GS(id->name)) {
-    case ID_ME: {
-      return &((Mesh *)id)->attr_color_active;
-    }
-    default:
-      return NULL;
-  }
-}
-
-CustomDataLayer *BKE_id_attributes_render_color_get(ID *id)
-{
-  AttributeRef *ref = BKE_id_attributes_render_color_ref_p(id);
-
-  if (!ref) {
-    fprintf(stderr, "%s: vertex colors not supported for this type\n", __func__);
-    return NULL;
-  }
-
-  if (!ref->type) {
-    //fprintf(stderr, "%s: invalid render color attribute\n", __func__);
-    return NULL;
-  }
-
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
-
-  int idx = CustomData_get_named_layer_index(info[ref->domain].customdata, ref->type, ref->name);
-
-  return idx != -1 ? info[ref->domain].customdata->layers + idx : NULL;
-}
-
-void BKE_id_attributes_render_color_set(ID *id, CustomDataLayer *active_layer)
-{
-  AttributeRef *ref = BKE_id_attributes_render_color_ref_p(id);
-
-  if (!ref) {
-    fprintf(stderr, "%s: vertex colors not supported for this type\n", __func__);
-    return;
-  }
-
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
-
-  if (!active_layer || !ELEM(active_layer->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
-    fprintf(stderr,
-            "bad active color layer %p; type was %d\n",
-            active_layer,
-            active_layer ? active_layer->type : -1);
-    return;
-  }
-
-  for (AttributeDomain domain = 0; domain < ATTR_DOMAIN_NUM; domain++) {
-    CustomData *customdata = info[domain].customdata;
-
-    if (customdata) {
-      for (int i = 0; i < customdata->totlayer; i++) {
-        CustomDataLayer *layer = &customdata->layers[i];
-
-        if (layer == active_layer && ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
-          ref->type = layer->type;
-          ref->domain = domain;
-          BLI_strncpy_utf8(ref->name, layer->name, MAX_CUSTOMDATA_LAYER_NAME);
-          return;
-        }
-      }
-    }
-  }
-}
-
-int BKE_id_attribute_index_from_ref(ID *id,
-                                    AttributeRef *ref,
-                                    AttributeDomainMask domain_mask,
-                                    CustomDataMask type_filter)
-{
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
-
-  int index = 0;
-
-  for (AttributeDomain domain = ATTR_DOMAIN_POINT; domain < ATTR_DOMAIN_NUM; domain++) {
-    CustomData *data = info[domain].customdata;
-
-    if (!((1 << (int)domain) & domain_mask) || !data) {
-      continue;
-    }
-
-    for (int i = 0; i < data->totlayer; i++) {
-      CustomDataLayer *layer = data->layers + i;
-
-      if (layer->type == ref->type && STREQ(layer->name, ref->name)) {
-        return index;
-      }
-
-      if (CD_TYPE_AS_MASK(layer->type) & type_filter) {
-        index++;
-      }
-    }
-  }
-
-  return -1;
-}
-
-bool BKE_id_attribute_ref_from_index(ID *id,
-                                     int attr_index,
-                                     AttributeDomainMask domain_mask,
-                                     CustomDataMask type_filter,
-                                     AttributeRef *r_ref)
-{
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
-
-  int index = 0;
-
-  for (AttributeDomain domain = ATTR_DOMAIN_POINT; domain < ATTR_DOMAIN_NUM; domain++) {
-    CustomData *data = info[domain].customdata;
-
-    if (!data || !((1 << (int)domain) & domain_mask)) {
-      continue;
-    }
-
-    for (int i = 0; i < data->totlayer; i++) {
-      CustomDataLayer *layer = data->layers + i;
-
-      if (CD_TYPE_AS_MASK(layer->type) & type_filter) {
-        if (index == attr_index) {
-          r_ref->domain = domain;
-          r_ref->type = layer->type;
-          BLI_strncpy_utf8(r_ref->name, layer->name, MAX_CUSTOMDATA_LAYER_NAME);
-
-          return true;
-        }
-
-        index++;
-      }
-    }
-  }
-
-  return false;
-}
-
-AttributeRef *BKE_id_attributes_render_color_ref_p(ID *id)
-{
-  switch (GS(id->name)) {
-    case ID_ME: {
-      return &((Mesh *)id)->attr_color_render;
-    }
-    default:
-      return NULL;
-  }
-}
-
 CustomData *BKE_id_attributes_iterator_next_domain(ID *id, CustomDataLayer *layers)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
@@ -685,20 +431,236 @@ CustomData *BKE_id_attributes_iterator_next_domain(ID *id, CustomDataLayer *laye
   return NULL;
 }
 
-bool BKE_id_attribute_ref_layer_equals(const struct AttributeRef *ref,
-                             const struct CustomDataLayer *layer,
-                             const AttributeDomain domain)
+CustomDataLayer *BKE_id_attribute_from_index(ID *id,
+                                             int lookup_index,
+                                             AttributeDomainMask domain_mask,
+                                             CustomDataMask layer_mask)
 {
-  bool ok = ref->domain == domain;
-  ok = ok && ref->type == layer->type;
-  ok = ok && STREQ(ref->name, layer->name);
+  DomainInfo info[ATTR_DOMAIN_NUM];
+  get_domains(id, info);
 
-  return ok;
+  int index = 0;
+  for (AttributeDomain domain = 0; domain < ATTR_DOMAIN_NUM; domain++) {
+    CustomData *customdata = info[domain].customdata;
+
+    if (!customdata || !((1 << (int)domain) & domain_mask)) {
+      continue;
+    }
+
+    for (int i = 0; i < customdata->totlayer; i++) {
+      if (!(layer_mask & CD_TYPE_AS_MASK(customdata->layers[i].type)) ||
+          (CD_TYPE_AS_MASK(customdata->layers[i].type) & CD_FLAG_TEMPORARY)) {
+        continue;
+      }
+
+      if (index == lookup_index) {
+        return customdata->layers + i;
+      }
+
+      index++;
+    }
+  }
+
+  return NULL;
 }
 
-bool BKE_id_attribute_ref_equals(const struct AttributeRef *ref1, const struct AttributeRef *ref2) {
-  bool ok = ref1->type == ref2->type && ref1->domain == ref2->domain;
+/** Get list of domain types but with ATTR_DOMAIN_FACE and
+ * ATTR_DOMAIN_CORNER swapped.
+ */
+static void get_domains_types(AttributeDomain domains[ATTR_DOMAIN_NUM])
+{
+  for (AttributeDomain i = 0; i < ATTR_DOMAIN_NUM; i++) {
+    domains[i] = i;
+  }
 
-  return ok && STREQ(ref1->name, ref2->name);
+  /* Swap corner and face. */
+  SWAP(AttributeDomain, domains[ATTR_DOMAIN_FACE], domains[ATTR_DOMAIN_CORNER]);
 }
 
+int BKE_id_attribute_to_index(const struct ID *id,
+                              const CustomDataLayer *layer,
+                              AttributeDomainMask domain_mask,
+                              CustomDataMask layer_mask)
+{
+  if (!layer) {
+    return -1;
+  }
+
+  DomainInfo info[ATTR_DOMAIN_NUM];
+  AttributeDomain domains[ATTR_DOMAIN_NUM];
+  get_domains_types(domains);
+  get_domains(id, info);
+
+  int index = 0;
+  for (int i = 0; i < ATTR_DOMAIN_NUM; i++) {
+    if (!(domain_mask & (1 << domains[i])) || !info[domains[i]].customdata) {
+      continue;
+    }
+
+    CustomData *cdata = info[domains[i]].customdata;
+    for (int j = 0; j < cdata->totlayer; j++) {
+      CustomDataLayer *layer_iter = cdata->layers + j;
+
+      if (!(CD_TYPE_AS_MASK(layer_iter->type) & layer_mask) ||
+          (CD_TYPE_AS_MASK(layer_iter->type) & CD_FLAG_TEMPORARY)) {
+        continue;
+      }
+
+      if (layer == layer_iter) {
+        return index;
+      }
+
+      index++;
+    }
+  }
+
+  return -1;
+}
+
+CustomDataLayer *BKE_id_attribute_subset_active_get(const ID *id,
+                                                    int active_flag,
+                                                    AttributeDomainMask domain_mask,
+                                                    CustomDataMask mask)
+{
+  DomainInfo info[ATTR_DOMAIN_NUM];
+  AttributeDomain domains[ATTR_DOMAIN_NUM];
+
+  get_domains_types(domains);
+  get_domains(id, info);
+
+  CustomDataLayer *candidate = NULL;
+  for (int i = 0; i < ARRAY_SIZE(domains); i++) {
+    if (!((1 << domains[i]) & domain_mask) || !info[domains[i]].customdata) {
+      continue;
+    }
+
+    CustomData *cdata = info[domains[i]].customdata;
+
+    for (int j = 0; j < cdata->totlayer; j++) {
+      CustomDataLayer *layer = cdata->layers + j;
+
+      if (!(CD_TYPE_AS_MASK(layer->type) & mask) ||
+          (CD_TYPE_AS_MASK(layer->type) & CD_FLAG_TEMPORARY)) {
+        continue;
+      }
+
+      if (layer->flag & active_flag) {
+        return layer;
+      }
+
+      candidate = layer;
+    }
+  }
+
+  return candidate;
+}
+
+void BKE_id_attribute_subset_active_set(ID *id,
+                                        CustomDataLayer *layer,
+                                        int active_flag,
+                                        AttributeDomainMask domain_mask,
+                                        CustomDataMask mask)
+{
+  DomainInfo info[ATTR_DOMAIN_NUM];
+  AttributeDomain domains[ATTR_DOMAIN_NUM];
+
+  get_domains_types(domains);
+  get_domains(id, info);
+
+  for (int i = 0; i < ATTR_DOMAIN_NUM; i++) {
+    AttributeDomainMask domain_mask2 = (AttributeDomainMask)(1 << domains[i]);
+
+    if (!(domain_mask2 & domain_mask) || !info[domains[i]].customdata) {
+      continue;
+    }
+
+    CustomData *cdata = info[domains[i]].customdata;
+
+    for (int j = 0; j < cdata->totlayer; j++) {
+      CustomDataLayer *layer_iter = cdata->layers + j;
+
+      if (!(CD_TYPE_AS_MASK(layer_iter->type) & mask) ||
+          (CD_TYPE_AS_MASK(layer_iter->type) & CD_FLAG_TEMPORARY)) {
+        continue;
+      }
+
+      layer_iter->flag &= ~active_flag;
+    }
+  }
+
+  layer->flag |= active_flag;
+}
+
+CustomDataLayer *BKE_id_attributes_active_color_get(const ID *id)
+{
+  return BKE_id_attribute_subset_active_get(
+      id, CD_FLAG_COLOR_ACTIVE, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
+}
+
+void BKE_id_attributes_active_color_set(ID *id, CustomDataLayer *active_layer)
+{
+  BKE_id_attribute_subset_active_set(
+      id, active_layer, CD_FLAG_COLOR_ACTIVE, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
+}
+
+CustomDataLayer *BKE_id_attributes_render_color_get(const ID *id)
+{
+  return BKE_id_attribute_subset_active_get(
+      id, CD_FLAG_COLOR_RENDER, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
+}
+
+void BKE_id_attributes_render_color_set(ID *id, CustomDataLayer *active_layer)
+{
+  BKE_id_attribute_subset_active_set(
+      id, active_layer, CD_FLAG_COLOR_RENDER, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
+}
+
+void BKE_id_attribute_copy_domains_temp(short id_type,
+                                        const CustomData *vdata,
+                                        const CustomData *edata,
+                                        const CustomData *ldata,
+                                        const CustomData *pdata,
+                                        const CustomData *cdata,
+                                        ID *r_id)
+{
+  CustomData reset;
+
+  CustomData_reset(&reset);
+
+  switch (id_type) {
+    case ID_ME: {
+      Mesh *me = (Mesh *)r_id;
+      memset((void *)me, 0, sizeof(*me));
+
+      me->edit_mesh = NULL;
+
+      me->vdata = vdata ? *vdata : reset;
+      me->edata = edata ? *edata : reset;
+      me->ldata = ldata ? *ldata : reset;
+      me->pdata = pdata ? *pdata : reset;
+
+      break;
+    }
+    case ID_PT: {
+      PointCloud *pointcloud = (PointCloud *)r_id;
+
+      memset((void *)pointcloud, 0, sizeof(*pointcloud));
+
+      pointcloud->pdata = vdata ? *vdata : reset;
+      break;
+    }
+    case ID_CV: {
+      Curves *curves = (Curves *)r_id;
+
+      memset((void *)curves, 0, sizeof(*curves));
+
+      curves->geometry.point_data = vdata ? *vdata : reset;
+      curves->geometry.curve_data = cdata ? *cdata : reset;
+      break;
+    }
+    default:
+      break;
+  }
+
+  *((short *)r_id->name) = id_type;
+}

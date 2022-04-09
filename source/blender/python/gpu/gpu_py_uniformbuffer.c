@@ -68,7 +68,12 @@ static PyObject *pygpu_uniformbuffer__tp_new(PyTypeObject *UNUSED(self),
   char err_out[256] = "unknown error. See console";
 
   static const char *_keywords[] = {"data", NULL};
-  static _PyArg_Parser _parser = {"O!:GPUUniformBuf.__new__", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O!" /* `data` */
+      ":GPUUniformBuf.__new__",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kwds, &_parser, &BPyGPU_BufferType, &pybuffer_obj)) {
     return NULL;
   }

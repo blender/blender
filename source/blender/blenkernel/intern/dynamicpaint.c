@@ -4018,7 +4018,7 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
               treeData->tree, ray_start, ray_dir, 0.0f, &hit, mesh_tris_spherecast_dp, treeData);
 
           if (hit.index != -1) {
-            /* Add factor on supersample filter */
+            /* Add factor on super-sample filter. */
             volume_factor = 1.0f;
             hit_found = HIT_VOLUME;
 

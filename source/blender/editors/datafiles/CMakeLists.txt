@@ -774,6 +774,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.armature.extrude_cursor
   ops.armature.extrude_move
   ops.curve.draw
+  ops.curve.pen
   ops.curve.extrude_cursor
   ops.curve.extrude_move
   ops.curve.radius
@@ -782,7 +783,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.curves.sculpt_comb
   ops.curves.sculpt_cut
   ops.curves.sculpt_delete
-  ops.curves.sculpt_grow
+  ops.curves.sculpt_grow_shrink
   ops.generic.cursor
   ops.generic.select
   ops.generic.select_box
@@ -853,6 +854,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.sculpt.border_hide
   ops.sculpt.border_mask
   ops.sculpt.box_trim
+  ops.sculpt.color_filter
   ops.sculpt.cloth_filter
   ops.sculpt.color_filter
   ops.sculpt.face_set_edit

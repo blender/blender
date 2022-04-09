@@ -27,6 +27,10 @@
 
 #include "bmesh.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct AutomaskingCache;
 struct KeyBlock;
 struct Object;
@@ -214,9 +218,16 @@ typedef struct SculptUndoNode {
   float *mask;
   int totvert;
 
+  float (*loop_col)[4];
+  float (*orig_loop_col)[4];
+  int totloop;
+
   /* non-multires */
   int maxvert;          /* to verify if totvert it still the same */
   SculptVertRef *index; /* to restore into right location */
+  int maxloop;
+  int *loop_index;
+
   BLI_bitmap *vert_hidden;
 
   /* multires */
@@ -1045,7 +1056,7 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags);
 void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType update_flags);
 
 typedef enum PBVHClearFlags {
-  PBVH_CLEAR_CACHE_PBVH = 1<<1,
+  PBVH_CLEAR_CACHE_PBVH = 1 << 1,
   PBVH_CLEAR_FREE_BMESH = 1 << 2,
 } PBVHClearFlags;
 
@@ -1129,18 +1140,23 @@ void SCULPT_face_random_access_ensure(struct SculptSession *ss);
 int SCULPT_vertex_valence_get(const struct SculptSession *ss, SculptVertRef vertex);
 int SCULPT_vertex_count_get(const struct SculptSession *ss);
 
-bool SCULPT_vertex_color_get(const SculptSession *ss, SculptVertRef vertex, float out[4]);
-void SCULPT_vertex_color_set(const SculptSession *ss, SculptVertRef vertex, float color[4]);
-bool SCULPT_has_colors(const SculptSession *ss);
-
-const float *SCULPT_vertex_co_get(struct SculptSession *ss, SculptVertRef index);
-void SCULPT_vertex_normal_get(SculptSession *ss, SculptVertRef index, float no[3]);
-float SCULPT_vertex_mask_get(struct SculptSession *ss, SculptVertRef index);
+const float *SCULPT_vertex_co_get(struct SculptSession *ss, SculptVertRef vertex);
+void SCULPT_vertex_normal_get(SculptSession *ss, SculptVertRef vertex, float no[3]);
 float *SCULPT_vertex_origco_get(SculptSession *ss, SculptVertRef vertex);
 float *SCULPT_vertex_origno_get(SculptSession *ss, SculptVertRef vertex);
 
-const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, SculptVertRef index);
-void SCULPT_vertex_persistent_normal_get(SculptSession *ss, SculptVertRef index, float no[3]);
+const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, SculptVertRef vertex);
+void SCULPT_vertex_persistent_normal_get(SculptSession *ss, SculptVertRef vertex, float no[3]);
+
+float SCULPT_vertex_mask_get(struct SculptSession *ss, SculptVertRef vertex);
+void SCULPT_vertex_color_get(const SculptSession *ss, SculptVertRef vertex, float r_color[4]);
+void SCULPT_vertex_color_set(SculptSession *ss, SculptVertRef vertex, const float color[4]);
+
+/** Returns true if a color attribute exists in the current sculpt session. */
+bool SCULPT_has_colors(const SculptSession *ss);
+
+/** Returns true if the active color attribute is on loop (ATTR_DOMAIN_CORNER) domain. */
+bool SCULPT_has_loop_colors(const struct Object *ob);
 
 bool SCULPT_has_persistent_base(SculptSession *ss);
 
@@ -1853,8 +1869,6 @@ void SCULPT_undo_push_end_ex(struct Object *ob, const bool use_nested_undo);
 
 /** \} */
 
-/** \} */
-
 void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const float (*vertCos)[3]);
 
 /**
@@ -2198,6 +2212,7 @@ void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
 /* end sculpt_brush_types.c */
 
 /* sculpt_ops.c */
+
 void SCULPT_OT_brush_stroke(struct wmOperatorType *ot);
 
 /* end sculpt_ops.c */
@@ -2510,3 +2525,9 @@ void SCULPT_dyntopo_automasking_end(void *mask_data);
 
 // exponent to make boundary_smooth_factor more user-friendly
 #define BOUNDARY_SMOOTH_EXP 2.0
+
+#define SCULPT_TOOL_NEEDS_COLOR(tool) ELEM(tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)
+
+#ifdef __cplusplus
+}
+#endif

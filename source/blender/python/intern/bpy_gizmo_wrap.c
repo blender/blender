@@ -51,7 +51,15 @@ static bool bpy_gizmotype_target_property_def(wmGizmoType *gzt, PyObject *item)
   };
 
   static const char *const _keywords[] = {"id", "type", "array_length", NULL};
-  static _PyArg_Parser _parser = {"|$sO&i:register_class", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "|$" /* Optional keyword only arguments. */
+      "s"  /* `id` */
+      "O&" /* `type` */
+      "i"  /* `array_length` */
+      ":register_class",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(empty_tuple,
                                         item,
                                         &_parser,

@@ -31,42 +31,27 @@
 
 wmKeyMapItem *WM_keymap_add_menu(wmKeyMap *keymap,
                                  const char *idname,
-                                 int type,
-                                 int val,
-                                 int modifier,
-                                 int keymodifier,
-                                 int direction)
+                                 const KeyMapItem_Params *params)
 {
-  wmKeyMapItem *kmi = WM_keymap_add_item(
-      keymap, "WM_OT_call_menu", type, val, modifier, keymodifier, direction);
+  wmKeyMapItem *kmi = WM_keymap_add_item(keymap, "WM_OT_call_menu", params);
   RNA_string_set(kmi->ptr, "name", idname);
   return kmi;
 }
 
 wmKeyMapItem *WM_keymap_add_menu_pie(wmKeyMap *keymap,
                                      const char *idname,
-                                     int type,
-                                     int val,
-                                     int modifier,
-                                     int keymodifier,
-                                     int direction)
+                                     const KeyMapItem_Params *params)
 {
-  wmKeyMapItem *kmi = WM_keymap_add_item(
-      keymap, "WM_OT_call_menu_pie", type, val, modifier, keymodifier, direction);
+  wmKeyMapItem *kmi = WM_keymap_add_item(keymap, "WM_OT_call_menu_pie", params);
   RNA_string_set(kmi->ptr, "name", idname);
   return kmi;
 }
 
 wmKeyMapItem *WM_keymap_add_panel(wmKeyMap *keymap,
                                   const char *idname,
-                                  int type,
-                                  int val,
-                                  int modifier,
-                                  int keymodifier,
-                                  int direction)
+                                  const KeyMapItem_Params *params)
 {
-  wmKeyMapItem *kmi = WM_keymap_add_item(
-      keymap, "WM_OT_call_panel", type, val, modifier, keymodifier, direction);
+  wmKeyMapItem *kmi = WM_keymap_add_item(keymap, "WM_OT_call_panel", params);
   RNA_string_set(kmi->ptr, "name", idname);
   /* TODO: we might want to disable this. */
   RNA_boolean_set(kmi->ptr, "keep_open", false);
@@ -75,14 +60,9 @@ wmKeyMapItem *WM_keymap_add_panel(wmKeyMap *keymap,
 
 wmKeyMapItem *WM_keymap_add_tool(wmKeyMap *keymap,
                                  const char *idname,
-                                 int type,
-                                 int val,
-                                 int modifier,
-                                 int keymodifier,
-                                 int direction)
+                                 const KeyMapItem_Params *params)
 {
-  wmKeyMapItem *kmi = WM_keymap_add_item(
-      keymap, "WM_OT_tool_set_by_id", type, val, modifier, keymodifier, direction);
+  wmKeyMapItem *kmi = WM_keymap_add_item(keymap, "WM_OT_tool_set_by_id", params);
   RNA_string_set(kmi->ptr, "name", idname);
   return kmi;
 }

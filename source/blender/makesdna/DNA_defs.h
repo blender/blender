@@ -86,7 +86,7 @@ template<class T> class ShallowDataConstRef {
   const T &ref_;
 };
 
-template<class T> class ShallowZeroInitializeTag {
+class ShallowZeroInitializeTag {
 };
 
 }  // namespace blender::dna::internal
@@ -113,13 +113,11 @@ template<class T> class ShallowZeroInitializeTag {
       return *this; \
     } \
     /* Create object which memory is filled with zeros. */ \
-    class_name(const blender::dna::internal::ShallowZeroInitializeTag<class_name> /*tag*/) \
-        : class_name() \
+    class_name(const blender::dna::internal::ShallowZeroInitializeTag /*tag*/) : class_name() \
     { \
       _DNA_internal_memzero(this, sizeof(class_name)); \
     } \
-    class_name &operator=( \
-        const blender::dna::internal::ShallowZeroInitializeTag<class_name> /*tag*/) \
+    class_name &operator=(const blender::dna::internal::ShallowZeroInitializeTag /*tag*/) \
     { \
       _DNA_internal_memzero(this, sizeof(class_name)); \
       return *this; \
@@ -143,10 +141,9 @@ template<class T>
 
 /* DNA object initializer which leads to an object which underlying memory is filled with zeroes.
  */
-template<class T>
-[[nodiscard]] inline internal::ShallowZeroInitializeTag<T> shallow_zero_initialize()
+[[nodiscard]] inline internal::ShallowZeroInitializeTag shallow_zero_initialize()
 {
-  return internal::ShallowZeroInitializeTag<T>();
+  return internal::ShallowZeroInitializeTag();
 }
 
 }  // namespace blender::dna

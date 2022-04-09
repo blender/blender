@@ -80,9 +80,7 @@ static void requiredDataMask(Object *UNUSED(ob),
   }
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene),
-                          ModifierData *md,
-                          const int UNUSED(dag_eval_mode))
+static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *md)
 {
   DisplaceModifierData *dmd = (DisplaceModifierData *)md;
 

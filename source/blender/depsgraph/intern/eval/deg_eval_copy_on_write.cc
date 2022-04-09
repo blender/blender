@@ -872,7 +872,9 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph, const IDNode 
    * TODO: Investigate modes besides edit-mode. */
   if (check_datablock_expanded(id_cow) && !id_node->is_cow_explicitly_tagged) {
     const ID_Type id_type = GS(id_orig->name);
-    if (OB_DATA_SUPPORT_EDITMODE(id_type) && BKE_object_data_is_in_editmode(id_orig)) {
+    /* Pass nullptr as the object is only needed for Curves which do not have edit mode pointers.
+     */
+    if (OB_DATA_SUPPORT_EDITMODE(id_type) && BKE_object_data_is_in_editmode(nullptr, id_orig)) {
       /* Make sure pointers in the edit mode data are updated in the copy.
        * This allows depsgraph to pick up changes made in another context after it has been
        * evaluated. Consider the following scenario:

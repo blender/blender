@@ -31,6 +31,7 @@ struct Curve;
 struct FluidsimSettings;
 struct GeometrySet;
 struct Ipo;
+struct LightgroupMembership;
 struct Material;
 struct Mesh;
 struct Object;
@@ -94,7 +95,7 @@ typedef struct BoundBox {
 
 /** #BoundBox.flag */
 enum {
-  BOUNDBOX_DISABLED = (1 << 0),
+  /* BOUNDBOX_DISABLED = (1 << 0), */ /* UNUSED */
   BOUNDBOX_DIRTY = (1 << 1),
 };
 
@@ -438,10 +439,14 @@ typedef struct Object {
 
   ObjectLineArt lineart;
 
-  /** Runtime evaluation data (keep last). */
-  //void *_pad9;
+  /** Lightgroup membership information. */
+  struct LightgroupMembership *lightgroup;
+
   struct PBVH *cached_pbvh2;
+
+  /** Runtime evaluation data (keep last). */
   Object_Runtime runtime;
+  void *_pad9;
 } Object;
 
 /** DEPRECATED: this is not used anymore because hooks are now modifiers. */
@@ -536,7 +541,8 @@ enum {
   (ELEM(_type, OB_MESH, OB_SURF, OB_CURVES_LEGACY, OB_LATTICE))
 
 /** Matches #OB_TYPE_SUPPORT_EDITMODE. */
-#define OB_DATA_SUPPORT_EDITMODE(_type) (ELEM(_type, ID_ME, ID_CU_LEGACY, ID_MB, ID_LT, ID_AR))
+#define OB_DATA_SUPPORT_EDITMODE(_type) \
+  (ELEM(_type, ID_ME, ID_CU_LEGACY, ID_MB, ID_LT, ID_AR, ID_CV))
 
 /* is this ID type used as object data */
 #define OB_DATA_SUPPORT_ID(_id_type) \

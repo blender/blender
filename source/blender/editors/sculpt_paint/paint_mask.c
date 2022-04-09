@@ -708,7 +708,8 @@ static void sculpt_gesture_apply(bContext *C, SculptGestureContext *sgcontext)
 
   operation->sculpt_gesture_end(C, sgcontext);
 
-  SCULPT_undo_push_end(CTX_data_active_object(C));
+  Object *ob = CTX_data_active_object(C);
+  SCULPT_undo_push_end(ob);
 
   SCULPT_tag_update_overlays(C);
 }

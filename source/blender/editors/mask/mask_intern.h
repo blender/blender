@@ -136,6 +136,7 @@ struct MaskSplinePoint *ED_mask_point_find_nearest(const struct bContext *C,
                                                    float *r_score);
 
 /* mask_shapekey.c */
+
 void MASK_OT_shape_key_insert(struct wmOperatorType *ot);
 void MASK_OT_shape_key_clear(struct wmOperatorType *ot);
 void MASK_OT_shape_key_feather_reset(struct wmOperatorType *ot);

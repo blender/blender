@@ -301,7 +301,7 @@ static Curves *resample_to_uniform_count(const CurveComponent &src_component,
                   CD_MASK_ALL,
                   CD_DUPLICATE,
                   src_curves.curves_num());
-  MutableSpan<int> dst_offsets = dst_curves.offsets();
+  MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
 
   GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_CURVE};
   fn::FieldEvaluator evaluator{field_context, src_curves.curves_num()};
@@ -318,12 +318,12 @@ static Curves *resample_to_uniform_count(const CurveComponent &src_component,
   dst_curves.resize(dst_offsets.last(), dst_curves.curves_num());
 
   /* All resampled curves are poly curves. */
-  dst_curves.curve_types().fill_indices(selection, CURVE_TYPE_POLY);
+  dst_curves.curve_types_for_write().fill_indices(selection, CURVE_TYPE_POLY);
 
   VArray<bool> curves_cyclic = src_curves.cyclic();
   VArray<int8_t> curve_types = src_curves.curve_types();
   Span<float3> evaluated_positions = src_curves.evaluated_positions();
-  MutableSpan<float3> dst_positions = dst_curves.positions();
+  MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
 
   AttributesForInterpolation attributes;
   gather_point_attributes_to_interpolate(src_component, dst_component, attributes);
@@ -464,8 +464,8 @@ static Curves *resample_to_evaluated(const CurveComponent &src_component,
                   CD_DUPLICATE,
                   src_curves.curves_num());
   /* All resampled curves are poly curves. */
-  dst_curves.curve_types().fill_indices(selection, CURVE_TYPE_POLY);
-  MutableSpan<int> dst_offsets = dst_curves.offsets();
+  dst_curves.curve_types_for_write().fill_indices(selection, CURVE_TYPE_POLY);
+  MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
 
   src_curves.ensure_evaluated_offsets();
   threading::parallel_for(selection.index_range(), 4096, [&](IndexRange range) {
@@ -480,7 +480,7 @@ static Curves *resample_to_evaluated(const CurveComponent &src_component,
 
   /* Create the correct number of uniform-length samples for every selected curve. */
   Span<float3> evaluated_positions = src_curves.evaluated_positions();
-  MutableSpan<float3> dst_positions = dst_curves.positions();
+  MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
 
   AttributesForInterpolation attributes;
   gather_point_attributes_to_interpolate(src_component, dst_component, attributes);

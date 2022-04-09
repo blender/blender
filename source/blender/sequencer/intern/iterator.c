@@ -20,6 +20,7 @@
 #include "BKE_scene.h"
 
 #include "SEQ_iterator.h"
+#include "SEQ_render.h"
 #include "SEQ_time.h"
 #include "render.h"
 
@@ -285,14 +286,14 @@ static bool must_render_strip(const Sequence *seq, SeqCollection *strips_at_time
 }
 
 /* Remove strips we don't want to render from collection. */
-static void collection_filter_rendered_strips(SeqCollection *collection)
+static void collection_filter_rendered_strips(ListBase *channels, SeqCollection *collection)
 {
   Sequence *seq;
 
   /* Remove sound strips and muted strips from collection, because these are not rendered.
    * Function #must_render_strip() don't have to check for these strips anymore. */
   SEQ_ITERATOR_FOREACH (seq, collection) {
-    if (seq->type == SEQ_TYPE_SOUND_RAM || (seq->flag & SEQ_MUTE) != 0) {
+    if (seq->type == SEQ_TYPE_SOUND_RAM || SEQ_render_is_muted(channels, seq)) {
       SEQ_collection_remove_strip(seq, collection);
     }
   }
@@ -305,7 +306,8 @@ static void collection_filter_rendered_strips(SeqCollection *collection)
   }
 }
 
-SeqCollection *SEQ_query_rendered_strips(ListBase *seqbase,
+SeqCollection *SEQ_query_rendered_strips(ListBase *channels,
+                                         ListBase *seqbase,
                                          const int timeline_frame,
                                          const int displayed_channel)
 {
@@ -313,7 +315,7 @@ SeqCollection *SEQ_query_rendered_strips(ListBase *seqbase,
   if (displayed_channel != 0) {
     collection_filter_channel_up_to_incl(collection, displayed_channel);
   }
-  collection_filter_rendered_strips(collection);
+  collection_filter_rendered_strips(channels, collection);
   return collection;
 }
 

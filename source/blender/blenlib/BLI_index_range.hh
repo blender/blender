@@ -39,6 +39,7 @@
  */
 
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <iostream>
 
@@ -235,8 +236,8 @@ class IndexRange {
   }
 
   /**
-   * Returns a new IndexRange with n elements removed from the beginning. This invokes undefined
-   * behavior when n is negative.
+   * Returns a new IndexRange with n elements removed from the beginning of the range.
+   * This invokes undefined behavior when n is negative.
    */
   constexpr IndexRange drop_front(int64_t n) const
   {
@@ -246,8 +247,8 @@ class IndexRange {
   }
 
   /**
-   * Returns a new IndexRange with n elements removed from the beginning. This invokes undefined
-   * behavior when n is negative.
+   * Returns a new IndexRange with n elements removed from the end of the range.
+   * This invokes undefined behavior when n is negative.
    */
   constexpr IndexRange drop_back(int64_t n) const
   {
@@ -288,6 +289,12 @@ class IndexRange {
     stream << "[" << range.start() << ", " << range.one_after_last() << ")";
     return stream;
   }
+
+ private:
+  static std::atomic<int64_t> s_current_array_size;
+  static std::atomic<int64_t *> s_current_array;
+
+  Span<int64_t> as_span_internal() const;
 };
 
 }  // namespace blender

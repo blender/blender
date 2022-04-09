@@ -5,6 +5,7 @@
 #include <optional>
 
 #include "curves_sculpt_intern.h"
+#include "paint_intern.h"
 
 #include "BLI_math_vector.hh"
 
@@ -36,6 +37,8 @@ std::unique_ptr<CurvesSculptStrokeOperation> new_add_operation();
 std::unique_ptr<CurvesSculptStrokeOperation> new_comb_operation();
 std::unique_ptr<CurvesSculptStrokeOperation> new_delete_operation();
 std::unique_ptr<CurvesSculptStrokeOperation> new_snake_hook_operation();
+std::unique_ptr<CurvesSculptStrokeOperation> new_grow_shrink_operation(
+    const BrushStrokeMode brush_mode, bContext *C);
 
 struct CurvesBrush3D {
   float3 position_cu;

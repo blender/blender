@@ -17,6 +17,8 @@
 #include "DNA_customdata_types.h"
 #include "DNA_object_enums.h"
 
+#include "BKE_attribute.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -715,8 +717,8 @@ typedef struct SculptSession {
   struct MPropCol *vcol;
   struct MLoopCol *mcol;
 
-  int vcol_domain;
-  int vcol_type;
+  AttributeDomain vcol_domain;
+  CustomDataType vcol_type;
 
   float *vmask;
 
@@ -908,6 +910,14 @@ typedef struct SculptSession {
   int tot_layers_to_free;
 
   bool save_temp_layers;
+
+  /**
+   * Some tools follows the shading chosen by the last used tool canvas.
+   * When not set the viewport shading color would be used.
+   *
+   * NOTE: This setting is temporarily until paint mode is added.
+   */
+  bool sticky_shading_color;
 } SculptSession;
 
 void BKE_sculptsession_free(struct Object *ob);

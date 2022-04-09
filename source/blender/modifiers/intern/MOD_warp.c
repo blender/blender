@@ -103,9 +103,7 @@ static void matrix_from_obj_pchan(float mat[4][4],
   }
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene),
-                          ModifierData *md,
-                          const int UNUSED(dag_eval_mode))
+static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *md)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
 

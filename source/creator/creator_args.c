@@ -1644,7 +1644,7 @@ static int arg_handle_scene_set(int argc, const char **argv, void *data)
       CTX_data_scene_set(C, scene);
 
       /* Set the scene of the first window, see: T55991,
-       * otherwise scrips that run later won't get this scene back from the context. */
+       * otherwise scripts that run later won't get this scene back from the context. */
       wmWindow *win = CTX_wm_window(C);
       if (win == NULL) {
         win = CTX_wm_manager(C)->windows.first;

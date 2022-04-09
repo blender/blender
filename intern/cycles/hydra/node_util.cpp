@@ -273,7 +273,8 @@ template<typename MatrixArray> array<Transform> convertToCyclesTransformArray(co
   array<Transform> cyclesArray;
   cyclesArray.reserve(valueData.size());
   for (const auto &element : valueData) {
-    cyclesArray.push_back_reserved(convertMatrixToCycles<MatrixArray::value_type>(element));
+    cyclesArray.push_back_reserved(
+        convertMatrixToCycles<typename MatrixArray::value_type>(element));
   }
   return cyclesArray;
 }

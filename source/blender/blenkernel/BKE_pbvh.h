@@ -133,6 +133,7 @@ struct MEdge;
 struct PBVHNode;
 struct SubdivCCG;
 struct TaskParallelSettings;
+struct MeshElemMap;
 
 typedef struct PBVH PBVH;
 typedef struct PBVHNode PBVHNode;
@@ -587,6 +588,10 @@ void BKE_pbvh_node_get_verts(PBVH *pbvh,
                              PBVHNode *node,
                              const int **r_vert_indices,
                              struct MVert **r_verts);
+void BKE_pbvh_node_get_loops(PBVH *pbvh,
+                             PBVHNode *node,
+                             const int **r_loop_indices,
+                             const struct MLoop **r_loops);
 
 void BKE_pbvh_node_get_BB(PBVHNode *node, float bb_min[3], float bb_max[3]);
 void BKE_pbvh_node_get_original_BB(PBVHNode *node, float bb_min[3], float bb_max[3]);
@@ -770,7 +775,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
               } \
             } \
             else { \
-              bv = vi.bm_cur_set->elems[vi.bi++]; \
+              bv = (BMVert *)vi.bm_cur_set->elems[vi.bi++]; \
             } \
           } \
           if (!bv) { \
@@ -838,12 +843,43 @@ const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3];
 
 PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node);
 void BKE_pbvh_node_color_buffer_free(PBVH *pbvh);
+bool BKE_pbvh_get_color_layer(const struct Mesh *me,
+                              CustomDataLayer **r_layer,
+                              AttributeDomain *r_attr);
 
-/* updates pbvh->vcol_domain, vcol_type too */
-bool BKE_pbvh_get_color_layer(PBVH *pbvh,
-                              const struct Mesh *me,
-                              CustomDataLayer **cl_out,
-                              AttributeDomain *attr_out);
+/* Swaps colors at each element in indices (of domain pbvh->vcol_domain)
+ * with values in colors. PBVH_FACES only.*/
+void BKE_pbvh_swap_colors(PBVH *pbvh,
+                          const int *indices,
+                          const int indices_num,
+                          float (*colors)[4]);
+
+/* Stores colors from the elements in indices (of domain pbvh->vcol_domain)
+ * into colors. PBVH_FACES only.*/
+void BKE_pbvh_store_colors(PBVH *pbvh,
+                           const int *indices,
+                           const int indices_num,
+                           float (*colors)[4]);
+
+/* Like BKE_pbvh_store_colors but handles loop->vert conversion. PBVH_FACES only. */
+void BKE_pbvh_store_colors_vertex(PBVH *pbvh,
+                                  const int *indices,
+                                  const int indices_num,
+                                  float (*colors)[4]);
+
+bool BKE_pbvh_is_drawing(const PBVH *pbvh);
+void BKE_pbvh_is_drawing_set(PBVH *pbvh, bool val);
+
+/* Do not call in PBVH_GRIDS mode */
+void BKE_pbvh_node_num_loops(PBVH *pbvh, PBVHNode *node, int *r_totloop);
+
+void BKE_pbvh_update_active_vcol(PBVH *pbvh, const struct Mesh *mesh);
+void BKE_pbvh_pmap_set(PBVH *pbvh, struct SculptPMap *pmap);
+
+void BKE_pbvh_vertex_color_set(PBVH *pbvh, SculptVertRef vertex, const float color[4]);
+void BKE_pbvh_vertex_color_get(const PBVH *pbvh, SculptVertRef vertex, float r_color[4]);
+
+void BKE_pbvh_ensure_node_loops(PBVH *pbvh);
 
 int BKE_pbvh_get_node_index(PBVH *pbvh, PBVHNode *node);
 int BKE_pbvh_get_node_id(PBVH *pbvh, PBVHNode *node);

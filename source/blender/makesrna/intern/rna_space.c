@@ -424,7 +424,7 @@ static const EnumPropertyItem rna_enum_shading_color_type_items[] = {
     {V3D_SHADING_SINGLE_COLOR, "SINGLE", 0, "Single", "Show scene in a single color"},
     {V3D_SHADING_OBJECT_COLOR, "OBJECT", 0, "Object", "Show object color"},
     {V3D_SHADING_RANDOM_COLOR, "RANDOM", 0, "Random", "Show random object color"},
-    {V3D_SHADING_VERTEX_COLOR, "VERTEX", 0, "Vertex", "Show active vertex color"},
+    {V3D_SHADING_VERTEX_COLOR, "VERTEX", 0, "Color", "Show active color attribute"},
     {V3D_SHADING_TEXTURE_COLOR, "TEXTURE", 0, "Texture", "Show texture"},
     {0, NULL, 0, NULL, NULL},
 };
@@ -5632,7 +5632,8 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 
   rna_def_space_generic_show_region_toggles(srna,
                                             (1 << RGN_TYPE_TOOL_HEADER) | (1 << RGN_TYPE_UI) |
-                                                (1 << RGN_TYPE_TOOLS) | (1 << RGN_TYPE_HUD));
+                                                (1 << RGN_TYPE_TOOLS) | (1 << RGN_TYPE_HUD) |
+                                                (1 << RGN_TYPE_CHANNELS));
 
   /* view type, fairly important */
   prop = RNA_def_property(srna, "view_type", PROP_ENUM, PROP_NONE);

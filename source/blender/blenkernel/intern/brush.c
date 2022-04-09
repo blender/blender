@@ -1700,6 +1700,7 @@ void BKE_brush_init_curves_sculpt_settings(Brush *brush)
     brush->curves_sculpt_settings = MEM_callocN(sizeof(BrushCurvesSculptSettings), __func__);
   }
   brush->curves_sculpt_settings->add_amount = 1;
+  brush->curves_sculpt_settings->minimum_length = 0.01f;
 }
 
 struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mode)
@@ -2063,7 +2064,7 @@ void BKE_brush_sculpt_reset(Brush *br)
       zero_v3(br->rgb);
 
       disable_dyntopo = true;
-      add_v3_fl(br->rgb, 1.0f);
+      copy_v3_fl(br->rgb, 1.0f);
       zero_v3(br->secondary_rgb);
       break;
     case SCULPT_TOOL_SMEAR:

@@ -57,7 +57,7 @@ struct ImBuf;
 struct GPUTexture;
 struct StudioLight;
 
-/* StudioLight.flag */
+/** #StudioLight.flag */
 enum StudioLightFlag {
   STUDIOLIGHT_SPHERICAL_HARMONICS_COEFFICIENTS_CALCULATED = (1 << 0),
   /*  STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED                  = (1 << 1), */

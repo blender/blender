@@ -2095,7 +2095,7 @@ static bool lineart_geometry_check_visible(double (*model_view_proj)[4],
                                            double shift_y,
                                            Object *use_ob)
 {
-  BoundBox *bb = BKE_object_boundbox_get(use_ob);
+  const BoundBox *bb = BKE_object_boundbox_get(use_ob);
   if (!bb) {
     /* For lights and empty stuff there will be no bbox. */
     return false;

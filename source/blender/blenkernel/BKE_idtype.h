@@ -47,8 +47,6 @@ typedef struct IDCacheKey {
   /* Value uniquely identifying the cache within its ID.
    * Typically the offset of its member in the data-block struct, but can be anything. */
   size_t offset_in_ID;
-  /* Actual address of the cached data to save and restore. */
-  void *cache_v;
 } IDCacheKey;
 
 uint BKE_idtype_cache_key_hash(const void *key_v);

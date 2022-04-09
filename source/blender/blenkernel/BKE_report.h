@@ -45,6 +45,11 @@ eReportType BKE_report_store_level(ReportList *reports);
 void BKE_report_store_level_set(ReportList *reports, eReportType level);
 
 char *BKE_reports_string(ReportList *reports, eReportType level);
+
+/**
+ * \return true when reports of this type will print to the `stdout`.
+ */
+bool BKE_reports_print_test(const ReportList *reports, eReportType type);
 void BKE_reports_print(ReportList *reports, eReportType level);
 
 Report *BKE_reports_last_displayable(ReportList *reports);

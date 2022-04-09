@@ -1532,6 +1532,8 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
   background->set_use_shader(view_layer.use_background_shader ||
                              viewport_parameters.use_custom_shader());
 
+  background->set_lightgroup(ustring(b_world ? b_world.lightgroup() : ""));
+
   background->tag_update(scene);
 }
 

@@ -409,9 +409,6 @@ bool ED_view3d_boundbox_clip_ex(const RegionView3D *rv3d, const BoundBox *bb, fl
   if (bb == NULL) {
     return true;
   }
-  if (bb->flag & BOUNDBOX_DISABLED) {
-    return true;
-  }
 
   mul_m4_m4m4(persmatob, (float(*)[4])rv3d->persmat, obmat);
 
@@ -423,10 +420,6 @@ bool ED_view3d_boundbox_clip(RegionView3D *rv3d, const BoundBox *bb)
   if (bb == NULL) {
     return true;
   }
-  if (bb->flag & BOUNDBOX_DISABLED) {
-    return true;
-  }
-
   return view3d_boundbox_clip_m4(bb, rv3d->persmatob);
 }
 
@@ -1447,16 +1440,19 @@ void ED_view3d_to_object(const Depsgraph *depsgraph,
   BKE_object_apply_mat4_ex(ob, mat, ob_eval->parent, ob_eval->parentinv, true);
 }
 
-bool ED_view3d_camera_to_view_selected(struct Main *bmain,
-                                       Depsgraph *depsgraph,
-                                       const Scene *scene,
-                                       Object *camera_ob)
+static bool view3d_camera_to_view_selected_impl(struct Main *bmain,
+                                                Depsgraph *depsgraph,
+                                                const Scene *scene,
+                                                Object *camera_ob,
+                                                float *r_clip_start,
+                                                float *r_clip_end)
 {
   Object *camera_ob_eval = DEG_get_evaluated_object(depsgraph, camera_ob);
   float co[3]; /* the new location to apply */
   float scale; /* only for ortho cameras */
 
-  if (BKE_camera_view_frame_fit_to_scene(depsgraph, scene, camera_ob_eval, co, &scale)) {
+  if (BKE_camera_view_frame_fit_to_scene(
+          depsgraph, scene, camera_ob_eval, co, &scale, r_clip_start, r_clip_end)) {
     ObjectTfmProtectedChannels obtfm;
     float obmat_new[4][4];
 
@@ -1475,6 +1471,38 @@ bool ED_view3d_camera_to_view_selected(struct Main *bmain,
 
     /* notifiers */
     DEG_id_tag_update_ex(bmain, &camera_ob->id, ID_RECALC_TRANSFORM);
+
+    return true;
+  }
+
+  return false;
+}
+
+bool ED_view3d_camera_to_view_selected(struct Main *bmain,
+                                       Depsgraph *depsgraph,
+                                       const Scene *scene,
+                                       Object *camera_ob)
+{
+  return view3d_camera_to_view_selected_impl(bmain, depsgraph, scene, camera_ob, NULL, NULL);
+}
+
+bool ED_view3d_camera_to_view_selected_with_set_clipping(struct Main *bmain,
+                                                         Depsgraph *depsgraph,
+                                                         const Scene *scene,
+                                                         Object *camera_ob)
+{
+  float clip_start;
+  float clip_end;
+  if (view3d_camera_to_view_selected_impl(
+          bmain, depsgraph, scene, camera_ob, &clip_start, &clip_end)) {
+
+    ((Camera *)camera_ob->data)->clip_start = clip_start;
+    ((Camera *)camera_ob->data)->clip_end = clip_end;
+
+    /* TODO: Support update via #ID_RECALC_PARAMETERS. */
+    Object *camera_ob_eval = DEG_get_evaluated_object(depsgraph, camera_ob);
+    ((Camera *)camera_ob_eval->data)->clip_start = clip_start;
+    ((Camera *)camera_ob_eval->data)->clip_end = clip_end;
 
     return true;
   }

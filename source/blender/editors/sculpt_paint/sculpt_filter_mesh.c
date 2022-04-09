@@ -110,6 +110,10 @@ void SCULPT_filter_cache_init(bContext *C, Object *ob, Sculpt *sd, const int und
 
   ss->filter_cache->random_seed = rand();
 
+  if (undo_type == SCULPT_UNDO_COLOR) {
+    BKE_pbvh_ensure_node_loops(ss->pbvh);
+  }
+
   const float center[3] = {0.0f};
   SculptSearchSphereData search_data = {
       .original = true,

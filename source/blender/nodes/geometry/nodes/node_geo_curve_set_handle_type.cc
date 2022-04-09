@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_spline.hh"
+#include <atomic>
+
+#include "BKE_curves.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -49,6 +51,33 @@ static HandleType handle_type_from_input_type(GeometryNodeCurveHandleType type)
   return BEZIER_HANDLE_AUTO;
 }
 
+static void set_type_in_component(CurveComponent &component,
+                                  const GeometryNodeCurveHandleMode mode,
+                                  const HandleType new_handle_type,
+                                  const Field<bool> &selection_field)
+{
+  Curves &curves_id = *component.get_for_write();
+  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+
+  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
+  fn::FieldEvaluator evaluator{field_context, curves.points_num()};
+  evaluator.set_selection(selection_field);
+  evaluator.evaluate();
+  const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+
+  if (mode & GEO_NODE_CURVE_HANDLE_LEFT) {
+    curves.handle_types_left_for_write().fill_indices(selection, new_handle_type);
+  }
+  if (mode & GEO_NODE_CURVE_HANDLE_RIGHT) {
+    curves.handle_types_right_for_write().fill_indices(selection, new_handle_type);
+  }
+
+  /* Eagerly calculate automatically derived handle positions if necessary. */
+  if (ELEM(new_handle_type, BEZIER_HANDLE_AUTO, BEZIER_HANDLE_VECTOR, BEZIER_HANDLE_ALIGN)) {
+    curves.calculate_bezier_auto_handles();
+  }
+}
+
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryCurveSetHandles &storage = node_storage(params.node());
@@ -58,62 +87,33 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
 
-  bool has_bezier_spline = false;
+  const HandleType new_handle_type = handle_type_from_input_type(type);
+
+  std::atomic<bool> has_curves = false;
+  std::atomic<bool> has_bezier = false;
+
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (!geometry_set.has_curves()) {
       return;
     }
-
-    /* Retrieve data for write access so we can avoid new allocations for the handles data. */
-    CurveComponent &curve_component = geometry_set.get_component_for_write<CurveComponent>();
-    std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curve_component.get_for_read());
-    MutableSpan<SplinePtr> splines = curve->splines();
-
-    GeometryComponentFieldContext field_context{curve_component, ATTR_DOMAIN_POINT};
-    const int domain_size = curve_component.attribute_domain_size(ATTR_DOMAIN_POINT);
-
-    fn::FieldEvaluator selection_evaluator{field_context, domain_size};
-    selection_evaluator.add(selection_field);
-    selection_evaluator.evaluate();
-    const VArray<bool> &selection = selection_evaluator.get_evaluated<bool>(0);
-
-    const HandleType new_handle_type = handle_type_from_input_type(type);
-    int point_index = 0;
-
-    for (SplinePtr &spline : splines) {
-      if (spline->type() != CURVE_TYPE_BEZIER) {
-        point_index += spline->positions().size();
-        continue;
-      }
-
-      has_bezier_spline = true;
-      BezierSpline &bezier_spline = static_cast<BezierSpline &>(*spline);
-      if (ELEM(new_handle_type, BEZIER_HANDLE_FREE, BEZIER_HANDLE_ALIGN)) {
-        /* In this case the automatically calculated handle types need to be "baked", because
-         * they're possibly changing from a type that is calculated automatically to a type that
-         * is positioned manually. */
-        bezier_spline.ensure_auto_handles();
-      }
-
-      for (int i_point : IndexRange(bezier_spline.size())) {
-        if (selection[point_index]) {
-          if (mode & GEO_NODE_CURVE_HANDLE_LEFT) {
-            bezier_spline.handle_types_left()[i_point] = new_handle_type;
-          }
-          if (mode & GEO_NODE_CURVE_HANDLE_RIGHT) {
-            bezier_spline.handle_types_right()[i_point] = new_handle_type;
-          }
-        }
-        point_index++;
-      }
-      bezier_spline.mark_cache_invalid();
+    has_curves = true;
+    const CurveComponent &component = *geometry_set.get_component_for_read<CurveComponent>();
+    if (!component.attribute_exists("handle_type_left") ||
+        !component.attribute_exists("handle_type_right")) {
+      return;
     }
+    has_bezier = true;
 
-    curve_component.replace(curve_eval_to_curves(*curve));
+    set_type_in_component(geometry_set.get_component_for_write<CurveComponent>(),
+                          mode,
+                          new_handle_type,
+                          selection_field);
   });
-  if (!has_bezier_spline) {
-    params.error_message_add(NodeWarningType::Info, TIP_("No Bezier splines in input curve"));
+
+  if (has_curves && !has_bezier) {
+    params.error_message_add(NodeWarningType::Info, TIP_("Input curves do not have Bezier type"));
   }
+
   params.set_output("Curve", std::move(geometry_set));
 }
 }  // namespace blender::nodes::node_geo_curve_set_handle_type_cc

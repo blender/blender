@@ -40,7 +40,7 @@
  *  |       |  Each state is a chunk_list user,
  *  |       |  avoids duplicating lists when there is no change between states.
  *  |       |
- *  |       +- chunk_refs (List of BChunkRef): Each chunk_ref links to a a BChunk.
+ *  |       +- chunk_refs (List of BChunkRef): Each chunk_ref links to a BChunk.
  *  |          Each reference is a chunk user,
  *  |          avoids duplicating smaller chunks of memory found in multiple states.
  *  |

@@ -199,4 +199,60 @@ TEST(length_parameterize, InterpolateColor)
   }
 }
 
+TEST(length_parameterize, ArbitraryFloatSimple)
+{
+  Array<float> values{{0, 1, 4}};
+  Array<float> lengths = calculate_lengths(values.as_span(), false);
+
+  Array<float> sample_lengths{{0.5f, 1.5f, 2.0f, 4.0f}};
+  Array<int> indices(4);
+  Array<float> factors(4);
+  create_samples_from_sorted_lengths(lengths, sample_lengths, false, indices, factors);
+  Array<float> results(4);
+  linear_interpolation<float>(values, indices, factors, results);
+  results.as_span().print_as_lines("results");
+  Array<float> expected({
+      0.5f,
+      1.5f,
+      2.0f,
+      4.0f,
+  });
+  for (const int i : results.index_range()) {
+    EXPECT_NEAR(results[i], expected[i], 1e-5);
+  }
+}
+
+TEST(length_parameterize, ArbitraryFloat2)
+{
+  Array<float2> values{{{0, 0}, {1, 0}, {1, 1}, {0, 1}}};
+  Array<float> lengths = calculate_lengths(values.as_span(), true);
+
+  Array<float> sample_lengths{
+      {0.5f, 1.5f, 2.0f, 2.0f, 2.1f, 2.5f, 3.5f, 3.6f, 3.8f, 3.85f, 3.90f, 4.0f}};
+  Array<int> indices(12);
+  Array<float> factors(12);
+  create_samples_from_sorted_lengths(lengths, sample_lengths, true, indices, factors);
+  Array<float2> results(12);
+  linear_interpolation<float2>(values, indices, factors, results);
+  results.as_span().print_as_lines("results");
+  Array<float2> expected({
+      {0.5f, 0.0f},
+      {1.0f, 0.5f},
+      {1.0f, 1.0f},
+      {1.0f, 1.0f},
+      {0.9f, 1.0f},
+      {0.5f, 1.0f},
+      {0.0f, 0.5f},
+      {0.0f, 0.4f},
+      {0.0f, 0.2f},
+      {0.0f, 0.15f},
+      {0.0f, 0.1f},
+      {0.0f, 0.0f},
+  });
+  for (const int i : results.index_range()) {
+    EXPECT_NEAR(results[i].x, expected[i].x, 1e-5);
+    EXPECT_NEAR(results[i].y, expected[i].y, 1e-5);
+  }
+}
+
 }  // namespace blender::length_parameterize::tests

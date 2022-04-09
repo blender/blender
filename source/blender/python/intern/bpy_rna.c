@@ -3462,7 +3462,14 @@ static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *arg
   PYRNA_STRUCT_CHECK_OBJ(self);
 
   static const char *_keywords[] = {"", "ghost", NULL};
-  static _PyArg_Parser _parser = {"s|$O&:is_property_set", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "s"  /* `name` (positional). */
+      "|$" /* Optional keyword only arguments. */
+      "O&" /* `ghost` */
+      ":is_property_set",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &name, PyC_ParseBool, &use_ghost)) {
     return NULL;
   }
@@ -4210,7 +4217,17 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
       ListBase newlb;
       short newtype;
 
-      const eContextResult done = CTX_data_get(C, name, &newptr, &newlb, &newtype);
+      /* An empty string is used to implement #CTX_data_dir_get,
+       * without this check `getattr(context, "")` succeeds. */
+      eContextResult done;
+      if (name[0]) {
+        done = CTX_data_get(C, name, &newptr, &newlb, &newtype);
+      }
+      else {
+        /* Fall through to built-in `getattr`. */
+        done = CTX_RESULT_MEMBER_NOT_FOUND;
+        BLI_listbase_clear(&newlb);
+      }
 
       if (done == CTX_RESULT_OK) {
         switch (newtype) {

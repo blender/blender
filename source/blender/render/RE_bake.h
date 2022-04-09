@@ -62,6 +62,7 @@ typedef struct BakeHighPolyData {
 } BakeHighPolyData;
 
 /* external_engine.c */
+
 bool RE_bake_has_engine(const struct Render *re);
 
 bool RE_bake_engine(struct Render *re,
@@ -75,6 +76,7 @@ bool RE_bake_engine(struct Render *re,
                     float result[]);
 
 /* bake.c */
+
 int RE_pass_depth(eScenePassType pass_type);
 
 bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,

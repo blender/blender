@@ -224,7 +224,7 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *vedata)
     sh = OVERLAY_shader_grid_background();
     grp = DRW_shgroup_create(sh, psl->grid_ps);
     float color_back[4];
-    interp_v4_v4v4(color_back, G_draw.block.colorBackground, G_draw.block.colorGrid, 0.5);
+    interp_v4_v4v4(color_back, G_draw.block.color_background, G_draw.block.color_grid, 0.5);
     DRW_shgroup_uniform_vec4_copy(grp, "color", color_back);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
     unit_m4(mat);

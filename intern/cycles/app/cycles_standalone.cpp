@@ -121,9 +121,9 @@ static void session_init()
     options.session->set_display_driver(make_unique<OpenGLDisplayDriver>(
         window_opengl_context_enable, window_opengl_context_disable));
   }
-  else
 #endif
-      if (!options.output_filepath.empty()) {
+
+  if (!options.output_filepath.empty()) {
     options.session->set_output_driver(make_unique<OIIOOutputDriver>(
         options.output_filepath, options.output_pass, session_print));
   }

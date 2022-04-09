@@ -93,7 +93,6 @@ class _BPyOpsSubModOp:
         return self._module.upper() + "_OT_" + self._func
 
     def idname_py(self):
-        # submod.foo -> SUBMOD_OT_foo
         return self._module + "." + self._func
 
     def __call__(self, *args, **kw):

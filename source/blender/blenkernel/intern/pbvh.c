@@ -724,6 +724,8 @@ void BKE_pbvh_build_mesh(PBVH *pbvh,
 
   /* Clear the bitmap so it can be used as an update tag later on. */
   BLI_bitmap_set_all(pbvh->vert_bitmap, false, totvert);
+
+  BKE_pbvh_update_active_vcol(pbvh, mesh);
 }
 
 void BKE_pbvh_build_grids(PBVH *pbvh,
@@ -804,6 +806,9 @@ void BKE_pbvh_free(PBVH *pbvh)
 
       if (node->vert_indices) {
         MEM_freeN((void *)node->vert_indices);
+      }
+      if (node->loop_indices) {
+        MEM_freeN(node->loop_indices);
       }
       if (node->face_vert_indices) {
         MEM_freeN((void *)node->face_vert_indices);
@@ -1406,89 +1411,29 @@ static int pbvh_get_buffers_update_flags(PBVH *UNUSED(pbvh))
   return update_flags;
 }
 
-/* updates pbvh->vcol_domain, vcol_type too */
-bool BKE_pbvh_get_color_layer(PBVH *pbvh,
-                              const Mesh *me,
-                              CustomDataLayer **r_cl,
-                              AttributeDomain *r_attr)
+
+bool BKE_pbvh_get_color_layer(const Mesh *me, CustomDataLayer **r_layer, AttributeDomain *r_attr)
 {
-  CustomDataLayer *cl = BKE_id_attributes_active_color_get((ID *)me);
-  AttributeDomain domain;
+  CustomDataLayer *layer = BKE_id_attributes_active_color_get((ID *)me);
 
-  if (!cl || !ELEM(cl->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
-    if (pbvh) {
-      pbvh->cd_vcol_offset = pbvh->vcol_type = -1;
-      pbvh->vcol_domain = (int)ATTR_DOMAIN_NUM;
-    }
-
+  if (!layer || !ELEM(layer->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
+    *r_layer = NULL;
+    *r_attr = ATTR_DOMAIN_NUM;
     return false;
   }
 
-  domain = BKE_id_attribute_domain((ID *)me, cl);
+  AttributeDomain domain = BKE_id_attribute_domain((ID *)me, layer);
 
   if (!ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
-    if (pbvh) {
-      pbvh->cd_vcol_offset = pbvh->vcol_type = -1;
-      pbvh->vcol_domain = (int)ATTR_DOMAIN_NUM;
-    }
-
+    *r_layer = NULL;
+    *r_attr = ATTR_DOMAIN_NUM;
     return false;
   }
 
-  if (cl) {
-    *r_cl = cl;
-    *r_attr = domain;
+  *r_layer = layer;
+  *r_attr = domain;
 
-    if (pbvh && pbvh->bm) {
-      CustomData *cdata_bm = domain == ATTR_DOMAIN_POINT ? &pbvh->bm->vdata : &pbvh->bm->ldata;
-
-      int idx = CustomData_get_named_layer_index(cdata_bm, cl->type, cl->name);
-
-      if (!idx) {
-        /* should never happen, but the edge cases can get pretty crazy in
-           sculpt code.  Delay till the layer exists, typically it's added
-           by SCULPT_dynamic_topology_sync_layers.*/
-
-        pbvh->cd_vcol_offset = pbvh->vcol_type = -1;
-        pbvh->vcol_domain = (int)ATTR_DOMAIN_NUM;
-
-        *r_cl = NULL;
-        *r_attr = ATTR_DOMAIN_NUM;
-
-        return false;
-      }
-
-      pbvh->cd_vcol_offset = cdata_bm->layers[idx].offset;
-      cl = *r_cl = cdata_bm->layers + idx;
-    }
-    else if (pbvh) { /* check if pbvh is using its own customdata layout */
-      CustomData *cdata = domain == ATTR_DOMAIN_POINT ? pbvh->vdata : pbvh->ldata;
-
-      if (cdata) {
-        int idx = CustomData_get_named_layer_index(cdata, cl->type, cl->name);
-
-        if (idx != -1) {
-          *r_cl = cdata->layers + idx;
-        }
-      }
-    }
-
-    if (pbvh) {
-      pbvh->vcol_domain = domain;
-      pbvh->vcol_type = cl->type;
-    }
-
-    return true;
-  }
-  else {
-    if (pbvh) {
-      pbvh->cd_vcol_offset = pbvh->vcol_type = -1;
-      pbvh->vcol_domain = (int)ATTR_DOMAIN_NUM;
-    }
-
-    *r_cl = NULL;
-    return false;
-  }
+  return true;
 }
 
 static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
@@ -1506,10 +1451,8 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   CustomDataLayer *vcol_layer = NULL;
   AttributeDomain vcol_domain;
 
-  BKE_pbvh_get_color_layer(pbvh, me, &vcol_layer, &vcol_domain);
-  CustomDataLayer *render_vcol_layer = NULL;
-  AttributeRef *render_ref = BKE_id_attributes_render_color_ref_p(&me->id);
-
+  BKE_pbvh_get_color_layer(me, &vcol_layer, &vcol_domain);
+  
   CustomData *vdata, *ldata;
 
   if (!pbvh->bm) {
@@ -1521,14 +1464,10 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
     ldata = &pbvh->bm->ldata;
   }
 
-  if (render_ref) {
-    CustomData *cdata = render_ref->domain == ATTR_DOMAIN_POINT ? vdata : ldata;
+  Mesh me_query;
+  BKE_id_attribute_copy_domains_temp(ID_ME, vdata, NULL, ldata, NULL, NULL, &me_query.id);
 
-    int idx = CustomData_get_named_layer_index(cdata, render_ref->type, render_ref->name);
-    if (idx != -1) {
-      render_vcol_layer = cdata->layers + idx;
-    }
-  }
+  CustomDataLayer *render_vcol_layer = BKE_id_attributes_render_color_get(&me_query.id);
 
   if (node->flag & PBVH_RebuildDrawBuffers) {
     node->updategen++;
@@ -1587,10 +1526,10 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                      update_flags);
         break;
       case PBVH_FACES: {
-        CustomDataLayer *cl = NULL;
+        CustomDataLayer *layer = NULL;
         AttributeDomain domain;
 
-        BKE_pbvh_get_color_layer(pbvh, pbvh->mesh, &cl, &domain);
+        BKE_pbvh_get_color_layer(pbvh->mesh, &layer, &domain);
 
         GPU_pbvh_mesh_buffers_update(node->draw_buffers,
                                      pbvh->verts,
@@ -1600,7 +1539,7 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                      vdata,
                                      ldata,
                                      CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK),
-                                     cl,
+                                     layer,
                                      render_vcol_layer,
                                      domain,
                                      CustomData_get_layer(pbvh->pdata, CD_SCULPT_FACE_SETS),
@@ -1737,7 +1676,7 @@ static void pbvh_update_draw_buffers(
 
   CustomDataLayer *vcol_layer = NULL;
   AttributeDomain domain;
-  BKE_pbvh_get_color_layer(pbvh, me, &vcol_layer, &domain);
+  BKE_pbvh_get_color_layer(me, &vcol_layer, &domain);
 
   CustomDataLayer *render_vcol_layer = BKE_id_attributes_render_color_get((ID *)me);
 
@@ -2283,6 +2222,22 @@ void BKE_pbvh_vert_mark_update(PBVH *pbvh, SculptVertRef vertex)
 {
   BLI_assert(pbvh->type == PBVH_FACES);
   BLI_BITMAP_ENABLE(pbvh->vert_bitmap, vertex.i);
+}
+
+void BKE_pbvh_node_get_loops(PBVH *pbvh,
+                             PBVHNode *node,
+                             const int **r_loop_indices,
+                             const MLoop **r_loops)
+{
+  BLI_assert(BKE_pbvh_type(pbvh) == PBVH_FACES);
+
+  if (r_loop_indices) {
+    *r_loop_indices = node->loop_indices;
+  }
+
+  if (r_loops) {
+    *r_loops = pbvh->mloop;
+  }
 }
 
 void BKE_pbvh_node_get_verts(PBVH *pbvh,
@@ -5202,4 +5157,84 @@ bool BKE_pbvh_pmap_release(SculptPMap *pmap)
   }
 
   return false;
+}
+
+
+bool BKE_pbvh_is_drawing(const PBVH *pbvh)
+{
+  return pbvh->is_drawing;
+}
+
+void BKE_pbvh_is_drawing_set(PBVH *pbvh, bool val)
+{
+  pbvh->is_drawing = val;
+}
+
+void BKE_pbvh_node_num_loops(PBVH *pbvh, PBVHNode *node, int *r_totloop)
+{
+  UNUSED_VARS(pbvh);
+  BLI_assert(BKE_pbvh_type(pbvh) == PBVH_FACES);
+
+  if (r_totloop) {
+    *r_totloop = node->loop_indices_num;
+  }
+}
+
+void BKE_pbvh_update_active_vcol(PBVH *pbvh, const Mesh *mesh)
+{
+  BKE_pbvh_get_color_layer(mesh, &pbvh->color_layer, &pbvh->color_domain);
+}
+
+void BKE_pbvh_pmap_set(PBVH *pbvh, SculptPMap *pmap)
+{
+  pbvh->pmap = pmap;
+}
+
+void BKE_pbvh_ensure_node_loops(PBVH *pbvh)
+{
+  BLI_assert(BKE_pbvh_type(pbvh) == PBVH_FACES);
+
+  int totloop = 0;
+
+  /* Check if nodes already have loop indices. */
+  for (int i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *node = pbvh->nodes + i;
+
+    if (!(node->flag & PBVH_Leaf)) {
+      continue;
+    }
+
+    if (node->loop_indices) {
+      return;
+    }
+
+    totloop += node->totprim * 3;
+  }
+
+  BLI_bitmap *visit = BLI_BITMAP_NEW(totloop, __func__);
+
+  /* Create loop indices from node loop triangles. */
+  for (int i = 0; i < pbvh->totnode; i++) {
+    PBVHNode *node = pbvh->nodes + i;
+
+    if (!(node->flag & PBVH_Leaf)) {
+      continue;
+    }
+
+    node->loop_indices = MEM_malloc_arrayN(node->totprim * 3, sizeof(int), __func__);
+    node->loop_indices_num = 0;
+
+    for (int j = 0; j < node->totprim; j++) {
+      const MLoopTri *mlt = pbvh->looptri + node->prim_indices[j];
+
+      for (int k = 0; k < 3; k++) {
+        if (!BLI_BITMAP_TEST(visit, mlt->tri[k])) {
+          node->loop_indices[node->loop_indices_num++] = mlt->tri[k];
+          BLI_BITMAP_ENABLE(visit, mlt->tri[k]);
+        }
+      }
+    }
+  }
+
+  MEM_SAFE_FREE(visit);
 }

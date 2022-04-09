@@ -123,8 +123,6 @@ static void curve_free_data(ID *id)
   MEM_SAFE_FREE(curve->str);
   MEM_SAFE_FREE(curve->strinfo);
   MEM_SAFE_FREE(curve->tb);
-
-  delete curve->curve_eval;
 }
 
 static void curve_foreach_id(ID *id, LibraryForeachIDData *data)

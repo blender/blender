@@ -637,13 +637,6 @@ static ARegion *do_versions_find_region(ListBase *regionbase, int regiontype)
   return region;
 }
 
-static ARegion *do_versions_add_region(int regiontype, const char *name)
-{
-  ARegion *region = MEM_callocN(sizeof(ARegion), name);
-  region->regiontype = regiontype;
-  return region;
-}
-
 static void do_versions_area_ensure_tool_region(Main *bmain,
                                                 const short space_type,
                                                 const short region_flag)

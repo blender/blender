@@ -148,8 +148,8 @@ void SCULPT_dyntopo_get_cotangents(SculptSession *ss,
   }
 
   int i = 0;
-  float totarea = 0.0;
-  float totw = 0.0;
+  float totarea = 0.0f;
+  // float totw = 0.0f;
 
   do {
     BMEdge *eprev = v == e->v1 ? e->v1_disk_link.prev : e->v2_disk_link.prev;
@@ -165,7 +165,7 @@ void SCULPT_dyntopo_get_cotangents(SculptSession *ss,
     float area = tri_voronoi_area(v->co, v1->co, v2->co);
 
     r_ws[i] = (cot1 + cot2);
-    totw += r_ws[i];
+    // totw += r_ws[i];
 
     totarea += area;
 
@@ -666,7 +666,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
       ss->bm = bm;
     }
     else if (ss->bm != bm) {
-      printf("%s: bmesh differed!\n");
+      printf("%s: bmesh differed!\n", __func__);
       SCULPT_pbvh_clear(ob, false);
     }
   }
@@ -752,7 +752,6 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
                                ss->vcol_domain,
                                ss->cd_vcol_offset,
                                !ss->ignore_uvs);
-
 
   /* Make sure the data for existing faces are initialized. */
   if (me->totpoly != ss->bm->totface) {

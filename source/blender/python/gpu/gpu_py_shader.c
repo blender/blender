@@ -96,8 +96,18 @@ static PyObject *pygpu_shader__tp_new(PyTypeObject *UNUSED(type), PyObject *args
 
   static const char *_keywords[] = {
       "vertexcode", "fragcode", "geocode", "libcode", "defines", "name", NULL};
-
-  static _PyArg_Parser _parser = {"ss|$ssss:GPUShader.__new__", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "s"  /* `vertexcode` */
+      "s"  /* `fragcode` */
+      "|$" /* Optional keyword only arguments. */
+      "s"  /* `geocode` */
+      "s"  /* `libcode` */
+      "s"  /* `defines` */
+      "s"  /* `name` */
+      ":GPUShader.__new__",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kwds,
                                         &_parser,
@@ -751,7 +761,14 @@ static PyObject *pygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *arg
   struct PyC_StringEnum pygpu_config = {pygpu_shader_config_items, GPU_SHADER_CFG_DEFAULT};
 
   static const char *_keywords[] = {"shader_name", "config", NULL};
-  static _PyArg_Parser _parser = {"O&|$O&:from_builtin", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O&" /* `shader_name` */
+      "|$" /* Optional keyword only arguments. */
+      "O&" /* `config` */
+      ":from_builtin",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kwds,
                                         &_parser,

@@ -1255,7 +1255,7 @@ static void TRANSFORM_OT_seq_slide(struct wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot, P_SNAP);
+  Transform_Properties(ot, P_SNAP | P_VIEW2D_EDGE_PAN);
 }
 
 static void TRANSFORM_OT_rotate_normal(struct wmOperatorType *ot)

@@ -7,7 +7,7 @@
 #include "util/log.h"
 #include "util/path.h"
 
-#include <pxr/base/arch/filesystem.h>
+#include <pxr/base/arch/fileSystem.h>
 #include <pxr/base/plug/plugin.h>
 #include <pxr/base/plug/thisPlugin.h>
 #include <pxr/base/tf/envSetting.h>

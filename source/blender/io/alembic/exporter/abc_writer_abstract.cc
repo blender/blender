@@ -98,7 +98,7 @@ const Imath::Box3d &ABCAbstractWriter::bounding_box() const
 
 void ABCAbstractWriter::update_bounding_box(Object *object)
 {
-  BoundBox *bb = BKE_object_boundbox_get(object);
+  const BoundBox *bb = BKE_object_boundbox_get(object);
 
   if (!bb) {
     if (object->type != OB_CAMERA) {

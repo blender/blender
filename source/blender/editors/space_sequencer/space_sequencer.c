@@ -131,6 +131,14 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   region->regiontype = RGN_TYPE_TOOLS;
   region->alignment = RGN_ALIGN_LEFT;
   region->flag = RGN_FLAG_HIDDEN;
+  region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
+
+  /* Channels. */
+  region = MEM_callocN(sizeof(ARegion), "channels for sequencer");
+
+  BLI_addtail(&sseq->regionbase, region);
+  region->regiontype = RGN_TYPE_CHANNELS;
+  region->alignment = RGN_ALIGN_LEFT;
 
   /* Preview region. */
   /* NOTE: if you change values here, also change them in sequencer_init_preview_region. */
@@ -182,6 +190,7 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   region->v2d.scroll |= (V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HANDLES);
   region->v2d.keepzoom = 0;
   region->v2d.keeptot = 0;
+  region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
   region->v2d.align = V2D_ALIGN_NO_NEG_Y;
 
   sseq->runtime.last_displayed_thumbnails = NULL;
@@ -977,6 +986,24 @@ static void sequencer_id_remap(ScrArea *UNUSED(area),
 
 /* ************************************* */
 
+/* add handlers, stuff you only do once or on area/region changes */
+static void sequencer_channel_region_init(wmWindowManager *wm, ARegion *region)
+{
+  wmKeyMap *keymap;
+
+  region->alignment = RGN_ALIGN_LEFT;
+
+  UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
+
+  keymap = WM_keymap_ensure(wm->defaultconf, "Sequencer Channels", SPACE_SEQ, 0);
+  WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
+}
+
+static void sequencer_channel_region_draw(const bContext *C, ARegion *region)
+{
+  draw_channels(C, region);
+}
+
 void ED_spacetype_sequencer(void)
 {
   SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype sequencer");
@@ -1046,6 +1073,16 @@ void ED_spacetype_sequencer(void)
   art->snap_size = ED_region_generic_tools_region_snap_size;
   art->init = sequencer_tools_region_init;
   art->draw = sequencer_tools_region_draw;
+  BLI_addhead(&st->regiontypes, art);
+
+  /* Channels. */
+  art = MEM_callocN(sizeof(ARegionType), "spacetype sequencer channels");
+  art->regionid = RGN_TYPE_CHANNELS;
+  art->prefsizex = UI_COMPACT_PANEL_WIDTH;
+  art->keymapflag = ED_KEYMAP_UI;
+  art->init = sequencer_channel_region_init;
+  art->draw = sequencer_channel_region_draw;
+  art->listener = sequencer_main_region_listener;
   BLI_addhead(&st->regiontypes, art);
 
   /* Tool header. */

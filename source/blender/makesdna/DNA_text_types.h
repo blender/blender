@@ -22,7 +22,6 @@ typedef struct TextLine {
   char *line;
   /** May be NULL if syntax is off or not yet formatted. */
   char *format;
-  /** Blen unused. */
   int len;
   char _pad0[4];
 } TextLine;

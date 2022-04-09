@@ -21,6 +21,7 @@
 
 #include "DNA_curves_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_curves.hh"
 
@@ -28,7 +29,8 @@
 #include "GPU_material.h"
 #include "GPU_texture.h"
 
-#include "draw_cache_impl.h"   /* own include */
+#include "draw_cache_impl.h" /* own include */
+#include "draw_cache_inline.h"
 #include "draw_hair_private.h" /* own include */
 
 using blender::float3;
@@ -40,6 +42,8 @@ using blender::Span;
 
 struct CurvesBatchCache {
   ParticleHairCache hair;
+
+  GPUBatch *edit_points;
 
   /* To determine if cache is invalid. */
   bool is_dirty;
@@ -74,6 +78,7 @@ static void curves_batch_cache_clear(Curves &curves)
   }
 
   particle_batch_cache_clear_hair(&cache->hair);
+  GPU_BATCH_DISCARD_SAFE(cache->edit_points);
 }
 
 void DRW_curves_batch_cache_validate(Curves *curves)
@@ -167,10 +172,11 @@ static void curves_batch_cache_ensure_procedural_pos(Curves &curves,
                                                      ParticleHairCache &cache,
                                                      GPUMaterial *gpu_material)
 {
-  if (cache.proc_point_buf == nullptr) {
+  if (cache.proc_point_buf == nullptr || DRW_vbo_requested(cache.proc_point_buf)) {
     /* Initialize vertex format. */
     GPUVertFormat format = {0};
     uint pos_id = GPU_vertformat_attr_add(&format, "posTime", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+    GPU_vertformat_alias_add(&format, "pos");
 
     cache.proc_point_buf = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(cache.proc_point_buf, cache.point_len);
@@ -365,4 +371,24 @@ bool curves_ensure_procedural_data(Object *object,
 int DRW_curves_material_count_get(Curves *curves)
 {
   return max_ii(1, curves->totcol);
+}
+
+GPUBatch *DRW_curves_batch_cache_get_edit_points(Curves *curves)
+{
+  CurvesBatchCache &cache = curves_batch_cache_get(*curves);
+  return DRW_batch_request(&cache.edit_points);
+}
+
+void DRW_curves_batch_cache_create_requested(const Object *ob)
+{
+  Curves *curves = static_cast<Curves *>(ob->data);
+  CurvesBatchCache &cache = curves_batch_cache_get(*curves);
+
+  if (DRW_batch_requested(cache.edit_points, GPU_PRIM_POINTS)) {
+    DRW_vbo_request(cache.edit_points, &cache.hair.proc_point_buf);
+  }
+
+  if (DRW_vbo_requested(cache.hair.proc_point_buf)) {
+    curves_batch_cache_ensure_procedural_pos(*curves, cache.hair, nullptr);
+  }
 }

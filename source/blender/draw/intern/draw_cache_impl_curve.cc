@@ -19,9 +19,9 @@
 #include "DNA_curve_types.h"
 
 #include "BKE_curve.h"
+#include "BKE_curves.hh"
 #include "BKE_displist.h"
 #include "BKE_geometry_set.hh"
-#include "BKE_spline.hh"
 #include "BKE_vfont.h"
 
 #include "GPU_batch.h"
@@ -96,18 +96,19 @@ static void curve_render_overlay_verts_edges_len_get(ListBase *lb,
   }
 }
 
-static void curve_eval_render_wire_verts_edges_len_get(const CurveEval &curve_eval,
+static void curve_eval_render_wire_verts_edges_len_get(const blender::bke::CurvesGeometry &curves,
                                                        int *r_curve_len,
                                                        int *r_vert_len,
                                                        int *r_edge_len)
 {
-  Span<SplinePtr> splines = curve_eval.splines();
-  *r_curve_len = splines.size();
-  *r_vert_len = 0;
+  *r_curve_len = curves.curves_num();
+  *r_vert_len = curves.evaluated_points_num();
+
   *r_edge_len = 0;
-  for (const SplinePtr &spline : splines) {
-    *r_vert_len += spline->evaluated_points_size();
-    *r_edge_len += spline->evaluated_edges_size();
+  const blender::VArray<bool> cyclic = curves.cyclic();
+  for (const int i : curves.curves_range()) {
+    const IndexRange points = curves.evaluated_points_for_curve(i);
+    *r_edge_len += blender::bke::curves::curve_segment_size(points.size(), cyclic[i]);
   }
 }
 
@@ -165,7 +166,7 @@ struct CurveRenderData {
   CurveCache *ob_curve_cache;
 
   /* Owned by the evaluated object's geometry set (#geometry_set_eval). */
-  const CurveEval *curve_eval;
+  const Curves *curve_eval;
 
   /* borrow from 'Curve' */
   ListBase *nurbs;
@@ -209,10 +210,11 @@ static CurveRenderData *curve_render_data_create(Curve *cu,
 
   if (types & CU_DATATYPE_WIRE) {
     if (rdata->curve_eval != nullptr) {
-      curve_eval_render_wire_verts_edges_len_get(*rdata->curve_eval,
-                                                 &rdata->wire.curve_len,
-                                                 &rdata->wire.vert_len,
-                                                 &rdata->wire.edge_len);
+      curve_eval_render_wire_verts_edges_len_get(
+          blender::bke::CurvesGeometry::wrap(rdata->curve_eval->geometry),
+          &rdata->wire.curve_len,
+          &rdata->wire.vert_len,
+          &rdata->wire.edge_len);
     }
   }
 
@@ -288,107 +290,39 @@ static int curve_render_data_normal_len_get(const CurveRenderData *rdata)
   return rdata->normal.len;
 }
 
-static void curve_cd_calc_used_gpu_layers(CustomDataMask *cd_layers,
-                                          struct GPUMaterial **gpumat_array,
-                                          int gpumat_array_len)
-{
-  for (int i = 0; i < gpumat_array_len; i++) {
-    struct GPUMaterial *gpumat = gpumat_array[i];
-    if (gpumat == nullptr) {
-      continue;
-    }
-
-    ListBase gpu_attrs = GPU_material_attributes(gpumat);
-    LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
-      const char *name = gpu_attr->name;
-      int type = gpu_attr->type;
-
-      /* Curves cannot have named layers.
-       * NOTE: We could relax this assumption later. */
-      if (name[0] != '\0') {
-        continue;
-      }
-
-      if (type == CD_AUTO_FROM_NAME) {
-        type = CD_MTFACE;
-      }
-
-      switch (type) {
-        case CD_MTFACE:
-          *cd_layers |= CD_MASK_MLOOPUV;
-          break;
-        case CD_TANGENT:
-          *cd_layers |= CD_MASK_TANGENT;
-          break;
-        case CD_MCOL:
-          /* Curve object don't have Color data. */
-          break;
-        case CD_ORCO:
-          *cd_layers |= CD_MASK_ORCO;
-          break;
-        case CD_HAIRLENGTH:
-          *cd_layers |= CD_MASK_HAIRLENGTH;
-          break;
-      }
-    }
-  }
-}
-
 /* ---------------------------------------------------------------------- */
 /* Curve GPUBatch Cache */
 
 struct CurveBatchCache {
   struct {
-    GPUVertBuf *pos_nor;
-    GPUVertBuf *edge_fac;
     GPUVertBuf *curves_pos;
-
-    GPUVertBuf *loop_pos_nor;
-    GPUVertBuf *loop_uv;
-    GPUVertBuf *loop_tan;
   } ordered;
 
   struct {
-    /* Curve points. Aligned with ordered.pos_nor */
     GPUVertBuf *curves_nor;
-    GPUVertBuf *curves_weight; /* TODO. */
     /* Edit points (beztriples and bpoints) */
     GPUVertBuf *pos;
     GPUVertBuf *data;
   } edit;
 
   struct {
-    GPUIndexBuf *surfaces_tris;
-    GPUIndexBuf *surfaces_lines;
     GPUIndexBuf *curves_lines;
-    GPUIndexBuf *edges_adj_lines;
     /* Edit mode */
     GPUIndexBuf *edit_verts;
     GPUIndexBuf *edit_lines;
   } ibo;
 
   struct {
-    GPUBatch *surfaces;
-    GPUBatch *surfaces_edges;
     GPUBatch *curves;
     /* control handles and vertices */
     GPUBatch *edit_edges;
     GPUBatch *edit_verts;
     GPUBatch *edit_normals;
-    GPUBatch *edge_detection;
   } batch;
-
-  GPUIndexBuf **surf_per_mat_tris;
-  GPUBatch **surf_per_mat;
-  int mat_len;
-  CustomDataMask cd_used, cd_needed;
 
   /* settings to determine if cache is invalid */
   bool is_dirty;
   bool is_editmode;
-
-  /* Valid only if edge_detection is up to date. */
-  bool is_manifold;
 };
 
 /* GPUBatch cache management. */
@@ -398,10 +332,6 @@ static bool curve_batch_cache_valid(Curve *cu)
   CurveBatchCache *cache = (CurveBatchCache *)cu->batch_cache;
 
   if (cache == nullptr) {
-    return false;
-  }
-
-  if (cache->mat_len != DRW_curve_material_count_get(cu)) {
     return false;
   }
 
@@ -444,13 +374,6 @@ static void curve_batch_cache_init(Curve *cu)
     nurbs = &cu->nurb;
   }
 #endif
-
-  cache->cd_used = 0;
-  cache->mat_len = DRW_curve_material_count_get(cu);
-  cache->surf_per_mat_tris = (GPUIndexBuf **)MEM_callocN(
-      sizeof(*cache->surf_per_mat_tris) * cache->mat_len, __func__);
-  cache->surf_per_mat = (GPUBatch **)MEM_callocN(sizeof(*cache->surf_per_mat) * cache->mat_len,
-                                                 __func__);
 
   cache->is_editmode = (cu->editnurb != nullptr) || (cu->editfont != nullptr);
 
@@ -514,15 +437,6 @@ static void curve_batch_cache_clear(Curve *cu)
     GPUBatch **batch = (GPUBatch **)&cache->batch;
     GPU_BATCH_DISCARD_SAFE(batch[i]);
   }
-
-  for (int i = 0; i < cache->mat_len; i++) {
-    GPU_INDEXBUF_DISCARD_SAFE(cache->surf_per_mat_tris[i]);
-    GPU_BATCH_DISCARD_SAFE(cache->surf_per_mat[i]);
-  }
-  MEM_SAFE_FREE(cache->surf_per_mat_tris);
-  MEM_SAFE_FREE(cache->surf_per_mat);
-  cache->mat_len = 0;
-  cache->cd_used = 0;
 }
 
 void DRW_curve_batch_cache_free(Curve *cu)
@@ -554,18 +468,10 @@ static void curve_create_curves_pos(CurveRenderData *rdata, GPUVertBuf *vbo_curv
   GPU_vertbuf_init_with_format(vbo_curves_pos, &format);
   GPU_vertbuf_data_alloc(vbo_curves_pos, vert_len);
 
-  const CurveEval &curve_eval = *rdata->curve_eval;
-  Span<SplinePtr> splines = curve_eval.splines();
-  Array<int> offsets = curve_eval.evaluated_point_offsets();
-  BLI_assert(offsets.last() == vert_len);
-
-  for (const int i_spline : splines.index_range()) {
-    Span<float3> positions = splines[i_spline]->evaluated_positions();
-    for (const int i_point : positions.index_range()) {
-      GPU_vertbuf_attr_set(
-          vbo_curves_pos, attr_id.pos, offsets[i_spline] + i_point, positions[i_point]);
-    }
-  }
+  const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
+      rdata->curve_eval->geometry);
+  const Span<float3> positions = curves.evaluated_positions();
+  GPU_vertbuf_attr_fill(vbo_curves_pos, attr_id.pos, positions.data());
 }
 
 static void curve_create_curves_lines(CurveRenderData *rdata, GPUIndexBuf *ibo_curve_lines)
@@ -583,18 +489,16 @@ static void curve_create_curves_lines(CurveRenderData *rdata, GPUIndexBuf *ibo_c
   GPUIndexBufBuilder elb;
   GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, index_len, vert_len);
 
-  const CurveEval &curve_eval = *rdata->curve_eval;
-  Span<SplinePtr> splines = curve_eval.splines();
-  Array<int> offsets = curve_eval.evaluated_point_offsets();
-  BLI_assert(offsets.last() == vert_len);
-
-  for (const int i_spline : splines.index_range()) {
-    const int eval_size = splines[i_spline]->evaluated_points_size();
-    if (splines[i_spline]->is_cyclic() && splines[i_spline]->evaluated_edges_size() > 1) {
-      GPU_indexbuf_add_generic_vert(&elb, offsets[i_spline] + eval_size - 1);
+  const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
+      rdata->curve_eval->geometry);
+  const blender::VArray<bool> cyclic = curves.cyclic();
+  for (const int i : curves.curves_range()) {
+    const IndexRange points = curves.evaluated_points_for_curve(i);
+    if (cyclic[i] && points.size() > 1) {
+      GPU_indexbuf_add_generic_vert(&elb, points.last());
     }
-    for (const int i_point : IndexRange(eval_size)) {
-      GPU_indexbuf_add_generic_vert(&elb, offsets[i_spline] + i_point);
+    for (const int i_point : points) {
+      GPU_indexbuf_add_generic_vert(&elb, i_point);
     }
     GPU_indexbuf_add_primitive_restart(&elb);
   }
@@ -883,55 +787,6 @@ GPUBatch *DRW_curve_batch_cache_get_edit_verts(Curve *cu)
   return DRW_batch_request(&cache->batch.edit_verts);
 }
 
-GPUBatch *DRW_curve_batch_cache_get_triangles_with_normals(struct Curve *cu)
-{
-  CurveBatchCache *cache = curve_batch_cache_get(cu);
-  return DRW_batch_request(&cache->batch.surfaces);
-}
-
-GPUBatch **DRW_curve_batch_cache_get_surface_shaded(struct Curve *cu,
-                                                    struct GPUMaterial **gpumat_array,
-                                                    uint gpumat_array_len)
-{
-  CurveBatchCache *cache = curve_batch_cache_get(cu);
-
-  BLI_assert(gpumat_array_len == cache->mat_len);
-
-  curve_cd_calc_used_gpu_layers(&cache->cd_needed, gpumat_array, gpumat_array_len);
-
-  for (int i = 0; i < cache->mat_len; i++) {
-    DRW_batch_request(&cache->surf_per_mat[i]);
-  }
-  return cache->surf_per_mat;
-}
-
-GPUVertBuf *DRW_curve_batch_cache_pos_vertbuf_get(struct Curve *cu)
-{
-  CurveBatchCache *cache = curve_batch_cache_get(cu);
-  /* Request surface to trigger the vbo filling. Otherwise it may do nothing. */
-  DRW_batch_request(&cache->batch.surfaces);
-
-  DRW_vbo_request(nullptr, &cache->ordered.loop_pos_nor);
-  return cache->ordered.loop_pos_nor;
-}
-
-GPUBatch *DRW_curve_batch_cache_get_wireframes_face(Curve *cu)
-{
-  CurveBatchCache *cache = curve_batch_cache_get(cu);
-  return DRW_batch_request(&cache->batch.surfaces_edges);
-}
-
-GPUBatch *DRW_curve_batch_cache_get_edge_detection(Curve *cu, bool *r_is_manifold)
-{
-  CurveBatchCache *cache = curve_batch_cache_get(cu);
-  /* Even if is_manifold is not correct (not updated),
-   * the default (not manifold) is just the worst case. */
-  if (r_is_manifold) {
-    *r_is_manifold = cache->is_manifold;
-  }
-  return DRW_batch_request(&cache->batch.edge_detection);
-}
-
 int DRW_curve_material_count_get(Curve *cu)
 {
   return max_ii(1, cu->totcol);
@@ -950,35 +805,10 @@ void DRW_curve_batch_cache_create_requested(Object *ob, const struct Scene *scen
   Curve *cu = (Curve *)ob->data;
   CurveBatchCache *cache = curve_batch_cache_get(cu);
 
-  /* Verify that all surface batches have needed attribute layers. */
-  /* TODO(fclem): We could be a bit smarter here and only do it per material. */
-  if ((cache->cd_used & cache->cd_needed) != cache->cd_needed) {
-    for (int i = 0; i < cache->mat_len; i++) {
-      /* We can't discard batches at this point as they have been
-       * referenced for drawing. Just clear them in place. */
-      GPU_BATCH_CLEAR_SAFE(cache->surf_per_mat[i]);
-    }
-
-    cache->cd_used |= cache->cd_needed;
-    cache->cd_needed = 0;
-  }
-
   /* Init batches and request VBOs & IBOs */
-  if (DRW_batch_requested(cache->batch.surfaces, GPU_PRIM_TRIS)) {
-    DRW_vbo_request(cache->batch.surfaces, &cache->ordered.loop_pos_nor);
-  }
-  if (DRW_batch_requested(cache->batch.surfaces_edges, GPU_PRIM_LINES)) {
-    DRW_ibo_request(cache->batch.surfaces_edges, &cache->ibo.surfaces_lines);
-    DRW_vbo_request(cache->batch.surfaces_edges, &cache->ordered.pos_nor);
-    DRW_vbo_request(cache->batch.surfaces_edges, &cache->ordered.edge_fac);
-  }
   if (DRW_batch_requested(cache->batch.curves, GPU_PRIM_LINE_STRIP)) {
     DRW_ibo_request(cache->batch.curves, &cache->ibo.curves_lines);
     DRW_vbo_request(cache->batch.curves, &cache->ordered.curves_pos);
-  }
-  if (DRW_batch_requested(cache->batch.edge_detection, GPU_PRIM_LINES_ADJ)) {
-    DRW_ibo_request(cache->batch.edge_detection, &cache->ibo.edges_adj_lines);
-    DRW_vbo_request(cache->batch.edge_detection, &cache->ordered.pos_nor);
   }
 
   /* Edit mode */
@@ -995,20 +825,6 @@ void DRW_curve_batch_cache_create_requested(Object *ob, const struct Scene *scen
   if (DRW_batch_requested(cache->batch.edit_normals, GPU_PRIM_LINES)) {
     DRW_vbo_request(cache->batch.edit_normals, &cache->edit.curves_nor);
   }
-  for (int i = 0; i < cache->mat_len; i++) {
-    if (DRW_batch_requested(cache->surf_per_mat[i], GPU_PRIM_TRIS)) {
-      if (cache->mat_len > 1) {
-        DRW_ibo_request(cache->surf_per_mat[i], &cache->surf_per_mat_tris[i]);
-      }
-      if (cache->cd_used & CD_MASK_MLOOPUV) {
-        DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_uv);
-      }
-      if (cache->cd_used & CD_MASK_TANGENT) {
-        DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_tan);
-      }
-      DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_pos_nor);
-    }
-  }
 
 #ifdef DRW_DEBUG_MESH_CACHE_REQUEST
   printf("-- %s %s --\n", __func__, ob->id.name + 2);
@@ -1016,27 +832,14 @@ void DRW_curve_batch_cache_create_requested(Object *ob, const struct Scene *scen
 
   /* Generate MeshRenderData flags */
   int mr_flag = 0;
-  DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.pos_nor, CU_DATATYPE_SURFACE);
-  DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.edge_fac, CU_DATATYPE_SURFACE);
   DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.curves_pos, CU_DATATYPE_WIRE);
-  DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.loop_pos_nor, CU_DATATYPE_SURFACE);
-  DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.loop_uv, CU_DATATYPE_SURFACE);
-  DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->ordered.loop_tan, CU_DATATYPE_SURFACE);
-  DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.surfaces_tris, CU_DATATYPE_SURFACE);
-  DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.surfaces_lines, CU_DATATYPE_SURFACE);
   DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.curves_lines, CU_DATATYPE_WIRE);
-  DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.edges_adj_lines, CU_DATATYPE_SURFACE);
 
   DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->edit.pos, CU_DATATYPE_OVERLAY);
   DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->edit.data, CU_DATATYPE_OVERLAY);
   DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->edit.curves_nor, CU_DATATYPE_NORMAL);
-  DRW_ADD_FLAG_FROM_VBO_REQUEST(mr_flag, cache->edit.curves_weight, CU_DATATYPE_OVERLAY);
   DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.edit_verts, CU_DATATYPE_OVERLAY);
   DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->ibo.edit_lines, CU_DATATYPE_OVERLAY);
-
-  for (int i = 0; i < cache->mat_len; i++) {
-    DRW_ADD_FLAG_FROM_IBO_REQUEST(mr_flag, cache->surf_per_mat_tris[i], CU_DATATYPE_SURFACE);
-  }
 
 #ifdef DRW_DEBUG_MESH_CACHE_REQUEST
   printf("  mr_flag %d\n\n", mr_flag);
@@ -1044,48 +847,13 @@ void DRW_curve_batch_cache_create_requested(Object *ob, const struct Scene *scen
 
   CurveRenderData *rdata = curve_render_data_create(cu, ob->runtime.curve_cache, mr_flag);
 
-  /* The object's curve cache can be empty (in one case because we use #CurveEval's cache instead),
-   * If so, point to an empty DispList list to avoid the need to check for null in the following
-   * functions. */
-  ListBase empty_lb = {nullptr, nullptr};
-  ListBase *lb = rdata->ob_curve_cache == nullptr ? &empty_lb : &rdata->ob_curve_cache->disp;
-
   /* Generate VBOs */
-  if (DRW_vbo_requested(cache->ordered.pos_nor)) {
-    DRW_displist_vertbuf_create_pos_and_nor(lb, cache->ordered.pos_nor, scene);
-  }
-  if (DRW_vbo_requested(cache->ordered.edge_fac)) {
-    DRW_displist_vertbuf_create_wiredata(lb, cache->ordered.edge_fac);
-  }
   if (DRW_vbo_requested(cache->ordered.curves_pos)) {
     curve_create_curves_pos(rdata, cache->ordered.curves_pos);
   }
-
-  if (DRW_vbo_requested(cache->ordered.loop_pos_nor) ||
-      DRW_vbo_requested(cache->ordered.loop_uv) || DRW_vbo_requested(cache->ordered.loop_tan)) {
-    DRW_displist_vertbuf_create_loop_pos_and_nor_and_uv_and_tan(
-        lb, cache->ordered.loop_pos_nor, cache->ordered.loop_uv, cache->ordered.loop_tan, scene);
-  }
-
-  if (DRW_ibo_requested(cache->surf_per_mat_tris[0])) {
-    DRW_displist_indexbuf_create_triangles_loop_split_by_material(
-        lb, cache->surf_per_mat_tris, cache->mat_len);
-  }
-
   if (DRW_ibo_requested(cache->ibo.curves_lines)) {
     curve_create_curves_lines(rdata, cache->ibo.curves_lines);
   }
-  if (DRW_ibo_requested(cache->ibo.surfaces_tris)) {
-    DRW_displist_indexbuf_create_triangles_in_order(lb, cache->ibo.surfaces_tris);
-  }
-  if (DRW_ibo_requested(cache->ibo.surfaces_lines)) {
-    DRW_displist_indexbuf_create_lines_in_order(lb, cache->ibo.surfaces_lines);
-  }
-  if (DRW_ibo_requested(cache->ibo.edges_adj_lines)) {
-    DRW_displist_indexbuf_create_edges_adjacency_lines(
-        lb, cache->ibo.edges_adj_lines, &cache->is_manifold);
-  }
-
   if (DRW_vbo_requested(cache->edit.pos) || DRW_vbo_requested(cache->edit.data) ||
       DRW_ibo_requested(cache->ibo.edit_verts) || DRW_ibo_requested(cache->ibo.edit_lines)) {
     curve_create_edit_data_and_handles(

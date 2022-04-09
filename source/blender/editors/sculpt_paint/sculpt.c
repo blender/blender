@@ -91,6 +91,7 @@
 #include "WM_types.h"
 
 #include "ED_object.h"
+#include "ED_paint.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "ED_space_api.h"
@@ -394,277 +395,27 @@ const float *SCULPT_vertex_co_get(SculptSession *ss, SculptVertRef index)
   return NULL;
 }
 
+bool SCULPT_has_loop_colors(const Object *ob)
+{
+  Mesh *me = BKE_object_get_original_mesh(ob);
+  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
+
+  return layer && BKE_id_attribute_domain(&me->id, layer) == ATTR_DOMAIN_CORNER;
+}
+
 bool SCULPT_has_colors(const SculptSession *ss)
 {
-  return ss->vcol_type != -1;
+  return ss->vcol || ss->mcol;
 }
 
-bool SCULPT_vertex_color_get(const SculptSession *ss, SculptVertRef vertex, float out[4])
+void SCULPT_vertex_color_get(const SculptSession *ss, SculptVertRef vertex, float r_color[4])
 {
-  if (vertex.i == SCULPT_REF_NONE) {
-    return false;
-  }
-
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-      if (!(ss->vcol || ss->mcol)) {
-        zero_v4(out);
-        return false;
-      }
-
-      if (ss->vcol_domain == ATTR_DOMAIN_CORNER) {
-        zero_v4(out);
-
-        int count = ss->pmap->pmap[vertex.i].count;
-        for (int i = 0; i < count; i++) {
-          MPoly *mp = ss->mpoly + ss->pmap->pmap[vertex.i].indices[i];
-          MLoop *ml = ss->mloop + mp->loopstart;
-          int li = mp->loopstart;
-
-          for (int j = 0; j < mp->totloop; j++, li++, ml++) {
-            if (ml->v != vertex.i) {
-              continue;
-            }
-
-            if (ss->vcol_type == CD_MLOOPCOL) {
-              MLoopCol *col = ss->mcol + li;
-
-              float temp[4];
-
-              rgba_uchar_to_float(temp, (const char *)col);
-              srgb_to_linearrgb_v3_v3(temp, temp);
-
-              add_v4_v4(out, temp);
-            }
-            else if (ss->vcol_type == CD_PROP_COLOR) {
-              add_v4_v4(out, ss->vcol[li].color);
-            }
-          }
-        }
-
-        if (count) {
-          mul_v4_fl(out, 1.0f / (float)count);
-        }
-      }
-      else {
-        if (ss->vcol_type == CD_MLOOPCOL) {
-          MLoopCol *col = ss->mcol + vertex.i;
-
-          float temp[4];
-          rgba_uchar_to_float(temp, (const char *)col);
-          srgb_to_linearrgb_v3_v3(temp, temp);
-
-          copy_v4_v4(out, temp);
-        }
-        if (ss->vcol_type == CD_PROP_COLOR) {
-          copy_v4_v4(out, ss->vcol[vertex.i].color);
-        }
-      }
-
-      return ss->vcol || ss->mcol;
-    case PBVH_BMESH: {
-      BMVert *v = (BMVert *)vertex.i;
-
-      if (ss->vcol_type == -1) {
-        return false;
-      }
-
-      if (ss->vcol_domain == ATTR_DOMAIN_POINT) {
-        switch (ss->vcol_type) {
-          case CD_PROP_COLOR:
-            copy_v4_v4(out, (float *)BM_ELEM_CD_GET_VOID_P(v, ss->cd_vcol_offset));
-            break;
-
-          case CD_MLOOPCOL: {
-            MLoopCol *mp = (MLoopCol *)BM_ELEM_CD_GET_VOID_P(v, ss->cd_vcol_offset);
-
-            float temp[4];
-            rgba_uchar_to_float(temp, (const char *)mp);
-            srgb_to_linearrgb_v3_v3(temp, temp);
-
-            copy_v4_v4(out, temp);
-
-            break;
-          }
-        }
-      }
-      else {
-        int tot = 0;
-
-        BMEdge *e = v->e;
-
-        if (!e) {
-          return false;
-        }
-
-        zero_v4(out);
-
-        do {
-          if (!e->l) {
-            continue;
-          }
-
-          BMLoop *l = e->l;
-          do {
-            BMLoop *l2 = l->v != v ? l->next : l;
-
-            switch (ss->vcol_type) {
-              case CD_PROP_COLOR:
-                add_v4_v4(out, (float *)BM_ELEM_CD_GET_VOID_P(l2, ss->cd_vcol_offset));
-                tot++;
-                break;
-
-              case CD_MLOOPCOL: {
-                MLoopCol *mp = (MLoopCol *)BM_ELEM_CD_GET_VOID_P(l2, ss->cd_vcol_offset);
-
-                float temp[4];
-                rgba_uchar_to_float(temp, (const char *)mp);
-
-                srgb_to_linearrgb_v3_v3(temp, temp);
-
-                add_v4_v4(out, temp);
-                tot++;
-
-                break;
-              }
-            }
-          } while ((l = l->radial_next) != e->l);
-        } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-
-        if (tot > 0) {
-          mul_v4_fl(out, 1.0f / (float)tot);
-        }
-      }
-
-      return true;
-    }
-
-    case PBVH_GRIDS:
-      break;
-  }
-
-  return false;
+  BKE_pbvh_vertex_color_get(ss->pbvh, vertex, r_color);
 }
 
-void SCULPT_vertex_color_set(const SculptSession *ss, SculptVertRef vertex, float color[4])
+void SCULPT_vertex_color_set(SculptSession *ss, SculptVertRef vertex, const float color[4])
 {
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-      if (!(ss->vcol || ss->mcol)) {
-        return;
-      }
-
-      if (ss->vcol_domain == ATTR_DOMAIN_CORNER) {
-        int count = ss->pmap->pmap[vertex.i].count;
-        for (int i = 0; i < count; i++) {
-          MPoly *mp = ss->mpoly + ss->pmap->pmap[vertex.i].indices[i];
-          MLoop *ml = ss->mloop + mp->loopstart;
-          int li = mp->loopstart;
-
-          for (int j = 0; j < mp->totloop; j++, li++, ml++) {
-            if (ml->v != vertex.i) {
-              continue;
-            }
-
-            if (ss->vcol_type == CD_MLOOPCOL) {
-              float temp[4];
-
-              MLoopCol *col = ss->mcol + li;
-
-              linearrgb_to_srgb_v3_v3(temp, color);
-              temp[3] = color[3];
-
-              rgba_float_to_uchar((char *)col, temp);
-            }
-            else if (ss->vcol_type == CD_PROP_COLOR) {
-              copy_v4_v4(ss->vcol[li].color, color);
-            }
-          }
-        }
-      }
-      else {
-        if (ss->vcol_type == CD_MLOOPCOL) {
-          MLoopCol *col = ss->mcol + vertex.i;
-          float temp[4];
-
-          linearrgb_to_srgb_v3_v3(temp, color);
-          temp[3] = color[3];
-
-          rgba_float_to_uchar((char *)col, temp);
-        }
-        else if (ss->vcol_type == CD_PROP_COLOR) {
-          copy_v4_v4(ss->vcol[vertex.i].color, color);
-        }
-      }
-
-      break;
-    case PBVH_BMESH: {
-      BMVert *v = (BMVert *)vertex.i;
-
-      if (ss->vcol_type == -1) {
-        return;
-      }
-
-      if (ss->vcol_domain == ATTR_DOMAIN_POINT) {
-        switch (ss->vcol_type) {
-          case CD_PROP_COLOR:
-            copy_v4_v4((float *)BM_ELEM_CD_GET_VOID_P(v, ss->cd_vcol_offset), color);
-            break;
-
-          case CD_MLOOPCOL: {
-            MLoopCol *mp = (MLoopCol *)BM_ELEM_CD_GET_VOID_P(v, ss->cd_vcol_offset);
-
-            float temp[4];
-            linearrgb_to_srgb_v3_v3(temp, color);
-            temp[3] = color[3];
-
-            rgba_float_to_uchar((char *)mp, temp);
-
-            break;
-          }
-        }
-      }
-      else {
-        BMEdge *e = v->e;
-
-        if (!e) {
-          return;
-        }
-
-        do {
-          if (!e->l) {
-            continue;
-          }
-
-          BMLoop *l = e->l;
-          do {
-            BMLoop *l2 = l->v != v ? l->next : l;
-
-            switch (ss->vcol_type) {
-              case CD_PROP_COLOR:
-                copy_v4_v4((float *)BM_ELEM_CD_GET_VOID_P(l2, ss->cd_vcol_offset), color);
-                break;
-
-              case CD_MLOOPCOL: {
-                MLoopCol *mp = (MLoopCol *)BM_ELEM_CD_GET_VOID_P(l2, ss->cd_vcol_offset);
-                float temp[4];
-
-                linearrgb_to_srgb_v3_v3(temp, color);
-                temp[3] = color[3];
-                rgba_float_to_uchar((char *)mp, temp);
-
-                break;
-              }
-            }
-          } while ((l = l->radial_next) != e->l);
-        } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-      }
-
-      break;
-    }
-    case PBVH_GRIDS:
-      break;
-  }
+  BKE_pbvh_vertex_color_set(ss->pbvh, vertex, color);
 }
 
 void SCULPT_vertex_normal_get(SculptSession *ss, SculptVertRef vertex, float no[3])
@@ -2734,6 +2485,7 @@ void SCULPT_tag_update_overlays(bContext *C)
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
+
   View3D *v3d = CTX_wm_view3d(C);
   if (!BKE_sculptsession_use_pbvh_draw(ob, v3d)) {
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -2897,20 +2649,20 @@ static bool sculpt_tool_needs_original(const char sculpt_tool)
 bool sculpt_tool_is_proxy_used(const char sculpt_tool)
 {
   return (ELEM(sculpt_tool,
-              SCULPT_TOOL_SMOOTH,
-              SCULPT_TOOL_LAYER,
-              SCULPT_TOOL_FAIRING,
-              SCULPT_TOOL_SCENE_PROJECT,
-              SCULPT_TOOL_POSE,
-              SCULPT_TOOL_ARRAY,
-              SCULPT_TOOL_TWIST,
-              SCULPT_TOOL_DISPLACEMENT_SMEAR,
-              SCULPT_TOOL_BOUNDARY,
-              SCULPT_TOOL_CLOTH,
-              SCULPT_TOOL_PAINT,
-              SCULPT_TOOL_SMEAR,
-              SCULPT_TOOL_SYMMETRIZE,
-              SCULPT_TOOL_DRAW_FACE_SETS));
+               SCULPT_TOOL_SMOOTH,
+               SCULPT_TOOL_LAYER,
+               SCULPT_TOOL_FAIRING,
+               SCULPT_TOOL_SCENE_PROJECT,
+               SCULPT_TOOL_POSE,
+               SCULPT_TOOL_ARRAY,
+               SCULPT_TOOL_TWIST,
+               SCULPT_TOOL_DISPLACEMENT_SMEAR,
+               SCULPT_TOOL_BOUNDARY,
+               SCULPT_TOOL_CLOTH,
+               SCULPT_TOOL_PAINT,
+               SCULPT_TOOL_SMEAR,
+               SCULPT_TOOL_SYMMETRIZE,
+               SCULPT_TOOL_DRAW_FACE_SETS));
 }
 
 static bool sculpt_brush_use_topology_rake(const SculptSession *ss, const Brush *brush)
@@ -3125,7 +2877,9 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
     if (type & SCULPT_UNDO_COLOR) {
       float color[4];
 
-      if (SCULPT_vertex_color_get(ss, vd.vertex, color)) {
+      if (SCULPT_has_colors(ss)) {
+        SCULPT_vertex_color_get(ss, vd.vertex, color);
+
         if (len_squared_v4v4(color, mv->origcolor) > FLT_EPSILON) {
           modified = true;
         }
@@ -4404,12 +4158,11 @@ static void update_sculpt_normal(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
   int tool = SCULPT_get_tool(ob->sculpt, brush);
 
   /* Grab brush does not update the sculpt normal during a stroke. */
-  const bool update_normal = !(brush->flag & BRUSH_ORIGINAL_NORMAL) &&
-                                 !(tool == SCULPT_TOOL_GRAB) &&
-                                 !(tool == SCULPT_TOOL_THUMB && !(brush->flag & BRUSH_ANCHORED)) &&
-                                 !(tool == SCULPT_TOOL_ELASTIC_DEFORM) &&
-                                 !(tool == SCULPT_TOOL_SNAKE_HOOK &&
-                                   cache->normal_weight > 0.0f) ||
+  const bool update_normal = !((brush->flag & BRUSH_ORIGINAL_NORMAL) &&
+                               !(tool == SCULPT_TOOL_GRAB) &&
+                               !(tool == SCULPT_TOOL_THUMB && !(brush->flag & BRUSH_ANCHORED)) &&
+                               !(tool == SCULPT_TOOL_ELASTIC_DEFORM) &&
+                               !(tool == SCULPT_TOOL_SNAKE_HOOK && cache->normal_weight > 0.0f)) ||
                              dot_v3v3(cache->sculpt_normal, cache->sculpt_normal) == 0.0f;
 
   if (cache->mirror_symmetry_pass == 0 && cache->radial_symmetry_pass == 0 &&
@@ -5006,7 +4759,6 @@ static void sculpt_topology_update(Sculpt *sd,
 
   int symidx = SCULPT_get_symmetry_pass(ss);
 
-  bool modified;
   void *mask_cb_data;
   DyntopoMaskCB mask_cb;
 
@@ -5025,23 +4777,22 @@ static void sculpt_topology_update(Sculpt *sd,
   }
 
   /* do nodes under the brush cursor */
-  modified = BKE_pbvh_bmesh_update_topology_nodes(
-      ss->pbvh,
-      SCULPT_search_sphere_cb,
-      topology_undopush_cb,
-      &sdata,
-      mode,
-      ss->cache->location,
-      ss->cache->view_normal,
-      ss->cache->radius * radius_scale,
-      (brush->flag & BRUSH_FRONTFACE) != 0,
-      (brush->falloff_shape != PAINT_FALLOFF_SHAPE_SPHERE),
-      symidx,
-      DYNTOPO_HAS_DYNAMIC_SPLIT(SCULPT_get_tool(ss, brush)),
-      mask_cb,
-      mask_cb_data,
-      SCULPT_get_int(ss, dyntopo_disable_smooth, sd, brush),
-      brush->sculpt_tool == SCULPT_TOOL_SNAKE_HOOK);
+  BKE_pbvh_bmesh_update_topology_nodes(ss->pbvh,
+                                       SCULPT_search_sphere_cb,
+                                       topology_undopush_cb,
+                                       &sdata,
+                                       mode,
+                                       ss->cache->location,
+                                       ss->cache->view_normal,
+                                       ss->cache->radius * radius_scale,
+                                       (brush->flag & BRUSH_FRONTFACE) != 0,
+                                       (brush->falloff_shape != PAINT_FALLOFF_SHAPE_SPHERE),
+                                       symidx,
+                                       DYNTOPO_HAS_DYNAMIC_SPLIT(SCULPT_get_tool(ss, brush)),
+                                       mask_cb,
+                                       mask_cb_data,
+                                       SCULPT_get_int(ss, dyntopo_disable_smooth, sd, brush),
+                                       brush->sculpt_tool == SCULPT_TOOL_SNAKE_HOOK);
 
   SCULPT_dyntopo_automasking_end(mask_cb_data);
 
@@ -5118,7 +4869,7 @@ static void do_brush_action_task_cb(void *__restrict userdata,
     SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_MASK);
     BKE_pbvh_node_mark_update_mask(data->nodes[n]);
   }
-  else if (ELEM(SCULPT_get_tool(ss, data->brush), SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
+  else if (SCULPT_TOOL_NEEDS_COLOR(data->brush->sculpt_tool)) {
     if (!ss->bm) {
       if (data->brush->vcol_boundary_factor > 0.0f) {
         SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
@@ -5334,7 +5085,6 @@ static void SCULPT_run_command(
   int totnode = data->totnode;
 
   Brush _brush2, *brush2 = &_brush2;
-  float radius_scale;
 
   /*
    * Check that original data is for anchored and drag dot modes
@@ -5351,9 +5101,6 @@ static void SCULPT_run_command(
   }
 
   /*create final, input mapped parameter list*/
-
-  radius_scale = 1.0f;
-
   *brush2 = *brush;
 
   /* prevent auto freeing of brush2->curve in BKE_brush_channelset_compat_load */
@@ -5666,8 +5413,6 @@ static void SCULPT_run_commandlist(
 
   /* This does a more high-level check then SCULPT_TOOL_HAS_DYNTOPO. */
   bool has_dyntopo = ss->bm && SCULPT_stroke_is_dynamic_topology(ss, brush);
-  bool all_nodes_undo = false;
-  bool cloth_nodes_undo = false;
 
   /* Get maximum radius. */
   for (int i = 0; i < list->totcommand; i++) {
@@ -5688,13 +5433,6 @@ static void SCULPT_run_commandlist(
                                                                       "original_normal",
                                                                       &ss->cache->input_mapping)) {
       radius_scale = MAX2(radius_scale, 2.0f);
-    }
-
-    if (SCULPT_tool_needs_all_pbvh_nodes(&brush2)) {
-      all_nodes_undo = true;
-    }
-    else if (cmd->tool == SCULPT_TOOL_CLOTH) {
-      cloth_nodes_undo = true;
     }
 
     if (!SCULPT_TOOL_HAS_DYNTOPO(cmd->tool) || SCULPT_get_int(ss, dyntopo_disabled, sd, brush)) {
@@ -6116,7 +5854,7 @@ static void do_tiled(Sculpt *sd,
   SculptSession *ss = ob->sculpt;
   StrokeCache *cache = ss->cache;
   const float radius = cache->radius;
-  BoundBox *bb = BKE_object_boundbox_get(ob);
+  const BoundBox *bb = BKE_object_boundbox_get(ob);
   const float *bbMin = bb->vec[0];
   const float *bbMax = bb->vec[6];
   const float *step = sd->paint.tile_offset;
@@ -6270,10 +6008,6 @@ bool SCULPT_vertex_colors_poll(bContext *C)
 
 bool SCULPT_vertex_colors_poll_no_bmesh(bContext *C)
 {
-  if (!U.experimental.use_sculpt_vertex_colors) {
-    return false;
-  }
-
   Object *ob = CTX_data_active_object(C);
 
   if (ob && ob->sculpt && ob->sculpt->bm) {
@@ -7334,6 +7068,7 @@ static bool sculpt_needs_connectivity_info(Sculpt *sd,
           (brush->sculpt_tool == SCULPT_TOOL_SMEAR) ||
           (brush->sculpt_tool == SCULPT_TOOL_BOUNDARY) ||
           (brush->sculpt_tool == SCULPT_TOOL_SLIDE_RELAX) ||
+          SCULPT_TOOL_NEEDS_COLOR(brush->sculpt_tool) ||
           (brush->sculpt_tool == SCULPT_TOOL_CLOTH) || (brush->sculpt_tool == SCULPT_TOOL_SMEAR) ||
           (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) ||
           (brush->sculpt_tool == SCULPT_TOOL_DISPLACEMENT_SMEAR));
@@ -7722,7 +7457,7 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
   SculptSession *ss = CTX_data_active_object(C)->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
   int mode = RNA_enum_get(op->ptr, "mode");
-  bool is_smooth, needs_colors;
+  bool need_pmap, needs_colors;
   bool need_mask = false;
 
   if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_MASK) {
@@ -7737,17 +7472,20 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
   view3d_operator_needs_opengl(C);
   sculpt_brush_init_tex(scene, sd, ss);
 
-  is_smooth = sculpt_needs_connectivity_info(sd, brush, ss, mode);
-  needs_colors = ELEM(SCULPT_get_tool(ss, brush), SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR);
+  needs_colors = SCULPT_TOOL_NEEDS_COLOR(brush->sculpt_tool);
 
   if (needs_colors) {
     BKE_sculpt_color_layer_create_if_needed(ob);
   }
 
+  need_pmap = sculpt_needs_connectivity_info(sd, brush, ss, mode);
+
   /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the updates of
    * earlier steps modifying the data. */
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, is_smooth, need_mask, needs_colors);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, need_pmap, need_mask, needs_colors);
+
+  ED_paint_tool_update_sticky_shading_color(C, ob);
 }
 
 static void sculpt_restore_mesh(Scene *scene, Sculpt *sd, Object *ob)
@@ -8010,6 +7748,16 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
     Object *ob = CTX_data_active_object(C);
     SculptSession *ss = ob->sculpt;
     Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+    Brush *brush = BKE_paint_brush(&sd->paint);
+
+    /* NOTE: This should be removed when paint mode is available. Paint mode can force based on the
+     * canvas it is painting on. (ref. use_sculpt_texture_paint). */
+    if (brush && SCULPT_TOOL_NEEDS_COLOR(brush->sculpt_tool)) {
+      View3D *v3d = CTX_wm_view3d(C);
+      if (v3d) {
+        v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
+      }
+    }
 
     // increment stroke_id to flag origdata update
     ss->stroke_id++;
@@ -8027,7 +7775,6 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
 
     SCULPT_undo_push_begin(ob, sculpt_tool_name(sd));
 
-    Brush *brush = BKE_paint_brush(&sd->paint);
     if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_ARRAY) {
       SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_GEOMETRY);
     }
@@ -8457,7 +8204,7 @@ static EnumPropertyItem *stroke_tool_items = NULL;
 
 static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  return paint_stroke_modal(C, op, event, op->customdata);
+  return paint_stroke_modal(C, op, event, (struct PaintStroke **)&op->customdata);
 }
 
 void SCULPT_OT_brush_stroke(wmOperatorType *ot)

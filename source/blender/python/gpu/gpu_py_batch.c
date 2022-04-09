@@ -60,7 +60,15 @@ static PyObject *pygpu_batch__tp_new(PyTypeObject *UNUSED(type), PyObject *args,
   BPyGPUIndexBuf *py_indexbuf = NULL;
 
   static const char *_keywords[] = {"type", "buf", "elem", NULL};
-  static _PyArg_Parser _parser = {"|$O&O!O!:GPUBatch.__new__", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "|$" /* Optional keyword only arguments. */
+      "O&" /* `type` */
+      "O!" /* `buf` */
+      "O!" /* `elem` */
+      ":GPUBatch.__new__",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kwds,
                                         &_parser,

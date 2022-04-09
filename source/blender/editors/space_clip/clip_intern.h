@@ -65,6 +65,7 @@ void clip_start_prefetch_job(const struct bContext *C);
 void clip_draw_graph(struct SpaceClip *sc, struct ARegion *region, struct Scene *scene);
 
 /* clip_graph_ops.c */
+
 void ED_clip_graph_center_current_frame(struct Scene *scene, struct ARegion *region);
 
 void CLIP_OT_graph_select(struct wmOperatorType *ot);
@@ -77,6 +78,7 @@ void CLIP_OT_graph_center_current_frame(struct wmOperatorType *ot);
 void CLIP_OT_graph_disable_markers(struct wmOperatorType *ot);
 
 /* clip_ops.c */
+
 void CLIP_OT_open(struct wmOperatorType *ot);
 void CLIP_OT_reload(struct wmOperatorType *ot);
 void CLIP_OT_view_pan(struct wmOperatorType *ot);
@@ -104,6 +106,7 @@ void CLIP_OT_cursor_set(struct wmOperatorType *ot);
 void CLIP_OT_lock_selection_toggle(struct wmOperatorType *ot);
 
 /* clip_toolbar.c */
+
 struct ARegion *ED_clip_has_properties_region(struct ScrArea *area);
 
 /* clip_utils.c */
@@ -183,6 +186,7 @@ bool clip_view_has_locked_selection(const struct bContext *C);
 void clip_draw_sfra_efra(struct View2D *v2d, struct Scene *scene);
 
 /* tracking_ops.c */
+
 struct MovieTrackingTrack *tracking_marker_check_slide(
     struct bContext *C, const struct wmEvent *event, int *r_area, int *r_action, int *r_corner);
 
@@ -246,6 +250,7 @@ void CLIP_OT_keyframe_insert(struct wmOperatorType *ot);
 void CLIP_OT_keyframe_delete(struct wmOperatorType *ot);
 
 /* tracking_select.c */
+
 void CLIP_OT_select(struct wmOperatorType *ot);
 void CLIP_OT_select_all(struct wmOperatorType *ot);
 void CLIP_OT_select_box(struct wmOperatorType *ot);

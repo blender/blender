@@ -36,9 +36,9 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_vert)
     .additional_info("overlay_edit_mesh_common");
 
 GPU_SHADER_INTERFACE_INFO(overlay_edit_mesh_edge_iface, "geometry_in")
-    .smooth(Type::VEC4, "finalColor")
-    .smooth(Type::VEC4, "finalColorOuter")
-    .smooth(Type::INT, "selectOverride");
+    .smooth(Type::VEC4, "finalColor_")
+    .smooth(Type::VEC4, "finalColorOuter_")
+    .smooth(Type::INT, "selectOverride_");
 
 GPU_SHADER_INTERFACE_INFO(overlay_edit_mesh_edge_geom_iface, "geometry_out")
     .smooth(Type::VEC4, "finalColor")

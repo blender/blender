@@ -73,7 +73,7 @@ typedef struct MainIDRelationsEntry {
   uint tags;
 } MainIDRelationsEntry;
 
-/* MainIDRelationsEntry.tags */
+/** #MainIDRelationsEntry.tags */
 typedef enum eMainIDRelationsEntryTags {
   /* Generic tag marking the entry as to be processed. */
   MAINIDRELATIONS_ENTRY_TAGS_DOIT = 1 << 0,

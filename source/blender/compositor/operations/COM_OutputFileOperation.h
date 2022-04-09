@@ -39,6 +39,7 @@ class OutputSingleLayerOperation : public MultiThreadedOperation {
                              const char *path,
                              const char *view_name,
                              bool save_as_render);
+  ~OutputSingleLayerOperation();
 
   void execute_region(rcti *rect, unsigned int tile_number) override;
   bool is_output_operation(bool /*rendering*/) const override

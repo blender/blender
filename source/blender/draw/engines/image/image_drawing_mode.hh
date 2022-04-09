@@ -16,7 +16,6 @@
 
 #include "image_batches.hh"
 #include "image_private.hh"
-#include "image_wrappers.hh"
 
 namespace blender::draw::image_engine {
 
@@ -74,6 +73,7 @@ struct OneTextureMethod {
 };
 
 using namespace blender::bke::image::partial_update;
+using namespace blender::bke::image;
 
 template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractDrawingMode {
  private:

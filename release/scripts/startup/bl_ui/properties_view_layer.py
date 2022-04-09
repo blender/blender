@@ -187,6 +187,33 @@ class VIEWLAYER_PT_layer_passes_cryptomatte(ViewLayerCryptomattePanel, Panel):
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
 
+class ViewLayerLightgroupsPanel(ViewLayerButtonsPanel, Panel):
+    bl_label = "Light Groups"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        view_layer = context.view_layer
+
+        row = layout.row()
+        col = row.column()
+        col.template_list("UI_UL_list", "lightgroups", view_layer,
+                          "lightgroups", view_layer, "active_lightgroup_index", rows=2)
+
+        col = row.column()
+        sub = col.column(align=True)
+        sub.operator("scene.view_layer_add_lightgroup", icon='ADD', text="")
+        sub.operator("scene.view_layer_remove_lightgroup", icon='REMOVE', text="")
+
+
+class VIEWLAYER_PT_layer_passes_lightgroups(ViewLayerLightgroupsPanel):
+    bl_parent_id = "VIEWLAYER_PT_layer_passes"
+    COMPAT_ENGINES = {'CYCLES'}
+
+
 classes = (
     VIEWLAYER_PT_layer,
     VIEWLAYER_PT_layer_passes,
@@ -195,6 +222,7 @@ classes = (
     VIEWLAYER_PT_eevee_layer_passes_effects,
     VIEWLAYER_PT_layer_passes_cryptomatte,
     VIEWLAYER_PT_layer_passes_aov,
+    VIEWLAYER_PT_layer_passes_lightgroups,
     VIEWLAYER_UL_aov,
 )
 

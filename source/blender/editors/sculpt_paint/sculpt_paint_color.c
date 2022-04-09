@@ -189,7 +189,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     float noise = 1.0f;
     const float density = ss->cache->paint_brush.density;
     if (density < 1.0f) {
-      const float hash_noise = BLI_hash_int_01(ss->cache->density_seed * 1000 * vd.index);
+      const float hash_noise = (float)BLI_hash_int_01(ss->cache->density_seed * 1000 * vd.index);
       if (hash_noise > density) {
         noise = density * hash_noise;
         fade = fade * noise;
@@ -293,7 +293,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
     if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
-      ss->cache->density_seed = BLI_hash_int_01(ss->cache->location[0] * 1000);
+      ss->cache->density_seed = (float)BLI_hash_int_01(ss->cache->location[0] * 1000);
     }
     return;
   }
@@ -486,6 +486,9 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
 
     copy_v4_v4(interp_color, prev_color);
 
+    float no[3];
+    SCULPT_vertex_normal_get(ss, vd.vertex, no);
+
     switch (brush->smear_deform_type) {
       case BRUSH_SMEAR_DEFORM_DRAG:
         sub_v3_v3v3(current_disp, ss->cache->location, ss->cache->last_location);
@@ -497,35 +500,90 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
         sub_v3_v3v3(current_disp, vd.co, ss->cache->location);
         break;
     }
+
+    /* Project into vertex plane. */
+    madd_v3_v3fl(current_disp, no, -dot_v3v3(current_disp, no));
+
     normalize_v3_v3(current_disp_norm, current_disp);
     mul_v3_v3fl(current_disp, current_disp_norm, ss->cache->bstrength);
 
-    SculptVertexNeighborIter ni;
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
-      float vertex_disp[3];
-      float vertex_disp_norm[3];
-      sub_v3_v3v3(vertex_disp, SCULPT_vertex_co_get(ss, ni.vertex), vd.co);
-      const float *neighbor_color = SCULPT_attr_vertex_data(ni.vertex, data->scl);
+    float accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    float totw = 0.0f;
 
-      normalize_v3_v3(vertex_disp_norm, vertex_disp);
-      if (dot_v3v3(current_disp_norm, vertex_disp_norm) >= 0.0f) {
-        continue;
+    /*
+     * NOTE: we have to do a nested iteration here to avoid
+     * blocky artifacts on quad topologies.  The runtime cost
+     * is not as bad as it seems due to neighbor iteration
+     * in the sculpt code being cache bound; once the data is in
+     * the cache iterating over it a few more times is not terribly
+     * costly.
+     */
+
+    SculptVertexNeighborIter ni2;
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni2) {
+      const float *nco = SCULPT_vertex_co_get(ss, ni2.vertex);
+
+      SculptVertexNeighborIter ni;
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, ni2.vertex, ni) {
+        if (ni.index == vd.index) {
+          continue;
+        }
+
+        float vertex_disp[3];
+        float vertex_disp_norm[3];
+
+        sub_v3_v3v3(vertex_disp, SCULPT_vertex_co_get(ss, ni.vertex), vd.co);
+
+        /* Weight by how close we are to our target distance from vd.co. */
+        float w = (1.0f + fabsf(len_v3(vertex_disp) / ss->cache->bstrength - 1.0f));
+
+        /* TODO: use cotangents (or at least face areas) here. */
+        float len = len_v3v3(SCULPT_vertex_co_get(ss, ni.vertex), nco);
+        if (len > 0.0f) {
+          len = ss->cache->bstrength / len;
+        }
+        else { /* Coincident point. */
+          len = 1.0f;
+        }
+
+        /* Multiply weight with edge lengths (in the future this will be
+           cotangent weights or face areas). */
+        w *= len;
+
+        /* Build directional weight. */
+
+        /* Project into vertex plane. */
+        madd_v3_v3fl(vertex_disp, no, -dot_v3v3(no, vertex_disp));
+        normalize_v3_v3(vertex_disp_norm, vertex_disp);
+
+        if (dot_v3v3(current_disp_norm, vertex_disp_norm) >= 0.0f) {
+          continue;
+        }
+
+        const float *neighbor_color = SCULPT_attr_vertex_data(ni.vertex, data->scl);
+        float color_interp = -dot_v3v3(current_disp_norm, vertex_disp_norm);
+
+        /* Square directional weight to get a somewhat sharper result. */
+        w *= color_interp * color_interp;
+
+        madd_v4_v4fl(accum, neighbor_color, w);
+        totw += w;
       }
-      const float color_interp = clamp_f(
-          -dot_v3v3(current_disp_norm, vertex_disp_norm), 0.0f, 1.0f);
-      float color_mix[4];
-      copy_v4_v4(color_mix, neighbor_color);
-      mul_v4_fl(color_mix, color_interp * fade);
-      blend_color_mix_float(interp_color, interp_color, color_mix);
+      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
     }
-    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni2);
 
-    float vcolor[4];
+    if (totw != 0.0f) {
+      mul_v4_fl(accum, 1.0f / totw);
+    }
 
-    SCULPT_vertex_color_get(ss, vd.vertex, vcolor);
-    blend_color_interpolate_float(vcolor, prev_color, interp_color, fade * blend);
-    clamp_v4(vcolor, 0.0f, 1.0f);
-    SCULPT_vertex_color_set(ss, vd.vertex, vcolor);
+    blend_color_mix_float(interp_color, interp_color, accum);
+
+    float col[4];
+    SCULPT_vertex_color_get(ss, vd.vertex, col);
+
+    blend_color_interpolate_float(col, prev_color, interp_color, fade * blend);
+    SCULPT_vertex_color_set(ss, vd.vertex, col);
 
     if (vd.mvert) {
       BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);

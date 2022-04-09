@@ -36,12 +36,12 @@ static Curves *create_curve_from_vert_indices(const MeshComponent &mesh_componen
 {
   Curves *curves_id = bke::curves_new_nomain(vert_indices.size(), curve_offsets.size());
   bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
-  curves.offsets().drop_back(1).copy_from(curve_offsets);
-  curves.offsets().last() = vert_indices.size();
-  curves.curve_types().fill(CURVE_TYPE_POLY);
+  curves.offsets_for_write().drop_back(1).copy_from(curve_offsets);
+  curves.offsets_for_write().last() = vert_indices.size();
+  curves.curve_types_for_write().fill(CURVE_TYPE_POLY);
 
-  curves.cyclic().fill(false);
-  curves.cyclic().slice(cyclic_curves).fill(true);
+  curves.cyclic_for_write().fill(false);
+  curves.cyclic_for_write().slice(cyclic_curves).fill(true);
 
   Set<bke::AttributeIDRef> source_attribute_ids = mesh_component.attribute_ids();
 

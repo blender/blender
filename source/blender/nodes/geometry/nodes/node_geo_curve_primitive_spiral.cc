@@ -51,7 +51,7 @@ static Curves *create_spiral_curve(const float rotations,
   Curves *curves_id = bke::curves_new_nomain_single(totalpoints + 1, CURVE_TYPE_POLY);
   bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
 
-  MutableSpan<float3> positions = curves.positions();
+  MutableSpan<float3> positions = curves.positions_for_write();
 
   for (const int i : IndexRange(totalpoints + 1)) {
     const float theta = i * delta_theta;

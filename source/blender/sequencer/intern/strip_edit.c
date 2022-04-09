@@ -31,6 +31,7 @@
 #include "SEQ_effects.h"
 #include "SEQ_iterator.h"
 #include "SEQ_relations.h"
+#include "SEQ_render.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
 #include "SEQ_transform.h"
@@ -91,7 +92,10 @@ int SEQ_edit_sequence_swap(Sequence *seq_a, Sequence *seq_b, const char **error_
   return 1;
 }
 
-static void seq_update_muting_recursive(ListBase *seqbasep, Sequence *metaseq, int mute)
+static void seq_update_muting_recursive(ListBase *channels,
+                                        ListBase *seqbasep,
+                                        Sequence *metaseq,
+                                        int mute)
 {
   Sequence *seq;
   int seqmute;
@@ -99,7 +103,7 @@ static void seq_update_muting_recursive(ListBase *seqbasep, Sequence *metaseq, i
   /* For sound we go over full meta tree to update muted state,
    * since sound is played outside of evaluating the imbufs. */
   for (seq = seqbasep->first; seq; seq = seq->next) {
-    seqmute = (mute || (seq->flag & SEQ_MUTE));
+    seqmute = (mute || SEQ_render_is_muted(channels, seq));
 
     if (seq->type == SEQ_TYPE_META) {
       /* if this is the current meta sequence, unmute because
@@ -108,7 +112,7 @@ static void seq_update_muting_recursive(ListBase *seqbasep, Sequence *metaseq, i
         seqmute = 0;
       }
 
-      seq_update_muting_recursive(&seq->seqbase, metaseq, seqmute);
+      seq_update_muting_recursive(&seq->channels, &seq->seqbase, metaseq, seqmute);
     }
     else if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SCENE)) {
       if (seq->scene_sound) {
@@ -125,10 +129,10 @@ void SEQ_edit_update_muting(Editing *ed)
     MetaStack *ms = ed->metastack.last;
 
     if (ms) {
-      seq_update_muting_recursive(&ed->seqbase, ms->parseq, 1);
+      seq_update_muting_recursive(&ed->channels, &ed->seqbase, ms->parseq, 1);
     }
     else {
-      seq_update_muting_recursive(&ed->seqbase, NULL, 0);
+      seq_update_muting_recursive(&ed->channels, &ed->seqbase, NULL, 0);
     }
   }
 }

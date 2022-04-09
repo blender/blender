@@ -113,7 +113,15 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
   bool local = false;
 
   static const char *_keywords[] = {"absolute", "packed", "local", NULL};
-  static _PyArg_Parser _parser = {"|$O&O&O&:blend_paths", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "|$" /* Optional keyword only arguments. */
+      "O&" /* `absolute` */
+      "O&" /* `packed` */
+      "O&" /* `local` */
+      ":blend_paths",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
@@ -171,7 +179,6 @@ static PyObject *bpy_flip_name(PyObject *UNUSED(self), PyObject *args, PyObject 
       "s#" /* `name` */
       "|$" /* Optional, keyword only arguments. */
       "O&" /* `strip_digits` */
-      /* Name to show in the case of an error. */
       ":flip_name",
       _keywords,
       0,
@@ -211,7 +218,14 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
   const char *path;
 
   static const char *_keywords[] = {"type", "path", NULL};
-  static _PyArg_Parser _parser = {"O&|$s:user_resource", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O&" /* `type` */
+      "|$" /* Optional keyword only arguments. */
+      "s"  /* `path` */
+      ":user_resource",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, PyC_ParseStringEnum, &type, &subdir)) {
     return NULL;
   }
@@ -247,7 +261,14 @@ static PyObject *bpy_system_resource(PyObject *UNUSED(self), PyObject *args, PyO
   const char *path;
 
   static const char *_keywords[] = {"type", "path", NULL};
-  static _PyArg_Parser _parser = {"O&|$s:system_resource", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O&" /* `type` */
+      "|$" /* Optional keyword only arguments. */
+      "s"  /* `path` */
+      ":system_resource",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, PyC_ParseStringEnum, &type, &subdir)) {
     return NULL;
   }
@@ -285,7 +306,15 @@ static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObj
   const char *path;
 
   static const char *_keywords[] = {"type", "major", "minor", NULL};
-  static _PyArg_Parser _parser = {"O&|$ii:resource_path", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O&" /* `type` */
+      "|$" /* Optional keyword only arguments. */
+      "i"  /* `major` */
+      "i"  /* `minor` */
+      ":resource_path",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kw, &_parser, PyC_ParseStringEnum, &type, &major, &minor)) {
     return NULL;

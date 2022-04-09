@@ -9,12 +9,16 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_alloca.h"
 #include "BLI_math.h"
 
+#include "BKE_attribute.h"
 #include "BKE_customdata.h"
+#include "BKE_object.h"
 
 #include "bmesh.h"
 
@@ -553,6 +557,29 @@ void bmo_reverse_uvs_exec(BMesh *bm, BMOperator *op)
 /**************************************************************************** *
  * Cycle colors for a face
  **************************************************************************** */
+static void bmo_get_loop_color_ref(BMesh *bm,
+                                   int index,
+                                   int *r_cd_color_offset,
+                                   int *r_cd_color_type)
+{
+  Mesh me_query;
+
+  BKE_id_attribute_copy_domains_temp(
+      ID_ME, &bm->vdata, NULL, &bm->ldata, NULL, NULL, &me_query.id);
+
+  CustomDataLayer *layer = BKE_id_attribute_from_index(
+      &me_query.id, index, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
+
+  if (!layer || BKE_id_attribute_domain(&me_query.id, layer) != ATTR_DOMAIN_CORNER) {
+    *r_cd_color_offset = -1;
+    return;
+  }
+
+  int layer_i = CustomData_get_layer_index(&bm->ldata, layer->type);
+
+  *r_cd_color_offset = bm->ldata.layers[layer_i].offset;
+  *r_cd_color_type = layer->type;
+}
 
 void bmo_rotate_colors_exec(BMesh *bm, BMOperator *op)
 {
@@ -561,57 +588,67 @@ void bmo_rotate_colors_exec(BMesh *bm, BMOperator *op)
   BMIter l_iter;   /* iteration loop */
 
   const bool use_ccw = BMO_slot_bool_get(op->slots_in, "use_ccw");
-  const int cd_loop_color_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPCOL);
 
-  if (cd_loop_color_offset != -1) {
-    BMO_ITER (fs, &fs_iter, op->slots_in, "faces", BM_FACE) {
-      if (use_ccw == false) { /* same loops direction */
-        BMLoop *lf;           /* current face loops */
-        MLoopCol *f_lcol;     /* first face loop color */
-        MLoopCol p_col;       /* previous color */
-        MLoopCol t_col;       /* tmp color */
+  const int color_index = BMO_slot_int_get(op->slots_in, "color_index");
 
-        int n = 0;
-        BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
-          /* current loop color is the previous loop color */
-          MLoopCol *lcol = BM_ELEM_CD_GET_VOID_P(lf, cd_loop_color_offset);
-          if (n == 0) {
-            f_lcol = lcol;
-            p_col = *lcol;
-          }
-          else {
-            t_col = *lcol;
-            *lcol = p_col;
-            p_col = t_col;
-          }
-          n++;
+  int cd_loop_color_offset;
+  int cd_loop_color_type;
+
+  bmo_get_loop_color_ref(bm, color_index, &cd_loop_color_offset, &cd_loop_color_type);
+
+  if (cd_loop_color_offset == -1) {
+    BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "color_index is invalid");
+    return;
+  }
+
+  const size_t size = cd_loop_color_type == CD_PROP_COLOR ? sizeof(MPropCol) : sizeof(MLoopCol);
+  void *p_col;                /* previous color */
+  void *t_col = alloca(size); /* tmp color */
+
+  BMO_ITER (fs, &fs_iter, op->slots_in, "faces", BM_FACE) {
+    if (use_ccw == false) { /* same loops direction */
+      BMLoop *lf;           /* current face loops */
+      void *f_lcol;         /* first face loop color */
+
+      int n = 0;
+      BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
+        /* current loop color is the previous loop color */
+        void *lcol = BM_ELEM_CD_GET_VOID_P(lf, cd_loop_color_offset);
+
+        if (n == 0) {
+          f_lcol = lcol;
+          p_col = lcol;
         }
-
-        *f_lcol = p_col;
-      }
-      else {              /* counter loop direction */
-        BMLoop *lf;       /* current face loops */
-        MLoopCol *p_lcol; /* previous loop color */
-        MLoopCol *lcol;
-        MLoopCol t_col; /* current color */
-
-        int n = 0;
-        BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
-          /* previous loop color is the current loop color */
-          lcol = BM_ELEM_CD_GET_VOID_P(lf, cd_loop_color_offset);
-          if (n == 0) {
-            p_lcol = lcol;
-            t_col = *lcol;
-          }
-          else {
-            *p_lcol = *lcol;
-            p_lcol = lcol;
-          }
-          n++;
+        else {
+          memcpy(t_col, lcol, size);
+          memcpy(lcol, p_col, size);
+          memcpy(p_col, t_col, size);
         }
-
-        *lcol = t_col;
+        n++;
       }
+
+      memcpy(f_lcol, p_col, size);
+    }
+    else {        /* counter loop direction */
+      BMLoop *lf; /* current face loops */
+      void *lcol, *p_lcol;
+
+      int n = 0;
+      BM_ITER_ELEM (lf, &l_iter, fs, BM_LOOPS_OF_FACE) {
+        /* previous loop color is the current loop color */
+        lcol = BM_ELEM_CD_GET_VOID_P(lf, cd_loop_color_offset);
+        if (n == 0) {
+          p_lcol = lcol;
+          memcpy(t_col, lcol, size);
+        }
+        else {
+          memcpy(p_lcol, lcol, size);
+          p_lcol = lcol;
+        }
+        n++;
+      }
+
+      memcpy(lcol, t_col, size);
     }
   }
 }
@@ -619,35 +656,53 @@ void bmo_rotate_colors_exec(BMesh *bm, BMOperator *op)
 /*************************************************************************** *
  * Reverse colors for a face
  *************************************************************************** */
-static void bm_face_reverse_colors(BMFace *f, const int cd_loop_color_offset)
+static void bm_face_reverse_colors(BMFace *f,
+                                   const int cd_loop_color_offset,
+                                   const int cd_loop_color_type)
 {
   BMIter iter;
   BMLoop *l;
   int i;
 
-  MLoopCol *cols = BLI_array_alloca(cols, f->len);
+  const size_t size = cd_loop_color_type == CD_PROP_COLOR ? sizeof(MPropCol) : sizeof(MLoopCol);
 
+  char *cols = alloca(size * f->len);
+
+  char *col = cols;
   BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, i) {
-    MLoopCol *lcol = BM_ELEM_CD_GET_VOID_P(l, cd_loop_color_offset);
-    cols[i] = *lcol;
+    void *lcol = BM_ELEM_CD_GET_VOID_P(l, cd_loop_color_offset);
+    memcpy((void *)col, lcol, size);
+    col += size;
   }
 
   /* now that we have the uvs in the array, reverse! */
   BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, i) {
     /* current loop uv is the previous loop color */
-    MLoopCol *lcol = BM_ELEM_CD_GET_VOID_P(l, cd_loop_color_offset);
-    *lcol = cols[(f->len - i - 1)];
+    void *lcol = BM_ELEM_CD_GET_VOID_P(l, cd_loop_color_offset);
+
+    col = cols + (f->len - i - 1) * size;
+    memcpy(lcol, (void *)col, size);
   }
 }
+
 void bmo_reverse_colors_exec(BMesh *bm, BMOperator *op)
 {
   BMOIter iter;
   BMFace *f;
-  const int cd_loop_color_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPCOL);
 
-  if (cd_loop_color_offset != -1) {
-    BMO_ITER (f, &iter, op->slots_in, "faces", BM_FACE) {
-      bm_face_reverse_colors(f, cd_loop_color_offset);
-    }
+  const int color_index = BMO_slot_int_get(op->slots_in, "color_index");
+
+  int cd_loop_color_offset;
+  int cd_loop_color_type;
+
+  bmo_get_loop_color_ref(bm, color_index, &cd_loop_color_offset, &cd_loop_color_type);
+
+  if (cd_loop_color_offset == -1) {
+    BMO_error_raise(bm, op, BMO_ERROR_CANCEL, "color_index is invalid");
+    return;
+  }
+
+  BMO_ITER (f, &iter, op->slots_in, "faces", BM_FACE) {
+    bm_face_reverse_colors(f, cd_loop_color_offset, cd_loop_color_type);
   }
 }

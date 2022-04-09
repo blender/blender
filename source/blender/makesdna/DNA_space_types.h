@@ -395,9 +395,9 @@ typedef enum eSpaceOutliner_Mode {
 
 /** #SpaceOutliner.outlinevis */
 typedef enum eSpaceOutliner_LibOverrideViewMode {
-  /* View all overrides with RNA buttons to edit the overridden values. */
+  /** View all overrides with RNA buttons to edit the overridden values. */
   SO_LIB_OVERRIDE_VIEW_PROPERTIES = 0,
-  /* View entire override hierarchies (relationships between overriden data-blocks). */
+  /** View entire override hierarchies (relationships between overridden data-blocks). */
   SO_LIB_OVERRIDE_VIEW_HIERARCHIES = 1,
 } eSpaceOutliner_LibOverrideViewMode;
 
@@ -518,7 +518,7 @@ typedef enum eGraphEdit_Mode {
 typedef enum eGraphEdit_Runtime_Flag {
   /** Temporary flag to force channel selections to be synced with main. */
   SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC = (1 << 0),
-  /** Temporary flag to force fcurves to recalculate colors. */
+  /** Temporary flag to force F-curves to recalculate colors. */
   SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR = (1 << 1),
 
   /**
@@ -618,6 +618,8 @@ typedef struct SpaceSeqRuntime {
   struct rctf last_thumbnail_area;
   /** Stores lists of most recently displayed thumbnails. */
   struct GHash *last_displayed_thumbnails;
+  int rename_channel_index;
+  char _pad0[4];
 } SpaceSeqRuntime;
 
 /** Sequencer. */

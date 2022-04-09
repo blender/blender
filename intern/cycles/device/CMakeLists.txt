@@ -8,7 +8,6 @@ set(INC
 
 set(INC_SYS
   ${GLEW_INCLUDE_DIR}
-  ../../../extern/clew/include
 )
 
 if(WITH_CYCLES_DEVICE_OPTIX OR WITH_CYCLES_DEVICE_CUDA)

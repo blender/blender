@@ -2197,9 +2197,8 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
     def draw(self, context):
         self._draw_items(
             context, (
-                ({"property": "use_sculpt_vertex_colors"}, "T71947"),
                 ({"property": "use_sculpt_tools_tilt"}, "T82877"),
-                ({"property": "use_select_nearest_on_first_click"}, "T96752"),
+                ({"property": "use_sculpt_texture_paint"}, "T96225"),
                 ({"property": "use_extended_asset_browser"}, ("project/view/130/", "Project Page")),
                 ({"property": "use_override_templates"}, ("T73318", "Milestone 4")),
                 ({"property": "use_named_attribute_nodes"}, ("T91742")),
@@ -2217,6 +2216,17 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
                 ({"property": "use_new_point_cloud_type"}, "T75717"),
                 ({"property": "use_full_frame_compositor"}, "T88150"),
                 ({"property": "enable_eevee_next"}, "T93220"),
+            ),
+        )
+
+
+class USERPREF_PT_experimental_tweaks(ExperimentalPanel, Panel):
+    bl_label = "Tweaks"
+
+    def draw(self, context):
+        self._draw_items(
+            context, (
+                ({"property": "use_select_nearest_on_first_click"}, "T96752"),
             ),
         )
 
@@ -2339,6 +2349,7 @@ classes = (USERPREF_PT_theme_user_interface,
 
     USERPREF_PT_experimental_new_features,
     USERPREF_PT_experimental_prototypes,
+    USERPREF_PT_experimental_tweaks,
     USERPREF_PT_experimental_debugging,
 
     # Add dynamically generated editor theme panels last,

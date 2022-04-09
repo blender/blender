@@ -1412,6 +1412,7 @@ static char *rna_operator_description_cb(bContext *C, wmOperatorType *ot, Pointe
 static void rna_Operator_unregister(struct Main *bmain, StructRNA *type);
 
 /* bpy_operator_wrap.c */
+
 extern void BPY_RNA_operator_wrapper(wmOperatorType *ot, void *userdata);
 extern void BPY_RNA_operator_macro_wrapper(wmOperatorType *ot, void *userdata);
 

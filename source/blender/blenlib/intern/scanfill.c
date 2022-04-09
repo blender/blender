@@ -49,19 +49,19 @@ typedef struct ScanFillVertLink {
 #define SF_EPSILON 0.00003f
 #define SF_EPSILON_SQ (SF_EPSILON * SF_EPSILON)
 
-/* ScanFillVert.status */
+/** #ScanFillVert.status */
 #define SF_VERT_NEW 0       /* all new verts have this flag set */
 #define SF_VERT_AVAILABLE 1 /* available - in an edge */
 #define SF_VERT_ZERO_LEN 2
 
-/* ScanFillEdge.status */
+/** #ScanFillEdge.status */
 /* Optionally set ScanFillEdge f to this to mark original boundary edges.
  * Only needed if there are internal diagonal edges passed to BLI_scanfill_calc. */
 #define SF_EDGE_NEW 0 /* all new edges have this flag set */
 // #define SF_EDGE_BOUNDARY 1  /* UNUSED */
 #define SF_EDGE_INTERNAL 2 /* edge is created while scan-filling */
 
-/* PolyFill.status */
+/** #PolyFill.status */
 #define SF_POLY_NEW 0   /* all polys initialized to this */
 #define SF_POLY_VALID 1 /* has at least 3 verts */
 

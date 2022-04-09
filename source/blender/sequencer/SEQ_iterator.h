@@ -208,7 +208,8 @@ SeqCollection *SEQ_query_all_strips_recursive(ListBase *seqbase);
  * \param displayed_channel: viewed channel. when set to 0, no channel filter is applied
  * \return strip collection
  */
-SeqCollection *SEQ_query_rendered_strips(ListBase *seqbase,
+SeqCollection *SEQ_query_rendered_strips(ListBase *channels,
+                                         ListBase *seqbase,
                                          int timeline_frame,
                                          int displayed_channel);
 /**

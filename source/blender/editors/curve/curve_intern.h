@@ -16,6 +16,7 @@ struct ViewContext;
 struct wmOperatorType;
 
 /* editfont.c */
+
 enum {
   DEL_NEXT_CHAR,
   DEL_PREV_CHAR,
@@ -93,6 +94,7 @@ void FONT_OT_textbox_add(struct wmOperatorType *ot);
 void FONT_OT_textbox_remove(struct wmOperatorType *ot);
 
 /* editcurve.c */
+
 void CURVE_OT_hide(struct wmOperatorType *ot);
 void CURVE_OT_reveal(struct wmOperatorType *ot);
 
@@ -128,8 +130,20 @@ void CURVE_OT_cyclic_toggle(struct wmOperatorType *ot);
 void CURVE_OT_match_texture_space(struct wmOperatorType *ot);
 
 /* exported for editcurve_undo.c */
+
 struct GHash *ED_curve_keyindex_hash_duplicate(struct GHash *keyindex);
 void ED_curve_keyindex_update_nurb(struct EditNurb *editnurb, struct Nurb *nu, struct Nurb *newnu);
+
+/* exported for editcurve_pen.c */
+
+int ed_editcurve_addvert(Curve *cu, EditNurb *editnurb, View3D *v3d, const float location_init[3]);
+bool curve_toggle_cyclic(View3D *v3d, ListBase *editnurb, int direction);
+void ed_dissolve_bez_segment(BezTriple *bezt_prev,
+                             BezTriple *bezt_next,
+                             const Nurb *nu,
+                             const Curve *cu,
+                             const uint span_len,
+                             const uint span_step[2]);
 
 /* helper functions */
 void ed_editnurb_translate_flag(struct ListBase *editnurb,
@@ -151,6 +165,7 @@ bool ed_editnurb_spin(float viewmat[4][4],
                       const float cent[3]);
 
 /* editcurve_select.c */
+
 void CURVE_OT_de_select_first(struct wmOperatorType *ot);
 void CURVE_OT_de_select_last(struct wmOperatorType *ot);
 void CURVE_OT_select_all(struct wmOperatorType *ot);
@@ -167,6 +182,7 @@ void CURVE_OT_select_similar(struct wmOperatorType *ot);
 void CURVE_OT_shortest_path_pick(struct wmOperatorType *ot);
 
 /* editcurve_add.c */
+
 void CURVE_OT_primitive_bezier_curve_add(struct wmOperatorType *ot);
 void CURVE_OT_primitive_bezier_circle_add(struct wmOperatorType *ot);
 void CURVE_OT_primitive_nurbs_curve_add(struct wmOperatorType *ot);
@@ -189,8 +205,25 @@ bool ED_curve_pick_vert(struct ViewContext *vc,
                         struct BPoint **r_bp,
                         short *r_handle,
                         struct Base **r_base);
+/**
+ * \param sel_dist_mul: A multiplier on the default select distance.
+ */
+bool ED_curve_pick_vert_ex(struct ViewContext *vc,
+                           short sel,
+                           int dist_px,
+                           struct Nurb **r_nurb,
+                           struct BezTriple **r_bezt,
+                           struct BPoint **r_bp,
+                           short *r_handle,
+                           struct Base **r_base);
 void ED_curve_nurb_vert_selected_find(
     Curve *cu, View3D *v3d, Nurb **r_nu, BezTriple **r_bezt, BPoint **r_bp);
 
 /* editcurve_paint.c */
+
 void CURVE_OT_draw(struct wmOperatorType *ot);
+
+/* editcurve_pen.c */
+
+void CURVE_OT_pen(struct wmOperatorType *ot);
+struct wmKeyMap *curve_pen_modal_keymap(struct wmKeyConfig *keyconf);

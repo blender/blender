@@ -28,6 +28,7 @@ struct wmOperator;
 struct wmWindowManager;
 
 /* image_draw.c */
+
 float ED_space_image_zoom_level(const struct View2D *v2d, int grid_dimension);
 void ED_space_image_grid_steps(struct SpaceImage *sima,
                                float grid_steps[SI_GRID_STEPS_LEN],
@@ -162,6 +163,7 @@ int ED_image_save_all_modified_info(const struct Main *bmain, struct ReportList 
 bool ED_image_save_all_modified(const struct bContext *C, struct ReportList *reports);
 
 /* image_sequence.c */
+
 typedef struct ImageFrameRange {
   struct ImageFrameRange *next, *prev;
 

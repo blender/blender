@@ -878,8 +878,9 @@ class ClonePanel(BrushPanel):
             mat = ob.active_material
             if mat:
                 col.label(text="Source Clone Slot")
-                col.template_list("TEXTURE_UL_texpaintslots", "",
-                    mat, "texture_paint_images",
+                col.template_list(
+                    "TEXTURE_UL_texpaintslots", "",
+                    mat, "texture_paint_slots",
                     mat, "paint_clone_slot",
                     rows=2,)
 

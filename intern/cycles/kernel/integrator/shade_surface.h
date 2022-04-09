@@ -6,6 +6,8 @@
 #include "kernel/film/accumulate.h"
 #include "kernel/film/passes.h"
 
+#include "kernel/integrator/mnee.h"
+
 #include "kernel/integrator/path_state.h"
 #include "kernel/integrator/shader_eval.h"
 #include "kernel/integrator/subsurface.h"
@@ -85,13 +87,15 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
   }
 
   const float3 throughput = INTEGRATOR_STATE(state, path, throughput);
-  kernel_accum_emission(kg, state, throughput * L, render_buffer);
+  kernel_accum_emission(
+      kg, state, throughput * L, render_buffer, object_lightgroup(kg, sd->object));
 }
 #endif /* __EMISSION__ */
 
 #ifdef __EMISSION__
 /* Path tracing: sample point on light and evaluate light shader, then
  * queue shadow ray to be traced. */
+template<uint node_feature_mask>
 ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
                                                            IntegratorState state,
                                                            ccl_private ShaderData *sd,
@@ -124,34 +128,65 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
    * integrate_surface_bounce, evaluate the BSDF, and only then evaluate
    * the light shader. This could also move to its own kernel, for
    * non-constant light sources. */
-  ShaderDataTinyStorage emission_sd_storage;
+  ShaderDataCausticsStorage emission_sd_storage;
   ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
-  const float3 light_eval = light_sample_shader_eval(kg, state, emission_sd, &ls, sd->time);
-  if (is_zero(light_eval)) {
-    return;
-  }
 
-  /* Evaluate BSDF. */
+  Ray ray ccl_optional_struct_init;
+  BsdfEval bsdf_eval ccl_optional_struct_init;
   const bool is_transmission = shader_bsdf_is_transmission(sd, ls.D);
 
-  BsdfEval bsdf_eval ccl_optional_struct_init;
-  const float bsdf_pdf = shader_bsdf_eval(kg, sd, ls.D, is_transmission, &bsdf_eval, ls.shader);
-  bsdf_eval_mul3(&bsdf_eval, light_eval / ls.pdf);
+#  ifdef __MNEE__
+  bool skip_nee = false;
+  IF_KERNEL_NODES_FEATURE(RAYTRACE)
+  {
+    if (ls.lamp != LAMP_NONE) {
+      /* Is this a caustic light? */
+      const bool use_caustics = kernel_tex_fetch(__lights, ls.lamp).use_caustics;
+      if (use_caustics) {
+        /* Are we on a caustic caster? */
+        if (is_transmission && (sd->object_flag & SD_OBJECT_CAUSTICS_CASTER))
+          return;
 
-  if (ls.shader & SHADER_USE_MIS) {
-    const float mis_weight = light_sample_mis_weight_nee(kg, ls.pdf, bsdf_pdf);
-    bsdf_eval_mul(&bsdf_eval, mis_weight);
+        /* Are we on a caustic receiver? */
+        if (!is_transmission && (sd->object_flag & SD_OBJECT_CAUSTICS_RECEIVER))
+          skip_nee = kernel_path_mnee_sample(
+              kg, state, sd, emission_sd, rng_state, &ls, &bsdf_eval);
+      }
+    }
+  }
+  if (skip_nee) {
+    /* Create shadow ray after successful manifold walk:
+     * emission_sd contains the last interface intersection and
+     * the light sample ls has been updated */
+    light_sample_to_surface_shadow_ray(kg, emission_sd, &ls, &ray);
+  }
+  else
+#  endif /* __MNEE__ */
+  {
+    const float3 light_eval = light_sample_shader_eval(kg, state, emission_sd, &ls, sd->time);
+    if (is_zero(light_eval)) {
+      return;
+    }
+
+    /* Evaluate BSDF. */
+    const float bsdf_pdf = shader_bsdf_eval(kg, sd, ls.D, is_transmission, &bsdf_eval, ls.shader);
+    bsdf_eval_mul3(&bsdf_eval, light_eval / ls.pdf);
+
+    if (ls.shader & SHADER_USE_MIS) {
+      const float mis_weight = light_sample_mis_weight_nee(kg, ls.pdf, bsdf_pdf);
+      bsdf_eval_mul(&bsdf_eval, mis_weight);
+    }
+
+    /* Path termination. */
+    const float terminate = path_state_rng_light_termination(kg, rng_state);
+    if (light_sample_terminate(kg, &ls, &bsdf_eval, terminate)) {
+      return;
+    }
+
+    /* Create shadow ray. */
+    light_sample_to_surface_shadow_ray(kg, sd, &ls, &ray);
   }
 
-  /* Path termination. */
-  const float terminate = path_state_rng_light_termination(kg, rng_state);
-  if (light_sample_terminate(kg, &ls, &bsdf_eval, terminate)) {
-    return;
-  }
-
-  /* Create shadow ray. */
-  Ray ray ccl_optional_struct_init;
-  light_sample_to_surface_shadow_ray(kg, sd, &ls, &ray);
   const bool is_light = light_sample_is_light(&ls);
 
   /* Branch off shadow kernel. */
@@ -224,6 +259,12 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   if (kernel_data.kernel_features & KERNEL_FEATURE_SHADOW_PASS) {
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, unshadowed_throughput) = throughput;
   }
+
+  /* Write Lightgroup, +1 as lightgroup is int but we need to encode into a uint8_t. */
+  INTEGRATOR_STATE_WRITE(
+      shadow_state, shadow_path, lightgroup) = (ls.type != LIGHT_BACKGROUND) ?
+                                                   ls.group + 1 :
+                                                   kernel_data.background.lightgroup + 1;
 }
 #endif
 
@@ -305,8 +346,8 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
 }
 
 #ifdef __VOLUME__
-ccl_device_forceinline bool integrate_surface_volume_only_bounce(IntegratorState state,
-                                                                 ccl_private ShaderData *sd)
+ccl_device_forceinline int integrate_surface_volume_only_bounce(IntegratorState state,
+                                                                ccl_private ShaderData *sd)
 {
   if (!path_state_volume_next(state)) {
     return LABEL_NONE;
@@ -501,7 +542,7 @@ ccl_device bool integrate_surface(KernelGlobals kg,
 
     /* Direct light. */
     PROFILING_EVENT(PROFILING_SHADE_SURFACE_DIRECT_LIGHT);
-    integrate_surface_direct_light(kg, state, &sd, &rng_state);
+    integrate_surface_direct_light<node_feature_mask>(kg, state, &sd, &rng_state);
 
 #if defined(__AO__)
     /* Ambient occlusion pass. */

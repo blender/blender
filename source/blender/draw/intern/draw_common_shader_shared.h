@@ -15,233 +15,233 @@ typedef struct GlobalsUboStorage GlobalsUboStorage;
  * have been merged into one engine, there is no reasons to keep these globals out of the overlay
  * engine. */
 
-#define UBO_FIRST_COLOR colorWire
-#define UBO_LAST_COLOR colorUVShadow
+#define UBO_FIRST_COLOR color_wire
+#define UBO_LAST_COLOR color_uv_shadow
 
 /* Used as ubo but colors can be directly referenced as well */
 /* NOTE: Also keep all color as vec4 and between #UBO_FIRST_COLOR and #UBO_LAST_COLOR. */
 struct GlobalsUboStorage {
   /* UBOs data needs to be 16 byte aligned (size of vec4) */
-  float4 colorWire;
-  float4 colorWireEdit;
-  float4 colorActive;
-  float4 colorSelect;
-  float4 colorLibrarySelect;
-  float4 colorLibrary;
-  float4 colorTransform;
-  float4 colorLight;
-  float4 colorSpeaker;
-  float4 colorCamera;
-  float4 colorCameraPath;
-  float4 colorEmpty;
-  float4 colorVertex;
-  float4 colorVertexSelect;
-  float4 colorVertexUnreferenced;
-  float4 colorVertexMissingData;
-  float4 colorEditMeshActive;
-  float4 colorEdgeSelect;
-  float4 colorEdgeSeam;
-  float4 colorEdgeSharp;
-  float4 colorEdgeCrease;
-  float4 colorEdgeBWeight;
-  float4 colorEdgeFaceSelect;
-  float4 colorEdgeFreestyle;
-  float4 colorFace;
-  float4 colorFaceSelect;
-  float4 colorFaceFreestyle;
-  float4 colorGpencilVertex;
-  float4 colorGpencilVertexSelect;
-  float4 colorNormal;
-  float4 colorVNormal;
-  float4 colorLNormal;
-  float4 colorFaceDot;
-  float4 colorSkinRoot;
+  float4 color_wire;
+  float4 color_wire_edit;
+  float4 color_active;
+  float4 color_select;
+  float4 color_library_select;
+  float4 color_library;
+  float4 color_transform;
+  float4 color_light;
+  float4 color_speaker;
+  float4 color_camera;
+  float4 color_camera_path;
+  float4 color_empty;
+  float4 color_vertex;
+  float4 color_vertex_select;
+  float4 color_vertex_unreferenced;
+  float4 color_vertex_missing_data;
+  float4 color_edit_mesh_active;
+  float4 color_edge_select;
+  float4 color_edge_seam;
+  float4 color_edge_sharp;
+  float4 color_edge_crease;
+  float4 color_edge_bweight;
+  float4 color_edge_face_select;
+  float4 color_edge_freestyle;
+  float4 color_face;
+  float4 color_face_select;
+  float4 color_face_freestyle;
+  float4 color_gpencil_vertex;
+  float4 color_gpencil_vertex_select;
+  float4 color_normal;
+  float4 color_vnormal;
+  float4 color_lnormal;
+  float4 color_facedot;
+  float4 color_skinroot;
 
-  float4 colorDeselect;
-  float4 colorOutline;
-  float4 colorLightNoAlpha;
+  float4 color_deselect;
+  float4 color_outline;
+  float4 color_light_no_alpha;
 
-  float4 colorBackground;
-  float4 colorBackgroundGradient;
-  float4 colorCheckerPrimary;
-  float4 colorCheckerSecondary;
-  float4 colorClippingBorder;
-  float4 colorEditMeshMiddle;
+  float4 color_background;
+  float4 color_background_gradient;
+  float4 color_checker_primary;
+  float4 color_checker_secondary;
+  float4 color_clipping_border;
+  float4 color_edit_mesh_middle;
 
-  float4 colorHandleFree;
-  float4 colorHandleAuto;
-  float4 colorHandleVect;
-  float4 colorHandleAlign;
-  float4 colorHandleAutoclamp;
-  float4 colorHandleSelFree;
-  float4 colorHandleSelAuto;
-  float4 colorHandleSelVect;
-  float4 colorHandleSelAlign;
-  float4 colorHandleSelAutoclamp;
-  float4 colorNurbUline;
-  float4 colorNurbVline;
-  float4 colorNurbSelUline;
-  float4 colorNurbSelVline;
-  float4 colorActiveSpline;
+  float4 color_handle_free;
+  float4 color_handle_auto;
+  float4 color_handle_vect;
+  float4 color_handle_align;
+  float4 color_handle_autoclamp;
+  float4 color_handle_sel_free;
+  float4 color_handle_sel_auto;
+  float4 color_handle_sel_vect;
+  float4 color_handle_sel_align;
+  float4 color_handle_sel_autoclamp;
+  float4 color_nurb_uline;
+  float4 color_nurb_vline;
+  float4 color_nurb_sel_uline;
+  float4 color_nurb_sel_vline;
+  float4 color_active_spline;
 
-  float4 colorBonePose;
-  float4 colorBonePoseActive;
-  float4 colorBonePoseActiveUnsel;
-  float4 colorBonePoseConstraint;
-  float4 colorBonePoseIK;
-  float4 colorBonePoseSplineIK;
-  float4 colorBonePoseTarget;
-  float4 colorBoneSolid;
-  float4 colorBoneLocked;
-  float4 colorBoneActive;
-  float4 colorBoneActiveUnsel;
-  float4 colorBoneSelect;
-  float4 colorBoneIKLine;
-  float4 colorBoneIKLineNoTarget;
-  float4 colorBoneIKLineSpline;
+  float4 color_bone_pose;
+  float4 color_bone_pose_active;
+  float4 color_bone_pose_active_unsel;
+  float4 color_bone_pose_constraint;
+  float4 color_bone_pose_ik;
+  float4 color_bone_pose_spline_ik;
+  float4 color_bone_pose_target;
+  float4 color_bone_solid;
+  float4 color_bone_locked;
+  float4 color_bone_active;
+  float4 color_bone_active_unsel;
+  float4 color_bone_select;
+  float4 color_bone_ik_line;
+  float4 color_bone_ik_line_no_target;
+  float4 color_bone_ik_line_spline;
 
-  float4 colorText;
-  float4 colorTextHi;
+  float4 color_text;
+  float4 color_text_hi;
 
-  float4 colorBundleSolid;
+  float4 color_bundle_solid;
 
-  float4 colorMballRadius;
-  float4 colorMballRadiusSelect;
-  float4 colorMballStiffness;
-  float4 colorMballStiffnessSelect;
+  float4 color_mball_radius;
+  float4 color_mball_radius_select;
+  float4 color_mball_stiffness;
+  float4 color_mball_stiffness_select;
 
-  float4 colorCurrentFrame;
+  float4 color_current_frame;
 
-  float4 colorGrid;
-  float4 colorGridEmphasis;
-  float4 colorGridAxisX;
-  float4 colorGridAxisY;
-  float4 colorGridAxisZ;
+  float4 color_grid;
+  float4 color_grid_emphasis;
+  float4 color_grid_axis_x;
+  float4 color_grid_axis_y;
+  float4 color_grid_axis_z;
 
-  float4 colorFaceBack;
-  float4 colorFaceFront;
+  float4 color_face_back;
+  float4 color_face_front;
 
-  float4 colorUVShadow;
+  float4 color_uv_shadow;
 
   /* NOTE: Put all color before #UBO_LAST_COLOR. */
-  float4 screenVecs[2]; /* Padded as vec4. */
-  float4 sizeViewport;  /* Packed as vec4. */
+  float4 screen_vecs[2]; /* Padded as vec4. */
+  float4 size_viewport;  /* Packed as vec4. */
 
   /* Pack individual float at the end of the buffer to avoid alignment errors */
-  float sizePixel, pixelFac;
-  float sizeObjectCenter, sizeLightCenter, sizeLightCircle, sizeLightCircleShadow;
-  float sizeVertex, sizeEdge, sizeEdgeFix, sizeFaceDot;
-  float sizeChecker;
-  float sizeVertexGpencil;
+  float size_pixel, pixel_fac;
+  float size_object_center, size_light_center, size_light_circle, size_light_circle_shadow;
+  float size_vertex, size_edge, size_edge_fix, size_face_dot;
+  float size_checker;
+  float size_vertex_gpencil;
 };
 BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 
 #ifdef GPU_SHADER
 /* Keep compatibility_with old global scope syntax. */
 /* TODO(@fclem) Mass rename and remove the camel case. */
-#  define colorWire globalsBlock.colorWire
-#  define colorWireEdit globalsBlock.colorWireEdit
-#  define colorActive globalsBlock.colorActive
-#  define colorSelect globalsBlock.colorSelect
-#  define colorLibrarySelect globalsBlock.colorLibrarySelect
-#  define colorLibrary globalsBlock.colorLibrary
-#  define colorTransform globalsBlock.colorTransform
-#  define colorLight globalsBlock.colorLight
-#  define colorSpeaker globalsBlock.colorSpeaker
-#  define colorCamera globalsBlock.colorCamera
-#  define colorCameraPath globalsBlock.colorCameraPath
-#  define colorEmpty globalsBlock.colorEmpty
-#  define colorVertex globalsBlock.colorVertex
-#  define colorVertexSelect globalsBlock.colorVertexSelect
-#  define colorVertexUnreferenced globalsBlock.colorVertexUnreferenced
-#  define colorVertexMissingData globalsBlock.colorVertexMissingData
-#  define colorEditMeshActive globalsBlock.colorEditMeshActive
-#  define colorEdgeSelect globalsBlock.colorEdgeSelect
-#  define colorEdgeSeam globalsBlock.colorEdgeSeam
-#  define colorEdgeSharp globalsBlock.colorEdgeSharp
-#  define colorEdgeCrease globalsBlock.colorEdgeCrease
-#  define colorEdgeBWeight globalsBlock.colorEdgeBWeight
-#  define colorEdgeFaceSelect globalsBlock.colorEdgeFaceSelect
-#  define colorEdgeFreestyle globalsBlock.colorEdgeFreestyle
-#  define colorFace globalsBlock.colorFace
-#  define colorFaceSelect globalsBlock.colorFaceSelect
-#  define colorFaceFreestyle globalsBlock.colorFaceFreestyle
-#  define colorGpencilVertex globalsBlock.colorGpencilVertex
-#  define colorGpencilVertexSelect globalsBlock.colorGpencilVertexSelect
-#  define colorNormal globalsBlock.colorNormal
-#  define colorVNormal globalsBlock.colorVNormal
-#  define colorLNormal globalsBlock.colorLNormal
-#  define colorFaceDot globalsBlock.colorFaceDot
-#  define colorSkinRoot globalsBlock.colorSkinRoot
-#  define colorDeselect globalsBlock.colorDeselect
-#  define colorOutline globalsBlock.colorOutline
-#  define colorLightNoAlpha globalsBlock.colorLightNoAlpha
-#  define colorBackground globalsBlock.colorBackground
-#  define colorBackgroundGradient globalsBlock.colorBackgroundGradient
-#  define colorCheckerPrimary globalsBlock.colorCheckerPrimary
-#  define colorCheckerSecondary globalsBlock.colorCheckerSecondary
-#  define colorClippingBorder globalsBlock.colorClippingBorder
-#  define colorEditMeshMiddle globalsBlock.colorEditMeshMiddle
-#  define colorHandleFree globalsBlock.colorHandleFree
-#  define colorHandleAuto globalsBlock.colorHandleAuto
-#  define colorHandleVect globalsBlock.colorHandleVect
-#  define colorHandleAlign globalsBlock.colorHandleAlign
-#  define colorHandleAutoclamp globalsBlock.colorHandleAutoclamp
-#  define colorHandleSelFree globalsBlock.colorHandleSelFree
-#  define colorHandleSelAuto globalsBlock.colorHandleSelAuto
-#  define colorHandleSelVect globalsBlock.colorHandleSelVect
-#  define colorHandleSelAlign globalsBlock.colorHandleSelAlign
-#  define colorHandleSelAutoclamp globalsBlock.colorHandleSelAutoclamp
-#  define colorNurbUline globalsBlock.colorNurbUline
-#  define colorNurbVline globalsBlock.colorNurbVline
-#  define colorNurbSelUline globalsBlock.colorNurbSelUline
-#  define colorNurbSelVline globalsBlock.colorNurbSelVline
-#  define colorActiveSpline globalsBlock.colorActiveSpline
-#  define colorBonePose globalsBlock.colorBonePose
-#  define colorBonePoseActive globalsBlock.colorBonePoseActive
-#  define colorBonePoseActiveUnsel globalsBlock.colorBonePoseActiveUnsel
-#  define colorBonePoseConstraint globalsBlock.colorBonePoseConstraint
-#  define colorBonePoseIK globalsBlock.colorBonePoseIK
-#  define colorBonePoseSplineIK globalsBlock.colorBonePoseSplineIK
-#  define colorBonePoseTarget globalsBlock.colorBonePoseTarget
-#  define colorBoneSolid globalsBlock.colorBoneSolid
-#  define colorBoneLocked globalsBlock.colorBoneLocked
-#  define colorBoneActive globalsBlock.colorBoneActive
-#  define colorBoneActiveUnsel globalsBlock.colorBoneActiveUnsel
-#  define colorBoneSelect globalsBlock.colorBoneSelect
-#  define colorBoneIKLine globalsBlock.colorBoneIKLine
-#  define colorBoneIKLineNoTarget globalsBlock.colorBoneIKLineNoTarget
-#  define colorBoneIKLineSpline globalsBlock.colorBoneIKLineSpline
-#  define colorText globalsBlock.colorText
-#  define colorTextHi globalsBlock.colorTextHi
-#  define colorBundleSolid globalsBlock.colorBundleSolid
-#  define colorMballRadius globalsBlock.colorMballRadius
-#  define colorMballRadiusSelect globalsBlock.colorMballRadiusSelect
-#  define colorMballStiffness globalsBlock.colorMballStiffness
-#  define colorMballStiffnessSelect globalsBlock.colorMballStiffnessSelect
-#  define colorCurrentFrame globalsBlock.colorCurrentFrame
-#  define colorGrid globalsBlock.colorGrid
-#  define colorGridEmphasis globalsBlock.colorGridEmphasis
-#  define colorGridAxisX globalsBlock.colorGridAxisX
-#  define colorGridAxisY globalsBlock.colorGridAxisY
-#  define colorGridAxisZ globalsBlock.colorGridAxisZ
-#  define colorFaceBack globalsBlock.colorFaceBack
-#  define colorFaceFront globalsBlock.colorFaceFront
-#  define colorUVShadow globalsBlock.colorUVShadow
-#  define screenVecs globalsBlock.screenVecs
-#  define sizeViewport globalsBlock.sizeViewport.xy
-#  define sizePixel globalsBlock.sizePixel
-#  define pixelFac globalsBlock.pixelFac
-#  define sizeObjectCenter globalsBlock.sizeObjectCenter
-#  define sizeLightCenter globalsBlock.sizeLightCenter
-#  define sizeLightCircle globalsBlock.sizeLightCircle
-#  define sizeLightCircleShadow globalsBlock.sizeLightCircleShadow
-#  define sizeVertex globalsBlock.sizeVertex
-#  define sizeEdge globalsBlock.sizeEdge
-#  define sizeEdgeFix globalsBlock.sizeEdgeFix
-#  define sizeFaceDot globalsBlock.sizeFaceDot
-#  define sizeChecker globalsBlock.sizeChecker
-#  define sizeVertexGpencil globalsBlock.sizeVertexGpencil
+#  define colorWire globalsBlock.color_wire
+#  define colorWireEdit globalsBlock.color_wire_edit
+#  define colorActive globalsBlock.color_active
+#  define colorSelect globalsBlock.color_select
+#  define colorLibrarySelect globalsBlock.color_library_select
+#  define colorLibrary globalsBlock.color_library
+#  define colorTransform globalsBlock.color_transform
+#  define colorLight globalsBlock.color_light
+#  define colorSpeaker globalsBlock.color_speaker
+#  define colorCamera globalsBlock.color_camera
+#  define colorCameraPath globalsBlock.color_camera_path
+#  define colorEmpty globalsBlock.color_empty
+#  define colorVertex globalsBlock.color_vertex
+#  define colorVertexSelect globalsBlock.color_vertex_select
+#  define colorVertexUnreferenced globalsBlock.color_vertex_unreferenced
+#  define colorVertexMissingData globalsBlock.color_vertex_missing_data
+#  define colorEditMeshActive globalsBlock.color_edit_mesh_active
+#  define colorEdgeSelect globalsBlock.color_edge_select
+#  define colorEdgeSeam globalsBlock.color_edge_seam
+#  define colorEdgeSharp globalsBlock.color_edge_sharp
+#  define colorEdgeCrease globalsBlock.color_edge_crease
+#  define colorEdgeBWeight globalsBlock.color_edge_bweight
+#  define colorEdgeFaceSelect globalsBlock.color_edge_face_select
+#  define colorEdgeFreestyle globalsBlock.color_edge_freestyle
+#  define colorFace globalsBlock.color_face
+#  define colorFaceSelect globalsBlock.color_face_select
+#  define colorFaceFreestyle globalsBlock.color_face_freestyle
+#  define colorGpencilVertex globalsBlock.color_gpencil_vertex
+#  define colorGpencilVertexSelect globalsBlock.color_gpencil_vertex_select
+#  define colorNormal globalsBlock.color_normal
+#  define colorVNormal globalsBlock.color_vnormal
+#  define colorLNormal globalsBlock.color_lnormal
+#  define colorFaceDot globalsBlock.color_facedot
+#  define colorSkinRoot globalsBlock.color_skinroot
+#  define colorDeselect globalsBlock.color_deselect
+#  define colorOutline globalsBlock.color_outline
+#  define colorLightNoAlpha globalsBlock.color_light_no_alpha
+#  define colorBackground globalsBlock.color_background
+#  define colorBackgroundGradient globalsBlock.color_background_gradient
+#  define colorCheckerPrimary globalsBlock.color_checker_primary
+#  define colorCheckerSecondary globalsBlock.color_checker_secondary
+#  define colorClippingBorder globalsBlock.color_clipping_border
+#  define colorEditMeshMiddle globalsBlock.color_edit_mesh_middle
+#  define colorHandleFree globalsBlock.color_handle_free
+#  define colorHandleAuto globalsBlock.color_handle_auto
+#  define colorHandleVect globalsBlock.color_handle_vect
+#  define colorHandleAlign globalsBlock.color_handle_align
+#  define colorHandleAutoclamp globalsBlock.color_handle_autoclamp
+#  define colorHandleSelFree globalsBlock.color_handle_sel_free
+#  define colorHandleSelAuto globalsBlock.color_handle_sel_auto
+#  define colorHandleSelVect globalsBlock.color_handle_sel_vect
+#  define colorHandleSelAlign globalsBlock.color_handle_sel_align
+#  define colorHandleSelAutoclamp globalsBlock.color_handle_sel_autoclamp
+#  define colorNurbUline globalsBlock.color_nurb_uline
+#  define colorNurbVline globalsBlock.color_nurb_vline
+#  define colorNurbSelUline globalsBlock.color_nurb_sel_uline
+#  define colorNurbSelVline globalsBlock.color_nurb_sel_vline
+#  define colorActiveSpline globalsBlock.color_active_spline
+#  define colorBonePose globalsBlock.color_bone_pose
+#  define colorBonePoseActive globalsBlock.color_bone_pose_active
+#  define colorBonePoseActiveUnsel globalsBlock.color_bone_pose_active_unsel
+#  define colorBonePoseConstraint globalsBlock.color_bone_pose_constraint
+#  define colorBonePoseIK globalsBlock.color_bone_pose_ik
+#  define colorBonePoseSplineIK globalsBlock.color_bone_pose_spline_ik
+#  define colorBonePoseTarget globalsBlock.color_bone_pose_target
+#  define colorBoneSolid globalsBlock.color_bone_solid
+#  define colorBoneLocked globalsBlock.color_bone_locked
+#  define colorBoneActive globalsBlock.color_bone_active
+#  define colorBoneActiveUnsel globalsBlock.color_bone_active_unsel
+#  define colorBoneSelect globalsBlock.color_bone_select
+#  define colorBoneIKLine globalsBlock.color_bone_ik_line
+#  define colorBoneIKLineNoTarget globalsBlock.color_bone_ik_line_no_target
+#  define colorBoneIKLineSpline globalsBlock.color_bone_ik_line_spline
+#  define colorText globalsBlock.color_text
+#  define colorTextHi globalsBlock.color_text_hi
+#  define colorBundleSolid globalsBlock.color_bundle_solid
+#  define colorMballRadius globalsBlock.color_mball_radius
+#  define colorMballRadiusSelect globalsBlock.color_mball_radius_select
+#  define colorMballStiffness globalsBlock.color_mball_stiffness
+#  define colorMballStiffnessSelect globalsBlock.color_mball_stiffness_select
+#  define colorCurrentFrame globalsBlock.color_current_frame
+#  define colorGrid globalsBlock.color_grid
+#  define colorGridEmphasis globalsBlock.color_grid_emphasis
+#  define colorGridAxisX globalsBlock.color_grid_axis_x
+#  define colorGridAxisY globalsBlock.color_grid_axis_y
+#  define colorGridAxisZ globalsBlock.color_grid_axis_z
+#  define colorFaceBack globalsBlock.color_face_back
+#  define colorFaceFront globalsBlock.color_face_front
+#  define colorUVShadow globalsBlock.color_uv_shadow
+#  define screenVecs globalsBlock.screen_vecs
+#  define sizeViewport globalsBlock.size_viewport.xy
+#  define sizePixel globalsBlock.size_pixel
+#  define pixelFac globalsBlock.pixel_fac
+#  define sizeObjectCenter globalsBlock.size_object_center
+#  define sizeLightCenter globalsBlock.size_light_center
+#  define sizeLightCircle globalsBlock.size_light_circle
+#  define sizeLightCircleShadow globalsBlock.size_light_circle_shadow
+#  define sizeVertex globalsBlock.size_vertex
+#  define sizeEdge globalsBlock.size_edge
+#  define sizeEdgeFix globalsBlock.size_edge_fix
+#  define sizeFaceDot globalsBlock.size_face_dot
+#  define sizeChecker globalsBlock.size_checker
+#  define sizeVertexGpencil globalsBlock.size_vertex_gpencil
 #endif
 
 /* See: 'draw_cache_impl.h' for matching includes. */

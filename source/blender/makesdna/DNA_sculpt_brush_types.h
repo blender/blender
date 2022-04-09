@@ -27,6 +27,8 @@
 #include "DNA_color_types.h"
 #include "DNA_listBase.h"
 
+#include "BLI_assert.h"
+
 struct GHash;
 
 /* Input mapping struct.  An input mapping transform
@@ -160,11 +162,9 @@ typedef enum eBrushMappingType {
   BRUSH_MAPPING_MAX = 7  // see BrushChannel.mappings
 } eBrushMappingType;
 
-#ifndef __GNUC__
-static_assert(offsetof(BrushChannel, type) - offsetof(BrushChannel, mappings) ==
+BLI_STATIC_ASSERT(offsetof(BrushChannel, type) - offsetof(BrushChannel, mappings) ==
                   sizeof(BrushMapping) * BRUSH_MAPPING_MAX,
               "BrushChannel.mappings must == BRUSH_MAPPING_MAX");
-#endif
 
 // BrushChannel->flag
 typedef enum eBrushChannelFlag {

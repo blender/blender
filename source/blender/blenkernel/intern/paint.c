@@ -47,6 +47,7 @@
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
@@ -1762,33 +1763,26 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->multires.level = 0;
     ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
 
-    ss->totloops = me->totloop;
-    ss->totedges = me->totedge;
-
-    ss->vdata = &me->vdata;
-    ss->edata = &me->edata;
-    ss->ldata = &me->ldata;
-    ss->pdata = &me->pdata;
-
-    CustomDataLayer *cl;
+    CustomDataLayer *layer;
     AttributeDomain domain;
 
-    ss->vcol = NULL;
-    ss->mcol = NULL;
-
-    if (BKE_pbvh_get_color_layer(ss->pbvh, me, &cl, &domain)) {
-      if (cl->type == CD_PROP_COLOR) {
-        ss->vcol = cl->data;
+    if (BKE_pbvh_get_color_layer(me, &layer, &domain)) {
+      if (layer->type == CD_PROP_COLOR) {
+        ss->vcol = layer->data;
       }
       else {
-        ss->mcol = cl->data;
+        ss->mcol = layer->data;
       }
 
       ss->vcol_domain = domain;
-      ss->vcol_type = cl->type;
+      ss->vcol_type = layer->type;
     }
     else {
+      ss->vcol = NULL;
+      ss->mcol = NULL;
+
       ss->vcol_type = -1;
+      ss->vcol_domain = ATTR_DOMAIN_NUM;
     }
   }
 
@@ -2019,6 +2013,11 @@ static void sculpt_update_object(Depsgraph *depsgraph,
         BKE_pbvh_node_mark_update_tri_area(nodes[i]);
       }
     }
+    /* We could be more precise when we have access to the active tool. */
+    const bool use_paint_slots = (ob->mode & OB_MODE_SCULPT) != 0;
+    if (use_paint_slots) {
+      BKE_texpaint_slots_refresh_object(scene, ob);
+    }
   }
 }
 
@@ -2075,54 +2074,26 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
   bool has_color = false;
 
   for (int i = 0; i < ARRAY_SIZE(types); i++) {
-    bool ok = CustomData_has_layer(&orig_me->vdata, types[i]);
-    ok = ok || CustomData_has_layer(&orig_me->ldata, types[i]);
+    has_color = CustomData_has_layer(&orig_me->vdata, types[i]) ||
+                CustomData_has_layer(&orig_me->ldata, types[i]);
 
-    if (ok) {
-      has_color = true;
+    if (has_color) {
       break;
     }
   }
 
-  CustomDataLayer *cl;
   if (has_color) {
-    cl = BKE_id_attributes_active_color_get(&orig_me->id);
-
-    if (!cl || !ELEM(cl->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
-      cl = NULL;
-
-      /* find a color layer */
-      for (int step = 0; !cl && step < 2; step++) {
-        CustomData *cdata = step ? &orig_me->ldata : &orig_me->vdata;
-
-        for (int i = 0; i < cdata->totlayer; i++) {
-          if (ELEM(cdata->layers[i].type, CD_PROP_COLOR, CD_MLOOPCOL)) {
-            cl = cdata->layers + i;
-            break;
-          }
-        }
-      }
-    }
-    else {
-      cl = NULL; /* no need to update active layer */
-    }
-  }
-  else {
-    CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, orig_me->totvert);
-    cl = orig_me->vdata.layers + CustomData_get_layer_index(&orig_me->vdata, CD_PROP_COLOR);
-
-    BKE_id_attributes_render_color_set(&orig_me->id, cl);
-    BKE_id_attributes_active_color_set(&orig_me->id, cl);
-
-    BKE_mesh_update_customdata_pointers(orig_me, true);
-    DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
+    return;
   }
 
-  if (cl) {
-    BKE_id_attributes_active_color_set(&orig_me->id, cl);
-  }
+  CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, orig_me->totvert);
+  CustomDataLayer *layer = orig_me->vdata.layers +
+                           CustomData_get_layer_index(&orig_me->vdata, CD_PROP_COLOR);
 
-  BKE_sculptsession_sync_attributes(object, orig_me);
+  BKE_mesh_update_customdata_pointers(orig_me, true);
+
+  BKE_id_attributes_active_color_set(&orig_me->id, layer);
+  DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
 }
 
 void BKE_sculpt_update_object_for_edit(
@@ -2702,11 +2673,10 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
         BKE_sculpt_bvh_update_from_ccg(pbvh, subdiv_ccg);
       }
     }
-    else if (BKE_pbvh_type(pbvh) == PBVH_BMESH) {
-      // Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
 
-      BKE_sculptsession_sync_attributes(ob, BKE_object_get_original_mesh(ob));
-    }
+    BKE_sculptsession_sync_attributes(ob, BKE_object_get_original_mesh(ob));
+    BKE_pbvh_update_active_vcol(pbvh, BKE_object_get_original_mesh(ob));
+
     return pbvh;
   }
 
@@ -2783,6 +2753,8 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     }
 #endif
   }
+
+  BKE_pbvh_pmap_set(pbvh, ob->sculpt->pmap);
 
   ob->sculpt->pbvh = pbvh;
 
@@ -3067,7 +3039,7 @@ void BKE_sculptsession_bmesh_add_layers(Object *ob)
   CustomDataLayer *cl;
   Mesh *me = BKE_object_get_original_mesh(ob);
 
-  if (BKE_pbvh_get_color_layer(ss->pbvh, me, &cl, &domain)) {
+  if (BKE_pbvh_get_color_layer(me, &cl, &domain)) {
     ss->vcol_domain = (int)domain;
     ss->vcol_type = cl->type;
     ss->cd_vcol_offset = cl->offset;
@@ -3436,7 +3408,7 @@ void BKE_sculptsession_update_attr_refs(Object *ob)
     AttributeDomain domain;
     CustomDataLayer *layer = NULL;
 
-    BKE_pbvh_get_color_layer(ss->pbvh, me, &layer, &domain);
+    BKE_pbvh_get_color_layer(me, &layer, &domain);
 
     if (!layer) {
       ss->vcol_domain = ATTR_DOMAIN_NUM;

@@ -447,6 +447,8 @@ typedef struct View2DEdgePanData {
   struct ARegion *region;
   /** View2d we're operating in. */
   struct View2D *v2d;
+  /** Limit maximum pannable area. */
+  struct rctf limit;
 
   /** Panning should only start once being in the inside rect once (e.g. adding nodes can happen
    * outside). */
@@ -491,6 +493,12 @@ void UI_view2d_edge_pan_init(struct bContext *C,
                              float max_speed,
                              float delay,
                              float zoom_influence);
+
+/**
+ * Set area which can be panned
+ */
+void UI_view2d_edge_pan_set_limits(
+    struct View2DEdgePanData *vpd, float xmin, float xmax, float ymin, float ymax);
 
 void UI_view2d_edge_pan_reset(struct View2DEdgePanData *vpd);
 

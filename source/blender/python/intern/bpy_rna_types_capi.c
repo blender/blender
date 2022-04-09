@@ -24,6 +24,7 @@
 #include "bpy_rna_callback.h"
 #include "bpy_rna_data.h"
 #include "bpy_rna_id_collection.h"
+#include "bpy_rna_text.h"
 #include "bpy_rna_types_capi.h"
 #include "bpy_rna_ui.h"
 
@@ -85,6 +86,16 @@ static struct PyMethodDef pyrna_operator_methods[] = {
 };
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Text Editor
+ * \{ */
+
+static struct PyMethodDef pyrna_text_methods[] = {
+    {NULL, NULL, 0, NULL}, /* #BPY_rna_region_as_string_method_def */
+    {NULL, NULL, 0, NULL}, /* #BPY_rna_region_from_string_method_def */
+    {NULL, NULL, 0, NULL},
+};
 
 /* -------------------------------------------------------------------- */
 /** \name Window Manager Clipboard Property
@@ -227,6 +238,13 @@ void BPY_rna_types_extend_capi(void)
 
   /* Space */
   pyrna_struct_type_extend_capi(&RNA_Space, pyrna_space_methods, NULL);
+
+  /* Text Editor */
+  ARRAY_SET_ITEMS(pyrna_text_methods,
+                  BPY_rna_region_as_string_method_def,
+                  BPY_rna_region_from_string_method_def);
+  BLI_assert(ARRAY_SIZE(pyrna_text_methods) == 3);
+  pyrna_struct_type_extend_capi(&RNA_Text, pyrna_text_methods, NULL);
 
   /* wmOperator */
   ARRAY_SET_ITEMS(pyrna_operator_methods, BPY_rna_operator_poll_message_set_method_def);

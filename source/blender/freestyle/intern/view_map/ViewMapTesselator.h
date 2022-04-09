@@ -42,11 +42,11 @@ class ViewMapTesselator {
   {
   }
 
-  /** Builds a set of lines rep contained under a a NodeShape, itself contained under a NodeGroup
+  /** Builds a set of lines rep contained under a NodeShape, itself contained under a NodeGroup
    * from a ViewMap */
   NodeGroup *Tesselate(ViewMap *iViewMap);
 
-  /** Builds a set of lines rep contained under a a NodeShape, itself contained under a NodeGroup
+  /** Builds a set of lines rep contained under a NodeShape, itself contained under a NodeGroup
    * from a set of view edges
    */
   template<class ViewEdgesIterator>

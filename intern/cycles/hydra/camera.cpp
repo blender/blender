@@ -13,6 +13,15 @@ HDCYCLES_NAMESPACE_OPEN_SCOPE
 
 extern Transform convert_transform(const GfMatrix4d &matrix);
 
+#if PXR_VERSION < 2102
+// clang-format off
+TF_DEFINE_PRIVATE_TOKENS(_tokens,
+    (projection)
+    (orthographic)
+);
+// clang-format on
+#endif
+
 HdCyclesCamera::HdCyclesCamera(const SdfPath &sprimId) : HdCamera(sprimId)
 {
 #if PXR_VERSION >= 2102
@@ -73,14 +82,15 @@ void HdCyclesCamera::Sync(HdSceneDelegate *sceneDelegate,
   }
 #endif
 
+#if PXR_VERSION < 2111
   if (*dirtyBits & DirtyBits::DirtyProjMatrix) {
     value = sceneDelegate->GetCameraParamValue(id, HdCameraTokens->projectionMatrix);
     if (!value.IsEmpty()) {
       _projectionMatrix = value.Get<GfMatrix4d>();
       const float focalLength = _data.GetFocalLength();  // Get default focal length
-#if PXR_VERSION >= 2102
+#  if PXR_VERSION >= 2102
       _data.SetFromViewAndProjectionMatrix(GetViewMatrix(), _projectionMatrix, focalLength);
-#else
+#  else
       if (_projectionMatrix[2][3] < -0.5) {
         _data.SetProjection(GfCamera::Perspective);
 
@@ -110,9 +120,10 @@ void HdCyclesCamera::Sync(HdSceneDelegate *sceneDelegate,
         _data.SetClippingRange(
             GfRange1f(nearPlusFarHalf + nearMinusFarHalf, nearPlusFarHalf - nearMinusFarHalf));
       }
-#endif
+#  endif
     }
   }
+#endif
 
   if (*dirtyBits & DirtyBits::DirtyWindowPolicy) {
     value = sceneDelegate->GetCameraParamValue(id, HdCameraTokens->windowPolicy);
@@ -137,11 +148,10 @@ void HdCyclesCamera::Sync(HdSceneDelegate *sceneDelegate,
                                                         GfCamera::Orthographic);
     }
 #else
-    value = sceneDelegate->GetCameraParamValue(id, UsdGeomTokens->projection);
+    value = sceneDelegate->GetCameraParamValue(id, _tokens->projection);
     if (!value.IsEmpty()) {
-      _data.SetProjection(value.Get<TfToken>() != UsdGeomTokens->orthographic ?
-                              GfCamera::Perspective :
-                              GfCamera::Orthographic);
+      _data.SetProjection(value.Get<TfToken>() != _tokens->orthographic ? GfCamera::Perspective :
+                                                                          GfCamera::Orthographic);
     }
 #endif
 

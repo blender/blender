@@ -4126,6 +4126,13 @@ static void rna_def_modifier_gpencilenvelope(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Strength", "Multiplier for the strength of the new strokes");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
+  prop = RNA_def_property(srna, "skip", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "skip");
+  RNA_def_property_range(prop, 0, INT_MAX);
+  RNA_def_property_ui_text(
+      prop, "Skip Segments", "The number of generated segments to skip to reduce complexity");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
   prop = RNA_def_property(srna, "invert_layers", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_ENVELOPE_INVERT_LAYER);
   RNA_def_property_ui_text(prop, "Inverse Layers", "Inverse filter");

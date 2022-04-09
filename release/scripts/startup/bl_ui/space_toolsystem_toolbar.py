@@ -1005,11 +1005,13 @@ class _defs_edit_mesh:
                 else:
                     extra = True
             if extra:
+                layout.use_property_decorate = False
                 layout.use_property_split = True
+
                 layout.prop(props, "visible_measurements")
                 layout.prop(props, "angle_snapping")
                 layout.label(text="Angle Snapping Increment")
-                layout.row().prop(props, "angle_snapping_increment", text="", expand=True)
+                layout.prop(props, "angle_snapping_increment", text="")
             if show_extra:
                 layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
         return dict(idname="builtin.knife",
@@ -1121,6 +1123,22 @@ class _defs_edit_curve:
             icon="ops.curve.extrude_cursor",
             widget=None,
             keymap=(),)
+
+    @ToolDef.from_fn
+    def pen():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("curve.pen")
+            layout.prop(props, "close_spline")
+            layout.prop(props, "extrude_handle")
+        return dict(
+            idname="builtin.pen",
+            label="Curve Pen",
+            cursor='CROSSHAIR',
+            icon="ops.curve.pen",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
 
     @ToolDef.from_fn
     def tilt():
@@ -1312,7 +1330,8 @@ class _defs_sculpt:
             attr="sculpt_tool",
             exclude_filter=exclude_filter,
             tooldef_keywords={"get_enabled" : get_enabled},
-            combine_map=combine_map)
+            combine_map=combine_map
+          )
 
     @ToolDef.from_fn
     def hide_border():
@@ -2705,8 +2724,11 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         'EDIT_CURVE': [*_tools_default,
             None,
             _defs_edit_curve.draw,
-            (_defs_edit_curve.extrude,
-                _defs_edit_curve.extrude_cursor,),
+            _defs_edit_curve.pen,
+            (
+                _defs_edit_curve.extrude,
+                _defs_edit_curve.extrude_cursor,
+            ),
             None,
             _defs_edit_curve.curve_radius,
             _defs_edit_curve.tilt,
@@ -2732,17 +2754,25 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_particle.generate_from_brushes,],
         'SCULPT': [_defs_sculpt.generate_from_brushes,
             None,
-            (_defs_sculpt.mask_border,
+            (
+                _defs_sculpt.mask_border,
                 _defs_sculpt.mask_lasso,
-                _defs_sculpt.mask_line,),
+                _defs_sculpt.mask_line,
+            ),
             _defs_sculpt.hide_border,
-            (_defs_sculpt.face_set_box,
-                _defs_sculpt.face_set_lasso,),
-            (_defs_sculpt.trim_box,
-                _defs_sculpt.trim_lasso,),
-            (_defs_sculpt.project_line,
-            _defs_sculpt.project_box,
-            _defs_sculpt.project_lasso,),
+            (
+                _defs_sculpt.face_set_box,
+                _defs_sculpt.face_set_lasso,
+             ),
+            (
+                _defs_sculpt.trim_box,
+                _defs_sculpt.trim_lasso,
+            ),
+            (
+                _defs_sculpt.project_line,
+                _defs_sculpt.project_box,
+                _defs_sculpt.project_lasso,
+            ),
             _defs_sculpt.mask_select,
             None,
             _defs_sculpt.mesh_filter,

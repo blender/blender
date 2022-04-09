@@ -12,11 +12,13 @@
 
 HDCYCLES_NAMESPACE_OPEN_SCOPE
 
+#if PXR_VERSION < 2108
 // clang-format off
 TF_DEFINE_PRIVATE_TOKENS(_tokens,
    (fieldName)
 );
 // clang-format on
+#endif
 
 #ifdef WITH_OPENVDB
 class HdCyclesVolumeLoader : public VDBImageLoader {

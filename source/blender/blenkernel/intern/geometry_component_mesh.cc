@@ -10,6 +10,7 @@
 #include "BKE_attribute_access.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_deform.h"
+#include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
@@ -1186,8 +1187,7 @@ class NormalAttributeProvider final : public BuiltinAttributeProvider {
 static ComponentAttributeProviders create_attribute_providers_for_mesh()
 {
   static auto update_custom_data_pointers = [](GeometryComponent &component) {
-    Mesh *mesh = get_mesh_from_component_for_write(component);
-    if (mesh != nullptr) {
+    if (Mesh *mesh = get_mesh_from_component_for_write(component)) {
       BKE_mesh_update_customdata_pointers(mesh, false);
     }
   };

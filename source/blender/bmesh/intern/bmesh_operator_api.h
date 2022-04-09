@@ -7,6 +7,8 @@
  */
 
 #include "BLI_ghash.h"
+#include "BLI_compiler_compat.h"
+
 #include "DNA_meshdata_types.h"
 
 #include <stdarg.h>
@@ -55,7 +57,7 @@ extern "C" {
 
 struct GHashIterator;
 
-static BMFlagLayer *BMO_elem_flag_from_header(BMesh *bm, BMElem *ele)
+BLI_INLINE BMFlagLayer *BMO_elem_flag_from_header(BMesh *bm, BMElem *ele)
 {
   int cd_tflags;
 
