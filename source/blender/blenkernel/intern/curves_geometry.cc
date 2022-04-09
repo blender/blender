@@ -629,6 +629,7 @@ Span<float3> CurvesGeometry::evaluated_positions() const
     });
   });
 
+  this->runtime->position_cache_dirty = false;
   return this->runtime->evaluated_position_cache;
 }
 

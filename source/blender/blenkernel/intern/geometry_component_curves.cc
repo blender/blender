@@ -490,7 +490,7 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                    curve_access,
                                                    make_array_read_attribute<int>,
                                                    make_array_write_attribute<int>,
-                                                   tag_component_positions_changed);
+                                                   tag_component_topology_changed);
 
   static BuiltinCustomDataLayerProvider cyclic("cyclic",
                                                ATTR_DOMAIN_CURVE,

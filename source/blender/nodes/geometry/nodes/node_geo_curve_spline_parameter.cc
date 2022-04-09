@@ -59,11 +59,10 @@ static Array<float> curve_length_point_domain(const bke::CurvesGeometry &curves)
 {
   curves.ensure_evaluated_lengths();
   const VArray<int8_t> types = curves.curve_types();
-  const VArray<int> resolution = curves.resolution();
+  const VArray<int> resolutions = curves.resolution();
   const VArray<bool> cyclic = curves.cyclic();
 
   Array<float> result(curves.points_num());
-  VArray<int> resolutions = curves.resolution();
 
   threading::parallel_for(curves.curves_range(), 128, [&](IndexRange range) {
     for (const int i_curve : range) {
