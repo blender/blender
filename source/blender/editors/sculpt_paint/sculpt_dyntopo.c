@@ -701,7 +701,10 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 #endif
 
   SCULPT_dyntopo_node_layers_add(ss, ob);
-  BKE_pbvh_update_sculpt_verts(ss->pbvh);
+
+  if (ss->pbvh) {
+    BKE_pbvh_update_sculpt_verts(ss->pbvh);
+  }
 
   if (SCULPT_has_persistent_base(ss)) {
     SCULPT_ensure_persistent_layers(ss, ob);

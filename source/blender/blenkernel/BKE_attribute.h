@@ -123,6 +123,7 @@ struct CustomDataLayer *BKE_id_attributes_render_color_get(const struct ID *id);
 void BKE_id_attributes_render_color_set(struct ID *id, struct CustomDataLayer *active_layer);
 
 bool BKE_id_attribute_calc_unique_name(struct ID *id, const char *name, char *outname);
+struct CustomDataLayer *BKE_id_attributes_color_find(const struct ID *id, const char *name);
 
 #ifdef __cplusplus
 }

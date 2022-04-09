@@ -5301,6 +5301,9 @@ bool BKE_pbvh_get_origvert(
       if (mv->stroke_id != pbvh->stroke_id) {
         mv->stroke_id = pbvh->stroke_id;
 
+        copy_v3_v3(mv->origco, v->co);
+        copy_v3_v3(mv->origno, v->no);
+
         if (pbvh->cd_vert_mask_offset != -1) {
           mv->origmask = (short)(BM_ELEM_CD_GET_FLOAT(v, pbvh->cd_vert_mask_offset) * 65535.0f);
         }
