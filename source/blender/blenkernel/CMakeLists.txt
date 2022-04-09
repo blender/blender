@@ -112,6 +112,7 @@ set(SRC
   intern/curve_deform.c
   intern/curve_eval.cc
   intern/curve_nurbs.cc
+  intern/curve_poly.cc
   intern/curve_to_mesh_convert.cc
   intern/curveprofile.cc
   intern/curves.cc

@@ -381,6 +381,7 @@ std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves)
       curves.geometry);
 
   VArray<int> resolution = geometry.resolution();
+  VArray<int8_t> normal_mode = geometry.normal_mode();
 
   VArray_Span<float> nurbs_weights{
       src_component.attribute_get_for_read<float>("nurbs_weight", ATTR_DOMAIN_POINT, 0.0f)};
@@ -436,6 +437,7 @@ std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves)
     spline->positions().fill(float3(0));
     spline->tilts().fill(0.0f);
     spline->radii().fill(1.0f);
+    spline->normal_mode = static_cast<NormalMode>(normal_mode[curve_index]);
     curve_eval->add_spline(std::move(spline));
   }
 
@@ -448,6 +450,7 @@ std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves)
                                      dst_component,
                                      {"curve_type",
                                       "resolution",
+                                      "normal_mode",
                                       "nurbs_weight",
                                       "nurbs_order",
                                       "knots_mode",
@@ -468,6 +471,8 @@ Curves *curve_eval_to_curves(const CurveEval &curve_eval)
   geometry.offsets_for_write().copy_from(curve_eval.control_point_offsets());
   MutableSpan<int8_t> curve_types = geometry.curve_types_for_write();
 
+  OutputAttribute_Typed<int8_t> normal_mode =
+      dst_component.attribute_try_get_for_output_only<int8_t>("normal_mode", ATTR_DOMAIN_CURVE);
   OutputAttribute_Typed<float> nurbs_weight;
   OutputAttribute_Typed<int> nurbs_order;
   OutputAttribute_Typed<int8_t> nurbs_knots_mode;
@@ -491,7 +496,7 @@ Curves *curve_eval_to_curves(const CurveEval &curve_eval)
   for (const int curve_index : curve_eval.splines().index_range()) {
     const Spline &spline = *curve_eval.splines()[curve_index];
     curve_types[curve_index] = curve_eval.splines()[curve_index]->type();
-
+    normal_mode.as_span()[curve_index] = curve_eval.splines()[curve_index]->normal_mode;
     const IndexRange point_range = geometry.points_for_curve(curve_index);
 
     switch (spline.type()) {
@@ -517,6 +522,7 @@ Curves *curve_eval_to_curves(const CurveEval &curve_eval)
     }
   }
 
+  normal_mode.save();
   nurbs_weight.save();
   nurbs_order.save();
   nurbs_knots_mode.save();

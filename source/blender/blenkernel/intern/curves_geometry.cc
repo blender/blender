@@ -25,6 +25,7 @@ static const std::string ATTR_RADIUS = "radius";
 static const std::string ATTR_CURVE_TYPE = "curve_type";
 static const std::string ATTR_CYCLIC = "cyclic";
 static const std::string ATTR_RESOLUTION = "resolution";
+static const std::string ATTR_NORMAL_MODE = "normal_mode";
 static const std::string ATTR_HANDLE_TYPE_LEFT = "handle_type_left";
 static const std::string ATTR_HANDLE_TYPE_RIGHT = "handle_type_right";
 static const std::string ATTR_HANDLE_POSITION_LEFT = "handle_left";
@@ -318,6 +319,15 @@ VArray<int> CurvesGeometry::resolution() const
 MutableSpan<int> CurvesGeometry::resolution_for_write()
 {
   return get_mutable_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_RESOLUTION, 12);
+}
+
+VArray<int8_t> CurvesGeometry::normal_mode() const
+{
+  return get_varray_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NORMAL_MODE, 0);
+}
+MutableSpan<int8_t> CurvesGeometry::normal_mode_for_write()
+{
+  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NORMAL_MODE);
 }
 
 VArray<int8_t> CurvesGeometry::handle_types_left() const
@@ -636,6 +646,113 @@ Span<float3> CurvesGeometry::evaluated_positions() const
 
   this->runtime->position_cache_dirty = false;
   return this->runtime->evaluated_position_cache;
+}
+
+Span<float3> CurvesGeometry::evaluated_tangents() const
+{
+  if (!this->runtime->tangent_cache_dirty) {
+    return this->runtime->evaluated_tangent_cache;
+  }
+
+  /* A double checked lock. */
+  std::scoped_lock lock{this->runtime->tangent_cache_mutex};
+  if (!this->runtime->tangent_cache_dirty) {
+    return this->runtime->evaluated_tangent_cache;
+  }
+
+  threading::isolate_task([&]() {
+    const Span<float3> evaluated_positions = this->evaluated_positions();
+    const VArray<bool> cyclic = this->cyclic();
+
+    this->runtime->evaluated_tangent_cache.resize(this->evaluated_points_num());
+    MutableSpan<float3> tangents = this->runtime->evaluated_tangent_cache;
+
+    threading::parallel_for(this->curves_range(), 128, [&](IndexRange curves_range) {
+      for (const int curve_index : curves_range) {
+        const IndexRange evaluated_points = this->evaluated_points_for_curve(curve_index);
+        if (UNLIKELY(evaluated_points.is_empty())) {
+          continue;
+        }
+        curves::poly::calculate_tangents(evaluated_positions.slice(evaluated_points),
+                                         cyclic[curve_index],
+                                         tangents.slice(evaluated_points));
+      }
+    });
+
+    /* Correct the first and last tangents of Bezier curves so that they align with the inner
+     * handles. This is a separate loop to avoid the cost when Bezier type curves are not used. */
+    Vector<int64_t> bezier_indices;
+    const IndexMask bezier_mask = this->indices_for_curve_type(CURVE_TYPE_BEZIER, bezier_indices);
+    if (!bezier_mask.is_empty()) {
+      const Span<float3> positions = this->positions();
+      const Span<float3> handles_left = this->handle_positions_left();
+      const Span<float3> handles_right = this->handle_positions_right();
+
+      threading::parallel_for(bezier_mask.index_range(), 1024, [&](IndexRange range) {
+        for (const int curve_index : bezier_mask.slice(range)) {
+          const IndexRange points = this->points_for_curve(curve_index);
+          const IndexRange evaluated_points = this->evaluated_points_for_curve(curve_index);
+
+          if (handles_right[points.first()] != positions[points.first()]) {
+            tangents[evaluated_points.first()] = math::normalize(handles_right[points.first()] -
+                                                                 positions[points.first()]);
+          }
+          if (handles_left[points.last()] != positions[points.last()]) {
+            tangents[evaluated_points.last()] = math::normalize(positions[points.last()] -
+                                                                handles_left[points.last()]);
+          }
+        }
+      });
+    }
+  });
+
+  this->runtime->tangent_cache_dirty = false;
+  return this->runtime->evaluated_tangent_cache;
+}
+
+Span<float3> CurvesGeometry::evaluated_normals() const
+{
+  if (!this->runtime->normal_cache_dirty) {
+    return this->runtime->evaluated_normal_cache;
+  }
+
+  /* A double checked lock. */
+  std::scoped_lock lock{this->runtime->normal_cache_mutex};
+  if (!this->runtime->normal_cache_dirty) {
+    return this->runtime->evaluated_normal_cache;
+  }
+
+  threading::isolate_task([&]() {
+    const Span<float3> evaluated_tangents = this->evaluated_tangents();
+    const VArray<bool> cyclic = this->cyclic();
+    const VArray<int8_t> normal_mode = this->normal_mode();
+
+    this->runtime->evaluated_normal_cache.resize(this->evaluated_points_num());
+    MutableSpan<float3> evaluated_normals = this->runtime->evaluated_normal_cache;
+
+    threading::parallel_for(this->curves_range(), 128, [&](IndexRange curves_range) {
+      for (const int curve_index : curves_range) {
+        const IndexRange evaluated_points = this->evaluated_points_for_curve(curve_index);
+        if (UNLIKELY(evaluated_points.is_empty())) {
+          continue;
+        }
+        switch (normal_mode[curve_index]) {
+          case NORMAL_MODE_Z_UP:
+            curves::poly::calculate_normals_z_up(evaluated_tangents.slice(evaluated_points),
+                                                 evaluated_normals.slice(evaluated_points));
+            break;
+          case NORMAL_MODE_MINIMUM_TWIST:
+            curves::poly::calculate_normals_minimum(evaluated_tangents.slice(evaluated_points),
+                                                    cyclic[curve_index],
+                                                    evaluated_normals.slice(evaluated_points));
+            break;
+        }
+      }
+    });
+  });
+
+  this->runtime->normal_cache_dirty = false;
+  return this->runtime->evaluated_normal_cache;
 }
 
 void CurvesGeometry::interpolate_to_evaluated(const int curve_index,
