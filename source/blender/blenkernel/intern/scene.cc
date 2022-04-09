@@ -322,6 +322,7 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
                                       SEQ_DUPE_ALL,
                                       flag_subdata);
     BLI_duplicatelist(&scene_dst->ed->channels, &scene_src->ed->channels);
+    scene_dst->ed->displayed_channels = &scene_dst->ed->channels;
   }
 
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
