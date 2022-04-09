@@ -493,32 +493,6 @@ void SCULPT_pbvh_clear(Object *ob, bool cache_pbvh)
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 }
 
-void SCULPT_dyntopo_save_origverts(SculptSession *ss)
-{
-  BMIter iter;
-  BMVert *v;
-
-  if (ss->vcol_type == -1) {
-    return;
-  }
-
-  BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
-
-    copy_v3_v3(mv->origco, v->co);
-    copy_v3_v3(mv->origno, v->no);
-
-    if (ss->cd_vert_mask_offset >= 0) {
-      mv->origmask = BM_ELEM_CD_GET_FLOAT(v, ss->cd_vert_mask_offset);
-    }
-
-    if (ss->vcol_type != -1) {
-      BKE_pbvh_bmesh_get_vcol(
-          v, mv->origcolor, ss->vcol_type, ss->vcol_domain, ss->cd_vcol_offset);
-    }
-  }
-}
-
 extern char dyntopop_node_idx_layer_id[];
 
 void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss, Object *ob)
@@ -727,7 +701,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 #endif
 
   SCULPT_dyntopo_node_layers_add(ss, ob);
-  SCULPT_dyntopo_save_origverts(ss);
+  BKE_pbvh_update_sculpt_verts(ss->pbvh);
 
   if (SCULPT_has_persistent_base(ss)) {
     SCULPT_ensure_persistent_layers(ss, ob);
@@ -742,16 +716,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
     e->head.hflag |= BM_ELEM_DRAW;
   }
 
-  BKE_pbvh_update_sculpt_verts(ss->bm,
-                               ss->cd_sculpt_vert,
-                               ss->cd_faceset_offset,
-                               ss->cd_vert_node_offset,
-                               ss->cd_face_node_offset,
-                               ss->boundary_symmetry,
-                               ss->vcol_type,
-                               ss->vcol_domain,
-                               ss->cd_vcol_offset,
-                               !ss->ignore_uvs);
+  BKE_pbvh_update_sculpt_verts(ss->pbvh);
 
   /* Make sure the data for existing faces are initialized. */
   if (me->totpoly != ss->bm->totface) {

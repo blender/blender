@@ -1151,7 +1151,8 @@ def km_uv_editor(params):
          {"type": params.select_mouse, "value": params.select_mouse_value_fallback, "ctrl": True, "shift": True},
          {"properties": [("use_fill", True)]}),
         ("uv.select_split", {"type": 'Y', "value": 'PRESS'}, None),
-        op_tool_optional(("uv.select_box", {"type": 'B', "value": 'PRESS'},
+        op_tool_optional(
+            ("uv.select_box", {"type": 'B', "value": 'PRESS'},
              {"properties": [("pinned", False)]}),
             (op_tool, "builtin.select_box"), params),
         ("uv.select_box", {"type": 'B', "value": 'PRESS', "ctrl": True},
@@ -5850,7 +5851,8 @@ def km_image_editor_tool_uv_select(params, *, fallback):
 
 
 def km_image_editor_tool_uv_select_box(params, *, fallback):
-    return (_fallback_id("Image Editor Tool: Uv, Select Box", fallback),
+    return (
+        _fallback_id("Image Editor Tool: Uv, Select Box", fallback),
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(

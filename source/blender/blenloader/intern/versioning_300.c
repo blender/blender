@@ -2720,58 +2720,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 301, 3)) {
-    LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
-      AttributeRef ref;
-
-      for (int step = 0; step < 2; step++) {
-        bool bad = false;
-        CustomDataLayer *actlayer = NULL;
-        int actidx = step ? me->render_color_index : me->active_color_index;
-
-        if (BKE_id_attribute_ref_from_index(
-                &me->id, actidx, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL, &ref)) {
-          if (!ELEM(ref.type, CD_PROP_COLOR, CD_MLOOPCOL) ||
-              !ELEM(ref.domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
-            bad = true;
-          }
-          else {
-            actlayer = BKE_id_attribute_find(&me->id, ref.name, ref.type, ref.domain);
-          }
-        }
-
-        if (bad) {
-          int vact1, vact2;
-
-          if (step) {
-            vact1 = CustomData_get_render_layer_index(&me->vdata, CD_PROP_COLOR);
-            vact2 = CustomData_get_render_layer_index(&me->ldata, CD_MLOOPCOL);
-          }
-          else {
-            vact1 = CustomData_get_active_layer_index(&me->vdata, CD_PROP_COLOR);
-            vact2 = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPCOL);
-          }
-
-          if (vact1 != -1) {
-            actlayer = me->vdata.layers + vact1;
-          }
-          else if (vact2 != -1) {
-            actlayer = me->ldata.layers + vact2;
-          }
-        }
-
-        if (actlayer) {
-          if (step) {
-            BKE_id_attributes_render_color_set(&me->id, actlayer);
-          }
-          else {
-            BKE_id_attributes_active_color_set(&me->id, actlayer);
-          }
-        }
-      }
-    }
-  }
-
   if (!MAIN_VERSION_ATLEAST(bmain, 301, 4)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (!scene->toolsettings || !scene->toolsettings->sculpt ||

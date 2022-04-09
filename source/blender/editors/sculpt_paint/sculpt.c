@@ -2754,24 +2754,7 @@ void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
 
 bool SCULPT_vertex_check_origdata(SculptSession *ss, SculptVertRef vertex)
 {
-  // check if we need to update original data for current stroke
-  MSculptVert *mv = ss->bm ? BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, (BMVert *)vertex.i) :
-                             ss->mdyntopo_verts + vertex.i;
-
-  if (mv->stroke_id != ss->stroke_id) {
-    mv->stroke_id = ss->stroke_id;
-
-    copy_v3_v3(mv->origco, SCULPT_vertex_co_get(ss, vertex));
-    SCULPT_vertex_normal_get(ss, vertex, mv->origno);
-
-    SCULPT_vertex_color_get(ss, vertex, mv->origcolor);
-
-    mv->origmask = unit_float_to_ushort_clamp(SCULPT_vertex_mask_get(ss, vertex));
-
-    return false;
-  }
-
-  return true;
+  return BKE_pbvh_get_origvert(ss->pbvh, vertex, NULL, NULL, NULL);
 }
 
 /**
@@ -7806,10 +7789,10 @@ static void sculpt_cache_dyntopo_settings(BrushChannelSet *chset,
   r_settings->constant_detail = BRUSHSET_GET_FLOAT(chset, dyntopo_constant_detail, input_data);
 };
 
-static void sculpt_stroke_update_step(bContext *C,
-                                      wmOperator *UNUSED(op),
-                                      struct PaintStroke *stroke,
-                                      PointerRNA *itemptr)
+ATTR_NO_OPT static void sculpt_stroke_update_step(bContext *C,
+                                                  wmOperator *UNUSED(op),
+                                                  struct PaintStroke *stroke,
+                                                  PointerRNA *itemptr)
 
 {
 
@@ -7822,6 +7805,8 @@ static void sculpt_stroke_update_step(bContext *C,
   if (ss->cache->channels_final) {
     BKE_brush_channelset_free(ss->cache->channels_final);
   }
+
+  BKE_pbvh_update_active_vcol(ss->pbvh, BKE_object_get_original_mesh(ob));
 
   if (!brush->channels) {
     // should not happen!

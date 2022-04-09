@@ -334,22 +334,13 @@ struct BMLog *BKE_pbvh_get_bm_log(PBVH *pbvh);
 
 /* update MSculptVerts, doesn't take pbvh argument to allow usage if pbvh doesn't currently exist
  */
-void BKE_pbvh_update_sculpt_verts(struct BMesh *bm,
-                                  const int cd_sculpt_vert,
-                                  const int cd_faceset_offset,
-                                  const int cd_vert_node_offset,
-                                  const int cd_face_node_offset,
-                                  const int boundary_symmetry,
-                                  const int vcol_type,
-                                  const AttributeDomain vcol_domain,
-                                  const int cd_vcol_offset,
-                                  bool do_uvs);
+void BKE_pbvh_update_sculpt_verts(PBVH *pbvh);
 
 /** update original data, only data whose r_** parameters are passed in will be updated*/
-void BKE_pbvh_bmesh_update_origvert(
-    PBVH *pbvh, struct BMVert *v, float **r_co, float **r_no, float **r_color);
+bool BKE_pbvh_get_origvert(
+    PBVH *pbvh, SculptVertRef vertex, float **r_co, float **r_no, float **r_color);
 
-/**
+    /**
 checks if original data needs to be updated for v, and if so updates it.  Stroke_id
 is provided by the sculpt code and is used to detect updates.  The reason we do it
 inside the verts and not in the nodes is to allow splitting of the pbvh during the stroke.
@@ -1148,8 +1139,6 @@ void BKE_dyntopo_remesh(DynTopoState *ds,
                         DynRemeshParams *params,
                         int steps,
                         PBVHTopologyUpdateMode mode);
-void BKE_pbvh_bmesh_get_vcol(
-    struct BMVert *v, float color[4], int vcol_type, AttributeDomain vcol_domain, int vcol_offset);
 /*
 
 use pmap to build an array of edge indices surrounding vertex

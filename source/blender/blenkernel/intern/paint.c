@@ -1758,6 +1758,11 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->medge = me->medge;
     ss->mpoly = me->mpoly;
     ss->mloop = me->mloop;
+    ss->vdata = &me->vdata;
+    ss->pdata = &me->pdata;
+    ss->edata = &me->edata;
+    ss->ldata = &me->ldata;
+
     ss->multires.active = false;
     ss->multires.modifier = NULL;
     ss->multires.level = 0;
@@ -1799,6 +1804,8 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   ss->fast_draw = (scene->toolsettings->sculpt->flags & SCULPT_FAST_DRAW) != 0;
 
   PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
+
+  BKE_pbvh_update_active_vcol(pbvh, me);
 
   if (BKE_pbvh_type(pbvh) == PBVH_FACES) {
     ss->vert_normals = BKE_pbvh_get_vert_normals(ss->pbvh);
@@ -3427,6 +3434,8 @@ void BKE_sculptsession_update_attr_refs(Object *ob)
         ss->vcol = layer->data;
       }
     }
+
+    BKE_pbvh_update_active_vcol(ss->pbvh, me);
   }
 
   if (ss->bm) {

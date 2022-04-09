@@ -152,7 +152,7 @@ static void pbvh_vertex_color_get_bmesh(const PBVH &pbvh, SculptVertRef vertex, 
       float temp[4];
 
       T *ptr = static_cast<T*>(BM_ELEM_CD_GET_VOID_P(l, pbvh.cd_vcol_offset));
-      to_float(ptr, temp);
+      to_float(*ptr, temp);
 
       add_v4_v4(r_color, temp);
       count++;
@@ -164,7 +164,7 @@ static void pbvh_vertex_color_get_bmesh(const PBVH &pbvh, SculptVertRef vertex, 
   }
   else {
     T *ptr = static_cast<T *>(BM_ELEM_CD_GET_VOID_P(v, pbvh.cd_vcol_offset));
-    to_float(ptr, r_color);
+    to_float(*ptr, r_color);
   }
 }
 
@@ -217,12 +217,12 @@ static void pbvh_vertex_color_set_bmesh(PBVH &pbvh, SculptVertRef vertex, const 
 
     BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
       T *ptr = static_cast<T *>(BM_ELEM_CD_GET_VOID_P(l, pbvh.cd_vcol_offset));
-      from_float(color, ptr);
+      from_float(color, *ptr);
     }
   }
   else {
     T *ptr = static_cast<T *>(BM_ELEM_CD_GET_VOID_P(v, pbvh.cd_vcol_offset));
-    from_float(color, ptr);
+    from_float(color, *ptr);
   }
 }
 
@@ -246,7 +246,7 @@ static void pbvh_vertex_color_set(PBVH &pbvh, SculptVertRef vertex, const float 
 extern "C" {
 void BKE_pbvh_vertex_color_get(const PBVH *pbvh, SculptVertRef vertex, float r_color[4])
 {
-  blender::bke::to_static_color_type(CustomDataType(pbvh->color_layer->type), [&](auto dummy) {
+  blender::bke::to_static_color_type(CustomDataType(pbvh->color_type), [&](auto dummy) {
     using T = decltype(dummy);
     blender::bke::pbvh_vertex_color_get<T>(*pbvh, vertex, r_color);
   });
@@ -254,7 +254,7 @@ void BKE_pbvh_vertex_color_get(const PBVH *pbvh, SculptVertRef vertex, float r_c
 
 void BKE_pbvh_vertex_color_set(PBVH *pbvh, SculptVertRef vertex, const float color[4])
 {
-  blender::bke::to_static_color_type(CustomDataType(pbvh->color_layer->type), [&](auto dummy) {
+  blender::bke::to_static_color_type(CustomDataType(pbvh->color_type), [&](auto dummy) {
     using T = decltype(dummy);
     blender::bke::pbvh_vertex_color_set<T>(*pbvh, vertex, color);
   });
@@ -276,7 +276,7 @@ void BKE_pbvh_swap_colors(PBVH *pbvh,
   });
 }
 
-void BKE_pbvh_store_colors(PBVH *pbvh,
+ATTR_NO_OPT void BKE_pbvh_store_colors(PBVH *pbvh,
                            const int *indices,
                            const int indices_num,
                            float (*r_colors)[4])

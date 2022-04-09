@@ -248,6 +248,7 @@ struct PBVH {
   bool invalid;
 
   CustomDataLayer *color_layer;
+  CustomDataType color_type;
   AttributeDomain color_domain;
 
   bool is_drawing;

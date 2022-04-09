@@ -100,7 +100,7 @@ static void do_color_smooth_task_cb_exec(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void do_paint_brush_task_cb_ex(void *__restrict userdata,
+ATTR_NO_OPT static void do_paint_brush_task_cb_ex(void *__restrict userdata,
                                       const int n,
                                       const TaskParallelTLS *__restrict tls)
 {

@@ -540,7 +540,7 @@ CustomDataLayer *BKE_id_attribute_subset_active_get(const ID *id,
       CustomDataLayer *layer = cdata->layers + j;
 
       if (!(CD_TYPE_AS_MASK(layer->type) & mask) ||
-          (CD_TYPE_AS_MASK(layer->type) & CD_FLAG_TEMPORARY)) {
+          (CD_TYPE_AS_MASK(layer->flag) & CD_FLAG_TEMPORARY)) {
         continue;
       }
 
@@ -613,6 +613,21 @@ void BKE_id_attributes_render_color_set(ID *id, CustomDataLayer *active_layer)
 {
   BKE_id_attribute_subset_active_set(
       id, active_layer, CD_FLAG_COLOR_RENDER, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
+}
+
+CustomDataLayer *BKE_id_attributes_color_find(const ID *id, const char *name)
+{
+  CustomDataLayer *layer = BKE_id_attribute_find(id, name, CD_PROP_COLOR, ATTR_DOMAIN_POINT);
+  if (layer == NULL) {
+    layer = BKE_id_attribute_find(id, name, CD_PROP_COLOR, ATTR_DOMAIN_CORNER);
+  }
+  if (layer == NULL) {
+    layer = BKE_id_attribute_find(id, name, CD_MLOOPCOL, ATTR_DOMAIN_POINT);
+  }
+  if (layer == NULL) {
+    layer = BKE_id_attribute_find(id, name, CD_MLOOPCOL, ATTR_DOMAIN_CORNER);
+  }
+  return layer;
 }
 
 void BKE_id_attribute_copy_domains_temp(short id_type,

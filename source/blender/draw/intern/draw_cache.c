@@ -482,8 +482,8 @@ static void sphere_lat_lon_vert(GPUVertBuf *vbo, int *v_ofs, float lat, float lo
 
 void DRW_make_cdlayer_attr_aliases(GPUVertFormat *format,
                                    char *base_name,
-                                   CustomData *data,
-                                   CustomDataLayer *cl,
+                                   const CustomData *data,
+                                   const CustomDataLayer *cl,
                                    bool is_active_render,
                                    bool is_active_layer)
 {

@@ -864,124 +864,13 @@ void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh)
   }
 }
 
-void BKE_pbvh_bmesh_get_vcol(
-    BMVert *v, float color[4], int vcol_type, AttributeDomain vcol_domain, int vcol_offset)
-{
-  if (vcol_domain == ATTR_DOMAIN_POINT) {
-    switch (vcol_type) {
-      case CD_PROP_COLOR:
-        copy_v4_v4(color, (float *)BM_ELEM_CD_GET_VOID_P(v, vcol_offset));
-        break;
-      case CD_MLOOPCOL: {
-        MLoopCol *mp = (MLoopCol *)BM_ELEM_CD_GET_VOID_P(v, vcol_offset);
-
-        rgba_uchar_to_float(color, (const char *)mp);
-        srgb_to_linearrgb_v3_v3(color, color);
-
-        break;
-      }
-    }
-  }
-  else { /*average all loop colors*/
-    BMEdge *e = v->e;
-
-    zero_v4(color);
-
-    if (!e) {
-      return;
-    }
-
-    int tot = 0;
-
-    do {
-      BMLoop *l = e->l;
-
-      if (!l) {
-        continue;
-      }
-
-      do {
-        switch (vcol_type) {
-          case CD_PROP_COLOR:
-            add_v4_v4(color, (float *)BM_ELEM_CD_GET_VOID_P(l, vcol_offset));
-            tot++;
-
-            break;
-          case CD_MLOOPCOL: {
-            MLoopCol *mp = (MLoopCol *)BM_ELEM_CD_GET_VOID_P(l, vcol_offset);
-
-            float temp[4];
-
-            rgba_uchar_to_float(temp, (const char *)mp);
-            srgb_to_linearrgb_v3_v3(temp, temp);
-
-            add_v4_v4(color, temp);
-            tot++;
-            break;
-          }
-        }
-      } while ((l = l->radial_next) != e->l);
-    } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-
-    if (tot > 0) {
-      mul_v4_fl(color, 1.0f / (float)tot);
-    }
-  }
-}
-
-void BKE_pbvh_bmesh_update_origvert(
-    PBVH *pbvh, BMVert *v, float **r_co, float **r_no, float **r_color)
-{
-  MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
-
-  if (pbvh->cd_vert_mask_offset) {
-    mv->origmask = (short)(BM_ELEM_CD_GET_FLOAT(v, pbvh->cd_vert_mask_offset) * 65535.0f);
-  }
-
-  if (r_co || r_no) {
-
-    copy_v3_v3(mv->origco, v->co);
-    copy_v3_v3(mv->origno, v->no);
-
-    if (r_co) {
-      *r_co = mv->origco;
-    }
-
-    if (r_no) {
-      *r_no = mv->origno;
-    }
-  }
-
-  if (r_color && pbvh->vcol_type != -1) {
-    BKE_pbvh_bmesh_get_vcol(
-        v, mv->origcolor, pbvh->vcol_type, pbvh->vcol_domain, pbvh->cd_vcol_offset);
-
-    if (r_color) {
-      *r_color = mv->origcolor;
-    }
-  }
-  else if (r_color) {
-    *r_color = NULL;
-  }
-}
-
 /************************* Called from pbvh.c *************************/
 
 bool BKE_pbvh_bmesh_check_origdata(PBVH *pbvh, BMVert *v, int stroke_id)
 {
-  // keep this up to date with surface_smooth_v_safe in dyntopo.c
+  SculptVertRef vertex = {(intptr_t)v};
 
-  MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
-
-  if (mv->stroke_id != stroke_id) {
-    float *dummy;
-
-    BKE_pbvh_bmesh_update_origvert(pbvh, v, &dummy, &dummy, &dummy);
-    mv->stroke_id = stroke_id;
-    return true;
-  }
-
-  return false;
+  return BKE_pbvh_get_origvert(pbvh, vertex, NULL, NULL, NULL);
 }
 
 bool pbvh_bmesh_node_raycast(PBVH *pbvh,
@@ -2312,48 +2201,14 @@ static void coalese_pbvh(PBVH *pbvh, BMesh *bm)
   BLI_array_free(nodes);
 }
 
-void BKE_pbvh_update_sculpt_verts(BMesh *bm,
-                                  const int cd_sculpt_vert,
-                                  const int cd_faceset_offset,
-                                  const int cd_vert_node_offset,
-                                  const int cd_face_node_offset,
-                                  const int boundary_symmetry,
-                                  const int vcol_type,
-                                  const AttributeDomain vcol_domain,
-                                  const int cd_vcol_offset,
-                                  bool do_uvs)
+void BKE_pbvh_update_sculpt_verts(PBVH *pbvh)
 {
-  BMVert *v;
-  BMIter iter;
+  int totvert = pbvh->totvert;
 
-  int totuv = do_uvs ? CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV) : 0;
+  for (int i = 0; i < totvert; i++) {
+    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(pbvh, i);
 
-  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-    MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v);
-
-    mv->flag = SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_VALENCE;
-
-    bke_pbvh_update_vert_boundary(cd_sculpt_vert,
-                                  cd_faceset_offset,
-                                  cd_vert_node_offset,
-                                  cd_face_node_offset,
-                                  -1,
-                                  v,
-                                  boundary_symmetry,
-                                  &bm->ldata,
-                                  totuv);
-
-    BKE_pbvh_bmesh_update_valence(cd_sculpt_vert, (SculptVertRef){(intptr_t)v});
-
-    copy_v3_v3(mv->origco, v->co);
-    copy_v3_v3(mv->origno, v->no);
-
-    if (vcol_type != -1) {
-      BKE_pbvh_bmesh_get_vcol(v, mv->origcolor, vcol_type, vcol_domain, cd_vcol_offset);
-    }
-    else {
-      zero_v4(mv->origcolor);
-    }
+    BKE_pbvh_get_origvert(pbvh, vertex, NULL, NULL, NULL);
   }
 }
 
@@ -2514,16 +2369,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   }
 
   if (update_sculptverts) {
-    BKE_pbvh_update_sculpt_verts(pbvh->bm,
-                                 pbvh->cd_sculpt_vert,
-                                 pbvh->cd_faceset_offset,
-                                 pbvh->cd_vert_node_offset,
-                                 pbvh->cd_face_node_offset,
-                                 pbvh->boundary_symmetry,
-                                 pbvh->vcol_type,
-                                 pbvh->vcol_domain,
-                                 pbvh->cd_vcol_offset,
-                                 !(pbvh->flags & PBVH_IGNORE_UVS));
+    BKE_pbvh_update_sculpt_verts(pbvh);
   }
 
   pbvh_print_mem_size(pbvh);

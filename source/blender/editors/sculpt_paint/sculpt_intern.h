@@ -1572,7 +1572,6 @@ bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *bru
 
 void SCULPT_dynamic_topology_triangulate(struct SculptSession *ss, struct BMesh *bm);
 void SCULPT_dyntopo_node_layers_add(struct SculptSession *ss, Object *ob);
-void SCULPT_dyntopo_save_origverts(struct SculptSession *ss);
 void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss, Object *ob);
 void SCULPT_dynamic_topology_sync_layers(Object *ob, struct Mesh *me);
 

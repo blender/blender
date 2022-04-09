@@ -353,11 +353,11 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode)
   return true;
 }
 
-static int *sculpt_undo_get_indices32(SculptUndoNode *unode)
+static int *sculpt_undo_get_indices32(SculptUndoNode *unode, int allvert)
 {
-  int *indices = MEM_malloc_arrayN(unode->totvert, sizeof(int), __func__);
+  int *indices = MEM_malloc_arrayN(allvert, sizeof(int), __func__);
 
-  for (int i = 0; i < unode->totvert; i++) {
+  for (int i = 0; i < allvert; i++) {
     indices[i] = (int)unode->index[i].i;
   }
 
@@ -375,7 +375,7 @@ static bool sculpt_undo_restore_color(bContext *C, SculptUndoNode *unode)
   /* NOTE: even with loop colors we still store derived
    * vertex colors for original data lookup.*/
   if (unode->col && !unode->loop_col) {
-    int *indices = sculpt_undo_get_indices32(unode);
+    int *indices = sculpt_undo_get_indices32(unode, unode->totvert);
 
     BKE_pbvh_swap_colors(ss->pbvh, indices, unode->totvert, unode->col);
     modified = true;
@@ -794,16 +794,7 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
   SCULPT_dyntopo_node_layers_add(ss, ob);
   SCULPT_update_customdata_refs(ss, ob);
 
-  BKE_pbvh_update_sculpt_verts(ss->bm,
-                               ss->cd_sculpt_vert,
-                               ss->cd_faceset_offset,
-                               ss->cd_vert_node_offset,
-                               ss->cd_face_node_offset,
-                               ss->boundary_symmetry,
-                               ss->vcol_type,
-                               ss->vcol_domain,
-                               ss->cd_vcol_offset,
-                               !ss->ignore_uvs);
+  BKE_pbvh_update_sculpt_verts(ss->pbvh);
 
   if (!ss->bm_log) {
     /* Restore the BMLog using saved entries. */
@@ -1772,7 +1763,7 @@ static void sculpt_undo_store_mask(Object *ob, SculptUndoNode *unode)
   BKE_pbvh_vertex_iter_end;
 }
 
-static void sculpt_undo_store_color(Object *ob, SculptUndoNode *unode)
+ATTR_NO_OPT static void sculpt_undo_store_color(Object *ob, SculptUndoNode *unode)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -1781,17 +1772,18 @@ static void sculpt_undo_store_color(Object *ob, SculptUndoNode *unode)
   int allvert;
   BKE_pbvh_node_num_verts(ss->pbvh, unode->node, NULL, &allvert);
 
-  int *indices = sculpt_undo_get_indices32(unode);
+  int *indices = sculpt_undo_get_indices32(unode, allvert);
 
   /* NOTE: even with loop colors we still store (derived)
    * vertex colors for original data lookup. */
-  BKE_pbvh_store_colors_vertex(ss->pbvh, indices, allvert, unode->col);
 
-  MEM_SAFE_FREE(indices);
+  BKE_pbvh_store_colors_vertex(ss->pbvh, indices, allvert, unode->col);
 
   if (unode->loop_col && unode->totloop) {
     BKE_pbvh_store_colors(ss->pbvh, unode->loop_index, unode->totloop, unode->loop_col);
   }
+
+  MEM_SAFE_FREE(indices);
 }
 
 static SculptUndoNodeGeometry *sculpt_undo_geometry_get(SculptUndoNode *unode)
@@ -2191,7 +2183,11 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
     int allvert, allloop;
 
     BKE_pbvh_node_num_verts(ss->pbvh, unode->node, NULL, &allvert);
-    memcpy(unode->index, vert_indices, sizeof(int) * allvert);
+    BKE_pbvh_node_get_verts(ss->pbvh, node, &vert_indices, NULL);
+
+    for (int i = 0; i < allvert; i++) {
+      unode->index[i].i = vert_indices[i];
+    }
 
     if (unode->loop_index) {
       BKE_pbvh_node_num_loops(ss->pbvh, unode->node, &allloop);
@@ -2286,7 +2282,8 @@ static void sculpt_save_active_attribute_color(Object *ob, SculptAttrRef *attr)
 
   attr->was_set = true;
 }
-void SCULPT_undo_push_begin_ex(Object *ob, const char *name, bool no_first_entry_check)
+
+static void sculpt_undo_push_begin_ex(Object *ob, const char *name, bool no_first_entry_check)
 {
   UndoStack *ustack = ED_undo_stack_get();
 

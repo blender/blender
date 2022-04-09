@@ -122,14 +122,15 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const float (*vert_normals)[3]);
 
 bool GPU_pbvh_update_attribute_names(
-    CustomData *vdata,
-    CustomData *ldata,
+    const CustomData *vdata,
+    const CustomData *ldata,
     bool need_full_render,
     bool fast_mode,  // fast mode renders without vcol, uv, facesets, even mask, etc
     int active_vcol_type,
     int active_vcol_domain,
-    struct CustomDataLayer *active_vcol_layer,
-    struct CustomDataLayer *render_vcol_layer);
+    const struct CustomDataLayer *active_vcol_layer,
+    const struct CustomDataLayer *render_vcol_layer,
+    bool active_attrs_only);
 
 /**
  * Creates a vertex buffer (coordinate, normal, color) and,

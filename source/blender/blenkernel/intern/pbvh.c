@@ -160,8 +160,8 @@ static void update_node_vb(PBVH *pbvh, PBVHNode *node, int updateflag)
   BB_reset(&vb);
   BB_reset(&orig_vb);
 
-  bool do_orig = updateflag & PBVH_UpdateOriginalBB;
-  bool do_normal = updateflag & PBVH_UpdateBB;
+  bool do_orig = true;    // XXX updateflag & PBVH_UpdateOriginalBB;
+  bool do_normal = true;  // XXX updateflag & PBVH_UpdateBB;
 
   if (node->flag & PBVH_Leaf) {
     PBVHVertexIter vd;
@@ -1411,7 +1411,6 @@ static int pbvh_get_buffers_update_flags(PBVH *UNUSED(pbvh))
   return update_flags;
 }
 
-
 bool BKE_pbvh_get_color_layer(const Mesh *me, CustomDataLayer **r_layer, AttributeDomain *r_attr)
 {
   CustomDataLayer *layer = BKE_id_attributes_active_color_get((ID *)me);
@@ -1452,7 +1451,7 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   AttributeDomain vcol_domain;
 
   BKE_pbvh_get_color_layer(me, &vcol_layer, &vcol_domain);
-  
+
   CustomData *vdata, *ldata;
 
   if (!pbvh->bm) {
@@ -1703,7 +1702,8 @@ static void pbvh_update_draw_buffers(
                                       pbvh->vcol_type,
                                       pbvh->vcol_domain,
                                       vcol_layer,
-                                      render_vcol_layer)) {
+                                      render_vcol_layer,
+                                      !GPU_pbvh_need_full_render_get())) {
     // attribute layout changed; force rebuild
     for (int i = 0; i < pbvh->totnode; i++) {
       PBVHNode *node = pbvh->nodes + i;
@@ -4289,9 +4289,9 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
           continue;
         }
 
-        MVert *mv1 = pbvh->verts + pbvh->mloop[lt->tri[0]].v;
-        MVert *mv2 = pbvh->verts + pbvh->mloop[lt->tri[1]].v;
-        MVert *mv3 = pbvh->verts + pbvh->mloop[lt->tri[2]].v;
+        const MVert *mv1 = pbvh->verts + pbvh->mloop[lt->tri[0]].v;
+        const MVert *mv2 = pbvh->verts + pbvh->mloop[lt->tri[1]].v;
+        const MVert *mv3 = pbvh->verts + pbvh->mloop[lt->tri[2]].v;
 
         float area = area_tri_v3(mv1->co, mv2->co, mv3->co);
 
@@ -4973,6 +4973,8 @@ PBVH *BKE_pbvh_get_or_free_cached(Object *ob, Mesh *me, PBVHType pbvh_type)
         break;
     }
 
+    BKE_pbvh_update_active_vcol(pbvh, me);
+
     return pbvh;
   }
 
@@ -5159,7 +5161,6 @@ bool BKE_pbvh_pmap_release(SculptPMap *pmap)
   return false;
 }
 
-
 bool BKE_pbvh_is_drawing(const PBVH *pbvh)
 {
   return pbvh->is_drawing;
@@ -5182,7 +5183,23 @@ void BKE_pbvh_node_num_loops(PBVH *pbvh, PBVHNode *node, int *r_totloop)
 
 void BKE_pbvh_update_active_vcol(PBVH *pbvh, const Mesh *mesh)
 {
+  CustomDataLayer *last_layer = pbvh->color_layer;
+
   BKE_pbvh_get_color_layer(mesh, &pbvh->color_layer, &pbvh->color_domain);
+
+  if (pbvh->color_layer) {
+    pbvh->color_type = pbvh->color_layer->type;
+  }
+
+  if (pbvh->color_layer != last_layer) {
+    for (int i = 0; i < pbvh->totnode; i++) {
+      PBVHNode *node = pbvh->nodes + i;
+
+      if (node->flag & PBVH_Leaf) {
+        BKE_pbvh_node_mark_update_color(node);
+      }
+    }
+  }
 }
 
 void BKE_pbvh_pmap_set(PBVH *pbvh, SculptPMap *pmap)
@@ -5237,4 +5254,76 @@ void BKE_pbvh_ensure_node_loops(PBVH *pbvh)
   }
 
   MEM_SAFE_FREE(visit);
+}
+
+bool BKE_pbvh_get_origvert(
+    PBVH *pbvh, SculptVertRef vertex, float **r_co, float **r_no, float **r_color)
+{
+  MSculptVert *mv;
+
+  switch (pbvh->type) {
+    case PBVH_FACES:
+    case PBVH_GRIDS:
+      mv = pbvh->mdyntopo_verts + vertex.i;
+
+      if (mv->stroke_id != pbvh->stroke_id) {
+        mv->stroke_id = pbvh->stroke_id;
+
+        if (pbvh->type == PBVH_FACES) {
+          copy_v3_v3(mv->origco, pbvh->verts[vertex.i].co);
+          copy_v3_v3(mv->origno, pbvh->vert_normals[vertex.i]);
+        }
+        else {
+          const CCGKey *key = BKE_pbvh_get_grid_key(pbvh);
+          const int grid_index = vertex.i / key->grid_area;
+          const int vertex_index = vertex.i - grid_index * key->grid_area;
+          CCGElem *elem = BKE_pbvh_get_grids(pbvh)[grid_index];
+
+          copy_v3_v3(mv->origco, CCG_elem_co(key, CCG_elem_offset(key, elem, vertex_index)));
+          copy_v3_v3(mv->origno, CCG_elem_no(key, CCG_elem_offset(key, elem, vertex_index)));
+        }
+
+        float *mask = (float *)CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK);
+
+        if (mask) {
+          mv->origmask = mask[vertex.i];
+        }
+
+        if (pbvh->color_layer) {
+          BKE_pbvh_vertex_color_get(pbvh, vertex, mv->origcolor);
+        }
+      }
+      break;
+    case PBVH_BMESH: {
+      BMVert *v = (BMVert *)vertex.i;
+      mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
+
+      if (mv->stroke_id != pbvh->stroke_id) {
+        mv->stroke_id = pbvh->stroke_id;
+
+        if (pbvh->cd_vert_mask_offset != -1) {
+          mv->origmask = (short)(BM_ELEM_CD_GET_FLOAT(v, pbvh->cd_vert_mask_offset) * 65535.0f);
+        }
+
+        if (pbvh->cd_vcol_offset != -1) {
+          BKE_pbvh_vertex_color_get(pbvh, vertex, mv->origcolor);
+        }
+      }
+      break;
+    }
+  }
+
+  if (r_co) {
+    *r_co = mv->origco;
+  }
+
+  if (r_no) {
+    *r_no = mv->origno;
+  }
+
+  if (r_color) {
+    *r_color = mv->origcolor;
+  }
+
+  return true;
 }
