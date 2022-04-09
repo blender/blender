@@ -12,6 +12,7 @@
 extern "C" {
 #endif
 
+struct bToolRef;
 struct PaintModeSettings;
 struct ImBuf;
 struct Image;
