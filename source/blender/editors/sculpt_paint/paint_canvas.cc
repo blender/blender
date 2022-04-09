@@ -19,6 +19,8 @@
 
 #include "WM_toolsystem.h"
 
+#include "ED_paint.h"
+
 namespace blender::ed::sculpt_paint::canvas {
 static TexPaintSlot *get_active_slot(Object *ob)
 {
