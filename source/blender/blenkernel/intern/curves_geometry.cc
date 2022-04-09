@@ -217,7 +217,7 @@ static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
   data = (T *)CustomData_add_layer_named(
       &custom_data, type, CD_CALLOC, nullptr, size, name.c_str());
   MutableSpan<T> span = {data, size};
-  if (span.first() != default_value) {
+  if (size > 0 && span.first() != default_value) {
     span.fill(default_value);
   }
   return span;
