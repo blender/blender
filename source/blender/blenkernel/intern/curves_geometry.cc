@@ -202,7 +202,8 @@ static Span<T> get_span_attribute(const CurvesGeometry &curves,
 template<typename T>
 static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
                                             const AttributeDomain domain,
-                                            const StringRefNull name)
+                                            const StringRefNull name,
+                                            const T default_value = T())
 {
   const int size = domain_size(curves, domain);
   const CustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
@@ -215,7 +216,11 @@ static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
   }
   data = (T *)CustomData_add_layer_named(
       &custom_data, type, CD_CALLOC, nullptr, size, name.c_str());
-  return {data, size};
+  MutableSpan<T> span = {data, size};
+  if (span.first() != default_value) {
+    span.fill(default_value);
+  }
+  return span;
 }
 
 VArray<int8_t> CurvesGeometry::curve_types() const
@@ -303,7 +308,7 @@ VArray<bool> CurvesGeometry::cyclic() const
 }
 MutableSpan<bool> CurvesGeometry::cyclic_for_write()
 {
-  return get_mutable_attribute<bool>(*this, ATTR_DOMAIN_CURVE, ATTR_CYCLIC);
+  return get_mutable_attribute<bool>(*this, ATTR_DOMAIN_CURVE, ATTR_CYCLIC, false);
 }
 
 VArray<int> CurvesGeometry::resolution() const
@@ -312,7 +317,7 @@ VArray<int> CurvesGeometry::resolution() const
 }
 MutableSpan<int> CurvesGeometry::resolution_for_write()
 {
-  return get_mutable_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_RESOLUTION);
+  return get_mutable_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_RESOLUTION, 12);
 }
 
 VArray<int8_t> CurvesGeometry::handle_types_left() const
@@ -321,7 +326,7 @@ VArray<int8_t> CurvesGeometry::handle_types_left() const
 }
 MutableSpan<int8_t> CurvesGeometry::handle_types_left_for_write()
 {
-  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_LEFT);
+  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_LEFT, 0);
 }
 
 VArray<int8_t> CurvesGeometry::handle_types_right() const
@@ -330,7 +335,7 @@ VArray<int8_t> CurvesGeometry::handle_types_right() const
 }
 MutableSpan<int8_t> CurvesGeometry::handle_types_right_for_write()
 {
-  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_RIGHT);
+  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_RIGHT, 0);
 }
 
 Span<float3> CurvesGeometry::handle_positions_left() const
@@ -357,7 +362,7 @@ VArray<int8_t> CurvesGeometry::nurbs_orders() const
 }
 MutableSpan<int8_t> CurvesGeometry::nurbs_orders_for_write()
 {
-  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_ORDER);
+  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_ORDER, 4);
 }
 
 Span<float> CurvesGeometry::nurbs_weights() const
@@ -375,7 +380,7 @@ VArray<int8_t> CurvesGeometry::nurbs_knots_modes() const
 }
 MutableSpan<int8_t> CurvesGeometry::nurbs_knots_modes_for_write()
 {
-  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_KNOTS_MODE);
+  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_KNOTS_MODE, 0);
 }
 
 VArray<int> CurvesGeometry::surface_triangle_indices() const
@@ -385,7 +390,7 @@ VArray<int> CurvesGeometry::surface_triangle_indices() const
 
 MutableSpan<int> CurvesGeometry::surface_triangle_indices_for_write()
 {
-  return get_mutable_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_TRIANGLE_INDEX);
+  return get_mutable_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_TRIANGLE_INDEX, -1);
 }
 
 Span<float2> CurvesGeometry::surface_triangle_coords() const
