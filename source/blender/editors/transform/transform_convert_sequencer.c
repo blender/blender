@@ -634,7 +634,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
   free_transform_custom_data(custom_data);
 }
 
-SeqCollection *query_selected_strips_no_handles(ListBase *seqbase)
+static SeqCollection *query_selected_strips_no_handles(ListBase *seqbase)
 {
   SeqCollection *strips = SEQ_collection_create(__func__);
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
