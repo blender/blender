@@ -451,7 +451,7 @@ CustomDataLayer *BKE_id_attribute_from_index(ID *id,
 
     for (int i = 0; i < customdata->totlayer; i++) {
       if (!(layer_mask & CD_TYPE_AS_MASK(customdata->layers[i].type)) ||
-          (CD_TYPE_AS_MASK(customdata->layers[i].type) & CD_FLAG_TEMPORARY)) {
+          (customdata->layers[i].flag & CD_FLAG_TEMPORARY)) {
         continue;
       }
 
@@ -504,7 +504,7 @@ int BKE_id_attribute_to_index(const struct ID *id,
       CustomDataLayer *layer_iter = cdata->layers + j;
 
       if (!(CD_TYPE_AS_MASK(layer_iter->type) & layer_mask) ||
-          (CD_TYPE_AS_MASK(layer_iter->type) & CD_FLAG_TEMPORARY)) {
+          (layer_iter->flag & CD_FLAG_TEMPORARY)) {
         continue;
       }
 
@@ -542,7 +542,7 @@ CustomDataLayer *BKE_id_attribute_subset_active_get(const ID *id,
       CustomDataLayer *layer = cdata->layers + j;
 
       if (!(CD_TYPE_AS_MASK(layer->type) & mask) ||
-          (CD_TYPE_AS_MASK(layer->type) & CD_FLAG_TEMPORARY)) {
+          (layer->flag & CD_FLAG_TEMPORARY)) {
         continue;
       }
 
@@ -582,7 +582,7 @@ void BKE_id_attribute_subset_active_set(ID *id,
       CustomDataLayer *layer_iter = cdata->layers + j;
 
       if (!(CD_TYPE_AS_MASK(layer_iter->type) & mask) ||
-          (CD_TYPE_AS_MASK(layer_iter->type) & CD_FLAG_TEMPORARY)) {
+          (layer_iter->flag & CD_FLAG_TEMPORARY)) {
         continue;
       }
 
