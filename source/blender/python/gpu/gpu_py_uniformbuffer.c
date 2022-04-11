@@ -78,12 +78,17 @@ static PyObject *pygpu_uniformbuffer__tp_new(PyTypeObject *UNUSED(self),
     return NULL;
   }
 
-  if (GPU_context_active_get()) {
-    ubo = GPU_uniformbuf_create_ex(
-        bpygpu_Buffer_size(pybuffer_obj), pybuffer_obj->buf.as_void, "python_uniformbuffer");
+  if (!GPU_context_active_get()) {
+    STRNCPY(err_out, "No active GPU context found");
   }
   else {
-    STRNCPY(err_out, "No active GPU context found");
+    size_t size = bpygpu_Buffer_size(pybuffer_obj);
+    if ((size % 16) != 0) {
+      STRNCPY(err_out, "UBO is not padded to size of vec4");
+    }
+    else {
+      ubo = GPU_uniformbuf_create_ex(size, pybuffer_obj->buf.as_void, "python_uniformbuffer");
+    }
   }
 
   if (ubo == NULL) {
