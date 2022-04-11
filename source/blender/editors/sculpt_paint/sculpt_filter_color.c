@@ -109,6 +109,7 @@ static void color_filter_task_cb(void *__restrict userdata,
     }
 
     copy_v3_v3(orig_color, orig_data.col);
+    final_color[3] = orig_data.col[3]; /* Copy alpha */
 
     switch (mode) {
       case COLOR_FILTER_FILL: {
