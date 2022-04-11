@@ -788,8 +788,10 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
   }
 
   /* Tip Label (only for buttons not already showing the label).
-   * Check prefix instead of comparing because the button may include the shortcut. */
-  if (but_label.strinfo && !STRPREFIX(but->drawstr, but_label.strinfo)) {
+   * Check prefix instead of comparing because the button may include the shortcut.
+   * Buttons with dynamic tooltips also don't get their default label here since they
+   * can already provide more accurate and specific tooltip content. */
+  if (but_label.strinfo && !STRPREFIX(but->drawstr, but_label.strinfo) && !but->tip_func) {
     uiTooltipField *field = text_field_add(data,
                                            &(uiTooltipFormat){
                                                .style = UI_TIP_STYLE_HEADER,

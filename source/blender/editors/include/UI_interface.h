@@ -595,6 +595,7 @@ typedef void (*uiMenuHandleFunc)(struct bContext *C, void *arg, int event);
  */
 typedef bool (*uiMenuStepFunc)(struct bContext *C, int direction, void *arg1);
 
+typedef void *(*uiCopyArgFunc)(const void *arg);
 typedef void (*uiFreeArgFunc)(void *arg);
 
 /* interface_query.c */
@@ -2065,6 +2066,24 @@ void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv);
 void uiLayoutSetContextPointer(uiLayout *layout, const char *name, struct PointerRNA *ptr);
 struct bContextStore *uiLayoutGetContextStore(uiLayout *layout);
 void uiLayoutContextCopy(uiLayout *layout, struct bContextStore *context);
+
+/**
+ * Set tooltip function for all buttons in the layout.
+ * func, arg and free_arg are passed on to UI_but_func_tooltip_set, so their meaning is the same.
+ *
+ * \param func: The callback function that gets called to get tooltip content
+ * \param arg: An optional opaque pointer that gets passed to func
+ * \param free_arg: An optional callback for freeing arg (can be set to e.g. MEM_freeN)
+ * \param copy_arg: An optional callback for duplicating arg in case UI_but_func_tooltip_set
+ * is being called on multiple buttons (can be set to e.g. MEM_dupallocN). If set to NULL, arg will
+ * be passed as-is to all buttons.
+ */
+void uiLayoutSetTooltipFunc(uiLayout *layout,
+                            uiButToolTipFunc func,
+                            void *arg,
+                            uiCopyArgFunc copy_arg,
+                            uiFreeArgFunc free_arg);
+
 /**
  * This is a bit of a hack but best keep it in one place at least.
  */

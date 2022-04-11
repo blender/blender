@@ -26,12 +26,10 @@
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
-#include "BLI_vector_set.hh"
 
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
-#include "BKE_geometry_set.hh"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -75,8 +73,6 @@
 #include "node_intern.hh" /* own include */
 
 using blender::GPointer;
-using blender::fn::FieldCPPType;
-using blender::fn::FieldInput;
 using blender::fn::GField;
 namespace geo_log = blender::nodes::geometry_nodes_eval_log;
 
@@ -374,6 +370,8 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node, 
     const char *socket_label = nodeSocketLabel(nsock);
     nsock->typeinfo->draw((bContext *)&C, row, &sockptr, &nodeptr, IFACE_(socket_label));
 
+    node_socket_add_tooltip(&ntree, &node, nsock, row);
+
     UI_block_align_end(&block);
     UI_block_layout_resolve(&block, nullptr, &buty);
 
@@ -503,6 +501,8 @@ static void node_update_basis(const bContext &C, bNodeTree &ntree, bNode &node, 
 
     const char *socket_label = nodeSocketLabel(nsock);
     nsock->typeinfo->draw((bContext *)&C, row, &sockptr, &nodeptr, IFACE_(socket_label));
+
+    node_socket_add_tooltip(&ntree, &node, nsock, row);
 
     UI_block_align_end(&block);
     UI_block_layout_resolve(&block, nullptr, &buty);
@@ -943,6 +943,10 @@ static std::optional<std::string> create_socket_inspection_string(bContext *C,
                                                                   bNodeSocket &socket)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
+  if (snode == nullptr) {
+    return {};
+  };
+
   const geo_log::SocketLog *socket_log = geo_log::ModifierLog::find_socket_by_node_editor_context(
       *snode, node, socket);
   if (socket_log == nullptr) {
@@ -968,6 +972,78 @@ static std::optional<std::string> create_socket_inspection_string(bContext *C,
   }
 
   return ss.str();
+}
+
+static bool node_socket_has_tooltip(bNodeTree *ntree, bNodeSocket *socket)
+{
+  if (ntree->type == NTREE_GEOMETRY) {
+    return true;
+  }
+
+  if (socket->declaration != nullptr) {
+    const blender::nodes::SocketDeclaration &socket_decl = *socket->declaration;
+    return !socket_decl.description().is_empty();
+  }
+
+  return false;
+}
+
+static char *node_socket_get_tooltip(bContext *C,
+                                     bNodeTree *ntree,
+                                     bNode *node,
+                                     bNodeSocket *socket)
+{
+  std::stringstream output;
+  if (socket->declaration != nullptr) {
+    const blender::nodes::SocketDeclaration &socket_decl = *socket->declaration;
+    blender::StringRef description = socket_decl.description();
+    if (!description.is_empty()) {
+      output << TIP_(description.data());
+    }
+  }
+
+  if (ntree->type == NTREE_GEOMETRY) {
+    if (!output.str().empty()) {
+      output << ".\n\n";
+    }
+
+    std::optional<std::string> socket_inspection_str = create_socket_inspection_string(
+        C, *node, *socket);
+    if (socket_inspection_str.has_value()) {
+      output << *socket_inspection_str;
+    }
+    else {
+      output << TIP_("The socket value has not been computed yet");
+    }
+  }
+
+  if (output.str().empty()) {
+    output << nodeSocketLabel(socket);
+  }
+
+  return BLI_strdup(output.str().c_str());
+}
+
+void node_socket_add_tooltip(bNodeTree *ntree, bNode *node, bNodeSocket *sock, uiLayout *layout)
+{
+  if (!node_socket_has_tooltip(ntree, sock)) {
+    return;
+  }
+
+  SocketTooltipData *data = MEM_cnew<SocketTooltipData>(__func__);
+  data->ntree = ntree;
+  data->node = node;
+  data->socket = sock;
+
+  uiLayoutSetTooltipFunc(
+      layout,
+      [](bContext *C, void *argN, const char *UNUSED(tip)) {
+        SocketTooltipData *data = static_cast<SocketTooltipData *>(argN);
+        return node_socket_get_tooltip(C, data->ntree, data->node, data->socket);
+      },
+      data,
+      MEM_dupallocN,
+      MEM_freeN);
 }
 
 static void node_socket_draw_nested(const bContext &C,
@@ -1001,8 +1077,7 @@ static void node_socket_draw_nested(const bContext &C,
                    size_id,
                    outline_col_id);
 
-  if (ntree.type != NTREE_GEOMETRY) {
-    /* Only geometry nodes has socket value tooltips currently. */
+  if (!node_socket_has_tooltip(&ntree, &sock)) {
     return;
   }
 
@@ -1034,24 +1109,7 @@ static void node_socket_draw_nested(const bContext &C,
       but,
       [](bContext *C, void *argN, const char *UNUSED(tip)) {
         SocketTooltipData *data = (SocketTooltipData *)argN;
-        std::optional<std::string> socket_inspection_str = create_socket_inspection_string(
-            C, *data->node, *data->socket);
-
-        std::stringstream output;
-        if (data->socket->declaration != nullptr) {
-          const blender::nodes::SocketDeclaration &socket_decl = *data->socket->declaration;
-          blender::StringRef description = socket_decl.description();
-          if (!description.is_empty()) {
-            output << TIP_(description.data()) << ".\n\n";
-          }
-        }
-        if (socket_inspection_str.has_value()) {
-          output << *socket_inspection_str;
-        }
-        else {
-          output << TIP_("The socket value has not been computed yet");
-        }
-        return BLI_strdup(output.str().c_str());
+        return node_socket_get_tooltip(C, data->ntree, data->node, data->socket);
       },
       data,
       MEM_freeN);
