@@ -6746,8 +6746,10 @@ class VIEW3D_PT_snapping(Panel):
             col.prop(tool_settings, "use_snap_backface_culling")
 
             if obj:
-                if object_mode == 'EDIT':
-                    col.prop(tool_settings, "use_snap_self")
+                if object_mode == 'EDIT' and obj.type not in {'LATTICE', 'META', 'FONT'}:
+                    sub = col.column()
+                    sub.active = not (tool_settings.use_proportional_edit and obj.type == 'MESH')
+                    sub.prop(tool_settings, "use_snap_self")
                 if object_mode in {'OBJECT', 'POSE', 'EDIT', 'WEIGHT_PAINT'}:
                     col.prop(tool_settings, "use_snap_align_rotation")
 
