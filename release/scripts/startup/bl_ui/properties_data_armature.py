@@ -177,7 +177,7 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
         col.label(text="which was replaced by the Asset Browser.")
 
         url = self.get_manual_url()
-        col.operator('wm.url_open', text="More Info", icon="URL").url = url
+        col.operator("wm.url_open", text="More Info", icon='URL').url = url
 
         layout.separator()
 
@@ -188,12 +188,12 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
         col.template_ID(ob, "pose_library", new="poselib.new", unlink="poselib.unlink")
 
         if poselib:
-            if hasattr(bpy.types, 'POSELIB_OT_convert_old_object_poselib'):
-                col.operator('poselib.convert_old_object_poselib',
-                    text="Convert to Pose Assets", icon="ASSET_MANAGER")
+            if hasattr(bpy.types, "POSELIB_OT_convert_old_object_poselib"):
+                col.operator("poselib.convert_old_object_poselib",
+                             text="Convert to Pose Assets", icon='ASSET_MANAGER')
             else:
-                col.label(text="Enable the Pose Library add-on to convert", icon="ERROR")
-                col.label(text="this legacy pose library to pose assets.", icon="BLANK1")
+                col.label(text="Enable the Pose Library add-on to convert", icon='ERROR')
+                col.label(text="this legacy pose library to pose assets.", icon='BLANK1')
 
             # Put the deprecated stuff in its own sub-layout.
 
@@ -202,7 +202,10 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
 
             # warning about poselib being in an invalid state
             if poselib.fcurves and not poselib.pose_markers:
-                dep_layout.label(icon='ERROR', text="Error: Potentially corrupt library, run 'Sanitize' operator to fix")
+                dep_layout.label(
+                    icon='ERROR',
+                    text="Error: Potentially corrupt library, run 'Sanitize' operator to fix",
+                )
 
             # list of poses in pose library
             row = dep_layout.row()
