@@ -394,9 +394,16 @@ static PyObject *pygpu_buffer__tp_new(PyTypeObject *UNUSED(type), PyObject *args
       return NULL;
     }
 
-    if (pygpu_buffer_dimensions_tot_len_compare(shape, shape_len, pybuffer.shape, pybuffer.ndim)) {
+    Py_ssize_t *pybuffer_shape = pybuffer.shape;
+    Py_ssize_t pybuffer_ndim = pybuffer.ndim;
+    if (!pybuffer_shape) {
+      pybuffer_shape = &pybuffer.len;
+      pybuffer_ndim = 1;
+    }
+
+    if (pygpu_buffer_dimensions_tot_len_compare(shape, shape_len, pybuffer_shape, pybuffer_ndim)) {
       buffer = pygpu_buffer_make_from_data(
-          init, pygpu_dataformat.value_found, pybuffer.ndim, shape, pybuffer.buf);
+          init, pygpu_dataformat.value_found, shape_len, shape, pybuffer.buf);
     }
 
     PyBuffer_Release(&pybuffer);
