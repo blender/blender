@@ -40,7 +40,7 @@ struct NodePlacementContext {
 /* Converts USD materials to Blender representation. */
 
 /**
-   By default, the #USDMaterialReader creates a Blender material with
+ * By default, the #USDMaterialReader creates a Blender material with
  * the same name as the USD material.  If the USD material has a
  * #UsdPreviewSurface source, the Blender material's viewport display
  * color, roughness and metallic properties are set to the corresponding

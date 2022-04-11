@@ -11,7 +11,7 @@
  *   strings more cumbersome as otherwise small expressions become multi-line code-blocks.
  *   Optional (ignored when NULL), otherwise this is a NULL terminated array of module names.
  *
-     Failure to import any modules prevents any further execution.
+ *   Failure to import any modules prevents any further execution.
  *
  * - `err_info` #BPy_RunErrInfo is passed to some functions so errors can be forwarded to the UI.
  *   Option (when NULL errors are printed to the `stdout` and cleared).

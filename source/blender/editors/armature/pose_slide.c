@@ -8,20 +8,20 @@
  * ====================
  *
  * - Push & Relax, Breakdowner
-
+ *
  *   These tools provide the animator with various capabilities
  *   for interactively controlling the spacing of poses, but also
  *   for 'pushing' and/or 'relaxing' extremes as they see fit.
  *
  * - Propagate
-
+ *
  *   This tool copies elements of the selected pose to successive
  *   keyframes, allowing the animator to go back and modify the poses
  *   for some "static" pose controls, without having to repeatedly
  *   doing a "next paste" dance.
  *
  * - Pose Sculpting (TODO)
-
+ *
  *   This is yet to be implemented, but the idea here is to use
  *   sculpting techniques to make it easier to pose rigs by allowing
  *   rigs to be manipulated using a familiar paint-based interface.

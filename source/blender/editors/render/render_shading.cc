@@ -1281,7 +1281,7 @@ void SCENE_OT_view_layer_add_used_lightgroups(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name View Layer Remove Unussed Lightgroups Operator
+/** \name View Layer Remove Unused Lightgroups Operator
  * \{ */
 
 static int view_layer_remove_unused_lightgroups_exec(bContext *C, wmOperator *UNUSED(op))

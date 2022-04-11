@@ -20,7 +20,7 @@ namespace blender::fn {
  * 2. single output (SO) of type Out1
  *
  * This example creates a function that adds 10 to the incoming values:
- *  CustomMF_SI_SO<int, int> fn("add 10", [](int value) { return value + 10; });
+ * `CustomMF_SI_SO<int, int> fn("add 10", [](int value) { return value + 10; });`
  */
 template<typename In1, typename Out1> class CustomMF_SI_SO : public MultiFunction {
  private:

@@ -49,10 +49,11 @@
  * Function:
  * All images created during rendering are added to cache, even if the cache is already full.
  * This is because:
- *  - one image may be needed multiple times during rendering.
- *  - keeping the last rendered frame allows us for faster re-render when user edits strip in stack
- *  - we can decide if we keep frame only when it's completely rendered. Otherwise we risk having
- *    "holes" in the cache, which can be annoying
+ * - One image may be needed multiple times during rendering.
+ * - Keeping the last rendered frame allows us for faster re-render when user edits strip in stack.
+ * - We can decide if we keep frame only when it's completely rendered. Otherwise we risk having
+ *   "holes" in the cache, which can be annoying.
+ *
  * If the cache is full all entries for pending frame will have is_temp_cache set.
  *
  * Linking: We use links to reduce number of iterations over entries needed to manage cache.

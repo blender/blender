@@ -41,7 +41,7 @@ namespace blender::ed::asset {
 /* -------------------------------------------------------------------- */
 /** \name Asset list API
  *
- *  Internally re-uses #FileList from the File Browser. It does all the heavy lifting already.
+ * Internally re-uses #FileList from the File Browser. It does all the heavy lifting already.
  * \{ */
 
 /**

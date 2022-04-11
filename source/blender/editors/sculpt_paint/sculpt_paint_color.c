@@ -454,7 +454,7 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
         }
 
         /* Multiply weight with edge lengths (in the future this will be
-           cotangent weights or face areas). */
+         * cotangent weights or face areas). */
         w *= len;
 
         /* Build directional weight. */

@@ -1028,7 +1028,7 @@ void ui_draw_but_CURVE(struct ARegion *region,
                        const struct uiWidgetColors *wcol,
                        const rcti *rect);
 /**
- *  Draws the curve profile widget. Somewhat similar to ui_draw_but_CURVE.
+ * Draws the curve profile widget. Somewhat similar to ui_draw_but_CURVE.
  */
 void ui_draw_but_CURVEPROFILE(struct ARegion *region,
                               uiBut *but,

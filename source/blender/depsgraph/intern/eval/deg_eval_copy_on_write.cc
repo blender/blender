@@ -988,7 +988,7 @@ void discard_edit_mode_pointers(ID *id_cow)
 }  // namespace
 
 /**
-   Free content of the CoW data-block.
+ *  Free content of the CoW data-block.
  * Notes:
  * - Does not recurse into nested ID data-blocks.
  * - Does not free data-block itself.

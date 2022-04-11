@@ -627,7 +627,7 @@ static void calc_dual_mesh(GeometrySet &geometry_set,
   calc_boundaries(mesh_in, vertex_types, edge_types);
   /* Stores the indices of the polygons connected to the vertex. Because the polygons are looped
    * over in order of their indices, the polygon's indices will be sorted in ascending order.
-   (This can change once they are sorted using `sort_vertex_polys`). */
+   * (This can change once they are sorted using `sort_vertex_polys`). */
   Array<Vector<int>> vertex_poly_indices(mesh_in.totvert);
   Array<Array<int>> vertex_shared_edges(mesh_in.totvert);
   Array<Array<int>> vertex_corners(mesh_in.totvert);

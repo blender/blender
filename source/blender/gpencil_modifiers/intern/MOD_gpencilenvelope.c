@@ -218,10 +218,12 @@ static void apply_stroke_envelope(
                                  max_ii(0, i + j - spread_left);
       const int i2 = is_cyclic ? (i + j + spread_right) % gps->totpoints :
                                  min_ii(gps->totpoints - 1, i + j + spread_right);
-      /*bool side = dot_v3v3(&old_points[i1].x, plane_no) < dot_v3v3(plane_no, &old_points[i2].x);
+#if 0
+      bool side = dot_v3v3(&old_points[i1].x, plane_no) < dot_v3v3(plane_no, &old_points[i2].x);
       if (side) {
         continue;
-      }*/
+      }
+#endif
       float lambda = line_plane_factor_v3(
           &point->x, plane_no, &old_points[i1].x, &old_points[i2].x);
       if (lambda <= 0.0f || lambda >= 1.0f) {

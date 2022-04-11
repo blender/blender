@@ -325,7 +325,7 @@ struct UVPackIsland_Params {
 };
 
 /**
- *  Returns true if UV coordinates lie on a valid tile in UDIM grid or tiled image.
+ * Returns true if UV coordinates lie on a valid tile in UDIM grid or tiled image.
  */
 bool uv_coords_isect_udim(const struct Image *image,
                           const int udim_grid[2],

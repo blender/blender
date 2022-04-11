@@ -888,7 +888,7 @@ static void default_get_tarmat_full_bbone(struct Depsgraph *UNUSED(depsgraph),
 /* This following macro should be used for all standard single-target *_get_tars functions
  * to save typing and reduce maintenance woes. It does not do the subtarget related operations
  * (Hopefully all compilers will be happy with the lines with just a space on them. Those are
- *  really just to help this code easier to read)
+ * really just to help this code easier to read)
  */
 /* TODO: cope with getting rotation order... */
 #define SINGLETARGETNS_GET_TARS(con, datatar, ct, list) \
@@ -932,7 +932,7 @@ static void default_get_tarmat_full_bbone(struct Depsgraph *UNUSED(depsgraph),
  * to save typing and reduce maintenance woes. It does not do the subtarget related operations.
  * NOTE: the pointer to ct will be changed to point to the next in the list (as it gets removed)
  * (Hopefully all compilers will be happy with the lines with just a space on them. Those are
- *  really just to help this code easier to read)
+ * really just to help this code easier to read)
  */
 #define SINGLETARGETNS_FLUSH_TARS(con, datatar, ct, list, no_copy) \
   { \

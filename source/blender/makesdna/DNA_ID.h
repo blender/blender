@@ -349,8 +349,10 @@ typedef struct ID_Runtime_Remap {
   int status;
   /** During ID remapping the number of skipped use cases that refcount the data-block. */
   int skipped_refcounted;
-  /** During ID remapping the number of direct use cases that could be remapped (e.g. obdata when
-in edit mode). */
+  /**
+   * During ID remapping the number of direct use cases that could be remapped
+   * (e.g. obdata when in edit mode).
+   */
   int skipped_direct;
   /** During ID remapping, the number of indirect use cases that could not be remapped. */
   int skipped_indirect;
