@@ -541,8 +541,7 @@ CustomDataLayer *BKE_id_attribute_subset_active_get(const ID *id,
     for (int j = 0; j < cdata->totlayer; j++) {
       CustomDataLayer *layer = cdata->layers + j;
 
-      if (!(CD_TYPE_AS_MASK(layer->type) & mask) ||
-          (layer->flag & CD_FLAG_TEMPORARY)) {
+      if (!(CD_TYPE_AS_MASK(layer->type) & mask) || (layer->flag & CD_FLAG_TEMPORARY)) {
         continue;
       }
 
@@ -581,8 +580,7 @@ void BKE_id_attribute_subset_active_set(ID *id,
     for (int j = 0; j < cdata->totlayer; j++) {
       CustomDataLayer *layer_iter = cdata->layers + j;
 
-      if (!(CD_TYPE_AS_MASK(layer_iter->type) & mask) ||
-          (layer_iter->flag & CD_FLAG_TEMPORARY)) {
+      if (!(CD_TYPE_AS_MASK(layer_iter->type) & mask) || (layer_iter->flag & CD_FLAG_TEMPORARY)) {
         continue;
       }
 

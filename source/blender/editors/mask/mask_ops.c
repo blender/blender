@@ -272,14 +272,14 @@ static bool spline_under_mouse_get(const bContext *C,
   }
 
   for (MaskLayer *mask_layer_orig = mask_orig->masklayers.first,
-           *mask_layer_eval = mask_eval->masklayers.first;
+                 *mask_layer_eval = mask_eval->masklayers.first;
        mask_layer_orig != NULL;
        mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next) {
     if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
     for (MaskSpline *spline_orig = mask_layer_orig->splines.first,
-             *spline_eval = mask_layer_eval->splines.first;
+                    *spline_eval = mask_layer_eval->splines.first;
          spline_orig != NULL;
          spline_orig = spline_orig->next, spline_eval = spline_eval->next) {
       if ((spline_orig->flag & SELECT) == 0) {

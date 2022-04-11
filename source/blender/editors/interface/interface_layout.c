@@ -5705,8 +5705,7 @@ void uiLayoutSetTooltipFunc(uiLayout *layout,
       UI_but_func_tooltip_set(bitem->but, func, arg, free_arg);
     }
     else {
-      uiLayoutSetTooltipFunc(
-          (uiLayout *)item, func, arg, copy_arg, free_arg);
+      uiLayoutSetTooltipFunc((uiLayout *)item, func, arg, copy_arg, free_arg);
     }
   }
 

@@ -564,7 +564,8 @@ void RNA_def_camera(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "lens");
   RNA_def_property_range(prop, 1.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 1.0f, 5000.0f, 100, 4);
-  RNA_def_property_ui_text(prop, "Focal Length", "Perspective Camera focal length value in millimeters");
+  RNA_def_property_ui_text(
+      prop, "Focal Length", "Perspective Camera focal length value in millimeters");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");
 
   prop = RNA_def_property(srna, "sensor_width", PROP_FLOAT, PROP_DISTANCE_CAMERA);
