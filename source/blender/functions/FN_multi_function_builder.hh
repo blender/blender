@@ -390,39 +390,6 @@ template<typename Mut1> class CustomMF_SM : public MultiFunction {
 };
 
 /**
- * Generates a multi-function that converts between two types.
- */
-template<typename From, typename To> class CustomMF_Convert : public MultiFunction {
- public:
-  CustomMF_Convert()
-  {
-    static MFSignature signature = create_signature();
-    this->set_signature(&signature);
-  }
-
-  static MFSignature create_signature()
-  {
-    static std::string name = CPPType::get<From>().name() + " to " + CPPType::get<To>().name();
-    MFSignatureBuilder signature{name.c_str()};
-    signature.single_input<From>("Input");
-    signature.single_output<To>("Output");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
-  {
-    const VArray<From> &inputs = params.readonly_single_input<From>(0);
-    MutableSpan<To> outputs = params.uninitialized_single_output<To>(1);
-
-    mask.to_best_mask_type([&](const auto &mask) {
-      for (int64_t i : mask) {
-        new (static_cast<void *>(&outputs[i])) To(inputs[i]);
-      }
-    });
-  }
-};
-
-/**
  * A multi-function that outputs the same value every time. The value is not owned by an instance
  * of this function. If #make_value_copy is false, the caller is responsible for destructing and
  * freeing the value.
