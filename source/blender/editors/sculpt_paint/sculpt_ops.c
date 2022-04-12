@@ -654,7 +654,7 @@ static bool sculpt_sample_color_update_from_base(bContext *C,
   return true;
 }
 
-static int sculpt_sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
+ATTR_NO_OPT static int sculpt_sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;

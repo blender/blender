@@ -788,9 +788,6 @@ PBVH *BKE_pbvh_new(void)
   PBVH *pbvh = MEM_callocN(sizeof(PBVH), "pbvh");
   pbvh->respect_hide = true;
 
-  pbvh->vcol_type = -1;
-  pbvh->vcol_domain = ATTR_DOMAIN_NUM;
-
   return pbvh;
 }
 
@@ -1435,9 +1432,9 @@ bool BKE_pbvh_get_color_layer(const Mesh *me, CustomDataLayer **r_layer, Attribu
   return true;
 }
 
-static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
-                                       const int n,
-                                       const TaskParallelTLS *__restrict UNUSED(tls))
+ATTR_NO_OPT static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
+                                                   const int n,
+                                                   const TaskParallelTLS *__restrict UNUSED(tls))
 {
   /* Create and update draw buffers. The functions called here must not
    * do any OpenGL calls. Flags are not cleared immediately, that happens
@@ -1585,9 +1582,9 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                    .face_sets_color_default = pbvh->face_sets_color_default,
                                    .flat_vcol = data->flat_vcol_shading,
                                    .mat_nr = node->tri_buffers[i].mat_nr,
-                                   .active_vcol_domain = pbvh->vcol_domain,
-                                   .active_vcol_type = pbvh->vcol_type,
-                                   .active_vcol_layer = vcol_layer,
+                                   .active_vcol_domain = pbvh->color_domain,
+                                   .active_vcol_type = pbvh->color_type,
+                                   .active_vcol_layer = pbvh->color_layer,
                                    .render_vcol_layer = render_vcol_layer};
 
           GPU_pbvh_bmesh_buffers_update(&args);
@@ -1673,34 +1670,21 @@ static void pbvh_update_draw_buffers(
     ldata = &me->ldata;
   }
 
+  Mesh me_query;
+  BKE_id_attribute_copy_domains_temp(ID_ME, vdata, NULL, ldata, NULL, NULL, &me_query.id);
+
   CustomDataLayer *vcol_layer = NULL;
   AttributeDomain domain;
-  BKE_pbvh_get_color_layer(me, &vcol_layer, &domain);
-
-  CustomDataLayer *render_vcol_layer = BKE_id_attributes_render_color_get((ID *)me);
-
-  if (pbvh->bm && render_vcol_layer) {
-    AttributeDomain domain = BKE_id_attribute_domain((ID *)me, render_vcol_layer);
-    CustomData *cdata = domain == ATTR_DOMAIN_POINT ? &pbvh->bm->vdata : &pbvh->bm->ldata;
-
-    int idx = CustomData_get_named_layer_index(
-        cdata, render_vcol_layer->type, render_vcol_layer->name);
-
-    if (idx == -1) {
-      render_vcol_layer = NULL; /* layer hasn't been synced over yet */
-    }
-    else {
-      render_vcol_layer = cdata->layers + idx;
-    }
-  }
+  BKE_pbvh_get_color_layer(&me_query, &vcol_layer, &domain);
+  CustomDataLayer *render_vcol_layer = BKE_id_attributes_render_color_get(&me_query.id);
 
   /* rebuild all draw buffers if attribute layout changed */
   if (GPU_pbvh_update_attribute_names(vdata,
                                       ldata,
                                       GPU_pbvh_need_full_render_get(),
                                       pbvh->flags & PBVH_FAST_DRAW,
-                                      pbvh->vcol_type,
-                                      pbvh->vcol_domain,
+                                      pbvh->color_type,
+                                      pbvh->color_domain,
                                       vcol_layer,
                                       render_vcol_layer,
                                       !GPU_pbvh_need_full_render_get())) {
@@ -4270,7 +4254,7 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
 
   switch (BKE_pbvh_type(pbvh)) {
     case PBVH_FACES: {
-      for (int i = 0; i < node->totprim; i++) {
+      for (int i = 0; i < (int)node->totprim; i++) {
         const MLoopTri *lt = &pbvh->looptri[node->prim_indices[i]];
 
         if (pbvh->face_sets[lt->poly] < 0) {
@@ -4281,7 +4265,7 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
         pbvh->face_areas[lt->poly * 2 + cur_i] = 0.0f;
       }
 
-      for (int i = 0; i < node->totprim; i++) {
+      for (int i = 0; i < (int)node->totprim; i++) {
         const MLoopTri *lt = &pbvh->looptri[node->prim_indices[i]];
 
         if (pbvh->face_sets[lt->poly] < 0) {
@@ -4835,7 +4819,7 @@ bool BKE_pbvh_cache_is_valid(const struct Object *ob,
   }
 
   bool ok = true;
-  int totvert, totedge, totloop, totpoly;
+  int totvert = 0, totedge = 0, totloop = 0, totpoly = 0;
   const CustomData *vdata, *edata, *ldata, *pdata;
 
   switch (pbvh_type) {
@@ -5185,10 +5169,27 @@ void BKE_pbvh_update_active_vcol(PBVH *pbvh, const Mesh *mesh)
 {
   CustomDataLayer *last_layer = pbvh->color_layer;
 
-  BKE_pbvh_get_color_layer(mesh, &pbvh->color_layer, &pbvh->color_domain);
+  Mesh me_query;
+  const CustomData *vdata, *ldata;
+
+  if (pbvh->type == PBVH_BMESH && pbvh->bm) {
+    vdata = &pbvh->bm->vdata;
+    ldata = &pbvh->bm->ldata;
+  }
+  else {
+    vdata = &mesh->vdata;
+    ldata = &mesh->ldata;
+  }
+
+  BKE_id_attribute_copy_domains_temp(ID_ME, vdata, NULL, ldata, NULL, NULL, &me_query.id);
+  BKE_pbvh_get_color_layer(&me_query, &pbvh->color_layer, &pbvh->color_domain);
 
   if (pbvh->color_layer) {
     pbvh->color_type = pbvh->color_layer->type;
+
+    if (pbvh->bm) {
+      pbvh->cd_vcol_offset = pbvh->color_layer->offset;
+    }
   }
 
   if (pbvh->color_layer != last_layer) {
@@ -5241,7 +5242,7 @@ void BKE_pbvh_ensure_node_loops(PBVH *pbvh)
     node->loop_indices = MEM_malloc_arrayN(node->totprim * 3, sizeof(int), __func__);
     node->loop_indices_num = 0;
 
-    for (int j = 0; j < node->totprim; j++) {
+    for (int j = 0; j < (int)node->totprim; j++) {
       const MLoopTri *mlt = pbvh->looptri + node->prim_indices[j];
 
       for (int k = 0; k < 3; k++) {
@@ -5268,10 +5269,12 @@ bool BKE_pbvh_get_origvert(
 
       if (mv->stroke_id != pbvh->stroke_id) {
         mv->stroke_id = pbvh->stroke_id;
+        float *mask = NULL;
 
         if (pbvh->type == PBVH_FACES) {
           copy_v3_v3(mv->origco, pbvh->verts[vertex.i].co);
           copy_v3_v3(mv->origno, pbvh->vert_normals[vertex.i]);
+          mask = (float *)CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK);
         }
         else {
           const CCGKey *key = BKE_pbvh_get_grid_key(pbvh);
@@ -5281,12 +5284,11 @@ bool BKE_pbvh_get_origvert(
 
           copy_v3_v3(mv->origco, CCG_elem_co(key, CCG_elem_offset(key, elem, vertex_index)));
           copy_v3_v3(mv->origno, CCG_elem_no(key, CCG_elem_offset(key, elem, vertex_index)));
+          mask = CCG_elem_mask(key, CCG_elem_offset(key, elem, vertex_index));
         }
 
-        float *mask = (float *)CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK);
-
         if (mask) {
-          mv->origmask = mask[vertex.i];
+          mv->origmask = (ushort)(mask[vertex.i] * 65535.0f);
         }
 
         if (pbvh->color_layer) {

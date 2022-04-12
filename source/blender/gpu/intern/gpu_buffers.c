@@ -238,22 +238,22 @@ static bool gpu_pbvh_is_looptri_visible(const MLoopTri *lt,
           sculpt_face_sets[lt->poly] > SCULPT_FACE_SET_NONE);
 }
 
-ATTR_NO_OPT void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
-                                              const MVert *mvert,
-                                              const MLoop *mloop,
-                                              const MPoly *mpoly,
-                                              const MLoopTri *looptri,
-                                              const CustomData *vdata,
-                                              const CustomData *ldata,
-                                              const float *vmask,
-                                              const CustomDataLayer *active_vcol_layer,
-                                              const CustomDataLayer *render_vcol_layer,
-                                              const AttributeDomain active_vcol_domain,
-                                              const int *sculpt_face_sets,
-                                              const int face_sets_color_seed,
-                                              const int face_sets_color_default,
-                                              const int update_flags,
-                                              const float (*vert_normals)[3])
+void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
+                                  const MVert *mvert,
+                                  const MLoop *mloop,
+                                  const MPoly *mpoly,
+                                  const MLoopTri *looptri,
+                                  const CustomData *vdata,
+                                  const CustomData *ldata,
+                                  const float *vmask,
+                                  const CustomDataLayer *active_vcol_layer,
+                                  const CustomDataLayer *render_vcol_layer,
+                                  const AttributeDomain active_vcol_domain,
+                                  const int *sculpt_face_sets,
+                                  const int face_sets_color_seed,
+                                  const int face_sets_color_default,
+                                  const int update_flags,
+                                  const float (*vert_normals)[3])
 {
   GPUAttrRef vcol_refs[MAX_GPU_ATTR];
   GPUAttrRef cd_uvs[MAX_GPU_ATTR];
@@ -484,14 +484,14 @@ ATTR_NO_OPT void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
   buffers->mvert = mvert;
 }
 
-ATTR_NO_OPT GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const MPoly *mpoly,
-                                                          const MLoop *mloop,
-                                                          const MLoopTri *looptri,
-                                                          const MVert *mvert,
-                                                          const int *face_indices,
-                                                          const int *sculpt_face_sets,
-                                                          const int face_indices_len,
-                                                          const struct Mesh *mesh)
+GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const MPoly *mpoly,
+                                              const MLoop *mloop,
+                                              const MLoopTri *looptri,
+                                              const MVert *mvert,
+                                              const int *face_indices,
+                                              const int *sculpt_face_sets,
+                                              const int face_indices_len,
+                                              const struct Mesh *mesh)
 {
   GPU_PBVH_Buffers *buffers;
   int i, tottri;

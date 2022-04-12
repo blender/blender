@@ -217,9 +217,6 @@ struct PBVH {
 
   int totuv;
 
-  int vcol_type;
-  int vcol_domain;
-
   float planes[6][4];
   int num_planes;
 

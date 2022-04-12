@@ -719,7 +719,9 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
     e->head.hflag |= BM_ELEM_DRAW;
   }
 
-  BKE_pbvh_update_sculpt_verts(ss->pbvh);
+  if (ss->pbvh) {
+    BKE_pbvh_update_sculpt_verts(ss->pbvh);
+  }
 
   /* Make sure the data for existing faces are initialized. */
   if (me->totpoly != ss->bm->totface) {
