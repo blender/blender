@@ -377,6 +377,7 @@ namespace curves {
  */
 inline int curve_segment_size(const int points_num, const bool cyclic)
 {
+  BLI_assert(points_num > 0);
   return cyclic ? points_num : points_num - 1;
 }
 
@@ -681,8 +682,7 @@ inline IndexRange CurvesGeometry::lengths_range_for_curve(const int curve_index,
   BLI_assert(cyclic == this->cyclic()[curve_index]);
   const IndexRange points = this->evaluated_points_for_curve(curve_index);
   const int start = points.start() + curve_index;
-  const int size = curves::curve_segment_size(points.size(), cyclic);
-  return {start, size};
+  return {start, points.is_empty() ? 0 : curves::curve_segment_size(points.size(), cyclic)};
 }
 
 inline Span<float> CurvesGeometry::evaluated_lengths_for_curve(const int curve_index,
