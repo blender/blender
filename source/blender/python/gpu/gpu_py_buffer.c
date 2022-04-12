@@ -277,7 +277,10 @@ static int pygpu_buffer__tp_traverse(BPyGPUBuffer *self, visitproc visit, void *
 
 static int pygpu_buffer__tp_clear(BPyGPUBuffer *self)
 {
-  Py_CLEAR(self->parent);
+  if (self->parent) {
+    Py_CLEAR(self->parent);
+    self->buf.as_void = NULL;
+  }
   return 0;
 }
 
@@ -287,7 +290,7 @@ static void pygpu_buffer__tp_dealloc(BPyGPUBuffer *self)
     PyObject_GC_UnTrack(self);
     Py_CLEAR(self->parent);
   }
-  else {
+  else if (self->buf.as_void) {
     MEM_freeN(self->buf.as_void);
   }
 
