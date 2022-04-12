@@ -75,6 +75,7 @@ static const pxr::TfToken clamp("clamp", pxr::TfToken::Immortal);
 static const pxr::TfToken repeat("repeat", pxr::TfToken::Immortal);
 static const pxr::TfToken wrapS("wrapS", pxr::TfToken::Immortal);
 static const pxr::TfToken wrapT("wrapT", pxr::TfToken::Immortal);
+static const pxr::TfToken emissiveColor("emissiveColor", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
 /* Cycles specific tokens (Blender Importer and HdCycles) */
@@ -271,6 +272,7 @@ static InputSpecMap &preview_surface_input_map()
       {"Clearcoat", {usdtokens::clearcoat, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
       {"Clearcoat Roughness",
        {usdtokens::clearcoatRoughness, pxr::SdfValueTypeNames->Float, usdtokens::r, true}},
+      {"Emission", {usdtokens::emissiveColor, pxr::SdfValueTypeNames->Color3f, usdtokens::rgb, true}},
   };
 
   return input_map;
