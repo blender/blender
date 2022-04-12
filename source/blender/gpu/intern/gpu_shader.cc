@@ -249,6 +249,19 @@ const GPUShaderCreateInfo *GPU_shader_create_info_get(const char *info_name)
   return gpu_shader_create_info_get(info_name);
 }
 
+bool GPU_shader_create_info_check_error(const GPUShaderCreateInfo *_info, char r_error[128])
+{
+  using namespace blender::gpu::shader;
+  const ShaderCreateInfo &info = *reinterpret_cast<const ShaderCreateInfo *>(_info);
+  std::string error = info.check_error();
+  if (error.length() == 0) {
+    return true;
+  }
+
+  BLI_strncpy(r_error, error.c_str(), 128);
+  return false;
+}
+
 GPUShader *GPU_shader_create_from_info_name(const char *info_name)
 {
   using namespace blender::gpu::shader;
@@ -270,28 +283,10 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
 
   GPU_debug_group_begin(GPU_DEBUG_SHADER_COMPILATION_GROUP);
 
-  /* At least a vertex shader and a fragment shader are required, or only a compute shader. */
-  if (info.compute_source_.is_empty()) {
-    if (info.vertex_source_.is_empty()) {
-      printf("Missing vertex shader in %s.\n", info.name_.c_str());
-    }
-    if (info.fragment_source_.is_empty()) {
-      printf("Missing fragment shader in %s.\n", info.name_.c_str());
-    }
-    BLI_assert(!info.vertex_source_.is_empty() && !info.fragment_source_.is_empty());
-  }
-  else {
-    if (!info.vertex_source_.is_empty()) {
-      printf("Compute shader has vertex_source_ shader attached in %s.\n", info.name_.c_str());
-    }
-    if (!info.geometry_source_.is_empty()) {
-      printf("Compute shader has geometry_source_ shader attached in %s.\n", info.name_.c_str());
-    }
-    if (!info.fragment_source_.is_empty()) {
-      printf("Compute shader has fragment_source_ shader attached in %s.\n", info.name_.c_str());
-    }
-    BLI_assert(info.vertex_source_.is_empty() && info.geometry_source_.is_empty() &&
-               info.fragment_source_.is_empty());
+  std::string error = info.check_error();
+  if (error.length()) {
+    printf(error.c_str());
+    BLI_assert(true);
   }
 
   Shader *shader = GPUBackend::get()->shader_alloc(info.name_.c_str());

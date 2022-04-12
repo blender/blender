@@ -56,6 +56,7 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info);
 GPUShader *GPU_shader_create_from_info_name(const char *info_name);
 
 const GPUShaderCreateInfo *GPU_shader_create_info_get(const char *info_name);
+bool GPU_shader_create_info_check_error(const GPUShaderCreateInfo *_info, char r_error[128]);
 
 struct GPU_ShaderCreateFromArray_Params {
   const char **vert, **geom, **frag, **defs;
