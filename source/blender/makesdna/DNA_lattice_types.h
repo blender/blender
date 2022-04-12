@@ -23,6 +23,8 @@ struct MDeformVert;
 #
 #
 typedef struct EditLatt {
+  DNA_DEFINE_CXX_METHODS(EditLatt)
+
   struct Lattice *latt;
 
   int shapenr;
@@ -35,6 +37,8 @@ typedef struct EditLatt {
 } EditLatt;
 
 typedef struct Lattice {
+  DNA_DEFINE_CXX_METHODS(Lattice)
+
   ID id;
   struct AnimData *adt;
 

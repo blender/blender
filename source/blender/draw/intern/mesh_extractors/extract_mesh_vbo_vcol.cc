@@ -143,7 +143,7 @@ static void extract_vcol_init(const MeshRenderData *mr,
   CustomData *cd_vdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->vdata : &mr->me->vdata;
   CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->ldata;
 
-  Mesh me_query = {0};
+  Mesh me_query = blender::dna::shallow_zero_initialize();
 
   BKE_id_attribute_copy_domains_temp(
       ID_ME, cd_vdata, nullptr, cd_ldata, nullptr, nullptr, &me_query.id);
@@ -256,7 +256,7 @@ static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
   const CustomData *cd_ldata = extract_bmesh ? &coarse_mesh->edit_mesh->bm->ldata :
                                                &coarse_mesh->ldata;
 
-  Mesh me_query = *coarse_mesh;
+  Mesh me_query = blender::dna::shallow_copy(*coarse_mesh);
   BKE_id_attribute_copy_domains_temp(
       ID_ME, cd_vdata, nullptr, cd_ldata, nullptr, nullptr, &me_query.id);
 

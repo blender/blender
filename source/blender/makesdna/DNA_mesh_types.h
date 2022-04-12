@@ -50,6 +50,8 @@ typedef struct EditMeshData {
  * #BKE_mesh_runtime_looptri_ensure, #BKE_mesh_runtime_looptri_len.
  */
 struct MLoopTri_Store {
+  DNA_DEFINE_CXX_METHODS(MLoopTri_Store)
+
   /* WARNING! swapping between array (ready-to-be-used data) and array_wip
    * (where data is actually computed)
    * shall always be protected by same lock as one used for looptris computing. */
@@ -60,6 +62,8 @@ struct MLoopTri_Store {
 
 /** Runtime data, not saved in files. */
 typedef struct Mesh_Runtime {
+  DNA_DEFINE_CXX_METHODS(Mesh_Runtime)
+
   /* Evaluated mesh for objects which do not have effective modifiers.
    * This mesh is used as a result of modifier stack evaluation.
    * Since modifier stack evaluation is threaded on object level we need some synchronization. */
@@ -138,6 +142,8 @@ typedef struct Mesh_Runtime {
 } Mesh_Runtime;
 
 typedef struct Mesh {
+  DNA_DEFINE_CXX_METHODS(Mesh)
+
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;
@@ -336,6 +342,8 @@ typedef struct Mesh {
 /* deprecated by MTFace, only here for file reading */
 #ifdef DNA_DEPRECATED_ALLOW
 typedef struct TFace {
+  DNA_DEFINE_CXX_METHODS(TFace)
+
   /** The faces image for the active UVLayer. */
   void *tpage;
   float uv[4][2];

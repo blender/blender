@@ -79,7 +79,7 @@ static void node_shader_free_tex_pointdensity(bNode *node)
   PointDensity *pd = &point_density->pd;
   RE_point_density_free(pd);
   BKE_texture_pointdensity_free_data(pd);
-  memset(pd, 0, sizeof(*pd));
+  *pd = dna::shallow_zero_initialize();
   MEM_freeN(point_density);
 }
 
@@ -90,7 +90,7 @@ static void node_shader_copy_tex_pointdensity(bNodeTree *UNUSED(dest_ntree),
   dest_node->storage = MEM_dupallocN(src_node->storage);
   NodeShaderTexPointDensity *point_density = (NodeShaderTexPointDensity *)dest_node->storage;
   PointDensity *pd = &point_density->pd;
-  memset(pd, 0, sizeof(*pd));
+  *pd = dna::shallow_zero_initialize();
 }
 
 }  // namespace blender::nodes::node_shader_tex_pointdensity_cc
