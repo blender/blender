@@ -193,10 +193,18 @@ struct USDMeshData {
 void USDGenericMeshWriter::write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh)
 {
   const CustomData *ldata = &mesh->ldata;
+
+  /* Index of the UV layer to be renamed "st", set to the active UV layer index if
+   * the convert_uv_to_st option is enabled and set to -1 otherwise. */
+  const int st_layer_idx = usd_export_context_.export_params.convert_uv_to_st ?
+                               CustomData_get_active_layer_index(ldata, CD_MLOOPUV) :
+                               -1;
+
   for (int layer_idx = 0; layer_idx < ldata->totlayer; layer_idx++) {
     const CustomDataLayer *layer = &ldata->layers[layer_idx];
     if (layer->type == CD_MLOOPUV && usd_export_context_.export_params.export_uvmaps) {
-      write_uv_maps(mesh, usd_mesh, layer);
+      const char *name_override = st_layer_idx == layer_idx ? "st" : nullptr;
+      write_uv_maps(mesh, usd_mesh, layer, name_override);
     }
     else if (layer->type == CD_MLOOPCOL &&
              usd_export_context_.export_params.export_vertex_colors) {
@@ -207,7 +215,8 @@ void USDGenericMeshWriter::write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh 
 
 void USDGenericMeshWriter::write_uv_maps(const Mesh *mesh,
                                          pxr::UsdGeomMesh usd_mesh,
-                                         const CustomDataLayer *layer)
+                                         const CustomDataLayer *layer,
+                                         const char *name_override)
 {
   pxr::UsdTimeCode timecode = get_export_time_code();
 
@@ -215,7 +224,8 @@ void USDGenericMeshWriter::write_uv_maps(const Mesh *mesh,
    * The primvar name is the same as the UV Map name. This is to allow the standard name "st"
    * for texture coordinates by naming the UV Map as such, without having to guess which UV Map
    * is the "standard" one. */
-  pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(layer->name));
+  pxr::TfToken primvar_name(name_override ? name_override :
+                                            pxr::TfMakeValidIdentifier(layer->name));
 
   if (usd_export_context_.export_params.author_blender_name) {
     // Store original layer name in blender
@@ -227,9 +237,6 @@ void USDGenericMeshWriter::write_uv_maps(const Mesh *mesh,
                          true)
         .Set(std::string(layer->name), pxr::UsdTimeCode::Default());
   }
-
-  if (usd_export_context_.export_params.convert_uv_to_st)
-    primvar_name = pxr::TfToken("st");
 
   pxr::UsdGeomPrimvar uv_coords_primvar = usd_mesh.CreatePrimvar(
       primvar_name, pxr::SdfValueTypeNames->TexCoord2fArray, pxr::UsdGeomTokens->faceVarying);

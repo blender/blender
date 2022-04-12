@@ -34,7 +34,9 @@ class USDGenericMeshWriter : public USDAbstractWriter {
                         pxr::UsdGeomMesh usd_mesh,
                         const MaterialFaceGroups &usd_face_groups);
   void write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
-  void write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh, const CustomDataLayer *layer);
+  void write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh,
+                     const CustomDataLayer *layer,
+                     const char *name_override = nullptr);
   void write_vertex_colors(const Mesh *mesh,
                            pxr::UsdGeomMesh usd_mesh,
                            const CustomDataLayer *layer);

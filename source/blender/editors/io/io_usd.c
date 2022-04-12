@@ -698,8 +698,7 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
       "convert_uv_to_st",
       false,
       "Convert uv to st",
-      "When checked, the USD exporter will convert all uv map names to interchangeable 'st'"
-      "(Assumes one uv layout per mesh)");
+      "Export the active uv map as USD primvar named 'st'");
 
   RNA_def_boolean(ot->srna,
                   "convert_orientation",
