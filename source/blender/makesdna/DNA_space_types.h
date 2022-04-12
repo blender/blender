@@ -2057,7 +2057,7 @@ typedef enum eSpace_Type {
   SPACE_STATUSBAR = 22,
   SPACE_SPREADSHEET = 23
 
-#define SPACE_TYPE_LAST SPACE_SPREADSHEET
+#define SPACE_TYPE_NUM (SPACE_SPREADSHEET + 1)
 } eSpace_Type;
 
 /* use for function args */
