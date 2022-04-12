@@ -599,20 +599,21 @@ class MESH_UL_color_attributes(UIList, ColorAttributesListBase):
         split.emboss = 'NONE'
         split.prop(attribute, "name", text="")
 
-        active_render = _index == data.color_attributes.render_color_index
-
-        props = split.operator(
-            "geometry.color_attribute_render_set",
-            text="",
-            icon='RESTRICT_RENDER_OFF' if active_render else 'RESTRICT_RENDER_ON',
-        )
-
-        props.name = attribute.name
-
         sub = split.row()
         sub.alignment = 'RIGHT'
         sub.active = False
         sub.label(text="%s ▶ %s" % (domain_name, data_type.name))
+
+        active_render = _index == data.color_attributes.render_color_index
+        
+        row = layout.row()
+        row.emboss = 'NONE'
+        prop = row.operator(
+            "geometry.color_attribute_render_set",
+            text="",
+            icon='RESTRICT_RENDER_OFF' if active_render else 'RESTRICT_RENDER_ON',
+        )
+        prop.name = attribute.name
 
 
 class MESH_UL_color_attributes_selector(UIList, ColorAttributesListBase):
