@@ -153,7 +153,11 @@ void HdCyclesGeometry<Base, CyclesBase>::Sync(HdSceneDelegate *sceneDelegate,
 
     // Update transforms of all instances
     for (size_t i = 0; i < transforms.size(); ++i) {
-      const Transform tfm = convert_transform(_geomTransform * transforms[i]);
+      const float metersPerUnit =
+          static_cast<HdCyclesSession *>(renderParam)->GetStageMetersPerUnit();
+
+      const Transform tfm = transform_scale(make_float3(metersPerUnit)) *
+                            convert_transform(_geomTransform * transforms[i]);
       _instances[i]->set_tfm(tfm);
     }
   }

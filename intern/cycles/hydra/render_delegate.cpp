@@ -33,11 +33,12 @@ TF_DEFINE_PRIVATE_TOKENS(_tokens,
 );
 
 TF_DEFINE_PRIVATE_TOKENS(HdCyclesRenderSettingsTokens,
+    (stageMetersPerUnit)
     ((device, "cycles:device"))
     ((threads, "cycles:threads"))
-    ((time_limit, "cycles:time_limit"))
+    ((timeLimit, "cycles:time_limit"))
     ((samples, "cycles:samples"))
-    ((sample_offset, "cycles:sample_offset"))
+    ((sampleOffset, "cycles:sample_offset"))
 );
 // clang-format on
 
@@ -424,7 +425,7 @@ HdRenderSettingDescriptorList HdCyclesDelegate::GetRenderSettingDescriptors() co
 
   descriptors.push_back({
       "Time Limit",
-      HdCyclesRenderSettingsTokens->time_limit,
+      HdCyclesRenderSettingsTokens->timeLimit,
       VtValue(0.0),
   });
   descriptors.push_back({
@@ -434,7 +435,7 @@ HdRenderSettingDescriptorList HdCyclesDelegate::GetRenderSettingDescriptors() co
   });
   descriptors.push_back({
       "Sample Offset",
-      HdCyclesRenderSettingsTokens->sample_offset,
+      HdCyclesRenderSettingsTokens->sampleOffset,
       VtValue(0),
   });
 
@@ -452,7 +453,11 @@ void HdCyclesDelegate::SetRenderSetting(const PXR_NS::TfToken &key, const PXR_NS
   Scene *const scene = _renderParam->session->scene;
   Session *const session = _renderParam->session;
 
-  if (key == HdCyclesRenderSettingsTokens->time_limit) {
+  if (key == HdCyclesRenderSettingsTokens->stageMetersPerUnit) {
+    _renderParam->SetStageMetersPerUnit(
+        VtValue::Cast<double>(value).GetWithDefault(_renderParam->GetStageMetersPerUnit()));
+  }
+  else if (key == HdCyclesRenderSettingsTokens->timeLimit) {
     session->set_time_limit(
         VtValue::Cast<double>(value).GetWithDefault(session->params.time_limit));
   }
@@ -462,7 +467,7 @@ void HdCyclesDelegate::SetRenderSetting(const PXR_NS::TfToken &key, const PXR_NS
     samples = std::min(std::max(1, samples), max_samples);
     session->set_samples(samples);
   }
-  else if (key == HdCyclesRenderSettingsTokens->sample_offset) {
+  else if (key == HdCyclesRenderSettingsTokens->sampleOffset) {
     session->params.sample_offset = VtValue::Cast<int>(value).GetWithDefault(
         session->params.sample_offset);
     ++_settingsVersion;
@@ -484,19 +489,22 @@ VtValue HdCyclesDelegate::GetRenderSetting(const TfToken &key) const
   Scene *const scene = _renderParam->session->scene;
   Session *const session = _renderParam->session;
 
-  if (key == HdCyclesRenderSettingsTokens->device) {
+  if (key == HdCyclesRenderSettingsTokens->stageMetersPerUnit) {
+    return VtValue(_renderParam->GetStageMetersPerUnit());
+  }
+  else if (key == HdCyclesRenderSettingsTokens->device) {
     return VtValue(TfToken(Device::string_from_type(session->params.device.type)));
   }
   else if (key == HdCyclesRenderSettingsTokens->threads) {
     return VtValue(session->params.threads);
   }
-  else if (key == HdCyclesRenderSettingsTokens->time_limit) {
+  else if (key == HdCyclesRenderSettingsTokens->timeLimit) {
     return VtValue(session->params.time_limit);
   }
   else if (key == HdCyclesRenderSettingsTokens->samples) {
     return VtValue(session->params.samples);
   }
-  else if (key == HdCyclesRenderSettingsTokens->sample_offset) {
+  else if (key == HdCyclesRenderSettingsTokens->sampleOffset) {
     return VtValue(session->params.sample_offset);
   }
   else {

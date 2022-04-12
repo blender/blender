@@ -3,6 +3,7 @@
  * Copyright 2022 Blender Foundation */
 
 #include "hydra/camera.h"
+#include "hydra/session.h"
 #include "scene/camera.h"
 
 #include <pxr/base/gf/frustum.h>
@@ -12,6 +13,19 @@
 HDCYCLES_NAMESPACE_OPEN_SCOPE
 
 extern Transform convert_transform(const GfMatrix4d &matrix);
+Transform convert_camera_transform(const GfMatrix4d &matrix, float metersPerUnit)
+{
+  Transform t = convert_transform(matrix);
+  // Flip Z axis
+  t.x.z *= -1.0f;
+  t.y.z *= -1.0f;
+  t.z.z *= -1.0f;
+  // Scale translation
+  t.x.w *= metersPerUnit;
+  t.y.w *= metersPerUnit;
+  t.z.w *= metersPerUnit;
+  return t;
+}
 
 #if PXR_VERSION < 2102
 // clang-format off
@@ -61,12 +75,19 @@ void HdCyclesCamera::Sync(HdSceneDelegate *sceneDelegate,
   if (*dirtyBits & DirtyBits::DirtyTransform) {
     sceneDelegate->SampleTransform(id, &_transformSamples);
 
+    bool transform_found = false;
     for (size_t i = 0; i < _transformSamples.count; ++i) {
       if (_transformSamples.times[i] == 0.0f) {
         _transform = _transformSamples.values[i];
         _data.SetTransform(_transform);
+        transform_found = true;
         break;
       }
+    }
+
+    if (!transform_found && _transformSamples.count) {
+      _transform = _transformSamples.values[0];
+      _data.SetTransform(_transform);
     }
   }
 #else
@@ -236,18 +257,21 @@ void HdCyclesCamera::Finalize(HdRenderParam *renderParam)
   HdCamera::Finalize(renderParam);
 }
 
-void HdCyclesCamera::ApplyCameraSettings(Camera *cam) const
+void HdCyclesCamera::ApplyCameraSettings(HdRenderParam *renderParam, Camera *cam) const
 {
-  ApplyCameraSettings(_data, _windowPolicy, cam);
+  ApplyCameraSettings(renderParam, _data, _windowPolicy, cam);
+
+  const float metersPerUnit = static_cast<HdCyclesSession *>(renderParam)->GetStageMetersPerUnit();
 
   array<Transform> motion(_transformSamples.count);
-  for (size_t i = 0; i < _transformSamples.count; ++i)
-    motion[i] = convert_transform(_transformSamples.values[i]) *
-                transform_scale(1.0f, 1.0f, -1.0f);
+  for (size_t i = 0; i < _transformSamples.count; ++i) {
+    motion[i] = convert_camera_transform(_transformSamples.values[i], metersPerUnit);
+  }
   cam->set_motion(motion);
 }
 
-void HdCyclesCamera::ApplyCameraSettings(const GfCamera &dataUnconformedWindow,
+void HdCyclesCamera::ApplyCameraSettings(HdRenderParam *renderParam,
+                                         const GfCamera &dataUnconformedWindow,
                                          CameraUtilConformWindowPolicy windowPolicy,
                                          Camera *cam)
 {
@@ -261,20 +285,22 @@ void HdCyclesCamera::ApplyCameraSettings(const GfCamera &dataUnconformedWindow,
                 GfCamera::Orthographic == CAMERA_ORTHOGRAPHIC);
   cam->set_camera_type(static_cast<CameraType>(data.GetProjection()));
 
+  const float metersPerUnit = static_cast<HdCyclesSession *>(renderParam)->GetStageMetersPerUnit();
+
   auto viewplane = data.GetFrustum().GetWindow();
   auto focalLength = 1.0f;
   if (data.GetProjection() == GfCamera::Perspective) {
     viewplane *= 2.0 / viewplane.GetSize()[1];  // Normalize viewplane
-    focalLength = data.GetFocalLength() * 1e-3f;
+    focalLength = data.GetFocalLength() * GfCamera::FOCAL_LENGTH_UNIT * metersPerUnit;
 
     cam->set_fov(GfDegreesToRadians(data.GetFieldOfView(GfCamera::FOVVertical)));
   }
 
-  cam->set_sensorwidth(data.GetHorizontalAperture() * GfCamera::APERTURE_UNIT);
-  cam->set_sensorheight(data.GetVerticalAperture() * GfCamera::APERTURE_UNIT);
+  cam->set_sensorwidth(data.GetHorizontalAperture() * GfCamera::APERTURE_UNIT * metersPerUnit);
+  cam->set_sensorheight(data.GetVerticalAperture() * GfCamera::APERTURE_UNIT * metersPerUnit);
 
-  cam->set_nearclip(data.GetClippingRange().GetMin());
-  cam->set_farclip(data.GetClippingRange().GetMax());
+  cam->set_nearclip(data.GetClippingRange().GetMin() * metersPerUnit);
+  cam->set_farclip(data.GetClippingRange().GetMax() * metersPerUnit);
 
   cam->set_viewplane_left(viewplane.GetMin()[0]);
   cam->set_viewplane_right(viewplane.GetMax()[0]);
@@ -282,14 +308,15 @@ void HdCyclesCamera::ApplyCameraSettings(const GfCamera &dataUnconformedWindow,
   cam->set_viewplane_top(viewplane.GetMax()[1]);
 
   if (data.GetFStop() != 0.0f) {
-    cam->set_focaldistance(data.GetFocusDistance());
+    cam->set_focaldistance(data.GetFocusDistance() * metersPerUnit);
     cam->set_aperturesize(focalLength / (2.0f * data.GetFStop()));
   }
 
-  cam->set_matrix(convert_transform(data.GetTransform()) * transform_scale(1.0f, 1.0f, -1.0f));
+  cam->set_matrix(convert_camera_transform(data.GetTransform(), metersPerUnit));
 }
 
-void HdCyclesCamera::ApplyCameraSettings(const GfMatrix4d &worldToViewMatrix,
+void HdCyclesCamera::ApplyCameraSettings(HdRenderParam *renderParam,
+                                         const GfMatrix4d &worldToViewMatrix,
                                          const GfMatrix4d &projectionMatrix,
                                          const std::vector<GfVec4d> &clipPlanes,
                                          Camera *cam)
@@ -298,7 +325,7 @@ void HdCyclesCamera::ApplyCameraSettings(const GfMatrix4d &worldToViewMatrix,
   GfCamera data;
   data.SetFromViewAndProjectionMatrix(worldToViewMatrix, projectionMatrix);
 
-  ApplyCameraSettings(data, CameraUtilFit, cam);
+  ApplyCameraSettings(renderParam, data, CameraUtilFit, cam);
 #else
   TF_CODING_ERROR("Not implemented");
 #endif

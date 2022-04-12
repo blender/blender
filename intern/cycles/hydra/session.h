@@ -29,6 +29,16 @@ class HdCyclesSession final : public PXR_NS::HdRenderParam {
 
   void UpdateScene();
 
+  double GetStageMetersPerUnit() const
+  {
+    return _stageMetersPerUnit;
+  }
+
+  void SetStageMetersPerUnit(double stageMetersPerUnit)
+  {
+    _stageMetersPerUnit = stageMetersPerUnit;
+  }
+
   PXR_NS::HdRenderPassAovBinding GetDisplayAovBinding() const
   {
     return _displayAovBinding;
@@ -52,6 +62,7 @@ class HdCyclesSession final : public PXR_NS::HdRenderParam {
 
  private:
   const bool _ownCyclesSession;
+  double _stageMetersPerUnit = 0.01;
   PXR_NS::HdRenderPassAovBindingVector _aovBindings;
   PXR_NS::HdRenderPassAovBinding _displayAovBinding;
 };
