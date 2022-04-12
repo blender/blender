@@ -1658,7 +1658,10 @@ static void layer_collection_local_sync(ViewLayer *view_layer,
 
   if (visible) {
     LISTBASE_FOREACH (CollectionObject *, cob, &layer_collection->collection->gobject) {
-      BLI_assert(cob->ob);
+      if (cob->ob == NULL) {
+        continue;
+      }
+
       Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
       base->local_collections_bits |= local_collections_uuid;
     }
