@@ -349,12 +349,7 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
-  if (!SCULPT_has_colors(ss)) {
-    return OPERATOR_CANCELLED;
-  }
-
   SCULPT_undo_push_begin(ob, "color filter");
-
   BKE_sculpt_color_layer_create_if_needed(ob);
 
   /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the updates of
@@ -386,7 +381,7 @@ void SCULPT_OT_color_filter(struct wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = sculpt_color_filter_invoke;
   ot->modal = sculpt_color_filter_modal;
-  ot->poll = SCULPT_vertex_colors_poll;
+  ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
