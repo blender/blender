@@ -439,6 +439,9 @@ typedef struct FilterCache {
 
   /* Auto-masking. */
   AutomaskingCache *automasking;
+
+  /* Pre-smoothed colors used by sharpening. Colors are HSL.*/ 
+  float (*pre_smoothed_color)[4];
 } FilterCache;
 
 /**

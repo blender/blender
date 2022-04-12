@@ -193,7 +193,32 @@ static void color_filter_task_cb(void *__restrict userdata,
         float col[4];
         SCULPT_vertex_color_get(ss, vd.index, col);
 
-        blend_color_interpolate_float(final_color, col, smooth_color, fade);
+        if (fade < 0.0f) {
+          interp_v4_v4v4(smooth_color, smooth_color, col, 0.5f);
+        }
+
+        bool copy_alpha = col[3] == smooth_color[3];
+
+        if (fade < 0.0f) {
+          float delta[4];
+
+          /* Unsharp mask. */
+          copy_v4_v4(delta, ss->filter_cache->pre_smoothed_color[vd.index]);
+          sub_v4_v4(delta, smooth_color);
+
+          copy_v4_v4(final_color, col);
+          madd_v4_v4fl(final_color, delta, fade);
+        }
+        else {
+          blend_color_interpolate_float(final_color, col, smooth_color, fade);
+        }
+
+        CLAMP4(final_color, 0.0f, 1.0f);
+
+        /* Prevent accumulated numeric error from corrupting alpha. */
+        if (copy_alpha) {
+          final_color[3] = smooth_color[3];
+        }
         break;
       }
     }
@@ -206,6 +231,46 @@ static void color_filter_task_cb(void *__restrict userdata,
   }
   BKE_pbvh_vertex_iter_end;
   BKE_pbvh_node_mark_update_color(data->nodes[n]);
+}
+
+static void sculpt_color_presmooth_init(SculptSession *ss)
+{
+  int totvert = SCULPT_vertex_count_get(ss);
+
+  if (!ss->filter_cache->pre_smoothed_color) {
+    ss->filter_cache->pre_smoothed_color = MEM_malloc_arrayN(
+        totvert, sizeof(float) * 4, "ss->filter_cache->pre_smoothed_color");
+  }
+
+  for (int i = 0; i < totvert; i++) {
+    SCULPT_vertex_color_get(ss, i, ss->filter_cache->pre_smoothed_color[i]);
+  }
+
+  for (int iteration = 0; iteration < 2; iteration++) {
+    for (int i = 0; i < totvert; i++) {
+      float avg[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+      int total = 0;
+
+      SculptVertexNeighborIter ni;
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
+        float col[4] = {0};
+
+        copy_v4_v4(col, ss->filter_cache->pre_smoothed_color[ni.index]);
+
+        add_v4_v4(avg, col);
+        total++;
+      }
+      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+      if (total > 0) {
+        mul_v4_fl(avg, 1.0f / (float)total);
+        interp_v4_v4v4(ss->filter_cache->pre_smoothed_color[i],
+                       ss->filter_cache->pre_smoothed_color[i],
+                       avg,
+                       0.5f);
+      }
+    }
+  }
 }
 
 static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -233,6 +298,10 @@ static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   float fill_color[3];
   RNA_float_get_array(op->ptr, "fill_color", fill_color);
   IMB_colormanagement_srgb_to_scene_linear_v3(fill_color);
+
+  if (filter_strength < 0.0 && !ss->filter_cache->pre_smoothed_color) {
+    sculpt_color_presmooth_init(ss);
+  }
 
   SculptThreadedTaskData data = {
       .sd = sd,

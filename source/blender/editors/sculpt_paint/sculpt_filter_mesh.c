@@ -178,6 +178,7 @@ void SCULPT_filter_cache_free(SculptSession *ss)
   MEM_SAFE_FREE(ss->filter_cache->sharpen_factor);
   MEM_SAFE_FREE(ss->filter_cache->detail_directions);
   MEM_SAFE_FREE(ss->filter_cache->limit_surface_co);
+  MEM_SAFE_FREE(ss->filter_cache->pre_smoothed_color);
   MEM_SAFE_FREE(ss->filter_cache);
 }
 
