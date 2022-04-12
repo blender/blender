@@ -1350,7 +1350,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
       if (need_lnors_dst) {
         short(*custom_nors_dst)[2] = CustomData_get_layer(ldata_dst, CD_CUSTOMLOOPNORMAL);
 
-        /* Cache poly nors into a temp CDLayer. */
+        /* Cache loop normals into a temporary custom data layer. */
         loop_nors_dst = CustomData_get_layer(ldata_dst, CD_NORMAL);
         const bool do_loop_nors_dst = (loop_nors_dst == NULL);
         if (!loop_nors_dst) {
