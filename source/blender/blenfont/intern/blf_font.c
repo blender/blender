@@ -138,12 +138,12 @@ void blf_batch_draw_begin(FontBLF *font)
 
   if (simple_shader) {
     /* Offset is applied to each glyph. */
-    g_batch.ofs[0] = floorf(font->pos[0]);
-    g_batch.ofs[1] = floorf(font->pos[1]);
+    g_batch.ofs[0] = font->pos[0];
+    g_batch.ofs[1] = font->pos[1];
   }
   else {
     /* Offset is baked in modelview mat. */
-    zero_v2(g_batch.ofs);
+    zero_v2_int(g_batch.ofs);
   }
 
   if (g_batch.active) {
@@ -425,8 +425,8 @@ static void blf_font_draw_buffer_ex(FontBLF *font,
                                     ft_pix pen_y)
 {
   GlyphBLF *g, *g_prev = NULL;
-  ft_pix pen_x = ft_pix_from_float(font->pos[0]);
-  ft_pix pen_y_basis = ft_pix_from_float(font->pos[1]) + pen_y;
+  ft_pix pen_x = ft_pix_from_int(font->pos[0]);
+  ft_pix pen_y_basis = ft_pix_from_int(font->pos[1]) + pen_y;
   size_t i = 0;
 
   /* buffer specific vars */
@@ -586,7 +586,7 @@ static bool blf_font_width_to_strlen_glyph_process(
 }
 
 size_t blf_font_width_to_strlen(
-    FontBLF *font, const char *str, const size_t str_len, float width, float *r_width)
+    FontBLF *font, const char *str, const size_t str_len, int width, int *r_width)
 {
   GlyphBLF *g, *g_prev;
   ft_pix pen_x;
@@ -606,7 +606,7 @@ size_t blf_font_width_to_strlen(
   }
 
   if (r_width) {
-    *r_width = (float)ft_pix_to_int(width_new);
+    *r_width = ft_pix_to_int(width_new);
   }
 
   blf_glyph_cache_release(font);
@@ -614,7 +614,7 @@ size_t blf_font_width_to_strlen(
 }
 
 size_t blf_font_width_to_rstrlen(
-    FontBLF *font, const char *str, const size_t str_len, float width, float *r_width)
+    FontBLF *font, const char *str, const size_t str_len, int width, int *r_width)
 {
   GlyphBLF *g, *g_prev;
   ft_pix pen_x, width_new;
@@ -622,7 +622,6 @@ size_t blf_font_width_to_rstrlen(
   const char *s, *s_prev;
 
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
-  const int width_i = (int)width;
 
   i = BLI_strnlen(str, str_len);
   s = BLI_str_find_prev_char_utf8(&str[i], str);
@@ -643,13 +642,13 @@ size_t blf_font_width_to_rstrlen(
       BLI_assert(i_tmp == i);
     }
 
-    if (blf_font_width_to_strlen_glyph_process(font, g_prev, g, &pen_x, width_i)) {
+    if (blf_font_width_to_strlen_glyph_process(font, g_prev, g, &pen_x, width)) {
       break;
     }
   }
 
   if (r_width) {
-    *r_width = (float)ft_pix_to_int(width_new);
+    *r_width = ft_pix_to_int(width_new);
   }
 
   blf_glyph_cache_release(font);
@@ -666,7 +665,7 @@ static void blf_font_boundbox_ex(FontBLF *font,
                                  GlyphCacheBLF *gc,
                                  const char *str,
                                  const size_t str_len,
-                                 rctf *box,
+                                 rcti *box,
                                  struct ResultBLF *r_info,
                                  ft_pix pen_y)
 {
@@ -718,10 +717,10 @@ static void blf_font_boundbox_ex(FontBLF *font,
     box_ymax = 0;
   }
 
-  box->xmin = (float)ft_pix_to_int_floor(box_xmin);
-  box->xmax = (float)ft_pix_to_int_ceil(box_xmax);
-  box->ymin = (float)ft_pix_to_int_floor(box_ymin);
-  box->ymax = (float)ft_pix_to_int_ceil(box_ymax);
+  box->xmin = ft_pix_to_int_floor(box_xmin);
+  box->xmax = ft_pix_to_int_ceil(box_xmax);
+  box->ymin = ft_pix_to_int_floor(box_ymin);
+  box->ymax = ft_pix_to_int_ceil(box_ymax);
 
   if (r_info) {
     r_info->lines = 1;
@@ -729,7 +728,7 @@ static void blf_font_boundbox_ex(FontBLF *font,
   }
 }
 void blf_font_boundbox(
-    FontBLF *font, const char *str, const size_t str_len, rctf *r_box, struct ResultBLF *r_info)
+    FontBLF *font, const char *str, const size_t str_len, rcti *r_box, struct ResultBLF *r_info)
 {
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
   blf_font_boundbox_ex(font, gc, str, str_len, r_box, r_info, 0);
@@ -744,7 +743,7 @@ void blf_font_width_and_height(FontBLF *font,
                                struct ResultBLF *r_info)
 {
   float xa, ya;
-  rctf box;
+  rcti box;
 
   if (font->flags & BLF_ASPECT) {
     xa = font->aspect[0];
@@ -761,8 +760,8 @@ void blf_font_width_and_height(FontBLF *font,
   else {
     blf_font_boundbox(font, str, str_len, &box, r_info);
   }
-  *r_width = (BLI_rctf_size_x(&box) * xa);
-  *r_height = (BLI_rctf_size_y(&box) * ya);
+  *r_width = ((float)BLI_rcti_size_x(&box) * xa);
+  *r_height = ((float)BLI_rcti_size_y(&box) * ya);
 }
 
 float blf_font_width(FontBLF *font,
@@ -771,7 +770,7 @@ float blf_font_width(FontBLF *font,
                      struct ResultBLF *r_info)
 {
   float xa;
-  rctf box;
+  rcti box;
 
   if (font->flags & BLF_ASPECT) {
     xa = font->aspect[0];
@@ -786,7 +785,7 @@ float blf_font_width(FontBLF *font,
   else {
     blf_font_boundbox(font, str, str_len, &box, r_info);
   }
-  return BLI_rctf_size_x(&box) * xa;
+  return (float)BLI_rcti_size_x(&box) * xa;
 }
 
 float blf_font_height(FontBLF *font,
@@ -795,7 +794,7 @@ float blf_font_height(FontBLF *font,
                       struct ResultBLF *r_info)
 {
   float ya;
-  rctf box;
+  rcti box;
 
   if (font->flags & BLF_ASPECT) {
     ya = font->aspect[1];
@@ -810,7 +809,7 @@ float blf_font_height(FontBLF *font,
   else {
     blf_font_boundbox(font, str, str_len, &box, r_info);
   }
-  return BLI_rctf_size_y(&box) * ya;
+  return (float)BLI_rcti_size_y(&box) * ya;
 }
 
 float blf_font_fixed_width(FontBLF *font)
@@ -858,11 +857,11 @@ static void blf_font_boundbox_foreach_glyph_ex(FontBLF *font,
 
     pen_x = pen_x_next;
 
-    rctf box_px;
-    box_px.xmin = (float)ft_pix_to_int_floor(g->box_xmin);
-    box_px.xmax = (float)ft_pix_to_int_ceil(g->box_xmax);
-    box_px.ymin = (float)ft_pix_to_int_floor(g->box_ymin);
-    box_px.ymax = (float)ft_pix_to_int_ceil(g->box_ymax);
+    rcti box_px;
+    box_px.xmin = ft_pix_to_int_floor(g->box_xmin);
+    box_px.xmax = ft_pix_to_int_ceil(g->box_xmax);
+    box_px.ymin = ft_pix_to_int_floor(g->box_ymin);
+    box_px.ymax = ft_pix_to_int_ceil(g->box_ymax);
 
     if (user_fn(str, i_curr, &gbox_px, advance_x_px, &box_px, g->pos, user_data) == false) {
       break;
@@ -1026,19 +1025,19 @@ static void blf_font_boundbox_wrap_cb(FontBLF *font,
                                       ft_pix pen_y,
                                       void *userdata)
 {
-  rctf *box = userdata;
-  rctf box_single;
+  rcti *box = userdata;
+  rcti box_single;
 
   blf_font_boundbox_ex(font, gc, str, str_len, &box_single, NULL, pen_y);
-  BLI_rctf_union(box, &box_single);
+  BLI_rcti_union(box, &box_single);
 }
 void blf_font_boundbox__wrap(
-    FontBLF *font, const char *str, const size_t str_len, rctf *box, struct ResultBLF *r_info)
+    FontBLF *font, const char *str, const size_t str_len, rcti *box, struct ResultBLF *r_info)
 {
-  box->xmin = 32000.0f;
-  box->xmax = -32000.0f;
-  box->ymin = 32000.0f;
-  box->ymax = -32000.0f;
+  box->xmin = 32000;
+  box->xmax = -32000;
+  box->ymin = 32000;
+  box->ymax = -32000;
 
   blf_font_wrap_apply(font, str, str_len, r_info, blf_font_boundbox_wrap_cb, box);
 }
@@ -1141,14 +1140,14 @@ int blf_font_width_max(FontBLF *font)
   return ft_pix_to_int(blf_font_width_max_ft_pix(font));
 }
 
-float blf_font_descender(FontBLF *font)
+int blf_font_descender(FontBLF *font)
 {
-  return ((float)font->face->size->metrics.descender) / 64.0f;
+  return ft_pix_to_int((ft_pix)font->face->size->metrics.descender);
 }
 
-float blf_font_ascender(FontBLF *font)
+int blf_font_ascender(FontBLF *font)
 {
-  return ((float)font->face->size->metrics.ascender) / 64.0f;
+  return ft_pix_to_int((ft_pix)font->face->size->metrics.ascender);
 }
 
 char *blf_display_name(FontBLF *font)
@@ -1197,8 +1196,8 @@ static void blf_font_fill(FontBLF *font)
   font->aspect[0] = 1.0f;
   font->aspect[1] = 1.0f;
   font->aspect[2] = 1.0f;
-  font->pos[0] = 0.0f;
-  font->pos[1] = 0.0f;
+  font->pos[0] = 0;
+  font->pos[1] = 0;
   font->angle = 0.0f;
 
   for (int i = 0; i < 16; i++) {

@@ -101,7 +101,7 @@ typedef struct BatchBLF {
   struct GPUVertBufRaw pos_step, col_step, offset_step, glyph_size_step;
   unsigned int pos_loc, col_loc, offset_loc, glyph_size_loc;
   unsigned int glyph_len;
-  float ofs[2];    /* copy of font->pos */
+  int ofs[2];      /* copy of font->pos */
   float mat[4][4]; /* previous call modelmatrix. */
   bool enabled, active, simple_shader;
   struct GlyphCacheBLF *glyph_cache;
@@ -231,7 +231,7 @@ typedef struct FontBLF {
   float aspect[3];
 
   /* initial position for draw the text. */
-  float pos[3];
+  int pos[3];
 
   /* angle in radians. */
   float angle;
@@ -260,7 +260,7 @@ typedef struct FontBLF {
   float m[16];
 
   /* clipping rectangle. */
-  rctf clip_rec;
+  rcti clip_rec;
 
   /* the width to wrap the text, see BLF_WORD_WRAP */
   int wrap_width;

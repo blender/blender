@@ -161,7 +161,7 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
   }
   else {
     /* Draw from bound-box center. */
-    const float height = BLF_ascender(fs->uifont_id) + BLF_descender(fs->uifont_id);
+    const int height = BLF_ascender(fs->uifont_id) + BLF_descender(fs->uifont_id);
     yofs = ceil(0.5f * (BLI_rcti_size_y(rect) - height));
   }
 
@@ -279,9 +279,9 @@ void UI_fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
   UI_fontstyle_set(fs);
 
   {
-    const float width = BLF_width(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
-    const float height = BLF_height_max(fs->uifont_id);
-    const float decent = BLF_descender(fs->uifont_id);
+    const int width = BLF_width(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
+    const int height = BLF_height_max(fs->uifont_id);
+    const int decent = BLF_descender(fs->uifont_id);
     const float margin = height / 4.0f;
 
     rctf rect;

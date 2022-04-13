@@ -491,28 +491,29 @@ void blf_glyph_free(GlyphBLF *g)
 /** \name Glyph Bounds Calculation
  * \{ */
 
-static void blf_glyph_calc_rect(rctf *rect, GlyphBLF *g, float x, float y)
+static void blf_glyph_calc_rect(rcti *rect, GlyphBLF *g, const int x, const int y)
 {
-  rect->xmin = floorf(x + (float)g->pos[0]);
-  rect->xmax = rect->xmin + (float)g->dims[0];
-  rect->ymin = floorf(y + (float)g->pos[1]);
-  rect->ymax = rect->ymin - (float)g->dims[1];
+  rect->xmin = x + g->pos[0];
+  rect->xmax = rect->xmin + g->dims[0];
+  rect->ymin = y + g->pos[1];
+  rect->ymax = rect->ymin - g->dims[1];
 }
 
-static void blf_glyph_calc_rect_test(rctf *rect, GlyphBLF *g, float x, float y)
+static void blf_glyph_calc_rect_test(rcti *rect, GlyphBLF *g, const int x, const int y)
 {
   /* Intentionally check with `g->advance`, because this is the
    * width used by BLF_width. This allows that the text slightly
    * overlaps the clipping border to achieve better alignment. */
-  rect->xmin = floorf(x);
-  rect->xmax = rect->xmin + MIN2((float)ft_pix_to_int(g->advance_x), (float)g->dims[0]);
-  rect->ymin = floorf(y);
-  rect->ymax = rect->ymin - (float)g->dims[1];
+  rect->xmin = x;
+  rect->xmax = rect->xmin + MIN2(ft_pix_to_int(g->advance_x), g->dims[0]);
+  rect->ymin = y;
+  rect->ymax = rect->ymin - g->dims[1];
 }
 
-static void blf_glyph_calc_rect_shadow(rctf *rect, GlyphBLF *g, float x, float y, FontBLF *font)
+static void blf_glyph_calc_rect_shadow(
+    rcti *rect, GlyphBLF *g, const int x, const int y, FontBLF *font)
 {
-  blf_glyph_calc_rect(rect, g, x + (float)font->shadow_x, y + (float)font->shadow_y);
+  blf_glyph_calc_rect(rect, g, x + font->shadow_x, y + font->shadow_y);
 }
 
 /** \} */
@@ -524,18 +525,18 @@ static void blf_glyph_calc_rect_shadow(rctf *rect, GlyphBLF *g, float x, float y
 static void blf_texture_draw(const unsigned char color[4],
                              const int glyph_size[2],
                              const int offset,
-                             float x1,
-                             float y1,
-                             float x2,
-                             float y2)
+                             const int x1,
+                             const int y1,
+                             const int x2,
+                             const int y2)
 {
   /* Only one vertex per glyph, geometry shader expand it into a quad. */
   /* TODO: Get rid of Geom Shader because it's not optimal AT ALL for the GPU. */
   copy_v4_fl4(GPU_vertbuf_raw_step(&g_batch.pos_step),
-              x1 + g_batch.ofs[0],
-              y1 + g_batch.ofs[1],
-              x2 + g_batch.ofs[0],
-              y2 + g_batch.ofs[1]);
+              (float)(x1 + g_batch.ofs[0]),
+              (float)(y1 + g_batch.ofs[1]),
+              (float)(x2 + g_batch.ofs[0]),
+              (float)(y2 + g_batch.ofs[1]));
   copy_v4_v4_uchar(GPU_vertbuf_raw_step(&g_batch.col_step), color);
   copy_v2_v2_int(GPU_vertbuf_raw_step(&g_batch.glyph_size_step), glyph_size);
   *((int *)GPU_vertbuf_raw_step(&g_batch.offset_step)) = offset;
@@ -550,10 +551,10 @@ static void blf_texture_draw(const unsigned char color[4],
 static void blf_texture5_draw(const unsigned char color_in[4],
                               const int glyph_size[2],
                               const int offset,
-                              float x1,
-                              float y1,
-                              float x2,
-                              float y2)
+                              const int x1,
+                              const int y1,
+                              const int x2,
+                              const int y2)
 {
   int glyph_size_flag[2];
   /* flag the x and y component signs for 5x5 blurring */
@@ -566,10 +567,10 @@ static void blf_texture5_draw(const unsigned char color_in[4],
 static void blf_texture3_draw(const unsigned char color_in[4],
                               const int glyph_size[2],
                               const int offset,
-                              float x1,
-                              float y1,
-                              float x2,
-                              float y2)
+                              const int x1,
+                              const int y1,
+                              const int x2,
+                              const int y2)
 {
   int glyph_size_flag[2];
   /* flag the x component sign for 3x3 blurring */
@@ -579,7 +580,7 @@ static void blf_texture3_draw(const unsigned char color_in[4],
   blf_texture_draw(color_in, glyph_size_flag, offset, x1, y1, x2, y2);
 }
 
-void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, int x, int y)
+void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, const int y)
 {
   if ((!g->dims[0]) || (!g->dims[1])) {
     return;
@@ -618,11 +619,11 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, int x, int y)
   }
 
   if (font->flags & BLF_CLIPPING) {
-    rctf rect_test;
-    blf_glyph_calc_rect_test(&rect_test, g, (float)x, (float)y);
-    BLI_rctf_translate(&rect_test, font->pos[0], font->pos[1]);
+    rcti rect_test;
+    blf_glyph_calc_rect_test(&rect_test, g, x, y);
+    BLI_rcti_translate(&rect_test, font->pos[0], font->pos[1]);
 
-    if (!BLI_rctf_inside_rctf(&font->clip_rec, &rect_test)) {
+    if (!BLI_rcti_inside_rcti(&font->clip_rec, &rect_test)) {
       return;
     }
   }
@@ -633,8 +634,8 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, int x, int y)
   }
 
   if (font->flags & BLF_SHADOW) {
-    rctf rect_ofs;
-    blf_glyph_calc_rect_shadow(&rect_ofs, g, (float)x, (float)y, font);
+    rcti rect_ofs;
+    blf_glyph_calc_rect_shadow(&rect_ofs, g, x, y, font);
 
     if (font->shadow == 0) {
       blf_texture_draw(font->shadow_color,
@@ -665,8 +666,8 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, int x, int y)
     }
   }
 
-  rctf rect;
-  blf_glyph_calc_rect(&rect, g, (float)x, (float)y);
+  rcti rect;
+  blf_glyph_calc_rect(&rect, g, x, y);
 
 #if BLF_BLUR_ENABLE
   switch (font->blur) {

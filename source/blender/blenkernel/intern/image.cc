@@ -1806,9 +1806,9 @@ void BKE_image_stamp_buf(Scene *scene,
                          int channels)
 {
   struct StampData stamp_data;
-  float w, h, pad;
+  int w, h, pad;
   int x, y, y_ofs;
-  float h_fixed;
+  int h_fixed;
   const int mono = blf_mono_font_render; /* XXX */
   struct ColorManagedDisplay *display;
   const char *display_device;
@@ -1816,20 +1816,20 @@ void BKE_image_stamp_buf(Scene *scene,
   /* vars for calculating wordwrap */
   struct {
     struct ResultBLF info;
-    rctf rect;
+    rcti rect;
   } wrap;
 
   /* this could be an argument if we want to operate on non linear float imbuf's
    * for now though this is only used for renders which use scene settings */
 
 #define TEXT_SIZE_CHECK(str, w, h) \
-  ((str[0]) && ((void)(h = h_fixed), (w = BLF_width(mono, str, sizeof(str)))))
+  ((str[0]) && ((void)(h = h_fixed), (w = (int)BLF_width(mono, str, sizeof(str)))))
 
   /* must enable BLF_WORD_WRAP before using */
 #define TEXT_SIZE_CHECK_WORD_WRAP(str, w, h) \
   ((str[0]) && (BLF_boundbox_ex(mono, str, sizeof(str), &wrap.rect, &wrap.info), \
                 (void)(h = h_fixed * wrap.info.lines), \
-                (w = BLI_rctf_size_x(&wrap.rect))))
+                (w = BLI_rcti_size_x(&wrap.rect))))
 
 #define BUFF_MARGIN_X 2
 #define BUFF_MARGIN_Y 1
