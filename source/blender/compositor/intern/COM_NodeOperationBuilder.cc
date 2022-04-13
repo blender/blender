@@ -104,7 +104,7 @@ void NodeOperationBuilder::convert_to_operations(ExecutionSystem *system)
   prune_operations();
 
   /* ensure topological (link-based) order of nodes */
-  /*sort_operations();*/ /* not needed yet */
+  // sort_operations(); /* not needed yet. */
 
   if (context_->get_execution_model() == eExecutionModel::Tiled) {
     /* create execution groups */

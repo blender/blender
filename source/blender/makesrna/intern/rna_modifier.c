@@ -5825,7 +5825,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
   prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_string_sdna(prop, NULL, "cachepath");
   RNA_def_property_ui_text(prop, "Cache Path", "Path to a folder to store external baked images");
-  /*RNA_def_property_update(prop, 0, "rna_Modifier_update"); */
+  // RNA_def_property_update(prop, 0, "rna_Modifier_update");
   /* XXX how to update? */
 
   RNA_define_lib_overridable(false);

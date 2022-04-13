@@ -664,7 +664,7 @@ static void rna_Brush_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 {
   Brush *br = (Brush *)ptr->data;
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, br);
-  /*WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, NULL); */
+  // WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, NULL);
 }
 
 static void rna_Brush_material_update(bContext *UNUSED(C), PointerRNA *UNUSED(ptr))

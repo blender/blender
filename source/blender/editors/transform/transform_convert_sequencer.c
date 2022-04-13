@@ -669,8 +669,10 @@ static Sequence *effect_base_input_get(Sequence *effect, SeqInputSide side)
   return input;
 }
 
-/* Strips that aren't selected, but their position entirely depends on transformed strips.
- * This collection is used to offset animation.*/
+/**
+ * Strips that aren't selected, but their position entirely depends on transformed strips.
+ * This collection is used to offset animation.
+ */
 static SeqCollection *query_time_dependent_strips_strips(TransInfo *t)
 {
   ListBase *seqbase = seqbase_active_get(t);

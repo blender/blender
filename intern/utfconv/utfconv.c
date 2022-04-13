@@ -40,7 +40,7 @@ size_t count_utf_8_from_16(const wchar_t *string16)
           }
           else {
             if (u < 0xE000) {
-              /*illegal*/;
+              /* Illegal. */
             }
             else {
               count += 3;

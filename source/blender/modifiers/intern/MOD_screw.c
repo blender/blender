@@ -515,7 +515,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       mv_new = mvert_new;
 
       if (ob_axis != NULL) {
-        /*mtx_tx is initialized early on */
+        /* `mtx_tx` is initialized early on. */
         for (i = 0; i < totvert; i++, mv_new++, mv_orig++, vc++) {
           vc->co[0] = mv_new->co[0] = mv_orig->co[0];
           vc->co[1] = mv_new->co[1] = mv_orig->co[1];
@@ -883,7 +883,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       copy_v3_v3(mv_new->co, mv_new_base->co);
 
       /* only need to set these if using non cleared memory */
-      /*mv_new->mat_nr = mv_new->flag = 0;*/
+      // mv_new->mat_nr = mv_new->flag = 0;
 
       if (ob_axis != NULL) {
         sub_v3_v3(mv_new->co, mtx_tx[3]);

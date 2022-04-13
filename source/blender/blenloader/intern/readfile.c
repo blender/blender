@@ -2619,7 +2619,7 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
 
           scpt->script = restore_pointer_by_name(id_map, (ID *)scpt->script, USER_REAL);
 
-          /*screen->script = NULL; - 2.45 set to null, better re-run the script */
+          // screen->script = NULL; /* 2.45 set to null, better re-run the script. */
           if (scpt->script) {
             SCRIPT_SET_NULL(scpt->script);
           }
