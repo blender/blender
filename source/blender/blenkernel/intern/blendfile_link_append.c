@@ -1187,6 +1187,11 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
     BLI_assert(ID_IS_LINKED(id));
     BLI_assert(id->newid != NULL);
 
+    /* Do NOT delete a linked data that was already linked before this append. */
+    if (id->tag & LIB_TAG_PRE_EXISTING) {
+      continue;
+    }
+
     id->tag |= LIB_TAG_DOIT;
     item->new_id = id->newid;
   }
