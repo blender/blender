@@ -666,9 +666,9 @@ static int constant_type_size(Type type)
       return 16;
       break;
     case Type::MAT3:
-      return 72 + 3 * 4;
+      return 36 + 3 * 4;
     case Type::MAT4:
-      return 128;
+      return 64;
       break;
   }
   BLI_assert(false);
