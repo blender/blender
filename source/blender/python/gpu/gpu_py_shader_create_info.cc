@@ -32,9 +32,9 @@ using blender::gpu::shader::Type;
 using blender::gpu::shader::Qualifier;
 
 #  define PYDOC_QUALIFIERS \
-    "- ``NO_RESTRICT``\n" \
-    "- ``READ``\n" \
-    "- ``WRITE``\n"
+    "      - ``NO_RESTRICT``\n" \
+    "      - ``READ``\n" \
+    "      - ``WRITE``\n"
 static const struct PyC_FlagSet pygpu_qualifiers[] = {
     {(int)Qualifier::NO_RESTRICT, "NO_RESTRICT"},
     {(int)Qualifier::READ, "READ"},
@@ -44,21 +44,21 @@ static const struct PyC_FlagSet pygpu_qualifiers[] = {
 #endif
 
 #define PYDOC_TYPE_LIST \
-  "- ``FLOAT``\n" \
-  "- ``VEC2``\n" \
-  "- ``VEC3``\n" \
-  "- ``VEC4``\n" \
-  "- ``MAT3``\n" \
-  "- ``MAT4``\n" \
-  "- ``UINT``\n" \
-  "- ``UVEC2``\n" \
-  "- ``UVEC3``\n" \
-  "- ``UVEC4``\n" \
-  "- ``INT``\n" \
-  "- ``IVEC2``\n" \
-  "- ``IVEC3``\n" \
-  "- ``IVEC4``\n" \
-  "- ``BOOL``\n"
+  "      - ``FLOAT``\n" \
+  "      - ``VEC2``\n" \
+  "      - ``VEC3``\n" \
+  "      - ``VEC4``\n" \
+  "      - ``MAT3``\n" \
+  "      - ``MAT4``\n" \
+  "      - ``UINT``\n" \
+  "      - ``UVEC2``\n" \
+  "      - ``UVEC3``\n" \
+  "      - ``UVEC4``\n" \
+  "      - ``INT``\n" \
+  "      - ``IVEC2``\n" \
+  "      - ``IVEC3``\n" \
+  "      - ``IVEC4``\n" \
+  "      - ``BOOL``\n"
 static const struct PyC_StringEnumItems pygpu_attrtype_items[] = {
     {(int)Type::FLOAT, "FLOAT"},
     {(int)Type::VEC2, "VEC2"},
@@ -79,38 +79,38 @@ static const struct PyC_StringEnumItems pygpu_attrtype_items[] = {
 };
 
 #define PYDOC_IMAGE_TYPES \
-  "- ``FLOAT_BUFFER``\n" \
-  "- ``FLOAT_1D``\n" \
-  "- ``FLOAT_1D_ARRAY``\n" \
-  "- ``FLOAT_2D``\n" \
-  "- ``FLOAT_2D_ARRAY``\n" \
-  "- ``FLOAT_3D``\n" \
-  "- ``FLOAT_CUBE``\n" \
-  "- ``FLOAT_CUBE_ARRAY``\n" \
-  "- ``INT_BUFFER``\n" \
-  "- ``INT_1D``\n" \
-  "- ``INT_1D_ARRAY``\n" \
-  "- ``INT_2D``\n" \
-  "- ``INT_2D_ARRAY``\n" \
-  "- ``INT_3D``\n" \
-  "- ``INT_CUBE``\n" \
-  "- ``INT_CUBE_ARRAY``\n" \
-  "- ``UINT_BUFFER``\n" \
-  "- ``UINT_1D``\n" \
-  "- ``UINT_1D_ARRAY``\n" \
-  "- ``UINT_2D``\n" \
-  "- ``UINT_2D_ARRAY``\n" \
-  "- ``UINT_3D``\n" \
-  "- ``UINT_CUBE``\n" \
-  "- ``UINT_CUBE_ARRAY``\n" \
-  "- ``SHADOW_2D``\n" \
-  "- ``SHADOW_2D_ARRAY``\n" \
-  "- ``SHADOW_CUBE``\n" \
-  "- ``SHADOW_CUBE_ARRAY``\n" \
-  "- ``DEPTH_2D``\n" \
-  "- ``DEPTH_2D_ARRAY``\n" \
-  "- ``DEPTH_CUBE``\n" \
-  "- ``DEPTH_CUBE_ARRAY``\n"
+  "      - ``FLOAT_BUFFER``\n" \
+  "      - ``FLOAT_1D``\n" \
+  "      - ``FLOAT_1D_ARRAY``\n" \
+  "      - ``FLOAT_2D``\n" \
+  "      - ``FLOAT_2D_ARRAY``\n" \
+  "      - ``FLOAT_3D``\n" \
+  "      - ``FLOAT_CUBE``\n" \
+  "      - ``FLOAT_CUBE_ARRAY``\n" \
+  "      - ``INT_BUFFER``\n" \
+  "      - ``INT_1D``\n" \
+  "      - ``INT_1D_ARRAY``\n" \
+  "      - ``INT_2D``\n" \
+  "      - ``INT_2D_ARRAY``\n" \
+  "      - ``INT_3D``\n" \
+  "      - ``INT_CUBE``\n" \
+  "      - ``INT_CUBE_ARRAY``\n" \
+  "      - ``UINT_BUFFER``\n" \
+  "      - ``UINT_1D``\n" \
+  "      - ``UINT_1D_ARRAY``\n" \
+  "      - ``UINT_2D``\n" \
+  "      - ``UINT_2D_ARRAY``\n" \
+  "      - ``UINT_3D``\n" \
+  "      - ``UINT_CUBE``\n" \
+  "      - ``UINT_CUBE_ARRAY``\n" \
+  "      - ``SHADOW_2D``\n" \
+  "      - ``SHADOW_2D_ARRAY``\n" \
+  "      - ``SHADOW_CUBE``\n" \
+  "      - ``SHADOW_CUBE_ARRAY``\n" \
+  "      - ``DEPTH_2D``\n" \
+  "      - ``DEPTH_2D_ARRAY``\n" \
+  "      - ``DEPTH_CUBE``\n" \
+  "      - ``DEPTH_CUBE_ARRAY``\n"
 static const struct PyC_StringEnumItems pygpu_imagetype_items[] = {
     {(int)ImageType::FLOAT_BUFFER, "FLOAT_BUFFER"},
     {(int)ImageType::FLOAT_1D, "FLOAT_1D"},
@@ -192,6 +192,7 @@ PyDoc_STRVAR(pygpu_interface_info_smooth_doc,
              "\n"
              "   :param type: One of these types:\n"
              "\n" PYDOC_TYPE_LIST
+             "\n"
              "   :type type: str\n"
              "   :param name: name of the attribute.\n"
              "   :type name: str\n");
@@ -215,6 +216,7 @@ PyDoc_STRVAR(pygpu_interface_info_flat_doc,
              "\n"
              "   :param type: One of these types:\n"
              "\n" PYDOC_TYPE_LIST
+             "\n"
              "   :type type: str\n"
              "   :param name: name of the attribute.\n"
              "   :type name: str\n");
@@ -239,6 +241,7 @@ PyDoc_STRVAR(
     "\n"
     "   :param type: One of these types:\n"
     "\n" PYDOC_TYPE_LIST
+    "\n"
     "   :type type: str\n"
     "   :param name: name of the attribute.\n"
     "   :type name: str\n");
@@ -405,6 +408,7 @@ PyDoc_STRVAR(pygpu_shader_info_vertex_in_doc,
              "   :type slot: int\n"
              "   :param type: One of these types:\n"
              "\n" PYDOC_TYPE_LIST
+             "\n"
              "   :type type: str\n"
              "   :param name: name of the attribute.\n"
              "   :type name: str\n");
@@ -463,6 +467,7 @@ PyDoc_STRVAR(pygpu_shader_info_fragment_out_doc,
              "   :type slot: int\n"
              "   :param type: One of these types:\n"
              "\n" PYDOC_TYPE_LIST
+             "\n"
              "   :type type: str\n"
              "   :param name: Name of the attribute.\n"
              "   :type name: str\n"
@@ -550,7 +555,8 @@ PyDoc_STRVAR(
     "   :type format: str\n"
     "   :param type: The data type describing how the image is to be read in the shader. "
     "Possible values are:\n"
-    "" PYDOC_IMAGE_TYPES
+    "\n" PYDOC_IMAGE_TYPES
+    "\n"
     "   :type type: str\n"
     "   :param name: The image resource name.\n"
     "   :type name: str\n"
@@ -616,7 +622,8 @@ PyDoc_STRVAR(
     "   :type slot: int\n"
     "   :param type: The data type describing the format of each sampler unit. Possible values "
     "are:\n"
-    "" PYDOC_IMAGE_TYPES
+    "\n" PYDOC_IMAGE_TYPES
+    "\n"
     "   :type type: str\n"
     "   :param name: The image texture sampler name.\n"
     "   :type name: str\n");
@@ -710,6 +717,7 @@ PyDoc_STRVAR(pygpu_shader_info_push_constant_doc,
              "\n"
              "   :param type: One of these types:\n"
              "\n" PYDOC_TYPE_LIST
+             "\n"
              "   :type type: str\n"
              "   :param name: Name of the constant.\n"
              "   :type name: str\n"
@@ -759,15 +767,15 @@ PyDoc_STRVAR(
     "\n"
     "   Example:\n"
     "\n"
-    ".. code-block:: python\n"
+    "   .. code-block:: python\n"
     "\n"
-    "   \"void main {gl_Position = vec4(pos, 1.0);}\"\n"
-    "\n"
-    ".. seealso:: `GLSL Cross Compilation "
-    "<https://wiki.blender.org/wiki/EEVEE_%26_Viewport/GPU_Module/GLSL_Cross_Compilation>`__"
+    "      \"void main {gl_Position = vec4(pos, 1.0);}\"\n"
     "\n"
     "   :param source: The vertex shader source code.\n"
-    "   :type source: str\n");
+    "   :type source: str\n"
+    "\n"
+    "   .. seealso:: `GLSL Cross Compilation "
+    "<https://wiki.blender.org/wiki/EEVEE_%26_Viewport/GPU_Module/GLSL_Cross_Compilation>`__\n");
 static PyObject *pygpu_shader_info_vertex_source(BPyGPUShaderCreateInfo *self, PyObject *o)
 {
   const char *vertex_source = PyUnicode_AsUTF8(o);
@@ -800,15 +808,15 @@ PyDoc_STRVAR(
     "\n"
     "   Example:\n"
     "\n"
-    ".. code-block:: python\n"
+    "   .. code-block:: python\n"
     "\n"
-    "   \"void main {fragColor = vec4(0.0, 0.0, 0.0, 1.0);}\"\n"
-    "\n"
-    ".. seealso:: `GLSL Cross Compilation "
-    "<https://wiki.blender.org/wiki/EEVEE_%26_Viewport/GPU_Module/GLSL_Cross_Compilation>`__"
+    "      \"void main {fragColor = vec4(0.0, 0.0, 0.0, 1.0);}\"\n"
     "\n"
     "   :param source: The fragment shader source code.\n"
-    "   :type source: str\n");
+    "   :type source: str\n"
+    "\n"
+    "   .. seealso:: `GLSL Cross Compilation "
+    "<https://wiki.blender.org/wiki/EEVEE_%26_Viewport/GPU_Module/GLSL_Cross_Compilation>`__\n");
 static PyObject *pygpu_shader_info_fragment_source(BPyGPUShaderCreateInfo *self, PyObject *o)
 {
   const char *fragment_source = PyUnicode_AsUTF8(o);
