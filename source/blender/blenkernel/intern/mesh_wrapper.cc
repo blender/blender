@@ -51,7 +51,7 @@ Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
                                                  const float (*vert_coords)[3],
                                                  const Mesh *me_settings)
 {
-  Mesh *me = static_cast<Mesh *>(BKE_id_new_nomain(ID_ME, NULL));
+  Mesh *me = static_cast<Mesh *>(BKE_id_new_nomain(ID_ME, nullptr));
   BKE_mesh_copy_parameters_for_eval(me, me_settings);
   BKE_mesh_runtime_ensure_edit_data(me);
 
@@ -66,7 +66,7 @@ Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
   me->edit_mesh = static_cast<BMEditMesh *>(MEM_dupallocN(em));
   me->edit_mesh->is_shallow_copy = true;
 
-/* Make sure, we crash if these are ever used. */
+  /* Make sure we crash if these are ever used. */
 #ifdef DEBUG
   me->totvert = INT_MAX;
   me->totedge = INT_MAX;
@@ -88,7 +88,7 @@ Mesh *BKE_mesh_wrapper_from_editmesh(BMEditMesh *em,
                                      const CustomData_MeshMasks *cd_mask_extra,
                                      const Mesh *me_settings)
 {
-  return BKE_mesh_wrapper_from_editmesh_with_coords(em, cd_mask_extra, NULL, me_settings);
+  return BKE_mesh_wrapper_from_editmesh_with_coords(em, cd_mask_extra, nullptr, me_settings);
 }
 
 void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
@@ -118,8 +118,8 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
         me->totpoly = 0;
         me->totloop = 0;
 
-        BLI_assert(me->edit_mesh != NULL);
-        BLI_assert(me->runtime.edit_data != NULL);
+        BLI_assert(me->edit_mesh != nullptr);
+        BLI_assert(me->runtime.edit_data != nullptr);
 
         BMEditMesh *em = me->edit_mesh;
         BM_mesh_bm_to_me_for_eval(em->bm, me, &me->runtime.cd_mask_extra);
@@ -177,7 +177,7 @@ void BKE_mesh_wrapper_vert_coords_copy(const Mesh *me,
       BMesh *bm = me->edit_mesh->bm;
       BLI_assert(vert_coords_len <= bm->totvert);
       EditMeshData *edit_data = me->runtime.edit_data;
-      if (edit_data->vertexCos != NULL) {
+      if (edit_data->vertexCos != nullptr) {
         for (int i = 0; i < vert_coords_len; i++) {
           copy_v3_v3(vert_coords[i], edit_data->vertexCos[i]);
         }
@@ -215,7 +215,7 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *me,
       BMesh *bm = me->edit_mesh->bm;
       BLI_assert(vert_coords_len == bm->totvert);
       EditMeshData *edit_data = me->runtime.edit_data;
-      if (edit_data->vertexCos != NULL) {
+      if (edit_data->vertexCos != nullptr) {
         for (int i = 0; i < vert_coords_len; i++) {
           mul_v3_m4v3(vert_coords[i], mat, edit_data->vertexCos[i]);
         }
@@ -336,7 +336,7 @@ static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   SubsurfRuntimeData *runtime_data = BKE_subsurf_modifier_ensure_runtime(smd);
 
   Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(smd, &subdiv_settings, me, false);
-  if (subdiv == NULL) {
+  if (subdiv == nullptr) {
     /* Happens on bad topology, but also on empty input mesh. */
     return me;
   }
@@ -348,8 +348,8 @@ static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   }
 
   if (subdiv_mesh != me) {
-    if (me->runtime.mesh_eval != NULL) {
-      BKE_id_free(NULL, me->runtime.mesh_eval);
+    if (me->runtime.mesh_eval != nullptr) {
+      BKE_id_free(nullptr, me->runtime.mesh_eval);
     }
     me->runtime.mesh_eval = subdiv_mesh;
     me->runtime.wrapper_type = ME_WRAPPER_TYPE_SUBD;

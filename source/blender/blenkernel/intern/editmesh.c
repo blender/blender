@@ -214,18 +214,14 @@ float (*BKE_editmesh_vert_coords_alloc(struct Depsgraph *depsgraph,
                                        Object *ob,
                                        int *r_vert_len))[3]
 {
-  Mesh *cage;
-  BLI_bitmap *visit_bitmap;
+  Mesh *cage = editbmesh_get_eval_cage(depsgraph, scene, ob, em, &CD_MASK_BAREMESH);
+  float(*cos_cage)[3] = MEM_callocN(sizeof(*cos_cage) * em->bm->totvert, "bmbvh cos_cage");
+
+  /* When initializing cage verts, we only want the first cage coordinate for each vertex,
+   * so that e.g. mirror or array use original vertex coordinates and not mirrored or duplicate. */
+  BLI_bitmap *visit_bitmap = BLI_BITMAP_NEW(em->bm->totvert, __func__);
+
   struct CageUserData data;
-  float(*cos_cage)[3];
-
-  cage = editbmesh_get_eval_cage(depsgraph, scene, ob, em, &CD_MASK_BAREMESH);
-  cos_cage = MEM_callocN(sizeof(*cos_cage) * em->bm->totvert, "bmbvh cos_cage");
-
-  /* when initializing cage verts, we only want the first cage coordinate for each vertex,
-   * so that e.g. mirror or array use original vertex coordinates and not mirrored or duplicate */
-  visit_bitmap = BLI_BITMAP_NEW(em->bm->totvert, __func__);
-
   data.totvert = em->bm->totvert;
   data.cos_cage = cos_cage;
   data.visit_bitmap = visit_bitmap;

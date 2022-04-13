@@ -21,23 +21,21 @@
 
 void BKE_editmesh_cache_ensure_poly_normals(BMEditMesh *em, EditMeshData *emd)
 {
-  if (!(emd->vertexCos && (emd->polyNos == NULL))) {
+  if (!(emd->vertexCos && (emd->polyNos == nullptr))) {
     return;
   }
 
   BMesh *bm = em->bm;
-  const float(*vertexCos)[3];
-  float(*polyNos)[3];
-
   BMFace *efa;
   BMIter fiter;
   int i;
 
   BM_mesh_elem_index_ensure(bm, BM_VERT);
 
-  polyNos = static_cast<float(*)[3]>(MEM_mallocN(sizeof(*polyNos) * bm->totface, __func__));
+  float(*polyNos)[3] = static_cast<float(*)[3]>(
+      MEM_mallocN(sizeof(*polyNos) * bm->totface, __func__));
 
-  vertexCos = emd->vertexCos;
+  const float(*vertexCos)[3] = emd->vertexCos;
 
   BM_ITER_MESH_INDEX (efa, &fiter, bm, BM_FACES_OF_MESH, i) {
     BM_elem_index_set(efa, i); /* set_inline */
@@ -50,7 +48,7 @@ void BKE_editmesh_cache_ensure_poly_normals(BMEditMesh *em, EditMeshData *emd)
 
 void BKE_editmesh_cache_ensure_vert_normals(BMEditMesh *em, EditMeshData *emd)
 {
-  if (!(emd->vertexCos && (emd->vertexNos == NULL))) {
+  if (!(emd->vertexCos && (emd->vertexNos == nullptr))) {
     return;
   }
 
@@ -58,7 +56,7 @@ void BKE_editmesh_cache_ensure_vert_normals(BMEditMesh *em, EditMeshData *emd)
   const float(*vertexCos)[3], (*polyNos)[3];
   float(*vertexNos)[3];
 
-  /* calculate vertex normals from poly normals */
+  /* Calculate vertex normals from poly normals. */
   BKE_editmesh_cache_ensure_poly_normals(em, emd);
 
   BM_mesh_elem_index_ensure(bm, BM_FACE);
@@ -74,17 +72,17 @@ void BKE_editmesh_cache_ensure_vert_normals(BMEditMesh *em, EditMeshData *emd)
 
 void BKE_editmesh_cache_ensure_poly_centers(BMEditMesh *em, EditMeshData *emd)
 {
-  if (emd->polyCos != NULL) {
+  if (emd->polyCos != nullptr) {
     return;
   }
   BMesh *bm = em->bm;
-  float(*polyCos)[3];
 
   BMFace *efa;
   BMIter fiter;
   int i;
 
-  polyCos = static_cast<float(*)[3]>(MEM_mallocN(sizeof(*polyCos) * bm->totface, __func__));
+  float(*polyCos)[3] = static_cast<float(*)[3]>(
+      MEM_mallocN(sizeof(*polyCos) * bm->totface, __func__));
 
   if (emd->vertexCos) {
     const float(*vertexCos)[3];
