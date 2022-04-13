@@ -545,6 +545,7 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                       &handle_type_left,
                                       &normal_mode,
                                       &nurbs_order,
+                                      &nurbs_knots_mode,
                                       &nurbs_weight,
                                       &curve_type,
                                       &resolution,
