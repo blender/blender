@@ -235,6 +235,7 @@ set(SRC
   intern/outliner_treehash.c
   intern/packedFile.c
   intern/paint.c
+  intern/paint_canvas.cc
   intern/paint_toolslots.c
   intern/particle.c
   intern/particle_child.c
