@@ -700,7 +700,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
         VertLink *vl;
 
         /* create new 'nurb' within the curve */
-        nu = MEM_cnew<Nurb>("MeshNurb");
+        nu = MEM_new<Nurb>("MeshNurb", blender::dna::shallow_zero_initialize());
 
         nu->pntsu = totpoly;
         nu->pntsv = 1;
