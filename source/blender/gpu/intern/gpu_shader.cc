@@ -283,10 +283,10 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
 
   GPU_debug_group_begin(GPU_DEBUG_SHADER_COMPILATION_GROUP);
 
-  std::string error = info.check_error();
-  if (error.length()) {
-    printf(error.c_str());
-    BLI_assert(true);
+  const std::string error = info.check_error();
+  if (!error.empty()) {
+    printf("%s\n", error.c_str());
+    BLI_assert(false);
   }
 
   Shader *shader = GPUBackend::get()->shader_alloc(info.name_.c_str());
