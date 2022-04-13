@@ -33,11 +33,11 @@
     _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); \
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 #elif defined(__aarch64__) || defined(_M_ARM64)
-#define _MM_FLUSH_ZERO_ON 24
-#define __get_fpcr(__fpcr) __asm__ __volatile__("mrs %0,fpcr" : "=r" (__fpcr))
-#define __set_fpcr(__fpcr) __asm__ __volatile__("msr fpcr,%0" : :"ri" (__fpcr))
-#  define SIMD_SET_FLUSH_TO_ZERO  set_fz(_MM_FLUSH_ZERO_ON);
-#  define SIMD_GET_FLUSH_TO_ZERO  get_fz(_MM_FLUSH_ZERO_ON)
+#  define _MM_FLUSH_ZERO_ON 24
+#  define __get_fpcr(__fpcr) __asm__ __volatile__("mrs %0,fpcr" : "=r"(__fpcr))
+#  define __set_fpcr(__fpcr) __asm__ __volatile__("msr fpcr,%0" : : "ri"(__fpcr))
+#  define SIMD_SET_FLUSH_TO_ZERO set_fz(_MM_FLUSH_ZERO_ON);
+#  define SIMD_GET_FLUSH_TO_ZERO get_fz(_MM_FLUSH_ZERO_ON)
 #else
 #  define SIMD_SET_FLUSH_TO_ZERO
 #endif
@@ -112,18 +112,20 @@ static struct StepTy {
 
 #endif
 #if defined(__aarch64__) || defined(_M_ARM64)
-__forceinline int set_fz(uint32_t flag) {
-    uint64_t old_fpcr, new_fpcr;
-    __get_fpcr(old_fpcr);
-    new_fpcr = old_fpcr | (1ULL << flag);
-    __set_fpcr(new_fpcr);
-    __get_fpcr(old_fpcr);
-    return old_fpcr == new_fpcr;
+__forceinline int set_fz(uint32_t flag)
+{
+  uint64_t old_fpcr, new_fpcr;
+  __get_fpcr(old_fpcr);
+  new_fpcr = old_fpcr | (1ULL << flag);
+  __set_fpcr(new_fpcr);
+  __get_fpcr(old_fpcr);
+  return old_fpcr == new_fpcr;
 }
-__forceinline int get_fz(uint32_t flag) {
-    uint64_t cur_fpcr;
-    __get_fpcr(cur_fpcr);
-    return (cur_fpcr & (1ULL<< flag)) > 0 ? 1 : 0 ;
+__forceinline int get_fz(uint32_t flag)
+{
+  uint64_t cur_fpcr;
+  __get_fpcr(cur_fpcr);
+  return (cur_fpcr & (1ULL << flag)) > 0 ? 1 : 0;
 }
 #endif
 
