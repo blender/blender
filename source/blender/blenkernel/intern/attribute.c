@@ -292,7 +292,7 @@ int BKE_id_attributes_length(const ID *id, AttributeDomainMask domain_mask, Cust
   return length;
 }
 
-AttributeDomain BKE_id_attribute_domain(ID *id, const CustomDataLayer *layer)
+AttributeDomain BKE_id_attribute_domain(const ID *id, const CustomDataLayer *layer)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(id, info);
