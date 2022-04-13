@@ -1828,13 +1828,6 @@ static bool move_to_collection_poll(bContext *C)
   if (CTX_wm_space_outliner(C) != NULL) {
     return ED_outliner_collections_editor_poll(C);
   }
-
-  View3D *v3d = CTX_wm_view3d(C);
-
-  if (v3d && v3d->localvd) {
-    return false;
-  }
-
   return ED_operator_objectmode(C);
 }
 
