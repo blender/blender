@@ -27,7 +27,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_math.h"
-#include "BLI_task.h"
+#include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -51,7 +51,7 @@ Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
                                                  const float (*vert_coords)[3],
                                                  const Mesh *me_settings)
 {
-  Mesh *me = BKE_id_new_nomain(ID_ME, NULL);
+  Mesh *me = static_cast<Mesh *>(BKE_id_new_nomain(ID_ME, NULL));
   BKE_mesh_copy_parameters_for_eval(me, me_settings);
   BKE_mesh_runtime_ensure_edit_data(me);
 
@@ -63,7 +63,7 @@ Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
   /* Use edit-mesh directly where possible. */
   me->runtime.is_original = true;
 
-  me->edit_mesh = MEM_dupallocN(em);
+  me->edit_mesh = static_cast<BMEditMesh *>(MEM_dupallocN(em));
   me->edit_mesh->is_shallow_copy = true;
 
 /* Make sure, we crash if these are ever used. */
@@ -91,54 +91,6 @@ Mesh *BKE_mesh_wrapper_from_editmesh(BMEditMesh *em,
   return BKE_mesh_wrapper_from_editmesh_with_coords(em, cd_mask_extra, NULL, me_settings);
 }
 
-static void mesh_wrapper_ensure_mdata_isolated(void *userdata)
-{
-  Mesh *me = userdata;
-
-  const eMeshWrapperType geom_type_orig = me->runtime.wrapper_type;
-  me->runtime.wrapper_type = ME_WRAPPER_TYPE_MDATA;
-
-  switch (geom_type_orig) {
-    case ME_WRAPPER_TYPE_MDATA:
-    case ME_WRAPPER_TYPE_SUBD: {
-      break; /* Quiet warning. */
-    }
-    case ME_WRAPPER_TYPE_BMESH: {
-      me->totvert = 0;
-      me->totedge = 0;
-      me->totpoly = 0;
-      me->totloop = 0;
-
-      BLI_assert(me->edit_mesh != NULL);
-      BLI_assert(me->runtime.edit_data != NULL);
-
-      BMEditMesh *em = me->edit_mesh;
-      BM_mesh_bm_to_me_for_eval(em->bm, me, &me->runtime.cd_mask_extra);
-
-      /* Adding original index layers assumes that all BMesh mesh wrappers are created from
-       * original edit mode meshes (the only case where adding original indices makes sense).
-       * If that assumption is broken, the layers might be incorrect in that they might not
-       * actually be "original".
-       *
-       * There is also a performance aspect, where this also assumes that original indices are
-       * always needed when converting an edit mesh to a mesh. That might be wrong, but it's not
-       * harmful. */
-      BKE_mesh_ensure_default_orig_index_customdata(me);
-
-      EditMeshData *edit_data = me->runtime.edit_data;
-      if (edit_data->vertexCos) {
-        BKE_mesh_vert_coords_apply(me, edit_data->vertexCos);
-        me->runtime.is_original = false;
-      }
-      break;
-    }
-  }
-
-  if (me->runtime.wrapper_type_finalize) {
-    BKE_mesh_wrapper_deferred_finalize(me, &me->runtime.cd_mask_extra);
-  }
-}
-
 void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
 {
   ThreadMutex *mesh_eval_mutex = (ThreadMutex *)me->runtime.eval_mutex;
@@ -150,7 +102,51 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
   }
 
   /* Must isolate multithreaded tasks while holding a mutex lock. */
-  BLI_task_isolate(mesh_wrapper_ensure_mdata_isolated, me);
+  blender::threading::isolate_task([&]() {
+    const eMeshWrapperType geom_type_orig = static_cast<eMeshWrapperType>(
+        me->runtime.wrapper_type);
+    me->runtime.wrapper_type = ME_WRAPPER_TYPE_MDATA;
+
+    switch (geom_type_orig) {
+      case ME_WRAPPER_TYPE_MDATA:
+      case ME_WRAPPER_TYPE_SUBD: {
+        break; /* Quiet warning. */
+      }
+      case ME_WRAPPER_TYPE_BMESH: {
+        me->totvert = 0;
+        me->totedge = 0;
+        me->totpoly = 0;
+        me->totloop = 0;
+
+        BLI_assert(me->edit_mesh != NULL);
+        BLI_assert(me->runtime.edit_data != NULL);
+
+        BMEditMesh *em = me->edit_mesh;
+        BM_mesh_bm_to_me_for_eval(em->bm, me, &me->runtime.cd_mask_extra);
+
+        /* Adding original index layers assumes that all BMesh mesh wrappers are created from
+         * original edit mode meshes (the only case where adding original indices makes sense).
+         * If that assumption is broken, the layers might be incorrect in that they might not
+         * actually be "original".
+         *
+         * There is also a performance aspect, where this also assumes that original indices are
+         * always needed when converting an edit mesh to a mesh. That might be wrong, but it's not
+         * harmful. */
+        BKE_mesh_ensure_default_orig_index_customdata(me);
+
+        EditMeshData *edit_data = me->runtime.edit_data;
+        if (edit_data->vertexCos) {
+          BKE_mesh_vert_coords_apply(me, edit_data->vertexCos);
+          me->runtime.is_original = false;
+        }
+        break;
+      }
+    }
+
+    if (me->runtime.wrapper_type_finalize) {
+      BKE_mesh_wrapper_deferred_finalize(me, &me->runtime.cd_mask_extra);
+    }
+  });
 
   BLI_mutex_unlock(mesh_eval_mutex);
 }
@@ -362,20 +358,6 @@ static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   return me->runtime.mesh_eval;
 }
 
-typedef struct SubdivisionWrapperIsolatedTaskData {
-  const Object *ob;
-  Mesh *me;
-  Mesh *result;
-} SubdivisionWrapperIsolatedTaskData;
-
-static void mesh_wrapper_ensure_subdivision_isolated(void *userdata)
-{
-  SubdivisionWrapperIsolatedTaskData *task_data = (SubdivisionWrapperIsolatedTaskData *)userdata;
-  const Object *ob = task_data->ob;
-  Mesh *me = task_data->me;
-  task_data->result = mesh_wrapper_ensure_subdivision(ob, me);
-}
-
 Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
 {
   ThreadMutex *mesh_eval_mutex = (ThreadMutex *)me->runtime.eval_mutex;
@@ -386,15 +368,13 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
     return me->runtime.mesh_eval;
   }
 
-  SubdivisionWrapperIsolatedTaskData task_data;
-  task_data.ob = ob;
-  task_data.me = me;
+  Mesh *result;
 
   /* Must isolate multithreaded tasks while holding a mutex lock. */
-  BLI_task_isolate(mesh_wrapper_ensure_subdivision_isolated, &task_data);
+  blender::threading::isolate_task([&]() { result = mesh_wrapper_ensure_subdivision(ob, me); });
 
   BLI_mutex_unlock(mesh_eval_mutex);
-  return task_data.result;
+  return result;
 }
 
 /** \} */

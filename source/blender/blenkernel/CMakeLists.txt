@@ -126,7 +126,7 @@ set(SRC
   intern/editlattice.c
   intern/editmesh.c
   intern/editmesh_bvh.c
-  intern/editmesh_cache.c
+  intern/editmesh_cache.cc
   intern/editmesh_tangent.c
   intern/effect.c
   intern/fcurve.c
@@ -203,12 +203,12 @@ set(SRC
   intern/mesh_normals.cc
   intern/mesh_remap.c
   intern/mesh_remesh_voxel.cc
-  intern/mesh_runtime.c
+  intern/mesh_runtime.cc
   intern/mesh_sample.cc
   intern/mesh_tangent.c
   intern/mesh_tessellate.c
   intern/mesh_validate.cc
-  intern/mesh_wrapper.c
+  intern/mesh_wrapper.cc
   intern/modifier.c
   intern/movieclip.c
   intern/multires.c

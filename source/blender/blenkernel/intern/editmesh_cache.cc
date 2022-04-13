@@ -35,7 +35,7 @@ void BKE_editmesh_cache_ensure_poly_normals(BMEditMesh *em, EditMeshData *emd)
 
   BM_mesh_elem_index_ensure(bm, BM_VERT);
 
-  polyNos = MEM_mallocN(sizeof(*polyNos) * bm->totface, __func__);
+  polyNos = static_cast<float(*)[3]>(MEM_mallocN(sizeof(*polyNos) * bm->totface, __func__));
 
   vertexCos = emd->vertexCos;
 
@@ -65,7 +65,7 @@ void BKE_editmesh_cache_ensure_vert_normals(BMEditMesh *em, EditMeshData *emd)
 
   polyNos = emd->polyNos;
   vertexCos = emd->vertexCos;
-  vertexNos = MEM_callocN(sizeof(*vertexNos) * bm->totvert, __func__);
+  vertexNos = static_cast<float(*)[3]>(MEM_callocN(sizeof(*vertexNos) * bm->totvert, __func__));
 
   BM_verts_calc_normal_vcos(bm, polyNos, vertexCos, vertexNos);
 
@@ -84,7 +84,7 @@ void BKE_editmesh_cache_ensure_poly_centers(BMEditMesh *em, EditMeshData *emd)
   BMIter fiter;
   int i;
 
-  polyCos = MEM_mallocN(sizeof(*polyCos) * bm->totface, __func__);
+  polyCos = static_cast<float(*)[3]>(MEM_mallocN(sizeof(*polyCos) * bm->totface, __func__));
 
   if (emd->vertexCos) {
     const float(*vertexCos)[3];
