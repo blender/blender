@@ -1210,10 +1210,10 @@ static void blf_font_fill(FontBLF *font)
   font->color[2] = 0;
   font->color[3] = 255;
 
-  font->clip_rec.xmin = 0.0f;
-  font->clip_rec.xmax = 0.0f;
-  font->clip_rec.ymin = 0.0f;
-  font->clip_rec.ymax = 0.0f;
+  font->clip_rec.xmin = 0;
+  font->clip_rec.xmax = 0;
+  font->clip_rec.ymin = 0;
+  font->clip_rec.ymax = 0;
   font->flags = 0;
   font->dpi = 0;
   font->size = 0;
