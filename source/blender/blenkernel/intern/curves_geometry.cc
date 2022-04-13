@@ -577,18 +577,25 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
 Span<float3> CurvesGeometry::evaluated_positions() const
 {
   if (!this->runtime->position_cache_dirty) {
-    return this->runtime->evaluated_position_cache;
+    return this->runtime->evaluated_positions_span;
   }
 
   /* A double checked lock. */
   std::scoped_lock lock{this->runtime->position_cache_mutex};
   if (!this->runtime->position_cache_dirty) {
-    return this->runtime->evaluated_position_cache;
+    return this->runtime->evaluated_positions_span;
   }
 
   threading::isolate_task([&]() {
+    if (this->is_single_type(CURVE_TYPE_POLY)) {
+      this->runtime->evaluated_positions_span = this->positions();
+      this->runtime->evaluated_position_cache.clear_and_make_inline();
+      return;
+    }
+
     this->runtime->evaluated_position_cache.resize(this->evaluated_points_num());
     MutableSpan<float3> evaluated_positions = this->runtime->evaluated_position_cache;
+    this->runtime->evaluated_positions_span = evaluated_positions;
 
     VArray<int8_t> types = this->curve_types();
     VArray<bool> cyclic = this->cyclic();
@@ -645,7 +652,7 @@ Span<float3> CurvesGeometry::evaluated_positions() const
   });
 
   this->runtime->position_cache_dirty = false;
-  return this->runtime->evaluated_position_cache;
+  return this->runtime->evaluated_positions_span;
 }
 
 Span<float3> CurvesGeometry::evaluated_tangents() const

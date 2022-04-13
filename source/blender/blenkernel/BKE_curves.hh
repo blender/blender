@@ -76,6 +76,11 @@ class CurvesGeometryRuntime {
   mutable Vector<float3> evaluated_position_cache;
   mutable std::mutex position_cache_mutex;
   mutable bool position_cache_dirty = true;
+  /**
+   * The evaluated positions result, using a separate span in case all curves are poly curves,
+   * in which case a separate array of evaluated positions is unnecessary.
+   */
+  mutable Span<float3> evaluated_positions_span;
 
   /**
    * Cache of lengths along each evaluated curve for for each evaluated point. If a curve is
