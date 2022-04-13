@@ -537,16 +537,15 @@ static PyObject *pygpu_shader_uniform_block(BPyGPUShader *self, PyObject *args)
     return NULL;
   }
 
-  int slot = GPU_shader_get_uniform_block(self->shader, name);
-  if (slot == -1) {
+  int binding = GPU_shader_get_uniform_block_binding(self->shader, name);
+  if (binding == -1) {
     PyErr_SetString(
         PyExc_BufferError,
-        "GPUShader.uniform_buffer: uniform block not found, make sure the name is correct");
+        "GPUShader.uniform_block: uniform block not found, make sure the name is correct");
     return NULL;
   }
 
-  GPU_uniformbuf_bind(py_ubo->ubo, slot);
-  GPU_shader_uniform_1i(self->shader, name, slot);
+  GPU_uniformbuf_bind(py_ubo->ubo, binding);
 
   Py_RETURN_NONE;
 }
