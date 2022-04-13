@@ -200,14 +200,14 @@ static void color_filter_task_cb(void *__restrict userdata,
         bool copy_alpha = col[3] == smooth_color[3];
 
         if (fade < 0.0f) {
-          float delta[4];
+          float delta_color[4];
 
           /* Unsharp mask. */
-          copy_v4_v4(delta, ss->filter_cache->pre_smoothed_color[vd.index]);
-          sub_v4_v4(delta, smooth_color);
+          copy_v4_v4(delta_color, ss->filter_cache->pre_smoothed_color[vd.index]);
+          sub_v4_v4(delta_color, smooth_color);
 
           copy_v4_v4(final_color, col);
-          madd_v4_v4fl(final_color, delta, fade);
+          madd_v4_v4fl(final_color, delta_color, fade);
         }
         else {
           blend_color_interpolate_float(final_color, col, smooth_color, fade);
