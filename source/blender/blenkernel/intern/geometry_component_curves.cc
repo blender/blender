@@ -462,14 +462,14 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
 
   static BuiltinCustomDataLayerProvider nurbs_order("nurbs_order",
                                                     ATTR_DOMAIN_CURVE,
-                                                    CD_PROP_INT32,
-                                                    CD_PROP_INT32,
+                                                    CD_PROP_INT8,
+                                                    CD_PROP_INT8,
                                                     BuiltinAttributeProvider::Creatable,
                                                     BuiltinAttributeProvider::Writable,
                                                     BuiltinAttributeProvider::Deletable,
                                                     curve_access,
-                                                    make_array_read_attribute<int>,
-                                                    make_array_write_attribute<int>,
+                                                    make_array_read_attribute<int8_t>,
+                                                    make_array_write_attribute<int8_t>,
                                                     tag_component_topology_changed);
 
   static BuiltinCustomDataLayerProvider normal_mode("normal_mode",

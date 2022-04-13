@@ -385,8 +385,8 @@ std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves)
 
   VArray_Span<float> nurbs_weights{
       src_component.attribute_get_for_read<float>("nurbs_weight", ATTR_DOMAIN_POINT, 0.0f)};
-  VArray_Span<int> nurbs_orders{
-      src_component.attribute_get_for_read<int>("nurbs_order", ATTR_DOMAIN_CURVE, 4)};
+  VArray_Span<int8_t> nurbs_orders{
+      src_component.attribute_get_for_read<int8_t>("nurbs_order", ATTR_DOMAIN_CURVE, 4)};
   VArray_Span<int8_t> nurbs_knots_modes{
       src_component.attribute_get_for_read<int8_t>("knots_mode", ATTR_DOMAIN_CURVE, 0)};
 
