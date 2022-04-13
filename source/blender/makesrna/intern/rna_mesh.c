@@ -3451,20 +3451,17 @@ static void rna_def_mesh(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_remesh_preserve_paint_mask", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_REMESH_REPROJECT_PAINT_MASK);
-  RNA_def_property_boolean_default(prop, false);
   RNA_def_property_ui_text(prop, "Preserve Paint Mask", "Keep the current mask on the new mesh");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
   prop = RNA_def_property(srna, "use_remesh_preserve_sculpt_face_sets", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_REMESH_REPROJECT_SCULPT_FACE_SETS);
-  RNA_def_property_boolean_default(prop, false);
   RNA_def_property_ui_text(
       prop, "Preserve Face Sets", "Keep the current Face Sets on the new mesh");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
   prop = RNA_def_property(srna, "use_remesh_preserve_vertex_colors", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_REMESH_REPROJECT_VERTEX_COLORS);
-  RNA_def_property_boolean_default(prop, false);
   RNA_def_property_ui_text(
       prop, "Preserve Vertex Colors", "Keep the current vertex colors on the new mesh");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
