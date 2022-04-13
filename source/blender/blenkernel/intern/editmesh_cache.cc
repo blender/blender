@@ -8,7 +8,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bounds.hh"
 #include "BLI_math_vector.h"
+#include "BLI_span.hh"
 
 #include "DNA_mesh_types.h"
 
@@ -114,18 +116,20 @@ bool BKE_editmesh_cache_calc_minmax(struct BMEditMesh *em,
                                     float min[3],
                                     float max[3])
 {
+  using namespace blender;
   BMesh *bm = em->bm;
-  BMVert *eve;
-  BMIter iter;
-  int i;
 
   if (bm->totvert) {
     if (emd->vertexCos) {
-      BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
-        minmax_v3v3_v3(min, max, emd->vertexCos[i]);
-      }
+      Span<float3> vert_coords(reinterpret_cast<const float3 *>(emd->vertexCos), bm->totvert);
+      std::optional<bounds::MinMaxResult<float3>> bounds = bounds::min_max(vert_coords);
+      BLI_assert(bounds.has_value());
+      copy_v3_v3(min, math::min(bounds->min, float3(min)));
+      copy_v3_v3(max, math::max(bounds->max, float3(max)));
     }
     else {
+      BMVert *eve;
+      BMIter iter;
       BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
         minmax_v3v3_v3(min, max, eve->co);
       }
