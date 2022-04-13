@@ -604,23 +604,31 @@ static void pygpu_buffer_strides_calc(const eGPUDataFormat format,
 }
 
 /* Here is the buffer interface function */
-static int pygpu_buffer__bf_getbuffer(BPyGPUBuffer *self, Py_buffer *view, int UNUSED(flags))
+static int pygpu_buffer__bf_getbuffer(BPyGPUBuffer *self, Py_buffer *view, int flags)
 {
   if (view == NULL) {
     PyErr_SetString(PyExc_ValueError, "NULL view in getbuffer");
     return -1;
   }
 
+  memset(view, 0, sizeof(*view));
+
   view->obj = (PyObject *)self;
   view->buf = (void *)self->buf.as_void;
   view->len = bpygpu_Buffer_size(self);
   view->readonly = 0;
   view->itemsize = GPU_texture_dataformat_size(self->format);
-  view->format = (char *)pygpu_buffer_formatstr(self->format);
-  view->ndim = self->shape_len;
-  view->shape = self->shape;
-  view->strides = MEM_mallocN(view->ndim * sizeof(*view->strides), "BPyGPUBuffer strides");
-  pygpu_buffer_strides_calc(self->format, view->ndim, view->shape, view->strides);
+  if (flags & PyBUF_FORMAT) {
+    view->format = (char *)pygpu_buffer_formatstr(self->format);
+  }
+  if (flags & PyBUF_ND) {
+    view->ndim = self->shape_len;
+    view->shape = self->shape;
+  }
+  if (flags & PyBUF_STRIDES) {
+    view->strides = MEM_mallocN(view->ndim * sizeof(*view->strides), "BPyGPUBuffer strides");
+    pygpu_buffer_strides_calc(self->format, view->ndim, view->shape, view->strides);
+  }
   view->suboffsets = NULL;
   view->internal = NULL;
 
