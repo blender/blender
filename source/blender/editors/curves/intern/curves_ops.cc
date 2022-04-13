@@ -473,7 +473,7 @@ static void CURVES_OT_snap_curves_to_surface(wmOperatorType *ot)
        "Deform",
        "Re-attach curves to a deformed surface using the existing attachment information. This "
        "only works when the topology of the surface mesh has not changed"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   RNA_def_enum(ot->srna,
