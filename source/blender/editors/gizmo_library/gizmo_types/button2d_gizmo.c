@@ -74,20 +74,21 @@ static void button2d_geom_draw_backdrop(const wmGizmo *gz,
   GPU_viewport_size_get_f(viewport);
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  /* Note(Metal): Prefer 3D coordinate for 2D rendering when using 3D shader. */
+  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
   /* TODO: other draw styles. */
   if (color[3] == 1.0 && fill_alpha == 1.0 && select == false) {
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor4fv(color);
-    imm_draw_circle_fill_2d(pos, 0, 0, 1.0f, CIRCLE_RESOLUTION);
+    imm_draw_circle_fill_3d(pos, 0.0f, 0.0f, 1.0f, CIRCLE_RESOLUTION);
     immUnbindProgram();
 
     immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
     immUniform2fv("viewportSize", &viewport[2]);
     immUniform1f("lineWidth", gz->line_width * U.pixelsize);
     immUniformColor4fv(color);
-    imm_draw_circle_wire_2d(pos, 0, 0, 1.0f, CIRCLE_RESOLUTION);
+    imm_draw_circle_wire_3d(pos, 0.0f, 0.0f, 1.0f, CIRCLE_RESOLUTION);
     immUnbindProgram();
   }
   else {
@@ -96,7 +97,7 @@ static void button2d_geom_draw_backdrop(const wmGizmo *gz,
       const float fill_color[4] = {UNPACK3(color), fill_alpha * color[3]};
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       immUniformColor4fv(fill_color);
-      imm_draw_circle_fill_2d(pos, 0, 0, 1.0f, CIRCLE_RESOLUTION);
+      imm_draw_circle_fill_3d(pos, 0.0f, 0.0f, 1.0f, CIRCLE_RESOLUTION);
       immUnbindProgram();
     }
 
@@ -106,7 +107,7 @@ static void button2d_geom_draw_backdrop(const wmGizmo *gz,
       immUniform2fv("viewportSize", &viewport[2]);
       immUniform1f("lineWidth", gz->line_width * U.pixelsize);
       immUniformColor4fv(color);
-      imm_draw_circle_wire_2d(pos, 0, 0, 1.0f, CIRCLE_RESOLUTION);
+      imm_draw_circle_wire_3d(pos, 0.0f, 0.0f, 1.0f, CIRCLE_RESOLUTION);
       immUnbindProgram();
     }
   }
