@@ -627,13 +627,13 @@ endif()
 
 if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
   if(NOT OPENIMAGEIO_IDIFF)
-    MESSAGE(STATUS "Disabling Cycles tests because OIIO idiff does not exist")
+    MESSAGE(WARNING "Disabling render tests because OIIO idiff does not exist")
   elseif(NOT EXISTS "${TEST_SRC_DIR}/render/shader")
-    MESSAGE(STATUS "Disabling Cycles tests because tests folder does not exist at ${TEST_SRC_DIR}")
+    MESSAGE(WARNING "Disabling render tests because tests folder does not exist at ${TEST_SRC_DIR}")
   elseif(NOT WITH_COMPOSITOR)
-    MESSAGE(STATUS "Disabling Cycles tests because WITH_COMPOSITOR is disabled")
+    MESSAGE(WARNING "Disabling render tests because WITH_COMPOSITOR is disabled")
   elseif(NOT WITH_OPENCOLORIO)
-    MESSAGE(STATUS "Disabling Cycles tests because WITH_OPENCOLORIO is disabled")
+    MESSAGE(WARNING "Disabling render tests because WITH_OPENCOLORIO is disabled")
   else()
     set(render_tests
       camera
