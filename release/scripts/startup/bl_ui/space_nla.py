@@ -214,7 +214,8 @@ class NLA_MT_edit(Menu):
             layout.operator("nla.tweakmode_exit", text="Stop Tweaking Strip Actions")
         else:
             layout.operator("nla.tweakmode_enter", text="Start Editing Stashed Action").isolate_action = True
-            layout.operator("nla.tweakmode_enter", text="Start Tweaking Strip Actions")
+            layout.operator("nla.tweakmode_enter", text="Start Tweaking Strip Actions (Full Stack)").use_upper_stack_evaluation = True
+            layout.operator("nla.tweakmode_enter", text="Start Tweaking Strip Actions (Lower Stack)").use_upper_stack_evaluation = False
 
 
 class NLA_MT_add(Menu):
@@ -288,7 +289,8 @@ class NLA_MT_context_menu(Menu):
             layout.operator("nla.tweakmode_exit", text="Stop Tweaking Strip Actions")
         else:
             layout.operator("nla.tweakmode_enter", text="Start Editing Stashed Action").isolate_action = True
-            layout.operator("nla.tweakmode_enter", text="Start Tweaking Strip Actions")
+            layout.operator("nla.tweakmode_enter", text="Start Tweaking Strip Actions (Full Stack)").use_upper_stack_evaluation = True
+            layout.operator("nla.tweakmode_enter", text="Start Tweaking Strip Actions (Lower Stack)").use_upper_stack_evaluation = False
 
         layout.separator()
 

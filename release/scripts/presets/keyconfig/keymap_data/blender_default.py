@@ -2509,7 +2509,8 @@ def km_nla_generic(_params):
         *_template_space_region_type_toggle(
             sidebar_key={"type": 'N', "value": 'PRESS'},
         ),
-        ("nla.tweakmode_enter", {"type": 'TAB', "value": 'PRESS'}, None),
+        ("nla.tweakmode_enter", {"type": 'TAB', "value": 'PRESS'},
+         {"properties": [("use_upper_stack_evaluation", False)]}),
         ("nla.tweakmode_exit", {"type": 'TAB', "value": 'PRESS'}, None),
         ("nla.tweakmode_enter", {"type": 'TAB', "value": 'PRESS', "shift": True},
          {"properties": [("isolate_action", True)]}),

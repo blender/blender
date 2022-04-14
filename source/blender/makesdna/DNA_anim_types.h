@@ -1128,6 +1128,8 @@ typedef enum eAnimData_Flag {
   ADT_NLA_EDIT_NOMAP = (1 << 3),
   /** NLA-Strip F-Curves are expanded in UI. */
   ADT_NLA_SKEYS_COLLAPSED = (1 << 4),
+  /* Evaluate tracks above tweaked strip. Only relevant in tweak mode. */
+  ADT_NLA_EVAL_UPPER_TRACKS = (1 << 5),
 
   /** Drivers expanded in UI. */
   ADT_DRIVERS_COLLAPSED = (1 << 10),
