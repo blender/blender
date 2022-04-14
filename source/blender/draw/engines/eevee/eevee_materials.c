@@ -740,34 +740,6 @@ BLI_INLINE EeveeMaterialCache eevee_material_cache_get(
   return matcache;
 }
 
-static void eevee_hair_cache_populate(EEVEE_Data *vedata,
-                                      EEVEE_ViewLayerData *sldata,
-                                      Object *ob,
-                                      ParticleSystem *psys,
-                                      ModifierData *md,
-                                      int matnr,
-                                      bool *cast_shadow)
-{
-  EeveeMaterialCache matcache = eevee_material_cache_get(vedata, sldata, ob, matnr - 1, true);
-
-  if (matcache.depth_grp) {
-    *matcache.depth_grp_p = DRW_shgroup_hair_create_sub(ob, psys, md, matcache.depth_grp, NULL);
-    DRW_shgroup_add_material_resources(*matcache.depth_grp_p, matcache.shading_gpumat);
-  }
-  if (matcache.shading_grp) {
-    *matcache.shading_grp_p = DRW_shgroup_hair_create_sub(
-        ob, psys, md, matcache.shading_grp, matcache.shading_gpumat);
-    DRW_shgroup_add_material_resources(*matcache.shading_grp_p, matcache.shading_gpumat);
-  }
-  if (matcache.shadow_grp) {
-    *matcache.shadow_grp_p = DRW_shgroup_hair_create_sub(ob, psys, md, matcache.shadow_grp, NULL);
-    DRW_shgroup_add_material_resources(*matcache.shadow_grp_p, matcache.shading_gpumat);
-    *cast_shadow = true;
-  }
-
-  EEVEE_motion_blur_hair_cache_populate(sldata, vedata, ob, psys, md);
-}
-
 #define ADD_SHGROUP_CALL(shgrp, ob, geom, oedata) \
   do { \
     if (oedata) { \
@@ -899,18 +871,56 @@ void EEVEE_particle_hair_cache_populate(EEVEE_Data *vedata,
         if (draw_as != PART_DRAW_PATH) {
           continue;
         }
-        eevee_hair_cache_populate(vedata, sldata, ob, psys, md, part->omat, cast_shadow);
+        EeveeMaterialCache matcache = eevee_material_cache_get(
+            vedata, sldata, ob, part->omat - 1, true);
+
+        if (matcache.depth_grp) {
+          *matcache.depth_grp_p = DRW_shgroup_hair_create_sub(
+              ob, psys, md, matcache.depth_grp, NULL);
+          DRW_shgroup_add_material_resources(*matcache.depth_grp_p, matcache.shading_gpumat);
+        }
+        if (matcache.shading_grp) {
+          *matcache.shading_grp_p = DRW_shgroup_hair_create_sub(
+              ob, psys, md, matcache.shading_grp, matcache.shading_gpumat);
+          DRW_shgroup_add_material_resources(*matcache.shading_grp_p, matcache.shading_gpumat);
+        }
+        if (matcache.shadow_grp) {
+          *matcache.shadow_grp_p = DRW_shgroup_hair_create_sub(
+              ob, psys, md, matcache.shadow_grp, NULL);
+          DRW_shgroup_add_material_resources(*matcache.shadow_grp_p, matcache.shading_gpumat);
+          *cast_shadow = true;
+        }
+
+        EEVEE_motion_blur_hair_cache_populate(sldata, vedata, ob, psys, md);
       }
     }
   }
 }
 
-void EEVEE_object_hair_cache_populate(EEVEE_Data *vedata,
-                                      EEVEE_ViewLayerData *sldata,
-                                      Object *ob,
-                                      bool *cast_shadow)
+void EEVEE_object_curves_cache_populate(EEVEE_Data *vedata,
+                                        EEVEE_ViewLayerData *sldata,
+                                        Object *ob,
+                                        bool *cast_shadow)
 {
-  eevee_hair_cache_populate(vedata, sldata, ob, NULL, NULL, CURVES_MATERIAL_NR, cast_shadow);
+  EeveeMaterialCache matcache = eevee_material_cache_get(
+      vedata, sldata, ob, CURVES_MATERIAL_NR - 1, true);
+
+  if (matcache.depth_grp) {
+    *matcache.depth_grp_p = DRW_shgroup_curves_create_sub(ob, matcache.depth_grp, NULL);
+    DRW_shgroup_add_material_resources(*matcache.depth_grp_p, matcache.shading_gpumat);
+  }
+  if (matcache.shading_grp) {
+    *matcache.shading_grp_p = DRW_shgroup_curves_create_sub(
+        ob, matcache.shading_grp, matcache.shading_gpumat);
+    DRW_shgroup_add_material_resources(*matcache.shading_grp_p, matcache.shading_gpumat);
+  }
+  if (matcache.shadow_grp) {
+    *matcache.shadow_grp_p = DRW_shgroup_curves_create_sub(ob, matcache.shadow_grp, NULL);
+    DRW_shgroup_add_material_resources(*matcache.shadow_grp_p, matcache.shading_gpumat);
+    *cast_shadow = true;
+  }
+
+  EEVEE_motion_blur_curves_cache_populate(sldata, vedata, ob);
 }
 
 void EEVEE_materials_cache_finish(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
