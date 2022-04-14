@@ -1,9 +1,14 @@
-#ifndef VOLUMETRICS
-void node_bsdf_velvet(vec4 color, float sigma, vec3 N, out Closure result)
+
+void node_bsdf_velvet(vec4 color, float roughness, vec3 N, float weight, out Closure result)
 {
-  node_bsdf_diffuse(color, 0.0, N, result);
+  N = safe_normalize(N);
+
+  /* Fallback to diffuse. */
+  ClosureDiffuse diffuse_data;
+  diffuse_data.weight = weight;
+  diffuse_data.color = color.rgb;
+  diffuse_data.N = N;
+  diffuse_data.sss_id = 0u;
+
+  result = closure_eval(diffuse_data);
 }
-#else
-/* Stub velvet because it is not compatible with volumetrics. */
-#  define node_bsdf_velvet(a, b, c, d) (d = CLOSURE_DEFAULT)
-#endif

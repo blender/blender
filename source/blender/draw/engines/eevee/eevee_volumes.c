@@ -604,6 +604,7 @@ void EEVEE_volumes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
     DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
+    DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
 
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
   }

@@ -39,7 +39,6 @@ void GPU_init(void)
   gpu_shader_create_info_init();
 
   gpu_codegen_init();
-  gpu_material_library_init();
 
   gpu_batch_init();
 
@@ -56,7 +55,6 @@ void GPU_exit(void)
 
   gpu_batch_exit();
 
-  gpu_material_library_exit();
   gpu_codegen_exit();
 
   gpu_shader_dependency_exit();

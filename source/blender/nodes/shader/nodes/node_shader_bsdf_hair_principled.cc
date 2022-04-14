@@ -60,6 +60,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .subtype(PROP_FACTOR);
   b.add_input<decl::Float>(N_("Random")).hide_value();
+  b.add_input<decl::Float>(N_("Weight")).unavailable();
   b.add_output<decl::Shader>(N_("BSDF"));
 }
 
@@ -108,6 +109,15 @@ static void node_shader_update_hair_principled(bNodeTree *ntree, bNode *node)
   }
 }
 
+static int node_shader_gpu_hair_principled(GPUMaterial *mat,
+                                           bNode *node,
+                                           bNodeExecData *UNUSED(execdata),
+                                           GPUNodeStack *in,
+                                           GPUNodeStack *out)
+{
+  return GPU_stack_link(mat, node, "node_bsdf_hair_principled", in, out);
+}
+
 }  // namespace blender::nodes::node_shader_bsdf_hair_principled_cc
 
 /* node type definition */
@@ -124,6 +134,7 @@ void register_node_type_sh_bsdf_hair_principled()
   node_type_size_preset(&ntype, NODE_SIZE_LARGE);
   node_type_init(&ntype, file_ns::node_shader_init_hair_principled);
   node_type_update(&ntype, file_ns::node_shader_update_hair_principled);
+  node_type_gpu(&ntype, file_ns::node_shader_gpu_hair_principled);
 
   nodeRegisterType(&ntype);
 }

@@ -1,7 +1,13 @@
 
 #pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
+// #pragma (gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(lights_lib.glsl)
 #pragma BLENDER_REQUIRE(lightprobe_lib.glsl)
+
+#ifndef GPU_FRAGMENT_SHADER
+#  define gl_FragCoord vec4(0.0)
+#  define gl_FrontFacing true
+#endif
 
 /**
  * Extensive use of Macros to be able to change the maximum amount of evaluated closure easily.
@@ -240,7 +246,11 @@ ClosureEvalCommon closure_Common_eval_init(ClosureInputCommon cl_in)
   cl_eval.N = safe_normalize(gl_FrontFacing ? worldNormal : -worldNormal);
   cl_eval.vN = safe_normalize(gl_FrontFacing ? viewNormal : -viewNormal);
   cl_eval.vP = viewPosition;
+#ifdef GPU_FRAGMENT_SHADER
   cl_eval.Ng = safe_normalize(cross(dFdx(cl_eval.P), dFdy(cl_eval.P)));
+#else
+  cl_eval.Ng = cl_eval.N;
+#endif
   cl_eval.vNg = transform_direction(ViewMatrix, cl_eval.Ng);
 
   cl_eval.occlusion_data = occlusion_load(cl_eval.vP, cl_in.occlusion);
@@ -337,3 +347,8 @@ ClosureGridData closure_grid_eval_init(int id, inout ClosureEvalCommon cl_common
 }
 
 /** \} */
+
+#ifndef GPU_FRAGMENT_SHADER
+#  undef gl_FragCoord
+#  undef gl_FrontFacing
+#endif

@@ -202,10 +202,7 @@ int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG *UNUSED(subdiv_ccg),
 /* -------------------------------------------------------------------- */
 /** \name Stubs of BKE_node.h
  * \{ */
-void ntreeGPUMaterialNodes(struct bNodeTree *UNUSED(localtree),
-                           struct GPUMaterial *UNUSED(mat),
-                           bool *UNUSED(has_surface_output),
-                           bool *UNUSED(has_volume_output))
+void ntreeGPUMaterialNodes(struct bNodeTree *UNUSED(localtree), struct GPUMaterial *UNUSED(mat))
 {
   BLI_assert_unreachable();
 }

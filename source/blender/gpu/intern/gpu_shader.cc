@@ -294,7 +294,9 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
   std::string defines = shader->defines_declare(info);
   std::string resources = shader->resources_declare(info);
 
-  defines += "#define USE_GPU_SHADER_CREATE_INFO\n";
+  if (info.legacy_resource_location_ == false) {
+    defines += "#define USE_GPU_SHADER_CREATE_INFO\n";
+  }
 
   Vector<const char *> typedefs;
   if (!info.typedef_sources_.is_empty() || !info.typedef_source_generated.empty()) {
@@ -362,6 +364,7 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
     sources.append(resources.c_str());
     sources.append(layout.c_str());
     sources.append(interface.c_str());
+    sources.append(info.geometry_source_generated.c_str());
     sources.extend(code);
 
     shader->geometry_shader_from_glsl(sources);

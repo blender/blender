@@ -572,10 +572,13 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
   }
   if (bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD)) {
     if (!GLContext::native_barycentric_support) {
+      ss << "flat in vec4 gpu_pos[3];\n";
       ss << "smooth in vec3 gpu_BaryCoord;\n";
       ss << "noperspective in vec3 gpu_BaryCoordNoPersp;\n";
+      ss << "#define gpu_position_at_vertex(v) gpu_pos[v]\n";
     }
     else if (GLEW_AMD_shader_explicit_vertex_parameter) {
+      std::cout << "native" << std::endl;
       /* NOTE(fclem): This won't work with geometry shader. Hopefully, we don't need geometry
        * shader workaround if this extension/feature is detected. */
       ss << "\n/* Stable Barycentric Coordinates. */\n";
@@ -590,6 +593,12 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
       ss << "  if (interpolateAtVertexAMD(gpu_pos, 0) == gpu_pos_flat) { return bary.zxy; }\n";
       ss << "  if (interpolateAtVertexAMD(gpu_pos, 2) == gpu_pos_flat) { return bary.yzx; }\n";
       ss << "  return bary.xyz;\n";
+      ss << "}\n";
+      ss << "\n";
+      ss << "vec4 gpu_position_at_vertex(int v) {\n";
+      ss << "  if (interpolateAtVertexAMD(gpu_pos, 0) == gpu_pos_flat) { v = (v + 2) % 3; }\n";
+      ss << "  if (interpolateAtVertexAMD(gpu_pos, 2) == gpu_pos_flat) { v = (v + 1) % 3; }\n";
+      ss << "  return interpolateAtVertexAMD(gpu_pos, v);\n";
       ss << "}\n";
 
       pre_main += "  gpu_BaryCoord = stable_bary_(gl_BaryCoordSmoothAMD);\n";
@@ -730,6 +739,7 @@ std::string GLShader::workaround_geometry_shader_source_create(
     ss << "in int gpu_Layer[];\n";
   }
   if (do_barycentric_workaround) {
+    ss << "flat out vec4 gpu_pos[3];\n";
     ss << "smooth out vec3 gpu_BaryCoord;\n";
     ss << "noperspective out vec3 gpu_BaryCoordNoPersp;\n";
   }
@@ -739,6 +749,11 @@ std::string GLShader::workaround_geometry_shader_source_create(
   ss << "{\n";
   if (do_layer_workaround) {
     ss << "  gl_Layer = gpu_Layer[0];\n";
+  }
+  if (do_barycentric_workaround) {
+    ss << "  gpu_pos[0] = gl_in[0].gl_Position;\n";
+    ss << "  gpu_pos[1] = gl_in[1].gl_Position;\n";
+    ss << "  gpu_pos[2] = gl_in[2].gl_Position;\n";
   }
   for (auto i : IndexRange(3)) {
     for (StageInterfaceInfo *iface : info_modified.vertex_out_interfaces_) {
@@ -977,7 +992,7 @@ bool GLShader::finalize(const shader::ShaderCreateInfo *info)
     return false;
   }
 
-  if (info != nullptr) {
+  if (info != nullptr && info->legacy_resource_location_ == false) {
     interface = new GLShaderInterface(shader_program_, *info);
   }
   else {

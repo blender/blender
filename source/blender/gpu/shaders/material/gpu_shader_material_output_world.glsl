@@ -1,14 +1,10 @@
-uniform float backgroundAlpha;
 
-void node_output_world(Closure surface, Closure volume, out Closure result)
+void node_output_world_surface(Closure surface, out Closure out_surface)
 {
-#ifndef VOLUMETRICS
-  float alpha = renderPassEnvironment ? 1.0 : backgroundAlpha;
-  result = CLOSURE_DEFAULT;
-  result.radiance = surface.radiance * alpha;
-  result.transmittance = vec3(0.0);
-  result.holdout = (1.0 - alpha);
-#else
-  result = volume;
-#endif /* VOLUMETRICS */
+  out_surface = surface;
+}
+
+void node_output_world_volume(Closure volume, out Closure out_volume)
+{
+  out_volume = volume;
 }

@@ -36,16 +36,19 @@ struct ViewInfos {
 };
 BLI_STATIC_ASSERT_ALIGN(ViewInfos, 16)
 
+/* Do not override old definitions if the shader uses this header but not shader info. */
+#ifdef USE_GPU_SHADER_CREATE_INFO
 /* TODO(@fclem): Mass rename. */
-#define ViewProjectionMatrix drw_view.persmat
-#define ViewProjectionMatrixInverse drw_view.persinv
-#define ViewMatrix drw_view.viewmat
-#define ViewMatrixInverse drw_view.viewinv
-#define ProjectionMatrix drw_view.winmat
-#define ProjectionMatrixInverse drw_view.wininv
-#define clipPlanes drw_view.clip_planes
-#define ViewVecs drw_view.viewvecs
-#define CameraTexCoFactors drw_view.viewcamtexcofac
+#  define ViewProjectionMatrix drw_view.persmat
+#  define ViewProjectionMatrixInverse drw_view.persinv
+#  define ViewMatrix drw_view.viewmat
+#  define ViewMatrixInverse drw_view.viewinv
+#  define ProjectionMatrix drw_view.winmat
+#  define ProjectionMatrixInverse drw_view.wininv
+#  define clipPlanes drw_view.clip_planes
+#  define ViewVecs drw_view.viewvecs
+#  define CameraTexCoFactors drw_view.viewcamtexcofac
+#endif
 
 struct ObjectMatrices {
   float4x4 drw_modelMatrix;

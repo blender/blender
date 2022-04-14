@@ -462,7 +462,7 @@ typedef struct EEVEE_RenderPassData {
   int renderPassSSSColor;
   int renderPassEnvironment;
   int renderPassAOV;
-  int renderPassAOVActive;
+  uint renderPassAOVActive;
   int _pad[3];
 } EEVEE_RenderPassData;
 
@@ -1050,7 +1050,7 @@ typedef struct EEVEE_PrivateData {
   /* Renderpasses */
   /* Bitmask containing the active render_passes */
   eViewLayerEEVEEPassType render_passes;
-  int aov_hash;
+  uint aov_hash;
   int num_aovs_used;
   struct CryptomatteSession *cryptomatte_session;
   bool cryptomatte_accurate_mode;
@@ -1291,6 +1291,20 @@ struct GPUMaterial *EEVEE_material_get(
     EEVEE_Data *vedata, struct Scene *scene, Material *ma, World *wo, int options);
 void EEVEE_shaders_free(void);
 
+void eevee_shader_extra_init(void);
+void eevee_shader_extra_exit(void);
+void eevee_shader_material_create_info_amend(GPUMaterial *gpumat,
+                                             GPUCodegenOutput *codegen,
+                                             char *frag,
+                                             char *vert,
+                                             char *geom,
+                                             char *defines);
+GPUShader *eevee_shaders_sh_create_helper(const char *name,
+                                          const char *vert_name,
+                                          const char *frag_name,
+                                          const char *defines,
+                                          bool use_layered_rendering);
+
 /* eevee_lightprobes.c */
 
 bool EEVEE_lightprobes_obj_visibility_cb(bool vis_in, void *user_data);
@@ -1508,7 +1522,7 @@ bool EEVEE_renderpasses_only_first_sample_pass_active(EEVEE_Data *vedata);
  * Calculate the hash for an AOV. The least significant bit is used to store the AOV
  * type the rest of the bits are used for the name hash.
  */
-int EEVEE_renderpasses_aov_hash(const ViewLayerAOV *aov);
+uint EEVEE_renderpasses_aov_hash(const ViewLayerAOV *aov);
 
 /* eevee_temporal_sampling.c */
 

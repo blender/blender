@@ -23,12 +23,13 @@ layout(std140) uniform sssProfile
 {
   vec4 sss_kernel[MAX_SSS_SAMPLES];
   vec4 radii_max_radius;
+  float avg_inv_radius;
   int sss_samples;
 };
 
 vec3 sss_profile(float s)
 {
-  s /= radii_max_radius.w;
+  s /= radii_max_radius.w * avg_inv_radius;
   return texture(sssTexProfile, saturate(s) * SSS_LUT_SCALE + SSS_LUT_BIAS).rgb;
 }
 

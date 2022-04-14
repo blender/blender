@@ -9,36 +9,24 @@
 
 #pragma once
 
+#include "GPU_material.h"
+#include "GPU_shader.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct GPUMaterial;
 struct GPUNodeGraph;
-struct GPUShader;
 
-typedef struct GPUPass {
-  struct GPUPass *next;
-
-  struct GPUShader *shader;
-  char *fragmentcode;
-  char *geometrycode;
-  char *vertexcode;
-  char *defines;
-  uint refcount; /* Orphaned GPUPasses gets freed by the garbage collector. */
-  uint32_t hash; /* Identity hash generated from all GLSL code. */
-  bool compiled; /* Did we already tried to compile the attached GPUShader. */
-} GPUPass;
+typedef struct GPUPass GPUPass;
 
 /* Pass */
 
-GPUPass *GPU_generate_pass(struct GPUMaterial *material,
+GPUPass *GPU_generate_pass(GPUMaterial *material,
                            struct GPUNodeGraph *graph,
-                           const char *vert_code,
-                           const char *geom_code,
-                           const char *frag_lib,
-                           const char *defines);
-struct GPUShader *GPU_pass_shader_get(GPUPass *pass);
+                           GPUCodegenCallbackFn finalize_source_cb,
+                           void *thunk);
+GPUShader *GPU_pass_shader_get(GPUPass *pass);
 bool GPU_pass_compile(GPUPass *pass, const char *shname);
 void GPU_pass_release(GPUPass *pass);
 

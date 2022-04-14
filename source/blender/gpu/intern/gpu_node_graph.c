@@ -87,10 +87,6 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
   input->type = type;
 
   switch (link->link_type) {
-    case GPU_NODE_LINK_BUILTIN:
-      input->source = GPU_SOURCE_BUILTIN;
-      input->builtin = link->builtin;
-      break;
     case GPU_NODE_LINK_OUTPUT:
       input->source = GPU_SOURCE_OUTPUT;
       input->link = link;
@@ -131,6 +127,11 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
       break;
     case GPU_NODE_LINK_UNIFORM:
       input->source = GPU_SOURCE_UNIFORM;
+      break;
+    case GPU_NODE_LINK_DIFFERENTIATE_FLOAT_FN:
+      input->source = GPU_SOURCE_FUNCTION_CALL;
+      /* NOTE(@fclem): End of function call is the return variable set during codegen. */
+      SNPRINTF(input->function_call, "dF_branch(%s(), ", link->function_name);
       break;
     default:
       break;
@@ -478,6 +479,11 @@ GPUNodeLink *GPU_attribute(GPUMaterial *mat, const CustomDataType type, const ch
   GPUNodeGraph *graph = gpu_material_node_graph(mat);
   GPUMaterialAttribute *attr = gpu_node_graph_add_attribute(graph, type, name);
 
+  if (type == CD_ORCO) {
+    /* OPTI: orco might be computed from local positions and needs object infos. */
+    GPU_material_flag_set(mat, GPU_MATFLAG_OBJECT_INFO);
+  }
+
   /* Dummy fallback if out of slots. */
   if (attr == NULL) {
     static const float zero_data[GPU_MAX_CONSTANT_DATA] = {0.0f};
@@ -520,6 +526,14 @@ GPUNodeLink *GPU_uniform(const float *num)
   GPUNodeLink *link = gpu_node_link_create();
   link->link_type = GPU_NODE_LINK_UNIFORM;
   link->data = num;
+  return link;
+}
+
+GPUNodeLink *GPU_differentiate_float_function(const char *function_name)
+{
+  GPUNodeLink *link = gpu_node_link_create();
+  link->link_type = GPU_NODE_LINK_DIFFERENTIATE_FLOAT_FN;
+  link->function_name = function_name;
   return link;
 }
 
@@ -588,26 +602,20 @@ GPUNodeLink *GPU_volume_grid(GPUMaterial *mat,
   transform_link->volume_grid = link->volume_grid;
   transform_link->volume_grid->users++;
 
+  GPUNodeLink *cos_link = GPU_attribute(mat, CD_ORCO, "");
+
   /* Two special cases, where we adjust the output values of smoke grids to
    * bring the into standard range without having to modify the grid values. */
   if (STREQ(name, "color")) {
-    GPU_link(mat, "node_attribute_volume_color", link, transform_link, &link);
+    GPU_link(mat, "node_attribute_volume_color", link, transform_link, cos_link, &link);
   }
   else if (STREQ(name, "temperature")) {
-    GPU_link(mat, "node_attribute_volume_temperature", link, transform_link, &link);
+    GPU_link(mat, "node_attribute_volume_temperature", link, transform_link, cos_link, &link);
   }
   else {
-    GPU_link(mat, "node_attribute_volume", link, transform_link, &link);
+    GPU_link(mat, "node_attribute_volume", link, transform_link, cos_link, &link);
   }
 
-  return link;
-}
-
-GPUNodeLink *GPU_builtin(eGPUBuiltin builtin)
-{
-  GPUNodeLink *link = gpu_node_link_create();
-  link->link_type = GPU_NODE_LINK_BUILTIN;
-  link->builtin = builtin;
   return link;
 }
 
@@ -615,14 +623,14 @@ GPUNodeLink *GPU_builtin(eGPUBuiltin builtin)
 
 bool GPU_link(GPUMaterial *mat, const char *name, ...)
 {
-  GSet *used_libraries = gpu_material_used_libraries(mat);
+  GPUNodeGraph *graph = gpu_material_node_graph(mat);
   GPUNode *node;
   GPUFunction *function;
   GPUNodeLink *link, **linkptr;
   va_list params;
   int i;
 
-  function = gpu_material_library_use_function(used_libraries, name);
+  function = gpu_material_library_use_function(graph->used_libraries, name);
   if (!function) {
     fprintf(stderr, "GPU failed to find function %s\n", name);
     return false;
@@ -643,27 +651,25 @@ bool GPU_link(GPUMaterial *mat, const char *name, ...)
   }
   va_end(params);
 
-  GPUNodeGraph *graph = gpu_material_node_graph(mat);
   BLI_addtail(&graph->nodes, node);
 
   return true;
 }
 
-bool GPU_stack_link(GPUMaterial *material,
-                    bNode *bnode,
-                    const char *name,
-                    GPUNodeStack *in,
-                    GPUNodeStack *out,
-                    ...)
+static bool gpu_stack_link_v(GPUMaterial *material,
+                             bNode *bnode,
+                             const char *name,
+                             GPUNodeStack *in,
+                             GPUNodeStack *out,
+                             va_list params)
 {
-  GSet *used_libraries = gpu_material_used_libraries(material);
+  GPUNodeGraph *graph = gpu_material_node_graph(material);
   GPUNode *node;
   GPUFunction *function;
   GPUNodeLink *link, **linkptr;
-  va_list params;
   int i, totin, totout;
 
-  function = gpu_material_library_use_function(used_libraries, name);
+  function = gpu_material_library_use_function(graph->used_libraries, name);
   if (!function) {
     fprintf(stderr, "GPU failed to find function %s\n", name);
     return false;
@@ -691,7 +697,6 @@ bool GPU_stack_link(GPUMaterial *material,
     }
   }
 
-  va_start(params, out);
   for (i = 0; i < function->totparam; i++) {
     if (function->paramqual[i] != FUNCTION_QUAL_IN) {
       if (totout == 0) {
@@ -717,12 +722,25 @@ bool GPU_stack_link(GPUMaterial *material,
       }
     }
   }
-  va_end(params);
 
-  GPUNodeGraph *graph = gpu_material_node_graph(material);
   BLI_addtail(&graph->nodes, node);
 
   return true;
+}
+
+bool GPU_stack_link(GPUMaterial *material,
+                    bNode *bnode,
+                    const char *name,
+                    GPUNodeStack *in,
+                    GPUNodeStack *out,
+                    ...)
+{
+  va_list params;
+  va_start(params, out);
+  bool valid = gpu_stack_link_v(material, bnode, name, in, out, params);
+  va_end(params);
+
+  return valid;
 }
 
 GPUNodeLink *GPU_uniformbuf_link_out(GPUMaterial *mat,
@@ -786,12 +804,16 @@ void gpu_node_graph_free_nodes(GPUNodeGraph *graph)
     gpu_node_free(node);
   }
 
-  graph->outlink = NULL;
+  graph->outlink_surface = NULL;
+  graph->outlink_volume = NULL;
+  graph->outlink_displacement = NULL;
+  graph->outlink_thickness = NULL;
 }
 
 void gpu_node_graph_free(GPUNodeGraph *graph)
 {
   BLI_freelistN(&graph->outlink_aovs);
+  BLI_freelistN(&graph->material_functions);
   gpu_node_graph_free_nodes(graph);
 
   LISTBASE_FOREACH (GPUMaterialVolumeGrid *, grid, &graph->volume_grids) {
@@ -801,28 +823,32 @@ void gpu_node_graph_free(GPUNodeGraph *graph)
   BLI_freelistN(&graph->textures);
   BLI_freelistN(&graph->attributes);
   GPU_uniform_attr_list_free(&graph->uniform_attrs);
+
+  if (graph->used_libraries) {
+    BLI_gset_free(graph->used_libraries, NULL);
+    graph->used_libraries = NULL;
+  }
 }
 
 /* Prune Unused Nodes */
 
-static void gpu_nodes_tag(GPUNodeLink *link)
+static void gpu_nodes_tag(GPUNodeLink *link, eGPUNodeTag tag)
 {
   GPUNode *node;
-  GPUInput *input;
 
-  if (!link->output) {
+  if (!link || !link->output) {
     return;
   }
 
   node = link->output->node;
-  if (node->tag) {
+  if (node->tag & tag) {
     return;
   }
 
-  node->tag = true;
-  for (input = node->inputs.first; input; input = input->next) {
+  node->tag |= tag;
+  LISTBASE_FOREACH (GPUInput *, input, &node->inputs) {
     if (input->link) {
-      gpu_nodes_tag(input->link);
+      gpu_nodes_tag(input->link, tag);
     }
   }
 }
@@ -830,18 +856,25 @@ static void gpu_nodes_tag(GPUNodeLink *link)
 void gpu_node_graph_prune_unused(GPUNodeGraph *graph)
 {
   LISTBASE_FOREACH (GPUNode *, node, &graph->nodes) {
-    node->tag = false;
+    node->tag = GPU_NODE_TAG_NONE;
   }
 
-  gpu_nodes_tag(graph->outlink);
+  gpu_nodes_tag(graph->outlink_surface, GPU_NODE_TAG_SURFACE);
+  gpu_nodes_tag(graph->outlink_volume, GPU_NODE_TAG_VOLUME);
+  gpu_nodes_tag(graph->outlink_displacement, GPU_NODE_TAG_DISPLACEMENT);
+  gpu_nodes_tag(graph->outlink_thickness, GPU_NODE_TAG_THICKNESS);
+
   LISTBASE_FOREACH (GPUNodeGraphOutputLink *, aovlink, &graph->outlink_aovs) {
-    gpu_nodes_tag(aovlink->outlink);
+    gpu_nodes_tag(aovlink->outlink, GPU_NODE_TAG_AOV);
+  }
+  LISTBASE_FOREACH (GPUNodeGraphFunctionLink *, funclink, &graph->material_functions) {
+    gpu_nodes_tag(funclink->outlink, GPU_NODE_TAG_FUNCTION);
   }
 
   for (GPUNode *node = graph->nodes.first, *next = NULL; node; node = next) {
     next = node->next;
 
-    if (!node->tag) {
+    if (node->tag == GPU_NODE_TAG_NONE) {
       BLI_remlink(&graph->nodes, node);
       gpu_node_free(node);
     }

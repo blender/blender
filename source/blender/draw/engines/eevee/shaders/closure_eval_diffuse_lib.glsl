@@ -1,6 +1,8 @@
 #pragma BLENDER_REQUIRE(lights_lib.glsl)
 #pragma BLENDER_REQUIRE(lightprobe_lib.glsl)
 #pragma BLENDER_REQUIRE(ambient_occlusion_lib.glsl)
+#pragma BLENDER_REQUIRE(closure_eval_lib.glsl)
+#pragma BLENDER_REQUIRE(renderpass_lib.glsl)
 
 struct ClosureInputDiffuse {
   vec3 N;      /** Shading normal. */
@@ -88,6 +90,7 @@ void closure_Diffuse_eval_end(ClosureInputDiffuse cl_in,
                               ClosureEvalCommon cl_common,
                               inout ClosureOutputDiffuse cl_out)
 {
+  cl_out.radiance = render_pass_diffuse_mask(cl_out.radiance);
 #if defined(DEPTH_SHADER) || defined(WORLD_BACKGROUND)
   /* This makes shader resources become unused and avoid issues with samplers. (see T59747) */
   cl_out.radiance = vec3(0.0);

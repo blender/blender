@@ -1,8 +1,9 @@
-void node_volume_absorption(vec4 color, float density, out Closure result)
+
+void node_volume_absorption(vec4 color, float density, float weight, out Closure result)
 {
-#ifdef VOLUMETRICS
-  result = Closure((1.0 - color.rgb) * density, vec3(0.0), vec3(0.0), 0.0);
-#else
-  result = CLOSURE_DEFAULT;
-#endif
+  ClosureVolumeAbsorption volume_absorption_data;
+  volume_absorption_data.weight = weight;
+  volume_absorption_data.absorption = (1.0 - color.rgb) * density;
+
+  result = closure_eval(volume_absorption_data);
 }

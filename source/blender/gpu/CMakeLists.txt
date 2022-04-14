@@ -46,7 +46,7 @@ set(SRC
   intern/gpu_batch_utils.c
   intern/gpu_buffers.c
   intern/gpu_capabilities.cc
-  intern/gpu_codegen.c
+  intern/gpu_codegen.cc
   intern/gpu_compute.cc
   intern/gpu_context.cc
   intern/gpu_debug.cc
@@ -57,7 +57,6 @@ set(SRC
   intern/gpu_index_buffer.cc
   intern/gpu_init_exit.c
   intern/gpu_material.c
-  intern/gpu_material_library.c
   intern/gpu_matrix.cc
   intern/gpu_node_graph.c
   intern/gpu_platform.cc
@@ -312,6 +311,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_glass.glsl
   shaders/material/gpu_shader_material_glossy.glsl
   shaders/material/gpu_shader_material_hair_info.glsl
+  shaders/material/gpu_shader_material_hair.glsl
   shaders/material/gpu_shader_material_hash.glsl
   shaders/material/gpu_shader_material_holdout.glsl
   shaders/material/gpu_shader_material_hue_sat_val.glsl
