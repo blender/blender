@@ -226,14 +226,13 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         velocity_scale *= FPS;
       }
 
-      result = ABC_read_mesh(mcmd->reader,
-                             ctx->object,
-                             mesh,
-                             time,
-                             &err_str,
-                             mcmd->read_flag,
-                             mcmd->cache_file->velocity_name,
-                             velocity_scale);
+      ABCReadParams params = {};
+      params.time = time;
+      params.read_flags = mcmd->read_flag;
+      params.velocity_name = mcmd->cache_file->velocity_name;
+      params.velocity_scale = velocity_scale;
+
+      result = ABC_read_mesh(mcmd->reader, ctx->object, mesh, &params, &err_str);
 #  endif
       break;
     }

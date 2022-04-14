@@ -785,20 +785,21 @@ static ISampleSelector sample_selector_for_time(chrono_t time)
 Mesh *ABC_read_mesh(CacheReader *reader,
                     Object *ob,
                     Mesh *existing_mesh,
-                    const double time,
-                    const char **err_str,
-                    const int read_flag,
-                    const char *velocity_name,
-                    const float velocity_scale)
+                    const ABCReadParams *params,
+                    const char **err_str)
 {
   AbcObjectReader *abc_reader = get_abc_reader(reader, ob, err_str);
   if (abc_reader == nullptr) {
     return nullptr;
   }
 
-  ISampleSelector sample_sel = sample_selector_for_time(time);
-  return abc_reader->read_mesh(
-      existing_mesh, sample_sel, read_flag, velocity_name, velocity_scale, err_str);
+  ISampleSelector sample_sel = sample_selector_for_time(params->time);
+  return abc_reader->read_mesh(existing_mesh,
+                               sample_sel,
+                               params->read_flags,
+                               params->velocity_name,
+                               params->velocity_scale,
+                               err_str);
 }
 
 bool ABC_mesh_topology_changed(CacheReader *reader,
