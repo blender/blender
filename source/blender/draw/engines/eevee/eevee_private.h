@@ -666,7 +666,7 @@ typedef struct EEVEE_HairMotionData {
   /** Needs to be first to ensure casting. */
   eEEVEEMotionData type;
   int use_deform;
-  /** Allocator will alloc enough slot for all particle systems. Or 1 if it's a hair object. */
+  /** Allocator will alloc enough slot for all particle systems. Or 1 if it's a curves object. */
   int psys_len;
   struct {
     /* The vbos and textures are not owned. */

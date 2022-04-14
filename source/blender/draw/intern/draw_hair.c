@@ -298,23 +298,11 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
   DRW_hair_duplimat_get(object, psys, md, dupli_mat);
 
   /* Get hair shape parameters. */
-  float hair_rad_shape, hair_rad_root, hair_rad_tip;
-  bool hair_close_tip;
-  if (psys) {
-    /* Old particle hair. */
-    ParticleSettings *part = psys->part;
-    hair_rad_shape = part->shape;
-    hair_rad_root = part->rad_root * part->rad_scale * 0.5f;
-    hair_rad_tip = part->rad_tip * part->rad_scale * 0.5f;
-    hair_close_tip = (part->shape_flag & PART_SHAPE_CLOSE_TIP) != 0;
-  }
-  else {
-    /* TODO: implement for new curves object. */
-    hair_rad_shape = 1.0f;
-    hair_rad_root = 0.005f;
-    hair_rad_tip = 0.0f;
-    hair_close_tip = true;
-  }
+  ParticleSettings *part = psys->part;
+  float hair_rad_shape = part->shape;
+  float hair_rad_root = part->rad_root * part->rad_scale * 0.5f;
+  float hair_rad_tip = part->rad_tip * part->rad_scale * 0.5f;
+  bool hair_close_tip = (part->shape_flag & PART_SHAPE_CLOSE_TIP) != 0;
 
   DRW_shgroup_uniform_texture(shgrp, "hairPointBuffer", hair_cache->final[subdiv].proc_tex);
   if (hair_cache->length_tex) {

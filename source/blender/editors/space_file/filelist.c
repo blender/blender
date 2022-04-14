@@ -3403,7 +3403,7 @@ static void filelist_readjob_main_recursive(Main *bmain, FileList *filelist)
     filelist->filelist.entries[20].entry->relpath = BLI_strdup("Action");
     filelist->filelist.entries[21].entry->relpath = BLI_strdup("NodeTree");
     filelist->filelist.entries[22].entry->relpath = BLI_strdup("Speaker");
-    filelist->filelist.entries[23].entry->relpath = BLI_strdup("Hair");
+    filelist->filelist.entries[23].entry->relpath = BLI_strdup("Curves");
     filelist->filelist.entries[24].entry->relpath = BLI_strdup("Point Cloud");
     filelist->filelist.entries[25].entry->relpath = BLI_strdup("Volume");
 #  ifdef WITH_FREESTYLE
