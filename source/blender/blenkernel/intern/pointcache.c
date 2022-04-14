@@ -285,8 +285,10 @@ static int ptcache_particle_write(int index, void *psys_v, void **data, int cfra
       }
     }
     else {
-      /* Particles are only stored in their lifetime. */
-      if (cfra < pa->time - step || cfra > pa->dietime + step) {
+      /* Inclusive ranges for particle lifetime (`dietime - 1` for an inclusive end-frame). */
+      const int pa_sfra = (int)pa->time - step;
+      const int pa_efra = ((int)pa->dietime - 1) + step;
+      if (!(cfra >= pa_sfra && cfra <= pa_efra)) {
         return 0;
       }
     }
@@ -399,9 +401,12 @@ static void ptcache_particle_interpolate(int index,
 
   pa = psys->particles + index;
 
-  /* particle wasn't read from first cache so can't interpolate */
-  if ((int)cfra1 < pa->time - psys->pointcache->step ||
-      (int)cfra1 > pa->dietime + psys->pointcache->step) {
+  /* Inclusive ranges for particle lifetime (`dietime - 1` for an inclusive end-frame). */
+  const int pa_sfra = (int)pa->time - psys->pointcache->step;
+  const int pa_efra = ((int)pa->dietime - 1) + psys->pointcache->step;
+
+  /* Particle wasn't read from first cache so can't interpolate. */
+  if (!(cfra1 >= pa_sfra && cfra1 <= pa_efra)) {
     return;
   }
 
@@ -482,12 +487,16 @@ static int ptcache_particle_totwrite(void *psys_v, int cfra)
   if (psys->part->flag & PART_DIED) {
     /* Also store dead particles when they are displayed. */
     for (p = 0; p < psys->totpart; p++, pa++) {
-      totwrite += (cfra >= pa->time - step);
+      const int pa_sfra = (int)pa->time - step;
+      totwrite += (cfra >= pa_sfra);
     }
   }
   else {
     for (p = 0; p < psys->totpart; p++, pa++) {
-      totwrite += (cfra >= pa->time - step && cfra <= pa->dietime + step);
+      /* Inclusive ranges for particle lifetime (`dietime - 1` for an inclusive end-frame). */
+      const int pa_sfra = (int)pa->time - step;
+      const int pa_efra = ((int)pa->dietime - 1) + step;
+      totwrite += (cfra >= pa_sfra) && (cfra <= pa_efra);
     }
   }
 
