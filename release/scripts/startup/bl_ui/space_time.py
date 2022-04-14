@@ -187,7 +187,9 @@ def marker_menu_generic(layout, context):
 
     layout.separator()
 
-    layout.operator("marker.rename", text="Rename Marker")
+    props = layout.operator("wm.call_panel", text="Rename Marker")
+    props.name = "TOPBAR_PT_name_marker"
+    props.keep_open = False
     layout.operator("marker.move", text="Move Marker")
 
     layout.separator()
