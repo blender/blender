@@ -76,7 +76,6 @@ BLI_INLINE ft_pix ft_pix_round_advance(ft_pix v, ft_pix step)
   return FT_PIX_DEFAULT_ROUNDING(v) + FT_PIX_DEFAULT_ROUNDING(step);
 }
 
-#undef FT_PIX_FLOOR
 #undef FT_PIX_ROUND
 #undef FT_PIX_CEIL
 #undef FT_PIX_DEFAULT_ROUNDING

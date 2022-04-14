@@ -921,6 +921,9 @@ static void blf_font_wrap_apply(FontBLF *font,
   int lines = 0;
   ft_pix pen_x_next = 0;
 
+  /* Space between lines needs to be aligned to the pixel grid (T97310). */
+  ft_pix line_height = FT_PIX_FLOOR(blf_font_height_max_ft_pix(font));
+
   GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
 
   struct WordWrapVars {
@@ -978,7 +981,7 @@ static void blf_font_wrap_apply(FontBLF *font,
       wrap.start = wrap.last[0];
       i = wrap.last[1];
       pen_x = 0;
-      pen_y -= blf_font_height_max_ft_pix(font);
+      pen_y -= line_height;
       g_prev = NULL;
       lines += 1;
       continue;
