@@ -1129,7 +1129,6 @@ void VIEW3D_OT_localview_remove_from(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = localview_remove_from_exec;
-  ot->invoke = WM_operator_confirm;
   ot->poll = localview_remove_from_poll;
   ot->flag = OPTYPE_UNDO;
 }
