@@ -290,7 +290,7 @@ struct GPUSource {
   {
     const StringRefNull input = source;
 
-    const char whitespace_chars[] = " \n\t";
+    const char whitespace_chars[] = " \r\n\t";
 
     auto function_parse = [&](const StringRef &input,
                               int64_t &cursor,
