@@ -194,6 +194,10 @@ def marker_menu_generic(layout, context):
 
     layout.separator()
 
+    layout.menu('NLA_MT_marker_select')
+
+    layout.separator()
+
     layout.operator("marker.camera_bind")
 
     layout.separator()

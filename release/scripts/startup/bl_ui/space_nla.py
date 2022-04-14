@@ -150,6 +150,23 @@ class NLA_MT_marker(Menu):
         marker_menu_generic(layout, context)
 
 
+class NLA_MT_marker_select(Menu):
+    bl_label = 'Select'
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("marker.select_all", text="All").action = 'SELECT'
+        layout.operator("marker.select_all", text="None").action = 'DESELECT'
+        layout.operator("marker.select_all", text="Invert").action = 'INVERT'
+
+        layout.separator()
+
+        layout.operator("marker.select_leftright", text="Before Current Frame").mode = 'LEFT'
+        layout.operator("marker.select_leftright", text="After Current Frame").mode = 'RIGHT'
+
+
+
 class NLA_MT_edit(Menu):
     bl_label = "Edit"
 
@@ -312,6 +329,7 @@ classes = (
     NLA_MT_view,
     NLA_MT_select,
     NLA_MT_marker,
+    NLA_MT_marker_select,
     NLA_MT_add,
     NLA_MT_edit_transform,
     NLA_MT_snap_pie,
