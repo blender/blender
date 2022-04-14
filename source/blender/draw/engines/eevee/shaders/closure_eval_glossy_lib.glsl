@@ -10,7 +10,14 @@ struct ClosureInputGlossy {
   float roughness; /** Input roughness, not squared. */
 };
 
-#define CLOSURE_INPUT_Glossy_DEFAULT ClosureInputGlossy(vec3(0.0), 0.0)
+#ifdef GPU_METAL
+#  define CLOSURE_INPUT_Glossy_DEFAULT \
+    { \
+      vec3(0.0), 0.0 \
+    }
+#else
+#  define CLOSURE_INPUT_Glossy_DEFAULT ClosureInputGlossy(vec3(0.0), 0.0)
+#endif
 
 struct ClosureEvalGlossy {
   vec4 ltc_mat;            /** LTC matrix values. */

@@ -10,8 +10,15 @@ struct ClosureInputRefraction {
   float roughness; /** Input roughness, not squared. */
   float ior;       /** Index of refraction ratio. */
 };
-
-#define CLOSURE_INPUT_Refraction_DEFAULT ClosureInputRefraction(vec3(0.0), 0.0, 0.0)
+#ifdef GPU_METAL
+/* C++ struct initialization. */
+#  define CLOSURE_INPUT_Refraction_DEFAULT \
+    { \
+      vec3(0.0), 0.0, 0.0 \
+    }
+#else
+#  define CLOSURE_INPUT_Refraction_DEFAULT ClosureInputRefraction(vec3(0.0), 0.0, 0.0)
+#endif
 
 struct ClosureEvalRefraction {
   vec3 P;                  /** LTC matrix values. */

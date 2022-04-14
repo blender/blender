@@ -157,7 +157,15 @@
 #define ClosureInputDummy ClosureOutput
 #define ClosureOutputDummy ClosureOutput
 #define ClosureEvalDummy ClosureOutput
-#define CLOSURE_EVAL_DUMMY ClosureOutput(vec3(0))
+#ifdef GPU_METAL
+/* C++ struct initialization. */
+#  define CLOSURE_EVAL_DUMMY \
+    { \
+      vec3(0) \
+    }
+#else
+#  define CLOSURE_EVAL_DUMMY ClosureOutput(vec3(0))
+#endif
 #define CLOSURE_INPUT_Dummy_DEFAULT CLOSURE_EVAL_DUMMY
 #define closure_Dummy_eval_init(cl_in, cl_common, cl_out) CLOSURE_EVAL_DUMMY
 #define closure_Dummy_planar_eval(cl_in, cl_eval, cl_common, data, cl_out)
@@ -180,8 +188,15 @@ struct ClosureInputCommon {
   /** Custom occlusion value set by the user. */
   float occlusion;
 };
-
-#define CLOSURE_INPUT_COMMON_DEFAULT ClosureInputCommon(1.0)
+#ifdef GPU_METAL
+/* C++ struct initialization. */
+#  define CLOSURE_INPUT_COMMON_DEFAULT \
+    { \
+      1.0 \
+    }
+#else
+#  define CLOSURE_INPUT_COMMON_DEFAULT ClosureInputCommon(1.0)
+#endif
 
 struct ClosureEvalCommon {
   /** Result of SSAO. */

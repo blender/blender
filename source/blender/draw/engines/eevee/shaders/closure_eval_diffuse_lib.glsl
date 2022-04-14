@@ -7,7 +7,15 @@ struct ClosureInputDiffuse {
   vec3 albedo; /** Used for multibounce GTAO approximation. Not applied to final radiance. */
 };
 
-#define CLOSURE_INPUT_Diffuse_DEFAULT ClosureInputDiffuse(vec3(0.0), vec3(0.0))
+#ifdef GPU_METAL
+/* C++ struct initialization. */
+#  define CLOSURE_INPUT_Diffuse_DEFAULT \
+    { \
+      vec3(0.0), vec3(0.0) \
+    }
+#else
+#  define CLOSURE_INPUT_Diffuse_DEFAULT ClosureInputDiffuse(vec3(0.0), vec3(0.0))
+#endif
 
 struct ClosureEvalDiffuse {
   vec3 probe_sampling_dir; /** Direction to sample probes from. */

@@ -7,9 +7,15 @@
 struct ClosureInputTranslucent {
   vec3 N; /** Shading normal. */
 };
-
-#define CLOSURE_INPUT_Translucent_DEFAULT ClosureInputTranslucent(vec3(0.0))
-
+#ifdef GPU_METAL
+/* C++ struct initialization. */
+#  define CLOSURE_INPUT_Translucent_DEFAULT \
+    { \
+      vec3(0.0) \
+    }
+#else
+#  define CLOSURE_INPUT_Translucent_DEFAULT ClosureInputTranslucent(vec3(0.0))
+#endif
 /* Stubs. */
 #define ClosureEvalTranslucent ClosureEvalDummy
 #define ClosureOutputTranslucent ClosureOutput

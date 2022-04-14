@@ -40,6 +40,15 @@ struct OcclusionData {
   vec4 horizons;
   /* Custom large scale occlusion. */
   float custom_occlusion;
+
+#ifdef GPU_METAL
+  /* Constructors required for OcclusionData(..) syntax. */
+  inline OcclusionData() = default;
+  inline OcclusionData(vec4 in_horizons, float in_custom_occlusion)
+      : horizons(in_horizons), custom_occlusion(in_custom_occlusion)
+  {
+  }
+#endif
 };
 
 vec4 pack_occlusion_data(OcclusionData data)
