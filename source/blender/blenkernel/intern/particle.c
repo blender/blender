@@ -1391,7 +1391,7 @@ static void init_particle_interpolation(Object *ob,
 
     if (get_pointcache_times_for_particle(pind->cache, pa - psys->particles, &start, &dietime)) {
       pind->birthtime = MAX2(pind->birthtime, start);
-      pind->dietime = MIN2(pind->dietime, dietime + 1);
+      pind->dietime = MIN2(pind->dietime, dietime);
     }
   }
   else {
