@@ -405,8 +405,8 @@ static void splineik_evaluate_bone(
 
   if (pchan->bone->length < FLT_EPSILON) {
     /* Only move the bone position with zero length bones. */
-    float bone_pos[4], dir[3], rad;
-    BKE_where_on_path(ik_data->tar, state->curve_position, bone_pos, dir, NULL, &rad, NULL);
+    float bone_pos[4], rad;
+    BKE_where_on_path(ik_data->tar, state->curve_position, bone_pos, NULL, NULL, &rad, NULL);
 
     apply_curve_transform(ik_data, ob, rad, bone_pos, &rad);
 
@@ -445,13 +445,13 @@ static void splineik_evaluate_bone(
 
   /* Step 1: determine the positions for the endpoints of the bone. */
   if (point_start < 1.0f) {
-    float vec[4], dir[3], rad;
+    float vec[4], rad;
     radius = 0.0f;
 
     /* Calculate head position. */
     if (point_start == 0.0f) {
       /* Start of the path. We have no previous tail position to copy. */
-      BKE_where_on_path(ik_data->tar, point_start, vec, dir, NULL, &rad, NULL);
+      BKE_where_on_path(ik_data->tar, point_start, vec, NULL, NULL, &rad, NULL);
     }
     else {
       copy_v3_v3(vec, state->prev_tail_loc);
@@ -486,7 +486,7 @@ static void splineik_evaluate_bone(
     }
     else {
       /* Scale to fit curve end position. */
-      if (BKE_where_on_path(ik_data->tar, point_end, vec, dir, NULL, &rad, NULL)) {
+      if (BKE_where_on_path(ik_data->tar, point_end, vec, NULL, NULL, &rad, NULL)) {
         state->prev_tail_radius = rad;
         copy_v3_v3(state->prev_tail_loc, vec);
         copy_v3_v3(pose_tail, vec);

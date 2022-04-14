@@ -1495,7 +1495,7 @@ static void followpath_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
 
   if (VALID_CONS_TARGET(ct) && (ct->tar->type == OB_CURVES_LEGACY)) {
     Curve *cu = ct->tar->data;
-    float vec[4], dir[3], radius;
+    float vec[4], radius;
     float curvetime;
 
     unit_m4(ct->matrix);
@@ -1532,7 +1532,7 @@ static void followpath_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
       if (BKE_where_on_path(ct->tar,
                             curvetime,
                             vec,
-                            dir,
+                            NULL,
                             (data->followflag & FOLLOWPATH_FOLLOW) ? quat : NULL,
                             &radius,
                             NULL)) { /* quat_pt is quat or NULL. */
@@ -3886,7 +3886,7 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 
     /* get targetmatrix */
     if (data->tar->runtime.curve_cache && data->tar->runtime.curve_cache->anim_path_accum_length) {
-      float vec[4], dir[3], totmat[4][4];
+      float vec[4], totmat[4][4];
       float curvetime;
       short clamp_axis;
 
@@ -3969,7 +3969,7 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
       }
 
       /* 3. position on curve */
-      if (BKE_where_on_path(ct->tar, curvetime, vec, dir, NULL, NULL, NULL)) {
+      if (BKE_where_on_path(ct->tar, curvetime, vec, NULL, NULL, NULL, NULL)) {
         unit_m4(totmat);
         copy_v3_v3(totmat[3], vec);
 
