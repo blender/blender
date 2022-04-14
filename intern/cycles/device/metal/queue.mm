@@ -492,11 +492,6 @@ void MetalDeviceQueue::copy_from_device(device_memory &mem)
   }
 }
 
-bool MetalDeviceQueue::kernel_available(DeviceKernel kernel) const
-{
-  return metal_device->kernels.available(kernel);
-}
-
 void MetalDeviceQueue::prepare_resources(DeviceKernel kernel)
 {
   std::lock_guard<std::recursive_mutex> lock(metal_device->metal_mem_map_mutex);
