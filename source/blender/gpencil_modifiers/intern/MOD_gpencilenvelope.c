@@ -344,6 +344,7 @@ static void add_stroke(Object *ob,
   const int size = size1 + size2;
   bGPdata *gpd = ob->data;
   bGPDstroke *gps_dst = BKE_gpencil_stroke_new(mat_nr, size, gps->thickness);
+  gps_dst->runtime.gps_orig = gps->runtime.gps_orig;
 
   memcpy(&gps_dst->points[0], &gps->points[connection_index], size1 * sizeof(bGPDspoint));
   memcpy(&gps_dst->points[size1], &gps->points[point_index], size2 * sizeof(bGPDspoint));
@@ -351,7 +352,6 @@ static void add_stroke(Object *ob,
   for (int i = 0; i < size; i++) {
     gps_dst->points[i].pressure *= thickness;
     gps_dst->points[i].strength *= strength;
-    memset(&gps_dst->points[i].runtime, 0, sizeof(bGPDspoint_Runtime));
   }
 
   if (gps->dvert != NULL) {
@@ -378,6 +378,8 @@ static void add_stroke_cyclic(Object *ob,
 {
   bGPdata *gpd = ob->data;
   bGPDstroke *gps_dst = BKE_gpencil_stroke_new(mat_nr, size * 2, gps->thickness);
+  gps_dst->runtime.gps_orig = gps->runtime.gps_orig;
+
   if (gps->dvert != NULL) {
     gps_dst->dvert = MEM_malloc_arrayN(size * 2, sizeof(MDeformVert), __func__);
   }
@@ -387,7 +389,16 @@ static void add_stroke_cyclic(Object *ob,
     int b = (point_index + i) % gps->totpoints;
 
     gps_dst->points[i] = gps->points[a];
+    bGPDspoint *pt_dst = &gps_dst->points[i];
+    bGPDspoint *pt_orig = &gps->points[a];
+    pt_dst->runtime.pt_orig = pt_orig->runtime.pt_orig;
+    pt_dst->runtime.idx_orig = pt_orig->runtime.idx_orig;
+
     gps_dst->points[size + i] = gps->points[b];
+    pt_dst = &gps_dst->points[size + i];
+    pt_orig = &gps->points[b];
+    pt_dst->runtime.pt_orig = pt_orig->runtime.pt_orig;
+    pt_dst->runtime.idx_orig = pt_orig->runtime.idx_orig;
 
     if (gps->dvert != NULL) {
       BKE_defvert_array_copy(&gps_dst->dvert[i], &gps->dvert[a], 1);
@@ -417,15 +428,23 @@ static void add_stroke_simple(Object *ob,
 {
   bGPdata *gpd = ob->data;
   bGPDstroke *gps_dst = BKE_gpencil_stroke_new(mat_nr, 2, gps->thickness);
+  gps_dst->runtime.gps_orig = gps->runtime.gps_orig;
 
   gps_dst->points[0] = gps->points[connection_index];
   gps_dst->points[0].pressure *= thickness;
   gps_dst->points[0].strength *= strength;
-  memset(&gps_dst->points[0].runtime, 0, sizeof(bGPDspoint_Runtime));
+  bGPDspoint *pt_dst = &gps_dst->points[0];
+  bGPDspoint *pt_orig = &gps->points[connection_index];
+  pt_dst->runtime.pt_orig = pt_orig->runtime.pt_orig;
+  pt_dst->runtime.idx_orig = pt_orig->runtime.idx_orig;
+
   gps_dst->points[1] = gps->points[point_index];
   gps_dst->points[1].pressure *= thickness;
   gps_dst->points[1].strength *= strength;
-  memset(&gps_dst->points[1].runtime, 0, sizeof(bGPDspoint_Runtime));
+  pt_dst = &gps_dst->points[1];
+  pt_orig = &gps->points[point_index];
+  pt_dst->runtime.pt_orig = pt_orig->runtime.pt_orig;
+  pt_dst->runtime.idx_orig = pt_orig->runtime.idx_orig;
 
   if (gps->dvert != NULL) {
     gps_dst->dvert = MEM_malloc_arrayN(2, sizeof(MDeformVert), __func__);
