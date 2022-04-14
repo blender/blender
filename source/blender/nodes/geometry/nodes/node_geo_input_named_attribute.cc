@@ -81,10 +81,12 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const std::string name = params.extract_input<std::string>("Name");
 
-  if (!U.experimental.use_named_attribute_nodes) {
+  if (!U.experimental.use_named_attribute_nodes || name.empty()) {
     params.set_default_remaining_outputs();
     return;
   }
+
+  params.used_named_attribute(name, NamedAttributeUsage::Read);
 
   switch (data_type) {
     case CD_PROP_FLOAT:

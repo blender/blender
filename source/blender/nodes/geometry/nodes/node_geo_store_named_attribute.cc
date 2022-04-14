@@ -127,10 +127,12 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   std::string name = params.extract_input<std::string>("Name");
 
-  if (!U.experimental.use_named_attribute_nodes) {
+  if (!U.experimental.use_named_attribute_nodes || name.empty()) {
     params.set_output("Geometry", std::move(geometry_set));
     return;
   }
+
+  params.used_named_attribute(name, NamedAttributeUsage::Write);
 
   const NodeGeometryStoreNamedAttribute &storage = node_storage(params.node());
   const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);

@@ -7143,6 +7143,13 @@ static void rna_def_space_node_overlay(BlenderRNA *brna)
   RNA_def_property_boolean_default(prop, true);
   RNA_def_property_ui_text(prop, "Show Tree Path", "Display breadcrumbs for the editor's context");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, NULL);
+
+  prop = RNA_def_property(srna, "show_named_attributes", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", SN_OVERLAY_SHOW_NAMED_ATTRIBUTES);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(
+      prop, "Show Named Attributes", "Show when nodes are using named attributes");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, NULL);
 }
 
 static void rna_def_space_node(BlenderRNA *brna)

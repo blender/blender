@@ -2677,5 +2677,17 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Enable named attributes overlay in node editor. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+          if (space->spacetype == SPACE_NODE) {
+            SpaceNode *snode = (SpaceNode *)space;
+            snode->overlay.flag |= SN_OVERLAY_SHOW_NAMED_ATTRIBUTES;
+          }
+        }
+      }
+    }
   }
 }

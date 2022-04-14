@@ -75,6 +75,7 @@
 using blender::GPointer;
 using blender::fn::GField;
 namespace geo_log = blender::nodes::geometry_nodes_eval_log;
+using geo_log::NamedAttributeUsage;
 
 extern "C" {
 /* XXX interface.h */
@@ -1684,9 +1685,126 @@ static std::string node_get_execution_time_label(const SpaceNode &snode, const b
 
 struct NodeExtraInfoRow {
   std::string text;
-  const char *tooltip;
   int icon;
+  const char *tooltip = nullptr;
+
+  uiButToolTipFunc tooltip_fn = nullptr;
+  void *tooltip_fn_arg = nullptr;
+  void (*tooltip_fn_free_arg)(void *) = nullptr;
 };
+
+struct NamedAttributeTooltipArg {
+  Map<std::string, NamedAttributeUsage> usage_by_attribute;
+};
+
+static char *named_attribute_tooltip(bContext *UNUSED(C), void *argN, const char *UNUSED(tip))
+{
+  NamedAttributeTooltipArg &arg = *static_cast<NamedAttributeTooltipArg *>(argN);
+
+  std::stringstream ss;
+  ss << TIP_("Accessed attribute names:\n");
+  Vector<std::pair<StringRefNull, NamedAttributeUsage>> sorted_used_attribute;
+  for (auto &&item : arg.usage_by_attribute.items()) {
+    sorted_used_attribute.append({item.key, item.value});
+  }
+  std::sort(sorted_used_attribute.begin(), sorted_used_attribute.end());
+  for (const std::pair<StringRefNull, NamedAttributeUsage> &attribute : sorted_used_attribute) {
+    const StringRefNull name = attribute.first;
+    const NamedAttributeUsage usage = attribute.second;
+    ss << "  \u2022 \"" << name << "\": ";
+    Vector<std::string> usages;
+    if ((usage & NamedAttributeUsage::Read) != NamedAttributeUsage::None) {
+      usages.append(TIP_("read"));
+    }
+    if ((usage & NamedAttributeUsage::Write) != NamedAttributeUsage::None) {
+      usages.append(TIP_("write"));
+    }
+    if ((usage & NamedAttributeUsage::Remove) != NamedAttributeUsage::None) {
+      usages.append(TIP_("remove"));
+    }
+    for (const int i : usages.index_range()) {
+      ss << usages[i];
+      if (i < usages.size() - 1) {
+        ss << ", ";
+      }
+    }
+    ss << "\n";
+  }
+  ss << "\n";
+  ss << TIP_(
+      "Attributes with these names used within the group may conflict with existing attributes");
+  return BLI_strdup(ss.str().c_str());
+}
+
+static NodeExtraInfoRow row_from_used_named_attribute(
+    const Map<std::string, NamedAttributeUsage> &usage_by_attribute_name)
+{
+  NodeExtraInfoRow row;
+  row.text = TIP_("Attributes");
+  row.icon = ICON_SPREADSHEET;
+  row.tooltip_fn = named_attribute_tooltip;
+  row.tooltip_fn_arg = new NamedAttributeTooltipArg{usage_by_attribute_name};
+  row.tooltip_fn_free_arg = [](void *arg) { delete static_cast<NamedAttributeTooltipArg *>(arg); };
+  return row;
+}
+
+static std::optional<NodeExtraInfoRow> node_get_accessed_attributes_row(const SpaceNode &snode,
+                                                                        const bNode &node)
+{
+  if (node.type == NODE_GROUP) {
+    const geo_log::TreeLog *root_tree_log = geo_log::ModifierLog::find_tree_by_node_editor_context(
+        snode);
+    if (root_tree_log == nullptr) {
+      return std::nullopt;
+    }
+    const geo_log::TreeLog *tree_log = root_tree_log->lookup_child_log(node.name);
+    if (tree_log == nullptr) {
+      return std::nullopt;
+    }
+
+    Map<std::string, NamedAttributeUsage> usage_by_attribute;
+    tree_log->foreach_node_log([&](const geo_log::NodeLog &node_log) {
+      for (const geo_log::UsedNamedAttribute &used_attribute : node_log.used_named_attributes()) {
+        usage_by_attribute.lookup_or_add_as(used_attribute.name,
+                                            used_attribute.usage) |= used_attribute.usage;
+      }
+    });
+    if (usage_by_attribute.is_empty()) {
+      return std::nullopt;
+    }
+
+    return row_from_used_named_attribute(usage_by_attribute);
+  }
+  if (ELEM(node.type,
+           GEO_NODE_STORE_NAMED_ATTRIBUTE,
+           GEO_NODE_REMOVE_ATTRIBUTE,
+           GEO_NODE_INPUT_NAMED_ATTRIBUTE)) {
+    /* Only show the overlay when the name is passed in from somewhere else. */
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
+      if (STREQ(socket->name, "Name")) {
+        if ((socket->flag & SOCK_IN_USE) == 0) {
+          return std::nullopt;
+        }
+      }
+    }
+    const geo_log::NodeLog *node_log = geo_log::ModifierLog::find_node_by_node_editor_context(
+        snode, node.name);
+    if (node_log == nullptr) {
+      return std::nullopt;
+    }
+    Map<std::string, NamedAttributeUsage> usage_by_attribute;
+    for (const geo_log::UsedNamedAttribute &used_attribute : node_log->used_named_attributes()) {
+      usage_by_attribute.lookup_or_add_as(used_attribute.name,
+                                          used_attribute.usage) |= used_attribute.usage;
+    }
+    if (usage_by_attribute.is_empty()) {
+      return std::nullopt;
+    }
+    return row_from_used_named_attribute(usage_by_attribute);
+  }
+
+  return std::nullopt;
+}
 
 static Vector<NodeExtraInfoRow> node_get_extra_info(const SpaceNode &snode, const bNode &node)
 {
@@ -1718,6 +1836,14 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(const SpaceNode &snode, cons
       rows.append(std::move(row));
     }
   }
+
+  if (snode.overlay.flag & SN_OVERLAY_SHOW_NAMED_ATTRIBUTES &&
+      snode.edittree->type == NTREE_GEOMETRY) {
+    if (std::optional<NodeExtraInfoRow> row = node_get_accessed_attributes_row(snode, node)) {
+      rows.append(std::move(*row));
+    }
+  }
+
   return rows;
 }
 
@@ -1727,20 +1853,20 @@ static void node_draw_extra_info_row(const bNode &node,
                                      const int row,
                                      const NodeExtraInfoRow &extra_info_row)
 {
-  uiBut *but_timing = uiDefBut(&block,
-                               UI_BTYPE_LABEL,
-                               0,
-                               extra_info_row.text.c_str(),
-                               (int)(rect.xmin + 4.0f * U.dpi_fac + NODE_MARGIN_X + 0.4f),
-                               (int)(rect.ymin + row * (20.0f * U.dpi_fac)),
-                               (short)(rect.xmax - rect.xmin),
-                               (short)NODE_DY,
-                               nullptr,
-                               0,
-                               0,
-                               0,
-                               0,
-                               "");
+  uiBut *but_text = uiDefBut(&block,
+                             UI_BTYPE_LABEL,
+                             0,
+                             extra_info_row.text.c_str(),
+                             (int)(rect.xmin + 4.0f * U.dpi_fac + NODE_MARGIN_X + 0.4f),
+                             (int)(rect.ymin + row * (20.0f * U.dpi_fac)),
+                             (short)(rect.xmax - rect.xmin),
+                             (short)NODE_DY,
+                             nullptr,
+                             0,
+                             0,
+                             0,
+                             0,
+                             "");
   UI_block_emboss_set(&block, UI_EMBOSS_NONE);
   uiBut *but_icon = uiDefIconBut(&block,
                                  UI_BTYPE_BUT,
@@ -1756,9 +1882,15 @@ static void node_draw_extra_info_row(const bNode &node,
                                  0,
                                  0,
                                  extra_info_row.tooltip);
+  if (extra_info_row.tooltip_fn != NULL) {
+    UI_but_func_tooltip_set(but_icon,
+                            extra_info_row.tooltip_fn,
+                            extra_info_row.tooltip_fn_arg,
+                            extra_info_row.tooltip_fn_free_arg);
+  }
   UI_block_emboss_set(&block, UI_EMBOSS);
   if (node.flag & NODE_MUTED) {
-    UI_but_flag_enable(but_timing, UI_BUT_INACTIVE);
+    UI_but_flag_enable(but_text, UI_BUT_INACTIVE);
     UI_but_flag_enable(but_icon, UI_BUT_INACTIVE);
   }
 }
