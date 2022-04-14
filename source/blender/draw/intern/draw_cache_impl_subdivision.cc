@@ -1942,7 +1942,9 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
     return false;
   }
 
-  const bool optimal_display = (smd->flags & eSubsurfModifierFlag_ControlEdges);
+  /* Edges which do not come from coarse edges should not be drawn in edit mode, only in object
+   * mode when optimal display in turned off. */
+  const bool optimal_display = (smd->flags & eSubsurfModifierFlag_ControlEdges) || is_editmode;
 
   draw_cache->bm = bm;
   draw_cache->mesh = mesh_eval;
