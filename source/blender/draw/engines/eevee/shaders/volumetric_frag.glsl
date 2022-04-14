@@ -44,8 +44,13 @@ void main()
   volumeObjectLocalCoord = (volumeObjectToTexture * vec4(volumeObjectLocalCoord, 1.0)).xyz;
 
   if (any(lessThan(volumeObjectLocalCoord, vec3(0.0))) ||
-      any(greaterThan(volumeObjectLocalCoord, vec3(1.0))))
+      any(greaterThan(volumeObjectLocalCoord, vec3(1.0)))) {
+    /* Note: Discard is not an explicit return in Metal prior to versions 2.3.
+     * adding return after discard ensures consistent behaviour and avoids GPU
+     * side-effects where control flow continues with undefined values. */
     discard;
+    return;
+  }
 #endif
 
 #ifdef CLEAR

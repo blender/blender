@@ -209,10 +209,12 @@ vec3 hash_vec4_to_vec3(vec4 k)
 
 float integer_noise(int n)
 {
-  int nn;
-  n = (n + 1013) & 0x7fffffff;
-  n = (n >> 13) ^ n;
-  nn = (n * (n * n * 60493 + 19990303) + 1376312589) & 0x7fffffff;
+  /* Integer bit-shifts for these calculations can cause precision problems on macOS.
+   * Using uint resolves these issues. */
+  uint nn;
+  nn = (uint(n) + 1013u) & 0x7fffffffu;
+  nn = (nn >> 13u) ^ nn;
+  nn = (uint(nn * (nn * nn * 60493u + 19990303u)) + 1376312589u) & 0x7fffffffu;
   return 0.5 * (float(nn) / 1073741824.0);
 }
 
