@@ -1095,8 +1095,7 @@ EEVEE_ObjectEngineData *EEVEE_object_data_ensure(Object *ob);
 EEVEE_ObjectMotionData *EEVEE_motion_blur_object_data_get(EEVEE_MotionBlurData *mb, Object *ob);
 EEVEE_GeometryMotionData *EEVEE_motion_blur_geometry_data_get(EEVEE_ObjectMotionData *mb_data);
 EEVEE_HairMotionData *EEVEE_motion_blur_hair_data_get(EEVEE_ObjectMotionData *mb_data, Object *ob);
-EEVEE_HairMotionData *EEVEE_motion_blur_curves_data_get(EEVEE_ObjectMotionData *mb_data,
-                                                        Object *ob);
+EEVEE_HairMotionData *EEVEE_motion_blur_curves_data_get(EEVEE_ObjectMotionData *mb_data);
 EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_get(Object *ob);
 EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_ensure(Object *ob);
 EEVEE_LightEngineData *EEVEE_light_data_get(Object *ob);

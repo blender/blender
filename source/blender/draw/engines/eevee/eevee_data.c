@@ -170,8 +170,7 @@ EEVEE_HairMotionData *EEVEE_motion_blur_hair_data_get(EEVEE_ObjectMotionData *mb
   return mb_data->hair_data;
 }
 
-EEVEE_HairMotionData *EEVEE_motion_blur_curves_data_get(EEVEE_ObjectMotionData *mb_data,
-                                                        Object *ob)
+EEVEE_HairMotionData *EEVEE_motion_blur_curves_data_get(EEVEE_ObjectMotionData *mb_data)
 {
   if (mb_data->hair_data == NULL) {
     EEVEE_HairMotionData *hair_step = MEM_callocN(

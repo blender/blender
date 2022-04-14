@@ -292,7 +292,7 @@ void EEVEE_motion_blur_curves_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata)
   /* Store transform. */
   copy_m4_m4(mb_data->obmat[mb_step], ob->obmat);
 
-  EEVEE_HairMotionData *mb_curves = EEVEE_motion_blur_curves_data_get(mb_data, ob);
+  EEVEE_HairMotionData *mb_curves = EEVEE_motion_blur_curves_data_get(mb_data);
 
   if (mb_step == MB_CURR) {
     /* Fill missing matrices if the object was hidden in previous or next frame. */
