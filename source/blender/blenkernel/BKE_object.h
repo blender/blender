@@ -270,6 +270,17 @@ void BKE_object_apply_mat4(struct Object *ob,
                            const float mat[4][4],
                            bool use_compat,
                            bool use_parent);
+
+/**
+ * Use parent's world location and rotation as the child's origin. The parent inverse will
+ * become identity when the parent has no shearing. Otherwise, it is non-identity and contains the
+ * object's local matrix data that cannot be decomposed into location, rotation and scale.
+ *
+ * Assumes the object's world matrix has no shear.
+ * Assumes parent exists.
+ */
+void BKE_object_apply_parent_inverse(struct Object *ob);
+
 void BKE_object_matrix_local_get(struct Object *ob, float r_mat[4][4]);
 
 bool BKE_object_pose_context_check(const struct Object *ob);
