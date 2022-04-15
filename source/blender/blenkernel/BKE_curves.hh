@@ -183,6 +183,13 @@ class CurvesGeometry : public ::CurvesGeometry {
   MutableSpan<int> resolution_for_write();
 
   /**
+   * The angle used to rotate evaluated normals around the tangents after their calculation.
+   * Call #tag_normals_changed after changes.
+   */
+  VArray<float> tilt() const;
+  MutableSpan<float> tilt_for_write();
+
+  /**
    * Which method to use for calculating the normals of evaluated points (#NormalMode).
    * Call #tag_normals_changed after changes.
    */

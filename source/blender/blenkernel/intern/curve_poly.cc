@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-#include "BLI_math_vector.h"
+#include "BLI_math_rotation.hh"
 #include "BLI_math_vector.hh"
 
 #include "BKE_curves.hh"
@@ -54,20 +54,6 @@ void calculate_tangents(const Span<float3> positions,
   }
 }
 
-static float3 rotate_direction_around_axis(const float3 &direction,
-                                           const float3 &axis,
-                                           const float angle)
-{
-  BLI_ASSERT_UNIT_V3(direction);
-  BLI_ASSERT_UNIT_V3(axis);
-
-  const float3 axis_scaled = axis * math::dot(direction, axis);
-  const float3 diff = direction - axis_scaled;
-  const float3 cross = math::cross(axis, diff);
-
-  return axis_scaled + diff * std::cos(angle) + cross * std::sin(angle);
-}
-
 void calculate_normals_z_up(const Span<float3> tangents, MutableSpan<float3> normals)
 {
   BLI_assert(normals.size() == tangents.size());
@@ -98,7 +84,7 @@ static float3 calculate_next_normal(const float3 &last_normal,
   const float angle = angle_normalized_v3v3(last_tangent, current_tangent);
   if (angle != 0.0) {
     const float3 axis = math::normalize(math::cross(last_tangent, current_tangent));
-    return rotate_direction_around_axis(last_normal, axis, angle);
+    return math::rotate_direction_around_axis(last_normal, axis, angle);
   }
   return last_normal;
 }
@@ -147,7 +133,7 @@ void calculate_normals_minimum(const Span<float3> tangents,
   const float angle_step = correction_angle / normals.size();
   for (const int i : normals.index_range()) {
     const float angle = angle_step * i;
-    normals[i] = rotate_direction_around_axis(normals[i], tangents[i], angle);
+    normals[i] = math::rotate_direction_around_axis(normals[i], tangents[i], angle);
   }
 }
 
