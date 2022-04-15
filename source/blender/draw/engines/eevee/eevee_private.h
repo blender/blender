@@ -1012,6 +1012,7 @@ typedef struct EEVEE_PrivateData {
   struct DRWCallBuffer *planar_display_shgrp;
   struct GHash *material_hash;
   float background_alpha; /* TODO: find a better place for this. */
+  bool disable_ligthprobes;
   /* Chosen lightcache: can come from Lookdev or the viewlayer. */
   struct LightCache *light_cache;
   /* For planar probes */

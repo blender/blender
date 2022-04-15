@@ -52,6 +52,8 @@ static void eevee_engine_init(void *ved)
   stl->g_data->valid_taa_history = (txl->taa_history != NULL);
   stl->g_data->queued_shaders_count = 0;
   stl->g_data->render_timesteps = 1;
+  stl->g_data->disable_ligthprobes = v3d &&
+                                     (v3d->object_type_exclude_viewport & (1 << OB_LIGHTPROBE));
 
   /* Main Buffer */
   DRW_texture_ensure_fullscreen_2d(&txl->color, GPU_RGBA16F, DRW_TEX_FILTER);
@@ -253,6 +255,10 @@ static void eevee_draw_scene(void *vedata)
     /* Set ray type. */
     sldata->common_data.ray_type = EEVEE_RAY_CAMERA;
     sldata->common_data.ray_depth = 0.0f;
+    if (stl->g_data->disable_ligthprobes) {
+      sldata->common_data.prb_num_render_cube = 1;
+      sldata->common_data.prb_num_render_grid = 1;
+    }
     GPU_uniformbuf_update(sldata->common_ubo, &sldata->common_data);
 
     GPU_framebuffer_bind(fbl->main_fb);
