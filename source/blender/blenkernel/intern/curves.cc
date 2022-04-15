@@ -27,6 +27,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_curves.hh"
 #include "BKE_customdata.h"
+#include "BKE_geometry_set.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
@@ -282,13 +283,11 @@ Curves *BKE_curves_copy_for_eval(Curves *curves_src, bool reference)
   return result;
 }
 
-static Curves *curves_evaluate_modifiers(struct Depsgraph *depsgraph,
-                                         struct Scene *scene,
-                                         Object *object,
-                                         Curves *curves_input)
+static void curves_evaluate_modifiers(struct Depsgraph *depsgraph,
+                                      struct Scene *scene,
+                                      Object *object,
+                                      GeometrySet &geometry_set)
 {
-  Curves *curves = curves_input;
-
   /* Modifier evaluation modes. */
   const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
   const int required_mode = use_render ? eModifierMode_Render : eModifierMode_Realtime;
@@ -308,27 +307,10 @@ static Curves *curves_evaluate_modifiers(struct Depsgraph *depsgraph,
       continue;
     }
 
-    if ((mti->type == eModifierTypeType_OnlyDeform) &&
-        (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly)) {
-      /* Ensure we are not modifying the input. */
-      if (curves == curves_input) {
-        curves = BKE_curves_copy_for_eval(curves, true);
-      }
-
-      /* Created deformed coordinates array on demand. */
-      blender::bke::CurvesGeometry &geometry = blender::bke::CurvesGeometry::wrap(
-          curves->geometry);
-      MutableSpan<float3> positions = geometry.positions_for_write();
-
-      mti->deformVerts(md,
-                       &mectx,
-                       nullptr,
-                       reinterpret_cast<float(*)[3]>(positions.data()),
-                       curves->geometry.point_size);
+    if (mti->modifyGeometrySet != nullptr) {
+      mti->modifyGeometrySet(md, &mectx, &geometry_set);
     }
   }
-
-  return curves;
 }
 
 void BKE_curves_data_update(struct Depsgraph *depsgraph, struct Scene *scene, Object *object)
@@ -338,11 +320,20 @@ void BKE_curves_data_update(struct Depsgraph *depsgraph, struct Scene *scene, Ob
 
   /* Evaluate modifiers. */
   Curves *curves = static_cast<Curves *>(object->data);
-  Curves *curves_eval = curves_evaluate_modifiers(depsgraph, scene, object, curves);
+  GeometrySet geometry_set = GeometrySet::create_with_curves(curves,
+                                                             GeometryOwnershipType::ReadOnly);
+  curves_evaluate_modifiers(depsgraph, scene, object, geometry_set);
 
   /* Assign evaluated object. */
-  const bool is_owned = (curves != curves_eval);
-  BKE_object_eval_assign_data(object, &curves_eval->id, is_owned);
+  Curves *curves_eval = const_cast<Curves *>(geometry_set.get_curves_for_read());
+  if (curves_eval == nullptr) {
+    curves_eval = blender::bke::curves_new_nomain(0, 0);
+    BKE_object_eval_assign_data(object, &curves_eval->id, true);
+  }
+  else {
+    BKE_object_eval_assign_data(object, &curves_eval->id, false);
+  }
+  object->runtime.geometry_set_eval = new GeometrySet(std::move(geometry_set));
 }
 
 /* Draw Cache */
