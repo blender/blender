@@ -22,11 +22,7 @@ static int gpu_shader_camera(GPUMaterial *mat,
                              GPUNodeStack *in,
                              GPUNodeStack *out)
 {
-  GPUNodeLink *viewvec;
-
-  viewvec = GPU_builtin(GPU_VIEW_POSITION);
-  GPU_link(mat, "invert_z", viewvec, &viewvec);
-  return GPU_stack_link(mat, node, "camera", in, out, viewvec);
+  return GPU_stack_link(mat, node, "camera", in, out);
 }
 
 }  // namespace blender::nodes::node_shader_camera_cc

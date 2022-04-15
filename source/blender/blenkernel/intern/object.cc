@@ -3096,12 +3096,12 @@ void BKE_object_matrix_local_get(struct Object *ob, float r_mat[4][4])
 static bool ob_parcurve(Object *ob, Object *par, float r_mat[4][4])
 {
   Curve *cu = (Curve *)par->data;
-  float vec[4], dir[3], quat[4], radius, ctime;
+  float vec[4], quat[4], radius, ctime;
 
   /* NOTE: Curve cache is supposed to be evaluated here already, however there
    * are cases where we can not guarantee that. This includes, for example,
    * dependency cycles. We can't correct anything from here, since that would
-   * cause a threading conflicts.
+   * cause threading conflicts.
    *
    * TODO(sergey): Some of the legit looking cases like T56619 need to be
    * looked into, and maybe curve cache (and other dependencies) are to be
@@ -3134,7 +3134,7 @@ static bool ob_parcurve(Object *ob, Object *par, float r_mat[4][4])
 
   /* vec: 4 items! */
   if (BKE_where_on_path(
-          par, ctime, vec, dir, (cu->flag & CU_FOLLOW) ? quat : nullptr, &radius, nullptr)) {
+          par, ctime, vec, nullptr, (cu->flag & CU_FOLLOW) ? quat : nullptr, &radius, nullptr)) {
     if (cu->flag & CU_FOLLOW) {
       quat_apply_track(quat, ob->trackflag, ob->upflag);
       normalize_qt(quat);
@@ -3565,6 +3565,55 @@ void BKE_object_apply_mat4(Object *ob,
                            const bool use_parent)
 {
   BKE_object_apply_mat4_ex(ob, mat, use_parent ? ob->parent : nullptr, ob->parentinv, use_compat);
+}
+
+void BKE_object_apply_parent_inverse(struct Object *ob)
+{
+  /*
+   * Use parent's world transform as the child's origin.
+   *
+   * Let:
+   *    local = identity
+   *    world = orthonormalized(parent)
+   *
+   * Then:
+   *    world = parent @ parentinv @ local
+   *    inv(parent) @ world = parentinv
+   *    parentinv = inv(parent) @ world
+   *
+   * NOTE: If ob->obmat has shear, then this `parentinv` is insufficient because
+   *    parent @ parentinv => shearless result
+   *
+   *    Thus, local will have shear which cannot be decomposed into TRS:
+   *    local = inv(parent @ parentinv) @ world
+   *
+   *    This is currently not supported for consistency in the handling of shear during the other
+   *    parenting ops: Parent (Keep Transform), Clear [Parent] and Keep Transform.
+   */
+  float par_locrot[4][4], par_imat[4][4];
+  BKE_object_get_parent_matrix(ob, ob->parent, par_locrot);
+  invert_m4_m4(par_imat, par_locrot);
+
+  orthogonalize_m4_stable(par_locrot, 0, true);
+
+  mul_m4_m4m4(ob->parentinv, par_imat, par_locrot);
+
+  /* Now, preserve `world` given the new `parentinv`.
+   *
+   * world = parent @ parentinv @ local
+   * inv(parent) @ world = parentinv @ local
+   * inv(parentinv) @ inv(parent) @ world = local
+   *
+   * local = inv(parentinv) @ inv(parent) @ world
+   */
+  float ob_local[4][4];
+  copy_m4_m4(ob_local, ob->parentinv);
+  invert_m4(ob_local);
+  mul_m4_m4_post(ob_local, par_imat);
+  mul_m4_m4_post(ob_local, ob->obmat);
+
+  /* Send use_compat=False so the rotation is predictable. */
+  BKE_object_apply_mat4(ob, ob_local, false, false);
 }
 
 /** \} */

@@ -27,6 +27,8 @@ struct bNodeTree;
 /* WATCH IT: change type? also make changes in ipo.h */
 
 typedef struct TexPaintSlot {
+  DNA_DEFINE_CXX_METHODS(TexPaintSlot)
+
   /** Image to be painted on. Mutual exclusive with attribute_name. */
   struct Image *ima;
   /** Custom-data index for uv layer, #MAX_NAME. */
@@ -43,6 +45,8 @@ typedef struct TexPaintSlot {
 } TexPaintSlot;
 
 typedef struct MaterialGPencilStyle {
+  DNA_DEFINE_CXX_METHODS(MaterialGPencilStyle)
+
   /** Texture image for strokes. */
   struct Image *sima;
   /** Texture image for filling. */
@@ -155,6 +159,8 @@ typedef enum eMaterialLineArtFlags {
 } eMaterialLineArtFlags;
 
 typedef struct Material {
+  DNA_DEFINE_CXX_METHODS(Material)
+
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;

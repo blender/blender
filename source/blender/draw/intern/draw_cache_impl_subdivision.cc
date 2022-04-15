@@ -1162,8 +1162,8 @@ static void draw_subdiv_ubo_update_and_bind(const DRWSubdivCache *cache,
 
   GPU_uniformbuf_update(cache->ubo, &storage);
 
-  const int location = GPU_shader_get_uniform_block(shader, "shader_data");
-  GPU_uniformbuf_bind(cache->ubo, location);
+  const int binding = GPU_shader_get_uniform_block_binding(shader, "shader_data");
+  GPU_uniformbuf_bind(cache->ubo, binding);
 }
 
 /** \} */
@@ -1942,7 +1942,9 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
     return false;
   }
 
-  const bool optimal_display = (smd->flags & eSubsurfModifierFlag_ControlEdges);
+  /* Edges which do not come from coarse edges should not be drawn in edit mode, only in object
+   * mode when optimal display in turned off. */
+  const bool optimal_display = (smd->flags & eSubsurfModifierFlag_ControlEdges) || is_editmode;
 
   draw_cache->bm = bm;
   draw_cache->mesh = mesh_eval;

@@ -32,6 +32,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
+  params.used_named_attribute(name, NamedAttributeUsage::Remove);
+
   std::atomic<bool> attribute_exists = false;
   std::atomic<bool> cannot_delete = false;
 

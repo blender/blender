@@ -654,9 +654,9 @@ typedef struct UserDef_Experimental {
   char _pad[7];
 
   char use_named_attribute_nodes;
-  char use_select_nearest_on_first_click;
   char enable_eevee_next;
   char use_sculpt_texture_paint;
+  char _pad0[1];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 

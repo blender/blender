@@ -61,7 +61,7 @@ bool ui_but_is_toggle(const uiBut *but)
 bool ui_but_is_interactive(const uiBut *but, const bool labeledit)
 {
   /* NOTE: #UI_BTYPE_LABEL is included for highlights, this allows drags. */
-  if ((but->type == UI_BTYPE_LABEL) && but->dragpoin == nullptr) {
+  if ((but->type == UI_BTYPE_LABEL) && but->dragpoin == nullptr && but->tip_func == nullptr) {
     return false;
   }
   if (ELEM(but->type, UI_BTYPE_ROUNDBOX, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE, UI_BTYPE_LISTBOX)) {

@@ -27,6 +27,8 @@ struct bNodeTree;
  * World defines general modeling data such as a background fill,
  * gravity, color model etc. It mixes rendering data and modeling data. */
 typedef struct World {
+  DNA_DEFINE_CXX_METHODS(World)
+
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;

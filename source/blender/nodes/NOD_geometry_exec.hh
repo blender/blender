@@ -40,6 +40,7 @@ using fn::FieldInput;
 using fn::FieldOperation;
 using fn::GField;
 using fn::ValueOrField;
+using geometry_nodes_eval_log::NamedAttributeUsage;
 using geometry_nodes_eval_log::NodeWarningType;
 
 /**
@@ -341,6 +342,8 @@ class GeoNodeExecParams {
   std::string attribute_producer_name() const;
 
   void set_default_remaining_outputs();
+
+  void used_named_attribute(std::string attribute_name, NamedAttributeUsage usage);
 
  private:
   /* Utilities for detecting common errors at when using this class. */

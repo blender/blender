@@ -15,6 +15,7 @@
 #include "BKE_mask.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h" /* SELECT */
@@ -243,7 +244,7 @@ static void mask_point_undistort_pos(SpaceClip *sc, float r_co[2], const float c
 }
 
 static bool spline_under_mouse_get(const bContext *C,
-                                   Mask *mask,
+                                   Mask *mask_orig,
                                    const float co[2],
                                    MaskLayer **r_mask_layer,
                                    MaskSpline **r_mask_spline)
@@ -258,6 +259,9 @@ static bool spline_under_mouse_get(const bContext *C,
   *r_mask_layer = NULL;
   *r_mask_spline = NULL;
 
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Mask *mask_eval = (Mask *)DEG_get_evaluated_id(depsgraph, &mask_orig->id);
+
   int width, height;
   ED_mask_get_size(area, &width, &height);
   float pixel_co[2];
@@ -266,22 +270,25 @@ static bool spline_under_mouse_get(const bContext *C,
   if (sc != NULL) {
     undistort = (sc->clip != NULL) && (sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT) != 0;
   }
-  for (MaskLayer *mask_layer = mask->masklayers.first; mask_layer != NULL;
-       mask_layer = mask_layer->next) {
-    if (mask_layer->visibility_flag & MASK_HIDE_SELECT) {
+
+  for (MaskLayer *mask_layer_orig = mask_orig->masklayers.first,
+                 *mask_layer_eval = mask_eval->masklayers.first;
+       mask_layer_orig != NULL;
+       mask_layer_orig = mask_layer_orig->next, mask_layer_eval = mask_layer_eval->next) {
+    if (mask_layer_orig->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
-
-    for (MaskSpline *spline = mask_layer->splines.first; spline != NULL; spline = spline->next) {
-      MaskSplinePoint *points_array;
-      float min[2], max[2], center[2];
-      if ((spline->flag & SELECT) == 0) {
+    for (MaskSpline *spline_orig = mask_layer_orig->splines.first,
+                    *spline_eval = mask_layer_eval->splines.first;
+         spline_orig != NULL;
+         spline_orig = spline_orig->next, spline_eval = spline_eval->next) {
+      if ((spline_orig->flag & SELECT) == 0) {
         continue;
       }
-
-      points_array = BKE_mask_spline_point_array(spline);
+      MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline_eval);
+      float min[2], max[2], center[2];
       INIT_MINMAX2(min, max);
-      for (int i = 0; i < spline->tot_point; i++) {
+      for (int i = 0; i < spline_orig->tot_point; i++) {
         MaskSplinePoint *point_deform = &points_array[i];
         BezTriple *bezt = &point_deform->bezt;
 
@@ -302,8 +309,8 @@ static bool spline_under_mouse_get(const bContext *C,
       float max_bb_side = min_ff((max[0] - min[0]) * width, (max[1] - min[1]) * height);
       if (dist_squared <= max_bb_side * max_bb_side * 0.5f &&
           (closest_spline == NULL || dist_squared < closest_dist_squared)) {
-        closest_layer = mask_layer;
-        closest_spline = spline;
+        closest_layer = mask_layer_orig;
+        closest_spline = spline_orig;
         closest_dist_squared = dist_squared;
       }
     }
@@ -311,7 +318,7 @@ static bool spline_under_mouse_get(const bContext *C,
   if (closest_dist_squared < square_f(threshold) && closest_spline != NULL) {
     float diff_score;
     if (ED_mask_find_nearest_diff_point(C,
-                                        mask,
+                                        mask_orig,
                                         co,
                                         threshold,
                                         false,

@@ -709,6 +709,7 @@ class NODE_PT_overlay(Panel):
         if snode.tree_type == 'GeometryNodeTree':
             col.separator()
             col.prop(overlay, "show_timing", text="Timings")
+            col.prop(overlay, "show_named_attributes", text="Named Attributes")
 
 
 class NODE_UL_interface_sockets(bpy.types.UIList):

@@ -2219,7 +2219,8 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
             ),
         )
 
-
+# Keep this as tweaks can be useful to restore.
+"""
 class USERPREF_PT_experimental_tweaks(ExperimentalPanel, Panel):
     bl_label = "Tweaks"
 
@@ -2230,6 +2231,7 @@ class USERPREF_PT_experimental_tweaks(ExperimentalPanel, Panel):
             ),
         )
 
+"""
 
 class USERPREF_PT_experimental_debugging(ExperimentalPanel, Panel):
     bl_label = "Debugging"
@@ -2349,7 +2351,7 @@ classes = (USERPREF_PT_theme_user_interface,
 
     USERPREF_PT_experimental_new_features,
     USERPREF_PT_experimental_prototypes,
-    USERPREF_PT_experimental_tweaks,
+    # USERPREF_PT_experimental_tweaks,
     USERPREF_PT_experimental_debugging,
 
     # Add dynamically generated editor theme panels last,

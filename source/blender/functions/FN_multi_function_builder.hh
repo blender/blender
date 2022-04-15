@@ -20,7 +20,7 @@ namespace blender::fn {
  * 2. single output (SO) of type Out1
  *
  * This example creates a function that adds 10 to the incoming values:
- *  CustomMF_SI_SO<int, int> fn("add 10", [](int value) { return value + 10; });
+ * `CustomMF_SI_SO<int, int> fn("add 10", [](int value) { return value + 10; });`
  */
 template<typename In1, typename Out1> class CustomMF_SI_SO : public MultiFunction {
  private:
@@ -386,39 +386,6 @@ template<typename Mut1> class CustomMF_SM : public MultiFunction {
   {
     MutableSpan<Mut1> mut1 = params.single_mutable<Mut1>(0);
     function_(mask, mut1);
-  }
-};
-
-/**
- * Generates a multi-function that converts between two types.
- */
-template<typename From, typename To> class CustomMF_Convert : public MultiFunction {
- public:
-  CustomMF_Convert()
-  {
-    static MFSignature signature = create_signature();
-    this->set_signature(&signature);
-  }
-
-  static MFSignature create_signature()
-  {
-    static std::string name = CPPType::get<From>().name() + " to " + CPPType::get<To>().name();
-    MFSignatureBuilder signature{name.c_str()};
-    signature.single_input<From>("Input");
-    signature.single_output<To>("Output");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, MFParams params, MFContext UNUSED(context)) const override
-  {
-    const VArray<From> &inputs = params.readonly_single_input<From>(0);
-    MutableSpan<To> outputs = params.uninitialized_single_output<To>(1);
-
-    mask.to_best_mask_type([&](const auto &mask) {
-      for (int64_t i : mask) {
-        new (static_cast<void *>(&outputs[i])) To(inputs[i]);
-      }
-    });
   }
 };
 

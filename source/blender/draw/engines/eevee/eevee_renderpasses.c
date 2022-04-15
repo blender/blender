@@ -60,9 +60,9 @@ bool EEVEE_renderpasses_only_first_sample_pass_active(EEVEE_Data *vedata)
   return (g_data->render_passes & ~EEVEE_RENDERPASSES_POST_PROCESS_ON_FIRST_SAMPLE) == 0;
 }
 
-int EEVEE_renderpasses_aov_hash(const ViewLayerAOV *aov)
+uint EEVEE_renderpasses_aov_hash(const ViewLayerAOV *aov)
 {
-  int hash = BLI_hash_string(aov->name) << 1;
+  uint hash = BLI_hash_string(aov->name) << 1u;
   SET_FLAG_FROM_TEST(hash, aov->type == AOV_TYPE_COLOR, EEVEE_AOV_HASH_COLOR_TYPE_MASK);
   return hash;
 }

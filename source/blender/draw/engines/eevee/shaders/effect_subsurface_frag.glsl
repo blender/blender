@@ -11,6 +11,7 @@ layout(std140) uniform sssProfile
 {
   vec4 sss_kernel[MAX_SSS_SAMPLES];
   vec4 radii_max_radius;
+  float avg_inv_radius;
   int sss_samples;
 };
 
@@ -26,7 +27,7 @@ void main(void)
   vec2 pixel_size = 1.0 / vec2(textureSize(depthBuffer, 0).xy); /* TODO: precompute. */
   vec2 uvs = gl_FragCoord.xy * pixel_size;
   vec3 sss_irradiance = texture(sssIrradiance, uvs).rgb;
-  float sss_radius = texture(sssRadius, uvs).r * radii_max_radius.w;
+  float sss_radius = texture(sssRadius, uvs).r * radii_max_radius.w * avg_inv_radius;
   float depth = texture(depthBuffer, uvs).r;
   float depth_view = get_view_z_from_depth(depth);
 

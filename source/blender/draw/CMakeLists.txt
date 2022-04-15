@@ -16,6 +16,7 @@ set(INC
   ../editors/space_view3d
   ../functions
   ../gpu
+  ../gpu/intern
   ../imbuf
   ../makesdna
   ../makesrna
@@ -123,6 +124,7 @@ set(SRC
   engines/eevee/eevee_sampling.c
   engines/eevee/eevee_screen_raytrace.c
   engines/eevee/eevee_shaders.c
+  engines/eevee/eevee_shaders_extra.cc
   engines/eevee/eevee_shadows.c
   engines/eevee/eevee_shadows_cascade.c
   engines/eevee/eevee_shadows_cube.c
@@ -266,9 +268,13 @@ set(GLSL_SRC
   engines/eevee/shaders/closure_eval_lib.glsl
   engines/eevee/shaders/closure_eval_diffuse_lib.glsl
   engines/eevee/shaders/closure_eval_glossy_lib.glsl
+  engines/eevee/shaders/closure_eval_surface_lib.glsl
   engines/eevee/shaders/closure_eval_refraction_lib.glsl
+  engines/eevee/shaders/closure_eval_volume_lib.glsl
   engines/eevee/shaders/closure_eval_translucent_lib.glsl
   engines/eevee/shaders/closure_type_lib.glsl
+  engines/eevee/shaders/eevee_empty.glsl
+  engines/eevee/shaders/eevee_empty_volume.glsl
   engines/eevee/shaders/effect_bloom_frag.glsl
   engines/eevee/shaders/effect_dof_bokeh_frag.glsl
   engines/eevee/shaders/effect_dof_dilate_tiles_frag.glsl
@@ -302,7 +308,6 @@ set(GLSL_SRC
   engines/eevee/shaders/object_motion_frag.glsl
   engines/eevee/shaders/object_motion_vert.glsl
   engines/eevee/shaders/prepass_frag.glsl
-  engines/eevee/shaders/prepass_vert.glsl
   engines/eevee/shaders/shadow_accum_frag.glsl
   engines/eevee/shaders/shadow_frag.glsl
   engines/eevee/shaders/shadow_vert.glsl
@@ -333,6 +338,7 @@ set(GLSL_SRC
   engines/eevee/shaders/volumetric_resolve_frag.glsl
   engines/eevee/shaders/volumetric_scatter_frag.glsl
   engines/eevee/shaders/volumetric_integration_frag.glsl
+  engines/eevee/shaders/world_vert.glsl
 
   engines/workbench/shaders/workbench_cavity_lib.glsl
   engines/workbench/shaders/workbench_common_lib.glsl
@@ -364,6 +370,7 @@ set(GLSL_SRC
 
   engines/workbench/workbench_shader_shared.h
 
+  intern/shaders/common_attribute_lib.glsl
   intern/shaders/common_colormanagement_lib.glsl
   intern/shaders/common_globals_lib.glsl
   intern/shaders/common_gpencil_lib.glsl

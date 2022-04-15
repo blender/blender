@@ -284,26 +284,15 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, bNode *output_node
   }
 }
 
-void node_shader_gpu_bump_tex_coord(GPUMaterial *mat, bNode *node, GPUNodeLink **link)
+void node_shader_gpu_bump_tex_coord(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeLink **link)
 {
-  if (node->branch_tag == 1) {
-    /* Add one time the value for derivative to the input vector. */
-    GPU_link(mat, "dfdx_v3", *link, link);
-  }
-  else if (node->branch_tag == 2) {
-    /* Add one time the value for derivative to the input vector. */
-    GPU_link(mat, "dfdy_v3", *link, link);
-  }
-  else {
-    /* nothing to do, reference center value. */
-  }
+  GPU_link(mat, "differentiate_texco", *link, link);
 }
 
 void node_shader_gpu_default_tex_coord(GPUMaterial *mat, bNode *node, GPUNodeLink **link)
 {
   if (!*link) {
     *link = GPU_attribute(mat, CD_ORCO, "");
-    GPU_link(mat, "generated_texco", GPU_builtin(GPU_VIEW_POSITION), *link, link);
     node_shader_gpu_bump_tex_coord(mat, node, link);
   }
 }

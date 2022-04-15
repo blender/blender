@@ -2125,49 +2125,6 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
           hit_index = a;
         }
       }
-
-      /* Find the best active & non-active hits.
-       * NOTE(@campbellbarton): Checking if `hits > 1` isn't a reliable way to know
-       * if there are multiple objects selected since it's possible the same object
-       * generates multiple hits, either from:
-       * - Multiple sub-components (bones & camera tracks).
-       * - Multiple selectable elements such as the object center and the geometry.
-       *
-       * For this reason, keep track of the best hit as well as the best hit that
-       * excludes the selected & active object, using this value when it's valid. */
-      if ((hit_index != -1) &&
-          /* Special case, cycling away from the active object should only be done when it
-           * doesn't have a bone selection, otherwise selecting sub-elements is difficult. */
-          ((buffer[hit_index].id & 0xFFFF0000) == 0) &&
-          /* Only exclude active object when it is selected. */
-          (BASACT(view_layer) && (BASACT(view_layer)->flag & BASE_SELECTED)) &&
-          /* Allow disabling this behavior entirely. */
-          (U.experimental.use_select_nearest_on_first_click == false)) {
-
-        const int select_id_active = BASACT(view_layer)->object->runtime.select_id;
-
-        /* Check if `hit_index` is the current active object. */
-        if ((buffer[hit_index].id & 0xFFFF) == select_id_active) {
-          uint min_not_active = 0xFFFFFFFF;
-          int hit_index_not_active = -1;
-          for (a = 0; a < hits; a++) {
-            /* Any object other than the active-selected. */
-            if (select_id_active == (buffer[a].id & 0xFFFF)) {
-              continue;
-            }
-            if (min_not_active > buffer[a].depth) {
-              min_not_active = buffer[a].depth;
-              hit_index_not_active = a;
-            }
-          }
-
-          /* When the active was selected, first try to use the index
-           * for the best non-active hit that was found. */
-          if (hit_index_not_active != -1) {
-            hit_index = hit_index_not_active;
-          }
-        }
-      }
     }
 
     if (hit_index != -1) {

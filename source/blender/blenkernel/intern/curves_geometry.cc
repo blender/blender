@@ -25,6 +25,7 @@ static const std::string ATTR_RADIUS = "radius";
 static const std::string ATTR_CURVE_TYPE = "curve_type";
 static const std::string ATTR_CYCLIC = "cyclic";
 static const std::string ATTR_RESOLUTION = "resolution";
+static const std::string ATTR_NORMAL_MODE = "normal_mode";
 static const std::string ATTR_HANDLE_TYPE_LEFT = "handle_type_left";
 static const std::string ATTR_HANDLE_TYPE_RIGHT = "handle_type_right";
 static const std::string ATTR_HANDLE_POSITION_LEFT = "handle_left";
@@ -202,7 +203,8 @@ static Span<T> get_span_attribute(const CurvesGeometry &curves,
 template<typename T>
 static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
                                             const AttributeDomain domain,
-                                            const StringRefNull name)
+                                            const StringRefNull name,
+                                            const T default_value = T())
 {
   const int size = domain_size(curves, domain);
   const CustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
@@ -215,7 +217,11 @@ static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
   }
   data = (T *)CustomData_add_layer_named(
       &custom_data, type, CD_CALLOC, nullptr, size, name.c_str());
-  return {data, size};
+  MutableSpan<T> span = {data, size};
+  if (size > 0 && span.first() != default_value) {
+    span.fill(default_value);
+  }
+  return span;
 }
 
 VArray<int8_t> CurvesGeometry::curve_types() const
@@ -303,7 +309,7 @@ VArray<bool> CurvesGeometry::cyclic() const
 }
 MutableSpan<bool> CurvesGeometry::cyclic_for_write()
 {
-  return get_mutable_attribute<bool>(*this, ATTR_DOMAIN_CURVE, ATTR_CYCLIC);
+  return get_mutable_attribute<bool>(*this, ATTR_DOMAIN_CURVE, ATTR_CYCLIC, false);
 }
 
 VArray<int> CurvesGeometry::resolution() const
@@ -312,7 +318,16 @@ VArray<int> CurvesGeometry::resolution() const
 }
 MutableSpan<int> CurvesGeometry::resolution_for_write()
 {
-  return get_mutable_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_RESOLUTION);
+  return get_mutable_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_RESOLUTION, 12);
+}
+
+VArray<int8_t> CurvesGeometry::normal_mode() const
+{
+  return get_varray_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NORMAL_MODE, 0);
+}
+MutableSpan<int8_t> CurvesGeometry::normal_mode_for_write()
+{
+  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NORMAL_MODE);
 }
 
 VArray<int8_t> CurvesGeometry::handle_types_left() const
@@ -321,7 +336,7 @@ VArray<int8_t> CurvesGeometry::handle_types_left() const
 }
 MutableSpan<int8_t> CurvesGeometry::handle_types_left_for_write()
 {
-  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_LEFT);
+  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_LEFT, 0);
 }
 
 VArray<int8_t> CurvesGeometry::handle_types_right() const
@@ -330,7 +345,7 @@ VArray<int8_t> CurvesGeometry::handle_types_right() const
 }
 MutableSpan<int8_t> CurvesGeometry::handle_types_right_for_write()
 {
-  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_RIGHT);
+  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_POINT, ATTR_HANDLE_TYPE_RIGHT, 0);
 }
 
 Span<float3> CurvesGeometry::handle_positions_left() const
@@ -357,7 +372,7 @@ VArray<int8_t> CurvesGeometry::nurbs_orders() const
 }
 MutableSpan<int8_t> CurvesGeometry::nurbs_orders_for_write()
 {
-  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_ORDER);
+  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_ORDER, 4);
 }
 
 Span<float> CurvesGeometry::nurbs_weights() const
@@ -375,7 +390,7 @@ VArray<int8_t> CurvesGeometry::nurbs_knots_modes() const
 }
 MutableSpan<int8_t> CurvesGeometry::nurbs_knots_modes_for_write()
 {
-  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_KNOTS_MODE);
+  return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_KNOTS_MODE, 0);
 }
 
 VArray<int> CurvesGeometry::surface_triangle_indices() const
@@ -385,7 +400,7 @@ VArray<int> CurvesGeometry::surface_triangle_indices() const
 
 MutableSpan<int> CurvesGeometry::surface_triangle_indices_for_write()
 {
-  return get_mutable_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_TRIANGLE_INDEX);
+  return get_mutable_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_TRIANGLE_INDEX, -1);
 }
 
 Span<float2> CurvesGeometry::surface_triangle_coords() const
@@ -562,18 +577,25 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
 Span<float3> CurvesGeometry::evaluated_positions() const
 {
   if (!this->runtime->position_cache_dirty) {
-    return this->runtime->evaluated_position_cache;
+    return this->runtime->evaluated_positions_span;
   }
 
   /* A double checked lock. */
   std::scoped_lock lock{this->runtime->position_cache_mutex};
   if (!this->runtime->position_cache_dirty) {
-    return this->runtime->evaluated_position_cache;
+    return this->runtime->evaluated_positions_span;
   }
 
   threading::isolate_task([&]() {
+    if (this->is_single_type(CURVE_TYPE_POLY)) {
+      this->runtime->evaluated_positions_span = this->positions();
+      this->runtime->evaluated_position_cache.clear_and_make_inline();
+      return;
+    }
+
     this->runtime->evaluated_position_cache.resize(this->evaluated_points_num());
     MutableSpan<float3> evaluated_positions = this->runtime->evaluated_position_cache;
+    this->runtime->evaluated_positions_span = evaluated_positions;
 
     VArray<int8_t> types = this->curve_types();
     VArray<bool> cyclic = this->cyclic();
@@ -630,7 +652,114 @@ Span<float3> CurvesGeometry::evaluated_positions() const
   });
 
   this->runtime->position_cache_dirty = false;
-  return this->runtime->evaluated_position_cache;
+  return this->runtime->evaluated_positions_span;
+}
+
+Span<float3> CurvesGeometry::evaluated_tangents() const
+{
+  if (!this->runtime->tangent_cache_dirty) {
+    return this->runtime->evaluated_tangent_cache;
+  }
+
+  /* A double checked lock. */
+  std::scoped_lock lock{this->runtime->tangent_cache_mutex};
+  if (!this->runtime->tangent_cache_dirty) {
+    return this->runtime->evaluated_tangent_cache;
+  }
+
+  threading::isolate_task([&]() {
+    const Span<float3> evaluated_positions = this->evaluated_positions();
+    const VArray<bool> cyclic = this->cyclic();
+
+    this->runtime->evaluated_tangent_cache.resize(this->evaluated_points_num());
+    MutableSpan<float3> tangents = this->runtime->evaluated_tangent_cache;
+
+    threading::parallel_for(this->curves_range(), 128, [&](IndexRange curves_range) {
+      for (const int curve_index : curves_range) {
+        const IndexRange evaluated_points = this->evaluated_points_for_curve(curve_index);
+        if (UNLIKELY(evaluated_points.is_empty())) {
+          continue;
+        }
+        curves::poly::calculate_tangents(evaluated_positions.slice(evaluated_points),
+                                         cyclic[curve_index],
+                                         tangents.slice(evaluated_points));
+      }
+    });
+
+    /* Correct the first and last tangents of Bezier curves so that they align with the inner
+     * handles. This is a separate loop to avoid the cost when Bezier type curves are not used. */
+    Vector<int64_t> bezier_indices;
+    const IndexMask bezier_mask = this->indices_for_curve_type(CURVE_TYPE_BEZIER, bezier_indices);
+    if (!bezier_mask.is_empty()) {
+      const Span<float3> positions = this->positions();
+      const Span<float3> handles_left = this->handle_positions_left();
+      const Span<float3> handles_right = this->handle_positions_right();
+
+      threading::parallel_for(bezier_mask.index_range(), 1024, [&](IndexRange range) {
+        for (const int curve_index : bezier_mask.slice(range)) {
+          const IndexRange points = this->points_for_curve(curve_index);
+          const IndexRange evaluated_points = this->evaluated_points_for_curve(curve_index);
+
+          if (handles_right[points.first()] != positions[points.first()]) {
+            tangents[evaluated_points.first()] = math::normalize(handles_right[points.first()] -
+                                                                 positions[points.first()]);
+          }
+          if (handles_left[points.last()] != positions[points.last()]) {
+            tangents[evaluated_points.last()] = math::normalize(positions[points.last()] -
+                                                                handles_left[points.last()]);
+          }
+        }
+      });
+    }
+  });
+
+  this->runtime->tangent_cache_dirty = false;
+  return this->runtime->evaluated_tangent_cache;
+}
+
+Span<float3> CurvesGeometry::evaluated_normals() const
+{
+  if (!this->runtime->normal_cache_dirty) {
+    return this->runtime->evaluated_normal_cache;
+  }
+
+  /* A double checked lock. */
+  std::scoped_lock lock{this->runtime->normal_cache_mutex};
+  if (!this->runtime->normal_cache_dirty) {
+    return this->runtime->evaluated_normal_cache;
+  }
+
+  threading::isolate_task([&]() {
+    const Span<float3> evaluated_tangents = this->evaluated_tangents();
+    const VArray<bool> cyclic = this->cyclic();
+    const VArray<int8_t> normal_mode = this->normal_mode();
+
+    this->runtime->evaluated_normal_cache.resize(this->evaluated_points_num());
+    MutableSpan<float3> evaluated_normals = this->runtime->evaluated_normal_cache;
+
+    threading::parallel_for(this->curves_range(), 128, [&](IndexRange curves_range) {
+      for (const int curve_index : curves_range) {
+        const IndexRange evaluated_points = this->evaluated_points_for_curve(curve_index);
+        if (UNLIKELY(evaluated_points.is_empty())) {
+          continue;
+        }
+        switch (normal_mode[curve_index]) {
+          case NORMAL_MODE_Z_UP:
+            curves::poly::calculate_normals_z_up(evaluated_tangents.slice(evaluated_points),
+                                                 evaluated_normals.slice(evaluated_points));
+            break;
+          case NORMAL_MODE_MINIMUM_TWIST:
+            curves::poly::calculate_normals_minimum(evaluated_tangents.slice(evaluated_points),
+                                                    cyclic[curve_index],
+                                                    evaluated_normals.slice(evaluated_points));
+            break;
+        }
+      }
+    });
+  });
+
+  this->runtime->normal_cache_dirty = false;
+  return this->runtime->evaluated_normal_cache;
 }
 
 void CurvesGeometry::interpolate_to_evaluated(const int curve_index,

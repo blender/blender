@@ -380,7 +380,7 @@ void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
   prop = RNA_def_string(ot->srna, "name", "Color", MAX_NAME, "Name", "Name of color attribute");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  static EnumPropertyItem domains[3] = {{ATTR_DOMAIN_POINT, "POINT", 0, "Point", ""},
+  static EnumPropertyItem domains[3] = {{ATTR_DOMAIN_POINT, "POINT", 0, "Vertex", ""},
                                         {ATTR_DOMAIN_CORNER, "CORNER", 0, "Face Corner", ""},
                                         {0, nullptr, 0, nullptr, nullptr}};
 

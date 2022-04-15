@@ -1670,6 +1670,11 @@ static void bake_init_api_data(wmOperator *op, bContext *C, BakeAPIRender *bkr)
   if (bkr->save_mode == R_BAKE_SAVE_EXTERNAL) {
     bkr->save_mode = R_BAKE_SAVE_INTERNAL;
   }
+
+  if (((bkr->pass_type == SCE_PASS_NORMAL) && (bkr->normal_space == R_BAKE_SPACE_TANGENT)) ||
+      bkr->pass_type == SCE_PASS_UV) {
+    bkr->margin_type = R_BAKE_EXTEND;
+  }
 }
 
 static int bake_exec(bContext *C, wmOperator *op)

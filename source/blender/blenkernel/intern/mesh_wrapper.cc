@@ -27,7 +27,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_math.h"
-#include "BLI_task.h"
+#include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -51,7 +51,7 @@ Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
                                                  const float (*vert_coords)[3],
                                                  const Mesh *me_settings)
 {
-  Mesh *me = BKE_id_new_nomain(ID_ME, NULL);
+  Mesh *me = static_cast<Mesh *>(BKE_id_new_nomain(ID_ME, nullptr));
   BKE_mesh_copy_parameters_for_eval(me, me_settings);
   BKE_mesh_runtime_ensure_edit_data(me);
 
@@ -63,10 +63,10 @@ Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(BMEditMesh *em,
   /* Use edit-mesh directly where possible. */
   me->runtime.is_original = true;
 
-  me->edit_mesh = MEM_dupallocN(em);
+  me->edit_mesh = static_cast<BMEditMesh *>(MEM_dupallocN(em));
   me->edit_mesh->is_shallow_copy = true;
 
-/* Make sure, we crash if these are ever used. */
+  /* Make sure we crash if these are ever used. */
 #ifdef DEBUG
   me->totvert = INT_MAX;
   me->totedge = INT_MAX;
@@ -88,55 +88,7 @@ Mesh *BKE_mesh_wrapper_from_editmesh(BMEditMesh *em,
                                      const CustomData_MeshMasks *cd_mask_extra,
                                      const Mesh *me_settings)
 {
-  return BKE_mesh_wrapper_from_editmesh_with_coords(em, cd_mask_extra, NULL, me_settings);
-}
-
-static void mesh_wrapper_ensure_mdata_isolated(void *userdata)
-{
-  Mesh *me = userdata;
-
-  const eMeshWrapperType geom_type_orig = me->runtime.wrapper_type;
-  me->runtime.wrapper_type = ME_WRAPPER_TYPE_MDATA;
-
-  switch (geom_type_orig) {
-    case ME_WRAPPER_TYPE_MDATA:
-    case ME_WRAPPER_TYPE_SUBD: {
-      break; /* Quiet warning. */
-    }
-    case ME_WRAPPER_TYPE_BMESH: {
-      me->totvert = 0;
-      me->totedge = 0;
-      me->totpoly = 0;
-      me->totloop = 0;
-
-      BLI_assert(me->edit_mesh != NULL);
-      BLI_assert(me->runtime.edit_data != NULL);
-
-      BMEditMesh *em = me->edit_mesh;
-      BM_mesh_bm_to_me_for_eval(em->bm, me, &me->runtime.cd_mask_extra);
-
-      /* Adding original index layers assumes that all BMesh mesh wrappers are created from
-       * original edit mode meshes (the only case where adding original indices makes sense).
-       * If that assumption is broken, the layers might be incorrect in that they might not
-       * actually be "original".
-       *
-       * There is also a performance aspect, where this also assumes that original indices are
-       * always needed when converting an edit mesh to a mesh. That might be wrong, but it's not
-       * harmful. */
-      BKE_mesh_ensure_default_orig_index_customdata(me);
-
-      EditMeshData *edit_data = me->runtime.edit_data;
-      if (edit_data->vertexCos) {
-        BKE_mesh_vert_coords_apply(me, edit_data->vertexCos);
-        me->runtime.is_original = false;
-      }
-      break;
-    }
-  }
-
-  if (me->runtime.wrapper_type_finalize) {
-    BKE_mesh_wrapper_deferred_finalize(me, &me->runtime.cd_mask_extra);
-  }
+  return BKE_mesh_wrapper_from_editmesh_with_coords(em, cd_mask_extra, nullptr, me_settings);
 }
 
 void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
@@ -150,7 +102,51 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
   }
 
   /* Must isolate multithreaded tasks while holding a mutex lock. */
-  BLI_task_isolate(mesh_wrapper_ensure_mdata_isolated, me);
+  blender::threading::isolate_task([&]() {
+    const eMeshWrapperType geom_type_orig = static_cast<eMeshWrapperType>(
+        me->runtime.wrapper_type);
+    me->runtime.wrapper_type = ME_WRAPPER_TYPE_MDATA;
+
+    switch (geom_type_orig) {
+      case ME_WRAPPER_TYPE_MDATA:
+      case ME_WRAPPER_TYPE_SUBD: {
+        break; /* Quiet warning. */
+      }
+      case ME_WRAPPER_TYPE_BMESH: {
+        me->totvert = 0;
+        me->totedge = 0;
+        me->totpoly = 0;
+        me->totloop = 0;
+
+        BLI_assert(me->edit_mesh != nullptr);
+        BLI_assert(me->runtime.edit_data != nullptr);
+
+        BMEditMesh *em = me->edit_mesh;
+        BM_mesh_bm_to_me_for_eval(em->bm, me, &me->runtime.cd_mask_extra);
+
+        /* Adding original index layers assumes that all BMesh mesh wrappers are created from
+         * original edit mode meshes (the only case where adding original indices makes sense).
+         * If that assumption is broken, the layers might be incorrect in that they might not
+         * actually be "original".
+         *
+         * There is also a performance aspect, where this also assumes that original indices are
+         * always needed when converting an edit mesh to a mesh. That might be wrong, but it's not
+         * harmful. */
+        BKE_mesh_ensure_default_orig_index_customdata(me);
+
+        EditMeshData *edit_data = me->runtime.edit_data;
+        if (edit_data->vertexCos) {
+          BKE_mesh_vert_coords_apply(me, edit_data->vertexCos);
+          me->runtime.is_original = false;
+        }
+        break;
+      }
+    }
+
+    if (me->runtime.wrapper_type_finalize) {
+      BKE_mesh_wrapper_deferred_finalize(me, &me->runtime.cd_mask_extra);
+    }
+  });
 
   BLI_mutex_unlock(mesh_eval_mutex);
 }
@@ -181,7 +177,7 @@ void BKE_mesh_wrapper_vert_coords_copy(const Mesh *me,
       BMesh *bm = me->edit_mesh->bm;
       BLI_assert(vert_coords_len <= bm->totvert);
       EditMeshData *edit_data = me->runtime.edit_data;
-      if (edit_data->vertexCos != NULL) {
+      if (edit_data->vertexCos != nullptr) {
         for (int i = 0; i < vert_coords_len; i++) {
           copy_v3_v3(vert_coords[i], edit_data->vertexCos[i]);
         }
@@ -219,7 +215,7 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *me,
       BMesh *bm = me->edit_mesh->bm;
       BLI_assert(vert_coords_len == bm->totvert);
       EditMeshData *edit_data = me->runtime.edit_data;
-      if (edit_data->vertexCos != NULL) {
+      if (edit_data->vertexCos != nullptr) {
         for (int i = 0; i < vert_coords_len; i++) {
           mul_v3_m4v3(vert_coords[i], mat, edit_data->vertexCos[i]);
         }
@@ -340,7 +336,7 @@ static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   SubsurfRuntimeData *runtime_data = BKE_subsurf_modifier_ensure_runtime(smd);
 
   Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(smd, &subdiv_settings, me, false);
-  if (subdiv == NULL) {
+  if (subdiv == nullptr) {
     /* Happens on bad topology, but also on empty input mesh. */
     return me;
   }
@@ -352,28 +348,14 @@ static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   }
 
   if (subdiv_mesh != me) {
-    if (me->runtime.mesh_eval != NULL) {
-      BKE_id_free(NULL, me->runtime.mesh_eval);
+    if (me->runtime.mesh_eval != nullptr) {
+      BKE_id_free(nullptr, me->runtime.mesh_eval);
     }
     me->runtime.mesh_eval = subdiv_mesh;
     me->runtime.wrapper_type = ME_WRAPPER_TYPE_SUBD;
   }
 
   return me->runtime.mesh_eval;
-}
-
-typedef struct SubdivisionWrapperIsolatedTaskData {
-  const Object *ob;
-  Mesh *me;
-  Mesh *result;
-} SubdivisionWrapperIsolatedTaskData;
-
-static void mesh_wrapper_ensure_subdivision_isolated(void *userdata)
-{
-  SubdivisionWrapperIsolatedTaskData *task_data = (SubdivisionWrapperIsolatedTaskData *)userdata;
-  const Object *ob = task_data->ob;
-  Mesh *me = task_data->me;
-  task_data->result = mesh_wrapper_ensure_subdivision(ob, me);
 }
 
 Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
@@ -386,15 +368,13 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
     return me->runtime.mesh_eval;
   }
 
-  SubdivisionWrapperIsolatedTaskData task_data;
-  task_data.ob = ob;
-  task_data.me = me;
+  Mesh *result;
 
   /* Must isolate multithreaded tasks while holding a mutex lock. */
-  BLI_task_isolate(mesh_wrapper_ensure_subdivision_isolated, &task_data);
+  blender::threading::isolate_task([&]() { result = mesh_wrapper_ensure_subdivision(ob, me); });
 
   BLI_mutex_unlock(mesh_eval_mutex);
-  return task_data.result;
+  return result;
 }
 
 /** \} */

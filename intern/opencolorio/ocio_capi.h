@@ -166,7 +166,8 @@ OCIO_ConstProcessorRcPtr *OCIO_createDisplayProcessor(OCIO_ConstConfigRcPtr *con
                                                       const char *display,
                                                       const char *look,
                                                       const float scale,
-                                                      const float exponent);
+                                                      const float exponent,
+                                                      const bool inverse);
 
 OCIO_PackedImageDesc *OCIO_createOCIO_PackedImageDesc(float *data,
                                                       long width,

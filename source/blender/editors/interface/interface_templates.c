@@ -787,7 +787,7 @@ static const char *template_id_browse_tip(const StructRNA *type)
       case ID_LP:
         return N_("Browse LightProbe to be linked");
       case ID_CV:
-        return N_("Browse Hair Curves Data to be linked");
+        return N_("Browse Curves Data to be linked");
       case ID_PT:
         return N_("Browse Point Cloud Data to be linked");
       case ID_VO:

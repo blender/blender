@@ -295,10 +295,12 @@ bool BKE_where_on_path(const Object *ob,
 
   key_curve_tangent_weights(frac, w, KEY_BSPLINE);
 
-  interp_v3_v3v3v3v3(r_dir, p0->vec, p1->vec, p2->vec, p3->vec, w);
+  if (r_dir) {
+    interp_v3_v3v3v3v3(r_dir, p0->vec, p1->vec, p2->vec, p3->vec, w);
 
-  /* Make compatible with #vec_to_quat. */
-  negate_v3(r_dir);
+    /* Make compatible with #vec_to_quat. */
+    negate_v3(r_dir);
+  }
   //}
 
   const ListBase *nurbs = BKE_curve_editNurbs_get(cu);

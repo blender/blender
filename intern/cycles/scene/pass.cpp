@@ -321,7 +321,7 @@ PassInfo Pass::get_info(const PassType type, const bool include_albedo, const bo
       break;
 
     case PASS_AOV_COLOR:
-      pass_info.num_components = 3;
+      pass_info.num_components = 4;
       break;
     case PASS_AOV_VALUE:
       pass_info.num_components = 1;

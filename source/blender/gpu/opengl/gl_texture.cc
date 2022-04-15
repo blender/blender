@@ -72,7 +72,7 @@ bool GLTexture::init_internal()
   GLenum internal_format = to_gl_internal_format(format_);
   const bool is_cubemap = bool(type_ == GPU_TEXTURE_CUBE);
   const bool is_layered = bool(type_ & GPU_TEXTURE_ARRAY);
-  const bool is_compressed = bool(format_flag_ & GPU_TEXTURE_ARRAY);
+  const bool is_compressed = bool(format_flag_ & GPU_FORMAT_COMPRESSED);
   const int dimensions = (is_cubemap) ? 2 : this->dimensions_count();
   GLenum gl_format = to_gl_data_format(format_);
   GLenum gl_type = to_gl(to_data_format(format_));

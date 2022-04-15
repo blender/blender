@@ -370,9 +370,9 @@ void rna_ViewLayer_active_lightgroup_index_range(
 int rna_ViewLayer_active_lightgroup_index_get(PointerRNA *ptr);
 void rna_ViewLayer_active_lightgroup_index_set(PointerRNA *ptr, int value);
 /**
- *  Set `r_rna_path` with the base view-layer path.
- *  `rna_path_buffer_size` should be at least `sizeof(ViewLayer.name) * 3`.
- *  \return actual length of the generated RNA path.
+ * Set `r_rna_path` with the base view-layer path.
+ * `rna_path_buffer_size` should be at least `sizeof(ViewLayer.name) * 3`.
+ * \return actual length of the generated RNA path.
  */
 size_t rna_ViewLayer_path_buffer_get(struct ViewLayer *view_layer,
                                      char *r_rna_path,

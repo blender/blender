@@ -36,6 +36,7 @@ void OBJECT_OT_scale_clear(struct wmOperatorType *ot);
 void OBJECT_OT_origin_clear(struct wmOperatorType *ot);
 void OBJECT_OT_visual_transform_apply(struct wmOperatorType *ot);
 void OBJECT_OT_transform_apply(struct wmOperatorType *ot);
+void OBJECT_OT_parent_inverse_apply(wmOperatorType *ot);
 void OBJECT_OT_transform_axis_target(struct wmOperatorType *ot);
 void OBJECT_OT_origin_set(struct wmOperatorType *ot);
 

@@ -57,13 +57,13 @@ void main()
       /* XXX do interpolation in a non-linear space to have a better visual result. */
       col_high = pow(colorBackground.rgb, vec3(1.0 / 2.2));
       col_low = pow(colorBackgroundGradient.rgb, vec3(1.0 / 2.2));
-      bg_col = mix(col_low, col_high, uvcoordsvar.t);
+      bg_col = mix(col_low, col_high, uvcoordsvar.y);
       /* Convert back to linear. */
       bg_col = pow(bg_col, vec3(2.2));
       /*  Dither to hide low precision buffer. (Could be improved) */
       bg_col += dither();
       break;
-    case BG_RADIAL:
+    case BG_RADIAL: {
       /* Do interpolation in a non-linear space to have a better visual result. */
       col_high = pow(colorBackground.rgb, vec3(1.0 / 2.2));
       col_low = pow(colorBackgroundGradient.rgb, vec3(1.0 / 2.2));
@@ -76,12 +76,14 @@ void main()
       /*  Dither to hide low precision buffer. (Could be improved) */
       bg_col += dither();
       break;
-    case BG_CHECKER:
+    }
+    case BG_CHECKER: {
       float size = sizeChecker * sizePixel;
       ivec2 p = ivec2(floor(gl_FragCoord.xy / size));
       bool check = mod(p.x, 2) == mod(p.y, 2);
       bg_col = (check) ? colorCheckerPrimary.rgb : colorCheckerSecondary.rgb;
       break;
+    }
     case BG_MASK:
       fragColor = vec4(vec3(1.0 - alpha), 0.0);
       return;

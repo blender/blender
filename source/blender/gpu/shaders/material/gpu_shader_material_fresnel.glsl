@@ -26,12 +26,11 @@ float fresnel_dielectric(vec3 Incoming, vec3 Normal, float eta)
   return fresnel_dielectric_cos(dot(Incoming, Normal), eta);
 }
 
-void node_fresnel(float ior, vec3 N, vec3 I, out float result)
+void node_fresnel(float ior, vec3 N, out float result)
 {
   N = normalize(N);
-  /* handle perspective/orthographic */
-  vec3 I_view = (ProjectionMatrix[3][3] == 0.0) ? normalize(I) : vec3(0.0, 0.0, -1.0);
+  vec3 V = cameraVec(g_data.P);
 
   float eta = max(ior, 0.00001);
-  result = fresnel_dielectric(I_view, N, (gl_FrontFacing) ? eta : 1.0 / eta);
+  result = fresnel_dielectric(V, N, (FrontFacing) ? eta : 1.0 / eta);
 }

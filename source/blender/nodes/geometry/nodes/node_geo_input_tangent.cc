@@ -2,7 +2,7 @@
 
 #include "BLI_task.hh"
 
-#include "BKE_spline.hh"
+#include "BKE_curves.hh"
 
 #include "node_geometry_util.hh"
 
@@ -13,65 +13,54 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Tangent")).field_source();
 }
 
-static void calculate_bezier_tangents(const BezierSpline &spline, MutableSpan<float3> tangents)
+static Array<float3> curve_tangent_point_domain(const bke::CurvesGeometry &curves)
 {
-  Span<int> offsets = spline.control_point_offsets();
-  Span<float3> evaluated_tangents = spline.evaluated_tangents();
-  for (const int i : IndexRange(spline.size())) {
-    tangents[i] = evaluated_tangents[offsets[i]];
-  }
-}
+  const VArray<int8_t> types = curves.curve_types();
+  const VArray<int> resolutions = curves.resolution();
+  const VArray<bool> cyclic = curves.cyclic();
+  const Span<float3> positions = curves.positions();
 
-static void calculate_poly_tangents(const PolySpline &spline, MutableSpan<float3> tangents)
-{
-  tangents.copy_from(spline.evaluated_tangents());
-}
+  const Span<float3> evaluated_tangents = curves.evaluated_tangents();
 
-/**
- * Because NURBS control points are not necessarily on the path, the tangent at the control points
- * is not well defined, so create a temporary poly spline to find the tangents. This requires extra
- * copying currently, but may be more efficient in the future if attributes have some form of CoW.
- */
-static void calculate_nurbs_tangents(const NURBSpline &spline, MutableSpan<float3> tangents)
-{
-  PolySpline poly_spline;
-  poly_spline.resize(spline.size());
-  poly_spline.positions().copy_from(spline.positions());
-  tangents.copy_from(poly_spline.evaluated_tangents());
-}
+  Array<float3> results(curves.points_num());
 
-static Array<float3> curve_tangent_point_domain(const CurveEval &curve)
-{
-  Span<SplinePtr> splines = curve.splines();
-  Array<int> offsets = curve.control_point_offsets();
-  const int total_size = offsets.last();
-  Array<float3> tangents(total_size);
+  threading::parallel_for(curves.curves_range(), 128, [&](IndexRange range) {
+    for (const int i_curve : range) {
+      const IndexRange points = curves.points_for_curve(i_curve);
+      const IndexRange evaluated_points = curves.evaluated_points_for_curve(i_curve);
 
-  threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
-    for (const int i : range) {
-      const Spline &spline = *splines[i];
-      MutableSpan spline_tangents{tangents.as_mutable_span().slice(offsets[i], spline.size())};
-      switch (splines[i]->type()) {
-        case CURVE_TYPE_BEZIER: {
-          calculate_bezier_tangents(static_cast<const BezierSpline &>(spline), spline_tangents);
+      MutableSpan<float3> curve_tangents = results.as_mutable_span().slice(points);
+
+      switch (types[i_curve]) {
+        case CURVE_TYPE_CATMULL_ROM: {
+          Span<float3> tangents = evaluated_tangents.slice(evaluated_points);
+          const int resolution = resolutions[i_curve];
+          for (const int i : IndexRange(points.size())) {
+            curve_tangents[i] = tangents[resolution * i];
+          }
           break;
         }
-        case CURVE_TYPE_POLY: {
-          calculate_poly_tangents(static_cast<const PolySpline &>(spline), spline_tangents);
+        case CURVE_TYPE_POLY:
+          curve_tangents.copy_from(evaluated_tangents.slice(evaluated_points));
+          break;
+        case CURVE_TYPE_BEZIER: {
+          Span<float3> tangents = evaluated_tangents.slice(evaluated_points);
+          curve_tangents.first() = tangents.first();
+          const Span<int> offsets = curves.bezier_evaluated_offsets_for_curve(i_curve);
+          for (const int i : IndexRange(points.size()).drop_front(1)) {
+            curve_tangents[i] = tangents[offsets[i - 1]];
+          }
           break;
         }
         case CURVE_TYPE_NURBS: {
-          calculate_nurbs_tangents(static_cast<const NURBSpline &>(spline), spline_tangents);
-          break;
-        }
-        case CURVE_TYPE_CATMULL_ROM: {
-          BLI_assert_unreachable();
+          const Span<float3> curve_positions = positions.slice(points);
+          bke::curves::poly::calculate_tangents(curve_positions, cyclic[i_curve], curve_tangents);
           break;
         }
       }
     }
   });
-  return tangents;
+  return results;
 }
 
 static VArray<float3> construct_curve_tangent_gvarray(const CurveComponent &component,
@@ -80,19 +69,25 @@ static VArray<float3> construct_curve_tangent_gvarray(const CurveComponent &comp
   if (!component.has_curves()) {
     return {};
   }
-  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*component.get_for_read());
+
+  const Curves &curves_id = *component.get_for_read();
+  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+
+  const VArray<int8_t> types = curves.curve_types();
+  if (curves.is_single_type(CURVE_TYPE_POLY)) {
+    return component.attribute_try_adapt_domain<float3>(
+        VArray<float3>::ForSpan(curves.evaluated_tangents()), ATTR_DOMAIN_POINT, domain);
+  }
+
+  Array<float3> tangents = curve_tangent_point_domain(curves);
 
   if (domain == ATTR_DOMAIN_POINT) {
-    Array<float3> tangents = curve_tangent_point_domain(*curve);
     return VArray<float3>::ForContainer(std::move(tangents));
   }
 
   if (domain == ATTR_DOMAIN_CURVE) {
-    Array<float3> point_tangents = curve_tangent_point_domain(*curve);
     return component.attribute_try_adapt_domain<float3>(
-        VArray<float3>::ForContainer(std::move(point_tangents)),
-        ATTR_DOMAIN_POINT,
-        ATTR_DOMAIN_CURVE);
+        VArray<float3>::ForContainer(std::move(tangents)), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
   }
 
   return nullptr;

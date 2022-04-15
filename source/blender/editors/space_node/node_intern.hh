@@ -134,6 +134,8 @@ void node_socket_color_get(const bContext &C,
 
 void node_draw_space(const bContext &C, ARegion &region);
 
+void node_socket_add_tooltip(bNodeTree *ntree, bNode *node, bNodeSocket *sock, uiLayout *layout);
+
 /**
  * Sort nodes by selection: unselected nodes first, then selected,
  * then the active node at the very end. Relative order is kept intact.

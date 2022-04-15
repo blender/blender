@@ -73,14 +73,7 @@ static int node_shader_gpu_tangent(GPUMaterial *mat,
     GPU_link(mat, "tangent_orco_z", orco, &orco);
   }
 
-  return GPU_stack_link(mat,
-                        node,
-                        "node_tangent",
-                        in,
-                        out,
-                        GPU_builtin(GPU_WORLD_NORMAL),
-                        orco,
-                        GPU_builtin(GPU_OBJECT_MATRIX));
+  return GPU_stack_link(mat, node, "node_tangent", in, out, orco);
 }
 
 }  // namespace blender::nodes::node_shader_tangent_cc

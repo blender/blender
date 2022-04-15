@@ -537,16 +537,15 @@ static PyObject *pygpu_shader_uniform_block(BPyGPUShader *self, PyObject *args)
     return NULL;
   }
 
-  int slot = GPU_shader_get_uniform_block(self->shader, name);
-  if (slot == -1) {
+  int binding = GPU_shader_get_uniform_block_binding(self->shader, name);
+  if (binding == -1) {
     PyErr_SetString(
         PyExc_BufferError,
-        "GPUShader.uniform_buffer: uniform block not found, make sure the name is correct");
+        "GPUShader.uniform_block: uniform block not found, make sure the name is correct");
     return NULL;
   }
 
-  GPU_uniformbuf_bind(py_ubo->ubo, slot);
-  GPU_shader_uniform_1i(self->shader, name, slot);
+  GPU_uniformbuf_bind(py_ubo->ubo, binding);
 
   Py_RETURN_NONE;
 }
@@ -831,6 +830,38 @@ static PyObject *pygpu_shader_code_from_builtin(BPyGPUShader *UNUSED(self), PyOb
   return r_dict;
 }
 
+PyDoc_STRVAR(pygpu_shader_create_from_info_doc,
+             ".. function:: create_from_info(shader_info)\n"
+             "\n"
+             "   Create shader from a GPUShaderCreateInfo.\n"
+             "\n"
+             "   :param shader_info: GPUShaderCreateInfo\n"
+             "   :type shader_info: :class:`bpy.types.GPUShaderCreateInfo`\n"
+             "   :return: Shader object corresponding to the given name.\n"
+             "   :rtype: :class:`bpy.types.GPUShader`\n");
+static PyObject *pygpu_shader_create_from_info(BPyGPUShader *UNUSED(self),
+                                               BPyGPUShaderCreateInfo *o)
+{
+  if (!BPyGPUShaderCreateInfo_Check(o)) {
+    PyErr_Format(PyExc_TypeError, "Expected a GPUShaderCreateInfo, got %s", Py_TYPE(o)->tp_name);
+    return NULL;
+  }
+
+  char error[128];
+  if (!GPU_shader_create_info_check_error(o->info, error)) {
+    PyErr_SetString(PyExc_Exception, error);
+    return NULL;
+  }
+
+  GPUShader *shader = GPU_shader_create_from_info(o->info);
+  if (!shader) {
+    PyErr_SetString(PyExc_Exception, "Shader Compile Error, see console for more details");
+    return NULL;
+  }
+
+  return BPyGPUShader_CreatePyObject(shader, false);
+}
+
 static struct PyMethodDef pygpu_shader_module__tp_methods[] = {
     {"unbind", (PyCFunction)pygpu_shader_unbind, METH_NOARGS, pygpu_shader_unbind_doc},
     {"from_builtin",
@@ -841,6 +872,10 @@ static struct PyMethodDef pygpu_shader_module__tp_methods[] = {
      (PyCFunction)pygpu_shader_code_from_builtin,
      METH_O,
      pygpu_shader_code_from_builtin_doc},
+    {"create_from_info",
+     (PyCFunction)pygpu_shader_create_from_info,
+     METH_O,
+     pygpu_shader_create_from_info_doc},
     {NULL, NULL, 0, NULL},
 };
 

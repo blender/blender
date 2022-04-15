@@ -27,8 +27,6 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(-1000.0f)
       .max(1000.0f)
       .hide_value();
-  b.add_input<decl::Float>(N_("Height_dx")).default_value(1.0f).unavailable();
-  b.add_input<decl::Float>(N_("Height_dy")).default_value(1.0f).unavailable();
   b.add_input<decl::Vector>(N_("Normal")).min(-1.0f).max(1.0f).hide_value();
   b.add_output<decl::Vector>(N_("Normal"));
 }
@@ -46,23 +44,26 @@ static int gpu_shader_bump(GPUMaterial *mat,
 {
   /* If there is no Height input, the node becomes a no-op. */
   if (!in[2].link) {
-    if (!in[5].link) {
+    if (!in[3].link) {
       return GPU_link(mat, "world_normals_get", &out[0].link);
     }
     else {
       /* Actually running the bump code would normalize, but Cycles handles it as total no-op. */
-      return GPU_link(mat, "vector_copy", in[5].link, &out[0].link);
+      return GPU_link(mat, "vector_copy", in[3].link, &out[0].link);
     }
   }
 
-  if (!in[5].link) {
-    GPU_link(mat, "world_normals_get", &in[5].link);
+  if (!in[3].link) {
+    GPU_link(mat, "world_normals_get", &in[3].link);
   }
+
+  const char *height_function = GPU_material_split_sub_function(mat, GPU_FLOAT, &in[2].link);
+
+  GPUNodeLink *dheight = GPU_differentiate_float_function(height_function);
 
   float invert = (node->custom1) ? -1.0 : 1.0;
 
-  return GPU_stack_link(
-      mat, node, "node_bump", in, out, GPU_builtin(GPU_VIEW_POSITION), GPU_constant(&invert));
+  return GPU_stack_link(mat, node, "node_bump", in, out, dheight, GPU_constant(&invert));
 }
 
 }  // namespace blender::nodes::node_shader_bump_cc

@@ -1383,7 +1383,7 @@ static void rna_def_armature_edit_bones(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_pointer_sdna(prop, NULL, "act_edbone");
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Active EditBone", "Armatures active edit bone");
-  /*RNA_def_property_update(prop, 0, "rna_Armature_act_editbone_update"); */
+  // RNA_def_property_update(prop, 0, "rna_Armature_act_editbone_update");
   RNA_def_property_pointer_funcs(prop, NULL, "rna_Armature_act_edit_bone_set", NULL, NULL);
 
   /* TODO: redraw. */

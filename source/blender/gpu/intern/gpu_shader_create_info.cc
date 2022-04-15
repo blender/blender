@@ -136,6 +136,34 @@ void ShaderCreateInfo::finalize()
   }
 }
 
+std::string ShaderCreateInfo::check_error() const
+{
+  std::string error;
+
+  /* At least a vertex shader and a fragment shader are required, or only a compute shader. */
+  if (this->compute_source_.is_empty()) {
+    if (this->vertex_source_.is_empty()) {
+      error += "Missing vertex shader in " + this->name_ + ".\n";
+    }
+    if (this->fragment_source_.is_empty()) {
+      error += "Missing fragment shader in " + this->name_ + ".\n";
+    }
+  }
+  else {
+    if (!this->vertex_source_.is_empty()) {
+      error += "Compute shader has vertex_source_ shader attached in" + this->name_ + ".\n";
+    }
+    if (!this->geometry_source_.is_empty()) {
+      error += "Compute shader has geometry_source_ shader attached in" + this->name_ + ".\n";
+    }
+    if (!this->fragment_source_.is_empty()) {
+      error += "Compute shader has fragment_source_ shader attached in" + this->name_ + ".\n";
+    }
+  }
+
+  return error;
+}
+
 void ShaderCreateInfo::validate(const ShaderCreateInfo &other_info)
 {
   if (!auto_resource_location_) {

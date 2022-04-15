@@ -137,7 +137,7 @@ static void color_filter_task_cb(void *__restrict userdata,
       random_factor = ((float)seed) / (float)0xFFFFFFFFu - 0.5f;
     }
 
-    final_color[3] = 1.0f;
+    final_color[3] = mv->origcolor[3]; /* Copy alpha */
 
     switch (mode) {
       case COLOR_FILTER_FILL: {
@@ -157,8 +157,14 @@ static void color_filter_task_cb(void *__restrict userdata,
         break;
       case COLOR_FILTER_SATURATION:
         rgb_to_hsv_v(orig_color, hsv_color);
-        hsv_color[1] = clamp_f(hsv_color[1] + fade, 0.0f, 1.0f);
-        hsv_to_rgb_v(hsv_color, final_color);
+
+        if (hsv_color[1] != 0.0f) {
+          hsv_color[1] = clamp_f(hsv_color[1] + fade, 0.0f, 1.0f);
+          hsv_to_rgb_v(hsv_color, final_color);
+        }
+        else {
+          copy_v3_v3(final_color, orig_color);
+        }
         break;
       case COLOR_FILTER_VALUE:
         rgb_to_hsv_v(orig_color, hsv_color);
@@ -216,7 +222,32 @@ static void color_filter_task_cb(void *__restrict userdata,
         float col[4];
         SCULPT_vertex_color_get(ss, vd.vertex, col);
 
-        blend_color_interpolate_float(final_color, col, smooth_color, fade);
+        if (fade < 0.0f) {
+          interp_v4_v4v4(smooth_color, smooth_color, col, 0.5f);
+        }
+
+        bool copy_alpha = col[3] == smooth_color[3];
+
+        if (fade < 0.0f) {
+          float delta_color[4];
+
+          /* Unsharp mask. */
+          copy_v4_v4(delta_color, ss->filter_cache->pre_smoothed_color[vd.index]);
+          sub_v4_v4(delta_color, smooth_color);
+
+          copy_v4_v4(final_color, col);
+          madd_v4_v4fl(final_color, delta_color, fade);
+        }
+        else {
+          blend_color_interpolate_float(final_color, col, smooth_color, fade);
+        }
+
+        CLAMP4(final_color, 0.0f, 1.0f);
+
+        /* Prevent accumulated numeric error from corrupting alpha. */
+        if (copy_alpha) {
+          final_color[3] = smooth_color[3];
+        }
         break;
       }
       case COLOR_FILTER_RANDOM_HUE:
@@ -252,6 +283,46 @@ static void color_filter_task_cb(void *__restrict userdata,
   BKE_pbvh_node_mark_update_color(data->nodes[n]);
 }
 
+static void sculpt_color_presmooth_init(SculptSession *ss)
+{
+  int totvert = SCULPT_vertex_count_get(ss);
+
+  if (!ss->filter_cache->pre_smoothed_color) {
+    ss->filter_cache->pre_smoothed_color = MEM_malloc_arrayN(
+        totvert, sizeof(float) * 4, "ss->filter_cache->pre_smoothed_color");
+  }
+
+  for (int i = 0; i < totvert; i++) {
+    SCULPT_vertex_color_get(ss, i, ss->filter_cache->pre_smoothed_color[i]);
+  }
+
+  for (int iteration = 0; iteration < 2; iteration++) {
+    for (int i = 0; i < totvert; i++) {
+      float avg[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+      int total = 0;
+
+      SculptVertexNeighborIter ni;
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
+        float col[4] = {0};
+
+        copy_v4_v4(col, ss->filter_cache->pre_smoothed_color[ni.index]);
+
+        add_v4_v4(avg, col);
+        total++;
+      }
+      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+      if (total > 0) {
+        mul_v4_fl(avg, 1.0f / (float)total);
+        interp_v4_v4v4(ss->filter_cache->pre_smoothed_color[i],
+                       ss->filter_cache->pre_smoothed_color[i],
+                       avg,
+                       0.5f);
+      }
+    }
+  }
+}
+
 static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
@@ -277,6 +348,10 @@ static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   float fill_color[3];
   RNA_float_get_array(op->ptr, "fill_color", fill_color);
   IMB_colormanagement_srgb_to_scene_linear_v3(fill_color);
+
+  if (filter_strength < 0.0 && !ss->filter_cache->pre_smoothed_color) {
+    sculpt_color_presmooth_init(ss);
+  }
 
   SculptThreadedTaskData data = {
       .sd = sd,
@@ -325,9 +400,8 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
-  BKE_sculpt_color_layer_create_if_needed(ob);
-
   SCULPT_undo_push_begin(ob, "color filter");
+  BKE_sculpt_color_layer_create_if_needed(ob);
 
   /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the updates of
    * earlier steps modifying the data. */
@@ -366,7 +440,7 @@ void SCULPT_OT_color_filter(struct wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = sculpt_color_filter_invoke;
   ot->modal = sculpt_color_filter_modal;
-  ot->poll = SCULPT_vertex_colors_poll;
+  ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 

@@ -11,8 +11,10 @@ uniform sampler3D volumeScattering; /* Result of the scatter step */
 uniform sampler3D volumeExtinction;
 
 #ifdef USE_VOLUME_OPTI
-uniform layout(r11f_g11f_b10f) writeonly restrict image3D finalScattering_img;
-uniform layout(r11f_g11f_b10f) writeonly restrict image3D finalTransmittance_img;
+uniform layout(r11f_g11f_b10f)
+writeonly restrict image3D finalScattering_img;
+uniform layout(r11f_g11f_b10f)
+writeonly restrict image3D finalTransmittance_img;
 
 vec3 finalScattering;
 vec3 finalTransmittance;
@@ -70,7 +72,11 @@ void main()
     vec3 Tr = exp(-s_extinction * s_len);
 
     /* integrate along the current step segment */
-    Lscat = (Lscat - Lscat * Tr) / max(vec3(1e-8), s_extinction);
+    /* Note: Original calculation carries precision issues when compiling for AMD GPUs
+     * and running Metal. This version of the equation retains precision well for all
+     * macOS HW configurations. */
+    Lscat = (Lscat * (1.0f - Tr)) / max(vec3(1e-8), s_extinction);
+
     /* accumulate and also take into account the transmittance from previous steps */
     finalScattering += finalTransmittance * Lscat;
 

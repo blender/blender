@@ -719,7 +719,7 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
         }
         case SH_NODE_TEX_POINTDENSITY: {
           NodeShaderTexPointDensity *npd = (NodeShaderTexPointDensity *)node->storage;
-          memset(&npd->pd, 0, sizeof(npd->pd));
+          npd->pd = blender::dna::shallow_zero_initialize();
           break;
         }
         case SH_NODE_TEX_IMAGE: {

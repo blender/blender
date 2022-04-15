@@ -5681,6 +5681,40 @@ void uiLayoutContextCopy(uiLayout *layout, bContextStore *context)
   layout->context = CTX_store_add_all(&block->contexts, context);
 }
 
+void uiLayoutSetTooltipFunc(uiLayout *layout,
+                            uiButToolTipFunc func,
+                            void *arg,
+                            uiCopyArgFunc copy_arg,
+                            uiFreeArgFunc free_arg)
+{
+  bool arg_used = false;
+
+  LISTBASE_FOREACH (uiItem *, item, &layout->items) {
+    /* Each button will call free_arg for "its" argument, so we need to
+     * duplicate the allocation for each button after the first. */
+    if (copy_arg != NULL && arg_used) {
+      arg = copy_arg(arg);
+    }
+    arg_used = true;
+
+    if (item->type == ITEM_BUTTON) {
+      uiButtonItem *bitem = (uiButtonItem *)item;
+      if (bitem->but->type == UI_BTYPE_DECORATOR) {
+        continue;
+      }
+      UI_but_func_tooltip_set(bitem->but, func, arg, free_arg);
+    }
+    else {
+      uiLayoutSetTooltipFunc((uiLayout *)item, func, arg, copy_arg, free_arg);
+    }
+  }
+
+  if (!arg_used) {
+    /* Free the original copy of arg in case the layout is empty. */
+    free_arg(arg);
+  }
+}
+
 void uiLayoutSetContextFromBut(uiLayout *layout, uiBut *but)
 {
   if (but->opptr) {

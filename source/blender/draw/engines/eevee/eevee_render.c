@@ -230,7 +230,7 @@ void EEVEE_render_cache(void *vedata,
       }
     }
     else if (ob->type == OB_CURVES) {
-      EEVEE_object_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
+      EEVEE_object_curves_cache_populate(vedata, sldata, ob, &cast_shadow);
       if (do_cryptomatte) {
         EEVEE_cryptomatte_object_curves_cache_populate(data, sldata, ob);
       }

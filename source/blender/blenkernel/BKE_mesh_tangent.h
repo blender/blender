@@ -28,7 +28,7 @@ void BKE_mesh_calc_loop_tangent_single_ex(const struct MVert *mverts,
                                           int numPolys,
                                           struct ReportList *reports);
 /**
- * Wrapper around BKE_mesh_calc_loop_tangent_single_ex, which takes care of most boiling code.
+ * Wrapper around BKE_mesh_calc_loop_tangent_single_ex, which takes care of most boilerplate code.
  * \note
  * - There must be a valid loop's CD_NORMALS available.
  * - The mesh should be made of only tris and quads!

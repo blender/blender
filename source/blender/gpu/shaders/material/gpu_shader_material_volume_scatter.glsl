@@ -1,8 +1,11 @@
-void node_volume_scatter(vec4 color, float density, float anisotropy, out Closure result)
+
+void node_volume_scatter(
+    vec4 color, float density, float anisotropy, float weight, out Closure result)
 {
-#ifdef VOLUMETRICS
-  result = Closure(vec3(0.0), color.rgb * density, vec3(0.0), anisotropy);
-#else
-  result = CLOSURE_DEFAULT;
-#endif
+  ClosureVolumeScatter volume_scatter_data;
+  volume_scatter_data.weight = weight;
+  volume_scatter_data.scattering = color.rgb * density;
+  volume_scatter_data.anisotropy = anisotropy;
+
+  result = closure_eval(volume_scatter_data);
 }

@@ -1,20 +1,20 @@
-void node_output_material(Closure surface,
-                          Closure volume,
-                          vec3 displacement,
-                          float alpha_threshold,
-                          float shadow_threshold,
-                          out Closure result)
+
+void node_output_material_surface(Closure surface, out Closure out_surface)
 {
-#ifdef VOLUMETRICS
-  result = volume;
-#else
-  result = surface;
-#  if defined(USE_ALPHA_HASH)
-  /* Alpha clip emulation. */
-  if ((rayType != EEVEE_RAY_SHADOW) ? (alpha_threshold >= 0.0) : (shadow_threshold >= 0.0)) {
-    float alpha = saturate(1.0 - avg(result.transmittance));
-    result.transmittance = vec3(step(alpha, max(alpha_threshold, shadow_threshold)));
-  }
-#  endif
-#endif
+  out_surface = surface;
+}
+
+void node_output_material_volume(Closure volume, out Closure out_volume)
+{
+  out_volume = volume;
+}
+
+void node_output_material_displacement(vec3 displacement, out vec3 out_displacement)
+{
+  out_displacement = displacement;
+}
+
+void node_output_material_thickness(float thickness, out float out_thickness)
+{
+  out_thickness = thickness;
 }

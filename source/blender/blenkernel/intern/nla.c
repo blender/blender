@@ -1977,8 +1977,11 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
   /* go over all the tracks after AND INCLUDING the active one, tagging them as being disabled
    * - the active track needs to also be tagged, otherwise, it'll overlap with the tweaks going on
    */
-  for (nlt = activeTrack; nlt; nlt = nlt->next) {
-    nlt->flag |= NLATRACK_DISABLED;
+  activeTrack->flag |= NLATRACK_DISABLED;
+  if ((adt->flag & ADT_NLA_EVAL_UPPER_TRACKS) == 0) {
+    for (nlt = activeTrack->next; nlt; nlt = nlt->next) {
+      nlt->flag |= NLATRACK_DISABLED;
+    }
   }
 
   /* handle AnimData level changes:

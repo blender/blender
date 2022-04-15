@@ -373,7 +373,7 @@ static bool sculpt_undo_restore_color(bContext *C, SculptUndoNode *unode)
   bool modified = false;
 
   /* NOTE: even with loop colors we still store derived
-   * vertex colors for original data lookup.*/
+   * vertex colors for original data lookup. */
   if (unode->col && !unode->loop_col) {
     int *indices = sculpt_undo_get_indices32(unode, unode->totvert);
 

@@ -665,7 +665,7 @@ Nurb *BKE_nurb_duplicate(const Nurb *nu)
   if (newnu == nullptr) {
     return nullptr;
   }
-  memcpy(newnu, nu, sizeof(Nurb));
+  *newnu = blender::dna::shallow_copy(*nu);
 
   if (nu->bezt) {
     newnu->bezt = (BezTriple *)MEM_malloc_arrayN(nu->pntsu, sizeof(BezTriple), "duplicateNurb2");
@@ -699,7 +699,7 @@ Nurb *BKE_nurb_duplicate(const Nurb *nu)
 Nurb *BKE_nurb_copy(Nurb *src, int pntsu, int pntsv)
 {
   Nurb *newnu = (Nurb *)MEM_mallocN(sizeof(Nurb), "copyNurb");
-  memcpy(newnu, src, sizeof(Nurb));
+  *newnu = blender::dna::shallow_copy(*src);
 
   if (pntsu == 1) {
     SWAP(int, pntsu, pntsv);

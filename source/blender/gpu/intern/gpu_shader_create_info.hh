@@ -284,6 +284,8 @@ struct ShaderCreateInfo {
   bool auto_resource_location_ = false;
   /** If true, force depth and stencil tests to always happen before fragment shader invocation. */
   bool early_fragment_test_ = false;
+  /** If true, force the use of the GL shader introspection for resource location. */
+  bool legacy_resource_location_ = false;
   /** Allow optimization when fragment shader writes to `gl_FragDepth`. */
   DepthWrite depth_write_ = DepthWrite::ANY;
   /**
@@ -296,6 +298,7 @@ struct ShaderCreateInfo {
   /** Manually set generated code. */
   std::string vertex_source_generated = "";
   std::string fragment_source_generated = "";
+  std::string geometry_source_generated = "";
   std::string typedef_source_generated = "";
   /** Manually set generated dependencies. */
   Vector<const char *, 0> dependencies_generated;
@@ -721,6 +724,12 @@ struct ShaderCreateInfo {
     return *(Self *)this;
   }
 
+  Self &legacy_resource_location(bool value)
+  {
+    legacy_resource_location_ = value;
+    return *(Self *)this;
+  }
+
   /** \} */
 
   /* -------------------------------------------------------------------- */
@@ -786,6 +795,8 @@ struct ShaderCreateInfo {
 
   /* WARNING: Recursive. */
   void finalize();
+
+  std::string check_error() const;
 
   /** Error detection that some backend compilers do not complain about. */
   void validate(const ShaderCreateInfo &other_info);

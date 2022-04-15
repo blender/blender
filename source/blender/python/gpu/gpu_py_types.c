@@ -59,6 +59,12 @@ PyObject *bpygpu_types_init(void)
   if (PyType_Ready(&BPyGPUUniformBuf_Type) < 0) {
     return NULL;
   }
+  if (PyType_Ready(&BPyGPUShaderCreateInfo_Type) < 0) {
+    return NULL;
+  }
+  if (PyType_Ready(&BPyGPUStageInterfaceInfo_Type) < 0) {
+    return NULL;
+  }
 
   PyModule_AddType(submodule, &BPyGPU_BufferType);
   PyModule_AddType(submodule, &BPyGPUVertFormat_Type);
@@ -70,6 +76,8 @@ PyObject *bpygpu_types_init(void)
   PyModule_AddType(submodule, &BPyGPUTexture_Type);
   PyModule_AddType(submodule, &BPyGPUFrameBuffer_Type);
   PyModule_AddType(submodule, &BPyGPUUniformBuf_Type);
+  PyModule_AddType(submodule, &BPyGPUShaderCreateInfo_Type);
+  PyModule_AddType(submodule, &BPyGPUStageInterfaceInfo_Type);
 
   return submodule;
 }

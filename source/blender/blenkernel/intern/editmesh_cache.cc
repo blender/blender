@@ -8,7 +8,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bounds.hh"
 #include "BLI_math_vector.h"
+#include "BLI_span.hh"
 
 #include "DNA_mesh_types.h"
 
@@ -21,23 +23,21 @@
 
 void BKE_editmesh_cache_ensure_poly_normals(BMEditMesh *em, EditMeshData *emd)
 {
-  if (!(emd->vertexCos && (emd->polyNos == NULL))) {
+  if (!(emd->vertexCos && (emd->polyNos == nullptr))) {
     return;
   }
 
   BMesh *bm = em->bm;
-  const float(*vertexCos)[3];
-  float(*polyNos)[3];
-
   BMFace *efa;
   BMIter fiter;
   int i;
 
   BM_mesh_elem_index_ensure(bm, BM_VERT);
 
-  polyNos = MEM_mallocN(sizeof(*polyNos) * bm->totface, __func__);
+  float(*polyNos)[3] = static_cast<float(*)[3]>(
+      MEM_mallocN(sizeof(*polyNos) * bm->totface, __func__));
 
-  vertexCos = emd->vertexCos;
+  const float(*vertexCos)[3] = emd->vertexCos;
 
   BM_ITER_MESH_INDEX (efa, &fiter, bm, BM_FACES_OF_MESH, i) {
     BM_elem_index_set(efa, i); /* set_inline */
@@ -50,7 +50,7 @@ void BKE_editmesh_cache_ensure_poly_normals(BMEditMesh *em, EditMeshData *emd)
 
 void BKE_editmesh_cache_ensure_vert_normals(BMEditMesh *em, EditMeshData *emd)
 {
-  if (!(emd->vertexCos && (emd->vertexNos == NULL))) {
+  if (!(emd->vertexCos && (emd->vertexNos == nullptr))) {
     return;
   }
 
@@ -58,14 +58,14 @@ void BKE_editmesh_cache_ensure_vert_normals(BMEditMesh *em, EditMeshData *emd)
   const float(*vertexCos)[3], (*polyNos)[3];
   float(*vertexNos)[3];
 
-  /* calculate vertex normals from poly normals */
+  /* Calculate vertex normals from poly normals. */
   BKE_editmesh_cache_ensure_poly_normals(em, emd);
 
   BM_mesh_elem_index_ensure(bm, BM_FACE);
 
   polyNos = emd->polyNos;
   vertexCos = emd->vertexCos;
-  vertexNos = MEM_callocN(sizeof(*vertexNos) * bm->totvert, __func__);
+  vertexNos = static_cast<float(*)[3]>(MEM_callocN(sizeof(*vertexNos) * bm->totvert, __func__));
 
   BM_verts_calc_normal_vcos(bm, polyNos, vertexCos, vertexNos);
 
@@ -74,17 +74,17 @@ void BKE_editmesh_cache_ensure_vert_normals(BMEditMesh *em, EditMeshData *emd)
 
 void BKE_editmesh_cache_ensure_poly_centers(BMEditMesh *em, EditMeshData *emd)
 {
-  if (emd->polyCos != NULL) {
+  if (emd->polyCos != nullptr) {
     return;
   }
   BMesh *bm = em->bm;
-  float(*polyCos)[3];
 
   BMFace *efa;
   BMIter fiter;
   int i;
 
-  polyCos = MEM_mallocN(sizeof(*polyCos) * bm->totface, __func__);
+  float(*polyCos)[3] = static_cast<float(*)[3]>(
+      MEM_mallocN(sizeof(*polyCos) * bm->totface, __func__));
 
   if (emd->vertexCos) {
     const float(*vertexCos)[3];
@@ -116,18 +116,20 @@ bool BKE_editmesh_cache_calc_minmax(struct BMEditMesh *em,
                                     float min[3],
                                     float max[3])
 {
+  using namespace blender;
   BMesh *bm = em->bm;
-  BMVert *eve;
-  BMIter iter;
-  int i;
 
   if (bm->totvert) {
     if (emd->vertexCos) {
-      BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
-        minmax_v3v3_v3(min, max, emd->vertexCos[i]);
-      }
+      Span<float3> vert_coords(reinterpret_cast<const float3 *>(emd->vertexCos), bm->totvert);
+      std::optional<bounds::MinMaxResult<float3>> bounds = bounds::min_max(vert_coords);
+      BLI_assert(bounds.has_value());
+      copy_v3_v3(min, math::min(bounds->min, float3(min)));
+      copy_v3_v3(max, math::max(bounds->max, float3(max)));
     }
     else {
+      BMVert *eve;
+      BMIter iter;
       BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
         minmax_v3v3_v3(min, max, eve->co);
       }

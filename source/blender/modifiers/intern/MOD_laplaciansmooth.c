@@ -60,7 +60,7 @@ struct BLaplacianSystem {
   const MEdge *medges;
   LinearSolver *context;
 
-  /*Data*/
+  /* Data. */
   float min_area;
   float vert_centroid[3];
 };

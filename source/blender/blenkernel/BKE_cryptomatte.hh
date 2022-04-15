@@ -59,7 +59,7 @@ struct CryptomatteHash {
 
   std::string hex_encoded() const;
   /**
-     Convert a cryptomatte hash to a float.
+   * Convert a cryptomatte hash to a float.
    *
    * Cryptomatte hashes are stored in float textures and images. The conversion is taken from the
    * cryptomatte specification. See Floating point conversion section in

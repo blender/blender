@@ -664,7 +664,7 @@ typedef enum eRegion_Type {
    * context (surface, mirror view). Does not represent any real region. */
   RGN_TYPE_XR = 13,
 
-#define RGN_TYPE_LEN (RGN_TYPE_XR + 1)
+#define RGN_TYPE_NUM (RGN_TYPE_XR + 1)
 } eRegion_Type;
 
 /* use for function args */

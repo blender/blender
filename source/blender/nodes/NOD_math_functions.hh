@@ -28,15 +28,15 @@ const FloatMathOperationInfo *get_float_compare_operation_info(int operation);
 
 /**
  * This calls the `callback` with two arguments:
- *  1. The math function that takes a float as input and outputs a new float.
- *  2. A #FloatMathOperationInfo struct reference.
+ * 1. The math function that takes a float as input and outputs a new float.
+ * 2. A #FloatMathOperationInfo struct reference.
  * Returns true when the callback has been called, otherwise false.
  *
  * The math function that is passed to the callback is actually a lambda function that is different
  * for every operation. Therefore, if the callback is templated on the math function, it will get
  * instantiated for every operation separately. This has two benefits:
- *  - The compiler can optimize the callback for every operation separately.
- *  - A static variable declared in the callback will be generated for every operation separately.
+ * - The compiler can optimize the callback for every operation separately.
+ * - A static variable declared in the callback will be generated for every operation separately.
  *
  * If separate instantiations are not desired, the callback can also take a function pointer with
  * the following signature as input instead: float (*math_function)(float a).

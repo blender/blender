@@ -3381,7 +3381,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   /* vars for calculating wordwrap and optional box */
   struct {
     struct ResultBLF info;
-    rctf rect;
+    rcti rect;
   } wrap;
 
   BLF_boundbox_ex(font, data->text, sizeof(data->text), &wrap.rect, &wrap.info);
@@ -3391,10 +3391,10 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   }
   else {
     if (data->align == SEQ_TEXT_ALIGN_X_RIGHT) {
-      x -= BLI_rctf_size_x(&wrap.rect);
+      x -= BLI_rcti_size_x(&wrap.rect);
     }
     else if (data->align == SEQ_TEXT_ALIGN_X_CENTER) {
-      x -= BLI_rctf_size_x(&wrap.rect) / 2;
+      x -= BLI_rcti_size_x(&wrap.rect) / 2;
     }
 
     if (data->align_y == SEQ_TEXT_ALIGN_Y_TOP) {

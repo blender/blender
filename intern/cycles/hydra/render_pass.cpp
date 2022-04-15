@@ -117,10 +117,11 @@ void HdCyclesRenderPass::_Execute(const HdRenderPassStateSharedPtr &renderPassSt
 #endif
 
     if (const auto camera = static_cast<const HdCyclesCamera *>(renderPassState->GetCamera())) {
-      camera->ApplyCameraSettings(scene->camera);
+      camera->ApplyCameraSettings(_renderParam, scene->camera);
     }
     else {
-      HdCyclesCamera::ApplyCameraSettings(renderPassState->GetWorldToViewMatrix(),
+      HdCyclesCamera::ApplyCameraSettings(_renderParam,
+                                          renderPassState->GetWorldToViewMatrix(),
                                           renderPassState->GetProjectionMatrix(),
                                           renderPassState->GetClipPlanes(),
                                           scene->camera);

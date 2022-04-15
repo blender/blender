@@ -2807,7 +2807,7 @@ blender::meshintersect::CDT_result<mpq_class> delaunay_2d_calc(const CDT_input<m
 /* C interface. */
 
 /**
-   This function uses the double version of #CDT::delaunay_calc.
+ * This function uses the double version of #CDT::delaunay_calc.
  * Almost all of the work here is to convert between C++ #Arrays<Vector<int>>
  * and a C version that linearizes all the elements and uses a "start"
  * and "len" array to say where the individual vectors start and how

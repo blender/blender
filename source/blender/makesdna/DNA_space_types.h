@@ -1319,6 +1319,7 @@ typedef enum eSpaceImage_Flag {
 
 typedef enum eSpaceImageOverlay_Flag {
   SI_OVERLAY_SHOW_OVERLAYS = (1 << 0),
+  SI_OVERLAY_SHOW_GRID_BACKGROUND = (1 << 1),
 } eSpaceImageOverlay_Flag;
 
 /** Keep in sync with `STEPS_LEN` in `grid_frag.glsl`. */
@@ -1513,6 +1514,7 @@ typedef enum eSpaceNodeOverlay_Flag {
   SN_OVERLAY_SHOW_WIRE_COLORS = (1 << 2),
   SN_OVERLAY_SHOW_TIMINGS = (1 << 3),
   SN_OVERLAY_SHOW_PATH = (1 << 4),
+  SN_OVERLAY_SHOW_NAMED_ATTRIBUTES = (1 << 5),
 } eSpaceNodeOverlay_Flag;
 
 typedef struct SpaceNode {
@@ -2057,7 +2059,7 @@ typedef enum eSpace_Type {
   SPACE_STATUSBAR = 22,
   SPACE_SPREADSHEET = 23
 
-#define SPACE_TYPE_LAST SPACE_SPREADSHEET
+#define SPACE_TYPE_NUM (SPACE_SPREADSHEET + 1)
 } eSpace_Type;
 
 /* use for function args */

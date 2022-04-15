@@ -4,14 +4,23 @@
 #pragma BLENDER_REQUIRE(lightprobe_lib.glsl)
 #pragma BLENDER_REQUIRE(ambient_occlusion_lib.glsl)
 #pragma BLENDER_REQUIRE(ssr_lib.glsl)
+#pragma BLENDER_REQUIRE(closure_eval_lib.glsl)
+#pragma BLENDER_REQUIRE(renderpass_lib.glsl)
 
 struct ClosureInputRefraction {
   vec3 N;          /** Shading normal. */
   float roughness; /** Input roughness, not squared. */
   float ior;       /** Index of refraction ratio. */
 };
-
-#define CLOSURE_INPUT_Refraction_DEFAULT ClosureInputRefraction(vec3(0.0), 0.0, 0.0)
+#ifdef GPU_METAL
+/* C++ struct initialization. */
+#  define CLOSURE_INPUT_Refraction_DEFAULT \
+    { \
+      vec3(0.0), 0.0, 0.0 \
+    }
+#else
+#  define CLOSURE_INPUT_Refraction_DEFAULT ClosureInputRefraction(vec3(0.0), 0.0, 0.0)
+#endif
 
 struct ClosureEvalRefraction {
   vec3 P;                  /** LTC matrix values. */
@@ -116,6 +125,7 @@ void closure_Refraction_eval_end(ClosureInputRefraction cl_in,
                                  ClosureEvalCommon cl_common,
                                  inout ClosureOutputRefraction cl_out)
 {
+  cl_out.radiance = render_pass_glossy_mask(cl_out.radiance);
 #if defined(DEPTH_SHADER) || defined(WORLD_BACKGROUND)
   /* This makes shader resources become unused and avoid issues with samplers. (see T59747) */
   cl_out.radiance = vec3(0.0);

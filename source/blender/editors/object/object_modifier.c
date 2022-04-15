@@ -698,7 +698,7 @@ static bool modifier_apply_shape(Main *bmain,
     BKE_id_free(NULL, mesh_applied);
   }
   else {
-    /* TODO: implement for hair, point clouds and volumes. */
+    /* TODO: implement for curves, point clouds and volumes. */
     BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
     return false;
   }
@@ -800,7 +800,7 @@ static bool modifier_apply_obdata(
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
   else {
-    /* TODO: implement for hair, point clouds and volumes. */
+    /* TODO: implement for curves, point clouds and volumes. */
     BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
     return false;
   }

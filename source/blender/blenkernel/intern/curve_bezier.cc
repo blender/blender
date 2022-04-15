@@ -281,6 +281,11 @@ static void interpolate_to_evaluated(const Span<T> src,
   BLI_assert(!src.is_empty());
   BLI_assert(evaluated_offsets.size() == src.size());
   BLI_assert(evaluated_offsets.last() == dst.size());
+  if (src.size() == 1) {
+    BLI_assert(dst.size() == 1);
+    dst.first() = src.first();
+    return;
+  }
 
   linear_interpolation(src.first(), src[1], dst.take_front(evaluated_offsets.first()));
 

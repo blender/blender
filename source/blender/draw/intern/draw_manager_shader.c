@@ -417,119 +417,81 @@ GPUShader *DRW_shader_create_fullscreen_with_shaderlib_ex(const char *frag,
   return sh;
 }
 
-GPUMaterial *DRW_shader_find_from_world(World *wo,
-                                        const void *engine_type,
-                                        const int options,
-                                        bool deferred)
+GPUMaterial *DRW_shader_from_world(World *wo,
+                                   struct bNodeTree *ntree,
+                                   const uint64_t shader_id,
+                                   const bool is_volume_shader,
+                                   bool deferred,
+                                   GPUCodegenCallbackFn callback,
+                                   void *thunk)
 {
-  GPUMaterial *mat = GPU_material_from_nodetree_find(&wo->gpumaterial, engine_type, options);
-  if (DRW_state_is_image_render() || !deferred) {
-    if (mat != NULL && GPU_material_status(mat) == GPU_MAT_QUEUED) {
-      /* XXX Hack : we return NULL so that the engine will call DRW_shader_create_from_XXX
-       * with the shader code and we will resume the compilation from there. */
-      return NULL;
-    }
-  }
-  return mat;
-}
-
-GPUMaterial *DRW_shader_find_from_material(Material *ma,
-                                           const void *engine_type,
-                                           const int options,
-                                           bool deferred)
-{
-  GPUMaterial *mat = GPU_material_from_nodetree_find(&ma->gpumaterial, engine_type, options);
-  if (DRW_state_is_image_render() || !deferred) {
-    if (mat != NULL && GPU_material_status(mat) == GPU_MAT_QUEUED) {
-      /* XXX Hack : we return NULL so that the engine will call DRW_shader_create_from_XXX
-       * with the shader code and we will resume the compilation from there. */
-      return NULL;
-    }
-  }
-  return mat;
-}
-
-GPUMaterial *DRW_shader_create_from_world(struct Scene *scene,
-                                          World *wo,
-                                          struct bNodeTree *ntree,
-                                          const void *engine_type,
-                                          const int options,
-                                          const bool is_volume_shader,
-                                          const char *vert,
-                                          const char *geom,
-                                          const char *frag_lib,
-                                          const char *defines,
-                                          bool deferred,
-                                          GPUMaterialEvalCallbackFn callback)
-{
-  GPUMaterial *mat = NULL;
-  if (DRW_state_is_image_render() || !deferred) {
-    mat = GPU_material_from_nodetree_find(&wo->gpumaterial, engine_type, options);
+  Scene *scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
+  GPUMaterial *mat = GPU_material_from_nodetree(scene,
+                                                NULL,
+                                                ntree,
+                                                &wo->gpumaterial,
+                                                wo->id.name,
+                                                shader_id,
+                                                is_volume_shader,
+                                                false,
+                                                callback,
+                                                thunk);
+  if (!DRW_state_is_image_render() && deferred && GPU_material_status(mat) == GPU_MAT_QUEUED) {
+    /* Shader has been already queued. */
+    return mat;
   }
 
-  if (mat == NULL) {
-    scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
-    mat = GPU_material_from_nodetree(scene,
-                                     NULL,
-                                     ntree,
-                                     &wo->gpumaterial,
-                                     engine_type,
-                                     options,
-                                     is_volume_shader,
-                                     vert,
-                                     geom,
-                                     frag_lib,
-                                     defines,
-                                     wo->id.name,
-                                     callback);
-  }
-
-  if (GPU_material_status(mat) == GPU_MAT_QUEUED) {
+  if (GPU_material_status(mat) == GPU_MAT_CREATED) {
+    GPU_material_status_set(mat, GPU_MAT_QUEUED);
     drw_deferred_shader_add(mat, deferred);
   }
 
+  if (!deferred && GPU_material_status(mat) == GPU_MAT_QUEUED) {
+    /* Force compilation for shaders already queued. */
+    drw_deferred_shader_add(mat, false);
+  }
   return mat;
 }
 
-GPUMaterial *DRW_shader_create_from_material(struct Scene *scene,
-                                             Material *ma,
-                                             struct bNodeTree *ntree,
-                                             const void *engine_type,
-                                             const int options,
-                                             const bool is_volume_shader,
-                                             const char *vert,
-                                             const char *geom,
-                                             const char *frag_lib,
-                                             const char *defines,
-                                             bool deferred,
-                                             GPUMaterialEvalCallbackFn callback)
+GPUMaterial *DRW_shader_from_material(Material *ma,
+                                      struct bNodeTree *ntree,
+                                      const uint64_t shader_id,
+                                      const bool is_volume_shader,
+                                      bool deferred,
+                                      GPUCodegenCallbackFn callback,
+                                      void *thunk)
 {
-  GPUMaterial *mat = NULL;
-  if (DRW_state_is_image_render() || !deferred) {
-    mat = GPU_material_from_nodetree_find(&ma->gpumaterial, engine_type, options);
+  Scene *scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
+  GPUMaterial *mat = GPU_material_from_nodetree(scene,
+                                                ma,
+                                                ntree,
+                                                &ma->gpumaterial,
+                                                ma->id.name,
+                                                shader_id,
+                                                is_volume_shader,
+                                                false,
+                                                callback,
+                                                thunk);
+
+  if (DRW_state_is_image_render()) {
+    /* Do not deferred if doing render. */
+    deferred = false;
   }
 
-  if (mat == NULL) {
-    scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
-    mat = GPU_material_from_nodetree(scene,
-                                     ma,
-                                     ntree,
-                                     &ma->gpumaterial,
-                                     engine_type,
-                                     options,
-                                     is_volume_shader,
-                                     vert,
-                                     geom,
-                                     frag_lib,
-                                     defines,
-                                     ma->id.name,
-                                     callback);
+  if (deferred && GPU_material_status(mat) == GPU_MAT_QUEUED) {
+    /* Shader has been already queued. */
+    return mat;
   }
 
-  if (GPU_material_status(mat) == GPU_MAT_QUEUED) {
+  if (GPU_material_status(mat) == GPU_MAT_CREATED) {
+    GPU_material_status_set(mat, GPU_MAT_QUEUED);
     drw_deferred_shader_add(mat, deferred);
   }
 
+  if (!deferred && GPU_material_status(mat) == GPU_MAT_QUEUED) {
+    /* Force compilation for shaders already queued. */
+    drw_deferred_shader_add(mat, false);
+  }
   return mat;
 }
 
@@ -552,15 +514,15 @@ void DRW_shader_free(GPUShader *shader)
  * contains the needed libraries for this shader.
  * \{ */
 
-/* 32 because we use a 32bit bitmap. */
-#define MAX_LIB 32
+/* 64 because we use a 64bit bitmap. */
+#define MAX_LIB 64
 #define MAX_LIB_NAME 64
 #define MAX_LIB_DEPS 8
 
 struct DRWShaderLibrary {
   const char *libs[MAX_LIB];
   char libs_name[MAX_LIB][MAX_LIB_NAME];
-  uint32_t libs_deps[MAX_LIB];
+  uint64_t libs_deps[MAX_LIB];
 };
 
 DRWShaderLibrary *DRW_shader_library_create(void)
@@ -589,23 +551,27 @@ static int drw_shader_library_search(const DRWShaderLibrary *lib, const char *na
 }
 
 /* Return bitmap of dependencies. */
-static uint32_t drw_shader_dependencies_get(const DRWShaderLibrary *lib, const char *lib_code)
+static uint64_t drw_shader_dependencies_get(const DRWShaderLibrary *lib,
+                                            const char *pragma_str,
+                                            const char *lib_code,
+                                            const char *UNUSED(lib_name))
 {
   /* Search dependencies. */
-  uint32_t deps = 0;
+  uint pragma_len = strlen(pragma_str);
+  uint64_t deps = 0;
   const char *haystack = lib_code;
-  while ((haystack = strstr(haystack, "BLENDER_REQUIRE("))) {
-    haystack += 16;
+  while ((haystack = strstr(haystack, pragma_str))) {
+    haystack += pragma_len;
     int dep = drw_shader_library_search(lib, haystack);
     if (dep == -1) {
-      char dbg_name[33];
+      char dbg_name[MAX_NAME];
       int i = 0;
       while ((*haystack != ')') && (i < (sizeof(dbg_name) - 2))) {
         dbg_name[i] = *haystack;
         haystack++;
         i++;
       }
-      dbg_name[i + 1] = '\0';
+      dbg_name[i] = '\0';
 
       CLOG_INFO(&LOG,
                 0,
@@ -614,7 +580,7 @@ static uint32_t drw_shader_dependencies_get(const DRWShaderLibrary *lib, const c
                 dbg_name);
     }
     else {
-      deps |= 1u << (uint32_t)dep;
+      deps |= 1llu << ((uint64_t)dep);
     }
   }
   return deps;
@@ -633,7 +599,8 @@ void DRW_shader_library_add_file(DRWShaderLibrary *lib, const char *lib_code, co
   if (index > -1) {
     lib->libs[index] = lib_code;
     BLI_strncpy(lib->libs_name[index], lib_name, MAX_LIB_NAME);
-    lib->libs_deps[index] = drw_shader_dependencies_get(lib, lib_code);
+    lib->libs_deps[index] = drw_shader_dependencies_get(
+        lib, "BLENDER_REQUIRE(", lib_code, lib_name);
   }
   else {
     printf("Error: Too many libraries. Cannot add %s.\n", lib_name);
@@ -643,21 +610,20 @@ void DRW_shader_library_add_file(DRWShaderLibrary *lib, const char *lib_code, co
 
 char *DRW_shader_library_create_shader_string(const DRWShaderLibrary *lib, const char *shader_code)
 {
-  uint32_t deps = drw_shader_dependencies_get(lib, shader_code);
+  uint64_t deps = drw_shader_dependencies_get(lib, "BLENDER_REQUIRE(", shader_code, "shader code");
 
   DynStr *ds = BLI_dynstr_new();
   /* Add all dependencies recursively. */
   for (int i = MAX_LIB - 1; i > -1; i--) {
-    if (lib->libs[i] && (deps & (1u << (uint32_t)i))) {
+    if (lib->libs[i] && (deps & (1llu << (uint64_t)i))) {
       deps |= lib->libs_deps[i];
     }
   }
   /* Concatenate all needed libs into one string. */
-  for (int i = 0; i < MAX_LIB; i++) {
-    if (deps & 1u) {
+  for (int i = 0; i < MAX_LIB && deps != 0llu; i++, deps >>= 1llu) {
+    if (deps & 1llu) {
       BLI_dynstr_append(ds, lib->libs[i]);
     }
-    deps = deps >> 1;
   }
 
   BLI_dynstr_append(ds, shader_code);
