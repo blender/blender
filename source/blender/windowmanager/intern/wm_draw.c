@@ -24,6 +24,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
@@ -459,13 +460,24 @@ static void wm_draw_region_buffer_create(ARegion *region, bool stereo, bool use_
   }
 }
 
-static void wm_draw_region_bind(ARegion *region, int view)
+static bool wm_draw_region_bind(bContext *C, ARegion *region, int view)
 {
   if (!region->draw_buffer) {
-    return;
+    return true;
   }
 
   if (region->draw_buffer->viewport) {
+    if (G.is_rendering && C != NULL) {
+      Scene *scene = CTX_data_scene(C);
+      RenderEngineType *render_engine_type = RE_engines_find(scene->r.engine);
+      if (RE_engine_is_opengl(render_engine_type)) {
+        /* Do not try to acquire the viewport as this would be locking at the moment.
+         * But tag the viewport to update after the rendering finishes. */
+        GPU_viewport_tag_update(region->draw_buffer->viewport);
+        return false;
+      }
+    }
+
     GPU_viewport_bind(region->draw_buffer->viewport, view, &region->winrct);
   }
   else {
@@ -478,6 +490,7 @@ static void wm_draw_region_bind(ARegion *region, int view)
   }
 
   region->draw_buffer->bound_view = view;
+  return true;
 }
 
 static void wm_draw_region_unbind(ARegion *region)
@@ -700,9 +713,10 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
             wm_draw_region_stereo_set(bmain, area, region, sview);
           }
 
-          wm_draw_region_bind(region, view);
-          ED_region_do_draw(C, region);
-          wm_draw_region_unbind(region);
+          if (wm_draw_region_bind(C, region, view)) {
+            ED_region_do_draw(C, region);
+            wm_draw_region_unbind(region);
+          }
         }
         if (use_viewport) {
           GPUViewport *viewport = region->draw_buffer->viewport;
@@ -711,9 +725,10 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
       }
       else {
         wm_draw_region_buffer_create(region, false, use_viewport);
-        wm_draw_region_bind(region, 0);
-        ED_region_do_draw(C, region);
-        wm_draw_region_unbind(region);
+        if (wm_draw_region_bind(C, region, 0)) {
+          ED_region_do_draw(C, region);
+          wm_draw_region_unbind(region);
+        }
       }
 
       GPU_debug_group_end();
@@ -744,10 +759,11 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
     }
 
     wm_draw_region_buffer_create(region, false, false);
-    wm_draw_region_bind(region, 0);
-    GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
-    ED_region_do_draw(C, region);
-    wm_draw_region_unbind(region);
+    if (wm_draw_region_bind(C, region, 0)) {
+      GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
+      ED_region_do_draw(C, region);
+      wm_draw_region_unbind(region);
+    }
 
     GPU_debug_group_end();
 
@@ -1102,10 +1118,11 @@ void wm_draw_region_test(bContext *C, ScrArea *area, ARegion *region)
   /* Function for redraw timer benchmark. */
   bool use_viewport = WM_region_use_viewport(area, region);
   wm_draw_region_buffer_create(region, false, use_viewport);
-  wm_draw_region_bind(region, 0);
-  ED_region_do_draw(C, region);
-  wm_draw_region_unbind(region);
-  region->do_draw = false;
+  if (wm_draw_region_bind(C, region, 0)) {
+    ED_region_do_draw(C, region);
+    wm_draw_region_unbind(region);
+    region->do_draw = false;
+  }
 }
 
 void WM_redraw_windows(bContext *C)
@@ -1141,7 +1158,7 @@ void WM_draw_region_viewport_ensure(ARegion *region, short space_type)
 
 void WM_draw_region_viewport_bind(ARegion *region)
 {
-  wm_draw_region_bind(region, 0);
+  wm_draw_region_bind(NULL, region, 0);
 }
 
 void WM_draw_region_viewport_unbind(ARegion *region)
