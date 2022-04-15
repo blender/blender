@@ -104,7 +104,7 @@ struct WeldMesh {
   /* References all polygons and loops that will be affected. */
   Vector<WeldLoop> wloop;
   Vector<WeldPoly> wpoly;
-  WeldPoly *wpoly_new;
+  MutableSpan<WeldPoly> wpoly_new;
   int wloop_len;
   int wpoly_len;
   int wpoly_new_len;
@@ -806,11 +806,9 @@ static void weld_poly_loop_ctx_alloc(Span<MPoly> mpoly,
     wpoly.resize(wpoly_len + maybe_new_poly);
   }
 
-  WeldPoly *poly_new = wpoly.data() + wpoly_len;
-
   r_weld_mesh->wloop = std::move(wloop);
   r_weld_mesh->wpoly = std::move(wpoly);
-  r_weld_mesh->wpoly_new = poly_new;
+  r_weld_mesh->wpoly_new = r_weld_mesh->wpoly.as_mutable_span().drop_front(wpoly_len);
   r_weld_mesh->wloop_len = wloop_len;
   r_weld_mesh->wpoly_len = wpoly_len;
   r_weld_mesh->wpoly_new_len = 0;
@@ -833,11 +831,10 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
   if (poly_len < 3 || ctx_verts_len < 1) {
     return;
   }
-  
+
   const int ctx_loops_len = r_wp->loops.len;
   const int ctx_loops_ofs = r_wp->loops.ofs;
   MutableSpan<WeldLoop> wloop = r_weld_mesh->wloop;
-  WeldPoly *wpoly_new = r_weld_mesh->wpoly_new;
 
   int loop_kill = 0;
 
@@ -910,7 +907,7 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
               const int new_loops_len = lb - la;
               const int new_loops_ofs = ctx_loops_ofs + la;
 
-              WeldPoly *new_wp = &wpoly_new[r_weld_mesh->wpoly_new_len++];
+              WeldPoly *new_wp = &r_weld_mesh->wpoly_new[r_weld_mesh->wpoly_new_len++];
               new_wp->poly_dst = OUT_OF_CONTEXT;
               new_wp->poly_orig = r_wp->poly_orig;
               new_wp->loops.len = new_loops_len;
@@ -973,7 +970,6 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
 {
   MutableSpan<WeldPoly> wpoly = r_weld_mesh->wpoly;
   MutableSpan<WeldLoop> wloop = r_weld_mesh->wloop;
-  WeldPoly *wpoly_new = r_weld_mesh->wpoly_new;
   int wpoly_len = r_weld_mesh->wpoly_len;
   int wpoly_new_len = 0;
   int poly_kill_len = 0;
@@ -1036,7 +1032,7 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
 
 #ifdef USE_WELD_DEBUG
     weld_assert_poly_and_loop_kill_len(wpoly,
-                                       {wpoly_new, wpoly_new_len},
+                                       r_weld_mesh->wpoly_new,
                                        wloop,
                                        mloop,
                                        loop_map,
@@ -1172,7 +1168,7 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
 
 #ifdef USE_WELD_DEBUG
   weld_assert_poly_and_loop_kill_len(wpoly,
-                                     {wpoly_new, wpoly_new_len},
+                                     r_weld_mesh->wpoly_new,
                                      wloop,
                                      mloop,
                                      loop_map,
@@ -1182,7 +1178,6 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
                                      loop_kill_len);
 #endif
 
-  r_weld_mesh->wpoly_new = wpoly_new;
   r_weld_mesh->poly_kill_len = poly_kill_len;
   r_weld_mesh->loop_kill_len = loop_kill_len;
 }
