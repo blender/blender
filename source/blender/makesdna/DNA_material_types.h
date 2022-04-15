@@ -31,6 +31,8 @@ typedef struct TexPaintSlot {
 
   /** Image to be painted on. Mutual exclusive with attribute_name. */
   struct Image *ima;
+  struct ImageUser *image_user;
+
   /** Custom-data index for uv layer, #MAX_NAME. */
   char *uvname;
   /**

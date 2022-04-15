@@ -240,8 +240,14 @@ static void sample_wet_paint_reduce(const void *__restrict UNUSED(userdata),
   add_v4_v4(join->color, swptd->color);
 }
 
-void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+void SCULPT_do_paint_brush(
+    PaintModeSettings *paint_mode_settings, Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
+  if (SCULPT_use_image_paint_brush(paint_mode_settings, ob)) {
+    SCULPT_do_paint_brush_image(paint_mode_settings, sd, ob, nodes, totnode);
+    return;
+  }
+
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
 

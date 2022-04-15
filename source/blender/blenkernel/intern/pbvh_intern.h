@@ -6,6 +6,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Axis-aligned bounding box */
 typedef struct {
   float bmin[3], bmax[3];
@@ -111,6 +115,7 @@ struct PBVHNode {
 
   /* Used to store the brush color during a stroke and composite it over the original color */
   PBVHColorBufferNode color_buffer;
+  PBVHPixelsNode pixels;
 };
 
 typedef enum {
@@ -260,3 +265,11 @@ bool pbvh_bmesh_node_nearest_to_ray(PBVHNode *node,
                                     bool use_original);
 
 void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode);
+
+/* pbvh_pixels.hh */
+void pbvh_pixels_free(PBVHNode *node);
+void pbvh_pixels_free_brush_test(PBVHNode *node);
+
+#ifdef __cplusplus
+}
+#endif

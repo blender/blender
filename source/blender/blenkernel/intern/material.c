@@ -1423,13 +1423,15 @@ static bool fill_texpaint_slots_cb(bNode *node, void *userdata)
     case SH_NODE_TEX_IMAGE: {
       TexPaintSlot *slot = &ma->texpaintslot[index];
       slot->ima = (Image *)node->id;
-      slot->interp = ((NodeTexImage *)node->storage)->interpolation;
+      NodeTexImage *storage = (NodeTexImage *)node->storage;
+      slot->interp = storage->interpolation;
+      slot->image_user = &storage->iuser;
       /* for new renderer, we need to traverse the treeback in search of a UV node */
       bNode *uvnode = nodetree_uv_node_recursive(node);
 
       if (uvnode) {
-        NodeShaderUVMap *storage = (NodeShaderUVMap *)uvnode->storage;
-        slot->uvname = storage->uv_map;
+        NodeShaderUVMap *uv_storage = (NodeShaderUVMap *)uvnode->storage;
+        slot->uvname = uv_storage->uv_map;
         /* set a value to index so UI knows that we have a valid pointer for the mesh */
         slot->valid = true;
       }

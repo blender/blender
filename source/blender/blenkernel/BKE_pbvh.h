@@ -31,10 +31,13 @@ struct MLoopTri;
 struct MPoly;
 struct MVert;
 struct Mesh;
+struct MeshElemMap;
 struct PBVH;
 struct PBVHNode;
 struct SubdivCCG;
 struct TaskParallelSettings;
+struct Image;
+struct ImageUser;
 struct MeshElemMap;
 
 typedef struct PBVH PBVH;
@@ -47,6 +50,15 @@ typedef struct {
 typedef struct {
   float (*color)[4];
 } PBVHColorBufferNode;
+
+typedef struct PBVHPixelsNode {
+  /**
+   * Contains triangle/pixel data used during texture painting.
+   *
+   * Contains #blender::bke::pbvh::pixels::NodeData.
+   */
+  void *node_data;
+} PBVHPixelsNode;
 
 typedef enum {
   PBVH_Leaf = 1 << 0,
@@ -66,6 +78,8 @@ typedef enum {
 
   PBVH_UpdateTopology = 1 << 13,
   PBVH_UpdateColor = 1 << 14,
+  PBVH_RebuildPixels = 1 << 15,
+
 } PBVHNodeFlags;
 
 typedef struct PBVHFrustumPlanes {
@@ -127,6 +141,12 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           struct BMLog *log,
                           int cd_vert_node_offset,
                           int cd_face_node_offset);
+
+void BKE_pbvh_build_pixels(PBVH *pbvh,
+                           const struct MLoop *mloop,
+                           struct CustomData *ldata,
+                           struct Image *image,
+                           struct ImageUser *image_user);
 void BKE_pbvh_free(PBVH *pbvh);
 
 /* Hierarchical Search in the BVH, two methods:
@@ -287,6 +307,7 @@ bool BKE_pbvh_node_fully_masked_get(PBVHNode *node);
 void BKE_pbvh_node_fully_unmasked_set(PBVHNode *node, int fully_masked);
 bool BKE_pbvh_node_fully_unmasked_get(PBVHNode *node);
 
+void BKE_pbvh_mark_rebuild_pixels(PBVH *pbvh);
 void BKE_pbvh_vert_mark_update(PBVH *pbvh, int index);
 
 void BKE_pbvh_node_get_grids(PBVH *pbvh,

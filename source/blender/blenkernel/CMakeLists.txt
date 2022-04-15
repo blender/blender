@@ -244,6 +244,7 @@ set(SRC
   intern/pbvh.cc
   intern/pbvh.c
   intern/pbvh_bmesh.c
+  intern/pbvh_pixels.cc
   intern/pointcache.c
   intern/pointcloud.cc
   intern/preferences.c

@@ -72,6 +72,7 @@ set(SRC
   sculpt_multiplane_scrape.c
   sculpt_ops.c
   sculpt_paint_color.c
+  sculpt_paint_image.cc
   sculpt_pose.c
   sculpt_smooth.c
   sculpt_transform.c
