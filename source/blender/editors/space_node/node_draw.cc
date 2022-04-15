@@ -1882,7 +1882,7 @@ static void node_draw_extra_info_row(const bNode &node,
                                  0,
                                  0,
                                  extra_info_row.tooltip);
-  if (extra_info_row.tooltip_fn != NULL) {
+  if (extra_info_row.tooltip_fn != nullptr) {
     UI_but_func_tooltip_set(but_icon,
                             extra_info_row.tooltip_fn,
                             extra_info_row.tooltip_fn_arg,

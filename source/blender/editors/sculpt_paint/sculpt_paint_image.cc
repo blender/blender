@@ -38,9 +38,7 @@ struct ImageData {
   Image *image = nullptr;
   ImageUser *image_user = nullptr;
 
-  ~ImageData()
-  {
-  }
+  ~ImageData() = default;
 
   static bool init_active_image(Object *ob,
                                 ImageData *r_image_data,

@@ -597,7 +597,7 @@ static bool apply_objects_internal_can_multiuser(bContext *C)
 {
   Object *obact = CTX_data_active_object(C);
 
-  if (ELEM(NULL, obact, obact->data)) {
+  if (ELEM(nullptr, obact, obact->data)) {
     return false;
   }
 
@@ -1176,7 +1176,7 @@ void OBJECT_OT_transform_apply(wmOperatorType *ot)
 static int object_parent_inverse_apply_exec(bContext *C, wmOperator *UNUSED(op))
 {
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
-    if (ob->parent == NULL) {
+    if (ob->parent == nullptr) {
       continue;
     }
 
@@ -1185,7 +1185,7 @@ static int object_parent_inverse_apply_exec(bContext *C, wmOperator *UNUSED(op))
   }
   CTX_DATA_END;
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, nullptr);
 
   return OPERATOR_FINISHED;
 }
