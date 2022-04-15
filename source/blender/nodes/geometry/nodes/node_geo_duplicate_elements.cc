@@ -759,6 +759,7 @@ static void duplicate_edges(GeometrySet &geometry_set,
         MEdge &new_edge = new_edges[edge_range[i_duplicate]];
         new_edge.v1 = vert_range[i_duplicate * 2];
         new_edge.v2 = vert_range[i_duplicate * 2] + 1;
+        new_edge.flag = ME_LOOSEEDGE;
       }
     }
   });
