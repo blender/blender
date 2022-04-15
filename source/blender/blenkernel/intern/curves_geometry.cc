@@ -840,6 +840,48 @@ void CurvesGeometry::interpolate_to_evaluated(const int curve_index,
   BLI_assert_unreachable();
 }
 
+void CurvesGeometry::interpolate_to_evaluated(const GSpan src, GMutableSpan dst) const
+{
+  BLI_assert(!this->runtime->offsets_cache_dirty);
+  BLI_assert(!this->runtime->nurbs_basis_cache_dirty);
+  const VArray<int8_t> types = this->curve_types();
+  const VArray<int> resolution = this->resolution();
+  const VArray<bool> cyclic = this->cyclic();
+  const VArray<int8_t> nurbs_orders = this->nurbs_orders();
+  const Span<float> nurbs_weights = this->nurbs_weights();
+
+  threading::parallel_for(this->curves_range(), 512, [&](IndexRange curves_range) {
+    for (const int curve_index : curves_range) {
+      const IndexRange points = this->points_for_curve(curve_index);
+      const IndexRange evaluated_points = this->evaluated_points_for_curve(curve_index);
+      switch (types[curve_index]) {
+        case CURVE_TYPE_CATMULL_ROM:
+          curves::catmull_rom::interpolate_to_evaluated(src.slice(points),
+                                                        cyclic[curve_index],
+                                                        resolution[curve_index],
+                                                        dst.slice(evaluated_points));
+          continue;
+        case CURVE_TYPE_POLY:
+          dst.slice(evaluated_points).copy_from(src.slice(points));
+          continue;
+        case CURVE_TYPE_BEZIER:
+          curves::bezier::interpolate_to_evaluated(
+              src.slice(points),
+              this->runtime->bezier_evaluated_offsets.as_span().slice(points),
+              dst.slice(evaluated_points));
+          continue;
+        case CURVE_TYPE_NURBS:
+          curves::nurbs::interpolate_to_evaluated(this->runtime->nurbs_basis_cache[curve_index],
+                                                  nurbs_orders[curve_index],
+                                                  nurbs_weights.slice(points),
+                                                  src.slice(points),
+                                                  dst.slice(evaluated_points));
+          continue;
+      }
+    }
+  });
+}
+
 void CurvesGeometry::ensure_evaluated_lengths() const
 {
   if (!this->runtime->length_cache_dirty) {

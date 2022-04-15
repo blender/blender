@@ -328,6 +328,10 @@ class CurvesGeometry : public ::CurvesGeometry {
    * calculated. That can be ensured with #ensure_evaluated_offsets.
    */
   void interpolate_to_evaluated(int curve_index, GSpan src, GMutableSpan dst) const;
+  /**
+   * Evaluate generic data for curve control points to the standard evaluated points of the curves.
+   */
+  void interpolate_to_evaluated(GSpan src, GMutableSpan dst) const;
 
  private:
   /**
@@ -444,6 +448,13 @@ bool segment_is_vector(Span<int8_t> handle_types_left,
  * This only makes a difference in the shape of cyclic curves.
  */
 bool last_cylic_segment_is_vector(Span<int8_t> handle_types_left, Span<int8_t> handle_types_right);
+
+/**
+ * Return true if the handle types at the index are free (#BEZIER_HANDLE_FREE) or vector
+ * (#BEZIER_HANDLE_VECTOR). In these cases, directional continuitity from the previous and next
+ * evaluated segments is assumed not to be desired.
+ */
+bool point_is_sharp(Span<int8_t> handle_types_left, Span<int8_t> handle_types_right, int index);
 
 /**
  * Calculate offsets into the curve's evaluated points for each control point. While most control
@@ -712,6 +723,24 @@ inline float CurvesGeometry::evaluated_length_total_for_curve(const int curve_in
   /* Check for curves that have no evaluated segments. */
   return lengths.is_empty() ? 0.0f : lengths.last();
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Bezier Inline Methods
+ * \{ */
+
+namespace curves::bezier {
+
+inline bool point_is_sharp(const Span<int8_t> handle_types_left,
+                           const Span<int8_t> handle_types_right,
+                           const int index)
+{
+  return ELEM(handle_types_left[index], BEZIER_HANDLE_VECTOR, BEZIER_HANDLE_FREE) ||
+         ELEM(handle_types_right[index], BEZIER_HANDLE_VECTOR, BEZIER_HANDLE_FREE);
+}
+
+}  // namespace curves::bezier
 
 /** \} */
 

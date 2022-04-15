@@ -25,6 +25,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.h"
+#include "BKE_curves.hh"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
@@ -970,8 +971,7 @@ static Mesh *mesh_new_from_evaluated_curve_type_object(const Object *evaluated_o
   }
   const Curves *curves = get_evaluated_curves_from_object(evaluated_object);
   if (curves) {
-    std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curves);
-    return blender::bke::curve_to_wire_mesh(*curve);
+    return blender::bke::curve_to_wire_mesh(blender::bke::CurvesGeometry::wrap(curves->geometry));
   }
   return nullptr;
 }
