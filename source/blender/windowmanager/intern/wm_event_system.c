@@ -1301,7 +1301,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
  * This isn't very nice but needed to redraw gizmos which are hidden while tweaking,
  * See #WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK for details.
  */
-static void wm_region_tag_draw_on_gizmo_delay_refresh_for_tweak(wmWindow *win, bScreen *screen)
+ATTR_NO_OPT static void wm_region_tag_draw_on_gizmo_delay_refresh_for_tweak(wmWindow *win, bScreen *screen)
 {
   ED_screen_areas_iter (win, screen, area) {
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
@@ -3889,7 +3889,8 @@ void wm_event_do_handlers(bContext *C)
       }
 
       if (event_queue_check_drag_prev && (win->event_queue_check_drag == false)) {
-        wm_region_tag_draw_on_gizmo_delay_refresh_for_tweak(win, screen);
+        /* Use WM_window_get_active_screen since handler may have changed screen. */
+        wm_region_tag_draw_on_gizmo_delay_refresh_for_tweak(win, WM_window_get_active_screen(win));
       }
 
       /* Update previous mouse position for following events to use. */
