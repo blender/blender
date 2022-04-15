@@ -1206,8 +1206,13 @@ static float *get_keyframe_values(ReportList *reports,
                                         anim_eval_context,
                                         r_force_all,
                                         *r_successful_remaps);
-  get_keyframe_values_create_reports(
-      reports, ptr, prop, index, *r_count, *r_force_all, *r_successful_remaps);
+  get_keyframe_values_create_reports(reports,
+                                     ptr,
+                                     prop,
+                                     index,
+                                     *r_count,
+                                     r_force_all ? *r_force_all : false,
+                                     *r_successful_remaps);
 
   return values;
 }
