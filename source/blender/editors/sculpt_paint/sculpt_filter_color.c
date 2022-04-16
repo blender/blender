@@ -293,16 +293,19 @@ static void sculpt_color_presmooth_init(SculptSession *ss)
   }
 
   for (int i = 0; i < totvert; i++) {
-    SCULPT_vertex_color_get(ss, i, ss->filter_cache->pre_smoothed_color[i]);
+    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+
+    SCULPT_vertex_color_get(ss, vertex, ss->filter_cache->pre_smoothed_color[i]);
   }
 
   for (int iteration = 0; iteration < 2; iteration++) {
     for (int i = 0; i < totvert; i++) {
       float avg[4] = {0.0f, 0.0f, 0.0f, 0.0f};
       int total = 0;
+      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
       SculptVertexNeighborIter ni;
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
         float col[4] = {0};
 
         copy_v4_v4(col, ss->filter_cache->pre_smoothed_color[ni.index]);

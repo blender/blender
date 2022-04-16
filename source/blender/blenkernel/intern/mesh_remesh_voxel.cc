@@ -298,7 +298,7 @@ Mesh *BKE_mesh_remesh_instant_meshes(const Mesh *input_mesh,
   }
 
   int *fsets = (int *)CustomData_get_layer(&input_mesh->pdata, CD_SCULPT_FACE_SETS);
-  
+
   for (const int i : IndexRange(input_mesh->totedge)) {
     MEdge *me = input_mesh->medge + i;
     MeshElemMap *mep = epmap + i;
@@ -863,26 +863,35 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
     else {
       /* Lazily init vertex -> loop maps. */
       if (!source_lmap) {
-        const MPoly *source_polys = (MPoly *)CustomData_get_layer(&source->pdata, CD_MPOLY);
+        const MVert *source_verts = (MVert *)CustomData_get_layer(&source->vdata, CD_MVERT);
+        const MEdge *source_edges = (MEdge *)CustomData_get_layer(&source->edata, CD_MEDGE);
         const MLoop *source_loops = (MLoop *)CustomData_get_layer(&source->ldata, CD_MLOOP);
-        const MPoly *target_polys = (MPoly *)CustomData_get_layer(&target->pdata, CD_MPOLY);
+        const MPoly *source_polys = (MPoly *)CustomData_get_layer(&source->pdata, CD_MPOLY);
+        const MEdge *target_edges = (MEdge *)CustomData_get_layer(&target->edata, CD_MEDGE);
         const MLoop *target_loops = (MLoop *)CustomData_get_layer(&target->ldata, CD_MLOOP);
+        const MPoly *target_polys = (MPoly *)CustomData_get_layer(&target->pdata, CD_MPOLY);
 
         BKE_mesh_vert_loop_map_create(&source_lmap,
                                       &source_lmap_mem,
+                                      source_verts,
+                                      source_edges,
                                       source_polys,
                                       source_loops,
                                       source->totvert,
                                       source->totpoly,
-                                      source->totloop);
+                                      source->totloop,
+                                      false);
 
         BKE_mesh_vert_loop_map_create(&target_lmap,
                                       &target_lmap_mem,
+                                      target_verts,
+                                      target_edges,
                                       target_polys,
                                       target_loops,
                                       target->totvert,
                                       target->totpoly,
-                                      target->totloop);
+                                      target->totloop,
+                                      false);
       }
 
       for (int i = 0; i < target->totvert; i++) {

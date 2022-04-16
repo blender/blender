@@ -495,66 +495,6 @@ typedef struct AutomaskingCache {
   SculptCustomLayer *factorlayer;
 } AutomaskingCache;
 
-typedef struct FilterCache {
-  bool enabled_axis[3];
-  bool enabled_force_axis[3];
-  int random_seed;
-
-  /* Used for alternating between filter operations in filters that need to apply different ones to
-   * achieve certain effects. */
-  int iteration_count;
-
-  /* Stores the displacement produced by the laplacian step of HC smooth. */
-  float (*surface_smooth_laplacian_disp)[3];
-  float surface_smooth_shape_preservation;
-  float surface_smooth_current_vertex;
-
-  /* Sharpen mesh filter. */
-  float sharpen_smooth_ratio;
-  float sharpen_intensify_detail_strength;
-  int sharpen_curvature_smooth_iterations;
-  float *sharpen_factor;
-  float (*detail_directions)[3];
-
-  /* Filter orientation. */
-  SculptFilterOrientation orientation;
-  float obmat[4][4];
-  float obmat_inv[4][4];
-  float viewmat[4][4];
-  float viewmat_inv[4][4];
-
-  /* Displacement eraser. */
-  float (*limit_surface_co)[3];
-
-  /* unmasked nodes */
-  PBVHNode **nodes;
-  int totnode;
-
-  /* Cloth filter. */
-  SculptClothSimulation *cloth_sim;
-  float cloth_sim_pinch_point[3];
-
-  /* mask expand iteration caches */
-  int mask_update_current_it;
-  int mask_update_last_it;
-  int *mask_update_it;
-  float *normal_factor;
-  float *edge_factor;
-  float *prev_mask;
-  float mask_expand_initial_co[3];
-
-  int new_face_set;
-  int *prev_face_set;
-
-  int active_face_set;
-
-  /* Auto-masking. */
-  AutomaskingCache *automasking;
-
-  /* Pre-smoothed colors used by sharpening. Colors are HSL. */
-  float (*pre_smoothed_color)[4];
-} FilterCache;
-
 /**
  * This structure contains all the temporary data
  * needed for individual brush strokes.
@@ -1066,6 +1006,8 @@ typedef struct FilterCache {
   bool hard_edge_mode;
   float bound_smooth_radius;
   float bevel_smooth_fac;
+
+  float (*pre_smoothed_color)[3];
 } FilterCache;
 
 typedef struct SculptCurvatureData {
