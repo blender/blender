@@ -1869,6 +1869,10 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
 
   BKE_id_attributes_active_color_set(&orig_me->id, layer);
   DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
+
+  if (object->sculpt && object->sculpt->pbvh) {
+    BKE_pbvh_update_active_vcol(object->sculpt->pbvh, orig_me);
+  }
 }
 
 void BKE_sculpt_update_object_for_edit(

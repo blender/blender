@@ -1030,14 +1030,6 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
     return OPERATOR_CANCELLED;
   }
 
-  if (!SCULPT_has_colors(ss)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  if (SCULPT_has_loop_colors(ob)) {
-    BKE_pbvh_ensure_node_loops(ss->pbvh);
-  }
-
   SCULPT_vertex_random_access_ensure(ss);
 
   /* Tools that are not brushes do not have the brush gizmo to update the vertex as the mouse move,
@@ -1049,11 +1041,16 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
 
   SCULPT_undo_push_begin(ob, "Mask by color");
+  BKE_sculpt_color_layer_create_if_needed(ob);
 
   const int active_vertex = SCULPT_active_vertex_get(ss);
   const float threshold = RNA_float_get(op->ptr, "threshold");
   const bool invert = RNA_boolean_get(op->ptr, "invert");
   const bool preserve_mask = RNA_boolean_get(op->ptr, "preserve_previous_mask");
+
+  if (SCULPT_has_loop_colors(ob)) {
+    BKE_pbvh_ensure_node_loops(ss->pbvh);
+  }
 
   if (RNA_boolean_get(op->ptr, "contiguous")) {
     sculpt_mask_by_color_contiguous(ob, active_vertex, threshold, invert, preserve_mask);
@@ -1080,7 +1077,7 @@ static void SCULPT_OT_mask_by_color(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = sculpt_mask_by_color_invoke;
-  ot->poll = SCULPT_vertex_colors_poll;
+  ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER;
 

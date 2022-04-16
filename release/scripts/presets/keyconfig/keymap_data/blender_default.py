@@ -7370,7 +7370,7 @@ def km_3d_view_tool_sculpt_mask_by_color(params):
         "3D View Tool: Sculpt, Mask by Color",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("sculpt.mask_by_color", {"type": params.tool_mouse, "value": 'CLICK'}, None)
+            ("sculpt.mask_by_color", {"type": params.tool_mouse, "value": 'PRESS'}, None)
         ]},
     )
 
