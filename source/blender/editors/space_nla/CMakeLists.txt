@@ -2,6 +2,7 @@
 
 set(INC
   ../include
+  ../animation
   ../../blenkernel
   ../../blenlib
   ../../blenloader

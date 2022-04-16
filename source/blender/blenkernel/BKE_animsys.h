@@ -277,6 +277,56 @@ void BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
  */
 void BKE_animsys_free_nla_keyframing_context_cache(struct ListBase *cache);
 
+void BKE_animsys_create_action_track_strip(const struct AnimData *adt,
+                                           bool keyframing_to_strip,
+                                           struct NlaStrip *r_action_strip);
+
+/**
+ * For every frame in range, insert keyframes into dst_strip such that when resampled_strips are
+ * muted, the initial NLA stack result is preserved when possible.
+ *
+ * Assumes caller handles proper muting and strip splitting.
+ * Caller should call BKE_fcurve_handles_recalc() on every dst_action->curves. This is not done
+ * here since caller may need to do further keyframe changes anyways.
+ *
+ * As a work around for the Action-Track not being implemented as an NlaTrack, we require the
+ * caller to provide it as an NlaTrack and NlaStrip. To resample to the Action-Track, set the dst
+ * inputs as the acttrack inputs. In this case, the caller will have to set the final blendmode and
+ * influence afterward. To include the Action-Track as part of the resampled strips, add the
+ * acttrack inputs to the resampled set.
+ *
+ * \param acttrack_track Action-Track NlaTrack containing `acttrack_strip`
+ * \param acttrack_strip Action-Track NlaStrip.
+ * \param frames Sampling frames, assumed sorted and unique.
+ * \param resampled_strips These strips are considered muted after remapping. Including dst_strip
+ * in this list has no effect.
+ * \param insert_keyframes This callback is a bit of a hack since
+ * keyframe insertion required Editor-level calls but resampling requires use of static functions
+ * in anim_sys.c.
+ *
+ * \returns Whether dst_strip is modified. Fails if `new_influence` is zero, start_frame >
+ * end_frame, or resampling is unnecessary.
+ */
+bool BKE_nla_resample_strips(struct Depsgraph *depsgraph,
+                             struct PointerRNA *id_ptr,
+                             struct AnimData *adt,
+                             struct NlaTrack *acttrack_track,
+                             struct NlaStrip *acttrack_strip,
+                             const float *const frames,
+                             int total_frames,
+                             struct GSet *resampled_strips,
+                             short new_blendmode,
+                             float new_influence,
+                             struct NlaTrack *dst_track,
+                             struct NlaStrip *dst_strip,
+                             void (*insert_keyframes)(struct FCurve *fcurve,
+                                                      float *co_array,
+                                                      int total_co,
+                                                      bool select_inserted_keys,
+                                                      bool select_replaced_keys),
+                             bool select_inserted_keys,
+                             bool select_replaced_keys);
+
 /* ************************************* */
 /* Evaluation API */
 

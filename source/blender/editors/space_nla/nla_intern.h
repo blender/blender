@@ -86,6 +86,9 @@ void NLA_OT_duplicate(wmOperatorType *ot);
 void NLA_OT_delete(wmOperatorType *ot);
 void NLA_OT_split(wmOperatorType *ot);
 
+void NLA_OT_resample_strips_to_active_new_blend_parms(wmOperatorType *ot);
+void NLA_OT_resample_strips_to_active_limited_range(wmOperatorType *ot);
+
 void NLA_OT_mute_toggle(wmOperatorType *ot);
 
 void NLA_OT_swap(wmOperatorType *ot);

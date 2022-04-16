@@ -198,7 +198,8 @@ void nlastrip_evaluate(const int evaluation_mode,
                        NlaEvalStrip *nes,
                        NlaEvalSnapshot *snapshot,
                        const struct AnimationEvalContext *anim_eval_context,
-                       bool flush_to_original);
+                       bool flush_to_original,
+                       bool allow_alloc_channels);
 /**
  * write the accumulated settings to.
  */
@@ -265,7 +266,8 @@ void nlasnapshot_blend_strip(PointerRNA *ptr,
                              NlaEvalStrip *nes,
                              NlaEvalSnapshot *snapshot,
                              const struct AnimationEvalContext *anim_eval_context,
-                             const bool flush_to_original);
+                             bool flush_to_original,
+                             bool allow_alloc_channels);
 
 void nlasnapshot_blend_strip_get_inverted_lower_snapshot(
     PointerRNA *ptr,
@@ -273,14 +275,16 @@ void nlasnapshot_blend_strip_get_inverted_lower_snapshot(
     ListBase *modifiers,
     NlaEvalStrip *nes,
     NlaEvalSnapshot *snapshot,
-    const struct AnimationEvalContext *anim_eval_context);
+    const struct AnimationEvalContext *anim_eval_context,
+    bool allow_alloc_channels);
 
 void nlasnapshot_blend_strip_no_blend(PointerRNA *ptr,
                                       NlaEvalData *channels,
                                       ListBase *modifiers,
                                       NlaEvalStrip *nes,
                                       NlaEvalSnapshot *snapshot,
-                                      const struct AnimationEvalContext *anim_eval_context);
+                                      const struct AnimationEvalContext *anim_eval_context,
+                                      bool allow_alloc_channels);
 
 #ifdef __cplusplus
 }

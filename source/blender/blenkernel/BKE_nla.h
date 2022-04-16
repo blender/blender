@@ -307,6 +307,8 @@ bool BKE_nlatrack_get_bounds(struct NlaTrack *nlt, float bounds[2]);
  */
 bool BKE_nlatrack_is_nonlocal_in_liboverride(const struct ID *id, const struct NlaTrack *nlt);
 
+bool BKE_nlatrack_is_evaluatable(struct AnimData *adt, const struct NlaTrack *nlt);
+
 /* ............ */
 
 /**

@@ -119,6 +119,8 @@ void nla_operatortypes(void)
   WM_operatortype_append(NLA_OT_duplicate);
   WM_operatortype_append(NLA_OT_delete);
   WM_operatortype_append(NLA_OT_split);
+  WM_operatortype_append(NLA_OT_resample_strips_to_active_new_blend_parms);
+  WM_operatortype_append(NLA_OT_resample_strips_to_active_limited_range);
 
   WM_operatortype_append(NLA_OT_mute_toggle);
 

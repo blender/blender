@@ -22,6 +22,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_action.h"
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_lib_id.h"
@@ -32,6 +33,7 @@
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"
+#include "ED_keyframing.h"
 #include "ED_markers.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
@@ -44,6 +46,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 #include "UI_interface.h"
@@ -1366,9 +1369,15 @@ void NLA_OT_delete(wmOperatorType *ot)
  * - variable-length splits?
  * \{ */
 
-/* split a given Action-Clip strip */
-static void nlaedit_split_strip_actclip(
-    Main *bmain, AnimData *adt, NlaTrack *nlt, NlaStrip *strip, float cfra)
+/** Split a given Action-Clip strip.
+ * \returns newly created strip , which has been added after the original strip.
+ */
+static NlaStrip *nlaedit_split_strip_actclip(Main *bmain,
+                                             AnimData *adt,
+                                             NlaTrack *nlt,
+                                             NlaStrip *strip,
+                                             float cfra,
+                                             const bool default_split_middle)
 {
   NlaStrip *nstrip;
   float splitframe, splitaframe;
@@ -1382,13 +1391,16 @@ static void nlaedit_split_strip_actclip(
     splitaframe = nlastrip_get_frame(strip, cfra, NLATIME_CONVERT_UNMAP);
   }
   else {
+    if (!default_split_middle) {
+      return NULL;
+    }
     /* split in the middle */
     float len;
 
     /* strip extents */
     len = strip->end - strip->start;
     if (IS_EQF(len, 0.0f)) {
-      return;
+      return NULL;
     }
 
     splitframe = strip->start + (len / 2.0f);
@@ -1429,13 +1441,60 @@ static void nlaedit_split_strip_actclip(
 
   /* auto-name the new strip */
   BKE_nlastrip_validate_name(adt, nstrip);
+  return nstrip;
 }
 
 /* split a given Meta strip */
-static void nlaedit_split_strip_meta(NlaTrack *nlt, NlaStrip *strip)
+static NlaStrip *nlaedit_split_strip_meta(NlaTrack *nlt, NlaStrip *strip)
 {
   /* simply ungroup it for now... */
   BKE_nlastrips_clear_metastrip(&nlt->strips, strip);
+  return NULL;
+}
+
+static NlaStrip *nlaedit_split_strip(Main *bmain,
+                                     AnimData *adt,
+                                     NlaTrack *nlt,
+                                     NlaStrip *strip,
+                                     float cfra,
+                                     const bool default_split_middle)
+{
+  switch (strip->type) {
+    case NLASTRIP_TYPE_CLIP:
+      return nlaedit_split_strip_actclip(bmain, adt, nlt, strip, cfra, default_split_middle);
+      break;
+    case NLASTRIP_TYPE_META: /* meta-strips need special handling */
+      return nlaedit_split_strip_meta(nlt, strip);
+      break;
+    case NLASTRIP_TYPE_TRANSITION: /* for things like Transitions, do not split! */
+      break;
+  }
+  return NULL;
+}
+
+static void nlaedit_split_strip_twice(Main *bmain,
+                                      AnimData *adt,
+                                      NlaTrack *nlt,
+                                      NlaStrip *strip,
+                                      float frame1,
+                                      float frame2,
+                                      NlaStrip **r_split_by_first,
+                                      NlaStrip **r_split_by_second)
+{
+  *r_split_by_first = NULL;
+  *r_split_by_second = NULL;
+
+  if (frame1 > frame2) {
+    SWAP(float, frame1, frame2);
+  }
+
+  *r_split_by_first = nlaedit_split_strip(bmain, adt, nlt, strip, frame1, false);
+  if (*r_split_by_first) {
+    *r_split_by_second = nlaedit_split_strip(bmain, adt, nlt, *r_split_by_first, frame2, false);
+  }
+  else {
+    *r_split_by_second = nlaedit_split_strip(bmain, adt, nlt, strip, frame2, false);
+  }
 }
 
 /* ----- */
@@ -1474,19 +1533,7 @@ static int nlaedit_split_exec(bContext *C, wmOperator *UNUSED(op))
 
       /* if selected, split the strip at its midpoint */
       if (strip->flag & NLASTRIP_FLAG_SELECT) {
-        /* splitting method depends on the type of strip */
-        switch (strip->type) {
-          case NLASTRIP_TYPE_CLIP: /* action-clip */
-            nlaedit_split_strip_actclip(ac.bmain, adt, nlt, strip, (float)ac.scene->r.cfra);
-            break;
-
-          case NLASTRIP_TYPE_META: /* meta-strips need special handling */
-            nlaedit_split_strip_meta(nlt, strip);
-            break;
-
-          default: /* for things like Transitions, do not split! */
-            break;
-        }
+        nlaedit_split_strip(ac.bmain, adt, nlt, strip, (float)ac.scene->r.cfra, true);
       }
     }
   }
@@ -1514,6 +1561,469 @@ void NLA_OT_split(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = nlaedit_split_exec;
   ot->poll = nlaop_poll_tweakmode_off;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Resample Strips Operator
+ *
+ * Resample the selected NLA-Strips into a single strip, preserving the overall NLA stack
+ * animation.
+ * \{ */
+
+/* There is no proper support for changing blending parameters (blendmode, influence) while
+ * also using a restricted frame range. Allowing it would lead to the problem where the dst_strip's
+ * action has keys that work properly with one set of blending parms and other keys that work with
+ * the old blending parms.
+ *
+ * To avoid that problem, we constrain the inputs. */
+typedef void (*resample_strips_input_constraint)(NlaStrip *dst_strip,
+                                                 float *r_start_frame,
+                                                 float *r_end_frame,
+                                                 short *r_new_blendmode,
+                                                 float *r_new_influence);
+
+/*
+ * Iterates all visible animation datas and resamples selected strips to the active strip.
+ * Each resampled strip is split by the frame range then the resampled section is muted.
+ */
+static int nlaedit_resample_strips_to_active_exec(
+    bContext *C,
+    wmOperator *op,
+    const bool only_at_existing_keys,
+    const float _start_frame,
+    const float _end_frame,
+    const short _new_blendmode,
+    const float _new_influence,
+    resample_strips_input_constraint constrain_inputs)
+{
+  /**GG:TODO: Design Q: check if this works even if resampled-to strip doens't span full frame
+   * range and whether strip split-muting works as expected.
+   *
+   * sol 1: clamp resample range to size of active strip (simplest solution)
+   * sol 2: extend strip size to size of reample frame bounds
+   * sol 3: neither. Let user resize strip manually afterward.
+   */
+  BLI_assert(constrain_inputs);
+
+  bAnimContext ac;
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  // TODO:GG: add UI supprot for key selection (replace with inserted, replace with replaced)
+  const bool select_inserted_keys = true;
+  const bool select_replaced_keys = true;
+
+  /* Get a list of AnimDatas being shown in the NLA. */
+  ListBase anim_data = {NULL, NULL};
+  int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ANIMDATA);
+  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+  PointerRNA id_ptr;
+  bool any_resample_succeeded = false;
+  GSet *selected_strips = BLI_gset_ptr_new(__func__);
+
+  float *sampled_frames;
+
+  /* This tuple list used for muting and splitting after resampling. */
+  ListBase selected_track_strip_tuples = {NULL, NULL};
+  for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
+    AnimData *adt = ale->adt;
+
+    NlaTrack *dst_track = NULL;
+    NlaStrip *dst_strip = NULL;
+
+    /* Grab selected non-muted strips and dst data. */
+    LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
+      if (!BKE_nlatrack_is_evaluatable(adt, nlt)) {
+        continue;
+      }
+
+      if (BKE_nlatrack_is_nonlocal_in_liboverride(ale->id, nlt)) {
+        /* No modifying of strips in non-local tracks of override data. */
+        continue;
+      }
+
+      LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
+        if (strip->flag & NLASTRIP_FLAG_MUTED) {
+          continue;
+        }
+        if ((strip->flag & NLASTRIP_FLAG_SELECT) == 0) {
+          continue;
+        }
+        /** TODO: GG: ? Ensure strip is Action Strip? */
+        if (strip->flag & NLASTRIP_FLAG_ACTIVE) {
+          dst_track = nlt;
+          dst_strip = strip;
+          continue;
+        }
+        BLI_gset_insert(selected_strips, strip);
+
+        BLI_addtail(&selected_track_strip_tuples, BLI_genericNodeN(nlt));
+        BLI_addtail(&selected_track_strip_tuples, BLI_genericNodeN(strip));
+      }
+    }
+
+    if (ELEM(NULL, dst_track, dst_strip, dst_strip->act)) {
+      BLI_gset_clear(selected_strips, NULL);
+      BLI_freelistN(&selected_track_strip_tuples);
+      continue;
+    }
+
+    RNA_id_pointer_create(ale->id, &id_ptr);
+    /* We always resample to the dst_strip's full strip bounds. If we allowed arbitrary start/end
+     * frames and the blendmode or influence are changed, then some keyframes will only evaluate
+     * properly with the new blendmode/influence and otherwise only with the old
+     * blendmode/influence.
+     *
+     * The core resampling function will still work fine, but we, as the caller, would have to
+     * deal with properly handling this situation, properly splitting the dst_strip, action
+     * duplicating, tweakmode handling, etc. And after all that, if the resample is a noop, then
+     * we'd have to clean all that up..
+     *
+     * It's simpler to always resample to the entire dst_strip. If the animator wants to resample
+     * to a smaller scene frame range, then they can create whatever they need, a new track and
+     * strip, with the proper size and location, etc. */
+
+    float start_frame = _start_frame;
+    float end_frame = _end_frame;
+    short new_blendmode = _new_blendmode;
+    float new_influence = _new_influence;
+    /** TODO: GG: Why have this function ptr intead of placing the branch here directly? */
+    constrain_inputs(dst_strip, &start_frame, &end_frame, &new_blendmode, &new_influence);
+
+    if (start_frame > end_frame) {
+      continue;
+    }
+
+    int total_frames = 0;
+    if (only_at_existing_keys) {
+      const int fcurve_array_len = BLI_listbase_count(&dst_strip->act->curves);
+      FCurve **fcurve_array = MEM_mallocN(sizeof(FCurve *) * fcurve_array_len, __func__);
+      int fcurve_index;
+      LISTBASE_FOREACH_INDEX (FCurve *, fcurve, &dst_strip->act->curves, fcurve_index) {
+        fcurve_array[fcurve_index] = fcurve;
+      }
+
+      sampled_frames = BKE_fcurves_calc_keyed_frames(
+          fcurve_array, fcurve_array_len, &total_frames);
+
+      for (int i = 0; i < total_frames; i++) {
+        sampled_frames[i] = nlastrip_get_frame(dst_strip, sampled_frames[i], NLATIME_CONVERT_MAP);
+      }
+
+      MEM_freeN(fcurve_array);
+    }
+    else {
+      total_frames = (end_frame - start_frame + 1);
+      sampled_frames = MEM_mallocN(sizeof(float) * total_frames, __func__);
+
+      for (int i = 0; i < total_frames; i++) {
+        sampled_frames[i] = start_frame + i;
+      }
+    }
+
+    NlaTrack acttrack_track = {0};
+    NlaStrip acttrack_strip = {0};
+    BKE_animsys_create_action_track_strip(adt, false, &acttrack_strip);
+    BLI_addtail(&acttrack_track.strips, &acttrack_strip);
+
+    /** GG: TODO: XXX:  User does not ahve abilility to specify influence w/o it also being an
+     * fcurve key. Thus, this is inconsistent or blender should allow editing influence w/o the
+     * need for it to be animated. Also need to support autokeiyng canged influence when fcurve
+     * exists.
+     *
+     * GG: TODO: add support for smart bake (only resample where keys exist).
+     * This can be done though keyframe insertion func ptr, to have a version that
+     * only replaces keys. This is done at key insertion level instead of resample level
+     * since resampling has a frequency ("level of detail?") of bake-per-given frame,
+     * not bake-per-channel's key. So the key insertion-replace-only prevents inserting
+     * the additional keys.
+     *  - this can be a separate patch as its not a core feature of NLA merge.
+     */
+    const bool resample_succeeded = BKE_nla_resample_strips(
+        ac.depsgraph,
+        &id_ptr,
+        adt,
+        &acttrack_track,
+        &acttrack_strip,
+        sampled_frames,
+        total_frames,
+        selected_strips,
+        new_blendmode,
+        new_influence,
+        dst_track,
+        dst_strip,
+        ED_cb_insert_keyframes_slow,  // TODO: use ED_cb_insert_keyframes_fast_subdivide,
+        select_inserted_keys,
+        select_replaced_keys);
+
+    MEM_freeN(sampled_frames);
+
+    if (!resample_succeeded) {
+      BLI_gset_clear(selected_strips, NULL);
+      BLI_freelistN(&selected_track_strip_tuples);
+      continue;
+    }
+    any_resample_succeeded = true;
+
+    for (FCurve *fcurve = dst_strip->act->curves.first; fcurve; fcurve = fcurve->next) {
+      BKE_fcurve_handles_recalc(fcurve);
+    }
+
+    /* Mute strips that have been resampled. If resample bounds intersects strip, then we need to
+     * split it instead so the animation outside of the resample remains unmuted. We split at
+     * an -1 offset from the start_frame since resampling assumes the resampled strips are not
+     * evaluated at all afterward. Strip bounds are inclusive for evaluation. */
+    LISTBASE_FOREACH (LinkData *, link, &selected_track_strip_tuples) {
+      NlaTrack *nlt = link->data;
+
+      link = link->next;
+      NlaStrip *first = link->data;
+
+      NlaStrip *split_by_first = NULL, *split_by_second = NULL;
+      nlaedit_split_strip_twice(ac.bmain,
+                                adt,
+                                nlt,
+                                first,
+                                start_frame - 1,
+                                end_frame,
+                                &split_by_first,
+                                &split_by_second);
+      if (split_by_first) {
+        split_by_first->flag |= NLASTRIP_FLAG_MUTED;
+      }
+      else if (split_by_second) {
+        first->flag |= NLASTRIP_FLAG_MUTED;
+      }
+      else if (BKE_nlastrip_within_bounds(first, start_frame, end_frame)) {
+        first->flag |= NLASTRIP_FLAG_MUTED;
+      }
+    }
+
+    BLI_gset_clear(selected_strips, NULL);
+    BLI_freelistN(&selected_track_strip_tuples);
+
+    DEG_id_tag_update(&dst_strip->act->id, ID_RECALC_ANIMATION);
+  }
+
+  BLI_gset_free(selected_strips, NULL);
+
+  /* Free temp data. */
+  ANIM_animdata_freelist(&anim_data);
+
+  if (!any_resample_succeeded) {
+    /* Avoid pushing undo. */
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Refresh auto strip properties. */
+  ED_nla_postop_refresh(&ac);
+
+  /* New f-curves were added, meaning it's possible that it affects dependency graph components
+   * which weren't previously animated. */
+  DEG_relations_tag_update(ac.bmain);
+
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+static void resample_constraint_use_strip_frame_range(NlaStrip *dst_strip,
+                                                      float *r_start_frame,
+                                                      float *r_end_frame,
+                                                      short *r_new_blendmode,
+                                                      float *r_new_influence)
+{
+  *r_start_frame = dst_strip->start;
+  *r_end_frame = dst_strip->end;
+
+  if (dst_strip->repeat > 1.0f) {
+    /* Clamp r_end_frame to first segment's end, since overwriting repeated sections overwrites all
+     * sections.
+     *
+     * Potential Improvement: Maybe we should let the animator select which segment to use for the
+     * bounds. */
+    const float first_repeat_amount = clamp_f(dst_strip->repeat, 0, 1);
+    const float strip_full_segment_size = (dst_strip->actend - dst_strip->actstart) *
+                                          dst_strip->scale;
+    *r_end_frame = dst_strip->start + strip_full_segment_size * first_repeat_amount;
+  }
+}
+
+static int nlaedit_resample_strips_to_active_new_blend_parms_exec(bContext *C, wmOperator *op)
+{
+  return nlaedit_resample_strips_to_active_exec(C,
+                                                op,
+                                                RNA_boolean_get(op->ptr, "at_existing_keys"),
+                                                0,
+                                                0,
+                                                RNA_enum_get(op->ptr, "new_blendmode"),
+                                                RNA_float_get(op->ptr, "new_influence"),
+                                                resample_constraint_use_strip_frame_range);
+}
+
+/* Set the defaults based on the active strip. */
+static int nlaedit_resample_strips_to_active_new_blend_parms_invoke(bContext *C,
+                                                                    wmOperator *op,
+                                                                    const wmEvent *event)
+{
+  bAnimContext ac;
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Get a list of AnimDatas being shown in the NLA. */
+  ListBase anim_data = {NULL, NULL};
+  int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ANIMDATA);
+  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+  NlaStrip *active_strip = NULL;
+  for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
+    AnimData *adt = ale->adt;
+
+    /* Grab selected non-muted strips*/
+    LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
+      if (!BKE_nlatrack_is_evaluatable(adt, nlt)) {
+        continue;
+      }
+
+      LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
+        if (strip->flag & NLASTRIP_FLAG_ACTIVE) {
+          active_strip = strip;
+          goto post_search;
+        }
+      }
+    }
+  }
+
+  if (active_strip == NULL) {
+    ANIM_animdata_freelist(&anim_data);
+    BKE_reportf(op->reports,
+                RPT_ERROR,
+                "Operator '%s' requires an active strip to resample to",
+                op->type->idname);
+    return OPERATOR_CANCELLED;
+  }
+
+post_search:  // GG: TODO:...instead of goto, why not just make loop a function with return for
+              // early out...
+  // GG:TODO: and all it does it get the active strip.. im sure thneres an existing function for
+  // this..
+
+  ANIM_animdata_freelist(&anim_data);
+
+  RNA_enum_set(op->ptr, "new_blendmode", active_strip->blendmode);
+  RNA_float_set(op->ptr, "new_influence", active_strip->influence);
+
+  return WM_operator_props_popup_confirm(C, op, event);
+}
+
+void NLA_OT_resample_strips_to_active_new_blend_parms(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Resample Strips To Active (Convert)";
+  ot->idname = "NLA_OT_resample_strips_to_active";
+  ot->description =
+      "Resample selected strips into active strip, with the specified blend mode and influence";
+
+  /* api callbacks */
+
+  ot->invoke = nlaedit_resample_strips_to_active_new_blend_parms_invoke;
+  ot->exec = nlaedit_resample_strips_to_active_new_blend_parms_exec;
+  ot->poll = ED_operator_nla_active;
+
+  /* own properties */
+  PropertyRNA *prop;
+
+  prop = RNA_def_boolean(ot->srna,
+                         "at_existing_keys",
+                         false,
+                         "Only At Existing Keys",
+                         "Only resample all fcurves at the summary key times");
+
+  prop = RNA_def_enum(ot->srna,
+                      "new_blendmode",
+                      rna_enum_nla_mode_blend_items,
+                      NLASTRIP_MODE_REPLACE,
+                      "New Blend Mode",
+                      "");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_float_factor(ot->srna, "new_influence", 1, 0, 1, "New Influence", "", 0, 1);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static void resample_constraint_use_strip_blend_parms(NlaStrip *dst_strip,
+                                                      float *r_start_frame,
+                                                      float *r_end_frame,
+                                                      short *r_new_blendmode,
+                                                      float *r_new_influence)
+{
+  *r_new_blendmode = dst_strip->blendmode;
+  *r_new_influence = dst_strip->influence;
+}
+
+static int nlaedit_resample_strips_to_active_limited_range_exec(bContext *C, wmOperator *op)
+{
+  return nlaedit_resample_strips_to_active_exec(C,
+                                                op,
+                                                RNA_boolean_get(op->ptr, "at_existing_keys"),
+                                                RNA_int_get(op->ptr, "start_frame"),
+                                                RNA_int_get(op->ptr, "end_frame"),
+                                                0,
+                                                0,
+                                                resample_constraint_use_strip_blend_parms);
+}
+
+void NLA_OT_resample_strips_to_active_limited_range(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Resample Strips To Active (Range)";
+  ot->idname = "NLA_OT_resample_strips_to_active_limited_range";
+  ot->description = "Resample selected strips into active strip, limited to a frame range";
+
+  /* api callbacks */
+  ot->invoke = WM_operator_props_popup_confirm;
+  ot->exec = nlaedit_resample_strips_to_active_limited_range_exec;
+  ot->poll = ED_operator_nla_active;
+
+  /* own properties */
+  PropertyRNA *prop;
+
+  prop = RNA_def_boolean(ot->srna,
+                         "at_existing_keys",
+                         false,
+                         "Only At Existing Keys",
+                         "Only resample all fcurves at the summary key times");
+
+  RNA_def_int(ot->srna,
+              "start_frame",
+              1,
+              MINAFRAME,
+              MAXFRAME,
+              "Start",
+              "First frame to calculate bone paths on",
+              MINFRAME,
+              MAXFRAME / 2.0);
+
+  RNA_def_int(ot->srna,
+              "end_frame",
+              250,
+              MINAFRAME,
+              MAXFRAME,
+              "End",
+              "Last frame to calculate bone paths on",
+              MINFRAME,
+              MAXFRAME / 2.0);
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

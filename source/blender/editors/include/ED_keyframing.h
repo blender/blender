@@ -134,6 +134,12 @@ int insert_vert_fcurve(struct FCurve *fcu,
  */
 void ED_keyframes_add(struct FCurve *fcu, int num_keys_to_add);
 
+void ED_cb_insert_keyframes_slow(struct FCurve *fcurve,
+                                 float *co_array,  // GG: TODO: use KeyframeCo*
+                                 int total_co,
+                                 bool select_inserted_keys,
+                                 bool select_replaced_keys);
+
 /* -------- */
 
 /**

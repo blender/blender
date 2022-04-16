@@ -1319,6 +1319,32 @@ bool BKE_nlatrack_is_nonlocal_in_liboverride(const ID *id, const NlaTrack *nlt)
           (nlt == NULL || (nlt->flag & NLATRACK_OVERRIDELIBRARY_LOCAL) == 0));
 }
 
+bool BKE_nlatrack_is_evaluatable(AnimData *adt, const NlaTrack *nlt)
+{
+  /* Skip disabled tracks unless it contains the tweaked strip. */
+  const bool contains_tweak_strip = (adt->flag & ADT_NLA_EDIT_ON) &&
+                                    (nlt->index == adt->act_track->index);
+  if ((nlt->flag & NLATRACK_DISABLED) && !contains_tweak_strip) {
+    return false;
+  }
+
+  /* Solo and muting are mutually exclusive. */
+  if (adt->flag & ADT_NLA_SOLO_TRACK) {
+    /* Skip if there is a solo track, but this isn't it. */
+    if ((nlt->flag & NLATRACK_SOLO) == 0) {
+      return false;
+    }
+  }
+  else {
+    /* Skip track if muted. */
+    if (nlt->flag & NLATRACK_MUTED) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 /* NLA Strips -------------------------------------- */
 
 static NlaStrip *nlastrip_find_active(ListBase /* NlaStrip */ *strips)

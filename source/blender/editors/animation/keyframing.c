@@ -648,6 +648,22 @@ int insert_vert_fcurve(
   return a;
 }
 
+void ED_cb_insert_keyframes_slow(FCurve *fcurve,
+                                 float *co_array,
+                                 int total_co,
+                                 const bool select_inserted_keys,
+                                 const bool select_replaced_keys)
+{
+  // TODO:GG: support do_select_keys for this case.
+  for (int index = 0; index < total_co; index++) {
+    insert_vert_fcurve(fcurve,
+                       co_array[index * 2 + 0],
+                       co_array[index * 2 + 1],
+                       BEZT_KEYTYPE_KEYFRAME,
+                       INSERTKEY_FAST);
+  }
+}
+
 /* -------------- 'Smarter' Keyframing Functions -------------------- */
 /* return codes for new_key_needed */
 enum {
