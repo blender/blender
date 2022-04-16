@@ -3106,7 +3106,7 @@ bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *r_tile_start,
   eUDIM_TILE_FORMAT tile_format;
   char *udim_pattern = BKE_image_get_tile_strformat(filename, &tile_format);
 
-  bool is_udim = true;
+  bool all_valid_udim = true;
   int min_udim = IMA_UDIM_MAX + 1;
   int max_udim = 0;
   int id;
@@ -3124,7 +3124,7 @@ bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *r_tile_start,
     }
 
     if (id < 1001 || id > IMA_UDIM_MAX) {
-      is_udim = false;
+      all_valid_udim = false;
       break;
     }
 
@@ -3135,7 +3135,10 @@ bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *r_tile_start,
   BLI_filelist_free(dirs, dirs_num);
   MEM_SAFE_FREE(udim_pattern);
 
-  if (is_udim && min_udim <= IMA_UDIM_MAX) {
+  /* Ensure that all discovered UDIMs are valid and that there's at least 2 files in total.
+   * Downstream code checks the range value to determine tiled-ness; it's important we match that
+   * expectation here too (T97366). */
+  if (all_valid_udim && min_udim <= IMA_UDIM_MAX && max_udim > min_udim) {
     BLI_join_dirfile(filepath, FILE_MAX, dirname, filename);
 
     *r_tile_start = min_udim;
