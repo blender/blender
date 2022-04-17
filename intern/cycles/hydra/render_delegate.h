@@ -14,7 +14,8 @@ HDCYCLES_NAMESPACE_OPEN_SCOPE
 class HdCyclesDelegate final : public PXR_NS::HdRenderDelegate {
  public:
   HdCyclesDelegate(const PXR_NS::HdRenderSettingsMap &settingsMap,
-                   CCL_NS::Session *session_ = nullptr);
+                   CCL_NS::Session *session_ = nullptr,
+                   const bool keep_nodes = false);
   ~HdCyclesDelegate() override;
 
   void SetDrivers(const PXR_NS::HdDriverVector &drivers) override;

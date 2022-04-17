@@ -562,10 +562,13 @@ void HdCyclesMaterial::Finalize(HdRenderParam *renderParam)
   }
 
   const SceneLock lock(renderParam);
+  const bool keep_nodes = static_cast<const HdCyclesSession *>(renderParam)->keep_nodes;
 
   _nodes.clear();
 
-  lock.scene->delete_node(_shader);
+  if (!keep_nodes) {
+    lock.scene->delete_node(_shader);
+  }
   _shader = nullptr;
 }
 

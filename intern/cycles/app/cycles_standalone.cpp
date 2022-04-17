@@ -23,6 +23,10 @@
 #include "util/unique_ptr.h"
 #include "util/version.h"
 
+#ifdef WITH_USD
+#  include "hydra/file_reader.h"
+#endif
+
 #include "app/cycles_xml.h"
 #include "app/oiio_output_driver.h"
 
@@ -94,8 +98,16 @@ static void scene_init()
 {
   options.scene = options.session->scene;
 
-  /* Read XML */
-  xml_read_file(options.scene, options.filepath.c_str());
+  /* Read XML or USD */
+#ifdef WITH_USD
+  if (!string_endswith(string_to_lower(options.filepath), ".xml")) {
+    HD_CYCLES_NS::HdCyclesFileReader::read(options.session, options.filepath.c_str());
+  }
+  else
+#endif
+  {
+    xml_read_file(options.scene, options.filepath.c_str());
+  }
 
   /* Camera width/height override? */
   if (!(options.width == 0 || options.height == 0)) {

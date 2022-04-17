@@ -36,12 +36,13 @@ SceneLock::~SceneLock()
 {
 }
 
-HdCyclesSession::HdCyclesSession(Session *session_) : session(session_), _ownCyclesSession(false)
+HdCyclesSession::HdCyclesSession(Session *session_, const bool keep_nodes)
+    : session(session_), keep_nodes(true), _ownCyclesSession(false)
 {
 }
 
 HdCyclesSession::HdCyclesSession(const SessionParams &params)
-    : session(new Session(params, SceneParams())), _ownCyclesSession(true)
+    : session(new Session(params, SceneParams())), keep_nodes(false), _ownCyclesSession(true)
 {
   Scene *const scene = session->scene;
 

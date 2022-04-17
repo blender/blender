@@ -119,10 +119,12 @@ SessionParams GetSessionParams(const HdRenderSettingsMap &settings)
 
 }  // namespace
 
-HdCyclesDelegate::HdCyclesDelegate(const HdRenderSettingsMap &settingsMap, Session *session_)
+HdCyclesDelegate::HdCyclesDelegate(const HdRenderSettingsMap &settingsMap,
+                                   Session *session_,
+                                   const bool keep_nodes)
     : HdRenderDelegate()
 {
-  _renderParam = session_ ? std::make_unique<HdCyclesSession>(session_) :
+  _renderParam = session_ ? std::make_unique<HdCyclesSession>(session_, keep_nodes) :
                             std::make_unique<HdCyclesSession>(GetSessionParams(settingsMap));
 
   // If the delegate owns the session, pull any remaining settings
