@@ -4,6 +4,7 @@ set(INC
   .
   ./exporter
   ./importer
+  ../common
   ../../blenkernel
   ../../blenlib
   ../../bmesh
@@ -35,7 +36,6 @@ set(SRC
   importer/obj_import_mtl.cc
   importer/obj_import_nurbs.cc
   importer/obj_importer.cc
-  importer/parser_string_utils.cc
 
   IO_wavefront_obj.h
   exporter/obj_export_file_writer.hh
@@ -51,11 +51,11 @@ set(SRC
   importer/obj_import_nurbs.hh
   importer/obj_import_objects.hh
   importer/obj_importer.hh
-  importer/parser_string_utils.hh
 )
 
 set(LIB
   bf_blenkernel
+  bf_io_common
 )
 
 if(WITH_TBB)
@@ -70,6 +70,7 @@ if(WITH_GTESTS)
   set(TEST_SRC
     tests/obj_exporter_tests.cc
     tests/obj_importer_tests.cc
+    tests/obj_mtl_parser_tests.cc
     tests/obj_exporter_tests.hh
   )
 

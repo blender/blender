@@ -60,7 +60,8 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
 
     std::string obj_path = blender::tests::flags_test_asset_dir() + "/io_tests/obj/" + path;
     strncpy(params.filepath, obj_path.c_str(), FILE_MAX - 1);
-    importer_main(bfile->main, bfile->curscene, bfile->cur_view_layer, params);
+    const size_t read_buffer_size = 650;
+    importer_main(bfile->main, bfile->curscene, bfile->cur_view_layer, params, read_buffer_size);
 
     depsgraph_create(DAG_EVAL_VIEWPORT);
 

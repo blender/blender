@@ -18,6 +18,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_set.hh"
 
+#include "IO_wavefront_obj.h"
 #include "importer_mesh_utils.hh"
 #include "obj_import_mesh.hh"
 
@@ -35,7 +36,7 @@ Object *MeshFromGeometry::create_mesh(
   }
   fixup_invalid_faces();
 
-  const int64_t tot_verts_object{mesh_geometry_.vertex_indices_.size()};
+  const int64_t tot_verts_object{mesh_geometry_.vertex_count_};
   /* Total explicitly imported edges, not the ones belonging the polygons to be created. */
   const int64_t tot_edges{mesh_geometry_.edges_.size()};
   const int64_t tot_face_elems{mesh_geometry_.face_elements_.size()};
@@ -52,11 +53,13 @@ Object *MeshFromGeometry::create_mesh(
   create_normals(mesh);
   create_materials(bmain, materials, created_materials, obj);
 
-  bool verbose_validate = false;
+  if (import_params.validate_meshes || mesh_geometry_.has_invalid_polys_) {
+    bool verbose_validate = false;
 #ifdef DEBUG
-  verbose_validate = true;
+    verbose_validate = true;
 #endif
-  BKE_mesh_validate(mesh, verbose_validate, false);
+    BKE_mesh_validate(mesh, verbose_validate, false);
+  }
   transform_object(obj, import_params);
 
   /* FIXME: after 2.80; `mesh->flag` isn't copied by #BKE_mesh_nomain_to_mesh() */
@@ -73,9 +76,9 @@ void MeshFromGeometry::fixup_invalid_faces()
   for (int64_t face_idx = 0; face_idx < mesh_geometry_.face_elements_.size(); ++face_idx) {
     const PolyElem &curr_face = mesh_geometry_.face_elements_[face_idx];
 
-    if (curr_face.face_corners.size() < 3) {
+    if (curr_face.corner_count_ < 3) {
       /* Skip and remove faces that have fewer than 3 corners. */
-      mesh_geometry_.total_loops_ -= curr_face.face_corners.size();
+      mesh_geometry_.total_loops_ -= curr_face.corner_count_;
       mesh_geometry_.face_elements_.remove_and_reorder(face_idx);
       continue;
     }
@@ -84,12 +87,14 @@ void MeshFromGeometry::fixup_invalid_faces()
      * basically whether it has duplicate vertex indices. */
     bool valid = true;
     Set<int, 8> used_verts;
-    for (const PolyCorner &corner : curr_face.face_corners) {
-      if (used_verts.contains(corner.vert_index)) {
+    for (int i = 0; i < curr_face.corner_count_; ++i) {
+      int corner_idx = curr_face.start_index_ + i;
+      int vertex_idx = mesh_geometry_.face_corners_[corner_idx].vert_index;
+      if (used_verts.contains(vertex_idx)) {
         valid = false;
         break;
       }
-      used_verts.add(corner.vert_index);
+      used_verts.add(vertex_idx);
     }
     if (valid) {
       continue;
@@ -100,20 +105,22 @@ void MeshFromGeometry::fixup_invalid_faces()
     Vector<int, 8> face_verts;
     Vector<int, 8> face_uvs;
     Vector<int, 8> face_normals;
-    face_verts.reserve(curr_face.face_corners.size());
-    face_uvs.reserve(curr_face.face_corners.size());
-    face_normals.reserve(curr_face.face_corners.size());
-    for (const PolyCorner &corner : curr_face.face_corners) {
+    face_verts.reserve(curr_face.corner_count_);
+    face_uvs.reserve(curr_face.corner_count_);
+    face_normals.reserve(curr_face.corner_count_);
+    for (int i = 0; i < curr_face.corner_count_; ++i) {
+      int corner_idx = curr_face.start_index_ + i;
+      const PolyCorner &corner = mesh_geometry_.face_corners_[corner_idx];
       face_verts.append(corner.vert_index);
       face_normals.append(corner.vertex_normal_index);
       face_uvs.append(corner.uv_vert_index);
     }
-    std::string face_vertex_group = curr_face.vertex_group;
-    std::string face_material_name = curr_face.material_name;
+    int face_vertex_group = curr_face.vertex_group_index;
+    int face_material = curr_face.material_index;
     bool face_shaded_smooth = curr_face.shaded_smooth;
 
     /* Remove the invalid face. */
-    mesh_geometry_.total_loops_ -= curr_face.face_corners.size();
+    mesh_geometry_.total_loops_ -= curr_face.corner_count_;
     mesh_geometry_.face_elements_.remove_and_reorder(face_idx);
 
     Vector<Vector<int>> new_faces = fixup_invalid_polygon(global_vertices_.vertices, face_verts);
@@ -124,13 +131,14 @@ void MeshFromGeometry::fixup_invalid_faces()
         continue;
       }
       PolyElem new_face{};
-      new_face.vertex_group = face_vertex_group;
-      new_face.material_name = face_material_name;
+      new_face.vertex_group_index = face_vertex_group;
+      new_face.material_index = face_material;
       new_face.shaded_smooth = face_shaded_smooth;
-      new_face.face_corners.reserve(face.size());
+      new_face.start_index_ = mesh_geometry_.face_corners_.size();
+      new_face.corner_count_ = face.size();
       for (int idx : face) {
         BLI_assert(idx >= 0 && idx < face_verts.size());
-        new_face.face_corners.append({face_verts[idx], face_uvs[idx], face_normals[idx]});
+        mesh_geometry_.face_corners_.append({face_verts[idx], face_uvs[idx], face_normals[idx]});
       }
       mesh_geometry_.face_elements_.append(new_face);
       mesh_geometry_.total_loops_ += face.size();
@@ -140,13 +148,14 @@ void MeshFromGeometry::fixup_invalid_faces()
 
 void MeshFromGeometry::create_vertices(Mesh *mesh)
 {
-  const int64_t tot_verts_object{mesh_geometry_.vertex_indices_.size()};
+  const int tot_verts_object{mesh_geometry_.vertex_count_};
   for (int i = 0; i < tot_verts_object; ++i) {
-    if (mesh_geometry_.vertex_indices_[i] < global_vertices_.vertices.size()) {
-      copy_v3_v3(mesh->mvert[i].co, global_vertices_.vertices[mesh_geometry_.vertex_indices_[i]]);
+    int vi = mesh_geometry_.vertex_start_ + i;
+    if (vi < global_vertices_.vertices.size()) {
+      copy_v3_v3(mesh->mvert[i].co, global_vertices_.vertices[vi]);
     }
     else {
-      std::cerr << "Vertex index:" << mesh_geometry_.vertex_indices_[i]
+      std::cerr << "Vertex index:" << vi
                 << " larger than total vertices:" << global_vertices_.vertices.size() << " ."
                 << std::endl;
     }
@@ -158,7 +167,7 @@ void MeshFromGeometry::create_polys_loops(Object *obj, Mesh *mesh)
   /* Will not be used if vertex groups are not imported. */
   mesh->dvert = nullptr;
   float weight = 0.0f;
-  const int64_t total_verts = mesh_geometry_.vertex_indices_.size();
+  const int64_t total_verts = mesh_geometry_.vertex_count_;
   if (total_verts && mesh_geometry_.use_vertex_groups_) {
     mesh->dvert = static_cast<MDeformVert *>(
         CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, nullptr, total_verts));
@@ -168,34 +177,32 @@ void MeshFromGeometry::create_polys_loops(Object *obj, Mesh *mesh)
     UNUSED_VARS(weight);
   }
 
-  /* Do not remove elements from the VectorSet since order of insertion is required.
-   * StringRef is fine since per-face deform group name outlives the VectorSet. */
-  VectorSet<StringRef> group_names;
   const int64_t tot_face_elems{mesh->totpoly};
   int tot_loop_idx = 0;
 
   for (int poly_idx = 0; poly_idx < tot_face_elems; ++poly_idx) {
     const PolyElem &curr_face = mesh_geometry_.face_elements_[poly_idx];
-    if (curr_face.face_corners.size() < 3) {
+    if (curr_face.corner_count_ < 3) {
       /* Don't add single vertex face, or edges. */
       std::cerr << "Face with less than 3 vertices found, skipping." << std::endl;
       continue;
     }
 
     MPoly &mpoly = mesh->mpoly[poly_idx];
-    mpoly.totloop = curr_face.face_corners.size();
+    mpoly.totloop = curr_face.corner_count_;
     mpoly.loopstart = tot_loop_idx;
     if (curr_face.shaded_smooth) {
       mpoly.flag |= ME_SMOOTH;
     }
-    mpoly.mat_nr = mesh_geometry_.material_names_.index_of_try(curr_face.material_name);
+    mpoly.mat_nr = curr_face.material_index;
     /* Importing obj files without any materials would result in negative indices, which is not
      * supported. */
     if (mpoly.mat_nr < 0) {
       mpoly.mat_nr = 0;
     }
 
-    for (const PolyCorner &curr_corner : curr_face.face_corners) {
+    for (int idx = 0; idx < curr_face.corner_count_; ++idx) {
+      const PolyCorner &curr_corner = mesh_geometry_.face_corners_[curr_face.start_index_ + idx];
       MLoop &mloop = mesh->mloop[tot_loop_idx];
       tot_loop_idx++;
       mloop.v = curr_corner.vert_index;
@@ -212,23 +219,17 @@ void MeshFromGeometry::create_polys_loops(Object *obj, Mesh *mesh)
             MEM_callocN(sizeof(MDeformWeight), "OBJ Import Deform Weight"));
       }
       /* Every vertex in a face is assigned the same deform group. */
-      int64_t pos_name{group_names.index_of_try(curr_face.vertex_group)};
-      if (pos_name == -1) {
-        group_names.add_new(curr_face.vertex_group);
-        pos_name = group_names.size() - 1;
-      }
-      BLI_assert(pos_name >= 0);
+      int group_idx = curr_face.vertex_group_index;
       /* Deform group number (def_nr) must behave like an index into the names' list. */
-      *(def_vert.dw) = {static_cast<unsigned int>(pos_name), weight};
+      *(def_vert.dw) = {static_cast<unsigned int>(group_idx), weight};
     }
   }
 
   if (!mesh->dvert) {
     return;
   }
-  /* Add deform group(s) to the object's defbase. */
-  for (StringRef name : group_names) {
-    /* Adding groups in this order assumes that def_nr is an index into the names' list. */
+  /* Add deform group names. */
+  for (const std::string &name : mesh_geometry_.group_order_) {
     BKE_object_defgroup_add_name(obj, name.data());
   }
 }
@@ -236,7 +237,7 @@ void MeshFromGeometry::create_polys_loops(Object *obj, Mesh *mesh)
 void MeshFromGeometry::create_edges(Mesh *mesh)
 {
   const int64_t tot_edges{mesh_geometry_.edges_.size()};
-  const int64_t total_verts{mesh_geometry_.vertex_indices_.size()};
+  const int64_t total_verts{mesh_geometry_.vertex_count_};
   UNUSED_VARS_NDEBUG(total_verts);
   for (int i = 0; i < tot_edges; ++i) {
     const MEdge &src_edge = mesh_geometry_.edges_[i];
@@ -263,7 +264,8 @@ void MeshFromGeometry::create_uv_verts(Mesh *mesh)
   int tot_loop_idx = 0;
 
   for (const PolyElem &curr_face : mesh_geometry_.face_elements_) {
-    for (const PolyCorner &curr_corner : curr_face.face_corners) {
+    for (int idx = 0; idx < curr_face.corner_count_; ++idx) {
+      const PolyCorner &curr_corner = mesh_geometry_.face_corners_[curr_face.start_index_ + idx];
       if (curr_corner.uv_vert_index >= 0 &&
           curr_corner.uv_vert_index < global_vertices_.uv_vertices.size()) {
         const float2 &mluv_src = global_vertices_.uv_vertices[curr_corner.uv_vert_index];
@@ -317,7 +319,7 @@ void MeshFromGeometry::create_materials(
     Map<std::string, Material *> &created_materials,
     Object *obj)
 {
-  for (const std::string &name : mesh_geometry_.material_names_) {
+  for (const std::string &name : mesh_geometry_.material_order_) {
     Material *mat = get_or_create_material(bmain, name, materials, created_materials);
     if (mat == nullptr) {
       continue;
@@ -340,7 +342,8 @@ void MeshFromGeometry::create_normals(Mesh *mesh)
       MEM_malloc_arrayN(mesh_geometry_.total_loops_, sizeof(float[3]), __func__));
   int tot_loop_idx = 0;
   for (const PolyElem &curr_face : mesh_geometry_.face_elements_) {
-    for (const PolyCorner &curr_corner : curr_face.face_corners) {
+    for (int idx = 0; idx < curr_face.corner_count_; ++idx) {
+      const PolyCorner &curr_corner = mesh_geometry_.face_corners_[curr_face.start_index_ + idx];
       int n_index = curr_corner.vertex_normal_index;
       float3 normal(0, 0, 0);
       if (n_index >= 0) {

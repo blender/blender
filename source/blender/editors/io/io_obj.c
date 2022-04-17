@@ -378,6 +378,7 @@ static int wm_obj_import_exec(bContext *C, wmOperator *op)
   import_params.clamp_size = RNA_float_get(op->ptr, "clamp_size");
   import_params.forward_axis = RNA_enum_get(op->ptr, "forward_axis");
   import_params.up_axis = RNA_enum_get(op->ptr, "up_axis");
+  import_params.validate_meshes = RNA_boolean_get(op->ptr, "validate_meshes");
 
   OBJ_import(C, &import_params);
 
@@ -388,8 +389,8 @@ static void ui_obj_import_settings(uiLayout *layout, PointerRNA *imfptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  uiLayout *box = uiLayoutBox(layout);
 
+  uiLayout *box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Transform"), ICON_OBJECT_DATA);
   uiLayout *col = uiLayoutColumn(box, false);
   uiLayout *sub = uiLayoutColumn(col, false);
@@ -397,6 +398,11 @@ static void ui_obj_import_settings(uiLayout *layout, PointerRNA *imfptr)
   sub = uiLayoutColumn(col, false);
   uiItemR(sub, imfptr, "forward_axis", 0, IFACE_("Axis Forward"), ICON_NONE);
   uiItemR(sub, imfptr, "up_axis", 0, IFACE_("Up"), ICON_NONE);
+
+  box = uiLayoutBox(layout);
+  uiItemL(box, IFACE_("Options"), ICON_EXPORT);
+  col = uiLayoutColumn(box, false);
+  uiItemR(col, imfptr, "validate_meshes", 0, NULL, ICON_NONE);
 }
 
 static void wm_obj_import_draw(bContext *C, wmOperator *op)
@@ -442,4 +448,9 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
                "Forward Axis",
                "");
   RNA_def_enum(ot->srna, "up_axis", io_obj_transform_axis_up, OBJ_AXIS_Y_UP, "Up Axis", "");
+  RNA_def_boolean(ot->srna,
+                  "validate_meshes",
+                  false,
+                  "Validate Meshes",
+                  "Check imported mesh objects for invalid data (slow)");
 }
