@@ -16,7 +16,7 @@
 #include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
@@ -48,6 +48,7 @@
 #include "node_shader_util.hh"
 #include "node_util.h"
 
+using blender::Array;
 using blender::Vector;
 
 static bool shader_tree_poll(const bContext *C, bNodeTreeType *UNUSED(treetype))
@@ -570,8 +571,7 @@ static bNode *ntree_shader_copy_branch(bNodeTree *ntree,
   iter_data.node_count = 1;
   nodeChainIterBackwards(ntree, start_node, ntree_branch_count_and_tag_nodes, &iter_data, 1);
   /* Make a full copy of the branch */
-  bNode **nodes_copy = static_cast<bNode **>(
-      MEM_mallocN(sizeof(bNode *) * iter_data.node_count, __func__));
+  Array<bNode *> nodes_copy(iter_data.node_count);
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->tmp_flag >= 0) {
       int id = node->tmp_flag;
@@ -604,7 +604,6 @@ static bNode *ntree_shader_copy_branch(bNodeTree *ntree,
     }
   }
   bNode *start_node_copy = nodes_copy[start_node->tmp_flag];
-  MEM_freeN(nodes_copy);
   return start_node_copy;
 }
 
@@ -705,7 +704,7 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
   int node_count = 1;
   nodeChainIterBackwards(ntree, output_node, ntree_weight_tree_tag_nodes, &node_count, 0);
   /* Make a mirror copy of the weight tree. */
-  bNode **nodes_copy = static_cast<bNode **>(MEM_mallocN(sizeof(bNode *) * node_count, __func__));
+  Array<bNode *> nodes_copy(node_count);
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->tmp_flag >= 0) {
       int id = node->tmp_flag;
@@ -909,8 +908,6 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
         ntree, thickness_link->fromnode, thickness_link->fromsock, output_node, thickness_output);
   }
   BKE_ntree_update_main_tree(G.main, ntree, nullptr);
-
-  MEM_freeN(nodes_copy);
 }
 
 static bool closure_node_filter(const bNode *node)
