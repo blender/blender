@@ -444,6 +444,7 @@ TEST_F(obj_importer_test, import_all_objects)
        float3(5, 1, 1),
        float3(0, 0, 1),
        float2(0.654526f, 0.579873f)},
+      {"OBNurbsCircle.001", OB_MESH, 4, 4, 0, 0, float3(2, -3, 0), float3(3, -2, 0)},
       {"OBSurface",
        OB_MESH,
        256,
