@@ -467,6 +467,19 @@ TEST_F(obj_exporter_regression_test, cube_normal_edit)
                                _export.params);
 }
 
+TEST_F(obj_exporter_regression_test, cube_vertex_groups)
+{
+  OBJExportParamsDefault _export;
+  _export.params.export_materials = false;
+  _export.params.export_normals = false;
+  _export.params.export_uv = false;
+  _export.params.export_vertex_groups = true;
+  compare_obj_export_to_golden("io_tests/blend_geometry/cube_vertex_groups.blend",
+                               "io_tests/obj/cube_vertex_groups.obj",
+                               "",
+                               _export.params);
+}
+
 TEST_F(obj_exporter_regression_test, cubes_positioned)
 {
   OBJExportParamsDefault _export;

@@ -116,6 +116,7 @@ class OBJMesh : NonCopyable {
   int tot_uv_vertices() const;
   int tot_normal_indices() const;
   int tot_edges() const;
+  int tot_deform_groups() const;
   bool is_mirrored_transform() const
   {
     return mirrored_transform_;
@@ -204,13 +205,15 @@ class OBJMesh : NonCopyable {
    */
   Vector<int> calc_poly_normal_indices(int poly_index) const;
   /**
-   * Find the index of the vertex group with the maximum number of vertices in a polygon.
-   * The index indices into the #Object.defbase.
+   * Find the most representative vertex group of a polygon.
    *
-   * If two or more groups have the same number of vertices (maximum), group name depends on the
-   * implementation of #std::max_element.
+   * This adds up vertex group weights, and the group with the largest
+   * weight sum across the polygon is the one returned.
+   *
+   * group_weights is temporary storage to avoid reallocations, it must
+   * be the size of amount of vertex groups in the object.
    */
-  int16_t get_poly_deform_group_index(int poly_index) const;
+  int16_t get_poly_deform_group_index(int poly_index, MutableSpan<float> group_weights) const;
   /**
    * Find the name of the vertex deform group at the given index.
    * The index indices into the #Object.defbase.
