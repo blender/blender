@@ -1301,7 +1301,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
  * This isn't very nice but needed to redraw gizmos which are hidden while tweaking,
  * See #WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK for details.
  */
-ATTR_NO_OPT static void wm_region_tag_draw_on_gizmo_delay_refresh_for_tweak(wmWindow *win, bScreen *screen)
+static void wm_region_tag_draw_on_gizmo_delay_refresh_for_tweak(wmWindow *win, bScreen *screen)
 {
   ED_screen_areas_iter (win, screen, area) {
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {

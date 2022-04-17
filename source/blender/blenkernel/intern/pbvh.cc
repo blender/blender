@@ -151,7 +151,7 @@ static void pbvh_vertex_color_get_bmesh(const PBVH &pbvh, SculptVertRef vertex, 
     BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
       float temp[4];
 
-      T *ptr = static_cast<T*>(BM_ELEM_CD_GET_VOID_P(l, pbvh.cd_vcol_offset));
+      T *ptr = static_cast<T *>(BM_ELEM_CD_GET_VOID_P(l, pbvh.cd_vcol_offset));
       to_float(*ptr, temp);
 
       add_v4_v4(r_color, temp);
@@ -276,7 +276,7 @@ void BKE_pbvh_swap_colors(PBVH *pbvh,
   });
 }
 
-ATTR_NO_OPT void BKE_pbvh_store_colors(PBVH *pbvh,
+void BKE_pbvh_store_colors(PBVH *pbvh,
                            const int *indices,
                            const int indices_num,
                            float (*r_colors)[4])

@@ -1009,7 +1009,7 @@ struct RaycastObjUserData {
 /**
  * \note Duplicate args here are documented at #snapObjectsRay
  */
-ATTR_NO_OPT static void raycast_obj_fn(SnapObjectContext *sctx,
+static void raycast_obj_fn(SnapObjectContext *sctx,
                            const struct SnapObjectParams *params,
                            Object *ob_eval,
                            const float obmat[4][4],
@@ -2495,7 +2495,7 @@ static short snapMesh(SnapObjectContext *sctx,
   return 0;
 }
 
-ATTR_NO_OPT static short snapEditMesh(SnapObjectContext *sctx,
+static short snapEditMesh(SnapObjectContext *sctx,
                           const struct SnapObjectParams *params,
                           Object *ob_eval,
                           BMEditMesh *em,

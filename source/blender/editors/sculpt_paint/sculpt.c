@@ -7789,10 +7789,10 @@ static void sculpt_cache_dyntopo_settings(BrushChannelSet *chset,
   r_settings->constant_detail = BRUSHSET_GET_FLOAT(chset, dyntopo_constant_detail, input_data);
 };
 
-ATTR_NO_OPT static void sculpt_stroke_update_step(bContext *C,
-                                                  wmOperator *UNUSED(op),
-                                                  struct PaintStroke *stroke,
-                                                  PointerRNA *itemptr)
+static void sculpt_stroke_update_step(bContext *C,
+                                      wmOperator *UNUSED(op),
+                                      struct PaintStroke *stroke,
+                                      PointerRNA *itemptr)
 
 {
 
@@ -8864,6 +8864,7 @@ void SCULPT_fake_neighbors_free(Object *ob)
 void SCULPT_ensure_epmap(SculptSession *ss)
 {
   if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH && !ss->epmap) {
+
     BKE_mesh_edge_poly_map_create(&ss->epmap,
                                   &ss->epmap_mem,
                                   ss->medge,

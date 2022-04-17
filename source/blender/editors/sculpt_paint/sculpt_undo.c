@@ -1765,7 +1765,7 @@ static void sculpt_undo_store_mask(Object *ob, SculptUndoNode *unode)
   BKE_pbvh_vertex_iter_end;
 }
 
-ATTR_NO_OPT static void sculpt_undo_store_color(Object *ob, SculptUndoNode *unode)
+static void sculpt_undo_store_color(Object *ob, SculptUndoNode *unode)
 {
   SculptSession *ss = ob->sculpt;
 

@@ -100,7 +100,8 @@
 #endif
 
 typedef enum { CON_LENGTH, CON_BEND } ClothConstraintTypes;
-struct {
+
+static struct {
   int type;
   int totelem;
   size_t size;
@@ -810,10 +811,6 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
   SculptSession *ss = data->ob->sculpt;
   const Brush *brush = data->brush;
   PBVHNode *node = data->nodes[n];
-
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
-    SCULPT_ensure_epmap(ss);
-  }
 
   const int node_index = POINTER_AS_INT(BLI_ghash_lookup(data->cloth_sim->node_state_index, node));
   if (data->cloth_sim->node_state[node_index] != SCULPT_CLOTH_NODE_UNINITIALIZED) {
@@ -2004,7 +2001,7 @@ static void cloth_brush_satisfy_constraints_task_cb(void *__restrict userdata,
   }
 }
 
-void cloth_brush_satisfy_constraints(SculptSession *ss,
+static void cloth_brush_satisfy_constraints(SculptSession *ss,
                                      Brush *brush,
                                      SculptClothSimulation *cloth_sim)
 {
@@ -2261,6 +2258,7 @@ void SCULPT_cloth_brush_ensure_nodes_constraints(
     const float radius)
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
+  SculptSession *ss = ob->sculpt;
 
   /* TODO: Multi-threaded needs to be disabled for this task until implementing the optimization of
    * storing the constraints per node. */
@@ -2271,6 +2269,10 @@ void SCULPT_cloth_brush_ensure_nodes_constraints(
 
   cloth_sim->created_length_constraints = BLI_edgeset_new("created length constraints");
   cloth_sim->created_bend_constraints = BLI_edgeset_new("created bend constraints");
+
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
+    SCULPT_ensure_epmap(ss);
+  }
 
   SculptThreadedTaskData build_constraints_data = {
       .sd = sd,
