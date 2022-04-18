@@ -304,7 +304,6 @@ typedef struct OVERLAY_PrivateData {
   DRWView *view_edit_curves_points;
 
   /** TODO: get rid of this. */
-  ListBase smoke_domains;
   ListBase bg_movie_clips;
 
   /** Two instances for in_front option and without. */

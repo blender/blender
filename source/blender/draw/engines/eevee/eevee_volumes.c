@@ -43,9 +43,6 @@ static struct {
 
   GPUTexture *dummy_scatter;
   GPUTexture *dummy_transmit;
-
-  /* List of all fluid simulation / smoke domains rendered within this frame. */
-  ListBase smoke_domains;
 } e_data = {NULL}; /* Engine data */
 
 static void eevee_create_textures_volumes(void)
@@ -426,7 +423,6 @@ static bool eevee_volume_object_mesh_init(Scene *scene,
 
     if (fds->fluid && (fds->type == FLUID_DOMAIN_TYPE_GAS) /* && show_smoke */) {
       DRW_smoke_ensure(fmd, fds->flags & FLUID_DOMAIN_USE_NOISE);
-      BLI_addtail(&e_data.smoke_domains, BLI_genericNodeN(fmd));
     }
 
     LISTBASE_FOREACH (GPUMaterialVolumeGrid *, gpu_grid, gpu_grids) {
@@ -751,16 +747,6 @@ void EEVEE_volumes_resolve(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *veda
     /* Restore. */
     GPU_framebuffer_bind(fbl->main_fb);
   }
-}
-
-void EEVEE_volumes_free_smoke_textures(void)
-{
-  /* Free Smoke Textures after rendering */
-  LISTBASE_FOREACH (LinkData *, link, &e_data.smoke_domains) {
-    FluidModifierData *fmd = (FluidModifierData *)link->data;
-    DRW_smoke_free(fmd);
-  }
-  BLI_freelistN(&e_data.smoke_domains);
 }
 
 void EEVEE_volumes_free(void)

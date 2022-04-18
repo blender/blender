@@ -1463,9 +1463,6 @@ void EEVEE_lightbake_job(void *custom_data, short *stop, short *do_update, float
   }
 
   eevee_lightbake_delete_resources(lbake);
-
-  /* Free GPU smoke textures and the smoke domain list correctly: See also T73921. */
-  EEVEE_volumes_free_smoke_textures();
 }
 
 void EEVEE_lightbake_update_world_quick(EEVEE_ViewLayerData *sldata,

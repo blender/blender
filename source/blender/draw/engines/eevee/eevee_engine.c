@@ -353,8 +353,6 @@ static void eevee_draw_scene(void *vedata)
 
   EEVEE_renderpasses_draw_debug(vedata);
 
-  EEVEE_volumes_free_smoke_textures();
-
   stl->g_data->view_updated = false;
 
   DRW_view_set_active(NULL);
@@ -574,7 +572,6 @@ static void eevee_render_to_image(void *vedata,
     }
   }
 
-  EEVEE_volumes_free_smoke_textures();
   EEVEE_motion_blur_data_free(&ved->stl->effects->motion_blur);
 
   if (RE_engine_test_break(engine)) {

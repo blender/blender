@@ -21,6 +21,7 @@ struct Object;
 struct ParticleSystem;
 struct RegionView3D;
 struct ViewLayer;
+struct DRWData;
 
 /* Keep in sync with globalsBlock in shaders */
 BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
@@ -83,7 +84,9 @@ void DRW_fluid_ensure_flags(struct FluidModifierData *fmd);
 void DRW_fluid_ensure_range_field(struct FluidModifierData *fmd);
 
 void DRW_smoke_free(struct FluidModifierData *fmd);
-void DRW_smoke_free_velocity(struct FluidModifierData *fmd);
+
+void DRW_smoke_init(struct DRWData *drw_data);
+void DRW_smoke_exit(struct DRWData *drw_data);
 
 /* draw_common.c */
 
