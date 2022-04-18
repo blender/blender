@@ -572,8 +572,9 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
   if (ob->mode == OB_MODE_SCULPT) {
     SculptSession *ss = ob->sculpt;
 
-    /* Assign a new Face Set ID to the new faces created by the slice operation. */
+    BKE_sculptsession_update_attr_refs(ob);
 
+    /* Assign a new Face Set ID to the new faces created by the slice operation. */
     switch (BKE_pbvh_type(ss->pbvh)) {
       case PBVH_GRIDS:
       case PBVH_FACES:
@@ -603,6 +604,8 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
         break;
       }
     }
+
+    ss->needs_pbvh_rebuild = true;
   }
 
   ED_sculpt_undo_geometry_end(ob);

@@ -1450,7 +1450,20 @@ static void sculptsession_free_pbvh(Object *object)
   }
 
   if (ss->pbvh) {
-    BKE_pbvh_set_cached(object, ss->pbvh);
+    if (ss->needs_pbvh_rebuild) {
+      if (ss->pmap) {
+        BKE_pbvh_pmap_release(ss->pmap);
+        ss->pmap = NULL;
+      }
+
+      BKE_pbvh_cache_remove(ss->pbvh);
+      BKE_pbvh_free(ss->pbvh);
+    }
+    else {
+      BKE_pbvh_set_cached(object, ss->pbvh);
+    }
+
+    ss->needs_pbvh_rebuild = false;
     ss->pbvh = NULL;
   }
 
