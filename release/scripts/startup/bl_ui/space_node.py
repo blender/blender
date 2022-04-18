@@ -149,7 +149,7 @@ class NODE_HT_header(Header):
                 active_modifier = ob.modifiers.active
                 if active_modifier and active_modifier.type == 'NODES':
                     if active_modifier.node_group:
-                        row.template_ID(active_modifier, "node_group", new="node.copy_geometry_node_group_assign")
+                        row.template_ID(active_modifier, "node_group", new="object.geometry_node_tree_copy_assign")
                     else:
                         row.template_ID(active_modifier, "node_group", new="node.new_geometry_node_group_assign")
                 else:
