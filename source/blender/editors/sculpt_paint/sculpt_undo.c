@@ -143,7 +143,8 @@ static void update_unode_bmesh_memsize(SculptUndoNode *unode);
 static UndoSculpt *sculpt_undo_get_nodes(void);
 void sculpt_undo_print_nodes(void *active);
 static bool check_first_undo_entry_dyntopo(Object *ob);
-void sculpt_undo_push_begin_ex(Object *ob, const char *name, bool no_first_entry_check);
+static void sculpt_undo_push_begin_ex(Object *ob, const char *name, bool no_first_entry_check);
+
 static void update_cb(PBVHNode *node, void *rebuild)
 {
   BKE_pbvh_node_mark_update(node);
