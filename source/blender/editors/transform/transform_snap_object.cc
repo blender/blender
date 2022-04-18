@@ -178,7 +178,10 @@ static const Mesh *mesh_for_snap(Object *ob_eval, eSnapEditType edit_mode_type, 
 /**
  * Calculate the minimum and maximum coordinates of the box that encompasses this mesh.
  */
-static void snap_editmesh_minmax(SnapObjectContext *sctx, BMesh *bm, float r_min[3], float r_max[3])
+static void snap_editmesh_minmax(SnapObjectContext *sctx,
+                                 BMesh *bm,
+                                 float r_min[3],
+                                 float r_max[3])
 {
   INIT_MINMAX(r_min, r_max);
   BMIter iter;
@@ -881,9 +884,6 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
   BVHTreeFromEditMesh *treedata = &sod->treedata_editmesh;
 
   if (treedata->tree == nullptr) {
-    /* Operators only update the editmesh looptris of the original mesh. */
-    BLI_assert(sod->treedata_editmesh.em ==
-               BKE_editmesh_from_object(DEG_get_original_object(ob_eval)));
     em = sod->treedata_editmesh.em;
 
     if (sctx->callbacks.edit_mesh.test_face_fn) {
@@ -1035,14 +1035,15 @@ static void raycast_obj_fn(SnapObjectContext *sctx,
       bool use_hide = false;
       const Mesh *me_eval = mesh_for_snap(ob_eval, edit_mode_type, &use_hide);
       if (me_eval == nullptr) {
-        /* Operators only update the editmesh looptris of the original mesh. */
-        BMEditMesh *em_orig = BKE_editmesh_from_object(DEG_get_original_object(ob_eval));
+        BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
+        BLI_assert(em == BKE_editmesh_from_object(DEG_get_original_object(ob_eval)),
+                   "Make sure there is only one pointer for looptris");
         retval = raycastEditMesh(sctx,
                                  params,
                                  dt->ray_start,
                                  dt->ray_dir,
                                  ob_eval,
-                                 em_orig,
+                                 em,
                                  obmat,
                                  ob_index,
                                  ray_depth,
@@ -2705,10 +2706,11 @@ static void snap_obj_fn(SnapObjectContext *sctx,
       bool use_hide;
       const Mesh *me_eval = mesh_for_snap(ob_eval, edit_mode_type, &use_hide);
       if (me_eval == nullptr) {
-        /* Operators only update the editmesh looptris of the original mesh. */
-        BMEditMesh *em_orig = BKE_editmesh_from_object(DEG_get_original_object(ob_eval));
+        BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
+        BLI_assert(em == BKE_editmesh_from_object(DEG_get_original_object(ob_eval)),
+                   "Make sure there is only one pointer for looptris");
         retval = snapEditMesh(
-            sctx, params, ob_eval, em_orig, obmat, dt->dist_px, dt->r_loc, dt->r_no, dt->r_index);
+            sctx, params, ob_eval, em, obmat, dt->dist_px, dt->r_loc, dt->r_no, dt->r_index);
         break;
       }
       if (ob_eval->dt == OB_BOUNDBOX) {
