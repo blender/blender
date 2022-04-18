@@ -178,13 +178,17 @@ static const Mesh *mesh_for_snap(Object *ob_eval, eSnapEditType edit_mode_type, 
 /**
  * Calculate the minimum and maximum coordinates of the box that encompasses this mesh.
  */
-static void bm_mesh_minmax(BMesh *bm, float r_min[3], float r_max[3])
+static void snap_editmesh_minmax(SnapObjectContext *sctx, BMesh *bm, float r_min[3], float r_max[3])
 {
   INIT_MINMAX(r_min, r_max);
   BMIter iter;
   BMVert *v;
 
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    if (sctx->callbacks.edit_mesh.test_vert_fn &&
+        !sctx->callbacks.edit_mesh.test_vert_fn(v, sctx->callbacks.edit_mesh.user_data)) {
+      continue;
+    }
     minmax_v3v3_v3(r_min, r_max, v->co);
   }
 }
@@ -423,7 +427,7 @@ static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
     sod->type = SnapObjectData::Type::EditMesh;
     sod->treedata_editmesh.em = em;
     sod->mesh_runtime = snap_object_data_editmesh_runtime_get(ob_eval);
-    bm_mesh_minmax(em->bm, sod->min, sod->max);
+    snap_editmesh_minmax(sctx, em->bm, sod->min, sod->max);
   }
 
   return sod;
