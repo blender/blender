@@ -496,18 +496,25 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
   }
 
   BMesh *bm;
-  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(new_mesh);
-  bm = BM_mesh_create(&allocsize,
-                      &((struct BMeshCreateParams){
-                          .use_toolflags = true,
-                      }));
 
-  BM_mesh_bm_from_me(NULL,
-                     bm,
-                     new_mesh,
-                     (&(struct BMeshFromMeshParams){
-                         .calc_face_normal = true,
-                     }));
+  if (ob->sculpt && ob->sculpt->bm) {
+    bm = ob->sculpt->bm;
+    BM_mesh_elem_toolflags_ensure(bm);
+  }
+  else {
+    const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(new_mesh);
+    bm = BM_mesh_create(&allocsize,
+                        &((struct BMeshCreateParams){
+                            .use_toolflags = true,
+                        }));
+
+    BM_mesh_bm_from_me(NULL,
+                       bm,
+                       new_mesh,
+                       (&(struct BMeshFromMeshParams){
+                           .calc_face_normal = true,
+                       }));
+  }
 
   slice_paint_mask(
       bm, false, RNA_boolean_get(op->ptr, "fill_holes"), RNA_float_get(op->ptr, "mask_threshold"));
@@ -517,7 +524,12 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
                                             .calc_object_remap = false,
                                         }),
                                         mesh);
-  BM_mesh_free(bm);
+  if (!ob->sculpt || !ob->sculpt->bm) {
+    BM_mesh_free(bm);
+  }
+  else {
+    BM_mesh_elem_toolflags_clear(bm);
+  }
 
   if (RNA_boolean_get(op->ptr, "new_object")) {
     ushort local_view_bits = 0;
@@ -551,7 +563,6 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
                                                  .calc_object_remap = false,
                                              }),
                                              mesh);
-    BM_mesh_free(bm);
 
     /* Remove the mask from the new object so it can be sculpted directly after slicing. */
     CustomData_free_layers(&new_ob_mesh->vdata, CD_PAINT_MASK, new_ob_mesh->totvert);
@@ -588,10 +599,22 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
       case PBVH_BMESH: {
         if (ss->bm && CustomData_has_layer(&ss->bm->pdata, CD_SCULPT_FACE_SETS)) {
           const int cd_fset = CustomData_get_offset(&ss->bm->pdata, CD_SCULPT_FACE_SETS);
+          const int cd_sculptvert = CustomData_get_offset(&ss->bm->vdata, CD_DYNTOPO_VERT);
+
           BMFace *f;
+          BMVert *v;
           BMIter iter;
 
           const int next_face_set_id = SCULPT_face_set_next_available_get(ss);
+
+          const int updateflag = SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_VALENCE |
+                                 SCULPTVERT_NEED_TRIANGULATE | SCULPTVERT_NEED_DISK_SORT;
+
+          BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
+            MSculptVert *mv = BM_ELEM_CD_GET_VOID_P(v, cd_sculptvert);
+
+            mv->flag |= updateflag;
+          }
 
           BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
             int fset = BM_ELEM_CD_GET_INT(f, cd_fset);

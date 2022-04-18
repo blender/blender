@@ -2659,7 +2659,7 @@ static UndoSculpt *sculpt_undo_get_nodes(void)
   }
 
   UndoStep *us = BKE_undosys_stack_init_or_active_with_type(ustack, BKE_UNDOSYS_TYPE_SCULPT);
-  return sculpt_undosys_step_get_nodes(us);
+  return us ? sculpt_undosys_step_get_nodes(us) : NULL;
 }
 
 void SCULPT_on_sculptsession_bmesh_free(SculptSession *ss)
