@@ -214,7 +214,7 @@ if(WITH_SDL)
   find_package(SDL2)
   set(SDL_INCLUDE_DIR ${SDL2_INCLUDE_DIRS})
   set(SDL_LIBRARY ${SDL2_LIBRARIES})
-  string(APPEND PLATFORM_LINKFLAGS " -framework ForceFeedback")
+  string(APPEND PLATFORM_LINKFLAGS " -framework ForceFeedback -framework GameController -framework CoreHaptics")
 endif()
 
 set(PNG_ROOT ${LIBDIR}/png)
