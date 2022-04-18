@@ -1036,8 +1036,8 @@ static void raycast_obj_fn(SnapObjectContext *sctx,
       const Mesh *me_eval = mesh_for_snap(ob_eval, edit_mode_type, &use_hide);
       if (me_eval == nullptr) {
         BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
-        BLI_assert(em == BKE_editmesh_from_object(DEG_get_original_object(ob_eval)),
-                   "Make sure there is only one pointer for looptris");
+        BLI_assert_msg(em == BKE_editmesh_from_object(DEG_get_original_object(ob_eval)),
+                       "Make sure there is only one pointer for looptris");
         retval = raycastEditMesh(sctx,
                                  params,
                                  dt->ray_start,
@@ -2707,8 +2707,8 @@ static void snap_obj_fn(SnapObjectContext *sctx,
       const Mesh *me_eval = mesh_for_snap(ob_eval, edit_mode_type, &use_hide);
       if (me_eval == nullptr) {
         BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
-        BLI_assert(em == BKE_editmesh_from_object(DEG_get_original_object(ob_eval)),
-                   "Make sure there is only one pointer for looptris");
+        BLI_assert_msg(em == BKE_editmesh_from_object(DEG_get_original_object(ob_eval)),
+                       "Make sure there is only one pointer for looptris");
         retval = snapEditMesh(
             sctx, params, ob_eval, em, obmat, dt->dist_px, dt->r_loc, dt->r_no, dt->r_index);
         break;
