@@ -355,8 +355,7 @@ void PathTrace::path_trace(RenderWork &render_work)
 
   const int num_works = path_trace_works_.size();
 
-  tbb::task_group_context *tbb_ctx = tbb::task::self().group();
-  tbb_ctx->capture_fp_settings();
+  thread_capture_fp_settings();
 
   tbb::parallel_for(0, num_works, [&](int i) {
     const double work_start_time = time_dt();
