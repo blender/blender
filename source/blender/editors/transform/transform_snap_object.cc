@@ -312,10 +312,10 @@ static SnapObjectData *snap_object_data_mesh_get(SnapObjectContext *sctx,
                               use_hide ? BVHTREE_FROM_LOOPTRI_NO_HIDDEN : BVHTREE_FROM_LOOPTRI,
                               4);
 
-    BLI_assert(sod->treedata_mesh.vert != nullptr);
-    BLI_assert(sod->treedata_mesh.vert_normals != nullptr);
-    BLI_assert(sod->treedata_mesh.loop != nullptr);
-    BLI_assert(sod->treedata_mesh.looptri != nullptr);
+    BLI_assert(sod->treedata_mesh.vert == me_eval->mvert);
+    BLI_assert(!me_eval->mvert || sod->treedata_mesh.vert_normals);
+    BLI_assert(sod->treedata_mesh.loop == me_eval->mloop);
+    BLI_assert(!me_eval->mpoly || sod->treedata_mesh.looptri);
     BLI_assert(sod->has_looptris == false);
 
     sod->has_looptris = sod->treedata_mesh.tree != nullptr;
