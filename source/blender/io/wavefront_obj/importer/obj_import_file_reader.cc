@@ -360,8 +360,9 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
     while (last_nl > 0) {
       --last_nl;
       if (buffer[last_nl] == '\n') {
-        if (last_nl < 1 || buffer[last_nl - 1] != '\\')
+        if (last_nl < 1 || buffer[last_nl - 1] != '\\') {
           break;
+        }
       }
     }
     if (buffer[last_nl] != '\n') {
@@ -380,8 +381,9 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
     while (!buffer_str.is_empty()) {
       StringRef line = read_next_line(buffer_str);
       ++line_number;
-      if (line.is_empty())
+      if (line.is_empty()) {
         continue;
+      }
       /* Most common things that start with 'v': vertices, normals, UVs. */
       if (line[0] == 'v') {
         if (line.startswith("v ")) {
@@ -643,8 +645,9 @@ void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_mat
   StringRef buffer_str{(const char *)buffer, (int64_t)buffer_len};
   while (!buffer_str.is_empty()) {
     StringRef line = read_next_line(buffer_str);
-    if (line.is_empty())
+    if (line.is_empty()) {
       continue;
+    }
 
     if (line.startswith("newmtl ")) {
       line = line.drop_prefix(7);

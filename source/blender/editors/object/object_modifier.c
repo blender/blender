@@ -3298,7 +3298,7 @@ void OBJECT_OT_geometry_nodes_input_attribute_toggle(wmOperatorType *ot)
 /** \name Copy and Assign Geometry Node Group operator
  * \{ */
 
-static int geometry_node_tree_copy_assign_exec(bContext *C, wmOperator *op)
+static int geometry_node_tree_copy_assign_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = ED_object_active_context(C);

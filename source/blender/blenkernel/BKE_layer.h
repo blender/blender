@@ -594,9 +594,9 @@ void BKE_view_layer_rename_lightgroup(ViewLayer *view_layer,
                                       ViewLayerLightgroup *lightgroup,
                                       const char *name);
 
-void BKE_lightgroup_membership_get(struct LightgroupMembership *lgm, char *value);
+void BKE_lightgroup_membership_get(struct LightgroupMembership *lgm, char *name);
 int BKE_lightgroup_membership_length(struct LightgroupMembership *lgm);
-void BKE_lightgroup_membership_set(struct LightgroupMembership **lgm, const char *value);
+void BKE_lightgroup_membership_set(struct LightgroupMembership **lgm, const char *name);
 
 #ifdef __cplusplus
 }

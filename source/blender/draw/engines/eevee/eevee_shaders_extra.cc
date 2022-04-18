@@ -92,7 +92,7 @@ void eevee_shader_material_create_info_amend(GPUMaterial *gpumat,
     const StageInterfaceInfo &iface = *info.vertex_out_interfaces_.first();
     /* Globals the attrib_load() can write to when it is in the fragment shader. */
     attr_load << "struct " << iface.name << " {\n";
-    for (auto &inout : iface.inouts) {
+    for (const auto &inout : iface.inouts) {
       attr_load << "  " << inout.type << " " << inout.name << ";\n";
     }
     attr_load << "};\n";
