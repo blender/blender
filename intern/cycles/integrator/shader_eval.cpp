@@ -92,7 +92,7 @@ bool ShaderEval::eval_cpu(Device *device,
 
   tbb::task_arena local_arena(device->info.cpu_threads);
   local_arena.execute([&]() {
-    tbb::parallel_for(int64_t(0), work_size, [&](int64_t work_index) {
+    parallel_for(int64_t(0), work_size, [&](int64_t work_index) {
       /* TODO: is this fast enough? */
       if (progress_.get_cancel()) {
         success = false;
