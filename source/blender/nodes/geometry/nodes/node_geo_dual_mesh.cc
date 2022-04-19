@@ -897,7 +897,6 @@ static void calc_dual_mesh(GeometrySet &geometry_set,
     copy_v3_v3(mesh_out->mvert[i].co, vertex_positions[i]);
   }
   memcpy(mesh_out->medge, new_edges.data(), sizeof(MEdge) * new_edges.size());
-  BKE_mesh_normals_tag_dirty(mesh_out);
   geometry_set.replace_mesh(mesh_out);
 }
 

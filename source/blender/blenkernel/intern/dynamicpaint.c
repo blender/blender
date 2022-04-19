@@ -1899,7 +1899,6 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
       pmd->type == MOD_DYNAMICPAINT_TYPE_CANVAS) {
 
     DynamicPaintSurface *surface;
-    bool update_normals = false;
 
     /* loop through surfaces */
     for (surface = pmd->canvas->surfaces.first; surface; surface = surface->next) {
@@ -2018,20 +2017,16 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
             settings.use_threading = (sData->total_points > 1000);
             BLI_task_parallel_range(
                 0, sData->total_points, &data, dynamic_paint_apply_surface_wave_cb, &settings);
-            update_normals = true;
+            BKE_mesh_normals_tag_dirty(mesh);
           }
 
           /* displace */
           if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) {
             dynamicPaint_applySurfaceDisplace(surface, result);
-            update_normals = true;
+            BKE_mesh_normals_tag_dirty(mesh);
           }
         }
       }
-    }
-
-    if (update_normals) {
-      BKE_mesh_normals_tag_dirty(result);
     }
   }
   /* make a copy of mesh to use as brush data */

@@ -681,8 +681,8 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   /* tessface data removed above, no need to update */
   BKE_mesh_update_customdata_pointers(me, false);
 
-  /* update normals in case objects with non-uniform scale are joined */
-  BKE_mesh_calc_normals(me);
+  /* Tag normals dirty because vertex positions could be changed from the original. */
+  BKE_mesh_normals_tag_dirty(me);
 
   /* old material array */
   for (a = 1; a <= ob->totcol; a++) {

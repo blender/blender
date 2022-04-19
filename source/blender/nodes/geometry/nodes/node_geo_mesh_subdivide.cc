@@ -50,7 +50,6 @@ static void geometry_set_mesh_subdivide(GeometrySet &geometry_set, const int lev
   }
 
   Mesh *mesh_out = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh_in);
-  BKE_mesh_normals_tag_dirty(mesh_out);
 
   MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
   mesh_component.replace(mesh_out);

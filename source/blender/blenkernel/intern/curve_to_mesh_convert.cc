@@ -649,7 +649,6 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
       offsets.vert.last(), offsets.edge.last(), 0, offsets.loop.last(), offsets.poly.last());
   mesh->flag |= ME_AUTOSMOOTH;
   mesh->smoothresh = DEG2RADF(180.0f);
-  BKE_mesh_normals_tag_dirty(mesh);
   MutableSpan<MVert> verts(mesh->mvert, mesh->totvert);
   MutableSpan<MEdge> edges(mesh->medge, mesh->totedge);
   MutableSpan<MLoop> loops(mesh->mloop, mesh->totloop);

@@ -140,7 +140,6 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
   }
 
   BKE_mesh_calc_edges(mesh, false, false);
-  BKE_mesh_calc_normals(mesh);
 
   MEM_freeN(qrd.out_faces);
   MEM_freeN(qrd.out_verts);
@@ -257,7 +256,6 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
   }
 
   BKE_mesh_calc_edges(mesh, false, false);
-  BKE_mesh_normals_tag_dirty(mesh);
 
   return mesh;
 }

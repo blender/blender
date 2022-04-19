@@ -944,8 +944,10 @@ static void modwrap_dependsOnNormals(Mesh *me)
       break;
     }
     case ME_WRAPPER_TYPE_SUBD:
+      /* Not an expected case. */
+      break;
     case ME_WRAPPER_TYPE_MDATA:
-      BKE_mesh_calc_normals(me);
+      /* Normals are calculated lazily. */
       break;
   }
 }
@@ -992,7 +994,7 @@ void BKE_modifier_deform_vertsEM(ModifierData *md,
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
   if (me && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
-    BKE_mesh_calc_normals(me);
+    modwrap_dependsOnNormals(me);
   }
   mti->deformVertsEM(md, ctx, em, me, vertexCos, numVerts);
 }

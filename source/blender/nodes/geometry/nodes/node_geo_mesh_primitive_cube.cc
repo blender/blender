@@ -407,7 +407,6 @@ Mesh *create_cuboid_mesh(const float3 size,
 
   calculate_polys(config, {mesh->mpoly, mesh->totpoly}, {mesh->mloop, mesh->totloop});
   BKE_mesh_calc_edges(mesh, false, false);
-  BKE_mesh_normals_tag_dirty(mesh);
 
   calculate_uvs(config, mesh);
 

@@ -119,7 +119,6 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
 
     Mesh *mesh_out = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh_in);
-    BKE_mesh_normals_tag_dirty(mesh_out);
 
     mesh_component.replace(mesh_out);
 

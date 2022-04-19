@@ -1580,10 +1580,6 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   BLI_assert((int)r_i == result_npolys);
   BLI_assert(loop_cur == result_nloops);
 
-  /* We could only update the normals of the elements in context, but the next modifier can make it
-   * dirty anyway which would make the work useless. */
-  BKE_mesh_normals_tag_dirty(result);
-
   return result;
 }
 

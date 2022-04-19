@@ -950,7 +950,6 @@ static void sculpt_gesture_trim_normals_update(SculptGestureContext *sgcontext)
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
   Mesh *trim_mesh = trim_operation->mesh;
-  BKE_mesh_calc_normals(trim_mesh);
 
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(trim_mesh);
   BMesh *bm;
@@ -1288,7 +1287,6 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
                                             }),
                                             sculpt_mesh);
   BM_mesh_free(bm);
-  BKE_mesh_normals_tag_dirty(result);
   BKE_mesh_nomain_to_mesh(
       result, sgcontext->vc.obact->data, sgcontext->vc.obact, &CD_MASK_MESH, true);
 }

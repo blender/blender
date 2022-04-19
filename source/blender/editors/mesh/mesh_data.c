@@ -1092,7 +1092,8 @@ void ED_mesh_update(Mesh *mesh, bContext *C, bool calc_edges, bool calc_edges_lo
   /* Default state is not to have tessface's so make sure this is the case. */
   BKE_mesh_tessface_clear(mesh);
 
-  BKE_mesh_calc_normals(mesh);
+  /* Tag lazily calculated data as dirty. */
+  BKE_mesh_normals_tag_dirty(mesh);
 
   DEG_id_tag_update(&mesh->id, 0);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);

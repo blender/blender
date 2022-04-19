@@ -1112,6 +1112,9 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
   mesh_ensure_cdlayers_primary(me_dst, do_tessface);
   BKE_mesh_update_customdata_pointers(me_dst, false);
 
+  /* Expect that normals aren't copied at all, since the destination mesh is new. */
+  BLI_assert(BKE_mesh_vertex_normals_are_dirty(me_dst));
+
   return me_dst;
 }
 
@@ -1688,6 +1691,7 @@ void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
       mul_m3_v3(m3, *lnors);
     }
   }
+  BKE_mesh_normals_tag_dirty(me);
 }
 
 void BKE_mesh_translate(Mesh *me, const float offset[3], const bool do_keys)

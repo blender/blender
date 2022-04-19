@@ -884,9 +884,6 @@ static int apply_objects_internal(bContext *C,
 
       /* adjust data */
       BKE_mesh_transform(me, mat, true);
-
-      /* If normal layers exist, they are now dirty. */
-      BKE_mesh_normals_tag_dirty(me);
     }
     else if (ob->type == OB_ARMATURE) {
       bArmature *arm = static_cast<bArmature *>(ob->data);

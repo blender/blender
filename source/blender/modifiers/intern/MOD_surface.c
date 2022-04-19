@@ -129,7 +129,7 @@ static void deformVerts(ModifierData *md,
     MVert *x, *v;
 
     BKE_mesh_vert_coords_apply(surmd->mesh, vertexCos);
-    BKE_mesh_calc_normals(surmd->mesh);
+    BKE_mesh_normals_tag_dirty(surmd->mesh);
 
     mesh_verts_num = surmd->mesh->totvert;
 

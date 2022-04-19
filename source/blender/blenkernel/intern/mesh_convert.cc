@@ -120,9 +120,6 @@ void BKE_mesh_from_metaball(ListBase *lb, Mesh *me)
     }
 
     BKE_mesh_update_customdata_pointers(me, true);
-
-    BKE_mesh_normals_tag_dirty(me);
-
     BKE_mesh_calc_edges(me, true, false);
   }
 }
@@ -514,7 +511,6 @@ Mesh *BKE_mesh_new_nomain_from_curve_displist(const Object *ob, const ListBase *
   }
 
   mesh = BKE_mesh_new_nomain(totvert, totedge, 0, totloop, totpoly);
-  BKE_mesh_normals_tag_dirty(mesh);
 
   if (totvert != 0) {
     memcpy(mesh->mvert, allvert, totvert * sizeof(MVert));

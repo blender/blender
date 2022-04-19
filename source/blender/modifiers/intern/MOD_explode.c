@@ -1102,7 +1102,6 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   /* finalization */
   BKE_mesh_calc_edges_tessface(explode);
   BKE_mesh_convert_mfaces_to_mpolys(explode);
-  BKE_mesh_normals_tag_dirty(explode);
 
   if (psmd->psys->lattice_deform_data) {
     BKE_lattice_deform_data_destroy(psmd->psys->lattice_deform_data);

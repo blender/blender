@@ -302,8 +302,6 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
     }
   }
 
-  BKE_mesh_normals_tag_dirty(result);
-
   return result;
 }
 
@@ -361,7 +359,6 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
 
   if (omd->geometry_mode == MOD_OCEAN_GEOM_GENERATE) {
     result = generate_ocean_geometry(omd, mesh, resolution);
-    BKE_mesh_normals_tag_dirty(result);
   }
   else if (omd->geometry_mode == MOD_OCEAN_GEOM_DISPLACE) {
     result = (Mesh *)BKE_id_copy_ex(NULL, &mesh->id, NULL, LIB_ID_COPY_LOCALIZE);
@@ -472,6 +469,8 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
     }
   }
 
+  BKE_mesh_normals_tag_dirty(mesh);
+
   if (allocated_ocean) {
     BKE_ocean_free(omd->ocean);
     omd->ocean = NULL;
@@ -490,15 +489,7 @@ static Mesh *doOcean(ModifierData *UNUSED(md), const ModifierEvalContext *UNUSED
 
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  Mesh *result;
-
-  result = doOcean(md, ctx, mesh);
-
-  if (result != mesh) {
-    BKE_mesh_normals_tag_dirty(result);
-  }
-
-  return result;
+  return doOcean(md, ctx, mesh);
 }
 // #define WITH_OCEANSIM
 static void panel_draw(const bContext *UNUSED(C), Panel *panel)

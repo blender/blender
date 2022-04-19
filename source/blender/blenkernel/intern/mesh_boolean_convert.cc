@@ -782,7 +782,6 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
     }
   }
 
-  BKE_mesh_calc_normals(result);
   if (dbg_level > 0) {
     BKE_mesh_validate(result, true, true);
   }

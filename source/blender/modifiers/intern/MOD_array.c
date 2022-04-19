@@ -789,13 +789,6 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     MEM_freeN(full_doubles_map);
   }
 
-  /* In case org dm has dirty normals, or we made some merging, mark normals as dirty in new mesh!
-   * TODO: we may need to set other dirty flags as well?
-   */
-  if (use_recalc_normals) {
-    BKE_mesh_normals_tag_dirty(result);
-  }
-
   if (vgroup_start_cap_remap) {
     MEM_freeN(vgroup_start_cap_remap);
   }
