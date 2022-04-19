@@ -138,7 +138,11 @@ typedef struct Mesh_Runtime {
   float (*vert_normals)[3];
   float (*poly_normals)[3];
 
-  void *_pad2;
+  /**
+   * A #BLI_bitmap containing tags for the center vertices of subdivided polygons, set by the
+   * subdivision surface modifier and used by drawing code instead of polygon center face dots.
+   */
+  uint32_t *subsurf_face_dot_tags;
 } Mesh_Runtime;
 
 typedef struct Mesh {

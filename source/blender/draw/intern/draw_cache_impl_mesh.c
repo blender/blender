@@ -2121,7 +2121,7 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
 
   MDEPS_ASSERT_MAP_INDEX(TRIS_PER_MAT_INDEX);
 
-  const bool use_subsurf_fdots = scene ? BKE_modifiers_uses_subsurf_facedots(scene, ob) : false;
+  const bool use_subsurf_fdots = me->runtime.subsurf_face_dot_tags != NULL;
 
   if (do_uvcage) {
     mesh_buffer_cache_create_requested(task_graph,

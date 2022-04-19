@@ -86,6 +86,7 @@ void BKE_mesh_runtime_reset_on_copy(Mesh *mesh, const int UNUSED(flag))
   runtime->looptris = blender::dna::shallow_zero_initialize();
   runtime->bvh_cache = nullptr;
   runtime->shrinkwrap_data = nullptr;
+  runtime->subsurf_face_dot_tags = nullptr;
 
   runtime->vert_normals_dirty = true;
   runtime->poly_normals_dirty = true;
@@ -254,6 +255,8 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
     mesh->runtime.subdiv_ccg = nullptr;
   }
   BKE_shrinkwrap_discard_boundary_data(mesh);
+
+  MEM_SAFE_FREE(mesh->runtime.subsurf_face_dot_tags);
 }
 
 /** \} */

@@ -845,41 +845,6 @@ bool BKE_modifiers_uses_armature(Object *ob, bArmature *arm)
   return false;
 }
 
-bool BKE_modifiers_uses_subsurf_facedots(const struct Scene *scene, Object *ob)
-{
-  /* Search (backward) in the modifier stack to find if we have a subsurf modifier (enabled) before
-   * the last modifier displayed on cage (or if the subsurf is the last). */
-  VirtualModifierData virtualModifierData;
-  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
-  int cage_index = BKE_modifiers_get_cage_index(scene, ob, NULL, 1);
-  if (cage_index == -1) {
-    return false;
-  }
-  /* Find first modifier enabled on cage. */
-  for (int i = 0; md && i < cage_index; i++) {
-    md = md->next;
-  }
-  /* Now from this point, search for subsurf modifier. */
-  for (; md; md = md->prev) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
-    if (md->type == eModifierType_Subsurf) {
-      ModifierMode mode = eModifierMode_Realtime | eModifierMode_Editmode;
-      if (BKE_modifier_is_enabled(scene, md, mode)) {
-        return true;
-      }
-    }
-    else if (mti->type == eModifierTypeType_OnlyDeform) {
-      /* These modifiers do not reset the subdiv flag nor change the topology.
-       * We can still search for a subsurf modifier. */
-    }
-    else {
-      /* Other modifiers may reset the subdiv facedot flag or create. */
-      return false;
-    }
-  }
-  return false;
-}
-
 bool BKE_modifier_is_correctable_deformed(ModifierData *md)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
