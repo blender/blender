@@ -72,7 +72,7 @@ class EulerFilterTest(AbstractAnimationTest, unittest.TestCase):
         self.activate_object('Three-Channel-Jump')
         fcu_rot = self.active_object_rotation_channels()
 
-        ## Check some pre-filter values to make sure the file is as we expect.
+        # # Check some pre-filter values to make sure the file is as we expect.
         # Keyframes before the "jump". These shouldn't be touched by the filter.
         self.assertEqualAngle(-87.5742, fcu_rot[0], 22)
         self.assertEqualAngle(69.1701, fcu_rot[1], 22)
@@ -99,7 +99,7 @@ class EulerFilterTest(AbstractAnimationTest, unittest.TestCase):
         self.activate_object('One-Channel-Jumps')
         fcu_rot = self.active_object_rotation_channels()
 
-        ## Check some pre-filter values to make sure the file is as we expect.
+        # # Check some pre-filter values to make sure the file is as we expect.
         # Keyframes before the "jump". These shouldn't be touched by the filter.
         self.assertEqualAngle(360, fcu_rot[0], 15)
         self.assertEqualAngle(396, fcu_rot[1], 21)  # X and Y are keyed on different frames.

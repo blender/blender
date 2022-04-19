@@ -204,7 +204,12 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
         bpy.ops.wm.append(directory=link_dir, filename="LibMesh",
                           instance_object_data=False, set_fake=False, use_recursive=False, do_reuse_local_id=False)
 
-        print(bpy.data.materials[:], bpy.data.materials[0].library, bpy.data.materials[0].users, bpy.data.materials[0].use_fake_user)
+        print(
+            bpy.data.materials[:],
+            bpy.data.materials[0].library,
+            bpy.data.materials[0].users,
+            bpy.data.materials[0].use_fake_user,
+        )
 
         assert(len(bpy.data.materials) == 1)
         assert(bpy.data.materials[0].library is not None)
@@ -398,7 +403,6 @@ class TestBlendLibLibraryReload(TestBlendLibLinkHelper):
         print(orig_data)
         print(reload_data)
         assert(orig_data == reload_data)
-
 
 
 class TestBlendLibLibraryRelocate(TestBlendLibLinkHelper):

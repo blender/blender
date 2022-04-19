@@ -59,7 +59,7 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
         self.assertIsNone(local_id.data.override_library)
         assert(len(local_id.override_library.properties) == 0)
 
-        ##### Generate an override property & operation automatically by editing the local override data.
+        # #### Generate an override property & operation automatically by editing the local override data.
         local_id.location.y = 1.0
         local_id.override_library.operations_update()
         assert(len(local_id.override_library.properties) == 1)
@@ -71,12 +71,12 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
         # Setting location.y overrode all elements in the location array. -1 is a wildcard.
         assert(override_operation.subitem_local_index == -1)
 
-        ##### Reset the override to its linked reference data.
+        # #### Reset the override to its linked reference data.
         local_id.override_library.reset()
         assert(len(local_id.override_library.properties) == 0)
         assert(local_id.location == local_id.override_library.reference.location)
 
-        ##### Generate an override property & operation manually using the API.
+        # #### Generate an override property & operation manually using the API.
         override_property = local_id.override_library.properties.add(rna_path="location")
         override_property.operations.add(operation='REPLACE')
 
@@ -95,11 +95,11 @@ class TestLibraryOverrides(TestHelper, unittest.TestCase):
 
         assert(len(local_id.override_library.properties) == 0)
 
-        ##### Delete the override.
+        # #### Delete the override.
         local_id_name = local_id.name
         assert(bpy.data.objects.get((local_id_name, None), None) == local_id)
         local_id.override_library.destroy()
-        assert(bpy.data.objects.get((local_id_name, None), None) == None)
+        assert(bpy.data.objects.get((local_id_name, None), None) is None)
 
     def test_link_permissive(self):
         """

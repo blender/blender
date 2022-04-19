@@ -10,6 +10,7 @@ import bpy
 
 args = None
 
+
 class AbstractUSDTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -21,6 +22,7 @@ class AbstractUSDTest(unittest.TestCase):
 
         # Make sure we always start with a known-empty file.
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+
 
 class USDImportTest(AbstractUSDTest):
 
@@ -41,6 +43,7 @@ class USDImportTest(AbstractUSDTest):
         self.assertEqual(objects['World'], objects['Plane_001'].parent)
         self.assertEqual(objects['World'], objects['Empty'].parent)
         self.assertEqual(objects['Empty'], objects['Plane_002'].parent)
+
 
 def main():
     global args

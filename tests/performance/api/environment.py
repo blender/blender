@@ -32,7 +32,7 @@ class TestEnvironment:
         self._init_default_blender_executable()
         self.set_default_blender_executable()
 
-    def get_machine(self, need_gpus: bool=True) -> None:
+    def get_machine(self, need_gpus: bool = True) -> None:
         if not self.machine or (need_gpus and not self.machine.has_gpus):
             self.machine = TestMachine(self, need_gpus)
 
@@ -61,7 +61,8 @@ class TestEnvironment:
 
             if not self.blender_dir.exists():
                 print(f'Init git worktree in {self.blender_dir}')
-                self.call([self.git_executable, 'worktree', 'add', '--detach', self.blender_dir, 'HEAD'], self.blender_git_dir)
+                self.call([self.git_executable, 'worktree', 'add', '--detach',
+                          self.blender_dir, 'HEAD'], self.blender_git_dir)
             else:
                 print(f'Exists {self.blender_dir}')
 
@@ -165,7 +166,7 @@ class TestEnvironment:
     def unset_log_file(self) -> None:
         self.log_file = None
 
-    def call(self, args: List[str], cwd: pathlib.Path, silent: bool=False, environment: Dict={}) -> List[str]:
+    def call(self, args: List[str], cwd: pathlib.Path, silent: bool = False, environment: Dict = {}) -> List[str]:
         # Execute command with arguments in specified directory,
         # and return combined stdout and stderr output.
 
@@ -220,7 +221,7 @@ class TestEnvironment:
     def run_in_blender(self,
                        function: Callable[[Dict], Dict],
                        args: Dict,
-                       blender_args: List=[],
+                       blender_args: List = [],
                        foreground=False) -> Dict:
         # Run function in a Blender instance. Arguments and return values are
         # passed as a Python object that must be serializable with pickle.
@@ -274,7 +275,7 @@ class TestEnvironment:
 
         return names
 
-    def get_configs(self, name: str=None, names_only: bool=False) -> List:
+    def get_configs(self, name: str = None, names_only: bool = False) -> List:
         # Get list of configurations in the benchmarks directory.
         configs = []
 
