@@ -46,6 +46,15 @@ if "%3" == "debug" set CMAKE_DEBUG_OPTIONS=-DWITH_OPTIMIZED_DEBUG=Off
 set dobuild=1
 if "%4" == "nobuild" set dobuild=0
 
+REM If Python is be available certain deps may try to 
+REM to use this over the version we build, to prevent that
+REM make sure python is NOT in the path
+for %%X in (python.exe) do (set PYTHON=%%~$PATH:X)
+if EXIST "%PYTHON%" (
+  echo PYTHON found at %PYTHON% dependencies cannot be build with python available in the path
+  goto exit
+)
+
 set SOURCE_DIR=%~dp0\..
 set BUILD_DIR=%cd%\build
 set HARVEST_DIR=%BUILD_DIR%\output
@@ -99,7 +108,7 @@ cmake -G "%CMAKE_BUILDER%" %CMAKE_BUILD_ARCH% -Thost=x64  %SOURCE_DIR% -DPACKAGE
 echo %DATE% %TIME% : Release Configuration done >> %StatusFile%
 if "%dobuild%" == "1" (
 	msbuild /m "ll.vcxproj" /p:Configuration=Release /fl /flp:logfile=BlenderDeps_llvm.log;Verbosity=normal
-	msbuild /m "BlenderDependencies.sln" /p:Configuration=Release /fl /flp:logfile=BlenderDeps.log;Verbosity=minimal  /verbosity:minimal
+	msbuild /maxcpucount:1 /m "BlenderDependencies.sln" /p:Configuration=Release /fl /flp:logfile=BlenderDeps.log;Verbosity=minimal  /verbosity:minimal
 	echo %DATE% %TIME% : Release Build done >> %StatusFile%
 	cmake --build . --target Harvest_Release_Results  > Harvest_Release.txt
 )
@@ -112,7 +121,7 @@ cmake -G "%CMAKE_BUILDER%" %CMAKE_BUILD_ARCH% -Thost=x64 %SOURCE_DIR% -DPACKAGE_
 echo %DATE% %TIME% : Debug Configuration done >> %StatusFile%
 if "%dobuild%" == "1" (
 	msbuild /m "ll.vcxproj" /p:Configuration=Debug /fl /flp:logfile=BlenderDeps_llvm.log;;Verbosity=normal 
-	msbuild /m "BlenderDependencies.sln" /p:Configuration=Debug /verbosity:n /fl /flp:logfile=BlenderDeps.log;;Verbosity=normal
+	msbuild /maxcpucount:1 /m "BlenderDependencies.sln" /p:Configuration=Debug /verbosity:n /fl /flp:logfile=BlenderDeps.log;;Verbosity=normal
 	echo %DATE% %TIME% : Debug Build done >> %StatusFile%
 	cmake --build . --target Harvest_Debug_Results> Harvest_Debug.txt
 )

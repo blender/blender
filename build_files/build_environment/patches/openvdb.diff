@@ -1,35 +1,16 @@
-diff -Naur openvdb-8.0.0/cmake/FindIlmBase.cmake openvdb/cmake/FindIlmBase.cmake
---- openvdb-8.0.0/cmake/FindIlmBase.cmake	2020-12-24 10:13:14 -0700
-+++ openvdb/cmake/FindIlmBase.cmake	2021-02-05 12:07:49 -0700
-@@ -217,6 +217,12 @@
-     set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
-   endif()
-   list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES "${_IlmBase_Version_Suffix}.lib")
-+  list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
-+    "_s.lib"
-+  )
-+  list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
-+    "_s_d.lib"
-+  )
- else()
-   if(ILMBASE_USE_STATIC_LIBS)
-     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-diff -Naur openvdb-8.0.0/cmake/FindOpenEXR.cmake openvdb/cmake/FindOpenEXR.cmake
---- openvdb-8.0.0/cmake/FindOpenEXR.cmake	2020-12-24 10:13:14 -0700
-+++ openvdb/cmake/FindOpenEXR.cmake	2021-02-05 12:23:39 -0700
-@@ -210,6 +210,12 @@
-     set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
-   endif()
-   list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES "${_OpenEXR_Version_Suffix}.lib")
-+  list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
-+    "_s.lib"
-+  )
-+  list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
-+    "_s_d.lib"
-+  )
- else()
-   if(OPENEXR_USE_STATIC_LIBS)
-     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+diff -ur openvdb-9.0.0/cmake/FindTBB.cmake openvdb/cmake/FindTBB.cmake
+--- openvdb-9.0.0/cmake/FindTBB.cmake	2021-10-30 03:55:40.000000000 +0100
++++ openvdb/cmake/FindTBB.cmake	2022-03-31 11:33:15.592329750 +0100
+@@ -252,7 +252,8 @@
+       set(_TBB_LIB_NAME "${_TBB_LIB_NAME}${TBB_DEBUG_SUFFIX}")
+     endif()
+ 
+-    find_library(Tbb_${COMPONENT}_LIBRARY_${BUILD_TYPE} ${_TBB_LIB_NAME}
++    find_library(Tbb_${COMPONENT}_LIBRARY_${BUILD_TYPE}
++      NAMES ${_TBB_LIB_NAME} ${_TBB_LIB_NAME}_static
+       ${_FIND_TBB_ADDITIONAL_OPTIONS}
+       PATHS ${_TBB_LIBRARYDIR_SEARCH_DIRS}
+       PATH_SUFFIXES ${CMAKE_INSTALL_LIBDIR} lib64 lib
 diff -Naur openvdb-8.0.0/openvdb/openvdb/CMakeLists.txt openvdb/openvdb/openvdb/CMakeLists.txt
 --- openvdb-8.0.0/openvdb/openvdb/CMakeLists.txt	2020-12-24 10:13:14 -0700
 +++ openvdb/openvdb/openvdb/CMakeLists.txt	2021-02-05 11:18:33 -0700
