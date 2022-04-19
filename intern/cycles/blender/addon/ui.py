@@ -1034,7 +1034,7 @@ class CYCLES_OBJECT_PT_motion_blur(CyclesButtonsPanel, Panel):
     def poll(cls, context):
         ob = context.object
         if CyclesButtonsPanel.poll(context) and ob:
-            if ob.type in {'MESH', 'CURVE', 'CURVE', 'SURFACE', 'FONT', 'META', 'CAMERA', 'CURVES', 'POINTCLOUD'}:
+            if ob.type in {'MESH', 'CURVE', 'CURVE', 'SURFACE', 'FONT', 'META', 'CAMERA', 'CURVES', 'POINTCLOUD', 'VOLUME'}:
                 return True
             if ob.instance_type == 'COLLECTION' and ob.instance_collection:
                 return True

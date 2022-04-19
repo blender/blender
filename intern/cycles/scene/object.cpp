@@ -439,6 +439,14 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
       flag |= SD_OBJECT_HAS_VERTEX_MOTION;
     }
   }
+  else if (geom->is_volume()) {
+    Volume *volume = static_cast<Volume *>(geom);
+    if (volume->attributes.find(ATTR_STD_VOLUME_VELOCITY) &&
+        volume->get_velocity_scale() != 0.0f) {
+      flag |= SD_OBJECT_HAS_VOLUME_MOTION;
+      kobject.velocity_scale = volume->get_velocity_scale();
+    }
+  }
 
   if (state->need_motion == Scene::MOTION_PASS) {
     /* Clear motion array if there is no actual motion. */
@@ -488,7 +496,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.dupli_generated[2] = ob->dupli_generated[2];
   kobject.numkeys = (geom->geometry_type == Geometry::HAIR) ?
                         static_cast<Hair *>(geom)->get_curve_keys().size() :
-                    (geom->geometry_type == Geometry::POINTCLOUD) ?
+                        (geom->geometry_type == Geometry::POINTCLOUD) ?
                         static_cast<PointCloud *>(geom)->num_points() :
                         0;
   kobject.dupli_uv[0] = ob->dupli_uv[0];

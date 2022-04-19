@@ -66,6 +66,11 @@ struct ToNanoOp {
 #  endif
 #endif
 
+VDBImageLoader::VDBImageLoader(openvdb::GridBase::ConstPtr grid_, const string &grid_name)
+    : grid_name(grid_name), grid(grid_)
+{
+}
+
 VDBImageLoader::VDBImageLoader(const string &grid_name) : grid_name(grid_name)
 {
 }

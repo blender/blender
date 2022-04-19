@@ -489,6 +489,18 @@ enum PanoramaType {
   PANORAMA_NUM_TYPES,
 };
 
+/* Specifies an offset for the shutter's time interval. */
+enum MotionPosition {
+  /* Shutter opens at the current frame. */
+  MOTION_POSITION_START = 0,
+  /* Shutter is fully open at the current frame. */
+  MOTION_POSITION_CENTER = 1,
+  /* Shutter closes at the current frame. */
+  MOTION_POSITION_END = 2,
+
+  MOTION_NUM_POSITIONS,
+};
+
 /* Direct Light Sampling */
 
 enum DirectLightSamplingType {
@@ -635,6 +647,9 @@ typedef enum AttributeStandard {
   ATTR_STD_VOLUME_HEAT,
   ATTR_STD_VOLUME_TEMPERATURE,
   ATTR_STD_VOLUME_VELOCITY,
+  ATTR_STD_VOLUME_VELOCITY_X,
+  ATTR_STD_VOLUME_VELOCITY_Y,
+  ATTR_STD_VOLUME_VELOCITY_Z,
   ATTR_STD_POINTINESS,
   ATTR_STD_RANDOM_PER_ISLAND,
   ATTR_STD_SHADOW_TRANSPARENCY,
@@ -808,6 +823,8 @@ enum ShaderDataObjectFlag {
   SD_OBJECT_CAUSTICS_CASTER = (1 << 9),
   /* object is caustics receiver */
   SD_OBJECT_CAUSTICS_RECEIVER = (1 << 10),
+  /* object has attribute for volume motion */
+  SD_OBJECT_HAS_VOLUME_MOTION = (1 << 11),
 
   /* object is using caustics */
   SD_OBJECT_CAUSTICS = (SD_OBJECT_CAUSTICS_CASTER | SD_OBJECT_CAUSTICS_RECEIVER),
@@ -815,7 +832,8 @@ enum ShaderDataObjectFlag {
   SD_OBJECT_FLAGS = (SD_OBJECT_HOLDOUT_MASK | SD_OBJECT_MOTION | SD_OBJECT_TRANSFORM_APPLIED |
                      SD_OBJECT_NEGATIVE_SCALE_APPLIED | SD_OBJECT_HAS_VOLUME |
                      SD_OBJECT_INTERSECTS_VOLUME | SD_OBJECT_SHADOW_CATCHER |
-                     SD_OBJECT_HAS_VOLUME_ATTRIBUTES | SD_OBJECT_CAUSTICS)
+                     SD_OBJECT_HAS_VOLUME_ATTRIBUTES | SD_OBJECT_CAUSTICS |
+                     SD_OBJECT_HAS_VOLUME_MOTION)
 };
 
 typedef struct ccl_align(16) ShaderData
@@ -1040,7 +1058,7 @@ typedef struct KernelCamera {
   int rolling_shutter_type;
   float rolling_shutter_duration;
 
-  int pad;
+  int motion_position;
 } KernelCamera;
 static_assert_align(KernelCamera, 16);
 
@@ -1386,7 +1404,8 @@ typedef struct KernelObject {
   uint visibility;
   int primitive_type;
 
-  int pad1;
+  /* Volume velocity scale. */
+  float velocity_scale;
 } KernelObject;
 static_assert_align(KernelObject, 16);
 

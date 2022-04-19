@@ -360,6 +360,12 @@ const char *Attribute::standard_name(AttributeStandard std)
       return "temperature";
     case ATTR_STD_VOLUME_VELOCITY:
       return "velocity";
+    case ATTR_STD_VOLUME_VELOCITY_X:
+      return "velocity_x";
+    case ATTR_STD_VOLUME_VELOCITY_Y:
+      return "velocity_y";
+    case ATTR_STD_VOLUME_VELOCITY_Z:
+      return "velocity_z";
     case ATTR_STD_POINTINESS:
       return "pointiness";
     case ATTR_STD_RANDOM_PER_ISLAND:
@@ -587,6 +593,9 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
       case ATTR_STD_VOLUME_FLAME:
       case ATTR_STD_VOLUME_HEAT:
       case ATTR_STD_VOLUME_TEMPERATURE:
+      case ATTR_STD_VOLUME_VELOCITY_X:
+      case ATTR_STD_VOLUME_VELOCITY_Y:
+      case ATTR_STD_VOLUME_VELOCITY_Z:
         attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_VOXEL);
         break;
       case ATTR_STD_VOLUME_COLOR:
