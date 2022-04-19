@@ -5187,7 +5187,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
       }
       /* Visibility toggle. */
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE)) {
-        /* For F-curves, add the extra space for the color bands. */
+        /* For F-Curves, add the extra space for the color bands. */
         if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
           offset += GRAPH_ICON_VISIBILITY_OFFSET;
         }

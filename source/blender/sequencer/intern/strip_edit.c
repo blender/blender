@@ -461,7 +461,7 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
     return NULL;
   }
 
-  /* Store `F-curves`, so original ones aren't renamed. */
+  /* Store `F-Curves`, so original ones aren't renamed. */
   ListBase fcurves_original_backup = {NULL, NULL};
   SEQ_animation_backup_original(scene, &fcurves_original_backup);
 

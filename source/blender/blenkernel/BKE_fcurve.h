@@ -264,7 +264,7 @@ struct FCurve *id_data_find_fcurve(
     ID *id, void *data, struct StructRNA *type, const char *prop_name, int index, bool *r_driven);
 
 /**
- * Get list of LinkData's containing pointers to the F-curves
+ * Get list of LinkData's containing pointers to the F-Curves
  * which control the types of data indicated.
  * e.g. `numMatches = BKE_fcurves_filter(matches, &act->curves, "pose.bones[", "MyFancyBone");`
  *
