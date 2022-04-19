@@ -1474,6 +1474,11 @@ static int rna_property_override_diff_propptr(Main *bmain,
     (is_array ? RNA_property_##_typename##_set_index((_ptr), (_prop), (_index), (_value)) : \
                 RNA_property_##_typename##_set((_ptr), (_prop), (_value)))
 
+/**
+ * /return `0` is matching, `-1` if `prop_a < prop_b`, `1` if `prop_a > prop_b`. Note that for
+ * unquantifiable properties (e.g. pointers or collections), return value should be interpreted as
+ * a boolean (false == matching, true == not matching).
+ */
 int rna_property_override_diff_default(Main *bmain,
                                        PropertyRNAOrID *prop_a,
                                        PropertyRNAOrID *prop_b,
@@ -1932,25 +1937,25 @@ int rna_property_override_diff_default(Main *bmain,
           }
           else if (is_id || is_valid_for_diffing) {
             if (equals || do_create) {
-              const int eq = rna_property_override_diff_propptr(bmain,
-                                                                ptr_a->owner_id,
-                                                                ptr_b->owner_id,
-                                                                &iter_a.ptr,
-                                                                &iter_b.ptr,
-                                                                mode,
-                                                                no_ownership,
-                                                                no_prop_name,
-                                                                override,
-                                                                rna_path,
-                                                                rna_path_len,
-                                                                PROP_COLLECTION,
-                                                                propname_a,
-                                                                propname_b,
-                                                                idx_a,
-                                                                idx_b,
-                                                                flags,
-                                                                r_override_changed);
-              equals = equals && eq;
+              const int comp = rna_property_override_diff_propptr(bmain,
+                                                                  ptr_a->owner_id,
+                                                                  ptr_b->owner_id,
+                                                                  &iter_a.ptr,
+                                                                  &iter_b.ptr,
+                                                                  mode,
+                                                                  no_ownership,
+                                                                  no_prop_name,
+                                                                  override,
+                                                                  rna_path,
+                                                                  rna_path_len,
+                                                                  PROP_COLLECTION,
+                                                                  propname_a,
+                                                                  propname_b,
+                                                                  idx_a,
+                                                                  idx_b,
+                                                                  flags,
+                                                                  r_override_changed);
+              equals = equals && (comp == 0);
             }
           }
 
