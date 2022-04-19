@@ -1943,6 +1943,8 @@ static void material_default_gpencil_init(Material *ma)
 
 static void material_default_surface_init(Material *ma)
 {
+  strcpy(ma->id.name, "MADefault Surface");
+
   bNodeTree *ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
   ma->nodetree = ntree;
   ma->use_nodes = true;
@@ -1969,6 +1971,8 @@ static void material_default_surface_init(Material *ma)
 
 static void material_default_volume_init(Material *ma)
 {
+  strcpy(ma->id.name, "MADefault Volume");
+
   bNodeTree *ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
   ma->nodetree = ntree;
   ma->use_nodes = true;
@@ -1992,6 +1996,8 @@ static void material_default_volume_init(Material *ma)
 
 static void material_default_holdout_init(Material *ma)
 {
+  strcpy(ma->id.name, "MADefault Holdout");
+
   bNodeTree *ntree = ntreeAddTree(NULL, "Shader Nodetree", ntreeType_Shader->idname);
   ma->nodetree = ntree;
   ma->use_nodes = true;
