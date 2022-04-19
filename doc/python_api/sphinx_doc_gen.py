@@ -1151,6 +1151,9 @@ def pycontext2sphinx(basepath):
     fw("Note that all context values are readonly,\n")
     fw("but may be modified through the data API or by running operators\n\n")
 
+    # Track all unique properties to properly use `noindex`.
+    unique = set()
+
     def write_contex_cls():
 
         fw(title_string("Global Context", "-"))
@@ -1168,9 +1171,11 @@ def pycontext2sphinx(basepath):
 
         # First write RNA
         for prop in sorted_struct_properties:
-            # support blacklisting props
+            # Support blacklisting props.
             if prop.identifier in struct_blacklist:
                 continue
+            # No need to check if there are duplicates yet as it's known there wont be.
+            unique.add(prop.identifier)
 
             type_descr = prop.get_type_description(
                 class_fmt=":class:`bpy.types.%s`", collection_id=_BPY_PROP_COLLECTION_ID)
@@ -1208,7 +1213,8 @@ def pycontext2sphinx(basepath):
         "file_context_dir",
     )
 
-    unique = set()
+    # Track unique for `context_strings` to validate `context_type_map`.
+    unique_context_strings = set()
     blend_cdll = ctypes.CDLL("")
     for ctx_str in context_strings:
         subsection = "%s Context" % ctx_str.split("_")[0].title()
@@ -1220,22 +1226,32 @@ def pycontext2sphinx(basepath):
         i = 0
         while char_array[i] is not None:
             member = ctypes.string_at(char_array[i]).decode(encoding="ascii")
-            fw(".. data:: %s\n\n" % member)
+            unique_all_len = len(unique)
+            unique.add(member)
+            member_visited = unique_all_len == len(unique)
+
+            unique_context_strings.add(member)
+
+            fw(".. data:: %s\n" % member)
+            # Avoid warnings about the member being included multiple times.
+            if member_visited:
+                fw("   :noindex:\n")
+            fw("\n")
+
             try:
                 member_type, is_seq = context_type_map[member]
             except KeyError:
                 raise SystemExit("Error: context key %r not found in context_type_map; update %s" % (member, __file__)) from None
             fw("   :type: %s :class:`bpy.types.%s`\n\n" % ("sequence of " if is_seq else "", member_type))
-            unique.add(member)
             i += 1
 
     # generate typemap...
-    # for member in sorted(unique):
+    # for member in sorted(unique_context_strings):
     #     print('        "%s": ("", False),' % member)
-    if len(context_type_map) > len(unique):
+    if len(context_type_map) > len(unique_context_strings):
         warnings.warn(
             "Some types are not used: %s" %
-            str([member for member in context_type_map if member not in unique]))
+            str([member for member in context_type_map if member not in unique_context_strings]))
     else:
         pass  # will have raised an error above
 
