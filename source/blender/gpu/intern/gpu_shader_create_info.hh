@@ -629,6 +629,7 @@ struct ShaderCreateInfo {
     res.sampler.name = name;
     /* Produces asan errors for the moment. */
     // res.sampler.sampler = sampler;
+    UNUSED_VARS(sampler);
     ((freq == Frequency::PASS) ? pass_resources_ : batch_resources_).append(res);
     interface_names_size_ += name.size() + 1;
     return *(Self *)this;
