@@ -93,17 +93,15 @@ static int node_shader_gpu_volume_principled(GPUMaterial *mat,
   }
 
   /* Default values if attributes not found. */
+  static float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   if (!density) {
-    static float one = 1.0f;
-    density = GPU_constant(&one);
+    density = GPU_constant(white);
   }
   if (!color) {
-    static float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
     color = GPU_constant(white);
   }
   if (!temperature) {
-    static float one = 1.0f;
-    temperature = GPU_constant(&one);
+    temperature = GPU_constant(white);
   }
 
   /* Create blackbody spectrum. */
