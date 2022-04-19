@@ -573,7 +573,7 @@ def example_extract_docstring(filepath):
         line_no += 1
 
     file.close()
-    return "\n".join(text), line_no, line_no_has_content
+    return "\n".join(text).rstrip("\n"), line_no, line_no_has_content
 
 
 def title_string(text, heading_char, double=False):
@@ -593,9 +593,13 @@ def write_example_ref(ident, fw, example_id, ext="py"):
         filepath_full = os.path.join(os.path.dirname(fw.__self__.name), filepath)
 
         text, line_no, line_no_has_content = example_extract_docstring(filepath_full)
+        if text:
+            # Ensure a blank line, needed since in some cases the indentation doesn't match the previous line.
+            # which causes Sphinx not to warn about bad indentation.
+            fw("\n")
+            for line in text.split("\n"):
+                fw("%s\n" % (ident + line).rstrip())
 
-        for line in text.split("\n"):
-            fw("%s\n" % (ident + line).rstrip())
         fw("\n")
 
         # Some files only contain a doc-string.
