@@ -594,11 +594,6 @@ void GPU_material_status_set(GPUMaterial *mat, eGPUMaterialStatus status)
 
 /* Code generation */
 
-bool GPU_material_is_volume_shader(GPUMaterial *mat)
-{
-  return mat->is_volume_shader;
-}
-
 bool GPU_material_has_surface_output(GPUMaterial *mat)
 {
   return mat->has_surface_output;

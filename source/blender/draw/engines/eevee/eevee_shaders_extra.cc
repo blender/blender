@@ -151,7 +151,7 @@ void eevee_shader_material_create_info_amend(GPUMaterial *gpumat,
     }
     frag_gen << "Closure nodetree_exec()\n";
     frag_gen << "{\n";
-    if (GPU_material_is_volume_shader(gpumat)) {
+    if (is_volume) {
       frag_gen << ((codegen.volume) ? codegen.volume : "return CLOSURE_DEFAULT;\n");
     }
     else {

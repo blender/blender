@@ -239,7 +239,6 @@ struct GPUUniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material);
 void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs);
 struct GPUUniformBuf *GPU_material_create_sss_profile_ubo(void);
 
-bool GPU_material_is_volume_shader(GPUMaterial *mat);
 bool GPU_material_has_surface_output(GPUMaterial *mat);
 bool GPU_material_has_volume_output(GPUMaterial *mat);
 
