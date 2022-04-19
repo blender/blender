@@ -133,9 +133,6 @@ set(SRC
   engines/eevee/eevee_temporal_sampling.c
   engines/eevee/eevee_volumes.c
   engines/eevee_next/eevee_engine.cc
-  engines/eevee_next/eevee_instance.cc
-  engines/eevee_next/eevee_shader.cc
-  engines/eevee_next/eevee_id_map.cc
   engines/workbench/workbench_data.c
   engines/workbench/workbench_effect_antialiasing.c
   engines/workbench/workbench_effect_cavity.c
