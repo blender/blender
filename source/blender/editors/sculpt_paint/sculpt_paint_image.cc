@@ -330,7 +330,7 @@ static void do_paint_pixels(void *__restrict userdata,
           kernel_float4.init_brush_color(image_buffer);
         }
         else {
-          kernel_float4.init_brush_color(image_buffer);
+          kernel_byte4.init_brush_color(image_buffer);
         }
 
         for (const PackedPixelRow &pixel_row : tile_data.pixel_rows) {
