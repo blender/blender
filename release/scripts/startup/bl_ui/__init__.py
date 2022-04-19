@@ -239,4 +239,5 @@ class UI_MT_list_item_context_menu(bpy.types.Menu):
         # context menu items.
         pass
 
+
 bpy.utils.register_class(UI_MT_list_item_context_menu)

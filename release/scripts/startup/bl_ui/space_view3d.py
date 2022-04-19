@@ -2835,6 +2835,7 @@ class VIEW3D_MT_object_cleanup(Menu):
 
         layout.operator("object.material_slot_remove_unused", text="Remove Unused Material Slots")
 
+
 class VIEW3D_MT_object_asset(Menu):
     bl_label = "Asset"
 
@@ -6498,7 +6499,6 @@ class VIEW3D_PT_overlay_edit_mesh_normals(Panel):
             sub.prop(overlay, "normals_length", text="Size")
 
         row.prop(overlay, "use_normals_constant_screen_size", text="", icon='FIXED_SIZE')
-
 
 
 class VIEW3D_PT_overlay_edit_mesh_freestyle(Panel):

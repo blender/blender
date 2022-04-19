@@ -776,7 +776,7 @@ class NodeTreeInterfacePanel:
                 "node.tree_socket_change_type",
                 "socket_type",
                 text=active_socket.bl_label if active_socket.bl_label else active_socket.bl_idname
-                )
+            )
             props.in_out = in_out
 
             layout.use_property_split = True
@@ -815,6 +815,7 @@ class NODE_PT_node_tree_interface_inputs(NodeTreeInterfacePanel, Panel):
 
     def draw(self, context):
         self.draw_socket_list(context, "IN", "inputs", "active_input")
+
 
 class NODE_PT_node_tree_interface_outputs(NodeTreeInterfacePanel, Panel):
     bl_space_type = 'NODE_EDITOR'

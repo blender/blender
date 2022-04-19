@@ -1959,7 +1959,6 @@ class SEQUENCER_PT_adjust_sound(SequencerButtonsPanel, Panel):
                 split.prop(strip, "show_waveform")
 
 
-
 class SEQUENCER_PT_adjust_comp(SequencerButtonsPanel, Panel):
     bl_label = "Compositing"
     bl_category = "Strip"
