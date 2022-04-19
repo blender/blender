@@ -1,6 +1,5 @@
 #pragma BLENDER_REQUIRE(gpu_shader_material_hash.glsl)
 
-
 void node_hair_info(float hair_length,
                     out float is_strand,
                     out float intercept,

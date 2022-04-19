@@ -116,7 +116,11 @@ GHOST_Wintab *GHOST_Wintab::loadWintab(HWND hwnd)
   }
 
   int sanityQueueSize = queueSizeGet(hctx.get());
-  WINTAB_PRINTF("HCTX %p %s queueSize: %d, queueSizeGet: %d\n", hctx.get(), __func__, queueSize, sanityQueueSize);
+  WINTAB_PRINTF("HCTX %p %s queueSize: %d, queueSizeGet: %d\n",
+                hctx.get(),
+                __func__,
+                queueSize,
+                sanityQueueSize);
 
   WINTAB_PRINTF("Loaded Wintab context %p\n", hctx.get());
 
@@ -274,7 +278,11 @@ void GHOST_Wintab::updateCursorInfo()
   else {
     m_maxAzimuth = m_maxAltitude = 0;
   }
-  WINTAB_PRINTF("HCTX %p %s maxAzimuth: %d, maxAltitude: %d\n", m_context.get(), __func__, m_maxAzimuth, m_maxAltitude);
+  WINTAB_PRINTF("HCTX %p %s maxAzimuth: %d, maxAltitude: %d\n",
+                m_context.get(),
+                __func__,
+                m_maxAzimuth,
+                m_maxAltitude);
 }
 
 void GHOST_Wintab::processInfoChange(LPARAM lParam)
@@ -531,10 +539,10 @@ void GHOST_Wintab::printContextDebugInfo()
 
   /* Print system information. */
   printf("left: %d, top: %d, width: %d, height: %d\n",
-                ::GetSystemMetrics(SM_XVIRTUALSCREEN),
-                ::GetSystemMetrics(SM_YVIRTUALSCREEN),
-                ::GetSystemMetrics(SM_CXVIRTUALSCREEN),
-                ::GetSystemMetrics(SM_CYVIRTUALSCREEN));
+         ::GetSystemMetrics(SM_XVIRTUALSCREEN),
+         ::GetSystemMetrics(SM_YVIRTUALSCREEN),
+         ::GetSystemMetrics(SM_CXVIRTUALSCREEN),
+         ::GetSystemMetrics(SM_CYVIRTUALSCREEN));
 
   auto printContextRanges = [](LOGCONTEXT &lc) {
     printf("lcInOrgX: %d, lcInOrgY: %d, lcInExtX: %d, lcInExtY: %d\n",
@@ -576,7 +584,7 @@ void GHOST_Wintab::printContextDebugInfo()
   m_fpInfo(WTI_DEFSYSCTX, CTX_SYSEXTY, &lc.lcSysExtY);
   printf("WTI_DEFSYSCTX CTX_*\n");
   printContextRanges(lc);
-    
+
   for (unsigned int i = 0; i < m_numDevices; i++) {
     /* Print individual device system context. */
     m_fpInfo(WTI_DSCTXS + i, 0, &lc);
@@ -604,11 +612,11 @@ void GHOST_Wintab::printContextDebugInfo()
     m_fpInfo(WTI_DEVICES + i, DVC_X, &axis_x);
     m_fpInfo(WTI_DEVICES + i, DVC_Y, &axis_y);
     printf("WTI_DEVICES %u axis_x org: %d, axis_y org: %d axis_x ext: %d, axis_y ext: %d\n",
-                  i,
-                  axis_x.axMin,
-                  axis_y.axMin,
-                  axis_x.axMax - axis_x.axMin + 1,
-                  axis_y.axMax - axis_y.axMin + 1);
+           i,
+           axis_x.axMin,
+           axis_y.axMin,
+           axis_x.axMax - axis_x.axMin + 1,
+           axis_y.axMax - axis_y.axMin + 1);
   }
 
   /* Other stuff while we have a logcontext. */
