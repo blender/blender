@@ -240,7 +240,6 @@ static DRWShadingGroup *drw_volume_object_mesh_init(Scene *scene,
 static DRWShadingGroup *drw_volume_world_grids_init(ListBase *attrs, DRWShadingGroup *grp)
 {
   /* Bind default volume grid textures. */
-  int grid_id = 0;
   LISTBASE_FOREACH (GPUMaterialAttribute *, attr, attrs) {
     DRW_shgroup_uniform_texture(grp, attr->input_name, grid_default_texture(attr->default_value));
   }
