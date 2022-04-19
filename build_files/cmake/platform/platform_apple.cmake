@@ -71,6 +71,7 @@ set(CMAKE_PREFIX_PATH ${LIB_SUBDIRS})
 # Find precompiled libraries, and avoid system or user-installed ones.
 
 if(EXISTS ${LIBDIR})
+  include(platform_old_libs_update)
   without_system_libs_begin()
 endif()
 

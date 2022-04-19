@@ -284,7 +284,7 @@ option(WITH_IMAGE_TIFF          "Enable LibTIFF Support" ON)
 option(WITH_IMAGE_DDS           "Enable DDS Image Support" ON)
 option(WITH_IMAGE_CINEON        "Enable CINEON and DPX Image Support" ON)
 option(WITH_IMAGE_HDR           "Enable HDR Image Support" ON)
-option(WITH_IMAGE_WEBP          "Enable WebP Image Support" OFF)
+option(WITH_IMAGE_WEBP          "Enable WebP Image Support" ON)
 
 # Audio/Video format support
 option(WITH_CODEC_AVI           "Enable Blenders own AVI file support (raw/jpeg)" ON)
@@ -302,7 +302,7 @@ option(WITH_USD                 "Enable Universal Scene Description (USD) Suppor
 option(WITH_OPENCOLLADA   "Enable OpenCollada Support (http://www.opencollada.org)" ON)
 
 # Sound output
-option(WITH_SDL           "Enable SDL for sound and joystick support" ON)
+option(WITH_SDL           "Enable SDL for sound" ON)
 option(WITH_OPENAL        "Enable OpenAL Support (http://www.openal.org)" ON)
 if(APPLE)
   option(WITH_COREAUDIO    "Enable CoreAudio for audio support on macOS" ON)
