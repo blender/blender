@@ -21,6 +21,7 @@ struct Object;
 struct ParticleSystem;
 struct RegionView3D;
 struct ViewLayer;
+struct Scene;
 struct DRWData;
 
 /* Keep in sync with globalsBlock in shaders */
@@ -73,6 +74,22 @@ void DRW_hair_duplimat_get(struct Object *object,
 void DRW_hair_init(void);
 void DRW_hair_update(void);
 void DRW_hair_free(void);
+
+/* draw_volume.cc */
+
+/**
+ * Add attributes bindings of volume grids to an exhisting shading group.
+ * No draw call is added so the caller can decide how to use the data.
+ * \return nullptr if there is something to draw.
+ */
+struct DRWShadingGroup *DRW_shgroup_volume_create_sub(struct Scene *scene,
+                                                      struct Object *ob,
+                                                      struct DRWShadingGroup *shgrp,
+                                                      struct GPUMaterial *gpu_material);
+
+void DRW_volume_init(struct DRWData *drw_data);
+void DRW_volume_ubos_pool_free(void *pool);
+void DRW_volume_free(void);
 
 /* draw_fluid.c */
 

@@ -49,7 +49,6 @@ using namespace blender::gpu::shader;
 
 struct GPUCodegenCreateInfo : ShaderCreateInfo {
   struct NameBuffer {
-    char attr_names[16][GPU_MAX_SAFE_ATTR_NAME + 1];
     char var_names[16][8];
   };
 
@@ -171,10 +170,6 @@ static std::ostream &operator<<(std::ostream &stream, const GPUInput *input)
       return stream << input->texture->sampler_name;
     case GPU_SOURCE_TEX_TILED_MAPPING:
       return stream << input->texture->tiled_mapping_name;
-    case GPU_SOURCE_VOLUME_GRID:
-      return stream << input->volume_grid->sampler_name;
-    case GPU_SOURCE_VOLUME_GRID_TRANSFORM:
-      return stream << input->volume_grid->transform_name;
     default:
       BLI_assert(0);
       return stream;
@@ -276,28 +271,6 @@ class GPUCodegen {
   }
 };
 
-static char attr_prefix_get(CustomDataType type)
-{
-  switch (type) {
-    case CD_MTFACE:
-      return 'u';
-    case CD_TANGENT:
-      return 't';
-    case CD_MCOL:
-    case CD_MLOOPCOL:
-      return 'c';
-    case CD_PROP_COLOR:
-      return 'c';
-    case CD_AUTO_FROM_NAME:
-      return 'a';
-    case CD_HAIRLENGTH:
-      return 'l';
-    default:
-      BLI_assert_msg(0, "GPUVertAttr Prefix type not found : This should not happen!");
-      return '\0';
-  }
-}
-
 void GPUCodegen::generate_attribs()
 {
   if (BLI_listbase_is_empty(&graph.attributes)) {
@@ -317,24 +290,9 @@ void GPUCodegen::generate_attribs()
 
   int slot = 15;
   LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph.attributes) {
-
-    /* NOTE: Replicate changes to mesh_render_data_create() in draw_cache_impl_mesh.c */
-    if (attr->type == CD_ORCO) {
-      /* OPTI: orco is computed from local positions, but only if no modifier is present. */
-      STRNCPY(info.name_buffer->attr_names[slot], "orco");
-    }
-    else {
-      char *name = info.name_buffer->attr_names[slot];
-      name[0] = attr_prefix_get(static_cast<CustomDataType>(attr->type));
-      name[1] = '\0';
-      if (attr->name[0] != '\0') {
-        /* XXX FIXME: see notes in mesh_render_data_create() */
-        GPU_vertformat_safe_attr_name(attr->name, &name[1], GPU_MAX_SAFE_ATTR_NAME);
-      }
-    }
     SNPRINTF(info.name_buffer->var_names[slot], "v%d", attr->id);
 
-    blender::StringRefNull attr_name = info.name_buffer->attr_names[slot];
+    blender::StringRefNull attr_name = attr->input_name;
     blender::StringRefNull var_name = info.name_buffer->var_names[slot];
 
     eGPUType input_type, iface_type;
@@ -394,12 +352,6 @@ void GPUCodegen::generate_resources()
     else {
       info.sampler(0, ImageType::FLOAT_2D, tex->sampler_name, Frequency::BATCH);
     }
-  }
-  /* Volume Grids. */
-  LISTBASE_FOREACH (GPUMaterialVolumeGrid *, grid, &graph.volume_grids) {
-    info.sampler(0, ImageType::FLOAT_3D, grid->sampler_name, Frequency::BATCH);
-    /* TODO(@fclem): Global uniform. To put in an UBO. */
-    info.push_constant(Type::MAT4, grid->transform_name);
   }
 
   if (!BLI_listbase_is_empty(&ubo_inputs_)) {

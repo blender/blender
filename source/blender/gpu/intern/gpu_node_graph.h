@@ -34,8 +34,6 @@ typedef enum eGPUDataSource {
   GPU_SOURCE_STRUCT,
   GPU_SOURCE_TEX,
   GPU_SOURCE_TEX_TILED_MAPPING,
-  GPU_SOURCE_VOLUME_GRID,
-  GPU_SOURCE_VOLUME_GRID_TRANSFORM,
   GPU_SOURCE_FUNCTION_CALL,
 } eGPUDataSource;
 
@@ -48,8 +46,6 @@ typedef enum {
   GPU_NODE_LINK_IMAGE,
   GPU_NODE_LINK_IMAGE_TILED,
   GPU_NODE_LINK_IMAGE_TILED_MAPPING,
-  GPU_NODE_LINK_VOLUME_GRID,
-  GPU_NODE_LINK_VOLUME_GRID_TRANSFORM,
   GPU_NODE_LINK_OUTPUT,
   GPU_NODE_LINK_UNIFORM,
   GPU_NODE_LINK_DIFFERENTIATE_FLOAT_FN,
@@ -90,8 +86,6 @@ struct GPUNodeLink {
     const float *data;
     /* GPU_NODE_LINK_COLORBAND */
     struct GPUTexture **colorband;
-    /* GPU_NODE_LINK_VOLUME_GRID */
-    struct GPUMaterialVolumeGrid *volume_grid;
     /* GPU_NODE_LINK_OUTPUT */
     struct GPUOutput *output;
     /* GPU_NODE_LINK_ATTR */
@@ -134,8 +128,6 @@ typedef struct GPUInput {
     struct GPUMaterialAttribute *attr;
     /* GPU_SOURCE_UNIFORM_ATTR */
     struct GPUUniformAttr *uniform_attr;
-    /* GPU_SOURCE_VOLUME_GRID | GPU_SOURCE_VOLUME_GRID_TRANSFORM */
-    struct GPUMaterialVolumeGrid *volume_grid;
     /* GPU_SOURCE_FUNCTION_CALL */
     char function_call[64];
   };
@@ -170,7 +162,6 @@ typedef struct GPUNodeGraph {
   /* Requested attributes and textures. */
   ListBase attributes;
   ListBase textures;
-  ListBase volume_grids;
 
   /* The list of uniform attributes. */
   GPUUniformAttrList uniform_attrs;

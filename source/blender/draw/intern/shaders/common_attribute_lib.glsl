@@ -19,3 +19,15 @@ vec4 attr_load_vec4(samplerBuffer attr);
 vec3 attr_load_vec3(samplerBuffer attr);
 vec2 attr_load_vec2(samplerBuffer attr);
 float attr_load_float(samplerBuffer attr);
+
+vec3 attr_load_orco(sampler3D orco);
+vec4 attr_load_tangent(sampler3D tangent);
+vec3 attr_load_uv(sampler3D attr);
+vec4 attr_load_color(sampler3D tex);
+vec4 attr_load_vec4(sampler3D tex);
+vec3 attr_load_vec3(sampler3D tex);
+vec2 attr_load_vec2(sampler3D tex);
+float attr_load_float(sampler3D tex);
+
+float attr_load_temperature_post(float attr);
+vec4 attr_load_color_post(vec4 attr);

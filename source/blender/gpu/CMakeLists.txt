@@ -370,7 +370,6 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_velvet.glsl
   shaders/material/gpu_shader_material_vertex_color.glsl
   shaders/material/gpu_shader_material_volume_absorption.glsl
-  shaders/material/gpu_shader_material_volume_info.glsl
   shaders/material/gpu_shader_material_volume_principled.glsl
   shaders/material/gpu_shader_material_volume_scatter.glsl
   shaders/material/gpu_shader_material_wireframe.glsl

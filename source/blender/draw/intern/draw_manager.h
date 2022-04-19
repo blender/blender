@@ -527,6 +527,8 @@ typedef struct DRWData {
   struct GPUUniformBuf **obinfos_ubo;
   struct GHash *obattrs_ubo_pool;
   uint ubo_len;
+  /** Per draw-call volume object data. */
+  void *volume_grids_ubos; /* VolumeUniformBufPool */
   /** List of smoke textures to free after drawing. */
   ListBase smoke_textures;
   /** Texture pool to reuse temp texture across engines. */

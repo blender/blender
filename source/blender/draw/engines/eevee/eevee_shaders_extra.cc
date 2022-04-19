@@ -97,11 +97,25 @@ void eevee_shader_material_create_info_amend(GPUMaterial *gpumat,
     }
     attr_load << "};\n";
     attr_load << iface.name << " " << iface.instance_name << ";\n";
-    /* Global vars just to make code valid. Only Orco is supported. */
-    for (const ShaderCreateInfo::VertIn &in : info.vertex_inputs_) {
-      attr_load << in.type << " " << in.name << ";\n";
+    if (!is_volume) {
+      /* Global vars just to make code valid. Only Orco is supported. */
+      for (const ShaderCreateInfo::VertIn &in : info.vertex_inputs_) {
+        attr_load << in.type << " " << in.name << ";\n";
+      }
     }
     info.vertex_out_interfaces_.clear();
+  }
+  if (is_volume) {
+    /** Volume grid attributes come from 3D textures. Transfer attributes to samplers. */
+    for (auto &input : info.vertex_inputs_) {
+      info.sampler(0, ImageType::FLOAT_3D, input.name, Frequency::BATCH);
+    }
+    info.additional_info("draw_volume_infos");
+    /* Do not add twice. */
+    if (!GPU_material_flag_get(gpumat, GPU_MATFLAG_OBJECT_INFO)) {
+      info.additional_info("draw_object_infos");
+    }
+    info.vertex_inputs_.clear();
   }
 
   if (!is_volume) {

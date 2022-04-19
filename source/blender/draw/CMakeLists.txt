@@ -98,6 +98,7 @@ set(SRC
   intern/draw_texture_pool.cc
   intern/draw_view.c
   intern/draw_view_data.cc
+  intern/draw_volume.cc
   intern/smaa_textures.c
   engines/basic/basic_engine.c
   engines/basic/basic_shader.c
@@ -132,6 +133,9 @@ set(SRC
   engines/eevee/eevee_temporal_sampling.c
   engines/eevee/eevee_volumes.c
   engines/eevee_next/eevee_engine.cc
+  engines/eevee_next/eevee_instance.cc
+  engines/eevee_next/eevee_shader.cc
+  engines/eevee_next/eevee_id_map.cc
   engines/workbench/workbench_data.c
   engines/workbench/workbench_effect_antialiasing.c
   engines/workbench/workbench_effect_cavity.c
