@@ -99,7 +99,7 @@ static void cage2d_draw_box_corners(const rctf *r,
                                     const float color[3],
                                     const float line_width)
 {
-  /* Note(Metal): Prefer using 3D coordinates with 3D shader, even if rendering 2D gizmo's. */
+  /* NOTE(Metal): Prefer using 3D coordinates with 3D shader, even if rendering 2D gizmo's. */
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
   immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
@@ -442,7 +442,7 @@ static void imm_draw_point_aspect_2d(
     uint pos, float x, float y, float rad_x, float rad_y, bool solid)
 {
   if (solid) {
-    /* Note(Metal/AMD): Small Triangle-list primitives more optimal for GPU HW than Trianglestrip.
+    /* NOTE(Metal/AMD): Small Triangle-list primitives more optimal for GPU HW than Triangle-strip.
      */
     immBegin(GPU_PRIM_TRIS, 6);
     immVertex2f(pos, x - rad_x, y - rad_y);
@@ -455,7 +455,7 @@ static void imm_draw_point_aspect_2d(
     immEnd();
   }
   else {
-    /* Note(Metal/AMD): Small Line-list primitives more optimal for GPU HW than Linestrip. */
+    /* NOTE(Metal/AMD): Small Line-list primitives more optimal for GPU HW than Line-strip. */
     immBegin(GPU_PRIM_LINES, 8);
     immVertex2f(pos, x - rad_x, y - rad_y);
     immVertex2f(pos, x - rad_x, y + rad_y);
@@ -479,7 +479,7 @@ static void cage2d_draw_circle_wire(const rctf *r,
                                     const int draw_options,
                                     const float line_width)
 {
-  /* Note(Metal): Prefer using 3D coordinates with 3D shader input, even if rendering 2D gizmo's.
+  /* NOTE(Metal): Prefer using 3D coordinates with 3D shader input, even if rendering 2D gizmo's.
    */
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
@@ -491,7 +491,7 @@ static void cage2d_draw_circle_wire(const rctf *r,
   immUniform2fv("viewportSize", &viewport[2]);
   immUniform1f("lineWidth", line_width * U.pixelsize);
 
-  /* Small 'lines' primitives more efficient for hardware processing than linestrip. */
+  /* Small 'lines' primitives more efficient for hardware processing than line-strip. */
   immBegin(GPU_PRIM_LINES, 8);
   immVertex3f(pos, r->xmin, r->ymin, 0.0f);
   immVertex3f(pos, r->xmax, r->ymin, 0.0f);

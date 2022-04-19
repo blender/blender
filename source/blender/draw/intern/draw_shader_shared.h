@@ -70,7 +70,7 @@ BLI_STATIC_ASSERT_ALIGN(ViewInfos, 16)
 struct VolumeInfos {
   /* Object to grid-space. */
   float4x4 grids_xform[DRW_GRID_PER_VOLUME_MAX];
-  /* NOTE: vec4 for alignement. Only float3 needed. */
+  /* NOTE: vec4 for alignment. Only float3 needed. */
   float4 color_mul;
   float density_scale;
   float temperature_mul;

@@ -116,7 +116,7 @@ typedef enum eGPUDefaultValue {
 
 typedef struct GPUCodegenOutput {
   char *attr_load;
-  /* Nodetree functions calls. */
+  /* Node-tree functions calls. */
   char *displacement;
   char *surface;
   char *volume;

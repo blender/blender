@@ -562,8 +562,8 @@ static void rna_PaintModeSettings_canvas_source_update(bContext *C, PointerRNA *
 {
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
-  /* When canvas source changes the pbvh would require updates when switching between color
-   * attributes.  */
+  /* When canvas source changes the PBVH would require updates when switching between color
+   * attributes. */
   if (ob && ob->type == OB_MESH) {
     BKE_texpaint_slots_refresh_object(scene, ob);
     DEG_id_tag_update(&ob->id, 0);

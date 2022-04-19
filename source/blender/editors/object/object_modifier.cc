@@ -855,7 +855,7 @@ bool ED_object_modifier_apply(Main *bmain,
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
   ModifierData *md_eval = (ob_eval) ? BKE_modifiers_findby_name(ob_eval, md->name) : md;
 
-  /* allow apply of a not-realtime modifier, by first re-enabling realtime. */
+  /* Allow apply of a non-real-time modifier, by first re-enabling real-time. */
   int prev_mode = md_eval->mode;
   md_eval->mode |= eModifierMode_Realtime;
 

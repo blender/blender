@@ -1126,17 +1126,17 @@ static void get_keyframe_values_create_reports(ReportList *reports,
   for (int i = 0; i < count; i++) {
     const bool cur_index_evaluated = ELEM(index, i, -1) || force_all;
     if (!cur_index_evaluated) {
-      /* values[i] was never intended to be remapped. */
+      /* `values[i]` was never intended to be remapped. */
       continue;
     }
 
     if (BLI_BITMAP_TEST_BOOL(successful_remaps, i)) {
-      /* values[i] succesfully remapped. */
+      /* `values[i]` successfully remapped. */
       continue;
     }
 
     total_failed++;
-    /* Report that values[i] were intended to be remapped but failed remapping process. */
+    /* Report that `values[i]` were intended to be remapped but failed remapping process. */
     BLI_dynstr_appendf(ds_failed_indices, "%d, ", i);
   }
 

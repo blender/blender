@@ -22,12 +22,14 @@
 
 namespace blender::bke::pbvh::pixels {
 
-/** Durind debugging this check could be enabled. It will write to each image pixel that is covered
- * by the pbvh. */
+/**
+ * During debugging this check could be enabled.
+ * It will write to each image pixel that is covered by the PBVH.
+ */
 constexpr bool USE_WATERTIGHT_CHECK = false;
 
 /**
- * Calculate the delta of two neighbour uv coordinates in the given image buffer.
+ * Calculate the delta of two neighbor UV coordinates in the given image buffer.
  */
 static float2 calc_barycentric_delta(const float2 uvs[3],
                                      const float2 start_uv,

@@ -451,7 +451,7 @@ bool last_cylic_segment_is_vector(Span<int8_t> handle_types_left, Span<int8_t> h
 
 /**
  * Return true if the handle types at the index are free (#BEZIER_HANDLE_FREE) or vector
- * (#BEZIER_HANDLE_VECTOR). In these cases, directional continuitity from the previous and next
+ * (#BEZIER_HANDLE_VECTOR). In these cases, directional continuities from the previous and next
  * evaluated segments is assumed not to be desired.
  */
 bool point_is_sharp(Span<int8_t> handle_types_left, Span<int8_t> handle_types_right, int index);

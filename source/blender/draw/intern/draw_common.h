@@ -78,7 +78,7 @@ void DRW_hair_free(void);
 /* draw_volume.cc */
 
 /**
- * Add attributes bindings of volume grids to an exhisting shading group.
+ * Add attributes bindings of volume grids to an existing shading group.
  * No draw call is added so the caller can decide how to use the data.
  * \return nullptr if there is something to draw.
  */

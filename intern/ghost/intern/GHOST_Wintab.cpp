@@ -619,6 +619,6 @@ void GHOST_Wintab::printContextDebugInfo()
            axis_y.axMax - axis_y.axMin + 1);
   }
 
-  /* Other stuff while we have a logcontext. */
+  /* Other stuff while we have a log-context. */
   printf("sysmode %d\n", lc.lcSysMode);
 }

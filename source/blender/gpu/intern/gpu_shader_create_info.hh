@@ -627,7 +627,7 @@ struct ShaderCreateInfo {
     Resource res(Resource::BindType::SAMPLER, slot);
     res.sampler.type = type;
     res.sampler.name = name;
-    /* Produces asan errors for the moment. */
+    /* Produces ASAN errors for the moment. */
     // res.sampler.sampler = sampler;
     UNUSED_VARS(sampler);
     ((freq == Frequency::PASS) ? pass_resources_ : batch_resources_).append(res);

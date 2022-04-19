@@ -984,7 +984,7 @@ void MOD_lineart_smooth_chains(LineartRenderBuffer *rb, float tolerance)
       /* No need to care for different line types/occlusion and so on, because at this stage they
        * are all the same within a chain. */
 
-      /* If p3 is within the p1-p2 segment of a width of "tolerance"  */
+      /* If p3 is within the p1-p2 segment of a width of "tolerance". */
       if (dist_to_line_segment_v2(eci3->pos, eci->pos, eci2->pos) < tolerance) {
         /* And if p4 is on the extension of p1-p2 , we remove p3. */
         if ((eci4 = eci3->next) && (dist_to_line_v2(eci4->pos, eci->pos, eci2->pos) < tolerance)) {

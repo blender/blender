@@ -722,7 +722,7 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
         }
         case SH_NODE_ADD_SHADER: {
           /* Simple passthrough node. Each original inputs will get the same weight. */
-          /* TODO(fclem) Better use some kind of reroute node? */
+          /* TODO(fclem): Better use some kind of reroute node? */
           nodes_copy[id] = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
           nodes_copy[id]->custom1 = NODE_MATH_ADD;
           nodes_copy[id]->tmp_flag = -2; /* Copy */
@@ -761,14 +761,14 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
           }
           id++;
           /* Reroute the weight input to the 3 processing nodes. Simplify linking later-on. */
-          /* TODO(fclem) Better use some kind of reroute node? */
+          /* TODO(fclem): Better use some kind of reroute node? */
           nodes_copy[id] = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
           nodes_copy[id]->custom1 = NODE_MATH_ADD;
           nodes_copy[id]->tmp_flag = -2; /* Copy */
           ((bNodeSocketValueFloat *)ntree_shader_node_input_get(nodes_copy[id], 0)->default_value)
               ->value = 0.0f;
           id++;
-          /* Link between nodes for the substraction. */
+          /* Link between nodes for the subtraction. */
           fromnode = nodes_copy[id_start];
           tonode = nodes_copy[id_start + 1];
           fromsock = ntree_shader_node_output_get(fromnode, 0);
@@ -890,8 +890,8 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
               break;
           }
 
-          /* Manually add the link to the socket to avoid calling
-           * BKE_ntree_update_main_tree(G.main, oop, nullptr. */
+          /* Manually add the link to the socket to avoid calling:
+           * `BKE_ntree_update_main_tree(G.main, oop, nullptr)`. */
           fromsock->link = nodeAddLink(ntree, fromnode, fromsock, tonode, tosock);
           BLI_assert(fromsock->link);
         }

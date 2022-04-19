@@ -21,7 +21,7 @@ namespace blender::bke::pbvh::pixels {
 struct TrianglePaintInput {
   int3 vert_indices;
   /**
-   * Delta barycentric coordinates between 2 neighbouring UV's in the U direction.
+   * Delta barycentric coordinates between 2 neighboring UV's in the U direction.
    *
    * Only the first two coordinates are stored. The third should be recalculated
    */

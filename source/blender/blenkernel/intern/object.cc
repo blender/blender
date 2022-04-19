@@ -3564,19 +3564,19 @@ void BKE_object_apply_parent_inverse(struct Object *ob)
    * Use parent's world transform as the child's origin.
    *
    * Let:
-   *    local = identity
-   *    world = orthonormalized(parent)
+   *    `local = identity`
+   *    `world = orthonormalized(parent)`
    *
    * Then:
-   *    world = parent @ parentinv @ local
-   *    inv(parent) @ world = parentinv
-   *    parentinv = inv(parent) @ world
+   *    `world = parent @ parentinv @ local`
+   *    `inv(parent) @ world = parentinv`
+   *    `parentinv = inv(parent) @ world`
    *
-   * NOTE: If ob->obmat has shear, then this `parentinv` is insufficient because
-   *    parent @ parentinv => shearless result
+   * NOTE: If `ob->obmat` has shear, then this `parentinv` is insufficient because
+   *    `parent @ parentinv => shearless result`
    *
    *    Thus, local will have shear which cannot be decomposed into TRS:
-   *    local = inv(parent @ parentinv) @ world
+   *    `local = inv(parent @ parentinv) @ world`
    *
    *    This is currently not supported for consistency in the handling of shear during the other
    *    parenting ops: Parent (Keep Transform), Clear [Parent] and Keep Transform.
@@ -3591,11 +3591,11 @@ void BKE_object_apply_parent_inverse(struct Object *ob)
 
   /* Now, preserve `world` given the new `parentinv`.
    *
-   * world = parent @ parentinv @ local
-   * inv(parent) @ world = parentinv @ local
-   * inv(parentinv) @ inv(parent) @ world = local
+   * `world = parent @ parentinv @ local`
+   * `inv(parent) @ world = parentinv @ local`
+   * `inv(parentinv) @ inv(parent) @ world = local`
    *
-   * local = inv(parentinv) @ inv(parent) @ world
+   * `local = inv(parentinv) @ inv(parent) @ world`
    */
   float ob_local[4][4];
   copy_m4_m4(ob_local, ob->parentinv);

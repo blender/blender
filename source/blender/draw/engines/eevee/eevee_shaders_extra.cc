@@ -81,7 +81,7 @@ void eevee_shader_material_create_info_amend(GPUMaterial *gpumat,
   const bool do_fragment_attrib_load = is_background || is_volume;
 
   if (is_hair && !info.vertex_out_interfaces_.is_empty()) {
-    /** Hair attributes comme from sampler buffer. Transfer attributes to sampler. */
+    /** Hair attributes come from sampler buffer. Transfer attributes to sampler. */
     for (auto &input : info.vertex_inputs_) {
       info.sampler(0, ImageType::FLOAT_BUFFER, input.name, Frequency::BATCH);
     }

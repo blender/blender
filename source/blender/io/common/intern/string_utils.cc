@@ -7,7 +7,7 @@
  * their standard libraries are not quite there yet.
  * LLVM/libc++ only has a float parser since LLVM 14,
  * and gcc/libstdc++ since 11.1. So until at least these are
- * the mininum spec, use an external library. */
+ * the minimum spec, use an external library. */
 #include "fast_float.h"
 #include <charconv>
 
