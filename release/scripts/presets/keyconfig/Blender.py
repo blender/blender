@@ -319,6 +319,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
         col.label(text="File Browser")
         col.row().prop(self, "use_file_single_click")
 
+
 blender_default = bpy.utils.execfile(os.path.join(DIRNAME, "keymap_data", "blender_default.py"))
 
 

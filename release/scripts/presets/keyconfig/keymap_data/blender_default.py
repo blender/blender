@@ -19,6 +19,7 @@ __all__ = (
 # ------------------------------------------------------------------------------
 # Configurable Parameters
 
+
 class Params:
     __slots__ = (
         "apple",
@@ -604,18 +605,18 @@ def km_window(params):
              {"type": k, "value": 'PRESS', "shift": True},
              {"properties": [("space_type", t)]})
             for k, t in (
-                    ('F1', 'FILE_BROWSER'),
-                    ('F2', 'CLIP_EDITOR'),
-                    ('F3', 'NODE_EDITOR'),
-                    ('F4', 'CONSOLE'),
-                    ('F5', 'VIEW_3D'),
-                    ('F6', 'GRAPH_EDITOR'),
-                    ('F7', 'PROPERTIES'),
-                    ('F8', 'SEQUENCE_EDITOR'),
-                    ('F9', 'OUTLINER'),
-                    ('F10', 'IMAGE_EDITOR'),
-                    ('F11', 'TEXT_EDITOR'),
-                    ('F12', 'DOPESHEET_EDITOR'),
+                ('F1', 'FILE_BROWSER'),
+                ('F2', 'CLIP_EDITOR'),
+                ('F3', 'NODE_EDITOR'),
+                ('F4', 'CONSOLE'),
+                ('F5', 'VIEW_3D'),
+                ('F6', 'GRAPH_EDITOR'),
+                ('F7', 'PROPERTIES'),
+                ('F8', 'SEQUENCE_EDITOR'),
+                ('F9', 'OUTLINER'),
+                ('F10', 'IMAGE_EDITOR'),
+                ('F11', 'TEXT_EDITOR'),
+                ('F12', 'DOPESHEET_EDITOR'),
             )
         ),
 
@@ -7168,7 +7169,7 @@ def km_3d_view_tool_edit_curve_pen(params):
             ("curve.pen", {"type": params.tool_mouse, "value": 'PRESS', "ctrl": True},
              {"properties": [("insert_point", True), ("delete_point", True)]}),
             ("curve.pen", {"type": params.tool_mouse, "value": 'DOUBLE_CLICK'},
-             {"properties": [("toggle_vector", True), ("cycle_handle_type", True),]}),
+             {"properties": [("toggle_vector", True), ("cycle_handle_type", True), ]}),
         ]},
     )
 
@@ -7433,7 +7434,8 @@ def km_3d_view_tool_paint_gpencil_line(params):
             ("gpencil.primitive_line", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
              {"properties": [("wait_for_input", False)]}),
             # Lasso select
-            ("gpencil.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
+            ("gpencil.select_lasso", {"type": params.action_mouse,
+             "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
         ]},
     )
 
@@ -7448,7 +7450,8 @@ def km_3d_view_tool_paint_gpencil_polyline(params):
             ("gpencil.primitive_polyline", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
              {"properties": [("wait_for_input", False)]}),
             # Lasso select
-            ("gpencil.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
+            ("gpencil.select_lasso", {"type": params.action_mouse,
+             "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
         ]},
     )
 
@@ -7465,7 +7468,8 @@ def km_3d_view_tool_paint_gpencil_box(params):
             ("gpencil.primitive_box", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
              {"properties": [("wait_for_input", False)]}),
             # Lasso select
-            ("gpencil.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
+            ("gpencil.select_lasso", {"type": params.action_mouse,
+             "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
         ]},
     )
 
@@ -7482,7 +7486,8 @@ def km_3d_view_tool_paint_gpencil_circle(params):
             ("gpencil.primitive_circle", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
              {"properties": [("wait_for_input", False)]}),
             # Lasso select
-            ("gpencil.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
+            ("gpencil.select_lasso", {"type": params.action_mouse,
+             "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
         ]},
     )
 
@@ -7499,7 +7504,8 @@ def km_3d_view_tool_paint_gpencil_arc(params):
             ("gpencil.primitive_curve", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
              {"properties": [("type", 'ARC'), ("wait_for_input", False)]}),
             # Lasso select
-            ("gpencil.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
+            ("gpencil.select_lasso", {"type": params.action_mouse,
+             "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
         ]},
     )
 
@@ -7512,7 +7518,8 @@ def km_3d_view_tool_paint_gpencil_curve(params):
             ("gpencil.primitive_curve", params.tool_maybe_tweak_event,
              {"properties": [("type", 'CURVE'), ("wait_for_input", False)]}),
             # Lasso select
-            ("gpencil.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
+            ("gpencil.select_lasso", {"type": params.action_mouse,
+             "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
         ]},
     )
 
@@ -7524,7 +7531,8 @@ def km_3d_view_tool_paint_gpencil_cutter(params):
         {"items": [
             ("gpencil.stroke_cutter", {"type": params.tool_mouse, "value": 'PRESS'}, None),
             # Lasso select
-            ("gpencil.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
+            ("gpencil.select_lasso", {"type": params.action_mouse,
+             "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
         ]},
     )
 
