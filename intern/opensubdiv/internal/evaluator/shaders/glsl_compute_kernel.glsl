@@ -329,10 +329,10 @@ void main()
   int current = int(gl_GlobalInvocationID.x);
 
   OsdPatchCoord coord = GetPatchCoord(current);
-  OsdPatchArray array = GetPatchArray(coord.arrayIndex);
+  OsdPatchArray arr = GetPatchArray(coord.arrayIndex);
   OsdPatchParam param = GetPatchParam(coord.patchIndex);
 
-  int patchType = OsdPatchParamIsRegular(param) ? array.regDesc : array.desc;
+  int patchType = OsdPatchParamIsRegular(param) ? arr.regDesc : arr.desc;
 
   float wP[20], wDu[20], wDv[20], wDuu[20], wDuv[20], wDvv[20];
   int nPoints = OsdEvaluatePatchBasis(
@@ -346,7 +346,7 @@ void main()
   clear(duv);
   clear(dvv);
 
-  int indexBase = array.indexBase + array.stride * (coord.patchIndex - array.primitiveIdBase);
+  int indexBase = arr.indexBase + arr.stride * (coord.patchIndex - arr.primitiveIdBase);
 
   for (int cv = 0; cv < nPoints; ++cv) {
     int index = patchIndexBuffer[indexBase + cv];

@@ -248,16 +248,16 @@ OsdPatchCoord GetPatchCoord(int face_index, float u, float v)
 void evaluate_patches_limits(int patch_index, float u, float v, inout vec2 dst)
 {
   OsdPatchCoord coord = GetPatchCoord(patch_index, u, v);
-  OsdPatchArray array = GetPatchArray(coord.arrayIndex);
+  OsdPatchArray arr = GetPatchArray(coord.arrayIndex);
   OsdPatchParam param = GetPatchParam(coord.patchIndex);
 
-  int patchType = OsdPatchParamIsRegular(param) ? array.regDesc : array.desc;
+  int patchType = OsdPatchParamIsRegular(param) ? arr.regDesc : arr.desc;
 
   float wP[20], wDu[20], wDv[20], wDuu[20], wDuv[20], wDvv[20];
   int nPoints = OsdEvaluatePatchBasis(
       patchType, param, coord.s, coord.t, wP, wDu, wDv, wDuu, wDuv, wDvv);
 
-  int indexBase = array.indexBase + array.stride * (coord.patchIndex - array.primitiveIdBase);
+  int indexBase = arr.indexBase + arr.stride * (coord.patchIndex - arr.primitiveIdBase);
 
   for (int cv = 0; cv < nPoints; ++cv) {
     int index = patchIndexBuffer[indexBase + cv];
@@ -270,16 +270,16 @@ void evaluate_patches_limits(
     int patch_index, float u, float v, inout vec3 dst, inout vec3 du, inout vec3 dv)
 {
   OsdPatchCoord coord = GetPatchCoord(patch_index, u, v);
-  OsdPatchArray array = GetPatchArray(coord.arrayIndex);
+  OsdPatchArray arr = GetPatchArray(coord.arrayIndex);
   OsdPatchParam param = GetPatchParam(coord.patchIndex);
 
-  int patchType = OsdPatchParamIsRegular(param) ? array.regDesc : array.desc;
+  int patchType = OsdPatchParamIsRegular(param) ? arr.regDesc : arr.desc;
 
   float wP[20], wDu[20], wDv[20], wDuu[20], wDuv[20], wDvv[20];
   int nPoints = OsdEvaluatePatchBasis(
       patchType, param, coord.s, coord.t, wP, wDu, wDv, wDuu, wDuv, wDvv);
 
-  int indexBase = array.indexBase + array.stride * (coord.patchIndex - array.primitiveIdBase);
+  int indexBase = arr.indexBase + arr.stride * (coord.patchIndex - arr.primitiveIdBase);
 
   for (int cv = 0; cv < nPoints; ++cv) {
     int index = patchIndexBuffer[indexBase + cv];
