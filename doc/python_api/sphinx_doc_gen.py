@@ -409,7 +409,9 @@ BLENDER_VERSION_DOTS = "%d.%d" % (bpy.app.version[0], bpy.app.version[1])
 if BLENDER_REVISION != "Unknown":
     # SHA1 Git hash
     BLENDER_VERSION_HASH = BLENDER_REVISION
-    BLENDER_VERSION_HASH_HTML_LINK = "<a href=https://developer.blender.org/rB%s>%s</a>" % (BLENDER_VERSION_HASH, BLENDER_VERSION_HASH)
+    BLENDER_VERSION_HASH_HTML_LINK = "<a href=https://developer.blender.org/rB%s>%s</a>" % (
+        BLENDER_VERSION_HASH, BLENDER_VERSION_HASH,
+    )
     BLENDER_VERSION_DATE = time.strftime("%d/%m/%Y", time.localtime(BLENDER_REVISION_TIMESTAMP))
 else:
     # Fallback: Should not be used
@@ -1241,7 +1243,9 @@ def pycontext2sphinx(basepath):
             try:
                 member_type, is_seq = context_type_map[member]
             except KeyError:
-                raise SystemExit("Error: context key %r not found in context_type_map; update %s" % (member, __file__)) from None
+                raise SystemExit(
+                    "Error: context key %r not found in context_type_map; update %s" %
+                    (member, __file__)) from None
             fw("   :type: %s :class:`bpy.types.%s`\n\n" % ("sequence of " if is_seq else "", member_type))
             i += 1
 
