@@ -517,3 +517,18 @@ void SEQ_image_preview_unit_from_px(const Scene *scene, const float co_src[2], f
   co_dst[0] = co_src[0] / scene->r.xsch;
   co_dst[1] = co_src[1] / scene->r.ysch;
 }
+
+void SEQ_image_transform_bounding_box_from_collection(
+    Scene *scene, SeqCollection *strips, bool apply_rotation, float r_min[2], float r_max[2])
+{
+  Sequence *seq;
+
+  INIT_MINMAX2(r_min, r_max);
+  SEQ_ITERATOR_FOREACH (seq, strips) {
+    float quad[4][2];
+    SEQ_image_transform_quad_get(scene, seq, apply_rotation, quad);
+    for (int i = 0; i < 4; i++) {
+      minmax_v2v2_v2(r_min, r_max, quad[i]);
+    }
+  }
+}

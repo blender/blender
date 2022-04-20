@@ -2960,6 +2960,7 @@ def km_sequencerpreview(params):
         ("sequencer.select_box", {"type": 'B', "value": 'PRESS'}, None),
 
         # View.
+        ("sequencer.view_selected", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
         ("sequencer.view_all_preview", {"type": 'HOME', "value": 'PRESS'}, None),
         ("sequencer.view_all_preview", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'}, None),
         ("sequencer.view_ghost_border", {"type": 'O', "value": 'PRESS'}, None),

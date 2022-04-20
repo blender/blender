@@ -429,9 +429,14 @@ class SEQUENCER_MT_view(Menu):
 
         layout.separator()
 
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        if st.view_type == 'PREVIEW':
+            # See above (T32595)
+            layout.operator_context = 'INVOKE_REGION_PREVIEW'
+        layout.operator("sequencer.view_selected", text="Frame Selected")
+
         if is_sequencer_view:
             layout.operator_context = 'INVOKE_REGION_WIN'
-            layout.operator("sequencer.view_selected", text="Frame Selected")
             layout.operator("sequencer.view_all")
             layout.operator("view2d.zoom_border", text="Zoom")
 

@@ -1866,6 +1866,7 @@ def km_sequencerpreview(params):
         ("wm.search_menu", {"type": 'TAB', "value": 'PRESS'}, None),
         ("sequencer.view_all_preview", {"type": 'A', "value": 'PRESS'}, None),
         ("sequencer.view_all_preview", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'}, None),
+        ("sequencer.view_selected", {"type": 'F', "value": 'PRESS'}, None),
         ("sequencer.view_ghost_border", {"type": 'O', "value": 'PRESS'}, None),
         ("sequencer.view_zoom_ratio", {"type": 'NUMPAD_1', "value": 'PRESS'},
          {"properties": [("ratio", 1.0)]}),
