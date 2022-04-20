@@ -208,10 +208,17 @@ static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObj
   if (context_ptr == NULL) {
     return NULL;
   }
-  /* Needed because the keywords copied into `kwds_parse` could contain anything.
-   * As the types of keys aren't checked. */
-  if (!PyArg_ValidateKeywordArguments(kwds)) {
-    return NULL;
+
+  if (kwds == NULL) {
+    /* While this is effectively NOP, support having no keywords as it's more involved
+     * to return an alternative (dummy) context manager. */
+  }
+  else {
+    /* Needed because the keywords copied into `kwds_parse` could contain anything.
+     * As the types of keys aren't checked. */
+    if (!PyArg_ValidateKeywordArguments(kwds)) {
+      return NULL;
+    }
   }
 
   struct {
@@ -235,7 +242,7 @@ static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObj
       0,
   };
   /* Parse known keywords, the remaining keywords are set using #CTX_py_state_push. */
-  kwds = PyDict_Copy(kwds);
+  kwds = kwds ? PyDict_Copy(kwds) : PyDict_New();
   {
     PyObject *kwds_parse = bpy_context_temp_override_extract_known_args(_keywords, kwds);
     const int parse_result = _PyArg_ParseTupleAndKeywordsFast(args,
