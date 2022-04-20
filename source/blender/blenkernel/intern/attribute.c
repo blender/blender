@@ -285,7 +285,13 @@ int BKE_id_attributes_length(const ID *id, AttributeDomainMask domain_mask, Cust
     CustomData *customdata = info[domain].customdata;
 
     if (customdata && ((1 << (int)domain) & domain_mask)) {
-      length += CustomData_number_of_layers_typemask(customdata, mask);
+      for (int i = 0; i < customdata->totlayer; i++) {
+        CustomDataLayer *layer = customdata->layers + i;
+
+        if ((mask & CD_TYPE_AS_MASK(layer->type)) && !(layer->flag & CD_FLAG_TEMPORARY)) {
+          length++;
+        }
+      }
     }
   }
 

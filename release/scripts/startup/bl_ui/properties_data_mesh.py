@@ -12,12 +12,16 @@ class MESH_MT_vertex_group_context_menu(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("object.vertex_group_sort",
+        layout.operator(
+            "object.vertex_group_sort",
             icon='SORTALPHA',
-            text="Sort by Name",).sort_type = 'NAME'
-        layout.operator("object.vertex_group_sort",
+            text="Sort by Name",
+        ).sort_type = 'NAME'
+        layout.operator(
+            "object.vertex_group_sort",
             icon='BONE_DATA',
-            text="Sort by Bone Hierarchy",).sort_type = 'BONE_HIERARCHY'
+            text="Sort by Bone Hierarchy",
+        ).sort_type = 'BONE_HIERARCHY'
         layout.separator()
         layout.operator("object.vertex_group_copy", icon='DUPLICATE')
         layout.operator("object.vertex_group_copy_to_selected")
@@ -25,9 +29,11 @@ class MESH_MT_vertex_group_context_menu(Menu):
         layout.operator("object.vertex_group_mirror", icon='ARROW_LEFTRIGHT').use_topology = False
         layout.operator("object.vertex_group_mirror", text="Mirror Vertex Group (Topology)").use_topology = True
         layout.separator()
-        layout.operator("object.vertex_group_remove_from",
+        layout.operator(
+            "object.vertex_group_remove_from",
             icon='X',
-            text="Remove from All Groups",).use_all_groups = True
+            text="Remove from All Groups",
+        ).use_all_groups = True
         layout.operator("object.vertex_group_remove_from", text="Clear Active Group").use_all_verts = True
         layout.operator("object.vertex_group_remove", text="Delete All Unlocked Groups").all_unlocked = True
         layout.operator("object.vertex_group_remove", text="Delete All Groups").all = True
@@ -119,8 +125,7 @@ class MESH_UL_shape_keys(UIList):
 
 class MESH_UL_uvmaps(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
-        # assert(isinstance(item, (bpy.types.MeshTexturePolyLayer,
-        # bpy.types.MeshLoopColorLayer)))
+        # assert(isinstance(item, (bpy.types.MeshTexturePolyLayer, bpy.types.MeshLoopColorLayer)))
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.prop(item, "name", text="", emboss=False, icon='GROUP_UVS')
             icon = 'RESTRICT_RENDER_OFF' if item.active_render else 'RESTRICT_RENDER_ON'
@@ -239,7 +244,11 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
             col.operator("object.vertex_group_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("object.vertex_group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-        if (ob.vertex_groups and (ob.mode == 'EDIT' or (ob.mode == 'WEIGHT_PAINT' and ob.type == 'MESH' and ob.data.use_paint_mask_vertex))):
+        if (
+                ob.vertex_groups and
+                (ob.mode == 'EDIT' or
+                 (ob.mode == 'WEIGHT_PAINT' and ob.type == 'MESH' and ob.data.use_paint_mask_vertex))
+        ):
             row = layout.row()
 
             sub = row.row(align=True)
@@ -410,7 +419,6 @@ class DATA_PT_uv_texture(MeshButtonsPanel, Panel):
         col.operator("mesh.uv_texture_add", icon='ADD', text="")
         col.operator("mesh.uv_texture_remove", icon='REMOVE', text="")
 
-
 class DATA_PT_remesh(MeshButtonsPanel, Panel):
     bl_label = "Remesh"
     bl_options = {'DEFAULT_CLOSED'}
@@ -463,8 +471,6 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
         else:
             col.operator("mesh.customdata_custom_splitnormals_add", icon='ADD')
 
-        col.operator("mesh.customdata_ids_clear", icon='X')
-
         col = layout.column(heading="Store")
 
         col.enabled = obj is not None and obj.mode != 'EDIT'
@@ -487,20 +493,6 @@ class MESH_UL_attributes(UIList):
         'FACE': "Face",
         'CORNER': "Face Corner",
     }
-
-    def filter_items(self, context, data, property):
-        attrs = getattr(data, property)
-        ret = []
-        idxs = []
-        idx = 0
-
-        for item in attrs:
-            ret.append(self.bitflag_filter_item if not item.temporary else 0)
-            idxs.append(idx)
-
-            idx += 1
-
-        return ret, idxs
 
     def draw_item(self, _context, layout, _data, attribute, _icon, _active_data, _active_propname, _index):
         data_type = attribute.bl_rna.properties['data_type'].enum_items[attribute.data_type]
@@ -528,13 +520,15 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
         row = layout.row()
 
         col = row.column()
-        col.template_list("MESH_UL_attributes",
+        col.template_list(
+            "MESH_UL_attributes",
             "attributes",
             mesh,
             "attributes",
             mesh.attributes,
             "active_index",
-            rows=3,)
+            rows=3,
+        )
 
         col = row.column(align=True)
         col.operator("geometry.attribute_add", icon='ADD', text="")
@@ -605,21 +599,20 @@ class MESH_UL_color_attributes(UIList, ColorAttributesListBase):
         split.emboss = 'NONE'
         split.prop(attribute, "name", text="")
 
-        sub = split.row()
-        sub.alignment = 'RIGHT'
-        sub.active = False
-        sub.label(text="%s ▶ %s" % (domain_name, data_type.name))
-
         active_render = _index == data.color_attributes.render_color_index
-        
-        row = layout.row()
-        row.emboss = 'NONE'
-        prop = row.operator(
+
+        props = split.operator(
             "geometry.color_attribute_render_set",
             text="",
             icon='RESTRICT_RENDER_OFF' if active_render else 'RESTRICT_RENDER_ON',
         )
-        prop.name = attribute.name
+
+        props.name = attribute.name
+
+        sub = split.row()
+        sub.alignment = 'RIGHT'
+        sub.active = False
+        sub.label(text="%s ▶ %s" % (domain_name, data_type.name))
 
 
 class MESH_UL_color_attributes_selector(UIList, ColorAttributesListBase):
@@ -656,7 +649,8 @@ class DATA_PT_vertex_colors(DATA_PT_mesh_attributes, Panel):
 
         self.draw_attribute_warnings(context, layout)
 
-classes = (MESH_MT_vertex_group_context_menu,
+classes = (
+    MESH_MT_vertex_group_context_menu,
     MESH_MT_shape_key_context_menu,
     MESH_MT_attribute_context_menu,
     MESH_UL_vgroups,
