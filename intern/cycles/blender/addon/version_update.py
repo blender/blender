@@ -72,7 +72,7 @@ def do_versions(self):
             # Device might not currently be available so this can fail
             try:
                 if system.legacy_compute_device_type == 1:
-                    prop.compute_device_type = 'NONE' # Was OpenCL
+                    prop.compute_device_type = 'NONE'  # Was OpenCL
                 elif system.legacy_compute_device_type == 2:
                     prop.compute_device_type = 'CUDA'
                 else:
@@ -181,24 +181,24 @@ def do_versions(self):
 
             if version <= (2, 92, 4):
                 if scene.render.engine == 'CYCLES':
-                  for view_layer in scene.view_layers:
-                    cview_layer = view_layer.cycles
-                    view_layer.use_pass_cryptomatte_object = cview_layer.get("use_pass_crypto_object", False)
-                    view_layer.use_pass_cryptomatte_material = cview_layer.get("use_pass_crypto_material", False)
-                    view_layer.use_pass_cryptomatte_asset = cview_layer.get("use_pass_crypto_asset", False)
-                    view_layer.pass_cryptomatte_depth = cview_layer.get("pass_crypto_depth", 6)
+                    for view_layer in scene.view_layers:
+                        cview_layer = view_layer.cycles
+                        view_layer.use_pass_cryptomatte_object = cview_layer.get("use_pass_crypto_object", False)
+                        view_layer.use_pass_cryptomatte_material = cview_layer.get("use_pass_crypto_material", False)
+                        view_layer.use_pass_cryptomatte_asset = cview_layer.get("use_pass_crypto_asset", False)
+                        view_layer.pass_cryptomatte_depth = cview_layer.get("pass_crypto_depth", 6)
 
             if version <= (2, 93, 7):
                 if scene.render.engine == 'CYCLES':
-                  for view_layer in scene.view_layers:
-                    cview_layer = view_layer.cycles
-                    for caov in cview_layer.get("aovs", []):
-                        aov_name = caov.get("name", "AOV")
-                        if aov_name in view_layer.aovs:
-                            continue
-                        baov = view_layer.aovs.add()
-                        baov.name = caov.get("name", "AOV")
-                        baov.type = "COLOR" if caov.get("type", 1) == 1 else "VALUE"
+                    for view_layer in scene.view_layers:
+                        cview_layer = view_layer.cycles
+                        for caov in cview_layer.get("aovs", []):
+                            aov_name = caov.get("name", "AOV")
+                            if aov_name in view_layer.aovs:
+                                continue
+                            baov = view_layer.aovs.add()
+                            baov.name = caov.get("name", "AOV")
+                            baov.type = "COLOR" if caov.get("type", 1) == 1 else "VALUE"
 
             if version <= (2, 93, 16):
                 cscene = scene.cycles

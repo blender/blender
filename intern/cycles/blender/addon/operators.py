@@ -34,8 +34,8 @@ class CYCLES_OT_use_shading_nodes(Operator):
 
 class CYCLES_OT_denoise_animation(Operator):
     "Denoise rendered animation sequence using current scene and view " \
-    "layer settings. Requires denoising data passes and output to " \
-    "OpenEXR multilayer files"
+        "layer settings. Requires denoising data passes and output to " \
+        "OpenEXR multilayer files"
     bl_idname = "cycles.denoise_animation"
     bl_label = "Denoise Animation"
 
@@ -117,7 +117,7 @@ class CYCLES_OT_denoise_animation(Operator):
 
 class CYCLES_OT_merge_images(Operator):
     "Combine OpenEXR multilayer images rendered with different sample " \
-    "ranges into one image with reduced noise"
+        "ranges into one image with reduced noise"
     bl_idname = "cycles.merge_images"
     bl_label = "Merge Images"
 

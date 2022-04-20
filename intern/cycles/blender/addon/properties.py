@@ -83,7 +83,8 @@ enum_sampling_pattern = (
 enum_volume_sampling = (
     ('DISTANCE', "Distance", "Use distance sampling, best for dense volumes with lights far away"),
     ('EQUIANGULAR', "Equiangular", "Use equiangular sampling, best for volumes with low density with light inside or near the volume"),
-    ('MULTIPLE_IMPORTANCE', "Multiple Importance", "Combine distance and equi-angular sampling for volumes where neither method is ideal"),
+    ('MULTIPLE_IMPORTANCE', "Multiple Importance",
+     "Combine distance and equi-angular sampling for volumes where neither method is ideal"),
 )
 
 enum_volume_interpolation = (
@@ -181,7 +182,12 @@ def enum_preview_denoiser(self, context):
     oidn_items = enum_openimagedenoise_denoiser(self, context)
 
     if len(optix_items) or len(oidn_items):
-        items = [('AUTO', "Automatic", "Use the fastest available denoiser for viewport rendering (OptiX if available, OpenImageDenoise otherwise)", 0)]
+        items = [
+            ('AUTO',
+             "Automatic",
+             ("Use the fastest available denoiser for viewport rendering "
+              "(OptiX if available, OpenImageDenoise otherwise)"),
+             0)]
     else:
         items = [('AUTO', "None", "Blender was compiled without a viewport denoiser", 0)]
 
@@ -210,10 +216,13 @@ enum_denoising_prefilter = (
 )
 
 enum_direct_light_sampling_type = (
-    ('MULTIPLE_IMPORTANCE_SAMPLING', "Multiple Importance Sampling", "Multiple importance sampling is used to combine direct light contributions from next-event estimation and forward path tracing", 0),
+    ('MULTIPLE_IMPORTANCE_SAMPLING', "Multiple Importance Sampling",
+     "Multiple importance sampling is used to combine direct light contributions from next-event estimation and forward path tracing", 0),
     ('FORWARD_PATH_TRACING', "Forward Path Tracing", "Direct light contributions are only sampled using forward path tracing", 1),
-    ('NEXT_EVENT_ESTIMATION', "Next-Event Estimation", "Direct light contributions are only sampled using next-event estimation", 2),
+    ('NEXT_EVENT_ESTIMATION', "Next-Event Estimation",
+     "Direct light contributions are only sampled using next-event estimation", 2),
 )
+
 
 def update_render_passes(self, context):
     view_layer = context.view_layer
@@ -262,7 +271,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Denoise the image with the selected denoiser. "
         "For denoising the image after rendering",
         items=enum_denoiser,
-        default=4, # Use integer to avoid error in builds without OpenImageDenoise.
+        default=4,  # Use integer to avoid error in builds without OpenImageDenoise.
         update=update_render_passes,
     )
     denoising_prefilter: EnumProperty(
@@ -1546,7 +1555,6 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 row = layout.row()
                 row.use_property_split = True
                 row.prop(self, "use_metalrt")
-
 
     def draw(self, context):
         self.draw_impl(self.layout, context)
