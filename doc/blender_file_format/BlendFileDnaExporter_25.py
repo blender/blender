@@ -378,7 +378,8 @@ def usage():
 
 def main():
 
-    import os, os.path
+    import os
+    import os.path
 
     try:
         bpy = __import__('bpy')
