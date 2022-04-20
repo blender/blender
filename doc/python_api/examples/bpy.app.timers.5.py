@@ -11,6 +11,7 @@ import queue
 
 execution_queue = queue.Queue()
 
+
 # This function can safely be called in another thread.
 # The function will be executed when the timer runs the next time.
 def run_in_main_thread(function):

@@ -4,6 +4,7 @@ the middle of updating the armature without having to update dependencies
 after each change, by manually carrying updated matrices in a recursive walk.
 """
 
+
 def set_pose_matrices(obj, matrix_map):
     "Assign pose space matrices of all bones at once, ignoring constraints."
 
@@ -11,7 +12,7 @@ def set_pose_matrices(obj, matrix_map):
         if pbone.name in matrix_map:
             matrix = matrix_map[pbone.name]
 
-            ## Instead of:
+            # # Instead of:
             # pbone.matrix = matrix
             # bpy.context.view_layer.update()
 
