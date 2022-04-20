@@ -297,6 +297,9 @@ static int shuffle_seq_time_offset_test(SeqCollection *strips_to_shuffle,
       if (!SEQ_transform_test_overlap_seq_seq(seq, seq_other)) {
         continue;
       }
+      if (SEQ_relation_is_effect_of_strip(seq_other, seq)) {
+        continue;
+      }
       if (UNLIKELY(SEQ_collection_has_strip(seq_other, strips_to_shuffle))) {
         CLOG_WARN(&LOG,
                   "Strip overlaps with itself or another strip, that is to be shuffled. "

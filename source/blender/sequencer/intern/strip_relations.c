@@ -34,6 +34,11 @@
 #include "image_cache.h"
 #include "utils.h"
 
+bool SEQ_relation_is_effect_of_strip(const Sequence *effect, const Sequence *input)
+{
+  return ELEM(input, effect->seq1, effect->seq2);
+}
+
 /* check whether sequence cur depends on seq */
 static bool seq_relations_check_depend(Sequence *seq, Sequence *cur)
 {
