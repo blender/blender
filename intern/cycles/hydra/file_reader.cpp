@@ -18,6 +18,7 @@
 #include <pxr/imaging/hd/task.h>
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/camera.h>
+#include <pxr/usd/usdGeom/metrics.h>
 #include <pxr/usdImaging/usdImaging/delegate.h>
 
 HDCYCLES_NAMESPACE_OPEN_SCOPE
@@ -69,6 +70,9 @@ void HdCyclesFileReader::read(Session *session, const char *filepath, const bool
 
   /* Create render delegate. */
   HdRenderSettingsMap settings_map;
+  settings_map.insert(std::make_pair(HdCyclesRenderSettingsTokens->stageMetersPerUnit,
+                                     VtValue(UsdGeomGetStageMetersPerUnit(stage))));
+
   HdCyclesDelegate render_delegate(settings_map, session, true);
 
   /* Create render index and scene delegate. */
@@ -110,7 +114,7 @@ void HdCyclesFileReader::read(Session *session, const char *filepath, const bool
         HdSprim *sprim = render_index->GetSprim(HdPrimTypeTokens->camera, prim.GetPath());
         if (sprim) {
           HdCyclesCamera *camera = dynamic_cast<HdCyclesCamera *>(sprim);
-          camera->ApplyCameraSettings(session->scene->camera);
+          camera->ApplyCameraSettings(render_delegate.GetRenderParam(), session->scene->camera);
           break;
         }
       }

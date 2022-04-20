@@ -26,19 +26,12 @@
 
 HDCYCLES_NAMESPACE_OPEN_SCOPE
 
+TF_DEFINE_PUBLIC_TOKENS(HdCyclesRenderSettingsTokens, HD_CYCLES_RENDER_SETTINGS_TOKENS);
+
 // clang-format off
 TF_DEFINE_PRIVATE_TOKENS(_tokens,
     (cycles)
     (openvdbAsset)
-);
-
-TF_DEFINE_PRIVATE_TOKENS(HdCyclesRenderSettingsTokens,
-    (stageMetersPerUnit)
-    ((device, "cycles:device"))
-    ((threads, "cycles:threads"))
-    ((timeLimit, "cycles:time_limit"))
-    ((samples, "cycles:samples"))
-    ((sampleOffset, "cycles:sample_offset"))
 );
 // clang-format on
 
@@ -127,17 +120,14 @@ HdCyclesDelegate::HdCyclesDelegate(const HdRenderSettingsMap &settingsMap,
   _renderParam = session_ ? std::make_unique<HdCyclesSession>(session_, keep_nodes) :
                             std::make_unique<HdCyclesSession>(GetSessionParams(settingsMap));
 
-  // If the delegate owns the session, pull any remaining settings
-  if (!session_) {
-    for (const auto &setting : settingsMap) {
-      // Skip over the settings known to be used for initialization only
-      if (setting.first == HdCyclesRenderSettingsTokens->device ||
-          setting.first == HdCyclesRenderSettingsTokens->threads) {
-        continue;
-      }
-
-      SetRenderSetting(setting.first, setting.second);
+  for (const auto &setting : settingsMap) {
+    // Skip over the settings known to be used for initialization only
+    if (setting.first == HdCyclesRenderSettingsTokens->device ||
+        setting.first == HdCyclesRenderSettingsTokens->threads) {
+      continue;
     }
+
+    SetRenderSetting(setting.first, setting.second);
   }
 }
 
@@ -328,7 +318,7 @@ HdBprim *HdCyclesDelegate::CreateBprim(const TfToken &typeId, const SdfPath &bpr
   }
 #endif
 
-  TF_RUNTIME_ERROR("Unknown Bprim type %s", typeId.GetText());
+  TF_CODING_ERROR("Unknown Bprim type %s", typeId.GetText());
   return nullptr;
 }
 
