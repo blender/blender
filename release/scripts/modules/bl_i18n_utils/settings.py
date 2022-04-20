@@ -610,7 +610,10 @@ class I18nSettings:
     def to_json(self):
         # Only save the diff from default i18n_settings!
         glob = globals()
-        export_dict = {uid: val for uid, val in self.__dict__.items() if _check_valid_data(uid, val) and glob.get(uid) != val}
+        export_dict = {
+            uid: val for uid, val in self.__dict__.items()
+            if _check_valid_data(uid, val) and glob.get(uid) != val
+        }
         return json.dumps(export_dict)
 
     def load(self, fname, reset=False):
