@@ -526,7 +526,10 @@ class SelectPaintSlotHelper:
 
             case 'COLOR_ATTRIBUTE':
                 mesh = ob.data
-                layout.template_list(
+
+                row = layout.row()
+                col = row.column()
+                col.template_list(
                     "MESH_UL_color_attributes_selector",
                     "color_attributes",
                     mesh,
@@ -535,6 +538,10 @@ class SelectPaintSlotHelper:
                     "active_color_index",
                     rows=3,
                 )
+
+                col = row.column(align=True)
+                col.operator("geometry.color_attribute_add", icon='ADD', text="")
+                col.operator("geometry.color_attribute_remove", icon='REMOVE', text="")
 
         if settings.missing_uvs:
             layout.separator()
