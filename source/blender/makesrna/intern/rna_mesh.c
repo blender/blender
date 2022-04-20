@@ -3182,6 +3182,7 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(
       prop, "rna_Mesh_uv_layer_clone_get", "rna_Mesh_uv_layer_clone_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_ui_text(
       prop, "Clone UV Loop Layer", "UV loop layer to be used as cloning source");
 
@@ -3197,6 +3198,7 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(
       prop, "rna_Mesh_uv_layer_stencil_get", "rna_Mesh_uv_layer_stencil_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_ui_text(prop, "Mask UV Loop Layer", "UV loop layer to mask the painted area");
 
   prop = RNA_def_property(srna, "uv_layer_stencil_index", PROP_INT, PROP_UNSIGNED);
