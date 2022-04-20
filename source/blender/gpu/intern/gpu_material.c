@@ -656,6 +656,7 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
   mat->scene = scene;
   mat->uuid = shader_uuid;
   mat->flag = GPU_MATFLAG_UPDATED;
+  mat->status = GPU_MAT_CREATED;
   mat->is_volume_shader = is_volume_shader;
   mat->graph.used_libraries = BLI_gset_new(
       BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "GPUNodeGraph.used_libraries");
@@ -689,9 +690,6 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
         /* We had a cache hit and the shader is already compiled. */
         mat->status = GPU_MAT_SUCCESS;
         gpu_node_graph_free_nodes(&mat->graph);
-      }
-      else {
-        mat->status = GPU_MAT_CREATED;
       }
     }
   }
