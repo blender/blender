@@ -373,17 +373,17 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
   /* add vcols before displacement - allows lookup based on position */
 
   if (omd->flag & MOD_OCEAN_GENERATE_FOAM) {
-    if (CustomData_number_of_layers(&result->ldata, CD_MLOOPCOL) < MAX_MCOL) {
+    if (CustomData_number_of_layers(&result->ldata, CD_PROP_BYTE_COLOR) < MAX_MCOL) {
       const int polys_num = result->totpoly;
       const int loops_num = result->totloop;
       MLoop *mloops = result->mloop;
       MLoopCol *mloopcols = CustomData_add_layer_named(
-          &result->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, loops_num, omd->foamlayername);
+          &result->ldata, CD_PROP_BYTE_COLOR, CD_CALLOC, NULL, loops_num, omd->foamlayername);
 
       MLoopCol *mloopcols_spray = NULL;
       if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
         mloopcols_spray = CustomData_add_layer_named(
-            &result->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, loops_num, omd->spraylayername);
+            &result->ldata, CD_PROP_BYTE_COLOR, CD_CALLOC, NULL, loops_num, omd->spraylayername);
       }
 
       if (mloopcols) { /* unlikely to fail */

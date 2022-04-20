@@ -1845,7 +1845,7 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
 {
   Mesh *orig_me = BKE_object_get_original_mesh(object);
 
-  int types[] = {CD_PROP_COLOR, CD_MLOOPCOL};
+  int types[] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
   bool has_color = false;
 
   for (int i = 0; i < ARRAY_SIZE(types); i++) {

@@ -288,7 +288,7 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
       const CustomDataType dst_type = static_cast<CustomDataType>(
           RNA_enum_get(op->ptr, "data_type"));
 
-      if (ELEM(dst_type, CD_PROP_STRING, CD_MLOOPCOL)) {
+      if (ELEM(dst_type, CD_PROP_STRING, CD_PROP_BYTE_COLOR)) {
         BKE_report(op->reports, RPT_ERROR, "Cannot convert to the selected type");
         return OPERATOR_CANCELLED;
       }
@@ -325,7 +325,7 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
       }
       mesh_component.attribute_try_delete(name);
       CustomData_add_layer_named(
-          &mesh->ldata, CD_MLOOPCOL, CD_ASSIGN, dst_colors, mesh->totloop, name.c_str());
+          &mesh->ldata, CD_PROP_BYTE_COLOR, CD_ASSIGN, dst_colors, mesh->totloop, name.c_str());
       break;
     }
     case ConvertAttributeMode::VertexGroup: {
@@ -385,7 +385,7 @@ void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
                                         {0, nullptr, 0, nullptr, nullptr}};
 
   static EnumPropertyItem types[3] = {{CD_PROP_COLOR, "COLOR", 0, "Color", ""},
-                                      {CD_MLOOPCOL, "BYTE_COLOR", 0, "Byte Color", ""},
+                                      {CD_PROP_BYTE_COLOR, "BYTE_COLOR", 0, "Byte Color", ""},
                                       {0, nullptr, 0, nullptr, nullptr}};
 
   prop = RNA_def_enum(ot->srna,
@@ -415,9 +415,9 @@ static int geometry_color_attribute_set_render_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "name", name);
 
   CustomDataLayer *layer = BKE_id_attribute_find(id, name, CD_PROP_COLOR, ATTR_DOMAIN_POINT);
-  layer = !layer ? BKE_id_attribute_find(id, name, CD_MLOOPCOL, ATTR_DOMAIN_POINT) : layer;
+  layer = !layer ? BKE_id_attribute_find(id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_POINT) : layer;
   layer = !layer ? BKE_id_attribute_find(id, name, CD_PROP_COLOR, ATTR_DOMAIN_CORNER) : layer;
-  layer = !layer ? BKE_id_attribute_find(id, name, CD_MLOOPCOL, ATTR_DOMAIN_CORNER) : layer;
+  layer = !layer ? BKE_id_attribute_find(id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_CORNER) : layer;
 
   if (layer) {
     BKE_id_attributes_render_color_set(id, layer);

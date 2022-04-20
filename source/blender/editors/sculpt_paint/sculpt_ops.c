@@ -627,11 +627,11 @@ static int vertex_to_loop_colors_exec(bContext *C, wmOperator *UNUSED(op))
 
   Mesh *mesh = ob->data;
 
-  const int mloopcol_layer_n = CustomData_get_active_layer(&mesh->ldata, CD_MLOOPCOL);
+  const int mloopcol_layer_n = CustomData_get_active_layer(&mesh->ldata, CD_PROP_BYTE_COLOR);
   if (mloopcol_layer_n == -1) {
     return OPERATOR_CANCELLED;
   }
-  MLoopCol *loopcols = CustomData_get_layer_n(&mesh->ldata, CD_MLOOPCOL, mloopcol_layer_n);
+  MLoopCol *loopcols = CustomData_get_layer_n(&mesh->ldata, CD_PROP_BYTE_COLOR, mloopcol_layer_n);
 
   const int MPropCol_layer_n = CustomData_get_active_layer(&mesh->vdata, CD_PROP_COLOR);
   if (MPropCol_layer_n == -1) {
@@ -692,11 +692,11 @@ static int loop_to_vertex_colors_exec(bContext *C, wmOperator *UNUSED(op))
 
   Mesh *mesh = ob->data;
 
-  const int mloopcol_layer_n = CustomData_get_active_layer(&mesh->ldata, CD_MLOOPCOL);
+  const int mloopcol_layer_n = CustomData_get_active_layer(&mesh->ldata, CD_PROP_BYTE_COLOR);
   if (mloopcol_layer_n == -1) {
     return OPERATOR_CANCELLED;
   }
-  MLoopCol *loopcols = CustomData_get_layer_n(&mesh->ldata, CD_MLOOPCOL, mloopcol_layer_n);
+  MLoopCol *loopcols = CustomData_get_layer_n(&mesh->ldata, CD_PROP_BYTE_COLOR, mloopcol_layer_n);
 
   const int MPropCol_layer_n = CustomData_get_active_layer(&mesh->vdata, CD_PROP_COLOR);
   if (MPropCol_layer_n == -1) {

@@ -89,7 +89,7 @@ static void dt_add_vcol_layers(CustomData *cdata,
                                EnumPropertyItem **r_item,
                                int *r_totitem)
 {
-  int types[2] = {CD_PROP_COLOR, CD_MLOOPCOL};
+  int types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
 
   for (int i = 0; i < 2; i++) {
     CustomDataType type = types[i];
@@ -196,14 +196,14 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
       cddata_masks.vmask |= CD_MASK_PROP_COLOR;
     }
     if (data_type & (DT_TYPE_MLOOPCOL_VERT)) {
-      cddata_masks.vmask |= CD_MASK_MLOOPCOL;
+      cddata_masks.vmask |= CD_MASK_PROP_BYTE_COLOR;
     }
 
     if (data_type & (DT_TYPE_MPROPCOL_LOOP)) {
       cddata_masks.lmask |= CD_MASK_PROP_COLOR;
     }
     if (data_type & (DT_TYPE_MLOOPCOL_LOOP)) {
-      cddata_masks.lmask |= CD_MASK_MLOOPCOL;
+      cddata_masks.lmask |= CD_MASK_PROP_BYTE_COLOR;
     }
 
     Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, &cddata_masks);

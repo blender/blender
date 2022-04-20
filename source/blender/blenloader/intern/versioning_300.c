@@ -2590,11 +2590,11 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
         if (step) {
           vact1 = CustomData_get_render_layer_index(&me->vdata, CD_PROP_COLOR);
-          vact2 = CustomData_get_render_layer_index(&me->ldata, CD_MLOOPCOL);
+          vact2 = CustomData_get_render_layer_index(&me->ldata, CD_PROP_BYTE_COLOR);
         }
         else {
           vact1 = CustomData_get_active_layer_index(&me->vdata, CD_PROP_COLOR);
-          vact2 = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPCOL);
+          vact2 = CustomData_get_active_layer_index(&me->ldata, CD_PROP_BYTE_COLOR);
         }
 
         if (vact1 != -1) {

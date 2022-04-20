@@ -382,7 +382,7 @@ static void *add_customdata_cb(Mesh *mesh, const char *name, int data_type)
   int numloops;
 
   /* unsupported custom data type -- don't do anything. */
-  if (!ELEM(cd_data_type, CD_MLOOPUV, CD_MLOOPCOL)) {
+  if (!ELEM(cd_data_type, CD_MLOOPUV, CD_PROP_BYTE_COLOR)) {
     return nullptr;
   }
 

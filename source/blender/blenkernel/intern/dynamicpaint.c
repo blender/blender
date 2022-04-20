@@ -336,7 +336,7 @@ bool dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, Object 
   if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
     if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
       Mesh *me = ob->data;
-      return (CustomData_get_named_layer_index(&me->ldata, CD_MLOOPCOL, name) != -1);
+      return (CustomData_get_named_layer_index(&me->ldata, CD_PROP_BYTE_COLOR, name) != -1);
     }
     if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
       return (BKE_object_defgroup_name_index(ob, name) != -1);
@@ -1664,7 +1664,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
       const MLoop *mloop = mesh->mloop;
       const int totloop = mesh->totloop;
       const MLoopCol *col = CustomData_get_layer_named(
-          &mesh->ldata, CD_MLOOPCOL, surface->init_layername);
+          &mesh->ldata, CD_PROP_BYTE_COLOR, surface->init_layername);
       if (!col) {
         return;
       }
@@ -1676,7 +1676,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
     else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
       const MLoopTri *mlooptri = BKE_mesh_runtime_looptri_ensure(mesh);
       MLoopCol *col = CustomData_get_layer_named(
-          &mesh->ldata, CD_MLOOPCOL, surface->init_layername);
+          &mesh->ldata, CD_PROP_BYTE_COLOR, surface->init_layername);
       if (!col) {
         return;
       }
@@ -1940,20 +1940,28 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
 
             /* paint layer */
             MLoopCol *mloopcol = CustomData_get_layer_named(
-                &result->ldata, CD_MLOOPCOL, surface->output_name);
+                &result->ldata, CD_PROP_BYTE_COLOR, surface->output_name);
             /* if output layer is lost from a constructive modifier, re-add it */
             if (!mloopcol && dynamicPaint_outputLayerExists(surface, ob, 0)) {
-              mloopcol = CustomData_add_layer_named(
-                  &result->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, totloop, surface->output_name);
+              mloopcol = CustomData_add_layer_named(&result->ldata,
+                                                    CD_PROP_BYTE_COLOR,
+                                                    CD_CALLOC,
+                                                    NULL,
+                                                    totloop,
+                                                    surface->output_name);
             }
 
             /* wet layer */
             MLoopCol *mloopcol_wet = CustomData_get_layer_named(
-                &result->ldata, CD_MLOOPCOL, surface->output_name2);
+                &result->ldata, CD_PROP_BYTE_COLOR, surface->output_name2);
             /* if output layer is lost from a constructive modifier, re-add it */
             if (!mloopcol_wet && dynamicPaint_outputLayerExists(surface, ob, 1)) {
-              mloopcol_wet = CustomData_add_layer_named(
-                  &result->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, totloop, surface->output_name2);
+              mloopcol_wet = CustomData_add_layer_named(&result->ldata,
+                                                        CD_PROP_BYTE_COLOR,
+                                                        CD_CALLOC,
+                                                        NULL,
+                                                        totloop,
+                                                        surface->output_name2);
             }
 
             data.ob = ob;

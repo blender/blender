@@ -1389,7 +1389,7 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
         cdata = &me_eval->ldata;
       }
 
-      CustomDataType types[2] = {CD_PROP_COLOR, CD_MLOOPCOL};
+      CustomDataType types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
 
       int idx = 0;
       for (int i = 0; i < 2; i++) {
@@ -1485,7 +1485,7 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
       Object *ob_dst = CTX_data_active_object(C); /* XXX Is this OK? */
 
       if (ob_dst && ob_dst->data) {
-        CustomDataType types[2] = {CD_PROP_COLOR, CD_MLOOPCOL};
+        CustomDataType types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
 
         Mesh *me_dst = ob_dst->data;
         CustomData *cdata = STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_dst") ?

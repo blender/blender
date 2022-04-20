@@ -1745,13 +1745,13 @@ static void object_get_datamask(const Depsgraph *depsgraph,
 
     /* check if we need tfaces & mcols due to face select or texture paint */
     if ((ob->mode & OB_MODE_TEXTURE_PAINT) || editing) {
-      r_mask->lmask |= CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL;
+      r_mask->lmask |= CD_MASK_MLOOPUV | CD_MASK_PROP_BYTE_COLOR;
       r_mask->fmask |= CD_MASK_MTFACE;
     }
 
     /* check if we need mcols due to vertex paint or weightpaint */
     if (ob->mode & OB_MODE_VERTEX_PAINT) {
-      r_mask->lmask |= CD_MASK_MLOOPCOL;
+      r_mask->lmask |= CD_MASK_PROP_BYTE_COLOR;
     }
 
     if (ob->mode & OB_MODE_WEIGHT_PAINT) {

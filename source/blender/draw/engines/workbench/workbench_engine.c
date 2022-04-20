@@ -289,9 +289,9 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
       const CustomData *cd_ldata = workbench_mesh_get_loop_custom_data(me);
 
       bool has_color = (CustomData_has_layer(cd_vdata, CD_PROP_COLOR) ||
-                        CustomData_has_layer(cd_vdata, CD_MLOOPCOL) ||
+                        CustomData_has_layer(cd_vdata, CD_PROP_BYTE_COLOR) ||
                         CustomData_has_layer(cd_ldata, CD_PROP_COLOR) ||
-                        CustomData_has_layer(cd_ldata, CD_MLOOPCOL));
+                        CustomData_has_layer(cd_ldata, CD_PROP_BYTE_COLOR));
 
       if (!has_color) {
         color_type = V3D_SHADING_OBJECT_COLOR;
@@ -314,7 +314,7 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
         *r_texpaint_mode = true;
       }
     }
-    else if (is_vertpaint_mode && me && CustomData_has_layer(ldata, CD_MLOOPCOL)) {
+    else if (is_vertpaint_mode && me && CustomData_has_layer(ldata, CD_PROP_BYTE_COLOR)) {
       color_type = V3D_SHADING_VERTEX_COLOR;
     }
   }

@@ -2371,7 +2371,7 @@ void ED_view3d_datamask(const bContext *C,
                         CustomData_MeshMasks *r_cddata_masks)
 {
   if (ELEM(v3d->shading.type, OB_TEXTURE, OB_MATERIAL, OB_RENDER)) {
-    r_cddata_masks->lmask |= CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL;
+    r_cddata_masks->lmask |= CD_MASK_MLOOPUV | CD_MASK_PROP_BYTE_COLOR;
     r_cddata_masks->vmask |= CD_MASK_ORCO | CD_MASK_PROP_COLOR;
   }
   else if (v3d->shading.type == OB_SOLID) {
@@ -2379,7 +2379,7 @@ void ED_view3d_datamask(const bContext *C,
       r_cddata_masks->lmask |= CD_MASK_MLOOPUV;
     }
     if (v3d->shading.color_type == V3D_SHADING_VERTEX_COLOR) {
-      r_cddata_masks->lmask |= CD_MASK_MLOOPCOL;
+      r_cddata_masks->lmask |= CD_MASK_PROP_BYTE_COLOR;
       r_cddata_masks->vmask |= CD_MASK_ORCO | CD_MASK_PROP_COLOR;
     }
   }

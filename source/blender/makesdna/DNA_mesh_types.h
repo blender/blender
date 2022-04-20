@@ -221,7 +221,7 @@ typedef struct Mesh {
   /**
    * The active vertex corner color layer, if it exists. Also called "Vertex Color" in Blender's
    * UI, even though it is stored per face corner.
-   * \note This pointer is for convenient access to the #CD_MLOOPCOL layer in #ldata.
+   * \note This pointer is for convenient access to the #CD_PROP_BYTE_COLOR layer in #ldata.
    */
   struct MLoopCol *mloopcol;
 

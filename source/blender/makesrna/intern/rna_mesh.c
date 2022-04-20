@@ -753,9 +753,9 @@ static void rna_MeshUVLoopLayer_clone_set(PointerRNA *ptr, bool value)
 
 /* vertex_color_layers */
 
-DEFINE_CUSTOMDATA_LAYER_COLLECTION(vertex_color, ldata, CD_MLOOPCOL)
+DEFINE_CUSTOMDATA_LAYER_COLLECTION(vertex_color, ldata, CD_PROP_BYTE_COLOR)
 DEFINE_CUSTOMDATA_LAYER_COLLECTION_ACTIVEITEM(
-    vertex_color, ldata, CD_MLOOPCOL, active, MeshLoopColorLayer)
+    vertex_color, ldata, CD_PROP_BYTE_COLOR, active, MeshLoopColorLayer)
 
 static void rna_MeshLoopColorLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -773,22 +773,22 @@ static int rna_MeshLoopColorLayer_data_length(PointerRNA *ptr)
 
 static bool rna_MeshLoopColorLayer_active_render_get(PointerRNA *ptr)
 {
-  return rna_CustomDataLayer_active_get(ptr, rna_mesh_ldata(ptr), CD_MLOOPCOL, 1);
+  return rna_CustomDataLayer_active_get(ptr, rna_mesh_ldata(ptr), CD_PROP_BYTE_COLOR, 1);
 }
 
 static bool rna_MeshLoopColorLayer_active_get(PointerRNA *ptr)
 {
-  return rna_CustomDataLayer_active_get(ptr, rna_mesh_ldata(ptr), CD_MLOOPCOL, 0);
+  return rna_CustomDataLayer_active_get(ptr, rna_mesh_ldata(ptr), CD_PROP_BYTE_COLOR, 0);
 }
 
 static void rna_MeshLoopColorLayer_active_render_set(PointerRNA *ptr, bool value)
 {
-  rna_CustomDataLayer_active_set(ptr, rna_mesh_ldata(ptr), value, CD_MLOOPCOL, 1);
+  rna_CustomDataLayer_active_set(ptr, rna_mesh_ldata(ptr), value, CD_PROP_BYTE_COLOR, 1);
 }
 
 static void rna_MeshLoopColorLayer_active_set(PointerRNA *ptr, bool value)
 {
-  rna_CustomDataLayer_active_set(ptr, rna_mesh_ldata(ptr), value, CD_MLOOPCOL, 0);
+  rna_CustomDataLayer_active_set(ptr, rna_mesh_ldata(ptr), value, CD_PROP_BYTE_COLOR, 0);
 }
 
 /* sculpt_vertex_color_layers */
@@ -1340,7 +1340,7 @@ static char *rna_MeshLoopColorLayer_path(PointerRNA *ptr)
 
 static char *rna_MeshColor_path(PointerRNA *ptr)
 {
-  return rna_LoopCustomData_data_path(ptr, "vertex_colors", CD_MLOOPCOL);
+  return rna_LoopCustomData_data_path(ptr, "vertex_colors", CD_PROP_BYTE_COLOR);
 }
 
 static char *rna_MeshVertColorLayer_path(PointerRNA *ptr)
@@ -1564,7 +1564,7 @@ static PointerRNA rna_Mesh_vertex_color_new(struct Mesh *me,
 
   if (index != -1) {
     ldata = rna_mesh_ldata_helper(me);
-    cdl = &ldata->layers[CustomData_get_layer_index_n(ldata, CD_MLOOPCOL, index)];
+    cdl = &ldata->layers[CustomData_get_layer_index_n(ldata, CD_PROP_BYTE_COLOR, index)];
   }
 
   RNA_pointer_create(&me->id, &RNA_MeshLoopColorLayer, cdl, &ptr);

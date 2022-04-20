@@ -109,7 +109,7 @@ static void delete_customdata_layer(Mesh *me, CustomDataLayer *layer)
   int layer_index, tot, n;
 
   char htype = BM_FACE;
-  if (ELEM(type, CD_MLOOPCOL, CD_MLOOPUV)) {
+  if (ELEM(type, CD_PROP_BYTE_COLOR, CD_MLOOPUV)) {
     htype = BM_LOOP;
   }
   else if (ELEM(type, CD_PROP_COLOR)) {
@@ -379,25 +379,25 @@ int ED_mesh_color_add(
   if (me->edit_mesh) {
     em = me->edit_mesh;
 
-    layernum = CustomData_number_of_layers(&em->bm->ldata, CD_MLOOPCOL);
+    layernum = CustomData_number_of_layers(&em->bm->ldata, CD_PROP_BYTE_COLOR);
     if (layernum >= MAX_MCOL) {
       BKE_reportf(reports, RPT_WARNING, "Cannot add more than %i vertex color layers", MAX_MCOL);
       return -1;
     }
 
-    /* CD_MLOOPCOL */
-    BM_data_layer_add_named(em->bm, &em->bm->ldata, CD_MLOOPCOL, name);
+    /* CD_PROP_BYTE_COLOR */
+    BM_data_layer_add_named(em->bm, &em->bm->ldata, CD_PROP_BYTE_COLOR, name);
     /* copy data from active vertex color layer */
     if (layernum && do_init) {
-      const int layernum_dst = CustomData_get_active_layer(&em->bm->ldata, CD_MLOOPCOL);
-      BM_data_layer_copy(em->bm, &em->bm->ldata, CD_MLOOPCOL, layernum_dst, layernum);
+      const int layernum_dst = CustomData_get_active_layer(&em->bm->ldata, CD_PROP_BYTE_COLOR);
+      BM_data_layer_copy(em->bm, &em->bm->ldata, CD_PROP_BYTE_COLOR, layernum_dst, layernum);
     }
     if (active_set || layernum == 0) {
-      CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPCOL, layernum);
+      CustomData_set_layer_active(&em->bm->ldata, CD_PROP_BYTE_COLOR, layernum);
     }
   }
   else {
-    layernum = CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
+    layernum = CustomData_number_of_layers(&me->ldata, CD_PROP_BYTE_COLOR);
     if (layernum >= MAX_MCOL) {
       BKE_reportf(reports, RPT_WARNING, "Cannot add more than %i vertex color layers", MAX_MCOL);
       return -1;
@@ -405,14 +405,15 @@ int ED_mesh_color_add(
 
     if (me->mloopcol && do_init) {
       CustomData_add_layer_named(
-          &me->ldata, CD_MLOOPCOL, CD_DUPLICATE, me->mloopcol, me->totloop, name);
+          &me->ldata, CD_PROP_BYTE_COLOR, CD_DUPLICATE, me->mloopcol, me->totloop, name);
     }
     else {
-      CustomData_add_layer_named(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop, name);
+      CustomData_add_layer_named(
+          &me->ldata, CD_PROP_BYTE_COLOR, CD_DEFAULT, NULL, me->totloop, name);
     }
 
     if (active_set || layernum == 0) {
-      CustomData_set_layer_active(&me->ldata, CD_MLOOPCOL, layernum);
+      CustomData_set_layer_active(&me->ldata, CD_PROP_BYTE_COLOR, layernum);
     }
 
     BKE_mesh_update_customdata_pointers(me, true);
@@ -429,8 +430,9 @@ bool ED_mesh_color_ensure(struct Mesh *me, const char *name)
   BLI_assert(me->edit_mesh == NULL);
 
   if (!me->mloopcol && me->totloop) {
-    CustomData_add_layer_named(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop, name);
-    int layer_i = CustomData_get_layer_index(&me->ldata, CD_MLOOPCOL);
+    CustomData_add_layer_named(
+        &me->ldata, CD_PROP_BYTE_COLOR, CD_DEFAULT, NULL, me->totloop, name);
+    int layer_i = CustomData_get_layer_index(&me->ldata, CD_PROP_BYTE_COLOR);
 
     BKE_id_attributes_active_color_set(&me->id, me->ldata.layers + layer_i);
     BKE_mesh_update_customdata_pointers(me, true);
@@ -447,7 +449,7 @@ bool ED_mesh_color_remove_index(Mesh *me, const int n)
   CustomDataLayer *cdl;
   int index;
 
-  index = CustomData_get_layer_index_n(ldata, CD_MLOOPCOL, n);
+  index = CustomData_get_layer_index_n(ldata, CD_PROP_BYTE_COLOR, n);
   cdl = (index == -1) ? NULL : &ldata->layers[index];
 
   if (!cdl) {
@@ -463,7 +465,7 @@ bool ED_mesh_color_remove_index(Mesh *me, const int n)
 bool ED_mesh_color_remove_active(Mesh *me)
 {
   CustomData *ldata = GET_CD_DATA(me, ldata);
-  const int n = CustomData_get_active_layer(ldata, CD_MLOOPCOL);
+  const int n = CustomData_get_active_layer(ldata, CD_PROP_BYTE_COLOR);
   if (n != -1) {
     return ED_mesh_color_remove_index(me, n);
   }
@@ -472,7 +474,7 @@ bool ED_mesh_color_remove_active(Mesh *me)
 bool ED_mesh_color_remove_named(Mesh *me, const char *name)
 {
   CustomData *ldata = GET_CD_DATA(me, ldata);
-  const int n = CustomData_get_named_layer(ldata, CD_MLOOPCOL, name);
+  const int n = CustomData_get_named_layer(ldata, CD_PROP_BYTE_COLOR, name);
   if (n != -1) {
     return ED_mesh_color_remove_index(me, n);
   }
@@ -715,7 +717,7 @@ static bool vertex_color_remove_poll(bContext *C)
   Object *ob = ED_object_context(C);
   Mesh *me = ob->data;
   CustomData *ldata = GET_CD_DATA(me, ldata);
-  const int active = CustomData_get_active_layer(ldata, CD_MLOOPCOL);
+  const int active = CustomData_get_active_layer(ldata, CD_PROP_BYTE_COLOR);
   if (active != -1) {
     return true;
   }

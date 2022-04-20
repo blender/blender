@@ -336,7 +336,7 @@ static char attr_prefix_get(CustomDataType type)
     case CD_TANGENT:
       return 't';
     case CD_MCOL:
-    case CD_MLOOPCOL:
+    case CD_PROP_BYTE_COLOR:
       return 'c';
     case CD_PROP_COLOR:
       return 'c';
