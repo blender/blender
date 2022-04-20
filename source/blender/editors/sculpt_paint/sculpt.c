@@ -2780,7 +2780,7 @@ static void sculpt_pbvh_update_pixels(PaintModeSettings *paint_mode_settings,
     return;
   }
 
-  BKE_pbvh_build_pixels(ss->pbvh, mesh->mloop, &mesh->ldata, image, image_user);
+  BKE_pbvh_build_pixels(ss->pbvh, mesh, image, image_user);
 }
 
 /** \} */
