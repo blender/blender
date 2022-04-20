@@ -42,7 +42,7 @@ bool SEQ_relation_is_effect_of_strip(const Sequence *effect, const Sequence *inp
 /* check whether sequence cur depends on seq */
 static bool seq_relations_check_depend(Sequence *seq, Sequence *cur)
 {
-  if (cur->seq1 == seq || cur->seq2 == seq || cur->seq3 == seq) {
+  if (SEQ_relation_is_effect_of_strip(cur, seq)) {
     return true;
   }
 

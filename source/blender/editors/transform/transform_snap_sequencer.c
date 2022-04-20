@@ -21,6 +21,7 @@
 #include "SEQ_channels.h"
 #include "SEQ_effects.h"
 #include "SEQ_iterator.h"
+#include "SEQ_relations.h"
 #include "SEQ_render.h"
 #include "SEQ_sequencer.h"
 
@@ -102,8 +103,7 @@ static void query_strip_effects_fn(Sequence *seq_reference,
 
   /* Find all strips connected to `seq_reference`. */
   LISTBASE_FOREACH (Sequence *, seq_test, seqbase) {
-    if (seq_test->seq1 == seq_reference || seq_test->seq2 == seq_reference ||
-        seq_test->seq3 == seq_reference) {
+    if (SEQ_relation_is_effect_of_strip(seq_test, seq_reference)) {
       query_strip_effects_fn(seq_test, seqbase, collection);
     }
   }

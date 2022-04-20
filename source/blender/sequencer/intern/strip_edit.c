@@ -154,8 +154,7 @@ static void sequencer_flag_users_for_removal(Scene *scene, ListBase *seqbase, Se
     }
 
     /* Remove effects, that use seq. */
-    if ((user_seq->seq1 && user_seq->seq1 == seq) || (user_seq->seq2 && user_seq->seq2 == seq) ||
-        (user_seq->seq3 && user_seq->seq3 == seq)) {
+    if (SEQ_relation_is_effect_of_strip(user_seq, seq)) {
       user_seq->flag |= SEQ_FLAG_DELETE;
       /* Strips can be used as mask even if not in same seqbase. */
       sequencer_flag_users_for_removal(scene, &scene->ed->seqbase, user_seq);

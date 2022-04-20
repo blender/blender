@@ -20,6 +20,7 @@
 #include "BKE_scene.h"
 
 #include "SEQ_iterator.h"
+#include "SEQ_relations.h"
 #include "SEQ_render.h"
 #include "SEQ_time.h"
 #include "render.h"
@@ -241,15 +242,6 @@ static void collection_filter_channel_up_to_incl(SeqCollection *collection, cons
   }
 }
 
-static bool seq_is_effect_of(const Sequence *seq_effect, const Sequence *possibly_input)
-{
-  if (seq_effect->seq1 == possibly_input || seq_effect->seq2 == possibly_input ||
-      seq_effect->seq3 == possibly_input) {
-    return true;
-  }
-  return false;
-}
-
 /* Check if seq must be rendered. This depends on whole stack in some cases, not only seq itself.
  * Order of applying these conditions is important. */
 static bool must_render_strip(const Sequence *seq, SeqCollection *strips_at_timeline_frame)
@@ -262,7 +254,8 @@ static bool must_render_strip(const Sequence *seq, SeqCollection *strips_at_time
       return false;
     }
 
-    if ((seq_iter->type & SEQ_TYPE_EFFECT) != 0 && seq_is_effect_of(seq_iter, seq)) {
+    if ((seq_iter->type & SEQ_TYPE_EFFECT) != 0 &&
+        SEQ_relation_is_effect_of_strip(seq_iter, seq)) {
       /* Strips in same channel or higher than its effect are rendered. */
       if (seq->machine >= seq_iter->machine) {
         return true;
