@@ -1571,13 +1571,6 @@ static void rna_def_curves_sculpt(BlenderRNA *brna)
   RNA_def_struct_path_func(srna, "rna_CurvesSculpt_path");
   RNA_def_struct_ui_text(srna, "Curves Sculpt Paint", "");
 
-  prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
-  RNA_def_property_range(prop, 0.0f, FLT_MAX);
-  RNA_def_property_ui_range(prop, 0.0f, FLT_MAX, 1, 6);
-  RNA_def_property_ui_text(
-      prop, "Distance", "Radius around curves roots in which no new curves can be added");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-
   prop = RNA_def_property(srna, "interpolate_length", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", CURVES_SCULPT_FLAG_INTERPOLATE_LENGTH);
   RNA_def_property_ui_text(

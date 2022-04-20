@@ -1021,16 +1021,10 @@ typedef enum CurvesSculptFlag {
 
 typedef struct CurvesSculpt {
   Paint paint;
-  /** Minimum distance between newly added curves on a surface. */
-  float distance;
-
   /** CurvesSculptFlag. */
   uint32_t flag;
-
   /** Length of newly added curves when it is not interpolated from other curves. */
   float curve_length;
-
-  char _pad[4];
 } CurvesSculpt;
 
 typedef struct UvSculpt {
