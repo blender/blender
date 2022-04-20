@@ -129,6 +129,7 @@ def svn_update(args, release_version):
                 call(svn_non_interactive + ["switch", svn_url + dirname, dirpath], exit_on_error=False)
                 call(svn_non_interactive + ["update", dirpath])
 
+
 # Test if git repo can be updated.
 def git_update_skip(args, check_remote_exists=True):
     if make_utils.command_missing(args.git_command):
