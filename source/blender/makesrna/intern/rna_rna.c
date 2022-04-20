@@ -2601,10 +2601,11 @@ bool rna_property_override_apply_default(Main *bmain,
             int item_index_src, item_index_ref;
             if (RNA_property_collection_lookup_string_index(
                     ptr_src, prop_src, opop->subitem_local_name, &item_ptr_src, &item_index_src) &&
-                RNA_property_collection_lookup_int(
-                    ptr_src, prop_src, item_index_src + 1, &item_ptr_src) &&
-                RNA_property_collection_lookup_string_index(
-                    ptr_dst, prop_dst, opop->subitem_local_name, &item_ptr_ref, &item_index_ref)) {
+                RNA_property_collection_lookup_string_index(ptr_dst,
+                                                            prop_dst,
+                                                            opop->subitem_reference_name,
+                                                            &item_ptr_ref,
+                                                            &item_index_ref)) {
               is_valid = true;
               item_index_dst = item_index_ref + 1;
             }
@@ -2612,10 +2613,10 @@ bool rna_property_override_apply_default(Main *bmain,
           if (!is_valid && opop->subitem_local_index >= 0) {
             /* Find from index. */
             if (RNA_property_collection_lookup_int(
-                    ptr_src, prop_src, opop->subitem_local_index + 1, &item_ptr_src) &&
+                    ptr_src, prop_src, opop->subitem_local_index, &item_ptr_src) &&
                 RNA_property_collection_lookup_int(
-                    ptr_dst, prop_dst, opop->subitem_local_index, &item_ptr_ref)) {
-              item_index_dst = opop->subitem_local_index + 1;
+                    ptr_dst, prop_dst, opop->subitem_reference_index, &item_ptr_ref)) {
+              item_index_dst = opop->subitem_reference_index + 1;
               is_valid = true;
             }
           }
