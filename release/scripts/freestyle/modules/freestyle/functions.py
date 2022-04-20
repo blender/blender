@@ -91,7 +91,7 @@ __all__ = (
     "pyViewMapGradientNormF0D",
     "pyViewMapGradientNormF1D",
     "pyViewMapGradientVectorF0D",
-    )
+)
 
 
 # module members
@@ -147,7 +147,7 @@ from _freestyle import (
     VertexOrientation3DF0D,
     ZDiscontinuityF0D,
     ZDiscontinuityF1D,
-    )
+)
 
 # constructs for function definition in Python
 from freestyle.types import (
@@ -157,7 +157,7 @@ from freestyle.types import (
     UnaryFunction0DMaterial,
     UnaryFunction0DVec2f,
     UnaryFunction1DDouble,
-    )
+)
 from freestyle.utils import ContextFunctions as CF
 from freestyle.utils import integrate
 
@@ -176,6 +176,7 @@ class CurveMaterialF0D(UnaryFunction0DMaterial):
     Notes: expects instances of CurvePoint to be iterated over
            can return None if no fedge can be found
     """
+
     def __call__(self, inter):
         fe = inter.object.fedge
         if fe is None:
@@ -203,6 +204,7 @@ class pyCurvilinearLengthF0D(UnaryFunction0DDouble):
 
 class pyDensityAnisotropyF0D(UnaryFunction0DDouble):
     """Estimates the anisotropy of density."""
+
     def __init__(self, level):
         UnaryFunction0DDouble.__init__(self)
         self.IsoDensity = ReadCompleteViewMapPixelF0D(level)
@@ -233,6 +235,7 @@ class pyViewMapGradientVectorF0D(UnaryFunction0DVec2f):
        :arg level: the level at which to compute the gradient
        :type level: int
     """
+
     def __init__(self, level):
         UnaryFunction0DVec2f.__init__(self)
         self._l = level
@@ -241,9 +244,9 @@ class pyViewMapGradientVectorF0D(UnaryFunction0DVec2f):
     def __call__(self, iter):
         p = iter.object.point_2d
         gx = CF.read_complete_view_map_pixel(self._l, int(p.x + self._step), int(p.y)) - \
-             CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
+            CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
         gy = CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y + self._step)) - \
-             CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
+            CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
         return Vector((gx, gy))
 
 
@@ -256,9 +259,9 @@ class pyViewMapGradientNormF0D(UnaryFunction0DDouble):
     def __call__(self, iter):
         p = iter.object.point_2d
         gx = CF.read_complete_view_map_pixel(self._l, int(p.x + self._step), int(p.y)) - \
-             CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
+            CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
         gy = CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y + self._step)) - \
-             CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
+            CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
         return Vector((gx, gy)).length
 
 # -- Functions for 1D elements (curves) -- #
@@ -286,7 +289,10 @@ class pyDensityAnisotropyF1D(UnaryFunction1DDouble):
         self._sampling = sampling
 
     def __call__(self, inter):
-        v = integrate(self._func, inter.points_begin(self._sampling), inter.points_end(self._sampling), self._integration)
+        v = integrate(
+            self._func, inter.points_begin(
+                self._sampling), inter.points_end(
+                self._sampling), self._integration)
         return v
 
 
@@ -298,5 +304,8 @@ class pyViewMapGradientNormF1D(UnaryFunction1DDouble):
         self._sampling = sampling
 
     def __call__(self, inter):
-        v = integrate(self._func, inter.points_begin(self._sampling), inter.points_end(self._sampling), self._integration)
+        v = integrate(
+            self._func, inter.points_begin(
+                self._sampling), inter.points_end(
+                self._sampling), self._integration)
         return v
