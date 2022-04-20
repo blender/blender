@@ -1191,7 +1191,7 @@ void OBJECT_OT_parent_inverse_apply(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Apply Parent Inverse";
-  ot->description = "Apply the object's parent inverse to the its data";
+  ot->description = "Apply the object's parent inverse to its data";
   ot->idname = "OBJECT_OT_parent_inverse_apply";
 
   /* api callbacks */
