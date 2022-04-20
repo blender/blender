@@ -29,6 +29,7 @@ set(INC
   ../nodes
   ../nodes/intern
 
+  ../../../intern/atomic
   ../../../intern/clog
   ../../../intern/ghost
   ../../../intern/glew-mx

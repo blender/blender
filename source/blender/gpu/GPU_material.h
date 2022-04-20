@@ -215,6 +215,9 @@ GPUMaterial *GPU_material_from_nodetree(struct Scene *scene,
 void GPU_material_compile(GPUMaterial *mat);
 void GPU_material_free(struct ListBase *gpumaterial);
 
+void GPU_material_acquire(GPUMaterial *mat);
+void GPU_material_release(GPUMaterial *mat);
+
 void GPU_materials_free(struct Main *bmain);
 
 struct Scene *GPU_material_scene(GPUMaterial *material);

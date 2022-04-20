@@ -40,6 +40,8 @@
 #include "gpu_codegen.h"
 #include "gpu_node_graph.h"
 
+#include "atomic_ops.h"
+
 /* Structs */
 #define MAX_COLOR_BAND 128
 
@@ -87,6 +89,8 @@ struct GPUMaterial {
   float sss_radii[3];
   int sss_samples;
   bool sss_dirty;
+
+  uint32_t refcount;
 
 #ifndef NDEBUG
   char name[64];
@@ -142,8 +146,10 @@ static void gpu_material_ramp_texture_build(GPUMaterial *mat)
 
 static void gpu_material_free_single(GPUMaterial *material)
 {
-  /* Cancel / wait any pending lazy compilation. */
-  DRW_deferred_shader_remove(material);
+  bool do_free = atomic_sub_and_fetch_uint32(&material->refcount, 1) == 0;
+  if (!do_free) {
+    return;
+  }
 
   gpu_node_graph_free(&material->graph);
 
@@ -168,6 +174,7 @@ void GPU_material_free(ListBase *gpumaterial)
 {
   LISTBASE_FOREACH (LinkData *, link, gpumaterial) {
     GPUMaterial *material = link->data;
+    DRW_deferred_shader_remove(material);
     gpu_material_free_single(material);
     MEM_freeN(material);
   }
@@ -660,6 +667,7 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
   mat->is_volume_shader = is_volume_shader;
   mat->graph.used_libraries = BLI_gset_new(
       BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "GPUNodeGraph.used_libraries");
+  mat->refcount = 1;
 #ifndef NDEBUG
   BLI_snprintf(mat->name, sizeof(mat->name), "%s", name);
 #else
@@ -709,11 +717,21 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
   return mat;
 }
 
+void GPU_material_acquire(GPUMaterial *mat)
+{
+  atomic_add_and_fetch_uint32(&mat->refcount, 1);
+}
+
+void GPU_material_release(GPUMaterial *mat)
+{
+  gpu_material_free_single(mat);
+}
+
 void GPU_material_compile(GPUMaterial *mat)
 {
   bool success;
 
-  BLI_assert(mat->status == GPU_MAT_QUEUED);
+  BLI_assert(ELEM(mat->status, GPU_MAT_QUEUED, GPU_MAT_CREATED));
   BLI_assert(mat->pass);
 
   /* NOTE: The shader may have already been compiled here since we are
