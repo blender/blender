@@ -61,7 +61,7 @@ def language_menu(args, settings):
 
     po_to_uid = {os.path.basename(po_path_branch): uid
                  for can_use, uid, _num_id, _name, _isocode, po_path_branch
-                     in utils_i18n.list_po_dir(settings.BRANCHES_DIR, settings)
+                 in utils_i18n.list_po_dir(settings.BRANCHES_DIR, settings)
                  if can_use}
     for po_dir in os.listdir(settings.BRANCHES_DIR):
         po_dir = os.path.join(settings.BRANCHES_DIR, po_dir)

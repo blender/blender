@@ -204,6 +204,7 @@ def draw(layout, context, context_member, property_type, *, use_edit=True):
             # Add some spacing, so the right side of the buttons line up with layouts with decorators.
             operator_row.label(text="", icon='BLANK1')
 
+
 class PropertyPanel:
     """
     The subclass should have its own poll function
