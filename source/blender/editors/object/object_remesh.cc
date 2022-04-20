@@ -145,6 +145,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
 
   if (ob->mode == OB_MODE_SCULPT) {
     ED_sculpt_undo_geometry_begin(ob, op->type->name);
+    ob->sculpt->needs_pbvh_rebuild = true;
   }
 
   if (mesh->flag & ME_REMESH_FIX_POLES && mesh->remesh_voxel_adaptivity <= 0.0f) {

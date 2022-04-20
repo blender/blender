@@ -43,24 +43,6 @@ using blender::IndexRange;
 
 namespace blender::bke {
 
-template<typename T> inline void *get_color_pointer(PBVH, SculptVertRef vref)
-{
-  const size_t esize = pbvh->color_layer->type == CD_PROP_COLOR ? sizeof(MPropCol) :
-                                                                  sizeof(MLoopCol);
-
-  switch (pbvh->type) {
-    case PBVH_FACES:
-      return POINTER_OFFSET(pbvh->color_layer->data, (size_t)vref.i * esize);
-    case PBVH_BMESH: {
-      BMVert *v = reinterpret_cast<BMVert *>(vref.i);
-
-      return BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_vcol_offset);
-    }
-    default:
-      return nullptr;
-  }
-}
-
 template<typename Func>
 inline void to_static_color_type(const CustomDataType type, const Func &func)
 {
