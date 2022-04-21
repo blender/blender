@@ -25,3 +25,29 @@ diff -Naur usd_orig/cmake/defaults/msvcdefaults.cmake external_usd/cmake/default
  set(_PXR_CXX_FLAGS "${_PXR_CXX_FLAGS} /MP")
  set(_PXR_CXX_FLAGS "${_PXR_CXX_FLAGS} /Gm-")
 
+diff --git a/pxr/base/work/singularTask.h b/pxr/base/work/singularTask.h
+--- a/pxr/base/work/singularTask.h
++++ b/pxr/base/work/singularTask.h
+@@ -120,7 +120,7 @@
+                     // case we go again to ensure the task can do whatever it
+                     // was awakened to do.  Once we successfully take the count
+                     // to zero, we stop.
+-                    size_t old = count;
++                    std::size_t old = count;
+                     do { _fn(); } while (
+                         !count.compare_exchange_strong(old, 0));
+                 });
+
+diff --git a/pxr/usd/sdr/shaderMetadataHelpers.h b/pxr/usd/sdr/shaderMetadataHelpers.h
+--- a/pxr/usd/sdr/shaderMetadataHelpers.h
++++ b/pxr/usd/sdr/shaderMetadataHelpers.h
+@@ -32,6 +32,8 @@
+ #include "pxr/base/tf/token.h"
+ #include "pxr/usd/sdr/declare.h"
+ 
++#include <limits>
++
+ PXR_NAMESPACE_OPEN_SCOPE
+ 
+ /// \namespace ShaderMetadataHelpers
+
