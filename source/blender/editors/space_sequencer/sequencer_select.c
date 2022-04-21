@@ -1921,7 +1921,7 @@ static bool select_grouped_effect(SeqCollection *strips,
   Sequence *seq;
   SEQ_ITERATOR_FOREACH (seq, strips) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && (seq->type & SEQ_TYPE_EFFECT) &&
-        SEQ_relation_is_effect_of_strip(seq, actseq) {
+        SEQ_relation_is_effect_of_strip(seq, actseq)) {
       effects[seq->type] = true;
     }
   }
