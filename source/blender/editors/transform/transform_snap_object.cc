@@ -242,7 +242,7 @@ static SnapObjectData *snap_object_data_lookup(SnapObjectContext *sctx, Object *
   if (sod == nullptr) {
     if (sctx->cache.data_to_object_map != nullptr) {
       ob_eval = static_cast<Object *>(
-          BLI_ghash_lookup(sctx->cache.data_to_object_map, ob_eval->data));
+          BLI_ghash_lookup(sctx->cache.data_to_object_map, ob_eval->runtime.data_orig));
       /* Could be NULl when mixing edit-mode and non edit-mode objects. */
       if (ob_eval != nullptr) {
         sod = static_cast<SnapObjectData *>(BLI_ghash_lookup(sctx->cache.object_map, ob_eval));
@@ -369,7 +369,7 @@ static SnapObjectData *snap_object_data_editmesh_get(SnapObjectContext *sctx,
       sctx->cache.data_to_object_map = BLI_ghash_ptr_new(__func__);
     }
     void **ob_p;
-    if (BLI_ghash_ensure_p(sctx->cache.data_to_object_map, ob_eval->data, &ob_p)) {
+    if (BLI_ghash_ensure_p(sctx->cache.data_to_object_map, ob_eval->runtime.data_orig, &ob_p)) {
       ob_eval = static_cast<Object *>(*ob_p);
     }
     else {
