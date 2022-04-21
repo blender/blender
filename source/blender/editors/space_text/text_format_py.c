@@ -31,12 +31,16 @@
 static int txtfmt_py_find_builtinfunc(const char *string)
 {
   int i, len;
-  /* list is from...
+  /**
+   * The following items are derived from this list:
+   * \code{.py}
    * ", ".join(['"%s"' % kw
    *            for kw in sorted(__import__("keyword").kwlist + __import__("keyword").softkwlist)
    *            if kw not in {"False", "None", "True", "def", "class", "_"}])
+   * \endcode
    *
-   * ... and for this code:
+   * The code below can be re-generated using:
+   * \code{.py}
    * import keyword
    * ignore = {"False", "None", "True", "def", "class", "_"}
    * keywords = sorted(set(keyword.kwlist + keyword.softkwlist) - ignore)
@@ -48,6 +52,7 @@ static int txtfmt_py_find_builtinfunc(const char *string)
    *                 for (i, kw) in enumerate(keywords)]) + "\n" +
    *       last % (' '*(longest-2)) + "\n" +
    *       "}")
+   * \endcode
    */
 
   /* Keep aligned args for readability. */

@@ -957,8 +957,8 @@ static void ntree_shader_shader_to_rgba_branch(bNodeTree *ntree, bNode *output_n
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     node->tmp_flag = -1;
   }
-  /* First gather the shader_to_rgba nodes linked to the ouput. This is separate to avoid
-   * conflicting usage of the node->tmp_flag. */
+  /* First gather the shader_to_rgba nodes linked to the output. This is separate to avoid
+   * conflicting usage of the `node->tmp_flag`. */
   Vector<bNode *> shader_to_rgba_nodes;
   nodeChainIterBackwards(ntree, output_node, shader_to_rgba_node_gather, &shader_to_rgba_nodes, 0);
 
@@ -971,7 +971,7 @@ static void ntree_shader_shader_to_rgba_branch(bNodeTree *ntree, bNode *output_n
     bNode *start_node_copy = ntree_shader_copy_branch(
         ntree, start_node, closure_node_filter, nullptr, 0);
     /* Replace node copy link. This assumes that every node possibly connected to the closure input
-     * has only one ouput. */
+     * has only one output. */
     bNodeSocket *closure_output = ntree_shader_node_output_get(start_node_copy, 0);
     nodeRemLink(ntree, closure_input->link);
     nodeAddLink(ntree, start_node_copy, closure_output, shader_to_rgba, closure_input);

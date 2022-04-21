@@ -865,7 +865,7 @@ ccl_device_inline void shader_eval_volume(KernelGlobals kg,
          * `u(x, T) = u(x - (T - t) * u(x, T), t)`
          *
          * This is the typical way to model self-advection in fluid dynamics, however, we do not
-         * account for other forces affecting the velocity during simulation (pressure, buyoancy,
+         * account for other forces affecting the velocity during simulation (pressure, buoyancy,
          * etc.): this gives a linear interpolation when fluid are mostly "curvy". For better
          * results, a higher order interpolation scheme can be used (at the cost of more lookups),
          * or an interpolation of the velocity fields for the previous and next frames could also

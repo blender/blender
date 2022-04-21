@@ -1926,7 +1926,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
 
-      /* Grease pencil multiframe falloff curve */
+      /* Grease pencil multi-frame falloff curve. */
       if (!DNA_struct_elem_find(
               fd->filesdna, "GP_Sculpt_Settings", "CurveMapping", "cur_falloff")) {
         for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {

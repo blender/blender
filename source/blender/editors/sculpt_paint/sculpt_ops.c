@@ -1044,7 +1044,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
-  /* Color data is not available in Multires or dyanmic topology. */
+  /* Color data is not available in multi-resolution or dynamic topology. */
   if (!SCULPT_handles_colors_report(ss, op->reports)) {
     return OPERATOR_CANCELLED;
   }
