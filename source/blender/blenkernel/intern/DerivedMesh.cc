@@ -734,7 +734,6 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
                                 const bool use_deform,
                                 const bool need_mapping,
                                 const CustomData_MeshMasks *dataMask,
-                                const int index,
                                 const bool use_cache,
                                 const bool allow_shared_mesh,
                                 /* return args */
@@ -846,12 +845,6 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
         isPrevDeform = true;
       }
       else {
-        break;
-      }
-
-      /* grab modifiers until index i */
-      if ((index != -1) && (BLI_findindex(&ob->modifiers, md) >= index)) {
-        md = nullptr;
         break;
       }
     }
@@ -1128,11 +1121,6 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
     }
 
     isPrevDeform = (mti->type == eModifierTypeType_OnlyDeform);
-
-    /* grab modifiers until index i */
-    if ((index != -1) && (BLI_findindex(&ob->modifiers, md) >= index)) {
-      break;
-    }
 
     if (sculpt_mode && md->type == eModifierType_Multires) {
       multires_applied = true;
@@ -1611,7 +1599,7 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
                             const CustomData_MeshMasks *dataMask,
                             const bool need_mapping)
 {
-#if 0 /* XXX This is already taken care of in mesh_calc_modifiers()... */
+#if 0 /* XXX This is already taken care of in #mesh_calc_modifiers... */
   if (need_mapping) {
     /* Also add the flag so that it is recorded in lastDataMask. */
     dataMask->vmask |= CD_MASK_ORIGINDEX;
@@ -1628,7 +1616,6 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
                       true,
                       need_mapping,
                       dataMask,
-                      -1,
                       true,
                       true,
                       &mesh_deform_eval,
@@ -1882,7 +1869,7 @@ Mesh *mesh_create_eval_final(Depsgraph *depsgraph,
 {
   Mesh *result;
   mesh_calc_modifiers(
-      depsgraph, scene, ob, true, false, dataMask, -1, false, false, nullptr, &result, nullptr);
+      depsgraph, scene, ob, true, false, dataMask, false, false, nullptr, &result, nullptr);
   return result;
 }
 
@@ -1893,7 +1880,7 @@ Mesh *mesh_create_eval_no_deform(Depsgraph *depsgraph,
 {
   Mesh *result;
   mesh_calc_modifiers(
-      depsgraph, scene, ob, false, false, dataMask, -1, false, false, nullptr, &result, nullptr);
+      depsgraph, scene, ob, false, false, dataMask, false, false, nullptr, &result, nullptr);
   return result;
 }
 
@@ -1904,7 +1891,7 @@ Mesh *mesh_create_eval_no_deform_render(Depsgraph *depsgraph,
 {
   Mesh *result;
   mesh_calc_modifiers(
-      depsgraph, scene, ob, false, false, dataMask, -1, false, false, nullptr, &result, nullptr);
+      depsgraph, scene, ob, false, false, dataMask, false, false, nullptr, &result, nullptr);
   return result;
 }
 
