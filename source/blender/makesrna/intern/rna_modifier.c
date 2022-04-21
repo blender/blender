@@ -1361,13 +1361,13 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
       }
     }
   }
-  else if (STREQ(RNA_property_identifier(prop), "layers_vcol_select_vert_src") ||
-           STREQ(RNA_property_identifier(prop), "layers_vcol_select_loop_src")) {
+  else if (STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_src") ||
+           STREQ(RNA_property_identifier(prop), "layers_vcol_loop_select_src")) {
     Object *ob_src = dtmd->ob_source;
 
     if (ob_src) {
       AttributeDomain domain = STREQ(RNA_property_identifier(prop),
-                                     "layers_vcol_select_vert_src") ?
+                                     "layers_vcol_vert_select_src") ?
                                    ATTR_DOMAIN_POINT :
                                    ATTR_DOMAIN_CORNER;
 
@@ -1480,8 +1480,12 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
   }
   else if (STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_dst") ||
            STREQ(RNA_property_identifier(prop), "layers_vcol_loop_select_dst")) {
+    int multilayer_index = STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_dst") ?
+                               DT_MULTILAYER_INDEX_VCOL_VERT :
+                               DT_MULTILAYER_INDEX_VCOL_LOOP;
+
     /* Only list destination layers if we have a single source! */
-    if (dtmd->layers_select_src[DT_MULTILAYER_INDEX_VCOL_LOOP] >= 0) {
+    if (dtmd->layers_select_src[multilayer_index] >= 0) {
       Object *ob_dst = CTX_data_active_object(C); /* XXX Is this OK? */
 
       if (ob_dst && ob_dst->data) {
