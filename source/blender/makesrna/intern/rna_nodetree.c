@@ -1420,8 +1420,13 @@ static bNodeSocket *rna_NodeTree_inputs_new(
 
   bNodeSocket *sock = ntreeAddSocketInterface(ntree, SOCK_IN, type, name);
 
-  ED_node_tree_propagate_change(NULL, bmain, ntree);
-  WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
+  if (sock == NULL) {
+    BKE_report(reports, RPT_ERROR, "Unable to create socket");
+  }
+  else {
+    ED_node_tree_propagate_change(NULL, bmain, ntree);
+    WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
+  }
 
   return sock;
 }
@@ -1435,8 +1440,13 @@ static bNodeSocket *rna_NodeTree_outputs_new(
 
   bNodeSocket *sock = ntreeAddSocketInterface(ntree, SOCK_OUT, type, name);
 
-  ED_node_tree_propagate_change(NULL, bmain, ntree);
-  WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
+  if (sock == NULL) {
+    BKE_report(reports, RPT_ERROR, "Unable to create socket");
+  }
+  else {
+    ED_node_tree_propagate_change(NULL, bmain, ntree);
+    WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
+  }
 
   return sock;
 }
