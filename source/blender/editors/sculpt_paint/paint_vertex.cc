@@ -2985,7 +2985,7 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
 
 template<class Color = ColorPaint4b, typename Traits = ByteTraits>
 static void do_vpaint_brush_blur_loops(bContext *C,
-                                       Sculpt *sd,
+                                       Sculpt *UNUSED(sd),
                                        VPaint *vp,
                                        VPaintData<Color, Traits, ATTR_DOMAIN_CORNER> *vpd,
                                        Object *ob,
@@ -3128,7 +3128,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
 
 template<class Color = ColorPaint4b, typename Traits = ByteTraits>
 static void do_vpaint_brush_blur_verts(bContext *C,
-                                       Sculpt *sd,
+                                       Sculpt *UNUSED(sd),
                                        VPaint *vp,
                                        VPaintData<Color, Traits, ATTR_DOMAIN_POINT> *vpd,
                                        Object *ob,
@@ -3237,7 +3237,8 @@ static void do_vpaint_brush_blur_verts(bContext *C,
                 for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
                   const int p_index = gmap->vert_to_poly[v_index].indices[j];
 
-                  BLI_assert(me->mloop[l_index].v == v_index);
+                  BLI_assert(me->mloop[gmap->vert_to_loop[v_index].indices[j]].v == v_index);
+
                   const MPoly *mp = &me->mpoly[p_index];
                   if (!use_face_sel || mp->flag & ME_FACE_SEL) {
                     Color color_orig(0, 0, 0, 0); /* unused when array is NULL */
@@ -3273,7 +3274,7 @@ static void do_vpaint_brush_blur_verts(bContext *C,
 
 template<typename Color = ColorPaint4b, typename Traits, AttributeDomain domain>
 static void do_vpaint_brush_smear(bContext *C,
-                                  Sculpt *sd,
+                                  Sculpt *UNUSED(sd),
                                   VPaint *vp,
                                   VPaintData<Color, Traits, domain> *vpd,
                                   Object *ob,
@@ -3567,7 +3568,7 @@ static float paint_and_tex_color_alpha(VPaint *vp,
 
 template<typename Color, typename Traits, AttributeDomain domain>
 static void vpaint_do_draw(bContext *C,
-                           Sculpt *sd,
+                           Sculpt *UNUSED(sd),
                            VPaint *vp,
                            VPaintData<Color, Traits, domain> *vpd,
                            Object *ob,
@@ -3949,7 +3950,7 @@ static void vpaint_stroke_update_step(bContext *C,
 }
 
 template<typename Color, typename Traits, AttributeDomain domain>
-static void vpaint_free_vpaintdata(Object *ob, void *_vpd)
+static void vpaint_free_vpaintdata(Object *UNUSED(ob), void *_vpd)
 {
   VPaintData<Color, Traits, domain> *vpd = static_cast<VPaintData<Color, Traits, domain> *>(_vpd);
 
@@ -3970,7 +3971,7 @@ static void vpaint_free_vpaintdata(Object *ob, void *_vpd)
   MEM_delete<VPaintData<Color, Traits, domain>>(vpd);
 }
 
-static ViewContext *vpaint_get_viewcontext(Object *ob, void *vpd_ptr)
+static ViewContext *vpaint_get_viewcontext(Object *UNUSED(ob), void *vpd_ptr)
 {
   VPaintDataBase *vpd = static_cast<VPaintDataBase *>(vpd_ptr);
 
