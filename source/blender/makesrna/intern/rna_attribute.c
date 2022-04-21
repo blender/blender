@@ -339,9 +339,17 @@ static int rna_Attributes_layer_skip(CollectionPropertyIterator *UNUSED(iter), v
   return !(CD_TYPE_AS_MASK(layer->type) & CD_MASK_PROP_ALL);
 }
 
-static int rna_Attributes_noncolor_layer_skip(CollectionPropertyIterator *UNUSED(iter), void *data)
+static int rna_Attributes_noncolor_layer_skip(CollectionPropertyIterator *iter, void *data)
 {
   CustomDataLayer *layer = (CustomDataLayer *)data;
+
+  /* Check valid domain here, too, keep in line with rna_AttributeGroup_color_length(). */
+  ID *id = iter->parent.owner_id;
+  AttributeDomain domain = BKE_id_attribute_domain(id, layer);
+  if (!ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
+    return 1;
+  }
+
   return !(CD_TYPE_AS_MASK(layer->type) & CD_MASK_COLOR_ALL) || (layer->flag & CD_FLAG_TEMPORARY);
 }
 
