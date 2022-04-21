@@ -755,9 +755,7 @@ static void SCULPT_OT_loop_to_vertex_colors(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int sculpt_sample_color_invoke(bContext *C,
-                                      wmOperator *op,
-                                      const wmEvent *UNUSED(e))
+static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e))
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Scene *scene = CTX_data_scene(C);

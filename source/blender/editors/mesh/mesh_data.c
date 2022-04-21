@@ -431,7 +431,8 @@ bool ED_mesh_color_ensure(struct Mesh *me, const char *name)
   CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
 
   if (!layer) {
-    CustomData_add_layer_named(&me->ldata, CD_PROP_BYTE_COLOR, CD_DEFAULT, NULL, me->totloop, name);
+    CustomData_add_layer_named(
+        &me->ldata, CD_PROP_BYTE_COLOR, CD_DEFAULT, NULL, me->totloop, name);
     layer = me->ldata.layers + CustomData_get_layer_index(&me->ldata, CD_PROP_BYTE_COLOR);
 
     BKE_id_attributes_active_color_set(&me->id, layer);
