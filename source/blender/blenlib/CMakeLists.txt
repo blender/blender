@@ -171,6 +171,7 @@ set(SRC
   BLI_boxpack_2d.h
   BLI_buffer.h
   BLI_color.hh
+  BLI_color_mix.hh
   BLI_compiler_attrs.h
   BLI_compiler_compat.h
   BLI_compiler_typecheck.h

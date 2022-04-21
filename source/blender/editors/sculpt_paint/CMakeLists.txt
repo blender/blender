@@ -48,7 +48,7 @@ set(SRC
   paint_ops.c
   paint_stroke.c
   paint_utils.c
-  paint_vertex.c
+  paint_vertex.cc
   paint_vertex_color_ops.c
   paint_vertex_color_utils.c
   paint_vertex_proj.c

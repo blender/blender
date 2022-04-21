@@ -428,19 +428,19 @@ int ED_mesh_color_add(
 bool ED_mesh_color_ensure(struct Mesh *me, const char *name)
 {
   BLI_assert(me->edit_mesh == NULL);
+  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
 
-  if (!me->mloopcol && me->totloop) {
-    CustomData_add_layer_named(
-        &me->ldata, CD_PROP_BYTE_COLOR, CD_DEFAULT, NULL, me->totloop, name);
-    int layer_i = CustomData_get_layer_index(&me->ldata, CD_PROP_BYTE_COLOR);
+  if (!layer) {
+    CustomData_add_layer_named(&me->ldata, CD_PROP_BYTE_COLOR, CD_DEFAULT, NULL, me->totloop, name);
+    layer = me->ldata.layers + CustomData_get_layer_index(&me->ldata, CD_PROP_BYTE_COLOR);
 
-    BKE_id_attributes_active_color_set(&me->id, me->ldata.layers + layer_i);
+    BKE_id_attributes_active_color_set(&me->id, layer);
     BKE_mesh_update_customdata_pointers(me, true);
   }
 
   DEG_id_tag_update(&me->id, 0);
 
-  return (me->mloopcol != NULL);
+  return (layer != NULL);
 }
 
 bool ED_mesh_color_remove_index(Mesh *me, const int n)
