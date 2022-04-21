@@ -610,6 +610,8 @@ typedef enum eBrushFalloffShape {
 typedef enum eBrushCurvesSculptFlag {
   BRUSH_CURVES_SCULPT_FLAG_SCALE_UNIFORM = (1 << 0),
   BRUSH_CURVES_SCULPT_FLAG_GROW_SHRINK_INVERT = (1 << 1),
+  BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_LENGTH = (1 << 2),
+  BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE = (1 << 3),
 } eBrushCurvesSculptFlag;
 
 #define MAX_BRUSH_PIXEL_RADIUS 500

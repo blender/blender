@@ -1628,7 +1628,7 @@ void ED_view3d_buttons_region_layout_ex(const bContext *C,
       ARRAY_SET_ITEMS(contexts, ".greasepencil_vertex");
       break;
     case CTX_MODE_SCULPT_CURVES:
-      ARRAY_SET_ITEMS(contexts, ".curves_sculpt");
+      ARRAY_SET_ITEMS(contexts, ".paint_common", ".curves_sculpt");
       break;
     default:
       break;

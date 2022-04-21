@@ -2529,12 +2529,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       brush->curves_sculpt_settings = MEM_callocN(sizeof(BrushCurvesSculptSettings), __func__);
       brush->curves_sculpt_settings->add_amount = 1;
     }
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (scene->toolsettings && scene->toolsettings->curves_sculpt &&
-          scene->toolsettings->curves_sculpt->curve_length == 0.0f) {
-        scene->toolsettings->curves_sculpt->curve_length = 0.3f;
-      }
-    }
 
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
@@ -2735,6 +2729,16 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
             snode->overlay.flag |= SN_OVERLAY_SHOW_NAMED_ATTRIBUTES;
           }
         }
+      }
+    }
+
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      BrushCurvesSculptSettings *settings = brush->curves_sculpt_settings;
+      if (settings == NULL) {
+        continue;
+      }
+      if (settings->curve_length == 0.0f) {
+        settings->curve_length = 0.3f;
       }
     }
   }

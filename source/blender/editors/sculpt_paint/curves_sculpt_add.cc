@@ -96,6 +96,7 @@ struct AddOperationExecutor {
 
   CurvesSculpt *curves_sculpt_ = nullptr;
   Brush *brush_ = nullptr;
+  BrushCurvesSculptSettings *brush_settings_ = nullptr;
 
   float brush_radius_re_;
   float2 brush_pos_re_;
@@ -162,17 +163,18 @@ struct AddOperationExecutor {
 
     curves_sculpt_ = scene_->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush(&curves_sculpt_->paint);
+    brush_settings_ = brush_->curves_sculpt_settings;
     brush_radius_re_ = BKE_brush_size_get(scene_, brush_);
     brush_pos_re_ = stroke_extension.mouse_position;
 
     use_front_face_ = brush_->flag & BRUSH_FRONTFACE;
     const eBrushFalloffShape falloff_shape = static_cast<eBrushFalloffShape>(
         brush_->falloff_shape);
-    add_amount_ = std::max(0, brush_->curves_sculpt_settings->add_amount);
-    interpolate_length_ = curves_sculpt_->flag & CURVES_SCULPT_FLAG_INTERPOLATE_LENGTH;
-    interpolate_shape_ = curves_sculpt_->flag & CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE;
+    add_amount_ = std::max(0, brush_settings_->add_amount);
+    interpolate_length_ = brush_settings_->flag & BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_LENGTH;
+    interpolate_shape_ = brush_settings_->flag & BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE;
     use_interpolation_ = interpolate_length_ || interpolate_shape_;
-    new_curve_length_ = curves_sculpt_->curve_length;
+    new_curve_length_ = brush_settings_->curve_length;
 
     tot_old_curves_ = curves_->curves_num();
     tot_old_points_ = curves_->points_num();
