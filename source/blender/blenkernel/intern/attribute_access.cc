@@ -70,11 +70,11 @@ static int attribute_data_type_complexity(const CustomDataType data_type)
       return 4;
     case CD_PROP_FLOAT3:
       return 5;
-    case CD_PROP_COLOR:
-      return 6;
-#if 0 /* These attribute types are not supported yet. */
     case CD_PROP_BYTE_COLOR:
-      return 3;
+      return 6;
+    case CD_PROP_COLOR:
+      return 7;
+#if 0 /* These attribute types are not supported yet. */
     case CD_PROP_STRING:
       return 6;
 #endif

@@ -5399,6 +5399,8 @@ const blender::CPPType *custom_data_type_to_cpp_type(const CustomDataType type)
       return &CPPType::get<bool>();
     case CD_PROP_INT8:
       return &CPPType::get<int8_t>();
+    case CD_PROP_BYTE_COLOR:
+      return &CPPType::get<ColorGeometry4b>();
     default:
       return nullptr;
   }
@@ -5427,6 +5429,9 @@ CustomDataType cpp_type_to_custom_data_type(const blender::CPPType &type)
   }
   if (type.is<int8_t>()) {
     return CD_PROP_INT8;
+  }
+  if (type.is<ColorGeometry4b>()) {
+    return CD_PROP_BYTE_COLOR;
   }
   return static_cast<CustomDataType>(-1);
 }

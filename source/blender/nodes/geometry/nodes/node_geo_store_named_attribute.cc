@@ -5,6 +5,8 @@
 
 #include "NOD_socket_search_link.hh"
 
+#include "BKE_type_conversions.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_store_named_attribute_cc {
@@ -55,7 +57,8 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
   nodeSetSocketAvailability(ntree, socket_vector, data_type == CD_PROP_FLOAT3);
   nodeSetSocketAvailability(ntree, socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, socket_color4f, data_type == CD_PROP_COLOR);
+  nodeSetSocketAvailability(
+      ntree, socket_color4f, ELEM(data_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR));
   nodeSetSocketAvailability(ntree, socket_boolean, data_type == CD_PROP_BOOL);
   nodeSetSocketAvailability(ntree, socket_int32, data_type == CD_PROP_INT32);
 }
@@ -149,6 +152,12 @@ static void node_geo_exec(GeoNodeExecParams params)
     case CD_PROP_COLOR:
       field = params.get_input<Field<ColorGeometry4f>>("Value_Color");
       break;
+    case CD_PROP_BYTE_COLOR: {
+      field = params.get_input<Field<ColorGeometry4f>>("Value_Color");
+      field = bke::get_implicit_type_conversions().try_convert(field,
+                                                               CPPType::get<ColorGeometry4b>());
+      break;
+    }
     case CD_PROP_BOOL:
       field = params.get_input<Field<bool>>("Value_Bool");
       break;

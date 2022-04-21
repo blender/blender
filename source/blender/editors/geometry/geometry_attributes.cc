@@ -241,7 +241,6 @@ enum class ConvertAttributeMode {
   Generic,
   UVMap,
   VertexGroup,
-  VertexColor,
 };
 
 static bool geometry_attribute_convert_poll(bContext *C)
@@ -288,7 +287,7 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
       const CustomDataType dst_type = static_cast<CustomDataType>(
           RNA_enum_get(op->ptr, "data_type"));
 
-      if (ELEM(dst_type, CD_PROP_STRING, CD_PROP_BYTE_COLOR)) {
+      if (ELEM(dst_type, CD_PROP_STRING)) {
         BKE_report(op->reports, RPT_ERROR, "Cannot convert to the selected type");
         return OPERATOR_CANCELLED;
       }
@@ -312,20 +311,6 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
       mesh_component.attribute_try_delete(name);
       CustomData_add_layer_named(
           &mesh->ldata, CD_MLOOPUV, CD_ASSIGN, dst_uvs, mesh->totloop, name.c_str());
-      break;
-    }
-    case ConvertAttributeMode::VertexColor: {
-      MLoopCol *dst_colors = static_cast<MLoopCol *>(
-          MEM_calloc_arrayN(mesh->totloop, sizeof(MLoopCol), __func__));
-      VArray<ColorGeometry4f> src_varray = mesh_component.attribute_get_for_read<ColorGeometry4f>(
-          name, ATTR_DOMAIN_CORNER, ColorGeometry4f{0.0f, 0.0f, 0.0f, 1.0f});
-      for (const int i : IndexRange(mesh->totloop)) {
-        ColorGeometry4b encoded_color = src_varray[i].encode();
-        copy_v4_v4_uchar(&dst_colors[i].r, &encoded_color.r);
-      }
-      mesh_component.attribute_try_delete(name);
-      CustomData_add_layer_named(
-          &mesh->ldata, CD_PROP_BYTE_COLOR, CD_ASSIGN, dst_colors, mesh->totloop, name.c_str());
       break;
     }
     case ConvertAttributeMode::VertexGroup: {
@@ -550,7 +535,6 @@ void GEOMETRY_OT_attribute_convert(wmOperatorType *ot)
       {int(ConvertAttributeMode::Generic), "GENERIC", 0, "Generic", ""},
       {int(ConvertAttributeMode::UVMap), "UV_MAP", 0, "UV Map", ""},
       {int(ConvertAttributeMode::VertexGroup), "VERTEX_GROUP", 0, "Vertex Group", ""},
-      {int(ConvertAttributeMode::VertexColor), "VERTEX_COLOR", 0, "Color Attribute", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
