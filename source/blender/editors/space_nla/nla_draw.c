@@ -744,7 +744,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
           for (strip = nlt->strips.first, index = 1; strip; strip = strip->next, index++) {
             if (BKE_nlastrip_within_bounds(strip, v2d->cur.xmin, v2d->cur.xmax)) {
               const float xminc = strip->start + text_margin_x;
-              const float xmaxc = strip->end + text_margin_x;
+              const float xmaxc = strip->end - text_margin_x;
 
               /* draw the visualization of the strip */
               nla_draw_strip(snla, adt, nlt, strip, v2d, ymin, ymax);
