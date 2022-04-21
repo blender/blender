@@ -1516,9 +1516,12 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 col.label(text="and NVIDIA driver version 470 or newer", icon='BLANK1')
             elif device_type == 'HIP':
                 import sys
-                col.label(text="Requires discrete AMD GPU with RDNA architecture", icon='BLANK1')
                 if sys.platform[:3] == "win":
+                    col.label(text="Requires discrete AMD GPU with RDNA architecture", icon='BLANK1')
                     col.label(text="and AMD Radeon Pro 21.Q4 driver or newer", icon='BLANK1')
+                elif sys.platform.startswith("linux"):
+                    col.label(text="Requires discrete AMD GPU with RDNA architecture", icon='BLANK1')
+                    col.label(text="and AMD driver version 22.10 or newer", icon='BLANK1')
             elif device_type == 'METAL':
                 col.label(text="Requires Apple Silicon with macOS 12.2 or newer", icon='BLANK1')
                 col.label(text="or AMD with macOS 12.3 or newer", icon='BLANK1')
