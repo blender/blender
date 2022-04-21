@@ -271,13 +271,17 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
     BKE_pbvh_is_drawing_set(ob->sculpt->pbvh, is_sculpt_pbvh);
   }
 
-  const CustomData *cd_vdata = workbench_mesh_get_vert_custom_data(me);
-  const CustomData *cd_ldata = workbench_mesh_get_loop_custom_data(me);
+  bool has_color = false;
 
-  bool has_color = (CustomData_has_layer(cd_vdata, CD_PROP_COLOR) ||
-                    CustomData_has_layer(cd_vdata, CD_PROP_BYTE_COLOR) ||
-                    CustomData_has_layer(cd_ldata, CD_PROP_COLOR) ||
-                    CustomData_has_layer(cd_ldata, CD_PROP_BYTE_COLOR));
+  if (me) {
+    const CustomData *cd_vdata = workbench_mesh_get_vert_custom_data(me);
+    const CustomData *cd_ldata = workbench_mesh_get_loop_custom_data(me);
+
+    has_color = (CustomData_has_layer(cd_vdata, CD_PROP_COLOR) ||
+                 CustomData_has_layer(cd_vdata, CD_PROP_BYTE_COLOR) ||
+                 CustomData_has_layer(cd_ldata, CD_PROP_COLOR) ||
+                 CustomData_has_layer(cd_ldata, CD_PROP_BYTE_COLOR));
+  }
 
   if (color_type == V3D_SHADING_TEXTURE_COLOR) {
     if (ob->dt < OB_TEXTURE) {
