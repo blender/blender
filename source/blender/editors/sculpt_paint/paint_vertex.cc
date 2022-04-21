@@ -78,12 +78,6 @@ using namespace blender::color;
 /** \name Internal Utilities
  * \{ */
 
-static ColorPaint4b uint2color(uint c)
-{
-  uchar *rgba = (uchar *)&c;
-  return ColorPaint4b(rgba[0], rgba[1], rgba[2], rgba[3]);
-}
-
 static uint color2uint(ColorPaint4b c)
 {
   return *(reinterpret_cast<uint *>(&c));
@@ -2994,7 +2988,6 @@ static void do_vpaint_brush_blur_loops(bContext *C,
                                        int totnode,
                                        Color *lcol)
 {
-  using Value = typename Traits::ValueType;
   using Blend = typename Traits::BlendType;
 
   SculptSession *ss = ob->sculpt;
@@ -3137,7 +3130,6 @@ static void do_vpaint_brush_blur_verts(bContext *C,
                                        int totnode,
                                        Color *lcol)
 {
-  using Value = typename Traits::ValueType;
   using Blend = typename Traits::BlendType;
 
   SculptSession *ss = ob->sculpt;
@@ -3283,9 +3275,6 @@ static void do_vpaint_brush_smear(bContext *C,
                                   int totnode,
                                   Color *lcol)
 {
-  using Value = typename Traits::ValueType;
-  using Blend = typename Traits::BlendType;
-
   SculptSession *ss = ob->sculpt;
 
   const struct SculptVertexPaintGeomMap *gmap = &ss->mode.vpaint.gmap;
@@ -3465,7 +3454,6 @@ static void calculate_average_color(VPaintData<Color, Traits, domain> *vpd,
                                     int totnode)
 {
   using Blend = typename Traits::BlendType;
-  using Value = typename Traits::ValueType;
 
   struct VPaintAverageAccum<Blend> *accum = (VPaintAverageAccum<Blend> *)MEM_mallocN(
       sizeof(*accum) * totnode, __func__);
@@ -3552,8 +3540,6 @@ static float paint_and_tex_color_alpha(VPaint *vp,
                                        const float v_co[3],
                                        Color *r_color)
 {
-  using Value = typename Traits::ValueType;
-
   ColorPaint4f rgba;
   ColorPaint4f rgba_br = toFloat(*r_color);
 
@@ -3577,8 +3563,6 @@ static void vpaint_do_draw(bContext *C,
                            int totnode,
                            Color *lcol)
 {
-  using Value = typename Traits::ValueType;
-
   SculptSession *ss = ob->sculpt;
   const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
 
@@ -3748,6 +3732,7 @@ static void vpaint_paint_leaves(bContext *C,
   switch ((eBrushVertexPaintTool)brush->vertexpaint_tool) {
     case VPAINT_TOOL_AVERAGE:
       calculate_average_color<Color, Traits, domain>(vpd, ob, me, brush, lcol, nodes, totnode);
+      break;
     case VPAINT_TOOL_DRAW:
       vpaint_do_draw<Color, Traits, domain>(C, sd, vp, vpd, ob, me, nodes, totnode, lcol);
       break;
@@ -3969,13 +3954,6 @@ static void vpaint_free_vpaintdata(Object *UNUSED(ob), void *_vpd)
   }
 
   MEM_delete<VPaintData<Color, Traits, domain>>(vpd);
-}
-
-static ViewContext *vpaint_get_viewcontext(Object *UNUSED(ob), void *vpd_ptr)
-{
-  VPaintDataBase *vpd = static_cast<VPaintDataBase *>(vpd_ptr);
-
-  return &vpd->vc;
 }
 
 static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)

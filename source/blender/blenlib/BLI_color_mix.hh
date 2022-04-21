@@ -5,7 +5,7 @@
  * \ingroup blenlib
  *
  * Contains color mixing utilities.
- * 
+ *
  */
 
 #include "BLI_color.hh"
@@ -831,7 +831,7 @@ static Color mix_vividlight(Color col_src, Color col_dst, typename Traits::Blend
   using Value = typename Traits::ValueType;
   using Blend = typename Traits::BlendType;
 
-  Value *cp_src, *cp_dst, *cp_mix;
+  Value *cp_src, *cp_dst;
   Blend mfac;
   Color col_mix(0, 0, 0, 0);
 
@@ -843,7 +843,6 @@ static Color mix_vividlight(Color col_src, Color col_dst, typename Traits::Blend
 
   cp_src = (Value *)&col_src;
   cp_dst = (Value *)&col_dst;
-  cp_mix = (Value *)&col_mix;
 
   const Blend cmp = Traits::range / 2;
 
