@@ -662,6 +662,21 @@ static int vertex_to_loop_colors_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
+static bool sculpt_colors_poll(bContext *C)
+{
+  if (!SCULPT_mode_poll(C)) {
+    return false;
+  }
+
+  Object *ob = CTX_data_active_object(C);
+
+  if (!ob->sculpt || !ob->sculpt->pbvh || BKE_pbvh_type(ob->sculpt->pbvh) != PBVH_FACES) {
+    return false;
+  }
+
+  return SCULPT_has_colors(ob->sculpt);
+}
+
 static void SCULPT_OT_vertex_to_loop_colors(wmOperatorType *ot)
 {
   /* identifiers */
@@ -670,7 +685,7 @@ static void SCULPT_OT_vertex_to_loop_colors(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_vertex_to_loop_colors";
 
   /* api callbacks */
-  ot->poll = SCULPT_vertex_colors_poll;
+  ot->poll = sculpt_colors_poll;
   ot->exec = vertex_to_loop_colors_exec;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -734,14 +749,14 @@ static void SCULPT_OT_loop_to_vertex_colors(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_loop_to_vertex_colors";
 
   /* api callbacks */
-  ot->poll = SCULPT_vertex_colors_poll;
+  ot->poll = sculpt_colors_poll;
   ot->exec = loop_to_vertex_colors_exec;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static int sculpt_sample_color_invoke(bContext *C,
-                                      wmOperator *UNUSED(op),
+                                      wmOperator *op,
                                       const wmEvent *UNUSED(e))
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -752,11 +767,17 @@ static int sculpt_sample_color_invoke(bContext *C,
   int active_vertex = SCULPT_active_vertex_get(ss);
   float active_vertex_color[4];
 
-  if (!SCULPT_has_colors(ss)) {
+  if (!SCULPT_handles_colors_report(ss, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
-  SCULPT_vertex_color_get(ss, active_vertex, active_vertex_color);
+  /* No color attribute? Set color to white. */
+  if (!SCULPT_has_colors(ss)) {
+    copy_v4_fl(active_vertex_color, 1.0f);
+  }
+  else {
+    SCULPT_vertex_color_get(ss, active_vertex, active_vertex_color);
+  }
 
   float color_srgb[3];
   copy_v3_v3(color_srgb, active_vertex_color);
@@ -777,7 +798,7 @@ static void SCULPT_OT_sample_color(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = sculpt_sample_color_invoke;
-  ot->poll = SCULPT_vertex_colors_poll;
+  ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER;
 }
@@ -1025,8 +1046,8 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
-  /* Color data is not available in Multires. */
-  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+  /* Color data is not available in Multires or dyanmic topology. */
+  if (!SCULPT_handles_colors_report(ss, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 

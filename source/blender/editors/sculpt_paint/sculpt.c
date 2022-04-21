@@ -3914,16 +3914,6 @@ bool SCULPT_mode_poll(bContext *C)
   return ob && ob->mode & OB_MODE_SCULPT;
 }
 
-bool SCULPT_vertex_colors_poll(bContext *C)
-{
-  if (!SCULPT_mode_poll(C)) {
-    return false;
-  }
-
-  Object *ob = CTX_data_active_object(C);
-  return ob->sculpt && SCULPT_has_colors(ob->sculpt);
-}
-
 bool SCULPT_mode_poll_view3d(bContext *C)
 {
   return (SCULPT_mode_poll(C) && CTX_wm_region_view3d(C));
@@ -5256,6 +5246,24 @@ static bool over_mesh(bContext *C, struct wmOperator *UNUSED(op), float x, float
   return SCULPT_stroke_get_location(C, co, mouse);
 }
 
+bool SCULPT_handles_colors_report(SculptSession *ss, ReportList *reports)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      return true;
+    case PBVH_BMESH:
+      BKE_report(reports, RPT_ERROR, "Not supported in dynamic topology mode.");
+      return false;
+    case PBVH_GRIDS:
+      BKE_report(reports, RPT_ERROR, "Not supported in multiresolution mode.");
+      return false;
+  }
+
+  BLI_assert_msg(0, "PBVH corruption, type was invalid.");
+
+  return false;
+}
+
 static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const float mouse[2])
 {
   /* Don't start the stroke until mouse goes over the mesh.
@@ -5437,6 +5445,12 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
   int retval;
 
   sculpt_brush_stroke_init(C, op);
+
+  Object *ob = CTX_data_active_object(C);
+
+  if (!SCULPT_handles_colors_report(ob->sculpt, op->reports)) {
+    return OPERATOR_CANCELLED;
+  }
 
   stroke = paint_stroke_new(C,
                             op,

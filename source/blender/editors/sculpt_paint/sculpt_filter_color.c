@@ -24,6 +24,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 
 #include "IMB_colormanagement.h"
@@ -342,10 +343,7 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   }
 
   /* Disable for multires and dyntopo for now */
-  if (!ss->pbvh) {
-    return OPERATOR_CANCELLED;
-  }
-  if (BKE_pbvh_type(pbvh) != PBVH_FACES) {
+  if (!ss->pbvh || !SCULPT_handles_colors_report(ss, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
