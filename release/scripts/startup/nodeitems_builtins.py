@@ -176,10 +176,10 @@ def geometry_input_node_items(context):
     yield NodeItem("ShaderNodeValue")
     yield NodeItem("FunctionNodeInputVector")
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
-    if named_attribute_poll(context):
-        yield NodeItem("GeometryNodeInputNamedAttribute")
     yield NodeItem("GeometryNodeInputID")
     yield NodeItem("GeometryNodeInputIndex")
+    if named_attribute_poll(context):
+        yield NodeItem("GeometryNodeInputNamedAttribute")
     yield NodeItem("GeometryNodeInputNormal")
     yield NodeItem("GeometryNodeInputPosition")
     yield NodeItem("GeometryNodeInputRadius")
@@ -627,8 +627,8 @@ geometry_node_categories = [
         NodeItem("GeometryNodeAttributeDomainSize"),
         NodeItem("GeometryNodeAttributeStatistic"),
         NodeItem("GeometryNodeAttributeTransfer"),
-        NodeItem("GeometryNodeStoreNamedAttribute", poll=named_attribute_poll),
         NodeItem("GeometryNodeRemoveAttribute", poll=named_attribute_poll),
+        NodeItem("GeometryNodeStoreNamedAttribute", poll=named_attribute_poll),
     ]),
     GeometryNodeCategory("GEO_COLOR", "Color", items=[
         NodeItem("ShaderNodeMixRGB"),
