@@ -299,6 +299,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "ascii",
     "author",                        # Addons' field. :/
     "bItasc",
+    "color_index is invalid",
     "cos(A)",
     "cosh(A)",
     "dbl-",                          # Compacted for 'double', for keymap items.
@@ -355,6 +356,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     # Sub-strings.
     "all",
     "all and invert unselected",
+    "and AMD driver version 22.10 or newer",
     "and AMD Radeon Pro 21.Q4 driver or newer",
     "and NVIDIA driver version 470 or newer",
     "available with",
@@ -389,11 +391,14 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "normal",
     "or AMD with macOS 12.3 or newer",
     "performance impact!",
+    "read",
+    "remove",
     "right",
     "selected",
     "selected and lock unselected",
     "selected and unlock unselected",
     "the lazy dog",
+    "this legacy pose library to pose assets",
     "to the top level of the tree",
     "unable to load movie clip",
     "unable to load text",
@@ -410,8 +415,8 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "verts only",
     "view",
     "virtual parents",
-    "and NVIDIA driver version 470 or newer",
-    "and AMD driver version ??? or newer",
+    "which was replaced by the Asset Browser",
+    "write",
 }
 WARN_MSGID_NOT_CAPITALIZED_ALLOWED |= set(lng[2] for lng in LANGUAGES)
 

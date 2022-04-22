@@ -136,6 +136,7 @@ class SpellChecker:
         "inscatter", "inscattering",
         "libdata",
         "lightcache",
+        "lightgroup", "lightgroups",
         "lightprobe", "lightprobes",
         "lightless",
         "lineset",
@@ -394,9 +395,11 @@ class SpellChecker:
         "bitangent",
         "boid", "boids",
         "ceil",
+        "centum",  # From 'centum weight'
         "compressibility",
         "coplanar",
         "curvilinear",
+        "dekameter", "dekameters",
         "equiangular",
         "equisolid",
         "euler", "eulers",
@@ -414,8 +417,11 @@ class SpellChecker:
         "lambertian",
         "laplacian",
         "metadata",
+        "microwatt", "microwatts",
+        "milliwatt", "milliwatts",
         "msgfmt",
         "nand", "xnor",
+        "nanowatt", "nanowatts",
         "normals",
         "numpad",
         "octahedral",
@@ -662,6 +668,7 @@ class SpellChecker:
 
         # Acronyms
         "aa", "msaa",
+        "acescg", # ACEScg color space.
         "ao",
         "aov", "aovs",
         "api",
