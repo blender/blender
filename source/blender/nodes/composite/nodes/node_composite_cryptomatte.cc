@@ -21,6 +21,8 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 
+#include "MEM_guardedalloc.h"
+
 #include <optional>
 
 /* -------------------------------------------------------------------- */
@@ -249,6 +251,7 @@ static void node_free_cryptomatte(bNode *node)
   NodeCryptomatte *nc = static_cast<NodeCryptomatte *>(node->storage);
 
   if (nc) {
+    MEM_SAFE_FREE(nc->matte_id);
     BLI_freelistN(&nc->runtime.layers);
     BLI_freelistN(&nc->entries);
     MEM_freeN(nc);
@@ -264,6 +267,7 @@ static void node_copy_cryptomatte(bNodeTree *UNUSED(dest_ntree),
 
   BLI_duplicatelist(&dest_nc->entries, &src_nc->entries);
   BLI_listbase_clear(&dest_nc->runtime.layers);
+  dest_nc->matte_id = static_cast<char *>(MEM_dupallocN(src_nc->matte_id));
   dest_node->storage = dest_nc;
 }
 
