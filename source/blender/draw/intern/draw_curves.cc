@@ -44,12 +44,12 @@ BLI_INLINE eParticleRefineShaderType drw_curves_shader_type_get()
 }
 
 #ifndef USE_TRANSFORM_FEEDBACK
-typedef struct CurvesEvalCall {
+struct CurvesEvalCall {
   struct CurvesEvalCall *next;
   GPUVertBuf *vbo;
   DRWShadingGroup *shgrp;
   uint vert_len;
-} CurvesEvalCall;
+};
 
 static CurvesEvalCall *g_tf_calls = nullptr;
 static int g_tf_id_offset;
@@ -138,7 +138,7 @@ static void drw_curves_cache_update_transform_feedback(CurvesEvalCache *cache, c
 #else
     DRWShadingGroup *tf_shgrp = DRW_shgroup_create(tf_shader, g_tf_pass);
 
-    CurvesEvalCall *pr_call = MEM_mallocN(sizeof(*pr_call), __func__);
+    CurvesEvalCall *pr_call = MEM_new<CurvesEvalCall>(__func__);
     pr_call->next = g_tf_calls;
     pr_call->vbo = cache->final[subdiv].proc_buf;
     pr_call->shgrp = tf_shgrp;
@@ -265,7 +265,7 @@ void DRW_curves_update()
   int width = 2048;
   int height = min_ii(width, 1 + max_size / width);
   GPUTexture *tex = DRW_texture_pool_query_2d(
-      width, height, GPU_RGBA32F, (void *)DRW_curves_update);
+      width, height, GPU_RGBA32F, (DrawEngineType *)DRW_curves_update);
   g_tf_target_height = height;
   g_tf_target_width = width;
 
@@ -276,7 +276,8 @@ void DRW_curves_update()
                                     GPU_ATTACHMENT_TEXTURE(tex),
                                 });
 
-  float *data = MEM_mallocN(sizeof(float[4]) * width * height, "tf fallback buffer");
+  float *data = static_cast<float *>(
+      MEM_mallocN(sizeof(float[4]) * width * height, "tf fallback buffer"));
 
   GPU_framebuffer_bind(fb);
   while (g_tf_calls != nullptr) {
