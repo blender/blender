@@ -1789,6 +1789,7 @@ void BKE_object_free_derived_caches(Object *ob)
         BKE_mesh_eval_delete((Mesh *)data_eval);
       }
       else {
+        BKE_libblock_free_data(data_eval, false);
         BKE_libblock_free_datablock(data_eval, 0);
         MEM_freeN(data_eval);
       }

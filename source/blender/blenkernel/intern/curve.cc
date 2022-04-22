@@ -113,9 +113,12 @@ static void curve_free_data(ID *id)
   BKE_curve_batch_cache_free(curve);
 
   BKE_nurbList_free(&curve->nurb);
-  BKE_curve_editfont_free(curve);
 
-  BKE_curve_editNurb_free(curve);
+  if (!curve->edit_data_from_original) {
+    BKE_curve_editfont_free(curve);
+
+    BKE_curve_editNurb_free(curve);
+  }
 
   BKE_curveprofile_free(curve->bevel_profile);
 
