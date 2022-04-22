@@ -25,7 +25,7 @@
 
 AUD_NAMESPACE_BEGIN
 
-Buffer::Buffer(int size)
+Buffer::Buffer(long long size)
 {
 	m_size = size;
 	m_buffer = (data_t*) std::malloc(size + ALIGNMENT);
@@ -41,12 +41,12 @@ sample_t* Buffer::getBuffer() const
 	return (sample_t*) ALIGN(m_buffer);
 }
 
-int Buffer::getSize() const
+long long Buffer::getSize() const
 {
 	return m_size;
 }
 
-void Buffer::resize(int size, bool keep)
+void Buffer::resize(long long size, bool keep)
 {
 	if(keep)
 	{
@@ -63,7 +63,7 @@ void Buffer::resize(int size, bool keep)
 	m_size = size;
 }
 
-void Buffer::assureSize(int size, bool keep)
+void Buffer::assureSize(long long size, bool keep)
 {
 	if(m_size < size)
 		resize(size, keep);
