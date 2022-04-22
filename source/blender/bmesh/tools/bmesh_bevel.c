@@ -4138,7 +4138,7 @@ static VMesh *cubic_subdiv(BevelParams *bp, VMesh *vm_in)
   for (int i = 0; i < n_boundary; i++) {
     float co1[3], co2[3], acc[3];
     EdgeHalf *e = bndv->elast;
-    /* Generate tangents. This is hacked together and would ideally be done elsewere and then only
+    /* Generate tangents. This is hacked together and would ideally be done elsewhere and then only
      * used here. */
     float tangent[3], tangent2[3], normal[3];
     bool convex = true;
@@ -4205,7 +4205,7 @@ static VMesh *cubic_subdiv(BevelParams *bp, VMesh *vm_in)
       sub_v3_v3v3(co1, mesh_vert(vm_in, i, 0, 0)->co, mesh_vert(vm_in, i, 0, 1)->co);
       sub_v3_v3v3(co2, mesh_vert(vm_in, i, 0, 1)->co, mesh_vert(vm_in, i, 0, 2)->co);
       cross_v3_v3v3(tangent, co1, co2);
-      /** The following constant is choosen to best match the old results. */
+      /** The following constant is chosen to best match the old results. */
       normalize_v3_length(tangent, 1.5f / ns_out);
     }
     /** Copy corner vertex. */
@@ -5657,11 +5657,11 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv, BoundVert
  * Builds the vertex mesh when the vertex mesh type is set to "cut off" with a face closing
  * off each incoming edge's profile.
  *
- * TODO(Hans): Make cutoff VMesh work with outer miter != sharp. This should be possible but
- * there are two problems currently:
+ * TODO(Hans): Make cutoff VMesh work with outer miter != sharp. This should be possible but there
+ * are two problems currently:
  *  - Miter profiles don't have plane_no filled, so down direction is incorrect.
- *  - Indexing profile points of miters with (i, 0, k) seems to return zero except for the
- * first and last profile point.
+ *  - Indexing profile points of miters with (i, 0, k) seems to return zero except for the first
+ *   and last profile point.
  * TODO(Hans): Use repface / edge arrays for UV interpolation properly.
  */
 static void bevel_build_cutoff(BevelParams *bp, BMesh *bm, BevVert *bv)
@@ -5685,8 +5685,7 @@ static void bevel_build_cutoff(BevelParams *bp, BMesh *bm, BevVert *bv)
       negate_v3(down_direction);
     }
 
-    /* Move down from the boundvert by average profile height from the two adjacent profiles.
-     */
+    /* Move down from the boundvert by average profile height from the two adjacent profiles. */
     float length = (bndv->profile.height / sqrtf(2.0f) +
                     bndv->prev->profile.height / sqrtf(2.0f)) /
                    2;
@@ -5739,8 +5738,8 @@ static void bevel_build_cutoff(BevelParams *bp, BMesh *bm, BevVert *bv)
   }
 
   /* Build the profile cutoff faces. */
-  /* Extra one or two for corner vertices and one for last point along profile, or the size of
-   * the center face array if it's bigger. */
+  /* Extra one or two for corner vertices and one for last point along profile, or the size of the
+   * center face array if it's bigger. */
 #ifdef DEBUG_CUSTOM_PROFILE_CUTOFF
   printf("Building profile cutoff faces.\n");
 #endif
@@ -6102,8 +6101,7 @@ static void build_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv)
     }
   }
 
-  /* Make sure the pipe case ADJ mesh is used for both the "Grid Fill" (ADJ) and cutoff
-   * options. */
+  /* Make sure the pipe case ADJ mesh is used for both the "Grid Fill" (ADJ) and cutoff options. */
   BoundVert *vpipe = NULL;
   if (ELEM(vm->count, 3, 4) && bp->seg > 1) {
     /* Result is passed to bevel_build_rings to avoid overhead. */
@@ -6224,8 +6222,8 @@ static int bevel_edge_order_extend(BMesh *bm, BevVert *bv, int i)
  * Assume the first edge is already in bv->edges[0].e and it is tagged. */
 #ifdef FASTER_FASTORDER
 /* The alternative older code is O(n^2) where n = # of edges incident to bv->v.
- * This implementation is O(n * m) where m = average number of faces attached to an edge
- * incident to bv->v, which is almost certainly a small constant except in very strange cases.
+ * This implementation is O(n * m) where m = average number of faces attached to an edge incident
+ * to bv->v, which is almost certainly a small constant except in very strange cases.
  * But this code produces different choices of ordering than the legacy system,
  * leading to differences in vertex orders etc. in user models,
  * so for now will continue to use the legacy code. */
@@ -6315,8 +6313,8 @@ static bool fast_bevel_edge_order(BevVert *bv)
 #endif
 
 /* Fill in bv->edges with a good ordering of non-wire edges around bv->v.
- * Use only edges where BM_BEVEL_EDGE_TAG is disabled so far (if edge beveling, others are
- * wire). first_bme is a good edge to start with. */
+ * Use only edges where BM_BEVEL_EDGE_TAG is disabled so far (if edge beveling, others are wire).
+ * first_bme is a good edge to start with. */
 static void find_bevel_edge_order(BMesh *bm, BevVert *bv, BMEdge *first_bme)
 {
   int ntot = bv->edgecount;
@@ -6739,8 +6737,7 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
         BLI_array_append(ee, bme);
       }
       while (v != vend) {
-        /* Check for special case: multi-segment 3rd face opposite a beveled edge with no
-         * vmesh. */
+        /* Check for special case: multi-segment 3rd face opposite a beveled edge with no vmesh. */
         bool corner3special = (vm->mesh_kind == M_NONE && v->ebev != e && v->ebev != eprev);
         if (go_ccw) {
           int i = v->index;
@@ -7201,8 +7198,7 @@ static double find_superellipse_chord_endpoint(double x0, double dtarget, float 
   const double tol = 1e-13; /* accumulates for many segments so use low value. */
   const int maxiter = 10;
 
-  /* For gradient between -1 and 1, xnew can only be in [x0 + sqrt(2)/2*dtarget, x0 + dtarget].
-   */
+  /* For gradient between -1 and 1, xnew can only be in [x0 + sqrt(2)/2*dtarget, x0 + dtarget]. */
   double xmin = x0 + M_SQRT2 / 2.0 * dtarget;
   if (xmin > 1.0) {
     xmin = 1.0;
@@ -7495,8 +7491,8 @@ static float find_profile_fullness(BevelParams *bp)
  * The superellipse used for multi-segment profiles does not have a closed-form way
  * to generate evenly spaced points along an arc. We use an expensive search procedure
  * to find the parameter values that lead to bp->seg even chords.
- * We also want spacing for a number of segments that is a power of 2 >= bp->seg (but at least
- * 4). Use doubles because otherwise we cannot come close to float precision for final results.
+ * We also want spacing for a number of segments that is a power of 2 >= bp->seg (but at least 4).
+ * Use doubles because otherwise we cannot come close to float precision for final results.
  *
  * \param pro_spacing: The struct to fill. Changes depending on whether there needs
  * to be a separate miter profile.
@@ -7699,9 +7695,9 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
 }
 
 /**
- * We have an edge A between vertices a and b, where EdgeHalf ea is the half of A that starts
- * at a. For vertex-only bevels, the new vertices slide from a at a rate ka*t and from b at a
- * rate kb*t. We want to calculate the t at which the two meet.
+ * We have an edge A between vertices a and b, where EdgeHalf ea is the half of A that starts at a.
+ * For vertex-only bevels, the new vertices slide from a at a rate ka*t and from b at a rate kb*t.
+ * We want to calculate the t at which the two meet.
  */
 static float vertex_collide_offset(BevelParams *bp, EdgeHalf *ea)
 {
@@ -7721,10 +7717,9 @@ static float vertex_collide_offset(BevelParams *bp, EdgeHalf *ea)
 }
 
 /**
- * Calculate an offset that is the lesser of the current bp.offset and the maximum possible
- * offset before geometry collisions happen. If the offset changes as a result of this, adjust
- * the current edge offset specs to reflect this clamping, and store the new offset in
- * bp.offset.
+ * Calculate an offset that is the lesser of the current bp.offset and the maximum possible offset
+ * before geometry collisions happen. If the offset changes as a result of this, adjust the current
+ * edge offset specs to reflect this clamping, and store the new offset in bp.offset.
  */
 static void bevel_limit_offset(BevelParams *bp, BMesh *bm)
 {
@@ -7851,8 +7846,7 @@ void BM_mesh_bevel(BMesh *bm,
   double start_time = PIL_check_seconds_timer();
 #endif
 
-  /* Disable the miters with the cutoff vertex mesh method, the combination isn't useful
-   * anyway. */
+  /* Disable the miters with the cutoff vertex mesh method, the combination isn't useful anyway. */
   if (bp.vmesh_method == BEVEL_VMESH_CUTOFF) {
     bp.miter_outer = BEVEL_MITER_SHARP;
     bp.miter_inner = BEVEL_MITER_SHARP;
