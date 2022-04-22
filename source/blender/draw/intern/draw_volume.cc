@@ -67,7 +67,7 @@ void DRW_volume_ubos_pool_free(void *pool)
   delete reinterpret_cast<VolumeUniformBufPool *>(pool);
 }
 
-static void drw_volume_globals_init(void)
+static void drw_volume_globals_init()
 {
   const float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   const float one[4] = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -132,17 +132,17 @@ static DRWShadingGroup *drw_volume_object_grids_init(Object *ob,
   int grid_id = 0;
   LISTBASE_FOREACH (GPUMaterialAttribute *, attr, attrs) {
     const VolumeGrid *volume_grid = BKE_volume_grid_find_for_read(volume, attr->name);
-    DRWVolumeGrid *drw_grid = (volume_grid) ?
-                                  DRW_volume_batch_cache_get_grid(volume, volume_grid) :
-                                  NULL;
+    const DRWVolumeGrid *drw_grid = (volume_grid) ?
+                                        DRW_volume_batch_cache_get_grid(volume, volume_grid) :
+                                        nullptr;
 
     /* Handle 3 cases here:
      * - Grid exists and texture was loaded -> use texture.
      * - Grid exists but has zero size or failed to load -> use zero.
      * - Grid does not exist -> use default value. */
-    GPUTexture *grid_tex = (drw_grid)    ? drw_grid->texture :
-                           (volume_grid) ? g_data.dummy_zero :
-                                           grid_default_texture(attr->default_value);
+    const GPUTexture *grid_tex = (drw_grid)    ? drw_grid->texture :
+                                 (volume_grid) ? g_data.dummy_zero :
+                                                 grid_default_texture(attr->default_value);
     DRW_shgroup_uniform_texture(grp, attr->input_name, grid_tex);
 
     copy_m4_m4(volume_infos.grids_xform[grid_id++].ptr(), drw_grid->object_to_texture);
@@ -163,7 +163,7 @@ static DRWShadingGroup *drw_volume_object_mesh_init(Scene *scene,
   VolumeUniformBufPool *pool = (VolumeUniformBufPool *)DST.vmempool->volume_grids_ubos;
   VolumeInfosBuf &volume_infos = *pool->alloc();
 
-  ModifierData *md = NULL;
+  ModifierData *md = nullptr;
 
   volume_infos.density_scale = 1.0f;
   volume_infos.color_mul = float4(1.0f);
@@ -173,7 +173,7 @@ static DRWShadingGroup *drw_volume_object_mesh_init(Scene *scene,
   /* Smoke Simulation */
   if ((md = BKE_modifiers_findby_type(ob, eModifierType_Fluid)) &&
       (BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) &&
-      ((FluidModifierData *)md)->domain != NULL) {
+      ((FluidModifierData *)md)->domain != nullptr) {
     FluidModifierData *fmd = (FluidModifierData *)md;
     FluidDomainSettings *fds = fmd->domain;
 
@@ -256,10 +256,8 @@ DRWShadingGroup *DRW_shgroup_volume_create_sub(Scene *scene,
   if (ob == nullptr) {
     return drw_volume_world_grids_init(&attrs, shgrp);
   }
-  else if (ob->type == OB_VOLUME) {
+  if (ob->type == OB_VOLUME) {
     return drw_volume_object_grids_init(ob, &attrs, shgrp);
   }
-  else {
-    return drw_volume_object_mesh_init(scene, ob, &attrs, shgrp);
-  }
+  return drw_volume_object_mesh_init(scene, ob, &attrs, shgrp);
 }

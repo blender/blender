@@ -922,6 +922,7 @@ static void math_layer_info_init(BevelParams *bp, BMesh *bm)
     }
   }
   BLI_assert(top_face != NULL && bot_face != NULL);
+  UNUSED_VARS_NDEBUG(top_face, bot_face);
   swap_face_components(face_component, totface, face_component[0], top_face_component);
   if (bot_face_component != top_face_component) {
     if (bot_face_component == 0) {
@@ -4910,8 +4911,7 @@ static float projected_boundary_area(BevVert *bv, BMFace *f)
  */
 static bool is_bad_uv_poly(BevVert *bv, BMFace *frep)
 {
-  VMesh *vm = bv->vmesh;
-  BLI_assert(vm != NULL);
+  BLI_assert(bv->vmesh != NULL);
   float area = projected_boundary_area(bv, frep);
   return area < BEVEL_EPSILON_BIG;
 }
@@ -5326,7 +5326,7 @@ static BMEdge *snap_edge_for_center_vmesh_vert(int i,
   if (frep_beats_next[previ] && bndv_rep_faces[previ] == center_frep) {
     return eprev;
   }
-  else if (!frep_beats_next[i] && bndv_rep_faces[nexti] == center_frep) {
+  if (!frep_beats_next[i] && bndv_rep_faces[nexti] == center_frep) {
     return enext;
   }
   /* If n_bndv > 3 then we won't snap in the boundvert regions
