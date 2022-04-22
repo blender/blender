@@ -253,6 +253,14 @@ PYGETTEXT_KEYWORDS = (() +
     tuple(("{}\\((?:[^\"',]+,)\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
           for it in ("BKE_modifier_set_error",)) +
 
+    # bUnitDef unit names.
+    # NOTE: regex is a bit more complex than it would need too. Since the actual
+    # identifier (`B_UNIT_DEF_`) is at the end, if it's simpler/too general it
+    # becomes extremely slow to process some (unrelated) source files. 
+    ((r"\{(?:(?:\s*\"[^\"',]+\"\s*,)|(?:\s*NULL\s*,)){4}\s*" +
+      _msg_re + r"\s*,(?:(?:\s*\"[^\"',]+\"\s*,)|(?:\s*NULL\s*,))(?:[^,]+,){2}"
+      + "\s*B_UNIT_DEF_[_A-Z]+\s*\}"),) +
+
     tuple((r"{}\(\s*" + _msg_re + r"\s*,\s*(?:" +
            r"\s*,\s*)?(?:".join(_ctxt_re_gen(i) for i in range(PYGETTEXT_MAX_MULTI_CTXT)) + r")?\s*\)").format(it)
           for it in ("BLT_I18N_MSGID_MULTI_CTXT",))

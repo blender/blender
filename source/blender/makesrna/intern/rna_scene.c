@@ -2630,7 +2630,7 @@ static const EnumPropertyItem *rna_UnitSettings_itemf_wrapper(const int system,
 
   EnumPropertyItem adaptive = {0};
   adaptive.identifier = "ADAPTIVE";
-  adaptive.name = "Adaptive";
+  adaptive.name = N_("Adaptive");
   adaptive.value = USER_UNIT_ADAPTIVE;
   RNA_enum_item_add(&items, &totitem, &adaptive);
 
