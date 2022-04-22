@@ -965,7 +965,7 @@ static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lb
   txl->color = NULL;
 
   DRW_render_instance_buffer_finish();
-  DRW_hair_update();
+  DRW_curves_update();
 }
 
 static void eevee_lightbake_copy_irradiance(EEVEE_LightBake *lbake, LightCache *lcache)

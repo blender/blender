@@ -92,6 +92,30 @@ GPUShader *DRW_shader_hair_refine_get(ParticleRefineShader refinement,
   return e_data.hair_refine_sh[refinement];
 }
 
+GPUShader *DRW_shader_curves_refine_get(CurvesEvalShader type, eParticleRefineShaderType sh_type)
+{
+  /* TODO: Implement curves evaluation types (Bezier and Catmull Rom). */
+  if (e_data.hair_refine_sh[type] == NULL) {
+    GPUShader *sh = NULL;
+    switch (sh_type) {
+      case PART_REFINE_SHADER_COMPUTE:
+        sh = hair_refine_shader_compute_create(type);
+        break;
+      case PART_REFINE_SHADER_TRANSFORM_FEEDBACK:
+        sh = hair_refine_shader_transform_feedback_create(type);
+        break;
+      case PART_REFINE_SHADER_TRANSFORM_FEEDBACK_WORKAROUND:
+        sh = hair_refine_shader_transform_feedback_workaround_create(type);
+        break;
+      default:
+        BLI_assert_msg(0, "Incorrect shader type");
+    }
+    e_data.hair_refine_sh[type] = sh;
+  }
+
+  return e_data.hair_refine_sh[type];
+}
+
 /** \} */
 
 void DRW_shaders_free(void)

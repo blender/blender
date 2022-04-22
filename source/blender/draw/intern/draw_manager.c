@@ -1650,7 +1650,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
   DRW_globals_update();
 
   drw_debug_init();
-  DRW_hair_init();
+  DRW_curves_init();
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
 
@@ -1707,7 +1707,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
   GPU_framebuffer_bind(DST.default_framebuffer);
   GPU_framebuffer_clear_depth_stencil(DST.default_framebuffer, 1.0f, 0xFF);
 
-  DRW_hair_update();
+  DRW_curves_update();
 
   DRW_draw_callbacks_pre_scene();
 
@@ -2022,7 +2022,7 @@ void DRW_render_object_iter(
     void (*callback)(void *vedata, Object *ob, RenderEngine *engine, struct Depsgraph *depsgraph))
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  DRW_hair_init();
+  DRW_curves_init();
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
 
@@ -2079,7 +2079,7 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
 
   drw_manager_init(&DST, NULL, NULL);
 
-  DRW_hair_init();
+  DRW_curves_init();
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
 
@@ -2114,7 +2114,7 @@ void DRW_cache_restart(void)
 
   DST.buffer_finish_called = false;
 
-  DRW_hair_init();
+  DRW_curves_init();
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
 }
@@ -2433,7 +2433,7 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
 
   /* Init engines */
   drw_engines_init();
-  DRW_hair_init();
+  DRW_curves_init();
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
 
@@ -2512,7 +2512,7 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
   DRW_state_reset();
   DRW_draw_callbacks_pre_scene();
 
-  DRW_hair_update();
+  DRW_curves_update();
 
   /* Only 1-2 passes. */
   while (true) {
@@ -2607,7 +2607,7 @@ static void drw_draw_depth_loop_impl(struct Depsgraph *depsgraph,
 
   /* Init engines */
   drw_engines_init();
-  DRW_hair_init();
+  DRW_curves_init();
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
 
@@ -2642,7 +2642,7 @@ static void drw_draw_depth_loop_impl(struct Depsgraph *depsgraph,
   /* Start Drawing */
   DRW_state_reset();
 
-  DRW_hair_update();
+  DRW_curves_update();
 
   drw_engines_draw_scene();
 
@@ -3033,7 +3033,7 @@ void DRW_engines_free(void)
   GPU_FRAMEBUFFER_FREE_SAFE(g_select_buffer.framebuffer_depth_only);
 
   DRW_shaders_free();
-  DRW_hair_free();
+  DRW_curves_free();
   DRW_volume_free();
   DRW_shape_cache_free();
   DRW_stats_free();

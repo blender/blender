@@ -164,7 +164,7 @@ static void particle_batch_cache_clear_point(ParticlePointCache *point_cache)
   GPU_VERTBUF_DISCARD_SAFE(point_cache->pos);
 }
 
-void particle_batch_cache_clear_hair(ParticleHairCache *hair_cache)
+static void particle_batch_cache_clear_hair(ParticleHairCache *hair_cache)
 {
   /* TODO: more granular update tagging. */
   GPU_VERTBUF_DISCARD_SAFE(hair_cache->proc_point_buf);

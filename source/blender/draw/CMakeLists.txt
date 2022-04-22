@@ -82,6 +82,7 @@ set(SRC
   intern/draw_cache_impl_volume.c
   intern/draw_color_management.cc
   intern/draw_common.c
+  intern/draw_curves.cc
   intern/draw_debug.c
   intern/draw_fluid.c
   intern/draw_hair.c
@@ -195,6 +196,7 @@ set(SRC
   intern/draw_color_management.h
   intern/draw_common.h
   intern/draw_common_shader_shared.h
+  intern/draw_curves_private.h
   intern/draw_debug.h
   intern/draw_hair_private.h
   intern/draw_instance_data.h
