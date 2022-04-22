@@ -19,6 +19,7 @@
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -165,6 +166,7 @@ static void bake_update_image(ScrArea *area, Image *image)
 }
 
 static bool write_internal_bake_pixels(Image *image,
+                                       const int image_tile_number,
                                        BakePixel pixel_array[],
                                        float *buffer,
                                        const int width,
@@ -174,7 +176,8 @@ static bool write_internal_bake_pixels(Image *image,
                                        const bool is_clear,
                                        const bool is_noncolor,
                                        Mesh const *mesh_eval,
-                                       char const *uv_layer)
+                                       char const *uv_layer,
+                                       const float uv_offset[2])
 {
   ImBuf *ibuf;
   void *lock;
@@ -182,7 +185,10 @@ static bool write_internal_bake_pixels(Image *image,
   char *mask_buffer = NULL;
   const size_t pixels_num = (size_t)width * (size_t)height;
 
-  ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
+  ImageUser iuser;
+  BKE_imageuser_default(&iuser);
+  iuser.tile = image_tile_number;
+  ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
 
   if (!ibuf) {
     return false;
@@ -270,7 +276,7 @@ static bool write_internal_bake_pixels(Image *image,
 
   /* margins */
   if (margin > 0) {
-    RE_bake_margin(ibuf, mask_buffer, margin, margin_type, mesh_eval, uv_layer);
+    RE_bake_margin(ibuf, mask_buffer, margin, margin_type, mesh_eval, uv_layer, uv_offset);
   }
 
   ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
@@ -303,10 +309,8 @@ static void bake_targets_refresh(BakeTargets *targets)
 
     if (ima) {
       BKE_image_partial_update_mark_full_update(ima);
-      LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
-        BKE_image_free_gputextures(ima);
-        DEG_id_tag_update(&ima->id, 0);
-      }
+      BKE_image_free_gputextures(ima);
+      DEG_id_tag_update(&ima->id, 0);
     }
   }
 }
@@ -321,7 +325,8 @@ static bool write_external_bake_pixels(const char *filepath,
                                        ImageFormatData *im_format,
                                        const bool is_noncolor,
                                        Mesh const *mesh_eval,
-                                       char const *uv_layer)
+                                       char const *uv_layer,
+                                       const float uv_offset[2])
 {
   ImBuf *ibuf = NULL;
   bool ok = false;
@@ -378,7 +383,7 @@ static bool write_external_bake_pixels(const char *filepath,
 
     mask_buffer = MEM_callocN(sizeof(char) * pixels_num, "Bake Mask");
     RE_bake_mask_fill(pixel_array, pixels_num, mask_buffer);
-    RE_bake_margin(ibuf, mask_buffer, margin, margin_type, mesh_eval, uv_layer);
+    RE_bake_margin(ibuf, mask_buffer, margin, margin_type, mesh_eval, uv_layer, uv_offset);
 
     if (mask_buffer) {
       MEM_freeN(mask_buffer);
@@ -467,7 +472,6 @@ static bool bake_object_check(ViewLayer *view_layer,
       ED_object_get_active_image(ob, mat_nr, &image, NULL, &node, &ntree);
 
       if (image) {
-        ImBuf *ibuf;
 
         if (node) {
           if (BKE_node_is_connected_to_output(ntree, node)) {
@@ -482,21 +486,27 @@ static bool bake_object_check(ViewLayer *view_layer,
           }
         }
 
-        void *lock;
-        ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
+        LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
+          ImageUser iuser;
+          BKE_imageuser_default(&iuser);
+          iuser.tile = tile->tile_number;
 
-        if (ibuf) {
-          BKE_image_release_ibuf(image, ibuf, lock);
-        }
-        else {
-          BKE_reportf(reports,
-                      RPT_ERROR,
-                      "Uninitialized image \"%s\" from object \"%s\"",
-                      image->id.name + 2,
-                      ob->id.name + 2);
+          void *lock;
+          ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
 
-          BKE_image_release_ibuf(image, ibuf, lock);
-          return false;
+          if (ibuf) {
+            BKE_image_release_ibuf(image, ibuf, lock);
+          }
+          else {
+            BKE_reportf(reports,
+                        RPT_ERROR,
+                        "Uninitialized image \"%s\" from object \"%s\"",
+                        image->id.name + 2,
+                        ob->id.name + 2);
+
+            BKE_image_release_ibuf(image, ibuf, lock);
+            return false;
+          }
         }
       }
       else {
@@ -687,36 +697,35 @@ static bool bake_targets_init_image_textures(const BakeAPIRender *bkr,
     }
   }
 
-  /* Over-allocate in case there is more materials than images. */
+  /* Allocate material mapping. */
   targets->materials_num = materials_num;
-  targets->images = MEM_callocN(sizeof(BakeImage) * targets->materials_num, "BakeTargets.images");
-  targets->material_to_image = MEM_callocN(sizeof(int) * targets->materials_num,
+  targets->material_to_image = MEM_callocN(sizeof(Image *) * targets->materials_num,
                                            "BakeTargets.material_to_image");
 
   /* Error handling and tag (in case multiple materials share the same image). */
   BKE_main_id_tag_idcode(bkr->main, ID_IM, LIB_TAG_DOIT, false);
 
+  targets->images = NULL;
+
   for (int i = 0; i < materials_num; i++) {
     Image *image;
     ED_object_get_active_image(ob, i + 1, &image, NULL, NULL, NULL);
 
-    /* Some materials have no image, we just ignore those cases. */
-    if (image == NULL) {
-      targets->material_to_image[i] = -1;
-    }
-    else if (image->id.tag & LIB_TAG_DOIT) {
-      for (int j = 0; j < i; j++) {
-        if (targets->images[j].image == image) {
-          targets->material_to_image[i] = j;
-          break;
-        }
+    targets->material_to_image[i] = image;
+
+    /* Some materials have no image, we just ignore those cases.
+     * Also setup each image only once. */
+    if (image && !(image->id.tag & LIB_TAG_DOIT)) {
+      LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
+        /* Add bake image. */
+        targets->images = MEM_recallocN(targets->images,
+                                        sizeof(BakeImage) * (targets->images_num + 1));
+        targets->images[targets->images_num].image = image;
+        targets->images[targets->images_num].tile_number = tile->tile_number;
+        targets->images_num++;
       }
-    }
-    else {
-      targets->material_to_image[i] = targets->images_num;
-      targets->images[targets->images_num].image = image;
+
       image->id.tag |= LIB_TAG_DOIT;
-      targets->images_num++;
     }
   }
 
@@ -735,13 +744,19 @@ static bool bake_targets_init_internal(const BakeAPIRender *bkr,
   /* Saving to image datablocks. */
   for (int i = 0; i < targets->images_num; i++) {
     BakeImage *bk_image = &targets->images[i];
+
+    ImageUser iuser;
+    BKE_imageuser_default(&iuser);
+    iuser.tile = bk_image->tile_number;
+
     void *lock;
-    ImBuf *ibuf = BKE_image_acquire_ibuf(bk_image->image, NULL, &lock);
+    ImBuf *ibuf = BKE_image_acquire_ibuf(bk_image->image, &iuser, &lock);
 
     if (ibuf) {
       bk_image->width = ibuf->x;
       bk_image->height = ibuf->y;
       bk_image->offset = targets->pixels_num;
+      BKE_image_get_tile_uv(bk_image->image, bk_image->tile_number, bk_image->uv_offset);
 
       targets->pixels_num += (size_t)ibuf->x * (size_t)ibuf->y;
     }
@@ -768,6 +783,7 @@ static bool bake_targets_output_internal(const BakeAPIRender *bkr,
   for (int i = 0; i < targets->images_num; i++) {
     BakeImage *bk_image = &targets->images[i];
     const bool ok = write_internal_bake_pixels(bk_image->image,
+                                               bk_image->tile_number,
                                                pixel_array + bk_image->offset,
                                                targets->result +
                                                    bk_image->offset * targets->channels_num,
@@ -778,7 +794,8 @@ static bool bake_targets_output_internal(const BakeAPIRender *bkr,
                                                bkr->is_clear,
                                                targets->is_noncolor,
                                                mesh_eval,
-                                               bkr->uv_layer);
+                                               bkr->uv_layer,
+                                               bk_image->uv_offset);
 
     /* might be read by UI to set active image for display */
     bake_update_image(bkr->area, bk_image->image);
@@ -815,7 +832,6 @@ static bool bake_targets_init_external(const BakeAPIRender *bkr,
     bk_image->width = bkr->width;
     bk_image->height = bkr->height;
     bk_image->offset = targets->pixels_num;
-    bk_image->image = NULL;
 
     targets->pixels_num += (size_t)bkr->width * (size_t)bkr->height;
 
@@ -827,7 +843,7 @@ static bool bake_targets_init_external(const BakeAPIRender *bkr,
   if (!bkr->is_split_materials) {
     /* saving a single image */
     for (int i = 0; i < targets->materials_num; i++) {
-      targets->material_to_image[i] = 0;
+      targets->material_to_image[i] = targets->images[0].image;
     }
   }
 
@@ -865,23 +881,24 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
     }
 
     if (bkr->is_split_materials) {
-      if (bk_image->image) {
-        BLI_path_suffix(name, FILE_MAX, bk_image->image->id.name + 2, "_");
+      if (ob_eval->mat[i]) {
+        BLI_path_suffix(name, FILE_MAX, ob_eval->mat[i]->id.name + 2, "_");
+      }
+      else if (mesh_eval->mat[i]) {
+        BLI_path_suffix(name, FILE_MAX, mesh_eval->mat[i]->id.name + 2, "_");
       }
       else {
-        if (ob_eval->mat[i]) {
-          BLI_path_suffix(name, FILE_MAX, ob_eval->mat[i]->id.name + 2, "_");
-        }
-        else if (mesh_eval->mat[i]) {
-          BLI_path_suffix(name, FILE_MAX, mesh_eval->mat[i]->id.name + 2, "_");
-        }
-        else {
-          /* if everything else fails, use the material index */
-          char tmp[5];
-          sprintf(tmp, "%d", i % 1000);
-          BLI_path_suffix(name, FILE_MAX, tmp, "_");
-        }
+        /* if everything else fails, use the material index */
+        char tmp[5];
+        sprintf(tmp, "%d", i % 1000);
+        BLI_path_suffix(name, FILE_MAX, tmp, "_");
       }
+    }
+
+    if (bk_image->tile_number) {
+      char tmp[FILE_MAX];
+      SNPRINTF(tmp, "%d", bk_image->tile_number);
+      BLI_path_suffix(name, FILE_MAX, tmp, "_");
     }
 
     /* save it externally */
@@ -896,7 +913,8 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
                                                &bake->im_format,
                                                targets->is_noncolor,
                                                mesh_eval,
-                                               bkr->uv_layer);
+                                               bkr->uv_layer,
+                                               bk_image->uv_offset);
 
     if (!ok) {
       BKE_reportf(reports, RPT_ERROR, "Problem saving baked map in \"%s\"", name);

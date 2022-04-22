@@ -829,10 +829,7 @@ ImageTile *BKE_image_get_tile_from_iuser(Image *ima, const ImageUser *iuser)
   return BKE_image_get_tile(ima, image_get_tile_number_from_iuser(ima, iuser));
 }
 
-int BKE_image_get_tile_from_pos(struct Image *ima,
-                                const float uv[2],
-                                float r_uv[2],
-                                float r_ofs[2])
+int BKE_image_get_tile_from_pos(Image *ima, const float uv[2], float r_uv[2], float r_ofs[2])
 {
   float local_ofs[2];
   if (r_ofs == nullptr) {
@@ -860,6 +857,18 @@ int BKE_image_get_tile_from_pos(struct Image *ima,
   return tile_number;
 }
 
+void BKE_image_get_tile_uv(const Image *ima, const int tile_number, float r_uv[2])
+{
+  if (ima->source != IMA_SRC_TILED) {
+    zero_v2(r_uv);
+  }
+  else {
+    const int tile_index = tile_number - 1001;
+    r_uv[0] = static_cast<float>(tile_index % 10);
+    r_uv[1] = static_cast<float>(tile_index / 10);
+  }
+}
+
 int BKE_image_find_nearest_tile(const Image *image, const float co[2])
 {
   const float co_floor[2] = {floorf(co[0]), floorf(co[1])};
@@ -868,17 +877,15 @@ int BKE_image_find_nearest_tile(const Image *image, const float co[2])
   int tile_number_best = -1;
 
   LISTBASE_FOREACH (const ImageTile *, tile, &image->tiles) {
-    const int tile_index = tile->tile_number - 1001;
-    /* Coordinates of the current tile. */
-    const float tile_index_co[2] = {static_cast<float>(tile_index % 10),
-                                    static_cast<float>(tile_index / 10)};
+    float uv_offset[2];
+    BKE_image_get_tile_uv(image, tile->tile_number, uv_offset);
 
-    if (equals_v2v2(co_floor, tile_index_co)) {
+    if (equals_v2v2(co_floor, uv_offset)) {
       return tile->tile_number;
     }
 
     /* Distance between co[2] and UDIM tile. */
-    const float dist_sq = len_squared_v2v2(tile_index_co, co);
+    const float dist_sq = len_squared_v2v2(uv_offset, co);
 
     if (dist_sq < dist_best_sq) {
       dist_best_sq = dist_sq;
