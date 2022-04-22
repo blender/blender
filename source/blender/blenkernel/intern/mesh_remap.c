@@ -478,6 +478,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
                                          const int numverts_dst,
                                          const bool UNUSED(dirty_nors_dst),
                                          Mesh *me_src,
+                                         Mesh *me_dst,
                                          MeshPairRemap *r_map)
 {
   const float full_weight = 1.0f;
@@ -580,7 +581,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
       MPoly *polys_src = me_src->mpoly;
       MLoop *loops_src = me_src->mloop;
       float(*vcos_src)[3] = BKE_mesh_vert_coords_alloc(me_src, NULL);
-      const float(*vert_normals_src)[3] = BKE_mesh_vertex_normals_ensure(me_src);
+      const float(*vert_normals_dst)[3] = BKE_mesh_vertex_normals_ensure(me_dst);
 
       size_t tmp_buff_size = MREMAP_DEFAULT_BUFSIZE;
       float(*vcos)[3] = MEM_mallocN(sizeof(*vcos) * tmp_buff_size, __func__);
@@ -592,7 +593,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
       if (mode == MREMAP_MODE_VERT_POLYINTERP_VNORPROJ) {
         for (i = 0; i < numverts_dst; i++) {
           copy_v3_v3(tmp_co, verts_dst[i].co);
-          copy_v3_v3(tmp_no, vert_normals_src[i]);
+          copy_v3_v3(tmp_no, vert_normals_dst[i]);
 
           /* Convert the vertex to tree coordinates, if needed. */
           if (space_transform) {
@@ -703,6 +704,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
                                          const int numedges_dst,
                                          const bool UNUSED(dirty_nors_dst),
                                          Mesh *me_src,
+                                         Mesh *me_dst,
                                          MeshPairRemap *r_map)
 {
   const float full_weight = 1.0f;
@@ -938,7 +940,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
 
       BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_EDGES, 2);
 
-      const float(*vert_normals_dst)[3] = BKE_mesh_vertex_normals_ensure(me_src);
+      const float(*vert_normals_dst)[3] = BKE_mesh_vertex_normals_ensure(me_dst);
 
       for (i = 0; i < numedges_dst; i++) {
         /* For each dst edge, we sample some rays from it (interpolated from its vertices)
