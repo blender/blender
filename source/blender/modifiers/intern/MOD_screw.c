@@ -1129,7 +1129,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   if ((ltmd->flag & MOD_SCREW_NORMAL_CALC)) {
-    BKE_mesh_vertex_normals_clear_dirty(mesh);
+    BKE_mesh_vertex_normals_clear_dirty(result);
   }
 
   return result;
