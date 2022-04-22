@@ -331,6 +331,31 @@ static void sequencer_refresh(const bContext *C, ScrArea *area)
       break;
   }
 
+  ARegion *region_channels = sequencer_find_region(area, RGN_TYPE_CHANNELS);
+  if (sseq->view == SEQ_VIEW_SEQUENCE) {
+    if (region_channels && (region_channels->flag & RGN_FLAG_HIDDEN)) {
+      region_channels->flag &= ~RGN_FLAG_HIDDEN;
+      region_channels->v2d.flag &= ~V2D_IS_INIT;
+      view_changed = true;
+    }
+    if (region_channels && region_channels->alignment != RGN_ALIGN_LEFT) {
+      region_channels->alignment = RGN_ALIGN_LEFT;
+      view_changed = true;
+    }
+  }
+  else {
+    if (region_channels && !(region_channels->flag & RGN_FLAG_HIDDEN)) {
+      region_channels->flag |= RGN_FLAG_HIDDEN;
+      region_channels->v2d.flag &= ~V2D_IS_INIT;
+      WM_event_remove_handlers((bContext *)C, &region_channels->handlers);
+      view_changed = true;
+    }
+    if (region_channels && region_channels->alignment != RGN_ALIGN_NONE) {
+      region_channels->alignment = RGN_ALIGN_NONE;
+      view_changed = true;
+    }
+  }
+
   if (view_changed) {
     ED_area_init(wm, window, area);
     ED_area_tag_redraw(area);
