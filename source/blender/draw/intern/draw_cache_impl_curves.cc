@@ -92,11 +92,6 @@ static void curves_batch_cache_clear_data(CurvesEvalCache &curves_cache)
       GPU_BATCH_DISCARD_SAFE(curves_cache.final[i].proc_hairs[j]);
     }
   }
-
-  /* "Normal" legacy hairs */
-  GPU_BATCH_DISCARD_SAFE(curves_cache.hairs);
-  GPU_VERTBUF_DISCARD_SAFE(curves_cache.pos);
-  GPU_INDEXBUF_DISCARD_SAFE(curves_cache.indices);
 }
 
 static void curves_batch_cache_clear(Curves &curves)
@@ -148,8 +143,7 @@ void DRW_curves_batch_cache_free(Curves *curves)
 
 static void ensure_seg_pt_count(const Curves &curves, CurvesEvalCache &curves_cache)
 {
-  if ((curves_cache.pos != nullptr && curves_cache.indices != nullptr) ||
-      (curves_cache.proc_point_buf != nullptr)) {
+  if (curves_cache.proc_point_buf != nullptr) {
     return;
   }
 

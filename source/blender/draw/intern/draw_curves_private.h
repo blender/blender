@@ -26,30 +26,28 @@ struct GPUBatch;
 struct GPUTexture;
 
 typedef struct CurvesEvalFinalCache {
-  /* Output of the subdivision stage: vertex buff sized to subdiv level. */
+  /* Output of the subdivision stage: vertex buffer sized to subdiv level. */
   GPUVertBuf *proc_buf;
   GPUTexture *proc_tex;
 
-  /* Just contains a huge index buffer used to draw the final hair. */
+  /* Just contains a huge index buffer used to draw the final curves. */
   GPUBatch *proc_hairs[MAX_THICKRES];
 
-  int strands_res; /* points per hair, at least 2 */
+  /* Points per curve, at least 2. */
+  int strands_res;
 } CurvesEvalFinalCache;
 
+/* Curves procedural display: Evaluation is done on the GPU. */
 typedef struct CurvesEvalCache {
-  GPUVertBuf *pos;
-  GPUIndexBuf *indices;
-  GPUBatch *hairs;
-
-  /* Hair Procedural display: Interpolation is done on the GPU. */
-  GPUVertBuf *proc_point_buf; /* Input control points */
+  /* Input control points */
+  GPUVertBuf *proc_point_buf;
   GPUTexture *point_tex;
 
-  /** Infos of control points strands (segment count and base index) */
+  /** Info of control points strands (segment count and base index) */
   GPUVertBuf *proc_strand_buf;
   GPUTexture *strand_tex;
 
-  /* Hair Length */
+  /* Curve length data. */
   GPUVertBuf *proc_length_buf;
   GPUTexture *length_tex;
 
