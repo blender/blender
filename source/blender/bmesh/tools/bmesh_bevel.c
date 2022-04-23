@@ -5409,8 +5409,9 @@ static void snap_edges_for_vmesh_vert(int i,
     }
     else if (jj == ns2 && kk == ns2 + 1) {
       /* Center poly vert for boundvert i+1. */
+      int nexti = (i + 1) % n_bndv;
       r_snap_edges[corner] = snap_edge_for_center_vmesh_vert(
-          i + 1, n_bndv, enext, enextnext, bndv_rep_faces, center_frep, frep_beats_next);
+          nexti, n_bndv, enext, enextnext, bndv_rep_faces, center_frep, frep_beats_next);
     }
   }
 }
