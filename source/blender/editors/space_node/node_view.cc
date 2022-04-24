@@ -227,7 +227,6 @@ static int snode_bg_viewmove_modal(bContext *C, wmOperator *op, const wmEvent *e
       op->customdata = nullptr;
 
       return OPERATOR_CANCELLED;
-      break;
   }
 
   return OPERATOR_RUNNING_MODAL;

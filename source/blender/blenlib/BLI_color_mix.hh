@@ -5,7 +5,6 @@
  * \ingroup blenlib
  *
  * Contains color mixing utilities.
- *
  */
 
 #include "BLI_color.hh"

@@ -3095,7 +3095,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Lock Object Modes",
                            "Restrict selection to objects using the same mode as the active "
-                           "object,\nto prevent accidental mode switch when selecting");
+                           "object, to prevent accidental mode switch when selecting");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
   static const EnumPropertyItem workspace_tool_items[] = {

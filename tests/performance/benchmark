@@ -333,7 +333,7 @@ def main():
 
     argv = sys.argv[2:]
     blender_git_dir = find_blender_git_dir()
-    if blender_git_dir == None:
+    if blender_git_dir is None:
         sys.stderr.write('Error: no blender git repository found from current working directory\n')
         sys.exit(1)
 

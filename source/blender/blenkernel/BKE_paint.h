@@ -731,6 +731,7 @@ enum {
 };
 
 /* paint_canvas.cc */
+
 /**
  * Create a key that can be used to compare with previous ones to identify changes.
  * The resulting 'string' is owned by the caller.

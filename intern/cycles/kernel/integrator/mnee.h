@@ -1028,8 +1028,8 @@ ccl_device_forceinline bool kernel_path_mnee_sample(KernelGlobals kg,
             bsdf->type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID ||
             bsdf->type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID) {
           /* Note that CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID and
-             CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID are treated as
-             CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID further below */
+           * CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID are treated as
+           * CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID further below. */
 
           found_transimissive_microfacet_bsdf = true;
           ccl_private MicrofacetBsdf *microfacet_bsdf = (ccl_private MicrofacetBsdf *)bsdf;

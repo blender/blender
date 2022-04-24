@@ -1170,6 +1170,12 @@ void OBJECT_OT_transform_apply(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Apply Parent Inverse Operator
+ * \{ */
+
 static int object_parent_inverse_apply_exec(bContext *C, wmOperator *UNUSED(op))
 {
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
