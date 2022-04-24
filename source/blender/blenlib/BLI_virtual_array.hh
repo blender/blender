@@ -780,9 +780,6 @@ template<typename T> class VArrayCommon {
   Span<T> get_internal_span() const
   {
     BLI_assert(this->is_span());
-    if (this->is_empty()) {
-      return {};
-    }
     return impl_->get_internal_span();
   }
 
@@ -800,9 +797,6 @@ template<typename T> class VArrayCommon {
   T get_internal_single() const
   {
     BLI_assert(this->is_single());
-    if (impl_->size() == 1) {
-      return impl_->get(0);
-    }
     return impl_->get_internal_single();
   }
 
