@@ -40,11 +40,5 @@ exclude = """
 ./source/tools/*,
 """
 
-# Match CPU count.
-jobs = 0
-
-# Format files in-place.
-in_place = true
-
-# Format directories recursively (except for excluded paths).
-recursive = true
+# Omit settings such as `jobs`, `in_place` & `recursive` as they can cause editor utilities that auto-format on save
+# to fail if the STDIN/STDOUT is used for formatting (which isn't compatible with these options).
