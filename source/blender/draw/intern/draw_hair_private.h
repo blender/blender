@@ -75,7 +75,6 @@ typedef struct ParticleHairCache {
   int point_len;
 } ParticleHairCache;
 
-
 /**
  * Ensure all textures and buffers needed for GPU accelerated drawing.
  */

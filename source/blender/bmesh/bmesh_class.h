@@ -517,7 +517,6 @@ typedef bool (*BMLoopPairFilterFunc)(const BMLoop *, const BMLoop *, void *user_
 #define BM_ELEM_CD_GET_BOOL(ele, offset) \
   (BLI_assert(offset != -1), *((bool *)((char *)(ele)->head.data + (offset))))
 
-
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
 #  define BM_ELEM_CD_GET_VOID_P(ele, offset) \
     (BLI_assert(offset != -1), \
@@ -552,23 +551,21 @@ typedef bool (*BMLoopPairFilterFunc)(const BMLoop *, const BMLoop *, void *user_
               GENERIC_TYPE_ANY((const float *)POINTER_OFFSET((ele)->head.data, offset), \
                                _BM_GENERIC_TYPE_ELEM_CONST)))
 
-
 #  define BM_ELEM_CD_GET_FLOAT2_P(ele, offset) \
     (BLI_assert(offset != -1), \
      _Generic(ele, \
-              GENERIC_TYPE_ANY((float (*)[2])POINTER_OFFSET((ele)->head.data, offset), \
+              GENERIC_TYPE_ANY((float(*)[2])POINTER_OFFSET((ele)->head.data, offset), \
                                _BM_GENERIC_TYPE_ELEM_NONCONST), \
-              GENERIC_TYPE_ANY((const float (*)[2])POINTER_OFFSET((ele)->head.data, offset), \
+              GENERIC_TYPE_ANY((const float(*)[2])POINTER_OFFSET((ele)->head.data, offset), \
                                _BM_GENERIC_TYPE_ELEM_CONST)))
 
 #  define BM_ELEM_CD_GET_FLOAT3_P(ele, offset) \
     (BLI_assert(offset != -1), \
      _Generic(ele, \
-              GENERIC_TYPE_ANY((float (*)[3])POINTER_OFFSET((ele)->head.data, offset), \
+              GENERIC_TYPE_ANY((float(*)[3])POINTER_OFFSET((ele)->head.data, offset), \
                                _BM_GENERIC_TYPE_ELEM_NONCONST), \
-              GENERIC_TYPE_ANY((const float (*)[3])POINTER_OFFSET((ele)->head.data, offset), \
+              GENERIC_TYPE_ANY((const float(*)[3])POINTER_OFFSET((ele)->head.data, offset), \
                                _BM_GENERIC_TYPE_ELEM_CONST)))
-
 
 #else
 
@@ -576,14 +573,12 @@ typedef bool (*BMLoopPairFilterFunc)(const BMLoop *, const BMLoop *, void *user_
     (BLI_assert(offset != -1), (float *)((char *)(ele)->head.data + (offset)))
 
 #  define BM_ELEM_CD_GET_FLOAT2_P(ele, offset) \
-    (BLI_assert(offset != -1), (float (*)[2])((char *)(ele)->head.data + (offset)))
+    (BLI_assert(offset != -1), (float(*)[2])((char *)(ele)->head.data + (offset)))
 
 #  define BM_ELEM_CD_GET_FLOAT3_P(ele, offset) \
-    (BLI_assert(offset != -1), (float (*)[3])((char *)(ele)->head.data + (offset)))
+    (BLI_assert(offset != -1), (float(*)[3])((char *)(ele)->head.data + (offset)))
 
 #endif
-
-
 
 #define BM_ELEM_CD_SET_FLOAT2(ele, offset, f) \
   { \
