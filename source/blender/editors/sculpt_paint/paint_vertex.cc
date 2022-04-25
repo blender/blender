@@ -332,6 +332,8 @@ static Color vpaint_get_current_col(Scene *scene, VPaint *vp, bool secondary)
   const float *brush_color = secondary ? BKE_brush_secondary_color_get(scene, brush) :
                                          BKE_brush_color_get(scene, brush);
   copy_v3_v3(color, brush_color);
+  IMB_colormanagement_srgb_to_scene_linear_v3(color);
+
   color[3] = 1.0f; /* alpha isn't used, could even be removed to speedup paint a little */
 
   return fromFloat<Color>(ColorPaint4f(color));
