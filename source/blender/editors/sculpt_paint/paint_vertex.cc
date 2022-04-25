@@ -1191,7 +1191,7 @@ static void vertex_paint_init_session(Depsgraph *depsgraph,
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 }
 
-static void vwpaint_init_stroke(Scene *scene, Depsgraph *depsgraph, Object *ob)
+static void vwpaint_init_stroke(Depsgraph *depsgraph, Object *ob)
 {
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
   SculptSession *ss = ob->sculpt;
@@ -1206,7 +1206,7 @@ static void vwpaint_init_stroke(Scene *scene, Depsgraph *depsgraph, Object *ob)
 
 static void vertex_paint_init_stroke(Scene *scene, Depsgraph *depsgraph, Object *ob)
 {
-  vwpaint_init_stroke(scene, depsgraph, ob);
+  vwpaint_init_stroke(depsgraph, ob);
 
   SculptSession *ss = ob->sculpt;
   ToolSettings *ts = scene->toolsettings;
@@ -1853,7 +1853,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   }
 
   /* If not previously created, create vertex/weight paint mode session data */
-  vwpaint_init_stroke(scene, depsgraph, ob);
+  vwpaint_init_stroke(depsgraph, ob);
   vwpaint_update_cache_invariants(C, vp, ss, op, mouse);
   vertex_paint_init_session_data(ts, ob);
 
