@@ -25,6 +25,7 @@ if(UNIX AND
   unset_cache_variables("^PNG")
   unset_cache_variables("^USD")
   unset_cache_variables("^WEBP")
+  unset_cache_variables("^NANOVDB")
 endif()
 
 # Automatically set WebP on/off depending if libraries are available.
