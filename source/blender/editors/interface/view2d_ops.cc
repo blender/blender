@@ -1546,7 +1546,10 @@ static float smooth_view_rect_to_fac(const rctf *rect_a, const rctf *rect_b)
   return min_ff(fac_max, 1.0f);
 }
 
-void UI_view2d_smooth_view(bContext *C, ARegion *region, const rctf *cur, const int smooth_viewtx)
+void UI_view2d_smooth_view(const bContext *C,
+                           ARegion *region,
+                           const rctf *cur,
+                           const int smooth_viewtx)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);

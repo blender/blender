@@ -416,7 +416,7 @@ void ED_keymap_view2d(struct wmKeyConfig *keyconf);
  * Will start timer if appropriate.
  * the arguments are the desired situation.
  */
-void UI_view2d_smooth_view(struct bContext *C,
+void UI_view2d_smooth_view(const struct bContext *C,
                            struct ARegion *region,
                            const struct rctf *cur,
                            int smooth_viewtx);
