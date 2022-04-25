@@ -939,6 +939,9 @@ bool GeometryComponent::attribute_try_create(const AttributeIDRef &attribute_id,
   if (providers == nullptr) {
     return false;
   }
+  if (this->attribute_exists(attribute_id)) {
+    return false;
+  }
   if (attribute_id.is_named()) {
     const BuiltinAttributeProvider *builtin_provider =
         providers->builtin_attribute_providers().lookup_default_as(attribute_id.name(), nullptr);
