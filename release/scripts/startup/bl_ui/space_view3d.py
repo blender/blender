@@ -3177,19 +3177,15 @@ class VIEW3D_MT_mask(Menu):
 
         props = layout.operator("sculpt.mask_filter", text='Smooth Mask')
         props.filter_type = 'SMOOTH'
-        props.auto_iteration_count = True
 
         props = layout.operator("sculpt.mask_filter", text='Sharpen Mask')
         props.filter_type = 'SHARPEN'
-        props.auto_iteration_count = True
 
         props = layout.operator("sculpt.mask_filter", text='Grow Mask')
         props.filter_type = 'GROW'
-        props.auto_iteration_count = True
 
         props = layout.operator("sculpt.mask_filter", text='Shrink Mask')
         props.filter_type = 'SHRINK'
-        props.auto_iteration_count = True
 
         props = layout.operator("sculpt.mask_filter", text='Increase Contrast')
         props.filter_type = 'CONTRAST_INCREASE'
@@ -5392,16 +5388,12 @@ class VIEW3D_MT_sculpt_mask_edit_pie(Menu):
         op.value = 0.0
         op = pie.operator("sculpt.mask_filter", text='Smooth Mask')
         op.filter_type = 'SMOOTH'
-        op.auto_iteration_count = True
         op = pie.operator("sculpt.mask_filter", text='Sharpen Mask')
         op.filter_type = 'SHARPEN'
-        op.auto_iteration_count = True
         op = pie.operator("sculpt.mask_filter", text='Grow Mask')
         op.filter_type = 'GROW'
-        op.auto_iteration_count = True
         op = pie.operator("sculpt.mask_filter", text='Shrink Mask')
         op.filter_type = 'SHRINK'
-        op.auto_iteration_count = True
         op = pie.operator("sculpt.mask_filter", text='Increase Contrast')
         op.filter_type = 'CONTRAST_INCREASE'
         op.auto_iteration_count = False

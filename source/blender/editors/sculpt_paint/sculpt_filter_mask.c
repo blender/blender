@@ -296,7 +296,7 @@ void SCULPT_OT_mask_filter(struct wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna,
       "auto_iteration_count",
-      false,
+      true,
       "Auto Iteration Count",
       "Use a automatic number of iterations based on the number of vertices of the sculpt");
 }
