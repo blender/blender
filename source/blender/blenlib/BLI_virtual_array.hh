@@ -564,10 +564,9 @@ template<typename T> struct VArrayAnyExtraInfo {
   /**
    * Gets the virtual array that is stored at the given pointer.
    */
-  const VArrayImpl<T> *(*get_varray)(const void *buffer) =
-      [](const void *UNUSED(buffer)) -> const VArrayImpl<T> * { return nullptr; };
+  const VArrayImpl<T> *(*get_varray)(const void *buffer);
 
-  template<typename StorageT> static VArrayAnyExtraInfo get()
+  template<typename StorageT> static constexpr VArrayAnyExtraInfo get()
   {
     /* These are the only allowed types in the #Any. */
     static_assert(
@@ -711,6 +710,9 @@ template<typename T> class VArrayCommon {
    * null. */
   const VArrayImpl<T> *impl_from_storage() const
   {
+    if (!storage_.has_value()) {
+      return nullptr;
+    }
     return storage_.extra_info().get_varray(storage_.get());
   }
 

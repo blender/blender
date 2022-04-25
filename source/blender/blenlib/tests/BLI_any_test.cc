@@ -90,7 +90,7 @@ TEST(any, AssignAny)
 struct ExtraSizeInfo {
   size_t size;
 
-  template<typename T> static ExtraSizeInfo get()
+  template<typename T> static constexpr ExtraSizeInfo get()
   {
     return {sizeof(T)};
   }

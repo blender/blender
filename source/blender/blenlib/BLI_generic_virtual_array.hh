@@ -83,7 +83,7 @@ struct GVArrayAnyExtraInfo {
   const GVArrayImpl *(*get_varray)(const void *buffer) =
       [](const void *UNUSED(buffer)) -> const GVArrayImpl * { return nullptr; };
 
-  template<typename StorageT> static GVArrayAnyExtraInfo get();
+  template<typename StorageT> static constexpr GVArrayAnyExtraInfo get();
 };
 }  // namespace detail
 
@@ -810,7 +810,7 @@ inline bool GVArrayCommon::is_empty() const
  * \{ */
 
 namespace detail {
-template<typename StorageT> inline GVArrayAnyExtraInfo GVArrayAnyExtraInfo::get()
+template<typename StorageT> constexpr GVArrayAnyExtraInfo GVArrayAnyExtraInfo::get()
 {
   static_assert(std::is_base_of_v<GVArrayImpl, StorageT> ||
                 is_same_any_v<StorageT, const GVArrayImpl *, std::shared_ptr<const GVArrayImpl>>);
