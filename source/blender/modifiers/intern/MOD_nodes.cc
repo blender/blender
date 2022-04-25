@@ -1648,15 +1648,24 @@ static void used_attributes_panel_draw(const bContext *UNUSED(C), Panel *panel)
     return;
   }
 
-  Vector<std::pair<StringRefNull, NamedAttributeUsage>> sorted_used_attribute;
+  struct NameWithUsage {
+    StringRefNull name;
+    NamedAttributeUsage usage;
+  };
+
+  Vector<NameWithUsage> sorted_used_attribute;
   for (auto &&item : usage_by_attribute.items()) {
     sorted_used_attribute.append({item.key, item.value});
   }
-  std::sort(sorted_used_attribute.begin(), sorted_used_attribute.end());
+  std::sort(sorted_used_attribute.begin(),
+            sorted_used_attribute.end(),
+            [](const NameWithUsage &a, const NameWithUsage &b) {
+              return BLI_strcasecmp_natural(a.name.c_str(), b.name.c_str()) <= 0;
+            });
 
-  for (const auto &pair : sorted_used_attribute) {
-    const StringRefNull attribute_name = pair.first;
-    const NamedAttributeUsage usage = pair.second;
+  for (const NameWithUsage &attribute : sorted_used_attribute) {
+    const StringRefNull attribute_name = attribute.name;
+    const NamedAttributeUsage usage = attribute.usage;
 
     /* #uiLayoutRowWithHeading doesn't seem to work in this case. */
     uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
