@@ -1702,7 +1702,7 @@ static char *named_attribute_tooltip(bContext *UNUSED(C), void *argN, const char
   NamedAttributeTooltipArg &arg = *static_cast<NamedAttributeTooltipArg *>(argN);
 
   std::stringstream ss;
-  ss << TIP_("Accessed attribute names:\n");
+  ss << TIP_("Accessed named attributes:\n");
 
   struct NameWithUsage {
     StringRefNull name;
@@ -1750,8 +1750,11 @@ static char *named_attribute_tooltip(bContext *UNUSED(C), void *argN, const char
 static NodeExtraInfoRow row_from_used_named_attribute(
     const Map<std::string, NamedAttributeUsage> &usage_by_attribute_name)
 {
+  const int attributes_num = usage_by_attribute_name.size();
+
   NodeExtraInfoRow row;
-  row.text = TIP_("Attributes");
+  row.text = std::to_string(attributes_num) +
+             TIP_(attributes_num == 1 ? " Named Attribute" : " Named Attributes");
   row.icon = ICON_SPREADSHEET;
   row.tooltip_fn = named_attribute_tooltip;
   row.tooltip_fn_arg = new NamedAttributeTooltipArg{usage_by_attribute_name};
@@ -1864,28 +1867,18 @@ static void node_draw_extra_info_row(const bNode &node,
                                      const int row,
                                      const NodeExtraInfoRow &extra_info_row)
 {
-  uiBut *but_text = uiDefBut(&block,
-                             UI_BTYPE_LABEL,
-                             0,
-                             extra_info_row.text.c_str(),
-                             (int)(rect.xmin + 4.0f * U.dpi_fac + NODE_MARGIN_X + 0.4f),
-                             (int)(rect.ymin + row * (20.0f * U.dpi_fac)),
-                             (short)(rect.xmax - rect.xmin),
-                             (short)NODE_DY,
-                             nullptr,
-                             0,
-                             0,
-                             0,
-                             0,
-                             "");
+  const float but_icon_left = rect.xmin + 6.0f * U.dpi_fac;
+  const float but_icon_width = NODE_HEADER_ICON_SIZE * 0.8f;
+  const float but_icon_right = but_icon_left + but_icon_width;
+
   UI_block_emboss_set(&block, UI_EMBOSS_NONE);
   uiBut *but_icon = uiDefIconBut(&block,
                                  UI_BTYPE_BUT,
                                  0,
                                  extra_info_row.icon,
-                                 (int)(rect.xmin + 6.0f * U.dpi_fac),
+                                 (int)but_icon_left,
                                  (int)(rect.ymin + row * (20.0f * U.dpi_fac)),
-                                 NODE_HEADER_ICON_SIZE * 0.8f,
+                                 but_icon_width,
                                  UI_UNIT_Y,
                                  nullptr,
                                  0,
@@ -1900,6 +1893,26 @@ static void node_draw_extra_info_row(const bNode &node,
                             extra_info_row.tooltip_fn_free_arg);
   }
   UI_block_emboss_set(&block, UI_EMBOSS);
+
+  const float but_text_left = but_icon_right + 6.0f * U.dpi_fac;
+  const float but_text_right = rect.xmax;
+  const float but_text_width = but_text_right - but_text_left;
+
+  uiBut *but_text = uiDefBut(&block,
+                             UI_BTYPE_LABEL,
+                             0,
+                             extra_info_row.text.c_str(),
+                             (int)but_text_left,
+                             (int)(rect.ymin + row * (20.0f * U.dpi_fac)),
+                             (short)but_text_width,
+                             (short)NODE_DY,
+                             nullptr,
+                             0,
+                             0,
+                             0,
+                             0,
+                             "");
+
   if (node.flag & NODE_MUTED) {
     UI_but_flag_enable(but_text, UI_BUT_INACTIVE);
     UI_but_flag_enable(but_icon, UI_BUT_INACTIVE);
@@ -1918,6 +1931,8 @@ static void node_draw_extra_info_panel(const SpaceNode &snode, const bNode &node
   float color[4];
   rctf extra_info_rect;
 
+  const float width = (node.width - 6.0f) * U.dpi_fac;
+
   if (node.type == NODE_FRAME) {
     extra_info_rect.xmin = rct.xmin;
     extra_info_rect.xmax = rct.xmin + 95.0f * U.dpi_fac;
@@ -1926,7 +1941,7 @@ static void node_draw_extra_info_panel(const SpaceNode &snode, const bNode &node
   }
   else {
     extra_info_rect.xmin = rct.xmin + 3.0f * U.dpi_fac;
-    extra_info_rect.xmax = rct.xmin + 95.0f * U.dpi_fac;
+    extra_info_rect.xmax = rct.xmin + width;
     extra_info_rect.ymin = rct.ymax;
     extra_info_rect.ymax = rct.ymax + extra_info_rows.size() * (20.0f * U.dpi_fac);
 
@@ -1945,7 +1960,7 @@ static void node_draw_extra_info_panel(const SpaceNode &snode, const bNode &node
     /* Draw outline. */
     const float outline_width = 1.0f;
     extra_info_rect.xmin = rct.xmin + 3.0f * U.dpi_fac - outline_width;
-    extra_info_rect.xmax = rct.xmin + 95.0f * U.dpi_fac + outline_width;
+    extra_info_rect.xmax = rct.xmin + width + outline_width;
     extra_info_rect.ymin = rct.ymax - outline_width;
     extra_info_rect.ymax = rct.ymax + outline_width + extra_info_rows.size() * (20.0f * U.dpi_fac);
 
