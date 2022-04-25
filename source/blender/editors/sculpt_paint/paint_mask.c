@@ -1057,7 +1057,30 @@ static void sculpt_gesture_trim_calculate_depth(SculptGestureContext *sgcontext)
                             (trim_operation->depth_back + trim_operation->depth_front) * 0.5f;
     }
 
-    const float depth_radius = ss->cursor_radius;
+    float depth_radius;
+
+    if (ss->gesture_initial_hit) {
+      depth_radius = ss->cursor_radius;
+    }
+    else {
+      /* ss->cursor_radius is only valid if the stroke started
+       * over the sculpt mesh.  If it's not we must
+       * compute the radius ourselves.  See T81452.
+       */
+
+      Sculpt *sd = CTX_data_tool_settings(vc->C)->sculpt;
+      Brush *brush = BKE_paint_brush(&sd->paint);
+      Scene *scene = CTX_data_scene(vc->C);
+
+      if (!BKE_brush_use_locked_size(scene, brush)) {
+        depth_radius = paint_calc_object_space_radius(
+            vc, ss->gesture_initial_location, BKE_brush_size_get(scene, brush));
+      }
+      else {
+        depth_radius = BKE_brush_unprojected_radius_get(scene, brush);
+      }
+    }
+
     trim_operation->depth_front = mid_point_depth - depth_radius;
     trim_operation->depth_back = mid_point_depth + depth_radius;
   }
