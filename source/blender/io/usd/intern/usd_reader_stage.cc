@@ -194,9 +194,11 @@ bool USDStageReader::merge_with_parent(USDPrimReader *reader) const
     return false;
   }
 
-  /* Don't merge Xform and Scope prims. */
+  /* Don't merge Xform, Scope or undefined prims. */
   if (xform_reader->prim().IsA<pxr::UsdGeomXform>() ||
-      xform_reader->prim().IsA<pxr::UsdGeomScope>()) {
+      xform_reader->prim().IsA<pxr::UsdGeomScope>() ||
+      xform_reader->prim().GetPrimTypeInfo()
+        == pxr::UsdPrimTypeInfo::GetEmptyPrimType()) {
     return false;
   }
 
