@@ -3396,17 +3396,16 @@ static void do_vpaint_brush_smear(bContext *C,
                    * paint each loop belonging to this vert. */
                   for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
                     const int p_index = gmap->vert_to_poly[v_index].indices[j];
-                    const int l_index = gmap->vert_to_loop[v_index].indices[j];
 
                     int elem_index;
                     if constexpr (domain == ATTR_DOMAIN_POINT) {
                       elem_index = v_index;
                     }
                     else {
+                      const int l_index = gmap->vert_to_loop[v_index].indices[j];
                       elem_index = l_index;
+                      BLI_assert(me->mloop[l_index].v == v_index);
                     }
-
-                    BLI_assert(me->mloop[l_index].v == v_index);
 
                     const MPoly *mp = &me->mpoly[p_index];
                     if (!use_face_sel || mp->flag & ME_FACE_SEL) {
