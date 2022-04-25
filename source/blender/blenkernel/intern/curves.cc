@@ -89,6 +89,8 @@ static void curves_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, 
 
   dst.runtime = MEM_new<bke::CurvesGeometryRuntime>(__func__);
 
+  dst.runtime->type_counts = src.runtime->type_counts;
+
   dst.update_customdata_pointers();
 
   curves_dst->batch_cache = nullptr;
@@ -174,6 +176,9 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_int32_array(reader, curves->geometry.curve_size + 1, &curves->geometry.curve_offsets);
 
   curves->geometry.runtime = MEM_new<blender::bke::CurvesGeometryRuntime>(__func__);
+
+  /* Recalculate curve type count cache that isn't saved in files. */
+  blender::bke::CurvesGeometry::wrap(curves->geometry).update_curve_types();
 
   /* Materials */
   BLO_read_pointer_array(reader, (void **)&curves->mat);
