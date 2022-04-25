@@ -1191,10 +1191,9 @@ static void vertex_paint_init_session(Depsgraph *depsgraph,
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 }
 
-static void vertex_paint_init_stroke(Scene *scene, Depsgraph *depsgraph, Object *ob)
+static void vwpaint_init_stroke(Scene *scene, Depsgraph *depsgraph, Object *ob)
 {
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
-  ToolSettings *ts = scene->toolsettings;
   SculptSession *ss = ob->sculpt;
 
   /* Ensure ss->cache is allocated.  It will mostly be initialized in
@@ -1203,21 +1202,29 @@ static void vertex_paint_init_stroke(Scene *scene, Depsgraph *depsgraph, Object 
   if (!ss->cache) {
     ss->cache = (StrokeCache *)MEM_callocN(sizeof(StrokeCache), "stroke cache");
   }
+}
+
+static void vertex_paint_init_stroke(Scene *scene, Depsgraph *depsgraph, Object *ob)
+{
+  vwpaint_init_stroke(scene, depsgraph, ob);
+
+  SculptSession *ss = ob->sculpt;
+  ToolSettings *ts = scene->toolsettings;
 
   /* Allocate scratch array for previous colors if needed. */
   if (!brush_use_accumulate(ts->vpaint)) {
-    if (!ob->sculpt->cache->prev_colors_vpaint) {
+    if (!ss->cache->prev_colors_vpaint) {
       Mesh *me = BKE_object_get_original_mesh(ob);
       size_t elem_size;
       int elem_num;
 
       elem_num = get_vcol_elements(me, &elem_size);
 
-      ob->sculpt->cache->prev_colors_vpaint = (uint *)MEM_callocN(elem_num * elem_size, __func__);
+      ss->cache->prev_colors_vpaint = (uint *)MEM_callocN(elem_num * elem_size, __func__);
     }
   }
   else {
-    MEM_SAFE_FREE(ob->sculpt->cache->prev_colors_vpaint);
+    MEM_SAFE_FREE(ss->cache->prev_colors_vpaint);
   }
 }
 
@@ -1846,7 +1853,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   }
 
   /* If not previously created, create vertex/weight paint mode session data */
-  vertex_paint_init_stroke(scene, depsgraph, ob);
+  vwpaint_init_stroke(scene, depsgraph, ob);
   vwpaint_update_cache_invariants(C, vp, ss, op, mouse);
   vertex_paint_init_session_data(ts, ob);
 
