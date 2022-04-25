@@ -1824,6 +1824,13 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(const SpaceNode &snode, cons
     return rows;
   }
 
+  if (snode.overlay.flag & SN_OVERLAY_SHOW_NAMED_ATTRIBUTES &&
+      snode.edittree->type == NTREE_GEOMETRY) {
+    if (std::optional<NodeExtraInfoRow> row = node_get_accessed_attributes_row(snode, node)) {
+      rows.append(std::move(*row));
+    }
+  }
+
   if (snode.overlay.flag & SN_OVERLAY_SHOW_TIMINGS && snode.edittree->type == NTREE_GEOMETRY &&
       (ELEM(node.typeinfo->nclass, NODE_CLASS_GEOMETRY, NODE_CLASS_GROUP, NODE_CLASS_ATTRIBUTE) ||
        ELEM(node.type, NODE_FRAME, NODE_GROUP_OUTPUT))) {
@@ -1845,13 +1852,6 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(const SpaceNode &snode, cons
       row.text = message;
       row.icon = ICON_INFO;
       rows.append(std::move(row));
-    }
-  }
-
-  if (snode.overlay.flag & SN_OVERLAY_SHOW_NAMED_ATTRIBUTES &&
-      snode.edittree->type == NTREE_GEOMETRY) {
-    if (std::optional<NodeExtraInfoRow> row = node_get_accessed_attributes_row(snode, node)) {
-      rows.append(std::move(*row));
     }
   }
 
