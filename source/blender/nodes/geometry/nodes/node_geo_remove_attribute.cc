@@ -83,8 +83,10 @@ void register_node_type_geo_remove_attribute()
 
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_REMOVE_ATTRIBUTE, "Remove Attribute", NODE_CLASS_ATTRIBUTE);
+  geo_node_type_base(
+      &ntype, GEO_NODE_REMOVE_ATTRIBUTE, "Remove Named Attribute", NODE_CLASS_ATTRIBUTE);
   ntype.declare = file_ns::node_declare;
+  node_type_size(&ntype, 170, 100, 700);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   nodeRegisterType(&ntype);
