@@ -2283,6 +2283,8 @@ static void node_draw_hidden(const bContext &C,
 
   const int color_id = node_get_colorid(node);
 
+  node_draw_extra_info_panel(snode, node, block);
+
   /* Shadow. */
   node_draw_shadow(snode, node, hiddenrad, 1.0f);
 
