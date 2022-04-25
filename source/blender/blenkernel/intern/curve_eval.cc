@@ -523,6 +523,8 @@ Curves *curve_eval_to_curves(const CurveEval &curve_eval)
     }
   }
 
+  geometry.update_curve_types();
+
   normal_mode.save();
   nurbs_weight.save();
   nurbs_order.save();

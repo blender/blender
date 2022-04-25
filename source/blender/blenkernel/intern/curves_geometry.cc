@@ -85,6 +85,9 @@ static void copy_curves_geometry(CurvesGeometry &dst, const CurvesGeometry &src)
 
   dst.tag_topology_changed();
 
+  /* Though type counts are a cache, they must be copied because they are calculated eagerly. */
+  dst.runtime->type_counts = src.runtime->type_counts;
+
   dst.update_customdata_pointers();
 }
 
@@ -237,38 +240,38 @@ MutableSpan<int8_t> CurvesGeometry::curve_types_for_write()
   return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_CURVE_TYPE);
 }
 
-bool CurvesGeometry::has_curve_with_type(const CurveType type) const
+void CurvesGeometry::fill_curve_types(const CurveType type)
 {
-  const VArray<int8_t> curve_types = this->curve_types();
-  if (curve_types.is_single()) {
-    return curve_types.get_internal_single() == type;
-  }
-  if (curve_types.is_span()) {
-    return curve_types.get_internal_span().contains(type);
-  }
-  /* The curves types array should be a single value or a span. */
-  BLI_assert_unreachable();
-  return false;
+  this->curve_types_for_write().fill(type);
+  this->runtime->type_counts.fill(0);
+  this->runtime->type_counts[type] = this->curves_num();
+  this->tag_topology_changed();
 }
 
-std::array<int, CURVE_TYPES_NUM> CurvesGeometry::count_curve_types() const
+void CurvesGeometry::fill_curve_types(const IndexMask selection, const CurveType type)
+{
+  /* A potential performance optimization is only counting the changed indices. */
+  this->curve_types_for_write().fill_indices(selection, type);
+  this->update_curve_types();
+  this->tag_topology_changed();
+}
+
+std::array<int, CURVE_TYPES_NUM> calculate_type_counts(const VArray<int8_t> &types)
 {
   using CountsType = std::array<int, CURVE_TYPES_NUM>;
+  CountsType counts;
+  counts.fill(0);
 
-  CountsType identity;
-  identity.fill(0);
-
-  const VArray<int8_t> types = this->curve_types();
   if (types.is_single()) {
-    identity[types.get_internal_single()] = this->curves_num();
-    return identity;
+    counts[types.get_internal_single()] = types.size();
+    return counts;
   }
 
   Span<int8_t> types_span = types.get_internal_span();
   return threading::parallel_reduce(
-      this->curves_range(),
+      types.index_range(),
       2048,
-      identity,
+      counts,
       [&](const IndexRange curves_range, const CountsType &init) {
         CountsType result = init;
         for (const int curve_index : curves_range) {
@@ -283,6 +286,11 @@ std::array<int, CURVE_TYPES_NUM> CurvesGeometry::count_curve_types() const
         }
         return result;
       });
+}
+
+void CurvesGeometry::update_curve_types()
+{
+  this->runtime->type_counts = calculate_type_counts(this->curve_types());
 }
 
 Span<float3> CurvesGeometry::positions() const

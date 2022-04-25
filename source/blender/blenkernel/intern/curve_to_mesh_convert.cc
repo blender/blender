@@ -229,19 +229,10 @@ struct CurvesInfo {
   /* Make sure these are spans because they are potentially accessed many times. */
   VArray_Span<bool> main_cyclic;
   VArray_Span<bool> profile_cyclic;
-
-  /* TODO: Remove once these are cached on #CurvesGeometry. */
-  std::array<int, CURVE_TYPES_NUM> main_type_counts;
-  std::array<int, CURVE_TYPES_NUM> profile_type_counts;
 };
 static CurvesInfo get_curves_info(const CurvesGeometry &main, const CurvesGeometry &profile)
 {
-  return {main,
-          profile,
-          main.cyclic(),
-          profile.cyclic(),
-          main.count_curve_types(),
-          profile.count_curve_types()};
+  return {main, profile, main.cyclic(), profile.cyclic()};
 }
 
 struct ResultOffsets {
@@ -360,7 +351,7 @@ static bool should_add_attribute_to_mesh(const CurveComponent &curve_component,
 
 static GSpan evaluated_attribute_if_necessary(const GVArray &src,
                                               const CurvesGeometry &curves,
-                                              const Span<int> type_counts,
+                                              const std::array<int, CURVE_TYPES_NUM> &type_counts,
                                               Vector<std::byte> &buffer)
 {
   if (type_counts[CURVE_TYPE_POLY] == curves.curves_num() && src.is_span()) {
@@ -691,7 +682,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
     radii = evaluated_attribute_if_necessary(
                 main_component.attribute_get_for_read<float>("radius", ATTR_DOMAIN_POINT, 1.0f),
                 main,
-                curves_info.main_type_counts,
+                main.curve_type_counts(),
                 eval_buffer)
                 .typed<float>();
   }
@@ -707,7 +698,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
                         verts.slice(info.vert_range));
   });
 
-  if (curves_info.profile_type_counts[CURVE_TYPE_BEZIER] > 0) {
+  if (profile.curve_type_counts()[CURVE_TYPE_BEZIER] > 0) {
     const VArray<int8_t> curve_types = profile.curve_types();
     const VArray_Span<int8_t> handle_types_left{profile.handle_types_left()};
     const VArray_Span<int8_t> handle_types_right{profile.handle_types_right()};
@@ -752,7 +743,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
           curves_info,
           offsets,
           dst_domain,
-          evaluated_attribute_if_necessary(src, main, curves_info.main_type_counts, eval_buffer),
+          evaluated_attribute_if_necessary(src, main, main.curve_type_counts(), eval_buffer),
           dst.as_span());
     }
     else if (src_domain == ATTR_DOMAIN_CURVE) {
@@ -787,8 +778,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
           curves_info,
           offsets,
           dst_domain,
-          evaluated_attribute_if_necessary(
-              src, profile, curves_info.profile_type_counts, eval_buffer),
+          evaluated_attribute_if_necessary(src, profile, profile.curve_type_counts(), eval_buffer),
           dst.as_span());
     }
     else if (src_domain == ATTR_DOMAIN_CURVE) {
@@ -808,6 +798,7 @@ static CurvesGeometry get_curve_single_vert()
   CurvesGeometry curves(1, 1);
   curves.offsets_for_write().last() = 1;
   curves.positions_for_write().fill(float3(0));
+  curves.fill_curve_types(CURVE_TYPE_POLY);
 
   return curves;
 }

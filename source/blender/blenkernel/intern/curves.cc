@@ -370,7 +370,7 @@ Curves *curves_new_nomain_single(const int points_num, const CurveType type)
   Curves *curves = curves_new_nomain(points_num, 1);
   CurvesGeometry &geometry = CurvesGeometry::wrap(curves->geometry);
   geometry.offsets_for_write().last() = points_num;
-  geometry.curve_types_for_write().first() = type;
+  geometry.fill_curve_types(type);
   return curves;
 }
 

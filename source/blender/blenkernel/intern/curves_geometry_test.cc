@@ -78,7 +78,8 @@ TEST(curves_geometry, TypeCount)
       CURVE_TYPE_POLY,
       CURVE_TYPE_POLY,
   });
-  std::array<int, CURVE_TYPES_NUM> counts = curves.count_curve_types();
+  curves.update_curve_types();
+  const std::array<int, CURVE_TYPES_NUM> &counts = curves.curve_type_counts();
   EXPECT_EQ(counts[CURVE_TYPE_CATMULL_ROM], 3);
   EXPECT_EQ(counts[CURVE_TYPE_POLY], 3);
   EXPECT_EQ(counts[CURVE_TYPE_BEZIER], 1);
@@ -88,7 +89,7 @@ TEST(curves_geometry, TypeCount)
 TEST(curves_geometry, CatmullRomEvaluation)
 {
   CurvesGeometry curves(4, 1);
-  curves.curve_types_for_write().fill(CURVE_TYPE_CATMULL_ROM);
+  curves.fill_curve_types(CURVE_TYPE_CATMULL_ROM);
   curves.resolution_for_write().fill(12);
   curves.offsets_for_write().last() = 4;
   curves.cyclic_for_write().fill(false);
@@ -221,7 +222,7 @@ TEST(curves_geometry, CatmullRomEvaluation)
 TEST(curves_geometry, CatmullRomTwoPointCyclic)
 {
   CurvesGeometry curves(2, 1);
-  curves.curve_types_for_write().fill(CURVE_TYPE_CATMULL_ROM);
+  curves.fill_curve_types(CURVE_TYPE_CATMULL_ROM);
   curves.resolution_for_write().fill(12);
   curves.offsets_for_write().last() = 2;
   curves.cyclic_for_write().fill(true);
@@ -233,7 +234,7 @@ TEST(curves_geometry, CatmullRomTwoPointCyclic)
 TEST(curves_geometry, BezierPositionEvaluation)
 {
   CurvesGeometry curves(2, 1);
-  curves.curve_types_for_write().fill(CURVE_TYPE_BEZIER);
+  curves.fill_curve_types(CURVE_TYPE_BEZIER);
   curves.resolution_for_write().fill(12);
   curves.offsets_for_write().last() = 2;
 
@@ -270,7 +271,7 @@ TEST(curves_geometry, BezierPositionEvaluation)
   }
 
   curves.resize(4, 2);
-  curves.curve_types_for_write().fill(CURVE_TYPE_BEZIER);
+  curves.fill_curve_types(CURVE_TYPE_BEZIER);
   curves.resolution_for_write().fill(9);
   curves.offsets_for_write().last() = 4;
   handles_left = curves.handle_positions_left_for_write();
@@ -317,7 +318,7 @@ TEST(curves_geometry, BezierPositionEvaluation)
 TEST(curves_geometry, NURBSEvaluation)
 {
   CurvesGeometry curves(4, 1);
-  curves.curve_types_for_write().fill(CURVE_TYPE_NURBS);
+  curves.fill_curve_types(CURVE_TYPE_NURBS);
   curves.resolution_for_write().fill(10);
   curves.offsets_for_write().last() = 4;
 
@@ -407,7 +408,7 @@ TEST(curves_geometry, NURBSEvaluation)
 TEST(curves_geometry, BezierGenericEvaluation)
 {
   CurvesGeometry curves(3, 1);
-  curves.curve_types_for_write().fill(CURVE_TYPE_BEZIER);
+  curves.fill_curve_types(CURVE_TYPE_BEZIER);
   curves.resolution_for_write().fill(8);
   curves.offsets_for_write().last() = 3;
 

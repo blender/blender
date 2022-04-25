@@ -173,7 +173,6 @@ static void gather_point_attributes_to_interpolate(const CurveComponent &src_com
 {
   const Curves &dst_curves_id = *dst_component.get_for_read();
   const bke::CurvesGeometry &dst_curves = bke::CurvesGeometry::wrap(dst_curves_id.geometry);
-  const std::array<int, CURVE_TYPES_NUM> type_counts = dst_curves.count_curve_types();
 
   VectorSet<AttributeIDRef> ids;
   VectorSet<AttributeIDRef> ids_no_interpolation;
@@ -182,7 +181,7 @@ static void gather_point_attributes_to_interpolate(const CurveComponent &src_com
         if (meta_data.domain != ATTR_DOMAIN_POINT) {
           return true;
         }
-        if (!interpolate_attribute_to_curves(id, type_counts)) {
+        if (!interpolate_attribute_to_curves(id, dst_curves.curve_type_counts())) {
           return true;
         }
         if (interpolate_attribute_to_poly_curve(id)) {
@@ -318,7 +317,7 @@ static Curves *resample_to_uniform_count(const CurveComponent &src_component,
   dst_curves.resize(dst_offsets.last(), dst_curves.curves_num());
 
   /* All resampled curves are poly curves. */
-  dst_curves.curve_types_for_write().fill_indices(selection, CURVE_TYPE_POLY);
+  dst_curves.fill_curve_types(selection, CURVE_TYPE_POLY);
 
   VArray<bool> curves_cyclic = src_curves.cyclic();
   VArray<int8_t> curve_types = src_curves.curve_types();
@@ -464,7 +463,7 @@ static Curves *resample_to_evaluated(const CurveComponent &src_component,
                   CD_DUPLICATE,
                   src_curves.curves_num());
   /* All resampled curves are poly curves. */
-  dst_curves.curve_types_for_write().fill_indices(selection, CURVE_TYPE_POLY);
+  dst_curves.fill_curve_types(selection, CURVE_TYPE_POLY);
   MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
 
   src_curves.ensure_evaluated_offsets();
