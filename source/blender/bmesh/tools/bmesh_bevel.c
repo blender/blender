@@ -791,8 +791,8 @@ static bool contig_ldata_across_edge(BMesh *bm, BMEdge *e, BMFace *f1, BMFace *f
 }
 
 /**
- * In array face_component of total totface elements, swap values c1 and c2
- * whereever they occur.
+ * In array face_component of total `totface` elements, swap values c1 and c2
+ * wherever they occur.
  */
 static void swap_face_components(int *face_component, int totface, int c1, int c2)
 {
@@ -893,9 +893,8 @@ static void math_layer_info_init(BevelParams *bp, BMesh *bm)
   MEM_freeN(stack);
   MEM_freeN(in_stack);
   /* We can usually get more pleasing result if components 0 and 1
-   * are the topmost and bottommost (in z-coordinate) componenets,
-   * so adjust component indices to make that so.
-   */
+   * are the topmost and bottom-most (in z-coordinate) components,
+   * so adjust component indices to make that so. */
   if (current_component <= 0) {
     return; /* Only one component, so no need to do this. */
   }
@@ -5541,9 +5540,9 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv, BoundVert
         BMVert *bmv4 = mesh_vert(vm, i, j + 1, k)->v;
         BMVert *bmvs[4] = {bmv1, bmv2, bmv3, bmv4};
         BLI_assert(bmv1 && bmv2 && bmv3 && bmv4);
-        /* For each created quad, the UVs etc. will be interpolated
+        /* For each created quad, the UV's etc. will be interpolated
          * in potentially a different face for each corner and may need
-         * to snap to a particular edge before intorpolating.
+         * to snap to a particular edge before interpolating.
          * The fr and se arrays will be filled with the interpolation faces
          * and snapping edges for the for corners in the order given
          * in the bmvs array.

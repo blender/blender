@@ -289,7 +289,7 @@ void DRW_curves_update()
       int max_read_px_len = min_ii(width * height, pr_call->vert_len);
 
       DRW_draw_pass_subset(g_tf_pass, pr_call->shgrp, pr_call->shgrp);
-      /* Readback result to main memory. */
+      /* Read back result to main memory. */
       GPU_framebuffer_read_color(fb, 0, 0, width, height, 4, 0, GPU_DATA_FLOAT, data);
       /* Upload back to VBO. */
       GPU_vertbuf_use(pr_call->vbo);

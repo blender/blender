@@ -674,7 +674,7 @@ static void template_id_liboverride_hierarchy_create(bContext *C,
     if (ID_IS_LINKED(object_active)) {
       if (object_active->id.lib != id->lib ||
           !ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(object_active)) {
-        /* The active object is from a different library than the overriden ID, or otherwise
+        /* The active object is from a different library than the overridden ID, or otherwise
          * cannot be used in hierarchy. */
         object_active = NULL;
       }
@@ -693,7 +693,7 @@ static void template_id_liboverride_hierarchy_create(bContext *C,
     if (ID_IS_LINKED(collection_active)) {
       if (collection_active->id.lib != id->lib ||
           !ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(collection_active)) {
-        /* The active collection is from a different library than the overriden ID, or otherwise
+        /* The active collection is from a different library than the overridden ID, or otherwise
          * cannot be used in hierarchy. */
         collection_active = NULL;
       }
