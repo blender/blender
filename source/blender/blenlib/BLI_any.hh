@@ -40,7 +40,7 @@ template<typename ExtraInfo, typename T>
 static constexpr AnyTypeInfo<ExtraInfo> info_for_inline = {
     [](void *dst, const void *src) { new (dst) T(*(const T *)src); },
     [](void *dst, void *src) { new (dst) T(std::move(*(T *)src)); },
-    [](void *src) { ((T *)src)->~T(); },
+    [](void *src) { std::destroy_at(((T *)src)); },
     [](const void *src) { return src; },
     ExtraInfo::template get<T>()};
 
@@ -53,7 +53,7 @@ template<typename ExtraInfo, typename T>
 static constexpr AnyTypeInfo<ExtraInfo> info_for_unique_ptr = {
     [](void *dst, const void *src) { new (dst) Ptr<T>(new T(**(const Ptr<T> *)src)); },
     [](void *dst, void *src) { new (dst) Ptr<T>(new T(std::move(**(Ptr<T> *)src))); },
-    [](void *src) { ((Ptr<T> *)src)->~Ptr<T>(); },
+    [](void *src) { std::destroy_at((Ptr<T> *)src); },
     [](const void *src) -> const void * { return &**(const Ptr<T> *)src; },
     ExtraInfo::template get<T>()};
 
