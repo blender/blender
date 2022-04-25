@@ -32,8 +32,6 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  params.used_named_attribute(name, NamedAttributeUsage::Remove);
-
   std::atomic<bool> attribute_exists = false;
   std::atomic<bool> cannot_delete = false;
 
@@ -61,13 +59,17 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   });
 
+  if (attribute_exists && !cannot_delete) {
+    params.used_named_attribute(name, NamedAttributeUsage::Remove);
+  }
+
   if (!attribute_exists) {
     params.error_message_add(NodeWarningType::Info,
                              TIP_("Attribute does not exist: \"") + name + "\"");
   }
   if (cannot_delete) {
-    params.error_message_add(NodeWarningType::Info,
-                             TIP_("Cannot delete attribute with name \"") + name + "\"");
+    params.error_message_add(NodeWarningType::Warning,
+                             TIP_("Cannot delete built-in attribute with name \"") + name + "\"");
   }
 
   params.set_output("Geometry", std::move(geometry_set));
