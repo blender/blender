@@ -179,6 +179,7 @@ class NLA_MT_edit(Menu):
         layout.operator_menu_enum("nla.snap", "type", text="Snap")
 
         layout.separator()
+        layout.operator("nla.bake", text="Bake Action")
         layout.operator("nla.duplicate", text="Duplicate").linked = False
         layout.operator("nla.duplicate", text="Linked Duplicate").linked = True
         layout.operator("nla.split")
