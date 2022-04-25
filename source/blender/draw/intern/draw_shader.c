@@ -99,13 +99,13 @@ GPUShader *DRW_shader_curves_refine_get(CurvesEvalShader type, eParticleRefineSh
     GPUShader *sh = NULL;
     switch (sh_type) {
       case PART_REFINE_SHADER_COMPUTE:
-        sh = hair_refine_shader_compute_create(type);
+        sh = hair_refine_shader_compute_create(PART_REFINE_CATMULL_ROM);
         break;
       case PART_REFINE_SHADER_TRANSFORM_FEEDBACK:
-        sh = hair_refine_shader_transform_feedback_create(type);
+        sh = hair_refine_shader_transform_feedback_create(PART_REFINE_CATMULL_ROM);
         break;
       case PART_REFINE_SHADER_TRANSFORM_FEEDBACK_WORKAROUND:
-        sh = hair_refine_shader_transform_feedback_workaround_create(type);
+        sh = hair_refine_shader_transform_feedback_workaround_create(PART_REFINE_CATMULL_ROM);
         break;
       default:
         BLI_assert_msg(0, "Incorrect shader type");
