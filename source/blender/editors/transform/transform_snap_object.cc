@@ -2746,6 +2746,14 @@ static void snap_obj_fn(SnapObjectContext *sctx,
           sctx, params, ob_eval, obmat, dt->dist_px, dt->r_loc, dt->r_no, dt->r_index);
       break; /* Use ATTR_FALLTHROUGH if we want to snap to the generated mesh. */
     case OB_SURF:
+      if (BKE_object_is_in_editmode(ob_eval)) {
+        retval = snapCurve(
+            sctx, params, ob_eval, obmat, dt->dist_px, dt->r_loc, dt->r_no, dt->r_index);
+        if (params->edit_mode_type != SNAP_GEOM_FINAL) {
+          break;
+        }
+      }
+      ATTR_FALLTHROUGH;
     case OB_FONT: {
       const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
       if (mesh_eval) {
