@@ -52,6 +52,7 @@
 #include "BKE_duplilist.h"
 #include "BKE_effect.h"
 #include "BKE_geometry_set.h"
+#include "BKE_geometry_set.hh"
 #include "BKE_gpencil_curve.h"
 #include "BKE_gpencil_geom.h"
 #include "BKE_gpencil_modifier.h"
@@ -3120,8 +3121,12 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       BKE_object_material_from_eval_data(bmain, newob, &me_eval->id);
       Mesh *new_mesh = (Mesh *)newob->data;
       BKE_mesh_nomain_to_mesh(me_eval, new_mesh, newob, &CD_MASK_MESH, true);
+
       /* Anonymous attributes shouldn't be available on the applied geometry. */
-      BKE_mesh_anonymous_attributes_remove(new_mesh);
+      MeshComponent component;
+      component.replace(new_mesh, GeometryOwnershipType::Editable);
+      component.attributes_remove_anonymous();
+
       BKE_object_free_modifiers(newob, 0); /* after derivedmesh calls! */
     }
     else if (ob->type == OB_FONT) {

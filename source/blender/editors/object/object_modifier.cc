@@ -41,6 +41,7 @@
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
 #include "BKE_effect.h"
+#include "BKE_geometry_set.hh"
 #include "BKE_global.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_key.h"
@@ -750,7 +751,9 @@ static bool modifier_apply_obdata(
       BKE_mesh_nomain_to_mesh(mesh_applied, me, ob, &CD_MASK_MESH, true);
 
       /* Anonymous attributes shouldn't be available on the applied geometry. */
-      BKE_mesh_anonymous_attributes_remove(me);
+      MeshComponent component;
+      component.replace(me, GeometryOwnershipType::Editable);
+      component.attributes_remove_anonymous();
 
       if (md_eval->type == eModifierType_Multires) {
         multires_customdata_delete(me);
