@@ -1624,7 +1624,7 @@ static void output_attribute_panel_draw(const bContext *C, Panel *panel)
   }
 }
 
-static void used_attributes_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void internal_dependencies_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
@@ -1708,10 +1708,10 @@ static void panelRegister(ARegionType *region_type)
                              output_attribute_panel_draw,
                              panel_type);
   modifier_subpanel_register(region_type,
-                             "used_attributes",
-                             N_("Used Attributes"),
+                             "internal_dependencies",
+                             N_("Internal Dependencies"),
                              nullptr,
-                             used_attributes_panel_draw,
+                             internal_dependencies_panel_draw,
                              panel_type);
 }
 
