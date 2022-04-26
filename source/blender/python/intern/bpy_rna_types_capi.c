@@ -268,6 +268,8 @@ void BPY_rna_types_extend_capi(void)
       &RNA_WindowManager, pyrna_windowmanager_methods, pyrna_windowmanager_getset);
 
   /* Context */
+  bpy_rna_context_types_init();
+
   ARRAY_SET_ITEMS(pyrna_context_methods, BPY_rna_context_temp_override_method_def);
   pyrna_struct_type_extend_capi(&RNA_Context, pyrna_context_methods, NULL);
 }

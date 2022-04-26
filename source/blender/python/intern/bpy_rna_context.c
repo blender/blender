@@ -143,6 +143,11 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
     }
   }
 
+  /* A copy may have been made when writing context members, see #BPY_context_dict_clear_members */
+  PyObject *context_dict_test = CTX_py_dict_get(C);
+  if (context_dict_test && (context_dict_test != self->py_state_context_dict)) {
+    Py_DECREF(context_dict_test);
+  }
   CTX_py_state_pop(C, &self->py_state);
   Py_CLEAR(self->py_state_context_dict);
 
@@ -304,3 +309,11 @@ PyMethodDef BPY_rna_context_temp_override_method_def = {
     METH_VARARGS | METH_KEYWORDS,
     bpy_context_temp_override_doc,
 };
+
+void bpy_rna_context_types_init(void)
+{
+  if (PyType_Ready(&BPyContextTempOverride_Type) < 0) {
+    BLI_assert_unreachable();
+    return;
+  }
+}
