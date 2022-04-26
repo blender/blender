@@ -107,8 +107,8 @@ template<typename Fn, typename... SourceTypes> class Devirtualizer {
   {
     BLI_assert(!executed_);
     static_assert(sizeof...(AllowedModes) == SourceTypesNum);
-    return this->try_execute_devirtualized_impl(DeviModeSequence<>(),
-                                                DeviModeSequence<AllowedModes...>());
+    this->try_execute_devirtualized_impl(DeviModeSequence<>(),
+                                         DeviModeSequence<AllowedModes...>());
   }
 
   /**
@@ -131,9 +131,11 @@ template<typename Fn, typename... SourceTypes> class Devirtualizer {
    * At every recursive step, the #DeviMode of one parameter is determined. This is achieved by
    * extending #DeviModeSequence<Mode...> by one element in each step. The recursion ends once all
    * parameters are handled.
+   *
+   * \return True when the function has been executed.
    */
   template<DeviMode... Mode, DeviMode... AllowedModes>
-  void try_execute_devirtualized_impl(
+  bool try_execute_devirtualized_impl(
       /* Initially empty, but then extended by one element in each recursive step.  */
       DeviModeSequence<Mode...> /* modes */,
       /* Bit flag for every parameter. */
@@ -144,6 +146,7 @@ template<typename Fn, typename... SourceTypes> class Devirtualizer {
       /* End of recursion, now call the function with the determined #DeviModes. */
       this->try_execute_devirtualized_impl_call(DeviModeSequence<Mode...>(),
                                                 std::make_index_sequence<SourceTypesNum>());
+      return true;
     }
     else {
       /* Index of the parameter that is checked in the current recursive step. */
@@ -160,21 +163,27 @@ template<typename Fn, typename... SourceTypes> class Devirtualizer {
         /* Check if the virtual array is a single value. */
         if constexpr ((allowed_modes & DeviMode::Single) != DeviMode::None) {
           if (varray.is_single()) {
-            this->try_execute_devirtualized_impl(DeviModeSequence<Mode..., DeviMode::Single>(),
-                                                 DeviModeSequence<AllowedModes...>());
+            if (this->try_execute_devirtualized_impl(DeviModeSequence<Mode..., DeviMode::Single>(),
+                                                     DeviModeSequence<AllowedModes...>())) {
+              return true;
+            }
           }
         }
         /* Check if the virtual array is a span. */
         if constexpr ((allowed_modes & DeviMode::Span) != DeviMode::None) {
           if (varray.is_span()) {
-            this->try_execute_devirtualized_impl(DeviModeSequence<Mode..., DeviMode::Span>(),
-                                                 DeviModeSequence<AllowedModes...>());
+            if (this->try_execute_devirtualized_impl(DeviModeSequence<Mode..., DeviMode::Span>(),
+                                                     DeviModeSequence<AllowedModes...>())) {
+              return true;
+            }
           }
         }
         /* Check if it is ok if the virtual array is not devirtualized. */
         if constexpr ((allowed_modes & DeviMode::Keep) != DeviMode::None) {
-          this->try_execute_devirtualized_impl(DeviModeSequence<Mode..., DeviMode::Keep>(),
-                                               DeviModeSequence<AllowedModes...>());
+          if (this->try_execute_devirtualized_impl(DeviModeSequence<Mode..., DeviMode::Keep>(),
+                                                   DeviModeSequence<AllowedModes...>())) {
+            return true;
+          }
         }
       }
 
@@ -185,23 +194,30 @@ template<typename Fn, typename... SourceTypes> class Devirtualizer {
           /* The actual mask used for dynamic dispatch at run-time. */
           const IndexMask &mask = *std::get<I>(sources_);
           if (mask.is_range()) {
-            this->try_execute_devirtualized_impl(DeviModeSequence<Mode..., DeviMode::Range>(),
-                                                 DeviModeSequence<AllowedModes...>());
+            if (this->try_execute_devirtualized_impl(DeviModeSequence<Mode..., DeviMode::Range>(),
+                                                     DeviModeSequence<AllowedModes...>())) {
+              return true;
+            }
           }
         }
         /* Check if mask is also allowed to stay a span. */
         if constexpr ((allowed_modes & DeviMode::Span) != DeviMode::None) {
-          this->try_execute_devirtualized_impl(DeviModeSequence<Mode..., DeviMode::Span>(),
-                                               DeviModeSequence<AllowedModes...>());
+          if (this->try_execute_devirtualized_impl(DeviModeSequence<Mode..., DeviMode::Span>(),
+                                                   DeviModeSequence<AllowedModes...>())) {
+            return true;
+          }
         }
       }
 
       /* Handle unknown types. */
       else {
-        this->try_execute_devirtualized_impl(DeviModeSequence<Mode..., DeviMode::Keep>(),
-                                             DeviModeSequence<AllowedModes...>());
+        if (this->try_execute_devirtualized_impl(DeviModeSequence<Mode..., DeviMode::Keep>(),
+                                                 DeviModeSequence<AllowedModes...>())) {
+          return true;
+        }
       }
     }
+    return false;
   }
 
   /**
@@ -212,6 +228,7 @@ template<typename Fn, typename... SourceTypes> class Devirtualizer {
                                            std::index_sequence<I...> /* indices */)
   {
 
+    BLI_assert(!executed_);
     fn_(this->get_devirtualized_parameter<I, Mode>()...);
     executed_ = true;
   }
