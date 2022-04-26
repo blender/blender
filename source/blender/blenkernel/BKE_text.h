@@ -38,13 +38,14 @@ bool BKE_text_reload(struct Text *text);
 struct Text *BKE_text_load_ex(struct Main *bmain,
                               const char *filepath,
                               const char *relbase,
-                              bool is_internal);
+                              bool is_internal) ATTR_NONNULL(1, 2, 3);
 /**
  * Load a text file.
  *
  * \note Text data-blocks have no user by default, only the 'real user' flag.
  */
-struct Text *BKE_text_load(struct Main *bmain, const char *filepath, const char *relbase);
+struct Text *BKE_text_load(struct Main *bmain, const char *filepath, const char *relbase)
+    ATTR_NONNULL(1, 2, 3);
 void BKE_text_clear(struct Text *text) ATTR_NONNULL(1);
 void BKE_text_write(struct Text *text, const char *str, int str_len) ATTR_NONNULL(1, 2);
 /**

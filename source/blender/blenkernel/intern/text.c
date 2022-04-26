@@ -466,9 +466,7 @@ Text *BKE_text_load_ex(Main *bmain,
   BLI_stat_t st;
 
   BLI_strncpy(filepath_abs, filepath, FILE_MAX);
-  if (relbase) { /* Can be NULL (background mode). */
-    BLI_path_abs(filepath_abs, relbase);
-  }
+  BLI_path_abs(filepath_abs, relbase);
 
   buffer = BLI_file_read_text_as_mem(filepath_abs, 0, &buffer_len);
   if (buffer == NULL) {
