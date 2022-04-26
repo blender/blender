@@ -452,6 +452,11 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
   return return_info;
 }
 
+void UI_but_func_identity_compare_set(uiBut *but, uiButIdentityCompareFunc cmp_fn)
+{
+  but->identity_cmp_func = cmp_fn;
+}
+
 /* *** RNA collection search menu *** */
 
 struct CollItemSearch {
