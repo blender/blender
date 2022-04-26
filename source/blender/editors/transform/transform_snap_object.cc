@@ -253,7 +253,7 @@ static void snap_object_data_mesh_free_ensure(SnapObjectContext *sctx, Object *o
   if (!sod) {
     return;
   }
-  BLI_ghash_popkey(sctx->cache.mesh_map, ob_eval, NULL);
+  BLI_ghash_remove(sctx->cache.mesh_map, ob_eval, nullptr, nullptr);
   snap_object_data_mesh_free(sod);
 }
 
@@ -264,7 +264,7 @@ static void snap_object_data_editmesh_free_ensure(SnapObjectContext *sctx, Objec
     return;
   }
   BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
-  BLI_ghash_popkey(sctx->cache.editmesh_map, em, NULL);
+  BLI_ghash_remove(sctx->cache.editmesh_map, em, nullptr, nullptr);
   snap_object_data_editmesh_free(sod);
 }
 
