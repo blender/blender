@@ -180,6 +180,7 @@ set(SRC
   BLI_cpp_type.hh
   BLI_cpp_type_make.hh
   BLI_delaunay_2d.h
+  BLI_devirtualize_parameters.hh
   BLI_dial_2d.h
   BLI_disjoint_set.hh
   BLI_dlrbTree.h
@@ -274,6 +275,7 @@ set(SRC
   BLI_noise.h
   BLI_noise.hh
   BLI_path_util.h
+  BLI_parameter_pack_utils.hh
   BLI_polyfill_2d.h
   BLI_polyfill_2d_beautify.h
   BLI_probing_strategies.hh

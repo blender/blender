@@ -1089,6 +1089,12 @@ template<typename T> class VMutableArray : public VArrayCommon<T> {
   }
 };
 
+template<typename T> static constexpr bool is_VArray_v = false;
+template<typename T> static constexpr bool is_VArray_v<VArray<T>> = true;
+
+template<typename T> static constexpr bool is_VMutableArray_v = false;
+template<typename T> static constexpr bool is_VMutableArray_v<VMutableArray<T>> = true;
+
 /**
  * In many cases a virtual array is a span internally. In those cases, access to individual could
  * be much more efficient than calling a virtual method. When the underlying virtual array is not a
@@ -1206,70 +1212,5 @@ template<typename T> class SingleAsSpan {
     return value_;
   }
 };
-
-/**
- * Generate multiple versions of the given function optimized for different virtual arrays.
- * One has to be careful with nesting multiple devirtualizations, because that results in an
- * exponential number of function instantiations (increasing compile time and binary size).
- *
- * Generally, this function should only be used when the virtual method call overhead to get an
- * element from a virtual array is significant.
- */
-template<typename T, typename Func>
-inline void devirtualize_varray(const VArray<T> &varray, const Func &func, bool enable = true)
-{
-  /* Support disabling the devirtualization to simplify benchmarking. */
-  if (enable) {
-    if (varray.is_single()) {
-      func(SingleAsSpan<T>(varray));
-      return;
-    }
-    if (varray.is_span()) {
-      func(varray.get_internal_span());
-      return;
-    }
-  }
-  func(varray);
-}
-
-/**
- * Same as `devirtualize_varray`, but devirtualizes two virtual arrays at the same time.
- * This is better than nesting two calls to `devirtualize_varray`, because it instantiates fewer
- * cases.
- */
-template<typename T1, typename T2, typename Func>
-inline void devirtualize_varray2(const VArray<T1> &varray1,
-                                 const VArray<T2> &varray2,
-                                 const Func &func,
-                                 bool enable = true)
-{
-  /* Support disabling the devirtualization to simplify benchmarking. */
-  if (enable) {
-    const bool is_span1 = varray1.is_span();
-    const bool is_span2 = varray2.is_span();
-    const bool is_single1 = varray1.is_single();
-    const bool is_single2 = varray2.is_single();
-    if (is_span1 && is_span2) {
-      func(varray1.get_internal_span(), varray2.get_internal_span());
-      return;
-    }
-    if (is_span1 && is_single2) {
-      func(varray1.get_internal_span(), SingleAsSpan(varray2));
-      return;
-    }
-    if (is_single1 && is_span2) {
-      func(SingleAsSpan(varray1), varray2.get_internal_span());
-      return;
-    }
-    if (is_single1 && is_single2) {
-      func(SingleAsSpan(varray1), SingleAsSpan(varray2));
-      return;
-    }
-  }
-  /* This fallback is used even when one of the inputs could be optimized. It's probably not worth
-   * it to optimize just one of the inputs, because then the compiler still has to call into
-   * unknown code, which inhibits many compiler optimizations. */
-  func(varray1, varray2);
-}
 
 }  // namespace blender

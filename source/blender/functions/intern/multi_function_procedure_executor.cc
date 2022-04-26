@@ -854,32 +854,32 @@ class VariableStates {
       };
 
       switch (param_type.category()) {
-        case MFParamType::SingleInput: {
+        case MFParamCategory::SingleInput: {
           const GVArray &data = params.readonly_single_input(param_index);
           add_state(value_allocator_.obtain_GVArray(data), true);
           break;
         }
-        case MFParamType::VectorInput: {
+        case MFParamCategory::VectorInput: {
           const GVVectorArray &data = params.readonly_vector_input(param_index);
           add_state(value_allocator_.obtain_GVVectorArray(data), true);
           break;
         }
-        case MFParamType::SingleOutput: {
+        case MFParamCategory::SingleOutput: {
           GMutableSpan data = params.uninitialized_single_output(param_index);
           add_state(value_allocator_.obtain_Span_not_owned(data.data()), false, data.data());
           break;
         }
-        case MFParamType::VectorOutput: {
+        case MFParamCategory::VectorOutput: {
           GVectorArray &data = params.vector_output(param_index);
           add_state(value_allocator_.obtain_GVectorArray_not_owned(data), false, &data);
           break;
         }
-        case MFParamType::SingleMutable: {
+        case MFParamCategory::SingleMutable: {
           GMutableSpan data = params.single_mutable(param_index);
           add_state(value_allocator_.obtain_Span_not_owned(data.data()), true, data.data());
           break;
         }
-        case MFParamType::VectorMutable: {
+        case MFParamCategory::VectorMutable: {
           GVectorArray &data = params.vector_mutable(param_index);
           add_state(value_allocator_.obtain_GVectorArray_not_owned(data), true, &data);
           break;

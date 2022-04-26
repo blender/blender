@@ -24,7 +24,8 @@ static void add_implicit_conversion(DataTypeConversions &conversions)
       conversion_name.c_str(),
       /* Use lambda instead of passing #ConversionF directly, because otherwise the compiler won't
        * inline the function. */
-      [](const From &a) { return ConversionF(a); }};
+      [](const From &a) { return ConversionF(a); },
+      fn::CustomMF_presets::AllSpanOrSingle()};
   static auto convert_single_to_initialized = [](const void *src, void *dst) {
     *(To *)dst = ConversionF(*(const From *)src);
   };
