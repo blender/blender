@@ -172,7 +172,9 @@ class CPPType : NonCopyable, NonMovable {
    */
   template<typename T> static const CPPType &get()
   {
-    return CPPType::get_impl<std::remove_cv_t<T>>();
+    /* Store the #CPPType locally to avoid making the function call in most cases. */
+    static const CPPType &type = CPPType::get_impl<std::remove_cv_t<T>>();
+    return type;
   }
   template<typename T> static const CPPType &get_impl();
 
