@@ -203,7 +203,7 @@ typedef struct PHandle {
 
   RNG *rng;
   float blend;
-  char do_aspect;
+  bool do_aspect;
 } PHandle;
 
 /* PHash

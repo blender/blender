@@ -244,7 +244,7 @@ PyObject *BPY_app_handlers_struct(void)
   return ret;
 }
 
-void BPY_app_handlers_reset(const short do_all)
+void BPY_app_handlers_reset(const bool do_all)
 {
   PyGILState_STATE gilstate;
   int pos = 0;

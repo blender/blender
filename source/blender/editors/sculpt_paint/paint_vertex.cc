@@ -412,7 +412,7 @@ static float wpaint_blend(const VPaint *wp,
                           const float alpha,
                           float paintval,
                           const float UNUSED(brush_alpha_value),
-                          const short do_flip)
+                          const bool do_flip)
 {
   const Brush *brush = wp->paint.brush;
   IMB_BlendMode blend = (IMB_BlendMode)brush->blend;

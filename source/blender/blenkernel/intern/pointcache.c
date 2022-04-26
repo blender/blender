@@ -1399,7 +1399,8 @@ static size_t ptcache_filename_ext_append(PTCacheID *pid,
   return len;
 }
 
-static int ptcache_filename(PTCacheID *pid, char *filename, int cfra, short do_path, short do_ext)
+static int ptcache_filename(
+    PTCacheID *pid, char *filename, int cfra, const bool do_path, const bool do_ext)
 {
   int len = 0;
   char *idname;
@@ -1464,7 +1465,7 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
     }
   }
 
-  ptcache_filename(pid, filename, cfra, 1, 1);
+  ptcache_filename(pid, filename, cfra, true, true);
 
   if (mode == PTCACHE_FILE_READ) {
     fp = BLI_fopen(filename, "rb");
@@ -2630,7 +2631,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
           return;
         }
 
-        len = ptcache_filename(pid, filename, cfra, 0, 0); /* no path */
+        len = ptcache_filename(pid, filename, cfra, false, false); /* no path */
         /* append underscore terminator to ensure we don't match similar names
          * from objects whose names start with the same prefix
          */
@@ -2712,7 +2713,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
     case PTCACHE_CLEAR_FRAME:
       if (pid->cache->flag & PTCACHE_DISK_CACHE) {
         if (BKE_ptcache_id_exist(pid, cfra)) {
-          ptcache_filename(pid, filename, cfra, 1, 1); /* no path */
+          ptcache_filename(pid, filename, cfra, true, true); /* no path */
           BLI_delete(filename, false, false);
         }
       }
@@ -2753,7 +2754,7 @@ bool BKE_ptcache_id_exist(PTCacheID *pid, int cfra)
   if (pid->cache->flag & PTCACHE_DISK_CACHE) {
     char filename[MAX_PTCACHE_FILE];
 
-    ptcache_filename(pid, filename, cfra, 1, 1);
+    ptcache_filename(pid, filename, cfra, true, true);
 
     return BLI_exists(filename);
   }
@@ -3500,7 +3501,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, const char *name_src, const c
   /* get "from" filename */
   BLI_strncpy(pid->cache->name, name_src, sizeof(pid->cache->name));
 
-  len = ptcache_filename(pid, old_filename, 0, 0, 0); /* no path */
+  len = ptcache_filename(pid, old_filename, 0, false, false); /* no path */
 
   ptcache_path(pid, path);
   dir = opendir(path);
@@ -3522,7 +3523,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, const char *name_src, const c
 
         if (frame != -1) {
           BLI_join_dirfile(old_path_full, sizeof(old_path_full), path, de->d_name);
-          ptcache_filename(pid, new_path_full, frame, 1, 1);
+          ptcache_filename(pid, new_path_full, frame, true, true);
           BLI_rename(old_path_full, new_path_full);
         }
       }
@@ -3555,7 +3556,7 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 
   ptcache_path(pid, path);
 
-  len = ptcache_filename(pid, filename, 1, 0, 0); /* no path */
+  len = ptcache_filename(pid, filename, 1, false, false); /* no path */
 
   dir = opendir(path);
   if (dir == NULL) {
