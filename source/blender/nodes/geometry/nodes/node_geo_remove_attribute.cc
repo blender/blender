@@ -13,21 +13,11 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Geometry"));
 }
 
-static void node_gather_link_searches(GatherLinkSearchOpParams &params)
-{
-  if (U.experimental.use_named_attribute_nodes == 0) {
-    return;
-  }
-  const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
-  search_link_ops_for_declarations(params, declaration.inputs());
-  search_link_ops_for_declarations(params, declaration.outputs());
-}
-
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   const std::string name = params.extract_input<std::string>("Name");
-  if (name.empty() || !U.experimental.use_named_attribute_nodes) {
+  if (name.empty()) {
     params.set_output("Geometry", std::move(geometry_set));
     return;
   }
@@ -88,6 +78,5 @@ void register_node_type_geo_remove_attribute()
   ntype.declare = file_ns::node_declare;
   node_type_size(&ntype, 170, 100, 700);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   nodeRegisterType(&ntype);
 }

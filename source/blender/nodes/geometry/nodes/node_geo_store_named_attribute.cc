@@ -65,9 +65,6 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  if (U.experimental.use_named_attribute_nodes == 0) {
-    return;
-  }
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
   search_link_ops_for_declarations(params, declaration.inputs().take_front(2));
 
@@ -130,7 +127,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   std::string name = params.extract_input<std::string>("Name");
 
-  if (!U.experimental.use_named_attribute_nodes || name.empty()) {
+  if (name.empty()) {
     params.set_output("Geometry", std::move(geometry_set));
     return;
   }
