@@ -1340,7 +1340,7 @@ static void moveCloserToDistanceFromPlane(Depsgraph *depsgraph,
   float oldPos[3] = {0};
   float vc, hc, dist = 0.0f;
   int i, k;
-  float(*changes)[2] = MEM_mallocN(sizeof(float *) * totweight * 2, "vertHorzChange");
+  float(*changes)[2] = MEM_mallocN(sizeof(float[2]) * totweight, "vertHorzChange");
   float *dists = MEM_mallocN(sizeof(float) * totweight, "distance");
 
   /* track if up or down moved it closer for each bone */
