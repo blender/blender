@@ -107,8 +107,8 @@ echo %DATE% %TIME% : Start > %StatusFile%
 cmake -G "%CMAKE_BUILDER%" %CMAKE_BUILD_ARCH% -Thost=x64  %SOURCE_DIR% -DPACKAGE_DIR=%BUILD_DIR%/packages -DDOWNLOAD_DIR=%BUILD_DIR%/downloads -DBUILD_MODE=Release -DHARVEST_TARGET=%HARVEST_DIR%/%HARVESTROOT%%VSVER_SHORT%/
 echo %DATE% %TIME% : Release Configuration done >> %StatusFile%
 if "%dobuild%" == "1" (
-	msbuild /m "ll.vcxproj" /p:Configuration=Release /fl /flp:logfile=BlenderDeps_llvm.log;Verbosity=normal
-	msbuild /maxcpucount:1 /m "BlenderDependencies.sln" /p:Configuration=Release /fl /flp:logfile=BlenderDeps.log;Verbosity=minimal  /verbosity:minimal
+	msbuild /m:1 "ll.vcxproj" /p:Configuration=Release /fl /flp:logfile=BlenderDeps_llvm.log;Verbosity=normal
+	msbuild /m:1 "BlenderDependencies.sln" /p:Configuration=Release /fl /flp:logfile=BlenderDeps.log;Verbosity=minimal  /verbosity:minimal
 	echo %DATE% %TIME% : Release Build done >> %StatusFile%
 	cmake --build . --target Harvest_Release_Results  > Harvest_Release.txt
 )
@@ -120,8 +120,8 @@ cd %Staging%\%BuildDir%%ARCH%D
 cmake -G "%CMAKE_BUILDER%" %CMAKE_BUILD_ARCH% -Thost=x64 %SOURCE_DIR% -DPACKAGE_DIR=%BUILD_DIR%/packages -DDOWNLOAD_DIR=%BUILD_DIR%/downloads -DCMAKE_BUILD_TYPE=Debug -DBUILD_MODE=Debug -DHARVEST_TARGET=%HARVEST_DIR%/%HARVESTROOT%%VSVER_SHORT%/  %CMAKE_DEBUG_OPTIONS%
 echo %DATE% %TIME% : Debug Configuration done >> %StatusFile%
 if "%dobuild%" == "1" (
-	msbuild /m "ll.vcxproj" /p:Configuration=Debug /fl /flp:logfile=BlenderDeps_llvm.log;;Verbosity=normal 
-	msbuild /maxcpucount:1 /m "BlenderDependencies.sln" /p:Configuration=Debug /verbosity:n /fl /flp:logfile=BlenderDeps.log;;Verbosity=normal
+	msbuild /m:1 "ll.vcxproj" /p:Configuration=Debug /fl /flp:logfile=BlenderDeps_llvm.log;;Verbosity=normal 
+	msbuild /m:1 "BlenderDependencies.sln" /p:Configuration=Debug /verbosity:n /fl /flp:logfile=BlenderDeps.log;;Verbosity=normal
 	echo %DATE% %TIME% : Debug Build done >> %StatusFile%
 	cmake --build . --target Harvest_Debug_Results> Harvest_Debug.txt
 )
