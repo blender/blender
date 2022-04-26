@@ -668,7 +668,7 @@ class SpellChecker:
 
         # Acronyms
         "aa", "msaa",
-        "acescg", # ACEScg color space.
+        "acescg",  # ACEScg color space.
         "ao",
         "aov", "aovs",
         "api",
