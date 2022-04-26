@@ -108,9 +108,6 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
   VLOG(3) << "Metal queue launch " << device_kernel_as_string(kernel) << ", work_size "
           << work_size;
 
-  const MetalDeviceKernel &metal_kernel = metal_device->kernels.get(kernel);
-  const MetalKernelPipeline &metal_kernel_pso = metal_kernel.get_pso();
-
   id<MTLComputeCommandEncoder> mtlComputeCommandEncoder = get_compute_encoder(kernel);
 
   /* Determine size requirement for argument buffer. */
@@ -212,6 +209,8 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
   }
   bytes_written = globals_offsets + sizeof(KernelParamsMetal);
 
+  const MetalKernelPipeline &metal_kernel_pso = metal_device->get_best_pipeline(kernel);
+
   /* Encode ancillaries */
   [metal_device->mtlAncillaryArgEncoder setArgumentBuffer:arg_buffer offset:metal_offsets];
   [metal_device->mtlAncillaryArgEncoder setBuffer:metal_device->texture_bindings_2d
@@ -284,7 +283,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
   [mtlComputeCommandEncoder setComputePipelineState:metal_kernel_pso.pipeline];
 
   /* Compute kernel launch parameters. */
-  const int num_threads_per_block = metal_kernel.get_num_threads_per_block();
+  const int num_threads_per_block = metal_kernel_pso.num_threads_per_block;
 
   int shared_mem_bytes = 0;
 
@@ -546,6 +545,8 @@ id<MTLComputeCommandEncoder> MetalDeviceQueue::get_compute_encoder(DeviceKernel 
     mtlComputeEncoder = [mtlCommandBuffer
         computeCommandEncoderWithDispatchType:concurrent ? MTLDispatchTypeConcurrent :
                                                            MTLDispatchTypeSerial];
+
+    [mtlComputeEncoder setLabel:@(device_kernel_as_string(kernel))];
 
     /* declare usage of MTLBuffers etc */
     prepare_resources(kernel);
