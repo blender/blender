@@ -1360,6 +1360,13 @@ uiBut *uiDefIconTextButO_ptr(uiBlock *block,
 /* for passing inputs to ButO buttons */
 struct PointerRNA *UI_but_operator_ptr_get(uiBut *but);
 
+void UI_but_context_ptr_set(uiBlock *block,
+                            uiBut *but,
+                            const char *name,
+                            const struct PointerRNA *ptr);
+const struct PointerRNA *UI_but_context_ptr_get(const uiBut *but,
+                                                const char *name,
+                                                const StructRNA *type CPP_ARG_DEFAULT(nullptr));
 struct bContextStore *UI_but_context_get(const uiBut *but);
 
 void UI_but_unit_type_set(uiBut *but, int unit_type);

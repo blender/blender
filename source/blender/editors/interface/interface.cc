@@ -5951,6 +5951,17 @@ PointerRNA *UI_but_operator_ptr_get(uiBut *but)
   return but->opptr;
 }
 
+void UI_but_context_ptr_set(uiBlock *block, uiBut *but, const char *name, const PointerRNA *ptr)
+{
+  but->context = CTX_store_add(&block->contexts, name, ptr);
+  but->context->used = true;
+}
+
+const PointerRNA *UI_but_context_ptr_get(const uiBut *but, const char *name, const StructRNA *type)
+{
+  return CTX_store_ptr_lookup(but->context, name, type);
+}
+
 bContextStore *UI_but_context_get(const uiBut *but)
 {
   return but->context;
