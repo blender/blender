@@ -1295,8 +1295,10 @@ static void version_liboverride_rnacollections_insertion_object(Object *object)
 
   if (object->pose != NULL) {
     LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-      char rna_path[FILE_MAXFILE];
-      BLI_snprintf(rna_path, sizeof(rna_path), "pose.bones[\"%s\"].constraints", pchan->name);
+      char rna_path[26 + (sizeof(pchan->name) * 2) + 1];
+      char name_esc[sizeof(pchan->name) * 2];
+      BLI_str_escape(name_esc, pchan->name, sizeof(name_esc));
+      SNPRINTF(rna_path, "pose.bones[\"%s\"].constraints", name_esc);
       op = BKE_lib_override_library_property_find(liboverride, rna_path);
       if (op != NULL) {
         version_liboverride_rnacollections_insertion_object_constraints(&pchan->constraints, op);
