@@ -209,69 +209,6 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
   return hull_from_bullet(geometry_set.get_mesh_for_read(), positions);
 }
 
-/* Since only positions are read from the instances, this can be used as an internal optimization
- * to avoid the cost of realizing instances before the node. But disable this for now, since
- * re-enabling that optimization will be a separate step. */
-#  if 0
-static void read_positions(const GeometryComponent &component,
-                                           Span<float4x4> transforms,
-                                           Vector<float3> *r_coords)
-{
-  VArray<float3> positions = component.attribute_get_for_read<float3>(
-      "position", ATTR_DOMAIN_POINT, {0, 0, 0});
-
-  /* NOTE: could use convex hull operation here to
-   * cut out some vertices, before accumulating,
-   * but can also be done by the user beforehand. */
-
-  r_coords->reserve(r_coords->size() + positions->size() * transforms.size());
-  for (const float4x4 &transform : transforms) {
-    for (const int i : positions->index_range()) {
-      const float3 position = positions[i];
-      const float3 transformed_position = transform * position;
-      r_coords->append(transformed_position);
-    }
-  }
-}
-
-static void read_curve_positions(const Curves &curves_id,
-                                 Span<float4x4> transforms,
-                                 Vector<float3> *r_coords)
-{
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
-  const int total_size = curves.evaluated_points_num();
-  r_coords->reserve(r_coords->size() + total_size * transforms.size());
-  r_coords->as_mutable_span().take_back(total_size).copy_from(curves.evaluated_positions());
-  for (const float3 &position : curves.evaluated_positions()) {
-    r_coords->append(transform * position);
-  }
-}
-
-static Mesh *convex_hull_from_instances(const GeometrySet &geometry_set)
-{
-  Vector<GeometryInstanceGroup> set_groups;
-  bke::geometry_set_gather_instances(geometry_set, set_groups);
-
-  Vector<float3> coords;
-
-  for (const GeometryInstanceGroup &set_group : set_groups) {
-    const GeometrySet &set = set_group.geometry_set;
-    Span<float4x4> transforms = set_group.transforms;
-
-    if (set.has_pointcloud()) {
-      read_positions(*set.get_component_for_read<PointCloudComponent>(), transforms, &coords);
-    }
-    if (set.has_mesh()) {
-      read_positions(*set.get_component_for_read<MeshComponent>(), transforms, &coords);
-    }
-    if (set.has_curves()) {
-      read_curve_positions(*set.get_curves_for_read(), transforms, &coords);
-    }
-  }
-  return hull_from_bullet(nullptr, coords);
-}
-#  endif
-
 #endif /* WITH_BULLET */
 
 static void node_geo_exec(GeoNodeExecParams params)
