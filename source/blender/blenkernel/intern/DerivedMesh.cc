@@ -628,9 +628,15 @@ static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
   const bool do_loop_normals = ((mesh_input->flag & ME_AUTOSMOOTH) != 0 ||
                                 (final_datamask->lmask & CD_MASK_NORMAL) != 0);
 
+  /* Needed as `final_datamask` is not preserved outside modifier stack evaluation. */
+  mesh_final->runtime.subsurf_do_loop_normals = do_loop_normals;
+
   if (do_loop_normals) {
-    /* Compute loop normals (NOTE: will compute poly and vert normals as well, if needed!). */
-    BKE_mesh_calc_normals_split(mesh_final);
+    /* Compute loop normals (NOTE: will compute poly and vert normals as well, if needed!). In case
+     * of deferred CPU subdivision, this will be computed when the wrapper is generated. */
+    if (mesh_final->runtime.subsurf_resolution != 0) {
+      BKE_mesh_calc_normals_split(mesh_final);
+    }
   }
   else {
     if (sculpt_dyntopo == false) {
@@ -1274,9 +1280,14 @@ static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final,
   const bool do_loop_normals = ((mesh_final->flag & ME_AUTOSMOOTH) != 0 ||
                                 (final_datamask->lmask & CD_MASK_NORMAL) != 0);
 
+  mesh_final->runtime.subsurf_do_loop_normals = do_loop_normals;
+
   if (do_loop_normals) {
-    /* Compute loop normals */
-    BKE_mesh_calc_normals_split(mesh_final);
+    /* Compute loop normals. In case of deferred CPU subdivision, this will be computed when the
+     * wrapper is generated. */
+    if (mesh_final->runtime.subsurf_resolution != 0) {
+      BKE_mesh_calc_normals_split(mesh_final);
+    }
   }
   else {
     /* Same as mesh_calc_modifiers. If using loop normals, poly nors have already been computed. */

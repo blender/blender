@@ -126,7 +126,9 @@ typedef struct Mesh_Runtime {
    * set in the modifier when GPU subdivision can be performed.
    */
   SessionUUID subsurf_session_uuid;
-  int subsurf_resolution;
+  char subsurf_resolution;
+  char subsurf_do_loop_normals;
+  char _pad3[2];
   char subsurf_apply_render;
   char subsurf_use_optimal_display;
 

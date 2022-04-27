@@ -340,8 +340,27 @@ static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
     /* Happens on bad topology, but also on empty input mesh. */
     return me;
   }
+  const bool use_clnors = BKE_subsurf_modifier_use_custom_loop_normals(smd, me);
+  if (use_clnors) {
+    /* If custom normals are present and the option is turned on calculate the split
+     * normals and clear flag so the normals get interpolated to the result mesh. */
+    BKE_mesh_calc_normals_split(me);
+    CustomData_clear_layer_flag(&me->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+  }
 
   Mesh *subdiv_mesh = BKE_subdiv_to_mesh(subdiv, &mesh_settings, me);
+
+  if (use_clnors) {
+    float(*lnors)[3] = static_cast<float(*)[3]>(
+        CustomData_get_layer(&subdiv_mesh->ldata, CD_NORMAL));
+    BLI_assert(lnors != NULL);
+    BKE_mesh_set_custom_normals(subdiv_mesh, lnors);
+    CustomData_set_layer_flag(&me->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+    CustomData_set_layer_flag(&subdiv_mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+  }
+  else if (me->runtime.subsurf_do_loop_normals) {
+    BKE_mesh_calc_normals_split(subdiv_mesh);
+  }
 
   if (subdiv != runtime_data->subdiv) {
     BKE_subdiv_free(subdiv);
