@@ -132,6 +132,7 @@ void OVERLAY_outline_cache_init(OVERLAY_Data *vedata)
 
     pd->outlines_gpencil_grp = grp = DRW_shgroup_create(sh_gpencil, psl->outlines_prepass_ps);
     DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
+    DRW_shgroup_uniform_float_copy(grp, "strokeIndexOffset", 0.0);
   }
 
   /* outlines_prepass_ps is still needed for selection of probes. */

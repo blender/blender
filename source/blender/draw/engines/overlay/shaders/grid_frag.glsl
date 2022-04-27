@@ -18,7 +18,7 @@ uniform int gridFlag;
 uniform float zoomFactor;
 
 #define STEPS_LEN 8 /* Match: #SI_GRID_STEPS_LEN */
-uniform float gridSteps[STEPS_LEN] = float[](0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0);
+uniform float gridSteps[STEPS_LEN];
 
 #define AXIS_X (1 << 0)
 #define AXIS_Y (1 << 1)

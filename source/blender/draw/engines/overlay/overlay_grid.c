@@ -226,6 +226,9 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *vedata)
   GPUShader *sh;
   struct GPUBatch *geom = DRW_cache_grid_get();
 
+  const float line_zero = 0;
+  const float grid_steps_default[8] = {0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0};
+
   if (pd->space_type == SPACE_IMAGE) {
     float mat[4][4];
 
@@ -254,6 +257,7 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *vedata)
   DRW_shgroup_uniform_vec3(grp, "gridSize", shd->grid_size, 1);
   DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
   DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
+  DRW_shgroup_uniform_float(grp, "gridSteps", grid_steps_default, 8);
   if (shd->zneg_flag & SHOW_AXIS_Z) {
     DRW_shgroup_call(grp, geom, NULL);
   }
@@ -264,6 +268,7 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *vedata)
   DRW_shgroup_uniform_vec3(grp, "planeAxes", shd->grid_axes, 1);
   DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
   DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
+  DRW_shgroup_uniform_float_copy(grp, "lineKernel", line_zero);
   DRW_shgroup_uniform_float(grp, "gridSteps", shd->grid_steps, ARRAY_SIZE(shd->grid_steps));
   if (shd->grid_flag) {
     DRW_shgroup_call(grp, geom, NULL);
@@ -274,6 +279,8 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *vedata)
   DRW_shgroup_uniform_vec3(grp, "planeAxes", shd->zplane_axes, 1);
   DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
   DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
+  DRW_shgroup_uniform_float_copy(grp, "lineKernel", line_zero);
+  DRW_shgroup_uniform_float(grp, "gridSteps", grid_steps_default, 8);
   if (shd->zpos_flag & SHOW_AXIS_Z) {
     DRW_shgroup_call(grp, geom, NULL);
   }
