@@ -128,9 +128,15 @@ typedef struct Mesh_Runtime {
   SessionUUID subsurf_session_uuid;
   char subsurf_resolution;
   char subsurf_do_loop_normals;
-  char _pad3[2];
   char subsurf_apply_render;
   char subsurf_use_optimal_display;
+
+  /* Cached from the draw code for stats display. */
+  int subsurf_totvert;
+  int subsurf_totedge;
+  int subsurf_totpoly;
+  int subsurf_totloop;
+  char _pad2[2];
 
   /**
    * Caches for lazily computed vertex and polygon normals. These are stored here rather than in
