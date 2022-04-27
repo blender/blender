@@ -571,7 +571,9 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
       return nullptr;
     }
     /* No collision, just return the pass. */
+    BLI_spin_lock(&pass_cache_spin);
     pass_hash->refcount += 1;
+    BLI_spin_unlock(&pass_cache_spin);
     return pass_hash;
   }
 
@@ -597,7 +599,9 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
       /* Shader has already been created but failed to compile. */
       return nullptr;
     }
+    BLI_spin_lock(&pass_cache_spin);
     pass->refcount += 1;
+    BLI_spin_unlock(&pass_cache_spin);
   }
   else {
     /* We still create a pass even if shader compilation
@@ -697,8 +701,10 @@ GPUShader *GPU_pass_shader_get(GPUPass *pass)
 
 void GPU_pass_release(GPUPass *pass)
 {
+  BLI_spin_lock(&pass_cache_spin);
   BLI_assert(pass->refcount > 0);
   pass->refcount--;
+  BLI_spin_unlock(&pass_cache_spin);
 }
 
 static void gpu_pass_free(GPUPass *pass)
