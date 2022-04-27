@@ -34,7 +34,9 @@ static inline void thread_capture_fp_settings()
 #else
   tbb::task_group_context *ctx = tbb::task::self().group();
 #endif
-  ctx->capture_fp_settings();
+  if (ctx) {
+    ctx->capture_fp_settings();
+  }
 }
 
 static inline void parallel_for_cancel()
