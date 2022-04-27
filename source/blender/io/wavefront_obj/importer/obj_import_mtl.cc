@@ -122,7 +122,7 @@ ShaderNodetreeWrap::ShaderNodetreeWrap(Main *bmain, const MTLMaterial &mtl_mat, 
   bsdf_ = add_node_to_tree(SH_NODE_BSDF_PRINCIPLED);
   shader_output_ = add_node_to_tree(SH_NODE_OUTPUT_MATERIAL);
 
-  set_bsdf_socket_values();
+  set_bsdf_socket_values(mat);
   add_image_textures(bmain, mat);
   link_sockets(bsdf_, "BSDF", shader_output_, "Surface", 4);
 
@@ -188,7 +188,7 @@ void ShaderNodetreeWrap::link_sockets(bNode *from_node,
   nodeAddLink(nodetree_.get(), from_node, from_sock, to_node, to_sock);
 }
 
-void ShaderNodetreeWrap::set_bsdf_socket_values()
+void ShaderNodetreeWrap::set_bsdf_socket_values(Material *mat)
 {
   const int illum = mtl_mat_.illum;
   bool do_highlight = false;
@@ -309,6 +309,9 @@ void ShaderNodetreeWrap::set_bsdf_socket_values()
   set_property_of_socket(SOCK_FLOAT, "Metallic", {metallic}, bsdf_);
   set_property_of_socket(SOCK_FLOAT, "IOR", {ior}, bsdf_);
   set_property_of_socket(SOCK_FLOAT, "Alpha", {alpha}, bsdf_);
+  if (do_tranparency) {
+    mat->blend_method = MA_BM_BLEND;
+  }
 }
 
 void ShaderNodetreeWrap::add_image_textures(Main *bmain, Material *mat)
