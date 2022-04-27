@@ -131,7 +131,6 @@ class Texture {
 
   /* TODO(fclem): Legacy. Should be removed at some point. */
   virtual uint gl_bindcode_get() const = 0;
-
   int width_get() const
   {
     return w_;
@@ -454,6 +453,72 @@ inline bool validate_data_format(eGPUTextureFormat tex_format, eGPUDataFormat da
     case GPU_R11F_G11F_B10F:
       return ELEM(data_format, GPU_DATA_10_11_11_REV, GPU_DATA_FLOAT);
     default:
+      return data_format == GPU_DATA_FLOAT;
+  }
+}
+
+/* Ensure valid upload formats. With format conversion support, certain types can be extended to
+ * allow upload from differing source formats. If these cases are added, amend accordingly. */
+inline bool validate_data_format_mtl(eGPUTextureFormat tex_format, eGPUDataFormat data_format)
+{
+  switch (tex_format) {
+    case GPU_DEPTH_COMPONENT24:
+    case GPU_DEPTH_COMPONENT16:
+    case GPU_DEPTH_COMPONENT32F:
+      return ELEM(data_format, GPU_DATA_FLOAT, GPU_DATA_UINT);
+    case GPU_DEPTH24_STENCIL8:
+    case GPU_DEPTH32F_STENCIL8:
+      /* Data can be provided as a 4-byte UINT. */
+      return ELEM(data_format, GPU_DATA_UINT_24_8, GPU_DATA_UINT);
+    case GPU_R8UI:
+    case GPU_R16UI:
+    case GPU_RG16UI:
+    case GPU_R32UI:
+    case GPU_RGBA32UI:
+    case GPU_RGBA16UI:
+    case GPU_RG8UI:
+    case GPU_RG32UI:
+      return data_format == GPU_DATA_UINT;
+    case GPU_R32I:
+    case GPU_RG16I:
+    case GPU_R16I:
+    case GPU_RGBA8I:
+    case GPU_RGBA32I:
+    case GPU_RGBA16I:
+    case GPU_RG8I:
+    case GPU_RG32I:
+    case GPU_R8I:
+      return data_format == GPU_DATA_INT;
+    case GPU_R8:
+    case GPU_RG8:
+    case GPU_RGBA8:
+    case GPU_RGBA8_DXT1:
+    case GPU_RGBA8_DXT3:
+    case GPU_RGBA8_DXT5:
+    case GPU_RGBA8UI:
+    case GPU_SRGB8_A8:
+    case GPU_SRGB8_A8_DXT1:
+    case GPU_SRGB8_A8_DXT3:
+    case GPU_SRGB8_A8_DXT5:
+      return ELEM(data_format, GPU_DATA_UBYTE, GPU_DATA_FLOAT);
+    case GPU_RGB10_A2:
+      return ELEM(data_format, GPU_DATA_2_10_10_10_REV, GPU_DATA_FLOAT);
+    case GPU_R11F_G11F_B10F:
+      return ELEM(data_format, GPU_DATA_10_11_11_REV, GPU_DATA_FLOAT);
+    case GPU_RGBA16F:
+      return ELEM(data_format, GPU_DATA_HALF_FLOAT, GPU_DATA_FLOAT);
+    case GPU_RGBA32F:
+    case GPU_RGBA16:
+    case GPU_RG32F:
+    case GPU_RG16F:
+    case GPU_RG16:
+    case GPU_R32F:
+    case GPU_R16F:
+    case GPU_R16:
+    case GPU_RGB16F:
+      return data_format == GPU_DATA_FLOAT;
+    default:
+      BLI_assert_msg(0, "Unrecognized data format");
       return data_format == GPU_DATA_FLOAT;
   }
 }

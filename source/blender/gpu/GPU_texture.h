@@ -175,7 +175,17 @@ typedef enum eGPUDataFormat {
   GPU_DATA_UINT_24_8,
   GPU_DATA_10_11_11_REV,
   GPU_DATA_2_10_10_10_REV,
+  GPU_DATA_HALF_FLOAT
 } eGPUDataFormat;
+
+typedef enum eGPUTextureUsage {
+  GPU_TEXTURE_USAGE_SHADER_READ = (1 << 0),
+  GPU_TEXTURE_USAGE_SHADER_WRITE = (1 << 1),
+  GPU_TEXTURE_USAGE_ATTACHMENT = (1 << 2),
+  GPU_TEXTURE_USAGE_GENERAL = 0xFF
+} eGPUTextureUsage;
+
+ENUM_OPERATORS(eGPUTextureUsage, GPU_TEXTURE_USAGE_GENERAL)
 
 unsigned int GPU_texture_memory_usage_get(void);
 
