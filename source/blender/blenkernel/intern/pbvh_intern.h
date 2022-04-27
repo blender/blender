@@ -196,6 +196,9 @@ struct PBVH {
   AttributeDomain color_domain;
 
   bool is_drawing;
+
+  /* Used by DynTopo to invalidate the draw cache. */
+  bool draw_cache_invalid;
 };
 
 /* pbvh.c */
@@ -270,6 +273,7 @@ void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode);
 
 void pbvh_pixels_free(PBVHNode *node);
 void pbvh_pixels_free_brush_test(PBVHNode *node);
+void pbvh_free_draw_buffers(PBVH *pbvh, PBVHNode *node);
 
 #ifdef __cplusplus
 }

@@ -656,6 +656,7 @@ PBVH *BKE_pbvh_new(void)
 {
   PBVH *pbvh = MEM_callocN(sizeof(PBVH), "pbvh");
   pbvh->respect_hide = true;
+  pbvh->draw_cache_invalid = true;
   return pbvh;
 }
 
@@ -1368,6 +1369,16 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   }
 }
 
+void pbvh_free_draw_buffers(PBVH *pbvh, PBVHNode *node)
+{
+  if (node->draw_buffers) {
+    pbvh->draw_cache_invalid = true;
+
+    GPU_pbvh_buffers_free(node->draw_buffers);
+    node->draw_buffers = NULL;
+  }
+}
+
 static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, int update_flag)
 {
   if ((update_flag & PBVH_RebuildDrawBuffers) || ELEM(pbvh->type, PBVH_GRIDS, PBVH_BMESH)) {
@@ -1375,8 +1386,7 @@ static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, 
     for (int n = 0; n < totnode; n++) {
       PBVHNode *node = nodes[n];
       if (node->flag & PBVH_RebuildDrawBuffers) {
-        GPU_pbvh_buffers_free(node->draw_buffers);
-        node->draw_buffers = NULL;
+        pbvh_free_draw_buffers(pbvh, node);
       }
       else if ((node->flag & PBVH_UpdateDrawBuffers) && node->draw_buffers) {
         if (pbvh->type == PBVH_GRIDS) {
@@ -2779,6 +2789,8 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
   int totnode;
   int update_flag = 0;
 
+  pbvh->draw_cache_invalid = false;
+
   /* Search for nodes that need updates. */
   if (update_only_visible) {
     /* Get visible nodes with draw updates. */
@@ -3216,4 +3228,9 @@ void BKE_pbvh_ensure_node_loops(PBVH *pbvh)
   }
 
   MEM_SAFE_FREE(visit);
+}
+
+bool BKE_pbvh_draw_cache_invalid(const PBVH *pbvh)
+{
+  return pbvh->draw_cache_invalid;
 }

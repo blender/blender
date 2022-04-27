@@ -584,6 +584,7 @@ void BKE_pbvh_vertex_color_set(PBVH *pbvh, int vertex, const float color[4]);
 void BKE_pbvh_vertex_color_get(const PBVH *pbvh, int vertex, float r_color[4]);
 
 void BKE_pbvh_ensure_node_loops(PBVH *pbvh);
+bool BKE_pbvh_draw_cache_invalid(const PBVH *pbvh);
 
 #ifdef __cplusplus
 }
