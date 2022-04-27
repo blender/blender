@@ -10,6 +10,7 @@
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
 #include "DNA_defs.h"
+#include "DNA_session_uuid_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -120,11 +121,12 @@ typedef struct Mesh_Runtime {
    */
   char wrapper_type_finalize;
 
-  int subsurf_resolution;
   /**
    * Settings for lazily evaluating the subdivision on the CPU if needed. These are
    * set in the modifier when GPU subdivision can be performed.
    */
+  SessionUUID subsurf_session_uuid;
+  int subsurf_resolution;
   char subsurf_apply_render;
   char subsurf_use_optimal_display;
 
