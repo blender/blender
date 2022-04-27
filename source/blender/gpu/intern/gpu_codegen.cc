@@ -302,7 +302,7 @@ void GPUCodegen::generate_attribs()
       BLI_assert_msg(0, "Too many attributes");
       break;
     }
-    STRNCPY(info.name_buffer->attr_names[slot], attr->name);
+    STRNCPY(info.name_buffer->attr_names[slot], attr->input_name);
     SNPRINTF(info.name_buffer->var_names[slot], "v%d", attr->id);
 
     blender::StringRefNull attr_name = info.name_buffer->attr_names[slot];
