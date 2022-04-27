@@ -141,8 +141,9 @@ void EEVEE_cache_populate(void *vedata, Object *ob)
 
 static void eevee_cache_finish(void *vedata)
 {
+  EEVEE_Data *ved = (EEVEE_Data *)vedata;
   EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
-  EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
+  EEVEE_StorageList *stl = ved->stl;
   EEVEE_PrivateData *g_data = stl->g_data;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
@@ -170,6 +171,10 @@ static void eevee_cache_finish(void *vedata)
   if (g_data->queued_shaders_count != g_data->queued_shaders_count_prev) {
     g_data->queued_shaders_count_prev = g_data->queued_shaders_count;
     EEVEE_temporal_sampling_reset(vedata);
+  }
+
+  if (g_data->queued_shaders_count > 0) {
+    SNPRINTF(ved->info, "Compiling Shaders %d", g_data->queued_shaders_count);
   }
 }
 
