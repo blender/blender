@@ -634,7 +634,7 @@ static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
   if (do_loop_normals) {
     /* Compute loop normals (NOTE: will compute poly and vert normals as well, if needed!). In case
      * of deferred CPU subdivision, this will be computed when the wrapper is generated. */
-    if (mesh_final->runtime.subsurf_resolution != 0) {
+    if (mesh_final->runtime.subsurf_resolution == 0) {
       BKE_mesh_calc_normals_split(mesh_final);
     }
   }
@@ -1285,7 +1285,7 @@ static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final,
   if (do_loop_normals) {
     /* Compute loop normals. In case of deferred CPU subdivision, this will be computed when the
      * wrapper is generated. */
-    if (mesh_final->runtime.subsurf_resolution != 0) {
+    if (mesh_final->runtime.subsurf_resolution == 0) {
       BKE_mesh_calc_normals_split(mesh_final);
     }
   }
