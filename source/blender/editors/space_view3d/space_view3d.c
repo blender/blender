@@ -712,7 +712,7 @@ static void view3d_ob_drop_matrix_from_snap(V3DSnapCursorState *snap_state,
   }
 }
 
-static void view3d_ob_drop_copy_local_id(wmDrag *drag, wmDropBox *drop)
+static void view3d_ob_drop_copy_local_id(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID(drag, ID_OB);
 
@@ -730,7 +730,7 @@ static void view3d_ob_drop_copy_local_id(wmDrag *drag, wmDropBox *drop)
 
 /* Mostly the same logic as #view3d_collection_drop_copy_external_asset(), just different enough to
  * make sharing code a bit difficult. */
-static void view3d_ob_drop_copy_external_asset(wmDrag *drag, wmDropBox *drop)
+static void view3d_ob_drop_copy_external_asset(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   /* NOTE(@campbellbarton): Selection is handled here, de-selecting objects before append,
    * using auto-select to ensure the new objects are selected.
@@ -771,7 +771,9 @@ static void view3d_ob_drop_copy_external_asset(wmDrag *drag, wmDropBox *drop)
   }
 }
 
-static void view3d_collection_drop_copy_local_id(wmDrag *drag, wmDropBox *drop)
+static void view3d_collection_drop_copy_local_id(bContext *UNUSED(C),
+                                                 wmDrag *drag,
+                                                 wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID(drag, ID_GR);
   RNA_int_set(drop->ptr, "session_uuid", (int)id->session_uuid);
@@ -779,7 +781,9 @@ static void view3d_collection_drop_copy_local_id(wmDrag *drag, wmDropBox *drop)
 
 /* Mostly the same logic as #view3d_ob_drop_copy_external_asset(), just different enough to make
  * sharing code a bit difficult. */
-static void view3d_collection_drop_copy_external_asset(wmDrag *drag, wmDropBox *drop)
+static void view3d_collection_drop_copy_external_asset(bContext *UNUSED(C),
+                                                       wmDrag *drag,
+                                                       wmDropBox *drop)
 {
   BLI_assert(drag->type == WM_DRAG_ASSET);
 
@@ -815,14 +819,14 @@ static void view3d_collection_drop_copy_external_asset(wmDrag *drag, wmDropBox *
   ED_undo_push(C, "Collection_Drop");
 }
 
-static void view3d_id_drop_copy(wmDrag *drag, wmDropBox *drop)
+static void view3d_id_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
 
   RNA_string_set(drop->ptr, "name", id->name + 2);
 }
 
-static void view3d_id_drop_copy_with_type(wmDrag *drag, wmDropBox *drop)
+static void view3d_id_drop_copy_with_type(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
 
@@ -830,7 +834,7 @@ static void view3d_id_drop_copy_with_type(wmDrag *drag, wmDropBox *drop)
   RNA_enum_set(drop->ptr, "type", GS(id->name));
 }
 
-static void view3d_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)
+static void view3d_id_path_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
 
@@ -878,7 +882,7 @@ static void view3d_dropboxes(void)
                         WM_drag_free_imported_drag_ID,
                         NULL);
 
-  drop->draw = WM_drag_draw_item_name_fn;
+  drop->draw_droptip = WM_drag_draw_item_name_fn;
   drop->draw_activate = view3d_ob_drop_draw_activate;
   drop->draw_deactivate = view3d_ob_drop_draw_deactivate;
 
@@ -889,7 +893,7 @@ static void view3d_dropboxes(void)
                         WM_drag_free_imported_drag_ID,
                         NULL);
 
-  drop->draw = WM_drag_draw_item_name_fn;
+  drop->draw_droptip = WM_drag_draw_item_name_fn;
   drop->draw_activate = view3d_ob_drop_draw_activate;
   drop->draw_deactivate = view3d_ob_drop_draw_deactivate;
 

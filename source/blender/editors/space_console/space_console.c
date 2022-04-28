@@ -149,7 +149,7 @@ static bool id_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSE
   return WM_drag_get_local_ID(drag, 0) != NULL;
 }
 
-static void id_drop_copy(wmDrag *drag, wmDropBox *drop)
+static void id_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID(drag, 0);
 
@@ -164,7 +164,7 @@ static bool path_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNU
   return (drag->type == WM_DRAG_PATH);
 }
 
-static void path_drop_copy(wmDrag *drag, wmDropBox *drop)
+static void path_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   char pathname[FILE_MAX + 2];
   BLI_snprintf(pathname, sizeof(pathname), "\"%s\"", drag->path);

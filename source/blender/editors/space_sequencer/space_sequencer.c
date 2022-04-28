@@ -9,20 +9,15 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "DNA_gpencil_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_sound_types.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
-#include "BLI_utildefines.h"
 
-#include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_lib_id.h"
 #include "BKE_lib_remap.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer_offscreen.h"
@@ -37,15 +32,11 @@
 
 #include "WM_api.h"
 #include "WM_message.h"
-#include "WM_types.h"
-
-#include "RNA_access.h"
 
 #include "SEQ_transform.h"
 #include "SEQ_utils.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "IMB_imbuf.h"
@@ -403,128 +394,6 @@ static void sequencer_listener(const wmSpaceTypeListenerParams *params)
       break;
   }
 }
-
-/* ************* dropboxes ************* */
-
-static bool image_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
-{
-  ARegion *region = CTX_wm_region(C);
-  Scene *scene = CTX_data_scene(C);
-  int hand;
-
-  if (drag->type == WM_DRAG_PATH) {
-    if (ELEM(drag->icon, ICON_FILE_IMAGE, ICON_FILE_BLANK)) { /* Rule might not work? */
-      if (find_nearest_seq(scene, &region->v2d, &hand, event->mval) == NULL) {
-        return 1;
-      }
-    }
-  }
-
-  return WM_drag_is_ID_type(drag, ID_IM);
-}
-
-static bool movie_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
-{
-  ARegion *region = CTX_wm_region(C);
-  Scene *scene = CTX_data_scene(C);
-  int hand;
-
-  if (drag->type == WM_DRAG_PATH) {
-    if (ELEM(drag->icon, 0, ICON_FILE_MOVIE, ICON_FILE_BLANK)) { /* Rule might not work? */
-      if (find_nearest_seq(scene, &region->v2d, &hand, event->mval) == NULL) {
-        return 1;
-      }
-    }
-  }
-
-  return WM_drag_is_ID_type(drag, ID_MC);
-}
-
-static bool sound_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
-{
-  ARegion *region = CTX_wm_region(C);
-  Scene *scene = CTX_data_scene(C);
-  int hand;
-
-  if (drag->type == WM_DRAG_PATH) {
-    if (ELEM(drag->icon, ICON_FILE_SOUND, ICON_FILE_BLANK)) { /* Rule might not work? */
-      if (find_nearest_seq(scene, &region->v2d, &hand, event->mval) == NULL) {
-        return 1;
-      }
-    }
-  }
-
-  return WM_drag_is_ID_type(drag, ID_SO);
-}
-
-static void sequencer_drop_copy(wmDrag *drag, wmDropBox *drop)
-{
-  ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
-  /* ID dropped. */
-  if (id != NULL) {
-    const ID_Type id_type = GS(id->name);
-    if (id_type == ID_IM) {
-      Image *ima = (Image *)id;
-      PointerRNA itemptr;
-      char dir[FILE_MAX], file[FILE_MAX];
-      BLI_split_dirfile(ima->filepath, dir, file, sizeof(dir), sizeof(file));
-      RNA_string_set(drop->ptr, "directory", dir);
-      RNA_collection_clear(drop->ptr, "files");
-      RNA_collection_add(drop->ptr, "files", &itemptr);
-      RNA_string_set(&itemptr, "name", file);
-    }
-    else if (id_type == ID_MC) {
-      MovieClip *clip = (MovieClip *)id;
-      RNA_string_set(drop->ptr, "filepath", clip->filepath);
-      RNA_struct_property_unset(drop->ptr, "name");
-    }
-    else if (id_type == ID_SO) {
-      bSound *sound = (bSound *)id;
-      RNA_string_set(drop->ptr, "filepath", sound->filepath);
-      RNA_struct_property_unset(drop->ptr, "name");
-    }
-  }
-  /* Path dropped. */
-  else if (drag->path[0]) {
-    if (RNA_struct_find_property(drop->ptr, "filepath")) {
-      RNA_string_set(drop->ptr, "filepath", drag->path);
-    }
-    if (RNA_struct_find_property(drop->ptr, "directory")) {
-      PointerRNA itemptr;
-      char dir[FILE_MAX], file[FILE_MAX];
-
-      BLI_split_dirfile(drag->path, dir, file, sizeof(dir), sizeof(file));
-
-      RNA_string_set(drop->ptr, "directory", dir);
-
-      RNA_collection_clear(drop->ptr, "files");
-      RNA_collection_add(drop->ptr, "files", &itemptr);
-      RNA_string_set(&itemptr, "name", file);
-    }
-  }
-}
-
-/* This region dropbox definition. */
-
-static void sequencer_dropboxes_add_to_lb(ListBase *lb)
-{
-  WM_dropbox_add(
-      lb, "SEQUENCER_OT_image_strip_add", image_drop_poll, sequencer_drop_copy, NULL, NULL);
-  WM_dropbox_add(
-      lb, "SEQUENCER_OT_movie_strip_add", movie_drop_poll, sequencer_drop_copy, NULL, NULL);
-  WM_dropbox_add(
-      lb, "SEQUENCER_OT_sound_strip_add", sound_drop_poll, sequencer_drop_copy, NULL, NULL);
-}
-
-static void sequencer_dropboxes(void)
-{
-  ListBase *lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
-  sequencer_dropboxes_add_to_lb(lb);
-  lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_PREVIEW);
-  sequencer_dropboxes_add_to_lb(lb);
-}
-
-/* ************* end drop *********** */
 
 /* DO NOT make this static, this hides the symbol and breaks API generation script. */
 extern const char *sequencer_context_dir[]; /* Quiet warning. */

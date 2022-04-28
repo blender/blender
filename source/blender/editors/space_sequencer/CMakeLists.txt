@@ -25,6 +25,7 @@ set(INC
 set(SRC
   sequencer_add.c
   sequencer_buttons.c
+  sequencer_drag_drop.c
   sequencer_draw.c
   sequencer_channels_draw.c
   sequencer_channels_edit.c

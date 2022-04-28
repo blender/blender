@@ -51,6 +51,11 @@ bool SEQ_transform_seqbase_shuffle_time(struct SeqCollection *strips_to_shuffle,
                                         struct Scene *evil_scene,
                                         struct ListBase *markers,
                                         bool use_sync_markers);
+
+void SEQ_transform_handle_overlap(struct Scene *scene,
+                                  struct ListBase *seqbasep,
+                                  struct SeqCollection *transformed_strips,
+                                  bool use_sync_markers);
 /**
  * Check if the selected seq's reference unselected seq's.
  */

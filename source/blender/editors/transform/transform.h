@@ -11,8 +11,6 @@
 #include "ED_transform.h"
 #include "ED_view3d.h"
 
-#include "RE_engine.h"
-
 #include "DNA_listBase.h"
 #include "DNA_object_enums.h"
 

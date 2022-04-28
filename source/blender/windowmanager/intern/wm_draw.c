@@ -863,6 +863,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   /* Needs pixel coords in screen. */
   if (wm->drags.first) {
     wm_drags_draw(C, win);
+    wmWindowViewport(win);
   }
 
   GPU_debug_group_end();
