@@ -136,7 +136,7 @@ static void next_color_attributes(struct ID *id, CustomDataLayer *layer)
 void GEOMETRY_OT_attribute_add(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Add Geometry Attribute";
+  ot->name = "Add Attribute";
   ot->description = "Add attribute to geometry";
   ot->idname = "GEOMETRY_OT_attribute_add";
 
@@ -198,7 +198,7 @@ static int geometry_attribute_remove_exec(bContext *C, wmOperator *op)
 void GEOMETRY_OT_attribute_remove(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Remove Geometry Attribute";
+  ot->name = "Remove Attribute";
   ot->description = "Remove attribute from geometry";
   ot->idname = "GEOMETRY_OT_attribute_remove";
 
@@ -358,8 +358,8 @@ static void geometry_color_attribute_add_ui(bContext *UNUSED(C), wmOperator *op)
 void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Add Geometry Attribute";
-  ot->description = "Add attribute to geometry";
+  ot->name = "Add Color Attribute";
+  ot->description = "Add color attribute to geometry";
   ot->idname = "GEOMETRY_OT_color_attribute_add";
 
   /* api callbacks */
@@ -374,7 +374,8 @@ void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop;
 
-  prop = RNA_def_string(ot->srna, "name", "Color", MAX_NAME, "Name", "Name of color attribute");
+  prop = RNA_def_string(
+      ot->srna, "name", "Color", MAX_NAME, "Name", "Name of new color attribute");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   static EnumPropertyItem domains[3] = {{ATTR_DOMAIN_POINT, "POINT", 0, "Vertex", ""},
@@ -428,7 +429,7 @@ static int geometry_color_attribute_set_render_exec(bContext *C, wmOperator *op)
 void GEOMETRY_OT_color_attribute_render_set(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Set Render Color Attribute";
+  ot->name = "Set Render Color";
   ot->description = "Set default color attribute used for rendering";
   ot->idname = "GEOMETRY_OT_color_attribute_render_set";
 

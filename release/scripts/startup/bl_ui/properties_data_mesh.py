@@ -600,7 +600,7 @@ class MESH_UL_color_attributes(UIList, ColorAttributesListBase):
 
         split = layout.split(factor=0.50)
         split.emboss = 'NONE'
-        split.prop(attribute, "name", text="")
+        split.prop(attribute, "name", text="", icon='GROUP_VCOL')
 
         sub = split.row()
         sub.alignment = 'RIGHT'
@@ -620,9 +620,9 @@ class MESH_UL_color_attributes(UIList, ColorAttributesListBase):
 
 
 class MESH_UL_color_attributes_selector(UIList, ColorAttributesListBase):
-    def draw_item(self, _context, layout, data, attribute, _icon, _active_data, _active_propname, _index):
+    def draw_item(self, _context, layout, _data, attribute, _icon, _active_data, _active_propname, _index):
         layout.emboss = 'NONE'
-        layout.prop(attribute, "name", text="", icon='COLOR')
+        layout.prop(attribute, "name", text="", icon='GROUP_VCOL')
 
 
 class DATA_PT_vertex_colors(DATA_PT_mesh_attributes, Panel):
