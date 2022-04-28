@@ -227,7 +227,7 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *vedata)
   struct GPUBatch *geom = DRW_cache_grid_get();
 
   const float line_zero = 0;
-  const float grid_steps_default[8] = {0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0};
+  static const float grid_steps_default[8] = {0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0};
 
   if (pd->space_type == SPACE_IMAGE) {
     float mat[4][4];
