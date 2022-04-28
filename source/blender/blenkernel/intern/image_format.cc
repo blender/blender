@@ -514,8 +514,9 @@ static bool do_add_image_extension(char *string,
 #endif
 #ifdef WITH_WEBP
   else if (imtype == R_IMF_IMTYPE_WEBP) {
-    if (!BLI_path_extension_check(string, extension_test = ".webp"))
+    if (!BLI_path_extension_check(string, extension_test = ".webp")) {
       extension = extension_test;
+    }
   }
 #endif
   else {  //   R_IMF_IMTYPE_AVIRAW, R_IMF_IMTYPE_AVIJPEG, R_IMF_IMTYPE_JPEG90 etc

@@ -1759,7 +1759,7 @@ Key *BKE_key_from_id(ID *id)
   return NULL;
 }
 
-Key **BKE_key_from_object_p( Object *ob)
+Key **BKE_key_from_object_p(Object *ob)
 {
   if (ob == NULL || ob->data == NULL) {
     return NULL;
@@ -1768,7 +1768,7 @@ Key **BKE_key_from_object_p( Object *ob)
   return BKE_key_from_id_p(ob->data);
 }
 
-Key *BKE_key_from_object( Object *ob)
+Key *BKE_key_from_object(Object *ob)
 {
   Key **key_p;
   key_p = BKE_key_from_object_p(ob);
@@ -1922,7 +1922,7 @@ char *BKE_keyblock_curval_rnapath_get(const Key *key, const KeyBlock *kb)
   }
 
   /* create the RNA pointer */
-  RNA_pointer_create(&key->id, &RNA_ShapeKey, kb, &ptr);
+  RNA_pointer_create((ID *)&key->id, &RNA_ShapeKey, (KeyBlock *)kb, &ptr);
   /* get pointer to the property too */
   prop = RNA_struct_find_property(&ptr, "value");
 

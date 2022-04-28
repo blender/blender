@@ -682,7 +682,7 @@ ModifierData *BKE_modifiers_get_virtual_modifierlist(const Object *ob,
   }
 
   /* shape key modifier, not yet for curves */
-  if (ELEM(ob->type, OB_MESH, OB_LATTICE) && BKE_key_from_object(ob)) {
+  if (ELEM(ob->type, OB_MESH, OB_LATTICE) && BKE_key_from_object((Object *)ob)) {
     if (ob->type == OB_MESH && (ob->shapeflag & OB_SHAPE_EDIT_MODE)) {
       virtualModifierData->smd.modifier.mode |= eModifierMode_Editmode | eModifierMode_OnCage;
     }

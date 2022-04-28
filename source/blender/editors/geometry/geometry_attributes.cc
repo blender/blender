@@ -344,7 +344,7 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void geometry_color_attribute_add_ui(bContext *C, wmOperator *op)
+static void geometry_color_attribute_add_ui(bContext *UNUSED(C), wmOperator *op)
 {
   uiLayout *layout = op->layout;
   uiLayoutSetPropSep(layout, true);
