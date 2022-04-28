@@ -3215,26 +3215,25 @@ void BKE_scene_multiview_view_prefix_get(Scene *scene,
                                          char *r_prefix,
                                          const char **r_ext)
 {
-  size_t index_act;
-  const char *suf_act;
+  const char *unused;
   const char delims[] = {'.', '\0'};
 
   r_prefix[0] = '\0';
 
-  /* begin of extension */
-  index_act = BLI_str_rpartition(name, delims, r_ext, &suf_act);
+  /* Split filename into base name and extension. */
+  const size_t basename_len = BLI_str_rpartition(name, delims, r_ext, &unused);
   if (*r_ext == nullptr) {
     return;
   }
-  BLI_assert(index_act > 0);
-  UNUSED_VARS_NDEBUG(index_act);
+  BLI_assert(basename_len > 0);
 
+  /* Split base name into prefix and known suffix. */
   LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
     if (BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
-      const size_t len = strlen(srv->suffix);
-      const size_t ext_len = strlen(*r_ext);
-      if (ext_len >= len && STREQLEN(*r_ext - len, srv->suffix, len)) {
-        BLI_strncpy(r_prefix, name, strlen(name) - ext_len - len + 1);
+      const size_t suffix_len = strlen(srv->suffix);
+      if (basename_len >= suffix_len &&
+          STREQLEN(name + basename_len - suffix_len, srv->suffix, suffix_len)) {
+        BLI_strncpy(r_prefix, name, basename_len - suffix_len + 1);
         break;
       }
     }
