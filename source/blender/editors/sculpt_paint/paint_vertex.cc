@@ -4091,6 +4091,8 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
   paint_stroke_operator_properties(ot);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Set Vertex Colors Operator
  * \{ */

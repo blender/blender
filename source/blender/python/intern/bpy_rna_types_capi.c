@@ -98,6 +98,8 @@ static struct PyMethodDef pyrna_text_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Window Manager Clipboard Property
  *

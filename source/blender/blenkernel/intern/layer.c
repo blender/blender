@@ -2509,6 +2509,8 @@ ViewLayer *BKE_view_layer_find_with_aov(struct Scene *scene, struct ViewLayerAOV
   return NULL;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Light Groups
  * \{ */

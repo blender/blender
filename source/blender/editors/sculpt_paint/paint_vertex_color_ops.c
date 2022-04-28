@@ -30,6 +30,10 @@
 
 #include "paint_intern.h" /* own include */
 
+/* -------------------------------------------------------------------- */
+/** \name Internal Utility Functions
+ * \{ */
+
 static bool vertex_weight_paint_mode_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
