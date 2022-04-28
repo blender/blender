@@ -139,6 +139,14 @@ typedef struct bNodeSocket {
   char label[64];
   char description[64];
 
+  /**
+   * The default attribute name to use for geometry nodes modifier output attribute sockets.
+   * \note Storing this pointer in every single socket exposes the bad design of using sockets
+   * to describe group inputs and outputs. In the future, it should be stored in socket
+   * declarations.
+   */
+  char *default_attribute_name;
+
   /** Cached data from execution. */
   void *cache;
 

@@ -10890,6 +10890,14 @@ static void rna_def_node_socket_interface(BlenderRNA *brna)
       "Attribute domain used by the geometry nodes modifier to create an attribute output");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
 
+  prop = RNA_def_property(srna, "default_attribute_name", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, NULL, "default_attribute_name");
+  RNA_def_property_ui_text(prop,
+                           "Default Attribute",
+                           "The attribute name used by default when the node group is used by a "
+                           "geometry nodes modifier");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
+
   /* registration */
   prop = RNA_def_property(srna, "bl_socket_idname", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "typeinfo->idname");

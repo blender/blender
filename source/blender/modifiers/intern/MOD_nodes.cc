@@ -628,6 +628,10 @@ static void init_socket_cpp_value_from_property(const IDProperty &property,
 void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
 {
   if (nmd->node_group == nullptr) {
+    if (nmd->settings.properties) {
+      IDP_FreeProperty(nmd->settings.properties);
+      nmd->settings.properties = nullptr;
+    }
     return;
   }
 
@@ -680,7 +684,13 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
       IDProperty *attribute_prop = IDP_New(IDP_STRING, &idprop, attribute_name_id.c_str());
       IDP_AddToGroup(nmd->settings.properties, attribute_prop);
 
-      if (old_properties != nullptr) {
+      if (old_properties == nullptr) {
+        if (socket->default_attribute_name && socket->default_attribute_name[0] != '\0') {
+          IDP_AssignString(attribute_prop, socket->default_attribute_name, MAX_NAME);
+          IDP_Int(use_attribute_prop) = 1;
+        }
+      }
+      else {
         IDProperty *old_prop_use_attribute = IDP_GetPropertyFromGroup(old_properties,
                                                                       use_attribute_id.c_str());
         if (old_prop_use_attribute != nullptr) {
@@ -709,7 +719,12 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
     }
     IDP_AddToGroup(nmd->settings.properties, new_prop);
 
-    if (old_properties != nullptr) {
+    if (old_properties == nullptr) {
+      if (socket->default_attribute_name && socket->default_attribute_name[0] != '\0') {
+        IDP_AssignString(new_prop, socket->default_attribute_name, MAX_NAME);
+      }
+    }
+    else {
       IDProperty *old_prop = IDP_GetPropertyFromGroup(old_properties, idprop_name.c_str());
       if (old_prop != nullptr) {
         /* #IDP_CopyPropertyContent replaces the UI data as well, which we don't (we only
@@ -1728,8 +1743,13 @@ static void blendWrite(BlendWriter *writer, const ModifierData *md)
 static void blendRead(BlendDataReader *reader, ModifierData *md)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-  BLO_read_data_address(reader, &nmd->settings.properties);
-  IDP_BlendDataRead(reader, &nmd->settings.properties);
+  if (nmd->node_group == nullptr) {
+    nmd->settings.properties = nullptr;
+  }
+  else {
+    BLO_read_data_address(reader, &nmd->settings.properties);
+    IDP_BlendDataRead(reader, &nmd->settings.properties);
+  }
   nmd->runtime_eval_log = nullptr;
 }
 
