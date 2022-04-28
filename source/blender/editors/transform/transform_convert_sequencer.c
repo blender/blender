@@ -35,7 +35,7 @@
 #include "transform.h"
 #include "transform_convert.h"
 
-#define SEQ_EDGE_PAN_INSIDE_PAD 2
+#define SEQ_EDGE_PAN_INSIDE_PAD 3.5
 #define SEQ_EDGE_PAN_OUTSIDE_PAD 0 /* Disable clamping for panning, use whole screen. */
 #define SEQ_EDGE_PAN_SPEED_RAMP 1
 #define SEQ_EDGE_PAN_MAX_SPEED 4 /* In UI units per second, slower than default. */
@@ -769,6 +769,11 @@ void createTransSeqData(TransInfo *t)
     return;
   }
 
+  /* Disable cursor wrapping for edge pan. */
+  if (t->mode == TFM_TRANSLATION) {
+    t->flag |= T_NO_CURSOR_WRAP;
+  }
+
   tc->custom.type.free_cb = freeSeqData;
   t->frame_side = transform_convert_frame_side_dir_get(t, (float)CFRA);
 
@@ -845,14 +850,6 @@ static void view2d_edge_pan_loc_compensate(TransInfo *t, float loc_in[2], float 
   const rctf *rect_src = &ts->initial_v2d_cur;
   const rctf *rect_dst = &t->region->v2d.cur;
 
-  copy_v2_v2(r_loc, loc_in);
-  /* Additional offset due to change in view2D rect. */
-  BLI_rctf_transform_pt_v(rect_dst, rect_src, r_loc, r_loc);
-}
-
-static void flushTransSeq(TransInfo *t)
-{
-  TransSeq *ts = (TransSeq *)TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data;
   if (t->options & CTX_VIEW2D_EDGE_PAN) {
     if (t->state == TRANS_CANCEL) {
       UI_view2d_edge_pan_cancel(t->context, &ts->edge_pan);
@@ -867,6 +864,13 @@ static void flushTransSeq(TransInfo *t)
     }
   }
 
+  copy_v2_v2(r_loc, loc_in);
+  /* Additional offset due to change in view2D rect. */
+  BLI_rctf_transform_pt_v(rect_dst, rect_src, r_loc, r_loc);
+}
+
+static void flushTransSeq(TransInfo *t)
+{
   /* Editing null check already done */
   ListBase *seqbasep = seqbase_active_get(t);
 
@@ -933,6 +937,8 @@ static void flushTransSeq(TransInfo *t)
       }
     }
   }
+
+  TransSeq *ts = (TransSeq *)TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data;
 
   /* Update animation for effects. */
   SEQ_ITERATOR_FOREACH (seq, ts->time_dependent_strips) {

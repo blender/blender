@@ -32,6 +32,7 @@
 #include "ED_anim_api.h"
 #include "ED_screen.h"
 #include "ED_util_imbuf.h"
+#include "ED_time_scrub_ui.h"
 
 /* Own include. */
 #include "sequencer_intern.h"
@@ -86,6 +87,16 @@ static int sequencer_view_all_exec(bContext *C, wmOperator *op)
     box.xmax = ms->disp_range[1] + 1;
   }
   SEQ_timeline_expand_boundbox(SEQ_active_seqbase_get(ed), &box);
+
+  View2D *v2d = &region->v2d;
+  rcti scrub_rect;
+  ED_time_scrub_region_rect_get(region, &scrub_rect);
+  const float pixel_view_size_y = BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
+  const float scrub_bar_height = BLI_rcti_size_y(&scrub_rect) * pixel_view_size_y;
+
+  /* Channel n has range of <n, n+1>. */
+  box.ymax += 1.0f + scrub_bar_height;
+
   UI_view2d_smooth_view(C, region, &box, smooth_viewtx);
   return OPERATOR_FINISHED;
 }

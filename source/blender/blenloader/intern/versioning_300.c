@@ -786,6 +786,33 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 302, 14)) {
+    /* Sequencer channels region. */
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype != SPACE_SEQ) {
+            continue;
+          }
+          SpaceSeq *sseq = (SpaceSeq *)sl;
+          sseq->flag |= SEQ_CLAMP_VIEW;
+
+          if (ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW)) {
+            continue;
+          }
+
+          ARegion *timeline_region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+
+          if (timeline_region == NULL) {
+            continue;
+          }
+
+          timeline_region->v2d.cur.ymax = 8.5f;
+          timeline_region->v2d.align &= ~V2D_ALIGN_NO_NEG_Y;
+        }
+      }
+    }
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *
