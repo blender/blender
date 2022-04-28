@@ -344,6 +344,17 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+void geometry_color_attribute_add_ui(bContext *C, wmOperator *op)
+{
+  uiLayout *layout = op->layout;
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+
+  uiItemR(layout, op->ptr, "name", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "domain", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "data_type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+}
+
 void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
 {
   /* identifiers */
@@ -355,6 +366,7 @@ void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
   ot->poll = geometry_attributes_poll;
   ot->exec = geometry_color_attribute_add_exec;
   ot->invoke = WM_operator_props_popup_confirm;
+  ot->ui = geometry_color_attribute_add_ui;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -380,15 +392,12 @@ void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
                       "Domain",
                       "Type of element that attribute is stored on");
 
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-
   prop = RNA_def_enum(ot->srna,
                       "data_type",
                       types,
                       CD_PROP_COLOR,
                       "Data Type",
                       "Type of data stored in attribute");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int geometry_color_attribute_set_render_exec(bContext *C, wmOperator *op)
