@@ -781,7 +781,8 @@ struct SocketTooltipData {
 static void create_inspection_string_for_generic_value(const GPointer value, std::stringstream &ss)
 {
   auto id_to_inspection_string = [&](const ID *id, const short idcode) {
-    ss << (id ? id->name + 2 : TIP_("None")) << " (" << BKE_idtype_idcode_to_name(idcode) << ")";
+    ss << (id ? id->name + 2 : TIP_("None")) << " (" << TIP_(BKE_idtype_idcode_to_name(idcode))
+       << ")";
   };
 
   const CPPType &type = *value.type();
