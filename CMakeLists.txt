@@ -806,6 +806,9 @@ set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_OPENCOLORIO  OFF)
 # Haru needs `TIFFFaxBlackCodes` & `TIFFFaxWhiteCodes` symbols from TIFF.
 set_and_warn_dependency(WITH_IMAGE_TIFF WITH_HARU       OFF)
 
+# USD needs OpenSubDiv, since that is used by the Cycles Hydra render delegate.
+set_and_warn_dependency(WITH_OPENSUBDIV WITH_USD        OFF)
+
 # auto enable openimageio for cycles
 if(WITH_CYCLES)
   set(WITH_OPENIMAGEIO ON)

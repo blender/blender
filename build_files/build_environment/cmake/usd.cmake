@@ -25,7 +25,6 @@ set(USD_EXTRA_ARGS
   -DOpenImageIO_ROOT=${LIBDIR}/openimageio
   -DOPENEXR_LIBRARIES=${LIBDIR}/imath/lib/imath${OPENEXR_VERSION_POSTFIX}${LIBEXT}
   -DOPENEXR_INCLUDE_DIR=${LIBDIR}/imath/include
-  -DOSL_ROOT=${LIBDIR}/osl
   -DPXR_ENABLE_PYTHON_SUPPORT=OFF
   -DPXR_BUILD_IMAGING=ON
   -DPXR_BUILD_TESTS=OFF
@@ -36,8 +35,20 @@ set(USD_EXTRA_ARGS
   -DPXR_ENABLE_OPENVDB_SUPPORT=OFF
   -DPYTHON_EXECUTABLE=${PYTHON_BINARY}
   -DPXR_BUILD_MONOLITHIC=ON
-  -DPXR_ENABLE_OSL_SUPPORT=ON
-  -DPXR_BUILD_OPENIMAGEIO_PLUGIN=ON
+  # OSL is an optional dependency of the Imaging module. However, since that
+  # module was included for its support for converting primitive shapes (sphere,
+  # cube, etc.) to geometry, it's not necessary. Disabling it will make it
+  # simpler to build Blender; currently only Cycles uses OSL.
+  -DPXR_ENABLE_OSL_SUPPORT=OFF
+  # GL support on Linux also links to X11 libraries. Enabling it would break
+  # headless or Wayland-only builds. OpenGL support would be useful if someone
+  # wants to work on a Hydra viewport in Blender; when that's actually being
+  # worked on, we could patch in a new PXR_ENABLE_X11_SUPPORT option (to
+  # separate OpenGL from X11) and contribute it upstream.
+  -DPXR_ENABLE_GL_SUPPORT=OFF
+  # OIIO is used for loading image textures in Hydra Storm / Embree renderers,
+  # which we don't use.
+  -DPXR_BUILD_OPENIMAGEIO_PLUGIN=OFF
   # USD 22.03 does not support OCIO 2.x
   # Tracking ticket https://github.com/PixarAnimationStudios/USD/issues/1386
   -DPXR_BUILD_OPENCOLORIO_PLUGIN=OFF
@@ -70,9 +81,7 @@ add_dependencies(
   external_usd
   external_tbb
   external_boost
-  external_openimageio
   external_opensubdiv
-  external_osl
 )
 
 # Since USD 21.11 the libraries are prefixed with "usd_", i.e. "libusd_m.a" became "libusd_usd_m.a".
