@@ -14,6 +14,11 @@ ccl_device float3 xyz_to_rgb(KernelGlobals kg, float3 xyz)
                      dot(float4_to_float3(kernel_data.film.xyz_to_b), xyz));
 }
 
+ccl_device float3 xyz_to_rgb_clamped(KernelGlobals kg, float3 xyz)
+{
+  return max(xyz_to_rgb(kg, xyz), zero_float3());
+}
+
 ccl_device float3 rec709_to_rgb(KernelGlobals kg, float3 rec709)
 {
   return (kernel_data.film.is_rec709) ?
