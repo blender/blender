@@ -849,16 +849,7 @@ GPUShader *OVERLAY_shader_grid(void)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
   if (!sh_data->grid) {
-    sh_data->grid = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_grid_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_grid_frag_glsl,
-                                 NULL},
-    });
+    sh_data->grid = GPU_shader_create_from_info_name("overlay_grid");
   }
   return sh_data->grid;
 }
