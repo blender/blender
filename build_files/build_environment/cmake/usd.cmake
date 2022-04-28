@@ -46,6 +46,8 @@ set(USD_EXTRA_ARGS
   # worked on, we could patch in a new PXR_ENABLE_X11_SUPPORT option (to
   # separate OpenGL from X11) and contribute it upstream.
   -DPXR_ENABLE_GL_SUPPORT=OFF
+  # Disable Metal since USD fails to build this when OpenGL is disabled.
+  -DPXR_ENABLE_METAL_SUPPORT=OFF
   # OIIO is used for loading image textures in Hydra Storm / Embree renderers,
   # which we don't use.
   -DPXR_BUILD_OPENIMAGEIO_PLUGIN=OFF
