@@ -154,7 +154,8 @@ template<typename Fn, typename... SourceTypes> class Devirtualizer {
       /* Non-devirtualized parameter type. */
       using SourceType = type_at_index<I>;
       /* A bit flag indicating what devirtualizations are allowed in this step. */
-      constexpr DeviMode allowed_modes = DeviModeSequence<AllowedModes...>::template at_index<I>();
+      [[maybe_unused]] constexpr DeviMode allowed_modes =
+          DeviModeSequence<AllowedModes...>::template at_index<I>();
 
       /* Handle #VArray types. */
       if constexpr (is_VArray_v<SourceType>) {
