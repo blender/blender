@@ -2196,7 +2196,7 @@ void BKE_keyblock_mesh_calc_normals(struct KeyBlock *kb,
   }
 
   MVert *mvert = MEM_dupallocN(mesh->mvert);
-  BKE_keyblock_convert_to_mesh(kb, mesh->mvert, mesh->totvert);
+  BKE_keyblock_convert_to_mesh(kb, mvert, mesh->totvert);
 
   const bool loop_normals_needed = r_loopnors != NULL;
   const bool vert_normals_needed = r_vertnors != NULL || loop_normals_needed;
@@ -2237,7 +2237,7 @@ void BKE_keyblock_mesh_calc_normals(struct KeyBlock *kb,
   }
   if (loop_normals_needed) {
     short(*clnors)[2] = CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL); /* May be NULL. */
-    BKE_mesh_normals_loop_split(mesh->mvert,
+    BKE_mesh_normals_loop_split(mvert,
                                 vert_normals,
                                 mesh->totvert,
                                 mesh->medge,
