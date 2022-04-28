@@ -136,7 +136,7 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   const bool is_transmission = shader_bsdf_is_transmission(sd, ls.D);
 
 #  ifdef __MNEE__
-  bool skip_nee = false;
+  int mnee_vertex_count = 0;
   IF_KERNEL_NODES_FEATURE(RAYTRACE)
   {
     if (ls.lamp != LAMP_NONE) {
@@ -149,12 +149,12 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
 
         /* Are we on a caustic receiver? */
         if (!is_transmission && (sd->object_flag & SD_OBJECT_CAUSTICS_RECEIVER))
-          skip_nee = kernel_path_mnee_sample(
+          mnee_vertex_count = kernel_path_mnee_sample(
               kg, state, sd, emission_sd, rng_state, &ls, &bsdf_eval);
       }
     }
   }
-  if (skip_nee) {
+  if (mnee_vertex_count > 0) {
     /* Create shadow ray after successful manifold walk:
      * emission_sd contains the last interface intersection and
      * the light sample ls has been updated */
@@ -211,8 +211,6 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, prim) = ray.self.light_prim;
 
   /* Copy state from main path to shadow path. */
-  const uint16_t bounce = INTEGRATOR_STATE(state, path, bounce);
-  const uint16_t transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce);
   uint32_t shadow_flag = INTEGRATOR_STATE(state, path, flag);
   shadow_flag |= (is_light) ? PATH_RAY_SHADOW_FOR_LIGHT : 0;
   const float3 throughput = INTEGRATOR_STATE(state, path, throughput) * bsdf_eval_sum(&bsdf_eval);
@@ -246,14 +244,34 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, sample) = INTEGRATOR_STATE(
       state, path, sample);
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, flag) = shadow_flag;
-  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, bounce) = bounce;
-  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transparent_bounce) = transparent_bounce;
-  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, diffuse_bounce) = INTEGRATOR_STATE(
-      state, path, diffuse_bounce);
+
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transparent_bounce) = INTEGRATOR_STATE(
+      state, path, transparent_bounce);
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, glossy_bounce) = INTEGRATOR_STATE(
       state, path, glossy_bounce);
-  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transmission_bounce) = INTEGRATOR_STATE(
-      state, path, transmission_bounce);
+
+#  ifdef __MNEE__
+  if (mnee_vertex_count > 0) {
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transmission_bounce) =
+        INTEGRATOR_STATE(state, path, transmission_bounce) + mnee_vertex_count;
+    INTEGRATOR_STATE_WRITE(shadow_state,
+                           shadow_path,
+                           diffuse_bounce) = INTEGRATOR_STATE(state, path, diffuse_bounce) + 1;
+    INTEGRATOR_STATE_WRITE(shadow_state,
+                           shadow_path,
+                           bounce) = INTEGRATOR_STATE(state, path, bounce) + 1 + mnee_vertex_count;
+  }
+  else
+#  endif
+  {
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transmission_bounce) = INTEGRATOR_STATE(
+        state, path, transmission_bounce);
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, diffuse_bounce) = INTEGRATOR_STATE(
+        state, path, diffuse_bounce);
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, bounce) = INTEGRATOR_STATE(
+        state, path, bounce);
+  }
+
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, throughput) = throughput;
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_SHADOW_PASS) {

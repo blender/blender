@@ -948,13 +948,13 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
 }
 
 /* Manifold next event estimation path sampling. */
-ccl_device_forceinline bool kernel_path_mnee_sample(KernelGlobals kg,
-                                                    IntegratorState state,
-                                                    ccl_private ShaderData *sd,
-                                                    ccl_private ShaderData *sd_mnee,
-                                                    ccl_private const RNGState *rng_state,
-                                                    ccl_private LightSample *ls,
-                                                    ccl_private BsdfEval *throughput)
+ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
+                                                   IntegratorState state,
+                                                   ccl_private ShaderData *sd,
+                                                   ccl_private ShaderData *sd_mnee,
+                                                   ccl_private const RNGState *rng_state,
+                                                   ccl_private LightSample *ls,
+                                                   ccl_private BsdfEval *throughput)
 {
   /*
    * 1. send seed ray from shading point to light sample position (or along sampled light
@@ -998,11 +998,11 @@ ccl_device_forceinline bool kernel_path_mnee_sample(KernelGlobals kg,
 
       /* Do we have enough slots. */
       if (vertex_count >= MNEE_MAX_CAUSTIC_CASTERS)
-        return false;
+        return 0;
 
       /* Reject caster if it is not a triangles mesh. */
       if (!(probe_isect.type & PRIMITIVE_TRIANGLE))
-        return false;
+        return 0;
 
       ccl_private ManifoldVertex &mv = vertices[vertex_count++];
 
@@ -1013,7 +1013,7 @@ ccl_device_forceinline bool kernel_path_mnee_sample(KernelGlobals kg,
        * differential geometry can be created at any point on the surface which is not possible if
        * normals are not smooth. */
       if (!(sd_mnee->shader & SHADER_SMOOTH_NORMAL))
-        return false;
+        return 0;
 
       /* Last bool argument is the MNEE flag (for TINY_MAX_CLOSURE cap in kernel_shader.h). */
       shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
@@ -1051,7 +1051,7 @@ ccl_device_forceinline bool kernel_path_mnee_sample(KernelGlobals kg,
         }
       }
       if (!found_transimissive_microfacet_bsdf)
-        return false;
+        return 0;
     }
 
     probe_ray.self.object = probe_isect.object;
@@ -1065,23 +1065,22 @@ ccl_device_forceinline bool kernel_path_mnee_sample(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, mnee) &= ~PATH_MNEE_VALID;
 
   if (vertex_count == 0)
-    return false;
+    return 0;
 
   /* Check whether the transmission depth limit is reached before continuing. */
-  const int transmission_bounce = INTEGRATOR_STATE(state, path, transmission_bounce) +
-                                  vertex_count;
-  if (transmission_bounce >= kernel_data.integrator.max_transmission_bounce)
-    return false;
+  if (INTEGRATOR_STATE(state, path, transmission_bounce) + vertex_count >=
+      kernel_data.integrator.max_transmission_bounce)
+    return 0;
 
   /* Check whether the diffuse depth limit is reached before continuing. */
-  const int diffuse_bounce = INTEGRATOR_STATE(state, path, diffuse_bounce) + 1;
-  if (diffuse_bounce >= kernel_data.integrator.max_diffuse_bounce)
-    return false;
+  if (INTEGRATOR_STATE(state, path, diffuse_bounce) + 1 >=
+      kernel_data.integrator.max_diffuse_bounce)
+    return 0;
 
   /* Check whether the overall depth limit is reached before continuing. */
-  const int bounce = INTEGRATOR_STATE(state, path, bounce) + diffuse_bounce + transmission_bounce;
-  if (bounce >= kernel_data.integrator.max_bounce)
-    return false;
+  if (INTEGRATOR_STATE(state, path, bounce) + 1 + vertex_count >=
+      kernel_data.integrator.max_bounce)
+    return 0;
 
   /* Mark the manifold walk valid to turn off mollification regardless of how successful the walk
    * is: this is noticeable when another mnee is performed deeper in the path, for an internally
@@ -1095,12 +1094,12 @@ ccl_device_forceinline bool kernel_path_mnee_sample(KernelGlobals kg,
   if (mnee_newton_solver(kg, sd, sd_mnee, ls, vertex_count, vertices)) {
     /* 3. If a solution exists, calculate contribution of the corresponding path */
     if (!mnee_path_contribution(kg, state, sd, sd_mnee, ls, vertex_count, vertices, throughput))
-      return false;
+      return 0;
 
-    return true;
+    return vertex_count;
   }
 
-  return false;
+  return 0;
 }
 
 CCL_NAMESPACE_END
