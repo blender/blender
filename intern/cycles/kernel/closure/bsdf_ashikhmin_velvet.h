@@ -48,9 +48,10 @@ ccl_device float3 bsdf_ashikhmin_velvet_eval_reflect(ccl_private const ShaderClo
     float cosNH = dot(N, H);
     float cosHO = fabsf(dot(I, H));
 
-    if (!(fabsf(cosNH) < 1.0f - 1e-5f && cosHO > 1e-5f))
+    if (!(fabsf(cosNH) < 1.0f - 1e-5f && cosHO > 1e-5f)) {
+      *pdf = 0.0f;
       return make_float3(0.0f, 0.0f, 0.0f);
-
+    }
     float cosNHdivHO = cosNH / cosHO;
     cosNHdivHO = fmaxf(cosNHdivHO, 1e-5f);
 
@@ -62,7 +63,7 @@ ccl_device float3 bsdf_ashikhmin_velvet_eval_reflect(ccl_private const ShaderClo
     float cotangent2 = (cosNH * cosNH) / sinNH2;
 
     float D = expf(-cotangent2 * m_invsigma2) * m_invsigma2 * M_1_PI_F / sinNH4;
-    float G = min(1.0f, min(fac1, fac2));  // TODO: derive G from D analytically
+    float G = fminf(1.0f, fminf(fac1, fac2));  // TODO: derive G from D analytically
 
     float out = 0.25f * (D * G) / cosNO;
 
@@ -70,6 +71,7 @@ ccl_device float3 bsdf_ashikhmin_velvet_eval_reflect(ccl_private const ShaderClo
     return make_float3(out, out, out);
   }
 
+  *pdf = 0.0f;
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
@@ -78,6 +80,7 @@ ccl_device float3 bsdf_ashikhmin_velvet_eval_transmit(ccl_private const ShaderCl
                                                       const float3 omega_in,
                                                       ccl_private float *pdf)
 {
+  *pdf = 0.0f;
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
@@ -122,7 +125,7 @@ ccl_device int bsdf_ashikhmin_velvet_sample(ccl_private const ShaderClosure *sc,
       float cotangent2 = (cosNH * cosNH) / sinNH2;
 
       float D = expf(-cotangent2 * m_invsigma2) * m_invsigma2 * M_1_PI_F / sinNH4;
-      float G = min(1.0f, min(fac1, fac2));  // TODO: derive G from D analytically
+      float G = fminf(1.0f, fminf(fac1, fac2));  // TODO: derive G from D analytically
 
       float power = 0.25f * (D * G) / cosNO;
 
@@ -134,12 +137,15 @@ ccl_device int bsdf_ashikhmin_velvet_sample(ccl_private const ShaderClosure *sc,
       *domega_in_dy = (2 * dot(N, dIdy)) * N - dIdy;
 #endif
     }
-    else
+    else {
       *pdf = 0.0f;
+      *eval = make_float3(0.0f, 0.0f, 0.0f);
+    }
   }
-  else
+  else {
     *pdf = 0.0f;
-
+    *eval = make_float3(0.0f, 0.0f, 0.0f);
+  }
   return LABEL_REFLECT | LABEL_DIFFUSE;
 }
 
