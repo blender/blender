@@ -956,28 +956,30 @@ void ED_view3d_cursor_snap_prevpoint_set(V3DSnapCursorState *state, const float 
   }
 }
 
-V3DSnapCursorData *ED_view3d_cursor_snap_data_get(V3DSnapCursorState *state,
-                                                  const bContext *C,
-                                                  const int x,
-                                                  const int y)
+void ED_view3d_cursor_snap_data_update(V3DSnapCursorState *state,
+                                       const bContext *C,
+                                       const int x,
+                                       const int y)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
-  if (C) {
-    wmWindowManager *wm = CTX_wm_manager(C);
-    if (v3d_cursor_eventstate_has_changed(data_intern, state, wm, x, y)) {
-      Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      Scene *scene = DEG_get_input_scene(depsgraph);
-      ScrArea *area = CTX_wm_area(C);
-      ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
-      View3D *v3d = CTX_wm_view3d(C);
+  wmWindowManager *wm = CTX_wm_manager(C);
+  if (v3d_cursor_eventstate_has_changed(data_intern, state, wm, x, y)) {
+    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    Scene *scene = DEG_get_input_scene(depsgraph);
+    ScrArea *area = CTX_wm_area(C);
+    ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+    View3D *v3d = CTX_wm_view3d(C);
 
-      if (!state) {
-        state = ED_view3d_cursor_snap_state_get();
-      }
-      v3d_cursor_snap_update(state, C, wm, depsgraph, scene, region, v3d, x, y);
+    if (!state) {
+      state = ED_view3d_cursor_snap_state_get();
     }
+    v3d_cursor_snap_update(state, C, wm, depsgraph, scene, region, v3d, x, y);
   }
+}
 
+V3DSnapCursorData *ED_view3d_cursor_snap_data_get()
+{
+  SnapCursorDataIntern *data_intern = &g_data_intern;
   return &data_intern->snap_data;
 }
 

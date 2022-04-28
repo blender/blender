@@ -684,7 +684,7 @@ static bool view3d_interactive_add_calc_snap(bContext *UNUSED(C),
                                              bool *r_is_enabled,
                                              bool *r_is_snap_invert)
 {
-  V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get(NULL, NULL, 0, 0);
+  V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
   copy_v3_v3(r_co_src, snap_data->loc);
   if (r_matrix_orient) {
     copy_m3_m3(r_matrix_orient, snap_data->plane_omat);
@@ -741,7 +741,7 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
       /* Be sure to also compute the #V3DSnapCursorData.plane_omat. */
       snap_state->draw_plane = true;
 
-      ED_view3d_cursor_snap_data_get(snap_state_new, C, mval[0], mval[1]);
+      ED_view3d_cursor_snap_data_update(snap_state_new, C, mval[0], mval[1]);
       snap_state_new->flag = flag_orig;
     }
   }
