@@ -2404,8 +2404,8 @@ void GRAPH_OT_equalize_handles(wmOperatorType *ot)
   ot->name = "Equalize Handles";
   ot->idname = "GRAPH_OT_equalize_handles";
   ot->description =
-      "Ensure selected keyframes' handles have equal length, optionally making them horizontal";
-
+      "Ensure selected keyframes' handles have equal length, optionally making them horizontal. "
+      "Automatic, Automatic Clamped, or Vector handle types will be converted to Aligned";
   /* API callbacks */
   ot->invoke = WM_menu_invoke;
   ot->exec = graphkeys_equalize_handles_exec;
