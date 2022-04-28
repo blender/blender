@@ -163,6 +163,19 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
   kfilm->pass_stride = 0;
 
   /* Mark with PASS_UNUSED to avoid mask test in the kernel. */
+  kfilm->pass_combined = PASS_UNUSED;
+  kfilm->pass_depth = PASS_UNUSED;
+  kfilm->pass_position = PASS_UNUSED;
+  kfilm->pass_normal = PASS_UNUSED;
+  kfilm->pass_roughness = PASS_UNUSED;
+  kfilm->pass_motion = PASS_UNUSED;
+  kfilm->pass_motion_weight = PASS_UNUSED;
+  kfilm->pass_uv = PASS_UNUSED;
+  kfilm->pass_object_id = PASS_UNUSED;
+  kfilm->pass_material_id = PASS_UNUSED;
+  kfilm->pass_diffuse_color = PASS_UNUSED;
+  kfilm->pass_glossy_color = PASS_UNUSED;
+  kfilm->pass_transmission_color = PASS_UNUSED;
   kfilm->pass_background = PASS_UNUSED;
   kfilm->pass_emission = PASS_UNUSED;
   kfilm->pass_ao = PASS_UNUSED;
