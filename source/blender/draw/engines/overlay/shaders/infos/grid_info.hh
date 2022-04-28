@@ -18,3 +18,24 @@ GPU_SHADER_CREATE_INFO(overlay_grid)
     .vertex_source("grid_vert.glsl")
     .fragment_source("grid_frag.glsl")
     .additional_info("draw_view", "draw_globals");
+
+GPU_SHADER_CREATE_INFO(overlay_grid_background)
+    .do_static_compilation(true)
+    .vertex_in(0, Type::VEC3, "pos")
+    .sampler(0, ImageType::DEPTH_2D, "depthBuffer")
+    .push_constant(Type::VEC4, "color")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("edit_uv_tiled_image_borders_vert.glsl")
+    .fragment_source("grid_background_frag.glsl")
+    .additional_info("draw_modelmat");
+
+GPU_SHADER_CREATE_INFO(overlay_grid_image)
+    .do_static_compilation(true)
+    /* NOTE: Color already in Linear space. Which is what we want. */
+    .define("srgbTarget", "false")
+    .vertex_in(0, Type::VEC3, "pos")
+    .push_constant(Type::VEC4, "color")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("edit_uv_tiled_image_borders_vert.glsl")
+    .fragment_source("gpu_shader_uniform_color_frag.glsl")
+    .additional_info("draw_modelmat");
