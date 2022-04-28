@@ -586,18 +586,15 @@ static void sequencer_main_clamp_view(const bContext *C, ARegion *region)
   strip_boundbox.ymax = max_ff(sseq->runtime.timeline_clamp_custom_range, strip_boundbox.ymax);
 
   rctf view_clamped = v2d->cur;
-  bool do_clamp = false;
 
   const float range_y = BLI_rctf_size_y(&view_clamped);
   if (view_clamped.ymax > strip_boundbox.ymax) {
     view_clamped.ymax = strip_boundbox.ymax;
     view_clamped.ymin = max_ff(strip_boundbox.ymin, strip_boundbox.ymax - range_y);
-    do_clamp = true;
   }
   if (view_clamped.ymin < strip_boundbox.ymin) {
     view_clamped.ymin = strip_boundbox.ymin;
     view_clamped.ymax = min_ff(strip_boundbox.ymax, strip_boundbox.ymin + range_y);
-    do_clamp = true;
   }
 }
 

@@ -70,9 +70,9 @@ struct SnapData_Mesh {
   BVHTreeFromMesh treedata_mesh;
 
   const MPoly *poly;
-  bool has_looptris = true;
-  bool has_loose_edge = true;
-  bool has_loose_vert = true;
+  bool has_looptris;
+  bool has_loose_edge;
+  bool has_loose_vert;
 
   void clear()
   {

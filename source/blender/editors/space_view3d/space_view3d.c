@@ -694,6 +694,7 @@ static void view3d_ob_drop_matrix_from_snap(V3DSnapCursorState *snap_state,
 {
   V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
   BLI_assert(snap_state->draw_box || snap_state->draw_plane);
+  UNUSED_VARS_NDEBUG(snap_state);
   copy_m4_m3(obmat_final, snap_data->plane_omat);
   copy_v3_v3(obmat_final[3], snap_data->loc);
 
