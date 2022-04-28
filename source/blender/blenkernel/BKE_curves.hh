@@ -162,7 +162,7 @@ class CurvesGeometry : public ::CurvesGeometry {
 
   /** The type (#CurveType) of each curve, or potentially a single if all are the same type. */
   VArray<int8_t> curve_types() const;
-  /** 
+  /**
    * Mutable access to curve types. Call #tag_topology_changed and #update_curve_types after
    * changing any type. Consider using the other methods to change types below.
    * */

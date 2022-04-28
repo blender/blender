@@ -5450,7 +5450,8 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  if (SCULPT_TOOL_NEEDS_COLOR(brush->sculpt_tool) && !SCULPT_handles_colors_report(ob->sculpt, op->reports)) {
+  if (SCULPT_TOOL_NEEDS_COLOR(brush->sculpt_tool) &&
+      !SCULPT_handles_colors_report(ob->sculpt, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 

@@ -1602,7 +1602,7 @@ bool gpu::MTLTexture::init_internal(GPUVertBuf *vbo)
 bool gpu::MTLTexture::init_internal(const GPUTexture *src, int mip_offset, int layer_offset)
 {
   BLI_assert(src);
-  
+
   /* Zero initialise. */
   this->prepare_internal();
 
