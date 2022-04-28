@@ -30,7 +30,7 @@ namespace blender::io::obj {
 const int SMOOTH_GROUP_DISABLED = 0;
 const int SMOOTH_GROUP_DEFAULT = 1;
 
-const char *DEFORM_GROUP_DISABLED = "off";
+static const char *DEFORM_GROUP_DISABLED = "off";
 /* There is no deform group default name. Use what the user set in the UI. */
 
 /**
@@ -38,7 +38,7 @@ const char *DEFORM_GROUP_DISABLED = "off";
  * Once a material is assigned, it cannot be turned off; it can only be changed.
  * If a material name is not specified, a white material is used.
  * So an empty material name is written. */
-const char *MATERIAL_GROUP_DISABLED = "";
+static const char *MATERIAL_GROUP_DISABLED = "";
 
 void OBJWriter::write_vert_uv_normal_indices(FormatHandler<eFileType::OBJ> &fh,
                                              const IndexOffsets &offsets,

@@ -11,6 +11,8 @@
 
 #include "DRW_render.h"
 
+#include "eevee_engine.h" /* Own include. */
+
 struct EEVEE_Data {
   DrawEngineType *engine_type;
   DRWViewportEmptyList *fbl;

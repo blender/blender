@@ -203,7 +203,7 @@ static void update_overlay_strip_poistion_data(bContext *C, const int mval[2])
   float end_frame = coords->start_frame + coords->strip_len;
 
   if (coords->use_snapping) {
-    /* Do snapping via the exsiting transform code. */
+    /* Do snapping via the existing transform code. */
     int snap_delta;
     float snap_frame;
     bool valid_snap;

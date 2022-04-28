@@ -1215,7 +1215,7 @@ static void object_asset_pre_save(void *asset_ptr, struct AssetMetaData *asset_d
   }
 }
 
-AssetTypeInfo AssetType_OB = {
+static AssetTypeInfo AssetType_OB = {
     /* pre_save_fn */ object_asset_pre_save,
 };
 

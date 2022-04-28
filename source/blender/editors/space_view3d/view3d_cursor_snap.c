@@ -561,7 +561,7 @@ static void v3d_cursor_snap_context_ensure(Scene *scene)
   }
 }
 
-static bool v3d_cursor_snap_calc_plane()
+static bool v3d_cursor_snap_calc_plane(void)
 {
   /* If any of the states require the plane, calculate the `plane_omat`. */
   LISTBASE_FOREACH (SnapStateIntern *, state, &g_data_intern.state_intern) {
