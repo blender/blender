@@ -561,6 +561,17 @@ static void v3d_cursor_snap_context_ensure(Scene *scene)
   }
 }
 
+static bool v3d_cursor_snap_calc_plane()
+{
+  /* If any of the states require the plane, calculate the `plane_omat`. */
+  LISTBASE_FOREACH (SnapStateIntern *, state, &g_data_intern.state_intern) {
+    if (state->snap_state.draw_plane || state->snap_state.draw_box) {
+      return true;
+    }
+  }
+  return false;
+}
+
 static void v3d_cursor_snap_update(V3DSnapCursorState *state,
                                    const bContext *C,
                                    wmWindowManager *wm,
@@ -587,8 +598,8 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
 
   ushort snap_elements = v3d_cursor_snap_elements(state, scene);
   data_intern->snap_elem_hidden = 0;
-  const bool draw_plane = state->draw_plane || state->draw_box;
-  if (draw_plane && !(snap_elements & SCE_SNAP_MODE_FACE)) {
+  const bool calc_plane_omat = v3d_cursor_snap_calc_plane();
+  if (calc_plane_omat && !(snap_elements & SCE_SNAP_MODE_FACE)) {
     data_intern->snap_elem_hidden = SCE_SNAP_MODE_FACE;
     snap_elements |= SCE_SNAP_MODE_FACE;
   }
@@ -601,7 +612,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
     const ToolSettings *ts = scene->toolsettings;
     if (snap_data->is_snap_invert != !(ts->snap_flag & SCE_SNAP)) {
       snap_data->is_enabled = false;
-      if (!draw_plane) {
+      if (!calc_plane_omat) {
         snap_data->snap_elem = 0;
         return;
       }
@@ -656,7 +667,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
     face_nor[state->plane_axis] = 1.0f;
   }
 
-  if (draw_plane) {
+  if (calc_plane_omat) {
     RegionView3D *rv3d = region->regiondata;
     bool orient_surface = snap_elem && (state->plane_orient == V3D_PLACE_ORIENT_SURFACE);
     if (orient_surface) {
