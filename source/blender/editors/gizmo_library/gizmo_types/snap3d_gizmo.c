@@ -79,13 +79,13 @@ bool ED_gizmotypes_snap_3d_flag_test(struct wmGizmo *gz, int flag)
   return (snap_state->flag & flag) != 0;
 }
 
-bool ED_gizmotypes_snap_3d_invert_snap_get(struct wmGizmo *gz)
+bool ED_gizmotypes_snap_3d_invert_snap_get(struct wmGizmo *UNUSED(gz))
 {
   V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
   return snap_data->is_snap_invert;
 }
 
-bool ED_gizmotypes_snap_3d_is_enabled(const wmGizmo *gz)
+bool ED_gizmotypes_snap_3d_is_enabled(const wmGizmo *UNUSED(gz))
 {
   V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
   return snap_data->is_enabled;
