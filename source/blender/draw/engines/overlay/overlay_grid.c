@@ -224,15 +224,12 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *ved)
 
   DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA;
   DRW_PASS_CREATE(psl->grid_ps, state);
-  DRWShadingGroup *grp;
-  GPUShader *sh;
-  struct GPUBatch *geom = DRW_cache_grid_get();
 
   if (pd->space_type == SPACE_IMAGE) {
     float mat[4][4];
 
     /* Add quad background. */
-    sh = OVERLAY_shader_grid_background();
+    GPUShader *sh = OVERLAY_shader_grid_background();
     DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->grid_ps);
     float color_back[4];
     interp_v4_v4v4(color_back, G_draw.block.color_background, G_draw.block.color_grid, 0.5);
@@ -247,8 +244,9 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *ved)
 
   {
     DRWShadingGroup *grp;
+    struct GPUBatch *geom = DRW_cache_grid_get();
 
-    sh = OVERLAY_shader_grid();
+    GPUShader *sh = OVERLAY_shader_grid();
 
     /* Create 3 quads to render ordered transparency Z axis */
     grp = DRW_shgroup_create(sh, psl->grid_ps);
@@ -284,7 +282,7 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *ved)
 
     float mat[4][4];
     /* add wire border */
-    sh = OVERLAY_shader_grid_image();
+    GPUShader *sh = OVERLAY_shader_grid_image();
     DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->grid_ps);
     DRW_shgroup_uniform_vec4_copy(grp, "color", theme_color);
     unit_m4(mat);
