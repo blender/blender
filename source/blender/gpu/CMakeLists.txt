@@ -549,10 +549,17 @@ if(WITH_GPU_SHADER_BUILDER)
       buildinfoobj
     )
   else()
+    if(WIN32)
+      # We can re-use the manifest from tests.exe here since it's
+      # rather generic and just selects the appropriate common
+      # controls version. 
+      set(MANIFEST "${CMAKE_BINARY_DIR}/tests.exe.manifest")
+    endif()
     add_executable(shader_builder
       intern/gpu_shader_builder.cc
       intern/gpu_shader_builder_stubs.cc
       ${shader_create_info_list_file}
+      ${MANIFEST}
     )
 
     target_link_libraries(shader_builder PUBLIC
