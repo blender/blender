@@ -1472,7 +1472,7 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
   }
   else {
     uiItemR(row, md_ptr, rna_path.c_str(), 0, "", ICON_NONE);
-    uiItemDecoratorR(row, md_ptr, rna_path.c_str(), 0);
+    uiItemDecoratorR(row, md_ptr, rna_path.c_str(), -1);
   }
 }
 
