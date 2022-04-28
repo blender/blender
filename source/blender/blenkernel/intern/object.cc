@@ -3256,10 +3256,9 @@ static void give_parvert(Object *par, int nr, float vec[3])
   else if (ELEM(par->type, OB_CURVES_LEGACY, OB_SURF)) {
     ListBase *nurb;
 
-    /* Unless there's some weird depsgraph failure the cache should exist. */
-    BLI_assert(par->runtime.curve_cache != nullptr);
-
-    if (par->runtime.curve_cache->deformed_nurbs.first != nullptr) {
+    /* It is possible that a cycle in the dependency graph was resolved in a way that caused this
+     * object to be evaluated before its dependencies. In this case the curve cache may be null. */
+    if (par->runtime.curve_cache && par->runtime.curve_cache->deformed_nurbs.first != nullptr) {
       nurb = &par->runtime.curve_cache->deformed_nurbs;
     }
     else {
