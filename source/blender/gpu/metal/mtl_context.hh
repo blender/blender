@@ -133,7 +133,7 @@ class MTLContext : public Context {
   friend class MTLBackend;
 
  private:
-  /* Compute and specialisation caches */
+  /* Compute and specialization caches. */
   MTLContextTextureUtils texture_utils_;
 
  public:

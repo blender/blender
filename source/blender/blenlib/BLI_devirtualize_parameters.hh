@@ -12,7 +12,7 @@
  *
  * Using virtual arrays has the downside that individual elements are accessed through a virtual
  * method call, which has some overhead compared to normal array access. Whether this overhead is
- * negilible depends on the context. For very small functions (e.g. a single addition), the
+ * negligible depends on the context. For very small functions (e.g. a single addition), the
  * overhead can make the function many times slower. Furthermore, it prevents the compiler from
  * doing some optimizations (e.g. loop unrolling and inserting SIMD instructions).
  *

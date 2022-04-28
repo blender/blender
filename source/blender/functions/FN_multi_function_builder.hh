@@ -75,7 +75,7 @@ struct AllSpanOrSingle {
 };
 
 /**
- * A slighly weaker variant of #AllSpanOrSingle. It generates less code, because it assumes that
+ * A slightly weaker variant of #AllSpanOrSingle. It generates less code, because it assumes that
  * some of the inputs are most likely single values. It should be used for small functions which
  * have too many inputs to make #AllSingleOrSpan a reasonable choice.
  */

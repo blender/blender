@@ -325,7 +325,7 @@ id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_update_impl(
     NSString *tex_update_kernel_src = [NSString
         stringWithUTF8String:datatoc_compute_texture_update_msl];
 
-    /* Prepare options and specialisations. */
+    /* Prepare options and specializations. */
     MTLCompileOptions *options = [[[MTLCompileOptions alloc] init] autorelease];
     options.languageVersion = MTLLanguageVersion2_2;
     options.preprocessorMacros = @{
@@ -635,7 +635,7 @@ id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_read_impl(
       }
     }
 
-    /* Prepare options and specialisations. */
+    /* Prepare options and specializations. */
     MTLCompileOptions *options = [[[MTLCompileOptions alloc] init] autorelease];
     options.languageVersion = MTLLanguageVersion2_2;
     options.preprocessorMacros = @{

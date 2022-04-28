@@ -1097,11 +1097,11 @@ void animviz_calc_motionpaths(struct Depsgraph *depsgraph,
                               bool restore);
 
 /**
- * Update motion path computation range (in ob.avs or armature.avs) from user choice in
- *  ob.avs.path_range or arm.avs.path_range, depending on active user mode.
+ * Update motion path computation range (in `ob.avs` or `armature.avs`) from user choice in
+ * `ob.avs.path_range` or `arm.avs.path_range`, depending on active user mode.
  *
- * @param ob: Object to compute range for (must be provided)
- * @param scene: Used when scene range is choosen
+ * \param ob: Object to compute range for (must be provided)
+ * \param scene: Used when scene range is chosen.
  */
 void animviz_motionpath_compute_range(struct Object *ob, struct Scene *scene);
 

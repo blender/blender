@@ -58,7 +58,7 @@ template<> struct blender::DefaultHash<TextureUpdateRoutineSpecialisation> {
   }
 };
 
-/* Type of data is being writen to the depth target:
+/* Type of data is being written to the depth target:
  * 0 = floating point (0.0 - 1.0)
  * 1 = 24 bit integer (0 - 2^24)
  * 2 = 32 bit integer (0 - 2^32) */
@@ -179,9 +179,9 @@ class MTLTexture : public Texture {
  private:
   /* Where the textures data comes from. */
   enum {
-    MTL_TEXTURE_MODE_DEFAULT,     /* Texture is self-initialised (Standard). */
+    MTL_TEXTURE_MODE_DEFAULT,     /* Texture is self-initialized (Standard). */
     MTL_TEXTURE_MODE_EXTERNAL,    /* Texture source from external id<MTLTexture> handle */
-    MTL_TEXTURE_MODE_VBO,         /* Texture source initialised from VBO */
+    MTL_TEXTURE_MODE_VBO,         /* Texture source initialized from VBO */
     MTL_TEXTURE_MODE_TEXTURE_VIEW /* Texture is a view into an existing texture. */
   } resource_mode_;
 
@@ -197,15 +197,15 @@ class MTLTexture : public Texture {
   id<MTLBuffer> texture_buffer_;
   unsigned int aligned_w_ = 0;
 
-  /* Blit Framebuffer. */
+  /* Blit Frame-buffer. */
   GPUFrameBuffer *blit_fb_ = nullptr;
   unsigned int blit_fb_slice_ = 0;
   unsigned int blit_fb_mip_ = 0;
 
-  /* Texure view properties */
+  /* Texture view properties */
   /* In Metal, we use texture views to either limit mipmap ranges,
    * , apply a swizzle mask, or both.
-
+   *
    * We apply the mip limit in the view rather than in the sampler, as
    * certain effects and functionality such as textureSize rely on the base level
    * being modified.
@@ -214,7 +214,7 @@ class MTLTexture : public Texture {
    * texture if MTL_TEXTURE_MODE_TEXTURE_VIEW is used.
    * If this mode is used, source_texture points to a GPUTexture from which
    * we pull their texture handle as a root.
-  */
+   */
   const GPUTexture *source_texture_ = nullptr;
 
   enum TextureViewDirtyState {
@@ -286,10 +286,10 @@ class MTLTexture : public Texture {
                      int layer_offset) override; /* Texture View */
 
  private:
-  /* Common Constructor, default initialisation */
+  /* Common Constructor, default initialization. */
   void mtl_texture_init();
 
-  /* Post-construction and member initialisation, prior to baking.
+  /* Post-construction and member initialization, prior to baking.
    * Called during init_internal */
   void prepare_internal();
 
@@ -349,8 +349,8 @@ class MTLTexture : public Texture {
   MEM_CXX_CLASS_ALLOC_FUNCS("gpu::MTLTexture")
 
   /* Texture Update function Utilities. */
-  /* Metal texture updating does not provide the same range of functionality for type conversiona
-   * and format compatibilities as are available in OpenGL. To achieve the same level of
+  /* Metal texture updating does not provide the same range of functionality for type conversion
+   * and format compatibility as are available in OpenGL. To achieve the same level of
    * functionality, we need to instead use compute kernels to perform texture data conversions
    * where appropriate.
    * There are a number of different inputs which affect permutations and thus require different

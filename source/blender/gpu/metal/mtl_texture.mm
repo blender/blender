@@ -71,7 +71,7 @@ void gpu::MTLTexture::mtl_texture_init()
 
 gpu::MTLTexture::MTLTexture(const char *name) : Texture(name)
 {
-  /* Common Initialisation. */
+  /* Common Initialization. */
   mtl_texture_init();
 }
 
@@ -81,7 +81,7 @@ gpu::MTLTexture::MTLTexture(const char *name,
                             id<MTLTexture> metal_texture)
     : Texture(name)
 {
-  /* Common Initialisation. */
+  /* Common Initialization. */
   mtl_texture_init();
 
   /* Prep texture from METAL handle. */
@@ -447,7 +447,7 @@ void gpu::MTLTexture::update_sub(
     int totalsize = 0;
 
     /* If unpack row length is used, size of input data uses the unpack row length, rather than the
-     * image lenght */
+     * image length. */
     int expected_update_w = ((ctx->pipeline_state.unpack_row_length == 0) ?
                                  extent[0] :
                                  ctx->pipeline_state.unpack_row_length);
@@ -1168,7 +1168,7 @@ void gpu::MTLTexture::mip_range_set(int min, int max)
    * - For the time being, we are going to just need to generate a FULL mipmap chain
    *   as we do not know ahead of time whether mipmaps will be used.
    *
-   *   TODO(Metal): Add texture initialisation flag to determine whether mipmaps are used
+   *   TODO(Metal): Add texture initialization flag to determine whether mipmaps are used
    *   or not. Will be important for saving memory for big textures. */
   this->mip_min_ = min;
   this->mip_max_ = max;
@@ -1236,7 +1236,7 @@ void gpu::MTLTexture::read_internal(int mip,
                                     int debug_data_size,
                                     void *r_data)
 {
-  /* Verify texures are baked. */
+  /* Verify textures are baked. */
   if (!this->is_baked_) {
     MTL_LOG_WARNING("gpu::MTLTexture::read_internal - Trying to read from a non-baked texture!\n");
     return;
@@ -1308,7 +1308,7 @@ void gpu::MTLTexture::read_internal(int mip,
   unsigned int destination_offset = 0;
   void *destination_buffer_host_ptr = nullptr;
 
-  /* TODO(Metal): Optimise buffer allocation. */
+  /* TODO(Metal): Optimize buffer allocation. */
   MTLResourceOptions bufferOptions = MTLResourceStorageModeManaged;
   destination_buffer = [ctx->device newBufferWithLength:max_ii(total_bytes, 256)
                                                 options:bufferOptions];
@@ -1592,7 +1592,7 @@ bool gpu::MTLTexture::init_internal(void)
 
 bool gpu::MTLTexture::init_internal(GPUVertBuf *vbo)
 {
-  /* Zero initialise. */
+  /* Zero initialize. */
   this->prepare_internal();
 
   /* TODO(Metal): Add implementation for GPU Vert buf. */
@@ -1603,7 +1603,7 @@ bool gpu::MTLTexture::init_internal(const GPUTexture *src, int mip_offset, int l
 {
   BLI_assert(src);
 
-  /* Zero initialise. */
+  /* Zero initialize. */
   this->prepare_internal();
 
   /* Flag as using texture view. */
@@ -1618,7 +1618,7 @@ bool gpu::MTLTexture::init_internal(const GPUTexture *src, int mip_offset, int l
   BLI_assert(this->texture_);
   [this->texture_ retain];
 
-  /* Flag texture as baked -- we do not need explicit initialisation. */
+  /* Flag texture as baked -- we do not need explicit initialization. */
   this->is_baked_ = true;
   this->is_dirty_ = false;
 
@@ -1638,7 +1638,7 @@ bool gpu::MTLTexture::texture_is_baked()
   return this->is_baked_;
 }
 
-/* Prepare texture parameters after initialisation, but before baking. */
+/* Prepare texture parameters after initialization, but before baking. */
 void gpu::MTLTexture::prepare_internal()
 {
 
@@ -1647,7 +1647,7 @@ void gpu::MTLTexture::prepare_internal()
     this->gpu_image_usage_flags_ |= GPU_TEXTURE_USAGE_ATTACHMENT;
   }
 
-  /* Derive maxmimum number of mip levels by default.
+  /* Derive maximum number of mip levels by default.
    * TODO(Metal): This can be removed if max mip counts are specified upfront. */
   if (this->type_ == GPU_TEXTURE_1D || this->type_ == GPU_TEXTURE_1D_ARRAY ||
       this->type_ == GPU_TEXTURE_BUFFER) {
@@ -1684,7 +1684,7 @@ void gpu::MTLTexture::ensure_baked()
     BLI_assert(this->resource_mode_ != MTL_TEXTURE_MODE_TEXTURE_VIEW);
     BLI_assert(this->resource_mode_ != MTL_TEXTURE_MODE_VBO);
 
-    /* Format and mip levels (TODO(Metal): Optimise mipmaps counts, specify up-front). */
+    /* Format and mip levels (TODO(Metal): Optimize mipmaps counts, specify up-front). */
     MTLPixelFormat mtl_format = gpu_texture_format_to_metal(this->format_);
 
     /* Create texture descriptor. */
@@ -1709,7 +1709,7 @@ void gpu::MTLTexture::ensure_baked()
                                                          1;
         this->texture_descriptor_.usage =
             MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite |
-            MTLTextureUsagePixelFormatView; /* TODO(Metal): Optimise usage flags. */
+            MTLTextureUsagePixelFormatView; /* TODO(Metal): Optimize usage flags. */
         this->texture_descriptor_.storageMode = MTLStorageModePrivate;
         this->texture_descriptor_.sampleCount = 1;
         this->texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;
@@ -1735,7 +1735,7 @@ void gpu::MTLTexture::ensure_baked()
                                                          1;
         this->texture_descriptor_.usage =
             MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite |
-            MTLTextureUsagePixelFormatView; /* TODO(Metal): Optimise usage flags. */
+            MTLTextureUsagePixelFormatView; /* TODO(Metal): Optimize usage flags. */
         this->texture_descriptor_.storageMode = MTLStorageModePrivate;
         this->texture_descriptor_.sampleCount = 1;
         this->texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;
@@ -1757,7 +1757,7 @@ void gpu::MTLTexture::ensure_baked()
                                                          1;
         this->texture_descriptor_.usage =
             MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite |
-            MTLTextureUsagePixelFormatView; /* TODO(Metal): Optimise usage flags. */
+            MTLTextureUsagePixelFormatView; /* TODO(Metal): Optimize usage flags. */
         this->texture_descriptor_.storageMode = MTLStorageModePrivate;
         this->texture_descriptor_.sampleCount = 1;
         this->texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;
@@ -1786,7 +1786,7 @@ void gpu::MTLTexture::ensure_baked()
                                                          1;
         this->texture_descriptor_.usage =
             MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite |
-            MTLTextureUsagePixelFormatView; /* TODO(Metal): Optimise usage flags. */
+            MTLTextureUsagePixelFormatView; /* TODO(Metal): Optimize usage flags. */
         this->texture_descriptor_.storageMode = MTLStorageModePrivate;
         this->texture_descriptor_.sampleCount = 1;
         this->texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;
@@ -1807,7 +1807,7 @@ void gpu::MTLTexture::ensure_baked()
                                                          1;
         this->texture_descriptor_.usage =
             MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite |
-            MTLTextureUsagePixelFormatView; /* TODO(Metal): Optimise usage flags. */
+            MTLTextureUsagePixelFormatView; /* TODO(Metal): Optimize usage flags. */
         this->texture_descriptor_.storageMode = MTLStorageModePrivate;
         this->texture_descriptor_.sampleCount = 1;
         this->texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;

@@ -13,7 +13,7 @@ namespace debug {
 
 extern CLG_LogRef LOG;
 
-/* Initialise debugging. */
+/* Initialize debugging. */
 void mtl_debug_init();
 
 /* Using Macro's instead of variadic template due to non-string-literal
