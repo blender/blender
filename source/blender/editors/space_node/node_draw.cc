@@ -780,26 +780,26 @@ struct SocketTooltipData {
 
 static void create_inspection_string_for_generic_value(const GPointer value, std::stringstream &ss)
 {
-  auto id_to_inspection_string = [&](ID *id, short idcode) {
+  auto id_to_inspection_string = [&](const ID *id, const short idcode) {
     ss << (id ? id->name + 2 : TIP_("None")) << " (" << BKE_idtype_idcode_to_name(idcode) << ")";
   };
 
   const CPPType &type = *value.type();
   const void *buffer = value.get();
   if (type.is<Object *>()) {
-    id_to_inspection_string((ID *)buffer, ID_OB);
+    id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_OB);
   }
   else if (type.is<Material *>()) {
-    id_to_inspection_string((ID *)buffer, ID_MA);
+    id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_MA);
   }
   else if (type.is<Tex *>()) {
-    id_to_inspection_string((ID *)buffer, ID_TE);
+    id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_TE);
   }
   else if (type.is<Image *>()) {
-    id_to_inspection_string((ID *)buffer, ID_IM);
+    id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_IM);
   }
   else if (type.is<Collection *>()) {
-    id_to_inspection_string((ID *)buffer, ID_GR);
+    id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_GR);
   }
   else if (type.is<int>()) {
     ss << *(int *)buffer << TIP_(" (Integer)");
