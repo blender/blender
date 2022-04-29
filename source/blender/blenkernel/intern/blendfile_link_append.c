@@ -1541,14 +1541,49 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
 
   BKE_main_unlock(bmain);
 
-  for (item_idx = 0, itemlink = lapp_context->items.list; itemlink;
-       item_idx++, itemlink = itemlink->next) {
-    BlendfileLinkAppendContextItem *item = itemlink->link;
-    ID *old_id = item->userdata;
+  /* Delete all no more used old IDs. */
+  /* NOTE: While this looping over until we are sure we deleted everything is very far from
+   * efficient, doing otherwise would require a much more complex handling of indirectly linked IDs
+   * in steps above. Currently, in case of relocation, those are skipped in remapping phase, though
+   * in some cases (essentially internal links between IDs from the same library) remapping should
+   * happen. But getting this to work reliably would be very difficult, so since this is not a
+   * performance-critical code, better to go with the (relatively) simpler, brute-force approach
+   * here in 'removal of old IDs' step. */
+  bool keep_looping = true;
+  while (keep_looping) {
+    keep_looping = false;
 
-    if (old_id->us == 0) {
-      BKE_id_free(bmain, old_id);
+    BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+    for (item_idx = 0, itemlink = lapp_context->items.list; itemlink;
+         item_idx++, itemlink = itemlink->next) {
+      BlendfileLinkAppendContextItem *item = itemlink->link;
+      ID *old_id = item->userdata;
+
+      if (old_id == NULL) {
+        continue;
+      }
+
+      if (GS(old_id->name) == ID_KE) {
+        /* Shape Keys are handled as part of their owning obdata (see below). This implies thar
+         * there is no way to know when the old pointer gets invalid, so just clear it immediately.
+         */
+        item->userdata = NULL;
+        continue;
+      }
+
+      if (old_id->us == 0) {
+        old_id->tag |= LIB_TAG_DOIT;
+        item->userdata = NULL;
+        keep_looping = true;
+        Key *old_key = BKE_key_from_id(old_id);
+        if (old_key != NULL) {
+          old_key->id.tag |= LIB_TAG_DOIT;
+        }
+      }
     }
+    BKE_id_multi_tagged_delete(bmain);
+    /* Should not be needed, all tagged IDs should have been deleted above, just 'in case'. */
+    BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
   }
 
   /* Some datablocks can get reloaded/replaced 'silently' because they are not linkable
