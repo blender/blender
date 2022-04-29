@@ -769,6 +769,8 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
+  BKE_sculpt_update_object_for_edit(CTX_data_depsgraph_pointer(C), ob, true, false, false);
+
   /* No color attribute? Set color to white. */
   if (!SCULPT_has_colors(ss)) {
     copy_v4_fl(active_vertex_color, 1.0f);
