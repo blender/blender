@@ -38,9 +38,9 @@ else()
 endif()
 
 # NanoVDB moved into openvdb.
-if(UNIX AND
-   DEFINED NANOVDB_INCLUDE_DIR AND
-   NOT EXISTS ${NANOVDB_INCLUDE_DIR} AND
-   EXISTS ${LIBDIR}/openvdb/include/nanovdb)
-  unset_cache_variables("^NANOVDB")
+if(UNIX AND DEFINED NANOVDB_INCLUDE_DIR)
+  if(NOT EXISTS ${NANOVDB_INCLUDE_DIR} AND
+     EXISTS ${LIBDIR}/openvdb/include/nanovdb)
+    unset_cache_variables("^NANOVDB")
+  endif()
 endif()
