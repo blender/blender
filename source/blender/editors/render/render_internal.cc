@@ -1146,7 +1146,8 @@ void RENDER_OT_render(wmOperatorType *ot)
 Scene *ED_render_job_get_scene(const bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  RenderJob *rj = (RenderJob *)WM_jobs_customdata_from_type(wm, WM_JOB_TYPE_RENDER);
+  RenderJob *rj = (RenderJob *)WM_jobs_customdata_from_type(
+      wm, CTX_data_scene(C), WM_JOB_TYPE_RENDER);
 
   if (rj) {
     return rj->scene;
@@ -1158,7 +1159,8 @@ Scene *ED_render_job_get_scene(const bContext *C)
 Scene *ED_render_job_get_current_scene(const bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  RenderJob *rj = (RenderJob *)WM_jobs_customdata_from_type(wm, WM_JOB_TYPE_RENDER);
+  RenderJob *rj = (RenderJob *)WM_jobs_customdata_from_type(
+      wm, CTX_data_scene(C), WM_JOB_TYPE_RENDER);
   if (rj) {
     return rj->current_scene;
   }

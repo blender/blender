@@ -1322,8 +1322,7 @@ const char *WM_jobs_name(const struct wmWindowManager *wm, const void *owner);
  * Time that job started.
  */
 double WM_jobs_starttime(const struct wmWindowManager *wm, const void *owner);
-void *WM_jobs_customdata(struct wmWindowManager *wm, const void *owner);
-void *WM_jobs_customdata_from_type(struct wmWindowManager *wm, int job_type);
+void *WM_jobs_customdata_from_type(struct wmWindowManager *wm, const void *owner, int job_type);
 
 bool WM_jobs_is_running(const struct wmJob *wm_job);
 bool WM_jobs_is_stopped(const wmWindowManager *wm, const void *owner);
