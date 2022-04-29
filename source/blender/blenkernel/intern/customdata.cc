@@ -5328,6 +5328,11 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, int count)
     }
   }
 
+  /* Ensure allocated size is set to the size of the read array. While this should always be the
+   * case (see #CustomData_blend_write_prepare), there can be some corruption in rare cases (e.g.
+   * files saved between ff3d535bc2a63092 and 945f32e66d6ada2a). */
+  data->maxlayer = data->totlayer;
+
   CustomData_update_typemap(data);
 }
 
