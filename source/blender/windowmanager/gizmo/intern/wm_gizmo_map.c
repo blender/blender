@@ -649,7 +649,7 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
       BLI_assert(buf_iter->id != -1);
       wmGizmo *gz = visible_gizmos[buf_iter->id >> 8];
       float co_3d[3];
-      co_screen[2] = int_as_float(buf_iter->depth);
+      co_screen[2] = (float)((double)buf_iter->depth / (double)UINT_MAX);
       GPU_matrix_unproject_3fv(co_screen, rv3d->viewinv, rv3d->winmat, viewport, co_3d);
       float select_bias = gz->select_bias;
       if ((gz->flag & WM_GIZMO_DRAW_NO_SCALE) == 0) {
