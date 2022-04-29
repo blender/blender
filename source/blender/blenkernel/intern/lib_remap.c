@@ -131,8 +131,8 @@ static void foreach_libblock_remap_callback_apply(ID *id_owner,
       id_us_min(old_id);
     }
     if (new_id != NULL && (force_user_refcount || (new_id->tag & LIB_TAG_NO_MAIN) == 0)) {
-      /* We do not want to handle LIB_TAG_INDIRECT/LIB_TAG_EXTERN here. */
-      new_id->us++;
+      /* Do not handle LIB_TAG_INDIRECT/LIB_TAG_EXTERN here. */
+      id_us_plus_no_lib(new_id);
     }
   }
   else if (cb_flag & IDWALK_CB_USER_ONE) {
