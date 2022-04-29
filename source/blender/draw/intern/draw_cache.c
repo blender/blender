@@ -3357,7 +3357,7 @@ void drw_batch_cache_generate_requested(Object *ob)
   }
 }
 
-void drw_batch_cache_generate_requested_evaluated_mesh(Object *ob)
+void drw_batch_cache_generate_requested_evaluated_mesh_or_curve(Object *ob)
 {
   /* NOTE: Logic here is duplicated from #drw_batch_cache_generate_requested. */
 
@@ -3374,7 +3374,17 @@ void drw_batch_cache_generate_requested_evaluated_mesh(Object *ob)
                           ((mode == CTX_MODE_EDIT_MESH) && DRW_object_is_in_edit_mode(ob))));
 
   Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(ob);
-  DRW_mesh_batch_cache_create_requested(DST.task_graph, ob, mesh, scene, is_paint_mode, use_hide);
+  /* Try getting the mesh first and if that fails, try getting the curve data.
+   * If the curves are surfaces or have certain modifiers applied to them, the will have mesh data
+   * of the final result.
+   */
+  if (mesh != NULL) {
+    DRW_mesh_batch_cache_create_requested(
+        DST.task_graph, ob, mesh, scene, is_paint_mode, use_hide);
+  }
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
+    DRW_curve_batch_cache_create_requested(ob, scene);
+  }
 }
 
 void drw_batch_cache_generate_requested_delayed(Object *ob)

@@ -671,7 +671,7 @@ void drw_batch_cache_generate_requested(struct Object *ob);
  * \warning Only evaluated mesh data is handled by this delayed generation.
  */
 void drw_batch_cache_generate_requested_delayed(Object *ob);
-void drw_batch_cache_generate_requested_evaluated_mesh(Object *ob);
+void drw_batch_cache_generate_requested_evaluated_mesh_or_curve(Object *ob);
 
 void drw_resource_buffer_finish(DRWData *vmempool);
 

@@ -164,7 +164,7 @@ static void drw_task_graph_deinit(void)
   BLI_task_graph_work_and_wait(DST.task_graph);
 
   BLI_gset_free(DST.delayed_extraction,
-                (void (*)(void *key))drw_batch_cache_generate_requested_evaluated_mesh);
+                (void (*)(void *key))drw_batch_cache_generate_requested_evaluated_mesh_or_curve);
   DST.delayed_extraction = NULL;
   BLI_task_graph_work_and_wait(DST.task_graph);
 
