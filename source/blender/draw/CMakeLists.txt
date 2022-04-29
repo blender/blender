@@ -419,8 +419,8 @@ set(GLSL_SRC
   engines/gpencil/gpencil_defines.h
   engines/gpencil/gpencil_shader_shared.h
 
-  engines/select/shaders/selection_id_3D_vert.glsl
-  engines/select/shaders/selection_id_frag.glsl
+  engines/select/shaders/select_id_vert.glsl
+  engines/select/shaders/select_id_frag.glsl
 
   engines/basic/shaders/conservative_depth_geom.glsl
   engines/basic/shaders/depth_vert.glsl
