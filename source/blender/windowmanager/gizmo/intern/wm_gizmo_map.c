@@ -24,6 +24,7 @@
 
 #include "GPU_framebuffer.h"
 #include "GPU_matrix.h"
+#include "GPU_platform.h"
 #include "GPU_select.h"
 #include "GPU_state.h"
 #include "GPU_viewport.h"
@@ -753,6 +754,14 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
 
     bool use_depth_test = false;
     bool use_depth_cache = false;
+
+    /* Workaround for MS-Windows & NVidia failing to detect any gizmo undo the cursor unless the
+     * depth test is enabled, see: T97124.
+     * NOTE(@campbellbarton): Ideally the exact cause of this could be tracked down,
+     * disable as I don't have a system to test this configuration. */
+    if (GPU_type_matches(GPU_DEVICE_NVIDIA | GPU_DEVICE_SOFTWARE, GPU_OS_WIN, GPU_DRIVER_ANY)) {
+      use_depth_test = true;
+    }
 
     for (int i = 0; i < ARRAY_SIZE(hotspot_radii); i++) {
 
