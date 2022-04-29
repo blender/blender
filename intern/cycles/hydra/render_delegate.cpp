@@ -155,7 +155,7 @@ void HdCyclesDelegate::SetDrivers(const HdDriverVector &drivers)
 
 bool HdCyclesDelegate::IsDisplaySupported() const
 {
-#ifdef _WIN32
+#if defined(_WIN32) && defined(WITH_HYDRA_DISPLAY_DRIVER)
   return _hgi && _hgi->GetAPIName() == HgiTokens->OpenGL;
 #else
   return false;

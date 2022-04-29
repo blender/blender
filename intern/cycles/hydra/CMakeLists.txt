@@ -26,7 +26,6 @@ set(INC_HD_CYCLES
   camera.h
   config.h
   curves.h
-  display_driver.h
   field.h
   geometry.h
   geometry.inl
@@ -48,7 +47,6 @@ set(SRC_HD_CYCLES
   attribute.cpp
   curves.cpp
   camera.cpp
-  display_driver.cpp
   field.cpp
   instancer.cpp
   light.cpp
@@ -71,6 +69,13 @@ if(WITH_OPENVDB)
   list(APPEND INC_SYS
     ${OPENVDB_INCLUDE_DIRS}
   )
+endif()
+
+# Blender libraries do not include hgiGL, so build without display driver then.
+if(EXISTS ${USD_INCLUDE_DIR}/pxr/imaging/hgiGL)
+  add_definitions(-DWITH_HYDRA_DISPLAY_DRIVER)
+  list(APPEND SRC_HD_CYCLES display_driver.cpp)
+  list(APPEND INC_HD_CYCLES display_driver.h)
 endif()
 
 include_directories(${INC})
