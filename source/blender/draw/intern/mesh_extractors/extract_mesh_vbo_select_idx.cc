@@ -280,7 +280,7 @@ static void extract_edge_idx_loose_geom_subdiv(const DRWSubdivCache *subdiv_cach
 
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
   int32_t *vert_idx_data = (int32_t *)GPU_vertbuf_get_data(vbo);
-  int offset = subdiv_cache->num_subdiv_loops;
+  uint offset = subdiv_cache->num_subdiv_loops;
 
   blender::Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
   for (const DRWSubdivLooseEdge &loose_edge : loose_edges) {
