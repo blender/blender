@@ -676,19 +676,12 @@ GPUShader *OVERLAY_shader_edit_particle_point(void)
 GPUShader *OVERLAY_shader_extra(bool is_select)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   GPUShader **sh = (is_select) ? &sh_data->extra_select : &sh_data->extra;
   if (!*sh) {
-    *sh = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_extra_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_common_view_lib_glsl, datatoc_extra_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, (is_select) ? "#define SELECT_EDGES\n" : NULL, NULL},
-    });
+    *sh = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? (is_select ? "overlay_extra_select_clipped" : "overlay_extra_clipped") :
+                           (is_select ? "overlay_extra_select" : "overlay_extra"));
   }
   return *sh;
 }
@@ -696,19 +689,10 @@ GPUShader *OVERLAY_shader_extra(bool is_select)
 GPUShader *OVERLAY_shader_extra_grid(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->extra_lightprobe_grid) {
-    sh_data->extra_lightprobe_grid = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_gpu_shader_common_obinfos_lib_glsl,
-                                 datatoc_extra_lightprobe_grid_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_gpu_shader_point_varying_color_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->extra_lightprobe_grid = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_extra_grid_clipped" : "overlay_extra_grid");
   }
   return sh_data->extra_lightprobe_grid;
 }
@@ -716,18 +700,10 @@ GPUShader *OVERLAY_shader_extra_grid(void)
 GPUShader *OVERLAY_shader_extra_groundline(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->extra_groundline) {
-    sh_data->extra_groundline = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_extra_groundline_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_common_view_lib_glsl, datatoc_extra_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->extra_groundline = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_extra_groundline_clipped" : "overlay_extra_groundline");
   }
   return sh_data->extra_groundline;
 }
@@ -735,37 +711,28 @@ GPUShader *OVERLAY_shader_extra_groundline(void)
 GPUShader *OVERLAY_shader_extra_wire(bool use_object, bool is_select)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   GPUShader **sh = (is_select) ? &sh_data->extra_wire_select : &sh_data->extra_wire[use_object];
   if (!*sh) {
-    char colorids[1024];
-    /* NOTE: define all ids we need here. */
-    BLI_snprintf(colorids,
-                 sizeof(colorids),
-                 "#define TH_ACTIVE %d\n"
-                 "#define TH_SELECT %d\n"
-                 "#define TH_TRANSFORM %d\n"
-                 "#define TH_WIRE %d\n"
-                 "#define TH_CAMERA_PATH %d\n",
-                 TH_ACTIVE,
-                 TH_SELECT,
-                 TH_TRANSFORM,
-                 TH_WIRE,
-                 TH_CAMERA_PATH);
-    *sh = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_extra_wire_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_common_view_lib_glsl, datatoc_extra_wire_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def,
-                                 colorids,
-                                 (is_select) ? "#define SELECT_EDGES\n" : "",
-                                 (use_object) ? "#define OBJECT_WIRE \n" : NULL,
-                                 NULL},
-    });
+    const char *info_name = NULL;
+    if (draw_ctx->sh_cfg) {
+      if (is_select) {
+        info_name = "overlay_extra_wire_select_clipped";
+      }
+      else {
+        info_name = use_object ? "overlay_extra_wire_object_clipped" :
+                                 "overlay_extra_wire_clipped";
+      }
+    }
+    else {
+      if (is_select) {
+        info_name = "overlay_extra_wire_select";
+      }
+      else {
+        info_name = use_object ? "overlay_extra_wire_object" : "overlay_extra_wire";
+      }
+    }
+    *sh = GPU_shader_create_from_info_name(info_name);
   }
   return *sh;
 }
@@ -773,20 +740,10 @@ GPUShader *OVERLAY_shader_extra_wire(bool use_object, bool is_select)
 GPUShader *OVERLAY_shader_extra_loose_point(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->extra_loose_point) {
-    sh_data->extra_loose_point = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_extra_loose_point_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_common_globals_lib_glsl,
-                                 datatoc_extra_loose_point_frag_glsl,
-                                 NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->extra_loose_point = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_extra_loose_point_clipped" : "overlay_extra_loose_point");
   }
   return sh_data->extra_loose_point;
 }
@@ -794,20 +751,10 @@ GPUShader *OVERLAY_shader_extra_loose_point(void)
 GPUShader *OVERLAY_shader_extra_point(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->extra_point) {
-    sh_data->extra_point = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_extra_point_vert_glsl,
-                                 NULL},
-        .frag =
-            (const char *[]){datatoc_gpu_shader_point_varying_color_varying_outline_aa_frag_glsl,
-                             NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->extra_point = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_extra_point_clipped" : "overlay_extra_point");
   }
   return sh_data->extra_point;
 }

@@ -1,10 +1,6 @@
 
-in vec3 pos;
-in int vclass;
-
-/* Instance */
-in mat4 inst_obmat;
-in vec4 color;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 #define lamp_area_size inst_data.xy
 #define lamp_clip_sta inst_data.z
@@ -15,7 +11,7 @@ in vec4 color;
 
 #define camera_corner inst_data.xy
 #define camera_center inst_data.zw
-#define camera_dist inst_color_data
+#define camera_dist color.a
 #define camera_dist_sta inst_data.z
 #define camera_dist_end inst_data.w
 #define camera_distance_color inst_data.x
@@ -23,6 +19,7 @@ in vec4 color;
 #define empty_size inst_data.xyz
 #define empty_scale inst_data.w
 
+/* TODO(fclem): Share with C code. */
 #define VCLASS_LIGHT_AREA_SHAPE (1 << 0)
 #define VCLASS_LIGHT_SPOT_SHAPE (1 << 1)
 #define VCLASS_LIGHT_SPOT_BLEND (1 << 2)
@@ -41,10 +38,6 @@ in vec4 color;
 #define VCLASS_EMPTY_AXES_NAME (1 << 12)
 #define VCLASS_EMPTY_AXES_SHADOW (1 << 13)
 #define VCLASS_EMPTY_SIZE (1 << 14)
-
-flat out vec4 finalColor;
-flat out vec2 edgeStart;
-noperspective out vec2 edgePos;
 
 void main()
 {
@@ -225,10 +218,9 @@ void main()
   /* HACK: to avoid losing sub-pixel object in selections, we add a bit of randomness to the
    * wire to at least create one fragment that will pass the occlusion query. */
   /* TODO(fclem): Limit this workaround to selection. It's not very noticeable but still... */
-  gl_Position.xy += sizeViewportInv.xy * gl_Position.w * ((gl_VertexID % 2 == 0) ? -1.0 : 1.0);
+  gl_Position.xy += drw_view.viewport_size_inverse * gl_Position.w *
+                    ((gl_VertexID % 2 == 0) ? -1.0 : 1.0);
 #endif
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(world_pos);
-#endif
+  view_clipping_distances(world_pos);
 }
