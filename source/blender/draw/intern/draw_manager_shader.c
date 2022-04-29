@@ -237,16 +237,10 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
 
 void DRW_deferred_shader_remove(GPUMaterial *mat)
 {
-  for (wmWindowManager *wm = G_MAIN->wm.first; wm; wm = wm->id.next) {
-    if (WM_jobs_test(wm, wm, WM_JOB_TYPE_SHADER_COMPILATION) == false) {
-      /* No job running, do not create a new one by calling WM_jobs_get. */
-      continue;
-    }
+  LISTBASE_FOREACH (wmWindowManager *, wm, &G_MAIN->wm) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      wmJob *wm_job = WM_jobs_get(
-          wm, win, wm, "Shaders Compilation", 0, WM_JOB_TYPE_SHADER_COMPILATION);
-
-      DRWShaderCompiler *comp = (DRWShaderCompiler *)WM_jobs_customdata_get(wm_job);
+      DRWShaderCompiler *comp = (DRWShaderCompiler *)WM_jobs_customdata_from_type(
+          wm, wm, WM_JOB_TYPE_SHADER_COMPILATION);
       if (comp != NULL) {
         BLI_spin_lock(&comp->list_lock);
         LinkData *link = (LinkData *)BLI_findptr(&comp->queue, mat, offsetof(LinkData, data));
@@ -256,7 +250,7 @@ void DRW_deferred_shader_remove(GPUMaterial *mat)
         }
         BLI_spin_unlock(&comp->list_lock);
 
-        MEM_freeN(link);
+        MEM_SAFE_FREE(link);
       }
     }
   }
