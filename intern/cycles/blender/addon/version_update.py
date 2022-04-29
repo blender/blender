@@ -155,16 +155,17 @@ def do_versions(self):
                     cscene.preview_samples = 10
 
                 # Filter
-                if not cscene.is_property_set("filter_type"):
+                if cscene.get("filter_type", -1) == -1:
                     cscene.pixel_filter_type = 'GAUSSIAN'
 
             if version <= (2, 76, 10):
                 cscene = scene.cycles
-                if cscene.is_property_set("filter_type"):
-                    if not cscene.is_property_set("pixel_filter_type"):
-                        cscene.pixel_filter_type = cscene.filter_type
-                    if cscene.filter_type == 'BLACKMAN_HARRIS':
-                        cscene.filter_type = 'GAUSSIAN'
+                if not cscene.is_property_set("pixel_filter_type"):
+                    filter_type_int = cscene.get("filter_type", -1)
+                    if filter_type_int == 0:
+                        cscene.pixel_filter_type = 'BOX'
+                    elif filter_type_int == 1:
+                        cscene.pixel_filter_type = 'GAUSSIAN'
 
             if version <= (2, 78, 2):
                 cscene = scene.cycles
