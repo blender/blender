@@ -647,8 +647,6 @@ void PathTrace::update_display(const RenderWork &render_work)
 
 void PathTrace::rebalance(const RenderWork &render_work)
 {
-  static const int kLogLevel = 3;
-
   if (!render_work.rebalance) {
     return;
   }
@@ -656,33 +654,33 @@ void PathTrace::rebalance(const RenderWork &render_work)
   const int num_works = path_trace_works_.size();
 
   if (num_works == 1) {
-    VLOG(kLogLevel) << "Ignoring rebalance work due to single device render.";
+    VLOG(3) << "Ignoring rebalance work due to single device render.";
     return;
   }
 
   const double start_time = time_dt();
 
-  if (VLOG_IS_ON(kLogLevel)) {
-    VLOG(kLogLevel) << "Perform rebalance work.";
-    VLOG(kLogLevel) << "Per-device path tracing time (seconds):";
+  if (VLOG_IS_ON(3)) {
+    VLOG(3) << "Perform rebalance work.";
+    VLOG(3) << "Per-device path tracing time (seconds):";
     for (int i = 0; i < num_works; ++i) {
-      VLOG(kLogLevel) << path_trace_works_[i]->get_device()->info.description << ": "
-                      << work_balance_infos_[i].time_spent;
+      VLOG(3) << path_trace_works_[i]->get_device()->info.description << ": "
+              << work_balance_infos_[i].time_spent;
     }
   }
 
   const bool did_rebalance = work_balance_do_rebalance(work_balance_infos_);
 
-  if (VLOG_IS_ON(kLogLevel)) {
-    VLOG(kLogLevel) << "Calculated per-device weights for works:";
+  if (VLOG_IS_ON(3)) {
+    VLOG(3) << "Calculated per-device weights for works:";
     for (int i = 0; i < num_works; ++i) {
-      VLOG(kLogLevel) << path_trace_works_[i]->get_device()->info.description << ": "
-                      << work_balance_infos_[i].weight;
+      VLOG(3) << path_trace_works_[i]->get_device()->info.description << ": "
+              << work_balance_infos_[i].weight;
     }
   }
 
   if (!did_rebalance) {
-    VLOG(kLogLevel) << "Balance in path trace works did not change.";
+    VLOG(3) << "Balance in path trace works did not change.";
     render_scheduler_.report_rebalance_time(render_work, time_dt() - start_time, false);
     return;
   }
