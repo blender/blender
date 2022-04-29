@@ -369,7 +369,7 @@ static void options_parse(int argc, const char **argv)
 
   /* parse options */
   ArgParse ap;
-  bool help = false, debug = false, version = false;
+  bool help = false, profile = false, debug = false, version = false;
   int verbosity = 1;
 
   ap.options("Usage: cycles [options] file.xml",
@@ -411,6 +411,9 @@ static void options_parse(int argc, const char **argv)
              "--list-devices",
              &list,
              "List information about all available devices",
+             "--profile",
+             &profile,
+             "Enable profile logging",
 #ifdef WITH_CYCLES_LOGGING
              "--debug",
              &debug,
@@ -459,6 +462,8 @@ static void options_parse(int argc, const char **argv)
     ap.usage();
     exit(EXIT_SUCCESS);
   }
+
+  options.session_params.use_profiling = profile;
 
   if (ssname == "osl")
     options.scene_params.shadingsystem = SHADINGSYSTEM_OSL;
