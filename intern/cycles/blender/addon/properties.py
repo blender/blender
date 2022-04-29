@@ -589,17 +589,6 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         default=0.1,
     )
 
-    # Really annoyingly, we have to keep it around for a few releases,
-    # otherwise forward compatibility breaks in really bad manner: CRASH!
-    #
-    # TODO(sergey): Remove this during 2.8x series of Blender.
-    filter_type: EnumProperty(
-        name="Filter Type",
-        description="Pixel filter type",
-        items=enum_filter_types,
-        default='BLACKMAN_HARRIS',
-    )
-
     pixel_filter_type: EnumProperty(
         name="Filter Type",
         description="Pixel filter type",
