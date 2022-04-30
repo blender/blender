@@ -447,6 +447,7 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/overlay/shaders/infos/extra_info.hh
   ../draw/engines/overlay/shaders/infos/grid_info.hh
   ../draw/engines/overlay/shaders/infos/edit_mode_info.hh
+  ../draw/engines/overlay/shaders/infos/volume_info.hh
   ../draw/engines/select/shaders/infos/select_id_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_composite_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_effect_antialiasing_info.hh
