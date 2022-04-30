@@ -2,11 +2,14 @@
 
 #include "gpu_shader_create_info.hh"
 
+GPU_SHADER_INTERFACE_INFO(overlay_edit_flat_color_iface, "").flat(Type::VEC4, "finalColor");
+
+GPU_SHADER_INTERFACE_INFO(overlay_edit_nopersp_color_iface, "")
+    .no_perspective(Type::VEC4, "finalColor");
+
 /* -------------------------------------------------------------------- */
 /** \name Edit Mesh
  * \{ */
-
-GPU_SHADER_INTERFACE_INFO(overlay_edit_mesh_color_iface, "").flat(Type::VEC4, "finalColor");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_common)
     .define("blender_srgb_to_framebuffer_space(a)", "a")
@@ -71,7 +74,7 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_face)
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::IVEC4, "data")
     .vertex_in(2, Type::VEC3, "vnor")
-    .vertex_out(overlay_edit_mesh_color_iface)
+    .vertex_out(overlay_edit_flat_color_iface)
     .fragment_source("gpu_shader_3D_smooth_color_frag.glsl")
     .additional_info("overlay_edit_mesh_common");
 
@@ -82,7 +85,7 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_facedot)
     .vertex_in(1, Type::IVEC4, "data")
     .vertex_in(2, Type::VEC4, "norAndFlag")
     .define("vnor", "norAndFlag.xyz")
-    .vertex_out(overlay_edit_mesh_color_iface)
+    .vertex_out(overlay_edit_flat_color_iface)
     .fragment_source("gpu_shader_point_varying_color_frag.glsl")
     .additional_info("overlay_edit_mesh_common");
 
@@ -98,7 +101,7 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_normal)
     .push_constant(Type::FLOAT, "normalScreenSize")
     .push_constant(Type::FLOAT, "alpha")
     .push_constant(Type::BOOL, "isConstantScreenSizeNormals")
-    .vertex_out(overlay_edit_mesh_color_iface)
+    .vertex_out(overlay_edit_flat_color_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_source("edit_mesh_normal_vert.glsl")
     .fragment_source("gpu_shader_flat_color_frag.glsl")
@@ -123,7 +126,7 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_skin_root)
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::FLOAT, "size")
     .vertex_in(2, Type::VEC3, "local_pos")
-    .vertex_out(overlay_edit_mesh_color_iface)
+    .vertex_out(overlay_edit_flat_color_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_source("edit_mesh_skin_root_vert.glsl")
     .fragment_source("gpu_shader_flat_color_frag.glsl")
@@ -160,5 +163,132 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_analysis_clipped)
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_skin_root_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_edit_mesh_skin_root", "drw_clipped");
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit UV
+ * \{ */
+
+GPU_SHADER_INTERFACE_INFO(overlay_edit_uv_iface, "geom_in")
+    .smooth(Type::FLOAT, "selectionFac")
+    .no_perspective(Type::VEC2, "stipplePos")
+    .flat(Type::VEC2, "stippleStart");
+
+GPU_SHADER_INTERFACE_INFO(overlay_edit_uv_geom_iface, "geom_out")
+    .smooth(Type::FLOAT, "selectionFac")
+    .no_perspective(Type::FLOAT, "edgeCoord")
+    .no_perspective(Type::VEC2, "stipplePos")
+    .flat(Type::VEC2, "stippleStart");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_uv_edges)
+    .do_static_compilation(true)
+    .vertex_in(0, Type::VEC2, "au")
+    .vertex_in(1, Type::INT, "flag")
+    .vertex_out(overlay_edit_uv_iface)
+    .geometry_layout(PrimitiveIn::LINES, PrimitiveOut::TRIANGLE_STRIP, 4)
+    .geometry_out(overlay_edit_uv_geom_iface)
+    .push_constant(Type::INT, "lineStyle")
+    .push_constant(Type::BOOL, "doSmoothWire")
+    .push_constant(Type::FLOAT, "alpha")
+    .push_constant(Type::FLOAT, "dashLength")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("edit_uv_edges_vert.glsl")
+    .geometry_source("edit_uv_edges_geom.glsl")
+    .fragment_source("edit_uv_edges_frag.glsl")
+    .additional_info("draw_mesh", "draw_globals");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_uv_edges_select)
+    .do_static_compilation(true)
+    .define("USE_EDGE_SELECT")
+    .additional_info("overlay_edit_uv_edges");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_uv_faces)
+    .do_static_compilation(true)
+    /* NOTE: Color already in Linear space. Which is what we want. */
+    .define("srgbTarget", "false")
+    .vertex_in(0, Type::VEC2, "au")
+    .vertex_in(1, Type::INT, "flag")
+    .push_constant(Type::FLOAT, "uvOpacity")
+    .vertex_out(overlay_edit_flat_color_iface)
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("edit_uv_faces_vert.glsl")
+    .fragment_source("gpu_shader_flat_color_frag.glsl")
+    .additional_info("draw_mesh", "draw_globals");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_uv_face_dots)
+    .do_static_compilation(true)
+    /* NOTE: Color already in Linear space. Which is what we want. */
+    .define("srgbTarget", "false")
+    .vertex_in(0, Type::VEC2, "au")
+    .vertex_in(1, Type::INT, "flag")
+    .push_constant(Type::FLOAT, "pointSize")
+    .vertex_out(overlay_edit_flat_color_iface)
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("edit_uv_face_dots_vert.glsl")
+    .fragment_source("gpu_shader_flat_color_frag.glsl")
+    .additional_info("draw_mesh", "draw_globals");
+
+GPU_SHADER_INTERFACE_INFO(overlay_edit_uv_vert_iface, "")
+    .smooth(Type::VEC4, "fillColor")
+    .smooth(Type::VEC4, "outlineColor")
+    .smooth(Type::VEC4, "radii");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_uv_verts)
+    .do_static_compilation(true)
+    /* NOTE: Color already in Linear space. Which is what we want. */
+    .define("srgbTarget", "false")
+    .vertex_in(0, Type::VEC2, "au")
+    .vertex_in(1, Type::INT, "flag")
+    .push_constant(Type::FLOAT, "pointSize")
+    .push_constant(Type::FLOAT, "outlineWidth")
+    .push_constant(Type::VEC4, "color")
+    .vertex_out(overlay_edit_uv_vert_iface)
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("edit_uv_verts_vert.glsl")
+    .fragment_source("edit_uv_verts_frag.glsl")
+    .additional_info("draw_mesh", "draw_globals");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_uv_tiled_image_borders)
+    .do_static_compilation(true)
+    /* NOTE: Color already in Linear space. Which is what we want. */
+    .define("srgbTarget", "false")
+    .vertex_in(0, Type::VEC3, "pos")
+    .push_constant(Type::VEC4, "color")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("edit_uv_tiled_image_borders_vert.glsl")
+    .fragment_source("gpu_shader_uniform_color_frag.glsl")
+    .additional_info("draw_mesh");
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name UV Stretching
+ * \{ */
+
+GPU_SHADER_CREATE_INFO(overlay_edit_uv_stretching)
+    /* NOTE: Color already in Linear space. Which is what we want. */
+    .define("srgbTarget", "false")
+    .vertex_in(0, Type::VEC2, "pos")
+    .push_constant(Type::VEC2, "aspect")
+    .vertex_out(overlay_edit_nopersp_color_iface)
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("edit_uv_stretching_vert.glsl")
+    .fragment_source("gpu_shader_2D_smooth_color_frag.glsl")
+    .additional_info("draw_mesh", "draw_globals");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_uv_stretching_area)
+    .do_static_compilation(true)
+    .vertex_in(1, Type::FLOAT, "ratio")
+    .push_constant(Type::FLOAT, "totalAreaRatio")
+    .push_constant(Type::FLOAT, "totalAreaRatioInv")
+    .additional_info("overlay_edit_uv_stretching");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_uv_stretching_angle)
+    .do_static_compilation(true)
+    .define("STRETCH_ANGLE")
+    .vertex_in(1, Type::VEC2, "uv_angles")
+    .vertex_in(2, Type::FLOAT, "angle")
+    .additional_info("overlay_edit_uv_stretching");
 
 /** \} */

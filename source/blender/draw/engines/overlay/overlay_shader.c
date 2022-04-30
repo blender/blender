@@ -1315,11 +1315,7 @@ GPUShader *OVERLAY_shader_edit_uv_edges_get(void)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
   if (!sh_data->edit_uv_edges) {
-    sh_data->edit_uv_edges = DRW_shader_create_with_shaderlib(datatoc_edit_uv_edges_vert_glsl,
-                                                              datatoc_edit_uv_edges_geom_glsl,
-                                                              datatoc_edit_uv_edges_frag_glsl,
-                                                              e_data.lib,
-                                                              NULL);
+    sh_data->edit_uv_edges = GPU_shader_create_from_info_name("overlay_edit_uv_edges_select");
   }
   return sh_data->edit_uv_edges;
 }
@@ -1328,12 +1324,8 @@ GPUShader *OVERLAY_shader_edit_uv_edges_for_edge_select_get(void)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
   if (!sh_data->edit_uv_edges_for_edge_select) {
-    sh_data->edit_uv_edges_for_edge_select = DRW_shader_create_with_shaderlib(
-        datatoc_edit_uv_edges_vert_glsl,
-        datatoc_edit_uv_edges_geom_glsl,
-        datatoc_edit_uv_edges_frag_glsl,
-        e_data.lib,
-        "#define USE_EDGE_SELECT\n");
+    sh_data->edit_uv_edges_for_edge_select = GPU_shader_create_from_info_name(
+        "overlay_edit_uv_edges");
   }
   return sh_data->edit_uv_edges_for_edge_select;
 }
@@ -1342,12 +1334,7 @@ GPUShader *OVERLAY_shader_edit_uv_face_get(void)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
   if (!sh_data->edit_uv_faces) {
-    sh_data->edit_uv_faces = DRW_shader_create_with_shaderlib(
-        datatoc_edit_uv_faces_vert_glsl,
-        NULL,
-        datatoc_gpu_shader_flat_color_frag_glsl,
-        e_data.lib,
-        "#define blender_srgb_to_framebuffer_space(a) a\n");
+    sh_data->edit_uv_faces = GPU_shader_create_from_info_name("overlay_edit_uv_faces");
   }
   return sh_data->edit_uv_faces;
 }
@@ -1356,12 +1343,7 @@ GPUShader *OVERLAY_shader_edit_uv_face_dots_get(void)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
   if (!sh_data->edit_uv_face_dots) {
-    sh_data->edit_uv_face_dots = DRW_shader_create_with_shaderlib(
-        datatoc_edit_uv_face_dots_vert_glsl,
-        NULL,
-        datatoc_gpu_shader_flat_color_frag_glsl,
-        e_data.lib,
-        "#define blender_srgb_to_framebuffer_space(a) a\n");
+    sh_data->edit_uv_face_dots = GPU_shader_create_from_info_name("overlay_edit_uv_face_dots");
   }
   return sh_data->edit_uv_face_dots;
 }
@@ -1370,8 +1352,7 @@ GPUShader *OVERLAY_shader_edit_uv_verts_get(void)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
   if (!sh_data->edit_uv_verts) {
-    sh_data->edit_uv_verts = DRW_shader_create_with_shaderlib(
-        datatoc_edit_uv_verts_vert_glsl, NULL, datatoc_edit_uv_verts_frag_glsl, e_data.lib, NULL);
+    sh_data->edit_uv_verts = GPU_shader_create_from_info_name("overlay_edit_uv_verts");
   }
 
   return sh_data->edit_uv_verts;
@@ -1381,12 +1362,8 @@ GPUShader *OVERLAY_shader_edit_uv_stretching_area_get(void)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
   if (!sh_data->edit_uv_stretching_area) {
-    sh_data->edit_uv_stretching_area = DRW_shader_create_with_shaderlib(
-        datatoc_edit_uv_stretching_vert_glsl,
-        NULL,
-        datatoc_gpu_shader_2D_smooth_color_frag_glsl,
-        e_data.lib,
-        "#define blender_srgb_to_framebuffer_space(a) a\n");
+    sh_data->edit_uv_stretching_area = GPU_shader_create_from_info_name(
+        "overlay_edit_uv_stretching_area");
   }
 
   return sh_data->edit_uv_stretching_area;
@@ -1396,12 +1373,8 @@ GPUShader *OVERLAY_shader_edit_uv_stretching_angle_get(void)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
   if (!sh_data->edit_uv_stretching_angle) {
-    sh_data->edit_uv_stretching_angle = DRW_shader_create_with_shaderlib(
-        datatoc_edit_uv_stretching_vert_glsl,
-        NULL,
-        datatoc_gpu_shader_2D_smooth_color_frag_glsl,
-        e_data.lib,
-        "#define blender_srgb_to_framebuffer_space(a) a\n#define STRETCH_ANGLE\n");
+    sh_data->edit_uv_stretching_angle = GPU_shader_create_from_info_name(
+        "overlay_edit_uv_stretching_angle");
   }
 
   return sh_data->edit_uv_stretching_angle;
@@ -1411,12 +1384,8 @@ GPUShader *OVERLAY_shader_edit_uv_tiled_image_borders_get(void)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
   if (!sh_data->edit_uv_tiled_image_borders) {
-    sh_data->edit_uv_tiled_image_borders = DRW_shader_create_with_shaderlib(
-        datatoc_edit_uv_tiled_image_borders_vert_glsl,
-        NULL,
-        datatoc_gpu_shader_uniform_color_frag_glsl,
-        e_data.lib,
-        "#define blender_srgb_to_framebuffer_space(a) a\n");
+    sh_data->edit_uv_tiled_image_borders = GPU_shader_create_from_info_name(
+        "overlay_edit_uv_tiled_image_borders");
   }
   return sh_data->edit_uv_tiled_image_borders;
 }
