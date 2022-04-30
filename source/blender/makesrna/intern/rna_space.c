@@ -1515,12 +1515,8 @@ static void rna_SpaceView3D_mirror_xr_session_update(Main *main,
 static int rna_SpaceView3D_icon_from_show_object_viewport_get(PointerRNA *ptr)
 {
   const View3D *v3d = (View3D *)ptr->data;
-  /* Ignore selection values when view is off,
-   * intent is to show if visible objects aren't selectable. */
-  const int view_value = (v3d->object_type_exclude_viewport != 0);
-  const int select_value = (v3d->object_type_exclude_select &
-                            ~v3d->object_type_exclude_viewport) != 0;
-  return ICON_VIS_SEL_11 + (view_value << 1) + select_value;
+  return rna_object_type_visibility_icon_get_common(v3d->object_type_exclude_viewport,
+                                                    &v3d->object_type_exclude_select);
 }
 
 static char *rna_View3DShading_path(PointerRNA *UNUSED(ptr))
@@ -4997,68 +4993,15 @@ static void rna_def_space_view3d(BlenderRNA *brna)
   RNA_def_property_update(
       prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_mirror_xr_session_update");
 
-  {
-    struct {
-      const char *name;
-      int type_mask;
-      const char *identifier[2];
-    } info[] = {
-        {"Mesh", (1 << OB_MESH), {"show_object_viewport_mesh", "show_object_select_mesh"}},
-        {"Curve",
-         (1 << OB_CURVES_LEGACY),
-         {"show_object_viewport_curve", "show_object_select_curve"}},
-        {"Surface", (1 << OB_SURF), {"show_object_viewport_surf", "show_object_select_surf"}},
-        {"Meta", (1 << OB_MBALL), {"show_object_viewport_meta", "show_object_select_meta"}},
-        {"Font", (1 << OB_FONT), {"show_object_viewport_font", "show_object_select_font"}},
-        {"Hair Curves",
-         (1 << OB_CURVES),
-         {"show_object_viewport_curves", "show_object_select_curves"}},
-        {"Point Cloud",
-         (1 << OB_POINTCLOUD),
-         {"show_object_viewport_pointcloud", "show_object_select_pointcloud"}},
-        {"Volume", (1 << OB_VOLUME), {"show_object_viewport_volume", "show_object_select_volume"}},
-        {"Armature",
-         (1 << OB_ARMATURE),
-         {"show_object_viewport_armature", "show_object_select_armature"}},
-        {"Lattice",
-         (1 << OB_LATTICE),
-         {"show_object_viewport_lattice", "show_object_select_lattice"}},
-        {"Empty", (1 << OB_EMPTY), {"show_object_viewport_empty", "show_object_select_empty"}},
-        {"Grease Pencil",
-         (1 << OB_GPENCIL),
-         {"show_object_viewport_grease_pencil", "show_object_select_grease_pencil"}},
-        {"Camera", (1 << OB_CAMERA), {"show_object_viewport_camera", "show_object_select_camera"}},
-        {"Light", (1 << OB_LAMP), {"show_object_viewport_light", "show_object_select_light"}},
-        {"Speaker",
-         (1 << OB_SPEAKER),
-         {"show_object_viewport_speaker", "show_object_select_speaker"}},
-        {"Light Probe",
-         (1 << OB_LIGHTPROBE),
-         {"show_object_viewport_light_probe", "show_object_select_light_probe"}},
-    };
+  rna_def_object_type_visibility_flags_common(srna,
+                                              NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING);
 
-    const char *view_mask_member[2] = {
-        "object_type_exclude_viewport",
-        "object_type_exclude_select",
-    };
-    for (int mask_index = 0; mask_index < 2; mask_index++) {
-      for (int type_index = 0; type_index < ARRAY_SIZE(info); type_index++) {
-        prop = RNA_def_property(
-            srna, info[type_index].identifier[mask_index], PROP_BOOLEAN, PROP_NONE);
-        RNA_def_property_boolean_negative_sdna(
-            prop, NULL, view_mask_member[mask_index], info[type_index].type_mask);
-        RNA_def_property_ui_text(prop, info[type_index].name, "");
-        RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, NULL);
-      }
-    }
-
-    /* Helper for drawing the icon. */
-    prop = RNA_def_property(srna, "icon_from_show_object_viewport", PROP_INT, PROP_NONE);
-    RNA_def_property_int_funcs(
-        prop, "rna_SpaceView3D_icon_from_show_object_viewport_get", NULL, NULL);
-    RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-    RNA_def_property_ui_text(prop, "Visibility Icon", "");
-  }
+  /* Helper for drawing the icon. */
+  prop = RNA_def_property(srna, "icon_from_show_object_viewport", PROP_INT, PROP_NONE);
+  RNA_def_property_int_funcs(
+      prop, "rna_SpaceView3D_icon_from_show_object_viewport_get", NULL, NULL);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Visibility Icon", "");
 
   /* Nested Structs */
   prop = RNA_def_property(srna, "shading", PROP_POINTER, PROP_NONE);

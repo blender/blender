@@ -318,6 +318,10 @@ void rna_object_vcollayer_name_set(struct PointerRNA *ptr,
 PointerRNA rna_object_shapekey_index_get(struct ID *id, int value);
 int rna_object_shapekey_index_set(struct ID *id, PointerRNA value, int current);
 
+void rna_def_object_type_visibility_flags_common(StructRNA *srna, int noteflag);
+int rna_object_type_visibility_icon_get_common(int object_type_exclude_viewport,
+                                               const int *object_type_exclude_select);
+
 /* ViewLayer related functions defined in rna_scene.c but required in rna_layer.c */
 void rna_def_freestyle_settings(struct BlenderRNA *brna);
 struct PointerRNA rna_FreestyleLineSet_linestyle_get(struct PointerRNA *ptr);

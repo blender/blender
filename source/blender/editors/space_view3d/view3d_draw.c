@@ -1723,6 +1723,8 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
                                      Scene *scene,
                                      View3DShading *shading_override,
                                      eDrawType drawtype,
+                                     int object_type_exclude_viewport_override,
+                                     int object_type_exclude_select_override,
                                      int winx,
                                      int winy,
                                      uint draw_flags,
@@ -1785,13 +1787,19 @@ void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
     /* Disable other overlays (set all available _HIDE_ flags). */
     v3d.overlay.flag |= V3D_OVERLAY_HIDE_CURSOR | V3D_OVERLAY_HIDE_TEXT |
                         V3D_OVERLAY_HIDE_MOTION_PATHS | V3D_OVERLAY_HIDE_BONES |
-                        V3D_OVERLAY_HIDE_OBJECT_XTRAS | V3D_OVERLAY_HIDE_OBJECT_ORIGINS;
+                        V3D_OVERLAY_HIDE_OBJECT_ORIGINS;
+    if ((draw_flags & V3D_OFSDRAW_SHOW_OBJECT_EXTRAS) == 0) {
+      v3d.overlay.flag |= V3D_OVERLAY_HIDE_OBJECT_XTRAS;
+    }
     v3d.flag |= V3D_HIDE_HELPLINES;
   }
 
   if (is_xr_surface) {
     v3d.flag |= V3D_XR_SESSION_SURFACE;
   }
+
+  v3d.object_type_exclude_viewport = object_type_exclude_viewport_override;
+  v3d.object_type_exclude_select = object_type_exclude_select_override;
 
   rv3d.persp = RV3D_PERSP;
   v3d.clip_start = clip_start;
