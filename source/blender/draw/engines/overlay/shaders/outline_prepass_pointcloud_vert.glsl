@@ -1,6 +1,7 @@
 
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(common_pointcloud_lib.glsl)
 
 uint outline_colorid_get(void)
 {
@@ -27,12 +28,9 @@ uint outline_colorid_get(void)
 
 void main()
 {
-  vec3 world_pos = point_object_to_world(pos);
+  vec3 world_pos = pointcloud_get_pos();
 
   gl_Position = point_world_to_ndc(world_pos);
-#ifdef USE_GEOM
-  vert.pos = point_world_to_view(world_pos);
-#endif
 
   /* Small bias to always be on top of the geom. */
   gl_Position.z -= 1e-3;

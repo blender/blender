@@ -1,16 +1,5 @@
 
-uniform float alphaOcclu;
-uniform bool isXrayWires;
-uniform bool doAntiAliasing;
-uniform bool doThickOutlines;
-uniform usampler2D outlineId;
-uniform sampler2D outlineDepth;
-uniform sampler2D sceneDepth;
-
-in vec4 uvcoordsvar;
-
-layout(location = 0) out vec4 fragColor;
-layout(location = 1) out vec4 lineOutput;
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 #define XPOS (1 << 0)
 #define XNEG (1 << 1)
@@ -47,7 +36,7 @@ bvec4 gather_edges(vec2 uv, uint ref)
 #ifdef GPU_ARB_texture_gather
   ids = textureGather(outlineId, uv);
 #else
-  vec3 ofs = vec3(0.5, 0.5, -0.5) * sizeViewportInv.xyy;
+  vec3 ofs = vec3(0.5, 0.5, -0.5) * drw_view.viewport_size_inversey;
   ids.x = textureLod(outlineId, uv - ofs.xz, 0.0).r;
   ids.y = textureLod(outlineId, uv + ofs.xy, 0.0).r;
   ids.z = textureLod(outlineId, uv + ofs.xz, 0.0).r;
@@ -172,8 +161,8 @@ void main()
   uint ref = textureLod(outlineId, uvcoordsvar.xy, 0.0).r;
   uint ref_col = ref;
 
-  vec2 uvs = gl_FragCoord.xy * sizeViewportInv.xy;
-  vec3 ofs = vec3(1.0, 1.0, 0.0) * sizeViewportInv.xyy;
+  vec2 uvs = gl_FragCoord.xy * drw_view.viewport_size_inverse;
+  vec3 ofs = vec3(drw_view.viewport_size_inverse.xy, 0.0);
 
   vec2 depth_uv = uvs;
 
@@ -280,13 +269,13 @@ void main()
   switch (edge_case) {
       /* Straight lines. */
     case YPOS:
-      extra_edges = gather_edges(uvs + sizeViewportInv.xy * vec2(2.5, 0.5), ref);
-      extra_edges2 = gather_edges(uvs + sizeViewportInv.xy * vec2(-2.5, 0.5), ref);
+      extra_edges = gather_edges(uvs + drw_view.viewport_size_inverse * vec2(2.5, 0.5), ref);
+      extra_edges2 = gather_edges(uvs + drw_view.viewport_size_inverse * vec2(-2.5, 0.5), ref);
       straight_line_dir(extra_edges, extra_edges2, line_start, line_end);
       break;
     case YNEG:
-      extra_edges = gather_edges(uvs + sizeViewportInv.xy * vec2(-2.5, -0.5), ref);
-      extra_edges2 = gather_edges(uvs + sizeViewportInv.xy * vec2(2.5, -0.5), ref);
+      extra_edges = gather_edges(uvs + drw_view.viewport_size_inverse * vec2(-2.5, -0.5), ref);
+      extra_edges2 = gather_edges(uvs + drw_view.viewport_size_inverse * vec2(2.5, -0.5), ref);
       extra_edges = rotate_180(extra_edges);
       extra_edges2 = rotate_180(extra_edges2);
       straight_line_dir(extra_edges, extra_edges2, line_start, line_end);
@@ -294,8 +283,8 @@ void main()
       line_end = rotate_180(line_end);
       break;
     case XPOS:
-      extra_edges = gather_edges(uvs + sizeViewportInv.xy * vec2(0.5, 2.5), ref);
-      extra_edges2 = gather_edges(uvs + sizeViewportInv.xy * vec2(0.5, -2.5), ref);
+      extra_edges = gather_edges(uvs + drw_view.viewport_size_inverse * vec2(0.5, 2.5), ref);
+      extra_edges2 = gather_edges(uvs + drw_view.viewport_size_inverse * vec2(0.5, -2.5), ref);
       extra_edges = rotate_90(extra_edges);
       extra_edges2 = rotate_90(extra_edges2);
       straight_line_dir(extra_edges, extra_edges2, line_start, line_end);
@@ -303,8 +292,8 @@ void main()
       line_end = rotate_90(line_end);
       break;
     case XNEG:
-      extra_edges = gather_edges(uvs + sizeViewportInv.xy * vec2(-0.5, 2.5), ref);
-      extra_edges2 = gather_edges(uvs + sizeViewportInv.xy * vec2(-0.5, -2.5), ref);
+      extra_edges = gather_edges(uvs + drw_view.viewport_size_inverse * vec2(-0.5, 2.5), ref);
+      extra_edges2 = gather_edges(uvs + drw_view.viewport_size_inverse * vec2(-0.5, -2.5), ref);
       extra_edges = rotate_270(extra_edges);
       extra_edges2 = rotate_270(extra_edges2);
       straight_line_dir(extra_edges, extra_edges2, line_start, line_end);
