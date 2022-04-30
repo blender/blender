@@ -20,6 +20,7 @@
 #include "BLI_utildefines.h"
 
 #include "GPU_texture.h"
+#include "GPU_vertex_format.h"
 
 #include "gpu_material_library.h"
 #include "gpu_node_graph.h"
@@ -101,14 +102,6 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
     case GPU_NODE_LINK_IMAGE_TILED_MAPPING:
       input->source = GPU_SOURCE_TEX_TILED_MAPPING;
       input->texture = link->texture;
-      break;
-    case GPU_NODE_LINK_VOLUME_GRID:
-      input->source = GPU_SOURCE_VOLUME_GRID;
-      input->volume_grid = link->volume_grid;
-      break;
-    case GPU_NODE_LINK_VOLUME_GRID_TRANSFORM:
-      input->source = GPU_SOURCE_VOLUME_GRID_TRANSFORM;
-      input->volume_grid = link->volume_grid;
       break;
     case GPU_NODE_LINK_ATTR:
       input->source = GPU_SOURCE_ATTR;
@@ -335,6 +328,45 @@ void gpu_node_graph_finalize_uniform_attrs(GPUNodeGraph *graph)
 
 /* Attributes and Textures */
 
+static char attr_prefix_get(CustomDataType type)
+{
+  switch (type) {
+    case CD_MTFACE:
+      return 'u';
+    case CD_TANGENT:
+      return 't';
+    case CD_MCOL:
+    case CD_PROP_BYTE_COLOR:
+      return 'c';
+    case CD_PROP_COLOR:
+      return 'c';
+    case CD_AUTO_FROM_NAME:
+      return 'a';
+    case CD_HAIRLENGTH:
+      return 'l';
+    default:
+      BLI_assert_msg(0, "GPUVertAttr Prefix type not found : This should not happen!");
+      return '\0';
+  }
+}
+
+static void attr_input_name(GPUMaterialAttribute *attr)
+{
+  /* NOTE: Replicate changes to mesh_render_data_create() in draw_cache_impl_mesh.c */
+  if (attr->type == CD_ORCO) {
+    /* OPTI: orco is computed from local positions, but only if no modifier is present. */
+    STRNCPY(attr->input_name, "orco");
+  }
+  else {
+    attr->input_name[0] = attr_prefix_get(attr->type);
+    attr->input_name[1] = '\0';
+    if (attr->name[0] != '\0') {
+      /* XXX FIXME: see notes in mesh_render_data_create() */
+      GPU_vertformat_safe_attr_name(attr->name, &attr->input_name[1], GPU_MAX_SAFE_ATTR_NAME);
+    }
+  }
+}
+
 /** Add a new varying attribute of given type and name. Returns NULL if out of slots. */
 static GPUMaterialAttribute *gpu_node_graph_add_attribute(GPUNodeGraph *graph,
                                                           CustomDataType type,
@@ -360,6 +392,7 @@ static GPUMaterialAttribute *gpu_node_graph_add_attribute(GPUNodeGraph *graph,
     attr = MEM_callocN(sizeof(*attr), __func__);
     attr->type = type;
     STRNCPY(attr->name, name);
+    attr_input_name(attr);
     attr->id = num_attributes;
     BLI_addtail(&graph->attributes, attr);
   }
@@ -443,35 +476,6 @@ static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
   return tex;
 }
 
-static GPUMaterialVolumeGrid *gpu_node_graph_add_volume_grid(GPUNodeGraph *graph,
-                                                             const char *name,
-                                                             eGPUVolumeDefaultValue default_value)
-{
-  /* Find existing volume grid. */
-  int num_grids = 0;
-  GPUMaterialVolumeGrid *grid = graph->volume_grids.first;
-  for (; grid; grid = grid->next) {
-    if (STREQ(grid->name, name) && grid->default_value == default_value) {
-      break;
-    }
-    num_grids++;
-  }
-
-  /* Add new requested volume grid. */
-  if (grid == NULL) {
-    grid = MEM_callocN(sizeof(*grid), __func__);
-    grid->name = BLI_strdup(name);
-    grid->default_value = default_value;
-    BLI_snprintf(grid->sampler_name, sizeof(grid->sampler_name), "vsamp%d", num_grids);
-    BLI_snprintf(grid->transform_name, sizeof(grid->transform_name), "vtfm%d", num_grids);
-    BLI_addtail(&graph->volume_grids, grid);
-  }
-
-  grid->users++;
-
-  return grid;
-}
-
 /* Creating Inputs */
 
 GPUNodeLink *GPU_attribute(GPUMaterial *mat, const CustomDataType type, const char *name)
@@ -493,6 +497,18 @@ GPUNodeLink *GPU_attribute(GPUMaterial *mat, const CustomDataType type, const ch
   GPUNodeLink *link = gpu_node_link_create();
   link->link_type = GPU_NODE_LINK_ATTR;
   link->attr = attr;
+  return link;
+}
+
+GPUNodeLink *GPU_attribute_with_default(GPUMaterial *mat,
+                                        const CustomDataType type,
+                                        const char *name,
+                                        eGPUDefaultValue default_value)
+{
+  GPUNodeLink *link = GPU_attribute(mat, type, name);
+  if (link->link_type == GPU_NODE_LINK_ATTR) {
+    link->attr->default_value = default_value;
+  }
   return link;
 }
 
@@ -583,39 +599,6 @@ GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *ro
   link->link_type = GPU_NODE_LINK_COLORBAND;
   link->texture = gpu_node_graph_add_texture(
       graph, NULL, NULL, colorband, link->link_type, GPU_SAMPLER_MAX);
-  return link;
-}
-
-GPUNodeLink *GPU_volume_grid(GPUMaterial *mat,
-                             const char *name,
-                             eGPUVolumeDefaultValue default_value)
-{
-  /* NOTE: this could be optimized by automatically merging duplicate
-   * lookups of the same attribute. */
-  GPUNodeGraph *graph = gpu_material_node_graph(mat);
-  GPUNodeLink *link = gpu_node_link_create();
-  link->link_type = GPU_NODE_LINK_VOLUME_GRID;
-  link->volume_grid = gpu_node_graph_add_volume_grid(graph, name, default_value);
-
-  GPUNodeLink *transform_link = gpu_node_link_create();
-  transform_link->link_type = GPU_NODE_LINK_VOLUME_GRID_TRANSFORM;
-  transform_link->volume_grid = link->volume_grid;
-  transform_link->volume_grid->users++;
-
-  GPUNodeLink *cos_link = GPU_attribute(mat, CD_ORCO, "");
-
-  /* Two special cases, where we adjust the output values of smoke grids to
-   * bring the into standard range without having to modify the grid values. */
-  if (STREQ(name, "color")) {
-    GPU_link(mat, "node_attribute_volume_color", link, transform_link, cos_link, &link);
-  }
-  else if (STREQ(name, "temperature")) {
-    GPU_link(mat, "node_attribute_volume_temperature", link, transform_link, cos_link, &link);
-  }
-  else {
-    GPU_link(mat, "node_attribute_volume", link, transform_link, cos_link, &link);
-  }
-
   return link;
 }
 
@@ -767,9 +750,6 @@ static void gpu_inputs_free(ListBase *inputs)
     else if (ELEM(input->source, GPU_SOURCE_TEX, GPU_SOURCE_TEX_TILED_MAPPING)) {
       input->texture->users--;
     }
-    else if (ELEM(input->source, GPU_SOURCE_VOLUME_GRID, GPU_SOURCE_VOLUME_GRID_TRANSFORM)) {
-      input->volume_grid->users--;
-    }
 
     if (input->link) {
       gpu_node_link_free(input->link);
@@ -816,10 +796,6 @@ void gpu_node_graph_free(GPUNodeGraph *graph)
   BLI_freelistN(&graph->material_functions);
   gpu_node_graph_free_nodes(graph);
 
-  LISTBASE_FOREACH (GPUMaterialVolumeGrid *, grid, &graph->volume_grids) {
-    MEM_SAFE_FREE(grid->name);
-  }
-  BLI_freelistN(&graph->volume_grids);
   BLI_freelistN(&graph->textures);
   BLI_freelistN(&graph->attributes);
   GPU_uniform_attr_list_free(&graph->uniform_attrs);
@@ -891,14 +867,6 @@ void gpu_node_graph_prune_unused(GPUNodeGraph *graph)
     next = tex->next;
     if (tex->users == 0) {
       BLI_freelinkN(&graph->textures, tex);
-    }
-  }
-
-  for (GPUMaterialVolumeGrid *grid = graph->volume_grids.first, *next = NULL; grid; grid = next) {
-    next = grid->next;
-    if (grid->users == 0) {
-      MEM_SAFE_FREE(grid->name);
-      BLI_freelinkN(&graph->volume_grids, grid);
     }
   }
 

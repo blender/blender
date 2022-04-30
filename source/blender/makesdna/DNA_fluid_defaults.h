@@ -187,6 +187,7 @@
     .cache_comp = SM_CACHE_LIGHT, \
     .cache_high_comp = SM_CACHE_LIGHT, \
     .cache_file_format = 0, \
+    .velocity_scale = 1.0f, \
   }
 
 /** \} */

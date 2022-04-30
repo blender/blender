@@ -57,10 +57,12 @@ class ViewOperator(bpy.types.Operator):
             self.report({'WARNING'}, "Active space must be a View3d")
             return {'CANCELLED'}
 
-def menu_func(self, context):
-    self.layout.operator(ViewOperator.bl_idname, text = "Simple View Modal Operator")
 
-# Register and add to the "view" menu (required to also use F3 search "Simple View Modal Operator" for quick access)
+def menu_func(self, context):
+    self.layout.operator(ViewOperator.bl_idname, text="Simple View Modal Operator")
+
+
+# Register and add to the "view" menu (required to also use F3 search "Simple View Modal Operator" for quick access).
 def register():
     bpy.utils.register_class(ViewOperator)
     bpy.types.VIEW3D_MT_view.append(menu_func)

@@ -16,7 +16,7 @@
 #include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
@@ -48,6 +48,7 @@
 #include "node_shader_util.hh"
 #include "node_util.h"
 
+using blender::Array;
 using blender::Vector;
 
 static bool shader_tree_poll(const bContext *C, bNodeTreeType *UNUSED(treetype))
@@ -570,8 +571,7 @@ static bNode *ntree_shader_copy_branch(bNodeTree *ntree,
   iter_data.node_count = 1;
   nodeChainIterBackwards(ntree, start_node, ntree_branch_count_and_tag_nodes, &iter_data, 1);
   /* Make a full copy of the branch */
-  bNode **nodes_copy = static_cast<bNode **>(
-      MEM_mallocN(sizeof(bNode *) * iter_data.node_count, __func__));
+  Array<bNode *> nodes_copy(iter_data.node_count);
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->tmp_flag >= 0) {
       int id = node->tmp_flag;
@@ -604,7 +604,6 @@ static bNode *ntree_shader_copy_branch(bNodeTree *ntree,
     }
   }
   bNode *start_node_copy = nodes_copy[start_node->tmp_flag];
-  MEM_freeN(nodes_copy);
   return start_node_copy;
 }
 
@@ -705,7 +704,7 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
   int node_count = 1;
   nodeChainIterBackwards(ntree, output_node, ntree_weight_tree_tag_nodes, &node_count, 0);
   /* Make a mirror copy of the weight tree. */
-  bNode **nodes_copy = static_cast<bNode **>(MEM_mallocN(sizeof(bNode *) * node_count, __func__));
+  Array<bNode *> nodes_copy(node_count);
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->tmp_flag >= 0) {
       int id = node->tmp_flag;
@@ -723,7 +722,7 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
         }
         case SH_NODE_ADD_SHADER: {
           /* Simple passthrough node. Each original inputs will get the same weight. */
-          /* TODO(fclem) Better use some kind of reroute node? */
+          /* TODO(fclem): Better use some kind of reroute node? */
           nodes_copy[id] = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
           nodes_copy[id]->custom1 = NODE_MATH_ADD;
           nodes_copy[id]->tmp_flag = -2; /* Copy */
@@ -762,14 +761,14 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
           }
           id++;
           /* Reroute the weight input to the 3 processing nodes. Simplify linking later-on. */
-          /* TODO(fclem) Better use some kind of reroute node? */
+          /* TODO(fclem): Better use some kind of reroute node? */
           nodes_copy[id] = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
           nodes_copy[id]->custom1 = NODE_MATH_ADD;
           nodes_copy[id]->tmp_flag = -2; /* Copy */
           ((bNodeSocketValueFloat *)ntree_shader_node_input_get(nodes_copy[id], 0)->default_value)
               ->value = 0.0f;
           id++;
-          /* Link between nodes for the substraction. */
+          /* Link between nodes for the subtraction. */
           fromnode = nodes_copy[id_start];
           tonode = nodes_copy[id_start + 1];
           fromsock = ntree_shader_node_output_get(fromnode, 0);
@@ -891,8 +890,8 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
               break;
           }
 
-          /* Manually add the link to the socket to avoid calling
-           * BKE_ntree_update_main_tree(G.main, oop, nullptr. */
+          /* Manually add the link to the socket to avoid calling:
+           * `BKE_ntree_update_main_tree(G.main, oop, nullptr)`. */
           fromsock->link = nodeAddLink(ntree, fromnode, fromsock, tonode, tosock);
           BLI_assert(fromsock->link);
         }
@@ -909,8 +908,6 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
         ntree, thickness_link->fromnode, thickness_link->fromsock, output_node, thickness_output);
   }
   BKE_ntree_update_main_tree(G.main, ntree, nullptr);
-
-  MEM_freeN(nodes_copy);
 }
 
 static bool closure_node_filter(const bNode *node)
@@ -960,8 +957,8 @@ static void ntree_shader_shader_to_rgba_branch(bNodeTree *ntree, bNode *output_n
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     node->tmp_flag = -1;
   }
-  /* First gather the shader_to_rgba nodes linked to the ouput. This is separate to avoid
-   * conflicting usage of the node->tmp_flag. */
+  /* First gather the shader_to_rgba nodes linked to the output. This is separate to avoid
+   * conflicting usage of the `node->tmp_flag`. */
   Vector<bNode *> shader_to_rgba_nodes;
   nodeChainIterBackwards(ntree, output_node, shader_to_rgba_node_gather, &shader_to_rgba_nodes, 0);
 
@@ -974,7 +971,7 @@ static void ntree_shader_shader_to_rgba_branch(bNodeTree *ntree, bNode *output_n
     bNode *start_node_copy = ntree_shader_copy_branch(
         ntree, start_node, closure_node_filter, nullptr, 0);
     /* Replace node copy link. This assumes that every node possibly connected to the closure input
-     * has only one ouput. */
+     * has only one output. */
     bNodeSocket *closure_output = ntree_shader_node_output_get(start_node_copy, 0);
     nodeRemLink(ntree, closure_input->link);
     nodeAddLink(ntree, start_node_copy, closure_output, shader_to_rgba, closure_input);

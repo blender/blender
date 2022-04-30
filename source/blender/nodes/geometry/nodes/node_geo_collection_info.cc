@@ -120,7 +120,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     std::sort(entries.begin(),
               entries.end(),
               [](const InstanceListEntry &a, const InstanceListEntry &b) {
-                return BLI_strcasecmp_natural(a.name, b.name) <= 0;
+                return BLI_strcasecmp_natural(a.name, b.name) < 0;
               });
     for (const InstanceListEntry &entry : entries) {
       instances.add_instance(entry.handle, entry.transform);

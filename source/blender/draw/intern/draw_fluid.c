@@ -9,6 +9,7 @@
 
 #include <string.h>
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -20,6 +21,8 @@
 #include "BKE_colorband.h"
 
 #include "GPU_texture.h"
+
+#include "draw_manager.h"
 
 #include "draw_common.h" /* Own include. */
 
@@ -419,46 +422,6 @@ static bool get_smoke_velocity_field(FluidDomainSettings *fds,
 /** \name Public API
  * \{ */
 
-void DRW_smoke_free(FluidModifierData *fmd)
-{
-  if (fmd->type & MOD_FLUID_TYPE_DOMAIN && fmd->domain) {
-    if (fmd->domain->tex_density) {
-      GPU_texture_free(fmd->domain->tex_density);
-      fmd->domain->tex_density = NULL;
-    }
-
-    if (fmd->domain->tex_color) {
-      GPU_texture_free(fmd->domain->tex_color);
-      fmd->domain->tex_color = NULL;
-    }
-
-    if (fmd->domain->tex_shadow) {
-      GPU_texture_free(fmd->domain->tex_shadow);
-      fmd->domain->tex_shadow = NULL;
-    }
-
-    if (fmd->domain->tex_flame) {
-      GPU_texture_free(fmd->domain->tex_flame);
-      fmd->domain->tex_flame = NULL;
-    }
-
-    if (fmd->domain->tex_flame_coba) {
-      GPU_texture_free(fmd->domain->tex_flame_coba);
-      fmd->domain->tex_flame_coba = NULL;
-    }
-
-    if (fmd->domain->tex_coba) {
-      GPU_texture_free(fmd->domain->tex_coba);
-      fmd->domain->tex_coba = NULL;
-    }
-
-    if (fmd->domain->tex_field) {
-      GPU_texture_free(fmd->domain->tex_field);
-      fmd->domain->tex_field = NULL;
-    }
-  }
-}
-
 void DRW_smoke_ensure_coba_field(FluidModifierData *fmd)
 {
 #ifndef WITH_FLUID
@@ -469,6 +432,7 @@ void DRW_smoke_ensure_coba_field(FluidModifierData *fmd)
 
     if (!fds->tex_field) {
       fds->tex_field = create_field_texture(fds, false);
+      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_field));
     }
     if (!fds->tex_coba && !ELEM(fds->coba_field,
                                 FLUID_DOMAIN_FIELD_PHI,
@@ -478,6 +442,7 @@ void DRW_smoke_ensure_coba_field(FluidModifierData *fmd)
                                 FLUID_DOMAIN_FIELD_FLAGS,
                                 FLUID_DOMAIN_FIELD_PRESSURE)) {
       fds->tex_coba = create_transfer_function(TFUNC_COLOR_RAMP, fds->coba);
+      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_coba));
     }
   }
 #endif
@@ -493,19 +458,24 @@ void DRW_smoke_ensure(FluidModifierData *fmd, int highres)
 
     if (!fds->tex_density) {
       fds->tex_density = create_density_texture(fds, highres);
+      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_density));
     }
     if (!fds->tex_color) {
       fds->tex_color = create_color_texture(fds, highres);
+      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_color));
     }
     if (!fds->tex_flame) {
       fds->tex_flame = create_flame_texture(fds, highres);
+      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_flame));
     }
     if (!fds->tex_flame_coba && fds->tex_flame) {
       fds->tex_flame_coba = create_transfer_function(TFUNC_FLAME_SPECTRUM, NULL);
+      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_flame_coba));
     }
     if (!fds->tex_shadow) {
       fds->tex_shadow = create_volume_texture(
           fds->res, GPU_R8, GPU_DATA_FLOAT, manta_smoke_get_shadow(fds->fluid));
+      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_shadow));
     }
   }
 #endif /* WITH_FLUID */
@@ -536,6 +506,9 @@ void DRW_smoke_ensure_velocity(FluidModifierData *fmd)
           "vely", UNPACK3(fds->res), 1, GPU_R16F, GPU_DATA_FLOAT, vel_y);
       fds->tex_velocity_z = GPU_texture_create_3d(
           "velz", UNPACK3(fds->res), 1, GPU_R16F, GPU_DATA_FLOAT, vel_z);
+      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_velocity_x));
+      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_velocity_y));
+      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_velocity_z));
     }
   }
 #endif /* WITH_FLUID */
@@ -551,6 +524,7 @@ void DRW_fluid_ensure_flags(FluidModifierData *fmd)
     if (!fds->tex_flags) {
       fds->tex_flags = create_volume_texture(
           fds->res, GPU_R8UI, GPU_DATA_INT, manta_smoke_get_flags(fds->fluid));
+      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_flags));
 
       swizzle_texture_channel_single(fds->tex_flags);
     }
@@ -568,42 +542,29 @@ void DRW_fluid_ensure_range_field(FluidModifierData *fmd)
 
     if (!fds->tex_range_field) {
       fds->tex_range_field = create_field_texture(fds, true);
+      BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_range_field));
     }
   }
 #endif /* WITH_FLUID */
 }
 
-void DRW_smoke_free_velocity(FluidModifierData *fmd)
+void DRW_smoke_init(DRWData *drw_data)
 {
-  /* TODO: Unify with the other #GPU_free_smoke. */
+  BLI_listbase_clear(&drw_data->smoke_textures);
+}
 
-  if (fmd->type & MOD_FLUID_TYPE_DOMAIN && fmd->domain) {
-    if (fmd->domain->tex_velocity_x) {
-      GPU_texture_free(fmd->domain->tex_velocity_x);
-    }
-
-    if (fmd->domain->tex_velocity_y) {
-      GPU_texture_free(fmd->domain->tex_velocity_y);
-    }
-
-    if (fmd->domain->tex_velocity_z) {
-      GPU_texture_free(fmd->domain->tex_velocity_z);
-    }
-
-    if (fmd->domain->tex_flags) {
-      GPU_texture_free(fmd->domain->tex_flags);
-    }
-
-    if (fmd->domain->tex_range_field) {
-      GPU_texture_free(fmd->domain->tex_range_field);
-    }
-
-    fmd->domain->tex_velocity_x = NULL;
-    fmd->domain->tex_velocity_y = NULL;
-    fmd->domain->tex_velocity_z = NULL;
-    fmd->domain->tex_flags = NULL;
-    fmd->domain->tex_range_field = NULL;
+void DRW_smoke_exit(DRWData *drw_data)
+{
+  /* Free Smoke Textures after rendering */
+  /* XXX This is a waste of processing and GPU bandwidth if nothing
+   * is updated. But the problem is since Textures are stored in the
+   * modifier we don't want them to take precious VRAM if the
+   * modifier is not used for display. We should share them for
+   * all viewport in a redraw at least. */
+  LISTBASE_FOREACH (LinkData *, link, &drw_data->smoke_textures) {
+    GPU_TEXTURE_FREE_SAFE(*(GPUTexture **)link->data);
   }
+  BLI_freelistN(&drw_data->smoke_textures);
 }
 
 /** \} */

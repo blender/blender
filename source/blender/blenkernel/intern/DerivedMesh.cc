@@ -628,9 +628,15 @@ static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
   const bool do_loop_normals = ((mesh_input->flag & ME_AUTOSMOOTH) != 0 ||
                                 (final_datamask->lmask & CD_MASK_NORMAL) != 0);
 
+  /* Needed as `final_datamask` is not preserved outside modifier stack evaluation. */
+  mesh_final->runtime.subsurf_do_loop_normals = do_loop_normals;
+
   if (do_loop_normals) {
-    /* Compute loop normals (NOTE: will compute poly and vert normals as well, if needed!). */
-    BKE_mesh_calc_normals_split(mesh_final);
+    /* Compute loop normals (NOTE: will compute poly and vert normals as well, if needed!). In case
+     * of deferred CPU subdivision, this will be computed when the wrapper is generated. */
+    if (mesh_final->runtime.subsurf_resolution == 0) {
+      BKE_mesh_calc_normals_split(mesh_final);
+    }
   }
   else {
     if (sculpt_dyntopo == false) {
@@ -734,7 +740,6 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
                                 const bool use_deform,
                                 const bool need_mapping,
                                 const CustomData_MeshMasks *dataMask,
-                                const int index,
                                 const bool use_cache,
                                 const bool allow_shared_mesh,
                                 /* return args */
@@ -846,12 +851,6 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
         isPrevDeform = true;
       }
       else {
-        break;
-      }
-
-      /* grab modifiers until index i */
-      if ((index != -1) && (BLI_findindex(&ob->modifiers, md) >= index)) {
-        md = nullptr;
         break;
       }
     }
@@ -1129,11 +1128,6 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
 
     isPrevDeform = (mti->type == eModifierTypeType_OnlyDeform);
 
-    /* grab modifiers until index i */
-    if ((index != -1) && (BLI_findindex(&ob->modifiers, md) >= index)) {
-      break;
-    }
-
     if (sculpt_mode && md->type == eModifierType_Multires) {
       multires_applied = true;
     }
@@ -1286,9 +1280,14 @@ static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final,
   const bool do_loop_normals = ((mesh_final->flag & ME_AUTOSMOOTH) != 0 ||
                                 (final_datamask->lmask & CD_MASK_NORMAL) != 0);
 
+  mesh_final->runtime.subsurf_do_loop_normals = do_loop_normals;
+
   if (do_loop_normals) {
-    /* Compute loop normals */
-    BKE_mesh_calc_normals_split(mesh_final);
+    /* Compute loop normals. In case of deferred CPU subdivision, this will be computed when the
+     * wrapper is generated. */
+    if (mesh_final->runtime.subsurf_resolution == 0) {
+      BKE_mesh_calc_normals_split(mesh_final);
+    }
   }
   else {
     /* Same as mesh_calc_modifiers. If using loop normals, poly nors have already been computed. */
@@ -1611,7 +1610,7 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
                             const CustomData_MeshMasks *dataMask,
                             const bool need_mapping)
 {
-#if 0 /* XXX This is already taken care of in mesh_calc_modifiers()... */
+#if 0 /* XXX This is already taken care of in #mesh_calc_modifiers... */
   if (need_mapping) {
     /* Also add the flag so that it is recorded in lastDataMask. */
     dataMask->vmask |= CD_MASK_ORIGINDEX;
@@ -1628,7 +1627,6 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
                       true,
                       need_mapping,
                       dataMask,
-                      -1,
                       true,
                       true,
                       &mesh_deform_eval,
@@ -1882,7 +1880,7 @@ Mesh *mesh_create_eval_final(Depsgraph *depsgraph,
 {
   Mesh *result;
   mesh_calc_modifiers(
-      depsgraph, scene, ob, true, false, dataMask, -1, false, false, nullptr, &result, nullptr);
+      depsgraph, scene, ob, true, false, dataMask, false, false, nullptr, &result, nullptr);
   return result;
 }
 
@@ -1893,7 +1891,7 @@ Mesh *mesh_create_eval_no_deform(Depsgraph *depsgraph,
 {
   Mesh *result;
   mesh_calc_modifiers(
-      depsgraph, scene, ob, false, false, dataMask, -1, false, false, nullptr, &result, nullptr);
+      depsgraph, scene, ob, false, false, dataMask, false, false, nullptr, &result, nullptr);
   return result;
 }
 
@@ -1904,7 +1902,7 @@ Mesh *mesh_create_eval_no_deform_render(Depsgraph *depsgraph,
 {
   Mesh *result;
   mesh_calc_modifiers(
-      depsgraph, scene, ob, false, false, dataMask, -1, false, false, nullptr, &result, nullptr);
+      depsgraph, scene, ob, false, false, dataMask, false, false, nullptr, &result, nullptr);
   return result;
 }
 

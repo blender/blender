@@ -501,7 +501,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
 
         BM_mesh_free(bm);
-        BKE_mesh_normals_tag_dirty(result);
       }
 
       if (result == nullptr) {
@@ -536,7 +535,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
           result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
           BM_mesh_free(bm);
-          BKE_mesh_normals_tag_dirty(result);
         }
       }
     }

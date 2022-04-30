@@ -47,8 +47,15 @@
 
 using namespace blender::gpu::shader;
 
+/**
+ * IMPORTANT: Never add external reference. The GPUMaterial used to create the GPUPass (and its
+ * GPUCodegenCreateInfo) can be free before actually compiling. This happens if there is an update
+ * before deferred compilation happens and the GPUPass gets picked up by another GPUMaterial
+ * (because of GPUPass reuse).
+ */
 struct GPUCodegenCreateInfo : ShaderCreateInfo {
   struct NameBuffer {
+    /** Duplicate attribute names to avoid reference the GPUNodeGraph directly. */
     char attr_names[16][GPU_MAX_SAFE_ATTR_NAME + 1];
     char var_names[16][8];
   };
@@ -85,7 +92,7 @@ struct GPUPass {
  * Internal shader cache: This prevent the shader recompilation / stall when
  * using undo/redo AND also allows for GPUPass reuse if the Shader code is the
  * same for 2 different Materials. Unused GPUPasses are free by Garbage collection.
- */
+ * \{ */
 
 /* Only use one linklist that contains the GPUPasses grouped by hash. */
 static GPUPass *pass_cache = nullptr;
@@ -171,10 +178,6 @@ static std::ostream &operator<<(std::ostream &stream, const GPUInput *input)
       return stream << input->texture->sampler_name;
     case GPU_SOURCE_TEX_TILED_MAPPING:
       return stream << input->texture->tiled_mapping_name;
-    case GPU_SOURCE_VOLUME_GRID:
-      return stream << input->volume_grid->sampler_name;
-    case GPU_SOURCE_VOLUME_GRID_TRANSFORM:
-      return stream << input->volume_grid->transform_name;
     default:
       BLI_assert(0);
       return stream;
@@ -276,28 +279,6 @@ class GPUCodegen {
   }
 };
 
-static char attr_prefix_get(CustomDataType type)
-{
-  switch (type) {
-    case CD_MTFACE:
-      return 'u';
-    case CD_TANGENT:
-      return 't';
-    case CD_MCOL:
-    case CD_PROP_BYTE_COLOR:
-      return 'c';
-    case CD_PROP_COLOR:
-      return 'c';
-    case CD_AUTO_FROM_NAME:
-      return 'a';
-    case CD_HAIRLENGTH:
-      return 'l';
-    default:
-      BLI_assert_msg(0, "GPUVertAttr Prefix type not found : This should not happen!");
-      return '\0';
-  }
-}
-
 void GPUCodegen::generate_attribs()
 {
   if (BLI_listbase_is_empty(&graph.attributes)) {
@@ -317,21 +298,11 @@ void GPUCodegen::generate_attribs()
 
   int slot = 15;
   LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph.attributes) {
-
-    /* NOTE: Replicate changes to mesh_render_data_create() in draw_cache_impl_mesh.c */
-    if (attr->type == CD_ORCO) {
-      /* OPTI: orco is computed from local positions, but only if no modifier is present. */
-      STRNCPY(info.name_buffer->attr_names[slot], "orco");
+    if (slot == -1) {
+      BLI_assert_msg(0, "Too many attributes");
+      break;
     }
-    else {
-      char *name = info.name_buffer->attr_names[slot];
-      name[0] = attr_prefix_get(static_cast<CustomDataType>(attr->type));
-      name[1] = '\0';
-      if (attr->name[0] != '\0') {
-        /* XXX FIXME: see notes in mesh_render_data_create() */
-        GPU_vertformat_safe_attr_name(attr->name, &name[1], GPU_MAX_SAFE_ATTR_NAME);
-      }
-    }
+    STRNCPY(info.name_buffer->attr_names[slot], attr->input_name);
     SNPRINTF(info.name_buffer->var_names[slot], "v%d", attr->id);
 
     blender::StringRefNull attr_name = info.name_buffer->attr_names[slot];
@@ -394,12 +365,6 @@ void GPUCodegen::generate_resources()
     else {
       info.sampler(0, ImageType::FLOAT_2D, tex->sampler_name, Frequency::BATCH);
     }
-  }
-  /* Volume Grids. */
-  LISTBASE_FOREACH (GPUMaterialVolumeGrid *, grid, &graph.volume_grids) {
-    info.sampler(0, ImageType::FLOAT_3D, grid->sampler_name, Frequency::BATCH);
-    /* TODO(@fclem): Global uniform. To put in an UBO. */
-    info.push_constant(Type::MAT4, grid->transform_name);
   }
 
   if (!BLI_listbase_is_empty(&ubo_inputs_)) {
@@ -619,7 +584,9 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
       return nullptr;
     }
     /* No collision, just return the pass. */
+    BLI_spin_lock(&pass_cache_spin);
     pass_hash->refcount += 1;
+    BLI_spin_unlock(&pass_cache_spin);
     return pass_hash;
   }
 
@@ -645,7 +612,9 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
       /* Shader has already been created but failed to compile. */
       return nullptr;
     }
+    BLI_spin_lock(&pass_cache_spin);
     pass->refcount += 1;
+    BLI_spin_unlock(&pass_cache_spin);
   }
   else {
     /* We still create a pass even if shader compilation
@@ -745,8 +714,10 @@ GPUShader *GPU_pass_shader_get(GPUPass *pass)
 
 void GPU_pass_release(GPUPass *pass)
 {
+  BLI_spin_lock(&pass_cache_spin);
   BLI_assert(pass->refcount > 0);
   pass->refcount--;
+  BLI_spin_unlock(&pass_cache_spin);
 }
 
 static void gpu_pass_free(GPUPass *pass)

@@ -363,7 +363,7 @@ void ED_mesh_deform_bind_callback(struct Object *object,
                                   struct MeshDeformModifierData *mmd,
                                   struct Mesh *cagemesh,
                                   float *vertexcos,
-                                  int totvert,
+                                  int verts_num,
                                   float cagemat[4][4]);
 
 /* Pose backups, pose_backup.c */

@@ -21,6 +21,8 @@ struct Object;
 struct ParticleSystem;
 struct RegionView3D;
 struct ViewLayer;
+struct Scene;
+struct DRWData;
 
 /* Keep in sync with globalsBlock in shaders */
 BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
@@ -54,16 +56,12 @@ struct DRWShadingGroup *DRW_shgroup_hair_create_sub(struct Object *object,
                                                     struct DRWShadingGroup *shgrp,
                                                     struct GPUMaterial *gpu_material);
 
-struct DRWShadingGroup *DRW_shgroup_curves_create_sub(struct Object *object,
-                                                      struct DRWShadingGroup *shgrp,
-                                                      struct GPUMaterial *gpu_material);
 /**
  * \note Only valid after #DRW_hair_update().
  */
 struct GPUVertBuf *DRW_hair_pos_buffer_get(struct Object *object,
                                            struct ParticleSystem *psys,
                                            struct ModifierData *md);
-struct GPUVertBuf *DRW_curves_pos_buffer_get(struct Object *object);
 void DRW_hair_duplimat_get(struct Object *object,
                            struct ParticleSystem *psys,
                            struct ModifierData *md,
@@ -72,6 +70,37 @@ void DRW_hair_duplimat_get(struct Object *object,
 void DRW_hair_init(void);
 void DRW_hair_update(void);
 void DRW_hair_free(void);
+
+/* draw_curves.cc */
+
+/**
+ * \note Only valid after #DRW_curves_update().
+ */
+struct GPUVertBuf *DRW_curves_pos_buffer_get(struct Object *object);
+
+struct DRWShadingGroup *DRW_shgroup_curves_create_sub(struct Object *object,
+                                                      struct DRWShadingGroup *shgrp,
+                                                      struct GPUMaterial *gpu_material);
+
+void DRW_curves_init(void);
+void DRW_curves_update(void);
+void DRW_curves_free(void);
+
+/* draw_volume.cc */
+
+/**
+ * Add attributes bindings of volume grids to an existing shading group.
+ * No draw call is added so the caller can decide how to use the data.
+ * \return nullptr if there is something to draw.
+ */
+struct DRWShadingGroup *DRW_shgroup_volume_create_sub(struct Scene *scene,
+                                                      struct Object *ob,
+                                                      struct DRWShadingGroup *shgrp,
+                                                      struct GPUMaterial *gpu_material);
+
+void DRW_volume_init(struct DRWData *drw_data);
+void DRW_volume_ubos_pool_free(void *pool);
+void DRW_volume_free(void);
 
 /* draw_fluid.c */
 
@@ -83,7 +112,9 @@ void DRW_fluid_ensure_flags(struct FluidModifierData *fmd);
 void DRW_fluid_ensure_range_field(struct FluidModifierData *fmd);
 
 void DRW_smoke_free(struct FluidModifierData *fmd);
-void DRW_smoke_free_velocity(struct FluidModifierData *fmd);
+
+void DRW_smoke_init(struct DRWData *drw_data);
+void DRW_smoke_exit(struct DRWData *drw_data);
 
 /* draw_common.c */
 

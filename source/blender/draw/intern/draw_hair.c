@@ -179,25 +179,6 @@ static ParticleHairCache *drw_hair_particle_cache_get(Object *object,
   return cache;
 }
 
-static ParticleHairCache *drw_curves_cache_get(Object *object,
-                                               GPUMaterial *gpu_material,
-                                               int subdiv,
-                                               int thickness_res)
-{
-  ParticleHairCache *cache;
-  bool update = curves_ensure_procedural_data(object, &cache, gpu_material, subdiv, thickness_res);
-
-  if (update) {
-    if (drw_hair_shader_type_get() == PART_REFINE_SHADER_COMPUTE) {
-      drw_hair_particle_cache_update_compute(cache, subdiv);
-    }
-    else {
-      drw_hair_particle_cache_update_transform_feedback(cache, subdiv);
-    }
-  }
-  return cache;
-}
-
 GPUVertBuf *DRW_hair_pos_buffer_get(Object *object, ParticleSystem *psys, ModifierData *md)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -208,19 +189,6 @@ GPUVertBuf *DRW_hair_pos_buffer_get(Object *object, ParticleSystem *psys, Modifi
 
   ParticleHairCache *cache = drw_hair_particle_cache_get(
       object, psys, md, NULL, subdiv, thickness_res);
-
-  return cache->final[subdiv].proc_buf;
-}
-
-GPUVertBuf *DRW_curves_pos_buffer_get(Object *object)
-{
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  Scene *scene = draw_ctx->scene;
-
-  int subdiv = scene->r.hair_subdiv;
-  int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
-
-  ParticleHairCache *cache = drw_curves_cache_get(object, NULL, subdiv, thickness_res);
 
   return cache->final[subdiv].proc_buf;
 }
@@ -318,71 +286,6 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
   /* TODO(fclem): Until we have a better way to cull the hair and render with orco, bypass
    * culling test. */
   GPUBatch *geom = hair_cache->final[subdiv].proc_hairs[thickness_res - 1];
-  DRW_shgroup_call_no_cull(shgrp, geom, object);
-
-  return shgrp;
-}
-
-DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
-                                               DRWShadingGroup *shgrp_parent,
-                                               GPUMaterial *gpu_material)
-{
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  Scene *scene = draw_ctx->scene;
-
-  int subdiv = scene->r.hair_subdiv;
-  int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
-
-  ParticleHairCache *curves_cache = drw_curves_cache_get(
-      object, gpu_material, subdiv, thickness_res);
-
-  DRWShadingGroup *shgrp = DRW_shgroup_create_sub(shgrp_parent);
-
-  /* TODO: optimize this. Only bind the ones GPUMaterial needs. */
-  for (int i = 0; i < curves_cache->num_uv_layers; i++) {
-    for (int n = 0; n < MAX_LAYER_NAME_CT && curves_cache->uv_layer_names[i][n][0] != '\0'; n++) {
-      DRW_shgroup_uniform_texture(
-          shgrp, curves_cache->uv_layer_names[i][n], curves_cache->uv_tex[i]);
-    }
-  }
-  for (int i = 0; i < curves_cache->num_col_layers; i++) {
-    for (int n = 0; n < MAX_LAYER_NAME_CT && curves_cache->col_layer_names[i][n][0] != '\0'; n++) {
-      DRW_shgroup_uniform_texture(
-          shgrp, curves_cache->col_layer_names[i][n], curves_cache->col_tex[i]);
-    }
-  }
-
-  /* Fix issue with certain driver not drawing anything if there is no texture bound to
-   * "ac", "au", "u" or "c". */
-  if (curves_cache->num_uv_layers == 0) {
-    DRW_shgroup_uniform_texture(shgrp, "u", g_dummy_texture);
-    DRW_shgroup_uniform_texture(shgrp, "au", g_dummy_texture);
-  }
-  if (curves_cache->num_col_layers == 0) {
-    DRW_shgroup_uniform_texture(shgrp, "c", g_dummy_texture);
-    DRW_shgroup_uniform_texture(shgrp, "ac", g_dummy_texture);
-  }
-
-  /* TODO: Generalize radius implementation for curves data type. */
-  float hair_rad_shape = 1.0f;
-  float hair_rad_root = 0.005f;
-  float hair_rad_tip = 0.0f;
-  bool hair_close_tip = true;
-
-  DRW_shgroup_uniform_texture(shgrp, "hairPointBuffer", curves_cache->final[subdiv].proc_tex);
-  if (curves_cache->length_tex) {
-    DRW_shgroup_uniform_texture(shgrp, "hairLen", curves_cache->length_tex);
-  }
-  DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &curves_cache->final[subdiv].strands_res, 1);
-  DRW_shgroup_uniform_int_copy(shgrp, "hairThicknessRes", thickness_res);
-  DRW_shgroup_uniform_float_copy(shgrp, "hairRadShape", hair_rad_shape);
-  DRW_shgroup_uniform_mat4_copy(shgrp, "hairDupliMatrix", object->obmat);
-  DRW_shgroup_uniform_float_copy(shgrp, "hairRadRoot", hair_rad_root);
-  DRW_shgroup_uniform_float_copy(shgrp, "hairRadTip", hair_rad_tip);
-  DRW_shgroup_uniform_bool_copy(shgrp, "hairCloseTip", hair_close_tip);
-  /* TODO(fclem): Until we have a better way to cull the curves and render with orco, bypass
-   * culling test. */
-  GPUBatch *geom = curves_cache->final[subdiv].proc_hairs[thickness_res - 1];
   DRW_shgroup_call_no_cull(shgrp, geom, object);
 
   return shgrp;

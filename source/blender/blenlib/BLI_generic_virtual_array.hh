@@ -83,7 +83,7 @@ struct GVArrayAnyExtraInfo {
   const GVArrayImpl *(*get_varray)(const void *buffer) =
       [](const void *UNUSED(buffer)) -> const GVArrayImpl * { return nullptr; };
 
-  template<typename StorageT> static GVArrayAnyExtraInfo get();
+  template<typename StorageT> static constexpr GVArrayAnyExtraInfo get();
 };
 }  // namespace detail
 
@@ -810,7 +810,7 @@ inline bool GVArrayCommon::is_empty() const
  * \{ */
 
 namespace detail {
-template<typename StorageT> inline GVArrayAnyExtraInfo GVArrayAnyExtraInfo::get()
+template<typename StorageT> constexpr GVArrayAnyExtraInfo GVArrayAnyExtraInfo::get()
 {
   static_assert(std::is_base_of_v<GVArrayImpl, StorageT> ||
                 is_same_any_v<StorageT, const GVArrayImpl *, std::shared_ptr<const GVArrayImpl>>);
@@ -854,13 +854,13 @@ template<typename T> inline GVArray::GVArray(const VArray<T> &varray)
   if (varray.may_have_ownership()) {
     *this = GVArray::For<GVArrayImpl_For_VArray<T>>(varray);
   }
-  else if (varray.is_span()) {
-    Span<T> data = varray.get_internal_span();
-    *this = GVArray::ForSpan(data);
-  }
   else if (varray.is_single()) {
     T value = varray.get_internal_single();
     *this = GVArray::ForSingle(CPPType::get<T>(), varray.size(), &value);
+  }
+  else if (varray.is_span()) {
+    Span<T> data = varray.get_internal_span();
+    *this = GVArray::ForSpan(data);
   }
   else {
     *this = GVArray::For<GVArrayImpl_For_VArray<T>>(varray);
@@ -880,14 +880,14 @@ template<typename T> inline VArray<T> GVArray::typed() const
   if (this->may_have_ownership()) {
     return VArray<T>::template For<VArrayImpl_For_GVArray<T>>(*this);
   }
-  if (this->is_span()) {
-    const Span<T> span = this->get_internal_span().typed<T>();
-    return VArray<T>::ForSpan(span);
-  }
   if (this->is_single()) {
     T value;
     this->get_internal_single(&value);
     return VArray<T>::ForSingle(value, this->size());
+  }
+  if (this->is_span()) {
+    const Span<T> span = this->get_internal_span().typed<T>();
+    return VArray<T>::ForSpan(span);
   }
   return VArray<T>::template For<VArrayImpl_For_GVArray<T>>(*this);
 }

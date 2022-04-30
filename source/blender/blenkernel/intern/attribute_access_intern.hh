@@ -127,7 +127,7 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
   static constexpr uint64_t supported_types_mask = CD_MASK_PROP_FLOAT | CD_MASK_PROP_FLOAT2 |
                                                    CD_MASK_PROP_FLOAT3 | CD_MASK_PROP_INT32 |
                                                    CD_MASK_PROP_COLOR | CD_MASK_PROP_BOOL |
-                                                   CD_MASK_PROP_INT8;
+                                                   CD_MASK_PROP_INT8 | CD_MASK_PROP_BYTE_COLOR;
   const AttributeDomain domain_;
   const CustomDataAccessInfo custom_data_access_;
 

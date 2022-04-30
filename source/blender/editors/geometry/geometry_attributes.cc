@@ -136,7 +136,7 @@ static void next_color_attributes(struct ID *id, CustomDataLayer *layer)
 void GEOMETRY_OT_attribute_add(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Add Geometry Attribute";
+  ot->name = "Add Attribute";
   ot->description = "Add attribute to geometry";
   ot->idname = "GEOMETRY_OT_attribute_add";
 
@@ -198,7 +198,7 @@ static int geometry_attribute_remove_exec(bContext *C, wmOperator *op)
 void GEOMETRY_OT_attribute_remove(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Remove Geometry Attribute";
+  ot->name = "Remove Attribute";
   ot->description = "Remove attribute from geometry";
   ot->idname = "GEOMETRY_OT_attribute_remove";
 
@@ -241,7 +241,6 @@ enum class ConvertAttributeMode {
   Generic,
   UVMap,
   VertexGroup,
-  VertexColor,
 };
 
 static bool geometry_attribute_convert_poll(bContext *C)
@@ -288,7 +287,7 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
       const CustomDataType dst_type = static_cast<CustomDataType>(
           RNA_enum_get(op->ptr, "data_type"));
 
-      if (ELEM(dst_type, CD_PROP_STRING, CD_PROP_BYTE_COLOR)) {
+      if (ELEM(dst_type, CD_PROP_STRING)) {
         BKE_report(op->reports, RPT_ERROR, "Cannot convert to the selected type");
         return OPERATOR_CANCELLED;
       }
@@ -312,20 +311,6 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
       mesh_component.attribute_try_delete(name);
       CustomData_add_layer_named(
           &mesh->ldata, CD_MLOOPUV, CD_ASSIGN, dst_uvs, mesh->totloop, name.c_str());
-      break;
-    }
-    case ConvertAttributeMode::VertexColor: {
-      MLoopCol *dst_colors = static_cast<MLoopCol *>(
-          MEM_calloc_arrayN(mesh->totloop, sizeof(MLoopCol), __func__));
-      VArray<ColorGeometry4f> src_varray = mesh_component.attribute_get_for_read<ColorGeometry4f>(
-          name, ATTR_DOMAIN_CORNER, ColorGeometry4f{0.0f, 0.0f, 0.0f, 1.0f});
-      for (const int i : IndexRange(mesh->totloop)) {
-        ColorGeometry4b encoded_color = src_varray[i].encode();
-        copy_v4_v4_uchar(&dst_colors[i].r, &encoded_color.r);
-      }
-      mesh_component.attribute_try_delete(name);
-      CustomData_add_layer_named(
-          &mesh->ldata, CD_PROP_BYTE_COLOR, CD_ASSIGN, dst_colors, mesh->totloop, name.c_str());
       break;
     }
     case ConvertAttributeMode::VertexGroup: {
@@ -359,17 +344,29 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static void geometry_color_attribute_add_ui(bContext *UNUSED(C), wmOperator *op)
+{
+  uiLayout *layout = op->layout;
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+
+  uiItemR(layout, op->ptr, "name", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "domain", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "data_type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+}
+
 void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Add Geometry Attribute";
-  ot->description = "Add attribute to geometry";
+  ot->name = "Add Color Attribute";
+  ot->description = "Add color attribute to geometry";
   ot->idname = "GEOMETRY_OT_color_attribute_add";
 
   /* api callbacks */
   ot->poll = geometry_attributes_poll;
   ot->exec = geometry_color_attribute_add_exec;
   ot->invoke = WM_operator_props_popup_confirm;
+  ot->ui = geometry_color_attribute_add_ui;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -377,7 +374,8 @@ void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop;
 
-  prop = RNA_def_string(ot->srna, "name", "Color", MAX_NAME, "Name", "Name of color attribute");
+  prop = RNA_def_string(
+      ot->srna, "name", "Color", MAX_NAME, "Name", "Name of new color attribute");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   static EnumPropertyItem domains[3] = {{ATTR_DOMAIN_POINT, "POINT", 0, "Vertex", ""},
@@ -395,15 +393,12 @@ void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
                       "Domain",
                       "Type of element that attribute is stored on");
 
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-
   prop = RNA_def_enum(ot->srna,
                       "data_type",
                       types,
                       CD_PROP_COLOR,
                       "Data Type",
                       "Type of data stored in attribute");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int geometry_color_attribute_set_render_exec(bContext *C, wmOperator *op)
@@ -434,7 +429,7 @@ static int geometry_color_attribute_set_render_exec(bContext *C, wmOperator *op)
 void GEOMETRY_OT_color_attribute_render_set(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Set Render Color Attribute";
+  ot->name = "Set Render Color";
   ot->description = "Set default color attribute used for rendering";
   ot->idname = "GEOMETRY_OT_color_attribute_render_set";
 
@@ -550,7 +545,6 @@ void GEOMETRY_OT_attribute_convert(wmOperatorType *ot)
       {int(ConvertAttributeMode::Generic), "GENERIC", 0, "Generic", ""},
       {int(ConvertAttributeMode::UVMap), "UV_MAP", 0, "UV Map", ""},
       {int(ConvertAttributeMode::VertexGroup), "VERTEX_GROUP", 0, "Vertex Group", ""},
-      {int(ConvertAttributeMode::VertexColor), "VERTEX_COLOR", 0, "Color Attribute", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

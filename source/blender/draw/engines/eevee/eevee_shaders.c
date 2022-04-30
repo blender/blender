@@ -1487,6 +1487,10 @@ struct GPUMaterial *EEVEE_material_get(
   GPUMaterial *mat = eevee_material_get_ex(scene, ma, wo, options, deferred);
 
   int status = GPU_material_status(mat);
+  /* Return null material and bypass drawing for volume shaders. */
+  if ((options & VAR_MAT_VOLUME) && status != GPU_MAT_SUCCESS) {
+    return NULL;
+  }
   switch (status) {
     case GPU_MAT_SUCCESS:
       break;

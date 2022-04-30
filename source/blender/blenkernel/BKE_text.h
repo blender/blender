@@ -36,22 +36,23 @@ bool BKE_text_reload(struct Text *text);
  * \note text data-blocks have no real user but have 'fake user' enabled by default
  */
 struct Text *BKE_text_load_ex(struct Main *bmain,
-                              const char *file,
-                              const char *relpath,
-                              bool is_internal);
+                              const char *filepath,
+                              const char *relbase,
+                              bool is_internal) ATTR_NONNULL(1, 2, 3);
 /**
  * Load a text file.
  *
  * \note Text data-blocks have no user by default, only the 'real user' flag.
  */
-struct Text *BKE_text_load(struct Main *bmain, const char *file, const char *relpath);
+struct Text *BKE_text_load(struct Main *bmain, const char *filepath, const char *relbase)
+    ATTR_NONNULL(1, 2, 3);
 void BKE_text_clear(struct Text *text) ATTR_NONNULL(1);
 void BKE_text_write(struct Text *text, const char *str, int str_len) ATTR_NONNULL(1, 2);
 /**
  * \return codes:
- * -  0 if file on disk is the same or Text is in memory only.
- * -  1 if file has been modified on disk since last local edit.
- * -  2 if file on disk has been deleted.
+ * -  0 if filepath on disk is the same or Text is in memory only.
+ * -  1 if filepath has been modified on disk since last local edit.
+ * -  2 if filepath on disk has been deleted.
  * - -1 is returned if an error occurs.
  */
 int BKE_text_file_modified_check(struct Text *text);

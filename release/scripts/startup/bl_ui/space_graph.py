@@ -324,6 +324,7 @@ class GRAPH_MT_key_snap(Menu):
         layout.operator("graph.frame_jump", text="Cursor to Selection")
         layout.operator("graph.snap_cursor_value", text="Cursor Value to Selection")
 
+
 class GRAPH_MT_slider(Menu):
     bl_label = "Slider Operators"
 

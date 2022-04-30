@@ -325,7 +325,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
       BKE_mesh_mirror_apply_mirror_on_axis(bmain, mesh, sd->symmetrize_direction, dist);
 
       ED_sculpt_undo_geometry_end(ob);
-      BKE_mesh_calc_normals(ob->data);
+      BKE_mesh_normals_tag_dirty(mesh);
       BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
 
       break;
@@ -481,8 +481,17 @@ bool SCULPT_convert_colors_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
 
+  if (!SCULPT_mode_poll(C)) {
+    return false;
+  }
+
+  if (!ob->sculpt || !ob->sculpt->pbvh || BKE_pbvh_type(ob->sculpt->pbvh) != PBVH_FACES) {
+    return false;
+  }
+
   bool ok = ob && ob->data && ob->type == OB_MESH;
   ok = ok && ELEM(ob->mode, OB_MODE_SCULPT, OB_MODE_OBJECT);
+  ok = ok && SCULPT_has_colors(ob->sculpt);
 
   return ok;
 }
@@ -710,9 +719,11 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
 
-  if (!SCULPT_has_colors(ss)) {
+  if (!SCULPT_handles_colors_report(ss, op->reports)) {
     return OPERATOR_CANCELLED;
   }
+
+  BKE_sculpt_update_object_for_edit(CTX_data_depsgraph_pointer(C), ob, true, false, false);
 
   const SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
   float active_vertex_color[4];
@@ -750,7 +761,7 @@ static void SCULPT_OT_sample_color(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = sculpt_sample_color_invoke;
   ot->modal = sculpt_sample_color_modal;
-  ot->poll = SCULPT_vertex_colors_poll;
+  ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER;
 }
@@ -1002,16 +1013,9 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
-  if (!SCULPT_has_colors(ss)) {
+  /* Color data is not available in multi-resolution or dynamic topology. */
+  if (!SCULPT_handles_colors_report(ss, op->reports)) {
     return OPERATOR_CANCELLED;
-  }
-
-  if (!SCULPT_has_colors(ss)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  if (SCULPT_has_loop_colors(ob)) {
-    BKE_pbvh_ensure_node_loops(ss->pbvh);
   }
 
   SCULPT_vertex_random_access_ensure(ss);
@@ -1025,11 +1029,16 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false, false);
 
   SCULPT_undo_push_begin(ob, "Mask by color");
+  BKE_sculpt_color_layer_create_if_needed(ob);
 
   const SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
   const float threshold = RNA_float_get(op->ptr, "threshold");
   const bool invert = RNA_boolean_get(op->ptr, "invert");
   const bool preserve_mask = RNA_boolean_get(op->ptr, "preserve_previous_mask");
+
+  if (SCULPT_has_loop_colors(ob)) {
+    BKE_pbvh_ensure_node_loops(ss->pbvh);
+  }
 
   if (RNA_boolean_get(op->ptr, "contiguous")) {
     sculpt_mask_by_color_contiguous(ob, active_vertex, threshold, invert, preserve_mask);
@@ -1056,7 +1065,7 @@ static void SCULPT_OT_mask_by_color(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = sculpt_mask_by_color_invoke;
-  ot->poll = SCULPT_vertex_colors_poll;
+  ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER;
 

@@ -313,18 +313,6 @@ static void rna_MeshVertex_normal_get(PointerRNA *ptr, float *value)
   copy_v3_v3(value, vert_normals[index]);
 }
 
-static void rna_MeshVertex_normal_set(PointerRNA *ptr, const float *value)
-{
-  Mesh *mesh = rna_mesh(ptr);
-  float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(mesh);
-
-  const int index = (MVert *)ptr->data - mesh->mvert;
-  BLI_assert(index >= 0);
-  BLI_assert(index < mesh->totvert);
-
-  copy_v3_v3(vert_normals[index], value);
-}
-
 static float rna_MeshVertex_bevel_weight_get(PointerRNA *ptr)
 {
   MVert *mvert = (MVert *)ptr->data;
@@ -773,10 +761,7 @@ static int rna_MeshLoopColorLayer_data_length(PointerRNA *ptr)
 
 static bool rna_MeshLoopColorLayer_active_render_get(PointerRNA *ptr)
 {
-  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-
-  return BKE_id_attributes_render_color_get(ptr->owner_id) == layer;
-  // return rna_CustomDataLayer_active_get(ptr, rna_mesh_ldata(ptr), CD_PROP_BYTE_COLOR, 1);
+  return rna_CustomDataLayer_active_get(ptr, rna_mesh_ldata(ptr), CD_PROP_BYTE_COLOR, 1);
 }
 
 static bool rna_MeshLoopColorLayer_active_get(PointerRNA *ptr)
@@ -786,12 +771,7 @@ static bool rna_MeshLoopColorLayer_active_get(PointerRNA *ptr)
 
 static void rna_MeshLoopColorLayer_active_render_set(PointerRNA *ptr, bool value)
 {
-  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-
-  if (value) {
-    BKE_id_attributes_render_color_set(ptr->owner_id, layer);
-  }
-  //  rna_CustomDataLayer_active_set(ptr, rna_mesh_ldata(ptr), value, CD_PROP_BYTE_COLOR, 1);
+  rna_CustomDataLayer_active_set(ptr, rna_mesh_ldata(ptr), value, CD_PROP_BYTE_COLOR, 1);
 }
 
 static void rna_MeshLoopColorLayer_active_set(PointerRNA *ptr, bool value)
@@ -1755,11 +1735,9 @@ static void rna_def_mvert(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "normal", PROP_FLOAT, PROP_DIRECTION);
-  // RNA_def_property_float_sdna(prop, NULL, "no");
   RNA_def_property_array(prop, 3);
-  RNA_def_property_range(prop, -1.0f, 1.0f);
-  RNA_def_property_float_funcs(
-      prop, "rna_MeshVertex_normal_get", "rna_MeshVertex_normal_set", NULL);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_float_funcs(prop, "rna_MeshVertex_normal_get", NULL, NULL);
   RNA_def_property_ui_text(prop, "Normal", "Vertex Normal");
 
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
@@ -2139,7 +2117,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "active_rnd", 0);
   RNA_def_property_boolean_funcs(
       prop, "rna_MeshUVLoopLayer_active_render_get", "rna_MeshUVLoopLayer_active_render_set");
-  RNA_def_property_ui_text(prop, "Active Render", "Set the map as active for rendering");
+  RNA_def_property_ui_text(prop, "Active Render", "Set the UV map as active for rendering");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "active_clone", PROP_BOOLEAN, PROP_NONE);
@@ -2707,7 +2685,7 @@ static void rna_def_uv_layers(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_srna(cprop, "UVLoopLayers");
   srna = RNA_def_struct(brna, "UVLoopLayers", NULL);
   RNA_def_struct_sdna(srna, "Mesh");
-  RNA_def_struct_ui_text(srna, "UV Loop Layers", "Collection of uv loop layers");
+  RNA_def_struct_ui_text(srna, "UV Map Layers", "Collection of UV map layers");
 
   func = RNA_def_function(srna, "new", "rna_Mesh_uv_layers_new");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
@@ -2734,7 +2712,7 @@ static void rna_def_uv_layers(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_pointer_funcs(
       prop, "rna_Mesh_uv_layer_active_get", "rna_Mesh_uv_layer_active_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
-  RNA_def_property_ui_text(prop, "Active UV Loop Layer", "Active UV loop layer");
+  RNA_def_property_ui_text(prop, "Active UV Map Layer", "Active UV Map layer");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
@@ -2742,7 +2720,7 @@ static void rna_def_uv_layers(BlenderRNA *brna, PropertyRNA *cprop)
                              "rna_Mesh_uv_layer_active_index_get",
                              "rna_Mesh_uv_layer_active_index_set",
                              "rna_Mesh_uv_layer_index_range");
-  RNA_def_property_ui_text(prop, "Active UV Loop Layer Index", "Active UV loop layer index");
+  RNA_def_property_ui_text(prop, "Active UV Map Index", "Active UV map index");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 }
 
@@ -3197,6 +3175,7 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(
       prop, "rna_Mesh_uv_layer_clone_get", "rna_Mesh_uv_layer_clone_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_ui_text(
       prop, "Clone UV Loop Layer", "UV loop layer to be used as cloning source");
 
@@ -3212,6 +3191,7 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(
       prop, "rna_Mesh_uv_layer_stencil_get", "rna_Mesh_uv_layer_stencil_set", NULL, NULL);
   RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_ui_text(prop, "Mask UV Loop Layer", "UV loop layer to mask the painted area");
 
   prop = RNA_def_property(srna, "uv_layer_stencil_index", PROP_INT, PROP_UNSIGNED);

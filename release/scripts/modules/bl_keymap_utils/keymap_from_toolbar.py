@@ -391,7 +391,7 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
                 if key is not None:
                     kmi_args["type"] = key
                     kmi_tuple = dict_as_tuple(kmi_args)
-                    if not kmi_tuple in kmi_unique_args:
+                    if kmi_tuple not in kmi_unique_args:
                         kmi = keymap.keymap_items.new(idname="wm.tool_set_by_id", value='PRESS', **kmi_args)
                         kmi.properties.name = item.idname
                         kmi_unique_args.add(kmi_tuple)

@@ -128,11 +128,14 @@ struct MSculptVert;
 struct MPoly;
 struct MVert;
 struct Mesh;
+struct MeshElemMap;
 struct PBVH;
 struct MEdge;
 struct PBVHNode;
 struct SubdivCCG;
 struct TaskParallelSettings;
+struct Image;
+struct ImageUser;
 struct MeshElemMap;
 
 typedef struct PBVH PBVH;
@@ -220,6 +223,15 @@ typedef struct {
   int size;
 } PBVHColorBufferNode;
 
+typedef struct PBVHPixelsNode {
+  /**
+   * Contains triangle/pixel data used during texture painting.
+   *
+   * Contains #blender::bke::pbvh::pixels::NodeData.
+   */
+  void *node_data;
+} PBVHPixelsNode;
+
 typedef enum {
   PBVH_Leaf = 1 << 0,
 
@@ -238,15 +250,17 @@ typedef enum {
 
   PBVH_UpdateTopology = 1 << 13,
   PBVH_UpdateColor = 1 << 14,
-  PBVH_Delete = 1 << 15,
-  PBVH_UpdateCurvatureDir = 1 << 16,
-  PBVH_UpdateTris = 1 << 17,
-  PBVH_RebuildNodeVerts = 1 << 18,
+
+  PBVH_RebuildPixels = 1 << 15,
+  PBVH_Delete = 1 << 16,
+  PBVH_UpdateCurvatureDir = 1 << 17,
+  PBVH_UpdateTris = 1 << 18,
+  PBVH_RebuildNodeVerts = 1 << 19,
 
   /* tri areas are not guaranteed to be up to date, tools should
      update all nodes on first step of brush*/
-  PBVH_UpdateTriAreas = 1 << 19,
-  PBVH_UpdateOtherVerts = 1 << 20
+  PBVH_UpdateTriAreas = 1 << 20,
+  PBVH_UpdateOtherVerts = 1 << 21
 } PBVHNodeFlags;
 
 typedef struct PBVHFrustumPlanes {
@@ -327,6 +341,11 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_face_node_offset,
                              const int cd_sculpt_vert,
                              const int cd_face_areas);
+
+void BKE_pbvh_build_pixels(PBVH *pbvh,
+                           struct Mesh *mesh,
+                           struct Image *image,
+                           struct ImageUser *image_user);
 void BKE_pbvh_free(PBVH *pbvh);
 
 void BKE_pbvh_set_bm_log(PBVH *pbvh, struct BMLog *log);
@@ -340,7 +359,7 @@ void BKE_pbvh_update_sculpt_verts(PBVH *pbvh);
 bool BKE_pbvh_get_origvert(
     PBVH *pbvh, SculptVertRef vertex, float **r_co, float **r_no, float **r_color);
 
-    /**
+/**
 checks if original data needs to be updated for v, and if so updates it.  Stroke_id
 is provided by the sculpt code and is used to detect updates.  The reason we do it
 inside the verts and not in the nodes is to allow splitting of the pbvh during the stroke.
@@ -565,6 +584,7 @@ bool BKE_pbvh_node_fully_masked_get(PBVHNode *node);
 void BKE_pbvh_node_fully_unmasked_set(PBVHNode *node, int fully_masked);
 bool BKE_pbvh_node_fully_unmasked_get(PBVHNode *node);
 
+void BKE_pbvh_mark_rebuild_pixels(PBVH *pbvh);
 void BKE_pbvh_vert_mark_update(PBVH *pbvh, SculptVertRef vertex);
 
 void BKE_pbvh_node_get_grids(PBVH *pbvh,
@@ -871,6 +891,7 @@ void BKE_pbvh_vertex_color_set(PBVH *pbvh, SculptVertRef vertex, const float col
 void BKE_pbvh_vertex_color_get(const PBVH *pbvh, SculptVertRef vertex, float r_color[4]);
 
 void BKE_pbvh_ensure_node_loops(PBVH *pbvh);
+bool BKE_pbvh_draw_cache_invalid(const PBVH *pbvh);
 
 int BKE_pbvh_get_node_index(PBVH *pbvh, PBVHNode *node);
 int BKE_pbvh_get_node_id(PBVH *pbvh, PBVHNode *node);

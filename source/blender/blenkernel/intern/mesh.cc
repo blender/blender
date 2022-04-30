@@ -1120,6 +1120,9 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
   mesh_ensure_cdlayers_primary(me_dst, do_tessface);
   BKE_mesh_update_customdata_pointers(me_dst, false);
 
+  /* Expect that normals aren't copied at all, since the destination mesh is new. */
+  BLI_assert(BKE_mesh_vertex_normals_are_dirty(me_dst));
+
   return me_dst;
 }
 
@@ -1706,6 +1709,7 @@ void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
       mul_m3_v3(m3, *lnors);
     }
   }
+  BKE_mesh_normals_tag_dirty(me);
 }
 
 void BKE_mesh_translate(Mesh *me, const float offset[3], const bool do_keys)
@@ -1940,14 +1944,6 @@ void BKE_mesh_vert_coords_apply_with_mat4(Mesh *mesh,
     mul_v3_m4v3(mv->co, mat, vert_coords[i]);
   }
   BKE_mesh_normals_tag_dirty(mesh);
-}
-
-void BKE_mesh_anonymous_attributes_remove(Mesh *mesh)
-{
-  CustomData_free_layers_anonymous(&mesh->vdata, mesh->totvert);
-  CustomData_free_layers_anonymous(&mesh->edata, mesh->totedge);
-  CustomData_free_layers_anonymous(&mesh->pdata, mesh->totpoly);
-  CustomData_free_layers_anonymous(&mesh->ldata, mesh->totloop);
 }
 
 void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spacearr)

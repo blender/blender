@@ -179,6 +179,8 @@ void NODE_OT_view_selected(wmOperatorType *ot)
 struct NodeViewMove {
   int mvalo[2];
   int xmin, ymin, xmax, ymax;
+  /** Original Offset for cancel. */
+  float xof_orig, yof_orig;
 };
 
 static int snode_bg_viewmove_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -207,13 +209,24 @@ static int snode_bg_viewmove_modal(bContext *C, wmOperator *op, const wmEvent *e
 
     case LEFTMOUSE:
     case MIDDLEMOUSE:
-    case RIGHTMOUSE:
       if (event->val == KM_RELEASE) {
         MEM_freeN(nvm);
         op->customdata = nullptr;
         return OPERATOR_FINISHED;
       }
       break;
+    case EVT_ESCKEY:
+    case RIGHTMOUSE:
+      snode->xof = nvm->xof_orig;
+      snode->yof = nvm->yof_orig;
+      ED_region_tag_redraw(region);
+      WM_main_add_notifier(NC_NODE | ND_DISPLAY, nullptr);
+      WM_main_add_notifier(NC_SPACE | ND_SPACE_NODE_VIEW, nullptr);
+
+      MEM_freeN(nvm);
+      op->customdata = nullptr;
+
+      return OPERATOR_CANCELLED;
   }
 
   return OPERATOR_RUNNING_MODAL;
@@ -248,6 +261,9 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *
   nvm->xmax = (region->winx / 2) + (ibuf->x * (0.5f * snode->zoom)) - pad;
   nvm->ymin = -(region->winy / 2) - (ibuf->y * (0.5f * snode->zoom)) + pad;
   nvm->ymax = (region->winy / 2) + (ibuf->y * (0.5f * snode->zoom)) - pad;
+
+  nvm->xof_orig = snode->xof;
+  nvm->yof_orig = snode->yof;
 
   BKE_image_release_ibuf(ima, ibuf, lock);
 

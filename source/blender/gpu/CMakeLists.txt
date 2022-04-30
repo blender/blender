@@ -187,9 +187,17 @@ set(OPENGL_SRC
 
 set(METAL_SRC
   metal/mtl_backend.mm
+  metal/mtl_context.mm
+  metal/mtl_debug.mm
+  metal/mtl_texture.mm
+  metal/mtl_texture_util.mm
 
   metal/mtl_backend.hh
   metal/mtl_capabilities.hh
+  metal/mtl_common.hh
+  metal/mtl_context.hh
+  metal/mtl_debug.hh
+  metal/mtl_texture.hh
 )
 
 # Select Backend source based on availability
@@ -210,6 +218,18 @@ if(NOT WITH_SYSTEM_GLEW)
     ${BLENDER_GLEW_LIBRARIES}
   )
 endif()
+
+set(MSL_SRC
+
+  metal/kernels/compute_texture_update.msl
+  metal/kernels/compute_texture_read.msl
+  metal/kernels/depth_2d_update_float_frag.glsl
+  metal/kernels/depth_2d_update_int24_frag.glsl
+  metal/kernels/depth_2d_update_int32_frag.glsl
+  metal/kernels/depth_2d_update_vert.glsl
+  metal/kernels/gpu_shader_fullscreen_blit_vert.glsl
+  metal/kernels/gpu_shader_fullscreen_blit_frag.glsl
+)
 
 set(GLSL_SRC
   GPU_shader_shared.h
@@ -371,7 +391,6 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_velvet.glsl
   shaders/material/gpu_shader_material_vertex_color.glsl
   shaders/material/gpu_shader_material_volume_absorption.glsl
-  shaders/material/gpu_shader_material_volume_info.glsl
   shaders/material/gpu_shader_material_volume_principled.glsl
   shaders/material/gpu_shader_material_volume_scatter.glsl
   shaders/material/gpu_shader_material_wireframe.glsl
@@ -393,6 +412,15 @@ set(GLSL_C)
 foreach(GLSL_FILE ${GLSL_SRC})
   data_to_c_simple(${GLSL_FILE} GLSL_C)
 endforeach()
+
+
+if(WITH_METAL_BACKEND)
+  set(MSL_C)
+  foreach(MSL_FILE ${MSL_SRC})
+    data_to_c_simple(${MSL_FILE} MSL_C)
+  endforeach()
+  list(APPEND GLSL_C ${MSL_C})
+endif()
 
 blender_add_lib(bf_gpu_shaders "${GLSL_C}" "" "" "")
 
@@ -416,7 +444,10 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/gpencil/shaders/infos/gpencil_info.hh
   ../draw/engines/gpencil/shaders/infos/gpencil_vfx_info.hh
   ../draw/engines/overlay/shaders/infos/armature_info.hh
+  ../draw/engines/overlay/shaders/infos/extra_info.hh
+  ../draw/engines/overlay/shaders/infos/grid_info.hh
   ../draw/engines/overlay/shaders/infos/edit_mode_info.hh
+  ../draw/engines/select/shaders/infos/select_id_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_composite_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_effect_antialiasing_info.hh
   ../draw/engines/workbench/shaders/infos/workbench_effect_cavity_info.hh
@@ -523,10 +554,17 @@ if(WITH_GPU_SHADER_BUILDER)
       buildinfoobj
     )
   else()
+    if(WIN32)
+      # We can re-use the manifest from tests.exe here since it's
+      # rather generic and just selects the appropriate common
+      # controls version.
+      set(MANIFEST "${CMAKE_BINARY_DIR}/tests.exe.manifest")
+    endif()
     add_executable(shader_builder
       intern/gpu_shader_builder.cc
       intern/gpu_shader_builder_stubs.cc
       ${shader_create_info_list_file}
+      ${MANIFEST}
     )
 
     target_link_libraries(shader_builder PUBLIC

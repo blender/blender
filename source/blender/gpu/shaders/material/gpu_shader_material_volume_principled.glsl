@@ -10,9 +10,9 @@ void node_volume_principled(vec4 color,
                             vec4 blackbody_tint,
                             float temperature,
                             float weight,
-                            float density_attribute,
+                            vec4 density_attribute,
                             vec4 color_attribute,
-                            float temperature_attribute,
+                            vec4 temperature_attribute,
                             sampler1DArray spectrummap,
                             float layer,
                             out Closure result)
@@ -25,7 +25,7 @@ void node_volume_principled(vec4 color,
   density = max(density, 0.0);
 
   if (density > 1e-5) {
-    density = max(density * density_attribute, 0.0);
+    density = max(density * density_attribute.x, 0.0);
   }
 
   if (density > 1e-5) {
@@ -47,7 +47,7 @@ void node_volume_principled(vec4 color,
 
   if (blackbody_intensity > 1e-3) {
     /* Add temperature from attribute. */
-    float T = max(temperature * max(temperature_attribute, 0.0), 0.0);
+    float T = max(temperature * max(temperature_attribute.x, 0.0), 0.0);
 
     /* Stefan-Boltzman law. */
     float T2 = T * T;

@@ -1760,11 +1760,9 @@ static bool wm_file_write(bContext *C,
   /* Enforce full override check/generation on file save. */
   BKE_lib_override_library_main_operations_create(bmain, true);
 
-  if (!G.background && BLI_thread_is_main()) {
-    /* Redraw to remove menus that might be open.
-     * But only in the main thread otherwise this can crash, see T92704. */
-    WM_redraw_windows(C);
-  }
+  /* NOTE: Ideally we would call `WM_redraw_windows` here to remove any open menus. But we
+   * can crash if saving from a script, see T92704 & T97627. Just checking `!G.background
+   * && BLI_thread_is_main()` is not sufficient to fix this. */
 
   /* don't forget not to return without! */
   WM_cursor_wait(true);

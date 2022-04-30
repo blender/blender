@@ -46,7 +46,6 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_paths_calculate);
   WM_operatortype_append(OBJECT_OT_paths_update);
   WM_operatortype_append(OBJECT_OT_paths_clear);
-  WM_operatortype_append(OBJECT_OT_paths_range_update);
   WM_operatortype_append(OBJECT_OT_paths_update_visible);
   WM_operatortype_append(OBJECT_OT_forcefield_toggle);
 
@@ -133,6 +132,7 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_skin_radii_equalize);
   WM_operatortype_append(OBJECT_OT_skin_armature_create);
   WM_operatortype_append(OBJECT_OT_geometry_nodes_input_attribute_toggle);
+  WM_operatortype_append(OBJECT_OT_geometry_node_tree_copy_assign);
 
   /* grease pencil modifiers */
   WM_operatortype_append(OBJECT_OT_gpencil_modifier_add);

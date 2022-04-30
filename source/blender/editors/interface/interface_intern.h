@@ -183,6 +183,9 @@ struct uiBut {
 
   uchar col[4];
 
+  /** See \ref UI_but_func_identity_compare_set(). */
+  uiButIdentityCompareFunc identity_cmp_func;
+
   uiButHandleFunc func;
   void *func_arg1;
   void *func_arg2;

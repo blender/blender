@@ -257,7 +257,7 @@ class Scene : public NodeOwner {
   void need_global_attributes(AttributeRequestSet &attributes);
 
   enum MotionType { MOTION_NONE = 0, MOTION_PASS, MOTION_BLUR };
-  MotionType need_motion();
+  MotionType need_motion() const;
   float motion_shutter_time();
 
   bool need_update();

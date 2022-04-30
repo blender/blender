@@ -508,6 +508,10 @@ typedef void (*uiButHandleNFunc)(struct bContext *C, void *argN, void *arg2);
 typedef void (*uiButHandleHoldFunc)(struct bContext *C, struct ARegion *butregion, uiBut *but);
 typedef int (*uiButCompleteFunc)(struct bContext *C, char *str, void *arg);
 
+/** Function to compare the identity of two buttons over redraws, to check if they represent the
+ * same data, and thus should be considered the same button over redraws. */
+typedef bool (*uiButIdentityCompareFunc)(const uiBut *a, const uiBut *b);
+
 /* Search types. */
 typedef struct ARegion *(*uiButSearchCreateFn)(struct bContext *C,
                                                struct ARegion *butregion,
@@ -1360,6 +1364,13 @@ uiBut *uiDefIconTextButO_ptr(uiBlock *block,
 /* for passing inputs to ButO buttons */
 struct PointerRNA *UI_but_operator_ptr_get(uiBut *but);
 
+void UI_but_context_ptr_set(uiBlock *block,
+                            uiBut *but,
+                            const char *name,
+                            const struct PointerRNA *ptr);
+const struct PointerRNA *UI_but_context_ptr_get(const uiBut *but,
+                                                const char *name,
+                                                const StructRNA *type CPP_ARG_DEFAULT(nullptr));
 struct bContextStore *UI_but_context_get(const uiBut *but);
 
 void UI_but_unit_type_set(uiBut *but, int unit_type);
@@ -1641,6 +1652,18 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
                                      struct PropertyRNA *prop_activate_init,
                                      eButLabelAlign label_align,
                                      bool compact);
+
+/**
+ * Callback to compare the identity of two buttons, used to identify buttons over redraws. If the
+ * callback returns true, the given buttons are considered to be matching and relevant state is
+ * preserved (copied from the old to the new button). If it returns false, it's considered
+ * non-matching and no further checks are done.
+ *
+ * If this is set, it is always executed instead of the default comparisons. However it is only
+ * executed for buttons that have the same type and the same callback. So callbacks can assume the
+ * button types match.
+ */
+void UI_but_func_identity_compare_set(uiBut *but, uiButIdentityCompareFunc cmp_fn);
 
 /**
  * Public function exported for functions that use #UI_BTYPE_SEARCH_MENU.
@@ -2902,7 +2925,7 @@ void ED_keymap_ui(struct wmKeyConfig *keyconf);
 void ED_dropboxes_ui(void);
 void ED_uilisttypes_ui(void);
 
-void UI_drop_color_copy(struct wmDrag *drag, struct wmDropBox *drop);
+void UI_drop_color_copy(struct bContext *C, struct wmDrag *drag, struct wmDropBox *drop);
 bool UI_drop_color_poll(struct bContext *C, struct wmDrag *drag, const struct wmEvent *event);
 
 bool UI_context_copy_to_selected_list(struct bContext *C,

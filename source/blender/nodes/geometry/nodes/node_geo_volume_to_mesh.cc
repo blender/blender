@@ -139,7 +139,6 @@ static Mesh *create_mesh_from_volume_grids(Span<openvdb::GridBase::ConstPtr> gri
   }
 
   BKE_mesh_calc_edges(mesh, false, false);
-  BKE_mesh_normals_tag_dirty(mesh);
 
   return mesh;
 }

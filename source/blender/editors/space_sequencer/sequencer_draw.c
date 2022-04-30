@@ -383,7 +383,7 @@ static void draw_seq_waveform_overlay(View2D *v2d,
       return;
     }
 
-    /* F-curve lookup is quite expensive, so do this after precondition. */
+    /* F-Curve lookup is quite expensive, so do this after precondition. */
     FCurve *fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, NULL);
 
     WaveVizData *tri_strip_arr = MEM_callocN(sizeof(*tri_strip_arr) * pix_strip_len * 2,

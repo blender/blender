@@ -352,8 +352,12 @@ void HdCyclesLight::Finalize(HdRenderParam *renderParam)
   }
 
   const SceneLock lock(renderParam);
+  const bool keep_nodes = static_cast<const HdCyclesSession *>(renderParam)->keep_nodes;
 
-  lock.scene->delete_node(_light);
+  if (!keep_nodes) {
+    lock.scene->delete_node(_light);
+  }
+
   _light = nullptr;
 }
 

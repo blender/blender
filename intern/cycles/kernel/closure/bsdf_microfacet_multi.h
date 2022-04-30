@@ -434,6 +434,7 @@ ccl_device float3 bsdf_microfacet_multi_ggx_eval_reflect(ccl_private const Shade
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
 
   if (bsdf->alpha_x * bsdf->alpha_y < 1e-7f) {
+    *pdf = 0.0f;
     return make_float3(0.0f, 0.0f, 0.0f);
   }
 
@@ -572,6 +573,7 @@ bsdf_microfacet_multi_ggx_glass_eval_transmit(ccl_private const ShaderClosure *s
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
 
   if (bsdf->alpha_x * bsdf->alpha_y < 1e-7f) {
+    *pdf = 0.0f;
     return make_float3(0.0f, 0.0f, 0.0f);
   }
 
@@ -604,6 +606,7 @@ ccl_device float3 bsdf_microfacet_multi_ggx_glass_eval_reflect(ccl_private const
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
 
   if (bsdf->alpha_x * bsdf->alpha_y < 1e-7f) {
+    *pdf = 0.0f;
     return make_float3(0.0f, 0.0f, 0.0f);
   }
 

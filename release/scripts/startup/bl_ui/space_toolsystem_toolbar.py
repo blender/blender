@@ -2272,7 +2272,7 @@ class _defs_curves_sculpt:
             context,
             idname_prefix="builtin_brush.",
             icon_prefix="ops.curves.sculpt_",
-            type= bpy.types.Brush,
+            type=bpy.types.Brush,
             attr="curves_sculpt_tool",
         )
 
@@ -2442,7 +2442,8 @@ class _defs_sequencer_generic:
             icon="ops.transform.transform",
             widget="SEQUENCER_GGT_gizmo2d",
             # No keymap default action, only for gizmo!
-       )
+        )
+
 
 class _defs_sequencer_select:
     @ToolDef.from_fn
@@ -2782,6 +2783,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_sculpt.mask_by_color,
             None,
             _defs_sculpt.face_set_edit,
+            _defs_sculpt.mask_by_color,
             None,
             _defs_transform.translate,
             _defs_transform.rotate,

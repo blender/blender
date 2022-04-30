@@ -174,7 +174,7 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
 
         col = layout.column(align=True)
         col.label(text="This panel is a remainder of the old pose library,")
-        col.label(text="which was replaced by the Asset Browser.")
+        col.label(text="which was replaced by the Asset Browser")
 
         url = self.get_manual_url()
         col.operator("wm.url_open", text="More Info", icon='URL').url = url
@@ -193,7 +193,7 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
                              text="Convert to Pose Assets", icon='ASSET_MANAGER')
             else:
                 col.label(text="Enable the Pose Library add-on to convert", icon='ERROR')
-                col.label(text="this legacy pose library to pose assets.", icon='BLANK1')
+                col.label(text="this legacy pose library to pose assets", icon='BLANK1')
 
             # Put the deprecated stuff in its own sub-layout.
 

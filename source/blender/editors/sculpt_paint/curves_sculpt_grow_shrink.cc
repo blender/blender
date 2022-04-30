@@ -311,6 +311,9 @@ struct CurvesEffectOperationExecutor {
 
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
+    if (curves_->curves_num() == 0) {
+      return;
+    }
 
     CurvesSculpt &curves_sculpt = *scene_->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush(&curves_sculpt.paint);

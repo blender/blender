@@ -5,6 +5,8 @@
  * \ingroup draw
  */
 
+#include "BLI_bitmap.h"
+
 #include "extract_mesh.h"
 
 #include "draw_subdivision.h"
@@ -75,14 +77,14 @@ static void extract_fdots_pos_iter_poly_mesh(const MeshRenderData *mr,
 
   const MVert *mvert = mr->mvert;
   const MLoop *mloop = mr->mloop;
+  const BLI_bitmap *facedot_tags = mr->me->runtime.subsurf_face_dot_tags;
 
   const int ml_index_end = mp->loopstart + mp->totloop;
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
     const MLoop *ml = &mloop[ml_index];
     if (mr->use_subsurf_fdots) {
-      const MVert *mv = &mr->mvert[ml->v];
-      if (mv->flag & ME_VERT_FACEDOT) {
-        copy_v3_v3(center[mp_index], mv->co);
+      if (BLI_BITMAP_TEST(facedot_tags, ml->v)) {
+        copy_v3_v3(center[mp_index], mvert[ml->v].co);
         break;
       }
     }

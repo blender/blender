@@ -476,7 +476,10 @@ void node_group_input_update(bNodeTree *ntree, bNode *node)
 
     /* redirect links from the extension socket */
     for (link = (bNodeLink *)tmplinks.first; link; link = link->next) {
-      nodeAddLink(ntree, node, newsock, link->tonode, link->tosock);
+      bNodeLink *newlink = nodeAddLink(ntree, node, newsock, link->tonode, link->tosock);
+      if (newlink->tosock->flag & SOCK_MULTI_INPUT) {
+        newlink->multi_input_socket_index = link->multi_input_socket_index;
+      }
     }
   }
 

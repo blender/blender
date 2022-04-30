@@ -387,6 +387,16 @@ class Vector {
   }
 
   /**
+   * Reset the size of the vector so that it contains new_size elements.
+   * All existing elements are destructed, and not copied if the data must be reallocated.
+   */
+  void reinitialize(const int64_t new_size)
+  {
+    this->clear();
+    this->resize(new_size);
+  }
+
+  /**
    * Afterwards the vector has 0 elements, but will still have
    * memory to be refilled again.
    */

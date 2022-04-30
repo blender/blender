@@ -60,13 +60,13 @@ typedef struct EffectInfo {
 } EffectInfo;
 
 const EnumPropertyItem rna_enum_sequence_modifier_type_items[] = {
+    {seqModifierType_BrightContrast, "BRIGHT_CONTRAST", ICON_NONE, "Bright/Contrast", ""},
     {seqModifierType_ColorBalance, "COLOR_BALANCE", ICON_NONE, "Color Balance", ""},
     {seqModifierType_Curves, "CURVES", ICON_NONE, "Curves", ""},
     {seqModifierType_HueCorrect, "HUE_CORRECT", ICON_NONE, "Hue Correct", ""},
-    {seqModifierType_BrightContrast, "BRIGHT_CONTRAST", ICON_NONE, "Bright/Contrast", ""},
     {seqModifierType_Mask, "MASK", ICON_NONE, "Mask", ""},
-    {seqModifierType_WhiteBalance, "WHITE_BALANCE", ICON_NONE, "White Balance", ""},
     {seqModifierType_Tonemap, "TONEMAP", ICON_NONE, "Tone Map", ""},
+    {seqModifierType_WhiteBalance, "WHITE_BALANCE", ICON_NONE, "White Balance", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -2169,11 +2169,12 @@ static void rna_def_channel(BlenderRNA *brna)
   prop = RNA_def_property(srna, "lock", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_CHANNEL_LOCK);
   RNA_def_property_ui_text(prop, "Lock channel", "");
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
 
   prop = RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_CHANNEL_MUTE);
   RNA_def_property_ui_text(prop, "Mute channel", "");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_sound_update");
 }
 
 static void rna_def_editor(BlenderRNA *brna)

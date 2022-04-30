@@ -725,6 +725,19 @@ bool ui_but_rna_equals_ex(const uiBut *but,
 /* NOTE: if `but->poin` is allocated memory for every `uiDefBut*`, things fail. */
 static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
 {
+  if (but->identity_cmp_func) {
+    /* If the buttons have own identity comparator callbacks (and they match), use this to
+     * determine equality. */
+    if (but->identity_cmp_func && (but->type == oldbut->type) &&
+        (but->identity_cmp_func == oldbut->identity_cmp_func)) {
+      /* Test if the comparison is symmetrical (if a == b then b == a), may help catch some issues.
+       */
+      BLI_assert(but->identity_cmp_func(but, oldbut) == but->identity_cmp_func(oldbut, but));
+
+      return but->identity_cmp_func(but, oldbut);
+    }
+  }
+
   /* various properties are being compared here, hopefully sufficient
    * to catch all cases, but it is simple to add more checks later */
   if (but->retval != oldbut->retval) {
@@ -5949,6 +5962,17 @@ PointerRNA *UI_but_operator_ptr_get(uiBut *but)
   }
 
   return but->opptr;
+}
+
+void UI_but_context_ptr_set(uiBlock *block, uiBut *but, const char *name, const PointerRNA *ptr)
+{
+  but->context = CTX_store_add(&block->contexts, name, ptr);
+  but->context->used = true;
+}
+
+const PointerRNA *UI_but_context_ptr_get(const uiBut *but, const char *name, const StructRNA *type)
+{
+  return CTX_store_ptr_lookup(but->context, name, type);
 }
 
 bContextStore *UI_but_context_get(const uiBut *but)

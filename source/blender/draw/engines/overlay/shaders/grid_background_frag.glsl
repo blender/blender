@@ -1,9 +1,4 @@
 
-uniform vec4 color;
-uniform sampler2D depthBuffer;
-
-out vec4 fragColor;
-
 void main()
 {
   fragColor = color;

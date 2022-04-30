@@ -281,9 +281,12 @@ void HdCyclesCamera::ApplyCameraSettings(HdRenderParam *renderParam,
   auto data = dataUnconformedWindow;
   CameraUtilConformWindow(&data, windowPolicy, width / height);
 
-  static_assert(GfCamera::Perspective == CAMERA_PERSPECTIVE &&
-                GfCamera::Orthographic == CAMERA_ORTHOGRAPHIC);
-  cam->set_camera_type(static_cast<CameraType>(data.GetProjection()));
+  if (data.GetProjection() == GfCamera::Orthographic) {
+    cam->set_camera_type(CAMERA_ORTHOGRAPHIC);
+  }
+  else {
+    cam->set_camera_type(CAMERA_PERSPECTIVE);
+  }
 
   const float metersPerUnit = static_cast<HdCyclesSession *>(renderParam)->GetStageMetersPerUnit();
 

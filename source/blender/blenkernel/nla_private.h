@@ -258,7 +258,7 @@ void nlasnapshot_blend_strip(PointerRNA *ptr,
 
 void nlasnapshot_blend_strip_get_inverted_lower_snapshot(
     PointerRNA *ptr,
-    NlaEvalData *eval_data,
+    NlaEvalData *channels,
     ListBase *modifiers,
     NlaEvalStrip *nes,
     NlaEvalSnapshot *snapshot,

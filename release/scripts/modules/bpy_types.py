@@ -371,13 +371,8 @@ class _GenericBone:
         """
         return (self.tail - self.head)
 
-    @property
-    def children(self):
-        """A list of all the bones children.
-
-        .. note:: Takes ``O(len(bones))`` time."""
-        return [child for child in self._other_bones if child.parent == self]
-
+    # NOTE: each bone type is responsible for implementing `children`.
+    # This is done since `Bone` has direct access to this data in RNA.
     @property
     def children_recursive(self):
         """A list of all children from this bone.
@@ -457,9 +452,18 @@ class PoseBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
 class Bone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
     __slots__ = ()
 
+    # NOTE: `children` is implemented in RNA.
+
 
 class EditBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
     __slots__ = ()
+
+    @property
+    def children(self):
+        """A list of all the bones children.
+
+        .. note:: Takes ``O(len(bones))`` time."""
+        return [child for child in self._other_bones if child.parent == self]
 
     def align_orientation(self, other):
         """

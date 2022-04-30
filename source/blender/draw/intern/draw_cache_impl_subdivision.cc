@@ -361,7 +361,7 @@ static GPUVertFormat *get_origindex_format()
 {
   static GPUVertFormat format;
   if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "color", GPU_COMP_U32, 1, GPU_FETCH_INT);
+    GPU_vertformat_attr_add(&format, "index", GPU_COMP_I32, 1, GPU_FETCH_INT);
   }
   return &format;
 }
@@ -442,15 +442,15 @@ static uint tris_count_from_number_of_loops(const uint number_of_loops)
  * \{ */
 
 void draw_subdiv_init_origindex_buffer(GPUVertBuf *buffer,
-                                       int *vert_origindex,
+                                       int32_t *vert_origindex,
                                        uint num_loops,
                                        uint loose_len)
 {
   GPU_vertbuf_init_with_format_ex(buffer, get_origindex_format(), GPU_USAGE_STATIC);
   GPU_vertbuf_data_alloc(buffer, num_loops + loose_len);
 
-  int *vbo_data = (int *)GPU_vertbuf_get_data(buffer);
-  memcpy(vbo_data, vert_origindex, num_loops * sizeof(int));
+  int32_t *vbo_data = (int32_t *)GPU_vertbuf_get_data(buffer);
+  memcpy(vbo_data, vert_origindex, num_loops * sizeof(int32_t));
 }
 
 GPUVertBuf *draw_subdiv_build_origindex_buffer(int *vert_origindex, uint num_loops)
@@ -1898,7 +1898,8 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
                                                  const bool /*use_hide*/,
                                                  OpenSubdiv_EvaluatorCache *evaluator_cache)
 {
-  SubsurfModifierData *smd = BKE_object_get_last_subsurf_modifier(ob);
+  SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(
+      BKE_modifiers_findby_session_uuid(ob, &mesh->runtime.subsurf_session_uuid));
   BLI_assert(smd);
 
   const bool is_final_render = DRW_state_is_scene_render();
@@ -1951,6 +1952,13 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
   draw_cache->subdiv = subdiv;
   draw_cache->optimal_display = optimal_display;
   draw_cache->num_subdiv_triangles = tris_count_from_number_of_loops(draw_cache->num_subdiv_loops);
+
+  /* Copy topology information for stats display. Use `mesh` directly, as `mesh_eval` could be the
+   * edit mesh. */
+  mesh->runtime.subsurf_totvert = draw_cache->num_subdiv_verts;
+  mesh->runtime.subsurf_totedge = draw_cache->num_subdiv_edges;
+  mesh->runtime.subsurf_totpoly = draw_cache->num_subdiv_quads;
+  mesh->runtime.subsurf_totloop = draw_cache->num_subdiv_loops;
 
   draw_cache->use_custom_loop_normals = (smd->flags & eSubsurfModifierFlag_UseCustomNormals) &&
                                         (mesh_eval->flag & ME_AUTOSMOOTH) &&

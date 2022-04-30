@@ -1899,7 +1899,6 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
       pmd->type == MOD_DYNAMICPAINT_TYPE_CANVAS) {
 
     DynamicPaintSurface *surface;
-    bool update_normals = false;
 
     /* loop through surfaces */
     for (surface = pmd->canvas->surfaces.first; surface; surface = surface->next) {
@@ -1944,8 +1943,17 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
                 &result->ldata, CD_PROP_BYTE_COLOR, surface->output_name);
             /* if output layer is lost from a constructive modifier, re-add it */
             if (!mloopcol && dynamicPaint_outputLayerExists(surface, ob, 0)) {
+<<<<<<< HEAD
               mloopcol = CustomData_add_layer_named(
                   &result->ldata, CD_PROP_BYTE_COLOR, CD_CALLOC, NULL, totloop, surface->output_name);
+=======
+              mloopcol = CustomData_add_layer_named(&result->ldata,
+                                                    CD_PROP_BYTE_COLOR,
+                                                    CD_CALLOC,
+                                                    NULL,
+                                                    totloop,
+                                                    surface->output_name);
+>>>>>>> origin/master
             }
 
             /* wet layer */
@@ -1953,8 +1961,17 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
                 &result->ldata, CD_PROP_BYTE_COLOR, surface->output_name2);
             /* if output layer is lost from a constructive modifier, re-add it */
             if (!mloopcol_wet && dynamicPaint_outputLayerExists(surface, ob, 1)) {
+<<<<<<< HEAD
               mloopcol_wet = CustomData_add_layer_named(
                   &result->ldata, CD_PROP_BYTE_COLOR, CD_CALLOC, NULL, totloop, surface->output_name2);
+=======
+              mloopcol_wet = CustomData_add_layer_named(&result->ldata,
+                                                        CD_PROP_BYTE_COLOR,
+                                                        CD_CALLOC,
+                                                        NULL,
+                                                        totloop,
+                                                        surface->output_name2);
+>>>>>>> origin/master
             }
 
             data.ob = ob;
@@ -2018,20 +2035,16 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
             settings.use_threading = (sData->total_points > 1000);
             BLI_task_parallel_range(
                 0, sData->total_points, &data, dynamic_paint_apply_surface_wave_cb, &settings);
-            update_normals = true;
+            BKE_mesh_normals_tag_dirty(mesh);
           }
 
           /* displace */
           if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) {
             dynamicPaint_applySurfaceDisplace(surface, result);
-            update_normals = true;
+            BKE_mesh_normals_tag_dirty(mesh);
           }
         }
       }
-    }
-
-    if (update_normals) {
-      BKE_mesh_normals_tag_dirty(result);
     }
   }
   /* make a copy of mesh to use as brush data */

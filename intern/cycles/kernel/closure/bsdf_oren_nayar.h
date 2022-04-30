@@ -68,6 +68,7 @@ ccl_device float3 bsdf_oren_nayar_eval_transmit(ccl_private const ShaderClosure 
                                                 const float3 omega_in,
                                                 ccl_private float *pdf)
 {
+  *pdf = 0.0f;
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 

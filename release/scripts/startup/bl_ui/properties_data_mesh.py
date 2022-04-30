@@ -65,6 +65,7 @@ class MESH_MT_shape_key_context_menu(Menu):
         layout.operator("object.shape_key_move", icon='TRIA_UP_BAR', text="Move to Top").type = 'TOP'
         layout.operator("object.shape_key_move", icon='TRIA_DOWN_BAR', text="Move to Bottom").type = 'BOTTOM'
 
+
 class MESH_MT_attribute_context_menu(Menu):
     bl_label = "Attribute Specials"
 
@@ -133,6 +134,7 @@ class MESH_UL_uvmaps(UIList):
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(text="", icon_value=icon)
+
 
 class MeshButtonsPanel:
     bl_space_type = 'PROPERTIES'
@@ -419,6 +421,7 @@ class DATA_PT_uv_texture(MeshButtonsPanel, Panel):
         col.operator("mesh.uv_texture_add", icon='ADD', text="")
         col.operator("mesh.uv_texture_remove", icon='REMOVE', text="")
 
+
 class DATA_PT_remesh(MeshButtonsPanel, Panel):
     bl_label = "Remesh"
     bl_options = {'DEFAULT_CLOSED'}
@@ -597,11 +600,13 @@ class MESH_UL_color_attributes(UIList, ColorAttributesListBase):
 
         split = layout.split(factor=0.50)
         split.emboss = 'NONE'
-        split.prop(attribute, "name", text="")
+        split.prop(attribute, "name", text="", icon='GROUP_VCOL')
 
         active_render = _index == data.color_attributes.render_color_index
 
-        props = split.operator(
+        row = split.row()
+        row.emboss = 'NONE'
+        prop = split.operator(
             "geometry.color_attribute_render_set",
             text="",
             icon='RESTRICT_RENDER_OFF' if active_render else 'RESTRICT_RENDER_ON',
@@ -616,9 +621,9 @@ class MESH_UL_color_attributes(UIList, ColorAttributesListBase):
 
 
 class MESH_UL_color_attributes_selector(UIList, ColorAttributesListBase):
-    def draw_item(self, _context, layout, data, attribute, _icon, _active_data, _active_propname, _index):
+    def draw_item(self, _context, layout, _data, attribute, _icon, _active_data, _active_propname, _index):
         layout.emboss = 'NONE'
-        layout.prop(attribute, "name", text="", icon='COLOR')
+        layout.prop(attribute, "name", text="", icon='GROUP_VCOL')
 
 
 class DATA_PT_vertex_colors(DATA_PT_mesh_attributes, Panel):
@@ -648,6 +653,7 @@ class DATA_PT_vertex_colors(DATA_PT_mesh_attributes, Panel):
         col.operator("geometry.color_attribute_remove", icon='REMOVE', text="")
 
         self.draw_attribute_warnings(context, layout)
+
 
 classes = (
     MESH_MT_vertex_group_context_menu,

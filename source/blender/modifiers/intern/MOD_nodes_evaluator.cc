@@ -1635,10 +1635,8 @@ class GeometryNodesEvaluator {
       if (conversions_.is_convertible(from_base_type, to_base_type)) {
         if (from_field_type->is_field(from_value)) {
           const GField &from_field = *from_field_type->get_field_ptr(from_value);
-          const MultiFunction &fn = *conversions_.get_conversion_multi_function(
-              MFDataType::ForSingle(from_base_type), MFDataType::ForSingle(to_base_type));
-          auto operation = std::make_shared<fn::FieldOperation>(fn, Vector<GField>{from_field});
-          to_field_type->construct_from_field(to_value, GField(std::move(operation), 0));
+          to_field_type->construct_from_field(to_value,
+                                              conversions_.try_convert(from_field, to_base_type));
         }
         else {
           to_field_type->default_construct(to_value);

@@ -11,8 +11,6 @@
 #include "ED_transform.h"
 #include "ED_view3d.h"
 
-#include "RE_engine.h"
-
 #include "DNA_listBase.h"
 #include "DNA_object_enums.h"
 
@@ -92,12 +90,10 @@ typedef enum {
   /** restrictions flags */
   T_NO_CONSTRAINT = 1 << 2,
   T_NULL_ONE = 1 << 3,
-  T_ALL_RESTRICTIONS = T_NO_CONSTRAINT | T_NULL_ONE,
 
   T_PROP_EDIT = 1 << 4,
   T_PROP_CONNECTED = 1 << 5,
   T_PROP_PROJECTED = 1 << 6,
-  T_PROP_EDIT_ALL = T_PROP_EDIT | T_PROP_CONNECTED | T_PROP_PROJECTED,
 
   T_V3D_ALIGN = 1 << 7,
   /** For 2D views such as UV or f-curve. */
@@ -138,11 +134,14 @@ typedef enum {
   T_AUTOSPLIT = 1 << 21,
 
   /** Use drag-start position of the event, otherwise use the cursor coordinates (unmodified). */
-  T_EVENT_DRAG_START = (1 << 22),
+  T_EVENT_DRAG_START = 1 << 22,
 
   /** No cursor wrapping on region bounds */
   T_NO_CURSOR_WRAP = 1 << 23,
 } eTFlag;
+
+#define T_ALL_RESTRICTIONS (T_NO_CONSTRAINT | T_NULL_ONE)
+#define T_PROP_EDIT_ALL (T_PROP_EDIT | T_PROP_CONNECTED | T_PROP_PROJECTED)
 
 /** #TransInfo.modifiers */
 typedef enum {

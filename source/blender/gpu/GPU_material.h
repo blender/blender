@@ -109,14 +109,14 @@ typedef enum eGPUMaterialStatus {
   GPU_MAT_SUCCESS,
 } eGPUMaterialStatus;
 
-typedef enum eGPUVolumeDefaultValue {
-  GPU_VOLUME_DEFAULT_0,
-  GPU_VOLUME_DEFAULT_1,
-} eGPUVolumeDefaultValue;
+typedef enum eGPUDefaultValue {
+  GPU_DEFAULT_0 = 0,
+  GPU_DEFAULT_1,
+} eGPUDefaultValue;
 
 typedef struct GPUCodegenOutput {
   char *attr_load;
-  /* Nodetree functions calls. */
+  /* Node-tree functions calls. */
   char *displacement;
   char *surface;
   char *volume;
@@ -131,6 +131,10 @@ typedef void (*GPUCodegenCallbackFn)(void *thunk, GPUMaterial *mat, GPUCodegenOu
 GPUNodeLink *GPU_constant(const float *num);
 GPUNodeLink *GPU_uniform(const float *num);
 GPUNodeLink *GPU_attribute(GPUMaterial *mat, CustomDataType type, const char *name);
+GPUNodeLink *GPU_attribute_with_default(GPUMaterial *mat,
+                                        CustomDataType type,
+                                        const char *name,
+                                        eGPUDefaultValue default_value);
 GPUNodeLink *GPU_uniform_attribute(GPUMaterial *mat, const char *name, bool use_dupli);
 GPUNodeLink *GPU_image(GPUMaterial *mat,
                        struct Image *ima,
@@ -142,9 +146,7 @@ GPUNodeLink *GPU_image_tiled(GPUMaterial *mat,
                              eGPUSamplerState sampler_state);
 GPUNodeLink *GPU_image_tiled_mapping(GPUMaterial *mat, struct Image *ima, struct ImageUser *iuser);
 GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *row);
-GPUNodeLink *GPU_volume_grid(GPUMaterial *mat,
-                             const char *name,
-                             eGPUVolumeDefaultValue default_value);
+
 /**
  * Create an implementation defined differential calculation of a float function.
  * The given function should return a float.
@@ -213,6 +215,9 @@ GPUMaterial *GPU_material_from_nodetree(struct Scene *scene,
 void GPU_material_compile(GPUMaterial *mat);
 void GPU_material_free(struct ListBase *gpumaterial);
 
+void GPU_material_acquire(GPUMaterial *mat);
+void GPU_material_release(GPUMaterial *mat);
+
 void GPU_materials_free(struct Main *bmain);
 
 struct Scene *GPU_material_scene(GPUMaterial *material);
@@ -237,7 +242,6 @@ struct GPUUniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material);
 void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs);
 struct GPUUniformBuf *GPU_material_create_sss_profile_ubo(void);
 
-bool GPU_material_is_volume_shader(GPUMaterial *mat);
 bool GPU_material_has_surface_output(GPUMaterial *mat);
 bool GPU_material_has_volume_output(GPUMaterial *mat);
 
@@ -255,9 +259,11 @@ void GPU_pass_cache_free(void);
 
 typedef struct GPUMaterialAttribute {
   struct GPUMaterialAttribute *next, *prev;
-  int type;      /* CustomDataType */
-  char name[64]; /* MAX_CUSTOMDATA_LAYER_NAME */
+  int type;                /* CustomDataType */
+  char name[64];           /* MAX_CUSTOMDATA_LAYER_NAME */
+  char input_name[12 + 1]; /* GPU_MAX_SAFE_ATTR_NAME + 1 */
   eGPUType gputype;
+  eGPUDefaultValue default_value; /* Only for volumes attributes. */
   int id;
   int users;
 } GPUMaterialAttribute;
@@ -274,18 +280,8 @@ typedef struct GPUMaterialTexture {
   int sampler_state; /* eGPUSamplerState */
 } GPUMaterialTexture;
 
-typedef struct GPUMaterialVolumeGrid {
-  struct GPUMaterialVolumeGrid *next, *prev;
-  char *name;
-  eGPUVolumeDefaultValue default_value;
-  char sampler_name[32];   /* Name of sampler in GLSL. */
-  char transform_name[32]; /* Name of 4x4 matrix in GLSL. */
-  int users;
-} GPUMaterialVolumeGrid;
-
 ListBase GPU_material_attributes(GPUMaterial *material);
 ListBase GPU_material_textures(GPUMaterial *material);
-ListBase GPU_material_volume_grids(GPUMaterial *material);
 
 typedef struct GPUUniformAttr {
   struct GPUUniformAttr *next, *prev;

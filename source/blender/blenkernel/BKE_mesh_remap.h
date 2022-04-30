@@ -178,6 +178,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(int mode,
                                          int numverts_dst,
                                          bool dirty_nors_dst,
                                          struct Mesh *me_src,
+                                         struct Mesh *me_dst,
                                          MeshPairRemap *r_map);
 
 void BKE_mesh_remap_calc_edges_from_mesh(int mode,
@@ -190,6 +191,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(int mode,
                                          int numedges_dst,
                                          bool dirty_nors_dst,
                                          struct Mesh *me_src,
+                                         struct Mesh *me_dst,
                                          MeshPairRemap *r_map);
 
 void BKE_mesh_remap_calc_loops_from_mesh(int mode,

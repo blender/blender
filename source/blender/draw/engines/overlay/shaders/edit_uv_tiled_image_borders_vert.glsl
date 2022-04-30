@@ -1,6 +1,8 @@
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
+#ifndef USE_GPU_SHADER_CREATE_INFO
 in vec3 pos;
+#endif
 
 void main()
 {

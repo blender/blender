@@ -12,10 +12,15 @@ from modules.mesh_test import RunTest, ParticleSystemSpec, SpecMeshTest
 
 def main():
     test = [
-        SpecMeshTest("ParticleSystemTest", "testParticleSystem", "expParticleSystem",
-         [ParticleSystemSpec('Particles', 'PARTICLE_SYSTEM', {'render_type': "OBJECT",
-          'instance_object': bpy.data.objects['Cube']}, 20)], threshold=1e-3),
-
+        SpecMeshTest(
+            "ParticleSystemTest", "testParticleSystem", "expParticleSystem", [
+                ParticleSystemSpec(
+                    'Particles',
+                    'PARTICLE_SYSTEM',
+                    {'render_type': "OBJECT", 'instance_object': bpy.data.objects['Cube']}, 20)
+            ],
+            threshold=1e-3,
+        ),
     ]
     particle_test = RunTest(test)
 

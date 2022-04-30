@@ -8,6 +8,7 @@
 #include "BLI_vector_set.hh"
 
 #include "FN_field.hh"
+#include "FN_multi_function_builder.hh"
 #include "FN_multi_function_procedure.hh"
 #include "FN_multi_function_procedure_builder.hh"
 #include "FN_multi_function_procedure_executor.hh"

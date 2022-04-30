@@ -883,6 +883,11 @@ static bool mesh_batch_cache_valid(Object *object, Mesh *me)
     if (cache->pbvh_is_drawing != BKE_pbvh_is_drawing(object->sculpt->pbvh)) {
       return false;
     }
+
+    if (BKE_pbvh_is_drawing(object->sculpt->pbvh) &&
+        BKE_pbvh_draw_cache_invalid(object->sculpt->pbvh)) {
+      return false;
+    }
   }
 
   if (cache->is_editmode != (me->edit_mesh != NULL)) {
@@ -2123,8 +2128,7 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
 
   MDEPS_ASSERT_MAP_INDEX(TRIS_PER_MAT_INDEX);
 
-  /* Meh loose Scene const correctness here. */
-  const bool use_subsurf_fdots = scene ? BKE_modifiers_uses_subsurf_facedots(scene, ob) : false;
+  const bool use_subsurf_fdots = me->runtime.subsurf_face_dot_tags != NULL;
 
   if (do_uvcage) {
     mesh_buffer_cache_create_requested(task_graph,

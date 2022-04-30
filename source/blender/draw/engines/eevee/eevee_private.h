@@ -1012,6 +1012,7 @@ typedef struct EEVEE_PrivateData {
   struct DRWCallBuffer *planar_display_shgrp;
   struct GHash *material_hash;
   float background_alpha; /* TODO: find a better place for this. */
+  bool disable_ligthprobes;
   /* Chosen lightcache: can come from Lookdev or the viewlayer. */
   struct LightCache *light_cache;
   /* For planar probes */
@@ -1557,7 +1558,6 @@ void EEVEE_volumes_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_volumes_resolve(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_volumes_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, uint tot_samples);
 void EEVEE_volumes_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
-void EEVEE_volumes_free_smoke_textures(void);
 void EEVEE_volumes_free(void);
 
 /* eevee_effects.c */

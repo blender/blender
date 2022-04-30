@@ -1360,7 +1360,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "custom_tx");
   RNA_def_property_struct_type(prop, "PoseBone");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_PTR_NO_OWNERSHIP);
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_ui_text(prop,
                            "Custom Shape Transform",
                            "Bone that defines the display transform of this custom shape");

@@ -155,12 +155,12 @@ static void render_callback_exec_id(Render *re, Main *bmain, ID *id, eCbEvent ev
 /** \name Allocation & Free
  * \{ */
 
-static int do_write_image_or_movie(Render *re,
-                                   Main *bmain,
-                                   Scene *scene,
-                                   bMovieHandle *mh,
-                                   const int totvideos,
-                                   const char *name_override);
+static bool do_write_image_or_movie(Render *re,
+                                    Main *bmain,
+                                    Scene *scene,
+                                    bMovieHandle *mh,
+                                    const int totvideos,
+                                    const char *name_override);
 
 /* default callbacks, set in each new render */
 static void result_nothing(void *UNUSED(arg), RenderResult *UNUSED(rr))
@@ -2020,12 +2020,12 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
   return ok;
 }
 
-static int do_write_image_or_movie(Render *re,
-                                   Main *bmain,
-                                   Scene *scene,
-                                   bMovieHandle *mh,
-                                   const int totvideos,
-                                   const char *name_override)
+static bool do_write_image_or_movie(Render *re,
+                                    Main *bmain,
+                                    Scene *scene,
+                                    bMovieHandle *mh,
+                                    const int totvideos,
+                                    const char *name_override)
 {
   char name[FILE_MAX];
   RenderResult rres;

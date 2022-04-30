@@ -272,6 +272,18 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
     BKE_pbvh_is_drawing_set(ob->sculpt->pbvh, is_sculpt_pbvh);
   }
 
+  bool has_color = false;
+
+  if (me) {
+    const CustomData *cd_vdata = workbench_mesh_get_vert_custom_data(me);
+    const CustomData *cd_ldata = workbench_mesh_get_loop_custom_data(me);
+
+    has_color = (CustomData_has_layer(cd_vdata, CD_PROP_COLOR) ||
+                 CustomData_has_layer(cd_vdata, CD_PROP_BYTE_COLOR) ||
+                 CustomData_has_layer(cd_ldata, CD_PROP_COLOR) ||
+                 CustomData_has_layer(cd_ldata, CD_PROP_BYTE_COLOR));
+  }
+
   if (color_type == V3D_SHADING_TEXTURE_COLOR) {
     if (ob->dt < OB_TEXTURE) {
       color_type = V3D_SHADING_MATERIAL_COLOR;
@@ -286,14 +298,6 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
       color_type = V3D_SHADING_OBJECT_COLOR;
     }
     else {
-      const CustomData *cd_vdata = workbench_mesh_get_vert_custom_data(me);
-      const CustomData *cd_ldata = workbench_mesh_get_loop_custom_data(me);
-
-      bool has_color = (CustomData_has_layer(cd_vdata, CD_PROP_COLOR) ||
-                        CustomData_has_layer(cd_vdata, CD_PROP_BYTE_COLOR) ||
-                        CustomData_has_layer(cd_ldata, CD_PROP_COLOR) ||
-                        CustomData_has_layer(cd_ldata, CD_PROP_BYTE_COLOR));
-
       if (!has_color) {
         color_type = V3D_SHADING_OBJECT_COLOR;
       }
@@ -315,7 +319,7 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
         *r_texpaint_mode = true;
       }
     }
-    else if (is_vertpaint_mode && me && CustomData_has_layer(ldata, CD_PROP_BYTE_COLOR)) {
+    else if (is_vertpaint_mode && me && has_color) {
       color_type = V3D_SHADING_VERTEX_COLOR;
     }
   }
@@ -614,10 +618,8 @@ static void workbench_draw_scene(void *ved)
   workbench_draw_finish(vedata);
 }
 
-void workbench_draw_finish(void *ved)
+void workbench_draw_finish(void *UNUSED(ved))
 {
-  WORKBENCH_Data *vedata = ved;
-  workbench_volume_draw_finish(vedata);
   /* Reset default view. */
   DRW_view_set_active(NULL);
 }

@@ -1,6 +1,5 @@
 #pragma BLENDER_REQUIRE(gpu_shader_material_math_util.glsl)
 
-
 void node_tex_environment_equirectangular(vec3 co, out vec3 uv)
 {
   vec3 nco = normalize(co);

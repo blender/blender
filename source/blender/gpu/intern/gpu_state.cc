@@ -48,6 +48,12 @@ void GPU_face_culling(eGPUFaceCullTest culling)
   SET_IMMUTABLE_STATE(culling_test, culling);
 }
 
+eGPUFaceCullTest GPU_face_culling_get()
+{
+  GPUState &state = Context::get()->state_manager->state;
+  return (eGPUFaceCullTest)state.culling_test;
+}
+
 void GPU_front_facing(bool invert)
 {
   SET_IMMUTABLE_STATE(invert_facing, invert);

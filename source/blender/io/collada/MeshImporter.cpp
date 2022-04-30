@@ -1057,7 +1057,6 @@ Object *MeshImporter::create_mesh_object(
   Mesh *new_mesh = uid_mesh_map[*geom_uid];
 
   BKE_mesh_assign_object(m_bmain, ob, new_mesh);
-  BKE_mesh_calc_normals(new_mesh);
 
   /* Because BKE_mesh_assign_object would have already decreased it... */
   id_us_plus(&old_mesh->id);

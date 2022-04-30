@@ -1,43 +1,6 @@
-diff -Naur external_ispc/CMakeLists.txt external_ispc_fixed/CMakeLists.txt
---- external_ispc/CMakeLists.txt	2020-04-23 17:29:06 -0600
-+++ external_ispc_fixed/CMakeLists.txt	2020-05-05 09:01:09 -0600
-@@ -389,7 +389,7 @@
- 
- # Link against Clang libraries
- foreach(clangLib ${CLANG_LIBRARY_LIST})
--    find_library(${clangLib}Path NAMES ${clangLib} HINTS ${LLVM_LIBRARY_DIRS})
-+    find_library(${clangLib}Path NAMES ${clangLib} HINTS ${LLVM_LIBRARY_DIRS} ${CLANG_LIBRARY_DIR})
-     list(APPEND CLANG_LIBRARY_FULL_PATH_LIST ${${clangLib}Path})
- endforeach()
- target_link_libraries(${PROJECT_NAME} ${CLANG_LIBRARY_FULL_PATH_LIST})
-diff -Naur orig/CMakeLists.txt external_ispc/CMakeLists.txt
---- orig/CMakeLists.txt 2020-05-05 09:19:11 -0600
-+++ external_ispc/CMakeLists.txt        2020-05-05 09:26:44 -0600
-@@ -333,7 +333,7 @@
-
- # Include directories
- target_include_directories(${PROJECT_NAME} PRIVATE
--                           ${LLVM_INCLUDE_DIRS}
-+                           ${LLVM_INCLUDE_DIRS} ${CLANG_INCLUDE_DIRS}
-                            ${GENX_DEPS_DIR}/include
-                            ${CMAKE_CURRENT_SOURCE_DIR}/src
-                            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR})
-diff -Naur orig/cmake/GenerateBuiltins.cmake.txt external_ispc/cmake/GenerateBuiltins.cmake.txt
-+++ orig/cmake/GenerateBuiltins.cmake	2020-05-25 13:32:40.830803821 +0200
-+++ external_ispc/cmake/GenerateBuiltins.cmake	2020-05-25 13:32:40.830803821 +0200
-@@ -97,6 +97,8 @@
- 
-     if ("${bit}" STREQUAL "32" AND ${arch} STREQUAL "x86")
-         set(target_arch "i686")
-+        # Blender: disable 32bit due to build issues on Linux and being unnecessary.
-+        set(SKIP ON)
-     elseif ("${bit}" STREQUAL "64" AND ${arch} STREQUAL "x86")
-         set(target_arch "x86_64")
-     elseif ("${bit}" STREQUAL "32" AND ${arch} STREQUAL "arm")
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 46a8db8..f53beef 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
+diff -Naur ispc-1.17.0.org/CMakeLists.txt ispc-1.17.0/CMakeLists.txt
+--- ispc-1.17.0.org/CMakeLists.txt	2022-01-15 01:35:15 -0700
++++ ispc-1.17.0/CMakeLists.txt	2022-02-12 12:44:24 -0700
 @@ -36,8 +36,12 @@
  cmake_minimum_required(VERSION 3.13)
  
@@ -53,7 +16,25 @@ index 46a8db8..f53beef 100644
  endif()
  
  set(PROJECT_NAME ispc)
-@@ -412,6 +416,29 @@ else()
+@@ -443,7 +447,7 @@
+ 
+ # Include directories
+ target_include_directories(${PROJECT_NAME} PRIVATE
+-                           ${LLVM_INCLUDE_DIRS}
++                           ${LLVM_INCLUDE_DIRS} ${CLANG_INCLUDE_DIRS}
+                            ${XE_DEPS_DIR}/include
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src
+                            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR})
+@@ -507,7 +511,7 @@
+ 
+ # Link against Clang libraries
+ foreach(clangLib ${CLANG_LIBRARY_LIST})
+-    find_library(${clangLib}Path NAMES ${clangLib} HINTS ${LLVM_LIBRARY_DIRS})
++    find_library(${clangLib}Path NAMES ${clangLib} HINTS ${LLVM_LIBRARY_DIRS} ${CLANG_LIBRARY_DIR})
+     list(APPEND CLANG_LIBRARY_FULL_PATH_LIST ${${clangLib}Path})
+ endforeach()
+ target_link_libraries(${PROJECT_NAME} ${CLANG_LIBRARY_FULL_PATH_LIST})
+@@ -546,6 +550,29 @@
      endif()
  endif()
  
@@ -83,3 +64,15 @@ index 46a8db8..f53beef 100644
  # Build target for utility checking host ISA
  if (ISPC_INCLUDE_UTILS)
      add_executable(check_isa "")
+diff -Naur ispc-1.17.0.org/cmake/GenerateBuiltins.cmake ispc-1.17.0/cmake/GenerateBuiltins.cmake
+--- ispc-1.17.0.org/cmake/GenerateBuiltins.cmake	2022-01-15 01:35:15 -0700
++++ ispc-1.17.0/cmake/GenerateBuiltins.cmake	2022-02-12 12:44:24 -0700
+@@ -124,6 +124,8 @@
+ 
+     if ("${bit}" STREQUAL "32" AND ${arch} STREQUAL "x86")
+         set(target_arch "i686")
++        # Blender: disable 32bit due to build issues on Linux and being unnecessary.
++        set(SKIP ON)
+     elseif ("${bit}" STREQUAL "64" AND ${arch} STREQUAL "x86")
+         set(target_arch "x86_64")
+     elseif ("${bit}" STREQUAL "32" AND ${arch} STREQUAL "arm")

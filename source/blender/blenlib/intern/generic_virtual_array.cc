@@ -643,6 +643,9 @@ void GVArrayCommon::get_internal_single_to_uninitialized(void *r_value) const
 
 const GVArrayImpl *GVArrayCommon::impl_from_storage() const
 {
+  if (!storage_.has_value()) {
+    return nullptr;
+  }
   return storage_.extra_info().get_varray(storage_.get());
 }
 

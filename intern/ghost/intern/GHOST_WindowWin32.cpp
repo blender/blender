@@ -960,6 +960,7 @@ GHOST_Wintab *GHOST_WindowWin32::getWintab() const
 void GHOST_WindowWin32::loadWintab(bool enable)
 {
   if (!m_wintab) {
+    WINTAB_PRINTF("Loading Wintab for window %p\n", m_hWnd);
     if (m_wintab = GHOST_Wintab::loadWintab(m_hWnd)) {
       if (enable) {
         m_wintab->enable();
@@ -982,6 +983,7 @@ void GHOST_WindowWin32::loadWintab(bool enable)
 
 void GHOST_WindowWin32::closeWintab()
 {
+  WINTAB_PRINTF("Closing Wintab for window %p\n", m_hWnd);
   delete m_wintab;
   m_wintab = NULL;
 }

@@ -60,7 +60,8 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
 
     std::string obj_path = blender::tests::flags_test_asset_dir() + "/io_tests/obj/" + path;
     strncpy(params.filepath, obj_path.c_str(), FILE_MAX - 1);
-    importer_main(bfile->main, bfile->curscene, bfile->cur_view_layer, params);
+    const size_t read_buffer_size = 650;
+    importer_main(bfile->main, bfile->curscene, bfile->cur_view_layer, params, read_buffer_size);
 
     depsgraph_create(DAG_EVAL_VIEWPORT);
 
@@ -444,6 +445,7 @@ TEST_F(obj_importer_test, import_all_objects)
        float3(5, 1, 1),
        float3(0, 0, 1),
        float2(0.654526f, 0.579873f)},
+      {"OBNurbsCircle.001", OB_MESH, 4, 4, 0, 0, float3(2, -3, 0), float3(3, -2, 0)},
       {"OBSurface",
        OB_MESH,
        256,

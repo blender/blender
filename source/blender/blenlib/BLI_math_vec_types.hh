@@ -201,6 +201,14 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
     }
   }
 
+  template<typename U, BLI_ENABLE_IF((std::is_convertible_v<U, T>))>
+  explicit vec_base(const U *ptr)
+  {
+    for (int i = 0; i < Size; i++) {
+      (*this)[i] = ptr[i];
+    }
+  }
+
   vec_base(const T (*ptr)[Size]) : vec_base(static_cast<const T *>(ptr[0]))
   {
   }

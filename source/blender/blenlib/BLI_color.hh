@@ -345,5 +345,7 @@ BLI_color_convert_to_theme4b(const ColorSceneLinear4f<eAlpha::Straight> &scene_l
 
 using ColorGeometry4f = ColorSceneLinear4f<eAlpha::Premultiplied>;
 using ColorGeometry4b = ColorSceneLinearByteEncoded4b<eAlpha::Premultiplied>;
+using ColorPaint4f = ColorSceneLinear4f<eAlpha::Straight>;
+using ColorPaint4b = ColorSceneLinearByteEncoded4b<eAlpha::Straight>;
 
 }  // namespace blender

@@ -81,7 +81,7 @@ void eevee_shader_material_create_info_amend(GPUMaterial *gpumat,
   const bool do_fragment_attrib_load = is_background || is_volume;
 
   if (is_hair && !info.vertex_out_interfaces_.is_empty()) {
-    /** Hair attributes comme from sampler buffer. Transfer attributes to sampler. */
+    /** Hair attributes come from sampler buffer. Transfer attributes to sampler. */
     for (auto &input : info.vertex_inputs_) {
       info.sampler(0, ImageType::FLOAT_BUFFER, input.name, Frequency::BATCH);
     }
@@ -92,16 +92,30 @@ void eevee_shader_material_create_info_amend(GPUMaterial *gpumat,
     const StageInterfaceInfo &iface = *info.vertex_out_interfaces_.first();
     /* Globals the attrib_load() can write to when it is in the fragment shader. */
     attr_load << "struct " << iface.name << " {\n";
-    for (auto &inout : iface.inouts) {
+    for (const auto &inout : iface.inouts) {
       attr_load << "  " << inout.type << " " << inout.name << ";\n";
     }
     attr_load << "};\n";
     attr_load << iface.name << " " << iface.instance_name << ";\n";
-    /* Global vars just to make code valid. Only Orco is supported. */
-    for (const ShaderCreateInfo::VertIn &in : info.vertex_inputs_) {
-      attr_load << in.type << " " << in.name << ";\n";
+    if (!is_volume) {
+      /* Global vars just to make code valid. Only Orco is supported. */
+      for (const ShaderCreateInfo::VertIn &in : info.vertex_inputs_) {
+        attr_load << in.type << " " << in.name << ";\n";
+      }
     }
     info.vertex_out_interfaces_.clear();
+  }
+  if (is_volume) {
+    /** Volume grid attributes come from 3D textures. Transfer attributes to samplers. */
+    for (auto &input : info.vertex_inputs_) {
+      info.sampler(0, ImageType::FLOAT_3D, input.name, Frequency::BATCH);
+    }
+    info.additional_info("draw_volume_infos");
+    /* Do not add twice. */
+    if (!GPU_material_flag_get(gpumat, GPU_MATFLAG_OBJECT_INFO)) {
+      info.additional_info("draw_object_infos");
+    }
+    info.vertex_inputs_.clear();
   }
 
   if (!is_volume) {
@@ -137,7 +151,7 @@ void eevee_shader_material_create_info_amend(GPUMaterial *gpumat,
     }
     frag_gen << "Closure nodetree_exec()\n";
     frag_gen << "{\n";
-    if (GPU_material_is_volume_shader(gpumat)) {
+    if (is_volume) {
       frag_gen << ((codegen.volume) ? codegen.volume : "return CLOSURE_DEFAULT;\n");
     }
     else {

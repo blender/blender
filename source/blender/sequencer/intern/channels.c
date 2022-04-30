@@ -81,3 +81,19 @@ bool SEQ_channel_is_muted(const SeqTimelineChannel *channel)
 {
   return (channel->flag & SEQ_CHANNEL_MUTE) != 0;
 }
+
+ListBase *SEQ_get_channels_by_seq(ListBase *seqbase, const Sequence *seq)
+{
+  ListBase *lb = NULL;
+
+  LISTBASE_FOREACH (Sequence *, iseq, seqbase) {
+    if (seq == iseq) {
+      return seqbase;
+    }
+    if ((lb = SEQ_get_channels_by_seq(&iseq->seqbase, seq))) {
+      return lb;
+    }
+  }
+
+  return NULL;
+}

@@ -24,7 +24,6 @@ ExternalProject_Add(external_blosc
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${BLOSC_HASH_TYPE}=${BLOSC_HASH}
   PREFIX ${BUILD_DIR}/blosc
-  PATCH_COMMAND ${PATCH_CMD} --verbose -p 1 -N -d ${BUILD_DIR}/blosc/src/external_blosc < ${PATCH_DIR}/blosc.diff
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/blosc ${DEFAULT_CMAKE_FLAGS} ${BLOSC_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/blosc
 )

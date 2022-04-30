@@ -646,7 +646,8 @@ static void replay_load(ReplaySerialStruct *st, void *data1, void *data2)
 void do_brush_action(struct Sculpt *sd,
                      struct Object *ob,
                      struct Brush *brush,
-                     struct UnifiedPaintSettings *ups);
+                     struct UnifiedPaintSettings *ups,
+                     PaintModeSettings *paint_mode_settings);
 void sculpt_combine_proxies(Sculpt *sd, Object *ob);
 bool sculpt_tool_is_proxy_used(const char sculpt_tool);
 void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr);
@@ -887,7 +888,7 @@ void SCULPT_replay(struct bContext *C)
     //sculpt_stroke_update_step(C, ss->cache->stroke, NULL);
     last_dyntopo_t = ss->cache->last_dyntopo_t;
     continue;
-    do_brush_action(sd, ob, brush, &scene->toolsettings->unified_paint_settings);
+    do_brush_action(sd, ob, brush, &scene->toolsettings->unified_paint_settings, &scene->toolsettings->paint_mode);
     sculpt_combine_proxies(sd, ob);
 
     /* Hack to fix noise texture tearing mesh. */

@@ -787,7 +787,7 @@ PBVH *BKE_pbvh_new(void)
 {
   PBVH *pbvh = MEM_callocN(sizeof(PBVH), "pbvh");
   pbvh->respect_hide = true;
-
+  pbvh->draw_cache_invalid = true;
   return pbvh;
 }
 
@@ -799,7 +799,7 @@ void BKE_pbvh_free(PBVH *pbvh)
     PBVHNode *node = &pbvh->nodes[i];
 
     if (node->flag & PBVH_Leaf) {
-      pbvh_free_all_draw_buffers(node);
+      pbvh_free_draw_buffers(node);
 
       if (node->vert_indices) {
         MEM_freeN((void *)node->vert_indices);
@@ -827,6 +827,7 @@ void BKE_pbvh_free(PBVH *pbvh)
 #ifdef PROXY_ADVANCED
       BKE_pbvh_free_proxyarray(pbvh, node);
 #endif
+      pbvh_pixels_free(node);
     }
   }
 
@@ -1546,7 +1547,7 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
       } break;
       case PBVH_BMESH:
         if (BKE_pbvh_bmesh_check_tris(pbvh, node)) {
-          pbvh_free_all_draw_buffers(node);
+          pbvh_free_draw_buffers(node);
           node->tot_mat_draw_buffers = node->tot_tri_buffers;
 
           pbvh_bmesh_check_other_verts(node);
@@ -1611,15 +1612,17 @@ void BKE_pbvh_set_flat_vcol_shading(PBVH *pbvh, bool value)
   pbvh->flat_vcol_shading = value;
 }
 
-void pbvh_free_all_draw_buffers(PBVHNode *node)
+void pbvh_free_draw_buffers(PBVH *pbvh, PBVHNode *node)
 {
   if (node->draw_buffers) {
     GPU_pbvh_buffers_free(node->draw_buffers);
     node->draw_buffers = NULL;
+    pbvh->draw_cache_invalid = true;
   }
 
   for (int i = 0; i < node->tot_mat_draw_buffers; i++) {
     GPU_pbvh_buffers_free(node->mat_draw_buffers[i]);
+    pbvh->draw_cache_invalid = true;
   }
 
   MEM_SAFE_FREE(node->mat_draw_buffers);
@@ -1641,8 +1644,7 @@ void pbvh_update_free_all_draw_buffers(PBVH *pbvh, PBVHNode *node)
   }
 }
 
-static void pbvh_update_draw_buffers(
-    PBVH *pbvh, Mesh *me, PBVHNode **nodes, int totnode, int update_flag)
+static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, int update_flag)
 {
 
   CustomData *vdata;
@@ -1703,7 +1705,10 @@ static void pbvh_update_draw_buffers(
     for (int n = 0; n < totnode; n++) {
       PBVHNode *node = nodes[n];
       if (node->flag & PBVH_RebuildDrawBuffers) {
-        pbvh_free_all_draw_buffers(node);
+        pbvh_free_draw_buffers(pbvh, node);
+=======
+        pbvh_free_draw_buffers(pbvh, node);
+>>>>>>> origin/master
       }
       else if ((node->flag & PBVH_UpdateDrawBuffers)) {
         pbvh_update_free_all_draw_buffers(pbvh, node);
@@ -2096,7 +2101,7 @@ void BKE_pbvh_node_mark_original_update(PBVHNode *node)
 void BKE_pbvh_node_mark_update(PBVHNode *node)
 {
   node->flag |= PBVH_UpdateNormals | PBVH_UpdateBB | PBVH_UpdateOriginalBB |
-                PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw | PBVH_UpdateCurvatureDir;
+                PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw | PBVH_UpdateCurvatureDir | PBVH_RebuildPixels;
 }
 
 void BKE_pbvh_node_mark_update_mask(PBVHNode *node)
@@ -2107,6 +2112,16 @@ void BKE_pbvh_node_mark_update_mask(PBVHNode *node)
 void BKE_pbvh_node_mark_update_color(PBVHNode *node)
 {
   node->flag |= PBVH_UpdateColor | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
+}
+
+void BKE_pbvh_mark_rebuild_pixels(PBVH *pbvh)
+{
+  for (int n = 0; n < pbvh->totnode; n++) {
+    PBVHNode *node = &pbvh->nodes[n];
+    if (node->flag & PBVH_Leaf) {
+      node->flag |= PBVH_RebuildPixels;
+    }
+  }
 }
 
 void BKE_pbvh_node_mark_update_visibility(PBVHNode *node)
@@ -3226,6 +3241,8 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
   PBVHNode **nodes;
   int totnode;
   int update_flag = 0;
+
+  pbvh->draw_cache_invalid = false;
 
   /* Search for nodes that need updates. */
   if (update_only_visible) {
@@ -5334,4 +5351,9 @@ bool BKE_pbvh_get_origvert(
   }
 
   return true;
+}
+
+bool BKE_pbvh_draw_cache_invalid(const PBVH *pbvh)
+{
+  return pbvh->draw_cache_invalid;
 }

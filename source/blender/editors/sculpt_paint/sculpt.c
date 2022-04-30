@@ -3665,7 +3665,8 @@ void SCULPT_calc_area_normal_and_center(
 static float brush_strength(const Sculpt *sd,
                             const StrokeCache *cache,
                             const float feather,
-                            const UnifiedPaintSettings *ups)
+                            const UnifiedPaintSettings *ups,
+                            const PaintModeSettings *UNUSED(paint_mode_settings))
 {
   const Brush *brush = cache->brush;  // BKE_paint_brush((Paint *)&sd->paint);
 
@@ -4259,6 +4260,41 @@ static void update_brush_local_mat(Sculpt *sd, Object *ob)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Texture painting
+ * \{ */
+
+static bool sculpt_needs_pbvh_pixels(PaintModeSettings *paint_mode_settings,
+                                     const Brush *brush,
+                                     Object *ob)
+{
+  if (brush->sculpt_tool == SCULPT_TOOL_PAINT && U.experimental.use_sculpt_texture_paint) {
+    Image *image;
+    ImageUser *image_user;
+    return SCULPT_paint_image_canvas_get(paint_mode_settings, ob, &image, &image_user);
+  }
+
+  return false;
+}
+
+static void sculpt_pbvh_update_pixels(PaintModeSettings *paint_mode_settings,
+                                      SculptSession *ss,
+                                      Object *ob)
+{
+  BLI_assert(ob->type == OB_MESH);
+  Mesh *mesh = (Mesh *)ob->data;
+
+  Image *image;
+  ImageUser *image_user;
+  if (!SCULPT_paint_image_canvas_get(paint_mode_settings, ob, &image, &image_user)) {
+    return;
+  }
+
+  BKE_pbvh_build_pixels(ss->pbvh, mesh, image, image_user);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Generic Brush Plane & Symmetry Utilities
  * \{ */
 
@@ -4569,8 +4605,7 @@ void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const float (*vertCos)[3])
     for (a = 0; a < me->totvert; a++, mvert++) {
       copy_v3_v3(mvert->co, vertCos[a]);
     }
-
-    BKE_mesh_calc_normals(me);
+    BKE_mesh_normals_tag_dirty(me);
   }
 
   /* Apply new coords on active key block, no need to re-allocate kb->data here! */
@@ -4687,6 +4722,7 @@ static void sculpt_topology_update(Sculpt *sd,
                                    Brush *brush,
                                    UnifiedPaintSettings *UNUSED(ups),
                                    void *UNUSED(userdata))
+                                   PaintModeSettings *UNUSED(paint_mode_settings))
 {
   SculptSession *ss = ob->sculpt;
 
@@ -4908,6 +4944,10 @@ static void get_nodes_undo(Sculpt *sd,
       radius_scale = MAX2(radius_scale, 2.0f);
     }
     nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale, &totnode);
+  }
+
+  if (sculpt_needs_pbvh_pixels(paint_mode_settings, brush, ob)) {
+    sculpt_pbvh_update_pixels(paint_mode_settings, ss, ob);
   }
 
   /* Draw Face Sets in draw mode makes a single undo push, in alt-smooth mode deforms the
@@ -5290,7 +5330,7 @@ static void SCULPT_run_command(
       SCULPT_do_displacement_smear_brush(sd, ob, nodes, totnode);
       break;
     case SCULPT_TOOL_PAINT:
-      SCULPT_do_paint_brush(sd, ob, nodes, totnode);
+      SCULPT_do_paint_brush(paint_mode_settings, sd, ob, nodes, totnode);
       break;
     case SCULPT_TOOL_SMEAR:
       SCULPT_do_smear_brush(sd, ob, nodes, totnode);
@@ -5827,12 +5867,26 @@ void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache,
   }
 }
 
+<<<<<<< HEAD
+=======
+typedef void (*BrushActionFunc)(Sculpt *sd,
+                                Object *ob,
+                                Brush *brush,
+                                UnifiedPaintSettings *ups,
+                                PaintModeSettings *paint_mode_settings);
+
+>>>>>>> origin/master
 static void do_tiled(Sculpt *sd,
                      Object *ob,
                      Brush *brush,
                      UnifiedPaintSettings *ups,
+<<<<<<< HEAD
                      BrushActionFunc action,
                      void *userdata)
+=======
+                     PaintModeSettings *paint_mode_settings,
+                     BrushActionFunc action)
+>>>>>>> origin/master
 {
   SculptSession *ss = ob->sculpt;
   StrokeCache *cache = ss->cache;
@@ -5866,7 +5920,11 @@ static void do_tiled(Sculpt *sd,
 
   /* First do the "un-tiled" position to initialize the stroke for this location. */
   cache->tile_pass = 0;
+<<<<<<< HEAD
   action(sd, ob, brush, ups, userdata);
+=======
+  action(sd, ob, brush, ups, paint_mode_settings);
+>>>>>>> origin/master
 
   /* Now do it for all the tiles. */
   copy_v3_v3_int(cur, start);
@@ -5885,7 +5943,11 @@ static void do_tiled(Sculpt *sd,
           cache->plane_offset[dim] = cur[dim] * step[dim];
           cache->initial_location[dim] = cur[dim] * step[dim] + original_initial_location[dim];
         }
+<<<<<<< HEAD
         action(sd, ob, brush, ups, userdata);
+=======
+        action(sd, ob, brush, ups, paint_mode_settings);
+>>>>>>> origin/master
       }
     }
   }
@@ -5895,6 +5957,7 @@ static void do_radial_symmetry(Sculpt *sd,
                                Object *ob,
                                Brush *brush,
                                UnifiedPaintSettings *ups,
+                               PaintModeSettings *paint_mode_settings,
                                BrushActionFunc action,
                                const char symm,
                                const int axis,
@@ -5907,7 +5970,11 @@ static void do_radial_symmetry(Sculpt *sd,
     const float angle = 2.0f * M_PI * i / sd->radial_symm[axis - 'X'];
     ss->cache->radial_symmetry_pass = i;
     SCULPT_cache_calc_brushdata_symm(ss->cache, symm, axis, angle);
+<<<<<<< HEAD
     do_tiled(sd, ob, brush, ups, action, userdata);
+=======
+    do_tiled(sd, ob, brush, ups, paint_mode_settings, action);
+>>>>>>> origin/master
   }
 }
 
@@ -5926,8 +5993,16 @@ static void sculpt_fix_noise_tear(Sculpt *sd, Object *ob)
   }
 }
 
+<<<<<<< HEAD
 static void do_symmetrical_brush_actions(
     Sculpt *sd, Object *ob, BrushActionFunc action, UnifiedPaintSettings *ups, void *userdata)
+=======
+static void do_symmetrical_brush_actions(Sculpt *sd,
+                                         Object *ob,
+                                         BrushActionFunc action,
+                                         UnifiedPaintSettings *ups,
+                                         PaintModeSettings *paint_mode_settings)
+>>>>>>> origin/master
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
@@ -5936,7 +6011,7 @@ static void do_symmetrical_brush_actions(
 
   float feather = calc_symmetry_feather(sd, ss->cache);
 
-  cache->bstrength = brush_strength(sd, cache, feather, ups);
+  cache->bstrength = brush_strength(sd, cache, feather, ups, paint_mode_settings);
   cache->symmetry = symm;
 
   /* `symm` is a bit combination of XYZ -
@@ -5949,11 +6024,19 @@ static void do_symmetrical_brush_actions(
     cache->radial_symmetry_pass = 0;
 
     SCULPT_cache_calc_brushdata_symm(cache, i, 0, 0);
+<<<<<<< HEAD
     do_tiled(sd, ob, brush, ups, action, userdata);
 
     do_radial_symmetry(sd, ob, brush, ups, action, i, 'X', feather, userdata);
     do_radial_symmetry(sd, ob, brush, ups, action, i, 'Y', feather, userdata);
     do_radial_symmetry(sd, ob, brush, ups, action, i, 'Z', feather, userdata);
+=======
+    do_tiled(sd, ob, brush, ups, paint_mode_settings, action);
+
+    do_radial_symmetry(sd, ob, brush, ups, paint_mode_settings, action, i, 'X', feather);
+    do_radial_symmetry(sd, ob, brush, ups, paint_mode_settings, action, i, 'Y', feather);
+    do_radial_symmetry(sd, ob, brush, ups, paint_mode_settings, action, i, 'Z', feather);
+>>>>>>> origin/master
   }
 }
 
@@ -5984,6 +6067,7 @@ bool SCULPT_mode_poll(bContext *C)
   return ob && ob->mode & OB_MODE_SCULPT;
 }
 
+<<<<<<< HEAD
 bool SCULPT_vertex_colors_poll(bContext *C)
 {
   return SCULPT_mode_poll(C);
@@ -6000,6 +6084,8 @@ bool SCULPT_vertex_colors_poll_no_bmesh(bContext *C)
   return SCULPT_mode_poll(C);
 }
 
+=======
+>>>>>>> origin/master
 bool SCULPT_mode_poll_view3d(bContext *C)
 {
   return (SCULPT_mode_poll(C) && CTX_wm_region_view3d(C));
@@ -6175,6 +6261,7 @@ void SCULPT_cache_free(SculptSession *ss, Object *ob, StrokeCache *cache)
 
   MEM_SAFE_FREE(cache->prev_displacement);
   MEM_SAFE_FREE(cache->limit_surface_co);
+  MEM_SAFE_FREE(cache->prev_colors_vpaint);
 
   if (cache->snap_context) {
     ED_transform_snap_object_context_destroy(cache->snap_context);
@@ -7054,7 +7141,8 @@ static bool sculpt_needs_connectivity_info(Sculpt *sd,
           SCULPT_TOOL_NEEDS_COLOR(brush->sculpt_tool) ||
           (brush->sculpt_tool == SCULPT_TOOL_CLOTH) || (brush->sculpt_tool == SCULPT_TOOL_SMEAR) ||
           (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) ||
-          (brush->sculpt_tool == SCULPT_TOOL_DISPLACEMENT_SMEAR));
+          (brush->sculpt_tool == SCULPT_TOOL_DISPLACEMENT_SMEAR) ||
+          (brush->sculpt_tool == SCULPT_TOOL_PAINT));
 }
 
 void SCULPT_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *brush)
@@ -7530,6 +7618,15 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
     multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
   }
 
+  if ((update_flags & SCULPT_UPDATE_IMAGE) != 0) {
+    ED_region_tag_redraw(region);
+    if (update_flags == SCULPT_UPDATE_IMAGE) {
+      /* Early exit when only need to update the images. We don't want to tag any geometry updates
+       * that would rebuilt the PBVH. */
+      return;
+    }
+  }
+
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
 
   /* Only current viewport matters, slower update for all viewports will
@@ -7623,6 +7720,16 @@ void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType up
         }
       }
     }
+
+    if (update_flags & SCULPT_UPDATE_IMAGE) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        SpaceLink *sl = area->spacedata.first;
+        if (sl->spacetype != SPACE_IMAGE) {
+          continue;
+        }
+        ED_area_tag_redraw_regiontype(area, RGN_TYPE_WINDOW);
+      }
+    }
   }
 
   if (update_flags & SCULPT_UPDATE_COORDS) {
@@ -7687,6 +7794,7 @@ static bool over_mesh(bContext *C, struct wmOperator *UNUSED(op), float x, float
   return SCULPT_stroke_get_location(C, co, mouse);
 }
 
+<<<<<<< HEAD
 static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const float mouse[2])
 {
   if (BKE_paintmode_get_active_from_context(C) == PAINT_MODE_SCULPT) {
@@ -7722,6 +7830,28 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
     }
   }
 
+=======
+bool SCULPT_handles_colors_report(SculptSession *ss, ReportList *reports)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      return true;
+    case PBVH_BMESH:
+      BKE_report(reports, RPT_ERROR, "Not supported in dynamic topology mode");
+      return false;
+    case PBVH_GRIDS:
+      BKE_report(reports, RPT_ERROR, "Not supported in multiresolution mode");
+      return false;
+  }
+
+  BLI_assert_msg(0, "PBVH corruption, type was invalid.");
+
+  return false;
+}
+
+static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const float mouse[2])
+{
+>>>>>>> origin/master
   /* Don't start the stroke until mouse goes over the mesh.
    * NOTE: mouse will only be null when re-executing the saved stroke.
    * We have exception for 'exec' strokes since they may not set 'mouse',
@@ -7800,6 +7930,7 @@ static void sculpt_stroke_update_step(bContext *C,
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
+<<<<<<< HEAD
   Brush *brush = BKE_paint_brush(&sd->paint);
 
   if (ss->cache->channels_final) {
@@ -7885,6 +8016,10 @@ static void sculpt_stroke_update_step(bContext *C,
   if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_SCENE_PROJECT) {
     SCULPT_stroke_cache_snap_context_init(C, ob);
   }
+=======
+  const Brush *brush = BKE_paint_brush(&sd->paint);
+  ToolSettings *tool_settings = CTX_data_tool_settings(C);
+>>>>>>> origin/master
 
   SCULPT_stroke_modifiers_check(C, ob, brush);
   if (itemptr) {
@@ -7952,6 +8087,7 @@ static void sculpt_stroke_update_step(bContext *C,
         brush, ss->cache->channels_final, list, tool, &ss->cache->input_mapping);
   }
 
+<<<<<<< HEAD
   SCULPT_run_commandlist(sd, ob, brush, ss->cache->commandlist, ups);
 
   float location[3];
@@ -7987,6 +8123,14 @@ static void sculpt_stroke_update_step(bContext *C,
   if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_FAIRING) {
     SCULPT_fairing_brush_exec_fairing_for_cache(sd, ob);
   }
+=======
+  if (SCULPT_stroke_is_dynamic_topology(ss, brush)) {
+    do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups, &tool_settings->paint_mode);
+  }
+
+  do_symmetrical_brush_actions(sd, ob, do_brush_action, ups, &tool_settings->paint_mode);
+  sculpt_combine_proxies(sd, ob);
+>>>>>>> origin/master
 
   /* Hack to fix noise texture tearing mesh. */
   sculpt_fix_noise_tear(sd, ob);
@@ -8015,8 +8159,18 @@ static void sculpt_stroke_update_step(bContext *C,
   if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_MASK) {
     SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
   }
+<<<<<<< HEAD
   else if (ELEM(SCULPT_get_tool(ss, brush), SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
     SCULPT_flush_update_step(C, SCULPT_UPDATE_COLOR);
+=======
+  else if (ELEM(brush->sculpt_tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
+    if (SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob)) {
+      SCULPT_flush_update_step(C, SCULPT_UPDATE_IMAGE);
+    }
+    else {
+      SCULPT_flush_update_step(C, SCULPT_UPDATE_COLOR);
+    }
+>>>>>>> origin/master
   }
   else {
     SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
@@ -8038,6 +8192,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  ToolSettings *tool_settings = CTX_data_tool_settings(C);
 
   /* Finished. */
   if (!ss->cache) {
@@ -8094,6 +8249,11 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
   if (tool == SCULPT_TOOL_MASK) {
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
   }
+  else if (brush->sculpt_tool == SCULPT_TOOL_PAINT) {
+    if (SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob)) {
+      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_IMAGE);
+    }
+  }
   else {
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
   }
@@ -8109,6 +8269,15 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
   int retval;
 
   sculpt_brush_stroke_init(C, op);
+
+  Object *ob = CTX_data_active_object(C);
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+
+  if (SCULPT_TOOL_NEEDS_COLOR(brush->sculpt_tool) &&
+      !SCULPT_handles_colors_report(ob->sculpt, op->reports)) {
+    return OPERATOR_CANCELLED;
+  }
 
   stroke = paint_stroke_new(C,
                             op,

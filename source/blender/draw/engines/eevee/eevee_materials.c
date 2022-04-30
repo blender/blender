@@ -113,6 +113,9 @@ void EEVEE_material_bind_resources(DRWShadingGroup *shgrp,
     DRW_shgroup_uniform_texture_ref(shgrp, "probePlanars", &vedata->txl->planar_pool);
     DRW_shgroup_uniform_int_copy(shgrp, "outputSsrId", ssr_id ? *ssr_id : 0);
   }
+  else {
+    DRW_shgroup_uniform_int_copy(shgrp, "outputSsrId", 1);
+  }
   if (use_refract) {
     DRW_shgroup_uniform_float_copy(
         shgrp, "refractionDepth", (refract_depth) ? *refract_depth : 0.0);

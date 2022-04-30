@@ -1123,7 +1123,6 @@ bool BKE_paint_ensure(ToolSettings *ts, struct Paint **r_paint)
   }
   else if ((CurvesSculpt **)r_paint == &ts->curves_sculpt) {
     CurvesSculpt *data = MEM_callocN(sizeof(*data), __func__);
-    data->curve_length = 0.3f;
     paint = &data->paint;
   }
   else if (*r_paint == &ts->imapaint.paint) {
@@ -1377,8 +1376,6 @@ void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss)
   struct SculptVertexPaintGeomMap *gmap = NULL;
   if (ss->mode_type == OB_MODE_VERTEX_PAINT) {
     gmap = &ss->mode.vpaint.gmap;
-
-    MEM_SAFE_FREE(ss->mode.vpaint.previous_color);
   }
   else if (ss->mode_type == OB_MODE_WEIGHT_PAINT) {
     gmap = &ss->mode.wpaint.gmap;
@@ -1592,6 +1589,8 @@ void BKE_sculptsession_free(Object *ob)
     }
 
     BKE_sculptsession_free_vwpaint_data(ob->sculpt);
+
+    MEM_SAFE_FREE(ss->last_paint_canvas_key);
 
     MEM_freeN(ss);
 
@@ -2041,6 +2040,30 @@ static void sculpt_update_object(Depsgraph *depsgraph,
       BKE_texpaint_slots_refresh_object(scene, ob);
     }
   }
+
+  /*
+   * We should rebuild the PBVH_pixels when painting canvas changes.
+   *
+   * The relevant changes are stored/encoded in the paint canvas key.
+   * These include the active uv map, and resolutions.
+   */
+  if (U.experimental.use_sculpt_texture_paint && ss->pbvh) {
+    char *paint_canvas_key = BKE_paint_canvas_key_get(&scene->toolsettings->paint_mode, ob);
+    if (ss->last_paint_canvas_key == NULL || !STREQ(paint_canvas_key, ss->last_paint_canvas_key)) {
+      MEM_SAFE_FREE(ss->last_paint_canvas_key);
+      ss->last_paint_canvas_key = paint_canvas_key;
+      BKE_pbvh_mark_rebuild_pixels(ss->pbvh);
+    }
+    else {
+      MEM_freeN(paint_canvas_key);
+    }
+  }
+
+  /* We could be more precise when we have access to the active tool. */
+  const bool use_paint_slots = (ob->mode & OB_MODE_SCULPT) != 0;
+  if (use_paint_slots) {
+    BKE_texpaint_slots_refresh_object(scene, ob);
+  }
 }
 
 void BKE_sculpt_update_object_before_eval(Object *ob)
@@ -2116,6 +2139,10 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
 
   BKE_id_attributes_active_color_set(&orig_me->id, layer);
   DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
+
+  if (object->sculpt && object->sculpt->pbvh) {
+    BKE_pbvh_update_active_vcol(object->sculpt->pbvh, orig_me);
+  }
 }
 
 void BKE_sculpt_update_object_for_edit(

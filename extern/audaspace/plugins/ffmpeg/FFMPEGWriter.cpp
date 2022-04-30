@@ -23,7 +23,9 @@
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avio.h>
+#if LIBAVCODEC_VERSION_MAJOR >= 59
 #include <libavutil/channel_layout.h>
+#endif
 }
 
 AUD_NAMESPACE_BEGIN
@@ -398,7 +400,7 @@ FFMPEGWriter::FFMPEGWriter(std::string filename, DeviceSpecs specs, Container fo
 		m_specs.rate = m_codecCtx->sample_rate;
 
 #ifdef FFMPEG_OLD_CODE
-		m_codecCtx->codec_id = outputFmt->audio_codec;
+		m_codecCtx->codec_id = audio_codec;
 #endif
 
 		m_codecCtx->codec_type = AVMEDIA_TYPE_AUDIO;

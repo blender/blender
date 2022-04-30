@@ -561,9 +561,9 @@ class _draw_tool_settings_context_mode:
             layout.prop(brush, "use_frontface")
             layout.prop(brush, "falloff_shape", expand=True)
             layout.prop(brush.curves_sculpt_settings, "add_amount")
-            layout.prop(tool_settings.curves_sculpt, "curve_length")
-            layout.prop(tool_settings.curves_sculpt, "interpolate_length")
-            layout.prop(tool_settings.curves_sculpt, "interpolate_shape")
+            layout.prop(brush.curves_sculpt_settings, "curve_length")
+            layout.prop(brush.curves_sculpt_settings, "interpolate_length")
+            layout.prop(brush.curves_sculpt_settings, "interpolate_shape")
 
         if brush.curves_sculpt_tool == 'GROW_SHRINK':
             layout.prop(brush, "direction", expand=True, text="")
@@ -575,9 +575,6 @@ class _draw_tool_settings_context_mode:
         if brush.curves_sculpt_tool == 'SNAKE_HOOK':
             layout.prop(brush, "falloff_shape", expand=True)
             layout.prop(brush, "curve_preset")
-
-        if brush.curves_sculpt_tool == 'TEST1':
-            layout.prop(tool_settings.curves_sculpt, "distance")
 
 
 class VIEW3D_HT_header(Header):
@@ -2829,6 +2826,7 @@ class VIEW3D_MT_object_cleanup(Menu):
 
         layout.operator("object.material_slot_remove_unused", text="Remove Unused Material Slots")
 
+
 class VIEW3D_MT_object_asset(Menu):
     bl_label = "Asset"
 
@@ -3171,19 +3169,15 @@ class VIEW3D_MT_mask(Menu):
 
         props = layout.operator("sculpt.mask_filter", text='Smooth Mask')
         props.filter_type = 'SMOOTH'
-        props.auto_iteration_count = True
 
         props = layout.operator("sculpt.mask_filter", text='Sharpen Mask')
         props.filter_type = 'SHARPEN'
-        props.auto_iteration_count = True
 
         props = layout.operator("sculpt.mask_filter", text='Grow Mask')
         props.filter_type = 'GROW'
-        props.auto_iteration_count = True
 
         props = layout.operator("sculpt.mask_filter", text='Shrink Mask')
         props.filter_type = 'SHRINK'
-        props.auto_iteration_count = True
 
         props = layout.operator("sculpt.mask_filter", text='Increase Contrast')
         props.filter_type = 'CONTRAST_INCREASE'
@@ -5388,7 +5382,6 @@ class VIEW3D_MT_sculpt_mask_edit_pie(Menu):
         op = pie.operator("sculpt.ipmask_filter", text='IPMask Contrast')
         op.filter_type = "CONTRAST"
         op.iterations = 1
-
 
 class VIEW3D_MT_sculpt_automasking_pie(Menu):
     bl_label = "Automasking"

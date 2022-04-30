@@ -166,7 +166,6 @@ class NLA_MT_marker_select(Menu):
         layout.operator("marker.select_leftright", text="After Current Frame").mode = 'RIGHT'
 
 
-
 class NLA_MT_edit(Menu):
     bl_label = "Edit"
 
@@ -180,6 +179,7 @@ class NLA_MT_edit(Menu):
         layout.operator_menu_enum("nla.snap", "type", text="Snap")
 
         layout.separator()
+        layout.operator("nla.bake", text="Bake Action")
         layout.operator("nla.duplicate", text="Duplicate").linked = False
         layout.operator("nla.duplicate", text="Linked Duplicate").linked = True
         layout.operator("nla.split")
@@ -214,8 +214,10 @@ class NLA_MT_edit(Menu):
             layout.operator("nla.tweakmode_exit", text="Stop Tweaking Strip Actions")
         else:
             layout.operator("nla.tweakmode_enter", text="Start Editing Stashed Action").isolate_action = True
-            layout.operator("nla.tweakmode_enter", text="Start Tweaking Strip Actions (Full Stack)").use_upper_stack_evaluation = True
-            layout.operator("nla.tweakmode_enter", text="Start Tweaking Strip Actions (Lower Stack)").use_upper_stack_evaluation = False
+            layout.operator("nla.tweakmode_enter",
+                            text="Start Tweaking Strip Actions (Full Stack)").use_upper_stack_evaluation = True
+            layout.operator("nla.tweakmode_enter",
+                            text="Start Tweaking Strip Actions (Lower Stack)").use_upper_stack_evaluation = False
 
 
 class NLA_MT_add(Menu):
@@ -289,8 +291,10 @@ class NLA_MT_context_menu(Menu):
             layout.operator("nla.tweakmode_exit", text="Stop Tweaking Strip Actions")
         else:
             layout.operator("nla.tweakmode_enter", text="Start Editing Stashed Action").isolate_action = True
-            layout.operator("nla.tweakmode_enter", text="Start Tweaking Strip Actions (Full Stack)").use_upper_stack_evaluation = True
-            layout.operator("nla.tweakmode_enter", text="Start Tweaking Strip Actions (Lower Stack)").use_upper_stack_evaluation = False
+            layout.operator("nla.tweakmode_enter",
+                            text="Start Tweaking Strip Actions (Full Stack)").use_upper_stack_evaluation = True
+            layout.operator("nla.tweakmode_enter",
+                            text="Start Tweaking Strip Actions (Lower Stack)").use_upper_stack_evaluation = False
 
         layout.separator()
 

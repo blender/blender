@@ -33,7 +33,6 @@ typedef struct MVert {
 enum {
   /*  SELECT = (1 << 0), */
   ME_HIDE = (1 << 4),
-  ME_VERT_FACEDOT = (1 << 5),
 };
 
 /**

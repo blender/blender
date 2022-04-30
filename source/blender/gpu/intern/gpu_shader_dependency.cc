@@ -292,7 +292,7 @@ struct GPUSource {
 
     const char whitespace_chars[] = " \r\n\t";
 
-    auto function_parse = [&](const StringRef &input,
+    auto function_parse = [&](const StringRef input,
                               int64_t &cursor,
                               StringRef &out_return_type,
                               StringRef &out_name,
@@ -330,7 +330,7 @@ struct GPUSource {
       return true;
     };
 
-    auto keyword_parse = [&](const StringRef &str, int64_t &cursor) -> const StringRef {
+    auto keyword_parse = [&](const StringRef str, int64_t &cursor) -> StringRef {
       int64_t keyword_start = str.find_first_not_of(whitespace_chars, cursor);
       if (keyword_start == -1) {
         /* No keyword found. */
@@ -345,7 +345,7 @@ struct GPUSource {
       return str.substr(keyword_start, keyword_end - keyword_start);
     };
 
-    auto arg_parse = [&](const StringRef &str,
+    auto arg_parse = [&](const StringRef str,
                          int64_t &cursor,
                          StringRef &out_qualifier,
                          StringRef &out_type,
@@ -416,55 +416,51 @@ struct GPUSource {
           break;
         }
 
-        auto parse_qualifier = [](StringRef &qualifier) -> GPUFunctionQual {
+        auto parse_qualifier = [](StringRef qualifier) -> GPUFunctionQual {
           if (qualifier == "out") {
             return FUNCTION_QUAL_OUT;
           }
-          else if (qualifier == "inout") {
+          if (qualifier == "inout") {
             return FUNCTION_QUAL_INOUT;
           }
-          else {
-            return FUNCTION_QUAL_IN;
-          }
+          return FUNCTION_QUAL_IN;
         };
 
-        auto parse_type = [](StringRef &type) -> eGPUType {
+        auto parse_type = [](StringRef type) -> eGPUType {
           if (type == "float") {
             return GPU_FLOAT;
           }
-          else if (type == "vec2") {
+          if (type == "vec2") {
             return GPU_VEC2;
           }
-          else if (type == "vec3") {
+          if (type == "vec3") {
             return GPU_VEC3;
           }
-          else if (type == "vec4") {
+          if (type == "vec4") {
             return GPU_VEC4;
           }
-          else if (type == "mat3") {
+          if (type == "mat3") {
             return GPU_MAT3;
           }
-          else if (type == "mat4") {
+          if (type == "mat4") {
             return GPU_MAT4;
           }
-          else if (type == "sampler1DArray") {
+          if (type == "sampler1DArray") {
             return GPU_TEX1D_ARRAY;
           }
-          else if (type == "sampler2DArray") {
+          if (type == "sampler2DArray") {
             return GPU_TEX2D_ARRAY;
           }
-          else if (type == "sampler2D") {
+          if (type == "sampler2D") {
             return GPU_TEX2D;
           }
-          else if (type == "sampler3D") {
+          if (type == "sampler3D") {
             return GPU_TEX3D;
           }
-          else if (type == "Closure") {
+          if (type == "Closure") {
             return GPU_CLOSURE;
           }
-          else {
-            return GPU_NONE;
-          }
+          return GPU_NONE;
         };
 
         func->paramqual[func->totparam] = parse_qualifier(arg_qualifier);

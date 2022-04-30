@@ -45,6 +45,9 @@ if(EXISTS ${LIBDIR})
   # which is a part of OpenCollada. They have different ABI, and we
   # do need to use the official one.
   set(CMAKE_PREFIX_PATH ${LIBDIR}/zlib ${LIB_SUBDIRS})
+
+  include(platform_old_libs_update)
+
   set(WITH_STATIC_LIBS ON)
   # OpenMP usually can't be statically linked into shared libraries,
   # due to not being compiled with position independent code.
@@ -373,6 +376,7 @@ if(WITH_IMAGE_WEBP)
   find_package_wrapper(WebP)
   if(NOT WEBP_FOUND)
     set(WITH_IMAGE_WEBP OFF)
+    message(WARNING "WebP not found, disabling WITH_IMAGE_WEBP")
   endif()
 endif()
 
@@ -393,6 +397,9 @@ if(WITH_OPENIMAGEIO)
   endif()
   if(WITH_IMAGE_OPENEXR)
     list(APPEND OPENIMAGEIO_LIBRARIES "${OPENEXR_LIBRARIES}")
+  endif()
+  if(WITH_IMAGE_WEBP)
+    list(APPEND OPENIMAGEIO_LIBRARIES "${WEBP_LIBRARIES}")
   endif()
 
   if(NOT OPENIMAGEIO_FOUND)

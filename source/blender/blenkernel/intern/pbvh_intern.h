@@ -9,6 +9,7 @@
 #include "DNA_material_types.h"
 
 #include "BKE_attribute.h"
+#include "BKE_pbvh.h"
 
 #include "bmesh.h"
 
@@ -17,6 +18,11 @@
  */
 struct MSculptVert;
 struct CustomData;
+struct PBVHTriBuf;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Axis-aligned bounding box */
 typedef struct {
@@ -129,11 +135,10 @@ struct PBVHNode {
 
   int updategen;
 
-  /* Used to store the brush color during a stroke and composite it over the original color */
-  PBVHColorBufferNode color_buffer;
 #ifdef PROXY_ADVANCED
   ProxyVertArray proxyverts;
 #endif
+  PBVHPixelsNode pixels;
 };
 
 typedef enum {
@@ -257,6 +262,9 @@ struct PBVH {
   AttributeDomain color_domain;
 
   bool is_drawing;
+
+  /* Used by DynTopo to invalidate the draw cache. */
+  bool draw_cache_invalid;
 };
 
 /* pbvh.c */
@@ -427,3 +435,13 @@ BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
 
 void pbvh_bmesh_check_other_verts(PBVHNode *node);
 //#define DEFRAGMENT_MEMORY
+
+/* pbvh_pixels.hh */
+
+void pbvh_pixels_free(PBVHNode *node);
+void pbvh_pixels_free_brush_test(PBVHNode *node);
+void pbvh_free_draw_buffers(PBVH *pbvh, PBVHNode *node);
+
+#ifdef __cplusplus
+}
+#endif

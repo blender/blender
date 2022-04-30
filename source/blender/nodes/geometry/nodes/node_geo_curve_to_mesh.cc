@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_spline.hh"
+#include "BKE_curves.hh"
 
 #include "BKE_curve_to_mesh.hh"
 
@@ -27,17 +27,18 @@ static void geometry_set_curve_to_mesh(GeometrySet &geometry_set,
                                        const GeometrySet &profile_set,
                                        const bool fill_caps)
 {
-  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
-      *geometry_set.get_curves_for_read());
+  const Curves &curves = *geometry_set.get_curves_for_read();
+
   const Curves *profile_curves = profile_set.get_curves_for_read();
 
   if (profile_curves == nullptr) {
-    Mesh *mesh = bke::curve_to_wire_mesh(*curve);
+    Mesh *mesh = bke::curve_to_wire_mesh(bke::CurvesGeometry::wrap(curves.geometry));
     geometry_set.replace_mesh(mesh);
   }
   else {
-    const std::unique_ptr<CurveEval> profile_curve = curves_to_curve_eval(*profile_curves);
-    Mesh *mesh = bke::curve_to_mesh_sweep(*curve, *profile_curve, fill_caps);
+    Mesh *mesh = bke::curve_to_mesh_sweep(bke::CurvesGeometry::wrap(curves.geometry),
+                                          bke::CurvesGeometry::wrap(profile_curves->geometry),
+                                          fill_caps);
     geometry_set.replace_mesh(mesh);
   }
 }

@@ -85,6 +85,7 @@ class AddPresetViewportSampling(AddPresetBase, Operator):
 
     preset_subdir = "cycles/viewport_sampling"
 
+
 classes = (
     AddPresetIntegrator,
     AddPresetSampling,

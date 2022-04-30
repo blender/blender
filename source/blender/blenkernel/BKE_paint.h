@@ -37,7 +37,9 @@ struct EdgeSet;
 struct EnumPropertyItem;
 struct GHash;
 struct GridPaintMask;
+struct Image;
 struct ImagePool;
+struct ImageUser;
 struct ListBase;
 struct MLoop;
 struct MLoopTri;
@@ -861,9 +863,6 @@ typedef struct SculptSession {
   union {
     struct {
       struct SculptVertexPaintGeomMap gmap;
-
-      /* For non-airbrush painting to re-apply from the original (MLoop aligned). */
-      unsigned int *previous_color;
     } vpaint;
 
     struct {
@@ -919,6 +918,11 @@ typedef struct SculptSession {
    * NOTE: This setting is temporarily until paint mode is added.
    */
   bool sticky_shading_color;
+
+  /**
+   * Last used painting canvas key.
+   */
+  char *last_paint_canvas_key;
 } SculptSession;
 
 void BKE_sculptsession_free(struct Object *ob);
@@ -1021,8 +1025,17 @@ enum {
 };
 
 /* paint_canvas.cc */
-struct Image *BKE_paint_canvas_image_get(const struct PaintModeSettings *settings,
-                                         struct Object *ob);
+
+/**
+ * Create a key that can be used to compare with previous ones to identify changes.
+ * The resulting 'string' is owned by the caller.
+ */
+char *BKE_paint_canvas_key_get(struct PaintModeSettings *settings, struct Object *ob);
+
+bool BKE_paint_canvas_image_get(struct PaintModeSettings *settings,
+                                struct Object *ob,
+                                struct Image **r_image,
+                                struct ImageUser **r_image_user);
 int BKE_paint_canvas_uvmap_layer_index_get(const struct PaintModeSettings *settings,
                                            struct Object *ob);
 

@@ -527,7 +527,10 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
       const char *tool_attr = BKE_paint_get_tool_prop_id_from_paintmode(paint_mode);
       if (tool_attr != NULL) {
         const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
-        const int i = RNA_enum_from_name(items, tool_id);
+        const char *tool_id_lstrip = strrchr(tool_id, '.');
+        const int tool_id_offset = tool_id_lstrip ? ((tool_id_lstrip - tool_id) + 1) : 0;
+        const int i = RNA_enum_from_name(items, tool_id + tool_id_offset);
+
         if (i != -1) {
           wmOperatorType *ot = WM_operatortype_find("paint.brush_select", true);
           PointerRNA op_props;

@@ -1485,6 +1485,27 @@ class PHYSICS_PT_viewport_display_advanced(PhysicButtonsPanel, Panel):
                     note.label(icon='INFO', text="Range highlighting for flags is not available!")
 
 
+class PHYSICS_PT_fluid_domain_render(PhysicButtonsPanel, Panel):
+    bl_label = "Render"
+    bl_parent_id = 'PHYSICS_PT_fluid'
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    @classmethod
+    def poll(cls, context):
+        if not PhysicButtonsPanel.poll_gas_domain(context):
+            return False
+
+        return (context.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        domain = context.fluid.domain_settings
+        layout.prop(domain, "velocity_scale")
+
+
 classes = (
     FLUID_PT_presets,
     PHYSICS_PT_fluid,
@@ -1513,6 +1534,7 @@ classes = (
     PHYSICS_PT_viewport_display_color,
     PHYSICS_PT_viewport_display_debug,
     PHYSICS_PT_viewport_display_advanced,
+    PHYSICS_PT_fluid_domain_render,
 )
 
 

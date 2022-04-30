@@ -799,6 +799,33 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 302, 14)) {
+    /* Sequencer channels region. */
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype != SPACE_SEQ) {
+            continue;
+          }
+          SpaceSeq *sseq = (SpaceSeq *)sl;
+          sseq->flag |= SEQ_CLAMP_VIEW;
+
+          if (ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW)) {
+            continue;
+          }
+
+          ARegion *timeline_region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+
+          if (timeline_region == NULL) {
+            continue;
+          }
+
+          timeline_region->v2d.cur.ymax = 8.5f;
+          timeline_region->v2d.align &= ~V2D_ALIGN_NO_NEG_Y;
+        }
+      }
+    }
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -1308,8 +1335,10 @@ static void version_liboverride_rnacollections_insertion_object(Object *object)
 
   if (object->pose != NULL) {
     LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-      char rna_path[FILE_MAXFILE];
-      BLI_snprintf(rna_path, sizeof(rna_path), "pose.bones[\"%s\"].constraints", pchan->name);
+      char rna_path[26 + (sizeof(pchan->name) * 2) + 1];
+      char name_esc[sizeof(pchan->name) * 2];
+      BLI_str_escape(name_esc, pchan->name, sizeof(name_esc));
+      SNPRINTF(rna_path, "pose.bones[\"%s\"].constraints", name_esc);
       op = BKE_lib_override_library_property_find(liboverride, rna_path);
       if (op != NULL) {
         version_liboverride_rnacollections_insertion_object_constraints(&pchan->constraints, op);
@@ -2962,6 +2991,54 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  /* Rebuild active/render color attribute references. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 302, 6)) {
+    LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
+      /* buggy code in wm_toolsystem broke smear in old files,
+         reset to defaults */
+      if (br->sculpt_tool == SCULPT_TOOL_SMEAR) {
+        br->alpha = 1.0f;
+        br->spacing = 5;
+        br->flag &= ~BRUSH_ALPHA_PRESSURE;
+        br->flag &= ~BRUSH_SPACE_ATTEN;
+        br->curve_preset = BRUSH_CURVE_SPHERE;
+      }
+    }
+
+    LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
+      for (int step = 0; step < 2; step++) {
+        CustomDataLayer *actlayer = NULL;
+
+        int vact1, vact2;
+
+        if (step) {
+          vact1 = CustomData_get_render_layer_index(&me->vdata, CD_PROP_COLOR);
+          vact2 = CustomData_get_render_layer_index(&me->ldata, CD_PROP_BYTE_COLOR);
+        }
+        else {
+          vact1 = CustomData_get_active_layer_index(&me->vdata, CD_PROP_COLOR);
+          vact2 = CustomData_get_active_layer_index(&me->ldata, CD_PROP_BYTE_COLOR);
+        }
+
+        if (vact1 != -1) {
+          actlayer = me->vdata.layers + vact1;
+        }
+        else if (vact2 != -1) {
+          actlayer = me->ldata.layers + vact2;
+        }
+
+        if (actlayer) {
+          if (step) {
+            BKE_id_attributes_render_color_set(&me->id, actlayer);
+          }
+          else {
+            BKE_id_attributes_active_color_set(&me->id, actlayer);
+          }
+        }
+      }
+    }
+  }
+
   if (!MAIN_VERSION_ATLEAST(bmain, 302, 7)) {
     /* Generate 'system' liboverrides IDs.
      * NOTE: This is a fairly rough process, based on very basic heuristics. Should be enough for a
@@ -2994,12 +3071,6 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
       brush->curves_sculpt_settings = MEM_callocN(sizeof(BrushCurvesSculptSettings), __func__);
       brush->curves_sculpt_settings->add_amount = 1;
-    }
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (scene->toolsettings && scene->toolsettings->curves_sculpt &&
-          scene->toolsettings->curves_sculpt->curve_length == 0.0f) {
-        scene->toolsettings->curves_sculpt->curve_length = 0.3f;
-      }
     }
 
     for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
@@ -3180,18 +3251,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     FOREACH_NODETREE_END;
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
-
+  if (!MAIN_VERSION_ATLEAST(bmain, 302, 13)) {
     /* Enable named attributes overlay in node editor. */
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
@@ -3203,5 +3263,28 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      BrushCurvesSculptSettings *settings = brush->curves_sculpt_settings;
+      if (settings == NULL) {
+        continue;
+      }
+      if (settings->curve_length == 0.0f) {
+        settings->curve_length = 0.3f;
+      }
+    }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }

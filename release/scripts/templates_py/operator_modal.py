@@ -35,10 +35,12 @@ class ModalOperator(bpy.types.Operator):
             self.report({'WARNING'}, "No active object, could not finish")
             return {'CANCELLED'}
 
+
 def menu_func(self, context):
     self.layout.operator(ModalOperator.bl_idname, text=ModalOperator.bl_label)
 
-# Register and add to the "view" menu (required to also use F3 search "Simple Modal Operator" for quick access)
+
+# Register and add to the "view" menu (required to also use F3 search "Simple Modal Operator" for quick access).
 def register():
     bpy.utils.register_class(ModalOperator)
     bpy.types.VIEW3D_MT_object.append(menu_func)

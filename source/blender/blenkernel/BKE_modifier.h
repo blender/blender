@@ -491,7 +491,6 @@ struct Object *BKE_modifiers_is_deformed_by_lattice(struct Object *ob);
 struct Object *BKE_modifiers_is_deformed_by_curve(struct Object *ob);
 bool BKE_modifiers_uses_multires(struct Object *ob);
 bool BKE_modifiers_uses_armature(struct Object *ob, struct bArmature *arm);
-bool BKE_modifiers_uses_subsurf_facedots(const struct Scene *scene, struct Object *ob);
 bool BKE_modifiers_is_correctable_deformed(const struct Scene *scene, struct Object *ob);
 void BKE_modifier_free_temporary_data(struct ModifierData *md);
 

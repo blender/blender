@@ -43,7 +43,6 @@ static void translate_mesh(Mesh &mesh, const float3 translation)
 static void transform_mesh(Mesh &mesh, const float4x4 &transform)
 {
   BKE_mesh_transform(&mesh, transform.values, false);
-  BKE_mesh_normals_tag_dirty(&mesh);
 }
 
 static void translate_pointcloud(PointCloud &pointcloud, const float3 translation)

@@ -1474,23 +1474,6 @@ static void OVERLAY_volume_extra(OVERLAY_ExtraCallBuffers *cb,
   }
 
   if (draw_velocity || show_gridlines) {
-    BLI_addtail(&data->stl->pd->smoke_domains, BLI_genericNodeN(fmd));
-  }
-}
-
-static void OVERLAY_volume_free_smoke_textures(OVERLAY_Data *data)
-{
-  /* Free Smoke Textures after rendering */
-  /* XXX This is a waste of processing and GPU bandwidth if nothing
-   * is updated. But the problem is since Textures are stored in the
-   * modifier we don't want them to take precious VRAM if the
-   * modifier is not used for display. We should share them for
-   * all viewport in a redraw at least. */
-  LinkData *link;
-  while ((link = BLI_pophead(&data->stl->pd->smoke_domains))) {
-    FluidModifierData *fmd = (FluidModifierData *)link->data;
-    DRW_smoke_free_velocity(fmd);
-    MEM_freeN(link);
   }
 }
 
@@ -1624,8 +1607,6 @@ void OVERLAY_extra_draw(OVERLAY_Data *vedata)
 void OVERLAY_extra_in_front_draw(OVERLAY_Data *vedata)
 {
   DRW_draw_pass(vedata->psl->extra_ps[1]);
-
-  OVERLAY_volume_free_smoke_textures(vedata);
 }
 
 void OVERLAY_extra_centers_draw(OVERLAY_Data *vedata)

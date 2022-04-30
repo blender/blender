@@ -6,11 +6,15 @@
 typedef struct ViewInfos ViewInfos;
 typedef struct ObjectMatrices ObjectMatrices;
 typedef struct ObjectInfos ObjectInfos;
+typedef struct VolumeInfos VolumeInfos;
 #endif
 
 #define DRW_SHADER_SHARED_H
 
 #define DRW_RESOURCE_CHUNK_LEN 512
+
+/* Define the maximum number of grid we allow in a volume UBO. */
+#define DRW_GRID_PER_VOLUME_MAX 16
 
 struct ViewInfos {
   /* View matrices */
@@ -62,6 +66,18 @@ struct ObjectInfos {
   float4 drw_Infos;
 };
 BLI_STATIC_ASSERT_ALIGN(ViewInfos, 16)
+
+struct VolumeInfos {
+  /* Object to grid-space. */
+  float4x4 grids_xform[DRW_GRID_PER_VOLUME_MAX];
+  /* NOTE: vec4 for alignment. Only float3 needed. */
+  float4 color_mul;
+  float density_scale;
+  float temperature_mul;
+  float temperature_bias;
+  float _pad;
+};
+BLI_STATIC_ASSERT_ALIGN(VolumeInfos, 16)
 
 #define OrcoTexCoFactors (drw_infos[resource_id].drw_OrcoTexCoFactors)
 #define ObjectInfo (drw_infos[resource_id].drw_Infos)

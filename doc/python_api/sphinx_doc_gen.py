@@ -409,7 +409,9 @@ BLENDER_VERSION_DOTS = "%d.%d" % (bpy.app.version[0], bpy.app.version[1])
 if BLENDER_REVISION != "Unknown":
     # SHA1 Git hash
     BLENDER_VERSION_HASH = BLENDER_REVISION
-    BLENDER_VERSION_HASH_HTML_LINK = "<a href=https://developer.blender.org/rB%s>%s</a>" % (BLENDER_VERSION_HASH, BLENDER_VERSION_HASH)
+    BLENDER_VERSION_HASH_HTML_LINK = "<a href=https://developer.blender.org/rB%s>%s</a>" % (
+        BLENDER_VERSION_HASH, BLENDER_VERSION_HASH,
+    )
     BLENDER_VERSION_DATE = time.strftime("%d/%m/%Y", time.localtime(BLENDER_REVISION_TIMESTAMP))
 else:
     # Fallback: Should not be used
@@ -573,7 +575,7 @@ def example_extract_docstring(filepath):
         line_no += 1
 
     file.close()
-    return "\n".join(text), line_no, line_no_has_content
+    return "\n".join(text).rstrip("\n"), line_no, line_no_has_content
 
 
 def title_string(text, heading_char, double=False):
@@ -593,9 +595,13 @@ def write_example_ref(ident, fw, example_id, ext="py"):
         filepath_full = os.path.join(os.path.dirname(fw.__self__.name), filepath)
 
         text, line_no, line_no_has_content = example_extract_docstring(filepath_full)
+        if text:
+            # Ensure a blank line, needed since in some cases the indentation doesn't match the previous line.
+            # which causes Sphinx not to warn about bad indentation.
+            fw("\n")
+            for line in text.split("\n"):
+                fw("%s\n" % (ident + line).rstrip())
 
-        for line in text.split("\n"):
-            fw("%s\n" % (ident + line).rstrip())
         fw("\n")
 
         # Some files only contain a doc-string.
@@ -1147,6 +1153,9 @@ def pycontext2sphinx(basepath):
     fw("Note that all context values are readonly,\n")
     fw("but may be modified through the data API or by running operators\n\n")
 
+    # Track all unique properties to properly use `noindex`.
+    unique = set()
+
     def write_contex_cls():
 
         fw(title_string("Global Context", "-"))
@@ -1164,9 +1173,11 @@ def pycontext2sphinx(basepath):
 
         # First write RNA
         for prop in sorted_struct_properties:
-            # support blacklisting props
+            # Support blacklisting props.
             if prop.identifier in struct_blacklist:
                 continue
+            # No need to check if there are duplicates yet as it's known there wont be.
+            unique.add(prop.identifier)
 
             type_descr = prop.get_type_description(
                 class_fmt=":class:`bpy.types.%s`", collection_id=_BPY_PROP_COLLECTION_ID)
@@ -1204,7 +1215,8 @@ def pycontext2sphinx(basepath):
         "file_context_dir",
     )
 
-    unique = set()
+    # Track unique for `context_strings` to validate `context_type_map`.
+    unique_context_strings = set()
     blend_cdll = ctypes.CDLL("")
     for ctx_str in context_strings:
         subsection = "%s Context" % ctx_str.split("_")[0].title()
@@ -1216,22 +1228,34 @@ def pycontext2sphinx(basepath):
         i = 0
         while char_array[i] is not None:
             member = ctypes.string_at(char_array[i]).decode(encoding="ascii")
-            fw(".. data:: %s\n\n" % member)
+            unique_all_len = len(unique)
+            unique.add(member)
+            member_visited = unique_all_len == len(unique)
+
+            unique_context_strings.add(member)
+
+            fw(".. data:: %s\n" % member)
+            # Avoid warnings about the member being included multiple times.
+            if member_visited:
+                fw("   :noindex:\n")
+            fw("\n")
+
             try:
                 member_type, is_seq = context_type_map[member]
             except KeyError:
-                raise SystemExit("Error: context key %r not found in context_type_map; update %s" % (member, __file__)) from None
+                raise SystemExit(
+                    "Error: context key %r not found in context_type_map; update %s" %
+                    (member, __file__)) from None
             fw("   :type: %s :class:`bpy.types.%s`\n\n" % ("sequence of " if is_seq else "", member_type))
-            unique.add(member)
             i += 1
 
     # generate typemap...
-    # for member in sorted(unique):
+    # for member in sorted(unique_context_strings):
     #     print('        "%s": ("", False),' % member)
-    if len(context_type_map) > len(unique):
+    if len(context_type_map) > len(unique_context_strings):
         warnings.warn(
             "Some types are not used: %s" %
-            str([member for member in context_type_map if member not in unique]))
+            str([member for member in context_type_map if member not in unique_context_strings]))
     else:
         pass  # will have raised an error above
 

@@ -402,19 +402,6 @@ GPUShader *GPU_shader_get_builtin_shader(eGPUBuiltinShader shader)
   return GPU_shader_get_builtin_shader_with_config(shader, GPU_SHADER_CFG_DEFAULT);
 }
 
-void GPU_shader_get_builtin_shader_code(eGPUBuiltinShader shader,
-                                        const char **r_vert,
-                                        const char **r_frag,
-                                        const char **r_geom,
-                                        const char **r_defines)
-{
-  const GPUShaderStages *stages = &builtin_shader_stages[shader];
-  *r_vert = stages->vert;
-  *r_frag = stages->frag;
-  *r_geom = stages->geom;
-  *r_defines = stages->defs;
-}
-
 void GPU_shader_free_builtin_shaders(void)
 {
   for (int i = 0; i < GPU_SHADER_CFG_LEN; i++) {

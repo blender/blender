@@ -44,7 +44,7 @@ inline void PassAccessorCPU::run_get_pass_kernel_processor_float(
   const int pixel_stride = destination.pixel_stride ? destination.pixel_stride :
                                                       destination.num_components;
 
-  tbb::parallel_for(0, buffer_params.window_height, [&](int64_t y) {
+  parallel_for(0, buffer_params.window_height, [&](int64_t y) {
     const float *buffer = window_data + y * buffer_row_stride;
     float *pixel = destination.pixels +
                    (y * buffer_params.width + destination.offset) * pixel_stride;
@@ -69,7 +69,7 @@ inline void PassAccessorCPU::run_get_pass_kernel_processor_half_rgba(
   const int destination_stride = destination.stride != 0 ? destination.stride :
                                                            buffer_params.width;
 
-  tbb::parallel_for(0, buffer_params.window_height, [&](int64_t y) {
+  parallel_for(0, buffer_params.window_height, [&](int64_t y) {
     const float *buffer = window_data + y * buffer_row_stride;
     half4 *pixel = dst_start + y * destination_stride;
     func(kfilm_convert, buffer, pixel, buffer_params.window_width, pass_stride);

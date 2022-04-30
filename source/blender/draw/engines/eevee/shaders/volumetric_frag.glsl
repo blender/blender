@@ -4,17 +4,13 @@
 /* Based on Frosbite Unified Volumetric.
  * https://www.ea.com/frostbite/news/physically-based-unified-volumetric-rendering-in-frostbite */
 
-#ifdef MESH_SHADER
-uniform vec3 volumeOrcoLoc;
-uniform vec3 volumeOrcoSize;
-uniform mat4 volumeObjectToTexture;
-uniform float volumeDensityScale = 1.0;
-#endif
+/* Store volumetric properties into the froxel textures. */
 
 flat in int slice;
 
 /* Warning: these are not attributes, these are global vars. */
 vec3 worldPosition = vec3(0.0);
+vec3 objectPosition = vec3(0.0);
 vec3 viewPosition = vec3(0.0);
 vec3 viewNormal = vec3(0.0);
 vec3 volumeOrco = vec3(0.0);
@@ -24,9 +20,9 @@ layout(location = 1) out vec4 volumeExtinction;
 layout(location = 2) out vec4 volumeEmissive;
 layout(location = 3) out vec4 volumePhase;
 
-/* Store volumetric properties into the froxel textures. */
+int attr_id;
 
-#ifdef MESH_SHADER
+#ifndef CLEAR
 GlobalData init_globals(void)
 {
   GlobalData surf;
@@ -80,10 +76,8 @@ void main()
   viewPosition = get_view_space_from_depth(ndc_cell.xy, ndc_cell.z);
   worldPosition = point_view_to_world(viewPosition);
 #ifdef MESH_SHADER
-  volumeOrco = point_world_to_object(worldPosition);
-  /* TODO: redundant transform */
-  volumeOrco = (volumeOrco - volumeOrcoLoc + volumeOrcoSize) / (volumeOrcoSize * 2.0);
-  volumeOrco = (volumeObjectToTexture * vec4(volumeOrco, 1.0)).xyz;
+  objectPosition = point_world_to_object(worldPosition);
+  volumeOrco = OrcoTexCoFactors[0].xyz + objectPosition * OrcoTexCoFactors[1].xyz;
 
   if (any(lessThan(volumeOrco, vec3(0.0))) || any(greaterThan(volumeOrco, vec3(1.0)))) {
     /* Note: Discard is not an explicit return in Metal prior to versions 2.3.
@@ -100,15 +94,13 @@ void main()
   volumeEmissive = vec4(0.0, 0.0, 0.0, 1.0);
   volumePhase = vec4(0.0, 0.0, 0.0, 0.0);
 #else
-#  ifdef MESH_SHADER
   g_data = init_globals();
   attrib_load();
-#  endif
   Closure cl = nodetree_exec();
 #  ifdef MESH_SHADER
-  cl.scatter *= volumeDensityScale;
-  cl.absorption *= volumeDensityScale;
-  cl.emission *= volumeDensityScale;
+  cl.scatter *= drw_volume.density_scale;
+  cl.absorption *= drw_volume.density_scale;
+  cl.emission *= drw_volume.density_scale;
 #  endif
 
   volumeScattering = vec4(cl.scatter, 1.0);
@@ -124,35 +116,72 @@ void main()
 #endif
 }
 
-vec3 attr_load_orco(vec4 orco)
+vec3 grid_coordinates()
 {
+  vec3 co = volumeOrco;
+#ifdef MESH_SHADER
+  /* Optional per-grid transform. */
+  if (drw_volume.grids_xform[attr_id][3][3] != 0.0) {
+    co = (drw_volume.grids_xform[attr_id] * vec4(objectPosition, 1.0)).xyz;
+  }
+#endif
+  attr_id += 1;
+  return co;
+}
+
+vec3 attr_load_orco(sampler3D orco)
+{
+  attr_id += 1;
   return volumeOrco;
 }
-vec4 attr_load_tangent(vec4 tangent)
+vec4 attr_load_tangent(sampler3D tangent)
 {
+  attr_id += 1;
   return vec4(0);
 }
-vec4 attr_load_vec4(vec4 attr)
+vec4 attr_load_vec4(sampler3D tex)
 {
-  return vec4(0);
+  return texture(tex, grid_coordinates());
 }
-vec3 attr_load_vec3(vec3 attr)
+vec3 attr_load_vec3(sampler3D tex)
 {
+  return texture(tex, grid_coordinates()).rgb;
+}
+vec2 attr_load_vec2(sampler3D tex)
+{
+  return texture(tex, grid_coordinates()).rg;
+}
+float attr_load_float(sampler3D tex)
+{
+  return texture(tex, grid_coordinates()).r;
+}
+vec4 attr_load_color(sampler3D tex)
+{
+  return texture(tex, grid_coordinates());
+}
+vec3 attr_load_uv(sampler3D attr)
+{
+  attr_id += 1;
   return vec3(0);
 }
-vec2 attr_load_vec2(vec2 attr)
+
+/* TODO(@fclem): These implementation details should concern the DRWManager and not be a fix on
+ * the engine side. But as of now, the engines are reponsible for loading the attributes. */
+float attr_load_temperature_post(float attr)
 {
-  return vec2(0);
+#ifdef MESH_SHADER
+  /* Bring the into standard range without having to modify the grid values */
+  attr = (attr > 0.01) ? (attr * drw_volume.temperature_mul + drw_volume.temperature_bias) : 0.0;
+#endif
+  return attr;
 }
-float attr_load_float(float attr)
+vec4 attr_load_color_post(vec4 attr)
 {
-  return 0.0;
-}
-vec4 attr_load_color(vec4 attr)
-{
-  return vec4(0);
-}
-vec3 attr_load_uv(vec3 attr)
-{
-  return vec3(0);
+#ifdef MESH_SHADER
+  /* Density is premultiplied for interpolation, divide it out here. */
+  attr.rgb *= safe_rcp(attr.a);
+  attr.rgb *= drw_volume.color_mul.rgb;
+  attr.a = 1.0;
+#endif
+  return attr;
 }

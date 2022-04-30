@@ -548,8 +548,14 @@ void GeometrySet::modify_geometry_sets(ForeachSubGeometryCallback callback)
 {
   Vector<GeometrySet *> geometry_sets;
   gather_mutable_geometry_sets(*this, geometry_sets);
-  blender::threading::parallel_for_each(
-      geometry_sets, [&](GeometrySet *geometry_set) { callback(*geometry_set); });
+  if (geometry_sets.size() == 1) {
+    /* Avoid possible overhead and a large call stack when multithreading is pointless. */
+    callback(*geometry_sets.first());
+  }
+  else {
+    blender::threading::parallel_for_each(
+        geometry_sets, [&](GeometrySet *geometry_set) { callback(*geometry_set); });
+  }
 }
 
 /** \} */

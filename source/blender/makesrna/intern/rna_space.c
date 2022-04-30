@@ -424,7 +424,7 @@ static const EnumPropertyItem rna_enum_shading_color_type_items[] = {
     {V3D_SHADING_SINGLE_COLOR, "SINGLE", 0, "Single", "Show scene in a single color"},
     {V3D_SHADING_OBJECT_COLOR, "OBJECT", 0, "Object", "Show object color"},
     {V3D_SHADING_RANDOM_COLOR, "RANDOM", 0, "Random", "Show random object color"},
-    {V3D_SHADING_VERTEX_COLOR, "VERTEX", 0, "Color", "Show active color attribute"},
+    {V3D_SHADING_VERTEX_COLOR, "VERTEX", 0, "Attribute", "Show active color attribute"},
     {V3D_SHADING_TEXTURE_COLOR, "TEXTURE", 0, "Texture", "Show texture"},
     {0, NULL, 0, NULL, NULL},
 };
@@ -2345,6 +2345,36 @@ static void rna_SequenceEditor_render_size_update(bContext *C, PointerRNA *ptr)
 {
   seq_build_proxy(C, ptr);
   rna_SequenceEditor_update_cache(CTX_data_main(C), CTX_data_scene(C), ptr);
+}
+
+static bool rna_SequenceEditor_clamp_view_get(PointerRNA *ptr)
+{
+  SpaceSeq *sseq = ptr->data;
+  return (sseq->flag & SEQ_CLAMP_VIEW) != 0;
+}
+
+static void rna_SequenceEditor_clamp_view_set(PointerRNA *ptr, bool value)
+{
+  SpaceSeq *sseq = ptr->data;
+  ScrArea *area;
+  ARegion *region;
+
+  area = rna_area_from_space(ptr); /* can be NULL */
+  if (area == NULL) {
+    return;
+  }
+
+  region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  if (region) {
+    if (value) {
+      sseq->flag |= SEQ_CLAMP_VIEW;
+      region->v2d.align &= ~V2D_ALIGN_NO_NEG_Y;
+    }
+    else {
+      sseq->flag &= ~SEQ_CLAMP_VIEW;
+      region->v2d.align |= V2D_ALIGN_NO_NEG_Y;
+    }
+  }
 }
 
 static void rna_Sequencer_view_type_update(Main *UNUSED(bmain),
@@ -5728,6 +5758,14 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
       prop, "Use Proxies", "Use optimized files for faster scrubbing when available");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_update_cache");
 
+  prop = RNA_def_property(srna, "use_clamp_view", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_CLAMP_VIEW);
+  RNA_def_property_boolean_funcs(
+      prop, "rna_SequenceEditor_clamp_view_get", "rna_SequenceEditor_clamp_view_set");
+  RNA_def_property_ui_text(
+      prop, "Limit View to Contents", "Limit timeline height to maximum used channel slot");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
+
   /* grease pencil */
   prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "gpd");
@@ -7769,6 +7807,12 @@ static void rna_def_spreadsheet_row_filter(BlenderRNA *brna)
   prop = RNA_def_property(srna, "value_color", PROP_FLOAT, PROP_NONE);
   RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Color Value", "");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
+
+  prop = RNA_def_property(srna, "value_byte_color", PROP_INT, PROP_NONE);
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_range(prop, 0, 255);
+  RNA_def_property_ui_text(prop, "Byte Color Value", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
 
   prop = RNA_def_property(srna, "value_string", PROP_STRING, PROP_NONE);

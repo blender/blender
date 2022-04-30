@@ -1958,11 +1958,12 @@ static void nlaevalchan_assert_blendOrcombine_compatible(NlaEvalChannelSnapshot 
   BLI_assert(lower_necs->length == blended_necs->length);
 }
 
-/** Check each remap domain of blended values individually in case animator had a non-combine NLA
+/**
+ * Check each remap domain of blended values individually in case animator had a non-combine NLA
  * strip with a subset of quaternion channels and remapping through any of them failed and thus
  * potentially has undefined values.
  *
- * \returns true if case occured and handled. Returns false if case didn't occur.
+ * \returns true if case occurred and handled. Returns false if case didn't occur.
  */
 static bool nlaevalchan_combine_quaternion_handle_undefined_blend_values(
     NlaEvalChannelSnapshot *blended_necs, NlaEvalChannelSnapshot *upper_or_lower_necs)
@@ -1992,8 +1993,10 @@ static void nlaevalchan_copy_values(NlaEvalChannelSnapshot *dst, NlaEvalChannelS
   memcpy(dst->values, src->values, src->length * sizeof(float));
 }
 
-/** Copies from lower necs to blended necs if upper necs is NULL or has zero influence.
- * \return true if copied. */
+/**
+ * Copies from lower necs to blended necs if upper necs is NULL or has zero influence.
+ * \return true if copied.
+ */
 static bool nlaevalchan_blendOrcombine_try_copy_from_lower(NlaEvalChannelSnapshot *lower_necs,
                                                            NlaEvalChannelSnapshot *upper_necs,
                                                            const float upper_influence,
@@ -2008,12 +2011,14 @@ static bool nlaevalchan_blendOrcombine_try_copy_from_lower(NlaEvalChannelSnapsho
   return true;
 }
 
-/** Copies to lower necs from blended necs if upper necs is NULL or has zero influence. If
+/**
+ * Copies to lower necs from blended necs if upper necs is NULL or has zero influence. If
  * successful, copies blended_necs remap domains to lower_necs.
  *
  * Does not check upper value blend domains.
  *
- * \return true if copied. */
+ * \return true if copied.
+ */
 static bool nlaevalchan_blendOrcombine_try_copy_to_lower(NlaEvalChannelSnapshot *blended_necs,
                                                          NlaEvalChannelSnapshot *upper_necs,
                                                          const float upper_influence,
@@ -2033,7 +2038,8 @@ static bool nlaevalchan_blendOrcombine_try_copy_to_lower(NlaEvalChannelSnapshot 
   return true;
 }
 
-/** Based on blendmode, blend lower necs with upper necs into blended necs.
+/**
+ * Based on blendmode, blend lower necs with upper necs into blended necs.
  *
  * Each upper value's blend domain determines whether to blend or to copy directly
  * from lower.
@@ -2133,7 +2139,6 @@ static void nlaevalchan_combine_quaternion(NlaEvalChannelSnapshot *lower_necs,
  * \param upper_blendmode: Enum value in eNlaStrip_Blend_Mode.
  * \param upper_influence: Value in range [0, 1].
  * \param upper_necs: Never NULL.
- *
  */
 static void nlaevalchan_blendOrcombine(NlaEvalChannelSnapshot *lower_necs,
                                        NlaEvalChannelSnapshot *upper_necs,

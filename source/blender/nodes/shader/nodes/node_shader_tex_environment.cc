@@ -37,15 +37,15 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
   NodeTexImage *tex_original = (NodeTexImage *)node_original->storage;
   ImageUser *iuser = &tex_original->iuser;
   eGPUSamplerState sampler = GPU_SAMPLER_REPEAT | GPU_SAMPLER_ANISO | GPU_SAMPLER_FILTER;
-  /* TODO(fclem): For now assume mipmap is always enabled. */
+  /* TODO(@fclem): For now assume mipmap is always enabled. */
   if (true) {
     sampler |= GPU_SAMPLER_MIPMAP;
   }
 
   GPUNodeLink *outalpha;
 
-  /* HACK(fclem): For lookdev mode: do not compile an empty environment and just create an empty
-   * texture entry point. We manually bind to it after DRW_shgroup_add_material_resources(). */
+  /* HACK(@fclem): For lookdev mode: do not compile an empty environment and just create an empty
+   * texture entry point. We manually bind to it after #DRW_shgroup_add_material_resources(). */
   if (!ima && !GPU_material_flag_get(mat, GPU_MATFLAG_LOOKDEV_HACK)) {
     return GPU_stack_link(mat, node, "node_tex_environment_empty", in, out);
   }

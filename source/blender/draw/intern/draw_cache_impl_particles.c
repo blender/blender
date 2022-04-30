@@ -164,7 +164,7 @@ static void particle_batch_cache_clear_point(ParticlePointCache *point_cache)
   GPU_VERTBUF_DISCARD_SAFE(point_cache->pos);
 }
 
-void particle_batch_cache_clear_hair(ParticleHairCache *hair_cache)
+static void particle_batch_cache_clear_hair(ParticleHairCache *hair_cache)
 {
   /* TODO: more granular update tagging. */
   GPU_VERTBUF_DISCARD_SAFE(hair_cache->proc_point_buf);
@@ -823,7 +823,8 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
       render_uv = CustomData_get_render_layer(&psmd->mesh_final->ldata, CD_MLOOPUV);
     }
     if (CustomData_has_layer(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR)) {
-      cache->num_col_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR);
+      cache->num_col_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata,
+                                                          CD_PROP_BYTE_COLOR);
       active_col = CustomData_get_active_layer(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR);
       render_col = CustomData_get_render_layer(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR);
     }
@@ -1195,7 +1196,8 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
 
     for (int i = 0; i < num_col_layers; i++) {
       char uuid[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-      const char *name = CustomData_get_layer_name(&psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR, i);
+      const char *name = CustomData_get_layer_name(
+          &psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR, i);
       GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
       BLI_snprintf(uuid, sizeof(uuid), "c%s", attr_safe_name);

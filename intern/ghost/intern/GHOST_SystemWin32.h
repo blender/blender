@@ -259,6 +259,16 @@ class GHOST_SystemWin32 : public GHOST_System {
    */
   void setTabletAPI(GHOST_TTabletAPI api) override;
 
+  /***************************************************************************************
+   ** Debug Info
+   ***************************************************************************************/
+
+  /**
+   * Specify which debug messages are to be shown.
+   * \param debug: Flag for systems to debug.
+   */
+  void initDebug(GHOST_Debug debug) override;
+
  protected:
   /**
    * Initializes the system.

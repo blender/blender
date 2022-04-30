@@ -510,6 +510,9 @@ class DOPESHEET_MT_key(Menu):
         layout.operator("action.clean", text="Clean Channels").channels = True
         layout.operator("action.sample")
 
+        layout.separator()
+        layout.operator("graph.euler_filter", text="Discontinuity (Euler) Filter")
+
 
 class DOPESHEET_MT_key_transform(Menu):
     bl_label = "Transform"

@@ -390,9 +390,9 @@ void GHOST_System::useWindowFocus(const bool use_focus)
   m_windowFocus = use_focus;
 }
 
-void GHOST_System::initDebug(bool is_debug_enabled)
+void GHOST_System::initDebug(GHOST_Debug debug)
 {
-  m_is_debug_enabled = is_debug_enabled;
+  m_is_debug_enabled = debug.flags & GHOST_kDebugDefault;
 }
 
 bool GHOST_System::isDebugEnabled()

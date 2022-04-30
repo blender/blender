@@ -22,6 +22,7 @@
 #include "bpy_library.h"
 #include "bpy_rna.h"
 #include "bpy_rna_callback.h"
+#include "bpy_rna_context.h"
 #include "bpy_rna_data.h"
 #include "bpy_rna_id_collection.h"
 #include "bpy_rna_text.h"
@@ -97,6 +98,8 @@ static struct PyMethodDef pyrna_text_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Window Manager Clipboard Property
  *
@@ -154,6 +157,17 @@ static struct PyGetSetDef pyrna_windowmanager_getset[] = {
      NULL,
      NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Context Type
+ * \{ */
+
+static struct PyMethodDef pyrna_context_methods[] = {
+    {NULL, NULL, 0, NULL}, /* #BPY_rna_context_temp_override_method_def */
+    {NULL, NULL, 0, NULL},
 };
 
 /** \} */
@@ -254,6 +268,12 @@ void BPY_rna_types_extend_capi(void)
   /* WindowManager */
   pyrna_struct_type_extend_capi(
       &RNA_WindowManager, pyrna_windowmanager_methods, pyrna_windowmanager_getset);
+
+  /* Context */
+  bpy_rna_context_types_init();
+
+  ARRAY_SET_ITEMS(pyrna_context_methods, BPY_rna_context_temp_override_method_def);
+  pyrna_struct_type_extend_capi(&RNA_Context, pyrna_context_methods, NULL);
 }
 
 /** \} */

@@ -628,22 +628,14 @@ BLI_INLINE DRWCallBuffer *custom_bone_instance_shgroup(ArmatureDrawContext *ctx,
   return buf;
 }
 
-static void drw_shgroup_bone_custom_solid(ArmatureDrawContext *ctx,
-                                          const float (*bone_mat)[4],
-                                          const float bone_color[4],
-                                          const float hint_color[4],
-                                          const float outline_color[4],
-                                          Object *custom)
+static void drw_shgroup_bone_custom_solid_mesh(ArmatureDrawContext *ctx,
+                                               Mesh *mesh,
+                                               const float (*bone_mat)[4],
+                                               const float bone_color[4],
+                                               const float hint_color[4],
+                                               const float outline_color[4],
+                                               Object *custom)
 {
-  /* The custom object is not an evaluated object, so its object->data field hasn't been replaced
-   * by #data_eval. This is bad since it gives preference to an object's evaluated mesh over any
-   * other data type, but supporting all evaluated geometry components would require a much larger
-   * refactor of this area. */
-  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(custom);
-  if (mesh == NULL) {
-    return;
-  }
-
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
   DRW_mesh_batch_cache_validate(custom, mesh);
@@ -682,16 +674,12 @@ static void drw_shgroup_bone_custom_solid(ArmatureDrawContext *ctx,
   drw_batch_cache_generate_requested_delayed(custom);
 }
 
-static void drw_shgroup_bone_custom_wire(ArmatureDrawContext *ctx,
-                                         const float (*bone_mat)[4],
-                                         const float color[4],
-                                         Object *custom)
+static void drw_shgroup_bone_custom_mesh_wire(ArmatureDrawContext *ctx,
+                                              Mesh *mesh,
+                                              const float (*bone_mat)[4],
+                                              const float color[4],
+                                              Object *custom)
 {
-  /* See comments in #drw_shgroup_bone_custom_solid. */
-  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(custom);
-  if (mesh == NULL) {
-    return;
-  }
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
   DRW_mesh_batch_cache_validate(custom, mesh);
@@ -708,6 +696,80 @@ static void drw_shgroup_bone_custom_wire(ArmatureDrawContext *ctx,
 
   /* TODO(fclem): needs to be moved elsewhere. */
   drw_batch_cache_generate_requested_delayed(custom);
+}
+
+static void drw_shgroup_custom_bone_curve(ArmatureDrawContext *ctx,
+                                          Curve *curve,
+                                          const float (*bone_mat)[4],
+                                          const float outline_color[4],
+                                          Object *custom)
+{
+  /* TODO(fclem): arg... less than ideal but we never iter on this object
+   * to assure batch cache is valid. */
+  DRW_curve_batch_cache_validate(curve);
+
+  /* This only handles curves without any surface. The other curve types should have been converted
+   * to meshes and rendered in the mesh drawing function. */
+  struct GPUBatch *ledges = NULL;
+  if (custom->type == OB_FONT) {
+    ledges = DRW_cache_text_edge_wire_get(custom);
+  }
+  else {
+    ledges = DRW_cache_curve_edge_wire_get(custom);
+  }
+
+  if (ledges) {
+    BoneInstanceData inst_data;
+    mul_m4_m4m4(inst_data.mat, ctx->ob->obmat, bone_mat);
+
+    DRWCallBuffer *buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, ledges);
+    OVERLAY_bone_instance_data_set_color_hint(&inst_data, outline_color);
+    OVERLAY_bone_instance_data_set_color(&inst_data, outline_color);
+    DRW_buffer_add_entry_struct(buf, inst_data.mat);
+  }
+
+  /* TODO(fclem): needs to be moved elsewhere. */
+  drw_batch_cache_generate_requested_delayed(custom);
+}
+
+static void drw_shgroup_bone_custom_solid(ArmatureDrawContext *ctx,
+                                          const float (*bone_mat)[4],
+                                          const float bone_color[4],
+                                          const float hint_color[4],
+                                          const float outline_color[4],
+                                          Object *custom)
+{
+  /* The custom object is not an evaluated object, so its object->data field hasn't been replaced
+   * by #data_eval. This is bad since it gives preference to an object's evaluated mesh over any
+   * other data type, but supporting all evaluated geometry components would require a much
+   * larger refactor of this area. */
+  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(custom);
+  if (mesh != NULL) {
+    drw_shgroup_bone_custom_solid_mesh(
+        ctx, mesh, bone_mat, bone_color, hint_color, outline_color, custom);
+    return;
+  }
+
+  if (ELEM(custom->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
+    drw_shgroup_custom_bone_curve(ctx, custom->data, bone_mat, outline_color, custom);
+  }
+}
+
+static void drw_shgroup_bone_custom_wire(ArmatureDrawContext *ctx,
+                                         const float (*bone_mat)[4],
+                                         const float color[4],
+                                         Object *custom)
+{
+  /* See comments in #drw_shgroup_bone_custom_solid. */
+  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(custom);
+  if (mesh != NULL) {
+    drw_shgroup_bone_custom_mesh_wire(ctx, mesh, bone_mat, color, custom);
+    return;
+  }
+
+  if (ELEM(custom->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
+    drw_shgroup_custom_bone_curve(ctx, custom->data, bone_mat, color, custom);
+  }
 }
 
 static void drw_shgroup_bone_custom_empty(ArmatureDrawContext *ctx,

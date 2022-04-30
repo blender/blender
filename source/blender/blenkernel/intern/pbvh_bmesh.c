@@ -505,8 +505,9 @@ static void pbvh_bmesh_node_split(
   n->bm_other_verts = NULL;
   n->layer_disp = NULL;
 
-  pbvh_free_all_draw_buffers(n);
-
+  if (n->draw_buffers) {
+    pbvh_free_draw_buffers(pbvh, n);
+  }
   n->flag &= ~PBVH_Leaf;
 
   /* Recurse */
@@ -1163,6 +1164,7 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
 
     if (dot_v3v3(v->no, v->no) == 0.0f) {
       BLI_array_append(bordervs, v);
+
       continue;
     }
 

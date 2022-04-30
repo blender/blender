@@ -780,26 +780,27 @@ struct SocketTooltipData {
 
 static void create_inspection_string_for_generic_value(const GPointer value, std::stringstream &ss)
 {
-  auto id_to_inspection_string = [&](ID *id, short idcode) {
-    ss << (id ? id->name + 2 : TIP_("None")) << " (" << BKE_idtype_idcode_to_name(idcode) << ")";
+  auto id_to_inspection_string = [&](const ID *id, const short idcode) {
+    ss << (id ? id->name + 2 : TIP_("None")) << " (" << TIP_(BKE_idtype_idcode_to_name(idcode))
+       << ")";
   };
 
   const CPPType &type = *value.type();
   const void *buffer = value.get();
   if (type.is<Object *>()) {
-    id_to_inspection_string((ID *)buffer, ID_OB);
+    id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_OB);
   }
   else if (type.is<Material *>()) {
-    id_to_inspection_string((ID *)buffer, ID_MA);
+    id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_MA);
   }
   else if (type.is<Tex *>()) {
-    id_to_inspection_string((ID *)buffer, ID_TE);
+    id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_TE);
   }
   else if (type.is<Image *>()) {
-    id_to_inspection_string((ID *)buffer, ID_IM);
+    id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_IM);
   }
   else if (type.is<Collection *>()) {
-    id_to_inspection_string((ID *)buffer, ID_GR);
+    id_to_inspection_string(*static_cast<const ID *const *>(buffer), ID_GR);
   }
   else if (type.is<int>()) {
     ss << *(int *)buffer << TIP_(" (Integer)");
@@ -1702,15 +1703,26 @@ static char *named_attribute_tooltip(bContext *UNUSED(C), void *argN, const char
   NamedAttributeTooltipArg &arg = *static_cast<NamedAttributeTooltipArg *>(argN);
 
   std::stringstream ss;
-  ss << TIP_("Accessed attribute names:\n");
-  Vector<std::pair<StringRefNull, NamedAttributeUsage>> sorted_used_attribute;
+  ss << TIP_("Accessed named attributes:\n");
+
+  struct NameWithUsage {
+    StringRefNull name;
+    NamedAttributeUsage usage;
+  };
+
+  Vector<NameWithUsage> sorted_used_attribute;
   for (auto &&item : arg.usage_by_attribute.items()) {
     sorted_used_attribute.append({item.key, item.value});
   }
-  std::sort(sorted_used_attribute.begin(), sorted_used_attribute.end());
-  for (const std::pair<StringRefNull, NamedAttributeUsage> &attribute : sorted_used_attribute) {
-    const StringRefNull name = attribute.first;
-    const NamedAttributeUsage usage = attribute.second;
+  std::sort(sorted_used_attribute.begin(),
+            sorted_used_attribute.end(),
+            [](const NameWithUsage &a, const NameWithUsage &b) {
+              return BLI_strcasecmp_natural(a.name.c_str(), b.name.c_str()) <= 0;
+            });
+
+  for (const NameWithUsage &attribute : sorted_used_attribute) {
+    const StringRefNull name = attribute.name;
+    const NamedAttributeUsage usage = attribute.usage;
     ss << "  \u2022 \"" << name << "\": ";
     Vector<std::string> usages;
     if ((usage & NamedAttributeUsage::Read) != NamedAttributeUsage::None) {
@@ -1739,8 +1751,11 @@ static char *named_attribute_tooltip(bContext *UNUSED(C), void *argN, const char
 static NodeExtraInfoRow row_from_used_named_attribute(
     const Map<std::string, NamedAttributeUsage> &usage_by_attribute_name)
 {
+  const int attributes_num = usage_by_attribute_name.size();
+
   NodeExtraInfoRow row;
-  row.text = TIP_("Attributes");
+  row.text = std::to_string(attributes_num) +
+             TIP_(attributes_num == 1 ? " Named Attribute" : " Named Attributes");
   row.icon = ICON_SPREADSHEET;
   row.tooltip_fn = named_attribute_tooltip;
   row.tooltip_fn_arg = new NamedAttributeTooltipArg{usage_by_attribute_name};
@@ -1813,6 +1828,13 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(const SpaceNode &snode, cons
     return rows;
   }
 
+  if (snode.overlay.flag & SN_OVERLAY_SHOW_NAMED_ATTRIBUTES &&
+      snode.edittree->type == NTREE_GEOMETRY) {
+    if (std::optional<NodeExtraInfoRow> row = node_get_accessed_attributes_row(snode, node)) {
+      rows.append(std::move(*row));
+    }
+  }
+
   if (snode.overlay.flag & SN_OVERLAY_SHOW_TIMINGS && snode.edittree->type == NTREE_GEOMETRY &&
       (ELEM(node.typeinfo->nclass, NODE_CLASS_GEOMETRY, NODE_CLASS_GROUP, NODE_CLASS_ATTRIBUTE) ||
        ELEM(node.type, NODE_FRAME, NODE_GROUP_OUTPUT))) {
@@ -1837,13 +1859,6 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(const SpaceNode &snode, cons
     }
   }
 
-  if (snode.overlay.flag & SN_OVERLAY_SHOW_NAMED_ATTRIBUTES &&
-      snode.edittree->type == NTREE_GEOMETRY) {
-    if (std::optional<NodeExtraInfoRow> row = node_get_accessed_attributes_row(snode, node)) {
-      rows.append(std::move(*row));
-    }
-  }
-
   return rows;
 }
 
@@ -1853,28 +1868,18 @@ static void node_draw_extra_info_row(const bNode &node,
                                      const int row,
                                      const NodeExtraInfoRow &extra_info_row)
 {
-  uiBut *but_text = uiDefBut(&block,
-                             UI_BTYPE_LABEL,
-                             0,
-                             extra_info_row.text.c_str(),
-                             (int)(rect.xmin + 4.0f * U.dpi_fac + NODE_MARGIN_X + 0.4f),
-                             (int)(rect.ymin + row * (20.0f * U.dpi_fac)),
-                             (short)(rect.xmax - rect.xmin),
-                             (short)NODE_DY,
-                             nullptr,
-                             0,
-                             0,
-                             0,
-                             0,
-                             "");
+  const float but_icon_left = rect.xmin + 6.0f * U.dpi_fac;
+  const float but_icon_width = NODE_HEADER_ICON_SIZE * 0.8f;
+  const float but_icon_right = but_icon_left + but_icon_width;
+
   UI_block_emboss_set(&block, UI_EMBOSS_NONE);
   uiBut *but_icon = uiDefIconBut(&block,
                                  UI_BTYPE_BUT,
                                  0,
                                  extra_info_row.icon,
-                                 (int)(rect.xmin + 6.0f * U.dpi_fac),
+                                 (int)but_icon_left,
                                  (int)(rect.ymin + row * (20.0f * U.dpi_fac)),
-                                 NODE_HEADER_ICON_SIZE * 0.8f,
+                                 but_icon_width,
                                  UI_UNIT_Y,
                                  nullptr,
                                  0,
@@ -1882,13 +1887,33 @@ static void node_draw_extra_info_row(const bNode &node,
                                  0,
                                  0,
                                  extra_info_row.tooltip);
-  if (extra_info_row.tooltip_fn != NULL) {
+  if (extra_info_row.tooltip_fn != nullptr) {
     UI_but_func_tooltip_set(but_icon,
                             extra_info_row.tooltip_fn,
                             extra_info_row.tooltip_fn_arg,
                             extra_info_row.tooltip_fn_free_arg);
   }
   UI_block_emboss_set(&block, UI_EMBOSS);
+
+  const float but_text_left = but_icon_right + 6.0f * U.dpi_fac;
+  const float but_text_right = rect.xmax;
+  const float but_text_width = but_text_right - but_text_left;
+
+  uiBut *but_text = uiDefBut(&block,
+                             UI_BTYPE_LABEL,
+                             0,
+                             extra_info_row.text.c_str(),
+                             (int)but_text_left,
+                             (int)(rect.ymin + row * (20.0f * U.dpi_fac)),
+                             (short)but_text_width,
+                             (short)NODE_DY,
+                             nullptr,
+                             0,
+                             0,
+                             0,
+                             0,
+                             "");
+
   if (node.flag & NODE_MUTED) {
     UI_but_flag_enable(but_text, UI_BUT_INACTIVE);
     UI_but_flag_enable(but_icon, UI_BUT_INACTIVE);
@@ -1907,6 +1932,8 @@ static void node_draw_extra_info_panel(const SpaceNode &snode, const bNode &node
   float color[4];
   rctf extra_info_rect;
 
+  const float width = (node.width - 6.0f) * U.dpi_fac;
+
   if (node.type == NODE_FRAME) {
     extra_info_rect.xmin = rct.xmin;
     extra_info_rect.xmax = rct.xmin + 95.0f * U.dpi_fac;
@@ -1915,7 +1942,7 @@ static void node_draw_extra_info_panel(const SpaceNode &snode, const bNode &node
   }
   else {
     extra_info_rect.xmin = rct.xmin + 3.0f * U.dpi_fac;
-    extra_info_rect.xmax = rct.xmin + 95.0f * U.dpi_fac;
+    extra_info_rect.xmax = rct.xmin + width;
     extra_info_rect.ymin = rct.ymax;
     extra_info_rect.ymax = rct.ymax + extra_info_rows.size() * (20.0f * U.dpi_fac);
 
@@ -1934,7 +1961,7 @@ static void node_draw_extra_info_panel(const SpaceNode &snode, const bNode &node
     /* Draw outline. */
     const float outline_width = 1.0f;
     extra_info_rect.xmin = rct.xmin + 3.0f * U.dpi_fac - outline_width;
-    extra_info_rect.xmax = rct.xmin + 95.0f * U.dpi_fac + outline_width;
+    extra_info_rect.xmax = rct.xmin + width + outline_width;
     extra_info_rect.ymin = rct.ymax - outline_width;
     extra_info_rect.ymax = rct.ymax + outline_width + extra_info_rows.size() * (20.0f * U.dpi_fac);
 
@@ -2256,6 +2283,8 @@ static void node_draw_hidden(const bContext &C,
   UI_view2d_scale_get(&v2d, &scale, nullptr);
 
   const int color_id = node_get_colorid(node);
+
+  node_draw_extra_info_panel(snode, node, block);
 
   /* Shadow. */
   node_draw_shadow(snode, node, hiddenrad, 1.0f);

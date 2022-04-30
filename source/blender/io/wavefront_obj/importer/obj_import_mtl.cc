@@ -13,12 +13,13 @@
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 
+#include "IO_string_utils.hh"
+
 #include "NOD_shader.h"
 
 /* TODO: move eMTLSyntaxElement out of following file into a more neutral place */
 #include "obj_export_io.hh"
 #include "obj_import_mtl.hh"
-#include "parser_string_utils.hh"
 
 namespace blender::io::obj {
 
@@ -96,13 +97,16 @@ static bool load_texture_image(Main *bmain, const tex_map_XX &tex_map, bNode *r_
     return true;
   }
   /* Try removing quotes. */
-  std::string no_quote_path{replace_all_occurences(tex_path, "\"", "")};
+  std::string no_quote_path{tex_path};
+  auto end_pos = std::remove(no_quote_path.begin(), no_quote_path.end(), '"');
+  no_quote_path.erase(end_pos, no_quote_path.end());
   if (no_quote_path != tex_path &&
       load_texture_image_at_path(bmain, tex_map, r_node, no_quote_path)) {
     return true;
   }
   /* Try replacing underscores with spaces. */
-  std::string no_underscore_path{replace_all_occurences(no_quote_path, "_", " ")};
+  std::string no_underscore_path{no_quote_path};
+  std::replace(no_underscore_path.begin(), no_underscore_path.end(), '_', ' ');
   if (no_underscore_path != no_quote_path && no_underscore_path != tex_path &&
       load_texture_image_at_path(bmain, tex_map, r_node, no_underscore_path)) {
     return true;

@@ -515,7 +515,7 @@ void IMB_rectblend(ImBuf *dbuf,
   const unsigned short *cmaskrect = curvemask, *cmr;
   unsigned short *dmaskrect = dmask, *dmr;
   const unsigned short *texmaskrect = texmask, *tmr;
-  int do_float, do_char, srcskip, destskip, origskip, x;
+  int srcskip, destskip, origskip, x;
   IMB_blend_func func = NULL;
   IMB_blend_func_float func_float = NULL;
 
@@ -535,8 +535,8 @@ void IMB_rectblend(ImBuf *dbuf,
     return;
   }
 
-  do_char = (sbuf && sbuf->rect && dbuf->rect && obuf->rect);
-  do_float = (sbuf && sbuf->rect_float && dbuf->rect_float && obuf->rect_float);
+  const bool do_char = (sbuf && sbuf->rect && dbuf->rect && obuf->rect);
+  const bool do_float = (sbuf && sbuf->rect_float && dbuf->rect_float && obuf->rect_float);
 
   if (do_char) {
     drect = dbuf->rect + ((size_t)desty) * dbuf->x + destx;

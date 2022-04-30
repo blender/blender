@@ -34,7 +34,7 @@ class AUD_API Buffer
 {
 private:
 	/// The size of the buffer in bytes.
-	int m_size;
+	long long m_size;
 
 	/// The pointer to the buffer memory.
 	data_t* m_buffer;
@@ -48,7 +48,7 @@ public:
 	 * Creates a new buffer.
 	 * \param size The size of the buffer in bytes.
 	 */
-	Buffer(int size = 0);
+	Buffer(long long size = 0);
 
 	/**
 	 * Destroys the buffer.
@@ -63,7 +63,7 @@ public:
 	/**
 	 * Returns the size of the buffer in bytes.
 	 */
-	int getSize() const;
+	long long getSize() const;
 
 	/**
 	 * Resizes the buffer.
@@ -71,7 +71,7 @@ public:
 	 * \param keep Whether to keep the old data. If the new buffer is smaller,
 	 *        the data at the end will be lost.
 	 */
-	void resize(int size, bool keep = false);
+	void resize(long long size, bool keep = false);
 
 	/**
 	 * Makes sure the buffer has a minimum size.
@@ -81,7 +81,7 @@ public:
 	 * \param keep Whether to keep the old data. If the new buffer is smaller,
 	 *        the data at the end will be lost.
 	 */
-	void assureSize(int size, bool keep = false);
+	void assureSize(long long size, bool keep = false);
 };
 
 AUD_NAMESPACE_END

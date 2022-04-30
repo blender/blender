@@ -27,6 +27,7 @@
 
 #include "SEQ_channels.h"
 #include "SEQ_iterator.h"
+#include "SEQ_relations.h"
 #include "SEQ_select.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
@@ -1920,7 +1921,7 @@ static bool select_grouped_effect(SeqCollection *strips,
   Sequence *seq;
   SEQ_ITERATOR_FOREACH (seq, strips) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && (seq->type & SEQ_TYPE_EFFECT) &&
-        ELEM(actseq, seq->seq1, seq->seq2, seq->seq3)) {
+        SEQ_relation_is_effect_of_strip(seq, actseq)) {
       effects[seq->type] = true;
     }
   }

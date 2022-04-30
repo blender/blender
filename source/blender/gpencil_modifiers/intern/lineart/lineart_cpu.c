@@ -3003,7 +3003,7 @@ static void lineart_triangle_intersect_in_bounding_area(LineartRenderBuffer *rb,
 
   double *G0 = tri->v[0]->gloc, *G1 = tri->v[1]->gloc, *G2 = tri->v[2]->gloc;
 
-  /* If this is not the smallest subdiv bounding area. */
+  /* If this is not the smallest subdivision bounding area. */
   if (ba->child) {
     lineart_triangle_intersect_in_bounding_area(rb, tri, &ba->child[0]);
     lineart_triangle_intersect_in_bounding_area(rb, tri, &ba->child[1]);

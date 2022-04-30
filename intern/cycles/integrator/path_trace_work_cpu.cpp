@@ -73,7 +73,7 @@ void PathTraceWorkCPU::render_samples(RenderStatistics &statistics,
 
   tbb::task_arena local_arena = local_tbb_arena_create(device_);
   local_arena.execute([&]() {
-    tbb::parallel_for(int64_t(0), total_pixels_num, [&](int64_t work_index) {
+    parallel_for(int64_t(0), total_pixels_num, [&](int64_t work_index) {
       if (is_cancel_requested()) {
         return;
       }
@@ -219,7 +219,7 @@ int PathTraceWorkCPU::adaptive_sampling_converge_filter_count_active(float thres
 
   /* Check convergency and do x-filter in a single `parallel_for`, to reduce threading overhead. */
   local_arena.execute([&]() {
-    tbb::parallel_for(full_y, full_y + height, [&](int y) {
+    parallel_for(full_y, full_y + height, [&](int y) {
       CPUKernelThreadGlobals *kernel_globals = &kernel_thread_globals_[0];
 
       bool row_converged = true;
@@ -243,7 +243,7 @@ int PathTraceWorkCPU::adaptive_sampling_converge_filter_count_active(float thres
 
   if (num_active_pixels) {
     local_arena.execute([&]() {
-      tbb::parallel_for(full_x, full_x + width, [&](int x) {
+      parallel_for(full_x, full_x + width, [&](int x) {
         CPUKernelThreadGlobals *kernel_globals = &kernel_thread_globals_[0];
         kernels_.adaptive_sampling_filter_y(
             kernel_globals, render_buffer, x, full_y, height, offset, stride);
@@ -265,7 +265,7 @@ void PathTraceWorkCPU::cryptomatte_postproces()
 
   /* Check convergency and do x-filter in a single `parallel_for`, to reduce threading overhead. */
   local_arena.execute([&]() {
-    tbb::parallel_for(0, height, [&](int y) {
+    parallel_for(0, height, [&](int y) {
       CPUKernelThreadGlobals *kernel_globals = &kernel_thread_globals_[0];
       int pixel_index = y * width;
 

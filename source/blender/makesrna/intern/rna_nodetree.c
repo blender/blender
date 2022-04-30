@@ -1420,8 +1420,13 @@ static bNodeSocket *rna_NodeTree_inputs_new(
 
   bNodeSocket *sock = ntreeAddSocketInterface(ntree, SOCK_IN, type, name);
 
-  ED_node_tree_propagate_change(NULL, bmain, ntree);
-  WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
+  if (sock == NULL) {
+    BKE_report(reports, RPT_ERROR, "Unable to create socket");
+  }
+  else {
+    ED_node_tree_propagate_change(NULL, bmain, ntree);
+    WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
+  }
 
   return sock;
 }
@@ -1435,8 +1440,13 @@ static bNodeSocket *rna_NodeTree_outputs_new(
 
   bNodeSocket *sock = ntreeAddSocketInterface(ntree, SOCK_OUT, type, name);
 
-  ED_node_tree_propagate_change(NULL, bmain, ntree);
-  WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
+  if (sock == NULL) {
+    BKE_report(reports, RPT_ERROR, "Unable to create socket");
+  }
+  else {
+    ED_node_tree_propagate_change(NULL, bmain, ntree);
+    WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
+  }
 
   return sock;
 }
@@ -2134,8 +2144,13 @@ static void rna_GeometryNodeCompare_data_type_update(Main *bmain, Scene *scene, 
 
 static bool generic_attribute_type_supported(const EnumPropertyItem *item)
 {
-  return ELEM(
-      item->value, CD_PROP_FLOAT, CD_PROP_FLOAT3, CD_PROP_COLOR, CD_PROP_BOOL, CD_PROP_INT32);
+  return ELEM(item->value,
+              CD_PROP_FLOAT,
+              CD_PROP_FLOAT3,
+              CD_PROP_COLOR,
+              CD_PROP_BOOL,
+              CD_PROP_INT32,
+              CD_PROP_BYTE_COLOR);
 }
 static const EnumPropertyItem *rna_GeometryNodeAttributeType_type_itemf(bContext *UNUSED(C),
                                                                         PointerRNA *UNUSED(ptr),
@@ -2144,6 +2159,18 @@ static const EnumPropertyItem *rna_GeometryNodeAttributeType_type_itemf(bContext
 {
   *r_free = true;
   return itemf_function_check(rna_enum_attribute_type_items, generic_attribute_type_supported);
+}
+
+static bool generic_attribute_type_supported_with_socket(const EnumPropertyItem *item)
+{
+  return generic_attribute_type_supported(item) && !ELEM(item->value, CD_PROP_BYTE_COLOR);
+}
+static const EnumPropertyItem *rna_GeometryNodeAttributeType_type_with_socket_itemf(
+    bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+{
+  *r_free = true;
+  return itemf_function_check(rna_enum_attribute_type_items,
+                              generic_attribute_type_supported_with_socket);
 }
 
 static bool transfer_attribute_type_supported(const EnumPropertyItem *item)
@@ -10209,7 +10236,8 @@ static void def_geo_raycast(StructRNA *srna)
 
   prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_attribute_type_items);
-  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_GeometryNodeAttributeType_type_itemf");
+  RNA_def_property_enum_funcs(
+      prop, NULL, NULL, "rna_GeometryNodeAttributeType_type_with_socket_itemf");
   RNA_def_property_enum_default(prop, CD_PROP_FLOAT);
   RNA_def_property_ui_text(prop, "Data Type", "Type of data stored in attribute");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
@@ -10261,7 +10289,8 @@ static void def_geo_input_named_attribute(StructRNA *srna)
 
   prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_attribute_type_items);
-  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_GeometryNodeAttributeType_type_itemf");
+  RNA_def_property_enum_funcs(
+      prop, NULL, NULL, "rna_GeometryNodeAttributeType_type_with_socket_itemf");
   RNA_def_property_enum_default(prop, CD_PROP_FLOAT);
   RNA_def_property_ui_text(prop, "Data Type", "The data type used to read the attribute values");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
@@ -10275,7 +10304,8 @@ static void def_geo_attribute_capture(StructRNA *srna)
 
   prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_attribute_type_items);
-  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_GeometryNodeAttributeType_type_itemf");
+  RNA_def_property_enum_funcs(
+      prop, NULL, NULL, "rna_GeometryNodeAttributeType_type_with_socket_itemf");
   RNA_def_property_enum_default(prop, CD_PROP_FLOAT);
   RNA_def_property_ui_text(prop, "Data Type", "Type of data stored in attribute");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
@@ -10502,7 +10532,8 @@ static void def_geo_viewer(StructRNA *srna)
 
   prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_attribute_type_items);
-  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_GeometryNodeAttributeType_type_itemf");
+  RNA_def_property_enum_funcs(
+      prop, NULL, NULL, "rna_GeometryNodeAttributeType_type_with_socket_itemf");
   RNA_def_property_enum_default(prop, CD_PROP_FLOAT);
   RNA_def_property_ui_text(prop, "Data Type", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
@@ -10532,7 +10563,8 @@ static void def_geo_field_at_index(StructRNA *srna)
   prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "custom2");
   RNA_def_property_enum_items(prop, rna_enum_attribute_type_items);
-  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_GeometryNodeAttributeType_type_itemf");
+  RNA_def_property_enum_funcs(
+      prop, NULL, NULL, "rna_GeometryNodeAttributeType_type_with_socket_itemf");
   RNA_def_property_ui_text(prop, "Data Type", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
 }
@@ -10856,6 +10888,14 @@ static void rna_def_node_socket_interface(BlenderRNA *brna)
       prop,
       "Attribute Domain",
       "Attribute domain used by the geometry nodes modifier to create an attribute output");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
+
+  prop = RNA_def_property(srna, "default_attribute_name", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, NULL, "default_attribute_name");
+  RNA_def_property_ui_text(prop,
+                           "Default Attribute",
+                           "The attribute name used by default when the node group is used by a "
+                           "geometry nodes modifier");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
 
   /* registration */

@@ -368,8 +368,10 @@ ccl_device float3 bsdf_microfacet_ggx_eval_reflect(ccl_private const ShaderClosu
   bool m_refractive = bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
   float3 N = bsdf->N;
 
-  if (m_refractive || alpha_x * alpha_y <= 1e-7f)
+  if (m_refractive || alpha_x * alpha_y <= 1e-7f) {
+    *pdf = 0.0f;
     return make_float3(0.0f, 0.0f, 0.0f);
+  }
 
   float cosNO = dot(N, I);
   float cosNI = dot(N, omega_in);
@@ -482,15 +484,18 @@ ccl_device float3 bsdf_microfacet_ggx_eval_transmit(ccl_private const ShaderClos
   bool m_refractive = bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
   float3 N = bsdf->N;
 
-  if (!m_refractive || alpha_x * alpha_y <= 1e-7f)
+  if (!m_refractive || alpha_x * alpha_y <= 1e-7f) {
+    *pdf = 0.0f;
     return make_float3(0.0f, 0.0f, 0.0f);
+  }
 
   float cosNO = dot(N, I);
   float cosNI = dot(N, omega_in);
 
-  if (cosNO <= 0 || cosNI >= 0)
+  if (cosNO <= 0 || cosNI >= 0) {
+    *pdf = 0.0f;
     return make_float3(0.0f, 0.0f, 0.0f); /* vectors on same side -- not possible */
-
+  }
   /* compute half-vector of the refraction (eq. 16) */
   float3 ht = -(m_eta * omega_in + I);
   float3 Ht = normalize(ht);
@@ -673,6 +678,10 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
           *domega_in_dy = (2 * dot(m, dIdy)) * m - dIdy;
 #endif
         }
+        else {
+          *eval = make_float3(0.0f, 0.0f, 0.0f);
+          *pdf = 0.0f;
+        }
       }
     }
     else {
@@ -743,6 +752,10 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
 
           *eval = make_float3(out, out, out);
         }
+      }
+      else {
+        *eval = make_float3(0.0f, 0.0f, 0.0f);
+        *pdf = 0.0f;
       }
     }
   }
@@ -833,8 +846,10 @@ ccl_device float3 bsdf_microfacet_beckmann_eval_reflect(ccl_private const Shader
   bool m_refractive = bsdf->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
   float3 N = bsdf->N;
 
-  if (m_refractive || alpha_x * alpha_y <= 1e-7f)
+  if (m_refractive || alpha_x * alpha_y <= 1e-7f) {
+    *pdf = 0.0f;
     return make_float3(0.0f, 0.0f, 0.0f);
+  }
 
   float cosNO = dot(N, I);
   float cosNI = dot(N, omega_in);
@@ -913,15 +928,18 @@ ccl_device float3 bsdf_microfacet_beckmann_eval_transmit(ccl_private const Shade
   bool m_refractive = bsdf->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
   float3 N = bsdf->N;
 
-  if (!m_refractive || alpha_x * alpha_y <= 1e-7f)
+  if (!m_refractive || alpha_x * alpha_y <= 1e-7f) {
+    *pdf = 0.0f;
     return make_float3(0.0f, 0.0f, 0.0f);
+  }
 
   float cosNO = dot(N, I);
   float cosNI = dot(N, omega_in);
 
-  if (cosNO <= 0 || cosNI >= 0)
+  if (cosNO <= 0 || cosNI >= 0) {
+    *pdf = 0.0f;
     return make_float3(0.0f, 0.0f, 0.0f);
-
+  }
   /* compute half-vector of the refraction (eq. 16) */
   float3 ht = -(m_eta * omega_in + I);
   float3 Ht = normalize(ht);
@@ -1064,6 +1082,10 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
           *domega_in_dy = (2 * dot(m, dIdy)) * m - dIdy;
 #endif
         }
+        else {
+          *eval = make_float3(0.0f, 0.0f, 0.0f);
+          *pdf = 0.0f;
+        }
       }
     }
     else {
@@ -1135,6 +1157,10 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
 
           *eval = make_float3(out, out, out);
         }
+      }
+      else {
+        *eval = make_float3(0.0f, 0.0f, 0.0f);
+        *pdf = 0.0f;
       }
     }
   }

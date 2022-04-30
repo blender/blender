@@ -1306,6 +1306,11 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
       newlink->flag = link->flag;
       newlink->tonode = node_map.lookup(link->tonode);
       newlink->tosock = socket_map.lookup(link->tosock);
+
+      if (link->tosock->flag & SOCK_MULTI_INPUT) {
+        newlink->multi_input_socket_index = link->multi_input_socket_index;
+      }
+
       if (link->fromnode && (link->fromnode->flag & NODE_SELECT)) {
         newlink->fromnode = node_map.lookup(link->fromnode);
         newlink->fromsock = socket_map.lookup(link->fromsock);

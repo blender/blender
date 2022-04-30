@@ -5771,7 +5771,7 @@ static bool blend_file_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEven
   return false;
 }
 
-static void blend_file_drop_copy(wmDrag *drag, wmDropBox *drop)
+static void blend_file_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   /* copy drag path to properties */
   RNA_string_set(drop->ptr, "filepath", drag->path);

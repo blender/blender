@@ -651,12 +651,13 @@ typedef struct UserDef_Experimental {
 
   char use_sculpt_uvsmooth;
 
-  char _pad[7];
+  char _pad[6];
 
   char use_named_attribute_nodes;
+
   char enable_eevee_next;
   char use_sculpt_texture_paint;
-  char _pad0[1];
+  char _pad0[2];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 

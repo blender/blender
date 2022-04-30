@@ -44,6 +44,7 @@
 
 #include "RE_pipeline.h"
 
+#include "SEQ_channels.h"
 #include "SEQ_effects.h"
 #include "SEQ_proxy.h"
 #include "SEQ_relations.h"
@@ -2421,8 +2422,6 @@ static ImBuf *do_multicam(const SeqRenderData *context,
 {
   ImBuf *out;
   Editing *ed;
-  ListBase *seqbasep;
-  ListBase *channels = &seq->channels;
 
   if (seq->multicam_source == 0 || seq->multicam_source >= seq->machine) {
     return NULL;
@@ -2432,7 +2431,8 @@ static ImBuf *do_multicam(const SeqRenderData *context,
   if (!ed) {
     return NULL;
   }
-  seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
+  ListBase *seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
+  ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, seq);
   if (!seqbasep) {
     return NULL;
   }
@@ -2463,13 +2463,12 @@ static int early_out_adjustment(Sequence *UNUSED(seq), float UNUSED(fac))
 static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, float timeline_frame)
 {
   Editing *ed;
-  ListBase *seqbasep;
-  ListBase *channels = &seq->channels;
   ImBuf *i = NULL;
 
   ed = context->scene->ed;
 
-  seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
+  ListBase *seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
+  ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, seq);
 
   /* Clamp timeline_frame to strip range so it behaves as if it had "still frame" offset (last
    * frame is static after end of strip). This is how most strips behave. This way transition

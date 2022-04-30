@@ -83,13 +83,6 @@ if(WITH_CYCLES_STANDALONE)
   target_link_libraries(cycles PRIVATE ${LIB})
 
   if(APPLE)
-    if(WITH_OPENCOLORIO)
-      set_property(TARGET cycles APPEND_STRING PROPERTY LINK_FLAGS " -framework IOKit -framework Carbon")
-    endif()
-    if(WITH_OPENIMAGEDENOISE AND "${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
-      # OpenImageDenoise uses BNNS from the Accelerate framework.
-      set_property(TARGET cycles APPEND_STRING PROPERTY LINK_FLAGS " -framework Accelerate")
-    endif()
     if(WITH_CYCLES_STANDALONE_GUI)
       set_property(TARGET cycles APPEND_STRING PROPERTY LINK_FLAGS
         " -framework Cocoa -framework CoreAudio -framework AudioUnit -framework AudioToolbox -framework ForceFeedback -framework CoreVideo")
@@ -103,6 +96,10 @@ if(WITH_CYCLES_STANDALONE)
   if(CYCLES_STANDALONE_REPOSITORY)
     cycles_install_libraries(cycles)
   endif()
+
+  install(PROGRAMS
+    $<TARGET_FILE:cycles>
+    DESTINATION ${CMAKE_INSTALL_PREFIX})
 endif()
 
 #####################################################################

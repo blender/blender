@@ -4398,7 +4398,7 @@ static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyOb
     }
   }
 
-  /* Fallback to standard py, delattr/setattr. */
+  /* Fallback to standard Python's `delattr/setattr`. */
   return PyType_Type.tp_setattro(cls, attr, value);
 }
 
@@ -7870,6 +7870,50 @@ StructRNA *pyrna_struct_as_srna(PyObject *self, const bool parent, const char *e
   Py_DECREF(py_srna);
 
   return srna;
+}
+
+const PointerRNA *pyrna_struct_as_ptr(PyObject *py_obj, const StructRNA *srna)
+{
+  BPy_StructRNA *bpy_srna = (BPy_StructRNA *)py_obj;
+  if (!BPy_StructRNA_Check(py_obj) || !RNA_struct_is_a(bpy_srna->ptr.type, srna)) {
+    PyErr_Format(PyExc_TypeError,
+                 "Expected a \"bpy.types.%.200s\" not a \"%.200s\"",
+                 RNA_struct_identifier(srna),
+                 Py_TYPE(py_obj)->tp_name);
+    return NULL;
+  }
+  PYRNA_STRUCT_CHECK_OBJ(bpy_srna);
+  return &bpy_srna->ptr;
+}
+
+const PointerRNA *pyrna_struct_as_ptr_or_null(PyObject *py_obj, const StructRNA *srna)
+{
+  if (py_obj == Py_None) {
+    return &PointerRNA_NULL;
+  }
+  return pyrna_struct_as_ptr(py_obj, srna);
+}
+
+int pyrna_struct_as_ptr_parse(PyObject *o, void *p)
+{
+  struct BPy_StructRNA_Parse *srna_parse = p;
+  BLI_assert(srna_parse->type != NULL);
+  srna_parse->ptr = pyrna_struct_as_ptr(o, srna_parse->type);
+  if (srna_parse->ptr == NULL) {
+    return 0;
+  }
+  return 1;
+}
+
+int pyrna_struct_as_ptr_or_null_parse(PyObject *o, void *p)
+{
+  struct BPy_StructRNA_Parse *srna_parse = p;
+  BLI_assert(srna_parse->type != NULL);
+  srna_parse->ptr = pyrna_struct_as_ptr_or_null(o, srna_parse->type);
+  if (srna_parse->ptr == NULL) {
+    return 0;
+  }
+  return 1;
 }
 
 /* Orphan functions, not sure where they should go. */

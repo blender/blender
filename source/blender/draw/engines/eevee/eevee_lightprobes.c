@@ -1193,6 +1193,11 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
   common_data->ssrefract_toggle = false;
   common_data->sss_toggle = false;
 
+  if (vedata->stl->g_data->disable_ligthprobes) {
+    sldata->common_data.prb_num_render_cube = 1;
+    sldata->common_data.prb_num_render_grid = 1;
+  }
+
   common_data->ray_type = EEVEE_RAY_GLOSSY;
   common_data->ray_depth = 1.0f;
   /* Planar reflections are rendered at the `hiz` resolution, so no need to scaling. */

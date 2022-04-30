@@ -5,6 +5,7 @@
 import bpy
 from bpy.app.handlers import persistent
 
+
 def update_factory_startup_screens():
     # 2D Animation.
     screen = bpy.data.screens["2D Animation"]

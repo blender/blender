@@ -60,6 +60,7 @@ set(SRC
   bpy_rna_anim.c
   bpy_rna_array.c
   bpy_rna_callback.c
+  bpy_rna_context.c
   bpy_rna_data.c
   bpy_rna_driver.c
   bpy_rna_gizmo.c
@@ -101,6 +102,7 @@ set(SRC
   bpy_rna.h
   bpy_rna_anim.h
   bpy_rna_callback.h
+  bpy_rna_context.h
   bpy_rna_data.h
   bpy_rna_driver.h
   bpy_rna_gizmo.h

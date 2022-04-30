@@ -2,6 +2,8 @@
  * Copyright 2019 Blender Foundation. All rights reserved. */
 #include "testing/testing.h"
 
+#include "usd_tests_common.h"
+
 #include <pxr/base/plug/registry.h>
 #include <pxr/usd/usd/stage.h>
 
@@ -19,22 +21,11 @@ class USDStageCreationTest : public testing::Test {
 
 TEST_F(USDStageCreationTest, JSONFileLoadingTest)
 {
-  const std::string &release_dir = blender::tests::flags_test_release_dir();
-  if (release_dir.empty()) {
+  std::string usd_datafiles_dir = register_usd_plugins_for_tests();
+  if (usd_datafiles_dir.empty()) {
     FAIL();
+    return;
   }
-
-  char usd_datafiles_dir[FILE_MAX];
-  const size_t path_len = BLI_path_join(
-      usd_datafiles_dir, FILE_MAX, release_dir.c_str(), "datafiles", "usd", nullptr);
-
-  /* #BLI_path_join removes trailing slashes, but the USD library requires one in order to
-   * recognize the path as directory. */
-  BLI_assert(path_len + 1 < FILE_MAX);
-  usd_datafiles_dir[path_len] = '/';
-  usd_datafiles_dir[path_len + 1] = '\0';
-
-  pxr::PlugRegistry::GetInstance().RegisterPlugins(usd_datafiles_dir);
 
   /* Simply the ability to create a USD Stage for a specific filename means that the extension
    * has been recognized by the USD library, and that a USD plugin has been loaded to write such

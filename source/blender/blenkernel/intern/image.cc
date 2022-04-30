@@ -829,10 +829,7 @@ ImageTile *BKE_image_get_tile_from_iuser(Image *ima, const ImageUser *iuser)
   return BKE_image_get_tile(ima, image_get_tile_number_from_iuser(ima, iuser));
 }
 
-int BKE_image_get_tile_from_pos(struct Image *ima,
-                                const float uv[2],
-                                float r_uv[2],
-                                float r_ofs[2])
+int BKE_image_get_tile_from_pos(Image *ima, const float uv[2], float r_uv[2], float r_ofs[2])
 {
   float local_ofs[2];
   if (r_ofs == nullptr) {
@@ -860,6 +857,18 @@ int BKE_image_get_tile_from_pos(struct Image *ima,
   return tile_number;
 }
 
+void BKE_image_get_tile_uv(const Image *ima, const int tile_number, float r_uv[2])
+{
+  if (ima->source != IMA_SRC_TILED) {
+    zero_v2(r_uv);
+  }
+  else {
+    const int tile_index = tile_number - 1001;
+    r_uv[0] = static_cast<float>(tile_index % 10);
+    r_uv[1] = static_cast<float>(tile_index / 10);
+  }
+}
+
 int BKE_image_find_nearest_tile(const Image *image, const float co[2])
 {
   const float co_floor[2] = {floorf(co[0]), floorf(co[1])};
@@ -868,17 +877,15 @@ int BKE_image_find_nearest_tile(const Image *image, const float co[2])
   int tile_number_best = -1;
 
   LISTBASE_FOREACH (const ImageTile *, tile, &image->tiles) {
-    const int tile_index = tile->tile_number - 1001;
-    /* Coordinates of the current tile. */
-    const float tile_index_co[2] = {static_cast<float>(tile_index % 10),
-                                    static_cast<float>(tile_index / 10)};
+    float uv_offset[2];
+    BKE_image_get_tile_uv(image, tile->tile_number, uv_offset);
 
-    if (equals_v2v2(co_floor, tile_index_co)) {
+    if (equals_v2v2(co_floor, uv_offset)) {
       return tile->tile_number;
     }
 
     /* Distance between co[2] and UDIM tile. */
-    const float dist_sq = len_squared_v2v2(tile_index_co, co);
+    const float dist_sq = len_squared_v2v2(uv_offset, co);
 
     if (dist_sq < dist_best_sq) {
       dist_best_sq = dist_sq;
@@ -3106,7 +3113,7 @@ bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *r_tile_start,
   eUDIM_TILE_FORMAT tile_format;
   char *udim_pattern = BKE_image_get_tile_strformat(filename, &tile_format);
 
-  bool is_udim = true;
+  bool all_valid_udim = true;
   int min_udim = IMA_UDIM_MAX + 1;
   int max_udim = 0;
   int id;
@@ -3124,7 +3131,7 @@ bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *r_tile_start,
     }
 
     if (id < 1001 || id > IMA_UDIM_MAX) {
-      is_udim = false;
+      all_valid_udim = false;
       break;
     }
 
@@ -3135,7 +3142,10 @@ bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *r_tile_start,
   BLI_filelist_free(dirs, dirs_num);
   MEM_SAFE_FREE(udim_pattern);
 
-  if (is_udim && min_udim <= IMA_UDIM_MAX) {
+  /* Ensure that all discovered UDIMs are valid and that there's at least 2 files in total.
+   * Downstream code checks the range value to determine tiled-ness; it's important we match that
+   * expectation here too (T97366). */
+  if (all_valid_udim && min_udim <= IMA_UDIM_MAX && max_udim > min_udim) {
     BLI_join_dirfile(filepath, FILE_MAX, dirname, filename);
 
     *r_tile_start = min_udim;

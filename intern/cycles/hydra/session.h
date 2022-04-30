@@ -23,7 +23,7 @@ struct SceneLock {
 
 class HdCyclesSession final : public PXR_NS::HdRenderParam {
  public:
-  HdCyclesSession(CCL_NS::Session *session_);
+  HdCyclesSession(CCL_NS::Session *session_, const bool keep_nodes);
   HdCyclesSession(const CCL_NS::SessionParams &params);
   ~HdCyclesSession() override;
 
@@ -59,6 +59,7 @@ class HdCyclesSession final : public PXR_NS::HdRenderParam {
   void RemoveAovBinding(PXR_NS::HdRenderBuffer *renderBuffer);
 
   CCL_NS::Session *session;
+  bool keep_nodes;
 
  private:
   const bool _ownCyclesSession;

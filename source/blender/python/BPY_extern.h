@@ -67,7 +67,7 @@ void BPY_text_free_code(struct Text *text);
 void BPY_modules_update(void);
 void BPY_modules_load_user(struct bContext *C);
 
-void BPY_app_handlers_reset(short do_all);
+void BPY_app_handlers_reset(bool do_all);
 
 /**
  * Update function, it gets rid of python-drivers global dictionary: `bpy.app.driver_namespace`,

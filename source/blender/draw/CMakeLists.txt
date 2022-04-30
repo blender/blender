@@ -82,6 +82,7 @@ set(SRC
   intern/draw_cache_impl_volume.c
   intern/draw_color_management.cc
   intern/draw_common.c
+  intern/draw_curves.cc
   intern/draw_debug.c
   intern/draw_fluid.c
   intern/draw_hair.c
@@ -98,6 +99,7 @@ set(SRC
   intern/draw_texture_pool.cc
   intern/draw_view.c
   intern/draw_view_data.cc
+  intern/draw_volume.cc
   intern/smaa_textures.c
   engines/basic/basic_engine.c
   engines/basic/basic_shader.c
@@ -194,6 +196,7 @@ set(SRC
   intern/draw_color_management.h
   intern/draw_common.h
   intern/draw_common_shader_shared.h
+  intern/draw_curves_private.h
   intern/draw_debug.h
   intern/draw_hair_private.h
   intern/draw_instance_data.h
@@ -416,8 +419,8 @@ set(GLSL_SRC
   engines/gpencil/gpencil_defines.h
   engines/gpencil/gpencil_shader_shared.h
 
-  engines/select/shaders/selection_id_3D_vert.glsl
-  engines/select/shaders/selection_id_frag.glsl
+  engines/select/shaders/select_id_vert.glsl
+  engines/select/shaders/select_id_frag.glsl
 
   engines/basic/shaders/conservative_depth_geom.glsl
   engines/basic/shaders/depth_vert.glsl
@@ -517,6 +520,8 @@ set(GLSL_SRC
   engines/overlay/shaders/wireframe_vert.glsl
   engines/overlay/shaders/wireframe_frag.glsl
   engines/overlay/shaders/xray_fade_frag.glsl
+
+  engines/overlay/overlay_shader_shared.h
 
   engines/image/shaders/image_engine_color_frag.glsl
   engines/image/shaders/image_engine_color_vert.glsl

@@ -6,8 +6,11 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_customdata.h"
+#include "BKE_image.h"
 #include "BKE_material.h"
 #include "BKE_paint.h"
+
+#include "IMB_imbuf_types.h"
 
 namespace blender::bke::paint::canvas {
 static TexPaintSlot *get_active_slot(Object *ob)
@@ -33,22 +36,35 @@ extern "C" {
 
 using namespace blender::bke::paint::canvas;
 
-Image *BKE_paint_canvas_image_get(const struct PaintModeSettings *settings, struct Object *ob)
+bool BKE_paint_canvas_image_get(PaintModeSettings *settings,
+                                Object *ob,
+                                Image **r_image,
+                                ImageUser **r_image_user)
 {
+  *r_image = nullptr;
+  *r_image_user = nullptr;
+
   switch (settings->canvas_source) {
     case PAINT_CANVAS_SOURCE_COLOR_ATTRIBUTE:
-      return nullptr;
+      break;
+
     case PAINT_CANVAS_SOURCE_IMAGE:
-      return settings->canvas_image;
+      *r_image = settings->canvas_image;
+      *r_image_user = &settings->image_user;
+      break;
+
     case PAINT_CANVAS_SOURCE_MATERIAL: {
       TexPaintSlot *slot = get_active_slot(ob);
       if (slot == nullptr) {
         break;
       }
-      return slot->ima;
+
+      *r_image = slot->ima;
+      *r_image_user = slot->image_user;
+      break;
     }
   }
-  return nullptr;
+  return *r_image != nullptr;
 }
 
 int BKE_paint_canvas_uvmap_layer_index_get(const struct PaintModeSettings *settings,
@@ -86,5 +102,30 @@ int BKE_paint_canvas_uvmap_layer_index_get(const struct PaintModeSettings *setti
     }
   }
   return -1;
+}
+
+char *BKE_paint_canvas_key_get(struct PaintModeSettings *settings, struct Object *ob)
+{
+  std::stringstream ss;
+  int active_uv_map_layer_index = BKE_paint_canvas_uvmap_layer_index_get(settings, ob);
+  ss << "UV_MAP:" << active_uv_map_layer_index;
+
+  Image *image;
+  ImageUser *image_user;
+  if (BKE_paint_canvas_image_get(settings, ob, &image, &image_user)) {
+    ImageUser tile_user = *image_user;
+    LISTBASE_FOREACH (ImageTile *, image_tile, &image->tiles) {
+      tile_user.tile = image_tile->tile_number;
+      ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &tile_user, nullptr);
+      if (!image_buffer) {
+        continue;
+      }
+      ss << ",TILE_" << image_tile->tile_number;
+      ss << "(" << image_buffer->x << "," << image_buffer->y << ")";
+      BKE_image_release_ibuf(image, image_buffer, nullptr);
+    }
+  }
+
+  return BLI_strdup(ss.str().c_str());
 }
 }

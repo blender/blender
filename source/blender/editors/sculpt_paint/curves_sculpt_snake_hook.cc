@@ -116,6 +116,9 @@ struct SnakeHookOperatorExecutor {
 
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
+    if (curves_->curves_num() == 0) {
+      return;
+    }
 
     brush_pos_prev_re_ = self.last_mouse_position_re_;
     brush_pos_re_ = stroke_extension.mouse_position;

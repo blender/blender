@@ -18,8 +18,12 @@
 #include "util/BufferReader.h"
 #include "util/Buffer.h"
 
+#include <algorithm>
+
 // 5 sec * 48000 samples/sec * 4 bytes/sample * 6 channels
 #define BUFFER_RESIZE_BYTES 5760000
+// 90 min * 60 sec/min * 48000 samples/sec * 4 bytes/sample * 2 channels
+#define MAXIMUM_INITIAL_BUFFER_SIZE_BYTES 2073600000
 
 AUD_NAMESPACE_BEGIN
 
@@ -32,14 +36,15 @@ StreamBuffer::StreamBuffer(std::shared_ptr<ISound> sound) :
 
 	int sample_size = AUD_SAMPLE_SIZE(m_specs);
 	int length;
-	int index = 0;
+	long long index = 0;
 	bool eos = false;
 
 	// get an approximated size if possible
-	int size = reader->getLength();
+	long long size = std::min(reader->getLength(), MAXIMUM_INITIAL_BUFFER_SIZE_BYTES / sample_size);
+	long long size_increase = BUFFER_RESIZE_BYTES / sample_size;
 
 	if(size <= 0)
-		size = BUFFER_RESIZE_BYTES / sample_size;
+		size = size_increase;
 	else
 		size += m_specs.rate;
 
@@ -47,13 +52,16 @@ StreamBuffer::StreamBuffer(std::shared_ptr<ISound> sound) :
 	while(!eos)
 	{
 		// increase
-		m_buffer->resize(size*sample_size, true);
+		m_buffer->resize(static_cast<long long>(size) * sample_size, true);
 
 		// read more
 		length = size-index;
 		reader->read(length, eos, m_buffer->getBuffer() + index * m_specs.channels);
 		if(index == m_buffer->getSize() / sample_size)
-			size += BUFFER_RESIZE_BYTES / sample_size;
+		{
+			size += size_increase;
+			size_increase <<= 1;
+		}
 		index += length;
 	}
 

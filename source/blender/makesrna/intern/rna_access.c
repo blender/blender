@@ -5093,15 +5093,16 @@ static bool rna_path_parse_array_index(const char **path,
  * \param r_ptr: The final RNA data holding the last property in \a path.
  * \param r_prop: The final property of \a r_ptr, from \a path.
  * \param r_index: The final index in the \a r_prop, if defined by \a path.
- * \param r_item_ptr: Only valid for Pointer and Collection,
- * return the actual value of the pointer, or of the collection item.
- * Mutually exclusive with \a eval_pointer option.
- * \param r_elements: A list of \a PropertyElemRNA items
- * (pairs of \a PointerRNA, \a PropertyRNA that represent the whole given \a path).
- * \param eval_pointer: If \a true, and \a path leads to a Pointer property,
- * or an item in a Collection property,
- * \a r_ptr will be set to the value of that property, and \a r_prop will be NULL.
- * Mutually exclusive with \a r_item_ptr.
+ * \param r_item_ptr: Only valid for Pointer and Collection, return the actual value of the
+ *                    pointer, or of the collection item.
+ *                    Mutually exclusive with \a eval_pointer option.
+ * \param r_elements: A list of \a PropertyElemRNA items(pairs of \a PointerRNA, \a PropertyRNA
+ *                    that represent the whole given \a path).
+ * \param eval_pointer: If \a true, and \a path leads to a Pointer property, or an item in a
+ *                      Collection property, \a r_ptr will be set to the value of that property,
+ *                      and \a r_prop will be NULL.
+ *                      Mutually exclusive with \a r_item_ptr.
+ *
  * \return \a true on success, \a false if the path is somehow invalid.
  */
 static bool rna_path_parse(PointerRNA *ptr,

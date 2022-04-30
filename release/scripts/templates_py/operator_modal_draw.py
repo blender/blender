@@ -65,10 +65,12 @@ class ModalDrawOperator(bpy.types.Operator):
             self.report({'WARNING'}, "View3D not found, cannot run operator")
             return {'CANCELLED'}
 
-def menu_func(self, context):
-    self.layout.operator(ModalDrawOperator.bl_idname, text = "Modal Draw Operator")
 
-# Register and add to the "view" menu (required to also use F3 search "Modal Draw Operator" for quick access)
+def menu_func(self, context):
+    self.layout.operator(ModalDrawOperator.bl_idname, text="Modal Draw Operator")
+
+
+# Register and add to the "view" menu (required to also use F3 search "Modal Draw Operator" for quick access).
 def register():
     bpy.utils.register_class(ModalDrawOperator)
     bpy.types.VIEW3D_MT_view.append(menu_func)

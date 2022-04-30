@@ -454,7 +454,10 @@ bool BKE_text_reload(Text *text)
   return true;
 }
 
-Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const bool is_internal)
+Text *BKE_text_load_ex(Main *bmain,
+                       const char *filepath,
+                       const char *relbase,
+                       const bool is_internal)
 {
   unsigned char *buffer;
   size_t buffer_len;
@@ -462,10 +465,8 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
   char filepath_abs[FILE_MAX];
   BLI_stat_t st;
 
-  BLI_strncpy(filepath_abs, file, FILE_MAX);
-  if (relpath) { /* Can be NULL (background mode). */
-    BLI_path_abs(filepath_abs, relpath);
-  }
+  BLI_strncpy(filepath_abs, filepath, FILE_MAX);
+  BLI_path_abs(filepath_abs, relbase);
 
   buffer = BLI_file_read_text_as_mem(filepath_abs, 0, &buffer_len);
   if (buffer == NULL) {
@@ -484,8 +485,9 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
   }
 
   if (is_internal == false) {
-    ta->filepath = MEM_mallocN(strlen(file) + 1, "text_name");
-    strcpy(ta->filepath, file);
+    const size_t filepath_len = strlen(filepath);
+    ta->filepath = MEM_mallocN(filepath_len + 1, "text_name");
+    memcpy(ta->filepath, filepath, filepath_len + 1);
   }
   else {
     ta->flags |= TXT_ISMEM | TXT_ISDIRTY;
@@ -506,9 +508,9 @@ Text *BKE_text_load_ex(Main *bmain, const char *file, const char *relpath, const
   return ta;
 }
 
-Text *BKE_text_load(Main *bmain, const char *file, const char *relpath)
+Text *BKE_text_load(Main *bmain, const char *filepath, const char *relbase)
 {
-  return BKE_text_load_ex(bmain, file, relpath, false);
+  return BKE_text_load_ex(bmain, filepath, relbase, false);
 }
 
 void BKE_text_clear(Text *text) /* called directly from rna */
@@ -529,20 +531,20 @@ int BKE_text_file_modified_check(Text *text)
 {
   BLI_stat_t st;
   int result;
-  char file[FILE_MAX];
+  char filepath[FILE_MAX];
 
   if (!text->filepath) {
     return 0;
   }
 
-  BLI_strncpy(file, text->filepath, FILE_MAX);
-  BLI_path_abs(file, ID_BLEND_PATH_FROM_GLOBAL(&text->id));
+  BLI_strncpy(filepath, text->filepath, FILE_MAX);
+  BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&text->id));
 
-  if (!BLI_exists(file)) {
+  if (!BLI_exists(filepath)) {
     return 2;
   }
 
-  result = BLI_stat(file, &st);
+  result = BLI_stat(filepath, &st);
 
   if (result == -1) {
     return -1;
@@ -563,20 +565,20 @@ void BKE_text_file_modified_ignore(Text *text)
 {
   BLI_stat_t st;
   int result;
-  char file[FILE_MAX];
+  char filepath[FILE_MAX];
 
   if (!text->filepath) {
     return;
   }
 
-  BLI_strncpy(file, text->filepath, FILE_MAX);
-  BLI_path_abs(file, ID_BLEND_PATH_FROM_GLOBAL(&text->id));
+  BLI_strncpy(filepath, text->filepath, FILE_MAX);
+  BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&text->id));
 
-  if (!BLI_exists(file)) {
+  if (!BLI_exists(filepath)) {
     return;
   }
 
-  result = BLI_stat(file, &st);
+  result = BLI_stat(filepath, &st);
 
   if (result == -1 || (st.st_mode & S_IFMT) != S_IFREG) {
     return;
@@ -605,40 +607,27 @@ static void make_new_line(TextLine *line, char *newline)
   line->format = NULL;
 }
 
-static TextLine *txt_new_line(const char *str)
+static TextLine *txt_new_linen(const char *str, int str_len)
 {
   TextLine *tmp;
 
-  if (!str) {
-    str = "";
-  }
-
   tmp = (TextLine *)MEM_mallocN(sizeof(TextLine), "textline");
-  tmp->line = MEM_mallocN(strlen(str) + 1, "textline_string");
+  tmp->line = MEM_mallocN(str_len + 1, "textline_string");
   tmp->format = NULL;
 
-  strcpy(tmp->line, str);
-
-  tmp->len = strlen(str);
+  memcpy(tmp->line, str, str_len);
+  tmp->line[str_len] = '\0';
+  tmp->len = str_len;
   tmp->next = tmp->prev = NULL;
+
+  BLI_assert(strlen(tmp->line) == str_len);
 
   return tmp;
 }
 
-static TextLine *txt_new_linen(const char *str, int n)
+static TextLine *txt_new_line(const char *str)
 {
-  TextLine *tmp;
-
-  tmp = (TextLine *)MEM_mallocN(sizeof(TextLine), "textline");
-  tmp->line = MEM_mallocN(n + 1, "textline_string");
-  tmp->format = NULL;
-
-  BLI_strncpy(tmp->line, (str) ? str : "", n + 1);
-
-  tmp->len = strlen(tmp->line);
-  tmp->next = tmp->prev = NULL;
-
-  return tmp;
+  return txt_new_linen(str, strlen(str));
 }
 
 void txt_clean_text(Text *text)
@@ -650,7 +639,7 @@ void txt_clean_text(Text *text)
       text->lines.first = text->lines.last;
     }
     else {
-      text->lines.first = text->lines.last = txt_new_line(NULL);
+      text->lines.first = text->lines.last = txt_new_line("");
     }
   }
 
@@ -1234,8 +1223,8 @@ static void txt_delete_sel(Text *text)
 
   buf = MEM_mallocN(text->curc + (text->sell->len - text->selc) + 1, "textline_string");
 
-  strncpy(buf, text->curl->line, text->curc);
-  strcpy(buf + text->curc, text->sell->line + text->selc);
+  memcpy(buf, text->curl->line, text->curc);
+  memcpy(buf + text->curc, text->sell->line + text->selc, text->sell->len - text->selc);
   buf[text->curc + (text->sell->len - text->selc)] = 0;
 
   make_new_line(text->curl, buf);

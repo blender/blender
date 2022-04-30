@@ -247,7 +247,7 @@ class WM_OT_previews_batch_clear(Operator):
 
 class WM_OT_blend_strings_utf8_validate(Operator):
     """Check and fix all strings in current .blend file to be valid UTF-8 Unicode """ \
-    """(needed for some old, 2.4x area files)"""
+        """(needed for some old, 2.4x area files)"""
     bl_idname = "wm.blend_strings_utf8_validate"
     bl_label = "Validate .blend strings"
     bl_options = {'REGISTER'}

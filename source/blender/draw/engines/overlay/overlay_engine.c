@@ -45,6 +45,11 @@ static void OVERLAY_engine_init(void *vedata)
     stl->pd = MEM_callocN(sizeof(*stl->pd), __func__);
   }
 
+  /* Allocate instance. */
+  if (data->instance == NULL) {
+    data->instance = MEM_callocN(sizeof(*data->instance), __func__);
+  }
+
   OVERLAY_PrivateData *pd = stl->pd;
   pd->space_type = v3d != NULL ? SPACE_VIEW3D : draw_ctx->space_data->spacetype;
 
@@ -695,6 +700,13 @@ static void OVERLAY_engine_free(void)
   OVERLAY_shader_free();
 }
 
+static void OVERLAY_instance_free(void *instance_)
+{
+  OVERLAY_Instance *instance = (OVERLAY_Instance *)instance_;
+  DRW_UBO_FREE_SAFE(instance->grid_ubo);
+  MEM_freeN(instance);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -710,7 +722,7 @@ DrawEngineType draw_engine_overlay_type = {
     &overlay_data_size,
     &OVERLAY_engine_init,
     &OVERLAY_engine_free,
-    NULL, /* instance_free */
+    &OVERLAY_instance_free,
     &OVERLAY_cache_init,
     &OVERLAY_cache_populate,
     &OVERLAY_cache_finish,

@@ -157,3 +157,13 @@ vec3 attr_load_uv(vec3 attr)
   return attr;
 }
 #endif
+
+/* Passthrough. */
+float attr_load_temperature_post(float attr)
+{
+  return attr;
+}
+vec4 attr_load_color_post(vec4 attr)
+{
+  return attr;
+}

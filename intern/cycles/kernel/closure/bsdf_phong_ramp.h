@@ -64,7 +64,7 @@ ccl_device float3 bsdf_phong_ramp_eval_reflect(ccl_private const ShaderClosure *
       return bsdf_phong_ramp_get_color(bsdf->colors, cosp) * out;
     }
   }
-
+  *pdf = 0.0f;
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
@@ -73,6 +73,7 @@ ccl_device float3 bsdf_phong_ramp_eval_transmit(ccl_private const ShaderClosure 
                                                 const float3 omega_in,
                                                 ccl_private float *pdf)
 {
+  *pdf = 0.0f;
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
@@ -121,6 +122,10 @@ ccl_device int bsdf_phong_ramp_sample(ccl_private const ShaderClosure *sc,
         *eval = bsdf_phong_ramp_get_color(bsdf->colors, cosp) * out;
       }
     }
+  }
+  else {
+    *eval = make_float3(0.0f, 0.0f, 0.0f);
+    *pdf = 0.0f;
   }
   return LABEL_REFLECT | LABEL_GLOSSY;
 }

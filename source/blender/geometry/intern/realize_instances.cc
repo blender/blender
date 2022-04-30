@@ -1015,8 +1015,6 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   if (vertex_ids) {
     vertex_ids.save();
   }
-
-  BKE_mesh_normals_tag_dirty(dst_mesh);
 }
 
 /** \} */

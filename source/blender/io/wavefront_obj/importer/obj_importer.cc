@@ -42,6 +42,12 @@ static void geometry_to_blender_objects(
   BKE_view_layer_base_deselect_all(view_layer);
   LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
 
+  /* Don't do collection syncs for each object, will do once after the loop. */
+  BKE_layer_collection_resync_forbid();
+
+  /* Create all the objects. */
+  Vector<Object *> objects;
+  objects.reserve(all_geometries.size());
   for (const std::unique_ptr<Geometry> &geometry : all_geometries) {
     Object *obj = nullptr;
     if (geometry->geom_type_ == GEOM_MESH) {
@@ -54,17 +60,25 @@ static void geometry_to_blender_objects(
     }
     if (obj != nullptr) {
       BKE_collection_object_add(bmain, lc->collection, obj);
-      Base *base = BKE_view_layer_base_find(view_layer, obj);
-      /* TODO: is setting active needed? */
-      BKE_view_layer_base_select_and_set_active(view_layer, base);
-
-      DEG_id_tag_update(&lc->collection->id, ID_RECALC_COPY_ON_WRITE);
-      DEG_id_tag_update_ex(bmain,
-                           &obj->id,
-                           ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION |
-                               ID_RECALC_BASE_FLAGS);
+      objects.append(obj);
     }
   }
+
+  /* Sync the collection after all objects are created. */
+  BKE_layer_collection_resync_allow();
+  BKE_main_collection_sync(bmain);
+
+  /* After collection sync, select objects in the view layer and do DEG updates. */
+  for (Object *obj : objects) {
+    Base *base = BKE_view_layer_base_find(view_layer, obj);
+    BKE_view_layer_base_select_and_set_active(view_layer, base);
+
+    DEG_id_tag_update(&lc->collection->id, ID_RECALC_COPY_ON_WRITE);
+    int flags = ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION |
+                ID_RECALC_BASE_FLAGS;
+    DEG_id_tag_update_ex(bmain, &obj->id, flags);
+  }
+
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
   DEG_relations_tag_update(bmain);
 }
@@ -81,7 +95,8 @@ void importer_main(bContext *C, const OBJImportParams &import_params)
 void importer_main(Main *bmain,
                    Scene *scene,
                    ViewLayer *view_layer,
-                   const OBJImportParams &import_params)
+                   const OBJImportParams &import_params,
+                   size_t read_buffer_size)
 {
   /* List of Geometry instances to be parsed from OBJ file. */
   Vector<std::unique_ptr<Geometry>> all_geometries;
@@ -91,7 +106,7 @@ void importer_main(Main *bmain,
   Map<std::string, std::unique_ptr<MTLMaterial>> materials;
   Map<std::string, Material *> created_materials;
 
-  OBJParser obj_parser{import_params};
+  OBJParser obj_parser{import_params, read_buffer_size};
   obj_parser.parse(all_geometries, global_vertices);
 
   for (StringRef mtl_library : obj_parser.mtl_libraries()) {

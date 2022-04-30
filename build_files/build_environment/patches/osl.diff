@@ -48,25 +48,6 @@ diff -Naur org/CMakeLists.txt external_osl/CMakeLists.txt
 
  set (OSL_NO_DEFAULT_TEXTURESYSTEM OFF CACHE BOOL "Do not use create a raw OIIO::TextureSystem")
  if (OSL_NO_DEFAULT_TEXTURESYSTEM)
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 990f50d69..46ef7351d 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -252,11 +252,9 @@ install (EXPORT OSL_EXPORTED_TARGETS
-         FILE ${OSL_TARGETS_EXPORT_NAME}
-         NAMESPACE ${PROJECT_NAME}::)
- 
--
--
--
--osl_add_all_tests()
--
-+if (${PROJECT_NAME}_BUILD_TESTS AND NOT ${PROJECT_NAME}_IS_SUBPROJECT)
-+	osl_add_all_tests()
-+endif ()
- 
- if (NOT ${PROJECT_NAME}_IS_SUBPROJECT)
-     include (packaging)
 diff -Naur external_osl_orig/src/cmake/externalpackages.cmake external_osl/src/cmake/externalpackages.cmake
 --- external_osl_orig/src/cmake/externalpackages.cmake  2021-06-01 13:44:18 -0600
 +++ external_osl/src/cmake/externalpackages.cmake       2021-06-28 07:44:32 -0600

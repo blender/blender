@@ -1992,6 +1992,32 @@ ImBuf *SEQ_render_give_ibuf_direct(const SeqRenderData *context,
   return ibuf;
 }
 
+float SEQ_render_thumbnail_first_frame_get(Sequence *seq, float frame_step, rctf *view_area)
+{
+  int first_drawable_frame = max_iii(seq->startdisp, seq->start, view_area->xmin);
+
+  /* First frame should correspond to handle position. */
+  if (first_drawable_frame == seq->startdisp) {
+    return seq->startdisp;
+  }
+
+  float aligned_frame_offset = (int)((first_drawable_frame - seq->start) / frame_step) *
+                               frame_step;
+  return seq->start + aligned_frame_offset;
+}
+
+float SEQ_render_thumbnail_next_frame_get(Sequence *seq, float last_frame, float frame_step)
+{
+  float next_frame = last_frame + frame_step;
+
+  /* If handle position was displayed, align next frame with `seq->start`. */
+  if (last_frame == seq->startdisp) {
+    next_frame = seq->start + ((int)((last_frame - seq->start) / frame_step) + 1) * frame_step;
+  }
+
+  return next_frame;
+}
+
 /* Gets the direct image from source and scales to thumbnail size. */
 static ImBuf *seq_get_uncached_thumbnail(const SeqRenderData *context,
                                          SeqRenderState *state,
@@ -2053,7 +2079,6 @@ ImBuf *SEQ_get_thumbnail(
 void SEQ_render_thumbnails(const SeqRenderData *context,
                            Sequence *seq,
                            Sequence *seq_orig,
-                           float start_frame,
                            float frame_step,
                            rctf *view_area,
                            const short *stop)
@@ -2063,24 +2088,24 @@ void SEQ_render_thumbnails(const SeqRenderData *context,
 
   /* Adding the hold offset value (seq->anim_startofs) to the start frame. Position of image not
    * affected, but frame loaded affected. */
-  start_frame = start_frame - frame_step;
   float upper_thumb_bound = (seq->endstill) ? (seq->start + seq->len) : seq->enddisp;
   upper_thumb_bound = (upper_thumb_bound > view_area->xmax) ? view_area->xmax + frame_step :
                                                               upper_thumb_bound;
 
-  while ((start_frame < upper_thumb_bound) & !*stop) {
+  float timeline_frame = SEQ_render_thumbnail_first_frame_get(seq, frame_step, view_area);
+  while ((timeline_frame < upper_thumb_bound) & !*stop) {
     ImBuf *ibuf = seq_cache_get(
-        context, seq_orig, round_fl_to_int(start_frame), SEQ_CACHE_STORE_THUMBNAIL);
+        context, seq_orig, round_fl_to_int(timeline_frame), SEQ_CACHE_STORE_THUMBNAIL);
     if (ibuf) {
       IMB_freeImBuf(ibuf);
-      start_frame += frame_step;
+      timeline_frame = SEQ_render_thumbnail_next_frame_get(seq, timeline_frame, frame_step);
       continue;
     }
 
-    ibuf = seq_get_uncached_thumbnail(context, &state, seq, round_fl_to_int(start_frame));
+    ibuf = seq_get_uncached_thumbnail(context, &state, seq, round_fl_to_int(timeline_frame));
 
     if (ibuf) {
-      seq_cache_thumbnail_put(context, seq_orig, round_fl_to_int(start_frame), ibuf, view_area);
+      seq_cache_thumbnail_put(context, seq_orig, round_fl_to_int(timeline_frame), ibuf, view_area);
       IMB_freeImBuf(ibuf);
       seq_orig->flag &= ~SEQ_FLAG_SKIP_THUMBNAILS;
     }
@@ -2090,7 +2115,7 @@ void SEQ_render_thumbnails(const SeqRenderData *context,
       return;
     }
 
-    start_frame += frame_step;
+    timeline_frame = SEQ_render_thumbnail_next_frame_get(seq, timeline_frame, frame_step);
   }
 }
 

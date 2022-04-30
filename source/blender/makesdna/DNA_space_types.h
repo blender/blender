@@ -518,7 +518,7 @@ typedef enum eGraphEdit_Mode {
 typedef enum eGraphEdit_Runtime_Flag {
   /** Temporary flag to force channel selections to be synced with main. */
   SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC = (1 << 0),
-  /** Temporary flag to force F-curves to recalculate colors. */
+  /** Temporary flag to force F-Curves to recalculate colors. */
   SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR = (1 << 1),
 
   /**
@@ -619,7 +619,7 @@ typedef struct SpaceSeqRuntime {
   /** Stores lists of most recently displayed thumbnails. */
   struct GHash *last_displayed_thumbnails;
   int rename_channel_index;
-  char _pad0[4];
+  float timeline_clamp_custom_range;
 } SpaceSeqRuntime;
 
 /** Sequencer. */
@@ -692,7 +692,7 @@ typedef enum eSpaceSeq_Flag {
   SEQ_DRAWFRAMES = (1 << 0),
   SEQ_MARKER_TRANS = (1 << 1),
   SEQ_DRAW_COLOR_SEPARATED = (1 << 2),
-  SPACE_SEQ_FLAG_UNUSED_3 = (1 << 3),
+  SEQ_CLAMP_VIEW = (1 << 3),
   SPACE_SEQ_FLAG_UNUSED_4 = (1 << 4),
   SPACE_SEQ_FLAG_UNUSED_5 = (1 << 5),
   SEQ_USE_ALPHA = (1 << 6), /* use RGBA display mode for preview */
@@ -1969,8 +1969,7 @@ typedef struct SpreadsheetRowFilter {
   float value_float2[2];
   float value_float3[3];
   float value_color[4];
-
-  char _pad1[4];
+  uint8_t value_byte_color[4];
 } SpreadsheetRowFilter;
 
 typedef enum eSpaceSpreadsheet_RowFilterFlag {
@@ -2007,6 +2006,7 @@ typedef enum eSpreadsheetColumnValueType {
   SPREADSHEET_VALUE_TYPE_COLOR = 5,
   SPREADSHEET_VALUE_TYPE_INSTANCES = 6,
   SPREADSHEET_VALUE_TYPE_STRING = 7,
+  SPREADSHEET_VALUE_TYPE_BYTE_COLOR = 8,
 } eSpreadsheetColumnValueType;
 
 /**

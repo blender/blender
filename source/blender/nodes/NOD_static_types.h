@@ -351,7 +351,7 @@ DefNode(GeometryNode, GEO_NODE_POINTS_TO_VERTICES, 0, "POINTS_TO_VERTICES", Poin
 DefNode(GeometryNode, GEO_NODE_POINTS_TO_VOLUME, def_geo_points_to_volume, "POINTS_TO_VOLUME", PointsToVolume, "Points to Volume", "")
 DefNode(GeometryNode, GEO_NODE_PROXIMITY, def_geo_proximity, "PROXIMITY", Proximity, "Geometry Proximity", "")
 DefNode(GeometryNode, GEO_NODE_RAYCAST, def_geo_raycast, "RAYCAST", Raycast, "Raycast", "")
-DefNode(GeometryNode, GEO_NODE_REMOVE_ATTRIBUTE, 0, "REMOVE_ATTRIBUTE", RemoveAttribute, "Remove Attribute", "")
+DefNode(GeometryNode, GEO_NODE_REMOVE_ATTRIBUTE, 0, "REMOVE_ATTRIBUTE", RemoveAttribute, "Remove Named Attribute", "")
 DefNode(GeometryNode, GEO_NODE_REALIZE_INSTANCES, def_geo_realize_instances, "REALIZE_INSTANCES", RealizeInstances, "Realize Instances", "")
 DefNode(GeometryNode, GEO_NODE_REPLACE_MATERIAL, 0, "REPLACE_MATERIAL", ReplaceMaterial, "Replace Material", "")
 DefNode(GeometryNode, GEO_NODE_RESAMPLE_CURVE, def_geo_curve_resample, "RESAMPLE_CURVE", ResampleCurve, "Resample Curve", "")

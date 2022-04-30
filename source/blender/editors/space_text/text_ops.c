@@ -3459,12 +3459,6 @@ static int text_insert_exec(bContext *C, wmOperator *op)
     while (str[i]) {
       code = BLI_str_utf8_as_unicode_step(str, str_len, &i);
       done |= txt_add_char(text, code);
-      if (U.text_flag & USER_TEXT_EDIT_AUTO_CLOSE) {
-        if (text_closing_character_pair_get(code)) {
-          done |= txt_add_char(text, text_closing_character_pair_get(code));
-          txt_move_left(text, false);
-        }
-      }
     }
   }
 
@@ -3484,6 +3478,7 @@ static int text_insert_exec(bContext *C, wmOperator *op)
 
 static int text_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  uint auto_close_char = 0;
   int ret;
 
   /* NOTE: the "text" property is always set from key-map,
@@ -3510,9 +3505,22 @@ static int text_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     }
     str[len] = '\0';
     RNA_string_set(op->ptr, "text", str);
+
+    if (U.text_flag & USER_TEXT_EDIT_AUTO_CLOSE) {
+      auto_close_char = BLI_str_utf8_as_unicode(str);
+    }
   }
 
   ret = text_insert_exec(C, op);
+
+  if ((ret == OPERATOR_FINISHED) && (auto_close_char != 0)) {
+    const uint auto_close_match = text_closing_character_pair_get(auto_close_char);
+    if (auto_close_match != 0) {
+      Text *text = CTX_data_edit_text(C);
+      txt_add_char(text, auto_close_match);
+      txt_move_left(text, false);
+    }
+  }
 
   /* run the script while editing, evil but useful */
   if (ret == OPERATOR_FINISHED && CTX_wm_space_text(C)->live_edit) {

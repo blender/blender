@@ -178,8 +178,6 @@ static void workbench_volume_modifier_cache_populate(WORKBENCH_Data *vedata,
   else {
     DRW_shgroup_call(grp, DRW_cache_cube_get(), ob);
   }
-
-  BLI_addtail(&wpd->smoke_domains, BLI_genericNodeN(fmd));
 }
 
 static void workbench_volume_material_color(WORKBENCH_PrivateData *wpd,
@@ -333,21 +331,4 @@ void workbench_volume_draw_pass(WORKBENCH_Data *vedata)
     GPU_framebuffer_bind(dfbl->color_only_fb);
     DRW_draw_pass(psl->volume_ps);
   }
-}
-
-void workbench_volume_draw_finish(WORKBENCH_Data *vedata)
-{
-  WORKBENCH_PrivateData *wpd = vedata->stl->wpd;
-
-  /* Free Smoke Textures after rendering */
-  /* XXX This is a waste of processing and GPU bandwidth if nothing
-   * is updated. But the problem is since Textures are stored in the
-   * modifier we don't want them to take precious VRAM if the
-   * modifier is not used for display. We should share them for
-   * all viewport in a redraw at least. */
-  LISTBASE_FOREACH (LinkData *, link, &wpd->smoke_domains) {
-    FluidModifierData *fmd = (FluidModifierData *)link->data;
-    DRW_smoke_free(fmd);
-  }
-  BLI_freelistN(&wpd->smoke_domains);
 }

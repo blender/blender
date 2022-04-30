@@ -14,6 +14,7 @@ from bl_ui.properties_grease_pencil_common import GreasePencilSimplifyPanel
 from bl_ui.properties_render import draw_curves_settings
 from bl_ui.properties_view_layer import ViewLayerCryptomattePanel, ViewLayerAOVPanel, ViewLayerLightgroupsPanel
 
+
 class CyclesPresetPanel(PresetPanel, Panel):
     COMPAT_ENGINES = {'CYCLES'}
     preset_operator = "script.execute_preset"
@@ -25,15 +26,18 @@ class CyclesPresetPanel(PresetPanel, Panel):
         render = context.scene.render
         render.filter_size = render.filter_size
 
+
 class CYCLES_PT_sampling_presets(CyclesPresetPanel):
     bl_label = "Sampling Presets"
     preset_subdir = "cycles/sampling"
     preset_add_operator = "render.cycles_sampling_preset_add"
 
+
 class CYCLES_PT_viewport_sampling_presets(CyclesPresetPanel):
     bl_label = "Viewport Sampling Presets"
     preset_subdir = "cycles/viewport_sampling"
     preset_add_operator = "render.cycles_viewport_sampling_preset_add"
+
 
 class CYCLES_PT_integrator_presets(CyclesPresetPanel):
     bl_label = "Integrator Presets"
@@ -90,6 +94,7 @@ def use_metal(context):
 
     return (get_device_type(context) == 'METAL' and cscene.device == 'GPU')
 
+
 def use_cuda(context):
     cscene = context.scene.cycles
 
@@ -101,10 +106,12 @@ def use_hip(context):
 
     return (get_device_type(context) == 'HIP' and cscene.device == 'GPU')
 
+
 def use_optix(context):
     cscene = context.scene.cycles
 
     return (get_device_type(context) == 'OPTIX' and cscene.device == 'GPU')
+
 
 def use_multi_device(context):
     cscene = context.scene.cycles
@@ -131,7 +138,6 @@ def get_effective_preview_denoiser(context):
         return 'OPTIX'
 
     return 'OIDN'
-
 
 
 class CYCLES_RENDER_PT_sampling(CyclesButtonsPanel, Panel):
@@ -353,6 +359,7 @@ class CYCLES_RENDER_PT_curves(CyclesButtonsPanel, Panel):
         if ccscene.shape == 'RIBBONS':
             col.prop(ccscene, "subdivisions", text="Curve Subdivisions")
 
+
 class CYCLES_RENDER_PT_curves_viewport_display(CyclesButtonsPanel, Panel):
     bl_label = "Viewport Display"
     bl_parent_id = "CYCLES_RENDER_PT_curves"
@@ -360,6 +367,7 @@ class CYCLES_RENDER_PT_curves_viewport_display(CyclesButtonsPanel, Panel):
 
     def draw(self, context):
         draw_curves_settings(self, context)
+
 
 class CYCLES_RENDER_PT_volumes(CyclesButtonsPanel, Panel):
     bl_label = "Volumes"
@@ -478,10 +486,10 @@ class CYCLES_RENDER_PT_light_paths_fast_gi(CyclesButtonsPanel, Panel):
         col.prop(cscene, "fast_gi_method", text="Method")
 
         if world:
-          light = world.light_settings
-          col = layout.column(align=True)
-          col.prop(light, "ao_factor", text="AO Factor")
-          col.prop(light, "distance", text="AO Distance")
+            light = world.light_settings
+            col = layout.column(align=True)
+            col.prop(light, "ao_factor", text="AO Factor")
+            col.prop(light, "distance", text="AO Distance")
 
         if cscene.fast_gi_method == 'REPLACE':
             col = layout.column(align=True)
@@ -1034,7 +1042,8 @@ class CYCLES_OBJECT_PT_motion_blur(CyclesButtonsPanel, Panel):
     def poll(cls, context):
         ob = context.object
         if CyclesButtonsPanel.poll(context) and ob:
-            if ob.type in {'MESH', 'CURVE', 'CURVE', 'SURFACE', 'FONT', 'META', 'CAMERA', 'CURVES', 'POINTCLOUD'}:
+            if ob.type in {'MESH', 'CURVE', 'CURVE', 'SURFACE', 'FONT',
+                           'META', 'CAMERA', 'CURVES', 'POINTCLOUD', 'VOLUME'}:
                 return True
             if ob.instance_type == 'COLLECTION' and ob.instance_collection:
                 return True
@@ -1446,7 +1455,14 @@ class CYCLES_WORLD_PT_surface(CyclesButtonsPanel, Panel):
         row.use_property_decorate = False
 
         sub = row.column(align=True)
-        sub.prop_search(world, "lightgroup", view_layer, "lightgroups", text="Light Group", results_are_suggestions=True)
+        sub.prop_search(
+            world,
+            "lightgroup",
+            view_layer,
+            "lightgroups",
+            text="Light Group",
+            results_are_suggestions=True,
+        )
 
         sub = row.column(align=True)
         sub.active = bool(world.lightgroup) and not any(lg.name == world.lightgroup for lg in view_layer.lightgroups)
@@ -1570,7 +1586,6 @@ class CYCLES_WORLD_PT_settings_surface(CyclesButtonsPanel, Panel):
         subsub.prop(cworld, "sample_map_resolution")
         sub.prop(cworld, "max_bounces")
         sub.prop(cworld, "is_caustics_light", text="Shadow Caustics")
-
 
 
 class CYCLES_WORLD_PT_settings_volume(CyclesButtonsPanel, Panel):
@@ -1894,6 +1909,7 @@ class CYCLES_RENDER_PT_bake_output(CyclesButtonsPanel, Panel):
             if cbk.target == 'IMAGE_TEXTURES':
                 layout.prop(cbk, "use_clear", text="Clear Image")
 
+
 class CYCLES_RENDER_PT_bake_output_margin(CyclesButtonsPanel, Panel):
     bl_label = "Margin"
     bl_context = "render"
@@ -1930,7 +1946,6 @@ class CYCLES_RENDER_PT_bake_output_margin(CyclesButtonsPanel, Panel):
                 if cbk.target == 'IMAGE_TEXTURES':
                     layout.prop(cbk, "margin_type", text="Type")
                     layout.prop(cbk, "margin", text="Size")
-
 
 
 class CYCLES_RENDER_PT_debug(CyclesDebugButtonsPanel, Panel):
