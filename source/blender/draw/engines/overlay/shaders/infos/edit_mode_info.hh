@@ -360,3 +360,42 @@ GPU_SHADER_CREATE_INFO(overlay_edit_curve_wire_clipped)
     .additional_info("overlay_edit_curve_wire", "drw_clipped");
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit Curve
+ * \{ */
+
+GPU_SHADER_CREATE_INFO(overlay_edit_lattice_point)
+    .do_static_compilation(true)
+    /* NOTE: Color already in Linear space. Which is what we want. */
+    .define("srgbTarget", "false")
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_in(1, Type::INT, "data")
+    .vertex_out(overlay_edit_flat_color_iface)
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("edit_lattice_point_vert.glsl")
+    .fragment_source("gpu_shader_point_varying_color_frag.glsl")
+    .additional_info("draw_mesh", "draw_globals");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_lattice_point_clipped)
+    .do_static_compilation(true)
+    .additional_info("overlay_edit_lattice_point", "drw_clipped");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_lattice_wire)
+    .do_static_compilation(true)
+    /* NOTE: Color already in Linear space. Which is what we want. */
+    .define("srgbTarget", "false")
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_in(1, Type::FLOAT, "weight")
+    .sampler(0, ImageType::FLOAT_1D, "weightTex")
+    .vertex_out(overlay_edit_smooth_color_iface)
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("edit_lattice_wire_vert.glsl")
+    .fragment_source("gpu_shader_3D_smooth_color_frag.glsl")
+    .additional_info("draw_mesh", "draw_globals");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_lattice_wire_clipped)
+    .do_static_compilation(true)
+    .additional_info("overlay_edit_lattice_wire", "drw_clipped");
+
+/** \} */
