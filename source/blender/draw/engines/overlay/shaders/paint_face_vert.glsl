@@ -1,6 +1,5 @@
-
-in vec3 pos;
-in vec4 nor; /* select flag on the 4th component */
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {
@@ -17,8 +16,6 @@ void main()
     gl_Position = vec4(-2.0, -2.0, -2.0, 1.0);
   }
   else {
-#ifdef USE_WORLD_CLIP_PLANES
-    world_clip_planes_calc_clip_distance(world_pos);
-#endif
+    view_clipping_distances(world_pos);
   }
 }

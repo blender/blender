@@ -1,8 +1,5 @@
-
-in vec3 pos;
-in vec3 ac; /* active color */
-
-out vec3 finalColor;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 vec3 srgb_to_linear_attr(vec3 c)
 {
@@ -21,7 +18,5 @@ void main()
 
   finalColor = srgb_to_linear_attr(ac);
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(world_pos);
-#endif
+  view_clipping_distances(world_pos);
 }

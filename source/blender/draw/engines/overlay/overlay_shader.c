@@ -89,15 +89,6 @@ extern char datatoc_outline_detect_frag_glsl[];
 extern char datatoc_outline_prepass_frag_glsl[];
 extern char datatoc_outline_prepass_geom_glsl[];
 extern char datatoc_outline_prepass_vert_glsl[];
-extern char datatoc_paint_face_vert_glsl[];
-extern char datatoc_paint_point_vert_glsl[];
-extern char datatoc_paint_texture_frag_glsl[];
-extern char datatoc_paint_texture_vert_glsl[];
-extern char datatoc_paint_vertcol_frag_glsl[];
-extern char datatoc_paint_vertcol_vert_glsl[];
-extern char datatoc_paint_weight_frag_glsl[];
-extern char datatoc_paint_weight_vert_glsl[];
-extern char datatoc_paint_wire_vert_glsl[];
 extern char datatoc_particle_vert_glsl[];
 extern char datatoc_particle_frag_glsl[];
 extern char datatoc_sculpt_mask_vert_glsl[];
@@ -958,17 +949,11 @@ GPUShader *OVERLAY_shader_outline_detect(void)
 GPUShader *OVERLAY_shader_paint_face(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
-  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  eGPUShaderConfig sh_cfg = draw_ctx->sh_cfg;
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[sh_cfg];
   if (!sh_data->paint_face) {
-    sh_data->paint_face = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_paint_face_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_gpu_shader_uniform_color_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->paint_face = GPU_shader_create_from_info_name(
+        sh_cfg == GPU_SHADER_CFG_CLIPPED ? "overlay_paint_face_clipped" : "overlay_paint_face");
   }
   return sh_data->paint_face;
 }
@@ -976,18 +961,11 @@ GPUShader *OVERLAY_shader_paint_face(void)
 GPUShader *OVERLAY_shader_paint_point(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
-  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  eGPUShaderConfig sh_cfg = draw_ctx->sh_cfg;
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[sh_cfg];
   if (!sh_data->paint_point) {
-    sh_data->paint_point = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_paint_point_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_gpu_shader_point_varying_color_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->paint_point = GPU_shader_create_from_info_name(
+        sh_cfg == GPU_SHADER_CFG_CLIPPED ? "overlay_paint_point_clipped" : "overlay_paint_point");
   }
   return sh_data->paint_point;
 }
@@ -995,19 +973,11 @@ GPUShader *OVERLAY_shader_paint_point(void)
 GPUShader *OVERLAY_shader_paint_texture(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
-  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  eGPUShaderConfig sh_cfg = draw_ctx->sh_cfg;
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[sh_cfg];
   if (!sh_data->paint_texture) {
-    sh_data->paint_texture = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_paint_texture_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_common_colormanagement_lib_glsl,
-                                 datatoc_paint_texture_frag_glsl,
-                                 NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->paint_texture = GPU_shader_create_from_info_name(
+        sh_cfg ? "overlay_paint_texture_clipped" : "overlay_paint_texture");
   }
   return sh_data->paint_texture;
 }
@@ -1015,42 +985,27 @@ GPUShader *OVERLAY_shader_paint_texture(void)
 GPUShader *OVERLAY_shader_paint_vertcol(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
-  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  eGPUShaderConfig sh_cfg = draw_ctx->sh_cfg;
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[sh_cfg];
   if (!sh_data->paint_vertcol) {
-    sh_data->paint_vertcol = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_paint_vertcol_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_common_globals_lib_glsl,
-                                 datatoc_paint_vertcol_frag_glsl,
-                                 NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->paint_vertcol = GPU_shader_create_from_info_name(
+        sh_cfg ? "overlay_paint_vertcol_clipped" : "overlay_paint_vertcol");
   }
   return sh_data->paint_vertcol;
 }
 
 GPUShader *OVERLAY_shader_paint_weight(const bool shading)
 {
+  const char *info_name[2][2] = {
+      {"overlay_paint_weight", "overlay_paint_weight_fake_shading"},
+      {"overlay_paint_weight_clipped", "overlay_paint_weight_fake_shading_clipped"},
+  };
   int index = shading ? 1 : 0;
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
-  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  eGPUShaderConfig sh_cfg = draw_ctx->sh_cfg;
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[sh_cfg];
   if (!sh_data->paint_weight[index]) {
-    sh_data->paint_weight[index] = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_paint_weight_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_common_globals_lib_glsl,
-                                 datatoc_paint_weight_frag_glsl,
-                                 NULL},
-        .defs = (const char *[]){sh_cfg->def, shading ? "#define FAKE_SHADING\n" : "", NULL},
-    });
+    sh_data->paint_weight[index] = GPU_shader_create_from_info_name(info_name[sh_cfg][index]);
   }
   return sh_data->paint_weight[index];
 }
@@ -1058,18 +1013,11 @@ GPUShader *OVERLAY_shader_paint_weight(const bool shading)
 GPUShader *OVERLAY_shader_paint_wire(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
-  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  eGPUShaderConfig sh_cfg = draw_ctx->sh_cfg;
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[sh_cfg];
   if (!sh_data->paint_wire) {
-    sh_data->paint_wire = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_paint_wire_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->paint_wire = GPU_shader_create_from_info_name(sh_cfg ? "overlay_paint_wire_clipped" :
+                                                                    "overlay_paint_wire");
   }
   return sh_data->paint_wire;
 }
