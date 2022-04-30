@@ -466,3 +466,43 @@ GPU_SHADER_CREATE_INFO(overlay_edit_gpencil_guide_point_clipped)
     .additional_info("overlay_edit_gpencil_guide_point", "drw_clipped");
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Depth Only Shader
+ *
+ * Used to occlude edit geometry which might not be rendered by the render engine.
+ * \{ */
+
+GPU_SHADER_CREATE_INFO(overlay_depth_only)
+    .do_static_compilation(true)
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_source("depth_only_vert.glsl")
+    .fragment_source("gpu_shader_depth_only_frag.glsl")
+    .additional_info("draw_mesh");
+
+GPU_SHADER_CREATE_INFO(overlay_depth_only_clipped)
+    .do_static_compilation(true)
+    .additional_info("overlay_depth_only", "drw_clipped");
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Uniform color
+ * \{ */
+
+GPU_SHADER_CREATE_INFO(overlay_uniform_color)
+    .do_static_compilation(true)
+    /* NOTE: Color already in Linear space. Which is what we want. */
+    .define("srgbTarget", "false")
+    .vertex_in(0, Type::VEC3, "pos")
+    .push_constant(Type::VEC4, "color")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("depth_only_vert.glsl")
+    .fragment_source("gpu_shader_uniform_color_frag.glsl")
+    .additional_info("draw_mesh");
+
+GPU_SHADER_CREATE_INFO(overlay_uniform_color_clipped)
+    .do_static_compilation(true)
+    .additional_info("overlay_depth_only", "drw_clipped");
+
+/** \} */

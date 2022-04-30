@@ -255,17 +255,10 @@ GPUShader *OVERLAY_shader_clipbound(void)
 GPUShader *OVERLAY_shader_depth_only(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->depth_only) {
-    sh_data->depth_only = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_depth_only_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_gpu_shader_depth_only_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->depth_only = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_depth_only_clipped" : "overlay_depth_only");
   }
   return sh_data->depth_only;
 }
@@ -1002,17 +995,10 @@ GPUShader *OVERLAY_shader_sculpt_mask(void)
 struct GPUShader *OVERLAY_shader_uniform_color(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->uniform_color) {
-    sh_data->uniform_color = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_depth_only_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_gpu_shader_uniform_color_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->uniform_color = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_uniform_color_clipped" : "overlay_uniform_color");
   }
   return sh_data->uniform_color;
 }
