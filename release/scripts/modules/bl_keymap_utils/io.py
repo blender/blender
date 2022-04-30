@@ -261,6 +261,10 @@ def keymap_init_from_data(km, km_items, is_modal=False):
 
 
 def keyconfig_init_from_data(kc, keyconfig_data):
+    for item in keyconfig_data:
+        if len(item) != 3:
+            print("EEK!", item)
+
     # Load data in the format defined above.
     #
     # Runs at load time, keep this fast!

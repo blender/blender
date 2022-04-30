@@ -4700,6 +4700,30 @@ def radial_control_properties(paint, prop, secondary_prop, secondary_rotation=Fa
         ],
     }
 
+def radial_control_properties_channels(paint, prop, secondary_prop, secondary_rotation=False, color=False, zoom=False, type="float"):
+    brush_path = 'tool_settings.' + paint + '.brush'
+    channels_path = brush_path + ".channels"
+    unified = "tool_settings." + paint + ".channels"
+
+    rotation = 'mask_texture_slot_angle' if secondary_rotation else 'texture_slot_angle'
+    return {
+        "properties": [("data_path_primary", '%s["%s"].%s_value' % (channels_path, prop, type)),
+            ("data_path_secondary", '%s["%s"].%s_value' % (unified, prop, type) if secondary_prop else ''),
+            ("use_secondary", '%s["%s"].inherit' % (channels_path, prop) if secondary_prop else ''),
+            #("rotation_path", '%s["%s"].float_value' % (channels_path,
+            #rotation)),
+            #("color_path", brush_path + '.cursor_color_add'),
+            #("fill_color_path", brush_path + '.color' if color else ''),
+            #("fill_color_override_path", unified_path + '.color' if color else
+            #''),
+            #("fill_color_override_test_path", unified_path +
+            #'.use_unified_color' if color else ''),
+            #("zoom_path", 'space_data.zoom' if zoom else ''),
+            #("image_id", brush_path + ''),
+            #("secondary_tex", secondary_rotation),
+        ],
+    }
+
 # Radial controls for the paint and sculpt modes.
 
 
@@ -7394,7 +7418,8 @@ def km_3d_view_tool_sculpt_lasso_project(params):
              None),]},)
 
 def km_3d_view_tool_sculpt_box_project(params):
-    return ("3D View Tool: Sculpt, Box Project",
+    return ("3D View Tool: Sculpt, Lasso Project",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [("sculpt.project_box_gesture", {"type": params.tool_mouse, "value": 'CLICK_DRAG'},
              None),]},)
 

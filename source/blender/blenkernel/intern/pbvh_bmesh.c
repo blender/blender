@@ -3227,7 +3227,7 @@ static void BKE_pbvh_bmesh_correct_tree(PBVH *pbvh, PBVHNode *node, PBVHNode *pa
 
     node->children_offset = 0;
 
-    pbvh_free_all_draw_buffers(node);
+    pbvh_free_draw_buffers(pbvh, node);
 
     // rebuild bm_other_verts
     BMFace *f;
@@ -3333,7 +3333,7 @@ static void pbvh_bmesh_compact_tree(PBVH *bvh)
         n->layer_disp = NULL;
       }
 
-      pbvh_free_all_draw_buffers(n);
+      pbvh_free_draw_buffers(bvh, n);
 
       if (n->vert_indices) {
         MEM_freeN((void *)n->vert_indices);
@@ -3742,7 +3742,7 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
         n->layer_disp = NULL;
       }
 
-      pbvh_free_all_draw_buffers(n);
+      pbvh_free_draw_buffers(bvh, n);
 
       if (n->vert_indices) {
         MEM_freeN((void *)n->vert_indices);

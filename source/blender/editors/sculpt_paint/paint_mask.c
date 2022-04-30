@@ -1116,12 +1116,12 @@ static void sculpt_gesture_trim_calculate_depth(SculptGestureContext *sgcontext)
       Brush *brush = BKE_paint_brush(&sd->paint);
       Scene *scene = CTX_data_scene(vc->C);
 
-      if (!BKE_brush_use_locked_size(scene, brush)) {
+      if (!BKE_brush_use_locked_size(scene, brush, true)) {
         depth_radius = paint_calc_object_space_radius(
-            vc, ss->gesture_initial_location, BKE_brush_size_get(scene, brush));
+            vc, ss->gesture_initial_location, BKE_brush_size_get(scene, brush, true));
       }
       else {
-        depth_radius = BKE_brush_unprojected_radius_get(scene, brush);
+        depth_radius = BKE_brush_unprojected_radius_get(scene, brush, true);
       }
     }
 

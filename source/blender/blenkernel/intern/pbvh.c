@@ -799,7 +799,7 @@ void BKE_pbvh_free(PBVH *pbvh)
     PBVHNode *node = &pbvh->nodes[i];
 
     if (node->flag & PBVH_Leaf) {
-      pbvh_free_draw_buffers(node);
+      pbvh_free_draw_buffers(pbvh, node);
 
       if (node->vert_indices) {
         MEM_freeN((void *)node->vert_indices);
@@ -1547,7 +1547,7 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
       } break;
       case PBVH_BMESH:
         if (BKE_pbvh_bmesh_check_tris(pbvh, node)) {
-          pbvh_free_draw_buffers(node);
+          pbvh_free_draw_buffers(pbvh, node);
           node->tot_mat_draw_buffers = node->tot_tri_buffers;
 
           pbvh_bmesh_check_other_verts(node);
@@ -1644,7 +1644,7 @@ void pbvh_update_free_all_draw_buffers(PBVH *pbvh, PBVHNode *node)
   }
 }
 
-static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, int update_flag)
+static void pbvh_update_draw_buffers(PBVH *pbvh, Mesh *me, PBVHNode **nodes, int totnode, int update_flag)
 {
 
   CustomData *vdata;
@@ -1706,9 +1706,6 @@ static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, 
       PBVHNode *node = nodes[n];
       if (node->flag & PBVH_RebuildDrawBuffers) {
         pbvh_free_draw_buffers(pbvh, node);
-=======
-        pbvh_free_draw_buffers(pbvh, node);
->>>>>>> origin/master
       }
       else if ((node->flag & PBVH_UpdateDrawBuffers)) {
         pbvh_update_free_all_draw_buffers(pbvh, node);
@@ -3478,40 +3475,6 @@ void BKE_pbvh_gather_proxies(PBVH *pbvh, PBVHNode ***r_array, int *r_tot)
   *r_tot = tot;
 }
 
-PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node)
-{
-  unsigned int totvert;
-
-  if (node->bm_unique_verts) {
-    totvert = BLI_table_gset_len(node->bm_unique_verts);
-  }
-  else {
-    totvert = node->uniq_verts;
-  }
-
-  if (node->color_buffer.color && node->color_buffer.size != totvert) {
-    MEM_freeN(node->color_buffer.color);
-    node->color_buffer.color = NULL;
-  }
-
-  if (!node->color_buffer.color) {
-    node->color_buffer.color = MEM_callocN(sizeof(float[4]) * totvert, "Color buffer");
-    node->color_buffer.size = totvert;
-  }
-  return &node->color_buffer;
-}
-
-void BKE_pbvh_node_color_buffer_free(PBVH *pbvh)
-{
-  PBVHNode **nodes;
-  int totnode;
-  BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
-  for (int i = 0; i < totnode; i++) {
-    MEM_SAFE_FREE(nodes[i]->color_buffer.color);
-  }
-  MEM_SAFE_FREE(nodes);
-}
-
 void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int mode)
 {
   struct CCGElem **grids;
@@ -4940,6 +4903,16 @@ static void pbvh_clear_cached_pbvhs(PBVH *exclude)
 void BKE_pbvh_clear_cache(PBVH *preserve)
 {
   pbvh_clear_cached_pbvhs(NULL);
+}
+
+void BKE_pbvh_invalidate_cache(Object *ob)
+{
+  Object *ob_orig = DEG_get_original_object(ob);
+  PBVH *pbvh = BLI_ghash_lookup(cached_pbvhs, ob_orig->id.name);
+
+  if (pbvh) {
+    BKE_pbvh_cache_remove(pbvh);
+  }
 }
 
 PBVH *BKE_pbvh_get_or_free_cached(Object *ob, Mesh *me, PBVHType pbvh_type)

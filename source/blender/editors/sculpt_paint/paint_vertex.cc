@@ -1350,7 +1350,7 @@ static void ed_vwpaintmode_enter_generic(
   /* Create vertex/weight paint mode session data */
   if (ob->sculpt) {
     if (ob->sculpt->cache) {
-      SCULPT_cache_free(ob->sculpt->cache, ob, ob->sculpt->cache);
+      SCULPT_cache_free(ob->sculpt, ob, ob->sculpt->cache);
       ob->sculpt->cache = nullptr;
     }
     BKE_sculptsession_free(ob);
@@ -1419,7 +1419,7 @@ static void ed_vwpaintmode_exit_generic(Object *ob, const eObjectMode mode_flag)
 
   /* If the cache is not released by a cancel or a done, free it now. */
   if (ob->sculpt && ob->sculpt->cache) {
-    SCULPT_cache_free(ob->sculpt->cache, ob, ob->sculpt->cache);
+    SCULPT_cache_free(ob->sculpt, ob, ob->sculpt->cache);
     ob->sculpt->cache = nullptr;
   }
 
@@ -2674,7 +2674,7 @@ static void wpaint_stroke_done(const bContext *C, PaintStroke *stroke)
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
-  SCULPT_cache_free(ob->sculpt->cache, ob, ob->sculpt->cache);
+  SCULPT_cache_free(ob->sculpt, ob, ob->sculpt->cache);
   ob->sculpt->cache = nullptr;
 }
 
@@ -2725,7 +2725,7 @@ static void wpaint_cancel(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob->sculpt->cache) {
-    SCULPT_cache_free(ob->sculpt->cache, ob, ob->sculpt->cache);
+    SCULPT_cache_free(ob->sculpt, ob, ob->sculpt->cache);
     ob->sculpt->cache = nullptr;
   }
 
@@ -3041,8 +3041,13 @@ static void do_vpaint_brush_blur_loops(bContext *C,
       const SculptVertexPaintGeomMap *gmap = &ss->mode.vpaint.gmap;
       const StrokeCache *cache = ss->cache;
       float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
-      get_brush_alpha_data(
-          scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
+      get_brush_alpha_data(scene,
+                           ss,
+                           brush,
+                           &brush_size_pressure,
+                           &brush_alpha_value,
+                           &brush_alpha_pressure,
+                           paint_use_channels(C));
       const bool use_normal = vwpaint_use_normal(vp);
       const bool use_vert_sel = (me->editflag &
                                  (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) != 0;
@@ -3183,8 +3188,13 @@ static void do_vpaint_brush_blur_verts(bContext *C,
       const SculptVertexPaintGeomMap *gmap = &ss->mode.vpaint.gmap;
       const StrokeCache *cache = ss->cache;
       float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
-      get_brush_alpha_data(
-          scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
+      get_brush_alpha_data(scene,
+                           ss,
+                           brush,
+                           &brush_size_pressure,
+                           &brush_alpha_value,
+                           &brush_alpha_pressure,
+                           paint_use_channels(C));
       const bool use_normal = vwpaint_use_normal(vp);
       const bool use_vert_sel = (me->editflag &
                                  (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) != 0;
@@ -3318,7 +3328,6 @@ static void do_vpaint_brush_smear(bContext *C,
   const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
 
-
   const Brush *brush = ob->sculpt->cache->brush;
   const Scene *scene = CTX_data_scene(C);
   Color *color_curr = static_cast<Color *>(vpd->smear.color_curr);
@@ -3329,8 +3338,13 @@ static void do_vpaint_brush_smear(bContext *C,
     for (int n : range) {
       float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
 
-      get_brush_alpha_data(
-          scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
+      get_brush_alpha_data(scene,
+                           ss,
+                           brush,
+                           &brush_size_pressure,
+                           &brush_alpha_value,
+                           &brush_alpha_pressure,
+                           paint_use_channels(C));
       float brush_dir[3];
       const bool use_normal = vwpaint_use_normal(vp);
       const bool use_vert_sel = (me->editflag &
@@ -3614,8 +3628,13 @@ static void vpaint_do_draw(bContext *C,
 
       const StrokeCache *cache = ss->cache;
       float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
-      get_brush_alpha_data(
-          scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
+      get_brush_alpha_data(scene,
+                           ss,
+                           brush,
+                           &brush_size_pressure,
+                           &brush_alpha_value,
+                           &brush_alpha_pressure,
+                           paint_use_channels(C));
       const bool use_normal = vwpaint_use_normal(vp);
       const bool use_vert_sel = (me->editflag &
                                  (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) != 0;
@@ -4027,7 +4046,7 @@ static void vpaint_stroke_done(const bContext *C, PaintStroke *stroke)
 
   SCULPT_undo_push_end(ob);
 
-  SCULPT_cache_free(ob->sculpt->cache, ob, ob->sculpt->cache);
+  SCULPT_cache_free(ob->sculpt, ob, ob->sculpt->cache);
   ob->sculpt->cache = nullptr;
 }
 
@@ -4087,7 +4106,7 @@ static void vpaint_cancel(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob->sculpt->cache) {
-    SCULPT_cache_free(ob->sculpt->cache, ob, ob->sculpt->cache);
+    SCULPT_cache_free(ob->sculpt, ob, ob->sculpt->cache);
     ob->sculpt->cache = nullptr;
   }
 

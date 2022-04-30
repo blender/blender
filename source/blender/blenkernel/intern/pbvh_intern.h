@@ -354,7 +354,6 @@ bool pbvh_bmesh_node_nearest_to_ray(PBVH *pbvh,
 
 void pbvh_bmesh_normals_update(PBVH *pbvh, PBVHNode **nodes, int totnode);
 
-void pbvh_free_all_draw_buffers(PBVHNode *node);
 void pbvh_update_free_all_draw_buffers(PBVH *pbvh, PBVHNode *node);
 
 BLI_INLINE int pbvh_bmesh_node_index_from_vert(PBVH *pbvh, const BMVert *key)

@@ -167,12 +167,14 @@ template<typename ImageBuffer> class PaintingKernel {
         continue;
       }
 
+      SculptVertRef fakevert = BKE_pbvh_make_vref(0LL);
+
       float4 color = image_accessor.read_pixel(image_buffer);
       const float3 normal(0.0f, 0.0f, 0.0f);
       const float3 face_normal(0.0f, 0.0f, 0.0f);
       const float mask = 0.0f;
       const float falloff_strength = SCULPT_brush_strength_factor(
-          ss, brush, pixel_pos, sqrtf(test.dist), normal, face_normal, mask, 0, thread_id);
+          ss, brush, pixel_pos, sqrtf(test.dist), normal, face_normal, mask, fakevert, thread_id);
       float4 paint_color = brush_color * falloff_strength * brush_strength;
       float4 buffer_color;
       blend_color_mix_float(buffer_color, color, paint_color);

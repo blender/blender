@@ -852,8 +852,6 @@ void BKE_pbvh_parallel_range_settings(struct TaskParallelSettings *settings,
 struct MVert *BKE_pbvh_get_verts(const PBVH *pbvh);
 const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3];
 
-PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node);
-void BKE_pbvh_node_color_buffer_free(PBVH *pbvh);
 bool BKE_pbvh_get_color_layer(const struct Mesh *me,
                               CustomDataLayer **r_layer,
                               AttributeDomain *r_attr);
@@ -1186,6 +1184,7 @@ bool BKE_pbvh_cache_is_valid(const struct Object *ob,
                              int pbvh_type);
 bool BKE_pbvh_cache(const struct Mesh *me, PBVH *pbvh);
 PBVH *BKE_pbvh_get_or_free_cached(struct Object *ob, struct Mesh *me, PBVHType pbvh_type);
+void BKE_pbvh_invalidate_cache(struct Object *ob);
 void BKE_pbvh_set_cached(struct Object *ob, PBVH *pbvh);
 void BKE_pbvh_set_face_areas(PBVH *pbvh, float *face_areas);
 void BKE_pbvh_set_sculpt_verts(PBVH *pbvh, struct MSculptVert *sverts);

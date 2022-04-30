@@ -116,14 +116,26 @@
 
 static bool sculpt_check_boundary_vertex_in_base_mesh(const SculptSession *ss,
                                                       const SculptVertRef index);
-typedef void (*BrushActionFunc)(
-    Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups, void *data);
+typedef void (*BrushActionFunc)(Sculpt *sd,
+                                Object *ob,
+                                Brush *brush,
+                                UnifiedPaintSettings *ups,
+                                PaintModeSettings *paint_mode_settings,
+                                void *userdata);
 
 void sculpt_combine_proxies(Sculpt *sd, Object *ob);
-static void SCULPT_run_commandlist(
-    Sculpt *sd, Object *ob, Brush *brush, BrushCommandList *list, UnifiedPaintSettings *ups);
-static void do_symmetrical_brush_actions(
-    Sculpt *sd, Object *ob, BrushActionFunc action, UnifiedPaintSettings *ups, void *userdata);
+static void SCULPT_run_commandlist(Sculpt *sd,
+                                   Object *ob,
+                                   Brush *brush,
+                                   BrushCommandList *list,
+                                   UnifiedPaintSettings *ups,
+                                   PaintModeSettings *paint_mode_settings);
+static void do_symmetrical_brush_actions(Sculpt *sd,
+                                         Object *ob,
+                                         BrushActionFunc action,
+                                         UnifiedPaintSettings *ups,
+                                         PaintModeSettings *paint_mode_settings,
+                                         void *userdata);
 
 /* Sculpt API to get brush channel data
   If ss->cache exists then ss->cache->channels_final
@@ -2903,8 +2915,6 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, paint_mesh_restore_co_task_cb, &settings);
 
-  BKE_pbvh_node_color_buffer_free(ss->pbvh);
-
   MEM_SAFE_FREE(nodes);
 }
 
@@ -4721,7 +4731,7 @@ static void sculpt_topology_update(Sculpt *sd,
                                    Object *ob,
                                    Brush *brush,
                                    UnifiedPaintSettings *UNUSED(ups),
-                                   void *UNUSED(userdata))
+                                   void *UNUSED(userdata),
                                    PaintModeSettings *UNUSED(paint_mode_settings))
 {
   SculptSession *ss = ob->sculpt;
@@ -4918,6 +4928,7 @@ static void get_nodes_undo(Sculpt *sd,
                            Object *ob,
                            Brush *brush,
                            UnifiedPaintSettings *ups,
+                           PaintModeSettings *paint_mode_settings,
                            BrushRunCommandData *data,
                            int tool)
 {
@@ -5081,8 +5092,12 @@ static void sculpt_apply_alt_smmoth_settings(SculptSession *ss, Sculpt *sd, Brus
       BRUSHSET_LOOKUP(ss->cache->channels_final, projection), ch, parentch, false, true);
 }
 
-static void SCULPT_run_command(
-    Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups, void *userdata)
+static void SCULPT_run_command(Sculpt *sd,
+                               Object *ob,
+                               Brush *brush,
+                               UnifiedPaintSettings *ups,
+                               PaintModeSettings *paint_mode_settings,
+                               void *userdata)
 {
   SculptSession *ss = ob->sculpt;
   BrushRunCommandData *data = userdata;
@@ -5102,7 +5117,7 @@ static void SCULPT_run_command(
   ss->cache->radius_squared = radius * radius;
   ss->cache->initial_radius = radius;
 
-  get_nodes_undo(sd, ob, ss->cache->brush, ups, data, cmd->tool);
+  get_nodes_undo(sd, ob, ss->cache->brush, ups, paint_mode_settings, data, cmd->tool);
 
   PBVHNode **nodes = data->nodes;
   int totnode = data->totnode;
@@ -5159,7 +5174,7 @@ static void SCULPT_run_command(
   }
   else {
     ss->cache->bstrength = brush_strength(
-        sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups);
+        sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups, paint_mode_settings);
   }
 
   // do not pressure map brush2->alpha now that we've used it to build ss->cache->bstrength
@@ -5359,7 +5374,7 @@ static void SCULPT_run_command(
       }
       break;
     case SCULPT_TOOL_DYNTOPO:
-      sculpt_topology_update(sd, ob, brush, ups, NULL);
+      sculpt_topology_update(sd, ob, brush, ups, NULL, paint_mode_settings);
       break;
     case SCULPT_TOOL_AUTO_FSET:
       SCULPT_do_auto_face_set(sd, ob, nodes, totnode);
@@ -5398,8 +5413,12 @@ static void SCULPT_run_command(
   MEM_SAFE_FREE(nodes);
 }
 
-static void SCULPT_run_commandlist(
-    Sculpt *sd, Object *ob, Brush *brush, BrushCommandList *list, UnifiedPaintSettings *ups)
+static void SCULPT_run_commandlist(Sculpt *sd,
+                                   Object *ob,
+                                   Brush *brush,
+                                   BrushCommandList *list,
+                                   UnifiedPaintSettings *ups,
+                                   PaintModeSettings *paint_mode_settings)
 {
   SculptSession *ss = ob->sculpt;
   Brush *oldbrush = ss->cache->brush;
@@ -5530,7 +5549,7 @@ static void SCULPT_run_commandlist(
     BKE_brush_channelset_apply_mapping(cmd->params_mapped, &ss->cache->input_mapping);
     BKE_brush_channelset_clear_inherit(cmd->params_mapped);
 
-    do_symmetrical_brush_actions(sd, ob, SCULPT_run_command, ups, &data);
+    do_symmetrical_brush_actions(sd, ob, SCULPT_run_command, ups, paint_mode_settings, &data);
 
     sculpt_combine_proxies(sd, ob);
   }
@@ -5867,26 +5886,13 @@ void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache,
   }
 }
 
-<<<<<<< HEAD
-=======
-typedef void (*BrushActionFunc)(Sculpt *sd,
-                                Object *ob,
-                                Brush *brush,
-                                UnifiedPaintSettings *ups,
-                                PaintModeSettings *paint_mode_settings);
-
->>>>>>> origin/master
 static void do_tiled(Sculpt *sd,
                      Object *ob,
                      Brush *brush,
                      UnifiedPaintSettings *ups,
-<<<<<<< HEAD
+                     PaintModeSettings *paint_mode_settings,
                      BrushActionFunc action,
                      void *userdata)
-=======
-                     PaintModeSettings *paint_mode_settings,
-                     BrushActionFunc action)
->>>>>>> origin/master
 {
   SculptSession *ss = ob->sculpt;
   StrokeCache *cache = ss->cache;
@@ -5920,11 +5926,7 @@ static void do_tiled(Sculpt *sd,
 
   /* First do the "un-tiled" position to initialize the stroke for this location. */
   cache->tile_pass = 0;
-<<<<<<< HEAD
-  action(sd, ob, brush, ups, userdata);
-=======
-  action(sd, ob, brush, ups, paint_mode_settings);
->>>>>>> origin/master
+  action(sd, ob, brush, ups, paint_mode_settings, userdata);
 
   /* Now do it for all the tiles. */
   copy_v3_v3_int(cur, start);
@@ -5943,11 +5945,7 @@ static void do_tiled(Sculpt *sd,
           cache->plane_offset[dim] = cur[dim] * step[dim];
           cache->initial_location[dim] = cur[dim] * step[dim] + original_initial_location[dim];
         }
-<<<<<<< HEAD
-        action(sd, ob, brush, ups, userdata);
-=======
-        action(sd, ob, brush, ups, paint_mode_settings);
->>>>>>> origin/master
+        action(sd, ob, brush, ups, paint_mode_settings, userdata);
       }
     }
   }
@@ -5970,11 +5968,7 @@ static void do_radial_symmetry(Sculpt *sd,
     const float angle = 2.0f * M_PI * i / sd->radial_symm[axis - 'X'];
     ss->cache->radial_symmetry_pass = i;
     SCULPT_cache_calc_brushdata_symm(ss->cache, symm, axis, angle);
-<<<<<<< HEAD
-    do_tiled(sd, ob, brush, ups, action, userdata);
-=======
-    do_tiled(sd, ob, brush, ups, paint_mode_settings, action);
->>>>>>> origin/master
+    do_tiled(sd, ob, brush, ups, paint_mode_settings, action, userdata);
   }
 }
 
@@ -5993,16 +5987,12 @@ static void sculpt_fix_noise_tear(Sculpt *sd, Object *ob)
   }
 }
 
-<<<<<<< HEAD
-static void do_symmetrical_brush_actions(
-    Sculpt *sd, Object *ob, BrushActionFunc action, UnifiedPaintSettings *ups, void *userdata)
-=======
 static void do_symmetrical_brush_actions(Sculpt *sd,
                                          Object *ob,
                                          BrushActionFunc action,
                                          UnifiedPaintSettings *ups,
-                                         PaintModeSettings *paint_mode_settings)
->>>>>>> origin/master
+                                         PaintModeSettings *paint_mode_settings,
+                                         void *userdata)
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
@@ -6024,19 +6014,12 @@ static void do_symmetrical_brush_actions(Sculpt *sd,
     cache->radial_symmetry_pass = 0;
 
     SCULPT_cache_calc_brushdata_symm(cache, i, 0, 0);
-<<<<<<< HEAD
-    do_tiled(sd, ob, brush, ups, action, userdata);
 
-    do_radial_symmetry(sd, ob, brush, ups, action, i, 'X', feather, userdata);
-    do_radial_symmetry(sd, ob, brush, ups, action, i, 'Y', feather, userdata);
-    do_radial_symmetry(sd, ob, brush, ups, action, i, 'Z', feather, userdata);
-=======
-    do_tiled(sd, ob, brush, ups, paint_mode_settings, action);
+    do_tiled(sd, ob, brush, ups, paint_mode_settings, action, userdata);
 
-    do_radial_symmetry(sd, ob, brush, ups, paint_mode_settings, action, i, 'X', feather);
-    do_radial_symmetry(sd, ob, brush, ups, paint_mode_settings, action, i, 'Y', feather);
-    do_radial_symmetry(sd, ob, brush, ups, paint_mode_settings, action, i, 'Z', feather);
->>>>>>> origin/master
+    do_radial_symmetry(sd, ob, brush, ups, paint_mode_settings, action, i, 'X', feather, userdata);
+    do_radial_symmetry(sd, ob, brush, ups, paint_mode_settings, action, i, 'Y', feather, userdata);
+    do_radial_symmetry(sd, ob, brush, ups, paint_mode_settings, action, i, 'Z', feather, userdata);
   }
 }
 
@@ -6067,25 +6050,6 @@ bool SCULPT_mode_poll(bContext *C)
   return ob && ob->mode & OB_MODE_SCULPT;
 }
 
-<<<<<<< HEAD
-bool SCULPT_vertex_colors_poll(bContext *C)
-{
-  return SCULPT_mode_poll(C);
-}
-
-bool SCULPT_vertex_colors_poll_no_bmesh(bContext *C)
-{
-  Object *ob = CTX_data_active_object(C);
-
-  if (ob && ob->sculpt && ob->sculpt->bm) {
-    return false;
-  }
-
-  return SCULPT_mode_poll(C);
-}
-
-=======
->>>>>>> origin/master
 bool SCULPT_mode_poll_view3d(bContext *C)
 {
   return (SCULPT_mode_poll(C) && CTX_wm_region_view3d(C));
@@ -7794,7 +7758,24 @@ static bool over_mesh(bContext *C, struct wmOperator *UNUSED(op), float x, float
   return SCULPT_stroke_get_location(C, co, mouse);
 }
 
-<<<<<<< HEAD
+bool SCULPT_handles_colors_report(SculptSession *ss, ReportList *reports)
+{
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+      return true;
+    case PBVH_BMESH:
+      BKE_report(reports, RPT_ERROR, "Not supported in dynamic topology mode");
+      return false;
+    case PBVH_GRIDS:
+      BKE_report(reports, RPT_ERROR, "Not supported in multiresolution mode");
+      return false;
+  }
+
+  BLI_assert_msg(0, "PBVH corruption, type was invalid.");
+
+  return false;
+}
+
 static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const float mouse[2])
 {
   if (BKE_paintmode_get_active_from_context(C) == PAINT_MODE_SCULPT) {
@@ -7830,28 +7811,6 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
     }
   }
 
-=======
-bool SCULPT_handles_colors_report(SculptSession *ss, ReportList *reports)
-{
-  switch (BKE_pbvh_type(ss->pbvh)) {
-    case PBVH_FACES:
-      return true;
-    case PBVH_BMESH:
-      BKE_report(reports, RPT_ERROR, "Not supported in dynamic topology mode");
-      return false;
-    case PBVH_GRIDS:
-      BKE_report(reports, RPT_ERROR, "Not supported in multiresolution mode");
-      return false;
-  }
-
-  BLI_assert_msg(0, "PBVH corruption, type was invalid.");
-
-  return false;
-}
-
-static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const float mouse[2])
-{
->>>>>>> origin/master
   /* Don't start the stroke until mouse goes over the mesh.
    * NOTE: mouse will only be null when re-executing the saved stroke.
    * We have exception for 'exec' strokes since they may not set 'mouse',
@@ -7926,11 +7885,13 @@ static void sculpt_stroke_update_step(bContext *C,
 
 {
 
-  UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
+  ToolSettings *ts = CTX_data_tool_settings(C);
+  UnifiedPaintSettings *ups = &ts->unified_paint_settings;
+  PaintModeSettings *paint_mode_settings = &ts->paint_mode;
+
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
-<<<<<<< HEAD
   Brush *brush = BKE_paint_brush(&sd->paint);
 
   if (ss->cache->channels_final) {
@@ -7983,7 +7944,8 @@ static void sculpt_stroke_update_step(bContext *C,
   sd->smooth_strength_factor = BRUSHSET_GET_FLOAT(
       ss->cache->channels_final, smooth_strength_factor, NULL);
 
-  ss->cache->bstrength = brush_strength(sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups);
+  ss->cache->bstrength = brush_strength(
+      sd, ss->cache, calc_symmetry_feather(sd, ss->cache), ups, paint_mode_settings);
 
   // we have to evaluate channel mappings here manually
   BrushChannel *ch = BRUSHSET_LOOKUP_FINAL(brush->channels, sd->channels, strength);
@@ -8016,10 +7978,7 @@ static void sculpt_stroke_update_step(bContext *C,
   if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_SCENE_PROJECT) {
     SCULPT_stroke_cache_snap_context_init(C, ob);
   }
-=======
-  const Brush *brush = BKE_paint_brush(&sd->paint);
   ToolSettings *tool_settings = CTX_data_tool_settings(C);
->>>>>>> origin/master
 
   SCULPT_stroke_modifiers_check(C, ob, brush);
   if (itemptr) {
@@ -8087,8 +8046,7 @@ static void sculpt_stroke_update_step(bContext *C,
         brush, ss->cache->channels_final, list, tool, &ss->cache->input_mapping);
   }
 
-<<<<<<< HEAD
-  SCULPT_run_commandlist(sd, ob, brush, ss->cache->commandlist, ups);
+  SCULPT_run_commandlist(sd, ob, brush, ss->cache->commandlist, ups, paint_mode_settings);
 
   float location[3];
 
@@ -8123,14 +8081,6 @@ static void sculpt_stroke_update_step(bContext *C,
   if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_FAIRING) {
     SCULPT_fairing_brush_exec_fairing_for_cache(sd, ob);
   }
-=======
-  if (SCULPT_stroke_is_dynamic_topology(ss, brush)) {
-    do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups, &tool_settings->paint_mode);
-  }
-
-  do_symmetrical_brush_actions(sd, ob, do_brush_action, ups, &tool_settings->paint_mode);
-  sculpt_combine_proxies(sd, ob);
->>>>>>> origin/master
 
   /* Hack to fix noise texture tearing mesh. */
   sculpt_fix_noise_tear(sd, ob);
@@ -8159,10 +8109,9 @@ static void sculpt_stroke_update_step(bContext *C,
   if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_MASK) {
     SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
   }
-<<<<<<< HEAD
   else if (ELEM(SCULPT_get_tool(ss, brush), SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
     SCULPT_flush_update_step(C, SCULPT_UPDATE_COLOR);
-=======
+  }
   else if (ELEM(brush->sculpt_tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
     if (SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob)) {
       SCULPT_flush_update_step(C, SCULPT_UPDATE_IMAGE);
@@ -8170,7 +8119,6 @@ static void sculpt_stroke_update_step(bContext *C,
     else {
       SCULPT_flush_update_step(C, SCULPT_UPDATE_COLOR);
     }
->>>>>>> origin/master
   }
   else {
     SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
@@ -8235,7 +8183,6 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 
   int tool = SCULPT_get_tool(ss, brush);  // save tool for after we've freed ss->cache
 
-  BKE_pbvh_node_color_buffer_free(ss->pbvh);
   SCULPT_cache_free(ss, ob, ss->cache);
   ss->cache = NULL;
 

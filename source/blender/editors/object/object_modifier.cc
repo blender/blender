@@ -873,7 +873,7 @@ bool ED_object_modifier_apply(Main *bmain,
 
   bool allow_multi_user = mode == MODIFIER_APPLY_SHAPE;
   if (md) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
+    const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
 
     allow_multi_user |= ELEM(
         mti->type, eModifierTypeType_NonGeometrical, eModifierTypeType_OnlyDeform);

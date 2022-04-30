@@ -1943,17 +1943,12 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
                 &result->ldata, CD_PROP_BYTE_COLOR, surface->output_name);
             /* if output layer is lost from a constructive modifier, re-add it */
             if (!mloopcol && dynamicPaint_outputLayerExists(surface, ob, 0)) {
-<<<<<<< HEAD
-              mloopcol = CustomData_add_layer_named(
-                  &result->ldata, CD_PROP_BYTE_COLOR, CD_CALLOC, NULL, totloop, surface->output_name);
-=======
               mloopcol = CustomData_add_layer_named(&result->ldata,
                                                     CD_PROP_BYTE_COLOR,
                                                     CD_CALLOC,
                                                     NULL,
                                                     totloop,
                                                     surface->output_name);
->>>>>>> origin/master
             }
 
             /* wet layer */
@@ -1961,17 +1956,12 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
                 &result->ldata, CD_PROP_BYTE_COLOR, surface->output_name2);
             /* if output layer is lost from a constructive modifier, re-add it */
             if (!mloopcol_wet && dynamicPaint_outputLayerExists(surface, ob, 1)) {
-<<<<<<< HEAD
-              mloopcol_wet = CustomData_add_layer_named(
-                  &result->ldata, CD_PROP_BYTE_COLOR, CD_CALLOC, NULL, totloop, surface->output_name2);
-=======
               mloopcol_wet = CustomData_add_layer_named(&result->ldata,
                                                         CD_PROP_BYTE_COLOR,
                                                         CD_CALLOC,
                                                         NULL,
                                                         totloop,
                                                         surface->output_name2);
->>>>>>> origin/master
             }
 
             data.ob = ob;

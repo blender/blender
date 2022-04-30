@@ -1277,17 +1277,6 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
       make_derived_read_attribute<MLoopUV, float2, get_loop_uv>,
       make_derived_write_attribute<MLoopUV, float2, get_loop_uv, set_loop_uv>);
 
-<<<<<<< HEAD
-  static NamedLegacyCustomDataProvider vertex_colors(
-      ATTR_DOMAIN_CORNER,
-      CD_PROP_COLOR,
-      CD_PROP_BYTE_COLOR,
-      corner_access,
-      make_derived_read_attribute<MLoopCol, ColorGeometry4f, get_loop_color>,
-      make_derived_write_attribute<MLoopCol, ColorGeometry4f, get_loop_color, set_loop_color>);
-
-=======
->>>>>>> origin/master
   static VertexGroupsAttributeProvider vertex_groups;
   static CustomDataAttributeProvider corner_custom_data(ATTR_DOMAIN_CORNER, corner_access);
   static CustomDataAttributeProvider point_custom_data(ATTR_DOMAIN_POINT, point_access);
