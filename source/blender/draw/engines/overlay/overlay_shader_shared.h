@@ -11,6 +11,15 @@ typedef enum OVERLAY_GridBits OVERLAY_GridBits;
 typedef struct OVERLAY_GridData OVERLAY_GridData;
 #endif
 
+/* TODO(fclem): Should eventually become OVERLAY_BackgroundType.
+ * But there is no uint push constant functions at the moment. */
+#define BG_SOLID 0
+#define BG_GRADIENT 1
+#define BG_CHECKER 2
+#define BG_RADIAL 3
+#define BG_SOLID_CHECKER 4
+#define BG_MASK 5
+
 enum OVERLAY_GridBits {
   SHOW_AXIS_X = (1 << 0),
   SHOW_AXIS_Y = (1 << 1),

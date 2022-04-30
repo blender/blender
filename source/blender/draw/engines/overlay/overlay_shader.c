@@ -238,11 +238,7 @@ GPUShader *OVERLAY_shader_background(void)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
   if (!sh_data->background) {
-    sh_data->background = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){datatoc_common_fullscreen_vert_glsl, NULL},
-        .frag =
-            (const char *[]){datatoc_common_globals_lib_glsl, datatoc_background_frag_glsl, NULL},
-    });
+    sh_data->background = GPU_shader_create_from_info_name("overlay_background");
   }
   return sh_data->background;
 }
@@ -250,13 +246,8 @@ GPUShader *OVERLAY_shader_background(void)
 GPUShader *OVERLAY_shader_clipbound(void)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[0];
   if (!sh_data->clipbound) {
-    sh_data->clipbound = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){datatoc_common_view_lib_glsl, datatoc_clipbound_vert_glsl, NULL},
-        .frag = (const char *[]){datatoc_gpu_shader_uniform_color_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->clipbound = GPU_shader_create_from_info_name("overlay_clipbound");
   }
   return sh_data->clipbound;
 }
