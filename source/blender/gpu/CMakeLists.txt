@@ -443,6 +443,7 @@ list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
 set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/gpencil/shaders/infos/gpencil_info.hh
   ../draw/engines/gpencil/shaders/infos/gpencil_vfx_info.hh
+  ../draw/engines/overlay/shaders/infos/antialiasing_info.hh
   ../draw/engines/overlay/shaders/infos/armature_info.hh
   ../draw/engines/overlay/shaders/infos/extra_info.hh
   ../draw/engines/overlay/shaders/infos/grid_info.hh

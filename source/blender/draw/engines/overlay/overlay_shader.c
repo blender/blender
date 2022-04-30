@@ -238,15 +238,7 @@ GPUShader *OVERLAY_shader_antialiasing(void)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
   if (!sh_data->antialiasing) {
-    sh_data->antialiasing = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){datatoc_common_globals_lib_glsl,
-                                 datatoc_antialiasing_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_common_globals_lib_glsl,
-                                 datatoc_antialiasing_frag_glsl,
-                                 NULL},
-        .defs = (const char *[]){NULL},
-    });
+    sh_data->antialiasing = GPU_shader_create_from_info_name("overlay_antialiasing");
   }
   return sh_data->antialiasing;
 }
@@ -1299,10 +1291,7 @@ GPUShader *OVERLAY_shader_xray_fade(void)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
   if (!sh_data->xray_fade) {
-    sh_data->xray_fade = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){datatoc_common_fullscreen_vert_glsl, NULL},
-        .frag = (const char *[]){datatoc_xray_fade_frag_glsl, NULL},
-    });
+    sh_data->xray_fade = GPU_shader_create_from_info_name("overlay_xray_fade");
   }
   return sh_data->xray_fade;
 }
