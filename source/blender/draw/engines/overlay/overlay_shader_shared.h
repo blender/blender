@@ -40,6 +40,22 @@ struct OVERLAY_GridData {
 };
 BLI_STATIC_ASSERT_ALIGN(OVERLAY_GridData, 16)
 
+#ifdef GPU_SHADER
+/* Keep the same values as in `draw_cache_imp_curve.c` */
+#  define ACTIVE_NURB (1 << 2)
+#  define BEZIER_HANDLE (1 << 3)
+#  define EVEN_U_BIT (1 << 4)
+#  define COLOR_SHIFT 5
+
+/* Keep the same value in `handle_display` in `DNA_view3d_types.h` */
+#  define CURVE_HANDLE_SELECTED 0
+#  define CURVE_HANDLE_ALL 1
+#else
+/* TODO(fclem): Find a better way to share enums/defines from DNA files with GLSL. */
+BLI_STATIC_ASSERT(CURVE_HANDLE_SELECTED == 0, "Ensure value is sync");
+BLI_STATIC_ASSERT(CURVE_HANDLE_ALL == 1, "Ensure value is sync");
+#endif
+
 #ifndef GPU_SHADER
 #  ifdef __cplusplus
 }

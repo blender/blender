@@ -3,7 +3,7 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_INTERFACE_INFO(overlay_edit_flat_color_iface, "").flat(Type::VEC4, "finalColor");
-
+GPU_SHADER_INTERFACE_INFO(overlay_edit_smooth_color_iface, "").smooth(Type::VEC4, "finalColor");
 GPU_SHADER_INTERFACE_INFO(overlay_edit_nopersp_color_iface, "")
     .no_perspective(Type::VEC4, "finalColor");
 
@@ -290,5 +290,73 @@ GPU_SHADER_CREATE_INFO(overlay_edit_uv_stretching_angle)
     .vertex_in(1, Type::VEC2, "uv_angles")
     .vertex_in(2, Type::FLOAT, "angle")
     .additional_info("overlay_edit_uv_stretching");
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit Curve
+ * \{ */
+
+GPU_SHADER_INTERFACE_INFO(overlay_edit_curve_handle_iface, "vert").flat(Type::INT, "flag");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle)
+    .do_static_compilation(true)
+    .typedef_source("overlay_shader_shared.h")
+    /* NOTE: Color already in Linear space. Which is what we want. */
+    .define("srgbTarget", "false")
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_in(1, Type::INT, "data")
+    .vertex_out(overlay_edit_curve_handle_iface)
+    .geometry_layout(PrimitiveIn::LINES, PrimitiveOut::TRIANGLE_STRIP, 10)
+    .geometry_out(overlay_edit_smooth_color_iface)
+    .push_constant(Type::BOOL, "showCurveHandles")
+    .push_constant(Type::INT, "curveHandleDisplay")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("edit_curve_handle_vert.glsl")
+    .geometry_source("edit_curve_handle_geom.glsl")
+    .fragment_source("gpu_shader_3D_smooth_color_frag.glsl")
+    .additional_info("draw_mesh", "draw_globals");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle_clipped)
+    .do_static_compilation(true)
+    .additional_info("overlay_edit_curve_handle", "drw_clipped");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_curve_point)
+    .do_static_compilation(true)
+    .typedef_source("overlay_shader_shared.h")
+    /* NOTE: Color already in Linear space. Which is what we want. */
+    .define("srgbTarget", "false")
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_in(1, Type::INT, "data")
+    .vertex_out(overlay_edit_flat_color_iface)
+    .push_constant(Type::BOOL, "showCurveHandles")
+    .push_constant(Type::INT, "curveHandleDisplay")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("edit_curve_point_vert.glsl")
+    .fragment_source("gpu_shader_point_varying_color_frag.glsl")
+    .additional_info("draw_mesh", "draw_globals");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_curve_point_clipped)
+    .do_static_compilation(true)
+    .additional_info("overlay_edit_curve_point", "drw_clipped");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_curve_wire)
+    .do_static_compilation(true)
+    /* NOTE: Color already in Linear space. Which is what we want. */
+    .define("srgbTarget", "false")
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_in(1, Type::VEC3, "nor")
+    .vertex_in(2, Type::VEC3, "tan")
+    .vertex_in(3, Type::FLOAT, "rad")
+    .push_constant(Type::FLOAT, "normalSize")
+    .vertex_out(overlay_edit_flat_color_iface)
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("edit_curve_wire_vert.glsl")
+    .fragment_source("gpu_shader_flat_color_frag.glsl")
+    .additional_info("draw_modelmat", "draw_resource_id_uniform", "draw_globals");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_curve_wire_clipped)
+    .do_static_compilation(true)
+    .additional_info("overlay_edit_curve_wire", "drw_clipped");
 
 /** \} */

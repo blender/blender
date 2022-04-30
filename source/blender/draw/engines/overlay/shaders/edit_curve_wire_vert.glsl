@@ -1,12 +1,6 @@
 
-uniform float normalSize;
-
-in vec3 pos;
-in vec3 nor;
-in vec3 tan;
-in float rad;
-
-flat out vec4 finalColor;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {
@@ -25,7 +19,5 @@ void main()
 
   finalColor = colorWireEdit;
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(world_pos);
-#endif
+  view_clipping_distances(world_pos);
 }

@@ -423,23 +423,10 @@ GPUShader *OVERLAY_shader_armature_wire(void)
 GPUShader *OVERLAY_shader_edit_curve_handle(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->edit_curve_handle) {
-    sh_data->edit_curve_handle = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_edit_curve_handle_vert_glsl,
-                                 NULL},
-        .geom = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_edit_curve_handle_geom_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_gpu_shader_3D_smooth_color_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->edit_curve_handle = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_edit_curve_handle_clipped" : "overlay_edit_curve_handle");
   }
   return sh_data->edit_curve_handle;
 }
@@ -447,18 +434,10 @@ GPUShader *OVERLAY_shader_edit_curve_handle(void)
 GPUShader *OVERLAY_shader_edit_curve_point(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->edit_curve_point) {
-    sh_data->edit_curve_point = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_edit_curve_point_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_gpu_shader_point_varying_color_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->edit_curve_point = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_edit_curve_point_clipped" : "overlay_edit_curve_point");
   }
   return sh_data->edit_curve_point;
 }
@@ -466,18 +445,10 @@ GPUShader *OVERLAY_shader_edit_curve_point(void)
 GPUShader *OVERLAY_shader_edit_curve_wire(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->edit_curve_wire) {
-    sh_data->edit_curve_wire = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_edit_curve_wire_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, "#define IN_PLACE_INSTANCES\n", NULL},
-    });
+    sh_data->edit_curve_wire = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_edit_curve_wire_clipped" : "overlay_edit_curve_wire");
   }
   return sh_data->edit_curve_wire;
 }
