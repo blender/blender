@@ -50,6 +50,14 @@ BLI_STATIC_ASSERT_ALIGN(OVERLAY_GridData, 16)
 /* Keep the same value in `handle_display` in `DNA_view3d_types.h` */
 #  define CURVE_HANDLE_SELECTED 0
 #  define CURVE_HANDLE_ALL 1
+
+#  define GP_EDIT_POINT_SELECTED 1u  /* 1 << 0 */
+#  define GP_EDIT_STROKE_SELECTED 2u /* 1 << 1 */
+#  define GP_EDIT_MULTIFRAME 4u      /* 1 << 2 */
+#  define GP_EDIT_STROKE_START 8u    /* 1 << 3 */
+#  define GP_EDIT_STROKE_END 16u     /* 1 << 4 */
+#  define GP_EDIT_POINT_DIMMED 32u   /* 1 << 5 */
+
 #else
 /* TODO(fclem): Find a better way to share enums/defines from DNA files with GLSL. */
 BLI_STATIC_ASSERT(CURVE_HANDLE_SELECTED == 0, "Ensure value is sync");

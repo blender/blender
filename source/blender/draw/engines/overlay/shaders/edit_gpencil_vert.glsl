@@ -1,19 +1,6 @@
 
-uniform float normalSize;
-uniform bool doMultiframe;
-uniform bool doStrokeEndpoints;
-uniform bool hideSelect;
-uniform bool doWeightColor;
-uniform float gpEditOpacity;
-uniform vec4 gpEditColor;
-uniform sampler1D weightTex;
-
-in vec3 pos;
-in int ma;
-in uint vflag;
-in float weight;
-
-out vec4 finalColor;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void discard_vert()
 {
@@ -21,26 +8,19 @@ void discard_vert()
   gl_Position = vec4(0.0, 0.0, -3e36, 0.0);
 }
 
-#define GP_EDIT_POINT_SELECTED 1u  /* 1 << 0 */
-#define GP_EDIT_STROKE_SELECTED 2u /* 1 << 1 */
-#define GP_EDIT_MULTIFRAME 4u      /* 1 << 2 */
-#define GP_EDIT_STROKE_START 8u    /* 1 << 3 */
-#define GP_EDIT_STROKE_END 16u     /* 1 << 4 */
-#define GP_EDIT_POINT_DIMMED 32u   /* 1 << 5 */
-
 #ifdef USE_POINTS
-#  define colorUnselect colorGpencilVertex
-#  define colorSelect colorGpencilVertexSelect
+#  define gp_colorUnselect colorGpencilVertex
+#  define gp_colorSelect colorGpencilVertexSelect
 #else
-#  define colorUnselect gpEditColor
-#  define colorSelect (hideSelect ? colorUnselect : colorGpencilVertexSelect)
+#  define gp_colorUnselect gpEditColor
+#  define gp_colorSelect (hideSelect ? gp_colorUnselect : colorGpencilVertexSelect)
 #endif
 
 vec3 weight_to_rgb(float t)
 {
   if (t < 0.0) {
     /* No weight */
-    return colorUnselect.rgb;
+    return gp_colorUnselect.rgb;
   }
   else if (t > 1.0) {
     /* Error color */
@@ -68,7 +48,7 @@ void main()
     finalColor.a = gpEditOpacity;
   }
   else {
-    finalColor = (is_point_sel) ? colorSelect : colorUnselect;
+    finalColor = (is_point_sel) ? gp_colorSelect : gp_colorUnselect;
     finalColor.a *= gpEditOpacity;
   }
 
@@ -76,7 +56,7 @@ void main()
   gl_PointSize = sizeVertexGpencil * 2.0;
 
   if (is_point_dimmed) {
-    finalColor.rgb = clamp(colorUnselect.rgb + vec3(0.3), 0.0, 1.0);
+    finalColor.rgb = clamp(gp_colorUnselect.rgb + vec3(0.3), 0.0, 1.0);
   }
 
   if (doStrokeEndpoints && !doWeightColor) {
@@ -103,7 +83,5 @@ void main()
     discard_vert();
   }
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(world_pos);
-#endif
+  view_clipping_distances(world_pos);
 }
