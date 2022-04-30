@@ -19,8 +19,8 @@
 
 #include "BLI_asan.h"
 #include "BLI_bitmap.h"
-#include "BLI_compiler_attrs.h"
 #include "BLI_color.hh"
+#include "BLI_compiler_attrs.h"
 #include "BLI_endian_switch.h"
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
@@ -1830,7 +1830,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      nullptr,
      nullptr,
      layerMaxNum_tface},
-    /* 17: CD_MLOOPCOL */
+    /* 17: CD_PROP_BYTE_COLOR */
     {sizeof(MLoopCol),
      "MLoopCol",
      1,
@@ -2213,7 +2213,7 @@ const CustomData_MeshMasks CD_MASK_MESH = {
     (CD_MASK_MPOLY | CD_MASK_FACEMAP | CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL |
      CD_MASK_SCULPT_FACE_SETS | CD_MASK_MESH_ID),
     /* lmask */
-    (CD_MASK_MLOOP | CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL |
+    (CD_MASK_MLOOP | CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_PROP_BYTE_COLOR |
      CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_MESH_ID),
 };
 
@@ -2228,8 +2228,8 @@ const CustomData_MeshMasks CD_MASK_DERIVEDMESH = {
     (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_PROP_ALL |
      CD_MASK_SCULPT_FACE_SETS | CD_MASK_MESH_ID),
     /* lmask */
-    (CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_PREVIEW_MLOOPCOL |
-     CD_MASK_ORIGSPACE_MLOOP | CD_MASK_PROP_ALL |
+    (CD_MASK_MLOOPUV | CD_MASK_PROP_BYTE_COLOR | CD_MASK_CUSTOMLOOPNORMAL |
+     CD_MASK_PREVIEW_MLOOPCOL | CD_MASK_ORIGSPACE_MLOOP | CD_MASK_PROP_ALL |
      CD_MASK_MESH_ID), /* XXX MISSING CD_MASK_MLOOPTANGENT ? */
 };
 const CustomData_MeshMasks CD_MASK_BMESH = {
@@ -2244,7 +2244,7 @@ const CustomData_MeshMasks CD_MASK_BMESH = {
     (CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_PROP_ALL | CD_MASK_SCULPT_FACE_SETS |
      CD_MASK_MESH_ID),
     /* lmask */
-    (CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_CUSTOMLOOPNORMAL |
+    (CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_PROP_BYTE_COLOR | CD_MASK_CUSTOMLOOPNORMAL |
      CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_MESH_ID),
 };
 const CustomData_MeshMasks CD_MASK_EVERYTHING = {
@@ -2264,7 +2264,7 @@ const CustomData_MeshMasks CD_MASK_EVERYTHING = {
      CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL | CD_MASK_SCULPT_FACE_SETS),
     /* lmask */
     (CD_MASK_MLOOP | CD_MASK_BM_ELEM_PYPTR | CD_MASK_MDISPS | CD_MASK_NORMAL | CD_MASK_MLOOPUV |
-     CD_MASK_MLOOPCOL | CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_MLOOPTANGENT |
+     CD_MASK_PROP_BYTE_COLOR | CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_MLOOPTANGENT |
      CD_MASK_PREVIEW_MLOOPCOL | CD_MASK_ORIGSPACE_MLOOP | CD_MASK_GRID_PAINT_MASK |
      CD_MASK_PROP_ALL),
 };
@@ -3904,7 +3904,7 @@ void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *ldata, int totloop)
     }
     else if (fdata->layers[i].type == CD_MCOL) {
       CustomData_add_layer_named(
-          ldata, CD_MLOOPCOL, CD_CALLOC, nullptr, totloop, fdata->layers[i].name);
+          ldata, CD_PROP_BYTE_COLOR, CD_CALLOC, nullptr, totloop, fdata->layers[i].name);
     }
     else if (fdata->layers[i].type == CD_MDISPS) {
       CustomData_add_layer_named(
@@ -3927,7 +3927,7 @@ void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *ldata, int total)
       CustomData_add_layer_named(
           fdata, CD_MTFACE, CD_CALLOC, nullptr, total, ldata->layers[i].name);
     }
-    if (ldata->layers[i].type == CD_MLOOPCOL) {
+    if (ldata->layers[i].type == CD_PROP_BYTE_COLOR) {
       CustomData_add_layer_named(fdata, CD_MCOL, CD_CALLOC, nullptr, total, ldata->layers[i].name);
     }
     else if (ldata->layers[i].type == CD_PREVIEW_MLOOPCOL) {
@@ -3962,7 +3962,7 @@ bool CustomData_from_bmeshpoly_test(CustomData *fdata, CustomData *ldata, bool f
   if (!LAYER_CMP(ldata, CD_MLOOPUV, fdata, CD_MTFACE)) {
     return false;
   }
-  if (!LAYER_CMP(ldata, CD_MLOOPCOL, fdata, CD_MCOL)) {
+  if (!LAYER_CMP(ldata, CD_PROP_BYTE_COLOR, fdata, CD_MCOL)) {
     return false;
   }
   if (!LAYER_CMP(ldata, CD_PREVIEW_MLOOPCOL, fdata, CD_PREVIEW_MCOL)) {
@@ -4004,17 +4004,17 @@ void CustomData_bmesh_update_active_layers(CustomData *fdata, CustomData *ldata)
     CustomData_set_layer_stencil(fdata, CD_MTFACE, act);
   }
 
-  if (CustomData_has_layer(ldata, CD_MLOOPCOL)) {
-    act = CustomData_get_active_layer(ldata, CD_MLOOPCOL);
+  if (CustomData_has_layer(ldata, CD_PROP_BYTE_COLOR)) {
+    act = CustomData_get_active_layer(ldata, CD_PROP_BYTE_COLOR);
     CustomData_set_layer_active(fdata, CD_MCOL, act);
 
-    act = CustomData_get_render_layer(ldata, CD_MLOOPCOL);
+    act = CustomData_get_render_layer(ldata, CD_PROP_BYTE_COLOR);
     CustomData_set_layer_render(fdata, CD_MCOL, act);
 
-    act = CustomData_get_clone_layer(ldata, CD_MLOOPCOL);
+    act = CustomData_get_clone_layer(ldata, CD_PROP_BYTE_COLOR);
     CustomData_set_layer_clone(fdata, CD_MCOL, act);
 
-    act = CustomData_get_stencil_layer(ldata, CD_MLOOPCOL);
+    act = CustomData_get_stencil_layer(ldata, CD_PROP_BYTE_COLOR);
     CustomData_set_layer_stencil(fdata, CD_MCOL, act);
   }
 }
@@ -4039,16 +4039,16 @@ void CustomData_bmesh_do_versions_update_active_layers(CustomData *fdata, Custom
 
   if (CustomData_has_layer(fdata, CD_MCOL)) {
     act = CustomData_get_active_layer(fdata, CD_MCOL);
-    CustomData_set_layer_active(ldata, CD_MLOOPCOL, act);
+    CustomData_set_layer_active(ldata, CD_PROP_BYTE_COLOR, act);
 
     act = CustomData_get_render_layer(fdata, CD_MCOL);
-    CustomData_set_layer_render(ldata, CD_MLOOPCOL, act);
+    CustomData_set_layer_render(ldata, CD_PROP_BYTE_COLOR, act);
 
     act = CustomData_get_clone_layer(fdata, CD_MCOL);
-    CustomData_set_layer_clone(ldata, CD_MLOOPCOL, act);
+    CustomData_set_layer_clone(ldata, CD_PROP_BYTE_COLOR, act);
 
     act = CustomData_get_stencil_layer(fdata, CD_MCOL);
-    CustomData_set_layer_stencil(ldata, CD_MLOOPCOL, act);
+    CustomData_set_layer_stencil(ldata, CD_PROP_BYTE_COLOR, act);
   }
 }
 

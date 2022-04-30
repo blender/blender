@@ -711,7 +711,8 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
           /* TODO: convert list to string */
           PRINT_ERR("\tPolys %u(len=%d) and %u use same vertices (%d",
                     prev_sp->index,
-                    p1_nv, sp->index,
+                    p1_nv,
+                    sp->index,
                     *p1_v);
           for (j = 1; j < p1_nv; j++) {
             PRINT_ERR(", %d", p1_v[j]);
@@ -1020,7 +1021,7 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata,
       pdata, mask.pmask, totpoly, do_verbose, do_fixes, &is_change_p);
 
   const int tot_uvloop = CustomData_number_of_layers(ldata, CD_MLOOPUV);
-  const int tot_vcolloop = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
+  const int tot_vcolloop = CustomData_number_of_layers(ldata, CD_PROP_BYTE_COLOR);
   if (tot_uvloop > MAX_MTFACE) {
     PRINT_ERR(
         "\tMore UV layers than %d allowed, %d last ones won't be available for render, shaders, "

@@ -518,15 +518,17 @@ static uint mesh_cd_calc_gpu_layers_vcol_used(const Mesh *me_query,
 
     domain = ATTR_DOMAIN_POINT;
     layer_i = CustomData_get_named_layer_index(cd_vdata, CD_PROP_COLOR, name);
-    layer_i = layer_i == -1 ? CustomData_get_named_layer_index(cd_vdata, CD_MLOOPCOL, name) :
-                              layer_i;
+    layer_i = layer_i == -1 ?
+                  CustomData_get_named_layer_index(cd_vdata, CD_PROP_BYTE_COLOR, name) :
+                  layer_i;
 
     if (layer_i == -1) {
       domain = ATTR_DOMAIN_CORNER;
       layer_i = layer_i == -1 ? CustomData_get_named_layer_index(cd_ldata, CD_PROP_COLOR, name) :
                                 layer_i;
-      layer_i = layer_i == -1 ? CustomData_get_named_layer_index(cd_ldata, CD_MLOOPCOL, name) :
-                                layer_i;
+      layer_i = layer_i == -1 ?
+                    CustomData_get_named_layer_index(cd_ldata, CD_PROP_BYTE_COLOR, name) :
+                    layer_i;
     }
 
     /* Note: this is not the same as the layer_i below. */
@@ -610,17 +612,17 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
             }
 
             if (layer == -1) {
-              layer = CustomData_get_named_layer(cd_vdata, CD_MLOOPCOL, name);
+              layer = CustomData_get_named_layer(cd_vdata, CD_PROP_BYTE_COLOR, name);
               if (layer != -1) {
-                type = CD_MLOOPCOL;
+                type = CD_PROP_BYTE_COLOR;
                 domain = ATTR_DOMAIN_POINT;
               }
             }
 
             if (layer == -1) {
-              layer = CustomData_get_named_layer(cd_ldata, CD_MLOOPCOL, name);
+              layer = CustomData_get_named_layer(cd_ldata, CD_PROP_BYTE_COLOR, name);
               if (layer != -1) {
-                type = CD_MLOOPCOL;
+                type = CD_PROP_BYTE_COLOR;
                 domain = ATTR_DOMAIN_CORNER;
               }
             }
@@ -700,11 +702,11 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
           }
 
           /* Note: attr->type will always be CD_PROP_COLOR even for
-           * CD_MLOOPCOL layers, see node_shader_gpu_vertex_color in
+           * CD_PROP_BYTE_COLOR layers, see node_shader_gpu_vertex_color in
            * node_shader_vertex_color.cc.
            */
           case CD_MCOL:
-          case CD_MLOOPCOL:
+          case CD_PROP_BYTE_COLOR:
           case CD_PROP_COLOR: {
             int vcol_bit = mesh_cd_calc_gpu_layers_vcol_used(&me_query, cd_vdata, cd_ldata, name);
 

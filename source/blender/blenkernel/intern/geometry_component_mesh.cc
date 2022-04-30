@@ -1296,7 +1296,7 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
   static NamedLegacyCustomDataProvider vertex_colors(
       ATTR_DOMAIN_CORNER,
       CD_PROP_COLOR,
-      CD_MLOOPCOL,
+      CD_PROP_BYTE_COLOR,
       corner_access,
       make_derived_read_attribute<MLoopCol, ColorGeometry4f, get_loop_color>,
       make_derived_write_attribute<MLoopCol, ColorGeometry4f, get_loop_color, set_loop_color>);

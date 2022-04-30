@@ -223,6 +223,10 @@ BMesh *BM_mesh_create(const BMAllocTemplate *allocsize, const struct BMeshCreate
     }
   }
 
+  if (bm->use_toolflags) {
+    BM_mesh_elem_toolflags_ensure(bm);
+  }
+
 #ifdef USE_BMESH_PAGE_CUSTOMDATA
   bmesh_update_attr_refs(bm);
   BMAttr_init(bm);

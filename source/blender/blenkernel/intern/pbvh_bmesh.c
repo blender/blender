@@ -2298,6 +2298,10 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   bm->elem_index_dirty |= BM_FACE;
 
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
+
+    mv->flag |= SCULPTVERT_NEED_BOUNDARY|SCULPTVERT_NEED_VALENCE|SCULPTVERT_NEED_TRIANGULATE|SCULPTVERT_NEED_DISK_SORT;
+
     BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, DYNTOPO_NODE_NONE);
   }
 

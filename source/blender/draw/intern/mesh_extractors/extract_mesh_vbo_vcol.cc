@@ -173,7 +173,7 @@ static void extract_vcol_init(const MeshRenderData *mr,
       }
 
       BMIter iter;
-      const bool is_byte = ref.layer->type == CD_MLOOPCOL;
+      const bool is_byte = ref.layer->type == CD_PROP_BYTE_COLOR;
       const bool is_point = ref.domain == ATTR_DOMAIN_POINT;
 
       BMFace *f;
@@ -318,7 +318,7 @@ static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
       BMIter iter;
       BMFace *f;
       int cd_ofs = cdata->layers[layer_i].offset;
-      const bool is_byte = ref.layer->type == CD_MLOOPCOL;
+      const bool is_byte = ref.layer->type == CD_PROP_BYTE_COLOR;
 
       BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
         BMLoop *l_iter = f->l_first;

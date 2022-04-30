@@ -753,9 +753,9 @@ static void rna_MeshUVLoopLayer_clone_set(PointerRNA *ptr, bool value)
 
 /* vertex_color_layers */
 
-DEFINE_CUSTOMDATA_LAYER_COLLECTION(vertex_color, ldata, CD_MLOOPCOL)
+DEFINE_CUSTOMDATA_LAYER_COLLECTION(vertex_color, ldata, CD_PROP_BYTE_COLOR)
 DEFINE_CUSTOMDATA_LAYER_COLLECTION_ACTIVEITEM(
-    vertex_color, ldata, CD_MLOOPCOL, active, MeshLoopColorLayer)
+    vertex_color, ldata, CD_PROP_BYTE_COLOR, active, MeshLoopColorLayer)
 
 static void rna_MeshLoopColorLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -773,30 +773,30 @@ static int rna_MeshLoopColorLayer_data_length(PointerRNA *ptr)
 
 static bool rna_MeshLoopColorLayer_active_render_get(PointerRNA *ptr)
 {
-  CustomDataLayer *layer = (CustomDataLayer*)ptr->data;
+  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
 
   return BKE_id_attributes_render_color_get(ptr->owner_id) == layer;
-  //return rna_CustomDataLayer_active_get(ptr, rna_mesh_ldata(ptr), CD_MLOOPCOL, 1);
+  // return rna_CustomDataLayer_active_get(ptr, rna_mesh_ldata(ptr), CD_PROP_BYTE_COLOR, 1);
 }
 
 static bool rna_MeshLoopColorLayer_active_get(PointerRNA *ptr)
 {
-  return rna_CustomDataLayer_active_get(ptr, rna_mesh_ldata(ptr), CD_MLOOPCOL, 0);
+  return rna_CustomDataLayer_active_get(ptr, rna_mesh_ldata(ptr), CD_PROP_BYTE_COLOR, 0);
 }
 
 static void rna_MeshLoopColorLayer_active_render_set(PointerRNA *ptr, bool value)
 {
-  CustomDataLayer *layer = (CustomDataLayer*)ptr->data;
+  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
 
   if (value) {
     BKE_id_attributes_render_color_set(ptr->owner_id, layer);
   }
-//  rna_CustomDataLayer_active_set(ptr, rna_mesh_ldata(ptr), value, CD_MLOOPCOL, 1);
+  //  rna_CustomDataLayer_active_set(ptr, rna_mesh_ldata(ptr), value, CD_PROP_BYTE_COLOR, 1);
 }
 
 static void rna_MeshLoopColorLayer_active_set(PointerRNA *ptr, bool value)
 {
-  rna_CustomDataLayer_active_set(ptr, rna_mesh_ldata(ptr), value, CD_MLOOPCOL, 0);
+  rna_CustomDataLayer_active_set(ptr, rna_mesh_ldata(ptr), value, CD_PROP_BYTE_COLOR, 0);
 }
 
 /* sculpt_vertex_color_layers */
@@ -821,10 +821,10 @@ static int rna_MeshVertColorLayer_data_length(PointerRNA *ptr)
 
 static bool rna_MeshVertColorLayer_active_render_get(PointerRNA *ptr)
 {
-  CustomDataLayer *layer = (CustomDataLayer*)ptr->data;
+  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
 
   return BKE_id_attributes_render_color_get(ptr->owner_id) == layer;
-  //return rna_CustomDataLayer_active_get(ptr, rna_mesh_vdata(ptr), CD_PROP_COLOR, 1);
+  // return rna_CustomDataLayer_active_get(ptr, rna_mesh_vdata(ptr), CD_PROP_COLOR, 1);
 }
 
 static bool rna_MeshVertColorLayer_active_get(PointerRNA *ptr)
@@ -834,7 +834,7 @@ static bool rna_MeshVertColorLayer_active_get(PointerRNA *ptr)
 
 static void rna_MeshVertColorLayer_active_render_set(PointerRNA *ptr, bool value)
 {
-  CustomDataLayer *layer = (CustomDataLayer*)ptr->data;
+  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
 
   if (value) {
     BKE_id_attributes_render_color_set(ptr->owner_id, layer);
@@ -1355,7 +1355,7 @@ static char *rna_MeshLoopColorLayer_path(PointerRNA *ptr)
 
 static char *rna_MeshColor_path(PointerRNA *ptr)
 {
-  return rna_LoopCustomData_data_path(ptr, "vertex_colors", CD_MLOOPCOL);
+  return rna_LoopCustomData_data_path(ptr, "vertex_colors", CD_PROP_BYTE_COLOR);
 }
 
 static char *rna_MeshVertColorLayer_path(PointerRNA *ptr)
@@ -1579,7 +1579,7 @@ static PointerRNA rna_Mesh_vertex_color_new(struct Mesh *me,
 
   if (index != -1) {
     ldata = rna_mesh_ldata_helper(me);
-    cdl = &ldata->layers[CustomData_get_layer_index_n(ldata, CD_MLOOPCOL, index)];
+    cdl = &ldata->layers[CustomData_get_layer_index_n(ldata, CD_PROP_BYTE_COLOR, index)];
   }
 
   RNA_pointer_create(&me->id, &RNA_MeshLoopColorLayer, cdl, &ptr);
@@ -3521,15 +3521,15 @@ static void rna_def_mesh(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_fset_boundary_mirror", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SCULPT_MIRROR_FSET_BOUNDARIES);
-  RNA_def_property_ui_text(prop, "Split Face Sets", "Use mirroring to split face sets for some tools (e.g. boundary smoothing)");
-  //RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_ui_text(
+      prop,
+      "Split Face Sets",
+      "Use mirroring to split face sets for some tools (e.g. boundary smoothing)");
+  // RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
   prop = RNA_def_property(srna, "sculpt_ignore_uvs", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SCULPT_IGNORE_UVS);
-  RNA_def_property_ui_text(
-      prop,
-      "Ignore UVs",
-      "");
+  RNA_def_property_ui_text(prop, "Ignore UVs", "");
 
   /* End Symmetry */
 

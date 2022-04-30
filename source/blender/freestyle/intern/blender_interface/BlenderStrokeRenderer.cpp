@@ -608,9 +608,9 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 
   // colors and transparency (the latter represented by grayscale colors)
   MLoopCol *colors = (MLoopCol *)CustomData_add_layer_named(
-      &mesh->ldata, CD_MLOOPCOL, CD_CALLOC, nullptr, mesh->totloop, "Color");
+      &mesh->ldata, CD_PROP_BYTE_COLOR, CD_CALLOC, nullptr, mesh->totloop, "Color");
   MLoopCol *transp = (MLoopCol *)CustomData_add_layer_named(
-      &mesh->ldata, CD_MLOOPCOL, CD_CALLOC, nullptr, mesh->totloop, "Alpha");
+      &mesh->ldata, CD_PROP_BYTE_COLOR, CD_CALLOC, nullptr, mesh->totloop, "Alpha");
   mesh->mloopcol = colors;
 
   mesh->mat = (Material **)MEM_mallocN(sizeof(Material *) * mesh->totcol, "MaterialList");

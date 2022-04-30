@@ -2726,7 +2726,7 @@ void SCULPT_do_elastic_deform_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
 /** \name Sculpt Draw Sharp Brush
  * \{ */
 
-static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
+ATTR_NO_OPT static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
                                            const int n,
                                            const TaskParallelTLS *__restrict tls)
 {

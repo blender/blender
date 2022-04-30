@@ -195,7 +195,7 @@ static PyGetSetDef bpy_bmlayeraccess_vert_getseters[] = {
      (getter)bpy_bmlayeraccess_collection_get,
      (setter)NULL,
      bpy_bmlayeraccess_collection__color_doc,
-     (void *)CD_MLOOPCOL},
+     (void *)CD_PROP_BYTE_COLOR},
     {"string",
      (getter)bpy_bmlayeraccess_collection_get,
      (setter)NULL,
@@ -256,7 +256,7 @@ static PyGetSetDef bpy_bmlayeraccess_edge_getseters[] = {
      (getter)bpy_bmlayeraccess_collection_get,
      (setter)NULL,
      bpy_bmlayeraccess_collection__color_doc,
-     (void *)CD_MLOOPCOL},
+     (void *)CD_PROP_BYTE_COLOR},
     {"string",
      (getter)bpy_bmlayeraccess_collection_get,
      (setter)NULL,
@@ -314,7 +314,7 @@ static PyGetSetDef bpy_bmlayeraccess_face_getseters[] = {
      (getter)bpy_bmlayeraccess_collection_get,
      (setter)NULL,
      bpy_bmlayeraccess_collection__color_doc,
-     (void *)CD_MLOOPCOL},
+     (void *)CD_PROP_BYTE_COLOR},
     {"string",
      (getter)bpy_bmlayeraccess_collection_get,
      (setter)NULL,
@@ -372,7 +372,7 @@ static PyGetSetDef bpy_bmlayeraccess_loop_getseters[] = {
      (getter)bpy_bmlayeraccess_collection_get,
      (setter)NULL,
      bpy_bmlayeraccess_collection__color_doc,
-     (void *)CD_MLOOPCOL},
+     (void *)CD_PROP_BYTE_COLOR},
 
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
@@ -1142,7 +1142,7 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
       ret = BPy_BMLoopUV_CreatePyObject(value);
       break;
     }
-    case CD_MLOOPCOL: {
+    case CD_PROP_BYTE_COLOR: {
       ret = BPy_BMLoopColor_CreatePyObject(value);
       break;
     }
@@ -1245,7 +1245,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
       ret = BPy_BMLoopUV_AssignPyObject(value, py_value);
       break;
     }
-    case CD_MLOOPCOL: {
+    case CD_PROP_BYTE_COLOR: {
       ret = BPy_BMLoopColor_AssignPyObject(value, py_value);
       break;
     }

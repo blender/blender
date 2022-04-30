@@ -1412,7 +1412,7 @@ bool BKE_pbvh_get_color_layer(const Mesh *me, CustomDataLayer **r_layer, Attribu
 {
   CustomDataLayer *layer = BKE_id_attributes_active_color_get((ID *)me);
 
-  if (!layer || !ELEM(layer->type, CD_PROP_COLOR, CD_MLOOPCOL)) {
+  if (!layer || !ELEM(layer->type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
     *r_layer = NULL;
     *r_attr = ATTR_DOMAIN_NUM;
     return false;
@@ -5190,6 +5190,9 @@ void BKE_pbvh_update_active_vcol(PBVH *pbvh, const Mesh *mesh)
     if (pbvh->bm) {
       pbvh->cd_vcol_offset = pbvh->color_layer->offset;
     }
+  }
+  else {
+    pbvh->cd_vcol_offset = -1;
   }
 
   if (pbvh->color_layer != last_layer) {

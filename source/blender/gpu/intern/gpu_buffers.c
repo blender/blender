@@ -264,7 +264,7 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
   buffers->looptri = looptri;
 
   int totcol = gpu_pbvh_make_attr_offs(ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER,
-                                       CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL,
+                                       CD_MASK_PROP_COLOR | CD_MASK_PROP_BYTE_COLOR,
                                        vdata,
                                        NULL,
                                        ldata,
@@ -957,7 +957,7 @@ static void gpu_bmesh_get_vcol(BMVert *v, BMLoop *l, const GPUAttrRef *ref, floa
       case CD_PROP_COLOR:
         copy_v4_v4(color, (float *)BM_ELEM_CD_GET_VOID_P(v, ref->cd_offset));
         break;
-      case CD_MLOOPCOL: {
+      case CD_PROP_BYTE_COLOR: {
         MLoopCol *mp = (MLoopCol *)BM_ELEM_CD_GET_VOID_P(v, ref->cd_offset);
 
         rgba_uchar_to_float(color, (const char *)mp);
@@ -972,7 +972,7 @@ static void gpu_bmesh_get_vcol(BMVert *v, BMLoop *l, const GPUAttrRef *ref, floa
       case CD_PROP_COLOR:
         copy_v4_v4(color, (float *)BM_ELEM_CD_GET_VOID_P(l, ref->cd_offset));
         break;
-      case CD_MLOOPCOL: {
+      case CD_PROP_BYTE_COLOR: {
         MLoopCol *mp = (MLoopCol *)BM_ELEM_CD_GET_VOID_P(l, ref->cd_offset);
 
         rgba_uchar_to_float(color, (const char *)mp);
@@ -1007,7 +1007,7 @@ static void gpu_bmesh_get_vcol(BMVert *v, BMLoop *l, const GPUAttrRef *ref, floa
             tot++;
 
             break;
-          case CD_MLOOPCOL: {
+          case CD_PROP_BYTE_COLOR: {
             MLoopCol *mp = (MLoopCol *)BM_ELEM_CD_GET_VOID_P(l, ref->cd_offset);
 
             float temp[4];
@@ -1304,7 +1304,7 @@ bool GPU_pbvh_update_attribute_names(
 
     GPUAttrRef vcol_layers[MAX_GPU_ATTR];
     int totlayer = gpu_pbvh_make_attr_offs(ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER,
-                                           CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL,
+                                           CD_MASK_PROP_COLOR | CD_MASK_PROP_BYTE_COLOR,
                                            vdata,
                                            NULL,
                                            ldata,
@@ -1457,7 +1457,7 @@ static void GPU_pbvh_bmesh_buffers_update_flat_vcol(GPU_PBVH_Buffers *buffers,
 
   const int cd_vcol_count = gpu_pbvh_make_attr_offs(ATTR_DOMAIN_MASK_POINT |
                                                         ATTR_DOMAIN_MASK_CORNER,
-                                                    CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL,
+                                                    CD_MASK_PROP_COLOR | CD_MASK_PROP_BYTE_COLOR,
                                                     &bm->vdata,
                                                     NULL,
                                                     &bm->ldata,
@@ -1714,7 +1714,7 @@ static void GPU_pbvh_bmesh_buffers_update_indexed(GPU_PBVH_Buffers *buffers,
   GPUAttrRef cd_uvs[MAX_GPU_ATTR];
 
   int cd_vcol_count = gpu_pbvh_make_attr_offs(ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER,
-                                              CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL,
+                                              CD_MASK_PROP_COLOR | CD_MASK_PROP_BYTE_COLOR,
                                               &bm->vdata,
                                               NULL,
                                               &bm->ldata,
@@ -1910,7 +1910,7 @@ void GPU_pbvh_bmesh_buffers_update(PBVHGPUBuildArgs *args)
   GPUAttrRef cd_uvs[MAX_GPU_ATTR];
 
   int cd_vcol_count = gpu_pbvh_make_attr_offs(ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER,
-                                              CD_MASK_PROP_COLOR | CD_MASK_MLOOPCOL,
+                                              CD_MASK_PROP_COLOR | CD_MASK_PROP_BYTE_COLOR,
                                               &bm->vdata,
                                               NULL,
                                               &bm->ldata,

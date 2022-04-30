@@ -217,7 +217,7 @@ int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type)
       return CD_FAKE_LNOR;
     case DT_TYPE_MLOOPCOL_VERT:
     case DT_TYPE_MLOOPCOL_LOOP:
-      return CD_MLOOPCOL;
+      return CD_PROP_BYTE_COLOR;
     case DT_TYPE_MPROPCOL_VERT:
     case DT_TYPE_MPROPCOL_LOOP:
       return CD_PROP_COLOR;

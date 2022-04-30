@@ -172,7 +172,7 @@ static bool vertex_paint_use_fast_update_check(Object *ob)
   if (me_eval != NULL) {
     Mesh *me = BKE_mesh_from_object(ob);
     if (me && me->mloopcol) {
-      return (me->mloopcol == CustomData_get_layer(&me_eval->ldata, CD_MLOOPCOL));
+      return (me->mloopcol == CustomData_get_layer(&me_eval->ldata, CD_PROP_BYTE_COLOR));
     }
   }
 
@@ -198,7 +198,7 @@ bool vertex_paint_mode_poll(bContext *C)
   CustomDataLayer *layer = BKE_id_attributes_active_color_get((ID *)ob->data);
   AttributeDomain domain = BKE_id_attribute_domain((ID *)ob->data, layer);
 
-  return layer && layer->type == CD_MLOOPCOL && domain == ATTR_DOMAIN_CORNER;
+  return layer && layer->type == CD_PROP_BYTE_COLOR && domain == ATTR_DOMAIN_CORNER;
 }
 
 static bool vertex_paint_poll_ex(bContext *C, bool check_tool)
