@@ -424,6 +424,7 @@ set(GLSL_SRC
 
   engines/basic/shaders/conservative_depth_geom.glsl
   engines/basic/shaders/depth_vert.glsl
+  engines/basic/shaders/depth_pointcloud_vert.glsl
   engines/basic/shaders/depth_frag.glsl
 
   engines/overlay/shaders/common_overlay_lib.glsl
