@@ -666,17 +666,10 @@ GPUShader *OVERLAY_shader_extra_point(void)
 GPUShader *OVERLAY_shader_facing(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->facing) {
-    sh_data->facing = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_facing_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_common_globals_lib_glsl, datatoc_facing_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->facing = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_facing_clipped" : "overlay_facing");
   }
   return sh_data->facing;
 }

@@ -448,6 +448,7 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/overlay/shaders/infos/background_info.hh
   ../draw/engines/overlay/shaders/infos/edit_mode_info.hh
   ../draw/engines/overlay/shaders/infos/extra_info.hh
+  ../draw/engines/overlay/shaders/infos/facing_info.hh
   ../draw/engines/overlay/shaders/infos/grid_info.hh
   ../draw/engines/overlay/shaders/infos/outline_info.hh
   ../draw/engines/overlay/shaders/infos/paint_info.hh
