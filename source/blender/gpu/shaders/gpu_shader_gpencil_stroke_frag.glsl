@@ -1,9 +1,3 @@
-#ifndef USE_GPU_SHADER_CREATE_INFO
-in vec4 mColor;
-in vec2 mTexCoord;
-
-out vec4 fragColor;
-#endif
 
 void main()
 {

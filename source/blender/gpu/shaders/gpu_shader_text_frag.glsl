@@ -1,17 +1,5 @@
 #pragma BLENDER_REQUIRE(gpu_shader_colorspace_lib.glsl)
 
-#ifndef USE_GPU_SHADER_CREATE_INFO
-flat in vec4 color_flat;
-noperspective in vec2 texCoord_interp;
-flat in int glyph_offset;
-flat in ivec2 glyph_dim;
-flat in int interp_size;
-
-out vec4 fragColor;
-
-uniform sampler2D glyph;
-#endif
-
 const vec2 offsets4[4] = vec2[4](
     vec2(-0.5, 0.5), vec2(0.5, 0.5), vec2(-0.5, -0.5), vec2(-0.5, -0.5));
 
