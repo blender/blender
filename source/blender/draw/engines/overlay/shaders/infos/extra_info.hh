@@ -224,3 +224,30 @@ GPU_SHADER_CREATE_INFO(overlay_motion_path_point_clipped)
     .additional_info("overlay_motion_path_point", "drw_clipped");
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Image Empty
+ * \{ */
+
+GPU_SHADER_INTERFACE_INFO(overlay_image_iface, "").smooth(Type::VEC2, "uvs");
+
+GPU_SHADER_CREATE_INFO(overlay_image)
+    .do_static_compilation(true)
+    .push_constant(Type::BOOL, "depthSet")
+    .push_constant(Type::BOOL, "isCameraBackground")
+    .push_constant(Type::BOOL, "imgPremultiplied")
+    .push_constant(Type::BOOL, "imgAlphaBlend")
+    .push_constant(Type::VEC4, "color")
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_out(overlay_image_iface)
+    .sampler(0, ImageType::FLOAT_2D, "imgTexture")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("image_vert.glsl")
+    .fragment_source("image_frag.glsl")
+    .additional_info("draw_mesh");
+
+GPU_SHADER_CREATE_INFO(overlay_image_clipped)
+    .do_static_compilation(true)
+    .additional_info("overlay_image", "drw_clipped");
+
+/** \} */

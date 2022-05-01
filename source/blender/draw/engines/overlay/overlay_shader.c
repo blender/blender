@@ -745,19 +745,11 @@ GPUShader *OVERLAY_shader_edit_uv_mask_image(void)
 GPUShader *OVERLAY_shader_image(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->image) {
-    sh_data->image = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_image_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_common_colormanagement_lib_glsl,
-                                 datatoc_image_frag_glsl,
-                                 NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    /* TODO(fclem): Do we want to allow clipping reference images? */
+    sh_data->image = GPU_shader_create_from_info_name(0 ? "overlay_image_clipped" :
+                                                          "overlay_image");
   }
   return sh_data->image;
 }
