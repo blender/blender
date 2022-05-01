@@ -492,6 +492,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_shader_2D_point_varying_size_varying_color_info.hh
   shaders/infos/gpu_shader_2D_smooth_color_info.hh
   shaders/infos/gpu_shader_2D_uniform_color_info.hh
+  shaders/infos/gpu_shader_2D_widget_info.hh
   shaders/infos/gpu_shader_3D_depth_only_info.hh
   shaders/infos/gpu_shader_3D_flat_color_info.hh
   shaders/infos/gpu_shader_3D_image_modulate_alpha_info.hh

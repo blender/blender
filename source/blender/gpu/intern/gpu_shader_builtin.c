@@ -305,25 +305,13 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
 
     [GPU_SHADER_2D_AREA_BORDERS] = {.name = "GPU_SHADER_2D_AREA_BORDERS",
                                     .create_info = "gpu_shader_2D_area_borders"},
-    [GPU_SHADER_2D_WIDGET_BASE] =
-        {
-            .name = "GPU_SHADER_2D_WIDGET_BASE",
-            .vert = datatoc_gpu_shader_2D_widget_base_vert_glsl,
-            .frag = datatoc_gpu_shader_2D_widget_base_frag_glsl,
-        },
-    [GPU_SHADER_2D_WIDGET_BASE_INST] =
-        {
-            .name = "GPU_SHADER_2D_WIDGET_BASE_INST",
-            .vert = datatoc_gpu_shader_2D_widget_base_vert_glsl,
-            .frag = datatoc_gpu_shader_2D_widget_base_frag_glsl,
-            .defs = "#define USE_INSTANCE\n",
-        },
-    [GPU_SHADER_2D_WIDGET_SHADOW] =
-        {
-            .name = "GPU_SHADER_2D_WIDGET_SHADOW",
-            .vert = datatoc_gpu_shader_2D_widget_shadow_vert_glsl,
-            .frag = datatoc_gpu_shader_2D_widget_shadow_frag_glsl,
-        },
+    [GPU_SHADER_2D_WIDGET_BASE] = {.name = "GPU_SHADER_2D_WIDGET_BASE",
+                                   .create_info = "gpu_shader_2D_widget_base"},
+    [GPU_SHADER_2D_WIDGET_BASE_INST] = {.name = "GPU_SHADER_2D_WIDGET_BASE_INST",
+                                        .defs = "#define USE_INSTANCE\n",
+                                        .create_info = "gpu_shader_2D_widget_base_inst"},
+    [GPU_SHADER_2D_WIDGET_SHADOW] = {.name = "GPU_SHADER_2D_WIDGET_SHADOW",
+                                     .create_info = "gpu_shader_2D_widget_shadow"},
     [GPU_SHADER_2D_NODELINK] = {.name = "GPU_SHADER_2D_NODELINK",
                                 .create_info = "gpu_shader_2D_nodelink"},
 
