@@ -192,8 +192,6 @@ DRAW_TEST(image_glsl_shaders)
 
 static void test_overlay_glsl_shaders()
 {
-  OVERLAY_shader_library_ensure();
-
   for (int i = 0; i < 2; i++) {
     eGPUShaderConfig sh_cfg = i == 0 ? GPU_SHADER_CFG_DEFAULT : GPU_SHADER_CFG_CLIPPED;
     DRW_draw_state_init_gtests(sh_cfg);

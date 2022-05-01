@@ -13,112 +13,6 @@
 
 #include "overlay_private.h"
 
-extern char datatoc_antialiasing_frag_glsl[];
-extern char datatoc_antialiasing_vert_glsl[];
-extern char datatoc_armature_dof_vert_glsl[];
-extern char datatoc_armature_dof_solid_frag_glsl[];
-extern char datatoc_armature_envelope_distance_frag_glsl[];
-extern char datatoc_armature_envelope_outline_vert_glsl[];
-extern char datatoc_armature_envelope_solid_frag_glsl[];
-extern char datatoc_armature_envelope_solid_vert_glsl[];
-extern char datatoc_armature_shape_outline_geom_glsl[];
-extern char datatoc_armature_shape_outline_vert_glsl[];
-extern char datatoc_armature_shape_solid_frag_glsl[];
-extern char datatoc_armature_shape_solid_vert_glsl[];
-extern char datatoc_armature_shape_wire_vert_glsl[];
-extern char datatoc_armature_sphere_outline_vert_glsl[];
-extern char datatoc_armature_sphere_solid_frag_glsl[];
-extern char datatoc_armature_sphere_solid_vert_glsl[];
-extern char datatoc_armature_stick_frag_glsl[];
-extern char datatoc_armature_stick_vert_glsl[];
-extern char datatoc_armature_wire_frag_glsl[];
-extern char datatoc_armature_wire_vert_glsl[];
-extern char datatoc_background_frag_glsl[];
-extern char datatoc_clipbound_vert_glsl[];
-extern char datatoc_depth_only_vert_glsl[];
-extern char datatoc_edit_curve_handle_geom_glsl[];
-extern char datatoc_edit_curve_handle_vert_glsl[];
-extern char datatoc_edit_curve_point_vert_glsl[];
-extern char datatoc_edit_curve_wire_vert_glsl[];
-extern char datatoc_edit_gpencil_canvas_vert_glsl[];
-extern char datatoc_edit_gpencil_guide_vert_glsl[];
-extern char datatoc_edit_gpencil_vert_glsl[];
-extern char datatoc_edit_lattice_point_vert_glsl[];
-extern char datatoc_edit_lattice_wire_vert_glsl[];
-extern char datatoc_edit_mesh_common_lib_glsl[];
-extern char datatoc_edit_mesh_frag_glsl[];
-extern char datatoc_edit_mesh_geom_glsl[];
-extern char datatoc_edit_mesh_vert_glsl[];
-extern char datatoc_edit_mesh_normal_vert_glsl[];
-extern char datatoc_edit_mesh_skin_root_vert_glsl[];
-extern char datatoc_edit_mesh_analysis_vert_glsl[];
-extern char datatoc_edit_mesh_analysis_frag_glsl[];
-extern char datatoc_edit_particle_strand_vert_glsl[];
-extern char datatoc_edit_particle_point_vert_glsl[];
-extern char datatoc_edit_uv_verts_vert_glsl[];
-extern char datatoc_edit_uv_verts_frag_glsl[];
-extern char datatoc_edit_uv_edges_vert_glsl[];
-extern char datatoc_edit_uv_edges_geom_glsl[];
-extern char datatoc_edit_uv_edges_frag_glsl[];
-extern char datatoc_edit_uv_faces_vert_glsl[];
-extern char datatoc_edit_uv_face_dots_vert_glsl[];
-extern char datatoc_edit_uv_stretching_vert_glsl[];
-extern char datatoc_edit_uv_image_vert_glsl[];
-extern char datatoc_edit_uv_tiled_image_borders_vert_glsl[];
-extern char datatoc_extra_frag_glsl[];
-extern char datatoc_extra_vert_glsl[];
-extern char datatoc_extra_groundline_vert_glsl[];
-extern char datatoc_extra_lightprobe_grid_vert_glsl[];
-extern char datatoc_extra_loose_point_vert_glsl[];
-extern char datatoc_extra_loose_point_frag_glsl[];
-extern char datatoc_extra_point_vert_glsl[];
-extern char datatoc_extra_wire_frag_glsl[];
-extern char datatoc_extra_wire_vert_glsl[];
-extern char datatoc_facing_frag_glsl[];
-extern char datatoc_facing_vert_glsl[];
-extern char datatoc_grid_background_frag_glsl[];
-extern char datatoc_grid_frag_glsl[];
-extern char datatoc_grid_vert_glsl[];
-extern char datatoc_image_frag_glsl[];
-extern char datatoc_edit_uv_image_mask_frag_glsl[];
-extern char datatoc_image_vert_glsl[];
-extern char datatoc_motion_path_line_vert_glsl[];
-extern char datatoc_motion_path_line_geom_glsl[];
-extern char datatoc_motion_path_point_vert_glsl[];
-extern char datatoc_outline_detect_frag_glsl[];
-extern char datatoc_outline_prepass_frag_glsl[];
-extern char datatoc_outline_prepass_geom_glsl[];
-extern char datatoc_outline_prepass_vert_glsl[];
-extern char datatoc_particle_vert_glsl[];
-extern char datatoc_particle_frag_glsl[];
-extern char datatoc_sculpt_mask_vert_glsl[];
-extern char datatoc_sculpt_mask_frag_glsl[];
-extern char datatoc_volume_velocity_vert_glsl[];
-extern char datatoc_volume_gridlines_vert_glsl[];
-extern char datatoc_wireframe_vert_glsl[];
-extern char datatoc_wireframe_frag_glsl[];
-extern char datatoc_xray_fade_frag_glsl[];
-
-extern char datatoc_gpu_shader_depth_only_frag_glsl[];
-extern char datatoc_gpu_shader_point_varying_color_frag_glsl[];
-extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
-extern char datatoc_gpu_shader_2D_smooth_color_frag_glsl[];
-extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
-extern char datatoc_gpu_shader_flat_color_frag_glsl[];
-extern char datatoc_gpu_shader_point_varying_color_varying_outline_aa_frag_glsl[];
-extern char datatoc_gpu_shader_common_obinfos_lib_glsl[];
-
-extern char datatoc_gpencil_common_lib_glsl[];
-
-extern char datatoc_common_overlay_lib_glsl[];
-extern char datatoc_common_colormanagement_lib_glsl[];
-extern char datatoc_common_fullscreen_vert_glsl[];
-extern char datatoc_common_fxaa_lib_glsl[];
-extern char datatoc_common_smaa_lib_glsl[];
-extern char datatoc_common_globals_lib_glsl[];
-extern char datatoc_common_pointcloud_lib_glsl[];
-extern char datatoc_common_view_lib_glsl[];
-
 typedef struct OVERLAY_Shaders {
   GPUShader *antialiasing;
   GPUShader *armature_dof_wire;
@@ -210,20 +104,7 @@ typedef struct OVERLAY_Shaders {
 
 static struct {
   OVERLAY_Shaders sh_data[GPU_SHADER_CFG_LEN];
-  DRWShaderLibrary *lib;
 } e_data = {{{NULL}}};
-
-void OVERLAY_shader_library_ensure(void)
-{
-  if (e_data.lib == NULL) {
-    e_data.lib = DRW_shader_library_create();
-    /* NOTE: These need to be ordered by dependencies. */
-    DRW_SHADER_LIB_ADD(e_data.lib, common_globals_lib);
-    DRW_SHADER_LIB_ADD(e_data.lib, common_overlay_lib);
-    DRW_SHADER_LIB_ADD(e_data.lib, common_colormanagement_lib);
-    DRW_SHADER_LIB_ADD(e_data.lib, common_view_lib);
-  }
-}
 
 GPUShader *OVERLAY_shader_antialiasing(void)
 {
@@ -1161,8 +1042,6 @@ OVERLAY_InstanceFormats *OVERLAY_shader_instance_formats_get(void)
 
 void OVERLAY_shader_free(void)
 {
-  DRW_SHADER_LIB_FREE_SAFE(e_data.lib);
-
   for (int sh_data_index = 0; sh_data_index < ARRAY_SIZE(e_data.sh_data); sh_data_index++) {
     OVERLAY_Shaders *sh_data = &e_data.sh_data[sh_data_index];
     GPUShader **sh_data_as_array = (GPUShader **)sh_data;
