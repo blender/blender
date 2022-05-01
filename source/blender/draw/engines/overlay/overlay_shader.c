@@ -934,17 +934,10 @@ GPUShader *OVERLAY_shader_particle_shape(void)
 GPUShader *OVERLAY_shader_sculpt_mask(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->sculpt_mask) {
-    sh_data->sculpt_mask = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_sculpt_mask_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_sculpt_mask_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->sculpt_mask = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_sculpt_mask_clipped" : "overlay_sculpt_mask");
   }
   return sh_data->sculpt_mask;
 }
