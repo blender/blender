@@ -427,6 +427,46 @@ GPU_SHADER_CREATE_INFO(overlay_edit_lattice_wire_clipped)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Edit Particle
+ * \{ */
+
+GPU_SHADER_CREATE_INFO(overlay_edit_particle_strand)
+    .do_static_compilation(true)
+    /* NOTE: Color already in Linear space. Which is what we want. */
+    .define("srgbTarget", "false")
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_in(1, Type::FLOAT, "color")
+    .sampler(0, ImageType::FLOAT_1D, "weightTex")
+    .push_constant(Type::BOOL, "useWeight")
+    .vertex_out(overlay_edit_smooth_color_iface)
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("edit_particle_strand_vert.glsl")
+    .fragment_source("gpu_shader_3D_smooth_color_frag.glsl")
+    .additional_info("draw_mesh", "draw_globals");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_particle_strand_clipped)
+    .do_static_compilation(true)
+    .additional_info("overlay_edit_particle_strand", "drw_clipped");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_particle_point)
+    .do_static_compilation(true)
+    /* NOTE: Color already in Linear space. Which is what we want. */
+    .define("srgbTarget", "false")
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_in(1, Type::FLOAT, "color")
+    .vertex_out(overlay_edit_flat_color_iface)
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("edit_particle_point_vert.glsl")
+    .fragment_source("gpu_shader_point_varying_color_frag.glsl")
+    .additional_info("draw_mesh", "draw_globals");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_particle_point_clipped)
+    .do_static_compilation(true)
+    .additional_info("overlay_edit_particle_point", "drw_clipped");
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Edit GPencil
  * \{ */
 
