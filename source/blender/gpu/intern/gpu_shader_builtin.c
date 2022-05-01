@@ -266,14 +266,6 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
          .create_info = "gpu_shader_3D_point_uniform_size_uniform_color_aa",
          .clipped_create_info = "gpu_shader_3D_point_uniform_size_uniform_color_aa_clipped"},
 
-    [GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE] =
-        {
-            .name = "GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE",
-            .vert = datatoc_gpu_shader_instance_variying_size_variying_color_vert_glsl,
-            .frag = datatoc_gpu_shader_flat_color_frag_glsl,
-            .defs = "#define UNIFORM_SCALE\n",
-        },
-
     [GPU_SHADER_2D_AREA_BORDERS] = {.name = "GPU_SHADER_2D_AREA_BORDERS",
                                     .create_info = "gpu_shader_2D_area_borders"},
     [GPU_SHADER_2D_WIDGET_BASE] = {.name = "GPU_SHADER_2D_WIDGET_BASE",
@@ -326,7 +318,6 @@ GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
                       GPU_SHADER_3D_UNIFORM_COLOR,
                       GPU_SHADER_3D_SMOOTH_COLOR,
                       GPU_SHADER_3D_DEPTH_ONLY,
-                      GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE,
                       GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA,
                       GPU_SHADER_3D_FLAT_COLOR,
                       GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR));
