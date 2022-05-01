@@ -2,18 +2,11 @@
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-in vec3 vert[];
-.pos
-
-    flat out uint objectId;
-
 void vert_from_gl_in(int v)
 {
   gl_Position = gl_in[v].gl_Position;
   interp_out.ob_id = interp_in[v].ob_id;
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_set_clip_distance(gl_in[v].gl_ClipDistance);
-#endif
+  view_clipping_distances_set(gl_in[v]);
 }
 
 void main()

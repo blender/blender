@@ -37,6 +37,7 @@ GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire)
     .geometry_layout(PrimitiveIn::LINES_ADJACENCY, PrimitiveOut::LINE_STRIP, 2)
     .geometry_out(overlay_outline_prepass_iface)
     .vertex_source("outline_prepass_vert.glsl")
+    .geometry_source("outline_prepass_geom.glsl")
     .additional_info("draw_mesh", "overlay_outline_prepass")
     .additional_info("draw_object_infos");
 
