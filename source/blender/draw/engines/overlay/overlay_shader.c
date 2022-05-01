@@ -1012,19 +1012,10 @@ struct GPUShader *OVERLAY_shader_volume_gridlines(bool color_with_flags, bool co
 GPUShader *OVERLAY_shader_wireframe_select(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->wireframe_select) {
-    sh_data->wireframe_select = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_gpu_shader_common_obinfos_lib_glsl,
-                                 datatoc_wireframe_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_wireframe_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, "#define SELECT_EDGES\n", NULL},
-    });
+    sh_data->wireframe_select = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_wireframe_select_clipped" : "overlay_wireframe_select");
   }
   return sh_data->wireframe_select;
 }
@@ -1032,24 +1023,12 @@ GPUShader *OVERLAY_shader_wireframe_select(void)
 GPUShader *OVERLAY_shader_wireframe(bool custom_bias)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->wireframe[custom_bias]) {
-    sh_data->wireframe[custom_bias] = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_gpu_shader_common_obinfos_lib_glsl,
-                                 datatoc_wireframe_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_common_view_lib_glsl,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_wireframe_frag_glsl,
-                                 NULL},
-        .defs = (const char *[]){sh_cfg->def,
-                                 custom_bias ? "#define CUSTOM_DEPTH_BIAS\n" : NULL,
-                                 NULL},
-    });
+    sh_data->wireframe[custom_bias] = GPU_shader_create_from_info_name(
+        custom_bias ? (draw_ctx->sh_cfg ? "overlay_wireframe_custom_depth_clipped" :
+                                          "overlay_wireframe_custom_depth") :
+                      (draw_ctx->sh_cfg ? "overlay_wireframe_clipped" : "overlay_wireframe"));
   }
   return sh_data->wireframe[custom_bias];
 }
