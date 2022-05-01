@@ -3,6 +3,9 @@
 #ifndef GPU_SHADER
 #  include "GPU_shader_shared_utils.h"
 
+#  include "DNA_action_types.h"
+#  include "DNA_view3d_types.h"
+
 #  ifdef __cplusplus
 extern "C" {
 #  else
@@ -67,10 +70,15 @@ BLI_STATIC_ASSERT_ALIGN(OVERLAY_GridData, 16)
 #  define GP_EDIT_STROKE_END 16u     /* 1 << 4 */
 #  define GP_EDIT_POINT_DIMMED 32u   /* 1 << 5 */
 
+#  define MOTIONPATH_VERT_SEL (1 << 0)
+#  define MOTIONPATH_VERT_KEY (1 << 1)
+
 #else
 /* TODO(fclem): Find a better way to share enums/defines from DNA files with GLSL. */
 BLI_STATIC_ASSERT(CURVE_HANDLE_SELECTED == 0, "Ensure value is sync");
 BLI_STATIC_ASSERT(CURVE_HANDLE_ALL == 1, "Ensure value is sync");
+BLI_STATIC_ASSERT(MOTIONPATH_VERT_SEL == (1 << 0), "Ensure value is sync");
+BLI_STATIC_ASSERT(MOTIONPATH_VERT_KEY == (1 << 1), "Ensure value is sync");
 #endif
 
 #ifndef GPU_SHADER

@@ -765,23 +765,10 @@ GPUShader *OVERLAY_shader_image(void)
 GPUShader *OVERLAY_shader_motion_path_line(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->motion_path_line) {
-    sh_data->motion_path_line = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_motion_path_line_vert_glsl,
-                                 NULL},
-        .geom = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_motion_path_line_geom_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_gpu_shader_3D_smooth_color_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->motion_path_line = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_motion_path_line_clipped" : "overlay_motion_path_line");
   }
   return sh_data->motion_path_line;
 }
@@ -789,18 +776,10 @@ GPUShader *OVERLAY_shader_motion_path_line(void)
 GPUShader *OVERLAY_shader_motion_path_vert(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->motion_path_vert) {
-    sh_data->motion_path_vert = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_motion_path_point_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_gpu_shader_point_varying_color_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    sh_data->motion_path_vert = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_motion_path_point_clipped" : "overlay_motion_path_point");
   }
   return sh_data->motion_path_vert;
 }

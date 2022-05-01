@@ -494,6 +494,7 @@ set(GLSL_SRC
   engines/overlay/shaders/grid_vert.glsl
   engines/overlay/shaders/image_vert.glsl
   engines/overlay/shaders/image_frag.glsl
+  engines/overlay/shaders/motion_path_line_frag.glsl
   engines/overlay/shaders/motion_path_line_geom.glsl
   engines/overlay/shaders/motion_path_line_vert.glsl
   engines/overlay/shaders/motion_path_point_vert.glsl
