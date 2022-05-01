@@ -727,8 +727,8 @@ GPUShader *OVERLAY_shader_edit_uv_stencil_image(void)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
   if (!sh_data->edit_uv_stencil_image) {
-    sh_data->edit_uv_stencil_image = DRW_shader_create_with_shaderlib(
-        datatoc_edit_uv_image_vert_glsl, NULL, datatoc_image_frag_glsl, e_data.lib, NULL);
+    sh_data->edit_uv_stencil_image = GPU_shader_create_from_info_name(
+        "overlay_edit_uv_stencil_image");
   }
   return sh_data->edit_uv_stencil_image;
 }
@@ -737,12 +737,7 @@ GPUShader *OVERLAY_shader_edit_uv_mask_image(void)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
   if (!sh_data->edit_uv_mask_image) {
-    sh_data->edit_uv_mask_image = DRW_shader_create_with_shaderlib(
-        datatoc_edit_uv_image_vert_glsl,
-        NULL,
-        datatoc_edit_uv_image_mask_frag_glsl,
-        e_data.lib,
-        NULL);
+    sh_data->edit_uv_mask_image = GPU_shader_create_from_info_name("overlay_edit_uv_mask_image");
   }
   return sh_data->edit_uv_mask_image;
 }

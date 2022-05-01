@@ -260,6 +260,32 @@ GPU_SHADER_CREATE_INFO(overlay_edit_uv_tiled_image_borders)
     .fragment_source("gpu_shader_uniform_color_frag.glsl")
     .additional_info("draw_mesh");
 
+GPU_SHADER_INTERFACE_INFO(edit_uv_image_iface, "").smooth(Type::VEC2, "uvs");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_uv_stencil_image)
+    .do_static_compilation(true)
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_out(edit_uv_image_iface)
+    .vertex_source("edit_uv_image_vert.glsl")
+    .sampler(0, ImageType::FLOAT_2D, "imgTexture")
+    .push_constant(Type::BOOL, "imgPremultiplied")
+    .push_constant(Type::BOOL, "imgAlphaBlend")
+    .push_constant(Type::VEC4, "color")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .fragment_source("image_frag.glsl")
+    .additional_info("draw_mesh");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_uv_mask_image)
+    .do_static_compilation(true)
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_out(edit_uv_image_iface)
+    .sampler(0, ImageType::FLOAT_2D, "imgTexture")
+    .push_constant(Type::VEC4, "color")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("edit_uv_image_vert.glsl")
+    .fragment_source("edit_uv_image_mask_frag.glsl")
+    .additional_info("draw_mesh");
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
