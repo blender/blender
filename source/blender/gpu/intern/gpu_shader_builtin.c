@@ -223,8 +223,7 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
     [GPU_SHADER_3D_CLIPPED_UNIFORM_COLOR] =
         {
             .name = "GPU_SHADER_3D_CLIPPED_UNIFORM_COLOR",
-            .vert = datatoc_gpu_shader_3D_clipped_uniform_color_vert_glsl,
-            .frag = datatoc_gpu_shader_uniform_color_frag_glsl,
+            .create_info = "gpu_shader_3D_clipped_uniform_color",
         },
 
     [GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR] = {.name = "GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR",
