@@ -4937,7 +4937,7 @@ static void draw_setting_widget(bAnimContext *ac,
 
     case ACHANNEL_SETTING_ALWAYS_VISIBLE:
       icon = ICON_UNPINNED;
-      tooltip = TIP_("Channels are visible in Graph Editor for editing");
+      tooltip = TIP_("Display channel regardless of object selection");
       break;
 
     case ACHANNEL_SETTING_MOD_OFF: /* modifiers disabled */
