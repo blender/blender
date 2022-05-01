@@ -227,39 +227,16 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
             .frag = datatoc_gpu_shader_uniform_color_frag_glsl,
         },
 
-    [GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR] =
-        {
-            .name = "GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR",
-            .vert = datatoc_gpu_shader_3D_polyline_vert_glsl,
-            .geom = datatoc_gpu_shader_3D_polyline_geom_glsl,
-            .frag = datatoc_gpu_shader_3D_polyline_frag_glsl,
-            .defs = "#define UNIFORM\n",
-        },
+    [GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR] = {.name = "GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR",
+                                              .create_info =
+                                                  "gpu_shader_3D_polyline_uniform_color"},
     [GPU_SHADER_3D_POLYLINE_CLIPPED_UNIFORM_COLOR] =
-        {
-            .name = "GPU_SHADER_3D_POLYLINE_CLIPPED_UNIFORM_COLOR",
-            .vert = datatoc_gpu_shader_3D_polyline_vert_glsl,
-            .geom = datatoc_gpu_shader_3D_polyline_geom_glsl,
-            .frag = datatoc_gpu_shader_3D_polyline_frag_glsl,
-            .defs = "#define UNIFORM\n"
-                    "#define CLIP\n",
-        },
-    [GPU_SHADER_3D_POLYLINE_FLAT_COLOR] =
-        {
-            .name = "GPU_SHADER_3D_POLYLINE_FLAT_COLOR",
-            .vert = datatoc_gpu_shader_3D_polyline_vert_glsl,
-            .geom = datatoc_gpu_shader_3D_polyline_geom_glsl,
-            .frag = datatoc_gpu_shader_3D_polyline_frag_glsl,
-            .defs = "#define FLAT\n",
-        },
-    [GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR] =
-        {
-            .name = "GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR",
-            .vert = datatoc_gpu_shader_3D_polyline_vert_glsl,
-            .geom = datatoc_gpu_shader_3D_polyline_geom_glsl,
-            .frag = datatoc_gpu_shader_3D_polyline_frag_glsl,
-            .defs = "#define SMOOTH\n",
-        },
+        {.name = "GPU_SHADER_3D_POLYLINE_CLIPPED_UNIFORM_COLOR",
+         .create_info = "gpu_shader_3D_polyline_uniform_color_clipped"},
+    [GPU_SHADER_3D_POLYLINE_FLAT_COLOR] = {.name = "GPU_SHADER_3D_POLYLINE_FLAT_COLOR",
+                                           .create_info = "gpu_shader_3D_polyline_flat_color"},
+    [GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR] = {.name = "GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR",
+                                             .create_info = "gpu_shader_3D_polyline_smooth_color"},
 
     [GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR] =
         {

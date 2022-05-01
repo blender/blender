@@ -497,6 +497,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_shader_3D_flat_color_info.hh
   shaders/infos/gpu_shader_3D_image_modulate_alpha_info.hh
   shaders/infos/gpu_shader_3D_point_info.hh
+  shaders/infos/gpu_shader_3D_polyline_info.hh
   shaders/infos/gpu_shader_3D_smooth_color_info.hh
   shaders/infos/gpu_shader_3D_uniform_color_info.hh
   shaders/infos/gpu_shader_gpencil_stroke_info.hh
