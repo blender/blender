@@ -251,3 +251,27 @@ GPU_SHADER_CREATE_INFO(overlay_image_clipped)
     .additional_info("overlay_image", "drw_clipped");
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name GPencil Canvas
+ * \{ */
+
+GPU_SHADER_CREATE_INFO(overlay_gpencil_canvas)
+    .do_static_compilation(true)
+    .vertex_out(overlay_extra_iface)
+    .push_constant(Type::VEC4, "color")
+    .push_constant(Type::VEC3, "xAxis")
+    .push_constant(Type::VEC3, "yAxis")
+    .push_constant(Type::VEC3, "origin")
+    .push_constant(Type::INT, "halfLineCount")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .fragment_out(1, Type::VEC4, "lineOutput")
+    .vertex_source("edit_gpencil_canvas_vert.glsl")
+    .fragment_source("extra_frag.glsl")
+    .additional_info("draw_mesh", "draw_globals");
+
+GPU_SHADER_CREATE_INFO(overlay_gpencil_canvas_clipped)
+    .do_static_compilation(true)
+    .additional_info("overlay_gpencil_canvas", "drw_clipped");
+
+/** \} */

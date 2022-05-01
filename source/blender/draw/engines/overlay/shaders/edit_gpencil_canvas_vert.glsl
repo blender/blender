@@ -1,13 +1,6 @@
 
-uniform vec4 color;
-uniform vec3 xAxis;
-uniform vec3 yAxis;
-uniform vec3 origin;
-uniform int halfLineCount;
-
-flat out vec4 finalColor;
-flat out vec2 edgeStart;
-noperspective out vec2 edgePos;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {
@@ -27,6 +20,8 @@ void main()
   vec3 world_pos = xAxis * pos.x + yAxis * pos.y + origin;
 
   gl_Position = point_world_to_ndc(world_pos);
+
+  view_clipping_distances(world_pos);
 
   finalColor = color;
 

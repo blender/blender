@@ -683,15 +683,13 @@ GPUShader *OVERLAY_shader_facing(void)
 
 GPUShader *OVERLAY_shader_gpencil_canvas(void)
 {
-  OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->gpencil_canvas) {
-    sh_data->gpencil_canvas = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_edit_gpencil_canvas_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_common_view_lib_glsl, datatoc_extra_frag_glsl, NULL},
-    });
+    /* TODO(fclem): Support Clipping? Everything is already setup but don't want to change behavior
+     * without agreement of all gpencil module. */
+    sh_data->gpencil_canvas = GPU_shader_create_from_info_name(
+        0 ? "overlay_gpencil_canvas_clipped" : "overlay_gpencil_canvas");
   }
   return sh_data->gpencil_canvas;
 }
