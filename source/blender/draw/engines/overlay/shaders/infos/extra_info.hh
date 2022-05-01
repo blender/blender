@@ -275,3 +275,50 @@ GPU_SHADER_CREATE_INFO(overlay_gpencil_canvas_clipped)
     .additional_info("overlay_gpencil_canvas", "drw_clipped");
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Particle
+ * \{ */
+
+GPU_SHADER_INTERFACE_INFO(overlay_particle_iface, "").flat(Type::VEC4, "finalColor");
+
+GPU_SHADER_CREATE_INFO(overlay_particle)
+    .sampler(0, ImageType::FLOAT_1D, "weightTex")
+    .push_constant(Type::VEC4, "color") /* Drawsize packed in alpha */
+    .vertex_in(0, Type::VEC3, "part_pos")
+    .vertex_in(1, Type::VEC4, "part_rot")
+    .vertex_in(2, Type::FLOAT, "part_val")
+    .vertex_out(overlay_particle_iface)
+    .vertex_source("particle_vert.glsl")
+    .additional_info("draw_globals");
+
+GPU_SHADER_CREATE_INFO(overlay_particle_dot)
+    .do_static_compilation(true)
+    .define("USE_DOTS")
+    .define("vclass", "0")
+    .define("pos", "vec3(0.0)")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .fragment_out(1, Type::VEC4, "lineOutput")
+    .fragment_source("particle_frag.glsl")
+    .additional_info("overlay_particle", "draw_mesh");
+
+GPU_SHADER_CREATE_INFO(overlay_particle_dot_clipped)
+    .do_static_compilation(true)
+    .additional_info("overlay_particle_dot", "drw_clipped");
+
+GPU_SHADER_CREATE_INFO(overlay_particle_shape)
+    .do_static_compilation(true)
+    /* NOTE: Color already in Linear space. Which is what we want. */
+    .define("srgbTarget", "false")
+    /* Instantiated Attrs. */
+    .vertex_in(3, Type::VEC3, "pos")
+    .vertex_in(4, Type::INT, "vclass")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .fragment_source("gpu_shader_flat_color_frag.glsl")
+    .additional_info("overlay_particle", "draw_modelmat", "draw_resource_id_uniform");
+
+GPU_SHADER_CREATE_INFO(overlay_particle_shape_clipped)
+    .do_static_compilation(true)
+    .additional_info("overlay_particle_shape", "drw_clipped");
+
+/** \} */

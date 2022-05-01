@@ -881,18 +881,10 @@ GPUShader *OVERLAY_shader_paint_wire(void)
 GPUShader *OVERLAY_shader_particle_dot(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->particle_dot) {
-    sh_data->particle_dot = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_particle_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_common_view_lib_glsl, datatoc_particle_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, "#define USE_DOTS\n", NULL},
-    });
+    sh_data->particle_dot = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_particle_dot_clipped" : "overlay_particle_dot");
   }
   return sh_data->particle_dot;
 }
@@ -900,18 +892,10 @@ GPUShader *OVERLAY_shader_particle_dot(void)
 GPUShader *OVERLAY_shader_particle_shape(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[draw_ctx->sh_cfg];
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
   if (!sh_data->particle_shape) {
-    sh_data->particle_shape = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_globals_lib_glsl,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_particle_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_gpu_shader_flat_color_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, "#define INSTANCED_ATTR\n", NULL},
-    });
+    sh_data->particle_shape = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_particle_shape_clipped" : "overlay_particle_shape");
   }
   return sh_data->particle_shape;
 }
