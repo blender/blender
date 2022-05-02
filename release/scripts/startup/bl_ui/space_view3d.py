@@ -529,6 +529,9 @@ class _draw_tool_settings_context_mode:
             layout.prop(brush, "falloff_shape", expand=True)
             layout.prop(brush, "curve_preset")
 
+        if brush.curves_sculpt_tool == 'DELETE':
+            layout.prop(brush, "falloff_shape", expand=True)
+
 
 class VIEW3D_HT_header(Header):
     bl_space_type = 'VIEW_3D'
