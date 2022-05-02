@@ -232,6 +232,11 @@ static const EnumPropertyItem gpencil_envelope_mode_items[] = {
      "Add fill segments to create the envelope. Don't keep the original stroke"},
     {0, NULL, 0, NULL, NULL},
 };
+static const EnumPropertyItem modifier_noise_random_mode_items[] = {
+    {GP_NOISE_RANDOM_STEP, "STEP", 0, "Steps", "Apply random every N steps"},
+    {GP_NOISE_RANDOM_KEYFRAME, "KEYFRAME", 0, "On Keyframes", "Apply random every keyframe"},
+    {0, NULL, 0, NULL, NULL},
+};
 #endif
 
 #ifdef RNA_RUNTIME
@@ -957,6 +962,12 @@ static void rna_def_modifier_gpencilnoise(BlenderRNA *brna)
   prop = RNA_def_property(srna, "invert_layer_pass", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_NOISE_INVERT_LAYERPASS);
   RNA_def_property_ui_text(prop, "Inverse Pass", "Inverse filter");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
+  prop = RNA_def_property(srna, "random_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "noise_mode");
+  RNA_def_property_enum_items(prop, modifier_noise_random_mode_items);
+  RNA_def_property_ui_text(prop, "Mode", "How the random changes are applied");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   RNA_define_lib_overridable(false);
