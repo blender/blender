@@ -4144,43 +4144,77 @@ static bool vertex_color_set(Object *ob, ColorPaint4f paintcol_in, Color *color_
   return true;
 }
 
-static int vertex_color_set_exec(bContext *C, wmOperator *UNUSED(op))
+/**
+ * Fills the object's active color atribute layer with the fill color.
+ *
+ * \param[in] ob: The object.
+ * \param[in] fill_color: The fill color.
+ * \param[in] only_selected: Limit the fill to selected faces or vertices.
+ *
+ * \return #true if successful.
+ */
+static bool paint_object_attributes_active_color_fill_ex(Object *ob,
+                                                         ColorPaint4f fill_color,
+                                                         bool only_selected = true)
 {
-  Scene *scene = CTX_data_scene(C);
-  Object *obact = CTX_data_active_object(C);
-  Mesh *me = BKE_object_get_original_mesh(obact);
-
-  // uint paintcol = vpaint_get_current_color(scene, scene->toolsettings->vpaint, false);
-  ColorPaint4f paintcol = vpaint_get_current_col<ColorPaint4f, FloatTraits, ATTR_DOMAIN_POINT>(
-      scene, scene->toolsettings->vpaint, false);
-
-  bool ok = false;
-
+  Mesh *me = BKE_object_get_original_mesh(ob);
+  if (!me) {
+    return false;
+  }
   CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
+  if (!layer) {
+    return false;
+  }
+  /* Store original #Mesh.editflag.*/
+  const decltype(me->editflag) editflag = me->editflag;
+  if (!only_selected) {
+    me->editflag &= ~ME_EDIT_PAINT_FACE_SEL;
+    me->editflag &= ~ME_EDIT_PAINT_VERT_SEL;
+  }
   AttributeDomain domain = BKE_id_attribute_domain(&me->id, layer);
-
+  bool ok = false;
   if (domain == ATTR_DOMAIN_POINT) {
     if (layer->type == CD_PROP_COLOR) {
       ok = vertex_color_set<ColorPaint4f, FloatTraits, ATTR_DOMAIN_POINT>(
-          obact, paintcol, static_cast<ColorPaint4f *>(layer->data));
+          ob, fill_color, static_cast<ColorPaint4f *>(layer->data));
     }
     else if (layer->type == CD_PROP_BYTE_COLOR) {
       ok = vertex_color_set<ColorPaint4b, ByteTraits, ATTR_DOMAIN_POINT>(
-          obact, paintcol, static_cast<ColorPaint4b *>(layer->data));
+          ob, fill_color, static_cast<ColorPaint4b *>(layer->data));
     }
   }
   else {
     if (layer->type == CD_PROP_COLOR) {
       ok = vertex_color_set<ColorPaint4f, FloatTraits, ATTR_DOMAIN_CORNER>(
-          obact, paintcol, static_cast<ColorPaint4f *>(layer->data));
+          ob, fill_color, static_cast<ColorPaint4f *>(layer->data));
     }
     else if (layer->type == CD_PROP_BYTE_COLOR) {
       ok = vertex_color_set<ColorPaint4b, ByteTraits, ATTR_DOMAIN_CORNER>(
-          obact, paintcol, static_cast<ColorPaint4b *>(layer->data));
+          ob, fill_color, static_cast<ColorPaint4b *>(layer->data));
     }
   }
+  /* Restore #Mesh.editflag. */
+  me->editflag = editflag;
+  return ok;
+}
 
-  if (ok) {
+extern "C" bool BKE_object_attributes_active_color_fill(Object *ob,
+                                                        const float fill_color[4],
+                                                        bool only_selected)
+{
+  return paint_object_attributes_active_color_fill_ex(ob, ColorPaint4f(fill_color), only_selected);
+}
+
+static int vertex_color_set_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  Scene *scene = CTX_data_scene(C);
+  Object *obact = CTX_data_active_object(C);
+
+  // uint paintcol = vpaint_get_current_color(scene, scene->toolsettings->vpaint, false);
+  ColorPaint4f paintcol = vpaint_get_current_col<ColorPaint4f, FloatTraits, ATTR_DOMAIN_POINT>(
+      scene, scene->toolsettings->vpaint, false);
+
+  if (paint_object_attributes_active_color_fill_ex(obact, paintcol)) {
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
     return OPERATOR_FINISHED;
   }
