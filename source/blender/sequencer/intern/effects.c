@@ -2432,7 +2432,7 @@ static ImBuf *do_multicam(const SeqRenderData *context,
     return NULL;
   }
   ListBase *seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
-  ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, seq);
+  ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, &ed->channels, seq);
   if (!seqbasep) {
     return NULL;
   }
@@ -2468,7 +2468,7 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, fl
   ed = context->scene->ed;
 
   ListBase *seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
-  ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, seq);
+  ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, &ed->channels, seq);
 
   /* Clamp timeline_frame to strip range so it behaves as if it had "still frame" offset (last
    * frame is static after end of strip). This is how most strips behave. This way transition
