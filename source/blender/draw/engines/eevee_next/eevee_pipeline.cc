@@ -184,6 +184,7 @@ void ForwardPipeline::render(const DRWView *view,
                              GPUTexture *depth_tx,
                              GPUTexture *UNUSED(combined_tx))
 {
+  UNUSED_VARS(view, depth_tx);
   // HiZBuffer &hiz = inst_.hiz_front;
 
   DRW_stats_group_start("ForwardOpaque");
