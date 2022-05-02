@@ -128,6 +128,8 @@ void SyncModule::sync_mesh(Object *ob, ObjectHandle &ob_handle)
     is_shadow_caster = is_shadow_caster || material->shadow.shgrp != nullptr;
     is_alpha_blend = is_alpha_blend || material->is_alpha_blend_transparent;
   }
+
+  UNUSED_VARS(ob_handle);
   // shading_passes.velocity.mesh_add(ob, ob_handle);
 
   // shadows.sync_object(ob, ob_handle, is_shadow_caster, is_alpha_blend);
@@ -257,6 +259,7 @@ void SyncModule::sync_gpencil(Object *ob, ObjectHandle &ob_handle)
 
   gpencil_drawcall_flush(iter);
 
+  UNUSED_VARS(ob_handle);
   /* TODO(fclem) Gpencil velocity. */
   // shading_passes.velocity.gpencil_add(ob, ob_handle);
 
@@ -306,6 +309,7 @@ void SyncModule::sync_curves(Object *ob, ObjectHandle &ob_handle, ModifierData *
   shgroup_curves_call(material.shading, ob, part_sys, modifier_data);
   shgroup_curves_call(material.prepass, ob, part_sys, modifier_data);
   shgroup_curves_call(material.shadow, ob, part_sys, modifier_data);
+  UNUSED_VARS(ob_handle);
   /* TODO(fclem) Hair velocity. */
   // shading_passes.velocity.gpencil_add(ob, ob_handle);
 
