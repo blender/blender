@@ -152,8 +152,12 @@ static float calc_radius_limit(
   return radius_limit;
 }
 
-static void apply_stroke_envelope(
-    bGPDstroke *gps, int spread, const int def_nr, const bool invert_vg, const float thickness)
+static void apply_stroke_envelope(bGPDstroke *gps,
+                                  int spread,
+                                  const int def_nr,
+                                  const bool invert_vg,
+                                  const float thickness,
+                                  const float pixfactor)
 {
   const bool is_cyclic = (gps->flag & GP_STROKE_CYCLIC) != 0;
   if (is_cyclic) {
@@ -282,9 +286,7 @@ static void apply_stroke_envelope(
     }
 
     float fac = use_dist * weight;
-    /* The 50 is an internal constant for the default pixel size. The result can be messed up if
-     * #bGPdata.pixfactor is not default, but I think modifiers shouldn't access that. */
-    point->pressure += fac * 50.0f * GP_DEFAULT_PIX_FACTOR;
+    point->pressure += fac * pixfactor;
     interp_v3_v3v3(&point->x, &point->x, new_center, fac / len_v3v3(closest, closest2));
   }
 
@@ -326,8 +328,14 @@ static void deformStroke(GpencilModifierData *md,
     return;
   }
 
-  apply_stroke_envelope(
-      gps, mmd->spread, def_nr, (mmd->flag & GP_ENVELOPE_INVERT_VGROUP) != 0, mmd->thickness);
+  bGPdata *gpd = (bGPdata *)ob->data;
+  const float pixfactor = 1000.0f / ((gps->thickness + gpl->line_change) * gpd->pixfactor);
+  apply_stroke_envelope(gps,
+                        mmd->spread,
+                        def_nr,
+                        (mmd->flag & GP_ENVELOPE_INVERT_VGROUP) != 0,
+                        mmd->thickness,
+                        pixfactor);
 }
 
 static void add_stroke(Object *ob,
