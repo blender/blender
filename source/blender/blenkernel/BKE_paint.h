@@ -730,6 +730,21 @@ enum {
   SCULPT_MASK_LAYER_CALC_LOOP = (1 << 1),
 };
 
+/* paint_vertex.cc */
+
+/**
+ * Fills the object's active color atribute layer with the fill color.
+ *
+ * \param[in] ob: The object.
+ * \param[in] fill_color: The fill color.
+ * \param[in] only_selected: Limit the fill to selected faces or vertices.
+ *
+ * \return #true if successful.
+ */
+bool BKE_object_attributes_active_color_fill(struct Object *ob,
+                                             const float fill_color[4],
+                                             bool only_selected);
+
 /* paint_canvas.cc */
 
 /**
