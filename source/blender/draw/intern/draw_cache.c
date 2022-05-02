@@ -960,6 +960,8 @@ int DRW_cache_object_material_count_get(struct Object *ob)
       return DRW_pointcloud_material_count_get(ob->data);
     case OB_VOLUME:
       return DRW_volume_material_count_get(ob->data);
+    case OB_GPENCIL:
+      return DRW_gpencil_material_count_get(ob->data);
     default:
       BLI_assert(0);
       return 0;
