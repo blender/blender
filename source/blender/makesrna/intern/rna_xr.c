@@ -705,6 +705,7 @@ static int rna_XrSessionSettings_icon_from_show_object_viewport_get(PointerRNA *
 #    endif
   );
 #  else
+  UNUSED_VARS(ptr);
   return ICON_NONE;
 #  endif
 }
