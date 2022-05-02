@@ -1601,8 +1601,6 @@ static bool gpencil_sculpt_brush_do_frame(bContext *C,
   BKE_gpencil_layer_transform_matrix_get(gso->depsgraph, gso->object, gpl, bound_mat);
 
   LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-    bGPDstroke *gps_active = (gps->runtime.gps_orig) ? gps->runtime.gps_orig : gps;
-
     /* skip strokes that are invalid for current view */
     if (ED_gpencil_stroke_can_use(C, gps) == false) {
       continue;
@@ -1612,8 +1610,11 @@ static bool gpencil_sculpt_brush_do_frame(bContext *C,
       continue;
     }
 
-    if ((is_automasking) && (!BLI_ghash_haskey(gso->automasking_strokes, gps_active))) {
-      continue;
+    {
+      bGPDstroke *gps_active = (gps->runtime.gps_orig) ? gps->runtime.gps_orig : gps;
+      if ((is_automasking) && (!BLI_ghash_haskey(gso->automasking_strokes, gps_active))) {
+        continue;
+      }
     }
 
     /* Check if the stroke collide with brush. */
