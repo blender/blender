@@ -10,7 +10,7 @@ Notes:
 
 - Temporary context overrides may be nested, when this is done, members will be added to the existing overrides.
 
-- Context members are restored outside the scope of the context.
+- Context members are restored outside the scope of the context-manager.
   The only exception to this is when the data is no longer available.
 
   In the event windowing data was removed (for example), the state of the context is left as-is.
