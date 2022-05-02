@@ -586,6 +586,18 @@ void rna_ID_fake_user_set(PointerRNA *ptr, bool value)
   }
 }
 
+void rna_ID_extra_user_set(PointerRNA *ptr, bool value)
+{
+  ID *id = (ID *)ptr->data;
+
+  if (value) {
+    id_us_ensure_real(id);
+  }
+  else {
+    id_us_clear_real(id);
+  }
+}
+
 IDProperty **rna_PropertyGroup_idprops(PointerRNA *ptr)
 {
   return (IDProperty **)&ptr->data;
@@ -1958,6 +1970,14 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Fake User", "Save this data-block even if it has no users");
   RNA_def_property_ui_icon(prop, ICON_FAKE_USER_OFF, true);
   RNA_def_property_boolean_funcs(prop, NULL, "rna_ID_fake_user_set");
+
+  prop = RNA_def_property(srna, "use_extra_user", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "tag", LIB_TAG_EXTRAUSER);
+  RNA_def_property_ui_text(
+      prop,
+      "Extra User",
+      "Indicates wether an extra user is set or not (mainly for internal/debug usages)");
+  RNA_def_property_boolean_funcs(prop, NULL, "rna_ID_extra_user_set");
 
   prop = RNA_def_property(srna, "is_embedded_data", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_EMBEDDED_DATA);
