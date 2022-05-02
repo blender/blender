@@ -3,7 +3,7 @@
 # <pep8 compliant>
 from bpy.types import Menu, Panel, UIList
 from bl_ui.properties_grease_pencil_common import (
-    GreasePencilSculptOptionsPanel,
+    GreasePencilSculptAdvancedPanel,
     GreasePencilDisplayPanel,
     GreasePencilBrushFalloff,
 )
@@ -1907,6 +1907,41 @@ class VIEW3D_PT_tools_grease_pencil_brush_sculpt_falloff(GreasePencilBrushFallof
         return (settings and settings.brush and settings.brush.curve)
 
 
+class VIEW3D_PT_tools_grease_pencil_sculpt_brush_advanced(GreasePencilSculptAdvancedPanel, View3DPanel, Panel):
+    bl_context = ".greasepencil_sculpt"
+    bl_label = "Advanced"
+    bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_sculpt_settings'
+    bl_category = "Tool"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        brush = context.tool_settings.gpencil_sculpt_paint.brush
+        if brush is None:
+            return False
+
+        tool = brush.gpencil_sculpt_tool
+        return  tool != 'CLONE'
+
+
+class VIEW3D_PT_tools_grease_pencil_sculpt_brush_popover(GreasePencilSculptAdvancedPanel, View3DPanel, Panel):
+    bl_context = ".greasepencil_sculpt"
+    bl_label = "Brush"
+    bl_category = "Tool"
+
+    @classmethod
+    def poll(cls, context):
+        if context.region.type != 'TOOL_HEADER':
+            return False
+
+        brush = context.tool_settings.gpencil_sculpt_paint.brush
+        if brush is None:
+            return False
+
+        tool = brush.gpencil_sculpt_tool
+        return  tool != 'CLONE'
+
+
 # Grease Pencil weight painting tools
 class GreasePencilWeightPanel:
     bl_context = ".greasepencil_weight"
@@ -2240,13 +2275,6 @@ class VIEW3D_PT_tools_grease_pencil_brush_mix_palette(View3DPanel, Panel):
             col.template_palette(settings, "palette", color=True)
 
 
-class VIEW3D_PT_tools_grease_pencil_sculpt_options(GreasePencilSculptOptionsPanel, Panel, View3DPanel):
-    bl_context = ".greasepencil_sculpt"
-    bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_sculpt_settings'
-    bl_category = "Tool"
-    bl_label = "Sculpt Strokes"
-
-
 # Grease Pencil Brush Appearance (one for each mode)
 class VIEW3D_PT_tools_grease_pencil_paint_appearance(GreasePencilDisplayPanel, Panel, View3DPanel):
     bl_context = ".greasepencil_paint"
@@ -2357,7 +2385,8 @@ classes = (
     VIEW3D_PT_tools_grease_pencil_paint_appearance,
     VIEW3D_PT_tools_grease_pencil_sculpt_select,
     VIEW3D_PT_tools_grease_pencil_sculpt_settings,
-    VIEW3D_PT_tools_grease_pencil_sculpt_options,
+    VIEW3D_PT_tools_grease_pencil_sculpt_brush_advanced,
+    VIEW3D_PT_tools_grease_pencil_sculpt_brush_popover,
     VIEW3D_PT_tools_grease_pencil_sculpt_appearance,
     VIEW3D_PT_tools_grease_pencil_weight_paint_select,
     VIEW3D_PT_tools_grease_pencil_weight_paint_settings,

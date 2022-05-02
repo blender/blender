@@ -109,8 +109,8 @@ class VIEW3D_HT_tool_header(Header):
             if is_valid_context:
                 brush = context.tool_settings.gpencil_sculpt_paint.brush
                 tool = brush.gpencil_sculpt_tool
-                if tool in {'SMOOTH', 'RANDOMIZE'}:
-                    layout.popover("VIEW3D_PT_tools_grease_pencil_sculpt_options")
+                if tool != 'CLONE':
+                    layout.popover("VIEW3D_PT_tools_grease_pencil_sculpt_brush_popover")
                 layout.popover("VIEW3D_PT_tools_grease_pencil_sculpt_appearance")
         elif tool_mode == 'WEIGHT_GPENCIL':
             if is_valid_context:

@@ -3977,6 +3977,8 @@ def km_grease_pencil_stroke_sculpt_mode(params):
         ("gpencil.active_frames_delete_all", {"type": 'DEL', "value": 'PRESS', "shift": True}, None),
         # Active layer
         op_menu("GPENCIL_MT_layer_active", {"type": 'Y', "value": 'PRESS'}),
+        # Active material
+        op_menu("GPENCIL_MT_material_active", {"type": 'U', "value": 'PRESS'}),
         # Merge Layer
         ("gpencil.layer_merge", {"type": 'M', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         # Keyframe menu

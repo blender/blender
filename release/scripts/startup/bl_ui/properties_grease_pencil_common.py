@@ -41,17 +41,7 @@ class AnnotationDrawingToolsPanel:
         row.prop_enum(tool_settings, "annotation_stroke_placement_view2d", 'IMAGE', text="Image")
 
 
-class GreasePencilSculptOptionsPanel:
-    bl_label = "Sculpt Strokes"
-
-    @classmethod
-    def poll(cls, context):
-        tool_settings = context.scene.tool_settings
-        settings = tool_settings.gpencil_sculpt_paint
-        brush = settings.brush
-        tool = brush.gpencil_sculpt_tool
-
-        return bool(tool in {'SMOOTH', 'RANDOMIZE'})
+class GreasePencilSculptAdvancedPanel:
 
     def draw(self, context):
         layout = self.layout
@@ -59,17 +49,21 @@ class GreasePencilSculptOptionsPanel:
         layout.use_property_decorate = False
 
         tool_settings = context.scene.tool_settings
-        settings = tool_settings.gpencil_sculpt_paint
-        brush = settings.brush
-        gp_settings = brush.gpencil_settings
+        brush = context.tool_settings.gpencil_sculpt_paint.brush
         tool = brush.gpencil_sculpt_tool
+        gp_settings = brush.gpencil_settings
+
+        col = layout.column(heading="Auto-Masking", align=True)
+        col.prop(gp_settings, "use_automasking_stroke", text="Stroke")
+        col.prop(gp_settings, "use_automasking_layer", text="Layer")
+        col.prop(gp_settings, "use_automasking_material", text="Material")
 
         if tool in {'SMOOTH', 'RANDOMIZE'}:
-            layout.prop(gp_settings, "use_edit_position", text="Affect Position")
-            layout.prop(gp_settings, "use_edit_strength", text="Affect Strength")
-            layout.prop(gp_settings, "use_edit_thickness", text="Affect Thickness")
-
-            layout.prop(gp_settings, "use_edit_uv", text="Affect UV")
+            col = layout.column(heading="Affect", align=True)
+            col.prop(gp_settings, "use_edit_position", text="Position")
+            col.prop(gp_settings, "use_edit_strength", text="Strength")
+            col.prop(gp_settings, "use_edit_thickness", text="Thickness")
+            col.prop(gp_settings, "use_edit_uv", text="UV")
 
 
 # GP Object Tool Settings
