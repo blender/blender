@@ -550,6 +550,10 @@ static void sequencer_main_clamp_view(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
   Editing *ed = SEQ_editing_get(CTX_data_scene(C));
 
+  if (ed == NULL) {
+    return;
+  }
+
   /* Transformation uses edge panning to move view. Also if smooth view is running, don't apply
    * clamping to prevent overriding this functionality. */
   if (G.moving || v2d->smooth_timer != NULL) {
