@@ -631,7 +631,7 @@ static void drawmeta_contents(Scene *scene,
         color3ubv_from_seq(scene, seq, show_strip_color_tag, col);
       }
 
-      if (SEQ_render_is_muted(channels, seqm) || SEQ_render_is_muted(channels, seq)) {
+      if (SEQ_render_is_muted(channels, seqm) || SEQ_render_is_muted(&seqm->channels, seq)) {
         col[3] = 64;
       }
       else {
