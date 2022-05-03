@@ -44,14 +44,11 @@ static bool mesh_extract_uv_format_init(GPUVertFormat *format,
 
       GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
       /* UV layer name. */
-      BLI_snprintf(attr_name, sizeof(attr_name), "u%s", attr_safe_name);
-      GPU_vertformat_attr_add(format, attr_name, GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-      /* Auto layer name. */
       BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
-      GPU_vertformat_alias_add(format, attr_name);
+      GPU_vertformat_attr_add(format, attr_name, GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
       /* Active render layer name. */
       if (i == CustomData_get_render_layer(cd_ldata, CD_MLOOPUV)) {
-        GPU_vertformat_alias_add(format, "u");
+        GPU_vertformat_alias_add(format, "a");
       }
       /* Active display layer name. */
       if (i == CustomData_get_active_layer(cd_ldata, CD_MLOOPUV)) {

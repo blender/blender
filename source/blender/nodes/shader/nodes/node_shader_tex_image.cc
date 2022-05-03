@@ -44,7 +44,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
 
   GPUNodeLink **texco = &in[0].link;
   if (!*texco) {
-    *texco = GPU_attribute(mat, CD_MTFACE, "");
+    *texco = GPU_attribute(mat, CD_AUTO_FROM_NAME, "");
     node_shader_gpu_bump_tex_coord(mat, node, texco);
   }
 

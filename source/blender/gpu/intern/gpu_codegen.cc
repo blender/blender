@@ -326,14 +326,6 @@ void GPUCodegen::generate_attribs()
         iface_type = input_type = GPU_VEC4;
         load_ss << " = attr_load_tangent(" << attr_name << ");\n";
         break;
-      case CD_MTFACE:
-        iface_type = input_type = GPU_VEC3;
-        load_ss << " = attr_load_uv(" << attr_name << ");\n";
-        break;
-      case CD_MCOL:
-        iface_type = input_type = GPU_VEC4;
-        load_ss << " = attr_load_color(" << attr_name << ");\n";
-        break;
       default:
         iface_type = input_type = GPU_VEC4;
         load_ss << " = attr_load_" << input_type << "(" << attr_name << ");\n";

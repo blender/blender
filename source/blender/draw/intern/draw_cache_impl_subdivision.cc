@@ -366,6 +366,17 @@ static GPUVertFormat *get_origindex_format()
   return &format;
 }
 
+GPUVertFormat *draw_subdiv_get_pos_nor_format()
+{
+  static GPUVertFormat format = {0};
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+    GPU_vertformat_alias_add(&format, "vnor");
+  }
+  return &format;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
