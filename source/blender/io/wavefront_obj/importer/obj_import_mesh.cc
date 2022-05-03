@@ -24,11 +24,10 @@
 
 namespace blender::io::obj {
 
-Object *MeshFromGeometry::create_mesh(
-    Main *bmain,
-    const Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
-    Map<std::string, Material *> &created_materials,
-    const OBJImportParams &import_params)
+Object *MeshFromGeometry::create_mesh(Main *bmain,
+                                      Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
+                                      Map<std::string, Material *> &created_materials,
+                                      const OBJImportParams &import_params)
 {
   std::string ob_name{mesh_geometry_.geometry_name_};
   if (ob_name.empty()) {
@@ -276,11 +275,10 @@ void MeshFromGeometry::create_uv_verts(Mesh *mesh)
   }
 }
 
-static Material *get_or_create_material(
-    Main *bmain,
-    const std::string &name,
-    const Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
-    Map<std::string, Material *> &created_materials)
+static Material *get_or_create_material(Main *bmain,
+                                        const std::string &name,
+                                        Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
+                                        Map<std::string, Material *> &created_materials)
 {
   /* Have we created this material already? */
   Material **found_mat = created_materials.lookup_ptr(name);
@@ -288,23 +286,13 @@ static Material *get_or_create_material(
     return *found_mat;
   }
 
-  /* We have not, will have to create it. */
-  if (!materials.contains(name)) {
-    std::cerr << "Material named '" << name << "' not found in material library." << std::endl;
-    return nullptr;
-  }
+  /* We have not, will have to create it. Create a new default
+   * MTLMaterial too, in case the OBJ file tries to use a material
+   * that was not in the MTL file. */
+  const MTLMaterial &mtl = *materials.lookup_or_add(name, std::make_unique<MTLMaterial>()).get();
 
   Material *mat = BKE_material_add(bmain, name.c_str());
-  const MTLMaterial &mtl = *materials.lookup(name);
   ShaderNodetreeWrap mat_wrap{bmain, mtl, mat};
-
-  /* Viewport shading uses legacy r,g,b material values. */
-  if (mtl.Kd[0] >= 0 && mtl.Kd[1] >= 0 && mtl.Kd[2] >= 0) {
-    mat->r = mtl.Kd[0];
-    mat->g = mtl.Kd[1];
-    mat->b = mtl.Kd[2];
-  }
-
   mat->use_nodes = true;
   mat->nodetree = mat_wrap.get_nodetree();
   BKE_ntree_update_main_tree(bmain, mat->nodetree, nullptr);
@@ -313,11 +301,10 @@ static Material *get_or_create_material(
   return mat;
 }
 
-void MeshFromGeometry::create_materials(
-    Main *bmain,
-    const Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
-    Map<std::string, Material *> &created_materials,
-    Object *obj)
+void MeshFromGeometry::create_materials(Main *bmain,
+                                        Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
+                                        Map<std::string, Material *> &created_materials,
+                                        Object *obj)
 {
   for (const std::string &name : mesh_geometry_.material_order_) {
     Material *mat = get_or_create_material(bmain, name, materials, created_materials);

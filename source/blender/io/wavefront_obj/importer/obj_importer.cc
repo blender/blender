@@ -29,15 +29,14 @@ namespace blender::io::obj {
 /**
  * Make Blender Mesh, Curve etc from Geometry and add them to the import collection.
  */
-static void geometry_to_blender_objects(
-    Main *bmain,
-    Scene *scene,
-    ViewLayer *view_layer,
-    const OBJImportParams &import_params,
-    Vector<std::unique_ptr<Geometry>> &all_geometries,
-    const GlobalVertices &global_vertices,
-    const Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
-    Map<std::string, Material *> &created_materials)
+static void geometry_to_blender_objects(Main *bmain,
+                                        Scene *scene,
+                                        ViewLayer *view_layer,
+                                        const OBJImportParams &import_params,
+                                        Vector<std::unique_ptr<Geometry>> &all_geometries,
+                                        const GlobalVertices &global_vertices,
+                                        Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
+                                        Map<std::string, Material *> &created_materials)
 {
   BKE_view_layer_base_deselect_all(view_layer);
   LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
