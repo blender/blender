@@ -225,7 +225,7 @@ static GPUBatch *wm_xr_controller_model_batch_create(GHOST_XrContextHandle xr_co
 
 static void wm_xr_controller_model_draw(const XrSessionSettings *settings,
                                         GHOST_XrContextHandle xr_context,
-                                        wmXrSessionState *state)
+                                        ListBase *controllers)
 {
   GHOST_XrControllerModelData model_data;
 
@@ -244,7 +244,7 @@ static void wm_xr_controller_model_draw(const XrSessionSettings *settings,
   GPU_depth_test(GPU_DEPTH_NONE);
   GPU_blend(GPU_BLEND_ALPHA);
 
-  LISTBASE_FOREACH (wmXrController *, controller, &state->controllers) {
+  LISTBASE_FOREACH (wmXrController *, controller, controllers) {
     GPUBatch *model = controller->model;
     if (!model) {
       model = controller->model = wm_xr_controller_model_batch_create(xr_context,
@@ -287,7 +287,7 @@ static void wm_xr_controller_model_draw(const XrSessionSettings *settings,
   }
 }
 
-static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSessionState *state)
+static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, ListBase *controllers)
 {
   bool draw_ray;
   switch (settings->controller_draw_style) {
@@ -320,9 +320,9 @@ static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSes
     GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
     GPU_blend(GPU_BLEND_ALPHA);
 
-    immBegin(GPU_PRIM_LINES, (uint)BLI_listbase_count(&state->controllers) * 2);
+    immBegin(GPU_PRIM_LINES, (uint)BLI_listbase_count(controllers) * 2);
 
-    LISTBASE_FOREACH (wmXrController *, controller, &state->controllers) {
+    LISTBASE_FOREACH (wmXrController *, controller, controllers) {
       const float(*mat)[4] = controller->aim_mat;
       madd_v3_v3v3fl(ray, mat[3], mat[2], -scale);
 
@@ -344,9 +344,9 @@ static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSes
     GPU_depth_test(GPU_DEPTH_NONE);
     GPU_blend(GPU_BLEND_NONE);
 
-    immBegin(GPU_PRIM_LINES, (uint)BLI_listbase_count(&state->controllers) * 6);
+    immBegin(GPU_PRIM_LINES, (uint)BLI_listbase_count(controllers) * 6);
 
-    LISTBASE_FOREACH (wmXrController *, controller, &state->controllers) {
+    LISTBASE_FOREACH (wmXrController *, controller, controllers) {
       const float(*mat)[4] = controller->aim_mat;
       madd_v3_v3v3fl(x_axis, mat[3], mat[0], scale);
       madd_v3_v3v3fl(y_axis, mat[3], mat[1], scale);
@@ -379,8 +379,19 @@ void wm_xr_draw_controllers(const bContext *UNUSED(C), ARegion *UNUSED(region), 
   wmXrData *xr = customdata;
   const XrSessionSettings *settings = &xr->session_settings;
   GHOST_XrContextHandle xr_context = xr->runtime->context;
-  wmXrSessionState *state = &xr->runtime->session_state;
+  ListBase *controllers = &xr->runtime->session_state.controllers;
 
-  wm_xr_controller_model_draw(settings, xr_context, state);
-  wm_xr_controller_aim_draw(settings, state);
+  wm_xr_controller_model_draw(settings, xr_context, controllers);
+  wm_xr_controller_aim_draw(settings, controllers);
+}
+
+void wm_xr_draw_trackers(const bContext *UNUSED(C), ARegion *UNUSED(region), void *customdata)
+{
+  wmXrData *xr = customdata;
+  const XrSessionSettings *settings = &xr->session_settings;
+  GHOST_XrContextHandle xr_context = xr->runtime->context;
+  ListBase *trackers = &xr->runtime->session_state.trackers;
+
+  wm_xr_controller_model_draw(settings, xr_context, trackers);
+  wm_xr_controller_aim_draw(settings, trackers);
 }

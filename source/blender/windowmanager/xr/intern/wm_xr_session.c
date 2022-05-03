@@ -75,22 +75,21 @@ static void wm_xr_session_create_cb(void)
   wm_xr_mocap_orig_poses_store(settings, state);
 }
 
-static void wm_xr_session_controller_data_free(wmXrSessionState *state)
+static void wm_xr_session_controller_data_free(ListBase *controllers)
 {
-  ListBase *lb = &state->controllers;
   wmXrController *c;
-
-  while ((c = BLI_pophead(lb))) {
+  while ((c = BLI_pophead(controllers))) {
     if (c->model) {
       GPU_batch_discard(c->model);
     }
-    BLI_freelinkN(lb, c);
+    BLI_freelinkN(controllers, c);
   }
 }
 
 void wm_xr_session_data_free(wmXrSessionState *state)
 {
-  wm_xr_session_controller_data_free(state);
+  wm_xr_session_controller_data_free(&state->controllers);
+  wm_xr_session_controller_data_free(&state->trackers);
   BLI_freelistN(&state->mocap_orig_poses);
 }
 
@@ -509,6 +508,48 @@ bool WM_xr_session_state_controller_aim_rotation_get(const wmXrData *xr,
   return true;
 }
 
+bool WM_xr_session_state_tracker_location_get(const wmXrData *xr,
+                                              const char *subaction_path,
+                                              float r_location[3])
+{
+  if (!WM_xr_session_is_ready(xr) || !xr->runtime->session_state.is_view_data_set) {
+    zero_v3(r_location);
+    return false;
+  }
+
+  const wmXrController *tracker = BLI_findstring(&xr->runtime->session_state.trackers,
+                                                 subaction_path,
+                                                 offsetof(wmXrController, subaction_path));
+  if (!tracker) {
+    zero_v3(r_location);
+    return false;
+  }
+
+  copy_v3_v3(r_location, tracker->grip_pose.position);
+  return true;
+}
+
+bool WM_xr_session_state_tracker_rotation_get(const wmXrData *xr,
+                                              const char *subaction_path,
+                                              float r_rotation[4])
+{
+  if (!WM_xr_session_is_ready(xr) || !xr->runtime->session_state.is_view_data_set) {
+    unit_qt(r_rotation);
+    return false;
+  }
+
+  const wmXrController *tracker = BLI_findstring(&xr->runtime->session_state.trackers,
+                                                 subaction_path,
+                                                 offsetof(wmXrController, subaction_path));
+  if (!tracker) {
+    unit_qt(r_rotation);
+    return false;
+  }
+
+  copy_qt_qt(r_rotation, tracker->grip_pose.orientation_quat);
+  return true;
+}
+
 bool WM_xr_session_state_nav_location_get(const wmXrData *xr, float r_location[3])
 {
   if (!WM_xr_session_is_ready(xr) || !xr->runtime->session_state.is_view_data_set) {
@@ -618,14 +659,70 @@ static void wm_xr_session_controller_pose_calc(const GHOST_XrPose *raw_pose,
 
 static void wm_xr_session_controller_data_update(const wmXrAction *grip_action,
                                                  const wmXrAction *aim_action,
+                                                 unsigned int subaction_idx,
+                                                 const float view_ofs[3],
+                                                 const float base_mat[4][4],
+                                                 const float nav_mat[4][4],
                                                  bContext *C,
                                                  XrSessionSettings *settings,
                                                  GHOST_XrContextHandle xr_context,
-                                                 wmXrSessionState *state,
-                                                 wmWindow *win)
+                                                 Scene *scene,
+                                                 ViewLayer *view_layer,
+                                                 wmWindow *win,
+                                                 bScreen *screen_anim,
+                                                 bool *notify,
+                                                 wmXrController *controller)
+{
+  wm_xr_session_controller_pose_calc(&((GHOST_XrPose *)grip_action->states)[subaction_idx],
+                                     view_ofs,
+                                     base_mat,
+                                     nav_mat,
+                                     &controller->grip_pose,
+                                     controller->grip_mat,
+                                     controller->grip_mat_base);
+  wm_xr_session_controller_pose_calc(&((GHOST_XrPose *)aim_action->states)[subaction_idx],
+                                     view_ofs,
+                                     base_mat,
+                                     nav_mat,
+                                     &controller->aim_pose,
+                                     controller->aim_mat,
+                                     controller->aim_mat_base);
+
+  /* Update motion capture objects. */
+  wm_xr_mocap_objects_update(controller->subaction_path,
+                             &controller->grip_pose,
+                             C,
+                             settings,
+                             scene,
+                             view_layer,
+                             win,
+                             screen_anim,
+                             notify);
+
+  /* Update controller model. */
+  if (!controller->model) {
+    /* Notify GHOST to load/continue loading the controller model data. This can be called more
+     * than once since the model may not be available from the runtime yet. The batch itself will
+     * be created in wm_xr_draw_controllers(). */
+    GHOST_XrLoadControllerModel(xr_context, controller->subaction_path);
+  }
+  else {
+    GHOST_XrUpdateControllerModelComponents(xr_context, controller->subaction_path);
+  }
+}
+
+static void wm_xr_session_controller_and_tracker_data_update(const wmXrAction *grip_action,
+                                                             const wmXrAction *aim_action,
+                                                             const ListBase *tracker_actions,
+                                                             bContext *C,
+                                                             XrSessionSettings *settings,
+                                                             GHOST_XrContextHandle xr_context,
+                                                             wmXrSessionState *state,
+                                                             wmWindow *win)
 {
   BLI_assert(grip_action->count_subaction_paths == aim_action->count_subaction_paths);
   BLI_assert(grip_action->count_subaction_paths == BLI_listbase_count(&state->controllers));
+  BLI_assert(BLI_listbase_count(tracker_actions) <= BLI_listbase_count(&state->trackers));
 
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -633,6 +730,7 @@ static void wm_xr_session_controller_data_update(const wmXrAction *grip_action,
   bScreen *screen_anim = ED_screen_animation_playing(wm);
   bool notify = true;
   unsigned int subaction_idx = 0;
+  wmXrController *tracker = state->trackers.first;
   float view_ofs[3], base_mat[4][4], nav_mat[4][4];
 
   if ((settings->flag & XR_SESSION_USE_POSITION_TRACKING) == 0) {
@@ -648,42 +746,47 @@ static void wm_xr_session_controller_data_update(const wmXrAction *grip_action,
   wm_xr_pose_scale_to_mat(&state->prev_base_pose, state->prev_base_scale, base_mat);
   wm_xr_pose_scale_to_mat(&state->nav_pose, state->nav_scale, nav_mat);
 
+  /* Update controllers. */
   LISTBASE_FOREACH_INDEX (wmXrController *, controller, &state->controllers, subaction_idx) {
-    wm_xr_session_controller_pose_calc(&((GHOST_XrPose *)grip_action->states)[subaction_idx],
-                                       view_ofs,
-                                       base_mat,
-                                       nav_mat,
-                                       &controller->grip_pose,
-                                       controller->grip_mat,
-                                       controller->grip_mat_base);
-    wm_xr_session_controller_pose_calc(&((GHOST_XrPose *)aim_action->states)[subaction_idx],
-                                       view_ofs,
-                                       base_mat,
-                                       nav_mat,
-                                       &controller->aim_pose,
-                                       controller->aim_mat,
-                                       controller->aim_mat_base);
+    wm_xr_session_controller_data_update(grip_action,
+                                         aim_action,
+                                         subaction_idx,
+                                         view_ofs,
+                                         base_mat,
+                                         nav_mat,
+                                         C,
+                                         settings,
+                                         xr_context,
+                                         scene,
+                                         view_layer,
+                                         win,
+                                         screen_anim,
+                                         &notify,
+                                         controller);
+  }
 
-    /* Update motion capture objects. */
-    wm_xr_mocap_objects_update(controller->subaction_path,
-                               &controller->grip_pose,
-                               C,
-                               settings,
-                               scene,
-                               view_layer,
-                               win,
-                               screen_anim,
-                               &notify);
+  /* Update trackers. */
+  LISTBASE_FOREACH (LinkData *, ld, tracker_actions) {
+    const wmXrAction *tracker_action = ld->data;
 
-    /* Update controller model. */
-    if (!controller->model) {
-      /* Notify GHOST to load/continue loading the controller model data. This can be called more
-       * than once since the model may not be available from the runtime yet. The batch itself will
-       * be created in wm_xr_draw_controllers(). */
-      GHOST_XrLoadControllerModel(xr_context, controller->subaction_path);
-    }
-    else {
-      GHOST_XrUpdateControllerModelComponents(xr_context, controller->subaction_path);
+    for (subaction_idx = 0; subaction_idx < tracker_action->count_subaction_paths;
+         ++subaction_idx) {
+      wm_xr_session_controller_data_update(tracker_action,
+                                           tracker_action,
+                                           subaction_idx,
+                                           view_ofs,
+                                           base_mat,
+                                           nav_mat,
+                                           C,
+                                           settings,
+                                           xr_context,
+                                           scene,
+                                           view_layer,
+                                           win,
+                                           screen_anim,
+                                           &notify,
+                                           tracker);
+      tracker = tracker->next;
     }
   }
 }
@@ -1244,14 +1347,16 @@ void wm_xr_session_actions_update(const bContext *C)
 
   /* Only update controller data and dispatch events for active action set. */
   if (active_action_set) {
-    if (active_action_set->controller_grip_action && active_action_set->controller_aim_action) {
-      wm_xr_session_controller_data_update(active_action_set->controller_grip_action,
-                                           active_action_set->controller_aim_action,
-                                           (bContext *)C,
-                                           settings,
-                                           xr_context,
-                                           state,
-                                           win);
+    if ((active_action_set->controller_grip_action && active_action_set->controller_aim_action) ||
+        !BLI_listbase_is_empty(&active_action_set->tracker_actions)) {
+      wm_xr_session_controller_and_tracker_data_update(active_action_set->controller_grip_action,
+                                                       active_action_set->controller_aim_action,
+                                                       &active_action_set->tracker_actions,
+                                                       (bContext *)C,
+                                                       settings,
+                                                       xr_context,
+                                                       state,
+                                                       win);
     }
 
     if (win) {
@@ -1273,15 +1378,13 @@ void wm_xr_session_controller_data_populate(const wmXrAction *grip_action,
 
   wmXrSessionState *state = &xr->runtime->session_state;
   ListBase *controllers = &state->controllers;
-
   BLI_assert(grip_action->count_subaction_paths == aim_action->count_subaction_paths);
   const unsigned int count = grip_action->count_subaction_paths;
 
-  wm_xr_session_controller_data_free(state);
+  wm_xr_session_controller_data_free(controllers);
 
   for (unsigned int i = 0; i < count; ++i) {
     wmXrController *controller = MEM_callocN(sizeof(*controller), __func__);
-
     BLI_assert(STREQ(grip_action->subaction_paths[i], aim_action->subaction_paths[i]));
     strcpy(controller->subaction_path, grip_action->subaction_paths[i]);
 
@@ -1302,7 +1405,7 @@ void wm_xr_session_controller_data_populate(const wmXrAction *grip_action,
 
 void wm_xr_session_controller_data_clear(wmXrSessionState *state)
 {
-  wm_xr_session_controller_data_free(state);
+  wm_xr_session_controller_data_free(&state->controllers);
 
   /* Deactivate draw callback. */
   if (g_xr_surface) {
@@ -1312,6 +1415,53 @@ void wm_xr_session_controller_data_clear(wmXrSessionState *state)
         ED_region_draw_cb_exit(surface_data->controller_art, surface_data->controller_draw_handle);
       }
       surface_data->controller_draw_handle = NULL;
+    }
+  }
+}
+
+void wm_xr_session_tracker_data_populate(const ListBase *tracker_actions, wmXrData *xr)
+{
+  wmXrSessionState *state = &xr->runtime->session_state;
+  ListBase *trackers = &state->trackers;
+
+  wm_xr_session_controller_data_free(trackers);
+
+  LISTBASE_FOREACH (const LinkData *, ld, tracker_actions) {
+    const wmXrAction *tracker_action = ld->data;
+
+    for (unsigned int subaction_idx = 0; subaction_idx < tracker_action->count_subaction_paths;
+         ++subaction_idx) {
+      wmXrController *tracker = MEM_callocN(sizeof(*tracker), __func__);
+      strcpy(tracker->subaction_path, tracker_action->subaction_paths[subaction_idx]);
+
+      BLI_addtail(trackers, tracker);
+    }
+  }
+
+  /* Activate draw callback. */
+  if (g_xr_surface) {
+    wmXrSurfaceData *surface_data = g_xr_surface->customdata;
+    if (surface_data && !surface_data->tracker_draw_handle) {
+      if (surface_data->controller_art) {
+        surface_data->tracker_draw_handle = ED_region_draw_cb_activate(
+            surface_data->controller_art, wm_xr_draw_trackers, xr, REGION_DRAW_POST_VIEW);
+      }
+    }
+  }
+}
+
+void wm_xr_session_tracker_data_clear(wmXrSessionState *state)
+{
+  wm_xr_session_controller_data_free(&state->trackers);
+
+  /* Deactivate draw callback. */
+  if (g_xr_surface) {
+    wmXrSurfaceData *surface_data = g_xr_surface->customdata;
+    if (surface_data && surface_data->tracker_draw_handle) {
+      if (surface_data->controller_art) {
+        ED_region_draw_cb_exit(surface_data->controller_art, surface_data->tracker_draw_handle);
+      }
+      surface_data->tracker_draw_handle = NULL;
     }
   }
 }

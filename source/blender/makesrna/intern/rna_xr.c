@@ -523,6 +523,29 @@ static void rna_XrActionMapItem_pose_is_controller_aim_set(PointerRNA *ptr, bool
 #  endif
 }
 
+static bool rna_XrActionMapItem_pose_is_tracker_get(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  XrActionMapItem *ami = ptr->data;
+  if ((ami->pose_flag & XR_POSE_TRACKER) != 0) {
+    return true;
+  }
+#  else
+  UNUSED_VARS(ptr);
+#  endif
+  return false;
+}
+
+static void rna_XrActionMapItem_pose_is_tracker_set(PointerRNA *ptr, bool value)
+{
+#  ifdef WITH_XR_OPENXR
+  XrActionMapItem *ami = ptr->data;
+  SET_FLAG_FROM_TEST(ami->pose_flag, value, XR_POSE_TRACKER);
+#  else
+  UNUSED_VARS(ptr, value);
+#  endif
+}
+
 static void rna_XrActionMapItem_bindings_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 #  ifdef WITH_XR_OPENXR
@@ -1048,6 +1071,32 @@ bool rna_XrSessionState_controller_pose_actions_set(bContext *C,
 #  endif
 }
 
+bool rna_XrSessionState_tracker_pose_action_add(bContext *C,
+                                                const char *action_set_name,
+                                                const char *tracker_action_name)
+{
+#  ifdef WITH_XR_OPENXR
+  wmWindowManager *wm = CTX_wm_manager(C);
+  return WM_xr_tracker_pose_action_add(&wm->xr, action_set_name, tracker_action_name);
+#  else
+  UNUSED_VARS(C, action_set_name, tracker_action_name);
+  return false;
+#  endif
+}
+
+bool rna_XrSessionState_tracker_pose_action_remove(bContext *C,
+                                                   const char *action_set_name,
+                                                   const char *tracker_action_name)
+{
+#  ifdef WITH_XR_OPENXR
+  wmWindowManager *wm = CTX_wm_manager(C);
+  return WM_xr_tracker_pose_action_remove(&wm->xr, action_set_name, tracker_action_name);
+#  else
+  UNUSED_VARS(C, action_set_name, tracker_action_name);
+  return false;
+#  endif
+}
+
 void rna_XrSessionState_action_state_get(bContext *C,
                                          const char *action_set_name,
                                          const char *action_name,
@@ -1167,6 +1216,32 @@ static void rna_XrSessionState_controller_aim_rotation_get(bContext *C,
   WM_xr_session_state_controller_aim_rotation_get(&wm->xr, index, r_values);
 #  else
   UNUSED_VARS(C, index);
+  unit_qt(r_values);
+#  endif
+}
+
+static void rna_XrSessionState_tracker_location_get(bContext *C,
+                                                    const char *user_path,
+                                                    float r_values[3])
+{
+#  ifdef WITH_XR_OPENXR
+  const wmWindowManager *wm = CTX_wm_manager(C);
+  WM_xr_session_state_tracker_location_get(&wm->xr, user_path, r_values);
+#  else
+  UNUSED_VARS(C, user_path);
+  zero_v3(r_values);
+#  endif
+}
+
+static void rna_XrSessionState_tracker_rotation_get(bContext *C,
+                                                    const char *user_path,
+                                                    float r_values[4])
+{
+#  ifdef WITH_XR_OPENXR
+  const wmWindowManager *wm = CTX_wm_manager(C);
+  WM_xr_session_state_tracker_rotation_get(&wm->xr, user_path, r_values);
+#  else
+  UNUSED_VARS(C, user_path);
   unit_qt(r_values);
 #  endif
 }
@@ -1827,6 +1902,11 @@ static void rna_def_xr_actionmap(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Is Controller Aim", "The action poses will be used for the VR controller aims");
 
+  prop = RNA_def_property(srna, "pose_is_tracker", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(
+      prop, "rna_XrActionMapItem_pose_is_tracker_get", "rna_XrActionMapItem_pose_is_tracker_set");
+  RNA_def_property_ui_text(prop, "Is Tracker", "The action poses represent a VR tracker");
+
   prop = RNA_def_property(srna, "haptic_name", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(
       prop, "Haptic Name", "Name of the haptic action to apply when executing this action");
@@ -2359,6 +2439,42 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
   parm = RNA_def_boolean(func, "result", 0, "Result", "");
   RNA_def_function_return(func, parm);
 
+  func = RNA_def_function(
+      srna, "tracker_pose_action_add", "rna_XrSessionState_tracker_pose_action_add");
+  RNA_def_function_ui_description(func, "Add a VR tracker pose to the session");
+  RNA_def_function_flag(func, FUNC_NO_SELF);
+  parm = RNA_def_pointer(func, "context", "Context", "", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_string(func, "action_set", NULL, MAX_NAME, "Action Set", "Action set name");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_string(func,
+                        "tracker_action",
+                        NULL,
+                        MAX_NAME,
+                        "Tracker Action",
+                        "Name of the action representing the VR tracker");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_boolean(func, "result", 0, "Result", "");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(
+      srna, "tracker_pose_action_remove", "rna_XrSessionState_tracker_pose_action_remove");
+  RNA_def_function_ui_description(func, "Remove a VR tracker pose from the session");
+  RNA_def_function_flag(func, FUNC_NO_SELF);
+  parm = RNA_def_pointer(func, "context", "Context", "", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_string(func, "action_set", NULL, MAX_NAME, "Action Set", "Action set name");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_string(func,
+                        "tracker_action",
+                        NULL,
+                        MAX_NAME,
+                        "Tracker Action",
+                        "Name of the action representing the VR tracker");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_boolean(func, "result", 0, "Result", "");
+  RNA_def_function_return(func, parm);
+
   func = RNA_def_function(srna, "action_state_get", "rna_XrSessionState_action_state_get");
   RNA_def_function_ui_description(func, "Get the current state of a VR action");
   RNA_def_function_flag(func, FUNC_NO_SELF);
@@ -2535,6 +2651,49 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
                               FLT_MAX,
                               "Rotation",
                               "Controller aim quaternion rotation",
+                              -FLT_MAX,
+                              FLT_MAX);
+  parm->subtype = PROP_QUATERNION;
+  RNA_def_property_ui_range(parm, -FLT_MAX, FLT_MAX, 1, 5);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_OUTPUT);
+
+  func = RNA_def_function(srna, "tracker_location_get", "rna_XrSessionState_tracker_location_get");
+  RNA_def_function_ui_description(func, "Get the last known tracker location in world space");
+  RNA_def_function_flag(func, FUNC_NO_SELF);
+  parm = RNA_def_pointer(func, "context", "Context", "", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_string(
+      func, "user_path", NULL, XR_MAX_USER_PATH_LENGTH, "User Path", "OpenXR user path");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_float_translation(func,
+                                   "location",
+                                   3,
+                                   NULL,
+                                   -FLT_MAX,
+                                   FLT_MAX,
+                                   "Location",
+                                   "Tracker location",
+                                   -FLT_MAX,
+                                   FLT_MAX);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_OUTPUT);
+
+  func = RNA_def_function(srna, "tracker_rotation_get", "rna_XrSessionState_tracker_rotation_get");
+  RNA_def_function_ui_description(
+      func, "Get the last known tracker rotation (quaternion) in world space");
+  RNA_def_function_flag(func, FUNC_NO_SELF);
+  parm = RNA_def_pointer(func, "context", "Context", "", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_string(
+      func, "user_path", NULL, XR_MAX_USER_PATH_LENGTH, "User Path", "OpenXR user path");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_float_vector(func,
+                              "rotation",
+                              4,
+                              NULL,
+                              -FLT_MAX,
+                              FLT_MAX,
+                              "Rotation",
+                              "Tracker quaternion rotation",
                               -FLT_MAX,
                               FLT_MAX);
   parm->subtype = PROP_QUATERNION;

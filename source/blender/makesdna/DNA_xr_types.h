@@ -115,6 +115,8 @@ typedef enum eXrPoseFlag {
   /* Pose represents controller grip/aim. */
   XR_POSE_GRIP = (1 << 0),
   XR_POSE_AIM = (1 << 1),
+  /* Pose represents VR tracker. */
+  XR_POSE_TRACKER = (1 << 2),
 } eXrPoseFlag;
 
 typedef enum eXrMotionCaptureFlag {

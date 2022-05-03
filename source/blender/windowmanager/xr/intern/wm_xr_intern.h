@@ -52,6 +52,8 @@ typedef struct wmXrSessionState {
 
   /** Last known controller data. */
   ListBase controllers; /* #wmXrController */
+  /** Last known tracker data. */
+  ListBase trackers; /* #wmXrController */
 
   /** The currently active action set that will be updated on calls to
    * wm_xr_session_actions_update(). If NULL, all action sets will be treated as active and
@@ -92,6 +94,8 @@ typedef struct {
   struct ARegionType *controller_art;
   /** Controller draw callback handle. */
   void *controller_draw_handle;
+  /** Tracker draw callback handle. */
+  void *tracker_draw_handle;
 } wmXrSurfaceData;
 
 typedef struct wmXrDrawData {
@@ -176,11 +180,13 @@ typedef struct wmXrActionSet {
   /** XR pose actions that determine the controller grip/aim transforms. */
   wmXrAction *controller_grip_action;
   wmXrAction *controller_aim_action;
+  /** XR pose actions that determine tracker transforms. */
+  ListBase tracker_actions; /* #LinkData */
 
   /** Currently active modal actions. */
-  ListBase active_modal_actions;
+  ListBase active_modal_actions; /* #LinkData */
   /** Currently active haptic actions. */
-  ListBase active_haptic_actions;
+  ListBase active_haptic_actions; /* wmXrHapticAction */
 } wmXrActionSet;
 
 typedef struct wmXrMotionCapturePose {
@@ -223,6 +229,8 @@ void wm_xr_session_controller_data_populate(const wmXrAction *grip_action,
                                             const wmXrAction *aim_action,
                                             wmXrData *xr);
 void wm_xr_session_controller_data_clear(wmXrSessionState *state);
+void wm_xr_session_tracker_data_populate(const ListBase *tracker_actions, wmXrData *xr);
+void wm_xr_session_tracker_data_clear(wmXrSessionState *state);
 
 /* wm_xr_draw.c */
 void wm_xr_pose_to_mat(const GHOST_XrPose *pose, float r_mat[4][4]);
@@ -237,6 +245,7 @@ void wm_xr_pose_scale_to_imat(const GHOST_XrPose *pose, float scale, float r_ima
  */
 void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata);
 void wm_xr_draw_controllers(const struct bContext *C, struct ARegion *region, void *customdata);
+void wm_xr_draw_trackers(const struct bContext *C, struct ARegion *region, void *customdata);
 
 /* wm_xr_mocap.c */
 void wm_xr_mocap_orig_poses_store(const XrSessionSettings *settings, wmXrSessionState *state);

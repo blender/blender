@@ -43,6 +43,7 @@ static void action_set_destroy(void *val)
 
   MEM_SAFE_FREE(action_set->name);
 
+  BLI_freelistN(&action_set->tracker_actions);
   BLI_freelistN(&action_set->active_modal_actions);
   BLI_freelistN(&action_set->active_haptic_actions);
 
@@ -200,6 +201,11 @@ void WM_xr_action_set_destroy(wmXrData *xr, const char *action_set_name)
       action_set->controller_grip_action = action_set->controller_aim_action = NULL;
     }
 
+    if (!BLI_listbase_is_empty(&action_set->tracker_actions)) {
+      wm_xr_session_tracker_data_clear(session_state);
+      BLI_freelistN(&action_set->tracker_actions);
+    }
+
     BLI_freelistN(&action_set->active_modal_actions);
     BLI_freelistN(&action_set->active_haptic_actions);
 
@@ -309,6 +315,14 @@ void WM_xr_action_destroy(wmXrData *xr, const char *action_set_name, const char 
     action_set->controller_grip_action = action_set->controller_aim_action = NULL;
   }
 
+  LISTBASE_FOREACH (LinkData *, ld, &action_set->tracker_actions) {
+    wmXrAction *tracker_action = ld->data;
+    if (STREQ(tracker_action->name, action_name)) {
+      WM_xr_tracker_pose_action_remove(xr, action_set_name, action_name);
+      break;
+    }
+  }
+
   LISTBASE_FOREACH (LinkData *, ld, &action_set->active_modal_actions) {
     wmXrAction *active_modal_action = ld->data;
     if (STREQ(active_modal_action->name, action_name)) {
@@ -409,12 +423,20 @@ bool WM_xr_active_action_set_set(wmXrData *xr, const char *action_set_name)
 
   xr->runtime->session_state.active_action_set = action_set;
 
+  /* Update controller/tracker data.  */
   if (action_set->controller_grip_action && action_set->controller_aim_action) {
     wm_xr_session_controller_data_populate(
         action_set->controller_grip_action, action_set->controller_aim_action, xr);
   }
   else {
     wm_xr_session_controller_data_clear(&xr->runtime->session_state);
+  }
+
+  if (!BLI_listbase_is_empty(&action_set->tracker_actions)) {
+    wm_xr_session_tracker_data_populate(&action_set->tracker_actions, xr);
+  }
+  else {
+    wm_xr_session_tracker_data_clear(&xr->runtime->session_state);
   }
 
   return true;
@@ -457,6 +479,66 @@ bool WM_xr_controller_pose_actions_set(wmXrData *xr,
 
   if (action_set == xr->runtime->session_state.active_action_set) {
     wm_xr_session_controller_data_populate(grip_action, aim_action, xr);
+  }
+
+  return true;
+}
+
+bool WM_xr_tracker_pose_action_add(wmXrData *xr,
+                                   const char *action_set_name,
+                                   const char *tracker_action_name)
+{
+  wmXrActionSet *action_set = action_set_find(xr, action_set_name);
+  if (!action_set) {
+    return false;
+  }
+
+  wmXrAction *tracker_action = action_find(xr, action_set_name, tracker_action_name);
+  if (!tracker_action) {
+    return false;
+  }
+
+  LinkData *ld = MEM_callocN(sizeof(*ld), __func__);
+  ld->data = tracker_action;
+  BLI_addtail(&action_set->tracker_actions, ld);
+
+  if (action_set == xr->runtime->session_state.active_action_set) {
+    wm_xr_session_tracker_data_populate(&action_set->tracker_actions, xr);
+  }
+
+  return true;
+}
+
+bool WM_xr_tracker_pose_action_remove(wmXrData *xr,
+                                      const char *action_set_name,
+                                      const char *tracker_action_name)
+{
+  wmXrActionSet *action_set = action_set_find(xr, action_set_name);
+  if (!action_set) {
+    return false;
+  }
+
+  wmXrAction *tracker_action = action_find(xr, action_set_name, tracker_action_name);
+  if (!tracker_action) {
+    return false;
+  }
+
+  {
+    LinkData *ld = BLI_findptr(
+        &action_set->tracker_actions, tracker_action, offsetof(LinkData, data));
+    if (!ld) {
+      return false;
+    }
+    BLI_freelinkN(&action_set->tracker_actions, ld);
+  }
+
+  if (action_set == xr->runtime->session_state.active_action_set) {
+    if (BLI_listbase_is_empty(&action_set->tracker_actions)) {
+      wm_xr_session_tracker_data_clear(&xr->runtime->session_state);
+    }
+    else {
+      wm_xr_session_tracker_data_populate(&action_set->tracker_actions, xr);
+    }
   }
 
   return true;
