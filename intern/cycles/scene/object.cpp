@@ -220,7 +220,7 @@ void Object::tag_update(Scene *scene)
   }
 
   if (geometry) {
-    if (tfm_is_modified()) {
+    if (tfm_is_modified() || motion_is_modified()) {
       flag |= ObjectManager::TRANSFORM_MODIFIED;
     }
 
@@ -480,7 +480,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
       kobject.motion_offset = state->motion_offset[ob->index];
 
       /* Decompose transforms for interpolation. */
-      if (ob->tfm_is_modified() || update_all) {
+      if (ob->tfm_is_modified() || ob->motion_is_modified() || update_all) {
         DecomposedTransform *decomp = state->object_motion + kobject.motion_offset;
         transform_motion_decompose(decomp, ob->motion.data(), ob->motion.size());
       }
