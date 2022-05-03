@@ -486,7 +486,7 @@ if((UNIX AND NOT APPLE) OR (CMAKE_GENERATOR MATCHES "^Visual Studio.+"))
 endif()
 
 option(WITH_BOOST "Enable features depending on boost" ON)
-option(WITH_TBB   "Enable features depending on TBB (OpenVDB, OpenImageDenoise, sculpt multithreading)" ON)
+option(WITH_TBB   "Enable multithreading. TBB is also required for features such as Cycles, OpenVDB and USD" ON)
 
 # TBB malloc is only supported on for windows currently
 if(WIN32)
