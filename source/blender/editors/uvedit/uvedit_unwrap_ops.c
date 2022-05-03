@@ -2841,6 +2841,10 @@ static void uvedit_unwrap_cube_project(BMesh *bm,
     zero_v3(loc);
   }
 
+  if (UNLIKELY(cube_size == 0.0f)) {
+    cube_size = 1.0f;
+  }
+
   /* choose x,y,z axis for projection depending on the largest normal
    * component, but clusters all together around the center of map. */
 
@@ -2853,8 +2857,8 @@ static void uvedit_unwrap_cube_project(BMesh *bm,
 
     BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
       luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-      luv->uv[0] = 0.5f + 0.5f * cube_size * (l->v->co[cox] - loc[cox]);
-      luv->uv[1] = 0.5f + 0.5f * cube_size * (l->v->co[coy] - loc[coy]);
+      luv->uv[0] = 0.5f + ((l->v->co[cox] - loc[cox]) / cube_size);
+      luv->uv[1] = 0.5f + ((l->v->co[coy] - loc[coy]) / cube_size);
     }
   }
 }
@@ -2900,7 +2904,6 @@ static int cube_project_exec(bContext *C, wmOperator *op)
       float dims[3];
       sub_v3_v3v3(dims, bounds[1], bounds[0]);
       cube_size = max_fff(UNPACK3(dims));
-      cube_size = cube_size ? 2.0f / cube_size : 1.0f;
       if (ob_index == 0) {
         /* This doesn't fit well with, multiple objects. */
         RNA_property_float_set(op->ptr, prop_cube_size, cube_size);
@@ -2975,7 +2978,8 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
                      }));
   /* select all uv loops first - pack parameters needs this to make sure charts are registered */
   ED_uvedit_select_all(bm);
-  uvedit_unwrap_cube_project(bm, 1.0, false, NULL);
+  /* A cube size of 2.0 maps [-1..1] vertex coords to [0.0..1.0] in UV coords. */
+  uvedit_unwrap_cube_project(bm, 2.0, false, NULL);
   /* Set the margin really quickly before the packing operation. */
   scene->toolsettings->uvcalc_margin = 0.001f;
   uvedit_pack_islands(scene, ob, bm);
