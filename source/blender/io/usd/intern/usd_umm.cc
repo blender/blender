@@ -60,14 +60,8 @@ using namespace blender::io::usd;
 
 static std::string anchor_relative_path(pxr::UsdStagePtr stage, const std::string &asset_path)
 {
-  if (asset_path.empty()) {
+  if (asset_path.empty() || asset_path.front() != '.') {
     return std::string();
-  }
-
-  pxr::ArResolver &resolver = pxr::ArGetResolver();
-
-  if (!resolver.IsRelativePath(asset_path)) {
-    return asset_path;
   }
 
   // TODO(makowalski): avoid recomputing the USD path, if possible.
@@ -79,7 +73,11 @@ static std::string anchor_relative_path(pxr::UsdStagePtr stage, const std::strin
     return asset_path;
   }
 
-  return resolver.AnchorRelativePath(stage_path, asset_path);
+#if PXR_VERSION >= 2111
+  return pxr::ArGetResolver().CreateIdentifier(asset_path, pxr::ArResolvedPath(stage_path));
+#else
+  return pxr::ArGetResolver().AnchorRelativePath(stage_path, asset_path);
+#endif
 }
 
 static void print_obj(PyObject *obj)

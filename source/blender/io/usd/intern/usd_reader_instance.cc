@@ -54,8 +54,8 @@ void USDInstanceReader::set_instance_collection(Collection *coll)
 
 pxr::SdfPath USDInstanceReader::proto_path() const
 {
-  if (pxr::UsdPrim master = prim_.GetMaster()) {
-    return master.GetPath();
+  if (pxr::UsdPrim proto = prim_.GetPrototype()) {
+    return proto.GetPath();
   }
 
   return pxr::SdfPath();
