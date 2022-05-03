@@ -24,6 +24,7 @@ struct Object;
 struct Scene;
 struct SpaceImage;
 struct ToolSettings;
+struct View2D;
 struct ViewLayer;
 struct bContext;
 struct bNode;
@@ -242,15 +243,12 @@ void uvedit_deselect_flush(const struct Scene *scene, struct BMEditMesh *em);
  */
 void uvedit_select_flush(const struct Scene *scene, struct BMEditMesh *em);
 
-bool ED_uvedit_nearest_uv(const struct Scene *scene,
-                          struct Object *obedit,
-                          const float co[2],
-                          float *dist_sq,
-                          float r_uv[2]);
-bool ED_uvedit_nearest_uv_multi(const struct Scene *scene,
+bool ED_uvedit_nearest_uv_multi(const struct View2D *v2d,
+                                const struct Scene *scene,
                                 struct Object **objects,
                                 uint objects_len,
-                                const float co[2],
+                                const int mval[2],
+                                const bool ignore_selected,
                                 float *dist_sq,
                                 float r_uv[2]);
 
