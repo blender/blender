@@ -869,8 +869,6 @@ PyObject *PyC_ExceptionBuffer(void)
 
   PyErr_Fetch(&error_type, &error_value, &error_traceback);
 
-  PyErr_Clear();
-
   /* import io
    * string_io = io.StringIO()
    */

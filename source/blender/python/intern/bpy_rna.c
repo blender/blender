@@ -4542,7 +4542,6 @@ static PyObject *pyrna_prop_collection_getattro(BPy_PropertyRNA *self, PyObject 
 
         PyObject *error_type, *error_value, *error_traceback;
         PyErr_Fetch(&error_type, &error_value, &error_traceback);
-        PyErr_Clear();
 
         cls = pyrna_struct_Subtype(&r_ptr);
         ret = PyObject_GenericGetAttr(cls, pyname);
@@ -7937,8 +7936,6 @@ StructRNA *srna_from_self(PyObject *self, const char *error_prefix)
   StructRNA *srna;
 
   PyErr_Fetch(&error_type, &error_value, &error_traceback);
-  PyErr_Clear();
-
   srna = pyrna_struct_as_srna(self, false, error_prefix);
 
   if (!PyErr_Occurred()) {
