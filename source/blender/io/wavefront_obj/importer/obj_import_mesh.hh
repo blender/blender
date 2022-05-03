@@ -32,7 +32,7 @@ class MeshFromGeometry : NonMovable, NonCopyable {
   }
 
   Object *create_mesh(Main *bmain,
-                      const Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
+                      Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
                       Map<std::string, Material *> &created_materials,
                       const OBJImportParams &import_params);
 
@@ -61,7 +61,7 @@ class MeshFromGeometry : NonMovable, NonCopyable {
    * Add materials and the node-tree to the Mesh Object.
    */
   void create_materials(Main *bmain,
-                        const Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
+                        Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
                         Map<std::string, Material *> &created_materials,
                         Object *obj);
   void create_normals(Mesh *mesh);

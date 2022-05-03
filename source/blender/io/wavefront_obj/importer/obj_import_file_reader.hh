@@ -39,6 +39,10 @@ class OBJParser {
    * Return a list of all material library filepaths referenced by the OBJ file.
    */
   Span<std::string> mtl_libraries() const;
+
+ private:
+  void add_mtl_library(const std::string &path);
+  void add_default_mtl_library();
 };
 
 class MTLParser {
