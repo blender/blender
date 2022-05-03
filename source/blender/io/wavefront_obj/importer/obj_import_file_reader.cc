@@ -71,7 +71,7 @@ static void geom_add_vertex(Geometry *geom,
                             GlobalVertices &r_global_vertices)
 {
   float3 vert;
-  parse_floats(line, FLT_MAX, vert, 3);
+  parse_floats(line, 0.0f, vert, 3);
   r_global_vertices.vertices.append(vert);
   geom->vertex_count_++;
 }
@@ -81,7 +81,7 @@ static void geom_add_vertex_normal(Geometry *geom,
                                    GlobalVertices &r_global_vertices)
 {
   float3 normal;
-  parse_floats(line, FLT_MAX, normal, 3);
+  parse_floats(line, 0.0f, normal, 3);
   r_global_vertices.vertex_normals.append(normal);
   geom->has_vertex_normals_ = true;
 }
@@ -89,7 +89,7 @@ static void geom_add_vertex_normal(Geometry *geom,
 static void geom_add_uv_vertex(const StringRef line, GlobalVertices &r_global_vertices)
 {
   float2 uv;
-  parse_floats(line, FLT_MAX, uv, 2);
+  parse_floats(line, 0.0f, uv, 2);
   r_global_vertices.uv_vertices.append(uv);
 }
 
@@ -558,7 +558,7 @@ static bool parse_texture_option(StringRef &line, MTLMaterial *material, tex_map
     return true;
   }
   if (parse_keyword(line, "-bm")) {
-    line = parse_float(line, 0.0f, material->map_Bump_strength);
+    line = parse_float(line, 1.0f, material->map_Bump_strength);
     return true;
   }
   if (parse_keyword(line, "-type")) {
