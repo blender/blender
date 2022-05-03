@@ -2223,7 +2223,8 @@ typedef struct SurfaceDeformModifierData {
   /** Vertex bind data. */
   SDefVert *verts;
   float falloff;
-  unsigned int mesh_verts_num, bind_verts_num, polys_num;
+  unsigned int mesh_verts_num, bind_verts_num;
+  unsigned int target_polys_num;
   int flags;
   float mat[4][4];
   float strength;
