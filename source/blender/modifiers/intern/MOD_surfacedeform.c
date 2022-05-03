@@ -1233,6 +1233,7 @@ static bool surfacedeformBind(Object *ob,
   }
 
   smd_orig->mesh_verts_num = verts_num;
+  smd_orig->target_verts_num = target_verts_num;
   smd_orig->target_polys_num = target_polys_num;
 
   int defgrp_index;
@@ -1489,16 +1490,46 @@ static void surfacedeformModifier_do(ModifierData *md,
     return;
   }
 
-  /* Poly count checks */
+  /* Geometry count on the deforming mesh. */
   if (smd->mesh_verts_num != verts_num) {
     BKE_modifier_set_error(
         ob, md, "Vertices changed from %u to %u", smd->mesh_verts_num, verts_num);
     return;
   }
-  if (smd->target_polys_num != target_polys_num) {
+
+  /* Geometry count on the target mesh. */
+  if (smd->target_polys_num != target_polys_num && smd->target_verts_num == 0) {
+    /* Change in the number of polygons does not really imply change in the vertex count, but
+     * this is how the modifier worked before the vertex count was known. Follow the legacy
+     * logic without requirement to re-bind the mesh. */
     BKE_modifier_set_error(
         ob, md, "Target polygons changed from %u to %u", smd->target_polys_num, target_polys_num);
     return;
+  }
+  if (smd->target_verts_num != 0 && smd->target_verts_num != target_verts_num) {
+    if (smd->target_verts_num > target_verts_num) {
+      /* Number of vertices on the target did reduce. There is no usable recovery from this. */
+      BKE_modifier_set_error(ob,
+                             md,
+                             "Target vertices changed from %u to %u",
+                             smd->target_verts_num,
+                             target_verts_num);
+      return;
+    }
+
+    /* Assume the increase in the vertex count means that the "new" vertices in the target mesh are
+     * added after the original ones. This covers typical case when target was at the subdivision
+     * level 0 and then subdivision was increased (i.e. for the render purposes). */
+
+    BKE_modifier_set_error(ob,
+                           md,
+                           "Target vertices changed from %u to %u, continuing anyway",
+                           smd->target_verts_num,
+                           target_verts_num);
+
+    /* In theory we only need the `smd->verts_num` vertices in the `targetCos` for evaluation, but
+     * it is not currently possible to request a subset of coordinates: the API expects that the
+     * caller needs coordinates of all vertices and asserts for it. */
   }
 
   /* Early out if modifier would not affect input at all - still *after* the sanity checks
