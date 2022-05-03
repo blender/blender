@@ -875,14 +875,13 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
     GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
     int n = 0;
-    BLI_snprintf(cache->uv_layer_names[i][n++], MAX_LAYER_NAME_LEN, "u%s", attr_safe_name);
     BLI_snprintf(cache->uv_layer_names[i][n++], MAX_LAYER_NAME_LEN, "a%s", attr_safe_name);
 
     if (i == active_uv) {
       BLI_strncpy(cache->uv_layer_names[i][n++], "au", MAX_LAYER_NAME_LEN);
     }
     if (i == render_uv) {
-      BLI_strncpy(cache->uv_layer_names[i][n++], "u", MAX_LAYER_NAME_LEN);
+      BLI_strncpy(cache->uv_layer_names[i][n++], "a", MAX_LAYER_NAME_LEN);
     }
   }
   /* Vertex colors */
@@ -896,12 +895,7 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
     GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
     int n = 0;
-    BLI_snprintf(cache->col_layer_names[i][n++], MAX_LAYER_NAME_LEN, "c%s", attr_safe_name);
-
-    /* We only do vcols auto name that are not overridden by uvs */
-    if (CustomData_get_named_layer_index(&psmd->mesh_final->ldata, CD_MLOOPUV, name) == -1) {
-      BLI_snprintf(cache->col_layer_names[i][n++], MAX_LAYER_NAME_LEN, "a%s", attr_safe_name);
-    }
+    BLI_snprintf(cache->col_layer_names[i][n++], MAX_LAYER_NAME_LEN, "a%s", attr_safe_name);
 
     if (i == active_col) {
       BLI_strncpy(cache->col_layer_names[i][n++], "ac", MAX_LAYER_NAME_LEN);
@@ -1186,11 +1180,11 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
       const char *name = CustomData_get_layer_name(&psmd->mesh_final->ldata, CD_MLOOPUV, i);
       GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
-      BLI_snprintf(uuid, sizeof(uuid), "u%s", attr_safe_name);
+      BLI_snprintf(uuid, sizeof(uuid), "a%s", attr_safe_name);
       uv_id[i] = GPU_vertformat_attr_add(&format, uuid, GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
       if (i == active_uv) {
-        GPU_vertformat_alias_add(&format, "u");
+        GPU_vertformat_alias_add(&format, "a");
       }
     }
 
@@ -1200,7 +1194,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
           &psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR, i);
       GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
-      BLI_snprintf(uuid, sizeof(uuid), "c%s", attr_safe_name);
+      BLI_snprintf(uuid, sizeof(uuid), "a%s", attr_safe_name);
       col_id[i] = GPU_vertformat_attr_add(&format, uuid, GPU_COMP_U16, 4, GPU_FETCH_FLOAT);
 
       if (i == active_col) {
