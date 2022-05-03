@@ -18,7 +18,7 @@ namespace blender::eevee {
 class Instance;
 
 /* -------------------------------------------------------------------- */
-/** \name Default World Nodetree
+/** \name Default World Node-Tree
  *
  * In order to support worlds without nodetree we reuse and configure a standalone nodetree that
  * we pass for shader generation. The GPUMaterial is still stored inside the World even if

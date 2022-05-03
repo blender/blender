@@ -733,7 +733,7 @@ enum {
 /* paint_vertex.cc */
 
 /**
- * Fills the object's active color atribute layer with the fill color.
+ * Fills the object's active color attribute layer with the fill color.
  *
  * \param[in] ob: The object.
  * \param[in] fill_color: The fill color.

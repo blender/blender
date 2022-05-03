@@ -36,7 +36,7 @@ class ShaderModule {
  private:
   std::array<GPUShader *, MAX_SHADER_TYPE> shaders_;
 
-  /** Shared shader module accross all engine instances. */
+  /** Shared shader module across all engine instances. */
   static ShaderModule *g_shader_module;
 
  public:

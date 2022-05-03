@@ -240,7 +240,7 @@ class MTLTexture : public Texture {
   id<MTLBuffer> vert_buffer_mtl_;
   int vert_buffer_offset_;
 
-  /* Core parameters and subresources. */
+  /* Core parameters and sub-resources. */
   eGPUTextureUsage gpu_image_usage_flags_;
 
   /* Whether the texture's properties or state has changed (e.g. mipmap range), and re-baking of

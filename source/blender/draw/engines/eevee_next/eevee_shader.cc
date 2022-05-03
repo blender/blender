@@ -25,7 +25,7 @@ ShaderModule *ShaderModule::g_shader_module = nullptr;
 ShaderModule *ShaderModule::module_get()
 {
   if (g_shader_module == nullptr) {
-    /* TODO(fclem) threadsafety. */
+    /* TODO(@fclem) thread-safety. */
     g_shader_module = new ShaderModule();
   }
   return g_shader_module;
@@ -34,7 +34,7 @@ ShaderModule *ShaderModule::module_get()
 void ShaderModule::module_free()
 {
   if (g_shader_module != nullptr) {
-    /* TODO(fclem) threadsafety. */
+    /* TODO(@fclem) thread-safety. */
     delete g_shader_module;
     g_shader_module = nullptr;
   }
@@ -148,7 +148,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
       /** Noop. */
       break;
     case MAT_GEOM_CURVES:
-      /** Hair attributes comme from sampler buffer. Transfer attributes to sampler. */
+      /** Hair attributes come from sampler buffer. Transfer attributes to sampler. */
       for (auto &input : info.vertex_inputs_) {
         if (input.name == "orco") {
           /** NOTE: Orco is generated from strand position for now. */
@@ -163,14 +163,14 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     case MAT_GEOM_WORLD:
       /**
        * Only orco layer is supported by world and it is procedurally generated. These are here to
-       * make the attribs_load function calls valids.
+       * make the attribs_load function calls valid.
        */
       ATTR_FALLTHROUGH;
     case MAT_GEOM_GPENCIL:
       /**
        * Only one uv and one color attribute layer are supported by gpencil objects and they are
        * already declared in another createInfo. These are here to make the attribs_load
-       * function calls valids.
+       * function calls valid.
        */
       for (auto &input : info.vertex_inputs_) {
         global_vars << input.type << " " << input.name << ";\n";

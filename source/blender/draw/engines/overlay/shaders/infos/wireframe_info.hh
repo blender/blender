@@ -21,7 +21,7 @@ GPU_SHADER_CREATE_INFO(overlay_wireframe)
     .sampler(0, ImageType::DEPTH_2D, "depthTex")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::VEC3, "nor")
-    .vertex_in(2, Type::FLOAT, "wd") /* wiredata */
+    .vertex_in(2, Type::FLOAT, "wd") /* wire-data. */
     .vertex_out(overlay_wireframe_iface)
     .vertex_source("wireframe_vert.glsl")
     .fragment_source("wireframe_frag.glsl")

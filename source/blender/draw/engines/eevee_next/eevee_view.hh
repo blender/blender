@@ -8,7 +8,7 @@
  * A view is either:
  * - The entire main view.
  * - A portion of the main view (for panoramic projections).
- * - A lightprobe view (either planar, cubemap, irradiance grid).
+ * - A light-probe view (either planar, cube-map, irradiance grid).
  *
  * A pass is a container for scene data. It is view agnostic but has specific logic depending on
  * its type. Passes are shared between views.

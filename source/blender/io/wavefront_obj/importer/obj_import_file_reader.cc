@@ -320,8 +320,8 @@ static bool parse_keyword(StringRef &line, StringRef keyword)
   if (!line.startswith(keyword)) {
     return false;
   }
-  /* Treat any ASCII control character as whitespace; don't use isspace() for performance reasons.
-   */
+  /* Treat any ASCII control character as white-space;
+   * don't use `isspace()` for performance reasons. */
   if (line[keyword_len] > ' ') {
     return false;
   }

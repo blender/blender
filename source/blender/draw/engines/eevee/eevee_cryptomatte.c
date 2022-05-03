@@ -68,7 +68,7 @@ BLI_INLINE int eevee_cryptomatte_layers_count(const ViewLayer *view_layer)
 }
 
 /* The number of render result passes are needed to store a single cryptomatte layer. Per
- * renderpass 2 cryptomatte samples can be stored. */
+ * render-pass 2 cryptomatte samples can be stored. */
 BLI_INLINE int eevee_cryptomatte_passes_per_layer(const ViewLayer *view_layer)
 {
   const int num_cryptomatte_levels = view_layer->cryptomatte_levels;

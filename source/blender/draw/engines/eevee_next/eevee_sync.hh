@@ -27,7 +27,7 @@ class Instance;
 /* -------------------------------------------------------------------- */
 /** \name ObjectKey
  *
- * Unique key to identify each object in the hashmap.
+ * Unique key to identify each object in the hash-map.
  * \{ */
 
 struct ObjectKey {

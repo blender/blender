@@ -26,7 +26,7 @@ using draw::TextureFromPool;
 #define UBO_MIN_MAX_SUPPORTED_SIZE 1 << 14
 
 /* -------------------------------------------------------------------- */
-/** \name Raytracing
+/** \name Ray-Tracing
  * \{ */
 
 enum eClosureBits : uint32_t {

@@ -9,7 +9,7 @@
  * - The entire main view.
  * - A fragment of the main view (for panoramic projections).
  * - A shadow map view.
- * - A lightprobe view (either planar, cubemap, irradiance grid).
+ * - A light-probe view (either planar, cube-map, irradiance grid).
  *
  * A pass is a container for scene data. It is view agnostic but has specific logic depending on
  * its type. Passes are shared between views.
@@ -40,7 +40,7 @@ void ShadingView::sync(int2 render_extent_)
     int64_t render_pixel_count = render_extent_.x * (int64_t)render_extent_.y;
     /* Divide pixel count between the 6 views. Rendering to a square target. */
     extent_[0] = extent_[1] = ceilf(sqrtf(1 + (render_pixel_count / 6)));
-    /* TODO(fclem) Clip unused views heres. */
+    /* TODO(@fclem): Clip unused views here. */
     is_enabled_ = true;
   }
   else {
@@ -60,8 +60,8 @@ void ShadingView::sync(int2 render_extent_)
   const float(*viewmat_p)[4] = viewmat.ptr(), (*winmat_p)[4] = winmat.ptr();
 #if 0
   if (false /* inst_.camera.is_panoramic() */) {
-    /* TODO(fclem) Overscans. */
-    /* For now a mandatory 5% overscan for DoF. */
+    /* TODO(@fclem) Over-scans. */
+    /* For now a mandatory 5% over-scan for DoF. */
     float side = data.clip_near * 1.05f;
     float near = data.clip_near;
     float far = data.clip_far;

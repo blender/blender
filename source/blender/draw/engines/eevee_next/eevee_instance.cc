@@ -21,9 +21,9 @@
 namespace blender::eevee {
 
 /* -------------------------------------------------------------------- */
-/** \name Init
+/** \name Initialization
  *
- * Init funcions need to be called once at the start of a frame.
+ * Initialization functions need to be called once at the start of a frame.
  * Active camera, render extent and enabled render passes are immutable until next init.
  * This takes care of resizing output buffers and view in case a parameter changed.
  * IMPORTANT: xxx.init() functions are NOT meant to acquire and allocate DRW resources.
