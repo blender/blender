@@ -2051,6 +2051,7 @@ static int pyrna_py_to_prop(
                   &itemptr, item, true, "Converting a Python list to an RNA collection") == -1) {
             PyObject *msg = PyC_ExceptionBuffer();
             const char *msg_char = PyUnicode_AsUTF8(msg);
+            PyErr_Clear();
 
             PyErr_Format(PyExc_TypeError,
                          "%.200s %.200s.%.200s error converting a member of a collection "
