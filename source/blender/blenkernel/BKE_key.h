@@ -13,6 +13,7 @@ struct Lattice;
 struct ListBase;
 struct Main;
 struct Mesh;
+struct MVert;
 struct Object;
 
 /* Kernel prototypes */
@@ -65,8 +66,8 @@ bool BKE_key_idtype_support(short id_type);
 
 struct Key **BKE_key_from_id_p(struct ID *id);
 struct Key *BKE_key_from_id(struct ID *id);
-struct Key **BKE_key_from_object_p(const struct Object *ob);
-struct Key *BKE_key_from_object(const struct Object *ob);
+struct Key **BKE_key_from_object_p(struct Object *ob);
+struct Key *BKE_key_from_object(struct Object *ob);
 /**
  * Only the active key-block.
  */
@@ -99,27 +100,34 @@ void BKE_keyblock_copy_settings(struct KeyBlock *kb_dst, const struct KeyBlock *
  * Get RNA-Path for 'value' setting of the given shape-key.
  * \note the user needs to free the returned string once they're finished with it.
  */
-char *BKE_keyblock_curval_rnapath_get(struct Key *key, struct KeyBlock *kb);
+char *BKE_keyblock_curval_rnapath_get(const struct Key *key, const struct KeyBlock *kb);
 
 /* conversion functions */
 /* NOTE: 'update_from' versions do not (re)allocate mem in kb, while 'convert_from' do. */
 
-void BKE_keyblock_update_from_lattice(struct Lattice *lt, struct KeyBlock *kb);
-void BKE_keyblock_convert_from_lattice(struct Lattice *lt, struct KeyBlock *kb);
-void BKE_keyblock_convert_to_lattice(struct KeyBlock *kb, struct Lattice *lt);
+void BKE_keyblock_update_from_lattice(const struct Lattice *lt, struct KeyBlock *kb);
+void BKE_keyblock_convert_from_lattice(const struct Lattice *lt, struct KeyBlock *kb);
+void BKE_keyblock_convert_to_lattice(const struct KeyBlock *kb, struct Lattice *lt);
 
 int BKE_keyblock_curve_element_count(const struct ListBase *nurb);
 void BKE_keyblock_curve_data_transform(const struct ListBase *nurb,
                                        const float mat[4][4],
                                        const void *src,
                                        void *dst);
-void BKE_keyblock_update_from_curve(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
-void BKE_keyblock_convert_from_curve(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
+void BKE_keyblock_update_from_curve(const struct Curve *cu,
+                                    struct KeyBlock *kb,
+                                    const struct ListBase *nurb);
+void BKE_keyblock_convert_from_curve(const struct Curve *cu,
+                                     struct KeyBlock *kb,
+                                     const struct ListBase *nurb);
 void BKE_keyblock_convert_to_curve(struct KeyBlock *kb, struct Curve *cu, struct ListBase *nurb);
 
-void BKE_keyblock_update_from_mesh(struct Mesh *me, struct KeyBlock *kb);
-void BKE_keyblock_convert_from_mesh(struct Mesh *me, struct Key *key, struct KeyBlock *kb);
-void BKE_keyblock_convert_to_mesh(struct KeyBlock *kb, struct Mesh *me);
+void BKE_keyblock_update_from_mesh(const struct Mesh *me, struct KeyBlock *kb);
+void BKE_keyblock_convert_from_mesh(const struct Mesh *me,
+                                    const struct Key *key,
+                                    struct KeyBlock *kb);
+void BKE_keyblock_convert_to_mesh(const struct KeyBlock *kb, struct MVert *mvert, int totvert);
+
 /**
  * Computes normals (vertices, polygons and/or loops ones) of given mesh for given shape key.
  *
@@ -129,21 +137,21 @@ void BKE_keyblock_convert_to_mesh(struct KeyBlock *kb, struct Mesh *me);
  * \param r_polynors: if non-NULL, an array of vectors, same length as number of polygons.
  * \param r_loopnors: if non-NULL, an array of vectors, same length as number of loops.
  */
-void BKE_keyblock_mesh_calc_normals(struct KeyBlock *kb,
-                                    struct Mesh *mesh,
+void BKE_keyblock_mesh_calc_normals(const struct KeyBlock *kb,
+                                    const struct Mesh *mesh,
                                     float (*r_vertnors)[3],
                                     float (*r_polynors)[3],
                                     float (*r_loopnors)[3]);
 
-void BKE_keyblock_update_from_vertcos(struct Object *ob,
+void BKE_keyblock_update_from_vertcos(const struct Object *ob,
                                       struct KeyBlock *kb,
                                       const float (*vertCos)[3]);
-void BKE_keyblock_convert_from_vertcos(struct Object *ob,
+void BKE_keyblock_convert_from_vertcos(const struct Object *ob,
                                        struct KeyBlock *kb,
                                        const float (*vertCos)[3]);
-float (*BKE_keyblock_convert_to_vertcos(struct Object *ob, struct KeyBlock *kb))[3];
+float (*BKE_keyblock_convert_to_vertcos(const struct Object *ob, const struct KeyBlock *kb))[3];
 
-void BKE_keyblock_update_from_offset(struct Object *ob,
+void BKE_keyblock_update_from_offset(const struct Object *ob,
                                      struct KeyBlock *kb,
                                      const float (*ofs)[3]);
 
@@ -163,7 +171,7 @@ bool BKE_keyblock_move(struct Object *ob, int org_index, int new_index);
 /**
  * Check if given key-block (as index) is used as basis by others in given key.
  */
-bool BKE_keyblock_is_basis(struct Key *key, int index);
+bool BKE_keyblock_is_basis(const struct Key *key, int index);
 
 /* -------------------------------------------------------------------- */
 /** \name Key-Block Data Access

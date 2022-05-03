@@ -3,20 +3,24 @@
 # Note the encoder/decoder may use png/tiff/lcms system libraries, but the
 # library itself does not depend on them, so should give no problems.
 
-set(OPENJPEG_EXTRA_ARGS -DBUILD_SHARED_LIBS=OFF)
-
 if(WIN32)
   set(OPENJPEG_EXTRA_ARGS -G "MSYS Makefiles" -DBUILD_PKGCONFIG_FILES=On)
 else()
   set(OPENJPEG_EXTRA_ARGS ${DEFAULT_CMAKE_FLAGS})
 endif()
 
+set(OPENJPEG_EXTRA_ARGS
+  ${OPENJPEG_EXTRA_ARGS}
+  -DBUILD_SHARED_LIBS=OFF
+  -DBUILD_CODEC=OFF
+)
+
 ExternalProject_Add(external_openjpeg
   URL file://${PACKAGE_DIR}/${OPENJPEG_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${OPENJPEG_HASH_TYPE}=${OPENJPEG_HASH}
   PREFIX ${BUILD_DIR}/openjpeg
-  CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/openjpeg/src/external_openjpeg-build && ${CMAKE_COMMAND} ${OPENJPEG_EXTRA_ARGS} -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openjpeg -DBUILD_SHARED_LIBS=Off -DBUILD_THIRDPARTY=OFF ${BUILD_DIR}/openjpeg/src/external_openjpeg
+  CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/openjpeg/src/external_openjpeg-build && ${CMAKE_COMMAND} ${OPENJPEG_EXTRA_ARGS} -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openjpeg ${BUILD_DIR}/openjpeg/src/external_openjpeg
   BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/openjpeg/src/external_openjpeg-build/ && make -j${MAKE_THREADS}
   INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/openjpeg/src/external_openjpeg-build/ && make install
   INSTALL_DIR ${LIBDIR}/openjpeg

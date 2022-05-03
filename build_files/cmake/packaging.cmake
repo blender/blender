@@ -106,8 +106,8 @@ if(WIN32)
   set(CPACK_WIX_LIGHT_EXTRA_FLAGS -dcl:medium)
 endif()
 
-set(CPACK_PACKAGE_EXECUTABLES "blender-launcher" "blender")
-set(CPACK_CREATE_DESKTOP_LINKS "blender-launcher" "blender")
+set(CPACK_PACKAGE_EXECUTABLES "blender-launcher" "Blender")
+set(CPACK_CREATE_DESKTOP_LINKS "blender-launcher" "Blender")
 
 include(CPack)
 

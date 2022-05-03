@@ -4693,10 +4693,6 @@ static int brush_edit_init(bContext *C, wmOperator *op)
   BrushEdit *bedit;
   float min[3], max[3];
 
-  if (!WM_toolsystem_active_tool_is_brush(C)) {
-    return 0;
-  }
-
   /* set the 'distance factor' for grabbing (used in comb etc) */
   INIT_MINMAX(min, max);
   PE_minmax(depsgraph, scene, view_layer, min, max);
@@ -5033,6 +5029,11 @@ static void brush_edit_cancel(bContext *UNUSED(C), wmOperator *op)
   brush_edit_exit(op);
 }
 
+static bool brush_edit_poll(bContext *C)
+{
+  return PE_poll_view3d(C) && WM_toolsystem_active_tool_is_brush(C);
+}
+
 void PARTICLE_OT_brush_edit(wmOperatorType *ot)
 {
   /* identifiers */
@@ -5045,7 +5046,7 @@ void PARTICLE_OT_brush_edit(wmOperatorType *ot)
   ot->invoke = brush_edit_invoke;
   ot->modal = brush_edit_modal;
   ot->cancel = brush_edit_cancel;
-  ot->poll = PE_poll_view3d;
+  ot->poll = brush_edit_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
@@ -5406,10 +5407,10 @@ static bool particle_edit_toggle_poll(bContext *C)
   Object *ob = CTX_data_active_object(C);
 
   if (ob == NULL || ob->type != OB_MESH) {
-    return 0;
+    return false;
   }
-  if (!ob->data || ID_IS_LINKED(ob->data)) {
-    return 0;
+  if (!ob->data || ID_IS_LINKED(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob->data)) {
+    return false;
   }
 
   return ED_object_particle_edit_mode_supported(ob);

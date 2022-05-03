@@ -2446,8 +2446,10 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "cfl_condition", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "cfl_condition");
   RNA_def_property_range(prop, 0.0, 10.0);
-  RNA_def_property_ui_text(
-      prop, "CFL", "Maximal velocity per cell (higher value results in greater timesteps)");
+  RNA_def_property_ui_text(prop,
+                           "CFL",
+                           "Maximal velocity per cell (greater CFL numbers will minimize the "
+                           "number of simulation steps and the computation time.)");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_datacache_reset");
 
   prop = RNA_def_property(srna, "use_adaptive_timesteps", PROP_BOOLEAN, PROP_NONE);
@@ -2642,6 +2644,12 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, gridlines_cell_filter_items);
   RNA_def_property_ui_text(prop, "Cell Type", "Cell type to be highlighted");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+  prop = RNA_def_property(srna, "velocity_scale", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "velocity_scale");
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_text(prop, "Velocity Scale", "Factor to control the amount of motion blur");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_update");
 }
 
 static void rna_def_fluid_flow_settings(BlenderRNA *brna)

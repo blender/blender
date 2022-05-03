@@ -83,18 +83,16 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
   GPU_link(mat, color_to_normal_fnc_name, newnormal, &newnormal);
   switch (nm->space) {
     case SHD_SPACE_TANGENT:
+      GPU_material_flag_set(mat, GPU_MATFLAG_OBJECT_INFO);
       GPU_link(mat,
                "node_normal_map",
-               GPU_builtin(GPU_OBJECT_INFO),
                GPU_attribute(mat, CD_TANGENT, nm->uv_map),
-               GPU_builtin(GPU_WORLD_NORMAL),
                newnormal,
                &newnormal);
       break;
     case SHD_SPACE_OBJECT:
     case SHD_SPACE_BLENDER_OBJECT:
-      GPU_link(
-          mat, "direction_transform_m4v3", newnormal, GPU_builtin(GPU_OBJECT_MATRIX), &newnormal);
+      GPU_link(mat, "normal_transform_object_to_world", newnormal, &newnormal);
       break;
     case SHD_SPACE_WORLD:
     case SHD_SPACE_BLENDER_WORLD:
@@ -102,8 +100,7 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
       break;
   }
 
-  GPUNodeLink *oldnormal = GPU_builtin(GPU_WORLD_NORMAL);
-  GPU_link(mat, "node_normal_map_mix", strength, newnormal, oldnormal, &out[0].link);
+  GPU_link(mat, "node_normal_map_mix", strength, newnormal, &out[0].link);
 
   return true;
 }

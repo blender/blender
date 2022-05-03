@@ -157,7 +157,11 @@ ccl_device_inline void shader_prepare_surface_closures(KernelGlobals kg,
    *
    * Blurring of bsdf after bounces, for rays that have a small likelihood
    * of following this particular path (diffuse, rough glossy) */
-  if (kernel_data.integrator.filter_glossy != FLT_MAX) {
+  if (kernel_data.integrator.filter_glossy != FLT_MAX
+#ifdef __MNEE__
+      && !(INTEGRATOR_STATE(state, path, mnee) & PATH_MNEE_VALID)
+#endif
+  ) {
     float blur_pdf = kernel_data.integrator.filter_glossy *
                      INTEGRATOR_STATE(state, path, min_ray_pdf);
 
@@ -605,7 +609,8 @@ ccl_device void shader_eval_surface(KernelGlobals kg,
                                     ConstIntegratorGenericState state,
                                     ccl_private ShaderData *ccl_restrict sd,
                                     ccl_global float *ccl_restrict buffer,
-                                    uint32_t path_flag)
+                                    uint32_t path_flag,
+                                    bool use_caustics_storage = false)
 {
   /* If path is being terminated, we are tracing a shadow ray or evaluating
    * emission, then we don't need to store closures. The emission and shadow
@@ -615,7 +620,7 @@ ccl_device void shader_eval_surface(KernelGlobals kg,
     max_closures = 0;
   }
   else {
-    max_closures = kernel_data.max_closures;
+    max_closures = use_caustics_storage ? CAUSTICS_MAX_CLOSURE : kernel_data.max_closures;
   }
 
   sd->num_closure = 0;
@@ -826,6 +831,65 @@ ccl_device_inline void shader_eval_volume(KernelGlobals kg,
       /* todo: this is inefficient for motion blur, we should be
        * caching matrices instead of recomputing them each step */
       shader_setup_object_transforms(kg, sd, sd->time);
+
+      if ((sd->object_flag & SD_OBJECT_HAS_VOLUME_MOTION) != 0) {
+        AttributeDescriptor v_desc = find_attribute(kg, sd, ATTR_STD_VOLUME_VELOCITY);
+        kernel_assert(v_desc.offset != ATTR_STD_NOT_FOUND);
+
+        const float3 P = sd->P;
+        const float velocity_scale = kernel_tex_fetch(__objects, sd->object).velocity_scale;
+        const float time_offset = kernel_data.cam.motion_position == MOTION_POSITION_CENTER ?
+                                      0.5f :
+                                      0.0f;
+        const float time = kernel_data.cam.motion_position == MOTION_POSITION_END ?
+                               (1.0f - kernel_data.cam.shuttertime) + sd->time :
+                               sd->time;
+
+        /* Use a 1st order semi-lagrangian advection scheme to estimate what volume quantity
+         * existed, or will exist, at the given time:
+         *
+         * `phi(x, T) = phi(x - (T - t) * u(x, T), t)`
+         *
+         * where
+         *
+         * x : position
+         * T : super-sampled time (or ray time)
+         * t : current time of the simulation (in rendering we assume this is center frame with
+         * relative time = 0)
+         * phi : the volume quantity
+         * u : the velocity field
+         *
+         * But first we need to determine the velocity field `u(x, T)`, which we can estimate also
+         * using semi-lagrangian advection.
+         *
+         * `u(x, T) = u(x - (T - t) * u(x, T), t)`
+         *
+         * This is the typical way to model self-advection in fluid dynamics, however, we do not
+         * account for other forces affecting the velocity during simulation (pressure, buoyancy,
+         * etc.): this gives a linear interpolation when fluid are mostly "curvy". For better
+         * results, a higher order interpolation scheme can be used (at the cost of more lookups),
+         * or an interpolation of the velocity fields for the previous and next frames could also
+         * be used to estimate `u(x, T)` (which will cost more memory and lookups).
+         *
+         * References:
+         * "Eulerian Motion Blur", Kim and Ko, 2007
+         * "Production Volume Rendering", Wreninge et al., 2012
+         */
+
+        /* Find velocity. */
+        float3 velocity = primitive_volume_attribute_float3(kg, sd, v_desc);
+        object_dir_transform(kg, sd, &velocity);
+
+        /* Find advected P. */
+        sd->P = P - (time - time_offset) * velocity_scale * velocity;
+
+        /* Find advected velocity. */
+        velocity = primitive_volume_attribute_float3(kg, sd, v_desc);
+        object_dir_transform(kg, sd, &velocity);
+
+        /* Find advected P. */
+        sd->P = P - (time - time_offset) * velocity_scale * velocity;
+      }
 #  endif
     }
 

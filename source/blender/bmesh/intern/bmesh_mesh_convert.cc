@@ -229,7 +229,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
    * work, but also accessing normals on an incomplete mesh, for example when restoring undo steps
    * in edit mode. */
   const float(*vert_normals)[3] = nullptr;
-  if (!BKE_mesh_vertex_normals_are_dirty(me)) {
+  if (params->calc_vert_normal) {
     vert_normals = BKE_mesh_vertex_normals_ensure(me);
   }
 
@@ -1096,7 +1096,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
               vertMap = bm_to_mesh_vertex_map(bm, ototvert);
             }
 
-            for (i = j = 0; i < hmd->totindex; i++) {
+            for (i = j = 0; i < hmd->indexar_num; i++) {
               if (hmd->indexar[i] < ototvert) {
                 eve = vertMap[hmd->indexar[i]];
 
@@ -1109,7 +1109,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
               }
             }
 
-            hmd->totindex = j;
+            hmd->indexar_num = j;
           }
         }
       }

@@ -16,6 +16,7 @@
 
 #if TBB_INTERFACE_VERSION_MAJOR >= 10
 #  define WITH_TBB_GLOBAL_CONTROL
+#  define TBB_PREVIEW_GLOBAL_CONTROL 1
 #  include <tbb/global_control.h>
 #endif
 
@@ -24,6 +25,19 @@ CCL_NAMESPACE_BEGIN
 using tbb::blocked_range;
 using tbb::enumerable_thread_specific;
 using tbb::parallel_for;
+using tbb::parallel_for_each;
+
+static inline void thread_capture_fp_settings()
+{
+#if TBB_INTERFACE_VERSION_MAJOR >= 12
+  tbb::task_group_context *ctx = tbb::task::current_context();
+#else
+  tbb::task_group_context *ctx = tbb::task::self().group();
+#endif
+  if (ctx) {
+    ctx->capture_fp_settings();
+  }
+}
 
 static inline void parallel_for_cancel()
 {

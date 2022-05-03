@@ -240,7 +240,17 @@ static PyObject *bpy_msgbus_subscribe_rna(PyObject *UNUSED(self), PyObject *args
       "options",
       NULL,
   };
-  static _PyArg_Parser _parser = {"OOO!O|$O!:subscribe_rna", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O"  /* `key` */
+      "O"  /* `owner` */
+      "O!" /* `args` */
+      "O"  /* `notify` */
+      "|$" /* Optional keyword only arguments. */
+      "O!" /* `options` */
+      ":subscribe_rna",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
@@ -329,7 +339,12 @@ static PyObject *bpy_msgbus_publish_rna(PyObject *UNUSED(self), PyObject *args, 
       "key",
       NULL,
   };
-  static _PyArg_Parser _parser = {"O:publish_rna", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O" /* `key` */
+      ":publish_rna",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &py_sub)) {
     return NULL;
   }

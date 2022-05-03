@@ -18,7 +18,11 @@ CCL_NAMESPACE_BEGIN
  */
 
 PassAccessor::PassAccessInfo::PassAccessInfo(const BufferPass &pass)
-    : type(pass.type), mode(pass.mode), include_albedo(pass.include_albedo), offset(pass.offset)
+    : type(pass.type),
+      mode(pass.mode),
+      include_albedo(pass.include_albedo),
+      is_lightgroup(!pass.lightgroup.empty()),
+      offset(pass.offset)
 {
 }
 
@@ -127,7 +131,8 @@ bool PassAccessor::get_render_tile_pixels(const RenderBuffers *render_buffers,
 
   const PassType type = pass_access_info_.type;
   const PassMode mode = pass_access_info_.mode;
-  const PassInfo pass_info = Pass::get_info(type, pass_access_info_.include_albedo);
+  const PassInfo pass_info = Pass::get_info(
+      type, pass_access_info_.include_albedo, pass_access_info_.is_lightgroup);
   int num_written_components = pass_info.num_components;
 
   if (pass_info.num_components == 1) {
@@ -215,8 +220,8 @@ void PassAccessor::init_kernel_film_convert(KernelFilmConvert *kfilm_convert,
                                             const Destination &destination) const
 {
   const PassMode mode = pass_access_info_.mode;
-  const PassInfo &pass_info = Pass::get_info(pass_access_info_.type,
-                                             pass_access_info_.include_albedo);
+  const PassInfo &pass_info = Pass::get_info(
+      pass_access_info_.type, pass_access_info_.include_albedo, pass_access_info_.is_lightgroup);
 
   kfilm_convert->pass_offset = pass_access_info_.offset;
   kfilm_convert->pass_stride = buffer_params.pass_stride;
@@ -279,8 +284,8 @@ bool PassAccessor::set_render_tile_pixels(RenderBuffers *render_buffers, const S
     return false;
   }
 
-  const PassInfo pass_info = Pass::get_info(pass_access_info_.type,
-                                            pass_access_info_.include_albedo);
+  const PassInfo pass_info = Pass::get_info(
+      pass_access_info_.type, pass_access_info_.include_albedo, pass_access_info_.is_lightgroup);
 
   const BufferParams &buffer_params = render_buffers->params;
 

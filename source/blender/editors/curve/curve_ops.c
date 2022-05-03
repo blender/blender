@@ -111,6 +111,7 @@ void ED_operatortypes_curve(void)
   WM_operatortype_append(CURVE_OT_spin);
   WM_operatortype_append(CURVE_OT_vertex_add);
   WM_operatortype_append(CURVE_OT_draw);
+  WM_operatortype_append(CURVE_OT_pen);
   WM_operatortype_append(CURVE_OT_extrude);
   WM_operatortype_append(CURVE_OT_cyclic_toggle);
 
@@ -150,4 +151,6 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
   /* only set in editmode curve, by space_view3d listener */
   keymap = WM_keymap_ensure(keyconf, "Curve", 0, 0);
   keymap->poll = ED_operator_editsurfcurve;
+
+  curve_pen_modal_keymap(keyconf);
 }

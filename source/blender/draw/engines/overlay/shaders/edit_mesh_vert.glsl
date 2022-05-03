@@ -1,26 +1,13 @@
 
-uniform sampler2D depthTex;
-uniform float alpha = 1.0;
-uniform ivec4 dataMask = ivec4(0xFF);
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(edit_mesh_common_lib.glsl)
 
-in ivec4 data;
-in vec3 pos;
-#ifndef FACEDOT
-in vec3 vnor;
-#else
-in vec4 norAndFlag;
-#  define vnor norAndFlag.xyz
-#endif
-
-out vec4 finalColor;
-#ifdef VERT
-out float vertexCrease;
-#endif
 #ifdef EDGE
-out vec4 finalColorOuter;
-#endif
-#ifdef USE_GEOM_SHADER
-out int selectOverride;
+/* Ugly but needed to keep the same vertex shader code for other passes. */
+#  define finalColor geometry_in.finalColor_
+#  define finalColorOuter geometry_in.finalColorOuter_
+#  define selectOverride geometry_in.selectOverride_
 #endif
 
 bool test_occlusion()
@@ -108,7 +95,5 @@ void main()
   finalColor.rgb = non_linear_blend_color(colorEditMeshMiddle.rgb, finalColor.rgb, facing);
 #endif
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(world_pos);
-#endif
+  view_clipping_distances(world_pos);
 }

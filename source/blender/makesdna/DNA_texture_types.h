@@ -25,6 +25,7 @@ struct PreviewImage;
 struct Tex;
 
 typedef struct MTex {
+  DNA_DEFINE_CXX_METHODS(MTex)
 
   short texco, mapto, maptoneg, blendtype;
   struct Object *object;
@@ -96,6 +97,8 @@ typedef struct ColorBand {
 } ColorBand;
 
 typedef struct PointDensity {
+  DNA_DEFINE_CXX_METHODS(PointDensity)
+
   short flag;
 
   short falloff_type;
@@ -143,6 +146,8 @@ typedef struct PointDensity {
 } PointDensity;
 
 typedef struct Tex {
+  DNA_DEFINE_CXX_METHODS(Tex)
+
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;

@@ -597,7 +597,7 @@ static bool clip_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNU
   return false;
 }
 
-static void clip_drop_copy(wmDrag *drag, wmDropBox *drop)
+static void clip_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   PointerRNA itemptr;
   char dir[FILE_MAX], file[FILE_MAX];

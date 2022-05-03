@@ -74,7 +74,7 @@ bool neighbor_affect_this_tile(ivec2 offset, vec2 velocity)
    * offset. If the offset coordinate is zero then
    * velocity is irrelevant.
    */
-  vec2 point = sign(offset * velocity);
+  vec2 point = sign(vec2(offset) * velocity);
 
   float dist = (point.x + point.y);
   /**

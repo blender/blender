@@ -324,6 +324,18 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
   if (!USER_VERSION_ATLEAST(301, 2)) {
     FROM_DEFAULT_V4_UCHAR(space_sequencer.mask);
   }
+
+  if (!USER_VERSION_ATLEAST(302, 8)) {
+    btheme->space_node.grid_levels = U_theme_default.space_node.grid_levels;
+  }
+
+  if (!USER_VERSION_ATLEAST(302, 9)) {
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.list);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.list_title);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.list_text);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.list_text_hi);
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -342,7 +354,7 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
 #undef USER_VERSION_ATLEAST
 }
 
-/* UserDef.flag */
+/** #UserDef.flag */
 #define USER_LMOUSESELECT (1 << 14) /* deprecated */
 
 static void do_version_select_mouse(UserDef *userdef, wmKeyMapItem *kmi)
@@ -997,6 +1009,10 @@ void blo_do_versions_userdef(UserDef *userdef)
                                     }),
                                     keymap_item_update_tweak_event,
                                     NULL);
+  }
+
+  if (!USER_VERSION_ATLEAST(302, 11)) {
+    userdef->dupflag |= USER_DUP_CURVES | USER_DUP_POINTCLOUD;
   }
 
   /**

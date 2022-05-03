@@ -1,10 +1,9 @@
-void node_emission(vec4 color, float strength, vec3 vN, out Closure result)
+
+void node_emission(vec4 color, float strength, float weight, out Closure result)
 {
-  result = CLOSURE_DEFAULT;
-#ifndef VOLUMETRICS
-  result.radiance = render_pass_emission_mask(color.rgb) * strength;
-  result.ssr_normal = normal_encode(vN, viewCameraVec(viewPosition));
-#else
-  result.emission = color.rgb * strength;
-#endif
+  ClosureEmission emission_data;
+  emission_data.weight = weight;
+  emission_data.emission = color.rgb * strength;
+
+  result = closure_eval(emission_data);
 }

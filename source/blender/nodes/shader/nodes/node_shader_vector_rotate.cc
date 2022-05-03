@@ -17,9 +17,15 @@ static void sh_node_vector_rotate_declare(NodeDeclarationBuilder &b)
   b.is_function_node();
   b.add_input<decl::Vector>(N_("Vector")).min(0.0f).max(1.0f).hide_value();
   b.add_input<decl::Vector>(N_("Center"));
-  b.add_input<decl::Vector>(N_("Axis")).min(-1.0f).max(1.0f).default_value({0.0f, 0.0f, 1.0f});
+  b.add_input<decl::Vector>(N_("Axis"))
+      .min(-1.0f)
+      .max(1.0f)
+      .default_value({0.0f, 0.0f, 1.0f})
+      .make_available([](bNode &node) { node.custom1 = NODE_VECTOR_ROTATE_TYPE_AXIS; });
   b.add_input<decl::Float>(N_("Angle")).subtype(PROP_ANGLE);
-  b.add_input<decl::Vector>(N_("Rotation")).subtype(PROP_EULER);
+  b.add_input<decl::Vector>(N_("Rotation")).subtype(PROP_EULER).make_available([](bNode &node) {
+    node.custom1 = NODE_VECTOR_ROTATE_TYPE_EULER_XYZ;
+  });
   b.add_output<decl::Vector>(N_("Vector"));
 }
 
@@ -63,9 +69,9 @@ static int gpu_shader_vector_rotate(GPUMaterial *mat,
   return 0;
 }
 
-static float3 sh_node_vector_rotate_around_axis(const float3 vector,
-                                                const float3 center,
-                                                const float3 axis,
+static float3 sh_node_vector_rotate_around_axis(const float3 &vector,
+                                                const float3 &center,
+                                                const float3 &axis,
                                                 const float angle)
 {
   float3 result = vector - center;
@@ -75,9 +81,9 @@ static float3 sh_node_vector_rotate_around_axis(const float3 vector,
   return result + center;
 }
 
-static float3 sh_node_vector_rotate_euler(const float3 vector,
-                                          const float3 center,
-                                          const float3 rotation,
+static float3 sh_node_vector_rotate_euler(const float3 &vector,
+                                          const float3 &center,
+                                          const float3 &rotation,
                                           const bool invert)
 {
   float mat[3][3];
@@ -99,13 +105,15 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
     case NODE_VECTOR_ROTATE_TYPE_AXIS: {
       if (invert) {
         static fn::CustomMF_SI_SI_SI_SI_SO<float3, float3, float3, float, float3> fn{
-            "Rotate Axis", [](float3 in, float3 center, float3 axis, float angle) {
+            "Rotate Axis",
+            [](const float3 &in, const float3 &center, const float3 &axis, float angle) {
               return sh_node_vector_rotate_around_axis(in, center, axis, -angle);
             }};
         return &fn;
       }
       static fn::CustomMF_SI_SI_SI_SI_SO<float3, float3, float3, float, float3> fn{
-          "Rotate Axis", [](float3 in, float3 center, float3 axis, float angle) {
+          "Rotate Axis",
+          [](const float3 &in, const float3 &center, const float3 &axis, float angle) {
             return sh_node_vector_rotate_around_axis(in, center, axis, angle);
           }};
       return &fn;
@@ -114,13 +122,13 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
       float3 axis = float3(1.0f, 0.0f, 0.0f);
       if (invert) {
         static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
-            "Rotate X-Axis", [=](float3 in, float3 center, float angle) {
+            "Rotate X-Axis", [=](const float3 &in, const float3 &center, float angle) {
               return sh_node_vector_rotate_around_axis(in, center, axis, -angle);
             }};
         return &fn;
       }
       static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
-          "Rotate X-Axis", [=](float3 in, float3 center, float angle) {
+          "Rotate X-Axis", [=](const float3 &in, const float3 &center, float angle) {
             return sh_node_vector_rotate_around_axis(in, center, axis, angle);
           }};
       return &fn;
@@ -129,13 +137,13 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
       float3 axis = float3(0.0f, 1.0f, 0.0f);
       if (invert) {
         static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
-            "Rotate Y-Axis", [=](float3 in, float3 center, float angle) {
+            "Rotate Y-Axis", [=](const float3 &in, const float3 &center, float angle) {
               return sh_node_vector_rotate_around_axis(in, center, axis, -angle);
             }};
         return &fn;
       }
       static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
-          "Rotate Y-Axis", [=](float3 in, float3 center, float angle) {
+          "Rotate Y-Axis", [=](const float3 &in, const float3 &center, float angle) {
             return sh_node_vector_rotate_around_axis(in, center, axis, angle);
           }};
       return &fn;
@@ -144,13 +152,13 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
       float3 axis = float3(0.0f, 0.0f, 1.0f);
       if (invert) {
         static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
-            "Rotate Z-Axis", [=](float3 in, float3 center, float angle) {
+            "Rotate Z-Axis", [=](const float3 &in, const float3 &center, float angle) {
               return sh_node_vector_rotate_around_axis(in, center, axis, -angle);
             }};
         return &fn;
       }
       static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, float3> fn{
-          "Rotate Z-Axis", [=](float3 in, float3 center, float angle) {
+          "Rotate Z-Axis", [=](const float3 &in, const float3 &center, float angle) {
             return sh_node_vector_rotate_around_axis(in, center, axis, angle);
           }};
       return &fn;
@@ -158,13 +166,13 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
     case NODE_VECTOR_ROTATE_TYPE_EULER_XYZ: {
       if (invert) {
         static fn::CustomMF_SI_SI_SI_SO<float3, float3, float3, float3> fn{
-            "Rotate Euler", [](float3 in, float3 center, float3 rotation) {
+            "Rotate Euler", [](const float3 &in, const float3 &center, const float3 &rotation) {
               return sh_node_vector_rotate_euler(in, center, rotation, true);
             }};
         return &fn;
       }
       static fn::CustomMF_SI_SI_SI_SO<float3, float3, float3, float3> fn{
-          "Rotate Euler", [](float3 in, float3 center, float3 rotation) {
+          "Rotate Euler", [](const float3 &in, const float3 &center, const float3 &rotation) {
             return sh_node_vector_rotate_euler(in, center, rotation, false);
           }};
       return &fn;

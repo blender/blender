@@ -33,7 +33,7 @@ struct _GSQueue {
   size_t chunk_last_index;        /* index into 'chunk_last' */
   size_t chunk_elem_max;          /* number of elements per chunk */
   size_t elem_size;               /* memory size of elements */
-  size_t totelem;                 /* total number of elements */
+  size_t elem_num;                /* total number of elements */
 };
 
 static void *queue_get_first_elem(GSQueue *queue)
@@ -97,7 +97,7 @@ void BLI_gsqueue_free(GSQueue *queue)
 void BLI_gsqueue_push(GSQueue *queue, const void *item)
 {
   queue->chunk_last_index++;
-  queue->totelem++;
+  queue->elem_num++;
 
   if (UNLIKELY(queue->chunk_last_index == queue->chunk_elem_max)) {
     struct QueueChunk *chunk;
@@ -134,9 +134,9 @@ void BLI_gsqueue_pop(GSQueue *queue, void *r_item)
 
   memcpy(r_item, queue_get_first_elem(queue), queue->elem_size);
   queue->chunk_first_index++;
-  queue->totelem--;
+  queue->elem_num--;
 
-  if (UNLIKELY(queue->chunk_first_index == queue->chunk_elem_max || queue->totelem == 0)) {
+  if (UNLIKELY(queue->chunk_first_index == queue->chunk_elem_max || queue->elem_num == 0)) {
     struct QueueChunk *chunk_free = queue->chunk_first;
 
     queue->chunk_first = queue->chunk_first->next;
@@ -153,7 +153,7 @@ void BLI_gsqueue_pop(GSQueue *queue, void *r_item)
 
 size_t BLI_gsqueue_len(const GSQueue *queue)
 {
-  return queue->totelem;
+  return queue->elem_num;
 }
 
 bool BLI_gsqueue_is_empty(const GSQueue *queue)

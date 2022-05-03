@@ -27,7 +27,18 @@ bool BPy_errors_to_report_ex(struct ReportList *reports,
                              const char *error_prefix,
                              bool use_full,
                              bool use_location);
-bool BPy_errors_to_report_brief_with_prefix(struct ReportList *reports, const char *error_prefix);
+/**
+ * \param reports: When set, an error will be added to this report, when NULL, print the error.
+ *
+ * \note Unless the caller handles printing the reports (or reports is NULL) it's best to ensure
+ * the output is printed to the `stdout/stderr`:
+ * \code{.cc}
+ * BPy_errors_to_report(reports);
+ * if (!BKE_reports_print_test(reports)) {
+ *   BKE_reports_print(reports);
+ * }
+ * \endcode
+ */
 bool BPy_errors_to_report(struct ReportList *reports);
 
 struct bContext *BPY_context_get(void);

@@ -1,6 +1,3 @@
-#ifndef VOLUMETRICS
-
-CLOSURE_EVAL_FUNCTION_DECLARE_1(node_subsurface_scattering, Diffuse)
 
 void node_subsurface_scattering(vec4 color,
                                 float scale,
@@ -8,25 +5,18 @@ void node_subsurface_scattering(vec4 color,
                                 float ior,
                                 float anisotropy,
                                 vec3 N,
-                                float sss_id,
+                                float weight,
+                                float do_sss,
                                 out Closure result)
 {
-  CLOSURE_VARS_DECLARE_1(Diffuse);
+  N = safe_normalize(N);
 
-  in_Diffuse_0.N = N; /* Normalized during eval. */
-  in_Diffuse_0.albedo = color.rgb;
+  ClosureDiffuse diffuse_data;
+  diffuse_data.weight = weight;
+  diffuse_data.color = color.rgb;
+  diffuse_data.N = N;
+  diffuse_data.sss_radius = radius * scale;
+  diffuse_data.sss_id = uint(do_sss);
 
-  CLOSURE_EVAL_FUNCTION_1(node_subsurface_scattering, Diffuse);
-
-  result = CLOSURE_DEFAULT;
-
-  closure_load_sss_data(scale, out_Diffuse_0.radiance, color.rgb, int(sss_id), result);
-
-  /* TODO(@fclem): Try to not use this. */
-  closure_load_ssr_data(vec3(0.0), 0.0, in_Diffuse_0.N, -1.0, result);
+  result = closure_eval(diffuse_data);
 }
-
-#else
-/* Stub subsurface scattering because it is not compatible with volumetrics. */
-#  define node_subsurface_scattering(a, b, c, d, e, f, g, h) (h = CLOSURE_DEFAULT)
-#endif

@@ -1,3 +1,5 @@
+#pragma BLENDER_REQUIRE(gpu_shader_material_math_util.glsl)
+
 void math_add(float a, float b, float c, out float result)
 {
   result = a + b;

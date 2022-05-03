@@ -27,6 +27,7 @@ struct MovieClip;
 struct MovieClipUser;
 
 /* mask_ops.c */
+
 typedef enum {
   MASK_WHICH_HANDLE_NONE = 0,
   MASK_WHICH_HANDLE_STICK = 1,

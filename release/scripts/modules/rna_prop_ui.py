@@ -43,7 +43,7 @@ def rna_idprop_context_value(context, context_member, property_type):
         rna_item = pin_id
         context_member = "space_data.pin_id"
     else:
-        rna_item = eval("context." + context_member)
+        rna_item = context.path_resolve(context_member)
 
     return rna_item, context_member
 
@@ -203,6 +203,7 @@ def draw(layout, context, context_member, property_type, *, use_edit=True):
         else:
             # Add some spacing, so the right side of the buttons line up with layouts with decorators.
             operator_row.label(text="", icon='BLANK1')
+
 
 class PropertyPanel:
     """

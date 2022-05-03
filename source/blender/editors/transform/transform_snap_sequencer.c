@@ -15,11 +15,15 @@
 #include "BKE_context.h"
 
 #include "ED_screen.h"
+#include "ED_transform.h"
 
 #include "UI_view2d.h"
 
+#include "SEQ_channels.h"
 #include "SEQ_effects.h"
 #include "SEQ_iterator.h"
+#include "SEQ_relations.h"
+#include "SEQ_render.h"
 #include "SEQ_sequencer.h"
 
 #include "transform.h"
@@ -30,7 +34,6 @@ typedef struct TransSeqSnapData {
   int *target_snap_points;
   int source_snap_point_count;
   int target_snap_point_count;
-  int final_snap_frame;
 } TransSeqSnapData;
 
 /* -------------------------------------------------------------------- */
@@ -55,9 +58,7 @@ static int cmp_fn(const void *a, const void *b)
   return (*(int *)a - *(int *)b);
 }
 
-static void seq_snap_source_points_build(const TransInfo *UNUSED(t),
-                                         TransSeqSnapData *snap_data,
-                                         SeqCollection *snap_sources)
+static void seq_snap_source_points_build(TransSeqSnapData *snap_data, SeqCollection *snap_sources)
 {
   int i = 0;
   Sequence *seq;
@@ -100,8 +101,7 @@ static void query_strip_effects_fn(Sequence *seq_reference,
 
   /* Find all strips connected to `seq_reference`. */
   LISTBASE_FOREACH (Sequence *, seq_test, seqbase) {
-    if (seq_test->seq1 == seq_reference || seq_test->seq2 == seq_reference ||
-        seq_test->seq3 == seq_reference) {
+    if (SEQ_relation_is_effect_of_strip(seq_test, seq_reference)) {
       query_strip_effects_fn(seq_test, seqbase, collection);
     }
   }
@@ -119,16 +119,20 @@ static SeqCollection *seq_collection_extract_effects(SeqCollection *collection)
   return effects;
 }
 
-static SeqCollection *query_snap_targets(const TransInfo *t, SeqCollection *snap_sources)
+static SeqCollection *query_snap_targets(Scene *scene,
+                                         SeqCollection *snap_sources,
+                                         bool exclude_selected)
 {
-  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(t->scene));
-  const short snap_flag = SEQ_tool_settings_snap_flag_get(t->scene);
+  Editing *ed = SEQ_editing_get(scene);
+  ListBase *seqbase = SEQ_active_seqbase_get(ed);
+  ListBase *channels = SEQ_channels_displayed_get(ed);
+  const short snap_flag = SEQ_tool_settings_snap_flag_get(scene);
   SeqCollection *snap_targets = SEQ_collection_create(__func__);
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (seq->flag & SELECT) {
+    if (exclude_selected && seq->flag & SELECT) {
       continue; /* Selected are being transformed. */
     }
-    if ((seq->flag & SEQ_MUTE) && (snap_flag & SEQ_SNAP_IGNORE_MUTED)) {
+    if (SEQ_render_is_muted(channels, seq) && (snap_flag & SEQ_SNAP_IGNORE_MUTED)) {
       continue;
     }
     if (seq->type == SEQ_TYPE_SOUND_RAM && (snap_flag & SEQ_SNAP_IGNORE_SOUND)) {
@@ -148,12 +152,8 @@ static SeqCollection *query_snap_targets(const TransInfo *t, SeqCollection *snap
   return snap_targets;
 }
 
-static int seq_get_snap_target_points_count(const TransInfo *t,
-                                            TransSeqSnapData *UNUSED(snap_data),
-                                            SeqCollection *snap_targets)
+static int seq_get_snap_target_points_count(short snap_mode, SeqCollection *snap_targets)
 {
-  const short snap_mode = t->tsnap.mode;
-
   int count = 2; /* Strip start and end are always used. */
 
   if (snap_mode & SEQ_SNAP_TO_STRIP_HOLD) {
@@ -169,23 +169,21 @@ static int seq_get_snap_target_points_count(const TransInfo *t,
   return count;
 }
 
-static void seq_snap_target_points_alloc(const TransInfo *t,
+static void seq_snap_target_points_alloc(short snap_mode,
                                          TransSeqSnapData *snap_data,
                                          SeqCollection *snap_targets)
 {
-  const size_t point_count = seq_get_snap_target_points_count(t, snap_data, snap_targets);
+  const size_t point_count = seq_get_snap_target_points_count(snap_mode, snap_targets);
   snap_data->target_snap_points = MEM_callocN(sizeof(int) * point_count, __func__);
   memset(snap_data->target_snap_points, 0, sizeof(int));
   snap_data->target_snap_point_count = point_count;
 }
 
-static void seq_snap_target_points_build(const TransInfo *t,
+static void seq_snap_target_points_build(Scene *scene,
+                                         short snap_mode,
                                          TransSeqSnapData *snap_data,
                                          SeqCollection *snap_targets)
 {
-  const Scene *scene = t->scene;
-  const short snap_mode = t->tsnap.mode;
-
   int i = 0;
 
   if (snap_mode & SEQ_SNAP_TO_CURRENT_FRAME) {
@@ -242,11 +240,12 @@ TransSeqSnapData *transform_snap_sequencer_data_alloc(const TransInfo *t)
     return NULL;
   }
 
+  Scene *scene = t->scene;
   TransSeqSnapData *snap_data = MEM_callocN(sizeof(TransSeqSnapData), __func__);
-  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(t->scene));
+  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
 
   SeqCollection *snap_sources = SEQ_query_selected_strips(seqbase);
-  SeqCollection *snap_targets = query_snap_targets(t, snap_sources);
+  SeqCollection *snap_targets = query_snap_targets(scene, snap_sources, true);
 
   if (SEQ_collection_len(snap_sources) == 0) {
     SEQ_collection_free(snap_targets);
@@ -257,11 +256,12 @@ TransSeqSnapData *transform_snap_sequencer_data_alloc(const TransInfo *t)
 
   /* Build arrays of snap points. */
   seq_snap_source_points_alloc(snap_data, snap_sources);
-  seq_snap_source_points_build(t, snap_data, snap_sources);
+  seq_snap_source_points_build(snap_data, snap_sources);
   SEQ_collection_free(snap_sources);
 
-  seq_snap_target_points_alloc(t, snap_data, snap_targets);
-  seq_snap_target_points_build(t, snap_data, snap_targets);
+  short snap_mode = t->tsnap.mode;
+  seq_snap_target_points_alloc(snap_mode, snap_data, snap_targets);
+  seq_snap_target_points_build(scene, snap_mode, snap_data, snap_targets);
   SEQ_collection_free(snap_targets);
 
   return snap_data;
@@ -316,4 +316,74 @@ bool transform_snap_sequencer_calc(TransInfo *t)
 void transform_snap_sequencer_apply_translate(TransInfo *t, float *vec)
 {
   *vec += t->tsnap.snapPoint[0] - t->tsnap.snapTarget[0];
+}
+
+static int transform_snap_sequencer_to_closest_strip_ex(TransInfo *t, int frame_1, int frame_2)
+{
+  Scene *scene = t->scene;
+  TransSeqSnapData *snap_data = MEM_callocN(sizeof(TransSeqSnapData), __func__);
+
+  SeqCollection *empty_col = SEQ_collection_create(__func__);
+  SeqCollection *snap_targets = query_snap_targets(scene, empty_col, false);
+  SEQ_collection_free(empty_col);
+
+  snap_data->source_snap_points = MEM_callocN(sizeof(int) * 2, __func__);
+  snap_data->source_snap_point_count = 2;
+  BLI_assert(frame_1 <= frame_2);
+  snap_data->source_snap_points[0] = frame_1;
+  snap_data->source_snap_points[1] = frame_2;
+
+  short snap_mode = t->tsnap.mode;
+  /* Build arrays of snap points. */
+  seq_snap_target_points_alloc(snap_mode, snap_data, snap_targets);
+  seq_snap_target_points_build(scene, snap_mode, snap_data, snap_targets);
+  SEQ_collection_free(snap_targets);
+
+  t->tsnap.seq_context = snap_data;
+  bool snap_success = transform_snap_sequencer_calc(t);
+  transform_snap_sequencer_data_free(snap_data);
+  t->tsnap.seq_context = NULL;
+
+  float snap_offset = 0;
+  if (snap_success) {
+    t->tsnap.status |= (POINT_INIT | TARGET_INIT);
+    transform_snap_sequencer_apply_translate(t, &snap_offset);
+  }
+  else {
+    t->tsnap.status &= ~(POINT_INIT | TARGET_INIT);
+  }
+
+  return snap_offset;
+}
+
+bool ED_transform_snap_sequencer_to_closest_strip_calc(Scene *scene,
+                                                       ARegion *region,
+                                                       int frame_1,
+                                                       int frame_2,
+                                                       int *r_snap_distance,
+                                                       float *r_snap_frame)
+{
+  TransInfo t;
+  t.scene = scene;
+  t.region = region;
+  t.values[0] = 0;
+  t.data_type = TC_SEQ_DATA;
+
+  t.tsnap.mode = SEQ_tool_settings_snap_mode_get(scene);
+  *r_snap_distance = transform_snap_sequencer_to_closest_strip_ex(&t, frame_1, frame_2);
+  *r_snap_frame = t.tsnap.snapPoint[0];
+  return validSnap(&t);
+}
+
+void ED_draw_sequencer_snap_point(struct bContext *C, float snap_point)
+{
+  /* Reuse the snapping drawing code from the transform system. */
+  TransInfo t;
+  t.mode = TFM_SEQ_SLIDE;
+  t.modifiers = MOD_SNAP;
+  t.spacetype = SPACE_SEQ;
+  t.tsnap.status = (POINT_INIT | TARGET_INIT);
+  t.tsnap.snapPoint[0] = snap_point;
+
+  drawSnapping(C, &t);
 }

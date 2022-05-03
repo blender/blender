@@ -1,8 +1,5 @@
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-in vec3 pos;
-out vec2 uvs;
-
 void main()
 {
   /* `pos` contains the coordinates of a quad (-1..1). but we need the coordinates of an image

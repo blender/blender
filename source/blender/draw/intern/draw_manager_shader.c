@@ -9,6 +9,8 @@
 #include "DNA_object_types.h"
 #include "DNA_world_types.h"
 
+#include "PIL_time.h"
+
 #include "BLI_dynstr.h"
 #include "BLI_listbase.h"
 #include "BLI_string_utils.h"
@@ -48,49 +50,24 @@ extern char datatoc_common_fullscreen_vert_glsl[];
  *
  * \{ */
 
-typedef struct DRWDeferredShader {
-  struct DRWDeferredShader *prev, *next;
-
-  GPUMaterial *mat;
-} DRWDeferredShader;
-
 typedef struct DRWShaderCompiler {
-  ListBase queue;          /* DRWDeferredShader */
-  ListBase queue_conclude; /* DRWDeferredShader */
+  ListBase queue; /* GPUMaterial */
   SpinLock list_lock;
-
-  DRWDeferredShader *mat_compiling;
-  ThreadMutex compilation_lock;
 
   void *gl_context;
   GPUContext *gpu_context;
   bool own_context;
-
-  int shaders_done; /* To compute progress. */
 } DRWShaderCompiler;
-
-static void drw_deferred_shader_free(DRWDeferredShader *dsh)
-{
-  /* Make sure it is not queued before freeing. */
-  MEM_freeN(dsh);
-}
-
-static void drw_deferred_shader_queue_free(ListBase *queue)
-{
-  DRWDeferredShader *dsh;
-  while ((dsh = BLI_pophead(queue))) {
-    drw_deferred_shader_free(dsh);
-  }
-}
 
 static void drw_deferred_shader_compilation_exec(
     void *custom_data,
     /* Cannot be const, this function implements wm_jobs_start_callback.
      * NOLINTNEXTLINE: readability-non-const-parameter. */
     short *stop,
-    short *do_update,
-    float *progress)
+    short *UNUSED(do_update),
+    float *UNUSED(progress))
 {
+  GPU_render_begin();
   DRWShaderCompiler *comp = (DRWShaderCompiler *)custom_data;
   void *gl_context = comp->gl_context;
   GPUContext *gpu_context = comp->gpu_context;
@@ -108,48 +85,36 @@ static void drw_deferred_shader_compilation_exec(
   GPU_context_active_set(gpu_context);
 
   while (true) {
-    BLI_spin_lock(&comp->list_lock);
-
     if (*stop != 0) {
       /* We don't want user to be able to cancel the compilation
        * but wm can kill the task if we are closing blender. */
-      BLI_spin_unlock(&comp->list_lock);
       break;
     }
-
-    /* Pop tail because it will be less likely to lock the main thread
-     * if all GPUMaterials are to be freed (see DRW_deferred_shader_remove()). */
-    comp->mat_compiling = BLI_poptail(&comp->queue);
-    if (comp->mat_compiling == NULL) {
-      /* No more Shader to compile. */
-      BLI_spin_unlock(&comp->list_lock);
-      break;
-    }
-
-    comp->shaders_done++;
-    int total = BLI_listbase_count(&comp->queue) + comp->shaders_done;
-
-    BLI_mutex_lock(&comp->compilation_lock);
-    BLI_spin_unlock(&comp->list_lock);
-
-    /* Do the compilation. */
-    GPU_material_compile(comp->mat_compiling->mat);
-
-    *progress = (float)comp->shaders_done / (float)total;
-    *do_update = true;
-
-    GPU_flush();
-    BLI_mutex_unlock(&comp->compilation_lock);
 
     BLI_spin_lock(&comp->list_lock);
-    if (GPU_material_status(comp->mat_compiling->mat) == GPU_MAT_QUEUED) {
-      BLI_addtail(&comp->queue_conclude, comp->mat_compiling);
+    /* Pop tail because it will be less likely to lock the main thread
+     * if all GPUMaterials are to be freed (see DRW_deferred_shader_remove()). */
+    LinkData *link = (LinkData *)BLI_poptail(&comp->queue);
+    GPUMaterial *mat = link ? (GPUMaterial *)link->data : NULL;
+    if (mat) {
+      /* Avoid another thread freeing the material mid compilation. */
+      GPU_material_acquire(mat);
+    }
+    BLI_spin_unlock(&comp->list_lock);
+
+    if (mat) {
+      /* Do the compilation. */
+      GPU_material_compile(mat);
+      GPU_material_release(mat);
+      MEM_freeN(link);
     }
     else {
-      drw_deferred_shader_free(comp->mat_compiling);
+      break;
     }
-    comp->mat_compiling = NULL;
-    BLI_spin_unlock(&comp->list_lock);
+
+    if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
+      GPU_flush();
+    }
   }
 
   GPU_context_active_set(NULL);
@@ -157,27 +122,16 @@ static void drw_deferred_shader_compilation_exec(
   if (use_main_context_workaround) {
     GPU_context_main_unlock();
   }
+  GPU_render_end();
 }
 
 static void drw_deferred_shader_compilation_free(void *custom_data)
 {
   DRWShaderCompiler *comp = (DRWShaderCompiler *)custom_data;
 
-  drw_deferred_shader_queue_free(&comp->queue);
-
-  if (!BLI_listbase_is_empty(&comp->queue_conclude)) {
-    /* Compile the shaders in the context they will be deleted. */
-    DRW_opengl_context_enable_ex(false);
-    DRWDeferredShader *mat_conclude;
-    while ((mat_conclude = BLI_poptail(&comp->queue_conclude))) {
-      GPU_material_compile(mat_conclude->mat);
-      drw_deferred_shader_free(mat_conclude);
-    }
-    DRW_opengl_context_disable_ex(true);
-  }
-
-  BLI_spin_end(&comp->list_lock);
-  BLI_mutex_end(&comp->compilation_lock);
+  BLI_spin_lock(&comp->list_lock);
+  BLI_freelistN(&comp->queue);
+  BLI_spin_unlock(&comp->list_lock);
 
   if (comp->own_context) {
     /* Only destroy if the job owns the context. */
@@ -194,40 +148,48 @@ static void drw_deferred_shader_compilation_free(void *custom_data)
 
 static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
 {
-  /* Do not defer the compilation if we are rendering for image.
-   * deferred rendering is only possible when `evil_C` is available */
-  if (DST.draw_ctx.evil_C == NULL || DRW_state_is_image_render() || !USE_DEFERRED_COMPILATION ||
-      !deferred) {
-    /* Double checking that this GPUMaterial is not going to be
-     * compiled by another thread. */
-    DRW_deferred_shader_remove(mat);
-    GPU_material_compile(mat);
+  if (ELEM(GPU_material_status(mat), GPU_MAT_SUCCESS, GPU_MAT_FAILED)) {
     return;
   }
+  /* Do not defer the compilation if we are rendering for image.
+   * deferred rendering is only possible when `evil_C` is available */
+  if (DST.draw_ctx.evil_C == NULL || DRW_state_is_image_render() || !USE_DEFERRED_COMPILATION) {
+    deferred = false;
+  }
+
+  if (!deferred) {
+    DRW_deferred_shader_remove(mat);
+    /* Shaders could already be compiling. Have to wait for compilation to finish. */
+    while (GPU_material_status(mat) == GPU_MAT_QUEUED) {
+      PIL_sleep_ms(20);
+    }
+    if (GPU_material_status(mat) == GPU_MAT_CREATED) {
+      GPU_material_compile(mat);
+    }
+    return;
+  }
+
+  /* Don't add material to the queue twice. */
+  if (GPU_material_status(mat) == GPU_MAT_QUEUED) {
+    return;
+  }
+
   const bool use_main_context = GPU_use_main_context_workaround();
   const bool job_own_context = !use_main_context;
-
-  DRWDeferredShader *dsh = MEM_callocN(sizeof(DRWDeferredShader), "Deferred Shader");
-
-  dsh->mat = mat;
 
   BLI_assert(DST.draw_ctx.evil_C);
   wmWindowManager *wm = CTX_wm_manager(DST.draw_ctx.evil_C);
   wmWindow *win = CTX_wm_window(DST.draw_ctx.evil_C);
 
-  /* Use original scene ID since this is what the jobs template tests for. */
-  Scene *scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
-
   /* Get the running job or a new one if none is running. Can only have one job per type & owner.
    */
   wmJob *wm_job = WM_jobs_get(
-      wm, win, scene, "Shaders Compilation", WM_JOB_PROGRESS, WM_JOB_TYPE_SHADER_COMPILATION);
+      wm, win, wm, "Shaders Compilation", 0, WM_JOB_TYPE_SHADER_COMPILATION);
 
   DRWShaderCompiler *old_comp = (DRWShaderCompiler *)WM_jobs_customdata_get(wm_job);
 
   DRWShaderCompiler *comp = MEM_callocN(sizeof(DRWShaderCompiler), "DRWShaderCompiler");
   BLI_spin_init(&comp->list_lock);
-  BLI_mutex_init(&comp->compilation_lock);
 
   if (old_comp) {
     BLI_spin_lock(&old_comp->list_lock);
@@ -242,7 +204,9 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
     }
   }
 
-  BLI_addtail(&comp->queue, dsh);
+  GPU_material_status_set(mat, GPU_MAT_QUEUED);
+  LinkData *node = BLI_genericNodeN(mat);
+  BLI_addtail(&comp->queue, node);
 
   /* Create only one context. */
   if (comp->gl_context == NULL) {
@@ -273,38 +237,20 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
 
 void DRW_deferred_shader_remove(GPUMaterial *mat)
 {
-  Scene *scene = GPU_material_scene(mat);
-
-  for (wmWindowManager *wm = G_MAIN->wm.first; wm; wm = wm->id.next) {
-    if (WM_jobs_test(wm, scene, WM_JOB_TYPE_SHADER_COMPILATION) == false) {
-      /* No job running, do not create a new one by calling WM_jobs_get. */
-      continue;
-    }
+  LISTBASE_FOREACH (wmWindowManager *, wm, &G_MAIN->wm) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      wmJob *wm_job = WM_jobs_get(
-          wm, win, scene, "Shaders Compilation", WM_JOB_PROGRESS, WM_JOB_TYPE_SHADER_COMPILATION);
-
-      DRWShaderCompiler *comp = (DRWShaderCompiler *)WM_jobs_customdata_get(wm_job);
+      DRWShaderCompiler *comp = (DRWShaderCompiler *)WM_jobs_customdata_from_type(
+          wm, wm, WM_JOB_TYPE_SHADER_COMPILATION);
       if (comp != NULL) {
         BLI_spin_lock(&comp->list_lock);
-        DRWDeferredShader *dsh;
-        dsh = (DRWDeferredShader *)BLI_findptr(
-            &comp->queue, mat, offsetof(DRWDeferredShader, mat));
-        if (dsh) {
-          BLI_remlink(&comp->queue, dsh);
+        LinkData *link = (LinkData *)BLI_findptr(&comp->queue, mat, offsetof(LinkData, data));
+        if (link) {
+          BLI_remlink(&comp->queue, link);
+          GPU_material_status_set(link->data, GPU_MAT_CREATED);
         }
-
-        /* Wait for compilation to finish */
-        if ((comp->mat_compiling != NULL) && (comp->mat_compiling->mat == mat)) {
-          BLI_mutex_lock(&comp->compilation_lock);
-          BLI_mutex_unlock(&comp->compilation_lock);
-        }
-
         BLI_spin_unlock(&comp->list_lock);
 
-        if (dsh) {
-          drw_deferred_shader_free(dsh);
-        }
+        MEM_SAFE_FREE(link);
       }
     }
   }
@@ -413,119 +359,60 @@ GPUShader *DRW_shader_create_fullscreen_with_shaderlib_ex(const char *frag,
   return sh;
 }
 
-GPUMaterial *DRW_shader_find_from_world(World *wo,
-                                        const void *engine_type,
-                                        const int options,
-                                        bool deferred)
+GPUMaterial *DRW_shader_from_world(World *wo,
+                                   struct bNodeTree *ntree,
+                                   const uint64_t shader_id,
+                                   const bool is_volume_shader,
+                                   bool deferred,
+                                   GPUCodegenCallbackFn callback,
+                                   void *thunk)
 {
-  GPUMaterial *mat = GPU_material_from_nodetree_find(&wo->gpumaterial, engine_type, options);
-  if (DRW_state_is_image_render() || !deferred) {
-    if (mat != NULL && GPU_material_status(mat) == GPU_MAT_QUEUED) {
-      /* XXX Hack : we return NULL so that the engine will call DRW_shader_create_from_XXX
-       * with the shader code and we will resume the compilation from there. */
-      return NULL;
-    }
+  Scene *scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
+  GPUMaterial *mat = GPU_material_from_nodetree(scene,
+                                                NULL,
+                                                ntree,
+                                                &wo->gpumaterial,
+                                                wo->id.name,
+                                                shader_id,
+                                                is_volume_shader,
+                                                false,
+                                                callback,
+                                                thunk);
+  if (DRW_state_is_image_render()) {
+    /* Do not deferred if doing render. */
+    deferred = false;
   }
+
+  drw_deferred_shader_add(mat, deferred);
   return mat;
 }
 
-GPUMaterial *DRW_shader_find_from_material(Material *ma,
-                                           const void *engine_type,
-                                           const int options,
-                                           bool deferred)
+GPUMaterial *DRW_shader_from_material(Material *ma,
+                                      struct bNodeTree *ntree,
+                                      const uint64_t shader_id,
+                                      const bool is_volume_shader,
+                                      bool deferred,
+                                      GPUCodegenCallbackFn callback,
+                                      void *thunk)
 {
-  GPUMaterial *mat = GPU_material_from_nodetree_find(&ma->gpumaterial, engine_type, options);
-  if (DRW_state_is_image_render() || !deferred) {
-    if (mat != NULL && GPU_material_status(mat) == GPU_MAT_QUEUED) {
-      /* XXX Hack : we return NULL so that the engine will call DRW_shader_create_from_XXX
-       * with the shader code and we will resume the compilation from there. */
-      return NULL;
-    }
-  }
-  return mat;
-}
+  Scene *scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
+  GPUMaterial *mat = GPU_material_from_nodetree(scene,
+                                                ma,
+                                                ntree,
+                                                &ma->gpumaterial,
+                                                ma->id.name,
+                                                shader_id,
+                                                is_volume_shader,
+                                                false,
+                                                callback,
+                                                thunk);
 
-GPUMaterial *DRW_shader_create_from_world(struct Scene *scene,
-                                          World *wo,
-                                          struct bNodeTree *ntree,
-                                          const void *engine_type,
-                                          const int options,
-                                          const bool is_volume_shader,
-                                          const char *vert,
-                                          const char *geom,
-                                          const char *frag_lib,
-                                          const char *defines,
-                                          bool deferred,
-                                          GPUMaterialEvalCallbackFn callback)
-{
-  GPUMaterial *mat = NULL;
-  if (DRW_state_is_image_render() || !deferred) {
-    mat = GPU_material_from_nodetree_find(&wo->gpumaterial, engine_type, options);
+  if (DRW_state_is_image_render()) {
+    /* Do not deferred if doing render. */
+    deferred = false;
   }
 
-  if (mat == NULL) {
-    scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
-    mat = GPU_material_from_nodetree(scene,
-                                     NULL,
-                                     ntree,
-                                     &wo->gpumaterial,
-                                     engine_type,
-                                     options,
-                                     is_volume_shader,
-                                     vert,
-                                     geom,
-                                     frag_lib,
-                                     defines,
-                                     wo->id.name,
-                                     callback);
-  }
-
-  if (GPU_material_status(mat) == GPU_MAT_QUEUED) {
-    drw_deferred_shader_add(mat, deferred);
-  }
-
-  return mat;
-}
-
-GPUMaterial *DRW_shader_create_from_material(struct Scene *scene,
-                                             Material *ma,
-                                             struct bNodeTree *ntree,
-                                             const void *engine_type,
-                                             const int options,
-                                             const bool is_volume_shader,
-                                             const char *vert,
-                                             const char *geom,
-                                             const char *frag_lib,
-                                             const char *defines,
-                                             bool deferred,
-                                             GPUMaterialEvalCallbackFn callback)
-{
-  GPUMaterial *mat = NULL;
-  if (DRW_state_is_image_render() || !deferred) {
-    mat = GPU_material_from_nodetree_find(&ma->gpumaterial, engine_type, options);
-  }
-
-  if (mat == NULL) {
-    scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
-    mat = GPU_material_from_nodetree(scene,
-                                     ma,
-                                     ntree,
-                                     &ma->gpumaterial,
-                                     engine_type,
-                                     options,
-                                     is_volume_shader,
-                                     vert,
-                                     geom,
-                                     frag_lib,
-                                     defines,
-                                     ma->id.name,
-                                     callback);
-  }
-
-  if (GPU_material_status(mat) == GPU_MAT_QUEUED) {
-    drw_deferred_shader_add(mat, deferred);
-  }
-
+  drw_deferred_shader_add(mat, deferred);
   return mat;
 }
 
@@ -548,15 +435,15 @@ void DRW_shader_free(GPUShader *shader)
  * contains the needed libraries for this shader.
  * \{ */
 
-/* 32 because we use a 32bit bitmap. */
-#define MAX_LIB 32
+/* 64 because we use a 64bit bitmap. */
+#define MAX_LIB 64
 #define MAX_LIB_NAME 64
 #define MAX_LIB_DEPS 8
 
 struct DRWShaderLibrary {
   const char *libs[MAX_LIB];
   char libs_name[MAX_LIB][MAX_LIB_NAME];
-  uint32_t libs_deps[MAX_LIB];
+  uint64_t libs_deps[MAX_LIB];
 };
 
 DRWShaderLibrary *DRW_shader_library_create(void)
@@ -585,23 +472,27 @@ static int drw_shader_library_search(const DRWShaderLibrary *lib, const char *na
 }
 
 /* Return bitmap of dependencies. */
-static uint32_t drw_shader_dependencies_get(const DRWShaderLibrary *lib, const char *lib_code)
+static uint64_t drw_shader_dependencies_get(const DRWShaderLibrary *lib,
+                                            const char *pragma_str,
+                                            const char *lib_code,
+                                            const char *UNUSED(lib_name))
 {
   /* Search dependencies. */
-  uint32_t deps = 0;
+  uint pragma_len = strlen(pragma_str);
+  uint64_t deps = 0;
   const char *haystack = lib_code;
-  while ((haystack = strstr(haystack, "BLENDER_REQUIRE("))) {
-    haystack += 16;
+  while ((haystack = strstr(haystack, pragma_str))) {
+    haystack += pragma_len;
     int dep = drw_shader_library_search(lib, haystack);
     if (dep == -1) {
-      char dbg_name[33];
+      char dbg_name[MAX_NAME];
       int i = 0;
       while ((*haystack != ')') && (i < (sizeof(dbg_name) - 2))) {
         dbg_name[i] = *haystack;
         haystack++;
         i++;
       }
-      dbg_name[i + 1] = '\0';
+      dbg_name[i] = '\0';
 
       CLOG_INFO(&LOG,
                 0,
@@ -610,7 +501,7 @@ static uint32_t drw_shader_dependencies_get(const DRWShaderLibrary *lib, const c
                 dbg_name);
     }
     else {
-      deps |= 1u << (uint32_t)dep;
+      deps |= 1llu << ((uint64_t)dep);
     }
   }
   return deps;
@@ -629,7 +520,8 @@ void DRW_shader_library_add_file(DRWShaderLibrary *lib, const char *lib_code, co
   if (index > -1) {
     lib->libs[index] = lib_code;
     BLI_strncpy(lib->libs_name[index], lib_name, MAX_LIB_NAME);
-    lib->libs_deps[index] = drw_shader_dependencies_get(lib, lib_code);
+    lib->libs_deps[index] = drw_shader_dependencies_get(
+        lib, "BLENDER_REQUIRE(", lib_code, lib_name);
   }
   else {
     printf("Error: Too many libraries. Cannot add %s.\n", lib_name);
@@ -639,21 +531,20 @@ void DRW_shader_library_add_file(DRWShaderLibrary *lib, const char *lib_code, co
 
 char *DRW_shader_library_create_shader_string(const DRWShaderLibrary *lib, const char *shader_code)
 {
-  uint32_t deps = drw_shader_dependencies_get(lib, shader_code);
+  uint64_t deps = drw_shader_dependencies_get(lib, "BLENDER_REQUIRE(", shader_code, "shader code");
 
   DynStr *ds = BLI_dynstr_new();
   /* Add all dependencies recursively. */
   for (int i = MAX_LIB - 1; i > -1; i--) {
-    if (lib->libs[i] && (deps & (1u << (uint32_t)i))) {
+    if (lib->libs[i] && (deps & (1llu << (uint64_t)i))) {
       deps |= lib->libs_deps[i];
     }
   }
   /* Concatenate all needed libs into one string. */
-  for (int i = 0; i < MAX_LIB; i++) {
-    if (deps & 1u) {
+  for (int i = 0; i < MAX_LIB && deps != 0llu; i++, deps >>= 1llu) {
+    if (deps & 1llu) {
       BLI_dynstr_append(ds, lib->libs[i]);
     }
-    deps = deps >> 1;
   }
 
   BLI_dynstr_append(ds, shader_code);

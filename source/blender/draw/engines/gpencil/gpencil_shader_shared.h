@@ -3,10 +3,12 @@
 #ifndef GPU_SHADER
 #  include "GPU_shader_shared_utils.h"
 
+#  ifndef __cplusplus
 typedef struct gpMaterial gpMaterial;
 typedef struct gpLight gpLight;
 typedef enum gpMaterialFlag gpMaterialFlag;
 typedef enum gpLightType gpLightType;
+#  endif
 #endif
 
 enum gpMaterialFlag {

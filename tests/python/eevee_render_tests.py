@@ -63,7 +63,7 @@ def setup():
         collection = bpy.data.collections.new("Reflection")
         collection.objects.link(plane)
         # Add all lights to light the plane
-        if invert == False:
+        if not invert:
             for light in bpy.data.objects:
                 if light.type == 'LIGHT':
                     collection.objects.link(light)

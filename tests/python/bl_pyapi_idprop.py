@@ -12,6 +12,7 @@ try:
 except ImportError:
     np = None
 
+
 class TestHelper:
 
     @property
@@ -178,7 +179,6 @@ class TestIdPropertyGroupView(TestHelper, unittest.TestCase):
 
         self.assertEqual(len(group), len(text))
         self.assertEqual(list(iter(group)), text)
-
 
     def test_contains(self):
         # Check `idprop.types.IDPropertyGroupView{Keys/Values/Items}.__contains__`

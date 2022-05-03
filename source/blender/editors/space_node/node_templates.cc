@@ -852,23 +852,19 @@ static void ui_node_draw_input(
     }
   }
   else {
-    row = uiLayoutRow(row, true);
+    uiLayout *sub = uiLayoutRow(row, true);
 
-    uiTemplateNodeLink(row, C, ntree, node, input);
+    uiTemplateNodeLink(sub, C, ntree, node, input);
 
     if (input->flag & SOCK_HIDE_VALUE) {
       add_dummy_decorator = true;
     }
     /* input not linked, show value */
     else {
-      uiLayout *sub = row;
-
       switch (input->type) {
         case SOCK_VECTOR:
-          if (input->type == SOCK_VECTOR) {
-            uiItemS(row);
-            sub = uiLayoutColumn(row, true);
-          }
+          uiItemS(sub);
+          sub = uiLayoutColumn(sub, true);
           ATTR_FALLTHROUGH;
         case SOCK_FLOAT:
         case SOCK_INT:
@@ -884,7 +880,7 @@ static void ui_node_draw_input(
           if (node_tree->type == NTREE_GEOMETRY && snode != nullptr) {
             /* Only add the attribute search in the node editor, in other places there is not
              * enough context. */
-            node_geometry_add_attribute_search_button(*C, *node_tree, *node, inputptr, *row);
+            node_geometry_add_attribute_search_button(*C, *node, inputptr, *sub);
           }
           else {
             uiItemR(sub, &inputptr, "default_value", 0, "", ICON_NONE);
@@ -902,6 +898,8 @@ static void ui_node_draw_input(
   if (add_dummy_decorator) {
     uiItemDecoratorR(split_wrapper.decorate_column, nullptr, nullptr, 0);
   }
+
+  node_socket_add_tooltip(ntree, node, input, row);
 
   /* clear */
   node->flag &= ~NODE_TEST;

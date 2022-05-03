@@ -94,18 +94,18 @@ static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
                         struct Mesh *mesh,
                         float (*vertexCos)[3],
-                        int numVerts)
+                        int verts_num)
 {
   LatticeModifierData *lmd = (LatticeModifierData *)md;
   struct Mesh *mesh_src = MOD_deform_mesh_eval_get(
-      ctx->object, NULL, mesh, NULL, numVerts, false, false);
+      ctx->object, NULL, mesh, NULL, verts_num, false, false);
 
   MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
 
   BKE_lattice_deform_coords_with_mesh(lmd->object,
                                       ctx->object,
                                       vertexCos,
-                                      numVerts,
+                                      verts_num,
                                       lmd->flag,
                                       lmd->name,
                                       lmd->strength,
@@ -121,10 +121,10 @@ static void deformVertsEM(ModifierData *md,
                           struct BMEditMesh *em,
                           struct Mesh *mesh,
                           float (*vertexCos)[3],
-                          int numVerts)
+                          int verts_num)
 {
   if (mesh != NULL) {
-    deformVerts(md, ctx, mesh, vertexCos, numVerts);
+    deformVerts(md, ctx, mesh, vertexCos, verts_num);
     return;
   }
 
@@ -133,7 +133,7 @@ static void deformVertsEM(ModifierData *md,
   MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
 
   BKE_lattice_deform_coords_with_editmesh(
-      lmd->object, ctx->object, vertexCos, numVerts, lmd->flag, lmd->name, lmd->strength, em);
+      lmd->object, ctx->object, vertexCos, verts_num, lmd->flag, lmd->name, lmd->strength, em);
 }
 
 static void panel_draw(const bContext *UNUSED(C), Panel *panel)

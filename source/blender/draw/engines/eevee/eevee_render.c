@@ -230,7 +230,7 @@ void EEVEE_render_cache(void *vedata,
       }
     }
     else if (ob->type == OB_CURVES) {
-      EEVEE_object_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
+      EEVEE_object_curves_cache_populate(vedata, sldata, ob, &cast_shadow);
       if (do_cryptomatte) {
         EEVEE_cryptomatte_object_curves_cache_populate(data, sldata, ob);
       }
@@ -538,9 +538,9 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
   DRW_render_instance_buffer_finish();
 
   /* Need to be called after DRW_render_instance_buffer_finish() */
-  /* Also we weed to have a correct FBO bound for DRW_hair_update */
+  /* Also we weed to have a correct FBO bound for DRW_curves_update */
   GPU_framebuffer_bind(fbl->main_fb);
-  DRW_hair_update();
+  DRW_curves_update();
 
   /* Sort transparents before the loop. */
   DRW_pass_sort_shgroup_z(psl->transparent_pass);

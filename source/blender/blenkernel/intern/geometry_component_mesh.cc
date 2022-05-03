@@ -10,6 +10,7 @@
 #include "BKE_attribute_access.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_deform.h"
+#include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
@@ -902,22 +903,6 @@ static void set_loop_uv(MLoopUV &uv, float2 co)
   copy_v2_v2(uv.uv, co);
 }
 
-static ColorGeometry4f get_loop_color(const MLoopCol &col)
-{
-  ColorGeometry4b encoded_color = ColorGeometry4b(col.r, col.g, col.b, col.a);
-  ColorGeometry4f linear_color = encoded_color.decode();
-  return linear_color;
-}
-
-static void set_loop_color(MLoopCol &col, ColorGeometry4f linear_color)
-{
-  ColorGeometry4b encoded_color = linear_color.encode();
-  col.r = encoded_color.r;
-  col.g = encoded_color.g;
-  col.b = encoded_color.b;
-  col.a = encoded_color.a;
-}
-
 static float get_crease(const MEdge &edge)
 {
   return edge.crease / 255.0f;
@@ -944,20 +929,71 @@ class VArrayImpl_For_VertexWeights final : public VMutableArrayImpl<float> {
     if (dverts_ == nullptr) {
       return 0.0f;
     }
-    const MDeformVert &dvert = dverts_[index];
-    for (const MDeformWeight &weight : Span(dvert.dw, dvert.totweight)) {
-      if (weight.def_nr == dvert_index_) {
-        return weight.weight;
-      }
+    if (const MDeformWeight *weight = this->find_weight_at_index(index)) {
+      return weight->weight;
     }
     return 0.0f;
-    ;
   }
 
   void set(const int64_t index, const float value) override
   {
-    MDeformWeight *weight = BKE_defvert_ensure_index(&dverts_[index], dvert_index_);
-    weight->weight = value;
+    MDeformVert &dvert = dverts_[index];
+    if (value == 0.0f) {
+      if (MDeformWeight *weight = this->find_weight_at_index(index)) {
+        weight->weight = 0.0f;
+      }
+    }
+    else {
+      MDeformWeight *weight = BKE_defvert_ensure_index(&dvert, dvert_index_);
+      weight->weight = value;
+    }
+  }
+
+  void set_all(Span<float> src) override
+  {
+    for (const int64_t index : src.index_range()) {
+      this->set(index, src[index]);
+    }
+  }
+
+  void materialize(IndexMask mask, MutableSpan<float> r_span) const override
+  {
+    if (dverts_ == nullptr) {
+      return r_span.fill_indices(mask, 0.0f);
+    }
+    for (const int64_t index : mask) {
+      if (const MDeformWeight *weight = this->find_weight_at_index(index)) {
+        r_span[index] = weight->weight;
+      }
+      else {
+        r_span[index] = 0.0f;
+      }
+    }
+  }
+
+  void materialize_to_uninitialized(IndexMask mask, MutableSpan<float> r_span) const override
+  {
+    this->materialize(mask, r_span);
+  }
+
+ private:
+  MDeformWeight *find_weight_at_index(const int64_t index)
+  {
+    for (MDeformWeight &weight : MutableSpan(dverts_[index].dw, dverts_[index].totweight)) {
+      if (weight.def_nr == dvert_index_) {
+        return &weight;
+      }
+    }
+    return nullptr;
+  }
+  const MDeformWeight *find_weight_at_index(const int64_t index) const
+  {
+    for (const MDeformWeight &weight : Span(dverts_[index].dw, dverts_[index].totweight)) {
+      if (weight.def_nr == dvert_index_) {
+        return &weight;
+      }
+    }
+    return nullptr;
   }
 };
 
@@ -1135,8 +1171,7 @@ class NormalAttributeProvider final : public BuiltinAttributeProvider {
 static ComponentAttributeProviders create_attribute_providers_for_mesh()
 {
   static auto update_custom_data_pointers = [](GeometryComponent &component) {
-    Mesh *mesh = get_mesh_from_component_for_write(component);
-    if (mesh != nullptr) {
+    if (Mesh *mesh = get_mesh_from_component_for_write(component)) {
       BKE_mesh_update_customdata_pointers(mesh, false);
     }
   };
@@ -1242,14 +1277,6 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
       make_derived_read_attribute<MLoopUV, float2, get_loop_uv>,
       make_derived_write_attribute<MLoopUV, float2, get_loop_uv, set_loop_uv>);
 
-  static NamedLegacyCustomDataProvider vertex_colors(
-      ATTR_DOMAIN_CORNER,
-      CD_PROP_COLOR,
-      CD_MLOOPCOL,
-      corner_access,
-      make_derived_read_attribute<MLoopCol, ColorGeometry4f, get_loop_color>,
-      make_derived_write_attribute<MLoopCol, ColorGeometry4f, get_loop_color, set_loop_color>);
-
   static VertexGroupsAttributeProvider vertex_groups;
   static CustomDataAttributeProvider corner_custom_data(ATTR_DOMAIN_CORNER, corner_access);
   static CustomDataAttributeProvider point_custom_data(ATTR_DOMAIN_POINT, point_access);
@@ -1259,7 +1286,6 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
   return ComponentAttributeProviders(
       {&position, &id, &material_index, &shade_smooth, &normal, &crease},
       {&uvs,
-       &vertex_colors,
        &corner_custom_data,
        &vertex_groups,
        &point_custom_data,

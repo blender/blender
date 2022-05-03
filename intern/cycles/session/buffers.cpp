@@ -49,6 +49,7 @@ NODE_DEFINE(BufferPass)
   SOCKET_ENUM(mode, "Mode", *pass_mode_enum, static_cast<int>(PassMode::DENOISED));
   SOCKET_STRING(name, "Name", ustring());
   SOCKET_BOOLEAN(include_albedo, "Include Albedo", false);
+  SOCKET_STRING(lightgroup, "Light Group", ustring());
 
   SOCKET_INT(offset, "Offset", -1);
 
@@ -64,13 +65,14 @@ BufferPass::BufferPass(const Pass *scene_pass)
       type(scene_pass->get_type()),
       mode(scene_pass->get_mode()),
       name(scene_pass->get_name()),
-      include_albedo(scene_pass->get_include_albedo())
+      include_albedo(scene_pass->get_include_albedo()),
+      lightgroup(scene_pass->get_lightgroup())
 {
 }
 
 PassInfo BufferPass::get_info() const
 {
-  return Pass::get_info(type, include_albedo);
+  return Pass::get_info(type, include_albedo, !lightgroup.empty());
 }
 
 /* --------------------------------------------------------------------
@@ -165,7 +167,7 @@ void BufferParams::reset_pass_offset()
 
 int BufferParams::get_pass_offset(PassType pass_type, PassMode mode) const
 {
-  if (pass_type == PASS_NONE || pass_type == PASS_UNUSED) {
+  if (pass_type == PASS_NONE) {
     return PASS_UNUSED;
   }
 

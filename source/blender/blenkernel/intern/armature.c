@@ -813,11 +813,9 @@ bool bone_autoside_name(
       }
     }
 
-    if ((MAXBONENAME - len) < strlen(extension) + 1) { /* add 1 for the '.' */
-      strncpy(name, basename, len - strlen(extension));
-    }
-
-    BLI_snprintf(name, MAXBONENAME, "%s.%s", basename, extension);
+    /* Subtract 1 from #MAXBONENAME for the null byte. Add 1 to the extension for the '.' */
+    const int basename_maxlen = (MAXBONENAME - 1) - (1 + strlen(extension));
+    BLI_snprintf(name, MAXBONENAME, "%.*s.%s", basename_maxlen, basename, extension);
 
     return true;
   }
@@ -2164,8 +2162,8 @@ void vec_roll_to_mat3_normalized(const float nor[3], const float roll, float r_m
   const float y = nor[1];
   const float z = nor[2];
 
-  float theta = 1.0f + y;                /* remapping Y from [-1,+1] to [0,2]. */
-  const float theta_alt = x * x + z * z; /* squared distance from origin in x,z plane. */
+  float theta = 1.0f + y;                /* Remapping Y from [-1,+1] to [0,2]. */
+  const float theta_alt = x * x + z * z; /* Squared distance from origin in x,z plane. */
   float rMatrix[3][3], bMatrix[3][3];
 
   BLI_ASSERT_UNIT_V3(nor);
@@ -2480,7 +2478,7 @@ void BKE_pose_where_is_bone(struct Depsgraph *depsgraph,
                             float ctime,
                             bool do_extra)
 {
-  /* This gives a chan_mat with actions (F-curve) results. */
+  /* This gives a chan_mat with actions (F-Curve) results. */
   if (do_extra) {
     BKE_pchan_calc_mat(pchan);
   }

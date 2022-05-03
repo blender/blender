@@ -52,7 +52,7 @@ bool TreeElementRNACommon::isRNAValid() const
   return rna_ptr_.data != nullptr;
 }
 
-bool TreeElementRNACommon::expandPoll(const SpaceOutliner &) const
+bool TreeElementRNACommon::expandPoll(const SpaceOutliner &UNUSED(space_outliner)) const
 {
   return isRNAValid();
 }

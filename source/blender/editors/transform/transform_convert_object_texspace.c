@@ -63,7 +63,6 @@ void createTransTexspace(TransInfo *t)
   }
 
   td->flag = TD_SELECTED;
-  copy_v3_v3(td->center, ob->obmat[3]);
   td->ob = ob;
 
   copy_m3_m4(td->mtx, ob->obmat);
@@ -77,6 +76,7 @@ void createTransTexspace(TransInfo *t)
   }
 
   copy_v3_v3(td->iloc, td->loc);
+  copy_v3_v3(td->center, td->loc);
   copy_v3_v3(td->ext->isize, td->ext->size);
 }
 

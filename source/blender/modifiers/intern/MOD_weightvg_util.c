@@ -135,7 +135,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
     float(*tex_co)[3];
     /* See mapping note below... */
     MappingInfoModifierData t_map;
-    const int numVerts = mesh->totvert;
+    const int verts_num = mesh->totvert;
 
     /* Use new generic get_texture_coords, but do not modify our DNA struct for it...
      * XXX Why use a ModifierData stuff here ? Why not a simple, generic struct for parameters?
@@ -148,7 +148,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
     BLI_strncpy(t_map.uvlayer_name, tex_uvlayer_name, sizeof(t_map.uvlayer_name));
     t_map.texmapping = tex_mapping;
 
-    tex_co = MEM_calloc_arrayN(numVerts, sizeof(*tex_co), "WeightVG Modifier, TEX mode, tex_co");
+    tex_co = MEM_calloc_arrayN(verts_num, sizeof(*tex_co), "WeightVG Modifier, TEX mode, tex_co");
     MOD_get_texture_coords(&t_map, ctx, ob, mesh, NULL, tex_co);
 
     MOD_init_texture(&t_map, ctx);

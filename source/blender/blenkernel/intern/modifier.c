@@ -233,11 +233,11 @@ bool BKE_modifier_unique_name(ListBase *modifiers, ModifierData *md)
   return false;
 }
 
-bool BKE_modifier_depends_ontime(Scene *scene, ModifierData *md, const int dag_eval_mode)
+bool BKE_modifier_depends_ontime(Scene *scene, ModifierData *md)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
-  return mti->dependsOnTime && mti->dependsOnTime(scene, md, dag_eval_mode);
+  return mti->dependsOnTime && mti->dependsOnTime(scene, md);
 }
 
 bool BKE_modifier_supports_mapping(ModifierData *md)
@@ -682,7 +682,7 @@ ModifierData *BKE_modifiers_get_virtual_modifierlist(const Object *ob,
   }
 
   /* shape key modifier, not yet for curves */
-  if (ELEM(ob->type, OB_MESH, OB_LATTICE) && BKE_key_from_object(ob)) {
+  if (ELEM(ob->type, OB_MESH, OB_LATTICE) && BKE_key_from_object((Object *)ob)) {
     if (ob->type == OB_MESH && (ob->shapeflag & OB_SHAPE_EDIT_MODE)) {
       virtualModifierData->smd.modifier.mode |= eModifierMode_Editmode | eModifierMode_OnCage;
     }
@@ -845,41 +845,6 @@ bool BKE_modifiers_uses_armature(Object *ob, bArmature *arm)
   return false;
 }
 
-bool BKE_modifiers_uses_subsurf_facedots(const struct Scene *scene, Object *ob)
-{
-  /* Search (backward) in the modifier stack to find if we have a subsurf modifier (enabled) before
-   * the last modifier displayed on cage (or if the subsurf is the last). */
-  VirtualModifierData virtualModifierData;
-  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
-  int cage_index = BKE_modifiers_get_cage_index(scene, ob, NULL, 1);
-  if (cage_index == -1) {
-    return false;
-  }
-  /* Find first modifier enabled on cage. */
-  for (int i = 0; md && i < cage_index; i++) {
-    md = md->next;
-  }
-  /* Now from this point, search for subsurf modifier. */
-  for (; md; md = md->prev) {
-    const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
-    if (md->type == eModifierType_Subsurf) {
-      ModifierMode mode = eModifierMode_Realtime | eModifierMode_Editmode;
-      if (BKE_modifier_is_enabled(scene, md, mode)) {
-        return true;
-      }
-    }
-    else if (mti->type == eModifierTypeType_OnlyDeform) {
-      /* These modifiers do not reset the subdiv flag nor change the topology.
-       * We can still search for a subsurf modifier. */
-    }
-    else {
-      /* Other modifiers may reset the subdiv facedot flag or create. */
-      return false;
-    }
-  }
-  return false;
-}
-
 bool BKE_modifier_is_correctable_deformed(ModifierData *md)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
@@ -979,8 +944,10 @@ static void modwrap_dependsOnNormals(Mesh *me)
       break;
     }
     case ME_WRAPPER_TYPE_SUBD:
+      /* Not an expected case. */
+      break;
     case ME_WRAPPER_TYPE_MDATA:
-      BKE_mesh_calc_normals(me);
+      /* Normals are calculated lazily. */
       break;
   }
 }
@@ -1027,7 +994,7 @@ void BKE_modifier_deform_vertsEM(ModifierData *md,
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
   if (me && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
-    BKE_mesh_calc_normals(me);
+    modwrap_dependsOnNormals(me);
   }
   mti->deformVertsEM(md, ctx, em, me, vertexCos, numVerts);
 }

@@ -8,7 +8,6 @@ set(INC
 
 set(INC_SYS
   ${GLEW_INCLUDE_DIR}
-  ../../../extern/clew/include
 )
 
 if(WITH_CYCLES_DEVICE_OPTIX OR WITH_CYCLES_DEVICE_CUDA)
@@ -197,7 +196,8 @@ cycles_add_library(cycles_device "${LIB}" ${SRC})
 source_group("cpu" FILES ${SRC_CPU})
 source_group("cuda" FILES ${SRC_CUDA})
 source_group("dummy" FILES ${SRC_DUMMY})
+source_group("hip" FILES ${SRC_HIP})
 source_group("multi" FILES ${SRC_MULTI})
 source_group("metal" FILES ${SRC_METAL})
 source_group("optix" FILES ${SRC_OPTIX})
-source_group("common" FILES ${SRC} ${SRC_HEADERS})
+source_group("common" FILES ${SRC_BASE} ${SRC_HEADERS})

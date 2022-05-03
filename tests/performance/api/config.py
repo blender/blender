@@ -68,11 +68,14 @@ class TestQueue:
 
     def rows(self, use_revision_columns: bool) -> List:
         # Generate rows of entries for printing and running.
-        entries = sorted(self.entries, key=lambda entry:
-            (entry.revision,
-             entry.device_id,
-             entry.category,
-             entry.test))
+        entries = sorted(
+            self.entries,
+            key=lambda entry: (
+                entry.revision,
+                entry.device_id,
+                entry.category,
+                entry.test,
+            ))
 
         if not use_revision_columns:
             # One entry per row.

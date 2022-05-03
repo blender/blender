@@ -24,6 +24,8 @@ using namespace blender;
 using namespace blender::gpu;
 using namespace blender::gpu::shader;
 
+extern "C" char datatoc_glsl_shader_defines_glsl[];
+
 /* -------------------------------------------------------------------- */
 /** \name Creation / Destruction
  * \{ */
@@ -212,6 +214,20 @@ static const char *to_string(const PrimitiveOut &layout)
       return "triangle_strip";
     default:
       return "unknown";
+  }
+}
+
+static const char *to_string(const DepthWrite &value)
+{
+  switch (value) {
+    case DepthWrite::ANY:
+      return "depth_any";
+    case DepthWrite::GREATER:
+      return "depth_greater";
+    case DepthWrite::LESS:
+      return "depth_less";
+    default:
+      return "depth_unchanged";
   }
 }
 
@@ -556,10 +572,13 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
   }
   if (bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD)) {
     if (!GLContext::native_barycentric_support) {
+      ss << "flat in vec4 gpu_pos[3];\n";
       ss << "smooth in vec3 gpu_BaryCoord;\n";
       ss << "noperspective in vec3 gpu_BaryCoordNoPersp;\n";
+      ss << "#define gpu_position_at_vertex(v) gpu_pos[v]\n";
     }
     else if (GLEW_AMD_shader_explicit_vertex_parameter) {
+      std::cout << "native" << std::endl;
       /* NOTE(fclem): This won't work with geometry shader. Hopefully, we don't need geometry
        * shader workaround if this extension/feature is detected. */
       ss << "\n/* Stable Barycentric Coordinates. */\n";
@@ -575,6 +594,12 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
       ss << "  if (interpolateAtVertexAMD(gpu_pos, 2) == gpu_pos_flat) { return bary.yzx; }\n";
       ss << "  return bary.xyz;\n";
       ss << "}\n";
+      ss << "\n";
+      ss << "vec4 gpu_position_at_vertex(int v) {\n";
+      ss << "  if (interpolateAtVertexAMD(gpu_pos, 0) == gpu_pos_flat) { v = (v + 2) % 3; }\n";
+      ss << "  if (interpolateAtVertexAMD(gpu_pos, 2) == gpu_pos_flat) { v = (v + 1) % 3; }\n";
+      ss << "  return interpolateAtVertexAMD(gpu_pos, v);\n";
+      ss << "}\n";
 
       pre_main += "  gpu_BaryCoord = stable_bary_(gl_BaryCoordSmoothAMD);\n";
       pre_main += "  gpu_BaryCoordNoPersp = stable_bary_(gl_BaryCoordNoPerspAMD);\n";
@@ -582,6 +607,9 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
   }
   if (info.early_fragment_test_) {
     ss << "layout(early_fragment_tests) in;\n";
+  }
+  if (GLEW_VERSION_4_2 || GLEW_ARB_conservative_depth) {
+    ss << "layout(" << to_string(info.depth_write_) << ") out float gl_FragDepth;\n";
   }
   ss << "\n/* Outputs. */\n";
   for (const ShaderCreateInfo::FragOut &output : info.fragment_outputs_) {
@@ -711,6 +739,7 @@ std::string GLShader::workaround_geometry_shader_source_create(
     ss << "in int gpu_Layer[];\n";
   }
   if (do_barycentric_workaround) {
+    ss << "flat out vec4 gpu_pos[3];\n";
     ss << "smooth out vec3 gpu_BaryCoord;\n";
     ss << "noperspective out vec3 gpu_BaryCoordNoPersp;\n";
   }
@@ -720,6 +749,11 @@ std::string GLShader::workaround_geometry_shader_source_create(
   ss << "{\n";
   if (do_layer_workaround) {
     ss << "  gl_Layer = gpu_Layer[0];\n";
+  }
+  if (do_barycentric_workaround) {
+    ss << "  gpu_pos[0] = gl_in[0].gl_Position;\n";
+    ss << "  gpu_pos[1] = gl_in[1].gl_Position;\n";
+    ss << "  gpu_pos[2] = gl_in[2].gl_Position;\n";
   }
   for (auto i : IndexRange(3)) {
     for (StageInterfaceInfo *iface : info_modified.vertex_out_interfaces_) {
@@ -760,7 +794,7 @@ bool GLShader::do_geometry_shader_injection(const shader::ShaderCreateInfo *info
 static char *glsl_patch_default_get()
 {
   /** Used for shader patching. Init once. */
-  static char patch[1024] = "\0";
+  static char patch[2048] = "\0";
   if (patch[0] != '\0') {
     return patch;
   }
@@ -821,11 +855,14 @@ static char *glsl_patch_default_get()
   STR_CONCAT(patch, slen, "#define gpu_InstanceIndex (gl_InstanceID + gpu_BaseInstance)\n");
 
   /* Array compat. */
-  STR_CONCAT(patch, slen, "#define array(_type) _type[]\n");
+  STR_CONCAT(patch, slen, "#define gpu_Array(_type) _type[]\n");
 
   /* Derivative sign can change depending on implementation. */
   STR_CONCATF(patch, slen, "#define DFDX_SIGN %1.1f\n", GLContext::derivative_signs[0]);
   STR_CONCATF(patch, slen, "#define DFDY_SIGN %1.1f\n", GLContext::derivative_signs[1]);
+
+  /* GLSL Backend Lib. */
+  STR_CONCAT(patch, slen, datatoc_glsl_shader_defines_glsl);
 
   BLI_assert(slen < sizeof(patch));
   return patch;
@@ -845,7 +882,7 @@ static char *glsl_patch_compute_get()
   STR_CONCAT(patch, slen, "#extension GL_ARB_compute_shader :enable\n");
 
   /* Array compat. */
-  STR_CONCAT(patch, slen, "#define array(_type) _type[]\n");
+  STR_CONCAT(patch, slen, "#define gpu_Array(_type) _type[]\n");
 
   BLI_assert(slen < sizeof(patch));
   return patch;
@@ -863,7 +900,7 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage, MutableSpan<const char *> 
 {
   GLuint shader = glCreateShader(gl_stage);
   if (shader == 0) {
-    fprintf(stderr, "GLShader: Error: Could not create shader object.");
+    fprintf(stderr, "GLShader: Error: Could not create shader object.\n");
     return 0;
   }
 
@@ -955,7 +992,7 @@ bool GLShader::finalize(const shader::ShaderCreateInfo *info)
     return false;
   }
 
-  if (info != nullptr) {
+  if (info != nullptr && info->legacy_resource_location_ == false) {
     interface = new GLShaderInterface(shader_program_, *info);
   }
   else {

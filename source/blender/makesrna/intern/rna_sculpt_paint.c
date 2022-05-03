@@ -78,11 +78,18 @@ static const EnumPropertyItem rna_enum_gpencil_paint_mode[] = {
     {GPPAINT_FLAG_USE_VERTEXCOLOR,
      "VERTEXCOLOR",
      0,
-     "Vertex Color",
-     "Paint the material with custom vertex color"},
+     "Color Attribute",
+     "Paint the material with a color attribute"},
     {0, NULL, 0, NULL, NULL},
 };
 #endif
+
+static const EnumPropertyItem rna_enum_canvas_source_items[] = {
+    {PAINT_CANVAS_SOURCE_COLOR_ATTRIBUTE, "COLOR_ATTRIBUTE", 0, "Color Attribute", ""},
+    {PAINT_CANVAS_SOURCE_MATERIAL, "MATERIAL", 0, "Material", ""},
+    {PAINT_CANVAS_SOURCE_IMAGE, "IMAGE", 0, "Image", ""},
+    {0, NULL, 0, NULL, NULL},
+};
 
 const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
     {BMO_SYMMETRIZE_NEGATIVE_X, "NEGATIVE_X", 0, "-X to +X", ""},
@@ -418,6 +425,11 @@ static char *rna_ImagePaintSettings_path(PointerRNA *UNUSED(ptr))
   return BLI_strdup("tool_settings.image_paint");
 }
 
+static char *rna_PaintModeSettings_path(PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("tool_settings.paint_mode");
+}
+
 static char *rna_UvSculpt_path(PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.uv_sculpt");
@@ -536,6 +548,30 @@ static void rna_ImaPaint_canvas_update(bContext *C, PointerRNA *UNUSED(ptr))
     WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
   }
 }
+
+/** \name Paint mode settings
+ * \{ */
+
+static bool rna_PaintModeSettings_canvas_image_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
+{
+  Image *image = (Image *)value.owner_id;
+  return !ELEM(image->type, IMA_TYPE_COMPOSITE, IMA_TYPE_R_RESULT);
+}
+
+static void rna_PaintModeSettings_canvas_source_update(bContext *C, PointerRNA *UNUSED(ptr))
+{
+  Scene *scene = CTX_data_scene(C);
+  Object *ob = CTX_data_active_object(C);
+  /* When canvas source changes the PBVH would require updates when switching between color
+   * attributes. */
+  if (ob && ob->type == OB_MESH) {
+    BKE_texpaint_slots_refresh_object(scene, ob);
+    DEG_id_tag_update(&ob->id, 0);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, &ob->id);
+  }
+}
+
+/* \} */
 
 static bool rna_ImaPaint_detect_data(ImagePaintSettings *imapaint)
 {
@@ -962,6 +998,29 @@ static void rna_def_vertex_paint(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 1, 32, 1, 1);
   RNA_def_property_ui_text(
       prop, "Radial Symmetry Count X Axis", "Number of times to copy strokes across the surface");
+}
+
+static void rna_def_paint_mode(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "PaintModeSettings", NULL);
+  RNA_def_struct_sdna(srna, "PaintModeSettings");
+  RNA_def_struct_path_func(srna, "rna_PaintModeSettings_path");
+  RNA_def_struct_ui_text(srna, "Paint Mode", "Properties of paint mode");
+
+  prop = RNA_def_property(srna, "canvas_source", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_canvas_source_items);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_ui_text(prop, "Source", "Source to select canvas from");
+  RNA_def_property_update(prop, 0, "rna_PaintModeSettings_canvas_source_update");
+
+  prop = RNA_def_property(srna, "canvas_image", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_funcs(
+      prop, NULL, NULL, NULL, "rna_PaintModeSettings_canvas_image_poll");
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_CONTEXT_UPDATE);
+  RNA_def_property_ui_text(prop, "Texture", "Image used as as painting target");
 }
 
 static void rna_def_image_paint(BlenderRNA *brna)
@@ -1506,35 +1565,10 @@ static void rna_def_gpencil_sculpt(BlenderRNA *brna)
 static void rna_def_curves_sculpt(BlenderRNA *brna)
 {
   StructRNA *srna;
-  PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "CurvesSculpt", "Paint");
   RNA_def_struct_path_func(srna, "rna_CurvesSculpt_path");
   RNA_def_struct_ui_text(srna, "Curves Sculpt Paint", "");
-
-  prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
-  RNA_def_property_range(prop, 0.0f, FLT_MAX);
-  RNA_def_property_ui_range(prop, 0.0f, FLT_MAX, 1, 6);
-  RNA_def_property_ui_text(
-      prop, "Distance", "Radius around curves roots in which no new curves can be added");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-
-  prop = RNA_def_property(srna, "interpolate_length", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", CURVES_SCULPT_FLAG_INTERPOLATE_LENGTH);
-  RNA_def_property_ui_text(
-      prop, "Interpolate Length", "Use length of the curves in close proximity");
-
-  prop = RNA_def_property(srna, "interpolate_shape", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE);
-  RNA_def_property_ui_text(
-      prop, "Interpolate Shape", "Use shape of the curves in close proximity");
-
-  prop = RNA_def_property(srna, "curve_length", PROP_FLOAT, PROP_DISTANCE);
-  RNA_def_property_range(prop, 0.0, FLT_MAX);
-  RNA_def_property_ui_text(
-      prop,
-      "Curve Length",
-      "Length of newly added curves when it is not interpolated from other curves");
 }
 
 void RNA_def_sculpt_paint(BlenderRNA *brna)
@@ -1551,6 +1585,7 @@ void RNA_def_sculpt_paint(BlenderRNA *brna)
   rna_def_gp_sculptpaint(brna);
   rna_def_gp_weightpaint(brna);
   rna_def_vertex_paint(brna);
+  rna_def_paint_mode(brna);
   rna_def_image_paint(brna);
   rna_def_particle_edit(brna);
   rna_def_gpencil_guides(brna);

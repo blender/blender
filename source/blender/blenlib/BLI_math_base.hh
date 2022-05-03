@@ -12,7 +12,6 @@
 #include <type_traits>
 
 #include "BLI_math_base_safe.h"
-#include "BLI_math_vec_types.hh"
 #include "BLI_utildefines.h"
 
 #ifdef WITH_GMP
@@ -20,6 +19,15 @@
 #endif
 
 namespace blender::math {
+
+template<typename T>
+inline constexpr bool is_math_float_type = (std::is_floating_point_v<T>
+#ifdef WITH_GMP
+                                            || std::is_same_v<T, mpq_class>
+#endif
+);
+
+template<typename T> inline constexpr bool is_math_integral_type = std::is_integral_v<T>;
 
 template<typename T> inline bool is_zero(const T &a)
 {
@@ -84,19 +92,26 @@ template<typename T, BLI_ENABLE_IF((is_math_float_type<T>))> inline T ceil(const
   return std::ceil(a);
 }
 
+template<typename T> inline T distance(const T &a, const T &b)
+{
+  return std::abs(a - b);
+}
+
 template<typename T, BLI_ENABLE_IF((is_math_float_type<T>))> inline T fract(const T &a)
 {
   return a - std::floor(a);
 }
 
-template<typename T, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline T interpolate(const T &a, const T &b, const T &t)
+template<typename T,
+         typename FactorT,
+         BLI_ENABLE_IF((std::is_arithmetic_v<T>)),
+         BLI_ENABLE_IF((is_math_float_type<FactorT>))>
+inline T interpolate(const T &a, const T &b, const FactorT &t)
 {
   return a * (1 - t) + b * t;
 }
 
-template<typename T, BLI_ENABLE_IF((is_math_float_type<T>))>
-inline T midpoint(const T &a, const T &b)
+template<typename T> inline T midpoint(const T &a, const T &b)
 {
   return (a + b) * T(0.5);
 }

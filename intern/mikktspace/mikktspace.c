@@ -565,23 +565,26 @@ static void GenerateSharedVerticesIndexList(int piTriList_in_and_out[],
         break;
     }
 
-    for (int i = blockstart; i < blockend; i++) {
-      int index1 = piTriList_in_and_out[indices[i]];
-      const SVec3 vP = GetPosition(pContext, index1);
-      const SVec3 vN = GetNormal(pContext, index1);
-      const SVec3 vT = GetTexCoord(pContext, index1);
-      for (int i2 = i + 1; i2 < blockend; i2++) {
-        int index2 = piTriList_in_and_out[indices[i2]];
-        if (index1 == index2)
-          continue;
+    /* If there's only one vertex with this hash, we don't have anything to compare. */
+    if (blockend > blockstart + 1) {
+      for (int i = blockstart; i < blockend; i++) {
+        int index1 = piTriList_in_and_out[indices[i]];
+        const SVec3 vP = GetPosition(pContext, index1);
+        const SVec3 vN = GetNormal(pContext, index1);
+        const SVec3 vT = GetTexCoord(pContext, index1);
+        for (int i2 = i + 1; i2 < blockend; i2++) {
+          int index2 = piTriList_in_and_out[indices[i2]];
+          if (index1 == index2)
+            continue;
 
-        if (veq(vP, GetPosition(pContext, index2)) && veq(vN, GetNormal(pContext, index2)) &&
-            veq(vT, GetTexCoord(pContext, index2))) {
-          piTriList_in_and_out[indices[i2]] = index1;
-          /* Once i2>i has been identified as a duplicate, we can stop since any
-           * i3>i2>i that is a duplicate of i (and therefore also i2) will also be
-           * compared to i2 and therefore be identified there anyways. */
-          break;
+          if (veq(vP, GetPosition(pContext, index2)) && veq(vN, GetNormal(pContext, index2)) &&
+              veq(vT, GetTexCoord(pContext, index2))) {
+            piTriList_in_and_out[indices[i2]] = index1;
+            /* Once i2>i has been identified as a duplicate, we can stop since any
+             * i3>i2>i that is a duplicate of i (and therefore also i2) will also be
+             * compared to i2 and therefore be identified there anyways. */
+            break;
+          }
         }
       }
     }
@@ -645,7 +648,8 @@ static int GenerateInitialVerticesIndexList(STriInfo pTriInfos[],
 {
   int iTSpacesOffs = 0, f = 0, t = 0;
   int iDstTriIndex = 0;
-  for (f = 0; f < pContext->m_pInterface->m_getNumFaces(pContext); f++) {
+  const int iNrFaces = pContext->m_pInterface->m_getNumFaces(pContext);
+  for (f = 0; f < iNrFaces; f++) {
     const int verts = pContext->m_pInterface->m_getNumVerticesOfFace(pContext, f);
     if (verts != 3 && verts != 4)
       continue;

@@ -18,6 +18,7 @@
 #include "BKE_gpencil_modifier.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -84,7 +85,7 @@ static bool view3d_camera_to_view_poll(bContext *C)
 
   if (ED_view3d_context_user_region(C, &v3d, &region)) {
     RegionView3D *rv3d = region->regiondata;
-    if (v3d && v3d->camera && !ID_IS_LINKED(v3d->camera)) {
+    if (v3d && v3d->camera && BKE_id_is_editable(CTX_data_main(C), &v3d->camera->id)) {
       if (rv3d && (RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ANY_TRANSFORM) == 0) {
         if (rv3d->persp != RV3D_CAMOB) {
           return true;
@@ -1128,7 +1129,6 @@ void VIEW3D_OT_localview_remove_from(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = localview_remove_from_exec;
-  ot->invoke = WM_operator_confirm;
   ot->poll = localview_remove_from_poll;
   ot->flag = OPTYPE_UNDO;
 }

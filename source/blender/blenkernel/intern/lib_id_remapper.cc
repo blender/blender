@@ -86,7 +86,8 @@ struct IDRemapper {
     }
 
     if (options & ID_REMAP_APPLY_UPDATE_REFCOUNT) {
-      id_us_plus(*r_id_ptr);
+      /* Do not handle LIB_TAG_INDIRECT/LIB_TAG_EXTERN here. */
+      id_us_plus_no_lib(*r_id_ptr);
     }
 
     if (options & ID_REMAP_APPLY_ENSURE_REAL) {

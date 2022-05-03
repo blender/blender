@@ -16,6 +16,7 @@ set(INC
   ../editors/space_view3d
   ../functions
   ../gpu
+  ../gpu/intern
   ../imbuf
   ../makesdna
   ../makesrna
@@ -25,10 +26,10 @@ set(INC
   ../windowmanager
 
   ../../../intern/atomic
+  ../../../intern/clog
   ../../../intern/glew-mx
   ../../../intern/guardedalloc
   ../../../intern/opensubdiv
-  ../../../intern/clog
 
   # dna_type_offsets.h
   ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
@@ -81,6 +82,7 @@ set(SRC
   intern/draw_cache_impl_volume.c
   intern/draw_color_management.cc
   intern/draw_common.c
+  intern/draw_curves.cc
   intern/draw_debug.c
   intern/draw_fluid.c
   intern/draw_hair.c
@@ -97,6 +99,7 @@ set(SRC
   intern/draw_texture_pool.cc
   intern/draw_view.c
   intern/draw_view_data.cc
+  intern/draw_volume.cc
   intern/smaa_textures.c
   engines/basic/basic_engine.c
   engines/basic/basic_shader.c
@@ -123,6 +126,7 @@ set(SRC
   engines/eevee/eevee_sampling.c
   engines/eevee/eevee_screen_raytrace.c
   engines/eevee/eevee_shaders.c
+  engines/eevee/eevee_shaders_extra.cc
   engines/eevee/eevee_shadows.c
   engines/eevee/eevee_shadows_cascade.c
   engines/eevee/eevee_shadows_cube.c
@@ -158,6 +162,7 @@ set(SRC
   engines/overlay/overlay_armature.c
   engines/overlay/overlay_background.c
   engines/overlay/overlay_edit_curve.c
+  engines/overlay/overlay_edit_curves.cc
   engines/overlay/overlay_edit_mesh.c
   engines/overlay/overlay_edit_text.c
   engines/overlay/overlay_edit_uv.c
@@ -190,6 +195,8 @@ set(SRC
   intern/draw_cache_inline.h
   intern/draw_color_management.h
   intern/draw_common.h
+  intern/draw_common_shader_shared.h
+  intern/draw_curves_private.h
   intern/draw_debug.h
   intern/draw_hair_private.h
   intern/draw_instance_data.h
@@ -214,18 +221,18 @@ set(SRC
   engines/eevee_next/eevee_engine.h
   engines/external/external_engine.h
   engines/image/image_batches.hh
+  engines/image/image_buffer_cache.hh
   engines/image/image_drawing_mode.hh
   engines/image/image_engine.h
   engines/image/image_instance_data.hh
   engines/image/image_partial_updater.hh
   engines/image/image_private.hh
   engines/image/image_shader_params.hh
+  engines/image/image_space.hh
   engines/image/image_space_image.hh
   engines/image/image_space_node.hh
-  engines/image/image_space.hh
   engines/image/image_texture_info.hh
   engines/image/image_usage.hh
-  engines/image/image_wrappers.hh
   engines/workbench/workbench_engine.h
   engines/workbench/workbench_private.h
   engines/workbench/workbench_shader_shared.h
@@ -264,9 +271,13 @@ set(GLSL_SRC
   engines/eevee/shaders/closure_eval_lib.glsl
   engines/eevee/shaders/closure_eval_diffuse_lib.glsl
   engines/eevee/shaders/closure_eval_glossy_lib.glsl
+  engines/eevee/shaders/closure_eval_surface_lib.glsl
   engines/eevee/shaders/closure_eval_refraction_lib.glsl
+  engines/eevee/shaders/closure_eval_volume_lib.glsl
   engines/eevee/shaders/closure_eval_translucent_lib.glsl
   engines/eevee/shaders/closure_type_lib.glsl
+  engines/eevee/shaders/eevee_empty.glsl
+  engines/eevee/shaders/eevee_empty_volume.glsl
   engines/eevee/shaders/effect_bloom_frag.glsl
   engines/eevee/shaders/effect_dof_bokeh_frag.glsl
   engines/eevee/shaders/effect_dof_dilate_tiles_frag.glsl
@@ -300,7 +311,6 @@ set(GLSL_SRC
   engines/eevee/shaders/object_motion_frag.glsl
   engines/eevee/shaders/object_motion_vert.glsl
   engines/eevee/shaders/prepass_frag.glsl
-  engines/eevee/shaders/prepass_vert.glsl
   engines/eevee/shaders/shadow_accum_frag.glsl
   engines/eevee/shaders/shadow_frag.glsl
   engines/eevee/shaders/shadow_vert.glsl
@@ -331,6 +341,7 @@ set(GLSL_SRC
   engines/eevee/shaders/volumetric_resolve_frag.glsl
   engines/eevee/shaders/volumetric_scatter_frag.glsl
   engines/eevee/shaders/volumetric_integration_frag.glsl
+  engines/eevee/shaders/world_vert.glsl
 
   engines/workbench/shaders/workbench_cavity_lib.glsl
   engines/workbench/shaders/workbench_common_lib.glsl
@@ -362,6 +373,7 @@ set(GLSL_SRC
 
   engines/workbench/workbench_shader_shared.h
 
+  intern/shaders/common_attribute_lib.glsl
   intern/shaders/common_colormanagement_lib.glsl
   intern/shaders/common_globals_lib.glsl
   intern/shaders/common_gpencil_lib.glsl
@@ -391,6 +403,7 @@ set(GLSL_SRC
   intern/shaders/common_subdiv_vbo_sculpt_data_comp.glsl
 
   intern/draw_shader_shared.h
+  intern/draw_common_shader_shared.h
 
   engines/gpencil/shaders/gpencil_frag.glsl
   engines/gpencil/shaders/gpencil_vert.glsl
@@ -406,8 +419,8 @@ set(GLSL_SRC
   engines/gpencil/gpencil_defines.h
   engines/gpencil/gpencil_shader_shared.h
 
-  engines/select/shaders/selection_id_3D_vert.glsl
-  engines/select/shaders/selection_id_frag.glsl
+  engines/select/shaders/select_id_vert.glsl
+  engines/select/shaders/select_id_frag.glsl
 
   engines/basic/shaders/conservative_depth_geom.glsl
   engines/basic/shaders/depth_vert.glsl
@@ -415,7 +428,6 @@ set(GLSL_SRC
 
   engines/overlay/shaders/common_overlay_lib.glsl
   engines/overlay/shaders/antialiasing_frag.glsl
-  engines/overlay/shaders/antialiasing_vert.glsl
   engines/overlay/shaders/armature_dof_vert.glsl
   engines/overlay/shaders/armature_dof_solid_frag.glsl
   engines/overlay/shaders/armature_envelope_outline_vert.glsl
@@ -446,8 +458,6 @@ set(GLSL_SRC
   engines/overlay/shaders/edit_lattice_point_vert.glsl
   engines/overlay/shaders/edit_lattice_wire_vert.glsl
   engines/overlay/shaders/edit_mesh_common_lib.glsl
-  engines/overlay/shaders/edit_mesh_facefill_frag.glsl
-  engines/overlay/shaders/edit_mesh_facefill_vert.glsl
   engines/overlay/shaders/edit_mesh_frag.glsl
   engines/overlay/shaders/edit_mesh_geom.glsl
   engines/overlay/shaders/edit_mesh_normal_vert.glsl
@@ -484,12 +494,16 @@ set(GLSL_SRC
   engines/overlay/shaders/grid_vert.glsl
   engines/overlay/shaders/image_vert.glsl
   engines/overlay/shaders/image_frag.glsl
+  engines/overlay/shaders/motion_path_line_frag.glsl
   engines/overlay/shaders/motion_path_line_geom.glsl
   engines/overlay/shaders/motion_path_line_vert.glsl
   engines/overlay/shaders/motion_path_point_vert.glsl
   engines/overlay/shaders/outline_detect_frag.glsl
   engines/overlay/shaders/outline_prepass_frag.glsl
+  engines/overlay/shaders/outline_prepass_gpencil_frag.glsl
   engines/overlay/shaders/outline_prepass_geom.glsl
+  engines/overlay/shaders/outline_prepass_gpencil_vert.glsl
+  engines/overlay/shaders/outline_prepass_pointcloud_vert.glsl
   engines/overlay/shaders/outline_prepass_vert.glsl
   engines/overlay/shaders/paint_face_vert.glsl
   engines/overlay/shaders/paint_point_vert.glsl
@@ -509,6 +523,8 @@ set(GLSL_SRC
   engines/overlay/shaders/wireframe_vert.glsl
   engines/overlay/shaders/wireframe_frag.glsl
   engines/overlay/shaders/xray_fade_frag.glsl
+
+  engines/overlay/overlay_shader_shared.h
 
   engines/image/shaders/image_engine_color_frag.glsl
   engines/image/shaders/image_engine_color_vert.glsl

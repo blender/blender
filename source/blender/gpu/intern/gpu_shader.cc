@@ -88,6 +88,16 @@ static void standard_defines(Vector<const char *> &sources)
   else if (GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_UNIX, GPU_DRIVER_ANY)) {
     sources.append("#define OS_UNIX\n");
   }
+  /* API Definition */
+  eGPUBackendType backend = GPU_backend_get_type();
+  switch (backend) {
+    case GPU_BACKEND_OPENGL:
+      sources.append("#define GPU_OPENGL\n");
+      break;
+    default:
+      BLI_assert(false && "Invalid GPU Backend Type");
+      break;
+  }
 
   if (GPU_crappy_amd_driver()) {
     sources.append("#define GPU_DEPRECATED_AMD_DRIVER\n");
@@ -239,6 +249,19 @@ const GPUShaderCreateInfo *GPU_shader_create_info_get(const char *info_name)
   return gpu_shader_create_info_get(info_name);
 }
 
+bool GPU_shader_create_info_check_error(const GPUShaderCreateInfo *_info, char r_error[128])
+{
+  using namespace blender::gpu::shader;
+  const ShaderCreateInfo &info = *reinterpret_cast<const ShaderCreateInfo *>(_info);
+  std::string error = info.check_error();
+  if (error.length() == 0) {
+    return true;
+  }
+
+  BLI_strncpy(r_error, error.c_str(), 128);
+  return false;
+}
+
 GPUShader *GPU_shader_create_from_info_name(const char *info_name)
 {
   using namespace blender::gpu::shader;
@@ -260,28 +283,10 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
 
   GPU_debug_group_begin(GPU_DEBUG_SHADER_COMPILATION_GROUP);
 
-  /* At least a vertex shader and a fragment shader are required, or only a compute shader. */
-  if (info.compute_source_.is_empty()) {
-    if (info.vertex_source_.is_empty()) {
-      printf("Missing vertex shader in %s.\n", info.name_.c_str());
-    }
-    if (info.fragment_source_.is_empty()) {
-      printf("Missing fragment shader in %s.\n", info.name_.c_str());
-    }
-    BLI_assert(!info.vertex_source_.is_empty() && !info.fragment_source_.is_empty());
-  }
-  else {
-    if (!info.vertex_source_.is_empty()) {
-      printf("Compute shader has vertex_source_ shader attached in %s.\n", info.name_.c_str());
-    }
-    if (!info.geometry_source_.is_empty()) {
-      printf("Compute shader has geometry_source_ shader attached in %s.\n", info.name_.c_str());
-    }
-    if (!info.fragment_source_.is_empty()) {
-      printf("Compute shader has fragment_source_ shader attached in %s.\n", info.name_.c_str());
-    }
-    BLI_assert(info.vertex_source_.is_empty() && info.geometry_source_.is_empty() &&
-               info.fragment_source_.is_empty());
+  const std::string error = info.check_error();
+  if (!error.empty()) {
+    printf("%s\n", error.c_str());
+    BLI_assert(false);
   }
 
   Shader *shader = GPUBackend::get()->shader_alloc(info.name_.c_str());
@@ -289,7 +294,9 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
   std::string defines = shader->defines_declare(info);
   std::string resources = shader->resources_declare(info);
 
-  defines += "#define USE_GPU_SHADER_CREATE_INFO\n";
+  if (info.legacy_resource_location_ == false) {
+    defines += "#define USE_GPU_SHADER_CREATE_INFO\n";
+  }
 
   Vector<const char *> typedefs;
   if (!info.typedef_sources_.is_empty() || !info.typedef_source_generated.empty()) {
@@ -357,6 +364,7 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
     sources.append(resources.c_str());
     sources.append(layout.c_str());
     sources.append(interface.c_str());
+    sources.append(info.geometry_source_generated.c_str());
     sources.extend(code);
 
     shader->geometry_shader_from_glsl(sources);

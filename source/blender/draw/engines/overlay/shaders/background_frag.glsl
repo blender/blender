@@ -1,21 +1,6 @@
 
-uniform sampler2D colorBuffer;
-uniform sampler2D depthBuffer;
 
-uniform int bgType;
-uniform vec4 colorOverride;
-
-in vec4 uvcoordsvar;
-
-out vec4 fragColor;
-
-#define BG_SOLID 0
-#define BG_GRADIENT 1
-#define BG_CHECKER 2
-#define BG_RADIAL 3
-#define BG_SOLID_CHECKER 4
-#define BG_MASK 5
-#define SQRT2 1.4142135623730950488
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
 /* 4x4 bayer matrix prepared for 8bit UNORM precision error. */
 #define P(x) (((x + 0.5) * (1.0 / 16.0) - 0.5) * (1.0 / 255.0))
@@ -38,8 +23,8 @@ void main()
    * This removes the alpha channel and put the background behind reference images
    * while masking the reference images by the render alpha.
    */
-  float alpha = texture(colorBuffer, uvcoordsvar.st).a;
-  float depth = texture(depthBuffer, uvcoordsvar.st).r;
+  float alpha = texture(colorBuffer, uvcoordsvar.xy).a;
+  float depth = texture(depthBuffer, uvcoordsvar.xy).r;
 
   vec3 bg_col;
   vec3 col_high;
@@ -57,31 +42,33 @@ void main()
       /* XXX do interpolation in a non-linear space to have a better visual result. */
       col_high = pow(colorBackground.rgb, vec3(1.0 / 2.2));
       col_low = pow(colorBackgroundGradient.rgb, vec3(1.0 / 2.2));
-      bg_col = mix(col_low, col_high, uvcoordsvar.t);
+      bg_col = mix(col_low, col_high, uvcoordsvar.y);
       /* Convert back to linear. */
       bg_col = pow(bg_col, vec3(2.2));
       /*  Dither to hide low precision buffer. (Could be improved) */
       bg_col += dither();
       break;
-    case BG_RADIAL:
+    case BG_RADIAL: {
       /* Do interpolation in a non-linear space to have a better visual result. */
       col_high = pow(colorBackground.rgb, vec3(1.0 / 2.2));
       col_low = pow(colorBackgroundGradient.rgb, vec3(1.0 / 2.2));
 
       vec2 uv_n = uvcoordsvar.xy - 0.5;
-      bg_col = mix(col_high, col_low, length(uv_n) * SQRT2);
+      bg_col = mix(col_high, col_low, length(uv_n) * M_SQRT2);
 
       /* Convert back to linear. */
       bg_col = pow(bg_col, vec3(2.2));
       /*  Dither to hide low precision buffer. (Could be improved) */
       bg_col += dither();
       break;
-    case BG_CHECKER:
+    }
+    case BG_CHECKER: {
       float size = sizeChecker * sizePixel;
       ivec2 p = ivec2(floor(gl_FragCoord.xy / size));
       bool check = mod(p.x, 2) == mod(p.y, 2);
       bg_col = (check) ? colorCheckerPrimary.rgb : colorCheckerSecondary.rgb;
       break;
+    }
     case BG_MASK:
       fragColor = vec4(vec3(1.0 - alpha), 0.0);
       return;

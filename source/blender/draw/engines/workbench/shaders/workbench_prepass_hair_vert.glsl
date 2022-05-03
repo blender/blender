@@ -8,8 +8,10 @@
 /* From http://libnoise.sourceforge.net/noisegen/index.html */
 float integer_noise(int n)
 {
-  n = (n >> 13) ^ n;
-  int nn = (n * (n * n * 60493 + 19990303) + 1376312589) & 0x7fffffff;
+  /* Integer bit-shifts cause precision issues due to overflow
+   * in a number of workbench tests. Use uint instead. */
+  uint nn = (uint(n) >> 13u) ^ uint(n);
+  nn = (nn * (nn * nn * 60493u + 19990303u) + 1376312589u) & 0x7fffffffu;
   return (float(nn) / 1073741824.0);
 }
 
@@ -66,7 +68,7 @@ void main()
 
   normal_interp = normalize(normal_world_to_view(nor));
 
-  workbench_material_data_get(resource_handle, color_interp, alpha_interp, roughness, metallic);
+  workbench_material_data_get(resource_handle, color_interp, alpha_interp, _roughness, metallic);
 
   if (materialIndex == 0) {
     color_interp = hair_get_customdata_vec3(ac);
@@ -76,7 +78,7 @@ void main()
    * So we lower their alpha artificially. */
   alpha_interp *= 0.3;
 
-  workbench_hair_random_material(hair_rand, color_interp, roughness, metallic);
+  workbench_hair_random_material(hair_rand, color_interp, _roughness, metallic);
 
   object_id = int(uint(resource_handle) & 0xFFFFu) + 1;
 }

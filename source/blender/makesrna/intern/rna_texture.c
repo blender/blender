@@ -21,6 +21,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_node.h"
+#include "BKE_node_tree_update.h"
 #include "BKE_paint.h"
 
 #include "RNA_define.h"
@@ -191,8 +192,23 @@ static void rna_Texture_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *pt
 
 static void rna_Texture_mapping_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
+  ID *id = ptr->owner_id;
   TexMapping *texmap = ptr->data;
   BKE_texture_mapping_init(texmap);
+
+  if (GS(id->name) == ID_NT) {
+    bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
+    /* Try to find and tag the node that this #TexMapping belongs to. */
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+      /* This assumes that the #TexMapping is stored at the beginning of the node storage. This is
+       * generally true, see #NodeTexBase. If the assumption happens to be false, there might be a
+       * missing update. */
+      if (node->storage == texmap) {
+        BKE_ntree_update_tag_node_property(ntree, node);
+      }
+    }
+  }
+
   rna_Texture_update(bmain, scene, ptr);
 }
 
@@ -1540,7 +1556,7 @@ static void rna_def_texture(BlenderRNA *brna)
   RNA_def_struct_refine_func(srna, "rna_Texture_refine");
 
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-  /*RNA_def_property_clear_flag(prop, PROP_EDITABLE); */
+  // RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_enum_sdna(prop, NULL, "type");
   RNA_def_property_enum_items(prop, rna_enum_texture_type_items);
   RNA_def_property_enum_funcs(prop, NULL, "rna_Texture_type_set", NULL);

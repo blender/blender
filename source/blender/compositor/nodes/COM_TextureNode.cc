@@ -17,8 +17,7 @@ void TextureNode::convert_to_operations(NodeConverter &converter,
   bNode *editor_node = this->get_bnode();
   Tex *texture = (Tex *)editor_node->id;
   TextureOperation *operation = new TextureOperation();
-  const ColorManagedDisplaySettings *display_settings = context.get_display_settings();
-  bool scene_color_manage = !STREQ(display_settings->display_device, "None");
+  bool scene_color_manage = !STREQ(context.get_scene()->display_settings.display_device, "None");
   operation->set_texture(texture);
   operation->set_render_data(context.get_render_data());
   operation->set_scene_color_manage(scene_color_manage);

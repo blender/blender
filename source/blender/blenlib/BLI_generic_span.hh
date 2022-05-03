@@ -164,6 +164,18 @@ class GMutableSpan {
   {
     return this->slice(range.start(), range.size());
   }
+
+  /**
+   * Copy all values from another span into this span. This invokes undefined behavior when the
+   * destination contains uninitialized data and T is not trivially copy constructible.
+   * The size of both spans is expected to be the same.
+   */
+  void copy_from(GSpan values)
+  {
+    BLI_assert(type_ == &values.type());
+    BLI_assert(size_ == values.size());
+    type_->copy_assign_n(values.data(), data_, size_);
+  }
 };
 
 }  // namespace blender

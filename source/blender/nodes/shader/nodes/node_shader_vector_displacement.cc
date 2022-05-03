@@ -24,23 +24,20 @@ static int gpu_shader_vector_displacement(GPUMaterial *mat,
                                           GPUNodeStack *in,
                                           GPUNodeStack *out)
 {
-  if (node->custom1 == SHD_SPACE_TANGENT) {
-    return GPU_stack_link(mat,
-                          node,
-                          "node_vector_displacement_tangent",
-                          in,
-                          out,
-                          GPU_attribute(mat, CD_TANGENT, ""),
-                          GPU_builtin(GPU_WORLD_NORMAL),
-                          GPU_builtin(GPU_OBJECT_MATRIX),
-                          GPU_builtin(GPU_VIEW_MATRIX));
+  switch (node->custom1) {
+    case SHD_SPACE_TANGENT:
+      return GPU_stack_link(mat,
+                            node,
+                            "node_vector_displacement_tangent",
+                            in,
+                            out,
+                            GPU_attribute(mat, CD_TANGENT, ""));
+    case SHD_SPACE_OBJECT:
+      return GPU_stack_link(mat, node, "node_vector_displacement_object", in, out);
+    case SHD_SPACE_WORLD:
+    default:
+      return GPU_stack_link(mat, node, "node_vector_displacement_world", in, out);
   }
-  if (node->custom1 == SHD_SPACE_OBJECT) {
-    return GPU_stack_link(
-        mat, node, "node_vector_displacement_object", in, out, GPU_builtin(GPU_OBJECT_MATRIX));
-  }
-
-  return GPU_stack_link(mat, node, "node_vector_displacement_world", in, out);
 }
 
 }  // namespace blender::nodes::node_shader_vector_displacement_cc

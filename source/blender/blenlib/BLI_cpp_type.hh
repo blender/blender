@@ -110,14 +110,19 @@ class CPPType : NonCopyable, NonMovable {
   void (*default_construct_)(void *ptr) = nullptr;
   void (*default_construct_indices_)(void *ptr, IndexMask mask) = nullptr;
 
+  void (*value_initialize_)(void *ptr) = nullptr;
+  void (*value_initialize_indices_)(void *ptr, IndexMask mask) = nullptr;
+
   void (*destruct_)(void *ptr) = nullptr;
   void (*destruct_indices_)(void *ptr, IndexMask mask) = nullptr;
 
   void (*copy_assign_)(const void *src, void *dst) = nullptr;
   void (*copy_assign_indices_)(const void *src, void *dst, IndexMask mask) = nullptr;
+  void (*copy_assign_compressed_)(const void *src, void *dst, IndexMask mask) = nullptr;
 
   void (*copy_construct_)(const void *src, void *dst) = nullptr;
   void (*copy_construct_indices_)(const void *src, void *dst, IndexMask mask) = nullptr;
+  void (*copy_construct_compressed_)(const void *src, void *dst, IndexMask mask) = nullptr;
 
   void (*move_assign_)(void *src, void *dst) = nullptr;
   void (*move_assign_indices_)(void *src, void *dst, IndexMask mask) = nullptr;
@@ -167,7 +172,9 @@ class CPPType : NonCopyable, NonMovable {
    */
   template<typename T> static const CPPType &get()
   {
-    return CPPType::get_impl<std::remove_cv_t<T>>();
+    /* Store the #CPPType locally to avoid making the function call in most cases. */
+    static const CPPType &type = CPPType::get_impl<std::remove_cv_t<T>>();
+    return type;
   }
   template<typename T> static const CPPType &get_impl();
 
@@ -326,6 +333,31 @@ class CPPType : NonCopyable, NonMovable {
   }
 
   /**
+   * Same as #default_construct, but does zero initialization for trivial types.
+   *
+   * C++ equivalent:
+   *   new (ptr) T();
+   */
+  void value_initialize(void *ptr) const
+  {
+    BLI_assert(this->pointer_can_point_to_instance(ptr));
+
+    value_initialize_(ptr);
+  }
+
+  void value_initialize_n(void *ptr, int64_t n) const
+  {
+    this->value_initialize_indices(ptr, IndexMask(n));
+  }
+
+  void value_initialize_indices(void *ptr, IndexMask mask) const
+  {
+    BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(ptr));
+
+    value_initialize_indices_(ptr, mask);
+  }
+
+  /**
    * Call the destructor on the given instance of this type. The pointer must not be nullptr.
    *
    * For some trivial types, this does nothing.
@@ -381,6 +413,18 @@ class CPPType : NonCopyable, NonMovable {
   }
 
   /**
+   * Similar to #copy_assign_indices, but does not leave gaps in the #dst array.
+   */
+  void copy_assign_compressed(const void *src, void *dst, IndexMask mask) const
+  {
+    BLI_assert(mask.size() == 0 || src != dst);
+    BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(src));
+    BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(dst));
+
+    copy_assign_compressed_(src, dst, mask);
+  }
+
+  /**
    * Copy an instance of this type from src to dst.
    *
    * The memory pointed to by dst should be uninitialized.
@@ -409,6 +453,18 @@ class CPPType : NonCopyable, NonMovable {
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(dst));
 
     copy_construct_indices_(src, dst, mask);
+  }
+
+  /**
+   * Similar to #copy_construct_indices, but does not leave gaps in the #dst array.
+   */
+  void copy_construct_compressed(const void *src, void *dst, IndexMask mask) const
+  {
+    BLI_assert(mask.size() == 0 || src != dst);
+    BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(src));
+    BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(dst));
+
+    copy_construct_compressed_(src, dst, mask);
   }
 
   /**
@@ -651,9 +707,9 @@ class CPPType : NonCopyable, NonMovable {
    * compile-time. This allows the compiler to optimize a function for specific types, while all
    * other types can still use a generic fallback function.
    *
-   * \param Types The types that code should be generated for.
-   * \param fn The function object to call. This is expected to have a templated `operator()` and a
-   *   non-templated `operator()`. The templated version will be called if the current #CPPType
+   * \param Types: The types that code should be generated for.
+   * \param fn: The function object to call. This is expected to have a templated `operator()` and
+   * a non-templated `operator()`. The templated version will be called if the current #CPPType
    *   matches any of the given types. Otherwise, the non-templated function is called.
    */
   template<typename... Types, typename Fn> void to_static_type(const Fn &fn) const

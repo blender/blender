@@ -587,13 +587,13 @@ int GPU_texture_dimensions(const GPUTexture *tex_)
   if (type & GPU_TEXTURE_1D) {
     return 1;
   }
-  else if (type & GPU_TEXTURE_2D) {
+  if (type & GPU_TEXTURE_2D) {
     return 2;
   }
-  else if (type & GPU_TEXTURE_3D) {
+  if (type & GPU_TEXTURE_3D) {
     return 3;
   }
-  else if (type & GPU_TEXTURE_CUBE) {
+  if (type & GPU_TEXTURE_CUBE) {
     return 2;
   }
   /* GPU_TEXTURE_BUFFER */

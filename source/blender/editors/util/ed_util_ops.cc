@@ -17,6 +17,7 @@
 #include "BKE_context.h"
 #include "BKE_icons.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_override.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 
@@ -28,6 +29,7 @@
 #include "ED_util.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 
 #include "UI_interface.h"
 
@@ -226,7 +228,8 @@ static int lib_id_fake_user_toggle_exec(bContext *C, wmOperator *op)
 
   ID *id = (ID *)idptr.data;
 
-  if (ID_IS_LINKED(id) || (ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT, ID_OB, ID_WS))) {
+  if (!BKE_id_is_editable(CTX_data_main(C), id) ||
+      (ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT, ID_OB, ID_WS))) {
     BKE_report(op->reports, RPT_ERROR, "Data-block type does not support fake user");
     return OPERATOR_CANCELLED;
   }
@@ -293,6 +296,50 @@ static void ED_OT_lib_id_unlink(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
+static bool lib_id_override_editable_toggle_poll(bContext *C)
+{
+  const PointerRNA id_ptr = CTX_data_pointer_get_type(C, "id", &RNA_ID);
+  const ID *id = static_cast<ID *>(id_ptr.data);
+
+  return id && ID_IS_OVERRIDE_LIBRARY_REAL(id) && !ID_IS_LINKED(id);
+}
+
+static int lib_id_override_editable_toggle_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  Main *bmain = CTX_data_main(C);
+  const PointerRNA id_ptr = CTX_data_pointer_get_type(C, "id", &RNA_ID);
+  ID *id = static_cast<ID *>(id_ptr.data);
+
+  const bool is_system_override = BKE_lib_override_library_is_system_defined(bmain, id);
+  if (is_system_override) {
+    /* A system override is not editable. Make it an editable (non-system-defined) one. */
+    id->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+  }
+  else {
+    /* Reset override, which makes it non-editable (i.e. a system define override). */
+    BKE_lib_override_library_id_reset(bmain, id, true);
+  }
+
+  WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static void ED_OT_lib_id_override_editable_toggle(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Toggle Library Override Editable";
+  ot->description = "Set if this library override data-block can be edited";
+  ot->idname = "ED_OT_lib_id_override_editable_toggle";
+
+  /* api callbacks */
+  ot->poll = lib_id_override_editable_toggle_poll;
+  ot->exec = lib_id_override_editable_toggle_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -330,6 +377,7 @@ void ED_operatortypes_edutils()
 
   WM_operatortype_append(ED_OT_lib_id_fake_user_toggle);
   WM_operatortype_append(ED_OT_lib_id_unlink);
+  WM_operatortype_append(ED_OT_lib_id_override_editable_toggle);
 
   WM_operatortype_append(ED_OT_flush_edits);
 

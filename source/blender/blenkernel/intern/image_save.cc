@@ -5,12 +5,13 @@
  * \ingroup bke
  */
 
-#include <errno.h>
-#include <string.h>
+#include <cerrno>
+#include <cstring>
 
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_vector.hh"
 
 #include "DNA_image_types.h"
 
@@ -19,8 +20,7 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-
-#include "intern/openexr/openexr_multi.h"
+#include "IMB_openexr.h"
 
 #include "BKE_colortools.h"
 #include "BKE_image.h"
@@ -31,6 +31,8 @@
 #include "BKE_scene.h"
 
 #include "RE_pipeline.h"
+
+using blender::Vector;
 
 void BKE_image_save_options_init(ImageSaveOptions *opts, Main *bmain, Scene *scene)
 {
@@ -194,7 +196,7 @@ static bool image_save_single(ReportList *reports,
       if (!BKE_image_is_stereo(ima)) {
         BKE_reportf(reports,
                     RPT_ERROR,
-                    "Did not write, the image doesn't have a \"%s\" and \"%s\" views",
+                    R"(Did not write, the image doesn't have a "%s" and "%s" views)",
                     STEREO_LEFT_NAME,
                     STEREO_RIGHT_NAME);
         BKE_image_release_ibuf(ima, ibuf, lock);
@@ -207,7 +209,7 @@ static bool image_save_single(ReportList *reports,
           (BLI_findstring(&rr->views, STEREO_RIGHT_NAME, offsetof(RenderView, name)) == nullptr)) {
         BKE_reportf(reports,
                     RPT_ERROR,
-                    "Did not write, the image doesn't have a \"%s\" and \"%s\" views",
+                    R"(Did not write, the image doesn't have a "%s" and "%s" views)",
                     STEREO_LEFT_NAME,
                     STEREO_RIGHT_NAME);
         BKE_image_release_ibuf(ima, ibuf, lock);
@@ -221,18 +223,19 @@ static bool image_save_single(ReportList *reports,
   /* fancy multiview OpenEXR */
   if (imf->views_format == R_IMF_VIEWS_MULTIVIEW && is_exr_rr) {
     /* save render result */
-    ok = BKE_image_render_write_exr(reports, rr, opts->filepath, imf, NULL, layer);
+    ok = BKE_image_render_write_exr(
+        reports, rr, opts->filepath, imf, save_as_render, nullptr, layer);
     image_save_post(reports, ima, ibuf, ok, opts, true, opts->filepath, r_colorspace_changed);
     BKE_image_release_ibuf(ima, ibuf, lock);
   }
   /* regular mono pipeline */
   else if (is_mono) {
     if (is_exr_rr) {
-      ok = BKE_image_render_write_exr(reports, rr, opts->filepath, imf, NULL, layer);
+      ok = BKE_image_render_write_exr(
+          reports, rr, opts->filepath, imf, save_as_render, nullptr, layer);
     }
     else {
-      colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(
-          ibuf, save_as_render, true, &imf->view_settings, &imf->display_settings, imf);
+      colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(ibuf, save_as_render, true, imf);
       ok = BKE_imbuf_write_as(colormanaged_ibuf, opts->filepath, imf, save_copy);
       imbuf_save_post(ibuf, colormanaged_ibuf);
     }
@@ -263,7 +266,8 @@ static bool image_save_single(ReportList *reports,
 
       if (is_exr_rr) {
         BKE_scene_multiview_view_filepath_get(&opts->scene->r, opts->filepath, view, filepath);
-        ok_view = BKE_image_render_write_exr(reports, rr, filepath, imf, view, layer);
+        ok_view = BKE_image_render_write_exr(
+            reports, rr, filepath, imf, save_as_render, view, layer);
         image_save_post(reports, ima, ibuf, ok_view, opts, true, filepath, r_colorspace_changed);
       }
       else {
@@ -293,8 +297,7 @@ static bool image_save_single(ReportList *reports,
 
         BKE_scene_multiview_view_filepath_get(&opts->scene->r, opts->filepath, view, filepath);
 
-        colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(
-            ibuf, save_as_render, true, &imf->view_settings, &imf->display_settings, imf);
+        colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(ibuf, save_as_render, true, imf);
         ok_view = BKE_imbuf_write_as(colormanaged_ibuf, filepath, &opts->im_format, save_copy);
         imbuf_save_post(ibuf, colormanaged_ibuf);
         image_save_post(reports, ima, ibuf, ok_view, opts, true, filepath, r_colorspace_changed);
@@ -310,7 +313,8 @@ static bool image_save_single(ReportList *reports,
   /* stereo (multiview) images */
   else if (opts->im_format.views_format == R_IMF_VIEWS_STEREO_3D) {
     if (imf->imtype == R_IMF_IMTYPE_MULTILAYER) {
-      ok = BKE_image_render_write_exr(reports, rr, opts->filepath, imf, NULL, layer);
+      ok = BKE_image_render_write_exr(
+          reports, rr, opts->filepath, imf, save_as_render, nullptr, layer);
       image_save_post(reports, ima, ibuf, ok, opts, true, opts->filepath, r_colorspace_changed);
       BKE_image_release_ibuf(ima, ibuf, lock);
     }
@@ -359,8 +363,7 @@ static bool image_save_single(ReportList *reports,
         ibuf->planes = planes;
 
         /* color manage the ImBuf leaving it ready for saving */
-        colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(
-            ibuf, save_as_render, true, &imf->view_settings, &imf->display_settings, imf);
+        colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(ibuf, save_as_render, true, imf);
 
         BKE_image_format_to_imbuf(colormanaged_ibuf, imf);
         IMB_prepare_write_ImBuf(IMB_isfloat(colormanaged_ibuf), colormanaged_ibuf);
@@ -386,6 +389,10 @@ static bool image_save_single(ReportList *reports,
         IMB_freeImBuf(ibuf_stereo[i]);
       }
     }
+  }
+
+  if (rr) {
+    BKE_image_release_renderresult(opts->scene, ima);
   }
 
   return ok;
@@ -454,10 +461,38 @@ bool BKE_image_save(
 
 /* OpenEXR saving, single and multilayer. */
 
+static float *image_exr_from_scene_linear_to_output(float *rect,
+                                                    const int width,
+                                                    const int height,
+                                                    const int channels,
+                                                    const ImageFormatData *imf,
+                                                    Vector<float *> &tmp_output_rects)
+{
+  if (imf == nullptr) {
+    return rect;
+  }
+
+  const char *to_colorspace = imf->linear_colorspace_settings.name;
+  if (to_colorspace[0] == '\0' || IMB_colormanagement_space_name_is_scene_linear(to_colorspace)) {
+    return rect;
+  }
+
+  float *output_rect = (float *)MEM_dupallocN(rect);
+  tmp_output_rects.append(output_rect);
+
+  const char *from_colorspace = IMB_colormanagement_role_colorspace_name_get(
+      COLOR_ROLE_SCENE_LINEAR);
+  IMB_colormanagement_transform(
+      output_rect, width, height, channels, from_colorspace, to_colorspace, false);
+
+  return output_rect;
+}
+
 bool BKE_image_render_write_exr(ReportList *reports,
                                 const RenderResult *rr,
-                                const char *filename,
+                                const char *filepath,
                                 const ImageFormatData *imf,
+                                const bool save_as_render,
                                 const char *view,
                                 int layer)
 {
@@ -465,6 +500,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
   const bool half_float = (imf && imf->depth == R_IMF_CHAN_DEPTH_16);
   const bool multi_layer = !(imf && imf->imtype == R_IMF_IMTYPE_OPENEXR);
   const bool write_z = !multi_layer && (imf && (imf->flag & R_IMF_FLAG_ZBUF));
+  Vector<float *> tmp_output_rects;
 
   /* Write first layer if not multilayer and no layer was specified. */
   if (!multi_layer && layer == -1) {
@@ -502,7 +538,10 @@ bool BKE_image_render_write_exr(ReportList *reports,
         continue;
       }
 
-      float *output_rect = rview->rectf;
+      float *output_rect = (save_as_render) ?
+                               image_exr_from_scene_linear_to_output(
+                                   rview->rectf, rr->rectx, rr->recty, 4, imf, tmp_output_rects) :
+                               rview->rectf;
 
       for (int a = 0; a < 4; a++) {
         char passname[EXR_PASS_MAXNAME];
@@ -510,7 +549,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
         const char *chan_id = "RGBA";
 
         if (multi_layer) {
-          IMB_exr_channel_name(passname, NULL, "Combined", NULL, chan_id, a);
+          RE_render_result_full_channel_name(passname, nullptr, "Combined", nullptr, chan_id, a);
           BLI_strncpy(layname, "Composite", sizeof(layname));
         }
         else {
@@ -560,7 +599,11 @@ bool BKE_image_render_write_exr(ReportList *reports,
       const bool pass_RGBA = (STR_ELEM(rp->chan_id, "RGB", "RGBA", "R", "G", "B", "A"));
       const bool pass_half_float = half_float && pass_RGBA;
 
-      float *output_rect = rp->rect;
+      /* Colorspace conversion only happens on RGBA passes. */
+      float *output_rect = (save_as_render && pass_RGBA) ?
+                               image_exr_from_scene_linear_to_output(
+                                   rp->rect, rr->rectx, rr->recty, 4, imf, tmp_output_rects) :
+                               rp->rect;
 
       for (int a = 0; a < rp->channels; a++) {
         /* Save Combined as RGBA if single layer save. */
@@ -568,7 +611,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
         char layname[EXR_PASS_MAXNAME];
 
         if (multi_layer) {
-          IMB_exr_channel_name(passname, NULL, rp->name, NULL, rp->chan_id, a);
+          RE_render_result_full_channel_name(passname, nullptr, rp->name, nullptr, rp->chan_id, a);
           BLI_strncpy(layname, rl->name, sizeof(layname));
         }
         else {
@@ -591,11 +634,11 @@ bool BKE_image_render_write_exr(ReportList *reports,
 
   errno = 0;
 
-  BLI_make_existing_file(filename);
+  BLI_make_existing_file(filepath);
 
   int compress = (imf ? imf->exr_codec : 0);
   bool success = IMB_exr_begin_write(
-      exrhandle, filename, rr->rectx, rr->recty, compress, rr->stamp_data);
+      exrhandle, filepath, rr->rectx, rr->recty, compress, rr->stamp_data);
   if (success) {
     IMB_exr_write_channels(exrhandle);
   }
@@ -603,6 +646,10 @@ bool BKE_image_render_write_exr(ReportList *reports,
     /* TODO: get the error from openexr's exception. */
     BKE_reportf(
         reports, RPT_ERROR, "Error writing render result, %s (see console)", strerror(errno));
+  }
+
+  for (float *rect : tmp_output_rects) {
+    MEM_freeN(rect);
   }
 
   IMB_exr_close(exrhandle);
@@ -650,72 +697,71 @@ bool BKE_image_render_write(ReportList *reports,
                             RenderResult *rr,
                             const Scene *scene,
                             const bool stamp,
-                            const char *filename)
+                            const char *filepath_basis)
 {
   bool ok = true;
-  const RenderData *rd = &scene->r;
 
   if (!rr) {
     return false;
   }
 
+  ImageFormatData image_format;
+  BKE_image_format_init_for_write(&image_format, scene, nullptr);
+
   const bool is_mono = BLI_listbase_count_at_most(&rr->views, 2) < 2;
-  const bool is_exr_rr = ELEM(rd->im_format.imtype,
-                              R_IMF_IMTYPE_OPENEXR,
-                              R_IMF_IMTYPE_MULTILAYER) &&
+  const bool is_exr_rr = ELEM(
+                             image_format.imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER) &&
                          RE_HasFloatPixels(rr);
   const float dither = scene->r.dither_intensity;
 
-  if (rd->im_format.views_format == R_IMF_VIEWS_MULTIVIEW && is_exr_rr) {
-    ok = BKE_image_render_write_exr(reports, rr, filename, &rd->im_format, NULL, -1);
-    image_render_print_save_message(reports, filename, ok, errno);
+  if (image_format.views_format == R_IMF_VIEWS_MULTIVIEW && is_exr_rr) {
+    ok = BKE_image_render_write_exr(reports, rr, filepath_basis, &image_format, true, nullptr, -1);
+    image_render_print_save_message(reports, filepath_basis, ok, errno);
   }
 
   /* mono, legacy code */
-  else if (is_mono || (rd->im_format.views_format == R_IMF_VIEWS_INDIVIDUAL)) {
+  else if (is_mono || (image_format.views_format == R_IMF_VIEWS_INDIVIDUAL)) {
     int view_id = 0;
     for (const RenderView *rv = (const RenderView *)rr->views.first; rv;
          rv = rv->next, view_id++) {
       char filepath[FILE_MAX];
       if (is_mono) {
-        STRNCPY(filepath, filename);
+        STRNCPY(filepath, filepath_basis);
       }
       else {
-        BKE_scene_multiview_view_filepath_get(&scene->r, filename, rv->name, filepath);
+        BKE_scene_multiview_view_filepath_get(&scene->r, filepath_basis, rv->name, filepath);
       }
 
       if (is_exr_rr) {
-        ok = BKE_image_render_write_exr(reports, rr, filepath, &rd->im_format, rv->name, -1);
+        ok = BKE_image_render_write_exr(reports, rr, filepath, &image_format, true, rv->name, -1);
         image_render_print_save_message(reports, filepath, ok, errno);
 
         /* optional preview images for exr */
-        if (ok && (rd->im_format.flag & R_IMF_FLAG_PREVIEW_JPG)) {
-          ImageFormatData imf = rd->im_format;
-          imf.imtype = R_IMF_IMTYPE_JPEG90;
+        if (ok && (image_format.flag & R_IMF_FLAG_PREVIEW_JPG)) {
+          image_format.imtype = R_IMF_IMTYPE_JPEG90;
 
           if (BLI_path_extension_check(filepath, ".exr")) {
             filepath[strlen(filepath) - 4] = 0;
           }
-          BKE_image_path_ensure_ext_from_imformat(filepath, &imf);
+          BKE_image_path_ensure_ext_from_imformat(filepath, &image_format);
 
-          ImBuf *ibuf = RE_render_result_rect_to_ibuf(rr, &imf, dither, view_id);
+          ImBuf *ibuf = RE_render_result_rect_to_ibuf(rr, &image_format, dither, view_id);
           ibuf->planes = 24;
-          IMB_colormanagement_imbuf_for_write(
-              ibuf, true, false, &scene->view_settings, &scene->display_settings, &imf);
+          IMB_colormanagement_imbuf_for_write(ibuf, true, false, &image_format);
 
-          ok = image_render_write_stamp_test(reports, scene, rr, ibuf, filepath, &imf, stamp);
+          ok = image_render_write_stamp_test(
+              reports, scene, rr, ibuf, filepath, &image_format, stamp);
 
           IMB_freeImBuf(ibuf);
         }
       }
       else {
-        ImBuf *ibuf = RE_render_result_rect_to_ibuf(rr, &rd->im_format, dither, view_id);
+        ImBuf *ibuf = RE_render_result_rect_to_ibuf(rr, &image_format, dither, view_id);
 
-        IMB_colormanagement_imbuf_for_write(
-            ibuf, true, false, &scene->view_settings, &scene->display_settings, &rd->im_format);
+        IMB_colormanagement_imbuf_for_write(ibuf, true, false, &image_format);
 
         ok = image_render_write_stamp_test(
-            reports, scene, rr, ibuf, filepath, &rd->im_format, stamp);
+            reports, scene, rr, ibuf, filepath, &image_format, stamp);
 
         /* imbuf knows which rects are not part of ibuf */
         IMB_freeImBuf(ibuf);
@@ -723,49 +769,44 @@ bool BKE_image_render_write(ReportList *reports,
     }
   }
   else { /* R_IMF_VIEWS_STEREO_3D */
-    BLI_assert(rd->im_format.views_format == R_IMF_VIEWS_STEREO_3D);
+    BLI_assert(image_format.views_format == R_IMF_VIEWS_STEREO_3D);
 
     char filepath[FILE_MAX];
-    STRNCPY(filepath, filename);
+    STRNCPY(filepath, filepath_basis);
 
-    if (rd->im_format.imtype == R_IMF_IMTYPE_MULTILAYER) {
+    if (image_format.imtype == R_IMF_IMTYPE_MULTILAYER) {
       printf("Stereo 3D not supported for MultiLayer image: %s\n", filepath);
     }
     else {
-      ImBuf *ibuf_arr[3] = {NULL};
+      ImBuf *ibuf_arr[3] = {nullptr};
       const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
       int i;
 
       for (i = 0; i < 2; i++) {
         int view_id = BLI_findstringindex(&rr->views, names[i], offsetof(RenderView, name));
-        ibuf_arr[i] = RE_render_result_rect_to_ibuf(rr, &rd->im_format, dither, view_id);
-        IMB_colormanagement_imbuf_for_write(ibuf_arr[i],
-                                            true,
-                                            false,
-                                            &scene->view_settings,
-                                            &scene->display_settings,
-                                            &rd->im_format);
+        ibuf_arr[i] = RE_render_result_rect_to_ibuf(rr, &image_format, dither, view_id);
+        IMB_colormanagement_imbuf_for_write(ibuf_arr[i], true, false, &image_format);
         IMB_prepare_write_ImBuf(IMB_isfloat(ibuf_arr[i]), ibuf_arr[i]);
       }
 
-      ibuf_arr[2] = IMB_stereo3d_ImBuf(&rd->im_format, ibuf_arr[0], ibuf_arr[1]);
+      ibuf_arr[2] = IMB_stereo3d_ImBuf(&image_format, ibuf_arr[0], ibuf_arr[1]);
 
       ok = image_render_write_stamp_test(
-          reports, scene, rr, ibuf_arr[2], filepath, &rd->im_format, stamp);
+          reports, scene, rr, ibuf_arr[2], filepath, &image_format, stamp);
 
       /* optional preview images for exr */
-      if (ok && is_exr_rr && (rd->im_format.flag & R_IMF_FLAG_PREVIEW_JPG)) {
-        ImageFormatData imf = rd->im_format;
-        imf.imtype = R_IMF_IMTYPE_JPEG90;
+      if (ok && is_exr_rr && (image_format.flag & R_IMF_FLAG_PREVIEW_JPG)) {
+        image_format.imtype = R_IMF_IMTYPE_JPEG90;
 
         if (BLI_path_extension_check(filepath, ".exr")) {
           filepath[strlen(filepath) - 4] = 0;
         }
 
-        BKE_image_path_ensure_ext_from_imformat(filepath, &imf);
+        BKE_image_path_ensure_ext_from_imformat(filepath, &image_format);
         ibuf_arr[2]->planes = 24;
 
-        ok = image_render_write_stamp_test(reports, scene, rr, ibuf_arr[2], filepath, &imf, stamp);
+        ok = image_render_write_stamp_test(
+            reports, scene, rr, ibuf_arr[2], filepath, &image_format, stamp);
       }
 
       /* imbuf knows which rects are not part of ibuf */
@@ -774,6 +815,8 @@ bool BKE_image_render_write(ReportList *reports,
       }
     }
   }
+
+  BKE_image_format_free(&image_format);
 
   return ok;
 }

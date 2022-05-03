@@ -81,7 +81,7 @@ float gpencil_stroke_thickness_modulate(float thickness, vec4 ndc_pos, vec4 view
 float gpencil_clamp_small_stroke_thickness(float thickness, vec4 ndc_pos)
 {
   /* To avoid aliasing artifacts, we clamp the line thickness and
-   * reduce its opacity in the fragment shader.*/
+   * reduce its opacity in the fragment shader. */
   float min_thickness = ndc_pos.w * 1.3;
   thickness = max(min_thickness, thickness);
 
@@ -119,7 +119,7 @@ float gpencil_clamp_small_stroke_thickness(float thickness, vec4 ndc_pos)
  *
  * WARNING: Max attribute count is actually 14 because OSX OpenGL implementation
  * considers gl_VertexID and gl_InstanceID as vertex attribute. (see T74536)
- **/
+ */
 vec4 gpencil_vertex(ivec4 ma,
                     ivec4 ma1,
                     ivec4 ma2,
@@ -169,7 +169,7 @@ vec4 gpencil_vertex(ivec4 ma,
 
   if (GPENCIL_IS_STROKE_VERTEX) {
     bool is_dot = flag_test(material_flags, GP_STROKE_ALIGNMENT);
-    bool is_squares = !flag_test(material_flags, GP_STROKE_ALIGNMENT);
+    bool is_squares = !flag_test(material_flags, GP_STROKE_DOTS);
 
     /* Special Case. Stroke with single vert are rendered as dots. Do not discard them. */
     if (!is_dot && ma.x == -1 && ma2.x == -1) {
@@ -393,7 +393,7 @@ vec4 gpencil_vertex(ivec4 ma,
                         col2,
                         fcol1,
                         viewport_size,
-                        GP_STROKE_ALIGNMENT_OBJECT,
+                        0,
                         vec2(1.0, 0.0),
                         out_P,
                         out_N,

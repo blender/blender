@@ -57,7 +57,12 @@ void USDLightWriter::do_write(HierarchyContext &context)
                                                                               1.0f;
 
   Light *light = static_cast<Light *>(context.object->data);
-  pxr::UsdLuxLight usd_light;
+#if PXR_VERSION >= 2111
+  pxr::UsdLuxLightAPI usd_light_api;
+#else
+  pxr::UsdLuxLight usd_light_api;
+
+#endif
 
   switch (light->type) {
     case LA_AREA:
@@ -79,7 +84,11 @@ void USDLightWriter::do_write(HierarchyContext &context)
             }
           }
 
-          usd_light = disk_light;
+#if PXR_VERSION >= 2111
+          usd_light_api = disk_light.LightAPI();
+#else
+          usd_light_api = disk_light;
+#endif
           break;
         }
         case LA_AREA_RECT: {
@@ -105,7 +114,11 @@ void USDLightWriter::do_write(HierarchyContext &context)
             }
           }
 
-          usd_light = rect_light;
+#if PXR_VERSION >= 2111
+          usd_light_api = rect_light.LightAPI();
+#else
+          usd_light_api = rect_light;
+#endif
           break;
         }
         case LA_AREA_SQUARE: {
@@ -131,7 +144,11 @@ void USDLightWriter::do_write(HierarchyContext &context)
             }
           }
 
-          usd_light = rect_light;
+#if PXR_VERSION >= 2111
+          usd_light_api = rect_light.LightAPI();
+#else
+          usd_light_api = rect_light;
+#endif
           break;
         }
       }
@@ -152,7 +169,11 @@ void USDLightWriter::do_write(HierarchyContext &context)
         }
       }
 
-      usd_light = sphere_light;
+#if PXR_VERSION >= 2111
+      usd_light_api = sphere_light.LightAPI();
+#else
+      usd_light_api = sphere_light;
+#endif
       break;
     }
     case LA_SPOT: {
@@ -178,7 +199,11 @@ void USDLightWriter::do_write(HierarchyContext &context)
       shapingAPI.CreateShapingConeSoftnessAttr(pxr::VtValue(light->spotblend), true);
       spot_light.CreateTreatAsPointAttr(pxr::VtValue(true), true);
 
-      usd_light = spot_light;
+#if PXR_VERSION >= 2111
+      usd_light_api = spot_light.LightAPI();
+#else
+      usd_light_api = spot_light;
+#endif
       break;
     }
     case LA_SUN: {
@@ -197,7 +222,11 @@ void USDLightWriter::do_write(HierarchyContext &context)
         }
       }
 
-      usd_light = sun_light;
+#if PXR_VERSION >= 2111
+      usd_light_api = sun_light.LightAPI();
+#else
+      usd_light_api = sun_light;
+#endif
       break;
     }
     default:
@@ -210,23 +239,23 @@ void USDLightWriter::do_write(HierarchyContext &context)
     usd_intensity /= nits_to_energy_scale_factor(light, world_scale, radius_scale);
   }
 
-  usd_light.CreateIntensityAttr().Set(usd_intensity, timecode);
+  usd_light_api.CreateIntensityAttr().Set(usd_intensity, timecode);
 
-  usd_light.CreateColorAttr().Set(pxr::GfVec3f(light->r, light->g, light->b), timecode);
-  usd_light.CreateSpecularAttr().Set(light->spec_fac, timecode);
+  usd_light_api.CreateColorAttr().Set(pxr::GfVec3f(light->r, light->g, light->b), timecode);
+  usd_light_api.CreateSpecularAttr().Set(light->spec_fac, timecode);
 
   if (usd_export_context_.export_params.backward_compatible) {
-    pxr::UsdAttribute attr = usd_light.GetPrim().CreateAttribute(
+    pxr::UsdAttribute attr = usd_light_api.GetPrim().CreateAttribute(
         usdtokens::intensity, pxr::SdfValueTypeNames->Float, true);
     if (attr) {
       attr.Set(usd_intensity, timecode);
     }
-    attr = usd_light.GetPrim().CreateAttribute(
+    attr = usd_light_api.GetPrim().CreateAttribute(
         usdtokens::color, pxr::SdfValueTypeNames->Color3f, true);
     if (attr) {
       attr.Set(pxr::GfVec3f(light->r, light->g, light->b), timecode);
     }
-    attr = usd_light.GetPrim().CreateAttribute(
+    attr = usd_light_api.GetPrim().CreateAttribute(
         usdtokens::specular, pxr::SdfValueTypeNames->Float, true);
     if (attr) {
       attr.Set(light->spec_fac, timecode);
@@ -234,7 +263,7 @@ void USDLightWriter::do_write(HierarchyContext &context)
   }
 
   if (usd_export_context_.export_params.export_custom_properties && light) {
-    auto prim = usd_light.GetPrim();
+    auto prim = usd_light_api.GetPrim();
     write_id_properties(prim, light->id, timecode);
   }
 }

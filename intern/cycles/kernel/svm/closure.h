@@ -395,8 +395,10 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
             if (kernel_data.integrator.caustics_refractive || (path_flag & PATH_RAY_DIFFUSE) == 0)
 #  endif
             {
+              /* This is to prevent mnee from receiving a null bsdf. */
+              float refraction_fresnel = fmaxf(0.0001f, 1.0f - fresnel);
               ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
-                  sd, sizeof(MicrofacetBsdf), base_color * glass_weight * (1.0f - fresnel));
+                  sd, sizeof(MicrofacetBsdf), base_color * glass_weight * refraction_fresnel);
               if (bsdf) {
                 bsdf->N = N;
                 bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
@@ -674,8 +676,10 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       if (kernel_data.integrator.caustics_refractive || (path_flag & PATH_RAY_DIFFUSE) == 0)
 #endif
       {
+        /* This is to prevent mnee from receiving a null bsdf. */
+        float refraction_fresnel = fmaxf(0.0001f, 1.0f - fresnel);
         ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
-            sd, sizeof(MicrofacetBsdf), weight * (1.0f - fresnel));
+            sd, sizeof(MicrofacetBsdf), weight * refraction_fresnel);
 
         if (bsdf) {
           bsdf->N = N;
@@ -1107,7 +1111,8 @@ ccl_device_noinline int svm_node_principled_volume(KernelGlobals kg,
 
     if (intensity > CLOSURE_WEIGHT_CUTOFF) {
       float3 blackbody_tint = stack_load_float3(stack, node.w);
-      float3 bb = blackbody_tint * intensity * svm_math_blackbody_color(T);
+      float3 bb = blackbody_tint * intensity *
+                  rec709_to_rgb(kg, svm_math_blackbody_color_rec709(T));
       emission_setup(sd, bb);
     }
   }

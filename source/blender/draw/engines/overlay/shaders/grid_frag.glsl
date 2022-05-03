@@ -1,38 +1,11 @@
+/**
+ * Infinite grid:
+ * Draw antialiazed grid and axes of different sizes with smooth blending between Level of details.
+ * We draw multiple triangles to avoid float precision issues due to perspective interpolation.
+ **/
 
-/* Infinite grid
- * Author: Clément Foucault */
-
-/* We use the normalized local position to avoid precision
- * loss during interpolation. */
-in vec3 local_pos;
-
-out vec4 FragColor;
-
-uniform vec3 planeAxes;
-uniform float gridDistance;
-uniform vec3 gridSize;
-uniform float lineKernel = 0.0;
-uniform sampler2D depthBuffer;
-
-uniform int gridFlag;
-uniform float zoomFactor;
-
-#define STEPS_LEN 8 /* Match: #SI_GRID_STEPS_LEN */
-uniform float gridSteps[STEPS_LEN] = float[](0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0);
-
-#define AXIS_X (1 << 0)
-#define AXIS_Y (1 << 1)
-#define AXIS_Z (1 << 2)
-#define GRID (1 << 3)
-#define PLANE_XY (1 << 4)
-#define PLANE_XZ (1 << 5)
-#define PLANE_YZ (1 << 6)
-#define GRID_BACK (1 << 9)    /* grid is behind objects */
-#define GRID_CAMERA (1 << 10) /* In camera view */
-#define PLANE_IMAGE (1 << 11) /* UV/Image Image editor */
-#define CUSTOM_GRID (1 << 12) /* UV Editor only */
-
-#define M_1_SQRTPI 0.5641895835477563 /* 1/sqrt(pi) */
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
 /**
  * We want to know how much a pixel is covered by a line.
@@ -41,78 +14,75 @@ uniform float gridSteps[STEPS_LEN] = float[](0.001, 0.01, 0.1, 1.0, 10.0, 100.0,
  * The formula for the area uses inverse trig function and is quite complexe. Instead,
  * we approximate it by using the smoothstep function and a 1.05 factor to the disc radius.
  */
+#define M_1_SQRTPI 0.5641895835477563 /* 1/sqrt(pi) */
 #define DISC_RADIUS (M_1_SQRTPI * 1.05)
 #define GRID_LINE_SMOOTH_START (0.5 - DISC_RADIUS)
 #define GRID_LINE_SMOOTH_END (0.5 + DISC_RADIUS)
+#define GRID_LINE_STEP(dist) smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, dist)
 
-float get_grid(vec2 co, vec2 fwidthCos, float grid_size)
+float get_grid(vec2 co, vec2 fwidthCos, float grid_scale)
 {
-  float half_size = grid_size / 2.0;
-  /* triangular wave pattern, amplitude is [0, half_size] */
-  vec2 grid_domain = abs(mod(co + half_size, grid_size) - half_size);
-  /* modulate by the absolute rate of change of the coordinates
-   * (make lines have the same width under perspective) */
+  float half_size = grid_scale / 2.0;
+  /* Triangular wave pattern, amplitude is [0, half_size]. */
+  vec2 grid_domain = abs(mod(co + half_size, vec2(grid_scale)) - half_size);
+  /* Modulate by the absolute rate of change of the coordinates
+   * (make line have the same width under perspective). */
   grid_domain /= fwidthCos;
-
-  /* collapse waves */
+  /* Collapse waves. */
   float line_dist = min(grid_domain.x, grid_domain.y);
-
-  return 1.0 - smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, line_dist - lineKernel);
+  return 1.0 - GRID_LINE_STEP(line_dist - grid_buf.line_size);
 }
 
 vec3 get_axes(vec3 co, vec3 fwidthCos, float line_size)
 {
   vec3 axes_domain = abs(co);
-  /* modulate by the absolute rate of change of the coordinates
-   * (make line have the same width under perspective) */
+  /* Modulate by the absolute rate of change of the coordinates
+   * (make line have the same width under perspective). */
   axes_domain /= fwidthCos;
-
-  return 1.0 - smoothstep(GRID_LINE_SMOOTH_START,
-                          GRID_LINE_SMOOTH_END,
-                          axes_domain - (line_size + lineKernel));
+  return 1.0 - GRID_LINE_STEP(axes_domain - (line_size + grid_buf.line_size));
 }
 
 #define linearstep(p0, p1, v) (clamp(((v) - (p0)) / abs((p1) - (p0)), 0.0, 1.0))
 
 void main()
 {
-  vec3 wPos = local_pos * gridSize;
-  vec3 dFdxPos = dFdx(wPos);
-  vec3 dFdyPos = dFdy(wPos);
+  vec3 P = local_pos * grid_buf.size.xyz;
+  vec3 dFdxPos = dFdx(P);
+  vec3 dFdyPos = dFdy(P);
   vec3 fwidthPos = abs(dFdxPos) + abs(dFdyPos);
-  wPos += cameraPos * planeAxes;
+  P += cameraPos * plane_axes;
 
   float dist, fade;
-  /* if persp */
-  if (ProjectionMatrix[3][3] == 0.0) {
-    vec3 viewvec = cameraPos - wPos;
-    dist = length(viewvec);
-    viewvec /= dist;
+  bool is_persp = ProjectionMatrix[3][3] == 0.0;
+  if (is_persp) {
+    vec3 V = cameraPos - P;
+    dist = length(V);
+    V /= dist;
 
     float angle;
-    if ((gridFlag & PLANE_XZ) != 0) {
-      angle = viewvec.y;
+    if (flag_test(grid_flag, PLANE_XZ)) {
+      angle = V.y;
     }
-    else if ((gridFlag & PLANE_YZ) != 0) {
-      angle = viewvec.x;
+    else if (flag_test(grid_flag, PLANE_YZ)) {
+      angle = V.x;
     }
     else {
-      angle = viewvec.z;
+      angle = V.z;
     }
 
     angle = 1.0 - abs(angle);
     angle *= angle;
     fade = 1.0 - angle * angle;
-    fade *= 1.0 - smoothstep(0.0, gridDistance, dist - gridDistance);
+    fade *= 1.0 - smoothstep(0.0, grid_buf.distance, dist - grid_buf.distance);
   }
   else {
     dist = gl_FragCoord.z * 2.0 - 1.0;
     /* Avoid fading in +Z direction in camera view (see T70193). */
-    dist = ((gridFlag & GRID_CAMERA) != 0) ? clamp(dist, 0.0, 1.0) : abs(dist);
+    dist = flag_test(grid_flag, GRID_CAMERA) ? clamp(dist, 0.0, 1.0) : abs(dist);
     fade = 1.0 - smoothstep(0.0, 0.5, dist - 0.5);
-    dist = 1.0; /* avoid branch after */
+    dist = 1.0; /* Avoid branch after. */
 
-    if ((gridFlag & PLANE_XY) != 0) {
+    if (flag_test(grid_flag, PLANE_XY)) {
       float angle = 1.0 - abs(ViewMatrixInverse[2].z);
       dist = 1.0 + angle * 2.0;
       angle *= angle;
@@ -120,75 +90,78 @@ void main()
     }
   }
 
-  if ((gridFlag & GRID) != 0) {
+  if (flag_test(grid_flag, SHOW_GRID)) {
     /* Using `max(dot(dFdxPos, screenVecs[0]), dot(dFdyPos, screenVecs[1]))`
      * would be more accurate, but not really necessary. */
     float grid_res = dot(dFdxPos, screenVecs[0].xyz);
 
-    /* The grid begins to appear when it comprises 4 pixels */
+    /* The grid begins to appear when it comprises 4 pixels. */
     grid_res *= 4;
 
-    /* For UV/Image editor use zoomFactor */
-    if ((gridFlag & PLANE_IMAGE) != 0 &&
+    /* For UV/Image editor use grid_buf.zoom_factor. */
+    if (flag_test(grid_flag, PLANE_IMAGE) &&
         /* Grid begins to appear when the length of one grid unit is at least
          * (256/grid_size) pixels Value of grid_size defined in `overlay_grid.c`. */
-        (gridFlag & CUSTOM_GRID) == 0) {
-      grid_res = zoomFactor;
+        !flag_test(grid_flag, CUSTOM_GRID)) {
+      grid_res = grid_buf.zoom_factor;
     }
 
-    /* from biggest to smallest */
+    /* From biggest to smallest. */
     vec4 scale;
-#if 0
+#define grid_step(a) grid_buf.steps[a].x
+#if 0 /* Inefficient. */
     int step_id = 0;
     scale[0] = 0.0;
-    scale[1] = gridSteps[0];
+    scale[1] = grid_step(0);
     while (scale[1] < grid_res && step_id != STEPS_LEN - 1) {
       scale[0] = scale[1];
-      scale[1] = gridSteps[++step_id];
+      scale[1] = grid_step(++step_id);
     }
-    scale[2] = gridSteps[min(step_id + 1, STEPS_LEN - 1)];
-    scale[3] = gridSteps[min(step_id + 2, STEPS_LEN - 1)];
+    scale[2] = grid_step(min(step_id + 1, STEPS_LEN - 1));
+    scale[3] = grid_step(min(step_id + 2, STEPS_LEN - 1));
 #else
     /* For more efficiency, unroll the loop above. */
-    if (gridSteps[0] > grid_res) {
-      scale = vec4(0.0, gridSteps[0], gridSteps[1], gridSteps[2]);
+    if (grid_step(0) > grid_res) {
+      scale = vec4(0.0, grid_step(0), grid_step(1), grid_step(2));
     }
-    else if (gridSteps[1] > grid_res) {
-      scale = vec4(gridSteps[0], gridSteps[1], gridSteps[2], gridSteps[3]);
+    else if (grid_step(1) > grid_res) {
+      scale = vec4(grid_step(0), grid_step(1), grid_step(2), grid_step(3));
     }
-    else if (gridSteps[2] > grid_res) {
-      scale = vec4(gridSteps[1], gridSteps[2], gridSteps[3], gridSteps[4]);
+    else if (grid_step(2) > grid_res) {
+      scale = vec4(grid_step(1), grid_step(2), grid_step(3), grid_step(4));
     }
-    else if (gridSteps[3] > grid_res) {
-      scale = vec4(gridSteps[2], gridSteps[3], gridSteps[4], gridSteps[5]);
+    else if (grid_step(3) > grid_res) {
+      scale = vec4(grid_step(2), grid_step(3), grid_step(4), grid_step(5));
     }
-    else if (gridSteps[4] > grid_res) {
-      scale = vec4(gridSteps[3], gridSteps[4], gridSteps[5], gridSteps[6]);
+    else if (grid_step(4) > grid_res) {
+      scale = vec4(grid_step(3), grid_step(4), grid_step(5), grid_step(6));
     }
-    else if (gridSteps[5] > grid_res) {
-      scale = vec4(gridSteps[4], gridSteps[5], gridSteps[6], gridSteps[7]);
+    else if (grid_step(5) > grid_res) {
+      scale = vec4(grid_step(4), grid_step(5), grid_step(6), grid_step(7));
     }
-    else if (gridSteps[6] > grid_res) {
-      scale = vec4(gridSteps[5], gridSteps[6], gridSteps[7], gridSteps[7]);
+    else if (grid_step(6) > grid_res) {
+      scale = vec4(grid_step(5), grid_step(6), grid_step(7), grid_step(7));
     }
     else {
-      scale = vec4(gridSteps[6], gridSteps[7], gridSteps[7], gridSteps[7]);
+      scale = vec4(grid_step(6), grid_step(7), grid_step(7), grid_step(7));
     }
 #endif
+#undef grid_step
+
     float blend = 1.0 - linearstep(scale[0], scale[1], grid_res);
     blend = blend * blend * blend;
 
     vec2 grid_pos, grid_fwidth;
-    if ((gridFlag & PLANE_XZ) != 0) {
-      grid_pos = wPos.xz;
+    if (flag_test(grid_flag, PLANE_XZ)) {
+      grid_pos = P.xz;
       grid_fwidth = fwidthPos.xz;
     }
-    else if ((gridFlag & PLANE_YZ) != 0) {
-      grid_pos = wPos.yz;
+    else if (flag_test(grid_flag, PLANE_YZ)) {
+      grid_pos = P.yz;
       grid_fwidth = fwidthPos.yz;
     }
     else {
-      grid_pos = wPos.xy;
+      grid_pos = P.xy;
       grid_fwidth = fwidthPos.xy;
     }
 
@@ -196,51 +169,51 @@ void main()
     float gridB = get_grid(grid_pos, grid_fwidth, scale[2]);
     float gridC = get_grid(grid_pos, grid_fwidth, scale[3]);
 
-    FragColor = colorGrid;
-    FragColor.a *= gridA * blend;
-    FragColor = mix(FragColor, mix(colorGrid, colorGridEmphasis, blend), gridB);
-    FragColor = mix(FragColor, colorGridEmphasis, gridC);
+    out_color = colorGrid;
+    out_color.a *= gridA * blend;
+    out_color = mix(out_color, mix(colorGrid, colorGridEmphasis, blend), gridB);
+    out_color = mix(out_color, colorGridEmphasis, gridC);
   }
   else {
-    FragColor = vec4(colorGrid.rgb, 0.0);
+    out_color = vec4(colorGrid.rgb, 0.0);
   }
 
-  if ((gridFlag & (AXIS_X | AXIS_Y | AXIS_Z)) != 0) {
+  if (flag_test(grid_flag, (SHOW_AXIS_X | SHOW_AXIS_Y | SHOW_AXIS_Z))) {
     /* Setup axes 'domains' */
     vec3 axes_dist, axes_fwidth;
 
-    if ((gridFlag & AXIS_X) != 0) {
-      axes_dist.x = dot(wPos.yz, planeAxes.yz);
-      axes_fwidth.x = dot(fwidthPos.yz, planeAxes.yz);
+    if (flag_test(grid_flag, SHOW_AXIS_X)) {
+      axes_dist.x = dot(P.yz, plane_axes.yz);
+      axes_fwidth.x = dot(fwidthPos.yz, plane_axes.yz);
     }
-    if ((gridFlag & AXIS_Y) != 0) {
-      axes_dist.y = dot(wPos.xz, planeAxes.xz);
-      axes_fwidth.y = dot(fwidthPos.xz, planeAxes.xz);
+    if (flag_test(grid_flag, SHOW_AXIS_Y)) {
+      axes_dist.y = dot(P.xz, plane_axes.xz);
+      axes_fwidth.y = dot(fwidthPos.xz, plane_axes.xz);
     }
-    if ((gridFlag & AXIS_Z) != 0) {
-      axes_dist.z = dot(wPos.xy, planeAxes.xy);
-      axes_fwidth.z = dot(fwidthPos.xy, planeAxes.xy);
+    if (flag_test(grid_flag, SHOW_AXIS_Z)) {
+      axes_dist.z = dot(P.xy, plane_axes.xy);
+      axes_fwidth.z = dot(fwidthPos.xy, plane_axes.xy);
     }
 
     /* Computing all axes at once using vec3 */
     vec3 axes = get_axes(axes_dist, axes_fwidth, 0.1);
 
-    if ((gridFlag & AXIS_X) != 0) {
-      FragColor.a = max(FragColor.a, axes.x);
-      FragColor.rgb = (axes.x < 1e-8) ? FragColor.rgb : colorGridAxisX.rgb;
+    if (flag_test(grid_flag, SHOW_AXIS_X)) {
+      out_color.a = max(out_color.a, axes.x);
+      out_color.rgb = (axes.x < 1e-8) ? out_color.rgb : colorGridAxisX.rgb;
     }
-    if ((gridFlag & AXIS_Y) != 0) {
-      FragColor.a = max(FragColor.a, axes.y);
-      FragColor.rgb = (axes.y < 1e-8) ? FragColor.rgb : colorGridAxisY.rgb;
+    if (flag_test(grid_flag, SHOW_AXIS_Y)) {
+      out_color.a = max(out_color.a, axes.y);
+      out_color.rgb = (axes.y < 1e-8) ? out_color.rgb : colorGridAxisY.rgb;
     }
-    if ((gridFlag & AXIS_Z) != 0) {
-      FragColor.a = max(FragColor.a, axes.z);
-      FragColor.rgb = (axes.z < 1e-8) ? FragColor.rgb : colorGridAxisZ.rgb;
+    if (flag_test(grid_flag, SHOW_AXIS_Z)) {
+      out_color.a = max(out_color.a, axes.z);
+      out_color.rgb = (axes.z < 1e-8) ? out_color.rgb : colorGridAxisZ.rgb;
     }
   }
 
-  float scene_depth = texelFetch(depthBuffer, ivec2(gl_FragCoord.xy), 0).r;
-  if ((gridFlag & GRID_BACK) != 0) {
+  float scene_depth = texelFetch(depth_tx, ivec2(gl_FragCoord.xy), 0).r;
+  if (flag_test(grid_flag, GRID_BACK)) {
     fade *= (scene_depth == 1.0) ? 1.0 : 0.0;
   }
   else {
@@ -255,5 +228,5 @@ void main()
     fade *= linearstep(grid_depth, grid_depth + bias, scene_depth);
   }
 
-  FragColor.a *= fade;
+  out_color.a *= fade;
 }

@@ -173,7 +173,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 
   BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   if (nodes) {
     MEM_freeN(nodes);
@@ -707,7 +707,8 @@ static void sculpt_gesture_apply(bContext *C, SculptGestureContext *sgcontext)
 
   operation->sculpt_gesture_end(C, sgcontext);
 
-  SCULPT_undo_push_end();
+  Object *ob = CTX_data_active_object(C);
+  SCULPT_undo_push_end(ob);
 
   SCULPT_tag_update_overlays(C);
 }
@@ -949,7 +950,6 @@ static void sculpt_gesture_trim_normals_update(SculptGestureContext *sgcontext)
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
   Mesh *trim_mesh = trim_operation->mesh;
-  BKE_mesh_calc_normals(trim_mesh);
 
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(trim_mesh);
   BMesh *bm;
@@ -962,6 +962,7 @@ static void sculpt_gesture_trim_normals_update(SculptGestureContext *sgcontext)
                      trim_mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
+                         .calc_vert_normal = true,
                      }));
   BM_mesh_elem_hflag_enable_all(bm, BM_FACE, BM_ELEM_TAG, false);
   BMO_op_callf(bm,
@@ -1056,7 +1057,30 @@ static void sculpt_gesture_trim_calculate_depth(SculptGestureContext *sgcontext)
                             (trim_operation->depth_back + trim_operation->depth_front) * 0.5f;
     }
 
-    const float depth_radius = ss->cursor_radius;
+    float depth_radius;
+
+    if (ss->gesture_initial_hit) {
+      depth_radius = ss->cursor_radius;
+    }
+    else {
+      /* ss->cursor_radius is only valid if the stroke started
+       * over the sculpt mesh.  If it's not we must
+       * compute the radius ourselves.  See T81452.
+       */
+
+      Sculpt *sd = CTX_data_tool_settings(vc->C)->sculpt;
+      Brush *brush = BKE_paint_brush(&sd->paint);
+      Scene *scene = CTX_data_scene(vc->C);
+
+      if (!BKE_brush_use_locked_size(scene, brush)) {
+        depth_radius = paint_calc_object_space_radius(
+            vc, ss->gesture_initial_location, BKE_brush_size_get(scene, brush));
+      }
+      else {
+        depth_radius = BKE_brush_unprojected_radius_get(scene, brush);
+      }
+    }
+
     trim_operation->depth_front = mid_point_depth - depth_radius;
     trim_operation->depth_back = mid_point_depth + depth_radius;
   }
@@ -1075,7 +1099,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   const int trim_totpolys = (2 * (tot_screen_points - 2)) + (2 * tot_screen_points);
   trim_operation->mesh = BKE_mesh_new_nomain(
       trim_totverts, 0, 0, trim_totpolys * 3, trim_totpolys);
-  trim_operation->true_mesh_co = MEM_malloc_arrayN(trim_totverts, 3 * sizeof(float), "mesh orco");
+  trim_operation->true_mesh_co = MEM_malloc_arrayN(trim_totverts, sizeof(float[3]), "mesh orco");
 
   float depth_front = trim_operation->depth_front;
   float depth_back = trim_operation->depth_back;
@@ -1129,7 +1153,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
   /* Get the triangulation for the front/back poly. */
   const int tot_tris_face = tot_screen_points - 2;
-  uint(*r_tris)[3] = MEM_malloc_arrayN(tot_tris_face, 3 * sizeof(uint), "tris");
+  uint(*r_tris)[3] = MEM_malloc_arrayN(tot_tris_face, sizeof(uint[3]), "tris");
   BLI_polyfill_calc(screen_points, tot_screen_points, 0, r_tris);
 
   /* Write the front face triangle indices. */
@@ -1214,12 +1238,14 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
                      trim_mesh,
                      &((struct BMeshFromMeshParams){
                          .calc_face_normal = true,
+                         .calc_vert_normal = true,
                      }));
 
   BM_mesh_bm_from_me(bm,
                      sculpt_mesh,
                      &((struct BMeshFromMeshParams){
                          .calc_face_normal = true,
+                         .calc_vert_normal = true,
                      }));
 
   const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
@@ -1284,7 +1310,6 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
                                             }),
                                             sculpt_mesh);
   BM_mesh_free(bm);
-  BKE_mesh_normals_tag_dirty(result);
   BKE_mesh_nomain_to_mesh(
       result, sgcontext->vc.obact->data, sgcontext->vc.obact, &CD_MASK_MESH, true);
 }

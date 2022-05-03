@@ -334,8 +334,9 @@ class GHOST_System : public GHOST_ISystem {
 
   /**
    * Specify whether debug messages are to be shown.
+   * \param debug: Flag for systems to debug.
    */
-  virtual void initDebug(bool is_debug_enabled);
+  virtual void initDebug(GHOST_Debug debug);
 
   /**
    * Check whether debug messages are to be shown.

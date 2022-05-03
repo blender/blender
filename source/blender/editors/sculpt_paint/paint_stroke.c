@@ -1389,10 +1389,11 @@ static void paint_stroke_line_constrain(PaintStroke *stroke, float mouse[2])
   }
 }
 
-int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintStroke *stroke)
+int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintStroke **stroke_p)
 {
   Paint *p = BKE_paint_get_active_from_context(C);
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  PaintStroke *stroke = *stroke_p;
   Brush *br = stroke->brush = BKE_paint_brush(p);
   PaintSample sample_average;
   float mouse[2];
@@ -1441,6 +1442,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
   /* one time initialization */
   if (!stroke->stroke_init) {
     if (paint_stroke_curve_end(C, op, stroke)) {
+      *stroke_p = NULL;
       return OPERATOR_FINISHED;
     }
 
@@ -1497,12 +1499,14 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
       paint_stroke_line_constrain(stroke, mouse);
       paint_stroke_line_end(C, op, stroke, mouse);
       stroke_done(C, op, stroke);
+      *stroke_p = NULL;
       return OPERATOR_FINISHED;
     }
   }
   else if (ELEM(event->type, EVT_RETKEY, EVT_SPACEKEY)) {
     paint_stroke_line_end(C, op, stroke, sample_average.mouse);
     stroke_done(C, op, stroke);
+    *stroke_p = NULL;
     return OPERATOR_FINISHED;
   }
   else if (br->flag & BRUSH_LINE) {

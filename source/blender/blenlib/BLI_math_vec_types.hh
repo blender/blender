@@ -201,6 +201,14 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
     }
   }
 
+  template<typename U, BLI_ENABLE_IF((std::is_convertible_v<U, T>))>
+  explicit vec_base(const U *ptr)
+  {
+    for (int i = 0; i < Size; i++) {
+      (*this)[i] = ptr[i];
+    }
+  }
+
   vec_base(const T (*ptr)[Size]) : vec_base(static_cast<const T *>(ptr[0]))
   {
   }
@@ -321,7 +329,7 @@ template<typename T, int Size> struct vec_base : public vec_struct_base<T, Size>
     BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] * b[i]);
   }
 
-  friend vec_base operator*(const vec_base &a, T b)
+  template<typename FactorT> friend vec_base operator*(const vec_base &a, FactorT b)
   {
     BLI_VEC_OP_IMPL(ret, i, ret[i] = a[i] * b);
   }
@@ -571,6 +579,8 @@ using uint2 = vec_base<uint32_t, 2>;
 using uint3 = vec_base<uint32_t, 3>;
 using uint4 = vec_base<uint32_t, 4>;
 
+using ushort2 = vec_base<uint16_t, 2>;
+
 using float2 = vec_base<float, 2>;
 using float3 = vec_base<float, 3>;
 using float4 = vec_base<float, 4>;
@@ -578,14 +588,5 @@ using float4 = vec_base<float, 4>;
 using double2 = vec_base<double, 2>;
 using double3 = vec_base<double, 3>;
 using double4 = vec_base<double, 4>;
-
-template<typename T>
-inline constexpr bool is_math_float_type = (std::is_floating_point_v<T>
-#ifdef WITH_GMP
-                                            || std::is_same_v<T, mpq_class>
-#endif
-);
-
-template<typename T> inline constexpr bool is_math_integral_type = std::is_integral_v<T>;
 
 }  // namespace blender

@@ -37,7 +37,7 @@ struct Mesh *MOD_deform_mesh_eval_get(struct Object *ob,
                                       struct BMEditMesh *em,
                                       struct Mesh *mesh,
                                       const float (*vertexCos)[3],
-                                      int num_verts,
+                                      int verts_num,
                                       bool use_normals,
                                       bool use_orco);
 

@@ -361,7 +361,7 @@ int FFMPEGReader::read_packet(void* opaque, uint8_t* buf, int buf_size)
 {
 	FFMPEGReader* reader = reinterpret_cast<FFMPEGReader*>(opaque);
 
-	int size = std::min(buf_size, reader->m_membuffer->getSize() - reader->m_membufferpos);
+	long long size = std::min(static_cast<long long>(buf_size), reader->m_membuffer->getSize() - reader->m_membufferpos);
 
 	if(size < 0)
 		return -1;

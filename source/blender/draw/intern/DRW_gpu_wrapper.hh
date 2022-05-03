@@ -53,6 +53,8 @@
  *
  */
 
+#include "DRW_render.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "draw_texture_pool.h"
@@ -61,6 +63,7 @@
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 #include "BLI_utility_mixins.hh"
+#include "BLI_vector.hh"
 
 #include "GPU_framebuffer.h"
 #include "GPU_storage_buffer.h"
@@ -515,7 +518,7 @@ class Texture : NonCopyable {
 
   /**
    * Ensure the availability of mipmap views.
-   * Mip view covers all layers of array textures.
+   * MIP view covers all layers of array textures.
    */
   bool ensure_mip_views(bool cube_as_array = false)
   {

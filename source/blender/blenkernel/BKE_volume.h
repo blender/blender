@@ -77,6 +77,11 @@ const VolumeGrid *BKE_volume_grid_active_get_for_read(const struct Volume *volum
 /* Tries to find a grid with the given name. Make sure that the volume has been loaded. */
 const VolumeGrid *BKE_volume_grid_find_for_read(const struct Volume *volume, const char *name);
 
+/* Tries to set the name of the velocity field. If no such grid exists with the given base name,
+ * this will try common post-fixes in order to detect velocity fields split into multiple grids.
+ * Return false if neither finding with the base name nor with the post-fixes succeeded. */
+bool BKE_volume_set_velocity_grid_by_name(struct Volume *volume, const char *base_name);
+
 /* Grid
  *
  * By default only grid metadata is loaded, for access to the tree and voxels

@@ -1,10 +1,5 @@
-
-uniform bool useSelect;
-
-in vec3 pos;
-in vec4 nor; /* flag stored in w */
-
-flat out vec4 finalColor;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {
@@ -32,7 +27,5 @@ void main()
     finalColor = vec4(1.0, 1.0, 1.0, 0.3);
   }
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(world_pos);
-#endif
+  view_clipping_distances(world_pos);
 }

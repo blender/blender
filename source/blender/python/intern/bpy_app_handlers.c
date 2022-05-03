@@ -24,7 +24,7 @@
 
 void bpy_app_generic_callback(struct Main *main,
                               struct PointerRNA **pointers,
-                              const int num_pointers,
+                              const int pointers_num,
                               void *arg);
 
 static PyTypeObject BlenderAppCbType;
@@ -244,7 +244,7 @@ PyObject *BPY_app_handlers_struct(void)
   return ret;
 }
 
-void BPY_app_handlers_reset(const short do_all)
+void BPY_app_handlers_reset(const bool do_all)
 {
   PyGILState_STATE gilstate;
   int pos = 0;
@@ -266,13 +266,18 @@ void BPY_app_handlers_reset(const short do_all)
       PyObject *ls = py_cb_array[pos];
       Py_ssize_t i;
 
-      PyObject *item;
-      PyObject **dict_ptr;
-
       for (i = PyList_GET_SIZE(ls) - 1; i >= 0; i--) {
+        PyObject *item = PyList_GET_ITEM(ls, i);
 
-        if (PyFunction_Check((item = PyList_GET_ITEM(ls, i))) &&
-            (dict_ptr = _PyObject_GetDictPtr(item)) && (*dict_ptr) &&
+        if (PyMethod_Check(item)) {
+          PyObject *item_test = PyMethod_GET_FUNCTION(item);
+          if (item_test) {
+            item = item_test;
+          }
+        }
+
+        PyObject **dict_ptr;
+        if (PyFunction_Check(item) && (dict_ptr = _PyObject_GetDictPtr(item)) && (*dict_ptr) &&
             (PyDict_GetItem(*dict_ptr, perm_id_str) != NULL)) {
           /* keep */
         }
@@ -305,7 +310,7 @@ static PyObject *choose_arguments(PyObject *func, PyObject *args_all, PyObject *
 /* the actual callback - not necessarily called from py */
 void bpy_app_generic_callback(struct Main *UNUSED(main),
                               struct PointerRNA **pointers,
-                              const int num_pointers,
+                              const int pointers_num,
                               void *arg)
 {
   PyObject *cb_list = py_cb_array[POINTER_AS_INT(arg)];
@@ -320,14 +325,14 @@ void bpy_app_generic_callback(struct Main *UNUSED(main),
     Py_ssize_t pos;
 
     /* setup arguments */
-    for (int i = 0; i < num_pointers; ++i) {
+    for (int i = 0; i < pointers_num; ++i) {
       PyTuple_SET_ITEM(args_all, i, pyrna_struct_CreatePyObject(pointers[i]));
     }
-    for (int i = num_pointers; i < num_arguments; ++i) {
+    for (int i = pointers_num; i < num_arguments; ++i) {
       PyTuple_SET_ITEM(args_all, i, Py_INCREF_RET(Py_None));
     }
 
-    if (num_pointers == 0) {
+    if (pointers_num == 0) {
       PyTuple_SET_ITEM(args_single, 0, Py_INCREF_RET(Py_None));
     }
     else {

@@ -18,11 +18,12 @@ void BM_mesh_cd_flag_apply(BMesh *bm, char cd_flag);
 char BM_mesh_cd_flag_from_bmesh(BMesh *bm);
 
 struct BMeshFromMeshParams {
-  uint calc_face_normal : 1;
+  bool calc_face_normal;
+  bool calc_vert_normal;
   /* add a vertex CD_SHAPE_KEYINDEX layer */
-  uint add_key_index : 1;
+  bool add_key_index;
   /* set vertex coordinates from the shapekey */
-  uint use_shapekey : 1;
+  bool use_shapekey;
   /* define the active shape key (index + 1) */
   int active_shapekey;
   struct CustomData_MeshMasks cd_mask_extra;
@@ -42,7 +43,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const struct Mesh *me, const struct BMeshFrom
 
 struct BMeshToMeshParams {
   /** Update object hook indices & vertex parents. */
-  uint calc_object_remap : 1;
+  bool calc_object_remap;
   /**
    * This re-assigns shape-key indices. Only do if the BMesh will have continued use
    * to update the mesh & shape key in the future.
@@ -52,12 +53,12 @@ struct BMeshToMeshParams {
    * so a second flush or edit-mode exit doesn't run with indices
    * that have become invalid from updating the shape-key, see T71865.
    */
-  uint update_shapekey_indices : 1;
+  bool update_shapekey_indices;
   /**
    * Instead of copying the basis shape-key into the #MVert array,
    * copy the #BMVert.co directly to #MVert.co (used for reading undo data).
    */
-  uint active_shapekey_to_mvert : 1;
+  bool active_shapekey_to_mvert;
   struct CustomData_MeshMasks cd_mask_extra;
 };
 /**

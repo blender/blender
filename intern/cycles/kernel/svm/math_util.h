@@ -189,10 +189,8 @@ ccl_device float svm_math(NodeMathType type, float a, float b, float c)
   }
 }
 
-ccl_device float3 svm_math_blackbody_color(float t)
+ccl_device float3 svm_math_blackbody_color_rec709(float t)
 {
-  /* TODO(lukas): Reimplement in XYZ. */
-
   /* Calculate color in range 800..12000 using an approximation
    * a/x+bx+c for R and G and ((at + b)t + c)t + d) for B
    * Max absolute error for RGB is (0.00095, 0.00077, 0.00057),

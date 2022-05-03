@@ -135,10 +135,10 @@ ccl_device_forceinline float4 primitive_surface_attribute_float4(KernelGlobals k
 #endif
   else {
     if (dx)
-      *dx = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+      *dx = zero_float4();
     if (dy)
-      *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-    return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+      *dy = zero_float4();
+    return zero_float4();
   }
 }
 
@@ -187,7 +187,7 @@ ccl_device_inline float4 primitive_volume_attribute_float4(KernelGlobals kg,
     return volume_attribute_float4(kg, sd, desc);
   }
   else {
-    return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    return zero_float4();
   }
 }
 #endif

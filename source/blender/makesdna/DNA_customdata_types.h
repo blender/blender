@@ -52,7 +52,7 @@ typedef struct CustomDataLayer {
 
 typedef struct CustomDataExternal {
   /** FILE_MAX. */
-  char filename[1024];
+  char filepath[1024];
 } CustomDataExternal;
 
 /**
@@ -80,7 +80,7 @@ typedef struct CustomData {
   CustomDataExternal *external;
 } CustomData;
 
-/* CustomData.type */
+/** #CustomData.type */
 typedef enum CustomDataType {
   /* Used by GLSL attributes in the cases when we need a delayed CD type
    * assignment (in the cases when we don't know in advance which layer
@@ -113,7 +113,7 @@ typedef enum CustomDataType {
   CD_MTEXPOLY = 15, /* deprecated */
 #endif
   CD_MLOOPUV = 16,
-  CD_MLOOPCOL = 17,
+  CD_PROP_BYTE_COLOR = 17,
   CD_TANGENT = 18,
   CD_MDISPS = 19,
   CD_PREVIEW_MCOL = 20,           /* for displaying weightpaint colors */
@@ -181,7 +181,7 @@ typedef enum CustomDataType {
 #define CD_MASK_ORCO (1 << CD_ORCO)
 // #define CD_MASK_MTEXPOLY (1 << CD_MTEXPOLY)  /* DEPRECATED */
 #define CD_MASK_MLOOPUV (1 << CD_MLOOPUV)
-#define CD_MASK_MLOOPCOL (1 << CD_MLOOPCOL)
+#define CD_MASK_PROP_BYTE_COLOR (1 << CD_PROP_BYTE_COLOR)
 #define CD_MASK_TANGENT (1 << CD_TANGENT)
 #define CD_MASK_MDISPS (1 << CD_MDISPS)
 #define CD_MASK_PREVIEW_MCOL (1 << CD_PREVIEW_MCOL)
@@ -224,8 +224,11 @@ typedef enum CustomDataType {
 /* All generic attributes. */
 #define CD_MASK_PROP_ALL \
   (CD_MASK_PROP_FLOAT | CD_MASK_PROP_FLOAT2 | CD_MASK_PROP_FLOAT3 | CD_MASK_PROP_INT32 | \
-   CD_MASK_PROP_COLOR | CD_MASK_PROP_STRING | CD_MASK_MLOOPCOL | CD_MASK_PROP_BOOL | \
+   CD_MASK_PROP_COLOR | CD_MASK_PROP_STRING | CD_MASK_PROP_BYTE_COLOR | CD_MASK_PROP_BOOL | \
    CD_MASK_PROP_INT8)
+
+/* All color attributes */
+#define CD_MASK_COLOR_ALL (CD_MASK_PROP_COLOR | CD_MASK_PROP_BYTE_COLOR)
 
 typedef struct CustomData_MeshMasks {
   uint64_t vmask;
@@ -235,7 +238,7 @@ typedef struct CustomData_MeshMasks {
   uint64_t lmask;
 } CustomData_MeshMasks;
 
-/* CustomData.flag */
+/** #CustomData.flag */
 enum {
   /* Indicates layer should not be copied by CustomData_from_template or CustomData_copy_data */
   CD_FLAG_NOCOPY = (1 << 0),
@@ -247,6 +250,8 @@ enum {
   CD_FLAG_EXTERNAL = (1 << 3),
   /* Indicates external data is read into memory */
   CD_FLAG_IN_MEMORY = (1 << 4),
+  CD_FLAG_COLOR_ACTIVE = (1 << 5),
+  CD_FLAG_COLOR_RENDER = (1 << 6)
 };
 
 /* Limits */

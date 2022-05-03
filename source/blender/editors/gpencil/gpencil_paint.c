@@ -1197,29 +1197,21 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       gpencil_subdivide_stroke(gpd, gps, subdivide);
     }
 
-    /* Smooth stroke after subdiv - only if there's something to do for each iteration,
-     * the factor is reduced to get a better smoothing
-     * without changing too much the original stroke. */
-    if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_SETTINGS) &&
-        (brush->gpencil_settings->draw_smoothfac > 0.0f)) {
-      float reduce = 0.0f;
-      for (int r = 0; r < brush->gpencil_settings->draw_smoothlvl; r++) {
-        for (i = 0; i < gps->totpoints - 1; i++) {
-          BKE_gpencil_stroke_smooth_point(
-              gps, i, brush->gpencil_settings->draw_smoothfac - reduce, false);
-          BKE_gpencil_stroke_smooth_strength(gps, i, brush->gpencil_settings->draw_smoothfac);
-        }
-        reduce += 0.25f; /* reduce the factor */
-      }
+    /* Smooth stroke after subdiv - only if there's something to do for each iteration.
+     * Keep the original stroke shape as much as possible. */
+    const float smoothfac = brush->gpencil_settings->draw_smoothfac;
+    const int iterations = brush->gpencil_settings->draw_smoothlvl;
+    if (brush->gpencil_settings->flag & GP_BRUSH_GROUP_SETTINGS) {
+      BKE_gpencil_stroke_smooth(gps, smoothfac, iterations, true, true, false, false, true, NULL);
     }
     /* If reproject the stroke using Stroke mode, need to apply a smooth because
      * the reprojection creates small jitter. */
     if (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) {
       float ifac = (float)brush->gpencil_settings->input_samples / 10.0f;
       float sfac = interpf(1.0f, 0.2f, ifac);
-      for (i = 0; i < gps->totpoints - 1; i++) {
-        BKE_gpencil_stroke_smooth_point(gps, i, sfac, false);
-        BKE_gpencil_stroke_smooth_strength(gps, i, sfac);
+      for (i = 0; i < gps->totpoints; i++) {
+        BKE_gpencil_stroke_smooth_point(gps, i, sfac, 2, false, true, gps);
+        BKE_gpencil_stroke_smooth_strength(gps, i, sfac, 2, gps);
       }
     }
 
@@ -1321,7 +1313,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
   /* Calc geometry data. */
   BKE_gpencil_stroke_geometry_update(gpd, gps);
 
-  /* In Multiframe mode, duplicate the stroke in other frames. */
+  /* In multi-frame mode, duplicate the stroke in other frames. */
   if (GPENCIL_MULTIEDIT_SESSIONS_ON(p->gpd)) {
     const bool tail = (ts->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK);
     BKE_gpencil_stroke_copy_to_keyframes(gpd, gpl, p->gpf, gps, tail);

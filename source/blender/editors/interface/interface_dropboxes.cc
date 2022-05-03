@@ -67,7 +67,7 @@ static bool ui_drop_name_poll(struct bContext *C, wmDrag *drag, const wmEvent *U
   return UI_but_active_drop_name(C) && (drag->type == WM_DRAG_ID);
 }
 
-static void ui_drop_name_copy(wmDrag *drag, wmDropBox *drop)
+static void ui_drop_name_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   const ID *id = WM_drag_get_local_ID(drag, 0);
   RNA_string_set(drop->ptr, "string", id->name + 2);
@@ -85,7 +85,7 @@ static bool ui_drop_material_poll(bContext *C, wmDrag *drag, const wmEvent *UNUS
   return WM_drag_is_ID_type(drag, ID_MA) && !RNA_pointer_is_null(&mat_slot);
 }
 
-static void ui_drop_material_copy(wmDrag *drag, wmDropBox *drop)
+static void ui_drop_material_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   const ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, ID_MA);
   RNA_int_set(drop->ptr, "session_uuid", (int)id->session_uuid);

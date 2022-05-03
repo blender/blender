@@ -272,7 +272,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
   geometry_synced.clear(); /* use for objects and motion sync */
 
   if (scene->need_motion() == Scene::MOTION_PASS || scene->need_motion() == Scene::MOTION_NONE ||
-      scene->camera->get_motion_position() == Camera::MOTION_POSITION_CENTER) {
+      scene->camera->get_motion_position() == MOTION_POSITION_CENTER) {
     sync_objects(b_depsgraph, b_v3d);
   }
   sync_motion(b_render, b_depsgraph, b_v3d, b_override, width, height, python_thread_state);
@@ -743,6 +743,20 @@ void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_v
       b_engine.add_pass(name.c_str(), 1, "X", b_view_layer.name().c_str());
       pass_add(scene, PASS_AOV_VALUE, name.c_str());
     }
+  }
+
+  /* Light Group passes. */
+  BL::ViewLayer::lightgroups_iterator b_lightgroup_iter;
+  for (b_view_layer.lightgroups.begin(b_lightgroup_iter);
+       b_lightgroup_iter != b_view_layer.lightgroups.end();
+       ++b_lightgroup_iter) {
+    BL::Lightgroup b_lightgroup(*b_lightgroup_iter);
+
+    string name = string_printf("Combined_%s", b_lightgroup.name().c_str());
+
+    b_engine.add_pass(name.c_str(), 3, "RGB", b_view_layer.name().c_str());
+    Pass *pass = pass_add(scene, PASS_COMBINED, name.c_str(), PassMode::NOISY);
+    pass->set_lightgroup(ustring(b_lightgroup.name()));
   }
 
   scene->film->set_pass_alpha_threshold(b_view_layer.pass_alpha_threshold());

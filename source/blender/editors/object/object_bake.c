@@ -172,28 +172,35 @@ static bool multiresbake_check(bContext *C, wmOperator *op)
           ok = false;
         }
         else {
-          ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+          LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+            ImageUser iuser;
+            BKE_imageuser_default(&iuser);
+            iuser.tile = tile->tile_number;
 
-          if (!ibuf) {
-            BKE_report(op->reports, RPT_ERROR, "Baking should happen to image with image buffer");
+            ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
 
-            ok = false;
-          }
-          else {
-            if (ibuf->rect == NULL && ibuf->rect_float == NULL) {
+            if (!ibuf) {
+              BKE_report(
+                  op->reports, RPT_ERROR, "Baking should happen to image with image buffer");
+
               ok = false;
             }
+            else {
+              if (ibuf->rect == NULL && ibuf->rect_float == NULL) {
+                ok = false;
+              }
 
-            if (ibuf->rect_float && !(ELEM(ibuf->channels, 0, 4))) {
-              ok = false;
+              if (ibuf->rect_float && !(ELEM(ibuf->channels, 0, 4))) {
+                ok = false;
+              }
+
+              if (!ok) {
+                BKE_report(op->reports, RPT_ERROR, "Baking to unsupported image type");
+              }
             }
 
-            if (!ok) {
-              BKE_report(op->reports, RPT_ERROR, "Baking to unsupported image type");
-            }
+            BKE_image_release_ibuf(ima, ibuf, NULL);
           }
-
-          BKE_image_release_ibuf(ima, ibuf, NULL);
         }
       }
     }
@@ -274,21 +281,27 @@ static void clear_single_image(Image *image, ClearFlag flag)
   const float disp_solid[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 
   if ((image->id.tag & LIB_TAG_DOIT) == 0) {
-    ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
+    LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
+      ImageUser iuser;
+      BKE_imageuser_default(&iuser);
+      iuser.tile = tile->tile_number;
 
-    if (flag == CLEAR_TANGENT_NORMAL) {
-      IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? nor_alpha : nor_solid);
-    }
-    else if (flag == CLEAR_DISPLACEMENT) {
-      IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? disp_alpha : disp_solid);
-    }
-    else {
-      IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
-    }
+      ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, NULL);
 
-    image->id.tag |= LIB_TAG_DOIT;
+      if (flag == CLEAR_TANGENT_NORMAL) {
+        IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? nor_alpha : nor_solid);
+      }
+      else if (flag == CLEAR_DISPLACEMENT) {
+        IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? disp_alpha : disp_solid);
+      }
+      else {
+        IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
+      }
 
-    BKE_image_release_ibuf(image, ibuf, NULL);
+      image->id.tag |= LIB_TAG_DOIT;
+
+      BKE_image_release_ibuf(image, ibuf, NULL);
+    }
   }
 }
 
@@ -359,7 +372,12 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
     /* copy data stored in job descriptor */
     bkr.scene = scene;
     bkr.bake_margin = scene->r.bake_margin;
-    bkr.bake_margin_type = scene->r.bake_margin_type;
+    if (scene->r.bake_mode == RE_BAKE_NORMALS) {
+      bkr.bake_margin_type = R_BAKE_EXTEND;
+    }
+    else {
+      bkr.bake_margin_type = scene->r.bake_margin_type;
+    }
     bkr.mode = scene->r.bake_mode;
     bkr.use_lores_mesh = scene->r.bake_flag & R_BAKE_LORES_MESH;
     bkr.bias = scene->r.bake_biasdist;
@@ -404,7 +422,12 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
   /* backup scene settings, so their changing in UI would take no effect on baker */
   bkj->scene = scene;
   bkj->bake_margin = scene->r.bake_margin;
-  bkj->bake_margin_type = scene->r.bake_margin_type;
+  if (scene->r.bake_mode == RE_BAKE_NORMALS) {
+    bkj->bake_margin_type = R_BAKE_EXTEND;
+  }
+  else {
+    bkj->bake_margin_type = scene->r.bake_margin_type;
+  }
   bkj->mode = scene->r.bake_mode;
   bkj->use_lores_mesh = scene->r.bake_flag & R_BAKE_LORES_MESH;
   bkj->bake_clear = scene->r.bake_flag & R_BAKE_CLEAR;
@@ -515,7 +538,7 @@ static void multiresbake_freejob(void *bkv)
     /* delete here, since this delete will be called from main thread */
     for (link = data->images.first; link; link = link->next) {
       Image *ima = (Image *)link->data;
-      BKE_image_free_gputextures(ima);
+      BKE_image_partial_update_mark_full_update(ima);
     }
 
     MEM_freeN(data->ob_image.array);

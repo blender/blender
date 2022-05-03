@@ -1050,7 +1050,8 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 }
 
 PyDoc_STRVAR(bpy_bmesh_from_object_doc,
-             ".. method:: from_object(object, depsgraph, cage=False, face_normals=True)\n"
+             ".. method:: from_object(object, depsgraph, cage=False, face_normals=True, "
+             "vertex_normals=True)\n"
              "\n"
              "   Initialize this bmesh from existing object data-block (only meshes are currently "
              "supported).\n"
@@ -1060,10 +1061,13 @@ PyDoc_STRVAR(bpy_bmesh_from_object_doc,
              "   :arg cage: Get the mesh as a deformed cage.\n"
              "   :type cage: boolean\n"
              "   :arg face_normals: Calculate face normals.\n"
-             "   :type face_normals: boolean\n");
+             "   :type face_normals: boolean\n"
+             "   :arg vertex_normals: Calculate vertex normals.\n"
+             "   :type vertex_normals: boolean\n");
 static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject *kw)
 {
-  static const char *kwlist[] = {"object", "depsgraph", "cage", "face_normals", NULL};
+  static const char *kwlist[] = {
+      "object", "depsgraph", "cage", "face_normals", "vertex_normals", NULL};
   PyObject *py_object;
   PyObject *py_depsgraph;
   Object *ob, *ob_eval;
@@ -1073,20 +1077,23 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
   BMesh *bm;
   bool use_cage = false;
   bool use_fnorm = true;
+  bool use_vert_normal = true;
   const CustomData_MeshMasks data_masks = CD_MASK_BMESH;
 
   BPY_BM_CHECK_OBJ(self);
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "OO|$O&O&:from_object",
+                                   "OO|$O&O&O&:from_object",
                                    (char **)kwlist,
                                    &py_object,
                                    &py_depsgraph,
                                    PyC_ParseBool,
                                    &use_cage,
                                    PyC_ParseBool,
-                                   &use_fnorm) ||
+                                   &use_fnorm,
+                                   PyC_ParseBool,
+                                   &use_vert_normal) ||
       !(ob = PyC_RNA_AsPointer(py_object, "Object")) ||
       !(depsgraph = PyC_RNA_AsPointer(py_depsgraph, "Depsgraph"))) {
     return NULL;
@@ -1137,6 +1144,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
                      me_eval,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = use_fnorm,
+                         .calc_vert_normal = use_vert_normal,
                      }));
 
   if (need_free) {
@@ -1148,7 +1156,8 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
 
 PyDoc_STRVAR(
     bpy_bmesh_from_mesh_doc,
-    ".. method:: from_mesh(mesh, face_normals=True, use_shape_key=False, shape_key_index=0)\n"
+    ".. method:: from_mesh(mesh, face_normals=True, vertex_normals=True, use_shape_key=False, "
+    "shape_key_index=0)\n"
     "\n"
     "   Initialize this bmesh from existing mesh datablock.\n"
     "\n"
@@ -1168,11 +1177,13 @@ PyDoc_STRVAR(
     "mesh won't be added.\n");
 static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *kw)
 {
-  static const char *kwlist[] = {"mesh", "face_normals", "use_shape_key", "shape_key_index", NULL};
+  static const char *kwlist[] = {
+      "mesh", "face_normals", "vertex_normals", "use_shape_key", "shape_key_index", NULL};
   BMesh *bm;
   PyObject *py_mesh;
   Mesh *me;
   bool use_fnorm = true;
+  bool use_vert_normal = true;
   bool use_shape_key = false;
   int shape_key_index = 0;
 
@@ -1180,11 +1191,13 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "O|$O&O&i:from_mesh",
+                                   "O|$O&O&O&i:from_mesh",
                                    (char **)kwlist,
                                    &py_mesh,
                                    PyC_ParseBool,
                                    &use_fnorm,
+                                   PyC_ParseBool,
+                                   &use_vert_normal,
                                    PyC_ParseBool,
                                    &use_shape_key,
                                    &shape_key_index) ||
@@ -1198,6 +1211,7 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
                      me,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = use_fnorm,
+                         .calc_vert_normal = use_vert_normal,
                          .use_shapekey = use_shape_key,
                          .active_shapekey = shape_key_index + 1,
                      }));
@@ -1296,7 +1310,7 @@ static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject 
   if (BaseMath_ReadCallback(mat) == -1) {
     return NULL;
   }
-  if (mat->num_col != 4 || mat->num_row != 4) {
+  if (mat->col_num != 4 || mat->row_num != 4) {
     PyErr_SetString(PyExc_ValueError, "expected a 4x4 matrix");
     return NULL;
   }
@@ -3621,8 +3635,8 @@ void BPy_BM_init_types(void)
   BPy_BMLoopSeq_Type.tp_methods = bpy_bmloopseq_methods;
   BPy_BMIter_Type.tp_methods = NULL;
 
-  /*BPy_BMElem_Check() uses bpy_bm_elem_hash() to check types.
-   * if this changes update the macro */
+  /* #BPy_BMElem_Check() uses #bpy_bm_elem_hash() to check types.
+   * if this changes update the macro. */
   BPy_BMesh_Type.tp_hash = bpy_bm_hash;
   BPy_BMVert_Type.tp_hash = bpy_bm_elem_hash;
   BPy_BMEdge_Type.tp_hash = bpy_bm_elem_hash;

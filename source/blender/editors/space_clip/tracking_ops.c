@@ -876,24 +876,24 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
           BKE_tracking_marker_clamp(data->marker, CLAMP_PAT_DIM);
         }
         else if (data->action == SLIDE_ACTION_TILT_SIZE) {
-          float start[2], end[2];
-          float scale = 1.0f, angle = 0.0f;
-          float mval[2];
+          const float mouse_delta[2] = {dx, dy};
 
-          if (data->accurate) {
-            mval[0] = data->mval[0] + (event->mval[0] - data->mval[0]) / 5.0f;
-            mval[1] = data->mval[1] + (event->mval[1] - data->mval[1]) / 5.0f;
-          }
-          else {
-            mval[0] = event->mval[0];
-            mval[1] = event->mval[1];
-          }
-
+          /* Vector which connects marker position with tilt/scale sliding area before sliding
+           * began. */
+          float start[2];
           sub_v2_v2v2(start, data->spos, data->old_pos);
+          start[0] *= data->width;
+          start[1] *= data->height;
 
-          ED_clip_point_stable_pos(sc, region, mval[0], mval[1], &end[0], &end[1]);
+          /* Vector which connects marker position with tilt/scale sliding area with the sliding
+           * delta applied. */
+          float end[2];
+          add_v2_v2v2(end, data->spos, mouse_delta);
           sub_v2_v2(end, data->old_pos);
+          end[0] *= data->width;
+          end[1] *= data->height;
 
+          float scale = 1.0f;
           if (len_squared_v2(start) != 0.0f) {
             scale = len_v2(end) / len_v2(start);
 
@@ -902,7 +902,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
             }
           }
 
-          angle = -angle_signed_v2v2(start, end);
+          const float angle = -angle_signed_v2v2(start, end);
 
           for (int a = 0; a < 4; a++) {
             float vec[2];

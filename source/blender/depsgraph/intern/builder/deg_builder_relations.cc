@@ -699,7 +699,7 @@ void DepsgraphRelationBuilder::build_object(Object *object)
   OperationKey ob_eval_key(&object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_EVAL);
   add_relation(init_transform_key, local_transform_key, "Transform Init");
   /* Various flags, flushing from bases/collections. */
-  build_object_from_layer_relations(object);
+  build_object_layer_component_relations(object);
   /* Parenting. */
   if (object->parent != nullptr) {
     /* Make sure parent object's relations are built. */
@@ -787,7 +787,37 @@ void DepsgraphRelationBuilder::build_object(Object *object)
   build_parameters(&object->id);
 }
 
-void DepsgraphRelationBuilder::build_object_from_layer_relations(Object *object)
+/* NOTE: Implies that the object has base in the current view layer. */
+void DepsgraphRelationBuilder::build_object_from_view_layer_base(Object *object)
+{
+  /* It is possible to have situation when an object is pulled into the dependency graph in a
+   * few different ways:
+   *
+   *  - Indirect driver dependency, which doesn't have a Base (or, Base is unknown).
+   *  - Via a base from a view layer (view layer of the graph, or view layer of a set scene).
+   *  - Possibly other ways, which are not important for decision making here.
+   *
+   * There needs to be a relation from view layer which has a base with the object so that the
+   * order of flags evaluation is correct (object-level base flags evaluation requires view layer
+   * to be evaluated first).
+   *
+   * This build call handles situation when object comes from a view layer, hence has a base, and
+   * needs a relation from the view layer. Do the relation prior to check of whether the object
+   * relations are built so that the relation is created from every view layer which has a base
+   * with this object. */
+
+  OperationKey view_layer_done_key(
+      &scene_->id, NodeType::LAYER_COLLECTIONS, OperationCode::VIEW_LAYER_EVAL);
+  OperationKey object_from_layer_entry_key(
+      &object->id, NodeType::OBJECT_FROM_LAYER, OperationCode::OBJECT_FROM_LAYER_ENTRY);
+
+  add_relation(view_layer_done_key, object_from_layer_entry_key, "View Layer flags to Object");
+
+  /* Regular object building. */
+  build_object(object);
+}
+
+void DepsgraphRelationBuilder::build_object_layer_component_relations(Object *object)
 {
   OperationKey object_from_layer_entry_key(
       &object->id, NodeType::OBJECT_FROM_LAYER, OperationCode::OBJECT_FROM_LAYER_ENTRY);
@@ -810,10 +840,6 @@ void DepsgraphRelationBuilder::build_object_from_layer_relations(Object *object)
   OperationKey synchronize_key(
       &object->id, NodeType::SYNCHRONIZATION, OperationCode::SYNCHRONIZE_TO_ORIGINAL);
   add_relation(object_from_layer_exit_key, synchronize_key, "Synchronize to Original");
-
-  OperationKey view_layer_done_key(
-      &scene_->id, NodeType::LAYER_COLLECTIONS, OperationCode::VIEW_LAYER_EVAL);
-  add_relation(view_layer_done_key, object_from_layer_entry_key, "View Layer flags to Object");
 }
 
 void DepsgraphRelationBuilder::build_object_data(Object *object)
@@ -1423,7 +1449,7 @@ void DepsgraphRelationBuilder::build_animation_images(ID *id)
   const bool can_have_gpu_material = ELEM(GS(id->name), ID_MA, ID_WO);
 
   /* TODO: can we check for existence of node for performance? */
-  if (BKE_image_user_id_has_animation(id) || can_have_gpu_material) {
+  if (can_have_gpu_material || BKE_image_user_id_has_animation(id)) {
     OperationKey image_animation_key(
         id, NodeType::IMAGE_ANIMATION, OperationCode::IMAGE_ANIMATION);
     TimeSourceKey time_src_key;
@@ -1839,9 +1865,8 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
         /* We do not have to update the objects final transform after the simulation if it is
          * passive or controlled by the animation system in blender.
          * (Bullet doesn't move the object at all in these cases).
-         * But we can't update the depgraph when the animated property in changed during playback.
-         * So always assume that active bodies needs updating.
-         */
+         * But we can't update the depsgraph when the animated property in changed during playback.
+         * So always assume that active bodies needs updating. */
         OperationKey rb_transform_copy_key(
             &object->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
         /* Rigid body synchronization depends on the actual simulation. */
@@ -2089,7 +2114,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
         ctx.node = reinterpret_cast<::DepsNodeHandle *>(&handle);
         mti->updateDepsgraph(md, &ctx);
       }
-      if (BKE_object_modifier_use_time(scene_, object, md, graph_->mode)) {
+      if (BKE_object_modifier_use_time(scene_, object, md)) {
         TimeSourceKey time_src_key;
         add_relation(time_src_key, obdata_ubereval_key, "Time Source");
       }

@@ -187,6 +187,33 @@ PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
 
 int pyrna_deferred_register_class(struct StructRNA *srna, PyTypeObject *py_class);
 
+const PointerRNA *pyrna_struct_as_ptr(PyObject *py_obj, const StructRNA *srna);
+const PointerRNA *pyrna_struct_as_ptr_or_null(PyObject *py_obj, const StructRNA *srna);
+
+/**
+ * Struct used for RNA argument parsing functions:
+ * - #pyrna_struct_as_ptr_parse
+ * - #pyrna_struct_as_ptr_or_null_parse
+ */
+struct BPy_StructRNA_Parse {
+  /** The struct RNA must match this type. */
+  StructRNA *type;
+  /** Result, may be `PointerRNA_NULL` if #pyrna_struct_as_ptr_or_null_parse is used. */
+  const PointerRNA *ptr;
+};
+
+/**
+ * Sets #BPy_StructRNA_Parse.ptr to the value in the #BPy_StructRNA.ptr (from `o`)
+ * or raise an error if the type isn't a #BPy_StructRNA.
+ *
+ * Use with #PyArg_ParseTuple's `O&` formatting.
+ */
+int pyrna_struct_as_ptr_parse(PyObject *o, void *p);
+/**
+ * A version of #pyrna_struct_as_ptr_parse that maps Python's `None` to #PointerRNA_NULL.
+ */
+int pyrna_struct_as_ptr_or_null_parse(PyObject *o, void *p);
+
 void pyrna_struct_type_extend_capi(struct StructRNA *srna,
                                    struct PyMethodDef *py_method,
                                    struct PyGetSetDef *py_getset);

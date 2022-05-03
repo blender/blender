@@ -93,7 +93,7 @@ Consider the calculations that might contribute to the object's final transforma
 - Animation function curves.
 - Drivers and their Python expressions.
 - Constraints
-- Parent objects and all of their F-curves, constraints, etc.
+- Parent objects and all of their F-Curves, constraints, etc.
 
 To avoid expensive recalculations every time a property is modified,
 Blender defers the evaluation until the results are needed.
@@ -802,7 +802,7 @@ Removing Data
 -------------
 
 **Any** data that you remove shouldn't be modified or accessed afterwards,
-this includes: F-curves, drivers, render layers, timeline markers, modifiers, constraints
+this includes: F-Curves, drivers, render layers, timeline markers, modifiers, constraints
 along with objects, scenes, collections, bones, etc.
 
 The ``remove()`` API calls will invalidate the data they free to prevent common mistakes.

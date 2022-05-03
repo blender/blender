@@ -95,12 +95,12 @@ static void task_listbase_heavy_membarrier_iter_func(void *userdata,
 }
 
 static void task_listbase_test_do(ListBase *list,
-                                  const int num_items,
-                                  int *num_items_tmp,
+                                  const int items_num,
+                                  int *items_tmp_num,
                                   const char *id,
                                   TaskParallelIteratorFunc func,
                                   const bool use_threads,
-                                  const bool check_num_items_tmp)
+                                  const bool check_items_tmp_num)
 {
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
@@ -109,24 +109,24 @@ static void task_listbase_test_do(ListBase *list,
   double averaged_timing = 0.0;
   for (int i = 0; i < NUM_RUN_AVERAGED; i++) {
     const double init_time = PIL_check_seconds_timer();
-    BLI_task_parallel_listbase(list, num_items_tmp, func, &settings);
+    BLI_task_parallel_listbase(list, items_tmp_num, func, &settings);
     averaged_timing += PIL_check_seconds_timer() - init_time;
 
     /* Those checks should ensure us all items of the listbase were processed once, and only once -
      * as expected. */
-    if (check_num_items_tmp) {
-      EXPECT_EQ(*num_items_tmp, 0);
+    if (check_items_tmp_num) {
+      EXPECT_EQ(*items_tmp_num, 0);
     }
     LinkData *item;
     int j;
-    for (j = 0, item = (LinkData *)list->first; j < num_items && item != nullptr;
+    for (j = 0, item = (LinkData *)list->first; j < items_num && item != nullptr;
          j++, item = item->next) {
       EXPECT_EQ(POINTER_AS_INT(item->data), j);
       item->data = POINTER_FROM_INT(0);
     }
-    EXPECT_EQ(num_items, j);
+    EXPECT_EQ(items_num, j);
 
-    *num_items_tmp = num_items;
+    *items_tmp_num = items_num;
   }
 
   printf("\t%s: done in %fs on average over %d runs\n",
@@ -135,49 +135,49 @@ static void task_listbase_test_do(ListBase *list,
          NUM_RUN_AVERAGED);
 }
 
-static void task_listbase_test(const char *id, const int nbr, const bool use_threads)
+static void task_listbase_test(const char *id, const int count, const bool use_threads)
 {
   printf("\n========== STARTING %s ==========\n", id);
 
   ListBase list = {nullptr, nullptr};
-  LinkData *items_buffer = (LinkData *)MEM_calloc_arrayN(nbr, sizeof(*items_buffer), __func__);
+  LinkData *items_buffer = (LinkData *)MEM_calloc_arrayN(count, sizeof(*items_buffer), __func__);
 
   BLI_threadapi_init();
 
-  int num_items = 0;
-  for (int i = 0; i < nbr; i++) {
+  int items_num = 0;
+  for (int i = 0; i < count; i++) {
     BLI_addtail(&list, &items_buffer[i]);
-    num_items++;
+    items_num++;
   }
-  int num_items_tmp = num_items;
+  int items_tmp_num = items_num;
 
   task_listbase_test_do(&list,
-                        num_items,
-                        &num_items_tmp,
+                        items_num,
+                        &items_tmp_num,
                         "Light iter",
                         task_listbase_light_iter_func,
                         use_threads,
                         false);
 
   task_listbase_test_do(&list,
-                        num_items,
-                        &num_items_tmp,
+                        items_num,
+                        &items_tmp_num,
                         "Light iter with mem barrier",
                         task_listbase_light_membarrier_iter_func,
                         use_threads,
                         true);
 
   task_listbase_test_do(&list,
-                        num_items,
-                        &num_items_tmp,
+                        items_num,
+                        &items_tmp_num,
                         "Heavy iter",
                         task_listbase_heavy_iter_func,
                         use_threads,
                         false);
 
   task_listbase_test_do(&list,
-                        num_items,
-                        &num_items_tmp,
+                        items_num,
+                        &items_tmp_num,
                         "Heavy iter with mem barrier",
                         task_listbase_heavy_membarrier_iter_func,
                         use_threads,

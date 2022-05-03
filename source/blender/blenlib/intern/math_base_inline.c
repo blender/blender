@@ -524,6 +524,15 @@ MINLINE uint max_uu(uint a, uint b)
   return (b < a) ? a : b;
 }
 
+MINLINE unsigned long long min_ulul(unsigned long long a, unsigned long long b)
+{
+  return (a < b) ? a : b;
+}
+MINLINE unsigned long long max_ulul(unsigned long long a, unsigned long long b)
+{
+  return (b < a) ? a : b;
+}
+
 MINLINE float min_fff(float a, float b, float c)
 {
   return min_ff(min_ff(a, b), c);

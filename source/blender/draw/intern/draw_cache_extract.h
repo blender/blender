@@ -308,6 +308,9 @@ typedef struct MeshBatchCache {
   float tot_area, tot_uv_area;
 
   bool no_loose_wire;
+
+  eV3DShadingColorType color_type;
+  bool pbvh_is_drawing;
 } MeshBatchCache;
 
 #define MBC_EDITUV \

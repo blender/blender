@@ -1,23 +1,5 @@
-
-uniform float wireStepParam;
-uniform float wireOpacity;
-uniform bool useColoring;
-uniform bool isTransform;
-uniform bool isObjectColor;
-uniform bool isRandomColor;
-uniform bool isHair;
-uniform vec4 hairDupliMatrix[4];
-
-in vec3 pos;
-in vec3 nor;
-in float wd; /* wiredata */
-
-flat out vec2 edgeStart;
-
-#ifndef SELECT_EDGES
-out vec4 finalColor;
-noperspective out vec2 edgePos;
-#endif
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 float get_edge_sharpness(float wd)
 {
@@ -94,9 +76,7 @@ void main()
   vec3 wpos = point_object_to_world(pos);
 
   if (isHair) {
-    mat4 obmat = mat4(
-        hairDupliMatrix[0], hairDupliMatrix[1], hairDupliMatrix[2], hairDupliMatrix[3]);
-
+    mat4 obmat = hairDupliMatrix;
     wpos = (obmat * vec4(pos, 1.0)).xyz;
     wnor = -normalize(mat3(obmat) * nor);
   }
@@ -116,7 +96,7 @@ void main()
   wofs = normal_world_to_view(wofs);
 
   /* Push vertex half a pixel (maximum) in normal direction. */
-  gl_Position.xy += wofs.xy * sizeViewportInv.xy * gl_Position.w;
+  gl_Position.xy += wofs.xy * drw_view.viewport_size_inverse * gl_Position.w;
 
   /* Push the vertex towards the camera. Helps a bit. */
   gl_Position.z -= facing_ratio * curvature * 1.0e-6 * gl_Position.w;
@@ -156,10 +136,9 @@ void main()
 #ifdef SELECT_EDGES
   /* HACK: to avoid losing sub-pixel object in selections, we add a bit of randomness to the
    * wire to at least create one fragment that will pass the occlusion query. */
-  gl_Position.xy += sizeViewportInv.xy * gl_Position.w * ((gl_VertexID % 2 == 0) ? -1.0 : 1.0);
+  gl_Position.xy += drw_view.viewport_size_inverse * gl_Position.w *
+                    ((gl_VertexID % 2 == 0) ? -1.0 : 1.0);
 #endif
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(wpos);
-#endif
+  view_clipping_distances(wpos);
 }

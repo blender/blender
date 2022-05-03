@@ -110,8 +110,8 @@ class Geometry : public Node {
                    DeviceScene *dscene,
                    SceneParams *params,
                    Progress *progress,
-                   int n,
-                   int total);
+                   size_t n,
+                   size_t total);
 
   virtual PrimitiveType primitive_type() const = 0;
 
@@ -216,7 +216,7 @@ class GeometryManager {
  protected:
   bool displace(Device *device, Scene *scene, Mesh *mesh, Progress &progress);
 
-  void create_volume_mesh(Volume *volume, Progress &progress);
+  void create_volume_mesh(const Scene *scene, Volume *volume, Progress &progress);
 
   /* Attributes */
   void update_osl_attributes(Device *device,

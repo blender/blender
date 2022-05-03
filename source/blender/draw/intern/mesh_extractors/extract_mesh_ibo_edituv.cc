@@ -5,9 +5,7 @@
  * \ingroup draw
  */
 
-#include "BLI_vector.hh"
-
-#include "MEM_guardedalloc.h"
+#include "BLI_bitmap.h"
 
 #include "extract_mesh.h"
 
@@ -419,7 +417,7 @@ static void extract_edituv_points_init_subdiv(const DRWSubdivCache *subdiv_cache
 }
 
 static void extract_edituv_points_iter_subdiv_bm(const DRWSubdivCache *subdiv_cache,
-                                                 const MeshRenderData *mr,
+                                                 const MeshRenderData *UNUSED(mr),
                                                  void *_data,
                                                  uint subdiv_quad_index,
                                                  const BMFace *coarse_quad)
@@ -431,11 +429,8 @@ static void extract_edituv_points_iter_subdiv_bm(const DRWSubdivCache *subdiv_ca
   uint end_loop_idx = (subdiv_quad_index + 1) * 4;
   for (uint i = start_loop_idx; i < end_loop_idx; i++) {
     const int vert_origindex = subdiv_loop_vert_index[i];
-    const bool real_vert = (mr->extract_type == MR_EXTRACT_MAPPED && (mr->v_origindex) &&
-                            vert_origindex != -1 &&
-                            mr->v_origindex[vert_origindex] != ORIGINDEX_NONE);
     edituv_point_add(data,
-                     (BM_elem_flag_test(coarse_quad, BM_ELEM_HIDDEN)) || !real_vert,
+                     (BM_elem_flag_test(coarse_quad, BM_ELEM_HIDDEN) || vert_origindex == -1),
                      BM_elem_flag_test(coarse_quad, BM_ELEM_SELECT) != 0,
                      i);
   }
@@ -541,7 +536,8 @@ static void extract_edituv_fdots_iter_poly_mesh(const MeshRenderData *mr,
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
   if (mr->use_subsurf_fdots) {
-    /* Check #ME_VERT_FACEDOT. */
+    const BLI_bitmap *facedot_tags = mr->me->runtime.subsurf_face_dot_tags;
+
     const MLoop *mloop = mr->mloop;
     const int ml_index_end = mp->loopstart + mp->totloop;
     for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
@@ -549,8 +545,7 @@ static void extract_edituv_fdots_iter_poly_mesh(const MeshRenderData *mr,
 
       const bool real_fdot = (mr->extract_type == MR_EXTRACT_MAPPED && mr->p_origindex &&
                               mr->p_origindex[mp_index] != ORIGINDEX_NONE);
-      const bool subd_fdot = (!mr->use_subsurf_fdots ||
-                              (mr->mvert[ml->v].flag & ME_VERT_FACEDOT) != 0);
+      const bool subd_fdot = BLI_BITMAP_TEST(facedot_tags, ml->v);
       edituv_facedot_add(data,
                          ((mp->flag & ME_HIDE) != 0) || !real_fdot || !subd_fdot,
                          (mp->flag & ME_FACE_SEL) != 0,

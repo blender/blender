@@ -937,7 +937,7 @@ class LoadReferenceImage(LoadImageAsEmpty, Operator):
 
 class OBJECT_OT_assign_property_defaults(Operator):
     """Assign the current values of custom properties as their defaults, """ \
-    """for use as part of the rest pose state in NLA track mixing"""
+        """for use as part of the rest pose state in NLA track mixing"""
     bl_idname = "object.assign_property_defaults"
     bl_label = "Assign Custom Property Values as Default"
     bl_options = {'UNDO', 'REGISTER'}

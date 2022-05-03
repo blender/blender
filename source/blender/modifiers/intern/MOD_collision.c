@@ -80,9 +80,7 @@ static void freeData(ModifierData *md)
   }
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene),
-                          ModifierData *UNUSED(md),
-                          const int UNUSED(dag_eval_mode))
+static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *UNUSED(md))
 {
   return true;
 }
@@ -91,7 +89,7 @@ static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
                         Mesh *mesh,
                         float (*vertexCos)[3],
-                        int numVerts)
+                        int verts_num)
 {
   CollisionModifierData *collmd = (CollisionModifierData *)md;
   Mesh *mesh_src;
@@ -109,7 +107,7 @@ static void deformVerts(ModifierData *md,
   }
 
   if (mesh == NULL) {
-    mesh_src = MOD_deform_mesh_eval_get(ob, NULL, NULL, NULL, numVerts, false, false);
+    mesh_src = MOD_deform_mesh_eval_get(ob, NULL, NULL, NULL, verts_num, false, false);
   }
   else {
     /* Not possible to use get_mesh() in this case as we'll modify its vertices
@@ -122,7 +120,6 @@ static void deformVerts(ModifierData *md,
     uint mvert_num = 0;
 
     BKE_mesh_vert_coords_apply(mesh_src, vertexCos);
-    BKE_mesh_calc_normals(mesh_src);
 
     current_time = DEG_get_ctime(ctx->depsgraph);
 
@@ -268,9 +265,9 @@ static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
       collmd->xnew = newdataadr(fd, collmd->xnew);
       collmd->mfaces = newdataadr(fd, collmd->mfaces);
 
-      collmd->current_x = MEM_calloc_arrayN(collmd->numverts, sizeof(MVert), "current_x");
-      collmd->current_xnew = MEM_calloc_arrayN(collmd->numverts, sizeof(MVert), "current_xnew");
-      collmd->current_v = MEM_calloc_arrayN(collmd->numverts, sizeof(MVert), "current_v");
+      collmd->current_x = MEM_calloc_arrayN(collmd->mvert_num, sizeof(MVert), "current_x");
+      collmd->current_xnew = MEM_calloc_arrayN(collmd->mvert_num, sizeof(MVert), "current_xnew");
+      collmd->current_v = MEM_calloc_arrayN(collmd->mvert_num, sizeof(MVert), "current_v");
 #endif
 
   collmd->x = NULL;

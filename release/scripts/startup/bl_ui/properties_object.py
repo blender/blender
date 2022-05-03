@@ -246,7 +246,7 @@ class OBJECT_PT_instancing(ObjectButtonsPanel, Panel):
     def poll(cls, context):
         ob = context.object
         # FONT objects need (vertex) instancing for the 'Object Font' feature
-        return (ob.type in {'MESH', 'EMPTY', 'POINTCLOUD', 'FONT'})
+        return (ob.type in {'MESH', 'EMPTY', 'FONT'})
 
     def draw(self, context):
         layout = self.layout

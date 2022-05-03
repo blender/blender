@@ -193,7 +193,7 @@
     .vgname = "", \
     .pass_index = 0, \
     .flag = GP_SMOOTH_MOD_LOCATION, \
-    .factor = 0.5f, \
+    .factor = 1.0f, \
     .step = 1, \
     .layer_pass = 0, \
     .curve_intensity = NULL, \
@@ -364,6 +364,16 @@
     .layer_pass = 0, \
     .smooth_factor = 0.05f, \
     .smooth_step = 1, \
+  }
+
+#define _DNA_DEFAULT_EnvelopeGpencilModifierData \
+  { \
+    .spread = 10, \
+    .mode = GP_ENVELOPE_SEGMENTS, \
+    .mat_nr = -1, \
+    .thickness = 1.0f, \
+    .strength = 1.0f, \
+    .skip = 0, \
   }
 
 

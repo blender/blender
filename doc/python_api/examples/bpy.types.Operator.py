@@ -22,13 +22,15 @@ class HelloWorldOperator(bpy.types.Operator):
         print("Hello World")
         return {'FINISHED'}
 
-# Only needed if you want to add into a dynamic menu
+
+# Only needed if you want to add into a dynamic menu.
 def menu_func(self, context):
     self.layout.operator(HelloWorldOperator.bl_idname, text="Hello World Operator")
 
-# Register and add to the view menu (required to also use F3 search "Hello World Operator" for quick access)
+
+# Register and add to the view menu (required to also use F3 search "Hello World Operator" for quick access).
 bpy.utils.register_class(HelloWorldOperator)
 bpy.types.VIEW3D_MT_view.append(menu_func)
 
-# test call to the newly defined operator
+# Test call to the newly defined operator.
 bpy.ops.wm.hello_world()

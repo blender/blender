@@ -11,7 +11,6 @@
 GHOST_Wintab *GHOST_Wintab::loadWintab(HWND hwnd)
 {
   /* Load Wintab library if available. */
-
   auto handle = unique_hmodule(::LoadLibrary("Wintab32.dll"), &::FreeLibrary);
   if (!handle) {
     return nullptr;
@@ -116,6 +115,15 @@ GHOST_Wintab *GHOST_Wintab::loadWintab(HWND hwnd)
     }
   }
 
+  int sanityQueueSize = queueSizeGet(hctx.get());
+  WINTAB_PRINTF("HCTX %p %s queueSize: %d, queueSizeGet: %d\n",
+                hctx.get(),
+                __func__,
+                queueSize,
+                sanityQueueSize);
+
+  WINTAB_PRINTF("Loaded Wintab context %p\n", hctx.get());
+
   return new GHOST_Wintab(std::move(handle),
                           info,
                           get,
@@ -183,7 +191,17 @@ GHOST_Wintab::GHOST_Wintab(unique_hmodule handle,
       m_pkts{queueSize}
 {
   m_fpInfo(WTI_INTERFACE, IFC_NDEVICES, &m_numDevices);
+  WINTAB_PRINTF("Wintab Devices: %d\n", m_numDevices);
+
   updateCursorInfo();
+
+  /* Debug info. */
+  printContextDebugInfo();
+}
+
+GHOST_Wintab::~GHOST_Wintab()
+{
+  WINTAB_PRINTF("Closing Wintab context %p\n", m_context.get());
 }
 
 void GHOST_Wintab::enable()
@@ -249,6 +267,7 @@ void GHOST_Wintab::updateCursorInfo()
 
   BOOL pressureSupport = m_fpInfo(WTI_DEVICES, DVC_NPRESSURE, &Pressure);
   m_maxPressure = pressureSupport ? Pressure.axMax : 0;
+  WINTAB_PRINTF("HCTX %p %s maxPressure: %d\n", m_context.get(), __func__, m_maxPressure);
 
   BOOL tiltSupport = m_fpInfo(WTI_DEVICES, DVC_ORIENTATION, &Orientation);
   /* Check if tablet supports azimuth [0] and altitude [1], encoded in axResolution. */
@@ -259,6 +278,11 @@ void GHOST_Wintab::updateCursorInfo()
   else {
     m_maxAzimuth = m_maxAltitude = 0;
   }
+  WINTAB_PRINTF("HCTX %p %s maxAzimuth: %d, maxAltitude: %d\n",
+                m_context.get(),
+                __func__,
+                m_maxAzimuth,
+                m_maxAltitude);
 }
 
 void GHOST_Wintab::processInfoChange(LPARAM lParam)
@@ -266,6 +290,7 @@ void GHOST_Wintab::processInfoChange(LPARAM lParam)
   /* Update number of connected Wintab digitizers. */
   if (LOWORD(lParam) == WTI_INTERFACE && HIWORD(lParam) == IFC_NDEVICES) {
     m_fpInfo(WTI_INTERFACE, IFC_NDEVICES, &m_numDevices);
+    WINTAB_PRINTF("HCTX %p %s numDevices: %d\n", m_context.get(), __func__, m_numDevices);
   }
 }
 
@@ -455,4 +480,145 @@ bool GHOST_Wintab::testCoordinates(int sysX, int sysY, int wtX, int wtY)
     m_coordTrusted = false;
     return false;
   }
+}
+
+bool GHOST_Wintab::m_debug = false;
+
+void GHOST_Wintab::setDebug(bool debug)
+{
+  m_debug = debug;
+}
+
+bool GHOST_Wintab::getDebug()
+{
+  return m_debug;
+}
+
+void GHOST_Wintab::printContextDebugInfo()
+{
+  if (!m_debug) {
+    return;
+  }
+
+  /* Print button maps. */
+  BYTE logicalButtons[32] = {0};
+  BYTE systemButtons[32] = {0};
+  for (int i = 0; i < 3; i++) {
+    printf("initializeWintab cursor %d buttons\n", i);
+    UINT lbut = m_fpInfo(WTI_CURSORS + i, CSR_BUTTONMAP, &logicalButtons);
+    if (lbut) {
+      printf("%d", logicalButtons[0]);
+      for (int j = 1; j < lbut; j++) {
+        printf(", %d", logicalButtons[j]);
+      }
+      printf("\n");
+    }
+    else {
+      printf("logical button error\n");
+    }
+    UINT sbut = m_fpInfo(WTI_CURSORS + i, CSR_SYSBTNMAP, &systemButtons);
+    if (sbut) {
+      printf("%d", systemButtons[0]);
+      for (int j = 1; j < sbut; j++) {
+        printf(", %d", systemButtons[j]);
+      }
+      printf("\n");
+    }
+    else {
+      printf("system button error\n");
+    }
+  }
+
+  /* Print context information. */
+
+  /* Print open context constraints. */
+  UINT maxcontexts, opencontexts;
+  m_fpInfo(WTI_INTERFACE, IFC_NCONTEXTS, &maxcontexts);
+  m_fpInfo(WTI_STATUS, STA_CONTEXTS, &opencontexts);
+  printf("%u max contexts, %u open contexts\n", maxcontexts, opencontexts);
+
+  /* Print system information. */
+  printf("left: %d, top: %d, width: %d, height: %d\n",
+         ::GetSystemMetrics(SM_XVIRTUALSCREEN),
+         ::GetSystemMetrics(SM_YVIRTUALSCREEN),
+         ::GetSystemMetrics(SM_CXVIRTUALSCREEN),
+         ::GetSystemMetrics(SM_CYVIRTUALSCREEN));
+
+  auto printContextRanges = [](LOGCONTEXT &lc) {
+    printf("lcInOrgX: %d, lcInOrgY: %d, lcInExtX: %d, lcInExtY: %d\n",
+           lc.lcInOrgX,
+           lc.lcInOrgY,
+           lc.lcInExtX,
+           lc.lcInExtY);
+    printf("lcOutOrgX: %d, lcOutOrgY: %d, lcOutExtX: %d, lcOutExtY: %d\n",
+           lc.lcOutOrgX,
+           lc.lcOutOrgY,
+           lc.lcOutExtX,
+           lc.lcOutExtY);
+    printf("lcSysOrgX: %d, lcSysOrgY: %d, lcSysExtX: %d, lcSysExtY: %d\n",
+           lc.lcSysOrgX,
+           lc.lcSysOrgY,
+           lc.lcSysExtX,
+           lc.lcSysExtY);
+  };
+
+  LOGCONTEXT lc;
+
+  /* Print system context. */
+  m_fpInfo(WTI_DEFSYSCTX, 0, &lc);
+  printf("WTI_DEFSYSCTX\n");
+  printContextRanges(lc);
+
+  /* Print system context, manually populated. */
+  m_fpInfo(WTI_DEFSYSCTX, CTX_INORGX, &lc.lcInOrgX);
+  m_fpInfo(WTI_DEFSYSCTX, CTX_INORGY, &lc.lcInOrgY);
+  m_fpInfo(WTI_DEFSYSCTX, CTX_INEXTX, &lc.lcInExtX);
+  m_fpInfo(WTI_DEFSYSCTX, CTX_INEXTY, &lc.lcInExtY);
+  m_fpInfo(WTI_DEFSYSCTX, CTX_OUTORGX, &lc.lcOutOrgX);
+  m_fpInfo(WTI_DEFSYSCTX, CTX_OUTORGY, &lc.lcOutOrgY);
+  m_fpInfo(WTI_DEFSYSCTX, CTX_OUTEXTX, &lc.lcOutExtX);
+  m_fpInfo(WTI_DEFSYSCTX, CTX_OUTEXTY, &lc.lcOutExtY);
+  m_fpInfo(WTI_DEFSYSCTX, CTX_SYSORGX, &lc.lcSysOrgX);
+  m_fpInfo(WTI_DEFSYSCTX, CTX_SYSORGY, &lc.lcSysOrgY);
+  m_fpInfo(WTI_DEFSYSCTX, CTX_SYSEXTX, &lc.lcSysExtX);
+  m_fpInfo(WTI_DEFSYSCTX, CTX_SYSEXTY, &lc.lcSysExtY);
+  printf("WTI_DEFSYSCTX CTX_*\n");
+  printContextRanges(lc);
+
+  for (unsigned int i = 0; i < m_numDevices; i++) {
+    /* Print individual device system context. */
+    m_fpInfo(WTI_DSCTXS + i, 0, &lc);
+    printf("WTI_DSCTXS %u\n", i);
+    printContextRanges(lc);
+
+    /* Print individual device system context, manually populated. */
+    m_fpInfo(WTI_DSCTXS + i, CTX_INORGX, &lc.lcInOrgX);
+    m_fpInfo(WTI_DSCTXS + i, CTX_INORGY, &lc.lcInOrgY);
+    m_fpInfo(WTI_DSCTXS + i, CTX_INEXTX, &lc.lcInExtX);
+    m_fpInfo(WTI_DSCTXS + i, CTX_INEXTY, &lc.lcInExtY);
+    m_fpInfo(WTI_DSCTXS + i, CTX_OUTORGX, &lc.lcOutOrgX);
+    m_fpInfo(WTI_DSCTXS + i, CTX_OUTORGY, &lc.lcOutOrgY);
+    m_fpInfo(WTI_DSCTXS + i, CTX_OUTEXTX, &lc.lcOutExtX);
+    m_fpInfo(WTI_DSCTXS + i, CTX_OUTEXTY, &lc.lcOutExtY);
+    m_fpInfo(WTI_DSCTXS + i, CTX_SYSORGX, &lc.lcSysOrgX);
+    m_fpInfo(WTI_DSCTXS + i, CTX_SYSORGY, &lc.lcSysOrgY);
+    m_fpInfo(WTI_DSCTXS + i, CTX_SYSEXTX, &lc.lcSysExtX);
+    m_fpInfo(WTI_DSCTXS + i, CTX_SYSEXTY, &lc.lcSysExtY);
+    printf("WTI_DSCTX %u CTX_*\n", i);
+    printContextRanges(lc);
+
+    /* Print device axis. */
+    AXIS axis_x, axis_y;
+    m_fpInfo(WTI_DEVICES + i, DVC_X, &axis_x);
+    m_fpInfo(WTI_DEVICES + i, DVC_Y, &axis_y);
+    printf("WTI_DEVICES %u axis_x org: %d, axis_y org: %d axis_x ext: %d, axis_y ext: %d\n",
+           i,
+           axis_x.axMin,
+           axis_y.axMin,
+           axis_x.axMax - axis_x.axMin + 1,
+           axis_y.axMax - axis_y.axMin + 1);
+  }
+
+  /* Other stuff while we have a log-context. */
+  printf("sysmode %d\n", lc.lcSysMode);
 }

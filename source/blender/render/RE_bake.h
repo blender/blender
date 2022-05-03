@@ -19,6 +19,8 @@ extern "C" {
 
 typedef struct BakeImage {
   struct Image *image;
+  int tile_number;
+  float uv_offset[2];
   int width;
   int height;
   size_t offset;
@@ -27,16 +29,16 @@ typedef struct BakeImage {
 typedef struct BakeTargets {
   /* All images of the object. */
   BakeImage *images;
-  int num_images;
+  int images_num;
 
   /* Lookup table from Material number to BakeImage. */
-  int *material_to_image;
-  int num_materials;
+  struct Image **material_to_image;
+  int materials_num;
 
   /* Pixel buffer to bake to. */
   float *result;
-  int num_pixels;
-  int num_channels;
+  int pixels_num;
+  int channels_num;
 
   /* Baking to non-color data image. */
   bool is_noncolor;
@@ -61,6 +63,7 @@ typedef struct BakeHighPolyData {
 } BakeHighPolyData;
 
 /* external_engine.c */
+
 bool RE_bake_has_engine(const struct Render *re);
 
 bool RE_bake_engine(struct Render *re,
@@ -74,6 +77,7 @@ bool RE_bake_engine(struct Render *re,
                     float result[]);
 
 /* bake.c */
+
 int RE_pass_depth(eScenePassType pass_type);
 
 bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,
@@ -81,7 +85,7 @@ bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,
                                           BakePixel pixel_array_to[],
                                           BakeHighPolyData highpoly[],
                                           int tot_highpoly,
-                                          size_t num_pixels,
+                                          size_t pixels_num,
                                           bool is_custom_cage,
                                           float cage_extrusion,
                                           float max_ray_distance,
@@ -91,21 +95,22 @@ bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,
 
 void RE_bake_pixels_populate(struct Mesh *me,
                              struct BakePixel *pixel_array,
-                             size_t num_pixels,
+                             size_t pixels_num,
                              const struct BakeTargets *targets,
                              const char *uv_layer);
 
-void RE_bake_mask_fill(const BakePixel pixel_array[], size_t num_pixels, char *mask);
+void RE_bake_mask_fill(const BakePixel pixel_array[], size_t pixels_num, char *mask);
 
 void RE_bake_margin(struct ImBuf *ibuf,
                     char *mask,
                     int margin,
                     char margin_type,
                     struct Mesh const *me,
-                    char const *uv_layer);
+                    char const *uv_layer,
+                    const float uv_offset[2]);
 
 void RE_bake_normal_world_to_object(const BakePixel pixel_array[],
-                                    size_t num_pixels,
+                                    size_t pixels_num,
                                     int depth,
                                     float result[],
                                     struct Object *ob,
@@ -115,14 +120,14 @@ void RE_bake_normal_world_to_object(const BakePixel pixel_array[],
  * to a tangent space normal map for a given low poly mesh.
  */
 void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
-                                     size_t num_pixels,
+                                     size_t pixels_num,
                                      int depth,
                                      float result[],
                                      struct Mesh *me,
                                      const eBakeNormalSwizzle normal_swizzle[3],
                                      float mat[4][4]);
 void RE_bake_normal_world_to_world(const BakePixel pixel_array[],
-                                   size_t num_pixels,
+                                   size_t pixels_num,
                                    int depth,
                                    float result[],
                                    const eBakeNormalSwizzle normal_swizzle[3]);

@@ -19,6 +19,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_attribute.h"
 #include "BKE_customdata.h"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.h"
@@ -129,7 +130,10 @@ bool BKE_object_data_transfer_get_dttypes_capacity(const int dtdata_types,
       case DT_TYPE_UV:
         ret = true;
         break;
-      case DT_TYPE_VCOL:
+      case DT_TYPE_MPROPCOL_VERT:
+      case DT_TYPE_MLOOPCOL_VERT:
+      case DT_TYPE_MPROPCOL_LOOP:
+      case DT_TYPE_MLOOPCOL_LOOP:
         *r_advanced_mixing = true;
         *r_threshold = true;
         ret = true;
@@ -209,12 +213,14 @@ int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type)
       return CD_FAKE_SHARP;
     case DT_TYPE_FREESTYLE_FACE:
       return CD_FREESTYLE_FACE;
-
-    case DT_TYPE_VCOL:
-      return CD_MLOOPCOL;
     case DT_TYPE_LNOR:
       return CD_FAKE_LNOR;
-
+    case DT_TYPE_MLOOPCOL_VERT:
+    case DT_TYPE_MLOOPCOL_LOOP:
+      return CD_PROP_BYTE_COLOR;
+    case DT_TYPE_MPROPCOL_VERT:
+    case DT_TYPE_MPROPCOL_LOOP:
+      return CD_PROP_COLOR;
     default:
       BLI_assert(0);
   }
@@ -230,8 +236,12 @@ int BKE_object_data_transfer_dttype_to_srcdst_index(const int dtdata_type)
       return DT_MULTILAYER_INDEX_SHAPEKEY;
     case DT_TYPE_UV:
       return DT_MULTILAYER_INDEX_UV;
-    case DT_TYPE_VCOL:
-      return DT_MULTILAYER_INDEX_VCOL;
+    case DT_TYPE_MPROPCOL_VERT:
+    case DT_TYPE_MLOOPCOL_VERT:
+      return DT_MULTILAYER_INDEX_VCOL_VERT;
+    case DT_TYPE_MPROPCOL_LOOP:
+    case DT_TYPE_MLOOPCOL_LOOP:
+      return DT_MULTILAYER_INDEX_VCOL_LOOP;
     default:
       return DT_MULTILAYER_INDEX_INVALID;
   }
@@ -1231,6 +1241,7 @@ void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
     cddata_type = BKE_object_data_transfer_dttype_to_cdtype(dtdata_type);
 
     fromto_idx = BKE_object_data_transfer_dttype_to_srcdst_index(dtdata_type);
+
     if (fromto_idx != DT_MULTILAYER_INDEX_INVALID) {
       fromlayers = fromlayers_select[fromto_idx];
       tolayers = tolayers_select[fromto_idx];
@@ -1490,6 +1501,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
                                             num_verts_dst,
                                             dirty_nors_dst,
                                             me_src,
+                                            me_dst,
                                             &geom_map[VDATA]);
         geom_map_init[VDATA] = true;
       }
@@ -1568,6 +1580,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
                                             num_edges_dst,
                                             dirty_nors_dst,
                                             me_src,
+                                            me_dst,
                                             &geom_map[EDATA]);
         geom_map_init[EDATA] = true;
       }

@@ -6,6 +6,10 @@
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Axis-aligned bounding box */
 typedef struct {
   float bmin[3], bmax[3];
@@ -15,6 +19,8 @@ typedef struct {
 typedef struct {
   float bmin[3], bmax[3], bcentroid[3];
 } BBC;
+
+struct MeshElemMap;
 
 /* NOTE: this structure is getting large, might want to split it into
  * union'd structs */
@@ -30,13 +36,18 @@ struct PBVHNode {
    * 'nodes' array. */
   int children_offset;
 
-  /* Pointer into the PBVH prim_indices array and the number of
-   * primitives used by this leaf node.
+  /* List of primitives for this node. Semantics depends on
+   * PBVH type:
    *
-   * Used for leaf nodes in both mesh- and multires-based PBVHs.
+   * - PBVH_FACES: Indices into the PBVH.looptri array.
+   * - PBVH_GRIDS: Multires grid indices.
+   * - PBVH_BMESH: Unused.  See PBVHNode.bm_faces.
+   *
+   * NOTE: This is a pointer inside of PBVH.prim_indices; it
+   * is not allocated separately per node.
    */
   int *prim_indices;
-  unsigned int totprim;
+  unsigned int totprim; /* Number of primitives inside prim_indices. */
 
   /* Array of indices into the mesh's MVert array. Contains the
    * indices of all vertices used by faces that are within this
@@ -59,6 +70,12 @@ struct PBVHNode {
    */
   const int *vert_indices;
   unsigned int uniq_verts, face_verts;
+
+  /* Array of indices into the Mesh's MLoop array.
+   * PBVH_FACES only.
+   */
+  int *loop_indices;
+  unsigned int loop_indices_num;
 
   /* An array mapping face corners into the vert_indices
    * array. The array is sized to match 'totprim', and each of
@@ -84,6 +101,11 @@ struct PBVHNode {
   PBVHProxyNode *proxies;
 
   /* Dyntopo */
+
+  /* GSet of pointers to the BMFaces used by this node.
+   * NOTE: PBVH_BMESH only. Faces are always triangles
+   * (dynamic topology forcibly triangulates the mesh).
+   */
   GSet *bm_faces;
   GSet *bm_unique_verts;
   GSet *bm_other_verts;
@@ -93,6 +115,7 @@ struct PBVHNode {
 
   /* Used to store the brush color during a stroke and composite it over the original color */
   PBVHColorBufferNode color_buffer;
+  PBVHPixelsNode pixels;
 };
 
 typedef enum {
@@ -108,6 +131,7 @@ struct PBVH {
   PBVHNode *nodes;
   int node_mem_count, totnode;
 
+  /* Memory backing for PBVHNode.prim_indices. */
   int *prim_indices;
   int totprim;
   int totvert;
@@ -165,9 +189,20 @@ struct PBVH {
 
   struct BMLog *bm_log;
   struct SubdivCCG *subdiv_ccg;
+
+  const struct MeshElemMap *pmap;
+
+  CustomDataLayer *color_layer;
+  AttributeDomain color_domain;
+
+  bool is_drawing;
+
+  /* Used by DynTopo to invalidate the draw cache. */
+  bool draw_cache_invalid;
 };
 
 /* pbvh.c */
+
 void BB_reset(BB *bb);
 /**
  * Expand the bounding box to include a new coordinate.
@@ -216,6 +251,7 @@ bool ray_face_nearest_tri(const float ray_start[3],
 void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag);
 
 /* pbvh_bmesh.c */
+
 bool pbvh_bmesh_node_raycast(PBVHNode *node,
                              const float ray_start[3],
                              const float ray_normal[3],
@@ -232,3 +268,13 @@ bool pbvh_bmesh_node_nearest_to_ray(PBVHNode *node,
                                     bool use_original);
 
 void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode);
+
+/* pbvh_pixels.hh */
+
+void pbvh_pixels_free(PBVHNode *node);
+void pbvh_pixels_free_brush_test(PBVHNode *node);
+void pbvh_free_draw_buffers(PBVH *pbvh, PBVHNode *node);
+
+#ifdef __cplusplus
+}
+#endif

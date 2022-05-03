@@ -826,7 +826,7 @@ static bool gpencil_select_same_material(bContext *C)
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
   /* First, build set containing all the colors of selected strokes */
-  GSet *selected_colors = BLI_gset_str_new("GP Selected Colors");
+  GSet *selected_colors = BLI_gset_int_new("GP Selected Colors");
 
   bool changed = false;
 
@@ -835,7 +835,7 @@ static bool gpencil_select_same_material(bContext *C)
       /* add instead of insert here, otherwise the uniqueness check gets skipped,
        * and we get many duplicate entries...
        */
-      BLI_gset_add(selected_colors, &gps->mat_nr);
+      BLI_gset_add(selected_colors, POINTER_FROM_INT(gps->mat_nr));
     }
   }
   CTX_DATA_END;
@@ -843,7 +843,8 @@ static bool gpencil_select_same_material(bContext *C)
   /* Second, select any visible stroke that uses these colors */
   if (is_curve_edit) {
     CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
-      if (gps->editcurve != NULL && BLI_gset_haskey(selected_colors, &gps->mat_nr)) {
+      if (gps->editcurve != NULL &&
+          BLI_gset_haskey(selected_colors, POINTER_FROM_INT(gps->mat_nr))) {
         bGPDcurve *gpc = gps->editcurve;
         for (int i = 0; i < gpc->tot_curve_points; i++) {
           bGPDcurve_point *gpc_pt = &gpc->curve_points[i];
@@ -861,7 +862,7 @@ static bool gpencil_select_same_material(bContext *C)
   }
   else {
     CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
-      if (BLI_gset_haskey(selected_colors, &gps->mat_nr)) {
+      if (BLI_gset_haskey(selected_colors, POINTER_FROM_INT(gps->mat_nr))) {
         /* select this stroke */
         bGPDspoint *pt;
         int i;
@@ -2651,7 +2652,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
   }
 
-  return OPERATOR_FINISHED;
+  return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
 }
 
 static int gpencil_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -2662,7 +2663,9 @@ static int gpencil_select_invoke(bContext *C, wmOperator *op, const wmEvent *eve
     RNA_boolean_set(op->ptr, "use_shift_extend", event->modifier & KM_SHIFT);
   }
 
-  return gpencil_select_exec(C, op);
+  const int retval = gpencil_select_exec(C, op);
+
+  return WM_operator_flag_only_pass_through_on_press(retval, event);
 }
 
 void GPENCIL_OT_select(wmOperatorType *ot)

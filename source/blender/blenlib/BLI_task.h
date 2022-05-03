@@ -238,18 +238,18 @@ typedef void (*TaskParallelIteratorFunc)(void *__restrict userdata,
  * \param iter_func: Callback function used to generate chunks of items.
  * \param init_item: The initial item, if necessary (may be NULL if unused).
  * \param init_index: The initial index.
- * \param tot_items: The total amount of items to iterate over
+ * \param items_num: The total amount of items to iterate over
  *                   (if unknown, set it to a negative number).
  * \param func: Callback function.
  * \param settings: See public API doc of TaskParallelSettings for description of all settings.
  *
- * \note Static scheduling is only available when \a tot_items is >= 0.
+ * \note Static scheduling is only available when \a items_num is >= 0.
  */
 void BLI_task_parallel_iterator(void *userdata,
                                 TaskParallelIteratorIterFunc iter_func,
                                 void *init_item,
                                 int init_index,
-                                int tot_items,
+                                int items_num,
                                 TaskParallelIteratorFunc func,
                                 const TaskParallelSettings *settings);
 

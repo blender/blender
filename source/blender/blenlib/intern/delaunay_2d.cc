@@ -245,7 +245,7 @@ template<typename Arith_t> struct CDTArrangement {
 
   /** Hint to how much space to reserve in the Vectors of the arrangement,
    * based on these counts of input elements. */
-  void reserve(int num_verts, int num_edges, int num_faces);
+  void reserve(int verts_num, int edges_num, int faces_num);
 
   /**
    * Add a new vertex to the arrangement, with the given 2D coordinate.
@@ -318,7 +318,7 @@ template<typename T> class CDT_state {
  public:
   CDTArrangement<T> cdt;
   /** How many verts were in input (will be first in vert_array). */
-  int input_vert_tot;
+  int input_vert_num;
   /** Used for visiting things without having to initialized their visit fields. */
   int visit_count;
   /**
@@ -332,7 +332,7 @@ template<typename T> class CDT_state {
   bool need_ids;
 
   explicit CDT_state(
-      int num_input_verts, int num_input_edges, int num_input_faces, T epsilon, bool need_ids);
+      int input_verts_num, int input_edges_num, int input_faces_num, T epsilon, bool need_ids);
 };
 
 template<typename T> CDTArrangement<T>::~CDTArrangement()
@@ -859,20 +859,20 @@ template<typename T> CDTFace<T> *CDTArrangement<T>::add_face()
   return f;
 }
 
-template<typename T> void CDTArrangement<T>::reserve(int num_verts, int num_edges, int num_faces)
+template<typename T> void CDTArrangement<T>::reserve(int verts_num, int edges_num, int faces_num)
 {
   /* These reserves are just guesses; OK if they aren't exactly right since vectors will resize. */
-  this->verts.reserve(2 * num_verts);
-  this->edges.reserve(3 * num_verts + 2 * num_edges + 3 * 2 * num_faces);
-  this->faces.reserve(2 * num_verts + 2 * num_edges + 2 * num_faces);
+  this->verts.reserve(2 * verts_num);
+  this->edges.reserve(3 * verts_num + 2 * edges_num + 3 * 2 * faces_num);
+  this->faces.reserve(2 * verts_num + 2 * edges_num + 2 * faces_num);
 }
 
 template<typename T>
 CDT_state<T>::CDT_state(
-    int num_input_verts, int num_input_edges, int num_input_faces, T epsilon, bool need_ids)
+    int input_verts_num, int input_edges_num, int input_faces_num, T epsilon, bool need_ids)
 {
-  this->input_vert_tot = num_input_verts;
-  this->cdt.reserve(num_input_verts, num_input_edges, num_input_faces);
+  this->input_vert_num = input_verts_num;
+  this->cdt.reserve(input_verts_num, input_edges_num, input_faces_num);
   this->cdt.outer_face = this->cdt.add_face();
   this->epsilon = epsilon;
   this->need_ids = need_ids;
@@ -919,7 +919,7 @@ template<typename T> inline bool is_deleted_edge(const CDTEdge<T> *e)
 
 template<typename T> inline bool is_original_vert(const CDTVert<T> *v, CDT_state<T> *cdt)
 {
-  return (v->index < cdt->input_vert_tot);
+  return (v->index < cdt->input_vert_num);
 }
 
 /**
@@ -2188,17 +2188,19 @@ static int power_of_10_greater_equal_to(int x)
 }
 
 /**
-   Incrementally each edge of each input face as an edge constraint.
+ * Incrementally each edge of each input face as an edge constraint.
  * The code will ensure that the #CDTEdge's created will have ids that tie them
  * back to the original face edge (using a numbering system for those edges
  * that starts with cdt->face_edge_offset, and continues with the edges in
  * order around each face in turn. And then the next face starts at
  * cdt->face_edge_offset beyond the start for the previous face.
+ * Return the number of faces added, which may be less than input.face.size()
+ * in the case that some faces have less than 3 sides.
  */
 template<typename T>
-void add_face_constraints(CDT_state<T> *cdt_state,
-                          const CDT_input<T> &input,
-                          CDT_output_type output_type)
+int add_face_constraints(CDT_state<T> *cdt_state,
+                         const CDT_input<T> &input,
+                         CDT_output_type output_type)
 {
   int nv = input.vert.size();
   int nf = input.face.size();
@@ -2216,6 +2218,7 @@ void add_face_constraints(CDT_state<T> *cdt_state,
    * together the are >= INT_MAX, then the Delaunay calculation will take unreasonably long anyway.
    */
   BLI_assert(INT_MAX / cdt_state->face_edge_offset > nf);
+  int faces_added = 0;
   for (int f = 0; f < nf; f++) {
     int flen = input.face[f].size();
     if (flen <= 2) {
@@ -2231,6 +2234,7 @@ void add_face_constraints(CDT_state<T> *cdt_state,
         /* Ignore face edges with invalid vertices. */
         continue;
       }
+      ++faces_added;
       CDTVert<T> *v1 = cdt->get_vert_resolve_merge(iv1);
       CDTVert<T> *v2 = cdt->get_vert_resolve_merge(iv2);
       LinkNode *edge_list;
@@ -2265,6 +2269,7 @@ void add_face_constraints(CDT_state<T> *cdt_state,
       }
     }
   }
+  return faces_added;
 }
 
 /* Delete_edge but try not to mess up outer face.
@@ -2642,7 +2647,8 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state,
                              const CDT_input<T> UNUSED(input),
                              CDT_output_type output_type)
 {
-  prepare_cdt_for_output(cdt_state, output_type);
+  CDT_output_type oty = output_type;
+  prepare_cdt_for_output(cdt_state, oty);
   CDT_result<T> result;
   CDTArrangement<T> *cdt = &cdt_state->cdt;
   result.face_edge_offset = cdt_state->face_edge_offset;
@@ -2672,7 +2678,7 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state,
       CDTVert<T> *v = cdt->verts[i];
       if (v->merge_to_index != -1) {
         if (cdt_state->need_ids) {
-          if (i < cdt_state->input_vert_tot) {
+          if (i < cdt_state->input_vert_num) {
             add_to_input_ids(cdt->verts[v->merge_to_index]->input_ids, i);
           }
         }
@@ -2690,7 +2696,7 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state,
     if (v->merge_to_index == -1) {
       result.vert[i_out] = v->co.exact;
       if (cdt_state->need_ids) {
-        if (i < cdt_state->input_vert_tot) {
+        if (i < cdt_state->input_vert_num) {
           result.vert_orig[i_out].append(i);
         }
         for (int vert : v->input_ids) {
@@ -2759,7 +2765,7 @@ CDT_result<T> get_cdt_output(CDT_state<T> *cdt_state,
  */
 template<typename T> void add_input_verts(CDT_state<T> *cdt_state, const CDT_input<T> &input)
 {
-  for (int i = 0; i < cdt_state->input_vert_tot; ++i) {
+  for (int i = 0; i < cdt_state->input_vert_num; ++i) {
     cdt_state->cdt.add_vert(input.vert[i]);
   }
 }
@@ -2774,7 +2780,11 @@ CDT_result<T> delaunay_calc(const CDT_input<T> &input, CDT_output_type output_ty
   add_input_verts(&cdt_state, input);
   initial_triangulation(&cdt_state.cdt);
   add_edge_constraints(&cdt_state, input);
-  add_face_constraints(&cdt_state, input, output_type);
+  int actual_nf = add_face_constraints(&cdt_state, input, output_type);
+  if (actual_nf == 0 && !ELEM(output_type, CDT_FULL, CDT_INSIDE, CDT_CONSTRAINTS)) {
+    /* Can't look for faces or holes if there were no valid input faces. */
+    output_type = CDT_INSIDE;
+  }
   return get_cdt_output(&cdt_state, input, output_type);
 }
 
@@ -2797,7 +2807,7 @@ blender::meshintersect::CDT_result<mpq_class> delaunay_2d_calc(const CDT_input<m
 /* C interface. */
 
 /**
-   This function uses the double version of #CDT::delaunay_calc.
+ * This function uses the double version of #CDT::delaunay_calc.
  * Almost all of the work here is to convert between C++ #Arrays<Vector<int>>
  * and a C version that linearizes all the elements and uses a "start"
  * and "len" array to say where the individual vectors start and how

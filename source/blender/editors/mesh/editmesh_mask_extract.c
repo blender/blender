@@ -108,6 +108,7 @@ static int geometry_extract_apply(bContext *C,
                      new_mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
+                         .calc_vert_normal = true,
                      }));
 
   BMEditMesh *em = BKE_editmesh_create(bm);
@@ -228,8 +229,6 @@ static int geometry_extract_apply(bContext *C,
       sfmd->offset = -0.05f;
     }
   }
-
-  BKE_mesh_calc_normals(new_ob->data);
 
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, new_ob);
   BKE_mesh_batch_cache_dirty_tag(new_ob->data, BKE_MESH_BATCH_DIRTY_ALL);
@@ -550,7 +549,6 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
     CustomData_free_layers(&new_ob_mesh->vdata, CD_PAINT_MASK, new_ob_mesh->totvert);
 
     BKE_mesh_nomain_to_mesh(new_ob_mesh, new_ob->data, new_ob, &CD_MASK_MESH, true);
-    BKE_mesh_calc_normals(new_ob->data);
     BKE_mesh_copy_parameters_for_eval(new_ob->data, mesh);
     WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, new_ob);
     BKE_mesh_batch_cache_dirty_tag(new_ob->data, BKE_MESH_BATCH_DIRTY_ALL);
@@ -560,7 +558,6 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
   }
 
   BKE_mesh_nomain_to_mesh(new_mesh, ob->data, ob, &CD_MASK_MESH, true);
-  BKE_mesh_calc_normals(ob->data);
 
   if (ob->mode == OB_MODE_SCULPT) {
     SculptSession *ss = ob->sculpt;

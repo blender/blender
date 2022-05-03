@@ -1340,17 +1340,17 @@ static void moveCloserToDistanceFromPlane(Depsgraph *depsgraph,
   float oldPos[3] = {0};
   float vc, hc, dist = 0.0f;
   int i, k;
-  float(*changes)[2] = MEM_mallocN(sizeof(float *) * totweight * 2, "vertHorzChange");
+  float(*changes)[2] = MEM_mallocN(sizeof(float[2]) * totweight, "vertHorzChange");
   float *dists = MEM_mallocN(sizeof(float) * totweight, "distance");
 
   /* track if up or down moved it closer for each bone */
-  int *upDown = MEM_callocN(sizeof(int) * totweight, "upDownTracker");
+  bool *upDown = MEM_callocN(sizeof(bool) * totweight, "upDownTracker");
 
   int *dwIndices = MEM_callocN(sizeof(int) * totweight, "dwIndexTracker");
   float distToStart;
   int bestIndex = 0;
   bool wasChange;
-  char wasUp;
+  bool wasUp;
   int lastIndex = -1;
   float originalDistToBe = distToBe;
   do {
@@ -1410,13 +1410,13 @@ static void moveCloserToDistanceFromPlane(Depsgraph *depsgraph,
         }
         else {
           if (fabsf(dist - distToBe) < fabsf(dists[i] - distToBe)) {
-            upDown[i] = 0;
+            upDown[i] = false;
             changes[i][0] = vc;
             changes[i][1] = hc;
             dists[i] = dist;
           }
           else {
-            upDown[i] = 1;
+            upDown[i] = true;
           }
           if (fabsf(dists[i] - distToBe) > fabsf(distToStart - distToBe)) {
             changes[i][0] = 0;
@@ -1428,8 +1428,6 @@ static void moveCloserToDistanceFromPlane(Depsgraph *depsgraph,
     }
     /* sort the changes by the vertical change */
     for (k = 0; k < totweight; k++) {
-      float tf;
-      int ti;
       bestIndex = k;
       for (i = k + 1; i < totweight; i++) {
         dist = dists[i];
@@ -1440,25 +1438,10 @@ static void moveCloserToDistanceFromPlane(Depsgraph *depsgraph,
       }
       /* switch with k */
       if (bestIndex != k) {
-        ti = upDown[k];
-        upDown[k] = upDown[bestIndex];
-        upDown[bestIndex] = ti;
-
-        ti = dwIndices[k];
-        dwIndices[k] = dwIndices[bestIndex];
-        dwIndices[bestIndex] = ti;
-
-        tf = changes[k][0];
-        changes[k][0] = changes[bestIndex][0];
-        changes[bestIndex][0] = tf;
-
-        tf = changes[k][1];
-        changes[k][1] = changes[bestIndex][1];
-        changes[bestIndex][1] = tf;
-
-        tf = dists[k];
-        dists[k] = dists[bestIndex];
-        dists[bestIndex] = tf;
+        SWAP(bool, upDown[k], upDown[bestIndex]);
+        SWAP(int, dwIndices[k], dwIndices[bestIndex]);
+        swap_v2_v2(changes[k], changes[bestIndex]);
+        SWAP(float, dists[k], dists[bestIndex]);
       }
     }
     bestIndex = -1;
@@ -3062,7 +3045,7 @@ static int vertex_group_select_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Object *ob = ED_object_context(C);
 
-  if (!ob || ID_IS_LINKED(ob)) {
+  if (!ob || ID_IS_LINKED(ob) || ID_IS_OVERRIDE_LIBRARY(ob)) {
     return OPERATOR_CANCELLED;
   }
 

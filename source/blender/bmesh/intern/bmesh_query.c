@@ -1869,7 +1869,7 @@ bool BM_face_exists_overlap_subset(BMVert **varr, const int len)
   for (int i = 0; i < len; i++) {
     BM_ITER_ELEM (f, &viter, varr[i], BM_FACES_OF_VERT) {
       if ((f->len <= len) && (BM_ELEM_API_FLAG_TEST(f, _FLAG_OVERLAP) == 0)) {
-        /* Check if all vers in this face are flagged. */
+        /* Check if all verts in this face are flagged. */
         BMLoop *l_iter, *l_first;
 
         if (is_init == false) {

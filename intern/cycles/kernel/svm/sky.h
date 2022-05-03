@@ -55,7 +55,7 @@ ccl_device float3 sky_radiance_preetham(KernelGlobals kg,
 
   /* convert to RGB */
   float3 xyz = xyY_to_xyz(x, y, Y);
-  return xyz_to_rgb(kg, xyz);
+  return xyz_to_rgb_clamped(kg, xyz);
 }
 
 /*
@@ -107,30 +107,31 @@ ccl_device float3 sky_radiance_hosek(KernelGlobals kg,
   float z = sky_radiance_internal(config_z, theta, gamma) * radiance_z;
 
   /* convert to RGB and adjust strength */
-  return xyz_to_rgb(kg, make_float3(x, y, z)) * (M_2PI_F / 683);
+  return xyz_to_rgb_clamped(kg, make_float3(x, y, z)) * (M_2PI_F / 683);
 }
 
 /* Nishita improved sky model */
 ccl_device float3 geographical_to_direction(float lat, float lon)
 {
-  return make_float3(cos(lat) * cos(lon), cos(lat) * sin(lon), sin(lat));
+  return make_float3(cosf(lat) * cosf(lon), cosf(lat) * sinf(lon), sinf(lat));
 }
 
 ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
                                        float3 dir,
+                                       float3 pixel_bottom,
+                                       float3 pixel_top,
                                        ccl_private float *nishita_data,
                                        uint texture_id)
 {
   /* definitions */
-  float sun_elevation = nishita_data[6];
-  float sun_rotation = nishita_data[7];
-  float angular_diameter = nishita_data[8];
-  float sun_intensity = nishita_data[9];
+  float sun_elevation = nishita_data[0];
+  float sun_rotation = nishita_data[1];
+  float angular_diameter = nishita_data[2];
+  float sun_intensity = nishita_data[3];
   bool sun_disc = (angular_diameter >= 0.0f);
   float3 xyz;
   /* convert dir to spherical coordinates */
   float2 direction = direction_to_spherical(dir);
-
   /* render above the horizon */
   if (dir.z >= 0.0f) {
     /* definitions */
@@ -142,8 +143,6 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
     /* if ray inside sun disc render it, otherwise render sky */
     if (sun_disc && sun_dir_angle < half_angular) {
       /* get 2 pixels data */
-      float3 pixel_bottom = make_float3(nishita_data[0], nishita_data[1], nishita_data[2]);
-      float3 pixel_top = make_float3(nishita_data[3], nishita_data[4], nishita_data[5]);
       float y;
 
       /* sun interpolation */
@@ -195,7 +194,7 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
   }
 
   /* convert to RGB */
-  return xyz_to_rgb(kg, xyz);
+  return xyz_to_rgb_clamped(kg, xyz);
 }
 
 ccl_device_noinline int svm_node_tex_sky(
@@ -292,27 +291,26 @@ ccl_device_noinline int svm_node_tex_sky(
   /* Nishita */
   else {
     /* Define variables */
-    float nishita_data[10];
+    float nishita_data[4];
 
     float4 data = read_node_float(kg, &offset);
-    nishita_data[0] = data.x;
-    nishita_data[1] = data.y;
-    nishita_data[2] = data.z;
-    nishita_data[3] = data.w;
+    float3 pixel_bottom = make_float3(data.x, data.y, data.z);
+    float3 pixel_top;
+    pixel_top.x = data.w;
 
     data = read_node_float(kg, &offset);
-    nishita_data[4] = data.x;
-    nishita_data[5] = data.y;
-    nishita_data[6] = data.z;
-    nishita_data[7] = data.w;
+    pixel_top.y = data.x;
+    pixel_top.z = data.y;
+    nishita_data[0] = data.z;
+    nishita_data[1] = data.w;
 
     data = read_node_float(kg, &offset);
-    nishita_data[8] = data.x;
-    nishita_data[9] = data.y;
+    nishita_data[2] = data.x;
+    nishita_data[3] = data.y;
     uint texture_id = __float_as_uint(data.z);
 
     /* Compute Sky */
-    f = sky_radiance_nishita(kg, dir, nishita_data, texture_id);
+    f = sky_radiance_nishita(kg, dir, pixel_bottom, pixel_top, nishita_data, texture_id);
   }
 
   stack_store_float3(stack, out_offset, f);

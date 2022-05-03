@@ -197,6 +197,20 @@ const ImFileType IMB_FILE_TYPES[] = {
         .default_save_role = COLOR_ROLE_DEFAULT_FLOAT,
     },
 #endif
+#ifdef WITH_WEBP
+    {
+        .init = NULL,
+        .exit = NULL,
+        .is_a = imb_is_a_webp,
+        .load = imb_loadwebp,
+        .load_filepath = NULL,
+        .save = imb_savewebp,
+        .load_tile = NULL,
+        .flag = 0,
+        .filetype = IMB_FTYPE_WEBP,
+        .default_save_role = COLOR_ROLE_DEFAULT_BYTE,
+    },
+#endif
     {NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0},
 };
 

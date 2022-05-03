@@ -274,7 +274,7 @@ bool BKE_nurb_valid_message(int pnts,
                             short flag,
                             short type,
                             bool is_surf,
-                            const char *dir,
+                            int dir,
                             char *message_dst,
                             size_t maxncpy);
 

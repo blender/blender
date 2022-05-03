@@ -34,9 +34,13 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "RNA_access.h"
+
 #include "MOD_gpencil_modifiertypes.h"
 #include "MOD_gpencil_ui_common.h"
 #include "MOD_gpencil_util.h"
+
+#include "MEM_guardedalloc.h"
 
 static void initData(GpencilModifierData *md)
 {
@@ -94,45 +98,40 @@ static void deformStroke(GpencilModifierData *md,
     return;
   }
 
-  /* smooth stroke */
-  if (mmd->factor > 0.0f) {
-    for (int r = 0; r < mmd->step; r++) {
-      for (int i = 0; i < gps->totpoints; i++) {
-        MDeformVert *dvert = gps->dvert != NULL ? &gps->dvert[i] : NULL;
+  if (mmd->factor <= 0.0f || mmd->step <= 0) {
+    return;
+  }
 
-        /* verify vertex group */
-        float weight = get_modifier_point_weight(
-            dvert, (mmd->flag & GP_SMOOTH_INVERT_VGROUP) != 0, def_nr);
-        if (weight < 0.0f) {
-          continue;
-        }
+  float *weights = NULL;
+  if (def_nr != -1 || use_curve) {
+    weights = MEM_malloc_arrayN(gps->totpoints, sizeof(*weights), __func__);
+    /* Calculate weights. */
+    for (int i = 0; i < gps->totpoints; i++) {
+      MDeformVert *dvert = gps->dvert != NULL ? &gps->dvert[i] : NULL;
 
-        /* Custom curve to modulate value. */
-        if (use_curve) {
-          float value = (float)i / (gps->totpoints - 1);
-          weight *= BKE_curvemapping_evaluateF(mmd->curve_intensity, 0, value);
-        }
+      /* Verify vertex group. */
+      float weight = get_modifier_point_weight(
+          dvert, (mmd->flag & GP_SMOOTH_INVERT_VGROUP) != 0, def_nr);
 
-        const float val = mmd->factor * weight;
-        /* perform smoothing */
-        if (mmd->flag & GP_SMOOTH_MOD_LOCATION) {
-          BKE_gpencil_stroke_smooth_point(gps, i, val, false);
-        }
-        if (mmd->flag & GP_SMOOTH_MOD_STRENGTH) {
-          BKE_gpencil_stroke_smooth_strength(gps, i, val);
-        }
-        if ((mmd->flag & GP_SMOOTH_MOD_THICKNESS) && (val > 0.0f)) {
-          /* thickness need to repeat process several times */
-          for (int r2 = 0; r2 < r * 10; r2++) {
-            BKE_gpencil_stroke_smooth_thickness(gps, i, val);
-          }
-        }
-        if (mmd->flag & GP_SMOOTH_MOD_UV) {
-          BKE_gpencil_stroke_smooth_uv(gps, i, val);
-        }
+      /* Custom curve to modulate value. */
+      if (use_curve && weight > 0.0f) {
+        float value = (float)i / (gps->totpoints - 1);
+        weight *= BKE_curvemapping_evaluateF(mmd->curve_intensity, 0, value);
       }
+
+      weights[i] = weight;
     }
   }
+  BKE_gpencil_stroke_smooth(gps,
+                            mmd->factor,
+                            mmd->step,
+                            mmd->flag & GP_SMOOTH_MOD_LOCATION,
+                            mmd->flag & GP_SMOOTH_MOD_STRENGTH,
+                            mmd->flag & GP_SMOOTH_MOD_THICKNESS,
+                            mmd->flag & GP_SMOOTH_MOD_UV,
+                            mmd->flag & GP_SMOOTH_KEEP_SHAPE,
+                            weights);
+  MEM_SAFE_FREE(weights);
 }
 
 static void bakeModifier(struct Main *UNUSED(bmain),
@@ -161,7 +160,7 @@ static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, 
 
 static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
-  uiLayout *row;
+  uiLayout *row, *col;
   uiLayout *layout = panel->layout;
 
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
@@ -176,6 +175,10 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiItemR(layout, ptr, "factor", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "step", 0, IFACE_("Repeat"), ICON_NONE);
+
+  col = uiLayoutColumn(layout, false);
+  uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_edit_position"));
+  uiItemR(col, ptr, "use_keep_shape", 0, NULL, ICON_NONE);
 
   gpencil_modifier_panel_end(layout, ptr);
 }

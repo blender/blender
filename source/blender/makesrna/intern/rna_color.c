@@ -605,6 +605,11 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
 {
   ID *id = ptr->owner_id;
 
+  if (!id) {
+    /* Happens for color space settings on operators. */
+    return;
+  }
+
   if (GS(id->name) == ID_IM) {
     Image *ima = (Image *)id;
 

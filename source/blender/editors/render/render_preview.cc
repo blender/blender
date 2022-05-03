@@ -374,6 +374,14 @@ static ID *duplicate_ids(ID *id, const bool allow_failure)
                                        LIB_ID_COPY_NO_ANIMDATA);
       return id_copy;
     }
+    case ID_GR: {
+      /* Doesn't really duplicate the collection. Just creates a collection instance empty. */
+      BLI_assert(BKE_previewimg_id_supports_jobs(id));
+      Object *instance_empty = BKE_object_add_only_object(nullptr, OB_EMPTY, nullptr);
+      instance_empty->instance_collection = (Collection *)id;
+      instance_empty->transflag |= OB_DUPLICOLLECTION;
+      return &instance_empty->id;
+    }
     /* These support threading, but don't need duplicating. */
     case ID_IM:
     case ID_BR:
@@ -705,7 +713,8 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
     ID *parent = (ID *)parentp;
     MTex *slot = (MTex *)slotp;
     SpaceProperties *sbuts = CTX_wm_space_properties(C);
-    ShaderPreview *sp = static_cast<ShaderPreview *>(WM_jobs_customdata(wm, area));
+    ShaderPreview *sp = static_cast<ShaderPreview *>(
+        WM_jobs_customdata_from_type(wm, area, WM_JOB_TYPE_LOAD_PREVIEW));
     rcti newrect;
     bool ok;
     int newx = BLI_rcti_size_x(rect);
@@ -822,7 +831,8 @@ static Scene *object_preview_scene_create(const struct ObjectPreviewData *previe
   DEG_graph_build_from_view_layer(depsgraph);
   DEG_evaluate_on_refresh(depsgraph);
 
-  ED_view3d_camera_to_view_selected(preview_data->pr_main, depsgraph, scene, camera_object);
+  ED_view3d_camera_to_view_selected_with_set_clipping(
+      preview_data->pr_main, depsgraph, scene, camera_object);
 
   BKE_scene_graph_update_tagged(depsgraph, preview_data->pr_main);
 
@@ -879,6 +889,44 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
 
   DEG_graph_free(depsgraph);
   BKE_main_free(preview_main);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Collection Preview
+ *
+ * For the most part this reuses the object preview code by creating an instance collection empty
+ * object and rendering that.
+ *
+ * \{ */
+
+/**
+ * Check if the collection contains any geometry that can be rendered. Otherwise there's nothing to
+ * display in the preview, so don't generate one.
+ * Objects and sub-collections hidden in the render will be skipped.
+ */
+static bool collection_preview_contains_geometry_recursive(const Collection *collection)
+{
+  LISTBASE_FOREACH (CollectionObject *, col_ob, &collection->gobject) {
+    if (col_ob->ob->visibility_flag & OB_HIDE_RENDER) {
+      continue;
+    }
+    if (OB_TYPE_IS_GEOMETRY(col_ob->ob->type)) {
+      return true;
+    }
+  }
+
+  LISTBASE_FOREACH (CollectionChild *, child_col, &collection->children) {
+    if (child_col->collection->flag & COLLECTION_HIDE_RENDER) {
+      continue;
+    }
+    if (collection_preview_contains_geometry_recursive(child_col->collection)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /** \} */
@@ -1577,6 +1625,12 @@ static void icon_preview_startjob_all_sizes(void *customdata,
             continue;
           }
           break;
+        case ID_GR:
+          BLI_assert(collection_preview_contains_geometry_recursive((Collection *)ip->id));
+          /* A collection instance empty was created, so this can just reuse the object preview
+           * rendering. */
+          object_preview_render(ip, cur_size);
+          continue;
         case ID_AC:
           action_preview_render(ip, cur_size);
           continue;
@@ -1679,19 +1733,19 @@ class PreviewLoadJob {
   PreviewLoadJob();
   ~PreviewLoadJob();
 
-  static PreviewLoadJob &ensure_job(wmWindowManager *, wmWindow *);
-  static void load_jobless(PreviewImage *, eIconSizes);
+  static PreviewLoadJob &ensure_job(wmWindowManager *wm, wmWindow *win);
+  static void load_jobless(PreviewImage *preview, eIconSizes icon_size);
 
-  void push_load_request(PreviewImage *, eIconSizes);
+  void push_load_request(PreviewImage *preview, eIconSizes icon_size);
 
  private:
-  static void run_fn(void *, short *, short *, float *);
-  static void update_fn(void *);
-  static void end_fn(void *);
-  static void free_fn(void *);
+  static void run_fn(void *customdata, short *stop, short *do_update, float *progress);
+  static void update_fn(void *customdata);
+  static void end_fn(void *customdata);
+  static void free_fn(void *customdata);
 
   /** Mark a single requested preview as being done, remove the request. */
-  static void finish_request(RequestedPreview &);
+  static void finish_request(RequestedPreview &request);
 };
 
 PreviewLoadJob::PreviewLoadJob() : todo_queue_(BLI_thread_queue_init())
@@ -1867,6 +1921,9 @@ bool ED_preview_id_is_supported(const ID *id)
   }
   if (GS(id->name) == ID_OB) {
     return object_preview_is_type_supported((const Object *)id);
+  }
+  if (GS(id->name) == ID_GR) {
+    return collection_preview_contains_geometry_recursive((const Collection *)id);
   }
   return BKE_previewimg_id_get_p(id) != nullptr;
 }

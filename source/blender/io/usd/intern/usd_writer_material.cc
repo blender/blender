@@ -198,7 +198,7 @@ void create_usd_preview_surface_material(const USDExporterContext &usd_export_co
       created_shader = create_usd_preview_shader(usd_export_context, usd_material, input_node);
 
       preview_surface.CreateInput(input_spec.input_name, input_spec.input_type)
-          .ConnectToSource(created_shader, input_spec.source_name);
+          .ConnectToSource(created_shader.ConnectableAPI(), input_spec.source_name);
     }
     else if (input_spec.set_default_value) {
       /* Set hardcoded value. */
@@ -252,7 +252,7 @@ void create_usd_viewport_material(const USDExporterContext &usd_export_context,
   shader.CreateInput(usdtokens::metallic, pxr::SdfValueTypeNames->Float).Set(material->metallic);
 
   /* Connect the shader and the material together. */
-  usd_material.CreateSurfaceOutput().ConnectToSource(shader, usdtokens::surface);
+  usd_material.CreateSurfaceOutput().ConnectToSource(shader.ConnectableAPI(), usdtokens::surface);
 }
 
 /* Return USD Preview Surface input map singleton. */
@@ -291,8 +291,8 @@ void create_input(pxr::UsdShadeShader &shader, const InputSpec &spec, const void
 
 /* Find the UVMAP node input to the given texture image node and convert it
  * to a USD primvar reader shader. If no UVMAP node is found, create a primvar
- * reader for the given default uv set.  The primvar reader will be attached to
- * the 'st' input of the given USD texture shader.  */
+ * reader for the given default uv set. The primvar reader will be attached to
+ * the 'st' input of the given USD texture shader. */
 static void create_uvmap_shader(const USDExporterContext &usd_export_context,
                                 bNode *tex_node,
                                 pxr::UsdShadeMaterial &usd_material,
@@ -329,12 +329,12 @@ static void create_uvmap_shader(const USDExporterContext &usd_export_context,
       uv_shader.CreateInput(usdtokens::varname, pxr::SdfValueTypeNames->Token)
           .Set(pxr::TfToken(uv_set));
       usd_tex_shader.CreateInput(usdtokens::st, pxr::SdfValueTypeNames->Float2)
-          .ConnectToSource(uv_shader, usdtokens::result);
+          .ConnectToSource(uv_shader.ConnectableAPI(), usdtokens::result);
     }
     else {
       uv_shader.CreateInput(usdtokens::varname, pxr::SdfValueTypeNames->Token).Set(default_uv);
       usd_tex_shader.CreateInput(usdtokens::st, pxr::SdfValueTypeNames->Float2)
-          .ConnectToSource(uv_shader, usdtokens::result);
+          .ConnectToSource(uv_shader.ConnectableAPI(), usdtokens::result);
     }
   }
 
@@ -349,7 +349,7 @@ static void create_uvmap_shader(const USDExporterContext &usd_export_context,
     if (uv_shader.GetPrim().IsValid()) {
       uv_shader.CreateInput(usdtokens::varname, pxr::SdfValueTypeNames->Token).Set(default_uv);
       usd_tex_shader.CreateInput(usdtokens::st, pxr::SdfValueTypeNames->Float2)
-          .ConnectToSource(uv_shader, usdtokens::result);
+          .ConnectToSource(uv_shader.ConnectableAPI(), usdtokens::result);
     }
   }
 }
@@ -395,7 +395,7 @@ static void export_in_memory_texture(Image *ima,
     BLI_split_file_part(image_abs_path, file_name, FILE_MAX);
   }
   else {
-    /* Use the image name for the file name.  */
+    /* Use the image name for the file name. */
     strcpy(file_name, ima->id.name + 2);
   }
 
@@ -1895,17 +1895,17 @@ static void link_cycles_nodes(pxr::UsdStageRefPtr a_stage,
       if (strncmp(to_sock->name, "Surface", 64) == 0) {
         if (strncmp(from_sock->name, "BSDF", 64) == 0)
           usd_material.CreateSurfaceOutput(cyclestokens::cycles)
-              .ConnectToSource(from_shader, cyclestokens::bsdf);
+              .ConnectToSource(from_shader.ConnectableAPI(), cyclestokens::bsdf);
         else
           usd_material.CreateSurfaceOutput(cyclestokens::cycles)
-              .ConnectToSource(from_shader, cyclestokens::closure);
+              .ConnectToSource(from_shader.ConnectableAPI(), cyclestokens::closure);
       }
       else if (strncmp(to_sock->name, "Volume", 64) == 0)
         usd_material.CreateVolumeOutput(cyclestokens::cycles)
-            .ConnectToSource(from_shader, cyclestokens::bsdf);
+            .ConnectToSource(from_shader.ConnectableAPI(), cyclestokens::bsdf);
       else if (strncmp(to_sock->name, "Displacement", 64) == 0)
         usd_material.CreateDisplacementOutput(cyclestokens::cycles)
-            .ConnectToSource(from_shader, cyclestokens::vector);
+            .ConnectToSource(from_shader.ConnectableAPI(), cyclestokens::vector);
       continue;
     }
 
@@ -1972,7 +1972,8 @@ static void link_cycles_nodes(pxr::UsdStageRefPtr a_stage,
     to_shader
         .CreateInput(pxr::TfToken(pxr::TfMakeValidIdentifier(toName)),
                      pxr::SdfValueTypeNames->Float)
-        .ConnectToSource(from_shader, pxr::TfToken(pxr::TfMakeValidIdentifier(fromName)));
+        .ConnectToSource(from_shader.ConnectableAPI(),
+                         pxr::TfToken(pxr::TfMakeValidIdentifier(fromName)));
   }
 }
 
@@ -2054,7 +2055,7 @@ void create_mdl_material(const USDExporterContext &usd_export_context,
     return;
   }
 
-  material_surface_output.ConnectToSource(shader, usdtokens::out);
+  material_surface_output.ConnectToSource(shader.ConnectableAPI(), usdtokens::out);
 
   umm_export_material(usd_export_context, material, shader, "MDL");
 
@@ -2107,7 +2108,7 @@ static bNode *traverse_channel(bNodeSocket *input, const short target_type)
 }
 
 /* Returns the first occurrence of a principled BSDF or a diffuse BSDF node found in the given
- * material's node tree.  Returns null if no instance of either type was found.*/
+ * material's node tree.  Returns null if no instance of either type was found. */
 static bNode *find_bsdf_node(Material *material)
 {
   LISTBASE_FOREACH (bNode *, node, &material->nodetree->nodes) {
@@ -2143,7 +2144,7 @@ static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &u
     case SH_NODE_BSDF_DIFFUSE:
     case SH_NODE_BSDF_PRINCIPLED: {
       shader.CreateIdAttr(pxr::VtValue(usdtokens::preview_surface));
-      material.CreateSurfaceOutput().ConnectToSource(shader, usdtokens::surface);
+      material.CreateSurfaceOutput().ConnectToSource(shader.ConnectableAPI(), usdtokens::surface);
       break;
     }
 

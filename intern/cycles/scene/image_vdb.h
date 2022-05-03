@@ -17,6 +17,9 @@ CCL_NAMESPACE_BEGIN
 
 class VDBImageLoader : public ImageLoader {
  public:
+#ifdef WITH_OPENVDB
+  VDBImageLoader(openvdb::GridBase::ConstPtr grid_, const string &grid_name);
+#endif
   VDBImageLoader(const string &grid_name);
   ~VDBImageLoader();
 

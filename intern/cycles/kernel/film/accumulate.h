@@ -320,12 +320,13 @@ ccl_device_inline void kernel_accum_combined_transparent_pass(KernelGlobals kg,
 }
 
 /* Write background or emission to appropriate pass. */
-ccl_device_inline void kernel_accum_emission_or_background_pass(KernelGlobals kg,
-                                                                ConstIntegratorState state,
-                                                                float3 contribution,
-                                                                ccl_global float *ccl_restrict
-                                                                    buffer,
-                                                                const int pass)
+ccl_device_inline void kernel_accum_emission_or_background_pass(
+    KernelGlobals kg,
+    ConstIntegratorState state,
+    float3 contribution,
+    ccl_global float *ccl_restrict buffer,
+    const int pass,
+    const int lightgroup = LIGHTGROUP_NONE)
 {
   if (!(kernel_data.film.light_pass_flag & PASS_ANY)) {
     return;
@@ -347,11 +348,22 @@ ccl_device_inline void kernel_accum_emission_or_background_pass(KernelGlobals kg
   }
 #  endif /* __DENOISING_FEATURES__ */
 
+  if (lightgroup != LIGHTGROUP_NONE && kernel_data.film.pass_lightgroup != PASS_UNUSED) {
+    kernel_write_pass_float3(buffer + kernel_data.film.pass_lightgroup + 3 * lightgroup,
+                             contribution);
+  }
+
   if (!(path_flag & PATH_RAY_ANY_PASS)) {
     /* Directly visible, write to emission or background pass. */
     pass_offset = pass;
   }
   else if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
+    /* Don't write any light passes for shadow catcher, for easier
+     * compositing back together of the combined pass. */
+    if (path_flag & PATH_RAY_SHADOW_CATCHER_HIT) {
+      return;
+    }
+
     if (path_flag & PATH_RAY_SURFACE_PASS) {
       /* Indirectly visible through reflection. */
       const float3 diffuse_weight = INTEGRATOR_STATE(state, path, pass_diffuse_weight);
@@ -436,6 +448,19 @@ ccl_device_inline void kernel_accum_light(KernelGlobals kg,
 #ifdef __PASSES__
   if (kernel_data.film.light_pass_flag & PASS_ANY) {
     const uint32_t path_flag = INTEGRATOR_STATE(state, shadow_path, flag);
+
+    /* Don't write any light passes for shadow catcher, for easier
+     * compositing back together of the combined pass. */
+    if (path_flag & PATH_RAY_SHADOW_CATCHER_HIT) {
+      return;
+    }
+
+    /* Write lightgroup pass. LIGHTGROUP_NONE is ~0 so decode from unsigned to signed */
+    const int lightgroup = (int)(INTEGRATOR_STATE(state, shadow_path, lightgroup)) - 1;
+    if (lightgroup != LIGHTGROUP_NONE && kernel_data.film.pass_lightgroup != PASS_UNUSED) {
+      kernel_write_pass_float3(buffer + kernel_data.film.pass_lightgroup + 3 * lightgroup,
+                               contribution);
+    }
 
     if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
       int pass_offset = PASS_UNUSED;
@@ -554,15 +579,20 @@ ccl_device_inline void kernel_accum_background(KernelGlobals kg,
     kernel_accum_combined_transparent_pass(
         kg, path_flag, sample, contribution, transparent, buffer);
   }
-  kernel_accum_emission_or_background_pass(
-      kg, state, contribution, buffer, kernel_data.film.pass_background);
+  kernel_accum_emission_or_background_pass(kg,
+                                           state,
+                                           contribution,
+                                           buffer,
+                                           kernel_data.film.pass_background,
+                                           kernel_data.background.lightgroup);
 }
 
 /* Write emission to render buffer. */
 ccl_device_inline void kernel_accum_emission(KernelGlobals kg,
                                              ConstIntegratorState state,
                                              const float3 L,
-                                             ccl_global float *ccl_restrict render_buffer)
+                                             ccl_global float *ccl_restrict render_buffer,
+                                             const int lightgroup = LIGHTGROUP_NONE)
 {
   float3 contribution = L;
   kernel_accum_clamp(kg, &contribution, INTEGRATOR_STATE(state, path, bounce) - 1);
@@ -573,7 +603,7 @@ ccl_device_inline void kernel_accum_emission(KernelGlobals kg,
 
   kernel_accum_combined_pass(kg, path_flag, sample, contribution, buffer);
   kernel_accum_emission_or_background_pass(
-      kg, state, contribution, buffer, kernel_data.film.pass_emission);
+      kg, state, contribution, buffer, kernel_data.film.pass_emission, lightgroup);
 }
 
 CCL_NAMESPACE_END

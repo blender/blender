@@ -1,28 +1,15 @@
-#pragma BLENDER_REQUIRE(common_globals_lib.glsl)
 #pragma BLENDER_REQUIRE(common_overlay_lib.glsl)
 
 layout(lines) in;
 layout(triangle_strip, max_vertices = 4) out;
 
-in float selectionFac[2];
-flat in vec2 stippleStart[2];
-noperspective in vec2 stipplePos[2];
-
-uniform int lineStyle;
-uniform bool doSmoothWire;
-
-out float selectionFac_f;
-noperspective out float edgeCoord_f;
-noperspective out vec2 stipplePos_f;
-flat out vec2 stippleStart_f;
-
 void do_vertex(
     vec4 pos, float selection_fac, vec2 stipple_start, vec2 stipple_pos, float coord, vec2 offset)
 {
-  selectionFac_f = selection_fac;
-  edgeCoord_f = coord;
-  stippleStart_f = stipple_start;
-  stipplePos_f = stipple_pos;
+  geom_out.selectionFac = selection_fac;
+  geom_out.edgeCoord = coord;
+  geom_out.stippleStart = stipple_start;
+  geom_out.stipplePos = stipple_pos;
 
   gl_Position = pos;
   /* Multiply offset by 2 because gl_Position range is [-1..1]. */
@@ -52,20 +39,22 @@ void main()
   vec2 line = ss_pos[0] - ss_pos[1];
   vec2 line_dir = normalize(line);
   vec2 line_perp = vec2(-line_dir.y, line_dir.x);
-  vec2 edge_ofs = line_perp * sizeViewportInv * ceil(half_size);
+  vec2 edge_ofs = line_perp * drw_view.viewport_size_inverse * ceil(half_size);
+  float selectFac0 = geom_in[0].selectionFac;
+  float selectFac1 = geom_in[1].selectionFac;
 #ifdef USE_EDGE_SELECT
   /* No blending with edge selection. */
-  float selectFac0 = selectionFac[0];
-  float selectFac1 = selectionFac[0];
-#else
-  float selectFac0 = selectionFac[0];
-  float selectFac1 = selectionFac[1];
+  selectFac1 = selectFac0;
 #endif
 
-  do_vertex(pos0, selectFac0, stippleStart[0], stipplePos[0], half_size, edge_ofs.xy);
-  do_vertex(pos0, selectFac0, stippleStart[0], stipplePos[0], -half_size, -edge_ofs.xy);
-  do_vertex(pos1, selectFac1, stippleStart[1], stipplePos[1], half_size, edge_ofs.xy);
-  do_vertex(pos1, selectFac1, stippleStart[1], stipplePos[1], -half_size, -edge_ofs.xy);
+  do_vertex(
+      pos0, selectFac0, geom_in[0].stippleStart, geom_in[0].stipplePos, half_size, edge_ofs.xy);
+  do_vertex(
+      pos0, selectFac0, geom_in[0].stippleStart, geom_in[0].stipplePos, -half_size, -edge_ofs.xy);
+  do_vertex(
+      pos1, selectFac1, geom_in[1].stippleStart, geom_in[1].stipplePos, half_size, edge_ofs.xy);
+  do_vertex(
+      pos1, selectFac1, geom_in[1].stippleStart, geom_in[1].stipplePos, -half_size, -edge_ofs.xy);
 
   EndPrimitive();
 }

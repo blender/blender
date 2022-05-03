@@ -10,11 +10,11 @@ from freestyle.predicates import (
     NotUP1D,
     QuantitativeInvisibilityUP1D,
     TrueUP1D,
-    )
+)
 from freestyle.shaders import (
     BackboneStretcherShader,
     ConstantColorShader,
-    )
+)
 from freestyle.types import Operators
 
 
@@ -23,5 +23,5 @@ Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInv
 shaders_list = [
     ConstantColorShader(0.5, 0.5, 0.5),
     BackboneStretcherShader(20),
-    ]
+]
 Operators.create(TrueUP1D(), shaders_list)

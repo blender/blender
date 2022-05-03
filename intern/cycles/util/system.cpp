@@ -20,6 +20,7 @@ OIIO_NAMESPACE_USING
 #  include <sys/ioctl.h>
 #  include <sys/sysctl.h>
 #  include <sys/types.h>
+#  include <unistd.h>
 #else
 #  include <sys/ioctl.h>
 #  include <unistd.h>

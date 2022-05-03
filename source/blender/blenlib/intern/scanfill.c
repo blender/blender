@@ -49,19 +49,19 @@ typedef struct ScanFillVertLink {
 #define SF_EPSILON 0.00003f
 #define SF_EPSILON_SQ (SF_EPSILON * SF_EPSILON)
 
-/* ScanFillVert.status */
+/** #ScanFillVert.status */
 #define SF_VERT_NEW 0       /* all new verts have this flag set */
 #define SF_VERT_AVAILABLE 1 /* available - in an edge */
 #define SF_VERT_ZERO_LEN 2
 
-/* ScanFillEdge.status */
+/** #ScanFillEdge.status */
 /* Optionally set ScanFillEdge f to this to mark original boundary edges.
  * Only needed if there are internal diagonal edges passed to BLI_scanfill_calc. */
 #define SF_EDGE_NEW 0 /* all new edges have this flag set */
 // #define SF_EDGE_BOUNDARY 1  /* UNUSED */
 #define SF_EDGE_INTERNAL 2 /* edge is created while scan-filling */
 
-/* PolyFill.status */
+/** #PolyFill.status */
 #define SF_POLY_NEW 0   /* all polys initialized to this */
 #define SF_POLY_VALID 1 /* has at least 3 verts */
 
@@ -124,7 +124,7 @@ ScanFillVert *BLI_scanfill_vert_add(ScanFillContext *sf_ctx, const float vec[3])
   zero_v2(sf_v->xy);
   sf_v->keyindex = 0;
   sf_v->poly_nr = sf_ctx->poly_nr;
-  sf_v->edge_tot = 0;
+  sf_v->edge_count = 0;
   sf_v->f = SF_VERT_NEW;
   sf_v->user_flag = 0;
 
@@ -373,14 +373,14 @@ static bool boundinsideEV(ScanFillEdge *eed, ScanFillVert *eve)
 
 static void testvertexnearedge(ScanFillContext *sf_ctx)
 {
-  /* only vertices with (->edge_tot == 1) are being tested for
+  /* only vertices with (->edge_count == 1) are being tested for
    * being close to an edge, if true insert */
 
   ScanFillVert *eve;
   ScanFillEdge *eed, *ed1;
 
   for (eve = sf_ctx->fillvertbase.first; eve; eve = eve->next) {
-    if (eve->edge_tot == 1) {
+    if (eve->edge_count == 1) {
       /* find the edge which has vertex eve,
        * NOTE: we _know_ this will crash if 'ed1' becomes NULL
        * but this will never happen. */
@@ -398,14 +398,14 @@ static void testvertexnearedge(ScanFillContext *sf_ctx)
         if (eve != eed->v1 && eve != eed->v2 && eve->poly_nr == eed->poly_nr) {
           if (compare_v2v2(eve->xy, eed->v1->xy, SF_EPSILON)) {
             ed1->v2 = eed->v1;
-            eed->v1->edge_tot++;
-            eve->edge_tot = 0;
+            eed->v1->edge_count++;
+            eve->edge_count = 0;
             break;
           }
           if (compare_v2v2(eve->xy, eed->v2->xy, SF_EPSILON)) {
             ed1->v2 = eed->v2;
-            eed->v2->edge_tot++;
-            eve->edge_tot = 0;
+            eed->v2->edge_count++;
+            eve->edge_count = 0;
             break;
           }
 
@@ -418,7 +418,7 @@ static void testvertexnearedge(ScanFillContext *sf_ctx)
               // printf("fill: vertex near edge %x\n", eve);
               ed1->poly_nr = eed->poly_nr;
               eed->v1 = eve;
-              eve->edge_tot = 3;
+              eve->edge_count = 3;
               break;
             }
           }
@@ -597,14 +597,14 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
     /* Set connect-flags. */
     for (ed1 = sc->edge_first; ed1; ed1 = eed_next) {
       eed_next = ed1->next;
-      if (ed1->v1->edge_tot == 1 || ed1->v2->edge_tot == 1) {
+      if (ed1->v1->edge_count == 1 || ed1->v2->edge_count == 1) {
         BLI_remlink((ListBase *)&(sc->edge_first), ed1);
         BLI_addtail(&sf_ctx->filledgebase, ed1);
-        if (ed1->v1->edge_tot > 1) {
-          ed1->v1->edge_tot--;
+        if (ed1->v1->edge_count > 1) {
+          ed1->v1->edge_count--;
         }
-        if (ed1->v2->edge_tot > 1) {
-          ed1->v2->edge_tot--;
+        if (ed1->v2->edge_count > 1) {
+          ed1->v2->edge_count--;
         }
       }
       else {
@@ -628,8 +628,8 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
         // printf("just 1 edge to vert\n");
         BLI_addtail(&sf_ctx->filledgebase, ed1);
         ed1->v2->f = SF_VERT_NEW;
-        ed1->v1->edge_tot--;
-        ed1->v2->edge_tot--;
+        ed1->v1->edge_count--;
+        ed1->v2->edge_count--;
       }
       else {
         /* test rest of vertices */
@@ -697,8 +697,8 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
           BLI_insertlinkbefore((ListBase *)&(sc->edge_first), ed2, ed3);
           ed3->v2->f = SF_VERT_AVAILABLE;
           ed3->f = SF_EDGE_INTERNAL;
-          ed3->v1->edge_tot++;
-          ed3->v2->edge_tot++;
+          ed3->v1->edge_count++;
+          ed3->v2->edge_count++;
         }
         else {
           /* new triangle */
@@ -708,39 +708,39 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
           BLI_remlink((ListBase *)&(sc->edge_first), ed1);
           BLI_addtail(&sf_ctx->filledgebase, ed1);
           ed1->v2->f = SF_VERT_NEW;
-          ed1->v1->edge_tot--;
-          ed1->v2->edge_tot--;
+          ed1->v1->edge_count--;
+          ed1->v2->edge_count--;
           /* ed2 can be removed when it's a boundary edge */
           if (((ed2->f == SF_EDGE_NEW) && twoconnected) /* || (ed2->f == SF_EDGE_BOUNDARY) */) {
             BLI_remlink((ListBase *)&(sc->edge_first), ed2);
             BLI_addtail(&sf_ctx->filledgebase, ed2);
             ed2->v2->f = SF_VERT_NEW;
-            ed2->v1->edge_tot--;
-            ed2->v2->edge_tot--;
+            ed2->v1->edge_count--;
+            ed2->v2->edge_count--;
           }
 
           /* new edge */
           ed3 = BLI_scanfill_edge_add(sf_ctx, v1, v3);
           BLI_remlink(&sf_ctx->filledgebase, ed3);
           ed3->f = SF_EDGE_INTERNAL;
-          ed3->v1->edge_tot++;
-          ed3->v2->edge_tot++;
+          ed3->v1->edge_count++;
+          ed3->v2->edge_count++;
 
           // printf("add new edge %x %x\n", v1, v3);
           sc1 = addedgetoscanlist(scdata, ed3, verts);
 
           if (sc1) { /* ed3 already exists: remove if a boundary */
             // printf("Edge exists\n");
-            ed3->v1->edge_tot--;
-            ed3->v2->edge_tot--;
+            ed3->v1->edge_count--;
+            ed3->v2->edge_count--;
 
             for (ed3 = sc1->edge_first; ed3; ed3 = ed3->next) {
               if ((ed3->v1 == v1 && ed3->v2 == v3) || (ed3->v1 == v3 && ed3->v2 == v1)) {
                 if (twoconnected /* || (ed3->f == SF_EDGE_BOUNDARY) */) {
                   BLI_remlink((ListBase *)&(sc1->edge_first), ed3);
                   BLI_addtail(&sf_ctx->filledgebase, ed3);
-                  ed3->v1->edge_tot--;
-                  ed3->v2->edge_tot--;
+                  ed3->v1->edge_count--;
+                  ed3->v2->edge_count--;
                 }
                 break;
               }
@@ -752,14 +752,14 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
       /* test for loose edges */
       for (ed1 = sc->edge_first; ed1; ed1 = eed_next) {
         eed_next = ed1->next;
-        if (ed1->v1->edge_tot < 2 || ed1->v2->edge_tot < 2) {
+        if (ed1->v1->edge_count < 2 || ed1->v2->edge_count < 2) {
           BLI_remlink((ListBase *)&(sc->edge_first), ed1);
           BLI_addtail(&sf_ctx->filledgebase, ed1);
-          if (ed1->v1->edge_tot > 1) {
-            ed1->v1->edge_tot--;
+          if (ed1->v1->edge_count > 1) {
+            ed1->v1->edge_count--;
           }
-          if (ed1->v2->edge_tot > 1) {
-            ed1->v2->edge_tot--;
+          if (ed1->v2->edge_count > 1) {
+            ed1->v2->edge_count--;
           }
         }
       }
@@ -838,7 +838,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
      * however they should always be zero'd so check instead */
     BLI_assert(eve->f == 0);
     BLI_assert(sf_ctx->poly_nr || eve->poly_nr == 0);
-    BLI_assert(eve->edge_tot == 0);
+    BLI_assert(eve->edge_count == 0);
   }
 #endif
 
@@ -964,10 +964,10 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
   if (flag & BLI_SCANFILL_CALC_LOOSE) {
     unsigned int toggle = 0;
     for (eed = sf_ctx->filledgebase.first; eed; eed = eed->next) {
-      if (eed->v1->edge_tot++ > 250) {
+      if (eed->v1->edge_count++ > 250) {
         break;
       }
-      if (eed->v2->edge_tot++ > 250) {
+      if (eed->v2->edge_count++ > 250) {
         break;
       }
     }
@@ -979,7 +979,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
       return 0;
     }
 
-    /* does it only for vertices with (->edge_tot == 1) */
+    /* does it only for vertices with (->edge_count == 1) */
     testvertexnearedge(sf_ctx);
 
     ok = true;
@@ -990,14 +990,14 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
       for (eed = (toggle & 1) ? sf_ctx->filledgebase.first : sf_ctx->filledgebase.last; eed;
            eed = eed_next) {
         eed_next = (toggle & 1) ? eed->next : eed->prev;
-        if (eed->v1->edge_tot == 1) {
-          eed->v2->edge_tot--;
+        if (eed->v1->edge_count == 1) {
+          eed->v2->edge_count--;
           BLI_remlink(&sf_ctx->fillvertbase, eed->v1);
           BLI_remlink(&sf_ctx->filledgebase, eed);
           ok = true;
         }
-        else if (eed->v2->edge_tot == 1) {
-          eed->v1->edge_tot--;
+        else if (eed->v2->edge_count == 1) {
+          eed->v1->edge_count--;
           BLI_remlink(&sf_ctx->fillvertbase, eed->v2);
           BLI_remlink(&sf_ctx->filledgebase, eed);
           ok = true;
@@ -1012,14 +1012,14 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
   else {
     /* skip checks for loose edges */
     for (eed = sf_ctx->filledgebase.first; eed; eed = eed->next) {
-      eed->v1->edge_tot++;
-      eed->v2->edge_tot++;
+      eed->v1->edge_count++;
+      eed->v2->edge_count++;
     }
 #ifdef DEBUG
     /* ensure we're right! */
     for (eed = sf_ctx->filledgebase.first; eed; eed = eed->next) {
-      BLI_assert(eed->v1->edge_tot != 1);
-      BLI_assert(eed->v2->edge_tot != 1);
+      BLI_assert(eed->v1->edge_count != 1);
+      BLI_assert(eed->v2->edge_count != 1);
     }
 #endif
   }
@@ -1027,7 +1027,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
   /* CURRENT STATUS:
    * - `eve->f`:        1 = available in edges.
    * - `eve->poly_nr`:  poly-number.
-   * - `eve->edge_tot`: amount of edges connected to vertex.
+   * - `eve->edge_count`: amount of edges connected to vertex.
    * - `eve->tmp.v`:    store! original vertex number.
    *
    * - `eed->f`:        1 = boundary edge (optionally set by caller).
@@ -1058,7 +1058,7 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
     min_xy_p[1] = (min_xy_p[1]) < (eve->xy[1]) ? (min_xy_p[1]) : (eve->xy[1]);
     max_xy_p[0] = (max_xy_p[0]) > (eve->xy[0]) ? (max_xy_p[0]) : (eve->xy[0]);
     max_xy_p[1] = (max_xy_p[1]) > (eve->xy[1]) ? (max_xy_p[1]) : (eve->xy[1]);
-    if (eve->edge_tot > 2) {
+    if (eve->edge_count > 2) {
       pflist[eve->poly_nr].f = SF_POLY_VALID;
     }
   }

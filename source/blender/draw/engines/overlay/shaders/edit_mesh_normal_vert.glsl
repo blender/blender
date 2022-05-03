@@ -1,16 +1,6 @@
 
-uniform float normalSize;
-uniform float normalScreenSize;
-uniform bool isConstantScreenSizeNormals;
-uniform sampler2D depthTex;
-uniform float alpha = 1.0;
-
-in vec3 pos;
-in vec4 lnor;
-in vec4 vnor;
-in vec4 norAndFlag;
-
-flat out vec4 finalColor;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 bool test_occlusion()
 {
@@ -75,7 +65,5 @@ void main()
 
   finalColor.a *= (test_occlusion()) ? alpha : 1.0;
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(world_pos);
-#endif
+  view_clipping_distances(world_pos);
 }

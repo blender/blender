@@ -200,16 +200,14 @@ static void write_buffer_rect(rcti *rect,
   }
 }
 
-OutputSingleLayerOperation::OutputSingleLayerOperation(
-    const RenderData *rd,
-    const bNodeTree *tree,
-    DataType datatype,
-    ImageFormatData *format,
-    const char *path,
-    const ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings,
-    const char *view_name,
-    const bool save_as_render)
+OutputSingleLayerOperation::OutputSingleLayerOperation(const Scene *scene,
+                                                       const RenderData *rd,
+                                                       const bNodeTree *tree,
+                                                       DataType datatype,
+                                                       ImageFormatData *format,
+                                                       const char *path,
+                                                       const char *view_name,
+                                                       const bool save_as_render)
 {
   rd_ = rd;
   tree_ = tree;
@@ -220,13 +218,16 @@ OutputSingleLayerOperation::OutputSingleLayerOperation(
   datatype_ = datatype;
   image_input_ = nullptr;
 
-  format_ = format;
+  BKE_image_format_init_for_write(&format_, scene, format);
   BLI_strncpy(path_, path, sizeof(path_));
 
-  view_settings_ = view_settings;
-  display_settings_ = display_settings;
   view_name_ = view_name;
   save_as_render_ = save_as_render;
+}
+
+OutputSingleLayerOperation::~OutputSingleLayerOperation()
+{
+  BKE_image_format_free(&format_);
 }
 
 void OutputSingleLayerOperation::init_execution()
@@ -245,7 +246,7 @@ void OutputSingleLayerOperation::deinit_execution()
   if (this->get_width() * this->get_height() != 0) {
 
     int size = get_datatype_size(datatype_);
-    ImBuf *ibuf = IMB_allocImBuf(this->get_width(), this->get_height(), format_->planes, 0);
+    ImBuf *ibuf = IMB_allocImBuf(this->get_width(), this->get_height(), format_.planes, 0);
     char filename[FILE_MAX];
     const char *suffix;
 
@@ -254,8 +255,7 @@ void OutputSingleLayerOperation::deinit_execution()
     ibuf->mall |= IB_rectfloat;
     ibuf->dither = rd_->dither_intensity;
 
-    IMB_colormanagement_imbuf_for_write(
-        ibuf, save_as_render_, false, view_settings_, display_settings_, format_);
+    IMB_colormanagement_imbuf_for_write(ibuf, save_as_render_, false, &format_);
 
     suffix = BKE_scene_multiview_view_suffix_get(rd_, view_name_);
 
@@ -263,12 +263,12 @@ void OutputSingleLayerOperation::deinit_execution()
                                  path_,
                                  BKE_main_blendfile_path_from_global(),
                                  rd_->cfra,
-                                 format_,
+                                 &format_,
                                  (rd_->scemode & R_EXTENSION) != 0,
                                  true,
                                  suffix);
 
-    if (0 == BKE_imbuf_write(ibuf, filename, format_)) {
+    if (0 == BKE_imbuf_write(ibuf, filename, &format_)) {
       printf("Cannot save Node File Output to %s\n", filename);
     }
     else {

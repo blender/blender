@@ -145,9 +145,7 @@ static void requiredDataMask(Object *UNUSED(ob),
   /* No need to ask for CD_PREVIEW_MLOOPCOL... */
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene),
-                          ModifierData *md,
-                          const int UNUSED(dag_eval_mode))
+static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *md)
 {
   WeightVGMixModifierData *wmd = (WeightVGMixModifierData *)md;
 
@@ -213,7 +211,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   float *org_w;
   float *new_w;
   int *tidx, *indices = NULL;
-  int numIdx = 0;
+  int index_num = 0;
   int i;
   const bool invert_vgroup_mask = (wmd->flag & MOD_WVG_MIX_INVERT_VGROUP_MASK) != 0;
   const bool do_normalize = (wmd->flag & MOD_WVG_MIX_WEIGHTS_NORMALIZE) != 0;
@@ -233,12 +231,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 #endif
 
   /* Get number of verts. */
-  const int numVerts = mesh->totvert;
+  const int verts_num = mesh->totvert;
 
   /* Check if we can just return the original mesh.
    * Must have verts and therefore verts assigned to vgroups to do anything useful!
    */
-  if ((numVerts == 0) || BLI_listbase_is_empty(&mesh->vertex_group_names)) {
+  if ((verts_num == 0) || BLI_listbase_is_empty(&mesh->vertex_group_names)) {
     return mesh;
   }
 
@@ -266,11 +264,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   if (has_mdef) {
-    dvert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MDEFORMVERT, numVerts);
+    dvert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MDEFORMVERT, verts_num);
   }
   else {
     /* Add a valid data layer! */
-    dvert = CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, numVerts);
+    dvert = CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, verts_num);
   }
   /* Ultimate security check. */
   if (!dvert) {
@@ -279,107 +277,107 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   mesh->dvert = dvert;
 
   /* Find out which vertices to work on. */
-  tidx = MEM_malloc_arrayN(numVerts, sizeof(int), "WeightVGMix Modifier, tidx");
-  tdw1 = MEM_malloc_arrayN(numVerts, sizeof(MDeformWeight *), "WeightVGMix Modifier, tdw1");
-  tdw2 = MEM_malloc_arrayN(numVerts, sizeof(MDeformWeight *), "WeightVGMix Modifier, tdw2");
+  tidx = MEM_malloc_arrayN(verts_num, sizeof(int), "WeightVGMix Modifier, tidx");
+  tdw1 = MEM_malloc_arrayN(verts_num, sizeof(MDeformWeight *), "WeightVGMix Modifier, tdw1");
+  tdw2 = MEM_malloc_arrayN(verts_num, sizeof(MDeformWeight *), "WeightVGMix Modifier, tdw2");
   switch (wmd->mix_set) {
     case MOD_WVG_SET_A:
       /* All vertices in first vgroup. */
-      for (i = 0; i < numVerts; i++) {
+      for (i = 0; i < verts_num; i++) {
         MDeformWeight *dw = BKE_defvert_find_index(&dvert[i], defgrp_index);
         if (dw) {
-          tdw1[numIdx] = dw;
-          tdw2[numIdx] = (defgrp_index_other >= 0) ?
-                             BKE_defvert_find_index(&dvert[i], defgrp_index_other) :
-                             NULL;
-          tidx[numIdx++] = i;
+          tdw1[index_num] = dw;
+          tdw2[index_num] = (defgrp_index_other >= 0) ?
+                                BKE_defvert_find_index(&dvert[i], defgrp_index_other) :
+                                NULL;
+          tidx[index_num++] = i;
         }
       }
       break;
     case MOD_WVG_SET_B:
       /* All vertices in second vgroup. */
-      for (i = 0; i < numVerts; i++) {
+      for (i = 0; i < verts_num; i++) {
         MDeformWeight *dw = (defgrp_index_other >= 0) ?
                                 BKE_defvert_find_index(&dvert[i], defgrp_index_other) :
                                 NULL;
         if (dw) {
-          tdw1[numIdx] = BKE_defvert_find_index(&dvert[i], defgrp_index);
-          tdw2[numIdx] = dw;
-          tidx[numIdx++] = i;
+          tdw1[index_num] = BKE_defvert_find_index(&dvert[i], defgrp_index);
+          tdw2[index_num] = dw;
+          tidx[index_num++] = i;
         }
       }
       break;
     case MOD_WVG_SET_OR:
       /* All vertices in one vgroup or the other. */
-      for (i = 0; i < numVerts; i++) {
+      for (i = 0; i < verts_num; i++) {
         MDeformWeight *adw = BKE_defvert_find_index(&dvert[i], defgrp_index);
         MDeformWeight *bdw = (defgrp_index_other >= 0) ?
                                  BKE_defvert_find_index(&dvert[i], defgrp_index_other) :
                                  NULL;
         if (adw || bdw) {
-          tdw1[numIdx] = adw;
-          tdw2[numIdx] = bdw;
-          tidx[numIdx++] = i;
+          tdw1[index_num] = adw;
+          tdw2[index_num] = bdw;
+          tidx[index_num++] = i;
         }
       }
       break;
     case MOD_WVG_SET_AND:
       /* All vertices in both vgroups. */
-      for (i = 0; i < numVerts; i++) {
+      for (i = 0; i < verts_num; i++) {
         MDeformWeight *adw = BKE_defvert_find_index(&dvert[i], defgrp_index);
         MDeformWeight *bdw = (defgrp_index_other >= 0) ?
                                  BKE_defvert_find_index(&dvert[i], defgrp_index_other) :
                                  NULL;
         if (adw && bdw) {
-          tdw1[numIdx] = adw;
-          tdw2[numIdx] = bdw;
-          tidx[numIdx++] = i;
+          tdw1[index_num] = adw;
+          tdw2[index_num] = bdw;
+          tidx[index_num++] = i;
         }
       }
       break;
     case MOD_WVG_SET_ALL:
     default:
       /* Use all vertices. */
-      for (i = 0; i < numVerts; i++) {
+      for (i = 0; i < verts_num; i++) {
         tdw1[i] = BKE_defvert_find_index(&dvert[i], defgrp_index);
         tdw2[i] = (defgrp_index_other >= 0) ?
                       BKE_defvert_find_index(&dvert[i], defgrp_index_other) :
                       NULL;
       }
-      numIdx = -1;
+      index_num = -1;
       break;
   }
-  if (numIdx == 0) {
+  if (index_num == 0) {
     /* Use no vertices! Hence, return org data. */
     MEM_freeN(tdw1);
     MEM_freeN(tdw2);
     MEM_freeN(tidx);
     return mesh;
   }
-  if (numIdx != -1) {
-    indices = MEM_malloc_arrayN(numIdx, sizeof(int), "WeightVGMix Modifier, indices");
-    memcpy(indices, tidx, sizeof(int) * numIdx);
-    dw1 = MEM_malloc_arrayN(numIdx, sizeof(MDeformWeight *), "WeightVGMix Modifier, dw1");
-    memcpy(dw1, tdw1, sizeof(MDeformWeight *) * numIdx);
+  if (index_num != -1) {
+    indices = MEM_malloc_arrayN(index_num, sizeof(int), "WeightVGMix Modifier, indices");
+    memcpy(indices, tidx, sizeof(int) * index_num);
+    dw1 = MEM_malloc_arrayN(index_num, sizeof(MDeformWeight *), "WeightVGMix Modifier, dw1");
+    memcpy(dw1, tdw1, sizeof(MDeformWeight *) * index_num);
     MEM_freeN(tdw1);
-    dw2 = MEM_malloc_arrayN(numIdx, sizeof(MDeformWeight *), "WeightVGMix Modifier, dw2");
-    memcpy(dw2, tdw2, sizeof(MDeformWeight *) * numIdx);
+    dw2 = MEM_malloc_arrayN(index_num, sizeof(MDeformWeight *), "WeightVGMix Modifier, dw2");
+    memcpy(dw2, tdw2, sizeof(MDeformWeight *) * index_num);
     MEM_freeN(tdw2);
   }
   else {
     /* Use all vertices. */
-    numIdx = numVerts;
+    index_num = verts_num;
     /* Just copy MDeformWeight pointers arrays, they will be freed at the end. */
     dw1 = tdw1;
     dw2 = tdw2;
   }
   MEM_freeN(tidx);
 
-  org_w = MEM_malloc_arrayN(numIdx, sizeof(float), "WeightVGMix Modifier, org_w");
-  new_w = MEM_malloc_arrayN(numIdx, sizeof(float), "WeightVGMix Modifier, new_w");
+  org_w = MEM_malloc_arrayN(index_num, sizeof(float), "WeightVGMix Modifier, org_w");
+  new_w = MEM_malloc_arrayN(index_num, sizeof(float), "WeightVGMix Modifier, new_w");
 
   /* Mix weights. */
-  for (i = 0; i < numIdx; i++) {
+  for (i = 0; i < index_num; i++) {
     float weight2;
     if (invert_vgroup_a) {
       org_w[i] = 1.0f - (dw1[i] ? dw1[i]->weight : wmd->default_weight_a);
@@ -400,7 +398,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   /* Do masking. */
   struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   weightvg_do_mask(ctx,
-                   numIdx,
+                   index_num,
                    indices,
                    org_w,
                    new_w,
@@ -420,13 +418,22 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   /* Update (add to) vgroup.
    * XXX Depending on the MOD_WVG_SET_xxx option chosen, we might have to add vertices to vgroup.
    */
-  weightvg_update_vg(
-      dvert, defgrp_index, dw1, numIdx, indices, org_w, true, -FLT_MAX, false, 0.0f, do_normalize);
+  weightvg_update_vg(dvert,
+                     defgrp_index,
+                     dw1,
+                     index_num,
+                     indices,
+                     org_w,
+                     true,
+                     -FLT_MAX,
+                     false,
+                     0.0f,
+                     do_normalize);
 
   /* If weight preview enabled... */
 #if 0 /* XXX Currently done in mod stack :/ */
   if (do_prev) {
-    DM_update_weight_mcol(ob, dm, 0, org_w, numIdx, indices);
+    DM_update_weight_mcol(ob, dm, 0, org_w, index_num, indices);
   }
 #endif
 

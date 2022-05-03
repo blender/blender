@@ -97,8 +97,8 @@ static int bli_compare(struct direntry *entry1, struct direntry *entry2)
 }
 
 struct BuildDirCtx {
-  struct direntry *files; /* array[nrfiles] */
-  int nrfiles;
+  struct direntry *files; /* array[files_num] */
+  int files_num;
 };
 
 /**
@@ -154,7 +154,7 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
     if (newnum) {
       if (dir_ctx->files) {
         void *const tmp = MEM_reallocN(dir_ctx->files,
-                                       (dir_ctx->nrfiles + newnum) * sizeof(struct direntry));
+                                       (dir_ctx->files_num + newnum) * sizeof(struct direntry));
         if (tmp) {
           dir_ctx->files = (struct direntry *)tmp;
         }
@@ -171,7 +171,7 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 
       if (dir_ctx->files) {
         struct dirlink *dlink = (struct dirlink *)dirbase.first;
-        struct direntry *file = &dir_ctx->files[dir_ctx->nrfiles];
+        struct direntry *file = &dir_ctx->files[dir_ctx->files_num];
         while (dlink) {
           char fullname[PATH_MAX];
           memset(file, 0, sizeof(struct direntry));
@@ -186,7 +186,7 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
              * does not support stat on '\\SERVER\foo\..', sigh... */
             file->type |= S_IFDIR;
           }
-          dir_ctx->nrfiles++;
+          dir_ctx->files_num++;
           file++;
           dlink = dlink->next;
         }
@@ -199,7 +199,7 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
       BLI_freelist(&dirbase);
       if (dir_ctx->files) {
         qsort(dir_ctx->files,
-              dir_ctx->nrfiles,
+              dir_ctx->files_num,
               sizeof(struct direntry),
               (int (*)(const void *, const void *))bli_compare);
       }
@@ -219,7 +219,7 @@ unsigned int BLI_filelist_dir_contents(const char *dirname, struct direntry **r_
 {
   struct BuildDirCtx dir_ctx;
 
-  dir_ctx.nrfiles = 0;
+  dir_ctx.files_num = 0;
   dir_ctx.files = NULL;
 
   bli_builddir(&dir_ctx, dirname);
@@ -233,7 +233,7 @@ unsigned int BLI_filelist_dir_contents(const char *dirname, struct direntry **r_
     *r_filelist = MEM_mallocN(sizeof(**r_filelist), __func__);
   }
 
-  return dir_ctx.nrfiles;
+  return dir_ctx.files_num;
 }
 
 void BLI_filelist_entry_size_to_string(const struct stat *st,

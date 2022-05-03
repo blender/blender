@@ -22,6 +22,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 
@@ -503,8 +504,11 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
     walk->rv3d->persp = RV3D_PERSP;
   }
 
-  if (walk->rv3d->persp == RV3D_CAMOB && ID_IS_LINKED(walk->v3d->camera)) {
-    BKE_report(op->reports, RPT_ERROR, "Cannot navigate a camera from an external library");
+  if (walk->rv3d->persp == RV3D_CAMOB &&
+      !BKE_id_is_editable(CTX_data_main(C), &walk->v3d->camera->id)) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Cannot navigate a camera from an external library or non-editable override");
     return false;
   }
 
@@ -1201,7 +1205,6 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
             dvec_tmp[2] = 0.0f;
           }
 
-          normalize_v3(dvec_tmp);
           add_v3_v3(dvec, dvec_tmp);
         }
 
@@ -1222,7 +1225,6 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
           dvec_tmp[1] = direction * rv3d->viewinv[0][1];
           dvec_tmp[2] = 0.0f;
 
-          normalize_v3(dvec_tmp);
           add_v3_v3(dvec, dvec_tmp);
         }
 
@@ -1244,6 +1246,8 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
             add_v3_v3(dvec, dvec_tmp);
           }
         }
+
+        normalize_v3(dvec);
 
         /* apply movement */
         mul_v3_fl(dvec, walk->speed * time_redraw);

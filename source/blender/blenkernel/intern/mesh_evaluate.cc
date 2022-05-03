@@ -661,7 +661,7 @@ static void bm_corners_to_loops_ex(ID *id,
   }
 
   for (int i = 0; i < numCol; i++) {
-    MLoopCol *mloopcol = (MLoopCol *)CustomData_get_n(ldata, CD_MLOOPCOL, loopstart, i);
+    MLoopCol *mloopcol = (MLoopCol *)CustomData_get_n(ldata, CD_PROP_BYTE_COLOR, loopstart, i);
     MCol *mcol = (MCol *)CustomData_get_n(fdata, CD_MCOL, findex, i);
 
     MESH_MLOOPCOL_FROM_MCOL(mloopcol, &mcol[0]);
@@ -695,7 +695,7 @@ static void bm_corners_to_loops_ex(ID *id,
 
     if (CustomData_external_test(fdata, CD_MDISPS)) {
       if (id && fdata->external) {
-        CustomData_external_add(ldata, id, CD_MDISPS, totloop, fdata->external->filename);
+        CustomData_external_add(ldata, id, CD_MDISPS, totloop, fdata->external->filepath);
       }
     }
 

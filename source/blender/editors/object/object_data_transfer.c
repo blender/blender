@@ -72,7 +72,7 @@ static const EnumPropertyItem DT_layer_items[] = {
      "Transfer Freestyle edge mark"},
     {0, "", 0, "Face Corner Data", ""},
     {DT_TYPE_LNOR, "CUSTOM_NORMAL", 0, "Custom Normals", "Transfer custom normals"},
-    {DT_TYPE_VCOL, "VCOL", 0, "Vertex Colors", "Vertex (face corners) colors"},
+    {DT_TYPE_MPROPCOL_LOOP | DT_TYPE_MLOOPCOL_LOOP, "VCOL", 0, "Colors", "Color Attributes"},
     {DT_TYPE_UV, "UV", 0, "UVs", "Transfer UV layers"},
     {0, "", 0, "Face Data", ""},
     {DT_TYPE_SHARP_FACE, "SMOOTH", 0, "Smooth", "Transfer flat/smooth mark"},
@@ -84,6 +84,33 @@ static const EnumPropertyItem DT_layer_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static void dt_add_vcol_layers(CustomData *cdata,
+                               CustomDataMask mask,
+                               EnumPropertyItem **r_item,
+                               int *r_totitem)
+{
+  int types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
+
+  for (int i = 0; i < 2; i++) {
+    CustomDataType type = types[i];
+
+    if (!(mask & CD_TYPE_AS_MASK(type))) {
+      continue;
+    }
+
+    int num_data = CustomData_number_of_layers(cdata, type);
+
+    RNA_enum_item_add_separator(r_item, r_totitem);
+
+    for (int j = 0; j < num_data; j++) {
+      EnumPropertyItem tmp_item;
+
+      tmp_item.value = j;
+      tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(cdata, type, j);
+      RNA_enum_item_add(r_item, r_totitem, &tmp_item);
+    }
+  }
+}
 /* NOTE: #rna_enum_dt_layers_select_src_items enum is from rna_modifier.c. */
 static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
                                                           PointerRNA *ptr,
@@ -110,7 +137,7 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
   RNA_enum_items_add_value(
       &item, &totitem, rna_enum_dt_layers_select_src_items, DT_LAYERS_ALL_SRC);
 
-  Object *ob_src = CTX_data_active_object(C);
+  Object *ob_src = ED_object_active_context(C);
   if (ob_src == NULL) {
     RNA_enum_item_end(&item, &totitem);
     *r_free = true;
@@ -159,23 +186,33 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
       RNA_enum_item_add(&item, &totitem, &tmp_item);
     }
   }
-  else if (data_type == DT_TYPE_VCOL) {
+  else if (data_type & DT_TYPE_VCOL_ALL) {
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
     Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
 
     CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
-    cddata_masks.lmask |= CD_MASK_MLOOPCOL;
+    if (data_type & (DT_TYPE_MPROPCOL_VERT)) {
+      cddata_masks.vmask |= CD_MASK_PROP_COLOR;
+    }
+    if (data_type & (DT_TYPE_MLOOPCOL_VERT)) {
+      cddata_masks.vmask |= CD_MASK_PROP_BYTE_COLOR;
+    }
+
+    if (data_type & (DT_TYPE_MPROPCOL_LOOP)) {
+      cddata_masks.lmask |= CD_MASK_PROP_COLOR;
+    }
+    if (data_type & (DT_TYPE_MLOOPCOL_LOOP)) {
+      cddata_masks.lmask |= CD_MASK_PROP_BYTE_COLOR;
+    }
+
     Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, &cddata_masks);
-    int num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPCOL);
 
-    RNA_enum_item_add_separator(&item, &totitem);
-
-    for (int i = 0; i < num_data; i++) {
-      tmp_item.value = i;
-      tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(
-          &me_eval->ldata, CD_MLOOPCOL, i);
-      RNA_enum_item_add(&item, &totitem, &tmp_item);
+    if (data_type & (DT_TYPE_MLOOPCOL_VERT | DT_TYPE_MPROPCOL_VERT)) {
+      dt_add_vcol_layers(&me_eval->vdata, cddata_masks.vmask, &item, &totitem);
+    }
+    if (data_type & (DT_TYPE_MLOOPCOL_LOOP | DT_TYPE_MPROPCOL_LOOP)) {
+      dt_add_vcol_layers(&me_eval->ldata, cddata_masks.lmask, &item, &totitem);
     }
   }
 
@@ -319,11 +356,11 @@ static void data_transfer_exec_preprocess_objects(bContext *C,
     }
 
     me = ob->data;
-    if (ID_IS_LINKED(me)) {
-      /* Do not transfer to linked data, not supported. */
+    if (ID_IS_LINKED(me) || ID_IS_OVERRIDE_LIBRARY(me)) {
+      /* Do not transfer to linked/override data, not supported. */
       BKE_reportf(op->reports,
                   RPT_WARNING,
-                  "Skipping object '%s', linked data '%s' cannot be modified",
+                  "Skipping object '%s', linked or override data '%s' cannot be modified",
                   ob->id.name + 2,
                   me->id.name + 2);
       me->id.tag &= ~LIB_TAG_DOIT;

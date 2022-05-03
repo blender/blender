@@ -6,10 +6,14 @@
 
 #pragma once
 
+#include "DNA_view3d_enums.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+struct bToolRef;
+struct PaintModeSettings;
 struct ImBuf;
 struct Image;
 struct ImageUser;
@@ -20,11 +24,13 @@ struct wmKeyConfig;
 struct wmOperator;
 
 /* paint_ops.c */
+
 void ED_operatortypes_paint(void);
 void ED_operatormacros_paint(void);
 void ED_keymap_paint(struct wmKeyConfig *keyconf);
 
 /* paint_image.c */
+
 void ED_imapaint_clear_partial_redraw(void);
 void ED_imapaint_dirty_region(struct Image *ima,
                               struct ImBuf *ibuf,
@@ -106,6 +112,23 @@ void ED_paintcurve_undo_push_end(struct bContext *C);
 
 /** Export for ED_undo_sys. */
 void ED_paintcurve_undosys_type(struct UndoType *ut);
+
+/* paint_canvas.cc */
+/** Color type of an object can be overridden in sculpt/paint mode. */
+eV3DShadingColorType ED_paint_shading_color_override(struct bContext *C,
+                                                     const struct PaintModeSettings *settings,
+                                                     struct Object *ob,
+                                                     eV3DShadingColorType orig_color_type);
+
+/**
+ * Does the given tool use a paint canvas.
+ *
+ * When #tref isn't given the active tool from the context is used.
+ */
+bool ED_paint_tool_use_canvas(struct bContext *C, struct bToolRef *tref);
+
+/* Store the last used tool in the sculpt session. */
+void ED_paint_tool_update_sticky_shading_color(struct bContext *C, struct Object *ob);
 
 #ifdef __cplusplus
 }

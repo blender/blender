@@ -31,6 +31,13 @@
 #include "BPy_ViewMap.h"
 #include "BPy_ViewShape.h"
 
+#include "BKE_appdir.h"
+#include "DNA_scene_types.h"
+#include "FRS_freestyle.h"
+#include "RNA_access.h"
+#include "RNA_prototypes.h"
+#include "bpy_rna.h" /* pyrna_struct_CreatePyObject() */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -38,13 +45,6 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //------------------------ MODULE FUNCTIONS ----------------------------------
-
-#include "BKE_appdir.h"
-#include "DNA_scene_types.h"
-#include "FRS_freestyle.h"
-#include "RNA_access.h"
-#include "RNA_prototypes.h"
-#include "bpy_rna.h" /* pyrna_struct_CreatePyObject() */
 
 static char Freestyle_getCurrentScene___doc__[] =
     ".. function:: getCurrentScene()\n"

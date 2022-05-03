@@ -445,18 +445,29 @@ const char *FallbackImpl::colorSpaceGetFamily(OCIO_ConstColorSpaceRcPtr * /*cs*/
   return "";
 }
 
+int FallbackImpl::colorSpaceGetNumAliases(OCIO_ConstColorSpaceRcPtr * /*cs*/)
+{
+  return 0;
+}
+const char *FallbackImpl::colorSpaceGetAlias(OCIO_ConstColorSpaceRcPtr * /*cs*/,
+                                             const int /*index*/)
+{
+  return "";
+}
+
 OCIO_ConstProcessorRcPtr *FallbackImpl::createDisplayProcessor(OCIO_ConstConfigRcPtr * /*config*/,
                                                                const char * /*input*/,
                                                                const char * /*view*/,
                                                                const char * /*display*/,
                                                                const char * /*look*/,
                                                                const float scale,
-                                                               const float exponent)
+                                                               const float exponent,
+                                                               const bool inverse)
 {
   FallbackTransform transform;
-  transform.type = TRANSFORM_LINEAR_TO_SRGB;
-  transform.scale = scale;
-  transform.exponent = exponent;
+  transform.type = (inverse) ? TRANSFORM_SRGB_TO_LINEAR : TRANSFORM_LINEAR_TO_SRGB;
+  transform.scale = (inverse && scale != 0.0f) ? 1.0f / scale : scale;
+  transform.exponent = (inverse && exponent != 0.0f) ? 1.0f / exponent : exponent;
 
   return (OCIO_ConstProcessorRcPtr *)new FallbackProcessor(transform);
 }

@@ -377,15 +377,15 @@ static int validate_array(PyObject *rvalue,
                      totdim);
         return -1;
       }
-      if (pymat->num_col != dimsize[0] || pymat->num_row != dimsize[1]) {
+      if (pymat->col_num != dimsize[0] || pymat->row_num != dimsize[1]) {
         PyErr_Format(PyExc_ValueError,
                      "%s %.200s.%.200s, matrix assign dimension size mismatch, "
                      "is %dx%d, expected be %dx%d",
                      error_prefix,
                      RNA_struct_identifier(ptr->type),
                      RNA_property_identifier(prop),
-                     pymat->num_col,
-                     pymat->num_row,
+                     pymat->col_num,
+                     pymat->row_num,
                      dimsize[0],
                      dimsize[1]);
         return -1;
@@ -473,7 +473,7 @@ static char *copy_values(PyObject *seq,
   if (dim == 0) {
     if (MatrixObject_Check(seq)) {
       MatrixObject *pymat = (MatrixObject *)seq;
-      const size_t allocsize = pymat->num_col * pymat->num_row * sizeof(float);
+      const size_t allocsize = pymat->col_num * pymat->row_num * sizeof(float);
 
       /* read callback already done by validate */
       /* since this is the first iteration we can assume data is allocated */

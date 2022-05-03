@@ -59,10 +59,12 @@ def language_menu(args, settings):
     # 'DEFAULT' and en_US are always valid, fully-translated "languages"!
     stats = {"DEFAULT": 1.0, "en_US": 1.0}
 
-    po_to_uid = {os.path.basename(po_path_branch): uid
-                 for can_use, uid, _num_id, _name, _isocode, po_path_branch
-                     in utils_i18n.list_po_dir(settings.BRANCHES_DIR, settings)
-                 if can_use}
+    po_to_uid = {
+        os.path.basename(po_path_branch): uid
+        for can_use, uid, _num_id, _name, _isocode, po_path_branch
+        in utils_i18n.list_po_dir(settings.BRANCHES_DIR, settings)
+        if can_use
+    }
     for po_dir in os.listdir(settings.BRANCHES_DIR):
         po_dir = os.path.join(settings.BRANCHES_DIR, po_dir)
         if not os.path.isdir(po_dir):
@@ -82,36 +84,48 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Tool to perform common actions over PO/MO files.")
-    parser.add_argument('-s', '--settings', default=None,
-                        help="Override (some) default settings. Either a JSon file name, or a JSon string.")
+    parser.add_argument(
+        '-s', '--settings', default=None,
+        help="Override (some) default settings. Either a JSon file name, or a JSon string.",
+    )
     sub_parsers = parser.add_subparsers()
 
     sub_parser = sub_parsers.add_parser('update_po', help="Update a PO file from a given POT template file")
-    sub_parser.add_argument('--template', metavar='template.pot', required=True,
-                            help="The source pot file to use as template for the update.")
+    sub_parser.add_argument(
+        '--template', metavar='template.pot', required=True,
+        help="The source pot file to use as template for the update.",
+    )
     sub_parser.add_argument('--dst', metavar='dst.po', required=True, help="The destination po to update.")
     sub_parser.set_defaults(func=update_po)
 
-    sub_parser = sub_parsers.add_parser('cleanup_po',
-                                        help="Cleanup a PO file (check for and fix some common errors, remove commented messages).")
+    sub_parser = sub_parsers.add_parser(
+        'cleanup_po',
+        help="Cleanup a PO file (check for and fix some common errors, remove commented messages).",
+    )
     sub_parser.add_argument('--src', metavar='src.po', required=True, help="The source po file to clean up.")
     sub_parser.add_argument('--dst', metavar='dst.po', help="The destination po to write to.")
     sub_parser.set_defaults(func=cleanup_po)
 
-    sub_parser = sub_parsers.add_parser('strip_po',
-                                        help="Reduce all non-essential data from given PO file (reduce its size).")
+    sub_parser = sub_parsers.add_parser(
+        'strip_po',
+        help="Reduce all non-essential data from given PO file (reduce its size).",
+    )
     sub_parser.add_argument('--src', metavar='src.po', required=True, help="The source po file to strip.")
     sub_parser.add_argument('--dst', metavar='dst.po', help="The destination po to write to.")
     sub_parser.set_defaults(func=strip_po)
 
-    sub_parser = sub_parsers.add_parser('rtl_process_po',
-                                        help="Pre-process PO files for RTL languages.")
+    sub_parser = sub_parsers.add_parser(
+        'rtl_process_po',
+        help="Pre-process PO files for RTL languages.",
+    )
     sub_parser.add_argument('--src', metavar='src.po', required=True, help="The source po file to process.")
     sub_parser.add_argument('--dst', metavar='dst.po', help="The destination po to write to.")
     sub_parser.set_defaults(func=rtl_process_po)
 
-    sub_parser = sub_parsers.add_parser('language_menu',
-                                        help="Generate the text file used by Blender to create its language menu.")
+    sub_parser = sub_parsers.add_parser(
+        'language_menu',
+        help="Generate the text file used by Blender to create its language menu.",
+    )
     sub_parser.set_defaults(func=language_menu)
 
     args = parser.parse_args(sys.argv[1:])

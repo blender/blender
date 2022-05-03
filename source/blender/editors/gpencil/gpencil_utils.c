@@ -1423,7 +1423,7 @@ void ED_gpencil_add_defaults(bContext *C, Object *ob)
   /* ensure a color exists and is assigned to object */
   BKE_gpencil_object_material_ensure_from_active_input_toolsettings(bmain, ob, ts);
 
-  /* ensure multiframe falloff curve */
+  /* Ensure multi-frame falloff curve. */
   if (ts->gp_sculpt.cur_falloff == NULL) {
     ts->gp_sculpt.cur_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
     CurveMapping *gp_falloff_curve = ts->gp_sculpt.cur_falloff;

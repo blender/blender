@@ -233,6 +233,7 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
       DRW_shgroup_uniform_texture_ex(grp, "studioLight", sl->equirect_radiance_gputexture, state);
       /* Do not fade-out when doing probe rendering, only when drawing the background. */
       DRW_shgroup_uniform_float_copy(grp, "backgroundAlpha", 1.0f);
+      DRW_shgroup_uniform_float_copy(grp, "studioLightBlur", 0.0f);
     }
     else {
       float background_alpha = g_data->background_alpha * shading->studiolight_background;
@@ -240,6 +241,7 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
       DRW_shgroup_uniform_float_copy(grp, "backgroundAlpha", background_alpha);
       DRW_shgroup_uniform_float_copy(grp, "studioLightBlur", studiolight_blur);
       DRW_shgroup_uniform_texture(grp, "probeCubes", txl->lookdev_cube_tx);
+      DRW_shgroup_uniform_float_copy(grp, "studioLightIntensity", 1.0f);
     }
 
     /* Common UBOs are setup latter. */

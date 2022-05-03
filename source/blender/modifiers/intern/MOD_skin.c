@@ -450,18 +450,18 @@ static Frame **collect_hull_frames(
 {
   SkinNode *f;
   Frame **hull_frames;
-  int nbr, i;
+  int hull_frames_num, i;
 
   (*tothullframe) = emap[v].count;
   hull_frames = MEM_calloc_arrayN(
       (*tothullframe), sizeof(Frame *), "hull_from_frames.hull_frames");
-  i = 0;
-  for (nbr = 0; nbr < emap[v].count; nbr++) {
-    const MEdge *e = &medge[emap[v].indices[nbr]];
+  hull_frames_num = 0;
+  for (i = 0; i < emap[v].count; i++) {
+    const MEdge *e = &medge[emap[v].indices[i]];
     f = &frames[BKE_mesh_edge_other_vert(e, v)];
     /* Can't have adjacent branch nodes yet */
     if (f->totframe) {
-      hull_frames[i++] = &f->frames[0];
+      hull_frames[hull_frames_num++] = &f->frames[0];
     }
     else {
       (*tothullframe)--;
@@ -649,14 +649,14 @@ static void connection_node_frames(int v,
 }
 
 static SkinNode *build_frames(
-    const MVert *mvert, int totvert, const MVertSkin *nodes, const MeshElemMap *emap, EMat *emat)
+    const MVert *mvert, int verts_num, const MVertSkin *nodes, const MeshElemMap *emap, EMat *emat)
 {
   SkinNode *skin_nodes;
   int v;
 
-  skin_nodes = MEM_calloc_arrayN(totvert, sizeof(SkinNode), "build_frames.skin_nodes");
+  skin_nodes = MEM_calloc_arrayN(verts_num, sizeof(SkinNode), "build_frames.skin_nodes");
 
-  for (v = 0; v < totvert; v++) {
+  for (v = 0; v < verts_num; v++) {
     if (emap[v].count <= 1) {
       end_node_frames(v, skin_nodes, mvert, nodes, emap, emat);
     }
@@ -766,10 +766,10 @@ static void build_emats_stack(BLI_Stack *stack,
 
 static EMat *build_edge_mats(const MVertSkin *vs,
                              const MVert *mvert,
-                             int totvert,
+                             const int verts_num,
                              const MEdge *medge,
                              const MeshElemMap *emap,
-                             int totedge,
+                             const int edges_num,
                              bool *has_valid_root)
 {
   BLI_Stack *stack;
@@ -780,12 +780,12 @@ static EMat *build_edge_mats(const MVertSkin *vs,
 
   stack = BLI_stack_new(sizeof(stack_elem), "build_edge_mats.stack");
 
-  visited_e = BLI_BITMAP_NEW(totedge, "build_edge_mats.visited_e");
-  emat = MEM_calloc_arrayN(totedge, sizeof(EMat), "build_edge_mats.emat");
+  visited_e = BLI_BITMAP_NEW(edges_num, "build_edge_mats.visited_e");
+  emat = MEM_calloc_arrayN(edges_num, sizeof(EMat), "build_edge_mats.emat");
 
   /* Edge matrices are built from the root nodes, add all roots with
    * children to the stack */
-  for (v = 0; v < totvert; v++) {
+  for (v = 0; v < verts_num; v++) {
     if (vs[v].flag & MVERT_SKIN_ROOT) {
       if (emap[v].count >= 1) {
         const MEdge *e = &medge[emap[v].indices[0]];
@@ -800,7 +800,7 @@ static EMat *build_edge_mats(const MVertSkin *vs,
 
         *has_valid_root = true;
       }
-      else if (totedge == 0) {
+      else if (edges_num == 0) {
         /* Vertex-only mesh is valid, mark valid root as well (will display error otherwise). */
         *has_valid_root = true;
         break;
@@ -837,7 +837,7 @@ static int calc_edge_subdivisions(const MVert *mvert,
   float avg_radius;
   const bool v1_branch = degree[e->v1] > 2;
   const bool v2_branch = degree[e->v2] > 2;
-  int num_subdivisions;
+  int subdivisions_num;
 
   /* If either end is a branch node marked 'loose', don't subdivide
    * the edge (or subdivide just twice if both are branches) */
@@ -854,27 +854,27 @@ static int calc_edge_subdivisions(const MVert *mvert,
 
   if (avg_radius != 0.0f) {
     /* possible (but unlikely) that we overflow INT_MAX */
-    float num_subdivisions_fl;
+    float subdivisions_num_fl;
     const float edge_len = len_v3v3(mvert[e->v1].co, mvert[e->v2].co);
-    num_subdivisions_fl = (edge_len / avg_radius);
-    if (num_subdivisions_fl < NUM_SUBDIVISIONS_MAX) {
-      num_subdivisions = (int)num_subdivisions_fl;
+    subdivisions_num_fl = (edge_len / avg_radius);
+    if (subdivisions_num_fl < NUM_SUBDIVISIONS_MAX) {
+      subdivisions_num = (int)subdivisions_num_fl;
     }
     else {
-      num_subdivisions = NUM_SUBDIVISIONS_MAX;
+      subdivisions_num = NUM_SUBDIVISIONS_MAX;
     }
   }
   else {
-    num_subdivisions = 0;
+    subdivisions_num = 0;
   }
 
   /* If both ends are branch nodes, two intermediate nodes are
    * required */
-  if (num_subdivisions < 2 && v1_branch && v2_branch) {
-    num_subdivisions = 2;
+  if (subdivisions_num < 2 && v1_branch && v2_branch) {
+    subdivisions_num = 2;
   }
 
-  return num_subdivisions;
+  return subdivisions_num;
 
 #undef NUM_SUBDIVISIONS_MAX
 }
@@ -888,8 +888,8 @@ static Mesh *subdivide_base(Mesh *orig)
   MVert *origvert, *outvert;
   MEdge *origedge, *outedge, *e;
   MDeformVert *origdvert, *outdvert;
-  int totorigvert, totorigedge;
-  int totsubd, *degree, *edge_subd;
+  int orig_vert_num, orig_edge_num;
+  int subd_num, *degree, *edge_subd;
   int i, j, k, u, v;
   float radrat;
 
@@ -897,29 +897,29 @@ static Mesh *subdivide_base(Mesh *orig)
   origvert = orig->mvert;
   origedge = orig->medge;
   origdvert = orig->dvert;
-  totorigvert = orig->totvert;
-  totorigedge = orig->totedge;
+  orig_vert_num = orig->totvert;
+  orig_edge_num = orig->totedge;
 
   /* Get degree of all vertices */
-  degree = MEM_calloc_arrayN(totorigvert, sizeof(int), "degree");
-  for (i = 0; i < totorigedge; i++) {
+  degree = MEM_calloc_arrayN(orig_vert_num, sizeof(int), "degree");
+  for (i = 0; i < orig_edge_num; i++) {
     degree[origedge[i].v1]++;
     degree[origedge[i].v2]++;
   }
 
   /* Per edge, store how many subdivisions are needed */
-  edge_subd = MEM_calloc_arrayN((uint)totorigedge, sizeof(int), "edge_subd");
-  for (i = 0, totsubd = 0; i < totorigedge; i++) {
+  edge_subd = MEM_calloc_arrayN((uint)orig_edge_num, sizeof(int), "edge_subd");
+  for (i = 0, subd_num = 0; i < orig_edge_num; i++) {
     edge_subd[i] += calc_edge_subdivisions(origvert, orignode, &origedge[i], degree);
     BLI_assert(edge_subd[i] >= 0);
-    totsubd += edge_subd[i];
+    subd_num += edge_subd[i];
   }
 
   MEM_freeN(degree);
 
   /* Allocate output mesh */
   result = BKE_mesh_new_nomain_from_template(
-      orig, totorigvert + totsubd, totorigedge + totsubd, 0, 0, 0);
+      orig, orig_vert_num + subd_num, orig_edge_num + subd_num, 0, 0, 0);
 
   outvert = result->mvert;
   outedge = result->medge;
@@ -927,16 +927,16 @@ static Mesh *subdivide_base(Mesh *orig)
   outdvert = result->dvert;
 
   /* Copy original vertex data */
-  CustomData_copy_data(&orig->vdata, &result->vdata, 0, 0, totorigvert);
+  CustomData_copy_data(&orig->vdata, &result->vdata, 0, 0, orig_vert_num);
 
   /* Subdivide edges */
-  for (i = 0, v = totorigvert; i < totorigedge; i++) {
+  for (i = 0, v = orig_vert_num; i < orig_edge_num; i++) {
     struct {
       /* Vertex group number */
       int def_nr;
       float w1, w2;
     } *vgroups = NULL, *vg;
-    int totvgroup = 0;
+    int vgroups_num = 0;
 
     e = &origedge[i];
 
@@ -950,8 +950,8 @@ static Mesh *subdivide_base(Mesh *orig)
         vg = NULL;
         for (k = 0; k < dv2->totweight; k++) {
           if (dv1->dw[j].def_nr == dv2->dw[k].def_nr) {
-            vg = &vgroups[totvgroup];
-            totvgroup++;
+            vg = &vgroups[vgroups_num];
+            vgroups_num++;
             break;
           }
         }
@@ -986,7 +986,7 @@ static Mesh *subdivide_base(Mesh *orig)
       interp_v3_v3v3(outnode[v].radius, orignode[e->v1].radius, orignode[e->v2].radius, t);
 
       /* Interpolate vertex group weights */
-      for (k = 0; k < totvgroup; k++) {
+      for (k = 0; k < vgroups_num; k++) {
         float weight;
 
         vg = &vgroups[k];
@@ -1561,14 +1561,14 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 }
 
 static void skin_merge_close_frame_verts(SkinNode *skin_nodes,
-                                         int totvert,
+                                         int verts_num,
                                          const MeshElemMap *emap,
                                          const MEdge *medge)
 {
   Frame **hull_frames;
   int v, tothullframe;
 
-  for (v = 0; v < totvert; v++) {
+  for (v = 0; v < verts_num; v++) {
     /* Only check branch nodes */
     if (!skin_nodes[v].totframe) {
       hull_frames = collect_hull_frames(v, skin_nodes, emap, medge, &tothullframe);
@@ -1578,11 +1578,11 @@ static void skin_merge_close_frame_verts(SkinNode *skin_nodes,
   }
 }
 
-static void skin_update_merged_vertices(SkinNode *skin_nodes, int totvert)
+static void skin_update_merged_vertices(SkinNode *skin_nodes, int verts_num)
 {
   int v;
 
-  for (v = 0; v < totvert; v++) {
+  for (v = 0; v < verts_num; v++) {
     SkinNode *sn = &skin_nodes[v];
     int i, j;
 
@@ -1601,11 +1601,11 @@ static void skin_update_merged_vertices(SkinNode *skin_nodes, int totvert)
   }
 }
 
-static void skin_fix_hull_topology(BMesh *bm, SkinNode *skin_nodes, int totvert)
+static void skin_fix_hull_topology(BMesh *bm, SkinNode *skin_nodes, int verts_num)
 {
   int v;
 
-  for (v = 0; v < totvert; v++) {
+  for (v = 0; v < verts_num; v++) {
     SkinNode *sn = &skin_nodes[v];
     int j;
 
@@ -1626,11 +1626,11 @@ static void skin_fix_hull_topology(BMesh *bm, SkinNode *skin_nodes, int totvert)
   }
 }
 
-static void skin_output_end_nodes(SkinOutput *so, SkinNode *skin_nodes, int totvert)
+static void skin_output_end_nodes(SkinOutput *so, SkinNode *skin_nodes, int verts_num)
 {
   int v;
 
-  for (v = 0; v < totvert; v++) {
+  for (v = 0; v < verts_num; v++) {
     SkinNode *sn = &skin_nodes[v];
     /* Assuming here just two frames */
     if (sn->flag & SEAM_FRAME) {
@@ -1676,11 +1676,11 @@ static void skin_output_end_nodes(SkinOutput *so, SkinNode *skin_nodes, int totv
 static void skin_output_connections(SkinOutput *so,
                                     SkinNode *skin_nodes,
                                     const MEdge *medge,
-                                    int totedge)
+                                    int edges_num)
 {
   int e;
 
-  for (e = 0; e < totedge; e++) {
+  for (e = 0; e < edges_num; e++) {
     SkinNode *a, *b;
     a = &skin_nodes[medge[e].v1];
     b = &skin_nodes[medge[e].v2];
@@ -1713,7 +1713,7 @@ static void skin_output_connections(SkinOutput *so,
 
 static void skin_smooth_hulls(BMesh *bm,
                               SkinNode *skin_nodes,
-                              int totvert,
+                              int verts_num,
                               const SkinModifierData *smd)
 {
   BMIter iter, eiter;
@@ -1726,7 +1726,7 @@ static void skin_smooth_hulls(BMesh *bm,
 
   /* Mark all frame vertices */
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
-  for (i = 0; i < totvert; i++) {
+  for (i = 0; i < verts_num; i++) {
     for (j = 0; j < skin_nodes[i].totframe; j++) {
       Frame *frame = &skin_nodes[i].frames[j];
 
@@ -1780,13 +1780,16 @@ static void skin_smooth_hulls(BMesh *bm,
 }
 
 /* Returns true if all hulls are successfully built, false otherwise */
-static bool skin_output_branch_hulls(
-    SkinOutput *so, SkinNode *skin_nodes, int totvert, const MeshElemMap *emap, const MEdge *medge)
+static bool skin_output_branch_hulls(SkinOutput *so,
+                                     SkinNode *skin_nodes,
+                                     int verts_num,
+                                     const MeshElemMap *emap,
+                                     const MEdge *medge)
 {
   bool result = true;
   int v;
 
-  for (v = 0; v < totvert; v++) {
+  for (v = 0; v < verts_num; v++) {
     SkinNode *sn = &skin_nodes[v];
 
     /* Branch node hulls */
@@ -1812,10 +1815,10 @@ typedef enum eSkinErrorFlag {
 } eSkinErrorFlag;
 
 static BMesh *build_skin(SkinNode *skin_nodes,
-                         int totvert,
+                         int verts_num,
                          const MeshElemMap *emap,
                          const MEdge *medge,
-                         int totedge,
+                         int edges_num,
                          const MDeformVert *input_dvert,
                          SkinModifierData *smd,
                          eSkinErrorFlag *r_error)
@@ -1841,19 +1844,19 @@ static BMesh *build_skin(SkinNode *skin_nodes,
 
   /* Check for mergeable frame corners around hulls before
    * outputting vertices */
-  skin_merge_close_frame_verts(skin_nodes, totvert, emap, medge);
+  skin_merge_close_frame_verts(skin_nodes, verts_num, emap, medge);
 
   /* Write out all frame vertices to the mesh */
-  for (v = 0; v < totvert; v++) {
+  for (v = 0; v < verts_num; v++) {
     if (skin_nodes[v].totframe) {
       output_frames(so.bm, &skin_nodes[v], input_dvert ? &input_dvert[v] : NULL);
     }
   }
 
   /* Update vertex pointers for merged frame corners */
-  skin_update_merged_vertices(skin_nodes, totvert);
+  skin_update_merged_vertices(skin_nodes, verts_num);
 
-  if (!skin_output_branch_hulls(&so, skin_nodes, totvert, emap, medge)) {
+  if (!skin_output_branch_hulls(&so, skin_nodes, verts_num, emap, medge)) {
     *r_error |= SKIN_ERROR_HULL;
   }
 
@@ -1871,12 +1874,12 @@ static BMesh *build_skin(SkinNode *skin_nodes,
    * creating all hull faces, but before creating any other
    * faces.
    */
-  skin_fix_hull_topology(so.bm, skin_nodes, totvert);
+  skin_fix_hull_topology(so.bm, skin_nodes, verts_num);
 
-  skin_smooth_hulls(so.bm, skin_nodes, totvert, smd);
+  skin_smooth_hulls(so.bm, skin_nodes, verts_num, smd);
 
-  skin_output_end_nodes(&so, skin_nodes, totvert);
-  skin_output_connections(&so, skin_nodes, medge, totedge);
+  skin_output_end_nodes(&so, skin_nodes, verts_num);
+  skin_output_connections(&so, skin_nodes, medge, edges_num);
   hull_merge_triangles(&so, smd);
 
   bmesh_edit_end(so.bm, 0);
@@ -1912,7 +1915,7 @@ static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd, eSkinErrorFlag *r_
   MVert *mvert;
   MEdge *medge;
   MDeformVert *dvert;
-  int totvert, totedge;
+  int verts_num, edges_num;
   bool has_valid_root = false;
 
   nodes = CustomData_get_layer(&origmesh->vdata, CD_MVERT_SKIN);
@@ -1920,17 +1923,17 @@ static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd, eSkinErrorFlag *r_
   mvert = origmesh->mvert;
   dvert = origmesh->dvert;
   medge = origmesh->medge;
-  totvert = origmesh->totvert;
-  totedge = origmesh->totedge;
+  verts_num = origmesh->totvert;
+  edges_num = origmesh->totedge;
 
-  BKE_mesh_vert_edge_map_create(&emap, &emapmem, medge, totvert, totedge);
+  BKE_mesh_vert_edge_map_create(&emap, &emapmem, medge, verts_num, edges_num);
 
-  emat = build_edge_mats(nodes, mvert, totvert, medge, emap, totedge, &has_valid_root);
-  skin_nodes = build_frames(mvert, totvert, nodes, emap, emat);
+  emat = build_edge_mats(nodes, mvert, verts_num, medge, emap, edges_num, &has_valid_root);
+  skin_nodes = build_frames(mvert, verts_num, nodes, emap, emat);
   MEM_freeN(emat);
   emat = NULL;
 
-  bm = build_skin(skin_nodes, totvert, emap, medge, totedge, dvert, smd, r_error);
+  bm = build_skin(skin_nodes, verts_num, emap, medge, edges_num, dvert, smd, r_error);
 
   MEM_freeN(skin_nodes);
   MEM_freeN(emap);
@@ -1946,8 +1949,6 @@ static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd, eSkinErrorFlag *r_
 
   result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, origmesh);
   BM_mesh_free(bm);
-
-  BKE_mesh_normals_tag_dirty(result);
 
   skin_set_orig_indices(result);
 

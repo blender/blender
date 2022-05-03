@@ -1,29 +1,5 @@
 
-uniform sampler3D velocityX;
-uniform sampler3D velocityY;
-uniform sampler3D velocityZ;
-uniform float displaySize = 1.0;
-uniform float slicePosition;
-uniform int sliceAxis; /* -1 is no slice, 0 is X, 1 is Y, 2 is Z. */
-uniform bool scaleWithMagnitude = false;
-uniform bool isCellCentered = false;
-
-/* FluidDomainSettings.cell_size */
-uniform vec3 cellSize;
-/* FluidDomainSettings.p0 */
-uniform vec3 domainOriginOffset;
-/* FluidDomainSettings.res_min */
-uniform ivec3 adaptiveCellOffset;
-
-#ifdef USE_MAC
-uniform bool drawMACX;
-uniform bool drawMACY;
-uniform bool drawMACZ;
-
-out vec4 finalColor;
-#else
-flat out vec4 finalColor;
-#endif
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 const vec3 corners[4] = vec3[4](vec3(0.0, 0.2, -0.5),
                                 vec3(-0.2 * 0.866, -0.2 * 0.5, -0.5),

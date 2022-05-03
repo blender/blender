@@ -58,9 +58,9 @@ set(SRC
   nodes/node_geo_curve_to_points.cc
   nodes/node_geo_curve_trim.cc
   nodes/node_geo_delete_geometry.cc
-  nodes/node_geo_duplicate_elements.cc
   nodes/node_geo_distribute_points_on_faces.cc
   nodes/node_geo_dual_mesh.cc
+  nodes/node_geo_duplicate_elements.cc
   nodes/node_geo_edge_split.cc
   nodes/node_geo_extrude_mesh.cc
   nodes/node_geo_field_at_index.cc

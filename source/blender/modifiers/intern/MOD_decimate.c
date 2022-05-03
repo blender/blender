@@ -91,6 +91,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   DecimateModifierData *dmd = (DecimateModifierData *)md;
   Mesh *mesh = meshData, *result = NULL;
   BMesh *bm;
+  bool calc_vert_normal;
   bool calc_face_normal;
   float *vweights = NULL;
 
@@ -107,18 +108,21 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         return mesh;
       }
       calc_face_normal = true;
+      calc_vert_normal = true;
       break;
     case MOD_DECIM_MODE_UNSUBDIV:
       if (dmd->iter == 0) {
         return mesh;
       }
       calc_face_normal = false;
+      calc_vert_normal = false;
       break;
     case MOD_DECIM_MODE_DISSOLVE:
       if (dmd->angle == 0.0f) {
         return mesh;
       }
       calc_face_normal = true;
+      calc_vert_normal = false;
       break;
     default:
       return mesh;
@@ -160,6 +164,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                             &(struct BMeshCreateParams){0},
                             &(struct BMeshFromMeshParams){
                                 .calc_face_normal = calc_face_normal,
+                                .calc_vert_normal = calc_vert_normal,
                                 .cd_mask_extra = {.vmask = CD_MASK_ORIGINDEX,
                                                   .emask = CD_MASK_ORIGINDEX,
                                                   .pmask = CD_MASK_ORIGINDEX},
@@ -206,8 +211,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 #ifdef USE_TIMEIT
   TIMEIT_END(decim);
 #endif
-
-  BKE_mesh_normals_tag_dirty(result);
 
   return result;
 }

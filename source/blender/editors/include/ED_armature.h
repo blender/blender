@@ -282,6 +282,7 @@ void ED_armature_ebone_selectflag_enable(struct EditBone *ebone, int flag);
 void ED_armature_ebone_selectflag_disable(struct EditBone *ebone, int flag);
 
 /* pose_edit.c */
+
 struct Object *ED_pose_object_from_context(struct bContext *C);
 bool ED_object_posemode_exit_ex(struct Main *bmain, struct Object *ob);
 bool ED_object_posemode_exit(struct bContext *C, struct Object *ob);
@@ -357,11 +358,12 @@ void ED_pose_bone_select_tag_update(struct Object *ob);
 void ED_pose_bone_select(struct Object *ob, struct bPoseChannel *pchan, bool select);
 
 /* meshlaplacian.c */
+
 void ED_mesh_deform_bind_callback(struct Object *object,
                                   struct MeshDeformModifierData *mmd,
                                   struct Mesh *cagemesh,
                                   float *vertexcos,
-                                  int totvert,
+                                  int verts_num,
                                   float cagemat[4][4]);
 
 /* Pose backups, pose_backup.c */

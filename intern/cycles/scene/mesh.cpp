@@ -142,8 +142,8 @@ NODE_DEFINE(Mesh)
   SOCKET_INT(num_ngons, "NGons Number", 0);
 
   /* Subdivisions parameters */
-  SOCKET_FLOAT(subd_dicing_rate, "Subdivision Dicing Rate", 0.0f)
-  SOCKET_INT(subd_max_level, "Subdivision Dicing Rate", 0);
+  SOCKET_FLOAT(subd_dicing_rate, "Subdivision Dicing Rate", 1.0f)
+  SOCKET_INT(subd_max_level, "Max Subdivision Level", 1);
   SOCKET_TRANSFORM(subd_objecttoworld, "Subdivision Object Transform", transform_identity());
 
   return type;
@@ -357,7 +357,7 @@ void Mesh::add_triangle(int v0, int v1, int v2, int shader_, bool smooth_)
   }
 }
 
-void Mesh::add_subd_face(int *corners, int num_corners, int shader_, bool smooth_)
+void Mesh::add_subd_face(const int *corners, int num_corners, int shader_, bool smooth_)
 {
   int start_corner = subd_face_corners.size();
 
@@ -411,8 +411,6 @@ void Mesh::add_edge_crease(int v0, int v1, float weight)
 
 void Mesh::add_vertex_crease(int v, float weight)
 {
-  assert(v < verts.size());
-
   subd_vert_creases.push_back_slow(v);
   subd_vert_creases_weight.push_back_slow(weight);
 
@@ -692,12 +690,16 @@ void Mesh::pack_shaders(Scene *scene, uint *tri_shader)
   bool last_smooth = false;
 
   size_t triangles_size = num_triangles();
-  int *shader_ptr = shader.data();
+  const int *shader_ptr = shader.data();
+  const bool *smooth_ptr = smooth.data();
 
   for (size_t i = 0; i < triangles_size; i++) {
-    if (shader_ptr[i] != last_shader || last_smooth != smooth[i]) {
-      last_shader = shader_ptr[i];
-      last_smooth = smooth[i];
+    const int new_shader = shader_ptr ? shader_ptr[i] : INT_MAX;
+    const bool new_smooth = smooth_ptr ? smooth_ptr[i] : false;
+
+    if (new_shader != last_shader || last_smooth != new_smooth) {
+      last_shader = new_shader;
+      last_smooth = new_smooth;
       Shader *shader = (last_shader < used_shaders.size()) ?
                            static_cast<Shader *>(used_shaders[last_shader]) :
                            scene->default_surface;

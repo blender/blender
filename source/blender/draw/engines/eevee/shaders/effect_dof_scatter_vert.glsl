@@ -95,7 +95,7 @@ void main()
 
   weights = dof_layer_weight(cocs) * dof_sample_weight(cocs);
   /* Filter NaNs. */
-  weights = mix(weights, vec4(0.0), equal(cocs, vec4(0.0)));
+  weights = select(weights, vec4(0.0), equal(cocs, vec4(0.0)));
 
   color1 = colors[0] * weights[0];
   color2 = colors[1] * weights[1];

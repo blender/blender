@@ -18,8 +18,8 @@ void node_tangentmap(vec4 attr_tangent, out vec3 tangent)
   tangent = normalize(attr_tangent.xyz);
 }
 
-void node_tangent(vec3 N, vec3 orco, mat4 objmat, out vec3 T)
+void node_tangent(vec3 orco, out vec3 T)
 {
-  T = (objmat * vec4(orco, 0.0)).xyz;
-  T = cross(N, normalize(cross(T, N)));
+  T = transform_direction(ModelMatrix, orco);
+  T = cross(g_data.N, normalize(cross(T, g_data.N)));
 }

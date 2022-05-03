@@ -19,8 +19,14 @@
 #include <pxr/usd/usdGeom/nurbsCurves.h>
 #include <pxr/usd/usdGeom/scope.h>
 #include <pxr/usd/usdGeom/xform.h>
+
 #include <pxr/usd/usdLux/domeLight.h>
-#include <pxr/usd/usdLux/light.h>
+#if PXR_VERSION >= 2111
+#  include <pxr/usd/usdLux/boundableLightBase.h>
+#  include <pxr/usd/usdLux/nonboundableLightBase.h>
+#else
+#  include <pxr/usd/usdLux/light.h>
+#endif
 
 #include <iostream>
 
@@ -65,8 +71,13 @@ USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim
   if (params_.import_lights && prim.IsA<pxr::UsdLuxDomeLight>()) {
     return new USDXformReader(prim, params_, settings_);
   }
+#if PXR_VERSION >= 2111
+  if (params_.import_lights && (prim.IsA<pxr::UsdLuxBoundableLightBase>() ||
+                                prim.IsA<pxr::UsdLuxNonboundableLightBase>())) {
+#else
   if (params_.import_lights && prim.IsA<pxr::UsdLuxLight>()) {
-    return new USDLightReader(prim, params_, settings_, xf_cache);
+#endif
+    return new USDLightReader(prim, params_, settings_);
   }
   if (params_.import_volumes && prim.IsA<pxr::UsdVolVolume>()) {
     return new USDVolumeReader(prim, params_, settings_);
@@ -100,8 +111,12 @@ USDPrimReader *USDStageReader::create_reader(const pxr::UsdPrim &prim,
   if (prim.IsA<pxr::UsdLuxDomeLight>()) {
     return new USDXformReader(prim, params_, settings_);
   }
+#if PXR_VERSION >= 2111
+  if (prim.IsA<pxr::UsdLuxBoundableLightBase>() || prim.IsA<pxr::UsdLuxNonboundableLightBase>()) {
+#else
   if (prim.IsA<pxr::UsdLuxLight>()) {
-    return new USDLightReader(prim, params_, settings_, xf_cache);
+#endif
+    return new USDLightReader(prim, params_, settings_);
   }
   if (prim.IsA<pxr::UsdVolVolume>()) {
     return new USDVolumeReader(prim, params_, settings_);
@@ -266,7 +281,7 @@ USDPrimReader *USDStageReader::collect_readers(Main *bmain,
     }
   }
 
-  if (prim.IsPseudoRoot() || prim.IsMaster()) {
+  if (prim.IsPseudoRoot() || prim.IsPrototype()) {
     return nullptr;
   }
 
@@ -322,7 +337,7 @@ void USDStageReader::collect_readers(Main *bmain)
 
   if (params_.use_instancing) {
     // Collect the scenegraph instance prototypes.
-    std::vector<pxr::UsdPrim> protos = stage_->GetMasters();
+    std::vector<pxr::UsdPrim> protos = stage_->GetPrototypes();
 
     for (const pxr::UsdPrim &proto_prim : protos) {
       std::vector<USDPrimReader *> proto_readers;

@@ -994,9 +994,10 @@ static int gpencil_duplicate_exec(bContext *C, wmOperator *op)
     /* updates */
     DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+    return OPERATOR_FINISHED;
   }
 
-  return OPERATOR_FINISHED;
+  return OPERATOR_CANCELLED;
 }
 
 void GPENCIL_OT_duplicate(wmOperatorType *ot)
@@ -3924,31 +3925,36 @@ static void gpencil_smooth_stroke(bContext *C, wmOperator *op)
 
   GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
     if (gps->flag & GP_STROKE_SELECT) {
-      for (int r = 0; r < repeat; r++) {
+      /* TODO use `BKE_gpencil_stroke_smooth` when the weights are better used. */
+      bGPDstroke gps_old = *gps;
+      gps_old.points = (bGPDspoint *)MEM_dupallocN(gps->points);
+      /* Here the iteration needs to be done outside the smooth functions,
+       * as there are points that don't get smoothed. */
+      for (int n = 0; n < repeat; n++) {
         for (int i = 0; i < gps->totpoints; i++) {
-          bGPDspoint *pt = &gps->points[i];
-          if ((only_selected) && ((pt->flag & GP_SPOINT_SELECT) == 0)) {
+          if (only_selected && (gps->points[i].flag & GP_SPOINT_SELECT) == 0) {
             continue;
           }
 
-          /* perform smoothing */
+          /* Perform smoothing. */
           if (smooth_position) {
-            BKE_gpencil_stroke_smooth_point(gps, i, factor, false);
+            BKE_gpencil_stroke_smooth_point(&gps_old, i, factor, 1, false, false, gps);
           }
           if (smooth_strength) {
-            BKE_gpencil_stroke_smooth_strength(gps, i, factor);
+            BKE_gpencil_stroke_smooth_strength(&gps_old, i, factor, 1, gps);
           }
           if (smooth_thickness) {
-            /* thickness need to repeat process several times */
-            for (int r2 = 0; r2 < repeat * 2; r2++) {
-              BKE_gpencil_stroke_smooth_thickness(gps, i, 1.0f - factor);
-            }
+            BKE_gpencil_stroke_smooth_thickness(&gps_old, i, 1.0f - factor, 1, gps);
           }
           if (smooth_uv) {
-            BKE_gpencil_stroke_smooth_uv(gps, i, factor);
+            BKE_gpencil_stroke_smooth_uv(&gps_old, i, factor, 1, gps);
           }
         }
+        if (n < repeat - 1) {
+          memcpy(gps_old.points, gps->points, sizeof(bGPDspoint) * gps->totpoints);
+        }
       }
+      MEM_freeN(gps_old.points);
     }
   }
   GP_EDITABLE_STROKES_END(gpstroke_iter);
@@ -4926,10 +4932,10 @@ void GPENCIL_OT_stroke_smooth(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  prop = RNA_def_int(ot->srna, "repeat", 1, 1, 50, "Repeat", "", 1, 20);
+  prop = RNA_def_int(ot->srna, "repeat", 2, 1, 1000, "Repeat", "", 1, 1000);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  RNA_def_float(ot->srna, "factor", 0.5f, 0.0f, 2.0f, "Factor", "", 0.0f, 2.0f);
+  RNA_def_float(ot->srna, "factor", 1.0f, 0.0f, 2.0f, "Factor", "", 0.0f, 1.0f);
   RNA_def_boolean(ot->srna,
                   "only_selected",
                   true,

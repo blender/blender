@@ -1,3 +1,6 @@
+#pragma BLENDER_REQUIRE(gpu_shader_material_hash.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_material_math_util.glsl)
+
 /*
  * Original code is under the MIT License, Copyright (c) 2013 Inigo Quilez.
  *

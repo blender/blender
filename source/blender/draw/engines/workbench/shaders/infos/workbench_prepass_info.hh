@@ -74,7 +74,7 @@ GPU_SHADER_INTERFACE_INFO(workbench_material_iface, "")
     .smooth(Type::FLOAT, "alpha_interp")
     .smooth(Type::VEC2, "uv_interp")
     .flat(Type::INT, "object_id")
-    .flat(Type::FLOAT, "roughness")
+    .flat(Type::FLOAT, "_roughness")
     .flat(Type::FLOAT, "metallic");
 
 GPU_SHADER_CREATE_INFO(workbench_material)
@@ -92,7 +92,7 @@ GPU_SHADER_CREATE_INFO(workbench_material)
 
 GPU_SHADER_CREATE_INFO(workbench_transparent_accum)
     /* Note: Blending will be skipped on objectId because output is a
-       non-normalized integer buffer. */
+     * non-normalized integer buffer. */
     .fragment_out(0, Type::VEC4, "transparentAccum")
     .fragment_out(1, Type::VEC4, "revealageAccum")
     .fragment_out(2, Type::UINT, "objectId")

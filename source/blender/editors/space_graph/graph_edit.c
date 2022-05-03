@@ -623,11 +623,12 @@ void GRAPH_OT_paste(wmOperatorType *ot)
 /** \name Duplicate Keyframes Operator
  * \{ */
 
-static void duplicate_graph_keys(bAnimContext *ac)
+static bool duplicate_graph_keys(bAnimContext *ac)
 {
   ListBase anim_data = {NULL, NULL};
   bAnimListElem *ale;
   int filter;
+  bool changed = false;
 
   /* Filter data. */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT |
@@ -636,13 +637,15 @@ static void duplicate_graph_keys(bAnimContext *ac)
 
   /* Loop through filtered data and delete selected keys. */
   for (ale = anim_data.first; ale; ale = ale->next) {
-    duplicate_fcurve_keys((FCurve *)ale->key_data);
+    changed |= duplicate_fcurve_keys((FCurve *)ale->key_data);
 
     ale->update |= ANIM_UPDATE_DEFAULT;
   }
 
   ANIM_animdata_update(ac, &anim_data);
   ANIM_animdata_freelist(&anim_data);
+
+  return changed;
 }
 
 /* ------------------- */
@@ -657,7 +660,9 @@ static int graphkeys_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   /* Duplicate keyframes. */
-  duplicate_graph_keys(&ac);
+  if (!duplicate_graph_keys(&ac)) {
+    return OPERATOR_CANCELLED;
+  }
 
   /* Set notifier that keyframes have changed. */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, NULL);
@@ -2399,8 +2404,8 @@ void GRAPH_OT_equalize_handles(wmOperatorType *ot)
   ot->name = "Equalize Handles";
   ot->idname = "GRAPH_OT_equalize_handles";
   ot->description =
-      "Ensure selected keyframes' handles have equal length, optionally making them horizontal";
-
+      "Ensure selected keyframes' handles have equal length, optionally making them horizontal. "
+      "Automatic, Automatic Clamped, or Vector handle types will be converted to Aligned";
   /* API callbacks */
   ot->invoke = WM_menu_invoke;
   ot->exec = graphkeys_equalize_handles_exec;

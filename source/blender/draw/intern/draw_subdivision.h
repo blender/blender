@@ -130,6 +130,8 @@ typedef struct DRWSubdivCache {
 
   /* Maps subdivision loop to subdivided vertex index. */
   int *subdiv_loop_subdiv_vert_index;
+  /* Maps subdivision loop to subdivided edge index. */
+  int *subdiv_loop_subdiv_edge_index;
   /* Maps subdivision loop to original coarse poly index. */
   int *subdiv_loop_poly_index;
 
@@ -204,7 +206,7 @@ void draw_subdiv_init_mesh_render_data(DRWSubdivCache *cache,
                                        const struct ToolSettings *toolsettings);
 
 void draw_subdiv_init_origindex_buffer(struct GPUVertBuf *buffer,
-                                       int *vert_origindex,
+                                       int32_t *vert_origindex,
                                        uint num_loops,
                                        uint loose_len);
 

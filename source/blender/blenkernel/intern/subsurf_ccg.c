@@ -1469,7 +1469,7 @@ static void ccgdm_create_grids(DerivedMesh *dm)
   DMFlagMat *gridFlagMats;
   CCGFace **gridFaces;
   int *gridOffset;
-  int index, numFaces, numGrids, S, gIndex /*, gridSize*/;
+  int index, numFaces, numGrids, S, gIndex /*, gridSize */;
 
   if (ccgdm->gridData) {
     return;
@@ -1962,8 +1962,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
                    0,
                    ccgSubSurf_getNumFinalFaces(ss) * 4,
                    ccgSubSurf_getNumFinalFaces(ss));
-
-  CustomData_free_layer_active(&ccgdm->dm.polyData, CD_NORMAL, ccgdm->dm.numPolyData);
 
   ccgdm->reverseFaceMap = MEM_callocN(sizeof(int) * ccgSubSurf_getNumFinalFaces(ss),
                                       "reverseFaceMap");

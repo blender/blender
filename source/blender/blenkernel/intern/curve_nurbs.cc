@@ -10,53 +10,53 @@
 
 namespace blender::bke::curves::nurbs {
 
-bool check_valid_size_and_order(const int size,
+bool check_valid_size_and_order(const int points_num,
                                 const int8_t order,
                                 const bool cyclic,
                                 const KnotsMode knots_mode)
 {
-  if (size < order) {
+  if (points_num < order) {
     return false;
   }
 
   if (ELEM(knots_mode, NURBS_KNOT_MODE_BEZIER, NURBS_KNOT_MODE_ENDPOINT_BEZIER)) {
-    if (knots_mode == NURBS_KNOT_MODE_BEZIER && size <= order) {
+    if (knots_mode == NURBS_KNOT_MODE_BEZIER && points_num <= order) {
       return false;
     }
-    return (!cyclic || size % (order - 1) == 0);
+    return (!cyclic || points_num % (order - 1) == 0);
   }
 
   return true;
 }
 
-int calculate_evaluated_size(const int size,
+int calculate_evaluated_size(const int points_num,
                              const int8_t order,
                              const bool cyclic,
                              const int resolution,
                              const KnotsMode knots_mode)
 {
-  if (!check_valid_size_and_order(size, order, cyclic, knots_mode)) {
+  if (!check_valid_size_and_order(points_num, order, cyclic, knots_mode)) {
     return 0;
   }
-  return resolution * curve_segment_size(size, cyclic);
+  return resolution * curve_segment_size(points_num, cyclic);
 }
 
-int knots_size(const int size, const int8_t order, const bool cyclic)
+int knots_size(const int points_num, const int8_t order, const bool cyclic)
 {
   if (cyclic) {
-    return size + order * 2 - 1;
+    return points_num + order * 2 - 1;
   }
-  return size + order;
+  return points_num + order;
 }
 
-void calculate_knots(const int size,
+void calculate_knots(const int points_num,
                      const KnotsMode mode,
                      const int8_t order,
                      const bool cyclic,
                      MutableSpan<float> knots)
 {
-  BLI_assert(knots.size() == knots_size(size, order, cyclic));
-  UNUSED_VARS_NDEBUG(size);
+  BLI_assert(knots.size() == knots_size(points_num, order, cyclic));
+  UNUSED_VARS_NDEBUG(points_num);
 
   const bool is_bezier = ELEM(mode, NURBS_KNOT_MODE_BEZIER, NURBS_KNOT_MODE_ENDPOINT_BEZIER);
   const bool is_end_point = ELEM(mode, NURBS_KNOT_MODE_ENDPOINT, NURBS_KNOT_MODE_ENDPOINT_BEZIER);
@@ -94,7 +94,7 @@ void calculate_knots(const int size,
 }
 
 static void calculate_basis_for_point(const float parameter,
-                                      const int size,
+                                      const int points_num,
                                       const int degree,
                                       const Span<float> knots,
                                       MutableSpan<float> r_weights,
@@ -104,7 +104,7 @@ static void calculate_basis_for_point(const float parameter,
 
   int start = 0;
   int end = 0;
-  for (const int i : IndexRange(size + degree)) {
+  for (const int i : IndexRange(points_num + degree)) {
     const bool knots_equal = knots[i] == knots[i + 1];
     if (knots_equal || parameter < knots[i] || parameter > knots[i + 1]) {
       continue;
@@ -121,7 +121,7 @@ static void calculate_basis_for_point(const float parameter,
 
   for (const int i_order : IndexRange(2, degree)) {
     if (end + i_order >= knots.size()) {
-      end = size + degree - i_order;
+      end = points_num + degree - i_order;
     }
     for (const int i : IndexRange(end - start + 1)) {
       const int knot_index = start + i;
@@ -146,15 +146,14 @@ static void calculate_basis_for_point(const float parameter,
   r_start_index = start;
 }
 
-void calculate_basis_cache(const int size,
+void calculate_basis_cache(const int points_num,
                            const int evaluated_size,
                            const int8_t order,
                            const bool cyclic,
                            const Span<float> knots,
                            BasisCache &basis_cache)
 {
-  BLI_assert(size > 0);
-  BLI_assert(evaluated_size > 0);
+  BLI_assert(points_num > 0);
 
   const int8_t degree = order - 1;
 
@@ -168,7 +167,7 @@ void calculate_basis_cache(const int size,
   MutableSpan<float> basis_weights(basis_cache.weights);
   MutableSpan<int> basis_start_indices(basis_cache.start_indices);
 
-  const int last_control_point_index = cyclic ? size + degree : size;
+  const int last_control_point_index = cyclic ? points_num + degree : points_num;
   const int evaluated_segment_size = curve_segment_size(evaluated_size, cyclic);
 
   const float start = knots[degree];
@@ -176,7 +175,7 @@ void calculate_basis_cache(const int size,
   const float step = (end - start) / evaluated_segment_size;
   for (const int i : IndexRange(evaluated_size)) {
     /* Clamp parameter due to floating point inaccuracy. */
-    const float parameter = std::clamp(start + step * i, knots[0], knots[size + degree]);
+    const float parameter = std::clamp(start + step * i, knots[0], knots[points_num + degree]);
 
     MutableSpan<float> point_weights = basis_weights.slice(i * order, order);
 

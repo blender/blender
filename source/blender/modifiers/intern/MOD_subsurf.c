@@ -205,6 +205,7 @@ static void subdiv_cache_cpu_evaluation_settings(const ModifierEvalContext *ctx,
   me->runtime.subsurf_apply_render = (ctx->flag & MOD_APPLY_RENDER) != 0;
   me->runtime.subsurf_resolution = mesh_settings.resolution;
   me->runtime.subsurf_use_optimal_display = mesh_settings.use_optimal_display;
+  me->runtime.subsurf_session_uuid = smd->modifier.session_uuid;
 }
 
 /* Modifier itself. */
@@ -283,7 +284,7 @@ static void deformMatrices(ModifierData *md,
                            Mesh *mesh,
                            float (*vertex_cos)[3],
                            float (*deform_matrices)[3][3],
-                           int num_verts)
+                           int verts_num)
 {
 #if !defined(WITH_OPENSUBDIV)
   BKE_modifier_set_error(ctx->object, md, "Disabled, built without OpenSubdiv");
@@ -307,7 +308,7 @@ static void deformMatrices(ModifierData *md,
     /* Happens on bad topology, but also on empty input mesh. */
     return;
   }
-  BKE_subdiv_deform_coarse_vertices(subdiv, mesh, vertex_cos, num_verts);
+  BKE_subdiv_deform_coarse_vertices(subdiv, mesh, vertex_cos, verts_num);
   if (subdiv != runtime_data->subdiv) {
     BKE_subdiv_free(subdiv);
   }

@@ -162,8 +162,21 @@ static void data_from_gpu_stack_list(ListBase *sockets, bNodeStack **ns, GPUNode
   }
 }
 
-bNode *nodeGetActiveTexture(bNodeTree *ntree)
+bool nodeSupportsActiveFlag(const bNode *node, int sub_activity)
 {
+  BLI_assert(ELEM(sub_activity, NODE_ACTIVE_TEXTURE, NODE_ACTIVE_PAINT_CANVAS));
+  switch (sub_activity) {
+    case NODE_ACTIVE_TEXTURE:
+      return node->typeinfo->nclass == NODE_CLASS_TEXTURE;
+    case NODE_ACTIVE_PAINT_CANVAS:
+      return ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_ATTRIBUTE);
+  }
+  return false;
+}
+
+static bNode *node_get_active(bNodeTree *ntree, int sub_activity)
+{
+  BLI_assert(ELEM(sub_activity, NODE_ACTIVE_TEXTURE, NODE_ACTIVE_PAINT_CANVAS));
   /* this is the node we texture paint and draw in textured draw */
   bNode *inactivenode = nullptr, *activetexnode = nullptr, *activegroup = nullptr;
   bool hasgroup = false;
@@ -173,14 +186,14 @@ bNode *nodeGetActiveTexture(bNodeTree *ntree)
   }
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->flag & NODE_ACTIVE_TEXTURE) {
+    if (node->flag & sub_activity) {
       activetexnode = node;
       /* if active we can return immediately */
       if (node->flag & NODE_ACTIVE) {
         return node;
       }
     }
-    else if (!inactivenode && node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
+    else if (!inactivenode && nodeSupportsActiveFlag(node, sub_activity)) {
       inactivenode = node;
     }
     else if (node->type == NODE_GROUP) {
@@ -195,7 +208,7 @@ bNode *nodeGetActiveTexture(bNodeTree *ntree)
 
   /* first, check active group for textures */
   if (activegroup) {
-    bNode *tnode = nodeGetActiveTexture((bNodeTree *)activegroup->id);
+    bNode *tnode = node_get_active((bNodeTree *)activegroup->id, sub_activity);
     /* active node takes priority, so ignore any other possible nodes here */
     if (tnode) {
       return tnode;
@@ -210,8 +223,8 @@ bNode *nodeGetActiveTexture(bNodeTree *ntree)
     /* node active texture node in this tree, look inside groups */
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       if (node->type == NODE_GROUP) {
-        bNode *tnode = nodeGetActiveTexture((bNodeTree *)node->id);
-        if (tnode && ((tnode->flag & NODE_ACTIVE_TEXTURE) || !inactivenode)) {
+        bNode *tnode = node_get_active((bNodeTree *)node->id, sub_activity);
+        if (tnode && ((tnode->flag & sub_activity) || !inactivenode)) {
           return tnode;
         }
       }
@@ -219,6 +232,16 @@ bNode *nodeGetActiveTexture(bNodeTree *ntree)
   }
 
   return inactivenode;
+}
+
+bNode *nodeGetActiveTexture(bNodeTree *ntree)
+{
+  return node_get_active(ntree, NODE_ACTIVE_TEXTURE);
+}
+
+bNode *nodeGetActivePaintCanvas(bNodeTree *ntree)
+{
+  return node_get_active(ntree, NODE_ACTIVE_PAINT_CANVAS);
 }
 
 void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, bNode *output_node)
@@ -261,26 +284,15 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, bNode *output_node
   }
 }
 
-void node_shader_gpu_bump_tex_coord(GPUMaterial *mat, bNode *node, GPUNodeLink **link)
+void node_shader_gpu_bump_tex_coord(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeLink **link)
 {
-  if (node->branch_tag == 1) {
-    /* Add one time the value for derivative to the input vector. */
-    GPU_link(mat, "dfdx_v3", *link, link);
-  }
-  else if (node->branch_tag == 2) {
-    /* Add one time the value for derivative to the input vector. */
-    GPU_link(mat, "dfdy_v3", *link, link);
-  }
-  else {
-    /* nothing to do, reference center value. */
-  }
+  GPU_link(mat, "differentiate_texco", *link, link);
 }
 
 void node_shader_gpu_default_tex_coord(GPUMaterial *mat, bNode *node, GPUNodeLink **link)
 {
   if (!*link) {
     *link = GPU_attribute(mat, CD_ORCO, "");
-    GPU_link(mat, "generated_texco", GPU_builtin(GPU_VIEW_POSITION), *link, link);
     node_shader_gpu_bump_tex_coord(mat, node, link);
   }
 }

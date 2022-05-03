@@ -25,7 +25,7 @@ typedef struct {
   size_t in_buf_max_size;
 
   struct {
-    int num_frames;
+    int frames_num;
     size_t *compressed_ofs;
     size_t *uncompressed_ofs;
 
@@ -69,21 +69,21 @@ static bool zstd_read_seek_table(ZstdReader *zstd)
     return false;
   }
 
-  uint32_t num_frames;
-  if (base->seek(base, -9, SEEK_END) < 0 || !zstd_read_u32(base, &num_frames)) {
+  uint32_t frames_num;
+  if (base->seek(base, -9, SEEK_END) < 0 || !zstd_read_u32(base, &frames_num)) {
     return false;
   }
 
   /* Each frame has either 2 or 3 uint32_t, and after that we have
-   * num_frames, flags and magic for another 9 bytes. */
-  uint32_t expected_frame_length = num_frames * (has_checksums ? 12 : 8) + 9;
+   * frames_num, flags and magic for another 9 bytes. */
+  uint32_t expected_frame_length = frames_num * (has_checksums ? 12 : 8) + 9;
   /* The frame starts with another magic number and its length, but these
    * two fields are not included when counting length. */
   off64_t frame_start_ofs = 8 + expected_frame_length;
   /* Sanity check: Before the start of the seek table frame,
-   * there must be num_frames frames, each of which at least 8 bytes long. */
+   * there must be frames_num frames, each of which at least 8 bytes long. */
   off64_t seek_frame_start = base->seek(base, -frame_start_ofs, SEEK_END);
-  if (seek_frame_start < num_frames * 8) {
+  if (seek_frame_start < frames_num * 8) {
     return false;
   }
 
@@ -96,13 +96,13 @@ static bool zstd_read_seek_table(ZstdReader *zstd)
     return false;
   }
 
-  zstd->seek.num_frames = num_frames;
-  zstd->seek.compressed_ofs = MEM_malloc_arrayN(num_frames + 1, sizeof(size_t), __func__);
-  zstd->seek.uncompressed_ofs = MEM_malloc_arrayN(num_frames + 1, sizeof(size_t), __func__);
+  zstd->seek.frames_num = frames_num;
+  zstd->seek.compressed_ofs = MEM_malloc_arrayN(frames_num + 1, sizeof(size_t), __func__);
+  zstd->seek.uncompressed_ofs = MEM_malloc_arrayN(frames_num + 1, sizeof(size_t), __func__);
 
   size_t compressed_ofs = 0;
   size_t uncompressed_ofs = 0;
-  for (int i = 0; i < num_frames; i++) {
+  for (int i = 0; i < frames_num; i++) {
     uint32_t compressed_size, uncompressed_size;
     if (!zstd_read_u32(base, &compressed_size) || !zstd_read_u32(base, &uncompressed_size)) {
       break;
@@ -115,8 +115,8 @@ static bool zstd_read_seek_table(ZstdReader *zstd)
     compressed_ofs += compressed_size;
     uncompressed_ofs += uncompressed_size;
   }
-  zstd->seek.compressed_ofs[num_frames] = compressed_ofs;
-  zstd->seek.uncompressed_ofs[num_frames] = uncompressed_ofs;
+  zstd->seek.compressed_ofs[frames_num] = compressed_ofs;
+  zstd->seek.uncompressed_ofs[frames_num] = uncompressed_ofs;
 
   /* Seek to the end of the previous frame for the following #BHead frame detection. */
   if (seek_frame_start != compressed_ofs || base->seek(base, seek_frame_start, SEEK_SET) < 0) {
@@ -135,9 +135,9 @@ static bool zstd_read_seek_table(ZstdReader *zstd)
  * Basically just bisection. */
 static int zstd_frame_from_pos(ZstdReader *zstd, size_t pos)
 {
-  int low = 0, high = zstd->seek.num_frames;
+  int low = 0, high = zstd->seek.frames_num;
 
-  if (pos >= zstd->seek.uncompressed_ofs[zstd->seek.num_frames]) {
+  if (pos >= zstd->seek.uncompressed_ofs[zstd->seek.frames_num]) {
     return -1;
   }
 
@@ -229,13 +229,13 @@ static off64_t zstd_seek(FileReader *reader, off64_t offset, int whence)
     new_pos = offset;
   }
   else if (whence == SEEK_END) {
-    new_pos = zstd->seek.uncompressed_ofs[zstd->seek.num_frames] + offset;
+    new_pos = zstd->seek.uncompressed_ofs[zstd->seek.frames_num] + offset;
   }
   else {
     new_pos = zstd->reader.offset + offset;
   }
 
-  if (new_pos < 0 || new_pos > zstd->seek.uncompressed_ofs[zstd->seek.num_frames]) {
+  if (new_pos < 0 || new_pos > zstd->seek.uncompressed_ofs[zstd->seek.frames_num]) {
     return -1;
   }
   zstd->reader.offset = new_pos;

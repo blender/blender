@@ -31,7 +31,17 @@ ccl_device_inline float frac(float x, int *ix)
   return x - (float)i;
 }
 
-template<typename T> struct TextureInterpolator {
+template<typename TexT, typename OutT = float4> struct TextureInterpolator {
+
+  static ccl_always_inline OutT zero()
+  {
+    if constexpr (std::is_same<OutT, float4>::value) {
+      return zero_float4();
+    }
+    else {
+      return 0.0f;
+    }
+  }
 
   static ccl_always_inline float4 read(float4 r)
   {
@@ -40,21 +50,18 @@ template<typename T> struct TextureInterpolator {
 
   static ccl_always_inline float4 read(uchar4 r)
   {
-    float f = 1.0f / 255.0f;
+    const float f = 1.0f / 255.0f;
     return make_float4(r.x * f, r.y * f, r.z * f, r.w * f);
   }
 
-  static ccl_always_inline float4 read(uchar r)
+  static ccl_always_inline float read(uchar r)
   {
-    float f = r * (1.0f / 255.0f);
-    return make_float4(f, f, f, 1.0f);
+    return r * (1.0f / 255.0f);
   }
 
-  static ccl_always_inline float4 read(float r)
+  static ccl_always_inline float read(float r)
   {
-    /* TODO(dingto): Optimize this, so interpolation
-     * happens on float instead of float4 */
-    return make_float4(r, r, r, 1.0f);
+    return r;
   }
 
   static ccl_always_inline float4 read(half4 r)
@@ -62,63 +69,61 @@ template<typename T> struct TextureInterpolator {
     return half4_to_float4_image(r);
   }
 
-  static ccl_always_inline float4 read(half r)
+  static ccl_always_inline float read(half r)
   {
-    float f = half_to_float_image(r);
-    return make_float4(f, f, f, 1.0f);
+    return half_to_float_image(r);
   }
 
-  static ccl_always_inline float4 read(uint16_t r)
+  static ccl_always_inline float read(uint16_t r)
   {
-    float f = r * (1.0f / 65535.0f);
-    return make_float4(f, f, f, 1.0f);
+    return r * (1.0f / 65535.0f);
   }
 
   static ccl_always_inline float4 read(ushort4 r)
   {
-    float f = 1.0f / 65535.0f;
+    const float f = 1.0f / 65535.0f;
     return make_float4(r.x * f, r.y * f, r.z * f, r.w * f);
   }
 
   /* Read 2D Texture Data
    * Does not check if data request is in bounds. */
-  static ccl_always_inline float4 read(const T *data, int x, int y, int width, int height)
+  static ccl_always_inline OutT read(const TexT *data, int x, int y, int width, int height)
   {
     return read(data[y * width + x]);
   }
 
   /* Read 2D Texture Data Clip
    * Returns transparent black if data request is out of bounds. */
-  static ccl_always_inline float4 read_clip(const T *data, int x, int y, int width, int height)
+  static ccl_always_inline OutT read_clip(const TexT *data, int x, int y, int width, int height)
   {
     if (x < 0 || x >= width || y < 0 || y >= height) {
-      return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+      return zero();
     }
     return read(data[y * width + x]);
   }
 
   /* Read 3D Texture Data
    * Does not check if data request is in bounds. */
-  static ccl_always_inline float4
-  read(const T *data, int x, int y, int z, int width, int height, int depth)
+  static ccl_always_inline OutT
+  read(const TexT *data, int x, int y, int z, int width, int height, int depth)
   {
     return read(data[x + y * width + z * width * height]);
   }
 
   /* Read 3D Texture Data Clip
    * Returns transparent black if data request is out of bounds. */
-  static ccl_always_inline float4
-  read_clip(const T *data, int x, int y, int z, int width, int height, int depth)
+  static ccl_always_inline OutT
+  read_clip(const TexT *data, int x, int y, int z, int width, int height, int depth)
   {
     if (x < 0 || x >= width || y < 0 || y >= height || z < 0 || z >= depth) {
-      return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+      return zero();
     }
     return read(data[x + y * width + z * width * height]);
   }
 
   /* Trilinear Interpolation */
-  static ccl_always_inline float4
-  trilinear_lookup(const T *data,
+  static ccl_always_inline OutT
+  trilinear_lookup(const TexT *data,
                    float tx,
                    float ty,
                    float tz,
@@ -131,10 +136,10 @@ template<typename T> struct TextureInterpolator {
                    int width,
                    int height,
                    int depth,
-                   float4 read(const T *, int, int, int, int, int, int))
+                   OutT read(const TexT *, int, int, int, int, int, int))
   {
-    float4 r;
-    r = (1.0f - tz) * (1.0f - ty) * (1.0f - tx) * read(data, ix, iy, iz, width, height, depth);
+    OutT r = (1.0f - tz) * (1.0f - ty) * (1.0f - tx) *
+             read(data, ix, iy, iz, width, height, depth);
     r += (1.0f - tz) * (1.0f - ty) * tx * read(data, nix, iy, iz, width, height, depth);
     r += (1.0f - tz) * ty * (1.0f - tx) * read(data, ix, niy, iz, width, height, depth);
     r += (1.0f - tz) * ty * tx * read(data, nix, niy, iz, width, height, depth);
@@ -147,8 +152,8 @@ template<typename T> struct TextureInterpolator {
   }
 
   /** Tricubic Interpolation */
-  static ccl_always_inline float4
-  tricubic_lookup(const T *data,
+  static ccl_always_inline OutT
+  tricubic_lookup(const TexT *data,
                   float tx,
                   float ty,
                   float tz,
@@ -158,7 +163,7 @@ template<typename T> struct TextureInterpolator {
                   int width,
                   int height,
                   int depth,
-                  float4 read(const T *, int, int, int, int, int, int))
+                  OutT read(const TexT *, int, int, int, int, int, int))
   {
     float u[4], v[4], w[4];
 
@@ -199,7 +204,7 @@ template<typename T> struct TextureInterpolator {
 
   /* ********  2D interpolation ******** */
 
-  static ccl_always_inline float4 interp_closest(const TextureInfo &info, float x, float y)
+  static ccl_always_inline OutT interp_closest(const TextureInfo &info, float x, float y)
   {
     const int width = info.width;
     const int height = info.height;
@@ -214,7 +219,7 @@ template<typename T> struct TextureInterpolator {
       case EXTENSION_CLIP:
         /* No samples are inside the clip region. */
         if (ix < 0 || ix >= width || iy < 0 || iy >= height) {
-          return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+          return zero();
         }
         break;
       case EXTENSION_EXTEND:
@@ -223,14 +228,14 @@ template<typename T> struct TextureInterpolator {
         break;
       default:
         kernel_assert(0);
-        return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+        return zero();
     }
 
-    const T *data = (const T *)info.data;
-    return read((const T *)data, ix, iy, width, height);
+    const TexT *data = (const TexT *)info.data;
+    return read((const TexT *)data, ix, iy, width, height);
   }
 
-  static ccl_always_inline float4 interp_linear(const TextureInfo &info, float x, float y)
+  static ccl_always_inline OutT interp_linear(const TextureInfo &info, float x, float y)
   {
     const int width = info.width;
     const int height = info.height;
@@ -252,7 +257,7 @@ template<typename T> struct TextureInterpolator {
       case EXTENSION_CLIP:
         /* No linear samples are inside the clip region. */
         if (ix < -1 || ix >= width || iy < -1 || iy >= height) {
-          return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+          return zero();
         }
         nix = ix + 1;
         niy = iy + 1;
@@ -265,17 +270,17 @@ template<typename T> struct TextureInterpolator {
         break;
       default:
         kernel_assert(0);
-        return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+        return zero();
     }
 
-    const T *data = (const T *)info.data;
+    const TexT *data = (const TexT *)info.data;
     return (1.0f - ty) * (1.0f - tx) * read_clip(data, ix, iy, width, height) +
            (1.0f - ty) * tx * read_clip(data, nix, iy, width, height) +
            ty * (1.0f - tx) * read_clip(data, ix, niy, width, height) +
            ty * tx * read_clip(data, nix, niy, width, height);
   }
 
-  static ccl_always_inline float4 interp_cubic(const TextureInfo &info, float x, float y)
+  static ccl_always_inline OutT interp_cubic(const TextureInfo &info, float x, float y)
   {
     const int width = info.width;
     const int height = info.height;
@@ -304,7 +309,7 @@ template<typename T> struct TextureInterpolator {
       case EXTENSION_CLIP:
         /* No cubic samples are inside the clip region. */
         if (ix < -2 || ix > width || iy < -2 || iy > height) {
-          return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+          return zero();
         }
 
         pix = ix - 1;
@@ -328,10 +333,10 @@ template<typename T> struct TextureInterpolator {
         break;
       default:
         kernel_assert(0);
-        return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+        return zero();
     }
 
-    const T *data = (const T *)info.data;
+    const TexT *data = (const TexT *)info.data;
     const int xc[4] = {pix, ix, nix, nnix};
     const int yc[4] = {piy, iy, niy, nniy};
     float u[4], v[4];
@@ -353,11 +358,8 @@ template<typename T> struct TextureInterpolator {
 #undef DATA
   }
 
-  static ccl_always_inline float4 interp(const TextureInfo &info, float x, float y)
+  static ccl_always_inline OutT interp(const TextureInfo &info, float x, float y)
   {
-    if (UNLIKELY(!info.data)) {
-      return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-    }
     switch (info.interpolation) {
       case INTERPOLATION_CLOSEST:
         return interp_closest(info, x, y);
@@ -370,10 +372,10 @@ template<typename T> struct TextureInterpolator {
 
   /* ********  3D interpolation ******** */
 
-  static ccl_always_inline float4 interp_3d_closest(const TextureInfo &info,
-                                                    float x,
-                                                    float y,
-                                                    float z)
+  static ccl_always_inline OutT interp_3d_closest(const TextureInfo &info,
+                                                  float x,
+                                                  float y,
+                                                  float z)
   {
     const int width = info.width;
     const int height = info.height;
@@ -393,7 +395,7 @@ template<typename T> struct TextureInterpolator {
       case EXTENSION_CLIP:
         /* No samples are inside the clip region. */
         if (ix < 0 || ix >= width || iy < 0 || iy >= height || iz < 0 || iz >= depth) {
-          return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+          return zero();
         }
         break;
       case EXTENSION_EXTEND:
@@ -403,17 +405,17 @@ template<typename T> struct TextureInterpolator {
         break;
       default:
         kernel_assert(0);
-        return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+        return zero();
     }
 
-    const T *data = (const T *)info.data;
+    const TexT *data = (const TexT *)info.data;
     return read(data, ix, iy, iz, width, height, depth);
   }
 
-  static ccl_always_inline float4 interp_3d_linear(const TextureInfo &info,
-                                                   float x,
-                                                   float y,
-                                                   float z)
+  static ccl_always_inline OutT interp_3d_linear(const TextureInfo &info,
+                                                 float x,
+                                                 float y,
+                                                 float z)
   {
     const int width = info.width;
     const int height = info.height;
@@ -440,7 +442,7 @@ template<typename T> struct TextureInterpolator {
       case EXTENSION_CLIP:
         /* No linear samples are inside the clip region. */
         if (ix < -1 || ix >= width || iy < -1 || iy >= height || iz < -1 || iz >= depth) {
-          return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+          return zero();
         }
 
         nix = ix + 1;
@@ -454,7 +456,7 @@ template<typename T> struct TextureInterpolator {
 
         /* The linear samples span the clip border.
          * #read_clip is used to ensure proper interpolation across the clip border. */
-        return trilinear_lookup((const T *)info.data,
+        return trilinear_lookup((const TexT *)info.data,
                                 tx,
                                 ty,
                                 tz,
@@ -480,11 +482,23 @@ template<typename T> struct TextureInterpolator {
         break;
       default:
         kernel_assert(0);
-        return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+        return zero();
     }
 
-    return trilinear_lookup(
-        (const T *)info.data, tx, ty, tz, ix, iy, iz, nix, niy, niz, width, height, depth, read);
+    return trilinear_lookup((const TexT *)info.data,
+                            tx,
+                            ty,
+                            tz,
+                            ix,
+                            iy,
+                            iz,
+                            nix,
+                            niy,
+                            niz,
+                            width,
+                            height,
+                            depth,
+                            read);
   }
 
   /* Tricubic b-spline interpolation.
@@ -500,7 +514,7 @@ template<typename T> struct TextureInterpolator {
 #else
   static ccl_never_inline
 #endif
-      float4
+      OutT
       interp_3d_cubic(const TextureInfo &info, float x, float y, float z)
   {
     int width = info.width;
@@ -537,7 +551,7 @@ template<typename T> struct TextureInterpolator {
       case EXTENSION_CLIP: {
         /* No cubic samples are inside the clip region. */
         if (ix < -2 || ix > width || iy < -2 || iy > height || iz < -2 || iz > depth) {
-          return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+          return zero();
         }
 
         pix = ix - 1;
@@ -563,7 +577,7 @@ template<typename T> struct TextureInterpolator {
         const int yc[4] = {piy, iy, niy, nniy};
         const int zc[4] = {piz, iz, niz, nniz};
         return tricubic_lookup(
-            (const T *)info.data, tx, ty, tz, xc, yc, zc, width, height, depth, read_clip);
+            (const TexT *)info.data, tx, ty, tz, xc, yc, zc, width, height, depth, read_clip);
       }
       case EXTENSION_EXTEND:
         pix = wrap_clamp(ix - 1, width);
@@ -583,21 +597,18 @@ template<typename T> struct TextureInterpolator {
         break;
       default:
         kernel_assert(0);
-        return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+        return zero();
     }
     const int xc[4] = {pix, ix, nix, nnix};
     const int yc[4] = {piy, iy, niy, nniy};
     const int zc[4] = {piz, iz, niz, nniz};
-    const T *data = (const T *)info.data;
+    const TexT *data = (const TexT *)info.data;
     return tricubic_lookup(data, tx, ty, tz, xc, yc, zc, width, height, depth, read);
   }
 
-  static ccl_always_inline float4
+  static ccl_always_inline OutT
   interp_3d(const TextureInfo &info, float x, float y, float z, InterpolationType interp)
   {
-    if (UNLIKELY(!info.data))
-      return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-
     switch ((interp == INTERPOLATION_NONE) ? info.interpolation : interp) {
       case INTERPOLATION_CLOSEST:
         return interp_3d_closest(info, x, y, z);
@@ -610,13 +621,13 @@ template<typename T> struct TextureInterpolator {
 };
 
 #ifdef WITH_NANOVDB
-template<typename T> struct NanoVDBInterpolator {
+template<typename TexT, typename OutT = float4> struct NanoVDBInterpolator {
 
-  typedef typename nanovdb::NanoGrid<T>::AccessorType AccessorType;
+  typedef typename nanovdb::NanoGrid<TexT>::AccessorType AccessorType;
 
-  static ccl_always_inline float4 read(float r)
+  static ccl_always_inline float read(float r)
   {
-    return make_float4(r, r, r, 1.0f);
+    return r;
   }
 
   static ccl_always_inline float4 read(nanovdb::Vec3f r)
@@ -624,19 +635,19 @@ template<typename T> struct NanoVDBInterpolator {
     return make_float4(r[0], r[1], r[2], 1.0f);
   }
 
-  static ccl_always_inline float4 interp_3d_closest(const AccessorType &acc,
-                                                    float x,
-                                                    float y,
-                                                    float z)
+  static ccl_always_inline OutT interp_3d_closest(const AccessorType &acc,
+                                                  float x,
+                                                  float y,
+                                                  float z)
   {
     const nanovdb::Vec3f xyz(x, y, z);
     return read(nanovdb::SampleFromVoxels<AccessorType, 0, false>(acc)(xyz));
   }
 
-  static ccl_always_inline float4 interp_3d_linear(const AccessorType &acc,
-                                                   float x,
-                                                   float y,
-                                                   float z)
+  static ccl_always_inline OutT interp_3d_linear(const AccessorType &acc,
+                                                 float x,
+                                                 float y,
+                                                 float z)
   {
     const nanovdb::Vec3f xyz(x - 0.5f, y - 0.5f, z - 0.5f);
     return read(nanovdb::SampleFromVoxels<AccessorType, 1, false>(acc)(xyz));
@@ -648,7 +659,7 @@ template<typename T> struct NanoVDBInterpolator {
 #  else
   static ccl_never_inline
 #  endif
-      float4
+      OutT
       interp_3d_cubic(const AccessorType &acc, float x, float y, float z)
   {
     int ix, iy, iz;
@@ -698,12 +709,12 @@ template<typename T> struct NanoVDBInterpolator {
 #  undef DATA
   }
 
-  static ccl_always_inline float4
+  static ccl_always_inline OutT
   interp_3d(const TextureInfo &info, float x, float y, float z, InterpolationType interp)
   {
     using namespace nanovdb;
 
-    NanoGrid<T> *const grid = (NanoGrid<T> *)info.data;
+    NanoGrid<TexT> *const grid = (NanoGrid<TexT> *)info.data;
     AccessorType acc = grid->getAccessor();
 
     switch ((interp == INTERPOLATION_NONE) ? info.interpolation : interp) {
@@ -724,15 +735,27 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, int id, float x, flo
 {
   const TextureInfo &info = kernel_tex_fetch(__texture_info, id);
 
+  if (UNLIKELY(!info.data)) {
+    return zero_float4();
+  }
+
   switch (info.data_type) {
-    case IMAGE_DATA_TYPE_HALF:
-      return TextureInterpolator<half>::interp(info, x, y);
-    case IMAGE_DATA_TYPE_BYTE:
-      return TextureInterpolator<uchar>::interp(info, x, y);
-    case IMAGE_DATA_TYPE_USHORT:
-      return TextureInterpolator<uint16_t>::interp(info, x, y);
-    case IMAGE_DATA_TYPE_FLOAT:
-      return TextureInterpolator<float>::interp(info, x, y);
+    case IMAGE_DATA_TYPE_HALF: {
+      const float f = TextureInterpolator<half, float>::interp(info, x, y);
+      return make_float4(f, f, f, 1.0f);
+    }
+    case IMAGE_DATA_TYPE_BYTE: {
+      const float f = TextureInterpolator<uchar, float>::interp(info, x, y);
+      return make_float4(f, f, f, 1.0f);
+    }
+    case IMAGE_DATA_TYPE_USHORT: {
+      const float f = TextureInterpolator<uint16_t, float>::interp(info, x, y);
+      return make_float4(f, f, f, 1.0f);
+    }
+    case IMAGE_DATA_TYPE_FLOAT: {
+      const float f = TextureInterpolator<float, float>::interp(info, x, y);
+      return make_float4(f, f, f, 1.0f);
+    }
     case IMAGE_DATA_TYPE_HALF4:
       return TextureInterpolator<half4>::interp(info, x, y);
     case IMAGE_DATA_TYPE_BYTE4:
@@ -755,19 +778,30 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
 {
   const TextureInfo &info = kernel_tex_fetch(__texture_info, id);
 
+  if (UNLIKELY(!info.data)) {
+    return zero_float4();
+  }
+
   if (info.use_transform_3d) {
     P = transform_point(&info.transform_3d, P);
   }
-
   switch (info.data_type) {
-    case IMAGE_DATA_TYPE_HALF:
-      return TextureInterpolator<half>::interp_3d(info, P.x, P.y, P.z, interp);
-    case IMAGE_DATA_TYPE_BYTE:
-      return TextureInterpolator<uchar>::interp_3d(info, P.x, P.y, P.z, interp);
-    case IMAGE_DATA_TYPE_USHORT:
-      return TextureInterpolator<uint16_t>::interp_3d(info, P.x, P.y, P.z, interp);
-    case IMAGE_DATA_TYPE_FLOAT:
-      return TextureInterpolator<float>::interp_3d(info, P.x, P.y, P.z, interp);
+    case IMAGE_DATA_TYPE_HALF: {
+      const float f = TextureInterpolator<half, float>::interp_3d(info, P.x, P.y, P.z, interp);
+      return make_float4(f, f, f, 1.0f);
+    }
+    case IMAGE_DATA_TYPE_BYTE: {
+      const float f = TextureInterpolator<uchar, float>::interp_3d(info, P.x, P.y, P.z, interp);
+      return make_float4(f, f, f, 1.0f);
+    }
+    case IMAGE_DATA_TYPE_USHORT: {
+      const float f = TextureInterpolator<uint16_t, float>::interp_3d(info, P.x, P.y, P.z, interp);
+      return make_float4(f, f, f, 1.0f);
+    }
+    case IMAGE_DATA_TYPE_FLOAT: {
+      const float f = TextureInterpolator<float, float>::interp_3d(info, P.x, P.y, P.z, interp);
+      return make_float4(f, f, f, 1.0f);
+    }
     case IMAGE_DATA_TYPE_HALF4:
       return TextureInterpolator<half4>::interp_3d(info, P.x, P.y, P.z, interp);
     case IMAGE_DATA_TYPE_BYTE4:
@@ -777,8 +811,10 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
     case IMAGE_DATA_TYPE_FLOAT4:
       return TextureInterpolator<float4>::interp_3d(info, P.x, P.y, P.z, interp);
 #ifdef WITH_NANOVDB
-    case IMAGE_DATA_TYPE_NANOVDB_FLOAT:
-      return NanoVDBInterpolator<float>::interp_3d(info, P.x, P.y, P.z, interp);
+    case IMAGE_DATA_TYPE_NANOVDB_FLOAT: {
+      const float f = NanoVDBInterpolator<float, float>::interp_3d(info, P.x, P.y, P.z, interp);
+      return make_float4(f, f, f, 1.0f);
+    }
     case IMAGE_DATA_TYPE_NANOVDB_FLOAT3:
       return NanoVDBInterpolator<nanovdb::Vec3f>::interp_3d(info, P.x, P.y, P.z, interp);
 #endif

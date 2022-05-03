@@ -508,8 +508,6 @@ set(SRC
   intern/view_map/ViewMapAdvancedIterators.h
   intern/view_map/ViewMapBuilder.cpp
   intern/view_map/ViewMapBuilder.h
-  intern/view_map/ViewMapIO.cpp
-  intern/view_map/ViewMapIO.h
   intern/view_map/ViewMapIterators.h
   intern/view_map/ViewMapTesselator.cpp
   intern/view_map/ViewMapTesselator.h

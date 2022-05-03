@@ -59,7 +59,7 @@ static void requiredDataMask(Object *UNUSED(ob),
   ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
 
   if (pimd->index_layer_name[0] != '\0' || pimd->value_layer_name[0] != '\0') {
-    r_cddata_masks->lmask |= CD_MASK_MLOOPCOL;
+    r_cddata_masks->lmask |= CD_MASK_PROP_BYTE_COLOR;
   }
 }
 
@@ -328,9 +328,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   orig_mloop = mesh->mloop;
 
   MLoopCol *mloopcols_index = CustomData_get_layer_named(
-      &result->ldata, CD_MLOOPCOL, pimd->index_layer_name);
+      &result->ldata, CD_PROP_BYTE_COLOR, pimd->index_layer_name);
   MLoopCol *mloopcols_value = CustomData_get_layer_named(
-      &result->ldata, CD_MLOOPCOL, pimd->value_layer_name);
+      &result->ldata, CD_PROP_BYTE_COLOR, pimd->value_layer_name);
   int *vert_part_index = NULL;
   float *vert_part_value = NULL;
   if (mloopcols_index != NULL) {
@@ -529,8 +529,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   MEM_SAFE_FREE(vert_part_index);
   MEM_SAFE_FREE(vert_part_value);
-
-  BKE_mesh_normals_tag_dirty(result);
 
   return result;
 }

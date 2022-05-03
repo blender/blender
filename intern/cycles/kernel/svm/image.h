@@ -186,7 +186,7 @@ ccl_device_noinline void svm_node_tex_image_box(KernelGlobals kg,
   float3 co = stack_load_float3(stack, co_offset);
   uint id = node.y;
 
-  float4 f = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+  float4 f = zero_float4();
 
   /* Map so that no textures are flipped, rotation is somewhat arbitrary. */
   if (weight.x > 0.0f) {

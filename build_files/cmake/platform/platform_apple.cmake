@@ -71,6 +71,7 @@ set(CMAKE_PREFIX_PATH ${LIB_SUBDIRS})
 # Find precompiled libraries, and avoid system or user-installed ones.
 
 if(EXISTS ${LIBDIR})
+  include(platform_old_libs_update)
   without_system_libs_begin()
 endif()
 
@@ -214,7 +215,12 @@ if(WITH_SDL)
   find_package(SDL2)
   set(SDL_INCLUDE_DIR ${SDL2_INCLUDE_DIRS})
   set(SDL_LIBRARY ${SDL2_LIBRARIES})
-  string(APPEND PLATFORM_LINKFLAGS " -framework ForceFeedback")
+  string(APPEND PLATFORM_LINKFLAGS " -framework ForceFeedback -framework GameController")
+  if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
+    # The minimum macOS version of the libraries makes it so this is included in SDL on arm64
+    # but not x86_64.
+    string(APPEND PLATFORM_LINKFLAGS " -framework CoreHaptics")
+  endif()
 endif()
 
 set(PNG_ROOT ${LIBDIR}/png)
@@ -229,6 +235,15 @@ if(WITH_IMAGE_TIFF)
   if(NOT TIFF_FOUND)
     message(WARNING "TIFF not found, disabling WITH_IMAGE_TIFF")
     set(WITH_IMAGE_TIFF OFF)
+  endif()
+endif()
+
+if(WITH_IMAGE_WEBP)
+  set(WEBP_ROOT_DIR ${LIBDIR}/webp)
+  find_package(WebP)
+  if(NOT WEBP_FOUND)
+    message(WARNING "WebP not found, disabling WITH_IMAGE_WEBP")
+    set(WITH_IMAGE_WEBP OFF)
   endif()
 endif()
 

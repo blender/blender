@@ -1,8 +1,5 @@
 
-in vec4 finalColor;
-
-layout(location = 0) out vec4 fragColor;
-layout(location = 1) out vec4 lineOutput;
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {

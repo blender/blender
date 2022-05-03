@@ -62,6 +62,13 @@ ModifierLog::ModifierLog(GeoLogger &logger)
       NodeLog &node_log = this->lookup_or_add_node_log(log_by_tree_context, debug_message.node);
       node_log.debug_messages_.append(debug_message.message);
     }
+
+    for (NodeWithUsedNamedAttribute &node_with_attribute_name :
+         local_logger.used_named_attributes_) {
+      NodeLog &node_log = this->lookup_or_add_node_log(log_by_tree_context,
+                                                       node_with_attribute_name.node);
+      node_log.used_named_attributes_.append(std::move(node_with_attribute_name.attribute));
+    }
   }
 }
 
@@ -337,6 +344,16 @@ const NodeLog *ModifierLog::find_node_by_node_editor_context(const SpaceNode &sn
   return tree_log->lookup_node_log(node);
 }
 
+const NodeLog *ModifierLog::find_node_by_node_editor_context(const SpaceNode &snode,
+                                                             const StringRef node_name)
+{
+  const TreeLog *tree_log = ModifierLog::find_tree_by_node_editor_context(snode);
+  if (tree_log == nullptr) {
+    return nullptr;
+  }
+  return tree_log->lookup_node_log(node_name);
+}
+
 const SocketLog *ModifierLog::find_socket_by_node_editor_context(const SpaceNode &snode,
                                                                  const bNode &node,
                                                                  const bNodeSocket &socket)
@@ -474,6 +491,13 @@ void LocalGeoLogger::log_node_warning(DNode node, NodeWarningType type, std::str
 void LocalGeoLogger::log_execution_time(DNode node, std::chrono::microseconds exec_time)
 {
   node_exec_times_.append({node, exec_time});
+}
+
+void LocalGeoLogger::log_used_named_attribute(DNode node,
+                                              std::string attribute_name,
+                                              NamedAttributeUsage usage)
+{
+  used_named_attributes_.append({node, {std::move(attribute_name), usage}});
 }
 
 void LocalGeoLogger::log_debug_message(DNode node, std::string message)

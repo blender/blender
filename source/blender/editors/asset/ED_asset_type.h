@@ -16,7 +16,7 @@ struct ID;
 
 bool ED_asset_type_id_is_non_experimental(const struct ID *id);
 #define ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_FLAGS \
-  (FILTER_ID_MA | FILTER_ID_OB | FILTER_ID_AC | FILTER_ID_WO | FILTER_ID_NT)
+  (FILTER_ID_MA | FILTER_ID_GR | FILTER_ID_OB | FILTER_ID_AC | FILTER_ID_WO | FILTER_ID_NT)
 
 /**
  * Check if the asset type for \a id (which doesn't need to be an asset right now) can be an asset,
@@ -39,7 +39,7 @@ int64_t ED_asset_types_supported_as_filter_flags(void);
  * Should start with a consonant, so usages can prefix it with "a" (not "an").
  */
 #define ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_UI_STRING \
-  "Material, Object, Pose Action, Node Group or World"
+  "Material, Collection, Object, Pose Action, Node Group or World"
 
 #ifdef __cplusplus
 }

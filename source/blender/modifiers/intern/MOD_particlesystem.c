@@ -100,7 +100,7 @@ static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
                         Mesh *mesh,
                         float (*vertexCos)[3],
-                        int numVerts)
+                        int verts_num)
 {
   Mesh *mesh_src = mesh;
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
@@ -118,7 +118,8 @@ static void deformVerts(ModifierData *md,
   }
 
   if (mesh_src == NULL) {
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, NULL, NULL, vertexCos, numVerts, false, true);
+    mesh_src = MOD_deform_mesh_eval_get(
+        ctx->object, NULL, NULL, vertexCos, verts_num, false, true);
     if (mesh_src == NULL) {
       return;
     }
@@ -157,7 +158,6 @@ static void deformVerts(ModifierData *md,
   /* make new mesh */
   psmd->mesh_final = BKE_mesh_copy_for_eval(mesh_src, false);
   BKE_mesh_vert_coords_apply(psmd->mesh_final, vertexCos);
-  BKE_mesh_calc_normals(psmd->mesh_final);
 
   BKE_mesh_tessface_ensure(psmd->mesh_final);
 
@@ -235,7 +235,7 @@ static void deformVertsEM(ModifierData *md,
                           BMEditMesh *editData,
                           Mesh *mesh,
                           float (*vertexCos)[3],
-                          int numVerts)
+                          int verts_num)
 {
   const bool do_temp_mesh = (mesh == NULL);
   if (do_temp_mesh) {
@@ -243,7 +243,7 @@ static void deformVertsEM(ModifierData *md,
     BM_mesh_bm_to_me(NULL, editData->bm, mesh, &((BMeshToMeshParams){0}));
   }
 
-  deformVerts(md, ob, mesh, vertexCos, numVerts);
+  deformVerts(md, ob, mesh, vertexCos, verts_num);
 
   if (derivedData) {
     BKE_id_free(NULL, mesh);

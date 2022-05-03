@@ -15,7 +15,7 @@ struct ListBase;
 struct Scene;
 struct Sequence;
 
-/* SeqLoadData.flags */
+/** #SeqLoadData.flags */
 typedef enum eSeqLoadFlags {
   SEQ_LOAD_SOUND_CACHE = (1 << 1),
   SEQ_LOAD_SOUND_MONO = (1 << 2),

@@ -21,19 +21,19 @@ struct Object;
 struct Scene;
 struct View3D;
 
-/* transform_snap_object.c */
+/* transform_snap_object.cc */
 
 /* ED_transform_snap_object_*** API */
 
-typedef enum {
+typedef enum eSnapSelect {
   SNAP_ALL = 0,
   SNAP_NOT_SELECTED = 1,
   SNAP_NOT_ACTIVE = 2,
-  SNAP_ONLY_ACTIVE = 3,
+  SNAP_NOT_EDITED = 3,
   SNAP_SELECTABLE = 4,
 } eSnapSelect;
 
-typedef enum {
+typedef enum eSnapEditType {
   SNAP_GEOM_FINAL = 0,
   SNAP_GEOM_CAGE = 1,
   SNAP_GEOM_EDIT = 2, /* Bmesh for mesh-type. */
@@ -59,13 +59,13 @@ struct SnapObjectHitDepth {
 /** parameters that define which objects will be used to snap. */
 struct SnapObjectParams {
   /* Special context sensitive handling for the active or selected object. */
-  char snap_select;
+  eSnapSelect snap_select;
   /* Geometry for snapping in edit mode. */
-  char edit_mode_type;
+  eSnapEditType edit_mode_type;
   /* snap to the closest element, use when using more than one snap type */
-  unsigned int use_occlusion_test : 1;
+  bool use_occlusion_test : true;
   /* exclude back facing geometry from snapping */
-  unsigned int use_backface_culling : 1;
+  bool use_backface_culling : true;
 };
 
 typedef struct SnapObjectContext SnapObjectContext;

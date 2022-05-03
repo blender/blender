@@ -38,7 +38,7 @@
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
-#include "FN_multi_function_builder.hh"
+#include "FN_multi_function.hh"
 
 namespace blender::fn {
 

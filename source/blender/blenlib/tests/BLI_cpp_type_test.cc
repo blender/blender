@@ -118,6 +118,40 @@ TEST(cpp_type, DefaultConstruction)
   EXPECT_EQ(buffer[8], 0);
 }
 
+TEST(cpp_type, DefaultConstructTrivial)
+{
+  int value = 5;
+  CPPType::get<int>().default_construct(&value);
+  EXPECT_EQ(value, 5);
+}
+
+TEST(cpp_type, ValueInitialize)
+{
+  int buffer[10] = {0};
+  CPPType_TestType.value_initialize((void *)buffer);
+  EXPECT_EQ(buffer[0], default_constructed_value);
+  EXPECT_EQ(buffer[1], 0);
+  CPPType_TestType.value_initialize_n((void *)buffer, 3);
+  EXPECT_EQ(buffer[0], default_constructed_value);
+  EXPECT_EQ(buffer[1], default_constructed_value);
+  EXPECT_EQ(buffer[2], default_constructed_value);
+  EXPECT_EQ(buffer[3], 0);
+  CPPType_TestType.value_initialize_indices((void *)buffer, {2, 5, 7});
+  EXPECT_EQ(buffer[2], default_constructed_value);
+  EXPECT_EQ(buffer[4], 0);
+  EXPECT_EQ(buffer[5], default_constructed_value);
+  EXPECT_EQ(buffer[6], 0);
+  EXPECT_EQ(buffer[7], default_constructed_value);
+  EXPECT_EQ(buffer[8], 0);
+}
+
+TEST(cpp_type, ValueInitializeTrivial)
+{
+  int value = 5;
+  CPPType::get<int>().value_initialize(&value);
+  EXPECT_EQ(value, 0);
+}
+
 TEST(cpp_type, Destruct)
 {
   int buffer[10] = {0};
@@ -345,6 +379,16 @@ TEST(cpp_type, ToStaticType)
   EXPECT_EQ(types.size(), 2);
   EXPECT_EQ(types[0], &CPPType::get<std::string>());
   EXPECT_EQ(types[1], &CPPType::get<float>());
+}
+
+TEST(cpp_type, CopyAssignCompressed)
+{
+  std::array<std::string, 5> array = {"a", "b", "c", "d", "e"};
+  std::array<std::string, 3> array_compressed;
+  CPPType::get<std::string>().copy_assign_compressed(&array, &array_compressed, {0, 2, 3});
+  EXPECT_EQ(array_compressed[0], "a");
+  EXPECT_EQ(array_compressed[1], "c");
+  EXPECT_EQ(array_compressed[2], "d");
 }
 
 }  // namespace blender::tests

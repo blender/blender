@@ -445,6 +445,8 @@ static PyGetSetDef bpy_app_getsets[] = {
      NULL,
      (void *)G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET},
     {"autoexec_fail_message", bpy_app_autoexec_fail_message_get, NULL, NULL, NULL},
+
+    /* End-of-list marker. */
     {NULL, NULL, NULL, NULL, NULL},
 };
 

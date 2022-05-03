@@ -60,6 +60,23 @@ static wmOperatorType *ot_lookup_from_py_string(PyObject *value, const char *py_
   return ot;
 }
 
+static void op_context_override_deprecated_warning(const char *action, const char *opname)
+{
+  if (PyErr_WarnFormat(
+          PyExc_DeprecationWarning,
+          /* Use stack level 2 as this call is wrapped by `release/scripts/modules/bpy/ops.py`,
+           * An extra stack level is needed to show the warning in the authors script. */
+          2,
+          "Passing in context overrides is deprecated in favor of "
+          "Context.temp_override(..), %s \"%s\"",
+          action,
+          opname) < 0) {
+    /* The function has no return value, the exception cannot
+     * be reported to the caller, so just log it. */
+    PyErr_WriteUnraisable(NULL);
+  }
+}
+
 static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 {
   wmOperatorType *ot;
@@ -113,7 +130,10 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
   if (ELEM(context_dict, NULL, Py_None)) {
     context_dict = NULL;
   }
-  else if (!PyDict_Check(context_dict)) {
+  else if (PyDict_Check(context_dict)) {
+    op_context_override_deprecated_warning("polling", opname);
+  }
+  else {
     PyErr_Format(PyExc_TypeError,
                  "Calling operator \"bpy.ops.%s.poll\" error, "
                  "custom context expected a dict or None, got a %.200s",
@@ -218,7 +238,10 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
   if (ELEM(context_dict, NULL, Py_None)) {
     context_dict = NULL;
   }
-  else if (!PyDict_Check(context_dict)) {
+  else if (PyDict_Check(context_dict)) {
+    op_context_override_deprecated_warning("calling", opname);
+  }
+  else {
     PyErr_Format(PyExc_TypeError,
                  "Calling operator \"bpy.ops.%s\" error, "
                  "custom context expected a dict or None, got a %.200s",

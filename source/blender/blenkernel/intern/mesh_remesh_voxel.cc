@@ -23,11 +23,13 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BKE_attribute.h"
 #include "BKE_bvhutils.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remesh_voxel.h" /* own include */
 #include "BKE_mesh_runtime.h"
 
@@ -138,7 +140,6 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
   }
 
   BKE_mesh_calc_edges(mesh, false, false);
-  BKE_mesh_calc_normals(mesh);
 
   MEM_freeN(qrd.out_faces);
   MEM_freeN(qrd.out_verts);
@@ -255,7 +256,6 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
   }
 
   BKE_mesh_calc_edges(mesh, false, false);
-  BKE_mesh_normals_tag_dirty(mesh);
 
   return mesh;
 }
@@ -365,30 +365,139 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
   BVHTreeFromMesh bvhtree = {nullptr};
   BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_VERTS, 2);
 
-  int tot_color_layer = CustomData_number_of_layers(&source->vdata, CD_PROP_COLOR);
+  int i = 0;
+  const CustomDataLayer *layer;
 
-  for (int layer_n = 0; layer_n < tot_color_layer; layer_n++) {
-    const char *layer_name = CustomData_get_layer_name(&source->vdata, CD_PROP_COLOR, layer_n);
-    CustomData_add_layer_named(
-        &target->vdata, CD_PROP_COLOR, CD_CALLOC, nullptr, target->totvert, layer_name);
+  MeshElemMap *source_lmap = nullptr;
+  int *source_lmap_mem = nullptr;
+  MeshElemMap *target_lmap = nullptr;
+  int *target_lmap_mem = nullptr;
 
-    MPropCol *target_color = (MPropCol *)CustomData_get_layer_n(
-        &target->vdata, CD_PROP_COLOR, layer_n);
+  while ((layer = BKE_id_attribute_from_index(
+              const_cast<ID *>(&source->id), i++, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL))) {
+    AttributeDomain domain = BKE_id_attribute_domain(&source->id, layer);
+
+    CustomData *target_cdata = domain == ATTR_DOMAIN_POINT ? &target->vdata : &target->ldata;
+    const CustomData *source_cdata = domain == ATTR_DOMAIN_POINT ? &source->vdata : &source->ldata;
+
+    /* Check attribute exists in target. */
+    int layer_i = CustomData_get_named_layer_index(target_cdata, layer->type, layer->name);
+    if (layer_i == -1) {
+      int elem_num = domain == ATTR_DOMAIN_POINT ? target->totvert : target->totloop;
+
+      CustomData_add_layer_named(
+          target_cdata, layer->type, CD_CALLOC, nullptr, elem_num, layer->name);
+      layer_i = CustomData_get_named_layer_index(target_cdata, layer->type, layer->name);
+    }
+
+    size_t data_size = CustomData_sizeof(layer->type);
+    void *target_data = target_cdata->layers[layer_i].data;
+    void *source_data = layer->data;
     MVert *target_verts = (MVert *)CustomData_get_layer(&target->vdata, CD_MVERT);
-    const MPropCol *source_color = (const MPropCol *)CustomData_get_layer_n(
-        &source->vdata, CD_PROP_COLOR, layer_n);
-    for (int i = 0; i < target->totvert; i++) {
-      BVHTreeNearest nearest;
-      nearest.index = -1;
-      nearest.dist_sq = FLT_MAX;
-      BLI_bvhtree_find_nearest(
-          bvhtree.tree, target_verts[i].co, &nearest, bvhtree.nearest_callback, &bvhtree);
-      if (nearest.index != -1) {
-        copy_v4_v4(target_color[i].color, source_color[nearest.index].color);
+
+    if (domain == ATTR_DOMAIN_POINT) {
+      for (int i = 0; i < target->totvert; i++) {
+        BVHTreeNearest nearest;
+        nearest.index = -1;
+        nearest.dist_sq = FLT_MAX;
+        BLI_bvhtree_find_nearest(
+            bvhtree.tree, target_verts[i].co, &nearest, bvhtree.nearest_callback, &bvhtree);
+
+        if (nearest.index != -1) {
+          memcpy(POINTER_OFFSET(target_data, (size_t)i * data_size),
+                 POINTER_OFFSET(source_data, (size_t)nearest.index * data_size),
+                 data_size);
+        }
+      }
+    }
+    else {
+      /* Lazily init vertex -> loop maps. */
+      if (!source_lmap) {
+        const MPoly *source_polys = (MPoly *)CustomData_get_layer(&source->pdata, CD_MPOLY);
+        const MLoop *source_loops = (MLoop *)CustomData_get_layer(&source->ldata, CD_MLOOP);
+        const MPoly *target_polys = (MPoly *)CustomData_get_layer(&target->pdata, CD_MPOLY);
+        const MLoop *target_loops = (MLoop *)CustomData_get_layer(&target->ldata, CD_MLOOP);
+
+        BKE_mesh_vert_loop_map_create(&source_lmap,
+                                      &source_lmap_mem,
+                                      source_polys,
+                                      source_loops,
+                                      source->totvert,
+                                      source->totpoly,
+                                      source->totloop);
+
+        BKE_mesh_vert_loop_map_create(&target_lmap,
+                                      &target_lmap_mem,
+                                      target_polys,
+                                      target_loops,
+                                      target->totvert,
+                                      target->totpoly,
+                                      target->totloop);
+      }
+
+      for (int i = 0; i < target->totvert; i++) {
+        BVHTreeNearest nearest;
+        nearest.index = -1;
+        nearest.dist_sq = FLT_MAX;
+        BLI_bvhtree_find_nearest(
+            bvhtree.tree, target_verts[i].co, &nearest, bvhtree.nearest_callback, &bvhtree);
+
+        if (nearest.index == -1) {
+          continue;
+        }
+
+        MeshElemMap *source_loops = source_lmap + nearest.index;
+        MeshElemMap *target_loops = target_lmap + i;
+
+        if (target_loops->count == 0 || source_loops->count == 0) {
+          continue;
+        }
+
+        /*
+         * Average color data for loops around the source vertex into
+         * the first target loop around the target vertex
+         */
+
+        CustomData_interp(source_cdata,
+                          target_cdata,
+                          source_loops->indices,
+                          nullptr,
+                          nullptr,
+                          source_loops->count,
+                          target_loops->indices[0]);
+
+        void *elem = POINTER_OFFSET(target_data, (size_t)target_loops->indices[0] * data_size);
+
+        /* Copy to rest of target loops. */
+        for (int j = 1; j < target_loops->count; j++) {
+          memcpy(POINTER_OFFSET(target_data, (size_t)target_loops->indices[j] * data_size),
+                 elem,
+                 data_size);
+        }
       }
     }
   }
+
+  MEM_SAFE_FREE(source_lmap);
+  MEM_SAFE_FREE(source_lmap_mem);
+  MEM_SAFE_FREE(target_lmap);
+  MEM_SAFE_FREE(target_lmap_mem);
   free_bvhtree_from_mesh(&bvhtree);
+
+  /* Transfer active/render color attributes */
+
+  CustomDataLayer *active_layer = BKE_id_attributes_active_color_get(&source->id);
+  CustomDataLayer *render_layer = BKE_id_attributes_render_color_get(&source->id);
+
+  if (active_layer) {
+    BKE_id_attributes_active_color_set(
+        &target->id, BKE_id_attributes_color_find(&target->id, active_layer->name));
+  }
+
+  if (render_layer) {
+    BKE_id_attributes_render_color_set(
+        &target->id, BKE_id_attributes_color_find(&target->id, render_layer->name));
+  }
 }
 
 struct Mesh *BKE_mesh_remesh_voxel_fix_poles(const Mesh *mesh)
@@ -401,6 +510,7 @@ struct Mesh *BKE_mesh_remesh_voxel_fix_poles(const Mesh *mesh)
 
   BMeshFromMeshParams bmesh_from_mesh_params{};
   bmesh_from_mesh_params.calc_face_normal = true;
+  bmesh_from_mesh_params.calc_vert_normal = true;
   BM_mesh_bm_from_me(bm, mesh, &bmesh_from_mesh_params);
 
   BMVert *v;

@@ -277,11 +277,12 @@ static void pointdensity_cache_vertex_color(PointDensity *pd,
 
   BLI_assert(data_color);
 
-  if (!CustomData_has_layer(&mesh->ldata, CD_MLOOPCOL)) {
+  if (!CustomData_has_layer(&mesh->ldata, CD_PROP_BYTE_COLOR)) {
     return;
   }
-  CustomData_validate_layer_name(&mesh->ldata, CD_MLOOPCOL, pd->vertex_attribute_name, layername);
-  mcol = CustomData_get_layer_named(&mesh->ldata, CD_MLOOPCOL, layername);
+  CustomData_validate_layer_name(
+      &mesh->ldata, CD_PROP_BYTE_COLOR, pd->vertex_attribute_name, layername);
+  mcol = CustomData_get_layer_named(&mesh->ldata, CD_PROP_BYTE_COLOR, layername);
   if (!mcol) {
     return;
   }
@@ -372,7 +373,7 @@ static void pointdensity_cache_object(PointDensity *pd, Object *ob)
   mask.fmask |= CD_MASK_MTFACE | CD_MASK_MCOL;
   switch (pd->ob_color_source) {
     case TEX_PD_COLOR_VERTCOL:
-      mask.lmask |= CD_MASK_MLOOPCOL;
+      mask.lmask |= CD_MASK_PROP_BYTE_COLOR;
       break;
     case TEX_PD_COLOR_VERTWEIGHT:
       mask.vmask |= CD_MASK_MDEFORMVERT;
@@ -843,7 +844,7 @@ void RE_point_density_minmax(struct Depsgraph *depsgraph,
   }
   else {
     const float radius[3] = {pd->radius, pd->radius, pd->radius};
-    BoundBox *bb = BKE_object_boundbox_get(object);
+    const BoundBox *bb = BKE_object_boundbox_get(object);
 
     if (bb != NULL) {
       BLI_assert((bb->flag & BOUNDBOX_DIRTY) == 0);

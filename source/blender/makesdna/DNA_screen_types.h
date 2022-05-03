@@ -540,6 +540,8 @@ enum {
   AREA_FLAG_STACKED_FULLSCREEN = (1 << 7),
   /** Update action zones (even if the mouse is not intersecting them). */
   AREA_FLAG_ACTIONZONES_UPDATE = (1 << 8),
+  /** For off-screen areas. */
+  AREA_FLAG_OFFSCREEN = (1 << 9),
 };
 
 #define AREAGRID 4
@@ -662,7 +664,7 @@ typedef enum eRegion_Type {
    * context (surface, mirror view). Does not represent any real region. */
   RGN_TYPE_XR = 13,
 
-#define RGN_TYPE_LEN (RGN_TYPE_XR + 1)
+#define RGN_TYPE_NUM (RGN_TYPE_XR + 1)
 } eRegion_Type;
 
 /* use for function args */

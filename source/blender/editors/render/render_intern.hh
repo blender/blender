@@ -33,6 +33,10 @@ void SCENE_OT_view_layer_add(struct wmOperatorType *ot);
 void SCENE_OT_view_layer_remove(struct wmOperatorType *ot);
 void SCENE_OT_view_layer_add_aov(struct wmOperatorType *ot);
 void SCENE_OT_view_layer_remove_aov(struct wmOperatorType *ot);
+void SCENE_OT_view_layer_add_lightgroup(struct wmOperatorType *ot);
+void SCENE_OT_view_layer_remove_lightgroup(struct wmOperatorType *ot);
+void SCENE_OT_view_layer_add_used_lightgroups(struct wmOperatorType *ot);
+void SCENE_OT_view_layer_remove_unused_lightgroups(struct wmOperatorType *ot);
 
 void SCENE_OT_light_cache_bake(struct wmOperatorType *ot);
 void SCENE_OT_light_cache_free(struct wmOperatorType *ot);
@@ -83,4 +87,5 @@ void RENDER_OT_view_show(struct wmOperatorType *ot);
 void RENDER_OT_view_cancel(struct wmOperatorType *ot);
 
 /* render_opengl.c */
+
 void RENDER_OT_opengl(struct wmOperatorType *ot);

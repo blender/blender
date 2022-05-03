@@ -284,6 +284,7 @@ option(WITH_IMAGE_TIFF          "Enable LibTIFF Support" ON)
 option(WITH_IMAGE_DDS           "Enable DDS Image Support" ON)
 option(WITH_IMAGE_CINEON        "Enable CINEON and DPX Image Support" ON)
 option(WITH_IMAGE_HDR           "Enable HDR Image Support" ON)
+option(WITH_IMAGE_WEBP          "Enable WebP Image Support" ON)
 
 # Audio/Video format support
 option(WITH_CODEC_AVI           "Enable Blenders own AVI file support (raw/jpeg)" ON)
@@ -301,7 +302,7 @@ option(WITH_USD                 "Enable Universal Scene Description (USD) Suppor
 option(WITH_OPENCOLLADA   "Enable OpenCollada Support (http://www.opencollada.org)" ON)
 
 # Sound output
-option(WITH_SDL           "Enable SDL for sound and joystick support" ON)
+option(WITH_SDL           "Enable SDL for sound" ON)
 option(WITH_OPENAL        "Enable OpenAL Support (http://www.openal.org)" ON)
 if(APPLE)
   option(WITH_COREAUDIO    "Enable CoreAudio for audio support on macOS" ON)
@@ -408,6 +409,8 @@ option(WITH_CYCLES_DEBUG             "Build Cycles with options useful for debug
 option(WITH_CYCLES_STANDALONE        "Build Cycles standalone application" OFF)
 option(WITH_CYCLES_STANDALONE_GUI    "Build Cycles standalone with GUI" OFF)
 
+option(WITH_CYCLES_HYDRA_RENDER_DELEGATE "Build Cycles Hydra render delegate" OFF)
+
 option(WITH_CYCLES_DEBUG_NAN         "Build Cycles with additional asserts for detecting NaNs and invalid values" OFF)
 option(WITH_CYCLES_NATIVE_ONLY       "Build Cycles with native kernel only (which fits current CPU, use for development only)" OFF)
 option(WITH_CYCLES_KERNEL_ASAN       "Build Cycles kernels with address sanitizer when WITH_COMPILER_ASAN is on, even if it's very slow" OFF)
@@ -436,12 +439,7 @@ endif()
 
 # AMD HIP
 if(NOT APPLE)
-  if(WIN32)
-    option(WITH_CYCLES_DEVICE_HIP        "Enable Cycles AMD HIP support" ON)
-  else()
-    option(WITH_CYCLES_DEVICE_HIP        "Enable Cycles AMD HIP support" OFF)
-  endif()
-
+  option(WITH_CYCLES_DEVICE_HIP        "Enable Cycles AMD HIP support" ON)
   option(WITH_CYCLES_HIP_BINARIES      "Build Cycles AMD HIP binaries" OFF)
   set(CYCLES_HIP_BINARIES_ARCH gfx1010 gfx1011 gfx1012 gfx1030 gfx1031 gfx1032 gfx1034 CACHE STRING "AMD HIP architectures to build binaries for")
   mark_as_advanced(WITH_CYCLES_DEVICE_HIP)
@@ -530,6 +528,19 @@ mark_as_advanced(
   WITH_GL_PROFILE_ES20
   WITH_GPU_SHADER_BUILDER
 )
+
+# Metal
+
+if (APPLE)
+  option(WITH_METAL_BACKEND "Use Metal for graphics instead of (or as well as) OpenGL on macOS." OFF)
+  mark_as_advanced(WITH_METAL_BACKEND)
+else()
+  set(WITH_METAL_BACKEND OFF)
+endif()
+
+if (WITH_METAL_BACKEND)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version" FORCE)
+endif()
 
 if(WIN32)
   option(WITH_GL_ANGLE "Link with the ANGLE library, an OpenGL ES 2.0 implementation based on Direct3D, instead of the system OpenGL library." OFF)
@@ -729,9 +740,10 @@ endif()
 #-----------------------------------------------------------------------------
 # Check for conflicting/unsupported configurations
 
-if(NOT WITH_BLENDER AND NOT WITH_CYCLES_STANDALONE)
+if(NOT WITH_BLENDER AND NOT WITH_CYCLES_STANDALONE AND NOT WITH_CYCLES_HYDRA_RENDER_DELEGATE)
   message(FATAL_ERROR
     "At least one of WITH_BLENDER or WITH_CYCLES_STANDALONE "
+    "or WITH_CYCLES_HYDRA_RENDER_DELEGATE "
     "must be enabled, nothing to do!"
   )
 endif()
@@ -793,6 +805,9 @@ set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_OPENCOLORIO  OFF)
 
 # Haru needs `TIFFFaxBlackCodes` & `TIFFFaxWhiteCodes` symbols from TIFF.
 set_and_warn_dependency(WITH_IMAGE_TIFF WITH_HARU       OFF)
+
+# USD needs OpenSubDiv, since that is used by the Cycles Hydra render delegate.
+set_and_warn_dependency(WITH_OPENSUBDIV WITH_USD        OFF)
 
 # auto enable openimageio for cycles
 if(WITH_CYCLES)
@@ -1272,6 +1287,16 @@ if(WITH_GL_PROFILE_ES20)
   list(APPEND GL_DEFINITIONS -DWITH_GL_PROFILE_ES20)
 else()
   list(APPEND GL_DEFINITIONS -DWITH_GL_PROFILE_CORE)
+endif()
+
+#-----------------------------------------------------------------------------
+# Configure Metal.
+if (WITH_METAL_BACKEND)
+  add_definitions(-DWITH_METAL_BACKEND)
+
+  # No need to add frameworks here, all the ones we need for Metal and
+  # Metal-OpenGL Interop are already being added by
+  # build_files/cmake/platform/platform_apple.cmake
 endif()
 
 #-----------------------------------------------------------------------------
@@ -1884,14 +1909,13 @@ if(WITH_BLENDER)
   # source after intern and extern to gather all
   # internal and external library information first, for test linking
   add_subdirectory(source)
-elseif(WITH_CYCLES_STANDALONE)
+elseif(WITH_CYCLES_STANDALONE OR WITH_CYCLES_HYDRA_RENDER_DELEGATE)
   add_subdirectory(intern/glew-mx)
   add_subdirectory(intern/guardedalloc)
   add_subdirectory(intern/libc_compat)
   add_subdirectory(intern/sky)
 
   add_subdirectory(intern/cycles)
-  add_subdirectory(extern/clew)
   if(WITH_CYCLES_LOGGING)
     if(NOT WITH_SYSTEM_GFLAGS)
       add_subdirectory(extern/gflags)
@@ -1948,7 +1972,7 @@ if(FIRST_RUN)
 
     set(_msg "  - ${_setting}")
     string(LENGTH "${_msg}" _len)
-    while("32" GREATER "${_len}")
+    while("36" GREATER "${_len}")
       string(APPEND _msg " ")
       math(EXPR _len "${_len} + 1")
     endwhile()

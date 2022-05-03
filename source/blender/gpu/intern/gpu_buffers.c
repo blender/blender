@@ -25,7 +25,9 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_DerivedMesh.h"
+#include "BKE_attribute.h"
 #include "BKE_ccg.h"
+#include "BKE_customdata.h"
 #include "BKE_mesh.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
@@ -196,18 +198,25 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const MVert *mvert,
                                   const float (*vert_normals)[3],
                                   const float *vmask,
-                                  const MLoopCol *vcol,
+                                  const void *vcol_data,
+                                  int vcol_type,
+                                  AttributeDomain vcol_domain,
                                   const int *sculpt_face_sets,
-                                  const int face_sets_color_seed,
-                                  const int face_sets_color_default,
-                                  const MPropCol *vtcol,
-                                  const int update_flags)
+                                  int face_sets_color_seed,
+                                  int face_sets_color_default,
+                                  int update_flags)
 {
+  const MPropCol *vtcol = vcol_type == CD_PROP_COLOR ? vcol_data : NULL;
+  const MLoopCol *vcol = vcol_type == CD_PROP_BYTE_COLOR ? vcol_data : NULL;
+  const float(*f3col)[3] = vcol_type == CD_PROP_FLOAT3 ? vcol_data : NULL;
+
+  const bool color_loops = vcol_domain == ATTR_DOMAIN_CORNER;
+  const bool show_vcol = (vtcol || vcol || f3col) &&
+                         (update_flags & GPU_PBVH_BUFFERS_SHOW_VCOL) != 0;
+
   const bool show_mask = vmask && (update_flags & GPU_PBVH_BUFFERS_SHOW_MASK) != 0;
   const bool show_face_sets = sculpt_face_sets &&
                               (update_flags & GPU_PBVH_BUFFERS_SHOW_SCULPT_FACE_SETS) != 0;
-  const bool show_vcol = (vcol || (vtcol && U.experimental.use_sculpt_vertex_colors)) &&
-                         (update_flags & GPU_PBVH_BUFFERS_SHOW_VCOL) != 0;
   bool empty_mask = true;
   bool default_face_set = true;
 
@@ -290,16 +299,40 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
           /* Vertex Colors. */
           if (show_vcol) {
             ushort scol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
-            if (vtcol && U.experimental.use_sculpt_vertex_colors) {
-              scol[0] = unit_float_to_ushort_clamp(vtcol[vtri[j]].color[0]);
-              scol[1] = unit_float_to_ushort_clamp(vtcol[vtri[j]].color[1]);
-              scol[2] = unit_float_to_ushort_clamp(vtcol[vtri[j]].color[2]);
-              scol[3] = unit_float_to_ushort_clamp(vtcol[vtri[j]].color[3]);
+            if (vtcol) {
+              if (color_loops) {
+                scol[0] = unit_float_to_ushort_clamp(vtcol[lt->tri[j]].color[0]);
+                scol[1] = unit_float_to_ushort_clamp(vtcol[lt->tri[j]].color[1]);
+                scol[2] = unit_float_to_ushort_clamp(vtcol[lt->tri[j]].color[2]);
+                scol[3] = unit_float_to_ushort_clamp(vtcol[lt->tri[j]].color[3]);
+              }
+              else {
+                scol[0] = unit_float_to_ushort_clamp(vtcol[vtri[j]].color[0]);
+                scol[1] = unit_float_to_ushort_clamp(vtcol[vtri[j]].color[1]);
+                scol[2] = unit_float_to_ushort_clamp(vtcol[vtri[j]].color[2]);
+                scol[3] = unit_float_to_ushort_clamp(vtcol[vtri[j]].color[3]);
+              }
               memcpy(GPU_vertbuf_raw_step(&col_step), scol, sizeof(scol));
             }
-            else {
+            else if (f3col) {
+              if (color_loops) {
+                scol[0] = unit_float_to_ushort_clamp(f3col[lt->tri[j]][0]);
+                scol[1] = unit_float_to_ushort_clamp(f3col[lt->tri[j]][1]);
+                scol[2] = unit_float_to_ushort_clamp(f3col[lt->tri[j]][2]);
+                scol[3] = USHRT_MAX;
+              }
+              else {
+                scol[0] = unit_float_to_ushort_clamp(f3col[vtri[j]][0]);
+                scol[1] = unit_float_to_ushort_clamp(f3col[vtri[j]][1]);
+                scol[2] = unit_float_to_ushort_clamp(f3col[vtri[j]][2]);
+                scol[3] = USHRT_MAX;
+              }
+              memcpy(GPU_vertbuf_raw_step(&col_step), scol, sizeof(scol));
+            }
+            else if (vcol) {
               const uint loop_index = lt->tri[j];
-              const MLoopCol *mcol = &vcol[loop_index];
+              const MLoopCol *mcol = vcol + (color_loops ? loop_index : vtri[j]);
+
               scol[0] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->r]);
               scol[1] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->g]);
               scol[2] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol->b]);

@@ -197,7 +197,7 @@ void GPU_viewport_bind_from_offscreen(GPUViewport *viewport,
   /* XR surfaces will already check for texture size changes and free if necessary (see
    * #wm_xr_session_surface_offscreen_ensure()), so don't free here as it has a significant
    * performance impact (leads to texture re-creation in #gpu_viewport_textures_create() every VR
-   * drawing iteration).*/
+   * drawing iteration). */
   if (!is_xr_surface) {
     gpu_viewport_textures_free(viewport);
   }
@@ -505,7 +505,9 @@ void GPU_viewport_unbind_from_offscreen(GPUViewport *viewport,
                                         bool display_colorspace,
                                         bool do_overlay_merge)
 {
-  if (viewport->color_render_tx == NULL) {
+  const int view = 0;
+
+  if (viewport->color_render_tx[view] == NULL) {
     return;
   }
 
@@ -527,7 +529,7 @@ void GPU_viewport_unbind_from_offscreen(GPUViewport *viewport,
   };
 
   gpu_viewport_draw_colormanaged(
-      viewport, 0, &pos_rect, &uv_rect, display_colorspace, do_overlay_merge);
+      viewport, view, &pos_rect, &uv_rect, display_colorspace, do_overlay_merge);
 
   /* This one is from the offscreen. Don't free it with the viewport. */
   viewport->depth_tx = NULL;

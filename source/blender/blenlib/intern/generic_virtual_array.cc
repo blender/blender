@@ -24,6 +24,22 @@ void GVArrayImpl::materialize_to_uninitialized(const IndexMask mask, void *dst) 
   }
 }
 
+void GVArrayImpl::materialize_compressed(IndexMask mask, void *dst) const
+{
+  for (const int64_t i : mask.index_range()) {
+    void *elem_dst = POINTER_OFFSET(dst, type_->size() * i);
+    this->get(mask[i], elem_dst);
+  }
+}
+
+void GVArrayImpl::materialize_compressed_to_uninitialized(IndexMask mask, void *dst) const
+{
+  for (const int64_t i : mask.index_range()) {
+    void *elem_dst = POINTER_OFFSET(dst, type_->size() * i);
+    this->get_to_uninitialized(mask[i], elem_dst);
+  }
+}
+
 void GVArrayImpl::get(const int64_t index, void *r_value) const
 {
   type_->destruct(r_value);
@@ -172,6 +188,27 @@ GSpan GVArrayImpl_For_GSpan::get_internal_span() const
   return GSpan(*type_, data_, size_);
 }
 
+void GVArrayImpl_For_GSpan::materialize(const IndexMask mask, void *dst) const
+{
+  type_->copy_assign_indices(data_, dst, mask);
+}
+
+void GVArrayImpl_For_GSpan::materialize_to_uninitialized(const IndexMask mask, void *dst) const
+{
+  type_->copy_construct_indices(data_, dst, mask);
+}
+
+void GVArrayImpl_For_GSpan::materialize_compressed(const IndexMask mask, void *dst) const
+{
+  type_->copy_assign_compressed(data_, dst, mask);
+}
+
+void GVArrayImpl_For_GSpan::materialize_compressed_to_uninitialized(const IndexMask mask,
+                                                                    void *dst) const
+{
+  type_->copy_construct_compressed(data_, dst, mask);
+}
+
 class GVArrayImpl_For_GSpan_final final : public GVArrayImpl_For_GSpan {
  public:
   using GVArrayImpl_For_GSpan::GVArrayImpl_For_GSpan;
@@ -230,6 +267,26 @@ class GVArrayImpl_For_SingleValueRef : public GVArrayImpl {
   void get_internal_single(void *r_value) const override
   {
     type_->copy_assign(value_, r_value);
+  }
+
+  void materialize(const IndexMask mask, void *dst) const override
+  {
+    type_->fill_assign_indices(value_, dst, mask);
+  }
+
+  void materialize_to_uninitialized(const IndexMask mask, void *dst) const override
+  {
+    type_->fill_construct_indices(value_, dst, mask);
+  }
+
+  void materialize_compressed(const IndexMask mask, void *dst) const override
+  {
+    type_->fill_assign_n(value_, dst, mask.size());
+  }
+
+  void materialize_compressed_to_uninitialized(const IndexMask mask, void *dst) const override
+  {
+    type_->fill_construct_n(value_, dst, mask.size());
   }
 };
 
@@ -391,10 +448,7 @@ void GVMutableArray_GSpan::save()
   if (data_ != owned_data_) {
     return;
   }
-  const int64_t element_size = type_->size();
-  for (int64_t i : IndexRange(size_)) {
-    varray_.set_by_copy(i, POINTER_OFFSET(owned_data_, element_size * i));
-  }
+  varray_.set_all(owned_data_);
 }
 
 void GVMutableArray_GSpan::disable_not_applied_warning()
@@ -450,6 +504,22 @@ class GVArrayImpl_For_SlicedGVArray : public GVArrayImpl {
   void get_internal_single(void *r_value) const override
   {
     varray_.get_internal_single(r_value);
+  }
+
+  void materialize_compressed_to_uninitialized(const IndexMask mask, void *dst) const override
+  {
+    if (mask.is_range()) {
+      const IndexRange mask_range = mask.as_range();
+      const IndexRange offset_mask_range{mask_range.start() + offset_, mask_range.size()};
+      varray_.materialize_compressed_to_uninitialized(offset_mask_range, dst);
+    }
+    else {
+      Vector<int64_t, 32> offset_mask_indices(mask.size());
+      for (const int64_t i : mask.index_range()) {
+        offset_mask_indices[i] = mask[i] + offset_;
+      }
+      varray_.materialize_compressed_to_uninitialized(offset_mask_indices.as_span(), dst);
+    }
   }
 };
 
@@ -508,6 +578,16 @@ void GVArrayCommon::materialize_to_uninitialized(const IndexMask mask, void *dst
   impl_->materialize_to_uninitialized(mask, dst);
 }
 
+void GVArrayCommon::materialize_compressed(IndexMask mask, void *dst) const
+{
+  impl_->materialize_compressed(mask, dst);
+}
+
+void GVArrayCommon::materialize_compressed_to_uninitialized(IndexMask mask, void *dst) const
+{
+  impl_->materialize_compressed_to_uninitialized(mask, dst);
+}
+
 bool GVArrayCommon::may_have_ownership() const
 {
   return impl_->may_have_ownership();
@@ -563,6 +643,9 @@ void GVArrayCommon::get_internal_single_to_uninitialized(void *r_value) const
 
 const GVArrayImpl *GVArrayCommon::impl_from_storage() const
 {
+  if (!storage_.has_value()) {
+    return nullptr;
+  }
   return storage_.extra_info().get_varray(storage_.get());
 }
 

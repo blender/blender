@@ -23,7 +23,7 @@ struct BlenderCamera {
 
   float lens;
   float shuttertime;
-  Camera::MotionPosition motion_position;
+  MotionPosition motion_position;
   array<float> shutter_curve;
 
   Camera::RollingShutterType rolling_shutter_type;
@@ -114,7 +114,7 @@ static void blender_camera_init(BlenderCamera *bcam, BL::RenderSettings &b_rende
   bcam->sensor_width = 36.0f;
   bcam->sensor_height = 24.0f;
   bcam->sensor_fit = BlenderCamera::AUTO;
-  bcam->motion_position = Camera::MOTION_POSITION_CENTER;
+  bcam->motion_position = MOTION_POSITION_CENTER;
   bcam->border.right = 1.0f;
   bcam->border.top = 1.0f;
   bcam->viewport_camera_border.right = 1.0f;
@@ -555,10 +555,8 @@ void BlenderSync::sync_camera(BL::RenderSettings &b_render,
   curvemapping_to_array(b_shutter_curve, bcam.shutter_curve, RAMP_TABLE_SIZE);
 
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
-  bcam.motion_position = (Camera::MotionPosition)get_enum(cscene,
-                                                          "motion_blur_position",
-                                                          Camera::MOTION_NUM_POSITIONS,
-                                                          Camera::MOTION_POSITION_CENTER);
+  bcam.motion_position = (MotionPosition)get_enum(
+      cscene, "motion_blur_position", MOTION_NUM_POSITIONS, MOTION_POSITION_CENTER);
   bcam.rolling_shutter_type = (Camera::RollingShutterType)get_enum(
       cscene,
       "rolling_shutter_type",

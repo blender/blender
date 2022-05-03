@@ -104,7 +104,7 @@ void NodeOperationBuilder::convert_to_operations(ExecutionSystem *system)
   prune_operations();
 
   /* ensure topological (link-based) order of nodes */
-  /*sort_operations();*/ /* not needed yet */
+  // sort_operations(); /* not needed yet. */
 
   if (context_->get_execution_model() == eExecutionModel::Tiled) {
     /* create execution groups */
@@ -221,8 +221,9 @@ PreviewOperation *NodeOperationBuilder::make_preview_operation() const
 
   bNodeInstanceHash *previews = context_->get_preview_hash();
   if (previews) {
-    PreviewOperation *operation = new PreviewOperation(context_->get_view_settings(),
-                                                       context_->get_display_settings(),
+    Scene *scene = context_->get_scene();
+    PreviewOperation *operation = new PreviewOperation(&scene->view_settings,
+                                                       &scene->display_settings,
                                                        current_node_->get_bnode()->preview_xsize,
                                                        current_node_->get_bnode()->preview_ysize);
     operation->set_bnodetree(context_->get_bnodetree());

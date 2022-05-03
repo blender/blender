@@ -1,18 +1,6 @@
 
-/* ---- Instantiated Attrs ---- */
-in vec3 pos;
-
-/* ---- Per instance Attrs ---- */
-/* Assumed to be in world coordinate already. */
-in vec4 headSphere;
-in vec4 tailSphere;
-in vec3 xAxis;
-in vec3 stateColor;
-in vec3 boneColor;
-
-flat out vec3 finalStateColor;
-flat out vec3 finalBoneColor;
-out vec3 normalView;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {
@@ -47,9 +35,8 @@ void main()
   finalStateColor = stateColor;
   finalBoneColor = boneColor;
 
+  view_clipping_distances(sp);
+
   vec4 pos_4d = vec4(sp, 1.0);
   gl_Position = ViewProjectionMatrix * pos_4d;
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(pos_4d.xyz);
-#endif
 }

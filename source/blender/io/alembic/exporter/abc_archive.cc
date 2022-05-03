@@ -103,7 +103,7 @@ static void get_shutter_samples(double scene_fps,
                                 bool time_relative,
                                 std::vector<double> &r_samples)
 {
-  int frame_offset = time_relative ? params.frame_start : 0;
+  double frame_offset = time_relative ? params.frame_start : 0.0;
   double time_factor = time_relative ? scene_fps : 1.0;
   double shutter_open = params.shutter_open;
   double shutter_close = params.shutter_close;

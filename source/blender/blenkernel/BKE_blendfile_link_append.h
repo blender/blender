@@ -197,6 +197,9 @@ void BKE_blendfile_link(struct BlendfileLinkAppendContext *lapp_context,
  *   - Add all IDs to search for to `lapp_context`.
  *   - Mark which libraries should be considered for each ID.
  *   - Call this function.
+ *
+ * NOTE: content of `lapp_context` after execution of that function should not be assumed valid
+ * anymore, and should immediately be freed.
  */
 void BKE_blendfile_library_relocate(struct BlendfileLinkAppendContext *lapp_context,
                                     struct ReportList *reports,

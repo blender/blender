@@ -11,7 +11,7 @@ set(INC
 set(INC_SYS
 )
 
-set(LIBRARIES
+set(LIB
   cycles_device
   cycles_kernel
   cycles_scene
@@ -22,27 +22,33 @@ set(LIBRARIES
   cycles_util
 )
 
+if(WITH_ALEMBIC)
+  add_definitions(-DWITH_ALEMBIC)
+  list(APPEND INC_SYS
+    ${ALEMBIC_INCLUDE_DIRS}
+  )
+  list(APPEND LIB
+    ${ALEMBIC_LIBRARIES}
+  )
+endif()
+
 if(WITH_CYCLES_OSL)
-  list(APPEND LIBRARIES cycles_kernel_osl)
+  list(APPEND LIB cycles_kernel_osl)
 endif()
 
 if(CYCLES_STANDALONE_REPOSITORY)
-  list(APPEND LIBRARIES extern_sky)
+  list(APPEND LIB extern_sky)
 else()
-  list(APPEND LIBRARIES bf_intern_sky)
+  list(APPEND LIB bf_intern_sky)
 endif()
 
 if(WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI)
   add_definitions(${GL_DEFINITIONS})
-  list(APPEND INC_SYS
-    ${GLEW_INCLUDE_DIR}
-    ${SDL2_INCLUDE_DIRS}
-  )
-  list(APPEND LIBRARIES
-    ${CYCLES_GL_LIBRARIES}
-    ${SDL2_LIBRARIES}
-  )
+  list(APPEND INC_SYS ${GLEW_INCLUDE_DIR} ${SDL2_INCLUDE_DIRS})
+  list(APPEND LIB ${CYCLES_GL_LIBRARIES} ${CYCLES_GLEW_LIBRARIES} ${SDL2_LIBRARIES})
 endif()
+
+cycles_external_libraries_append(LIB)
 
 # Common configuration.
 
@@ -74,17 +80,9 @@ if(WITH_CYCLES_STANDALONE)
   add_executable(cycles ${SRC} ${INC} ${INC_SYS})
   unset(SRC)
 
-  target_link_libraries(cycles ${LIBRARIES})
-  cycles_target_link_libraries(cycles)
+  target_link_libraries(cycles PRIVATE ${LIB})
 
   if(APPLE)
-    if(WITH_OPENCOLORIO)
-      set_property(TARGET cycles APPEND_STRING PROPERTY LINK_FLAGS " -framework IOKit -framework Carbon")
-    endif()
-    if(WITH_OPENIMAGEDENOISE AND "${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
-      # OpenImageDenoise uses BNNS from the Accelerate framework.
-      set_property(TARGET cycles APPEND_STRING PROPERTY LINK_FLAGS " -framework Accelerate")
-    endif()
     if(WITH_CYCLES_STANDALONE_GUI)
       set_property(TARGET cycles APPEND_STRING PROPERTY LINK_FLAGS
         " -framework Cocoa -framework CoreAudio -framework AudioUnit -framework AudioToolbox -framework ForceFeedback -framework CoreVideo")
@@ -98,6 +96,10 @@ if(WITH_CYCLES_STANDALONE)
   if(CYCLES_STANDALONE_REPOSITORY)
     cycles_install_libraries(cycles)
   endif()
+
+  install(PROGRAMS
+    $<TARGET_FILE:cycles>
+    DESTINATION ${CMAKE_INSTALL_PREFIX})
 endif()
 
 #####################################################################
@@ -118,9 +120,12 @@ if(WITH_CYCLES_CUBIN_COMPILER)
     set(INC
       ../../../extern/cuew/include
     )
+    set(LIB
+    )
+    cycles_external_libraries_append(LIB)
     add_executable(cycles_cubin_cc ${SRC})
     include_directories(${INC})
-    cycles_target_link_libraries(cycles_cubin_cc)
+    target_link_libraries(cycles_cubin_cc PRIVATE ${LIB})
     unset(SRC)
     unset(INC)
   endif()

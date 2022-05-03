@@ -147,6 +147,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
                      me,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
+                         .calc_vert_normal = true,
                          .use_shapekey = true,
                          .active_shapekey = ob->shapenr,
                      }));
@@ -273,7 +274,7 @@ void sculpt_dynamic_topology_disable_with_undo(Main *bmain,
     }
     SCULPT_dynamic_topology_disable_ex(bmain, depsgraph, scene, ob, NULL);
     if (use_undo) {
-      SCULPT_undo_push_end();
+      SCULPT_undo_push_end(ob);
     }
   }
 }
@@ -293,7 +294,7 @@ static void sculpt_dynamic_topology_enable_with_undo(Main *bmain,
     SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, scene, ob);
     if (use_undo) {
       SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
-      SCULPT_undo_push_end();
+      SCULPT_undo_push_end(ob);
     }
   }
 }

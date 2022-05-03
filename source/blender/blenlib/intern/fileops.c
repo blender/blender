@@ -301,56 +301,60 @@ static bool delete_soft(const wchar_t *path_16, const char **error_message)
   /* Deletes file or directory to recycling bin. The latter moves all contained files and
    * directories recursively to the recycling bin as well. */
   IFileOperation *pfo;
-  IShellItem *pSI;
+  IShellItem *psi;
 
   HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
-  if (FAILED(hr)) {
+  if (SUCCEEDED(hr)) {
+    /* This is also the case when COM was previously initialized and CoInitializeEx returns
+     * S_FALSE, which is not an error. Both HRESULT values S_OK and S_FALSE indicate success. */
+
+    hr = CoCreateInstance(
+        &CLSID_FileOperation, NULL, CLSCTX_ALL, &IID_IFileOperation, (void **)&pfo);
+
+    if (SUCCEEDED(hr)) {
+      /* Flags for deletion:
+       * FOF_ALLOWUNDO: Enables moving file to recycling bin.
+       * FOF_SILENT: Don't show progress dialog box.
+       * FOF_WANTNUKEWARNING: Show dialog box if file can't be moved to recycling bin. */
+      hr = pfo->lpVtbl->SetOperationFlags(pfo, FOF_ALLOWUNDO | FOF_SILENT | FOF_WANTNUKEWARNING);
+
+      if (SUCCEEDED(hr)) {
+        hr = SHCreateItemFromParsingName(path_16, NULL, &IID_IShellItem, (void **)&psi);
+
+        if (SUCCEEDED(hr)) {
+          hr = pfo->lpVtbl->DeleteItem(pfo, psi, NULL);
+
+          if (SUCCEEDED(hr)) {
+            hr = pfo->lpVtbl->PerformOperations(pfo);
+
+            if (FAILED(hr)) {
+              *error_message = "Failed to prepare delete operation";
+            }
+          }
+          else {
+            *error_message = "Failed to prepare delete operation";
+          }
+          psi->lpVtbl->Release(psi);
+        }
+        else {
+          *error_message = "Failed to parse path";
+        }
+      }
+      else {
+        *error_message = "Failed to set operation flags";
+      }
+      pfo->lpVtbl->Release(pfo);
+    }
+    else {
+      *error_message = "Failed to create FileOperation instance";
+    }
+    CoUninitialize();
+  }
+  else {
     *error_message = "Failed to initialize COM";
-    goto error_1;
   }
 
-  hr = CoCreateInstance(
-      &CLSID_FileOperation, NULL, CLSCTX_ALL, &IID_IFileOperation, (void **)&pfo);
-  if (FAILED(hr)) {
-    *error_message = "Failed to create FileOperation instance";
-    goto error_2;
-  }
-
-  /* Flags for deletion:
-   * FOF_ALLOWUNDO: Enables moving file to recycling bin.
-   * FOF_SILENT: Don't show progress dialog box.
-   * FOF_WANTNUKEWARNING: Show dialog box if file can't be moved to recycling bin. */
-  hr = pfo->lpVtbl->SetOperationFlags(pfo, FOF_ALLOWUNDO | FOF_SILENT | FOF_WANTNUKEWARNING);
-
-  if (FAILED(hr)) {
-    *error_message = "Failed to set operation flags";
-    goto error_2;
-  }
-
-  hr = SHCreateItemFromParsingName(path_16, NULL, &IID_IShellItem, (void **)&pSI);
-  if (FAILED(hr)) {
-    *error_message = "Failed to parse path";
-    goto error_2;
-  }
-
-  hr = pfo->lpVtbl->DeleteItem(pfo, pSI, NULL);
-  if (FAILED(hr)) {
-    *error_message = "Failed to prepare delete operation";
-    goto error_2;
-  }
-
-  hr = pfo->lpVtbl->PerformOperations(pfo);
-
-  if (FAILED(hr)) {
-    *error_message = "Failed to delete file or directory";
-  }
-
-error_2:
-  pfo->lpVtbl->Release(pfo);
-  CoUninitialize(); /* Has to be uninitialized when CoInitializeEx returns either S_OK or S_FALSE
-                     */
-error_1:
   return FAILED(hr);
 }
 
@@ -382,9 +386,9 @@ static bool delete_recursive(const char *dir)
 {
   struct direntry *filelist, *fl;
   bool err = false;
-  uint nbr, i;
+  uint filelist_num, i;
 
-  i = nbr = BLI_filelist_dir_contents(dir, &filelist);
+  i = filelist_num = BLI_filelist_dir_contents(dir, &filelist);
   fl = filelist;
   while (i--) {
     const char *file = BLI_path_basename(fl->path);
@@ -415,7 +419,7 @@ static bool delete_recursive(const char *dir)
     err = true;
   }
 
-  BLI_filelist_free(filelist, nbr);
+  BLI_filelist_free(filelist, filelist_num);
 
   return err;
 }

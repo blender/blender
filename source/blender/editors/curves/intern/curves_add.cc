@@ -16,12 +16,12 @@ bke::CurvesGeometry primitive_random_sphere(const int curves_size, const int poi
 {
   bke::CurvesGeometry curves(points_per_curve * curves_size, curves_size);
 
-  MutableSpan<int> offsets = curves.offsets();
-  MutableSpan<float3> positions = curves.positions();
+  MutableSpan<int> offsets = curves.offsets_for_write();
+  MutableSpan<float3> positions = curves.positions_for_write();
 
   float *radius_data = (float *)CustomData_add_layer_named(
       &curves.point_data, CD_PROP_FLOAT, CD_DEFAULT, nullptr, curves.point_size, "radius");
-  MutableSpan<float> radii{radius_data, curves.points_size()};
+  MutableSpan<float> radii{radius_data, curves.points_num()};
 
   for (const int i : offsets.index_range()) {
     offsets[i] = points_per_curve * i;
@@ -30,7 +30,7 @@ bke::CurvesGeometry primitive_random_sphere(const int curves_size, const int poi
   RandomNumberGenerator rng;
 
   for (const int i : curves.curves_range()) {
-    const IndexRange curve_range = curves.range_for_curve(i);
+    const IndexRange curve_range = curves.points_for_curve(i);
     MutableSpan<float3> curve_positions = positions.slice(curve_range);
     MutableSpan<float> curve_radii = radii.slice(curve_range);
 

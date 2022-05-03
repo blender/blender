@@ -12,16 +12,20 @@ static void node_declare(NodeDeclarationBuilder &b)
 }
 
 static int node_shader_gpu_output_world(GPUMaterial *mat,
-                                        bNode *node,
+                                        bNode *UNUSED(node),
                                         bNodeExecData *UNUSED(execdata),
                                         GPUNodeStack *in,
-                                        GPUNodeStack *out)
+                                        GPUNodeStack *UNUSED(out))
 {
-  GPUNodeLink *outlink;
-
-  GPU_stack_link(mat, node, "node_output_world", in, out, &outlink);
-  GPU_material_output_link(mat, outlink);
-
+  GPUNodeLink *outlink_surface, *outlink_volume;
+  if (in[0].link) {
+    GPU_link(mat, "node_output_world_surface", in[0].link, &outlink_surface);
+    GPU_material_output_surface(mat, outlink_surface);
+  }
+  if (in[1].link) {
+    GPU_link(mat, "node_output_world_volume", in[1].link, &outlink_volume);
+    GPU_material_output_volume(mat, outlink_volume);
+  }
   return true;
 }
 

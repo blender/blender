@@ -7,13 +7,13 @@ uniform vec4 WorldClipPlanes[6];
 
 #    define _world_clip_planes_calc_clip_distance(wpos, _clipplanes) \
       { \
-        vec4 pos = vec4(wpos, 1.0); \
-        gl_ClipDistance[0] = dot(_clipplanes[0], pos); \
-        gl_ClipDistance[1] = dot(_clipplanes[1], pos); \
-        gl_ClipDistance[2] = dot(_clipplanes[2], pos); \
-        gl_ClipDistance[3] = dot(_clipplanes[3], pos); \
-        gl_ClipDistance[4] = dot(_clipplanes[4], pos); \
-        gl_ClipDistance[5] = dot(_clipplanes[5], pos); \
+        vec4 _pos = vec4(wpos, 1.0); \
+        gl_ClipDistance[0] = dot(_clipplanes[0], _pos); \
+        gl_ClipDistance[1] = dot(_clipplanes[1], _pos); \
+        gl_ClipDistance[2] = dot(_clipplanes[2], _pos); \
+        gl_ClipDistance[3] = dot(_clipplanes[3], _pos); \
+        gl_ClipDistance[4] = dot(_clipplanes[4], _pos); \
+        gl_ClipDistance[5] = dot(_clipplanes[5], _pos); \
       }
 
 /* When all shaders are builtin shaders are migrated this could be applied directly. */

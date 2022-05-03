@@ -347,7 +347,7 @@ static PyObject *pygpu_state_program_point_size_set(PyObject *UNUSED(self), PyOb
 PyDoc_STRVAR(pygpu_state_framebuffer_active_get_doc,
              ".. function:: framebuffer_active_get(enable)\n"
              "\n"
-             "   Return the active framefuffer in context.\n");
+             "   Return the active frame-buffer in context.\n");
 static PyObject *pygpu_state_framebuffer_active_get(PyObject *UNUSED(self))
 {
   GPUFrameBuffer *fb = GPU_framebuffer_active_get();

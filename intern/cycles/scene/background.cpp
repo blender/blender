@@ -32,6 +32,8 @@ NODE_DEFINE(Background)
 
   SOCKET_NODE(shader, "Shader", Shader::get_node_type());
 
+  SOCKET_STRING(lightgroup, "Light Group", ustring());
+
   return type;
 }
 
@@ -99,6 +101,15 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
       kbackground->surface_shader |= SHADER_EXCLUDE_SCATTER;
     if (!(visibility & PATH_RAY_CAMERA))
       kbackground->surface_shader |= SHADER_EXCLUDE_CAMERA;
+  }
+
+  /* Light group. */
+  auto it = scene->lightgroups.find(lightgroup);
+  if (it != scene->lightgroups.end()) {
+    kbackground->lightgroup = it->second;
+  }
+  else {
+    kbackground->lightgroup = LIGHTGROUP_NONE;
   }
 
   clear_modified();

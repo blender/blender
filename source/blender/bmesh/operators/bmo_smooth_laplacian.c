@@ -37,7 +37,7 @@ struct BLaplacianSystem {
   BMOperator *op;
   LinearSolver *context;
 
-  /*Data*/
+  /* Data. */
   float min_area;
 };
 typedef struct BLaplacianSystem LaplacianSystem;

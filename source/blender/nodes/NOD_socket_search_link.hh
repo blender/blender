@@ -120,8 +120,8 @@ class GatherLinkSearchOpParams {
 /**
  * This callback can be used for a node type when a few things are true about its inputs.
  * To avoid creating more boilerplate, it is the default callback for node types.
- *  - Either all declared sockets are visible in the default state of the node, *OR* the node's
- *    type's declaration has been extended with #make_available functions for those sockets.
+ * - Either all declared sockets are visible in the default state of the node, *OR* the node's
+ *   type's declaration has been extended with #make_available functions for those sockets.
  *
  * If a node type does not meet these criteria, the function will do nothing in a release build.
  * In a debug build, an assert will most likely be hit.

@@ -766,68 +766,6 @@ static const DupliGenerator gen_dupli_verts_font = {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Dupli-Vertices Implementation (#OB_DUPLIVERTS for #PointCloud)
- * \{ */
-
-static void make_child_duplis_pointcloud(const DupliContext *ctx,
-                                         void *UNUSED(userdata),
-                                         Object *child)
-{
-  const Object *parent = ctx->object;
-  const PointCloud *pointcloud = (PointCloud *)parent->data;
-  const float(*co)[3] = pointcloud->co;
-  const float *radius = pointcloud->radius;
-  const float(*rotation)[4] = nullptr; /* TODO: add optional rotation attribute. */
-  const float(*orco)[3] = nullptr;     /* TODO: add optional texture coordinate attribute. */
-
-  /* Relative transform from parent to child space. */
-  float child_imat[4][4];
-  mul_m4_m4m4(child_imat, child->imat, parent->obmat);
-
-  for (int i = 0; i < pointcloud->totpoint; i++) {
-    /* Transform matrix from point position, radius and rotation. */
-    float quat[4] = {1.0f, 0.0f, 0.0f, 0.0f};
-    float size[3] = {1.0f, 1.0f, 1.0f};
-    if (radius) {
-      copy_v3_fl(size, radius[i]);
-    }
-    if (rotation) {
-      copy_v4_v4(quat, rotation[i]);
-    }
-
-    float space_mat[4][4];
-    loc_quat_size_to_mat4(space_mat, co[i], quat, size);
-
-    /* Make offset relative to child object using relative child transform,
-     * and apply object matrix after local vertex transform. */
-    mul_mat3_m4_v3(child_imat, space_mat[3]);
-
-    /* Create dupli object. */
-    float obmat[4][4];
-    mul_m4_m4m4(obmat, child->obmat, space_mat);
-    DupliObject *dob = make_dupli(ctx, child, obmat, i);
-    if (orco) {
-      copy_v3_v3(dob->orco, orco[i]);
-    }
-
-    /* Recursion. */
-    make_recursive_duplis(ctx, child, space_mat, i);
-  }
-}
-
-static void make_duplis_pointcloud(const DupliContext *ctx)
-{
-  make_child_duplis(ctx, nullptr, make_child_duplis_pointcloud);
-}
-
-static const DupliGenerator gen_dupli_verts_pointcloud = {
-    OB_DUPLIVERTS,         /* type */
-    make_duplis_pointcloud /* make_duplis */
-};
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Instances Geometry Component Implementation
  * \{ */
 
@@ -838,32 +776,27 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
 {
   int component_index = 0;
   if (ctx->object->type != OB_MESH || geometry_set_is_instance) {
-    const Mesh *mesh = geometry_set.get_mesh_for_read();
-    if (mesh != nullptr) {
+    if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
       DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
       dupli->ob_data = (ID *)mesh;
     }
   }
   if (ctx->object->type != OB_VOLUME || geometry_set_is_instance) {
-    const Volume *volume = geometry_set.get_volume_for_read();
-    if (volume != nullptr) {
+    if (const Volume *volume = geometry_set.get_volume_for_read()) {
       DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
       dupli->ob_data = (ID *)volume;
     }
   }
-  if (!ELEM(ctx->object->type, OB_CURVES_LEGACY, OB_FONT) || geometry_set_is_instance) {
-    const CurveComponent *curve_component = geometry_set.get_component_for_read<CurveComponent>();
-    if (curve_component != nullptr) {
-      const Curve *curve = curve_component->get_curve_for_render();
-      if (curve != nullptr) {
+  if (!ELEM(ctx->object->type, OB_CURVES_LEGACY, OB_FONT, OB_CURVES) || geometry_set_is_instance) {
+    if (const CurveComponent *component = geometry_set.get_component_for_read<CurveComponent>()) {
+      if (const Curve *curve = component->get_curve_for_render()) {
         DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
         dupli->ob_data = (ID *)curve;
       }
     }
   }
   if (ctx->object->type != OB_POINTCLOUD || geometry_set_is_instance) {
-    const PointCloud *pointcloud = geometry_set.get_pointcloud_for_read();
-    if (pointcloud != nullptr) {
+    if (const PointCloud *pointcloud = geometry_set.get_pointcloud_for_read()) {
       DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
       dupli->ob_data = (ID *)pointcloud;
     }
@@ -1653,9 +1586,6 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
   if (transflag & OB_DUPLIVERTS) {
     if (ctx->object->type == OB_MESH) {
       return &gen_dupli_verts;
-    }
-    if (ctx->object->type == OB_POINTCLOUD) {
-      return &gen_dupli_verts_pointcloud;
     }
   }
   else if (transflag & OB_DUPLIFACES) {

@@ -104,8 +104,6 @@ set(SRC
   intern/crazyspace.c
   intern/cryptomatte.cc
   intern/curve.cc
-  intern/curves.cc
-  intern/curves_geometry.cc
   intern/curve_bevel.c
   intern/curve_bezier.cc
   intern/curve_catmull_rom.cc
@@ -114,19 +112,21 @@ set(SRC
   intern/curve_deform.c
   intern/curve_eval.cc
   intern/curve_nurbs.cc
+  intern/curve_poly.cc
   intern/curve_to_mesh_convert.cc
   intern/curveprofile.cc
+  intern/curves.cc
+  intern/curves_geometry.cc
   intern/customdata.cc
   intern/customdata_file.c
   intern/data_transfer.c
   intern/deform.c
   intern/displist.cc
-  intern/displist_tangent.c
   intern/dynamicpaint.c
   intern/editlattice.c
   intern/editmesh.c
   intern/editmesh_bvh.c
-  intern/editmesh_cache.c
+  intern/editmesh_cache.cc
   intern/editmesh_tangent.c
   intern/effect.c
   intern/fcurve.c
@@ -157,9 +157,9 @@ set(SRC
   intern/idtype.c
   intern/image.cc
   intern/image_format.cc
-  intern/image_partial_update.cc
   intern/image_gen.c
   intern/image_gpu.cc
+  intern/image_partial_update.cc
   intern/image_save.cc
   intern/ipo.c
   intern/kelvinlet.c
@@ -203,12 +203,12 @@ set(SRC
   intern/mesh_normals.cc
   intern/mesh_remap.c
   intern/mesh_remesh_voxel.cc
-  intern/mesh_runtime.c
+  intern/mesh_runtime.cc
   intern/mesh_sample.cc
   intern/mesh_tangent.c
   intern/mesh_tessellate.c
   intern/mesh_validate.cc
-  intern/mesh_wrapper.c
+  intern/mesh_wrapper.cc
   intern/modifier.c
   intern/movieclip.c
   intern/multires.c
@@ -235,19 +235,22 @@ set(SRC
   intern/outliner_treehash.c
   intern/packedFile.c
   intern/paint.c
+  intern/paint_canvas.cc
   intern/paint_toolslots.c
   intern/particle.c
   intern/particle_child.c
   intern/particle_distribute.c
   intern/particle_system.c
+  intern/pbvh.cc
   intern/pbvh.c
   intern/pbvh_bmesh.c
+  intern/pbvh_pixels.cc
   intern/pointcache.c
   intern/pointcloud.cc
   intern/preferences.c
   intern/report.c
   intern/rigidbody.c
-  intern/scene.c
+  intern/scene.cc
   intern/screen.c
   intern/shader_fx.c
   intern/shrinkwrap.c
@@ -348,16 +351,15 @@ set(SRC
   BKE_cryptomatte.h
   BKE_cryptomatte.hh
   BKE_curve.h
-  BKE_curves.h
-  BKE_curves.hh
   BKE_curve_to_mesh.hh
   BKE_curveprofile.h
+  BKE_curves.h
+  BKE_curves.hh
   BKE_customdata.h
   BKE_customdata_file.h
   BKE_data_transfer.h
   BKE_deform.h
   BKE_displist.h
-  BKE_displist_tangent.h
   BKE_duplilist.h
   BKE_dynamicpaint.h
   BKE_editlattice.h
@@ -370,6 +372,7 @@ set(SRC
   BKE_fcurve_driver.h
   BKE_fluid.h
   BKE_freestyle.h
+  BKE_geometry_fields.hh
   BKE_geometry_set.h
   BKE_geometry_set.hh
   BKE_geometry_set_instances.hh
@@ -599,12 +602,12 @@ if(WITH_IMAGE_CINEON)
   add_definitions(-DWITH_CINEON)
 endif()
 
-if(WITH_IMAGE_FRAMESERVER)
-  add_definitions(-DWITH_FRAMESERVER)
-endif()
-
 if(WITH_IMAGE_HDR)
   add_definitions(-DWITH_HDR)
+endif()
+
+if(WITH_IMAGE_WEBP)
+	add_definitions(-DWITH_WEBP)
 endif()
 
 if(WITH_CODEC_AVI)
@@ -820,6 +823,7 @@ if(WITH_GTESTS)
     intern/fcurve_test.cc
     intern/idprop_serialize_test.cc
     intern/image_partial_update_test.cc
+    intern/image_test.cc
     intern/lattice_deform_test.cc
     intern/layer_test.cc
     intern/lib_id_remapper_test.cc

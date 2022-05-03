@@ -20,6 +20,16 @@ template<typename T> void default_construct_indices_cb(void *ptr, IndexMask mask
   mask.foreach_index([&](int64_t i) { new (static_cast<T *>(ptr) + i) T; });
 }
 
+template<typename T> void value_initialize_cb(void *ptr)
+{
+  new (ptr) T();
+}
+
+template<typename T> void value_initialize_indices_cb(void *ptr, IndexMask mask)
+{
+  mask.foreach_index([&](int64_t i) { new (static_cast<T *>(ptr) + i) T(); });
+}
+
 template<typename T> void destruct_cb(void *ptr)
 {
   (static_cast<T *>(ptr))->~T();
@@ -41,6 +51,17 @@ template<typename T> void copy_assign_indices_cb(const void *src, void *dst, Ind
 
   mask.foreach_index([&](int64_t i) { dst_[i] = src_[i]; });
 }
+template<typename T> void copy_assign_compressed_cb(const void *src, void *dst, IndexMask mask)
+{
+  const T *src_ = static_cast<const T *>(src);
+  T *dst_ = static_cast<T *>(dst);
+
+  mask.to_best_mask_type([&](auto best_mask) {
+    for (const int64_t i : IndexRange(best_mask.size())) {
+      dst_[i] = src_[best_mask[i]];
+    }
+  });
+}
 
 template<typename T> void copy_construct_cb(const void *src, void *dst)
 {
@@ -52,6 +73,17 @@ template<typename T> void copy_construct_indices_cb(const void *src, void *dst, 
   T *dst_ = static_cast<T *>(dst);
 
   mask.foreach_index([&](int64_t i) { new (dst_ + i) T(src_[i]); });
+}
+template<typename T> void copy_construct_compressed_cb(const void *src, void *dst, IndexMask mask)
+{
+  const T *src_ = static_cast<const T *>(src);
+  T *dst_ = static_cast<T *>(dst);
+
+  mask.to_best_mask_type([&](auto best_mask) {
+    for (const int64_t i : IndexRange(best_mask.size())) {
+      new (dst_ + i) T(src_[best_mask[i]]);
+    }
+  });
 }
 
 template<typename T> void move_assign_cb(void *src, void *dst)
@@ -186,6 +218,8 @@ CPPType::CPPType(CPPTypeParam<T, Flags> /* unused */, StringRef debug_name)
   if constexpr (std::is_default_constructible_v<T>) {
     default_construct_ = default_construct_cb<T>;
     default_construct_indices_ = default_construct_indices_cb<T>;
+    value_initialize_ = value_initialize_cb<T>;
+    value_initialize_indices_ = value_initialize_indices_cb<T>;
     static T default_value;
     default_value_ = (void *)&default_value;
   }
@@ -196,10 +230,12 @@ CPPType::CPPType(CPPTypeParam<T, Flags> /* unused */, StringRef debug_name)
   if constexpr (std::is_copy_assignable_v<T>) {
     copy_assign_ = copy_assign_cb<T>;
     copy_assign_indices_ = copy_assign_indices_cb<T>;
+    copy_assign_compressed_ = copy_assign_compressed_cb<T>;
   }
   if constexpr (std::is_copy_constructible_v<T>) {
     copy_construct_ = copy_construct_cb<T>;
     copy_construct_indices_ = copy_construct_indices_cb<T>;
+    copy_construct_compressed_ = copy_construct_compressed_cb<T>;
   }
   if constexpr (std::is_move_assignable_v<T>) {
     move_assign_ = move_assign_cb<T>;

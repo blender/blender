@@ -141,11 +141,11 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   MEdge *ed, *medge, *orig_medge;
   MLoop *ml, *mloop, *orig_mloop;
   MPoly *mp, *mpoly, *orig_mpoly;
-  const uint numVerts = (uint)mesh->totvert;
-  const uint numEdges = (uint)mesh->totedge;
-  const uint numPolys = (uint)mesh->totpoly;
+  const uint verts_num = (uint)mesh->totvert;
+  const uint edges_num = (uint)mesh->totedge;
+  const uint polys_num = (uint)mesh->totpoly;
 
-  if (numPolys == 0 && numVerts != 0) {
+  if (polys_num == 0 && verts_num != 0) {
     return mesh;
   }
 
@@ -193,28 +193,28 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   orig_mloop = mesh->mloop;
   orig_mpoly = mesh->mpoly;
 
-  uint numNewVerts = 0;
-  uint numNewEdges = 0;
-  uint numNewLoops = 0;
-  uint numNewPolys = 0;
+  uint new_verts_num = 0;
+  uint new_edges_num = 0;
+  uint new_loops_num = 0;
+  uint new_polys_num = 0;
 
 #define MOD_SOLIDIFY_EMPTY_TAG ((uint)-1)
 
   /* Calculate only face normals. Copied because they are modified directly below. */
-  float(*poly_nors)[3] = MEM_malloc_arrayN(numPolys, sizeof(float[3]), __func__);
-  memcpy(poly_nors, BKE_mesh_poly_normals_ensure(mesh), sizeof(float[3]) * numPolys);
+  float(*poly_nors)[3] = MEM_malloc_arrayN(polys_num, sizeof(float[3]), __func__);
+  memcpy(poly_nors, BKE_mesh_poly_normals_ensure(mesh), sizeof(float[3]) * polys_num);
 
   NewFaceRef *face_sides_arr = MEM_malloc_arrayN(
-      numPolys * 2, sizeof(*face_sides_arr), "face_sides_arr in solidify");
+      polys_num * 2, sizeof(*face_sides_arr), "face_sides_arr in solidify");
   bool *null_faces =
       (smd->nonmanifold_offset_mode == MOD_SOLIDIFY_NONMANIFOLD_OFFSET_MODE_CONSTRAINTS) ?
-          MEM_calloc_arrayN(numPolys, sizeof(*null_faces), "null_faces in solidify") :
+          MEM_calloc_arrayN(polys_num, sizeof(*null_faces), "null_faces in solidify") :
           NULL;
   uint largest_ngon = 3;
   /* Calculate face to #NewFaceRef map. */
   {
     mp = orig_mpoly;
-    for (uint i = 0; i < numPolys; i++, mp++) {
+    for (uint i = 0; i < polys_num; i++, mp++) {
       /* Make normals for faces without area (should really be avoided though). */
       if (len_squared_v3(poly_nors[i]) < 0.5f) {
         MEdge *e = orig_medge + orig_mloop[mp->loopstart].e;
@@ -244,18 +244,18 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
       }
       /* add to final mesh face count */
       if (do_shell) {
-        numNewPolys += 2;
-        numNewLoops += (uint)mp->totloop * 2;
+        new_polys_num += 2;
+        new_loops_num += (uint)mp->totloop * 2;
       }
     }
   }
 
   uint *edge_adj_faces_len = MEM_calloc_arrayN(
-      numEdges, sizeof(*edge_adj_faces_len), "edge_adj_faces_len in solidify");
+      edges_num, sizeof(*edge_adj_faces_len), "edge_adj_faces_len in solidify");
   /* Count for each edge how many faces it has adjacent. */
   {
     mp = orig_mpoly;
-    for (uint i = 0; i < numPolys; i++, mp++) {
+    for (uint i = 0; i < polys_num; i++, mp++) {
       ml = orig_mloop + mp->loopstart;
       for (uint j = 0; j < mp->totloop; j++, ml++) {
         edge_adj_faces_len[ml->e]++;
@@ -265,16 +265,16 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
   /* Original edge to #NewEdgeRef map. */
   NewEdgeRef ***orig_edge_data_arr = MEM_calloc_arrayN(
-      numEdges, sizeof(*orig_edge_data_arr), "orig_edge_data_arr in solidify");
+      edges_num, sizeof(*orig_edge_data_arr), "orig_edge_data_arr in solidify");
   /* Original edge length cache. */
   float *orig_edge_lengths = MEM_calloc_arrayN(
-      numEdges, sizeof(*orig_edge_lengths), "orig_edge_lengths in solidify");
+      edges_num, sizeof(*orig_edge_lengths), "orig_edge_lengths in solidify");
   /* Edge groups for every original vert. */
   EdgeGroup **orig_vert_groups_arr = MEM_calloc_arrayN(
-      numVerts, sizeof(*orig_vert_groups_arr), "orig_vert_groups_arr in solidify");
+      verts_num, sizeof(*orig_vert_groups_arr), "orig_vert_groups_arr in solidify");
   /* vertex map used to map duplicates. */
-  uint *vm = MEM_malloc_arrayN(numVerts, sizeof(*vm), "orig_vert_map in solidify");
-  for (uint i = 0; i < numVerts; i++) {
+  uint *vm = MEM_malloc_arrayN(verts_num, sizeof(*vm), "orig_vert_map in solidify");
+  for (uint i = 0; i < verts_num; i++) {
     vm[i] = i;
   }
 
@@ -286,12 +286,12 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
   /* Vert edge adjacent map. */
   OldVertEdgeRef **vert_adj_edges = MEM_calloc_arrayN(
-      numVerts, sizeof(*vert_adj_edges), "vert_adj_edges in solidify");
+      verts_num, sizeof(*vert_adj_edges), "vert_adj_edges in solidify");
   /* Original vertex positions (changed for degenerated geometry). */
   float(*orig_mvert_co)[3] = MEM_malloc_arrayN(
-      numVerts, sizeof(*orig_mvert_co), "orig_mvert_co in solidify");
+      verts_num, sizeof(*orig_mvert_co), "orig_mvert_co in solidify");
   /* Fill in the original vertex positions. */
-  for (uint i = 0; i < numVerts; i++) {
+  for (uint i = 0; i < verts_num; i++) {
     orig_mvert_co[i][0] = orig_mvert[i].co[0];
     orig_mvert_co[i][1] = orig_mvert[i].co[1];
     orig_mvert_co[i][2] = orig_mvert[i].co[2];
@@ -300,12 +300,12 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   /* Create edge to #NewEdgeRef map. */
   {
     OldEdgeFaceRef **edge_adj_faces = MEM_calloc_arrayN(
-        numEdges, sizeof(*edge_adj_faces), "edge_adj_faces in solidify");
+        edges_num, sizeof(*edge_adj_faces), "edge_adj_faces in solidify");
 
     /* Create link_faces for edges. */
     {
       mp = orig_mpoly;
-      for (uint i = 0; i < numPolys; i++, mp++) {
+      for (uint i = 0; i < polys_num; i++, mp++) {
         ml = orig_mloop + mp->loopstart;
         for (uint j = 0; j < mp->totloop; j++, ml++) {
           const uint edge = ml->e;
@@ -342,19 +342,19 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
     float edgedir[3] = {0, 0, 0};
     uint *vert_adj_edges_len = MEM_calloc_arrayN(
-        numVerts, sizeof(*vert_adj_edges_len), "vert_adj_edges_len in solidify");
+        verts_num, sizeof(*vert_adj_edges_len), "vert_adj_edges_len in solidify");
 
     /* Calculate edge lengths and len vert_adj edges. */
     {
       bool *face_singularity = MEM_calloc_arrayN(
-          numPolys, sizeof(*face_singularity), "face_sides_arr in solidify");
+          polys_num, sizeof(*face_singularity), "face_sides_arr in solidify");
 
       const float merge_tolerance_sqr = smd->merge_tolerance * smd->merge_tolerance;
       uint *combined_verts = MEM_calloc_arrayN(
-          numVerts, sizeof(*combined_verts), "combined_verts in solidify");
+          verts_num, sizeof(*combined_verts), "combined_verts in solidify");
 
       ed = orig_medge;
-      for (uint i = 0; i < numEdges; i++, ed++) {
+      for (uint i = 0; i < edges_num; i++, ed++) {
         if (edge_adj_faces_len[i] > 0) {
           uint v1 = vm[ed->v1];
           uint v2 = vm[ed->v2];
@@ -373,7 +373,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             /* This check is very slow. It would need the vertex edge links to get
              * accelerated that are not yet available at this point. */
             bool can_merge = true;
-            for (uint k = 0; k < numEdges && can_merge; k++) {
+            for (uint k = 0; k < edges_num && can_merge; k++) {
               if (k != i && edge_adj_faces_len[k] > 0 &&
                   (ELEM(vm[orig_medge[k].v1], v1, v2) != ELEM(vm[orig_medge[k].v2], v1, v2))) {
                 for (uint j = 0; j < edge_adj_faces[k]->faces_len && can_merge; j++) {
@@ -402,7 +402,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                       (combined_verts[v2] + 1) /
                           (float)(combined_verts[v1] + combined_verts[v2] + 2));
             add_v3_v3(orig_mvert_co[v1], edgedir);
-            for (uint j = v2; j < numVerts; j++) {
+            for (uint j = v2; j < verts_num; j++) {
               if (vm[j] == v2) {
                 vm[j] = v1;
               }
@@ -412,7 +412,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             combined_verts[v1] += combined_verts[v2] + 1;
 
             if (do_shell) {
-              numNewLoops -= edge_adj_faces_len[i] * 2;
+              new_loops_num -= edge_adj_faces_len[i] * 2;
             }
 
             edge_adj_faces_len[i] = 0;
@@ -430,7 +430,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
       }
       /* remove zero faces in a second pass */
       ed = orig_medge;
-      for (uint i = 0; i < numEdges; i++, ed++) {
+      for (uint i = 0; i < edges_num; i++, ed++) {
         const uint v1 = vm[ed->v1];
         const uint v2 = vm[ed->v2];
         if (v1 == v2 && edge_adj_faces[i]) {
@@ -449,14 +449,14 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                 face_singularity[face] = true;
                 /* remove from final mesh poly count */
                 if (do_shell) {
-                  numNewPolys -= 2;
+                  new_polys_num -= 2;
                 }
               }
             }
           }
 
           if (do_shell) {
-            numNewLoops -= edge_adj_faces_len[i] * 2;
+            new_loops_num -= edge_adj_faces_len[i] * 2;
           }
 
           edge_adj_faces_len[i] = 0;
@@ -474,7 +474,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     /* Create vert_adj_edges for verts. */
     {
       ed = orig_medge;
-      for (uint i = 0; i < numEdges; i++, ed++) {
+      for (uint i = 0; i < edges_num; i++, ed++) {
         if (edge_adj_faces_len[i] > 0) {
           const uint vs[2] = {vm[ed->v1], vm[ed->v2]};
           uint invalid_edge_index = 0;
@@ -545,8 +545,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             }
             /* remove from final face count */
             if (do_shell) {
-              numNewPolys -= 2 * j;
-              numNewLoops -= 4 * j;
+              new_polys_num -= 2 * j;
+              new_loops_num -= 4 * j;
             }
             const uint len = i_adj_faces->faces_len + invalid_adj_faces->faces_len - 2 * j;
             uint *adj_faces = MEM_malloc_arrayN(
@@ -595,7 +595,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
       ed = orig_medge;
       /* Iterate over edges and only check the faces around an edge for duplicates
        * (performance optimization). */
-      for (uint i = 0; i < numEdges; i++, ed++) {
+      for (uint i = 0; i < edges_num; i++, ed++) {
         if (edge_adj_faces_len[i] > 0) {
           const OldEdgeFaceRef *adj_faces = edge_adj_faces[i];
           uint adj_len = adj_faces->faces_len;
@@ -674,7 +674,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                         }
                       }
                       else if (e_adj_faces->used > 1) {
-                        for (uint n = 0; n < numEdges; n++) {
+                        for (uint n = 0; n < edges_num; n++) {
                           if (edge_adj_faces[n] == e_adj_faces && edge_adj_faces_len[n] > 0) {
                             edge_adj_faces_len[n]--;
                             if (edge_adj_faces_len[n] == 0) {
@@ -689,8 +689,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                     }
                   }
                   if (do_shell) {
-                    numNewPolys -= 2;
-                    numNewLoops -= 2 * (uint)del_loops;
+                    new_polys_num -= 2;
+                    new_loops_num -= 2 * (uint)del_loops;
                   }
                   break;
                 }
@@ -704,7 +704,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     /* Create #NewEdgeRef array. */
     {
       ed = orig_medge;
-      for (uint i = 0; i < numEdges; i++, ed++) {
+      for (uint i = 0; i < edges_num; i++, ed++) {
         const uint v1 = vm[ed->v1];
         const uint v2 = vm[ed->v2];
         if (edge_adj_faces_len[i] > 0) {
@@ -807,8 +807,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                                    (adj_faces_reversed[0] ? 1 : 0);
             if (do_rim) {
               /* Only add the loops parallel to the edge for now. */
-              numNewLoops += 2;
-              numNewPolys++;
+              new_loops_num += 2;
+              new_polys_num++;
             }
           }
 
@@ -864,13 +864,13 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
           MEM_freeN(sorted_faces);
           orig_edge_data_arr[i] = new_edges;
           if (do_shell || (adj_len == 1 && do_rim)) {
-            numNewEdges += new_edges_len;
+            new_edges_num += new_edges_len;
           }
         }
       }
     }
 
-    for (uint i = 0; i < numEdges; i++) {
+    for (uint i = 0; i < edges_num; i++) {
       if (edge_adj_faces[i]) {
         if (edge_adj_faces[i]->used > 1) {
           edge_adj_faces[i]->used--;
@@ -888,7 +888,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   /* Create sorted edge groups for every vert. */
   {
     OldVertEdgeRef **adj_edges_ptr = vert_adj_edges;
-    for (uint i = 0; i < numVerts; i++, adj_edges_ptr++) {
+    for (uint i = 0; i < verts_num; i++, adj_edges_ptr++) {
       if (*adj_edges_ptr != NULL && (*adj_edges_ptr)->edges_len >= 2) {
         EdgeGroup *edge_groups;
 
@@ -1305,7 +1305,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             uint added = 0;
             if (do_shell || (do_rim && !g->is_orig_closed)) {
               BLI_assert(g->new_vert == MOD_SOLIDIFY_EMPTY_TAG);
-              g->new_vert = numNewVerts++;
+              g->new_vert = new_verts_num++;
               if (do_rim || (do_shell && g->split)) {
                 new_verts++;
                 contains_splits += (g->split != 0);
@@ -1321,23 +1321,23 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             last_added = added;
             if (!(g + 1)->valid || g->topo_group != (g + 1)->topo_group) {
               if (new_verts > 2) {
-                numNewPolys++;
-                numNewEdges += new_verts;
+                new_polys_num++;
+                new_edges_num += new_verts;
                 open_edges += (uint)(first_added < last_added);
                 open_edges -= (uint)(open_edges && !contains_open_splits);
                 if (do_shell && do_rim) {
-                  numNewLoops += new_verts * 2;
+                  new_loops_num += new_verts * 2;
                 }
                 else if (do_shell) {
-                  numNewLoops += new_verts * 2 - open_edges;
+                  new_loops_num += new_verts * 2 - open_edges;
                 }
                 else {  // do_rim
-                  numNewLoops += new_verts * 2 + open_edges - contains_splits;
+                  new_loops_num += new_verts * 2 + open_edges - contains_splits;
                 }
               }
               else if (new_verts == 2) {
-                numNewEdges++;
-                numNewLoops += 2u - (uint)(!(do_rim && do_shell) && contains_open_splits);
+                new_edges_num++;
+                new_loops_num += 2u - (uint)(!(do_rim && do_shell) && contains_open_splits);
               }
               new_verts = 0;
               contains_open_splits = false;
@@ -1356,7 +1356,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   /* Free vert_adj_edges memory. */
   {
     uint i = 0;
-    for (OldVertEdgeRef **p = vert_adj_edges; i < numVerts; i++, p++) {
+    for (OldVertEdgeRef **p = vert_adj_edges; i < verts_num; i++, p++) {
       if (*p) {
         MEM_freeN((*p)->edges);
         MEM_freeN(*p);
@@ -1375,10 +1375,10 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     float *face_weight = NULL;
 
     if (do_flat_faces) {
-      face_weight = MEM_malloc_arrayN(numPolys, sizeof(*face_weight), "face_weight in solidify");
+      face_weight = MEM_malloc_arrayN(polys_num, sizeof(*face_weight), "face_weight in solidify");
 
       mp = orig_mpoly;
-      for (uint i = 0; i < numPolys; i++, mp++) {
+      for (uint i = 0; i < polys_num; i++, mp++) {
         float scalar_vgroup = 1.0f;
         int loopend = mp->loopstart + mp->totloop;
         ml = orig_mloop + mp->loopstart;
@@ -1399,7 +1399,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
     mv = orig_mvert;
     gs_ptr = orig_vert_groups_arr;
-    for (uint i = 0; i < numVerts; i++, mv++, gs_ptr++) {
+    for (uint i = 0; i < verts_num; i++, mv++, gs_ptr++) {
       if (*gs_ptr) {
         EdgeGroup *g = *gs_ptr;
         for (uint j = 0; g->valid; j++, g++) {
@@ -1912,7 +1912,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     uint singularity_edges_len = 1;
     singularity_edges = MEM_malloc_arrayN(
         singularity_edges_len, sizeof(*singularity_edges), "singularity_edges in solidify");
-    for (NewEdgeRef ***new_edges = orig_edge_data_arr; i < numEdges; i++, new_edges++) {
+    for (NewEdgeRef ***new_edges = orig_edge_data_arr; i < edges_num; i++, new_edges++) {
       if (*new_edges && (do_shell || edge_adj_faces_len[i] == 1) && (**new_edges)->old_edge == i) {
         for (NewEdgeRef **l = *new_edges; *l; l++) {
           if ((*l)->link_edge_groups[0]->is_singularity &&
@@ -1940,12 +1940,12 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               singularity_edges[totsingularity][1] = v2;
               totsingularity++;
               if (edge_adj_faces_len[i] == 1 && do_rim) {
-                numNewLoops -= 2;
-                numNewPolys--;
+                new_loops_num -= 2;
+                new_polys_num--;
               }
             }
             else {
-              numNewEdges--;
+              new_edges_num--;
             }
           }
         }
@@ -1954,8 +1954,12 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   }
 
   /* Create Mesh *result with proper capacity. */
-  result = BKE_mesh_new_nomain_from_template(
-      mesh, (int)(numNewVerts), (int)(numNewEdges), 0, (int)(numNewLoops), (int)(numNewPolys));
+  result = BKE_mesh_new_nomain_from_template(mesh,
+                                             (int)(new_verts_num),
+                                             (int)(new_edges_num),
+                                             0,
+                                             (int)(new_loops_num),
+                                             (int)(new_polys_num));
 
   mpoly = result->mpoly;
   mloop = result->mloop;
@@ -1982,10 +1986,22 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     result->dvert = dvert;
   }
 
+  /* Get vertex crease layer and ensure edge creases are active if vertex creases are found, since
+   * they will introduce edge creases in the used custom interpolation method. */
+  const float *vertex_crease = CustomData_get_layer(&mesh->vdata, CD_CREASE);
+  if (vertex_crease) {
+    result->cd_flag |= ME_CDFLAG_EDGE_CREASE;
+    /* delete all vertex creases in the result if a rim is used. */
+    if (do_rim) {
+      CustomData_free_layers(&result->vdata, CD_CREASE, result->totvert);
+      result->cd_flag &= (char)(~ME_CDFLAG_VERT_CREASE);
+    }
+  }
+
   /* Make_new_verts. */
   {
     gs_ptr = orig_vert_groups_arr;
-    for (uint i = 0; i < numVerts; i++, gs_ptr++) {
+    for (uint i = 0; i < verts_num; i++, gs_ptr++) {
       EdgeGroup *gs = *gs_ptr;
       if (gs) {
         EdgeGroup *g = gs;
@@ -2000,13 +2016,11 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     }
   }
 
-  BKE_mesh_normals_tag_dirty(result);
-
   /* Make edges. */
   {
     uint i = 0;
     edge_index += totsingularity;
-    for (NewEdgeRef ***new_edges = orig_edge_data_arr; i < numEdges; i++, new_edges++) {
+    for (NewEdgeRef ***new_edges = orig_edge_data_arr; i < edges_num; i++, new_edges++) {
       if (*new_edges && (do_shell || edge_adj_faces_len[i] == 1) && (**new_edges)->old_edge == i) {
         for (NewEdgeRef **l = *new_edges; *l; l++) {
           if ((*l)->new_edge != MOD_SOLIDIFY_EMPTY_TAG) {
@@ -2077,7 +2091,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
      * }
      */
     gs_ptr = orig_vert_groups_arr;
-    for (uint i = 0; i < numVerts; i++, gs_ptr++) {
+    for (uint i = 0; i < verts_num; i++, gs_ptr++) {
       EdgeGroup *gs = *gs_ptr;
       /* check if the vertex is present (may be dissolved because of proximity) */
       if (gs) {
@@ -2098,13 +2112,14 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   {
     gs_ptr = orig_vert_groups_arr;
     mv = orig_mvert;
-    for (uint i = 0; i < numVerts; i++, gs_ptr++, mv++) {
+    for (uint i = 0; i < verts_num; i++, gs_ptr++, mv++) {
       EdgeGroup *gs = *gs_ptr;
       if (gs) {
         EdgeGroup *g = gs;
         EdgeGroup *g2 = gs;
         EdgeGroup *last_g = NULL;
         EdgeGroup *first_g = NULL;
+        char mv_crease = vertex_crease ? (char)(vertex_crease[i] * 255.0f) : 0;
         /* Data calculation cache. */
         char max_crease;
         char last_max_crease = 0;
@@ -2174,7 +2189,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               medge[edge_index].v2 = g->new_vert;
               medge[edge_index].flag = ME_EDGEDRAW | ME_EDGERENDER |
                                        ((last_flag | flag) & (ME_SEAM | ME_SHARP));
-              medge[edge_index].crease = min_cc(last_max_crease, max_crease);
+              medge[edge_index].crease = max_cc(mv_crease, min_cc(last_max_crease, max_crease));
               medge[edge_index++].bweight = max_cc(mv->bweight,
                                                    min_cc(last_max_bweight, max_bweight));
             }
@@ -2202,7 +2217,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               medge[edge_index].v2 = first_g->new_vert;
               medge[edge_index].flag = ME_EDGEDRAW | ME_EDGERENDER |
                                        ((last_flag | first_flag) & (ME_SEAM | ME_SHARP));
-              medge[edge_index].crease = min_cc(last_max_crease, first_max_crease);
+              medge[edge_index].crease = max_cc(mv_crease,
+                                                min_cc(last_max_crease, first_max_crease));
               medge[edge_index++].bweight = max_cc(mv->bweight,
                                                    min_cc(last_max_bweight, first_max_bweight));
 
@@ -2303,7 +2319,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
   /* Make boundary faces. */
   if (do_rim) {
-    for (uint i = 0; i < numEdges; i++) {
+    for (uint i = 0; i < edges_num; i++) {
       if (edge_adj_faces_len[i] == 1 && orig_edge_data_arr[i] &&
           (*orig_edge_data_arr[i])->old_edge == i) {
         NewEdgeRef **new_edges = orig_edge_data_arr[i];
@@ -2459,7 +2475,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
         largest_ngon * 2, sizeof(*face_verts), "face_verts in solidify");
     uint *face_edges = MEM_malloc_arrayN(
         largest_ngon * 2, sizeof(*face_edges), "face_edges in solidify");
-    for (uint i = 0; i < numPolys * 2; i++, fr++) {
+    for (uint i = 0; i < polys_num * 2; i++, fr++) {
       const uint loopstart = (uint)fr->face->loopstart;
       uint totloop = (uint)fr->face->totloop;
       uint valid_edges = 0;
@@ -2547,37 +2563,37 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     MEM_freeN(face_verts);
     MEM_freeN(face_edges);
   }
-  if (edge_index != numNewEdges) {
+  if (edge_index != new_edges_num) {
     BKE_modifier_set_error(ctx->object,
                            md,
                            "Internal Error: edges array wrong size: %u instead of %u",
-                           numNewEdges,
+                           new_edges_num,
                            edge_index);
   }
-  if (poly_index != numNewPolys) {
+  if (poly_index != new_polys_num) {
     BKE_modifier_set_error(ctx->object,
                            md,
                            "Internal Error: polys array wrong size: %u instead of %u",
-                           numNewPolys,
+                           new_polys_num,
                            poly_index);
   }
-  if (loop_index != numNewLoops) {
+  if (loop_index != new_loops_num) {
     BKE_modifier_set_error(ctx->object,
                            md,
                            "Internal Error: loops array wrong size: %u instead of %u",
-                           numNewLoops,
+                           new_loops_num,
                            loop_index);
   }
-  BLI_assert(edge_index == numNewEdges);
-  BLI_assert(poly_index == numNewPolys);
-  BLI_assert(loop_index == numNewLoops);
+  BLI_assert(edge_index == new_edges_num);
+  BLI_assert(poly_index == new_polys_num);
+  BLI_assert(loop_index == new_loops_num);
 
   /* Free remaining memory */
   {
     MEM_freeN(vm);
     MEM_freeN(edge_adj_faces_len);
     uint i = 0;
-    for (EdgeGroup **p = orig_vert_groups_arr; i < numVerts; i++, p++) {
+    for (EdgeGroup **p = orig_vert_groups_arr; i < verts_num; i++, p++) {
       if (*p) {
         for (EdgeGroup *eg = *p; eg->valid; eg++) {
           MEM_freeN(eg->edges);
@@ -2586,8 +2602,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
       }
     }
     MEM_freeN(orig_vert_groups_arr);
-    i = numEdges;
-    for (NewEdgeRef ***p = orig_edge_data_arr + (numEdges - 1); i > 0; i--, p--) {
+    i = edges_num;
+    for (NewEdgeRef ***p = orig_edge_data_arr + (edges_num - 1); i > 0; i--, p--) {
       if (*p && (**p)->old_edge == i - 1) {
         for (NewEdgeRef **l = *p; *l; l++) {
           MEM_freeN(*l);
@@ -2598,7 +2614,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     MEM_freeN(orig_edge_data_arr);
     MEM_freeN(orig_edge_lengths);
     i = 0;
-    for (NewFaceRef *p = face_sides_arr; i < numPolys * 2; i++, p++) {
+    for (NewFaceRef *p = face_sides_arr; i < polys_num * 2; i++, p++) {
       MEM_freeN(p->link_edges);
     }
     MEM_freeN(face_sides_arr);

@@ -194,23 +194,23 @@ void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 
       grp_sub = DRW_shgroup_create_sub(grp);
-      DRW_shgroup_uniform_vec4_copy(grp_sub, "color", G_draw.block.colorActive);
+      DRW_shgroup_uniform_vec4_copy(grp_sub, "color", G_draw.block.color_active);
       cb->center_active = BUF_POINT(grp_sub, format);
 
       grp_sub = DRW_shgroup_create_sub(grp);
-      DRW_shgroup_uniform_vec4_copy(grp_sub, "color", G_draw.block.colorSelect);
+      DRW_shgroup_uniform_vec4_copy(grp_sub, "color", G_draw.block.color_select);
       cb->center_selected = BUF_POINT(grp_sub, format);
 
       grp_sub = DRW_shgroup_create_sub(grp);
-      DRW_shgroup_uniform_vec4_copy(grp_sub, "color", G_draw.block.colorDeselect);
+      DRW_shgroup_uniform_vec4_copy(grp_sub, "color", G_draw.block.color_deselect);
       cb->center_deselected = BUF_POINT(grp_sub, format);
 
       grp_sub = DRW_shgroup_create_sub(grp);
-      DRW_shgroup_uniform_vec4_copy(grp_sub, "color", G_draw.block.colorLibrarySelect);
+      DRW_shgroup_uniform_vec4_copy(grp_sub, "color", G_draw.block.color_library_select);
       cb->center_selected_lib = BUF_POINT(grp_sub, format);
 
       grp_sub = DRW_shgroup_create_sub(grp);
-      DRW_shgroup_uniform_vec4_copy(grp_sub, "color", G_draw.block.colorLibrary);
+      DRW_shgroup_uniform_vec4_copy(grp_sub, "color", G_draw.block.color_library);
       cb->center_deselected_lib = BUF_POINT(grp_sub, format);
     }
   }
@@ -345,18 +345,17 @@ static void OVERLAY_bounds(OVERLAY_ExtraCallBuffers *cb,
                            bool around_origin)
 {
   float center[3], size[3], tmp[4][4], final_mat[4][4];
-  BoundBox bb_local;
 
   if (ob->type == OB_MBALL && !BKE_mball_is_basis(ob)) {
     return;
   }
 
-  BoundBox *bb = BKE_object_boundbox_get(ob);
-
+  const BoundBox *bb = BKE_object_boundbox_get(ob);
+  BoundBox bb_local;
   if (bb == NULL) {
     const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
+    BKE_boundbox_init_from_minmax(&bb_local, min, max);
     bb = &bb_local;
-    BKE_boundbox_init_from_minmax(bb, min, max);
   }
 
   BKE_boundbox_calc_size_aabb(bb, size);
@@ -529,13 +528,13 @@ static void OVERLAY_forcefield(OVERLAY_ExtraCallBuffers *cb, Object *ob, ViewLay
     case PFIELD_GUIDE:
       if (cu && (cu->flag & CU_PATH) && ob->runtime.curve_cache->anim_path_accum_length) {
         instdata.size_x = instdata.size_y = instdata.size_z = pd->f_strength;
-        float pos[4], tmp[3];
-        BKE_where_on_path(ob, 0.0f, pos, tmp, NULL, NULL, NULL);
+        float pos[4];
+        BKE_where_on_path(ob, 0.0f, pos, NULL, NULL, NULL, NULL);
         copy_v3_v3(instdata.pos, ob->obmat[3]);
         translate_m4(instdata.mat, pos[0], pos[1], pos[2]);
         DRW_buffer_add_entry(cb->field_curve, color, &instdata);
 
-        BKE_where_on_path(ob, 1.0f, pos, tmp, NULL, NULL, NULL);
+        BKE_where_on_path(ob, 1.0f, pos, NULL, NULL, NULL, NULL);
         copy_v3_v3(instdata.pos, ob->obmat[3]);
         translate_m4(instdata.mat, pos[0], pos[1], pos[2]);
         DRW_buffer_add_entry(cb->field_sphere_limit, color, &instdata);
@@ -756,7 +755,7 @@ void OVERLAY_lightprobe_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
         uint cell_count = prb->grid_resolution_x * prb->grid_resolution_y * prb->grid_resolution_z;
         DRWShadingGroup *grp = DRW_shgroup_create_sub(vedata->stl->pd->extra_grid_grp);
-        DRW_shgroup_uniform_vec4_array_copy(grp, "gridModelMatrix", instdata.mat, 4);
+        DRW_shgroup_uniform_mat4_copy(grp, "gridModelMatrix", instdata.mat);
         DRW_shgroup_call_procedural_points(grp, NULL, cell_count);
       }
       break;
@@ -862,8 +861,8 @@ static void camera_view3d_reconstruction(
   int track_index = 1;
 
   float bundle_color_custom[3];
-  float *bundle_color_solid = G_draw.block.colorBundleSolid;
-  float *bundle_color_unselected = G_draw.block.colorWire;
+  float *bundle_color_solid = G_draw.block.color_bundle_solid;
+  float *bundle_color_unselected = G_draw.block.color_wire;
   uchar text_color_selected[4], text_color_unselected[4];
   /* Color Management: Exception here as texts are drawn in sRGB space directly. */
   UI_GetThemeColor4ubv(TH_SELECT, text_color_selected);
@@ -1035,7 +1034,7 @@ static void camera_stereoscopy_extra(OVERLAY_ExtraCallBuffers *cb,
       DRW_buffer_add_entry_struct(cb->camera_frame, &stereodata);
 
       /* Connecting line between cameras. */
-      OVERLAY_extra_line_dashed(cb, stereodata.pos, instdata->pos, G_draw.block.colorWire);
+      OVERLAY_extra_line_dashed(cb, stereodata.pos, instdata->pos, G_draw.block.color_wire);
     }
 
     if (is_stereo3d_volume && !is_select) {
@@ -1249,8 +1248,8 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
                                        Scene *scene,
                                        Object *ob)
 {
-  float *relation_color = G_draw.block.colorWire;
-  float *constraint_color = G_draw.block.colorGridAxisZ; /* ? */
+  float *relation_color = G_draw.block.color_wire;
+  float *constraint_color = G_draw.block.color_grid_axis_z; /* ? */
 
   if (ob->parent && (DRW_object_visibility_in_active_context(ob->parent) & OB_VISIBLE_SELF)) {
     float *parent_pos = ob->runtime.parent_display_origin;
@@ -1475,23 +1474,6 @@ static void OVERLAY_volume_extra(OVERLAY_ExtraCallBuffers *cb,
   }
 
   if (draw_velocity || show_gridlines) {
-    BLI_addtail(&data->stl->pd->smoke_domains, BLI_genericNodeN(fmd));
-  }
-}
-
-static void OVERLAY_volume_free_smoke_textures(OVERLAY_Data *data)
-{
-  /* Free Smoke Textures after rendering */
-  /* XXX This is a waste of processing and GPU bandwidth if nothing
-   * is updated. But the problem is since Textures are stored in the
-   * modifier we don't want them to take precious VRAM if the
-   * modifier is not used for display. We should share them for
-   * all viewport in a redraw at least. */
-  LinkData *link;
-  while ((link = BLI_pophead(&data->stl->pd->smoke_domains))) {
-    FluidModifierData *fmd = (FluidModifierData *)link->data;
-    DRW_smoke_free_velocity(fmd);
-    MEM_freeN(link);
   }
 }
 
@@ -1625,8 +1607,6 @@ void OVERLAY_extra_draw(OVERLAY_Data *vedata)
 void OVERLAY_extra_in_front_draw(OVERLAY_Data *vedata)
 {
   DRW_draw_pass(vedata->psl->extra_ps[1]);
-
-  OVERLAY_volume_free_smoke_textures(vedata);
 }
 
 void OVERLAY_extra_centers_draw(OVERLAY_Data *vedata)

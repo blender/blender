@@ -5,6 +5,7 @@
 #include "BLI_array.hh"
 #include "BLI_color.hh"
 #include "BLI_cpp_type.hh"
+#include "BLI_math_color.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 
@@ -18,17 +19,23 @@ namespace blender::attribute_math {
 template<typename Func>
 inline void convert_to_static_type(const CPPType &cpp_type, const Func &func)
 {
-  cpp_type.to_static_type_tag<float, float2, float3, int, bool, int8_t, ColorGeometry4f>(
-      [&](auto type_tag) {
-        using T = typename decltype(type_tag)::type;
-        if constexpr (std::is_same_v<T, void>) {
-          /* It's expected that the given cpp type is one of the supported once. */
-          BLI_assert_unreachable();
-        }
-        else {
-          func(T());
-        }
-      });
+  cpp_type.to_static_type_tag<float,
+                              float2,
+                              float3,
+                              int,
+                              bool,
+                              int8_t,
+                              ColorGeometry4f,
+                              ColorGeometry4b>([&](auto type_tag) {
+    using T = typename decltype(type_tag)::type;
+    if constexpr (std::is_same_v<T, void>) {
+      /* It's expected that the given cpp type is one of the supported ones. */
+      BLI_assert_unreachable();
+    }
+    else {
+      func(T());
+    }
+  });
 }
 
 template<typename Func>
@@ -91,6 +98,22 @@ inline ColorGeometry4f mix3(const float3 &weights,
   return result;
 }
 
+template<>
+inline ColorGeometry4b mix3(const float3 &weights,
+                            const ColorGeometry4b &v0,
+                            const ColorGeometry4b &v1,
+                            const ColorGeometry4b &v2)
+{
+  const float4 v0_f{&v0.r};
+  const float4 v1_f{&v1.r};
+  const float4 v2_f{&v2.r};
+  const float4 mixed = v0_f * weights[0] + v1_f * weights[1] + v2_f * weights[2];
+  return ColorGeometry4b{static_cast<uint8_t>(mixed[0]),
+                         static_cast<uint8_t>(mixed[1]),
+                         static_cast<uint8_t>(mixed[2]),
+                         static_cast<uint8_t>(mixed[3])};
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -134,9 +157,13 @@ template<> inline float3 mix2(const float factor, const float3 &a, const float3 
 template<>
 inline ColorGeometry4f mix2(const float factor, const ColorGeometry4f &a, const ColorGeometry4f &b)
 {
-  ColorGeometry4f result;
-  interp_v4_v4v4(result, a, b, factor);
-  return result;
+  return math::interpolate(a, b, factor);
+}
+
+template<>
+inline ColorGeometry4b mix2(const float factor, const ColorGeometry4b &a, const ColorGeometry4b &b)
+{
+  return math::interpolate(a, b, factor);
 }
 
 /** \} */
@@ -278,16 +305,30 @@ class SimpleMixerWithAccumulationType {
   }
 };
 
-class ColorGeometryMixer {
+class ColorGeometry4fMixer {
  private:
   MutableSpan<ColorGeometry4f> buffer_;
   ColorGeometry4f default_color_;
   Array<float> total_weights_;
 
  public:
-  ColorGeometryMixer(MutableSpan<ColorGeometry4f> buffer,
-                     ColorGeometry4f default_color = ColorGeometry4f(0.0f, 0.0f, 0.0f, 1.0f));
+  ColorGeometry4fMixer(MutableSpan<ColorGeometry4f> buffer,
+                       ColorGeometry4f default_color = ColorGeometry4f(0.0f, 0.0f, 0.0f, 1.0f));
   void mix_in(int64_t index, const ColorGeometry4f &color, float weight = 1.0f);
+  void finalize();
+};
+
+class ColorGeometry4bMixer {
+ private:
+  MutableSpan<ColorGeometry4b> buffer_;
+  ColorGeometry4b default_color_;
+  Array<float> total_weights_;
+  Array<float4> accumulation_buffer_;
+
+ public:
+  ColorGeometry4bMixer(MutableSpan<ColorGeometry4b> buffer,
+                       ColorGeometry4b default_color = ColorGeometry4b(0, 0, 0, 255));
+  void mix_in(int64_t index, const ColorGeometry4b &color, float weight = 1.0f);
   void finalize();
 };
 
@@ -307,7 +348,10 @@ template<> struct DefaultMixerStruct<float3> {
 template<> struct DefaultMixerStruct<ColorGeometry4f> {
   /* Use a special mixer for colors. ColorGeometry4f can't be added/multiplied, because this is not
    * something one should usually do with colors. */
-  using type = ColorGeometryMixer;
+  using type = ColorGeometry4fMixer;
+};
+template<> struct DefaultMixerStruct<ColorGeometry4b> {
+  using type = ColorGeometry4bMixer;
 };
 template<> struct DefaultMixerStruct<int> {
   static int double_to_int(const double &value)

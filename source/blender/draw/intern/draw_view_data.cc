@@ -37,7 +37,10 @@ struct DRWViewData {
 
 DRWViewData *DRW_view_data_create(ListBase *engine_types)
 {
+  const int engine_types_len = BLI_listbase_count(engine_types);
+
   DRWViewData *view_data = new DRWViewData();
+  view_data->engines.reserve(engine_types_len);
   LISTBASE_FOREACH (DRWRegisteredDrawEngine *, type, engine_types) {
     ViewportEngineData engine = {};
     engine.engine_type = type;

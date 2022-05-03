@@ -2,15 +2,12 @@
 /* Required by some nodes. */
 #pragma BLENDER_REQUIRE(common_hair_lib.glsl)
 #pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_uniforms_lib.glsl)
-#pragma BLENDER_REQUIRE(closure_type_lib.glsl)
-#pragma BLENDER_REQUIRE(closure_eval_lib.glsl)
-#pragma BLENDER_REQUIRE(closure_eval_diffuse_lib.glsl)
-#pragma BLENDER_REQUIRE(closure_eval_glossy_lib.glsl)
-#pragma BLENDER_REQUIRE(closure_eval_translucent_lib.glsl)
-#pragma BLENDER_REQUIRE(closure_eval_refraction_lib.glsl)
+#pragma BLENDER_REQUIRE(closure_eval_surface_lib.glsl)
 #pragma BLENDER_REQUIRE(surface_lib.glsl)
 
 #ifdef USE_ALPHA_HASH
@@ -73,6 +70,7 @@ float hashed_alpha_threshold(vec3 co)
 void main()
 {
 #if defined(USE_ALPHA_HASH)
+  g_data = init_globals();
 
   Closure cl = nodetree_exec();
 

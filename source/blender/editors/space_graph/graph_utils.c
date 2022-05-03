@@ -169,9 +169,9 @@ bool graphop_editable_keyframes_poll(bContext *C)
   int filter;
   bool found = false;
 
-  /* firstly, check if in Graph Editor */
+  /* firstly, check if in Graph Editor or Dopesheet */
   /* TODO: also check for region? */
-  if ((area == NULL) || (area->spacetype != SPACE_GRAPH)) {
+  if (area == NULL || !ELEM(area->spacetype, SPACE_GRAPH, SPACE_ACTION)) {
     return found;
   }
 

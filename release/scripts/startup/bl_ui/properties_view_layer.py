@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # <pep8 compliant>
-from bpy.types import Panel, UIList
+from bpy.types import Menu, Panel, UIList
 
 
 class VIEWLAYER_UL_aov(UIList):
@@ -138,7 +138,7 @@ class ViewLayerAOVPanel(ViewLayerButtonsPanel, Panel):
         row = layout.row()
         col = row.column()
         col.template_list("VIEWLAYER_UL_aov", "aovs", view_layer,
-                          "aovs", view_layer, "active_aov_index", rows=2)
+                          "aovs", view_layer, "active_aov_index", rows=3)
 
         col = row.column()
         sub = col.column(align=True)
@@ -187,7 +187,47 @@ class VIEWLAYER_PT_layer_passes_cryptomatte(ViewLayerCryptomattePanel, Panel):
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
 
+class VIEWLAYER_MT_lightgroup_sync(Menu):
+    bl_label = "Lightgroup Sync"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("scene.view_layer_add_used_lightgroups", icon='ADD')
+        layout.operator("scene.view_layer_remove_unused_lightgroups", icon='REMOVE')
+
+
+class ViewLayerLightgroupsPanel(ViewLayerButtonsPanel, Panel):
+    bl_label = "Light Groups"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        view_layer = context.view_layer
+
+        row = layout.row()
+        col = row.column()
+        col.template_list("UI_UL_list", "lightgroups", view_layer,
+                          "lightgroups", view_layer, "active_lightgroup_index", rows=3)
+
+        col = row.column()
+        sub = col.column(align=True)
+        sub.operator("scene.view_layer_add_lightgroup", icon='ADD', text="")
+        sub.operator("scene.view_layer_remove_lightgroup", icon='REMOVE', text="")
+        sub.separator()
+        sub.menu("VIEWLAYER_MT_lightgroup_sync", icon='DOWNARROW_HLT', text="")
+
+
+class VIEWLAYER_PT_layer_passes_lightgroups(ViewLayerLightgroupsPanel):
+    bl_parent_id = "VIEWLAYER_PT_layer_passes"
+    COMPAT_ENGINES = {'CYCLES'}
+
+
 classes = (
+    VIEWLAYER_MT_lightgroup_sync,
     VIEWLAYER_PT_layer,
     VIEWLAYER_PT_layer_passes,
     VIEWLAYER_PT_eevee_layer_passes_data,
@@ -195,6 +235,7 @@ classes = (
     VIEWLAYER_PT_eevee_layer_passes_effects,
     VIEWLAYER_PT_layer_passes_cryptomatte,
     VIEWLAYER_PT_layer_passes_aov,
+    VIEWLAYER_PT_layer_passes_lightgroups,
     VIEWLAYER_UL_aov,
 )
 

@@ -644,7 +644,7 @@ bool USD_import(struct bContext *C,
   else {
     /* Fake a job context, so that we don't need NULL pointer checks while importing. */
     short stop = 0, do_update = 0;
-    float progress = 0.f;
+    float progress = 0.0f;
 
     import_startjob(job, &stop, &do_update, &progress);
     import_endjob(job);
@@ -676,7 +676,7 @@ static USDPrimReader *get_usd_reader(CacheReader *reader, Object * /* ob */, con
 struct Mesh *USD_read_mesh(struct CacheReader *reader,
                            struct Object *ob,
                            struct Mesh *existing_mesh,
-                           const float time,
+                           const double time,
                            const char **err_str,
                            const int read_flag)
 {
@@ -690,7 +690,7 @@ struct Mesh *USD_read_mesh(struct CacheReader *reader,
 }
 
 bool USD_mesh_topology_changed(
-    CacheReader *reader, Object *ob, Mesh *existing_mesh, const float time, const char **err_str)
+    CacheReader *reader, Object *ob, Mesh *existing_mesh, const double time, const char **err_str)
 {
   USDGeomReader *usd_reader = dynamic_cast<USDGeomReader *>(get_usd_reader(reader, ob, err_str));
 

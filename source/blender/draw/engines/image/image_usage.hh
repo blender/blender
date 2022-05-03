@@ -14,7 +14,7 @@
 struct ImageUsage {
   /** Render pass of the image that is used. */
   short pass = 0;
-  /** Layer of the image that is used.*/
+  /** Layer of the image that is used. */
   short layer = 0;
   /** View of the image that is used. */
   short view = 0;

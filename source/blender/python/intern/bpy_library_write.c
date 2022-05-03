@@ -78,13 +78,22 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
   static const char *_keywords[] = {
       "filepath",
       "datablocks",
-      /* optional */
       "path_remap",
       "fake_user",
       "compress",
       NULL,
   };
-  static _PyArg_Parser _parser = {"sO!|$O&O&O&:write", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "s"  /* `filepath` */
+      "O!" /* `datablocks` */
+      "|$" /* Optional keyword only arguments. */
+      "O&" /* `path_remap` */
+      "O&" /* `fake_user` */
+      "O&" /* `compress` */
+      ":write",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,

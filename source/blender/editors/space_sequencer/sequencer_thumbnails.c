@@ -86,6 +86,11 @@ static bool check_seq_need_thumbnails(Sequence *seq, rctf *view_area)
     return false;
   }
 
+  /* Handle is moved, but not for this strip. */
+  if ((G.moving & G_TRANSFORM_SEQ) != 0 && (seq->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) == 0) {
+    return false;
+  }
+
   return true;
 }
 
@@ -123,26 +128,13 @@ static void seq_get_thumb_image_dimensions(Sequence *seq,
   }
 }
 
-static float seq_thumbnail_get_start_frame(Sequence *seq, float frame_step, rctf *view_area)
-{
-  if (seq->start > view_area->xmin && seq->start < view_area->xmax) {
-    return seq->start;
-  }
-
-  /* Drawing and caching both check to see if strip is in view area or not before calling this
-   * function so assuming strip/part of strip in view. */
-
-  int no_invisible_thumbs = (view_area->xmin - seq->start) / frame_step;
-  return ((no_invisible_thumbs - 1) * frame_step) + seq->start;
-}
-
 static void thumbnail_start_job(void *data,
                                 short *stop,
                                 short *UNUSED(do_update),
                                 float *UNUSED(progress))
 {
   ThumbnailDrawJob *tj = data;
-  float start_frame, frame_step;
+  float frame_step;
 
   GHashIterator gh_iter;
 
@@ -155,9 +147,8 @@ static void thumbnail_start_job(void *data,
     if (check_seq_need_thumbnails(seq_orig, tj->view_area)) {
       seq_get_thumb_image_dimensions(
           val->seq_dupli, tj->pixelx, tj->pixely, &frame_step, tj->thumb_height, NULL, NULL);
-      start_frame = seq_thumbnail_get_start_frame(seq_orig, frame_step, tj->view_area);
       SEQ_render_thumbnails(
-          &tj->context, val->seq_dupli, seq_orig, start_frame, frame_step, tj->view_area, stop);
+          &tj->context, val->seq_dupli, seq_orig, frame_step, tj->view_area, stop);
       SEQ_relations_sequence_free_anim(val->seq_dupli);
     }
     BLI_ghashIterator_step(&gh_iter);
@@ -172,7 +163,6 @@ static void thumbnail_start_job(void *data,
     if (check_seq_need_thumbnails(seq_orig, tj->view_area)) {
       seq_get_thumb_image_dimensions(
           val->seq_dupli, tj->pixelx, tj->pixely, &frame_step, tj->thumb_height, NULL, NULL);
-      start_frame = seq_thumbnail_get_start_frame(seq_orig, frame_step, tj->view_area);
       SEQ_render_thumbnails_base_set(&tj->context, val->seq_dupli, seq_orig, tj->view_area, stop);
       SEQ_relations_sequence_free_anim(val->seq_dupli);
     }
@@ -458,40 +448,31 @@ void draw_seq_strip_thumbnail(View2D *v2d,
     upper_thumb_bound = seq->enddisp;
   }
 
-  float thumb_x_start = seq_thumbnail_get_start_frame(seq, thumb_width, &v2d->cur);
+  float timeline_frame = SEQ_render_thumbnail_first_frame_get(seq, thumb_width, &v2d->cur);
   float thumb_x_end;
-
-  while (thumb_x_start + thumb_width < v2d->cur.xmin) {
-    thumb_x_start += thumb_width;
-  }
-
-  /* Ignore thumbs to the left of strip. */
-  while (thumb_x_start + thumb_width < seq->startdisp) {
-    thumb_x_start += thumb_width;
-  }
 
   GSet *last_displayed_thumbnails = last_displayed_thumbnails_list_ensure(C, seq);
   /* Cleanup thumbnail list outside of rendered range, which is cleaned up one by one to prevent
    * flickering after zooming. */
   if (!sequencer_thumbnail_v2d_is_navigating(C)) {
-    last_displayed_thumbnails_list_cleanup(last_displayed_thumbnails, -FLT_MAX, thumb_x_start);
+    last_displayed_thumbnails_list_cleanup(last_displayed_thumbnails, -FLT_MAX, timeline_frame);
   }
 
   /* Start drawing. */
-  while (thumb_x_start < upper_thumb_bound) {
-    thumb_x_end = thumb_x_start + thumb_width;
+  while (timeline_frame < upper_thumb_bound) {
+    thumb_x_end = timeline_frame + thumb_width;
     clipped = false;
 
     /* Checks to make sure that thumbs are loaded only when in view and within the confines of the
      * strip. Some may not be required but better to have conditions for safety as x1 here is
      * point to start caching from and not drawing. */
-    if (thumb_x_start > v2d->cur.xmax) {
+    if (timeline_frame > v2d->cur.xmax) {
       break;
     }
 
     /* Set the clipping bound to show the left handle moving over thumbs and not shift thumbs. */
-    if (IN_RANGE_INCL(seq->startdisp, thumb_x_start, thumb_x_end)) {
-      cut_off = seq->startdisp - thumb_x_start;
+    if (IN_RANGE_INCL(seq->startdisp, timeline_frame, thumb_x_end)) {
+      cut_off = seq->startdisp - timeline_frame;
       clipped = true;
     }
 
@@ -499,7 +480,7 @@ void draw_seq_strip_thumbnail(View2D *v2d,
     if (thumb_x_end > (upper_thumb_bound)) {
       thumb_x_end = upper_thumb_bound;
       clipped = true;
-      if (thumb_x_end - thumb_x_start < 1) {
+      if (thumb_x_end - timeline_frame < 1) {
         break;
       }
     }
@@ -508,13 +489,11 @@ void draw_seq_strip_thumbnail(View2D *v2d,
     float zoom_y = thumb_height / image_height;
 
     float cropx_min = (cut_off / pixelx) / (zoom_y / pixely);
-    float cropx_max = ((thumb_x_end - thumb_x_start) / pixelx) / (zoom_y / pixely);
-    if (cropx_max == (thumb_x_end - thumb_x_start)) {
+    float cropx_max = ((thumb_x_end - timeline_frame) / pixelx) / (zoom_y / pixely);
+    if (cropx_max == (thumb_x_end - timeline_frame)) {
       cropx_max = cropx_max + 1;
     }
     BLI_rcti_init(&crop, (int)(cropx_min), (int)cropx_max, 0, (int)(image_height)-1);
-
-    int timeline_frame = round_fl_to_int(thumb_x_start);
 
     /* Get the image. */
     ImBuf *ibuf = SEQ_get_thumbnail(&context, seq, timeline_frame, &crop, clipped);
@@ -529,7 +508,7 @@ void draw_seq_strip_thumbnail(View2D *v2d,
     else if (!sequencer_thumbnail_v2d_is_navigating(C)) {
       /* Clear images in frame range occupied by new thumbnail. */
       last_displayed_thumbnails_list_cleanup(
-          last_displayed_thumbnails, thumb_x_start, thumb_x_end);
+          last_displayed_thumbnails, timeline_frame, thumb_x_end);
       /* Insert new thumbnail frame to list. */
       BLI_gset_add(last_displayed_thumbnails, POINTER_FROM_INT(timeline_frame));
     }
@@ -558,10 +537,10 @@ void draw_seq_strip_thumbnail(View2D *v2d,
 
     ED_draw_imbuf_ctx_clipping(C,
                                ibuf,
-                               thumb_x_start + cut_off,
+                               timeline_frame + cut_off,
                                y1,
                                true,
-                               thumb_x_start + cut_off,
+                               timeline_frame + cut_off,
                                y1,
                                thumb_x_end,
                                thumb_y_end,
@@ -570,7 +549,7 @@ void draw_seq_strip_thumbnail(View2D *v2d,
     IMB_freeImBuf(ibuf);
     GPU_blend(GPU_BLEND_NONE);
     cut_off = 0;
-    thumb_x_start += thumb_width;
+    timeline_frame = SEQ_render_thumbnail_next_frame_get(seq, timeline_frame, thumb_width);
   }
-  last_displayed_thumbnails_list_cleanup(last_displayed_thumbnails, thumb_x_start, FLT_MAX);
+  last_displayed_thumbnails_list_cleanup(last_displayed_thumbnails, timeline_frame, FLT_MAX);
 }

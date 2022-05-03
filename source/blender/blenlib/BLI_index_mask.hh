@@ -163,16 +163,30 @@ class IndexMask {
    */
   template<typename CallbackT> void foreach_index(const CallbackT &callback) const
   {
-    if (this->is_range()) {
-      IndexRange range = this->as_range();
-      for (int64_t i : range) {
+    this->to_best_mask_type([&](const auto &mask) {
+      for (const int64_t i : mask) {
         callback(i);
       }
+    });
+  }
+
+  /**
+   * Often an #IndexMask wraps a range of indices without any gaps. In this case, it is more
+   * efficient to compute the indices in a loop on-the-fly instead of reading them from memory.
+   * This method makes it easy to generate code for both cases.
+   *
+   * The given function is expected to take one parameter that can either be of type #IndexRange or
+   * #Span<int64_t>.
+   */
+  template<typename Fn> void to_best_mask_type(const Fn &fn) const
+  {
+    if (this->is_range()) {
+      const IndexRange masked_range = this->as_range();
+      fn(masked_range);
     }
     else {
-      for (int64_t i : indices_) {
-        callback(i);
-      }
+      const Span<int64_t> masked_indices = indices_;
+      fn(masked_indices);
     }
   }
 

@@ -3,7 +3,7 @@
 #pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
 #pragma BLENDER_REQUIRE(lights_lib.glsl)
 
-uniform sampler2D depthBuffer;
+uniform depth2D depthBuffer;
 
 out vec4 fragColor;
 

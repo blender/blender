@@ -53,7 +53,7 @@ class USDMeshReader : public USDGeomReader {
                          int read_flag,
                          const char **err_str) override;
 
-  bool topology_changed(Mesh *existing_mesh, double motionSampleTime) override;
+  bool topology_changed(const Mesh *existing_mesh, double motionSampleTime) override;
 
  private:
   void process_normals_vertex_varying(Mesh *mesh);

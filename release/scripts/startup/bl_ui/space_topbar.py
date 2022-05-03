@@ -456,6 +456,7 @@ class TOPBAR_MT_file_import(Menu):
                 "wm.usd_import", text="Universal Scene Description (.usd, .usdc, .usda)")
 
         self.layout.operator("wm.gpencil_import_svg", text="SVG as Grease Pencil")
+        self.layout.operator("wm.obj_import", text="Wavefront (.obj) (experimental)")
 
 
 class TOPBAR_MT_file_export(Menu):
@@ -464,7 +465,6 @@ class TOPBAR_MT_file_export(Menu):
     bl_owner_use_filter = False
 
     def draw(self, _context):
-        self.layout.operator("wm.obj_export", text="Wavefront OBJ (.obj)")
         if bpy.app.build_options.collada:
             self.layout.operator("wm.collada_export", text="Collada (.dae)")
         if bpy.app.build_options.alembic:
@@ -479,6 +479,8 @@ class TOPBAR_MT_file_export(Menu):
         # Haru lib dependency
         if bpy.app.build_options.haru:
             self.layout.operator("wm.gpencil_export_pdf", text="Grease Pencil as PDF")
+
+        self.layout.operator("wm.obj_export", text="Wavefront (.obj) (experimental)")
 
 
 class TOPBAR_MT_file_external_data(Menu):
@@ -849,6 +851,64 @@ class TOPBAR_PT_name(Panel):
             row.label(text="No active item")
 
 
+class TOPBAR_PT_name_marker(Panel):
+    bl_space_type = 'TOPBAR'  # dummy
+    bl_region_type = 'HEADER'
+    bl_label = "Rename Marker"
+    bl_ui_units_x = 14
+
+    @staticmethod
+    def is_using_pose_markers(context):
+        sd = context.space_data
+        return (sd.type == 'DOPESHEET_EDITOR' and sd.mode in {'ACTION', 'SHAPEKEY'} and
+                sd.show_pose_markers and sd.action)
+
+    @staticmethod
+    def get_selected_marker(context):
+        if TOPBAR_PT_name_marker.is_using_pose_markers(context):
+            markers = context.space_data.action.pose_markers
+        else:
+            markers = context.scene.timeline_markers
+
+        for marker in markers:
+            if marker.select:
+                return marker
+        return None
+
+    @staticmethod
+    def row_with_icon(layout, icon):
+        row = layout.row()
+        row.activate_init = True
+        row.label(icon=icon)
+        return row
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.label(text="Marker Name")
+
+        scene = context.scene
+        if scene.tool_settings.lock_markers:
+            row = self.row_with_icon(layout, 'ERROR')
+            label = "Markers are locked"
+            row.label(text=label)
+            return
+
+        marker = self.get_selected_marker(context)
+        if marker is None:
+            row = self.row_with_icon(layout, 'ERROR')
+            row.label(text="No active marker")
+            return
+
+        icon = 'TIME'
+        if marker.camera is not None:
+            icon = 'CAMERA_DATA'
+        elif self.is_using_pose_markers(context):
+            icon = 'ARMATURE_DATA'
+        row = self.row_with_icon(layout, icon)
+        row.prop(marker, "name", text="")
+
+
 classes = (
     TOPBAR_HT_upper_bar,
     TOPBAR_MT_file_context_menu,
@@ -875,6 +935,7 @@ classes = (
     TOPBAR_PT_gpencil_layers,
     TOPBAR_PT_gpencil_primitive,
     TOPBAR_PT_name,
+    TOPBAR_PT_name_marker,
 )
 
 if __name__ == "__main__":  # only for live edit.

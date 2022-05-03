@@ -91,7 +91,7 @@ static void requiredDataMask(Object *UNUSED(ob),
       /* mcol */
       if (surface->type == MOD_DPAINT_SURFACE_T_PAINT ||
           surface->init_color_type == MOD_DPAINT_INITIAL_VERTEXCOLOR) {
-        r_cddata_masks->lmask |= CD_MASK_MLOOPCOL;
+        r_cddata_masks->lmask |= CD_MASK_PROP_BYTE_COLOR;
       }
       /* CD_MDEFORMVERT */
       if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
@@ -142,9 +142,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene),
-                          ModifierData *UNUSED(md),
-                          const int UNUSED(dag_eval_mode))
+static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *UNUSED(md))
 {
   return true;
 }

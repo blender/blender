@@ -20,7 +20,7 @@ struct bGPDlayer;
 struct bGPDstroke;
 struct bGPdata;
 
-/* GPencilUpdateCache.flag */
+/** #GPencilUpdateCache.flag */
 typedef enum eGPUpdateCacheNodeFlag {
   /* Node is a placeholder (e.g. when only an index is needed). */
   GP_UPDATE_NODE_NO_COPY = 0,
@@ -31,16 +31,17 @@ typedef enum eGPUpdateCacheNodeFlag {
 } eGPUpdateCacheNodeFlag;
 
 /**
- *  Cache for what needs to be updated after bGPdata was modified.
+ * Cache for what needs to be updated after bGPdata was modified.
  *
- *  Every node holds information about one element that was changed:
- *    - the index of where that element is in the linked-list
- *    - the pointer to the original element in bGPdata
- *  Additionally, nodes also hold other nodes that are one "level" below them.
- *  E.g. a node that represents a change on a bGPDframe could contain a set of
- *  nodes that represent a change on bGPDstrokes.
- *  These nodes are stored in a red-black tree so that they are sorted by their
- *  index to make sure they can be processed in the correct order.
+ * Every node holds information about one element that was changed:
+ * - The index of where that element is in the linked-list.
+ * - The pointer to the original element in bGPdata.
+ *
+ * Additionally, nodes also hold other nodes that are one "level" below them.
+ * E.g. a node that represents a change on a bGPDframe could contain a set of
+ * nodes that represent a change on bGPDstrokes.
+ * These nodes are stored in a red-black tree so that they are sorted by their
+ * index to make sure they can be processed in the correct order.
  */
 typedef struct GPencilUpdateCache {
   /* Mapping from index to a GPencilUpdateCache struct. */

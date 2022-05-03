@@ -54,6 +54,8 @@ class SessionParams {
   bool use_auto_tile;
   int tile_size;
 
+  bool use_resolution_divider;
+
   ShadingSystem shadingsystem;
 
   /* Session-specific temporary directory to store in-progress EXR files in. */
@@ -75,6 +77,8 @@ class SessionParams {
 
     use_auto_tile = true;
     tile_size = 2048;
+
+    use_resolution_divider = true;
 
     shadingsystem = SHADINGSYSTEM_SVM;
   }

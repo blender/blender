@@ -827,14 +827,14 @@ bool RE_bake_engine(Render *re,
       type->update(engine, re->main, engine->depsgraph);
     }
 
-    for (int i = 0; i < targets->num_images; i++) {
+    for (int i = 0; i < targets->images_num; i++) {
       const BakeImage *image = targets->images + i;
 
       engine->bake.pixels = pixel_array + image->offset;
-      engine->bake.result = result + image->offset * targets->num_channels;
+      engine->bake.result = result + image->offset * targets->channels_num;
       engine->bake.width = image->width;
       engine->bake.height = image->height;
-      engine->bake.depth = targets->num_channels;
+      engine->bake.depth = targets->channels_num;
       engine->bake.object_id = object_id;
 
       type->bake(

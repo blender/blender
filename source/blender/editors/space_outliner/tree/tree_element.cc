@@ -33,7 +33,9 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
                                                                          TreeElement &legacy_te,
                                                                          void *idv)
 {
-  ID &id = *static_cast<ID *>(idv);
+  if (idv == nullptr) {
+    return nullptr;
+  }
 
   /*
    * The following calls make an implicit assumption about what data was passed to the `idv`
@@ -49,10 +51,10 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
 
   switch (type) {
     case TSE_SOME_ID:
-      return TreeElementID::createFromID(legacy_te, id);
+      return TreeElementID::createFromID(legacy_te, *static_cast<ID *>(idv));
     case TSE_ANIM_DATA:
       return std::make_unique<TreeElementAnimData>(legacy_te,
-                                                   *reinterpret_cast<IdAdtTemplate &>(id).adt);
+                                                   *reinterpret_cast<IdAdtTemplate *>(idv)->adt);
     case TSE_DRIVER_BASE:
       return std::make_unique<TreeElementDriverBase>(legacy_te, *static_cast<AnimData *>(idv));
     case TSE_NLA:
@@ -70,7 +72,7 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
     case TSE_SCENE_OBJECTS_BASE:
       return std::make_unique<TreeElementSceneObjectsBase>(legacy_te, *static_cast<Scene *>(idv));
     case TSE_LIBRARY_OVERRIDE_BASE:
-      return std::make_unique<TreeElementOverridesBase>(legacy_te, id);
+      return std::make_unique<TreeElementOverridesBase>(legacy_te, *static_cast<ID *>(idv));
     case TSE_LIBRARY_OVERRIDE:
       return std::make_unique<TreeElementOverridesProperty>(
           legacy_te, *static_cast<TreeElementOverridesData *>(idv));
@@ -98,6 +100,13 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
   return nullptr;
 }
 
+void AbstractTreeElement::uncollapse_by_default(TreeElement *legacy_te)
+{
+  if (!TREESTORE(legacy_te)->used) {
+    TREESTORE(legacy_te)->flag &= ~TSE_CLOSED;
+  }
+}
+
 void tree_element_expand(const AbstractTreeElement &tree_element, SpaceOutliner &space_outliner)
 {
   /* Most types can just expand. IDs optionally expand (hence the poll) and do additional, common
@@ -107,7 +116,6 @@ void tree_element_expand(const AbstractTreeElement &tree_element, SpaceOutliner 
     return;
   }
   tree_element.expand(space_outliner);
-  tree_element.postExpand(space_outliner);
 }
 
 bool tree_element_warnings_get(TreeElement *te, int *r_icon, const char **r_message)

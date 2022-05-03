@@ -28,6 +28,7 @@ class PassAccessor {
     PassType type = PASS_NONE;
     PassMode mode = PassMode::NOISY;
     bool include_albedo = false;
+    bool is_lightgroup = false;
     int offset = -1;
 
     /* For the shadow catcher matte pass: whether to approximate shadow catcher pass into its

@@ -71,11 +71,6 @@ void HIPDeviceQueue::init_execution()
   debug_init_execution();
 }
 
-bool HIPDeviceQueue::kernel_available(DeviceKernel kernel) const
-{
-  return hip_device_->kernels.available(kernel);
-}
-
 bool HIPDeviceQueue::enqueue(DeviceKernel kernel,
                              const int work_size,
                              DeviceKernelArguments const &args)

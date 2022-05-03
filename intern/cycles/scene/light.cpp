@@ -123,6 +123,7 @@ NODE_DEFINE(Light)
   SOCKET_BOOLEAN(use_glossy, "Use Glossy", true);
   SOCKET_BOOLEAN(use_transmission, "Use Transmission", true);
   SOCKET_BOOLEAN(use_scatter, "Use Scatter", true);
+  SOCKET_BOOLEAN(use_caustics, "Shadow Caustics", false);
 
   SOCKET_INT(max_bounces, "Max Bounces", 1024);
   SOCKET_UINT(random_id, "Random ID", 0);
@@ -132,6 +133,8 @@ NODE_DEFINE(Light)
   SOCKET_BOOLEAN(is_enabled, "Is Enabled", true);
 
   SOCKET_NODE(shader, "Shader", Shader::get_node_type());
+
+  SOCKET_STRING(lightgroup, "Light Group", ustring());
 
   return type;
 }
@@ -896,9 +899,18 @@ void LightManager::device_update_points(Device *, DeviceScene *dscene, Scene *sc
 
     klights[light_index].max_bounces = max_bounces;
     klights[light_index].random = random;
+    klights[light_index].use_caustics = light->use_caustics;
 
     klights[light_index].tfm = light->tfm;
     klights[light_index].itfm = transform_inverse(light->tfm);
+
+    auto it = scene->lightgroups.find(light->lightgroup);
+    if (it != scene->lightgroups.end()) {
+      klights[light_index].lightgroup = it->second;
+    }
+    else {
+      klights[light_index].lightgroup = LIGHTGROUP_NONE;
+    }
 
     light_index++;
   }

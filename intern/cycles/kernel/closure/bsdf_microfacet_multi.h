@@ -434,14 +434,22 @@ ccl_device float3 bsdf_microfacet_multi_ggx_eval_reflect(ccl_private const Shade
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
 
   if (bsdf->alpha_x * bsdf->alpha_y < 1e-7f) {
+    *pdf = 0.0f;
+    return make_float3(0.0f, 0.0f, 0.0f);
+  }
+
+  float3 X, Y, Z;
+  Z = bsdf->N;
+
+  /* Ensure that the both directions are on the outside w.r.t. the shading normal. */
+  if (dot(Z, I) <= 0.0f || dot(Z, omega_in) <= 0.0f) {
+    *pdf = 0.0f;
     return make_float3(0.0f, 0.0f, 0.0f);
   }
 
   bool use_fresnel = (bsdf->type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_FRESNEL_ID);
 
   bool is_aniso = (bsdf->alpha_x != bsdf->alpha_y);
-  float3 X, Y, Z;
-  Z = bsdf->N;
   if (is_aniso)
     make_orthonormals_tangent(Z, bsdf->T, &X, &Y);
   else
@@ -486,8 +494,20 @@ ccl_device int bsdf_microfacet_multi_ggx_sample(KernelGlobals kg,
   float3 X, Y, Z;
   Z = bsdf->N;
 
+  /* Ensure that the view direction is on the outside w.r.t. the shading normal. */
+  if (dot(Z, I) <= 0.0f) {
+    *pdf = 0.0f;
+    return LABEL_NONE;
+  }
+
+  /* Special case: Extremely low roughness.
+   * Don't bother with microfacets, just do specular reflection. */
   if (bsdf->alpha_x * bsdf->alpha_y < 1e-7f) {
     *omega_in = 2 * dot(Z, I) * Z - I;
+    if (dot(Ng, *omega_in) <= 0.0f) {
+      *pdf = 0.0f;
+      return LABEL_NONE;
+    }
     *pdf = 1e6f;
     *eval = make_float3(1e6f, 1e6f, 1e6f);
 #ifdef __RAY_DIFFERENTIALS__
@@ -517,13 +537,19 @@ ccl_device int bsdf_microfacet_multi_ggx_sample(KernelGlobals kg,
                            bsdf->ior,
                            use_fresnel,
                            bsdf->extra->cspec0);
+  *omega_in = X * localO.x + Y * localO.y + Z * localO.z;
+
+  /* Ensure that the light direction is on the outside w.r.t. the geometry normal. */
+  if (dot(Ng, *omega_in) <= 0.0f) {
+    *pdf = 0.0f;
+    return LABEL_NONE;
+  }
+
   if (is_aniso)
     *pdf = mf_ggx_aniso_pdf(localI, localO, make_float2(bsdf->alpha_x, bsdf->alpha_y));
   else
     *pdf = mf_ggx_pdf(localI, localO, bsdf->alpha_x);
   *eval *= *pdf;
-
-  *omega_in = X * localO.x + Y * localO.y + Z * localO.z;
 
 #ifdef __RAY_DIFFERENTIALS__
   *domega_in_dx = (2 * dot(Z, dIdx)) * Z - dIdx;
@@ -572,6 +598,7 @@ bsdf_microfacet_multi_ggx_glass_eval_transmit(ccl_private const ShaderClosure *s
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
 
   if (bsdf->alpha_x * bsdf->alpha_y < 1e-7f) {
+    *pdf = 0.0f;
     return make_float3(0.0f, 0.0f, 0.0f);
   }
 
@@ -604,6 +631,7 @@ ccl_device float3 bsdf_microfacet_multi_ggx_glass_eval_reflect(ccl_private const
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
 
   if (bsdf->alpha_x * bsdf->alpha_y < 1e-7f) {
+    *pdf = 0.0f;
     return make_float3(0.0f, 0.0f, 0.0f);
   }
 

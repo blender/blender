@@ -9,11 +9,11 @@ void main()
   float cavity = 0.0, edges = 0.0, curvature = 0.0;
 
 #ifdef USE_CAVITY
-  cavity_compute(uvcoordsvar.st, depthBuffer, normalBuffer, cavity, edges);
+  cavity_compute(uvcoordsvar.xy, depthBuffer, normalBuffer, cavity, edges);
 #endif
 
 #ifdef USE_CURVATURE
-  curvature_compute(uvcoordsvar.st, objectIdBuffer, normalBuffer, curvature);
+  curvature_compute(uvcoordsvar.xy, objectIdBuffer, normalBuffer, curvature);
 #endif
 
   float final_cavity_factor = clamp((1.0 - cavity) * (1.0 + edges) * (1.0 + curvature), 0.0, 4.0);

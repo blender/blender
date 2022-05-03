@@ -236,11 +236,6 @@ bool CustomData_free_layer_active(struct CustomData *data, int type, int totelem
 void CustomData_free_layers(struct CustomData *data, int type, int totelem);
 
 /**
- * Free all anonymous attributes.
- */
-void CustomData_free_layers_anonymous(struct CustomData *data, int totelem);
-
-/**
  * Returns true if a layer with the specified type exists.
  */
 bool CustomData_has_layer(const struct CustomData *data, int type);
@@ -589,7 +584,7 @@ void CustomData_layers__print(struct CustomData *data);
 /* External file storage */
 
 void CustomData_external_add(
-    struct CustomData *data, struct ID *id, int type, int totelem, const char *filename);
+    struct CustomData *data, struct ID *id, int type, int totelem, const char *filepath);
 void CustomData_external_remove(struct CustomData *data, struct ID *id, int type, int totelem);
 bool CustomData_external_test(struct CustomData *data, int type);
 

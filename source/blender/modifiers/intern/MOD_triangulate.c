@@ -43,7 +43,7 @@ static Mesh *triangulate_mesh(Mesh *mesh,
 {
   Mesh *result;
   BMesh *bm;
-  int total_edges, i;
+  int edges_num, i;
   MEdge *me;
   CustomData_MeshMasks cd_mask_extra = {
       .vmask = CD_MASK_ORIGINDEX, .emask = CD_MASK_ORIGINDEX, .pmask = CD_MASK_ORIGINDEX};
@@ -61,6 +61,7 @@ static Mesh *triangulate_mesh(Mesh *mesh,
                             &((struct BMeshCreateParams){0}),
                             &((struct BMeshFromMeshParams){
                                 .calc_face_normal = true,
+                                .calc_vert_normal = false,
                                 .cd_mask_extra = cd_mask_extra,
                             }));
 
@@ -80,15 +81,13 @@ static Mesh *triangulate_mesh(Mesh *mesh,
     CustomData_set_layer_flag(&result->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
 
-  total_edges = result->totedge;
+  edges_num = result->totedge;
   me = result->medge;
 
   /* force drawing of all edges (seems to be omitted in CDDM_from_bmesh) */
-  for (i = 0; i < total_edges; i++, me++) {
+  for (i = 0; i < edges_num; i++, me++) {
     me->flag |= ME_EDGEDRAW | ME_EDGERENDER;
   }
-
-  BKE_mesh_normals_tag_dirty(result);
 
   return result;
 }

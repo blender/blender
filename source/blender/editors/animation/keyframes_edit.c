@@ -1292,8 +1292,8 @@ void ANIM_fcurve_equalize_keyframes_loop(FCurve *fcu,
 {
   uint i;
   BezTriple *bezt;
-  const float flat_direction_left[2] = {-handle_length, 0.f};
-  const float flat_direction_right[2] = {handle_length, 0.f};
+  const float flat_direction_left[2] = {-handle_length, 0.0f};
+  const float flat_direction_right[2] = {handle_length, 0.0f};
 
   /* Loop through an F-Curves keyframes. */
   for (bezt = fcu->bezt, i = 0; i < fcu->totvert; bezt++, i++) {
@@ -1303,6 +1303,12 @@ void ANIM_fcurve_equalize_keyframes_loop(FCurve *fcu,
 
     /* Perform handle equalization if mode is 'Both' or 'Left'. */
     if (mode & EQUALIZE_HANDLES_LEFT) {
+      /*If left handle type is 'Auto', 'Auto Clamped', or 'Vector', convert handles to 'Aligned'.*/
+      if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM, HD_VECT)) {
+        bezt->h1 = HD_ALIGN;
+        bezt->h2 = HD_ALIGN;
+      }
+
       if (flatten) {
         handle_flatten(bezt->vec, 0, flat_direction_left);
       }
@@ -1313,6 +1319,13 @@ void ANIM_fcurve_equalize_keyframes_loop(FCurve *fcu,
 
     /* Perform handle equalization if mode is 'Both' or 'Right'. */
     if (mode & EQUALIZE_HANDLES_RIGHT) {
+      /*If right handle type is 'Auto', 'Auto Clamped', or 'Vector', convert handles to
+       * 'Aligned'.*/
+      if (ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM, HD_VECT)) {
+        bezt->h1 = HD_ALIGN;
+        bezt->h2 = HD_ALIGN;
+      }
+
       if (flatten) {
         handle_flatten(bezt->vec, 2, flat_direction_right);
       }

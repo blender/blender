@@ -102,7 +102,7 @@ void BLI_uuid_format(char *buffer, const bUUID uuid)
 
 bool BLI_uuid_parse_string(bUUID *uuid, const char *buffer)
 {
-  const int num_fields_parsed = std::sscanf(
+  const int fields_parsed_num = std::sscanf(
       buffer,
       "%8x-%4hx-%4hx-%2hhx%2hhx-%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx",
       &uuid->time_low,
@@ -116,7 +116,7 @@ bool BLI_uuid_parse_string(bUUID *uuid, const char *buffer)
       &uuid->node[3],
       &uuid->node[4],
       &uuid->node[5]);
-  return num_fields_parsed == 11;
+  return fields_parsed_num == 11;
 }
 
 std::ostream &operator<<(std::ostream &stream, bUUID uuid)

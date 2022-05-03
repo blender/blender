@@ -9,8 +9,9 @@
 #define MAX_SSS_SAMPLES 65
 layout(std140) uniform sssProfile
 {
-  vec4 kernel[MAX_SSS_SAMPLES];
+  vec4 sss_kernel[MAX_SSS_SAMPLES];
   vec4 radii_max_radius;
+  float avg_inv_radius;
   int sss_samples;
 };
 
@@ -26,7 +27,7 @@ void main(void)
   vec2 pixel_size = 1.0 / vec2(textureSize(depthBuffer, 0).xy); /* TODO: precompute. */
   vec2 uvs = gl_FragCoord.xy * pixel_size;
   vec3 sss_irradiance = texture(sssIrradiance, uvs).rgb;
-  float sss_radius = texture(sssRadius, uvs).r * radii_max_radius.w;
+  float sss_radius = texture(sssRadius, uvs).r * radii_max_radius.w * avg_inv_radius;
   float depth = texture(depthBuffer, uvs).r;
   float depth_view = get_view_z_from_depth(depth);
 
@@ -48,11 +49,11 @@ void main(void)
   float sss_radius_inv = 1.0 / max(1e-8, sss_radius);
 
   /* Center sample */
-  vec3 accum = sss_irradiance * kernel[0].rgb;
+  vec3 accum = sss_irradiance * sss_kernel[0].rgb;
 
   for (int i = 1; i < sss_samples && i < MAX_SSS_SAMPLES; i++) {
-    vec2 sample_uv = uvs + kernel[i].a * finalStep *
-                               ((abs(kernel[i].a) > sssJitterThreshold) ? dir : dir_rand);
+    vec2 sample_uv = uvs + sss_kernel[i].a * finalStep *
+                               ((abs(sss_kernel[i].a) > sssJitterThreshold) ? dir : dir_rand);
     vec3 color = texture(sssIrradiance, sample_uv).rgb;
     float sample_depth = texture(depthBuffer, sample_uv).r;
     sample_depth = get_view_z_from_depth(sample_depth);
@@ -66,8 +67,8 @@ void main(void)
     if (any(lessThan(sample_uv, vec2(0.0))) || any(greaterThan(sample_uv, vec2(1.0)))) {
       s = 0.0;
     }
-    /* Mix with first sample in failure case and apply kernel color. */
-    accum += kernel[i].rgb * mix(sss_irradiance, color, s);
+    /* Mix with first sample in failure case and apply sss_kernel color. */
+    accum += sss_kernel[i].rgb * mix(sss_irradiance, color, s);
   }
 
 #if defined(FIRST_PASS)

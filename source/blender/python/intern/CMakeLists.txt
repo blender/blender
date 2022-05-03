@@ -60,11 +60,13 @@ set(SRC
   bpy_rna_anim.c
   bpy_rna_array.c
   bpy_rna_callback.c
+  bpy_rna_context.c
   bpy_rna_data.c
   bpy_rna_driver.c
   bpy_rna_gizmo.c
   bpy_rna_id_collection.c
   bpy_rna_operator.c
+  bpy_rna_text.c
   bpy_rna_types_capi.c
   bpy_rna_ui.c
   bpy_traceback.c
@@ -100,11 +102,13 @@ set(SRC
   bpy_rna.h
   bpy_rna_anim.h
   bpy_rna_callback.h
+  bpy_rna_context.h
   bpy_rna_data.h
   bpy_rna_driver.h
   bpy_rna_gizmo.h
   bpy_rna_id_collection.h
   bpy_rna_operator.h
+  bpy_rna_text.h
   bpy_rna_types_capi.h
   bpy_rna_ui.h
   bpy_traceback.h
@@ -222,6 +226,10 @@ endif()
 
 if(WITH_IMAGE_TIFF)
   add_definitions(-DWITH_TIFF)
+endif()
+
+if(WITH_WEBP)
+	add_definitions(-DWITH_WEBP)
 endif()
 
 if(WITH_INPUT_NDOF)

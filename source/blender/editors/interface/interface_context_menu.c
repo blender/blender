@@ -202,7 +202,14 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *region, void *arg)
   /* XXX this guess_opname can potentially return a different keymap
    * than being found on adding later... */
   wmKeyMap *km = WM_keymap_guess_opname(C, idname);
-  wmKeyMapItem *kmi = WM_keymap_add_item(km, idname, EVT_AKEY, KM_PRESS, 0, 0, KM_ANY);
+  wmKeyMapItem *kmi = WM_keymap_add_item(km,
+                                         idname,
+                                         &(const KeyMapItem_Params){
+                                             .type = EVT_AKEY,
+                                             .value = KM_PRESS,
+                                             .modifier = 0,
+                                             .direction = KM_ANY,
+                                         });
   const int kmi_id = kmi->id;
 
   /* This takes ownership of prop, or prop can be NULL for reset. */

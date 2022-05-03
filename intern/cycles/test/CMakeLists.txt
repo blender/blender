@@ -12,7 +12,7 @@ set(INC
   ..
 )
 
-set(ALL_CYCLES_LIBRARIES
+set(LIB
   cycles_kernel
   cycles_integrator
   cycles_scene
@@ -22,9 +22,9 @@ set(ALL_CYCLES_LIBRARIES
   cycles_subd
   cycles_device
   cycles_util
-  extern_clew
-  ${CYCLES_GL_LIBRARIES}
 )
+cycles_external_libraries_append(LIB)
+
 include_directories(${INC})
 
 set(SRC
@@ -59,6 +59,5 @@ if(NOT APPLE)
 endif()
 
 if(WITH_GTESTS)
-  BLENDER_SRC_GTEST(cycles "${SRC}" "${ALL_CYCLES_LIBRARIES}")
-  cycles_target_link_libraries(cycles_test)
+  BLENDER_SRC_GTEST(cycles "${SRC}" "${LIB}")
 endif()

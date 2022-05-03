@@ -17,6 +17,13 @@ NODE_STORAGE_FUNCS(NodeGeometryCurvePrimitiveArc)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  auto enable_points = [](bNode &node) {
+    node_storage(node).mode = GEO_NODE_CURVE_PRIMITIVE_ARC_TYPE_POINTS;
+  };
+  auto enable_radius = [](bNode &node) {
+    node_storage(node).mode = GEO_NODE_CURVE_PRIMITIVE_ARC_TYPE_RADIUS;
+  };
+
   b.add_input<decl::Int>(N_("Resolution"))
       .default_value(16)
       .min(2)
@@ -26,34 +33,41 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Vector>(N_("Start"))
       .default_value({-1.0f, 0.0f, 0.0f})
       .subtype(PROP_TRANSLATION)
-      .description(N_("Position of the first control point"));
+      .description(N_("Position of the first control point"))
+      .make_available(enable_points);
   b.add_input<decl::Vector>(N_("Middle"))
       .default_value({0.0f, 2.0f, 0.0f})
       .subtype(PROP_TRANSLATION)
-      .description(N_("Position of the middle control point"));
+      .description(N_("Position of the middle control point"))
+      .make_available(enable_points);
   b.add_input<decl::Vector>(N_("End"))
       .default_value({1.0f, 0.0f, 0.0f})
       .subtype(PROP_TRANSLATION)
-      .description(N_("Position of the last control point"));
+      .description(N_("Position of the last control point"))
+      .make_available(enable_points);
   b.add_input<decl::Float>(N_("Radius"))
       .default_value(1.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("Distance of the points from the origin"));
+      .description(N_("Distance of the points from the origin"))
+      .make_available(enable_radius);
   b.add_input<decl::Float>(N_("Start Angle"))
       .default_value(0.0f)
       .subtype(PROP_ANGLE)
-      .description(N_("Starting angle of the arc"));
+      .description(N_("Starting angle of the arc"))
+      .make_available(enable_radius);
   b.add_input<decl::Float>(N_("Sweep Angle"))
       .default_value(1.75f * M_PI)
       .min(-2 * M_PI)
       .max(2 * M_PI)
       .subtype(PROP_ANGLE)
-      .description(N_("Length of the arc"));
+      .description(N_("Length of the arc"))
+      .make_available(enable_radius);
   b.add_input<decl::Float>(N_("Offset Angle"))
       .default_value(0.0f)
       .subtype(PROP_ANGLE)
-      .description(N_("Offset angle of the arc"));
+      .description(N_("Offset angle of the arc"))
+      .make_available(enable_points);
   b.add_input<decl::Bool>(N_("Connect Center"))
       .default_value(false)
       .description(N_("Connect the arc at the center"));
@@ -64,17 +78,14 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Curve"));
   b.add_output<decl::Vector>(N_("Center"))
       .description(N_("The center of the circle described by the three points"))
-      .make_available(
-          [](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_PRIMITIVE_ARC_TYPE_POINTS; });
+      .make_available(enable_points);
   b.add_output<decl::Vector>(N_("Normal"))
       .description(N_("The normal direction of the plane described by the three points, pointing "
                       "towards the positive Z axis"))
-      .make_available(
-          [](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_PRIMITIVE_ARC_TYPE_POINTS; });
+      .make_available(enable_points);
   b.add_output<decl::Float>(N_("Radius"))
       .description(N_("The radius of the circle described by the three points"))
-      .make_available(
-          [](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_PRIMITIVE_ARC_TYPE_POINTS; });
+      .make_available(enable_points);
 }
 
 static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -160,7 +171,7 @@ static Curves *create_arc_curve_from_points(const int resolution,
 
   const int stepcount = resolution - 1;
   const int centerpoint = resolution;
-  MutableSpan<float3> positions = curves.positions();
+  MutableSpan<float3> positions = curves.positions_for_write();
 
   const bool is_colinear = colinear_f3_f3_f3(a, b, c);
 
@@ -250,7 +261,7 @@ static Curves *create_arc_curve_from_points(const int resolution,
   }
 
   if (connect_center) {
-    curves.cyclic().first() = true;
+    curves.cyclic_for_write().first() = true;
     positions[centerpoint] = center;
   }
 
@@ -278,7 +289,7 @@ static Curves *create_arc_curve_from_radius(const int resolution,
 
   const int stepcount = resolution - 1;
   const int centerpoint = resolution;
-  MutableSpan<float3> positions = curves.positions();
+  MutableSpan<float3> positions = curves.positions_for_write();
 
   const float sweep = (invert_arc) ? -(2.0f * M_PI - sweep_angle) : sweep_angle;
 
@@ -291,7 +302,7 @@ static Curves *create_arc_curve_from_radius(const int resolution,
   }
 
   if (connect_center) {
-    curves.cyclic().first() = true;
+    curves.cyclic_for_write().first() = true;
     positions[centerpoint] = float3(0.0f, 0.0f, 0.0f);
   }
 

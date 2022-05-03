@@ -23,15 +23,20 @@ struct Mesh;
  * \param mask: pixels with a mask value of 1 are not written to.
  * \param margin: the size of the margin in pixels.
  * \param me: the mesh to use the polygons of.
- * \param mloopuv: the uv data to use.
+ * \param uv_layer: The UV layer to use.
  */
-void RE_generate_texturemargin_adjacentfaces(
-    struct ImBuf *ibuf, char *mask, const int margin, struct Mesh const *me, char const *uv_layer);
+void RE_generate_texturemargin_adjacentfaces(struct ImBuf *ibuf,
+                                             char *mask,
+                                             const int margin,
+                                             struct Mesh const *me,
+                                             char const *uv_layer,
+                                             const float uv_offset[2]);
 
 void RE_generate_texturemargin_adjacentfaces_dm(struct ImBuf *ibuf,
                                                 char *mask,
                                                 const int margin,
-                                                struct DerivedMesh *dm);
+                                                struct DerivedMesh *dm,
+                                                const float uv_offset[2]);
 
 #ifdef __cplusplus
 }

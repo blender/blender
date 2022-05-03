@@ -459,7 +459,7 @@ bool MetalDeviceKernels::load(MetalDevice *device, int kernel_type)
 
     tbb::task_arena local_arena(max_mtlcompiler_threads);
     local_arena.execute([&]() {
-      tbb::parallel_for(int(0), int(DEVICE_KERNEL_NUM), [&](int i) {
+      parallel_for(int(0), int(DEVICE_KERNEL_NUM), [&](int i) {
         /* skip megakernel */
         if (i == DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL) {
           return;

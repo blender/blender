@@ -33,10 +33,12 @@ class UvOperator(bpy.types.Operator):
         main(context)
         return {'FINISHED'}
 
-def menu_func(self, context):
-    self.layout.operator(UvOperator.bl_idname, text = "Simple UV Operator")
 
-# Register and add to the "UV" menu (required to also use F3 search "Simple UV Operator" for quick access)
+def menu_func(self, context):
+    self.layout.operator(UvOperator.bl_idname, text="Simple UV Operator")
+
+
+# Register and add to the "UV" menu (required to also use F3 search "Simple UV Operator" for quick access).
 def register():
     bpy.utils.register_class(UvOperator)
     bpy.types.IMAGE_MT_uvs.append(menu_func)

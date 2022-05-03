@@ -606,6 +606,19 @@ static void add_orco_mesh(Object *ob, BMEditMesh *em, Mesh *mesh, Mesh *mesh_orc
   }
 }
 
+static bool mesh_has_modifier_final_normals(const Mesh *mesh_input,
+                                            const CustomData_MeshMasks *final_datamask,
+                                            Mesh *mesh_final)
+{
+  /* Test if mesh has the required loop normals, in case an additional modifier
+   * evaluation from another instance or from an operator requests it but the
+   * initial normals were not loop normals. */
+  const bool do_loop_normals = ((mesh_input->flag & ME_AUTOSMOOTH) != 0 ||
+                                (final_datamask->lmask & CD_MASK_NORMAL) != 0);
+
+  return (!do_loop_normals || CustomData_has_layer(&mesh_final->ldata, CD_NORMAL));
+}
+
 static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
                                              const CustomData_MeshMasks *final_datamask,
                                              const bool sculpt_dyntopo,
@@ -615,33 +628,32 @@ static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
   const bool do_loop_normals = ((mesh_input->flag & ME_AUTOSMOOTH) != 0 ||
                                 (final_datamask->lmask & CD_MASK_NORMAL) != 0);
 
+  /* Needed as `final_datamask` is not preserved outside modifier stack evaluation. */
+  mesh_final->runtime.subsurf_do_loop_normals = do_loop_normals;
+
   if (do_loop_normals) {
-    /* Compute loop normals (NOTE: will compute poly and vert normals as well, if needed!). */
-    BKE_mesh_calc_normals_split(mesh_final);
-    BKE_mesh_tessface_clear(mesh_final);
-  }
-
-  if (sculpt_dyntopo == false) {
-    /* watch this! after 2.75a we move to from tessface to looptri (by default) */
-    if (final_datamask->fmask & CD_MASK_MFACE) {
-      BKE_mesh_tessface_ensure(mesh_final);
+    /* Compute loop normals (NOTE: will compute poly and vert normals as well, if needed!). In case
+     * of deferred CPU subdivision, this will be computed when the wrapper is generated. */
+    if (mesh_final->runtime.subsurf_resolution == 0) {
+      BKE_mesh_calc_normals_split(mesh_final);
     }
-
-    /* without this, drawing ngon tri's faces will show ugly tessellated face
-     * normals and will also have to calculate normals on the fly, try avoid
-     * this where possible since calculating polygon normals isn't fast,
-     * note that this isn't a problem for subsurf (only quads) or editmode
-     * which deals with drawing differently. */
-    if (!do_loop_normals) {
+  }
+  else {
+    if (sculpt_dyntopo == false) {
+      /* without this, drawing ngon tri's faces will show ugly tessellated face
+       * normals and will also have to calculate normals on the fly, try avoid
+       * this where possible since calculating polygon normals isn't fast,
+       * note that this isn't a problem for subsurf (only quads) or editmode
+       * which deals with drawing differently. */
       BKE_mesh_ensure_normals_for_display(mesh_final);
     }
-  }
 
-  /* Some modifiers, like data-transfer, may generate those data as temp layer,
-   * we do not want to keep them, as they are used by display code when available
-   * (i.e. even if autosmooth is disabled). */
-  if (!do_loop_normals && CustomData_has_layer(&mesh_final->ldata, CD_NORMAL)) {
-    CustomData_free_layers(&mesh_final->ldata, CD_NORMAL, mesh_final->totloop);
+    /* Some modifiers, like data-transfer, may generate those data as temp layer,
+     * we do not want to keep them, as they are used by display code when available
+     * (i.e. even if autosmooth is disabled). */
+    if (CustomData_has_layer(&mesh_final->ldata, CD_NORMAL)) {
+      CustomData_free_layers(&mesh_final->ldata, CD_NORMAL, mesh_final->totloop);
+    }
   }
 }
 
@@ -728,7 +740,6 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
                                 const bool use_deform,
                                 const bool need_mapping,
                                 const CustomData_MeshMasks *dataMask,
-                                const int index,
                                 const bool use_cache,
                                 const bool allow_shared_mesh,
                                 /* return args */
@@ -840,12 +851,6 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
         isPrevDeform = true;
       }
       else {
-        break;
-      }
-
-      /* grab modifiers until index i */
-      if ((index != -1) && (BLI_findindex(&ob->modifiers, md) >= index)) {
-        md = nullptr;
         break;
       }
     }
@@ -1123,11 +1128,6 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
 
     isPrevDeform = (mti->type == eModifierTypeType_OnlyDeform);
 
-    /* grab modifiers until index i */
-    if ((index != -1) && (BLI_findindex(&ob->modifiers, md) >= index)) {
-      break;
-    }
-
     if (sculpt_mode && md->type == eModifierType_Multires) {
       multires_applied = true;
     }
@@ -1183,6 +1183,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
   /* Compute normals. */
   if (is_own_mesh) {
     mesh_calc_modifier_final_normals(mesh_input, &final_datamask, sculpt_dyntopo, mesh_final);
+    mesh_calc_finalize(mesh_input, mesh_final);
   }
   else {
     Mesh_Runtime *runtime = &mesh_input->runtime;
@@ -1190,7 +1191,8 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       BLI_assert(runtime->eval_mutex != nullptr);
       BLI_mutex_lock((ThreadMutex *)runtime->eval_mutex);
       if (runtime->mesh_eval == nullptr) {
-        /* Isolate since computing normals is multithreaded and we are holding a lock. */
+        /* Not yet finalized by any instance, do it now
+         * Isolate since computing normals is multithreaded and we are holding a lock. */
         blender::threading::isolate_task([&] {
           mesh_final = BKE_mesh_copy_for_eval(mesh_input, true);
           mesh_calc_modifier_final_normals(
@@ -1199,13 +1201,23 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
           runtime->mesh_eval = mesh_final;
         });
       }
+      else {
+        /* Already finalized by another instance, reuse. */
+        mesh_final = runtime->mesh_eval;
+      }
       BLI_mutex_unlock((ThreadMutex *)runtime->eval_mutex);
     }
-    mesh_final = runtime->mesh_eval;
-  }
-
-  if (is_own_mesh) {
-    mesh_calc_finalize(mesh_input, mesh_final);
+    else if (!mesh_has_modifier_final_normals(mesh_input, &final_datamask, runtime->mesh_eval)) {
+      /* Modifier stack was (re-)evaluated with a request for additional normals
+       * different than the instanced mesh, can't instance anymore now. */
+      mesh_final = BKE_mesh_copy_for_eval(mesh_input, true);
+      mesh_calc_modifier_final_normals(mesh_input, &final_datamask, sculpt_dyntopo, mesh_final);
+      mesh_calc_finalize(mesh_input, mesh_final);
+    }
+    else {
+      /* Already finalized by another instance, reuse. */
+      mesh_final = runtime->mesh_eval;
+    }
   }
 
   /* Return final mesh */
@@ -1268,24 +1280,17 @@ static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final,
   const bool do_loop_normals = ((mesh_final->flag & ME_AUTOSMOOTH) != 0 ||
                                 (final_datamask->lmask & CD_MASK_NORMAL) != 0);
 
-  if (do_loop_normals) {
-    /* Compute loop normals */
-    BKE_mesh_calc_normals_split(mesh_final);
-    BKE_mesh_tessface_clear(mesh_final);
-  }
+  mesh_final->runtime.subsurf_do_loop_normals = do_loop_normals;
 
-  /* BMESH_ONLY, ensure tessface's used for drawing,
-   * but don't recalculate if the last modifier in the stack gives us tessfaces
-   * check if the derived meshes are DM_TYPE_EDITBMESH before calling, this isn't essential
-   * but quiets annoying error messages since tessfaces won't be created. */
-  if (final_datamask->fmask & CD_MASK_MFACE) {
-    if (mesh_final->edit_mesh == nullptr) {
-      BKE_mesh_tessface_ensure(mesh_final);
+  if (do_loop_normals) {
+    /* Compute loop normals. In case of deferred CPU subdivision, this will be computed when the
+     * wrapper is generated. */
+    if (mesh_final->runtime.subsurf_resolution == 0) {
+      BKE_mesh_calc_normals_split(mesh_final);
     }
   }
-
-  /* same as mesh_calc_modifiers (if using loop normals, poly nors have already been computed). */
-  if (!do_loop_normals) {
+  else {
+    /* Same as mesh_calc_modifiers. If using loop normals, poly nors have already been computed. */
     BKE_mesh_ensure_normals_for_display(mesh_final);
 
     /* Some modifiers, like data-transfer, may generate those data, we do not want to keep them,
@@ -1605,7 +1610,7 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
                             const CustomData_MeshMasks *dataMask,
                             const bool need_mapping)
 {
-#if 0 /* XXX This is already taken care of in mesh_calc_modifiers()... */
+#if 0 /* XXX This is already taken care of in #mesh_calc_modifiers... */
   if (need_mapping) {
     /* Also add the flag so that it is recorded in lastDataMask. */
     dataMask->vmask |= CD_MASK_ORIGINDEX;
@@ -1622,7 +1627,6 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
                       true,
                       need_mapping,
                       dataMask,
-                      -1,
                       true,
                       true,
                       &mesh_deform_eval,
@@ -1739,13 +1743,13 @@ static void object_get_datamask(const Depsgraph *depsgraph,
 
     /* check if we need tfaces & mcols due to face select or texture paint */
     if ((ob->mode & OB_MODE_TEXTURE_PAINT) || editing) {
-      r_mask->lmask |= CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL;
+      r_mask->lmask |= CD_MASK_MLOOPUV | CD_MASK_PROP_BYTE_COLOR;
       r_mask->fmask |= CD_MASK_MTFACE;
     }
 
     /* check if we need mcols due to vertex paint or weightpaint */
     if (ob->mode & OB_MODE_VERTEX_PAINT) {
-      r_mask->lmask |= CD_MASK_MLOOPCOL;
+      r_mask->lmask |= CD_MASK_PROP_BYTE_COLOR;
     }
 
     if (ob->mode & OB_MODE_WEIGHT_PAINT) {
@@ -1876,7 +1880,7 @@ Mesh *mesh_create_eval_final(Depsgraph *depsgraph,
 {
   Mesh *result;
   mesh_calc_modifiers(
-      depsgraph, scene, ob, true, false, dataMask, -1, false, false, nullptr, &result, nullptr);
+      depsgraph, scene, ob, true, false, dataMask, false, false, nullptr, &result, nullptr);
   return result;
 }
 
@@ -1887,7 +1891,7 @@ Mesh *mesh_create_eval_no_deform(Depsgraph *depsgraph,
 {
   Mesh *result;
   mesh_calc_modifiers(
-      depsgraph, scene, ob, false, false, dataMask, -1, false, false, nullptr, &result, nullptr);
+      depsgraph, scene, ob, false, false, dataMask, false, false, nullptr, &result, nullptr);
   return result;
 }
 
@@ -1898,7 +1902,7 @@ Mesh *mesh_create_eval_no_deform_render(Depsgraph *depsgraph,
 {
   Mesh *result;
   mesh_calc_modifiers(
-      depsgraph, scene, ob, false, false, dataMask, -1, false, false, nullptr, &result, nullptr);
+      depsgraph, scene, ob, false, false, dataMask, false, false, nullptr, &result, nullptr);
   return result;
 }
 

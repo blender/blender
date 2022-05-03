@@ -36,6 +36,7 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_customdata.h"
+#include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -118,6 +119,7 @@ using blender::threading::EnumerableThreadSpecific;
 using namespace blender::fn::multi_function_types;
 using namespace blender::nodes::derived_node_tree_types;
 using geo_log::GeometryAttributeInfo;
+using geo_log::NamedAttributeUsage;
 
 static void initData(ModifierData *md)
 {
@@ -315,9 +317,7 @@ static bool check_tree_for_time_node(const bNodeTree &tree,
   return false;
 }
 
-static bool dependsOnTime(struct Scene *UNUSED(scene),
-                          ModifierData *md,
-                          const int UNUSED(dag_eval_mode))
+static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *md)
 {
   const NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
   const bNodeTree *tree = nmd->node_group;
@@ -628,6 +628,10 @@ static void init_socket_cpp_value_from_property(const IDProperty &property,
 void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
 {
   if (nmd->node_group == nullptr) {
+    if (nmd->settings.properties) {
+      IDP_FreeProperty(nmd->settings.properties);
+      nmd->settings.properties = nullptr;
+    }
     return;
   }
 
@@ -680,7 +684,13 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
       IDProperty *attribute_prop = IDP_New(IDP_STRING, &idprop, attribute_name_id.c_str());
       IDP_AddToGroup(nmd->settings.properties, attribute_prop);
 
-      if (old_properties != nullptr) {
+      if (old_properties == nullptr) {
+        if (socket->default_attribute_name && socket->default_attribute_name[0] != '\0') {
+          IDP_AssignString(attribute_prop, socket->default_attribute_name, MAX_NAME);
+          IDP_Int(use_attribute_prop) = 1;
+        }
+      }
+      else {
         IDProperty *old_prop_use_attribute = IDP_GetPropertyFromGroup(old_properties,
                                                                       use_attribute_id.c_str());
         if (old_prop_use_attribute != nullptr) {
@@ -709,7 +719,12 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
     }
     IDP_AddToGroup(nmd->settings.properties, new_prop);
 
-    if (old_properties != nullptr) {
+    if (old_properties == nullptr) {
+      if (socket->default_attribute_name && socket->default_attribute_name[0] != '\0') {
+        IDP_AssignString(new_prop, socket->default_attribute_name, MAX_NAME);
+      }
+    }
+    else {
       IDProperty *old_prop = IDP_GetPropertyFromGroup(old_properties, idprop_name.c_str());
       if (old_prop != nullptr) {
         /* #IDP_CopyPropertyContent replaces the UI data as well, which we don't (we only
@@ -730,33 +745,6 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
   }
 
   DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
-}
-
-void MOD_nodes_init(Main *bmain, NodesModifierData *nmd)
-{
-  bNodeTree *ntree = ntreeAddTree(bmain, "Geometry Nodes", ntreeType_Geometry->idname);
-  nmd->node_group = ntree;
-
-  ntreeAddSocketInterface(ntree, SOCK_IN, "NodeSocketGeometry", "Geometry");
-  ntreeAddSocketInterface(ntree, SOCK_OUT, "NodeSocketGeometry", "Geometry");
-
-  bNode *group_input_node = nodeAddStaticNode(nullptr, ntree, NODE_GROUP_INPUT);
-  bNode *group_output_node = nodeAddStaticNode(nullptr, ntree, NODE_GROUP_OUTPUT);
-
-  nodeSetSelected(group_input_node, false);
-  nodeSetSelected(group_output_node, false);
-
-  group_input_node->locx = -200 - group_input_node->width;
-  group_output_node->locx = 200;
-  group_output_node->flag |= NODE_DO_OUTPUT;
-
-  nodeAddLink(ntree,
-              group_output_node,
-              (bNodeSocket *)group_output_node->inputs.first,
-              group_input_node,
-              (bNodeSocket *)group_input_node->outputs.first);
-
-  BKE_ntree_update_main_tree(bmain, ntree, nullptr);
 }
 
 static void initialize_group_input(NodesModifierData &nmd,
@@ -1025,30 +1013,34 @@ static void store_computed_output_attributes(
     const CustomDataType data_type = blender::bke::cpp_type_to_custom_data_type(store.data.type());
     const std::optional<AttributeMetaData> meta_data = component.attribute_get_meta_data(
         store.name);
-    if (meta_data.has_value() && meta_data->domain == store.domain &&
-        meta_data->data_type == data_type) {
-      /* Copy the data into an existing attribute. */
-      blender::bke::WriteAttributeLookup write_attribute = component.attribute_try_get_for_write(
-          store.name);
-      if (write_attribute) {
-        write_attribute.varray.set_all(store.data.data());
-        if (write_attribute.tag_modified_fn) {
-          write_attribute.tag_modified_fn();
-        }
-      }
-      store.data.type().destruct_n(store.data.data(), store.data.size());
-      MEM_freeN(store.data.data());
+
+    /* Attempt to remove the attribute if it already exists but the domain and type don't match.
+     * Removing the attribute won't succeed if it is built in and non-removable. */
+    if (meta_data.has_value() &&
+        (meta_data->domain != store.domain || meta_data->data_type != data_type)) {
+      component.attribute_try_delete(store.name);
     }
-    else {
-      /* Replace the existing attribute with the new data. */
-      if (meta_data.has_value()) {
-        component.attribute_try_delete(store.name);
-      }
-      component.attribute_try_create(store.name,
-                                     store.domain,
-                                     blender::bke::cpp_type_to_custom_data_type(store.data.type()),
-                                     AttributeInitMove(store.data.data()));
+
+    /* Try to create the attribute reusing the stored buffer. This will only succeed if the
+     * attribute didn't exist before, or if it existed but was removed above. */
+    if (component.attribute_try_create(
+            store.name,
+            store.domain,
+            blender::bke::cpp_type_to_custom_data_type(store.data.type()),
+            AttributeInitMove(store.data.data()))) {
+      continue;
     }
+
+    OutputAttribute attribute = component.attribute_try_get_for_output_only(
+        store.name, store.domain, data_type);
+    if (attribute) {
+      attribute.varray().set_all(store.data.data());
+      attribute.save();
+    }
+
+    /* We were unable to reuse the data, so it must be destructed and freed. */
+    store.data.type().destruct_n(store.data.data(), store.data.size());
+    MEM_freeN(store.data.data());
   }
 }
 
@@ -1480,7 +1472,7 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
   }
   else {
     uiItemR(row, md_ptr, rna_path.c_str(), 0, "", ICON_NONE);
-    uiItemDecoratorR(row, md_ptr, rna_path.c_str(), 0);
+    uiItemDecoratorR(row, md_ptr, rna_path.c_str(), -1);
   }
 }
 
@@ -1647,6 +1639,80 @@ static void output_attribute_panel_draw(const bContext *C, Panel *panel)
   }
 }
 
+static void internal_dependencies_panel_draw(const bContext *UNUSED(C), Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
+  NodesModifierData *nmd = static_cast<NodesModifierData *>(ptr->data);
+
+  if (nmd->runtime_eval_log == nullptr) {
+    return;
+  }
+  const geo_log::ModifierLog &log = *static_cast<geo_log::ModifierLog *>(nmd->runtime_eval_log);
+  Map<std::string, NamedAttributeUsage> usage_by_attribute;
+  log.foreach_node_log([&](const geo_log::NodeLog &node_log) {
+    for (const geo_log::UsedNamedAttribute &used_attribute : node_log.used_named_attributes()) {
+      usage_by_attribute.lookup_or_add_as(used_attribute.name,
+                                          used_attribute.usage) |= used_attribute.usage;
+    }
+  });
+
+  if (usage_by_attribute.is_empty()) {
+    uiItemL(layout, IFACE_("No named attributes used"), ICON_INFO);
+    return;
+  }
+
+  struct NameWithUsage {
+    StringRefNull name;
+    NamedAttributeUsage usage;
+  };
+
+  Vector<NameWithUsage> sorted_used_attribute;
+  for (auto &&item : usage_by_attribute.items()) {
+    sorted_used_attribute.append({item.key, item.value});
+  }
+  std::sort(sorted_used_attribute.begin(),
+            sorted_used_attribute.end(),
+            [](const NameWithUsage &a, const NameWithUsage &b) {
+              return BLI_strcasecmp_natural(a.name.c_str(), b.name.c_str()) <= 0;
+            });
+
+  for (const NameWithUsage &attribute : sorted_used_attribute) {
+    const StringRefNull attribute_name = attribute.name;
+    const NamedAttributeUsage usage = attribute.usage;
+
+    /* #uiLayoutRowWithHeading doesn't seem to work in this case. */
+    uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
+
+    std::stringstream ss;
+    Vector<std::string> usages;
+    if ((usage & NamedAttributeUsage::Read) != NamedAttributeUsage::None) {
+      usages.append(TIP_("Read"));
+    }
+    if ((usage & NamedAttributeUsage::Write) != NamedAttributeUsage::None) {
+      usages.append(TIP_("Write"));
+    }
+    if ((usage & NamedAttributeUsage::Remove) != NamedAttributeUsage::None) {
+      usages.append(TIP_("Remove"));
+    }
+    for (const int i : usages.index_range()) {
+      ss << usages[i];
+      if (i < usages.size() - 1) {
+        ss << ", ";
+      }
+    }
+
+    uiLayout *row = uiLayoutRow(split, false);
+    uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
+    uiLayoutSetActive(row, false);
+    uiItemL(row, ss.str().c_str(), ICON_NONE);
+
+    row = uiLayoutRow(split, false);
+    uiItemL(row, attribute_name.c_str(), ICON_NONE);
+  }
+}
+
 static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Nodes, panel_draw);
@@ -1655,6 +1721,12 @@ static void panelRegister(ARegionType *region_type)
                              N_("Output Attributes"),
                              nullptr,
                              output_attribute_panel_draw,
+                             panel_type);
+  modifier_subpanel_register(region_type,
+                             "internal_dependencies",
+                             N_("Internal Dependencies"),
+                             nullptr,
+                             internal_dependencies_panel_draw,
                              panel_type);
 }
 
@@ -1671,8 +1743,13 @@ static void blendWrite(BlendWriter *writer, const ModifierData *md)
 static void blendRead(BlendDataReader *reader, ModifierData *md)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-  BLO_read_data_address(reader, &nmd->settings.properties);
-  IDP_BlendDataRead(reader, &nmd->settings.properties);
+  if (nmd->node_group == nullptr) {
+    nmd->settings.properties = nullptr;
+  }
+  else {
+    BLO_read_data_address(reader, &nmd->settings.properties);
+    IDP_BlendDataRead(reader, &nmd->settings.properties);
+  }
   nmd->runtime_eval_log = nullptr;
 }
 

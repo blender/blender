@@ -361,6 +361,10 @@ class GPENCIL_UL_annotation_layer(UIList):
             split.prop(gpl, "info", text="", emboss=False)
 
             row = layout.row(align=True)
+
+            icon_xray = 'XRAY' if gpl.show_in_front else 'FACESEL'
+            row.prop(gpl, "show_in_front", text="", icon=icon_xray, emboss=False)
+
             row.prop(gpl, "annotation_hide", text="", emboss=False)
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'

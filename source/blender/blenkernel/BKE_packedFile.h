@@ -45,7 +45,7 @@ enum ePF_FileStatus {
 
 struct PackedFile *BKE_packedfile_duplicate(const struct PackedFile *pf_src);
 struct PackedFile *BKE_packedfile_new(struct ReportList *reports,
-                                      const char *filename,
+                                      const char *filepath,
                                       const char *basepath);
 struct PackedFile *BKE_packedfile_new_from_memory(void *mem, int memlen);
 
@@ -102,7 +102,7 @@ int BKE_packedfile_unpack_all_libraries(struct Main *bmain, struct ReportList *r
 
 int BKE_packedfile_write_to_file(struct ReportList *reports,
                                  const char *ref_file_name,
-                                 const char *filename,
+                                 const char *filepath,
                                  struct PackedFile *pf,
                                  bool guimode);
 
@@ -122,7 +122,7 @@ int BKE_packedfile_count_all(struct Main *bmain);
  * - #PF_NOFILE:    the original file doesn't exist.
  */
 enum ePF_FileCompare BKE_packedfile_compare_to_file(const char *ref_file_name,
-                                                    const char *filename,
+                                                    const char *filepath_rel,
                                                     struct PackedFile *pf);
 
 /* Read. */

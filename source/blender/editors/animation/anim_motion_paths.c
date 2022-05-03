@@ -340,6 +340,43 @@ static void motionpath_free_free_tree_data(ListBase *targets)
   }
 }
 
+void animviz_motionpath_compute_range(Object *ob, Scene *scene)
+{
+  bAnimVizSettings *avs = ob->mode == OB_MODE_POSE ? &ob->pose->avs : &ob->avs;
+
+  const bool has_action = ob->adt && ob->adt->action;
+  if (avs->path_range == MOTIONPATH_RANGE_SCENE || !has_action ||
+      BLI_listbase_is_empty(&ob->adt->action->curves)) {
+    avs->path_sf = PSFRA;
+    avs->path_ef = PEFRA;
+    return;
+  }
+
+  struct AnimKeylist *keylist = ED_keylist_create();
+  LISTBASE_FOREACH (FCurve *, fcu, &ob->adt->action->curves) {
+    fcurve_to_keylist(ob->adt, fcu, keylist, 0);
+  }
+
+  Range2f frame_range;
+  switch (avs->path_range) {
+    case MOTIONPATH_RANGE_KEYS_SELECTED:
+      if (ED_keylist_selected_keys_frame_range(keylist, &frame_range)) {
+        break;
+      }
+      ATTR_FALLTHROUGH;  // Fall through if there were no selected keys found.
+    case MOTIONPATH_RANGE_KEYS_ALL:
+      ED_keylist_all_keys_frame_range(keylist, &frame_range);
+      break;
+    case MOTIONPATH_RANGE_SCENE:
+      BLI_assert_msg(false, "This should not happen, function should have exited earlier.");
+  };
+
+  avs->path_sf = frame_range.min;
+  avs->path_ef = frame_range.max;
+
+  ED_keylist_free(keylist);
+}
+
 void animviz_calc_motionpaths(Depsgraph *depsgraph,
                               Main *bmain,
                               Scene *scene,

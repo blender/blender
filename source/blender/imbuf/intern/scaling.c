@@ -171,14 +171,13 @@ static void imb_half_y_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
   uchar *p1, *p2, *_p1, *dest;
   short a, r, g, b;
   int x, y;
-  int do_rect, do_float;
   float af, rf, gf, bf, *p1f, *p2f, *_p1f, *destf;
 
   p1 = p2 = NULL;
   p1f = p2f = NULL;
 
-  do_rect = (ibuf1->rect != NULL);
-  do_float = (ibuf1->rect_float != NULL && ibuf2->rect_float != NULL);
+  const bool do_rect = (ibuf1->rect != NULL);
+  const bool do_float = (ibuf1->rect_float != NULL && ibuf2->rect_float != NULL);
 
   _p1 = (uchar *)ibuf1->rect;
   dest = (uchar *)ibuf2->rect;
@@ -264,7 +263,6 @@ struct ImBuf *IMB_double_fast_y(struct ImBuf *ibuf1)
   int *p1, *dest1, *dest2;
   float *p1f, *dest1f, *dest2f;
   int x, y;
-  int do_rect, do_float;
 
   if (ibuf1 == NULL) {
     return NULL;
@@ -273,8 +271,8 @@ struct ImBuf *IMB_double_fast_y(struct ImBuf *ibuf1)
     return NULL;
   }
 
-  do_rect = (ibuf1->rect != NULL);
-  do_float = (ibuf1->rect_float != NULL);
+  const bool do_rect = (ibuf1->rect != NULL);
+  const bool do_float = (ibuf1->rect_float != NULL);
 
   ibuf2 = IMB_allocImBuf(ibuf1->x, 2 * ibuf1->y, ibuf1->planes, ibuf1->flags);
   if (ibuf2 == NULL) {
@@ -358,8 +356,8 @@ MINLINE void premul_ushort_to_straight_uchar(unsigned char *result, const unsign
 void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 {
   int x, y;
-  const short do_rect = (ibuf1->rect != NULL);
-  const short do_float = (ibuf1->rect_float != NULL) && (ibuf2->rect_float != NULL);
+  const bool do_rect = (ibuf1->rect != NULL);
+  const bool do_float = (ibuf1->rect_float != NULL) && (ibuf2->rect_float != NULL);
 
   if (do_rect && (ibuf2->rect == NULL)) {
     imb_addrectImBuf(ibuf2);
@@ -892,8 +890,8 @@ static bool q_scale_linear_interpolation(struct ImBuf *ibuf, int newx, int newy)
 
 static ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 {
-  const int do_rect = (ibuf->rect != NULL);
-  const int do_float = (ibuf->rect_float != NULL);
+  const bool do_rect = (ibuf->rect != NULL);
+  const bool do_float = (ibuf->rect_float != NULL);
   const size_t rect_size = IMB_get_rect_len(ibuf) * 4;
 
   uchar *rect, *_newrect, *newrect;
@@ -1033,8 +1031,8 @@ static ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 
 static ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 {
-  const int do_rect = (ibuf->rect != NULL);
-  const int do_float = (ibuf->rect_float != NULL);
+  const bool do_rect = (ibuf->rect != NULL);
+  const bool do_float = (ibuf->rect_float != NULL);
   const size_t rect_size = IMB_get_rect_len(ibuf) * 4;
 
   uchar *rect, *_newrect, *newrect;

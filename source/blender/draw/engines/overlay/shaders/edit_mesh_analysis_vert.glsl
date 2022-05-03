@@ -1,10 +1,6 @@
 
-in vec3 pos;
-in float weight;
-
-uniform sampler1D weightTex;
-
-out vec4 weightColor;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 vec3 weight_to_rgb(float t)
 {
@@ -29,7 +25,5 @@ void main()
   gl_Position = point_world_to_ndc(world_pos);
   weightColor = vec4(weight_to_rgb(weight), 1.0);
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(world_pos);
-#endif
+  view_clipping_distances(world_pos);
 }

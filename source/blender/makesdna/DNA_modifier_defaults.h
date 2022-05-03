@@ -309,7 +309,7 @@
     .falloff = 0.0f, \
     .curfalloff = NULL, \
     .indexar = NULL, \
-    .totindex = 0, \
+    .indexar_num = 0, \
     .force = 1.0f, \
     .name = "", \
   }
@@ -317,7 +317,7 @@
 #define _DNA_DEFAULT_LaplacianDeformModifierData \
   { \
     .anchor_grp_name = "", \
-    .total_verts = 0, \
+    .verts_num = 0, \
     .repeat = 1, \
     .vertexco = NULL, \
     .cache_system = NULL, \
@@ -381,13 +381,13 @@
     .bindinfluences = NULL, \
     .bindoffsets = NULL, \
     .bindcagecos = NULL, \
-    .totvert = 0, \
-    .totcagevert = 0, \
+    .verts_num = 0, \
+    .cage_verts_num = 0, \
     .dyngrid = NULL, \
     .dyninfluences = NULL, \
     .dynverts = NULL, \
     .dyngridsize = 0, \
-    .totinfluence = 0, \
+    .influences_num = 0, \
     .dyncellmin = {0.0f, 0.0f, 0.0f}, \
     .dyncellwidth = 0.0f, \
     .bindmat = _DNA_DEFAULT_UNIT_M4, \
@@ -621,7 +621,7 @@
     .mesh = NULL, \
     .bvhtree = NULL, \
     .cfra = 0, \
-    .numverts = 0, \
+    .verts_num = 0, \
   }
 
 #define _DNA_DEFAULT_SurfaceDeformModifierData \
@@ -630,9 +630,9 @@
     .target = NULL, \
     .verts = NULL, \
     .falloff = 4.0f, \
-    .num_mesh_verts = 0, \
-    .num_bind_verts = 0, \
-    .numpoly = 0, \
+    .mesh_verts_num = 0, \
+    .bind_verts_num = 0, \
+    .polys_num = 0, \
     .flags = 0, \
     .mat = _DNA_DEFAULT_UNIT_M4, \
     .strength = 1.0f, \
@@ -650,7 +650,7 @@
 #define _DNA_DEFAULT_UVProjectModifierData \
   { \
     .projectors = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL}, \
-    .num_projectors = 1, \
+    .projectors_num = 1, \
     .aspectx = 1.0f, \
     .aspecty = 1.0f, \
     .scalex = 1.0f, \

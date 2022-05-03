@@ -1,4 +1,8 @@
 
+/* WORKAROUND: to guard against double include in EEVEE. */
+#ifndef COMMON_MATH_LIB_GLSL
+#define COMMON_MATH_LIB_GLSL
+
 /* ---------------------------------------------------------------------- */
 /** \name Common Math Utilities
  * \{ */
@@ -84,9 +88,9 @@ float avg(vec3 v) { return dot(vec3(1.0 / 3.0), v); }
 float avg(vec4 v) { return dot(vec4(1.0 / 4.0), v); }
 
 float safe_rcp(float a) { return (a != 0.0) ? (1.0 / a) : 0.0; }
-vec2 safe_rcp(vec2 a) { return mix(vec2(0.0), (1.0 / a), notEqual(a, vec2(0.0))); }
-vec3 safe_rcp(vec3 a) { return mix(vec3(0.0), (1.0 / a), notEqual(a, vec3(0.0))); }
-vec4 safe_rcp(vec4 a) { return mix(vec4(0.0), (1.0 / a), notEqual(a, vec4(0.0))); }
+vec2 safe_rcp(vec2 a) { return select(vec2(0.0), (1.0 / a), notEqual(a, vec2(0.0))); }
+vec3 safe_rcp(vec3 a) { return select(vec3(0.0), (1.0 / a), notEqual(a, vec3(0.0))); }
+vec4 safe_rcp(vec4 a) { return select(vec4(0.0), (1.0 / a), notEqual(a, vec4(0.0))); }
 
 float safe_sqrt(float a) { return sqrt(max(a, 0.0)); }
 
@@ -276,3 +280,5 @@ vec3 hue_gradient(float t)
   vec3 p = abs(fract(t + vec3(1.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0);
   return (clamp(p - 1.0, 0.0, 1.0));
 }
+
+#endif /* COMMON_MATH_LIB_GLSL */

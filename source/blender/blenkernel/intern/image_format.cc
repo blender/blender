@@ -5,7 +5,7 @@
  * \ingroup bke
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_defaults.h"
 #include "DNA_scene_types.h"
@@ -14,6 +14,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -119,6 +120,12 @@ int BKE_imtype_to_ftype(const char imtype, ImbFormatOptions *r_options)
     return IMB_FTYPE_JP2;
   }
 #endif
+#ifdef WITH_WEBP
+  if (imtype == R_IMF_IMTYPE_WEBP) {
+    r_options->quality = 90;
+    return IMB_FTYPE_WEBP;
+  }
+#endif
 
   r_options->quality = 90;
   return IMB_FTYPE_JPG;
@@ -176,6 +183,11 @@ char BKE_ftype_to_imtype(const int ftype, const ImbFormatOptions *options)
     return R_IMF_IMTYPE_JP2;
   }
 #endif
+#ifdef WITH_WEBP
+  if (ftype == IMB_FTYPE_WEBP) {
+    return R_IMF_IMTYPE_WEBP;
+  }
+#endif
 
   return R_IMF_IMTYPE_JPEG90;
 }
@@ -219,6 +231,7 @@ bool BKE_imtype_supports_quality(const char imtype)
     case R_IMF_IMTYPE_JPEG90:
     case R_IMF_IMTYPE_JP2:
     case R_IMF_IMTYPE_AVIJPEG:
+    case R_IMF_IMTYPE_WEBP:
       return true;
   }
   return false;
@@ -258,6 +271,7 @@ char BKE_imtype_valid_channels(const char imtype, bool write_file)
     case R_IMF_IMTYPE_DDS:
     case R_IMF_IMTYPE_JP2:
     case R_IMF_IMTYPE_DPX:
+    case R_IMF_IMTYPE_WEBP:
       chan_flag |= IMA_CHAN_FLAG_ALPHA;
       break;
   }
@@ -378,6 +392,11 @@ char BKE_imtype_from_arg(const char *imtype_arg)
     return R_IMF_IMTYPE_JP2;
   }
 #endif
+#ifdef WITH_WEBP
+  if (STREQ(imtype_arg, "WEBP")) {
+    return R_IMF_IMTYPE_WEBP;
+  }
+#endif
 
   return R_IMF_IMTYPE_INVALID;
 }
@@ -490,6 +509,13 @@ static bool do_add_image_extension(char *string,
       if (!BLI_path_extension_check(string, extension_test = ".jp2")) {
         extension = extension_test;
       }
+    }
+  }
+#endif
+#ifdef WITH_WEBP
+  else if (imtype == R_IMF_IMTYPE_WEBP) {
+    if (!BLI_path_extension_check(string, extension_test = ".webp")) {
+      extension = extension_test;
     }
   }
 #endif
@@ -731,8 +757,14 @@ void BKE_image_format_to_imbuf(ImBuf *ibuf, const ImageFormatData *imf)
     }
   }
 #endif
+#ifdef WITH_WEBP
+  else if (imtype == R_IMF_IMTYPE_WEBP) {
+    ibuf->ftype = IMB_FTYPE_WEBP;
+    ibuf->foptions.quality = quality;
+  }
+#endif
   else {
-    /* R_IMF_IMTYPE_JPEG90, etc. default we save jpegs */
+    /* #R_IMF_IMTYPE_JPEG90, etc. default to JPEG. */
     if (quality < 10) {
       quality = 90;
     }
@@ -863,6 +895,12 @@ void BKE_image_format_from_imbuf(ImageFormatData *im_format, const ImBuf *imbuf)
     }
   }
 #endif
+#ifdef WITH_WEBP
+  else if (ftype == IMB_FTYPE_WEBP) {
+    im_format->imtype = R_IMF_IMTYPE_WEBP;
+    im_format->quality = quality;
+  }
+#endif
 
   else {
     im_format->imtype = R_IMF_IMTYPE_JPEG90;
@@ -871,4 +909,59 @@ void BKE_image_format_from_imbuf(ImageFormatData *im_format, const ImBuf *imbuf)
 
   /* planes */
   im_format->planes = imbuf->planes;
+}
+
+/* Color Management */
+
+void BKE_image_format_color_management_copy(ImageFormatData *imf, const ImageFormatData *imf_src)
+{
+  BKE_color_managed_view_settings_free(&imf->view_settings);
+
+  BKE_color_managed_display_settings_copy(&imf->display_settings, &imf_src->display_settings);
+  BKE_color_managed_view_settings_copy(&imf->view_settings, &imf_src->view_settings);
+  BKE_color_managed_colorspace_settings_copy(&imf->linear_colorspace_settings,
+                                             &imf_src->linear_colorspace_settings);
+}
+
+void BKE_image_format_color_management_copy_from_scene(ImageFormatData *imf, const Scene *scene)
+{
+  BKE_color_managed_view_settings_free(&imf->view_settings);
+
+  BKE_color_managed_display_settings_copy(&imf->display_settings, &scene->display_settings);
+  BKE_color_managed_view_settings_copy(&imf->view_settings, &scene->view_settings);
+  STRNCPY(imf->linear_colorspace_settings.name,
+          IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR));
+}
+
+/* Output */
+
+void BKE_image_format_init_for_write(ImageFormatData *imf,
+                                     const Scene *scene_src,
+                                     const ImageFormatData *imf_src)
+{
+  *imf = (imf_src) ? *imf_src : scene_src->r.im_format;
+
+  if (imf_src && imf_src->color_management == R_IMF_COLOR_MANAGEMENT_OVERRIDE) {
+    /* Use settings specific to one node, image save operation, etc. */
+    BKE_color_managed_display_settings_copy(&imf->display_settings, &imf_src->display_settings);
+    BKE_color_managed_view_settings_copy(&imf->view_settings, &imf_src->view_settings);
+    BKE_color_managed_colorspace_settings_copy(&imf->linear_colorspace_settings,
+                                               &imf_src->linear_colorspace_settings);
+  }
+  else if (scene_src->r.im_format.color_management == R_IMF_COLOR_MANAGEMENT_OVERRIDE) {
+    /* Use scene settings specific to render output. */
+    BKE_color_managed_display_settings_copy(&imf->display_settings,
+                                            &scene_src->r.im_format.display_settings);
+    BKE_color_managed_view_settings_copy(&imf->view_settings,
+                                         &scene_src->r.im_format.view_settings);
+    BKE_color_managed_colorspace_settings_copy(&imf->linear_colorspace_settings,
+                                               &scene_src->r.im_format.linear_colorspace_settings);
+  }
+  else {
+    /* Use general scene settings also used for display. */
+    BKE_color_managed_display_settings_copy(&imf->display_settings, &scene_src->display_settings);
+    BKE_color_managed_view_settings_copy(&imf->view_settings, &scene_src->view_settings);
+    STRNCPY(imf->linear_colorspace_settings.name,
+            IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR));
+  }
 }

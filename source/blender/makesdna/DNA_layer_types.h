@@ -124,6 +124,21 @@ typedef struct ViewLayerAOV {
    * matches `eViewLayerAOVType` */
   int type;
 } ViewLayerAOV;
+
+/* Lightgroup Renderpass definition. */
+typedef struct ViewLayerLightgroup {
+  struct ViewLayerLightgroup *next, *prev;
+
+  /* Name of the Lightgroup */
+  char name[64];
+} ViewLayerLightgroup;
+
+/* Lightgroup membership information. */
+typedef struct LightgroupMembership {
+  /* Name of the Lightgroup */
+  char name[64];
+} LightgroupMembership;
+
 typedef struct ViewLayer {
   struct ViewLayer *next, *prev;
   /** MAX_NAME. */
@@ -163,6 +178,10 @@ typedef struct ViewLayer {
   /* List containing the `ViewLayerAOV`s */
   ListBase aovs;
   ViewLayerAOV *active_aov;
+
+  /* List containing the 'ViewLayerLightgroup`s */
+  ListBase lightgroups;
+  ViewLayerLightgroup *active_lightgroup;
 
   /* Runtime data */
   /** ViewLayerEngineData. */

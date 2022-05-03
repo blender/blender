@@ -27,7 +27,8 @@ class DialogOperator(bpy.types.Operator):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
-# Only needed if you want to add into a dynamic menu
+
+# Only needed if you want to add into a dynamic menu.
 def menu_func(self, context):
     self.layout.operator(DialogOperator.bl_idname, text="Dialog Operator")
 

@@ -23,8 +23,6 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
                                  bNodeTree *editingtree,
                                  bool rendering,
                                  bool fastcalculation,
-                                 const ColorManagedViewSettings *view_settings,
-                                 const ColorManagedDisplaySettings *display_settings,
                                  const char *view_name)
 {
   num_work_threads_ = WorkScheduler::get_num_cpu_threads();
@@ -45,8 +43,6 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
                                      (editingtree->flag & NTREE_COM_OPENCL));
 
   context_.set_render_data(rd);
-  context_.set_view_settings(view_settings);
-  context_.set_display_settings(display_settings);
 
   BLI_mutex_init(&work_mutex_);
   BLI_condition_init(&work_finished_cond_);

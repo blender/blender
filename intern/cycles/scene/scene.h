@@ -159,7 +159,7 @@ class SceneParams {
   SceneParams()
   {
     shadingsystem = SHADINGSYSTEM_SVM;
-    bvh_layout = BVH_LAYOUT_BVH2;
+    bvh_layout = BVH_LAYOUT_AUTO;
     bvh_type = BVH_TYPE_DYNAMIC;
     use_bvh_spatial_split = false;
     use_bvh_compact_structure = true;
@@ -196,6 +196,9 @@ class Scene : public NodeOwner {
  public:
   /* Optional name. Is used for logging and reporting. */
   string name;
+
+  /* Maps from Light group names to their pass ID. */
+  map<ustring, int> lightgroups;
 
   /* data */
   BVH *bvh;
@@ -254,7 +257,7 @@ class Scene : public NodeOwner {
   void need_global_attributes(AttributeRequestSet &attributes);
 
   enum MotionType { MOTION_NONE = 0, MOTION_PASS, MOTION_BLUR };
-  MotionType need_motion();
+  MotionType need_motion() const;
   float motion_shutter_time();
 
   bool need_update();

@@ -107,15 +107,13 @@ static void deformStroke(GpencilModifierData *md,
   pt = gps->points;
   for (i = 0; i < gps->totpoints; i++, pt++) {
     copy_v3_v3(&pt->x, vert_coords[i]);
-    /* Smooth stroke. */
-    if (mmd->smooth_factor > 0.0f) {
-      for (int r = 0; r < mmd->smooth_step; r++) {
-        BKE_gpencil_stroke_smooth_point(gps, i, mmd->smooth_factor, true);
-      }
-    }
   }
 
   MEM_freeN(vert_coords);
+
+  /* Smooth stroke. */
+  BKE_gpencil_stroke_smooth(
+      gps, mmd->smooth_factor, mmd->smooth_step, true, false, false, false, true, NULL);
 
   /* Calc geometry data. */
   BKE_gpencil_stroke_geometry_update(gpd, gps);

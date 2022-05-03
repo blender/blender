@@ -20,6 +20,7 @@
 #include "DNA_sound_types.h"
 #include "IMB_imbuf.h"
 
+#include "SEQ_channels.h"
 #include "SEQ_iterator.h"
 #include "SEQ_render.h"
 #include "SEQ_sequencer.h"
@@ -321,6 +322,7 @@ int SEQ_time_find_next_prev_edit(Scene *scene,
                                  const bool do_unselected)
 {
   Editing *ed = SEQ_editing_get(scene);
+  ListBase *channels = SEQ_channels_displayed_get(ed);
   Sequence *seq;
 
   int dist, best_dist, best_frame = timeline_frame;
@@ -338,7 +340,7 @@ int SEQ_time_find_next_prev_edit(Scene *scene,
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     int i;
 
-    if (do_skip_mute && (seq->flag & SEQ_MUTE)) {
+    if (do_skip_mute && SEQ_render_is_muted(channels, seq)) {
       continue;
     }
 
@@ -442,8 +444,8 @@ void SEQ_timeline_expand_boundbox(const ListBase *seqbase, rctf *rect)
     if (rect->xmax < seq->enddisp + 1) {
       rect->xmax = seq->enddisp + 1;
     }
-    if (rect->ymax < seq->machine + 2) {
-      rect->ymax = seq->machine + 2;
+    if (rect->ymax < seq->machine) {
+      rect->ymax = seq->machine;
     }
   }
 }

@@ -6332,15 +6332,16 @@ bool ED_paint_proj_mesh_data_check(
       for (int i = 1; i < ob->totcol + 1; i++) {
         Material *ma = BKE_object_material_get(ob, i);
 
-        if (ma && !ID_IS_LINKED(ma)) {
+        if (ma && !ID_IS_LINKED(ma) && !ID_IS_OVERRIDE_LIBRARY(ma)) {
           hasmat = true;
           if (ma->texpaintslot == NULL) {
             /* refresh here just in case */
-            BKE_texpaint_slot_refresh_cache(scene, ma);
+            BKE_texpaint_slot_refresh_cache(scene, ma, ob);
           }
           if (ma->texpaintslot != NULL &&
               (ma->texpaintslot[ma->paint_active_slot].ima == NULL ||
-               !ID_IS_LINKED(ma->texpaintslot[ma->paint_active_slot].ima))) {
+               !ID_IS_LINKED(ma->texpaintslot[ma->paint_active_slot].ima) ||
+               !ID_IS_OVERRIDE_LIBRARY(ma->texpaintslot[ma->paint_active_slot].ima))) {
             hastex = true;
             break;
           }
@@ -6606,7 +6607,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
     nodePositionPropagate(out_node);
 
     if (ima) {
-      BKE_texpaint_slot_refresh_cache(scene, ma);
+      BKE_texpaint_slot_refresh_cache(scene, ma, ob);
       BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_USER_NEW_IMAGE);
       WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
     }

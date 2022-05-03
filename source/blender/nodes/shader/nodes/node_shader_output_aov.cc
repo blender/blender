@@ -35,12 +35,16 @@ static int node_shader_gpu_output_aov(GPUMaterial *mat,
 {
   GPUNodeLink *outlink;
   NodeShaderOutputAOV *aov = (NodeShaderOutputAOV *)node->storage;
-  /* Keep in sync with `renderpass_lib.glsl#render_pass_aov_hash` and
-   * `EEVEE_renderpasses_aov_hash`. */
-  unsigned int hash = BLI_hash_string(aov->name) << 1;
-  GPU_stack_link(mat, node, "node_output_aov", in, out, &outlink);
-  GPU_material_add_output_link_aov(mat, outlink, hash);
+  uint hash = BLI_hash_string(aov->name);
+  /* WORKAROUND: We don't support int/uint constants for now. So make sure the aliasing works.
+   * We cast back to uint in GLSL. */
+  BLI_STATIC_ASSERT(sizeof(float) == sizeof(uint),
+                    "GPUCodegen: AOV hash needs float and uint to be the same size.");
+  GPUNodeLink *hash_link = GPU_constant((float *)&hash);
 
+  GPU_material_flag_set(mat, GPU_MATFLAG_AOV);
+  GPU_stack_link(mat, node, "node_output_aov", in, out, hash_link, &outlink);
+  GPU_material_add_output_link_aov(mat, outlink, hash);
   return true;
 }
 

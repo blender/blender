@@ -56,6 +56,7 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info);
 GPUShader *GPU_shader_create_from_info_name(const char *info_name);
 
 const GPUShaderCreateInfo *GPU_shader_create_info_get(const char *info_name);
+bool GPU_shader_create_info_check_error(const GPUShaderCreateInfo *_info, char r_error[128]);
 
 struct GPU_ShaderCreateFromArray_Params {
   const char **vert, **geom, **frag, **defs;
@@ -363,17 +364,12 @@ typedef struct GPUShaderConfigData {
   const char *def;
 } GPUShaderConfigData;
 /* gpu_shader.c */
+
 extern const GPUShaderConfigData GPU_shader_cfg_data[GPU_SHADER_CFG_LEN];
 
 GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
                                                      eGPUShaderConfig sh_cfg);
 GPUShader *GPU_shader_get_builtin_shader(eGPUBuiltinShader shader);
-
-void GPU_shader_get_builtin_shader_code(eGPUBuiltinShader shader,
-                                        const char **r_vert,
-                                        const char **r_frag,
-                                        const char **r_geom,
-                                        const char **r_defines);
 
 void GPU_shader_free_builtin_shaders(void);
 

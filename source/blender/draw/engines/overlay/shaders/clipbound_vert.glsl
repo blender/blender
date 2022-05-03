@@ -1,5 +1,5 @@
 
-uniform vec3 boundbox[8];
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {

@@ -1,3 +1,5 @@
+#pragma BLENDER_REQUIRE(gpu_shader_material_math_util.glsl)
+
 float smootherstep(float edge0, float edge1, float x)
 {
   x = clamp(safe_divide((x - edge0), (edge1 - edge0)), 0.0, 1.0);

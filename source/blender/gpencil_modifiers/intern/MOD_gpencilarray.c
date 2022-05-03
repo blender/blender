@@ -132,13 +132,13 @@ static void generate_geometry(GpencilModifierData *md,
   /* Get bounbox for relative offset. */
   float size[3] = {0.0f, 0.0f, 0.0f};
   if (mmd->flag & GP_ARRAY_USE_RELATIVE) {
-    BoundBox *bb = BKE_object_boundbox_get(ob);
-    const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
-    BKE_boundbox_init_from_minmax(bb, min, max);
-    BKE_boundbox_calc_size_aabb(bb, size);
-    mul_v3_fl(size, 2.0f);
-    /* Need a minimum size (for flat drawings). */
-    CLAMP3_MIN(size, 0.01f);
+    float min[3];
+    float max[3];
+    if (BKE_gpencil_data_minmax(gpd, min, max)) {
+      sub_v3_v3v3(size, max, min);
+      /* Need a minimum size (for flat drawings). */
+      CLAMP3_MIN(size, 0.01f);
+    }
   }
 
   int seed = mmd->seed;

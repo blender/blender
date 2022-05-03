@@ -6,6 +6,8 @@
 
 #include "UI_interface.h"
 
+#include "BLT_translation.h"
+
 #include "NOD_node_declaration.hh"
 #include "NOD_socket_search_link.hh"
 
@@ -16,7 +18,8 @@ void GatherLinkSearchOpParams::add_item(std::string socket_name,
                                         const int weight)
 {
 
-  std::string name = std::string(node_type_.ui_name) + " " + UI_MENU_ARROW_SEP + socket_name;
+  std::string name = std::string(IFACE_(node_type_.ui_name)) + " " + UI_MENU_ARROW_SEP +
+                     socket_name;
 
   items_.append({std::move(name), std::move(fn), weight});
 }
@@ -112,7 +115,7 @@ void search_link_ops_for_declarations(GatherLinkSearchOpParams &params,
      * sockets. */
     const int weight = (&socket == main_socket) ? 0 : -1 - i;
     params.add_item(
-        socket.name(),
+        IFACE_(socket.name().c_str()),
         [&node_type, &socket](LinkSearchOpParams &params) {
           bNode &node = params.add_node(node_type);
           socket.make_available(node);

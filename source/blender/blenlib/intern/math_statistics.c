@@ -21,7 +21,7 @@ typedef struct CovarianceData {
   float *r_covmat;
   float covfac;
   int n;
-  int nbr_cos_vn;
+  int cos_vn_num;
 } CovarianceData;
 
 static void covariance_m_vn_ex_task_cb(void *__restrict userdata,
@@ -33,7 +33,7 @@ static void covariance_m_vn_ex_task_cb(void *__restrict userdata,
   const float *center = data->center;
   float *r_covmat = data->r_covmat;
   const int n = data->n;
-  const int nbr_cos_vn = data->nbr_cos_vn;
+  const int cos_vn_num = data->cos_vn_num;
 
   int k;
 
@@ -55,12 +55,12 @@ static void covariance_m_vn_ex_task_cb(void *__restrict userdata,
   }
 
   if (center) {
-    for (k = 0; k < nbr_cos_vn; k++) {
+    for (k = 0; k < cos_vn_num; k++) {
       r_covmat[a] += (cos_vn[k * n + i] - center[i]) * (cos_vn[k * n + j] - center[j]);
     }
   }
   else {
-    for (k = 0; k < nbr_cos_vn; k++) {
+    for (k = 0; k < cos_vn_num; k++) {
       r_covmat[a] += cos_vn[k * n + i] * cos_vn[k * n + j];
     }
   }
@@ -73,7 +73,7 @@ static void covariance_m_vn_ex_task_cb(void *__restrict userdata,
 
 void BLI_covariance_m_vn_ex(const int n,
                             const float *cos_vn,
-                            const int nbr_cos_vn,
+                            const int cos_vn_num,
                             const float *center,
                             const bool use_sample_correction,
                             float *r_covmat)
@@ -81,7 +81,7 @@ void BLI_covariance_m_vn_ex(const int n,
   /* Note about that division: see https://en.wikipedia.org/wiki/Bessel%27s_correction.
    * In a nutshell, it must be 1 / (n - 1) for 'sample data', and 1 / n for 'population data'...
    */
-  const float covfac = 1.0f / (float)(use_sample_correction ? nbr_cos_vn - 1 : nbr_cos_vn);
+  const float covfac = 1.0f / (float)(use_sample_correction ? cos_vn_num - 1 : cos_vn_num);
 
   memset(r_covmat, 0, sizeof(*r_covmat) * (size_t)(n * n));
 
@@ -91,27 +91,27 @@ void BLI_covariance_m_vn_ex(const int n,
       .r_covmat = r_covmat,
       .covfac = covfac,
       .n = n,
-      .nbr_cos_vn = nbr_cos_vn,
+      .cos_vn_num = cos_vn_num,
   };
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = ((nbr_cos_vn * n * n) >= 10000);
+  settings.use_threading = ((cos_vn_num * n * n) >= 10000);
   BLI_task_parallel_range(0, n * n, &data, covariance_m_vn_ex_task_cb, &settings);
 }
 
 void BLI_covariance_m3_v3n(const float (*cos_v3)[3],
-                           const int nbr_cos_v3,
+                           const int cos_v3_num,
                            const bool use_sample_correction,
                            float r_covmat[3][3],
                            float r_center[3])
 {
   float center[3];
-  const float mean_fac = 1.0f / (float)nbr_cos_v3;
+  const float mean_fac = 1.0f / (float)cos_v3_num;
   int i;
 
   zero_v3(center);
-  for (i = 0; i < nbr_cos_v3; i++) {
+  for (i = 0; i < cos_v3_num; i++) {
     /* Applying mean_fac here rather than once at the end reduce compute errors... */
     madd_v3_v3fl(center, cos_v3[i], mean_fac);
   }
@@ -121,5 +121,5 @@ void BLI_covariance_m3_v3n(const float (*cos_v3)[3],
   }
 
   BLI_covariance_m_vn_ex(
-      3, (const float *)cos_v3, nbr_cos_v3, center, use_sample_correction, (float *)r_covmat);
+      3, (const float *)cos_v3, cos_v3_num, center, use_sample_correction, (float *)r_covmat);
 }

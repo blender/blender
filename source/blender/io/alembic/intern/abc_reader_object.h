@@ -139,11 +139,11 @@ class AbcObjectReader {
                                  const char *velocity_name,
                                  float velocity_scale,
                                  const char **err_str);
-  virtual bool topology_changed(Mesh *existing_mesh,
+  virtual bool topology_changed(const Mesh *existing_mesh,
                                 const Alembic::Abc::ISampleSelector &sample_sel);
 
   /** Reads the object matrix and sets up an object transform if animated. */
-  void setupObjectTransform(float time);
+  void setupObjectTransform(chrono_t time);
 
   void addCacheModifier();
 
@@ -154,13 +154,13 @@ class AbcObjectReader {
   void incref();
   void decref();
 
-  void read_matrix(float r_mat[4][4], float time, float scale, bool &is_constant);
+  void read_matrix(float r_mat[4][4], chrono_t time, float scale, bool &is_constant);
 
  protected:
   /** Determine whether we can inherit our parent's XForm. */
   void determine_inherits_xform();
 };
 
-Imath::M44d get_matrix(const Alembic::AbcGeom::IXformSchema &schema, float time);
+Imath::M44d get_matrix(const Alembic::AbcGeom::IXformSchema &schema, chrono_t time);
 
 }  // namespace blender::io::alembic

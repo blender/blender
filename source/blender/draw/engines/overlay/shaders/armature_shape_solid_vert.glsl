@@ -1,13 +1,6 @@
 
-/* ---- Instantiated Attrs ---- */
-in vec3 pos;
-in vec3 nor;
-
-/* ---- Per instance Attrs ---- */
-in mat4 inst_obmat;
-
-out vec4 finalColor;
-flat out int inverted;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {
@@ -31,10 +24,8 @@ void main()
   finalColor.rgb = mix(state_color.rgb, bone_color.rgb, fac * fac);
   finalColor.a = 1.0;
 
-  vec4 worldPosition = model_mat * vec4(pos, 1.0);
-  gl_Position = ViewProjectionMatrix * worldPosition;
+  vec4 world_pos = model_mat * vec4(pos, 1.0);
+  gl_Position = ViewProjectionMatrix * world_pos;
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(worldPosition.xyz);
-#endif
+  view_clipping_distances(world_pos.xyz);
 }

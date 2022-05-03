@@ -178,12 +178,12 @@ void UI_view2d_multi_grid_draw(
  * \param grid_color_id: The theme color used for the points. Faded dynamically based on zoom.
  * \param min_step: The base size of the grid. At different zoom levels, the visible grid may have
  * a larger step size.
- * \param grid_levels: The maximum grid depth. Larger grid levels will subdivide the grid more.
+ * \param grid_subdivisions: The maximum number of sub-levels drawn at once.
  */
 void UI_view2d_dot_grid_draw(const struct View2D *v2d,
                              int grid_color_id,
                              float min_step,
-                             int grid_levels);
+                             int grid_subdivisions);
 
 void UI_view2d_draw_lines_y__values(const struct View2D *v2d);
 void UI_view2d_draw_lines_x__values(const struct View2D *v2d);
@@ -416,7 +416,7 @@ void ED_keymap_view2d(struct wmKeyConfig *keyconf);
  * Will start timer if appropriate.
  * the arguments are the desired situation.
  */
-void UI_view2d_smooth_view(struct bContext *C,
+void UI_view2d_smooth_view(const struct bContext *C,
                            struct ARegion *region,
                            const struct rctf *cur,
                            int smooth_viewtx);
@@ -447,6 +447,8 @@ typedef struct View2DEdgePanData {
   struct ARegion *region;
   /** View2d we're operating in. */
   struct View2D *v2d;
+  /** Limit maximum pannable area. */
+  struct rctf limit;
 
   /** Panning should only start once being in the inside rect once (e.g. adding nodes can happen
    * outside). */
@@ -491,6 +493,12 @@ void UI_view2d_edge_pan_init(struct bContext *C,
                              float max_speed,
                              float delay,
                              float zoom_influence);
+
+/**
+ * Set area which can be panned
+ */
+void UI_view2d_edge_pan_set_limits(
+    struct View2DEdgePanData *vpd, float xmin, float xmax, float ymin, float ymax);
 
 void UI_view2d_edge_pan_reset(struct View2DEdgePanData *vpd);
 

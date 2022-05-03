@@ -1759,7 +1759,7 @@ Key *BKE_key_from_id(ID *id)
   return NULL;
 }
 
-Key **BKE_key_from_object_p(const Object *ob)
+Key **BKE_key_from_object_p(Object *ob)
 {
   if (ob == NULL || ob->data == NULL) {
     return NULL;
@@ -1768,7 +1768,7 @@ Key **BKE_key_from_object_p(const Object *ob)
   return BKE_key_from_id_p(ob->data);
 }
 
-Key *BKE_key_from_object(const Object *ob)
+Key *BKE_key_from_object(Object *ob)
 {
   Key **key_p;
   key_p = BKE_key_from_object_p(ob);
@@ -1911,7 +1911,7 @@ void BKE_keyblock_copy_settings(KeyBlock *kb_dst, const KeyBlock *kb_src)
   kb_dst->slidermax = kb_src->slidermax;
 }
 
-char *BKE_keyblock_curval_rnapath_get(Key *key, KeyBlock *kb)
+char *BKE_keyblock_curval_rnapath_get(const Key *key, const KeyBlock *kb)
 {
   PointerRNA ptr;
   PropertyRNA *prop;
@@ -1922,7 +1922,7 @@ char *BKE_keyblock_curval_rnapath_get(Key *key, KeyBlock *kb)
   }
 
   /* create the RNA pointer */
-  RNA_pointer_create(&key->id, &RNA_ShapeKey, kb, &ptr);
+  RNA_pointer_create((ID *)&key->id, &RNA_ShapeKey, (KeyBlock *)kb, &ptr);
   /* get pointer to the property too */
   prop = RNA_struct_find_property(&ptr, "value");
 
@@ -1934,7 +1934,7 @@ char *BKE_keyblock_curval_rnapath_get(Key *key, KeyBlock *kb)
 
 /************************* Lattice ************************/
 
-void BKE_keyblock_update_from_lattice(Lattice *lt, KeyBlock *kb)
+void BKE_keyblock_update_from_lattice(const Lattice *lt, KeyBlock *kb)
 {
   BPoint *bp;
   float(*fp)[3];
@@ -1954,7 +1954,7 @@ void BKE_keyblock_update_from_lattice(Lattice *lt, KeyBlock *kb)
   }
 }
 
-void BKE_keyblock_convert_from_lattice(Lattice *lt, KeyBlock *kb)
+void BKE_keyblock_convert_from_lattice(const Lattice *lt, KeyBlock *kb)
 {
   int tot;
 
@@ -1971,7 +1971,7 @@ void BKE_keyblock_convert_from_lattice(Lattice *lt, KeyBlock *kb)
   BKE_keyblock_update_from_lattice(lt, kb);
 }
 
-void BKE_keyblock_convert_to_lattice(KeyBlock *kb, Lattice *lt)
+void BKE_keyblock_convert_to_lattice(const KeyBlock *kb, Lattice *lt)
 {
   BPoint *bp;
   const float(*fp)[3];
@@ -2009,7 +2009,7 @@ int BKE_keyblock_curve_element_count(const ListBase *nurb)
   return tot;
 }
 
-void BKE_keyblock_update_from_curve(Curve *UNUSED(cu), KeyBlock *kb, ListBase *nurb)
+void BKE_keyblock_update_from_curve(const Curve *UNUSED(cu), KeyBlock *kb, const ListBase *nurb)
 {
   Nurb *nu;
   BezTriple *bezt;
@@ -2079,7 +2079,7 @@ void BKE_keyblock_curve_data_transform(const ListBase *nurb,
   }
 }
 
-void BKE_keyblock_convert_from_curve(Curve *cu, KeyBlock *kb, ListBase *nurb)
+void BKE_keyblock_convert_from_curve(const Curve *cu, KeyBlock *kb, const ListBase *nurb)
 {
   int tot;
 
@@ -2135,7 +2135,7 @@ void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nu
 
 /************************* Mesh ************************/
 
-void BKE_keyblock_update_from_mesh(Mesh *me, KeyBlock *kb)
+void BKE_keyblock_update_from_mesh(const Mesh *me, KeyBlock *kb)
 {
   MVert *mvert;
   float(*fp)[3];
@@ -2155,7 +2155,7 @@ void BKE_keyblock_update_from_mesh(Mesh *me, KeyBlock *kb)
   }
 }
 
-void BKE_keyblock_convert_from_mesh(Mesh *me, Key *key, KeyBlock *kb)
+void BKE_keyblock_convert_from_mesh(const Mesh *me, const Key *key, KeyBlock *kb)
 {
   const int len = me->totvert;
 
@@ -2171,95 +2171,102 @@ void BKE_keyblock_convert_from_mesh(Mesh *me, Key *key, KeyBlock *kb)
   BKE_keyblock_update_from_mesh(me, kb);
 }
 
-void BKE_keyblock_convert_to_mesh(KeyBlock *kb, Mesh *me)
+void BKE_keyblock_convert_to_mesh(const KeyBlock *kb, MVert *mvert, const int totvert)
 {
-  MVert *mvert;
   const float(*fp)[3];
   int a, tot;
 
-  mvert = me->mvert;
   fp = kb->data;
 
-  tot = min_ii(kb->totelem, me->totvert);
+  tot = min_ii(kb->totelem, totvert);
 
   for (a = 0; a < tot; a++, fp++, mvert++) {
     copy_v3_v3(mvert->co, *fp);
   }
 }
 
-void BKE_keyblock_mesh_calc_normals(struct KeyBlock *kb,
-                                    struct Mesh *mesh,
+void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
+                                    const Mesh *mesh,
                                     float (*r_vertnors)[3],
                                     float (*r_polynors)[3],
                                     float (*r_loopnors)[3])
 {
-  /* We use a temp, shallow copy of mesh to work. */
-  Mesh me;
-  bool free_polynors = false;
-
   if (r_vertnors == NULL && r_polynors == NULL && r_loopnors == NULL) {
     return;
   }
 
-  me = *mesh;
-  me.mvert = MEM_dupallocN(mesh->mvert);
-  CustomData_reset(&me.vdata);
-  CustomData_reset(&me.edata);
-  CustomData_reset(&me.pdata);
-  CustomData_reset(&me.ldata);
-  CustomData_reset(&me.fdata);
+  MVert *mvert = MEM_dupallocN(mesh->mvert);
+  BKE_keyblock_convert_to_mesh(kb, mvert, mesh->totvert);
 
-  BKE_keyblock_convert_to_mesh(kb, &me);
+  const bool loop_normals_needed = r_loopnors != NULL;
+  const bool vert_normals_needed = r_vertnors != NULL || loop_normals_needed;
+  const bool poly_normals_needed = r_polynors != NULL || vert_normals_needed ||
+                                   loop_normals_needed;
 
-  if (r_polynors == NULL && r_loopnors != NULL) {
-    r_polynors = MEM_mallocN(sizeof(float[3]) * me.totpoly, __func__);
-    free_polynors = true;
+  float(*vert_normals)[3] = r_vertnors;
+  float(*poly_normals)[3] = r_polynors;
+  bool free_vert_normals = false;
+  bool free_poly_normals = false;
+  if (vert_normals_needed && r_vertnors == NULL) {
+    vert_normals = MEM_malloc_arrayN(mesh->totvert, sizeof(float[3]), __func__);
+    free_vert_normals = true;
+  }
+  if (poly_normals_needed && r_polynors == NULL) {
+    poly_normals = MEM_malloc_arrayN(mesh->totpoly, sizeof(float[3]), __func__);
+    free_poly_normals = true;
   }
 
-  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
-  if (r_vertnors) {
-    memcpy(r_vertnors, vert_normals, sizeof(float[3]) * me.totvert);
+  if (poly_normals_needed) {
+    BKE_mesh_calc_normals_poly(mvert,
+                               mesh->totvert,
+                               mesh->mloop,
+                               mesh->totloop,
+                               mesh->mpoly,
+                               mesh->totpoly,
+                               poly_normals);
   }
-
-  const float(*face_normals)[3] = BKE_mesh_poly_normals_ensure(mesh);
-  memcpy(r_polynors, face_normals, sizeof(float[3]) * me.totpoly);
-
-  if (r_loopnors) {
+  if (vert_normals_needed) {
+    BKE_mesh_calc_normals_poly_and_vertex(mvert,
+                                          mesh->totvert,
+                                          mesh->mloop,
+                                          mesh->totloop,
+                                          mesh->mpoly,
+                                          mesh->totpoly,
+                                          poly_normals,
+                                          vert_normals);
+  }
+  if (loop_normals_needed) {
     short(*clnors)[2] = CustomData_get_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL); /* May be NULL. */
-
-    BKE_mesh_normals_loop_split(me.mvert,
+    BKE_mesh_normals_loop_split(mvert,
                                 vert_normals,
-                                me.totvert,
-                                me.medge,
-                                me.totedge,
-                                me.mloop,
+                                mesh->totvert,
+                                mesh->medge,
+                                mesh->totedge,
+                                mesh->mloop,
                                 r_loopnors,
-                                me.totloop,
-                                me.mpoly,
-                                face_normals,
-                                me.totpoly,
-                                (me.flag & ME_AUTOSMOOTH) != 0,
-                                me.smoothresh,
+                                mesh->totloop,
+                                mesh->mpoly,
+                                poly_normals,
+                                mesh->totpoly,
+                                (mesh->flag & ME_AUTOSMOOTH) != 0,
+                                mesh->smoothresh,
                                 NULL,
                                 clnors,
                                 NULL);
   }
 
-  CustomData_free(&me.vdata, me.totvert);
-  CustomData_free(&me.edata, me.totedge);
-  CustomData_free(&me.pdata, me.totpoly);
-  CustomData_free(&me.ldata, me.totloop);
-  CustomData_free(&me.fdata, me.totface);
-  MEM_freeN(me.mvert);
-
-  if (free_polynors) {
-    MEM_freeN(r_polynors);
+  if (free_vert_normals) {
+    MEM_freeN(vert_normals);
   }
+  if (free_poly_normals) {
+    MEM_freeN(poly_normals);
+  }
+  MEM_freeN(mvert);
 }
 
 /************************* raw coords ************************/
 
-void BKE_keyblock_update_from_vertcos(Object *ob, KeyBlock *kb, const float (*vertCos)[3])
+void BKE_keyblock_update_from_vertcos(const Object *ob, KeyBlock *kb, const float (*vertCos)[3])
 {
   const float(*co)[3] = vertCos;
   float *fp = kb->data;
@@ -2295,10 +2302,10 @@ void BKE_keyblock_update_from_vertcos(Object *ob, KeyBlock *kb, const float (*ve
     }
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
-    Curve *cu = (Curve *)ob->data;
-    Nurb *nu;
-    BezTriple *bezt;
-    BPoint *bp;
+    const Curve *cu = (const Curve *)ob->data;
+    const Nurb *nu;
+    const BezTriple *bezt;
+    const BPoint *bp;
 
     for (nu = cu->nurb.first; nu; nu = nu->next) {
       if (nu->bezt) {
@@ -2319,7 +2326,7 @@ void BKE_keyblock_update_from_vertcos(Object *ob, KeyBlock *kb, const float (*ve
   }
 }
 
-void BKE_keyblock_convert_from_vertcos(Object *ob, KeyBlock *kb, const float (*vertCos)[3])
+void BKE_keyblock_convert_from_vertcos(const Object *ob, KeyBlock *kb, const float (*vertCos)[3])
 {
   int tot = 0, elemsize;
 
@@ -2327,17 +2334,17 @@ void BKE_keyblock_convert_from_vertcos(Object *ob, KeyBlock *kb, const float (*v
 
   /* Count of vertex coords in array */
   if (ob->type == OB_MESH) {
-    Mesh *me = (Mesh *)ob->data;
+    const Mesh *me = (const Mesh *)ob->data;
     tot = me->totvert;
     elemsize = me->key->elemsize;
   }
   else if (ob->type == OB_LATTICE) {
-    Lattice *lt = (Lattice *)ob->data;
+    const Lattice *lt = (const Lattice *)ob->data;
     tot = lt->pntsu * lt->pntsv * lt->pntsw;
     elemsize = lt->key->elemsize;
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
-    Curve *cu = (Curve *)ob->data;
+    const Curve *cu = (const Curve *)ob->data;
     elemsize = cu->key->elemsize;
     tot = BKE_keyblock_curve_element_count(&cu->nurb);
   }
@@ -2352,7 +2359,7 @@ void BKE_keyblock_convert_from_vertcos(Object *ob, KeyBlock *kb, const float (*v
   BKE_keyblock_update_from_vertcos(ob, kb, vertCos);
 }
 
-float (*BKE_keyblock_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
+float (*BKE_keyblock_convert_to_vertcos(const Object *ob, const KeyBlock *kb))[3]
 {
   float(*vertCos)[3], (*co)[3];
   const float *fp = kb->data;
@@ -2360,15 +2367,15 @@ float (*BKE_keyblock_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
 
   /* Count of vertex coords in array */
   if (ob->type == OB_MESH) {
-    Mesh *me = (Mesh *)ob->data;
+    const Mesh *me = (const Mesh *)ob->data;
     tot = me->totvert;
   }
   else if (ob->type == OB_LATTICE) {
-    Lattice *lt = (Lattice *)ob->data;
+    const Lattice *lt = (const Lattice *)ob->data;
     tot = lt->pntsu * lt->pntsv * lt->pntsw;
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
-    Curve *cu = (Curve *)ob->data;
+    const Curve *cu = (const Curve *)ob->data;
     tot = BKE_nurbList_verts_count(&cu->nurb);
   }
 
@@ -2385,10 +2392,10 @@ float (*BKE_keyblock_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
     }
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
-    Curve *cu = (Curve *)ob->data;
-    Nurb *nu;
-    BezTriple *bezt;
-    BPoint *bp;
+    const Curve *cu = (const Curve *)ob->data;
+    const Nurb *nu;
+    const BezTriple *bezt;
+    const BPoint *bp;
 
     for (nu = cu->nurb.first; nu; nu = nu->next) {
       if (nu->bezt) {
@@ -2413,7 +2420,7 @@ float (*BKE_keyblock_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
 
 /************************* raw coord offsets ************************/
 
-void BKE_keyblock_update_from_offset(Object *ob, KeyBlock *kb, const float (*ofs)[3])
+void BKE_keyblock_update_from_offset(const Object *ob, KeyBlock *kb, const float (*ofs)[3])
 {
   int a;
   float *fp = kb->data;
@@ -2424,10 +2431,10 @@ void BKE_keyblock_update_from_offset(Object *ob, KeyBlock *kb, const float (*ofs
     }
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
-    Curve *cu = (Curve *)ob->data;
-    Nurb *nu;
-    BezTriple *bezt;
-    BPoint *bp;
+    const Curve *cu = (const Curve *)ob->data;
+    const Nurb *nu;
+    const BezTriple *bezt;
+    const BPoint *bp;
 
     for (nu = cu->nurb.first; nu; nu = nu->next) {
       if (nu->bezt) {
@@ -2528,9 +2535,9 @@ bool BKE_keyblock_move(Object *ob, int org_index, int new_index)
   return true;
 }
 
-bool BKE_keyblock_is_basis(Key *key, const int index)
+bool BKE_keyblock_is_basis(const Key *key, const int index)
 {
-  KeyBlock *kb;
+  const KeyBlock *kb;
   int i;
 
   if (key->type == KEY_RELATIVE) {

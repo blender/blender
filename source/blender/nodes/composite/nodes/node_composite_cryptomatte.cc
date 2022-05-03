@@ -21,6 +21,8 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 
+#include "MEM_guardedalloc.h"
+
 #include <optional>
 
 /* -------------------------------------------------------------------- */
@@ -249,6 +251,7 @@ static void node_free_cryptomatte(bNode *node)
   NodeCryptomatte *nc = static_cast<NodeCryptomatte *>(node->storage);
 
   if (nc) {
+    MEM_SAFE_FREE(nc->matte_id);
     BLI_freelistN(&nc->runtime.layers);
     BLI_freelistN(&nc->entries);
     MEM_freeN(nc);
@@ -264,6 +267,7 @@ static void node_copy_cryptomatte(bNodeTree *UNUSED(dest_ntree),
 
   BLI_duplicatelist(&dest_nc->entries, &src_nc->entries);
   BLI_listbase_clear(&dest_nc->runtime.layers);
+  dest_nc->matte_id = static_cast<char *>(MEM_dupallocN(src_nc->matte_id));
   dest_node->storage = dest_nc;
 }
 
@@ -323,8 +327,8 @@ bNodeSocket *ntreeCompositCryptomatteAddSocket(bNodeTree *ntree, bNode *node)
   BLI_assert(node->type == CMP_NODE_CRYPTOMATTE_LEGACY);
   NodeCryptomatte *n = static_cast<NodeCryptomatte *>(node->storage);
   char sockname[32];
-  n->num_inputs++;
-  BLI_snprintf(sockname, sizeof(sockname), "Crypto %.2d", n->num_inputs - 1);
+  n->inputs_num++;
+  BLI_snprintf(sockname, sizeof(sockname), "Crypto %.2d", n->inputs_num - 1);
   bNodeSocket *sock = nodeAddStaticSocket(
       ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, nullptr, sockname);
   return sock;
@@ -334,12 +338,12 @@ int ntreeCompositCryptomatteRemoveSocket(bNodeTree *ntree, bNode *node)
 {
   BLI_assert(node->type == CMP_NODE_CRYPTOMATTE_LEGACY);
   NodeCryptomatte *n = static_cast<NodeCryptomatte *>(node->storage);
-  if (n->num_inputs < 2) {
+  if (n->inputs_num < 2) {
     return 0;
   }
   bNodeSocket *sock = static_cast<bNodeSocket *>(node->inputs.last);
   nodeRemoveSocket(ntree, node, sock);
-  n->num_inputs--;
+  n->inputs_num--;
   return 1;
 }
 

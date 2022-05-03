@@ -17,6 +17,7 @@ struct ListBase;
 struct Main;
 struct Scene;
 struct Sequence;
+struct rctf;
 
 typedef enum eSeqTaskId {
   SEQ_TASK_MAIN_RENDER,
@@ -64,7 +65,6 @@ struct ImBuf *SEQ_render_give_ibuf_direct(const SeqRenderData *context,
 void SEQ_render_thumbnails(const struct SeqRenderData *context,
                            struct Sequence *seq,
                            struct Sequence *seq_orig,
-                           float start_frame,
                            float frame_step,
                            rctf *view_area,
                            const short *stop);
@@ -76,6 +76,18 @@ struct ImBuf *SEQ_get_thumbnail(const struct SeqRenderData *context,
                                 float timeline_frame,
                                 rcti *crop,
                                 bool clipped);
+/**
+ * Get frame for first thumbnail.
+ */
+float SEQ_render_thumbnail_first_frame_get(struct Sequence *seq,
+                                           float frame_step,
+                                           struct rctf *view_area);
+/**
+ * Get frame for first thumbnail.
+ */
+float SEQ_render_thumbnail_next_frame_get(struct Sequence *seq,
+                                          float last_frame,
+                                          float frame_step);
 /**
  * Get frame step for equally spaced thumbnails. These thumbnails should always be present in
  * memory, so they can be used when zooming.
@@ -104,6 +116,11 @@ struct StripElem *SEQ_render_give_stripelem(struct Sequence *seq, int timeline_f
 
 void SEQ_render_imbuf_from_sequencer_space(struct Scene *scene, struct ImBuf *ibuf);
 void SEQ_render_pixel_from_sequencer_space_v4(struct Scene *scene, float pixel[4]);
+/**
+ * Check if `seq` is muted for rendering.
+ * This function also checks `SeqTimelineChannel` flag.
+ */
+bool SEQ_render_is_muted(const struct ListBase *channels, const struct Sequence *seq);
 
 #ifdef __cplusplus
 }

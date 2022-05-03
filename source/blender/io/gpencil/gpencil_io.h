@@ -72,11 +72,11 @@ typedef enum eGpencilExportFrame {
 /**
  * Main export entry point function.
  */
-bool gpencil_io_export(const char *filename, struct GpencilIOParams *iparams);
+bool gpencil_io_export(const char *filepath, struct GpencilIOParams *iparams);
 /**
  * Main import entry point function.
  */
-bool gpencil_io_import(const char *filename, struct GpencilIOParams *iparams);
+bool gpencil_io_import(const char *filepath, struct GpencilIOParams *iparams);
 
 #ifdef __cplusplus
 }

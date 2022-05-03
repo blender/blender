@@ -361,7 +361,7 @@ static GPUVertFormat *get_origindex_format()
 {
   static GPUVertFormat format;
   if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "color", GPU_COMP_U32, 1, GPU_FETCH_INT);
+    GPU_vertformat_attr_add(&format, "index", GPU_COMP_I32, 1, GPU_FETCH_INT);
   }
   return &format;
 }
@@ -442,15 +442,15 @@ static uint tris_count_from_number_of_loops(const uint number_of_loops)
  * \{ */
 
 void draw_subdiv_init_origindex_buffer(GPUVertBuf *buffer,
-                                       int *vert_origindex,
+                                       int32_t *vert_origindex,
                                        uint num_loops,
                                        uint loose_len)
 {
   GPU_vertbuf_init_with_format_ex(buffer, get_origindex_format(), GPU_USAGE_STATIC);
   GPU_vertbuf_data_alloc(buffer, num_loops + loose_len);
 
-  int *vbo_data = (int *)GPU_vertbuf_get_data(buffer);
-  memcpy(vbo_data, vert_origindex, num_loops * sizeof(int));
+  int32_t *vbo_data = (int32_t *)GPU_vertbuf_get_data(buffer);
+  memcpy(vbo_data, vert_origindex, num_loops * sizeof(int32_t));
 }
 
 GPUVertBuf *draw_subdiv_build_origindex_buffer(int *vert_origindex, uint num_loops)
@@ -544,6 +544,7 @@ void draw_subdiv_cache_free(DRWSubdivCache *cache)
   GPU_VERTBUF_DISCARD_SAFE(cache->subdiv_polygon_offset_buffer);
   GPU_VERTBUF_DISCARD_SAFE(cache->extra_coarse_face_data);
   MEM_SAFE_FREE(cache->subdiv_loop_subdiv_vert_index);
+  MEM_SAFE_FREE(cache->subdiv_loop_subdiv_edge_index);
   MEM_SAFE_FREE(cache->subdiv_loop_poly_index);
   MEM_SAFE_FREE(cache->subdiv_polygon_offset);
   GPU_VERTBUF_DISCARD_SAFE(cache->subdiv_vertex_face_adjacency_offsets);
@@ -630,7 +631,10 @@ static void draw_subdiv_cache_extra_coarse_face_data_mesh(Mesh *mesh, uint32_t *
   for (int i = 0; i < mesh->totpoly; i++) {
     uint32_t flag = 0;
     if ((mesh->mpoly[i].flag & ME_SMOOTH) != 0) {
-      flag = SUBDIV_COARSE_FACE_FLAG_SMOOTH;
+      flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
+    }
+    if ((mesh->mpoly[i].flag & ME_FACE_SEL) != 0) {
+      flag |= SUBDIV_COARSE_FACE_FLAG_SELECT;
     }
     flags_data[i] = (uint)(mesh->mpoly[i].loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
   }
@@ -720,6 +724,7 @@ struct DRWCacheBuildingContext {
   int *subdiv_loop_vert_index;
   int *subdiv_loop_subdiv_vert_index;
   int *subdiv_loop_edge_index;
+  int *subdiv_loop_subdiv_edge_index;
   int *subdiv_loop_poly_index;
 
   /* Temporary buffers used during traversal. */
@@ -781,6 +786,9 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
   cache->subdiv_loop_subdiv_vert_index = static_cast<int *>(
       MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_subdiv_vert_index"));
 
+  cache->subdiv_loop_subdiv_edge_index = static_cast<int *>(
+      MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_subdiv_edge_index"));
+
   cache->subdiv_loop_poly_index = static_cast<int *>(
       MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_poly_index"));
 
@@ -789,6 +797,7 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
   ctx->subdiv_loop_vert_index = (int *)GPU_vertbuf_get_data(cache->verts_orig_index);
   ctx->subdiv_loop_edge_index = (int *)GPU_vertbuf_get_data(cache->edges_orig_index);
   ctx->subdiv_loop_subdiv_vert_index = cache->subdiv_loop_subdiv_vert_index;
+  ctx->subdiv_loop_subdiv_edge_index = cache->subdiv_loop_subdiv_edge_index;
   ctx->subdiv_loop_poly_index = cache->subdiv_loop_poly_index;
 
   ctx->v_origindex = static_cast<int *>(
@@ -887,9 +896,7 @@ static void draw_subdiv_loop_cb(const SubdivForeachContext *foreach_context,
   int coarse_vertex_index = ctx->vert_origindex_map[subdiv_vertex_index];
 
   ctx->subdiv_loop_subdiv_vert_index[subdiv_loop_index] = subdiv_vertex_index;
-  /* For now index the subdiv_edge_index, it will be replaced by the actual coarse edge index
-   * at the end of the traversal as some edges are only then traversed. */
-  ctx->subdiv_loop_edge_index[subdiv_loop_index] = subdiv_edge_index;
+  ctx->subdiv_loop_subdiv_edge_index[subdiv_loop_index] = subdiv_edge_index;
   ctx->subdiv_loop_poly_index[subdiv_loop_index] = coarse_poly_index;
   ctx->subdiv_loop_vert_index[subdiv_loop_index] = coarse_vertex_index;
 }
@@ -915,12 +922,13 @@ static void do_subdiv_traversal(DRWCacheBuildingContext *cache_building_context,
                                      cache_building_context->settings,
                                      cache_building_context->coarse_mesh);
 
-  /* Now that traversal is done, we can set up the right original indices for the loop-to-edge map.
+  /* Now that traversal is done, we can set up the right original indices for the
+   * subdiv-loop-to-coarse-edge map.
    */
   for (int i = 0; i < cache_building_context->cache->num_subdiv_loops; i++) {
     cache_building_context->subdiv_loop_edge_index[i] =
         cache_building_context
-            ->edge_origindex_map[cache_building_context->subdiv_loop_edge_index[i]];
+            ->edge_origindex_map[cache_building_context->subdiv_loop_subdiv_edge_index[i]];
   }
 }
 
@@ -1154,8 +1162,8 @@ static void draw_subdiv_ubo_update_and_bind(const DRWSubdivCache *cache,
 
   GPU_uniformbuf_update(cache->ubo, &storage);
 
-  const int location = GPU_shader_get_uniform_block(shader, "shader_data");
-  GPU_uniformbuf_bind(cache->ubo, location);
+  const int binding = GPU_shader_get_uniform_block_binding(shader, "shader_data");
+  GPU_uniformbuf_bind(cache->ubo, binding);
 }
 
 /** \} */
@@ -1890,7 +1898,8 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
                                                  const bool /*use_hide*/,
                                                  OpenSubdiv_EvaluatorCache *evaluator_cache)
 {
-  SubsurfModifierData *smd = BKE_object_get_last_subsurf_modifier(ob);
+  SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(
+      BKE_modifiers_findby_session_uuid(ob, &mesh->runtime.subsurf_session_uuid));
   BLI_assert(smd);
 
   const bool is_final_render = DRW_state_is_scene_render();
@@ -1934,13 +1943,22 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
     return false;
   }
 
-  const bool optimal_display = (smd->flags & eSubsurfModifierFlag_ControlEdges);
+  /* Edges which do not come from coarse edges should not be drawn in edit mode, only in object
+   * mode when optimal display in turned off. */
+  const bool optimal_display = (smd->flags & eSubsurfModifierFlag_ControlEdges) || is_editmode;
 
   draw_cache->bm = bm;
   draw_cache->mesh = mesh_eval;
   draw_cache->subdiv = subdiv;
   draw_cache->optimal_display = optimal_display;
   draw_cache->num_subdiv_triangles = tris_count_from_number_of_loops(draw_cache->num_subdiv_loops);
+
+  /* Copy topology information for stats display. Use `mesh` directly, as `mesh_eval` could be the
+   * edit mesh. */
+  mesh->runtime.subsurf_totvert = draw_cache->num_subdiv_verts;
+  mesh->runtime.subsurf_totedge = draw_cache->num_subdiv_edges;
+  mesh->runtime.subsurf_totpoly = draw_cache->num_subdiv_quads;
+  mesh->runtime.subsurf_totloop = draw_cache->num_subdiv_loops;
 
   draw_cache->use_custom_loop_normals = (smd->flags & eSubsurfModifierFlag_UseCustomNormals) &&
                                         (mesh_eval->flag & ME_AUTOSMOOTH) &&

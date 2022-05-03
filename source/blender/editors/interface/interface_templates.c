@@ -13,6 +13,7 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_cachefile_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curveprofile_types.h"
 #include "DNA_gpencil_modifier_types.h"
@@ -588,6 +589,234 @@ void UI_context_active_but_prop_get_templateID(bContext *C,
   }
 }
 
+static void template_id_liboverride_hierarchy_collection_root_find_recursive(
+    Collection *collection,
+    const int parent_level,
+    Collection **r_collection_parent_best,
+    int *r_parent_level_best)
+{
+  if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY_REAL(collection)) {
+    return;
+  }
+  if (ID_IS_OVERRIDABLE_LIBRARY(collection) || ID_IS_OVERRIDE_LIBRARY_REAL(collection)) {
+    if (parent_level > *r_parent_level_best) {
+      *r_parent_level_best = parent_level;
+      *r_collection_parent_best = collection;
+    }
+  }
+  for (CollectionParent *iter = collection->parents.first; iter != NULL; iter = iter->next) {
+    if (iter->collection->id.lib != collection->id.lib && ID_IS_LINKED(iter->collection)) {
+      continue;
+    }
+    template_id_liboverride_hierarchy_collection_root_find_recursive(
+        iter->collection, parent_level + 1, r_collection_parent_best, r_parent_level_best);
+  }
+}
+
+static void template_id_liboverride_hierarchy_collections_tag_recursive(
+    Collection *root_collection, ID *target_id, const bool do_parents)
+{
+  root_collection->id.tag |= LIB_TAG_DOIT;
+
+  /* Tag all local parents of the root collection, so that usages of the root collection and other
+   * linked ones can be replaced by the local overrides in those parents too. */
+  if (do_parents) {
+    for (CollectionParent *iter = root_collection->parents.first; iter != NULL;
+         iter = iter->next) {
+      if (ID_IS_LINKED(iter->collection)) {
+        continue;
+      }
+      iter->collection->id.tag |= LIB_TAG_DOIT;
+    }
+  }
+
+  for (CollectionChild *iter = root_collection->children.first; iter != NULL; iter = iter->next) {
+    if (iter->collection->id.lib != root_collection->id.lib && ID_IS_LINKED(root_collection)) {
+      continue;
+    }
+    if (ID_IS_LINKED(iter->collection) && iter->collection->id.lib != target_id->lib) {
+      continue;
+    }
+    if (GS(target_id->name) == ID_OB &&
+        !BKE_collection_has_object_recursive(iter->collection, (Object *)target_id)) {
+      continue;
+    }
+    if (GS(target_id->name) == ID_GR &&
+        !BKE_collection_has_collection(iter->collection, (Collection *)target_id)) {
+      continue;
+    }
+    template_id_liboverride_hierarchy_collections_tag_recursive(
+        iter->collection, target_id, false);
+  }
+}
+
+static void template_id_liboverride_hierarchy_create(bContext *C,
+                                                     Main *bmain,
+                                                     TemplateID *template_ui,
+                                                     PointerRNA *idptr,
+                                                     const char **r_undo_push_label)
+{
+  ID *id = idptr->data;
+  ID *owner_id = template_ui->ptr.owner_id;
+
+  /* Attempt to perform a hierarchy override, based on contextual data available.
+   * NOTE: do not attempt to perform such hierarchy override at all cost, if there is not enough
+   * context, better to abort than create random overrides all over the place. */
+  if (!ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(id)) {
+    return;
+  }
+
+  Object *object_active = CTX_data_active_object(C);
+  if (object_active == NULL && GS(owner_id->name) == ID_OB) {
+    object_active = (Object *)owner_id;
+  }
+  if (object_active != NULL) {
+    if (ID_IS_LINKED(object_active)) {
+      if (object_active->id.lib != id->lib ||
+          !ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(object_active)) {
+        /* The active object is from a different library than the overridden ID, or otherwise
+         * cannot be used in hierarchy. */
+        object_active = NULL;
+      }
+    }
+    else if (!ID_IS_OVERRIDE_LIBRARY_REAL(object_active)) {
+      /* Fully local object cannot be used in override hierarchy either. */
+      object_active = NULL;
+    }
+  }
+
+  Collection *collection_active = CTX_data_collection(C);
+  if (collection_active == NULL && GS(owner_id->name) == ID_GR) {
+    collection_active = (Collection *)owner_id;
+  }
+  if (collection_active != NULL) {
+    if (ID_IS_LINKED(collection_active)) {
+      if (collection_active->id.lib != id->lib ||
+          !ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(collection_active)) {
+        /* The active collection is from a different library than the overridden ID, or otherwise
+         * cannot be used in hierarchy. */
+        collection_active = NULL;
+      }
+      else {
+        int parent_level_best = -1;
+        Collection *collection_parent_best = NULL;
+        template_id_liboverride_hierarchy_collection_root_find_recursive(
+            collection_active, 0, &collection_parent_best, &parent_level_best);
+        collection_active = collection_parent_best;
+      }
+    }
+    else if (!ID_IS_OVERRIDE_LIBRARY_REAL(collection_active)) {
+      /* Fully local collection cannot be used in override hierarchy either. */
+      collection_active = NULL;
+    }
+  }
+  if (collection_active == NULL && object_active != NULL &&
+      (ID_IS_LINKED(object_active) || ID_IS_OVERRIDE_LIBRARY_REAL(object_active))) {
+    /* If we failed to find a valid 'active' collection so far for our override hierarchy, but do
+     * have a valid 'active' object, try to find a collection from that object. */
+    LISTBASE_FOREACH (Collection *, collection_iter, &bmain->collections) {
+      if (!(ID_IS_LINKED(collection_iter) || ID_IS_OVERRIDE_LIBRARY_REAL(collection_iter))) {
+        continue;
+      }
+      if (!BKE_collection_has_object_recursive(collection_iter, object_active)) {
+        continue;
+      }
+      int parent_level_best = -1;
+      Collection *collection_parent_best = NULL;
+      template_id_liboverride_hierarchy_collection_root_find_recursive(
+          collection_iter, 0, &collection_parent_best, &parent_level_best);
+      collection_active = collection_parent_best;
+      break;
+    }
+  }
+
+  ID *id_override = NULL;
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  switch (GS(id->name)) {
+    case ID_GR:
+      if (collection_active != NULL &&
+          BKE_collection_has_collection(collection_active, (Collection *)id)) {
+        template_id_liboverride_hierarchy_collections_tag_recursive(collection_active, id, true);
+        if (object_active != NULL) {
+          object_active->id.tag |= LIB_TAG_DOIT;
+        }
+        BKE_lib_override_library_create(
+            bmain, scene, view_layer, NULL, id, &collection_active->id, NULL, &id_override);
+      }
+      else if (object_active != NULL && !ID_IS_LINKED(object_active) &&
+               &object_active->instance_collection->id == id) {
+        object_active->id.tag |= LIB_TAG_DOIT;
+        BKE_lib_override_library_create(bmain,
+                                        scene,
+                                        view_layer,
+                                        id->lib,
+                                        id,
+                                        &object_active->id,
+                                        &object_active->id,
+                                        &id_override);
+      }
+      break;
+    case ID_OB:
+      if (collection_active != NULL &&
+          BKE_collection_has_object_recursive(collection_active, (Object *)id)) {
+        template_id_liboverride_hierarchy_collections_tag_recursive(collection_active, id, true);
+        if (object_active != NULL) {
+          object_active->id.tag |= LIB_TAG_DOIT;
+        }
+        BKE_lib_override_library_create(
+            bmain, scene, view_layer, NULL, id, &collection_active->id, NULL, &id_override);
+      }
+      break;
+    case ID_ME:
+    case ID_CU_LEGACY:
+    case ID_MB:
+    case ID_LT:
+    case ID_LA:
+    case ID_CA:
+    case ID_SPK:
+    case ID_AR:
+    case ID_GD:
+    case ID_CV:
+    case ID_PT:
+    case ID_VO:
+      if (object_active != NULL && object_active->data == id) {
+        if (collection_active != NULL &&
+            BKE_collection_has_object_recursive(collection_active, object_active)) {
+          template_id_liboverride_hierarchy_collections_tag_recursive(collection_active, id, true);
+          if (object_active != NULL) {
+            object_active->id.tag |= LIB_TAG_DOIT;
+          }
+          BKE_lib_override_library_create(
+              bmain, scene, view_layer, NULL, id, &collection_active->id, NULL, &id_override);
+        }
+        else {
+          object_active->id.tag |= LIB_TAG_DOIT;
+          BKE_lib_override_library_create(
+              bmain, scene, view_layer, NULL, id, &object_active->id, NULL, &id_override);
+        }
+      }
+      break;
+    case ID_MA:
+    case ID_TE:
+    case ID_IM:
+      break;
+    case ID_WO:
+      break;
+    case ID_PA:
+      break;
+    default:
+      break;
+  }
+  if (id_override != NULL) {
+    id_override->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+    *r_undo_push_label = "Make Library Override Hierarchy";
+
+    WM_event_add_notifier(C, NC_WINDOW, NULL);
+    DEG_relations_tag_update(bmain);
+  }
+}
+
 static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 {
   TemplateID *template_ui = (TemplateID *)arg_litem;
@@ -637,33 +866,8 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       if (id) {
         Main *bmain = CTX_data_main(C);
         if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
-          if (ID_IS_OVERRIDABLE_LIBRARY(id)) {
-            /* Only remap that specific ID usage to overriding local data-block. */
-            ID *override_id = BKE_lib_override_library_create_from_id(bmain, id, false);
-            if (override_id != NULL) {
-              BKE_main_id_newptr_and_tag_clear(bmain);
-
-              if (GS(override_id->name) == ID_OB) {
-                Scene *scene = CTX_data_scene(C);
-                if (!BKE_collection_has_object_recursive(scene->master_collection,
-                                                         (Object *)override_id)) {
-                  BKE_collection_object_add_from(
-                      bmain, scene, (Object *)id, (Object *)override_id);
-                }
-              }
-
-              /* Assign new pointer, takes care of updates/notifiers */
-              RNA_id_pointer_create(override_id, &idptr);
-              /* Insert into override hierarchy if possible. */
-              ID *owner_id = template_ui->ptr.owner_id;
-              if (owner_id != NULL && ID_IS_OVERRIDE_LIBRARY_REAL(owner_id)) {
-                override_id->override_library->hierarchy_root =
-                    owner_id->override_library->hierarchy_root;
-                owner_id->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY;
-              }
-            }
-            undo_push_label = "Make Library Override";
-          }
+          template_id_liboverride_hierarchy_create(
+              C, bmain, template_ui, &idptr, &undo_push_label);
         }
         else {
           if (BKE_lib_id_make_local(bmain, id, 0)) {
@@ -787,7 +991,7 @@ static const char *template_id_browse_tip(const StructRNA *type)
       case ID_LP:
         return N_("Browse LightProbe to be linked");
       case ID_CV:
-        return N_("Browse Hair Curves Data to be linked");
+        return N_("Browse Curves Data to be linked");
       case ID_PT:
         return N_("Browse Point Cloud Data to be linked");
       case ID_VO:
@@ -1006,6 +1210,7 @@ static void template_ID(const bContext *C,
     }
 
     if (ID_IS_LINKED(id)) {
+      const bool disabled = !BKE_idtype_idcode_is_localizable(GS(id->name));
       if (id->tag & LIB_TAG_INDIRECT) {
         but = uiDefIconBut(block,
                            UI_BTYPE_BUT,
@@ -1020,12 +1225,10 @@ static void template_ID(const bContext *C,
                            0,
                            0,
                            0,
-                           TIP_("Indirect library data-block, cannot change"));
-        UI_but_flag_enable(but, UI_BUT_DISABLED);
+                           TIP_("Indirect library data-block, cannot be made local, "
+                                "Shift + Click to create a library override hierarchy"));
       }
       else {
-        const bool disabled = (!BKE_idtype_idcode_is_localizable(GS(id->name)) ||
-                               (idfrom && idfrom->lib));
         but = uiDefIconBut(block,
                            UI_BTYPE_BUT,
                            0,
@@ -1041,13 +1244,13 @@ static void template_ID(const bContext *C,
                            0,
                            TIP_("Direct linked library data-block, click to make local, "
                                 "Shift + Click to create a library override"));
-        if (disabled) {
-          UI_but_flag_enable(but, UI_BUT_DISABLED);
-        }
-        else {
-          UI_but_funcN_set(
-              but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_LOCAL));
-        }
+      }
+      if (disabled) {
+        UI_but_flag_enable(but, UI_BUT_DISABLED);
+      }
+      else {
+        UI_but_funcN_set(
+            but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_LOCAL));
       }
     }
     else if (ID_IS_OVERRIDE_LIBRARY(id)) {
@@ -6223,15 +6426,12 @@ void uiTemplateColormanagedViewSettings(uiLayout *layout,
   ColorManagedViewSettings *view_settings = view_transform_ptr.data;
 
   uiLayout *col = uiLayoutColumn(layout, false);
-
-  uiLayout *row = uiLayoutRow(col, false);
-  uiItemR(row, &view_transform_ptr, "view_transform", 0, IFACE_("View"), ICON_NONE);
+  uiItemR(col, &view_transform_ptr, "view_transform", 0, IFACE_("View"), ICON_NONE);
+  uiItemR(col, &view_transform_ptr, "look", 0, IFACE_("Look"), ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
   uiItemR(col, &view_transform_ptr, "exposure", 0, NULL, ICON_NONE);
   uiItemR(col, &view_transform_ptr, "gamma", 0, NULL, ICON_NONE);
-
-  uiItemR(col, &view_transform_ptr, "look", 0, IFACE_("Look"), ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
   uiItemR(col, &view_transform_ptr, "use_curve_mapping", 0, NULL, ICON_NONE);

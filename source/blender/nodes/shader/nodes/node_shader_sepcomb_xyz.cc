@@ -106,7 +106,9 @@ static int gpu_shader_combxyz(GPUMaterial *mat,
 static void sh_node_combxyz_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   static fn::CustomMF_SI_SI_SI_SO<float, float, float, float3> fn{
-      "Combine Vector", [](float x, float y, float z) { return float3(x, y, z); }};
+      "Combine Vector",
+      [](float x, float y, float z) { return float3(x, y, z); },
+      fn::CustomMF_presets::AllSpanOrSingle()};
   builder.set_matching_fn(fn);
 }
 

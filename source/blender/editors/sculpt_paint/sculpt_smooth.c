@@ -179,7 +179,11 @@ void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], int index
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, index, ni) {
-    add_v4_v4(avg, SCULPT_vertex_color_get(ss, ni.index));
+    float tmp[4] = {0};
+
+    SCULPT_vertex_color_get(ss, ni.index, tmp);
+
+    add_v4_v4(avg, tmp);
     total++;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
@@ -188,7 +192,7 @@ void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], int index
     mul_v4_v4fl(result, avg, 1.0f / total);
   }
   else {
-    copy_v4_v4(result, SCULPT_vertex_color_get(ss, index));
+    SCULPT_vertex_color_get(ss, index, result);
   }
 }
 
@@ -251,7 +255,7 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
     const int totvert = SCULPT_vertex_count_get(ss);
     ss->cache->detail_directions = MEM_malloc_arrayN(
-        totvert, 3 * sizeof(float), "details directions");
+        totvert, sizeof(float[3]), "details directions");
 
     for (int i = 0; i < totvert; i++) {
       float avg[3];

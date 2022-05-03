@@ -33,7 +33,7 @@
 
 #include "ED_transverts.h" /* own include */
 
-/* copied from editobject.c, now uses (almost) proper depgraph */
+/* copied from editobject.c, now uses (almost) proper depsgraph. */
 void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
 {
   const int mode = tvs->mode;
@@ -203,7 +203,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     BMesh *bm = em->bm;
     BMIter iter;
     void *userdata[2] = {em, NULL};
-    /*int proptrans = 0; */ /*UNUSED*/
+    // int proptrans = 0; /*UNUSED*/
 
     /* abuses vertex index all over, set, just set dirty here,
      * perhaps this could use its own array instead? - campbell */

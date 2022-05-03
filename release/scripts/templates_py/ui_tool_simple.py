@@ -61,8 +61,8 @@ class MyWidgetTool(WorkSpaceTool):
     bl_label = "My Gizmo Tool"
     bl_description = "Short description"
     bl_icon = "ops.transform.translate"
-    bl_widget="VIEW3D_GGT_tool_generic_handle_free"
-    bl_widget_properties=[
+    bl_widget = "VIEW3D_GGT_tool_generic_handle_free"
+    bl_widget_properties = [
         ("radius", 75.0),
         ("backdrop_fill_alpha", 0.0),
     ]

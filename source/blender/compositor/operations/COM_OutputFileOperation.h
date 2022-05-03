@@ -10,7 +10,7 @@
 
 #include "DNA_color_types.h"
 
-#include "intern/openexr/openexr_multi.h"
+#include "IMB_openexr.h"
 
 namespace blender::compositor {
 
@@ -20,29 +20,26 @@ class OutputSingleLayerOperation : public MultiThreadedOperation {
   const RenderData *rd_;
   const bNodeTree *tree_;
 
-  ImageFormatData *format_;
+  ImageFormatData format_;
   char path_[FILE_MAX];
 
   float *output_buffer_;
   DataType datatype_;
   SocketReader *image_input_;
 
-  const ColorManagedViewSettings *view_settings_;
-  const ColorManagedDisplaySettings *display_settings_;
-
   const char *view_name_;
   bool save_as_render_;
 
  public:
-  OutputSingleLayerOperation(const RenderData *rd,
+  OutputSingleLayerOperation(const Scene *scene,
+                             const RenderData *rd,
                              const bNodeTree *tree,
                              DataType datatype,
                              ImageFormatData *format,
                              const char *path,
-                             const ColorManagedViewSettings *view_settings,
-                             const ColorManagedDisplaySettings *display_settings,
                              const char *view_name,
                              bool save_as_render);
+  ~OutputSingleLayerOperation();
 
   void execute_region(rcti *rect, unsigned int tile_number) override;
   bool is_output_operation(bool /*rendering*/) const override

@@ -13,7 +13,6 @@
 #include <pxr/usd/usdGeom/metrics.h>
 #include <pxr/usd/usdLux/diskLight.h>
 #include <pxr/usd/usdLux/distantLight.h>
-#include <pxr/usd/usdLux/light.h>
 #include <pxr/usd/usdLux/rectLight.h>
 #include <pxr/usd/usdLux/shapingAPI.h>
 #include <pxr/usd/usdLux/sphereLight.h>
@@ -85,14 +84,17 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
   if (!prim_) {
     return;
   }
+#if PXR_VERSION >= 2111
+  pxr::UsdLuxLightAPI light_api(prim_);
+#else
+  pxr::UsdLuxLight light_api(prim_);
+#endif
 
-  pxr::UsdLuxLight light_prim(prim_);
-
-  if (!light_prim) {
+  if (!light_api) {
     return;
   }
 
-  pxr::UsdLuxShapingAPI shaping_api(light_prim);
+  pxr::UsdLuxShapingAPI shaping_api;
 
   /* Set light type. */
 
@@ -107,6 +109,8 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
   }
   else if (prim_.IsA<pxr::UsdLuxSphereLight>()) {
     blight->type = LA_LOCAL;
+
+    shaping_api = pxr::UsdLuxShapingAPI(prim_);
 
     if (shaping_api && shaping_api.GetShapingConeAngleAttr().IsAuthored()) {
       blight->type = LA_SPOT;
@@ -136,13 +140,13 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
 #endif
 
   float specular;
-  if (get_authored_value(light_prim.GetSpecularAttr(), motionSampleTime, &specular) ||
+  if (get_authored_value(light_api.GetSpecularAttr(), motionSampleTime, &specular) ||
       prim_.GetAttribute(usdtokens::specular).Get(&specular, motionSampleTime)) {
     blight->spec_fac = specular;
   }
 
   pxr::GfVec3f color;
-  if (get_authored_value(light_prim.GetColorAttr(), motionSampleTime, &color) ||
+  if (get_authored_value(light_api.GetColorAttr(), motionSampleTime, &color) ||
       prim_.GetAttribute(usdtokens::color).Get(&color, motionSampleTime)) {
     blight->r = color[0];
     blight->g = color[1];
@@ -276,7 +280,7 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
   }
 
   float intensity;
-  if (get_authored_value(light_prim.GetIntensityAttr(), motionSampleTime, &intensity) ||
+  if (get_authored_value(light_api.GetIntensityAttr(), motionSampleTime, &intensity) ||
       prim_.GetAttribute(usdtokens::intensity).Get(&intensity, motionSampleTime)) {
 
     float intensity_scale = this->import_params_.light_intensity_scale;

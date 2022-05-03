@@ -192,6 +192,8 @@ PYGETTEXT_CONTEXTS_DEFSRC = os.path.join("source", "blender", "blentranslation",
 # XXX Not full-proof, but should be enough here!
 PYGETTEXT_CONTEXTS = "#define\\s+(BLT_I18NCONTEXT_[A-Z_0-9]+)\\s+\"([^\"]*)\""
 
+# autopep8: off
+
 # Keywords' regex.
 # XXX Most unfortunately, we can't use named backreferences inside character sets,
 #     which makes the regexes even more twisty... :/
@@ -251,10 +253,21 @@ PYGETTEXT_KEYWORDS = (() +
     tuple(("{}\\((?:[^\"',]+,)\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
           for it in ("BKE_modifier_set_error",)) +
 
+    # bUnitDef unit names.
+    # NOTE: regex is a bit more complex than it would need too. Since the actual
+    # identifier (`B_UNIT_DEF_`) is at the end, if it's simpler/too general it
+    # becomes extremely slow to process some (unrelated) source files. 
+    ((r"\{(?:(?:\s*\"[^\"',]+\"\s*,)|(?:\s*NULL\s*,)){4}\s*" +
+      _msg_re + r"\s*,(?:(?:\s*\"[^\"',]+\"\s*,)|(?:\s*NULL\s*,))(?:[^,]+,){2}"
+      + "\s*B_UNIT_DEF_[_A-Z]+\s*\}"),) +
+
     tuple((r"{}\(\s*" + _msg_re + r"\s*,\s*(?:" +
            r"\s*,\s*)?(?:".join(_ctxt_re_gen(i) for i in range(PYGETTEXT_MAX_MULTI_CTXT)) + r")?\s*\)").format(it)
           for it in ("BLT_I18N_MSGID_MULTI_CTXT",))
 )
+
+# autopep8: on
+
 
 # Check printf mismatches between msgid and msgstr.
 CHECK_PRINTF_FORMAT = (
@@ -286,6 +299,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "ascii",
     "author",                        # Addons' field. :/
     "bItasc",
+    "color_index is invalid",
     "cos(A)",
     "cosh(A)",
     "dbl-",                          # Compacted for 'double', for keymap items.
@@ -340,7 +354,11 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "y",
     "y = (Ax + B)",
     # Sub-strings.
+    "all",
+    "all and invert unselected",
+    "and AMD driver version 22.10 or newer",
     "and AMD Radeon Pro 21.Q4 driver or newer",
+    "and NVIDIA driver version 470 or newer",
     "available with",
     "brown fox",
     "can't save image while rendering",
@@ -358,6 +376,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "face data",
     "gimbal",
     "global",
+    "glTF Settings",
     "image file not found",
     "image format is read-only",
     "image path can't be written to",
@@ -370,9 +389,16 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "multi-res modifier",
     "non-triangle face",
     "normal",
+    "or AMD with macOS 12.3 or newer",
     "performance impact!",
+    "read",
+    "remove",
     "right",
+    "selected",
+    "selected and lock unselected",
+    "selected and unlock unselected",
     "the lazy dog",
+    "this legacy pose library to pose assets",
     "to the top level of the tree",
     "unable to load movie clip",
     "unable to load text",
@@ -380,6 +406,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "unknown error reading file",
     "unknown error stating file",
     "unknown error writing file",
+    "unselected",
     "unsupported font format",
     "unsupported format",
     "unsupported image format",
@@ -388,8 +415,8 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "verts only",
     "view",
     "virtual parents",
-    "and NVIDIA driver version 470 or newer",
-    "and AMD driver version ??? or newer",
+    "which was replaced by the Asset Browser",
+    "write",
 }
 WARN_MSGID_NOT_CAPITALIZED_ALLOWED |= set(lng[2] for lng in LANGUAGES)
 
@@ -596,7 +623,10 @@ class I18nSettings:
     def to_json(self):
         # Only save the diff from default i18n_settings!
         glob = globals()
-        export_dict = {uid: val for uid, val in self.__dict__.items() if _check_valid_data(uid, val) and glob.get(uid) != val}
+        export_dict = {
+            uid: val for uid, val in self.__dict__.items()
+            if _check_valid_data(uid, val) and glob.get(uid) != val
+        }
         return json.dumps(export_dict)
 
     def load(self, fname, reset=False):

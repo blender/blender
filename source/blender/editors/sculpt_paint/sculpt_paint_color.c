@@ -85,7 +85,11 @@ static void do_color_smooth_task_cb_exec(void *__restrict userdata,
 
     float smooth_color[4];
     SCULPT_neighbor_color_average(ss, smooth_color, vd.index);
-    blend_color_interpolate_float(vd.col, vd.col, smooth_color, fade);
+    float col[4];
+
+    SCULPT_vertex_color_get(ss, vd.index, col);
+    blend_color_interpolate_float(col, col, smooth_color, fade);
+    SCULPT_vertex_color_set(ss, vd.index, col);
 
     if (vd.mvert) {
       BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
@@ -154,7 +158,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     float noise = 1.0f;
     const float density = ss->cache->paint_brush.density;
     if (density < 1.0f) {
-      const float hash_noise = BLI_hash_int_01(ss->cache->density_seed * 1000 * vd.index);
+      const float hash_noise = (float)BLI_hash_int_01(ss->cache->density_seed * 1000 * vd.index);
       if (hash_noise > density) {
         noise = density * hash_noise;
         fade = fade * noise;
@@ -177,9 +181,11 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     /* Final mix over the original color using brush alpha. */
     mul_v4_v4fl(buffer_color, color_buffer->color[vd.i], brush->alpha);
 
-    IMB_blend_color_float(vd.col, orig_data.col, buffer_color, brush->blend);
-
-    CLAMP4(vd.col, 0.0f, 1.0f);
+    float col[4];
+    SCULPT_vertex_color_get(ss, vd.index, col);
+    IMB_blend_color_float(col, orig_data.col, buffer_color, brush->blend);
+    CLAMP4(col, 0.0f, 1.0f);
+    SCULPT_vertex_color_set(ss, vd.index, col);
 
     if (vd.mvert) {
       BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
@@ -214,7 +220,10 @@ static void do_sample_wet_paint_task_cb(void *__restrict userdata,
       continue;
     }
 
-    add_v4_v4(swptd->color, vd.col);
+    float col[4];
+    SCULPT_vertex_color_get(ss, vd.index, col);
+
+    add_v4_v4(swptd->color, col);
     swptd->tot_samples++;
   }
   BKE_pbvh_vertex_iter_end;
@@ -231,18 +240,24 @@ static void sample_wet_paint_reduce(const void *__restrict UNUSED(userdata),
   add_v4_v4(join->color, swptd->color);
 }
 
-void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+void SCULPT_do_paint_brush(
+    PaintModeSettings *paint_mode_settings, Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
+  if (SCULPT_use_image_paint_brush(paint_mode_settings, ob)) {
+    SCULPT_do_paint_brush_image(paint_mode_settings, sd, ob, nodes, totnode);
+    return;
+  }
+
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
 
-  if (!ss->vcol) {
+  if (!SCULPT_has_colors(ss)) {
     return;
   }
 
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
     if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
-      ss->cache->density_seed = BLI_hash_int_01(ss->cache->location[0] * 1000);
+      ss->cache->density_seed = (float)BLI_hash_int_01(ss->cache->location[0] * 1000);
     }
     return;
   }
@@ -384,6 +399,9 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
     float interp_color[4];
     copy_v4_v4(interp_color, ss->cache->prev_colors[vd.index]);
 
+    float no[3];
+    SCULPT_vertex_normal_get(ss, vd.index, no);
+
     switch (brush->smear_deform_type) {
       case BRUSH_SMEAR_DEFORM_DRAG:
         sub_v3_v3v3(current_disp, ss->cache->location, ss->cache->last_location);
@@ -395,29 +413,89 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
         sub_v3_v3v3(current_disp, vd.co, ss->cache->location);
         break;
     }
+
+    /* Project into vertex plane. */
+    madd_v3_v3fl(current_disp, no, -dot_v3v3(current_disp, no));
+
     normalize_v3_v3(current_disp_norm, current_disp);
     mul_v3_v3fl(current_disp, current_disp_norm, ss->cache->bstrength);
 
-    SculptVertexNeighborIter ni;
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
-      float vertex_disp[3];
-      float vertex_disp_norm[3];
-      sub_v3_v3v3(vertex_disp, SCULPT_vertex_co_get(ss, ni.index), vd.co);
-      const float *neighbor_color = ss->cache->prev_colors[ni.index];
-      normalize_v3_v3(vertex_disp_norm, vertex_disp);
-      if (dot_v3v3(current_disp_norm, vertex_disp_norm) >= 0.0f) {
-        continue;
-      }
-      const float color_interp = clamp_f(
-          -dot_v3v3(current_disp_norm, vertex_disp_norm), 0.0f, 1.0f);
-      float color_mix[4];
-      copy_v4_v4(color_mix, neighbor_color);
-      mul_v4_fl(color_mix, color_interp * fade);
-      blend_color_mix_float(interp_color, interp_color, color_mix);
-    }
-    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+    float accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    float totw = 0.0f;
 
-    blend_color_interpolate_float(vd.col, ss->cache->prev_colors[vd.index], interp_color, fade);
+    /*
+     * NOTE: we have to do a nested iteration here to avoid
+     * blocky artifacts on quad topologies.  The runtime cost
+     * is not as bad as it seems due to neighbor iteration
+     * in the sculpt code being cache bound; once the data is in
+     * the cache iterating over it a few more times is not terribly
+     * costly.
+     */
+
+    SculptVertexNeighborIter ni2;
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni2) {
+      const float *nco = SCULPT_vertex_co_get(ss, ni2.index);
+
+      SculptVertexNeighborIter ni;
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, ni2.index, ni) {
+        if (ni.index == vd.index) {
+          continue;
+        }
+
+        float vertex_disp[3];
+        float vertex_disp_norm[3];
+
+        sub_v3_v3v3(vertex_disp, SCULPT_vertex_co_get(ss, ni.index), vd.co);
+
+        /* Weight by how close we are to our target distance from vd.co. */
+        float w = (1.0f + fabsf(len_v3(vertex_disp) / ss->cache->bstrength - 1.0f));
+
+        /* TODO: use cotangents (or at least face areas) here. */
+        float len = len_v3v3(SCULPT_vertex_co_get(ss, ni.index), nco);
+        if (len > 0.0f) {
+          len = ss->cache->bstrength / len;
+        }
+        else { /* Coincident point. */
+          len = 1.0f;
+        }
+
+        /* Multiply weight with edge lengths (in the future this will be
+         * cotangent weights or face areas). */
+        w *= len;
+
+        /* Build directional weight. */
+
+        /* Project into vertex plane. */
+        madd_v3_v3fl(vertex_disp, no, -dot_v3v3(no, vertex_disp));
+        normalize_v3_v3(vertex_disp_norm, vertex_disp);
+
+        if (dot_v3v3(current_disp_norm, vertex_disp_norm) >= 0.0f) {
+          continue;
+        }
+
+        const float *neighbor_color = ss->cache->prev_colors[ni.index];
+        float color_interp = -dot_v3v3(current_disp_norm, vertex_disp_norm);
+
+        /* Square directional weight to get a somewhat sharper result. */
+        w *= color_interp * color_interp;
+
+        madd_v4_v4fl(accum, neighbor_color, w);
+        totw += w;
+      }
+      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+    }
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni2);
+
+    if (totw != 0.0f) {
+      mul_v4_fl(accum, 1.0f / totw);
+    }
+
+    blend_color_mix_float(interp_color, interp_color, accum);
+
+    float col[4];
+    SCULPT_vertex_color_get(ss, vd.index, col);
+    blend_color_interpolate_float(col, ss->cache->prev_colors[vd.index], interp_color, fade);
+    SCULPT_vertex_color_set(ss, vd.index, col);
 
     if (vd.mvert) {
       BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
@@ -435,7 +513,7 @@ static void do_smear_store_prev_colors_task_cb_exec(void *__restrict userdata,
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    copy_v4_v4(ss->cache->prev_colors[vd.index], SCULPT_vertex_color_get(ss, vd.index));
+    SCULPT_vertex_color_get(ss, vd.index, ss->cache->prev_colors[vd.index]);
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -445,7 +523,7 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
 
-  if (!ss->vcol) {
+  if (!SCULPT_has_colors(ss)) {
     return;
   }
 
@@ -455,7 +533,7 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     if (!ss->cache->prev_colors) {
       ss->cache->prev_colors = MEM_callocN(sizeof(float[4]) * totvert, "prev colors");
       for (int i = 0; i < totvert; i++) {
-        copy_v4_v4(ss->cache->prev_colors[i], SCULPT_vertex_color_get(ss, i));
+        SCULPT_vertex_color_get(ss, i, ss->cache->prev_colors[i]);
       }
     }
   }

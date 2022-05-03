@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_spline.hh"
+#include "BKE_curves.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_curve_length_cc {
@@ -18,11 +19,18 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.set_default_remaining_outputs();
     return;
   }
-  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curve_set.get_curves_for_read());
+
+  const Curves &curves_id = *curve_set.get_curves_for_read();
+  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  const VArray<bool> cyclic = curves.cyclic();
+
+  curves.ensure_evaluated_lengths();
+
   float length = 0.0f;
-  for (const SplinePtr &spline : curve->splines()) {
-    length += spline->length();
+  for (const int i : curves.curves_range()) {
+    length += curves.evaluated_length_total_for_curve(i, cyclic[i]);
   }
+
   params.set_output("Length", length);
 }
 

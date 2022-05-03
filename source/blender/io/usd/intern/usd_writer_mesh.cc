@@ -206,7 +206,7 @@ void USDGenericMeshWriter::write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh 
       const char *name_override = st_layer_idx == layer_idx ? "st" : nullptr;
       write_uv_maps(mesh, usd_mesh, layer, name_override);
     }
-    else if (layer->type == CD_MLOOPCOL &&
+    else if (layer->type == CD_PROP_BYTE_COLOR &&
              usd_export_context_.export_params.export_vertex_colors) {
       write_vertex_colors(mesh, usd_mesh, layer);
     }

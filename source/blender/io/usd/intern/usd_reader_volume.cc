@@ -54,18 +54,6 @@ void USDVolumeReader::read_object_data(Main *bmain, const double motionSampleTim
 
     pxr::UsdVolOpenVDBAsset fieldBase(fieldPrim);
 
-    pxr::UsdAttribute fieldNameAttr = fieldBase.GetFieldNameAttr();
-
-    if (fieldNameAttr.IsAuthored()) {
-      pxr::TfToken fieldName;
-      fieldNameAttr.Get(&fieldName, motionSampleTime);
-
-      /* A Blender volume creates density by default. */
-      if (fieldName != usdtokens::density) {
-        BKE_volume_grid_add(volume, fieldName.GetString().c_str(), VOLUME_GRID_FLOAT);
-      }
-    }
-
     pxr::UsdAttribute filepathAttr = fieldBase.GetFilePathAttr();
 
     if (filepathAttr.IsAuthored()) {

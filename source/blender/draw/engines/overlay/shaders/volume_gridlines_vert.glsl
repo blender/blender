@@ -1,28 +1,5 @@
-uniform float slicePosition;
-uniform int sliceAxis; /* -1 is no slice, 0 is X, 1 is Y, 2 is Z. */
 
-/* FluidDomainSettings.res */
-uniform ivec3 volumeSize;
-/* FluidDomainSettings.cell_size */
-uniform vec3 cellSize;
-/* FluidDomainSettings.p0 */
-uniform vec3 domainOriginOffset;
-/* FluidDomainSettings.res_min */
-uniform ivec3 adaptiveCellOffset;
-
-#if defined(SHOW_FLAGS) || defined(SHOW_RANGE)
-uniform usampler3D flagTexture;
-#endif
-
-#ifdef SHOW_RANGE
-uniform sampler3D fieldTexture;
-uniform float lowerBound = 0.0;
-uniform float upperBound = 0.0;
-uniform vec4 rangeColor;
-uniform int cellFilter;
-#endif
-
-flat out vec4 finalColor;
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 /* Corners for cell outlines. 0.45 is arbitrary. Any value below 0.5 can be used to avoid
  * overlapping of the outlines. */
@@ -53,7 +30,7 @@ vec4 flag_to_color(uint flag)
   if (bool(flag & uint(16))) {
     color.rgb += vec3(0.9, 0.3, 0.0); /* orange */
   }
-  if (color.rgb == vec3(0.0)) {
+  if (is_zero(color.rgb)) {
     color.rgb += vec3(0.5, 0.0, 0.0); /* medium red */
   }
   return color;

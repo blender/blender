@@ -1689,12 +1689,14 @@ typedef struct BLOCacheStorage {
   MemArena *memarena;
 } BLOCacheStorage;
 
+typedef struct BLOCacheStorageValue {
+  void *cache_v;
+  uint new_usage_count;
+} BLOCacheStorageValue;
+
 /** Register a cache data entry to be preserved when reading some undo memfile. */
-static void blo_cache_storage_entry_register(ID *id,
-                                             const IDCacheKey *key,
-                                             void **UNUSED(cache_p),
-                                             uint UNUSED(flags),
-                                             void *cache_storage_v)
+static void blo_cache_storage_entry_register(
+    ID *id, const IDCacheKey *key, void **cache_p, uint UNUSED(flags), void *cache_storage_v)
 {
   BLI_assert(key->id_session_uuid == id->session_uuid);
   UNUSED_VARS_NDEBUG(id);
@@ -1704,7 +1706,11 @@ static void blo_cache_storage_entry_register(ID *id,
 
   IDCacheKey *storage_key = BLI_memarena_alloc(cache_storage->memarena, sizeof(*storage_key));
   *storage_key = *key;
-  BLI_ghash_insert(cache_storage->cache_map, storage_key, POINTER_FROM_UINT(0));
+  BLOCacheStorageValue *storage_value = BLI_memarena_alloc(cache_storage->memarena,
+                                                           sizeof(*storage_value));
+  storage_value->cache_v = *cache_p;
+  storage_value->new_usage_count = 0;
+  BLI_ghash_insert(cache_storage->cache_map, storage_key, storage_value);
 }
 
 /** Restore a cache data entry from old ID into new one, when reading some undo memfile. */
@@ -1723,13 +1729,13 @@ static void blo_cache_storage_entry_restore_in_new(
     return;
   }
 
-  void **value = BLI_ghash_lookup_p(cache_storage->cache_map, key);
-  if (value == NULL) {
+  BLOCacheStorageValue *storage_value = BLI_ghash_lookup(cache_storage->cache_map, key);
+  if (storage_value == NULL) {
     *cache_p = NULL;
     return;
   }
-  *value = POINTER_FROM_UINT(POINTER_AS_UINT(*value) + 1);
-  *cache_p = key->cache_v;
+  storage_value->new_usage_count++;
+  *cache_p = storage_value->cache_v;
 }
 
 /** Clear as needed a cache data entry from old ID, when reading some undo memfile. */
@@ -1741,14 +1747,19 @@ static void blo_cache_storage_entry_clear_in_old(ID *UNUSED(id),
 {
   BLOCacheStorage *cache_storage = cache_storage_v;
 
-  void **value = BLI_ghash_lookup_p(cache_storage->cache_map, key);
-  if (value == NULL) {
+  BLOCacheStorageValue *storage_value = BLI_ghash_lookup(cache_storage->cache_map, key);
+  if (storage_value == NULL) {
     *cache_p = NULL;
     return;
   }
   /* If that cache has been restored into some new ID, we want to remove it from old one, otherwise
    * keep it there so that it gets properly freed together with its ID. */
-  *cache_p = POINTER_AS_UINT(*value) != 0 ? NULL : key->cache_v;
+  if (storage_value->new_usage_count != 0) {
+    *cache_p = NULL;
+  }
+  else {
+    BLI_assert(*cache_p == storage_value->cache_v);
+  }
 }
 
 void blo_cache_storage_init(FileData *fd, Main *bmain)
@@ -2608,7 +2619,7 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
 
           scpt->script = restore_pointer_by_name(id_map, (ID *)scpt->script, USER_REAL);
 
-          /*screen->script = NULL; - 2.45 set to null, better re-run the script */
+          // screen->script = NULL; /* 2.45 set to null, better re-run the script. */
           if (scpt->script) {
             SCRIPT_SET_NULL(scpt->script);
           }

@@ -54,7 +54,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_moviecache.h"
-#include "intern/openexr/openexr_multi.h"
+#include "IMB_openexr.h"
 
 #include "RE_pipeline.h"
 
@@ -1737,7 +1737,7 @@ static int image_save_options_init(Main *bmain,
 
     if (ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
       /* imtype */
-      BKE_image_format_copy(&opts->im_format, &scene->r.im_format);
+      BKE_image_format_init_for_write(&opts->im_format, scene, NULL);
       is_depth_set = true;
       if (!BKE_image_is_multiview(ima)) {
         /* In case multiview is disabled,
@@ -1759,7 +1759,11 @@ static int image_save_options_init(Main *bmain,
       /* use the multiview image settings as the default */
       opts->im_format.stereo3d_format = *ima->stereo3d_format;
       opts->im_format.views_format = ima->views_format;
+
+      BKE_image_format_color_management_copy_from_scene(&opts->im_format, scene);
     }
+
+    opts->im_format.color_management = R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE;
 
     if (ima->source == IMA_SRC_TILED) {
       BLI_strncpy(opts->filepath, ima->filepath, sizeof(opts->filepath));
@@ -1810,13 +1814,6 @@ static int image_save_options_init(Main *bmain,
         STR_CONCAT(opts->filepath, len, ".<UDIM>");
       }
     }
-
-    /* color management */
-    BKE_color_managed_display_settings_copy(&opts->im_format.display_settings,
-                                            &scene->display_settings);
-
-    BKE_color_managed_view_settings_free(&opts->im_format.view_settings);
-    BKE_color_managed_view_settings_copy(&opts->im_format.view_settings, &scene->view_settings);
   }
 
   BKE_image_release_ibuf(ima, ibuf, lock);
@@ -2006,14 +2003,20 @@ static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
   ImageSaveData *isd = op->customdata;
   PointerRNA imf_ptr;
   const bool is_multiview = RNA_boolean_get(op->ptr, "show_multiview");
+  const bool use_color_management = RNA_boolean_get(op->ptr, "save_as_render");
 
-  /* image template */
-  RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &isd->im_format, &imf_ptr);
-  uiTemplateImageSettings(layout, &imf_ptr, false);
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
 
   /* main draw call */
   uiDefAutoButsRNA(
       layout, op->ptr, image_save_as_draw_check_prop, NULL, NULL, UI_BUT_LABEL_ALIGN_NONE, false);
+
+  uiItemS(layout);
+
+  /* image template */
+  RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &isd->im_format, &imf_ptr);
+  uiTemplateImageSettings(layout, &imf_ptr, use_color_management);
 
   /* multiview template */
   if (is_multiview) {
@@ -2787,8 +2790,7 @@ static int image_flip_exec(bContext *C, wmOperator *op)
 
   ED_image_undo_push_end();
 
-  /* force GPU re-upload, all image is invalid. */
-  BKE_image_free_gputextures(ima);
+  BKE_image_partial_update_mark_full_update(ima);
 
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 
@@ -2907,8 +2909,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 
   ED_image_undo_push_end();
 
-  /* Force GPU re-upload, all image is invalid. */
-  BKE_image_free_gputextures(ima);
+  BKE_image_partial_update_mark_full_update(ima);
 
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 
@@ -2998,8 +2999,7 @@ static int image_scale_exec(bContext *C, wmOperator *op)
 
   ED_image_undo_push_end();
 
-  /* Force GPU re-upload, all image is invalid. */
-  BKE_image_free_gputextures(ima);
+  BKE_image_partial_update_mark_full_update(ima);
 
   DEG_id_tag_update(&ima->id, 0);
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);

@@ -24,6 +24,7 @@
 #include "BKE_scene.h"
 
 #include "SEQ_animation.h"
+#include "SEQ_channels.h"
 #include "SEQ_edit.h"
 #include "SEQ_iterator.h"
 #include "SEQ_relations.h"
@@ -380,7 +381,8 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
 
 const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
 {
-  const Editing *ed = scene->ed;
+  Editing *ed = scene->ed;
+  ListBase *channels = SEQ_channels_displayed_get(ed);
   const Sequence *seq, *best_seq = NULL;
   int best_machine = -1;
 
@@ -389,7 +391,7 @@ const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
   }
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if (seq->flag & SEQ_MUTE || !SEQ_time_strip_intersects_frame(seq, frame)) {
+    if (SEQ_render_is_muted(channels, seq) || !SEQ_time_strip_intersects_frame(seq, frame)) {
       continue;
     }
     /* Only use strips that generate an image, not ones that combine

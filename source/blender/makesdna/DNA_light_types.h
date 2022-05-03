@@ -24,6 +24,8 @@ struct Ipo;
 struct bNodeTree;
 
 typedef struct Light {
+  DNA_DEFINE_CXX_METHODS(Light)
+
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;

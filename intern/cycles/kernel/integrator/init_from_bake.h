@@ -192,6 +192,19 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
       Ng = normalize(transform_direction_transposed(&itfm, Ng));
     }
 
+    const int shader_index = shader & SHADER_MASK;
+    const int shader_flags = kernel_tex_fetch(__shaders, shader_index).flags;
+
+    /* Fast path for position and normal passes not affected by shaders. */
+    if (kernel_data.film.pass_position != PASS_UNUSED) {
+      kernel_write_pass_float3(buffer + kernel_data.film.pass_position, P);
+      return true;
+    }
+    else if (kernel_data.film.pass_normal != PASS_UNUSED && !(shader_flags & SD_HAS_BUMP)) {
+      kernel_write_pass_float3(buffer + kernel_data.film.pass_normal, N);
+      return true;
+    }
+
     /* Setup ray. */
     Ray ray ccl_optional_struct_init;
     ray.P = P + N;
@@ -228,9 +241,11 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
     integrator_state_write_isect(kg, state, &isect);
 
     /* Setup next kernel to execute. */
-    const int shader_index = shader & SHADER_MASK;
-    const int shader_flags = kernel_tex_fetch(__shaders, shader_index).flags;
-    if (shader_flags & SD_HAS_RAYTRACE) {
+    const bool use_caustics = kernel_data.integrator.use_caustics &&
+                              (object_flag & SD_OBJECT_CAUSTICS);
+    const bool use_raytrace_kernel = (shader_flags & SD_HAS_RAYTRACE) || use_caustics;
+
+    if (use_raytrace_kernel) {
       INTEGRATOR_PATH_INIT_SORTED(DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE, shader_index);
     }
     else {

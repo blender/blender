@@ -87,6 +87,16 @@ class Prefs(bpy.types.KeyConfigPreferences):
     )
 
     # Experimental: only show with developer extras, see: T96544.
+    use_tweak_select_passthrough: BoolProperty(
+        name="Tweak Select: Mouse Select & Move",
+        description=(
+            "The tweak tool is activated immediately instead of placing the cursor. "
+            "This is an experimental preference and may be removed"
+        ),
+        default=False,
+        update=update_fn,
+    )
+    # Experimental: only show with developer extras, see: T96544.
     use_tweak_tool_lmb_interaction: BoolProperty(
         name="Tweak Tool: Left Mouse Select & Move",
         description=(
@@ -283,6 +293,9 @@ class Prefs(bpy.types.KeyConfigPreferences):
         row = sub.row()
         row.prop(self, "use_select_all_toggle")
 
+        if show_developer_ui:
+            row = sub.row()
+            row.prop(self, "use_tweak_select_passthrough")
         if show_developer_ui and (not is_select_left):
             row = sub.row()
             row.prop(self, "use_tweak_tool_lmb_interaction")
@@ -305,6 +318,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
         col = layout.column()
         col.label(text="File Browser")
         col.row().prop(self, "use_file_single_click")
+
 
 blender_default = bpy.utils.execfile(os.path.join(DIRNAME, "keymap_data", "blender_default.py"))
 
@@ -340,6 +354,7 @@ def load():
             use_gizmo_drag=(is_select_left and kc_prefs.gizmo_action == 'DRAG'),
             use_fallback_tool=True,
             use_fallback_tool_rmb=(False if is_select_left else kc_prefs.rmb_action == 'FALLBACK_TOOL'),
+            use_tweak_select_passthrough=(show_developer_ui and kc_prefs.use_tweak_select_passthrough),
             use_tweak_tool_lmb_interaction=(
                 False if is_select_left else
                 (show_developer_ui and kc_prefs.use_tweak_tool_lmb_interaction)

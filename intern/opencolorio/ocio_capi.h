@@ -157,6 +157,8 @@ void OCIO_cpuProcessorRelease(OCIO_ConstCPUProcessorRcPtr *processor);
 const char *OCIO_colorSpaceGetName(OCIO_ConstColorSpaceRcPtr *cs);
 const char *OCIO_colorSpaceGetDescription(OCIO_ConstColorSpaceRcPtr *cs);
 const char *OCIO_colorSpaceGetFamily(OCIO_ConstColorSpaceRcPtr *cs);
+int OCIO_colorSpaceGetNumAliases(OCIO_ConstColorSpaceRcPtr *cs);
+const char *OCIO_colorSpaceGetAlias(OCIO_ConstColorSpaceRcPtr *cs, const int index);
 
 OCIO_ConstProcessorRcPtr *OCIO_createDisplayProcessor(OCIO_ConstConfigRcPtr *config,
                                                       const char *input,
@@ -164,7 +166,8 @@ OCIO_ConstProcessorRcPtr *OCIO_createDisplayProcessor(OCIO_ConstConfigRcPtr *con
                                                       const char *display,
                                                       const char *look,
                                                       const float scale,
-                                                      const float exponent);
+                                                      const float exponent,
+                                                      const bool inverse);
 
 OCIO_PackedImageDesc *OCIO_createOCIO_PackedImageDesc(float *data,
                                                       long width,

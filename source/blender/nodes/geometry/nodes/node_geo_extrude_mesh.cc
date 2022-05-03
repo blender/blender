@@ -25,7 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).supports_field().hide_value();
   b.add_input<decl::Vector>(N_("Offset")).subtype(PROP_TRANSLATION).implicit_field().hide_value();
-  b.add_input<decl::Float>(N_("Offset Scale")).default_value(1.0f).min(0.0f).supports_field();
+  b.add_input<decl::Float>(N_("Offset Scale")).default_value(1.0f).supports_field();
   b.add_input<decl::Bool>(N_("Individual")).default_value(true);
   b.add_output<decl::Geometry>("Mesh");
   b.add_output<decl::Bool>(N_("Top")).field_source();
@@ -523,7 +523,7 @@ static void extrude_mesh_edges(MeshComponent &component,
         }
         case ATTR_DOMAIN_FACE: {
           /* Attribute values for new faces are a mix of the values of faces connected to the its
-           * original edge.  */
+           * original edge. */
           copy_with_mixing(data.slice(new_poly_range), data.as_span(), [&](const int i) {
             return edge_to_poly_map[edge_selection[i]].as_span();
           });
@@ -1274,7 +1274,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   /* Create a combined field from the offset and the scale so the field evaluator
    * can take care of the multiplication and to simplify each extrude function. */
   static fn::CustomMF_SI_SI_SO<float3, float, float3> multiply_fn{
-      "Scale", [](const float3 &offset, const float scale) { return offset * scale; }};
+      "Scale",
+      [](const float3 &offset, const float scale) { return offset * scale; },
+      fn::CustomMF_presets::AllSpanOrSingle()};
   std::shared_ptr<FieldOperation> multiply_op = std::make_shared<FieldOperation>(
       FieldOperation(multiply_fn, {std::move(offset_field), std::move(scale_field)}));
   const Field<float3> final_offset{std::move(multiply_op)};

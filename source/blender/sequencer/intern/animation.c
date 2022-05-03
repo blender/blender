@@ -48,9 +48,13 @@ GSet *SEQ_fcurves_by_strip_get(const Sequence *seq, ListBase *fcurve_base)
   char rna_path[SEQ_RNAPATH_MAXSTR];
   size_t rna_path_len = sequencer_rna_path_prefix(rna_path, seq->name + 2);
 
-  GSet *fcurves = BLI_gset_ptr_new(__func__);
+  /* Only allocate `fcurves` if it's needed as it's possible there is no animation for `seq`. */
+  GSet *fcurves = NULL;
   LISTBASE_FOREACH (FCurve *, fcurve, fcurve_base) {
     if (STREQLEN(fcurve->rna_path, rna_path, rna_path_len)) {
+      if (fcurves == NULL) {
+        fcurves = BLI_gset_ptr_new(__func__);
+      }
       BLI_gset_add(fcurves, fcurve);
     }
   }
@@ -65,8 +69,11 @@ void SEQ_offset_animdata(Scene *scene, Sequence *seq, int ofs)
   if (!seq_animation_curves_exist(scene) || ofs == 0) {
     return;
   }
-
   GSet *fcurves = SEQ_fcurves_by_strip_get(seq, &scene->adt->action->curves);
+  if (fcurves == NULL) {
+    return;
+  }
+
   GSET_FOREACH_BEGIN (FCurve *, fcu, fcurves) {
     unsigned int i;
     if (fcu->bezt) {
@@ -95,11 +102,58 @@ void SEQ_free_animdata(Scene *scene, Sequence *seq)
   if (!seq_animation_curves_exist(scene)) {
     return;
   }
-
   GSet *fcurves = SEQ_fcurves_by_strip_get(seq, &scene->adt->action->curves);
+  if (fcurves == NULL) {
+    return;
+  }
+
   GSET_FOREACH_BEGIN (FCurve *, fcu, fcurves) {
     BLI_remlink(&scene->adt->action->curves, fcu);
     BKE_fcurve_free(fcu);
+  }
+  GSET_FOREACH_END();
+  BLI_gset_free(fcurves, NULL);
+}
+
+void SEQ_animation_backup_original(Scene *scene, ListBase *list)
+{
+  if (scene->adt == NULL || scene->adt->action == NULL ||
+      BLI_listbase_is_empty(&scene->adt->action->curves)) {
+    return;
+  }
+
+  BLI_movelisttolist(list, &scene->adt->action->curves);
+}
+
+void SEQ_animation_restore_original(Scene *scene, ListBase *list)
+{
+  if (scene->adt == NULL || scene->adt->action == NULL || BLI_listbase_is_empty(list)) {
+    return;
+  }
+
+  BLI_movelisttolist(&scene->adt->action->curves, list);
+}
+
+void SEQ_animation_duplicate(Scene *scene, Sequence *seq, ListBase *list)
+{
+  if (BLI_listbase_is_empty(list)) {
+    return;
+  }
+
+  if (seq->type == SEQ_TYPE_META) {
+    LISTBASE_FOREACH (Sequence *, meta_child, &seq->seqbase) {
+      SEQ_animation_duplicate(scene, meta_child, list);
+    }
+  }
+
+  GSet *fcurves = SEQ_fcurves_by_strip_get(seq, list);
+  if (fcurves == NULL) {
+    return;
+  }
+
+  GSET_FOREACH_BEGIN (FCurve *, fcu, fcurves) {
+    FCurve *fcu_cpy = BKE_fcurve_copy(fcu);
+    BLI_addtail(&scene->adt->action->curves, fcu_cpy);
   }
   GSET_FOREACH_END();
   BLI_gset_free(fcurves, NULL);

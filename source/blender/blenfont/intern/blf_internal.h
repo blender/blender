@@ -25,7 +25,7 @@ char *blf_dir_search(const char *file);
  * Some font have additional file with metrics information,
  * in general, the extension of the file is: `.afm` or `.pfm`
  */
-char *blf_dir_metrics_search(const char *filename);
+char *blf_dir_metrics_search(const char *filepath);
 /* int blf_dir_split(const char *str, char *file, int *size); */ /* UNUSED */
 
 int blf_font_init(void);
@@ -36,7 +36,7 @@ bool blf_font_id_is_valid(int fontid);
 void blf_draw_buffer__start(struct FontBLF *font);
 void blf_draw_buffer__end(void);
 
-struct FontBLF *blf_font_new(const char *name, const char *filename);
+struct FontBLF *blf_font_new(const char *name, const char *filepath);
 struct FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, int mem_size);
 void blf_font_attach_from_mem(struct FontBLF *font, const unsigned char *mem, int mem_size);
 
@@ -67,18 +67,18 @@ void blf_font_draw_buffer__wrap(struct FontBLF *font,
                                 size_t str_len,
                                 struct ResultBLF *r_info);
 size_t blf_font_width_to_strlen(
-    struct FontBLF *font, const char *str, size_t str_len, float width, float *r_width);
+    struct FontBLF *font, const char *str, size_t str_len, int width, int *r_width);
 size_t blf_font_width_to_rstrlen(
-    struct FontBLF *font, const char *str, size_t str_len, float width, float *r_width);
+    struct FontBLF *font, const char *str, size_t str_len, int width, int *r_width);
 void blf_font_boundbox(struct FontBLF *font,
                        const char *str,
                        size_t str_len,
-                       struct rctf *r_box,
+                       struct rcti *r_box,
                        struct ResultBLF *r_info);
 void blf_font_boundbox__wrap(struct FontBLF *font,
                              const char *str,
                              size_t str_len,
-                             struct rctf *r_box,
+                             struct rcti *r_box,
                              struct ResultBLF *r_info);
 void blf_font_width_and_height(struct FontBLF *font,
                                const char *str,
@@ -97,8 +97,8 @@ float blf_font_height(struct FontBLF *font,
 float blf_font_fixed_width(struct FontBLF *font);
 int blf_font_height_max(struct FontBLF *font);
 int blf_font_width_max(struct FontBLF *font);
-float blf_font_descender(struct FontBLF *font);
-float blf_font_ascender(struct FontBLF *font);
+int blf_font_descender(struct FontBLF *font);
+int blf_font_ascender(struct FontBLF *font);
 
 char *blf_display_name(struct FontBLF *font);
 
@@ -109,7 +109,7 @@ void blf_font_boundbox_foreach_glyph(struct FontBLF *font,
                                                      size_t str_step_ofs,
                                                      const struct rcti *glyph_step_bounds,
                                                      int glyph_advance_x,
-                                                     const struct rctf *glyph_bounds,
+                                                     const struct rcti *glyph_bounds,
                                                      const int glyph_bearing[2],
                                                      void *user_data),
                                      void *user_data,
@@ -133,10 +133,11 @@ struct GlyphBLF *blf_glyph_ensure(struct FontBLF *font, struct GlyphCacheBLF *gc
 
 void blf_glyph_free(struct GlyphBLF *g);
 void blf_glyph_draw(
-    struct FontBLF *font, struct GlyphCacheBLF *gc, struct GlyphBLF *g, float x, float y);
+    struct FontBLF *font, struct GlyphCacheBLF *gc, struct GlyphBLF *g, int x, int y);
 
 #ifdef WIN32
 /* blf_font_win32_compat.c */
+
 #  ifdef FT_FREETYPE_H
 extern FT_Error FT_New_Face__win32_compat(FT_Library library,
                                           const char *pathname,

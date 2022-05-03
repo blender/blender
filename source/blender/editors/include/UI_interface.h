@@ -157,6 +157,8 @@ enum {
   UI_BLOCK_POPOVER_ONCE = 1 << 22,
   /** Always show key-maps, even for non-menus. */
   UI_BLOCK_SHOW_SHORTCUT_ALWAYS = 1 << 23,
+  /** Don't show library override state for buttons in this block. */
+  UI_BLOCK_NO_DRAW_OVERRIDDEN_STATE = 1 << 24,
   /** The block is only used during the search process and will not be drawn.
    * Currently just for the case of a closed panel's sub-panel (and its sub-panels). */
   UI_BLOCK_SEARCH_ONLY = 1 << 25,
@@ -506,6 +508,10 @@ typedef void (*uiButHandleNFunc)(struct bContext *C, void *argN, void *arg2);
 typedef void (*uiButHandleHoldFunc)(struct bContext *C, struct ARegion *butregion, uiBut *but);
 typedef int (*uiButCompleteFunc)(struct bContext *C, char *str, void *arg);
 
+/** Function to compare the identity of two buttons over redraws, to check if they represent the
+ * same data, and thus should be considered the same button over redraws. */
+typedef bool (*uiButIdentityCompareFunc)(const uiBut *a, const uiBut *b);
+
 /* Search types. */
 typedef struct ARegion *(*uiButSearchCreateFn)(struct bContext *C,
                                                struct ARegion *butregion,
@@ -593,9 +599,11 @@ typedef void (*uiMenuHandleFunc)(struct bContext *C, void *arg, int event);
  */
 typedef bool (*uiMenuStepFunc)(struct bContext *C, int direction, void *arg1);
 
+typedef void *(*uiCopyArgFunc)(const void *arg);
 typedef void (*uiFreeArgFunc)(void *arg);
 
 /* interface_query.c */
+
 bool UI_but_has_tooltip_label(const uiBut *but);
 bool UI_but_is_tool(const uiBut *but);
 /* file selectors are exempt from utf-8 checks */
@@ -609,6 +617,7 @@ bool UI_block_can_add_separator(const uiBlock *block);
 struct uiList *UI_list_find_mouse_over(const struct ARegion *region, const struct wmEvent *event);
 
 /* interface_region_menu_popup.c */
+
 /**
  * Popup Menus
  *
@@ -632,7 +641,7 @@ uiPopupMenu *UI_popup_menu_begin_ex(struct bContext *C,
  * Set the whole structure to work.
  */
 void UI_popup_menu_end(struct bContext *C, struct uiPopupMenu *pup);
-bool UI_popup_menu_end_or_cancel(struct bContext *C, struct uiPopupMenu *head);
+bool UI_popup_menu_end_or_cancel(struct bContext *C, struct uiPopupMenu *pup);
 struct uiLayout *UI_popup_menu_layout(uiPopupMenu *pup);
 
 void UI_popup_menu_reports(struct bContext *C, struct ReportList *reports) ATTR_NONNULL();
@@ -674,6 +683,7 @@ struct uiLayout *UI_popover_layout(uiPopover *pup);
 void UI_popover_once_clear(uiPopover *pup);
 
 /* interface_region_menu_pie.c */
+
 /* Pie menus */
 typedef struct uiPieMenu uiPieMenu;
 
@@ -1354,6 +1364,13 @@ uiBut *uiDefIconTextButO_ptr(uiBlock *block,
 /* for passing inputs to ButO buttons */
 struct PointerRNA *UI_but_operator_ptr_get(uiBut *but);
 
+void UI_but_context_ptr_set(uiBlock *block,
+                            uiBut *but,
+                            const char *name,
+                            const struct PointerRNA *ptr);
+const struct PointerRNA *UI_but_context_ptr_get(const uiBut *but,
+                                                const char *name,
+                                                const StructRNA *type CPP_ARG_DEFAULT(nullptr));
 struct bContextStore *UI_but_context_get(const uiBut *but);
 
 void UI_but_unit_type_set(uiBut *but, int unit_type);
@@ -1593,12 +1610,14 @@ typedef enum {
 } eButLabelAlign;
 
 /* Return info for uiDefAutoButsRNA */
-typedef enum {
+typedef enum eAutoPropButsReturn {
   /* Returns when no buttons were added */
   UI_PROP_BUTS_NONE_ADDED = 1 << 0,
   /* Returned when any property failed the custom check callback (check_prop) */
   UI_PROP_BUTS_ANY_FAILED_CHECK = 1 << 1,
 } eAutoPropButsReturn;
+
+ENUM_OPERATORS(eAutoPropButsReturn, UI_PROP_BUTS_ANY_FAILED_CHECK);
 
 uiBut *uiDefAutoButR(uiBlock *block,
                      struct PointerRNA *ptr,
@@ -1633,6 +1652,18 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
                                      struct PropertyRNA *prop_activate_init,
                                      eButLabelAlign label_align,
                                      bool compact);
+
+/**
+ * Callback to compare the identity of two buttons, used to identify buttons over redraws. If the
+ * callback returns true, the given buttons are considered to be matching and relevant state is
+ * preserved (copied from the old to the new button). If it returns false, it's considered
+ * non-matching and no further checks are done.
+ *
+ * If this is set, it is always executed instead of the default comparisons. However it is only
+ * executed for buttons that have the same type and the same callback. So callbacks can assume the
+ * button types match.
+ */
+void UI_but_func_identity_compare_set(uiBut *but, uiButIdentityCompareFunc cmp_fn);
 
 /**
  * Public function exported for functions that use #UI_BTYPE_SEARCH_MENU.
@@ -2058,6 +2089,24 @@ void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv);
 void uiLayoutSetContextPointer(uiLayout *layout, const char *name, struct PointerRNA *ptr);
 struct bContextStore *uiLayoutGetContextStore(uiLayout *layout);
 void uiLayoutContextCopy(uiLayout *layout, struct bContextStore *context);
+
+/**
+ * Set tooltip function for all buttons in the layout.
+ * func, arg and free_arg are passed on to UI_but_func_tooltip_set, so their meaning is the same.
+ *
+ * \param func: The callback function that gets called to get tooltip content
+ * \param arg: An optional opaque pointer that gets passed to func
+ * \param free_arg: An optional callback for freeing arg (can be set to e.g. MEM_freeN)
+ * \param copy_arg: An optional callback for duplicating arg in case UI_but_func_tooltip_set
+ * is being called on multiple buttons (can be set to e.g. MEM_dupallocN). If set to NULL, arg will
+ * be passed as-is to all buttons.
+ */
+void uiLayoutSetTooltipFunc(uiLayout *layout,
+                            uiButToolTipFunc func,
+                            void *arg,
+                            uiCopyArgFunc copy_arg,
+                            uiFreeArgFunc free_arg);
+
 /**
  * This is a bit of a hack but best keep it in one place at least.
  */
@@ -2705,7 +2754,8 @@ void uiItemPointerR_prop(uiLayout *layout,
                          struct PointerRNA *searchptr,
                          struct PropertyRNA *searchprop,
                          const char *name,
-                         int icon);
+                         int icon,
+                         bool results_are_suggestions);
 void uiItemPointerR(uiLayout *layout,
                     struct PointerRNA *ptr,
                     const char *propname,
@@ -2875,7 +2925,7 @@ void ED_keymap_ui(struct wmKeyConfig *keyconf);
 void ED_dropboxes_ui(void);
 void ED_uilisttypes_ui(void);
 
-void UI_drop_color_copy(struct wmDrag *drag, struct wmDropBox *drop);
+void UI_drop_color_copy(struct bContext *C, struct wmDrag *drag, struct wmDropBox *drop);
 bool UI_drop_color_poll(struct bContext *C, struct wmDrag *drag, const struct wmEvent *event);
 
 bool UI_context_copy_to_selected_list(struct bContext *C,
@@ -2941,7 +2991,7 @@ uiBlock *UI_region_block_find_mouse_over(const struct ARegion *region,
  */
 struct ARegion *UI_region_searchbox_region_get(const struct ARegion *button_region);
 
-/* uiFontStyle.align */
+/** #uiFontStyle.align */
 typedef enum eFontStyle_Align {
   UI_STYLE_TEXT_LEFT = 0,
   UI_STYLE_TEXT_CENTER = 1,

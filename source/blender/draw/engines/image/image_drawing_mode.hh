@@ -16,7 +16,6 @@
 
 #include "image_batches.hh"
 #include "image_private.hh"
-#include "image_wrappers.hh"
 
 namespace blender::draw::image_engine {
 
@@ -58,7 +57,7 @@ struct OneTextureMethod {
   {
     /* Although this works, computing an inverted matrix adds some precision issues and leads to
      * tearing artifacts. This should be modified to use the scaling and transformation from the
-     * not inverted matrix.*/
+     * not inverted matrix. */
     float4x4 mat(instance_data->ss_to_texture);
     float4x4 mat_inv = mat.inverted();
     float3 min_uv = mat_inv * float3(0.0f, 0.0f, 0.0f);
@@ -74,6 +73,7 @@ struct OneTextureMethod {
 };
 
 using namespace blender::bke::image::partial_update;
+using namespace blender::bke::image;
 
 template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractDrawingMode {
  private:
@@ -154,16 +154,15 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
          * bug or a feature. For now we just acquire to determine if there is a texture. */
         void *lock;
         ImBuf *tile_buffer = BKE_image_acquire_ibuf(image, &tile_user, &lock);
-        if (tile_buffer == nullptr) {
-          continue;
-        }
-        instance_data.float_buffers.mark_used(tile_buffer);
-        BKE_image_release_ibuf(image, tile_buffer, lock);
+        if (tile_buffer != nullptr) {
+          instance_data.float_buffers.mark_used(tile_buffer);
 
-        DRWShadingGroup *shsub = DRW_shgroup_create_sub(shgrp);
-        float4 min_max_uv(tile_x, tile_y, tile_x + 1, tile_y + 1);
-        DRW_shgroup_uniform_vec4_copy(shsub, "min_max_uv", min_max_uv);
-        DRW_shgroup_call_obmat(shsub, info.batch, image_mat);
+          DRWShadingGroup *shsub = DRW_shgroup_create_sub(shgrp);
+          float4 min_max_uv(tile_x, tile_y, tile_x + 1, tile_y + 1);
+          DRW_shgroup_uniform_vec4_copy(shsub, "min_max_uv", min_max_uv);
+          DRW_shgroup_call_obmat(shsub, info.batch, image_mat);
+        }
+        BKE_image_release_ibuf(image, tile_buffer, lock);
       }
     }
   }
@@ -387,11 +386,9 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
       tile_user.tile = image_tile.get_tile_number();
 
       ImBuf *tile_buffer = BKE_image_acquire_ibuf(image, &tile_user, &lock);
-      if (tile_buffer == nullptr) {
-        /* Couldn't load the image buffer of the tile. */
-        continue;
+      if (tile_buffer != nullptr) {
+        do_full_update_texture_slot(instance_data, info, texture_buffer, *tile_buffer, image_tile);
       }
-      do_full_update_texture_slot(instance_data, info, texture_buffer, *tile_buffer, image_tile);
       BKE_image_release_ibuf(image, tile_buffer, lock);
     }
     GPU_texture_update(info.texture, GPU_DATA_FLOAT, texture_buffer.rect_float);
@@ -423,7 +420,7 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
 
     /* IMB_transform works in a non-consistent space. This should be documented or fixed!.
      * Construct a variant of the info_uv_to_texture that adds the texel space
-     * transformation.*/
+     * transformation. */
     float uv_to_texel[4][4];
     copy_m4_m4(uv_to_texel, instance_data.ss_to_texture);
     float scale[3] = {static_cast<float>(texture_width) / static_cast<float>(tile_buffer.x),

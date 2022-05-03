@@ -878,11 +878,12 @@ void ACTION_OT_keyframe_insert(wmOperatorType *ot)
 
 /* ******************** Duplicate Keyframes Operator ************************* */
 
-static void duplicate_action_keys(bAnimContext *ac)
+static bool duplicate_action_keys(bAnimContext *ac)
 {
   ListBase anim_data = {NULL, NULL};
   bAnimListElem *ale;
   int filter;
+  bool changed = false;
 
   /* filter data */
   if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
@@ -898,10 +899,11 @@ static void duplicate_action_keys(bAnimContext *ac)
   /* loop through filtered data and delete selected keys */
   for (ale = anim_data.first; ale; ale = ale->next) {
     if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
-      duplicate_fcurve_keys((FCurve *)ale->key_data);
+      changed |= duplicate_fcurve_keys((FCurve *)ale->key_data);
     }
     else if (ale->type == ANIMTYPE_GPLAYER) {
       ED_gpencil_layer_frames_duplicate((bGPDlayer *)ale->data);
+      changed |= ED_gpencil_layer_frame_select_check((bGPDlayer *)ale->data);
     }
     else if (ale->type == ANIMTYPE_MASKLAYER) {
       ED_masklayer_frames_duplicate((MaskLayer *)ale->data);
@@ -915,6 +917,8 @@ static void duplicate_action_keys(bAnimContext *ac)
 
   ANIM_animdata_update(ac, &anim_data);
   ANIM_animdata_freelist(&anim_data);
+
+  return changed;
 }
 
 /* ------------------- */
@@ -929,7 +933,9 @@ static int actkeys_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   /* duplicate keyframes */
-  duplicate_action_keys(&ac);
+  if (!duplicate_action_keys(&ac)) {
+    return OPERATOR_CANCELLED;
+  }
 
   /* set notifier that keyframes have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, NULL);
@@ -1706,8 +1712,8 @@ static const EnumPropertyItem prop_actkeys_snap_types[] = {
      "NEAREST_FRAME",
      0,
      "Selection to Nearest Frame",
-     "Snap selected keyframes to the nearest (whole) frame (use to fix accidental subframe "
-     "offsets)"},
+     "Snap selected keyframes to the nearest (whole) frame "
+     "(use to fix accidental sub-frame offsets)"},
     {ACTKEYS_SNAP_NEAREST_SECOND,
      "NEAREST_SECOND",
      0,

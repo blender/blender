@@ -3537,7 +3537,6 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
   }
 
   BKE_mesh_calc_edges(result, false, false);
-  BKE_mesh_normals_tag_dirty(result);
   return result;
 }
 
@@ -5071,6 +5070,9 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *fmd,
     tfds->openvdb_compression = fds->openvdb_compression;
     tfds->clipping = fds->clipping;
     tfds->openvdb_data_depth = fds->openvdb_data_depth;
+
+    /* Render options. */
+    tfds->velocity_scale = fds->velocity_scale;
   }
   else if (tfmd->flow) {
     FluidFlowSettings *tffs = tfmd->flow;

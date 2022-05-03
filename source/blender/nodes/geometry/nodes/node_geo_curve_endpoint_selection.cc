@@ -55,24 +55,24 @@ class EndpointFieldInput final : public GeometryFieldInput {
 
     const Curves &curves_id = *curve_component.get_for_read();
     const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
-    if (curves.points_size() == 0) {
+    if (curves.points_num() == 0) {
       return nullptr;
     }
 
     GeometryComponentFieldContext size_context{curve_component, ATTR_DOMAIN_CURVE};
-    fn::FieldEvaluator evaluator{size_context, curves.curves_size()};
+    fn::FieldEvaluator evaluator{size_context, curves.curves_num()};
     evaluator.add(start_size_);
     evaluator.add(end_size_);
     evaluator.evaluate();
     const VArray<int> &start_size = evaluator.get_evaluated<int>(0);
     const VArray<int> &end_size = evaluator.get_evaluated<int>(1);
 
-    Array<bool> selection(curves.points_size(), false);
+    Array<bool> selection(curves.points_num(), false);
     MutableSpan<bool> selection_span = selection.as_mutable_span();
     devirtualize_varray2(start_size, end_size, [&](const auto &start_size, const auto &end_size) {
       threading::parallel_for(curves.curves_range(), 1024, [&](IndexRange curves_range) {
         for (const int i : curves_range) {
-          const IndexRange range = curves.range_for_curve(i);
+          const IndexRange range = curves.points_for_curve(i);
           const int start = std::max(start_size[i], 0);
           const int end = std::max(end_size[i], 0);
 

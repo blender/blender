@@ -664,7 +664,6 @@ bool ED_lattice_select_pick(bContext *C, const int mval[2], const struct SelectP
         break;
       }
       case SEL_OP_SET: {
-        ED_lattice_flags_set(vc.obedit, 0);
         bp->f1 |= SELECT;
         break;
       }

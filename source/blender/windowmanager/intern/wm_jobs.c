@@ -280,20 +280,9 @@ const char *WM_jobs_name(const wmWindowManager *wm, const void *owner)
   return NULL;
 }
 
-void *WM_jobs_customdata(wmWindowManager *wm, const void *owner)
+void *WM_jobs_customdata_from_type(wmWindowManager *wm, const void *owner, int job_type)
 {
-  wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
-
-  if (wm_job) {
-    return WM_jobs_customdata_get(wm_job);
-  }
-
-  return NULL;
-}
-
-void *WM_jobs_customdata_from_type(wmWindowManager *wm, int job_type)
-{
-  wmJob *wm_job = wm_job_find(wm, NULL, job_type);
+  wmJob *wm_job = wm_job_find(wm, owner, job_type);
 
   if (wm_job) {
     return WM_jobs_customdata_get(wm_job);

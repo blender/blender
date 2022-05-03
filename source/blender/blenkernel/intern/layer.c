@@ -266,6 +266,8 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
   BLI_freelistN(&view_layer->drawdata);
   BLI_freelistN(&view_layer->aovs);
   view_layer->active_aov = NULL;
+  BLI_freelistN(&view_layer->lightgroups);
+  view_layer->active_lightgroup = NULL;
 
   MEM_SAFE_FREE(view_layer->stats);
 
@@ -428,6 +430,29 @@ static void layer_aov_copy_data(ViewLayer *view_layer_dst,
   }
 }
 
+static void layer_lightgroup_copy_data(ViewLayer *view_layer_dst,
+                                       const ViewLayer *view_layer_src,
+                                       ListBase *lightgroups_dst,
+                                       const ListBase *lightgroups_src)
+{
+  if (lightgroups_src != NULL) {
+    BLI_duplicatelist(lightgroups_dst, lightgroups_src);
+  }
+
+  ViewLayerLightgroup *lightgroup_dst = lightgroups_dst->first;
+  const ViewLayerLightgroup *lightgroup_src = lightgroups_src->first;
+
+  while (lightgroup_dst != NULL) {
+    BLI_assert(lightgroup_src);
+    if (lightgroup_src == view_layer_src->active_lightgroup) {
+      view_layer_dst->active_lightgroup = lightgroup_dst;
+    }
+
+    lightgroup_dst = lightgroup_dst->next;
+    lightgroup_src = lightgroup_src->next;
+  }
+}
+
 static void layer_collections_copy_data(ViewLayer *view_layer_dst,
                                         const ViewLayer *view_layer_src,
                                         ListBase *layer_collections_dst,
@@ -495,6 +520,10 @@ void BKE_view_layer_copy_data(Scene *scene_dst,
   BLI_listbase_clear(&view_layer_dst->aovs);
   layer_aov_copy_data(
       view_layer_dst, view_layer_src, &view_layer_dst->aovs, &view_layer_src->aovs);
+
+  BLI_listbase_clear(&view_layer_dst->lightgroups);
+  layer_lightgroup_copy_data(
+      view_layer_dst, view_layer_src, &view_layer_dst->lightgroups, &view_layer_src->lightgroups);
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
     id_us_plus((ID *)view_layer_dst->mat_override);
@@ -1629,7 +1658,10 @@ static void layer_collection_local_sync(ViewLayer *view_layer,
 
   if (visible) {
     LISTBASE_FOREACH (CollectionObject *, cob, &layer_collection->collection->gobject) {
-      BLI_assert(cob->ob);
+      if (cob->ob == NULL) {
+        continue;
+      }
+
       Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
       base->local_collections_bits |= local_collections_uuid;
     }
@@ -2256,6 +2288,9 @@ void BKE_view_layer_blend_write(BlendWriter *writer, ViewLayer *view_layer)
   LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
     BLO_write_struct(writer, ViewLayerAOV, aov);
   }
+  LISTBASE_FOREACH (ViewLayerLightgroup *, lightgroup, &view_layer->lightgroups) {
+    BLO_write_struct(writer, ViewLayerLightgroup, lightgroup);
+  }
   write_layer_collections(writer, &view_layer->layer_collections);
 }
 
@@ -2293,6 +2328,9 @@ void BKE_view_layer_blend_read_data(BlendDataReader *reader, ViewLayer *view_lay
 
   BLO_read_list(reader, &view_layer->aovs);
   BLO_read_data_address(reader, &view_layer->active_aov);
+
+  BLO_read_list(reader, &view_layer->lightgroups);
+  BLO_read_data_address(reader, &view_layer->active_lightgroup);
 
   BLI_listbase_clear(&view_layer->drawdata);
   view_layer->object_bases_array = NULL;
@@ -2469,6 +2507,127 @@ ViewLayer *BKE_view_layer_find_with_aov(struct Scene *scene, struct ViewLayerAOV
     }
   }
   return NULL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Light Groups
+ * \{ */
+
+static void viewlayer_lightgroup_make_name_unique(ViewLayer *view_layer,
+                                                  ViewLayerLightgroup *lightgroup)
+{
+  /* Don't allow dots, it's incompatible with OpenEXR convention to store channels
+   * as "layer.pass.channel". */
+  BLI_str_replace_char(lightgroup->name, '.', '_');
+  BLI_uniquename(&view_layer->lightgroups,
+                 lightgroup,
+                 DATA_("Lightgroup"),
+                 '_',
+                 offsetof(ViewLayerLightgroup, name),
+                 sizeof(lightgroup->name));
+}
+
+static void viewlayer_lightgroup_active_set(ViewLayer *view_layer, ViewLayerLightgroup *lightgroup)
+{
+  if (lightgroup != NULL) {
+    BLI_assert(BLI_findindex(&view_layer->lightgroups, lightgroup) != -1);
+    view_layer->active_lightgroup = lightgroup;
+  }
+  else {
+    view_layer->active_lightgroup = NULL;
+  }
+}
+
+struct ViewLayerLightgroup *BKE_view_layer_add_lightgroup(struct ViewLayer *view_layer,
+                                                          const char *name)
+{
+  ViewLayerLightgroup *lightgroup;
+  lightgroup = MEM_callocN(sizeof(ViewLayerLightgroup), __func__);
+  if (name && name[0]) {
+    BLI_strncpy(lightgroup->name, name, sizeof(lightgroup->name));
+  }
+  else {
+    BLI_strncpy(lightgroup->name, DATA_("Lightgroup"), sizeof(lightgroup->name));
+  }
+  BLI_addtail(&view_layer->lightgroups, lightgroup);
+  viewlayer_lightgroup_active_set(view_layer, lightgroup);
+  viewlayer_lightgroup_make_name_unique(view_layer, lightgroup);
+  return lightgroup;
+}
+
+void BKE_view_layer_remove_lightgroup(ViewLayer *view_layer, ViewLayerLightgroup *lightgroup)
+{
+  BLI_assert(BLI_findindex(&view_layer->lightgroups, lightgroup) != -1);
+  BLI_assert(lightgroup != NULL);
+  if (view_layer->active_lightgroup == lightgroup) {
+    if (lightgroup->next) {
+      viewlayer_lightgroup_active_set(view_layer, lightgroup->next);
+    }
+    else {
+      viewlayer_lightgroup_active_set(view_layer, lightgroup->prev);
+    }
+  }
+  BLI_freelinkN(&view_layer->lightgroups, lightgroup);
+}
+
+void BKE_view_layer_set_active_lightgroup(ViewLayer *view_layer, ViewLayerLightgroup *lightgroup)
+{
+  viewlayer_lightgroup_active_set(view_layer, lightgroup);
+}
+
+ViewLayer *BKE_view_layer_find_with_lightgroup(struct Scene *scene,
+                                               struct ViewLayerLightgroup *lightgroup)
+{
+  LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+    if (BLI_findindex(&view_layer->lightgroups, lightgroup) != -1) {
+      return view_layer;
+    }
+  }
+  return NULL;
+}
+
+void BKE_view_layer_rename_lightgroup(ViewLayer *view_layer,
+                                      ViewLayerLightgroup *lightgroup,
+                                      const char *name)
+{
+  BLI_strncpy_utf8(lightgroup->name, name, sizeof(lightgroup->name));
+  viewlayer_lightgroup_make_name_unique(view_layer, lightgroup);
+}
+
+void BKE_lightgroup_membership_get(struct LightgroupMembership *lgm, char *name)
+{
+  if (lgm != NULL) {
+    BLI_strncpy(name, lgm->name, sizeof(lgm->name));
+  }
+  else {
+    name[0] = '\0';
+  }
+}
+
+int BKE_lightgroup_membership_length(struct LightgroupMembership *lgm)
+{
+  if (lgm != NULL) {
+    return strlen(lgm->name);
+  }
+  return 0;
+}
+
+void BKE_lightgroup_membership_set(struct LightgroupMembership **lgm, const char *name)
+{
+  if (name[0] != '\0') {
+    if (*lgm == NULL) {
+      *lgm = MEM_callocN(sizeof(LightgroupMembership), __func__);
+    }
+    BLI_strncpy((*lgm)->name, name, sizeof((*lgm)->name));
+  }
+  else {
+    if (*lgm != NULL) {
+      MEM_freeN(*lgm);
+      *lgm = NULL;
+    }
+  }
 }
 
 /** \} */

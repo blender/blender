@@ -1862,7 +1862,7 @@ bool UI_drop_color_poll(struct bContext *C, wmDrag *drag, const wmEvent *UNUSED(
   return 0;
 }
 
-void UI_drop_color_copy(wmDrag *drag, wmDropBox *drop)
+void UI_drop_color_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   uiDragColorHandle *drag_info = drag->poin;
 
@@ -1976,6 +1976,9 @@ static void UI_OT_drop_name(wmOperatorType *ot)
 static bool ui_list_focused_poll(bContext *C)
 {
   const ARegion *region = CTX_wm_region(C);
+  if (!region) {
+    return false;
+  }
   const wmWindow *win = CTX_wm_window(C);
   const uiList *list = UI_list_find_mouse_over(region, win->eventstate);
 

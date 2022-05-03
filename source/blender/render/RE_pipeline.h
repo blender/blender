@@ -62,8 +62,8 @@ typedef struct RenderView {
 typedef struct RenderPass {
   struct RenderPass *next, *prev;
   int channels;
-  char name[64];   /* amount defined in openexr_multi.h */
-  char chan_id[8]; /* amount defined in openexr_multi.h */
+  char name[64];   /* amount defined in IMB_openexr.h */
+  char chan_id[8]; /* amount defined in IMB_openexr.h */
   float *rect;
   int rectx, recty;
 
@@ -242,6 +242,13 @@ void RE_AcquiredResultGet32(struct Render *re,
                             unsigned int *rect,
                             int view_id);
 
+void RE_render_result_full_channel_name(char *fullname,
+                                        const char *layname,
+                                        const char *passname,
+                                        const char *viewname,
+                                        const char *chan_id,
+                                        const int channel);
+
 struct ImBuf *RE_render_result_rect_to_ibuf(struct RenderResult *rr,
                                             const struct ImageFormatData *imf,
                                             const float dither,
@@ -331,8 +338,8 @@ void RE_RenderFrame(struct Render *re,
                     struct Scene *scene,
                     struct ViewLayer *single_layer,
                     struct Object *camera_override,
-                    const int frame,
-                    const float subframe,
+                    int frame,
+                    float subframe,
                     bool write_still);
 /**
  * A version of #RE_RenderFrame that saves images to disk.

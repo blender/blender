@@ -129,7 +129,7 @@ bool BLF_has_glyph(int fontid, unsigned int unicode)
 {
   FontBLF *font = blf_get(fontid);
   if (font) {
-    return FT_Get_Char_Index(font->face, unicode) != 0;
+    return FT_Get_Char_Index(font->face, unicode) != FT_Err_Ok;
   }
   return false;
 }
@@ -158,14 +158,14 @@ int BLF_load_unique(const char *name)
     return -1;
   }
 
-  char *filename = blf_dir_search(name);
-  if (!filename) {
+  char *filepath = blf_dir_search(name);
+  if (!filepath) {
     printf("Can't find font: %s\n", name);
     return -1;
   }
 
-  FontBLF *font = blf_font_new(name, filename);
-  MEM_freeN(filename);
+  FontBLF *font = blf_font_new(name, filepath);
+  MEM_freeN(filepath);
 
   if (!font) {
     printf("Can't load font: %s\n", name);
@@ -342,9 +342,9 @@ void BLF_position(int fontid, float x, float y, float z)
       }
     }
 
-    font->pos[0] = x;
-    font->pos[1] = y;
-    font->pos[2] = z;
+    font->pos[0] = round_fl_to_int(x);
+    font->pos[1] = round_fl_to_int(y);
+    font->pos[2] = round_fl_to_int(z);
   }
 }
 
@@ -488,7 +488,7 @@ static void blf_draw_gl__start(FontBLF *font)
     GPU_matrix_mul(font->m);
   }
 
-  GPU_matrix_translate_3fv(font->pos);
+  GPU_matrix_translate_3f(font->pos[0], font->pos[1], font->pos[2]);
 
   if (font->flags & BLF_ASPECT) {
     GPU_matrix_scale_3fv(font->aspect);
@@ -589,9 +589,10 @@ size_t BLF_width_to_strlen(
   if (font) {
     const float xa = (font->flags & BLF_ASPECT) ? font->aspect[0] : 1.0f;
     size_t ret;
-    ret = blf_font_width_to_strlen(font, str, str_len, width / xa, r_width);
+    int width_result;
+    ret = blf_font_width_to_strlen(font, str, str_len, width / xa, &width_result);
     if (r_width) {
-      *r_width *= xa;
+      *r_width = (float)width_result * xa;
     }
     return ret;
   }
@@ -610,9 +611,10 @@ size_t BLF_width_to_rstrlen(
   if (font) {
     const float xa = (font->flags & BLF_ASPECT) ? font->aspect[0] : 1.0f;
     size_t ret;
-    ret = blf_font_width_to_rstrlen(font, str, str_len, width / xa, r_width);
+    int width_result;
+    ret = blf_font_width_to_rstrlen(font, str, str_len, width / xa, &width_result);
     if (r_width) {
-      *r_width *= xa;
+      *r_width = (float)width_result * xa;
     }
     return ret;
   }
@@ -624,7 +626,7 @@ size_t BLF_width_to_rstrlen(
 }
 
 void BLF_boundbox_ex(
-    int fontid, const char *str, const size_t str_len, rctf *r_box, struct ResultBLF *r_info)
+    int fontid, const char *str, const size_t str_len, rcti *r_box, struct ResultBLF *r_info)
 {
   FontBLF *font = blf_get(fontid);
 
@@ -640,7 +642,7 @@ void BLF_boundbox_ex(
   }
 }
 
-void BLF_boundbox(int fontid, const char *str, const size_t str_len, rctf *r_box)
+void BLF_boundbox(int fontid, const char *str, const size_t str_len, rcti *r_box)
 {
   BLF_boundbox_ex(fontid, str, str_len, r_box, NULL);
 }
@@ -716,7 +718,7 @@ int BLF_height_max(int fontid)
   return 0;
 }
 
-float BLF_width_max(int fontid)
+int BLF_width_max(int fontid)
 {
   FontBLF *font = blf_get(fontid);
 
@@ -724,10 +726,10 @@ float BLF_width_max(int fontid)
     return blf_font_width_max(font);
   }
 
-  return 0.0f;
+  return 0;
 }
 
-float BLF_descender(int fontid)
+int BLF_descender(int fontid)
 {
   FontBLF *font = blf_get(fontid);
 
@@ -735,10 +737,10 @@ float BLF_descender(int fontid)
     return blf_font_descender(font);
   }
 
-  return 0.0f;
+  return 0;
 }
 
-float BLF_ascender(int fontid)
+int BLF_ascender(int fontid)
 {
   FontBLF *font = blf_get(fontid);
 
@@ -758,7 +760,7 @@ void BLF_rotation(int fontid, float angle)
   }
 }
 
-void BLF_clipping(int fontid, float xmin, float ymin, float xmax, float ymax)
+void BLF_clipping(int fontid, int xmin, int ymin, int xmax, int ymax)
 {
   FontBLF *font = blf_get(fontid);
 
@@ -869,9 +871,9 @@ void BLF_draw_buffer(int fontid, const char *str, const size_t str_len)
   BLF_draw_buffer_ex(fontid, str, str_len, NULL);
 }
 
-char *BLF_display_name_from_file(const char *filename)
+char *BLF_display_name_from_file(const char *filepath)
 {
-  FontBLF *font = blf_font_new("font_name", filename);
+  FontBLF *font = blf_font_new("font_name", filepath);
   if (!font) {
     return NULL;
   }
@@ -889,7 +891,7 @@ void BLF_state_print(int fontid)
     printf("  name:    '%s'\n", font->name);
     printf("  size:     %f\n", font->size);
     printf("  dpi:      %u\n", font->dpi);
-    printf("  pos:      %.6f %.6f %.6f\n", UNPACK3(font->pos));
+    printf("  pos:      %d %d %d\n", UNPACK3(font->pos));
     printf("  aspect:   (%d) %.6f %.6f %.6f\n",
            (font->flags & BLF_ROTATION) != 0,
            UNPACK3(font->aspect));

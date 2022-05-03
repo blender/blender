@@ -112,9 +112,6 @@ class DeviceQueue {
    * Use this method after device synchronization has finished before enqueueing any kernels. */
   virtual void init_execution() = 0;
 
-  /* Test if an optional device kernel is available. */
-  virtual bool kernel_available(DeviceKernel kernel) const = 0;
-
   /* Enqueue kernel execution.
    *
    * Execute the kernel work_size times on the device.

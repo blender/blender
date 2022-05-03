@@ -691,6 +691,24 @@ static void rna_XrSessionSettings_use_absolute_tracking_set(PointerRNA *ptr, boo
 #  endif
 }
 
+static int rna_XrSessionSettings_icon_from_show_object_viewport_get(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
+  return rna_object_type_visibility_icon_get_common(
+      xr->session_settings.object_type_exclude_viewport,
+#    if 0
+    /* For the future when selection in VR is reliably supported. */
+    &xr->session_settings.object_type_exclude_select
+#    else
+      NULL
+#    endif
+  );
+#  else
+  return ICON_NONE;
+#  endif
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1944,6 +1962,12 @@ static void rna_def_xr_session_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Show Custom Overlays", "Show custom VR overlays");
   RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
 
+  prop = RNA_def_property(srna, "show_object_extras", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "draw_flags", V3D_OFSDRAW_SHOW_OBJECT_EXTRAS);
+  RNA_def_property_ui_text(
+      prop, "Show Object Extras", "Show object extras, including empties, lights, and cameras");
+  RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
   prop = RNA_def_property(srna, "controller_draw_style", PROP_ENUM, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_enum_items(prop, controller_draw_styles);
@@ -1982,6 +2006,15 @@ static void rna_def_xr_session_settings(BlenderRNA *brna)
       "Absolute Tracking",
       "Allow the VR tracking origin to be defined independently of the headset location");
   RNA_def_property_update(prop, NC_WM | ND_XR_DATA_CHANGED, NULL);
+
+  rna_def_object_type_visibility_flags_common(srna, NC_WM | ND_XR_DATA_CHANGED);
+
+  /* Helper for drawing the icon. */
+  prop = RNA_def_property(srna, "icon_from_show_object_viewport", PROP_INT, PROP_NONE);
+  RNA_def_property_int_funcs(
+      prop, "rna_XrSessionSettings_icon_from_show_object_viewport_get", NULL, NULL);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Visibility Icon", "");
 }
 
 /** \} */

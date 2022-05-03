@@ -869,6 +869,7 @@ static BMesh *get_bmesh_from_mesh(Mesh *mesh)
                      mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
+                         .calc_vert_normal = true,
                      }));
 
   return bm;

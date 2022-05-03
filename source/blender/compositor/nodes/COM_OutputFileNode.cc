@@ -106,36 +106,33 @@ void OutputFileNode::convert_to_operations(NodeConverter &converter,
 
         if (is_multiview && format->views_format == R_IMF_VIEWS_MULTIVIEW) {
           output_operation = new OutputOpenExrSingleLayerMultiViewOperation(
+              context.get_scene(),
               context.get_render_data(),
               context.get_bnodetree(),
               input->get_data_type(),
               format,
               path,
-              context.get_view_settings(),
-              context.get_display_settings(),
               context.get_view_name(),
               sockdata->save_as_render);
         }
         else if ((!is_multiview) || (format->views_format == R_IMF_VIEWS_INDIVIDUAL)) {
-          output_operation = new OutputSingleLayerOperation(context.get_render_data(),
+          output_operation = new OutputSingleLayerOperation(context.get_scene(),
+                                                            context.get_render_data(),
                                                             context.get_bnodetree(),
                                                             input->get_data_type(),
                                                             format,
                                                             path,
-                                                            context.get_view_settings(),
-                                                            context.get_display_settings(),
                                                             context.get_view_name(),
                                                             sockdata->save_as_render);
         }
         else { /* R_IMF_VIEWS_STEREO_3D */
-          output_operation = new OutputStereoOperation(context.get_render_data(),
+          output_operation = new OutputStereoOperation(context.get_scene(),
+                                                       context.get_render_data(),
                                                        context.get_bnodetree(),
                                                        input->get_data_type(),
                                                        format,
                                                        path,
                                                        sockdata->layer,
-                                                       context.get_view_settings(),
-                                                       context.get_display_settings(),
                                                        context.get_view_name(),
                                                        sockdata->save_as_render);
         }

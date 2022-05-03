@@ -106,7 +106,7 @@ Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
      * The thing here is: OpenSubdiv can only deal with faces, but our
      * side of subdiv also deals with loose vertices and edges. */
   }
-  Subdiv *subdiv = MEM_callocN(sizeof(Subdiv), "subdiv from converetr");
+  Subdiv *subdiv = MEM_callocN(sizeof(Subdiv), "subdiv from converter");
   subdiv->settings = *settings;
   subdiv->topology_refiner = osd_topology_refiner;
   subdiv->evaluator = NULL;

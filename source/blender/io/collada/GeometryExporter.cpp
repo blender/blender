@@ -120,7 +120,7 @@ void GeometryExporter::operator()(Object *ob)
       /* skip the basis */
       kb = kb->next;
       for (; kb; kb = kb->next) {
-        BKE_keyblock_convert_to_mesh(kb, me);
+        BKE_keyblock_convert_to_mesh(kb, me->mvert, me->totvert);
         export_key_mesh(ob, me, kb);
       }
     }
@@ -378,12 +378,12 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
     }
   }
 
-  int totlayer_mcol = CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
+  int totlayer_mcol = CustomData_number_of_layers(&me->ldata, CD_PROP_BYTE_COLOR);
   if (totlayer_mcol > 0) {
     int map_index = 0;
 
     for (int a = 0; a < totlayer_mcol; a++) {
-      char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_MLOOPCOL, a);
+      char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_PROP_BYTE_COLOR, a);
       COLLADASW::Input input4(COLLADASW::InputSemantic::COLOR,
                               makeUrl(makeVertexColorSourceId(geom_id, layer_name)),
                               (has_uvs) ? 3 : 2, /* all color layers have same index order */
@@ -468,7 +468,7 @@ void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
 void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 {
   /* Find number of vertex color layers */
-  int totlayer_mcol = CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
+  int totlayer_mcol = CustomData_number_of_layers(&me->ldata, CD_PROP_BYTE_COLOR);
   if (totlayer_mcol == 0) {
     return;
   }
@@ -477,11 +477,11 @@ void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
   for (int a = 0; a < totlayer_mcol; a++) {
 
     map_index++;
-    MLoopCol *mloopcol = (MLoopCol *)CustomData_get_layer_n(&me->ldata, CD_MLOOPCOL, a);
+    MLoopCol *mloopcol = (MLoopCol *)CustomData_get_layer_n(&me->ldata, CD_PROP_BYTE_COLOR, a);
 
     COLLADASW::FloatSourceF source(mSW);
 
-    char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_MLOOPCOL, a);
+    char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_PROP_BYTE_COLOR, a);
     std::string layer_id = makeVertexColorSourceId(geom_id, layer_name);
     source.setId(layer_id);
 

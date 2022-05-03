@@ -22,6 +22,8 @@ class OUTLINER_HT_header(Header):
 
         if display_mode == 'DATA_API':
             OUTLINER_MT_editor_menus.draw_collapsible(context, layout)
+        if display_mode == 'LIBRARY_OVERRIDES':
+            layout.prop(space, "lib_override_view_mode", text="")
 
         layout.separator_spacer()
 
@@ -41,7 +43,11 @@ class OUTLINER_HT_header(Header):
                 text="",
                 icon='FILTER',
             )
-        if display_mode in {'LIBRARIES', 'LIBRARY_OVERRIDES', 'ORPHAN_DATA'}:
+        if display_mode == 'LIBRARY_OVERRIDES' and space.lib_override_view_mode == 'HIERARCHIES':
+            # Don't add ID type filter for library overrides hierarchies mode. Point of it is to see a hierarchy that is
+            # usually constructed out of different ID types.
+            pass
+        elif display_mode in {'LIBRARIES', 'LIBRARY_OVERRIDES', 'ORPHAN_DATA'}:
             row.prop(space, "use_filter_id_type", text="", icon='FILTER')
             sub = row.row(align=True)
             sub.active = space.use_filter_id_type
@@ -129,7 +135,7 @@ class OUTLINER_MT_context_menu_view(Menu):
 class OUTLINER_MT_view_pie(Menu):
     bl_label = "View"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         pie = layout.menu_pie()
@@ -308,7 +314,7 @@ class OUTLINER_MT_object(Menu):
 class OUTLINER_MT_asset(Menu):
     bl_label = "Assets"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("asset.mark")
@@ -351,7 +357,7 @@ class OUTLINER_PT_filter(Panel):
             col = layout.column(align=True)
             col.prop(space, "use_sort_alpha")
 
-        if display_mode not in {'LIBRARY_OVERRIDES'}:
+        if display_mode != 'LIBRARY_OVERRIDES':
             row = layout.row(align=True)
             row.prop(space, "use_sync_select", text="Sync Selection")
 
@@ -364,13 +370,13 @@ class OUTLINER_PT_filter(Panel):
         col.prop(space, "use_filter_complete", text="Exact Match")
         col.prop(space, "use_filter_case_sensitive", text="Case Sensitive")
 
-        if display_mode in {'LIBRARY_OVERRIDES'} and bpy.data.libraries:
+        if display_mode == 'LIBRARY_OVERRIDES' and space.lib_override_view_mode == 'PROPERTIES' and bpy.data.libraries:
             col.separator()
             row = col.row()
             row.label(icon='LIBRARY_DATA_OVERRIDE')
             row.prop(space, "use_filter_lib_override_system", text="System Overrides")
 
-        if display_mode not in {'VIEW_LAYER'}:
+        if display_mode != 'VIEW_LAYER':
             return
 
         layout.separator()
@@ -441,15 +447,6 @@ class OUTLINER_PT_filter(Panel):
             row = sub.row()
             row.label(icon='BLANK1')
             row.prop(space, "use_filter_object_others", text="Others")
-
-        if bpy.data.libraries:
-            col.separator()
-            row = col.row()
-            row.label(icon='LIBRARY_DATA_OVERRIDE')
-            row.prop(space, "use_filter_lib_override", text="Library Overrides")
-            row = col.row()
-            row.label(icon='LIBRARY_DATA_OVERRIDE')
-            row.prop(space, "use_filter_lib_override_system", text="System Overrides")
 
 
 classes = (

@@ -56,7 +56,7 @@ ccl_device_noinline T kernel_tex_image_interp_bicubic(ccl_global const TextureIn
                                                       float x,
                                                       float y)
 {
-  ccl_gpu_tex_object tex = (ccl_gpu_tex_object)info.data;
+  ccl_gpu_tex_object_2D tex = (ccl_gpu_tex_object_2D)info.data;
 
   x = (x * info.width) - 0.5f;
   y = (y * info.height) - 0.5f;
@@ -85,7 +85,7 @@ template<typename T>
 ccl_device_noinline T
 kernel_tex_image_interp_tricubic(ccl_global const TextureInfo &info, float x, float y, float z)
 {
-  ccl_gpu_tex_object tex = (ccl_gpu_tex_object)info.data;
+  ccl_gpu_tex_object_3D tex = (ccl_gpu_tex_object_3D)info.data;
 
   x = (x * info.width) - 0.5f;
   y = (y * info.height) - 0.5f;
@@ -190,7 +190,7 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, int id, float x, flo
       return kernel_tex_image_interp_bicubic<float4>(info, x, y);
     }
     else {
-      ccl_gpu_tex_object tex = (ccl_gpu_tex_object)info.data;
+      ccl_gpu_tex_object_2D tex = (ccl_gpu_tex_object_2D)info.data;
       return ccl_gpu_tex_object_read_2D<float4>(tex, x, y);
     }
   }
@@ -202,7 +202,7 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, int id, float x, flo
       f = kernel_tex_image_interp_bicubic<float>(info, x, y);
     }
     else {
-      ccl_gpu_tex_object tex = (ccl_gpu_tex_object)info.data;
+      ccl_gpu_tex_object_2D tex = (ccl_gpu_tex_object_2D)info.data;
       f = ccl_gpu_tex_object_read_2D<float>(tex, x, y);
     }
 
@@ -245,7 +245,7 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
       return kernel_tex_image_interp_tricubic<float4>(info, x, y, z);
     }
     else {
-      ccl_gpu_tex_object tex = (ccl_gpu_tex_object)info.data;
+      ccl_gpu_tex_object_3D tex = (ccl_gpu_tex_object_3D)info.data;
       return ccl_gpu_tex_object_read_3D<float4>(tex, x, y, z);
     }
   }
@@ -256,7 +256,7 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
       f = kernel_tex_image_interp_tricubic<float>(info, x, y, z);
     }
     else {
-      ccl_gpu_tex_object tex = (ccl_gpu_tex_object)info.data;
+      ccl_gpu_tex_object_3D tex = (ccl_gpu_tex_object_3D)info.data;
       f = ccl_gpu_tex_object_read_3D<float>(tex, x, y, z);
     }
 

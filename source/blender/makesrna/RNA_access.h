@@ -802,7 +802,7 @@ void RNA_collection_clear(PointerRNA *ptr, const char *name);
 bool RNA_property_is_set_ex(PointerRNA *ptr, PropertyRNA *prop, bool use_ghost);
 bool RNA_property_is_set(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_unset(PointerRNA *ptr, PropertyRNA *prop);
-/** See #RNA_property_is_set_ex documentation.  */
+/** See #RNA_property_is_set_ex documentation. */
 bool RNA_struct_property_is_set_ex(PointerRNA *ptr, const char *identifier, bool use_ghost);
 bool RNA_struct_property_is_set(PointerRNA *ptr, const char *identifier);
 bool RNA_property_is_idprop(const PropertyRNA *prop);

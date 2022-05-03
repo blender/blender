@@ -79,11 +79,11 @@ void get_min_max_time(const Alembic::AbcGeom::IObject &object,
 
 bool has_property(const Alembic::Abc::ICompoundProperty &prop, const std::string &name);
 
-float get_weight_and_index(float time,
-                           const Alembic::AbcCoreAbstract::TimeSamplingPtr &time_sampling,
-                           int samples_number,
-                           Alembic::AbcGeom::index_t &i0,
-                           Alembic::AbcGeom::index_t &i1);
+double get_weight_and_index(Alembic::AbcCoreAbstract::chrono_t time,
+                            const Alembic::AbcCoreAbstract::TimeSamplingPtr &time_sampling,
+                            int samples_number,
+                            Alembic::AbcGeom::index_t &i0,
+                            Alembic::AbcGeom::index_t &i1);
 
 AbcObjectReader *create_reader(const Alembic::AbcGeom::IObject &object, ImportSettings &settings);
 

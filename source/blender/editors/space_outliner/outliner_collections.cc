@@ -301,7 +301,7 @@ static TreeTraversalAction collection_find_data_to_edit(TreeElement *te, void *c
 
   if (ID_IS_OVERRIDE_LIBRARY_REAL(collection)) {
     if (ID_IS_OVERRIDE_LIBRARY_HIERARCHY_ROOT(collection)) {
-      if (!data->is_liboverride_hierarchy_root_allowed) {
+      if (!(data->is_liboverride_hierarchy_root_allowed || data->is_liboverride_allowed)) {
         return TRAVERSE_SKIP_CHILDS;
       }
     }
@@ -354,7 +354,7 @@ void outliner_collection_delete(
         else {
           LISTBASE_FOREACH (CollectionParent *, cparent, &collection->parents) {
             Collection *parent = cparent->collection;
-            if (ID_IS_LINKED(parent)) {
+            if (ID_IS_LINKED(parent) || ID_IS_OVERRIDE_LIBRARY(parent)) {
               skip = true;
               break;
             }
@@ -366,7 +366,7 @@ void outliner_collection_delete(
 
               ID *scene_owner = id_type->owner_get(bmain, &parent->id);
               BLI_assert(GS(scene_owner->name) == ID_SCE);
-              if (ID_IS_LINKED(scene_owner)) {
+              if (ID_IS_LINKED(scene_owner) || ID_IS_OVERRIDE_LIBRARY(scene_owner)) {
                 skip = true;
                 break;
               }
@@ -603,7 +603,9 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
 
     if (ID_IS_LINKED(scene_owner) || ID_IS_OVERRIDE_LIBRARY(scene_owner)) {
       scene_owner = CTX_data_scene(C);
-      parent = ID_IS_LINKED(scene_owner) ? nullptr : scene_owner->master_collection;
+      parent = (ID_IS_LINKED(scene_owner) || ID_IS_OVERRIDE_LIBRARY(scene_owner)) ?
+                   nullptr :
+                   scene_owner->master_collection;
     }
   }
 
@@ -1293,6 +1295,7 @@ static bool collection_disable_render_poll(bContext *C)
 
 static int collection_flag_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
@@ -1319,7 +1322,7 @@ static int collection_flag_exec(bContext *C, wmOperator *op)
       LayerCollection *layer_collection = reinterpret_cast<LayerCollection *>(
           BLI_gsetIterator_getKey(&collections_to_edit_iter));
       Collection *collection = layer_collection->collection;
-      if (ID_IS_LINKED(collection)) {
+      if (!BKE_id_is_editable(bmain, &collection->id)) {
         continue;
       }
       if (clear) {
@@ -1347,7 +1350,7 @@ static int collection_flag_exec(bContext *C, wmOperator *op)
     GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
       Collection *collection = reinterpret_cast<Collection *>(
           BLI_gsetIterator_getKey(&collections_to_edit_iter));
-      if (ID_IS_LINKED(collection)) {
+      if (!BKE_id_is_editable(bmain, &collection->id)) {
         continue;
       }
 
@@ -1600,7 +1603,7 @@ static int outliner_color_tag_set_exec(bContext *C, wmOperator *op)
     if (collection == scene->master_collection) {
       continue;
     }
-    if (ID_IS_LINKED(collection)) {
+    if (!BKE_id_is_editable(CTX_data_main(C), &collection->id)) {
       BKE_report(op->reports, RPT_WARNING, "Can't add a color tag to a linked collection");
       continue;
     }

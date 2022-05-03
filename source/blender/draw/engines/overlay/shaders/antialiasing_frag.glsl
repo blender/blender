@@ -1,15 +1,6 @@
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
-uniform sampler2D colorTex;
-uniform sampler2D depthTex;
-uniform sampler2D lineTex;
-uniform bool doSmoothLines;
-
-in vec2 uvs;
-
-out vec4 fragColor;
-
 #define M_1_SQRTPI 0.5641895835477563 /* 1/sqrt(pi) */
 
 /**

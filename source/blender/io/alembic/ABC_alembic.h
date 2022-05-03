@@ -96,23 +96,27 @@ void ABC_free_handle(struct CacheArchiveHandle *handle);
 
 void ABC_get_transform(struct CacheReader *reader,
                        float r_mat_world[4][4],
-                       float time,
+                       double time,
                        float scale);
+
+typedef struct ABCReadParams {
+  double time;
+  int read_flags;
+  const char *velocity_name;
+  float velocity_scale;
+} ABCReadParams;
 
 /* Either modifies existing_mesh in-place or constructs a new mesh. */
 struct Mesh *ABC_read_mesh(struct CacheReader *reader,
                            struct Object *ob,
                            struct Mesh *existing_mesh,
-                           float time,
-                           const char **err_str,
-                           int read_flags,
-                           const char *velocity_name,
-                           float velocity_scale);
+                           const ABCReadParams *params,
+                           const char **err_str);
 
 bool ABC_mesh_topology_changed(struct CacheReader *reader,
                                struct Object *ob,
-                               struct Mesh *existing_mesh,
-                               float time,
+                               const struct Mesh *existing_mesh,
+                               double time,
                                const char **err_str);
 
 void ABC_CacheReader_incref(struct CacheReader *reader);

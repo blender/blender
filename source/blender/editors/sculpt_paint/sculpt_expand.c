@@ -1128,7 +1128,7 @@ static void sculpt_expand_restore_color_data(SculptSession *ss, ExpandCache *exp
     PBVHNode *node = nodes[n];
     PBVHVertexIter vd;
     BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-      copy_v4_v4(vd.col, expand_cache->original_colors[vd.index]);
+      SCULPT_vertex_color_set(ss, vd.index, expand_cache->original_colors[vd.index]);
     }
     BKE_pbvh_vertex_iter_end;
     BKE_pbvh_node_mark_redraw(node);
@@ -1192,7 +1192,7 @@ static void sculpt_expand_cancel(bContext *C, wmOperator *UNUSED(op))
 
   sculpt_expand_restore_original_state(C, ob, ss->expand_cache);
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
   sculpt_expand_cache_free(ss);
 }
 
@@ -1287,7 +1287,7 @@ static void sculpt_expand_colors_update_task_cb(void *__restrict userdata,
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
     float initial_color[4];
-    copy_v4_v4(initial_color, vd.col);
+    SCULPT_vertex_color_get(ss, vd.index, initial_color);
 
     const bool enabled = sculpt_expand_state_get(ss, expand_cache, vd.index);
     float fade;
@@ -1314,7 +1314,8 @@ static void sculpt_expand_colors_update_task_cb(void *__restrict userdata,
       continue;
     }
 
-    copy_v4_v4(vd.col, final_color);
+    SCULPT_vertex_color_set(ss, vd.index, final_color);
+
     any_changed = true;
     if (vd.mvert) {
       BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
@@ -1370,7 +1371,7 @@ static void sculpt_expand_original_state_store(Object *ob, ExpandCache *expand_c
   if (expand_cache->target == SCULPT_EXPAND_TARGET_COLORS) {
     expand_cache->original_colors = MEM_malloc_arrayN(totvert, sizeof(float[4]), "initial colors");
     for (int i = 0; i < totvert; i++) {
-      copy_v4_v4(expand_cache->original_colors[i], SCULPT_vertex_color_get(ss, i));
+      SCULPT_vertex_color_get(ss, i, expand_cache->original_colors[i]);
     }
   }
 }
@@ -1526,7 +1527,7 @@ static void sculpt_expand_finish(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   /* Tag all nodes to redraw to avoid artifacts after the fast partial updates. */
   PBVHNode **nodes;

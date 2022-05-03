@@ -74,17 +74,17 @@ NODE_DEFINE(Integrator)
 
   SOCKET_INT(seed, "Seed", 0);
   SOCKET_FLOAT(sample_clamp_direct, "Sample Clamp Direct", 0.0f);
-  SOCKET_FLOAT(sample_clamp_indirect, "Sample Clamp Indirect", 0.0f);
+  SOCKET_FLOAT(sample_clamp_indirect, "Sample Clamp Indirect", 10.0f);
   SOCKET_BOOLEAN(motion_blur, "Motion Blur", false);
 
   SOCKET_INT(aa_samples, "AA Samples", 0);
   SOCKET_INT(start_sample, "Start Sample", 0);
 
-  SOCKET_BOOLEAN(use_adaptive_sampling, "Use Adaptive Sampling", false);
-  SOCKET_FLOAT(adaptive_threshold, "Adaptive Threshold", 0.0f);
+  SOCKET_BOOLEAN(use_adaptive_sampling, "Use Adaptive Sampling", true);
+  SOCKET_FLOAT(adaptive_threshold, "Adaptive Threshold", 0.01f);
   SOCKET_INT(adaptive_min_samples, "Adaptive Min Samples", 0);
 
-  SOCKET_FLOAT(light_sampling_threshold, "Light Sampling Threshold", 0.05f);
+  SOCKET_FLOAT(light_sampling_threshold, "Light Sampling Threshold", 0.01f);
 
   static NodeEnum sampling_pattern_enum;
   sampling_pattern_enum.insert("sobol", SAMPLING_PATTERN_SOBOL);
@@ -109,8 +109,10 @@ NODE_DEFINE(Integrator)
   SOCKET_INT(denoise_start_sample, "Start Sample to Denoise", 0);
   SOCKET_BOOLEAN(use_denoise_pass_albedo, "Use Albedo Pass for Denoiser", true);
   SOCKET_BOOLEAN(use_denoise_pass_normal, "Use Normal Pass for Denoiser", true);
-  SOCKET_ENUM(
-      denoiser_prefilter, "Denoiser Type", denoiser_prefilter_enum, DENOISER_PREFILTER_ACCURATE);
+  SOCKET_ENUM(denoiser_prefilter,
+              "Denoiser Prefilter",
+              denoiser_prefilter_enum,
+              DENOISER_PREFILTER_ACCURATE);
 
   return type;
 }

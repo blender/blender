@@ -577,7 +577,8 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       else if (mp->loopstart + mp->totloop > totloop) {
         /* Invalid loop data. */
         PRINT_ERR(
-            "\tPoly %u uses loops out of range (loopstart: %d, loopend: %d, max nbr of loops: %u)",
+            "\tPoly %u uses loops out of range "
+            "(loopstart: %d, loopend: %d, max number of loops: %u)",
             sp->index,
             mp->loopstart,
             mp->loopstart + mp->totloop - 1,
@@ -1016,7 +1017,7 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata,
       pdata, mask.pmask, totpoly, do_verbose, do_fixes, &is_change_p);
 
   const int tot_uvloop = CustomData_number_of_layers(ldata, CD_MLOOPUV);
-  const int tot_vcolloop = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
+  const int tot_vcolloop = CustomData_number_of_layers(ldata, CD_PROP_BYTE_COLOR);
   if (tot_uvloop > MAX_MTFACE) {
     PRINT_ERR(
         "\tMore UV layers than %d allowed, %d last ones won't be available for render, shaders, "

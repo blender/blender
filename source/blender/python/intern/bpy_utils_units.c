@@ -169,7 +169,16 @@ static PyObject *bpyunits_to_value(PyObject *UNUSED(self), PyObject *args, PyObj
       "str_ref_unit",
       NULL,
   };
-  static _PyArg_Parser _parser = {"sss#|$z:to_value", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "s"  /* `unit_system` */
+      "s"  /* `unit_category` */
+      "s#" /* `str_input` */
+      "|$" /* Optional keyword only arguments. */
+      "z"  /* `str_ref_unit` */
+      ":to_value",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kw, &_parser, &usys_str, &ucat_str, &inpt, &str_len, &uref)) {
     return NULL;
@@ -246,7 +255,18 @@ static PyObject *bpyunits_to_string(PyObject *UNUSED(self), PyObject *args, PyOb
       "compatible_unit",
       NULL,
   };
-  static _PyArg_Parser _parser = {"ssd|$iO&O&:to_string", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "s"  /* `unit_system` */
+      "s"  /* `unit_category` */
+      "d"  /* `value` */
+      "|$" /* Optional keyword only arguments. */
+      "i"  /* `precision` */
+      "O&" /* `split_unit` */
+      "O&" /* `compatible_unit` */
+      ":to_string",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
