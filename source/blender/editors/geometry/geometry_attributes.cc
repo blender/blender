@@ -385,24 +385,16 @@ void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
       ot->srna, "name", "Color", MAX_NAME, "Name", "Name of new color attribute");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  static EnumPropertyItem domains[3] = {{ATTR_DOMAIN_POINT, "POINT", 0, "Vertex", ""},
-                                        {ATTR_DOMAIN_CORNER, "CORNER", 0, "Face Corner", ""},
-                                        {0, nullptr, 0, nullptr, nullptr}};
-
-  static EnumPropertyItem types[3] = {{CD_PROP_COLOR, "COLOR", 0, "Color", ""},
-                                      {CD_PROP_BYTE_COLOR, "BYTE_COLOR", 0, "Byte Color", ""},
-                                      {0, nullptr, 0, nullptr, nullptr}};
-
   prop = RNA_def_enum(ot->srna,
                       "domain",
-                      domains,
+                      rna_enum_color_attribute_domain_items,
                       ATTR_DOMAIN_POINT,
                       "Domain",
                       "Type of element that attribute is stored on");
 
   prop = RNA_def_enum(ot->srna,
                       "data_type",
-                      types,
+                      rna_enum_color_attribute_type_items,
                       CD_PROP_COLOR,
                       "Data Type",
                       "Type of data stored in attribute");
