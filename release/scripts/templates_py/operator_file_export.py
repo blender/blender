@@ -57,7 +57,8 @@ class ExportSomeData(Operator, ExportHelper):
 def menu_func_export(self, context):
     self.layout.operator(ExportSomeData.bl_idname, text="Text Export Operator")
 
-# Register and add to the "file selector" menu (required to use F3 search "Text Export Operator" for quick access)
+
+# Register and add to the "file selector" menu (required to use F3 search "Text Export Operator" for quick access).
 def register():
     bpy.utils.register_class(ExportSomeData)
     bpy.types.TOPBAR_MT_file_export.append(menu_func_export)

@@ -628,22 +628,14 @@ BLI_INLINE DRWCallBuffer *custom_bone_instance_shgroup(ArmatureDrawContext *ctx,
   return buf;
 }
 
-static void drw_shgroup_bone_custom_solid(ArmatureDrawContext *ctx,
-                                          const float (*bone_mat)[4],
-                                          const float bone_color[4],
-                                          const float hint_color[4],
-                                          const float outline_color[4],
-                                          Object *custom)
+static void drw_shgroup_bone_custom_solid_mesh(ArmatureDrawContext *ctx,
+                                               Mesh *mesh,
+                                               const float (*bone_mat)[4],
+                                               const float bone_color[4],
+                                               const float hint_color[4],
+                                               const float outline_color[4],
+                                               Object *custom)
 {
-  /* The custom object is not an evaluated object, so its object->data field hasn't been replaced
-   * by #data_eval. This is bad since it gives preference to an object's evaluated mesh over any
-   * other data type, but supporting all evaluated geometry components would require a much larger
-   * refactor of this area. */
-  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(custom);
-  if (mesh == NULL) {
-    return;
-  }
-
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
   DRW_mesh_batch_cache_validate(custom, mesh);
@@ -682,16 +674,12 @@ static void drw_shgroup_bone_custom_solid(ArmatureDrawContext *ctx,
   drw_batch_cache_generate_requested_delayed(custom);
 }
 
-static void drw_shgroup_bone_custom_wire(ArmatureDrawContext *ctx,
-                                         const float (*bone_mat)[4],
-                                         const float color[4],
-                                         Object *custom)
+static void drw_shgroup_bone_custom_mesh_wire(ArmatureDrawContext *ctx,
+                                              Mesh *mesh,
+                                              const float (*bone_mat)[4],
+                                              const float color[4],
+                                              Object *custom)
 {
-  /* See comments in #drw_shgroup_bone_custom_solid. */
-  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(custom);
-  if (mesh == NULL) {
-    return;
-  }
   /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
   DRW_mesh_batch_cache_validate(custom, mesh);
@@ -708,6 +696,80 @@ static void drw_shgroup_bone_custom_wire(ArmatureDrawContext *ctx,
 
   /* TODO(fclem): needs to be moved elsewhere. */
   drw_batch_cache_generate_requested_delayed(custom);
+}
+
+static void drw_shgroup_custom_bone_curve(ArmatureDrawContext *ctx,
+                                          Curve *curve,
+                                          const float (*bone_mat)[4],
+                                          const float outline_color[4],
+                                          Object *custom)
+{
+  /* TODO(fclem): arg... less than ideal but we never iter on this object
+   * to assure batch cache is valid. */
+  DRW_curve_batch_cache_validate(curve);
+
+  /* This only handles curves without any surface. The other curve types should have been converted
+   * to meshes and rendered in the mesh drawing function. */
+  struct GPUBatch *ledges = NULL;
+  if (custom->type == OB_FONT) {
+    ledges = DRW_cache_text_edge_wire_get(custom);
+  }
+  else {
+    ledges = DRW_cache_curve_edge_wire_get(custom);
+  }
+
+  if (ledges) {
+    BoneInstanceData inst_data;
+    mul_m4_m4m4(inst_data.mat, ctx->ob->obmat, bone_mat);
+
+    DRWCallBuffer *buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, ledges);
+    OVERLAY_bone_instance_data_set_color_hint(&inst_data, outline_color);
+    OVERLAY_bone_instance_data_set_color(&inst_data, outline_color);
+    DRW_buffer_add_entry_struct(buf, inst_data.mat);
+  }
+
+  /* TODO(fclem): needs to be moved elsewhere. */
+  drw_batch_cache_generate_requested_delayed(custom);
+}
+
+static void drw_shgroup_bone_custom_solid(ArmatureDrawContext *ctx,
+                                          const float (*bone_mat)[4],
+                                          const float bone_color[4],
+                                          const float hint_color[4],
+                                          const float outline_color[4],
+                                          Object *custom)
+{
+  /* The custom object is not an evaluated object, so its object->data field hasn't been replaced
+   * by #data_eval. This is bad since it gives preference to an object's evaluated mesh over any
+   * other data type, but supporting all evaluated geometry components would require a much
+   * larger refactor of this area. */
+  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(custom);
+  if (mesh != NULL) {
+    drw_shgroup_bone_custom_solid_mesh(
+        ctx, mesh, bone_mat, bone_color, hint_color, outline_color, custom);
+    return;
+  }
+
+  if (ELEM(custom->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
+    drw_shgroup_custom_bone_curve(ctx, custom->data, bone_mat, outline_color, custom);
+  }
+}
+
+static void drw_shgroup_bone_custom_wire(ArmatureDrawContext *ctx,
+                                         const float (*bone_mat)[4],
+                                         const float color[4],
+                                         Object *custom)
+{
+  /* See comments in #drw_shgroup_bone_custom_solid. */
+  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(custom);
+  if (mesh != NULL) {
+    drw_shgroup_bone_custom_mesh_wire(ctx, mesh, bone_mat, color, custom);
+    return;
+  }
+
+  if (ELEM(custom->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
+    drw_shgroup_custom_bone_curve(ctx, custom->data, bone_mat, color, custom);
+  }
 }
 
 static void drw_shgroup_bone_custom_empty(ArmatureDrawContext *ctx,
@@ -784,28 +846,29 @@ static void drw_shgroup_bone_relationship_lines(ArmatureDrawContext *ctx,
                                                 const float start[3],
                                                 const float end[3])
 {
-  drw_shgroup_bone_relationship_lines_ex(ctx, start, end, G_draw.block.colorWire);
+  drw_shgroup_bone_relationship_lines_ex(ctx, start, end, G_draw.block.color_wire);
 }
 
 static void drw_shgroup_bone_ik_lines(ArmatureDrawContext *ctx,
                                       const float start[3],
                                       const float end[3])
 {
-  drw_shgroup_bone_relationship_lines_ex(ctx, start, end, G_draw.block.colorBoneIKLine);
+  drw_shgroup_bone_relationship_lines_ex(ctx, start, end, G_draw.block.color_bone_ik_line);
 }
 
 static void drw_shgroup_bone_ik_no_target_lines(ArmatureDrawContext *ctx,
                                                 const float start[3],
                                                 const float end[3])
 {
-  drw_shgroup_bone_relationship_lines_ex(ctx, start, end, G_draw.block.colorBoneIKLineNoTarget);
+  drw_shgroup_bone_relationship_lines_ex(
+      ctx, start, end, G_draw.block.color_bone_ik_line_no_target);
 }
 
 static void drw_shgroup_bone_ik_spline_lines(ArmatureDrawContext *ctx,
                                              const float start[3],
                                              const float end[3])
 {
-  drw_shgroup_bone_relationship_lines_ex(ctx, start, end, G_draw.block.colorBoneIKLineSpline);
+  drw_shgroup_bone_relationship_lines_ex(ctx, start, end, G_draw.block.color_bone_ik_line_spline);
 }
 
 /** \} */
@@ -918,16 +981,16 @@ static bool set_pchan_color(const ArmatureDrawContext *ctx,
       }
       else {
         if ((boneflag & BONE_DRAW_ACTIVE) && (boneflag & BONE_SELECTED)) {
-          copy_v4_v4(fcolor, G_draw.block.colorBonePoseActive);
+          copy_v4_v4(fcolor, G_draw.block.color_bone_pose_active);
         }
         else if (boneflag & BONE_DRAW_ACTIVE) {
-          copy_v4_v4(fcolor, G_draw.block.colorBonePoseActiveUnsel);
+          copy_v4_v4(fcolor, G_draw.block.color_bone_pose_active_unsel);
         }
         else if (boneflag & BONE_SELECTED) {
-          copy_v4_v4(fcolor, G_draw.block.colorBonePose);
+          copy_v4_v4(fcolor, G_draw.block.color_bone_pose);
         }
         else {
-          copy_v4_v4(fcolor, G_draw.block.colorWire);
+          copy_v4_v4(fcolor, G_draw.block.color_wire);
         }
       }
       return true;
@@ -940,23 +1003,23 @@ static bool set_pchan_color(const ArmatureDrawContext *ctx,
         srgb_to_linearrgb_v4(fcolor, fcolor);
       }
       else {
-        copy_v4_v4(fcolor, G_draw.block.colorBoneSolid);
+        copy_v4_v4(fcolor, G_draw.block.color_bone_solid);
       }
       return true;
     }
     case PCHAN_COLOR_CONSTS: {
       if ((bcolor == NULL) || (bcolor->flag & TH_WIRECOLOR_CONSTCOLS)) {
         if (constflag & PCHAN_HAS_TARGET) {
-          copy_v4_v4(fcolor, G_draw.block.colorBonePoseTarget);
+          copy_v4_v4(fcolor, G_draw.block.color_bone_pose_target);
         }
         else if (constflag & PCHAN_HAS_IK) {
-          copy_v4_v4(fcolor, G_draw.block.colorBonePoseIK);
+          copy_v4_v4(fcolor, G_draw.block.color_bone_pose_ik);
         }
         else if (constflag & PCHAN_HAS_SPLINEIK) {
-          copy_v4_v4(fcolor, G_draw.block.colorBonePoseSplineIK);
+          copy_v4_v4(fcolor, G_draw.block.color_bone_pose_spline_ik);
         }
         else if (constflag & PCHAN_HAS_CONST) {
-          copy_v4_v4(fcolor, G_draw.block.colorBonePoseConstraint);
+          copy_v4_v4(fcolor, G_draw.block.color_bone_pose_constraint);
         }
         else {
           return false;
@@ -978,7 +1041,7 @@ static bool set_pchan_color(const ArmatureDrawContext *ctx,
 
 static void bone_locked_color_shade(float color[4])
 {
-  float *locked_color = G_draw.block.colorBoneLocked;
+  float *locked_color = G_draw.block.color_bone_locked;
 
   interp_v3_v3v3(color, color, locked_color, locked_color[3]);
 }
@@ -991,7 +1054,7 @@ static const float *get_bone_solid_color(const ArmatureDrawContext *ctx,
                                          const short constflag)
 {
   if (ctx->const_color) {
-    return G_draw.block.colorBoneSolid;
+    return G_draw.block.color_bone_solid;
   }
 
   if (arm->flag & ARM_POSEMODE) {
@@ -1006,7 +1069,7 @@ static const float *get_bone_solid_color(const ArmatureDrawContext *ctx,
     return disp_color;
   }
 
-  return G_draw.block.colorBoneSolid;
+  return G_draw.block.color_bone_solid;
 }
 
 static const float *get_bone_solid_with_consts_color(const ArmatureDrawContext *ctx,
@@ -1017,7 +1080,7 @@ static const float *get_bone_solid_with_consts_color(const ArmatureDrawContext *
                                                      const short constflag)
 {
   if (ctx->const_color) {
-    return G_draw.block.colorBoneSolid;
+    return G_draw.block.color_bone_solid;
   }
 
   const float *col = get_bone_solid_color(ctx, eBone, pchan, arm, boneflag, constflag);
@@ -1060,18 +1123,18 @@ static const float *get_bone_wire_color(const ArmatureDrawContext *ctx,
   else if (eBone) {
     if (boneflag & BONE_SELECTED) {
       if (boneflag & BONE_DRAW_ACTIVE) {
-        copy_v3_v3(disp_color, G_draw.block.colorBoneActive);
+        copy_v3_v3(disp_color, G_draw.block.color_bone_active);
       }
       else {
-        copy_v3_v3(disp_color, G_draw.block.colorBoneSelect);
+        copy_v3_v3(disp_color, G_draw.block.color_bone_select);
       }
     }
     else {
       if (boneflag & BONE_DRAW_ACTIVE) {
-        copy_v3_v3(disp_color, G_draw.block.colorBoneActiveUnsel);
+        copy_v3_v3(disp_color, G_draw.block.color_bone_active_unsel);
       }
       else {
-        copy_v3_v3(disp_color, G_draw.block.colorWireEdit);
+        copy_v3_v3(disp_color, G_draw.block.color_wire_edit);
       }
     }
   }
@@ -1084,7 +1147,7 @@ static const float *get_bone_wire_color(const ArmatureDrawContext *ctx,
     }
   }
   else {
-    copy_v3_v3(disp_color, G_draw.block.colorVertex);
+    copy_v3_v3(disp_color, G_draw.block.color_vertex);
   }
 
   disp_color[3] = get_bone_wire_thickness(ctx, boneflag);
@@ -1111,7 +1174,7 @@ static const float *get_bone_hint_color(const ArmatureDrawContext *ctx,
   static float hint_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 
   if (ctx->const_color) {
-    bone_hint_color_shade(hint_color, G_draw.block.colorBoneSolid);
+    bone_hint_color_shade(hint_color, G_draw.block.color_bone_solid);
   }
   else {
     const float *wire_color = get_bone_wire_color(ctx, eBone, pchan, arm, boneflag, constflag);
@@ -1408,8 +1471,8 @@ static void draw_axes(ArmatureDrawContext *ctx,
 {
   float final_col[4];
   const float *col = (ctx->const_color)                        ? ctx->const_color :
-                     (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? G_draw.block.colorTextHi :
-                                                                 G_draw.block.colorText;
+                     (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? G_draw.block.color_text_hi :
+                                                                 G_draw.block.color_text;
   copy_v4_v4(final_col, col);
   /* Mix with axes color. */
   final_col[3] = (ctx->const_color) ? 1.0 : (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? 0.1 : 0.65;
@@ -1444,10 +1507,10 @@ static void draw_points(ArmatureDrawContext *ctx,
   float col_solid_root[4], col_solid_tail[4], col_wire_root[4], col_wire_tail[4];
   float col_hint_root[4], col_hint_tail[4];
 
-  copy_v4_v4(col_solid_root, G_draw.block.colorBoneSolid);
-  copy_v4_v4(col_solid_tail, G_draw.block.colorBoneSolid);
-  copy_v4_v4(col_wire_root, (ctx->const_color) ? ctx->const_color : G_draw.block.colorVertex);
-  copy_v4_v4(col_wire_tail, (ctx->const_color) ? ctx->const_color : G_draw.block.colorVertex);
+  copy_v4_v4(col_solid_root, G_draw.block.color_bone_solid);
+  copy_v4_v4(col_solid_tail, G_draw.block.color_bone_solid);
+  copy_v4_v4(col_wire_root, (ctx->const_color) ? ctx->const_color : G_draw.block.color_vertex);
+  copy_v4_v4(col_wire_tail, (ctx->const_color) ? ctx->const_color : G_draw.block.color_vertex);
 
   const bool is_envelope_draw = (arm->drawtype == ARM_ENVELOPE);
   const float envelope_ignore = -1.0f;
@@ -1457,10 +1520,10 @@ static void draw_points(ArmatureDrawContext *ctx,
   /* Edit bone points can be selected */
   if (eBone) {
     if (eBone->flag & BONE_ROOTSEL) {
-      copy_v3_v3(col_wire_root, G_draw.block.colorVertexSelect);
+      copy_v3_v3(col_wire_root, G_draw.block.color_vertex_select);
     }
     if (eBone->flag & BONE_TIPSEL) {
-      copy_v3_v3(col_wire_tail, G_draw.block.colorVertexSelect);
+      copy_v3_v3(col_wire_tail, G_draw.block.color_vertex_select);
     }
   }
   else if (arm->flag & ARM_POSEMODE) {
@@ -1648,12 +1711,12 @@ static void draw_bone_line(ArmatureDrawContext *ctx,
   else {
     if (eBone) {
       if (eBone->flag & BONE_TIPSEL) {
-        col_tail = G_draw.block.colorVertexSelect;
+        col_tail = G_draw.block.color_vertex_select;
       }
       if (boneflag & BONE_SELECTED) {
-        col_bone = G_draw.block.colorBoneActive;
+        col_bone = G_draw.block.color_bone_active;
       }
-      col_wire = G_draw.block.colorWire;
+      col_wire = G_draw.block.color_wire;
     }
 
     /* Draw root point if we are not connected to our parent. */
@@ -1661,7 +1724,7 @@ static void draw_bone_line(ArmatureDrawContext *ctx,
                   (pchan->bone->parent && (boneflag & BONE_CONNECTED)))) {
 
       if (eBone) {
-        col_head = (eBone->flag & BONE_ROOTSEL) ? G_draw.block.colorVertexSelect : col_bone;
+        col_head = (eBone->flag & BONE_ROOTSEL) ? G_draw.block.color_vertex_select : col_bone;
       }
       else {
         col_head = col_bone;

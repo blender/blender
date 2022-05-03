@@ -7,6 +7,7 @@
 #include "BLI_float4x4.hh"
 #include "BLI_index_mask_ops.hh"
 #include "BLI_kdtree.h"
+#include "BLI_length_parameterize.hh"
 #include "BLI_rand.hh"
 #include "BLI_vector.hh"
 
@@ -115,6 +116,9 @@ struct SnakeHookOperatorExecutor {
 
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
+    if (curves_->curves_num() == 0) {
+      return;
+    }
 
     brush_pos_prev_re_ = self.last_mouse_position_re_;
     brush_pos_re_ = stroke_extension.mouse_position;
@@ -148,7 +152,7 @@ struct SnakeHookOperatorExecutor {
 
   void projected_snake_hook()
   {
-    MutableSpan<float3> positions_cu = curves_->positions();
+    MutableSpan<float3> positions_cu = curves_->positions_for_write();
 
     float4x4 projection;
     ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);
@@ -184,7 +188,7 @@ struct SnakeHookOperatorExecutor {
 
   void spherical_snake_hook()
   {
-    MutableSpan<float3> positions_cu = curves_->positions();
+    MutableSpan<float3> positions_cu = curves_->positions_for_write();
 
     float4x4 projection;
     ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);
@@ -232,43 +236,36 @@ struct SnakeHookOperatorExecutor {
     });
   }
 
-  void move_last_point_and_resample(MutableSpan<float3> positions_cu,
-                                    const float3 &new_last_point_position_cu) const
+  void move_last_point_and_resample(MutableSpan<float3> positions,
+                                    const float3 &new_last_position) const
   {
-    Vector<float> old_lengths_cu;
-    old_lengths_cu.append(0.0f);
-    /* Used to (1) normalize the segment sizes over time and (2) support making zero-length
-     * segments */
-    const float extra_length = 0.001f;
-    for (const int segment_i : IndexRange(positions_cu.size() - 1)) {
-      const float3 &p1_cu = positions_cu[segment_i];
-      const float3 &p2_cu = positions_cu[segment_i + 1];
-      const float length_cu = math::distance(p1_cu, p2_cu);
-      old_lengths_cu.append(old_lengths_cu.last() + length_cu + extra_length);
-    }
-    Vector<float> point_factors;
-    for (float &old_length_cu : old_lengths_cu) {
-      point_factors.append(old_length_cu / old_lengths_cu.last());
+    /* Find the accumulated length of each point in the original curve,
+     * treating it as a poly curve for performance reasons and simplicity. */
+    Array<float> orig_lengths(length_parameterize::lengths_num(positions.size(), false));
+    length_parameterize::accumulate_lengths<float3>(positions, false, orig_lengths);
+    const float orig_total_length = orig_lengths.last();
+
+    /* Find the factor by which the new curve is shorter or longer than the original. */
+    const float new_last_segment_length = math::distance(positions.last(1), new_last_position);
+    const float new_total_length = orig_lengths.last(1) + new_last_segment_length;
+    const float length_factor = new_total_length / orig_total_length;
+
+    /* Calculate the lengths to sample the original curve with by scaling the original lengths. */
+    Array<float> new_lengths(positions.size() - 1);
+    new_lengths.first() = 0.0f;
+    for (const int i : new_lengths.index_range().drop_front(1)) {
+      new_lengths[i] = orig_lengths[i - 1] * length_factor;
     }
 
-    PolySpline new_spline;
-    new_spline.resize(positions_cu.size());
-    MutableSpan<float3> new_spline_positions_cu = new_spline.positions();
-    for (const int i : IndexRange(positions_cu.size() - 1)) {
-      new_spline_positions_cu[i] = positions_cu[i];
-    }
-    new_spline_positions_cu.last() = new_last_point_position_cu;
-    new_spline.mark_cache_invalid();
+    Array<int> indices(positions.size() - 1);
+    Array<float> factors(positions.size() - 1);
+    length_parameterize::create_samples_from_sorted_lengths(
+        orig_lengths, new_lengths, false, indices, factors);
 
-    for (const int i : positions_cu.index_range()) {
-      const float factor = point_factors[i];
-      const Spline::LookupResult lookup = new_spline.lookup_evaluated_factor(factor);
-      const float index_factor = lookup.evaluated_index + lookup.factor;
-      float3 p_cu;
-      new_spline.sample_with_index_factors<float3>(
-          new_spline_positions_cu, {&index_factor, 1}, {&p_cu, 1});
-      positions_cu[i] = p_cu;
-    }
+    Array<float3> new_positions(positions.size() - 1);
+    length_parameterize::linear_interpolation<float3>(positions, indices, factors, new_positions);
+    positions.drop_back(1).copy_from(new_positions);
+    positions.last() = new_last_position;
   }
 };
 

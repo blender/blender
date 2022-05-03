@@ -148,6 +148,12 @@ class GeometryComponent {
   /** Returns true when the attribute has been deleted. */
   bool attribute_try_delete(const blender::bke::AttributeIDRef &attribute_id);
 
+  /**
+   * Remove any anonymous attributes on the geometry (they generally shouldn't exist on original
+   * geometry).
+   */
+  void attributes_remove_anonymous();
+
   /** Returns true when the attribute has been created. */
   bool attribute_try_create(const blender::bke::AttributeIDRef &attribute_id,
                             AttributeDomain domain,

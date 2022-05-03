@@ -665,6 +665,10 @@ const bTheme U_theme_default = {
     .row_alternate = RGBA(0xffffff05),
     .anim_preview_range = RGBA(0xa14d0066),
     .metadatatext = RGBA(0xffffffff),
+    .list = RGBA(0x18181800),
+    .list_title = RGBA(0xffffffff),
+    .list_text = RGBA(0xffffffff),
+    .list_text_hi = RGBA(0xffffffff),
   },
   .space_image = {
     .back = RGBA(0x30303000),

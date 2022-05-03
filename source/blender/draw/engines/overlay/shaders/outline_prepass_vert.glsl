@@ -1,18 +1,6 @@
 
-uniform bool isTransform;
-
-#if !defined(USE_GPENCIL) && !defined(POINTCLOUD)
-in vec3 pos;
-#endif
-
-#ifdef USE_GEOM
-out vec3 vPos;
-out uint objectId_g;
-#  define objectId objectId_g
-#else
-
-flat out uint objectId;
-#endif
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 uint outline_colorid_get(void)
 {
@@ -39,36 +27,24 @@ uint outline_colorid_get(void)
 
 void main()
 {
-#ifdef USE_GPENCIL
-  gpencil_vertex();
-#  ifdef USE_WORLD_CLIP_PLANES
-  vec3 world_pos = point_object_to_world(pos1.xyz);
-#  endif
-
-#else
-#  ifdef POINTCLOUD
-  vec3 world_pos = pointcloud_get_pos();
-#  else
   vec3 world_pos = point_object_to_world(pos);
-#  endif
+
   gl_Position = point_world_to_ndc(world_pos);
-#  ifdef USE_GEOM
-  vPos = point_world_to_view(world_pos);
-#  endif
+#ifdef USE_GEOM
+  vert.pos = point_world_to_view(world_pos);
 #endif
+
   /* Small bias to always be on top of the geom. */
   gl_Position.z -= 1e-3;
 
   /* ID 0 is nothing (background) */
-  objectId = uint(resource_handle + 1);
+  interp.ob_id = uint(resource_handle + 1);
 
   /* Should be 2 bits only [0..3]. */
   uint outline_id = outline_colorid_get();
 
   /* Combine for 16bit uint target. */
-  objectId = (outline_id << 14u) | ((objectId << SHIFT) >> SHIFT);
+  interp.ob_id = (outline_id << 14u) | ((interp.ob_id << SHIFT) >> SHIFT);
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(world_pos);
-#endif
+  view_clipping_distances(world_pos);
 }

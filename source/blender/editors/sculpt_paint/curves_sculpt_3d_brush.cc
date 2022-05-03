@@ -116,8 +116,11 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
 
             const float distance_sq_re = math::distance_squared(brush_pos_re, closest_re);
 
+            float3 brush_position_cu;
+            closest_to_line_segment_v3(brush_position_cu, closest_cu, ray_start_cu, ray_end_cu);
+
             BrushPositionCandidate candidate;
-            candidate.position_cu = closest_cu;
+            candidate.position_cu = brush_position_cu;
             candidate.depth_sq_cu = depth_sq_cu;
             candidate.distance_sq_re = distance_sq_re;
 

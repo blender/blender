@@ -294,7 +294,7 @@ void write_custom_data(const OCompoundProperty &prop,
 
       write_uv(prop, config, cd_data, name);
     }
-    else if (cd_data_type == CD_MLOOPCOL) {
+    else if (cd_data_type == CD_PROP_BYTE_COLOR) {
       write_mcol(prop, config, cd_data, name);
     }
   }
@@ -412,7 +412,7 @@ static void read_custom_data_mcols(const std::string &iobject_full_name,
 
   /* Read the vertex colors */
   void *cd_data = config.add_customdata_cb(
-      config.mesh, prop_header.getName().c_str(), CD_MLOOPCOL);
+      config.mesh, prop_header.getName().c_str(), CD_PROP_BYTE_COLOR);
   MCol *cfaces = static_cast<MCol *>(cd_data);
   MPoly *mpolys = config.mpoly;
   MLoop *mloops = config.mloop;

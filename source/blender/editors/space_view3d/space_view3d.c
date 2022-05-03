@@ -692,9 +692,9 @@ static void view3d_ob_drop_matrix_from_snap(V3DSnapCursorState *snap_state,
                                             Object *ob,
                                             float obmat_final[4][4])
 {
-  V3DSnapCursorData *snap_data;
-  snap_data = ED_view3d_cursor_snap_data_get(snap_state, NULL, 0, 0);
+  V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
   BLI_assert(snap_state->draw_box || snap_state->draw_plane);
+  UNUSED_VARS_NDEBUG(snap_state);
   copy_m4_m3(obmat_final, snap_data->plane_omat);
   copy_v3_v3(obmat_final[3], snap_data->loc);
 
@@ -712,7 +712,7 @@ static void view3d_ob_drop_matrix_from_snap(V3DSnapCursorState *snap_state,
   }
 }
 
-static void view3d_ob_drop_copy_local_id(wmDrag *drag, wmDropBox *drop)
+static void view3d_ob_drop_copy_local_id(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID(drag, ID_OB);
 
@@ -730,7 +730,7 @@ static void view3d_ob_drop_copy_local_id(wmDrag *drag, wmDropBox *drop)
 
 /* Mostly the same logic as #view3d_collection_drop_copy_external_asset(), just different enough to
  * make sharing code a bit difficult. */
-static void view3d_ob_drop_copy_external_asset(wmDrag *drag, wmDropBox *drop)
+static void view3d_ob_drop_copy_external_asset(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   /* NOTE(@campbellbarton): Selection is handled here, de-selecting objects before append,
    * using auto-select to ensure the new objects are selected.
@@ -771,7 +771,9 @@ static void view3d_ob_drop_copy_external_asset(wmDrag *drag, wmDropBox *drop)
   }
 }
 
-static void view3d_collection_drop_copy_local_id(wmDrag *drag, wmDropBox *drop)
+static void view3d_collection_drop_copy_local_id(bContext *UNUSED(C),
+                                                 wmDrag *drag,
+                                                 wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID(drag, ID_GR);
   RNA_int_set(drop->ptr, "session_uuid", (int)id->session_uuid);
@@ -779,7 +781,9 @@ static void view3d_collection_drop_copy_local_id(wmDrag *drag, wmDropBox *drop)
 
 /* Mostly the same logic as #view3d_ob_drop_copy_external_asset(), just different enough to make
  * sharing code a bit difficult. */
-static void view3d_collection_drop_copy_external_asset(wmDrag *drag, wmDropBox *drop)
+static void view3d_collection_drop_copy_external_asset(bContext *UNUSED(C),
+                                                       wmDrag *drag,
+                                                       wmDropBox *drop)
 {
   BLI_assert(drag->type == WM_DRAG_ASSET);
 
@@ -815,14 +819,14 @@ static void view3d_collection_drop_copy_external_asset(wmDrag *drag, wmDropBox *
   ED_undo_push(C, "Collection_Drop");
 }
 
-static void view3d_id_drop_copy(wmDrag *drag, wmDropBox *drop)
+static void view3d_id_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
 
   RNA_string_set(drop->ptr, "name", id->name + 2);
 }
 
-static void view3d_id_drop_copy_with_type(wmDrag *drag, wmDropBox *drop)
+static void view3d_id_drop_copy_with_type(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
 
@@ -830,7 +834,7 @@ static void view3d_id_drop_copy_with_type(wmDrag *drag, wmDropBox *drop)
   RNA_enum_set(drop->ptr, "type", GS(id->name));
 }
 
-static void view3d_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)
+static void view3d_id_path_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
 
@@ -878,7 +882,7 @@ static void view3d_dropboxes(void)
                         WM_drag_free_imported_drag_ID,
                         NULL);
 
-  drop->draw = WM_drag_draw_item_name_fn;
+  drop->draw_droptip = WM_drag_draw_item_name_fn;
   drop->draw_activate = view3d_ob_drop_draw_activate;
   drop->draw_deactivate = view3d_ob_drop_draw_deactivate;
 
@@ -889,7 +893,7 @@ static void view3d_dropboxes(void)
                         WM_drag_free_imported_drag_ID,
                         NULL);
 
-  drop->draw = WM_drag_draw_item_name_fn;
+  drop->draw_droptip = WM_drag_draw_item_name_fn;
   drop->draw_activate = view3d_ob_drop_draw_activate;
   drop->draw_deactivate = view3d_ob_drop_draw_deactivate;
 
@@ -1300,6 +1304,27 @@ static void view3d_main_region_listener(const wmRegionListenerParams *params)
   }
 }
 
+static void view3d_do_msg_notify_workbench_view_update(struct bContext *C,
+                                                       struct wmMsgSubscribeKey *UNUSED(msg_key),
+                                                       struct wmMsgSubscribeValue *msg_val)
+{
+  Scene *scene = CTX_data_scene(C);
+  ScrArea *area = (ScrArea *)msg_val->user_data;
+  View3D *v3d = (View3D *)area->spacedata.first;
+  if (v3d->shading.type == OB_SOLID) {
+    RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->shading.type);
+    DRWUpdateContext drw_context = {NULL};
+    drw_context.bmain = CTX_data_main(C);
+    drw_context.depsgraph = CTX_data_depsgraph_pointer(C);
+    drw_context.scene = scene;
+    drw_context.view_layer = CTX_data_view_layer(C);
+    drw_context.region = (ARegion *)(msg_val->owner);
+    drw_context.v3d = v3d;
+    drw_context.engine_type = engine_type;
+    DRW_notify_view_update(&drw_context);
+  }
+}
+
 static void view3d_main_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
   struct wmMsgBus *mbus = params->message_bus;
@@ -1341,6 +1366,12 @@ static void view3d_main_region_message_subscribe(const wmRegionMessageSubscribeP
       .notify = ED_region_do_msg_notify_tag_redraw,
   };
 
+  wmMsgSubscribeValue msg_sub_value_workbench_view_update = {
+      .owner = region,
+      .user_data = area,
+      .notify = view3d_do_msg_notify_workbench_view_update,
+  };
+
   for (int i = 0; i < ARRAY_SIZE(type_array); i++) {
     msg_key_params.ptr.type = type_array[i];
     WM_msg_subscribe_rna_params(mbus, &msg_key_params, &msg_sub_value_region_tag_redraw, __func__);
@@ -1373,6 +1404,11 @@ static void view3d_main_region_message_subscribe(const wmRegionMessageSubscribeP
     switch (obact->mode) {
       case OB_MODE_PARTICLE_EDIT:
         WM_msg_subscribe_rna_anon_type(mbus, ParticleEdit, &msg_sub_value_region_tag_redraw);
+        break;
+
+      case OB_MODE_SCULPT:
+        WM_msg_subscribe_rna_anon_prop(
+            mbus, WorkSpace, tools, &msg_sub_value_workbench_view_update);
         break;
       default:
         break;
@@ -1596,7 +1632,7 @@ void ED_view3d_buttons_region_layout_ex(const bContext *C,
       ARRAY_SET_ITEMS(contexts, ".greasepencil_vertex");
       break;
     case CTX_MODE_SCULPT_CURVES:
-      ARRAY_SET_ITEMS(contexts, ".curves_sculpt");
+      ARRAY_SET_ITEMS(contexts, ".paint_common", ".curves_sculpt");
       break;
     default:
       break;

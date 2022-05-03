@@ -176,15 +176,16 @@ static void mask_filter_task_cb(void *__restrict userdata,
 static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
-  SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  PBVH *pbvh = ob->sculpt->pbvh;
   PBVHNode **nodes;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   int totnode;
   int filter_type = RNA_enum_get(op->ptr, "filter_type");
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+
+  SculptSession *ss = ob->sculpt;
+  PBVH *pbvh = ob->sculpt->pbvh;
 
   SCULPT_vertex_random_access_ensure(ss);
 
@@ -195,7 +196,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   int num_verts = SCULPT_vertex_count_get(ss);
 
   BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
-  SCULPT_undo_push_begin(ob, "Mask filter");
+  SCULPT_undo_push_begin(ob, "Mask Filter");
 
   for (int i = 0; i < totnode; i++) {
     SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
@@ -239,7 +240,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 
   MEM_SAFE_FREE(nodes);
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   SCULPT_tag_update_overlays(C);
 
@@ -274,7 +275,7 @@ void SCULPT_OT_mask_filter(struct wmOperatorType *ot)
   ot->exec = sculpt_mask_filter_exec;
   ot->poll = SCULPT_mode_poll;
 
-  ot->flag = OPTYPE_REGISTER;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* RNA. */
   RNA_def_enum(ot->srna,
@@ -295,7 +296,7 @@ void SCULPT_OT_mask_filter(struct wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna,
       "auto_iteration_count",
-      false,
+      true,
       "Auto Iteration Count",
       "Use a automatic number of iterations based on the number of vertices of the sculpt");
 }
@@ -447,7 +448,7 @@ static int sculpt_dirty_mask_exec(bContext *C, wmOperator *op)
 
   BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   ED_region_tag_redraw(region);
 

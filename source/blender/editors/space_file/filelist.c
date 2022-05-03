@@ -329,7 +329,7 @@ typedef struct FileListEntryCache {
   int previews_todo_count;
 } FileListEntryCache;
 
-/* FileListCache.flags */
+/** #FileListCache.flags */
 enum {
   FLC_IS_INIT = 1 << 0,
   FLC_PREVIEWS_ACTIVE = 1 << 1,
@@ -359,7 +359,7 @@ typedef struct FileListFilter {
   FileAssetCatalogFilterSettingsHandle *asset_catalog_filter;
 } FileListFilter;
 
-/* FileListFilter.flags */
+/** #FileListFilter.flags */
 enum {
   FLF_DO_FILTER = 1 << 0,
   FLF_HIDE_DOT = 1 << 1,
@@ -421,7 +421,7 @@ typedef struct FileList {
   short tags; /* FileListTags */
 } FileList;
 
-/* FileList.flags */
+/** #FileList.flags */
 enum {
   FL_FORCE_RESET = 1 << 0,
   /* Don't do a full reset (unless #FL_FORCE_RESET is also set), only reset files representing main
@@ -434,7 +434,7 @@ enum {
   FL_SORT_INVERT = 1 << 6,
 };
 
-/* FileList.tags */
+/** #FileList.tags */
 enum FileListTags {
   /** The file list has references to main data (IDs) and needs special care. */
   FILELIST_TAGS_USES_MAIN_DATA = (1 << 0),
@@ -3403,7 +3403,7 @@ static void filelist_readjob_main_recursive(Main *bmain, FileList *filelist)
     filelist->filelist.entries[20].entry->relpath = BLI_strdup("Action");
     filelist->filelist.entries[21].entry->relpath = BLI_strdup("NodeTree");
     filelist->filelist.entries[22].entry->relpath = BLI_strdup("Speaker");
-    filelist->filelist.entries[23].entry->relpath = BLI_strdup("Hair");
+    filelist->filelist.entries[23].entry->relpath = BLI_strdup("Curves");
     filelist->filelist.entries[24].entry->relpath = BLI_strdup("Point Cloud");
     filelist->filelist.entries[25].entry->relpath = BLI_strdup("Volume");
 #  ifdef WITH_FREESTYLE

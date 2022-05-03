@@ -348,8 +348,7 @@ static void pbvh_bmesh_node_split(PBVH *pbvh, const BBC *bbc_array, int node_ind
   n->layer_disp = NULL;
 
   if (n->draw_buffers) {
-    GPU_pbvh_buffers_free(n->draw_buffers);
-    n->draw_buffers = NULL;
+    pbvh_free_draw_buffers(pbvh, n);
   }
   n->flag &= ~PBVH_Leaf;
 
@@ -1240,7 +1239,7 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
     EDGE_QUEUE_DISABLE(e);
 #endif
 
-    /* At the moment edges never get shorter (subdiv will make new edges)
+    /* At the moment edges never get shorter (subdivision will make new edges)
      * unlike collapse where edges can become longer. */
 #if 0
     if (len_squared_v3v3(v1->co, v2->co) <= eq_ctx->q->limit_len_squared) {

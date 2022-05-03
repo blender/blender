@@ -118,11 +118,13 @@ void clear_fcurve_keys(FCurve *fcu)
 
 /* ---------------- */
 
-void duplicate_fcurve_keys(FCurve *fcu)
+bool duplicate_fcurve_keys(FCurve *fcu)
 {
+  bool changed = false;
+
   /* this can only work when there is an F-Curve, and also when there are some BezTriples */
   if (ELEM(NULL, fcu, fcu->bezt)) {
-    return;
+    return changed;
   }
 
   for (int i = 0; i < fcu->totvert; i++) {
@@ -135,7 +137,7 @@ void duplicate_fcurve_keys(FCurve *fcu)
       memcpy(newbezt + i + 1, fcu->bezt + i, sizeof(BezTriple));
       memcpy(newbezt + i + 2, fcu->bezt + i + 1, sizeof(BezTriple) * (fcu->totvert - (i + 1)));
       fcu->totvert++;
-
+      changed = true;
       /* reassign pointers... (free old, and add new) */
       MEM_freeN(fcu->bezt);
       fcu->bezt = newbezt;
@@ -148,6 +150,7 @@ void duplicate_fcurve_keys(FCurve *fcu)
       BEZT_SEL_ALL(&fcu->bezt[i]);
     }
   }
+  return changed;
 }
 
 /* **************************************************** */

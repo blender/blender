@@ -10,6 +10,8 @@
 /* XXX temporary, until AssetHandle is designed properly and queries can return a pointer to it. */
 #include "DNA_asset_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "DNA_listBase.h"
 #include "DNA_object_enums.h"
 #include "RNA_types.h"
@@ -136,6 +138,9 @@ bContextStore *CTX_store_add(ListBase *contexts, const char *name, const Pointer
 bContextStore *CTX_store_add_all(ListBase *contexts, bContextStore *context);
 bContextStore *CTX_store_get(bContext *C);
 void CTX_store_set(bContext *C, bContextStore *store);
+const PointerRNA *CTX_store_ptr_lookup(const bContextStore *store,
+                                       const char *name,
+                                       const StructRNA *type CPP_ARG_DEFAULT(nullptr));
 bContextStore *CTX_store_copy(bContextStore *store);
 void CTX_store_free(bContextStore *store);
 void CTX_store_free_list(ListBase *contexts);

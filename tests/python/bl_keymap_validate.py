@@ -72,6 +72,7 @@ ALLOW_DUPLICATES = {
 # -----------------------------------------------------------------------------
 # Generic Utilities
 
+
 @contextlib.contextmanager
 def temp_fn_argument_extractor(
         mod: types.ModuleType,
@@ -200,7 +201,7 @@ def keyconfig_config_as_filename_component(values: Sequence[Tuple[str, Any]]) ->
     return "(" + quote(
         ".".join([
             "-".join((str(key), str(val)))
-                for key, val in values
+            for key, val in values
         ]),
         # Needed so forward slashes aren't included in the resulting name.
         safe="",

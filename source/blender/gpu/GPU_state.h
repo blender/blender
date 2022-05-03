@@ -157,6 +157,7 @@ void GPU_stencil_reference_set(uint reference);
 void GPU_stencil_write_mask_set(uint write_mask);
 void GPU_stencil_compare_mask_set(uint compare_mask);
 
+eGPUFaceCullTest GPU_face_culling_get(void);
 eGPUBlend GPU_blend_get(void);
 eGPUDepthTest GPU_depth_test_get(void);
 eGPUWriteMask GPU_write_mask_get(void);

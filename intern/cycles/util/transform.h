@@ -285,6 +285,21 @@ ccl_device_inline bool operator!=(const Transform &A, const Transform &B)
   return !(A == B);
 }
 
+ccl_device_inline bool transform_equal_threshold(const Transform &A,
+                                                 const Transform &B,
+                                                 const float threshold)
+{
+  for (int x = 0; x < 3; x++) {
+    for (int y = 0; y < 4; y++) {
+      if (fabsf(A[x][y] - B[x][y]) > threshold) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 ccl_device_inline float3 transform_get_column(const Transform *t, int column)
 {
   return make_float3(t->x[column], t->y[column], t->z[column]);

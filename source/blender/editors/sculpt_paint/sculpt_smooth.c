@@ -179,7 +179,11 @@ void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], int index
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, index, ni) {
-    add_v4_v4(avg, SCULPT_vertex_color_get(ss, ni.index));
+    float tmp[4] = {0};
+
+    SCULPT_vertex_color_get(ss, ni.index, tmp);
+
+    add_v4_v4(avg, tmp);
     total++;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
@@ -188,7 +192,7 @@ void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], int index
     mul_v4_v4fl(result, avg, 1.0f / total);
   }
   else {
-    copy_v4_v4(result, SCULPT_vertex_color_get(ss, index));
+    SCULPT_vertex_color_get(ss, index, result);
   }
 }
 

@@ -9,7 +9,7 @@ operator in the different part of the user interface.
 The context overrides are passed as a dictionary, with keys matching the context
 member names in bpy.context.
 For example to override ``bpy.context.active_object``,
-you would pass ``{'active_object': object}``.
+you would pass ``{'active_object': object}`` to :class:`bpy.types.Context.temp_override`.
 
 .. note::
 
@@ -17,8 +17,10 @@ you would pass ``{'active_object': object}``.
    (otherwise, you'll have to find and gather all needed data yourself).
 """
 
-# remove all objects in scene rather than the selected ones
+# Remove all objects in scene rather than the selected ones.
 import bpy
-override = bpy.context.copy()
-override['selected_objects'] = list(bpy.context.scene.objects)
-bpy.ops.object.delete(override)
+from bpy import context
+override = context.copy()
+override["selected_objects"] = list(context.scene.objects)
+with context.temp_override(**override):
+    bpy.ops.object.delete()

@@ -93,7 +93,15 @@ static PyObject *bpy_app_timers_register(PyObject *UNUSED(self), PyObject *args,
   int persistent = false;
 
   static const char *_keywords[] = {"function", "first_interval", "persistent", NULL};
-  static _PyArg_Parser _parser = {"O|$dp:register", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O"  /* `function` */
+      "|$" /* Optional keyword only arguments. */
+      "d"  /* `first_interval` */
+      "p"  /* `persistent` */
+      ":register",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kw, &_parser, &function, &first_interval, &persistent)) {
     return NULL;

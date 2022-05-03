@@ -29,6 +29,8 @@ struct Object;
 struct bNodeTree;
 
 typedef struct LineStyleModifier {
+  DNA_DEFINE_CXX_METHODS(LineStyleModifier)
+
   struct LineStyleModifier *next, *prev;
 
   /** MAX_NAME. */
@@ -92,12 +94,16 @@ typedef struct LineStyleModifier {
 /* Along Stroke modifiers */
 
 typedef struct LineStyleColorModifier_AlongStroke {
+  DNA_DEFINE_CXX_METHODS(LineStyleColorModifier_AlongStroke)
+
   struct LineStyleModifier modifier;
 
   struct ColorBand *color_ramp;
 } LineStyleColorModifier_AlongStroke;
 
 typedef struct LineStyleAlphaModifier_AlongStroke {
+  DNA_DEFINE_CXX_METHODS(LineStyleAlphaModifier_AlongStroke)
+
   struct LineStyleModifier modifier;
 
   struct CurveMapping *curve;
@@ -106,6 +112,8 @@ typedef struct LineStyleAlphaModifier_AlongStroke {
 } LineStyleAlphaModifier_AlongStroke;
 
 typedef struct LineStyleThicknessModifier_AlongStroke {
+  DNA_DEFINE_CXX_METHODS(LineStyleThicknessModifier_AlongStroke)
+
   struct LineStyleModifier modifier;
 
   struct CurveMapping *curve;
@@ -117,6 +125,8 @@ typedef struct LineStyleThicknessModifier_AlongStroke {
 /* Distance from Camera modifiers */
 
 typedef struct LineStyleColorModifier_DistanceFromCamera {
+  DNA_DEFINE_CXX_METHODS(LineStyleColorModifier_DistanceFromCamera)
+
   struct LineStyleModifier modifier;
 
   struct ColorBand *color_ramp;
@@ -124,6 +134,8 @@ typedef struct LineStyleColorModifier_DistanceFromCamera {
 } LineStyleColorModifier_DistanceFromCamera;
 
 typedef struct LineStyleAlphaModifier_DistanceFromCamera {
+  DNA_DEFINE_CXX_METHODS(LineStyleAlphaModifier_DistanceFromCamera)
+
   struct LineStyleModifier modifier;
 
   struct CurveMapping *curve;
@@ -133,6 +145,8 @@ typedef struct LineStyleAlphaModifier_DistanceFromCamera {
 } LineStyleAlphaModifier_DistanceFromCamera;
 
 typedef struct LineStyleThicknessModifier_DistanceFromCamera {
+  DNA_DEFINE_CXX_METHODS(LineStyleThicknessModifier_DistanceFromCamera)
+
   struct LineStyleModifier modifier;
 
   struct CurveMapping *curve;
@@ -145,6 +159,8 @@ typedef struct LineStyleThicknessModifier_DistanceFromCamera {
 /* Distance from Object modifiers */
 
 typedef struct LineStyleColorModifier_DistanceFromObject {
+  DNA_DEFINE_CXX_METHODS(LineStyleColorModifier_DistanceFromObject)
+
   struct LineStyleModifier modifier;
 
   struct Object *target;
@@ -153,6 +169,8 @@ typedef struct LineStyleColorModifier_DistanceFromObject {
 } LineStyleColorModifier_DistanceFromObject;
 
 typedef struct LineStyleAlphaModifier_DistanceFromObject {
+  DNA_DEFINE_CXX_METHODS(LineStyleAlphaModifier_DistanceFromObject)
+
   struct LineStyleModifier modifier;
 
   struct Object *target;
@@ -163,6 +181,8 @@ typedef struct LineStyleAlphaModifier_DistanceFromObject {
 } LineStyleAlphaModifier_DistanceFromObject;
 
 typedef struct LineStyleThicknessModifier_DistanceFromObject {
+  DNA_DEFINE_CXX_METHODS(LineStyleThicknessModifier_DistanceFromObject)
+
   struct LineStyleModifier modifier;
 
   struct Object *target;
@@ -176,6 +196,8 @@ typedef struct LineStyleThicknessModifier_DistanceFromObject {
 /* 3D curvature modifiers */
 
 typedef struct LineStyleColorModifier_Curvature_3D {
+  DNA_DEFINE_CXX_METHODS(LineStyleColorModifier_Curvature_3D)
+
   struct LineStyleModifier modifier;
 
   float min_curvature, max_curvature;
@@ -184,6 +206,8 @@ typedef struct LineStyleColorModifier_Curvature_3D {
 } LineStyleColorModifier_Curvature_3D;
 
 typedef struct LineStyleAlphaModifier_Curvature_3D {
+  DNA_DEFINE_CXX_METHODS(LineStyleAlphaModifier_Curvature_3D)
+
   struct LineStyleModifier modifier;
 
   struct CurveMapping *curve;
@@ -193,6 +217,8 @@ typedef struct LineStyleAlphaModifier_Curvature_3D {
 } LineStyleAlphaModifier_Curvature_3D;
 
 typedef struct LineStyleThicknessModifier_Curvature_3D {
+  DNA_DEFINE_CXX_METHODS(LineStyleThicknessModifier_Curvature_3D)
+
   struct LineStyleModifier modifier;
 
   struct CurveMapping *curve;
@@ -205,6 +231,8 @@ typedef struct LineStyleThicknessModifier_Curvature_3D {
 /* Noise modifiers (for color, alpha and thickness) */
 
 typedef struct LineStyleColorModifier_Noise {
+  DNA_DEFINE_CXX_METHODS(LineStyleColorModifier_Noise)
+
   struct LineStyleModifier modifier;
 
   struct ColorBand *color_ramp;
@@ -214,6 +242,8 @@ typedef struct LineStyleColorModifier_Noise {
 } LineStyleColorModifier_Noise;
 
 typedef struct LineStyleAlphaModifier_Noise {
+  DNA_DEFINE_CXX_METHODS(LineStyleAlphaModifier_Noise)
+
   struct LineStyleModifier modifier;
 
   struct CurveMapping *curve;
@@ -223,6 +253,8 @@ typedef struct LineStyleAlphaModifier_Noise {
 } LineStyleAlphaModifier_Noise;
 
 typedef struct LineStyleThicknessModifier_Noise {
+  DNA_DEFINE_CXX_METHODS(LineStyleThicknessModifier_Noise)
+
   struct LineStyleModifier modifier;
 
   float period, amplitude;
@@ -233,6 +265,8 @@ typedef struct LineStyleThicknessModifier_Noise {
 /* Crease Angle modifiers */
 
 typedef struct LineStyleColorModifier_CreaseAngle {
+  DNA_DEFINE_CXX_METHODS(LineStyleColorModifier_CreaseAngle)
+
   struct LineStyleModifier modifier;
 
   struct ColorBand *color_ramp;
@@ -240,6 +274,8 @@ typedef struct LineStyleColorModifier_CreaseAngle {
 } LineStyleColorModifier_CreaseAngle;
 
 typedef struct LineStyleAlphaModifier_CreaseAngle {
+  DNA_DEFINE_CXX_METHODS(LineStyleAlphaModifier_CreaseAngle)
+
   struct LineStyleModifier modifier;
 
   struct CurveMapping *curve;
@@ -249,6 +285,8 @@ typedef struct LineStyleAlphaModifier_CreaseAngle {
 } LineStyleAlphaModifier_CreaseAngle;
 
 typedef struct LineStyleThicknessModifier_CreaseAngle {
+  DNA_DEFINE_CXX_METHODS(LineStyleThicknessModifier_CreaseAngle)
+
   struct LineStyleModifier modifier;
 
   struct CurveMapping *curve;
@@ -261,12 +299,16 @@ typedef struct LineStyleThicknessModifier_CreaseAngle {
 /* Tangent modifiers */
 
 typedef struct LineStyleColorModifier_Tangent {
+  DNA_DEFINE_CXX_METHODS(LineStyleColorModifier_Tangent)
+
   struct LineStyleModifier modifier;
 
   struct ColorBand *color_ramp;
 } LineStyleColorModifier_Tangent;
 
 typedef struct LineStyleAlphaModifier_Tangent {
+  DNA_DEFINE_CXX_METHODS(LineStyleAlphaModifier_Tangent)
+
   struct LineStyleModifier modifier;
 
   struct CurveMapping *curve;
@@ -275,6 +317,8 @@ typedef struct LineStyleAlphaModifier_Tangent {
 } LineStyleAlphaModifier_Tangent;
 
 typedef struct LineStyleThicknessModifier_Tangent {
+  DNA_DEFINE_CXX_METHODS(LineStyleThicknessModifier_Tangent)
+
   struct LineStyleModifier modifier;
 
   struct CurveMapping *curve;
@@ -303,6 +347,8 @@ typedef struct LineStyleThicknessModifier_Tangent {
 #define LS_MODIFIER_MATERIAL_LINE_A 15
 
 typedef struct LineStyleColorModifier_Material {
+  DNA_DEFINE_CXX_METHODS(LineStyleColorModifier_Material)
+
   struct LineStyleModifier modifier;
 
   struct ColorBand *color_ramp;
@@ -311,6 +357,8 @@ typedef struct LineStyleColorModifier_Material {
 } LineStyleColorModifier_Material;
 
 typedef struct LineStyleAlphaModifier_Material {
+  DNA_DEFINE_CXX_METHODS(LineStyleAlphaModifier_Material)
+
   struct LineStyleModifier modifier;
 
   struct CurveMapping *curve;
@@ -319,6 +367,8 @@ typedef struct LineStyleAlphaModifier_Material {
 } LineStyleAlphaModifier_Material;
 
 typedef struct LineStyleThicknessModifier_Material {
+  DNA_DEFINE_CXX_METHODS(LineStyleThicknessModifier_Material)
+
   struct LineStyleModifier modifier;
 
   struct CurveMapping *curve;
@@ -330,6 +380,8 @@ typedef struct LineStyleThicknessModifier_Material {
 /* Geometry modifiers */
 
 typedef struct LineStyleGeometryModifier_Sampling {
+  DNA_DEFINE_CXX_METHODS(LineStyleGeometryModifier_Sampling)
+
   struct LineStyleModifier modifier;
 
   float sampling;
@@ -337,6 +389,8 @@ typedef struct LineStyleGeometryModifier_Sampling {
 } LineStyleGeometryModifier_Sampling;
 
 typedef struct LineStyleGeometryModifier_BezierCurve {
+  DNA_DEFINE_CXX_METHODS(LineStyleGeometryModifier_BezierCurve)
+
   struct LineStyleModifier modifier;
 
   float error;
@@ -344,6 +398,8 @@ typedef struct LineStyleGeometryModifier_BezierCurve {
 } LineStyleGeometryModifier_BezierCurve;
 
 typedef struct LineStyleGeometryModifier_SinusDisplacement {
+  DNA_DEFINE_CXX_METHODS(LineStyleGeometryModifier_SinusDisplacement)
+
   struct LineStyleModifier modifier;
 
   float wavelength, amplitude, phase;
@@ -355,6 +411,8 @@ typedef struct LineStyleGeometryModifier_SinusDisplacement {
 #define LS_MODIFIER_SPATIAL_NOISE_PURERANDOM 2
 
 typedef struct LineStyleGeometryModifier_SpatialNoise {
+  DNA_DEFINE_CXX_METHODS(LineStyleGeometryModifier_SpatialNoise)
+
   struct LineStyleModifier modifier;
 
   float amplitude, scale;
@@ -363,6 +421,8 @@ typedef struct LineStyleGeometryModifier_SpatialNoise {
 } LineStyleGeometryModifier_SpatialNoise;
 
 typedef struct LineStyleGeometryModifier_PerlinNoise1D {
+  DNA_DEFINE_CXX_METHODS(LineStyleGeometryModifier_PerlinNoise1D)
+
   struct LineStyleModifier modifier;
 
   float frequency, amplitude;
@@ -374,6 +434,8 @@ typedef struct LineStyleGeometryModifier_PerlinNoise1D {
 } LineStyleGeometryModifier_PerlinNoise1D;
 
 typedef struct LineStyleGeometryModifier_PerlinNoise2D {
+  DNA_DEFINE_CXX_METHODS(LineStyleGeometryModifier_PerlinNoise2D)
+
   struct LineStyleModifier modifier;
 
   float frequency, amplitude;
@@ -385,6 +447,8 @@ typedef struct LineStyleGeometryModifier_PerlinNoise2D {
 } LineStyleGeometryModifier_PerlinNoise2D;
 
 typedef struct LineStyleGeometryModifier_BackboneStretcher {
+  DNA_DEFINE_CXX_METHODS(LineStyleGeometryModifier_BackboneStretcher)
+
   struct LineStyleModifier modifier;
 
   float backbone_length;
@@ -392,6 +456,8 @@ typedef struct LineStyleGeometryModifier_BackboneStretcher {
 } LineStyleGeometryModifier_BackboneStretcher;
 
 typedef struct LineStyleGeometryModifier_TipRemover {
+  DNA_DEFINE_CXX_METHODS(LineStyleGeometryModifier_TipRemover)
+
   struct LineStyleModifier modifier;
 
   float tip_length;
@@ -399,6 +465,8 @@ typedef struct LineStyleGeometryModifier_TipRemover {
 } LineStyleGeometryModifier_TipRemover;
 
 typedef struct LineStyleGeometryModifier_Polygonalization {
+  DNA_DEFINE_CXX_METHODS(LineStyleGeometryModifier_Polygonalization)
+
   struct LineStyleModifier modifier;
 
   float error;
@@ -406,6 +474,8 @@ typedef struct LineStyleGeometryModifier_Polygonalization {
 } LineStyleGeometryModifier_Polygonalization;
 
 typedef struct LineStyleGeometryModifier_GuidingLines {
+  DNA_DEFINE_CXX_METHODS(LineStyleGeometryModifier_GuidingLines)
+
   struct LineStyleModifier modifier;
 
   float offset;
@@ -418,6 +488,8 @@ typedef struct LineStyleGeometryModifier_GuidingLines {
 #define LS_MODIFIER_BLUEPRINT_SQUARES 4
 
 typedef struct LineStyleGeometryModifier_Blueprint {
+  DNA_DEFINE_CXX_METHODS(LineStyleGeometryModifier_Blueprint)
+
   struct LineStyleModifier modifier;
 
   int flags;
@@ -429,6 +501,8 @@ typedef struct LineStyleGeometryModifier_Blueprint {
 } LineStyleGeometryModifier_Blueprint;
 
 typedef struct LineStyleGeometryModifier_2DOffset {
+  DNA_DEFINE_CXX_METHODS(LineStyleGeometryModifier_2DOffset)
+
   struct LineStyleModifier modifier;
 
   float start, end;
@@ -443,6 +517,8 @@ typedef struct LineStyleGeometryModifier_2DOffset {
 #define LS_MODIFIER_2D_TRANSFORM_PIVOT_ABSOLUTE 5
 
 typedef struct LineStyleGeometryModifier_2DTransform {
+  DNA_DEFINE_CXX_METHODS(LineStyleGeometryModifier_2DTransform)
+
   struct LineStyleModifier modifier;
 
   int pivot;
@@ -455,6 +531,8 @@ typedef struct LineStyleGeometryModifier_2DTransform {
 } LineStyleGeometryModifier_2DTransform;
 
 typedef struct LineStyleGeometryModifier_Simplification {
+  DNA_DEFINE_CXX_METHODS(LineStyleGeometryModifier_Simplification)
+
   struct LineStyleModifier modifier;
 
   float tolerance;
@@ -464,6 +542,8 @@ typedef struct LineStyleGeometryModifier_Simplification {
 /* Calligraphic thickness modifier */
 
 typedef struct LineStyleThicknessModifier_Calligraphy {
+  DNA_DEFINE_CXX_METHODS(LineStyleThicknessModifier_Calligraphy)
+
   struct LineStyleModifier modifier;
 
   float min_thickness, max_thickness;
@@ -527,6 +607,8 @@ typedef struct LineStyleThicknessModifier_Calligraphy {
 #define LS_INTEGRATION_LAST 5
 
 typedef struct FreestyleLineStyle {
+  DNA_DEFINE_CXX_METHODS(FreestyleLineStyle)
+
   ID id;
   struct AnimData *adt;
 

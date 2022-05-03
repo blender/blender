@@ -218,7 +218,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   mesh->mface = nullptr;
   mesh->totface = 0;
   memset(&mesh->fdata, 0, sizeof(mesh->fdata));
-  memset(&mesh->runtime, 0, sizeof(mesh->runtime));
+  mesh->runtime = blender::dna::shallow_zero_initialize();
   flayers = flayers_buff;
 
   /* Do not store actual geometry data in case this is a library override ID. */
@@ -329,7 +329,7 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   mesh->texflag &= ~ME_AUTOSPACE_EVALUATED;
   mesh->edit_mesh = nullptr;
 
-  memset(&mesh->runtime, 0, sizeof(mesh->runtime));
+  mesh->runtime = blender::dna::shallow_zero_initialize();
   BKE_mesh_runtime_init_data(mesh);
 
   /* happens with old files */
@@ -433,7 +433,7 @@ static const char *cmpcode_to_str(int code)
     case MESHCMP_DVERT_TOTGROUPMISMATCH:
       return "Vertex Doesn't Belong To Same Number Of Groups";
     case MESHCMP_LOOPCOLMISMATCH:
-      return "Vertex Color Mismatch";
+      return "Color Attribute Mismatch";
     case MESHCMP_LOOPUVMISMATCH:
       return "UV Mismatch";
     case MESHCMP_LOOPMISMATCH:
@@ -463,7 +463,8 @@ static int customdata_compare(
   CustomDataLayer *l1, *l2;
   int layer_count1 = 0, layer_count2 = 0, j;
   const uint64_t cd_mask_non_generic = CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MPOLY |
-                                       CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MDEFORMVERT;
+                                       CD_MASK_MLOOPUV | CD_MASK_PROP_BYTE_COLOR |
+                                       CD_MASK_MDEFORMVERT;
   const uint64_t cd_mask_all_attr = CD_MASK_PROP_ALL | cd_mask_non_generic;
 
   for (int i = 0; i < c1->totlayer; i++) {
@@ -581,7 +582,7 @@ static int customdata_compare(
           }
           break;
         }
-        case CD_MLOOPCOL: {
+        case CD_PROP_BYTE_COLOR: {
           MLoopCol *lp1 = (MLoopCol *)l1->data;
           MLoopCol *lp2 = (MLoopCol *)l2->data;
           int ltot = m1->totloop;
@@ -768,7 +769,7 @@ static void mesh_ensure_tessellation_customdata(Mesh *me)
   }
   else {
     const int tottex_original = CustomData_number_of_layers(&me->ldata, CD_MLOOPUV);
-    const int totcol_original = CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
+    const int totcol_original = CustomData_number_of_layers(&me->ldata, CD_PROP_BYTE_COLOR);
 
     const int tottex_tessface = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
     const int totcol_tessface = CustomData_number_of_layers(&me->fdata, CD_MCOL);
@@ -786,7 +787,8 @@ static void mesh_ensure_tessellation_customdata(Mesh *me)
          * some info to help troubleshoot what's going on. */
         printf(
             "%s: warning! Tessellation uvs or vcol data got out of sync, "
-            "had to reset!\n    CD_MTFACE: %d != CD_MLOOPUV: %d || CD_MCOL: %d != CD_MLOOPCOL: "
+            "had to reset!\n    CD_MTFACE: %d != CD_MLOOPUV: %d || CD_MCOL: %d != "
+            "CD_PROP_BYTE_COLOR: "
             "%d\n",
             __func__,
             tottex_tessface,
@@ -871,7 +873,7 @@ bool BKE_mesh_clear_facemap_customdata(struct Mesh *me)
 
 /**
  * This ensures grouped custom-data (e.g. #CD_MLOOPUV and #CD_MTFACE, or
- * #CD_MLOOPCOL and #CD_MCOL) have the same relative active/render/clone/mask indices.
+ * #CD_PROP_BYTE_COLOR and #CD_MCOL) have the same relative active/render/clone/mask indices.
  *
  * NOTE(@campbellbarton): that for undo mesh data we want to skip 'ensure_tess_cd' call since
  * we don't want to store memory for #MFace data when its only used for older
@@ -902,7 +904,7 @@ void BKE_mesh_update_customdata_pointers(Mesh *me, const bool do_ensure_tess_cd)
   me->mpoly = (MPoly *)CustomData_get_layer(&me->pdata, CD_MPOLY);
   me->mloop = (MLoop *)CustomData_get_layer(&me->ldata, CD_MLOOP);
 
-  me->mloopcol = (MLoopCol *)CustomData_get_layer(&me->ldata, CD_MLOOPCOL);
+  me->mloopcol = (MLoopCol *)CustomData_get_layer(&me->ldata, CD_PROP_BYTE_COLOR);
   me->mloopuv = (MLoopUV *)CustomData_get_layer(&me->ldata, CD_MLOOPUV);
 }
 
@@ -1111,6 +1113,9 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
    * even in cases where the source mesh does not. */
   mesh_ensure_cdlayers_primary(me_dst, do_tessface);
   BKE_mesh_update_customdata_pointers(me_dst, false);
+
+  /* Expect that normals aren't copied at all, since the destination mesh is new. */
+  BLI_assert(BKE_mesh_vertex_normals_are_dirty(me_dst));
 
   return me_dst;
 }
@@ -1688,6 +1693,7 @@ void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
       mul_m3_v3(m3, *lnors);
     }
   }
+  BKE_mesh_normals_tag_dirty(me);
 }
 
 void BKE_mesh_translate(Mesh *me, const float offset[3], const bool do_keys)
@@ -1922,14 +1928,6 @@ void BKE_mesh_vert_coords_apply_with_mat4(Mesh *mesh,
     mul_v3_m4v3(mv->co, mat, vert_coords[i]);
   }
   BKE_mesh_normals_tag_dirty(mesh);
-}
-
-void BKE_mesh_anonymous_attributes_remove(Mesh *mesh)
-{
-  CustomData_free_layers_anonymous(&mesh->vdata, mesh->totvert);
-  CustomData_free_layers_anonymous(&mesh->edata, mesh->totedge);
-  CustomData_free_layers_anonymous(&mesh->pdata, mesh->totpoly);
-  CustomData_free_layers_anonymous(&mesh->ldata, mesh->totloop);
 }
 
 void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spacearr)

@@ -1,17 +1,16 @@
 """
 It is also possible to run an operator in a particular part of the user
-interface. For this we need to pass the window, screen, area and sometimes
-a region.
+interface. For this we need to pass the window, area and sometimes a region.
 """
 
-# maximize 3d view in all windows
+# Maximize 3d view in all windows.
 import bpy
+from bpy import context
 
-for window in bpy.context.window_manager.windows:
+for window in context.window_manager.windows:
     screen = window.screen
-
     for area in screen.areas:
         if area.type == 'VIEW_3D':
-            override = {'window': window, 'screen': screen, 'area': area}
-            bpy.ops.screen.screen_full_area(override)
+            with context.temp_override(window=window, area=area):
+                bpy.ops.screen.screen_full_area()
             break

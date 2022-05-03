@@ -8,9 +8,12 @@
 #include <stdlib.h>
 
 #include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_texture_types.h"
 
 #include "BLI_math.h"
+
+#include "BKE_customdata.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -136,10 +139,9 @@ static void rna_Material_texpaint_begin(CollectionPropertyIterator *iter, Pointe
       iter, (void *)ma->texpaintslot, sizeof(TexPaintSlot), ma->tot_slots, 0, NULL);
 }
 
-static void rna_Material_active_paint_texture_index_update(Main *bmain,
-                                                           Scene *UNUSED(scene),
-                                                           PointerRNA *ptr)
+static void rna_Material_active_paint_texture_index_update(bContext *C, PointerRNA *ptr)
 {
+  Main *bmain = CTX_data_main(C);
   bScreen *screen;
   Material *ma = (Material *)ptr->owner_id;
 
@@ -152,24 +154,41 @@ static void rna_Material_active_paint_texture_index_update(Main *bmain,
   }
 
   if (ma->texpaintslot) {
-    Image *image = ma->texpaintslot[ma->paint_active_slot].ima;
-    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
-      wmWindow *win = ED_screen_window_find(screen, bmain->wm.first);
-      if (win == NULL) {
-        continue;
-      }
+    TexPaintSlot *slot = &ma->texpaintslot[ma->paint_active_slot];
+    Image *image = slot->ima;
+    if (image) {
+      for (screen = bmain->screens.first; screen; screen = screen->id.next) {
+        wmWindow *win = ED_screen_window_find(screen, bmain->wm.first);
+        if (win == NULL) {
+          continue;
+        }
 
-      ScrArea *area;
-      for (area = screen->areabase.first; area; area = area->next) {
-        SpaceLink *sl;
-        for (sl = area->spacedata.first; sl; sl = sl->next) {
-          if (sl->spacetype == SPACE_IMAGE) {
-            SpaceImage *sima = (SpaceImage *)sl;
-            if (!sima->pin) {
-              ED_space_image_set(bmain, sima, image, true);
+        ScrArea *area;
+        for (area = screen->areabase.first; area; area = area->next) {
+          SpaceLink *sl;
+          for (sl = area->spacedata.first; sl; sl = sl->next) {
+            if (sl->spacetype == SPACE_IMAGE) {
+              SpaceImage *sima = (SpaceImage *)sl;
+              if (!sima->pin) {
+                ED_space_image_set(bmain, sima, image, true);
+              }
             }
           }
         }
+      }
+    }
+
+    /* For compatibility reasons with vertex paint we activate the color attribute. */
+    if (slot->attribute_name) {
+      Object *ob = CTX_data_active_object(C);
+      if (ob != NULL && ob->type == OB_MESH) {
+        Mesh *mesh = ob->data;
+        CustomDataLayer *layer = BKE_id_attributes_color_find(&mesh->id, slot->attribute_name);
+        if (layer != NULL) {
+          BKE_id_attributes_active_color_set(&mesh->id, layer);
+        }
+        DEG_id_tag_update(&ob->id, 0);
+        WM_main_add_notifier(NC_GEOM | ND_DATA, &ob->id);
       }
     }
   }
@@ -279,6 +298,49 @@ static void rna_TexPaintSlot_uv_layer_set(PointerRNA *ptr, const char *value)
   if (data->uvname != NULL) {
     BLI_strncpy_utf8(data->uvname, value, 64);
   }
+}
+
+static void rna_TexPaintSlot_name_get(PointerRNA *ptr, char *value)
+{
+  TexPaintSlot *data = (TexPaintSlot *)(ptr->data);
+
+  if (data->ima != NULL) {
+    BLI_strncpy_utf8(value, data->ima->id.name + 2, MAX_NAME);
+    return;
+  }
+
+  if (data->attribute_name != NULL) {
+    BLI_strncpy_utf8(value, data->attribute_name, MAX_NAME);
+    return;
+  }
+
+  value[0] = '\0';
+}
+
+static int rna_TexPaintSlot_name_length(PointerRNA *ptr)
+{
+  TexPaintSlot *data = (TexPaintSlot *)(ptr->data);
+  if (data->ima != NULL) {
+    return strlen(data->ima->id.name) - 2;
+  }
+  if (data->attribute_name != NULL) {
+    return strlen(data->attribute_name);
+  }
+
+  return 0;
+}
+
+static int rna_TexPaintSlot_icon_get(PointerRNA *ptr)
+{
+  TexPaintSlot *data = (TexPaintSlot *)(ptr->data);
+  if (data->ima != NULL) {
+    return ICON_IMAGE;
+  }
+  if (data->attribute_name != NULL) {
+    return ICON_COLOR;
+  }
+
+  return ICON_NONE;
 }
 
 static bool rna_is_grease_pencil_get(PointerRNA *ptr)
@@ -963,6 +1025,17 @@ static void rna_def_tex_slot(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "Texture Paint Slot", "Slot that contains information about texture painting");
 
+  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_string_funcs(
+      prop, "rna_TexPaintSlot_name_get", "rna_TexPaintSlot_name_length", NULL);
+  RNA_def_property_ui_text(prop, "Name", "Name of the slot");
+
+  prop = RNA_def_property(srna, "icon_value", PROP_INT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_int_funcs(prop, "rna_TexPaintSlot_icon_get", NULL, NULL);
+  RNA_def_property_ui_text(prop, "Icon", "Paint slot icon");
+
   prop = RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
   RNA_def_property_string_maxlength(prop, 64); /* else it uses the pointer size! */
   RNA_def_property_string_sdna(prop, NULL, "uvname");
@@ -1019,6 +1092,7 @@ void rna_def_texpaint_slots(BlenderRNA *brna, StructRNA *srna)
   RNA_def_property_range(prop, 0, SHRT_MAX);
   RNA_def_property_ui_text(
       prop, "Active Paint Texture Index", "Index of active texture paint slot");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(
       prop, NC_MATERIAL | ND_SHADING_LINKS, "rna_Material_active_paint_texture_index_update");
 

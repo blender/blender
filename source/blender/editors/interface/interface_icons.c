@@ -1584,10 +1584,10 @@ static void icon_draw_cache_texture_flush_ex(GPUTexture *texture,
   GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR);
   GPU_shader_bind(shader);
 
-  const int data_loc = GPU_shader_get_uniform_block(shader, "multi_rect_data");
+  const int data_binding = GPU_shader_get_uniform_block_binding(shader, "multi_rect_data");
   GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(
       sizeof(struct MultiRectCallData), texture_draw_calls->drawcall_cache, __func__);
-  GPU_uniformbuf_bind(ubo, data_loc);
+  GPU_uniformbuf_bind(ubo, data_binding);
 
   const int img_binding = GPU_shader_get_texture_binding(shader, "image");
   GPU_texture_bind_ex(texture, GPU_SAMPLER_ICON, img_binding, false);

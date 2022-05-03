@@ -1215,7 +1215,7 @@ static void object_asset_pre_save(void *asset_ptr, struct AssetMetaData *asset_d
   }
 }
 
-AssetTypeInfo AssetType_OB = {
+static AssetTypeInfo AssetType_OB = {
     /* pre_save_fn */ object_asset_pre_save,
 };
 
@@ -1251,7 +1251,7 @@ IDTypeInfo IDType_ID_OB = {
 
 void BKE_object_workob_clear(Object *workob)
 {
-  *workob = blender::dna::shallow_zero_initialize<Object>();
+  *workob = blender::dna::shallow_zero_initialize();
 
   workob->scale[0] = workob->scale[1] = workob->scale[2] = 1.0f;
   workob->dscale[0] = workob->dscale[1] = workob->dscale[2] = 1.0f;
@@ -1789,6 +1789,7 @@ void BKE_object_free_derived_caches(Object *ob)
         BKE_mesh_eval_delete((Mesh *)data_eval);
       }
       else {
+        BKE_libblock_free_data(data_eval, false);
         BKE_libblock_free_datablock(data_eval, 0);
         MEM_freeN(data_eval);
       }
@@ -1897,6 +1898,8 @@ bool BKE_object_is_in_editmode(const Object *ob)
     case OB_GPENCIL:
       /* Grease Pencil object has no edit mode data. */
       return GPENCIL_EDIT_MODE((bGPdata *)ob->data);
+    case OB_CURVES:
+      return ob->mode == OB_MODE_EDIT;
     default:
       return false;
   }
@@ -1907,7 +1910,7 @@ bool BKE_object_is_in_editmode_vgroup(const Object *ob)
   return (OB_TYPE_SUPPORT_VGROUP(ob->type) && BKE_object_is_in_editmode(ob));
 }
 
-bool BKE_object_data_is_in_editmode(const ID *id)
+bool BKE_object_data_is_in_editmode(const Object *ob, const ID *id)
 {
   const short type = GS(id->name);
   BLI_assert(OB_DATA_SUPPORT_EDITMODE(type));
@@ -1923,6 +1926,11 @@ bool BKE_object_data_is_in_editmode(const ID *id)
       return ((const Lattice *)id)->editlatt != nullptr;
     case ID_AR:
       return ((const bArmature *)id)->edbo != nullptr;
+    case ID_CV:
+      if (ob) {
+        return BKE_object_is_in_editmode(ob);
+      }
+      return false;
     default:
       BLI_assert_unreachable();
       return false;
@@ -1969,6 +1977,10 @@ char *BKE_object_data_editmode_flush_ptr_get(struct ID *id)
     case ID_AR: {
       bArmature *arm = (bArmature *)id;
       return &arm->needs_flush_to_id;
+    }
+    case ID_CV: {
+      /* Curves have no edit mode data. */
+      return nullptr;
     }
     default:
       BLI_assert_unreachable();
@@ -3076,12 +3088,12 @@ void BKE_object_matrix_local_get(struct Object *ob, float r_mat[4][4])
 static bool ob_parcurve(Object *ob, Object *par, float r_mat[4][4])
 {
   Curve *cu = (Curve *)par->data;
-  float vec[4], dir[3], quat[4], radius, ctime;
+  float vec[4], quat[4], radius, ctime;
 
   /* NOTE: Curve cache is supposed to be evaluated here already, however there
    * are cases where we can not guarantee that. This includes, for example,
    * dependency cycles. We can't correct anything from here, since that would
-   * cause a threading conflicts.
+   * cause threading conflicts.
    *
    * TODO(sergey): Some of the legit looking cases like T56619 need to be
    * looked into, and maybe curve cache (and other dependencies) are to be
@@ -3114,7 +3126,7 @@ static bool ob_parcurve(Object *ob, Object *par, float r_mat[4][4])
 
   /* vec: 4 items! */
   if (BKE_where_on_path(
-          par, ctime, vec, dir, (cu->flag & CU_FOLLOW) ? quat : nullptr, &radius, nullptr)) {
+          par, ctime, vec, nullptr, (cu->flag & CU_FOLLOW) ? quat : nullptr, &radius, nullptr)) {
     if (cu->flag & CU_FOLLOW) {
       quat_apply_track(quat, ob->trackflag, ob->upflag);
       normalize_qt(quat);
@@ -3244,10 +3256,9 @@ static void give_parvert(Object *par, int nr, float vec[3])
   else if (ELEM(par->type, OB_CURVES_LEGACY, OB_SURF)) {
     ListBase *nurb;
 
-    /* Unless there's some weird depsgraph failure the cache should exist. */
-    BLI_assert(par->runtime.curve_cache != nullptr);
-
-    if (par->runtime.curve_cache->deformed_nurbs.first != nullptr) {
+    /* It is possible that a cycle in the dependency graph was resolved in a way that caused this
+     * object to be evaluated before its dependencies. In this case the curve cache may be null. */
+    if (par->runtime.curve_cache && par->runtime.curve_cache->deformed_nurbs.first != nullptr) {
       nurb = &par->runtime.curve_cache->deformed_nurbs;
     }
     else {
@@ -3545,6 +3556,55 @@ void BKE_object_apply_mat4(Object *ob,
                            const bool use_parent)
 {
   BKE_object_apply_mat4_ex(ob, mat, use_parent ? ob->parent : nullptr, ob->parentinv, use_compat);
+}
+
+void BKE_object_apply_parent_inverse(struct Object *ob)
+{
+  /*
+   * Use parent's world transform as the child's origin.
+   *
+   * Let:
+   *    `local = identity`
+   *    `world = orthonormalized(parent)`
+   *
+   * Then:
+   *    `world = parent @ parentinv @ local`
+   *    `inv(parent) @ world = parentinv`
+   *    `parentinv = inv(parent) @ world`
+   *
+   * NOTE: If `ob->obmat` has shear, then this `parentinv` is insufficient because
+   *    `parent @ parentinv => shearless result`
+   *
+   *    Thus, local will have shear which cannot be decomposed into TRS:
+   *    `local = inv(parent @ parentinv) @ world`
+   *
+   *    This is currently not supported for consistency in the handling of shear during the other
+   *    parenting ops: Parent (Keep Transform), Clear [Parent] and Keep Transform.
+   */
+  float par_locrot[4][4], par_imat[4][4];
+  BKE_object_get_parent_matrix(ob, ob->parent, par_locrot);
+  invert_m4_m4(par_imat, par_locrot);
+
+  orthogonalize_m4_stable(par_locrot, 0, true);
+
+  mul_m4_m4m4(ob->parentinv, par_imat, par_locrot);
+
+  /* Now, preserve `world` given the new `parentinv`.
+   *
+   * `world = parent @ parentinv @ local`
+   * `inv(parent) @ world = parentinv @ local`
+   * `inv(parentinv) @ inv(parent) @ world = local`
+   *
+   * `local = inv(parentinv) @ inv(parent) @ world`
+   */
+  float ob_local[4][4];
+  copy_m4_m4(ob_local, ob->parentinv);
+  invert_m4(ob_local);
+  mul_m4_m4_post(ob_local, par_imat);
+  mul_m4_m4_post(ob_local, ob->obmat);
+
+  /* Send use_compat=False so the rotation is predictable. */
+  BKE_object_apply_mat4(ob, ob_local, false, false);
 }
 
 /** \} */
@@ -3914,8 +3974,9 @@ bool BKE_object_empty_image_data_is_visible_in_view3d(const Object *ob, const Re
   }
 
   if (visibility_flag & OB_EMPTY_IMAGE_HIDE_NON_AXIS_ALIGNED) {
-    float3 proj;
-    project_plane_v3_v3v3(proj, ob->obmat[2], rv3d->viewinv[2]);
+    float3 proj, ob_z_axis;
+    normalize_v3_v3(ob_z_axis, ob->obmat[2]);
+    project_plane_v3_v3v3(proj, ob_z_axis, rv3d->viewinv[2]);
     const float proj_length_sq = len_squared_v3(proj);
     if (proj_length_sq > 1e-5f) {
       return false;

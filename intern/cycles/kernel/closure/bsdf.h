@@ -445,6 +445,11 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
     }
   }
 
+#ifdef WITH_CYCLES_DEBUG
+  kernel_assert(*pdf >= 0.0f);
+  kernel_assert(eval->x >= 0.0f && eval->y >= 0.0f && eval->z >= 0.0f);
+#endif
+
   return label;
 }
 
@@ -635,7 +640,10 @@ ccl_device_inline
       }
     }
   }
-
+#ifdef WITH_CYCLES_DEBUG
+  kernel_assert(*pdf >= 0.0f);
+  kernel_assert(eval.x >= 0.0f && eval.y >= 0.0f && eval.z >= 0.0f);
+#endif
   return eval;
 }
 

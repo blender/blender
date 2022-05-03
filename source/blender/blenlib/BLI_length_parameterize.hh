@@ -77,4 +77,22 @@ void create_uniform_samples(Span<float> lengths,
                             MutableSpan<int> indices,
                             MutableSpan<float> factors);
 
+/**
+ * For each provided sample length, find the segment index and interpolation factor.
+ *
+ * \param lengths: The accumulated lengths of the original elements being sampled.
+ * Could be calculated by #accumulate_lengths.
+ * \param sample_lengths: Sampled locations in the #lengths array. Must be sorted and is expected
+ * to be within the range of the #lengths values.
+ * \param cyclic: Whether the points described by the #lenghts input is cyclic. This is likely
+ * redundant information theoretically.
+ * \param indices: The index of the previous point at each sample.
+ * \param factors: The portion of the length in each segment at each sample.
+ */
+void create_samples_from_sorted_lengths(Span<float> lengths,
+                                        Span<float> sample_lengths,
+                                        bool cyclic,
+                                        MutableSpan<int> indices,
+                                        MutableSpan<float> factors);
+
 }  // namespace blender::length_parameterize

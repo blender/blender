@@ -211,6 +211,11 @@ void hair_get_pos_tan_binor_time(bool is_persp,
 
     wpos += wbinor * thick_time * scale;
   }
+  else {
+    /* Note: Ensures 'hairThickTime' is initialised -
+     * avoids undefined behaviour on certain macOS configurations. */
+    thick_time = 0.0;
+  }
 }
 
 float hair_get_customdata_float(const samplerBuffer cd_buf)

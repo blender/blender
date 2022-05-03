@@ -638,7 +638,13 @@ static short snap_select_type_get(TransInfo *t)
     const int obedit_type = t->obedit_type;
     if (obedit_type != -1) {
       /* Edit mode */
-      if (ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVES_LEGACY, OB_LATTICE, OB_MBALL)) {
+      if (ELEM(obedit_type,
+               OB_MESH,
+               OB_ARMATURE,
+               OB_CURVES_LEGACY,
+               OB_SURF,
+               OB_LATTICE,
+               OB_MBALL)) {
         /* Temporary limited to edit mode meshes, armature, curves, lattice and metaballs. */
 
         if ((obedit_type == OB_MESH) && (t->flag & T_PROP_EDIT)) {

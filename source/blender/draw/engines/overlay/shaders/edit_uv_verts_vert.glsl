@@ -1,15 +1,4 @@
-#pragma BLENDER_REQUIRE(common_globals_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
-
-uniform float pointSize;
-uniform float outlineWidth;
-
-in vec2 au;
-in int flag;
-
-out vec4 fillColor;
-out vec4 outlineColor;
-out vec4 radii;
 
 /* TODO: Theme? */
 const vec4 pinned_col = vec4(1.0, 0.0, 0.0, 1.0);
@@ -18,7 +7,7 @@ void main()
 {
   bool is_selected = (flag & (VERT_UV_SELECT | FACE_UV_SELECT)) != 0;
   bool is_pinned = (flag & VERT_UV_PINNED) != 0;
-  vec4 deselect_col = (is_pinned) ? pinned_col : vec4(colorWire.rgb, 1.0);
+  vec4 deselect_col = (is_pinned) ? pinned_col : vec4(color.rgb, 1.0);
   fillColor = (is_selected) ? colorVertexSelect : deselect_col;
   outlineColor = (is_pinned) ? pinned_col : vec4(fillColor.rgb, 0.0);
 

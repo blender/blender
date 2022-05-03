@@ -31,26 +31,40 @@
 static int txtfmt_py_find_builtinfunc(const char *string)
 {
   int i, len;
-  /* list is from...
+  /**
+   * The following items are derived from this list:
+   * \code{.py}
    * ", ".join(['"%s"' % kw
-   *            for kw in  __import__("keyword").kwlist
-   *            if kw not in {"False", "None", "True", "def", "class"}])
+   *            for kw in sorted(__import__("keyword").kwlist + __import__("keyword").softkwlist)
+   *            if kw not in {"False", "None", "True", "def", "class", "_"}])
+   * \endcode
    *
-   * ... and for this code:
-   * print("\n".join(['else if (STR_LITERAL_STARTSWITH(string, "%s", len)) i = len;' % kw
-   *                  for kw in  __import__("keyword").kwlist
-   *                  if kw not in {"False", "None", "True", "def", "class"}]))
+   * The code below can be re-generated using:
+   * \code{.py}
+   * import keyword
+   * ignore = {"False", "None", "True", "def", "class", "_"}
+   * keywords = sorted(set(keyword.kwlist + keyword.softkwlist) - ignore)
+   * longest = max(len(kw) for kw in keywords)
+   * first  = 'if        (STR_LITERAL_STARTSWITH(string, "%s",%s len)) { i = len;'
+   * middle = '} else if (STR_LITERAL_STARTSWITH(string, "%s",%s len)) { i = len;'
+   * last   = '} else                                         %s       { i = 0;'
+   * print("\n".join([(first if i==0 else middle) % (kw, ' '*(longest - len(kw)))
+   *                 for (i, kw) in enumerate(keywords)]) + "\n" +
+   *       last % (' '*(longest-2)) + "\n" +
+   *       "}")
+   * \endcode
    */
 
   /* Keep aligned args for readability. */
   /* clang-format off */
 
-  if        (STR_LITERAL_STARTSWITH(string, "assert",   len)) { i = len;
+  if        (STR_LITERAL_STARTSWITH(string, "and",      len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "as",       len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "assert",   len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "async",    len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "await",    len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "and",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "as",       len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "break",    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "case",     len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "continue", len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "del",      len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "elif",     len)) { i = len;
@@ -65,6 +79,7 @@ static int txtfmt_py_find_builtinfunc(const char *string)
   } else if (STR_LITERAL_STARTSWITH(string, "in",       len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "is",       len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "lambda",   len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "match",    len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "nonlocal", len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "not",      len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "or",       len)) { i = len;

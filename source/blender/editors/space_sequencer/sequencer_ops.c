@@ -102,6 +102,9 @@ void sequencer_operatortypes(void)
   WM_operatortype_append(SEQUENCER_OT_view_zoom_ratio);
   WM_operatortype_append(SEQUENCER_OT_view_selected);
   WM_operatortype_append(SEQUENCER_OT_view_ghost_border);
+
+  /* sequencer_channels_edit.c */
+  WM_operatortype_append(SEQUENCER_OT_rename_channel);
 }
 
 void sequencer_keymap(wmKeyConfig *keyconf)
@@ -114,6 +117,9 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 
   /* Preview Region ----------------------------------------------------------- */
   WM_keymap_ensure(keyconf, "SequencerPreview", SPACE_SEQ, 0);
+
+  /* Channels Region ----------------------------------------------------------- */
+  WM_keymap_ensure(keyconf, "Sequencer Channels", SPACE_SEQ, 0);
 }
 
 void ED_operatormacros_sequencer(void)

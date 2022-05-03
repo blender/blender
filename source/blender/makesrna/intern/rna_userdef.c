@@ -3149,6 +3149,7 @@ static void rna_def_userdef_theme_space_seq(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Theme Sequence Editor", "Theme settings for the Sequence Editor");
 
   rna_def_userdef_theme_spaces_main(srna);
+  rna_def_userdef_theme_spaces_list_main(srna);
 
   prop = RNA_def_property(srna, "grid", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
@@ -5255,7 +5256,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_duplicate_fcurve", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_FCURVE);
   RNA_def_property_ui_text(
-      prop, "Duplicate F-Curve", "Causes F-curve data to be duplicated with the object");
+      prop, "Duplicate F-Curve", "Causes F-Curve data to be duplicated with the object");
 #  endif
 
   prop = RNA_def_property(srna, "use_duplicate_action", PROP_BOOLEAN, PROP_NONE);
@@ -6398,14 +6399,14 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Cycles Debug", "Enable Cycles debugging options for developers");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-  prop = RNA_def_property(srna, "use_sculpt_vertex_colors", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_sculpt_vertex_colors", 1);
-  RNA_def_property_ui_text(prop, "Sculpt Vertex Colors", "Use the new Vertex Painting system");
-
   prop = RNA_def_property(srna, "use_sculpt_tools_tilt", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_sculpt_tools_tilt", 1);
   RNA_def_property_ui_text(
       prop, "Sculpt Mode Tilt Support", "Support for pen tablet tilt events in Sculpt Mode");
+
+  prop = RNA_def_property(srna, "use_sculpt_texture_paint", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_sculpt_texture_paint", 1);
+  RNA_def_property_ui_text(prop, "Sculpt Texture Paint", "Use texture painting in Sculpt Mode");
 
   prop = RNA_def_property(srna, "use_extended_asset_browser", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(prop,
@@ -6432,18 +6433,6 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "use_override_templates", 1);
   RNA_def_property_ui_text(
       prop, "Override Templates", "Enable library override template in the python API");
-
-  prop = RNA_def_property(srna, "use_named_attribute_nodes", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_named_attribute_nodes", 1);
-  RNA_def_property_ui_text(prop,
-                           "Named Attribute Nodes",
-                           "Enable named attribute nodes in the geometry nodes add menu");
-
-  prop = RNA_def_property(srna, "use_select_nearest_on_first_click", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_select_nearest_on_first_click", 1);
-  RNA_def_property_ui_text(prop,
-                           "Object Select Nearest on First Click",
-                           "When enabled, always select the front-most object on the first click");
 
   prop = RNA_def_property(srna, "enable_eevee_next", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "enable_eevee_next", 1);

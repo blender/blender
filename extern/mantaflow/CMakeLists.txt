@@ -259,3 +259,10 @@ set(LIB
 )
 
 blender_add_lib(extern_mantaflow "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+# The VDB libs above are only added to as INTERFACE libs by blender_add_lib,
+# meaning extern_mantaflow itself actually does not have a dependency on the
+# openvdb libraries, and CMAKE is free to link the vdb libs before
+# extern_mantaflow causing linker errors on linux. By explicitly declaring
+# a dependency here, cmake will do the right thing.
+target_link_libraries(extern_mantaflow PRIVATE ${OPENVDB_LIBRARIES})

@@ -426,6 +426,9 @@ void OBJMesh::store_normal_coords_and_indices()
 
 Vector<int> OBJMesh::calc_poly_normal_indices(const int poly_index) const
 {
+  if (loop_to_normal_index_.is_empty()) {
+    return {};
+  }
   const MPoly &mpoly = export_mesh_eval_->mpoly[poly_index];
   const int totloop = mpoly.totloop;
   Vector<int> r_poly_normal_indices(totloop);
@@ -436,46 +439,47 @@ Vector<int> OBJMesh::calc_poly_normal_indices(const int poly_index) const
   return r_poly_normal_indices;
 }
 
-int16_t OBJMesh::get_poly_deform_group_index(const int poly_index) const
+int OBJMesh::tot_deform_groups() const
+{
+  if (!BKE_object_supports_vertex_groups(&export_object_eval_)) {
+    return 0;
+  }
+  return BKE_object_defgroup_count(&export_object_eval_);
+}
+
+int16_t OBJMesh::get_poly_deform_group_index(const int poly_index,
+                                             MutableSpan<float> group_weights) const
 {
   BLI_assert(poly_index < export_mesh_eval_->totpoly);
-  const MPoly &mpoly = export_mesh_eval_->mpoly[poly_index];
-  const MLoop *mloop = &export_mesh_eval_->mloop[mpoly.loopstart];
-  const Object *obj = &export_object_eval_;
-  const int tot_deform_groups = BKE_object_defgroup_count(obj);
-  /* Indices of the vector index into deform groups of an object; values are the]
-   * number of vertex members in one deform group. */
-  Vector<int16_t> deform_group_members(tot_deform_groups, 0);
-  /* Whether at least one vertex in the polygon belongs to any group. */
-  bool found_group = false;
+  BLI_assert(group_weights.size() == BKE_object_defgroup_count(&export_object_eval_));
 
-  const MDeformVert *dvert_orig = static_cast<MDeformVert *>(
+  const MDeformVert *dvert_layer = static_cast<MDeformVert *>(
       CustomData_get_layer(&export_mesh_eval_->vdata, CD_MDEFORMVERT));
-  if (!dvert_orig) {
+  if (!dvert_layer) {
     return NOT_FOUND;
   }
 
-  const MDeformWeight *curr_weight = nullptr;
-  const MDeformVert *dvert = nullptr;
-  for (int loop_index = 0; loop_index < mpoly.totloop; loop_index++) {
-    dvert = &dvert_orig[(mloop + loop_index)->v];
-    curr_weight = dvert->dw;
-    if (curr_weight) {
-      bDeformGroup *vertex_group = static_cast<bDeformGroup *>(
-          BLI_findlink(BKE_object_defgroup_list(obj), curr_weight->def_nr));
-      if (vertex_group) {
-        deform_group_members[curr_weight->def_nr] += 1;
-        found_group = true;
+  group_weights.fill(0);
+  bool found_any_group = false;
+  const MPoly &mpoly = export_mesh_eval_->mpoly[poly_index];
+  const MLoop *mloop = &export_mesh_eval_->mloop[mpoly.loopstart];
+  for (int loop_i = 0; loop_i < mpoly.totloop; ++loop_i, ++mloop) {
+    const MDeformVert &dvert = dvert_layer[mloop->v];
+    for (int weight_i = 0; weight_i < dvert.totweight; ++weight_i) {
+      const auto group = dvert.dw[weight_i].def_nr;
+      if (group < group_weights.size()) {
+        group_weights[group] += dvert.dw[weight_i].weight;
+        found_any_group = true;
       }
     }
   }
 
-  if (!found_group) {
+  if (!found_any_group) {
     return NOT_FOUND;
   }
   /* Index of the group with maximum vertices. */
-  int16_t max_idx = std::max_element(deform_group_members.begin(), deform_group_members.end()) -
-                    deform_group_members.begin();
+  int16_t max_idx = std::max_element(group_weights.begin(), group_weights.end()) -
+                    group_weights.begin();
   return max_idx;
 }
 

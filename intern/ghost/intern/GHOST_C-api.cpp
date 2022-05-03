@@ -30,11 +30,11 @@ GHOST_SystemHandle GHOST_CreateSystem(void)
   return (GHOST_SystemHandle)system;
 }
 
-void GHOST_SystemInitDebug(GHOST_SystemHandle systemhandle, int is_debug_enabled)
+void GHOST_SystemInitDebug(GHOST_SystemHandle systemhandle, GHOST_Debug debug)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
-  system->initDebug(is_debug_enabled);
+  system->initDebug(debug);
 }
 
 GHOST_TSuccess GHOST_DisposeSystem(GHOST_SystemHandle systemhandle)

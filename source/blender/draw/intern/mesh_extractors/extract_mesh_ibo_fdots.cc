@@ -5,9 +5,7 @@
  * \ingroup draw
  */
 
-#include "BLI_vector.hh"
-
-#include "MEM_guardedalloc.h"
+#include "BLI_bitmap.h"
 
 #include "extract_mesh.h"
 
@@ -46,13 +44,13 @@ static void extract_fdots_iter_poly_mesh(const MeshRenderData *mr,
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
   if (mr->use_subsurf_fdots) {
-    /* Check #ME_VERT_FACEDOT. */
+    const BLI_bitmap *facedot_tags = mr->me->runtime.subsurf_face_dot_tags;
+
     const MLoop *mloop = mr->mloop;
     const int ml_index_end = mp->loopstart + mp->totloop;
     for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
       const MLoop *ml = &mloop[ml_index];
-      const MVert *mv = &mr->mvert[ml->v];
-      if ((mv->flag & ME_VERT_FACEDOT) && !(mr->use_hide && (mp->flag & ME_HIDE))) {
+      if (BLI_BITMAP_TEST(facedot_tags, ml->v) && !(mr->use_hide && (mp->flag & ME_HIDE))) {
         GPU_indexbuf_set_point_vert(elb, mp_index, mp_index);
         return;
       }

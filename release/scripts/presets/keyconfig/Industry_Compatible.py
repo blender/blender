@@ -10,6 +10,7 @@ import bpy
 DIRNAME, FILENAME = os.path.split(__file__)
 IDNAME = os.path.splitext(FILENAME)[0]
 
+
 def update_fn(_self, _context):
     load()
 
@@ -32,6 +33,7 @@ def load():
         keyconfig_data = keyconfig_data_oskey_from_ctrl_for_macos(keyconfig_data)
 
     keyconfig_init_from_data(kc, keyconfig_data)
+
 
 if __name__ == "__main__":
     load()

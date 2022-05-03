@@ -96,18 +96,18 @@ void MultiFunction::call_auto(IndexMask mask, MFParams params, MFContext context
     for (const int param_index : this->param_indices()) {
       const MFParamType param_type = this->param_type(param_index);
       switch (param_type.category()) {
-        case MFParamType::SingleInput: {
+        case MFParamCategory::SingleInput: {
           const GVArray &varray = params.readonly_single_input(param_index);
           offset_params.add_readonly_single_input(varray.slice(input_slice_range));
           break;
         }
-        case MFParamType::SingleMutable: {
+        case MFParamCategory::SingleMutable: {
           const GMutableSpan span = params.single_mutable(param_index);
           const GMutableSpan sliced_span = span.slice(input_slice_range);
           offset_params.add_single_mutable(sliced_span);
           break;
         }
-        case MFParamType::SingleOutput: {
+        case MFParamCategory::SingleOutput: {
           const GMutableSpan span = params.uninitialized_single_output_if_required(param_index);
           if (span.is_empty()) {
             offset_params.add_ignored_single_output();
@@ -118,9 +118,9 @@ void MultiFunction::call_auto(IndexMask mask, MFParams params, MFContext context
           }
           break;
         }
-        case MFParamType::VectorInput:
-        case MFParamType::VectorMutable:
-        case MFParamType::VectorOutput: {
+        case MFParamCategory::VectorInput:
+        case MFParamCategory::VectorMutable:
+        case MFParamCategory::VectorOutput: {
           BLI_assert_unreachable();
           break;
         }

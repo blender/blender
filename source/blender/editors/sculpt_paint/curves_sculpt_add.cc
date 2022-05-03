@@ -96,6 +96,7 @@ struct AddOperationExecutor {
 
   CurvesSculpt *curves_sculpt_ = nullptr;
   Brush *brush_ = nullptr;
+  BrushCurvesSculptSettings *brush_settings_ = nullptr;
 
   float brush_radius_re_;
   float2 brush_pos_re_;
@@ -162,17 +163,18 @@ struct AddOperationExecutor {
 
     curves_sculpt_ = scene_->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush(&curves_sculpt_->paint);
+    brush_settings_ = brush_->curves_sculpt_settings;
     brush_radius_re_ = BKE_brush_size_get(scene_, brush_);
     brush_pos_re_ = stroke_extension.mouse_position;
 
     use_front_face_ = brush_->flag & BRUSH_FRONTFACE;
     const eBrushFalloffShape falloff_shape = static_cast<eBrushFalloffShape>(
         brush_->falloff_shape);
-    add_amount_ = std::max(0, brush_->curves_sculpt_settings->add_amount);
-    interpolate_length_ = curves_sculpt_->flag & CURVES_SCULPT_FLAG_INTERPOLATE_LENGTH;
-    interpolate_shape_ = curves_sculpt_->flag & CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE;
+    add_amount_ = std::max(0, brush_settings_->add_amount);
+    interpolate_length_ = brush_settings_->flag & BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_LENGTH;
+    interpolate_shape_ = brush_settings_->flag & BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE;
     use_interpolation_ = interpolate_length_ || interpolate_shape_;
-    new_curve_length_ = curves_sculpt_->curve_length;
+    new_curve_length_ = brush_settings_->curve_length;
 
     tot_old_curves_ = curves_->curves_num();
     tot_old_points_ = curves_->points_num();
@@ -527,7 +529,7 @@ struct AddOperationExecutor {
 
   void initialize_curve_offsets(const int tot_added_curves)
   {
-    MutableSpan<int> offsets = curves_->offsets();
+    MutableSpan<int> offsets = curves_->offsets_for_write();
     threading::parallel_for(IndexRange(tot_added_curves), 1024, [&](const IndexRange range) {
       for (const int i : range) {
         const int curve_i = tot_old_curves_ + i;
@@ -656,8 +658,8 @@ struct AddOperationExecutor {
 
   void initialize_surface_attachment(const AddedPoints &added_points)
   {
-    MutableSpan<int> surface_triangle_indices = curves_->surface_triangle_indices();
-    MutableSpan<float2> surface_triangle_coords = curves_->surface_triangle_coords();
+    MutableSpan<int> surface_triangle_indices = curves_->surface_triangle_indices_for_write();
+    MutableSpan<float2> surface_triangle_coords = curves_->surface_triangle_coords_for_write();
     threading::parallel_for(
         added_points.bary_coords.index_range(), 1024, [&](const IndexRange range) {
           for (const int i : range) {
@@ -675,7 +677,7 @@ struct AddOperationExecutor {
                                                  const Span<float> lengths_cu,
                                                  const MutableSpan<float3> normals_su)
   {
-    MutableSpan<float3> positions_cu = curves_->positions();
+    MutableSpan<float3> positions_cu = curves_->positions_for_write();
 
     threading::parallel_for(
         added_points.bary_coords.index_range(), 256, [&](const IndexRange range) {
@@ -701,8 +703,8 @@ struct AddOperationExecutor {
                                               const Span<float3> new_normals_su,
                                               const Span<float> new_lengths_cu)
   {
-    MutableSpan<float3> positions_cu = curves_->positions();
-    const Span<int> surface_triangle_indices = curves_->surface_triangle_indices();
+    MutableSpan<float3> positions_cu = curves_->positions_for_write();
+    const VArray_Span<int> surface_triangle_indices{curves_->surface_triangle_indices()};
     const Span<float2> surface_triangle_coords = curves_->surface_triangle_coords();
 
     threading::parallel_for(

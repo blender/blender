@@ -17,6 +17,9 @@ struct UndoType;
 struct ViewContext;
 struct bContext;
 struct rcti;
+struct wmMsgSubscribeKey;
+struct wmMsgSubscribeValue;
+struct wmRegionMessageSubscribeParams;
 
 /* sculpt.c */
 

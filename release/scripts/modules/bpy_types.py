@@ -8,11 +8,64 @@ StructRNA = bpy_types.bpy_struct
 StructMetaPropGroup = bpy_types.bpy_struct_meta_idprop
 # StructRNA = bpy_types.Struct
 
+# Private dummy object use for comparison only.
+_sentinel = object()
+
 # Note that methods extended in C are defined in: 'bpy_rna_types_capi.c'
 
 
 class Context(StructRNA):
     __slots__ = ()
+
+    def path_resolve(self, path, coerce=True):
+        """
+        Returns the property from the path, raise an exception when not found.
+
+        :arg path: patch which this property resolves.
+        :type path: string
+        :arg coerce: optional argument, when True, the property will be converted into its Python representation.
+        :type coerce: boolean
+        """
+        # This is a convenience wrapper around `StructRNA.path_resolve` which doesn't support accessing context members.
+        # Without this wrapper many users were writing `exec("context.%s" % data_path)` which is a security
+        # concern if the `data_path` comes from an unknown source.
+        # This function performs the initial lookup, after that the regular `path_resolve` function is used.
+
+        # Extract the initial attribute into `(attr, path_rest)`.
+        sep = len(path)
+        div = ""
+        for div_test in (".", "["):
+            sep_test = path.find(div_test, 0, sep)
+            if sep_test != -1 and sep_test < sep:
+                sep = sep_test
+                div = div_test
+        if div:
+            attr = path[:sep]
+            if div == ".":
+                sep += 1
+            path_rest = path[sep:]
+        else:
+            attr = path
+            path_rest = ""
+
+        # Retrieve the value for `attr`.
+        # Match the value error exception with that of "path_resolve"
+        # to simplify exception handling for the caller.
+        value = getattr(self, attr, _sentinel)
+        if value is _sentinel:
+            raise ValueError("Path could not be resolved: %r" % attr)
+
+        if value is None:
+            return value
+
+        # Resolve the rest of the path if necessary.
+        if path_rest:
+            path_resolve_fn = getattr(value, "path_resolve", None)
+            if path_resolve_fn is None:
+                raise ValueError("Path %s resolves to a non RNA value" % attr)
+            return path_resolve_fn(path_rest, coerce)
+
+        return value
 
     def copy(self):
         from types import BuiltinMethodType
@@ -318,13 +371,8 @@ class _GenericBone:
         """
         return (self.tail - self.head)
 
-    @property
-    def children(self):
-        """A list of all the bones children.
-
-        .. note:: Takes ``O(len(bones))`` time."""
-        return [child for child in self._other_bones if child.parent == self]
-
+    # NOTE: each bone type is responsible for implementing `children`.
+    # This is done since `Bone` has direct access to this data in RNA.
     @property
     def children_recursive(self):
         """A list of all children from this bone.
@@ -404,9 +452,18 @@ class PoseBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
 class Bone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
     __slots__ = ()
 
+    # NOTE: `children` is implemented in RNA.
+
 
 class EditBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
     __slots__ = ()
+
+    @property
+    def children(self):
+        """A list of all the bones children.
+
+        .. note:: Takes ``O(len(bones))`` time."""
+        return [child for child in self._other_bones if child.parent == self]
 
     def align_orientation(self, other):
         """

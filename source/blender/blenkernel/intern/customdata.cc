@@ -765,7 +765,12 @@ static void layerFree_grid_paint_mask(void *data, int count, int UNUSED(size))
   }
 }
 
-/* --------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (#MLoopCol, #CD_PROP_BYTE_COLOR)
+ * \{ */
+
 static void layerCopyValue_mloopcol(const void *source,
                                     void *dest,
                                     const int mixmode,
@@ -953,6 +958,12 @@ static int layerMaxNum_mloopcol()
 {
   return MAX_MCOL;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (#MLoopUV, #CD_MLOOPUV)
+ * \{ */
 
 static void layerCopyValue_mloopuv(const void *source,
                                    void *dest,
@@ -1716,7 +1727,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      nullptr,
      nullptr,
      layerMaxNum_tface},
-    /* 17: CD_MLOOPCOL */
+    /* 17: CD_PROP_BYTE_COLOR */
     {sizeof(MLoopCol),
      "MLoopCol",
      1,
@@ -2052,46 +2063,45 @@ const CustomData_MeshMasks CD_MASK_BAREMESH_ORIGINDEX = {
 };
 const CustomData_MeshMasks CD_MASK_MESH = {
     /* vmask */ (CD_MASK_MVERT | CD_MASK_MDEFORMVERT | CD_MASK_MVERT_SKIN | CD_MASK_PAINT_MASK |
-                 CD_MASK_PROP_ALL | CD_MASK_PROP_COLOR | CD_MASK_CREASE),
+                 CD_MASK_PROP_ALL | CD_MASK_CREASE),
     /* emask */ (CD_MASK_MEDGE | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
     /* fmask */ 0,
     /* pmask */
     (CD_MASK_MPOLY | CD_MASK_FACEMAP | CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL |
      CD_MASK_SCULPT_FACE_SETS),
     /* lmask */
-    (CD_MASK_MLOOP | CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL |
-     CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
+    (CD_MASK_MLOOP | CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_CUSTOMLOOPNORMAL |
+     CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
 };
 const CustomData_MeshMasks CD_MASK_DERIVEDMESH = {
     /* vmask */ (CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT | CD_MASK_SHAPEKEY | CD_MASK_MVERT_SKIN |
                  CD_MASK_PAINT_MASK | CD_MASK_ORCO | CD_MASK_CLOTH_ORCO | CD_MASK_PROP_ALL |
-                 CD_MASK_PROP_COLOR | CD_MASK_CREASE),
+                 CD_MASK_CREASE),
     /* emask */ (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
     /* fmask */ (CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE | CD_MASK_PREVIEW_MCOL | CD_MASK_TANGENT),
     /* pmask */
     (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_PROP_ALL |
      CD_MASK_SCULPT_FACE_SETS),
     /* lmask */
-    (CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_PREVIEW_MLOOPCOL |
+    (CD_MASK_MLOOPUV | CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_PREVIEW_MLOOPCOL |
      CD_MASK_ORIGSPACE_MLOOP | CD_MASK_PROP_ALL), /* XXX MISSING CD_MASK_MLOOPTANGENT ? */
 };
 const CustomData_MeshMasks CD_MASK_BMESH = {
     /* vmask */ (CD_MASK_MDEFORMVERT | CD_MASK_BWEIGHT | CD_MASK_MVERT_SKIN | CD_MASK_SHAPEKEY |
-                 CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL |
-                 CD_MASK_PROP_COLOR | CD_MASK_CREASE),
+                 CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_CREASE),
     /* emask */ (CD_MASK_BWEIGHT | CD_MASK_CREASE | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
     /* fmask */ 0,
     /* pmask */
     (CD_MASK_FREESTYLE_FACE | CD_MASK_FACEMAP | CD_MASK_PROP_ALL | CD_MASK_SCULPT_FACE_SETS),
     /* lmask */
-    (CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_CUSTOMLOOPNORMAL |
-     CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
+    (CD_MASK_MDISPS | CD_MASK_MLOOPUV | CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_GRID_PAINT_MASK |
+     CD_MASK_PROP_ALL),
 };
 const CustomData_MeshMasks CD_MASK_EVERYTHING = {
     /* vmask */ (CD_MASK_MVERT | CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT |
                  CD_MASK_BWEIGHT | CD_MASK_MVERT_SKIN | CD_MASK_ORCO | CD_MASK_CLOTH_ORCO |
                  CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK |
-                 CD_MASK_PROP_ALL | CD_MASK_PROP_COLOR | CD_MASK_CREASE),
+                 CD_MASK_PROP_ALL | CD_MASK_CREASE),
     /* emask */
     (CD_MASK_MEDGE | CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_BWEIGHT | CD_MASK_CREASE |
      CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
@@ -2104,9 +2114,8 @@ const CustomData_MeshMasks CD_MASK_EVERYTHING = {
      CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL | CD_MASK_SCULPT_FACE_SETS),
     /* lmask */
     (CD_MASK_MLOOP | CD_MASK_BM_ELEM_PYPTR | CD_MASK_MDISPS | CD_MASK_NORMAL | CD_MASK_MLOOPUV |
-     CD_MASK_MLOOPCOL | CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_MLOOPTANGENT |
-     CD_MASK_PREVIEW_MLOOPCOL | CD_MASK_ORIGSPACE_MLOOP | CD_MASK_GRID_PAINT_MASK |
-     CD_MASK_PROP_ALL),
+     CD_MASK_CUSTOMLOOPNORMAL | CD_MASK_MLOOPTANGENT | CD_MASK_PREVIEW_MLOOPCOL |
+     CD_MASK_ORIGSPACE_MLOOP | CD_MASK_GRID_PAINT_MASK | CD_MASK_PROP_ALL),
 };
 
 static const LayerTypeInfo *layerType_getInfo(int type)
@@ -2279,7 +2288,8 @@ bool CustomData_merge(const struct CustomData *source,
       newlayer->active_rnd = lastrender;
       newlayer->active_clone = lastclone;
       newlayer->active_mask = lastmask;
-      newlayer->flag |= flag & (CD_FLAG_EXTERNAL | CD_FLAG_IN_MEMORY);
+      newlayer->flag |= flag & (CD_FLAG_EXTERNAL | CD_FLAG_IN_MEMORY | CD_FLAG_COLOR_ACTIVE |
+                                CD_FLAG_COLOR_RENDER);
       changed = true;
 
       if (layer->anonymous_id != nullptr) {
@@ -2870,24 +2880,6 @@ void CustomData_free_layers(CustomData *data, int type, int totelem)
   const int index = CustomData_get_layer_index(data, type);
   while (CustomData_free_layer(data, type, totelem, index)) {
     /* pass */
-  }
-}
-
-void CustomData_free_layers_anonymous(struct CustomData *data, int totelem)
-{
-  while (true) {
-    bool found_anonymous_layer = false;
-    for (int i = 0; i < data->totlayer; i++) {
-      const CustomDataLayer *layer = &data->layers[i];
-      if (layer->anonymous_id != nullptr) {
-        CustomData_free_layer(data, layer->type, totelem, i);
-        found_anonymous_layer = true;
-        break;
-      }
-    }
-    if (!found_anonymous_layer) {
-      break;
-    }
   }
 }
 
@@ -3485,7 +3477,7 @@ void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *ldata, int totloop)
     }
     else if (fdata->layers[i].type == CD_MCOL) {
       CustomData_add_layer_named(
-          ldata, CD_MLOOPCOL, CD_CALLOC, nullptr, totloop, fdata->layers[i].name);
+          ldata, CD_PROP_BYTE_COLOR, CD_CALLOC, nullptr, totloop, fdata->layers[i].name);
     }
     else if (fdata->layers[i].type == CD_MDISPS) {
       CustomData_add_layer_named(
@@ -3508,7 +3500,7 @@ void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *ldata, int total)
       CustomData_add_layer_named(
           fdata, CD_MTFACE, CD_CALLOC, nullptr, total, ldata->layers[i].name);
     }
-    if (ldata->layers[i].type == CD_MLOOPCOL) {
+    if (ldata->layers[i].type == CD_PROP_BYTE_COLOR) {
       CustomData_add_layer_named(fdata, CD_MCOL, CD_CALLOC, nullptr, total, ldata->layers[i].name);
     }
     else if (ldata->layers[i].type == CD_PREVIEW_MLOOPCOL) {
@@ -3543,7 +3535,7 @@ bool CustomData_from_bmeshpoly_test(CustomData *fdata, CustomData *ldata, bool f
   if (!LAYER_CMP(ldata, CD_MLOOPUV, fdata, CD_MTFACE)) {
     return false;
   }
-  if (!LAYER_CMP(ldata, CD_MLOOPCOL, fdata, CD_MCOL)) {
+  if (!LAYER_CMP(ldata, CD_PROP_BYTE_COLOR, fdata, CD_MCOL)) {
     return false;
   }
   if (!LAYER_CMP(ldata, CD_PREVIEW_MLOOPCOL, fdata, CD_PREVIEW_MCOL)) {
@@ -3585,17 +3577,17 @@ void CustomData_bmesh_update_active_layers(CustomData *fdata, CustomData *ldata)
     CustomData_set_layer_stencil(fdata, CD_MTFACE, act);
   }
 
-  if (CustomData_has_layer(ldata, CD_MLOOPCOL)) {
-    act = CustomData_get_active_layer(ldata, CD_MLOOPCOL);
+  if (CustomData_has_layer(ldata, CD_PROP_BYTE_COLOR)) {
+    act = CustomData_get_active_layer(ldata, CD_PROP_BYTE_COLOR);
     CustomData_set_layer_active(fdata, CD_MCOL, act);
 
-    act = CustomData_get_render_layer(ldata, CD_MLOOPCOL);
+    act = CustomData_get_render_layer(ldata, CD_PROP_BYTE_COLOR);
     CustomData_set_layer_render(fdata, CD_MCOL, act);
 
-    act = CustomData_get_clone_layer(ldata, CD_MLOOPCOL);
+    act = CustomData_get_clone_layer(ldata, CD_PROP_BYTE_COLOR);
     CustomData_set_layer_clone(fdata, CD_MCOL, act);
 
-    act = CustomData_get_stencil_layer(ldata, CD_MLOOPCOL);
+    act = CustomData_get_stencil_layer(ldata, CD_PROP_BYTE_COLOR);
     CustomData_set_layer_stencil(fdata, CD_MCOL, act);
   }
 }
@@ -3620,16 +3612,16 @@ void CustomData_bmesh_do_versions_update_active_layers(CustomData *fdata, Custom
 
   if (CustomData_has_layer(fdata, CD_MCOL)) {
     act = CustomData_get_active_layer(fdata, CD_MCOL);
-    CustomData_set_layer_active(ldata, CD_MLOOPCOL, act);
+    CustomData_set_layer_active(ldata, CD_PROP_BYTE_COLOR, act);
 
     act = CustomData_get_render_layer(fdata, CD_MCOL);
-    CustomData_set_layer_render(ldata, CD_MLOOPCOL, act);
+    CustomData_set_layer_render(ldata, CD_PROP_BYTE_COLOR, act);
 
     act = CustomData_get_clone_layer(fdata, CD_MCOL);
-    CustomData_set_layer_clone(ldata, CD_MLOOPCOL, act);
+    CustomData_set_layer_clone(ldata, CD_PROP_BYTE_COLOR, act);
 
     act = CustomData_get_stencil_layer(fdata, CD_MCOL);
-    CustomData_set_layer_stencil(ldata, CD_MLOOPCOL, act);
+    CustomData_set_layer_stencil(ldata, CD_PROP_BYTE_COLOR, act);
   }
 }
 
@@ -5336,6 +5328,11 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, int count)
     }
   }
 
+  /* Ensure allocated size is set to the size of the read array. While this should always be the
+   * case (see #CustomData_blend_write_prepare), there can be some corruption in rare cases (e.g.
+   * files saved between ff3d535bc2a63092 and 945f32e66d6ada2a). */
+  data->maxlayer = data->totlayer;
+
   CustomData_update_typemap(data);
 }
 
@@ -5400,6 +5397,8 @@ const blender::CPPType *custom_data_type_to_cpp_type(const CustomDataType type)
       return &CPPType::get<bool>();
     case CD_PROP_INT8:
       return &CPPType::get<int8_t>();
+    case CD_PROP_BYTE_COLOR:
+      return &CPPType::get<ColorGeometry4b>();
     default:
       return nullptr;
   }
@@ -5428,6 +5427,9 @@ CustomDataType cpp_type_to_custom_data_type(const blender::CPPType &type)
   }
   if (type.is<int8_t>()) {
     return CD_PROP_INT8;
+  }
+  if (type.is<ColorGeometry4b>()) {
+    return CD_PROP_BYTE_COLOR;
   }
   return static_cast<CustomDataType>(-1);
 }

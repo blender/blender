@@ -1268,6 +1268,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
   const bool keep_inputs = RNA_boolean_get(op->ptr, "keep_inputs");
+  bool changed = false;
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
 
@@ -1280,12 +1281,17 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
       bNode *new_node = blender::bke::node_copy_with_mapping(
           ntree, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
       node_map.add_new(node, new_node);
+      changed = true;
     }
 
     /* make sure we don't copy new nodes again! */
     if (node == lastnode) {
       break;
     }
+  }
+
+  if (!changed) {
+    return OPERATOR_CANCELLED;
   }
 
   /* Copy links between selected nodes. */
@@ -1300,6 +1306,11 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
       newlink->flag = link->flag;
       newlink->tonode = node_map.lookup(link->tonode);
       newlink->tosock = socket_map.lookup(link->tosock);
+
+      if (link->tosock->flag & SOCK_MULTI_INPUT) {
+        newlink->multi_input_socket_index = link->multi_input_socket_index;
+      }
+
       if (link->fromnode && (link->fromnode->flag & NODE_SELECT)) {
         newlink->fromnode = node_map.lookup(link->fromnode);
         newlink->fromsock = socket_map.lookup(link->fromsock);

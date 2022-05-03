@@ -44,6 +44,7 @@ ccl_device float3 bsdf_diffuse_eval_transmit(ccl_private const ShaderClosure *sc
                                              const float3 omega_in,
                                              ccl_private float *pdf)
 {
+  *pdf = 0.0f;
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
@@ -74,9 +75,10 @@ ccl_device int bsdf_diffuse_sample(ccl_private const ShaderClosure *sc,
     *domega_in_dy = (2 * dot(N, dIdy)) * N - dIdy;
 #endif
   }
-  else
+  else {
     *pdf = 0.0f;
-
+    *eval = make_float3(0.0f, 0.0f, 0.0f);
+  }
   return LABEL_REFLECT | LABEL_DIFFUSE;
 }
 
@@ -93,6 +95,7 @@ ccl_device float3 bsdf_translucent_eval_reflect(ccl_private const ShaderClosure 
                                                 const float3 omega_in,
                                                 ccl_private float *pdf)
 {
+  *pdf = 0.0f;
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
@@ -138,6 +141,7 @@ ccl_device int bsdf_translucent_sample(ccl_private const ShaderClosure *sc,
   }
   else {
     *pdf = 0;
+    *eval = make_float3(0.0f, 0.0f, 0.0f);
   }
   return LABEL_TRANSMIT | LABEL_DIFFUSE;
 }

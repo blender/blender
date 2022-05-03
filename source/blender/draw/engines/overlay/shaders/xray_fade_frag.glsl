@@ -1,12 +1,4 @@
 
-uniform sampler2D depthTex;
-uniform sampler2D xrayDepthTex;
-uniform float opacity;
-
-in vec4 uvcoordsvar;
-
-out vec4 fragColor;
-
 void main()
 {
   float depth = texture(depthTex, uvcoordsvar.xy).r;

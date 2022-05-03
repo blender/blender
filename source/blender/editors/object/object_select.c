@@ -1449,7 +1449,7 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_select_random";
 
   /* api callbacks */
-  /*ot->invoke = object_select_random_invoke XXX: need a number popup ;*/
+  // ot->invoke = object_select_random_invoke; /* TODO: need a number popup. */
   ot->exec = object_select_random_exec;
   ot->poll = objects_selectable_poll;
 

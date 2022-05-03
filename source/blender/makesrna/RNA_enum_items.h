@@ -87,6 +87,8 @@ DEF_ENUM(rna_enum_keying_flag_items_api)
 DEF_ENUM(rna_enum_fmodifier_type_items)
 
 DEF_ENUM(rna_enum_motionpath_bake_location_items)
+DEF_ENUM(rna_enum_motionpath_display_type_items)
+DEF_ENUM(rna_enum_motionpath_range_items)
 
 DEF_ENUM(rna_enum_event_value_items)
 DEF_ENUM(rna_enum_event_direction_items)
@@ -211,6 +213,8 @@ DEF_ENUM(rna_enum_subdivision_uv_smooth_items)
 DEF_ENUM(rna_enum_subdivision_boundary_smooth_items)
 
 DEF_ENUM(rna_enum_transform_orientation_items)
+
+DEF_ENUM(rna_enum_velocity_unit_items)
 
 /* Not available to RNA pre-processing (`makesrna`).
  * Defined in editors for example. */

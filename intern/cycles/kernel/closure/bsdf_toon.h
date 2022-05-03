@@ -67,7 +67,7 @@ ccl_device float3 bsdf_diffuse_toon_eval_reflect(ccl_private const ShaderClosure
     *pdf = 0.5f * M_1_PI_F / (1.0f - cosf(sample_angle));
     return *pdf * eval;
   }
-
+  *pdf = 0.0f;
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
@@ -76,6 +76,7 @@ ccl_device float3 bsdf_diffuse_toon_eval_transmit(ccl_private const ShaderClosur
                                                   const float3 omega_in,
                                                   ccl_private float *pdf)
 {
+  *pdf = 0.0f;
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
@@ -110,8 +111,14 @@ ccl_device int bsdf_diffuse_toon_sample(ccl_private const ShaderClosure *sc,
       *domega_in_dy = (2.0f * dot(bsdf->N, dIdy)) * bsdf->N - dIdy;
 #endif
     }
-    else
+    else {
+      *eval = make_float3(0.f, 0.f, 0.f);
       *pdf = 0.0f;
+    }
+  }
+  else {
+    *eval = make_float3(0.f, 0.f, 0.f);
+    *pdf = 0.0f;
   }
 
   return LABEL_REFLECT | LABEL_DIFFUSE;
@@ -152,7 +159,7 @@ ccl_device float3 bsdf_glossy_toon_eval_reflect(ccl_private const ShaderClosure 
     *pdf = 0.5f * M_1_PI_F / (1.0f - cosf(sample_angle));
     return *pdf * eval;
   }
-
+  *pdf = 0.0f;
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
@@ -161,6 +168,7 @@ ccl_device float3 bsdf_glossy_toon_eval_transmit(ccl_private const ShaderClosure
                                                  const float3 omega_in,
                                                  ccl_private float *pdf)
 {
+  *pdf = 0.0f;
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
@@ -203,11 +211,15 @@ ccl_device int bsdf_glossy_toon_sample(ccl_private const ShaderClosure *sc,
         *domega_in_dy = (2 * dot(bsdf->N, dIdy)) * bsdf->N - dIdy;
 #endif
       }
-      else
+      else {
         *pdf = 0.0f;
+        *eval = make_float3(0.0f, 0.0f, 0.0f);
+      }
     }
-    else
+    else {
       *pdf = 0.0f;
+      *eval = make_float3(0.0f, 0.0f, 0.0f);
+    }
   }
 
   return LABEL_GLOSSY | LABEL_REFLECT;

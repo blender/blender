@@ -4399,6 +4399,11 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
         knifetool_exit(op);
         ED_workspace_status_text(C, NULL);
 
+        /* Cancel to prevent undo push for empty cuts. */
+        if (kcd->totkvert == 0) {
+          return OPERATOR_CANCELLED;
+        }
+
         return OPERATOR_FINISHED;
       case KNF_MODAL_UNDO:
         if (BLI_stack_is_empty(kcd->undostack)) {

@@ -154,7 +154,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   CacheFile *cache_file = mcmd->cache_file;
   const float frame = DEG_get_ctime(ctx->depsgraph);
-  const float time = BKE_cachefile_time_offset(cache_file, frame, FPS);
+  const double time = BKE_cachefile_time_offset(cache_file, (double)frame, FPS);
   const char *err_str = nullptr;
 
   if (!mcmd->reader || !STREQ(mcmd->reader_object_path, mcmd->object_path)) {
@@ -226,14 +226,13 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         velocity_scale *= FPS;
       }
 
-      result = ABC_read_mesh(mcmd->reader,
-                             ctx->object,
-                             mesh,
-                             time,
-                             &err_str,
-                             mcmd->read_flag,
-                             mcmd->cache_file->velocity_name,
-                             velocity_scale);
+      ABCReadParams params = {};
+      params.time = time;
+      params.read_flags = mcmd->read_flag;
+      params.velocity_name = mcmd->cache_file->velocity_name;
+      params.velocity_scale = velocity_scale;
+
+      result = ABC_read_mesh(mcmd->reader, ctx->object, mesh, &params, &err_str);
 #  endif
       break;
     }

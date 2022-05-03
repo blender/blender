@@ -136,6 +136,9 @@ struct CombOperationExecutor {
 
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
+    if (curves_->curves_num() == 0) {
+      return;
+    }
 
     brush_pos_prev_re_ = self_->brush_pos_last_re_;
     brush_pos_re_ = stroke_extension.mouse_position;
@@ -191,7 +194,7 @@ struct CombOperationExecutor {
    */
   void comb_projected(EnumerableThreadSpecific<Vector<int>> &r_changed_curves)
   {
-    MutableSpan<float3> positions_cu = curves_->positions();
+    MutableSpan<float3> positions_cu = curves_->positions_for_write();
 
     float4x4 projection;
     ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);
@@ -246,7 +249,7 @@ struct CombOperationExecutor {
    */
   void comb_spherical(EnumerableThreadSpecific<Vector<int>> &r_changed_curves)
   {
-    MutableSpan<float3> positions_cu = curves_->positions();
+    MutableSpan<float3> positions_cu = curves_->positions_for_write();
 
     float4x4 projection;
     ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);
@@ -344,7 +347,7 @@ struct CombOperationExecutor {
   void restore_segment_lengths(EnumerableThreadSpecific<Vector<int>> &changed_curves)
   {
     const Span<float> expected_lengths_cu = self_->segment_lengths_cu_;
-    MutableSpan<float3> positions_cu = curves_->positions();
+    MutableSpan<float3> positions_cu = curves_->positions_for_write();
 
     threading::parallel_for_each(changed_curves, [&](const Vector<int> &changed_curves) {
       threading::parallel_for(changed_curves.index_range(), 256, [&](const IndexRange range) {

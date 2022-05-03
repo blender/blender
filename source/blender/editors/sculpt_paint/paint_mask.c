@@ -173,7 +173,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 
   BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
 
-  SCULPT_undo_push_end();
+  SCULPT_undo_push_end(ob);
 
   if (nodes) {
     MEM_freeN(nodes);
@@ -707,7 +707,8 @@ static void sculpt_gesture_apply(bContext *C, SculptGestureContext *sgcontext)
 
   operation->sculpt_gesture_end(C, sgcontext);
 
-  SCULPT_undo_push_end();
+  Object *ob = CTX_data_active_object(C);
+  SCULPT_undo_push_end(ob);
 
   SCULPT_tag_update_overlays(C);
 }
@@ -949,7 +950,6 @@ static void sculpt_gesture_trim_normals_update(SculptGestureContext *sgcontext)
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
   Mesh *trim_mesh = trim_operation->mesh;
-  BKE_mesh_calc_normals(trim_mesh);
 
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(trim_mesh);
   BMesh *bm;
@@ -1057,7 +1057,30 @@ static void sculpt_gesture_trim_calculate_depth(SculptGestureContext *sgcontext)
                             (trim_operation->depth_back + trim_operation->depth_front) * 0.5f;
     }
 
-    const float depth_radius = ss->cursor_radius;
+    float depth_radius;
+
+    if (ss->gesture_initial_hit) {
+      depth_radius = ss->cursor_radius;
+    }
+    else {
+      /* ss->cursor_radius is only valid if the stroke started
+       * over the sculpt mesh.  If it's not we must
+       * compute the radius ourselves.  See T81452.
+       */
+
+      Sculpt *sd = CTX_data_tool_settings(vc->C)->sculpt;
+      Brush *brush = BKE_paint_brush(&sd->paint);
+      Scene *scene = CTX_data_scene(vc->C);
+
+      if (!BKE_brush_use_locked_size(scene, brush)) {
+        depth_radius = paint_calc_object_space_radius(
+            vc, ss->gesture_initial_location, BKE_brush_size_get(scene, brush));
+      }
+      else {
+        depth_radius = BKE_brush_unprojected_radius_get(scene, brush);
+      }
+    }
+
     trim_operation->depth_front = mid_point_depth - depth_radius;
     trim_operation->depth_back = mid_point_depth + depth_radius;
   }
@@ -1287,7 +1310,6 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
                                             }),
                                             sculpt_mesh);
   BM_mesh_free(bm);
-  BKE_mesh_normals_tag_dirty(result);
   BKE_mesh_nomain_to_mesh(
       result, sgcontext->vc.obact->data, sgcontext->vc.obact, &CD_MASK_MESH, true);
 }

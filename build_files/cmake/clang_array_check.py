@@ -202,9 +202,9 @@ def parm_size(node_child):
 
     # NOT PERFECT CODE, EXTRACT SIZE FROM TOKENS
     if len(tokens) >= 3:  # foo [ 1 ]
-        if      ((tokens[-3].kind == TokenKind.PUNCTUATION and tokens[-3].spelling == "[") and
-                 (tokens[-2].kind == TokenKind.LITERAL and tokens[-2].spelling.isdigit()) and
-                 (tokens[-1].kind == TokenKind.PUNCTUATION and tokens[-1].spelling == "]")):
+        if ((tokens[-3].kind == TokenKind.PUNCTUATION and tokens[-3].spelling == "[") and
+            (tokens[-2].kind == TokenKind.LITERAL and tokens[-2].spelling.isdigit()) and
+                (tokens[-1].kind == TokenKind.PUNCTUATION and tokens[-1].spelling == "]")):
             # ---
             return int(tokens[-2].spelling)
     return -1

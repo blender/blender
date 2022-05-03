@@ -167,7 +167,7 @@ void BufferParams::reset_pass_offset()
 
 int BufferParams::get_pass_offset(PassType pass_type, PassMode mode) const
 {
-  if (pass_type == PASS_NONE || pass_type == PASS_UNUSED) {
+  if (pass_type == PASS_NONE) {
     return PASS_UNUSED;
   }
 

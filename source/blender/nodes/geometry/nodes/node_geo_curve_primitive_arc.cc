@@ -171,7 +171,7 @@ static Curves *create_arc_curve_from_points(const int resolution,
 
   const int stepcount = resolution - 1;
   const int centerpoint = resolution;
-  MutableSpan<float3> positions = curves.positions();
+  MutableSpan<float3> positions = curves.positions_for_write();
 
   const bool is_colinear = colinear_f3_f3_f3(a, b, c);
 
@@ -261,7 +261,7 @@ static Curves *create_arc_curve_from_points(const int resolution,
   }
 
   if (connect_center) {
-    curves.cyclic().first() = true;
+    curves.cyclic_for_write().first() = true;
     positions[centerpoint] = center;
   }
 
@@ -289,7 +289,7 @@ static Curves *create_arc_curve_from_radius(const int resolution,
 
   const int stepcount = resolution - 1;
   const int centerpoint = resolution;
-  MutableSpan<float3> positions = curves.positions();
+  MutableSpan<float3> positions = curves.positions_for_write();
 
   const float sweep = (invert_arc) ? -(2.0f * M_PI - sweep_angle) : sweep_angle;
 
@@ -302,7 +302,7 @@ static Curves *create_arc_curve_from_radius(const int resolution,
   }
 
   if (connect_center) {
-    curves.cyclic().first() = true;
+    curves.cyclic_for_write().first() = true;
     positions[centerpoint] = float3(0.0f, 0.0f, 0.0f);
   }
 

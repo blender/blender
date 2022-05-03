@@ -267,7 +267,8 @@ static void confirm_suggestion(Text *text)
   //  for (i = 0; i < skipleft; i++)
   //      txt_move_left(text, 0);
   BLI_assert(memcmp(sel->name, &line[i], over) == 0);
-  txt_insert_buf(text, sel->name + over);
+  const char *buf = sel->name + over;
+  txt_insert_buf(text, buf, strlen(buf));
 
   //  for (i = 0; i < skipleft; i++)
   //      txt_move_right(text, 0);

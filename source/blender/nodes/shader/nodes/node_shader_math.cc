@@ -106,28 +106,30 @@ static const fn::MultiFunction *get_base_multi_function(bNode &node)
   const int mode = node.custom1;
   const fn::MultiFunction *base_fn = nullptr;
 
-  try_dispatch_float_math_fl_to_fl(mode, [&](auto function, const FloatMathOperationInfo &info) {
-    static fn::CustomMF_SI_SO<float, float> fn{info.title_case_name.c_str(), function};
-    base_fn = &fn;
-  });
+  try_dispatch_float_math_fl_to_fl(
+      mode, [&](auto devi_fn, auto function, const FloatMathOperationInfo &info) {
+        static fn::CustomMF_SI_SO<float, float> fn{
+            info.title_case_name.c_str(), function, devi_fn};
+        base_fn = &fn;
+      });
   if (base_fn != nullptr) {
     return base_fn;
   }
 
-  try_dispatch_float_math_fl_fl_to_fl(mode,
-                                      [&](auto function, const FloatMathOperationInfo &info) {
-                                        static fn::CustomMF_SI_SI_SO<float, float, float> fn{
-                                            info.title_case_name.c_str(), function};
-                                        base_fn = &fn;
-                                      });
+  try_dispatch_float_math_fl_fl_to_fl(
+      mode, [&](auto devi_fn, auto function, const FloatMathOperationInfo &info) {
+        static fn::CustomMF_SI_SI_SO<float, float, float> fn{
+            info.title_case_name.c_str(), function, devi_fn};
+        base_fn = &fn;
+      });
   if (base_fn != nullptr) {
     return base_fn;
   }
 
   try_dispatch_float_math_fl_fl_fl_to_fl(
-      mode, [&](auto function, const FloatMathOperationInfo &info) {
+      mode, [&](auto devi_fn, auto function, const FloatMathOperationInfo &info) {
         static fn::CustomMF_SI_SI_SI_SO<float, float, float, float> fn{
-            info.title_case_name.c_str(), function};
+            info.title_case_name.c_str(), function, devi_fn};
         base_fn = &fn;
       });
   if (base_fn != nullptr) {

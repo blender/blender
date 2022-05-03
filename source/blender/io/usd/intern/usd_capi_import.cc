@@ -423,7 +423,7 @@ static USDPrimReader *get_usd_reader(CacheReader *reader, Object * /* ob */, con
 struct Mesh *USD_read_mesh(struct CacheReader *reader,
                            struct Object *ob,
                            struct Mesh *existing_mesh,
-                           const float time,
+                           const double time,
                            const char **err_str,
                            const int read_flag)
 {
@@ -437,7 +437,7 @@ struct Mesh *USD_read_mesh(struct CacheReader *reader,
 }
 
 bool USD_mesh_topology_changed(
-    CacheReader *reader, Object *ob, Mesh *existing_mesh, const float time, const char **err_str)
+    CacheReader *reader, Object *ob, Mesh *existing_mesh, const double time, const char **err_str)
 {
   USDGeomReader *usd_reader = dynamic_cast<USDGeomReader *>(get_usd_reader(reader, ob, err_str));
 

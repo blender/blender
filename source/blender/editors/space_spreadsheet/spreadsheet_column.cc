@@ -44,6 +44,9 @@ eSpreadsheetColumnValueType cpp_type_to_column_type(const CPPType &type)
   if (type.is<InstanceReference>()) {
     return SPREADSHEET_VALUE_TYPE_INSTANCES;
   }
+  if (type.is<ColorGeometry4b>()) {
+    return SPREADSHEET_VALUE_TYPE_BYTE_COLOR;
+  }
 
   return SPREADSHEET_VALUE_TYPE_UNKNOWN;
 }

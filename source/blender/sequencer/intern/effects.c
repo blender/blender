@@ -44,6 +44,7 @@
 
 #include "RE_pipeline.h"
 
+#include "SEQ_channels.h"
 #include "SEQ_effects.h"
 #include "SEQ_proxy.h"
 #include "SEQ_relations.h"
@@ -2421,7 +2422,6 @@ static ImBuf *do_multicam(const SeqRenderData *context,
 {
   ImBuf *out;
   Editing *ed;
-  ListBase *seqbasep;
 
   if (seq->multicam_source == 0 || seq->multicam_source >= seq->machine) {
     return NULL;
@@ -2431,12 +2431,14 @@ static ImBuf *do_multicam(const SeqRenderData *context,
   if (!ed) {
     return NULL;
   }
-  seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
+  ListBase *seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
+  ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, seq);
   if (!seqbasep) {
     return NULL;
   }
 
-  out = seq_render_give_ibuf_seqbase(context, timeline_frame, seq->multicam_source, seqbasep);
+  out = seq_render_give_ibuf_seqbase(
+      context, timeline_frame, seq->multicam_source, channels, seqbasep);
 
   return out;
 }
@@ -2461,12 +2463,12 @@ static int early_out_adjustment(Sequence *UNUSED(seq), float UNUSED(fac))
 static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, float timeline_frame)
 {
   Editing *ed;
-  ListBase *seqbasep;
   ImBuf *i = NULL;
 
   ed = context->scene->ed;
 
-  seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
+  ListBase *seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
+  ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, seq);
 
   /* Clamp timeline_frame to strip range so it behaves as if it had "still frame" offset (last
    * frame is static after end of strip). This is how most strips behave. This way transition
@@ -2474,7 +2476,8 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, fl
   timeline_frame = clamp_i(timeline_frame, seq->startdisp, seq->enddisp - 1);
 
   if (seq->machine > 1) {
-    i = seq_render_give_ibuf_seqbase(context, timeline_frame, seq->machine - 1, seqbasep);
+    i = seq_render_give_ibuf_seqbase(
+        context, timeline_frame, seq->machine - 1, channels, seqbasep);
   }
 
   /* Found nothing? so let's work the way up the meta-strip stack, so
@@ -3377,7 +3380,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   /* vars for calculating wordwrap and optional box */
   struct {
     struct ResultBLF info;
-    rctf rect;
+    rcti rect;
   } wrap;
 
   BLF_boundbox_ex(font, data->text, sizeof(data->text), &wrap.rect, &wrap.info);
@@ -3387,10 +3390,10 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   }
   else {
     if (data->align == SEQ_TEXT_ALIGN_X_RIGHT) {
-      x -= BLI_rctf_size_x(&wrap.rect);
+      x -= BLI_rcti_size_x(&wrap.rect);
     }
     else if (data->align == SEQ_TEXT_ALIGN_X_CENTER) {
-      x -= BLI_rctf_size_x(&wrap.rect) / 2;
+      x -= BLI_rcti_size_x(&wrap.rect) / 2;
     }
 
     if (data->align_y == SEQ_TEXT_ALIGN_Y_TOP) {

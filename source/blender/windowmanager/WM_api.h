@@ -1164,7 +1164,7 @@ struct wmDropBox *WM_dropbox_add(
     ListBase *lb,
     const char *idname,
     bool (*poll)(struct bContext *, struct wmDrag *, const struct wmEvent *event),
-    void (*copy)(struct wmDrag *, struct wmDropBox *),
+    void (*copy)(struct bContext *, struct wmDrag *, struct wmDropBox *),
     void (*cancel)(struct Main *, struct wmDrag *, struct wmDropBox *),
     WMDropboxTooltipFunc tooltip);
 void WM_drag_draw_item_name_fn(struct bContext *C,
@@ -1294,6 +1294,7 @@ enum {
   WM_JOB_TYPE_TRACE_IMAGE,
   WM_JOB_TYPE_LINEART,
   WM_JOB_TYPE_SEQ_DRAW_THUMBNAIL,
+  WM_JOB_TYPE_SEQ_DRAG_DROP_PREVIEW,
   /* add as needed, bake, seq proxy build
    * if having hard coded values is a problem */
 };
@@ -1321,8 +1322,7 @@ const char *WM_jobs_name(const struct wmWindowManager *wm, const void *owner);
  * Time that job started.
  */
 double WM_jobs_starttime(const struct wmWindowManager *wm, const void *owner);
-void *WM_jobs_customdata(struct wmWindowManager *wm, const void *owner);
-void *WM_jobs_customdata_from_type(struct wmWindowManager *wm, int job_type);
+void *WM_jobs_customdata_from_type(struct wmWindowManager *wm, const void *owner, int job_type);
 
 bool WM_jobs_is_running(const struct wmJob *wm_job);
 bool WM_jobs_is_stopped(const wmWindowManager *wm, const void *owner);

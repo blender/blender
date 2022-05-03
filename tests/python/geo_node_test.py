@@ -13,5 +13,5 @@ geo_node_test = BlendFileTest("test_object", "expected_object", threshold=1e-4)
 result = geo_node_test.run_test()
 
 # Telling `ctest` about the failed test by raising Exception.
-if result == False:
+if not result:
     raise Exception("Failed {}".format(geo_node_test.test_name))

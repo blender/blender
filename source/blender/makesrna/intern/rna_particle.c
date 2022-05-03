@@ -676,7 +676,7 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem,
                                                int vcol_no,
                                                float r_mcol[3])
 {
-  if (!CustomData_has_layer(&modifier->mesh_final->ldata, CD_MLOOPCOL)) {
+  if (!CustomData_has_layer(&modifier->mesh_final->ldata, CD_PROP_BYTE_COLOR)) {
     BKE_report(reports, RPT_ERROR, "Mesh has no VCol data");
     zero_v3(r_mcol);
     return;

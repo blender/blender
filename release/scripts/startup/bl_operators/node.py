@@ -73,7 +73,11 @@ class NodeAddOperator:
         for n in tree.nodes:
             n.select = False
 
-        node = tree.nodes.new(type=node_type)
+        try:
+            node = tree.nodes.new(type=node_type)
+        except RuntimeError as e:
+            self.report({'ERROR'}, str(e))
+            return None
 
         for setting in self.settings:
             # XXX catch exceptions here?

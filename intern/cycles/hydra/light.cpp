@@ -54,11 +54,16 @@ void HdCyclesLight::Sync(HdSceneDelegate *sceneDelegate,
   const SdfPath &id = GetId();
 
   if (*dirtyBits & DirtyBits::DirtyTransform) {
+    const float metersPerUnit =
+        static_cast<HdCyclesSession *>(renderParam)->GetStageMetersPerUnit();
+
+    const Transform tfm = transform_scale(make_float3(metersPerUnit)) *
 #if PXR_VERSION >= 2011
-    const Transform tfm = convert_transform(sceneDelegate->GetTransform(id));
+                          convert_transform(sceneDelegate->GetTransform(id));
 #else
-    const Transform tfm = convert_transform(
-        sceneDelegate->GetLightParamValue(id, HdTokens->transform).Get<GfMatrix4d>());
+                          convert_transform(
+                              sceneDelegate->GetLightParamValue(id, HdTokens->transform)
+                                  .Get<GfMatrix4d>());
 #endif
     _light->set_tfm(tfm);
 
@@ -347,8 +352,12 @@ void HdCyclesLight::Finalize(HdRenderParam *renderParam)
   }
 
   const SceneLock lock(renderParam);
+  const bool keep_nodes = static_cast<const HdCyclesSession *>(renderParam)->keep_nodes;
 
-  lock.scene->delete_node(_light);
+  if (!keep_nodes) {
+    lock.scene->delete_node(_light);
+  }
+
   _light = nullptr;
 }
 

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "FN_field.hh"
 #include "FN_multi_function.hh"
 
 namespace blender::bke {
@@ -59,8 +60,8 @@ class DataTypeConversions {
   void convert_to_initialized_n(GSpan from_span, GMutableSpan to_span) const;
 
   GVArray try_convert(GVArray varray, const CPPType &to_type) const;
-
   GVMutableArray try_convert(GVMutableArray varray, const CPPType &to_type) const;
+  fn::GField try_convert(fn::GField field, const CPPType &to_type) const;
 };
 
 const DataTypeConversions &get_implicit_type_conversions();

@@ -11,10 +11,23 @@
 
 HDCYCLES_NAMESPACE_OPEN_SCOPE
 
+// clang-format off
+#define HD_CYCLES_RENDER_SETTINGS_TOKENS \
+    (stageMetersPerUnit) \
+    ((device, "cycles:device")) \
+    ((threads, "cycles:threads")) \
+    ((timeLimit, "cycles:time_limit")) \
+    ((samples, "cycles:samples")) \
+    ((sampleOffset, "cycles:sample_offset"))
+// clang-format on
+
+TF_DECLARE_PUBLIC_TOKENS(HdCyclesRenderSettingsTokens, HD_CYCLES_RENDER_SETTINGS_TOKENS);
+
 class HdCyclesDelegate final : public PXR_NS::HdRenderDelegate {
  public:
   HdCyclesDelegate(const PXR_NS::HdRenderSettingsMap &settingsMap,
-                   CCL_NS::Session *session_ = nullptr);
+                   CCL_NS::Session *session_ = nullptr,
+                   const bool keep_nodes = false);
   ~HdCyclesDelegate() override;
 
   void SetDrivers(const PXR_NS::HdDriverVector &drivers) override;

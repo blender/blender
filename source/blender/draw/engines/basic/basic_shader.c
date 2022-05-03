@@ -32,80 +32,12 @@ static struct {
   BASIC_Shaders sh_data[GPU_SHADER_CFG_LEN];
 } e_data = {{{NULL}}}; /* Engine data */
 
-static GPUShader *BASIC_shader_create_depth_sh(const GPUShaderConfigData *sh_cfg)
-{
-  return GPU_shader_create_from_arrays({
-      .vert = (const char *[]){sh_cfg->lib,
-                               datatoc_common_view_lib_glsl,
-                               datatoc_depth_vert_glsl,
-                               NULL},
-      .frag = (const char *[]){datatoc_depth_frag_glsl, NULL},
-      .defs = (const char *[]){sh_cfg->def, NULL},
-  });
-}
-
-static GPUShader *BASIC_shader_create_pointcloud_depth_sh(const GPUShaderConfigData *sh_cfg)
-{
-  return GPU_shader_create_from_arrays({
-      .vert = (const char *[]){sh_cfg->lib,
-                               datatoc_common_view_lib_glsl,
-                               datatoc_common_pointcloud_lib_glsl,
-                               datatoc_depth_vert_glsl,
-                               NULL},
-      .frag = (const char *[]){datatoc_depth_frag_glsl, NULL},
-      .defs = (const char *[]){sh_cfg->def,
-                               "#define POINTCLOUD\n",
-                               "#define INSTANCED_ATTR\n",
-                               "#define UNIFORM_RESOURCE_ID\n",
-                               NULL},
-  });
-}
-
-static GPUShader *BASIC_shader_create_depth_conservative_sh(const GPUShaderConfigData *sh_cfg)
-{
-  return GPU_shader_create_from_arrays({
-      .vert = (const char *[]){sh_cfg->lib,
-                               datatoc_common_view_lib_glsl,
-                               datatoc_depth_vert_glsl,
-                               NULL},
-      .geom = (const char *[]){sh_cfg->lib,
-                               datatoc_common_view_lib_glsl,
-                               datatoc_conservative_depth_geom_glsl,
-                               NULL},
-      .frag = (const char *[]){datatoc_depth_frag_glsl, NULL},
-      .defs = (const char *[]){sh_cfg->def, "#define CONSERVATIVE_RASTER\n", NULL},
-  });
-}
-
-static GPUShader *BASIC_shader_create_pointcloud_depth_conservative_sh(
-    const GPUShaderConfigData *sh_cfg)
-{
-  return GPU_shader_create_from_arrays({
-      .vert = (const char *[]){sh_cfg->lib,
-                               datatoc_common_view_lib_glsl,
-                               datatoc_common_pointcloud_lib_glsl,
-                               datatoc_depth_vert_glsl,
-                               NULL},
-      .geom = (const char *[]){sh_cfg->lib,
-                               datatoc_common_view_lib_glsl,
-                               datatoc_conservative_depth_geom_glsl,
-                               NULL},
-      .frag = (const char *[]){datatoc_depth_frag_glsl, NULL},
-      .defs = (const char *[]){sh_cfg->def,
-                               "#define CONSERVATIVE_RASTER\n",
-                               "#define POINTCLOUD\n",
-                               "#define INSTANCED_ATTR\n",
-                               "#define UNIFORM_RESOURCE_ID\n",
-                               NULL},
-  });
-}
-
 GPUShader *BASIC_shaders_depth_sh_get(eGPUShaderConfig config)
 {
   BASIC_Shaders *sh_data = &e_data.sh_data[config];
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[config];
   if (sh_data->depth == NULL) {
-    sh_data->depth = BASIC_shader_create_depth_sh(sh_cfg);
+    sh_data->depth = GPU_shader_create_from_info_name(
+        config == GPU_SHADER_CFG_CLIPPED ? "basic_depth_mesh_clipped" : "basic_depth_mesh");
   }
   return sh_data->depth;
 }
@@ -113,9 +45,10 @@ GPUShader *BASIC_shaders_depth_sh_get(eGPUShaderConfig config)
 GPUShader *BASIC_shaders_pointcloud_depth_sh_get(eGPUShaderConfig config)
 {
   BASIC_Shaders *sh_data = &e_data.sh_data[config];
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[config];
   if (sh_data->pointcloud_depth == NULL) {
-    sh_data->pointcloud_depth = BASIC_shader_create_pointcloud_depth_sh(sh_cfg);
+    sh_data->pointcloud_depth = GPU_shader_create_from_info_name(
+        config == GPU_SHADER_CFG_CLIPPED ? "basic_depth_pointcloud_clipped" :
+                                           "basic_depth_pointcloud");
   }
   return sh_data->pointcloud_depth;
 }
@@ -123,9 +56,10 @@ GPUShader *BASIC_shaders_pointcloud_depth_sh_get(eGPUShaderConfig config)
 GPUShader *BASIC_shaders_depth_conservative_sh_get(eGPUShaderConfig config)
 {
   BASIC_Shaders *sh_data = &e_data.sh_data[config];
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[config];
   if (sh_data->depth_conservative == NULL) {
-    sh_data->depth_conservative = BASIC_shader_create_depth_conservative_sh(sh_cfg);
+    sh_data->depth_conservative = GPU_shader_create_from_info_name(
+        config == GPU_SHADER_CFG_CLIPPED ? "basic_depth_mesh_conservative_clipped" :
+                                           "basic_depth_mesh_conservative");
   }
   return sh_data->depth_conservative;
 }
@@ -133,10 +67,10 @@ GPUShader *BASIC_shaders_depth_conservative_sh_get(eGPUShaderConfig config)
 GPUShader *BASIC_shaders_pointcloud_depth_conservative_sh_get(eGPUShaderConfig config)
 {
   BASIC_Shaders *sh_data = &e_data.sh_data[config];
-  const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[config];
   if (sh_data->pointcloud_depth_conservative == NULL) {
-    sh_data->pointcloud_depth_conservative = BASIC_shader_create_pointcloud_depth_conservative_sh(
-        sh_cfg);
+    sh_data->pointcloud_depth_conservative = GPU_shader_create_from_info_name(
+        config == GPU_SHADER_CFG_CLIPPED ? "basic_depth_pointcloud_conservative_clipped" :
+                                           "basic_depth_pointcloud_conservative");
   }
   return sh_data->pointcloud_depth_conservative;
 }

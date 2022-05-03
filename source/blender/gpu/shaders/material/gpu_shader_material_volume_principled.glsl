@@ -1,3 +1,5 @@
+#pragma BLENDER_REQUIRE(gpu_shader_material_blackbody.glsl)
+
 void node_volume_principled(vec4 color,
                             float density,
                             float anisotropy,
@@ -7,14 +9,14 @@ void node_volume_principled(vec4 color,
                             float blackbody_intensity,
                             vec4 blackbody_tint,
                             float temperature,
-                            float density_attribute,
+                            float weight,
+                            vec4 density_attribute,
                             vec4 color_attribute,
-                            float temperature_attribute,
+                            vec4 temperature_attribute,
                             sampler1DArray spectrummap,
                             float layer,
                             out Closure result)
 {
-#ifdef VOLUMETRICS
   vec3 absorption_coeff = vec3(0.0);
   vec3 scatter_coeff = vec3(0.0);
   vec3 emission_coeff = vec3(0.0);
@@ -23,7 +25,7 @@ void node_volume_principled(vec4 color,
   density = max(density, 0.0);
 
   if (density > 1e-5) {
-    density = max(density * density_attribute, 0.0);
+    density = max(density * density_attribute.x, 0.0);
   }
 
   if (density > 1e-5) {
@@ -45,7 +47,7 @@ void node_volume_principled(vec4 color,
 
   if (blackbody_intensity > 1e-3) {
     /* Add temperature from attribute. */
-    float T = max(temperature * max(temperature_attribute, 0.0), 0.0);
+    float T = max(temperature * max(temperature_attribute.x, 0.0), 0.0);
 
     /* Stefan-Boltzman law. */
     float T2 = T * T;
@@ -60,8 +62,18 @@ void node_volume_principled(vec4 color,
     }
   }
 
-  result = Closure(absorption_coeff, scatter_coeff, emission_coeff, anisotropy);
-#else
-  result = CLOSURE_DEFAULT;
-#endif
+  ClosureVolumeScatter volume_scatter_data;
+  volume_scatter_data.weight = weight;
+  volume_scatter_data.scattering = scatter_coeff;
+  volume_scatter_data.anisotropy = anisotropy;
+
+  ClosureVolumeAbsorption volume_absorption_data;
+  volume_absorption_data.weight = weight;
+  volume_absorption_data.absorption = absorption_coeff;
+
+  ClosureEmission emission_data;
+  emission_data.weight = weight;
+  emission_data.emission = emission_coeff;
+
+  result = closure_eval(volume_scatter_data, volume_absorption_data, emission_data);
 }

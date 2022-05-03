@@ -49,6 +49,12 @@ typedef enum KnotsMode {
   NURBS_KNOT_MODE_ENDPOINT_BEZIER = 3,
 } KnotsMode;
 
+/** Method used to calculate the normals of a curve's evaluated points. */
+typedef enum NormalMode {
+  NORMAL_MODE_MINIMUM_TWIST = 0,
+  NORMAL_MODE_Z_UP = 1,
+} NormalMode;
+
 /**
  * A reusable data structure for geometry consisting of many curves. All control point data is
  * stored contiguously for better efficiency. Data for each curve is stored as a slice of the
@@ -78,7 +84,7 @@ typedef struct CurvesGeometry {
   /**
    * The start index of each curve in the point data. The size of each curve can be calculated by
    * subtracting the offset from the next offset. That is valid even for the last curve because
-   * this array is allocated with a length one larger than the number of splines. This is allowed
+   * this array is allocated with a length one larger than the number of curves. This is allowed
    * to be null when there are no curves.
    *
    * \note This is *not* stored in #CustomData because its size is one larger than #curve_data.
@@ -139,7 +145,7 @@ typedef struct Curves {
   void *batch_cache;
 } Curves;
 
-/* Curves.flag */
+/** #Curves.flag */
 enum {
   HA_DS_EXPAND = (1 << 0),
 };

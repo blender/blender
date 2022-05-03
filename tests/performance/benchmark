@@ -11,24 +11,30 @@ import sys
 import time
 from typing import List
 
+
 def find_blender_git_dir() -> pathlib.Path:
     # Find .git directory of the repository we are in.
     cwd = pathlib.Path.cwd()
 
     for path in [cwd] + list(cwd.parents):
         if (path / '.git').exists():
-          return path
+            return path
 
     return None
+
 
 def get_tests_base_dir(blender_git_dir: pathlib.Path) -> pathlib.Path:
     # Benchmarks dir is next to the Blender source folder.
     return blender_git_dir.parent / 'benchmark'
 
+
 def use_revision_columns(config: api.TestConfig) -> bool:
-    return config.benchmark_type == "comparison" and \
-           len(config.queue.entries) > 0 and \
-           not config.queue.has_multiple_revisions_to_build
+    return (
+        config.benchmark_type == "comparison" and
+        len(config.queue.entries) > 0 and
+        not config.queue.has_multiple_revisions_to_build
+    )
+
 
 def print_header(config: api.TestConfig) -> None:
     # Print header with revision columns headers.
@@ -41,6 +47,7 @@ def print_header(config: api.TestConfig) -> None:
         for revision_name in config.revision_names():
             header += f"{revision_name: <20} "
         print(header)
+
 
 def print_row(config: api.TestConfig, entries: List, end='\n') -> None:
     # Print one or more test entries on a row.
@@ -79,10 +86,13 @@ def print_row(config: api.TestConfig, entries: List, end='\n') -> None:
 
 def match_entry(entry: api.TestEntry, args: argparse.Namespace):
     # Filter tests by name and category.
-    return fnmatch.fnmatch(entry.test, args.test) or \
-           fnmatch.fnmatch(entry.category, args.test) or \
-           entry.test.find(args.test) != -1 or \
-           entry.category.find(args.test) != -1
+    return (
+        fnmatch.fnmatch(entry.test, args.test) or
+        fnmatch.fnmatch(entry.category, args.test) or
+        entry.test.find(args.test) != -1 or
+        entry.category.find(args.test) != -1
+    )
+
 
 def run_entry(env: api.TestEnvironment,
               config: api.TestConfig,
@@ -159,6 +169,7 @@ def run_entry(env: api.TestEnvironment,
 
     return True
 
+
 def cmd_init(env: api.TestEnvironment, argv: List):
     # Initialize benchmarks folder.
     parser = argparse.ArgumentParser()
@@ -167,6 +178,7 @@ def cmd_init(env: api.TestEnvironment, argv: List):
     env.set_log_file(env.base_dir / 'setup.log', clear=False)
     env.init(args.build)
     env.unset_log_file()
+
 
 def cmd_list(env: api.TestEnvironment, argv: List) -> None:
     # List devices, tests and configurations.
@@ -187,6 +199,7 @@ def cmd_list(env: api.TestEnvironment, argv: List) -> None:
     configs = env.get_config_names()
     for config_name in configs:
         print(config_name)
+
 
 def cmd_status(env: api.TestEnvironment, argv: List):
     # Print status of tests in configurations.
@@ -210,6 +223,7 @@ def cmd_status(env: api.TestEnvironment, argv: List):
             if match_entry(row[0], args):
                 print_row(config, row)
 
+
 def cmd_reset(env: api.TestEnvironment, argv: List):
     # Reset tests to re-run them.
     parser = argparse.ArgumentParser()
@@ -231,6 +245,7 @@ def cmd_reset(env: api.TestEnvironment, argv: List):
 
         if args.test == '*':
             shutil.rmtree(config.logs_dir)
+
 
 def cmd_run(env: api.TestEnvironment, argv: List, update_only: bool):
     # Run tests.
@@ -271,6 +286,7 @@ def cmd_run(env: api.TestEnvironment, argv: List, update_only: bool):
 
             print("\nfile://" + str(html_filepath))
 
+
 def cmd_graph(argv: List):
     # Create graph from a given JSON results file.
     parser = argparse.ArgumentParser()
@@ -290,6 +306,7 @@ def cmd_graph(argv: List):
 
     graph = api.TestGraph(json_files)
     graph.write(pathlib.Path(args.output))
+
 
 def main():
     usage = ('benchmark <command> [<args>]\n'
@@ -316,9 +333,9 @@ def main():
 
     argv = sys.argv[2:]
     blender_git_dir = find_blender_git_dir()
-    if blender_git_dir == None:
-      sys.stderr.write('Error: no blender git repository found from current working directory\n')
-      sys.exit(1)
+    if blender_git_dir is None:
+        sys.stderr.write('Error: no blender git repository found from current working directory\n')
+        sys.exit(1)
 
     if args.command == 'graph':
         cmd_graph(argv)
@@ -348,6 +365,7 @@ def main():
         parser.print_usage()
     else:
         sys.stderr.write(f'Unknown command: {args.command}\n')
+
 
 if __name__ == '__main__':
     main()

@@ -1,7 +1,6 @@
 
-in vec3 pos;
-
-out vec4 finalColor;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {
@@ -14,7 +13,5 @@ void main()
 
   gl_PointSize = sizeVertex * 2.0;
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(world_pos);
-#endif
+  view_clipping_distances(world_pos);
 }

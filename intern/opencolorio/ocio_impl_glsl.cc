@@ -603,7 +603,7 @@ static OCIO_GPUDisplayShader &getGPUDisplayShader(
   OCIO_ConstProcessorRcPtr *processor_to_scene_linear = OCIO_configGetProcessorWithNames(
       config, input, ROLE_SCENE_LINEAR);
   OCIO_ConstProcessorRcPtr *processor_to_display = OCIO_createDisplayProcessor(
-      config, ROLE_SCENE_LINEAR, view, display, look, 1.0f, 1.0f);
+      config, ROLE_SCENE_LINEAR, view, display, look, 1.0f, 1.0f, false);
 
   /* Create shader descriptions. */
   if (processor_to_scene_linear && processor_to_display) {
@@ -619,7 +619,7 @@ static OCIO_GPUDisplayShader &getGPUDisplayShader(
     GpuShaderDescRcPtr shaderdesc_to_display = GpuShaderDesc::CreateShaderDesc();
     shaderdesc_to_display->setLanguage(GPU_LANGUAGE_GLSL_1_3);
     shaderdesc_to_display->setFunctionName("OCIO_to_display");
-    shaderdesc_to_scene_linear->setResourcePrefix("to_display");
+    shaderdesc_to_display->setResourcePrefix("to_display");
     (*(ConstProcessorRcPtr *)processor_to_display)
         ->getDefaultGPUProcessor()
         ->extractGpuShaderInfo(shaderdesc_to_display);

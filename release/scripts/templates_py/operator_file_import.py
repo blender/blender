@@ -56,11 +56,12 @@ class ImportSomeData(Operator, ImportHelper):
         return read_some_data(context, self.filepath, self.use_setting)
 
 
-# Only needed if you want to add into a dynamic menu
+# Only needed if you want to add into a dynamic menu.
 def menu_func_import(self, context):
     self.layout.operator(ImportSomeData.bl_idname, text="Text Import Operator")
 
-# Register and add to the "file selector" menu (required to use F3 search "Text Import Operator" for quick access)
+
+# Register and add to the "file selector" menu (required to use F3 search "Text Import Operator" for quick access).
 def register():
     bpy.utils.register_class(ImportSomeData)
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)

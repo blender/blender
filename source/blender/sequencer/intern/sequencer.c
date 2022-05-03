@@ -27,6 +27,7 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 
+#include "SEQ_channels.h"
 #include "SEQ_edit.h"
 #include "SEQ_effects.h"
 #include "SEQ_iterator.h"
@@ -135,6 +136,10 @@ Sequence *SEQ_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int 
 
   seq->color_tag = SEQUENCE_COLOR_NONE;
 
+  if (seq->type == SEQ_TYPE_META) {
+    SEQ_channels_ensure(&seq->channels);
+  }
+
   SEQ_relations_session_uuid_generate(seq);
 
   return seq;
@@ -201,6 +206,9 @@ static void seq_sequence_free_ex(Scene *scene,
       SEQ_relations_invalidate_cache_raw(scene, seq);
     }
   }
+  if (seq->type == SEQ_TYPE_META) {
+    SEQ_channels_free(&seq->channels);
+  }
 
   MEM_freeN(seq);
 }
@@ -237,6 +245,8 @@ Editing *SEQ_editing_ensure(Scene *scene)
     ed->cache = NULL;
     ed->cache_flag = SEQ_CACHE_STORE_FINAL_OUT;
     ed->cache_flag |= SEQ_CACHE_STORE_RAW;
+    ed->displayed_channels = &ed->channels;
+    SEQ_channels_ensure(ed->displayed_channels);
   }
 
   return scene->ed;
@@ -260,6 +270,7 @@ void SEQ_editing_free(Scene *scene, const bool do_id_user)
 
   BLI_freelistN(&ed->metastack);
   SEQ_sequence_lookup_free(scene);
+  SEQ_channels_free(&ed->channels);
   MEM_freeN(ed);
 
   scene->ed = NULL;
@@ -386,6 +397,7 @@ MetaStack *SEQ_meta_stack_alloc(Editing *ed, Sequence *seq_meta)
   BLI_addtail(&ed->metastack, ms);
   ms->parseq = seq_meta;
   ms->oldbasep = ed->seqbasep;
+  ms->old_channels = ed->displayed_channels;
   copy_v2_v2_int(ms->disp_range, &ms->parseq->startdisp);
   return ms;
 }
@@ -460,6 +472,9 @@ static Sequence *seq_dupli(const Scene *scene_src,
     BLI_listbase_clear(&seqn->seqbase);
     /* WARNING: This meta-strip is not recursively duplicated here - do this after! */
     // seq_dupli_recursive(&seq->seqbase, &seqn->seqbase);
+
+    BLI_listbase_clear(&seqn->channels);
+    SEQ_channels_duplicate(&seqn->channels, &seq->channels);
   }
   else if (seq->type == SEQ_TYPE_SCENE) {
     seqn->strip->stripdata = NULL;
@@ -686,6 +701,10 @@ static bool seq_write_data_cb(Sequence *seq, void *userdata)
   }
 
   SEQ_modifier_blend_write(writer, &seq->modifiers);
+
+  LISTBASE_FOREACH (SeqTimelineChannel *, channel, &seq->channels) {
+    BLO_write_struct(writer, SeqTimelineChannel, channel);
+  }
   return true;
 }
 
@@ -753,6 +772,8 @@ static bool seq_read_data_cb(Sequence *seq, void *user_data)
   }
 
   SEQ_modifier_blend_read_data(reader, &seq->modifiers);
+
+  BLO_read_list(reader, &seq->channels);
   return true;
 }
 void SEQ_blend_read(BlendDataReader *reader, ListBase *seqbase)

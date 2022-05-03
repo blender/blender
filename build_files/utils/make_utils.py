@@ -47,8 +47,10 @@ def check_output(cmd, exit_on_error=True):
 
 
 def git_branch_exists(git_command, branch):
-    return call([git_command, "rev-parse", "--verify", branch], exit_on_error=False, silent=True) == 0 or \
-           call([git_command, "rev-parse", "--verify", "remotes/origin/" + branch], exit_on_error=False, silent=True) == 0
+    return (
+        call([git_command, "rev-parse", "--verify", branch], exit_on_error=False, silent=True) == 0 or
+        call([git_command, "rev-parse", "--verify", "remotes/origin/" + branch], exit_on_error=False, silent=True) == 0
+    )
 
 
 def git_branch(git_command):

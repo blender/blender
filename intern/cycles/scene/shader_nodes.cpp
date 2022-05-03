@@ -5763,7 +5763,9 @@ BlackbodyNode::BlackbodyNode() : ShaderNode(get_node_type())
 void BlackbodyNode::constant_fold(const ConstantFolder &folder)
 {
   if (folder.all_inputs_constant()) {
-    folder.make_constant(svm_math_blackbody_color(temperature));
+    const float3 rgb_rec709 = svm_math_blackbody_color_rec709(temperature);
+    const float3 rgb = folder.scene->shader_manager->rec709_to_scene_linear(rgb_rec709);
+    folder.make_constant(rgb);
   }
 }
 

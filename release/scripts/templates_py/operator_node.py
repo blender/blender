@@ -46,10 +46,12 @@ class NodeOperator(bpy.types.Operator):
         main(self, context)
         return {'FINISHED'}
 
+
 def menu_func(self, context):
     self.layout.operator(NodeOperator.bl_idname, text=NodeOperator.bl_label)
 
-# Register and add to the "Node" menu (required to also use F3 search "Simple Node Operator" for quick access)
+
+# Register and add to the "Node" menu (required to also use F3 search "Simple Node Operator" for quick access).
 def register():
     bpy.utils.register_class(NodeOperator)
     bpy.types.NODE_MT_node.append(menu_func)

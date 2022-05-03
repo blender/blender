@@ -1474,6 +1474,11 @@ static int rna_property_override_diff_propptr(Main *bmain,
     (is_array ? RNA_property_##_typename##_set_index((_ptr), (_prop), (_index), (_value)) : \
                 RNA_property_##_typename##_set((_ptr), (_prop), (_value)))
 
+/**
+ * /return `0` is matching, `-1` if `prop_a < prop_b`, `1` if `prop_a > prop_b`. Note that for
+ * unquantifiable properties (e.g. pointers or collections), return value should be interpreted as
+ * a boolean (false == matching, true == not matching).
+ */
 int rna_property_override_diff_default(Main *bmain,
                                        PropertyRNAOrID *prop_a,
                                        PropertyRNAOrID *prop_b,
@@ -1932,25 +1937,25 @@ int rna_property_override_diff_default(Main *bmain,
           }
           else if (is_id || is_valid_for_diffing) {
             if (equals || do_create) {
-              const int eq = rna_property_override_diff_propptr(bmain,
-                                                                ptr_a->owner_id,
-                                                                ptr_b->owner_id,
-                                                                &iter_a.ptr,
-                                                                &iter_b.ptr,
-                                                                mode,
-                                                                no_ownership,
-                                                                no_prop_name,
-                                                                override,
-                                                                rna_path,
-                                                                rna_path_len,
-                                                                PROP_COLLECTION,
-                                                                propname_a,
-                                                                propname_b,
-                                                                idx_a,
-                                                                idx_b,
-                                                                flags,
-                                                                r_override_changed);
-              equals = equals && eq;
+              const int comp = rna_property_override_diff_propptr(bmain,
+                                                                  ptr_a->owner_id,
+                                                                  ptr_b->owner_id,
+                                                                  &iter_a.ptr,
+                                                                  &iter_b.ptr,
+                                                                  mode,
+                                                                  no_ownership,
+                                                                  no_prop_name,
+                                                                  override,
+                                                                  rna_path,
+                                                                  rna_path_len,
+                                                                  PROP_COLLECTION,
+                                                                  propname_a,
+                                                                  propname_b,
+                                                                  idx_a,
+                                                                  idx_b,
+                                                                  flags,
+                                                                  r_override_changed);
+              equals = equals && (comp == 0);
             }
           }
 
@@ -2596,10 +2601,11 @@ bool rna_property_override_apply_default(Main *bmain,
             int item_index_src, item_index_ref;
             if (RNA_property_collection_lookup_string_index(
                     ptr_src, prop_src, opop->subitem_local_name, &item_ptr_src, &item_index_src) &&
-                RNA_property_collection_lookup_int(
-                    ptr_src, prop_src, item_index_src + 1, &item_ptr_src) &&
-                RNA_property_collection_lookup_string_index(
-                    ptr_dst, prop_dst, opop->subitem_local_name, &item_ptr_ref, &item_index_ref)) {
+                RNA_property_collection_lookup_string_index(ptr_dst,
+                                                            prop_dst,
+                                                            opop->subitem_reference_name,
+                                                            &item_ptr_ref,
+                                                            &item_index_ref)) {
               is_valid = true;
               item_index_dst = item_index_ref + 1;
             }
@@ -2607,10 +2613,10 @@ bool rna_property_override_apply_default(Main *bmain,
           if (!is_valid && opop->subitem_local_index >= 0) {
             /* Find from index. */
             if (RNA_property_collection_lookup_int(
-                    ptr_src, prop_src, opop->subitem_local_index + 1, &item_ptr_src) &&
+                    ptr_src, prop_src, opop->subitem_local_index, &item_ptr_src) &&
                 RNA_property_collection_lookup_int(
-                    ptr_dst, prop_dst, opop->subitem_local_index, &item_ptr_ref)) {
-              item_index_dst = opop->subitem_local_index + 1;
+                    ptr_dst, prop_dst, opop->subitem_reference_index, &item_ptr_ref)) {
+              item_index_dst = opop->subitem_reference_index + 1;
               is_valid = true;
             }
           }

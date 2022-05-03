@@ -359,7 +359,7 @@ void ABCGenericMeshWriter::write_arb_geo_params(struct Mesh *me)
   else {
     arb_geom_params = abc_poly_mesh_.getSchema().getArbGeomParams();
   }
-  write_custom_data(arb_geom_params, m_custom_data_config, &me->ldata, CD_MLOOPCOL);
+  write_custom_data(arb_geom_params, m_custom_data_config, &me->ldata, CD_PROP_BYTE_COLOR);
 }
 
 bool ABCGenericMeshWriter::get_velocities(struct Mesh *mesh, std::vector<Imath::V3f> &vels)

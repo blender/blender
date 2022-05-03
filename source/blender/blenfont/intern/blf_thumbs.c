@@ -64,7 +64,7 @@ void BLF_thumb_preview(const char *filepath,
   /* Always create the image with a white font,
    * the caller can theme how it likes */
   memcpy(font->buf_info.col_init, font_color, sizeof(font->buf_info.col_init));
-  font->pos[1] = (float)h;
+  font->pos[1] = h;
 
   font_size_curr = font_size;
 
@@ -84,7 +84,7 @@ void BLF_thumb_preview(const char *filepath,
     font_size_curr -= (font_size_curr / font_shrink);
     font_shrink += 1;
 
-    font->pos[1] -= blf_font_ascender(font) * 1.1f;
+    font->pos[1] -= (int)((float)blf_font_ascender(font) * 1.1f);
 
     /* We fallback to default english strings in case not enough chars are available in current
      * font for given translated string (useful in non-latin i18n context, like Chinese,

@@ -173,7 +173,6 @@ static void gather_point_attributes_to_interpolate(const CurveComponent &src_com
 {
   const Curves &dst_curves_id = *dst_component.get_for_read();
   const bke::CurvesGeometry &dst_curves = bke::CurvesGeometry::wrap(dst_curves_id.geometry);
-  const std::array<int, CURVE_TYPES_NUM> type_counts = dst_curves.count_curve_types();
 
   VectorSet<AttributeIDRef> ids;
   VectorSet<AttributeIDRef> ids_no_interpolation;
@@ -182,7 +181,7 @@ static void gather_point_attributes_to_interpolate(const CurveComponent &src_com
         if (meta_data.domain != ATTR_DOMAIN_POINT) {
           return true;
         }
-        if (!interpolate_attribute_to_curves(id, type_counts)) {
+        if (!interpolate_attribute_to_curves(id, dst_curves.curve_type_counts())) {
           return true;
         }
         if (interpolate_attribute_to_poly_curve(id)) {
@@ -301,7 +300,7 @@ static Curves *resample_to_uniform_count(const CurveComponent &src_component,
                   CD_MASK_ALL,
                   CD_DUPLICATE,
                   src_curves.curves_num());
-  MutableSpan<int> dst_offsets = dst_curves.offsets();
+  MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
 
   GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_CURVE};
   fn::FieldEvaluator evaluator{field_context, src_curves.curves_num()};
@@ -318,12 +317,12 @@ static Curves *resample_to_uniform_count(const CurveComponent &src_component,
   dst_curves.resize(dst_offsets.last(), dst_curves.curves_num());
 
   /* All resampled curves are poly curves. */
-  dst_curves.curve_types().fill_indices(selection, CURVE_TYPE_POLY);
+  dst_curves.fill_curve_types(selection, CURVE_TYPE_POLY);
 
   VArray<bool> curves_cyclic = src_curves.cyclic();
   VArray<int8_t> curve_types = src_curves.curve_types();
   Span<float3> evaluated_positions = src_curves.evaluated_positions();
-  MutableSpan<float3> dst_positions = dst_curves.positions();
+  MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
 
   AttributesForInterpolation attributes;
   gather_point_attributes_to_interpolate(src_component, dst_component, attributes);
@@ -464,8 +463,8 @@ static Curves *resample_to_evaluated(const CurveComponent &src_component,
                   CD_DUPLICATE,
                   src_curves.curves_num());
   /* All resampled curves are poly curves. */
-  dst_curves.curve_types().fill_indices(selection, CURVE_TYPE_POLY);
-  MutableSpan<int> dst_offsets = dst_curves.offsets();
+  dst_curves.fill_curve_types(selection, CURVE_TYPE_POLY);
+  MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
 
   src_curves.ensure_evaluated_offsets();
   threading::parallel_for(selection.index_range(), 4096, [&](IndexRange range) {
@@ -480,7 +479,7 @@ static Curves *resample_to_evaluated(const CurveComponent &src_component,
 
   /* Create the correct number of uniform-length samples for every selected curve. */
   Span<float3> evaluated_positions = src_curves.evaluated_positions();
-  MutableSpan<float3> dst_positions = dst_curves.positions();
+  MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
 
   AttributesForInterpolation attributes;
   gather_point_attributes_to_interpolate(src_component, dst_component, attributes);
@@ -552,8 +551,10 @@ static Field<int> get_curve_count_field(GeoNodeExecParams params,
                                         const GeometryNodeCurveResampleMode mode)
 {
   if (mode == GEO_NODE_CURVE_RESAMPLE_COUNT) {
-    static fn::CustomMF_SI_SO<int, int> max_one_fn("Clamp Above One",
-                                                   [](int value) { return std::max(1, value); });
+    static fn::CustomMF_SI_SO<int, int> max_one_fn(
+        "Clamp Above One",
+        [](int value) { return std::max(1, value); },
+        fn::CustomMF_presets::AllSpanOrSingle());
     auto clamp_op = std::make_shared<FieldOperation>(
         FieldOperation(max_one_fn, {Field<int>(params.extract_input<Field<int>>("Count"))}));
 
@@ -562,12 +563,14 @@ static Field<int> get_curve_count_field(GeoNodeExecParams params,
 
   if (mode == GEO_NODE_CURVE_RESAMPLE_LENGTH) {
     static fn::CustomMF_SI_SI_SO<float, float, int> get_count_fn(
-        "Length Input to Count", [](const float curve_length, const float sample_length) {
+        "Length Input to Count",
+        [](const float curve_length, const float sample_length) {
           /* Find the number of sampled segments by dividing the total length by
            * the sample length. Then there is one more sampled point than segment. */
           const int count = int(curve_length / sample_length) + 1;
           return std::max(1, count);
-        });
+        },
+        fn::CustomMF_presets::AllSpanOrSingle());
 
     auto get_count_op = std::make_shared<FieldOperation>(
         FieldOperation(get_count_fn,
@@ -589,9 +592,11 @@ static Field<int> get_curve_count_field(GeoNodeExecParams params,
 static Field<bool> get_selection_field(GeoNodeExecParams params)
 {
   static fn::CustomMF_SI_SI_SO<bool, int, bool> get_selection_fn(
-      "Create Curve Selection", [](const bool orig_selection, const int evaluated_points_num) {
+      "Create Curve Selection",
+      [](const bool orig_selection, const int evaluated_points_num) {
         return orig_selection && evaluated_points_num > 1;
-      });
+      },
+      fn::CustomMF_presets::AllSpanOrSingle());
 
   auto selection_op = std::make_shared<FieldOperation>(
       FieldOperation(get_selection_fn,

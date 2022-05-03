@@ -37,24 +37,6 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
   NodeShaderAttribute *attr = static_cast<NodeShaderAttribute *>(node->storage);
   bool is_varying = attr->type == SHD_ATTRIBUTE_GEOMETRY;
 
-  if (GPU_material_is_volume_shader(mat) && is_varying) {
-    if (out[0].hasoutput) {
-      out[0].link = GPU_volume_grid(mat, attr->name, GPU_VOLUME_DEFAULT_0);
-    }
-    if (out[1].hasoutput) {
-      out[1].link = GPU_volume_grid(mat, attr->name, GPU_VOLUME_DEFAULT_0);
-    }
-    if (out[2].hasoutput) {
-      out[2].link = GPU_volume_grid(mat, attr->name, GPU_VOLUME_DEFAULT_0);
-    }
-    if (out[3].hasoutput) {
-      static const float default_alpha = 1.0f;
-      out[3].link = GPU_constant(&default_alpha);
-    }
-
-    return 1;
-  }
-
   GPUNodeLink *cd_attr;
 
   if (is_varying) {
@@ -62,6 +44,13 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
   }
   else {
     cd_attr = GPU_uniform_attribute(mat, attr->name, attr->type == SHD_ATTRIBUTE_INSTANCER);
+  }
+
+  if (STREQ(attr->name, "color")) {
+    GPU_link(mat, "node_attribute_color", cd_attr, &cd_attr);
+  }
+  else if (STREQ(attr->name, "temperature")) {
+    GPU_link(mat, "node_attribute_temperature", cd_attr, &cd_attr);
   }
 
   GPU_stack_link(mat, node, "node_attribute", in, out, cd_attr);

@@ -18,7 +18,7 @@ struct bContext;
 void ED_spacetypes_init(void);
 void ED_spacemacros_init(void);
 
-/* the pluginnable API for export to editors */
+/* The plugin-able API for export to editors. */
 
 /* -------------------------------------------------------------------- */
 /** \name Calls for registering default spaces

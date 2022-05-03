@@ -14,6 +14,7 @@ extern "C" {
 struct bContext;
 struct bDopeSheet;
 struct wmEvent;
+struct rcti;
 
 void ED_time_scrub_draw_current_frame(const struct ARegion *region,
                                       const struct Scene *scene,
@@ -29,6 +30,7 @@ bool ED_time_scrub_event_in_region(const struct ARegion *region, const struct wm
 void ED_time_scrub_channel_search_draw(const struct bContext *C,
                                        struct ARegion *region,
                                        struct bDopeSheet *dopesheet);
+void ED_time_scrub_region_rect_get(const struct ARegion *region, struct rcti *rect);
 
 #ifdef __cplusplus
 }

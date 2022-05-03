@@ -15,6 +15,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BKE_volume.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
@@ -555,10 +556,19 @@ void DRW_shgroup_vertex_buffer_ref_ex(DRWShadingGroup *shgroup,
 static void drw_call_calc_orco(Object *ob, float (*r_orcofacs)[4])
 {
   ID *ob_data = (ob) ? ob->data : NULL;
+  float loc[3], size[3];
   float *texcoloc = NULL;
   float *texcosize = NULL;
   if (ob_data != NULL) {
     switch (GS(ob_data->name)) {
+      case ID_VO: {
+        BoundBox *bbox = BKE_volume_boundbox_get(ob);
+        mid_v3_v3v3(loc, bbox->vec[0], bbox->vec[6]);
+        sub_v3_v3v3(size, bbox->vec[0], bbox->vec[6]);
+        texcoloc = loc;
+        texcosize = size;
+        break;
+      }
       case ID_ME:
         BKE_mesh_texspace_get_reference((Mesh *)ob_data, NULL, &texcoloc, &texcosize);
         break;

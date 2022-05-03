@@ -1061,8 +1061,9 @@ PyDoc_STRVAR(bpy_bmesh_from_object_doc,
              "   :arg cage: Get the mesh as a deformed cage.\n"
              "   :type cage: boolean\n"
              "   :arg face_normals: Calculate face normals.\n"
+             "   :type face_normals: boolean\n"
              "   :arg vertex_normals: Calculate vertex normals.\n"
-             "   :type face_normals: boolean\n");
+             "   :type vertex_normals: boolean\n");
 static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject *kw)
 {
   static const char *kwlist[] = {
@@ -1083,7 +1084,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "OO|$O&O&:from_object",
+                                   "OO|$O&O&O&:from_object",
                                    (char **)kwlist,
                                    &py_object,
                                    &py_depsgraph,
@@ -1190,7 +1191,7 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kw,
-                                   "O|$O&O&i:from_mesh",
+                                   "O|$O&O&O&i:from_mesh",
                                    (char **)kwlist,
                                    &py_mesh,
                                    PyC_ParseBool,
@@ -3634,8 +3635,8 @@ void BPy_BM_init_types(void)
   BPy_BMLoopSeq_Type.tp_methods = bpy_bmloopseq_methods;
   BPy_BMIter_Type.tp_methods = NULL;
 
-  /*BPy_BMElem_Check() uses bpy_bm_elem_hash() to check types.
-   * if this changes update the macro */
+  /* #BPy_BMElem_Check() uses #bpy_bm_elem_hash() to check types.
+   * if this changes update the macro. */
   BPy_BMesh_Type.tp_hash = bpy_bm_hash;
   BPy_BMVert_Type.tp_hash = bpy_bm_elem_hash;
   BPy_BMEdge_Type.tp_hash = bpy_bm_elem_hash;

@@ -87,6 +87,7 @@ class OperatorSpecEditMode:
     """
     Holds one operator and its parameters.
     """
+
     def __init__(
             self,
             operator_name: str,
@@ -206,7 +207,7 @@ class MeshTest(ABC):
         self.expected_object = self.evaluated_object
         self.expected_object.name = self.exp_object_name
         x, y, z = self.test_object.location
-        self.expected_object.location = (x, y+10, z)
+        self.expected_object.location = (x, y + 10, z)
         bpy.ops.wm.save_as_mainfile(filepath=bpy.data.filepath)
 
     def create_evaluated_object(self):
@@ -260,7 +261,6 @@ class MeshTest(ABC):
         # Check "success" is actually evaluated and is not the default True value.
         if not inside_loop_flag:
             success = False
-
 
         if success:
             self.print_passed_test_result(result)
@@ -320,7 +320,7 @@ class MeshTest(ABC):
 
         bm = bmesh.from_edit_mesh(mesh)
 
-        #bpy.ops.object.mode_set(mode='OBJECT')
+        # bpy.ops.object.mode_set(mode='OBJECT')
 
         bpy.context.tool_settings.mesh_select_mode = (select_mode == 'VERT',
                                                       select_mode == 'EDGE',

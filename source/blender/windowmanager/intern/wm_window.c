@@ -1541,7 +1541,15 @@ void wm_ghost_init(bContext *C)
     }
 
     g_system = GHOST_CreateSystem();
-    GHOST_SystemInitDebug(g_system, G.debug & G_DEBUG_GHOST);
+
+    GHOST_Debug debug = {0};
+    if (G.debug & G_DEBUG_GHOST) {
+      debug.flags |= GHOST_kDebugDefault;
+    }
+    if (G.debug & G_DEBUG_WINTAB) {
+      debug.flags |= GHOST_kDebugWintab;
+    }
+    GHOST_SystemInitDebug(g_system, debug);
 
     if (C != NULL) {
       GHOST_AddEventConsumer(g_system, consumer);

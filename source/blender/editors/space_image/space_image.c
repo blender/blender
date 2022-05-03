@@ -100,7 +100,7 @@ static SpaceLink *image_create(const ScrArea *UNUSED(area), const Scene *UNUSED(
   simage->lock = true;
   simage->flag = SI_SHOW_GPENCIL | SI_USE_ALPHA | SI_COORDFLOATS;
   simage->uv_opacity = 1.0f;
-  simage->overlay.flag = SI_OVERLAY_SHOW_OVERLAYS;
+  simage->overlay.flag = SI_OVERLAY_SHOW_OVERLAYS | SI_OVERLAY_SHOW_GRID_BACKGROUND;
 
   BKE_imageuser_default(&simage->iuser);
   simage->iuser.flag = IMA_SHOW_STEREO | IMA_ANIM_ALWAYS | IMA_SHOW_MAX_RESOLUTION;
@@ -255,7 +255,7 @@ static bool image_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
   return false;
 }
 
-static void image_drop_copy(wmDrag *drag, wmDropBox *drop)
+static void image_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   /* copy drag path to properties */
   RNA_string_set(drop->ptr, "filepath", drag->path);

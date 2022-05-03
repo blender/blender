@@ -1465,6 +1465,83 @@ static void MARKER_OT_select_all(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Select Left/Right of Frame
+ * \{ */
+
+typedef enum eMarkers_LeftRightSelect_Mode {
+  MARKERS_LRSEL_LEFT = 0,
+  MARKERS_LRSEL_RIGHT,
+} eMarkers_LeftRightSelect_Mode;
+
+static const EnumPropertyItem prop_markers_select_leftright_modes[] = {
+    {MARKERS_LRSEL_LEFT, "LEFT", 0, "Before Current Frame", ""},
+    {MARKERS_LRSEL_RIGHT, "RIGHT", 0, "After Current Frame", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static void ED_markers_select_leftright(bAnimContext *ac,
+                                        const eMarkers_LeftRightSelect_Mode mode,
+                                        const bool extend)
+{
+  ListBase *markers = ac->markers;
+  Scene *scene = ac->scene;
+
+  if (markers == NULL) {
+    return;
+  }
+
+  if (!extend) {
+    deselect_markers(markers);
+  }
+
+  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
+    if ((mode == MARKERS_LRSEL_LEFT && marker->frame <= CFRA) ||
+        (mode == MARKERS_LRSEL_RIGHT && marker->frame >= CFRA)) {
+      marker->flag |= SELECT;
+    }
+  }
+}
+
+static int ed_marker_select_leftright_exec(bContext *C, wmOperator *op)
+{
+  const eMarkers_LeftRightSelect_Mode mode = RNA_enum_get(op->ptr, "mode");
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
+
+  bAnimContext ac;
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ED_markers_select_leftright(&ac, mode, extend);
+
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+static void MARKER_OT_select_leftright(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Select Markers Before/After Current Frame";
+  ot->description = "Select markers on and left/right of the current frame";
+  ot->idname = "MARKER_OT_select_leftright";
+
+  /* api callbacks */
+  ot->exec = ed_marker_select_leftright_exec;
+  ot->poll = ed_markers_poll_markers_exist;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* rna storage */
+  RNA_def_enum(
+      ot->srna, "mode", prop_markers_select_leftright_modes, MARKERS_LRSEL_LEFT, "mode", "Mode");
+  RNA_def_boolean(ot->srna, "extend", false, "extend", "Extend");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Remove Marker
  *
  * Remove selected time-markers.
@@ -1735,6 +1812,7 @@ void ED_operatortypes_marker(void)
   WM_operatortype_append(MARKER_OT_select);
   WM_operatortype_append(MARKER_OT_select_box);
   WM_operatortype_append(MARKER_OT_select_all);
+  WM_operatortype_append(MARKER_OT_select_leftright);
   WM_operatortype_append(MARKER_OT_delete);
   WM_operatortype_append(MARKER_OT_rename);
   WM_operatortype_append(MARKER_OT_make_links_scene);

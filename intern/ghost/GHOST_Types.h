@@ -573,6 +573,16 @@ typedef struct {
   uint32_t frequency;
 } GHOST_DisplaySetting;
 
+typedef enum {
+  /** Axis that cursor grab will wrap. */
+  GHOST_kDebugDefault = (1 << 1),
+  GHOST_kDebugWintab = (1 << 2),
+} GHOST_TDebugFlags;
+
+typedef struct {
+  int flags;
+} GHOST_Debug;
+
 #ifdef _WIN32
 typedef void *GHOST_TEmbedderWindowID;
 #endif  // _WIN32

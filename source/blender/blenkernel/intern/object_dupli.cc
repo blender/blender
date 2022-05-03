@@ -776,32 +776,27 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
 {
   int component_index = 0;
   if (ctx->object->type != OB_MESH || geometry_set_is_instance) {
-    const Mesh *mesh = geometry_set.get_mesh_for_read();
-    if (mesh != nullptr) {
+    if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
       DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
       dupli->ob_data = (ID *)mesh;
     }
   }
   if (ctx->object->type != OB_VOLUME || geometry_set_is_instance) {
-    const Volume *volume = geometry_set.get_volume_for_read();
-    if (volume != nullptr) {
+    if (const Volume *volume = geometry_set.get_volume_for_read()) {
       DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
       dupli->ob_data = (ID *)volume;
     }
   }
-  if (!ELEM(ctx->object->type, OB_CURVES_LEGACY, OB_FONT) || geometry_set_is_instance) {
-    const CurveComponent *curve_component = geometry_set.get_component_for_read<CurveComponent>();
-    if (curve_component != nullptr) {
-      const Curve *curve = curve_component->get_curve_for_render();
-      if (curve != nullptr) {
+  if (!ELEM(ctx->object->type, OB_CURVES_LEGACY, OB_FONT, OB_CURVES) || geometry_set_is_instance) {
+    if (const CurveComponent *component = geometry_set.get_component_for_read<CurveComponent>()) {
+      if (const Curve *curve = component->get_curve_for_render()) {
         DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
         dupli->ob_data = (ID *)curve;
       }
     }
   }
   if (ctx->object->type != OB_POINTCLOUD || geometry_set_is_instance) {
-    const PointCloud *pointcloud = geometry_set.get_pointcloud_for_read();
-    if (pointcloud != nullptr) {
+    if (const PointCloud *pointcloud = geometry_set.get_pointcloud_for_read()) {
       DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);
       dupli->ob_data = (ID *)pointcloud;
     }

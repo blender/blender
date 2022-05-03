@@ -1,12 +1,4 @@
-#pragma BLENDER_REQUIRE(common_globals_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
-
-uniform float pointSize;
-
-in vec2 au;
-in int flag;
-
-flat out vec4 finalColor;
 
 void main()
 {

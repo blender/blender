@@ -1,5 +1,9 @@
 #define COMMON_GLOBALS_LIB
 
+#ifdef USE_GPU_SHADER_CREATE_INFO
+#  error Use draw_globals as additional_info instead of common_globals_lib.glsl
+#endif
+
 /* keep in sync with GlobalsUboStorage */
 layout(std140) uniform globalsBlock
 {

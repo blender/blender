@@ -633,8 +633,8 @@ BLI_INLINE int DOWNSAMPLE_FLOAT_TO_16BIT(const float _val)
 /* ****************************** COPIED FROM image_to_j2k.c */
 
 /* ----------------------------------------------------------------------- */
-#define CINEMA_24_CS 1302083 /* Codestream length for 24fps. */
-#define CINEMA_48_CS 651041  /* Codestream length for 48fps. */
+#define CINEMA_24_CS 1302083 /* Code-stream length for 24fps. */
+#define CINEMA_48_CS 651041  /* Code-stream length for 48fps. */
 #define COMP_24_CS 1041666   /* Maximum size per color component for 2K & 4K @ 24fps. */
 #define COMP_48_CS 520833    /* Maximum size per color component for 2K @ 48fps. */
 
@@ -673,7 +673,7 @@ static void cinema_parameters(opj_cparameters_t *parameters)
   parameters->image_offset_x0 = 0;
   parameters->image_offset_y0 = 0;
 
-  /* Codeblock size = 32 * 32. */
+  /* Code-block size = 32 * 32. */
   parameters->cblockw_init = 32;
   parameters->cblockh_init = 32;
   parameters->csty |= 0x01;

@@ -8,6 +8,7 @@
 
 #include "gpu_backend.hh"
 #include "mtl_backend.hh"
+#include "mtl_context.hh"
 
 #include "gpu_capabilities_private.hh"
 #include "gpu_platform_private.hh"
@@ -16,8 +17,7 @@
 #include <Metal/Metal.h>
 #include <QuartzCore/QuartzCore.h>
 
-namespace blender {
-namespace gpu {
+namespace blender::gpu {
 
 /* Global per-thread AutoReleasePool. */
 thread_local NSAutoreleasePool *g_autoreleasepool = nil;
@@ -33,8 +33,7 @@ void MTLBackend::samplers_update(){
 
 Context *MTLBackend::context_alloc(void *ghost_window)
 {
-  /* TODO(Metal): Implement MTLContext. */
-  return nullptr;
+  return new MTLContext(ghost_window);
 };
 
 Batch *MTLBackend::batch_alloc()
@@ -75,8 +74,7 @@ Shader *MTLBackend::shader_alloc(const char *name)
 
 Texture *MTLBackend::texture_alloc(const char *name)
 {
-  /* TODO(Metal): Implement MTLTexture. */
-  return nullptr;
+  return new gpu::MTLTexture(name);
 }
 
 UniformBuf *MTLBackend::uniformbuf_alloc(int size, const char *name)
@@ -84,6 +82,12 @@ UniformBuf *MTLBackend::uniformbuf_alloc(int size, const char *name)
   /* TODO(Metal): Implement MTLUniformBuf. */
   return nullptr;
 };
+
+StorageBuf *MTLBackend::storagebuf_alloc(int size, GPUUsageType usage, const char *name)
+{
+  /* TODO(Metal): Implement MTLStorageBuf. */
+  return nullptr;
+}
 
 VertBuf *MTLBackend::vertbuf_alloc()
 {
@@ -404,5 +408,4 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
 
 /** \} */
 
-}  // gpu
-}  // blender
+}  // blender::gpu

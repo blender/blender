@@ -4,7 +4,6 @@
 import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
-from collections import defaultdict
 
 
 class MESH_MT_vertex_group_context_menu(Menu):
@@ -66,10 +65,11 @@ class MESH_MT_shape_key_context_menu(Menu):
         layout.operator("object.shape_key_move", icon='TRIA_UP_BAR', text="Move to Top").type = 'TOP'
         layout.operator("object.shape_key_move", icon='TRIA_DOWN_BAR', text="Move to Bottom").type = 'BOTTOM'
 
+
 class MESH_MT_attribute_context_menu(Menu):
     bl_label = "Attribute Specials"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("geometry.attribute_convert")
@@ -129,18 +129,6 @@ class MESH_UL_uvmaps(UIList):
         # assert(isinstance(item, (bpy.types.MeshTexturePolyLayer, bpy.types.MeshLoopColorLayer)))
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.prop(item, "name", text="", emboss=False, icon='GROUP_UVS')
-            icon = 'RESTRICT_RENDER_OFF' if item.active_render else 'RESTRICT_RENDER_ON'
-            layout.prop(item, "active_render", text="", icon=icon, emboss=False)
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon_value=icon)
-
-
-class MESH_UL_vcols(UIList):
-    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
-        # assert(isinstance(item, (bpy.types.MeshTexturePolyLayer, bpy.types.MeshLoopColorLayer)))
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(item, "name", text="", emboss=False, icon='GROUP_VCOL')
             icon = 'RESTRICT_RENDER_OFF' if item.active_render else 'RESTRICT_RENDER_ON'
             layout.prop(item, "active_render", text="", icon=icon, emboss=False)
         elif self.layout_type == 'GRID':
@@ -434,63 +422,6 @@ class DATA_PT_uv_texture(MeshButtonsPanel, Panel):
         col.operator("mesh.uv_texture_remove", icon='REMOVE', text="")
 
 
-class DATA_PT_vertex_colors(MeshButtonsPanel, Panel):
-    bl_label = "Vertex Colors"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        me = context.mesh
-
-        row = layout.row()
-        col = row.column()
-
-        col.template_list("MESH_UL_vcols", "vcols", me, "vertex_colors", me.vertex_colors, "active_index", rows=2)
-
-        col = row.column(align=True)
-        col.operator("mesh.vertex_color_add", icon='ADD', text="")
-        col.operator("mesh.vertex_color_remove", icon='REMOVE', text="")
-
-
-class DATA_PT_sculpt_vertex_colors(MeshButtonsPanel, Panel):
-    bl_label = "Sculpt Vertex Colors"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
-
-    @classmethod
-    def poll(cls, context):
-        return super().poll(context) and context.preferences.experimental.use_sculpt_vertex_colors
-
-    def draw(self, context):
-        layout = self.layout
-
-        me = context.mesh
-
-        row = layout.row()
-        col = row.column()
-
-        col.template_list(
-            "MESH_UL_vcols",
-            "svcols",
-            me,
-            "sculpt_vertex_colors",
-            me.sculpt_vertex_colors,
-            "active_index",
-            rows=2,
-        )
-
-        col = row.column(align=True)
-        col.operator("mesh.sculpt_vertex_color_add", icon='ADD', text="")
-        col.operator("mesh.sculpt_vertex_color_remove", icon='REMOVE', text="")
-
-        row = layout.row()
-        col = row.column()
-        col.operator("sculpt.vertex_to_loop_colors", text="Store Sculpt Vertex Color")
-        col.operator("sculpt.loop_to_vertex_colors", text="Load Sculpt Vertex Color")
-
-
 class DATA_PT_remesh(MeshButtonsPanel, Panel):
     bl_label = "Remesh"
     bl_options = {'DEFAULT_CLOSED'}
@@ -514,8 +445,7 @@ class DATA_PT_remesh(MeshButtonsPanel, Panel):
             col.prop(mesh, "use_remesh_preserve_volume", text="Volume")
             col.prop(mesh, "use_remesh_preserve_paint_mask", text="Paint Mask")
             col.prop(mesh, "use_remesh_preserve_sculpt_face_sets", text="Face Sets")
-            if context.preferences.experimental.use_sculpt_vertex_colors:
-                col.prop(mesh, "use_remesh_preserve_vertex_colors", text="Vertex Colors")
+            col.prop(mesh, "use_remesh_preserve_vertex_colors", text="Color Attributes")
 
             col.operator("object.voxel_remesh", text="Voxel Remesh")
         else:
@@ -614,35 +544,114 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
         self.draw_attribute_warnings(context, layout)
 
     def draw_attribute_warnings(self, context, layout):
-        attributes_by_name = defaultdict(list)
-
         ob = context.object
         mesh = ob.data
 
-        builtin_attribute = object()
+        unique_names = set()
+        colliding_names = []
+        for collection in (
+                # Built-in names.
+                {"position": None, "material_index": None, "shade_smooth": None, "normal": None, "crease": None},
+                mesh.attributes,
+                mesh.uv_layers,
+                ob.vertex_groups,
+        ):
+            for name in collection.keys():
+                unique_names_len = len(unique_names)
+                unique_names.add(name)
+                if len(unique_names) == unique_names_len:
+                    colliding_names.append(name)
 
-        def add_builtin(name):
-            attributes_by_name[name].append(builtin_attribute)
-
-        def add_attributes(layers):
-            for layer in layers:
-                attributes_by_name[layer.name].append(layer)
-
-        add_builtin("position")
-        add_builtin("material_index")
-        add_builtin("shade_smooth")
-        add_builtin("normal")
-        add_builtin("crease")
-
-        add_attributes(mesh.attributes)
-        add_attributes(mesh.uv_layers)
-        add_attributes(ob.vertex_groups)
-
-        colliding_names = [name for name, layers in attributes_by_name.items() if len(layers) >= 2]
-        if len(colliding_names) == 0:
+        if not colliding_names:
             return
 
-        layout.label(text="Name collisions: {}".format(", ".join(colliding_names)), icon='ERROR')
+        layout.label(text="Name collisions: " + ", ".join(set(colliding_names)), icon='ERROR')
+
+
+class ColorAttributesListBase():
+    display_domain_names = {
+        'POINT': "Vertex",
+        'EDGE': "Edge",
+        'FACE': "Face",
+        'CORNER': "Face Corner",
+    }
+
+    def filter_items(self, _context, data, property):
+        attrs = getattr(data, property)
+        ret = []
+        idxs = []
+
+        for idx, item in enumerate(attrs):
+            skip = (
+                (item.domain not in {"POINT", "CORNER"}) or
+                (item.data_type not in {"FLOAT_COLOR", "BYTE_COLOR"})
+            )
+            ret.append(self.bitflag_filter_item if not skip else 0)
+            idxs.append(idx)
+
+        return ret, idxs
+
+
+class MESH_UL_color_attributes(UIList, ColorAttributesListBase):
+    def draw_item(self, _context, layout, data, attribute, _icon, _active_data, _active_propname, _index):
+        data_type = attribute.bl_rna.properties['data_type'].enum_items[attribute.data_type]
+
+        domain_name = self.display_domain_names.get(attribute.domain, "")
+
+        split = layout.split(factor=0.50)
+        split.emboss = 'NONE'
+        split.prop(attribute, "name", text="", icon='GROUP_VCOL')
+
+        sub = split.row()
+        sub.alignment = 'RIGHT'
+        sub.active = False
+        sub.label(text="%s ▶ %s" % (domain_name, data_type.name))
+
+        active_render = _index == data.color_attributes.render_color_index
+
+        row = layout.row()
+        row.emboss = 'NONE'
+        prop = row.operator(
+            "geometry.color_attribute_render_set",
+            text="",
+            icon='RESTRICT_RENDER_OFF' if active_render else 'RESTRICT_RENDER_ON',
+        )
+        prop.name = attribute.name
+
+
+class MESH_UL_color_attributes_selector(UIList, ColorAttributesListBase):
+    def draw_item(self, _context, layout, _data, attribute, _icon, _active_data, _active_propname, _index):
+        layout.emboss = 'NONE'
+        layout.prop(attribute, "name", text="", icon='GROUP_VCOL')
+
+
+class DATA_PT_vertex_colors(DATA_PT_mesh_attributes, Panel):
+    bl_label = "Color Attributes"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    def draw(self, context):
+        mesh = context.mesh
+
+        layout = self.layout
+        row = layout.row()
+
+        col = row.column()
+        col.template_list(
+            "MESH_UL_color_attributes",
+            "color_attributes",
+            mesh,
+            "color_attributes",
+            mesh.color_attributes,
+            "active_color_index",
+            rows=3,
+        )
+
+        col = row.column(align=True)
+        col.operator("geometry.color_attribute_add", icon='ADD', text="")
+        col.operator("geometry.color_attribute_remove", icon='REMOVE', text="")
+
+        self.draw_attribute_warnings(context, layout)
 
 
 classes = (
@@ -653,14 +662,12 @@ classes = (
     MESH_UL_fmaps,
     MESH_UL_shape_keys,
     MESH_UL_uvmaps,
-    MESH_UL_vcols,
     MESH_UL_attributes,
     DATA_PT_context_mesh,
     DATA_PT_vertex_groups,
     DATA_PT_shape_keys,
     DATA_PT_uv_texture,
     DATA_PT_vertex_colors,
-    DATA_PT_sculpt_vertex_colors,
     DATA_PT_face_maps,
     DATA_PT_mesh_attributes,
     DATA_PT_normals,
@@ -668,6 +675,8 @@ classes = (
     DATA_PT_remesh,
     DATA_PT_customdata,
     DATA_PT_custom_props_mesh,
+    MESH_UL_color_attributes,
+    MESH_UL_color_attributes_selector,
 )
 
 if __name__ == "__main__":  # only for live edit.

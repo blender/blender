@@ -89,8 +89,6 @@ static Mesh *triangulate_mesh(Mesh *mesh,
     me->flag |= ME_EDGEDRAW | ME_EDGERENDER;
   }
 
-  BKE_mesh_normals_tag_dirty(result);
-
   return result;
 }
 

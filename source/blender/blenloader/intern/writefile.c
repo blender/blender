@@ -611,11 +611,14 @@ static void mywrite_id_begin(WriteData *wd, ID *id)
   if (wd->use_memfile) {
     wd->mem.current_id_session_uuid = id->session_uuid;
 
-    /* If current next memchunk does not match the ID we are about to write, try to find the
-     * correct memchunk in the mapping using ID's session_uuid. */
+    /* If current next memchunk does not match the ID we are about to write, or is not the _first_
+     * one for said ID, try to find the correct memchunk in the mapping using ID's session_uuid. */
+    MemFileChunk *curr_memchunk = wd->mem.reference_current_chunk;
+    MemFileChunk *prev_memchunk = curr_memchunk != NULL ? curr_memchunk->prev : NULL;
     if (wd->mem.id_session_uuid_mapping != NULL &&
-        (wd->mem.reference_current_chunk == NULL ||
-         wd->mem.reference_current_chunk->id_session_uuid != id->session_uuid)) {
+        (curr_memchunk == NULL || curr_memchunk->id_session_uuid != id->session_uuid ||
+         (prev_memchunk != NULL &&
+          (prev_memchunk->id_session_uuid == curr_memchunk->id_session_uuid)))) {
       void *ref = BLI_ghash_lookup(wd->mem.id_session_uuid_mapping,
                                    POINTER_FROM_UINT(id->session_uuid));
       if (ref != NULL) {

@@ -139,35 +139,6 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-template<typename T> class SwitchFieldsFunction : public fn::MultiFunction {
- public:
-  SwitchFieldsFunction()
-  {
-    static fn::MFSignature signature = create_signature();
-    this->set_signature(&signature);
-  }
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Switch"};
-    signature.single_input<bool>("Switch");
-    signature.single_input<T>("False");
-    signature.single_input<T>("True");
-    signature.single_output<T>("Output");
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
-  {
-    const VArray<bool> &switches = params.readonly_single_input<bool>(0, "Switch");
-    const VArray<T> &falses = params.readonly_single_input<T>(1, "False");
-    const VArray<T> &trues = params.readonly_single_input<T>(2, "True");
-    MutableSpan<T> values = params.uninitialized_single_output_if_required<T>(3, "Output");
-    for (int64_t i : mask) {
-      new (&values[i]) T(switches[i] ? trues[i] : falses[i]);
-    }
-  }
-};
-
 template<typename T> void switch_fields(GeoNodeExecParams &params, const StringRef suffix)
 {
   if (params.lazy_require_input("Switch")) {
@@ -190,7 +161,11 @@ template<typename T> void switch_fields(GeoNodeExecParams &params, const StringR
     Field<T> falses_field = params.extract_input<Field<T>>(name_false);
     Field<T> trues_field = params.extract_input<Field<T>>(name_true);
 
-    auto switch_fn = std::make_unique<SwitchFieldsFunction<T>>();
+    static fn::CustomMF_SI_SI_SI_SO<bool, T, T, T> switch_fn{
+        "Switch", [](bool condition, const T &false_value, const T &true_value) {
+          return condition ? true_value : false_value;
+        }};
+
     auto switch_op = std::make_shared<FieldOperation>(FieldOperation(
         std::move(switch_fn),
         {std::move(switches_field), std::move(falses_field), std::move(trues_field)}));

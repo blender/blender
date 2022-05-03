@@ -3018,12 +3018,12 @@ static bool ui_textedit_set_cursor_pos_foreach_glyph(const char *UNUSED(str),
                                                      const size_t str_step_ofs,
                                                      const rcti *glyph_step_bounds,
                                                      const int UNUSED(glyph_advance_x),
-                                                     const rctf *glyph_bounds,
+                                                     const rcti *glyph_bounds,
                                                      const int UNUSED(glyph_bearing[2]),
                                                      void *user_data)
 {
   int *cursor_data = user_data;
-  const float center = glyph_step_bounds->xmin + (BLI_rctf_size_x(glyph_bounds) / 2.0f);
+  const int center = glyph_step_bounds->xmin + (BLI_rcti_size_x(glyph_bounds) / 2.0f);
   if (cursor_data[0] < center) {
     cursor_data[1] = str_step_ofs;
     return false;

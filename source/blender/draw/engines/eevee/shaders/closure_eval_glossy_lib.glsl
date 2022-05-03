@@ -4,13 +4,22 @@
 #pragma BLENDER_REQUIRE(lightprobe_lib.glsl)
 #pragma BLENDER_REQUIRE(ambient_occlusion_lib.glsl)
 #pragma BLENDER_REQUIRE(bsdf_common_lib.glsl)
+#pragma BLENDER_REQUIRE(closure_eval_lib.glsl)
+#pragma BLENDER_REQUIRE(renderpass_lib.glsl)
 
 struct ClosureInputGlossy {
   vec3 N;          /** Shading normal. */
   float roughness; /** Input roughness, not squared. */
 };
 
-#define CLOSURE_INPUT_Glossy_DEFAULT ClosureInputGlossy(vec3(0.0), 0.0)
+#ifdef GPU_METAL
+#  define CLOSURE_INPUT_Glossy_DEFAULT \
+    { \
+      vec3(0.0), 0.0 \
+    }
+#else
+#  define CLOSURE_INPUT_Glossy_DEFAULT ClosureInputGlossy(vec3(0.0), 0.0)
+#endif
 
 struct ClosureEvalGlossy {
   vec4 ltc_mat;            /** LTC matrix values. */
@@ -136,6 +145,7 @@ void closure_Glossy_eval_end(ClosureInputGlossy cl_in,
                              ClosureEvalCommon cl_common,
                              inout ClosureOutputGlossy cl_out)
 {
+  cl_out.radiance = render_pass_glossy_mask(cl_out.radiance);
 #if defined(DEPTH_SHADER) || defined(WORLD_BACKGROUND)
   /* This makes shader resources become unused and avoid issues with samplers. (see T59747) */
   cl_out.radiance = vec3(0.0);

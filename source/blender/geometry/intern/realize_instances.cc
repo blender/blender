@@ -1015,8 +1015,6 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   if (vertex_ids) {
     vertex_ids.save();
   }
-
-  BKE_mesh_normals_tag_dirty(dst_mesh);
 }
 
 /** \} */
@@ -1143,7 +1141,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
   const IndexRange dst_curve_range{task.start_indices.curve, curves.curves_num()};
 
   copy_transformed_positions(
-      curves.positions(), task.transform, dst_curves.positions().slice(dst_point_range));
+      curves.positions(), task.transform, dst_curves.positions_for_write().slice(dst_point_range));
 
   /* Copy and transform handle positions if necessary. */
   if (all_curves_info.create_handle_postion_attributes) {
@@ -1175,7 +1173,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
 
   /* Copy curve offsets. */
   const Span<int> src_offsets = curves.offsets();
-  const MutableSpan<int> dst_offsets = dst_curves.offsets().slice(dst_curve_range);
+  const MutableSpan<int> dst_offsets = dst_curves.offsets_for_write().slice(dst_curve_range);
   threading::parallel_for(curves.curves_range(), 2048, [&](const IndexRange range) {
     for (const int i : range) {
       dst_offsets[i] = task.start_indices.point + src_offsets[i];
@@ -1223,7 +1221,7 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
   /* Allocate new curves data-block. */
   Curves *dst_curves_id = bke::curves_new_nomain(points_size, curves_size);
   bke::CurvesGeometry &dst_curves = bke::CurvesGeometry::wrap(dst_curves_id->geometry);
-  dst_curves.offsets().last() = points_size;
+  dst_curves.offsets_for_write().last() = points_size;
   CurveComponent &dst_component = r_realized_geometry.get_component_for_write<CurveComponent>();
   dst_component.replace(dst_curves_id);
 
@@ -1376,14 +1374,6 @@ GeometrySet realize_instances(GeometrySet geometry_set, const RealizeInstancesOp
   }
 
   return new_geometry_set;
-}
-
-GeometrySet realize_instances_legacy(GeometrySet geometry_set)
-{
-  RealizeInstancesOptions options;
-  options.keep_original_ids = true;
-  options.realize_instance_attributes = false;
-  return realize_instances(std::move(geometry_set), options);
 }
 
 /** \} */

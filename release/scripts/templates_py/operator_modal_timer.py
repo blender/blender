@@ -31,14 +31,17 @@ class ModalTimerOperator(bpy.types.Operator):
         wm = context.window_manager
         wm.event_timer_remove(self._timer)
 
+
 def menu_func(self, context):
     self.layout.operator(ModalTimerOperator.bl_idname, text=ModalTimerOperator.bl_label)
+
 
 def register():
     bpy.utils.register_class(ModalTimerOperator)
     bpy.types.VIEW3D_MT_view.append(menu_func)
 
-# Register and add to the "view" menu (required to also use F3 search "Modal Timer Operator" for quick access)
+
+# Register and add to the "view" menu (required to also use F3 search "Modal Timer Operator" for quick access).
 def unregister():
     bpy.utils.unregister_class(ModalTimerOperator)
     bpy.types.VIEW3D_MT_view.remove(menu_func)

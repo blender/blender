@@ -88,13 +88,11 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
       }
       case SHD_PROJ_BOX: {
         gpu_node_name = use_cubic ? "tex_box_sample_cubic" : "tex_box_sample_linear";
-        GPUNodeLink *wnor, *col1, *col2, *col3;
-        GPUNodeLink *vnor = GPU_builtin(GPU_WORLD_NORMAL);
-        GPUNodeLink *ob_mat = GPU_builtin(GPU_OBJECT_MATRIX);
+        GPUNodeLink *vnor, *wnor, *col1, *col2, *col3;
         GPUNodeLink *blend = GPU_uniform(&tex->projection_blend);
         GPUNodeLink *gpu_image = GPU_image(mat, ima, iuser, sampler_state);
-        /* equivalent to normal_world_to_object */
-        GPU_link(mat, "normal_transform_transposed_m4v3", vnor, ob_mat, &wnor);
+        GPU_link(mat, "world_normals_get", &vnor);
+        GPU_link(mat, "normal_transform_world_to_object", vnor, &wnor);
         GPU_link(mat, gpu_node_name, in[0].link, wnor, gpu_image, &col1, &col2, &col3);
         GPU_link(mat, "tex_box_blend", wnor, col1, col2, col3, blend, &out[0].link, &out[1].link);
         break;

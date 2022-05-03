@@ -254,7 +254,12 @@ const char *OCIOImpl::configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *conf
                                                      const char *view)
 {
   try {
-    return (*(ConstConfigRcPtr *)config)->getDisplayViewColorSpaceName(display, view);
+    const char *name = (*(ConstConfigRcPtr *)config)->getDisplayViewColorSpaceName(display, view);
+    /* OpenColorIO does not resolve this token for us, so do it ourselves. */
+    if (strcasecmp(name, "<USE_DISPLAY_NAME>") == 0) {
+      return display;
+    }
+    return name;
   }
   catch (Exception &exception) {
     OCIO_reportException(exception);
@@ -655,7 +660,8 @@ OCIO_ConstProcessorRcPtr *OCIOImpl::createDisplayProcessor(OCIO_ConstConfigRcPtr
                                                            const char *display,
                                                            const char *look,
                                                            const float scale,
-                                                           const float exponent)
+                                                           const float exponent,
+                                                           const bool inverse)
 
 {
   ConstConfigRcPtr config = *(ConstConfigRcPtr *)config_;
@@ -716,6 +722,10 @@ OCIO_ConstProcessorRcPtr *OCIOImpl::createDisplayProcessor(OCIO_ConstConfigRcPtr
     const double value[4] = {exponent, exponent, exponent, 1.0};
     et->setValue(value);
     group->appendTransform(et);
+  }
+
+  if (inverse) {
+    group->setDirection(TRANSFORM_DIR_INVERSE);
   }
 
   /* Create processor from transform. This is the moment were OCIO validates

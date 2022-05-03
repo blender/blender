@@ -205,12 +205,9 @@ bool python_script_error_jump(
         }
       }
     }
-    PyErr_Restore(exception, value, (PyObject *)tb); /* takes away reference! */
   }
   else {
     PyErr_NormalizeException(&exception, &value, (PyObject **)&tb);
-    PyErr_Restore(exception, value, (PyObject *)tb); /* takes away reference! */
-    PyErr_Print();
 
     for (tb = (PyTracebackObject *)PySys_GetObject("last_traceback");
          tb && (PyObject *)tb != Py_None;
@@ -229,6 +226,8 @@ bool python_script_error_jump(
       }
     }
   }
+
+  PyErr_Restore(exception, value, (PyObject *)tb); /* takes away reference! */
 
   return success;
 }

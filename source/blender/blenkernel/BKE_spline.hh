@@ -51,12 +51,7 @@ using SplinePtr = std::unique_ptr<Spline>;
  */
 class Spline {
  public:
-  enum NormalCalculationMode {
-    ZUp,
-    Minimum,
-    Tangent,
-  };
-  NormalCalculationMode normal_mode = Minimum;
+  NormalMode normal_mode = NORMAL_MODE_MINIMUM_TWIST;
 
   blender::bke::CustomDataAttributes attributes;
 

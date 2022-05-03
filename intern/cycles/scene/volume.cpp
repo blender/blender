@@ -10,9 +10,9 @@
 #  include <openvdb/tools/Dense.h>
 #  include <openvdb/tools/GridTransformer.h>
 #  include <openvdb/tools/Morphology.h>
+#  include <openvdb/tools/Statistics.h>
 #endif
 
-#include "util/foreach.h"
 #include "util/hash.h"
 #include "util/log.h"
 #include "util/openvdb.h"
@@ -28,6 +28,7 @@ NODE_DEFINE(Volume)
   SOCKET_FLOAT(clipping, "Clipping", 0.001f);
   SOCKET_FLOAT(step_size, "Step Size", 0.0f);
   SOCKET_BOOLEAN(object_space, "Object Space", false);
+  SOCKET_FLOAT(velocity_scale, "Velocity Scale", 1.0f);
 
   return type;
 }
@@ -258,7 +259,8 @@ void VolumeMeshBuilder::add_grid(openvdb::GridBase::ConstPtr grid,
 void VolumeMeshBuilder::add_padding(int pad_size)
 {
 #ifdef WITH_OPENVDB
-  openvdb::tools::dilateVoxels(topology_grid->tree(), pad_size);
+  openvdb::tools::dilateActiveValues(
+      topology_grid->tree(), pad_size, openvdb::tools::NN_FACE, openvdb::tools::IGNORE_TILES);
 #else
   (void)pad_size;
 #endif
@@ -482,11 +484,141 @@ static openvdb::GridBase::ConstPtr openvdb_grid_from_device_texture(device_textu
 
   return sparse;
 }
+
+static int estimate_required_velocity_padding(openvdb::GridBase::ConstPtr grid,
+                                              float velocity_scale)
+{
+  /* TODO: we may need to also find outliers and clamp them to avoid adding too much padding. */
+  openvdb::math::Extrema extrema;
+  openvdb::Vec3d voxel_size;
+
+  /* External .vdb files have a vec3 type for velocity, but the Blender exporter creates a vec4. */
+  if (grid->isType<openvdb::Vec3fGrid>()) {
+    openvdb::Vec3fGrid::ConstPtr vel_grid = openvdb::gridConstPtrCast<openvdb::Vec3fGrid>(grid);
+    extrema = openvdb::tools::extrema(vel_grid->cbeginValueOn());
+    voxel_size = vel_grid->voxelSize();
+  }
+  else if (grid->isType<openvdb::Vec4fGrid>()) {
+    openvdb::Vec4fGrid::ConstPtr vel_grid = openvdb::gridConstPtrCast<openvdb::Vec4fGrid>(grid);
+    extrema = openvdb::tools::extrema(vel_grid->cbeginValueOn());
+    voxel_size = vel_grid->voxelSize();
+  }
+  else {
+    assert(0);
+    return 0;
+  }
+
+  /* We should only have uniform grids, so x = y = z, but we never know. */
+  const double max_voxel_size = openvdb::math::Max(voxel_size.x(), voxel_size.y(), voxel_size.z());
+  if (max_voxel_size == 0.0) {
+    return 0;
+  }
+
+  const double estimated_padding = extrema.max() * static_cast<double>(velocity_scale) /
+                                   max_voxel_size;
+
+  return static_cast<int>(std::ceil(estimated_padding));
+}
+
+static openvdb::FloatGrid::ConstPtr get_vdb_for_attribute(Volume *volume, AttributeStandard std)
+{
+  Attribute *attr = volume->attributes.find(std);
+  if (!attr) {
+    return nullptr;
+  }
+
+  ImageHandle &handle = attr->data_voxel();
+  VDBImageLoader *vdb_loader = handle.vdb_loader();
+  if (!vdb_loader) {
+    return nullptr;
+  }
+
+  openvdb::GridBase::ConstPtr grid = vdb_loader->get_grid();
+  if (!grid) {
+    return nullptr;
+  }
+
+  if (!grid->isType<openvdb::FloatGrid>()) {
+    return nullptr;
+  }
+
+  return openvdb::gridConstPtrCast<openvdb::FloatGrid>(grid);
+}
+
+class MergeScalarGrids {
+  typedef openvdb::FloatTree ScalarTree;
+
+  openvdb::tree::ValueAccessor<const ScalarTree> m_acc_x, m_acc_y, m_acc_z;
+
+ public:
+  MergeScalarGrids(const ScalarTree *x_tree, const ScalarTree *y_tree, const ScalarTree *z_tree)
+      : m_acc_x(*x_tree), m_acc_y(*y_tree), m_acc_z(*z_tree)
+  {
+  }
+
+  MergeScalarGrids(const MergeScalarGrids &other)
+      : m_acc_x(other.m_acc_x), m_acc_y(other.m_acc_y), m_acc_z(other.m_acc_z)
+  {
+  }
+
+  void operator()(const openvdb::Vec3STree::ValueOnIter &it) const
+  {
+    using namespace openvdb;
+
+    const math::Coord xyz = it.getCoord();
+    float x = m_acc_x.getValue(xyz);
+    float y = m_acc_y.getValue(xyz);
+    float z = m_acc_z.getValue(xyz);
+
+    it.setValue(math::Vec3s(x, y, z));
+  }
+};
+
+static void merge_scalar_grids_for_velocity(const Scene *scene, Volume *volume)
+{
+  if (volume->attributes.find(ATTR_STD_VOLUME_VELOCITY)) {
+    /* A vector grid for velocity is already available. */
+    return;
+  }
+
+  openvdb::FloatGrid::ConstPtr vel_x_grid = get_vdb_for_attribute(volume,
+                                                                  ATTR_STD_VOLUME_VELOCITY_X);
+  openvdb::FloatGrid::ConstPtr vel_y_grid = get_vdb_for_attribute(volume,
+                                                                  ATTR_STD_VOLUME_VELOCITY_Y);
+  openvdb::FloatGrid::ConstPtr vel_z_grid = get_vdb_for_attribute(volume,
+                                                                  ATTR_STD_VOLUME_VELOCITY_Z);
+
+  if (!(vel_x_grid && vel_y_grid && vel_z_grid)) {
+    return;
+  }
+
+  openvdb::Vec3fGrid::Ptr vecgrid = openvdb::Vec3SGrid::create(openvdb::Vec3s(0.0f));
+
+  /* Activate voxels in the vector grid based on the scalar grids to ensure thread safety during
+   * the merge. */
+  vecgrid->tree().topologyUnion(vel_x_grid->tree());
+  vecgrid->tree().topologyUnion(vel_y_grid->tree());
+  vecgrid->tree().topologyUnion(vel_z_grid->tree());
+
+  MergeScalarGrids op(&vel_x_grid->tree(), &vel_y_grid->tree(), &vel_z_grid->tree());
+  openvdb::tools::foreach (vecgrid->beginValueOn(), op, true, false);
+
+  /* Assume all grids have the same transformation. */
+  openvdb::math::Transform::Ptr transform = openvdb::ConstPtrCast<openvdb::math::Transform>(
+      vel_x_grid->transformPtr());
+  vecgrid->setTransform(transform);
+
+  /* Make an attribute for it. */
+  Attribute *attr = volume->attributes.add(ATTR_STD_VOLUME_VELOCITY);
+  ImageLoader *loader = new VDBImageLoader(vecgrid, "merged_velocity");
+  ImageParams params;
+  attr->data_voxel() = scene->image_manager->add_image(loader, params);
+}
 #endif
 
 /* ************************************************************************** */
 
-void GeometryManager::create_volume_mesh(Volume *volume, Progress &progress)
+void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Progress &progress)
 {
   string msg = string_printf("Computing Volume Mesh %s", volume->name.c_str());
   progress.set_status("Updating Mesh", msg);
@@ -495,7 +627,7 @@ void GeometryManager::create_volume_mesh(Volume *volume, Progress &progress)
   Shader *volume_shader = NULL;
   int pad_size = 0;
 
-  foreach (Node *node, volume->get_used_shaders()) {
+  for (Node *node : volume->get_used_shaders()) {
     Shader *shader = static_cast<Shader *>(node);
 
     if (!shader->has_volume) {
@@ -529,7 +661,9 @@ void GeometryManager::create_volume_mesh(Volume *volume, Progress &progress)
   VolumeMeshBuilder builder;
 
 #ifdef WITH_OPENVDB
-  foreach (Attribute &attr, volume->attributes.attributes) {
+  merge_scalar_grids_for_velocity(scene, volume);
+
+  for (Attribute &attr : volume->attributes.attributes) {
     if (attr.element != ATTR_ELEMENT_VOXEL) {
       continue;
     }
@@ -567,9 +701,17 @@ void GeometryManager::create_volume_mesh(Volume *volume, Progress &progress)
     }
 
     if (grid) {
+      /* Add padding based on the maximum velocity vector. */
+      if (attr.std == ATTR_STD_VOLUME_VELOCITY && scene->need_motion() != Scene::MOTION_NONE) {
+        pad_size = max(pad_size,
+                       estimate_required_velocity_padding(grid, volume->get_velocity_scale()));
+      }
+
       builder.add_grid(grid, do_clipping, volume->get_clipping());
     }
   }
+#else
+  (void)scene;
 #endif
 
   /* If nothing to build, early out. */

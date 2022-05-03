@@ -263,8 +263,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, struct
   MEM_freeN(edgeMap);
   MEM_freeN(faceMap);
 
-  BKE_mesh_normals_tag_dirty(result);
-
   /* TODO(sybren): also copy flags & tags? */
   return result;
 }

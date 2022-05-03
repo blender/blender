@@ -28,8 +28,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    Mesh *mesh = geometry_set.get_mesh_for_write();
-    if (mesh != nullptr) {
+    if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
       for (const int i : IndexRange(mesh->totcol)) {
         if (mesh->mat[i] == old_material) {
           mesh->mat[i] = new_material;

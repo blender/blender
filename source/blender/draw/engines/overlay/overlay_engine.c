@@ -38,11 +38,14 @@ static void OVERLAY_engine_init(void *vedata)
   const Scene *scene = draw_ctx->scene;
   const ToolSettings *ts = scene->toolsettings;
 
-  OVERLAY_shader_library_ensure();
-
   if (!stl->pd) {
     /* Allocate transient pointers. */
     stl->pd = MEM_callocN(sizeof(*stl->pd), __func__);
+  }
+
+  /* Allocate instance. */
+  if (data->instance == NULL) {
+    data->instance = MEM_callocN(sizeof(*data->instance), __func__);
   }
 
   OVERLAY_PrivateData *pd = stl->pd;
@@ -110,6 +113,9 @@ static void OVERLAY_engine_init(void *vedata)
   switch (stl->pd->ctx_mode) {
     case CTX_MODE_EDIT_MESH:
       OVERLAY_edit_mesh_init(vedata);
+      break;
+    case CTX_MODE_EDIT_CURVES:
+      OVERLAY_edit_curves_init(vedata);
       break;
     default:
       /* Nothing to do. */
@@ -182,9 +188,11 @@ static void OVERLAY_cache_init(void *vedata)
     case CTX_MODE_WEIGHT_GPENCIL:
       OVERLAY_edit_gpencil_cache_init(vedata);
       break;
+    case CTX_MODE_EDIT_CURVES:
+      OVERLAY_edit_curves_cache_init(vedata);
+      break;
     case CTX_MODE_SCULPT_CURVES:
     case CTX_MODE_OBJECT:
-    case CTX_MODE_EDIT_CURVES:
       break;
     default:
       BLI_assert_msg(0, "Draw mode invalid");
@@ -250,6 +258,7 @@ static bool overlay_object_is_edit_mode(const OVERLAY_PrivateData *pd, const Obj
       case OB_FONT:
         return pd->ctx_mode == CTX_MODE_EDIT_TEXT;
       case OB_CURVES:
+        return pd->ctx_mode == CTX_MODE_EDIT_CURVES;
       case OB_POINTCLOUD:
       case OB_VOLUME:
         /* No edit mode yet. */
@@ -388,6 +397,9 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
         break;
       case OB_FONT:
         OVERLAY_edit_text_cache_populate(vedata, ob);
+        break;
+      case OB_CURVES:
+        OVERLAY_edit_curves_cache_populate(vedata, ob);
         break;
     }
   }
@@ -671,6 +683,9 @@ static void OVERLAY_draw_scene(void *vedata)
       break;
     case CTX_MODE_SCULPT_CURVES:
       break;
+    case CTX_MODE_EDIT_CURVES:
+      OVERLAY_edit_curves_draw(vedata);
+      break;
     default:
       break;
   }
@@ -681,6 +696,13 @@ static void OVERLAY_draw_scene(void *vedata)
 static void OVERLAY_engine_free(void)
 {
   OVERLAY_shader_free();
+}
+
+static void OVERLAY_instance_free(void *instance_)
+{
+  OVERLAY_Instance *instance = (OVERLAY_Instance *)instance_;
+  DRW_UBO_FREE_SAFE(instance->grid_ubo);
+  MEM_freeN(instance);
 }
 
 /** \} */
@@ -698,7 +720,7 @@ DrawEngineType draw_engine_overlay_type = {
     &overlay_data_size,
     &OVERLAY_engine_init,
     &OVERLAY_engine_free,
-    NULL, /* instance_free */
+    &OVERLAY_instance_free,
     &OVERLAY_cache_init,
     &OVERLAY_cache_populate,
     &OVERLAY_cache_finish,

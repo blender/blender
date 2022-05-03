@@ -205,6 +205,7 @@ static void subdiv_cache_cpu_evaluation_settings(const ModifierEvalContext *ctx,
   me->runtime.subsurf_apply_render = (ctx->flag & MOD_APPLY_RENDER) != 0;
   me->runtime.subsurf_resolution = mesh_settings.resolution;
   me->runtime.subsurf_use_optimal_display = mesh_settings.use_optimal_display;
+  me->runtime.subsurf_session_uuid = smd->modifier.session_uuid;
 }
 
 /* Modifier itself. */

@@ -12,3 +12,19 @@ diff -Naur orig/common/sys/platform.h external_embree/common/sys/platform.h
  #else
  #define dll_export __attribute__ ((visibility ("default")))
  #define dll_import 
+diff --git orig/common/tasking/CMakeLists.txt external_embree/common/tasking/CMakeLists.txt
+--- orig/common/tasking/CMakeLists.txt
++++ external_embree/common/tasking/CMakeLists.txt
+@@ -27,7 +27,11 @@
+     else()
+       # If not found try getting older TBB via module (FindTBB.cmake)
+       unset(TBB_DIR CACHE)
+-      find_package(TBB 4.1 REQUIRED tbb)
++      if (TBB_STATIC_LIB)
++        find_package(TBB 4.1 REQUIRED tbb_static)
++      else()
++        find_package(TBB 4.1 REQUIRED tbb)
++      endif()
+       if (TBB_FOUND)
+         TARGET_LINK_LIBRARIES(tasking PUBLIC TBB)
+         TARGET_INCLUDE_DIRECTORIES(tasking PUBLIC "${TBB_INCLUDE_DIRS}")

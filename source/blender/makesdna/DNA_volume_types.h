@@ -24,6 +24,11 @@ typedef struct Volume_Runtime {
 
   /** Default simplify level for volume grids loaded from files. */
   int default_simplify_level;
+
+  /* Names for scalar grids which would need to be merged to recompose the velocity grid. */
+  char velocity_x_grid[64];
+  char velocity_y_grid[64];
+  char velocity_z_grid[64];
 } Volume_Runtime;
 
 typedef struct VolumeDisplay {
@@ -74,6 +79,18 @@ typedef struct Volume {
   /* Render & Display Settings */
   VolumeRender render;
   VolumeDisplay display;
+
+  /* Velocity field name. */
+  char velocity_grid[64];
+
+  char _pad3[3];
+
+  /* Unit of time the velocity vectors are expressed in.
+   * This uses the same enumeration values as #CacheFile.velocity_unit. */
+  char velocity_unit;
+
+  /* Factor for velocity vector for artistic control. */
+  float velocity_scale;
 
   /* Draw Cache */
   void *batch_cache;

@@ -1,11 +1,6 @@
 
-uniform vec4 color;
-
-in vec3 pos;
-
-out vec4 radii;
-out vec4 fillColor;
-out vec4 outlineColor;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {
@@ -24,7 +19,5 @@ void main()
   fillColor = color;
   outlineColor = colorOutline;
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(world_pos);
-#endif
+  view_clipping_distances(world_pos);
 }

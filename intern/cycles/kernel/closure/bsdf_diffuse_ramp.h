@@ -93,9 +93,10 @@ ccl_device int bsdf_diffuse_ramp_sample(ccl_private const ShaderClosure *sc,
     *domega_in_dy = (2 * dot(N, dIdy)) * N - dIdy;
 #  endif
   }
-  else
+  else {
     *pdf = 0.0f;
-
+    *eval = make_float3(0.0f, 0.0f, 0.0f);
+  }
   return LABEL_REFLECT | LABEL_DIFFUSE;
 }
 

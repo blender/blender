@@ -7,6 +7,7 @@
  * \ingroup bke
  */
 
+#include "BLI_bitmap.h"
 #include "BLI_sys_types.h" /* for bool */
 
 #ifdef __cplusplus
@@ -258,16 +259,20 @@ struct NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
  * \param count: Number of values in the array.
  * \param index: Index of the element about to be updated, or -1.
  * \param[out] r_force_all: Set to true if all channels must be inserted. May be NULL.
- * \return False if correction fails due to a division by zero,
- * or null r_force_all when all channels are required.
+ * \param[out] r_successful_remaps: Bits will be enabled for indices that are both intended to be
+ * remapped and succeeded remapping. With both, it allows caller to check successfully remapped
+ * indices without having to explicitly check whether the index was intended to be remapped.
  */
-bool BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
+void BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
                                            struct PointerRNA *prop_ptr,
                                            struct PropertyRNA *prop,
                                            float *values,
                                            int count,
                                            int index,
-                                           bool *r_force_all);
+                                           const struct AnimationEvalContext *anim_eval_context,
+                                           bool *r_force_all,
+                                           BLI_bitmap *r_successful_remaps);
+
 /**
  * Free all cached contexts from the list.
  */

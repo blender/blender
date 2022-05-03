@@ -153,7 +153,11 @@ void HdCyclesGeometry<Base, CyclesBase>::Sync(HdSceneDelegate *sceneDelegate,
 
     // Update transforms of all instances
     for (size_t i = 0; i < transforms.size(); ++i) {
-      const Transform tfm = convert_transform(_geomTransform * transforms[i]);
+      const float metersPerUnit =
+          static_cast<HdCyclesSession *>(renderParam)->GetStageMetersPerUnit();
+
+      const Transform tfm = transform_scale(make_float3(metersPerUnit)) *
+                            convert_transform(_geomTransform * transforms[i]);
       _instances[i]->set_tfm(tfm);
     }
   }
@@ -188,11 +192,16 @@ void HdCyclesGeometry<Base, CyclesBase>::Finalize(HdRenderParam *renderParam)
   }
 
   const SceneLock lock(renderParam);
+  const bool keep_nodes = static_cast<const HdCyclesSession *>(renderParam)->keep_nodes;
 
-  lock.scene->delete_node(_geom);
+  if (!keep_nodes) {
+    lock.scene->delete_node(_geom);
+  }
   _geom = nullptr;
 
-  lock.scene->delete_nodes(set<Object *>(_instances.begin(), _instances.end()));
+  if (!keep_nodes) {
+    lock.scene->delete_nodes(set<Object *>(_instances.begin(), _instances.end()));
+  }
   _instances.clear();
   _instances.shrink_to_fit();
 }

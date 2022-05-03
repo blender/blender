@@ -139,6 +139,14 @@ typedef struct bNodeSocket {
   char label[64];
   char description[64];
 
+  /**
+   * The default attribute name to use for geometry nodes modifier output attribute sockets.
+   * \note Storing this pointer in every single socket exposes the bad design of using sockets
+   * to describe group inputs and outputs. In the future, it should be stored in socket
+   * declarations.
+   */
+  char *default_attribute_name;
+
   /** Cached data from execution. */
   void *cache;
 
@@ -318,21 +326,10 @@ typedef struct bNode {
   short preview_xsize, preview_ysize;
   /** Used at runtime when going through the tree. Initialize before use. */
   short tmp_flag;
-  /** Used at runtime to tag derivatives branches. EEVEE only. */
-  char branch_tag;
+
+  char _pad0;
   /** Used at runtime when iterating over node branches. */
   char iter_flag;
-
-  /**
-   * XXX: eevee only, id of screen space reflection layer,
-   * needs to be a float to feed GPU_uniform.
-   */
-  float ssr_id;
-  /**
-   * XXX: eevee only, id of screen subsurface scatter layer,
-   * needs to be a float to feed GPU_uniform.
-   */
-  float sss_id;
 
   /**
    * Describes the desired interface of the node. This is run-time data only.
@@ -397,6 +394,8 @@ typedef struct bNode {
 #define NODE_DO_OUTPUT_RECALC (1 << 17)
 /* A preview for the data in this node can be displayed in the spreadsheet editor. */
 #define __NODE_ACTIVE_PREVIEW (1 << 18) /* deprecated */
+/* Active node that is used to paint on. */
+#define NODE_ACTIVE_PAINT_CANVAS (1 << 19)
 
 /* node->update */
 #define NODE_UPDATE_ID 1       /* associated id data block has changed */
@@ -1296,6 +1295,11 @@ typedef struct NodeGeometryMeshCone {
   uint8_t fill_type;
 } NodeGeometryMeshCone;
 
+typedef struct NodeGeometryMergeByDistance {
+  /* GeometryNodeMergeByDistanceMode. */
+  uint8_t mode;
+} NodeGeometryMergeByDistance;
+
 typedef struct NodeGeometryMeshLine {
   /* GeometryNodeMeshLineMode. */
   uint8_t mode;
@@ -2006,6 +2010,11 @@ typedef enum GeometryNodeMeshCircleFillType {
   GEO_NODE_MESH_CIRCLE_FILL_NGON = 1,
   GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN = 2,
 } GeometryNodeMeshCircleFillType;
+
+typedef enum GeometryNodeMergeByDistanceMode {
+  GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL = 0,
+  GEO_NODE_MERGE_BY_DISTANCE_MODE_CONNECTED = 1,
+} GeometryNodeMergeByDistanceMode;
 
 typedef enum GeometryNodeMeshLineMode {
   GEO_NODE_MESH_LINE_MODE_END_POINTS = 0,

@@ -1111,7 +1111,8 @@ ccl_device_noinline int svm_node_principled_volume(KernelGlobals kg,
 
     if (intensity > CLOSURE_WEIGHT_CUTOFF) {
       float3 blackbody_tint = stack_load_float3(stack, node.w);
-      float3 bb = blackbody_tint * intensity * svm_math_blackbody_color(T);
+      float3 bb = blackbody_tint * intensity *
+                  rec709_to_rgb(kg, svm_math_blackbody_color_rec709(T));
       emission_setup(sd, bb);
     }
   }

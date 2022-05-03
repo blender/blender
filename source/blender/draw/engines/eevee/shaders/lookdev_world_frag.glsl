@@ -8,8 +8,8 @@ uniform sampler2D studioLight;
 
 uniform float backgroundAlpha;
 uniform mat3 StudioLightMatrix;
-uniform float studioLightIntensity = 1.0;
-uniform float studioLightBlur = 0.0;
+uniform float studioLightIntensity; /* Default 1.0; */
+uniform float studioLightBlur;      /* Default 0.0; */
 
 out vec4 FragColor;
 

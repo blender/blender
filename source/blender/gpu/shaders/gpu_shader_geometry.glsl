@@ -1,25 +1,3 @@
-#ifndef USE_GPU_SHADER_CREATE_INFO
-uniform mat4 ProjectionMatrix;
-
-uniform int PrimitiveIdBase;
-uniform int osd_active_uv_offset;
-
-layout(lines_adjacency) in;
-layout(triangle_strip, max_vertices = 4) out;
-
-in block
-{
-  VertexData v;
-}
-inpt[];
-
-/* compatibility */
-out vec3 varnormal;
-out vec3 varposition;
-
-uniform bool osd_flat_shading;
-uniform int osd_fvar_count;
-#endif
 
 #define INTERP_FACE_VARYING_2(result, fvarOffset, tessCoord) \
   { \
@@ -38,11 +16,6 @@ uniform int osd_fvar_count;
     INTERP_FACE_VARYING_2(tmp, fvarOffset, tessCoord); \
     result = vec3(tmp, 0); \
   }
-
-#ifndef USE_GPU_SHADER_CREATE_INFO
-uniform samplerBuffer FVarDataBuffer;
-uniform isamplerBuffer FVarDataOffsetBuffer;
-#endif
 
 out block
 {

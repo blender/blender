@@ -73,8 +73,8 @@ static Curves *create_point_line_curve(const float3 start, const float3 end)
   Curves *curves_id = bke::curves_new_nomain_single(2, CURVE_TYPE_POLY);
   bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
 
-  curves.positions().first() = start;
-  curves.positions().last() = end;
+  curves.positions_for_write().first() = start;
+  curves.positions_for_write().last() = end;
 
   return curves_id;
 }
@@ -86,8 +86,8 @@ static Curves *create_direction_line_curve(const float3 start,
   Curves *curves_id = bke::curves_new_nomain_single(2, CURVE_TYPE_POLY);
   bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
 
-  curves.positions().first() = start;
-  curves.positions().last() = math::normalize(direction) * length + start;
+  curves.positions_for_write().first() = start;
+  curves.positions_for_write().last() = math::normalize(direction) * length + start;
 
   return curves_id;
 }

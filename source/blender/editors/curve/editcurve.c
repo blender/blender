@@ -1471,7 +1471,8 @@ static int curve_split_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
-  int ok = -1;
+  bool changed = false;
+  int count_failed = 0;
 
   uint objects_len;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
@@ -1489,7 +1490,7 @@ static int curve_split_exec(bContext *C, wmOperator *op)
     adduplicateflagNurb(obedit, v3d, &newnurb, SELECT, true);
 
     if (BLI_listbase_is_empty(&newnurb)) {
-      ok = MAX2(ok, 0);
+      count_failed += 1;
       continue;
     }
 
@@ -1504,14 +1505,16 @@ static int curve_split_exec(bContext *C, wmOperator *op)
       WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
     }
 
-    ok = 1;
+    changed = true;
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
     DEG_id_tag_update(obedit->data, 0);
   }
   MEM_freeN(objects);
 
-  if (ok == 0) {
-    BKE_report(op->reports, RPT_ERROR, "Cannot split current selection");
+  if (changed == false) {
+    if (count_failed != 0) {
+      BKE_report(op->reports, RPT_ERROR, "Cannot split current selection");
+    }
     return OPERATOR_CANCELLED;
   }
   return OPERATOR_FINISHED;
@@ -4998,7 +5001,8 @@ static int spin_exec(bContext *C, wmOperator *op)
   View3D *v3d = CTX_wm_view3d(C);
   RegionView3D *rv3d = ED_view3d_context_rv3d(C);
   float cent[3], axis[3], viewmat[4][4];
-  int ok = -1;
+  bool changed = false;
+  int count_failed = 0;
 
   RNA_float_get_array(op->ptr, "center", cent);
   RNA_float_get_array(op->ptr, "axis", axis);
@@ -5025,11 +5029,11 @@ static int spin_exec(bContext *C, wmOperator *op)
     mul_m4_v3(obedit->imat, cent);
 
     if (!ed_editnurb_spin(viewmat, v3d, obedit, axis, cent)) {
-      ok = MAX2(ok, 0);
+      count_failed += 1;
       continue;
     }
 
-    ok = 1;
+    changed = true;
     if (ED_curve_updateAnimPaths(bmain, cu)) {
       WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
     }
@@ -5039,8 +5043,11 @@ static int spin_exec(bContext *C, wmOperator *op)
   }
   MEM_freeN(objects);
 
-  if (ok == 0) {
-    BKE_report(op->reports, RPT_ERROR, "Cannot spin");
+  if (changed == false) {
+    if (count_failed != 0) {
+      BKE_report(op->reports, RPT_ERROR, "Cannot spin");
+    }
+    return OPERATOR_CANCELLED;
   }
   return OPERATOR_FINISHED;
 }
@@ -5889,7 +5896,9 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
-  int ok = -1;
+
+  bool changed = false;
+  int count_failed = 0;
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
@@ -5906,19 +5915,21 @@ static int duplicate_exec(bContext *C, wmOperator *op)
     adduplicateflagNurb(obedit, v3d, &newnurb, SELECT, false);
 
     if (BLI_listbase_is_empty(&newnurb)) {
-      ok = MAX2(ok, 0);
+      count_failed += 1;
       continue;
     }
 
-    ok = 1;
+    changed = true;
     BLI_movelisttolist(object_editcurve_get(obedit), &newnurb);
     DEG_id_tag_update(&cu->id, ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, &cu->id);
   }
   MEM_freeN(objects);
 
-  if (ok == 0) {
-    BKE_report(op->reports, RPT_ERROR, "Cannot duplicate current selection");
+  if (changed == false) {
+    if (count_failed != 0) {
+      BKE_report(op->reports, RPT_ERROR, "Cannot duplicate current selection");
+    }
     return OPERATOR_CANCELLED;
   }
   return OPERATOR_FINISHED;

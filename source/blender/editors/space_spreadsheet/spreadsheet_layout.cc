@@ -191,6 +191,10 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
       const ColorGeometry4f value = data.get<ColorGeometry4f>(real_index);
       this->draw_float_vector(params, Span(&value.r, 4));
     }
+    else if (data.type().is<ColorGeometry4b>()) {
+      const ColorGeometry4b value = data.get<ColorGeometry4b>(real_index);
+      this->draw_int_vector(params, {value.r, value.g, value.b, value.a});
+    }
     else if (data.type().is<InstanceReference>()) {
       const InstanceReference value = data.get<InstanceReference>(real_index);
       switch (value.type()) {
@@ -299,6 +303,34 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     0,
                                     nullptr);
       /* Right-align Floats. */
+      UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
+      UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
+    }
+  }
+
+  void draw_int_vector(const CellDrawParams &params, const Span<int> values) const
+  {
+    BLI_assert(!values.is_empty());
+    const float segment_width = (float)params.width / values.size();
+    for (const int i : values.index_range()) {
+      const int value = values[i];
+      const std::string value_str = std::to_string(value);
+      uiBut *but = uiDefIconTextBut(params.block,
+                                    UI_BTYPE_LABEL,
+                                    0,
+                                    ICON_NONE,
+                                    value_str.c_str(),
+                                    params.xmin + i * segment_width,
+                                    params.ymin,
+                                    segment_width,
+                                    params.height,
+                                    nullptr,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    nullptr);
+      /* Right-align Ints. */
       UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
       UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
     }

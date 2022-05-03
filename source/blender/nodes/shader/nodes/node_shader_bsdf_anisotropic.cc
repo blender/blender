@@ -24,6 +24,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR);
   b.add_input<decl::Vector>(N_("Normal")).hide_value();
   b.add_input<decl::Vector>(N_("Tangent")).hide_value();
+  b.add_input<decl::Float>(N_("Weight")).unavailable();
   b.add_output<decl::Shader>(N_("BSDF"));
 }
 
@@ -51,13 +52,8 @@ static int node_shader_gpu_bsdf_anisotropic(GPUMaterial *mat,
 
   float use_multi_scatter = (node->custom1 == SHD_GLOSSY_MULTI_GGX) ? 1.0f : 0.0f;
 
-  return GPU_stack_link(mat,
-                        node,
-                        "node_bsdf_anisotropic",
-                        in,
-                        out,
-                        GPU_constant(&use_multi_scatter),
-                        GPU_constant(&node->ssr_id));
+  return GPU_stack_link(
+      mat, node, "node_bsdf_anisotropic", in, out, GPU_constant(&use_multi_scatter));
 }
 
 }  // namespace blender::nodes::node_shader_bsdf_anisotropic_cc

@@ -936,8 +936,19 @@ static int parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
   RNA_boolean_set(&opptr, "keep_transform", true);
 #endif
 
-  uiItemO(
-      layout, IFACE_("Object (Without Inverse)"), ICON_NONE, "OBJECT_OT_parent_no_inverse_set");
+  uiItemBooleanO(layout,
+                 IFACE_("Object (Without Inverse)"),
+                 ICON_NONE,
+                 "OBJECT_OT_parent_no_inverse_set",
+                 "keep_transform",
+                 0);
+
+  uiItemBooleanO(layout,
+                 IFACE_("Object (Keep Transform Without Inverse)"),
+                 ICON_NONE,
+                 "OBJECT_OT_parent_no_inverse_set",
+                 "keep_transform",
+                 1);
 
   struct {
     bool mesh, gpencil;
@@ -1055,6 +1066,8 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Object *par = ED_object_active_context(C);
 
+  const bool keep_transform = RNA_boolean_get(op->ptr, "keep_transform");
+
   DEG_id_tag_update(&par->id, ID_RECALC_TRANSFORM);
 
   /* context iterator */
@@ -1064,16 +1077,21 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
         BKE_report(op->reports, RPT_ERROR, "Loop in parents");
       }
       else {
-        /* clear inverse matrix and also the object location */
-        unit_m4(ob->parentinv);
-        memset(ob->loc, 0, sizeof(float[3]));
-
         /* set recalc flags */
         DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
         /* set parenting type for object - object only... */
         ob->parent = par;
         ob->partype = PAROBJECT; /* NOTE: DNA define, not operator property. */
+
+        if (keep_transform) {
+          BKE_object_apply_parent_inverse(ob);
+          continue;
+        }
+
+        /* clear inverse matrix and also the object location */
+        unit_m4(ob->parentinv);
+        memset(ob->loc, 0, sizeof(float[3]));
       }
     }
   }
@@ -1100,6 +1118,12 @@ void OBJECT_OT_parent_no_inverse_set(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna,
+                  "keep_transform",
+                  false,
+                  "Keep Transform",
+                  "Preserve the world transform throughout parenting");
 }
 
 /** \} */

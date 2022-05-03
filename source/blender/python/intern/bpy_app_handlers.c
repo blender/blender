@@ -244,7 +244,7 @@ PyObject *BPY_app_handlers_struct(void)
   return ret;
 }
 
-void BPY_app_handlers_reset(const short do_all)
+void BPY_app_handlers_reset(const bool do_all)
 {
   PyGILState_STATE gilstate;
   int pos = 0;
@@ -266,13 +266,18 @@ void BPY_app_handlers_reset(const short do_all)
       PyObject *ls = py_cb_array[pos];
       Py_ssize_t i;
 
-      PyObject *item;
-      PyObject **dict_ptr;
-
       for (i = PyList_GET_SIZE(ls) - 1; i >= 0; i--) {
+        PyObject *item = PyList_GET_ITEM(ls, i);
 
-        if (PyFunction_Check((item = PyList_GET_ITEM(ls, i))) &&
-            (dict_ptr = _PyObject_GetDictPtr(item)) && (*dict_ptr) &&
+        if (PyMethod_Check(item)) {
+          PyObject *item_test = PyMethod_GET_FUNCTION(item);
+          if (item_test) {
+            item = item_test;
+          }
+        }
+
+        PyObject **dict_ptr;
+        if (PyFunction_Check(item) && (dict_ptr = _PyObject_GetDictPtr(item)) && (*dict_ptr) &&
             (PyDict_GetItem(*dict_ptr, perm_id_str) != NULL)) {
           /* keep */
         }

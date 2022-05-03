@@ -294,6 +294,66 @@ float dist_to_line_segment_v2(const float p[2], const float l1[2], const float l
   return sqrtf(dist_squared_to_line_segment_v2(p, l1, l2));
 }
 
+float closest_seg_seg_v2(float r_closest_a[2],
+                         float r_closest_b[2],
+                         float *r_lambda_a,
+                         float *r_lambda_b,
+                         const float a1[2],
+                         const float a2[2],
+                         const float b1[2],
+                         const float b2[2])
+{
+  if (isect_seg_seg_v2_simple(a1, a2, b1, b2)) {
+    float intersection[2];
+    isect_line_line_v2_point(a1, a2, b1, b2, intersection);
+    copy_v2_v2(r_closest_a, intersection);
+    copy_v2_v2(r_closest_b, intersection);
+    float tmp[2];
+    *r_lambda_a = closest_to_line_v2(tmp, intersection, a1, a2);
+    *r_lambda_b = closest_to_line_v2(tmp, intersection, b1, b2);
+    const float min_dist_sq = len_squared_v2v2(r_closest_a, r_closest_b);
+    return min_dist_sq;
+  }
+
+  float p1[2], p2[2], p3[2], p4[2];
+  const float lambda1 = closest_to_line_segment_v2(p1, a1, b1, b2);
+  const float lambda2 = closest_to_line_segment_v2(p2, a2, b1, b2);
+  const float lambda3 = closest_to_line_segment_v2(p3, b1, a1, a2);
+  const float lambda4 = closest_to_line_segment_v2(p4, b2, a1, a2);
+  const float dist_sq1 = len_squared_v2v2(p1, a1);
+  const float dist_sq2 = len_squared_v2v2(p2, a2);
+  const float dist_sq3 = len_squared_v2v2(p3, b1);
+  const float dist_sq4 = len_squared_v2v2(p4, b2);
+
+  const float min_dist_sq = min_ffff(dist_sq1, dist_sq2, dist_sq3, dist_sq4);
+  if (min_dist_sq == dist_sq1) {
+    copy_v2_v2(r_closest_a, a1);
+    copy_v2_v2(r_closest_b, p1);
+    *r_lambda_a = 0.0f;
+    *r_lambda_b = lambda1;
+  }
+  else if (min_dist_sq == dist_sq2) {
+    copy_v2_v2(r_closest_a, a2);
+    copy_v2_v2(r_closest_b, p2);
+    *r_lambda_a = 1.0f;
+    *r_lambda_b = lambda2;
+  }
+  else if (min_dist_sq == dist_sq3) {
+    copy_v2_v2(r_closest_a, p3);
+    copy_v2_v2(r_closest_b, b1);
+    *r_lambda_a = lambda3;
+    *r_lambda_b = 0.0f;
+  }
+  else {
+    BLI_assert(min_dist_sq == dist_sq4);
+    copy_v2_v2(r_closest_a, p4);
+    copy_v2_v2(r_closest_b, b2);
+    *r_lambda_a = lambda4;
+    *r_lambda_b = 1.0f;
+  }
+  return min_dist_sq;
+}
+
 float closest_to_line_segment_v2(float r_close[2],
                                  const float p[2],
                                  const float l1[2],

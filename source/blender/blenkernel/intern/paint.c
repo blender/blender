@@ -29,6 +29,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_attribute.h"
 #include "BKE_brush.h"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
@@ -41,6 +42,7 @@
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
@@ -1099,7 +1101,6 @@ bool BKE_paint_ensure(ToolSettings *ts, struct Paint **r_paint)
   }
   else if ((CurvesSculpt **)r_paint == &ts->curves_sculpt) {
     CurvesSculpt *data = MEM_callocN(sizeof(*data), __func__);
-    data->curve_length = 0.3f;
     paint = &data->paint;
   }
   else if (*r_paint == &ts->imapaint.paint) {
@@ -1339,8 +1340,6 @@ void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss)
   struct SculptVertexPaintGeomMap *gmap = NULL;
   if (ss->mode_type == OB_MODE_VERTEX_PAINT) {
     gmap = &ss->mode.vpaint.gmap;
-
-    MEM_SAFE_FREE(ss->mode.vpaint.previous_color);
   }
   else if (ss->mode_type == OB_MODE_WEIGHT_PAINT) {
     gmap = &ss->mode.wpaint.gmap;
@@ -1509,6 +1508,8 @@ void BKE_sculptsession_free(Object *ob)
 
     BKE_sculptsession_free_vwpaint_data(ob->sculpt);
 
+    MEM_SAFE_FREE(ss->last_paint_canvas_key);
+
     MEM_freeN(ss);
 
     ob->sculpt = NULL;
@@ -1666,7 +1667,28 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->multires.modifier = NULL;
     ss->multires.level = 0;
     ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
-    ss->vcol = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
+
+    CustomDataLayer *layer;
+    AttributeDomain domain;
+
+    if (BKE_pbvh_get_color_layer(me, &layer, &domain)) {
+      if (layer->type == CD_PROP_COLOR) {
+        ss->vcol = layer->data;
+      }
+      else {
+        ss->mcol = layer->data;
+      }
+
+      ss->vcol_domain = domain;
+      ss->vcol_type = layer->type;
+    }
+    else {
+      ss->vcol = NULL;
+      ss->mcol = NULL;
+
+      ss->vcol_type = -1;
+      ss->vcol_domain = ATTR_DOMAIN_NUM;
+    }
   }
 
   /* Sculpt Face Sets. */
@@ -1692,6 +1714,10 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   if (need_pmap && ob->type == OB_MESH && !ss->pmap) {
     BKE_mesh_vert_poly_map_create(
         &ss->pmap, &ss->pmap_mem, me->mpoly, me->mloop, me->totvert, me->totpoly, me->totloop);
+
+    if (ss->pbvh) {
+      BKE_pbvh_pmap_set(ss->pbvh, ss->pmap);
+    }
   }
 
   pbvh_show_mask_set(ss->pbvh, ss->show_mask);
@@ -1743,6 +1769,30 @@ static void sculpt_update_object(Depsgraph *depsgraph,
       }
     }
   }
+
+  /*
+   * We should rebuild the PBVH_pixels when painting canvas changes.
+   *
+   * The relevant changes are stored/encoded in the paint canvas key.
+   * These include the active uv map, and resolutions.
+   */
+  if (U.experimental.use_sculpt_texture_paint && ss->pbvh) {
+    char *paint_canvas_key = BKE_paint_canvas_key_get(&scene->toolsettings->paint_mode, ob);
+    if (ss->last_paint_canvas_key == NULL || !STREQ(paint_canvas_key, ss->last_paint_canvas_key)) {
+      MEM_SAFE_FREE(ss->last_paint_canvas_key);
+      ss->last_paint_canvas_key = paint_canvas_key;
+      BKE_pbvh_mark_rebuild_pixels(ss->pbvh);
+    }
+    else {
+      MEM_freeN(paint_canvas_key);
+    }
+  }
+
+  /* We could be more precise when we have access to the active tool. */
+  const bool use_paint_slots = (ob->mode & OB_MODE_SCULPT) != 0;
+  if (use_paint_slots) {
+    BKE_texpaint_slots_refresh_object(scene, ob);
+  }
 }
 
 void BKE_sculpt_update_object_before_eval(Object *ob)
@@ -1791,17 +1841,35 @@ void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval)
 void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
 {
   Mesh *orig_me = BKE_object_get_original_mesh(object);
-  if (!U.experimental.use_sculpt_vertex_colors) {
-    return;
+
+  int types[] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
+  bool has_color = false;
+
+  for (int i = 0; i < ARRAY_SIZE(types); i++) {
+    has_color = CustomData_has_layer(&orig_me->vdata, types[i]) ||
+                CustomData_has_layer(&orig_me->ldata, types[i]);
+
+    if (has_color) {
+      break;
+    }
   }
 
-  if (CustomData_has_layer(&orig_me->vdata, CD_PROP_COLOR)) {
+  if (has_color) {
     return;
   }
 
   CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, orig_me->totvert);
+  CustomDataLayer *layer = orig_me->vdata.layers +
+                           CustomData_get_layer_index(&orig_me->vdata, CD_PROP_COLOR);
+
   BKE_mesh_update_customdata_pointers(orig_me, true);
+
+  BKE_id_attributes_active_color_set(&orig_me->id, layer);
   DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
+
+  if (object->sculpt && object->sculpt->pbvh) {
+    BKE_pbvh_update_active_vcol(object->sculpt->pbvh, orig_me);
+  }
 }
 
 void BKE_sculpt_update_object_for_edit(
@@ -2173,6 +2241,10 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
         BKE_sculpt_bvh_update_from_ccg(pbvh, subdiv_ccg);
       }
     }
+
+    BKE_pbvh_update_active_vcol(pbvh, BKE_object_get_original_mesh(ob));
+    BKE_pbvh_pmap_set(pbvh, ob->sculpt->pmap);
+
     return pbvh;
   }
 
@@ -2191,6 +2263,8 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
       pbvh = build_pbvh_from_regular_mesh(ob, me_eval_deform, respect_hide);
     }
   }
+
+  BKE_pbvh_pmap_set(pbvh, ob->sculpt->pmap);
 
   ob->sculpt->pbvh = pbvh;
   return pbvh;

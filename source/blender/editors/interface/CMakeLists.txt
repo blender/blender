@@ -25,7 +25,7 @@ set(INC
 )
 
 set(SRC
-  interface.c
+  interface.cc
   interface_align.c
   interface_anim.c
   interface_button_group.c

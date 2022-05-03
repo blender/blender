@@ -75,8 +75,6 @@ colorspaces:
     description: |
       Rec. 709 (Full Range), Blender native linear space
     isdata: false
-    allocation: lg2
-    allocationvars: [-12.473931188, 12.526068812]
 
   - !<ColorSpace>
     name: Raw
@@ -84,8 +82,6 @@ colorspaces:
     equalitygroup:
     bitdepth: 32f
     isdata: true
-    allocation: uniform
-    allocationvars: [0, 1]
 
   - !<ColorSpace>
     name: Linear ACES
@@ -93,14 +89,25 @@ colorspaces:
     equalitygroup:
     bitdepth: 32f
     description: |
-      ACES linear space
+      ACES2065-1 linear space
     isdata: false
-    allocation: lg2
-    allocationvars: [-8.5, 5]
     from_reference: !<GroupTransform>
       children:
         - !<FileTransform> {src: srgb_to_xyz.spimtx, interpolation: linear}
         - !<BuiltinTransform> {style: "UTILITY - ACES-AP0_to_CIE-XYZ-D65_BFD", direction: inverse}
+
+  - !<ColorSpace>
+    name: Linear ACEScg
+    family: linear
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      ACEScg linear space
+    isdata: false
+    from_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: srgb_to_xyz.spimtx, interpolation: linear}
+        - !<BuiltinTransform> {style: "UTILITY - ACES-AP1_to_CIE-XYZ-D65_BFD", direction: inverse}
 
   - !<ColorSpace>
     name: nuke_rec709
@@ -110,8 +117,6 @@ colorspaces:
     description: |
       Rec. 709 (Full Range) Display Space
     isdata: false
-    allocation: uniform
-    allocationvars: [-0.125, 1.125]
     to_reference: !<GroupTransform>
       children:
         - !<FileTransform> {src: rec709.spi1d, interpolation: linear}
@@ -122,8 +127,6 @@ colorspaces:
     equalitygroup:
     bitdepth: 32f
     isdata: false
-    allocation: lg2
-    allocationvars: [-8.5, 5]
     from_reference: !<GroupTransform>
       children:
         - !<FileTransform> {src: srgb_to_xyz.spimtx, interpolation: linear}
@@ -136,8 +139,6 @@ colorspaces:
     description: |
       OpenDCP output LUT with DCI reference white and Gamma 2.6
     isdata: false
-    allocation: uniform
-    allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
         - !<FileTransform> {src: srgb_to_xyz.spimtx, interpolation: linear}
@@ -151,7 +152,6 @@ colorspaces:
     description: |
       conversion from film log
     isdata: false
-    allocation: uniform
     to_reference: !<GroupTransform>
       children:
         - !<FileTransform> {src: lg10.spi1d, interpolation: nearest}
@@ -164,8 +164,6 @@ colorspaces:
     description: |
       Standard RGB Display Space
     isdata: false
-    allocation: uniform
-    allocationvars: [-0.125, 4.875]
     to_reference: !<FileTransform> {src: srgb.spi1d, interpolation: linear}
     from_reference: !<FileTransform> {src: srgb_inv.spi1d, interpolation: linear}
 
@@ -173,12 +171,10 @@ colorspaces:
     name: Non-Color
     family: raw
     description: |
-        Color space used for images which contains non-color data (i,e, normal maps)
+        Color space used for images which contains non-color data (i.e. normal maps)
     equalitygroup:
     bitdepth: 32f
     isdata: true
-    allocation: uniform
-    allocationvars: [0, 1]
 
   - !<ColorSpace>
     name: Filmic Log
@@ -188,8 +184,6 @@ colorspaces:
     description: |
       Log based filmic shaper with 16.5 stops of latitude, and 25 stops of dynamic range
     isdata: false
-    allocation: lg2
-    allocationvars: [-12.473931188, 12.526068812]
     from_reference: !<GroupTransform>
         children:
             - !<AllocationTransform> {allocation: lg2, vars: [-12.473931188, 12.526068812]}
@@ -205,8 +199,6 @@ colorspaces:
     description: |
       Filmic sRGB view transform
     isdata: false
-    allocation: lg2
-    allocationvars: [-12.473931188, 12.526068812]
     from_reference: !<GroupTransform>
         children:
             - !<ColorSpaceTransform> {src: Linear, dst: Filmic Log}
@@ -220,8 +212,6 @@ colorspaces:
     description: |
       Filmic false color view transform
     isdata: false
-    allocation: lg2
-    allocationvars: [-12.473931188, 12.526068812]
     from_reference: !<GroupTransform>
         children:
             - !<ColorSpaceTransform> {src: Linear, dst: Filmic Log}

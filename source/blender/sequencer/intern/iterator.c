@@ -20,6 +20,8 @@
 #include "BKE_scene.h"
 
 #include "SEQ_iterator.h"
+#include "SEQ_relations.h"
+#include "SEQ_render.h"
 #include "SEQ_time.h"
 #include "render.h"
 
@@ -240,15 +242,6 @@ static void collection_filter_channel_up_to_incl(SeqCollection *collection, cons
   }
 }
 
-static bool seq_is_effect_of(const Sequence *seq_effect, const Sequence *possibly_input)
-{
-  if (seq_effect->seq1 == possibly_input || seq_effect->seq2 == possibly_input ||
-      seq_effect->seq3 == possibly_input) {
-    return true;
-  }
-  return false;
-}
-
 /* Check if seq must be rendered. This depends on whole stack in some cases, not only seq itself.
  * Order of applying these conditions is important. */
 static bool must_render_strip(const Sequence *seq, SeqCollection *strips_at_timeline_frame)
@@ -261,7 +254,8 @@ static bool must_render_strip(const Sequence *seq, SeqCollection *strips_at_time
       return false;
     }
 
-    if ((seq_iter->type & SEQ_TYPE_EFFECT) != 0 && seq_is_effect_of(seq_iter, seq)) {
+    if ((seq_iter->type & SEQ_TYPE_EFFECT) != 0 &&
+        SEQ_relation_is_effect_of_strip(seq_iter, seq)) {
       /* Strips in same channel or higher than its effect are rendered. */
       if (seq->machine >= seq_iter->machine) {
         return true;
@@ -285,14 +279,14 @@ static bool must_render_strip(const Sequence *seq, SeqCollection *strips_at_time
 }
 
 /* Remove strips we don't want to render from collection. */
-static void collection_filter_rendered_strips(SeqCollection *collection)
+static void collection_filter_rendered_strips(ListBase *channels, SeqCollection *collection)
 {
   Sequence *seq;
 
   /* Remove sound strips and muted strips from collection, because these are not rendered.
    * Function #must_render_strip() don't have to check for these strips anymore. */
   SEQ_ITERATOR_FOREACH (seq, collection) {
-    if (seq->type == SEQ_TYPE_SOUND_RAM || (seq->flag & SEQ_MUTE) != 0) {
+    if (seq->type == SEQ_TYPE_SOUND_RAM || SEQ_render_is_muted(channels, seq)) {
       SEQ_collection_remove_strip(seq, collection);
     }
   }
@@ -305,7 +299,8 @@ static void collection_filter_rendered_strips(SeqCollection *collection)
   }
 }
 
-SeqCollection *SEQ_query_rendered_strips(ListBase *seqbase,
+SeqCollection *SEQ_query_rendered_strips(ListBase *channels,
+                                         ListBase *seqbase,
                                          const int timeline_frame,
                                          const int displayed_channel)
 {
@@ -313,7 +308,7 @@ SeqCollection *SEQ_query_rendered_strips(ListBase *seqbase,
   if (displayed_channel != 0) {
     collection_filter_channel_up_to_incl(collection, displayed_channel);
   }
-  collection_filter_rendered_strips(collection);
+  collection_filter_rendered_strips(channels, collection);
   return collection;
 }
 

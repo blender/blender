@@ -37,21 +37,21 @@
  *   That could be useful if a user for example only has 2x rotation channels set.
  *   In practice users typically keyframe all rotation channels or none.
  *
- * - F-curve modifiers are disabled for evaluation,
+ * - F-Curve modifiers are disabled for evaluation,
  *   so the values written back to the keyframes don't include modifier offsets.
  *
  * - Sub-frame key-frames aren't supported,
  *   this could be added if needed without much trouble.
  *
- * - F-curves must have a #FCurve.bezt array (sampled curves aren't supported).
+ * - F-Curves must have a #FCurve.bezt array (sampled curves aren't supported).
  * \{ */
 
 /**
- * This structure is created for each pose channels F-curve,
+ * This structure is created for each pose channels F-Curve,
  * an action be evaluated and stored in `fcurve_eval`,
  * with the mirrored values written into `bezt_array`.
  *
- * Store F-curve evaluated values, constructed with a sorted array of rounded keyed-frames,
+ * Store F-Curve evaluated values, constructed with a sorted array of rounded keyed-frames,
  * passed to #action_flip_pchan_cache_init.
  */
 struct FCurve_KeyCache {
@@ -60,7 +60,7 @@ struct FCurve_KeyCache {
    */
   FCurve *fcurve;
   /**
-   * Cached evaluated F-curve values (without modifiers).
+   * Cached evaluated F-Curve values (without modifiers).
    */
   float *fcurve_eval;
   /**
@@ -117,7 +117,7 @@ static void action_flip_pchan_cache_init(struct FCurve_KeyCache *fkc,
 {
   BLI_assert(fkc->fcurve != NULL);
 
-  /* Cache the F-curve values for `keyed_frames`. */
+  /* Cache the F-Curve values for `keyed_frames`. */
   const int fcurve_flag = fkc->fcurve->flag;
   fkc->fcurve->flag |= FCURVE_MOD_OFF;
   fkc->fcurve_eval = MEM_mallocN(sizeof(float) * keyed_frames_len, __func__);
@@ -175,7 +175,7 @@ static void action_flip_pchan(Object *ob_arm,
    * unavailable channels are left NULL. */
 
   /**
-   * Structure to store transformation F-curves corresponding to a pose bones transformation.
+   * Structure to store transformation F-Curves corresponding to a pose bones transformation.
    * Match struct member names from #bPoseChannel so macros avoid repetition.
    *
    * \note There is no need to read values unless they influence the 4x4 transform matrix,
@@ -210,7 +210,7 @@ static void action_flip_pchan(Object *ob_arm,
 #undef FCURVE_ASSIGN_VALUE
 #undef FCURVE_ASSIGN_ARRAY
 
-  /* Array of F-curves, for convenient access. */
+  /* Array of F-Curves, for convenient access. */
 #define FCURVE_CHANNEL_LEN (sizeof(fkc_pchan) / sizeof(struct FCurve_KeyCache))
   FCurve *fcurve_array[FCURVE_CHANNEL_LEN];
   int fcurve_array_len = 0;
@@ -232,7 +232,7 @@ static void action_flip_pchan(Object *ob_arm,
   const float *keyed_frames = BKE_fcurves_calc_keyed_frames(
       fcurve_array, fcurve_array_len, &keyed_frames_len);
 
-  /* Initialize the pose channel curve cache from the F-curve. */
+  /* Initialize the pose channel curve cache from the F-Curve. */
   for (int chan = 0; chan < FCURVE_CHANNEL_LEN; chan++) {
     struct FCurve_KeyCache *fkc = (struct FCurve_KeyCache *)(&fkc_pchan) + chan;
     if (fkc->fcurve == NULL) {
@@ -256,7 +256,7 @@ static void action_flip_pchan(Object *ob_arm,
   float arm_mat_inv[4][4];
   invert_m4_m4(arm_mat_inv, pchan_flip ? pchan_flip->bone->arm_mat : pchan->bone->arm_mat);
 
-  /* Now flip the transformation & write it back to the F-curves in `fkc_pchan`. */
+  /* Now flip the transformation & write it back to the F-Curves in `fkc_pchan`. */
 
   for (int frame_index = 0; frame_index < keyed_frames_len; frame_index++) {
 
@@ -329,7 +329,7 @@ static void action_flip_pchan(Object *ob_arm,
 
     BKE_pchan_apply_mat4(&pchan_temp, chan_mat, false);
 
-    /* Write the values back to the F-curves. */
+    /* Write the values back to the F-Curves. */
 #define WRITE_VALUE_FLT(id) \
   if (fkc_pchan.id.fcurve_eval != NULL) { \
     BezTriple *bezt = fkc_pchan.id.bezt_array[frame_index]; \
@@ -348,7 +348,7 @@ static void action_flip_pchan(Object *ob_arm,
   } \
   ((void)0)
 
-    /* Write the values back the F-curves. */
+    /* Write the values back the F-Curves. */
     WRITE_ARRAY_FLT(loc);
     WRITE_ARRAY_FLT(eul);
     WRITE_ARRAY_FLT(quat);

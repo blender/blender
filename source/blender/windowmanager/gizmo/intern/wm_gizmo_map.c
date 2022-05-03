@@ -24,6 +24,7 @@
 
 #include "GPU_framebuffer.h"
 #include "GPU_matrix.h"
+#include "GPU_platform.h"
 #include "GPU_select.h"
 #include "GPU_state.h"
 #include "GPU_viewport.h"
@@ -648,7 +649,7 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
       BLI_assert(buf_iter->id != -1);
       wmGizmo *gz = visible_gizmos[buf_iter->id >> 8];
       float co_3d[3];
-      co_screen[2] = int_as_float(buf_iter->depth);
+      co_screen[2] = (float)((double)buf_iter->depth / (double)UINT_MAX);
       GPU_matrix_unproject_3fv(co_screen, rv3d->viewinv, rv3d->winmat, viewport, co_3d);
       float select_bias = gz->select_bias;
       if ((gz->flag & WM_GIZMO_DRAW_NO_SCALE) == 0) {
@@ -753,6 +754,14 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
 
     bool use_depth_test = false;
     bool use_depth_cache = false;
+
+    /* Workaround for MS-Windows & NVidia failing to detect any gizmo undo the cursor unless the
+     * depth test is enabled, see: T97124.
+     * NOTE(@campbellbarton): Ideally the exact cause of this could be tracked down,
+     * disable as I don't have a system to test this configuration. */
+    if (GPU_type_matches(GPU_DEVICE_NVIDIA | GPU_DEVICE_SOFTWARE, GPU_OS_WIN, GPU_DRIVER_ANY)) {
+      use_depth_test = true;
+    }
 
     for (int i = 0; i < ARRAY_SIZE(hotspot_radii); i++) {
 

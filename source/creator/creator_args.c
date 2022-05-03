@@ -576,6 +576,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
   BLI_args_print_arg_doc(ba, "--debug-depsgraph-pretty");
   BLI_args_print_arg_doc(ba, "--debug-depsgraph-uuid");
   BLI_args_print_arg_doc(ba, "--debug-ghost");
+  BLI_args_print_arg_doc(ba, "--debug-wintab");
   BLI_args_print_arg_doc(ba, "--debug-gpu");
   BLI_args_print_arg_doc(ba, "--debug-gpu-force-workarounds");
   BLI_args_print_arg_doc(ba, "--debug-wm");
@@ -943,6 +944,12 @@ static const char arg_handle_debug_mode_generic_set_doc_wm[] =
     "\n\t"
     "Enable debug messages for the window manager, shows all operators in search, shows "
     "keymap errors.";
+static const char arg_handle_debug_mode_generic_set_doc_ghost[] =
+    "\n\t"
+    "Enable debug messages for Ghost (Linux only).";
+static const char arg_handle_debug_mode_generic_set_doc_wintab[] =
+    "\n\t"
+    "Enable debug messages for Wintab.";
 #  ifdef WITH_XR_OPENXR
 static const char arg_handle_debug_mode_generic_set_doc_xr[] =
     "\n\t"
@@ -1644,7 +1651,7 @@ static int arg_handle_scene_set(int argc, const char **argv, void *data)
       CTX_data_scene_set(C, scene);
 
       /* Set the scene of the first window, see: T55991,
-       * otherwise scrips that run later won't get this scene back from the context. */
+       * otherwise scripts that run later won't get this scene back from the context. */
       wmWindow *win = CTX_wm_window(C);
       if (win == NULL) {
         win = CTX_wm_manager(C)->windows.first;
@@ -2130,8 +2137,13 @@ void main_args_setup(bContext *C, bArgs *ba)
   BLI_args_add(ba,
                NULL,
                "--debug-ghost",
-               CB_EX(arg_handle_debug_mode_generic_set, handlers),
+               CB_EX(arg_handle_debug_mode_generic_set, ghost),
                (void *)G_DEBUG_GHOST);
+  BLI_args_add(ba,
+               NULL,
+               "--debug-wintab",
+               CB_EX(arg_handle_debug_mode_generic_set, wintab),
+               (void *)G_DEBUG_WINTAB);
   BLI_args_add(ba, NULL, "--debug-all", CB(arg_handle_debug_mode_all), NULL);
 
   BLI_args_add(ba, NULL, "--debug-io", CB(arg_handle_debug_mode_io), NULL);

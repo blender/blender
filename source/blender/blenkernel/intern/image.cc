@@ -234,7 +234,6 @@ static void image_foreach_cache(ID *id,
   IDCacheKey key;
   key.id_session_uuid = id->session_uuid;
   key.offset_in_ID = offsetof(Image, cache);
-  key.cache_v = image->cache;
   function_callback(id, &key, (void **)&image->cache, 0, user_data);
 
   auto gputexture_offset = [image](int target, int eye, int resolution) {
@@ -253,19 +252,16 @@ static void image_foreach_cache(ID *id,
           continue;
         }
         key.offset_in_ID = gputexture_offset(a, eye, resolution);
-        key.cache_v = texture;
         function_callback(id, &key, (void **)&image->gputexture[a][eye][resolution], 0, user_data);
       }
     }
   }
 
   key.offset_in_ID = offsetof(Image, rr);
-  key.cache_v = image->rr;
   function_callback(id, &key, (void **)&image->rr, 0, user_data);
 
   LISTBASE_FOREACH (RenderSlot *, slot, &image->renderslots) {
     key.offset_in_ID = (size_t)BLI_ghashutil_strhash_p(slot->name);
-    key.cache_v = slot->render;
     function_callback(id, &key, (void **)&slot->render, 0, user_data);
   }
 }
@@ -833,10 +829,7 @@ ImageTile *BKE_image_get_tile_from_iuser(Image *ima, const ImageUser *iuser)
   return BKE_image_get_tile(ima, image_get_tile_number_from_iuser(ima, iuser));
 }
 
-int BKE_image_get_tile_from_pos(struct Image *ima,
-                                const float uv[2],
-                                float r_uv[2],
-                                float r_ofs[2])
+int BKE_image_get_tile_from_pos(Image *ima, const float uv[2], float r_uv[2], float r_ofs[2])
 {
   float local_ofs[2];
   if (r_ofs == nullptr) {
@@ -864,6 +857,18 @@ int BKE_image_get_tile_from_pos(struct Image *ima,
   return tile_number;
 }
 
+void BKE_image_get_tile_uv(const Image *ima, const int tile_number, float r_uv[2])
+{
+  if (ima->source != IMA_SRC_TILED) {
+    zero_v2(r_uv);
+  }
+  else {
+    const int tile_index = tile_number - 1001;
+    r_uv[0] = static_cast<float>(tile_index % 10);
+    r_uv[1] = static_cast<float>(tile_index / 10);
+  }
+}
+
 int BKE_image_find_nearest_tile(const Image *image, const float co[2])
 {
   const float co_floor[2] = {floorf(co[0]), floorf(co[1])};
@@ -872,17 +877,15 @@ int BKE_image_find_nearest_tile(const Image *image, const float co[2])
   int tile_number_best = -1;
 
   LISTBASE_FOREACH (const ImageTile *, tile, &image->tiles) {
-    const int tile_index = tile->tile_number - 1001;
-    /* Coordinates of the current tile. */
-    const float tile_index_co[2] = {static_cast<float>(tile_index % 10),
-                                    static_cast<float>(tile_index / 10)};
+    float uv_offset[2];
+    BKE_image_get_tile_uv(image, tile->tile_number, uv_offset);
 
-    if (equals_v2v2(co_floor, tile_index_co)) {
+    if (equals_v2v2(co_floor, uv_offset)) {
       return tile->tile_number;
     }
 
     /* Distance between co[2] and UDIM tile. */
-    const float dist_sq = len_squared_v2v2(tile_index_co, co);
+    const float dist_sq = len_squared_v2v2(uv_offset, co);
 
     if (dist_sq < dist_best_sq) {
       dist_best_sq = dist_sq;
@@ -1810,9 +1813,9 @@ void BKE_image_stamp_buf(Scene *scene,
                          int channels)
 {
   struct StampData stamp_data;
-  float w, h, pad;
+  int w, h, pad;
   int x, y, y_ofs;
-  float h_fixed;
+  int h_fixed;
   const int mono = blf_mono_font_render; /* XXX */
   struct ColorManagedDisplay *display;
   const char *display_device;
@@ -1820,20 +1823,20 @@ void BKE_image_stamp_buf(Scene *scene,
   /* vars for calculating wordwrap */
   struct {
     struct ResultBLF info;
-    rctf rect;
+    rcti rect;
   } wrap;
 
   /* this could be an argument if we want to operate on non linear float imbuf's
    * for now though this is only used for renders which use scene settings */
 
 #define TEXT_SIZE_CHECK(str, w, h) \
-  ((str[0]) && ((void)(h = h_fixed), (w = BLF_width(mono, str, sizeof(str)))))
+  ((str[0]) && ((void)(h = h_fixed), (w = (int)BLF_width(mono, str, sizeof(str)))))
 
   /* must enable BLF_WORD_WRAP before using */
 #define TEXT_SIZE_CHECK_WORD_WRAP(str, w, h) \
   ((str[0]) && (BLF_boundbox_ex(mono, str, sizeof(str), &wrap.rect, &wrap.info), \
                 (void)(h = h_fixed * wrap.info.lines), \
-                (w = BLI_rctf_size_x(&wrap.rect))))
+                (w = BLI_rcti_size_x(&wrap.rect))))
 
 #define BUFF_MARGIN_X 2
 #define BUFF_MARGIN_Y 1
@@ -3100,7 +3103,7 @@ void BKE_image_get_tile_label(Image *ima, ImageTile *tile, char *label, int len_
   }
 }
 
-bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *tile_start, int *tile_range)
+bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *r_tile_start, int *r_tile_range)
 {
   char filename[FILE_MAXFILE], dirname[FILE_MAXDIR];
   BLI_split_dirfile(filepath, dirname, filename, sizeof(dirname), sizeof(filename));
@@ -3110,7 +3113,7 @@ bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *tile_start, i
   eUDIM_TILE_FORMAT tile_format;
   char *udim_pattern = BKE_image_get_tile_strformat(filename, &tile_format);
 
-  bool is_udim = true;
+  bool all_valid_udim = true;
   int min_udim = IMA_UDIM_MAX + 1;
   int max_udim = 0;
   int id;
@@ -3128,7 +3131,7 @@ bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *tile_start, i
     }
 
     if (id < 1001 || id > IMA_UDIM_MAX) {
-      is_udim = false;
+      all_valid_udim = false;
       break;
     }
 
@@ -3139,11 +3142,14 @@ bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *tile_start, i
   BLI_filelist_free(dirs, dirs_num);
   MEM_SAFE_FREE(udim_pattern);
 
-  if (is_udim && min_udim <= IMA_UDIM_MAX) {
+  /* Ensure that all discovered UDIMs are valid and that there's at least 2 files in total.
+   * Downstream code checks the range value to determine tiled-ness; it's important we match that
+   * expectation here too (T97366). */
+  if (all_valid_udim && min_udim <= IMA_UDIM_MAX && max_udim > min_udim) {
     BLI_join_dirfile(filepath, FILE_MAX, dirname, filename);
 
-    *tile_start = min_udim;
-    *tile_range = max_udim - min_udim + 1;
+    *r_tile_start = min_udim;
+    *r_tile_range = max_udim - min_udim + 1;
     return true;
   }
   return false;

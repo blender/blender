@@ -40,8 +40,6 @@ TF_DEFINE_PRIVATE_TOKENS(CyclesMaterialTokens,
 );
 // clang-format on
 
-namespace {
-
 // Simple class to handle remapping of USDPreviewSurface nodes and parameters to Cycles equivalents
 class UsdToCyclesMapping {
   using ParamMap = std::unordered_map<TfToken, ustring, TfToken::HashFunctor>;
@@ -130,6 +128,8 @@ class UsdToCyclesTexture : public UsdToCyclesMapping {
   }
 };
 
+namespace {
+
 class UsdToCycles {
   const UsdToCyclesMapping UsdPreviewSurface = {
       "principled_bsdf",
@@ -182,11 +182,6 @@ class UsdToCycles {
 TfStaticData<UsdToCycles> sUsdToCyles;
 
 }  // namespace
-
-struct HdCyclesMaterial::NodeDesc {
-  ShaderNode *node;
-  const UsdToCyclesMapping *mapping;
-};
 
 HdCyclesMaterial::HdCyclesMaterial(const SdfPath &sprimId) : HdMaterial(sprimId)
 {
@@ -271,7 +266,7 @@ void HdCyclesMaterial::UpdateParameters(NodeDesc &nodeDesc,
                                         const std::map<TfToken, VtValue> &parameters,
                                         const SdfPath &nodePath)
 {
-  for (const std::pair<TfToken, VtValue> &param : parameters) {
+  for (const auto &param : parameters) {
     VtValue value = param.second;
 
     // See if the parameter name is in USDPreviewSurface terms, and needs to be converted
@@ -318,7 +313,7 @@ void HdCyclesMaterial::UpdateParameters(const HdMaterialNetwork &network)
 
 void HdCyclesMaterial::UpdateParameters(const HdMaterialNetwork2 &network)
 {
-  for (const std::pair<SdfPath, HdMaterialNode2> &nodeEntry : network.nodes) {
+  for (const auto &nodeEntry : network.nodes) {
     const SdfPath &nodePath = nodeEntry.first;
 
     const auto nodeIt = _nodes.find(nodePath);
@@ -336,8 +331,7 @@ void HdCyclesMaterial::UpdateConnections(NodeDesc &nodeDesc,
                                          const SdfPath &nodePath,
                                          ShaderGraph *shaderGraph)
 {
-  for (const std::pair<TfToken, std::vector<HdMaterialConnection2>> &connection :
-       matNode.inputConnections) {
+  for (const auto &connection : matNode.inputConnections) {
     const TfToken &dstSocketName = connection.first;
 
     const UsdToCyclesMapping *inputMapping = nodeDesc.mapping;
@@ -423,7 +417,7 @@ void HdCyclesMaterial::PopulateShaderGraph(const HdMaterialNetwork2 &networkMap)
   auto graph = new ShaderGraph();
 
   // Iterate all the nodes first and build a complete but unconnected graph with parameters set
-  for (const std::pair<SdfPath, HdMaterialNode2> &nodeEntry : networkMap.nodes) {
+  for (const auto &nodeEntry : networkMap.nodes) {
     NodeDesc nodeDesc = {};
     const SdfPath &nodePath = nodeEntry.first;
 
@@ -470,7 +464,7 @@ void HdCyclesMaterial::PopulateShaderGraph(const HdMaterialNetwork2 &networkMap)
 
   // Now that all nodes have been constructed, iterate the network again and build up any
   // connections between nodes
-  for (const std::pair<SdfPath, HdMaterialNode2> &nodeEntry : networkMap.nodes) {
+  for (const auto &nodeEntry : networkMap.nodes) {
     const SdfPath &nodePath = nodeEntry.first;
 
     const auto nodeIt = _nodes.find(nodePath);
@@ -483,7 +477,7 @@ void HdCyclesMaterial::PopulateShaderGraph(const HdMaterialNetwork2 &networkMap)
   }
 
   // Finally connect the terminals to the graph output (Surface, Volume, Displacement)
-  for (const std::pair<TfToken, HdMaterialConnection2> &terminalEntry : networkMap.terminals) {
+  for (const auto &terminalEntry : networkMap.terminals) {
     const TfToken &terminalName = terminalEntry.first;
     const HdMaterialConnection2 &connection = terminalEntry.second;
 
@@ -568,10 +562,13 @@ void HdCyclesMaterial::Finalize(HdRenderParam *renderParam)
   }
 
   const SceneLock lock(renderParam);
+  const bool keep_nodes = static_cast<const HdCyclesSession *>(renderParam)->keep_nodes;
 
   _nodes.clear();
 
-  lock.scene->delete_node(_shader);
+  if (!keep_nodes) {
+    lock.scene->delete_node(_shader);
+  }
   _shader = nullptr;
 }
 

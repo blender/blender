@@ -128,7 +128,7 @@ struct Render {
 
 /* **************** defines ********************* */
 
-/* R.flag */
+/** #R.flag */
 #define R_ANIMATION 1
 
 #ifdef __cplusplus

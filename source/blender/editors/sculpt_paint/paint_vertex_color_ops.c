@@ -30,6 +30,10 @@
 
 #include "paint_intern.h" /* own include */
 
+/* -------------------------------------------------------------------- */
+/** \name Internal Utility Functions
+ * \{ */
+
 static bool vertex_weight_paint_mode_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
@@ -45,75 +49,6 @@ static void tag_object_after_update(Object *object)
   DEG_id_tag_update(&mesh->id, ID_RECALC_COPY_ON_WRITE);
   /* NOTE: Original mesh is used for display, so tag it directly here. */
   BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
-}
-
-/* -------------------------------------------------------------------- */
-/** \name Set Vertex Colors Operator
- * \{ */
-
-static bool vertex_color_set(Object *ob, uint paintcol)
-{
-  Mesh *me;
-  if (((me = BKE_mesh_from_object(ob)) == NULL) || (ED_mesh_color_ensure(me, NULL) == false)) {
-    return false;
-  }
-
-  const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
-  const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
-
-  const MPoly *mp = me->mpoly;
-  for (int i = 0; i < me->totpoly; i++, mp++) {
-    MLoopCol *lcol = me->mloopcol + mp->loopstart;
-
-    if (use_face_sel && !(mp->flag & ME_FACE_SEL)) {
-      continue;
-    }
-
-    int j = 0;
-    do {
-      uint vidx = me->mloop[mp->loopstart + j].v;
-      if (!(use_vert_sel && !(me->mvert[vidx].flag & SELECT))) {
-        *(int *)lcol = paintcol;
-      }
-      lcol++;
-      j++;
-    } while (j < mp->totloop);
-  }
-
-  /* remove stale me->mcol, will be added later */
-  BKE_mesh_tessface_clear(me);
-
-  tag_object_after_update(ob);
-
-  return true;
-}
-
-static int vertex_color_set_exec(bContext *C, wmOperator *UNUSED(op))
-{
-  Scene *scene = CTX_data_scene(C);
-  Object *obact = CTX_data_active_object(C);
-  uint paintcol = vpaint_get_current_col(scene, scene->toolsettings->vpaint, false);
-
-  if (vertex_color_set(obact, paintcol)) {
-    WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
-    return OPERATOR_FINISHED;
-  }
-  return OPERATOR_CANCELLED;
-}
-
-void PAINT_OT_vertex_color_set(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Set Vertex Colors";
-  ot->idname = "PAINT_OT_vertex_color_set";
-  ot->description = "Fill the active vertex color layer with the current paint color";
-
-  /* api callbacks */
-  ot->exec = vertex_color_set_exec;
-  ot->poll = vertex_paint_mode_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /** \} */

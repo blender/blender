@@ -1,9 +1,6 @@
 
-uniform depth2D depthBuffer;
-uniform mat4 gridModelMatrix;
-uniform bool isTransform;
-
-out vec4 finalColor;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 vec4 color_from_id(float color_id)
 {
@@ -60,7 +57,5 @@ void main()
     finalColor = mix(colorBackground, finalColor, clamp(fac, 0.5, 1.0));
   }
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(ws_cell_location);
-#endif
+  view_clipping_distances(ws_cell_location);
 }

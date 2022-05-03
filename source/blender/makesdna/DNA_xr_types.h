@@ -37,6 +37,10 @@ typedef struct XrSessionSettings {
 
   int flag;
 
+  /** Object type settings to apply to VR view (unlike shading, not shared with window 3D-View). */
+  int object_type_exclude_viewport;
+  int object_type_exclude_select;
+
   ListBase actionmaps; /* XrActionMap */
   short act_actionmap;
   short sel_actionmap;

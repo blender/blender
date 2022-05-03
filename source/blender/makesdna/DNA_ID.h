@@ -335,7 +335,7 @@ enum {
 /* 2 characters for ID code and 64 for actual name */
 #define MAX_ID_NAME 66
 
-/* ID_Runtime_Remap.status */
+/** #ID_Runtime_Remap.status */
 enum {
   /** new_id is directly linked in current .blend. */
   ID_REMAP_IS_LINKED_DIRECT = 1 << 0,
@@ -349,8 +349,10 @@ typedef struct ID_Runtime_Remap {
   int status;
   /** During ID remapping the number of skipped use cases that refcount the data-block. */
   int skipped_refcounted;
-  /** During ID remapping the number of direct use cases that could be remapped (e.g. obdata when
-in edit mode). */
+  /**
+   * During ID remapping the number of direct use cases that could be remapped
+   * (e.g. obdata when in edit mode).
+   */
   int skipped_direct;
   /** During ID remapping, the number of indirect use cases that could not be remapped. */
   int skipped_indirect;
@@ -476,7 +478,7 @@ typedef struct Library {
   short versionfile, subversionfile;
 } Library;
 
-/* Library.tag */
+/** #Library.tag */
 enum eLibrary_Tag {
   /* Automatic recursive resync was needed when linking/loading data from that library. */
   LIBRARY_TAG_RESYNC_REQUIRED = 1 << 0,

@@ -33,11 +33,6 @@ static struct {
   uint runtime_new_objects;
 } e_data = {NULL}; /* Engine data */
 
-/* Shaders */
-extern char datatoc_common_view_lib_glsl[];
-extern char datatoc_selection_id_3D_vert_glsl[];
-extern char datatoc_selection_id_frag_glsl[];
-
 /* -------------------------------------------------------------------- */
 /** \name Utils
  * \{ */
@@ -88,26 +83,12 @@ static void select_engine_init(void *vedata)
 
   /* Prepass */
   if (!sh_data->select_id_flat) {
-    const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
-    sh_data->select_id_flat = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg_data->lib,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_selection_id_3D_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_selection_id_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg_data->def, NULL},
-    });
+    sh_data->select_id_flat = GPU_shader_create_from_info_name(
+        sh_cfg == GPU_SHADER_CFG_CLIPPED ? "select_id_flat_clipped" : "select_id_flat");
   }
   if (!sh_data->select_id_uniform) {
-    const GPUShaderConfigData *sh_cfg_data = &GPU_shader_cfg_data[sh_cfg];
-    sh_data->select_id_uniform = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg_data->lib,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_selection_id_3D_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_selection_id_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg_data->def, "#define UNIFORM_ID\n", NULL},
-    });
+    sh_data->select_id_uniform = GPU_shader_create_from_info_name(
+        sh_cfg == GPU_SHADER_CFG_CLIPPED ? "select_id_uniform_clipped" : "select_id_uniform");
   }
 
   if (!stl->g_data) {
@@ -178,7 +159,7 @@ static void select_cache_init(void *vedata)
     if (e_data.context.select_mode & SCE_SELECT_VERTEX) {
       DRW_PASS_CREATE(psl->select_id_vert_pass, state);
       pd->shgrp_vert = DRW_shgroup_create(sh->select_id_flat, psl->select_id_vert_pass);
-      DRW_shgroup_uniform_float_copy(pd->shgrp_vert, "sizeVertex", 2 * G_draw.block.sizeVertex);
+      DRW_shgroup_uniform_float_copy(pd->shgrp_vert, "sizeVertex", 2 * G_draw.block.size_vertex);
     }
   }
 

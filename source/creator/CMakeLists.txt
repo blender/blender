@@ -896,16 +896,32 @@ elseif(WIN32)
   endif()
 
   if(WITH_CODEC_FFMPEG)
-    install(
-      FILES
-        ${LIBDIR}/ffmpeg/lib/avcodec-58.dll
-        ${LIBDIR}/ffmpeg/lib/avformat-58.dll
-        ${LIBDIR}/ffmpeg/lib/avdevice-58.dll
-        ${LIBDIR}/ffmpeg/lib/avutil-56.dll
-        ${LIBDIR}/ffmpeg/lib/swscale-5.dll
-        ${LIBDIR}/ffmpeg/lib/swresample-3.dll
-      DESTINATION "."
-    )
+    # Filenames change slightly between ffmpeg versions
+    # check both 5.0 and fallback to 4.4 to ease the transition
+    # between versions.
+    if(EXISTS "${LIBDIR}/ffmpeg/lib/avcodec-59.dll")
+      install(
+        FILES
+          ${LIBDIR}/ffmpeg/lib/avcodec-59.dll
+          ${LIBDIR}/ffmpeg/lib/avformat-59.dll
+          ${LIBDIR}/ffmpeg/lib/avdevice-59.dll
+          ${LIBDIR}/ffmpeg/lib/avutil-57.dll
+          ${LIBDIR}/ffmpeg/lib/swscale-6.dll
+          ${LIBDIR}/ffmpeg/lib/swresample-4.dll
+        DESTINATION "."
+      )
+    else()
+      install(
+        FILES
+          ${LIBDIR}/ffmpeg/lib/avcodec-58.dll
+          ${LIBDIR}/ffmpeg/lib/avformat-58.dll
+          ${LIBDIR}/ffmpeg/lib/avdevice-58.dll
+          ${LIBDIR}/ffmpeg/lib/avutil-56.dll
+          ${LIBDIR}/ffmpeg/lib/swscale-5.dll
+          ${LIBDIR}/ffmpeg/lib/swresample-3.dll
+        DESTINATION "."
+      )
+    endif()
   endif()
   if(WITH_TBB)
     install(

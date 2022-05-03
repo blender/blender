@@ -71,7 +71,7 @@ struct FCurvePathCache *BKE_fcurve_pathcache_create(ListBase *list)
   }
   qsort(fcurve_array, fcurve_array_len, sizeof(FCurve *), fcurve_cmp_for_cache);
 
-  /* Allow for the case no F-curves share an RNA-path, otherwise this is over-allocated.
+  /* Allow for the case no F-Curves share an RNA-path, otherwise this is over-allocated.
    * Although in practice it's likely to only be 3-4x as large as is needed
    * (with transform channels for e.g.). */
   struct FCurvePathCache_Span *span_table = MEM_mallocN(sizeof(*span_table) * fcurve_array_len,

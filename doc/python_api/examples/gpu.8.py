@@ -43,7 +43,7 @@ with offscreen.bind():
 offscreen.free()
 
 
-if not IMAGE_NAME in bpy.data.images:
+if IMAGE_NAME not in bpy.data.images:
     bpy.data.images.new(IMAGE_NAME, WIDTH, HEIGHT)
 image = bpy.data.images[IMAGE_NAME]
 image.scale(WIDTH, HEIGHT)

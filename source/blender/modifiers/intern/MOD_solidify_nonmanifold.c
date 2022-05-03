@@ -2016,8 +2016,6 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     }
   }
 
-  BKE_mesh_normals_tag_dirty(result);
-
   /* Make edges. */
   {
     uint i = 0;

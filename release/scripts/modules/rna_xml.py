@@ -345,14 +345,10 @@ def xml2rna(
 
 
 def _get_context_val(context, path):
-    path_full = "context." + path
     try:
-        value = eval(path_full)
-    except:
-        import traceback
-        traceback.print_exc()
-        print("Error: %r could not be found" % path_full)
-
+        value = context.path_resolve(path)
+    except Exception as ex:
+        print("Error: %r, path %r not found" % (ex, path))
         value = Ellipsis
 
     return value

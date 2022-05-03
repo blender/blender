@@ -17,6 +17,16 @@ set(EMBREE_EXTRA_ARGS
   -DTBB_STATIC_LIB=${TBB_STATIC_LIBRARY}
 )
 
+if(BLENDER_PLATFORM_ARM)
+  set(EMBREE_EXTRA_ARGS
+    ${EMBREE_EXTRA_ARGS}
+    -DEMBREE_MAX_ISA=NEON)
+else()
+  set(EMBREE_EXTRA_ARGS
+    ${EMBREE_EXTRA_ARGS}
+    -DEMBREE_MAX_ISA=AVX2)
+endif()
+
 if(TBB_STATIC_LIBRARY)
   set(EMBREE_EXTRA_ARGS
     ${EMBREE_EXTRA_ARGS}
@@ -37,26 +47,15 @@ else()
   set(EMBREE_BUILD_DIR)
 endif()
 
-if(BLENDER_PLATFORM_ARM)
-  ExternalProject_Add(external_embree
-    GIT_REPOSITORY ${EMBREE_ARM_GIT}
-    GIT_TAG "blender-arm"
-    DOWNLOAD_DIR ${DOWNLOAD_DIR}
-    PREFIX ${BUILD_DIR}/embree
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/embree ${DEFAULT_CMAKE_FLAGS} ${EMBREE_EXTRA_ARGS}
-    INSTALL_DIR ${LIBDIR}/embree
-  )
-else()
-  ExternalProject_Add(external_embree
-    URL file://${PACKAGE_DIR}/${EMBREE_FILE}
-    DOWNLOAD_DIR ${DOWNLOAD_DIR}
-    URL_HASH ${EMBREE_HASH_TYPE}=${EMBREE_HASH}
-    PREFIX ${BUILD_DIR}/embree
-    PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/embree/src/external_embree < ${PATCH_DIR}/embree.diff
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/embree ${DEFAULT_CMAKE_FLAGS} ${EMBREE_EXTRA_ARGS}
-    INSTALL_DIR ${LIBDIR}/embree
-  )
-endif()
+ExternalProject_Add(external_embree
+  URL file://${PACKAGE_DIR}/${EMBREE_FILE}
+  DOWNLOAD_DIR ${DOWNLOAD_DIR}
+  URL_HASH ${EMBREE_HASH_TYPE}=${EMBREE_HASH}
+  PREFIX ${BUILD_DIR}/embree
+  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/embree/src/external_embree < ${PATCH_DIR}/embree.diff
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/embree ${DEFAULT_CMAKE_FLAGS} ${EMBREE_EXTRA_ARGS}
+  INSTALL_DIR ${LIBDIR}/embree
+)
 
 add_dependencies(
   external_embree
