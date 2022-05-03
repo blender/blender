@@ -117,53 +117,60 @@ struct DeleteOperationExecutor {
       }
     }
 
+    Array<bool> curves_to_delete(curves_->curves_num());
     if (falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-      this->delete_projected();
+      this->delete_projected(curves_to_delete);
     }
     else if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
-      this->delete_spherical();
+      this->delete_spherical(curves_to_delete);
     }
     else {
       BLI_assert_unreachable();
     }
 
+    Vector<int64_t> indices;
+    const IndexMask mask = index_mask_ops::find_indices_based_on_predicate(
+        curves_->curves_range(), 4096, indices, [&](const int curve_i) {
+          return curves_to_delete[curve_i];
+        });
+
+    curves_->remove_curves(mask);
+
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
     ED_region_tag_redraw(region_);
   }
 
-  void delete_projected()
+  void delete_projected(MutableSpan<bool> curves_to_delete)
   {
     float4x4 projection;
     ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);
 
     Span<float3> positions_cu = curves_->positions();
 
-    /* Find indices of curves that have to be removed. */
-    Vector<int64_t> indices;
-    const IndexMask curves_to_remove = index_mask_ops::find_indices_based_on_predicate(
-        curves_->curves_range(), 512, indices, [&](const int curve_i) {
-          const IndexRange point_range = curves_->points_for_curve(curve_i);
-          for (const int segment_i : IndexRange(point_range.size() - 1)) {
-            const float3 pos1_cu = positions_cu[point_range[segment_i]];
-            const float3 pos2_cu = positions_cu[point_range[segment_i + 1]];
+    threading::parallel_for(curves_->curves_range(), 512, [&](IndexRange curve_range) {
+      for (const int curve_i : curve_range) {
+        curves_to_delete[curve_i] = false;
 
-            float2 pos1_re, pos2_re;
-            ED_view3d_project_float_v2_m4(region_, pos1_cu, pos1_re, projection.values);
-            ED_view3d_project_float_v2_m4(region_, pos2_cu, pos2_re, projection.values);
+        const IndexRange point_range = curves_->points_for_curve(curve_i);
+        for (const int segment_i : IndexRange(point_range.size() - 1)) {
+          const float3 pos1_cu = positions_cu[point_range[segment_i]];
+          const float3 pos2_cu = positions_cu[point_range[segment_i + 1]];
 
-            const float dist = dist_seg_seg_v2(
-                pos1_re, pos2_re, brush_pos_prev_re_, brush_pos_re_);
-            if (dist <= brush_radius_re_) {
-              return true;
-            }
+          float2 pos1_re, pos2_re;
+          ED_view3d_project_float_v2_m4(region_, pos1_cu, pos1_re, projection.values);
+          ED_view3d_project_float_v2_m4(region_, pos2_cu, pos2_re, projection.values);
+
+          const float dist = dist_seg_seg_v2(pos1_re, pos2_re, brush_pos_prev_re_, brush_pos_re_);
+          if (dist <= brush_radius_re_) {
+            curves_to_delete[curve_i] = true;
+            break;
           }
-          return false;
-        });
-
-    curves_->remove_curves(curves_to_remove);
+        }
+      }
+    });
   }
 
-  void delete_spherical()
+  void delete_spherical(MutableSpan<bool> curves_to_delete)
   {
     Span<float3> positions_cu = curves_->positions();
 
@@ -187,32 +194,32 @@ struct DeleteOperationExecutor {
     const float brush_radius_cu = self_->brush_3d_.radius_cu;
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
 
-    Vector<int64_t> indices;
-    const IndexMask curves_to_remove = index_mask_ops::find_indices_based_on_predicate(
-        curves_->curves_range(), 512, indices, [&](const int curve_i) {
-          const IndexRange points = curves_->points_for_curve(curve_i);
-          for (const int segment_i : IndexRange(points.size() - 1)) {
-            const float3 pos1_cu = positions_cu[points[segment_i]];
-            const float3 pos2_cu = positions_cu[points[segment_i] + 1];
+    threading::parallel_for(curves_->curves_range(), 512, [&](IndexRange curve_range) {
+      for (const int curve_i : curve_range) {
+        curves_to_delete[curve_i] = false;
 
-            float3 closest_segment_cu, closest_brush_cu;
-            isect_seg_seg_v3(pos1_cu,
-                             pos2_cu,
-                             brush_start_cu,
-                             brush_end_cu,
-                             closest_segment_cu,
-                             closest_brush_cu);
-            const float distance_to_brush_sq_cu = math::distance_squared(closest_segment_cu,
-                                                                         closest_brush_cu);
-            if (distance_to_brush_sq_cu > brush_radius_sq_cu) {
-              continue;
-            }
-            return true;
+        const IndexRange points = curves_->points_for_curve(curve_i);
+        for (const int segment_i : IndexRange(points.size() - 1)) {
+          const float3 pos1_cu = positions_cu[points[segment_i]];
+          const float3 pos2_cu = positions_cu[points[segment_i] + 1];
+
+          float3 closest_segment_cu, closest_brush_cu;
+          isect_seg_seg_v3(pos1_cu,
+                           pos2_cu,
+                           brush_start_cu,
+                           brush_end_cu,
+                           closest_segment_cu,
+                           closest_brush_cu);
+          const float distance_to_brush_sq_cu = math::distance_squared(closest_segment_cu,
+                                                                       closest_brush_cu);
+          if (distance_to_brush_sq_cu > brush_radius_sq_cu) {
+            continue;
           }
-          return false;
-        });
-
-    curves_->remove_curves(curves_to_remove);
+          curves_to_delete[curve_i] = true;
+          break;
+        }
+      }
+    });
   }
 
   void initialize_spherical_brush_reference_point()
