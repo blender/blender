@@ -31,8 +31,8 @@
 /* For menu, popup, icons, etc. */
 #include "ED_anim_api.h"
 #include "ED_screen.h"
-#include "ED_util_imbuf.h"
 #include "ED_time_scrub_ui.h"
+#include "ED_util_imbuf.h"
 
 /* Own include. */
 #include "sequencer_intern.h"
