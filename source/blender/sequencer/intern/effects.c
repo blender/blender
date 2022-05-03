@@ -2712,7 +2712,6 @@ static ImBuf *do_speed_effect(const SeqRenderData *context,
   ImBuf *out;
 
   if (s->flags & SEQ_SPEED_USE_INTERPOLATION) {
-    out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
     fac = speed_effect_interpolation_ratio_get(context->scene, seq, timeline_frame);
     /* Current frame is ibuf1, next frame is ibuf2. */
     out = seq_render_effect_execute_threaded(
