@@ -107,6 +107,7 @@ bool nla_panel_context(const bContext *C,
         found = 1;
         break;
       }
+      case ANIMTYPE_NLAACTION:
       case ANIMTYPE_SCENE: /* Top-Level Widgets doubling up as datablocks */
       case ANIMTYPE_OBJECT:
       case ANIMTYPE_DSMAT: /* Datablock AnimData Expanders */
