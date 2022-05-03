@@ -38,6 +38,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
+#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_report.h"
@@ -2504,6 +2505,11 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
       return ICON_WORKSPACE;
     case ID_MSK:
       return ICON_MOD_MASK;
+    case ID_NT: {
+      const bNodeTree *ntree = (bNodeTree *)id;
+      const bNodeTreeType *ntreetype = ntree->typeinfo;
+      return (BIFIconID)ntreetype->ui_icon;
+    }
     case ID_MC:
       return ICON_SEQUENCE;
     case ID_PC:
