@@ -482,19 +482,19 @@ if(WITH_CYCLES_CUDA_BINARIES)
       if(DEFINED CUDA10_NVCC_EXECUTABLE)
         set(cuda_nvcc_executable ${CUDA10_NVCC_EXECUTABLE})
         set(cuda_toolkit_root_dir ${CUDA10_TOOLKIT_ROOT_DIR})
-      elseif(${CUDA_VERSION} LESS 110) # Support for sm_30 was removed in CUDA 11
+      elseif("${CUDA_VERSION}" LESS 110) # Support for sm_30 was removed in CUDA 11
         set(cuda_nvcc_executable ${CUDA_NVCC_EXECUTABLE})
         set(cuda_toolkit_root_dir ${CUDA_TOOLKIT_ROOT_DIR})
       else()
         message(STATUS "CUDA binaries for ${arch} require CUDA 10 or earlier, skipped.")
       endif()
-    elseif(${arch} MATCHES ".*_7." AND ${CUDA_VERSION} LESS 100)
+    elseif(${arch} MATCHES ".*_7." AND "${CUDA_VERSION}" LESS 100)
       message(STATUS "CUDA binaries for ${arch} require CUDA 10.0+, skipped.")
     elseif(${arch} MATCHES ".*_8.")
       if(DEFINED CUDA11_NVCC_EXECUTABLE)
         set(cuda_nvcc_executable ${CUDA11_NVCC_EXECUTABLE})
         set(cuda_toolkit_root_dir ${CUDA11_TOOLKIT_ROOT_DIR})
-      elseif(${CUDA_VERSION} GREATER_EQUAL 111) # Support for sm_86 was introduced in CUDA 11
+      elseif("${CUDA_VERSION}" GREATER_EQUAL 111) # Support for sm_86 was introduced in CUDA 11
         set(cuda_nvcc_executable ${CUDA_NVCC_EXECUTABLE})
         set(cuda_toolkit_root_dir ${CUDA_TOOLKIT_ROOT_DIR})
       else()
