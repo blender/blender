@@ -250,6 +250,10 @@ void CurvesGeometry::fill_curve_types(const CurveType type)
 
 void CurvesGeometry::fill_curve_types(const IndexMask selection, const CurveType type)
 {
+  if (selection.size() == this->curves_num()) {
+    this->fill_curve_types(type);
+    return;
+  }
   /* A potential performance optimization is only counting the changed indices. */
   this->curve_types_for_write().fill_indices(selection, type);
   this->update_curve_types();
