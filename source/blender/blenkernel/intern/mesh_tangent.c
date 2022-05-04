@@ -620,7 +620,7 @@ void BKE_mesh_calc_loop_tangent_ex(const MVert *mvert,
 
     /* Calculation */
     if (looptri_len != 0) {
-      TaskPool *task_pool = BLI_task_pool_create(NULL, TASK_PRIORITY_LOW);
+      TaskPool *task_pool = BLI_task_pool_create(NULL, TASK_PRIORITY_HIGH);
 
       tangent_mask_curr = 0;
       /* Calculate tangent layers */
