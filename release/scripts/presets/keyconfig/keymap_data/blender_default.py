@@ -1300,6 +1300,8 @@ def km_uv_editor(params):
          {"properties": [("data_path", 'tool_settings.use_snap_uv')]}),
         ("wm.context_menu_enum", {"type": 'TAB', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("data_path", 'tool_settings.snap_uv_element')]}),
+        ("wm.context_toggle", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_gizmo')]}),
         *_template_items_context_menu("IMAGE_MT_uvs_context_menu", params.context_menu_event),
     ])
 
@@ -1967,6 +1969,8 @@ def km_image(params):
         ),
         ("image.render_border", {"type": 'B', "value": 'PRESS', "ctrl": True}, None),
         ("image.clear_render_border", {"type": 'B', "value": 'PRESS', "ctrl": True, "alt": True}, None),
+        ("wm.context_toggle", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_gizmo')]}),
         *_template_items_context_menu("IMAGE_MT_mask_context_menu", params.context_menu_event),
     ])
 
