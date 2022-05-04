@@ -274,7 +274,7 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
                            scene_dst->nodetree,
                            (void *)(&scene_src->id),
                            &scene_dst->id,
-                           ID_REMAP_SKIP_NEVER_NULL_USAGE);
+                           ID_REMAP_SKIP_NEVER_NULL_USAGE | ID_REMAP_SKIP_USER_CLEAR);
   }
 
   if (scene_src->rigidbody_world) {
