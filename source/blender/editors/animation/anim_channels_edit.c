@@ -341,7 +341,7 @@ static void anim_channels_select_set(bAnimContext *ac,
                                      eAnimChannels_SetFlag sel)
 {
   bAnimListElem *ale;
-  
+
   for (ale = anim_data.first; ale; ale = ale->next) {
     switch (ale->type) {
       case ANIMTYPE_SCENE: {
