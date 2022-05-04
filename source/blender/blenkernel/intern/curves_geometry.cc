@@ -577,6 +577,11 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
         const bool is_cyclic = cyclic[curve_index];
         const KnotsMode mode = KnotsMode(knots_modes[curve_index]);
 
+        if (!curves::nurbs::check_valid_size_and_order(points.size(), order, is_cyclic, mode)) {
+          basis_caches[curve_index].invalid = true;
+          continue;
+        }
+
         const int knots_size = curves::nurbs::knots_size(points.size(), order, is_cyclic);
         Array<float> knots(knots_size);
         curves::nurbs::calculate_knots(points.size(), mode, order, is_cyclic, knots);
@@ -696,9 +701,6 @@ Span<float3> CurvesGeometry::evaluated_tangents() const
     threading::parallel_for(this->curves_range(), 128, [&](IndexRange curves_range) {
       for (const int curve_index : curves_range) {
         const IndexRange evaluated_points = this->evaluated_points_for_curve(curve_index);
-        if (UNLIKELY(evaluated_points.is_empty())) {
-          continue;
-        }
         curves::poly::calculate_tangents(evaluated_positions.slice(evaluated_points),
                                          cyclic[curve_index],
                                          tangents.slice(evaluated_points));
@@ -773,9 +775,6 @@ Span<float3> CurvesGeometry::evaluated_normals() const
 
       for (const int curve_index : curves_range) {
         const IndexRange evaluated_points = this->evaluated_points_for_curve(curve_index);
-        if (UNLIKELY(evaluated_points.is_empty())) {
-          continue;
-        }
         switch (normal_mode[curve_index]) {
           case NORMAL_MODE_Z_UP:
             curves::poly::calculate_normals_z_up(evaluated_tangents.slice(evaluated_points),
@@ -916,9 +915,6 @@ void CurvesGeometry::ensure_evaluated_lengths() const
       for (const int curve_index : curves_range) {
         const bool cyclic = curves_cyclic[curve_index];
         const IndexRange evaluated_points = this->evaluated_points_for_curve(curve_index);
-        if (UNLIKELY(evaluated_points.is_empty())) {
-          continue;
-        }
         const IndexRange lengths_range = this->lengths_range_for_curve(curve_index, cyclic);
         length_parameterize::accumulate_lengths(evaluated_positions.slice(evaluated_points),
                                                 cyclic,
