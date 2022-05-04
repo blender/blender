@@ -833,8 +833,8 @@ static void ptcache_rigidbody_interpolate(int index,
         memcpy(orn, data + 3, sizeof(float[4]));
       }
       else {
-        PTCACHE_DATA_TO(data, BPHYS_DATA_LOCATION, index, pos);
-        PTCACHE_DATA_TO(data, BPHYS_DATA_ROTATION, index, orn);
+        PTCACHE_DATA_TO(data, BPHYS_DATA_LOCATION, 0, pos);
+        PTCACHE_DATA_TO(data, BPHYS_DATA_ROTATION, 0, orn);
       }
 
       const float t = (cfra - cfra1) / (cfra2 - cfra1);
