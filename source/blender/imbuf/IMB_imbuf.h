@@ -109,6 +109,14 @@ struct ImBuf *IMB_loadiffname(const char *filepath, int flags, char colorspace[I
 
 /**
  *
+ * \attention Defined in readimage.c
+ */
+struct ImBuf *IMB_thumb_load_image(const char *filepath,
+                                   const size_t max_thumb_size,
+                                   char colorspace[IM_MAX_SPACE]);
+
+/**
+ *
  * \attention Defined in allocimbuf.c
  */
 void IMB_freeImBuf(struct ImBuf *ibuf);
