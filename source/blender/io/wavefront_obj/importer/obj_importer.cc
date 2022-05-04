@@ -108,7 +108,7 @@ void importer_main(Main *bmain,
   OBJParser obj_parser{import_params, read_buffer_size};
   obj_parser.parse(all_geometries, global_vertices);
 
-  for (StringRef mtl_library : obj_parser.mtl_libraries()) {
+  for (StringRefNull mtl_library : obj_parser.mtl_libraries()) {
     MTLParser mtl_parser{mtl_library, import_params.filepath};
     mtl_parser.parse_and_store(materials);
   }
