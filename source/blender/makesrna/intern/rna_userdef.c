@@ -1101,7 +1101,7 @@ int rna_show_statusbar_vram_editable(struct PointerRNA *UNUSED(ptr), const char 
   return GPU_mem_stats_supported() ? PROP_EDITABLE : 0;
 }
 
-static int rna_userdef_experimental_use_new_curve_tools_editable(struct PointerRNA *ptr,
+static int rna_userdef_experimental_use_new_curve_tools_editable(struct PointerRNA *UNUSED(ptr),
                                                                  const char **r_info)
 {
   if (U.experimental.use_new_curves_type) {
