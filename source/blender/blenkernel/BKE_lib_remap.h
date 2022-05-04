@@ -57,7 +57,9 @@ enum {
   ID_REMAP_FORCE_NEVER_NULL_USAGE = 1 << 3,
   /** Do not remap library override pointers. */
   ID_REMAP_SKIP_OVERRIDE_LIBRARY = 1 << 5,
-  /** Don't touch the user count (use for low level actions such as swapping pointers). */
+  /** Don't touch the special user counts (use when the 'old' remapped ID remains in use):
+   * - Do not transfer 'fake user' status from old to new ID.
+   * - Do not clear 'extra user' from old ID. */
   ID_REMAP_SKIP_USER_CLEAR = 1 << 6,
   /**
    * Force internal ID runtime pointers (like `ID.newid`, `ID.orig_id` etc.) to also be processed.
