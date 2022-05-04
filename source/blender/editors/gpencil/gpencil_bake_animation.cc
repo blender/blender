@@ -283,10 +283,6 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
         }
         MEM_freeN(layer_name);
 
-        /* Layer Transform matrix. */
-        float matrix[4][4];
-        BKE_gpencil_layer_transform_matrix_get(depsgraph, elem->ob, gpl_src, matrix);
-
         /* Apply time modifier. */
         int remap_cfra = BKE_gpencil_time_modifier_cfra(
             depsgraph, scene, elem->ob, gpl_src, CFRA, false);
@@ -324,7 +320,6 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
           /* Update point location to new object space. */
           for (int j = 0; j < gps->totpoints; j++) {
             bGPDspoint *pt = &gps->points[j];
-            mul_m4_v3(matrix, &pt->x);
             mul_m4_v3(invmat, &pt->x);
           }
 
