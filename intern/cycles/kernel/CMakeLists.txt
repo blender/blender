@@ -356,16 +356,13 @@ if(WITH_CYCLES_CUDA_BINARIES)
   set(CUDA_VERSION "${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}")
 
   # warn for other versions
-  if((CUDA_VERSION MATCHES "101") OR
-     (CUDA_VERSION MATCHES "102") OR
-     (CUDA_VERSION MATCHES "111") OR
-     (CUDA_VERSION MATCHES "112") OR
-     (CUDA_VERSION MATCHES "113") OR
-     (CUDA_VERSION MATCHES "114"))
+  if((CUDA_VERSION STREQUAL "101") OR
+     (CUDA_VERSION STREQUAL "102") OR
+     (CUDA_VERSION_MAJOR STREQUAL "11"))
   else()
     message(WARNING
       "CUDA version ${CUDA_VERSION_MAJOR}.${CUDA_VERSION_MINOR} detected, "
-      "build may succeed but only CUDA 10.1 to 11.4 are officially supported")
+      "build may succeed but only CUDA 11, 10.2 and 10.1 have been tested")
   endif()
 
   # build for each arch
