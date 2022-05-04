@@ -16,6 +16,7 @@
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_task.h"
+#include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 #include "DNA_camera_types.h"
@@ -852,10 +853,10 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
     }
 
     if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
-      oglrender->task_pool = BLI_task_pool_create_background_serial(oglrender, TASK_PRIORITY_LOW);
+      oglrender->task_pool = BLI_task_pool_create_background_serial(oglrender, TASK_PRIORITY_HIGH);
     }
     else {
-      oglrender->task_pool = BLI_task_pool_create(oglrender, TASK_PRIORITY_LOW);
+      oglrender->task_pool = BLI_task_pool_create(oglrender, TASK_PRIORITY_HIGH);
     }
     oglrender->pool_ok = true;
     BLI_spin_init(&oglrender->reports_lock);
@@ -1018,10 +1019,9 @@ struct WriteTaskData {
   Scene tmp_scene;
 };
 
-static void write_result_func(TaskPool *__restrict pool, void *task_data_v)
+static void write_result(TaskPool *__restrict pool, WriteTaskData *task_data)
 {
   OGLRender *oglrender = (OGLRender *)BLI_task_pool_user_data(pool);
-  WriteTaskData *task_data = (WriteTaskData *)task_data_v;
   Scene *scene = &task_data->tmp_scene;
   RenderResult *rr = task_data->rr;
   const bool is_movie = BKE_imtype_is_movie(scene->r.im_format.imtype);
@@ -1093,6 +1093,15 @@ static void write_result_func(TaskPool *__restrict pool, void *task_data_v)
   oglrender->num_scheduled_frames--;
   BLI_condition_notify_all(&oglrender->task_condition);
   BLI_mutex_unlock(&oglrender->task_mutex);
+}
+
+static void write_result_func(TaskPool *__restrict pool, void *task_data_v)
+{
+  /* Isolate task so that multithreaded image operations don't cause this thread to start
+   * writing another frame. If that happens we may reach the MAX_SCHEDULED_FRAMES limit,
+   * and cause the render thread and writing threads to deadlock waiting for each other. */
+  WriteTaskData *task_data = (WriteTaskData *)task_data_v;
+  blender::threading::isolate_task([&] { write_result(pool, task_data); });
 }
 
 static bool schedule_write_result(OGLRender *oglrender, RenderResult *rr)
