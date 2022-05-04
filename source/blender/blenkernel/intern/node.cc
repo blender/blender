@@ -4502,6 +4502,8 @@ static void registerCompositNodes()
   register_node_type_cmp_premulkey();
   register_node_type_cmp_separate_xyz();
   register_node_type_cmp_combine_xyz();
+  register_node_type_cmp_separate_color();
+  register_node_type_cmp_combine_color();
 
   register_node_type_cmp_diff_matte();
   register_node_type_cmp_distance_matte();
@@ -4574,6 +4576,8 @@ static void registerShaderNodes()
   register_node_type_sh_vect_transform();
   register_node_type_sh_squeeze();
   register_node_type_sh_invert();
+  register_node_type_sh_sepcolor();
+  register_node_type_sh_combcolor();
   register_node_type_sh_seprgb();
   register_node_type_sh_combrgb();
   register_node_type_sh_sephsv();
@@ -4660,6 +4664,8 @@ static void registerTextureNodes()
   register_node_type_tex_distance();
   register_node_type_tex_compose();
   register_node_type_tex_decompose();
+  register_node_type_tex_combine_color();
+  register_node_type_tex_separate_color();
 
   register_node_type_tex_output();
   register_node_type_tex_viewer();
@@ -4821,6 +4827,7 @@ static void registerFunctionNodes()
 {
   register_node_type_fn_align_euler_to_vector();
   register_node_type_fn_boolean_math();
+  register_node_type_fn_combine_color();
   register_node_type_fn_compare();
   register_node_type_fn_float_to_int();
   register_node_type_fn_input_bool();
@@ -4832,6 +4839,7 @@ static void registerFunctionNodes()
   register_node_type_fn_random_value();
   register_node_type_fn_replace_string();
   register_node_type_fn_rotate_euler();
+  register_node_type_fn_separate_color();
   register_node_type_fn_slice_string();
   register_node_type_fn_string_length();
   register_node_type_fn_value_to_string();

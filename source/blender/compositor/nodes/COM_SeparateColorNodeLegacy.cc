@@ -1,18 +1,18 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * Copyright 2011 Blender Foundation. */
 
-#include "COM_SeparateColorNode.h"
+#include "COM_SeparateColorNodeLegacy.h"
 
 #include "COM_ConvertOperation.h"
 
 namespace blender::compositor {
 
-SeparateColorNode::SeparateColorNode(bNode *editor_node) : Node(editor_node)
+SeparateColorNodeLegacy::SeparateColorNodeLegacy(bNode *editor_node) : Node(editor_node)
 {
 }
 
-void SeparateColorNode::convert_to_operations(NodeConverter &converter,
-                                              const CompositorContext &context) const
+void SeparateColorNodeLegacy::convert_to_operations(NodeConverter &converter,
+                                                    const CompositorContext &context) const
 {
   NodeInput *image_socket = this->get_input_socket(0);
   NodeOutput *output_rsocket = this->get_output_socket(0);
@@ -20,39 +20,7 @@ void SeparateColorNode::convert_to_operations(NodeConverter &converter,
   NodeOutput *output_bsocket = this->get_output_socket(2);
   NodeOutput *output_asocket = this->get_output_socket(3);
 
-  bNode *editor_node = this->get_bnode();
-  NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)editor_node->storage;
-
-  NodeOperation *color_conv = nullptr;
-  switch (storage->mode) {
-    case CMP_NODE_COMBSEP_COLOR_RGB: {
-      /* Pass */
-      break;
-    }
-    case CMP_NODE_COMBSEP_COLOR_HSV: {
-      color_conv = new ConvertRGBToHSVOperation();
-      break;
-    }
-    case CMP_NODE_COMBSEP_COLOR_HSL: {
-      color_conv = new ConvertRGBToHSLOperation();
-      break;
-    }
-    case CMP_NODE_COMBSEP_COLOR_YCC: {
-      ConvertRGBToYCCOperation *operation = new ConvertRGBToYCCOperation();
-      operation->set_mode(storage->ycc_mode);
-      color_conv = operation;
-      break;
-    }
-    case CMP_NODE_COMBSEP_COLOR_YUV: {
-      color_conv = new ConvertRGBToYUVOperation();
-      break;
-    }
-    default: {
-      BLI_assert_unreachable();
-      break;
-    }
-  }
-
+  NodeOperation *color_conv = get_color_converter(context);
   if (color_conv) {
     converter.add_operation(color_conv);
 
@@ -114,6 +82,29 @@ void SeparateColorNode::convert_to_operations(NodeConverter &converter,
     }
     converter.map_output_socket(output_asocket, operation->get_output_socket(0));
   }
+}
+
+NodeOperation *SeparateRGBANode::get_color_converter(const CompositorContext & /*context*/) const
+{
+  return nullptr; /* no conversion needed */
+}
+
+NodeOperation *SeparateHSVANode::get_color_converter(const CompositorContext & /*context*/) const
+{
+  return new ConvertRGBToHSVOperation();
+}
+
+NodeOperation *SeparateYCCANode::get_color_converter(const CompositorContext & /*context*/) const
+{
+  ConvertRGBToYCCOperation *operation = new ConvertRGBToYCCOperation();
+  bNode *editor_node = this->get_bnode();
+  operation->set_mode(editor_node->custom1);
+  return operation;
+}
+
+NodeOperation *SeparateYUVANode::get_color_converter(const CompositorContext & /*context*/) const
+{
+  return new ConvertRGBToYUVOperation();
 }
 
 }  // namespace blender::compositor

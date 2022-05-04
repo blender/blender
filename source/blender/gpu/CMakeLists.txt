@@ -317,6 +317,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_clamp.glsl
   shaders/material/gpu_shader_material_color_ramp.glsl
   shaders/material/gpu_shader_material_color_util.glsl
+  shaders/material/gpu_shader_material_combine_color.glsl
   shaders/material/gpu_shader_material_combine_hsv.glsl
   shaders/material/gpu_shader_material_combine_rgb.glsl
   shaders/material/gpu_shader_material_combine_xyz.glsl
@@ -359,6 +360,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_refraction.glsl
   shaders/material/gpu_shader_material_rgb_curves.glsl
   shaders/material/gpu_shader_material_rgb_to_bw.glsl
+  shaders/material/gpu_shader_material_separate_color.glsl
   shaders/material/gpu_shader_material_separate_hsv.glsl
   shaders/material/gpu_shader_material_separate_rgb.glsl
   shaders/material/gpu_shader_material_separate_xyz.glsl

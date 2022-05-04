@@ -33,7 +33,7 @@ void register_node_type_cmp_sepycca()
 
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SEPYCCA, "Separate YCbCrA", NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, CMP_NODE_SEPYCCA_LEGACY, "Separate YCbCrA", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_sepycca_declare;
   node_type_init(&ntype, file_ns::node_composit_init_mode_sepycca);
 
@@ -66,7 +66,7 @@ void register_node_type_cmp_combycca()
 
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_COMBYCCA, "Combine YCbCrA", NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, CMP_NODE_COMBYCCA_LEGACY, "Combine YCbCrA", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_combycca_declare;
   node_type_init(&ntype, file_ns::node_composit_init_mode_combycca);
 

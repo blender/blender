@@ -36,7 +36,7 @@ void register_node_type_sh_sephsv()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_SEPHSV, "Separate HSV", NODE_CLASS_CONVERTER);
+  sh_node_type_base(&ntype, SH_NODE_SEPHSV_LEGACY, "Separate HSV", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::node_declare_sephsv;
   node_type_gpu(&ntype, file_ns::gpu_shader_sephsv);
 
@@ -72,7 +72,7 @@ void register_node_type_sh_combhsv()
 
   static bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_COMBHSV, "Combine HSV", NODE_CLASS_CONVERTER);
+  sh_node_type_base(&ntype, SH_NODE_COMBHSV_LEGACY, "Combine HSV", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::node_declare_combhsv;
   node_type_gpu(&ntype, file_ns::gpu_shader_combhsv);
 

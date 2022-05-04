@@ -5010,6 +5010,63 @@ void MixNode::constant_fold(const ConstantFolder &folder)
   }
 }
 
+/* Combine Color */
+
+NODE_DEFINE(CombineColorNode)
+{
+  NodeType *type = NodeType::add("combine_color", create, NodeType::SHADER);
+
+  static NodeEnum type_enum;
+  type_enum.insert("rgb", NODE_COMBSEP_COLOR_RGB);
+  type_enum.insert("hsv", NODE_COMBSEP_COLOR_HSV);
+  type_enum.insert("hsl", NODE_COMBSEP_COLOR_HSL);
+  SOCKET_ENUM(color_type, "Type", type_enum, NODE_COMBSEP_COLOR_RGB);
+
+  SOCKET_IN_FLOAT(r, "Red", 0.0f);
+  SOCKET_IN_FLOAT(g, "Green", 0.0f);
+  SOCKET_IN_FLOAT(b, "Blue", 0.0f);
+
+  SOCKET_OUT_COLOR(color, "Color");
+
+  return type;
+}
+
+CombineColorNode::CombineColorNode() : ShaderNode(get_node_type())
+{
+}
+
+void CombineColorNode::constant_fold(const ConstantFolder &folder)
+{
+  if (folder.all_inputs_constant()) {
+    folder.make_constant(svm_combine_color(color_type, make_float3(r, g, b)));
+  }
+}
+
+void CombineColorNode::compile(SVMCompiler &compiler)
+{
+  ShaderInput *red_in = input("Red");
+  ShaderInput *green_in = input("Green");
+  ShaderInput *blue_in = input("Blue");
+  ShaderOutput *color_out = output("Color");
+
+  int red_stack_offset = compiler.stack_assign(red_in);
+  int green_stack_offset = compiler.stack_assign(green_in);
+  int blue_stack_offset = compiler.stack_assign(blue_in);
+  int color_stack_offset = compiler.stack_assign(color_out);
+
+  compiler.add_node(
+      NODE_COMBINE_COLOR,
+      color_type,
+      compiler.encode_uchar4(red_stack_offset, green_stack_offset, blue_stack_offset),
+      color_stack_offset);
+}
+
+void CombineColorNode::compile(OSLCompiler &compiler)
+{
+  compiler.parameter(this, "color_type");
+  compiler.add(this, "node_combine_color");
+}
+
 /* Combine RGB */
 
 NODE_DEFINE(CombineRGBNode)
@@ -5248,6 +5305,70 @@ void BrightContrastNode::compile(SVMCompiler &compiler)
 void BrightContrastNode::compile(OSLCompiler &compiler)
 {
   compiler.add(this, "node_brightness");
+}
+
+/* Separate Color */
+
+NODE_DEFINE(SeparateColorNode)
+{
+  NodeType *type = NodeType::add("separate_color", create, NodeType::SHADER);
+
+  static NodeEnum type_enum;
+  type_enum.insert("rgb", NODE_COMBSEP_COLOR_RGB);
+  type_enum.insert("hsv", NODE_COMBSEP_COLOR_HSV);
+  type_enum.insert("hsl", NODE_COMBSEP_COLOR_HSL);
+  SOCKET_ENUM(color_type, "Type", type_enum, NODE_COMBSEP_COLOR_RGB);
+
+  SOCKET_IN_COLOR(color, "Color", zero_float3());
+
+  SOCKET_OUT_FLOAT(r, "Red");
+  SOCKET_OUT_FLOAT(g, "Green");
+  SOCKET_OUT_FLOAT(b, "Blue");
+
+  return type;
+}
+
+SeparateColorNode::SeparateColorNode() : ShaderNode(get_node_type())
+{
+}
+
+void SeparateColorNode::constant_fold(const ConstantFolder &folder)
+{
+  if (folder.all_inputs_constant()) {
+    float3 col = svm_separate_color(color_type, color);
+
+    for (int channel = 0; channel < 3; channel++) {
+      if (outputs[channel] == folder.output) {
+        folder.make_constant(col[channel]);
+        return;
+      }
+    }
+  }
+}
+
+void SeparateColorNode::compile(SVMCompiler &compiler)
+{
+  ShaderInput *color_in = input("Color");
+  ShaderOutput *red_out = output("Red");
+  ShaderOutput *green_out = output("Green");
+  ShaderOutput *blue_out = output("Blue");
+
+  int color_stack_offset = compiler.stack_assign(color_in);
+  int red_stack_offset = compiler.stack_assign(red_out);
+  int green_stack_offset = compiler.stack_assign(green_out);
+  int blue_stack_offset = compiler.stack_assign(blue_out);
+
+  compiler.add_node(
+      NODE_SEPARATE_COLOR,
+      color_type,
+      color_stack_offset,
+      compiler.encode_uchar4(red_stack_offset, green_stack_offset, blue_stack_offset));
+}
+
+void SeparateColorNode::compile(OSLCompiler &compiler)
+{
+  compiler.parameter(this, "color_type");
+  compiler.add(this, "node_separate_color");
 }
 
 /* Separate RGB */

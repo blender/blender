@@ -181,6 +181,7 @@ CCL_NAMESPACE_END
 #include "kernel/svm/noisetex.h"
 #include "kernel/svm/normal.h"
 #include "kernel/svm/ramp.h"
+#include "kernel/svm/sepcomb_color.h"
 #include "kernel/svm/sepcomb_hsv.h"
 #include "kernel/svm/sepcomb_vector.h"
 #include "kernel/svm/sky.h"
@@ -519,6 +520,12 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
         break;
       case NODE_MIX:
         offset = svm_node_mix(kg, sd, stack, node.y, node.z, node.w, offset);
+        break;
+      case NODE_SEPARATE_COLOR:
+        svm_node_separate_color(kg, sd, stack, node.y, node.z, node.w);
+        break;
+      case NODE_COMBINE_COLOR:
+        svm_node_combine_color(kg, sd, stack, node.y, node.z, node.w);
         break;
       case NODE_SEPARATE_VECTOR:
         svm_node_separate_vector(sd, stack, node.y, node.z, node.w);
