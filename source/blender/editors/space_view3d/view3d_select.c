@@ -126,6 +126,7 @@ void ED_view3d_viewcontext_init(bContext *C, ViewContext *vc, Depsgraph *depsgra
 void ED_view3d_viewcontext_init_object(ViewContext *vc, Object *obact)
 {
   vc->obact = obact;
+  /* See public doc-string for rationale on checking the existing values first. */
   if (vc->obedit) {
     BLI_assert(BKE_object_is_in_editmode(obact));
     vc->obedit = obact;
