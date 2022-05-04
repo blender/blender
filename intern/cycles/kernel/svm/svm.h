@@ -304,22 +304,13 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
         }
         break;
       case NODE_SET_DISPLACEMENT:
-        IF_KERNEL_NODES_FEATURE(BUMP)
-        {
-          svm_node_set_displacement(kg, sd, stack, node.y);
-        }
+        svm_node_set_displacement<node_feature_mask>(kg, sd, stack, node.y);
         break;
       case NODE_DISPLACEMENT:
-        IF_KERNEL_NODES_FEATURE(BUMP)
-        {
-          svm_node_displacement(kg, sd, stack, node);
-        }
+        svm_node_displacement<node_feature_mask>(kg, sd, stack, node);
         break;
       case NODE_VECTOR_DISPLACEMENT:
-        IF_KERNEL_NODES_FEATURE(BUMP)
-        {
-          offset = svm_node_vector_displacement(kg, sd, stack, node, offset);
-        }
+        offset = svm_node_vector_displacement<node_feature_mask>(kg, sd, stack, node, offset);
         break;
       case NODE_TEX_IMAGE:
         offset = svm_node_tex_image(kg, sd, stack, node, offset);
@@ -331,10 +322,7 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
         offset = svm_node_tex_noise(kg, sd, stack, node.y, node.z, node.w, offset);
         break;
       case NODE_SET_BUMP:
-        IF_KERNEL_NODES_FEATURE(BUMP)
-        {
-          svm_node_set_bump(kg, sd, stack, node);
-        }
+        svm_node_set_bump<node_feature_mask>(kg, sd, stack, node);
         break;
       case NODE_ATTR_BUMP_DX:
         IF_KERNEL_NODES_FEATURE(BUMP)
