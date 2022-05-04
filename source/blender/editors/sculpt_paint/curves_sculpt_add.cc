@@ -183,7 +183,9 @@ struct AddOperationExecutor {
       return;
     }
 
-    RandomNumberGenerator rng{(uint32_t)(PIL_check_seconds_timer() * 1000000.0f)};
+    const double time = PIL_check_seconds_timer() * 1000000.0;
+    /* Use a pointer cast to avoid overflow warnings. */
+    RandomNumberGenerator rng{*(uint32_t *)(&time)};
 
     BKE_bvhtree_from_mesh_get(&surface_bvh_, surface_, BVHTREE_FROM_LOOPTRI, 2);
     BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_); });
