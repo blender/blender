@@ -618,8 +618,13 @@ Span<std::string> OBJParser::mtl_libraries() const
   return mtl_libraries_;
 }
 
-void OBJParser::add_mtl_library(const std::string &path)
+void OBJParser::add_mtl_library(StringRef path)
 {
+  /* Remove any quotes from start and end (T67266, T97794). */
+  if (path.size() > 2 && path.startswith("\"") && path.endswith("\"")) {
+    path = path.drop_prefix(1).drop_suffix(1);
+  }
+
   if (!mtl_libraries_.contains(path)) {
     mtl_libraries_.append(path);
   }
@@ -642,7 +647,7 @@ void OBJParser::add_default_mtl_library()
   }
 }
 
-MTLParser::MTLParser(StringRef mtl_library, StringRefNull obj_filepath)
+MTLParser::MTLParser(StringRefNull mtl_library, StringRefNull obj_filepath)
 {
   char obj_file_dir[FILE_MAXDIR];
   BLI_split_dir_part(obj_filepath.data(), obj_file_dir, FILE_MAXDIR);

@@ -31,7 +31,7 @@ class obj_mtl_parser_test : public testing::Test {
     std::string obj_dir = blender::tests::flags_test_asset_dir() + "/io_tests/obj/";
     check_impl(file, obj_dir, expect, expect_count);
   }
-  void check_impl(StringRef mtl_file_path,
+  void check_impl(StringRefNull mtl_file_path,
                   StringRefNull file_dir,
                   const MTLMaterial *expect,
                   size_t expect_count)
