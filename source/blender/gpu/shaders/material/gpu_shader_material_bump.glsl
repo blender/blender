@@ -5,6 +5,13 @@ void differentiate_texco(vec3 v, out vec3 df)
   df = v + dF_impl(v);
 }
 
+/* Overload for UVs which are loaded as generic attributes. */
+void differentiate_texco(vec4 v, out vec3 df)
+{
+  /* Implementation defined. */
+  df = v.xyz + dF_impl(v.xyz);
+}
+
 void node_bump(
     float strength, float dist, float height, vec3 N, vec2 dHd, float invert, out vec3 result)
 {
