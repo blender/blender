@@ -33,52 +33,49 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-template<class T>
-static void scale_input_assign(const Span<T> input,
+template<typename T>
+static void scale_input_assign(const Span<T> src,
                                const int scale,
                                const int offset,
-                               const MutableSpan<T> r_output)
+                               MutableSpan<T> dst)
 {
-  for (const int i : IndexRange(r_output.size())) {
-    r_output[i] = input[i * scale + offset];
+  for (const int i : dst.index_range()) {
+    dst[i] = src[i * scale + offset];
   }
 }
 
-template<class T>
-static void scale_output_assign(const Span<T> input,
+template<typename T>
+static void scale_output_assign(const Span<T> src,
                                 const int scale,
                                 const int offset,
-                                const MutableSpan<T> &r_output)
+                                MutableSpan<T> dst)
 {
-  for (const int i : IndexRange(input.size())) {
-    r_output[i * scale + offset] = input[i];
+  for (const int i : src.index_range()) {
+    dst[i * scale + offset] = src[i];
   }
 }
 
-template<class T>
-static void nurbs_to_bezier_assign(const Span<T> input,
-                                   const MutableSpan<T> r_output,
-                                   const KnotsMode knotsMode)
+template<typename T>
+static void nurbs_to_bezier_assign(const Span<T> src,
+                                   const MutableSpan<T> dst,
+                                   const KnotsMode knots_mode)
 {
-  const int input_size = input.size();
-  const int output_size = r_output.size();
-
-  switch (knotsMode) {
+  switch (knots_mode) {
     case NURBS_KNOT_MODE_BEZIER:
-      scale_input_assign<T>(input, 3, 1, r_output);
+      scale_input_assign<T>(src, 3, 1, dst);
       break;
     case NURBS_KNOT_MODE_NORMAL:
-      for (const int i : IndexRange(output_size)) {
-        r_output[i] = input[(i + 1) % input_size];
+      for (const int i : dst.index_range()) {
+        dst[i] = src[(i + 1) % src.size()];
       }
       break;
     case NURBS_KNOT_MODE_ENDPOINT_BEZIER:
     case NURBS_KNOT_MODE_ENDPOINT:
-      for (const int i : IndexRange(1, output_size - 2)) {
-        r_output[i] = input[i + 1];
+      for (const int i : dst.index_range().drop_back(1).drop_front(1)) {
+        dst[i] = src[i + 1];
       }
-      r_output.first() = input.first();
-      r_output.last() = input.last();
+      dst.first() = src.first();
+      dst.last() = src.last();
       break;
   }
 }
@@ -357,7 +354,7 @@ static SplinePtr convert_to_nurbs(const Spline &input)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryCurveSplineType &storage = node_storage(params.node());
-  const GeometryNodeSplineType output_type = (const GeometryNodeSplineType)storage.spline_type;
+  const GeometryNodeSplineType dst_type = (const GeometryNodeSplineType)storage.spline_type;
 
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
@@ -386,7 +383,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     threading::parallel_for(src_splines.index_range(), 512, [&](IndexRange range) {
       for (const int i : range) {
         if (selection[i]) {
-          switch (output_type) {
+          switch (dst_type) {
             case GEO_NODE_SPLINE_TYPE_POLY:
               new_curve->splines()[i] = convert_to_poly_spline(*src_splines[i]);
               break;
