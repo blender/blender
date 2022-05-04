@@ -151,6 +151,11 @@ class VIEW3D_HT_tool_header(Header):
                 row.popover(panel="VIEW3D_PT_sculpt_symmetry_for_topbar", text="")
             elif mode_string == 'PAINT_VERTEX':
                 row.popover(panel="VIEW3D_PT_tools_vertexpaint_symmetry_for_topbar", text="")
+        elif mode_string == 'SCULPT_CURVES':
+            _row, sub = row_for_mirror()
+            sub.prop(context.object.data, "use_mirror_x", text="X", toggle=True)
+            sub.prop(context.object.data, "use_mirror_y", text="Y", toggle=True)
+            sub.prop(context.object.data, "use_mirror_z", text="Z", toggle=True)
 
         # Expand panels from the side-bar as popovers.
         popover_kw = {"space_type": 'VIEW_3D', "region_type": 'UI', "category": "Tool"}

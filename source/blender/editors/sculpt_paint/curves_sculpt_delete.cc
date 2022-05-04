@@ -117,12 +117,12 @@ struct DeleteOperationExecutor {
       }
     }
 
-    Array<bool> curves_to_delete(curves_->curves_num());
+    Array<bool> curves_to_delete(curves_->curves_num(), false);
     if (falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-      this->delete_projected(curves_to_delete);
+      this->delete_projected_with_symmetry(curves_to_delete);
     }
     else if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
-      this->delete_spherical(curves_to_delete);
+      this->delete_spherical_with_symmetry(curves_to_delete);
     }
     else {
       BLI_assert_unreachable();
@@ -140,8 +140,19 @@ struct DeleteOperationExecutor {
     ED_region_tag_redraw(region_);
   }
 
-  void delete_projected(MutableSpan<bool> curves_to_delete)
+  void delete_projected_with_symmetry(MutableSpan<bool> curves_to_delete)
   {
+    const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
+        eCurvesSymmetryType(curves_id_->symmetry));
+    for (const float4x4 &brush_transform : symmetry_brush_transforms) {
+      this->delete_projected(curves_to_delete, brush_transform);
+    }
+  }
+
+  void delete_projected(MutableSpan<bool> curves_to_delete, const float4x4 &brush_transform)
+  {
+    const float4x4 brush_transform_inv = brush_transform.inverted();
+
     float4x4 projection;
     ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);
 
@@ -149,12 +160,10 @@ struct DeleteOperationExecutor {
 
     threading::parallel_for(curves_->curves_range(), 512, [&](IndexRange curve_range) {
       for (const int curve_i : curve_range) {
-        curves_to_delete[curve_i] = false;
-
         const IndexRange point_range = curves_->points_for_curve(curve_i);
         for (const int segment_i : IndexRange(point_range.size() - 1)) {
-          const float3 pos1_cu = positions_cu[point_range[segment_i]];
-          const float3 pos2_cu = positions_cu[point_range[segment_i + 1]];
+          const float3 pos1_cu = brush_transform_inv * positions_cu[point_range[segment_i]];
+          const float3 pos2_cu = brush_transform_inv * positions_cu[point_range[segment_i + 1]];
 
           float2 pos1_re, pos2_re;
           ED_view3d_project_float_v2_m4(region_, pos1_cu, pos1_re, projection.values);
@@ -170,10 +179,8 @@ struct DeleteOperationExecutor {
     });
   }
 
-  void delete_spherical(MutableSpan<bool> curves_to_delete)
+  void delete_spherical_with_symmetry(MutableSpan<bool> curves_to_delete)
   {
-    Span<float3> positions_cu = curves_->positions();
-
     float4x4 projection;
     ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);
 
@@ -191,13 +198,26 @@ struct DeleteOperationExecutor {
     const float3 brush_start_cu = world_to_curves_mat_ * brush_start_wo;
     const float3 brush_end_cu = world_to_curves_mat_ * brush_end_wo;
 
+    const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
+        eCurvesSymmetryType(curves_id_->symmetry));
+
+    for (const float4x4 &brush_transform : symmetry_brush_transforms) {
+      this->delete_spherical(
+          curves_to_delete, brush_transform * brush_start_cu, brush_transform * brush_end_cu);
+    }
+  }
+
+  void delete_spherical(MutableSpan<bool> curves_to_delete,
+                        const float3 &brush_start_cu,
+                        const float3 &brush_end_cu)
+  {
+    Span<float3> positions_cu = curves_->positions();
+
     const float brush_radius_cu = self_->brush_3d_.radius_cu;
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
 
     threading::parallel_for(curves_->curves_range(), 512, [&](IndexRange curve_range) {
       for (const int curve_i : curve_range) {
-        curves_to_delete[curve_i] = false;
-
         const IndexRange points = curves_->points_for_curve(curve_i);
         for (const int segment_i : IndexRange(points.size() - 1)) {
           const float3 pos1_cu = positions_cu[points[segment_i]];

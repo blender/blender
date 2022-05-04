@@ -173,10 +173,10 @@ struct CombOperationExecutor {
     EnumerableThreadSpecific<Vector<int>> changed_curves;
 
     if (falloff_shape_ == PAINT_FALLOFF_SHAPE_TUBE) {
-      this->comb_projected(changed_curves);
+      this->comb_projected_with_symmetry(changed_curves);
     }
     else if (falloff_shape_ == PAINT_FALLOFF_SHAPE_SPHERE) {
-      this->comb_spherical(changed_curves);
+      this->comb_spherical_with_symmetry(changed_curves);
     }
     else {
       BLI_assert_unreachable();
@@ -192,8 +192,20 @@ struct CombOperationExecutor {
   /**
    * Do combing in screen space.
    */
-  void comb_projected(EnumerableThreadSpecific<Vector<int>> &r_changed_curves)
+  void comb_projected_with_symmetry(EnumerableThreadSpecific<Vector<int>> &r_changed_curves)
   {
+    const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
+        eCurvesSymmetryType(curves_id_->symmetry));
+    for (const float4x4 &brush_transform : symmetry_brush_transforms) {
+      this->comb_projected(r_changed_curves, brush_transform);
+    }
+  }
+
+  void comb_projected(EnumerableThreadSpecific<Vector<int>> &r_changed_curves,
+                      const float4x4 &brush_transform)
+  {
+    const float4x4 brush_transform_inv = brush_transform.inverted();
+
     MutableSpan<float3> positions_cu = curves_->positions_for_write();
 
     float4x4 projection;
@@ -207,7 +219,7 @@ struct CombOperationExecutor {
         bool curve_changed = false;
         const IndexRange points = curves_->points_for_curve(curve_i);
         for (const int point_i : points.drop_front(1)) {
-          const float3 old_pos_cu = positions_cu[point_i];
+          const float3 old_pos_cu = brush_transform_inv * positions_cu[point_i];
 
           /* Find the position of the point in screen space. */
           float2 old_pos_re;
@@ -232,7 +244,8 @@ struct CombOperationExecutor {
           float3 new_position_wo;
           ED_view3d_win_to_3d(
               v3d_, region_, curves_to_world_mat_ * old_pos_cu, new_position_re, new_position_wo);
-          const float3 new_position_cu = world_to_curves_mat_ * new_position_wo;
+          const float3 new_position_cu = brush_transform *
+                                         (world_to_curves_mat_ * new_position_wo);
           positions_cu[point_i] = new_position_cu;
 
           curve_changed = true;
@@ -247,10 +260,8 @@ struct CombOperationExecutor {
   /**
    * Do combing in 3D space.
    */
-  void comb_spherical(EnumerableThreadSpecific<Vector<int>> &r_changed_curves)
+  void comb_spherical_with_symmetry(EnumerableThreadSpecific<Vector<int>> &r_changed_curves)
   {
-    MutableSpan<float3> positions_cu = curves_->positions_for_write();
-
     float4x4 projection;
     ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);
 
@@ -268,10 +279,26 @@ struct CombOperationExecutor {
     const float3 brush_start_cu = world_to_curves_mat_ * brush_start_wo;
     const float3 brush_end_cu = world_to_curves_mat_ * brush_end_wo;
 
-    const float3 brush_diff_cu = brush_end_cu - brush_start_cu;
-
     const float brush_radius_cu = self_->brush_3d_.radius_cu;
+
+    const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
+        eCurvesSymmetryType(curves_id_->symmetry));
+    for (const float4x4 &brush_transform : symmetry_brush_transforms) {
+      this->comb_spherical(r_changed_curves,
+                           brush_transform * brush_start_cu,
+                           brush_transform * brush_end_cu,
+                           brush_radius_cu);
+    }
+  }
+
+  void comb_spherical(EnumerableThreadSpecific<Vector<int>> &r_changed_curves,
+                      const float3 &brush_start_cu,
+                      const float3 &brush_end_cu,
+                      const float brush_radius_cu)
+  {
+    MutableSpan<float3> positions_cu = curves_->positions_for_write();
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
+    const float3 brush_diff_cu = brush_end_cu - brush_start_cu;
 
     threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
       Vector<int> &local_changed_curves = r_changed_curves.local();
