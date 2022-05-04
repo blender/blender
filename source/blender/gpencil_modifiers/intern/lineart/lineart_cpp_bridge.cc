@@ -1,3 +1,9 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup modifiers
+ */
+
 #include "BLI_sort.hh"
 #include "BLI_vector.hh"
 #include "MOD_lineart.h"

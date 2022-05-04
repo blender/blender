@@ -68,7 +68,7 @@ set(SRC
   intern/lineart/lineart_cpu.c
   intern/lineart/lineart_ops.c
   intern/lineart/lineart_util.c
-  intern/lineart/lineart_cpp_bridge.cpp
+  intern/lineart/lineart_cpp_bridge.cc
 
   intern/lineart/MOD_lineart.h
   intern/lineart/lineart_intern.h
