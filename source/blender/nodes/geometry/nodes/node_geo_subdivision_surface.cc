@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_task.hh"
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -21,7 +23,13 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
   b.add_input<decl::Int>(N_("Level")).default_value(1).min(0).max(6);
-  b.add_input<decl::Float>(N_("Crease"))
+  b.add_input<decl::Float>(N_("Edge Crease"))
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .supports_field()
+      .subtype(PROP_FACTOR);
+  b.add_input<decl::Float>(N_("Vertex Crease"))
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
@@ -44,6 +52,45 @@ static void node_init(bNodeTree *UNUSED(ntree), bNode *node)
   node->storage = data;
 }
 
+#ifdef WITH_OPENSUBDIV
+static void materialize_and_clamp_creases(const VArray<float> &crease_varray,
+                                          MutableSpan<float> creases)
+{
+  threading::parallel_for(creases.index_range(), 1024, [&](IndexRange range) {
+    crease_varray.materialize(range, creases);
+    for (const int i : range) {
+      creases[i] = std::clamp(creases[i], 0.0f, 1.0f);
+    }
+  });
+}
+
+static void write_vertex_creases(Mesh &mesh, const VArray<float> &crease_varray)
+{
+  float *crease;
+  if (CustomData_has_layer(&mesh.vdata, CD_CREASE)) {
+    crease = static_cast<float *>(CustomData_get_layer(&mesh.vdata, CD_CREASE));
+  }
+  else {
+    crease = static_cast<float *>(
+        CustomData_add_layer(&mesh.vdata, CD_CREASE, CD_DEFAULT, nullptr, mesh.totvert));
+  }
+  materialize_and_clamp_creases(crease_varray, {crease, mesh.totvert});
+}
+
+static void write_edge_creases(MeshComponent &mesh, const VArray<float> &crease_varray)
+{
+  OutputAttribute_Typed<float> attribute = mesh.attribute_try_get_for_output_only<float>(
+      "crease", ATTR_DOMAIN_EDGE);
+  materialize_and_clamp_creases(crease_varray, attribute.as_span());
+  attribute.save();
+}
+
+static bool varray_is_nonzero(const VArray<float> &varray)
+{
+  return !(varray.is_single() && varray.get_internal_single() == 0.0f);
+}
+#endif
+
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
@@ -51,7 +98,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without OpenSubdiv"));
 #else
-  Field<float> crease_field = params.extract_input<Field<float>>("Crease");
+  Field<float> edge_crease_field = params.extract_input<Field<float>>("Edge Crease");
+  Field<float> vertex_crease_field = params.extract_input<Field<float>>("Vertex Crease");
 
   const NodeGeometrySubdivisionSurface &storage = node_storage(params.node());
   const int uv_smooth = storage.uv_smooth;
@@ -69,27 +117,31 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
 
-    MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-    AttributeDomain domain = ATTR_DOMAIN_EDGE;
-    GeometryComponentFieldContext field_context{mesh_component, domain};
-    const int domain_size = mesh_component.attribute_domain_size(domain);
-
-    if (domain_size == 0) {
+    const MeshComponent &mesh_component = *geometry_set.get_component_for_read<MeshComponent>();
+    const int verts_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_POINT);
+    const int edges_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_EDGE);
+    if (verts_num == 0 || edges_num == 0) {
       return;
     }
 
-    FieldEvaluator evaluator(field_context, domain_size);
-    evaluator.add(crease_field);
-    evaluator.evaluate();
-    const VArray<float> &creases = evaluator.get_evaluated<float>(0);
+    GeometryComponentFieldContext point_context{mesh_component, ATTR_DOMAIN_POINT};
+    FieldEvaluator point_evaluator(point_context, verts_num);
+    point_evaluator.add(vertex_crease_field);
+    point_evaluator.evaluate();
+    const VArray<float> vertex_creases = point_evaluator.get_evaluated<float>(0);
 
-    OutputAttribute_Typed<float> crease = mesh_component.attribute_try_get_for_output_only<float>(
-        "crease", domain);
-    MutableSpan<float> crease_span = crease.as_span();
-    for (auto i : creases.index_range()) {
-      crease_span[i] = std::clamp(creases[i], 0.0f, 1.0f);
+    GeometryComponentFieldContext edge_context{mesh_component, ATTR_DOMAIN_EDGE};
+    FieldEvaluator edge_evaluator(edge_context, edges_num);
+    edge_evaluator.add(edge_crease_field);
+    edge_evaluator.evaluate();
+    const VArray<float> edge_creases = edge_evaluator.get_evaluated<float>(0);
+
+    const bool use_creases = varray_is_nonzero(vertex_creases) || varray_is_nonzero(edge_creases);
+
+    if (use_creases) {
+      write_vertex_creases(*geometry_set.get_mesh_for_write(), vertex_creases);
+      write_edge_creases(geometry_set.get_component_for_write<MeshComponent>(), edge_creases);
     }
-    crease.save();
 
     /* Initialize mesh settings. */
     SubdivToMeshSettings mesh_settings;
@@ -100,7 +152,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     SubdivSettings subdiv_settings;
     subdiv_settings.is_simple = false;
     subdiv_settings.is_adaptive = false;
-    subdiv_settings.use_creases = !(creases.is_single() && creases.get_internal_single() == 0.0f);
+    subdiv_settings.use_creases = use_creases;
     subdiv_settings.level = subdiv_level;
 
     subdiv_settings.vtx_boundary_interpolation =
@@ -108,19 +160,19 @@ static void node_geo_exec(GeoNodeExecParams params)
     subdiv_settings.fvar_linear_interpolation = BKE_subdiv_fvar_interpolation_from_uv_smooth(
         uv_smooth);
 
-    Mesh *mesh_in = mesh_component.get_for_write();
+    const Mesh &mesh_in = *geometry_set.get_mesh_for_read();
 
     /* Apply subdivision to mesh. */
-    Subdiv *subdiv = BKE_subdiv_update_from_mesh(nullptr, &subdiv_settings, mesh_in);
+    Subdiv *subdiv = BKE_subdiv_update_from_mesh(nullptr, &subdiv_settings, &mesh_in);
 
     /* In case of bad topology, skip to input mesh. */
     if (subdiv == nullptr) {
       return;
     }
 
-    Mesh *mesh_out = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh_in);
+    Mesh *mesh_out = BKE_subdiv_to_mesh(subdiv, &mesh_settings, &mesh_in);
 
-    mesh_component.replace(mesh_out);
+    geometry_set.replace_mesh(mesh_out);
 
     BKE_subdiv_free(subdiv);
   });

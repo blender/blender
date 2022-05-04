@@ -2735,6 +2735,13 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_node_input_socket_name(
+            ntree, GEO_NODE_SUBDIVISION_SURFACE, "Crease", "Edge Crease");
+      }
+    }
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 302, 13)) {
