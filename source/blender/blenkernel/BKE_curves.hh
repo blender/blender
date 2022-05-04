@@ -48,6 +48,13 @@ struct BasisCache {
    * In other words, the index of the first control point that influences this evaluated point.
    */
   Vector<int> start_indices;
+
+  /**
+   * The result of #check_valid_size_and_order, to avoid retrieving its inputs later on.
+   * If this is true, the data above will be invalid, and original data should be copied
+   * to the evaluated result.
+   */
+  bool invalid = false;
 };
 
 }  // namespace curves::nurbs
@@ -760,7 +767,7 @@ inline IndexRange CurvesGeometry::lengths_range_for_curve(const int curve_index,
   BLI_assert(cyclic == this->cyclic()[curve_index]);
   const IndexRange points = this->evaluated_points_for_curve(curve_index);
   const int start = points.start() + curve_index;
-  return {start, points.is_empty() ? 0 : curves::curve_segment_size(points.size(), cyclic)};
+  return {start, curves::curve_segment_size(points.size(), cyclic)};
 }
 
 inline Span<float> CurvesGeometry::evaluated_lengths_for_curve(const int curve_index,
@@ -775,8 +782,7 @@ inline float CurvesGeometry::evaluated_length_total_for_curve(const int curve_in
                                                               const bool cyclic) const
 {
   const Span<float> lengths = this->evaluated_lengths_for_curve(curve_index, cyclic);
-  /* Check for curves that have no evaluated segments. */
-  return lengths.is_empty() ? 0.0f : lengths.last();
+  return lengths.last();
 }
 
 /** \} */
