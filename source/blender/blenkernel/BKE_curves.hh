@@ -181,11 +181,18 @@ class CurvesGeometry : public ::CurvesGeometry {
   /** Update the cached count of curves of each type, necessary after #curve_types_for_write. */
   void update_curve_types();
 
-  bool has_curve_with_type(const CurveType type) const;
+  bool has_curve_with_type(CurveType type) const;
   /** Return true if all of the curves have the provided type. */
   bool is_single_type(CurveType type) const;
   /** Return the number of curves with each type. */
   const std::array<int, CURVE_TYPES_NUM> &curve_type_counts() const;
+  /**
+   * All of the curve indices for curves with a specific type.
+   */
+  IndexMask indices_for_curve_type(CurveType type, Vector<int64_t> &r_indices) const;
+  IndexMask indices_for_curve_type(CurveType type,
+                                   IndexMask selection,
+                                   Vector<int64_t> &r_indices) const;
 
   Span<float3> positions() const;
   MutableSpan<float3> positions_for_write();
@@ -283,11 +290,6 @@ class CurvesGeometry : public ::CurvesGeometry {
   bool bounds_min_max(float3 &min, float3 &max) const;
 
  private:
-  /**
-   * All of the curve indices for curves with a specific type.
-   */
-  IndexMask indices_for_curve_type(CurveType type, Vector<int64_t> &r_indices) const;
-
   /* --------------------------------------------------------------------
    * Evaluation.
    */

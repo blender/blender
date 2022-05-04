@@ -531,19 +531,19 @@ Span<int> CurvesGeometry::evaluated_offsets() const
 IndexMask CurvesGeometry::indices_for_curve_type(const CurveType type,
                                                  Vector<int64_t> &r_indices) const
 {
+  return this->indices_for_curve_type(type, this->curves_range(), r_indices);
+}
 
-  VArray<int8_t> types = this->curve_types();
-  if (types.is_single()) {
-    if (types.get_internal_single() == type) {
-      return IndexMask(types.size());
-    }
-    return {};
+IndexMask CurvesGeometry::indices_for_curve_type(const CurveType type,
+                                                 const IndexMask selection,
+                                                 Vector<int64_t> &r_indices) const
+{
+  if (this->curve_type_counts()[type] == this->curves_num()) {
+    return selection;
   }
-  Span<int8_t> types_span = types.get_internal_span();
+  Span<int8_t> types_span = this->curve_types().get_internal_span();
   return index_mask_ops::find_indices_based_on_predicate(
-      IndexMask(types.size()), 1024, r_indices, [&](const int index) {
-        return types_span[index] == type;
-      });
+      selection, 1024, r_indices, [&](const int index) { return types_span[index] == type; });
 }
 
 void CurvesGeometry::ensure_nurbs_basis_cache() const
@@ -1195,6 +1195,8 @@ static CurvesGeometry copy_with_removed_curves(const CurvesGeometry &curves,
               });
         }
       });
+
+  new_curves.update_curve_types();
 
   return new_curves;
 }
