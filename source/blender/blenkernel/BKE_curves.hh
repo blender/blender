@@ -419,7 +419,7 @@ namespace curves {
 inline int curve_segment_size(const int points_num, const bool cyclic)
 {
   BLI_assert(points_num > 0);
-  return cyclic ? points_num : points_num - 1;
+  return (cyclic && points_num > 1) ? points_num : points_num - 1;
 }
 
 inline float2 encode_surface_bary_coord(const float3 &v)
