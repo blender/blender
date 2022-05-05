@@ -149,6 +149,12 @@ static void stroke_done(const bContext *C, PaintStroke *stroke)
 
 static int sculpt_curves_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  Paint *paint = BKE_paint_get_active_from_context(C);
+  Brush *brush = BKE_paint_brush(paint);
+  if (brush == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
   SculptCurvesBrushStrokeData *op_data = MEM_new<SculptCurvesBrushStrokeData>(__func__);
   op_data->stroke = paint_stroke_new(C,
                                      op,
