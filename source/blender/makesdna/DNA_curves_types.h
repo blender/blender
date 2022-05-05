@@ -89,6 +89,9 @@ typedef struct CurvesGeometry {
    * this array is allocated with a length one larger than the number of curves. This is allowed
    * to be null when there are no curves.
    *
+   * Every curve offset must be at least one larger than the previous.
+   * In other words, every curve must have at least one point.
+   *
    * \note This is *not* stored in #CustomData because its size is one larger than #curve_data.
    */
   int *curve_offsets;
