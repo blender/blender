@@ -33,7 +33,7 @@ class CurvesSculptStrokeOperation {
   virtual void on_stroke_extended(bContext *C, const StrokeExtension &stroke_extension) = 0;
 };
 
-std::unique_ptr<CurvesSculptStrokeOperation> new_add_operation();
+std::unique_ptr<CurvesSculptStrokeOperation> new_add_operation(bContext &C, ReportList *reports);
 std::unique_ptr<CurvesSculptStrokeOperation> new_comb_operation();
 std::unique_ptr<CurvesSculptStrokeOperation> new_delete_operation();
 std::unique_ptr<CurvesSculptStrokeOperation> new_snake_hook_operation();

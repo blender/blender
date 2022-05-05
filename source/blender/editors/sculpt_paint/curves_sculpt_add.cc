@@ -21,6 +21,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_paint.h"
+#include "BKE_report.h"
 #include "BKE_spline.hh"
 
 #include "DNA_brush_enums.h"
@@ -836,8 +837,16 @@ void AddOperation::on_stroke_extended(bContext *C, const StrokeExtension &stroke
   executor.execute(*this, C, stroke_extension);
 }
 
-std::unique_ptr<CurvesSculptStrokeOperation> new_add_operation()
+std::unique_ptr<CurvesSculptStrokeOperation> new_add_operation(bContext &C, ReportList *reports)
 {
+  Object &ob_active = *CTX_data_active_object(&C);
+  BLI_assert(ob_active.type == OB_CURVES);
+  Curves &curves_id = *static_cast<Curves *>(ob_active.data);
+  if (curves_id.surface == nullptr || curves_id.surface->type != OB_MESH) {
+    BKE_report(reports, RPT_WARNING, "Can not use Add brush when there is no surface mesh");
+    return {};
+  }
+
   return std::make_unique<AddOperation>();
 }
 
