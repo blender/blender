@@ -39,15 +39,15 @@ static VArray<float> construct_spline_length_gvarray(const CurveComponent &compo
   return {};
 }
 
-SplineLengthFieldInput::SplineLengthFieldInput()
+CurveLengthFieldInput::CurveLengthFieldInput()
     : GeometryFieldInput(CPPType::get<float>(), "Spline Length node")
 {
   category_ = Category::Generated;
 }
 
-GVArray SplineLengthFieldInput::get_varray_for_context(const GeometryComponent &component,
-                                                       const AttributeDomain domain,
-                                                       IndexMask UNUSED(mask)) const
+GVArray CurveLengthFieldInput::get_varray_for_context(const GeometryComponent &component,
+                                                      const AttributeDomain domain,
+                                                      IndexMask UNUSED(mask)) const
 {
   if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
     const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
@@ -56,15 +56,15 @@ GVArray SplineLengthFieldInput::get_varray_for_context(const GeometryComponent &
   return {};
 }
 
-uint64_t SplineLengthFieldInput::hash() const
+uint64_t CurveLengthFieldInput::hash() const
 {
   /* Some random constant hash. */
   return 3549623580;
 }
 
-bool SplineLengthFieldInput::is_equal_to(const fn::FieldNode &other) const
+bool CurveLengthFieldInput::is_equal_to(const fn::FieldNode &other) const
 {
-  return dynamic_cast<const SplineLengthFieldInput *>(&other) != nullptr;
+  return dynamic_cast<const CurveLengthFieldInput *>(&other) != nullptr;
 }
 
 }  // namespace blender::nodes
@@ -136,7 +136,7 @@ class SplineCountFieldInput final : public GeometryFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Field<float> spline_length_field{std::make_shared<SplineLengthFieldInput>()};
+  Field<float> spline_length_field{std::make_shared<CurveLengthFieldInput>()};
   Field<int> spline_count_field{std::make_shared<SplineCountFieldInput>()};
 
   params.set_output("Length", std::move(spline_length_field));

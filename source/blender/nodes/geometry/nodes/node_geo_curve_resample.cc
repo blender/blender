@@ -535,7 +535,7 @@ static Field<int> get_curve_count_field(GeoNodeExecParams params,
 
     auto get_count_op = std::make_shared<FieldOperation>(
         FieldOperation(get_count_fn,
-                       {Field<float>(std::make_shared<SplineLengthFieldInput>()),
+                       {Field<float>(std::make_shared<CurveLengthFieldInput>()),
                         params.extract_input<Field<float>>("Length")}));
 
     return Field<int>(std::move(get_count_op));

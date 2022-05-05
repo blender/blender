@@ -81,9 +81,9 @@ void separate_geometry(GeometrySet &geometry_set,
 std::optional<CustomDataType> node_data_type_to_custom_data_type(eNodeSocketDatatype type);
 std::optional<CustomDataType> node_socket_to_custom_data_type(const bNodeSocket &socket);
 
-class SplineLengthFieldInput final : public GeometryFieldInput {
+class CurveLengthFieldInput final : public GeometryFieldInput {
  public:
-  SplineLengthFieldInput();
+  CurveLengthFieldInput();
   GVArray get_varray_for_context(const GeometryComponent &component,
                                  AttributeDomain domain,
                                  IndexMask mask) const final;
