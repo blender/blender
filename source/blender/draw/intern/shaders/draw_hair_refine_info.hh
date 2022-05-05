@@ -24,3 +24,26 @@ GPU_SHADER_CREATE_INFO(draw_hair_refine_compute)
     .compute_source("common_hair_refine_comp.glsl")
     .define("HAIR_PHASE_SUBDIV")
     .do_static_compilation(true);
+
+GPU_SHADER_INTERFACE_INFO(draw_hair_refine_transform_feedback_workaround_iface, "")
+    .smooth(Type::VEC4, "finalColor");
+
+GPU_SHADER_CREATE_INFO(draw_hair_refine_transform_feedback_workaround)
+    .define("srgbTarget", "false")
+    .define("blender_srgb_to_framebuffer_space(a)", "a")
+    .define("HAIR_PHASE_SUBDIV")
+    .define("TF_WORKAROUND")
+
+    /* Move these to "draw_hair"? */
+    .sampler(0, ImageType::UINT_BUFFER, "hairStrandBuffer")
+    .sampler(1, ImageType::UINT_BUFFER, "hairStrandSegBuffer")
+
+    .push_constant(Type::INT, "targetWidth")
+    .push_constant(Type::INT, "targetHeight")
+    .push_constant(Type::INT, "idOffset")
+    .vertex_out(draw_hair_refine_transform_feedback_workaround_iface)
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("common_hair_refine_vert.glsl")
+    .fragment_source("gpu_shader_3D_smooth_color_frag.glsl")
+    .additional_info("draw_hair")
+    .do_static_compilation(true);
