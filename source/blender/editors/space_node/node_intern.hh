@@ -74,8 +74,14 @@ struct SpaceNode_Runtime {
   /** Mouse position for drawing socket-less links and adding nodes. */
   float2 cursor;
 
-  /** For auto compositing. */
-  bool recalc;
+  /* Indicates that the compositing tree in the space needs to be re-evaluated using the
+   * auto-compositing pipeline.
+   * Takes priority over the regular compsiting. */
+  bool recalc_auto_compositing;
+
+  /* Indicates that the compositing int the space  tree needs to be re-evaluated using
+   * regular compositing pipeline. */
+  bool recalc_regular_compositing;
 
   /** Temporary data for modal linking operator. */
   std::unique_ptr<bNodeLinkDrag> linkdrag;
