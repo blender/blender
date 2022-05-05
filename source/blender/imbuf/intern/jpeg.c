@@ -290,7 +290,7 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo,
        * while libjpeg-turbo can also do 3/8, 5/8, etc. But max is 1/8. */
       float scale = (float)max_size / MAX2(cinfo->image_width, cinfo->image_height);
       cinfo->scale_denom = 8;
-      cinfo->scale_num = MAX2(1, MIN2(8, ceill(scale * (float)cinfo->scale_denom)));
+      cinfo->scale_num = max_uu(1, min_uu(8, ceill(scale * (float)cinfo->scale_denom)));
       cinfo->dct_method = JDCT_FASTEST;
       cinfo->dither_mode = JDITHER_ORDERED;
     }
@@ -529,7 +529,7 @@ struct ImBuf *imb_thumbnail_jpeg(const char *filepath,
     if (i > 0 && !feof(infile)) {
       /* We found a JPEG thumbnail inside this image. */
       ImBuf *ibuf = NULL;
-      unsigned char *buffer = (char *)MEM_callocN(JPEG_APP1_MAX, "thumbbuffer");
+      uchar *buffer = MEM_callocN(JPEG_APP1_MAX, "thumbbuffer");
       /* Just put SOI directly in buffer rather than seeking back 2 bytes. */
       buffer[0] = JPEG_MARKER_MSB;
       buffer[1] = JPEG_MARKER_SOI;

@@ -278,10 +278,10 @@ struct ImBuf *IMB_thumb_load_image(const char *filepath,
 
     if (width > 0 && height > 0) {
       /* Save dimensions of original image into the thumbnail metadata. */
-      char cwidth[40] = "0";
-      char cheight[40] = "0";
-      BLI_snprintf(cwidth, sizeof(cwidth), "%d", width);
-      BLI_snprintf(cheight, sizeof(cheight), "%d", height);
+      char cwidth[40];
+      char cheight[40];
+      SNPRINTF(cwidth, "%zu", width);
+      SNPRINTF(cheight, "%zu", height);
       IMB_metadata_ensure(&ibuf->metadata);
       IMB_metadata_set_field(ibuf->metadata, "Thumb::Image::Width", cwidth);
       IMB_metadata_set_field(ibuf->metadata, "Thumb::Image::Height", cheight);
