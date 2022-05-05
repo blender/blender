@@ -42,8 +42,8 @@ static boolean handle_app1(j_decompress_ptr cinfo);
 static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo,
                                    int flags,
                                    int max_size,
-                                   size_t *width_r,
-                                   size_t *height_r);
+                                   size_t *r_width,
+                                   size_t *r_height);
 
 static const uchar jpeg_default_quality = 75;
 static uchar ibuf_quality;
@@ -253,8 +253,8 @@ static boolean handle_app1(j_decompress_ptr cinfo)
 static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo,
                                    int flags,
                                    int max_size,
-                                   size_t *width_r,
-                                   size_t *height_r)
+                                   size_t *r_width,
+                                   size_t *r_height)
 {
   JSAMPARRAY row_pointer;
   JSAMPLE *buffer = NULL;
@@ -278,11 +278,11 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo,
       cinfo->out_color_space = JCS_CMYK;
     }
 
-    if (width_r) {
-      *width_r = cinfo->image_width;
+    if (r_width) {
+      *r_width = cinfo->image_width;
     }
-    if (height_r) {
-      *height_r = cinfo->image_height;
+    if (r_height) {
+      *r_height = cinfo->image_height;
     }
 
     if (max_size > 0) {
@@ -489,9 +489,9 @@ ImBuf *imb_load_jpeg(const unsigned char *buffer,
 struct ImBuf *imb_thumbnail_jpeg(const char *filepath,
                                  const int flags,
                                  const size_t max_thumb_size,
-                                 size_t *width_r,
-                                 size_t *height_r,
-                                 char colorspace[IM_MAX_SPACE])
+                                 char colorspace[IM_MAX_SPACE],
+                                 size_t *r_width,
+                                 size_t *r_height)
 {
   struct jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
   struct my_error_mgr jerr;
@@ -550,7 +550,7 @@ struct ImBuf *imb_thumbnail_jpeg(const char *filepath,
   jpeg_create_decompress(cinfo);
 
   jpeg_stdio_src(cinfo, infile);
-  ImBuf *ibuf = ibJpegImageFromCinfo(cinfo, flags, max_thumb_size, width_r, height_r);
+  ImBuf *ibuf = ibJpegImageFromCinfo(cinfo, flags, max_thumb_size, r_width, r_height);
   fclose(infile);
 
   return ibuf;

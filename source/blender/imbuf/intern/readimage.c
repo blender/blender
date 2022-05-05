@@ -258,7 +258,7 @@ struct ImBuf *IMB_thumb_load_image(const char *filepath,
 
   if (type->load_filepath_thumbnail) {
     ibuf = type->load_filepath_thumbnail(
-        filepath, flags, max_thumb_size, &width, &height, colorspace);
+        filepath, flags, max_thumb_size, colorspace, &width, &height);
   }
   else {
     /* Skip images of other types if over 100MB. */

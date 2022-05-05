@@ -36,15 +36,17 @@ typedef struct ImFileType {
                         char colorspace[IM_MAX_SPACE]);
   /** Load an image from a file. */
   struct ImBuf *(*load_filepath)(const char *filepath, int flags, char colorspace[IM_MAX_SPACE]);
-  /** Load/Create a thumbnail image from a filepath. `max_thumb_size` is maximum size of either
+  /**
+   * Load/Create a thumbnail image from a filepath. `max_thumb_size` is maximum size of either
    * dimension, so can return less on either or both. Should, if possible and performant, return
-   * dimensions of the full-size image in width_r & height_r. */
+   * dimensions of the full-size image in r_width & r_height.
+   */
   struct ImBuf *(*load_filepath_thumbnail)(const char *filepath,
                                            const int flags,
                                            const size_t max_thumb_size,
-                                           size_t *width_r,
-                                           size_t *height_r,
-                                           char colorspace[IM_MAX_SPACE]);
+                                           char colorspace[IM_MAX_SPACE],
+                                           size_t *r_width,
+                                           size_t *r_height);
   /** Save to a file (or memory if #IB_mem is set in `flags` and the format supports it). */
   bool (*save)(struct ImBuf *ibuf, const char *filepath, int flags);
   void (*load_tile)(struct ImBuf *ibuf,
@@ -155,9 +157,9 @@ struct ImBuf *imb_load_jpeg(const unsigned char *buffer,
 struct ImBuf *imb_thumbnail_jpeg(const char *filepath,
                                  const int flags,
                                  const size_t max_thumb_size,
-                                 size_t *width_r,
-                                 size_t *height_r,
-                                 char colorspace[IM_MAX_SPACE]);
+                                 char colorspace[IM_MAX_SPACE],
+                                 size_t *r_width,
+                                 size_t *r_height);
 
 /** \} */
 
