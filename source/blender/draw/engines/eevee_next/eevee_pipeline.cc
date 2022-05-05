@@ -36,7 +36,7 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   DRW_shgroup_call_obmat(grp, DRW_cache_fullscreen_quad_get(), camera_mat.ptr());
 }
 
-void WorldPipeline::render(void)
+void WorldPipeline::render()
 {
   DRW_draw_pass(world_ps_);
 }
@@ -49,7 +49,7 @@ void WorldPipeline::render(void)
  * NPR materials (using Closure to RGBA) or material using ALPHA_BLEND.
  * \{ */
 
-void ForwardPipeline::sync(void)
+void ForwardPipeline::sync()
 {
   {
     DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;

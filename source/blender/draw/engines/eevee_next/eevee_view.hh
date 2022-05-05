@@ -73,16 +73,16 @@ class ShadingView {
 
   ~ShadingView(){};
 
-  void init(void);
+  void init();
 
   void sync(int2 render_extent_);
 
-  void render(void);
+  void render();
 
   GPUTexture *render_post(GPUTexture *input_tx);
 
  private:
-  void update_view(void);
+  void update_view();
 };
 
 /** \} */
@@ -135,14 +135,14 @@ class MainView {
     }
   }
 
-  void sync(void)
+  void sync()
   {
     for (auto i : IndexRange(6)) {
       shading_views_[i].sync(render_extent_);
     }
   }
 
-  void render(void)
+  void render()
   {
     for (auto i : IndexRange(6)) {
       shading_views_[i].render();

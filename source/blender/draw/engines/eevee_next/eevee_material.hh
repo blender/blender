@@ -115,7 +115,7 @@ struct MaterialKey {
     options = shader_uuid_from_material_type(surface_pipeline, geometry);
   }
 
-  uint64_t hash(void) const
+  uint64_t hash() const
   {
     BLI_assert(options < sizeof(*mat));
     return (uint64_t)mat + options;
@@ -150,7 +150,7 @@ struct ShaderKey {
     options = (options << 16u) | shader_closure_bits_from_flag(gpumat);
   }
 
-  uint64_t hash(void) const
+  uint64_t hash() const
   {
     return (uint64_t)shader + options;
   }
@@ -238,7 +238,7 @@ class MaterialModule {
   MaterialModule(Instance &inst);
   ~MaterialModule();
 
-  void begin_sync(void);
+  void begin_sync();
 
   MaterialArray &material_array_get(Object *ob);
   Material &material_get(Object *ob, int mat_nr, eMaterialGeometry geometry_type);

@@ -56,7 +56,7 @@ class World {
  public:
   World(Instance &inst) : inst_(inst){};
 
-  void sync(void);
+  void sync();
 };
 
 /** \} */

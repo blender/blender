@@ -37,7 +37,7 @@ class WorldPipeline {
   WorldPipeline(Instance &inst) : inst_(inst){};
 
   void sync(GPUMaterial *gpumat);
-  void render(void);
+  void render();
 };
 
 /** \} */
@@ -63,7 +63,7 @@ class ForwardPipeline {
  public:
   ForwardPipeline(Instance &inst) : inst_(inst){};
 
-  void sync(void);
+  void sync();
 
   DRWShadingGroup *material_add(::Material *blender_mat, GPUMaterial *gpumat)
   {

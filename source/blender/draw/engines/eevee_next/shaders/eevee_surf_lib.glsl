@@ -27,7 +27,7 @@ vec3 barycentric_distances_get()
 }
 #endif
 
-void init_globals_mesh(void)
+void init_globals_mesh()
 {
 #if defined(USE_BARYCENTRICS) && defined(GPU_FRAGMENT_SHADER) && defined(MAT_GEOM_MESH)
   g_data.barycentric_coords = gpu_BaryCoord.xy;
@@ -35,7 +35,7 @@ void init_globals_mesh(void)
 #endif
 }
 
-void init_globals_curves(void)
+void init_globals_curves()
 {
   /* Shade as a cylinder. */
   float cos_theta = interp.curves_time_width / interp.curves_thickness;
@@ -51,13 +51,13 @@ void init_globals_curves(void)
 #endif
 }
 
-void init_globals_gpencil(void)
+void init_globals_gpencil()
 {
   /* Undo backface flip as the gpencil normal is already pointing towards the camera. */
   g_data.N = interp.N;
 }
 
-void init_globals(void)
+void init_globals()
 {
   /* Default values. */
   g_data.P = interp.P;

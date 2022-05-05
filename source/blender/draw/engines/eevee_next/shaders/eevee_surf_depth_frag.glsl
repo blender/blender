@@ -53,7 +53,7 @@ float hashed_alpha_threshold(float hash_scale, float hash_offset, vec3 P)
   return threshold;
 }
 
-void main(void)
+void main()
 {
 #ifdef MAT_TRANSPARENT
   init_globals();

@@ -4,7 +4,7 @@
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
 
-void main(void)
+void main()
 {
   init_interface();
 
