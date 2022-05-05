@@ -318,7 +318,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
   char tpath[FILE_MAX];
   char tdir[FILE_MAX];
   char temp[FILE_MAX];
-  char mtime[40] = "0";  /* in case we can't stat the file */
+  char mtime[40] = "0"; /* in case we can't stat the file */
   short tsize = 128;
   BLI_stat_t info;
 

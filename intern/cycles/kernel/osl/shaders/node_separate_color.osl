@@ -5,10 +5,10 @@
 #include "stdcycles.h"
 
 shader node_separate_color(string color_type = "rgb",
-                         color Color = 0.8,
-                         output float Red = 0.0,
-                         output float Green = 0.0,
-                         output float Blue = 0.0)
+                           color Color = 0.8,
+                           output float Red = 0.0,
+                           output float Green = 0.0,
+                           output float Blue = 0.0)
 {
   color col;
   if (color_type == "rgb")

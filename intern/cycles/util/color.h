@@ -162,7 +162,8 @@ ccl_device float3 rgb_to_hsl(float3 rgb)
 
   if (cmax == cmin) {
     h = s = 0.0f; /* achromatic */
-  } else {
+  }
+  else {
     float cdelta = cmax - cmin;
     s = l > 0.5f ? cdelta / (2.0f - cmax - cmin) : cdelta / (cmax + cmin);
     if (cmax == rgb.x) {
