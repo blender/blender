@@ -571,6 +571,7 @@ void WM_toolsystem_refresh_screen_all(Main *bmain)
   /* Update all ScrArea's tools */
   for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+      WM_toolsystem_refresh_screen_window(win);
     }
   }
 }
