@@ -387,6 +387,21 @@ ccl_device_forceinline int integrate_surface_volume_only_bounce(IntegratorState 
 }
 #endif
 
+ccl_device_forceinline bool integrate_surface_terminate(IntegratorState state, const uint32_t path_flag)
+{
+    const float probability = (path_flag & PATH_RAY_TERMINATE_ON_NEXT_SURFACE) ?
+                                  0.0f :
+                                  INTEGRATOR_STATE(state, path, continuation_probability);
+    if (probability == 0.0f) {
+      return true;
+    }
+    else if (probability != 1.0f) {
+      INTEGRATOR_STATE_WRITE(state, path, throughput) /= probability;
+    }
+
+    return false;
+}
+
 #if defined(__AO__)
 ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
                                                  IntegratorState state,
@@ -478,12 +493,12 @@ ccl_device bool integrate_surface(KernelGlobals kg,
 
   int continue_path_label = 0;
 
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
+
   /* Skip most work for volume bounding surface. */
 #ifdef __VOLUME__
   if (!(sd.flag & SD_HAS_ONLY_VOLUME)) {
 #endif
-    const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
-
 #ifdef __SUBSURFACE__
     /* Can skip shader evaluation for BSSRDF exit point without bump mapping. */
     if (!(path_flag & PATH_RAY_SUBSURFACE) || ((sd.flag & SD_HAS_BSSRDF_BUMP)))
@@ -542,16 +557,8 @@ ccl_device bool integrate_surface(KernelGlobals kg,
      * throughput by the probability at the right moment.
      *
      * Also ensure we don't do it twice for SSS at both the entry and exit point. */
-    if (!(path_flag & PATH_RAY_SUBSURFACE)) {
-      const float probability = (path_flag & PATH_RAY_TERMINATE_ON_NEXT_SURFACE) ?
-                                    0.0f :
-                                    INTEGRATOR_STATE(state, path, continuation_probability);
-      if (probability == 0.0f) {
+    if (!(path_flag & PATH_RAY_SUBSURFACE) && integrate_surface_terminate(state, path_flag)) {
         return false;
-      }
-      else if (probability != 1.0f) {
-        INTEGRATOR_STATE_WRITE(state, path, throughput) /= probability;
-      }
     }
 
 #ifdef __DENOISING_FEATURES__
@@ -575,6 +582,10 @@ ccl_device bool integrate_surface(KernelGlobals kg,
 #ifdef __VOLUME__
   }
   else {
+    if (integrate_surface_terminate(state, path_flag)) {
+        return false;
+    }
+
     PROFILING_EVENT(PROFILING_SHADE_SURFACE_INDIRECT_LIGHT);
     continue_path_label = integrate_surface_volume_only_bounce(state, &sd);
   }
