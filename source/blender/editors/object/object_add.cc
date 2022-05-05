@@ -2894,6 +2894,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
   Object *ob1, *obact = CTX_data_active_object(C);
   const short target = RNA_enum_get(op->ptr, "target");
   bool keep_original = RNA_boolean_get(op->ptr, "keep_original");
+  const bool do_merge_customdata = RNA_boolean_get(op->ptr, "merge_customdata");
 
   const float angle = RNA_float_get(op->ptr, "angle");
   const int thickness = RNA_int_get(op->ptr, "thickness");
@@ -3121,6 +3122,10 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       BKE_object_material_from_eval_data(bmain, newob, &me_eval->id);
       Mesh *new_mesh = (Mesh *)newob->data;
       BKE_mesh_nomain_to_mesh(me_eval, new_mesh, newob, &CD_MASK_MESH, true);
+
+      if (do_merge_customdata) {
+        BKE_mesh_merge_customdata_for_apply_modifier(new_mesh);
+      }
 
       /* Anonymous attributes shouldn't be available on the applied geometry. */
       MeshComponent component;
@@ -3441,7 +3446,11 @@ static void object_convert_ui(bContext *UNUSED(C), wmOperator *op)
   uiItemR(layout, op->ptr, "target", 0, nullptr, ICON_NONE);
   uiItemR(layout, op->ptr, "keep_original", 0, nullptr, ICON_NONE);
 
-  if (RNA_enum_get(op->ptr, "target") == OB_GPENCIL) {
+  const int target = RNA_enum_get(op->ptr, "target");
+  if (target == OB_MESH) {
+    uiItemR(layout, op->ptr, "merge_customdata", 0, nullptr, ICON_NONE);
+  }
+  else if (target == OB_GPENCIL) {
     uiItemR(layout, op->ptr, "thickness", 0, nullptr, ICON_NONE);
     uiItemR(layout, op->ptr, "angle", 0, nullptr, ICON_NONE);
     uiItemR(layout, op->ptr, "offset", 0, nullptr, ICON_NONE);
@@ -3476,6 +3485,13 @@ void OBJECT_OT_convert(wmOperatorType *ot)
                   false,
                   "Keep Original",
                   "Keep original objects instead of replacing them");
+
+  RNA_def_boolean(
+      ot->srna,
+      "merge_customdata",
+      true,
+      "Merge UV's",
+      "Merge UV coordinates that share a vertex to account for imprecision in some modifiers");
 
   prop = RNA_def_float_rotation(ot->srna,
                                 "angle",
