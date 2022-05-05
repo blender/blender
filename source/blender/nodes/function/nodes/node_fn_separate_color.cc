@@ -24,7 +24,7 @@ static void fn_node_separate_color_layout(uiLayout *layout, bContext *UNUSED(C),
   uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
 }
 
-static void fn_node_separate_color_update(bNodeTree *ntree, bNode *node)
+static void fn_node_separate_color_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
   const NodeCombSepColor &storage = node_storage(*node);
   node_combsep_color_label(&node->outputs, (NodeCombSepColorMode)storage.mode);

@@ -31,7 +31,7 @@ static void sh_node_sepcolor_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Blue"));
 }
 
-static void node_sepcolor_update(bNodeTree *ntree, bNode *node)
+static void node_sepcolor_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
   const NodeCombSepColor &storage = node_storage(*node);
   node_combsep_color_label(&node->outputs, (NodeCombSepColorMode)storage.mode);
@@ -107,7 +107,7 @@ static void sh_node_combcolor_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>(N_("Color"));
 }
 
-static void node_combcolor_update(bNodeTree *ntree, bNode *node)
+static void node_combcolor_update(bNodeTree *UNUSED(ntree), bNode *node)
 {
   const NodeCombSepColor &storage = node_storage(*node);
   node_combsep_color_label(&node->inputs, (NodeCombSepColorMode)storage.mode);

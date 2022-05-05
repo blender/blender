@@ -71,7 +71,7 @@ static void valuefn_a(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack 
   *out = out[3];
 }
 
-static void update(bNodeTree *ntree, bNode *node)
+static void update(bNodeTree *UNUSED(ntree), bNode *node)
 {
   node_combsep_color_label(&node->outputs, (NodeCombSepColorMode)node->custom1);
 }
