@@ -64,7 +64,7 @@ bool DEG_id_type_any_updated(const struct Depsgraph *depsgraph);
 bool DEG_id_type_any_exists(const struct Depsgraph *depsgraph, short id_type);
 
 /** Get additional evaluation flags for the given ID. */
-uint32_t DEG_get_eval_flags_for_id(const struct Depsgraph *graph, struct ID *id);
+uint32_t DEG_get_eval_flags_for_id(const struct Depsgraph *graph, const struct ID *id);
 
 /** Get additional mesh CustomData_MeshMasks flags for the given object. */
 void DEG_get_customdata_mask_for_object(const struct Depsgraph *graph,
