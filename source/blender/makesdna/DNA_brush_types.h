@@ -140,6 +140,8 @@ typedef struct BrushGpencilSettings {
 typedef struct BrushCurvesSculptSettings {
   /** Number of curves added by the add brush. */
   int add_amount;
+  /** Number of control points in new curves added by the add brush. */
+  int points_per_curve;
   /* eBrushCurvesSculptFlag. */
   uint32_t flag;
   /** When shrinking curves, they shouldn't become shorter than this length. */

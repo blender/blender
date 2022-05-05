@@ -107,7 +107,7 @@ struct AddOperationExecutor {
   bool use_interpolation_;
   float new_curve_length_;
   int add_amount_;
-  int points_per_curve_ = 8;
+  int points_per_curve_;
 
   /** Various matrices to convert between coordinate spaces. */
   float4x4 curves_to_world_mat_;
@@ -171,6 +171,7 @@ struct AddOperationExecutor {
     const eBrushFalloffShape falloff_shape = static_cast<eBrushFalloffShape>(
         brush_->falloff_shape);
     add_amount_ = std::max(0, brush_settings_->add_amount);
+    points_per_curve_ = std::max(2, brush_settings_->points_per_curve);
     interpolate_length_ = brush_settings_->flag & BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_LENGTH;
     interpolate_shape_ = brush_settings_->flag & BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE;
     use_interpolation_ = interpolate_length_ || interpolate_shape_;

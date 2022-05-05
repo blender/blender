@@ -1559,6 +1559,7 @@ void BKE_brush_init_curves_sculpt_settings(Brush *brush)
   }
   BrushCurvesSculptSettings *settings = brush->curves_sculpt_settings;
   settings->add_amount = 1;
+  settings->points_per_curve = 8;
   settings->minimum_length = 0.01f;
   settings->curve_length = 0.3f;
 }

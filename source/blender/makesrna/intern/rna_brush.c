@@ -1953,6 +1953,11 @@ static void rna_def_curves_sculpt_options(BlenderRNA *brna)
   RNA_def_property_range(prop, 1, INT32_MAX);
   RNA_def_property_ui_text(prop, "Add Amount", "Number of curves added by the Add brush");
 
+  prop = RNA_def_property(srna, "points_per_curve", PROP_INT, PROP_NONE);
+  RNA_def_property_range(prop, 2, INT32_MAX);
+  RNA_def_property_ui_text(
+      prop, "Points per Curve", "Number of control points in a newly added curve");
+
   prop = RNA_def_property(srna, "scale_uniform", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_CURVES_SCULPT_FLAG_SCALE_UNIFORM);
   RNA_def_property_ui_text(prop,

@@ -519,6 +519,7 @@ class _draw_tool_settings_context_mode:
             layout.prop(brush, "use_frontface", text="Front Faces Only")
             layout.prop(brush, "falloff_shape", expand=True)
             layout.prop(brush.curves_sculpt_settings, "add_amount")
+            layout.prop(brush.curves_sculpt_settings, "points_per_curve")
             layout.prop(brush.curves_sculpt_settings, "curve_length")
             layout.prop(brush.curves_sculpt_settings, "interpolate_length")
             layout.prop(brush.curves_sculpt_settings, "interpolate_shape")
