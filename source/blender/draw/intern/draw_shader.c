@@ -53,19 +53,7 @@ static GPUShader *hair_refine_shader_transform_feedback_create(
 static GPUShader *hair_refine_shader_transform_feedback_workaround_create(
     ParticleRefineShader UNUSED(refinement))
 {
-  GPUShader *sh = NULL;
-
-  char *shader_src = BLI_string_joinN(datatoc_common_hair_lib_glsl,
-                                      datatoc_common_hair_refine_vert_glsl);
-  sh = DRW_shader_create(shader_src,
-                         NULL,
-                         datatoc_gpu_shader_3D_smooth_color_frag_glsl,
-                         "#define blender_srgb_to_framebuffer_space(a) a\n"
-                         "#define HAIR_PHASE_SUBDIV\n"
-                         "#define TF_WORKAROUND\n");
-  MEM_freeN(shader_src);
-
-  return sh;
+  return GPU_shader_create_from_info_name("draw_hair_refine_transform_feedback_workaround");
 }
 
 GPUShader *DRW_shader_hair_refine_get(ParticleRefineShader refinement,
