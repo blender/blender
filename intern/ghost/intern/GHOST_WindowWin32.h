@@ -294,6 +294,9 @@ class GHOST_WindowWin32 : public GHOST_Window {
   /** True if the window currently resizing. */
   bool m_inLiveResize;
 
+  /** Called when OS colors change and when the window is created. */
+  void ThemeRefresh();
+
 #ifdef WITH_INPUT_IME
   GHOST_ImeWin32 *getImeInput()
   {

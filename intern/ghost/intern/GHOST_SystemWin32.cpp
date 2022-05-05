@@ -14,6 +14,7 @@
 #endif
 
 #include <commctrl.h>
+#include <dwmapi.h>
 #include <psapi.h>
 #include <shellapi.h>
 #include <shellscalingapi.h>
@@ -1983,6 +1984,11 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
            * nowhere. */
           if (!wParam && hwnd == ::GetActiveWindow()) {
             ::SetFocus(hwnd);
+          }
+          break;
+        case WM_SETTINGCHANGE:
+          if (wcscmp(LPCWSTR(lParam), L"ImmersiveColorSet") == 0) {
+            window->ThemeRefresh();
           }
           break;
         ////////////////////////////////////////////////////////////////////////

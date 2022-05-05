@@ -16,9 +16,7 @@
 
 #include "GHOST_ContextWGL.h"
 
-#ifdef WIN32_COMPOSITING
-#  include <Dwmapi.h>
-#endif
+#include <Dwmapi.h>
 
 #include <assert.h>
 #include <math.h>
@@ -171,6 +169,8 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       nCmdShow = (m_system->m_windowFocus) ? SW_SHOWNORMAL : SW_SHOWNOACTIVATE;
       break;
   }
+
+  ThemeRefresh();
 
   ::ShowWindow(m_hWnd, nCmdShow);
 
@@ -1013,6 +1013,25 @@ GHOST_TabletData GHOST_WindowWin32::getTabletData()
   }
   else {
     return m_lastPointerTabletData;
+  }
+}
+
+void GHOST_WindowWin32::ThemeRefresh()
+{
+  DWORD lightMode;
+  DWORD pcbData = sizeof(lightMode);
+  if (RegGetValueW(HKEY_CURRENT_USER,
+                   L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize\\",
+                   L"AppsUseLightTheme",
+                   RRF_RT_REG_DWORD,
+                   NULL,
+                   &lightMode,
+                   &pcbData) == ERROR_SUCCESS) {
+    BOOL DarkMode = !lightMode;
+
+    /* 20 == DWMWA_USE_IMMERSIVE_DARK_MODE in Windows 11 SDK.  This value was undocumented for
+     * Windows 10 versions 2004 and later, supported for Windows 11 Build 22000 and later. */
+    DwmSetWindowAttribute(this->m_hWnd, 20, &DarkMode, sizeof(DarkMode));
   }
 }
 
