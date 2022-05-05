@@ -162,4 +162,14 @@ class AnonymousAttributeFieldInput : public GeometryFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override;
 };
 
+class CurveLengthFieldInput final : public GeometryFieldInput {
+ public:
+  CurveLengthFieldInput();
+  GVArray get_varray_for_context(const GeometryComponent &component,
+                                 AttributeDomain domain,
+                                 IndexMask mask) const final;
+  uint64_t hash() const override;
+  bool is_equal_to(const fn::FieldNode &other) const override;
+};
+
 }  // namespace blender::bke
