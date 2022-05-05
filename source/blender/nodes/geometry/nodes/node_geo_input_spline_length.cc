@@ -10,8 +10,8 @@ namespace blender::nodes {
  * Spline Length
  */
 
-static VArray<float> construct_spline_length_gvarray(const CurveComponent &component,
-                                                     const AttributeDomain domain)
+static VArray<float> construct_curve_length_gvarray(const CurveComponent &component,
+                                                    const AttributeDomain domain)
 {
   if (!component.has_curves()) {
     return {};
@@ -51,7 +51,7 @@ GVArray CurveLengthFieldInput::get_varray_for_context(const GeometryComponent &c
 {
   if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
     const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-    return construct_spline_length_gvarray(curve_component, domain);
+    return construct_curve_length_gvarray(curve_component, domain);
   }
   return {};
 }
@@ -81,8 +81,8 @@ static void node_declare(NodeDeclarationBuilder &b)
  * Spline Count
  */
 
-static VArray<int> construct_spline_count_gvarray(const CurveComponent &component,
-                                                  const AttributeDomain domain)
+static VArray<int> construct_curve_point_count_gvarray(const CurveComponent &component,
+                                                       const AttributeDomain domain)
 {
   if (!component.has_curves()) {
     return {};
@@ -117,7 +117,7 @@ class SplineCountFieldInput final : public GeometryFieldInput {
   {
     if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
       const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-      return construct_spline_count_gvarray(curve_component, domain);
+      return construct_curve_point_count_gvarray(curve_component, domain);
     }
     return {};
   }
