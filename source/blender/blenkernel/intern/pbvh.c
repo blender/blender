@@ -4268,6 +4268,8 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
       }
       break;
     }
+    case PBVH_GRIDS:
+      break;
     case PBVH_BMESH: {
       BMFace *f;
       const int cd_face_area = pbvh->cd_face_area;
@@ -5268,6 +5270,10 @@ bool BKE_pbvh_get_origvert(
           copy_v3_v3(mv->origco, pbvh->verts[vertex.i].co);
           copy_v3_v3(mv->origno, pbvh->vert_normals[vertex.i]);
           mask = (float *)CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK);
+
+          if (mask) {
+            mask += vertex.i;
+          }
         }
         else {
           const CCGKey *key = BKE_pbvh_get_grid_key(pbvh);
@@ -5281,7 +5287,7 @@ bool BKE_pbvh_get_origvert(
         }
 
         if (mask) {
-          mv->origmask = (ushort)(mask[vertex.i] * 65535.0f);
+          mv->origmask = (ushort)(*mask * 65535.0f);
         }
 
         if (pbvh->color_layer) {

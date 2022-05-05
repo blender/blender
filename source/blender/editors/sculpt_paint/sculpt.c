@@ -7762,10 +7762,8 @@ bool SCULPT_handles_colors_report(SculptSession *ss, ReportList *reports)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      return true;
     case PBVH_BMESH:
-      BKE_report(reports, RPT_ERROR, "Not supported in dynamic topology mode");
-      return false;
+      return true;
     case PBVH_GRIDS:
       BKE_report(reports, RPT_ERROR, "Not supported in multiresolution mode");
       return false;
