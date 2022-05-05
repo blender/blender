@@ -71,6 +71,7 @@ if(WITH_GTESTS)
     tests/obj_exporter_tests.cc
     tests/obj_importer_tests.cc
     tests/obj_mtl_parser_tests.cc
+
     tests/obj_exporter_tests.hh
   )
 
