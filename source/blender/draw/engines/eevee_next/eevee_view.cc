@@ -74,6 +74,7 @@ void ShadingView::sync(int2 render_extent_)
   }
 #else
   /* TEMP */
+  UNUSED_VARS(face_matrix_);
   const DRWView *default_view = DRW_view_default_get();
   DRW_view_winmat_get(default_view, winmat.ptr(), false);
   DRW_view_viewmat_get(default_view, viewmat.ptr(), false);
@@ -96,7 +97,7 @@ void ShadingView::sync(int2 render_extent_)
   postfx_tx_.sync();
 }
 
-void ShadingView::render(void)
+void ShadingView::render()
 {
   if (!is_enabled_) {
     return;
@@ -180,7 +181,7 @@ GPUTexture *ShadingView::render_post(GPUTexture *input_tx)
   return input_tx;
 }
 
-void ShadingView::update_view(void)
+void ShadingView::update_view()
 {
   float4x4 viewmat, winmat;
   DRW_view_viewmat_get(main_view_, viewmat.ptr(), false);

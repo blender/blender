@@ -74,21 +74,21 @@ class Instance {
             const View3D *v3d = nullptr,
             const RegionView3D *rv3d = nullptr);
 
-  void begin_sync(void);
+  void begin_sync();
   void object_sync(Object *ob);
-  void end_sync(void);
+  void end_sync();
 
-  void render_sync(void);
+  void render_sync();
   void render_frame(RenderLayer *render_layer, const char *view_name);
 
   void draw_viewport(DefaultFramebufferList *dfbl);
 
  private:
-  void render_sample(void);
+  void render_sample();
 
   void mesh_sync(Object *ob, ObjectHandle &ob_handle);
 
-  void update_eval_members(void);
+  void update_eval_members();
 };
 
 }  // namespace blender::eevee

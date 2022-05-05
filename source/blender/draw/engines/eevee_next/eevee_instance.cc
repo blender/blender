@@ -54,7 +54,7 @@ void Instance::init(const int2 &output_res,
   main_view.init(output_res);
 }
 
-void Instance::update_eval_members(void)
+void Instance::update_eval_members()
 {
   scene = DEG_get_evaluated_scene(depsgraph);
   view_layer = DEG_get_evaluated_view_layer(depsgraph);
@@ -133,11 +133,11 @@ void Instance::object_sync(Object *ob)
   ob_handle.reset_recalc_flag();
 }
 
-void Instance::end_sync(void)
+void Instance::end_sync()
 {
 }
 
-void Instance::render_sync(void)
+void Instance::render_sync()
 {
 }
 
@@ -151,7 +151,7 @@ void Instance::render_sync(void)
  * Conceptually renders one sample per pixel.
  * Everything based on random sampling should be done here (i.e: DRWViews jitter)
  **/
-void Instance::render_sample(void)
+void Instance::render_sample()
 {
   main_view.render();
 }

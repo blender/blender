@@ -1,5 +1,9 @@
 #pragma BLENDER_REQUIRE(common_hair_lib.glsl)
 
+#ifdef USE_TF
+out vec4 finalColor;
+#endif
+
 void main(void)
 {
   float interp_time;
