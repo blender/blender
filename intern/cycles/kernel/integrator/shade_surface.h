@@ -387,19 +387,20 @@ ccl_device_forceinline int integrate_surface_volume_only_bounce(IntegratorState 
 }
 #endif
 
-ccl_device_forceinline bool integrate_surface_terminate(IntegratorState state, const uint32_t path_flag)
+ccl_device_forceinline bool integrate_surface_terminate(IntegratorState state,
+                                                        const uint32_t path_flag)
 {
-    const float probability = (path_flag & PATH_RAY_TERMINATE_ON_NEXT_SURFACE) ?
-                                  0.0f :
-                                  INTEGRATOR_STATE(state, path, continuation_probability);
-    if (probability == 0.0f) {
-      return true;
-    }
-    else if (probability != 1.0f) {
-      INTEGRATOR_STATE_WRITE(state, path, throughput) /= probability;
-    }
+  const float probability = (path_flag & PATH_RAY_TERMINATE_ON_NEXT_SURFACE) ?
+                                0.0f :
+                                INTEGRATOR_STATE(state, path, continuation_probability);
+  if (probability == 0.0f) {
+    return true;
+  }
+  else if (probability != 1.0f) {
+    INTEGRATOR_STATE_WRITE(state, path, throughput) /= probability;
+  }
 
-    return false;
+  return false;
 }
 
 #if defined(__AO__)
@@ -558,7 +559,7 @@ ccl_device bool integrate_surface(KernelGlobals kg,
      *
      * Also ensure we don't do it twice for SSS at both the entry and exit point. */
     if (!(path_flag & PATH_RAY_SUBSURFACE) && integrate_surface_terminate(state, path_flag)) {
-        return false;
+      return false;
     }
 
 #ifdef __DENOISING_FEATURES__
@@ -583,7 +584,7 @@ ccl_device bool integrate_surface(KernelGlobals kg,
   }
   else {
     if (integrate_surface_terminate(state, path_flag)) {
-        return false;
+      return false;
     }
 
     PROFILING_EVENT(PROFILING_SHADE_SURFACE_INDIRECT_LIGHT);
