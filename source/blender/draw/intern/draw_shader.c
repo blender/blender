@@ -43,8 +43,13 @@ static GPUShader *hair_refine_shader_transform_feedback_create(
   char *shader_src = BLI_string_joinN(datatoc_common_hair_lib_glsl,
                                       datatoc_common_hair_refine_vert_glsl);
   const char *var_names[1] = {"finalColor"};
-  sh = DRW_shader_create_with_transform_feedback(
-      shader_src, NULL, "#define HAIR_PHASE_SUBDIV\n", GPU_SHADER_TFB_POINTS, var_names, 1);
+  sh = DRW_shader_create_with_transform_feedback(shader_src,
+                                                 NULL,
+                                                 "#define HAIR_PHASE_SUBDIV\n"
+                                                 "#define USE_TF\n",
+                                                 GPU_SHADER_TFB_POINTS,
+                                                 var_names,
+                                                 1);
   MEM_freeN(shader_src);
 
   return sh;
