@@ -563,7 +563,7 @@ void gpu::MTLTexture::update_sub(
         return;
       }
 
-      /* Check Format writeability. */
+      /* Check Format write-ability. */
       if (mtl_format_get_writeable_view_format(destination_format) == MTLPixelFormatInvalid) {
         MTL_LOG_ERROR(
             "[Error]: Updating texture -- destination MTLPixelFormat '%d' does not support write "

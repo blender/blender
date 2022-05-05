@@ -1523,7 +1523,7 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
 
   uint16_t edge_flag_result = 0;
 
-  /* Because the Edge Neighbour array contains loop edge pairs, we only need to process the first
+  /* Because the edge neighbor array contains loop edge pairs, we only need to process the first
    * edge in the pair. Otherwise we would add the same edge that the loops represent twice. */
   if (i < edge_nabr[i].e) {
     return;
@@ -1544,7 +1544,7 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
     else {
       /* Handle mesh boundary cases: We want mesh boundaries to respect
        * `filter_face_mark_boundaries` option the same way as face mark boundaries, and the code
-       * path is simper when it's assuming both ff1 and ff2 not NULL.   */
+       * path is simper when it's assuming both ff1 and ff2 not NULL. */
       ff2 = ff1;
     }
     if (e_feat_data->rb->filter_face_mark_boundaries ^ e_feat_data->rb->filter_face_mark_invert) {
@@ -1933,7 +1933,7 @@ static void lineart_edge_neighbor_init_task(void *__restrict userdata,
 
 static LineartEdgeNeighbor *lineart_build_edge_neighbor(Mesh *me, int total_edges)
 {
-  /* Because the mesh is traingulated, so me->totedge should be reliable? */
+  /* Because the mesh is triangulated, so `me->totedge` should be reliable? */
   LineartAdjacentEdge *adj_e = MEM_mallocN(sizeof(LineartAdjacentEdge) * total_edges,
                                            "LineartAdjacentEdge arr");
   LineartEdgeNeighbor *edge_nabr = MEM_mallocN(sizeof(LineartEdgeNeighbor) * total_edges,

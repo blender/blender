@@ -160,8 +160,8 @@ typedef struct DRWSubdivCache {
   /* Contains the start loop index and the smooth flag for each coarse polygon. */
   struct GPUVertBuf *extra_coarse_face_data;
 
-  /* Computed for ibo.points, one value per subdivided vertex, mapping coarse vertices ->
-   * subdivided loop */
+  /* Computed for `ibo.points`, one value per subdivided vertex,
+   * mapping coarse vertices -> subdivided loop. */
   int *point_indices;
 
   /* Material offsets. */

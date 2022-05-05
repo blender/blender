@@ -221,7 +221,7 @@ enum {
   UI_BUT_HAS_SEP_CHAR = 1 << 27,
   /** Don't run updates while dragging (needed in rare cases). */
   UI_BUT_UPDATE_DELAY = 1 << 28,
-  /** When widget is in textedit mode, update value on each char stroke */
+  /** When widget is in text-edit mode, update value on each char stroke. */
   UI_BUT_TEXTEDIT_UPDATE = 1 << 29,
   /** Show 'x' icon to clear/unlink value of text or search button. */
   UI_BUT_VALUE_CLEAR = 1 << 30,
