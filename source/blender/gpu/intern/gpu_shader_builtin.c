@@ -367,6 +367,16 @@ GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
     if (sh_cfg == GPU_SHADER_CFG_DEFAULT) {
       if (stages->create_info != NULL) {
         *sh_p = GPU_shader_create_from_info_name(stages->create_info);
+        if (ELEM(shader,
+                 GPU_SHADER_3D_POLYLINE_CLIPPED_UNIFORM_COLOR,
+                 GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR,
+                 GPU_SHADER_3D_POLYLINE_FLAT_COLOR,
+                 GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR)) {
+          /* Set a default value for `lineSmooth`.
+           * Ideally this value should be set by the caller. */
+          GPU_shader_bind(*sh_p);
+          GPU_shader_uniform_1i(*sh_p, "lineSmooth", 1);
+        }
       }
       else {
         *sh_p = GPU_shader_create_from_arrays_named(
