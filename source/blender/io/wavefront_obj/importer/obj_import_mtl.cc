@@ -13,13 +13,12 @@
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 
-#include "IO_string_utils.hh"
-
 #include "NOD_shader.h"
 
 /* TODO: move eMTLSyntaxElement out of following file into a more neutral place */
 #include "obj_export_io.hh"
 #include "obj_import_mtl.hh"
+#include "obj_import_string_utils.hh"
 
 namespace blender::io::obj {
 
