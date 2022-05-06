@@ -303,6 +303,13 @@ set(GLSL_SRC
 
   shaders/gpu_shader_geometry.glsl
 
+  shaders/common/gpu_shader_common_color_ramp.glsl
+  shaders/common/gpu_shader_common_color_utils.glsl
+  shaders/common/gpu_shader_common_hash.glsl
+  shaders/common/gpu_shader_common_math.glsl
+  shaders/common/gpu_shader_common_math_utils.glsl
+  shaders/common/gpu_shader_common_mix_rgb.glsl
+
   shaders/material/gpu_shader_material_add_shader.glsl
   shaders/material/gpu_shader_material_ambient_occlusion.glsl
   shaders/material/gpu_shader_material_anisotropic.glsl
@@ -315,8 +322,6 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_bump.glsl
   shaders/material/gpu_shader_material_camera.glsl
   shaders/material/gpu_shader_material_clamp.glsl
-  shaders/material/gpu_shader_material_color_ramp.glsl
-  shaders/material/gpu_shader_material_color_util.glsl
   shaders/material/gpu_shader_material_combine_color.glsl
   shaders/material/gpu_shader_material_combine_hsv.glsl
   shaders/material/gpu_shader_material_combine_rgb.glsl
@@ -334,7 +339,6 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_glossy.glsl
   shaders/material/gpu_shader_material_hair_info.glsl
   shaders/material/gpu_shader_material_hair.glsl
-  shaders/material/gpu_shader_material_hash.glsl
   shaders/material/gpu_shader_material_holdout.glsl
   shaders/material/gpu_shader_material_hue_sat_val.glsl
   shaders/material/gpu_shader_material_invert.glsl
@@ -343,9 +347,6 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_light_path.glsl
   shaders/material/gpu_shader_material_mapping.glsl
   shaders/material/gpu_shader_material_map_range.glsl
-  shaders/material/gpu_shader_material_math.glsl
-  shaders/material/gpu_shader_material_math_util.glsl
-  shaders/material/gpu_shader_material_mix_rgb.glsl
   shaders/material/gpu_shader_material_mix_shader.glsl
   shaders/material/gpu_shader_material_noise.glsl
   shaders/material/gpu_shader_material_normal.glsl
@@ -383,6 +384,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_tex_wave.glsl
   shaders/material/gpu_shader_material_tex_white_noise.glsl
   shaders/material/gpu_shader_material_toon.glsl
+  shaders/material/gpu_shader_material_transform_utils.glsl
   shaders/material/gpu_shader_material_translucent.glsl
   shaders/material/gpu_shader_material_transparent.glsl
   shaders/material/gpu_shader_material_uv_map.glsl

@@ -1,4 +1,4 @@
-#pragma BLENDER_REQUIRE(gpu_shader_material_color_util.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_common_color_utils.glsl)
 
 void hue_sat(float hue, float sat, float value, float fac, vec4 col, out vec4 outcol)
 {

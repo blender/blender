@@ -1,4 +1,4 @@
-#pragma BLENDER_REQUIRE(gpu_shader_material_hash.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
 
 /* White Noise */
 

@@ -1,4 +1,4 @@
-#pragma BLENDER_REQUIRE(gpu_shader_material_math_util.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_common_math_utils.glsl)
 
 void vector_math_add(vec3 a, vec3 b, vec3 c, float scale, out vec3 outVector, out float outValue)
 {
