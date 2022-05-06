@@ -34,7 +34,7 @@
 
 namespace blender::deg {
 
-const ID *get_original_id(const ID *id)
+static const ID *get_original_id(const ID *id)
 {
   if (id == nullptr) {
     return nullptr;
@@ -46,13 +46,13 @@ const ID *get_original_id(const ID *id)
   return (ID *)id->orig_id;
 }
 
-ID *get_original_id(ID *id)
+static ID *get_original_id(ID *id)
 {
   const ID *const_id = id;
   return const_cast<ID *>(get_original_id(const_id));
 }
 
-const ID *get_evaluated_id(const Depsgraph *deg_graph, const ID *id)
+static const ID *get_evaluated_id(const Depsgraph *deg_graph, const ID *id)
 {
   if (id == nullptr) {
     return nullptr;
@@ -67,7 +67,7 @@ const ID *get_evaluated_id(const Depsgraph *deg_graph, const ID *id)
   return id_node->id_cow;
 }
 
-ID *get_evaluated_id(const Depsgraph *deg_graph, ID *id)
+static ID *get_evaluated_id(const Depsgraph *deg_graph, ID *id)
 {
   const ID *const_id = id;
   return const_cast<ID *>(get_evaluated_id(deg_graph, const_id));
