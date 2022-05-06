@@ -28,7 +28,7 @@ struct USDExportParams {
   bool generate_preview_surface;
   bool export_textures;
   bool overwrite_textures;
-  bool relative_texture_paths;
+  bool relative_paths;
 };
 
 struct USDImportParams {

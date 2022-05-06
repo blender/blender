@@ -54,7 +54,8 @@ class TestingHierarchyIterator : public AbstractHierarchyIterator {
   used_writers hair_writers;
   used_writers particle_writers;
 
-  explicit TestingHierarchyIterator(Depsgraph *depsgraph) : AbstractHierarchyIterator(depsgraph)
+  explicit TestingHierarchyIterator(Main *bmain, Depsgraph *depsgraph)
+      : AbstractHierarchyIterator(bmain, depsgraph)
   {
   }
   ~TestingHierarchyIterator() override
@@ -105,7 +106,7 @@ class AbstractHierarchyIteratorTest : public BlendfileLoadingBaseTest {
   /* Create a test iterator. */
   void iterator_create()
   {
-    iterator = new TestingHierarchyIterator(depsgraph);
+    iterator = new TestingHierarchyIterator(bfile->main, depsgraph);
   }
   /* Free the test iterator if it is not nullptr. */
   void iterator_free()

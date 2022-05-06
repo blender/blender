@@ -30,6 +30,7 @@
 struct Depsgraph;
 struct DupliObject;
 struct ID;
+struct Main;
 struct Object;
 struct ParticleSystem;
 
@@ -204,12 +205,13 @@ class AbstractHierarchyIterator {
  protected:
   ExportGraph export_graph_;
   ExportPathMap duplisource_export_path_;
+  Main *bmain_;
   Depsgraph *depsgraph_;
   WriterMap writers_;
   ExportSubset export_subset_;
 
  public:
-  explicit AbstractHierarchyIterator(Depsgraph *depsgraph);
+  explicit AbstractHierarchyIterator(Main *bmain, Depsgraph *depsgraph);
   virtual ~AbstractHierarchyIterator();
 
   /* Iterate over the depsgraph, create writers, and tell the writers to write.
