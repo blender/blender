@@ -2057,7 +2057,7 @@ class VIEW3D_MT_curve_add(Menu):
         layout.operator("curve.primitive_nurbs_circle_add", text="Nurbs Circle", icon='CURVE_NCIRCLE')
         layout.operator("curve.primitive_nurbs_path_add", text="Path", icon='CURVE_PATH')
 
-        experimental = context.preferences.experimental 
+        experimental = context.preferences.experimental
         if experimental.use_new_curves_type:
             layout.separator()
 
