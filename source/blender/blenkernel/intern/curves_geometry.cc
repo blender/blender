@@ -65,6 +65,8 @@ CurvesGeometry::CurvesGeometry(const int point_size, const int curve_size)
   this->update_customdata_pointers();
 
   this->runtime = MEM_new<CurvesGeometryRuntime>(__func__);
+  /* Fill the type counts with the default so they're in a valid state. */
+  this->runtime->type_counts[CURVE_TYPE_CATMULL_ROM] = curve_size;
 }
 
 /**
@@ -541,7 +543,11 @@ IndexMask CurvesGeometry::indices_for_curve_type(const CurveType type,
   if (this->curve_type_counts()[type] == this->curves_num()) {
     return selection;
   }
-  Span<int8_t> types_span = this->curve_types().get_internal_span();
+  const VArray<int8_t> types = this->curve_types();
+  if (types.is_single()) {
+    return types.get_internal_single() == type ? IndexMask(this->curves_num()) : IndexMask(0);
+  }
+  Span<int8_t> types_span = types.get_internal_span();
   return index_mask_ops::find_indices_based_on_predicate(
       selection, 1024, r_indices, [&](const int index) { return types_span[index] == type; });
 }
