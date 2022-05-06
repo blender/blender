@@ -2762,8 +2762,31 @@ static const EnumPropertyItem convert_target_items[] = {
      "Point Cloud",
      "Point Cloud from Mesh objects"},
 #endif
+    {OB_CURVES, "CURVES", ICON_OUTLINER_OB_CURVES, "Curves", "Curves from evaluated curve data"},
     {0, nullptr, 0, nullptr, nullptr},
 };
+
+static const EnumPropertyItem *convert_target_items_fn(bContext *UNUSED(C),
+                                                       PointerRNA *UNUSED(ptr),
+                                                       PropertyRNA *UNUSED(prop),
+                                                       bool *r_free)
+{
+  EnumPropertyItem *items = nullptr;
+  int items_num = 0;
+  for (const EnumPropertyItem *item = convert_target_items; item->identifier != nullptr; item++) {
+    if (item->value == OB_CURVES) {
+      if (U.experimental.use_new_curves_type) {
+        RNA_enum_item_add(&items, &items_num, item);
+      }
+    }
+    else {
+      RNA_enum_item_add(&items, &items_num, item);
+    }
+  }
+  RNA_enum_item_end(&items, &items_num);
+  *r_free = true;
+  return items;
+}
 
 static void object_data_convert_ensure_curve_cache(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
@@ -3064,6 +3087,50 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         }
       }
       ob_gpencil->actcol = actcol;
+    }
+    else if (target == OB_CURVES) {
+      ob->flag |= OB_DONE;
+
+      Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+      GeometrySet geometry;
+      if (ob_eval->runtime.geometry_set_eval != nullptr) {
+        geometry = *ob_eval->runtime.geometry_set_eval;
+      }
+
+      if (geometry.has_curves()) {
+        if (keep_original) {
+          basen = duplibase_for_convert(bmain, depsgraph, scene, view_layer, base, nullptr);
+          newob = basen->object;
+
+          /* Decrement original curve's usage count. */
+          Curve *legacy_curve = static_cast<Curve *>(newob->data);
+          id_us_min(&legacy_curve->id);
+
+          /* Make a copy of the curve. */
+          newob->data = BKE_id_copy(bmain, &legacy_curve->id);
+        }
+        else {
+          newob = ob;
+        }
+
+        const CurveComponent &curve_component = *geometry.get_component_for_read<CurveComponent>();
+        const Curves *curves_eval = curve_component.get_for_read();
+        Curves *new_curves = static_cast<Curves *>(BKE_id_new(bmain, ID_CV, newob->id.name + 2));
+
+        newob->data = new_curves;
+        newob->type = OB_CURVES;
+
+        blender::bke::CurvesGeometry::wrap(
+            new_curves->geometry) = blender::bke::CurvesGeometry::wrap(curves_eval->geometry);
+        BKE_object_material_from_eval_data(bmain, newob, &curves_eval->id);
+
+        BKE_object_free_derived_caches(newob);
+        BKE_object_free_modifiers(newob, 0);
+      }
+      else {
+        BKE_reportf(
+            op->reports, RPT_WARNING, "Object '%s' has no evaluated curves data", ob->id.name + 2);
+      }
     }
     else if (ob->type == OB_MESH && target == OB_POINTCLOUD) {
       ob->flag |= OB_DONE;
@@ -3480,6 +3547,7 @@ void OBJECT_OT_convert(wmOperatorType *ot)
   /* properties */
   ot->prop = RNA_def_enum(
       ot->srna, "target", convert_target_items, OB_MESH, "Target", "Type of object to convert to");
+  RNA_def_enum_funcs(ot->prop, convert_target_items_fn);
   RNA_def_boolean(ot->srna,
                   "keep_original",
                   false,
