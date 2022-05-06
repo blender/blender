@@ -525,46 +525,49 @@ ccl_device bool integrate_surface(KernelGlobals kg,
       subsurface_shader_data_setup(kg, state, &sd, path_flag);
       INTEGRATOR_STATE_WRITE(state, path, flag) &= ~PATH_RAY_SUBSURFACE;
     }
+    else
 #endif
-
-    shader_prepare_surface_closures(kg, state, &sd, path_flag);
+    {
+      /* Filter closures. */
+      shader_prepare_surface_closures(kg, state, &sd, path_flag);
 
 #ifdef __HOLDOUT__
-    /* Evaluate holdout. */
-    if (!integrate_surface_holdout(kg, state, &sd, render_buffer)) {
-      return false;
-    }
+      /* Evaluate holdout. */
+      if (!integrate_surface_holdout(kg, state, &sd, render_buffer)) {
+        return false;
+      }
 #endif
 
 #ifdef __EMISSION__
-    /* Write emission. */
-    if (sd.flag & SD_EMISSION) {
-      integrate_surface_emission(kg, state, &sd, render_buffer);
-    }
+      /* Write emission. */
+      if (sd.flag & SD_EMISSION) {
+        integrate_surface_emission(kg, state, &sd, render_buffer);
+      }
 #endif
 
+      /* Perform path termination. Most paths have already been terminated in
+       * the intersect_closest kernel, this is just for emission and for dividing
+       * throughput by the probability at the right moment.
+       *
+       * Also ensure we don't do it twice for SSS at both the entry and exit point. */
+      if (integrate_surface_terminate(state, path_flag)) {
+        return false;
+      }
+
+      /* Write render passes. */
 #ifdef __PASSES__
-    /* Write render passes. */
-    PROFILING_EVENT(PROFILING_SHADE_SURFACE_PASSES);
-    kernel_write_data_passes(kg, state, &sd, render_buffer);
+      PROFILING_EVENT(PROFILING_SHADE_SURFACE_PASSES);
+      kernel_write_data_passes(kg, state, &sd, render_buffer);
 #endif
+
+#ifdef __DENOISING_FEATURES__
+      kernel_write_denoising_features_surface(kg, state, &sd, render_buffer);
+#endif
+    }
 
     /* Load random number state. */
     RNGState rng_state;
     path_state_rng_load(state, &rng_state);
-
-    /* Perform path termination. Most paths have already been terminated in
-     * the intersect_closest kernel, this is just for emission and for dividing
-     * throughput by the probability at the right moment.
-     *
-     * Also ensure we don't do it twice for SSS at both the entry and exit point. */
-    if (!(path_flag & PATH_RAY_SUBSURFACE) && integrate_surface_terminate(state, path_flag)) {
-      return false;
-    }
-
-#ifdef __DENOISING_FEATURES__
-    kernel_write_denoising_features_surface(kg, state, &sd, render_buffer);
-#endif
 
     /* Direct light. */
     PROFILING_EVENT(PROFILING_SHADE_SURFACE_DIRECT_LIGHT);
