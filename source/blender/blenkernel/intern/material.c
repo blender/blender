@@ -1123,15 +1123,16 @@ void BKE_object_material_remap_calc(Object *ob_dst, Object *ob_src, short *remap
   BLI_ghash_free(gh_mat_map, NULL, NULL);
 }
 
-void BKE_object_material_from_eval_data(Main *bmain, Object *ob_orig, ID *data_eval)
+void BKE_object_material_from_eval_data(Main *bmain, Object *ob_orig, const ID *data_eval)
 {
   ID *data_orig = ob_orig->data;
 
   short *orig_totcol = BKE_id_material_len_p(data_orig);
   Material ***orig_mat = BKE_id_material_array_p(data_orig);
 
-  short *eval_totcol = BKE_id_material_len_p(data_eval);
-  Material ***eval_mat = BKE_id_material_array_p(data_eval);
+  /* Can cast away const, because the data is not changed. */
+  const short *eval_totcol = BKE_id_material_len_p((ID *)data_eval);
+  Material ***eval_mat = BKE_id_material_array_p((ID *)data_eval);
 
   if (ELEM(NULL, orig_totcol, orig_mat, eval_totcol, eval_mat)) {
     return;

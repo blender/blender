@@ -52,7 +52,7 @@ void BKE_object_material_remap_calc(struct Object *ob_dst,
  */
 void BKE_object_material_from_eval_data(struct Main *bmain,
                                         struct Object *ob_orig,
-                                        struct ID *data_eval);
+                                        const struct ID *data_eval);
 struct Material *BKE_material_add(struct Main *bmain, const char *name);
 struct Material *BKE_gpencil_material_add(struct Main *bmain, const char *name);
 void BKE_gpencil_material_attr_init(struct Material *ma);
