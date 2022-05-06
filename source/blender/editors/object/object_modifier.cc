@@ -740,7 +740,13 @@ static bool modifier_apply_obdata(
     }
     else {
       Mesh *mesh_applied = modifier_apply_create_mesh_for_modifier(
-          depsgraph, ob, md_eval, true, true);
+          depsgraph,
+          ob,
+          md_eval,
+          /* It's important not to apply virtual modifiers (e.g. shape-keys) because they're kept,
+           * causing them to be applied twice, see: T97758. */
+          false,
+          true);
       if (!mesh_applied) {
         BKE_report(reports, RPT_ERROR, "Modifier returned error, skipping apply");
         return false;
