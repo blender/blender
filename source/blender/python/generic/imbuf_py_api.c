@@ -559,7 +559,11 @@ static PyMethodDef IMB_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-PyDoc_STRVAR(IMB_doc, "This module provides access to Blender's image manipulation API.");
+PyDoc_STRVAR(IMB_doc,
+             "This module provides access to Blender's image manipulation API.\n"
+             "\n"
+             "It provides access to image buffers outside of Blender's\n"
+             ":class:`bpy.types.Image` data-block context.\n");
 static struct PyModuleDef IMB_module_def = {
     PyModuleDef_HEAD_INIT,
     "imbuf",     /* m_name */
@@ -596,7 +600,13 @@ PyObject *BPyInit_imbuf(void)
  * for docs and the ability to use with built-ins such as `isinstance`, `issubclass`.
  * \{ */
 
-PyDoc_STRVAR(IMB_types_doc, "This module provides access to image buffer types.");
+PyDoc_STRVAR(IMB_types_doc,
+             "This module provides access to image buffer types.\n"
+             "\n"
+             ".. note::\n"
+             "\n"
+             "   Image buffer is also the structure used by :class:`bpy.types.Image`\n"
+             "   ID type to store and manipulate image data at runtime.\n");
 
 static struct PyModuleDef IMB_types_module_def = {
     PyModuleDef_HEAD_INIT,
