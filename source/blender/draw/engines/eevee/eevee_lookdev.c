@@ -112,7 +112,7 @@ void EEVEE_lookdev_init(EEVEE_Data *vedata)
 
     if (sphere_size != effects->sphere_size || rect->xmax != effects->anchor[0] ||
         rect->ymin != effects->anchor[1]) {
-      /* Make sphere resolution adaptive to viewport_scale, dpi and lookdev_sphere_size */
+      /* Make sphere resolution adaptive to viewport_scale, DPI and #U.lookdev_sphere_size. */
       float res_scale = clamp_f(
           (U.lookdev_sphere_size / 400.0f) * viewport_scale * U.dpi_fac, 0.1f, 1.0f);
 

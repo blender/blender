@@ -57,7 +57,7 @@ typedef struct uiFontStyle {
   /** Saved in file, 0 is default. */
   short uifont_id;
   char _pad1[2];
-  /** Actual size depends on 'global' dpi. */
+  /** Actual size depends on 'global' DPI. */
   float points;
   /** Style hint. */
   short italic, bold;

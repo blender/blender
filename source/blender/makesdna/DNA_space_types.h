@@ -1340,7 +1340,7 @@ enum {
 
 typedef struct SpaceText_Runtime {
 
-  /** Actual line height, scaled by dpi. */
+  /** Actual line height, scaled by DPI. */
   int lheight_px;
 
   /** Runtime computed, character width. */

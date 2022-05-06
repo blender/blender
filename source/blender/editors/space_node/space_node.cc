@@ -327,8 +327,9 @@ static bool any_node_uses_id(const bNodeTree *ntree, const ID *id)
 /**
  * Tag the space to recalculate the compositing tree using auto-compositing pipeline.
  *
- * Will check the space to be using a compsiting tree, and check whether auto-compositing
- * is enabled. If the checks do not pass then the function has no affect. */
+ * Will check the space to be using a compositing tree, and check whether auto-compositing
+ * is enabled. If the checks do not pass then the function has no affect.
+ */
 static void node_area_tag_recalc_auto_compositing(SpaceNode *snode, ScrArea *area)
 {
   if (!ED_node_is_compositor(snode)) {
@@ -347,7 +348,8 @@ static void node_area_tag_recalc_auto_compositing(SpaceNode *snode, ScrArea *are
  * For all node trees this will do `snode_set_context()` which takes care of setting an active
  * tree. This will be done in the area refresh callback.
  *
- * For compositor tree this will additionally start of the compositor job. */
+ * For compositor tree this will additionally start of the compositor job.
+ */
 static void node_area_tag_tree_recalc(SpaceNode *snode, ScrArea *area)
 {
   if (ED_node_is_compositor(snode)) {

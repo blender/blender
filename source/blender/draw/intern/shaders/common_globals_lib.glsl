@@ -110,7 +110,7 @@ layout(std140) uniform globalsBlock
   vec4 screenVecs[2];
   vec4 sizeViewport; /* Inverted size in zw. */
 
-  float sizePixel; /* This one is for dpi scaling */
+  float sizePixel; /* This one is for DPI scaling. */
   float pixelFac;  /* To use with mul_project_m4_v3_zfac() */
   float sizeObjectCenter;
   float sizeLightCenter;

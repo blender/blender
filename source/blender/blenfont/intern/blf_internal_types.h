@@ -123,7 +123,7 @@ typedef struct GlyphCacheBLF {
   /* font size. */
   float size;
 
-  /* and dpi. */
+  /* and DPI. */
   unsigned int dpi;
 
   bool bold;
@@ -264,7 +264,7 @@ typedef struct FontBLF {
   /* the width to wrap the text, see BLF_WORD_WRAP */
   int wrap_width;
 
-  /* font dpi (default 72). */
+  /* Font DPI (default 72). */
   unsigned int dpi;
 
   /* font size. */
@@ -276,7 +276,8 @@ typedef struct FontBLF {
   /* font options. */
   int flags;
 
-  /* List of glyph caches (GlyphCacheBLF) for this font for size, dpi, bold, italic.
+  /**
+   * List of glyph caches (#GlyphCacheBLF) for this font for size, DPI, bold, italic.
    * Use blf_glyph_cache_acquire(font) and blf_glyph_cache_release(font) to access cache!
    */
   ListBase cache;

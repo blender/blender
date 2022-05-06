@@ -308,7 +308,7 @@ HRESULT GHOST_DirectManipulationViewportEventHandler::OnContentUpdated(
   }
 
   /* This state machine is used here because:
-   *  1. Pinch and pan gestures must be differentiated and cannot be proccessed at the same time
+   *  1. Pinch and pan gestures must be differentiated and cannot be processed at the same time
    *     because XY transform values become nonsensical during pinch gesture.
    *  2. GHOST requires delta values for events while DM provides transformation matrix of the
    *     current gesture.

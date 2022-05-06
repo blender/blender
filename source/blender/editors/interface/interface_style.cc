@@ -376,7 +376,7 @@ void uiStyleInit(void)
 {
   const uiStyle *style = static_cast<uiStyle *>(U.uistyles.first);
 
-  /* recover from uninitialized dpi */
+  /* Recover from uninitialized DPI. */
   if (U.dpi == 0) {
     U.dpi = 72;
   }
