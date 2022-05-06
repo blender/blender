@@ -1259,14 +1259,15 @@ static PyObject *bpy_bmesh_select_flush(BPy_BMesh *self, PyObject *value)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(bpy_bmesh_normal_update_doc,
-             ".. method:: normal_update()\n"
-             "\n"
-             "   Update normals of mesh faces and verts.\n"
-             "\n"
-             "   .. note::\n"
-             "\n"
-             "      The normal of any vertex where :attr:`is_wire` is True will be a zero vector.\n");
+PyDoc_STRVAR(
+    bpy_bmesh_normal_update_doc,
+    ".. method:: normal_update()\n"
+    "\n"
+    "   Update normals of mesh faces and verts.\n"
+    "\n"
+    "   .. note::\n"
+    "\n"
+    "      The normal of any vertex where :attr:`is_wire` is True will be a zero vector.\n");
 
 static PyObject *bpy_bmesh_normal_update(BPy_BMesh *self)
 {
@@ -1783,14 +1784,15 @@ static PyObject *bpy_bmedge_other_vert(BPy_BMEdge *self, BPy_BMVert *value)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(bpy_bmedge_normal_update_doc,
-             ".. method:: normal_update()\n"
-             "\n"
-             "   Update normals of all connected faces and the edge verts.\n"
-             "\n"
-             "   .. note::\n"
-             "\n"
-             "      The normal of edge vertex will be a zero vector if vertex :attr:`is_wire` is True.\n");
+PyDoc_STRVAR(
+    bpy_bmedge_normal_update_doc,
+    ".. method:: normal_update()\n"
+    "\n"
+    "   Update normals of all connected faces and the edge verts.\n"
+    "\n"
+    "   .. note::\n"
+    "\n"
+    "      The normal of edge vertex will be a zero vector if vertex :attr:`is_wire` is True.\n");
 static PyObject *bpy_bmedge_normal_update(BPy_BMEdge *self)
 {
   BPY_BM_CHECK_OBJ(self);

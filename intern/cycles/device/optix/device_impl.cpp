@@ -226,7 +226,8 @@ static void execute_optix_task(TaskPool &pool, OptixTask task, OptixResult &fail
   const OptixResult result = optixTaskExecute(task, additional_tasks, 16, &num_additional_tasks);
   if (result == OPTIX_SUCCESS) {
     for (unsigned int i = 0; i < num_additional_tasks; ++i) {
-      pool.push(function_bind(&execute_optix_task, std::ref(pool), additional_tasks[i], std::ref(failure_reason)));
+      pool.push(function_bind(
+          &execute_optix_task, std::ref(pool), additional_tasks[i], std::ref(failure_reason)));
     }
   }
   else {
