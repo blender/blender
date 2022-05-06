@@ -1987,7 +1987,8 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           }
           break;
         case WM_SETTINGCHANGE:
-          if (wcscmp(LPCWSTR(lParam), L"ImmersiveColorSet") == 0) {
+          /* Microsoft: "Note that some applications send this message with lParam set to NULL" */
+          if ((lParam != NULL) && (wcscmp(LPCWSTR(lParam), L"ImmersiveColorSet") == 0)) {
             window->ThemeRefresh();
           }
           break;
