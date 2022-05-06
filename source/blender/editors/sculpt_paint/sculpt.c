@@ -5281,7 +5281,7 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
      * canvas it is painting on. (ref. use_sculpt_texture_paint). */
     if (brush && SCULPT_TOOL_NEEDS_COLOR(brush->sculpt_tool)) {
       View3D *v3d = CTX_wm_view3d(C);
-      if (v3d) {
+      if (v3d->shading.type == OB_SOLID) {
         v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
       }
     }
