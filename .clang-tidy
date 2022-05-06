@@ -1,6 +1,8 @@
 # The warnings below are disabled because they are too pedantic and not worth fixing.
 # Some of them will be enabled as part of the Clang-Tidy task, see T78535.
 
+# NOTE: No comments in the list below is allowed. Clang-tidy will ignore items after comments in the lists flag list.
+# This is because the comment is not a valid list item and it will stop parsing flags if a list item is a comment.
 Checks:  >
   -*,
   readability-*,
@@ -42,8 +44,6 @@ Checks:  >
   -modernize-use-nodiscard,
   -modernize-loop-convert,
   -modernize-pass-by-value,
-  # Cannot be enabled yet, because using raw string literals in tests breaks
-  # the windows compiler currently.
   -modernize-raw-string-literal,
   -modernize-return-braced-init-list
 
