@@ -2116,6 +2116,21 @@ static int object_curves_empty_hair_add_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static bool object_curves_empty_hair_add_poll(bContext *C)
+{
+  if (!U.experimental.use_new_curves_type) {
+    return false;
+  }
+  if (!ED_operator_objectmode(C)) {
+    return false;
+  }
+  Object *ob = CTX_data_active_object(C);
+  if (ob == nullptr || ob->type != OB_MESH) {
+    return false;
+  }
+  return true;
+}
+
 void OBJECT_OT_curves_empty_hair_add(wmOperatorType *ot)
 {
   ot->name = "Add Empty Curves";
@@ -2123,7 +2138,7 @@ void OBJECT_OT_curves_empty_hair_add(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_curves_empty_hair_add";
 
   ot->exec = object_curves_empty_hair_add_exec;
-  ot->poll = object_curves_add_poll;
+  ot->poll = object_curves_empty_hair_add_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
