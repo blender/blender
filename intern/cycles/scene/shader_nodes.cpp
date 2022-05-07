@@ -19,7 +19,6 @@
 #include "util/color.h"
 #include "util/foreach.h"
 #include "util/log.h"
-#include "util/string.h"
 #include "util/transform.h"
 
 #include "kernel/tables.h"
@@ -450,12 +449,8 @@ void ImageTextureNode::compile(OSLCompiler &compiler)
   const ustring known_colorspace = metadata.colorspace;
 
   if (handle.svm_slot() == -1) {
-    /* OIIO currently does not support <UVTILE> substitutions natively. Replace with a format they
-     * understand. */
-    std::string osl_filename = filename.string();
-    string_replace(osl_filename, "<UVTILE>", "<U>_<V>");
     compiler.parameter_texture(
-        "filename", ustring(osl_filename), compress_as_srgb ? u_colorspace_raw : known_colorspace);
+        "filename", filename, compress_as_srgb ? u_colorspace_raw : known_colorspace);
   }
   else {
     compiler.parameter_texture("filename", handle.svm_slot());
