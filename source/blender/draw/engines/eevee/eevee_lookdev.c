@@ -64,7 +64,7 @@ static void eevee_lookdev_hdri_preview_init(EEVEE_Data *vedata, EEVEE_ViewLayerD
 
     DRW_PASS_CREATE(psl->lookdev_diffuse_pass, state);
     grp = DRW_shgroup_create(sh, psl->lookdev_diffuse_pass);
-    EEVEE_material_bind_resources(grp, gpumat, sldata, vedata, NULL, NULL, false, false);
+    EEVEE_material_bind_resources(grp, gpumat, sldata, vedata, NULL, NULL, -1.0f, false, false);
     DRW_shgroup_add_material_resources(grp, gpumat);
     DRW_shgroup_call(grp, sphere, NULL);
   }
@@ -75,7 +75,7 @@ static void eevee_lookdev_hdri_preview_init(EEVEE_Data *vedata, EEVEE_ViewLayerD
 
     DRW_PASS_CREATE(psl->lookdev_glossy_pass, state);
     grp = DRW_shgroup_create(sh, psl->lookdev_glossy_pass);
-    EEVEE_material_bind_resources(grp, gpumat, sldata, vedata, NULL, NULL, false, false);
+    EEVEE_material_bind_resources(grp, gpumat, sldata, vedata, NULL, NULL, -1.0f, false, false);
     DRW_shgroup_add_material_resources(grp, gpumat);
     DRW_shgroup_call(grp, sphere, NULL);
   }
