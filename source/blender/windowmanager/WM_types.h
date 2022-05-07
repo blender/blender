@@ -812,6 +812,10 @@ typedef struct wmXrActionData {
   char action_set[64];
   /** Action name. */
   char action[64];
+  /** User path. E.g. "/user/hand/left" */
+  char user_path[64];
+  /** Other user path, for bimanual actions. E.g. "/user/hand/right" */
+  char user_path_other[64];
   /** Type. */
   eXrActionType type;
   /** State. Set appropriately based on type. */

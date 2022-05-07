@@ -1196,6 +1196,50 @@ static int rna_XrEventData_action_length(PointerRNA *ptr)
 #  endif
 }
 
+static void rna_XrEventData_user_path_get(PointerRNA *ptr, char *r_value)
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrActionData *data = ptr->data;
+  strcpy(r_value, data->user_path);
+#  else
+  UNUSED_VARS(ptr);
+  r_value[0] = '\0';
+#  endif
+}
+
+static int rna_XrEventData_user_path_length(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrActionData *data = ptr->data;
+  return strlen(data->user_path);
+#  else
+  UNUSED_VARS(ptr);
+  return 0;
+#  endif
+}
+
+static void rna_XrEventData_user_path_other_get(PointerRNA *ptr, char *r_value)
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrActionData *data = ptr->data;
+  strcpy(r_value, data->user_path_other);
+#  else
+  UNUSED_VARS(ptr);
+  r_value[0] = '\0';
+#  endif
+}
+
+static int rna_XrEventData_user_path_other_length(PointerRNA *ptr)
+{
+#  ifdef WITH_XR_OPENXR
+  const wmXrActionData *data = ptr->data;
+  return strlen(data->user_path_other);
+#  else
+  UNUSED_VARS(ptr);
+  return 0;
+#  endif
+}
+
 static int rna_XrEventData_type_get(PointerRNA *ptr)
 {
 #  ifdef WITH_XR_OPENXR
@@ -2401,6 +2445,19 @@ static void rna_def_xr_eventdata(BlenderRNA *brna)
   RNA_def_property_string_funcs(
       prop, "rna_XrEventData_action_get", "rna_XrEventData_action_length", NULL);
   RNA_def_property_ui_text(prop, "Action", "XR action name");
+
+  prop = RNA_def_property(srna, "user_path", PROP_STRING, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_string_funcs(
+      prop, "rna_XrEventData_user_path_get", "rna_XrEventData_user_path_length", NULL);
+  RNA_def_property_ui_text(prop, "User Path", "User path of the action. E.g. \"/user/hand/left\"");
+
+  prop = RNA_def_property(srna, "user_path_other", PROP_STRING, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_string_funcs(
+      prop, "rna_XrEventData_user_path_other_get", "rna_XrEventData_user_path_other_length", NULL);
+  RNA_def_property_ui_text(
+      prop, "User Path Other", "Other user path, for bimanual actions. E.g. \"/user/hand/right\"");
 
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
