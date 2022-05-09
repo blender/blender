@@ -9,6 +9,7 @@ float g_holdout;
 
 /* The Closure type is never used. Use float as dummy type. */
 #define Closure float
+#define CLOSURE_DEFAULT 0.0
 
 /* Sampled closure parameters. */
 ClosureDiffuse g_diffuse_data;
