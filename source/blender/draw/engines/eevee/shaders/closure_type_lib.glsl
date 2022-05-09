@@ -49,7 +49,7 @@ struct Closure {
 #ifndef GPU_METAL
 /* Prototype */
 Closure nodetree_exec();
-vec4 closure_to_rgba(Closure);
+vec4 closure_to_rgba(Closure cl);
 void output_aov(vec4 color, float value, uint hash);
 vec3 coordinate_camera(vec3 P);
 vec3 coordinate_screen(vec3 P);

@@ -5,7 +5,7 @@
 #pragma BLENDER_REQUIRE(closure_eval_translucent_lib.glsl)
 #pragma BLENDER_REQUIRE(renderpass_lib.glsl)
 
-#ifdef USE_SHADER_TO_RGBA
+#if defined(USE_SHADER_TO_RGBA) || defined(USE_ALPHA_BLEND)
 bool do_sss = false;
 bool do_ssr = false;
 #else
