@@ -51,11 +51,11 @@ static void freeData(ModifierData *md)
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
 
   if (psmd->mesh_final) {
-    BKE_id_free(NULL, psmd->mesh_final);
-    psmd->mesh_final = NULL;
+    BKE_id_free(nullptr, psmd->mesh_final);
+    psmd->mesh_final = nullptr;
     if (psmd->mesh_original) {
-      BKE_id_free(NULL, psmd->mesh_original);
-      psmd->mesh_original = NULL;
+      BKE_id_free(nullptr, psmd->mesh_original);
+      psmd->mesh_original = nullptr;
     }
   }
   psmd->totdmvert = psmd->totdmedge = psmd->totdmface = 0;
@@ -81,8 +81,8 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
    * code has to be called then to ensure proper remapping of that pointer. See e.g.
    * `BKE_object_copy_particlesystems` or `BKE_object_copy_modifier`. */
 
-  tpsmd->mesh_final = NULL;
-  tpsmd->mesh_original = NULL;
+  tpsmd->mesh_final = nullptr;
+  tpsmd->mesh_original = nullptr;
   tpsmd->totdmvert = tpsmd->totdmedge = tpsmd->totdmface = 0;
 }
 
@@ -104,7 +104,7 @@ static void deformVerts(ModifierData *md,
 {
   Mesh *mesh_src = mesh;
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
-  ParticleSystem *psys = NULL;
+  ParticleSystem *psys = nullptr;
 
   if (ctx->object->particlesystem.first) {
     psys = psmd->psys;
@@ -117,28 +117,28 @@ static void deformVerts(ModifierData *md,
     return;
   }
 
-  if (mesh_src == NULL) {
+  if (mesh_src == nullptr) {
     mesh_src = MOD_deform_mesh_eval_get(
-        ctx->object, NULL, NULL, vertexCos, verts_num, false, true);
-    if (mesh_src == NULL) {
+        ctx->object, nullptr, nullptr, vertexCos, verts_num, false, true);
+    if (mesh_src == nullptr) {
       return;
     }
   }
 
   /* clear old dm */
-  bool had_mesh_final = (psmd->mesh_final != NULL);
+  bool had_mesh_final = (psmd->mesh_final != nullptr);
   if (psmd->mesh_final) {
-    BKE_id_free(NULL, psmd->mesh_final);
-    psmd->mesh_final = NULL;
+    BKE_id_free(nullptr, psmd->mesh_final);
+    psmd->mesh_final = nullptr;
     if (psmd->mesh_original) {
-      BKE_id_free(NULL, psmd->mesh_original);
-      psmd->mesh_original = NULL;
+      BKE_id_free(nullptr, psmd->mesh_original);
+      psmd->mesh_original = nullptr;
     }
   }
   else if (psmd->flag & eParticleSystemFlag_file_loaded) {
     /* in file read mesh just wasn't saved in file so no need to reset everything */
     psmd->flag &= ~eParticleSystemFlag_file_loaded;
-    if (psys->particles == NULL) {
+    if (psys->particles == nullptr) {
       psys->recalc |= ID_RECALC_PSYS_RESET;
     }
     /* TODO(sergey): This is not how particles were working prior to copy on
@@ -165,18 +165,18 @@ static void deformVerts(ModifierData *md,
     /* Get the original mesh from the object, this is what the particles
      * are attached to so in case of non-deform modifiers we need to remap
      * them to the final mesh (typically subdivision surfaces). */
-    Mesh *mesh_original = NULL;
+    Mesh *mesh_original = nullptr;
 
     if (ctx->object->type == OB_MESH) {
       BMEditMesh *em = BKE_editmesh_from_object(ctx->object);
 
       if (em) {
         /* In edit mode get directly from the edit mesh. */
-        psmd->mesh_original = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, NULL, mesh);
+        psmd->mesh_original = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, nullptr, mesh);
       }
       else {
         /* Otherwise get regular mesh. */
-        mesh_original = ctx->object->data;
+        mesh_original = static_cast<Mesh *>(ctx->object->data);
       }
     }
     else {
@@ -193,8 +193,8 @@ static void deformVerts(ModifierData *md,
     BKE_mesh_tessface_ensure(psmd->mesh_original);
   }
 
-  if (!ELEM(mesh_src, NULL, mesh, psmd->mesh_final)) {
-    BKE_id_free(NULL, mesh_src);
+  if (!ELEM(mesh_src, nullptr, mesh, psmd->mesh_final)) {
+    BKE_id_free(nullptr, mesh_src);
   }
 
   /* Report change in mesh structure.
@@ -221,7 +221,7 @@ static void deformVerts(ModifierData *md,
   if (DEG_is_active(ctx->depsgraph)) {
     Object *object_orig = DEG_get_original_object(ctx->object);
     ModifierData *md_orig = BKE_modifiers_findby_name(object_orig, psmd->modifier.name);
-    BLI_assert(md_orig != NULL);
+    BLI_assert(md_orig != nullptr);
     ParticleSystemModifierData *psmd_orig = (ParticleSystemModifierData *)md_orig;
     psmd_orig->flag = psmd->flag;
   }
@@ -237,16 +237,16 @@ static void deformVertsEM(ModifierData *md,
                           float (*vertexCos)[3],
                           int verts_num)
 {
-  const bool do_temp_mesh = (mesh == NULL);
+  const bool do_temp_mesh = (mesh == nullptr);
   if (do_temp_mesh) {
     mesh = BKE_id_new_nomain(ID_ME, ((ID *)ob->data)->name);
-    BM_mesh_bm_to_me(NULL, editData->bm, mesh, &((BMeshToMeshParams){0}));
+    BM_mesh_bm_to_me(nullptr, editData->bm, mesh, &((BMeshToMeshParams){0}));
   }
 
   deformVerts(md, ob, mesh, vertexCos, verts_num);
 
   if (derivedData) {
-    BKE_id_free(NULL, mesh);
+    BKE_id_free(nullptr, mesh);
   }
 }
 #endif
@@ -258,7 +258,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  Object *ob = ob_ptr.data;
+  Object *ob = static_cast<Object *>(ob_ptr.data);
   ModifierData *md = (ModifierData *)ptr->data;
   ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
 
@@ -291,8 +291,8 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 {
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
 
-  psmd->mesh_final = NULL;
-  psmd->mesh_original = NULL;
+  psmd->mesh_final = nullptr;
+  psmd->mesh_original = nullptr;
   /* This is written as part of ob->particlesystem. */
   BLO_read_data_address(reader, &psmd->psys);
   psmd->flag &= ~eParticleSystemFlag_psys_updated;
@@ -315,23 +315,23 @@ ModifierTypeInfo modifierType_ParticleSystem = {
     /* copyData */ copyData,
 
     /* deformVerts */ deformVerts,
-    /* deformMatrices */ NULL,
-    /* deformVertsEM */ NULL,
-    /* deformMatricesEM */ NULL,
-    /* modifyMesh */ NULL,
-    /* modifyGeometrySet */ NULL,
+    /* deformMatrices */ nullptr,
+    /* deformVertsEM */ nullptr,
+    /* deformMatricesEM */ nullptr,
+    /* modifyMesh */ nullptr,
+    /* modifyGeometrySet */ nullptr,
 
     /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,
     /* freeData */ freeData,
-    /* isDisabled */ NULL,
-    /* updateDepsgraph */ NULL,
-    /* dependsOnTime */ NULL,
-    /* dependsOnNormals */ NULL,
-    /* foreachIDLink */ NULL,
-    /* foreachTexLink */ NULL,
-    /* freeRuntimeData */ NULL,
+    /* isDisabled */ nullptr,
+    /* updateDepsgraph */ nullptr,
+    /* dependsOnTime */ nullptr,
+    /* dependsOnNormals */ nullptr,
+    /* foreachIDLink */ nullptr,
+    /* foreachTexLink */ nullptr,
+    /* freeRuntimeData */ nullptr,
     /* panelRegister */ panelRegister,
-    /* blendWrite */ NULL,
+    /* blendWrite */ nullptr,
     /* blendRead */ blendRead,
 };

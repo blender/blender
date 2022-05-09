@@ -70,7 +70,7 @@ set(SRC
   intern/MOD_normal_edit.c
   intern/MOD_ocean.c
   intern/MOD_particleinstance.c
-  intern/MOD_particlesystem.c
+  intern/MOD_particlesystem.cc
   intern/MOD_remesh.c
   intern/MOD_screw.c
   intern/MOD_shapekey.c
