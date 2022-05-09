@@ -42,6 +42,12 @@ void init_globals_curves()
   float sin_theta = sqrt(max(0.0, 1.0 - cos_theta * cos_theta));
   g_data.N = normalize(interp.N * sin_theta + interp.curves_binormal * cos_theta);
 
+  /* Costly, but follows cycles per pixel tangent space (not following curve shape). */
+  vec3 V = cameraVec(g_data.P);
+  g_data.curve_T = -interp.curves_tangent;
+  g_data.curve_B = cross(V, g_data.curve_T);
+  g_data.curve_N = safe_normalize(cross(g_data.curve_T, g_data.curve_B));
+
   g_data.is_strand = true;
   g_data.hair_time = interp.curves_time;
   g_data.hair_thickness = interp.curves_thickness;
@@ -94,6 +100,7 @@ void init_interface()
   interp.P = vec3(0.0);
   interp.N = vec3(0.0);
   interp.barycentric_coords = vec2(0.0);
+  interp.curves_tangent = vec3(0.0);
   interp.curves_binormal = vec3(0.0);
   interp.curves_time = 0.0;
   interp.curves_time_width = 0.0;

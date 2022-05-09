@@ -18,7 +18,7 @@ void node_geometry(vec3 orco,
   true_normal = g_data.Ng;
 
   if (g_data.is_strand) {
-    tangent = g_data.T;
+    tangent = g_data.curve_T;
   }
   else {
     tangent_orco_z(orco, orco);
