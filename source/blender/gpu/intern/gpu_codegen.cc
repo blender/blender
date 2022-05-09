@@ -32,6 +32,7 @@
 #include "GPU_vertex_format.h"
 
 #include "BLI_sys_types.h" /* for intptr_t support */
+#include "BLI_vector.hh"
 
 #include "gpu_codegen.h"
 #include "gpu_material_library.h"
@@ -58,6 +59,14 @@ struct GPUCodegenCreateInfo : ShaderCreateInfo {
     /** Duplicate attribute names to avoid reference the GPUNodeGraph directly. */
     char attr_names[16][GPU_MAX_SAFE_ATTR_NAME + 1];
     char var_names[16][8];
+    blender::Vector<std::array<char, 32>, 16> sampler_names;
+
+    void append_sampler_name(const char name[32])
+    {
+      std::array<char, 32> sampler_name;
+      memcpy(sampler_name.data(), name, 32);
+      sampler_names.append(sampler_name);
+    }
   };
 
   /** Optional generated interface. */
@@ -348,14 +357,28 @@ void GPUCodegen::generate_resources()
   /* Textures. */
   LISTBASE_FOREACH (GPUMaterialTexture *, tex, &graph.textures) {
     if (tex->colorband) {
-      info.sampler(0, ImageType::FLOAT_1D_ARRAY, tex->sampler_name, Frequency::BATCH);
+      info.name_buffer->append_sampler_name(tex->sampler_name);
+      info.sampler(0,
+                   ImageType::FLOAT_1D_ARRAY,
+                   info.name_buffer->sampler_names.last().data(),
+                   Frequency::BATCH);
     }
     else if (tex->tiled_mapping_name[0] != '\0') {
-      info.sampler(0, ImageType::FLOAT_2D_ARRAY, tex->sampler_name, Frequency::BATCH);
-      info.sampler(0, ImageType::FLOAT_1D_ARRAY, tex->tiled_mapping_name, Frequency::BATCH);
+      info.name_buffer->append_sampler_name(tex->sampler_name);
+      info.sampler(0,
+                   ImageType::FLOAT_2D_ARRAY,
+                   info.name_buffer->sampler_names.last().data(),
+                   Frequency::BATCH);
+      info.name_buffer->append_sampler_name(tex->tiled_mapping_name);
+      info.sampler(0,
+                   ImageType::FLOAT_1D_ARRAY,
+                   info.name_buffer->sampler_names.last().data(),
+                   Frequency::BATCH);
     }
     else {
-      info.sampler(0, ImageType::FLOAT_2D, tex->sampler_name, Frequency::BATCH);
+      info.name_buffer->append_sampler_name(tex->sampler_name);
+      info.sampler(
+          0, ImageType::FLOAT_2D, info.name_buffer->sampler_names.last().data(), Frequency::BATCH);
     }
   }
 
