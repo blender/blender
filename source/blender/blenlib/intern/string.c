@@ -914,14 +914,22 @@ size_t BLI_strnlen(const char *s, const size_t maxlen)
 /** \name String Case Conversion
  * \{ */
 
+char BLI_tolower_ascii(const char c)
+{
+  return (c >= 'A' && c <= 'Z') ? c + ('a' - 'A') : c;
+}
+
+char BLI_toupper_ascii(const char c)
+{
+  return (c >= 'a' && c <= 'z') ? c - ('a' - 'A') : c;
+}
+
 void BLI_str_tolower_ascii(char *str, const size_t len)
 {
   size_t i;
 
   for (i = 0; (i < len) && str[i]; i++) {
-    if (str[i] >= 'A' && str[i] <= 'Z') {
-      str[i] += 'a' - 'A';
-    }
+    str[i] = BLI_tolower_ascii(str[i]);
   }
 }
 
@@ -930,9 +938,7 @@ void BLI_str_toupper_ascii(char *str, const size_t len)
   size_t i;
 
   for (i = 0; (i < len) && str[i]; i++) {
-    if (str[i] >= 'a' && str[i] <= 'z') {
-      str[i] -= 'a' - 'A';
-    }
+    str[i] = BLI_toupper_ascii(str[i]);
   }
 }
 

@@ -1394,12 +1394,10 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
   const char *name = echan->m->name.c_str();
   const char *end = name + strlen(name);
   const char *token;
-  char tokenbuf[EXR_TOT_MAXNAME];
-  int len;
 
   /* some multilayers have the combined buffer with names A B G R saved */
   if (name[1] == 0) {
-    echan->chan_id = name[0];
+    echan->chan_id = BLI_toupper_ascii(name[0]);
     layname[0] = '\0';
 
     if (ELEM(name[0], 'R', 'G', 'B', 'A')) {
@@ -1416,13 +1414,17 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
   }
 
   /* last token is channel identifier */
-  len = imb_exr_split_token(name, end, &token);
+  size_t len = imb_exr_split_token(name, end, &token);
   if (len == 0) {
     printf("multilayer read: bad channel name: %s\n", name);
     return 0;
   }
+
+  char channelname[EXR_TOT_MAXNAME];
+  BLI_strncpy(channelname, token, std::min(len + 1, sizeof(channelname)));
+
   if (len == 1) {
-    echan->chan_id = token[0];
+    echan->chan_id = BLI_toupper_ascii(channelname[0]);
   }
   else if (len > 1) {
     bool ok = false;
@@ -1436,36 +1438,35 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
        *
        * Here we do some magic to distinguish such cases.
        */
-      if (ELEM(token[1], 'X', 'Y', 'Z') || ELEM(token[1], 'R', 'G', 'B') ||
-          ELEM(token[1], 'U', 'V', 'A')) {
-        echan->chan_id = token[1];
+      const char chan_id = BLI_toupper_ascii(channelname[1]);
+      if (ELEM(chan_id, 'X', 'Y', 'Z', 'R', 'G', 'B', 'U', 'V', 'A')) {
+        echan->chan_id = chan_id;
         ok = true;
       }
     }
-    else if (BLI_strcaseeq(token, "red")) {
+    else if (BLI_strcaseeq(channelname, "red")) {
       echan->chan_id = 'R';
       ok = true;
     }
-    else if (BLI_strcaseeq(token, "green")) {
+    else if (BLI_strcaseeq(channelname, "green")) {
       echan->chan_id = 'G';
       ok = true;
     }
-    else if (BLI_strcaseeq(token, "blue")) {
+    else if (BLI_strcaseeq(channelname, "blue")) {
       echan->chan_id = 'B';
       ok = true;
     }
-    else if (BLI_strcaseeq(token, "alpha")) {
+    else if (BLI_strcaseeq(channelname, "alpha")) {
       echan->chan_id = 'A';
       ok = true;
     }
-    else if (BLI_strcaseeq(token, "depth")) {
+    else if (BLI_strcaseeq(channelname, "depth")) {
       echan->chan_id = 'Z';
       ok = true;
     }
 
     if (ok == false) {
-      BLI_strncpy(tokenbuf, token, std::min(len + 1, EXR_TOT_MAXNAME));
-      printf("multilayer read: unknown channel token: %s\n", tokenbuf);
+      printf("multilayer read: unknown channel token: %s\n", channelname);
       return 0;
     }
   }
