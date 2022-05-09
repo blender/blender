@@ -190,6 +190,20 @@ static void wm_usd_export_draw(bContext *UNUSED(C), wmOperator *op)
   uiItemR(box, ptr, "use_instancing", 0, NULL, ICON_NONE);
 }
 
+static bool wm_usd_export_check(bContext *UNUSED(C), wmOperator *op)
+{
+  char filepath[FILE_MAX];
+  RNA_string_get(op->ptr, "filepath", filepath);
+
+  if (!BLI_path_extension_check_n(filepath, ".usd", ".usda", ".usdc", NULL)) {
+    BLI_path_extension_ensure(filepath, FILE_MAX, ".usdc");
+    RNA_string_set(op->ptr, "filepath", filepath);
+    return true;
+  }
+
+  return false;
+}
+
 void WM_OT_usd_export(struct wmOperatorType *ot)
 {
   ot->name = "Export USD";
@@ -200,6 +214,7 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
   ot->exec = wm_usd_export_exec;
   ot->poll = WM_operator_winactive;
   ot->ui = wm_usd_export_draw;
+  ot->check = wm_usd_export_check;
 
   ot->flag = OPTYPE_REGISTER; /* No UNDO possible. */
 
