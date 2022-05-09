@@ -37,6 +37,7 @@
 
 using blender::float3;
 using blender::IndexRange;
+using blender::MutableSpan;
 using blender::Span;
 
 /* ---------------------------------------------------------------------- */
@@ -152,9 +153,15 @@ static void ensure_seg_pt_count(const Curves &curves, CurvesEvalCache &curves_ca
   curves_cache.point_len = curves.geometry.point_size;
 }
 
-static void curves_batch_cache_fill_segments_proc_pos(const Curves &curves_id,
-                                                      GPUVertBufRaw &attr_step,
-                                                      GPUVertBufRaw &length_step)
+struct PositionAndParameter {
+  float3 position;
+  float parameter;
+};
+
+static void curves_batch_cache_fill_segments_proc_pos(
+    const Curves &curves_id,
+    MutableSpan<PositionAndParameter> posTime_data,
+    MutableSpan<float> hairLength_data)
 {
   /* TODO: use hair radius layer if available. */
   const int curve_size = curves_id.geometry.curve_size;
@@ -162,31 +169,29 @@ static void curves_batch_cache_fill_segments_proc_pos(const Curves &curves_id,
       curves_id.geometry);
   Span<float3> positions = curves.positions();
 
-  for (const int i : IndexRange(curve_size)) {
-    const IndexRange curve_range = curves.points_for_curve(i);
+  for (const int i_curve : IndexRange(curve_size)) {
+    const IndexRange points = curves.points_for_curve(i_curve);
 
-    Span<float3> curve_positions = positions.slice(curve_range);
+    Span<float3> curve_positions = positions.slice(points);
+    MutableSpan<PositionAndParameter> curve_posTime_data = posTime_data.slice(points);
+
     float total_len = 0.0f;
-    float *seg_data_first;
-    for (const int i_curve : curve_positions.index_range()) {
-      float *seg_data = (float *)GPU_vertbuf_raw_step(&attr_step);
-      copy_v3_v3(seg_data, curve_positions[i_curve]);
-      if (i_curve == 0) {
-        seg_data_first = seg_data;
+    for (const int i_point : curve_positions.index_range()) {
+      if (i_point > 0) {
+        total_len += blender::math::distance(curve_positions[i_point - 1],
+                                             curve_positions[i_point]);
       }
-      else {
-        total_len += blender::math::distance(curve_positions[i_curve - 1],
-                                             curve_positions[i_curve]);
-      }
-      seg_data[3] = total_len;
+      curve_posTime_data[i_point].position = curve_positions[i_point];
+      curve_posTime_data[i_point].parameter = total_len;
     }
+    hairLength_data[i_curve] = total_len;
+
     /* Assign length value. */
-    *(float *)GPU_vertbuf_raw_step(&length_step) = total_len;
     if (total_len > 0.0f) {
+      const float factor = 1.0f / total_len;
       /* Divide by total length to have a [0-1] number. */
-      for ([[maybe_unused]] const int i_curve : curve_positions.index_range()) {
-        seg_data_first[3] /= total_len;
-        seg_data_first += 4;
+      for (const int i_point : curve_positions.index_range()) {
+        curve_posTime_data[i_point].parameter *= factor;
       }
     }
   }
@@ -199,26 +204,26 @@ static void curves_batch_cache_ensure_procedural_pos(Curves &curves,
   if (cache.proc_point_buf == nullptr || DRW_vbo_requested(cache.proc_point_buf)) {
     /* Initialize vertex format. */
     GPUVertFormat format = {0};
-    uint pos_id = GPU_vertformat_attr_add(&format, "posTime", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, "posTime", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
     GPU_vertformat_alias_add(&format, "pos");
 
     cache.proc_point_buf = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(cache.proc_point_buf, cache.point_len);
 
-    GPUVertBufRaw point_step;
-    GPU_vertbuf_attr_get_raw_data(cache.proc_point_buf, pos_id, &point_step);
+    MutableSpan posTime_data{
+        reinterpret_cast<PositionAndParameter *>(GPU_vertbuf_get_data(cache.proc_point_buf)),
+        cache.point_len};
 
     GPUVertFormat length_format = {0};
-    uint length_id = GPU_vertformat_attr_add(
-        &length_format, "hairLength", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&length_format, "hairLength", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 
     cache.proc_length_buf = GPU_vertbuf_create_with_format(&length_format);
     GPU_vertbuf_data_alloc(cache.proc_length_buf, cache.strands_len);
 
-    GPUVertBufRaw length_step;
-    GPU_vertbuf_attr_get_raw_data(cache.proc_length_buf, length_id, &length_step);
+    MutableSpan hairLength_data{
+        reinterpret_cast<float *>(GPU_vertbuf_get_data(cache.proc_length_buf)), cache.strands_len};
 
-    curves_batch_cache_fill_segments_proc_pos(curves, point_step, length_step);
+    curves_batch_cache_fill_segments_proc_pos(curves, posTime_data, hairLength_data);
 
     /* Create vbo immediately to bind to texture buffer. */
     GPU_vertbuf_use(cache.proc_point_buf);
