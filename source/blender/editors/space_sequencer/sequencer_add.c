@@ -136,7 +136,7 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
       ot->srna,
       "overlap_shuffle_override",
       false,
-      "Override Overlap Shuffle Behaviour",
+      "Override Overlap Shuffle Behavior",
       "Use the overlap_mode tool settings to determine how to shuffle overlapping strips");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
