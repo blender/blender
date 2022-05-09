@@ -1976,7 +1976,7 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Extra User",
-      "Indicates wether an extra user is set or not (mainly for internal/debug usages)");
+      "Indicates whether an extra user is set or not (mainly for internal/debug usages)");
   RNA_def_property_boolean_funcs(prop, NULL, "rna_ID_extra_user_set");
 
   prop = RNA_def_property(srna, "is_embedded_data", PROP_BOOLEAN, PROP_NONE);
