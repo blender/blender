@@ -611,7 +611,7 @@ bool GPU_link(GPUMaterial *mat, const char *name, ...)
 
   va_start(params, name);
   for (i = 0; i < function->totparam; i++) {
-    if (function->paramqual[i] != FUNCTION_QUAL_IN) {
+    if (function->paramqual[i] == FUNCTION_QUAL_OUT) {
       linkptr = va_arg(params, GPUNodeLink **);
       gpu_node_output(node, function->paramtype[i], linkptr);
     }
@@ -669,7 +669,7 @@ static bool gpu_stack_link_v(GPUMaterial *material,
   }
 
   for (i = 0; i < function->totparam; i++) {
-    if (function->paramqual[i] != FUNCTION_QUAL_IN) {
+    if (function->paramqual[i] == FUNCTION_QUAL_OUT) {
       if (totout == 0) {
         linkptr = va_arg(params, GPUNodeLink **);
         gpu_node_output(node, function->paramtype[i], linkptr);

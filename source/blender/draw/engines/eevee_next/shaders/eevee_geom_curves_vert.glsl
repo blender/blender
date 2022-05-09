@@ -18,7 +18,7 @@ void main()
                               ViewMatrixInverse[3].xyz,
                               ViewMatrixInverse[2].xyz,
                               interp.P,
-                              T,
+                              interp.curves_tangent,
                               interp.curves_binormal,
                               interp.curves_time,
                               interp.curves_thickness,

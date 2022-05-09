@@ -92,7 +92,7 @@ vec4 closure_to_rgba(Closure closure)
   return vec4(0.0);
 }
 
-Closure closure_mix(Closure cl1, Closure cl2, float fac)
+Closure closure_mix(inout Closure cl1, inout Closure cl2, float fac)
 {
   Closure cl;
   cl.absorption = mix(cl1.absorption, cl2.absorption, fac);
@@ -102,7 +102,7 @@ Closure closure_mix(Closure cl1, Closure cl2, float fac)
   return cl;
 }
 
-Closure closure_add(Closure cl1, Closure cl2)
+Closure closure_add(inout Closure cl1, inout Closure cl2)
 {
   Closure cl;
   cl.absorption = cl1.absorption + cl2.absorption;
