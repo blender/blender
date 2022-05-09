@@ -379,4 +379,11 @@ Curves *curves_new_nomain_single(const int points_num, const CurveType type)
   return curves;
 }
 
+Curves *curves_new_nomain(CurvesGeometry curves)
+{
+  Curves *curves_id = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
+  bke::CurvesGeometry::wrap(curves_id->geometry) = std::move(curves);
+  return curves_id;
+}
+
 }  // namespace blender::bke

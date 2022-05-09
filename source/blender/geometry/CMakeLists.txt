@@ -19,12 +19,14 @@ set(SRC
   intern/mesh_to_curve_convert.cc
   intern/point_merge_by_distance.cc
   intern/realize_instances.cc
+  intern/resample_curves.cc
   intern/uv_parametrizer.c
 
   GEO_mesh_merge_by_distance.hh
   GEO_mesh_to_curve.hh
   GEO_point_merge_by_distance.hh
   GEO_realize_instances.hh
+  GEO_resample_curves.hh
   GEO_uv_parametrizer.h
 )
 

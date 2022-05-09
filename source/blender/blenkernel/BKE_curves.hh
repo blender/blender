@@ -671,6 +671,7 @@ void interpolate_to_evaluated(const BasisCache &basis_cache,
 }  // namespace curves
 
 Curves *curves_new_nomain(int points_num, int curves_num);
+Curves *curves_new_nomain(CurvesGeometry curves);
 
 /**
  * Create a new curves data-block containing a single curve with the given length and type.
