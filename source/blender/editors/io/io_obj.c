@@ -231,6 +231,8 @@ static bool wm_obj_export_check(bContext *C, wmOperator *op)
 
 void WM_OT_obj_export(struct wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   ot->name = "Export Wavefront OBJ";
   ot->description = "Save the scene to a Wavefront OBJ file";
   ot->idname = "WM_OT_obj_export";
@@ -244,7 +246,7 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
   ot->flag |= OPTYPE_PRESET;
 
   WM_operator_properties_filesel(ot,
-                                 FILE_TYPE_FOLDER | FILE_TYPE_OBJECT_IO,
+                                 FILE_TYPE_FOLDER,
                                  FILE_BLENDER,
                                  FILE_SAVE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_SHOW_PROPS,
@@ -358,6 +360,10 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
       "Every smooth-shaded face is assigned group \"1\" and every flat-shaded face \"off\"");
   RNA_def_boolean(
       ot->srna, "smooth_group_bitflags", false, "Generate Bitflags for Smooth Groups", "");
+
+  /* Only show .obj or .mtl files by default. */
+  prop = RNA_def_string(ot->srna, "filter_glob", "*.obj;*.mtl", 0, "Extension Filter", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 static int wm_obj_import_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
@@ -415,6 +421,8 @@ static void wm_obj_import_draw(bContext *C, wmOperator *op)
 
 void WM_OT_obj_import(struct wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   ot->name = "Import Wavefront OBJ";
   ot->description = "Load a Wavefront OBJ scene";
   ot->idname = "WM_OT_obj_import";
@@ -425,7 +433,7 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
   ot->ui = wm_obj_import_draw;
 
   WM_operator_properties_filesel(ot,
-                                 FILE_TYPE_FOLDER | FILE_TYPE_OBJECT_IO,
+                                 FILE_TYPE_FOLDER,
                                  FILE_BLENDER,
                                  FILE_OPENFILE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_SHOW_PROPS,
@@ -453,4 +461,8 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
                   false,
                   "Validate Meshes",
                   "Check imported mesh objects for invalid data (slow)");
+
+  /* Only show .obj or .mtl files by default. */
+  prop = RNA_def_string(ot->srna, "filter_glob", "*.obj;*.mtl", 0, "Extension Filter", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }

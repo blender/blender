@@ -208,12 +208,15 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 
         EDBM_selectmode_flush_ex(lcd->em, SCE_SELECT_VERTEX);
       }
-      /* we can't slide multiple edges in vertex select mode */
+      /* We can't slide multiple edges in vertex select mode, force edge select mode. Do this for
+       * all meshes in multi-object editmode so their selectmode is in sync for following
+       * operators. */
       else if (is_macro && (cuts > 1) && (em->selectmode & SCE_SELECT_VERTEX)) {
-        EDBM_selectmode_disable(lcd->vc.scene, em, SCE_SELECT_VERTEX, SCE_SELECT_EDGE);
+        EDBM_selectmode_disable_multi(C, SCE_SELECT_VERTEX, SCE_SELECT_EDGE);
       }
-      /* Force edge slide to edge select mode in face select mode. */
-      else if (EDBM_selectmode_disable(lcd->vc.scene, em, SCE_SELECT_FACE, SCE_SELECT_EDGE)) {
+      /* Force edge slide to edge select mode in face select mode. Do this for all meshes in
+       * multi-object editmode so their selectmode is in sync for following operators. */
+      else if (EDBM_selectmode_disable_multi(C, SCE_SELECT_FACE, SCE_SELECT_EDGE)) {
         /* pass, the change will flush selection */
       }
       else {

@@ -5,10 +5,13 @@
 #include "BLI_string_ref.hh"
 
 /*
- * Various text parsing utilities commonly used by text-based input formats.
+ * Various text parsing utilities used by OBJ importer.
+ * The utilities are not directly usable by other formats, since
+ * they treat backslash (\) as a whitespace character (OBJ format
+ * allows backslashes to function as a line-continuation character).
  */
 
-namespace blender::io {
+namespace blender::io::obj {
 
 /**
  * Fetches next line from an input string buffer.
@@ -18,7 +21,7 @@ namespace blender::io {
  * the input line.
  *
  * Note that backslash (\) character is treated as a line
- * continuation, similar to OBJ file format or a C preprocessor.
+ * continuation.
  */
 StringRef read_next_line(StringRef &buffer);
 
@@ -66,4 +69,4 @@ StringRef parse_float(StringRef str, float fallback, float &dst, bool skip_space
  */
 StringRef parse_floats(StringRef str, float fallback, float *dst, int count);
 
-}  // namespace blender::io
+}  // namespace blender::io::obj

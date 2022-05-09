@@ -632,7 +632,8 @@
     .falloff = 4.0f, \
     .mesh_verts_num = 0, \
     .bind_verts_num = 0, \
-    .polys_num = 0, \
+    .target_verts_num = 0, \
+    .target_polys_num = 0, \
     .flags = 0, \
     .mat = _DNA_DEFAULT_UNIT_M4, \
     .strength = 1.0f, \

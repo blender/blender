@@ -8,7 +8,7 @@
  * A view is either:
  * - The entire main view.
  * - A portion of the main view (for panoramic projections).
- * - A lightprobe view (either planar, cubemap, irradiance grid).
+ * - A light-probe view (either planar, cube-map, irradiance grid).
  *
  * A pass is a container for scene data. It is view agnostic but has specific logic depending on
  * its type. Passes are shared between views.
@@ -73,16 +73,16 @@ class ShadingView {
 
   ~ShadingView(){};
 
-  void init(void);
+  void init();
 
   void sync(int2 render_extent_);
 
-  void render(void);
+  void render();
 
   GPUTexture *render_post(GPUTexture *input_tx);
 
  private:
-  void update_view(void);
+  void update_view();
 };
 
 /** \} */
@@ -135,14 +135,14 @@ class MainView {
     }
   }
 
-  void sync(void)
+  void sync()
   {
     for (auto i : IndexRange(6)) {
       shading_views_[i].sync(render_extent_);
     }
   }
 
-  void render(void)
+  void render()
   {
     for (auto i : IndexRange(6)) {
       shading_views_[i].render();

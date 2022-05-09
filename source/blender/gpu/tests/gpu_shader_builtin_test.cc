@@ -35,6 +35,7 @@ static void test_shader_builtin()
   test_compile_builtin_shader(GPU_SHADER_2D_UNIFORM_COLOR, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_FLAT_COLOR, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_SMOOTH_COLOR, GPU_SHADER_CFG_DEFAULT);
+  test_compile_builtin_shader(GPU_SHADER_3D_IMAGE, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_IMAGE, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_IMAGE_COLOR, GPU_SHADER_CFG_DEFAULT);
   test_compile_builtin_shader(GPU_SHADER_2D_IMAGE_DESATURATE_COLOR, GPU_SHADER_CFG_DEFAULT);

@@ -618,6 +618,7 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
         for (size_t k = 0; k < size; k++) {
           attr_uchar4[offset + k] = data[k];
         }
+        attr_uchar4.tag_modified();
       }
       attr_uchar4_offset += size;
     }
@@ -630,6 +631,7 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
         for (size_t k = 0; k < size; k++) {
           attr_float[offset + k] = data[k];
         }
+        attr_float.tag_modified();
       }
       attr_float_offset += size;
     }
@@ -642,6 +644,7 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
         for (size_t k = 0; k < size; k++) {
           attr_float2[offset + k] = data[k];
         }
+        attr_float2.tag_modified();
       }
       attr_float2_offset += size;
     }
@@ -654,6 +657,7 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
         for (size_t k = 0; k < size * 3; k++) {
           attr_float4[offset + k] = (&tfm->x)[k];
         }
+        attr_float4.tag_modified();
       }
       attr_float4_offset += size * 3;
     }
@@ -666,6 +670,7 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
         for (size_t k = 0; k < size; k++) {
           attr_float4[offset + k] = data[k];
         }
+        attr_float4.tag_modified();
       }
       attr_float4_offset += size;
     }
@@ -678,6 +683,7 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
         for (size_t k = 0; k < size; k++) {
           attr_float3[offset + k] = data[k];
         }
+        attr_float3.tag_modified();
       }
       attr_float3_offset += size;
     }

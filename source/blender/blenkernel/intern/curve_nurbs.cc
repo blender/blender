@@ -36,7 +36,7 @@ int calculate_evaluated_size(const int points_num,
                              const KnotsMode knots_mode)
 {
   if (!check_valid_size_and_order(points_num, order, cyclic, knots_mode)) {
-    return 0;
+    return points_num;
   }
   return resolution * curve_segment_size(points_num, cyclic);
 }
@@ -232,8 +232,12 @@ void interpolate_to_evaluated(const BasisCache &basis_cache,
                               const GSpan src,
                               GMutableSpan dst)
 {
-  BLI_assert(dst.size() == basis_cache.start_indices.size());
+  if (basis_cache.invalid) {
+    dst.copy_from(src);
+    return;
+  }
 
+  BLI_assert(dst.size() == basis_cache.start_indices.size());
   attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {

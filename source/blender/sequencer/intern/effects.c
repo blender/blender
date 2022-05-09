@@ -2432,7 +2432,7 @@ static ImBuf *do_multicam(const SeqRenderData *context,
     return NULL;
   }
   ListBase *seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
-  ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, seq);
+  ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, &ed->channels, seq);
   if (!seqbasep) {
     return NULL;
   }
@@ -2468,7 +2468,7 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, fl
   ed = context->scene->ed;
 
   ListBase *seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
-  ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, seq);
+  ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, &ed->channels, seq);
 
   /* Clamp timeline_frame to strip range so it behaves as if it had "still frame" offset (last
    * frame is static after end of strip). This is how most strips behave. This way transition
@@ -2712,7 +2712,6 @@ static ImBuf *do_speed_effect(const SeqRenderData *context,
   ImBuf *out;
 
   if (s->flags & SEQ_SPEED_USE_INTERPOLATION) {
-    out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
     fac = speed_effect_interpolation_ratio_get(context->scene, seq, timeline_frame);
     /* Current frame is ibuf1, next frame is ibuf2. */
     out = seq_render_effect_execute_threaded(

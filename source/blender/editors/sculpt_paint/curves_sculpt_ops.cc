@@ -74,12 +74,12 @@ using blender::bke::CurvesGeometry;
 /** \name * SCULPT_CURVES_OT_brush_stroke
  * \{ */
 
-static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(bContext *C,
-                                                                          wmOperator *op)
+static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(bContext &C,
+                                                                          wmOperator &op)
 {
-  const BrushStrokeMode mode = static_cast<BrushStrokeMode>(RNA_enum_get(op->ptr, "mode"));
+  const BrushStrokeMode mode = static_cast<BrushStrokeMode>(RNA_enum_get(op.ptr, "mode"));
 
-  Scene &scene = *CTX_data_scene(C);
+  Scene &scene = *CTX_data_scene(&C);
   CurvesSculpt &curves_sculpt = *scene.toolsettings->curves_sculpt;
   Brush &brush = *BKE_paint_brush(&curves_sculpt.paint);
   switch (brush.curves_sculpt_tool) {
@@ -90,9 +90,9 @@ static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(bConte
     case CURVES_SCULPT_TOOL_SNAKE_HOOK:
       return new_snake_hook_operation();
     case CURVES_SCULPT_TOOL_ADD:
-      return new_add_operation();
+      return new_add_operation(C, op.reports);
     case CURVES_SCULPT_TOOL_GROW_SHRINK:
-      return new_grow_shrink_operation(mode, C);
+      return new_grow_shrink_operation(mode, &C);
   }
   BLI_assert_unreachable();
   return {};
@@ -131,7 +131,7 @@ static void stroke_update_step(bContext *C,
 
   if (!op_data->operation) {
     stroke_extension.is_first = true;
-    op_data->operation = start_brush_operation(C, op);
+    op_data->operation = start_brush_operation(*C, *op);
   }
   else {
     stroke_extension.is_first = false;
@@ -149,6 +149,12 @@ static void stroke_done(const bContext *C, PaintStroke *stroke)
 
 static int sculpt_curves_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  Paint *paint = BKE_paint_get_active_from_context(C);
+  Brush *brush = BKE_paint_brush(paint);
+  if (brush == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
   SculptCurvesBrushStrokeData *op_data = MEM_new<SculptCurvesBrushStrokeData>(__func__);
   op_data->stroke = paint_stroke_new(C,
                                      op,

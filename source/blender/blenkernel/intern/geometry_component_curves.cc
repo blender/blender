@@ -237,6 +237,69 @@ VArray<float3> curve_normals_varray(const CurveComponent &component, const Attri
   return nullptr;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Curve Length Field Input
+ * \{ */
+
+static VArray<float> construct_curve_length_gvarray(const CurveComponent &component,
+                                                    const AttributeDomain domain)
+{
+  if (!component.has_curves()) {
+    return {};
+  }
+  const Curves &curves_id = *component.get_for_read();
+  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+
+  curves.ensure_evaluated_lengths();
+
+  VArray<bool> cyclic = curves.cyclic();
+  VArray<float> lengths = VArray<float>::ForFunc(
+      curves.curves_num(), [&curves, cyclic = std::move(cyclic)](int64_t index) {
+        return curves.evaluated_length_total_for_curve(index, cyclic[index]);
+      });
+
+  if (domain == ATTR_DOMAIN_CURVE) {
+    return lengths;
+  }
+
+  if (domain == ATTR_DOMAIN_POINT) {
+    return component.attribute_try_adapt_domain<float>(
+        std::move(lengths), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
+  }
+
+  return {};
+}
+
+CurveLengthFieldInput::CurveLengthFieldInput()
+    : GeometryFieldInput(CPPType::get<float>(), "Spline Length node")
+{
+  category_ = Category::Generated;
+}
+
+GVArray CurveLengthFieldInput::get_varray_for_context(const GeometryComponent &component,
+                                                      const AttributeDomain domain,
+                                                      IndexMask UNUSED(mask)) const
+{
+  if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
+    const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
+    return construct_curve_length_gvarray(curve_component, domain);
+  }
+  return {};
+}
+
+uint64_t CurveLengthFieldInput::hash() const
+{
+  /* Some random constant hash. */
+  return 3549623580;
+}
+
+bool CurveLengthFieldInput::is_equal_to(const fn::FieldNode &other) const
+{
+  return dynamic_cast<const CurveLengthFieldInput *>(&other) != nullptr;
+}
+
 }  // namespace blender::bke
 
 /** \} */

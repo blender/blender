@@ -4,7 +4,6 @@ set(INC
   .
   ./exporter
   ./importer
-  ../common
   ../../blenkernel
   ../../blenlib
   ../../bmesh
@@ -15,6 +14,7 @@ set(INC
   ../../makesrna
   ../../nodes
   ../../windowmanager
+  ../../../../extern/fast_float
   ../../../../extern/fmtlib/include
   ../../../../intern/guardedalloc
 )
@@ -35,6 +35,7 @@ set(SRC
   importer/obj_import_mesh.cc
   importer/obj_import_mtl.cc
   importer/obj_import_nurbs.cc
+  importer/obj_import_string_utils.cc
   importer/obj_importer.cc
 
   IO_wavefront_obj.h
@@ -50,12 +51,12 @@ set(SRC
   importer/obj_import_mtl.hh
   importer/obj_import_nurbs.hh
   importer/obj_import_objects.hh
+  importer/obj_import_string_utils.hh
   importer/obj_importer.hh
 )
 
 set(LIB
   bf_blenkernel
-  bf_io_common
 )
 
 if(WITH_TBB)
@@ -69,8 +70,10 @@ blender_add_lib(bf_wavefront_obj "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 if(WITH_GTESTS)
   set(TEST_SRC
     tests/obj_exporter_tests.cc
+    tests/obj_import_string_utils_tests.cc
     tests/obj_importer_tests.cc
     tests/obj_mtl_parser_tests.cc
+
     tests/obj_exporter_tests.hh
   )
 

@@ -1145,3 +1145,11 @@ class TextureNode(NodeInternal):
     @classmethod
     def poll(cls, ntree):
         return ntree.bl_idname == 'TextureNodeTree'
+
+
+class GeometryNode(NodeInternal):
+    __slots__ = ()
+
+    @classmethod
+    def poll(cls, ntree):
+        return ntree.bl_idname == 'GeometryNodeTree'

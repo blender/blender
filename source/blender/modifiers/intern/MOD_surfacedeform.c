@@ -1166,8 +1166,8 @@ static bool surfacedeformBind(Object *ob,
                               SurfaceDeformModifierData *smd_eval,
                               float (*vertexCos)[3],
                               uint verts_num,
-                              uint tpolys_num,
-                              uint tverts_num,
+                              uint target_polys_num,
+                              uint target_verts_num,
                               Mesh *target,
                               Mesh *mesh)
 {
@@ -1182,7 +1182,7 @@ static bool surfacedeformBind(Object *ob,
   SDefAdjacency *adj_array;
   SDefEdgePolys *edge_polys;
 
-  vert_edges = MEM_calloc_arrayN(tverts_num, sizeof(*vert_edges), "SDefVertEdgeMap");
+  vert_edges = MEM_calloc_arrayN(target_verts_num, sizeof(*vert_edges), "SDefVertEdgeMap");
   if (vert_edges == NULL) {
     BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Out of memory");
     return false;
@@ -1220,7 +1220,7 @@ static bool surfacedeformBind(Object *ob,
   }
 
   adj_result = buildAdjacencyMap(
-      mpoly, medge, mloop, tpolys_num, tedges_num, vert_edges, adj_array, edge_polys);
+      mpoly, medge, mloop, target_polys_num, tedges_num, vert_edges, adj_array, edge_polys);
 
   if (adj_result == MOD_SDEF_BIND_RESULT_NONMANY_ERR) {
     BKE_modifier_set_error(
@@ -1233,7 +1233,8 @@ static bool surfacedeformBind(Object *ob,
   }
 
   smd_orig->mesh_verts_num = verts_num;
-  smd_orig->polys_num = tpolys_num;
+  smd_orig->target_verts_num = target_verts_num;
+  smd_orig->target_polys_num = target_polys_num;
 
   int defgrp_index;
   MDeformVert *dvert;
@@ -1249,7 +1250,8 @@ static bool surfacedeformBind(Object *ob,
       .medge = medge,
       .mloop = mloop,
       .looptri = BKE_mesh_runtime_looptri_ensure(target),
-      .targetCos = MEM_malloc_arrayN(tverts_num, sizeof(float[3]), "SDefTargetBindVertArray"),
+      .targetCos = MEM_malloc_arrayN(
+          target_verts_num, sizeof(float[3]), "SDefTargetBindVertArray"),
       .bind_verts = smd_orig->verts,
       .vertexCos = vertexCos,
       .falloff = smd_orig->falloff,
@@ -1268,7 +1270,7 @@ static bool surfacedeformBind(Object *ob,
 
   invert_m4_m4(data.imat, smd_orig->mat);
 
-  for (int i = 0; i < tverts_num; i++) {
+  for (int i = 0; i < target_verts_num; i++) {
     mul_v3_m4v3(data.targetCos[i], smd_orig->mat, mvert[i].co);
   }
 
@@ -1431,7 +1433,7 @@ static void surfacedeformModifier_do(ModifierData *md,
 {
   SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
   Mesh *target;
-  uint tverts_num, tpolys_num;
+  uint target_verts_num, target_polys_num;
 
   /* Exit function if bind flag is not set (free bind data if any). */
   if (!(smd->flags & MOD_SDEF_BIND)) {
@@ -1453,8 +1455,8 @@ static void surfacedeformModifier_do(ModifierData *md,
     return;
   }
 
-  tverts_num = BKE_mesh_wrapper_vert_len(target);
-  tpolys_num = BKE_mesh_wrapper_poly_len(target);
+  target_verts_num = BKE_mesh_wrapper_vert_len(target);
+  target_polys_num = BKE_mesh_wrapper_poly_len(target);
 
   /* If not bound, execute bind. */
   if (smd->verts == NULL) {
@@ -1473,24 +1475,61 @@ static void surfacedeformModifier_do(ModifierData *md,
     /* Avoid converting edit-mesh data, binding is an exception. */
     BKE_mesh_wrapper_ensure_mdata(target);
 
-    if (!surfacedeformBind(
-            ob, smd_orig, smd, vertexCos, verts_num, tpolys_num, tverts_num, target, mesh)) {
+    if (!surfacedeformBind(ob,
+                           smd_orig,
+                           smd,
+                           vertexCos,
+                           verts_num,
+                           target_polys_num,
+                           target_verts_num,
+                           target,
+                           mesh)) {
       smd->flags &= ~MOD_SDEF_BIND;
     }
     /* Early abort, this is binding 'call', no need to perform whole evaluation. */
     return;
   }
 
-  /* Poly count checks */
+  /* Geometry count on the deforming mesh. */
   if (smd->mesh_verts_num != verts_num) {
     BKE_modifier_set_error(
         ob, md, "Vertices changed from %u to %u", smd->mesh_verts_num, verts_num);
     return;
   }
-  if (smd->polys_num != tpolys_num) {
+
+  /* Geometry count on the target mesh. */
+  if (smd->target_polys_num != target_polys_num && smd->target_verts_num == 0) {
+    /* Change in the number of polygons does not really imply change in the vertex count, but
+     * this is how the modifier worked before the vertex count was known. Follow the legacy
+     * logic without requirement to re-bind the mesh. */
     BKE_modifier_set_error(
-        ob, md, "Target polygons changed from %u to %u", smd->polys_num, tpolys_num);
+        ob, md, "Target polygons changed from %u to %u", smd->target_polys_num, target_polys_num);
     return;
+  }
+  if (smd->target_verts_num != 0 && smd->target_verts_num != target_verts_num) {
+    if (smd->target_verts_num > target_verts_num) {
+      /* Number of vertices on the target did reduce. There is no usable recovery from this. */
+      BKE_modifier_set_error(ob,
+                             md,
+                             "Target vertices changed from %u to %u",
+                             smd->target_verts_num,
+                             target_verts_num);
+      return;
+    }
+
+    /* Assume the increase in the vertex count means that the "new" vertices in the target mesh are
+     * added after the original ones. This covers typical case when target was at the subdivision
+     * level 0 and then subdivision was increased (i.e. for the render purposes). */
+
+    BKE_modifier_set_error(ob,
+                           md,
+                           "Target vertices changed from %u to %u, continuing anyway",
+                           smd->target_verts_num,
+                           target_verts_num);
+
+    /* In theory we only need the `smd->verts_num` vertices in the `targetCos` for evaluation, but
+     * it is not currently possible to request a subset of coordinates: the API expects that the
+     * caller needs coordinates of all vertices and asserts for it. */
   }
 
   /* Early out if modifier would not affect input at all - still *after* the sanity checks
@@ -1507,7 +1546,7 @@ static void surfacedeformModifier_do(ModifierData *md,
   /* Actual vertex location update starts here */
   SDefDeformData data = {
       .bind_verts = smd->verts,
-      .targetCos = MEM_malloc_arrayN(tverts_num, sizeof(float[3]), "SDefTargetVertArray"),
+      .targetCos = MEM_malloc_arrayN(target_verts_num, sizeof(float[3]), "SDefTargetVertArray"),
       .vertexCos = vertexCos,
       .dvert = dvert,
       .defgrp_index = defgrp_index,
@@ -1516,7 +1555,8 @@ static void surfacedeformModifier_do(ModifierData *md,
   };
 
   if (data.targetCos != NULL) {
-    BKE_mesh_wrapper_vert_coords_copy_with_mat4(target, data.targetCos, tverts_num, smd->mat);
+    BKE_mesh_wrapper_vert_coords_copy_with_mat4(
+        target, data.targetCos, target_verts_num, smd->mat);
 
     TaskParallelSettings settings;
     BLI_parallel_range_settings_defaults(&settings);

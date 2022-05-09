@@ -40,12 +40,21 @@ const EnumPropertyItem rna_enum_attribute_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_color_attribute_type_items[] = {
+    {CD_PROP_COLOR, "FLOAT_COLOR", 0, "Color", "RGBA color 32-bit floating-point values"},
+    {CD_PROP_BYTE_COLOR,
+     "BYTE_COLOR",
+     0,
+     "Byte Color",
+     "RGBA color with 8-bit positive integer values"},
+    {0, NULL, 0, NULL, NULL}};
+
 const EnumPropertyItem rna_enum_attribute_type_with_auto_items[] = {
     {CD_AUTO_FROM_NAME, "AUTO", 0, "Auto", ""},
     {CD_PROP_FLOAT, "FLOAT", 0, "Float", "Floating-point value"},
     {CD_PROP_INT32, "INT", 0, "Integer", "32-bit integer"},
     {CD_PROP_FLOAT3, "FLOAT_VECTOR", 0, "Vector", "3D vector with floating-point values"},
-    {CD_PROP_COLOR, "FLOAT_COLOR", 0, "Color", "RGBA color 32-bit floating-point values"},
+    {CD_PROP_COLOR, "FLOAT_COLOR", 0, "Color", "RGBA color with 32-bit floating-point values"},
     {CD_PROP_BYTE_COLOR,
      "BYTE_COLOR",
      0,
@@ -91,6 +100,11 @@ const EnumPropertyItem rna_enum_attribute_domain_with_auto_items[] = {
     {ATTR_DOMAIN_INSTANCE, "INSTANCE", 0, "Instance", "Attribute on instance"},
     {0, NULL, 0, NULL, NULL},
 };
+
+const EnumPropertyItem rna_enum_color_attribute_domain_items[] = {
+    {ATTR_DOMAIN_POINT, "POINT", 0, "Vertex", ""},
+    {ATTR_DOMAIN_CORNER, "CORNER", 0, "Face Corner", ""},
+    {0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 

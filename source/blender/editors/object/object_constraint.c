@@ -1715,7 +1715,7 @@ static int constraint_copy_to_selected_exec(bContext *C, wmOperator *op)
 
     Object *prev_ob = NULL;
 
-    /* Copy all constraints from active posebone to all selected posebones. */
+    /* Copy all constraints from active pose-bone to all selected pose-bones. */
     CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, chan, selected_pose_bones, Object *, ob) {
       /* If we're not handling the object we're copying from, copy all constraints over. */
       if (pchan == chan) {
@@ -2115,7 +2115,7 @@ static int pose_constraint_copy_exec(bContext *C, wmOperator *op)
 
   Object *prev_ob = NULL;
 
-  /* copy all constraints from active posebone to all selected posebones */
+  /* Copy all constraints from active pose-bone to all selected pose-bones. */
   CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, chan, selected_pose_bones, Object *, ob) {
     /* if we're not handling the object we're copying from, copy all constraints over */
     if (pchan != chan) {

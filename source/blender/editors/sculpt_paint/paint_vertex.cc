@@ -4145,13 +4145,7 @@ static bool vertex_color_set(Object *ob, ColorPaint4f paintcol_in, Color *color_
 }
 
 /**
- * Fills the object's active color atribute layer with the fill color.
- *
- * \param[in] ob: The object.
- * \param[in] fill_color: The fill color.
- * \param[in] only_selected: Limit the fill to selected faces or vertices.
- *
- * \return #true if successful.
+ * See doc-string for #BKE_object_attributes_active_color_fill.
  */
 static bool paint_object_attributes_active_color_fill_ex(Object *ob,
                                                          ColorPaint4f fill_color,

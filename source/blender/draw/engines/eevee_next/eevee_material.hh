@@ -104,7 +104,7 @@ static inline eMaterialGeometry to_material_geometry(const Object *ob)
   }
 }
 
-/** Unique key to identify each material in the hashmap. */
+/** Unique key to identify each material in the hash-map. */
 struct MaterialKey {
   Material *mat;
   uint64_t options;
@@ -115,7 +115,7 @@ struct MaterialKey {
     options = shader_uuid_from_material_type(surface_pipeline, geometry);
   }
 
-  uint64_t hash(void) const
+  uint64_t hash() const
   {
     BLI_assert(options < sizeof(*mat));
     return (uint64_t)mat + options;
@@ -150,7 +150,7 @@ struct ShaderKey {
     options = (options << 16u) | shader_closure_bits_from_flag(gpumat);
   }
 
-  uint64_t hash(void) const
+  uint64_t hash() const
   {
     return (uint64_t)shader + options;
   }
@@ -169,7 +169,7 @@ struct ShaderKey {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Default Material Nodetree
+/** \name Default Material Node-Tree
  *
  * In order to support materials without nodetree we reuse and configure a standalone nodetree that
  * we pass for shader generation. The GPUMaterial is still stored inside the Material even if
@@ -238,7 +238,7 @@ class MaterialModule {
   MaterialModule(Instance &inst);
   ~MaterialModule();
 
-  void begin_sync(void);
+  void begin_sync();
 
   MaterialArray &material_array_get(Object *ob);
   Material &material_get(Object *ob, int mat_nr, eMaterialGeometry geometry_type);

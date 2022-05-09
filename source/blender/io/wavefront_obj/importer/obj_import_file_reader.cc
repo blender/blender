@@ -8,9 +8,8 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
-#include "IO_string_utils.hh"
-
 #include "obj_import_file_reader.hh"
+#include "obj_import_string_utils.hh"
 
 namespace blender::io::obj {
 
@@ -71,7 +70,7 @@ static void geom_add_vertex(Geometry *geom,
                             GlobalVertices &r_global_vertices)
 {
   float3 vert;
-  parse_floats(line, FLT_MAX, vert, 3);
+  parse_floats(line, 0.0f, vert, 3);
   r_global_vertices.vertices.append(vert);
   geom->vertex_count_++;
 }
@@ -81,7 +80,7 @@ static void geom_add_vertex_normal(Geometry *geom,
                                    GlobalVertices &r_global_vertices)
 {
   float3 normal;
-  parse_floats(line, FLT_MAX, normal, 3);
+  parse_floats(line, 0.0f, normal, 3);
   r_global_vertices.vertex_normals.append(normal);
   geom->has_vertex_normals_ = true;
 }
@@ -89,7 +88,7 @@ static void geom_add_vertex_normal(Geometry *geom,
 static void geom_add_uv_vertex(const StringRef line, GlobalVertices &r_global_vertices)
 {
   float2 uv;
-  parse_floats(line, FLT_MAX, uv, 2);
+  parse_floats(line, 0.0f, uv, 2);
   r_global_vertices.uv_vertices.append(uv);
 }
 
@@ -128,6 +127,7 @@ static void geom_add_polygon(Geometry *geom,
   curr_face.start_index_ = orig_corners_size;
 
   bool face_valid = true;
+  line = drop_whitespace(line);
   while (!line.is_empty() && face_valid) {
     PolyCorner corner;
     bool got_uv = false, got_normal = false;
@@ -320,8 +320,8 @@ static bool parse_keyword(StringRef &line, StringRef keyword)
   if (!line.startswith(keyword)) {
     return false;
   }
-  /* Treat any ASCII control character as whitespace; don't use isspace() for performance reasons.
-   */
+  /* Treat any ASCII control character as white-space;
+   * don't use `isspace()` for performance reasons. */
   if (line[keyword_len] > ' ') {
     return false;
   }
@@ -399,6 +399,7 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
     StringRef buffer_str{buffer.data(), (int64_t)last_nl};
     while (!buffer_str.is_empty()) {
       StringRef line = read_next_line(buffer_str);
+      line = drop_whitespace(line);
       ++line_number;
       if (line.is_empty()) {
         continue;
@@ -461,7 +462,7 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
         }
       }
       else if (parse_keyword(line, "mtllib")) {
-        mtl_libraries_.append(line.trim());
+        add_mtl_library(line.trim());
       }
       /* Comments. */
       else if (line.startswith("#")) {
@@ -484,9 +485,6 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
       else if (line.startswith("end")) {
         /* End of curve definition, nothing else to do. */
       }
-      else if (line.front() <= ' ') {
-        /* Just whitespace, skip. */
-      }
       else {
         std::cout << "OBJ element not recognized: '" << line << "'" << std::endl;
       }
@@ -498,6 +496,8 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
     memmove(buffer.data(), buffer.data() + last_nl, left_size);
     buffer_offset = left_size;
   }
+
+  add_default_mtl_library();
 }
 
 static eMTLSyntaxElement mtl_line_start_to_enum(StringRef &line)
@@ -556,7 +556,7 @@ static bool parse_texture_option(StringRef &line, MTLMaterial *material, tex_map
     return true;
   }
   if (parse_keyword(line, "-bm")) {
-    line = parse_float(line, 0.0f, material->map_Bump_strength);
+    line = parse_float(line, 1.0f, material->map_Bump_strength);
     return true;
   }
   if (parse_keyword(line, "-type")) {
@@ -616,7 +616,36 @@ Span<std::string> OBJParser::mtl_libraries() const
   return mtl_libraries_;
 }
 
-MTLParser::MTLParser(StringRef mtl_library, StringRefNull obj_filepath)
+void OBJParser::add_mtl_library(StringRef path)
+{
+  /* Remove any quotes from start and end (T67266, T97794). */
+  if (path.size() > 2 && path.startswith("\"") && path.endswith("\"")) {
+    path = path.drop_prefix(1).drop_suffix(1);
+  }
+
+  if (!mtl_libraries_.contains(path)) {
+    mtl_libraries_.append(path);
+  }
+}
+
+void OBJParser::add_default_mtl_library()
+{
+  /* Add any existing .mtl file that's with the same base name as the .obj file
+   * into candidate .mtl files to search through. This is not technically following the
+   * spec, but the old python importer was doing it, and there are user files out there
+   * that contain "mtllib bar.mtl" for a foo.obj, and depend on finding materials
+   * from foo.mtl (see T97757). */
+  char mtl_file_path[FILE_MAX];
+  BLI_strncpy(mtl_file_path, import_params_.filepath, sizeof(mtl_file_path));
+  BLI_path_extension_replace(mtl_file_path, sizeof(mtl_file_path), ".mtl");
+  if (BLI_exists(mtl_file_path)) {
+    char mtl_file_base[FILE_MAX];
+    BLI_split_file_part(mtl_file_path, mtl_file_base, sizeof(mtl_file_base));
+    add_mtl_library(mtl_file_base);
+  }
+}
+
+MTLParser::MTLParser(StringRefNull mtl_library, StringRefNull obj_filepath)
 {
   char obj_file_dir[FILE_MAXDIR];
   BLI_split_dir_part(obj_filepath.data(), obj_file_dir, FILE_MAXDIR);
@@ -645,11 +674,12 @@ void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_mat
 
     if (parse_keyword(line, "newmtl")) {
       line = line.trim();
-      if (r_materials.remove_as(line)) {
-        std::cerr << "Duplicate material found:'" << line
-                  << "', using the last encountered Material definition." << std::endl;
+      if (r_materials.contains(line)) {
+        material = nullptr;
       }
-      material = r_materials.lookup_or_add(string(line), std::make_unique<MTLMaterial>()).get();
+      else {
+        material = r_materials.lookup_or_add(string(line), std::make_unique<MTLMaterial>()).get();
+      }
     }
     else if (material != nullptr) {
       if (parse_keyword(line, "Ns")) {
@@ -674,7 +704,10 @@ void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_mat
         parse_float(line, 1.0f, material->d);
       }
       else if (parse_keyword(line, "illum")) {
-        parse_int(line, 2, material->illum);
+        /* Some files incorrectly use a float (T60135). */
+        float val;
+        parse_float(line, 1.0f, val);
+        material->illum = val;
       }
       else {
         parse_texture_map(line, material, mtl_dir_path_);

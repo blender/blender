@@ -8,12 +8,14 @@
 #include <pxr/usd/usd/common.h>
 
 struct Depsgraph;
+struct Main;
 
 namespace blender::io::usd {
 
 class USDHierarchyIterator;
 
 struct USDExporterContext {
+  Main *bmain;
   Depsgraph *depsgraph;
   const pxr::UsdStageRefPtr stage;
   const pxr::SdfPath usd_path;

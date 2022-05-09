@@ -761,7 +761,8 @@ static int sound_pack_exec(bContext *C, wmOperator *op)
 
   sound->packedfile = BKE_packedfile_new(
       op->reports, sound->filepath, ID_BLEND_PATH(bmain, &sound->id));
-  BKE_sound_load(bmain, sound);
+
+  DEG_id_tag_update_ex(bmain, &sound->id, ID_RECALC_AUDIO);
 
   return OPERATOR_FINISHED;
 }

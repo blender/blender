@@ -46,6 +46,8 @@ void register_node_type_tex_at(void);
 
 void register_node_type_tex_compose(void);
 void register_node_type_tex_decompose(void);
+void register_node_type_tex_combine_color(void);
+void register_node_type_tex_separate_color(void);
 
 void register_node_type_tex_proc_voronoi(void);
 void register_node_type_tex_proc_blend(void);

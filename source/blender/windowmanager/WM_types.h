@@ -812,6 +812,10 @@ typedef struct wmXrActionData {
   char action_set[64];
   /** Action name. */
   char action[64];
+  /** User path. E.g. "/user/hand/left" */
+  char user_path[64];
+  /** Other user path, for bimanual actions. E.g. "/user/hand/right" */
+  char user_path_other[64];
   /** Type. */
   eXrActionType type;
   /** State. Set appropriately based on type. */
@@ -1193,8 +1197,9 @@ typedef struct wmDropBox {
                        struct wmDrag *drag,
                        const int xy[2]);
 
-  /** Called with the draw buffer (#GPUViewport) set up for drawing into the region's view.
-   * \note Only setups the drawing buffer for drawing in view, not the GPU transform matricies.
+  /**
+   * Called with the draw buffer (#GPUViewport) set up for drawing into the region's view.
+   * \note Only setups the drawing buffer for drawing in view, not the GPU transform matrices.
    * The callback has to do that itself, with for example #UI_view2d_view_ortho.
    * \param xy: Cursor location in window coordinates (#wmEvent.xy compatible).
    */

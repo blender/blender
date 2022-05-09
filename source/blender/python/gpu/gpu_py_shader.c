@@ -46,6 +46,9 @@
   "``3D_FLAT_COLOR``\n" \
   "   :Attributes: vec3 pos, vec4 color\n" \
   "   :Uniforms: none\n" \
+  "``3D_IMAGE``\n" \
+  "   :Attributes: vec3 pos, vec2 texCoord\n" \
+  "   :Uniforms: sampler2D image\n" \
   "``3D_SMOOTH_COLOR``\n" \
   "   :Attributes: vec3 pos, vec4 color\n" \
   "   :Uniforms: none\n" \
@@ -68,6 +71,7 @@ static const struct PyC_StringEnumItems pygpu_shader_builtin_items[] = {
     {GPU_SHADER_2D_SMOOTH_COLOR, "2D_SMOOTH_COLOR"},
     {GPU_SHADER_2D_UNIFORM_COLOR, "2D_UNIFORM_COLOR"},
     {GPU_SHADER_3D_FLAT_COLOR, "3D_FLAT_COLOR"},
+    {GPU_SHADER_3D_IMAGE, "3D_IMAGE"},
     {GPU_SHADER_3D_SMOOTH_COLOR, "3D_SMOOTH_COLOR"},
     {GPU_SHADER_3D_UNIFORM_COLOR, "3D_UNIFORM_COLOR"},
     {GPU_SHADER_3D_POLYLINE_FLAT_COLOR, "3D_POLYLINE_FLAT_COLOR"},

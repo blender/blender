@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "IO_string_utils.hh"
+#include "obj_import_string_utils.hh"
 
 /* Note: we could use C++17 <charconv> from_chars to parse
  * floats, but even if some compilers claim full support,
@@ -11,7 +11,7 @@
 #include "fast_float.h"
 #include <charconv>
 
-namespace blender::io {
+namespace blender::io::obj {
 
 StringRef read_next_line(StringRef &buffer)
 {
@@ -96,4 +96,4 @@ StringRef parse_int(StringRef str, int fallback, int &dst, bool skip_space)
   return StringRef(res.ptr, str.end());
 }
 
-}  // namespace blender::io
+}  // namespace blender::io::obj

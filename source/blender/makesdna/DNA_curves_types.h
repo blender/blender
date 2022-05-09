@@ -9,6 +9,8 @@
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
 
+#include "BLI_utildefines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -87,6 +89,9 @@ typedef struct CurvesGeometry {
    * this array is allocated with a length one larger than the number of curves. This is allowed
    * to be null when there are no curves.
    *
+   * Every curve offset must be at least one larger than the previous.
+   * In other words, every curve must have at least one point.
+   *
    * \note This is *not* stored in #CustomData because its size is one larger than #curve_data.
    */
   int *curve_offsets;
@@ -130,7 +135,13 @@ typedef struct Curves {
   /* Materials. */
   struct Material **mat;
   short totcol;
-  short _pad2[3];
+
+  /**
+   * User-defined symmetry flag (#eCurvesSymmetryType) that causes editing operations to maintain
+   * symmetrical geometry.
+   */
+  char symmetry;
+  char _pad2[5];
 
   /**
    * Used as base mesh when curves represent e.g. hair or fur. This surface is used in edit modes.
@@ -149,6 +160,14 @@ typedef struct Curves {
 enum {
   HA_DS_EXPAND = (1 << 0),
 };
+
+/** #Curves.symmetry */
+typedef enum eCurvesSymmetryType {
+  CURVES_SYMMETRY_X = 1 << 0,
+  CURVES_SYMMETRY_Y = 1 << 1,
+  CURVES_SYMMETRY_Z = 1 << 2,
+} eCurvesSymmetryType;
+ENUM_OPERATORS(eCurvesSymmetryType, CURVES_SYMMETRY_Z)
 
 /* Only one material supported currently. */
 #define CURVES_MATERIAL_NR 1

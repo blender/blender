@@ -331,15 +331,8 @@ void gpu_node_graph_finalize_uniform_attrs(GPUNodeGraph *graph)
 static char attr_prefix_get(CustomDataType type)
 {
   switch (type) {
-    case CD_MTFACE:
-      return 'u';
     case CD_TANGENT:
       return 't';
-    case CD_MCOL:
-    case CD_PROP_BYTE_COLOR:
-      return 'c';
-    case CD_PROP_COLOR:
-      return 'c';
     case CD_AUTO_FROM_NAME:
       return 'a';
     case CD_HAIRLENGTH:
@@ -372,11 +365,6 @@ static GPUMaterialAttribute *gpu_node_graph_add_attribute(GPUNodeGraph *graph,
                                                           CustomDataType type,
                                                           const char *name)
 {
-  /* Fall back to the UV layer, which matches old behavior. */
-  if (type == CD_AUTO_FROM_NAME && name[0] == '\0') {
-    type = CD_MTFACE;
-  }
-
   /* Find existing attribute. */
   int num_attributes = 0;
   GPUMaterialAttribute *attr = graph->attributes.first;

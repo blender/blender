@@ -110,7 +110,7 @@ void calculate_normals_minimum(const Span<float3> tangents,
     normals.first() = math::normalize(float3(first_tangent.y, -first_tangent.x, 0.0f));
   }
 
-  /* Forward normal with minimum twist along the entire spline. */
+  /* Forward normal with minimum twist along the entire curve. */
   for (const int i : IndexRange(1, normals.size() - 1)) {
     normals[i] = calculate_next_normal(normals[i - 1], tangents[i - 1], tangents[i]);
   }
@@ -120,7 +120,7 @@ void calculate_normals_minimum(const Span<float3> tangents,
   }
 
   /* Compute how much the first normal deviates from the normal that has been forwarded along the
-   * entire cyclic spline. */
+   * entire cyclic curve. */
   const float3 uncorrected_last_normal = calculate_next_normal(
       normals.last(), tangents.last(), tangents.first());
   float correction_angle = angle_signed_on_axis_v3v3_v3(

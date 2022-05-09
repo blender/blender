@@ -1,4 +1,4 @@
-#pragma BLENDER_REQUIRE(gpu_shader_material_color_util.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_common_color_utils.glsl)
 
 void combine_hsv(float h, float s, float v, out vec4 col)
 {

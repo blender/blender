@@ -155,15 +155,6 @@ float attr_load_float(sampler3D tex)
 {
   return texture(tex, grid_coordinates()).r;
 }
-vec4 attr_load_color(sampler3D tex)
-{
-  return texture(tex, grid_coordinates());
-}
-vec3 attr_load_uv(sampler3D attr)
-{
-  attr_id += 1;
-  return vec3(0);
-}
 
 /* TODO(@fclem): These implementation details should concern the DRWManager and not be a fix on
  * the engine side. But as of now, the engines are reponsible for loading the attributes. */

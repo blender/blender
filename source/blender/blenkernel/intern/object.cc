@@ -2114,7 +2114,7 @@ static const char *get_obdata_defname(int type)
     case OB_SPEAKER:
       return DATA_("Speaker");
     case OB_CURVES:
-      return DATA_("HairCurves");
+      return DATA_("Curves");
     case OB_POINTCLOUD:
       return DATA_("PointCloud");
     case OB_VOLUME:

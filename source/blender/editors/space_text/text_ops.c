@@ -97,8 +97,9 @@ static char text_closing_character_pair_get(const char character)
  * This function converts the indentation tabs from a buffer to spaces.
  * \param in_buf: A pointer to a cstring.
  * \param tab_size: The size, in spaces, of the tab character.
+ * \param r_out_buf_len: The #strlen of the returned buffer.
  */
-static char *buf_tabs_to_spaces(const char *in_buf, const int tab_size)
+static char *buf_tabs_to_spaces(const char *in_buf, const int tab_size, int *r_out_buf_len)
 {
   /* Get the number of tab characters in buffer. */
   bool line_start = true;
@@ -148,6 +149,7 @@ static char *buf_tabs_to_spaces(const char *in_buf, const int tab_size)
   }
 
   out_buf[out_offset] = '\0';
+  *r_out_buf_len = out_offset;
   return out_buf;
 }
 
@@ -916,7 +918,7 @@ static int text_paste_exec(bContext *C, wmOperator *op)
 
   /* Convert clipboard content indentation to spaces if specified */
   if (text->flags & TXT_TABSTOSPACES) {
-    char *new_buf = buf_tabs_to_spaces(buf, TXT_TABSIZE);
+    char *new_buf = buf_tabs_to_spaces(buf, TXT_TABSIZE, &buf_len);
     MEM_freeN(buf);
     buf = new_buf;
   }

@@ -188,7 +188,7 @@ static void extract_vert_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
-  /* Each element points to an element in the ibo.points. */
+  /* Each element points to an element in the `ibo.points`. */
   draw_subdiv_init_origindex_buffer(
       vbo,
       (int32_t *)GPU_vertbuf_get_data(subdiv_cache->verts_orig_index),

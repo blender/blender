@@ -22,6 +22,8 @@
 #include "IMB_filetype.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+#include "IMB_metadata.h"
+#include "IMB_thumbs.h"
 #include "imbuf.h"
 
 #include "IMB_colormanagement.h"
@@ -230,6 +232,61 @@ ImBuf *IMB_loadiffname(const char *filepath, int flags, char colorspace[IM_MAX_S
   }
 
   close(file);
+
+  return ibuf;
+}
+
+struct ImBuf *IMB_thumb_load_image(const char *filepath,
+                                   size_t max_thumb_size,
+                                   char colorspace[IM_MAX_SPACE])
+{
+  const ImFileType *type = IMB_file_type_from_ftype(IMB_ispic_type(filepath));
+  if (type == NULL) {
+    return NULL;
+  }
+
+  ImBuf *ibuf = NULL;
+  int flags = IB_rect | IB_metadata;
+  /* Size of the original image. */
+  size_t width = 0;
+  size_t height = 0;
+
+  char effective_colorspace[IM_MAX_SPACE] = "";
+  if (colorspace) {
+    BLI_strncpy(effective_colorspace, colorspace, sizeof(effective_colorspace));
+  }
+
+  if (type->load_filepath_thumbnail) {
+    ibuf = type->load_filepath_thumbnail(
+        filepath, flags, max_thumb_size, colorspace, &width, &height);
+  }
+  else {
+    /* Skip images of other types if over 100MB. */
+    const size_t file_size = BLI_file_size(filepath);
+    if (file_size != -1 && file_size > THUMB_SIZE_MAX) {
+      return NULL;
+    }
+    ibuf = IMB_loadiffname(filepath, flags, colorspace);
+    if (ibuf) {
+      width = ibuf->x;
+      height = ibuf->y;
+    }
+  }
+
+  if (ibuf) {
+    imb_handle_alpha(ibuf, flags, colorspace, effective_colorspace);
+
+    if (width > 0 && height > 0) {
+      /* Save dimensions of original image into the thumbnail metadata. */
+      char cwidth[40];
+      char cheight[40];
+      SNPRINTF(cwidth, "%zu", width);
+      SNPRINTF(cheight, "%zu", height);
+      IMB_metadata_ensure(&ibuf->metadata);
+      IMB_metadata_set_field(ibuf->metadata, "Thumb::Image::Width", cwidth);
+      IMB_metadata_set_field(ibuf->metadata, "Thumb::Image::Height", cheight);
+    }
+  }
 
   return ibuf;
 }

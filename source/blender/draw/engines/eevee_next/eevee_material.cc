@@ -154,7 +154,7 @@ MaterialModule::~MaterialModule()
   BKE_id_free(nullptr, error_mat_);
 }
 
-void MaterialModule::begin_sync(void)
+void MaterialModule::begin_sync()
 {
   queued_shaders_count_ = 0;
 

@@ -4,71 +4,6 @@
 
 #include "BKE_curves.hh"
 
-namespace blender::nodes {
-
-/* --------------------------------------------------------------------
- * Spline Length
- */
-
-static VArray<float> construct_spline_length_gvarray(const CurveComponent &component,
-                                                     const AttributeDomain domain)
-{
-  if (!component.has_curves()) {
-    return {};
-  }
-  const Curves &curves_id = *component.get_for_read();
-  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
-
-  curves.ensure_evaluated_lengths();
-
-  VArray<bool> cyclic = curves.cyclic();
-  VArray<float> lengths = VArray<float>::ForFunc(
-      curves.curves_num(), [&curves, cyclic = std::move(cyclic)](int64_t index) {
-        return curves.evaluated_length_total_for_curve(index, cyclic[index]);
-      });
-
-  if (domain == ATTR_DOMAIN_CURVE) {
-    return lengths;
-  }
-
-  if (domain == ATTR_DOMAIN_POINT) {
-    return component.attribute_try_adapt_domain<float>(
-        std::move(lengths), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
-  }
-
-  return {};
-}
-
-SplineLengthFieldInput::SplineLengthFieldInput()
-    : GeometryFieldInput(CPPType::get<float>(), "Spline Length node")
-{
-  category_ = Category::Generated;
-}
-
-GVArray SplineLengthFieldInput::get_varray_for_context(const GeometryComponent &component,
-                                                       const AttributeDomain domain,
-                                                       IndexMask UNUSED(mask)) const
-{
-  if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
-    const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-    return construct_spline_length_gvarray(curve_component, domain);
-  }
-  return {};
-}
-
-uint64_t SplineLengthFieldInput::hash() const
-{
-  /* Some random constant hash. */
-  return 3549623580;
-}
-
-bool SplineLengthFieldInput::is_equal_to(const fn::FieldNode &other) const
-{
-  return dynamic_cast<const SplineLengthFieldInput *>(&other) != nullptr;
-}
-
-}  // namespace blender::nodes
-
 namespace blender::nodes::node_geo_input_spline_length_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -81,8 +16,8 @@ static void node_declare(NodeDeclarationBuilder &b)
  * Spline Count
  */
 
-static VArray<int> construct_spline_count_gvarray(const CurveComponent &component,
-                                                  const AttributeDomain domain)
+static VArray<int> construct_curve_point_count_gvarray(const CurveComponent &component,
+                                                       const AttributeDomain domain)
 {
   if (!component.has_curves()) {
     return {};
@@ -117,7 +52,7 @@ class SplineCountFieldInput final : public GeometryFieldInput {
   {
     if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
       const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-      return construct_spline_count_gvarray(curve_component, domain);
+      return construct_curve_point_count_gvarray(curve_component, domain);
     }
     return {};
   }
@@ -136,7 +71,7 @@ class SplineCountFieldInput final : public GeometryFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Field<float> spline_length_field{std::make_shared<SplineLengthFieldInput>()};
+  Field<float> spline_length_field{std::make_shared<bke::CurveLengthFieldInput>()};
   Field<int> spline_count_field{std::make_shared<SplineCountFieldInput>()};
 
   params.set_output("Length", std::move(spline_length_field));

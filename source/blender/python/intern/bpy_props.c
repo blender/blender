@@ -4111,6 +4111,8 @@ StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix)
     if (PyErr_Occurred()) {
       PyObject *msg = PyC_ExceptionBuffer();
       const char *msg_char = PyUnicode_AsUTF8(msg);
+      PyErr_Clear();
+
       PyErr_Format(
           PyExc_TypeError, "%.200s expected an RNA type, failed with: %s", error_prefix, msg_char);
       Py_DECREF(msg);

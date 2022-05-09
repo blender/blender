@@ -740,7 +740,13 @@ static bool modifier_apply_obdata(
     }
     else {
       Mesh *mesh_applied = modifier_apply_create_mesh_for_modifier(
-          depsgraph, ob, md_eval, true, true);
+          depsgraph,
+          ob,
+          md_eval,
+          /* It's important not to apply virtual modifiers (e.g. shape-keys) because they're kept,
+           * causing them to be applied twice, see: T97758. */
+          false,
+          true);
       if (!mesh_applied) {
         BKE_report(reports, RPT_ERROR, "Modifier returned error, skipping apply");
         return false;
@@ -1434,8 +1440,10 @@ static int modifier_apply_exec_ex(bContext *C, wmOperator *op, int apply_as, boo
   Scene *scene = CTX_data_scene(C);
   Object *ob = ED_object_active_context(C);
   ModifierData *md = edit_modifier_property_get(op, ob, 0);
+  const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
   const bool do_report = RNA_boolean_get(op->ptr, "report");
   const bool do_single_user = RNA_boolean_get(op->ptr, "single_user");
+  const bool do_merge_customdata = RNA_boolean_get(op->ptr, "merge_customdata");
 
   if (md == nullptr) {
     return OPERATOR_CANCELLED;
@@ -1458,6 +1466,11 @@ static int modifier_apply_exec_ex(bContext *C, wmOperator *op, int apply_as, boo
   if (!ED_object_modifier_apply(
           bmain, op->reports, depsgraph, scene, ob, md, apply_as, keep_modifier)) {
     return OPERATOR_CANCELLED;
+  }
+
+  if (do_merge_customdata &&
+      (mti->type & (eModifierTypeType_Constructive | eModifierTypeType_Nonconstructive))) {
+    BKE_mesh_merge_customdata_for_apply_modifier((Mesh *)ob->data);
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -1518,6 +1531,12 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
   edit_modifier_properties(ot);
   edit_modifier_report_property(ot);
 
+  RNA_def_boolean(
+      ot->srna,
+      "merge_customdata",
+      true,
+      "Merge UV's",
+      "Merge UV coordinates that share a vertex to account for imprecision in some modifiers");
   PropertyRNA *prop = RNA_def_boolean(ot->srna,
                                       "single_user",
                                       false,
@@ -1599,9 +1618,16 @@ static int modifier_convert_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = ED_object_active_context(C);
   ModifierData *md = edit_modifier_property_get(op, ob, 0);
+  const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
+  const bool do_merge_customdata = RNA_boolean_get(op->ptr, "merge_customdata");
 
   if (!md || !ED_object_modifier_convert(op->reports, bmain, depsgraph, view_layer, ob, md)) {
     return OPERATOR_CANCELLED;
+  }
+
+  if (do_merge_customdata &&
+      (mti->type & (eModifierTypeType_Constructive | eModifierTypeType_Nonconstructive))) {
+    BKE_mesh_merge_customdata_for_apply_modifier((Mesh *)ob->data);
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -1631,6 +1657,13 @@ void OBJECT_OT_modifier_convert(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
   edit_modifier_properties(ot);
+
+  RNA_def_boolean(
+      ot->srna,
+      "merge_customdata",
+      true,
+      "Merge UV's",
+      "Merge UV coordinates that share a vertex to account for imprecision in some modifiers");
 }
 
 /** \} */

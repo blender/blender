@@ -48,7 +48,7 @@ GPU_SHADER_CREATE_INFO(overlay_volume_velocity_needle)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Volume Gridlines
+/** \name Volume Grid-Lines
  * \{ */
 
 GPU_SHADER_INTERFACE_INFO(overlay_volume_gridlines_iface, "").flat(Type::VEC4, "finalColor");

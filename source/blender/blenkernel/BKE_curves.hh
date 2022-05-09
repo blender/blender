@@ -48,6 +48,13 @@ struct BasisCache {
    * In other words, the index of the first control point that influences this evaluated point.
    */
   Vector<int> start_indices;
+
+  /**
+   * The result of #check_valid_size_and_order, to avoid retrieving its inputs later on.
+   * If this is true, the data above will be invalid, and original data should be copied
+   * to the evaluated result.
+   */
+  bool invalid = false;
 };
 
 }  // namespace curves::nurbs
@@ -174,11 +181,18 @@ class CurvesGeometry : public ::CurvesGeometry {
   /** Update the cached count of curves of each type, necessary after #curve_types_for_write. */
   void update_curve_types();
 
-  bool has_curve_with_type(const CurveType type) const;
+  bool has_curve_with_type(CurveType type) const;
   /** Return true if all of the curves have the provided type. */
   bool is_single_type(CurveType type) const;
   /** Return the number of curves with each type. */
   const std::array<int, CURVE_TYPES_NUM> &curve_type_counts() const;
+  /**
+   * All of the curve indices for curves with a specific type.
+   */
+  IndexMask indices_for_curve_type(CurveType type, Vector<int64_t> &r_indices) const;
+  IndexMask indices_for_curve_type(CurveType type,
+                                   IndexMask selection,
+                                   Vector<int64_t> &r_indices) const;
 
   Span<float3> positions() const;
   MutableSpan<float3> positions_for_write();
@@ -276,11 +290,6 @@ class CurvesGeometry : public ::CurvesGeometry {
   bool bounds_min_max(float3 &min, float3 &max) const;
 
  private:
-  /**
-   * All of the curve indices for curves with a specific type.
-   */
-  IndexMask indices_for_curve_type(CurveType type, Vector<int64_t> &r_indices) const;
-
   /* --------------------------------------------------------------------
    * Evaluation.
    */
@@ -412,7 +421,7 @@ namespace curves {
 inline int curve_segment_size(const int points_num, const bool cyclic)
 {
   BLI_assert(points_num > 0);
-  return cyclic ? points_num : points_num - 1;
+  return (cyclic && points_num > 1) ? points_num : points_num - 1;
 }
 
 inline float2 encode_surface_bary_coord(const float3 &v)
@@ -760,7 +769,7 @@ inline IndexRange CurvesGeometry::lengths_range_for_curve(const int curve_index,
   BLI_assert(cyclic == this->cyclic()[curve_index]);
   const IndexRange points = this->evaluated_points_for_curve(curve_index);
   const int start = points.start() + curve_index;
-  return {start, points.is_empty() ? 0 : curves::curve_segment_size(points.size(), cyclic)};
+  return {start, curves::curve_segment_size(points.size(), cyclic)};
 }
 
 inline Span<float> CurvesGeometry::evaluated_lengths_for_curve(const int curve_index,
@@ -775,8 +784,7 @@ inline float CurvesGeometry::evaluated_length_total_for_curve(const int curve_in
                                                               const bool cyclic) const
 {
   const Span<float> lengths = this->evaluated_lengths_for_curve(curve_index, cyclic);
-  /* Check for curves that have no evaluated segments. */
-  return lengths.is_empty() ? 0.0f : lengths.last();
+  return lengths.last();
 }
 
 /** \} */

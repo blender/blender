@@ -1101,6 +1101,16 @@ int rna_show_statusbar_vram_editable(struct PointerRNA *UNUSED(ptr), const char 
   return GPU_mem_stats_supported() ? PROP_EDITABLE : 0;
 }
 
+static int rna_userdef_experimental_use_new_curve_tools_editable(struct PointerRNA *UNUSED(ptr),
+                                                                 const char **r_info)
+{
+  if (U.experimental.use_new_curves_type) {
+    return PROP_EDITABLE;
+  }
+  *r_info = "Only available when new curves type is enabled";
+  return 0;
+}
+
 #else
 
 #  define USERDEF_TAG_DIRTY_PROPERTY_UPDATE_ENABLE \
@@ -6393,6 +6403,12 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_new_curves_type", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_new_curves_type", 1);
   RNA_def_property_ui_text(prop, "New Curves Type", "Enable the new curves data type in the UI");
+
+  prop = RNA_def_property(srna, "use_new_curves_tools", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_new_curves_tools", 1);
+  RNA_def_property_editable_func(prop, "rna_userdef_experimental_use_new_curve_tools_editable");
+  RNA_def_property_ui_text(
+      prop, "New Curves Tools", "Enable additional features for the new curves data block");
 
   prop = RNA_def_property(srna, "use_cycles_debug", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_cycles_debug", 1);

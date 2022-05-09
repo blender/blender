@@ -27,7 +27,7 @@ void register_node_type_cmp_seprgba()
 
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SEPRGBA, "Separate RGBA", NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, CMP_NODE_SEPRGBA_LEGACY, "Separate RGBA", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_seprgba_declare;
 
   nodeRegisterType(&ntype);
@@ -54,7 +54,7 @@ void register_node_type_cmp_combrgba()
 
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_COMBRGBA, "Combine RGBA", NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, CMP_NODE_COMBRGBA_LEGACY, "Combine RGBA", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_combrgba_declare;
 
   nodeRegisterType(&ntype);

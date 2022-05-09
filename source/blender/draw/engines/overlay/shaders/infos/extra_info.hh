@@ -284,7 +284,7 @@ GPU_SHADER_INTERFACE_INFO(overlay_particle_iface, "").flat(Type::VEC4, "finalCol
 
 GPU_SHADER_CREATE_INFO(overlay_particle)
     .sampler(0, ImageType::FLOAT_1D, "weightTex")
-    .push_constant(Type::VEC4, "color") /* Drawsize packed in alpha */
+    .push_constant(Type::VEC4, "color") /* Draw-size packed in alpha. */
     .vertex_in(0, Type::VEC3, "part_pos")
     .vertex_in(1, Type::VEC4, "part_rot")
     .vertex_in(2, Type::FLOAT, "part_val")

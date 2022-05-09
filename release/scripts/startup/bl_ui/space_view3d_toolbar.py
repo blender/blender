@@ -1049,6 +1049,36 @@ class VIEW3D_PT_sculpt_symmetry_for_topbar(Panel):
     draw = VIEW3D_PT_sculpt_symmetry.draw
 
 
+class VIEW3D_PT_curves_sculpt_symmetry(Panel, View3DPaintPanel):
+    bl_context = ".curves_sculpt"  # dot on purpose (access from topbar)
+    bl_label = "Symmetry"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.object and context.object.type == 'CURVES'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        curves = context.object.data
+
+        row = layout.row(align=True, heading="Mirror")
+        row.prop(curves, "use_mirror_x", text="X", toggle=True)
+        row.prop(curves, "use_mirror_y", text="Y", toggle=True)
+        row.prop(curves, "use_mirror_z", text="Z", toggle=True)
+
+
+class VIEW3D_PT_curves_sculpt_symmetry_for_topbar(Panel):
+    bl_space_type = 'TOPBAR'
+    bl_region_type = 'HEADER'
+    bl_label = "Symmetry"
+
+    draw = VIEW3D_PT_curves_sculpt_symmetry.draw
+
+
 # ********** default tools for weight-paint ****************
 
 
@@ -1921,7 +1951,7 @@ class VIEW3D_PT_tools_grease_pencil_sculpt_brush_advanced(GreasePencilSculptAdva
             return False
 
         tool = brush.gpencil_sculpt_tool
-        return  tool != 'CLONE'
+        return tool != 'CLONE'
 
 
 class VIEW3D_PT_tools_grease_pencil_sculpt_brush_popover(GreasePencilSculptAdvancedPanel, View3DPanel, Panel):
@@ -1939,7 +1969,7 @@ class VIEW3D_PT_tools_grease_pencil_sculpt_brush_popover(GreasePencilSculptAdvan
             return False
 
         tool = brush.gpencil_sculpt_tool
-        return  tool != 'CLONE'
+        return tool != 'CLONE'
 
 
 # Grease Pencil weight painting tools
@@ -2350,6 +2380,9 @@ classes = (
     VIEW3D_PT_sculpt_symmetry_for_topbar,
     VIEW3D_PT_sculpt_options,
     VIEW3D_PT_sculpt_options_gravity,
+
+    VIEW3D_PT_curves_sculpt_symmetry,
+    VIEW3D_PT_curves_sculpt_symmetry_for_topbar,
 
     VIEW3D_PT_tools_weightpaint_symmetry,
     VIEW3D_PT_tools_weightpaint_symmetry_for_topbar,

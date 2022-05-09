@@ -13,6 +13,7 @@ struct BMesh;
 struct GPUIndexBuf;
 struct GPUUniformBuf;
 struct GPUVertBuf;
+struct GPUVertFormat;
 struct Mesh;
 struct MeshBatchCache;
 struct MeshBufferCache;
@@ -159,8 +160,8 @@ typedef struct DRWSubdivCache {
   /* Contains the start loop index and the smooth flag for each coarse polygon. */
   struct GPUVertBuf *extra_coarse_face_data;
 
-  /* Computed for ibo.points, one value per subdivided vertex, mapping coarse vertices ->
-   * subdivided loop */
+  /* Computed for `ibo.points`, one value per subdivided vertex,
+   * mapping coarse vertices -> subdivided loop. */
   int *point_indices;
 
   /* Material offsets. */
@@ -283,6 +284,10 @@ void draw_subdiv_build_edituv_stretch_angle_buffer(const DRWSubdivCache *cache,
                                                    struct GPUVertBuf *uvs,
                                                    int uvs_offset,
                                                    struct GPUVertBuf *stretch_angles);
+
+/** Return the format used for the positions and normals VBO.
+ */
+struct GPUVertFormat *draw_subdiv_get_pos_nor_format(void);
 
 #ifdef __cplusplus
 }

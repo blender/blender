@@ -199,6 +199,7 @@ set(SRC
   intern/mesh_iterators.c
   intern/mesh_mapping.c
   intern/mesh_merge.c
+  intern/mesh_merge_customdata.cc
   intern/mesh_mirror.c
   intern/mesh_normals.cc
   intern/mesh_remap.c
@@ -241,8 +242,8 @@ set(SRC
   intern/particle_child.c
   intern/particle_distribute.c
   intern/particle_system.c
-  intern/pbvh.cc
   intern/pbvh.c
+  intern/pbvh.cc
   intern/pbvh_bmesh.c
   intern/pbvh_pixels.cc
   intern/pointcache.c

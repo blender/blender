@@ -77,16 +77,6 @@ vec4 attr_load_tangent(samplerBuffer cd_buf)
   return vec4(hairTangent, 1.0);
 }
 
-vec3 attr_load_uv(samplerBuffer cd_buf)
-{
-  return texelFetch(cd_buf, hairStrandID).rgb;
-}
-
-vec4 attr_load_color(samplerBuffer cd_buf)
-{
-  return texelFetch(cd_buf, hairStrandID).rgba;
-}
-
 vec4 attr_load_vec4(samplerBuffer cd_buf)
 {
   return texelFetch(cd_buf, hairStrandID).rgba;
@@ -145,14 +135,6 @@ vec2 attr_load_vec2(vec2 attr)
   return attr;
 }
 float attr_load_float(float attr)
-{
-  return attr;
-}
-vec4 attr_load_color(vec4 attr)
-{
-  return attr;
-}
-vec3 attr_load_uv(vec3 attr)
 {
   return attr;
 }

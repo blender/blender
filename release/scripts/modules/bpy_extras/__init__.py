@@ -16,4 +16,5 @@ __all__ = (
     "mesh_utils",
     "node_utils",
     "view3d_utils",
+    "id_map_utils",
 )

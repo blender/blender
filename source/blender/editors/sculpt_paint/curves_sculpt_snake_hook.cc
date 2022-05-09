@@ -136,10 +136,10 @@ struct SnakeHookOperatorExecutor {
     }
 
     if (falloff_shape_ == PAINT_FALLOFF_SHAPE_SPHERE) {
-      this->spherical_snake_hook();
+      this->spherical_snake_hook_with_symmetry();
     }
     else if (falloff_shape_ == PAINT_FALLOFF_SHAPE_TUBE) {
-      this->projected_snake_hook();
+      this->projected_snake_hook_with_symmetry();
     }
     else {
       BLI_assert_unreachable();
@@ -150,8 +150,19 @@ struct SnakeHookOperatorExecutor {
     ED_region_tag_redraw(region_);
   }
 
-  void projected_snake_hook()
+  void projected_snake_hook_with_symmetry()
   {
+    const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
+        eCurvesSymmetryType(curves_id_->symmetry));
+    for (const float4x4 &brush_transform : symmetry_brush_transforms) {
+      this->projected_snake_hook(brush_transform);
+    }
+  }
+
+  void projected_snake_hook(const float4x4 &brush_transform)
+  {
+    const float4x4 brush_transform_inv = brush_transform.inverted();
+
     MutableSpan<float3> positions_cu = curves_->positions_for_write();
 
     float4x4 projection;
@@ -161,7 +172,7 @@ struct SnakeHookOperatorExecutor {
       for (const int curve_i : curves_range) {
         const IndexRange points = curves_->points_for_curve(curve_i);
         const int last_point_i = points.last();
-        const float3 old_pos_cu = positions_cu[last_point_i];
+        const float3 old_pos_cu = brush_transform_inv * positions_cu[last_point_i];
 
         float2 old_pos_re;
         ED_view3d_project_float_v2_m4(region_, old_pos_cu, old_pos_re, projection.values);
@@ -179,17 +190,15 @@ struct SnakeHookOperatorExecutor {
         float3 new_position_wo;
         ED_view3d_win_to_3d(
             v3d_, region_, curves_to_world_mat_ * old_pos_cu, new_position_re, new_position_wo);
-        const float3 new_position_cu = world_to_curves_mat_ * new_position_wo;
+        const float3 new_position_cu = brush_transform * (world_to_curves_mat_ * new_position_wo);
 
         this->move_last_point_and_resample(positions_cu.slice(points), new_position_cu);
       }
     });
   }
 
-  void spherical_snake_hook()
+  void spherical_snake_hook_with_symmetry()
   {
-    MutableSpan<float3> positions_cu = curves_->positions_for_write();
-
     float4x4 projection;
     ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);
 
@@ -206,9 +215,23 @@ struct SnakeHookOperatorExecutor {
                         brush_end_wo);
     const float3 brush_start_cu = world_to_curves_mat_ * brush_start_wo;
     const float3 brush_end_cu = world_to_curves_mat_ * brush_end_wo;
-    const float3 brush_diff_cu = brush_end_cu - brush_start_cu;
 
     const float brush_radius_cu = self_->brush_3d_.radius_cu;
+
+    const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
+        eCurvesSymmetryType(curves_id_->symmetry));
+    for (const float4x4 &brush_transform : symmetry_brush_transforms) {
+      this->spherical_snake_hook(
+          brush_transform * brush_start_cu, brush_transform * brush_end_cu, brush_radius_cu);
+    }
+  }
+
+  void spherical_snake_hook(const float3 &brush_start_cu,
+                            const float3 &brush_end_cu,
+                            const float brush_radius_cu)
+  {
+    MutableSpan<float3> positions_cu = curves_->positions_for_write();
+    const float3 brush_diff_cu = brush_end_cu - brush_start_cu;
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
 
     threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {

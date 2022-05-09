@@ -10,6 +10,7 @@
 #include "usd_writer_mesh.h"
 #include "usd_writer_metaball.h"
 #include "usd_writer_transform.h"
+#include "usd_writer_volume.h"
 
 #include <string>
 
@@ -28,10 +29,11 @@
 
 namespace blender::io::usd {
 
-USDHierarchyIterator::USDHierarchyIterator(Depsgraph *depsgraph,
+USDHierarchyIterator::USDHierarchyIterator(Main *bmain,
+                                           Depsgraph *depsgraph,
                                            pxr::UsdStageRefPtr stage,
                                            const USDExportParams &params)
-    : AbstractHierarchyIterator(depsgraph), stage_(stage), params_(params)
+    : AbstractHierarchyIterator(bmain, depsgraph), stage_(stage), params_(params)
 {
 }
 
@@ -59,6 +61,15 @@ void USDHierarchyIterator::set_export_frame(float frame_nr)
   export_time_ = pxr::UsdTimeCode(frame_nr);
 }
 
+std::string USDHierarchyIterator::get_export_file_path() const
+{
+  /* Returns the same path that was passed to `stage_` object during it's creation (via
+   * `pxr::UsdStage::CreateNew` function). */
+  const pxr::SdfLayerHandle root_layer = stage_->GetRootLayer();
+  const std::string usd_export_file_path = root_layer->GetRealPath();
+  return usd_export_file_path;
+}
+
 const pxr::UsdTimeCode &USDHierarchyIterator::get_export_time_code() const
 {
   return export_time_;
@@ -66,7 +77,8 @@ const pxr::UsdTimeCode &USDHierarchyIterator::get_export_time_code() const
 
 USDExporterContext USDHierarchyIterator::create_usd_export_context(const HierarchyContext *context)
 {
-  return USDExporterContext{depsgraph_, stage_, pxr::SdfPath(context->export_path), this, params_};
+  return USDExporterContext{
+      bmain_, depsgraph_, stage_, pxr::SdfPath(context->export_path), this, params_};
 }
 
 AbstractHierarchyWriter *USDHierarchyIterator::create_transform_writer(
@@ -92,6 +104,9 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_data_writer(const Hierarch
       break;
     case OB_MBALL:
       data_writer = new USDMetaballWriter(usd_export_context);
+      break;
+    case OB_VOLUME:
+      data_writer = new USDVolumeWriter(usd_export_context);
       break;
 
     case OB_EMPTY:

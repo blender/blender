@@ -27,7 +27,7 @@ class Instance;
 /* -------------------------------------------------------------------- */
 /** \name ObjectKey
  *
- * Unique key to identify each object in the hashmap.
+ * Unique key to identify each object in the hash-map.
  * \{ */
 
 struct ObjectKey {
@@ -77,7 +77,7 @@ struct ObjectKey {
   ObjectKey(Object *ob)
       : ObjectKey(ob, DRW_object_get_dupli(ob), DRW_object_get_dupli_parent(ob)){};
 
-  uint64_t hash(void) const
+  uint64_t hash() const
   {
     return hash_value;
   }
@@ -121,7 +121,7 @@ struct ObjectKey {
 struct ObjectHandle : public DrawData {
   ObjectKey object_key;
 
-  void reset_recalc_flag(void)
+  void reset_recalc_flag()
   {
     if (recalc != 0) {
       recalc = 0;
@@ -130,7 +130,7 @@ struct ObjectHandle : public DrawData {
 };
 
 struct WorldHandle : public DrawData {
-  void reset_recalc_flag(void)
+  void reset_recalc_flag()
   {
     if (recalc != 0) {
       recalc = 0;

@@ -1,4 +1,4 @@
-#pragma BLENDER_REQUIRE(gpu_shader_material_color_util.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_common_color_utils.glsl)
 
 void mix_blend(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 {

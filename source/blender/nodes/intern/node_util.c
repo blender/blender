@@ -226,6 +226,39 @@ void node_filter_label(const bNodeTree *UNUSED(ntree), const bNode *node, char *
   BLI_strncpy(label, IFACE_(name), maxlen);
 }
 
+void node_combsep_color_label(const ListBase *sockets, NodeCombSepColorMode mode)
+{
+  bNodeSocket *sock1 = (bNodeSocket *)sockets->first;
+  bNodeSocket *sock2 = sock1->next;
+  bNodeSocket *sock3 = sock2->next;
+
+  node_sock_label_clear(sock1);
+  node_sock_label_clear(sock2);
+  node_sock_label_clear(sock3);
+
+  switch (mode) {
+    case NODE_COMBSEP_COLOR_RGB:
+      node_sock_label(sock1, "Red");
+      node_sock_label(sock2, "Green");
+      node_sock_label(sock3, "Blue");
+      break;
+    case NODE_COMBSEP_COLOR_HSL:
+      node_sock_label(sock1, "Hue");
+      node_sock_label(sock2, "Saturation");
+      node_sock_label(sock3, "Lightness");
+      break;
+    case NODE_COMBSEP_COLOR_HSV:
+      node_sock_label(sock1, "Hue");
+      node_sock_label(sock2, "Saturation");
+      node_sock_label(sock3, "Value");
+      break;
+    default: {
+      BLI_assert_unreachable();
+      break;
+    }
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

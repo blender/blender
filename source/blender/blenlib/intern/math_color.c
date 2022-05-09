@@ -238,7 +238,7 @@ void rgb_to_hsl(float r, float g, float b, float *r_h, float *r_s, float *r_l)
 {
   const float cmax = max_fff(r, g, b);
   const float cmin = min_fff(r, g, b);
-  float h, s, l = min_ff(1.0, (cmax + cmin) / 2.0f);
+  float h, s, l = min_ff(1.0f, (cmax + cmin) / 2.0f);
 
   if (cmax == cmin) {
     h = s = 0.0f; /* achromatic */

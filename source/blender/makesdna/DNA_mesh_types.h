@@ -280,7 +280,7 @@ typedef struct Mesh {
   /** Various flags used when editing the mesh. */
   char editflag;
   /** Mostly more flags used when editing or displaying the mesh. */
-  short flag;
+  unsigned short flag;
 
   /**
    * The angle for auto smooth in radians. `M_PI` (180 degrees) causes all edges to be smooth.

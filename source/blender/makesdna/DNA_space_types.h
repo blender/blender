@@ -1223,7 +1223,8 @@ typedef struct SpaceImage {
   char dt_uvstretch;
   char around;
 
-  char _pad1[4];
+  char gizmo_flag;
+  char _pad1[3];
 
   int flag;
 
@@ -1321,6 +1322,13 @@ typedef enum eSpaceImageOverlay_Flag {
   SI_OVERLAY_SHOW_GRID_BACKGROUND = (1 << 1),
 } eSpaceImageOverlay_Flag;
 
+/** #SpaceImage.gizmo_flag */
+enum {
+  /** All gizmos. */
+  SI_GIZMO_HIDE = (1 << 0),
+  SI_GIZMO_HIDE_NAVIGATE = (1 << 1),
+};
+
 /** Keep in sync with `STEPS_LEN` in `grid_frag.glsl`. */
 #define SI_GRID_STEPS_LEN 8
 
@@ -1332,7 +1340,7 @@ typedef enum eSpaceImageOverlay_Flag {
 
 typedef struct SpaceText_Runtime {
 
-  /** Actual line height, scaled by dpi. */
+  /** Actual line height, scaled by DPI. */
   int lheight_px;
 
   /** Runtime computed, character width. */

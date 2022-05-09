@@ -121,3 +121,13 @@ void lineart_count_and_print_render_buffer_memory(struct LineartRenderBuffer *rb
 /* Initial bounding area row/column count, setting 4 is the simplest way algorithm could function
  * efficiently. */
 #define LRT_BA_ROWS 4
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void lineart_sort_adjacent_items(LineartAdjacentEdge *ai, int length);
+
+#ifdef __cplusplus
+}
+#endif

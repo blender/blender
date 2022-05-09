@@ -576,7 +576,7 @@ static std::string get_tex_image_asset_path(bNode *node,
     char file_path[FILE_MAX];
     BLI_split_file_part(path.c_str(), file_path, FILE_MAX);
 
-    if (export_params.relative_texture_paths) {
+    if (export_params.relative_paths) {
       BLI_path_join(exp_path, FILE_MAX, ".", "textures", file_path, nullptr);
     }
     else {
@@ -594,7 +594,7 @@ static std::string get_tex_image_asset_path(bNode *node,
     return exp_path;
   }
 
-  if (export_params.relative_texture_paths) {
+  if (export_params.relative_paths) {
     /* Get the path relative to the USD. */
     pxr::SdfLayerHandle layer = stage->GetRootLayer();
     std::string stage_path = layer->GetRealPath();
@@ -606,11 +606,7 @@ static std::string get_tex_image_asset_path(bNode *node,
     strcpy(rel_path, path.c_str());
 
     BLI_path_rel(rel_path, stage_path.c_str());
-
-    /* BLI_path_rel adds '//' as a prefix to the path, if
-     * generating the relative path was successful. */
-    if (rel_path[0] != '/' || rel_path[1] != '/') {
-      /* No relative path generated. */
+    if (!BLI_path_is_rel(rel_path)) {
       return path;
     }
 

@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Shared structures, enums & defines between C++ and GLSL.
@@ -26,7 +27,7 @@ using draw::TextureFromPool;
 #define UBO_MIN_MAX_SUPPORTED_SIZE 1 << 14
 
 /* -------------------------------------------------------------------- */
-/** \name Raytracing
+/** \name Ray-Tracing
  * \{ */
 
 enum eClosureBits : uint32_t {

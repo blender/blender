@@ -1,12 +1,7 @@
+#pragma BLENDER_REQUIRE(common_hair_lib.glsl)
 
-/* To be compiled with common_hair_lib.glsl */
-
+#ifdef USE_TF
 out vec4 finalColor;
-
-#ifdef TF_WORKAROUND
-uniform int targetWidth;
-uniform int targetHeight;
-uniform int idOffset;
 #endif
 
 void main(void)

@@ -28,7 +28,7 @@ GPU_SHADER_CREATE_INFO(gpu_shader_3D_clipped_uniform_color)
     .fragment_out(0, Type::VEC4, "fragColor")
     .push_constant(Type::MAT4, "ModelViewProjectionMatrix")
     .push_constant(Type::VEC4, "color")
-    /* TODO(fclem): Put thoses two to one UBO. */
+    /* TODO(@fclem): Put those two to one UBO. */
     .push_constant(Type::MAT4, "ModelMatrix")
     .push_constant(Type::VEC4, "ClipPlane")
     .vertex_source("gpu_shader_3D_clipped_uniform_color_vert.glsl")

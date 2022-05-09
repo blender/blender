@@ -56,43 +56,6 @@ static void node_update(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, length_socket, mode == GEO_NODE_CURVE_RESAMPLE_LENGTH);
 }
 
-/** Returns the number of evaluated points in each curve. Used to deselect curves with none. */
-class EvaluatedCountFieldInput final : public GeometryFieldInput {
- public:
-  EvaluatedCountFieldInput() : GeometryFieldInput(CPPType::get<int>(), "Evaluated Point Count")
-  {
-    category_ = Category::Generated;
-  }
-
-  GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
-                                 IndexMask UNUSED(mask)) const final
-  {
-    if (component.type() == GEO_COMPONENT_TYPE_CURVE && domain == ATTR_DOMAIN_CURVE &&
-        !component.is_empty()) {
-      const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-      const Curves &curves_id = *curve_component.get_for_read();
-      const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
-      curves.ensure_evaluated_offsets();
-      return VArray<int>::ForFunc(curves.curves_num(), [&](const int64_t index) -> int {
-        return curves.evaluated_points_for_curve(index).size();
-      });
-    }
-    return {};
-  }
-
-  uint64_t hash() const override
-  {
-    /* Some random constant hash. */
-    return 234905872379865;
-  }
-
-  bool is_equal_to(const fn::FieldNode &other) const override
-  {
-    return dynamic_cast<const EvaluatedCountFieldInput *>(&other) != nullptr;
-  }
-};
-
 /**
  * Return true if the attribute should be copied/interpolated to the result curves.
  * Don't output attributes that correspond to curve types that have no curves in the result.
@@ -435,8 +398,6 @@ static Curves *resample_to_uniform_count(const CurveComponent &src_component,
 
 /**
  * Evaluate each selected curve to its implicit evaluated points.
- *
- * \warning Curves with no evaluated points must not be selected.
  */
 static Curves *resample_to_evaluated(const CurveComponent &src_component,
                                      const Field<bool> &selection_field)
@@ -574,7 +535,7 @@ static Field<int> get_curve_count_field(GeoNodeExecParams params,
 
     auto get_count_op = std::make_shared<FieldOperation>(
         FieldOperation(get_count_fn,
-                       {Field<float>(std::make_shared<SplineLengthFieldInput>()),
+                       {Field<float>(std::make_shared<bke::CurveLengthFieldInput>()),
                         params.extract_input<Field<float>>("Length")}));
 
     return Field<int>(std::move(get_count_op));
@@ -584,28 +545,6 @@ static Field<int> get_curve_count_field(GeoNodeExecParams params,
   return {};
 }
 
-/**
- * Create a selection field that removes curves without any evaluated points (invalid NURBS curves)
- * from the original selection provided to the node. This is here to simplify the sampling actual
- * resampling code.
- */
-static Field<bool> get_selection_field(GeoNodeExecParams params)
-{
-  static fn::CustomMF_SI_SI_SO<bool, int, bool> get_selection_fn(
-      "Create Curve Selection",
-      [](const bool orig_selection, const int evaluated_points_num) {
-        return orig_selection && evaluated_points_num > 1;
-      },
-      fn::CustomMF_presets::AllSpanOrSingle());
-
-  auto selection_op = std::make_shared<FieldOperation>(
-      FieldOperation(get_selection_fn,
-                     {params.extract_input<Field<bool>>("Selection"),
-                      Field<int>(std::make_shared<EvaluatedCountFieldInput>())}));
-
-  return Field<bool>(std::move(selection_op));
-}
-
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
@@ -613,7 +552,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometryCurveResample &storage = node_storage(params.node());
   const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)storage.mode;
 
-  const Field<bool> selection = get_selection_field(params);
+  const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
 
   switch (mode) {
     case GEO_NODE_CURVE_RESAMPLE_COUNT:

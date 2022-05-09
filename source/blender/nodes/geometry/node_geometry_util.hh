@@ -81,14 +81,4 @@ void separate_geometry(GeometrySet &geometry_set,
 std::optional<CustomDataType> node_data_type_to_custom_data_type(eNodeSocketDatatype type);
 std::optional<CustomDataType> node_socket_to_custom_data_type(const bNodeSocket &socket);
 
-class SplineLengthFieldInput final : public GeometryFieldInput {
- public:
-  SplineLengthFieldInput();
-  GVArray get_varray_for_context(const GeometryComponent &component,
-                                 AttributeDomain domain,
-                                 IndexMask mask) const final;
-  uint64_t hash() const override;
-  bool is_equal_to(const fn::FieldNode &other) const override;
-};
-
 }  // namespace blender::nodes

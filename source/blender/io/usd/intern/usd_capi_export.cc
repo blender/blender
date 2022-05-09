@@ -97,7 +97,7 @@ static void export_startjob(void *customdata,
     usd_stage->SetEndTimeCode(scene->r.efra);
   }
 
-  USDHierarchyIterator iter(data->depsgraph, usd_stage, data->params);
+  USDHierarchyIterator iter(data->bmain, data->depsgraph, usd_stage, data->params);
 
   if (data->params.export_animation) {
     /* Writing the animated frames is not 100% of the work, but it's our best guess. */

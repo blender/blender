@@ -274,6 +274,22 @@ static void rna_def_curves(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Surface", "Mesh object that the curves can be attached to");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
+  /* Symmetry. */
+  prop = RNA_def_property(srna, "use_mirror_x", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "symmetry", CURVES_SYMMETRY_X);
+  RNA_def_property_ui_text(prop, "X", "Enable symmetry in the X axis");
+  RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+
+  prop = RNA_def_property(srna, "use_mirror_y", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "symmetry", CURVES_SYMMETRY_Y);
+  RNA_def_property_ui_text(prop, "Y", "Enable symmetry in the Y axis");
+  RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+
+  prop = RNA_def_property(srna, "use_mirror_z", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "symmetry", CURVES_SYMMETRY_Z);
+  RNA_def_property_ui_text(prop, "Z", "Enable symmetry in the Z axis");
+  RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+
   /* attributes */
   rna_def_attributes_common(srna);
 

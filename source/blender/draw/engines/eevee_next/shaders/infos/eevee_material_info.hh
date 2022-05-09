@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "gpu_shader_create_info.hh"
 
@@ -93,7 +94,7 @@ GPU_SHADER_CREATE_INFO(eevee_surf_forward)
     .fragment_source("eevee_surf_forward_frag.glsl")
     // .additional_info("eevee_sampling_data",
     //  "eevee_lightprobe_data",
-    /* Optionnally added depending on the material. */
+    /* Optionally added depending on the material. */
     // "eevee_raytrace_data",
     // "eevee_transmittance_data",
     //  "eevee_utility_texture",

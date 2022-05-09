@@ -702,6 +702,7 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 
       if (stereo && wm_draw_region_stereo_set(bmain, area, region, STEREO_LEFT_ID)) {
         wm_draw_region_buffer_create(region, true, use_viewport);
+        bool views_valid = true;
 
         for (int view = 0; view < 2; view++) {
           eStereoViews sview;
@@ -717,8 +718,11 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
             ED_region_do_draw(C, region);
             wm_draw_region_unbind(region);
           }
+          else {
+            views_valid = false;
+          }
         }
-        if (use_viewport) {
+        if (use_viewport && views_valid) {
           GPUViewport *viewport = region->draw_buffer->viewport;
           GPU_viewport_stereo_composite(viewport, win->stereo3d_format);
         }

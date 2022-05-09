@@ -769,6 +769,18 @@ def brush_settings(layout, context, brush, popover=False):
             elif brush.color_type == 'GRADIENT':
                 layout.row().prop(brush, "gradient_fill_mode", expand=True)
 
+    elif mode == 'SCULPT_CURVES':
+        if brush.curves_sculpt_tool == 'ADD':
+            layout.prop(brush.curves_sculpt_settings, "add_amount")
+            layout.prop(brush.curves_sculpt_settings, "points_per_curve")
+            layout.prop(brush.curves_sculpt_settings, "curve_length")
+            layout.prop(brush.curves_sculpt_settings, "interpolate_length")
+            layout.prop(brush.curves_sculpt_settings, "interpolate_shape")
+            use_frontface = True
+        elif brush.curves_sculpt_tool == 'GROW_SHRINK':
+            layout.prop(brush.curves_sculpt_settings, "scale_uniform")
+            layout.prop(brush.curves_sculpt_settings, "minimum_length")
+
 
 def brush_shared_settings(layout, context, brush, popover=False):
     """ Draw simple brush settings that are shared between different paint modes. """
@@ -827,6 +839,7 @@ def brush_shared_settings(layout, context, brush, popover=False):
     if mode == 'SCULPT_CURVES':
         size = True
         strength = True
+        direction = brush.curves_sculpt_tool == "GROW_SHRINK"
 
     ### Draw settings. ###
     ups = context.scene.tool_settings.unified_paint_settings
@@ -924,16 +937,6 @@ def brush_settings_advanced(layout, context, brush, popover=False):
             col.prop(brush, "use_original_normal", text="Normal")
             col.prop(brush, "use_original_plane", text="Plane")
             layout.separator()
-
-    elif mode == 'SCULPT_CURVES':
-        if brush.curves_sculpt_tool == 'ADD':
-            layout.prop(brush.curves_sculpt_settings, "add_amount")
-            layout.prop(brush.curves_sculpt_settings, "curve_length")
-            layout.prop(brush.curves_sculpt_settings, "interpolate_length")
-            layout.prop(brush.curves_sculpt_settings, "interpolate_shape")
-        elif brush.curves_sculpt_tool == 'GROW_SHRINK':
-            layout.prop(brush.curves_sculpt_settings, "scale_uniform")
-            layout.prop(brush.curves_sculpt_settings, "minimum_length")
 
     # 3D and 2D Texture Paint.
     elif mode in {'PAINT_TEXTURE', 'PAINT_2D'}:

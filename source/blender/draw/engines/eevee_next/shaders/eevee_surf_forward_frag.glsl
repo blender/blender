@@ -43,7 +43,7 @@ vec4 closure_to_rgba(Closure cl)
   return out_color;
 }
 
-void main(void)
+void main()
 {
   init_globals();
 

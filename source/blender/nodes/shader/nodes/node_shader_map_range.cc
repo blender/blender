@@ -66,23 +66,31 @@ static void node_shader_update_map_range(bNodeTree *ntree, bNode *node)
   const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
   const int type = (data_type == CD_PROP_FLOAT) ? SOCK_FLOAT : SOCK_VECTOR;
 
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-    nodeSetSocketAvailability(ntree, socket, socket->type == type);
-  }
+  Array<bool> new_input_availability(BLI_listbase_count(&node->inputs));
+  Array<bool> new_output_availability(BLI_listbase_count(&node->outputs));
 
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-    nodeSetSocketAvailability(ntree, socket, socket->type == type);
+  int index;
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &node->inputs, index) {
+    new_input_availability[index] = socket->type == type;
+  }
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &node->outputs, index) {
+    new_output_availability[index] = socket->type == type;
   }
 
   if (storage.interpolation_type != NODE_MAP_RANGE_STEPPED) {
     if (type == SOCK_FLOAT) {
-      bNodeSocket *sockSteps = (bNodeSocket *)BLI_findlink(&node->inputs, 5);
-      nodeSetSocketAvailability(ntree, sockSteps, false);
+      new_input_availability[5] = false;
     }
     else {
-      bNodeSocket *sockSteps = (bNodeSocket *)BLI_findlink(&node->inputs, 11);
-      nodeSetSocketAvailability(ntree, sockSteps, false);
+      new_input_availability[11] = false;
     }
+  }
+
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &node->inputs, index) {
+    nodeSetSocketAvailability(ntree, socket, new_input_availability[index]);
+  }
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &node->outputs, index) {
+    nodeSetSocketAvailability(ntree, socket, new_output_availability[index]);
   }
 }
 
