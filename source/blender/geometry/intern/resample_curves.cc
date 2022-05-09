@@ -161,9 +161,6 @@ static void gather_point_attributes_to_interpolate(const CurveComponent &src_com
                            result.dst_no_interpolation,
                            result.dst_attributes);
 
-  /* Copy the result curves with pointers to new attributes back to the original. */
-  memcpy((void *)&dst_curves, &dst_component.get_for_write()->geometry, sizeof(CurvesGeometry));
-
   dst_curves.update_customdata_pointers();
 }
 
