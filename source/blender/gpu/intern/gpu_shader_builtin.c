@@ -150,6 +150,11 @@ static const GPUShaderStages builtin_shader_stages[GPU_SHADER_BUILTIN_LEN] = {
             .name = "GPU_SHADER_SIMPLE_LIGHTING",
             .create_info = "gpu_shader_simple_lighting",
         },
+    [GPU_SHADER_3D_IMAGE] =
+        {
+            .name = "GPU_SHADER_3D_IMAGE",
+            .create_info = "gpu_shader_3D_image",
+        },
     [GPU_SHADER_3D_IMAGE_MODULATE_ALPHA] =
         {
             .name = "GPU_SHADER_3D_IMAGE_MODULATE_ALPHA",
