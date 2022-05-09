@@ -209,7 +209,7 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
   DRW_shgroup_uniform_texture(shgrp, "ac", g_dummy_texture);
 
   /* TODO: Generalize radius implementation for curves data type. */
-  float hair_rad_shape = 1.0f;
+  float hair_rad_shape = 0.0f;
   float hair_rad_root = 0.005f;
   float hair_rad_tip = 0.0f;
   bool hair_close_tip = true;
