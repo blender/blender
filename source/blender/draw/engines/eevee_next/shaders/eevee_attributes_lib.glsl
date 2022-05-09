@@ -164,7 +164,7 @@ float attr_load_float(samplerBuffer cd_buf)
  * \{ */
 
 #  ifndef OBINFO_LIB
-#    error "draw_object_infos is mandatory for volume objects"
+#    error draw_object_infos is mandatory for volume objects
 #  endif
 
 vec3 g_orco;
