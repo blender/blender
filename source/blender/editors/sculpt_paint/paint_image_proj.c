@@ -6600,12 +6600,15 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
       }
       case PAINT_CANVAS_SOURCE_COLOR_ATTRIBUTE: {
         new_node = nodeAddStaticNode(C, ntree, SH_NODE_ATTRIBUTE);
-        if (layer = proj_paint_color_attribute_create(op, ob)) {
+        if ((layer = proj_paint_color_attribute_create(op, ob))) {
           BLI_strncpy_utf8(
-              &((NodeShaderAttribute *)new_node->storage)->name, &layer->name, MAX_NAME);
+              ((NodeShaderAttribute *)new_node->storage)->name, layer->name, MAX_NAME);
         }
         break;
       }
+      case PAINT_CANVAS_SOURCE_MATERIAL:
+        BLI_assert_unreachable();
+        return false;
     }
     nodeSetActive(ntree, new_node);
 
@@ -6782,6 +6785,9 @@ static void texture_paint_add_texture_paint_slot_ui(bContext *C, wmOperator *op)
     case PAINT_CANVAS_SOURCE_COLOR_ATTRIBUTE:
       uiItemR(layout, op->ptr, "domain", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
       uiItemR(layout, op->ptr, "data_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+      break;
+    case PAINT_CANVAS_SOURCE_MATERIAL:
+      BLI_assert_unreachable();
       break;
   }
 
