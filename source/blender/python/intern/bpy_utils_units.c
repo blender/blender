@@ -43,12 +43,18 @@ static const char *bpyunits_ucategories_items[] = {
     "MASS",
     "ROTATION",
     "TIME",
+    "TIME_ABSOLUTE",
     "VELOCITY",
     "ACCELERATION",
     "CAMERA",
     "POWER",
+    "TEMPERATURE",
     NULL,
 };
+
+BLI_STATIC_ASSERT(
+    ARRAY_SIZE(bpyunits_ucategories_items) == B_UNIT_TYPE_TOT + 1,
+    "`bpyunits_ucategories_items` should match `B_UNIT_` enum items in `BKE_units.h`")
 
 /**
  * These fields are just empty placeholders, actual values get set in initializations functions.
