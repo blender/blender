@@ -563,7 +563,6 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                                const float obmat[4][4],
                                                const bool do_final,
                                                const bool do_uvedit,
-                                               const bool use_subsurf_fdots,
                                                const Scene *scene,
                                                const ToolSettings *ts,
                                                const bool use_hide)
@@ -687,7 +686,7 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   MeshRenderData *mr = mesh_render_data_create(
       object, me, is_editmode, is_paint_mode, is_mode_active, obmat, do_final, do_uvedit, ts);
   mr->use_hide = use_hide;
-  mr->use_subsurf_fdots = use_subsurf_fdots;
+  mr->use_subsurf_fdots = mr->me && mr->me->runtime.subsurf_face_dot_tags != nullptr;
   mr->use_final_mesh = do_final;
 
 #ifdef DEBUG_TIME
@@ -919,7 +918,6 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         const float obmat[4][4],
                                         const bool do_final,
                                         const bool do_uvedit,
-                                        const bool use_subsurf_fdots,
                                         const Scene *scene,
                                         const ToolSettings *ts,
                                         const bool use_hide)
@@ -935,7 +933,6 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                                     obmat,
                                                     do_final,
                                                     do_uvedit,
-                                                    use_subsurf_fdots,
                                                     scene,
                                                     ts,
                                                     use_hide);

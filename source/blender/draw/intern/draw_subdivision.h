@@ -194,7 +194,6 @@ void DRW_create_subdivision(const struct Scene *scene,
                             const float obmat[4][4],
                             const bool do_final,
                             const bool do_uvedit,
-                            const bool use_subsurf_fdots,
                             const ToolSettings *ts,
                             const bool use_hide);
 

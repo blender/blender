@@ -1904,7 +1904,6 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
                                                  const float obmat[4][4],
                                                  const bool do_final,
                                                  const bool do_uvedit,
-                                                 const bool /*use_subsurf_fdots*/,
                                                  const ToolSettings *ts,
                                                  const bool /*use_hide*/,
                                                  OpenSubdiv_EvaluatorCache *evaluator_cache)
@@ -2103,7 +2102,6 @@ void DRW_create_subdivision(const Scene *scene,
                             const float obmat[4][4],
                             const bool do_final,
                             const bool do_uvedit,
-                            const bool use_subsurf_fdots,
                             const ToolSettings *ts,
                             const bool use_hide)
 {
@@ -2128,7 +2126,6 @@ void DRW_create_subdivision(const Scene *scene,
                                             obmat,
                                             do_final,
                                             do_uvedit,
-                                            use_subsurf_fdots,
                                             ts,
                                             use_hide,
                                             g_evaluator_cache)) {

@@ -2128,8 +2128,6 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
 
   MDEPS_ASSERT_MAP_INDEX(TRIS_PER_MAT_INDEX);
 
-  const bool use_subsurf_fdots = me->runtime.subsurf_face_dot_tags != NULL;
-
   if (do_uvcage) {
     mesh_buffer_cache_create_requested(task_graph,
                                        cache,
@@ -2142,7 +2140,6 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                                        ob->obmat,
                                        false,
                                        true,
-                                       false,
                                        scene,
                                        ts,
                                        true);
@@ -2160,7 +2157,6 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                                        ob->obmat,
                                        false,
                                        false,
-                                       use_subsurf_fdots,
                                        scene,
                                        ts,
                                        true);
@@ -2178,7 +2174,6 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                            ob->obmat,
                            true,
                            false,
-                           use_subsurf_fdots,
                            ts,
                            use_hide);
   }
@@ -2199,7 +2194,6 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                                      ob->obmat,
                                      true,
                                      false,
-                                     use_subsurf_fdots,
                                      scene,
                                      ts,
                                      use_hide);
