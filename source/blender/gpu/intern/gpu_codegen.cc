@@ -61,24 +61,25 @@ struct GPUCodegenCreateInfo : ShaderCreateInfo {
     char var_names[16][8];
     blender::Vector<std::array<char, 32>, 16> sampler_names;
 
-    void append_sampler_name(const char name[32])
+    /* Returns the appended name memory location */
+    const char *append_sampler_name(const char name[32])
     {
-      std::array<char, 32> sampler_name;
-      memcpy(sampler_name.data(), name, 32);
-      sampler_names.append(sampler_name);
+      auto index = sampler_names.append_and_get_index(std::array<char, 32>());
+      char *name_buffer = sampler_names[index].data();
+      memcpy(name_buffer, name, 32);
+      return name_buffer;
     }
   };
 
   /** Optional generated interface. */
   StageInterfaceInfo *interface_generated = nullptr;
   /** Optional name buffer containing names referenced by StringRefNull. */
-  NameBuffer *name_buffer = nullptr;
+  NameBuffer name_buffer;
 
   GPUCodegenCreateInfo(const char *name) : ShaderCreateInfo(name){};
   ~GPUCodegenCreateInfo()
   {
     delete interface_generated;
-    MEM_delete(name_buffer);
   };
 };
 
@@ -297,7 +298,6 @@ void GPUCodegen::generate_attribs()
 
   GPUCodegenCreateInfo &info = *create_info;
 
-  info.name_buffer = MEM_new<GPUCodegenCreateInfo::NameBuffer>("info.name_buffer");
   info.interface_generated = new StageInterfaceInfo("codegen_iface", "var_attrs");
   StageInterfaceInfo &iface = *info.interface_generated;
   info.vertex_out(iface);
@@ -311,11 +311,11 @@ void GPUCodegen::generate_attribs()
       BLI_assert_msg(0, "Too many attributes");
       break;
     }
-    STRNCPY(info.name_buffer->attr_names[slot], attr->input_name);
-    SNPRINTF(info.name_buffer->var_names[slot], "v%d", attr->id);
+    STRNCPY(info.name_buffer.attr_names[slot], attr->input_name);
+    SNPRINTF(info.name_buffer.var_names[slot], "v%d", attr->id);
 
-    blender::StringRefNull attr_name = info.name_buffer->attr_names[slot];
-    blender::StringRefNull var_name = info.name_buffer->var_names[slot];
+    blender::StringRefNull attr_name = info.name_buffer.attr_names[slot];
+    blender::StringRefNull var_name = info.name_buffer.var_names[slot];
 
     eGPUType input_type, iface_type;
 
@@ -357,28 +357,19 @@ void GPUCodegen::generate_resources()
   /* Textures. */
   LISTBASE_FOREACH (GPUMaterialTexture *, tex, &graph.textures) {
     if (tex->colorband) {
-      info.name_buffer->append_sampler_name(tex->sampler_name);
-      info.sampler(0,
-                   ImageType::FLOAT_1D_ARRAY,
-                   info.name_buffer->sampler_names.last().data(),
-                   Frequency::BATCH);
+      const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
+      info.sampler(0, ImageType::FLOAT_1D_ARRAY, name, Frequency::BATCH);
     }
     else if (tex->tiled_mapping_name[0] != '\0') {
-      info.name_buffer->append_sampler_name(tex->sampler_name);
-      info.sampler(0,
-                   ImageType::FLOAT_2D_ARRAY,
-                   info.name_buffer->sampler_names.last().data(),
-                   Frequency::BATCH);
-      info.name_buffer->append_sampler_name(tex->tiled_mapping_name);
-      info.sampler(0,
-                   ImageType::FLOAT_1D_ARRAY,
-                   info.name_buffer->sampler_names.last().data(),
-                   Frequency::BATCH);
+      const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
+      info.sampler(0, ImageType::FLOAT_2D_ARRAY, name, Frequency::BATCH);
+
+      const char *name_mapping = info.name_buffer.append_sampler_name(tex->tiled_mapping_name);
+      info.sampler(0, ImageType::FLOAT_1D_ARRAY, name_mapping, Frequency::BATCH);
     }
     else {
-      info.name_buffer->append_sampler_name(tex->sampler_name);
-      info.sampler(
-          0, ImageType::FLOAT_2D, info.name_buffer->sampler_names.last().data(), Frequency::BATCH);
+      const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
+      info.sampler(0, ImageType::FLOAT_2D, name, Frequency::BATCH);
     }
   }
 
