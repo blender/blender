@@ -1465,6 +1465,7 @@ static void lib_override_library_remap(Main *bmain,
                                remapper,
                                ID_REMAP_FORCE_USER_REFCOUNT | ID_REMAP_FORCE_NEVER_NULL_USAGE);
   BKE_id_remapper_free(remapper);
+  BLI_linklist_free(nomain_ids, NULL);
 }
 
 static bool lib_override_library_resync(Main *bmain,
