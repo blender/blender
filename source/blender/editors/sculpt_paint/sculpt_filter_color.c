@@ -124,8 +124,8 @@ static void color_filter_task_cb(void *__restrict userdata,
       }
       case COLOR_FILTER_HUE:
         rgb_to_hsv_v(orig_color, hsv_color);
-        hue = hsv_color[0] + fade;
-        hsv_color[0] = fabs((hsv_color[0] + fade) - hue);
+        hue = hsv_color[0];
+        hsv_color[0] = fmod((hsv_color[0] + fabs(fade)) - hue,1);
         hsv_to_rgb_v(hsv_color, final_color);
         break;
       case COLOR_FILTER_SATURATION:
