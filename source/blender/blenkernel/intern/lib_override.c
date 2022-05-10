@@ -1416,7 +1416,7 @@ void BKE_lib_override_library_main_hierarchy_root_ensure(Main *bmain)
       continue;
     }
 
-    lib_override_root_hierarchy_set(bmain, id_root, id_root, NULL);
+    lib_override_root_hierarchy_set(bmain, id_root, id, NULL);
 
     BLI_assert(id->override_library->hierarchy_root != NULL);
   }
