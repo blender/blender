@@ -169,6 +169,8 @@ void node_bsdf_principled(vec4 base_color,
     /* Un-optimized case. */
     result = closure_eval(diffuse_data, reflection_data, clearcoat_data, refraction_data);
   }
-  result = closure_add(result, closure_eval(emission_data));
-  result = closure_add(result, closure_eval(transparency_data));
+  Closure emission_cl = closure_eval(emission_data);
+  Closure transparency_cl = closure_eval(transparency_data);
+  result = closure_add(result, emission_cl);
+  result = closure_add(result, transparency_cl);
 }
