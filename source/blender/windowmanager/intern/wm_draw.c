@@ -467,7 +467,7 @@ static bool wm_draw_region_bind(bContext *C, ARegion *region, int view)
   }
 
   if (region->draw_buffer->viewport) {
-    if (G.is_rendering && C != NULL) {
+    if (G.is_rendering && C != NULL && U.experimental.use_draw_manager_acquire_lock) {
       Scene *scene = CTX_data_scene(C);
       RenderEngineType *render_engine_type = RE_engines_find(scene->r.engine);
       if (RE_engine_is_opengl(render_engine_type)) {
