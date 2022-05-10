@@ -2126,6 +2126,7 @@ static bool object_curves_empty_hair_add_poll(bContext *C)
   }
   Object *ob = CTX_data_active_object(C);
   if (ob == nullptr || ob->type != OB_MESH) {
+    CTX_wm_operator_poll_msg_set(C, "No active mesh object");
     return false;
   }
   return true;
