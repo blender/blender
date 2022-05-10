@@ -110,11 +110,11 @@ typedef struct CurvesGeometry {
   /**
    * The total number of control points in all curves.
    */
-  int point_size;
+  int point_num;
   /**
    * The number of curves in the data-block.
    */
-  int curve_size;
+  int curve_num;
 
   /**
    * Runtime data for curves, stored as a pointer to allow defining this as a C++ class.

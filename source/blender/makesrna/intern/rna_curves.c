@@ -38,7 +38,7 @@ static Curves *rna_curves(PointerRNA *ptr)
 static int rna_Curves_curve_offset_data_length(PointerRNA *ptr)
 {
   const Curves *curves = rna_curves(ptr);
-  return curves->geometry.curve_size + 1;
+  return curves->geometry.curve_num + 1;
 }
 
 static void rna_Curves_curve_offset_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -47,7 +47,7 @@ static void rna_Curves_curve_offset_data_begin(CollectionPropertyIterator *iter,
   rna_iterator_array_begin(iter,
                            (void *)curves->geometry.curve_offsets,
                            sizeof(int),
-                           curves->geometry.curve_size + 1,
+                           curves->geometry.curve_num + 1,
                            false,
                            NULL);
 }
@@ -222,7 +222,7 @@ static void rna_def_curves(BlenderRNA *brna)
   /* Point and Curve RNA API helpers. */
 
   prop = RNA_def_property(srna, "curves", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, NULL, "geometry.curve_offsets", "geometry.curve_size");
+  RNA_def_property_collection_sdna(prop, NULL, "geometry.curve_offsets", "geometry.curve_num");
   RNA_def_property_struct_type(prop, "CurveSlice");
   RNA_def_property_ui_text(prop, "Curves", "All curves in the data-block");
 
@@ -230,7 +230,7 @@ static void rna_def_curves(BlenderRNA *brna)
 
   RNA_define_verify_sdna(0);
   prop = RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, NULL, "geometry.position", "geometry.point_size");
+  RNA_def_property_collection_sdna(prop, NULL, "geometry.position", "geometry.point_num");
   RNA_def_property_struct_type(prop, "CurvePoint");
   RNA_def_property_ui_text(prop, "Points", "Control points of all curves");
   RNA_define_verify_sdna(1);
@@ -239,7 +239,7 @@ static void rna_def_curves(BlenderRNA *brna)
 
   RNA_define_verify_sdna(0);
   prop = RNA_def_property(srna, "position_data", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, NULL, "geometry.position", "geometry.point_size");
+  RNA_def_property_collection_sdna(prop, NULL, "geometry.position", "geometry.point_num");
   RNA_def_property_struct_type(prop, "FloatVectorAttributeValue");
   RNA_def_property_update(prop, 0, "rna_Curves_update_data");
   RNA_define_verify_sdna(1);

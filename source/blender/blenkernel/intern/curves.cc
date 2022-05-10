@@ -78,12 +78,12 @@ static void curves_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, 
    * shallow copy from the source to the destination, and because the copy-on-write functionality
    * isn't supported more generically yet. */
 
-  dst.point_size = src.point_size;
-  dst.curve_size = src.curve_size;
+  dst.point_num = src.point_num;
+  dst.curve_num = src.curve_num;
 
   const eCDAllocType alloc_type = (flag & LIB_ID_COPY_CD_REFERENCE) ? CD_REFERENCE : CD_DUPLICATE;
-  CustomData_copy(&src.point_data, &dst.point_data, CD_MASK_ALL, alloc_type, dst.point_size);
-  CustomData_copy(&src.curve_data, &dst.curve_data, CD_MASK_ALL, alloc_type, dst.curve_size);
+  CustomData_copy(&src.point_data, &dst.point_data, CD_MASK_ALL, alloc_type, dst.point_num);
+  CustomData_copy(&src.curve_data, &dst.curve_data, CD_MASK_ALL, alloc_type, dst.curve_num);
 
   dst.curve_offsets = static_cast<int *>(MEM_dupallocN(src.curve_offsets));
 
@@ -136,17 +136,17 @@ static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   CustomData_blend_write(writer,
                          &curves->geometry.point_data,
                          players,
-                         curves->geometry.point_size,
+                         curves->geometry.point_num,
                          CD_MASK_ALL,
                          &curves->id);
   CustomData_blend_write(writer,
                          &curves->geometry.curve_data,
                          clayers,
-                         curves->geometry.curve_size,
+                         curves->geometry.curve_num,
                          CD_MASK_ALL,
                          &curves->id);
 
-  BLO_write_int32_array(writer, curves->geometry.curve_size + 1, curves->geometry.curve_offsets);
+  BLO_write_int32_array(writer, curves->geometry.curve_num + 1, curves->geometry.curve_offsets);
 
   BLO_write_pointer_array(writer, curves->totcol, curves->mat);
   if (curves->adt) {
@@ -169,11 +169,11 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_animdata_blend_read_data(reader, curves->adt);
 
   /* Geometry */
-  CustomData_blend_read(reader, &curves->geometry.point_data, curves->geometry.point_size);
-  CustomData_blend_read(reader, &curves->geometry.curve_data, curves->geometry.curve_size);
+  CustomData_blend_read(reader, &curves->geometry.point_data, curves->geometry.point_num);
+  CustomData_blend_read(reader, &curves->geometry.curve_data, curves->geometry.curve_num);
   update_custom_data_pointers(*curves);
 
-  BLO_read_int32_array(reader, curves->geometry.curve_size + 1, &curves->geometry.curve_offsets);
+  BLO_read_int32_array(reader, curves->geometry.curve_num + 1, &curves->geometry.curve_offsets);
 
   curves->geometry.runtime = MEM_new<blender::bke::CurvesGeometryRuntime>(__func__);
 

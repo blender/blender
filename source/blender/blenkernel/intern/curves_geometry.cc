@@ -46,10 +46,10 @@ CurvesGeometry::CurvesGeometry() : CurvesGeometry(0, 0)
 {
 }
 
-CurvesGeometry::CurvesGeometry(const int point_size, const int curve_size)
+CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
 {
-  this->point_size = point_size;
-  this->curve_size = curve_size;
+  this->point_num = point_num;
+  this->curve_num = curve_num;
   CustomData_reset(&this->point_data);
   CustomData_reset(&this->curve_data);
 
@@ -57,16 +57,16 @@ CurvesGeometry::CurvesGeometry(const int point_size, const int curve_size)
                              CD_PROP_FLOAT3,
                              CD_DEFAULT,
                              nullptr,
-                             this->point_size,
+                             this->point_num,
                              ATTR_POSITION.c_str());
 
-  this->curve_offsets = (int *)MEM_calloc_arrayN(this->curve_size + 1, sizeof(int), __func__);
+  this->curve_offsets = (int *)MEM_calloc_arrayN(this->curve_num + 1, sizeof(int), __func__);
 
   this->update_customdata_pointers();
 
   this->runtime = MEM_new<CurvesGeometryRuntime>(__func__);
   /* Fill the type counts with the default so they're in a valid state. */
-  this->runtime->type_counts[CURVE_TYPE_CATMULL_ROM] = curve_size;
+  this->runtime->type_counts[CURVE_TYPE_CATMULL_ROM] = curve_num;
 }
 
 /**
@@ -74,15 +74,15 @@ CurvesGeometry::CurvesGeometry(const int point_size, const int curve_size)
  */
 static void copy_curves_geometry(CurvesGeometry &dst, const CurvesGeometry &src)
 {
-  CustomData_free(&dst.point_data, dst.point_size);
-  CustomData_free(&dst.curve_data, dst.curve_size);
-  dst.point_size = src.point_size;
-  dst.curve_size = src.curve_size;
-  CustomData_copy(&src.point_data, &dst.point_data, CD_MASK_ALL, CD_DUPLICATE, dst.point_size);
-  CustomData_copy(&src.curve_data, &dst.curve_data, CD_MASK_ALL, CD_DUPLICATE, dst.curve_size);
+  CustomData_free(&dst.point_data, dst.point_num);
+  CustomData_free(&dst.curve_data, dst.curve_num);
+  dst.point_num = src.point_num;
+  dst.curve_num = src.curve_num;
+  CustomData_copy(&src.point_data, &dst.point_data, CD_MASK_ALL, CD_DUPLICATE, dst.point_num);
+  CustomData_copy(&src.curve_data, &dst.curve_data, CD_MASK_ALL, CD_DUPLICATE, dst.curve_num);
 
   MEM_SAFE_FREE(dst.curve_offsets);
-  dst.curve_offsets = (int *)MEM_calloc_arrayN(dst.point_size + 1, sizeof(int), __func__);
+  dst.curve_offsets = (int *)MEM_calloc_arrayN(dst.point_num + 1, sizeof(int), __func__);
   dst.offsets_for_write().copy_from(src.offsets());
 
   dst.tag_topology_changed();
@@ -94,7 +94,7 @@ static void copy_curves_geometry(CurvesGeometry &dst, const CurvesGeometry &src)
 }
 
 CurvesGeometry::CurvesGeometry(const CurvesGeometry &other)
-    : CurvesGeometry(other.point_size, other.curve_size)
+    : CurvesGeometry(other.point_num, other.curve_num)
 {
   copy_curves_geometry(*this, other);
 }
@@ -110,15 +110,15 @@ CurvesGeometry &CurvesGeometry::operator=(const CurvesGeometry &other)
 /* The source should be empty, but in a valid state so that using it further will work. */
 static void move_curves_geometry(CurvesGeometry &dst, CurvesGeometry &src)
 {
-  dst.point_size = src.point_size;
+  dst.point_num = src.point_num;
   std::swap(dst.point_data, src.point_data);
-  CustomData_free(&src.point_data, src.point_size);
-  src.point_size = 0;
+  CustomData_free(&src.point_data, src.point_num);
+  src.point_num = 0;
 
-  dst.curve_size = src.curve_size;
+  dst.curve_num = src.curve_num;
   std::swap(dst.curve_data, src.curve_data);
-  CustomData_free(&src.curve_data, src.curve_size);
-  src.curve_size = 0;
+  CustomData_free(&src.curve_data, src.curve_num);
+  src.curve_num = 0;
 
   std::swap(dst.curve_offsets, src.curve_offsets);
   MEM_SAFE_FREE(src.curve_offsets);
@@ -130,7 +130,7 @@ static void move_curves_geometry(CurvesGeometry &dst, CurvesGeometry &src)
 }
 
 CurvesGeometry::CurvesGeometry(CurvesGeometry &&other)
-    : CurvesGeometry(other.point_size, other.curve_size)
+    : CurvesGeometry(other.point_num, other.curve_num)
 {
   move_curves_geometry(*this, other);
 }
@@ -145,8 +145,8 @@ CurvesGeometry &CurvesGeometry::operator=(CurvesGeometry &&other)
 
 CurvesGeometry::~CurvesGeometry()
 {
-  CustomData_free(&this->point_data, this->point_size);
-  CustomData_free(&this->curve_data, this->curve_size);
+  CustomData_free(&this->point_data, this->point_num);
+  CustomData_free(&this->curve_data, this->curve_num);
   MEM_SAFE_FREE(this->curve_offsets);
   MEM_delete(this->runtime);
   this->runtime = nullptr;
@@ -301,22 +301,22 @@ void CurvesGeometry::update_curve_types()
 
 Span<float3> CurvesGeometry::positions() const
 {
-  return {(const float3 *)this->position, this->point_size};
+  return {(const float3 *)this->position, this->point_num};
 }
 MutableSpan<float3> CurvesGeometry::positions_for_write()
 {
   this->position = (float(*)[3])CustomData_duplicate_referenced_layer_named(
-      &this->point_data, CD_PROP_FLOAT3, ATTR_POSITION.c_str(), this->point_size);
-  return {(float3 *)this->position, this->point_size};
+      &this->point_data, CD_PROP_FLOAT3, ATTR_POSITION.c_str(), this->point_num);
+  return {(float3 *)this->position, this->point_num};
 }
 
 Span<int> CurvesGeometry::offsets() const
 {
-  return {this->curve_offsets, this->curve_size + 1};
+  return {this->curve_offsets, this->curve_num + 1};
 }
 MutableSpan<int> CurvesGeometry::offsets_for_write()
 {
-  return {this->curve_offsets, this->curve_size + 1};
+  return {this->curve_offsets, this->curve_num + 1};
 }
 
 VArray<bool> CurvesGeometry::cyclic() const
@@ -944,13 +944,13 @@ void CurvesGeometry::ensure_evaluated_lengths() const
 
 void CurvesGeometry::resize(const int points_num, const int curves_num)
 {
-  if (points_num != this->point_size) {
+  if (points_num != this->point_num) {
     CustomData_realloc(&this->point_data, points_num);
-    this->point_size = points_num;
+    this->point_num = points_num;
   }
-  if (curves_num != this->curve_size) {
+  if (curves_num != this->curve_num) {
     CustomData_realloc(&this->curve_data, curves_num);
-    this->curve_size = curves_num;
+    this->curve_num = curves_num;
     this->curve_offsets = (int *)MEM_reallocN(this->curve_offsets, sizeof(int) * (curves_num + 1));
   }
   this->tag_topology_changed();

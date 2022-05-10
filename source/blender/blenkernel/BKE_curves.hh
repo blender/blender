@@ -127,7 +127,7 @@ class CurvesGeometry : public ::CurvesGeometry {
    * Create curves with the given size. Only the position attribute is created, along with the
    * offsets.
    */
-  CurvesGeometry(int point_size, int curve_size);
+  CurvesGeometry(int point_num, int curve_num);
   CurvesGeometry(const CurvesGeometry &other);
   CurvesGeometry(CurvesGeometry &&other);
   CurvesGeometry &operator=(const CurvesGeometry &other);
@@ -686,11 +686,11 @@ std::array<int, CURVE_TYPES_NUM> calculate_type_counts(const VArray<int8_t> &typ
 
 inline int CurvesGeometry::points_num() const
 {
-  return this->point_size;
+  return this->point_num;
 }
 inline int CurvesGeometry::curves_num() const
 {
-  return this->curve_size;
+  return this->curve_num;
 }
 inline IndexRange CurvesGeometry::points_range() const
 {
@@ -720,7 +720,7 @@ inline const std::array<int, CURVE_TYPES_NUM> &CurvesGeometry::curve_type_counts
 inline IndexRange CurvesGeometry::points_for_curve(const int index) const
 {
   /* Offsets are not allocated when there are no curves. */
-  BLI_assert(this->curve_size > 0);
+  BLI_assert(this->curve_num > 0);
   BLI_assert(this->curve_offsets != nullptr);
   const int offset = this->curve_offsets[index];
   const int offset_next = this->curve_offsets[index + 1];
@@ -730,7 +730,7 @@ inline IndexRange CurvesGeometry::points_for_curve(const int index) const
 inline IndexRange CurvesGeometry::points_for_curves(const IndexRange curves) const
 {
   /* Offsets are not allocated when there are no curves. */
-  BLI_assert(this->curve_size > 0);
+  BLI_assert(this->curve_num > 0);
   BLI_assert(this->curve_offsets != nullptr);
   const int offset = this->curve_offsets[curves.start()];
   const int offset_next = this->curve_offsets[curves.one_after_last()];
@@ -752,7 +752,7 @@ inline IndexRange CurvesGeometry::evaluated_points_for_curve(int index) const
 inline IndexRange CurvesGeometry::evaluated_points_for_curves(const IndexRange curves) const
 {
   BLI_assert(!this->runtime->offsets_cache_dirty);
-  BLI_assert(this->curve_size > 0);
+  BLI_assert(this->curve_num > 0);
   const int offset = this->runtime->evaluated_offsets_cache[curves.start()];
   const int offset_next = this->runtime->evaluated_offsets_cache[curves.one_after_last()];
   return {offset, offset_next - offset};
