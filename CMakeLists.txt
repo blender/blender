@@ -781,7 +781,9 @@ set_and_warn_dependency(WITH_BOOST WITH_OPENCOLORIO    OFF)
 set_and_warn_dependency(WITH_BOOST WITH_QUADRIFLOW     OFF)
 set_and_warn_dependency(WITH_BOOST WITH_USD            OFF)
 set_and_warn_dependency(WITH_BOOST WITH_ALEMBIC        OFF)
-set_and_warn_dependency(WITH_PUGIXML WITH_CYCLES_OSL   OFF)
+if(WITH_CYCLES)
+  set_and_warn_dependency(WITH_PUGIXML WITH_CYCLES_OSL   OFF)
+endif()
 set_and_warn_dependency(WITH_PUGIXML WITH_OPENIMAGEIO  OFF)
 
 if(WITH_BOOST AND NOT (WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_INTERNATIONAL OR
