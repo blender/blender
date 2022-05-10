@@ -330,10 +330,10 @@ static bool cast_ray_highpoly(BVHTreeFromMesh *treeData,
 {
   int i;
   int hit_mesh = -1;
-  float hit_distance = max_ray_distance;
-  if (hit_distance == 0.0f) {
+  float hit_distance_squared = max_ray_distance * max_ray_distance;
+  if (hit_distance_squared == 0.0f) {
     /* No ray distance set, use maximum. */
-    hit_distance = FLT_MAX;
+    hit_distance_squared = FLT_MAX;
   }
 
   BVHTreeRayHit *hits;
@@ -365,16 +365,14 @@ static bool cast_ray_highpoly(BVHTreeFromMesh *treeData,
     }
 
     if (hits[i].index != -1) {
-      float distance;
-      float hit_world[3];
-
       /* distance comparison in world space */
+      float hit_world[3];
       mul_v3_m4v3(hit_world, highpoly[i].obmat, hits[i].co);
-      distance = len_squared_v3v3(hit_world, co);
+      float distance_squared = len_squared_v3v3(hit_world, co);
 
-      if (distance < hit_distance) {
+      if (distance_squared < hit_distance_squared) {
         hit_mesh = i;
-        hit_distance = distance;
+        hit_distance_squared = distance_squared;
       }
     }
   }
