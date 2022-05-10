@@ -267,12 +267,15 @@ void GPU_viewport_stereo_composite(GPUViewport *viewport, Stereo3dFormat *stereo
     return;
   }
   /* The composite framebuffer object needs to be created in the window context. */
-  GPU_framebuffer_ensure_config(&viewport->stereo_comp_fb,
-                                {
-                                    GPU_ATTACHMENT_NONE,
-                                    GPU_ATTACHMENT_TEXTURE(viewport->color_overlay_tx[0]),
-                                    GPU_ATTACHMENT_TEXTURE(viewport->color_render_tx[0]),
-                                });
+  GPU_framebuffer_ensure_config(
+      &viewport->stereo_comp_fb,
+      {
+          GPU_ATTACHMENT_NONE,
+          /* We need the sRGB attachment to be first for GL_FRAMEBUFFER_SRGB to be turned on.
+           * Note that this is the opposite of what the texture binding is. */
+          GPU_ATTACHMENT_TEXTURE(viewport->color_overlay_tx[0]),
+          GPU_ATTACHMENT_TEXTURE(viewport->color_render_tx[0]),
+      });
 
   GPUVertFormat *vert_format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(vert_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
