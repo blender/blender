@@ -8,7 +8,6 @@ set(INC
   ../../depsgraph
   ../../makesdna
   ../../../../intern/guardedalloc
-
 )
 
 set(INC_SYS
