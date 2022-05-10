@@ -71,7 +71,7 @@ static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
     int x;
 
     for (x = minx; x < maxx; x++) {
-      float2 uv(float(x) / image_buffer->x, float(y) / image_buffer->y);
+      float2 uv((float(x) + 0.5f) / image_buffer->x, (float(y) + 0.5f) / image_buffer->y);
       float3 barycentric_weights;
       barycentric_weights_v2(uvs[0], uvs[1], uvs[2], uv, barycentric_weights);
 
