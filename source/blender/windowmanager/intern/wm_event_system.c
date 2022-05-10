@@ -1899,8 +1899,15 @@ void wm_event_free_handler(wmEventHandler *handler)
   MEM_freeN(handler);
 }
 
-/* Only set context when area/region is part of screen. */
-static void wm_handler_op_context(bContext *C, wmEventHandler_Op *handler, const wmEvent *event)
+/**
+ * Check if the handler's area and/or region are actually part of the screen, and return them if
+ * so.
+ */
+static void wm_handler_op_context_get_if_valid(bContext *C,
+                                               wmEventHandler_Op *handler,
+                                               const wmEvent *event,
+                                               ScrArea **r_area,
+                                               ARegion **r_region)
 {
   wmWindow *win = handler->context.win ? handler->context.win : CTX_wm_window(C);
   /* It's probably fine to always use #WM_window_get_active_screen() to get the screen. But this
@@ -1908,12 +1915,15 @@ static void wm_handler_op_context(bContext *C, wmEventHandler_Op *handler, const
    * possible. */
   bScreen *screen = handler->context.win ? WM_window_get_active_screen(win) : CTX_wm_screen(C);
 
+  *r_area = NULL;
+  *r_region = NULL;
+
   if (screen == NULL || handler->op == NULL) {
     return;
   }
 
   if (handler->context.area == NULL) {
-    CTX_wm_area_set(C, NULL);
+    /* Pass */
   }
   else {
     ScrArea *area = NULL;
@@ -1937,7 +1947,7 @@ static void wm_handler_op_context(bContext *C, wmEventHandler_Op *handler, const
     else {
       ARegion *region;
       wmOperator *op = handler->op ? (handler->op->opm ? handler->op->opm : handler->op) : NULL;
-      CTX_wm_area_set(C, area);
+      *r_area = area;
 
       if (op && (op->flag & OP_IS_MODAL_CURSOR_REGION)) {
         region = BKE_area_find_region_xy(area, handler->context.region_type, event->xy);
@@ -1960,10 +1970,19 @@ static void wm_handler_op_context(bContext *C, wmEventHandler_Op *handler, const
 
       /* No warning print here, after full-area and back regions are remade. */
       if (region) {
-        CTX_wm_region_set(C, region);
+        *r_region = region;
       }
     }
   }
+}
+
+static void wm_handler_op_context(bContext *C, wmEventHandler_Op *handler, const wmEvent *event)
+{
+  ScrArea *area = NULL;
+  ARegion *region = NULL;
+  wm_handler_op_context_get_if_valid(C, handler, event, &area, &region);
+  CTX_wm_area_set(C, area);
+  CTX_wm_region_set(C, region);
 }
 
 void WM_event_remove_handlers(bContext *C, ListBase *handlers)
@@ -2502,6 +2521,9 @@ static int wm_handler_fileselect_do(bContext *C,
     case EVT_FILESELECT_CANCEL:
     case EVT_FILESELECT_EXTERNAL_CANCEL: {
       wmWindow *ctx_win = CTX_wm_window(C);
+      wmEvent *eventstate = ctx_win->eventstate;
+      /* The root window of the operation as determined in #WM_event_add_fileselect(). */
+      wmWindow *root_win = handler->context.win;
 
       /* Remove link now, for load file case before removing. */
       BLI_remlink(handlers, handler);
@@ -2537,21 +2559,17 @@ static int wm_handler_fileselect_do(bContext *C,
           ED_fileselect_params_to_userdef(file_area->spacedata.first, win_size, is_maximized);
 
           if (BLI_listbase_is_single(&file_area->spacedata)) {
-            BLI_assert(ctx_win != win);
+            BLI_assert(root_win != win);
 
             wm_window_close(C, wm, win);
 
-            CTX_wm_window_set(C, ctx_win); /* #wm_window_close() NULLs. */
+            CTX_wm_window_set(C, root_win); /* #wm_window_close() NULLs. */
             /* Some operators expect a drawable context (for #EVT_FILESELECT_EXEC). */
-            wm_window_make_drawable(wm, ctx_win);
+            wm_window_make_drawable(wm, root_win);
             /* Ensure correct cursor position, otherwise, popups may close immediately after
              * opening (#UI_BLOCK_MOVEMOUSE_QUIT). */
-            wm_cursor_position_get(
-                ctx_win, &ctx_win->eventstate->xy[0], &ctx_win->eventstate->xy[1]);
-            wm->winactive = ctx_win; /* Reports use this... */
-            if (handler->context.win == win) {
-              handler->context.win = NULL;
-            }
+            wm_cursor_position_get(root_win, &eventstate->xy[0], &eventstate->xy[1]);
+            wm->winactive = root_win; /* Reports use this... */
           }
           else if (file_area->full) {
             ED_screen_full_prevspace(C, file_area);
@@ -2570,7 +2588,13 @@ static int wm_handler_fileselect_do(bContext *C,
         }
       }
 
-      wm_handler_op_context(C, handler, ctx_win->eventstate);
+      CTX_wm_window_set(C, root_win);
+      wm_handler_op_context(C, handler, eventstate);
+      /* At this point context is supposed to match the root context determined by
+       * #WM_event_add_fileselect(). */
+      BLI_assert(!CTX_wm_area(C) || (CTX_wm_area(C) == handler->context.area));
+      BLI_assert(!CTX_wm_region(C) || (CTX_wm_region(C) == handler->context.region));
+
       ScrArea *handler_area = CTX_wm_area(C);
       /* Make sure new context area is ready, the operator callback may operate on it. */
       if (handler_area) {
@@ -3982,40 +4006,99 @@ void WM_event_fileselect_event(wmWindowManager *wm, void *ophandle, int eventval
   }
 }
 
+/**
+ * From the context window, try to find a window that is appropriate for use as root window of a
+ * modal File Browser (modal means: there is a #SpaceFile.op to execute). The root window will
+ * become the parent of the File Browser and provides a context to execute the file operator in,
+ * even after closing the File Browser.
+ *
+ * An appropriate window is either of the following:
+ * * A parent window that does not yet contain a modal File Browser. This is determined using
+ *   #ED_fileselect_handler_area_find_any_with_op().
+ * * A parent window containing a modal File Browser, but in a maximized/fullscreen state. Users
+ *   shouldn't be able to put a temporary screen like the modal File Browser into
+ *   maximized/fullscreen state themselves. So this setup indicates that the File Browser was
+ *   opened using #USER_TEMP_SPACE_DISPLAY_FULLSCREEN.
+ *
+ * If no appropriate parent window can be found from the context window, return the first
+ * registered window (which can be assumed to be a regular window, e.g. no modal File Browser; this
+ * is asserted).
+ */
+static wmWindow *wm_event_find_fileselect_root_window_from_context(const bContext *C)
+{
+  wmWindow *ctx_win = CTX_wm_window(C);
+
+  for (wmWindow *ctx_win_or_parent = ctx_win; ctx_win_or_parent;
+       ctx_win_or_parent = ctx_win_or_parent->parent) {
+    ScrArea *file_area = ED_fileselect_handler_area_find_any_with_op(ctx_win_or_parent);
+
+    if (!file_area) {
+      return ctx_win_or_parent;
+    }
+
+    if (file_area->full) {
+      return ctx_win_or_parent;
+    }
+  }
+
+  /* Fallback to the first window. */
+  const wmWindowManager *wm = CTX_wm_manager(C);
+  BLI_assert(!ED_fileselect_handler_area_find_any_with_op(wm->windows.first));
+  return wm->windows.first;
+}
+
 /* Operator is supposed to have a filled "path" property. */
 /* Optional property: file-type (XXX enum?) */
 
 void WM_event_add_fileselect(bContext *C, wmOperator *op)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  wmWindow *win = CTX_wm_window(C);
-  const bool is_temp_screen = WM_window_is_temp_screen(win);
+  wmWindow *ctx_win = CTX_wm_window(C);
+
+  /* The following vars define the root context. That is essentially the "parent" context of the
+   * File Browser operation, to be restored for eventually executing the file operation. */
+  wmWindow *root_win = wm_event_find_fileselect_root_window_from_context(C);
+  /* Determined later. */
+  ScrArea *root_area = NULL;
+  ARegion *root_region = NULL;
 
   /* Close any popups, like when opening a file browser from the splash. */
-  UI_popup_handlers_remove_all(C, &win->modalhandlers);
+  UI_popup_handlers_remove_all(C, &root_win->modalhandlers);
 
-  if (!is_temp_screen) {
-    /* Only allow 1 file selector open per window. */
-    LISTBASE_FOREACH_MUTABLE (wmEventHandler *, handler_base, &win->modalhandlers) {
-      if (handler_base->type == WM_HANDLER_TYPE_OP) {
-        wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
-        if (handler->is_fileselect == false) {
-          continue;
-        }
+  CTX_wm_window_set(C, root_win);
 
-        ScrArea *file_area = ED_fileselect_handler_area_find(win, handler->op);
+  /* The root window may already have a File Browser open. Cancel it if so, only 1 should be open
+   * per window. The root context of this operation is also used for the new operation. */
+  LISTBASE_FOREACH_MUTABLE (wmEventHandler *, handler_base, &root_win->modalhandlers) {
+    if (handler_base->type == WM_HANDLER_TYPE_OP) {
+      wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
+      if (handler->is_fileselect == false) {
+        continue;
+      }
 
-        if (file_area) {
-          CTX_wm_area_set(C, file_area);
-          wm_handler_fileselect_do(C, &win->modalhandlers, handler, EVT_FILESELECT_CANCEL);
-        }
-        /* If not found we stop the handler without changing the screen. */
-        else {
-          wm_handler_fileselect_do(
-              C, &win->modalhandlers, handler, EVT_FILESELECT_EXTERNAL_CANCEL);
-        }
+      wm_handler_op_context_get_if_valid(
+          C, handler, ctx_win->eventstate, &root_area, &root_region);
+
+      ScrArea *file_area = ED_fileselect_handler_area_find(root_win, handler->op);
+
+      if (file_area) {
+        CTX_wm_area_set(C, file_area);
+        wm_handler_fileselect_do(C, &root_win->modalhandlers, handler, EVT_FILESELECT_CANCEL);
+      }
+      /* If not found we stop the handler without changing the screen. */
+      else {
+        wm_handler_fileselect_do(
+            C, &root_win->modalhandlers, handler, EVT_FILESELECT_EXTERNAL_CANCEL);
       }
     }
+  }
+
+  BLI_assert(root_win != NULL);
+  /* When not reusing the root context from a previous file browsing operation, use the current
+   * area & region, if they are inside the root window. */
+  if (!root_area && ctx_win == root_win) {
+    root_area = CTX_wm_area(C);
+    root_region = CTX_wm_region(C);
   }
 
   wmEventHandler_Op *handler = MEM_callocN(sizeof(*handler), __func__);
@@ -4023,11 +4106,11 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 
   handler->is_fileselect = true;
   handler->op = op;
-  handler->context.win = CTX_wm_window(C);
-  handler->context.area = CTX_wm_area(C);
-  handler->context.region = CTX_wm_region(C);
+  handler->context.win = root_win;
+  handler->context.area = root_area;
+  handler->context.region = root_region;
 
-  BLI_addhead(&win->modalhandlers, handler);
+  BLI_addhead(&root_win->modalhandlers, handler);
 
   /* Check props once before invoking if check is available
    * ensures initial properties are valid. */
@@ -4036,6 +4119,8 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
   }
 
   WM_event_fileselect_event(wm, op, EVT_FILESELECT_FULL_OPEN);
+
+  CTX_wm_window_set(C, ctx_win);
 }
 
 /** \} */
