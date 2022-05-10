@@ -3292,7 +3292,7 @@ static struct IDFilterEnumPropertyItem rna_enum_space_file_id_filter_categories[
     {FILTER_ID_AR | FILTER_ID_CU_LEGACY | FILTER_ID_LT | FILTER_ID_MB | FILTER_ID_ME |
          FILTER_ID_CV | FILTER_ID_PT | FILTER_ID_VO,
      "category_geometry",
-     ICON_NODETREE,
+     ICON_GEOMETRY_NODES,
      "Geometry",
      "Show meshes, curves, lattice, armatures and metaballs data"},
     {FILTER_ID_LS | FILTER_ID_MA | FILTER_ID_NT | FILTER_ID_TE,

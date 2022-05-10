@@ -1799,7 +1799,7 @@ ModifierTypeInfo modifierType_Nodes = {
                                   eModifierTypeFlag_SupportsEditmode |
                                   eModifierTypeFlag_EnableInEditmode |
                                   eModifierTypeFlag_SupportsMapping),
-    /* icon */ ICON_NODETREE,
+    /* icon */ ICON_GEOMETRY_NODES,
 
     /* copyData */ copyData,
 
