@@ -523,6 +523,7 @@ class _draw_tool_settings_context_mode:
             layout.prop(brush.curves_sculpt_settings, "curve_length")
             layout.prop(brush.curves_sculpt_settings, "interpolate_length")
             layout.prop(brush.curves_sculpt_settings, "interpolate_shape")
+            layout.prop(brush.curves_sculpt_settings, "interpolate_point_count")
 
         if brush.curves_sculpt_tool == 'GROW_SHRINK':
             layout.prop(brush, "direction", expand=True, text="")
