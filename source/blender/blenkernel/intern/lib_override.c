@@ -1384,7 +1384,21 @@ void BKE_lib_override_library_main_hierarchy_root_ensure(Main *bmain)
       continue;
     }
     if (id->override_library->hierarchy_root != NULL) {
-      continue;
+      if (!ID_IS_OVERRIDE_LIBRARY_REAL(id->override_library->hierarchy_root) ||
+          id->override_library->hierarchy_root->lib != id->lib) {
+        CLOG_ERROR(
+            &LOG,
+            "Existing override hierarchy root ('%s') for ID '%s' is invalid, will try to find a "
+            "new valid one",
+            id->override_library->hierarchy_root != NULL ?
+                id->override_library->hierarchy_root->name :
+                "<NONE>",
+            id->name);
+        id->override_library->hierarchy_root = NULL;
+      }
+      else {
+        continue;
+      }
     }
 
     BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
@@ -2057,6 +2071,10 @@ static bool lib_override_resync_tagging_finalize_recurse(
     BLI_assert(id_root->lib == id->lib);
 
     CLOG_INFO(&LOG, 4, "Found root ID '%s' for resync root ID '%s'", id_root->name, id->name);
+
+    if (id_root->override_library == NULL) {
+      BLI_assert(0);
+    }
 
     LinkNodePair **id_resync_roots_p;
     if (!BLI_ghash_ensure_p(id_roots, id_root, (void ***)&id_resync_roots_p)) {
