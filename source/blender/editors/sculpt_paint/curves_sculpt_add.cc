@@ -228,6 +228,8 @@ struct AddOperationExecutor {
     threading::parallel_invoke([&]() { this->initialize_curve_offsets(tot_added_curves); },
                                [&]() { this->initialize_attributes(added_points); });
 
+    curves_->update_curve_types();
+
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
     ED_region_tag_redraw(region_);
   }
