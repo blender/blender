@@ -64,6 +64,8 @@ void node_eevee_specular(vec4 diffuse,
   else {
     result = closure_eval(diffuse_data, reflection_data);
   }
-  result = closure_add(result, closure_eval(emission_data));
-  result = closure_add(result, closure_eval(transparency_data));
+  Closure emission_cl = closure_eval(emission_data);
+  Closure transparency_cl = closure_eval(transparency_data);
+  result = closure_add(result, emission_cl);
+  result = closure_add(result, transparency_cl);
 }
