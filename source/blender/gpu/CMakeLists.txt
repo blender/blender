@@ -301,8 +301,6 @@ set(GLSL_SRC
 
   shaders/gpu_shader_codegen_lib.glsl
 
-  shaders/gpu_shader_geometry.glsl
-
   shaders/common/gpu_shader_common_color_ramp.glsl
   shaders/common/gpu_shader_common_color_utils.glsl
   shaders/common/gpu_shader_common_curves.glsl
