@@ -278,7 +278,8 @@ static void rna_uiItemPointerR(uiLayout *layout,
                                const char *name,
                                const char *text_ctxt,
                                bool translate,
-                               int icon)
+                               int icon,
+                               const bool results_are_suggestions)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
   if (!prop) {
@@ -295,7 +296,8 @@ static void rna_uiItemPointerR(uiLayout *layout,
   /* Get translated name (label). */
   name = rna_translate_ui_text(name, text_ctxt, NULL, prop, translate);
 
-  uiItemPointerR_prop(layout, ptr, prop, searchptr, searchprop, name, icon);
+  uiItemPointerR_prop(
+      layout, ptr, prop, searchptr, searchprop, name, icon, results_are_suggestions);
 }
 
 static PointerRNA rna_uiItemO(uiLayout *layout,
@@ -1142,6 +1144,8 @@ void RNA_api_ui_layout(StructRNA *srna)
       func, "search_property", NULL, 0, "", "Identifier of search collection property");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   api_ui_item_common(func);
+  RNA_def_boolean(
+      func, "results_are_suggestions", false, "", "Accept inputs that do not match any item");
 
   func = RNA_def_function(srna, "prop_decorator", "uiItemDecoratorR");
   api_ui_item_rna_common(func);

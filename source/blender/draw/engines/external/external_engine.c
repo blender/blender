@@ -103,16 +103,8 @@ static void external_engine_init(void *vedata)
 
   /* Depth pre-pass. */
   if (!e_data.depth_sh) {
-    const GPUShaderConfigData *sh_cfg = &GPU_shader_cfg_data[GPU_SHADER_CFG_DEFAULT];
-
-    e_data.depth_sh = GPU_shader_create_from_arrays({
-        .vert = (const char *[]){sh_cfg->lib,
-                                 datatoc_common_view_lib_glsl,
-                                 datatoc_depth_vert_glsl,
-                                 NULL},
-        .frag = (const char *[]){datatoc_depth_frag_glsl, NULL},
-        .defs = (const char *[]){sh_cfg->def, NULL},
-    });
+    /* NOTE: Reuse Basic engine depth only shader. */
+    e_data.depth_sh = GPU_shader_create_from_info_name("basic_depth_mesh");
   }
 
   if (!stl->g_data) {

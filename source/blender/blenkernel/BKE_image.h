@@ -329,7 +329,7 @@ void BKE_image_merge(struct Main *bmain, struct Image *dest, struct Image *sourc
 bool BKE_image_scale(struct Image *image, int width, int height);
 
 /**
- * Check if texture has alpha (planes == 32 || planes == 16).
+ * Check if texture has alpha `planes == 32 || planes == 16`.
  */
 bool BKE_image_has_alpha(struct Image *image);
 
@@ -350,13 +350,13 @@ void BKE_image_get_tile_label(struct Image *ima,
  * Checks whether the given filepath refers to a UDIM tiled texture.
  * If yes, the range from the lowest to the highest tile is returned.
  *
- * `filepath` may be modified to ensure a UDIM token is present.
- * `tiles` may be filled even if the result ultimately is false!
+ * \param filepath: may be modified to ensure a UDIM token is present.
+ * \param tiles: may be filled even if the result ultimately is false!
  */
 bool BKE_image_get_tile_info(char *filepath,
                              struct ListBase *tiles,
-                             int *tile_start,
-                             int *tile_range);
+                             int *r_tile_start,
+                             int *r_tile_range);
 
 struct ImageTile *BKE_image_add_tile(struct Image *ima, int tile_number, const char *label);
 bool BKE_image_remove_tile(struct Image *ima, struct ImageTile *tile);
@@ -385,7 +385,7 @@ typedef enum {
 void BKE_image_ensure_tile_token(char *filename);
 
 /**
- * When provided with an absolute virtual filepath, check to see if at least
+ * When provided with an absolute virtual `filepath`, check to see if at least
  * one concrete file exists.
  * Note: This function requires directory traversal and may be inefficient in time-critical,
  * or iterative, code paths.
@@ -394,8 +394,8 @@ bool BKE_image_tile_filepath_exists(const char *filepath);
 
 /**
  * Retrieves the UDIM token format and returns the pattern from the provided `filepath`.
- * The returned pattern is typically passed to either `BKE_image_get_tile_number_from_filepath` or
- * `BKE_image_set_filepath_from_tile_number`.
+ * The returned pattern is typically passed to either #BKE_image_get_tile_number_from_filepath or
+ * #BKE_image_set_filepath_from_tile_number.
  */
 char *BKE_image_get_tile_strformat(const char *filepath, eUDIM_TILE_FORMAT *r_tile_format);
 bool BKE_image_get_tile_number_from_filepath(const char *filepath,
@@ -414,6 +414,8 @@ int BKE_image_get_tile_from_pos(struct Image *ima,
                                 const float uv[2],
                                 float r_uv[2],
                                 float r_ofs[2]);
+void BKE_image_get_tile_uv(const struct Image *ima, const int tile_number, float r_uv[2]);
+
 /**
  * Return the tile_number for the closest UDIM tile.
  */

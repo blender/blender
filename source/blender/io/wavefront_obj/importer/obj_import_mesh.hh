@@ -32,7 +32,7 @@ class MeshFromGeometry : NonMovable, NonCopyable {
   }
 
   Object *create_mesh(Main *bmain,
-                      const Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
+                      Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
                       Map<std::string, Material *> &created_materials,
                       const OBJImportParams &import_params);
 
@@ -45,11 +45,8 @@ class MeshFromGeometry : NonMovable, NonCopyable {
   void fixup_invalid_faces();
   void create_vertices(Mesh *mesh);
   /**
-   * Create polygons for the Mesh, set smooth shading flag, deform group name,
-   * assigned material also.
-   *
-   * It must receive all polygons to be added to the mesh.
-   * Remove holes from polygons before * calling this.
+   * Create polygons for the Mesh, set smooth shading flags, deform group names,
+   * Materials.
    */
   void create_polys_loops(Object *obj, Mesh *mesh);
   /**
@@ -64,7 +61,7 @@ class MeshFromGeometry : NonMovable, NonCopyable {
    * Add materials and the node-tree to the Mesh Object.
    */
   void create_materials(Main *bmain,
-                        const Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
+                        Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
                         Map<std::string, Material *> &created_materials,
                         Object *obj);
   void create_normals(Mesh *mesh);

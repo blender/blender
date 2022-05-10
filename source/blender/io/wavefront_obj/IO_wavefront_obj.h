@@ -84,6 +84,7 @@ struct OBJImportParams {
   float clamp_size;
   eTransformAxisForward forward_axis;
   eTransformAxisUp up_axis;
+  bool validate_meshes;
 };
 
 /**

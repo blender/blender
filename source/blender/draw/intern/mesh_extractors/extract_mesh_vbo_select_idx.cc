@@ -22,12 +22,11 @@ static void extract_select_idx_init_impl(const MeshRenderData *UNUSED(mr),
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
-    /* TODO: rename "color" to something more descriptive. */
-    GPU_vertformat_attr_add(&format, "color", GPU_COMP_U32, 1, GPU_FETCH_INT);
+    GPU_vertformat_attr_add(&format, "index", GPU_COMP_I32, 1, GPU_FETCH_INT);
   }
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, len);
-  *(uint32_t **)tls_data = (uint32_t *)GPU_vertbuf_get_data(vbo);
+  *(int32_t **)tls_data = (int32_t *)GPU_vertbuf_get_data(vbo);
 }
 
 static void extract_select_idx_init(const MeshRenderData *mr,
@@ -52,7 +51,7 @@ static void extract_poly_idx_iter_poly_bm(const MeshRenderData *UNUSED(mr),
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {
     const int l_index = BM_elem_index_get(l_iter);
-    (*(uint32_t **)data)[l_index] = f_index;
+    (*(int32_t **)data)[l_index] = f_index;
   } while ((l_iter = l_iter->next) != l_first);
 }
 
@@ -65,7 +64,7 @@ static void extract_edge_idx_iter_poly_bm(const MeshRenderData *UNUSED(mr),
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {
     const int l_index = BM_elem_index_get(l_iter);
-    (*(uint32_t **)data)[l_index] = BM_elem_index_get(l_iter->e);
+    (*(int32_t **)data)[l_index] = BM_elem_index_get(l_iter->e);
   } while ((l_iter = l_iter->next) != l_first);
 }
 
@@ -78,7 +77,7 @@ static void extract_vert_idx_iter_poly_bm(const MeshRenderData *UNUSED(mr),
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {
     const int l_index = BM_elem_index_get(l_iter);
-    (*(uint32_t **)data)[l_index] = BM_elem_index_get(l_iter->v);
+    (*(int32_t **)data)[l_index] = BM_elem_index_get(l_iter->v);
   } while ((l_iter = l_iter->next) != l_first);
 }
 
@@ -87,8 +86,8 @@ static void extract_edge_idx_iter_ledge_bm(const MeshRenderData *mr,
                                            const int ledge_index,
                                            void *data)
 {
-  (*(uint32_t **)data)[mr->loop_len + ledge_index * 2 + 0] = BM_elem_index_get(eed);
-  (*(uint32_t **)data)[mr->loop_len + ledge_index * 2 + 1] = BM_elem_index_get(eed);
+  (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 0] = BM_elem_index_get(eed);
+  (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 1] = BM_elem_index_get(eed);
 }
 
 static void extract_vert_idx_iter_ledge_bm(const MeshRenderData *mr,
@@ -96,8 +95,8 @@ static void extract_vert_idx_iter_ledge_bm(const MeshRenderData *mr,
                                            const int ledge_index,
                                            void *data)
 {
-  (*(uint32_t **)data)[mr->loop_len + ledge_index * 2 + 0] = BM_elem_index_get(eed->v1);
-  (*(uint32_t **)data)[mr->loop_len + ledge_index * 2 + 1] = BM_elem_index_get(eed->v2);
+  (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 0] = BM_elem_index_get(eed->v1);
+  (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 1] = BM_elem_index_get(eed->v2);
 }
 
 static void extract_vert_idx_iter_lvert_bm(const MeshRenderData *mr,
@@ -107,7 +106,7 @@ static void extract_vert_idx_iter_lvert_bm(const MeshRenderData *mr,
 {
   const int offset = mr->loop_len + (mr->edge_loose_len * 2);
 
-  (*(uint32_t **)data)[offset + lvert_index] = BM_elem_index_get(eve);
+  (*(int32_t **)data)[offset + lvert_index] = BM_elem_index_get(eve);
 }
 
 static void extract_poly_idx_iter_poly_mesh(const MeshRenderData *mr,
@@ -117,7 +116,7 @@ static void extract_poly_idx_iter_poly_mesh(const MeshRenderData *mr,
 {
   const int ml_index_end = mp->loopstart + mp->totloop;
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    (*(uint32_t **)data)[ml_index] = (mr->p_origindex) ? mr->p_origindex[mp_index] : mp_index;
+    (*(int32_t **)data)[ml_index] = (mr->p_origindex) ? mr->p_origindex[mp_index] : mp_index;
   }
 }
 
@@ -130,7 +129,7 @@ static void extract_edge_idx_iter_poly_mesh(const MeshRenderData *mr,
   const int ml_index_end = mp->loopstart + mp->totloop;
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
     const MLoop *ml = &mloop[ml_index];
-    (*(uint32_t **)data)[ml_index] = (mr->e_origindex) ? mr->e_origindex[ml->e] : ml->e;
+    (*(int32_t **)data)[ml_index] = (mr->e_origindex) ? mr->e_origindex[ml->e] : ml->e;
   }
 }
 
@@ -143,7 +142,7 @@ static void extract_vert_idx_iter_poly_mesh(const MeshRenderData *mr,
   const int ml_index_end = mp->loopstart + mp->totloop;
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
     const MLoop *ml = &mloop[ml_index];
-    (*(uint32_t **)data)[ml_index] = (mr->v_origindex) ? mr->v_origindex[ml->v] : ml->v;
+    (*(int32_t **)data)[ml_index] = (mr->v_origindex) ? mr->v_origindex[ml->v] : ml->v;
   }
 }
 
@@ -154,8 +153,8 @@ static void extract_edge_idx_iter_ledge_mesh(const MeshRenderData *mr,
 {
   const int e_index = mr->ledges[ledge_index];
   const int e_orig = (mr->e_origindex) ? mr->e_origindex[e_index] : e_index;
-  (*(uint32_t **)data)[mr->loop_len + ledge_index * 2 + 0] = e_orig;
-  (*(uint32_t **)data)[mr->loop_len + ledge_index * 2 + 1] = e_orig;
+  (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 0] = e_orig;
+  (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 1] = e_orig;
 }
 
 static void extract_vert_idx_iter_ledge_mesh(const MeshRenderData *mr,
@@ -165,8 +164,8 @@ static void extract_vert_idx_iter_ledge_mesh(const MeshRenderData *mr,
 {
   int v1_orig = (mr->v_origindex) ? mr->v_origindex[med->v1] : med->v1;
   int v2_orig = (mr->v_origindex) ? mr->v_origindex[med->v2] : med->v2;
-  (*(uint32_t **)data)[mr->loop_len + ledge_index * 2 + 0] = v1_orig;
-  (*(uint32_t **)data)[mr->loop_len + ledge_index * 2 + 1] = v2_orig;
+  (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 0] = v1_orig;
+  (*(int32_t **)data)[mr->loop_len + ledge_index * 2 + 1] = v2_orig;
 }
 
 static void extract_vert_idx_iter_lvert_mesh(const MeshRenderData *mr,
@@ -178,7 +177,7 @@ static void extract_vert_idx_iter_lvert_mesh(const MeshRenderData *mr,
 
   const int v_index = mr->lverts[lvert_index];
   const int v_orig = (mr->v_origindex) ? mr->v_origindex[v_index] : v_index;
-  (*(uint32_t **)data)[offset + lvert_index] = v_orig;
+  (*(int32_t **)data)[offset + lvert_index] = v_orig;
 }
 
 static void extract_vert_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
@@ -189,11 +188,12 @@ static void extract_vert_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
-  /* Each element points to an element in the ibo.points. */
-  draw_subdiv_init_origindex_buffer(vbo,
-                                    (int *)GPU_vertbuf_get_data(subdiv_cache->verts_orig_index),
-                                    subdiv_cache->num_subdiv_loops,
-                                    loose_geom.loop_len);
+  /* Each element points to an element in the `ibo.points`. */
+  draw_subdiv_init_origindex_buffer(
+      vbo,
+      (int32_t *)GPU_vertbuf_get_data(subdiv_cache->verts_orig_index),
+      subdiv_cache->num_subdiv_loops,
+      loose_geom.loop_len);
   if (!mr->v_origindex) {
     return;
   }
@@ -201,7 +201,7 @@ static void extract_vert_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
   /* Remap the vertex indices to those pointed by the origin indices layer. At this point, the
    * VBO data is a copy of #verts_orig_index which contains the coarse vertices indices, so
    * the memory can both be accessed for lookup and immediately overwritten. */
-  int *vbo_data = static_cast<int *>(GPU_vertbuf_get_data(vbo));
+  int32_t *vbo_data = static_cast<int32_t *>(GPU_vertbuf_get_data(vbo));
   for (int i = 0; i < subdiv_cache->num_subdiv_loops; i++) {
     if (vbo_data[i] == -1) {
       continue;
@@ -221,7 +221,7 @@ static void extract_vert_idx_loose_geom_subdiv(const DRWSubdivCache *subdiv_cach
   }
 
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
-  uint *vert_idx_data = (uint *)GPU_vertbuf_get_data(vbo);
+  int32_t *vert_idx_data = (int32_t *)GPU_vertbuf_get_data(vbo);
   uint offset = subdiv_cache->num_subdiv_loops;
 
   blender::Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
@@ -263,7 +263,7 @@ static void extract_edge_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
   const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
   draw_subdiv_init_origindex_buffer(
       vbo,
-      static_cast<int *>(GPU_vertbuf_get_data(subdiv_cache->edges_orig_index)),
+      static_cast<int32_t *>(GPU_vertbuf_get_data(subdiv_cache->edges_orig_index)),
       subdiv_cache->num_subdiv_loops,
       loose_geom.edge_len * 2);
 }
@@ -279,7 +279,7 @@ static void extract_edge_idx_loose_geom_subdiv(const DRWSubdivCache *subdiv_cach
   }
 
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
-  uint *vert_idx_data = (uint *)GPU_vertbuf_get_data(vbo);
+  int32_t *vert_idx_data = (int32_t *)GPU_vertbuf_get_data(vbo);
   uint offset = subdiv_cache->num_subdiv_loops;
 
   blender::Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
@@ -309,7 +309,7 @@ static void extract_poly_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
   /* Remap the polygon indices to those pointed by the origin indices layer. At this point, the
    * VBO data is a copy of #subdiv_loop_poly_index which contains the coarse polygon indices, so
    * the memory can both be accessed for lookup and immediately overwritten. */
-  int *vbo_data = static_cast<int *>(GPU_vertbuf_get_data(vbo));
+  int32_t *vbo_data = static_cast<int32_t *>(GPU_vertbuf_get_data(vbo));
   for (int i = 0; i < subdiv_cache->num_subdiv_loops; i++) {
     vbo_data[i] = mr->p_origindex[vbo_data[i]];
   }
@@ -323,7 +323,7 @@ constexpr MeshExtract create_extractor_poly_idx()
   extractor.iter_poly_mesh = extract_poly_idx_iter_poly_mesh;
   extractor.init_subdiv = extract_poly_idx_init_subdiv;
   extractor.data_type = MR_DATA_NONE;
-  extractor.data_size = sizeof(uint32_t *);
+  extractor.data_size = sizeof(int32_t *);
   extractor.use_threading = true;
   extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.poly_idx);
   return extractor;
@@ -340,7 +340,7 @@ constexpr MeshExtract create_extractor_edge_idx()
   extractor.init_subdiv = extract_edge_idx_init_subdiv;
   extractor.iter_loose_geom_subdiv = extract_edge_idx_loose_geom_subdiv;
   extractor.data_type = MR_DATA_NONE;
-  extractor.data_size = sizeof(uint32_t *);
+  extractor.data_size = sizeof(int32_t *);
   extractor.use_threading = true;
   extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.edge_idx);
   return extractor;
@@ -359,7 +359,7 @@ constexpr MeshExtract create_extractor_vert_idx()
   extractor.init_subdiv = extract_vert_idx_init_subdiv;
   extractor.iter_loose_geom_subdiv = extract_vert_idx_loose_geom_subdiv;
   extractor.data_type = MR_DATA_NONE;
-  extractor.data_size = sizeof(uint32_t *);
+  extractor.data_size = sizeof(int32_t *);
   extractor.use_threading = true;
   extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.vert_idx);
   return extractor;
@@ -378,7 +378,7 @@ static void extract_fdot_idx_iter_poly_bm(const MeshRenderData *UNUSED(mr),
                                           const int f_index,
                                           void *data)
 {
-  (*(uint32_t **)data)[f_index] = f_index;
+  (*(int32_t **)data)[f_index] = f_index;
 }
 
 static void extract_fdot_idx_iter_poly_mesh(const MeshRenderData *mr,
@@ -387,10 +387,10 @@ static void extract_fdot_idx_iter_poly_mesh(const MeshRenderData *mr,
                                             void *data)
 {
   if (mr->p_origindex != nullptr) {
-    (*(uint32_t **)data)[mp_index] = mr->p_origindex[mp_index];
+    (*(int32_t **)data)[mp_index] = mr->p_origindex[mp_index];
   }
   else {
-    (*(uint32_t **)data)[mp_index] = mp_index;
+    (*(int32_t **)data)[mp_index] = mp_index;
   }
 }
 
@@ -401,7 +401,7 @@ constexpr MeshExtract create_extractor_fdot_idx()
   extractor.iter_poly_bm = extract_fdot_idx_iter_poly_bm;
   extractor.iter_poly_mesh = extract_fdot_idx_iter_poly_mesh;
   extractor.data_type = MR_DATA_NONE;
-  extractor.data_size = sizeof(uint32_t *);
+  extractor.data_size = sizeof(int32_t *);
   extractor.use_threading = true;
   extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.fdot_idx);
   return extractor;

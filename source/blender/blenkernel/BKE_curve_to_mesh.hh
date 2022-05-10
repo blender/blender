@@ -2,7 +2,7 @@
 
 #pragma once
 
-struct CurveEval;
+struct CurvesGeometry;
 struct Mesh;
 
 /** \file
@@ -21,11 +21,13 @@ namespace blender::bke {
  * changed anyway in a way that affects the normals. So currently this code uses the safer /
  * simpler solution of deferring normal calculation to the rest of Blender.
  */
-Mesh *curve_to_mesh_sweep(const CurveEval &curve, const CurveEval &profile, bool fill_caps);
+Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
+                          const CurvesGeometry &profile,
+                          bool fill_caps);
 /**
  * Create a loose-edge mesh based on the evaluated path of the curve's splines.
  * Transfer curve attributes to the mesh.
  */
-Mesh *curve_to_wire_mesh(const CurveEval &curve);
+Mesh *curve_to_wire_mesh(const CurvesGeometry &curve);
 
 }  // namespace blender::bke

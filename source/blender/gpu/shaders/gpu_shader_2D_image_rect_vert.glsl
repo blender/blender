@@ -3,14 +3,6 @@
  * does not need any vertex input (producing less call to immBegin/End)
  */
 
-#ifndef USE_GPU_SHADER_CREATE_INFO
-uniform mat4 ModelViewProjectionMatrix;
-uniform vec4 rect_icon;
-uniform vec4 rect_geom;
-
-out vec2 texCoord_interp;
-#endif
-
 void main()
 {
   vec2 uv;

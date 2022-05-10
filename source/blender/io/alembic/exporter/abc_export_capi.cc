@@ -115,7 +115,7 @@ static void export_startjob(void *customdata,
     return;
   }
 
-  ABCHierarchyIterator iter(data->depsgraph, abc_archive.get(), data->params);
+  ABCHierarchyIterator iter(data->bmain, data->depsgraph, abc_archive.get(), data->params);
 
   if (export_animation) {
     CLOG_INFO(&LOG, 2, "Exporting animation");
@@ -134,7 +134,7 @@ static void export_startjob(void *customdata,
 
       /* Update the scene for the next frame to render. */
       scene->r.cfra = static_cast<int>(frame);
-      scene->r.subframe = frame - scene->r.cfra;
+      scene->r.subframe = static_cast<float>(frame - scene->r.cfra);
       BKE_scene_graph_update_for_newframe(data->depsgraph);
 
       CLOG_INFO(&LOG, 2, "Exporting frame %.2f", frame);

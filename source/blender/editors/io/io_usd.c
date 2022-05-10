@@ -118,7 +118,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const bool generate_preview_surface = RNA_boolean_get(op->ptr, "generate_preview_surface");
   const bool export_textures = RNA_boolean_get(op->ptr, "export_textures");
   const bool overwrite_textures = RNA_boolean_get(op->ptr, "overwrite_textures");
-  const bool relative_texture_paths = RNA_boolean_get(op->ptr, "relative_texture_paths");
+  const bool relative_paths = RNA_boolean_get(op->ptr, "relative_paths");
 
   struct USDExportParams params = {
       export_animation,
@@ -133,7 +133,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
       generate_preview_surface,
       export_textures,
       overwrite_textures,
-      relative_texture_paths,
+      relative_paths,
   };
 
   bool ok = USD_export(C, filename, &params, as_background_job);
@@ -181,9 +181,9 @@ static void wm_usd_export_draw(bContext *UNUSED(C), wmOperator *op)
   const bool export_tex = RNA_boolean_get(ptr, "export_textures");
   uiLayoutSetActive(row, export_mtl && preview && export_tex);
 
-  row = uiLayoutRow(col, true);
-  uiItemR(row, ptr, "relative_texture_paths", 0, NULL, ICON_NONE);
-  uiLayoutSetActive(row, export_mtl && preview);
+  box = uiLayoutBox(layout);
+  col = uiLayoutColumnWithHeading(box, true, IFACE_("File References"));
+  uiItemR(col, ptr, "relative_paths", 0, NULL, ICON_NONE);
 
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Experimental"), ICON_NONE);
@@ -215,47 +215,43 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                   "selected_objects_only",
                   false,
                   "Selection Only",
-                  "Only selected objects are exported. Unselected parents of selected objects are "
+                  "Only export selected objects. Unselected parents of selected objects are "
                   "exported as empty transform");
 
   RNA_def_boolean(ot->srna,
                   "visible_objects_only",
                   true,
                   "Visible Only",
-                  "Only visible objects are exported. Invisible parents of exported objects are "
-                  "exported as empty transform");
+                  "Only export visible objects. Invisible parents of exported objects are "
+                  "exported as empty transforms");
 
-  RNA_def_boolean(ot->srna,
-                  "export_animation",
-                  false,
-                  "Animation",
-                  "When checked, the render frame range is exported. When false, only the current "
-                  "frame is exported");
   RNA_def_boolean(
-      ot->srna, "export_hair", false, "Hair", "When checked, hair is exported as USD curves");
-  RNA_def_boolean(ot->srna,
-                  "export_uvmaps",
-                  true,
-                  "UV Maps",
-                  "When checked, all UV maps of exported meshes are included in the export");
+      ot->srna,
+      "export_animation",
+      false,
+      "Animation",
+      "Export all frames in the render frame range, rather than only the current frame");
+  RNA_def_boolean(
+      ot->srna, "export_hair", false, "Hair", "Export hair particle systems as USD curves");
+  RNA_def_boolean(
+      ot->srna, "export_uvmaps", true, "UV Maps", "Include all mesh UV maps in the export");
   RNA_def_boolean(ot->srna,
                   "export_normals",
                   true,
                   "Normals",
-                  "When checked, normals of exported meshes are included in the export");
+                  "Include normals of exported meshes in the export");
   RNA_def_boolean(ot->srna,
                   "export_materials",
                   true,
                   "Materials",
-                  "When checked, the viewport settings of materials are exported as USD preview "
-                  "materials, and material assignments are exported as geometry subsets");
+                  "Export viewport settings of materials as USD preview materials, and export "
+                  "material assignments as geometry subsets");
 
   RNA_def_boolean(ot->srna,
                   "use_instancing",
                   false,
                   "Instancing",
-                  "When checked, instanced objects are exported as references in USD. "
-                  "When unchecked, instanced objects are exported as real objects");
+                  "Export instanced objects as references in USD rather than real objects");
 
   RNA_def_enum(ot->srna,
                "evaluation_mode",
@@ -286,10 +282,11 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                   "Allow overwriting existing texture files when exporting textures");
 
   RNA_def_boolean(ot->srna,
-                  "relative_texture_paths",
+                  "relative_paths",
                   true,
-                  "Relative Texture Paths",
-                  "Make texture asset paths relative to the USD file");
+                  "Relative Paths",
+                  "Use relative paths to reference external files (i.e. textures, volumes) in "
+                  "USD, otherwise use absolute paths");
 }
 
 /* ====== USD Import ====== */
@@ -524,7 +521,8 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna, "read_mesh_uvs", true, "UV Coordinates", "Read mesh UV coordinates");
 
-  RNA_def_boolean(ot->srna, "read_mesh_colors", false, "Color Attributes", "Read mesh color attributes");
+  RNA_def_boolean(
+      ot->srna, "read_mesh_colors", false, "Color Attributes", "Read mesh color attributes");
 
   RNA_def_string(ot->srna,
                  "prim_path_mask",

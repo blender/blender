@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_task.hh"
+
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_attribute_math.hh"
@@ -41,14 +43,15 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-template<typename T>
-static void copy_attribute_to_points(const VArray<T> &src,
-                                     const IndexMask mask,
-                                     MutableSpan<T> dst)
+static void materialize_compressed_to_uninitialized_threaded(const GVArray &src,
+                                                             const IndexMask mask,
+                                                             GMutableSpan dst)
 {
-  for (const int i : mask.index_range()) {
-    dst[i] = src[mask[i]];
-  }
+  BLI_assert(src.type() == dst.type());
+  BLI_assert(mask.size() == dst.size());
+  threading::parallel_for(mask.index_range(), 4096, [&](IndexRange range) {
+    src.materialize_compressed_to_uninitialized(mask.slice(range), dst.slice(range).data());
+  });
 }
 
 static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
@@ -79,16 +82,21 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
-  uninitialized_fill_n(pointcloud->radius, pointcloud->totpoint, 0.05f);
   geometry_set.replace_pointcloud(pointcloud);
   PointCloudComponent &point_component =
       geometry_set.get_component_for_write<PointCloudComponent>();
 
-  copy_attribute_to_points(evaluator.get_evaluated<float3>(0),
-                           selection,
-                           {(float3 *)pointcloud->co, pointcloud->totpoint});
-  copy_attribute_to_points(
-      evaluator.get_evaluated<float>(1), selection, {pointcloud->radius, pointcloud->totpoint});
+  OutputAttribute position = point_component.attribute_try_get_for_output_only(
+      "position", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
+  materialize_compressed_to_uninitialized_threaded(
+      evaluator.get_evaluated(0), selection, position.as_span());
+  position.save();
+
+  OutputAttribute radius = point_component.attribute_try_get_for_output_only(
+      "radius", ATTR_DOMAIN_POINT, CD_PROP_FLOAT);
+  materialize_compressed_to_uninitialized_threaded(
+      evaluator.get_evaluated(1), selection, radius.as_span());
+  radius.save();
 
   Map<AttributeIDRef, AttributeKind> attributes;
   geometry_set.gather_attributes_for_propagation(
@@ -102,11 +110,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
     OutputAttribute dst = point_component.attribute_try_get_for_output_only(
         attribute_id, ATTR_DOMAIN_POINT, data_type);
     if (dst && src) {
-      attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
-        using T = decltype(dummy);
-        VArray<T> src_typed = src.typed<T>();
-        copy_attribute_to_points(src_typed, selection, dst.as_span().typed<T>());
-      });
+      materialize_compressed_to_uninitialized_threaded(src, selection, dst.as_span());
       dst.save();
     }
   }
@@ -124,7 +128,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   /* Use another multi-function operation to make sure the input radius is greater than zero.
    * TODO: Use mutable multi-function once that is supported. */
   static fn::CustomMF_SI_SO<float, float> max_zero_fn(
-      __func__, [](float value) { return std::max(0.0f, value); });
+      __func__,
+      [](float value) { return std::max(0.0f, value); },
+      fn::CustomMF_presets::AllSpanOrSingle());
   auto max_zero_op = std::make_shared<FieldOperation>(
       FieldOperation(max_zero_fn, {std::move(radius)}));
   Field<float> positive_radius(std::move(max_zero_op), 0);

@@ -99,7 +99,7 @@ static void workbench_studiolight_data_update(WORKBENCH_PrivateData *wpd, WORKBE
     if (sl && sl->flag) {
       copy_v3_v3(light->light_direction, sl->vec);
       mul_mat3_m4_v3(rot_matrix, light->light_direction);
-      /* We should predivide the power by PI but that makes the lights really dim. */
+      /* We should pre-divide the power by PI but that makes the lights really dim. */
       copy_v3_v3(light->specular_color, sl->spec);
       copy_v3_v3(light->diffuse_color, sl->col);
       light->wrapped = sl->smooth;
@@ -163,7 +163,6 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
   wpd->taa_sample_len = workbench_antialiasing_sample_count_get(wpd);
 
   wpd->volumes_do = false;
-  BLI_listbase_clear(&wpd->smoke_domains);
 
   /* FIXME: This reproduce old behavior when workbench was separated in 2 engines.
    * But this is a workaround for a missing update tagging. */

@@ -5,9 +5,9 @@
 
 #ifdef EDGE
 /* Ugly but needed to keep the same vertex shader code for other passes. */
-#  define finalColor geometry_in.finalColor
-#  define finalColorOuter geometry_in.finalColorOuter
-#  define selectOverride geometry_in.selectOverride
+#  define finalColor geometry_in.finalColor_
+#  define finalColorOuter geometry_in.finalColorOuter_
+#  define selectOverride geometry_in.selectOverride_
 #endif
 
 bool test_occlusion()

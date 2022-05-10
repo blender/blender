@@ -163,7 +163,7 @@ const ID *nested_id_hack_get_discarded_pointers(NestedIDHackTempStorage *storage
   switch (GS(id->name)) {
 #  define SPECIAL_CASE(id_type, dna_type, field, variable) \
     case id_type: { \
-      storage->variable = *(dna_type *)id; \
+      storage->variable = dna::shallow_copy(*(dna_type *)id); \
       storage->variable.field = nullptr; \
       return &storage->variable.id; \
     }
@@ -988,7 +988,7 @@ void discard_edit_mode_pointers(ID *id_cow)
 }  // namespace
 
 /**
-   Free content of the CoW data-block.
+ *  Free content of the CoW data-block.
  * Notes:
  * - Does not recurse into nested ID data-blocks.
  * - Does not free data-block itself.

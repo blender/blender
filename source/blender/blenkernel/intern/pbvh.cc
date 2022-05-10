@@ -50,7 +50,7 @@ inline void to_static_color_type(const CustomDataType type, const Func &func)
     case CD_PROP_COLOR:
       func(MPropCol());
       break;
-    case CD_MLOOPCOL:
+    case CD_PROP_BYTE_COLOR:
       func(MLoopCol());
       break;
     default:

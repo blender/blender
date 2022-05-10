@@ -564,7 +564,8 @@ static void bmo_get_loop_color_ref(BMesh *bm,
 {
   Mesh me_query;
 
-  BKE_id_attribute_copy_domains_temp(ID_ME, &bm->vdata, NULL, &bm->ldata, NULL, NULL, &me_query.id);
+  BKE_id_attribute_copy_domains_temp(
+      ID_ME, &bm->vdata, NULL, &bm->ldata, NULL, NULL, &me_query.id);
 
   CustomDataLayer *layer = BKE_id_attribute_from_index(
       &me_query.id, index, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);

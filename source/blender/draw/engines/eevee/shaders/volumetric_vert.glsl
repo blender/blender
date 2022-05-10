@@ -30,8 +30,50 @@ void main()
   vPos.w = 1.0;
 
   PASS_RESOURCE_ID
+}
 
-#ifdef USE_ATTR
-  pass_attr(vec3(0.0), mat3(1), mat4(1));
-#endif
+/* Stubs */
+vec2 btdf_lut(float a, float b, float c)
+{
+  return vec2(0.0);
+}
+
+vec2 brdf_lut(float a, float b)
+{
+  return vec2(0.0);
+}
+
+vec3 F_brdf_multi_scatter(vec3 a, vec3 b, vec2 c)
+{
+  return vec3(0.0);
+}
+
+vec3 F_brdf_single_scatter(vec3 a, vec3 b, vec2 c)
+{
+  return vec3(0.0);
+}
+
+float F_eta(float a, float b)
+{
+  return 0.0;
+}
+
+vec3 coordinate_camera(vec3 P)
+{
+  return vec3(0.0);
+}
+
+vec3 coordinate_screen(vec3 P)
+{
+  return vec3(0.0);
+}
+
+vec3 coordinate_reflect(vec3 P, vec3 N)
+{
+  return vec3(0.0);
+}
+
+vec3 coordinate_incoming(vec3 P)
+{
+  return vec3(0.0);
 }

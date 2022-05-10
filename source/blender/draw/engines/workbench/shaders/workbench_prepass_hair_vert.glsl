@@ -8,8 +8,10 @@
 /* From http://libnoise.sourceforge.net/noisegen/index.html */
 float integer_noise(int n)
 {
-  n = (n >> 13) ^ n;
-  int nn = (n * (n * n * 60493 + 19990303) + 1376312589) & 0x7fffffff;
+  /* Integer bit-shifts cause precision issues due to overflow
+   * in a number of workbench tests. Use uint instead. */
+  uint nn = (uint(n) >> 13u) ^ uint(n);
+  nn = (nn * (nn * nn * 60493u + 19990303u) + 1376312589u) & 0x7fffffffu;
   return (float(nn) / 1073741824.0);
 }
 

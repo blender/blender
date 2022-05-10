@@ -159,7 +159,6 @@ static void rna_Mesh_normals_split_custom_set_from_vertices(Mesh *mesh,
 static void rna_Mesh_transform(Mesh *mesh, float mat[16], bool shape_keys)
 {
   BKE_mesh_transform(mesh, (float(*)[4])mat, shape_keys);
-  BKE_mesh_normals_tag_dirty(mesh);
 
   DEG_id_tag_update(&mesh->id, 0);
 }

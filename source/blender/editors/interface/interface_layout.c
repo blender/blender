@@ -2332,7 +2332,7 @@ void uiItemFullR(uiLayout *layout,
   /* property with separate label */
   else if (ELEM(type, PROP_ENUM, PROP_STRING, PROP_POINTER)) {
     but = ui_item_with_label(layout, block, name, icon, ptr, prop, index, 0, 0, w, h, flag);
-    but = ui_but_add_search(but, ptr, prop, NULL, NULL);
+    but = ui_but_add_search(but, ptr, prop, NULL, NULL, false);
 
     if (layout->redalert) {
       UI_but_flag_enable(but, UI_BUT_REDALERT);
@@ -2700,8 +2700,12 @@ static void ui_rna_collection_search_arg_free_fn(void *ptr)
   MEM_freeN(ptr);
 }
 
-uiBut *ui_but_add_search(
-    uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *searchptr, PropertyRNA *searchprop)
+uiBut *ui_but_add_search(uiBut *but,
+                         PointerRNA *ptr,
+                         PropertyRNA *prop,
+                         PointerRNA *searchptr,
+                         PropertyRNA *searchprop,
+                         bool results_are_suggestions)
 {
   /* for ID's we do automatic lookup */
   PointerRNA sptr;
@@ -2743,6 +2747,8 @@ uiBut *ui_but_add_search(
       but->str[0] = 0;
     }
 
+    UI_but_func_search_set_results_are_suggestions(but, results_are_suggestions);
+
     UI_but_func_search_set(but,
                            ui_searchbox_create_generic,
                            ui_rna_collection_search_update_fn,
@@ -2771,7 +2777,8 @@ void uiItemPointerR_prop(uiLayout *layout,
                          PointerRNA *searchptr,
                          PropertyRNA *searchprop,
                          const char *name,
-                         int icon)
+                         int icon,
+                         bool results_are_suggestions)
 {
   const bool use_prop_sep = ((layout->item.flag & UI_ITEM_PROP_SEP) != 0);
 
@@ -2820,7 +2827,7 @@ void uiItemPointerR_prop(uiLayout *layout,
   w += UI_UNIT_X; /* X icon needs more space */
   uiBut *but = ui_item_with_label(layout, block, name, icon, ptr, prop, 0, 0, 0, w, h, 0);
 
-  ui_but_add_search(but, ptr, prop, searchptr, searchprop);
+  but = ui_but_add_search(but, ptr, prop, searchptr, searchprop, results_are_suggestions);
 }
 
 void uiItemPointerR(uiLayout *layout,
@@ -2845,7 +2852,7 @@ void uiItemPointerR(uiLayout *layout,
     return;
   }
 
-  uiItemPointerR_prop(layout, ptr, prop, searchptr, searchprop, name, icon);
+  uiItemPointerR_prop(layout, ptr, prop, searchptr, searchprop, name, icon, false);
 }
 
 void ui_item_menutype_func(bContext *C, uiLayout *layout, void *arg_mt)
@@ -5672,6 +5679,40 @@ void uiLayoutContextCopy(uiLayout *layout, bContextStore *context)
 {
   uiBlock *block = layout->root->block;
   layout->context = CTX_store_add_all(&block->contexts, context);
+}
+
+void uiLayoutSetTooltipFunc(uiLayout *layout,
+                            uiButToolTipFunc func,
+                            void *arg,
+                            uiCopyArgFunc copy_arg,
+                            uiFreeArgFunc free_arg)
+{
+  bool arg_used = false;
+
+  LISTBASE_FOREACH (uiItem *, item, &layout->items) {
+    /* Each button will call free_arg for "its" argument, so we need to
+     * duplicate the allocation for each button after the first. */
+    if (copy_arg != NULL && arg_used) {
+      arg = copy_arg(arg);
+    }
+    arg_used = true;
+
+    if (item->type == ITEM_BUTTON) {
+      uiButtonItem *bitem = (uiButtonItem *)item;
+      if (bitem->but->type == UI_BTYPE_DECORATOR) {
+        continue;
+      }
+      UI_but_func_tooltip_set(bitem->but, func, arg, free_arg);
+    }
+    else {
+      uiLayoutSetTooltipFunc((uiLayout *)item, func, arg, copy_arg, free_arg);
+    }
+  }
+
+  if (!arg_used) {
+    /* Free the original copy of arg in case the layout is empty. */
+    free_arg(arg);
+  }
 }
 
 void uiLayoutSetContextFromBut(uiLayout *layout, uiBut *but)

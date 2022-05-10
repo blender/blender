@@ -95,14 +95,15 @@ static void set_position_in_component(CurveComponent &component,
   Span<float3> positions = curves.positions();
 
   const bool use_left = mode == GEO_NODE_CURVE_HANDLE_LEFT;
-  MutableSpan<int8_t> handle_types = use_left ? curves.handle_types_left() :
-                                                curves.handle_types_right();
-  MutableSpan<int8_t> handle_types_other = use_left ? curves.handle_types_right() :
-                                                      curves.handle_types_left();
-  MutableSpan<float3> handle_positions = use_left ? curves.handle_positions_left() :
-                                                    curves.handle_positions_right();
-  MutableSpan<float3> handle_positions_other = use_left ? curves.handle_positions_right() :
-                                                          curves.handle_positions_left();
+  MutableSpan<int8_t> handle_types = use_left ? curves.handle_types_left_for_write() :
+                                                curves.handle_types_right_for_write();
+  MutableSpan<int8_t> handle_types_other = use_left ? curves.handle_types_right_for_write() :
+                                                      curves.handle_types_left_for_write();
+  MutableSpan<float3> handle_positions = use_left ? curves.handle_positions_left_for_write() :
+                                                    curves.handle_positions_right_for_write();
+  MutableSpan<float3> handle_positions_other = use_left ?
+                                                   curves.handle_positions_right_for_write() :
+                                                   curves.handle_positions_left_for_write();
 
   threading::parallel_for(selection.index_range(), 2048, [&](IndexRange range) {
     for (const int i : selection.slice(range)) {

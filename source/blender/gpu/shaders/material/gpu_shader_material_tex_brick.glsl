@@ -1,3 +1,6 @@
+#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_common_math_utils.glsl)
+
 vec2 calc_brick_texture(vec3 p,
                         float mortar_size,
                         float mortar_smooth,

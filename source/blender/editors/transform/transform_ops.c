@@ -315,6 +315,8 @@ static void TRANSFORM_OT_create_orientation(struct wmOperatorType *ot)
 #ifdef USE_LOOPSLIDE_HACK
 /**
  * Special hack for MESH_OT_loopcut_slide so we get back to the selection mode
+ * Do this for all meshes in multi-object editmode so their selectmode is in sync for following
+ * operators
  */
 static void transformops_loopsel_hack(bContext *C, wmOperator *op)
 {
@@ -334,12 +336,10 @@ static void transformops_loopsel_hack(bContext *C, wmOperator *op)
                            (mesh_select_mode[1] ? SCE_SELECT_EDGE : 0) |
                            (mesh_select_mode[2] ? SCE_SELECT_FACE : 0));
 
-        /* still switch if we were originally in face select mode */
+        /* Still switch if we were originally in face select mode. */
         if ((ts->selectmode != selectmode_orig) && (selectmode_orig != SCE_SELECT_FACE)) {
-          Object *obedit = CTX_data_edit_object(C);
-          BMEditMesh *em = BKE_editmesh_from_object(obedit);
-          em->selectmode = ts->selectmode = selectmode_orig;
-          EDBM_selectmode_set(em);
+          ts->selectmode = selectmode_orig;
+          EDBM_selectmode_set_multi(C, selectmode_orig);
         }
       }
     }

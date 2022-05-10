@@ -381,7 +381,7 @@ void Scene::device_update(Device *device_, Progress &progress)
   }
 }
 
-Scene::MotionType Scene::need_motion()
+Scene::MotionType Scene::need_motion() const
 {
   if (integrator->get_motion_blur())
     return MOTION_BLUR;
@@ -407,6 +407,10 @@ bool Scene::need_global_attribute(AttributeStandard std)
     return need_motion() != MOTION_NONE;
   else if (std == ATTR_STD_MOTION_VERTEX_NORMAL)
     return need_motion() == MOTION_BLUR;
+  else if (std == ATTR_STD_VOLUME_VELOCITY || std == ATTR_STD_VOLUME_VELOCITY_X ||
+           std == ATTR_STD_VOLUME_VELOCITY_Y || std == ATTR_STD_VOLUME_VELOCITY_Z) {
+    return need_motion() != MOTION_NONE;
+  }
 
   return false;
 }

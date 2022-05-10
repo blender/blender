@@ -806,6 +806,13 @@ class IMAGE_HT_header(Header):
 
         layout.separator_spacer()
 
+        # Gizmo toggle & popover.
+        row = layout.row(align=True)
+        row.prop(sima, "show_gizmo", icon='GIZMO', text="")
+        sub = row.row(align=True)
+        sub.active = sima.show_gizmo
+        sub.popover(panel="IMAGE_PT_gizmo_display", text="")
+
         # Overlay toggle & popover
         row = layout.row(align=True)
         row.prop(overlay, "show_overlays", icon='OVERLAY', text="")
@@ -1453,57 +1460,25 @@ class IMAGE_PT_uv_cursor(Panel):
         col.prop(sima, "cursor_location", text="Location")
 
 
-class IMAGE_PT_udim_grid(Panel):
+class IMAGE_PT_gizmo_display(Panel):
     bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'UI'
-    bl_category = "View"
-    bl_label = "UDIM Grid"
-
-    @classmethod
-    def poll(cls, context):
-        sima = context.space_data
-
-        return sima.show_uvedit
+    bl_region_type = 'HEADER'
+    bl_label = "Gizmos"
+    bl_ui_units_x = 8
 
     def draw(self, context):
         layout = self.layout
 
-        sima = context.space_data
-        uvedit = sima.uv_editor
-
-        layout.use_property_split = True
-        layout.use_property_decorate = False
+        view = context.space_data
 
         col = layout.column()
-        col.prop(uvedit, "tile_grid_shape", text="Grid Shape")
+        col.label(text="Viewport Gizmos")
+        col.separator()
 
-class IMAGE_PT_custom_grid(Panel):
-    bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'UI'
-    bl_category = "View"
-    bl_label = "Custom Grid"
+        col.active = view.show_gizmo
+        colsub = col.column()
+        colsub.prop(view, "show_gizmo_navigate", text="Navigate")
 
-    @classmethod
-    def poll(cls, context):
-        sima = context.space_data
-        return sima.show_uvedit
-
-    def draw_header(self, context):
-        sima = context.space_data
-        uvedit = sima.uv_editor
-        self.layout.prop(uvedit, "use_custom_grid", text="")
-
-    def draw(self, context):
-        layout = self.layout
-
-        sima = context.space_data
-        uvedit = sima.uv_editor
-
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        col = layout.column()
-        col.prop(uvedit, "custom_grid_subdivisions", text="Subdivisions")
 
 class IMAGE_PT_overlay(Panel):
     bl_space_type = 'IMAGE_EDITOR'
@@ -1513,6 +1488,49 @@ class IMAGE_PT_overlay(Panel):
 
     def draw(self, context):
         pass
+
+
+class IMAGE_PT_overlay_guides(Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = "Guides"
+    bl_parent_id = 'IMAGE_PT_overlay'
+
+    @classmethod
+    def poll(cls, context):
+        sima = context.space_data
+
+        return sima.show_uvedit
+
+    def draw(self, context):
+        layout = self.layout
+
+        sima = context.space_data
+        overlay = sima.overlay
+        uvedit = sima.uv_editor
+
+        layout.active = overlay.show_overlays
+
+        row = layout.row()
+        row_el = row.column()
+        row_el.prop(overlay, "show_grid_background", text="Grid")
+
+        if overlay.show_grid_background:
+            layout.use_property_split = True
+            col = layout.column(align=False, heading="Fixed Subdivisions")
+            col.use_property_decorate = False
+
+            row = col.row(align=True)
+            sub = row.row(align=True)
+            sub.prop(uvedit, "use_custom_grid", text="")
+            sub = sub.row(align=True)
+            sub.active = uvedit.use_custom_grid
+            sub.prop(uvedit, "custom_grid_subdivisions", text="")
+
+            row = layout.row()
+            row.use_property_split = True
+            row.use_property_decorate = False
+            row.prop(uvedit, "tile_grid_shape", text="Tiles")
 
 
 class IMAGE_PT_overlay_uv_edit(Panel):
@@ -1689,9 +1707,9 @@ classes = (
     IMAGE_PT_scope_sample,
     IMAGE_PT_uv_cursor,
     IMAGE_PT_annotation,
-    IMAGE_PT_udim_grid,
-    IMAGE_PT_custom_grid,
+    IMAGE_PT_gizmo_display,
     IMAGE_PT_overlay,
+    IMAGE_PT_overlay_guides,
     IMAGE_PT_overlay_uv_edit,
     IMAGE_PT_overlay_uv_edit_geometry,
     IMAGE_PT_overlay_texture_paint,

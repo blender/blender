@@ -1317,7 +1317,7 @@ class WM_OT_properties_edit(Operator):
         name="Array Length",
         default=3,
         min=1,
-        max=32, # 32 is the maximum size for RNA array properties.
+        max=32,  # 32 is the maximum size for RNA array properties.
     )
 
     # Integer properties.
@@ -1511,7 +1511,7 @@ class WM_OT_properties_edit(Operator):
         elif self.property_type == 'STRING':
             self.default_string = rna_data["default"]
 
-        if self.property_type in { 'FLOAT_ARRAY', 'INT_ARRAY'}:
+        if self.property_type in {'FLOAT_ARRAY', 'INT_ARRAY'}:
             self.array_length = len(item[name])
 
         # The dictionary does not contain the description if it was empty.
@@ -2940,9 +2940,9 @@ class WM_MT_splash_quick_setup(Menu):
 
         layout.label(text="Quick Setup")
 
-        split = layout.split(factor=0.14) # Left margin.
+        split = layout.split(factor=0.14)  # Left margin.
         split.label()
-        split = split.split(factor=0.73) # Content width.
+        split = split.split(factor=0.73)  # Content width.
 
         col = split.column()
 

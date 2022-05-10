@@ -748,7 +748,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
   }
 
   BKE_mesh_calc_edges_loose(result);
-  BKE_mesh_normals_tag_dirty(result);
 
   return result;
 }

@@ -35,6 +35,8 @@ void SCENE_OT_view_layer_add_aov(struct wmOperatorType *ot);
 void SCENE_OT_view_layer_remove_aov(struct wmOperatorType *ot);
 void SCENE_OT_view_layer_add_lightgroup(struct wmOperatorType *ot);
 void SCENE_OT_view_layer_remove_lightgroup(struct wmOperatorType *ot);
+void SCENE_OT_view_layer_add_used_lightgroups(struct wmOperatorType *ot);
+void SCENE_OT_view_layer_remove_unused_lightgroups(struct wmOperatorType *ot);
 
 void SCENE_OT_light_cache_bake(struct wmOperatorType *ot);
 void SCENE_OT_light_cache_free(struct wmOperatorType *ot);

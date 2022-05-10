@@ -16,6 +16,7 @@
 #include "BLI_link_utils.h"
 
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "draw_debug.h"
 #include "draw_manager.h"
@@ -164,42 +165,23 @@ static void drw_debug_draw_spheres(void)
     return;
   }
 
-  float one = 1.0f;
-  GPUVertFormat vert_format = {0};
-  uint mat = GPU_vertformat_attr_add(
-      &vert_format, "InstanceModelMatrix", GPU_COMP_F32, 16, GPU_FETCH_FLOAT);
-  uint col = GPU_vertformat_attr_add(&vert_format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  uint siz = GPU_vertformat_attr_add(&vert_format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  float persmat[4][4];
+  DRW_view_persmat_get(NULL, persmat, false);
 
-  GPUVertBuf *inst_vbo = GPU_vertbuf_create_with_format(&vert_format);
-
-  GPU_vertbuf_data_alloc(inst_vbo, count);
-
-  int v = 0;
+  GPUBatch *empty_sphere = DRW_cache_empty_sphere_get();
+  GPU_batch_program_set_builtin(empty_sphere, GPU_SHADER_3D_UNIFORM_COLOR);
   while (DST.debug.spheres) {
     void *next = DST.debug.spheres->next;
+    float MVP[4][4];
 
-    GPU_vertbuf_attr_set(inst_vbo, mat, v, DST.debug.spheres->mat[0]);
-    GPU_vertbuf_attr_set(inst_vbo, col, v, DST.debug.spheres->color);
-    GPU_vertbuf_attr_set(inst_vbo, siz, v, &one);
-    v++;
+    mul_m4_m4m4(MVP, persmat, DST.debug.spheres->mat);
+    GPU_batch_uniform_mat4(empty_sphere, "ModelViewProjectionMatrix", MVP);
+    GPU_batch_uniform_4fv(empty_sphere, "color", DST.debug.spheres->color);
+    GPU_batch_draw(empty_sphere);
 
     MEM_freeN(DST.debug.spheres);
     DST.debug.spheres = next;
   }
-
-  GPUBatch *empty_sphere = DRW_cache_empty_sphere_get();
-
-  GPUBatch *draw_batch = GPU_batch_create(GPU_PRIM_LINES, empty_sphere->verts[0], NULL);
-  GPU_batch_instbuf_set(draw_batch, inst_vbo, true);
-  GPU_batch_program_set_builtin(draw_batch, GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE);
-
-  float persmat[4][4];
-  DRW_view_persmat_get(NULL, persmat, false);
-  GPU_batch_uniform_mat4(draw_batch, "ViewProjectionMatrix", persmat);
-
-  GPU_batch_draw(draw_batch);
-  GPU_batch_discard(draw_batch);
 }
 
 void drw_debug_draw(void)

@@ -32,7 +32,7 @@ ccl_device void svm_node_aov_color(KernelGlobals kg,
                                           kernel_data.film.pass_stride;
     ccl_global float *buffer = render_buffer + render_buffer_offset +
                                (kernel_data.film.pass_aov_color + node.z);
-    kernel_write_pass_float3(buffer, make_float3(val.x, val.y, val.z));
+    kernel_write_pass_float4(buffer, make_float4(val.x, val.y, val.z, 1.0f));
   }
 }
 

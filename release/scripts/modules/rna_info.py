@@ -198,7 +198,11 @@ class InfoStructRNA:
         for identifier, attr in self._get_py_visible_attrs():
             # methods may be python wrappers to C functions
             attr_func = getattr(attr, "__func__", attr)
-            if type(attr_func) in {types.BuiltinMethodType, types.BuiltinFunctionType}:
+            if (
+                    (type(attr_func) in {types.BuiltinMethodType, types.BuiltinFunctionType}) or
+                    # Without the `objclass` check, many inherited methods are included.
+                    (type(attr_func) == types.MethodDescriptorType and attr_func.__objclass__ == self.py_class)
+            ):
                 functions.append((identifier, attr))
         return functions
 

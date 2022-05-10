@@ -1,3 +1,5 @@
+#pragma BLENDER_REQUIRE(gpu_shader_common_color_utils.glsl)
+
 void separate_hsv(vec4 col, out float h, out float s, out float v)
 {
   vec4 hsv;

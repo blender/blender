@@ -1860,15 +1860,15 @@ static bool widget_draw_text_underline_calc_position(const char *UNUSED(str),
                                                      const size_t str_step_ofs,
                                                      const rcti *glyph_step_bounds,
                                                      const int UNUSED(glyph_advance_x),
-                                                     const rctf *glyph_bounds,
+                                                     const rcti *glyph_bounds,
                                                      const int UNUSED(glyph_bearing[2]),
                                                      void *user_data)
 {
   struct UnderlineData *ul_data = user_data;
   if (ul_data->str_offset == str_step_ofs) {
     /* Full width of this glyph including both bearings. */
-    const float width = glyph_bounds->xmin + BLI_rctf_size_x(glyph_bounds) + glyph_bounds->xmin;
-    ul_data->r_offset_px[0] = glyph_step_bounds->xmin + ((width - ul_data->width_px) * 0.5f);
+    const int width = glyph_bounds->xmin + BLI_rcti_size_x(glyph_bounds) + glyph_bounds->xmin;
+    ul_data->r_offset_px[0] = glyph_step_bounds->xmin + ((width - ul_data->width_px) / 2);
     /* One line-width below the lower glyph bounds. */
     ul_data->r_offset_px[1] = glyph_bounds->ymin - U.pixelsize;
     /* Early exit. */

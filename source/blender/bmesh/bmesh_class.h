@@ -265,8 +265,20 @@ typedef struct BMFace {
    * (the length of #BMFace.l_first circular linked list).
    */
   int len;
-  float no[3];  /* face normal */
-  short mat_nr; /* material index */
+  /**
+   * Face normal, see #BM_face_calc_normal.
+   */
+  float no[3];
+  /**
+   * Material index, typically >= 0 and < #Mesh.totcol although this isn't enforced
+   * Python for e.g. can set this to any positive value since scripts may create
+   * mesh data first and setup material slots later.
+   *
+   * When using to index into a material array it's range should be checked first,
+   * values exceeding the range should be ignored or treated as zero
+   * (if a material slot needs to be used - when drawing for e.g.)
+   */
+  short mat_nr;
   //  short _pad[3];
 } BMFace;
 
@@ -506,6 +518,17 @@ typedef bool (*BMLoopPairFilterFunc)(const BMLoop *, const BMLoop *, void *user_
 #define BM_ELEM_CD_GET_INT(ele, offset) \
   (BLI_assert(offset != -1), *((int *)((char *)(ele)->head.data + (offset))))
 
+#define BM_ELEM_CD_SET_BOOL(ele, offset, f) \
+  { \
+    CHECK_TYPE_NONCONST(ele); \
+    BLI_assert(offset != -1); \
+    *((bool *)((char *)(ele)->head.data + (offset))) = (f); \
+  } \
+  (void)0
+
+#define BM_ELEM_CD_GET_BOOL(ele, offset) \
+  (BLI_assert(offset != -1), *((bool *)((char *)(ele)->head.data + (offset))))
+
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
 #  define BM_ELEM_CD_GET_VOID_P(ele, offset) \
     (BLI_assert(offset != -1), \
@@ -529,6 +552,64 @@ typedef bool (*BMLoopPairFilterFunc)(const BMLoop *, const BMLoop *, void *user_
 
 #define BM_ELEM_CD_GET_FLOAT(ele, offset) \
   (BLI_assert(offset != -1), *((float *)((char *)(ele)->head.data + (offset))))
+
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
+
+#  define BM_ELEM_CD_GET_FLOAT_P(ele, offset) \
+    (BLI_assert(offset != -1), \
+     _Generic(ele, \
+              GENERIC_TYPE_ANY((float *)POINTER_OFFSET((ele)->head.data, offset), \
+                               _BM_GENERIC_TYPE_ELEM_NONCONST), \
+              GENERIC_TYPE_ANY((const float *)POINTER_OFFSET((ele)->head.data, offset), \
+                               _BM_GENERIC_TYPE_ELEM_CONST)))
+
+#  define BM_ELEM_CD_GET_FLOAT2_P(ele, offset) \
+    (BLI_assert(offset != -1), \
+     _Generic(ele, \
+              GENERIC_TYPE_ANY((float(*)[2])POINTER_OFFSET((ele)->head.data, offset), \
+                               _BM_GENERIC_TYPE_ELEM_NONCONST), \
+              GENERIC_TYPE_ANY((const float(*)[2])POINTER_OFFSET((ele)->head.data, offset), \
+                               _BM_GENERIC_TYPE_ELEM_CONST)))
+
+#  define BM_ELEM_CD_GET_FLOAT3_P(ele, offset) \
+    (BLI_assert(offset != -1), \
+     _Generic(ele, \
+              GENERIC_TYPE_ANY((float(*)[3])POINTER_OFFSET((ele)->head.data, offset), \
+                               _BM_GENERIC_TYPE_ELEM_NONCONST), \
+              GENERIC_TYPE_ANY((const float(*)[3])POINTER_OFFSET((ele)->head.data, offset), \
+                               _BM_GENERIC_TYPE_ELEM_CONST)))
+
+#else
+
+#  define BM_ELEM_CD_GET_FLOAT_P(ele, offset) \
+    (BLI_assert(offset != -1), (float *)((char *)(ele)->head.data + (offset)))
+
+#  define BM_ELEM_CD_GET_FLOAT2_P(ele, offset) \
+    (BLI_assert(offset != -1), (float(*)[2])((char *)(ele)->head.data + (offset)))
+
+#  define BM_ELEM_CD_GET_FLOAT3_P(ele, offset) \
+    (BLI_assert(offset != -1), (float(*)[3])((char *)(ele)->head.data + (offset)))
+
+#endif
+
+#define BM_ELEM_CD_SET_FLOAT2(ele, offset, f) \
+  { \
+    CHECK_TYPE_NONCONST(ele); \
+    BLI_assert(offset != -1); \
+    ((float *)((char *)(ele)->head.data + (offset)))[0] = (f)[0]; \
+    ((float *)((char *)(ele)->head.data + (offset)))[1] = (f)[1]; \
+  } \
+  (void)0
+
+#define BM_ELEM_CD_SET_FLOAT3(ele, offset, f) \
+  { \
+    CHECK_TYPE_NONCONST(ele); \
+    BLI_assert(offset != -1); \
+    ((float *)((char *)(ele)->head.data + (offset)))[0] = (f)[0]; \
+    ((float *)((char *)(ele)->head.data + (offset)))[1] = (f)[1]; \
+    ((float *)((char *)(ele)->head.data + (offset)))[2] = (f)[2]; \
+  } \
+  (void)0
 
 #define BM_ELEM_CD_GET_FLOAT_AS_UCHAR(ele, offset) \
   (BLI_assert(offset != -1), (uchar)(BM_ELEM_CD_GET_FLOAT(ele, offset) * 255.0f))

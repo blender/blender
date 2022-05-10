@@ -5,8 +5,8 @@
 /** \file
  * \ingroup bli
  *
- *  This header file contains both a C interface and a C++ interface
- *  to the 2D Constrained Delaunay Triangulation library routine.
+ * This header file contains both a C interface and a C++ interface
+ * to the 2D Constrained Delaunay Triangulation library routine.
  */
 
 #ifdef __cplusplus

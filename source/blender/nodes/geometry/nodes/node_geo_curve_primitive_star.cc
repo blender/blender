@@ -40,9 +40,9 @@ static Curves *create_star_curve(const float inner_radius,
 {
   Curves *curves_id = bke::curves_new_nomain_single(points * 2, CURVE_TYPE_POLY);
   bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
-  curves.cyclic().first() = true;
+  curves.cyclic_for_write().first() = true;
 
-  MutableSpan<float3> positions = curves.positions();
+  MutableSpan<float3> positions = curves.positions_for_write();
 
   const float theta_step = (2.0f * M_PI) / float(points);
   for (const int i : IndexRange(points)) {

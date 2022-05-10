@@ -108,14 +108,13 @@ endif()
 
 if(WITH_OPENCOLORIO)
   add_definitions(-DWITH_OCIO)
-  include_directories(
-    SYSTEM
+  list(APPEND INC_SYS
     ${OPENCOLORIO_INCLUDE_DIRS}
   )
   list(APPEND LIB
     ${OPENCOLORIO_LIBRARIES}
   )
-  if(WIN32)
+  if(WIN32 AND NOT USD_OVERRIDE_OPENCOLORIO)
     add_definitions(-DOpenColorIO_SKIP_IMPORTS)
   endif()
 endif()

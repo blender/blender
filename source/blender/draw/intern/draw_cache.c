@@ -960,6 +960,8 @@ int DRW_cache_object_material_count_get(struct Object *ob)
       return DRW_pointcloud_material_count_get(ob->data);
     case OB_VOLUME:
       return DRW_volume_material_count_get(ob->data);
+    case OB_GPENCIL:
+      return DRW_gpencil_material_count_get(ob->data);
     default:
       BLI_assert(0);
       return 0;
@@ -3348,13 +3350,16 @@ void drw_batch_cache_generate_requested(Object *ob)
     case OB_SURF:
       DRW_curve_batch_cache_create_requested(ob, scene);
       break;
+    case OB_CURVES:
+      DRW_curves_batch_cache_create_requested(ob);
+      break;
     /* TODO: all cases. */
     default:
       break;
   }
 }
 
-void drw_batch_cache_generate_requested_evaluated_mesh(Object *ob)
+void drw_batch_cache_generate_requested_evaluated_mesh_or_curve(Object *ob)
 {
   /* NOTE: Logic here is duplicated from #drw_batch_cache_generate_requested. */
 
@@ -3371,7 +3376,17 @@ void drw_batch_cache_generate_requested_evaluated_mesh(Object *ob)
                           ((mode == CTX_MODE_EDIT_MESH) && DRW_object_is_in_edit_mode(ob))));
 
   Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(ob);
-  DRW_mesh_batch_cache_create_requested(DST.task_graph, ob, mesh, scene, is_paint_mode, use_hide);
+  /* Try getting the mesh first and if that fails, try getting the curve data.
+   * If the curves are surfaces or have certain modifiers applied to them, the will have mesh data
+   * of the final result.
+   */
+  if (mesh != NULL) {
+    DRW_mesh_batch_cache_create_requested(
+        DST.task_graph, ob, mesh, scene, is_paint_mode, use_hide);
+  }
+  else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
+    DRW_curve_batch_cache_create_requested(ob, scene);
+  }
 }
 
 void drw_batch_cache_generate_requested_delayed(Object *ob)

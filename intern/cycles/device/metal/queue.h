@@ -39,8 +39,6 @@ class MetalDeviceQueue : public DeviceQueue {
   virtual void copy_to_device(device_memory &mem) override;
   virtual void copy_from_device(device_memory &mem) override;
 
-  virtual bool kernel_available(DeviceKernel kernel) const override;
-
  protected:
   void prepare_resources(DeviceKernel kernel);
 

@@ -179,10 +179,9 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
     /* Verts */
     state |= DRW_STATE_WRITE_DEPTH;
     DRW_PASS_CREATE(psl->edit_mesh_verts_ps[i], state | pd->clipping_state);
+    int vert_mask[4] = {0xFF, 0xFF, 0xFF, 0xFF};
 
     if (select_vert) {
-      int vert_mask[4] = {0xFF, 0xFF, 0xFF, 0xFF};
-
       sh = OVERLAY_shader_edit_mesh_vert();
       grp = pd->edit_mesh_verts_grp[i] = DRW_shgroup_create(sh, psl->edit_mesh_verts_ps[i]);
       DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
@@ -201,6 +200,7 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
       DRW_shgroup_uniform_float_copy(grp, "alpha", backwire_opacity);
       DRW_shgroup_uniform_texture_ref(grp, "depthTex", depth_tex);
+      DRW_shgroup_uniform_ivec4_copy(grp, "dataMask", vert_mask);
       DRW_shgroup_state_enable(grp, DRW_STATE_WRITE_DEPTH);
     }
     else {

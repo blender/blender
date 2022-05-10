@@ -2630,7 +2630,7 @@ static const EnumPropertyItem *rna_UnitSettings_itemf_wrapper(const int system,
 
   EnumPropertyItem adaptive = {0};
   adaptive.identifier = "ADAPTIVE";
-  adaptive.name = "Adaptive";
+  adaptive.name = N_("Adaptive");
   adaptive.value = USER_UNIT_ADAPTIVE;
   RNA_enum_item_add(&items, &totitem, &adaptive);
 
@@ -3049,6 +3049,10 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "imapaint");
   RNA_def_property_ui_text(prop, "Image Paint", "");
 
+  prop = RNA_def_property(srna, "paint_mode", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, NULL, "paint_mode");
+  RNA_def_property_ui_text(prop, "Paint Mode", "");
+
   prop = RNA_def_property(srna, "uv_sculpt", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "uvsculpt");
   RNA_def_property_ui_text(prop, "UV Sculpt", "");
@@ -3088,7 +3092,10 @@ static void rna_def_tool_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "lock_object_mode", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "object_flag", SCE_OBJECT_MODE_LOCK);
-  RNA_def_property_ui_text(prop, "Lock Object Modes", "Restrict select to the current mode");
+  RNA_def_property_ui_text(prop,
+                           "Lock Object Modes",
+                           "Restrict selection to objects using the same mode as the active "
+                           "object, to prevent accidental mode switch when selecting");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
   static const EnumPropertyItem workspace_tool_items[] = {
@@ -4219,6 +4226,7 @@ static void rna_def_view_layer_lightgroups(BlenderRNA *brna, PropertyRNA *cprop)
   func = RNA_def_function(srna, "add", "BKE_view_layer_add_lightgroup");
   parm = RNA_def_pointer(func, "lightgroup", "Lightgroup", "", "Newly created Lightgroup");
   RNA_def_function_return(func, parm);
+  parm = RNA_def_string(func, "name", NULL, 0, "Name", "Name of newly created lightgroup");
 }
 
 static void rna_def_view_layer_lightgroup(BlenderRNA *brna)
@@ -6318,13 +6326,13 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   /* Hairs */
   prop = RNA_def_property(srna, "hair_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, hair_shape_type_items);
-  RNA_def_property_ui_text(prop, "Hair Shape Type", "Hair shape type");
+  RNA_def_property_ui_text(prop, "Curves Shape Type", "Curves shape type");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 
   prop = RNA_def_property(srna, "hair_subdiv", PROP_INT, PROP_NONE);
   RNA_def_property_range(prop, 0, 3);
   RNA_def_property_ui_text(
-      prop, "Additional Subdivision", "Additional subdivision along the hair");
+      prop, "Additional Subdivision", "Additional subdivision along the curves");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 
   /* Performance */

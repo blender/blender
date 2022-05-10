@@ -387,7 +387,6 @@ static void options_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayout *col = uiLayoutColumn(layout, true);
 
-  uiItemR(col, ptr, "use_remove_doubles", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "use_edge_overlap", 0, IFACE_("Overlapping Edges As Contour"), ICON_NONE);
   uiItemR(col, ptr, "use_object_instances", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "use_clip_plane_boundaries", 0, NULL, ICON_NONE);

@@ -165,7 +165,7 @@ void BKE_pchan_minmax(const struct Object *ob,
                       float r_max[3]);
 /**
  * Calculate the axis aligned bounds of the pose of `ob` in world-space.
-
+ *
  * `r_min` and `r_max` are expanded to fit `ob->pose` so the caller must initialize them
  * (typically using #INIT_MINMAX).
  *

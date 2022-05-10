@@ -318,8 +318,6 @@ void BKE_mesh_vert_coords_apply_with_mat4(struct Mesh *mesh,
                                           const float mat[4][4]);
 void BKE_mesh_vert_coords_apply(struct Mesh *mesh, const float (*vert_coords)[3]);
 
-void BKE_mesh_anonymous_attributes_remove(struct Mesh *mesh);
-
 /* *** mesh_tessellate.c *** */
 
 /**
@@ -894,6 +892,14 @@ struct Mesh *BKE_mesh_merge_verts(struct Mesh *mesh,
                                   const int *vtargetmap,
                                   int tot_vtargetmap,
                                   int merge_mode);
+
+/**
+ * Account for custom-data such as UV's becoming detached because of of imprecision
+ * in custom-data interpolation.
+ * Without running this operation subdivision surface can cause UV's to be disconnected,
+ * see: T81065.
+ */
+void BKE_mesh_merge_customdata_for_apply_modifier(struct Mesh *me);
 
 /* Flush flags. */
 

@@ -582,7 +582,8 @@ bool BKE_view_layer_has_valid_aov(struct ViewLayer *view_layer);
 struct ViewLayer *BKE_view_layer_find_with_aov(struct Scene *scene,
                                                struct ViewLayerAOV *view_layer_aov);
 
-struct ViewLayerLightgroup *BKE_view_layer_add_lightgroup(struct ViewLayer *view_layer);
+struct ViewLayerLightgroup *BKE_view_layer_add_lightgroup(struct ViewLayer *view_layer,
+                                                          const char *name);
 void BKE_view_layer_remove_lightgroup(struct ViewLayer *view_layer,
                                       struct ViewLayerLightgroup *lightgroup);
 void BKE_view_layer_set_active_lightgroup(struct ViewLayer *view_layer,
@@ -593,9 +594,9 @@ void BKE_view_layer_rename_lightgroup(ViewLayer *view_layer,
                                       ViewLayerLightgroup *lightgroup,
                                       const char *name);
 
-void BKE_lightgroup_membership_get(struct LightgroupMembership *lgm, char *value);
+void BKE_lightgroup_membership_get(struct LightgroupMembership *lgm, char *name);
 int BKE_lightgroup_membership_length(struct LightgroupMembership *lgm);
-void BKE_lightgroup_membership_set(struct LightgroupMembership **lgm, const char *value);
+void BKE_lightgroup_membership_set(struct LightgroupMembership **lgm, const char *name);
 
 #ifdef __cplusplus
 }

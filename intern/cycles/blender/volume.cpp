@@ -168,7 +168,8 @@ class BlenderSmokeLoader : public ImageLoader {
   AttributeStandard attribute;
 };
 
-static void sync_smoke_volume(Scene *scene, BObjectInfo &b_ob_info, Volume *volume, float frame)
+static void sync_smoke_volume(
+    BL::Scene &b_scene, Scene *scene, BObjectInfo &b_ob_info, Volume *volume, float frame)
 {
   if (!b_ob_info.is_real_object_data()) {
     return;
@@ -177,6 +178,18 @@ static void sync_smoke_volume(Scene *scene, BObjectInfo &b_ob_info, Volume *volu
   if (!b_domain) {
     return;
   }
+
+  float velocity_scale = b_domain.velocity_scale();
+  /* Motion blur attribute is relative to seconds, we need it relative to frames. */
+  const bool need_motion = object_need_motion_attribute(b_ob_info, scene);
+  const float motion_scale = (need_motion) ?
+                                 scene->motion_shutter_time() /
+                                     (b_scene.render().fps() / b_scene.render().fps_base()) :
+                                 0.0f;
+
+  velocity_scale *= motion_scale;
+
+  volume->set_velocity_scale(velocity_scale);
 
   AttributeStandard attributes[] = {ATTR_STD_VOLUME_DENSITY,
                                     ATTR_STD_VOLUME_COLOR,
@@ -234,6 +247,7 @@ class BlenderVolumeLoader : public VDBImageLoader {
 };
 
 static void sync_volume_object(BL::BlendData &b_data,
+                               BL::Scene &b_scene,
                                BObjectInfo &b_ob_info,
                                Scene *scene,
                                Volume *volume)
@@ -246,6 +260,20 @@ static void sync_volume_object(BL::BlendData &b_data,
   volume->set_clipping(b_render.clipping());
   volume->set_step_size(b_render.step_size());
   volume->set_object_space((b_render.space() == BL::VolumeRender::space_OBJECT));
+
+  float velocity_scale = b_volume.velocity_scale();
+  if (b_volume.velocity_unit() == BL::Volume::velocity_unit_SECOND) {
+    /* Motion blur attribute is relative to seconds, we need it relative to frames. */
+    const bool need_motion = object_need_motion_attribute(b_ob_info, scene);
+    const float motion_scale = (need_motion) ?
+                                   scene->motion_shutter_time() /
+                                       (b_scene.render().fps() / b_scene.render().fps_base()) :
+                                   0.0f;
+
+    velocity_scale *= motion_scale;
+  }
+
+  volume->set_velocity_scale(velocity_scale);
 
   /* Find grid with matching name. */
   for (BL::VolumeGrid &b_grid : b_volume.grids) {
@@ -267,8 +295,21 @@ static void sync_volume_object(BL::BlendData &b_data,
     else if (name == Attribute::standard_name(ATTR_STD_VOLUME_TEMPERATURE)) {
       std = ATTR_STD_VOLUME_TEMPERATURE;
     }
-    else if (name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY)) {
+    else if (name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY) ||
+             name == b_volume.velocity_grid()) {
       std = ATTR_STD_VOLUME_VELOCITY;
+    }
+    else if (name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY_X) ||
+             name == b_volume.velocity_x_grid()) {
+      std = ATTR_STD_VOLUME_VELOCITY_X;
+    }
+    else if (name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY_Y) ||
+             name == b_volume.velocity_y_grid()) {
+      std = ATTR_STD_VOLUME_VELOCITY_Y;
+    }
+    else if (name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY_Z) ||
+             name == b_volume.velocity_z_grid()) {
+      std = ATTR_STD_VOLUME_VELOCITY_Z;
     }
 
     if ((std != ATTR_STD_NONE && volume->need_attribute(scene, std)) ||
@@ -294,11 +335,11 @@ void BlenderSync::sync_volume(BObjectInfo &b_ob_info, Volume *volume)
     if (b_ob_info.object_data.is_a(&RNA_Volume)) {
       /* Volume object. Create only attributes, bounding mesh will then
        * be automatically generated later. */
-      sync_volume_object(b_data, b_ob_info, scene, volume);
+      sync_volume_object(b_data, b_scene, b_ob_info, scene, volume);
     }
     else {
       /* Smoke domain. */
-      sync_smoke_volume(scene, b_ob_info, volume, b_scene.frame_current());
+      sync_smoke_volume(b_scene, scene, b_ob_info, volume, b_scene.frame_current());
     }
   }
 

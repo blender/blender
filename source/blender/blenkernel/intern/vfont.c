@@ -1372,7 +1372,7 @@ static bool vfont_to_curve(Object *ob,
 
       ct = chartransdata;
       for (i = 0; i <= slen; i++, ct++) {
-        float ctime, dtime, vec[4], tvec[4], rotvec[3];
+        float ctime, dtime, vec[4], rotvec[3];
         float si, co;
 
         /* Rotate around center character. */
@@ -1392,9 +1392,9 @@ static bool vfont_to_curve(Object *ob,
         CLAMP(ctime, 0.0f, 1.0f);
 
         /* Calculate the right loc AND the right rot separately. */
-        /* `vec`, `tvec` need 4 items. */
-        BKE_where_on_path(cu->textoncurve, ctime, vec, tvec, NULL, NULL, NULL);
-        BKE_where_on_path(cu->textoncurve, ctime + dtime, tvec, rotvec, NULL, NULL, NULL);
+        /* `vec` needs 4 items. */
+        BKE_where_on_path(cu->textoncurve, ctime, vec, NULL, NULL, NULL, NULL);
+        BKE_where_on_path(cu->textoncurve, ctime + dtime, NULL, rotvec, NULL, NULL, NULL);
 
         mul_v3_fl(vec, sizefac);
 

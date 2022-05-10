@@ -44,6 +44,7 @@
 
 #include "RE_pipeline.h"
 
+#include "SEQ_channels.h"
 #include "SEQ_effects.h"
 #include "SEQ_proxy.h"
 #include "SEQ_relations.h"
@@ -2421,8 +2422,6 @@ static ImBuf *do_multicam(const SeqRenderData *context,
 {
   ImBuf *out;
   Editing *ed;
-  ListBase *seqbasep;
-  ListBase *channels = &seq->channels;
 
   if (seq->multicam_source == 0 || seq->multicam_source >= seq->machine) {
     return NULL;
@@ -2432,7 +2431,8 @@ static ImBuf *do_multicam(const SeqRenderData *context,
   if (!ed) {
     return NULL;
   }
-  seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
+  ListBase *seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
+  ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, &ed->channels, seq);
   if (!seqbasep) {
     return NULL;
   }
@@ -2463,13 +2463,12 @@ static int early_out_adjustment(Sequence *UNUSED(seq), float UNUSED(fac))
 static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, float timeline_frame)
 {
   Editing *ed;
-  ListBase *seqbasep;
-  ListBase *channels = &seq->channels;
   ImBuf *i = NULL;
 
   ed = context->scene->ed;
 
-  seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
+  ListBase *seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
+  ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, &ed->channels, seq);
 
   /* Clamp timeline_frame to strip range so it behaves as if it had "still frame" offset (last
    * frame is static after end of strip). This is how most strips behave. This way transition
@@ -2713,7 +2712,6 @@ static ImBuf *do_speed_effect(const SeqRenderData *context,
   ImBuf *out;
 
   if (s->flags & SEQ_SPEED_USE_INTERPOLATION) {
-    out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
     fac = speed_effect_interpolation_ratio_get(context->scene, seq, timeline_frame);
     /* Current frame is ibuf1, next frame is ibuf2. */
     out = seq_render_effect_execute_threaded(
@@ -3381,7 +3379,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   /* vars for calculating wordwrap and optional box */
   struct {
     struct ResultBLF info;
-    rctf rect;
+    rcti rect;
   } wrap;
 
   BLF_boundbox_ex(font, data->text, sizeof(data->text), &wrap.rect, &wrap.info);
@@ -3391,10 +3389,10 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   }
   else {
     if (data->align == SEQ_TEXT_ALIGN_X_RIGHT) {
-      x -= BLI_rctf_size_x(&wrap.rect);
+      x -= BLI_rcti_size_x(&wrap.rect);
     }
     else if (data->align == SEQ_TEXT_ALIGN_X_CENTER) {
-      x -= BLI_rctf_size_x(&wrap.rect) / 2;
+      x -= BLI_rcti_size_x(&wrap.rect) / 2;
     }
 
     if (data->align_y == SEQ_TEXT_ALIGN_Y_TOP) {

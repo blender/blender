@@ -14,6 +14,12 @@
 
 #include "rna_internal.h"
 
+const EnumPropertyItem rna_enum_velocity_unit_items[] = {
+    {CACHEFILE_VELOCITY_UNIT_SECOND, "SECOND", 0, "Second", ""},
+    {CACHEFILE_VELOCITY_UNIT_FRAME, "FRAME", 0, "Frame", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include "BLI_math.h"
@@ -350,15 +356,9 @@ static void rna_def_cachefile(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_CacheFile_update");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
-  static const EnumPropertyItem velocity_unit_items[] = {
-      {CACHEFILE_VELOCITY_UNIT_SECOND, "SECOND", 0, "Second", ""},
-      {CACHEFILE_VELOCITY_UNIT_FRAME, "FRAME", 0, "Frame", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   prop = RNA_def_property(srna, "velocity_unit", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "velocity_unit");
-  RNA_def_property_enum_items(prop, velocity_unit_items);
+  RNA_def_property_enum_items(prop, rna_enum_velocity_unit_items);
   RNA_def_property_ui_text(
       prop,
       "Velocity Unit",

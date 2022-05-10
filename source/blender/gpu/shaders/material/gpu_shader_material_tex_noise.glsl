@@ -1,3 +1,7 @@
+#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_material_noise.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_material_fractal_noise.glsl)
+
 /* The following offset functions generate random offsets to be added to texture
  * coordinates to act as a seed since the noise functions don't have seed values.
  * A seed value is needed for generating distortion textures and color outputs.

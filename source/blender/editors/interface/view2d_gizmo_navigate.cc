@@ -130,6 +130,13 @@ static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType *UNUSE
       }
       break;
     }
+    case SPACE_IMAGE: {
+      const SpaceImage *sima = static_cast<const SpaceImage *>(area->spacedata.first);
+      if (sima->gizmo_flag & (SI_GIZMO_HIDE | SI_GIZMO_HIDE_NAVIGATE)) {
+        return false;
+      }
+      break;
+    }
   }
   return true;
 }

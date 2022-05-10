@@ -812,6 +812,16 @@ extern bool BLI_memory_is_zero(const void *arr, size_t arr_size);
 #  define ENUM_OPERATORS(_type, _max)
 #endif
 
+/**
+ * Utility so function declarations in C headers can use C++ default arguments. The default is then
+ * available when included in a C++ file, otherwise the argument has to be set explicitly.
+ */
+#ifdef __cplusplus
+#  define CPP_ARG_DEFAULT(default_value) = default_value
+#else
+#  define CPP_ARG_DEFAULT(default_value)
+#endif
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

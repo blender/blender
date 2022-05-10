@@ -1,3 +1,5 @@
+#pragma BLENDER_REQUIRE(gpu_shader_common_math_utils.glsl)
+
 vec3 rotate_around_axis(vec3 p, vec3 axis, float angle)
 {
   float costheta = cos(angle);

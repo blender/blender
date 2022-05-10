@@ -146,12 +146,13 @@ void RE_bake_margin(ImBuf *ibuf,
                     const int margin,
                     const char margin_type,
                     Mesh const *me,
-                    char const *uv_layer)
+                    char const *uv_layer,
+                    const float uv_offset[2])
 {
   /* margin */
   switch (margin_type) {
     case R_BAKE_ADJACENT_FACES:
-      RE_generate_texturemargin_adjacentfaces(ibuf, mask, margin, me, uv_layer);
+      RE_generate_texturemargin_adjacentfaces(ibuf, mask, margin, me, uv_layer, uv_offset);
       break;
     default:
     /* fall through */
@@ -746,30 +747,36 @@ void RE_bake_pixels_populate(Mesh *me,
   for (int i = 0; i < tottri; i++) {
     const MLoopTri *lt = &looptri[i];
     const MPoly *mp = &me->mpoly[lt->poly];
-    float vec[3][2];
-    int mat_nr = mp->mat_nr;
-    int image_id = targets->material_to_image[mat_nr];
 
-    if (image_id < 0) {
-      continue;
-    }
-
-    bd.bk_image = &targets->images[image_id];
     bd.primitive_id = i;
 
-    for (int a = 0; a < 3; a++) {
-      const float *uv = mloopuv[lt->tri[a]].uv;
+    /* Find images matching this material. */
+    Image *image = targets->material_to_image[mp->mat_nr];
+    for (int image_id = 0; image_id < targets->images_num; image_id++) {
+      BakeImage *bk_image = &targets->images[image_id];
+      if (bk_image->image != image) {
+        continue;
+      }
 
-      /* NOTE(campbell): workaround for pixel aligned UVs which are common and can screw up our
-       * intersection tests where a pixel gets in between 2 faces or the middle of a quad,
-       * camera aligned quads also have this problem but they are less common.
-       * Add a small offset to the UVs, fixes bug T18685. */
-      vec[a][0] = uv[0] * (float)bd.bk_image->width - (0.5f + 0.001f);
-      vec[a][1] = uv[1] * (float)bd.bk_image->height - (0.5f + 0.002f);
+      /* Compute triangle vertex UV coordinates. */
+      float vec[3][2];
+      for (int a = 0; a < 3; a++) {
+        const float *uv = mloopuv[lt->tri[a]].uv;
+
+        /* NOTE(campbell): workaround for pixel aligned UVs which are common and can screw up our
+         * intersection tests where a pixel gets in between 2 faces or the middle of a quad,
+         * camera aligned quads also have this problem but they are less common.
+         * Add a small offset to the UVs, fixes bug T18685. */
+        vec[a][0] = (uv[0] - bk_image->uv_offset[0]) * (float)bk_image->width - (0.5f + 0.001f);
+        vec[a][1] = (uv[1] - bk_image->uv_offset[1]) * (float)bk_image->height - (0.5f + 0.002f);
+      }
+
+      /* Rasterize triangle. */
+      bd.bk_image = bk_image;
+      bake_differentials(&bd, vec[0], vec[1], vec[2]);
+      zspan_scanconvert(
+          &bd.zspan[image_id], (void *)&bd, vec[0], vec[1], vec[2], store_bake_pixel);
     }
-
-    bake_differentials(&bd, vec[0], vec[1], vec[2]);
-    zspan_scanconvert(&bd.zspan[image_id], (void *)&bd, vec[0], vec[1], vec[2], store_bake_pixel);
   }
 
   for (int i = 0; i < targets->images_num; i++) {

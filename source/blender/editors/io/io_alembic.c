@@ -282,6 +282,7 @@ void WM_OT_alembic_export(wmOperatorType *ot)
   ot->poll = WM_operator_winactive;
   ot->ui = wm_alembic_export_draw;
   ot->check = wm_alembic_export_check;
+  ot->flag |= OPTYPE_PRESET;
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER | FILE_TYPE_ALEMBIC,
@@ -475,7 +476,7 @@ void WM_OT_alembic_export(wmOperatorType *ot)
   /* This dummy prop is used to check whether we need to init the start and
    * end frame values to that of the scene's, otherwise they are reset at
    * every change, draw update. */
-  RNA_def_boolean(ot->srna, "init_scene_frame_range", false, "", "");
+  RNA_def_boolean(ot->srna, "init_scene_frame_range", true, "", "");
 }
 
 /* ************************************************************************** */

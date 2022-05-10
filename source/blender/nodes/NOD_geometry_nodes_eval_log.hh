@@ -170,6 +170,24 @@ struct ValueOfSockets {
   destruct_ptr<ValueLog> value;
 };
 
+enum class NamedAttributeUsage {
+  None = 0,
+  Read = 1 << 0,
+  Write = 1 << 1,
+  Remove = 1 << 2,
+};
+ENUM_OPERATORS(NamedAttributeUsage, NamedAttributeUsage::Remove);
+
+struct UsedNamedAttribute {
+  std::string name;
+  NamedAttributeUsage usage;
+};
+
+struct NodeWithUsedNamedAttribute {
+  DNode node;
+  UsedNamedAttribute attribute;
+};
+
 class GeoLogger;
 class ModifierLog;
 
@@ -186,6 +204,7 @@ class LocalGeoLogger {
   Vector<NodeWithWarning> node_warnings_;
   Vector<NodeWithExecutionTime> node_exec_times_;
   Vector<NodeWithDebugMessage> node_debug_messages_;
+  Vector<NodeWithUsedNamedAttribute> used_named_attributes_;
 
   friend ModifierLog;
 
@@ -199,6 +218,7 @@ class LocalGeoLogger {
   void log_multi_value_socket(DSocket socket, Span<GPointer> values);
   void log_node_warning(DNode node, NodeWarningType type, std::string message);
   void log_execution_time(DNode node, std::chrono::microseconds exec_time);
+  void log_used_named_attribute(DNode node, std::string attribute_name, NamedAttributeUsage usage);
   /**
    * Log a message that will be displayed in the node editor next to the node.
    * This should only be used for debugging purposes and not to display information to users.
@@ -278,6 +298,7 @@ class NodeLog {
   Vector<SocketLog> output_logs_;
   Vector<NodeWarning, 0> warnings_;
   Vector<std::string, 0> debug_messages_;
+  Vector<UsedNamedAttribute, 0> used_named_attributes_;
   std::chrono::microseconds exec_time_;
 
   friend ModifierLog;
@@ -305,6 +326,11 @@ class NodeLog {
   Span<std::string> debug_messages() const
   {
     return debug_messages_;
+  }
+
+  Span<UsedNamedAttribute> used_named_attributes() const
+  {
+    return used_named_attributes_;
   }
 
   std::chrono::microseconds execution_time() const

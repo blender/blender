@@ -133,7 +133,7 @@ void PAINT_OT_weight_gradient(struct wmOperatorType *ot);
 void PAINT_OT_vertex_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_vertex_paint(struct wmOperatorType *ot);
 
-unsigned int vpaint_get_current_col(struct Scene *scene, struct VPaint *vp, bool secondary);
+unsigned int vpaint_get_current_color(struct Scene *scene, struct VPaint *vp, bool secondary);
 
 /* paint_vertex_color_utils.c */
 

@@ -143,8 +143,8 @@ def packages_path(current_directory: Path, cli_args: Any) -> Optional[Path]:
 
     return Path(relpath)
 
-
-### Manifest creation
+# -----------------------------------------------------------------------------
+# Manifest creation
 
 
 def create_manifest(
@@ -195,7 +195,8 @@ def packages_to_manifest(outfile: TextIO, packages_dir: Path) -> None:
         print(path, file=outfile)
 
 
-### Higher-level functions
+# -----------------------------------------------------------------------------
+# Higher-level functions
 
 
 def create_tarball(
@@ -249,7 +250,8 @@ def cleanup(manifest: Path) -> None:
     print("OK")
 
 
-## Low-level commands
+# -----------------------------------------------------------------------------
+# Low-level commands
 
 
 def git_ls_files(directory: Path = Path(".")) -> Iterable[Path]:
@@ -265,7 +267,7 @@ def git_ls_files(directory: Path = Path(".")) -> Iterable[Path]:
         yield path
 
 
-def git_command(*cli_args: Union[bytes, str, Path] ) -> Iterable[str]:
+def git_command(*cli_args: Union[bytes, str, Path]) -> Iterable[str]:
     """Generator, yields lines of output from a Git command."""
     command = ("git", *cli_args)
 

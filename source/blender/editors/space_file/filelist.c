@@ -2806,7 +2806,8 @@ int ED_path_extension_type(const char *path)
   if (BLI_path_extension_check(path, ".zip")) {
     return FILE_TYPE_ARCHIVE;
   }
-  if (BLI_path_extension_check_n(path, ".obj", ".3ds", ".fbx", ".glb", ".gltf", ".svg", NULL)) {
+  if (BLI_path_extension_check_n(
+          path, ".obj", ".mtl", ".3ds", ".fbx", ".glb", ".gltf", ".svg", NULL)) {
     return FILE_TYPE_OBJECT_IO;
   }
   if (BLI_path_extension_check_array(path, imb_ext_image)) {
@@ -3407,7 +3408,7 @@ static void filelist_readjob_main_recursive(Main *bmain, FileList *filelist)
     filelist->filelist.entries[20].entry->relpath = BLI_strdup("Action");
     filelist->filelist.entries[21].entry->relpath = BLI_strdup("NodeTree");
     filelist->filelist.entries[22].entry->relpath = BLI_strdup("Speaker");
-    filelist->filelist.entries[23].entry->relpath = BLI_strdup("Hair");
+    filelist->filelist.entries[23].entry->relpath = BLI_strdup("Curves");
     filelist->filelist.entries[24].entry->relpath = BLI_strdup("Point Cloud");
     filelist->filelist.entries[25].entry->relpath = BLI_strdup("Volume");
 #  ifdef WITH_FREESTYLE

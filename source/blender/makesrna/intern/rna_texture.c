@@ -1556,7 +1556,7 @@ static void rna_def_texture(BlenderRNA *brna)
   RNA_def_struct_refine_func(srna, "rna_Texture_refine");
 
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-  /*RNA_def_property_clear_flag(prop, PROP_EDITABLE); */
+  // RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_enum_sdna(prop, NULL, "type");
   RNA_def_property_enum_items(prop, rna_enum_texture_type_items);
   RNA_def_property_enum_funcs(prop, NULL, "rna_Texture_type_set", NULL);

@@ -282,7 +282,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
   delimit_data.cdata[delimit_data.cdata_len].cd_offset = -1;
   if (BMO_slot_bool_get(op->slots_in, "cmp_vcols") &&
       bm_edge_delimit_cdata(
-          &bm->ldata, CD_MLOOPCOL, &delimit_data.cdata[delimit_data.cdata_len])) {
+          &bm->ldata, CD_PROP_BYTE_COLOR, &delimit_data.cdata[delimit_data.cdata_len])) {
     delimit_data.cdata_len += 1;
   }
 

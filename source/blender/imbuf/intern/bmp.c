@@ -70,7 +70,7 @@ static bool checkbmp(const uchar *mem, const size_t size)
   BMPINFOHEADER bmi;
   uint u;
 
-  /* skip fileheader */
+  /* Skip file-header. */
   mem += BMP_FILEHEADER_SIZE;
 
   /* for systems where an int needs to be 4 bytes aligned */

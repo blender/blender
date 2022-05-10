@@ -887,17 +887,11 @@ static GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
     if (mti->type == eModifierTypeType_OnlyDeform) {
       int totvert;
       float(*vertex_coords)[3] = BKE_mesh_vert_coords_alloc(mesh, &totvert);
-      if (mti->dependsOnNormals != nullptr && mti->dependsOnNormals(md)) {
-        BKE_mesh_vertex_normals_ensure(mesh);
-      }
       mti->deformVerts(md, &mectx_deform, mesh, vertex_coords, totvert);
       BKE_mesh_vert_coords_apply(mesh, vertex_coords);
       MEM_freeN(vertex_coords);
     }
     else {
-      if (mti->dependsOnNormals != nullptr && mti->dependsOnNormals(md)) {
-        BKE_mesh_vertex_normals_ensure(mesh);
-      }
       Mesh *output_mesh = mti->modifyMesh(md, &mectx_apply, mesh);
       if (mesh != output_mesh) {
         geometry_set.replace_mesh(output_mesh);
@@ -1472,10 +1466,12 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
                                   const bool for_render)
 {
   BLI_assert(ELEM(ob->type, OB_SURF, OB_CURVES_LEGACY, OB_FONT));
-  Curve &cow_curve = *(Curve *)ob->data;
 
   BKE_object_free_derived_caches(ob);
-  cow_curve.curve_eval = nullptr;
+
+  /* It's important to retrieve this after calling #BKE_object_free_derived_caches,
+   * which may reset the object data pointer in some cases. */
+  const Curve &original_curve = *static_cast<const Curve *>(ob->data);
 
   ob->runtime.curve_cache = MEM_cnew<CurveCache>(__func__);
   ListBase *dispbase = &ob->runtime.curve_cache->disp;
@@ -1488,14 +1484,27 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
     GeometrySet geometry = evaluate_curve_type_object(depsgraph, scene, ob, for_render, dispbase);
 
     if (geometry.has_curves()) {
-      /* Assign the evaluated curve to the object's "data_eval". In addition to the curve_eval
-       * added to the curve here, it will also contain a copy of the original curve's data. This is
-       * essential, because it maintains the expected behavior for evaluated curve data from before
-       * the CurveEval data type was introduced, when an evaluated object's curve data was just a
-       * copy of the original curve and everything else ended up in #CurveCache. */
-      CurveComponent &curve_component = geometry.get_component_for_write<CurveComponent>();
-      cow_curve.curve_eval = curve_component.get_for_read();
-      BKE_object_eval_assign_data(ob, &cow_curve.id, false);
+      /* Create a copy of the original curve and add necessary pointers to evaluated and edit mode
+       * data. This is needed for a few reasons:
+       * - Existing code from before curve evaluation was changed to use #GeometrySet expected to
+       *   have a copy of the original curve data. (Any evaluated data was placed in
+       *   #Object.runtime.curve_cache).
+       * - The result of modifier evaluation is not a #Curve data-block but a #Curves data-block,
+       *   which can support constructive modifiers and geometry nodes.
+       * - The dependency graph has handling of edit mode pointers (see #update_edit_mode_pointers)
+       *   but it doesn't seem to work in this case.
+       *
+       * Since the the plan is to replace this legacy curve object with the curves data-block
+       * (see T95355), this somewhat hacky inefficient solution is relatively temporary.
+       */
+      Curve &cow_curve = *reinterpret_cast<Curve *>(
+          BKE_id_copy_ex(nullptr, &original_curve.id, nullptr, LIB_ID_COPY_LOCALIZE));
+      cow_curve.curve_eval = geometry.get_curves_for_read();
+      /* Copy edit mode pointers necessary for drawing to the duplicated curve. */
+      cow_curve.editnurb = original_curve.editnurb;
+      cow_curve.editfont = original_curve.editfont;
+      cow_curve.edit_data_from_original = true;
+      BKE_object_eval_assign_data(ob, &cow_curve.id, true);
     }
 
     ob->runtime.geometry_set_eval = new GeometrySet(std::move(geometry));

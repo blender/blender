@@ -383,7 +383,7 @@ static void draw_seq_waveform_overlay(View2D *v2d,
       return;
     }
 
-    /* F-curve lookup is quite expensive, so do this after precondition. */
+    /* F-Curve lookup is quite expensive, so do this after precondition. */
     FCurve *fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, NULL);
 
     WaveVizData *tri_strip_arr = MEM_callocN(sizeof(*tri_strip_arr) * pix_strip_len * 2,
@@ -631,7 +631,7 @@ static void drawmeta_contents(Scene *scene,
         color3ubv_from_seq(scene, seq, show_strip_color_tag, col);
       }
 
-      if (SEQ_render_is_muted(channels, seqm) || SEQ_render_is_muted(channels, seq)) {
+      if (SEQ_render_is_muted(channels, seqm) || SEQ_render_is_muted(&seqm->channels, seq)) {
         col[3] = 64;
       }
       else {

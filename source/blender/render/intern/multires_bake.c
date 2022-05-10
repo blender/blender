@@ -51,7 +51,7 @@ typedef void (*MPassKnownData)(DerivedMesh *lores_dm,
                                const int x,
                                const int y);
 
-typedef void *(*MInitBakeData)(MultiresBakeRender *bkr, Image *ima);
+typedef void *(*MInitBakeData)(MultiresBakeRender *bkr, ImBuf *ibuf);
 typedef void (*MFreeBakeData)(void *bake_data);
 
 typedef struct MultiresBakeResult {
@@ -64,6 +64,7 @@ typedef struct {
   MPoly *mpoly;
   MLoop *mloop;
   MLoopUV *mloopuv;
+  float uv_offset[2];
   const MLoopTri *mlooptri;
   float *pvtangent;
   const float (*precomputed_normals)[3];
@@ -91,7 +92,6 @@ typedef struct {
 
 typedef struct {
   float *heights;
-  Image *ima;
   DerivedMesh *ssdm;
   const int *orig_index_mp_to_orig;
 } MHeightBakeData;
@@ -148,7 +148,8 @@ static void init_bake_rast(MBakeRast *bake_rast,
 
 static void flush_pixel(const MResolvePixelData *data, const int x, const int y)
 {
-  const float st[2] = {(x + 0.5f) / data->w, (y + 0.5f) / data->h};
+  const float st[2] = {(x + 0.5f) / data->w + data->uv_offset[0],
+                       (y + 0.5f) / data->h + data->uv_offset[1]};
   const float *st0, *st1, *st2;
   const float *tang0, *tang1, *tang2;
   float no0[3], no1[3], no2[3];
@@ -395,8 +396,12 @@ static void *do_multires_bake_thread(void *data_v)
 
     data->tri_index = tri_index;
 
-    bake_rasterize(
-        bake_rast, mloopuv[lt->tri[0]].uv, mloopuv[lt->tri[1]].uv, mloopuv[lt->tri[2]].uv);
+    float uv[3][2];
+    sub_v2_v2v2(uv[0], mloopuv[lt->tri[0]].uv, data->uv_offset);
+    sub_v2_v2v2(uv[1], mloopuv[lt->tri[1]].uv, data->uv_offset);
+    sub_v2_v2v2(uv[2], mloopuv[lt->tri[2]].uv, data->uv_offset);
+
+    bake_rasterize(bake_rast, uv[0], uv[1], uv[2]);
 
     /* tag image buffer for refresh */
     if (data->ibuf->rect_float) {
@@ -447,6 +452,8 @@ static void init_ccgdm_arrays(DerivedMesh *dm)
 
 static void do_multires_bake(MultiresBakeRender *bkr,
                              Image *ima,
+                             ImageTile *tile,
+                             ImBuf *ibuf,
                              bool require_tangent,
                              MPassKnownData passKnownData,
                              MInitBakeData initBakeData,
@@ -457,142 +464,141 @@ static void do_multires_bake(MultiresBakeRender *bkr,
   const MLoopTri *mlooptri = dm->getLoopTriArray(dm);
   const int lvl = bkr->lvl;
   int tot_tri = dm->getNumLoopTri(dm);
-
-  if (tot_tri > 0) {
-    MultiresBakeThread *handles;
-    MultiresBakeQueue queue;
-
-    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
-    MVert *mvert = dm->getVertArray(dm);
-    MPoly *mpoly = dm->getPolyArray(dm);
-    MLoop *mloop = dm->getLoopArray(dm);
-    MLoopUV *mloopuv = dm->getLoopDataArray(dm, CD_MLOOPUV);
-    float *pvtangent = NULL;
-
-    ListBase threads;
-    int i, tot_thread = bkr->threads > 0 ? bkr->threads : BLI_system_thread_count();
-
-    void *bake_data = NULL;
-
-    Mesh *temp_mesh = BKE_mesh_new_nomain(
-        dm->getNumVerts(dm), dm->getNumEdges(dm), 0, dm->getNumLoops(dm), dm->getNumPolys(dm));
-    memcpy(temp_mesh->mvert, dm->getVertArray(dm), temp_mesh->totvert * sizeof(*temp_mesh->mvert));
-    memcpy(temp_mesh->medge, dm->getEdgeArray(dm), temp_mesh->totedge * sizeof(*temp_mesh->medge));
-    memcpy(temp_mesh->mpoly, dm->getPolyArray(dm), temp_mesh->totpoly * sizeof(*temp_mesh->mpoly));
-    memcpy(temp_mesh->mloop, dm->getLoopArray(dm), temp_mesh->totloop * sizeof(*temp_mesh->mloop));
-    const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(temp_mesh);
-    const float(*poly_normals)[3] = BKE_mesh_poly_normals_ensure(temp_mesh);
-
-    if (require_tangent) {
-      if (CustomData_get_layer_index(&dm->loopData, CD_TANGENT) == -1) {
-        BKE_mesh_calc_loop_tangent_ex(
-            dm->getVertArray(dm),
-            dm->getPolyArray(dm),
-            dm->getNumPolys(dm),
-            dm->getLoopArray(dm),
-            dm->getLoopTriArray(dm),
-            dm->getNumLoopTri(dm),
-            &dm->loopData,
-            true,
-            NULL,
-            0,
-            vert_normals,
-            poly_normals,
-            (const float(*)[3])dm->getLoopDataArray(dm, CD_NORMAL),
-            (const float(*)[3])dm->getVertDataArray(dm, CD_ORCO), /* may be nullptr */
-            /* result */
-            &dm->loopData,
-            dm->getNumLoops(dm),
-            &dm->tangent_mask);
-      }
-
-      pvtangent = DM_get_loop_data_layer(dm, CD_TANGENT);
-    }
-
-    /* all threads shares the same custom bake data */
-    if (initBakeData) {
-      bake_data = initBakeData(bkr, ima);
-    }
-
-    if (tot_thread > 1) {
-      BLI_threadpool_init(&threads, do_multires_bake_thread, tot_thread);
-    }
-
-    handles = MEM_callocN(tot_thread * sizeof(MultiresBakeThread), "do_multires_bake handles");
-
-    init_ccgdm_arrays(bkr->hires_dm);
-
-    /* faces queue */
-    queue.cur_tri = 0;
-    queue.tot_tri = tot_tri;
-    BLI_spin_init(&queue.spin);
-
-    /* fill in threads handles */
-    for (i = 0; i < tot_thread; i++) {
-      MultiresBakeThread *handle = &handles[i];
-
-      handle->bkr = bkr;
-      handle->image = ima;
-      handle->queue = &queue;
-
-      handle->data.mpoly = mpoly;
-      handle->data.mvert = mvert;
-      handle->data.vert_normals = vert_normals;
-      handle->data.mloopuv = mloopuv;
-      handle->data.mlooptri = mlooptri;
-      handle->data.mloop = mloop;
-      handle->data.pvtangent = pvtangent;
-      handle->data.precomputed_normals = poly_normals; /* don't strictly need this */
-      handle->data.w = ibuf->x;
-      handle->data.h = ibuf->y;
-      handle->data.lores_dm = dm;
-      handle->data.hires_dm = bkr->hires_dm;
-      handle->data.lvl = lvl;
-      handle->data.pass_data = passKnownData;
-      handle->data.thread_data = handle;
-      handle->data.bake_data = bake_data;
-      handle->data.ibuf = ibuf;
-
-      handle->height_min = FLT_MAX;
-      handle->height_max = -FLT_MAX;
-
-      init_bake_rast(&handle->bake_rast, ibuf, &handle->data, flush_pixel, bkr->do_update);
-
-      if (tot_thread > 1) {
-        BLI_threadpool_insert(&threads, handle);
-      }
-    }
-
-    /* run threads */
-    if (tot_thread > 1) {
-      BLI_threadpool_end(&threads);
-    }
-    else {
-      do_multires_bake_thread(&handles[0]);
-    }
-
-    /* construct bake result */
-    result->height_min = handles[0].height_min;
-    result->height_max = handles[0].height_max;
-
-    for (i = 1; i < tot_thread; i++) {
-      result->height_min = min_ff(result->height_min, handles[i].height_min);
-      result->height_max = max_ff(result->height_max, handles[i].height_max);
-    }
-
-    BLI_spin_end(&queue.spin);
-
-    /* finalize baking */
-    if (freeBakeData) {
-      freeBakeData(bake_data);
-    }
-
-    MEM_freeN(handles);
-
-    BKE_id_free(NULL, temp_mesh);
-
-    BKE_image_release_ibuf(ima, ibuf, NULL);
+  if (tot_tri < 1) {
+    return;
   }
+
+  MultiresBakeThread *handles;
+  MultiresBakeQueue queue;
+
+  MVert *mvert = dm->getVertArray(dm);
+  MPoly *mpoly = dm->getPolyArray(dm);
+  MLoop *mloop = dm->getLoopArray(dm);
+  MLoopUV *mloopuv = dm->getLoopDataArray(dm, CD_MLOOPUV);
+  float *pvtangent = NULL;
+
+  ListBase threads;
+  int i, tot_thread = bkr->threads > 0 ? bkr->threads : BLI_system_thread_count();
+
+  void *bake_data = NULL;
+
+  Mesh *temp_mesh = BKE_mesh_new_nomain(
+      dm->getNumVerts(dm), dm->getNumEdges(dm), 0, dm->getNumLoops(dm), dm->getNumPolys(dm));
+  memcpy(temp_mesh->mvert, dm->getVertArray(dm), temp_mesh->totvert * sizeof(*temp_mesh->mvert));
+  memcpy(temp_mesh->medge, dm->getEdgeArray(dm), temp_mesh->totedge * sizeof(*temp_mesh->medge));
+  memcpy(temp_mesh->mpoly, dm->getPolyArray(dm), temp_mesh->totpoly * sizeof(*temp_mesh->mpoly));
+  memcpy(temp_mesh->mloop, dm->getLoopArray(dm), temp_mesh->totloop * sizeof(*temp_mesh->mloop));
+  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(temp_mesh);
+  const float(*poly_normals)[3] = BKE_mesh_poly_normals_ensure(temp_mesh);
+
+  if (require_tangent) {
+    if (CustomData_get_layer_index(&dm->loopData, CD_TANGENT) == -1) {
+      BKE_mesh_calc_loop_tangent_ex(
+          dm->getVertArray(dm),
+          dm->getPolyArray(dm),
+          dm->getNumPolys(dm),
+          dm->getLoopArray(dm),
+          dm->getLoopTriArray(dm),
+          dm->getNumLoopTri(dm),
+          &dm->loopData,
+          true,
+          NULL,
+          0,
+          vert_normals,
+          poly_normals,
+          (const float(*)[3])dm->getLoopDataArray(dm, CD_NORMAL),
+          (const float(*)[3])dm->getVertDataArray(dm, CD_ORCO), /* may be nullptr */
+          /* result */
+          &dm->loopData,
+          dm->getNumLoops(dm),
+          &dm->tangent_mask);
+    }
+
+    pvtangent = DM_get_loop_data_layer(dm, CD_TANGENT);
+  }
+
+  /* all threads shares the same custom bake data */
+  if (initBakeData) {
+    bake_data = initBakeData(bkr, ibuf);
+  }
+
+  if (tot_thread > 1) {
+    BLI_threadpool_init(&threads, do_multires_bake_thread, tot_thread);
+  }
+
+  handles = MEM_callocN(tot_thread * sizeof(MultiresBakeThread), "do_multires_bake handles");
+
+  init_ccgdm_arrays(bkr->hires_dm);
+
+  /* faces queue */
+  queue.cur_tri = 0;
+  queue.tot_tri = tot_tri;
+  BLI_spin_init(&queue.spin);
+
+  /* fill in threads handles */
+  for (i = 0; i < tot_thread; i++) {
+    MultiresBakeThread *handle = &handles[i];
+
+    handle->bkr = bkr;
+    handle->image = ima;
+    handle->queue = &queue;
+
+    handle->data.mpoly = mpoly;
+    handle->data.mvert = mvert;
+    handle->data.vert_normals = vert_normals;
+    handle->data.mloopuv = mloopuv;
+    BKE_image_get_tile_uv(ima, tile->tile_number, handle->data.uv_offset);
+    handle->data.mlooptri = mlooptri;
+    handle->data.mloop = mloop;
+    handle->data.pvtangent = pvtangent;
+    handle->data.precomputed_normals = poly_normals; /* don't strictly need this */
+    handle->data.w = ibuf->x;
+    handle->data.h = ibuf->y;
+    handle->data.lores_dm = dm;
+    handle->data.hires_dm = bkr->hires_dm;
+    handle->data.lvl = lvl;
+    handle->data.pass_data = passKnownData;
+    handle->data.thread_data = handle;
+    handle->data.bake_data = bake_data;
+    handle->data.ibuf = ibuf;
+
+    handle->height_min = FLT_MAX;
+    handle->height_max = -FLT_MAX;
+
+    init_bake_rast(&handle->bake_rast, ibuf, &handle->data, flush_pixel, bkr->do_update);
+
+    if (tot_thread > 1) {
+      BLI_threadpool_insert(&threads, handle);
+    }
+  }
+
+  /* run threads */
+  if (tot_thread > 1) {
+    BLI_threadpool_end(&threads);
+  }
+  else {
+    do_multires_bake_thread(&handles[0]);
+  }
+
+  /* construct bake result */
+  result->height_min = handles[0].height_min;
+  result->height_max = handles[0].height_max;
+
+  for (i = 1; i < tot_thread; i++) {
+    result->height_min = min_ff(result->height_min, handles[i].height_min);
+    result->height_max = max_ff(result->height_max, handles[i].height_max);
+  }
+
+  BLI_spin_end(&queue.spin);
+
+  /* finalize baking */
+  if (freeBakeData) {
+    freeBakeData(bake_data);
+  }
+
+  MEM_freeN(handles);
+
+  BKE_id_free(NULL, temp_mesh);
 }
 
 /* mode = 0: interpolate normals,
@@ -758,10 +764,9 @@ static void interp_barycentric_mlooptri(DerivedMesh *dm,
 
 /* **************** Displacement Baker **************** */
 
-static void *init_heights_data(MultiresBakeRender *bkr, Image *ima)
+static void *init_heights_data(MultiresBakeRender *bkr, ImBuf *ibuf)
 {
   MHeightBakeData *height_data;
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
   DerivedMesh *lodm = bkr->lores_dm;
   BakeImBufuserData *userdata = ibuf->userdata;
 
@@ -772,7 +777,6 @@ static void *init_heights_data(MultiresBakeRender *bkr, Image *ima)
 
   height_data = MEM_callocN(sizeof(MHeightBakeData), "MultiresBake heightData");
 
-  height_data->ima = ima;
   height_data->heights = userdata->displacement_buffer;
 
   if (!bkr->use_lores_mesh) {
@@ -793,8 +797,6 @@ static void *init_heights_data(MultiresBakeRender *bkr, Image *ima)
   }
 
   height_data->orig_index_mp_to_orig = lodm->getPolyDataArray(lodm, CD_ORIGINDEX);
-
-  BKE_image_release_ibuf(ima, ibuf, NULL);
 
   return (void *)height_data;
 }
@@ -903,7 +905,7 @@ static void apply_heights_callback(DerivedMesh *lores_dm,
 
 /* **************** Normal Maps Baker **************** */
 
-static void *init_normal_data(MultiresBakeRender *bkr, Image *UNUSED(ima))
+static void *init_normal_data(MultiresBakeRender *bkr, ImBuf *UNUSED(ibuf))
 {
   MNormalBakeData *normal_data;
   DerivedMesh *lodm = bkr->lores_dm;
@@ -1099,7 +1101,7 @@ static void create_ao_raytree(MultiresBakeRender *bkr, MAOBakeData *ao_data)
   RE_rayobject_done(raytree);
 }
 
-static void *init_ao_data(MultiresBakeRender *bkr, Image *UNUSED(ima))
+static void *init_ao_data(MultiresBakeRender *bkr, ImBuf *UNUSED(ibuf))
 {
   MAOBakeData *ao_data;
   DerivedMesh *lodm = bkr->lores_dm;
@@ -1313,8 +1315,12 @@ static void apply_ao_callback(DerivedMesh *lores_dm,
 
 /* ******$***************** Post processing ************************* */
 
-static void bake_ibuf_filter(
-    ImBuf *ibuf, char *mask, const int margin, const char margin_type, DerivedMesh *dm)
+static void bake_ibuf_filter(ImBuf *ibuf,
+                             char *mask,
+                             const int margin,
+                             const char margin_type,
+                             DerivedMesh *dm,
+                             const float uv_offset[2])
 {
   /* must check before filtering */
   const bool is_new_alpha = (ibuf->planes != R_IMF_PLANES_RGBA) && BKE_imbuf_alpha_test(ibuf);
@@ -1322,7 +1328,7 @@ static void bake_ibuf_filter(
   if (margin) {
     switch (margin_type) {
       case R_BAKE_ADJACENT_FACES:
-        RE_generate_texturemargin_adjacentfaces_dm(ibuf, mask, margin, dm);
+        RE_generate_texturemargin_adjacentfaces_dm(ibuf, mask, margin, dm, uv_offset);
         break;
       default:
       /* fall through */
@@ -1427,38 +1433,54 @@ static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 
   for (link = bkr->image.first; link; link = link->next) {
     Image *ima = (Image *)link->data;
-    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 
-    if (ibuf->x > 0 && ibuf->y > 0) {
-      BakeImBufuserData *userdata = MEM_callocN(sizeof(BakeImBufuserData),
-                                                "MultiresBake userdata");
-      userdata->mask_buffer = MEM_callocN(ibuf->y * ibuf->x, "MultiresBake imbuf mask");
-      ibuf->userdata = userdata;
+    LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+      ImageUser iuser;
+      BKE_imageuser_default(&iuser);
+      iuser.tile = tile->tile_number;
 
-      switch (bkr->mode) {
-        case RE_BAKE_NORMALS:
-          do_multires_bake(
-              bkr, ima, true, apply_tangmat_callback, init_normal_data, free_normal_data, result);
-          break;
-        case RE_BAKE_DISPLACEMENT:
-          do_multires_bake(bkr,
-                           ima,
-                           false,
-                           apply_heights_callback,
-                           init_heights_data,
-                           free_heights_data,
-                           result);
-          break;
-/* TODO: restore ambient occlusion baking support. */
+      ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
+
+      if (ibuf->x > 0 && ibuf->y > 0) {
+        BakeImBufuserData *userdata = MEM_callocN(sizeof(BakeImBufuserData),
+                                                  "MultiresBake userdata");
+        userdata->mask_buffer = MEM_callocN(ibuf->y * ibuf->x, "MultiresBake imbuf mask");
+        ibuf->userdata = userdata;
+
+        switch (bkr->mode) {
+          case RE_BAKE_NORMALS:
+            do_multires_bake(bkr,
+                             ima,
+                             tile,
+                             ibuf,
+                             true,
+                             apply_tangmat_callback,
+                             init_normal_data,
+                             free_normal_data,
+                             result);
+            break;
+          case RE_BAKE_DISPLACEMENT:
+            do_multires_bake(bkr,
+                             ima,
+                             tile,
+                             ibuf,
+                             false,
+                             apply_heights_callback,
+                             init_heights_data,
+                             free_heights_data,
+                             result);
+            break;
+            /* TODO: restore ambient occlusion baking support. */
 #if 0
-        case RE_BAKE_AO:
-          do_multires_bake(bkr, ima, false, apply_ao_callback, init_ao_data, free_ao_data, result);
-          break;
+          case RE_BAKE_AO:
+            do_multires_bake(bkr, ima, tile, ibuf, false, apply_ao_callback, init_ao_data, free_ao_data, result);
+            break;
 #endif
+        }
       }
-    }
 
-    BKE_image_release_ibuf(ima, ibuf, NULL);
+      BKE_image_release_ibuf(ima, ibuf, NULL);
+    }
 
     ima->id.tag |= LIB_TAG_DOIT;
   }
@@ -1471,48 +1493,62 @@ static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 
   for (link = bkr->image.first; link; link = link->next) {
     Image *ima = (Image *)link->data;
-    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
-    BakeImBufuserData *userdata = (BakeImBufuserData *)ibuf->userdata;
 
-    if (ibuf->x <= 0 || ibuf->y <= 0) {
-      continue;
-    }
+    LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+      ImageUser iuser;
+      BKE_imageuser_default(&iuser);
+      iuser.tile = tile->tile_number;
 
-    if (use_displacement_buffer) {
-      bake_ibuf_normalize_displacement(ibuf,
-                                       userdata->displacement_buffer,
-                                       userdata->mask_buffer,
-                                       result->height_min,
-                                       result->height_max);
-    }
+      ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
+      BakeImBufuserData *userdata = (BakeImBufuserData *)ibuf->userdata;
 
-    bake_ibuf_filter(
-        ibuf, userdata->mask_buffer, bkr->bake_margin, bkr->bake_margin_type, bkr->lores_dm);
-
-    ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-    BKE_image_mark_dirty(ima, ibuf);
-
-    if (ibuf->rect_float) {
-      ibuf->userflags |= IB_RECT_INVALID;
-    }
-
-    if (ibuf->mipmap[0]) {
-      ibuf->userflags |= IB_MIPMAP_INVALID;
-      imb_freemipmapImBuf(ibuf);
-    }
-
-    if (ibuf->userdata) {
-      if (userdata->displacement_buffer) {
-        MEM_freeN(userdata->displacement_buffer);
+      if (ibuf->x <= 0 || ibuf->y <= 0) {
+        continue;
       }
 
-      MEM_freeN(userdata->mask_buffer);
-      MEM_freeN(userdata);
-      ibuf->userdata = NULL;
-    }
+      if (use_displacement_buffer) {
+        bake_ibuf_normalize_displacement(ibuf,
+                                         userdata->displacement_buffer,
+                                         userdata->mask_buffer,
+                                         result->height_min,
+                                         result->height_max);
+      }
 
-    BKE_image_release_ibuf(ima, ibuf, NULL);
-    DEG_id_tag_update(&ima->id, 0);
+      float uv_offset[2];
+      BKE_image_get_tile_uv(ima, tile->tile_number, uv_offset);
+
+      bake_ibuf_filter(ibuf,
+                       userdata->mask_buffer,
+                       bkr->bake_margin,
+                       bkr->bake_margin_type,
+                       bkr->lores_dm,
+                       uv_offset);
+
+      ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+      BKE_image_mark_dirty(ima, ibuf);
+
+      if (ibuf->rect_float) {
+        ibuf->userflags |= IB_RECT_INVALID;
+      }
+
+      if (ibuf->mipmap[0]) {
+        ibuf->userflags |= IB_MIPMAP_INVALID;
+        imb_freemipmapImBuf(ibuf);
+      }
+
+      if (ibuf->userdata) {
+        if (userdata->displacement_buffer) {
+          MEM_freeN(userdata->displacement_buffer);
+        }
+
+        MEM_freeN(userdata->mask_buffer);
+        MEM_freeN(userdata);
+        ibuf->userdata = NULL;
+      }
+
+      BKE_image_release_ibuf(ima, ibuf, NULL);
+      DEG_id_tag_update(&ima->id, 0);
+    }
   }
 }
 

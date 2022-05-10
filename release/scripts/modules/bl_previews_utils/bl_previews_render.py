@@ -80,7 +80,7 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
                 backup_camera, backup_camera_data = [None] * 2
                 camera_data = bpy.data.cameras.new("TEMP_preview_render_camera")
                 camera = bpy.data.objects.new("TEMP_preview_render_camera", camera_data)
-                camera.rotation_euler = Euler((1.1635528802871704, 0.0, 0.7853981852531433), 'XYZ')  # (66.67, 0.0, 45.0)
+                camera.rotation_euler = Euler((1.1635528802871704, 0.0, 0.7853981852531433), 'XYZ')  # (66.67, 0, 45)
                 scene.camera = camera
                 scene.collection.objects.link(camera)
             # TODO: add light if none found in scene?
@@ -100,11 +100,11 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
 
             scene.world = world
 
-            camera.rotation_euler = Euler((1.1635528802871704, 0.0, 0.7853981852531433), 'XYZ')  # (66.67, 0.0, 45.0)
+            camera.rotation_euler = Euler((1.1635528802871704, 0.0, 0.7853981852531433), 'XYZ')  # (66.67, 0, 45)
             scene.camera = camera
             scene.collection.objects.link(camera)
 
-            light.rotation_euler = Euler((0.7853981852531433, 0.0, 1.7453292608261108), 'XYZ')  # (45.0, 0.0, 100.0)
+            light.rotation_euler = Euler((0.7853981852531433, 0.0, 1.7453292608261108), 'XYZ')  # (45, 0, 100)
             light_data.falloff_type = 'CONSTANT'
             light_data.spot_size = 1.0471975803375244  # 60
             scene.collection.objects.link(light)

@@ -54,9 +54,6 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  if (U.experimental.use_named_attribute_nodes == 0) {
-    return;
-  }
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
   search_link_ops_for_declarations(params, declaration.inputs());
 
@@ -81,10 +78,12 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const std::string name = params.extract_input<std::string>("Name");
 
-  if (!U.experimental.use_named_attribute_nodes) {
+  if (name.empty()) {
     params.set_default_remaining_outputs();
     return;
   }
+
+  params.used_named_attribute(name, NamedAttributeUsage::Read);
 
   switch (data_type) {
     case CD_PROP_FLOAT:

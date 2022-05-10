@@ -217,7 +217,7 @@ int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type)
       return CD_FAKE_LNOR;
     case DT_TYPE_MLOOPCOL_VERT:
     case DT_TYPE_MLOOPCOL_LOOP:
-      return CD_MLOOPCOL;
+      return CD_PROP_BYTE_COLOR;
     case DT_TYPE_MPROPCOL_VERT:
     case DT_TYPE_MPROPCOL_LOOP:
       return CD_PROP_COLOR;
@@ -1501,6 +1501,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
                                             num_verts_dst,
                                             dirty_nors_dst,
                                             me_src,
+                                            me_dst,
                                             &geom_map[VDATA]);
         geom_map_init[VDATA] = true;
       }
@@ -1579,6 +1580,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
                                             num_edges_dst,
                                             dirty_nors_dst,
                                             me_src,
+                                            me_dst,
                                             &geom_map[EDATA]);
         geom_map_init[EDATA] = true;
       }

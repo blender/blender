@@ -4,6 +4,8 @@
 
 #include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
+#include "BLI_math_rotation.hh"
+#include "BLI_math_vector.hh"
 
 #include <cmath>
 
@@ -147,3 +149,23 @@ TEST(math_rotation, quat_split_swing_and_twist_negative)
   EXPECT_V4_NEAR(swing, expected_swing, FLT_EPSILON);
   EXPECT_V4_NEAR(twist, expected_twist, FLT_EPSILON);
 }
+
+namespace blender::math::tests {
+
+TEST(math_rotation, RotateDirectionAroundAxis)
+{
+  const float3 a = rotate_direction_around_axis({1, 0, 0}, {0, 0, 1}, M_PI_2);
+  EXPECT_NEAR(a.x, 0.0f, FLT_EPSILON);
+  EXPECT_NEAR(a.y, 1.0f, FLT_EPSILON);
+  EXPECT_NEAR(a.z, 0.0f, FLT_EPSILON);
+  const float3 b = rotate_direction_around_axis({1, 0, 0}, {0, 0, 1}, M_PI);
+  EXPECT_NEAR(b.x, -1.0f, FLT_EPSILON);
+  EXPECT_NEAR(b.y, 0.0f, FLT_EPSILON);
+  EXPECT_NEAR(b.z, 0.0f, FLT_EPSILON);
+  const float3 c = rotate_direction_around_axis({0, 0, 1}, {0, 0, 1}, 0.0f);
+  EXPECT_NEAR(c.x, 0.0f, FLT_EPSILON);
+  EXPECT_NEAR(c.y, 0.0f, FLT_EPSILON);
+  EXPECT_NEAR(c.z, 1.0f, FLT_EPSILON);
+}
+
+}  // namespace blender::math::tests

@@ -1101,6 +1101,16 @@ int rna_show_statusbar_vram_editable(struct PointerRNA *UNUSED(ptr), const char 
   return GPU_mem_stats_supported() ? PROP_EDITABLE : 0;
 }
 
+static int rna_userdef_experimental_use_new_curve_tools_editable(struct PointerRNA *UNUSED(ptr),
+                                                                 const char **r_info)
+{
+  if (U.experimental.use_new_curves_type) {
+    return PROP_EDITABLE;
+  }
+  *r_info = "Only available when new curves type is enabled";
+  return 0;
+}
+
 #else
 
 #  define USERDEF_TAG_DIRTY_PROPERTY_UPDATE_ENABLE \
@@ -5290,7 +5300,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_duplicate_fcurve", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_FCURVE);
   RNA_def_property_ui_text(
-      prop, "Duplicate F-Curve", "Causes F-curve data to be duplicated with the object");
+      prop, "Duplicate F-Curve", "Causes F-Curve data to be duplicated with the object");
 #  endif
 
   prop = RNA_def_property(srna, "use_duplicate_action", PROP_BOOLEAN, PROP_NONE);
@@ -6428,6 +6438,12 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "use_new_curves_type", 1);
   RNA_def_property_ui_text(prop, "New Curves Type", "Enable the new curves data type in the UI");
 
+  prop = RNA_def_property(srna, "use_new_curves_tools", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_new_curves_tools", 1);
+  RNA_def_property_editable_func(prop, "rna_userdef_experimental_use_new_curve_tools_editable");
+  RNA_def_property_ui_text(
+      prop, "New Curves Tools", "Enable additional features for the new curves data block");
+
   prop = RNA_def_property(srna, "use_cycles_debug", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_cycles_debug", 1);
   RNA_def_property_ui_text(prop, "Cycles Debug", "Enable Cycles debugging options for developers");
@@ -6441,6 +6457,10 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_sculpt_texture_paint", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_sculpt_texture_paint", 1);
   RNA_def_property_ui_text(prop, "Sculpt Texture Paint", "Use texture painting in Sculpt Mode");
+
+  prop = RNA_def_property(srna, "use_draw_manager_acquire_lock", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_draw_manager_acquire_lock", 1);
+  RNA_def_property_ui_text(prop, "Draw Manager Locking", "Don't lock UI during background rendering");
 
   prop = RNA_def_property(srna, "use_extended_asset_browser", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(prop,
@@ -6467,18 +6487,6 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "use_override_templates", 1);
   RNA_def_property_ui_text(
       prop, "Override Templates", "Enable library override template in the python API");
-
-  prop = RNA_def_property(srna, "use_named_attribute_nodes", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_named_attribute_nodes", 1);
-  RNA_def_property_ui_text(prop,
-                           "Named Attribute Nodes",
-                           "Enable named attribute nodes in the geometry nodes add menu");
-
-  prop = RNA_def_property(srna, "use_select_nearest_on_first_click", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_select_nearest_on_first_click", 1);
-  RNA_def_property_ui_text(prop,
-                           "Object Select Nearest on First Click",
-                           "When enabled, always select the front-most object on the first click");
 
   prop = RNA_def_property(srna, "enable_eevee_next", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "enable_eevee_next", 1);

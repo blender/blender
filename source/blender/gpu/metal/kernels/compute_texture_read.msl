@@ -1,0 +1,182 @@
+/* MATCHING eGPUTextureType. */
+#define GPU_TEXTURE_1D (1 << 0)
+#define GPU_TEXTURE_2D (1 << 1)
+#define GPU_TEXTURE_3D (1 << 2)
+#define GPU_TEXTURE_CUBE (1 << 3)
+#define GPU_TEXTURE_ARRAY (1 << 4)
+#define GPU_TEXTURE_BUFFER (1 << 5)
+#define GPU_TEXTURE_1D_ARRAY (GPU_TEXTURE_1D | GPU_TEXTURE_ARRAY)
+#define GPU_TEXTURE_2D_ARRAY (GPU_TEXTURE_2D | GPU_TEXTURE_ARRAY)
+#define GPU_TEXTURE_CUBE_ARRAY (GPU_TEXTURE_CUBE | GPU_TEXTURE_ARRAY)
+
+/* Determine input texture type. */
+#if IS_DEPTH_FORMAT == 1
+#  define TEX_NAME_BASE depth
+#else
+#  define TEX_NAME_BASE texture
+#endif
+
+#define JOIN(x, y) x##y
+#define FUNC_NAME(x, y) JOIN(x, y)
+
+/* Assign parameters based on texture type. */
+#if TEX_TYPE == GPU_TEXTURE_1D
+#  define TEX_TYPE_NAME FUNC_NAME(TEX_NAME_BASE, 1d)
+#  define DIMS 1
+#elif TEX_TYPE == GPU_TEXTURE_2D
+#  define TEX_TYPE_NAME FUNC_NAME(TEX_NAME_BASE, 2d)
+#  define DIMS 2
+#elif TEX_TYPE == GPU_TEXTURE_3D
+#  define TEX_TYPE_NAME FUNC_NAME(TEX_NAME_BASE, 3d)
+#  define DIMS 3
+#elif TEX_TYPE == GPU_TEXTURE_1D_ARRAY
+#  define TEX_TYPE_NAME FUNC_NAME(TEX_NAME_BASE, 1d_array)
+#  define DIMS 2
+#elif TEX_TYPE == GPU_TEXTURE_2D_ARRAY
+#  define TEX_TYPE_NAME FUNC_NAME(TEX_NAME_BASE, 2d_array)
+#  define DIMS 3
+#endif
+
+/* Position dimensionality for threadgroup. */
+#if DIMS == 1
+#  define POSITION_TYPE uint
+#elif DIMS == 2
+#  define POSITION_TYPE uint2
+#elif DIMS == 3
+#  define POSITION_TYPE uint3
+#endif
+
+using namespace metal;
+
+template<typename T> T denormalize(float val)
+{
+  return T(float(DEPTH_SCALE_FACTOR) * val);
+};
+
+template<> int denormalize<int>(float val)
+{
+  return int((float(DEPTH_SCALE_FACTOR) * val - 1.0f) / 2.0f);
+}
+template<> uint denormalize<uint>(float val)
+{
+  return uint(float(DEPTH_SCALE_FACTOR) * val);
+}
+
+template<typename T> T convert_type(float type)
+{
+  return T(type);
+}
+
+template<> uchar convert_type<uchar>(float val)
+{
+  return uchar(val * float(0xFF));
+}
+
+template<> uint convert_type<uint>(float val)
+{
+  return uint(val * double(0xFFFFFFFFu));
+}
+
+struct TextureReadParams {
+  int mip_index;
+  int extent[3];
+  int offset[3];
+};
+
+#if IS_DEPTH_FORMAT == 1
+constexpr sampler pixelSampler = sampler(coord::pixel, address::clamp_to_edge, filter::nearest);
+#endif
+
+kernel void compute_texture_read(constant TextureReadParams &params [[buffer(0)]],
+                                 device OUTPUT_DATA_TYPE *output_data [[buffer(1)]],
+#if IS_DEPTH_FORMAT == 1
+                                 TEX_TYPE_NAME<float, access::sample> read_tex [[texture(0)]],
+#else
+                                 TEX_TYPE_NAME<INPUT_DATA_TYPE, access::read> read_tex
+                                 [[texture(0)]],
+#endif
+                                 POSITION_TYPE position [[thread_position_in_grid]])
+{
+  /* Read colour. */
+  vec<INPUT_DATA_TYPE, 4> read_colour;
+
+/* 1D TEXTURE */
+#if TEX_TYPE == GPU_TEXTURE_1D
+
+  /* xx, yy, layer determined by kernel invocation pattern */
+  uint xx = position[0];
+  int index = (xx)*COMPONENT_COUNT_OUTPUT;
+  read_colour = read_tex.read(uint(params.offset[0]) + uint(xx));
+
+/* 2D TEXTURE */
+#elif TEX_TYPE == GPU_TEXTURE_2D
+
+  /* xx, yy, layer determined by kernel invocation pattern */
+  uint xx = position[0];
+  uint yy = position[1];
+  int index = (yy * params.extent[0] + xx) * COMPONENT_COUNT_OUTPUT;
+
+  /* Read data */
+#  if IS_DEPTH_FORMAT == 1
+  output_data[index] = denormalize<OUTPUT_DATA_TYPE>(
+      read_tex.sample(pixelSampler, float2(params.offset[0], params.offset[1]) + float2(xx, yy)));
+#  else
+  read_colour = read_tex.read(uint2(params.offset[0], params.offset[1]) + uint2(xx, yy));
+#  endif
+
+/* 3D TEXTURE */
+#elif TEX_TYPE == GPU_TEXTURE_3D
+  /* xx, yy, layer determined by kernel invocation pattern */
+  uint xx = position[0];
+  uint yy = position[1];
+  uint zz = position[2];
+  int index = (zz * (params.extent[0] * params.extent[1]) + yy * params.extnt[0] + xx) *
+              COMPONENT_COUNT_INPUT;
+  read_colour = read_tex.read(uint3(params.offset[0], params.offset[1], params.offset[2]) +
+                              uint3(xx, yy, zz));
+
+/* 1D ARRAY TEXTURE */
+#elif TEX_TYPE == GPU_TEXTURE_1D_ARRAY
+
+  /* xx, yy, layer determined by kernel invocation pattern */
+  uint xx = position[0];
+  uint layer = position[1];
+  int index = (layer * params.extent[0] + xx) * COMPONENT_COUNT_OUTPUT;
+  read_colour = read_tex.read(uint(params.offset[0]) + uint(xx), uint(params.offset[1]) + layer);
+
+/* 2D ARRAY TEXTURE */
+#elif TEX_TYPE == GPU_TEXTURE_2D_ARRAY
+
+  /* xx, yy, layer determined by kernel invocation pattern */
+  uint xx = position[0];
+  uint yy = position[1];
+  uint layer = position[2];
+  int index = (layer * (params.extent[0] * params.extent[1]) + yy * params.extent[0] + xx) *
+              COMPONENT_COUNT_INPUT;
+
+  /* Read data */
+#  if IS_DEPTH_FORMAT == 1
+  output_data[index] = denormalize<OUTPUT_DATA_TYPE>(
+      read_tex.sample(pixelSampler,
+                      float2(params.offset[0], params.offset[1]) + float2(xx, yy),
+                      uint(params.offset[2] + layer)));
+#  else
+  read_colour = read_tex.read(uint2(params.offset[0], params.offset[1]) + uint2(xx, yy),
+                              uint(params.offset[2] + layer));
+#  endif
+
+#endif
+
+  /* Output per-component colour data. */
+#if IS_DEPTH_FORMAT != 1
+  /* Write data to block */
+  for (int i = 0; i < WRITE_COMPONENT_COUNT; i++) {
+    output_data[index + i] = convert_type<OUTPUT_DATA_TYPE>(read_colour[i]);
+  }
+
+  /* Fill in empty cells if more components are being read than exist */
+  for (int i = COMPONENT_COUNT_INPUT; i < COMPONENT_COUNT_OUTPUT; i++) {
+    output_data[index + i] = convert_type<OUTPUT_DATA_TYPE>(0);
+  }
+#endif
+}

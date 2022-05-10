@@ -1,17 +1,11 @@
 
-uniform ivec4 mpathLineSettings;
-uniform bool selected;
-uniform vec3 customColor;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 #define frameCurrent mpathLineSettings.x
 #define frameStart mpathLineSettings.y
 #define frameEnd mpathLineSettings.z
 #define cacheStart mpathLineSettings.w
-
-in vec3 pos;
-
-out vec2 ssPos;
-out vec4 finalColor_geom;
 
 /* project to screen space */
 vec2 proj(vec4 pos)
@@ -26,7 +20,7 @@ void main()
 {
   gl_Position = ViewProjectionMatrix * vec4(pos, 1.0);
 
-  ssPos = proj(gl_Position);
+  interp.ss_pos = proj(gl_Position);
 
   int frame = gl_VertexID + cacheStart;
 
@@ -40,7 +34,7 @@ void main()
   if (frame < frameCurrent) {
     if (use_custom_color) {
       /* Custom color: previous frames color is darker than current frame */
-      finalColor_geom.rgb = customColor * 0.25;
+      interp.color.rgb = customColor * 0.25;
     }
     else {
       /* black - before frameCurrent */
@@ -50,13 +44,13 @@ void main()
       else {
         intensity = SET_INTENSITY(frameStart, frame, frameCurrent, 0.68, 0.92);
       }
-      finalColor_geom.rgb = mix(colorWire.rgb, blend_base, intensity);
+      interp.color.rgb = mix(colorWire.rgb, blend_base, intensity);
     }
   }
   else if (frame > frameCurrent) {
     if (use_custom_color) {
       /* Custom color: next frames color is equal to user selected color */
-      finalColor_geom.rgb = customColor;
+      interp.color.rgb = customColor;
     }
     else {
       /* blue - after frameCurrent */
@@ -67,13 +61,13 @@ void main()
         intensity = SET_INTENSITY(frameCurrent, frame, frameEnd, 0.68, 0.92);
       }
 
-      finalColor_geom.rgb = mix(colorBonePose.rgb, blend_base, intensity);
+      interp.color.rgb = mix(colorBonePose.rgb, blend_base, intensity);
     }
   }
   else {
     if (use_custom_color) {
       /* Custom color: current frame color is slightly darker than user selected color */
-      finalColor_geom.rgb = customColor * 0.5;
+      interp.color.rgb = customColor * 0.5;
     }
     else {
       /* green - on frameCurrent */
@@ -83,13 +77,11 @@ void main()
       else {
         intensity = 0.75f;
       }
-      finalColor_geom.rgb = mix(colorBackground.rgb, blend_base, intensity);
+      interp.color.rgb = mix(colorBackground.rgb, blend_base, intensity);
     }
   }
 
-  finalColor_geom.a = 1.0;
+  interp.color.a = 1.0;
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(pos);
-#endif
+  view_clipping_distances(pos);
 }

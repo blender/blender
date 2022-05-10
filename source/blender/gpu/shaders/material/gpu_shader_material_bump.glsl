@@ -1,28 +1,26 @@
-void dfdx_v3(vec3 v, out vec3 dy)
+
+void differentiate_texco(vec3 v, out vec3 df)
 {
-  dy = v + DFDX_SIGN * dFdx(v);
+  /* Implementation defined. */
+  df = v + dF_impl(v);
 }
 
-void dfdy_v3(vec3 v, out vec3 dy)
+/* Overload for UVs which are loaded as generic attributes. */
+void differentiate_texco(vec4 v, out vec3 df)
 {
-  dy = v + DFDY_SIGN * dFdy(v);
+  /* Implementation defined. */
+  df = v.xyz + dF_impl(v.xyz);
 }
 
-void node_bump(float strength,
-               float dist,
-               float height,
-               float height_dx,
-               float height_dy,
-               vec3 N,
-               vec3 surf_pos,
-               float invert,
-               out vec3 result)
+void node_bump(
+    float strength, float dist, float height, vec3 N, vec2 dHd, float invert, out vec3 result)
 {
-  N = mat3(ViewMatrix) * normalize(N);
-  dist *= gl_FrontFacing ? invert : -invert;
+  N = normalize(N);
+  dist *= FrontFacing ? invert : -invert;
 
-  vec3 dPdx = dFdx(surf_pos);
-  vec3 dPdy = dFdy(surf_pos);
+#ifdef GPU_FRAGMENT_SHADER
+  vec3 dPdx = dFdx(g_data.P);
+  vec3 dPdy = dFdy(g_data.P);
 
   /* Get surface tangents from normal. */
   vec3 Rx = cross(dPdy, N);
@@ -31,14 +29,13 @@ void node_bump(float strength,
   /* Compute surface gradient and determinant. */
   float det = dot(dPdx, Rx);
 
-  float dHdx = height_dx - height;
-  float dHdy = height_dy - height;
-  vec3 surfgrad = dHdx * Rx + dHdy * Ry;
+  vec3 surfgrad = dHd.x * Rx + dHd.y * Ry;
 
   strength = max(strength, 0.0);
 
   result = normalize(abs(det) * N - dist * sign(det) * surfgrad);
   result = normalize(mix(N, result, strength));
-
-  result = mat3(ViewMatrixInverse) * result;
+#else
+  result = N;
+#endif
 }

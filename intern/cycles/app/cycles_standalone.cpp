@@ -23,6 +23,10 @@
 #include "util/unique_ptr.h"
 #include "util/version.h"
 
+#ifdef WITH_USD
+#  include "hydra/file_reader.h"
+#endif
+
 #include "app/cycles_xml.h"
 #include "app/oiio_output_driver.h"
 
@@ -94,8 +98,16 @@ static void scene_init()
 {
   options.scene = options.session->scene;
 
-  /* Read XML */
-  xml_read_file(options.scene, options.filepath.c_str());
+  /* Read XML or USD */
+#ifdef WITH_USD
+  if (!string_endswith(string_to_lower(options.filepath), ".xml")) {
+    HD_CYCLES_NS::HdCyclesFileReader::read(options.session, options.filepath.c_str());
+  }
+  else
+#endif
+  {
+    xml_read_file(options.scene, options.filepath.c_str());
+  }
 
   /* Camera width/height override? */
   if (!(options.width == 0 || options.height == 0)) {
@@ -121,9 +133,9 @@ static void session_init()
     options.session->set_display_driver(make_unique<OpenGLDisplayDriver>(
         window_opengl_context_enable, window_opengl_context_disable));
   }
-  else
 #endif
-      if (!options.output_filepath.empty()) {
+
+  if (!options.output_filepath.empty()) {
     options.session->set_output_driver(make_unique<OIIOOutputDriver>(
         options.output_filepath, options.output_pass, session_print));
   }
@@ -369,7 +381,7 @@ static void options_parse(int argc, const char **argv)
 
   /* parse options */
   ArgParse ap;
-  bool help = false, debug = false, version = false;
+  bool help = false, profile = false, debug = false, version = false;
   int verbosity = 1;
 
   ap.options("Usage: cycles [options] file.xml",
@@ -411,6 +423,9 @@ static void options_parse(int argc, const char **argv)
              "--list-devices",
              &list,
              "List information about all available devices",
+             "--profile",
+             &profile,
+             "Enable profile logging",
 #ifdef WITH_CYCLES_LOGGING
              "--debug",
              &debug,
@@ -459,6 +474,8 @@ static void options_parse(int argc, const char **argv)
     ap.usage();
     exit(EXIT_SUCCESS);
   }
+
+  options.session_params.use_profiling = profile;
 
   if (ssname == "osl")
     options.scene_params.shadingsystem = SHADINGSYSTEM_OSL;

@@ -1074,11 +1074,13 @@ class _defs_edit_mesh:
                 else:
                     extra = True
             if extra:
+                layout.use_property_decorate = False
                 layout.use_property_split = True
+
                 layout.prop(props, "visible_measurements")
                 layout.prop(props, "angle_snapping")
                 layout.label(text="Angle Snapping Increment")
-                layout.row().prop(props, "angle_snapping_increment", text="", expand=True)
+                layout.prop(props, "angle_snapping_increment", text="")
             if show_extra:
                 layout.popover("TOPBAR_PT_tool_settings_extra", text="...")
         return dict(
@@ -2320,7 +2322,7 @@ class _defs_curves_sculpt:
             context,
             idname_prefix="builtin_brush.",
             icon_prefix="ops.curves.sculpt_",
-            type= bpy.types.Brush,
+            type=bpy.types.Brush,
             attr="curves_sculpt_tool",
         )
 
@@ -2525,7 +2527,8 @@ class _defs_sequencer_generic:
             icon="ops.transform.transform",
             widget="SEQUENCER_GGT_gizmo2d",
             # No keymap default action, only for gizmo!
-       )
+        )
+
 
 class _defs_sequencer_select:
     @ToolDef.from_fn
@@ -2947,13 +2950,13 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 _defs_sculpt.trim_lasso,
             ),
             _defs_sculpt.project_line,
-            _defs_sculpt.mask_by_color,
             None,
             _defs_sculpt.mesh_filter,
             _defs_sculpt.cloth_filter,
             _defs_sculpt.color_filter,
             None,
             _defs_sculpt.face_set_edit,
+            _defs_sculpt.mask_by_color,
             None,
             _defs_transform.translate,
             _defs_transform.rotate,

@@ -378,6 +378,7 @@ void ColorSpaceManager::to_scene_linear(
   (void)colorspace;
   (void)pixels;
   (void)num_pixels;
+  (void)is_rgba;
   (void)compress_as_srgb;
 #endif
 }

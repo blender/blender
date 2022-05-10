@@ -51,6 +51,7 @@ struct GPUCapabilities {
   bool use_main_context_workaround = false;
   bool broken_amd_driver = false;
   bool use_hq_normals_workaround = false;
+  bool clear_viewport_workaround = false;
   /* Vulkan related workarounds. */
 
   /* Metal related workarounds. */

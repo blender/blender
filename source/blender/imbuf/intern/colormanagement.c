@@ -794,9 +794,8 @@ void IMB_colormanagement_display_settings_from_ctx(
   }
 }
 
-const char *IMB_colormanagement_get_display_colorspace_name(
-    const ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings)
+static const char *get_display_colorspace_name(const ColorManagedViewSettings *view_settings,
+                                               const ColorManagedDisplaySettings *display_settings)
 {
   OCIO_ConstConfigRcPtr *config = OCIO_getCurrentConfig();
 
@@ -815,8 +814,7 @@ static ColorSpace *display_transform_get_colorspace(
     const ColorManagedViewSettings *view_settings,
     const ColorManagedDisplaySettings *display_settings)
 {
-  const char *colorspace_name = IMB_colormanagement_get_display_colorspace_name(view_settings,
-                                                                                display_settings);
+  const char *colorspace_name = get_display_colorspace_name(view_settings, display_settings);
 
   if (colorspace_name) {
     return colormanage_colorspace_get_named(colorspace_name);
@@ -837,8 +835,14 @@ static OCIO_ConstCPUProcessorRcPtr *create_display_buffer_processor(const char *
   const float scale = (exposure == 0.0f) ? 1.0f : powf(2.0f, exposure);
   const float exponent = (gamma == 1.0f) ? 1.0f : 1.0f / max_ff(FLT_EPSILON, gamma);
 
-  OCIO_ConstProcessorRcPtr *processor = OCIO_createDisplayProcessor(
-      config, from_colorspace, view_transform, display, (use_look) ? look : "", scale, exponent);
+  OCIO_ConstProcessorRcPtr *processor = OCIO_createDisplayProcessor(config,
+                                                                    from_colorspace,
+                                                                    view_transform,
+                                                                    display,
+                                                                    (use_look) ? look : "",
+                                                                    scale,
+                                                                    exponent,
+                                                                    false);
 
   OCIO_configRelease(config);
 
@@ -923,10 +927,8 @@ static OCIO_ConstCPUProcessorRcPtr *display_from_scene_linear_processor(
       OCIO_ConstProcessorRcPtr *processor = NULL;
 
       if (view_name && config) {
-        const char *view_colorspace = OCIO_configGetDisplayColorSpaceName(
-            config, display->name, view_name);
-        processor = OCIO_configGetProcessorWithNames(
-            config, global_role_scene_linear, view_colorspace);
+        processor = OCIO_createDisplayProcessor(
+            config, global_role_scene_linear, view_name, display->name, NULL, 1.0f, 1.0f, false);
 
         OCIO_configRelease(config);
       }
@@ -955,10 +957,8 @@ static OCIO_ConstCPUProcessorRcPtr *display_to_scene_linear_processor(ColorManag
       OCIO_ConstProcessorRcPtr *processor = NULL;
 
       if (view_name && config) {
-        const char *view_colorspace = OCIO_configGetDisplayColorSpaceName(
-            config, display->name, view_name);
-        processor = OCIO_configGetProcessorWithNames(
-            config, view_colorspace, global_role_scene_linear);
+        processor = OCIO_createDisplayProcessor(
+            config, global_role_scene_linear, view_name, display->name, NULL, 1.0f, 1.0f, true);
 
         OCIO_configRelease(config);
       }
@@ -1730,8 +1730,7 @@ static bool is_ibuf_rect_in_display_space(ImBuf *ibuf,
   if ((view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) == 0 &&
       view_settings->exposure == 0.0f && view_settings->gamma == 1.0f) {
     const char *from_colorspace = ibuf->rect_colorspace->name;
-    const char *to_colorspace = IMB_colormanagement_get_display_colorspace_name(view_settings,
-                                                                                display_settings);
+    const char *to_colorspace = get_display_colorspace_name(view_settings, display_settings);
     ColorManagedLook *look_descr = colormanage_look_get_named(view_settings->look);
     if (look_descr != NULL && !STREQ(look_descr->process_space, "")) {
       return false;

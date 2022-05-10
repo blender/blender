@@ -82,9 +82,35 @@ void wm_gizmo_vec_draw(
     const float color[4], const float (*verts)[3], uint vert_count, uint pos, uint primitive_type)
 {
   immUniformColor4fv(color);
-  immBegin(primitive_type, vert_count);
-  for (int i = 0; i < vert_count; i++) {
-    immVertex3fv(pos, verts[i]);
+
+  if (primitive_type == GPU_PRIM_LINE_LOOP) {
+    /* Line loop alternative for Metal/Vulkan. */
+    immBegin(GPU_PRIM_LINES, vert_count * 2);
+    immVertex3fv(pos, verts[0]);
+    for (int i = 1; i < vert_count; i++) {
+      immVertex3fv(pos, verts[i]);
+      immVertex3fv(pos, verts[i]);
+    }
+    immVertex3fv(pos, verts[0]);
+    immEnd();
   }
-  immEnd();
+  else if (primitive_type == GPU_PRIM_TRI_FAN) {
+    /* Note(Metal): Tri-fan alternative for Metal. Triangle List is more efficient for small
+     * primitive counts. */
+    int tri_count = vert_count - 2;
+    immBegin(GPU_PRIM_TRIS, tri_count * 3);
+    for (int i = 0; i < tri_count; i++) {
+      immVertex3fv(pos, verts[0]);
+      immVertex3fv(pos, verts[i + 1]);
+      immVertex3fv(pos, verts[i + 2]);
+    }
+    immEnd();
+  }
+  else {
+    immBegin(primitive_type, vert_count);
+    for (int i = 0; i < vert_count; i++) {
+      immVertex3fv(pos, verts[i]);
+    }
+    immEnd();
+  }
 }

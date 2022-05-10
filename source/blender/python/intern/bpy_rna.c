@@ -2051,6 +2051,7 @@ static int pyrna_py_to_prop(
                   &itemptr, item, true, "Converting a Python list to an RNA collection") == -1) {
             PyObject *msg = PyC_ExceptionBuffer();
             const char *msg_char = PyUnicode_AsUTF8(msg);
+            PyErr_Clear();
 
             PyErr_Format(PyExc_TypeError,
                          "%.200s %.200s.%.200s error converting a member of a collection "
@@ -3462,7 +3463,14 @@ static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *arg
   PYRNA_STRUCT_CHECK_OBJ(self);
 
   static const char *_keywords[] = {"", "ghost", NULL};
-  static _PyArg_Parser _parser = {"s|$O&:is_property_set", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "s"  /* `name` (positional). */
+      "|$" /* Optional keyword only arguments. */
+      "O&" /* `ghost` */
+      ":is_property_set",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &name, PyC_ParseBool, &use_ghost)) {
     return NULL;
   }
@@ -4391,7 +4399,7 @@ static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyOb
     }
   }
 
-  /* Fallback to standard py, delattr/setattr. */
+  /* Fallback to standard Python's `delattr/setattr`. */
   return PyType_Type.tp_setattro(cls, attr, value);
 }
 
@@ -4535,7 +4543,6 @@ static PyObject *pyrna_prop_collection_getattro(BPy_PropertyRNA *self, PyObject 
 
         PyObject *error_type, *error_value, *error_traceback;
         PyErr_Fetch(&error_type, &error_value, &error_traceback);
-        PyErr_Clear();
 
         cls = pyrna_struct_Subtype(&r_ptr);
         ret = PyObject_GenericGetAttr(cls, pyname);
@@ -7865,6 +7872,50 @@ StructRNA *pyrna_struct_as_srna(PyObject *self, const bool parent, const char *e
   return srna;
 }
 
+const PointerRNA *pyrna_struct_as_ptr(PyObject *py_obj, const StructRNA *srna)
+{
+  BPy_StructRNA *bpy_srna = (BPy_StructRNA *)py_obj;
+  if (!BPy_StructRNA_Check(py_obj) || !RNA_struct_is_a(bpy_srna->ptr.type, srna)) {
+    PyErr_Format(PyExc_TypeError,
+                 "Expected a \"bpy.types.%.200s\" not a \"%.200s\"",
+                 RNA_struct_identifier(srna),
+                 Py_TYPE(py_obj)->tp_name);
+    return NULL;
+  }
+  PYRNA_STRUCT_CHECK_OBJ(bpy_srna);
+  return &bpy_srna->ptr;
+}
+
+const PointerRNA *pyrna_struct_as_ptr_or_null(PyObject *py_obj, const StructRNA *srna)
+{
+  if (py_obj == Py_None) {
+    return &PointerRNA_NULL;
+  }
+  return pyrna_struct_as_ptr(py_obj, srna);
+}
+
+int pyrna_struct_as_ptr_parse(PyObject *o, void *p)
+{
+  struct BPy_StructRNA_Parse *srna_parse = p;
+  BLI_assert(srna_parse->type != NULL);
+  srna_parse->ptr = pyrna_struct_as_ptr(o, srna_parse->type);
+  if (srna_parse->ptr == NULL) {
+    return 0;
+  }
+  return 1;
+}
+
+int pyrna_struct_as_ptr_or_null_parse(PyObject *o, void *p)
+{
+  struct BPy_StructRNA_Parse *srna_parse = p;
+  BLI_assert(srna_parse->type != NULL);
+  srna_parse->ptr = pyrna_struct_as_ptr_or_null(o, srna_parse->type);
+  if (srna_parse->ptr == NULL) {
+    return 0;
+  }
+  return 1;
+}
+
 /* Orphan functions, not sure where they should go. */
 StructRNA *srna_from_self(PyObject *self, const char *error_prefix)
 {
@@ -7886,8 +7937,6 @@ StructRNA *srna_from_self(PyObject *self, const char *error_prefix)
   StructRNA *srna;
 
   PyErr_Fetch(&error_type, &error_value, &error_traceback);
-  PyErr_Clear();
-
   srna = pyrna_struct_as_srna(self, false, error_prefix);
 
   if (!PyErr_Occurred()) {

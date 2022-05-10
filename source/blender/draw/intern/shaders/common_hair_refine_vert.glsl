@@ -1,12 +1,7 @@
+#pragma BLENDER_REQUIRE(common_hair_lib.glsl)
 
-/* To be compiled with common_hair_lib.glsl */
-
+#ifdef USE_TF
 out vec4 finalColor;
-
-#ifdef TF_WORKAROUND
-uniform int targetWidth;
-uniform int targetHeight;
-uniform int idOffset;
 #endif
 
 void main(void)
@@ -18,7 +13,7 @@ void main(void)
   vec4 weights = hair_get_weights_cardinal(interp_time);
   finalColor = hair_interp_data(data0, data1, data2, data3, weights);
 
-#ifdef TF_WORKAROUND
+#if defined(TF_WORKAROUND)
   int id = gl_VertexID - idOffset;
   gl_Position.x = ((float(id % targetWidth) + 0.5) / float(targetWidth)) * 2.0 - 1.0;
   gl_Position.y = ((float(id / targetWidth) + 0.5) / float(targetHeight)) * 2.0 - 1.0;
@@ -26,5 +21,10 @@ void main(void)
   gl_Position.w = 1.0;
 
   gl_PointSize = 1.0;
+#else
+#  ifdef GPU_METAL
+  /* Metal still expects an output position for TF shaders. */
+  gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
+#  endif
 #endif
 }

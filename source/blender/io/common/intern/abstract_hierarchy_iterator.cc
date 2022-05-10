@@ -123,7 +123,7 @@ AbstractHierarchyWriter *EnsuredWriter::operator->()
 
 bool AbstractHierarchyWriter::check_is_animated(const HierarchyContext &context) const
 {
-  const Object *object = context.object;
+  Object *object = context.object;
 
   if (BKE_animdata_id_is_animated(static_cast<ID *>(object->data))) {
     return true;
@@ -161,8 +161,8 @@ bool AbstractHierarchyWriter::check_has_deforming_physics(const HierarchyContext
   return rbo != nullptr && rbo->type == RBO_TYPE_ACTIVE && (rbo->flag & RBO_FLAG_USE_DEFORM) != 0;
 }
 
-AbstractHierarchyIterator::AbstractHierarchyIterator(Depsgraph *depsgraph)
-    : depsgraph_(depsgraph), export_subset_({true, true})
+AbstractHierarchyIterator::AbstractHierarchyIterator(Main *bmain, Depsgraph *depsgraph)
+    : bmain_(bmain), depsgraph_(depsgraph), export_subset_({true, true})
 {
 }
 

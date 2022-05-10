@@ -79,8 +79,8 @@ set(SRC
   intern/kdtree_3d.c
   intern/kdtree_4d.c
   intern/lasso_2d.c
-  intern/listbase.c
   intern/length_parameterize.cc
+  intern/listbase.c
   intern/math_base.c
   intern/math_base_inline.c
   intern/math_base_safe_inline.c
@@ -94,6 +94,7 @@ set(SRC
   intern/math_interp.c
   intern/math_matrix.c
   intern/math_rotation.c
+  intern/math_rotation.cc
   intern/math_solvers.c
   intern/math_statistics.c
   intern/math_time.c
@@ -170,6 +171,7 @@ set(SRC
   BLI_boxpack_2d.h
   BLI_buffer.h
   BLI_color.hh
+  BLI_color_mix.hh
   BLI_compiler_attrs.h
   BLI_compiler_compat.h
   BLI_compiler_typecheck.h
@@ -178,6 +180,7 @@ set(SRC
   BLI_cpp_type.hh
   BLI_cpp_type_make.hh
   BLI_delaunay_2d.h
+  BLI_devirtualize_parameters.hh
   BLI_dial_2d.h
   BLI_disjoint_set.hh
   BLI_dlrbTree.h
@@ -196,6 +199,7 @@ set(SRC
   BLI_fileops.hh
   BLI_fileops_types.h
   BLI_filereader.h
+  BLI_float3x3.hh
   BLI_float4x4.hh
   BLI_fnmatch.h
   BLI_function_ref.hh
@@ -251,6 +255,7 @@ set(SRC
   BLI_math_matrix.h
   BLI_math_mpq.hh
   BLI_math_rotation.h
+  BLI_math_rotation.hh
   BLI_math_solvers.h
   BLI_math_statistics.h
   BLI_math_time.h
@@ -270,6 +275,7 @@ set(SRC
   BLI_multi_value_map.hh
   BLI_noise.h
   BLI_noise.hh
+  BLI_parameter_pack_utils.hh
   BLI_path_util.h
   BLI_polyfill_2d.h
   BLI_polyfill_2d_beautify.h
@@ -426,6 +432,7 @@ if(WITH_GTESTS)
     tests/BLI_edgehash_test.cc
     tests/BLI_expr_pylike_eval_test.cc
     tests/BLI_fileops_test.cc
+    tests/BLI_float3x3_test.cc
     tests/BLI_function_ref_test.cc
     tests/BLI_generic_array_test.cc
     tests/BLI_generic_span_test.cc

@@ -10,10 +10,10 @@
 struct ShaderParameters;
 
 /**
- *  Space accessor.
+ * Space accessor.
  *
- *  Image engine is used to draw the images inside multiple spaces \see SpaceLink.
- *  The AbstractSpaceAccessor is an interface to communicate with a space.
+ * Image engine is used to draw the images inside multiple spaces \see SpaceLink.
+ * The #AbstractSpaceAccessor is an interface to communicate with a space.
  */
 class AbstractSpaceAccessor {
  public:

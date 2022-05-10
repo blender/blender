@@ -23,6 +23,7 @@ ccl_device float3 bsdf_reflection_eval_reflect(ccl_private const ShaderClosure *
                                                const float3 omega_in,
                                                ccl_private float *pdf)
 {
+  *pdf = 0.0f;
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
@@ -31,6 +32,7 @@ ccl_device float3 bsdf_reflection_eval_transmit(ccl_private const ShaderClosure 
                                                 const float3 omega_in,
                                                 ccl_private float *pdf)
 {
+  *pdf = 0.0f;
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
@@ -63,6 +65,10 @@ ccl_device int bsdf_reflection_sample(ccl_private const ShaderClosure *sc,
       *pdf = 1e6f;
       *eval = make_float3(1e6f, 1e6f, 1e6f);
     }
+  }
+  else {
+    *pdf = 0.0f;
+    *eval = make_float3(0.0f, 0.0f, 0.0f);
   }
   return LABEL_REFLECT | LABEL_SINGULAR;
 }

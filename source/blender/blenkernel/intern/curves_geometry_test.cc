@@ -16,12 +16,12 @@ static CurvesGeometry create_basic_curves(const int points_size, const int curve
 
   const int curve_length = points_size / curves_size;
   for (const int i : curves.curves_range()) {
-    curves.offsets()[i] = points_size * curve_length;
+    curves.offsets_for_write()[i] = points_size * curve_length;
   }
-  curves.offsets().last() = points_size;
+  curves.offsets_for_write().last() = points_size;
 
   for (const int i : curves.points_range()) {
-    curves.positions()[i] = {float(i), float(i % curve_length), 0.0f};
+    curves.positions_for_write()[i] = {float(i), float(i % curve_length), 0.0f};
   }
 
   return curves;
@@ -66,7 +66,7 @@ TEST(curves_geometry, Move)
 TEST(curves_geometry, TypeCount)
 {
   CurvesGeometry curves = create_basic_curves(100, 10);
-  curves.curve_types().copy_from({
+  curves.curve_types_for_write().copy_from({
       CURVE_TYPE_BEZIER,
       CURVE_TYPE_NURBS,
       CURVE_TYPE_NURBS,
@@ -78,7 +78,8 @@ TEST(curves_geometry, TypeCount)
       CURVE_TYPE_POLY,
       CURVE_TYPE_POLY,
   });
-  std::array<int, CURVE_TYPES_NUM> counts = curves.count_curve_types();
+  curves.update_curve_types();
+  const std::array<int, CURVE_TYPES_NUM> &counts = curves.curve_type_counts();
   EXPECT_EQ(counts[CURVE_TYPE_CATMULL_ROM], 3);
   EXPECT_EQ(counts[CURVE_TYPE_POLY], 3);
   EXPECT_EQ(counts[CURVE_TYPE_BEZIER], 1);
@@ -88,12 +89,12 @@ TEST(curves_geometry, TypeCount)
 TEST(curves_geometry, CatmullRomEvaluation)
 {
   CurvesGeometry curves(4, 1);
-  curves.curve_types().fill(CURVE_TYPE_CATMULL_ROM);
-  curves.resolution().fill(12);
-  curves.offsets().last() = 4;
-  curves.cyclic().fill(false);
+  curves.fill_curve_types(CURVE_TYPE_CATMULL_ROM);
+  curves.resolution_for_write().fill(12);
+  curves.offsets_for_write().last() = 4;
+  curves.cyclic_for_write().fill(false);
 
-  MutableSpan<float3> positions = curves.positions();
+  MutableSpan<float3> positions = curves.positions_for_write();
   positions[0] = {1, 1, 0};
   positions[1] = {0, 1, 0};
   positions[2] = {0, 0, 0};
@@ -156,7 +157,7 @@ TEST(curves_geometry, CatmullRomEvaluation)
   positions[1] = {1, 1, 0};
   positions[2] = {0, 1, 0};
   positions[3] = {0, 0, 0};
-  curves.cyclic().fill(true);
+  curves.cyclic_for_write().fill(true);
 
   /* Tag topology changed because the new cyclic value is different. */
   curves.tag_topology_changed();
@@ -221,10 +222,10 @@ TEST(curves_geometry, CatmullRomEvaluation)
 TEST(curves_geometry, CatmullRomTwoPointCyclic)
 {
   CurvesGeometry curves(2, 1);
-  curves.curve_types().fill(CURVE_TYPE_CATMULL_ROM);
-  curves.resolution().fill(12);
-  curves.offsets().last() = 2;
-  curves.cyclic().fill(true);
+  curves.fill_curve_types(CURVE_TYPE_CATMULL_ROM);
+  curves.resolution_for_write().fill(12);
+  curves.offsets_for_write().last() = 2;
+  curves.cyclic_for_write().fill(true);
 
   /* The curve should still be cyclic when there are only two control points. */
   EXPECT_EQ(curves.evaluated_points_num(), 24);
@@ -233,13 +234,13 @@ TEST(curves_geometry, CatmullRomTwoPointCyclic)
 TEST(curves_geometry, BezierPositionEvaluation)
 {
   CurvesGeometry curves(2, 1);
-  curves.curve_types().fill(CURVE_TYPE_BEZIER);
-  curves.resolution().fill(12);
-  curves.offsets().last() = 2;
+  curves.fill_curve_types(CURVE_TYPE_BEZIER);
+  curves.resolution_for_write().fill(12);
+  curves.offsets_for_write().last() = 2;
 
-  MutableSpan<float3> handles_left = curves.handle_positions_left();
-  MutableSpan<float3> handles_right = curves.handle_positions_right();
-  MutableSpan<float3> positions = curves.positions();
+  MutableSpan<float3> handles_left = curves.handle_positions_left_for_write();
+  MutableSpan<float3> handles_right = curves.handle_positions_right_for_write();
+  MutableSpan<float3> positions = curves.positions_for_write();
   positions.first() = {-1, 0, 0};
   positions.last() = {1, 0, 0};
   handles_right.first() = {-0.5f, 0.5f, 0.0f};
@@ -270,12 +271,12 @@ TEST(curves_geometry, BezierPositionEvaluation)
   }
 
   curves.resize(4, 2);
-  curves.curve_types().fill(CURVE_TYPE_BEZIER);
-  curves.resolution().fill(9);
-  curves.offsets().last() = 4;
-  handles_left = curves.handle_positions_left();
-  handles_right = curves.handle_positions_right();
-  positions = curves.positions();
+  curves.fill_curve_types(CURVE_TYPE_BEZIER);
+  curves.resolution_for_write().fill(9);
+  curves.offsets_for_write().last() = 4;
+  handles_left = curves.handle_positions_left_for_write();
+  handles_right = curves.handle_positions_right_for_write();
+  positions = curves.positions_for_write();
   positions[2] = {-1, 1, 0};
   positions[3] = {1, 1, 0};
   handles_right[2] = {-0.5f, 1.5f, 0.0f};
@@ -317,11 +318,11 @@ TEST(curves_geometry, BezierPositionEvaluation)
 TEST(curves_geometry, NURBSEvaluation)
 {
   CurvesGeometry curves(4, 1);
-  curves.curve_types().fill(CURVE_TYPE_NURBS);
-  curves.resolution().fill(10);
-  curves.offsets().last() = 4;
+  curves.fill_curve_types(CURVE_TYPE_NURBS);
+  curves.resolution_for_write().fill(10);
+  curves.offsets_for_write().last() = 4;
 
-  MutableSpan<float3> positions = curves.positions();
+  MutableSpan<float3> positions = curves.positions_for_write();
   positions[0] = {1, 1, 0};
   positions[1] = {0, 1, 0};
   positions[2] = {0, 0, 0};
@@ -345,7 +346,7 @@ TEST(curves_geometry, NURBSEvaluation)
   }
 
   /* Test a cyclic curve. */
-  curves.cyclic().fill(true);
+  curves.cyclic_for_write().fill(true);
   curves.tag_topology_changed();
   evaluated_positions = curves.evaluated_positions();
   static const Array<float3> result_2{{
@@ -379,8 +380,8 @@ TEST(curves_geometry, NURBSEvaluation)
   positions[1] = {1, 1, 0};
   positions[2] = {0, 1, 0};
   positions[3] = {0, 0, 0};
-  curves.nurbs_weights().fill(1.0f);
-  curves.nurbs_weights()[0] = 4.0f;
+  curves.nurbs_weights_for_write().fill(1.0f);
+  curves.nurbs_weights_for_write()[0] = 4.0f;
   curves.tag_positions_changed();
   static const Array<float3> result_3{{
       {0.888889, 0.555556, 0},  {0.837792, 0.643703, 0},  {0.773885, 0.727176, 0},
@@ -407,13 +408,13 @@ TEST(curves_geometry, NURBSEvaluation)
 TEST(curves_geometry, BezierGenericEvaluation)
 {
   CurvesGeometry curves(3, 1);
-  curves.curve_types().fill(CURVE_TYPE_BEZIER);
-  curves.resolution().fill(8);
-  curves.offsets().last() = 3;
+  curves.fill_curve_types(CURVE_TYPE_BEZIER);
+  curves.resolution_for_write().fill(8);
+  curves.offsets_for_write().last() = 3;
 
-  MutableSpan<float3> handles_left = curves.handle_positions_left();
-  MutableSpan<float3> handles_right = curves.handle_positions_right();
-  MutableSpan<float3> positions = curves.positions();
+  MutableSpan<float3> handles_left = curves.handle_positions_left_for_write();
+  MutableSpan<float3> handles_right = curves.handle_positions_right_for_write();
+  MutableSpan<float3> positions = curves.positions_for_write();
   positions.first() = {-1, 0, 0};
   handles_right.first() = {-1, 1, 0};
   handles_left[1] = {0, 0, 0};

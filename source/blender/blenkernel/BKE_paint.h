@@ -30,7 +30,9 @@ struct EdgeSet;
 struct EnumPropertyItem;
 struct GHash;
 struct GridPaintMask;
+struct Image;
 struct ImagePool;
+struct ImageUser;
 struct ListBase;
 struct MLoop;
 struct MLoopTri;
@@ -42,6 +44,7 @@ struct Object;
 struct PBVH;
 struct Paint;
 struct PaintCurve;
+struct PaintModeSettings;
 struct Palette;
 struct PaletteColor;
 struct Scene;
@@ -612,9 +615,6 @@ typedef struct SculptSession {
   union {
     struct {
       struct SculptVertexPaintGeomMap gmap;
-
-      /* For non-airbrush painting to re-apply from the original (MLoop aligned). */
-      unsigned int *previous_color;
     } vpaint;
 
     struct {
@@ -640,6 +640,19 @@ typedef struct SculptSession {
    * Set #Main.is_memfile_undo_flush_needed when enabling.
    */
   char needs_flush_to_id;
+
+  /**
+   * Some tools follows the shading chosen by the last used tool canvas.
+   * When not set the viewport shading color would be used.
+   *
+   * NOTE: This setting is temporarily until paint mode is added.
+   */
+  bool sticky_shading_color;
+
+  /**
+   * Last used painting canvas key.
+   */
+  char *last_paint_canvas_key;
 
 } SculptSession;
 
@@ -716,6 +729,36 @@ enum {
   SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),
   SCULPT_MASK_LAYER_CALC_LOOP = (1 << 1),
 };
+
+/* paint_vertex.cc */
+
+/**
+ * Fills the object's active color attribute layer with the fill color.
+ *
+ * \param[in] ob: The object.
+ * \param[in] fill_color: The fill color.
+ * \param[in] only_selected: Limit the fill to selected faces or vertices.
+ *
+ * \return #true if successful.
+ */
+bool BKE_object_attributes_active_color_fill(struct Object *ob,
+                                             const float fill_color[4],
+                                             bool only_selected);
+
+/* paint_canvas.cc */
+
+/**
+ * Create a key that can be used to compare with previous ones to identify changes.
+ * The resulting 'string' is owned by the caller.
+ */
+char *BKE_paint_canvas_key_get(struct PaintModeSettings *settings, struct Object *ob);
+
+bool BKE_paint_canvas_image_get(struct PaintModeSettings *settings,
+                                struct Object *ob,
+                                struct Image **r_image,
+                                struct ImageUser **r_image_user);
+int BKE_paint_canvas_uvmap_layer_index_get(const struct PaintModeSettings *settings,
+                                           struct Object *ob);
 
 #ifdef __cplusplus
 }

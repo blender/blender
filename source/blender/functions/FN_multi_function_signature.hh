@@ -168,6 +168,32 @@ class MFSignatureBuilder {
     }
   }
 
+  template<MFParamCategory Category, typename T>
+  void add(MFParamTag<Category, T> /* tag */, const char *name)
+  {
+    switch (Category) {
+      case MFParamCategory::SingleInput:
+        this->single_input<T>(name);
+        return;
+      case MFParamCategory::VectorInput:
+        this->vector_input<T>(name);
+        return;
+      case MFParamCategory::SingleOutput:
+        this->single_output<T>(name);
+        return;
+      case MFParamCategory::VectorOutput:
+        this->vector_output<T>(name);
+        return;
+      case MFParamCategory::SingleMutable:
+        this->single_mutable<T>(name);
+        return;
+      case MFParamCategory::VectorMutable:
+        this->vector_mutable<T>(name);
+        return;
+    }
+    BLI_assert_unreachable();
+  }
+
   /* Context */
 
   /** This indicates that the function accesses the context. This disables optimizations that

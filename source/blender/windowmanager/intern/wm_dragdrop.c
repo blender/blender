@@ -17,6 +17,7 @@
 
 #include "BLT_translation.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_math_color.h"
 
@@ -95,7 +96,7 @@ ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid)
 wmDropBox *WM_dropbox_add(ListBase *lb,
                           const char *idname,
                           bool (*poll)(bContext *, wmDrag *, const wmEvent *),
-                          void (*copy)(wmDrag *, wmDropBox *),
+                          void (*copy)(bContext *, wmDrag *, wmDropBox *),
                           void (*cancel)(struct Main *, wmDrag *, wmDropBox *),
                           WMDropboxTooltipFunc tooltip)
 {
@@ -135,6 +136,44 @@ void wm_dropbox_free(void)
 }
 
 /* *********************************** */
+
+static void wm_dropbox_invoke(bContext *C, wmDrag *drag)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+
+  /* Create a bitmap flag matrix of all currently visible region and area types.
+   * Everything that isn't visible in the current window should not prefetch any data. */
+  bool area_region_tag[SPACE_TYPE_NUM][RGN_TYPE_NUM] = {{false}};
+
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    bScreen *screen = WM_window_get_active_screen(win);
+    ED_screen_areas_iter (win, screen, area) {
+      LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+        if (region->visible) {
+          BLI_assert(area->spacetype < SPACE_TYPE_NUM);
+          BLI_assert(region->regiontype < RGN_TYPE_NUM);
+          area_region_tag[area->spacetype][region->regiontype] = true;
+        }
+      }
+    }
+  }
+
+  LISTBASE_FOREACH (wmDropBoxMap *, dm, &dropboxes) {
+    if (!area_region_tag[dm->spaceid][dm->regionid]) {
+      continue;
+    }
+    LISTBASE_FOREACH (wmDropBox *, drop, &dm->dropboxes) {
+      if (drag->drop_state.ui_context) {
+        CTX_store_set(C, drag->drop_state.ui_context);
+      }
+
+      if (drop->on_drag_start) {
+        drop->on_drag_start(C, drag);
+      }
+      CTX_store_set(C, NULL);
+    }
+  }
+}
 
 wmDrag *WM_event_start_drag(
     struct bContext *C, int icon, int type, void *poin, double value, unsigned int flags)
@@ -186,6 +225,8 @@ wmDrag *WM_event_start_drag(
       break;
   }
   drag->value = value;
+
+  wm_dropbox_invoke(C, drag);
 
   return drag;
 }
@@ -416,7 +457,7 @@ void wm_drop_prepare(bContext *C, wmDrag *drag, wmDropBox *drop)
    * operator fails anyway, it might do more than just set properties (e.g.
    * typically import an asset). */
   if (drop->copy && WM_operator_poll_context(C, drop->ot, opcontext)) {
-    drop->copy(drag, drop);
+    drop->copy(C, drag, drop);
   }
 
   wm_drags_exit(CTX_wm_manager(C), CTX_wm_window(C));
@@ -947,10 +988,16 @@ void wm_drags_draw(bContext *C, wmWindow *win)
       CTX_wm_region_set(C, drag->drop_state.region_from);
       CTX_store_set(C, drag->drop_state.ui_context);
 
+      if (region && drag->drop_state.active_dropbox->draw_in_view) {
+        wmViewport(&region->winrct);
+        drag->drop_state.active_dropbox->draw_in_view(C, win, drag, xy);
+        wmWindowViewport(win);
+      }
+
       /* Drawing should be allowed to assume the context from handling and polling (that's why we
        * restore it above). */
-      if (drag->drop_state.active_dropbox->draw) {
-        drag->drop_state.active_dropbox->draw(C, win, drag, xy);
+      if (drag->drop_state.active_dropbox->draw_droptip) {
+        drag->drop_state.active_dropbox->draw_droptip(C, win, drag, xy);
         continue;
       }
     }

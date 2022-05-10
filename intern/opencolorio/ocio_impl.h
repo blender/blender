@@ -85,7 +85,8 @@ class IOCIOImpl {
                                                            const char *display,
                                                            const char *look,
                                                            const float scale,
-                                                           const float exponent) = 0;
+                                                           const float exponent,
+                                                           const bool inverse) = 0;
 
   virtual OCIO_PackedImageDesc *createOCIO_PackedImageDesc(float *data,
                                                            long width,
@@ -201,7 +202,8 @@ class FallbackImpl : public IOCIOImpl {
                                                    const char *display,
                                                    const char *look,
                                                    const float scale,
-                                                   const float exponent);
+                                                   const float exponent,
+                                                   const bool inverse);
 
   OCIO_PackedImageDesc *createOCIO_PackedImageDesc(float *data,
                                                    long width,
@@ -290,7 +292,8 @@ class OCIOImpl : public IOCIOImpl {
                                                    const char *display,
                                                    const char *look,
                                                    const float scale,
-                                                   const float exponent);
+                                                   const float exponent,
+                                                   const bool inverse);
 
   OCIO_PackedImageDesc *createOCIO_PackedImageDesc(float *data,
                                                    long width,

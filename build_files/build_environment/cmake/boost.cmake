@@ -1,22 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-set(BOOST_ADDRESS_MODEL 64)
-
-if(BLENDER_PLATFORM_ARM)
-  set(BOOST_ARCHITECTURE arm)
-else()
-  set(BOOST_ARCHITECTURE x86)
-endif()
-
 if(WIN32)
-  if(MSVC_VERSION GREATER_EQUAL 1920) # 2019
-    set(BOOST_TOOLSET toolset=msvc-14.2)
-    set(BOOST_COMPILER_STRING -vc142)
-  else() # 2017
-    set(BOOST_TOOLSET toolset=msvc-14.1)
-    set(BOOST_COMPILER_STRING -vc141)
-  endif()
-
   set(BOOST_CONFIGURE_COMMAND bootstrap.bat)
   set(BOOST_BUILD_COMMAND b2)
   set(BOOST_BUILD_OPTIONS runtime-link=shared )
@@ -36,11 +20,6 @@ else()
   set(BOOST_BUILD_COMMAND ./b2)
   set(BOOST_BUILD_OPTIONS cxxflags=${PLATFORM_CXXFLAGS} --disable-icu boost.locale.icu=off)
   set(BOOST_PATCH_COMMAND echo .)
-  if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-    set(BOOST_ADDRESS_MODEL 64)
-  else()
-    set(BOOST_ADDRESS_MODEL 32)
-  endif()
 endif()
 
 if(WITH_BOOST_PYTHON)

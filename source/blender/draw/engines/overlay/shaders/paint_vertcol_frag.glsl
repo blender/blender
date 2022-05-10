@@ -1,11 +1,3 @@
-
-in vec3 finalColor;
-
-out vec4 fragColor;
-
-uniform float opacity = 1.0;
-uniform bool useAlphaBlend = false;
-
 vec3 linear_to_srgb_attr(vec3 c)
 {
   c = max(c, vec3(0.0));

@@ -139,6 +139,14 @@ typedef struct bNodeSocket {
   char label[64];
   char description[64];
 
+  /**
+   * The default attribute name to use for geometry nodes modifier output attribute sockets.
+   * \note Storing this pointer in every single socket exposes the bad design of using sockets
+   * to describe group inputs and outputs. In the future, it should be stored in socket
+   * declarations.
+   */
+  char *default_attribute_name;
+
   /** Cached data from execution. */
   void *cache;
 
@@ -318,21 +326,10 @@ typedef struct bNode {
   short preview_xsize, preview_ysize;
   /** Used at runtime when going through the tree. Initialize before use. */
   short tmp_flag;
-  /** Used at runtime to tag derivatives branches. EEVEE only. */
-  char branch_tag;
+
+  char _pad0;
   /** Used at runtime when iterating over node branches. */
   char iter_flag;
-
-  /**
-   * XXX: eevee only, id of screen space reflection layer,
-   * needs to be a float to feed GPU_uniform.
-   */
-  float ssr_id;
-  /**
-   * XXX: eevee only, id of screen subsurface scatter layer,
-   * needs to be a float to feed GPU_uniform.
-   */
-  float sss_id;
 
   /**
    * Describes the desired interface of the node. This is run-time data only.
@@ -397,6 +394,8 @@ typedef struct bNode {
 #define NODE_DO_OUTPUT_RECALC (1 << 17)
 /* A preview for the data in this node can be displayed in the spreadsheet editor. */
 #define __NODE_ACTIVE_PREVIEW (1 << 18) /* deprecated */
+/* Active node that is used to paint on. */
+#define NODE_ACTIVE_PAINT_CANVAS (1 << 19)
 
 /* node->update */
 #define NODE_UPDATE_ID 1       /* associated id data block has changed */
@@ -856,6 +855,12 @@ typedef struct NodeVertexCol {
   char name[64];
 } NodeVertexCol;
 
+typedef struct NodeCMPCombSepColor {
+  /* CMPNodeCombSepColorMode */
+  uint8_t mode;
+  uint8_t ycc_mode;
+} NodeCMPCombSepColor;
+
 /** Defocus blur node. */
 typedef struct NodeDefocus {
   char bktype, _pad0, preview, gamco;
@@ -1296,6 +1301,11 @@ typedef struct NodeGeometryMeshCone {
   uint8_t fill_type;
 } NodeGeometryMeshCone;
 
+typedef struct NodeGeometryMergeByDistance {
+  /* GeometryNodeMergeByDistanceMode. */
+  uint8_t mode;
+} NodeGeometryMergeByDistance;
+
 typedef struct NodeGeometryMeshLine {
   /* GeometryNodeMeshLineMode. */
   uint8_t mode;
@@ -1480,6 +1490,11 @@ typedef struct NodeFunctionCompare {
   int8_t mode;
   char _pad[1];
 } NodeFunctionCompare;
+
+typedef struct NodeCombSepColor {
+  /* NodeCombSepColorMode */
+  int8_t mode;
+} NodeCombSepColor;
 
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
@@ -1873,6 +1888,16 @@ typedef enum CMPNodeDenoisePrefilter {
   CMP_NODE_DENOISE_PREFILTER_ACCURATE = 2
 } CMPNodeDenoisePrefilter;
 
+/* Color combine/separate modes */
+
+typedef enum CMPNodeCombSepColorMode {
+  CMP_NODE_COMBSEP_COLOR_RGB = 0,
+  CMP_NODE_COMBSEP_COLOR_HSV = 1,
+  CMP_NODE_COMBSEP_COLOR_HSL = 2,
+  CMP_NODE_COMBSEP_COLOR_YCC = 3,
+  CMP_NODE_COMBSEP_COLOR_YUV = 4,
+} CMPNodeCombSepColorMode;
+
 #define CMP_NODE_PLANETRACKDEFORM_MBLUR_SAMPLES_MAX 64
 
 /* Point Density shader node */
@@ -2007,6 +2032,11 @@ typedef enum GeometryNodeMeshCircleFillType {
   GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN = 2,
 } GeometryNodeMeshCircleFillType;
 
+typedef enum GeometryNodeMergeByDistanceMode {
+  GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL = 0,
+  GEO_NODE_MERGE_BY_DISTANCE_MODE_CONNECTED = 1,
+} GeometryNodeMergeByDistanceMode;
+
 typedef enum GeometryNodeMeshLineMode {
   GEO_NODE_MESH_LINE_MODE_END_POINTS = 0,
   GEO_NODE_MESH_LINE_MODE_OFFSET = 1,
@@ -2125,6 +2155,12 @@ typedef enum GeometryNodeScaleElementsMode {
   GEO_NODE_SCALE_ELEMENTS_UNIFORM = 0,
   GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS = 1,
 } GeometryNodeScaleElementsMode;
+
+typedef enum NodeCombSepColorMode {
+  NODE_COMBSEP_COLOR_RGB = 0,
+  NODE_COMBSEP_COLOR_HSV = 1,
+  NODE_COMBSEP_COLOR_HSL = 2,
+} NodeCombSepColorMode;
 
 #ifdef __cplusplus
 }

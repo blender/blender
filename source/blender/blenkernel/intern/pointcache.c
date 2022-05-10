@@ -285,8 +285,10 @@ static int ptcache_particle_write(int index, void *psys_v, void **data, int cfra
       }
     }
     else {
-      /* Particles are only stored in their lifetime. */
-      if (cfra < pa->time - step || cfra > pa->dietime + step) {
+      /* Inclusive ranges for particle lifetime (`dietime - 1` for an inclusive end-frame). */
+      const int pa_sfra = (int)pa->time - step;
+      const int pa_efra = ((int)pa->dietime - 1) + step;
+      if (!(cfra >= pa_sfra && cfra <= pa_efra)) {
         return 0;
       }
     }
@@ -399,9 +401,12 @@ static void ptcache_particle_interpolate(int index,
 
   pa = psys->particles + index;
 
-  /* particle wasn't read from first cache so can't interpolate */
-  if ((int)cfra1 < pa->time - psys->pointcache->step ||
-      (int)cfra1 > pa->dietime + psys->pointcache->step) {
+  /* Inclusive ranges for particle lifetime (`dietime - 1` for an inclusive end-frame). */
+  const int pa_sfra = (int)pa->time - psys->pointcache->step;
+  const int pa_efra = ((int)pa->dietime - 1) + psys->pointcache->step;
+
+  /* Particle wasn't read from first cache so can't interpolate. */
+  if (!(cfra1 >= pa_sfra && cfra1 <= pa_efra)) {
     return;
   }
 
@@ -482,12 +487,16 @@ static int ptcache_particle_totwrite(void *psys_v, int cfra)
   if (psys->part->flag & PART_DIED) {
     /* Also store dead particles when they are displayed. */
     for (p = 0; p < psys->totpart; p++, pa++) {
-      totwrite += (cfra >= pa->time - step);
+      const int pa_sfra = (int)pa->time - step;
+      totwrite += (cfra >= pa_sfra);
     }
   }
   else {
     for (p = 0; p < psys->totpart; p++, pa++) {
-      totwrite += (cfra >= pa->time - step && cfra <= pa->dietime + step);
+      /* Inclusive ranges for particle lifetime (`dietime - 1` for an inclusive end-frame). */
+      const int pa_sfra = (int)pa->time - step;
+      const int pa_efra = ((int)pa->dietime - 1) + step;
+      totwrite += (cfra >= pa_sfra) && (cfra <= pa_efra);
     }
   }
 
@@ -824,8 +833,8 @@ static void ptcache_rigidbody_interpolate(int index,
         memcpy(orn, data + 3, sizeof(float[4]));
       }
       else {
-        PTCACHE_DATA_TO(data, BPHYS_DATA_LOCATION, index, pos);
-        PTCACHE_DATA_TO(data, BPHYS_DATA_ROTATION, index, orn);
+        PTCACHE_DATA_TO(data, BPHYS_DATA_LOCATION, 0, pos);
+        PTCACHE_DATA_TO(data, BPHYS_DATA_ROTATION, 0, orn);
       }
 
       const float t = (cfra - cfra1) / (cfra2 - cfra1);
@@ -1390,7 +1399,8 @@ static size_t ptcache_filename_ext_append(PTCacheID *pid,
   return len;
 }
 
-static int ptcache_filename(PTCacheID *pid, char *filename, int cfra, short do_path, short do_ext)
+static int ptcache_filename(
+    PTCacheID *pid, char *filename, int cfra, const bool do_path, const bool do_ext)
 {
   int len = 0;
   char *idname;
@@ -1455,7 +1465,7 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
     }
   }
 
-  ptcache_filename(pid, filename, cfra, 1, 1);
+  ptcache_filename(pid, filename, cfra, true, true);
 
   if (mode == PTCACHE_FILE_READ) {
     fp = BLI_fopen(filename, "rb");
@@ -2621,7 +2631,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
           return;
         }
 
-        len = ptcache_filename(pid, filename, cfra, 0, 0); /* no path */
+        len = ptcache_filename(pid, filename, cfra, false, false); /* no path */
         /* append underscore terminator to ensure we don't match similar names
          * from objects whose names start with the same prefix
          */
@@ -2703,7 +2713,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
     case PTCACHE_CLEAR_FRAME:
       if (pid->cache->flag & PTCACHE_DISK_CACHE) {
         if (BKE_ptcache_id_exist(pid, cfra)) {
-          ptcache_filename(pid, filename, cfra, 1, 1); /* no path */
+          ptcache_filename(pid, filename, cfra, true, true); /* no path */
           BLI_delete(filename, false, false);
         }
       }
@@ -2744,7 +2754,7 @@ bool BKE_ptcache_id_exist(PTCacheID *pid, int cfra)
   if (pid->cache->flag & PTCACHE_DISK_CACHE) {
     char filename[MAX_PTCACHE_FILE];
 
-    ptcache_filename(pid, filename, cfra, 1, 1);
+    ptcache_filename(pid, filename, cfra, true, true);
 
     return BLI_exists(filename);
   }
@@ -3491,7 +3501,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, const char *name_src, const c
   /* get "from" filename */
   BLI_strncpy(pid->cache->name, name_src, sizeof(pid->cache->name));
 
-  len = ptcache_filename(pid, old_filename, 0, 0, 0); /* no path */
+  len = ptcache_filename(pid, old_filename, 0, false, false); /* no path */
 
   ptcache_path(pid, path);
   dir = opendir(path);
@@ -3513,7 +3523,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, const char *name_src, const c
 
         if (frame != -1) {
           BLI_join_dirfile(old_path_full, sizeof(old_path_full), path, de->d_name);
-          ptcache_filename(pid, new_path_full, frame, 1, 1);
+          ptcache_filename(pid, new_path_full, frame, true, true);
           BLI_rename(old_path_full, new_path_full);
         }
       }
@@ -3546,7 +3556,7 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 
   ptcache_path(pid, path);
 
-  len = ptcache_filename(pid, filename, 1, 0, 0); /* no path */
+  len = ptcache_filename(pid, filename, 1, false, false); /* no path */
 
   dir = opendir(path);
   if (dir == NULL) {

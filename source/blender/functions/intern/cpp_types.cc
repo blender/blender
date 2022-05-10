@@ -11,6 +11,7 @@ MAKE_FIELD_CPP_TYPE(FloatField, float);
 MAKE_FIELD_CPP_TYPE(Float2Field, blender::float2);
 MAKE_FIELD_CPP_TYPE(Float3Field, blender::float3);
 MAKE_FIELD_CPP_TYPE(ColorGeometry4fField, blender::ColorGeometry4f);
+MAKE_FIELD_CPP_TYPE(ColorGeometry4bField, blender::ColorGeometry4b);
 MAKE_FIELD_CPP_TYPE(BoolField, bool);
 MAKE_FIELD_CPP_TYPE(Int8Field, int8_t);
 MAKE_FIELD_CPP_TYPE(Int32Field, int32_t);

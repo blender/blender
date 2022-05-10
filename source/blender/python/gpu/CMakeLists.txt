@@ -30,6 +30,7 @@ set(SRC
   gpu_py_platform.c
   gpu_py_select.c
   gpu_py_shader.c
+  gpu_py_shader_create_info.cc
   gpu_py_state.c
   gpu_py_texture.c
   gpu_py_types.c

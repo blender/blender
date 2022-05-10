@@ -55,7 +55,7 @@ ccl_device float3 sky_radiance_preetham(KernelGlobals kg,
 
   /* convert to RGB */
   float3 xyz = xyY_to_xyz(x, y, Y);
-  return xyz_to_rgb(kg, xyz);
+  return xyz_to_rgb_clamped(kg, xyz);
 }
 
 /*
@@ -107,7 +107,7 @@ ccl_device float3 sky_radiance_hosek(KernelGlobals kg,
   float z = sky_radiance_internal(config_z, theta, gamma) * radiance_z;
 
   /* convert to RGB and adjust strength */
-  return xyz_to_rgb(kg, make_float3(x, y, z)) * (M_2PI_F / 683);
+  return xyz_to_rgb_clamped(kg, make_float3(x, y, z)) * (M_2PI_F / 683);
 }
 
 /* Nishita improved sky model */
@@ -194,7 +194,7 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
   }
 
   /* convert to RGB */
-  return xyz_to_rgb(kg, xyz);
+  return xyz_to_rgb_clamped(kg, xyz);
 }
 
 ccl_device_noinline int svm_node_tex_sky(

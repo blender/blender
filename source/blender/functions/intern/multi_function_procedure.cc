@@ -314,7 +314,7 @@ bool MFProcedure::validate_all_params_provided() const
     const MultiFunction &fn = instruction->fn();
     for (const int param_index : fn.param_indices()) {
       const MFParamType param_type = fn.param_type(param_index);
-      if (param_type.category() == MFParamType::SingleOutput) {
+      if (param_type.category() == MFParamCategory::SingleOutput) {
         /* Single outputs are optional. */
         continue;
       }

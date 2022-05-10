@@ -136,7 +136,7 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   const bool is_transmission = shader_bsdf_is_transmission(sd, ls.D);
 
 #  ifdef __MNEE__
-  bool skip_nee = false;
+  int mnee_vertex_count = 0;
   IF_KERNEL_NODES_FEATURE(RAYTRACE)
   {
     if (ls.lamp != LAMP_NONE) {
@@ -149,12 +149,12 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
 
         /* Are we on a caustic receiver? */
         if (!is_transmission && (sd->object_flag & SD_OBJECT_CAUSTICS_RECEIVER))
-          skip_nee = kernel_path_mnee_sample(
+          mnee_vertex_count = kernel_path_mnee_sample(
               kg, state, sd, emission_sd, rng_state, &ls, &bsdf_eval);
       }
     }
   }
-  if (skip_nee) {
+  if (mnee_vertex_count > 0) {
     /* Create shadow ray after successful manifold walk:
      * emission_sd contains the last interface intersection and
      * the light sample ls has been updated */
@@ -211,8 +211,6 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, prim) = ray.self.light_prim;
 
   /* Copy state from main path to shadow path. */
-  const uint16_t bounce = INTEGRATOR_STATE(state, path, bounce);
-  const uint16_t transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce);
   uint32_t shadow_flag = INTEGRATOR_STATE(state, path, flag);
   shadow_flag |= (is_light) ? PATH_RAY_SHADOW_FOR_LIGHT : 0;
   const float3 throughput = INTEGRATOR_STATE(state, path, throughput) * bsdf_eval_sum(&bsdf_eval);
@@ -246,14 +244,34 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, sample) = INTEGRATOR_STATE(
       state, path, sample);
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, flag) = shadow_flag;
-  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, bounce) = bounce;
-  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transparent_bounce) = transparent_bounce;
-  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, diffuse_bounce) = INTEGRATOR_STATE(
-      state, path, diffuse_bounce);
+
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transparent_bounce) = INTEGRATOR_STATE(
+      state, path, transparent_bounce);
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, glossy_bounce) = INTEGRATOR_STATE(
       state, path, glossy_bounce);
-  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transmission_bounce) = INTEGRATOR_STATE(
-      state, path, transmission_bounce);
+
+#  ifdef __MNEE__
+  if (mnee_vertex_count > 0) {
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transmission_bounce) =
+        INTEGRATOR_STATE(state, path, transmission_bounce) + mnee_vertex_count;
+    INTEGRATOR_STATE_WRITE(shadow_state,
+                           shadow_path,
+                           diffuse_bounce) = INTEGRATOR_STATE(state, path, diffuse_bounce) + 1;
+    INTEGRATOR_STATE_WRITE(shadow_state,
+                           shadow_path,
+                           bounce) = INTEGRATOR_STATE(state, path, bounce) + 1 + mnee_vertex_count;
+  }
+  else
+#  endif
+  {
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transmission_bounce) = INTEGRATOR_STATE(
+        state, path, transmission_bounce);
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, diffuse_bounce) = INTEGRATOR_STATE(
+        state, path, diffuse_bounce);
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, bounce) = INTEGRATOR_STATE(
+        state, path, bounce);
+  }
+
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, throughput) = throughput;
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_SHADOW_PASS) {
@@ -369,6 +387,22 @@ ccl_device_forceinline int integrate_surface_volume_only_bounce(IntegratorState 
 }
 #endif
 
+ccl_device_forceinline bool integrate_surface_terminate(IntegratorState state,
+                                                        const uint32_t path_flag)
+{
+  const float probability = (path_flag & PATH_RAY_TERMINATE_ON_NEXT_SURFACE) ?
+                                0.0f :
+                                INTEGRATOR_STATE(state, path, continuation_probability);
+  if (probability == 0.0f) {
+    return true;
+  }
+  else if (probability != 1.0f) {
+    INTEGRATOR_STATE_WRITE(state, path, throughput) /= probability;
+  }
+
+  return false;
+}
+
 #if defined(__AO__)
 ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
                                                  IntegratorState state,
@@ -460,12 +494,12 @@ ccl_device bool integrate_surface(KernelGlobals kg,
 
   int continue_path_label = 0;
 
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
+
   /* Skip most work for volume bounding surface. */
 #ifdef __VOLUME__
   if (!(sd.flag & SD_HAS_ONLY_VOLUME)) {
 #endif
-    const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
-
 #ifdef __SUBSURFACE__
     /* Can skip shader evaluation for BSSRDF exit point without bump mapping. */
     if (!(path_flag & PATH_RAY_SUBSURFACE) || ((sd.flag & SD_HAS_BSSRDF_BUMP)))
@@ -491,54 +525,49 @@ ccl_device bool integrate_surface(KernelGlobals kg,
       subsurface_shader_data_setup(kg, state, &sd, path_flag);
       INTEGRATOR_STATE_WRITE(state, path, flag) &= ~PATH_RAY_SUBSURFACE;
     }
+    else
 #endif
-
-    shader_prepare_surface_closures(kg, state, &sd, path_flag);
+    {
+      /* Filter closures. */
+      shader_prepare_surface_closures(kg, state, &sd, path_flag);
 
 #ifdef __HOLDOUT__
-    /* Evaluate holdout. */
-    if (!integrate_surface_holdout(kg, state, &sd, render_buffer)) {
-      return false;
-    }
+      /* Evaluate holdout. */
+      if (!integrate_surface_holdout(kg, state, &sd, render_buffer)) {
+        return false;
+      }
 #endif
 
 #ifdef __EMISSION__
-    /* Write emission. */
-    if (sd.flag & SD_EMISSION) {
-      integrate_surface_emission(kg, state, &sd, render_buffer);
-    }
+      /* Write emission. */
+      if (sd.flag & SD_EMISSION) {
+        integrate_surface_emission(kg, state, &sd, render_buffer);
+      }
 #endif
 
+      /* Perform path termination. Most paths have already been terminated in
+       * the intersect_closest kernel, this is just for emission and for dividing
+       * throughput by the probability at the right moment.
+       *
+       * Also ensure we don't do it twice for SSS at both the entry and exit point. */
+      if (integrate_surface_terminate(state, path_flag)) {
+        return false;
+      }
+
+      /* Write render passes. */
 #ifdef __PASSES__
-    /* Write render passes. */
-    PROFILING_EVENT(PROFILING_SHADE_SURFACE_PASSES);
-    kernel_write_data_passes(kg, state, &sd, render_buffer);
+      PROFILING_EVENT(PROFILING_SHADE_SURFACE_PASSES);
+      kernel_write_data_passes(kg, state, &sd, render_buffer);
 #endif
+
+#ifdef __DENOISING_FEATURES__
+      kernel_write_denoising_features_surface(kg, state, &sd, render_buffer);
+#endif
+    }
 
     /* Load random number state. */
     RNGState rng_state;
     path_state_rng_load(state, &rng_state);
-
-    /* Perform path termination. Most paths have already been terminated in
-     * the intersect_closest kernel, this is just for emission and for dividing
-     * throughput by the probability at the right moment.
-     *
-     * Also ensure we don't do it twice for SSS at both the entry and exit point. */
-    if (!(path_flag & PATH_RAY_SUBSURFACE)) {
-      const float probability = (path_flag & PATH_RAY_TERMINATE_ON_NEXT_SURFACE) ?
-                                    0.0f :
-                                    INTEGRATOR_STATE(state, path, continuation_probability);
-      if (probability == 0.0f) {
-        return false;
-      }
-      else if (probability != 1.0f) {
-        INTEGRATOR_STATE_WRITE(state, path, throughput) /= probability;
-      }
-    }
-
-#ifdef __DENOISING_FEATURES__
-    kernel_write_denoising_features_surface(kg, state, &sd, render_buffer);
-#endif
 
     /* Direct light. */
     PROFILING_EVENT(PROFILING_SHADE_SURFACE_DIRECT_LIGHT);
@@ -557,6 +586,10 @@ ccl_device bool integrate_surface(KernelGlobals kg,
 #ifdef __VOLUME__
   }
   else {
+    if (integrate_surface_terminate(state, path_flag)) {
+      return false;
+    }
+
     PROFILING_EVENT(PROFILING_SHADE_SURFACE_INDIRECT_LIGHT);
     continue_path_label = integrate_surface_volume_only_bounce(state, &sd);
   }

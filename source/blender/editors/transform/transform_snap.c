@@ -15,6 +15,7 @@
 #include "BLI_math.h"
 
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 #include "GPU_state.h"
 
 #include "BKE_context.h"
@@ -25,6 +26,7 @@
 
 #include "RNA_access.h"
 
+#include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_gizmo_library.h"
@@ -173,20 +175,20 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
     return;
   }
 
-  UI_GetThemeColor3ubv(TH_TRANSFORM, col);
-  col[3] = 128;
-
-  UI_GetThemeColor3ubv(TH_SELECT, selectedCol);
-  selectedCol[3] = 128;
-
-  UI_GetThemeColor3ubv(TH_ACTIVE, activeCol);
-  activeCol[3] = 192;
-
   if (t->spacetype == SPACE_VIEW3D) {
     bool draw_target = (t->tsnap.status & TARGET_INIT) &&
                        (t->tsnap.mode & SCE_SNAP_MODE_EDGE_PERPENDICULAR);
 
     if (draw_target || validSnap(t)) {
+      UI_GetThemeColor3ubv(TH_TRANSFORM, col);
+      col[3] = 128;
+
+      UI_GetThemeColor3ubv(TH_SELECT, selectedCol);
+      selectedCol[3] = 128;
+
+      UI_GetThemeColor3ubv(TH_ACTIVE, activeCol);
+      activeCol[3] = 192;
+
       const float *loc_cur = NULL;
       const float *loc_prev = NULL;
       const float *normal = NULL;
@@ -240,8 +242,26 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
   }
   else if (t->spacetype == SPACE_IMAGE) {
     if (validSnap(t)) {
-      /* This will not draw, and I'm nor sure why - campbell */
-      /* TODO: see 2.7x for non-working code */
+      uint pos = GPU_vertformat_attr_add(
+          immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+      float x, y;
+      const float snap_point[2] = {
+          t->tsnap.snapPoint[0] / t->aspect[0],
+          t->tsnap.snapPoint[1] / t->aspect[1],
+      };
+      UI_view2d_view_to_region_fl(&t->region->v2d, UNPACK2(snap_point), &x, &y);
+      float radius = 2.5f * UI_GetThemeValuef(TH_VERTEX_SIZE) * U.pixelsize;
+
+      GPU_matrix_push_projection();
+      wmOrtho2_region_pixelspace(t->region);
+
+      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+      immUniformColor3ub(255, 255, 255);
+      imm_draw_circle_wire_2d(pos, x, y, radius, 8);
+      immUnbindProgram();
+
+      GPU_matrix_pop_projection();
     }
   }
   else if (t->spacetype == SPACE_NODE) {
@@ -638,7 +658,13 @@ static short snap_select_type_get(TransInfo *t)
     const int obedit_type = t->obedit_type;
     if (obedit_type != -1) {
       /* Edit mode */
-      if (ELEM(obedit_type, OB_MESH, OB_ARMATURE, OB_CURVES_LEGACY, OB_LATTICE, OB_MBALL)) {
+      if (ELEM(obedit_type,
+               OB_MESH,
+               OB_ARMATURE,
+               OB_CURVES_LEGACY,
+               OB_SURF,
+               OB_LATTICE,
+               OB_MBALL)) {
         /* Temporary limited to edit mode meshes, armature, curves, lattice and metaballs. */
 
         if ((obedit_type == OB_MESH) && (t->flag & T_PROP_EDIT)) {
@@ -984,17 +1010,19 @@ static void snap_calc_uv_fn(TransInfo *t, float *UNUSED(vec))
 {
   BLI_assert(t->spacetype == SPACE_IMAGE);
   if (t->tsnap.mode & SCE_SNAP_MODE_VERTEX) {
-    float co[2];
-
-    UI_view2d_region_to_view(&t->region->v2d, t->mval[0], t->mval[1], &co[0], &co[1]);
-
     uint objects_len = 0;
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
         t->view_layer, NULL, &objects_len);
 
-    float dist_sq = FLT_MAX;
-    if (ED_uvedit_nearest_uv_multi(
-            t->scene, objects, objects_len, co, &dist_sq, t->tsnap.snapPoint)) {
+    float dist_sq = square_f((float)SNAP_MIN_DISTANCE);
+    if (ED_uvedit_nearest_uv_multi(&t->region->v2d,
+                                   t->scene,
+                                   objects,
+                                   objects_len,
+                                   t->mval,
+                                   true,
+                                   &dist_sq,
+                                   t->tsnap.snapPoint)) {
       t->tsnap.snapPoint[0] *= t->aspect[0];
       t->tsnap.snapPoint[1] *= t->aspect[1];
 

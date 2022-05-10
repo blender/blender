@@ -1,11 +1,7 @@
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-#ifdef MESH_SHADER
-/* TODO: tight slices. */
-layout(triangles) in;
-layout(triangle_strip, max_vertices = 3) out;
-#else /* World */
+#ifdef STANDALONE
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 3) out;
 #endif

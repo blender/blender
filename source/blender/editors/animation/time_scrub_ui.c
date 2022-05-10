@@ -32,7 +32,7 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-static void get_time_scrub_region_rect(const ARegion *region, rcti *rect)
+void ED_time_scrub_region_rect_get(const ARegion *region, rcti *rect)
 {
   rect->xmin = 0;
   rect->xmax = region->winx;
@@ -154,7 +154,7 @@ void ED_time_scrub_draw_current_frame(const ARegion *region,
   wmOrtho2_region_pixelspace(region);
 
   rcti scrub_region_rect;
-  get_time_scrub_region_rect(region, &scrub_region_rect);
+  ED_time_scrub_region_rect_get(region, &scrub_region_rect);
 
   draw_current_frame(scene, display_seconds, v2d, &scrub_region_rect, scene->r.cfra);
   GPU_matrix_pop_projection();
@@ -171,7 +171,7 @@ void ED_time_scrub_draw(const ARegion *region,
   wmOrtho2_region_pixelspace(region);
 
   rcti scrub_region_rect;
-  get_time_scrub_region_rect(region, &scrub_region_rect);
+  ED_time_scrub_region_rect_get(region, &scrub_region_rect);
 
   draw_background(&scrub_region_rect);
 

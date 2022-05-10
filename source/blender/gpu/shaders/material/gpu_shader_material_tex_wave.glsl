@@ -1,3 +1,7 @@
+#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_material_noise.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_material_fractal_noise.glsl)
+
 float calc_wave(vec3 p,
                 float distortion,
                 float detail,

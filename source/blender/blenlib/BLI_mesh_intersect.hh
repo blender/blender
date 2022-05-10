@@ -5,8 +5,8 @@
 /** \file
  * \ingroup bli
  *
- *  Mesh intersection library functions.
- *  Uses exact arithmetic, so need GMP.
+ * Mesh intersection library functions.
+ * Uses exact arithmetic, so need GMP.
  */
 
 #ifdef WITH_GMP

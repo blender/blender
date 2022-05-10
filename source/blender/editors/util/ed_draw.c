@@ -711,7 +711,7 @@ static float metadata_box_height_get(ImBuf *ibuf, int fontid, const bool is_top)
         if (i == 4) {
           struct {
             struct ResultBLF info;
-            rctf rect;
+            rcti rect;
           } wrap;
 
           BLF_enable(fontid, BLF_WORD_WRAP);

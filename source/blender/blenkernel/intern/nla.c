@@ -1387,39 +1387,6 @@ void BKE_nlastrip_recalculate_bounds(NlaStrip *strip)
   nlastrip_fix_resize_overlaps(strip);
 }
 
-/* Is the given NLA-strip the first one to occur for the given AnimData block */
-/* TODO: make this an api method if necessary, but need to add prefix first */
-static bool nlastrip_is_first(AnimData *adt, NlaStrip *strip)
-{
-  NlaTrack *nlt;
-  NlaStrip *ns;
-
-  /* sanity checks */
-  if (ELEM(NULL, adt, strip)) {
-    return false;
-  }
-
-  /* check if strip has any strips before it */
-  if (strip->prev) {
-    return false;
-  }
-
-  /* check other tracks to see if they have a strip that's earlier */
-  /* TODO: or should we check that the strip's track is also the first? */
-  for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
-    /* only check the first strip, assuming that they're all in order */
-    ns = nlt->strips.first;
-    if (ns) {
-      if (ns->start < strip->start) {
-        return false;
-      }
-    }
-  }
-
-  /* should be first now */
-  return true;
-}
-
 /* Animated Strips ------------------------------------------- */
 
 bool BKE_nlatrack_has_animated_strips(NlaTrack *nlt)
@@ -1739,7 +1706,7 @@ static void BKE_nlastrip_validate_autoblends(NlaTrack *nlt, NlaStrip *nls)
 
 void BKE_nla_validate_state(AnimData *adt)
 {
-  NlaStrip *strip, *fstrip = NULL;
+  NlaStrip *strip = NULL;
   NlaTrack *nlt;
 
   /* sanity checks */
@@ -1753,37 +1720,6 @@ void BKE_nla_validate_state(AnimData *adt)
     for (strip = nlt->strips.first; strip; strip = strip->next) {
       /* auto-blending first */
       BKE_nlastrip_validate_autoblends(nlt, strip);
-
-      /* extend mode - find first strip */
-      if ((fstrip == NULL) || (strip->start < fstrip->start)) {
-        fstrip = strip;
-      }
-    }
-  }
-
-  /* second pass over the strips to adjust the extend-mode to fix any problems */
-  for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
-    for (strip = nlt->strips.first; strip; strip = strip->next) {
-      /* apart from 'nothing' option which user has to explicitly choose, we don't really know if
-       * we should be overwriting the extend setting (but assume that's what the user wanted)
-       */
-      /* TODO: 1 solution is to tie this in with auto-blending... */
-      if (strip->extendmode != NLASTRIP_EXTEND_NOTHING) {
-        /* 1) First strip must be set to extend hold, otherwise, stuff before acts dodgy
-         * 2) Only overwrite extend mode if *not* changing it will most probably result in
-         * occlusion problems, which will occur if...
-         * - blendmode = REPLACE
-         * - all channels the same (this is fiddly to test, so is currently assumed)
-         *
-         * Should fix problems such as T29869.
-         */
-        if (strip == fstrip) {
-          strip->extendmode = NLASTRIP_EXTEND_HOLD;
-        }
-        else if (strip->blendmode == NLASTRIP_MODE_REPLACE) {
-          strip->extendmode = NLASTRIP_EXTEND_HOLD_FORWARD;
-        }
-      }
     }
   }
 }
@@ -1882,7 +1818,6 @@ bool BKE_nla_action_stash(AnimData *adt, const bool is_liboverride)
 void BKE_nla_action_pushdown(AnimData *adt, const bool is_liboverride)
 {
   NlaStrip *strip;
-  const bool is_first = (adt) && (adt->nla_tracks.first == NULL);
 
   /* sanity checks */
   /* TODO: need to report the error for this */
@@ -1912,41 +1847,23 @@ void BKE_nla_action_pushdown(AnimData *adt, const bool is_liboverride)
   /* copy current "action blending" settings from adt to the strip,
    * as it was keyframed with these settings, so omitting them will
    * change the effect  [T54233]
-   *
-   * NOTE: We only do this when there are no tracks
    */
-  if (is_first == false) {
-    strip->blendmode = adt->act_blendmode;
-    strip->influence = adt->act_influence;
-    strip->extendmode = adt->act_extendmode;
+  strip->blendmode = adt->act_blendmode;
+  strip->influence = adt->act_influence;
+  strip->extendmode = adt->act_extendmode;
 
-    if (adt->act_influence < 1.0f) {
-      /* enable "user-controlled" influence (which will insert a default keyframe)
-       * so that the influence doesn't get lost on the new update
-       *
-       * NOTE: An alternative way would have been to instead hack the influence
-       * to not get always get reset to full strength if NLASTRIP_FLAG_USR_INFLUENCE
-       * is disabled but auto-blending isn't being used. However, that approach
-       * is a bit hacky/hard to discover, and may cause backwards compatibility issues,
-       * so it's better to just do it this way.
-       */
-      strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
-      BKE_nlastrip_validate_fcurves(strip);
-    }
-  }
-
-  /* if the strip is the first one in the track it lives in, check if there
-   * are strips in any other tracks that may be before this, and set the extend
-   * mode accordingly
-   */
-  if (nlastrip_is_first(adt, strip) == 0) {
-    /* Not first, so extend mode can only be:
-     * NLASTRIP_EXTEND_HOLD_FORWARD not NLASTRIP_EXTEND_HOLD,
-     * so that it doesn't override strips in previous tracks. */
-    /* FIXME: this needs to be more automated, since user can rearrange strips */
-    if (strip->extendmode == NLASTRIP_EXTEND_HOLD) {
-      strip->extendmode = NLASTRIP_EXTEND_HOLD_FORWARD;
-    }
+  if (adt->act_influence < 1.0f) {
+    /* enable "user-controlled" influence (which will insert a default keyframe)
+     * so that the influence doesn't get lost on the new update
+     *
+     * NOTE: An alternative way would have been to instead hack the influence
+     * to not get always get reset to full strength if NLASTRIP_FLAG_USR_INFLUENCE
+     * is disabled but auto-blending isn't being used. However, that approach
+     * is a bit hacky/hard to discover, and may cause backwards compatibility issues,
+     * so it's better to just do it this way.
+     */
+    strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
+    BKE_nlastrip_validate_fcurves(strip);
   }
 
   /* make strip the active one... */
@@ -2055,8 +1972,11 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
   /* go over all the tracks after AND INCLUDING the active one, tagging them as being disabled
    * - the active track needs to also be tagged, otherwise, it'll overlap with the tweaks going on
    */
-  for (nlt = activeTrack; nlt; nlt = nlt->next) {
-    nlt->flag |= NLATRACK_DISABLED;
+  activeTrack->flag |= NLATRACK_DISABLED;
+  if ((adt->flag & ADT_NLA_EVAL_UPPER_TRACKS) == 0) {
+    for (nlt = activeTrack->next; nlt; nlt = nlt->next) {
+      nlt->flag |= NLATRACK_DISABLED;
+    }
   }
 
   /* handle AnimData level changes:

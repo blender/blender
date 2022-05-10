@@ -203,7 +203,7 @@ typedef struct PHandle {
 
   RNG *rng;
   float blend;
-  char do_aspect;
+  bool do_aspect;
 } PHandle;
 
 /* PHash
@@ -4841,10 +4841,10 @@ void GEO_uv_parametrizer_pack(ParamHandle *handle,
   BLI_box_pack_2d(boxarray, phandle->ncharts - unpacked, &tot_width, &tot_height);
 
   if (tot_height > tot_width) {
-    scale = 1.0f / tot_height;
+    scale = tot_height != 0.0f ? (1.0f / tot_height) : 1.0f;
   }
   else {
-    scale = 1.0f / tot_width;
+    scale = tot_width != 0.0f ? (1.0f / tot_width) : 1.0f;
   }
 
   for (i = 0; i < phandle->ncharts - unpacked; i++) {

@@ -318,12 +318,8 @@ static ImBuf *thumb_create_ex(const char *file_path,
   char tpath[FILE_MAX];
   char tdir[FILE_MAX];
   char temp[FILE_MAX];
-  char mtime[40] = "0";  /* in case we can't stat the file */
-  char cwidth[40] = "0"; /* in case images have no data */
-  char cheight[40] = "0";
+  char mtime[40] = "0"; /* in case we can't stat the file */
   short tsize = 128;
-  short ex, ey;
-  float scaledx, scaledy;
   BLI_stat_t info;
 
   switch (size) {
@@ -338,15 +334,6 @@ static ImBuf *thumb_create_ex(const char *file_path,
       break;
     default:
       return NULL; /* unknown size */
-  }
-
-  /* exception, skip images over 100mb */
-  if (source == THB_SOURCE_IMAGE) {
-    const size_t file_size = BLI_file_size(file_path);
-    if (file_size != -1 && file_size > THUMB_SIZE_MAX) {
-      // printf("file too big: %d, skipping %s\n", (int)size, file_path);
-      return NULL;
-    }
   }
 
   if (get_thumb_dir(tdir, size)) {
@@ -368,7 +355,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
         if (img == NULL) {
           switch (source) {
             case THB_SOURCE_IMAGE:
-              img = IMB_loadiffname(file_path, IB_rect | IB_metadata, NULL);
+              img = IMB_thumb_load_image(file_path, tsize, NULL);
               break;
             case THB_SOURCE_BLEND:
               img = IMB_thumb_load_blend(file_path, blen_group, blen_id);
@@ -385,8 +372,6 @@ static ImBuf *thumb_create_ex(const char *file_path,
           if (BLI_stat(file_path, &info) != -1) {
             BLI_snprintf(mtime, sizeof(mtime), "%ld", (long int)info.st_mtime);
           }
-          BLI_snprintf(cwidth, sizeof(cwidth), "%d", img->x);
-          BLI_snprintf(cheight, sizeof(cheight), "%d", img->y);
         }
       }
       else if (THB_SOURCE_MOVIE == source) {
@@ -411,28 +396,20 @@ static ImBuf *thumb_create_ex(const char *file_path,
         return NULL;
       }
 
-      if (img->x > img->y) {
-        scaledx = (float)tsize;
-        scaledy = ((float)img->y / (float)img->x) * tsize;
-      }
-      else {
-        scaledy = (float)tsize;
-        scaledx = ((float)img->x / (float)img->y) * tsize;
-      }
-      /* Scaling down must never assign zero width/height, see: T89868. */
-      ex = MAX2(1, (short)scaledx);
-      ey = MAX2(1, (short)scaledy);
-
-      /* save some time by only scaling byte buf */
-      if (img->rect_float) {
-        if (img->rect == NULL) {
-          IMB_rect_from_float(img);
+      if (img->x > tsize || img->y > tsize) {
+        float scale = MIN2((float)tsize / (float)img->x, (float)tsize / (float)img->y);
+        /* Scaling down must never assign zero width/height, see: T89868. */
+        short ex = MAX2(1, (short)(img->x * scale));
+        short ey = MAX2(1, (short)(img->y * scale));
+        /* Save some time by only scaling byte buf */
+        if (img->rect_float) {
+          if (img->rect == NULL) {
+            IMB_rect_from_float(img);
+          }
+          imb_freerectfloatImBuf(img);
         }
-
-        imb_freerectfloatImBuf(img);
+        IMB_scaleImBuf(img, ex, ey);
       }
-
-      IMB_scaleImBuf(img, ex, ey);
     }
     BLI_snprintf(desc, sizeof(desc), "Thumbnail for %s", uri);
     IMB_metadata_ensure(&img->metadata);
@@ -442,10 +419,6 @@ static ImBuf *thumb_create_ex(const char *file_path,
     IMB_metadata_set_field(img->metadata, "Thumb::MTime", mtime);
     if (use_hash) {
       IMB_metadata_set_field(img->metadata, "X-Blender::Hash", hash);
-    }
-    if (ELEM(source, THB_SOURCE_IMAGE, THB_SOURCE_BLEND, THB_SOURCE_FONT)) {
-      IMB_metadata_set_field(img->metadata, "Thumb::Image::Width", cwidth);
-      IMB_metadata_set_field(img->metadata, "Thumb::Image::Height", cheight);
     }
     img->ftype = IMB_FTYPE_PNG;
     img->planes = 32;

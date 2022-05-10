@@ -99,8 +99,8 @@ static void edbm_intersect_select(BMEditMesh *em, struct Mesh *me, bool do_selec
           BM_edge_select_set(em->bm, e, true);
         }
       }
+      EDBM_selectmode_flush(em);
     }
-    EDBM_select_flush(em);
   }
 
   EDBM_update(me,

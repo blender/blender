@@ -1025,6 +1025,10 @@ static wmXrActionData *wm_xr_session_event_create(const char *action_set_name,
   wmXrActionData *data = MEM_callocN(sizeof(wmXrActionData), __func__);
   strcpy(data->action_set, action_set_name);
   strcpy(data->action, action->name);
+  strcpy(data->user_path, action->subaction_paths[subaction_idx]);
+  if (bimanual) {
+    strcpy(data->user_path_other, action->subaction_paths[subaction_idx_other]);
+  }
   data->type = action->type;
 
   switch (action->type) {
@@ -1211,6 +1215,11 @@ void wm_xr_session_actions_update(wmWindowManager *wm)
       if (!xr->runtime->area) {
         xr->runtime->area = ED_area_offscreen_create(win, SPACE_VIEW3D);
       }
+
+      /* Set XR area object type flags for operators. */
+      View3D *v3d = xr->runtime->area->spacedata.first;
+      v3d->object_type_exclude_viewport = settings->object_type_exclude_viewport;
+      v3d->object_type_exclude_select = settings->object_type_exclude_select;
 
       wm_xr_session_events_dispatch(xr, xr_context, active_action_set, state, win);
     }

@@ -2,18 +2,17 @@
 /* Required by some nodes. */
 #pragma BLENDER_REQUIRE(common_hair_lib.glsl)
 #pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_uniforms_lib.glsl)
-#pragma BLENDER_REQUIRE(closure_type_lib.glsl)
-#pragma BLENDER_REQUIRE(closure_eval_lib.glsl)
-#pragma BLENDER_REQUIRE(closure_eval_diffuse_lib.glsl)
-#pragma BLENDER_REQUIRE(closure_eval_glossy_lib.glsl)
-#pragma BLENDER_REQUIRE(closure_eval_translucent_lib.glsl)
-#pragma BLENDER_REQUIRE(closure_eval_refraction_lib.glsl)
+#pragma BLENDER_REQUIRE(closure_eval_surface_lib.glsl)
 #pragma BLENDER_REQUIRE(surface_lib.glsl)
 
 #ifdef USE_ALPHA_HASH
+/* A value of -1.0 will disable alpha clip and use alpha hash. */
+uniform float alphaClipThreshold;
 
 /* From the paper "Hashed Alpha Testing" by Chris Wyman and Morgan McGuire */
 float hash(vec2 a)
@@ -73,14 +72,22 @@ float hashed_alpha_threshold(vec3 co)
 void main()
 {
 #if defined(USE_ALPHA_HASH)
+  g_data = init_globals();
 
   Closure cl = nodetree_exec();
 
   float opacity = saturate(1.0 - avg(cl.transmittance));
 
-  /* Hashed Alpha Testing */
-  if (opacity < hashed_alpha_threshold(worldPosition)) {
-    discard;
+  if (alphaClipThreshold == -1.0) {
+    /* NOTE: uniform control flow required for dFdx(). */
+    if (opacity < hashed_alpha_threshold(worldPosition)) {
+      discard;
+    }
+  }
+  else {
+    if (opacity <= alphaClipThreshold) {
+      discard;
+    }
   }
 #endif
 }

@@ -164,17 +164,9 @@ static ParticleHairCache *drw_hair_particle_cache_get(Object *object,
                                                       int subdiv,
                                                       int thickness_res)
 {
-  bool update;
   ParticleHairCache *cache;
-  if (psys) {
-    /* Old particle hair. */
-    update = particles_ensure_procedural_data(
-        object, psys, md, &cache, gpu_material, subdiv, thickness_res);
-  }
-  else {
-    /* New curves object. */
-    update = curves_ensure_procedural_data(object, &cache, gpu_material, subdiv, thickness_res);
-  }
+  bool update = particles_ensure_procedural_data(
+      object, psys, md, &cache, gpu_material, subdiv, thickness_res);
 
   if (update) {
     if (drw_hair_shader_type_get() == PART_REFINE_SHADER_COMPUTE) {
@@ -202,36 +194,30 @@ GPUVertBuf *DRW_hair_pos_buffer_get(Object *object, ParticleSystem *psys, Modifi
 }
 
 void DRW_hair_duplimat_get(Object *object,
-                           ParticleSystem *psys,
+                           ParticleSystem *UNUSED(psys),
                            ModifierData *UNUSED(md),
                            float (*dupli_mat)[4])
 {
   Object *dupli_parent = DRW_object_get_dupli_parent(object);
   DupliObject *dupli_object = DRW_object_get_dupli(object);
 
-  if (psys) {
-    if ((dupli_parent != NULL) && (dupli_object != NULL)) {
-      if (dupli_object->type & OB_DUPLICOLLECTION) {
-        unit_m4(dupli_mat);
-        Collection *collection = dupli_parent->instance_collection;
-        if (collection != NULL) {
-          sub_v3_v3(dupli_mat[3], collection->instance_offset);
-        }
-        mul_m4_m4m4(dupli_mat, dupli_parent->obmat, dupli_mat);
+  if ((dupli_parent != NULL) && (dupli_object != NULL)) {
+    if (dupli_object->type & OB_DUPLICOLLECTION) {
+      unit_m4(dupli_mat);
+      Collection *collection = dupli_parent->instance_collection;
+      if (collection != NULL) {
+        sub_v3_v3(dupli_mat[3], collection->instance_offset);
       }
-      else {
-        copy_m4_m4(dupli_mat, dupli_object->ob->obmat);
-        invert_m4(dupli_mat);
-        mul_m4_m4m4(dupli_mat, object->obmat, dupli_mat);
-      }
+      mul_m4_m4m4(dupli_mat, dupli_parent->obmat, dupli_mat);
     }
     else {
-      unit_m4(dupli_mat);
+      copy_m4_m4(dupli_mat, dupli_object->ob->obmat);
+      invert_m4(dupli_mat);
+      mul_m4_m4m4(dupli_mat, object->obmat, dupli_mat);
     }
   }
   else {
-    /* New curves object. */
-    copy_m4_m4(dupli_mat, object->obmat);
+    unit_m4(dupli_mat);
   }
 }
 
@@ -280,27 +266,15 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
   DRW_hair_duplimat_get(object, psys, md, dupli_mat);
 
   /* Get hair shape parameters. */
-  float hair_rad_shape, hair_rad_root, hair_rad_tip;
-  bool hair_close_tip;
-  if (psys) {
-    /* Old particle hair. */
-    ParticleSettings *part = psys->part;
-    hair_rad_shape = part->shape;
-    hair_rad_root = part->rad_root * part->rad_scale * 0.5f;
-    hair_rad_tip = part->rad_tip * part->rad_scale * 0.5f;
-    hair_close_tip = (part->shape_flag & PART_SHAPE_CLOSE_TIP) != 0;
-  }
-  else {
-    /* TODO: implement for new curves object. */
-    hair_rad_shape = 1.0f;
-    hair_rad_root = 0.005f;
-    hair_rad_tip = 0.0f;
-    hair_close_tip = true;
-  }
+  ParticleSettings *part = psys->part;
+  float hair_rad_shape = part->shape;
+  float hair_rad_root = part->rad_root * part->rad_scale * 0.5f;
+  float hair_rad_tip = part->rad_tip * part->rad_scale * 0.5f;
+  bool hair_close_tip = (part->shape_flag & PART_SHAPE_CLOSE_TIP) != 0;
 
   DRW_shgroup_uniform_texture(shgrp, "hairPointBuffer", hair_cache->final[subdiv].proc_tex);
   if (hair_cache->length_tex) {
-    DRW_shgroup_uniform_texture(shgrp, "hairLen", hair_cache->length_tex);
+    DRW_shgroup_uniform_texture(shgrp, "l", hair_cache->length_tex);
   }
   DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &hair_cache->final[subdiv].strands_res, 1);
   DRW_shgroup_uniform_int_copy(shgrp, "hairThicknessRes", thickness_res);

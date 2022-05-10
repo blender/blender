@@ -1,21 +1,5 @@
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-uniform vec2 aspect;
-in vec2 pos;
-
-#ifdef STRETCH_ANGLE
-in vec2 uv_angles;
-in float angle;
-
-#else
-in float ratio;
-uniform float totalAreaRatio;
-uniform float totalAreaRatioInv;
-
-#endif
-
-noperspective out vec4 finalColor;
-
 vec3 weight_to_rgb(float weight)
 {
   vec3 r_rgb;

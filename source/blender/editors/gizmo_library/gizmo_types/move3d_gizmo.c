@@ -98,7 +98,8 @@ static void move_geom_draw(const wmGizmo *gz,
                                                  ED_GIZMO_MOVE_DRAW_FLAG_FILL)));
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  /* Note(Metal): Prefer using 3D coordinates with 3D shader, even if rendering 2D gizmo's. */
+  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
   immBindBuiltinProgram(filled ? GPU_SHADER_3D_UNIFORM_COLOR :
                                  GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
@@ -115,20 +116,20 @@ static void move_geom_draw(const wmGizmo *gz,
 
   if (draw_style == ED_GIZMO_MOVE_STYLE_RING_2D) {
     if (filled) {
-      imm_draw_circle_fill_2d(pos, 0, 0, radius, DIAL_RESOLUTION);
+      imm_draw_circle_fill_3d(pos, 0.0f, 0.0f, radius, DIAL_RESOLUTION);
     }
     else {
-      imm_draw_circle_wire_2d(pos, 0, 0, radius, DIAL_RESOLUTION);
+      imm_draw_circle_wire_3d(pos, 0.0f, 0.0f, radius, DIAL_RESOLUTION);
     }
   }
   else if (draw_style == ED_GIZMO_MOVE_STYLE_CROSS_2D) {
     const float radius_diag = M_SQRT1_2 * radius;
     immBegin(GPU_PRIM_LINES, 4);
-    immVertex2f(pos, radius_diag, radius_diag);
-    immVertex2f(pos, -radius_diag, -radius_diag);
+    immVertex3f(pos, radius_diag, radius_diag, 0.0f);
+    immVertex3f(pos, -radius_diag, -radius_diag, 0.0f);
 
-    immVertex2f(pos, -radius_diag, radius_diag);
-    immVertex2f(pos, radius_diag, -radius_diag);
+    immVertex3f(pos, -radius_diag, radius_diag, 0.0f);
+    immVertex3f(pos, radius_diag, -radius_diag, 0.0f);
     immEnd();
   }
   else {

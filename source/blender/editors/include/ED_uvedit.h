@@ -24,6 +24,7 @@ struct Object;
 struct Scene;
 struct SpaceImage;
 struct ToolSettings;
+struct View2D;
 struct ViewLayer;
 struct bContext;
 struct bNode;
@@ -242,15 +243,12 @@ void uvedit_deselect_flush(const struct Scene *scene, struct BMEditMesh *em);
  */
 void uvedit_select_flush(const struct Scene *scene, struct BMEditMesh *em);
 
-bool ED_uvedit_nearest_uv(const struct Scene *scene,
-                          struct Object *obedit,
-                          const float co[2],
-                          float *dist_sq,
-                          float r_uv[2]);
-bool ED_uvedit_nearest_uv_multi(const struct Scene *scene,
+bool ED_uvedit_nearest_uv_multi(const struct View2D *v2d,
+                                const struct Scene *scene,
                                 struct Object **objects,
                                 uint objects_len,
-                                const float co[2],
+                                const int mval[2],
+                                const bool ignore_selected,
                                 float *dist_sq,
                                 float r_uv[2]);
 
@@ -268,6 +266,10 @@ struct BMLoop **ED_uvedit_selected_verts(const struct Scene *scene,
                                          int *r_verts_len);
 
 void ED_uvedit_get_aspect(struct Object *obedit, float *r_aspx, float *r_aspy);
+void ED_uvedit_get_aspect_from_material(Object *ob,
+                                        const int material_index,
+                                        float *r_aspx,
+                                        float *r_aspy);
 
 void ED_uvedit_active_vert_loop_set(struct BMesh *bm, struct BMLoop *l);
 struct BMLoop *ED_uvedit_active_vert_loop_get(struct BMesh *bm);
@@ -325,7 +327,7 @@ struct UVPackIsland_Params {
 };
 
 /**
- *  Returns true if UV coordinates lie on a valid tile in UDIM grid or tiled image.
+ * Returns true if UV coordinates lie on a valid tile in UDIM grid or tiled image.
  */
 bool uv_coords_isect_udim(const struct Image *image,
                           const int udim_grid[2],

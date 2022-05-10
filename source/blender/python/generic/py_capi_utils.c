@@ -869,8 +869,6 @@ PyObject *PyC_ExceptionBuffer(void)
 
   PyErr_Fetch(&error_type, &error_value, &error_traceback);
 
-  PyErr_Clear();
-
   /* import io
    * string_io = io.StringIO()
    */
@@ -894,6 +892,10 @@ PyObject *PyC_ExceptionBuffer(void)
   PySys_SetObject("stderr", string_io);
 
   PyErr_Restore(error_type, error_value, error_traceback);
+  /* Printing clears (call #PyErr_Clear as well to ensure it's cleared).  */
+  Py_XINCREF(error_type);
+  Py_XINCREF(error_value);
+  Py_XINCREF(error_traceback);
   PyErr_Print(); /* print the error */
   PyErr_Clear();
 
@@ -909,17 +911,18 @@ PyObject *PyC_ExceptionBuffer(void)
   Py_DECREF(string_io_getvalue);
   Py_DECREF(string_io); /* free the original reference */
 
-  PyErr_Clear();
+  PyErr_Restore(error_type, error_value, error_traceback);
+
   return string_io_buf;
 
 error_cleanup:
-  /* could not import the module so print the error and close */
+  /* Could not import the module so print the error and close. */
   Py_XDECREF(string_io_mod);
   Py_XDECREF(string_io);
 
   PyErr_Restore(error_type, error_value, error_traceback);
   PyErr_Print(); /* print the error */
-  PyErr_Clear();
+  PyErr_Restore(error_type, error_value, error_traceback);
 
   return NULL;
 }
@@ -927,19 +930,15 @@ error_cleanup:
 
 PyObject *PyC_ExceptionBuffer_Simple(void)
 {
-  PyObject *string_io_buf = NULL;
-
-  PyObject *error_type, *error_value, *error_traceback;
-
   if (!PyErr_Occurred()) {
     return NULL;
   }
 
-  PyErr_Fetch(&error_type, &error_value, &error_traceback);
+  PyObject *string_io_buf = NULL;
 
-  if (error_value == NULL) {
-    return NULL;
-  }
+  PyObject *error_type, *error_value, *error_traceback;
+
+  PyErr_Fetch(&error_type, &error_value, &error_traceback);
 
   if (PyErr_GivenExceptionMatches(error_type, PyExc_SyntaxError)) {
     /* Special exception for syntax errors,
@@ -961,7 +960,6 @@ PyObject *PyC_ExceptionBuffer_Simple(void)
 
   PyErr_Restore(error_type, error_value, error_traceback);
 
-  PyErr_Clear();
   return string_io_buf;
 }
 

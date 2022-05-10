@@ -183,7 +183,6 @@ Mesh *volume_to_mesh(const openvdb::GridBase &grid,
                               {mesh->mloop, mesh->totloop});
 
   BKE_mesh_calc_edges(mesh, false, false);
-  BKE_mesh_normals_tag_dirty(mesh);
 
   return mesh;
 }

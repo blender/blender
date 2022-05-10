@@ -528,13 +528,13 @@ static void OVERLAY_forcefield(OVERLAY_ExtraCallBuffers *cb, Object *ob, ViewLay
     case PFIELD_GUIDE:
       if (cu && (cu->flag & CU_PATH) && ob->runtime.curve_cache->anim_path_accum_length) {
         instdata.size_x = instdata.size_y = instdata.size_z = pd->f_strength;
-        float pos[4], tmp[3];
-        BKE_where_on_path(ob, 0.0f, pos, tmp, NULL, NULL, NULL);
+        float pos[4];
+        BKE_where_on_path(ob, 0.0f, pos, NULL, NULL, NULL, NULL);
         copy_v3_v3(instdata.pos, ob->obmat[3]);
         translate_m4(instdata.mat, pos[0], pos[1], pos[2]);
         DRW_buffer_add_entry(cb->field_curve, color, &instdata);
 
-        BKE_where_on_path(ob, 1.0f, pos, tmp, NULL, NULL, NULL);
+        BKE_where_on_path(ob, 1.0f, pos, NULL, NULL, NULL, NULL);
         copy_v3_v3(instdata.pos, ob->obmat[3]);
         translate_m4(instdata.mat, pos[0], pos[1], pos[2]);
         DRW_buffer_add_entry(cb->field_sphere_limit, color, &instdata);
@@ -1474,23 +1474,6 @@ static void OVERLAY_volume_extra(OVERLAY_ExtraCallBuffers *cb,
   }
 
   if (draw_velocity || show_gridlines) {
-    BLI_addtail(&data->stl->pd->smoke_domains, BLI_genericNodeN(fmd));
-  }
-}
-
-static void OVERLAY_volume_free_smoke_textures(OVERLAY_Data *data)
-{
-  /* Free Smoke Textures after rendering */
-  /* XXX This is a waste of processing and GPU bandwidth if nothing
-   * is updated. But the problem is since Textures are stored in the
-   * modifier we don't want them to take precious VRAM if the
-   * modifier is not used for display. We should share them for
-   * all viewport in a redraw at least. */
-  LinkData *link;
-  while ((link = BLI_pophead(&data->stl->pd->smoke_domains))) {
-    FluidModifierData *fmd = (FluidModifierData *)link->data;
-    DRW_smoke_free_velocity(fmd);
-    MEM_freeN(link);
   }
 }
 
@@ -1624,8 +1607,6 @@ void OVERLAY_extra_draw(OVERLAY_Data *vedata)
 void OVERLAY_extra_in_front_draw(OVERLAY_Data *vedata)
 {
   DRW_draw_pass(vedata->psl->extra_ps[1]);
-
-  OVERLAY_volume_free_smoke_textures(vedata);
 }
 
 void OVERLAY_extra_centers_draw(OVERLAY_Data *vedata)

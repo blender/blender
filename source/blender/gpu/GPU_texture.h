@@ -175,7 +175,17 @@ typedef enum eGPUDataFormat {
   GPU_DATA_UINT_24_8,
   GPU_DATA_10_11_11_REV,
   GPU_DATA_2_10_10_10_REV,
+  GPU_DATA_HALF_FLOAT
 } eGPUDataFormat;
+
+typedef enum eGPUTextureUsage {
+  GPU_TEXTURE_USAGE_SHADER_READ = (1 << 0),
+  GPU_TEXTURE_USAGE_SHADER_WRITE = (1 << 1),
+  GPU_TEXTURE_USAGE_ATTACHMENT = (1 << 2),
+  GPU_TEXTURE_USAGE_GENERAL = 0xFF
+} eGPUTextureUsage;
+
+ENUM_OPERATORS(eGPUTextureUsage, GPU_TEXTURE_USAGE_GENERAL)
 
 unsigned int GPU_texture_memory_usage_get(void);
 
@@ -270,9 +280,9 @@ void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat data_format, int miplvl);
 /**
  * Fills the whole texture with the same data for all pixels.
  * \warning Only work for 2D texture for now.
- * \warning Only clears the mip 0 of the texture.
+ * \warning Only clears the MIP 0 of the texture.
  * \param data_format: data format of the pixel data.
- * \note The format is float for unorm textures.
+ * \note The format is float for uniform textures.
  * \param data: 1 pixel worth of data to fill the texture with.
  */
 void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat data_format, const void *data);

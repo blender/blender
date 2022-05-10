@@ -10,12 +10,14 @@ import bpy
 from bpy_extras.io_utils import ExportHelper
 from bpy.props import PointerProperty, StringProperty
 
+
 def strip(root):
     root.text = None
     root.tail = None
 
     for elem in root:
         strip(elem)
+
 
 def write(node, fname):
     strip(node)
@@ -26,25 +28,31 @@ def write(node, fname):
     f = open(fname, "w")
     f.write(s)
 
+
 class CyclesXMLSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):
         bpy.types.Scene.cycles_xml = PointerProperty(
-                                        type=cls,
-                                        name="Cycles XML export Settings",
-                                        description="Cycles XML export settings")
+            type=cls,
+            name="Cycles XML export Settings",
+            description="Cycles XML export settings",
+        )
         cls.filepath = StringProperty(
-                        name='Filepath',
-                        description='Filepath for the .xml file',
-                        maxlen=256,
-                        default='',
-                        subtype='FILE_PATH')
+            name='Filepath',
+            description='Filepath for the .xml file',
+            maxlen=256,
+            default='',
+            subtype='FILE_PATH',
+        )
 
     @classmethod
     def unregister(cls):
         del bpy.types.Scene.cycles_xml
 
-# User Interface Drawing Code
+
+# User Interface Drawing Code.
+
+
 class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -114,22 +122,31 @@ class ExportCyclesXML(bpy.types.Operator, ExportHelper):
             uvs += str(uvf.uv1[0]) + " " + str(uvf.uv1[1]) + " "
             uvs += str(uvf.uv2[0]) + " " + str(uvf.uv2[1]) + " "
             uvs += str(uvf.uv3[0]) + " " + str(uvf.uv3[1]) + " "
-            if vcount==4:
+            if vcount == 4:
                 uvs += " " + str(uvf.uv4[0]) + " " + str(uvf.uv4[1]) + " "
 
-
-        node = etree.Element('mesh', attrib={'nverts': nverts.strip(), 'verts': verts.strip(), 'P': P, 'UV' : uvs.strip()})
+        node = etree.Element(
+            'mesh',
+            attrib={
+                'nverts': nverts.strip(),
+                'verts': verts.strip(),
+                'P': P,
+                'UV': uvs.strip(),
+            })
 
         # write to file
         write(node, filepath)
 
         return {'FINISHED'}
 
+
 def register():
     bpy.utils.register_module(__name__)
 
+
 def unregister():
     bpy.utils.unregister_module(__name__)
+
 
 if __name__ == "__main__":
     register()

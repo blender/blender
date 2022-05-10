@@ -770,6 +770,14 @@ void nodeClearActive(struct bNodeTree *ntree);
  * Two active flags, ID nodes have special flag for buttons display.
  */
 struct bNode *nodeGetActiveTexture(struct bNodeTree *ntree);
+struct bNode *nodeGetActivePaintCanvas(struct bNodeTree *ntree);
+
+/**
+ * \brief Does the given node supports the sub active flag.
+ *
+ * \param sub_active: The active flag to check. #NODE_ACTIVE_TEXTURE / #NODE_ACTIVE_PAINT_CANVAS.
+ */
+bool nodeSupportsActiveFlag(const struct bNode *node, int sub_active);
 
 int nodeSocketIsHidden(const struct bNodeSocket *sock);
 void nodeSetSocketAvailability(struct bNodeTree *ntree,
@@ -1082,8 +1090,8 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define SH_NODE_SQUEEZE 117
 //#define SH_NODE_MATERIAL_EXT  118
 #define SH_NODE_INVERT 119
-#define SH_NODE_SEPRGB 120
-#define SH_NODE_COMBRGB 121
+#define SH_NODE_SEPRGB_LEGACY 120
+#define SH_NODE_COMBRGB_LEGACY 121
 #define SH_NODE_HUE_SAT 122
 
 #define SH_NODE_OUTPUT_MATERIAL 124
@@ -1139,8 +1147,8 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define SH_NODE_WAVELENGTH 180
 #define SH_NODE_BLACKBODY 181
 #define SH_NODE_VECT_TRANSFORM 182
-#define SH_NODE_SEPHSV 183
-#define SH_NODE_COMBHSV 184
+#define SH_NODE_SEPHSV_LEGACY 183
+#define SH_NODE_COMBHSV_LEGACY 184
 #define SH_NODE_BSDF_HAIR 185
 // #define SH_NODE_LAMP 186
 #define SH_NODE_UVMAP 187
@@ -1167,6 +1175,8 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define SH_NODE_VECTOR_ROTATE 708
 #define SH_NODE_CURVE_FLOAT 709
 #define SH_NODE_POINT_INFO 710
+#define SH_NODE_COMBINE_COLOR 711
+#define SH_NODE_SEPARATE_COLOR 712
 
 /** \} */
 
@@ -1194,8 +1204,8 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define CMP_NODE_MAP_VALUE 213
 #define CMP_NODE_TIME 214
 #define CMP_NODE_VECBLUR 215
-#define CMP_NODE_SEPRGBA 216
-#define CMP_NODE_SEPHSVA 217
+#define CMP_NODE_SEPRGBA_LEGACY 216
+#define CMP_NODE_SEPHSVA_LEGACY 217
 #define CMP_NODE_SETALPHA 218
 #define CMP_NODE_HUE_SAT 219
 #define CMP_NODE_IMAGE 220
@@ -1205,14 +1215,14 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define CMP_NODE_TEXTURE 224
 #define CMP_NODE_TRANSLATE 225
 #define CMP_NODE_ZCOMBINE 226
-#define CMP_NODE_COMBRGBA 227
+#define CMP_NODE_COMBRGBA_LEGACY 227
 #define CMP_NODE_DILATEERODE 228
 #define CMP_NODE_ROTATE 229
 #define CMP_NODE_SCALE 230
-#define CMP_NODE_SEPYCCA 231
-#define CMP_NODE_COMBYCCA 232
-#define CMP_NODE_SEPYUVA 233
-#define CMP_NODE_COMBYUVA 234
+#define CMP_NODE_SEPYCCA_LEGACY 231
+#define CMP_NODE_COMBYCCA_LEGACY 232
+#define CMP_NODE_SEPYUVA_LEGACY 233
+#define CMP_NODE_COMBYUVA_LEGACY 234
 #define CMP_NODE_DIFF_MATTE 235
 #define CMP_NODE_COLOR_SPILL 236
 #define CMP_NODE_CHROMA_MATTE 237
@@ -1224,7 +1234,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define CMP_NODE_ID_MASK 243
 #define CMP_NODE_DEFOCUS 244
 #define CMP_NODE_DISPLACE 245
-#define CMP_NODE_COMBHSVA 246
+#define CMP_NODE_COMBHSVA_LEGACY 246
 #define CMP_NODE_MATH 247
 #define CMP_NODE_LUMA_MATTE 248
 #define CMP_NODE_BRIGHTCONTRAST 249
@@ -1281,6 +1291,8 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define CMP_NODE_SCENE_TIME 329
 #define CMP_NODE_SEPARATE_XYZ 330
 #define CMP_NODE_COMBINE_XYZ 331
+#define CMP_NODE_COMBINE_COLOR 332
+#define CMP_NODE_SEPARATE_COLOR 333
 
 /* channel toggles */
 #define CMP_CHAN_RGB 1
@@ -1346,11 +1358,13 @@ struct TexResult;
 #define TEX_NODE_TRANSLATE 416
 #define TEX_NODE_COORD 417
 #define TEX_NODE_DISTANCE 418
-#define TEX_NODE_COMPOSE 419
-#define TEX_NODE_DECOMPOSE 420
+#define TEX_NODE_COMPOSE_LEGACY 419
+#define TEX_NODE_DECOMPOSE_LEGACY 420
 #define TEX_NODE_VALTONOR 421
 #define TEX_NODE_SCALE 422
 #define TEX_NODE_AT 423
+#define TEX_NODE_COMBINE_COLOR 424
+#define TEX_NODE_SEPARATE_COLOR 425
 
 /* 501-599 reserved. Use like this: TEX_NODE_PROC + TEX_CLOUDS, etc */
 #define TEX_NODE_PROC 500
@@ -1503,6 +1517,8 @@ struct TexResult;
 #define FN_NODE_REPLACE_STRING 1218
 #define FN_NODE_INPUT_BOOL 1219
 #define FN_NODE_INPUT_INT 1220
+#define FN_NODE_SEPARATE_COLOR 1221
+#define FN_NODE_COMBINE_COLOR 1222
 
 /** \} */
 

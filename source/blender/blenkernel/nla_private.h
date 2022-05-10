@@ -142,7 +142,11 @@ typedef struct NlaKeyframingContext {
   /* Data of the currently edited strip (copy, or fake strip for the main action). */
   NlaStrip strip;
   NlaEvalStrip *eval_strip;
+  /* Storage for the action track as a strip. */
+  NlaStrip action_track_strip;
 
+  /* Strips above tweaked strip. */
+  ListBase upper_estrips;
   /* Evaluated NLA stack below the tweak strip. */
   NlaEvalData lower_eval_data;
 } NlaKeyframingContext;
@@ -173,7 +177,22 @@ NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list,
 /**
  * Evaluates the given evaluation strip.
  */
-void nlastrip_evaluate(PointerRNA *ptr,
+
+enum eNlaStripEvaluate_Mode {
+  /* Blend upper strip with lower stack. */
+  STRIP_EVAL_BLEND,
+  /* Given upper strip and blended snapshot, solve for lower stack. */
+  STRIP_EVAL_BLEND_GET_INVERTED_LOWER_SNAPSHOT,
+  /* Store strip fcurve values in snapshot, properly marking blend_domain values.
+   *
+   * Currently only used for transitions to distinguish fcurve sampled values from default or lower
+   * stack values.
+   */
+  STRIP_EVAL_NOBLEND,
+};
+
+void nlastrip_evaluate(const int evaluation_mode,
+                       PointerRNA *ptr,
                        NlaEvalData *channels,
                        ListBase *modifiers,
                        NlaEvalStrip *nes,
@@ -221,6 +240,36 @@ void nlasnapshot_blend_get_inverted_upper_snapshot(NlaEvalData *eval_data,
                                                    short upper_blendmode,
                                                    float upper_influence,
                                                    NlaEvalSnapshot *r_upper_snapshot);
+
+void nlasnapshot_blend_get_inverted_lower_snapshot(NlaEvalData *eval_data,
+                                                   NlaEvalSnapshot *blended_snapshot,
+                                                   NlaEvalSnapshot *upper_snapshot,
+                                                   const short upper_blendmode,
+                                                   const float upper_influence,
+                                                   NlaEvalSnapshot *r_lower_snapshot);
+
+void nlasnapshot_blend_strip(PointerRNA *ptr,
+                             NlaEvalData *channels,
+                             ListBase *modifiers,
+                             NlaEvalStrip *nes,
+                             NlaEvalSnapshot *snapshot,
+                             const struct AnimationEvalContext *anim_eval_context,
+                             const bool flush_to_original);
+
+void nlasnapshot_blend_strip_get_inverted_lower_snapshot(
+    PointerRNA *ptr,
+    NlaEvalData *channels,
+    ListBase *modifiers,
+    NlaEvalStrip *nes,
+    NlaEvalSnapshot *snapshot,
+    const struct AnimationEvalContext *anim_eval_context);
+
+void nlasnapshot_blend_strip_no_blend(PointerRNA *ptr,
+                                      NlaEvalData *channels,
+                                      ListBase *modifiers,
+                                      NlaEvalStrip *nes,
+                                      NlaEvalSnapshot *snapshot,
+                                      const struct AnimationEvalContext *anim_eval_context);
 
 #ifdef __cplusplus
 }

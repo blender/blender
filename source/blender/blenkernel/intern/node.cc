@@ -359,7 +359,6 @@ static void node_foreach_cache(ID *id,
   IDCacheKey key = {0};
   key.id_session_uuid = id->session_uuid;
   key.offset_in_ID = offsetof(bNodeTree, previews);
-  key.cache_v = nodetree->previews;
 
   /* TODO: see also `direct_link_nodetree()` in readfile.c. */
 #if 0
@@ -370,7 +369,6 @@ static void node_foreach_cache(ID *id,
     LISTBASE_FOREACH (bNode *, node, &nodetree->nodes) {
       if (node->type == CMP_NODE_MOVIEDISTORTION) {
         key.offset_in_ID = (size_t)BLI_ghashutil_strhash_p(node->name);
-        key.cache_v = node->storage;
         function_callback(id, &key, (void **)&node->storage, 0, user_data);
       }
     }
@@ -489,6 +487,9 @@ static void write_node_socket(BlendWriter *writer, bNodeSocket *sock)
     IDP_BlendWrite(writer, sock->prop);
   }
 
+  /* This property should only be used for group node "interface" sockets. */
+  BLI_assert(sock->default_attribute_name == nullptr);
+
   write_node_socket_default_value(writer, sock);
 }
 static void write_node_socket_interface(BlendWriter *writer, bNodeSocket *sock)
@@ -498,6 +499,8 @@ static void write_node_socket_interface(BlendWriter *writer, bNodeSocket *sock)
   if (sock->prop) {
     IDP_BlendWrite(writer, sock->prop);
   }
+
+  BLO_write_string(writer, sock->default_attribute_name);
 
   write_node_socket_default_value(writer, sock);
 }
@@ -652,6 +655,7 @@ static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
   sock->typeinfo = nullptr;
   BLO_read_data_address(reader, &sock->storage);
   BLO_read_data_address(reader, &sock->default_value);
+  BLO_read_data_address(reader, &sock->default_attribute_name);
   sock->total_inputs = 0; /* Clear runtime data set before drawing. */
   sock->cache = nullptr;
   sock->declaration = nullptr;
@@ -721,7 +725,7 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
         }
         case SH_NODE_TEX_POINTDENSITY: {
           NodeShaderTexPointDensity *npd = (NodeShaderTexPointDensity *)node->storage;
-          memset(&npd->pd, 0, sizeof(npd->pd));
+          npd->pd = blender::dna::shallow_zero_initialize();
           break;
         }
         case SH_NODE_TEX_IMAGE: {
@@ -1161,6 +1165,9 @@ static void node_set_typeinfo(const struct bContext *C,
   }
 }
 
+/* Warning: default_value must either be null or match the typeinfo at this point.
+ * This function is called both for initializing new sockets and after loading files.
+ */
 static void node_socket_set_typeinfo(bNodeTree *ntree,
                                      bNodeSocket *sock,
                                      bNodeSocketType *typeinfo)
@@ -2162,6 +2169,9 @@ static void node_socket_copy(bNodeSocket *sock_dst, const bNodeSocket *sock_src,
       socket_id_user_increment(sock_dst);
     }
   }
+
+  sock_dst->default_attribute_name = static_cast<char *>(
+      MEM_dupallocN(sock_src->default_attribute_name));
 
   sock_dst->stack_index = 0;
   /* XXX some compositor nodes (e.g. image, render layers) still store
@@ -3279,9 +3289,9 @@ static bNodeSocket *make_socket_interface(bNodeTree *ntree,
 
   bNodeSocket *sock = MEM_cnew<bNodeSocket>("socket template");
   BLI_strncpy(sock->idname, stype->idname, sizeof(sock->idname));
-  node_socket_set_typeinfo(ntree, sock, stype);
   sock->in_out = in_out;
   sock->type = SOCK_CUSTOM; /* int type undefined by default */
+  node_socket_set_typeinfo(ntree, sock, stype);
 
   /* assign new unique index */
   const int own_index = ntree->cur_index++;
@@ -3612,19 +3622,17 @@ void nodeClearActive(bNodeTree *ntree)
 
 void nodeSetActive(bNodeTree *ntree, bNode *node)
 {
-  /* make sure only one node is active, and only one per ID type */
+  const bool is_paint_canvas = nodeSupportsActiveFlag(node, NODE_ACTIVE_PAINT_CANVAS);
+  const bool is_texture_class = nodeSupportsActiveFlag(node, NODE_ACTIVE_TEXTURE);
+  int flags_to_set = NODE_ACTIVE;
+  SET_FLAG_FROM_TEST(flags_to_set, is_paint_canvas, NODE_ACTIVE_PAINT_CANVAS);
+  SET_FLAG_FROM_TEST(flags_to_set, is_texture_class, NODE_ACTIVE_TEXTURE);
+
+  /* Make sure only one node is active per node tree. */
   LISTBASE_FOREACH (bNode *, tnode, &ntree->nodes) {
-    tnode->flag &= ~NODE_ACTIVE;
-
-    if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
-      tnode->flag &= ~NODE_ACTIVE_TEXTURE;
-    }
+    tnode->flag &= ~flags_to_set;
   }
-
-  node->flag |= NODE_ACTIVE;
-  if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
-    node->flag |= NODE_ACTIVE_TEXTURE;
-  }
+  node->flag |= flags_to_set;
 }
 
 int nodeSocketIsHidden(const bNodeSocket *sock)
@@ -4494,6 +4502,8 @@ static void registerCompositNodes()
   register_node_type_cmp_premulkey();
   register_node_type_cmp_separate_xyz();
   register_node_type_cmp_combine_xyz();
+  register_node_type_cmp_separate_color();
+  register_node_type_cmp_combine_color();
 
   register_node_type_cmp_diff_matte();
   register_node_type_cmp_distance_matte();
@@ -4566,6 +4576,8 @@ static void registerShaderNodes()
   register_node_type_sh_vect_transform();
   register_node_type_sh_squeeze();
   register_node_type_sh_invert();
+  register_node_type_sh_sepcolor();
+  register_node_type_sh_combcolor();
   register_node_type_sh_seprgb();
   register_node_type_sh_combrgb();
   register_node_type_sh_sephsv();
@@ -4652,6 +4664,8 @@ static void registerTextureNodes()
   register_node_type_tex_distance();
   register_node_type_tex_compose();
   register_node_type_tex_decompose();
+  register_node_type_tex_combine_color();
+  register_node_type_tex_separate_color();
 
   register_node_type_tex_output();
   register_node_type_tex_viewer();
@@ -4813,6 +4827,7 @@ static void registerFunctionNodes()
 {
   register_node_type_fn_align_euler_to_vector();
   register_node_type_fn_boolean_math();
+  register_node_type_fn_combine_color();
   register_node_type_fn_compare();
   register_node_type_fn_float_to_int();
   register_node_type_fn_input_bool();
@@ -4824,6 +4839,7 @@ static void registerFunctionNodes()
   register_node_type_fn_random_value();
   register_node_type_fn_replace_string();
   register_node_type_fn_rotate_euler();
+  register_node_type_fn_separate_color();
   register_node_type_fn_slice_string();
   register_node_type_fn_string_length();
   register_node_type_fn_value_to_string();

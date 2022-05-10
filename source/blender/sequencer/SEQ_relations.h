@@ -19,6 +19,10 @@ struct Scene;
 struct Sequence;
 
 /**
+ * Check if one sequence is input to the other.
+ */
+bool SEQ_relation_is_effect_of_strip(const struct Sequence *effect, const struct Sequence *input);
+/**
  * Function to free imbuf and anim data on changes.
  */
 void SEQ_relations_sequence_free_anim(struct Sequence *seq);
@@ -64,6 +68,7 @@ void SEQ_cache_iterate(
 struct Sequence *SEQ_find_metastrip_by_sequence(ListBase *seqbase /* = ed->seqbase */,
                                                 struct Sequence *meta /* = NULL */,
                                                 struct Sequence *seq);
+
 #ifdef __cplusplus
 }
 #endif

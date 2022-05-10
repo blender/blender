@@ -229,8 +229,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   BM_mesh_free(bm);
 
-  BKE_mesh_normals_tag_dirty(result);
-
   return result;
 }
 

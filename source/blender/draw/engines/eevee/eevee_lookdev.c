@@ -64,7 +64,7 @@ static void eevee_lookdev_hdri_preview_init(EEVEE_Data *vedata, EEVEE_ViewLayerD
 
     DRW_PASS_CREATE(psl->lookdev_diffuse_pass, state);
     grp = DRW_shgroup_create(sh, psl->lookdev_diffuse_pass);
-    EEVEE_material_bind_resources(grp, gpumat, sldata, vedata, NULL, NULL, false, false);
+    EEVEE_material_bind_resources(grp, gpumat, sldata, vedata, NULL, NULL, -1.0f, false, false);
     DRW_shgroup_add_material_resources(grp, gpumat);
     DRW_shgroup_call(grp, sphere, NULL);
   }
@@ -75,7 +75,7 @@ static void eevee_lookdev_hdri_preview_init(EEVEE_Data *vedata, EEVEE_ViewLayerD
 
     DRW_PASS_CREATE(psl->lookdev_glossy_pass, state);
     grp = DRW_shgroup_create(sh, psl->lookdev_glossy_pass);
-    EEVEE_material_bind_resources(grp, gpumat, sldata, vedata, NULL, NULL, false, false);
+    EEVEE_material_bind_resources(grp, gpumat, sldata, vedata, NULL, NULL, -1.0f, false, false);
     DRW_shgroup_add_material_resources(grp, gpumat);
     DRW_shgroup_call(grp, sphere, NULL);
   }
@@ -112,7 +112,7 @@ void EEVEE_lookdev_init(EEVEE_Data *vedata)
 
     if (sphere_size != effects->sphere_size || rect->xmax != effects->anchor[0] ||
         rect->ymin != effects->anchor[1]) {
-      /* Make sphere resolution adaptive to viewport_scale, dpi and lookdev_sphere_size */
+      /* Make sphere resolution adaptive to viewport_scale, DPI and #U.lookdev_sphere_size. */
       float res_scale = clamp_f(
           (U.lookdev_sphere_size / 400.0f) * viewport_scale * U.dpi_fac, 0.1f, 1.0f);
 
@@ -233,6 +233,7 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
       DRW_shgroup_uniform_texture_ex(grp, "studioLight", sl->equirect_radiance_gputexture, state);
       /* Do not fade-out when doing probe rendering, only when drawing the background. */
       DRW_shgroup_uniform_float_copy(grp, "backgroundAlpha", 1.0f);
+      DRW_shgroup_uniform_float_copy(grp, "studioLightBlur", 0.0f);
     }
     else {
       float background_alpha = g_data->background_alpha * shading->studiolight_background;
@@ -240,6 +241,7 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
       DRW_shgroup_uniform_float_copy(grp, "backgroundAlpha", background_alpha);
       DRW_shgroup_uniform_float_copy(grp, "studioLightBlur", studiolight_blur);
       DRW_shgroup_uniform_texture(grp, "probeCubes", txl->lookdev_cube_tx);
+      DRW_shgroup_uniform_float_copy(grp, "studioLightIntensity", 1.0f);
     }
 
     /* Common UBOs are setup latter. */

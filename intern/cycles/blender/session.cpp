@@ -508,87 +508,139 @@ void BlenderSession::render_frame_finish()
   full_buffer_files_.clear();
 }
 
-static PassType bake_type_to_pass(const string &bake_type_str, const int bake_filter)
+static bool bake_setup_pass(Scene *scene, const string &bake_type_str, const int bake_filter)
 {
+  Integrator *integrator = scene->integrator;
   const char *bake_type = bake_type_str.c_str();
 
-  /* data passes */
+  PassType type = PASS_NONE;
+  bool use_direct_light = false;
+  bool use_indirect_light = false;
+  bool include_albedo = false;
+
+  /* Data passes. */
   if (strcmp(bake_type, "POSITION") == 0) {
-    return PASS_POSITION;
+    type = PASS_POSITION;
   }
   else if (strcmp(bake_type, "NORMAL") == 0) {
-    return PASS_NORMAL;
+    type = PASS_NORMAL;
   }
   else if (strcmp(bake_type, "UV") == 0) {
-    return PASS_UV;
+    type = PASS_UV;
   }
   else if (strcmp(bake_type, "ROUGHNESS") == 0) {
-    return PASS_ROUGHNESS;
+    type = PASS_ROUGHNESS;
   }
   else if (strcmp(bake_type, "EMIT") == 0) {
-    return PASS_EMISSION;
+    type = PASS_EMISSION;
   }
-  /* light passes */
+  /* Environment pass. */
+  else if (strcmp(bake_type, "ENVIRONMENT") == 0) {
+    type = PASS_BACKGROUND;
+  }
+  /* AO passes. */
   else if (strcmp(bake_type, "AO") == 0) {
-    return PASS_AO;
+    type = PASS_AO;
   }
+  /* Combined pass. */
   else if (strcmp(bake_type, "COMBINED") == 0) {
-    return PASS_COMBINED;
+    type = PASS_COMBINED;
+
+    use_direct_light = (bake_filter & BL::BakeSettings::pass_filter_DIRECT) != 0;
+    use_indirect_light = (bake_filter & BL::BakeSettings::pass_filter_INDIRECT) != 0;
+    include_albedo = (bake_filter & BL::BakeSettings::pass_filter_COLOR);
+
+    integrator->set_use_diffuse((bake_filter & BL::BakeSettings::pass_filter_DIFFUSE) != 0);
+    integrator->set_use_glossy((bake_filter & BL::BakeSettings::pass_filter_GLOSSY) != 0);
+    integrator->set_use_transmission((bake_filter & BL::BakeSettings::pass_filter_TRANSMISSION) !=
+                                     0);
+    integrator->set_use_emission((bake_filter & BL::BakeSettings::pass_filter_EMIT) != 0);
   }
+  /* Shadow pass. */
   else if (strcmp(bake_type, "SHADOW") == 0) {
-    return PASS_SHADOW;
+    type = PASS_SHADOW;
+    use_direct_light = true;
   }
+  /* Light component passes. */
   else if (strcmp(bake_type, "DIFFUSE") == 0) {
     if ((bake_filter & BL::BakeSettings::pass_filter_DIRECT) &&
         bake_filter & BL::BakeSettings::pass_filter_INDIRECT) {
-      return PASS_DIFFUSE;
+      type = PASS_DIFFUSE;
+      use_direct_light = true;
+      use_indirect_light = true;
     }
     else if (bake_filter & BL::BakeSettings::pass_filter_DIRECT) {
-      return PASS_DIFFUSE_DIRECT;
+      type = PASS_DIFFUSE_DIRECT;
+      use_direct_light = true;
     }
     else if (bake_filter & BL::BakeSettings::pass_filter_INDIRECT) {
-      return PASS_DIFFUSE_INDIRECT;
+      type = PASS_DIFFUSE_INDIRECT;
+      use_indirect_light = true;
     }
     else {
-      return PASS_DIFFUSE_COLOR;
+      type = PASS_DIFFUSE_COLOR;
     }
+
+    include_albedo = (bake_filter & BL::BakeSettings::pass_filter_COLOR);
   }
   else if (strcmp(bake_type, "GLOSSY") == 0) {
     if ((bake_filter & BL::BakeSettings::pass_filter_DIRECT) &&
         bake_filter & BL::BakeSettings::pass_filter_INDIRECT) {
-      return PASS_GLOSSY;
+      type = PASS_GLOSSY;
+      use_direct_light = true;
+      use_indirect_light = true;
     }
     else if (bake_filter & BL::BakeSettings::pass_filter_DIRECT) {
-      return PASS_GLOSSY_DIRECT;
+      type = PASS_GLOSSY_DIRECT;
+      use_direct_light = true;
     }
     else if (bake_filter & BL::BakeSettings::pass_filter_INDIRECT) {
-      return PASS_GLOSSY_INDIRECT;
+      type = PASS_GLOSSY_INDIRECT;
+      use_indirect_light = true;
     }
     else {
-      return PASS_GLOSSY_COLOR;
+      type = PASS_GLOSSY_COLOR;
     }
+
+    include_albedo = (bake_filter & BL::BakeSettings::pass_filter_COLOR);
   }
   else if (strcmp(bake_type, "TRANSMISSION") == 0) {
     if ((bake_filter & BL::BakeSettings::pass_filter_DIRECT) &&
         bake_filter & BL::BakeSettings::pass_filter_INDIRECT) {
-      return PASS_TRANSMISSION;
+      type = PASS_TRANSMISSION;
+      use_direct_light = true;
+      use_indirect_light = true;
     }
     else if (bake_filter & BL::BakeSettings::pass_filter_DIRECT) {
-      return PASS_TRANSMISSION_DIRECT;
+      type = PASS_TRANSMISSION_DIRECT;
+      use_direct_light = true;
     }
     else if (bake_filter & BL::BakeSettings::pass_filter_INDIRECT) {
-      return PASS_TRANSMISSION_INDIRECT;
+      type = PASS_TRANSMISSION_INDIRECT;
+      use_indirect_light = true;
     }
     else {
-      return PASS_TRANSMISSION_COLOR;
+      type = PASS_TRANSMISSION_COLOR;
     }
-  }
-  /* extra */
-  else if (strcmp(bake_type, "ENVIRONMENT") == 0) {
-    return PASS_BACKGROUND;
+
+    include_albedo = (bake_filter & BL::BakeSettings::pass_filter_COLOR);
   }
 
-  return PASS_COMBINED;
+  if (type == PASS_NONE) {
+    return false;
+  }
+
+  /* Create pass. */
+  Pass *pass = scene->create_node<Pass>();
+  pass->set_name(ustring("Combined"));
+  pass->set_type(type);
+  pass->set_include_albedo(include_albedo);
+
+  /* Disable direct indirect light for performance when not needed. */
+  integrator->set_use_direct_light(use_direct_light);
+  integrator->set_use_indirect_light(use_indirect_light);
+
+  return true;
 }
 
 void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
@@ -603,39 +655,25 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
   /* Initialize bake manager, before we load the baking kernels. */
   scene->bake_manager->set(scene, b_object.name());
 
-  /* Add render pass that we want to bake, and name it Combined so that it is
-   * used as that on the Blender side. */
-  Pass *pass = scene->create_node<Pass>();
-  pass->set_name(ustring("Combined"));
-  pass->set_type(bake_type_to_pass(bake_type, bake_filter));
-  pass->set_include_albedo((bake_filter & BL::BakeSettings::pass_filter_COLOR));
-
   session->set_display_driver(nullptr);
   session->set_output_driver(make_unique<BlenderOutputDriver>(b_engine));
 
+  /* Sync scene. */
+  BL::Object b_camera_override(b_engine.camera_override());
+  sync->sync_camera(b_render, b_camera_override, width, height, "");
+  sync->sync_data(
+      b_render, b_depsgraph, b_v3d, b_camera_override, width, height, &python_thread_state);
+
+  /* Add render pass that we want to bake, and name it Combined so that it is
+   * used as that on the Blender side. */
+  if (!bake_setup_pass(scene, bake_type, bake_filter)) {
+    session->cancel(true);
+  }
+
+  /* Always use transparent background for baking. */
+  scene->background->set_transparent(true);
+
   if (!session->progress.get_cancel()) {
-    /* Sync scene. */
-    BL::Object b_camera_override(b_engine.camera_override());
-    sync->sync_camera(b_render, b_camera_override, width, height, "");
-    sync->sync_data(
-        b_render, b_depsgraph, b_v3d, b_camera_override, width, height, &python_thread_state);
-
-    /* Filtering settings for combined pass. */
-    if (pass->get_type() == PASS_COMBINED) {
-      Integrator *integrator = scene->integrator;
-      integrator->set_use_direct_light((bake_filter & BL::BakeSettings::pass_filter_DIRECT) != 0);
-      integrator->set_use_indirect_light((bake_filter & BL::BakeSettings::pass_filter_INDIRECT) !=
-                                         0);
-      integrator->set_use_diffuse((bake_filter & BL::BakeSettings::pass_filter_DIFFUSE) != 0);
-      integrator->set_use_glossy((bake_filter & BL::BakeSettings::pass_filter_GLOSSY) != 0);
-      integrator->set_use_transmission(
-          (bake_filter & BL::BakeSettings::pass_filter_TRANSMISSION) != 0);
-      integrator->set_use_emission((bake_filter & BL::BakeSettings::pass_filter_EMIT) != 0);
-    }
-
-    /* Always use transparent background for baking. */
-    scene->background->set_transparent(true);
-
     /* Load built-in images from Blender. */
     builtin_images_load();
   }
@@ -643,10 +681,12 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
   /* Object might have been disabled for rendering or excluded in some
    * other way, in that case Blender will report a warning afterwards. */
   bool object_found = false;
-  foreach (Object *ob, scene->objects) {
-    if (ob->name == b_object.name()) {
-      object_found = true;
-      break;
+  if (!session->progress.get_cancel()) {
+    foreach (Object *ob, scene->objects) {
+      if (ob->name == b_object.name()) {
+        object_found = true;
+        break;
+      }
     }
   }
 

@@ -756,10 +756,10 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
       }
     }
 
-    if (do_reload) {
-      BKE_blendfile_link_append_context_flag_set(
-          lapp_context, BLO_LIBLINK_USE_PLACEHOLDERS | BLO_LIBLINK_FORCE_INDIRECT, true);
-    }
+    BKE_blendfile_link_append_context_flag_set(lapp_context,
+                                               BLO_LIBLINK_FORCE_INDIRECT |
+                                                   (do_reload ? BLO_LIBLINK_USE_PLACEHOLDERS : 0),
+                                               true);
 
     BKE_blendfile_library_relocate(lapp_context, op->reports, lib, do_reload);
 

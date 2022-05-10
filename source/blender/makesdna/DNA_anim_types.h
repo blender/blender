@@ -304,7 +304,7 @@ typedef struct DriverTarget {
   char *rna_path;
 
   /**
-   * Name of the posebone to use
+   * Name of the pose-bone to use
    * (for vars where DTAR_FLAG_STRUCT_REF is used) - `MAX_ID_NAME - 2`.
    */
   char pchan_name[64];
@@ -918,9 +918,9 @@ typedef struct KS_Path {
   /** Index that path affects. */
   int array_index;
 
-  /** (eInsertKeyFlags) settings to supply insertkey() with. */
+  /** (#eInsertKeyFlags) settings to supply insert-key() with. */
   short keyingflag;
-  /** (eInsertKeyFlags) for each flag set, the relevant keyingflag bit overrides the default. */
+  /** (#eInsertKeyFlags) for each flag set, the relevant keying-flag bit overrides the default. */
   short keyingoverride;
 } KS_Path;
 
@@ -1128,6 +1128,8 @@ typedef enum eAnimData_Flag {
   ADT_NLA_EDIT_NOMAP = (1 << 3),
   /** NLA-Strip F-Curves are expanded in UI. */
   ADT_NLA_SKEYS_COLLAPSED = (1 << 4),
+  /* Evaluate tracks above tweaked strip. Only relevant in tweak mode. */
+  ADT_NLA_EVAL_UPPER_TRACKS = (1 << 5),
 
   /** Drivers expanded in UI. */
   ADT_DRIVERS_COLLAPSED = (1 << 10),

@@ -85,9 +85,9 @@ STRING(REGEX REPLACE "([0-9]+)[.]([0-9]+).*" "\\1_\\2" _openexr_libs_ver ${OPENE
 IF(OPENEXR_VERSION VERSION_GREATER_EQUAL "3.0.0")
   SET(_openexr_FIND_COMPONENTS
     Iex
-    IlmThread
     OpenEXR
     OpenEXRCore
+    IlmThread
   )
 ELSE()
   SET(_openexr_FIND_COMPONENTS

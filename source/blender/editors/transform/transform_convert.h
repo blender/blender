@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "RE_engine.h"
+
 struct BMEditMesh;
 struct BMesh;
 struct BezTriple;

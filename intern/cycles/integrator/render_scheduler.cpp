@@ -750,6 +750,11 @@ double RenderScheduler::guess_display_update_interval_in_seconds_for_num_samples
 int RenderScheduler::calculate_num_samples_per_update() const
 {
   const double time_per_sample_average = path_trace_time_.get_average();
+  /* Fall back to 1 sample if we have not recorded a time yet. */
+  if (time_per_sample_average == 0.0) {
+    return 1;
+  }
+
   const double num_samples_in_second = pixel_size_ * pixel_size_ / time_per_sample_average;
 
   const double update_interval_in_seconds = guess_display_update_interval_in_seconds();

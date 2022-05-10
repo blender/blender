@@ -9,43 +9,39 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "DNA_gpencil_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_sound_types.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
-#include "BLI_utildefines.h"
+#include "BLI_math_base.h"
 
-#include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_lib_id.h"
 #include "BKE_lib_remap.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer_offscreen.h"
 
 #include "GPU_state.h"
 
+#include "ED_markers.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_time_scrub_ui.h"
 #include "ED_transform.h"
 #include "ED_view3d.h"
 #include "ED_view3d_offscreen.h" /* Only for sequencer view3d drawing callback. */
 
 #include "WM_api.h"
 #include "WM_message.h"
-#include "WM_types.h"
 
-#include "RNA_access.h"
-
+#include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 #include "SEQ_transform.h"
 #include "SEQ_utils.h"
 
 #include "UI_interface.h"
-#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "IMB_imbuf.h"
@@ -173,7 +169,7 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   region->v2d.tot.xmin = 0.0f;
   region->v2d.tot.ymin = 0.0f;
   region->v2d.tot.xmax = scene->r.efra;
-  region->v2d.tot.ymax = 8.0f;
+  region->v2d.tot.ymax = 8.5f;
 
   region->v2d.cur = region->v2d.tot;
 
@@ -331,6 +327,31 @@ static void sequencer_refresh(const bContext *C, ScrArea *area)
       break;
   }
 
+  ARegion *region_channels = sequencer_find_region(area, RGN_TYPE_CHANNELS);
+  if (sseq->view == SEQ_VIEW_SEQUENCE) {
+    if (region_channels && (region_channels->flag & RGN_FLAG_HIDDEN)) {
+      region_channels->flag &= ~RGN_FLAG_HIDDEN;
+      region_channels->v2d.flag &= ~V2D_IS_INIT;
+      view_changed = true;
+    }
+    if (region_channels && region_channels->alignment != RGN_ALIGN_LEFT) {
+      region_channels->alignment = RGN_ALIGN_LEFT;
+      view_changed = true;
+    }
+  }
+  else {
+    if (region_channels && !(region_channels->flag & RGN_FLAG_HIDDEN)) {
+      region_channels->flag |= RGN_FLAG_HIDDEN;
+      region_channels->v2d.flag &= ~V2D_IS_INIT;
+      WM_event_remove_handlers((bContext *)C, &region_channels->handlers);
+      view_changed = true;
+    }
+    if (region_channels && region_channels->alignment != RGN_ALIGN_NONE) {
+      region_channels->alignment = RGN_ALIGN_NONE;
+      view_changed = true;
+    }
+  }
+
   if (view_changed) {
     ED_area_init(wm, window, area);
     ED_area_tag_redraw(area);
@@ -378,128 +399,6 @@ static void sequencer_listener(const wmSpaceTypeListenerParams *params)
       break;
   }
 }
-
-/* ************* dropboxes ************* */
-
-static bool image_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
-{
-  ARegion *region = CTX_wm_region(C);
-  Scene *scene = CTX_data_scene(C);
-  int hand;
-
-  if (drag->type == WM_DRAG_PATH) {
-    if (ELEM(drag->icon, ICON_FILE_IMAGE, ICON_FILE_BLANK)) { /* Rule might not work? */
-      if (find_nearest_seq(scene, &region->v2d, &hand, event->mval) == NULL) {
-        return 1;
-      }
-    }
-  }
-
-  return WM_drag_is_ID_type(drag, ID_IM);
-}
-
-static bool movie_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
-{
-  ARegion *region = CTX_wm_region(C);
-  Scene *scene = CTX_data_scene(C);
-  int hand;
-
-  if (drag->type == WM_DRAG_PATH) {
-    if (ELEM(drag->icon, 0, ICON_FILE_MOVIE, ICON_FILE_BLANK)) { /* Rule might not work? */
-      if (find_nearest_seq(scene, &region->v2d, &hand, event->mval) == NULL) {
-        return 1;
-      }
-    }
-  }
-
-  return WM_drag_is_ID_type(drag, ID_MC);
-}
-
-static bool sound_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
-{
-  ARegion *region = CTX_wm_region(C);
-  Scene *scene = CTX_data_scene(C);
-  int hand;
-
-  if (drag->type == WM_DRAG_PATH) {
-    if (ELEM(drag->icon, ICON_FILE_SOUND, ICON_FILE_BLANK)) { /* Rule might not work? */
-      if (find_nearest_seq(scene, &region->v2d, &hand, event->mval) == NULL) {
-        return 1;
-      }
-    }
-  }
-
-  return WM_drag_is_ID_type(drag, ID_SO);
-}
-
-static void sequencer_drop_copy(wmDrag *drag, wmDropBox *drop)
-{
-  ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
-  /* ID dropped. */
-  if (id != NULL) {
-    const ID_Type id_type = GS(id->name);
-    if (id_type == ID_IM) {
-      Image *ima = (Image *)id;
-      PointerRNA itemptr;
-      char dir[FILE_MAX], file[FILE_MAX];
-      BLI_split_dirfile(ima->filepath, dir, file, sizeof(dir), sizeof(file));
-      RNA_string_set(drop->ptr, "directory", dir);
-      RNA_collection_clear(drop->ptr, "files");
-      RNA_collection_add(drop->ptr, "files", &itemptr);
-      RNA_string_set(&itemptr, "name", file);
-    }
-    else if (id_type == ID_MC) {
-      MovieClip *clip = (MovieClip *)id;
-      RNA_string_set(drop->ptr, "filepath", clip->filepath);
-      RNA_struct_property_unset(drop->ptr, "name");
-    }
-    else if (id_type == ID_SO) {
-      bSound *sound = (bSound *)id;
-      RNA_string_set(drop->ptr, "filepath", sound->filepath);
-      RNA_struct_property_unset(drop->ptr, "name");
-    }
-  }
-  /* Path dropped. */
-  else if (drag->path[0]) {
-    if (RNA_struct_find_property(drop->ptr, "filepath")) {
-      RNA_string_set(drop->ptr, "filepath", drag->path);
-    }
-    if (RNA_struct_find_property(drop->ptr, "directory")) {
-      PointerRNA itemptr;
-      char dir[FILE_MAX], file[FILE_MAX];
-
-      BLI_split_dirfile(drag->path, dir, file, sizeof(dir), sizeof(file));
-
-      RNA_string_set(drop->ptr, "directory", dir);
-
-      RNA_collection_clear(drop->ptr, "files");
-      RNA_collection_add(drop->ptr, "files", &itemptr);
-      RNA_string_set(&itemptr, "name", file);
-    }
-  }
-}
-
-/* This region dropbox definition. */
-
-static void sequencer_dropboxes_add_to_lb(ListBase *lb)
-{
-  WM_dropbox_add(
-      lb, "SEQUENCER_OT_image_strip_add", image_drop_poll, sequencer_drop_copy, NULL, NULL);
-  WM_dropbox_add(
-      lb, "SEQUENCER_OT_movie_strip_add", movie_drop_poll, sequencer_drop_copy, NULL, NULL);
-  WM_dropbox_add(
-      lb, "SEQUENCER_OT_sound_strip_add", sound_drop_poll, sequencer_drop_copy, NULL, NULL);
-}
-
-static void sequencer_dropboxes(void)
-{
-  ListBase *lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
-  sequencer_dropboxes_add_to_lb(lb);
-  lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_PREVIEW);
-  sequencer_dropboxes_add_to_lb(lb);
-}
-
-/* ************* end drop *********** */
 
 /* DO NOT make this static, this hides the symbol and breaks API generation script. */
 extern const char *sequencer_context_dir[]; /* Quiet warning. */
@@ -638,6 +537,93 @@ static void sequencer_main_region_draw(const bContext *C, ARegion *region)
 static void sequencer_main_region_draw_overlay(const bContext *C, ARegion *region)
 {
   draw_timeline_seq_display(C, region);
+}
+
+static void sequencer_main_clamp_view(const bContext *C, ARegion *region)
+{
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+
+  if ((sseq->flag & SEQ_CLAMP_VIEW) == 0) {
+    return;
+  }
+
+  View2D *v2d = &region->v2d;
+  Editing *ed = SEQ_editing_get(CTX_data_scene(C));
+
+  if (ed == NULL) {
+    return;
+  }
+
+  /* Transformation uses edge panning to move view. Also if smooth view is running, don't apply
+   * clamping to prevent overriding this functionality. */
+  if (G.moving || v2d->smooth_timer != NULL) {
+    return;
+  }
+
+  /* Initialize default view with 7 channels, that are visible even if empty. */
+  rctf strip_boundbox;
+  BLI_rctf_init(&strip_boundbox, 0.0f, 0.0f, 1.0f, 7.0f);
+  SEQ_timeline_expand_boundbox(ed->seqbasep, &strip_boundbox);
+
+  /* Clamp Y max. Scrubbing area height must be added, so strips aren't occluded. */
+  rcti scrub_rect;
+  ED_time_scrub_region_rect_get(region, &scrub_rect);
+  const float pixel_view_size_y = BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
+  const float scrub_bar_height = BLI_rcti_size_y(&scrub_rect) * pixel_view_size_y;
+
+  /* Channel n has range of <n, n+1>. */
+  strip_boundbox.ymax += 1.0f + scrub_bar_height;
+
+  /* Clamp Y min. Scroller and marker area height must be added, so strips aren't occluded. */
+  float scroll_bar_height = v2d->hor.ymax * pixel_view_size_y;
+
+  ListBase *markers = ED_context_get_markers(C);
+  if (markers != NULL && !BLI_listbase_is_empty(markers)) {
+    float markers_size = UI_MARKER_MARGIN_Y * pixel_view_size_y;
+    strip_boundbox.ymin -= markers_size;
+  }
+  else {
+    strip_boundbox.ymin -= scroll_bar_height;
+  }
+
+  /* If strip is deleted, don't move view automatically, keep current range until it is changed. */
+  strip_boundbox.ymax = max_ff(sseq->runtime.timeline_clamp_custom_range, strip_boundbox.ymax);
+
+  rctf view_clamped = v2d->cur;
+
+  const float range_y = BLI_rctf_size_y(&view_clamped);
+  if (view_clamped.ymax > strip_boundbox.ymax) {
+    view_clamped.ymax = strip_boundbox.ymax;
+    view_clamped.ymin = max_ff(strip_boundbox.ymin, strip_boundbox.ymax - range_y);
+  }
+  if (view_clamped.ymin < strip_boundbox.ymin) {
+    view_clamped.ymin = strip_boundbox.ymin;
+    view_clamped.ymax = min_ff(strip_boundbox.ymax, strip_boundbox.ymin + range_y);
+  }
+
+  v2d->cur = view_clamped;
+}
+
+static void sequencer_main_region_clamp_custom_set(const bContext *C, ARegion *region)
+{
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+  View2D *v2d = &region->v2d;
+
+  if ((v2d->flag & V2D_IS_NAVIGATING) == 0) {
+    sseq->runtime.timeline_clamp_custom_range = v2d->cur.ymax;
+  }
+}
+
+static void sequencer_main_region_layout(const bContext *C, ARegion *region)
+{
+  sequencer_main_region_clamp_custom_set(C, region);
+  sequencer_main_clamp_view(C, region);
+}
+
+static void sequencer_main_region_view2d_changed(const bContext *C, ARegion *region)
+{
+  sequencer_main_region_clamp_custom_set(C, region);
+  sequencer_main_clamp_view(C, region);
 }
 
 static void sequencer_main_region_listener(const wmRegionListenerParams *params)
@@ -1032,6 +1018,8 @@ void ED_spacetype_sequencer(void)
   art->init = sequencer_main_region_init;
   art->draw = sequencer_main_region_draw;
   art->draw_overlay = sequencer_main_region_draw_overlay;
+  art->layout = sequencer_main_region_layout;
+  art->on_view2d_changed = sequencer_main_region_view2d_changed;
   art->listener = sequencer_main_region_listener;
   art->message_subscribe = sequencer_main_region_message_subscribe;
   /* NOTE: inclusion of #ED_KEYMAP_GIZMO is currently for scripts and isn't used by default. */

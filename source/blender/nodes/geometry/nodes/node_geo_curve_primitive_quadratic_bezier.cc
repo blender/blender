@@ -36,7 +36,7 @@ static Curves *create_quadratic_bezier_curve(const float3 p1,
   Curves *curves_id = bke::curves_new_nomain_single(resolution + 1, CURVE_TYPE_POLY);
   bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
 
-  MutableSpan<float3> positions = curves.positions();
+  MutableSpan<float3> positions = curves.positions_for_write();
 
   const float step = 1.0f / resolution;
   for (const int i : IndexRange(resolution + 1)) {

@@ -302,8 +302,6 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
     }
   }
 
-  BKE_mesh_normals_tag_dirty(result);
-
   return result;
 }
 
@@ -361,7 +359,6 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
 
   if (omd->geometry_mode == MOD_OCEAN_GEOM_GENERATE) {
     result = generate_ocean_geometry(omd, mesh, resolution);
-    BKE_mesh_normals_tag_dirty(result);
   }
   else if (omd->geometry_mode == MOD_OCEAN_GEOM_DISPLACE) {
     result = (Mesh *)BKE_id_copy_ex(NULL, &mesh->id, NULL, LIB_ID_COPY_LOCALIZE);
@@ -376,17 +373,17 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
   /* add vcols before displacement - allows lookup based on position */
 
   if (omd->flag & MOD_OCEAN_GENERATE_FOAM) {
-    if (CustomData_number_of_layers(&result->ldata, CD_MLOOPCOL) < MAX_MCOL) {
+    if (CustomData_number_of_layers(&result->ldata, CD_PROP_BYTE_COLOR) < MAX_MCOL) {
       const int polys_num = result->totpoly;
       const int loops_num = result->totloop;
       MLoop *mloops = result->mloop;
       MLoopCol *mloopcols = CustomData_add_layer_named(
-          &result->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, loops_num, omd->foamlayername);
+          &result->ldata, CD_PROP_BYTE_COLOR, CD_CALLOC, NULL, loops_num, omd->foamlayername);
 
       MLoopCol *mloopcols_spray = NULL;
       if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
         mloopcols_spray = CustomData_add_layer_named(
-            &result->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, loops_num, omd->spraylayername);
+            &result->ldata, CD_PROP_BYTE_COLOR, CD_CALLOC, NULL, loops_num, omd->spraylayername);
       }
 
       if (mloopcols) { /* unlikely to fail */
@@ -472,6 +469,8 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
     }
   }
 
+  BKE_mesh_normals_tag_dirty(mesh);
+
   if (allocated_ocean) {
     BKE_ocean_free(omd->ocean);
     omd->ocean = NULL;
@@ -490,15 +489,7 @@ static Mesh *doOcean(ModifierData *UNUSED(md), const ModifierEvalContext *UNUSED
 
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  Mesh *result;
-
-  result = doOcean(md, ctx, mesh);
-
-  if (result != mesh) {
-    BKE_mesh_normals_tag_dirty(result);
-  }
-
-  return result;
+  return doOcean(md, ctx, mesh);
 }
 // #define WITH_OCEANSIM
 static void panel_draw(const bContext *UNUSED(C), Panel *panel)

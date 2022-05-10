@@ -179,8 +179,12 @@ bool Geometry::has_true_displacement() const
   return false;
 }
 
-void Geometry::compute_bvh(
-    Device *device, DeviceScene *dscene, SceneParams *params, Progress *progress, size_t n, size_t total)
+void Geometry::compute_bvh(Device *device,
+                           DeviceScene *dscene,
+                           SceneParams *params,
+                           Progress *progress,
+                           size_t n,
+                           size_t total)
 {
   if (progress->get_cancel())
     return;
@@ -614,6 +618,7 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
         for (size_t k = 0; k < size; k++) {
           attr_uchar4[offset + k] = data[k];
         }
+        attr_uchar4.tag_modified();
       }
       attr_uchar4_offset += size;
     }
@@ -626,6 +631,7 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
         for (size_t k = 0; k < size; k++) {
           attr_float[offset + k] = data[k];
         }
+        attr_float.tag_modified();
       }
       attr_float_offset += size;
     }
@@ -638,6 +644,7 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
         for (size_t k = 0; k < size; k++) {
           attr_float2[offset + k] = data[k];
         }
+        attr_float2.tag_modified();
       }
       attr_float2_offset += size;
     }
@@ -650,6 +657,7 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
         for (size_t k = 0; k < size * 3; k++) {
           attr_float4[offset + k] = (&tfm->x)[k];
         }
+        attr_float4.tag_modified();
       }
       attr_float4_offset += size * 3;
     }
@@ -662,6 +670,7 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
         for (size_t k = 0; k < size; k++) {
           attr_float4[offset + k] = data[k];
         }
+        attr_float4.tag_modified();
       }
       attr_float4_offset += size;
     }
@@ -674,6 +683,7 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
         for (size_t k = 0; k < size; k++) {
           attr_float3[offset + k] = data[k];
         }
+        attr_float3.tag_modified();
       }
       attr_float3_offset += size;
     }
@@ -1537,7 +1547,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
       }
 
       Volume *volume = static_cast<Volume *>(geom);
-      create_volume_mesh(volume, progress);
+      create_volume_mesh(scene, volume, progress);
 
       /* always reallocate when we have a volume, as we need to rebuild the BVH */
       device_update_flags |= DEVICE_MESH_DATA_NEEDS_REALLOC;

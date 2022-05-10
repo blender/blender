@@ -255,7 +255,7 @@ size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, size_t
  *
  * \param str: Typically this is the first character in a quoted string.
  * Where the character before `*str` would be `"`.
-
+ *
  * \return The pointer to the first un-escaped quote.
  */
 const char *BLI_str_escape_find_quote(const char *str) ATTR_NONNULL();
@@ -343,8 +343,16 @@ int BLI_strcmp_ignore_pad(const char *str1, const char *str2, char pad) ATTR_WAR
  */
 size_t BLI_strnlen(const char *str, size_t maxlen) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
+/**
+ * String case conversion, not affected by locale.
+ */
+
 void BLI_str_tolower_ascii(char *str, size_t len) ATTR_NONNULL();
 void BLI_str_toupper_ascii(char *str, size_t len) ATTR_NONNULL();
+
+char BLI_tolower_ascii(const char c);
+char BLI_toupper_ascii(const char c);
+
 /**
  * Strip white-space from end of the string.
  */

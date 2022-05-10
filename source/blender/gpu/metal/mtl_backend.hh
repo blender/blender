@@ -11,8 +11,7 @@
 #include "gpu_backend.hh"
 #include "mtl_capabilities.hh"
 
-namespace blender {
-namespace gpu {
+namespace blender::gpu {
 
 class Batch;
 class DrawList;
@@ -20,7 +19,6 @@ class FrameBuffer;
 class IndexBuf;
 class QueryPool;
 class Shader;
-class Texture;
 class UniformBuf;
 class VertBuf;
 class MTLContext;
@@ -31,6 +29,11 @@ class MTLBackend : public GPUBackend {
  public:
   /* Capabilities. */
   static MTLCapabilities capabilities;
+
+  static MTLCapabilities &get_capabilities()
+  {
+    return MTLBackend::capabilities;
+  }
 
   inline ~MTLBackend()
   {
@@ -49,6 +52,11 @@ class MTLBackend : public GPUBackend {
     /* Placeholder */
   }
 
+  void compute_dispatch_indirect(StorageBuf *indirect_buf) override
+  {
+    /* Placeholder */
+  }
+
   /* MTL Allocators need to be implemented in separate .mm files, due to allocation of Objective-C
    * objects. */
   Context *context_alloc(void *ghost_window) override;
@@ -60,6 +68,7 @@ class MTLBackend : public GPUBackend {
   Shader *shader_alloc(const char *name) override;
   Texture *texture_alloc(const char *name) override;
   UniformBuf *uniformbuf_alloc(int size, const char *name) override;
+  StorageBuf *storagebuf_alloc(int size, GPUUsageType usage, const char *name) override;
   VertBuf *vertbuf_alloc() override;
 
   /* Render Frame Coordination. */
@@ -75,5 +84,4 @@ class MTLBackend : public GPUBackend {
   static void capabilities_init(MTLContext *ctx);
 };
 
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu

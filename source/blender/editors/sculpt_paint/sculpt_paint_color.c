@@ -158,7 +158,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     float noise = 1.0f;
     const float density = ss->cache->paint_brush.density;
     if (density < 1.0f) {
-      const float hash_noise = (float) BLI_hash_int_01(ss->cache->density_seed * 1000 * vd.index);
+      const float hash_noise = (float)BLI_hash_int_01(ss->cache->density_seed * 1000 * vd.index);
       if (hash_noise > density) {
         noise = density * hash_noise;
         fade = fade * noise;
@@ -240,8 +240,14 @@ static void sample_wet_paint_reduce(const void *__restrict UNUSED(userdata),
   add_v4_v4(join->color, swptd->color);
 }
 
-void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+void SCULPT_do_paint_brush(
+    PaintModeSettings *paint_mode_settings, Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
+  if (SCULPT_use_image_paint_brush(paint_mode_settings, ob)) {
+    SCULPT_do_paint_brush_image(paint_mode_settings, sd, ob, nodes, totnode);
+    return;
+  }
+
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
 
@@ -251,7 +257,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
     if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
-      ss->cache->density_seed = (float) BLI_hash_int_01(ss->cache->location[0] * 1000);
+      ss->cache->density_seed = (float)BLI_hash_int_01(ss->cache->location[0] * 1000);
     }
     return;
   }
@@ -454,7 +460,7 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
         }
 
         /* Multiply weight with edge lengths (in the future this will be
-           cotangent weights or face areas). */
+         * cotangent weights or face areas). */
         w *= len;
 
         /* Build directional weight. */

@@ -34,9 +34,11 @@
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_override.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
+#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_report.h"
@@ -66,6 +68,7 @@
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"
 #include "tree/tree_element.hh"
+#include "tree/tree_element_id.hh"
 #include "tree/tree_element_overrides.hh"
 #include "tree/tree_element_rna.hh"
 
@@ -1835,6 +1838,69 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
   }
 }
 
+static bool outliner_but_identity_cmp_context_id_fn(const uiBut *a, const uiBut *b)
+{
+  const PointerRNA *idptr_a = UI_but_context_ptr_get(a, "id", &RNA_ID);
+  const PointerRNA *idptr_b = UI_but_context_ptr_get(b, "id", &RNA_ID);
+  if (!idptr_a || !idptr_b) {
+    return false;
+  }
+  const ID *id_a = (const ID *)idptr_a->data;
+  const ID *id_b = (const ID *)idptr_b->data;
+
+  /* Using session UUID to compare is safer than using the pointer. */
+  return id_a->session_uuid == id_b->session_uuid;
+}
+
+static void outliner_draw_overrides_restrictbuts(Main *bmain,
+                                                 uiBlock *block,
+                                                 const ARegion *region,
+                                                 const SpaceOutliner *space_outliner,
+                                                 const ListBase *lb,
+                                                 const int x)
+{
+  LISTBASE_FOREACH (const TreeElement *, te, lb) {
+    const TreeStoreElem *tselem = TREESTORE(te);
+    if (TSELEM_OPEN(tselem, space_outliner)) {
+      outliner_draw_overrides_restrictbuts(bmain, block, region, space_outliner, &te->subtree, x);
+    }
+
+    if (!outliner_is_element_in_view(te, &region->v2d)) {
+      continue;
+    }
+    TreeElementID *te_id = tree_element_cast<TreeElementID>(te);
+    if (!te_id) {
+      continue;
+    }
+
+    ID &id = te_id->get_ID();
+    BLI_assert(ID_IS_OVERRIDE_LIBRARY(&id));
+
+    if (ID_IS_LINKED(&id)) {
+      continue;
+    }
+
+    const bool is_system_override = BKE_lib_override_library_is_system_defined(bmain, &id);
+    const BIFIconID icon = is_system_override ? ICON_LIBRARY_DATA_OVERRIDE_NONEDITABLE :
+                                                ICON_LIBRARY_DATA_OVERRIDE;
+    uiBut *but = uiDefIconButO(block,
+                               UI_BTYPE_BUT,
+                               "ED_OT_lib_id_override_editable_toggle",
+                               WM_OP_EXEC_DEFAULT,
+                               icon,
+                               x,
+                               te->ys,
+                               UI_UNIT_X,
+                               UI_UNIT_Y,
+                               "");
+    PointerRNA idptr;
+    RNA_id_pointer_create(&id, &idptr);
+    UI_but_context_ptr_set(block, but, "id", &idptr);
+    UI_but_func_identity_compare_set(but, outliner_but_identity_cmp_context_id_fn);
+    UI_but_flag_enable(but, UI_BUT_DRAG_LOCK);
+  }
+}
+
 static bool outliner_draw_overrides_warning_buts(uiBlock *block,
                                                  ARegion *region,
                                                  SpaceOutliner *space_outliner,
@@ -2439,6 +2505,11 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
       return ICON_WORKSPACE;
     case ID_MSK:
       return ICON_MOD_MASK;
+    case ID_NT: {
+      const bNodeTree *ntree = (bNodeTree *)id;
+      const bNodeTreeType *ntreetype = ntree->typeinfo;
+      return (BIFIconID)ntreetype->ui_icon;
+    }
     case ID_MC:
       return ICON_SEQUENCE;
     case ID_PC:
@@ -3899,12 +3970,6 @@ void draw_outliner(const bContext *C)
   /* Default to no emboss for outliner UI. */
   UI_block_emboss_set(block, UI_EMBOSS_NONE_OR_STATUS);
 
-  if (space_outliner->outlinevis == SO_OVERRIDES_LIBRARY) {
-    /* Draw overrides status columns. */
-    outliner_draw_overrides_warning_buts(
-        block, region, space_outliner, &space_outliner->tree, true);
-  }
-
   if (space_outliner->outlinevis == SO_DATA_API) {
     int buttons_start_x = outliner_data_api_buttons_start_x(tree_width);
     /* draw rna buttons */
@@ -3919,14 +3984,23 @@ void draw_outliner(const bContext *C)
     /* draw user toggle columns */
     outliner_draw_userbuts(block, region, space_outliner, &space_outliner->tree);
   }
-  else if ((space_outliner->outlinevis == SO_OVERRIDES_LIBRARY) &&
-           (space_outliner->lib_override_view_mode == SO_LIB_OVERRIDE_VIEW_PROPERTIES)) {
-    UI_block_emboss_set(block, UI_EMBOSS);
-    UI_block_flag_enable(block, UI_BLOCK_NO_DRAW_OVERRIDDEN_STATE);
+  else if (space_outliner->outlinevis == SO_OVERRIDES_LIBRARY) {
+    /* Draw overrides status columns. */
+    outliner_draw_overrides_warning_buts(
+        block, region, space_outliner, &space_outliner->tree, true);
+
     const int x = region->v2d.cur.xmax - right_column_width;
     outliner_draw_separator(region, x);
-    outliner_draw_overrides_rna_buts(block, region, space_outliner, &space_outliner->tree, x);
-    UI_block_emboss_set(block, UI_EMBOSS_NONE_OR_STATUS);
+    if (space_outliner->lib_override_view_mode == SO_LIB_OVERRIDE_VIEW_PROPERTIES) {
+      UI_block_emboss_set(block, UI_EMBOSS);
+      UI_block_flag_enable(block, UI_BLOCK_NO_DRAW_OVERRIDDEN_STATE);
+      outliner_draw_overrides_rna_buts(block, region, space_outliner, &space_outliner->tree, x);
+      UI_block_emboss_set(block, UI_EMBOSS_NONE_OR_STATUS);
+    }
+    else if (space_outliner->lib_override_view_mode == SO_LIB_OVERRIDE_VIEW_HIERARCHIES) {
+      outliner_draw_overrides_restrictbuts(
+          mainvar, block, region, space_outliner, &space_outliner->tree, x);
+    }
   }
   else if (right_column_width > 0.0f) {
     /* draw restriction columns */

@@ -43,7 +43,7 @@ class AbstractBlenderRunnerTest(unittest.TestCase):
     blender: pathlib.Path = None
     testdir: pathlib.Path = None
 
-    def run_blender(self, filepath: str, python_script: str, timeout: int=300) -> str:
+    def run_blender(self, filepath: str, python_script: str, timeout: int = 300) -> str:
         """Runs Blender by opening a blendfile and executing a script.
 
         Returns Blender's stdout + stderr combined into one string.

@@ -16,11 +16,12 @@
 #include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "BLT_translation.h"
 
@@ -47,11 +48,8 @@
 #include "node_shader_util.hh"
 #include "node_util.h"
 
-struct nTreeTags {
-  float ssr_id, sss_id;
-};
-
-static void ntree_shader_tag_nodes(bNodeTree *ntree, bNode *output_node, nTreeTags *tags);
+using blender::Array;
+using blender::Vector;
 
 static bool shader_tree_poll(const bContext *C, bNodeTreeType *UNUSED(treetype))
 {
@@ -248,6 +246,18 @@ static bNodeSocket *ntree_shader_node_find_input(bNode *node, const char *identi
 static bNodeSocket *ntree_shader_node_find_output(bNode *node, const char *identifier)
 {
   return ntree_shader_node_find_socket(&node->outputs, identifier);
+}
+
+/* Find input socket at a specific position. */
+static bNodeSocket *ntree_shader_node_input_get(bNode *node, int n)
+{
+  return reinterpret_cast<bNodeSocket *>(BLI_findlink(&node->inputs, n));
+}
+
+/* Find output socket at a specific position. */
+static bNodeSocket *ntree_shader_node_output_get(bNode *node, int n)
+{
+  return reinterpret_cast<bNodeSocket *>(BLI_findlink(&node->outputs, n));
 }
 
 /* Return true on success. */
@@ -522,125 +532,21 @@ static void ntree_shader_groups_flatten(bNodeTree *localtree)
   BKE_ntree_update_main_tree(G.main, localtree, nullptr);
 }
 
-/* Check whether shader has a displacement.
- *
- * Will also return a node and its socket which is connected to a displacement
- * output. Additionally, link which is attached to the displacement output is
- * also returned.
- */
-static bool ntree_shader_has_displacement(bNodeTree *ntree,
-                                          bNode *output_node,
-                                          bNode **r_node,
-                                          bNodeSocket **r_socket,
-                                          bNodeLink **r_link)
-{
-  if (output_node == nullptr) {
-    /* We can't have displacement without output node, apparently. */
-    return false;
-  }
-  /* Make sure sockets links pointers are correct. */
-  BKE_ntree_update_main_tree(G.main, ntree, nullptr);
-  bNodeSocket *displacement = ntree_shader_node_find_input(output_node, "Displacement");
-
-  if (displacement == nullptr) {
-    /* Non-cycles node is used as an output. */
-    return false;
-  }
-
-  if ((displacement->link != nullptr) && !(displacement->link->flag & NODE_LINK_MUTED)) {
-    *r_node = displacement->link->fromnode;
-    *r_socket = displacement->link->fromsock;
-    *r_link = displacement->link;
-    return true;
-  }
-  return false;
-}
-
-static void ntree_shader_relink_node_normal(bNodeTree *ntree,
-                                            bNode *node,
-                                            bNode *node_from,
-                                            bNodeSocket *socket_from)
-{
-  /* TODO(sergey): Can we do something smarter here than just a name-based
-   * matching?
-   */
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (STREQ(sock->identifier, "Normal") && sock->link == nullptr) {
-      /* It's a normal input and nothing is connected to it. */
-      nodeAddLink(ntree, node_from, socket_from, node, sock);
-    }
-    else if (sock->link) {
-      bNodeLink *link = sock->link;
-      if (ELEM(link->fromnode->type, SH_NODE_NEW_GEOMETRY, SH_NODE_TEX_COORD) &&
-          STREQ(link->fromsock->identifier, "Normal")) {
-        /* Linked to a geometry node normal output. */
-        nodeAddLink(ntree, node_from, socket_from, node, sock);
-      }
-    }
-  }
-}
-
-/* Use specified node and socket as an input for unconnected normal sockets. */
-static void ntree_shader_link_builtin_normal(bNodeTree *ntree,
-                                             bNode *node_from,
-                                             bNodeSocket *socket_from)
-{
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node == node_from) {
-      /* Don't connect node itself! */
-      continue;
-    }
-    if (node->tmp_flag == -2) {
-      /* This node is used inside the displacement tree. Skip to avoid cycles. */
-      continue;
-    }
-    ntree_shader_relink_node_normal(ntree, node, node_from, socket_from);
-  }
-}
-
-static void ntree_shader_bypass_bump_link(bNodeTree *ntree, bNode *bump_node, bNodeLink *bump_link)
-{
-  /* Bypass bump nodes. This replicates cycles "implicit" behavior. */
-  bNodeSocket *bump_normal_input = ntree_shader_node_find_input(bump_node, "Normal");
-  bNode *fromnode;
-  bNodeSocket *fromsock;
-  /* Default to builtin normals if there is no link. */
-  if (bump_normal_input->link) {
-    fromsock = bump_normal_input->link->fromsock;
-    fromnode = bump_normal_input->link->fromnode;
-  }
-  else {
-    fromnode = nodeAddStaticNode(nullptr, ntree, SH_NODE_NEW_GEOMETRY);
-    fromsock = ntree_shader_node_find_output(fromnode, "Normal");
-  }
-  /* Bypass the bump node by creating a link between the previous and next node. */
-  nodeAddLink(ntree, fromnode, fromsock, bump_link->tonode, bump_link->tosock);
-  nodeRemLink(ntree, bump_link);
-}
-
-static void ntree_shader_bypass_tagged_bump_nodes(bNodeTree *ntree)
-{
-  /* Bypass bump links inside copied nodes */
-  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
-    bNode *node = link->fromnode;
-    /* If node is a copy. */
-    if (node->tmp_flag == -2 && node->type == SH_NODE_BUMP) {
-      ntree_shader_bypass_bump_link(ntree, node, link);
-    }
-  }
-  BKE_ntree_update_main_tree(G.main, ntree, nullptr);
-}
+struct branchIterData {
+  bool (*node_filter)(const bNode *node);
+  int node_count;
+};
 
 static bool ntree_branch_count_and_tag_nodes(bNode *fromnode, bNode *tonode, void *userdata)
 {
-  int *node_count = (int *)userdata;
-  if (fromnode->tmp_flag == -1) {
-    fromnode->tmp_flag = *node_count;
-    (*node_count)++;
+  branchIterData *iter = (branchIterData *)userdata;
+  if (fromnode->tmp_flag == -1 && (iter->node_filter == nullptr || iter->node_filter(fromnode))) {
+    fromnode->tmp_flag = iter->node_count;
+    iter->node_count++;
   }
-  if (tonode->tmp_flag == -1) {
-    tonode->tmp_flag = *node_count;
-    (*node_count)++;
+  if (tonode->tmp_flag == -1 && (iter->node_filter == nullptr || iter->node_filter(tonode))) {
+    tonode->tmp_flag = iter->node_count;
+    iter->node_count++;
   }
   return true;
 }
@@ -650,6 +556,7 @@ static bool ntree_branch_count_and_tag_nodes(bNode *fromnode, bNode *tonode, voi
  * Returns input node copy. */
 static bNode *ntree_shader_copy_branch(bNodeTree *ntree,
                                        bNode *start_node,
+                                       bool (*node_filter)(const bNode *node),
                                        void (*callback)(bNode *node, int user_data),
                                        int user_data)
 {
@@ -659,10 +566,12 @@ static bNode *ntree_shader_copy_branch(bNodeTree *ntree,
   }
   /* Count and tag all nodes inside the displacement branch of the tree. */
   start_node->tmp_flag = 0;
-  int node_count = 1;
-  nodeChainIterBackwards(ntree, start_node, ntree_branch_count_and_tag_nodes, &node_count, 1);
+  branchIterData iter_data;
+  iter_data.node_filter = node_filter;
+  iter_data.node_count = 1;
+  nodeChainIterBackwards(ntree, start_node, ntree_branch_count_and_tag_nodes, &iter_data, 1);
   /* Make a full copy of the branch */
-  bNode **nodes_copy = static_cast<bNode **>(MEM_mallocN(sizeof(bNode *) * node_count, __func__));
+  Array<bNode *> nodes_copy(iter_data.node_count);
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->tmp_flag >= 0) {
       int id = node->tmp_flag;
@@ -690,225 +599,447 @@ static bNode *ntree_shader_copy_branch(bNodeTree *ntree,
   }
   /* Per node callback. */
   if (callback) {
-    for (int i = 0; i < node_count; i++) {
+    for (int i = 0; i < iter_data.node_count; i++) {
       callback(nodes_copy[i], user_data);
     }
   }
   bNode *start_node_copy = nodes_copy[start_node->tmp_flag];
-  MEM_freeN(nodes_copy);
   return start_node_copy;
 }
 
-static void ntree_shader_copy_branch_displacement(bNodeTree *ntree,
-                                                  bNode *displacement_node,
-                                                  bNodeSocket *displacement_socket,
-                                                  bNodeLink *displacement_link)
-{
-  /* Replace displacement socket/node/link. */
-  bNode *tonode = displacement_link->tonode;
-  bNodeSocket *tosock = displacement_link->tosock;
-  displacement_node = ntree_shader_copy_branch(ntree, displacement_node, nullptr, 0);
-  displacement_socket = ntree_shader_node_find_output(displacement_node,
-                                                      displacement_socket->identifier);
-  nodeRemLink(ntree, displacement_link);
-  nodeAddLink(ntree, displacement_node, displacement_socket, tonode, tosock);
-
-  BKE_ntree_update_main_tree(G.main, ntree, nullptr);
-}
-
-/* Re-link displacement output to unconnected normal sockets via bump node.
- * This way material with have proper displacement in the viewport.
+/* Generate emission node to convert regular data to closure sockets.
+ * Returns validity of the tree.
  */
-static void ntree_shader_relink_displacement(bNodeTree *ntree, bNode *output_node)
+static bool ntree_shader_implicit_closure_cast(bNodeTree *ntree)
 {
-  bNode *displacement_node;
-  bNodeSocket *displacement_socket;
-  bNodeLink *displacement_link;
-  if (!ntree_shader_has_displacement(
-          ntree, output_node, &displacement_node, &displacement_socket, &displacement_link)) {
-    /* There is no displacement output connected, nothing to re-link. */
-    return;
-  }
-
-  /* Copy the whole displacement branch to avoid cyclic dependency
-   * and issue when bypassing bump nodes. */
-  ntree_shader_copy_branch_displacement(
-      ntree, displacement_node, displacement_socket, displacement_link);
-  /* Bypass bump nodes inside the copied branch to mimic cycles behavior. */
-  ntree_shader_bypass_tagged_bump_nodes(ntree);
-
-  /* Displacement Node may have changed because of branch copy and bump bypass. */
-  ntree_shader_has_displacement(
-      ntree, output_node, &displacement_node, &displacement_socket, &displacement_link);
-
-  /* We have to disconnect displacement output socket, otherwise we'll have
-   * cycles in the Cycles material :)
-   */
-  nodeRemLink(ntree, displacement_link);
-
-  /* Convert displacement vector to bump height. */
-  bNode *dot_node = nodeAddStaticNode(nullptr, ntree, SH_NODE_VECTOR_MATH);
-  bNode *geo_node = nodeAddStaticNode(nullptr, ntree, SH_NODE_NEW_GEOMETRY);
-  bNodeSocket *normal_socket = ntree_shader_node_find_output(geo_node, "Normal");
-  bNodeSocket *dot_input1 = static_cast<bNodeSocket *>(dot_node->inputs.first);
-  bNodeSocket *dot_input2 = static_cast<bNodeSocket *>(dot_input1->next);
-  dot_node->custom1 = NODE_VECTOR_MATH_DOT_PRODUCT;
-
-  nodeAddLink(ntree, displacement_node, displacement_socket, dot_node, dot_input1);
-  nodeAddLink(ntree, geo_node, normal_socket, dot_node, dot_input2);
-  displacement_node = dot_node;
-  displacement_socket = ntree_shader_node_find_output(dot_node, "Value");
-
-  /* We can't connect displacement to normal directly, use bump node for that
-   * and hope that it gives good enough approximation.
-   */
-  bNode *bump_node = nodeAddStaticNode(nullptr, ntree, SH_NODE_BUMP);
-  bNodeSocket *bump_input_socket = ntree_shader_node_find_input(bump_node, "Height");
-  bNodeSocket *bump_output_socket = ntree_shader_node_find_output(bump_node, "Normal");
-  BLI_assert(bump_input_socket != nullptr);
-  BLI_assert(bump_output_socket != nullptr);
-  /* Connect bump node to where displacement output was originally
-   * connected to.
-   */
-  nodeAddLink(ntree, displacement_node, displacement_socket, bump_node, bump_input_socket);
-
-  /* Tag as part of the new displacement tree. */
-  dot_node->tmp_flag = -2;
-  geo_node->tmp_flag = -2;
-  bump_node->tmp_flag = -2;
-
-  BKE_ntree_update_main_tree(G.main, ntree, nullptr);
-
-  /* Connect all free-standing Normal inputs and relink geometry/coordinate nodes. */
-  ntree_shader_link_builtin_normal(ntree, bump_node, bump_output_socket);
-  /* We modified the tree, it needs to be updated now. */
-  BKE_ntree_update_main_tree(G.main, ntree, nullptr);
-}
-
-static void node_tag_branch_as_derivative(bNode *node, int dx)
-{
-  if (dx) {
-    node->branch_tag = 1;
-  }
-  else {
-    node->branch_tag = 2;
-  }
-}
-
-static bool ntree_shader_bump_branches(bNode *fromnode, bNode *UNUSED(tonode), void *userdata)
-{
-  bNodeTree *ntree = (bNodeTree *)userdata;
-
-  if (fromnode->type == SH_NODE_BUMP) {
-    bNodeSocket *height_dx_sock, *height_dy_sock, *bump_socket, *bump_dx_socket, *bump_dy_socket;
-    bNode *bump = fromnode;
-    bump_socket = ntree_shader_node_find_input(bump, "Height");
-    bump_dx_socket = ntree_shader_node_find_input(bump, "Height_dx");
-    bump_dy_socket = ntree_shader_node_find_input(bump, "Height_dy");
-    if (bump_dx_socket->link) {
-      /* Avoid reconnecting the same bump twice. */
+  bool modified = false;
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
+    if ((link->fromsock->type != SOCK_SHADER) && (link->tosock->type == SOCK_SHADER)) {
+      bNode *emission_node = nodeAddStaticNode(NULL, ntree, SH_NODE_EMISSION);
+      bNodeSocket *in_sock = ntree_shader_node_find_input(emission_node, "Color");
+      bNodeSocket *out_sock = ntree_shader_node_find_output(emission_node, "Emission");
+      nodeAddLink(ntree, link->fromnode, link->fromsock, emission_node, in_sock);
+      nodeAddLink(ntree, emission_node, out_sock, link->tonode, link->tosock);
+      nodeRemLink(ntree, link);
+      modified = true;
     }
-    else if (bump_socket && bump_socket->link) {
-      bNodeLink *link = bump_socket->link;
-      bNode *height = link->fromnode;
-      bNode *height_dx = ntree_shader_copy_branch(ntree, height, node_tag_branch_as_derivative, 1);
-      bNode *height_dy = ntree_shader_copy_branch(ntree, height, node_tag_branch_as_derivative, 0);
-      height_dx_sock = ntree_shader_node_find_output(height_dx, link->fromsock->identifier);
-      height_dy_sock = ntree_shader_node_find_output(height_dy, link->fromsock->identifier);
-      nodeAddLink(ntree, height_dx, height_dx_sock, bump, bump_dx_socket);
-      nodeAddLink(ntree, height_dy, height_dy_sock, bump, bump_dy_socket);
-      /* We could end iter here, but other bump node could be plugged into other input sockets. */
+    else if ((link->fromsock->type == SOCK_SHADER) && (link->tosock->type != SOCK_SHADER)) {
+      /* Meh. Not directly visible to the user. But better than nothing. */
+      fprintf(stderr, "Shader Nodetree Error: Invalid implicit socket conversion\n");
+      BKE_ntree_update_main_tree(G.main, ntree, nullptr);
+      return false;
     }
+  }
+  if (modified) {
+    BKE_ntree_update_main_tree(G.main, ntree, nullptr);
   }
   return true;
 }
 
-static bool ntree_tag_bsdf_cb(bNode *fromnode, bNode *UNUSED(tonode), void *userdata)
+/* Socket already has a link to it. Add weights together. */
+static void ntree_weight_tree_merge_weight(bNodeTree *ntree,
+                                           bNode *UNUSED(fromnode),
+                                           bNodeSocket *fromsock,
+                                           bNode **tonode,
+                                           bNodeSocket **tosock)
 {
-  switch (fromnode->type) {
+  bNode *addnode = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
+  addnode->custom1 = NODE_MATH_ADD;
+  addnode->tmp_flag = -2; /* Copy */
+  bNodeSocket *addsock_out = ntree_shader_node_output_get(addnode, 0);
+  bNodeSocket *addsock_in0 = ntree_shader_node_input_get(addnode, 0);
+  bNodeSocket *addsock_in1 = ntree_shader_node_input_get(addnode, 1);
+  bNodeLink *oldlink = fromsock->link;
+  nodeAddLink(ntree, oldlink->fromnode, oldlink->fromsock, addnode, addsock_in0);
+  nodeAddLink(ntree, *tonode, *tosock, addnode, addsock_in1);
+  nodeRemLink(ntree, oldlink);
+  *tonode = addnode;
+  *tosock = addsock_out;
+}
+
+static bool ntree_weight_tree_tag_nodes(bNode *fromnode, bNode *tonode, void *userdata)
+{
+  int *node_count = (int *)userdata;
+  bool to_node_from_weight_tree = ELEM(tonode->type,
+                                       SH_NODE_ADD_SHADER,
+                                       SH_NODE_MIX_SHADER,
+                                       SH_NODE_OUTPUT_WORLD,
+                                       SH_NODE_OUTPUT_MATERIAL,
+                                       SH_NODE_SHADERTORGB);
+  if (tonode->tmp_flag == -1 && to_node_from_weight_tree) {
+    tonode->tmp_flag = *node_count;
+    *node_count += (tonode->type == SH_NODE_MIX_SHADER) ? 4 : 1;
+  }
+  if (fromnode->tmp_flag == -1 && ELEM(fromnode->type, SH_NODE_ADD_SHADER, SH_NODE_MIX_SHADER)) {
+    fromnode->tmp_flag = *node_count;
+    *node_count += (fromnode->type == SH_NODE_MIX_SHADER) ? 4 : 1;
+  }
+  return to_node_from_weight_tree;
+}
+
+/* Invert evaluation order of the weight tree (add & mix closure nodes) to feed the closure nodes
+ * with their respective weights. */
+static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node)
+{
+  bNodeLink *displace_link = NULL;
+  bNodeSocket *displace_output = ntree_shader_node_find_input(output_node, "Displacement");
+  if (displace_output && displace_output->link) {
+    /* Remove any displacement link to avoid tagging it later on. */
+    displace_link = displace_output->link;
+    displace_output->link = NULL;
+  }
+  bNodeLink *thickness_link = NULL;
+  bNodeSocket *thickness_output = ntree_shader_node_find_input(output_node, "Thickness");
+  if (thickness_output && thickness_output->link) {
+    /* Remove any thickness link to avoid tagging it later on. */
+    thickness_link = thickness_output->link;
+    thickness_output->link = NULL;
+  }
+  /* Init tmp flag. */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    node->tmp_flag = -1;
+  }
+  /* Tag nodes from the weight tree. Only tag output node and mix/add shader nodes. */
+  output_node->tmp_flag = 0;
+  int node_count = 1;
+  nodeChainIterBackwards(ntree, output_node, ntree_weight_tree_tag_nodes, &node_count, 0);
+  /* Make a mirror copy of the weight tree. */
+  Array<bNode *> nodes_copy(node_count);
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->tmp_flag >= 0) {
+      int id = node->tmp_flag;
+
+      switch (node->type) {
+        case SH_NODE_SHADERTORGB:
+        case SH_NODE_OUTPUT_WORLD:
+        case SH_NODE_OUTPUT_MATERIAL: {
+          /* Start the tree with full weight. */
+          nodes_copy[id] = nodeAddStaticNode(NULL, ntree, SH_NODE_VALUE);
+          nodes_copy[id]->tmp_flag = -2; /* Copy */
+          ((bNodeSocketValueFloat *)ntree_shader_node_output_get(nodes_copy[id], 0)->default_value)
+              ->value = 1.0f;
+          break;
+        }
+        case SH_NODE_ADD_SHADER: {
+          /* Simple passthrough node. Each original inputs will get the same weight. */
+          /* TODO(fclem): Better use some kind of reroute node? */
+          nodes_copy[id] = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
+          nodes_copy[id]->custom1 = NODE_MATH_ADD;
+          nodes_copy[id]->tmp_flag = -2; /* Copy */
+          ((bNodeSocketValueFloat *)ntree_shader_node_input_get(nodes_copy[id], 0)->default_value)
+              ->value = 0.0f;
+          break;
+        }
+        case SH_NODE_MIX_SHADER: {
+          /* We need multiple nodes to emulate the mix node in reverse. */
+          bNode *fromnode, *tonode;
+          bNodeSocket *fromsock, *tosock;
+          int id_start = id;
+          /* output = (factor * input_weight) */
+          nodes_copy[id] = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
+          nodes_copy[id]->custom1 = NODE_MATH_MULTIPLY;
+          nodes_copy[id]->tmp_flag = -2; /* Copy */
+          id++;
+          /* output = ((1.0 - factor) * input_weight) <=> (input_weight - factor * input_weight) */
+          nodes_copy[id] = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
+          nodes_copy[id]->custom1 = NODE_MATH_SUBTRACT;
+          nodes_copy[id]->tmp_flag = -2; /* Copy */
+          id++;
+          /* Node sanitizes the input mix factor by clamping it. */
+          nodes_copy[id] = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
+          nodes_copy[id]->custom1 = NODE_MATH_ADD;
+          nodes_copy[id]->custom2 = SHD_MATH_CLAMP;
+          nodes_copy[id]->tmp_flag = -2; /* Copy */
+          ((bNodeSocketValueFloat *)ntree_shader_node_input_get(nodes_copy[id], 0)->default_value)
+              ->value = 0.0f;
+          /* Copy default value if no link present. */
+          bNodeSocket *fac_sock = ntree_shader_node_find_input(node, "Fac");
+          if (!fac_sock->link) {
+            float default_value = ((bNodeSocketValueFloat *)fac_sock->default_value)->value;
+            bNodeSocket *dst_sock = ntree_shader_node_input_get(nodes_copy[id], 1);
+            ((bNodeSocketValueFloat *)dst_sock->default_value)->value = default_value;
+          }
+          id++;
+          /* Reroute the weight input to the 3 processing nodes. Simplify linking later-on. */
+          /* TODO(fclem): Better use some kind of reroute node? */
+          nodes_copy[id] = nodeAddStaticNode(NULL, ntree, SH_NODE_MATH);
+          nodes_copy[id]->custom1 = NODE_MATH_ADD;
+          nodes_copy[id]->tmp_flag = -2; /* Copy */
+          ((bNodeSocketValueFloat *)ntree_shader_node_input_get(nodes_copy[id], 0)->default_value)
+              ->value = 0.0f;
+          id++;
+          /* Link between nodes for the subtraction. */
+          fromnode = nodes_copy[id_start];
+          tonode = nodes_copy[id_start + 1];
+          fromsock = ntree_shader_node_output_get(fromnode, 0);
+          tosock = ntree_shader_node_input_get(tonode, 1);
+          nodeAddLink(ntree, fromnode, fromsock, tonode, tosock);
+          /* Link mix input to first node. */
+          fromnode = nodes_copy[id_start + 2];
+          tonode = nodes_copy[id_start];
+          fromsock = ntree_shader_node_output_get(fromnode, 0);
+          tosock = ntree_shader_node_input_get(tonode, 1);
+          nodeAddLink(ntree, fromnode, fromsock, tonode, tosock);
+          /* Link weight input to both multiply nodes. */
+          fromnode = nodes_copy[id_start + 3];
+          fromsock = ntree_shader_node_output_get(fromnode, 0);
+          tonode = nodes_copy[id_start];
+          tosock = ntree_shader_node_input_get(tonode, 0);
+          nodeAddLink(ntree, fromnode, fromsock, tonode, tosock);
+          tonode = nodes_copy[id_start + 1];
+          tosock = ntree_shader_node_input_get(tonode, 0);
+          nodeAddLink(ntree, fromnode, fromsock, tonode, tosock);
+          break;
+        }
+        default:
+          BLI_assert(0);
+          break;
+      }
+    }
+  }
+  /* Recreate links between copied nodes. */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->tmp_flag >= 0) {
+      /* Naming can be confusing here. We use original nodelink name for from/to prefix.
+       * The final link is in reversed order. */
+      int socket_index;
+      LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->inputs, socket_index) {
+        bNodeSocket *tosock;
+        bNode *tonode;
+
+        switch (node->type) {
+          case SH_NODE_SHADERTORGB:
+          case SH_NODE_OUTPUT_WORLD:
+          case SH_NODE_OUTPUT_MATERIAL:
+          case SH_NODE_ADD_SHADER: {
+            tonode = nodes_copy[node->tmp_flag];
+            tosock = ntree_shader_node_output_get(tonode, 0);
+            break;
+          }
+          case SH_NODE_MIX_SHADER: {
+            if (socket_index == 0) {
+              /* Mix Factor. */
+              tonode = nodes_copy[node->tmp_flag + 2];
+              tosock = ntree_shader_node_input_get(tonode, 1);
+            }
+            else if (socket_index == 1) {
+              /* Shader 1. */
+              tonode = nodes_copy[node->tmp_flag + 1];
+              tosock = ntree_shader_node_output_get(tonode, 0);
+            }
+            else {
+              /* Shader 2. */
+              tonode = nodes_copy[node->tmp_flag];
+              tosock = ntree_shader_node_output_get(tonode, 0);
+            }
+            break;
+          }
+          default:
+            BLI_assert(0);
+            break;
+        }
+
+        if (sock->link) {
+          bNodeSocket *fromsock;
+          bNode *fromnode = sock->link->fromnode;
+
+          switch (fromnode->type) {
+            case SH_NODE_ADD_SHADER: {
+              fromnode = nodes_copy[fromnode->tmp_flag];
+              fromsock = ntree_shader_node_input_get(fromnode, 1);
+              if (fromsock->link) {
+                ntree_weight_tree_merge_weight(ntree, fromnode, fromsock, &tonode, &tosock);
+              }
+              break;
+            }
+            case SH_NODE_MIX_SHADER: {
+              fromnode = nodes_copy[fromnode->tmp_flag + 3];
+              fromsock = ntree_shader_node_input_get(fromnode, 1);
+              if (fromsock->link) {
+                ntree_weight_tree_merge_weight(ntree, fromnode, fromsock, &tonode, &tosock);
+              }
+              break;
+            }
+            case SH_NODE_BACKGROUND:
+            case SH_NODE_BSDF_ANISOTROPIC:
+            case SH_NODE_BSDF_DIFFUSE:
+            case SH_NODE_BSDF_GLASS:
+            case SH_NODE_BSDF_GLOSSY:
+            case SH_NODE_BSDF_HAIR_PRINCIPLED:
+            case SH_NODE_BSDF_HAIR:
+            case SH_NODE_BSDF_PRINCIPLED:
+            case SH_NODE_BSDF_REFRACTION:
+            case SH_NODE_BSDF_TOON:
+            case SH_NODE_BSDF_TRANSLUCENT:
+            case SH_NODE_BSDF_TRANSPARENT:
+            case SH_NODE_BSDF_VELVET:
+            case SH_NODE_EEVEE_SPECULAR:
+            case SH_NODE_EMISSION:
+            case SH_NODE_HOLDOUT:
+            case SH_NODE_SUBSURFACE_SCATTERING:
+            case SH_NODE_VOLUME_ABSORPTION:
+            case SH_NODE_VOLUME_PRINCIPLED:
+            case SH_NODE_VOLUME_SCATTER:
+              fromsock = ntree_shader_node_find_input(fromnode, "Weight");
+              if (fromsock->link) {
+                ntree_weight_tree_merge_weight(ntree, fromnode, fromsock, &tonode, &tosock);
+              }
+              break;
+            default:
+              fromsock = sock->link->fromsock;
+              break;
+          }
+
+          /* Manually add the link to the socket to avoid calling:
+           * `BKE_ntree_update_main_tree(G.main, oop, nullptr)`. */
+          fromsock->link = nodeAddLink(ntree, fromnode, fromsock, tonode, tosock);
+          BLI_assert(fromsock->link);
+        }
+      }
+    }
+  }
+  /* Restore displacement & thickness link. */
+  if (displace_link) {
+    nodeAddLink(
+        ntree, displace_link->fromnode, displace_link->fromsock, output_node, displace_output);
+  }
+  if (thickness_link) {
+    nodeAddLink(
+        ntree, thickness_link->fromnode, thickness_link->fromsock, output_node, thickness_output);
+  }
+  BKE_ntree_update_main_tree(G.main, ntree, nullptr);
+}
+
+static bool closure_node_filter(const bNode *node)
+{
+  switch (node->type) {
+    case SH_NODE_ADD_SHADER:
+    case SH_NODE_MIX_SHADER:
+    case SH_NODE_BACKGROUND:
     case SH_NODE_BSDF_ANISOTROPIC:
-    case SH_NODE_EEVEE_SPECULAR:
-    case SH_NODE_BSDF_GLOSSY:
+    case SH_NODE_BSDF_DIFFUSE:
     case SH_NODE_BSDF_GLASS:
-      fromnode->ssr_id = ((nTreeTags *)userdata)->ssr_id;
-      ((nTreeTags *)userdata)->ssr_id += 1;
-      break;
-    case SH_NODE_SUBSURFACE_SCATTERING:
-      fromnode->sss_id = ((nTreeTags *)userdata)->sss_id;
-      ((nTreeTags *)userdata)->sss_id += 1;
-      break;
+    case SH_NODE_BSDF_GLOSSY:
+    case SH_NODE_BSDF_HAIR_PRINCIPLED:
+    case SH_NODE_BSDF_HAIR:
     case SH_NODE_BSDF_PRINCIPLED:
-      fromnode->ssr_id = ((nTreeTags *)userdata)->ssr_id;
-      fromnode->sss_id = ((nTreeTags *)userdata)->sss_id;
-      ((nTreeTags *)userdata)->sss_id += 1;
-      ((nTreeTags *)userdata)->ssr_id += 1;
-      break;
+    case SH_NODE_BSDF_REFRACTION:
+    case SH_NODE_BSDF_TOON:
+    case SH_NODE_BSDF_TRANSLUCENT:
+    case SH_NODE_BSDF_TRANSPARENT:
+    case SH_NODE_BSDF_VELVET:
+    case SH_NODE_EEVEE_SPECULAR:
+    case SH_NODE_EMISSION:
+    case SH_NODE_HOLDOUT:
+    case SH_NODE_SUBSURFACE_SCATTERING:
+    case SH_NODE_VOLUME_ABSORPTION:
+    case SH_NODE_VOLUME_PRINCIPLED:
+    case SH_NODE_VOLUME_SCATTER:
+      return true;
     default:
-      /* We could return false here but since we
-       * allow the use of Closure as RGBA, we can have
-       * BSDF nodes linked to other BSDF nodes. */
-      break;
+      return false;
   }
+}
 
+static bool shader_to_rgba_node_gather(bNode *UNUSED(fromnode), bNode *tonode, void *userdata)
+{
+  Vector<bNode *> &shader_to_rgba_nodes = *(Vector<bNode *> *)userdata;
+  if (tonode->tmp_flag == -1 && tonode->type == SH_NODE_SHADERTORGB) {
+    tonode->tmp_flag = 0;
+    shader_to_rgba_nodes.append(tonode);
+  }
   return true;
 }
 
-/* EEVEE: Scan the ntree to set the Screen Space Reflection
- * layer id of every specular node AND the Subsurface Scattering id of every SSS node.
- */
-void ntree_shader_tag_nodes(bNodeTree *ntree, bNode *output_node, nTreeTags *tags)
+/* Shader to rgba needs their associated closure duplicated and the weight tree generated for. */
+static void ntree_shader_shader_to_rgba_branch(bNodeTree *ntree, bNode *output_node)
 {
-  if (output_node == nullptr) {
-    return;
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    node->tmp_flag = -1;
   }
-  /* Make sure sockets links pointers are correct. */
-  BKE_ntree_update_main_tree(G.main, ntree, nullptr);
+  /* First gather the shader_to_rgba nodes linked to the output. This is separate to avoid
+   * conflicting usage of the `node->tmp_flag`. */
+  Vector<bNode *> shader_to_rgba_nodes;
+  nodeChainIterBackwards(ntree, output_node, shader_to_rgba_node_gather, &shader_to_rgba_nodes, 0);
 
-  nodeChainIterBackwards(ntree, output_node, ntree_tag_bsdf_cb, tags, 0);
+  for (bNode *shader_to_rgba : shader_to_rgba_nodes) {
+    bNodeSocket *closure_input = ntree_shader_node_input_get(shader_to_rgba, 0);
+    if (closure_input->link == nullptr) {
+      continue;
+    }
+    bNode *start_node = closure_input->link->fromnode;
+    bNode *start_node_copy = ntree_shader_copy_branch(
+        ntree, start_node, closure_node_filter, nullptr, 0);
+    /* Replace node copy link. This assumes that every node possibly connected to the closure input
+     * has only one output. */
+    bNodeSocket *closure_output = ntree_shader_node_output_get(start_node_copy, 0);
+    nodeRemLink(ntree, closure_input->link);
+    nodeAddLink(ntree, start_node_copy, closure_output, shader_to_rgba, closure_input);
+    BKE_ntree_update_main_tree(G.main, ntree, nullptr);
+
+    ntree_shader_weight_tree_invert(ntree, shader_to_rgba);
+  }
 }
 
-void ntreeGPUMaterialNodes(bNodeTree *localtree,
-                           GPUMaterial *mat,
-                           bool *has_surface_output,
-                           bool *has_volume_output)
+static bool ntree_branch_node_tag(bNode *fromnode, bNode *tonode, void *UNUSED(userdata))
+{
+  fromnode->tmp_flag = 1;
+  tonode->tmp_flag = 1;
+  return true;
+}
+
+/* Avoid adding more node execution when multiple outputs are present. */
+/* NOTE(@fclem): This is also a workaround for the old EEVEE SSS implementation where only the
+ * first executed SSS node gets a SSS profile. */
+static void ntree_shader_pruned_unused(bNodeTree *ntree, bNode *output_node)
+{
+  bool changed = false;
+
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    node->tmp_flag = 0;
+  }
+
+  /* Avoid deleting the output node if it is the only node in the tree. */
+  output_node->tmp_flag = 1;
+
+  nodeChainIterBackwards(ntree, output_node, ntree_branch_node_tag, nullptr, 0);
+
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type == SH_NODE_OUTPUT_AOV) {
+      nodeChainIterBackwards(ntree, node, ntree_branch_node_tag, nullptr, 0);
+    }
+  }
+
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
+    if (node->tmp_flag == 0) {
+      ntreeFreeLocalNode(ntree, node);
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    BKE_ntree_update_main_tree(G.main, ntree, nullptr);
+  }
+}
+
+void ntreeGPUMaterialNodes(bNodeTree *localtree, GPUMaterial *mat)
 {
   bNodeTreeExec *exec;
 
-  bNode *output = ntreeShaderOutputNode(localtree, SHD_OUTPUT_EEVEE);
-
   ntree_shader_groups_remove_muted_links(localtree);
   ntree_shader_groups_expand_inputs(localtree);
-
   ntree_shader_groups_flatten(localtree);
 
-  if (output == nullptr) {
-    /* Search again, now including flattened nodes. */
-    output = ntreeShaderOutputNode(localtree, SHD_OUTPUT_EEVEE);
+  bNode *output = ntreeShaderOutputNode(localtree, SHD_OUTPUT_EEVEE);
+
+  /* Tree is valid if it contains no undefined implicit socket type cast. */
+  bool valid_tree = ntree_shader_implicit_closure_cast(localtree);
+
+  if (valid_tree && output != NULL) {
+    ntree_shader_pruned_unused(localtree, output);
+    ntree_shader_shader_to_rgba_branch(localtree, output);
+    ntree_shader_weight_tree_invert(localtree, output);
   }
-
-  /* Perform all needed modifications on the tree in order to support
-   * displacement/bump mapping.
-   */
-  ntree_shader_relink_displacement(localtree, output);
-
-  /* Duplicate bump height branches for manual derivatives.
-   */
-  nodeChainIterBackwards(localtree, output, ntree_shader_bump_branches, localtree, 0);
-  LISTBASE_FOREACH (bNode *, node, &localtree->nodes) {
-    if (node->type == SH_NODE_OUTPUT_AOV) {
-      nodeChainIterBackwards(localtree, node, ntree_shader_bump_branches, localtree, 0);
-      nTreeTags tags = {};
-      tags.ssr_id = 1.0;
-      tags.sss_id = 1.0;
-      ntree_shader_tag_nodes(localtree, node, &tags);
-    }
-  }
-
-  /* TODO(fclem): consider moving this to the gpu shader tree evaluation. */
-  nTreeTags tags = {};
-  tags.ssr_id = 1.0;
-  tags.sss_id = 1.0;
-  ntree_shader_tag_nodes(localtree, output, &tags);
 
   exec = ntreeShaderBeginExecTree(localtree);
   ntreeExecGPUNodes(exec, mat, output);
@@ -918,23 +1049,6 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree,
     }
   }
   ntreeShaderEndExecTree(exec);
-
-  /* EEVEE: Find which material domain was used (volume, surface ...). */
-  *has_surface_output = false;
-  *has_volume_output = false;
-
-  if (output != nullptr) {
-    bNodeSocket *surface_sock = ntree_shader_node_find_input(output, "Surface");
-    bNodeSocket *volume_sock = ntree_shader_node_find_input(output, "Volume");
-
-    if (surface_sock != nullptr) {
-      *has_surface_output = (nodeCountSocketLinks(localtree, surface_sock) > 0);
-    }
-
-    if (volume_sock != nullptr) {
-      *has_volume_output = (nodeCountSocketLinks(localtree, volume_sock) > 0);
-    }
-  }
 }
 
 bNodeTreeExec *ntreeShaderBeginExecTree_internal(bNodeExecContext *context,

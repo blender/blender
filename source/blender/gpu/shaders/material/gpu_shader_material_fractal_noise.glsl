@@ -1,3 +1,6 @@
+#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_material_noise.glsl)
+
 /* The fractal_noise functions are all exactly the same except for the input type. */
 float fractal_noise(float p, float octaves, float roughness)
 {

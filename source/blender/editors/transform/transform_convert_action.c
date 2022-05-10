@@ -337,7 +337,7 @@ void createTransActionData(bContext *C, TransInfo *t)
     t->frame_side = 'B';
   }
 
-  /* loop 1: fully select F-curve keys and count how many BezTriples are selected */
+  /* loop 1: fully select F-Curve keys and count how many BezTriples are selected */
   for (ale = anim_data.first; ale; ale = ale->next) {
     AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
     int adt_count = 0;

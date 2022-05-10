@@ -89,6 +89,7 @@ ccl_device float3 bsdf_hair_transmission_eval_reflect(ccl_private const ShaderCl
                                                       const float3 omega_in,
                                                       ccl_private float *pdf)
 {
+  *pdf = 0.0f;
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
@@ -97,6 +98,7 @@ ccl_device float3 bsdf_hair_reflection_eval_transmit(ccl_private const ShaderClo
                                                      const float3 omega_in,
                                                      ccl_private float *pdf)
 {
+  *pdf = 0.0f;
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 

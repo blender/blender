@@ -99,7 +99,8 @@ static void cage2d_draw_box_corners(const rctf *r,
                                     const float color[3],
                                     const float line_width)
 {
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  /* NOTE(Metal): Prefer using 3D coordinates with 3D shader, even if rendering 2D gizmo's. */
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
   immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
   immUniformColor3fv(color);
@@ -112,25 +113,25 @@ static void cage2d_draw_box_corners(const rctf *r,
 
   immBegin(GPU_PRIM_LINES, 16);
 
-  immVertex2f(pos, r->xmin, r->ymin + margin[1]);
-  immVertex2f(pos, r->xmin, r->ymin);
-  immVertex2f(pos, r->xmin, r->ymin);
-  immVertex2f(pos, r->xmin + margin[0], r->ymin);
+  immVertex3f(pos, r->xmin, r->ymin + margin[1], 0.0f);
+  immVertex3f(pos, r->xmin, r->ymin, 0.0f);
+  immVertex3f(pos, r->xmin, r->ymin, 0.0f);
+  immVertex3f(pos, r->xmin + margin[0], r->ymin, 0.0f);
 
-  immVertex2f(pos, r->xmax, r->ymin + margin[1]);
-  immVertex2f(pos, r->xmax, r->ymin);
-  immVertex2f(pos, r->xmax, r->ymin);
-  immVertex2f(pos, r->xmax - margin[0], r->ymin);
+  immVertex3f(pos, r->xmax, r->ymin + margin[1], 0.0f);
+  immVertex3f(pos, r->xmax, r->ymin, 0.0f);
+  immVertex3f(pos, r->xmax, r->ymin, 0.0f);
+  immVertex3f(pos, r->xmax - margin[0], r->ymin, 0.0f);
 
-  immVertex2f(pos, r->xmax, r->ymax - margin[1]);
-  immVertex2f(pos, r->xmax, r->ymax);
-  immVertex2f(pos, r->xmax, r->ymax);
-  immVertex2f(pos, r->xmax - margin[0], r->ymax);
+  immVertex3f(pos, r->xmax, r->ymax - margin[1], 0.0f);
+  immVertex3f(pos, r->xmax, r->ymax, 0.0f);
+  immVertex3f(pos, r->xmax, r->ymax, 0.0f);
+  immVertex3f(pos, r->xmax - margin[0], r->ymax, 0.0f);
 
-  immVertex2f(pos, r->xmin, r->ymax - margin[1]);
-  immVertex2f(pos, r->xmin, r->ymax);
-  immVertex2f(pos, r->xmin, r->ymax);
-  immVertex2f(pos, r->xmin + margin[0], r->ymax);
+  immVertex3f(pos, r->xmin, r->ymax - margin[1], 0.0f);
+  immVertex3f(pos, r->xmin, r->ymax, 0.0f);
+  immVertex3f(pos, r->xmin, r->ymax, 0.0f);
+  immVertex3f(pos, r->xmin + margin[0], r->ymax, 0.0f);
 
   immEnd();
 
@@ -440,12 +441,35 @@ static void cage2d_draw_box_interaction(const float color[4],
 static void imm_draw_point_aspect_2d(
     uint pos, float x, float y, float rad_x, float rad_y, bool solid)
 {
-  immBegin(solid ? GPU_PRIM_TRI_FAN : GPU_PRIM_LINE_LOOP, 4);
-  immVertex2f(pos, x - rad_x, y - rad_y);
-  immVertex2f(pos, x - rad_x, y + rad_y);
-  immVertex2f(pos, x + rad_x, y + rad_y);
-  immVertex2f(pos, x + rad_x, y - rad_y);
-  immEnd();
+  if (solid) {
+    /* NOTE(Metal/AMD): Small Triangle-list primitives more optimal for GPU HW than Triangle-strip.
+     */
+    immBegin(GPU_PRIM_TRIS, 6);
+    immVertex2f(pos, x - rad_x, y - rad_y);
+    immVertex2f(pos, x - rad_x, y + rad_y);
+    immVertex2f(pos, x + rad_x, y + rad_y);
+
+    immVertex2f(pos, x - rad_x, y - rad_y);
+    immVertex2f(pos, x + rad_x, y + rad_y);
+    immVertex2f(pos, x + rad_x, y - rad_y);
+    immEnd();
+  }
+  else {
+    /* NOTE(Metal/AMD): Small Line-list primitives more optimal for GPU HW than Line-strip. */
+    immBegin(GPU_PRIM_LINES, 8);
+    immVertex2f(pos, x - rad_x, y - rad_y);
+    immVertex2f(pos, x - rad_x, y + rad_y);
+
+    immVertex2f(pos, x - rad_x, y + rad_y);
+    immVertex2f(pos, x + rad_x, y + rad_y);
+
+    immVertex2f(pos, x + rad_x, y + rad_y);
+    immVertex2f(pos, x + rad_x, y - rad_y);
+
+    immVertex2f(pos, x + rad_x, y - rad_y);
+    immVertex2f(pos, x - rad_x, y - rad_y);
+    immEnd();
+  }
 }
 
 static void cage2d_draw_circle_wire(const rctf *r,
@@ -455,7 +479,9 @@ static void cage2d_draw_circle_wire(const rctf *r,
                                     const int draw_options,
                                     const float line_width)
 {
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  /* NOTE(Metal): Prefer using 3D coordinates with 3D shader input, even if rendering 2D gizmo's.
+   */
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
   immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
   immUniformColor3fv(color);
@@ -465,17 +491,28 @@ static void cage2d_draw_circle_wire(const rctf *r,
   immUniform2fv("viewportSize", &viewport[2]);
   immUniform1f("lineWidth", line_width * U.pixelsize);
 
-  immBegin(GPU_PRIM_LINE_LOOP, 4);
-  immVertex2f(pos, r->xmin, r->ymin);
-  immVertex2f(pos, r->xmax, r->ymin);
-  immVertex2f(pos, r->xmax, r->ymax);
-  immVertex2f(pos, r->xmin, r->ymax);
+  /* Small 'lines' primitives more efficient for hardware processing than line-strip. */
+  immBegin(GPU_PRIM_LINES, 8);
+  immVertex3f(pos, r->xmin, r->ymin, 0.0f);
+  immVertex3f(pos, r->xmax, r->ymin, 0.0f);
+
+  immVertex3f(pos, r->xmax, r->ymin, 0.0f);
+  immVertex3f(pos, r->xmax, r->ymax, 0.0f);
+
+  immVertex3f(pos, r->xmax, r->ymax, 0.0f);
+  immVertex3f(pos, r->xmin, r->ymax, 0.0f);
+
+  immVertex3f(pos, r->xmin, r->ymax, 0.0f);
+  immVertex3f(pos, r->xmin, r->ymin, 0.0f);
   immEnd();
 
   if (transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_ROTATE) {
-    immBegin(GPU_PRIM_LINE_LOOP, 2);
-    immVertex2f(pos, BLI_rctf_cent_x(r), r->ymax);
-    immVertex2f(pos, BLI_rctf_cent_x(r), r->ymax + margin[1]);
+    immBegin(GPU_PRIM_LINES, 4);
+    immVertex3f(pos, BLI_rctf_cent_x(r), r->ymax, 0.0f);
+    immVertex3f(pos, BLI_rctf_cent_x(r), r->ymax + margin[1], 0.0f);
+
+    immVertex3f(pos, BLI_rctf_cent_x(r), r->ymax + margin[1], 0.0f);
+    immVertex3f(pos, BLI_rctf_cent_x(r), r->ymax, 0.0f);
     immEnd();
   }
 
@@ -485,10 +522,10 @@ static void cage2d_draw_circle_wire(const rctf *r,
       const float center[2] = {BLI_rctf_cent_x(r), BLI_rctf_cent_y(r)};
 
       immBegin(GPU_PRIM_LINES, 4);
-      immVertex2f(pos, center[0] - rad[0], center[1] - rad[1]);
-      immVertex2f(pos, center[0] + rad[0], center[1] + rad[1]);
-      immVertex2f(pos, center[0] + rad[0], center[1] - rad[1]);
-      immVertex2f(pos, center[0] - rad[0], center[1] + rad[1]);
+      immVertex3f(pos, center[0] - rad[0], center[1] - rad[1], 0.0f);
+      immVertex3f(pos, center[0] + rad[0], center[1] + rad[1], 0.0f);
+      immVertex3f(pos, center[0] + rad[0], center[1] - rad[1], 0.0f);
+      immVertex3f(pos, center[0] - rad[0], center[1] + rad[1], 0.0f);
       immEnd();
     }
   }

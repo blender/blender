@@ -231,6 +231,8 @@ static bool wm_obj_export_check(bContext *C, wmOperator *op)
 
 void WM_OT_obj_export(struct wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   ot->name = "Export Wavefront OBJ";
   ot->description = "Save the scene to a Wavefront OBJ file";
   ot->idname = "WM_OT_obj_export";
@@ -244,7 +246,7 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
   ot->flag |= OPTYPE_PRESET;
 
   WM_operator_properties_filesel(ot,
-                                 FILE_TYPE_FOLDER | FILE_TYPE_OBJECT_IO,
+                                 FILE_TYPE_FOLDER,
                                  FILE_BLENDER,
                                  FILE_SAVE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_SHOW_PROPS,
@@ -358,6 +360,10 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
       "Every smooth-shaded face is assigned group \"1\" and every flat-shaded face \"off\"");
   RNA_def_boolean(
       ot->srna, "smooth_group_bitflags", false, "Generate Bitflags for Smooth Groups", "");
+
+  /* Only show .obj or .mtl files by default. */
+  prop = RNA_def_string(ot->srna, "filter_glob", "*.obj;*.mtl", 0, "Extension Filter", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 static int wm_obj_import_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
@@ -378,6 +384,7 @@ static int wm_obj_import_exec(bContext *C, wmOperator *op)
   import_params.clamp_size = RNA_float_get(op->ptr, "clamp_size");
   import_params.forward_axis = RNA_enum_get(op->ptr, "forward_axis");
   import_params.up_axis = RNA_enum_get(op->ptr, "up_axis");
+  import_params.validate_meshes = RNA_boolean_get(op->ptr, "validate_meshes");
 
   OBJ_import(C, &import_params);
 
@@ -388,8 +395,8 @@ static void ui_obj_import_settings(uiLayout *layout, PointerRNA *imfptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  uiLayout *box = uiLayoutBox(layout);
 
+  uiLayout *box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Transform"), ICON_OBJECT_DATA);
   uiLayout *col = uiLayoutColumn(box, false);
   uiLayout *sub = uiLayoutColumn(col, false);
@@ -397,6 +404,11 @@ static void ui_obj_import_settings(uiLayout *layout, PointerRNA *imfptr)
   sub = uiLayoutColumn(col, false);
   uiItemR(sub, imfptr, "forward_axis", 0, IFACE_("Axis Forward"), ICON_NONE);
   uiItemR(sub, imfptr, "up_axis", 0, IFACE_("Up"), ICON_NONE);
+
+  box = uiLayoutBox(layout);
+  uiItemL(box, IFACE_("Options"), ICON_EXPORT);
+  col = uiLayoutColumn(box, false);
+  uiItemR(col, imfptr, "validate_meshes", 0, NULL, ICON_NONE);
 }
 
 static void wm_obj_import_draw(bContext *C, wmOperator *op)
@@ -409,6 +421,8 @@ static void wm_obj_import_draw(bContext *C, wmOperator *op)
 
 void WM_OT_obj_import(struct wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   ot->name = "Import Wavefront OBJ";
   ot->description = "Load a Wavefront OBJ scene";
   ot->idname = "WM_OT_obj_import";
@@ -419,7 +433,7 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
   ot->ui = wm_obj_import_draw;
 
   WM_operator_properties_filesel(ot,
-                                 FILE_TYPE_FOLDER | FILE_TYPE_OBJECT_IO,
+                                 FILE_TYPE_FOLDER,
                                  FILE_BLENDER,
                                  FILE_OPENFILE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_SHOW_PROPS,
@@ -432,7 +446,7 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
       0.0f,
       1000.0f,
       "Clamp Bounding Box",
-      "Resize the objects to keep bounding box under this value. Value 0 diables clamping",
+      "Resize the objects to keep bounding box under this value. Value 0 disables clamping",
       0.0f,
       1000.0f);
   RNA_def_enum(ot->srna,
@@ -442,4 +456,13 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
                "Forward Axis",
                "");
   RNA_def_enum(ot->srna, "up_axis", io_obj_transform_axis_up, OBJ_AXIS_Y_UP, "Up Axis", "");
+  RNA_def_boolean(ot->srna,
+                  "validate_meshes",
+                  false,
+                  "Validate Meshes",
+                  "Check imported mesh objects for invalid data (slow)");
+
+  /* Only show .obj or .mtl files by default. */
+  prop = RNA_def_string(ot->srna, "filter_glob", "*.obj;*.mtl", 0, "Extension Filter", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }

@@ -256,10 +256,6 @@ void IMB_colormanagement_display_settings_from_ctx(
     struct ColorManagedViewSettings **r_view_settings,
     struct ColorManagedDisplaySettings **r_display_settings);
 
-const char *IMB_colormanagement_get_display_colorspace_name(
-    const struct ColorManagedViewSettings *view_settings,
-    const struct ColorManagedDisplaySettings *display_settings);
-
 /**
  * Acquire display buffer for given image buffer using specified view and display settings.
  */

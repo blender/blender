@@ -259,12 +259,16 @@ set(SRC
   # converter nodes
   nodes/COM_CombineColorNode.cc
   nodes/COM_CombineColorNode.h
+  nodes/COM_CombineColorNodeLegacy.cc
+  nodes/COM_CombineColorNodeLegacy.h
   nodes/COM_CombineXYZNode.cc
   nodes/COM_CombineXYZNode.h
   nodes/COM_IDMaskNode.cc
   nodes/COM_IDMaskNode.h
   nodes/COM_SeparateColorNode.cc
   nodes/COM_SeparateColorNode.h
+  nodes/COM_SeparateColorNodeLegacy.cc
+  nodes/COM_SeparateColorNodeLegacy.h
   nodes/COM_SeparateXYZNode.cc
   nodes/COM_SeparateXYZNode.h
 

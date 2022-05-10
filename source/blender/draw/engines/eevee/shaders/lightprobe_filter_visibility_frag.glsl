@@ -15,7 +15,6 @@ uniform float visibilityRange;
 uniform float visibilityBlur;
 
 uniform float sampleCount;
-uniform float;
 
 out vec4 FragColor;
 

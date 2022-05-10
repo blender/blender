@@ -50,7 +50,7 @@ static PyObject *py_blf_position(PyObject *UNUSED(self), PyObject *args)
 PyDoc_STRVAR(py_blf_size_doc,
              ".. function:: size(fontid, size, dpi)\n"
              "\n"
-             "   Set the size and dpi for drawing text.\n"
+             "   Set the size and DPI for drawing text.\n"
              "\n"
              "   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default "
              "font use 0.\n"

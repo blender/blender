@@ -333,7 +333,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                    -1,
                                    -1,
                                    nullptr);
-      ui_but_add_search(but, ptr, prop, nullptr, nullptr);
+      ui_but_add_search(but, ptr, prop, nullptr, nullptr, false);
       break;
     }
     case PROP_COLLECTION: {
@@ -450,6 +450,11 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
   RNA_STRUCT_END;
 
   return return_info;
+}
+
+void UI_but_func_identity_compare_set(uiBut *but, uiButIdentityCompareFunc cmp_fn)
+{
+  but->identity_cmp_func = cmp_fn;
 }
 
 /* *** RNA collection search menu *** */

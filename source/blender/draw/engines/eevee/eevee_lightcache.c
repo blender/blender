@@ -965,7 +965,7 @@ static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lb
   txl->color = NULL;
 
   DRW_render_instance_buffer_finish();
-  DRW_hair_update();
+  DRW_curves_update();
 }
 
 static void eevee_lightbake_copy_irradiance(EEVEE_LightBake *lbake, LightCache *lcache)
@@ -1463,9 +1463,6 @@ void EEVEE_lightbake_job(void *custom_data, short *stop, short *do_update, float
   }
 
   eevee_lightbake_delete_resources(lbake);
-
-  /* Free GPU smoke textures and the smoke domain list correctly: See also T73921. */
-  EEVEE_volumes_free_smoke_textures();
 }
 
 void EEVEE_lightbake_update_world_quick(EEVEE_ViewLayerData *sldata,

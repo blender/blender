@@ -36,6 +36,10 @@ typedef struct XrSessionSettings {
   float clip_start, clip_end;
 
   int flag;
+
+  /** Object type settings to apply to VR view (unlike shading, not shared with window 3D-View). */
+  int object_type_exclude_viewport;
+  int object_type_exclude_select;
 } XrSessionSettings;
 
 typedef enum eXrSessionFlag {

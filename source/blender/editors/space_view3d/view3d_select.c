@@ -126,6 +126,7 @@ void ED_view3d_viewcontext_init(bContext *C, ViewContext *vc, Depsgraph *depsgra
 void ED_view3d_viewcontext_init_object(ViewContext *vc, Object *obact)
 {
   vc->obact = obact;
+  /* See public doc-string for rationale on checking the existing values first. */
   if (vc->obedit) {
     BLI_assert(BKE_object_is_in_editmode(obact));
     vc->obedit = obact;
@@ -2123,49 +2124,6 @@ static Base *mouse_select_eval_buffer(ViewContext *vc,
         if (min > buffer[a].depth) {
           min = buffer[a].depth;
           hit_index = a;
-        }
-      }
-
-      /* Find the best active & non-active hits.
-       * NOTE(@campbellbarton): Checking if `hits > 1` isn't a reliable way to know
-       * if there are multiple objects selected since it's possible the same object
-       * generates multiple hits, either from:
-       * - Multiple sub-components (bones & camera tracks).
-       * - Multiple selectable elements such as the object center and the geometry.
-       *
-       * For this reason, keep track of the best hit as well as the best hit that
-       * excludes the selected & active object, using this value when it's valid. */
-      if ((hit_index != -1) &&
-          /* Special case, cycling away from the active object should only be done when it
-           * doesn't have a bone selection, otherwise selecting sub-elements is difficult. */
-          ((buffer[hit_index].id & 0xFFFF0000) == 0) &&
-          /* Only exclude active object when it is selected. */
-          (BASACT(view_layer) && (BASACT(view_layer)->flag & BASE_SELECTED)) &&
-          /* Allow disabling this behavior entirely. */
-          (U.experimental.use_select_nearest_on_first_click == false)) {
-
-        const int select_id_active = BASACT(view_layer)->object->runtime.select_id;
-
-        /* Check if `hit_index` is the current active object. */
-        if ((buffer[hit_index].id & 0xFFFF) == select_id_active) {
-          uint min_not_active = 0xFFFFFFFF;
-          int hit_index_not_active = -1;
-          for (a = 0; a < hits; a++) {
-            /* Any object other than the active-selected. */
-            if (select_id_active == (buffer[a].id & 0xFFFF)) {
-              continue;
-            }
-            if (min_not_active > buffer[a].depth) {
-              min_not_active = buffer[a].depth;
-              hit_index_not_active = a;
-            }
-          }
-
-          /* When the active was selected, first try to use the index
-           * for the best non-active hit that was found. */
-          if (hit_index_not_active != -1) {
-            hit_index = hit_index_not_active;
-          }
         }
       }
     }
@@ -4645,6 +4603,48 @@ static bool object_circle_select(ViewContext *vc,
 }
 
 /* not a real operator, only for circle test */
+static void view3d_circle_select_recalc(void *user_data)
+{
+  bContext *C = user_data;
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ViewContext vc;
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  em_setup_viewcontext(C, &vc);
+
+  if (vc.obedit) {
+    switch (vc.obedit->type) {
+      case OB_MESH: {
+        FOREACH_OBJECT_IN_MODE_BEGIN (
+            vc.view_layer, vc.v3d, vc.obact->type, vc.obact->mode, ob_iter) {
+          ED_view3d_viewcontext_init_object(&vc, ob_iter);
+          BM_mesh_select_mode_flush_ex(
+              vc.em->bm, vc.em->selectmode, BM_SELECT_LEN_FLUSH_RECALC_ALL);
+        }
+        FOREACH_OBJECT_IN_MODE_END;
+        break;
+      }
+
+      default:
+        break;
+    }
+  }
+}
+
+static int view3d_circle_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  int result = WM_gesture_circle_modal(C, op, event);
+  if (result & OPERATOR_FINISHED) {
+    view3d_circle_select_recalc(C);
+  }
+  return result;
+}
+
+static void view3d_circle_select_cancel(bContext *C, wmOperator *op)
+{
+  WM_gesture_circle_cancel(C, op);
+  view3d_circle_select_recalc(C);
+}
+
 static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -4736,10 +4736,10 @@ void VIEW3D_OT_select_circle(wmOperatorType *ot)
   ot->idname = "VIEW3D_OT_select_circle";
 
   ot->invoke = WM_gesture_circle_invoke;
-  ot->modal = WM_gesture_circle_modal;
+  ot->modal = view3d_circle_select_modal;
   ot->exec = view3d_circle_select_exec;
   ot->poll = view3d_selectable_data;
-  ot->cancel = WM_gesture_circle_cancel;
+  ot->cancel = view3d_circle_select_cancel;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;

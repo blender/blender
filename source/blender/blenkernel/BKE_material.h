@@ -52,7 +52,7 @@ void BKE_object_material_remap_calc(struct Object *ob_dst,
  */
 void BKE_object_material_from_eval_data(struct Main *bmain,
                                         struct Object *ob_orig,
-                                        struct ID *data_eval);
+                                        const struct ID *data_eval);
 struct Material *BKE_material_add(struct Main *bmain, const char *name);
 struct Material *BKE_gpencil_material_add(struct Main *bmain, const char *name);
 void BKE_gpencil_material_attr_init(struct Material *ma);
@@ -104,7 +104,9 @@ bool BKE_object_material_slot_used(struct Object *object, short actcol);
 struct Material *BKE_gpencil_material(struct Object *ob, short act);
 struct MaterialGPencilStyle *BKE_gpencil_material_settings(struct Object *ob, short act);
 
-void BKE_texpaint_slot_refresh_cache(struct Scene *scene, struct Material *ma);
+void BKE_texpaint_slot_refresh_cache(struct Scene *scene,
+                                     struct Material *ma,
+                                     const struct Object *ob);
 void BKE_texpaint_slots_refresh_object(struct Scene *scene, struct Object *ob);
 struct bNode *BKE_texpaint_slot_material_find_node(struct Material *ma, short texpaint_slot);
 

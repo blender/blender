@@ -158,7 +158,15 @@ static PyObject *bpy_user_map(PyObject *UNUSED(self), PyObject *args, PyObject *
   IDUserMapData data_cb = {NULL};
 
   static const char *_keywords[] = {"subset", "key_types", "value_types", NULL};
-  static _PyArg_Parser _parser = {"|$OO!O!:user_map", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "|$" /* Optional keyword only arguments. */
+      "O"  /* `subset` */
+      "O!" /* `key_types` */
+      "O!" /* `value_types` */
+      ":user_map",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kwds, &_parser, &subset, &PySet_Type, &key_types, &PySet_Type, &val_types)) {
     return NULL;
@@ -291,7 +299,12 @@ static PyObject *bpy_batch_remove(PyObject *UNUSED(self), PyObject *args, PyObje
   PyObject *ret = NULL;
 
   static const char *_keywords[] = {"ids", NULL};
-  static _PyArg_Parser _parser = {"O:batch_remove", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O" /* `ids` */
+      ":batch_remove",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kwds, &_parser, &ids)) {
     return ret;
   }
@@ -364,7 +377,15 @@ static PyObject *bpy_orphans_purge(PyObject *UNUSED(self), PyObject *args, PyObj
   bool do_recursive_cleanup = false;
 
   static const char *_keywords[] = {"do_local_ids", "do_linked_ids", "do_recursive", NULL};
-  static _PyArg_Parser _parser = {"|O&O&O&:orphans_purge", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "|"  /* Optional arguments. */
+      "O&" /* `do_local_ids` */
+      "O&" /* `do_linked_ids` */
+      "O&" /* `do_recursive` */
+      ":orphans_purge",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kwds,
                                         &_parser,

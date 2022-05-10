@@ -698,12 +698,12 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
     add_v3_v3v3(plane_isect_1_other, plane_isect_1, plane_isect_1_no);
     add_v3_v3v3(plane_isect_2_other, plane_isect_2, plane_isect_2_no);
 
-    if (!isect_line_line_v3(plane_isect_1,
-                            plane_isect_1_other,
-                            plane_isect_2,
-                            plane_isect_2_other,
-                            plane_isect_pt_1,
-                            plane_isect_pt_2) != 0) {
+    if (isect_line_line_v3(plane_isect_1,
+                           plane_isect_1_other,
+                           plane_isect_2,
+                           plane_isect_2_other,
+                           plane_isect_pt_1,
+                           plane_isect_pt_2) == 0) {
       return false;
     }
 

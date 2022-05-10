@@ -11,11 +11,13 @@
 #include "DNA_key_types.h"
 #include "DNA_listBase.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
 
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BLI_bitmap.h"
+#include "BLI_compiler_attrs.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_gsqueue.h"
 #include "BLI_threads.h"
@@ -25,12 +27,13 @@ extern "C" {
 #endif
 
 struct AutomaskingCache;
+struct Image;
+struct ImageUser;
 struct KeyBlock;
 struct Object;
 struct SculptUndoNode;
 struct bContext;
-
-enum ePaintSymmetryFlags;
+struct PaintModeSettings;
 
 /* Updates */
 
@@ -43,6 +46,7 @@ typedef enum SculptUpdateType {
   SCULPT_UPDATE_MASK = 1 << 1,
   SCULPT_UPDATE_VISIBILITY = 1 << 2,
   SCULPT_UPDATE_COLOR = 1 << 3,
+  SCULPT_UPDATE_IMAGE = 1 << 4,
 } SculptUpdateType;
 
 typedef struct SculptCursorGeometryInfo {
@@ -201,13 +205,11 @@ struct SculptRakeData {
   float follow_co[3];
 };
 
-/*
-Generic thread data.  The size of this struct
-has gotten a little out of hand; normally we would
-split it up, but it might be better to see if we can't
-eliminate it altogether after moving to C++ (where
-we'll be able to use lambdas).
-*/
+/**
+ * Generic thread data. The size of this struct has gotten a little out of hand;
+ * normally we would split it up, but it might be better to see if we can't eliminate it
+ * altogether after moving to C++ (where we'll be able to use lambdas).
+ */
 typedef struct SculptThreadedTaskData {
   struct bContext *C;
   struct Sculpt *sd;
@@ -217,7 +219,6 @@ typedef struct SculptThreadedTaskData {
   int totnode;
 
   struct VPaint *vp;
-  struct VPaintData *vpd;
   struct WPaintData *wpd;
   struct WeightPaintInfo *wpi;
   unsigned int *lcol;
@@ -441,6 +442,9 @@ typedef struct FilterCache {
 
   /* Auto-masking. */
   AutomaskingCache *automasking;
+
+  /* Pre-smoothed colors used by sharpening. Colors are HSL. */
+  float (*pre_smoothed_color)[4];
 } FilterCache;
 
 /**
@@ -488,6 +492,7 @@ typedef struct StrokeCache {
   float mouse_event[2];
 
   float (*prev_colors)[4];
+  void *prev_colors_vpaint;
 
   /* Multires Displacement Smear. */
   float (*prev_displacement)[3];
@@ -777,7 +782,17 @@ bool SCULPT_mode_poll_view3d(struct bContext *C);
 bool SCULPT_poll(struct bContext *C);
 bool SCULPT_poll_view3d(struct bContext *C);
 
-bool SCULPT_vertex_colors_poll(struct bContext *C);
+/**
+ * Returns true if sculpt session can handle color attributes
+ * (BKE_pbvh_type(ss->pbvh) == PBVH_FACES).  If false an error
+ * message will be shown to the user.  Operators should return
+ * OPERATOR_CANCELLED in this case.
+ *
+ * NOTE: Does not check if a color attribute actually exists.
+ * Calling code must handle this itself; in most cases a call to
+ * BKE_sculpt_color_layer_create_if_needed() is sufficient.
+ */
+bool SCULPT_handles_colors_report(struct SculptSession *ss, struct ReportList *reports);
 
 /** \} */
 
@@ -1433,6 +1448,11 @@ void SCULPT_cache_free(StrokeCache *cache);
 SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType type);
 SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node);
 SculptUndoNode *SCULPT_undo_get_first_node(void);
+
+/**
+ * NOTE: `name` must match operator name for
+ * redo panels to work.
+ */
 void SCULPT_undo_push_begin(struct Object *ob, const char *name);
 void SCULPT_undo_push_end(struct Object *ob);
 void SCULPT_undo_push_end_ex(struct Object *ob, const bool use_nested_undo);
@@ -1625,7 +1645,29 @@ void SCULPT_multiplane_scrape_preview_draw(uint gpuattr,
 void SCULPT_do_draw_face_sets_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
 
 /* Paint Brush. */
-void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);
+void SCULPT_do_paint_brush(struct PaintModeSettings *paint_mode_settings,
+                           Sculpt *sd,
+                           Object *ob,
+                           PBVHNode **nodes,
+                           int totnode) ATTR_NONNULL();
+
+/**
+ * @brief Get the image canvas for painting on the given object.
+ *
+ * @return #true if an image is found. The #r_image and #r_image_user fields are filled with the
+ * image and image user. Returns false when the image isn't found. In the later case the r_image
+ * and r_image_user are set to nullptr/NULL.
+ */
+bool SCULPT_paint_image_canvas_get(struct PaintModeSettings *paint_mode_settings,
+                                   struct Object *ob,
+                                   struct Image **r_image,
+                                   struct ImageUser **r_image_user) ATTR_NONNULL();
+void SCULPT_do_paint_brush_image(struct PaintModeSettings *paint_mode_settings,
+                                 Sculpt *sd,
+                                 Object *ob,
+                                 PBVHNode **nodes,
+                                 int totnode) ATTR_NONNULL();
+bool SCULPT_use_image_paint_brush(struct PaintModeSettings *settings, Object *ob) ATTR_NONNULL();
 
 /* Smear Brush. */
 void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode);

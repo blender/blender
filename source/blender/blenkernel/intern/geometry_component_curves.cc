@@ -141,84 +141,163 @@ const Curve *CurveComponent::get_curve_for_render() const
 
 namespace blender::bke {
 
-static void calculate_bezier_normals(const BezierSpline &spline, MutableSpan<float3> normals)
+static Array<float3> curve_normal_point_domain(const bke::CurvesGeometry &curves)
 {
-  Span<int> offsets = spline.control_point_offsets();
-  Span<float3> evaluated_normals = spline.evaluated_normals();
-  for (const int i : IndexRange(spline.size())) {
-    normals[i] = evaluated_normals[offsets[i]];
-  }
-}
+  const VArray<int8_t> types = curves.curve_types();
+  const VArray<int> resolutions = curves.resolution();
+  const VArray<bool> curves_cyclic = curves.cyclic();
 
-static void calculate_poly_normals(const PolySpline &spline, MutableSpan<float3> normals)
-{
-  normals.copy_from(spline.evaluated_normals());
-}
+  const Span<float3> positions = curves.positions();
+  const VArray<int8_t> normal_modes = curves.normal_mode();
 
-/**
- * Because NURBS control points are not necessarily on the path, the normal at the control points
- * is not well defined, so create a temporary poly spline to find the normals. This requires extra
- * copying currently, but may be more efficient in the future if attributes have some form of CoW.
- */
-static void calculate_nurbs_normals(const NURBSpline &spline, MutableSpan<float3> normals)
-{
-  PolySpline poly_spline;
-  poly_spline.resize(spline.size());
-  poly_spline.positions().copy_from(spline.positions());
-  poly_spline.tilts().copy_from(spline.tilts());
-  normals.copy_from(poly_spline.evaluated_normals());
-}
+  const Span<float3> evaluated_normals = curves.evaluated_normals();
 
-static Array<float3> curve_normal_point_domain(const CurveEval &curve)
-{
-  Span<SplinePtr> splines = curve.splines();
-  Array<int> offsets = curve.control_point_offsets();
-  const int total_size = offsets.last();
-  Array<float3> normals(total_size);
+  Array<float3> results(curves.points_num());
 
-  threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
-    for (const int i : range) {
-      const Spline &spline = *splines[i];
-      MutableSpan spline_normals{normals.as_mutable_span().slice(offsets[i], spline.size())};
-      switch (splines[i]->type()) {
-        case CURVE_TYPE_BEZIER:
-          calculate_bezier_normals(static_cast<const BezierSpline &>(spline), spline_normals);
+  threading::parallel_for(curves.curves_range(), 128, [&](IndexRange range) {
+    Vector<float3> nurbs_tangents;
+
+    for (const int i_curve : range) {
+      const IndexRange points = curves.points_for_curve(i_curve);
+      const IndexRange evaluated_points = curves.evaluated_points_for_curve(i_curve);
+
+      MutableSpan<float3> curve_normals = results.as_mutable_span().slice(points);
+
+      switch (types[i_curve]) {
+        case CURVE_TYPE_CATMULL_ROM: {
+          const Span<float3> normals = evaluated_normals.slice(evaluated_points);
+          const int resolution = resolutions[i_curve];
+          for (const int i : IndexRange(points.size())) {
+            curve_normals[i] = normals[resolution * i];
+          }
           break;
+        }
         case CURVE_TYPE_POLY:
-          calculate_poly_normals(static_cast<const PolySpline &>(spline), spline_normals);
+          curve_normals.copy_from(evaluated_normals.slice(evaluated_points));
           break;
-        case CURVE_TYPE_NURBS:
-          calculate_nurbs_normals(static_cast<const NURBSpline &>(spline), spline_normals);
+        case CURVE_TYPE_BEZIER: {
+          const Span<float3> normals = evaluated_normals.slice(evaluated_points);
+          curve_normals.first() = normals.first();
+          const Span<int> offsets = curves.bezier_evaluated_offsets_for_curve(i_curve);
+          for (const int i : IndexRange(points.size()).drop_front(1)) {
+            curve_normals[i] = normals[offsets[i - 1]];
+          }
           break;
-        case CURVE_TYPE_CATMULL_ROM:
-          BLI_assert_unreachable();
+        }
+        case CURVE_TYPE_NURBS: {
+          /* For NURBS curves there is no obvious correspondence between specific evaluated points
+           * and control points, so normals are determined by treating them as poly curves. */
+          nurbs_tangents.clear();
+          nurbs_tangents.resize(points.size());
+          const bool cyclic = curves_cyclic[i_curve];
+          const Span<float3> curve_positions = positions.slice(points);
+          bke::curves::poly::calculate_tangents(curve_positions, cyclic, nurbs_tangents);
+          switch (NormalMode(normal_modes[i_curve])) {
+            case NORMAL_MODE_Z_UP:
+              bke::curves::poly::calculate_normals_z_up(nurbs_tangents, curve_normals);
+              break;
+            case NORMAL_MODE_MINIMUM_TWIST:
+              bke::curves::poly::calculate_normals_minimum(nurbs_tangents, cyclic, curve_normals);
+              break;
+          }
           break;
+        }
       }
     }
   });
-  return normals;
+  return results;
 }
 
 VArray<float3> curve_normals_varray(const CurveComponent &component, const AttributeDomain domain)
 {
-  if (component.is_empty()) {
-    return nullptr;
+  if (!component.has_curves()) {
+    return {};
   }
-  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*component.get_for_read());
+
+  const Curves &curves_id = *component.get_for_read();
+  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+
+  const VArray<int8_t> types = curves.curve_types();
+  if (curves.is_single_type(CURVE_TYPE_POLY)) {
+    return component.attribute_try_adapt_domain<float3>(
+        VArray<float3>::ForSpan(curves.evaluated_normals()), ATTR_DOMAIN_POINT, domain);
+  }
+
+  Array<float3> normals = curve_normal_point_domain(curves);
 
   if (domain == ATTR_DOMAIN_POINT) {
-    Array<float3> normals = curve_normal_point_domain(*curve);
     return VArray<float3>::ForContainer(std::move(normals));
   }
 
   if (domain == ATTR_DOMAIN_CURVE) {
-    Array<float3> point_normals = curve_normal_point_domain(*curve);
-    VArray<float3> varray = VArray<float3>::ForContainer(std::move(point_normals));
     return component.attribute_try_adapt_domain<float3>(
-        std::move(varray), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
+        VArray<float3>::ForContainer(std::move(normals)), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
   }
 
   return nullptr;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Curve Length Field Input
+ * \{ */
+
+static VArray<float> construct_curve_length_gvarray(const CurveComponent &component,
+                                                    const AttributeDomain domain)
+{
+  if (!component.has_curves()) {
+    return {};
+  }
+  const Curves &curves_id = *component.get_for_read();
+  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+
+  curves.ensure_evaluated_lengths();
+
+  VArray<bool> cyclic = curves.cyclic();
+  VArray<float> lengths = VArray<float>::ForFunc(
+      curves.curves_num(), [&curves, cyclic = std::move(cyclic)](int64_t index) {
+        return curves.evaluated_length_total_for_curve(index, cyclic[index]);
+      });
+
+  if (domain == ATTR_DOMAIN_CURVE) {
+    return lengths;
+  }
+
+  if (domain == ATTR_DOMAIN_POINT) {
+    return component.attribute_try_adapt_domain<float>(
+        std::move(lengths), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
+  }
+
+  return {};
+}
+
+CurveLengthFieldInput::CurveLengthFieldInput()
+    : GeometryFieldInput(CPPType::get<float>(), "Spline Length node")
+{
+  category_ = Category::Generated;
+}
+
+GVArray CurveLengthFieldInput::get_varray_for_context(const GeometryComponent &component,
+                                                      const AttributeDomain domain,
+                                                      IndexMask UNUSED(mask)) const
+{
+  if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
+    const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
+    return construct_curve_length_gvarray(curve_component, domain);
+  }
+  return {};
+}
+
+uint64_t CurveLengthFieldInput::hash() const
+{
+  /* Some random constant hash. */
+  return 3549623580;
+}
+
+bool CurveLengthFieldInput::is_equal_to(const fn::FieldNode &other) const
+{
+  return dynamic_cast<const CurveLengthFieldInput *>(&other) != nullptr;
 }
 
 }  // namespace blender::bke
@@ -271,6 +350,15 @@ static void tag_component_topology_changed(GeometryComponent &component)
 {
   Curves *curves = get_curves_from_component_for_write(component);
   if (curves) {
+    blender::bke::CurvesGeometry::wrap(curves->geometry).tag_topology_changed();
+  }
+}
+
+static void tag_component_curve_types_changed(GeometryComponent &component)
+{
+  Curves *curves = get_curves_from_component_for_write(component);
+  if (curves) {
+    blender::bke::CurvesGeometry::wrap(curves->geometry).update_curve_types();
     blender::bke::CurvesGeometry::wrap(curves->geometry).tag_topology_changed();
   }
 }
@@ -446,15 +534,27 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
 
   static BuiltinCustomDataLayerProvider nurbs_order("nurbs_order",
                                                     ATTR_DOMAIN_CURVE,
-                                                    CD_PROP_INT32,
-                                                    CD_PROP_INT32,
+                                                    CD_PROP_INT8,
+                                                    CD_PROP_INT8,
                                                     BuiltinAttributeProvider::Creatable,
                                                     BuiltinAttributeProvider::Writable,
                                                     BuiltinAttributeProvider::Deletable,
                                                     curve_access,
-                                                    make_array_read_attribute<int>,
-                                                    make_array_write_attribute<int>,
+                                                    make_array_read_attribute<int8_t>,
+                                                    make_array_write_attribute<int8_t>,
                                                     tag_component_topology_changed);
+
+  static BuiltinCustomDataLayerProvider normal_mode("normal_mode",
+                                                    ATTR_DOMAIN_CURVE,
+                                                    CD_PROP_INT8,
+                                                    CD_PROP_INT8,
+                                                    BuiltinAttributeProvider::Creatable,
+                                                    BuiltinAttributeProvider::Writable,
+                                                    BuiltinAttributeProvider::Deletable,
+                                                    curve_access,
+                                                    make_array_read_attribute<int8_t>,
+                                                    make_array_write_attribute<int8_t>,
+                                                    tag_component_normals_changed);
 
   static BuiltinCustomDataLayerProvider nurbs_knots_mode("knots_mode",
                                                          ATTR_DOMAIN_CURVE,
@@ -478,7 +578,7 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                    curve_access,
                                                    make_array_read_attribute<int8_t>,
                                                    make_array_write_attribute<int8_t>,
-                                                   tag_component_topology_changed);
+                                                   tag_component_curve_types_changed);
 
   static BuiltinCustomDataLayerProvider resolution("resolution",
                                                    ATTR_DOMAIN_CURVE,
@@ -490,7 +590,7 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                    curve_access,
                                                    make_array_read_attribute<int>,
                                                    make_array_write_attribute<int>,
-                                                   tag_component_positions_changed);
+                                                   tag_component_topology_changed);
 
   static BuiltinCustomDataLayerProvider cyclic("cyclic",
                                                ATTR_DOMAIN_CURVE,
@@ -515,7 +615,9 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                       &handle_left,
                                       &handle_type_right,
                                       &handle_type_left,
+                                      &normal_mode,
                                       &nurbs_order,
+                                      &nurbs_knots_mode,
                                       &nurbs_weight,
                                       &curve_type,
                                       &resolution,

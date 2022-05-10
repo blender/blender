@@ -24,6 +24,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 
 #include "IMB_colormanagement.h"
@@ -36,6 +37,7 @@
 #include "WM_types.h"
 
 #include "ED_object.h"
+#include "ED_paint.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "paint_intern.h"
@@ -108,6 +110,7 @@ static void color_filter_task_cb(void *__restrict userdata,
     }
 
     copy_v3_v3(orig_color, orig_data.col);
+    final_color[3] = orig_data.col[3]; /* Copy alpha */
 
     switch (mode) {
       case COLOR_FILTER_FILL: {
@@ -121,14 +124,20 @@ static void color_filter_task_cb(void *__restrict userdata,
       }
       case COLOR_FILTER_HUE:
         rgb_to_hsv_v(orig_color, hsv_color);
-        hue = hsv_color[0] + fade;
-        hsv_color[0] = fabs((hsv_color[0] + fade) - hue);
+        hue = hsv_color[0];
+        hsv_color[0] = fmod((hsv_color[0] + fabs(fade)) - hue,1);
         hsv_to_rgb_v(hsv_color, final_color);
         break;
       case COLOR_FILTER_SATURATION:
         rgb_to_hsv_v(orig_color, hsv_color);
-        hsv_color[1] = clamp_f(hsv_color[1] + fade, 0.0f, 1.0f);
-        hsv_to_rgb_v(hsv_color, final_color);
+
+        if (hsv_color[1] > 0.001f) {
+          hsv_color[1] = clamp_f(hsv_color[1] + fade * hsv_color[1], 0.0f, 1.0f);
+          hsv_to_rgb_v(hsv_color, final_color);
+        }
+        else {
+          copy_v3_v3(final_color, orig_color);
+        }
         break;
       case COLOR_FILTER_VALUE:
         rgb_to_hsv_v(orig_color, hsv_color);
@@ -185,7 +194,32 @@ static void color_filter_task_cb(void *__restrict userdata,
         float col[4];
         SCULPT_vertex_color_get(ss, vd.index, col);
 
-        blend_color_interpolate_float(final_color, col, smooth_color, fade);
+        if (fade < 0.0f) {
+          interp_v4_v4v4(smooth_color, smooth_color, col, 0.5f);
+        }
+
+        bool copy_alpha = col[3] == smooth_color[3];
+
+        if (fade < 0.0f) {
+          float delta_color[4];
+
+          /* Unsharp mask. */
+          copy_v4_v4(delta_color, ss->filter_cache->pre_smoothed_color[vd.index]);
+          sub_v4_v4(delta_color, smooth_color);
+
+          copy_v4_v4(final_color, col);
+          madd_v4_v4fl(final_color, delta_color, fade);
+        }
+        else {
+          blend_color_interpolate_float(final_color, col, smooth_color, fade);
+        }
+
+        CLAMP4(final_color, 0.0f, 1.0f);
+
+        /* Prevent accumulated numeric error from corrupting alpha. */
+        if (copy_alpha) {
+          final_color[3] = smooth_color[3];
+        }
         break;
       }
     }
@@ -198,6 +232,46 @@ static void color_filter_task_cb(void *__restrict userdata,
   }
   BKE_pbvh_vertex_iter_end;
   BKE_pbvh_node_mark_update_color(data->nodes[n]);
+}
+
+static void sculpt_color_presmooth_init(SculptSession *ss)
+{
+  int totvert = SCULPT_vertex_count_get(ss);
+
+  if (!ss->filter_cache->pre_smoothed_color) {
+    ss->filter_cache->pre_smoothed_color = MEM_malloc_arrayN(
+        totvert, sizeof(float) * 4, "ss->filter_cache->pre_smoothed_color");
+  }
+
+  for (int i = 0; i < totvert; i++) {
+    SCULPT_vertex_color_get(ss, i, ss->filter_cache->pre_smoothed_color[i]);
+  }
+
+  for (int iteration = 0; iteration < 2; iteration++) {
+    for (int i = 0; i < totvert; i++) {
+      float avg[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+      int total = 0;
+
+      SculptVertexNeighborIter ni;
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
+        float col[4] = {0};
+
+        copy_v4_v4(col, ss->filter_cache->pre_smoothed_color[ni.index]);
+
+        add_v4_v4(avg, col);
+        total++;
+      }
+      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+      if (total > 0) {
+        mul_v4_fl(avg, 1.0f / (float)total);
+        interp_v4_v4v4(ss->filter_cache->pre_smoothed_color[i],
+                       ss->filter_cache->pre_smoothed_color[i],
+                       avg,
+                       0.5f);
+      }
+    }
+  }
 }
 
 static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -226,6 +300,10 @@ static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   RNA_float_get_array(op->ptr, "fill_color", fill_color);
   IMB_colormanagement_srgb_to_scene_linear_v3(fill_color);
 
+  if (filter_strength < 0.0 && !ss->filter_cache->pre_smoothed_color) {
+    sculpt_color_presmooth_init(ss);
+  }
+
   SculptThreadedTaskData data = {
       .sd = sd,
       .ob = ob,
@@ -250,8 +328,12 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
 {
   Object *ob = CTX_data_active_object(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  View3D *v3d = CTX_wm_view3d(C);
   SculptSession *ss = ob->sculpt;
   PBVH *pbvh = ob->sculpt->pbvh;
+  if (v3d->shading.type == OB_SOLID) {
+    v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
+  }
 
   const bool use_automasking = SCULPT_is_automasking_enabled(sd, ss, NULL);
   if (use_automasking) {
@@ -265,19 +347,11 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   }
 
   /* Disable for multires and dyntopo for now */
-  if (!ss->pbvh) {
-    return OPERATOR_CANCELLED;
-  }
-  if (BKE_pbvh_type(pbvh) != PBVH_FACES) {
-    return OPERATOR_CANCELLED;
-  }
-
-  if (!SCULPT_has_colors(ss)) {
+  if (!ss->pbvh || !SCULPT_handles_colors_report(ss, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
   SCULPT_undo_push_begin(ob, "color filter");
-
   BKE_sculpt_color_layer_create_if_needed(ob);
 
   /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the updates of
@@ -293,6 +367,7 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   FilterCache *filter_cache = ss->filter_cache;
   filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
   filter_cache->automasking = SCULPT_automasking_cache_init(sd, NULL, ob);
+  ED_paint_tool_update_sticky_shading_color(C, ob);
 
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
@@ -308,7 +383,7 @@ void SCULPT_OT_color_filter(struct wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = sculpt_color_filter_invoke;
   ot->modal = sculpt_color_filter_modal;
-  ot->poll = SCULPT_vertex_colors_poll;
+  ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 

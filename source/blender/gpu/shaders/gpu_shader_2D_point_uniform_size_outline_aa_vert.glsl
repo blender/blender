@@ -1,11 +1,3 @@
-#ifndef USE_GPU_SHADER_CREATE_INFO
-uniform mat4 ModelViewProjectionMatrix;
-uniform float size;
-uniform float outlineWidth;
-
-in vec2 pos;
-out vec4 radii;
-#endif
 
 void main()
 {

@@ -21,12 +21,12 @@
 typedef double Vec2[2];
 
 static int point_markers_correspondences_on_both_image(
-    MovieTrackingPlaneTrack *plane_track, int frame1, int frame2, Vec2 **x1_r, Vec2 **x2_r)
+    MovieTrackingPlaneTrack *plane_track, int frame1, int frame2, Vec2 **r_x1, Vec2 **r_x2)
 {
   Vec2 *x1, *x2;
 
-  *x1_r = x1 = MEM_mallocN(sizeof(*x1) * plane_track->point_tracksnr, "point correspondences x1");
-  *x2_r = x2 = MEM_mallocN(sizeof(*x1) * plane_track->point_tracksnr, "point correspondences x2");
+  *r_x1 = x1 = MEM_mallocN(sizeof(*x1) * plane_track->point_tracksnr, "point correspondences x1");
+  *r_x2 = x2 = MEM_mallocN(sizeof(*x1) * plane_track->point_tracksnr, "point correspondences x2");
 
   int correspondence_index = 0;
   for (int i = 0; i < plane_track->point_tracksnr; i++) {

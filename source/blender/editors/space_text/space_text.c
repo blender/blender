@@ -308,7 +308,7 @@ static bool text_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNU
   return false;
 }
 
-static void text_drop_copy(wmDrag *drag, wmDropBox *drop)
+static void text_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   /* copy drag path to properties */
   RNA_string_set(drop->ptr, "filepath", drag->path);
@@ -319,7 +319,7 @@ static bool text_drop_paste_poll(bContext *UNUSED(C), wmDrag *drag, const wmEven
   return (drag->type == WM_DRAG_ID);
 }
 
-static void text_drop_paste(wmDrag *drag, wmDropBox *drop)
+static void text_drop_paste(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   char *text;
   ID *id = WM_drag_get_local_ID(drag, 0);

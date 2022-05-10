@@ -36,6 +36,7 @@ void OBJECT_OT_scale_clear(struct wmOperatorType *ot);
 void OBJECT_OT_origin_clear(struct wmOperatorType *ot);
 void OBJECT_OT_visual_transform_apply(struct wmOperatorType *ot);
 void OBJECT_OT_transform_apply(struct wmOperatorType *ot);
+void OBJECT_OT_parent_inverse_apply(wmOperatorType *ot);
 void OBJECT_OT_transform_axis_target(struct wmOperatorType *ot);
 void OBJECT_OT_origin_set(struct wmOperatorType *ot);
 
@@ -76,7 +77,6 @@ void OBJECT_OT_shade_flat(struct wmOperatorType *ot);
 void OBJECT_OT_paths_calculate(struct wmOperatorType *ot);
 void OBJECT_OT_paths_update(struct wmOperatorType *ot);
 void OBJECT_OT_paths_clear(struct wmOperatorType *ot);
-void OBJECT_OT_paths_range_update(struct wmOperatorType *ot);
 void OBJECT_OT_paths_update_visible(struct wmOperatorType *ot);
 void OBJECT_OT_forcefield_toggle(struct wmOperatorType *ot);
 
@@ -113,7 +113,8 @@ void OBJECT_OT_light_add(struct wmOperatorType *ot);
 void OBJECT_OT_effector_add(struct wmOperatorType *ot);
 void OBJECT_OT_camera_add(struct wmOperatorType *ot);
 void OBJECT_OT_speaker_add(struct wmOperatorType *ot);
-void OBJECT_OT_hair_curves_add(struct wmOperatorType *ot);
+void OBJECT_OT_curves_random_add(struct wmOperatorType *ot);
+void OBJECT_OT_curves_empty_hair_add(struct wmOperatorType *ot);
 void OBJECT_OT_pointcloud_add(struct wmOperatorType *ot);
 /**
  * Only used as menu.
@@ -199,6 +200,7 @@ void OBJECT_OT_skin_armature_create(struct wmOperatorType *ot);
 void OBJECT_OT_laplaciandeform_bind(struct wmOperatorType *ot);
 void OBJECT_OT_surfacedeform_bind(struct wmOperatorType *ot);
 void OBJECT_OT_geometry_nodes_input_attribute_toggle(struct wmOperatorType *ot);
+void OBJECT_OT_geometry_node_tree_copy_assign(struct wmOperatorType *ot);
 
 /* object_gpencil_modifiers.c */
 

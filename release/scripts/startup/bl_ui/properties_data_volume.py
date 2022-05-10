@@ -115,6 +115,12 @@ class DATA_PT_volume_render(DataButtonsPanel, Panel):
             col = layout.column(align=True)
             col.prop(render, "clipping")
 
+            col = layout.column(align=False)
+            col.prop(volume, "velocity_grid")
+
+            col.prop(volume, "velocity_unit")
+            col.prop(volume, "velocity_scale")
+
 
 class DATA_PT_volume_viewport_display(DataButtonsPanel, Panel):
     bl_label = "Viewport Display"

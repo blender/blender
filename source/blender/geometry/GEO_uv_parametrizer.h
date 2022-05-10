@@ -120,6 +120,8 @@ void GEO_uv_parametrizer_average(ParamHandle *handle, bool ignore_pinned);
 
 void GEO_uv_parametrizer_scale(ParamHandle *handle, float x, float y);
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Flushing
  * \{ */

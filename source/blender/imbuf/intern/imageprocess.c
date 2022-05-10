@@ -368,7 +368,7 @@ void IMB_processor_apply_threaded(
   int total_tasks = (buffer_lines + lines_per_task - 1) / lines_per_task;
   int i, start_line;
 
-  task_pool = BLI_task_pool_create(do_thread, TASK_PRIORITY_LOW);
+  task_pool = BLI_task_pool_create(do_thread, TASK_PRIORITY_HIGH);
 
   handles = MEM_callocN(handle_size * total_tasks, "processor apply threaded handles");
 

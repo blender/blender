@@ -378,7 +378,8 @@ def usage():
 
 def main():
 
-    import os, os.path
+    import os
+    import os.path
 
     try:
         bpy = __import__('bpy')
@@ -410,7 +411,7 @@ def main():
         # read blend header from blend file
         log.info("2: read file:")
 
-        if not dir in sys.path:
+        if dir not in sys.path:
             sys.path.append(dir)
         import BlendFileReader
 

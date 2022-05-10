@@ -122,6 +122,8 @@ static void deformStroke(GpencilModifierData *md,
   const int def_nr = BKE_object_defgroup_name_index(ob, mmd->vgname);
   const bool invert_group = (mmd->flag & GP_NOISE_INVERT_VGROUP) != 0;
   const bool use_curve = (mmd->flag & GP_NOISE_CUSTOM_CURVE) != 0 && mmd->curve_intensity;
+  const int cfra = (int)DEG_get_ctime(depsgraph);
+  const bool is_keyframe = (mmd->noise_mode == GP_NOISE_RANDOM_KEYFRAME);
 
   if (!is_stroke_affected_by_modifier(ob,
                                       mmd->layername,
@@ -148,7 +150,13 @@ static void deformStroke(GpencilModifierData *md,
   seed += BLI_hash_string(md->name);
 
   if (mmd->flag & GP_NOISE_USE_RANDOM) {
-    seed += ((int)DEG_get_ctime(depsgraph)) / mmd->step;
+    if (!is_keyframe) {
+      seed += cfra / mmd->step;
+    }
+    else {
+      /* If change every keyframe, use the last keyframe. */
+      seed += gpf->framenum;
+    }
   }
 
   /* Sanitize as it can create out of bound reads. */
@@ -302,7 +310,12 @@ static void random_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_random"));
 
-  uiItemR(layout, ptr, "step", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "random_mode", 0, NULL, ICON_NONE);
+
+  const int mode = RNA_enum_get(ptr, "random_mode");
+  if (mode != GP_NOISE_RANDOM_KEYFRAME) {
+    uiItemR(layout, ptr, "step", 0, NULL, ICON_NONE);
+  }
 }
 
 static void mask_panel_draw(const bContext *UNUSED(C), Panel *panel)

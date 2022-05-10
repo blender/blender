@@ -284,7 +284,7 @@ option(WITH_IMAGE_TIFF          "Enable LibTIFF Support" ON)
 option(WITH_IMAGE_DDS           "Enable DDS Image Support" ON)
 option(WITH_IMAGE_CINEON        "Enable CINEON and DPX Image Support" ON)
 option(WITH_IMAGE_HDR           "Enable HDR Image Support" ON)
-option(WITH_IMAGE_WEBP          "Enable WebP Image Support" OFF)
+option(WITH_IMAGE_WEBP          "Enable WebP Image Support" ON)
 
 # Audio/Video format support
 option(WITH_CODEC_AVI           "Enable Blenders own AVI file support (raw/jpeg)" ON)
@@ -302,7 +302,7 @@ option(WITH_USD                 "Enable Universal Scene Description (USD) Suppor
 option(WITH_OPENCOLLADA   "Enable OpenCollada Support (http://www.opencollada.org)" ON)
 
 # Sound output
-option(WITH_SDL           "Enable SDL for sound and joystick support" ON)
+option(WITH_SDL           "Enable SDL for sound" ON)
 option(WITH_OPENAL        "Enable OpenAL Support (http://www.openal.org)" ON)
 if(APPLE)
   option(WITH_COREAUDIO    "Enable CoreAudio for audio support on macOS" ON)
@@ -439,14 +439,9 @@ endif()
 
 # AMD HIP
 if(NOT APPLE)
-  if(WIN32)
-    option(WITH_CYCLES_DEVICE_HIP        "Enable Cycles AMD HIP support" ON)
-  else()
-    option(WITH_CYCLES_DEVICE_HIP        "Enable Cycles AMD HIP support" OFF)
-  endif()
-
+  option(WITH_CYCLES_DEVICE_HIP        "Enable Cycles AMD HIP support" ON)
   option(WITH_CYCLES_HIP_BINARIES      "Build Cycles AMD HIP binaries" OFF)
-  set(CYCLES_HIP_BINARIES_ARCH gfx900 gfx906 gfx1010 gfx1011 gfx1012 gfx1030 gfx1031 gfx1032 gfx1034 CACHE STRING "AMD HIP architectures to build binaries for")
+  set(CYCLES_HIP_BINARIES_ARCH gfx1010 gfx1011 gfx1012 gfx1030 gfx1031 gfx1032 gfx1034 CACHE STRING "AMD HIP architectures to build binaries for")
   mark_as_advanced(WITH_CYCLES_DEVICE_HIP)
   mark_as_advanced(CYCLES_HIP_BINARIES_ARCH)
 endif()
@@ -491,7 +486,7 @@ if((UNIX AND NOT APPLE) OR (CMAKE_GENERATOR MATCHES "^Visual Studio.+"))
 endif()
 
 option(WITH_BOOST "Enable features depending on boost" ON)
-option(WITH_TBB   "Enable features depending on TBB (OpenVDB, OpenImageDenoise, sculpt multithreading)" ON)
+option(WITH_TBB   "Enable multithreading. TBB is also required for features such as Cycles, OpenVDB and USD" ON)
 
 # TBB malloc is only supported on for windows currently
 if(WIN32)
@@ -810,6 +805,9 @@ set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_OPENCOLORIO  OFF)
 
 # Haru needs `TIFFFaxBlackCodes` & `TIFFFaxWhiteCodes` symbols from TIFF.
 set_and_warn_dependency(WITH_IMAGE_TIFF WITH_HARU       OFF)
+
+# USD needs OpenSubDiv, since that is used by the Cycles Hydra render delegate.
+set_and_warn_dependency(WITH_OPENSUBDIV WITH_USD        OFF)
 
 # auto enable openimageio for cycles
 if(WITH_CYCLES)
@@ -1541,7 +1539,6 @@ endif()
 if(CMAKE_COMPILER_IS_GNUCC)
 
   ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ALL -Wall)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_CAST_ALIGN -Wcast-align)
   ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_IMPLICIT_FUNCTION_DECLARATION -Werror=implicit-function-declaration)
   ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_RETURN_TYPE  -Werror=return-type)
   ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_VLA -Werror=vla)

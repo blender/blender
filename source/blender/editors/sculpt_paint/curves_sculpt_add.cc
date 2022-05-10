@@ -21,6 +21,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_paint.h"
+#include "BKE_report.h"
 #include "BKE_spline.hh"
 
 #include "DNA_brush_enums.h"
@@ -96,6 +97,7 @@ struct AddOperationExecutor {
 
   CurvesSculpt *curves_sculpt_ = nullptr;
   Brush *brush_ = nullptr;
+  BrushCurvesSculptSettings *brush_settings_ = nullptr;
 
   float brush_radius_re_;
   float2 brush_pos_re_;
@@ -106,7 +108,7 @@ struct AddOperationExecutor {
   bool use_interpolation_;
   float new_curve_length_;
   int add_amount_;
-  int points_per_curve_ = 8;
+  int points_per_curve_;
 
   /** Various matrices to convert between coordinate spaces. */
   float4x4 curves_to_world_mat_;
@@ -162,17 +164,19 @@ struct AddOperationExecutor {
 
     curves_sculpt_ = scene_->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush(&curves_sculpt_->paint);
+    brush_settings_ = brush_->curves_sculpt_settings;
     brush_radius_re_ = BKE_brush_size_get(scene_, brush_);
     brush_pos_re_ = stroke_extension.mouse_position;
 
     use_front_face_ = brush_->flag & BRUSH_FRONTFACE;
     const eBrushFalloffShape falloff_shape = static_cast<eBrushFalloffShape>(
         brush_->falloff_shape);
-    add_amount_ = std::max(0, brush_->curves_sculpt_settings->add_amount);
-    interpolate_length_ = curves_sculpt_->flag & CURVES_SCULPT_FLAG_INTERPOLATE_LENGTH;
-    interpolate_shape_ = curves_sculpt_->flag & CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE;
+    add_amount_ = std::max(0, brush_settings_->add_amount);
+    points_per_curve_ = std::max(2, brush_settings_->points_per_curve);
+    interpolate_length_ = brush_settings_->flag & BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_LENGTH;
+    interpolate_shape_ = brush_settings_->flag & BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE;
     use_interpolation_ = interpolate_length_ || interpolate_shape_;
-    new_curve_length_ = curves_sculpt_->curve_length;
+    new_curve_length_ = brush_settings_->curve_length;
 
     tot_old_curves_ = curves_->curves_num();
     tot_old_points_ = curves_->points_num();
@@ -181,7 +185,9 @@ struct AddOperationExecutor {
       return;
     }
 
-    RandomNumberGenerator rng{(uint32_t)(PIL_check_seconds_timer() * 1000000.0f)};
+    const double time = PIL_check_seconds_timer() * 1000000.0;
+    /* Use a pointer cast to avoid overflow warnings. */
+    RandomNumberGenerator rng{*(uint32_t *)(&time)};
 
     BKE_bvhtree_from_mesh_get(&surface_bvh_, surface_, BVHTREE_FROM_LOOPTRI, 2);
     BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_); });
@@ -192,13 +198,13 @@ struct AddOperationExecutor {
     /* Sample points on the surface using one of multiple strategies. */
     AddedPoints added_points;
     if (add_amount_ == 1) {
-      this->sample_in_center(added_points);
+      this->sample_in_center_with_symmetry(added_points);
     }
     else if (falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-      this->sample_projected(rng, added_points);
+      this->sample_projected_with_symmetry(rng, added_points);
     }
     else if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
-      this->sample_spherical(rng, added_points);
+      this->sample_spherical_with_symmetry(rng, added_points);
     }
     else {
       BLI_assert_unreachable();
@@ -222,6 +228,8 @@ struct AddOperationExecutor {
     threading::parallel_invoke([&]() { this->initialize_curve_offsets(tot_added_curves); },
                                [&]() { this->initialize_attributes(added_points); });
 
+    curves_->update_curve_types();
+
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
     ED_region_tag_redraw(region_);
   }
@@ -239,13 +247,27 @@ struct AddOperationExecutor {
   /**
    * Sample a single point exactly at the mouse position.
    */
-  void sample_in_center(AddedPoints &r_added_points)
+  void sample_in_center_with_symmetry(AddedPoints &r_added_points)
   {
     float3 ray_start_wo, ray_end_wo;
     ED_view3d_win_to_segment_clipped(
         depsgraph_, region_, v3d_, brush_pos_re_, ray_start_wo, ray_end_wo, true);
     const float3 ray_start_su = world_to_surface_mat_ * ray_start_wo;
     const float3 ray_end_su = world_to_surface_mat_ * ray_end_wo;
+
+    const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
+        eCurvesSymmetryType(curves_id_->symmetry));
+
+    for (const float4x4 &brush_transform : symmetry_brush_transforms) {
+      this->sample_in_center(
+          r_added_points, brush_transform * ray_start_su, brush_transform * ray_end_su);
+    }
+  }
+
+  void sample_in_center(AddedPoints &r_added_points,
+                        const float3 &ray_start_su,
+                        const float3 &ray_end_su)
+  {
     const float3 ray_direction_su = math::normalize(ray_end_su - ray_start_su);
 
     BVHTreeRayHit ray_hit;
@@ -278,11 +300,23 @@ struct AddOperationExecutor {
   /**
    * Sample points by shooting rays within the brush radius in the 3D view.
    */
-  void sample_projected(RandomNumberGenerator &rng, AddedPoints &r_added_points)
+  void sample_projected_with_symmetry(RandomNumberGenerator &rng, AddedPoints &r_added_points)
   {
+    const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
+        eCurvesSymmetryType(curves_id_->symmetry));
+    for (const float4x4 &brush_transform : symmetry_brush_transforms) {
+      this->sample_projected(rng, r_added_points, brush_transform);
+    }
+  }
+
+  void sample_projected(RandomNumberGenerator &rng,
+                        AddedPoints &r_added_points,
+                        const float4x4 &brush_transform)
+  {
+    const int old_amount = r_added_points.bary_coords.size();
     const int max_iterations = std::max(100'000, add_amount_ * 10);
     int current_iteration = 0;
-    while (r_added_points.bary_coords.size() < add_amount_) {
+    while (r_added_points.bary_coords.size() < old_amount + add_amount_) {
       if (current_iteration++ >= max_iterations) {
         break;
       }
@@ -294,8 +328,8 @@ struct AddOperationExecutor {
       float3 ray_start_wo, ray_end_wo;
       ED_view3d_win_to_segment_clipped(
           depsgraph_, region_, v3d_, pos_re, ray_start_wo, ray_end_wo, true);
-      const float3 ray_start_su = world_to_surface_mat_ * ray_start_wo;
-      const float3 ray_end_su = world_to_surface_mat_ * ray_end_wo;
+      const float3 ray_start_su = brush_transform * (world_to_surface_mat_ * ray_start_wo);
+      const float3 ray_end_su = brush_transform * (world_to_surface_mat_ * ray_end_wo);
       const float3 ray_direction_su = math::normalize(ray_end_su - ray_start_su);
 
       BVHTreeRayHit ray_hit;
@@ -337,7 +371,7 @@ struct AddOperationExecutor {
   /**
    * Sample points in a 3D sphere around the surface position that the mouse hovers over.
    */
-  void sample_spherical(RandomNumberGenerator &rng, AddedPoints &r_added_points)
+  void sample_spherical_with_symmetry(RandomNumberGenerator &rng, AddedPoints &r_added_points)
   {
     /* Find ray that starts in the center of the brush. */
     float3 brush_ray_start_wo, brush_ray_end_wo;
@@ -345,7 +379,6 @@ struct AddOperationExecutor {
         depsgraph_, region_, v3d_, brush_pos_re_, brush_ray_start_wo, brush_ray_end_wo, true);
     const float3 brush_ray_start_su = world_to_surface_mat_ * brush_ray_start_wo;
     const float3 brush_ray_end_su = world_to_surface_mat_ * brush_ray_end_wo;
-    const float3 brush_ray_direction_su = math::normalize(brush_ray_end_su - brush_ray_start_su);
 
     /* Find ray that starts on the boundary of the brush. That is used to compute the brush radius
      * in 3D. */
@@ -359,6 +392,27 @@ struct AddOperationExecutor {
                                      true);
     const float3 brush_radius_ray_start_su = world_to_surface_mat_ * brush_radius_ray_start_wo;
     const float3 brush_radius_ray_end_su = world_to_surface_mat_ * brush_radius_ray_end_wo;
+
+    const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
+        eCurvesSymmetryType(curves_id_->symmetry));
+    for (const float4x4 &brush_transform : symmetry_brush_transforms) {
+      this->sample_spherical(rng,
+                             r_added_points,
+                             brush_transform * brush_ray_start_su,
+                             brush_transform * brush_ray_end_su,
+                             brush_transform * brush_radius_ray_start_su,
+                             brush_transform * brush_radius_ray_end_su);
+    }
+  }
+
+  void sample_spherical(RandomNumberGenerator &rng,
+                        AddedPoints &r_added_points,
+                        const float3 &brush_ray_start_su,
+                        const float3 &brush_ray_end_su,
+                        const float3 &brush_radius_ray_start_su,
+                        const float3 &brush_radius_ray_end_su)
+  {
+    const float3 brush_ray_direction_su = math::normalize(brush_ray_end_su - brush_ray_start_su);
 
     BVHTreeRayHit ray_hit;
     ray_hit.dist = FLT_MAX;
@@ -424,7 +478,8 @@ struct AddOperationExecutor {
     const int max_iterations = 5;
     int current_iteration = 0;
 
-    while (r_added_points.bary_coords.size() < add_amount_) {
+    const int old_amount = r_added_points.bary_coords.size();
+    while (r_added_points.bary_coords.size() < old_amount + add_amount_) {
       if (current_iteration++ >= max_iterations) {
         break;
       }
@@ -504,8 +559,8 @@ struct AddOperationExecutor {
     }
 
     /* Remove samples when there are too many. */
-    while (r_added_points.bary_coords.size() > add_amount_) {
-      const int index_to_remove = rng.get_int32(r_added_points.bary_coords.size());
+    while (r_added_points.bary_coords.size() > old_amount + add_amount_) {
+      const int index_to_remove = rng.get_int32(add_amount_) + old_amount;
       r_added_points.bary_coords.remove_and_reorder(index_to_remove);
       r_added_points.looptri_indices.remove_and_reorder(index_to_remove);
       r_added_points.positions_cu.remove_and_reorder(index_to_remove);
@@ -527,7 +582,7 @@ struct AddOperationExecutor {
 
   void initialize_curve_offsets(const int tot_added_curves)
   {
-    MutableSpan<int> offsets = curves_->offsets();
+    MutableSpan<int> offsets = curves_->offsets_for_write();
     threading::parallel_for(IndexRange(tot_added_curves), 1024, [&](const IndexRange range) {
       for (const int i : range) {
         const int curve_i = tot_old_curves_ + i;
@@ -656,8 +711,8 @@ struct AddOperationExecutor {
 
   void initialize_surface_attachment(const AddedPoints &added_points)
   {
-    MutableSpan<int> surface_triangle_indices = curves_->surface_triangle_indices();
-    MutableSpan<float2> surface_triangle_coords = curves_->surface_triangle_coords();
+    MutableSpan<int> surface_triangle_indices = curves_->surface_triangle_indices_for_write();
+    MutableSpan<float2> surface_triangle_coords = curves_->surface_triangle_coords_for_write();
     threading::parallel_for(
         added_points.bary_coords.index_range(), 1024, [&](const IndexRange range) {
           for (const int i : range) {
@@ -675,7 +730,7 @@ struct AddOperationExecutor {
                                                  const Span<float> lengths_cu,
                                                  const MutableSpan<float3> normals_su)
   {
-    MutableSpan<float3> positions_cu = curves_->positions();
+    MutableSpan<float3> positions_cu = curves_->positions_for_write();
 
     threading::parallel_for(
         added_points.bary_coords.index_range(), 256, [&](const IndexRange range) {
@@ -701,8 +756,8 @@ struct AddOperationExecutor {
                                               const Span<float3> new_normals_su,
                                               const Span<float> new_lengths_cu)
   {
-    MutableSpan<float3> positions_cu = curves_->positions();
-    const Span<int> surface_triangle_indices = curves_->surface_triangle_indices();
+    MutableSpan<float3> positions_cu = curves_->positions_for_write();
+    const VArray_Span<int> surface_triangle_indices{curves_->surface_triangle_indices()};
     const Span<float2> surface_triangle_coords = curves_->surface_triangle_coords();
 
     threading::parallel_for(
@@ -784,8 +839,16 @@ void AddOperation::on_stroke_extended(bContext *C, const StrokeExtension &stroke
   executor.execute(*this, C, stroke_extension);
 }
 
-std::unique_ptr<CurvesSculptStrokeOperation> new_add_operation()
+std::unique_ptr<CurvesSculptStrokeOperation> new_add_operation(bContext &C, ReportList *reports)
 {
+  Object &ob_active = *CTX_data_active_object(&C);
+  BLI_assert(ob_active.type == OB_CURVES);
+  Curves &curves_id = *static_cast<Curves *>(ob_active.data);
+  if (curves_id.surface == nullptr || curves_id.surface->type != OB_MESH) {
+    BKE_report(reports, RPT_WARNING, "Can not use Add brush when there is no surface mesh");
+    return {};
+  }
+
   return std::make_unique<AddOperation>();
 }
 

@@ -203,9 +203,11 @@ static Field<float> get_length_input_field(const GeoNodeExecParams &params,
     /* Just make sure the length is in bounds of the curve. */
     Field<float> length_field = params.get_input<Field<float>>("Length");
     auto clamp_fn = std::make_unique<fn::CustomMF_SI_SO<float, float>>(
-        __func__, [curve_total_length](float length) {
+        __func__,
+        [curve_total_length](float length) {
           return std::clamp(length, 0.0f, curve_total_length);
-        });
+        },
+        fn::CustomMF_presets::AllSpanOrSingle());
     auto clamp_op = std::make_shared<FieldOperation>(
         FieldOperation(std::move(clamp_fn), {std::move(length_field)}));
 
@@ -215,10 +217,12 @@ static Field<float> get_length_input_field(const GeoNodeExecParams &params,
   /* Convert the factor to a length and clamp it to the bounds of the curve. */
   Field<float> factor_field = params.get_input<Field<float>>("Factor");
   auto clamp_fn = std::make_unique<fn::CustomMF_SI_SO<float, float>>(
-      __func__, [curve_total_length](float factor) {
+      __func__,
+      [curve_total_length](float factor) {
         const float length = factor * curve_total_length;
         return std::clamp(length, 0.0f, curve_total_length);
-      });
+      },
+      fn::CustomMF_presets::AllSpanOrSingle());
   auto process_op = std::make_shared<FieldOperation>(
       FieldOperation(std::move(clamp_fn), {std::move(factor_field)}));
 

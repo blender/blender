@@ -170,9 +170,9 @@ void workbench_render(void *ved, RenderEngine *engine, RenderLayer *render_layer
 
   DRW_render_instance_buffer_finish();
 
-  /* Also we weed to have a correct FBO bound for #DRW_hair_update */
+  /* Also we weed to have a correct FBO bound for #DRW_curves_update */
   GPU_framebuffer_bind(dfbl->default_fb);
-  DRW_hair_update();
+  DRW_curves_update();
 
   GPU_framebuffer_bind(dfbl->default_fb);
   GPU_framebuffer_clear_depth(dfbl->default_fb, 1.0f);

@@ -43,6 +43,8 @@ void register_node_type_sh_vect_math(void);
 void register_node_type_sh_squeeze(void);
 void register_node_type_sh_dynamic(void);
 void register_node_type_sh_invert(void);
+void register_node_type_sh_sepcolor(void);
+void register_node_type_sh_combcolor(void);
 void register_node_type_sh_seprgb(void);
 void register_node_type_sh_combrgb(void);
 void register_node_type_sh_sephsv(void);
@@ -144,10 +146,7 @@ struct bNode *ntreeShaderOutputNode(struct bNodeTree *ntree, int target);
 /**
  * This one needs to work on a local tree.
  */
-void ntreeGPUMaterialNodes(struct bNodeTree *localtree,
-                           struct GPUMaterial *mat,
-                           bool *has_surface_output,
-                           bool *has_volume_output);
+void ntreeGPUMaterialNodes(struct bNodeTree *localtree, struct GPUMaterial *mat);
 
 #ifdef __cplusplus
 }

@@ -838,6 +838,7 @@ classes = (
     ASSETBROWSER_MT_context_menu,
 )
 
+
 def asset_path_str_get(_self):
     asset_file_handle = bpy.context.asset_file_handle
     if asset_file_handle is None:

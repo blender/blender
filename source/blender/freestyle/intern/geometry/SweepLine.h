@@ -183,7 +183,7 @@ template<class T1, class T2> struct binary_rule {
   binary_rule()
   {
   }
-  template<class T3, class T4> binary_rule(const binary_rule<T3, T4> &brother)
+  template<class T3, class T4> binary_rule(const binary_rule<T3, T4> & /*brother*/)
   {
   }
   virtual ~binary_rule()

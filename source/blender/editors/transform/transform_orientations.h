@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "RE_engine.h"
+
 struct TransInfo;
 
 /**

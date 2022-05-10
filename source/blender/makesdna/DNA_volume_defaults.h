@@ -36,7 +36,8 @@
     .frame_duration = 0, \
     .display = _DNA_DEFAULT_VolumeDisplay, \
     .render = _DNA_DEFAULT_VolumeRender, \
-  }
+    .velocity_scale = 1.0f, \
+}
 
 /** \} */
 

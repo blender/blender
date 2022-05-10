@@ -30,8 +30,10 @@ extern GHOST_SystemHandle GHOST_CreateSystem(void);
 
 /**
  * Specifies whether debug messages are to be enabled for the specific system handle.
+ * \param systemhandle: The handle to the system.
+ * \param debug: Flag for systems to debug.
  */
-extern void GHOST_SystemInitDebug(GHOST_SystemHandle systemhandle, int is_debug_enabled);
+extern void GHOST_SystemInitDebug(GHOST_SystemHandle systemhandle, GHOST_Debug debug);
 
 /**
  * Disposes the one and only system.

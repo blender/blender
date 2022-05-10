@@ -60,7 +60,8 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
 
     std::string obj_path = blender::tests::flags_test_asset_dir() + "/io_tests/obj/" + path;
     strncpy(params.filepath, obj_path.c_str(), FILE_MAX - 1);
-    importer_main(bfile->main, bfile->curscene, bfile->cur_view_layer, params);
+    const size_t read_buffer_size = 650;
+    importer_main(bfile->main, bfile->curscene, bfile->cur_view_layer, params, read_buffer_size);
 
     depsgraph_create(DAG_EVAL_VIEWPORT);
 
@@ -387,15 +388,15 @@ TEST_F(obj_importer_test, import_all_objects)
        float3(28, 1, -1),
        float3(26, 1, 1),
        float3(-1, 0, 0)},
-      {"OBSubSurfCube",
+      {"OBTaperCube",
        OB_MESH,
        106,
        208,
        104,
        416,
-       float3(24.444445f, 0.444444f, -0.666667f),
-       float3(23.790743f, 0.490725f, -0.816819f),
-       float3(0.1697f, 0.1697f, 0.9708f)},
+       float3(24.444445f, 0.502543f, -0.753814f),
+       float3(23.790743f, 0.460522f, -0.766546f),
+       float3(-0.0546f, 0.1716f, 0.9837f)},
       {"OBParticleCube",
        OB_MESH,
        8,
@@ -444,6 +445,7 @@ TEST_F(obj_importer_test, import_all_objects)
        float3(5, 1, 1),
        float3(0, 0, 1),
        float2(0.654526f, 0.579873f)},
+      {"OBNurbsCircle.001", OB_MESH, 4, 4, 0, 0, float3(2, -3, 0), float3(3, -2, 0)},
       {"OBSurface",
        OB_MESH,
        256,

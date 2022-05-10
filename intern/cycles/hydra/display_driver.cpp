@@ -19,44 +19,66 @@ HDCYCLES_NAMESPACE_OPEN_SCOPE
 HdCyclesDisplayDriver::HdCyclesDisplayDriver(HdCyclesSession *renderParam, Hgi *hgi)
     : _renderParam(renderParam), _hgi(hgi)
 {
-#ifdef _WIN32
-  hdc_ = GetDC(CreateWindowA("STATIC",
-                             "HdCycles",
-                             WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-                             0,
-                             0,
-                             64,
-                             64,
-                             NULL,
-                             NULL,
-                             GetModuleHandle(NULL),
-                             NULL));
-
-  int pixelFormat = GetPixelFormat(wglGetCurrentDC());
-  PIXELFORMATDESCRIPTOR pfd = {sizeof(pfd)};
-  DescribePixelFormat((HDC)hdc_, pixelFormat, sizeof(pfd), &pfd);
-  SetPixelFormat((HDC)hdc_, pixelFormat, &pfd);
-
-  TF_VERIFY(gl_context_ = wglCreateContext((HDC)hdc_));
-  TF_VERIFY(wglShareLists(wglGetCurrentContext(), (HGLRC)gl_context_));
-#endif
-
-  glewInit();
-
-  glGenBuffers(1, &gl_pbo_id_);
 }
 
 HdCyclesDisplayDriver::~HdCyclesDisplayDriver()
+{
+  deinit();
+}
+
+void HdCyclesDisplayDriver::init()
+{
+#ifdef _WIN32
+  if (!gl_context_) {
+    hdc_ = GetDC(CreateWindowA("STATIC",
+                               "HdCycles",
+                               WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+                               0,
+                               0,
+                               64,
+                               64,
+                               NULL,
+                               NULL,
+                               GetModuleHandle(NULL),
+                               NULL));
+
+    int pixelFormat = GetPixelFormat(wglGetCurrentDC());
+    PIXELFORMATDESCRIPTOR pfd = {sizeof(pfd)};
+    DescribePixelFormat((HDC)hdc_, pixelFormat, sizeof(pfd), &pfd);
+    SetPixelFormat((HDC)hdc_, pixelFormat, &pfd);
+
+    TF_VERIFY(gl_context_ = wglCreateContext((HDC)hdc_));
+    TF_VERIFY(wglShareLists(wglGetCurrentContext(), (HGLRC)gl_context_));
+  }
+  if (!gl_context_) {
+    return;
+  }
+#endif
+
+  if (!gl_pbo_id_) {
+    if (glewInit() != GLEW_OK) {
+      return;
+    }
+
+    glGenBuffers(1, &gl_pbo_id_);
+  }
+}
+
+void HdCyclesDisplayDriver::deinit()
 {
   if (texture_) {
     _hgi->DestroyTexture(&texture_);
   }
 
-  glDeleteBuffers(1, &gl_pbo_id_);
+  if (gl_pbo_id_) {
+    glDeleteBuffers(1, &gl_pbo_id_);
+  }
 
 #ifdef _WIN32
-  TF_VERIFY(wglDeleteContext((HGLRC)gl_context_));
-  DestroyWindow(WindowFromDC((HDC)hdc_));
+  if (gl_context_) {
+    TF_VERIFY(wglDeleteContext((HGLRC)gl_context_));
+    DestroyWindow(WindowFromDC((HDC)hdc_));
+  }
 #endif
 }
 
@@ -191,6 +213,8 @@ void HdCyclesDisplayDriver::draw(const Params &params)
       (renderBuffer->GetWidth() != params.size.x || renderBuffer->GetHeight() != params.size.y)) {
     return;
   }
+
+  init();
 
   // Cycles 'DisplayDriver' only supports 'half4' format
   TF_VERIFY(renderBuffer->GetFormat() == HdFormatFloat16Vec4);

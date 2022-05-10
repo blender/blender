@@ -95,3 +95,176 @@ vec4 tangent_get(vec4 attr, mat3 normalmat)
 }
 
 #endif
+
+/* Assumes GPU_VEC4 is color data. So converting to luminance like cycles. */
+#define float_from_vec4(v) dot(v.rgb, vec3(0.2126, 0.7152, 0.0722))
+#define float_from_vec3(v) avg(v.rgb)
+#define float_from_vec2(v) v.r
+
+#define vec2_from_vec4(v) vec2(avg(v.rgb), v.a)
+#define vec2_from_vec3(v) vec2(avg(v.rgb), 1.0)
+#define vec2_from_float(v) vec2(v)
+
+#define vec3_from_vec4(v) v.rgb
+#define vec3_from_vec2(v) v.rrr
+#define vec3_from_float(v) vec3(v)
+
+#define vec4_from_vec3(v) vec4(v, 1.0)
+#define vec4_from_vec2(v) v.rrrg
+#define vec4_from_float(v) vec4(vec3(v), 1.0)
+
+/* TODO: Move to shader_shared. */
+#define RAY_TYPE_CAMERA 0
+#define RAY_TYPE_SHADOW 1
+#define RAY_TYPE_DIFFUSE 2
+#define RAY_TYPE_GLOSSY 3
+
+#ifdef GPU_FRAGMENT_SHADER
+#  define FrontFacing gl_FrontFacing
+#else
+#  define FrontFacing true
+#endif
+
+struct ClosureDiffuse {
+  float weight;
+  vec3 color;
+  vec3 N;
+  vec3 sss_radius;
+  uint sss_id;
+};
+
+struct ClosureTranslucent {
+  float weight;
+  vec3 color;
+  vec3 N;
+};
+
+struct ClosureReflection {
+  float weight;
+  vec3 color;
+  vec3 N;
+  float roughness;
+};
+
+struct ClosureRefraction {
+  float weight;
+  vec3 color;
+  vec3 N;
+  float roughness;
+  float ior;
+};
+
+struct ClosureHair {
+  float weight;
+  vec3 color;
+  float offset;
+  vec2 roughness;
+  vec3 T;
+};
+
+struct ClosureVolumeScatter {
+  float weight;
+  vec3 scattering;
+  float anisotropy;
+};
+
+struct ClosureVolumeAbsorption {
+  float weight;
+  vec3 absorption;
+};
+
+struct ClosureEmission {
+  float weight;
+  vec3 emission;
+};
+
+struct ClosureTransparency {
+  float weight;
+  vec3 transmittance;
+  float holdout;
+};
+
+struct GlobalData {
+  /** World position. */
+  vec3 P;
+  /** Surface Normal. */
+  vec3 N;
+  /** Geometric Normal. */
+  vec3 Ng;
+  /** Curve Tangent Space. */
+  vec3 curve_T, curve_B, curve_N;
+  /** Barycentric coordinates. */
+  vec2 barycentric_coords;
+  vec3 barycentric_dists;
+  /** Ray properties (approximation). */
+  int ray_type;
+  float ray_depth;
+  float ray_length;
+  /** Hair time along hair length. 0 at base 1 at tip. */
+  float hair_time;
+  /** Hair time along width of the hair. */
+  float hair_time_width;
+  /** Hair thickness in world space. */
+  float hair_thickness;
+  /** Index of the strand for per strand effects. */
+  int hair_strand_id;
+  /** Is hair. */
+  bool is_strand;
+};
+
+GlobalData g_data;
+
+#ifndef GPU_FRAGMENT_SHADER
+/* Stubs. */
+vec3 dF_impl(vec3 v)
+{
+  return vec3(0.0);
+}
+
+void dF_branch(float fn, out vec2 result)
+{
+  result = vec2(0.0);
+}
+
+#elif 0 /* TODO(@fclem): User Option? */
+/* Fast derivatives */
+vec3 dF_impl(vec3 v)
+{
+  return vec3(0.0);
+}
+
+void dF_branch(float fn, out vec2 result)
+{
+  result.x = DFDX_SIGN * dFdx(fn);
+  result.y = DFDY_SIGN * dFdy(fn);
+}
+
+#else
+/* Precise derivatives */
+int g_derivative_flag = 0;
+
+vec3 dF_impl(vec3 v)
+{
+  if (g_derivative_flag > 0) {
+    return DFDX_SIGN * dFdx(v);
+  }
+  else if (g_derivative_flag < 0) {
+    return DFDY_SIGN * dFdy(v);
+  }
+  return vec3(0.0);
+}
+
+#  define dF_branch(fn, result) \
+    if (true) { \
+      g_derivative_flag = 1; \
+      result.x = (fn); \
+      g_derivative_flag = -1; \
+      result.y = (fn); \
+      g_derivative_flag = 0; \
+      result -= vec2((fn)); \
+    }
+
+#endif
+
+/* TODO(fclem): Remove. */
+#define CODEGEN_LIB

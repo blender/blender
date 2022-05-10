@@ -111,9 +111,9 @@ static Curves *create_point_circle_curve(
 
   Curves *curves_id = bke::curves_new_nomain_single(resolution, CURVE_TYPE_POLY);
   bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
-  curves.cyclic().first() = true;
+  curves.cyclic_for_write().first() = true;
 
-  MutableSpan<float3> positions = curves.positions();
+  MutableSpan<float3> positions = curves.positions_for_write();
 
   float3 center;
   /* Midpoints of `P1->P2` and `P2->P3`. */
@@ -164,9 +164,9 @@ static Curves *create_radius_circle_curve(const int resolution, const float radi
 {
   Curves *curves_id = bke::curves_new_nomain_single(resolution, CURVE_TYPE_POLY);
   bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
-  curves.cyclic().first() = true;
+  curves.cyclic_for_write().first() = true;
 
-  MutableSpan<float3> positions = curves.positions();
+  MutableSpan<float3> positions = curves.positions_for_write();
 
   const float theta_step = (2.0f * M_PI) / float(resolution);
   for (int i : IndexRange(resolution)) {

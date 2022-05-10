@@ -59,11 +59,10 @@ static Array<float> curve_length_point_domain(const bke::CurvesGeometry &curves)
 {
   curves.ensure_evaluated_lengths();
   const VArray<int8_t> types = curves.curve_types();
-  const VArray<int> resolution = curves.resolution();
+  const VArray<int> resolutions = curves.resolution();
   const VArray<bool> cyclic = curves.cyclic();
 
   Array<float> result(curves.points_num());
-  VArray<int> resolutions = curves.resolution();
 
   threading::parallel_for(curves.curves_range(), 128, [&](IndexRange range) {
     for (const int i_curve : range) {
@@ -75,8 +74,8 @@ static Array<float> curve_length_point_domain(const bke::CurvesGeometry &curves)
       switch (types[i_curve]) {
         case CURVE_TYPE_CATMULL_ROM: {
           const int resolution = resolutions[i_curve];
-          for (const int i : IndexRange(points.size()).drop_front(1).drop_back(1)) {
-            lengths[i] = evaluated_lengths[resolution * i - 1];
+          for (const int i : IndexRange(points.size()).drop_back(1)) {
+            lengths[i + 1] = evaluated_lengths[resolution * i - 1];
           }
           break;
         }
@@ -85,8 +84,8 @@ static Array<float> curve_length_point_domain(const bke::CurvesGeometry &curves)
           break;
         case CURVE_TYPE_BEZIER: {
           const Span<int> offsets = curves.bezier_evaluated_offsets_for_curve(i_curve);
-          for (const int i : IndexRange(points.size()).drop_front(1).drop_back(1)) {
-            lengths[i] = evaluated_lengths[offsets[i] - 1];
+          for (const int i : IndexRange(points.size()).drop_back(1)) {
+            lengths[i + 1] = evaluated_lengths[offsets[i] - 1];
           }
           break;
         }
@@ -145,9 +144,9 @@ static VArray<float> construct_curve_parameter_varray(const bke::CurvesGeometry 
   return {};
 }
 
-static VArray<float> construct_curve_length_varray(const bke::CurvesGeometry &curves,
-                                                   const IndexMask UNUSED(mask),
-                                                   const AttributeDomain domain)
+static VArray<float> construct_curve_length_parameter_varray(const bke::CurvesGeometry &curves,
+                                                             const IndexMask UNUSED(mask),
+                                                             const AttributeDomain domain)
 {
   curves.ensure_evaluated_lengths();
 
@@ -218,9 +217,9 @@ class CurveParameterFieldInput final : public GeometryFieldInput {
   }
 };
 
-class CurveLengthFieldInput final : public GeometryFieldInput {
+class CurveLengthParameterFieldInput final : public GeometryFieldInput {
  public:
-  CurveLengthFieldInput() : GeometryFieldInput(CPPType::get<float>(), "Curve Length node")
+  CurveLengthParameterFieldInput() : GeometryFieldInput(CPPType::get<float>(), "Curve Length node")
   {
     category_ = Category::Generated;
   }
@@ -234,7 +233,7 @@ class CurveLengthFieldInput final : public GeometryFieldInput {
       if (curve_component.has_curves()) {
         const Curves &curves_id = *curve_component.get_for_read();
         const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
-        return construct_curve_length_varray(curves, mask, domain);
+        return construct_curve_length_parameter_varray(curves, mask, domain);
       }
     }
     return {};
@@ -248,7 +247,7 @@ class CurveLengthFieldInput final : public GeometryFieldInput {
 
   bool is_equal_to(const fn::FieldNode &other) const override
   {
-    return dynamic_cast<const CurveLengthFieldInput *>(&other) != nullptr;
+    return dynamic_cast<const CurveLengthParameterFieldInput *>(&other) != nullptr;
   }
 };
 
@@ -289,7 +288,7 @@ class IndexOnSplineFieldInput final : public GeometryFieldInput {
 static void node_geo_exec(GeoNodeExecParams params)
 {
   Field<float> parameter_field{std::make_shared<CurveParameterFieldInput>()};
-  Field<float> length_field{std::make_shared<CurveLengthFieldInput>()};
+  Field<float> length_field{std::make_shared<CurveLengthParameterFieldInput>()};
   Field<int> index_on_spline_field{std::make_shared<IndexOnSplineFieldInput>()};
   params.set_output("Factor", std::move(parameter_field));
   params.set_output("Length", std::move(length_field));

@@ -1,3 +1,6 @@
+#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_material_noise.glsl)
+
 /* 1D Musgrave fBm
  *
  * H: fractal increment parameter

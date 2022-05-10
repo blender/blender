@@ -787,7 +787,7 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
       dupli->ob_data = (ID *)volume;
     }
   }
-  if (!ELEM(ctx->object->type, OB_CURVES_LEGACY, OB_FONT) || geometry_set_is_instance) {
+  if (!ELEM(ctx->object->type, OB_CURVES_LEGACY, OB_FONT, OB_CURVES) || geometry_set_is_instance) {
     if (const CurveComponent *component = geometry_set.get_component_for_read<CurveComponent>()) {
       if (const Curve *curve = component->get_curve_for_render()) {
         DupliObject *dupli = make_dupli(ctx, ctx->object, parent_transform, component_index++);

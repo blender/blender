@@ -149,7 +149,7 @@ class NODE_HT_header(Header):
                 active_modifier = ob.modifiers.active
                 if active_modifier and active_modifier.type == 'NODES':
                     if active_modifier.node_group:
-                        row.template_ID(active_modifier, "node_group", new="node.copy_geometry_node_group_assign")
+                        row.template_ID(active_modifier, "node_group", new="object.geometry_node_tree_copy_assign")
                     else:
                         row.template_ID(active_modifier, "node_group", new="node.new_geometry_node_group_assign")
                 else:
@@ -709,6 +709,7 @@ class NODE_PT_overlay(Panel):
         if snode.tree_type == 'GeometryNodeTree':
             col.separator()
             col.prop(overlay, "show_timing", text="Timings")
+            col.prop(overlay, "show_named_attributes", text="Named Attributes")
 
 
 class NODE_UL_interface_sockets(bpy.types.UIList):
@@ -775,7 +776,7 @@ class NodeTreeInterfacePanel:
                 "node.tree_socket_change_type",
                 "socket_type",
                 text=active_socket.bl_label if active_socket.bl_label else active_socket.bl_idname
-                )
+            )
             props.in_out = in_out
 
             layout.use_property_split = True
@@ -796,8 +797,10 @@ class NodeTreeInterfacePanel:
                     active_socket.bl_socket_idname.startswith(prefix)
                     for prefix in field_socket_prefixes
                 )
-                if in_out == 'OUT' and is_field_type:
-                    layout.prop(active_socket, "attribute_domain")
+                if is_field_type:
+                    if in_out == 'OUT':
+                        layout.prop(active_socket, "attribute_domain")
+                    layout.prop(active_socket, "default_attribute_name")
             active_socket.draw(context, layout)
 
 
@@ -814,6 +817,7 @@ class NODE_PT_node_tree_interface_inputs(NodeTreeInterfacePanel, Panel):
 
     def draw(self, context):
         self.draw_socket_list(context, "IN", "inputs", "active_input")
+
 
 class NODE_PT_node_tree_interface_outputs(NodeTreeInterfacePanel, Panel):
     bl_space_type = 'NODE_EDITOR'

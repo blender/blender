@@ -66,23 +66,31 @@ static void node_shader_update_map_range(bNodeTree *ntree, bNode *node)
   const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
   const int type = (data_type == CD_PROP_FLOAT) ? SOCK_FLOAT : SOCK_VECTOR;
 
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-    nodeSetSocketAvailability(ntree, socket, socket->type == type);
-  }
+  Array<bool> new_input_availability(BLI_listbase_count(&node->inputs));
+  Array<bool> new_output_availability(BLI_listbase_count(&node->outputs));
 
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-    nodeSetSocketAvailability(ntree, socket, socket->type == type);
+  int index;
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &node->inputs, index) {
+    new_input_availability[index] = socket->type == type;
+  }
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &node->outputs, index) {
+    new_output_availability[index] = socket->type == type;
   }
 
   if (storage.interpolation_type != NODE_MAP_RANGE_STEPPED) {
     if (type == SOCK_FLOAT) {
-      bNodeSocket *sockSteps = (bNodeSocket *)BLI_findlink(&node->inputs, 5);
-      nodeSetSocketAvailability(ntree, sockSteps, false);
+      new_input_availability[5] = false;
     }
     else {
-      bNodeSocket *sockSteps = (bNodeSocket *)BLI_findlink(&node->inputs, 11);
-      nodeSetSocketAvailability(ntree, sockSteps, false);
+      new_input_availability[11] = false;
     }
+  }
+
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &node->inputs, index) {
+    nodeSetSocketAvailability(ntree, socket, new_input_availability[index]);
+  }
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, &node->outputs, index) {
+    nodeSetSocketAvailability(ntree, socket, new_output_availability[index]);
   }
 }
 
@@ -223,327 +231,106 @@ static float3 clamp_range(const float3 value, const float3 min, const float3 max
                 clamp_range(value.z, min.z, max.z));
 }
 
-static void map_range_vector_signature(fn::MFSignatureBuilder *signature, bool use_steps)
+template<bool Clamp> static auto build_float_linear()
 {
-  signature->single_input<float3>("Vector");
-  signature->single_input<float3>("From Min");
-  signature->single_input<float3>("From Max");
-  signature->single_input<float3>("To Min");
-  signature->single_input<float3>("To Max");
-  if (use_steps) {
-    signature->single_input<float3>("Steps");
-  }
-  signature->single_output<float3>("Vector");
+  return fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleOutput, float>>{
+      Clamp ? "Map Range (clamped)" : "Map Range (unclamped)",
+      [](float value, float from_min, float from_max, float to_min, float to_max, float *r_value) {
+        const float factor = safe_divide(value - from_min, from_max - from_min);
+        float result = to_min + factor * (to_max - to_min);
+        if constexpr (Clamp) {
+          result = clamp_range(result, to_min, to_max);
+        }
+        *r_value = result;
+      },
+      fn::CustomMF_presets::SomeSpanOrSingle<0>()};
 }
 
-class MapRangeVectorFunction : public fn::MultiFunction {
- private:
-  bool clamp_;
-
- public:
-  MapRangeVectorFunction(bool clamp) : clamp_(clamp)
-  {
-    static fn::MFSignature signature = create_signature();
-    this->set_signature(&signature);
-  }
-
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Vector Map Range"};
-    map_range_vector_signature(&signature, false);
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
-  {
-    const VArray<float3> &values = params.readonly_single_input<float3>(0, "Vector");
-    const VArray<float3> &from_min = params.readonly_single_input<float3>(1, "From Min");
-    const VArray<float3> &from_max = params.readonly_single_input<float3>(2, "From Max");
-    const VArray<float3> &to_min = params.readonly_single_input<float3>(3, "To Min");
-    const VArray<float3> &to_max = params.readonly_single_input<float3>(4, "To Max");
-    MutableSpan<float3> results = params.uninitialized_single_output<float3>(5, "Vector");
-
-    for (int64_t i : mask) {
-      float3 factor = math::safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
-      results[i] = factor * (to_max[i] - to_min[i]) + to_min[i];
-    }
-
-    if (clamp_) {
-      for (int64_t i : mask) {
-        results[i] = clamp_range(results[i], to_min[i], to_max[i]);
-      }
-    }
-  }
-};
-
-class MapRangeSteppedVectorFunction : public fn::MultiFunction {
- private:
-  bool clamp_;
-
- public:
-  MapRangeSteppedVectorFunction(bool clamp) : clamp_(clamp)
-  {
-    static fn::MFSignature signature = create_signature();
-    this->set_signature(&signature);
-  }
-
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Vector Map Range Stepped"};
-    map_range_vector_signature(&signature, true);
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
-  {
-    const VArray<float3> &values = params.readonly_single_input<float3>(0, "Vector");
-    const VArray<float3> &from_min = params.readonly_single_input<float3>(1, "From Min");
-    const VArray<float3> &from_max = params.readonly_single_input<float3>(2, "From Max");
-    const VArray<float3> &to_min = params.readonly_single_input<float3>(3, "To Min");
-    const VArray<float3> &to_max = params.readonly_single_input<float3>(4, "To Max");
-    const VArray<float3> &steps = params.readonly_single_input<float3>(5, "Steps");
-    MutableSpan<float3> results = params.uninitialized_single_output<float3>(6, "Vector");
-
-    for (int64_t i : mask) {
-      float3 factor = math::safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
-      factor = math::safe_divide(math::floor(factor * (steps[i] + 1.0f)), steps[i]);
-      results[i] = factor * (to_max[i] - to_min[i]) + to_min[i];
-    }
-
-    if (clamp_) {
-      for (int64_t i : mask) {
-        results[i] = clamp_range(results[i], to_min[i], to_max[i]);
-      }
-    }
-  }
-};
-
-class MapRangeSmoothstepVectorFunction : public fn::MultiFunction {
- public:
-  MapRangeSmoothstepVectorFunction()
-  {
-    static fn::MFSignature signature = create_signature();
-    this->set_signature(&signature);
-  }
-
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Vector Map Range Smoothstep"};
-    map_range_vector_signature(&signature, false);
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
-  {
-    const VArray<float3> &values = params.readonly_single_input<float3>(0, "Vector");
-    const VArray<float3> &from_min = params.readonly_single_input<float3>(1, "From Min");
-    const VArray<float3> &from_max = params.readonly_single_input<float3>(2, "From Max");
-    const VArray<float3> &to_min = params.readonly_single_input<float3>(3, "To Min");
-    const VArray<float3> &to_max = params.readonly_single_input<float3>(4, "To Max");
-    MutableSpan<float3> results = params.uninitialized_single_output<float3>(5, "Vector");
-
-    for (int64_t i : mask) {
-      float3 factor = math::safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
-      clamp_v3(factor, 0.0f, 1.0f);
-      factor = (float3(3.0f) - 2.0f * factor) * (factor * factor);
-      results[i] = factor * (to_max[i] - to_min[i]) + to_min[i];
-    }
-  }
-};
-
-class MapRangeSmootherstepVectorFunction : public fn::MultiFunction {
- public:
-  MapRangeSmootherstepVectorFunction()
-  {
-    static fn::MFSignature signature = create_signature();
-    this->set_signature(&signature);
-  }
-
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Vector Map Range Smoothstep"};
-    map_range_vector_signature(&signature, false);
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
-  {
-    const VArray<float3> &values = params.readonly_single_input<float3>(0, "Vector");
-    const VArray<float3> &from_min = params.readonly_single_input<float3>(1, "From Min");
-    const VArray<float3> &from_max = params.readonly_single_input<float3>(2, "From Max");
-    const VArray<float3> &to_min = params.readonly_single_input<float3>(3, "To Min");
-    const VArray<float3> &to_max = params.readonly_single_input<float3>(4, "To Max");
-    MutableSpan<float3> results = params.uninitialized_single_output<float3>(5, "Vector");
-
-    for (int64_t i : mask) {
-      float3 factor = math::safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
-      clamp_v3(factor, 0.0f, 1.0f);
-      factor = factor * factor * factor * (factor * (factor * 6.0f - 15.0f) + 10.0f);
-      results[i] = factor * (to_max[i] - to_min[i]) + to_min[i];
-    }
-  }
-};
-
-static void map_range_signature(fn::MFSignatureBuilder *signature, bool use_steps)
+template<bool Clamp> static auto build_float_stepped()
 {
-  signature->single_input<float>("Value");
-  signature->single_input<float>("From Min");
-  signature->single_input<float>("From Max");
-  signature->single_input<float>("To Min");
-  signature->single_input<float>("To Max");
-  if (use_steps) {
-    signature->single_input<float>("Steps");
-  }
-  signature->single_output<float>("Result");
+  return fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleOutput, float>>{
+      Clamp ? "Map Range Stepped (clamped)" : "Map Range Stepped (unclamped)",
+      [](float value,
+         float from_min,
+         float from_max,
+         float to_min,
+         float to_max,
+         float steps,
+         float *r_value) {
+        float factor = safe_divide(value - from_min, from_max - from_min);
+        factor = safe_divide(floorf(factor * (steps + 1.0f)), steps);
+        float result = to_min + factor * (to_max - to_min);
+        if constexpr (Clamp) {
+          result = clamp_range(result, to_min, to_max);
+        }
+        *r_value = result;
+      },
+      fn::CustomMF_presets::SomeSpanOrSingle<0>()};
 }
 
-class MapRangeFunction : public fn::MultiFunction {
- private:
-  bool clamp_;
+template<bool Clamp> static auto build_vector_linear()
+{
+  return fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleOutput, float3>>{
+      Clamp ? "Vector Map Range (clamped)" : "Vector Map Range (unclamped)",
+      [](const float3 &value,
+         const float3 &from_min,
+         const float3 &from_max,
+         const float3 &to_min,
+         const float3 &to_max,
+         float3 *r_value) {
+        float3 factor = math::safe_divide(value - from_min, from_max - from_min);
+        float3 result = factor * (to_max - to_min) + to_min;
+        if constexpr (Clamp) {
+          result = clamp_range(result, to_min, to_max);
+        }
+        *r_value = result;
+      },
+      fn::CustomMF_presets::SomeSpanOrSingle<0>()};
+}
 
- public:
-  MapRangeFunction(bool clamp) : clamp_(clamp)
-  {
-    static fn::MFSignature signature = create_signature();
-    this->set_signature(&signature);
-  }
-
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Map Range"};
-    map_range_signature(&signature, false);
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
-  {
-    const VArray<float> &values = params.readonly_single_input<float>(0, "Value");
-    const VArray<float> &from_min = params.readonly_single_input<float>(1, "From Min");
-    const VArray<float> &from_max = params.readonly_single_input<float>(2, "From Max");
-    const VArray<float> &to_min = params.readonly_single_input<float>(3, "To Min");
-    const VArray<float> &to_max = params.readonly_single_input<float>(4, "To Max");
-    MutableSpan<float> results = params.uninitialized_single_output<float>(5, "Result");
-
-    for (int64_t i : mask) {
-      float factor = safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
-      results[i] = to_min[i] + factor * (to_max[i] - to_min[i]);
-    }
-
-    if (clamp_) {
-      for (int64_t i : mask) {
-        results[i] = clamp_range(results[i], to_min[i], to_max[i]);
-      }
-    }
-  }
-};
-
-class MapRangeSteppedFunction : public fn::MultiFunction {
- private:
-  bool clamp_;
-
- public:
-  MapRangeSteppedFunction(bool clamp) : clamp_(clamp)
-  {
-    static fn::MFSignature signature = create_signature();
-    this->set_signature(&signature);
-  }
-
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Map Range Stepped"};
-    map_range_signature(&signature, true);
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
-  {
-    const VArray<float> &values = params.readonly_single_input<float>(0, "Value");
-    const VArray<float> &from_min = params.readonly_single_input<float>(1, "From Min");
-    const VArray<float> &from_max = params.readonly_single_input<float>(2, "From Max");
-    const VArray<float> &to_min = params.readonly_single_input<float>(3, "To Min");
-    const VArray<float> &to_max = params.readonly_single_input<float>(4, "To Max");
-    const VArray<float> &steps = params.readonly_single_input<float>(5, "Steps");
-    MutableSpan<float> results = params.uninitialized_single_output<float>(6, "Result");
-
-    for (int64_t i : mask) {
-      float factor = safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
-      factor = safe_divide(floorf(factor * (steps[i] + 1.0f)), steps[i]);
-      results[i] = to_min[i] + factor * (to_max[i] - to_min[i]);
-    }
-
-    if (clamp_) {
-      for (int64_t i : mask) {
-        results[i] = clamp_range(results[i], to_min[i], to_max[i]);
-      }
-    }
-  }
-};
-
-class MapRangeSmoothstepFunction : public fn::MultiFunction {
- public:
-  MapRangeSmoothstepFunction()
-  {
-    static fn::MFSignature signature = create_signature();
-    this->set_signature(&signature);
-  }
-
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Map Range Smoothstep"};
-    map_range_signature(&signature, false);
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
-  {
-    const VArray<float> &values = params.readonly_single_input<float>(0, "Value");
-    const VArray<float> &from_min = params.readonly_single_input<float>(1, "From Min");
-    const VArray<float> &from_max = params.readonly_single_input<float>(2, "From Max");
-    const VArray<float> &to_min = params.readonly_single_input<float>(3, "To Min");
-    const VArray<float> &to_max = params.readonly_single_input<float>(4, "To Max");
-    MutableSpan<float> results = params.uninitialized_single_output<float>(5, "Result");
-
-    for (int64_t i : mask) {
-      float factor = safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
-      factor = std::clamp(factor, 0.0f, 1.0f);
-      factor = (3.0f - 2.0f * factor) * (factor * factor);
-      results[i] = to_min[i] + factor * (to_max[i] - to_min[i]);
-    }
-  }
-};
-
-class MapRangeSmootherstepFunction : public fn::MultiFunction {
- public:
-  MapRangeSmootherstepFunction()
-  {
-    static fn::MFSignature signature = create_signature();
-    this->set_signature(&signature);
-  }
-
-  static fn::MFSignature create_signature()
-  {
-    fn::MFSignatureBuilder signature{"Map Range Smoothstep"};
-    map_range_signature(&signature, false);
-    return signature.build();
-  }
-
-  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
-  {
-    const VArray<float> &values = params.readonly_single_input<float>(0, "Value");
-    const VArray<float> &from_min = params.readonly_single_input<float>(1, "From Min");
-    const VArray<float> &from_max = params.readonly_single_input<float>(2, "From Max");
-    const VArray<float> &to_min = params.readonly_single_input<float>(3, "To Min");
-    const VArray<float> &to_max = params.readonly_single_input<float>(4, "To Max");
-    MutableSpan<float> results = params.uninitialized_single_output<float>(5, "Result");
-
-    for (int64_t i : mask) {
-      float factor = safe_divide(values[i] - from_min[i], from_max[i] - from_min[i]);
-      factor = std::clamp(factor, 0.0f, 1.0f);
-      factor = factor * factor * factor * (factor * (factor * 6.0f - 15.0f) + 10.0f);
-      results[i] = to_min[i] + factor * (to_max[i] - to_min[i]);
-    }
-  }
-};
+template<bool Clamp> static auto build_vector_stepped()
+{
+  return fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                      fn::MFParamTag<fn::MFParamCategory::SingleOutput, float3>>{
+      Clamp ? "Vector Map Range Stepped (clamped)" : "Vector Map Range Stepped (unclamped)",
+      [](const float3 &value,
+         const float3 &from_min,
+         const float3 &from_max,
+         const float3 &to_min,
+         const float3 &to_max,
+         const float3 &steps,
+         float3 *r_value) {
+        float3 factor = math::safe_divide(value - from_min, from_max - from_min);
+        factor = math::safe_divide(math::floor(factor * (steps + 1.0f)), steps);
+        float3 result = factor * (to_max - to_min) + to_min;
+        if constexpr (Clamp) {
+          result = clamp_range(result, to_min, to_max);
+        }
+        *r_value = result;
+      },
+      fn::CustomMF_presets::SomeSpanOrSingle<0>()};
+}
 
 static void sh_node_map_range_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
@@ -556,34 +343,70 @@ static void sh_node_map_range_build_multi_function(NodeMultiFunctionBuilder &bui
       switch (interpolation_type) {
         case NODE_MAP_RANGE_LINEAR: {
           if (clamp) {
-            static MapRangeVectorFunction fn_with_clamp{true};
-            builder.set_matching_fn(fn_with_clamp);
+            static auto fn = build_vector_linear<true>();
+            builder.set_matching_fn(fn);
           }
           else {
-            static MapRangeVectorFunction fn_without_clamp{false};
-            builder.set_matching_fn(fn_without_clamp);
+            static auto fn = build_vector_linear<false>();
+            builder.set_matching_fn(fn);
           }
           break;
         }
         case NODE_MAP_RANGE_STEPPED: {
           if (clamp) {
-            static MapRangeSteppedVectorFunction fn_stepped_with_clamp{true};
-            builder.set_matching_fn(fn_stepped_with_clamp);
+            static auto fn = build_vector_stepped<true>();
+            builder.set_matching_fn(fn);
           }
           else {
-            static MapRangeSteppedVectorFunction fn_stepped_without_clamp{false};
-            builder.set_matching_fn(fn_stepped_without_clamp);
+            static auto fn = build_vector_stepped<false>();
+            builder.set_matching_fn(fn);
           }
           break;
         }
         case NODE_MAP_RANGE_SMOOTHSTEP: {
-          static MapRangeSmoothstepVectorFunction smoothstep;
-          builder.set_matching_fn(smoothstep);
+          static fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleOutput, float3>>
+              fn{"Vector Map Range Smoothstep",
+                 [](const float3 &value,
+                    const float3 &from_min,
+                    const float3 &from_max,
+                    const float3 &to_min,
+                    const float3 &to_max,
+                    float3 *r_value) {
+                   float3 factor = math::safe_divide(value - from_min, from_max - from_min);
+                   clamp_v3(factor, 0.0f, 1.0f);
+                   factor = (float3(3.0f) - 2.0f * factor) * (factor * factor);
+                   *r_value = factor * (to_max - to_min) + to_min;
+                 },
+                 fn::CustomMF_presets::SomeSpanOrSingle<0>()};
+          builder.set_matching_fn(fn);
           break;
         }
         case NODE_MAP_RANGE_SMOOTHERSTEP: {
-          static MapRangeSmootherstepVectorFunction smootherstep;
-          builder.set_matching_fn(smootherstep);
+          static fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float3>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleOutput, float3>>
+              fn{"Vector Map Range Smootherstep",
+                 [](const float3 &value,
+                    const float3 &from_min,
+                    const float3 &from_max,
+                    const float3 &to_min,
+                    const float3 &to_max,
+                    float3 *r_value) {
+                   float3 factor = math::safe_divide(value - from_min, from_max - from_min);
+                   clamp_v3(factor, 0.0f, 1.0f);
+                   factor = factor * factor * factor * (factor * (factor * 6.0f - 15.0f) + 10.0f);
+                   *r_value = factor * (to_max - to_min) + to_min;
+                 },
+                 fn::CustomMF_presets::SomeSpanOrSingle<0>()};
+          builder.set_matching_fn(fn);
           break;
         }
         default:
@@ -594,34 +417,70 @@ static void sh_node_map_range_build_multi_function(NodeMultiFunctionBuilder &bui
       switch (interpolation_type) {
         case NODE_MAP_RANGE_LINEAR: {
           if (clamp) {
-            static MapRangeFunction fn_with_clamp{true};
-            builder.set_matching_fn(fn_with_clamp);
+            static auto fn = build_float_linear<true>();
+            builder.set_matching_fn(fn);
           }
           else {
-            static MapRangeFunction fn_without_clamp{false};
-            builder.set_matching_fn(fn_without_clamp);
+            static auto fn = build_float_linear<false>();
+            builder.set_matching_fn(fn);
           }
           break;
         }
         case NODE_MAP_RANGE_STEPPED: {
           if (clamp) {
-            static MapRangeSteppedFunction fn_stepped_with_clamp{true};
-            builder.set_matching_fn(fn_stepped_with_clamp);
+            static auto fn = build_float_stepped<true>();
+            builder.set_matching_fn(fn);
           }
           else {
-            static MapRangeSteppedFunction fn_stepped_without_clamp{false};
-            builder.set_matching_fn(fn_stepped_without_clamp);
+            static auto fn = build_float_stepped<false>();
+            builder.set_matching_fn(fn);
           }
           break;
         }
         case NODE_MAP_RANGE_SMOOTHSTEP: {
-          static MapRangeSmoothstepFunction smoothstep;
-          builder.set_matching_fn(smoothstep);
+          static fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleOutput, float>>
+              fn{"Map Range Smoothstep",
+                 [](float value,
+                    float from_min,
+                    float from_max,
+                    float to_min,
+                    float to_max,
+                    float *r_value) {
+                   float factor = safe_divide(value - from_min, from_max - from_min);
+                   factor = std::clamp(factor, 0.0f, 1.0f);
+                   factor = (3.0f - 2.0f * factor) * (factor * factor);
+                   *r_value = to_min + factor * (to_max - to_min);
+                 },
+                 fn::CustomMF_presets::SomeSpanOrSingle<0>()};
+          builder.set_matching_fn(fn);
           break;
         }
         case NODE_MAP_RANGE_SMOOTHERSTEP: {
-          static MapRangeSmootherstepFunction smootherstep;
-          builder.set_matching_fn(smootherstep);
+          static fn::CustomMF<fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleInput, float>,
+                              fn::MFParamTag<fn::MFParamCategory::SingleOutput, float>>
+              fn{"Map Range Smoothstep",
+                 [](float value,
+                    float from_min,
+                    float from_max,
+                    float to_min,
+                    float to_max,
+                    float *r_value) {
+                   float factor = safe_divide(value - from_min, from_max - from_min);
+                   factor = std::clamp(factor, 0.0f, 1.0f);
+                   factor = factor * factor * factor * (factor * (factor * 6.0f - 15.0f) + 10.0f);
+                   *r_value = to_min + factor * (to_max - to_min);
+                 },
+                 fn::CustomMF_presets::SomeSpanOrSingle<0>()};
+          builder.set_matching_fn(fn);
           break;
         }
         default:

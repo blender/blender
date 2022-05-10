@@ -171,71 +171,77 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
 {
   const NodeFunctionCompare *data = (NodeFunctionCompare *)node.storage;
 
+  static auto exec_preset_all = fn::CustomMF_presets::AllSpanOrSingle();
+  static auto exec_preset_first_two = fn::CustomMF_presets::SomeSpanOrSingle<0, 1>();
+
   switch (data->data_type) {
     case SOCK_FLOAT:
       switch (data->operation) {
         case NODE_COMPARE_LESS_THAN: {
           static fn::CustomMF_SI_SI_SO<float, float, bool> fn{
-              "Less Than", [](float a, float b) { return a < b; }};
+              "Less Than", [](float a, float b) { return a < b; }, exec_preset_all};
           return &fn;
         }
         case NODE_COMPARE_LESS_EQUAL: {
           static fn::CustomMF_SI_SI_SO<float, float, bool> fn{
-              "Less Equal", [](float a, float b) { return a <= b; }};
+              "Less Equal", [](float a, float b) { return a <= b; }, exec_preset_all};
           return &fn;
         }
         case NODE_COMPARE_GREATER_THAN: {
           static fn::CustomMF_SI_SI_SO<float, float, bool> fn{
-              "Greater Than", [](float a, float b) { return a > b; }};
+              "Greater Than", [](float a, float b) { return a > b; }, exec_preset_all};
           return &fn;
         }
         case NODE_COMPARE_GREATER_EQUAL: {
           static fn::CustomMF_SI_SI_SO<float, float, bool> fn{
-              "Greater Equal", [](float a, float b) { return a >= b; }};
+              "Greater Equal", [](float a, float b) { return a >= b; }, exec_preset_all};
           return &fn;
         }
         case NODE_COMPARE_EQUAL: {
           static fn::CustomMF_SI_SI_SI_SO<float, float, float, bool> fn{
-              "Equal", [](float a, float b, float epsilon) { return std::abs(a - b) <= epsilon; }};
+              "Equal",
+              [](float a, float b, float epsilon) { return std::abs(a - b) <= epsilon; },
+              exec_preset_first_two};
           return &fn;
         }
         case NODE_COMPARE_NOT_EQUAL:
           static fn::CustomMF_SI_SI_SI_SO<float, float, float, bool> fn{
               "Not Equal",
-              [](float a, float b, float epsilon) { return std::abs(a - b) > epsilon; }};
+              [](float a, float b, float epsilon) { return std::abs(a - b) > epsilon; },
+              exec_preset_first_two};
           return &fn;
       }
       break;
     case SOCK_INT:
       switch (data->operation) {
         case NODE_COMPARE_LESS_THAN: {
-          static fn::CustomMF_SI_SI_SO<int, int, bool> fn{"Less Than",
-                                                          [](int a, int b) { return a < b; }};
+          static fn::CustomMF_SI_SI_SO<int, int, bool> fn{
+              "Less Than", [](int a, int b) { return a < b; }, exec_preset_all};
           return &fn;
         }
         case NODE_COMPARE_LESS_EQUAL: {
-          static fn::CustomMF_SI_SI_SO<int, int, bool> fn{"Less Equal",
-                                                          [](int a, int b) { return a <= b; }};
+          static fn::CustomMF_SI_SI_SO<int, int, bool> fn{
+              "Less Equal", [](int a, int b) { return a <= b; }, exec_preset_all};
           return &fn;
         }
         case NODE_COMPARE_GREATER_THAN: {
-          static fn::CustomMF_SI_SI_SO<int, int, bool> fn{"Greater Than",
-                                                          [](int a, int b) { return a > b; }};
+          static fn::CustomMF_SI_SI_SO<int, int, bool> fn{
+              "Greater Than", [](int a, int b) { return a > b; }, exec_preset_all};
           return &fn;
         }
         case NODE_COMPARE_GREATER_EQUAL: {
-          static fn::CustomMF_SI_SI_SO<int, int, bool> fn{"Greater Equal",
-                                                          [](int a, int b) { return a >= b; }};
+          static fn::CustomMF_SI_SI_SO<int, int, bool> fn{
+              "Greater Equal", [](int a, int b) { return a >= b; }, exec_preset_all};
           return &fn;
         }
         case NODE_COMPARE_EQUAL: {
-          static fn::CustomMF_SI_SI_SO<int, int, bool> fn{"Equal",
-                                                          [](int a, int b) { return a == b; }};
+          static fn::CustomMF_SI_SI_SO<int, int, bool> fn{
+              "Equal", [](int a, int b) { return a == b; }, exec_preset_all};
           return &fn;
         }
         case NODE_COMPARE_NOT_EQUAL: {
-          static fn::CustomMF_SI_SI_SO<int, int, bool> fn{"Not Equal",
-                                                          [](int a, int b) { return a != b; }};
+          static fn::CustomMF_SI_SI_SO<int, int, bool> fn{
+              "Not Equal", [](int a, int b) { return a != b; }, exec_preset_all};
           return &fn;
         }
       }
@@ -247,31 +253,36 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
             case NODE_COMPARE_MODE_AVERAGE: {
               static fn::CustomMF_SI_SI_SO<float3, float3, bool> fn{
                   "Less Than - Average",
-                  [](float3 a, float3 b) { return component_average(a) < component_average(b); }};
+                  [](float3 a, float3 b) { return component_average(a) < component_average(b); },
+                  exec_preset_all};
               return &fn;
             }
             case NODE_COMPARE_MODE_DOT_PRODUCT: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
                   "Less Than - Dot Product",
-                  [](float3 a, float3 b, float comp) { return math::dot(a, b) < comp; }};
+                  [](float3 a, float3 b, float comp) { return math::dot(a, b) < comp; },
+                  exec_preset_first_two};
               return &fn;
             }
             case NODE_COMPARE_MODE_DIRECTION: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
                   "Less Than - Direction",
-                  [](float3 a, float3 b, float angle) { return angle_v3v3(a, b) < angle; }};
+                  [](float3 a, float3 b, float angle) { return angle_v3v3(a, b) < angle; },
+                  exec_preset_first_two};
               return &fn;
             }
             case NODE_COMPARE_MODE_ELEMENT: {
               static fn::CustomMF_SI_SI_SO<float3, float3, bool> fn{
                   "Less Than - Element-wise",
-                  [](float3 a, float3 b) { return a.x < b.x && a.y < b.y && a.z < b.z; }};
+                  [](float3 a, float3 b) { return a.x < b.x && a.y < b.y && a.z < b.z; },
+                  exec_preset_all};
               return &fn;
             }
             case NODE_COMPARE_MODE_LENGTH: {
               static fn::CustomMF_SI_SI_SO<float3, float3, bool> fn{
                   "Less Than - Length",
-                  [](float3 a, float3 b) { return math::length(a) < math::length(b); }};
+                  [](float3 a, float3 b) { return math::length(a) < math::length(b); },
+                  exec_preset_all};
               return &fn;
             }
           }
@@ -281,31 +292,36 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
             case NODE_COMPARE_MODE_AVERAGE: {
               static fn::CustomMF_SI_SI_SO<float3, float3, bool> fn{
                   "Less Equal - Average",
-                  [](float3 a, float3 b) { return component_average(a) <= component_average(b); }};
+                  [](float3 a, float3 b) { return component_average(a) <= component_average(b); },
+                  exec_preset_all};
               return &fn;
             }
             case NODE_COMPARE_MODE_DOT_PRODUCT: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
                   "Less Equal - Dot Product",
-                  [](float3 a, float3 b, float comp) { return math::dot(a, b) <= comp; }};
+                  [](float3 a, float3 b, float comp) { return math::dot(a, b) <= comp; },
+                  exec_preset_first_two};
               return &fn;
             }
             case NODE_COMPARE_MODE_DIRECTION: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
                   "Less Equal - Direction",
-                  [](float3 a, float3 b, float angle) { return angle_v3v3(a, b) <= angle; }};
+                  [](float3 a, float3 b, float angle) { return angle_v3v3(a, b) <= angle; },
+                  exec_preset_first_two};
               return &fn;
             }
             case NODE_COMPARE_MODE_ELEMENT: {
               static fn::CustomMF_SI_SI_SO<float3, float3, bool> fn{
                   "Less Equal - Element-wise",
-                  [](float3 a, float3 b) { return a.x <= b.x && a.y <= b.y && a.z <= b.z; }};
+                  [](float3 a, float3 b) { return a.x <= b.x && a.y <= b.y && a.z <= b.z; },
+                  exec_preset_all};
               return &fn;
             }
             case NODE_COMPARE_MODE_LENGTH: {
               static fn::CustomMF_SI_SI_SO<float3, float3, bool> fn{
                   "Less Equal - Length",
-                  [](float3 a, float3 b) { return math::length(a) <= math::length(b); }};
+                  [](float3 a, float3 b) { return math::length(a) <= math::length(b); },
+                  exec_preset_all};
               return &fn;
             }
           }
@@ -315,31 +331,36 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
             case NODE_COMPARE_MODE_AVERAGE: {
               static fn::CustomMF_SI_SI_SO<float3, float3, bool> fn{
                   "Greater Than - Average",
-                  [](float3 a, float3 b) { return component_average(a) > component_average(b); }};
+                  [](float3 a, float3 b) { return component_average(a) > component_average(b); },
+                  exec_preset_all};
               return &fn;
             }
             case NODE_COMPARE_MODE_DOT_PRODUCT: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
                   "Greater Than - Dot Product",
-                  [](float3 a, float3 b, float comp) { return math::dot(a, b) > comp; }};
+                  [](float3 a, float3 b, float comp) { return math::dot(a, b) > comp; },
+                  exec_preset_first_two};
               return &fn;
             }
             case NODE_COMPARE_MODE_DIRECTION: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
                   "Greater Than - Direction",
-                  [](float3 a, float3 b, float angle) { return angle_v3v3(a, b) > angle; }};
+                  [](float3 a, float3 b, float angle) { return angle_v3v3(a, b) > angle; },
+                  exec_preset_first_two};
               return &fn;
             }
             case NODE_COMPARE_MODE_ELEMENT: {
               static fn::CustomMF_SI_SI_SO<float3, float3, bool> fn{
                   "Greater Than - Element-wise",
-                  [](float3 a, float3 b) { return a.x > b.x && a.y > b.y && a.z > b.z; }};
+                  [](float3 a, float3 b) { return a.x > b.x && a.y > b.y && a.z > b.z; },
+                  exec_preset_all};
               return &fn;
             }
             case NODE_COMPARE_MODE_LENGTH: {
               static fn::CustomMF_SI_SI_SO<float3, float3, bool> fn{
                   "Greater Than - Length",
-                  [](float3 a, float3 b) { return math::length(a) > math::length(b); }};
+                  [](float3 a, float3 b) { return math::length(a) > math::length(b); },
+                  exec_preset_all};
               return &fn;
             }
           }
@@ -349,31 +370,36 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
             case NODE_COMPARE_MODE_AVERAGE: {
               static fn::CustomMF_SI_SI_SO<float3, float3, bool> fn{
                   "Greater Equal - Average",
-                  [](float3 a, float3 b) { return component_average(a) >= component_average(b); }};
+                  [](float3 a, float3 b) { return component_average(a) >= component_average(b); },
+                  exec_preset_all};
               return &fn;
             }
             case NODE_COMPARE_MODE_DOT_PRODUCT: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
                   "Greater Equal - Dot Product",
-                  [](float3 a, float3 b, float comp) { return math::dot(a, b) >= comp; }};
+                  [](float3 a, float3 b, float comp) { return math::dot(a, b) >= comp; },
+                  exec_preset_first_two};
               return &fn;
             }
             case NODE_COMPARE_MODE_DIRECTION: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
                   "Greater Equal - Direction",
-                  [](float3 a, float3 b, float angle) { return angle_v3v3(a, b) >= angle; }};
+                  [](float3 a, float3 b, float angle) { return angle_v3v3(a, b) >= angle; },
+                  exec_preset_first_two};
               return &fn;
             }
             case NODE_COMPARE_MODE_ELEMENT: {
               static fn::CustomMF_SI_SI_SO<float3, float3, bool> fn{
                   "Greater Equal - Element-wise",
-                  [](float3 a, float3 b) { return a.x >= b.x && a.y >= b.y && a.z >= b.z; }};
+                  [](float3 a, float3 b) { return a.x >= b.x && a.y >= b.y && a.z >= b.z; },
+                  exec_preset_all};
               return &fn;
             }
             case NODE_COMPARE_MODE_LENGTH: {
               static fn::CustomMF_SI_SI_SO<float3, float3, bool> fn{
                   "Greater Equal - Length",
-                  [](float3 a, float3 b) { return math::length(a) >= math::length(b); }};
+                  [](float3 a, float3 b) { return math::length(a) >= math::length(b); },
+                  exec_preset_all};
               return &fn;
             }
           }
@@ -382,38 +408,48 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
           switch (data->mode) {
             case NODE_COMPARE_MODE_AVERAGE: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
-                  "Equal - Average", [](float3 a, float3 b, float epsilon) {
+                  "Equal - Average",
+                  [](float3 a, float3 b, float epsilon) {
                     return abs(component_average(a) - component_average(b)) <= epsilon;
-                  }};
+                  },
+                  exec_preset_first_two};
               return &fn;
             }
             case NODE_COMPARE_MODE_DOT_PRODUCT: {
               static fn::CustomMF_SI_SI_SI_SI_SO<float3, float3, float, float, bool> fn{
-                  "Equal - Dot Product", [](float3 a, float3 b, float comp, float epsilon) {
+                  "Equal - Dot Product",
+                  [](float3 a, float3 b, float comp, float epsilon) {
                     return abs(math::dot(a, b) - comp) <= epsilon;
-                  }};
+                  },
+                  exec_preset_first_two};
               return &fn;
             }
             case NODE_COMPARE_MODE_DIRECTION: {
               static fn::CustomMF_SI_SI_SI_SI_SO<float3, float3, float, float, bool> fn{
-                  "Equal - Direction", [](float3 a, float3 b, float angle, float epsilon) {
+                  "Equal - Direction",
+                  [](float3 a, float3 b, float angle, float epsilon) {
                     return abs(angle_v3v3(a, b) - angle) <= epsilon;
-                  }};
+                  },
+                  exec_preset_first_two};
               return &fn;
             }
             case NODE_COMPARE_MODE_ELEMENT: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
-                  "Equal - Element-wise", [](float3 a, float3 b, float epsilon) {
+                  "Equal - Element-wise",
+                  [](float3 a, float3 b, float epsilon) {
                     return abs(a.x - b.x) <= epsilon && abs(a.y - b.y) <= epsilon &&
                            abs(a.z - b.z) <= epsilon;
-                  }};
+                  },
+                  exec_preset_first_two};
               return &fn;
             }
             case NODE_COMPARE_MODE_LENGTH: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
-                  "Equal - Length", [](float3 a, float3 b, float epsilon) {
+                  "Equal - Length",
+                  [](float3 a, float3 b, float epsilon) {
                     return abs(math::length(a) - math::length(b)) <= epsilon;
-                  }};
+                  },
+                  exec_preset_first_two};
               return &fn;
             }
           }
@@ -422,38 +458,48 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
           switch (data->mode) {
             case NODE_COMPARE_MODE_AVERAGE: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
-                  "Not Equal - Average", [](float3 a, float3 b, float epsilon) {
+                  "Not Equal - Average",
+                  [](float3 a, float3 b, float epsilon) {
                     return abs(component_average(a) - component_average(b)) > epsilon;
-                  }};
+                  },
+                  exec_preset_first_two};
               return &fn;
             }
             case NODE_COMPARE_MODE_DOT_PRODUCT: {
               static fn::CustomMF_SI_SI_SI_SI_SO<float3, float3, float, float, bool> fn{
-                  "Not Equal - Dot Product", [](float3 a, float3 b, float comp, float epsilon) {
+                  "Not Equal - Dot Product",
+                  [](float3 a, float3 b, float comp, float epsilon) {
                     return abs(math::dot(a, b) - comp) >= epsilon;
-                  }};
+                  },
+                  exec_preset_first_two};
               return &fn;
             }
             case NODE_COMPARE_MODE_DIRECTION: {
               static fn::CustomMF_SI_SI_SI_SI_SO<float3, float3, float, float, bool> fn{
-                  "Not Equal - Direction", [](float3 a, float3 b, float angle, float epsilon) {
+                  "Not Equal - Direction",
+                  [](float3 a, float3 b, float angle, float epsilon) {
                     return abs(angle_v3v3(a, b) - angle) > epsilon;
-                  }};
+                  },
+                  exec_preset_first_two};
               return &fn;
             }
             case NODE_COMPARE_MODE_ELEMENT: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
-                  "Not Equal - Element-wise", [](float3 a, float3 b, float epsilon) {
+                  "Not Equal - Element-wise",
+                  [](float3 a, float3 b, float epsilon) {
                     return abs(a.x - b.x) > epsilon && abs(a.y - b.y) > epsilon &&
                            abs(a.z - b.z) > epsilon;
-                  }};
+                  },
+                  exec_preset_first_two};
               return &fn;
             }
             case NODE_COMPARE_MODE_LENGTH: {
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
-                  "Not Equal - Length", [](float3 a, float3 b, float epsilon) {
+                  "Not Equal - Length",
+                  [](float3 a, float3 b, float epsilon) {
                     return abs(math::length(a) - math::length(b)) > epsilon;
-                  }};
+                  },
+                  exec_preset_first_two};
               return &fn;
             }
           }
@@ -464,32 +510,40 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
       switch (data->operation) {
         case NODE_COMPARE_EQUAL: {
           static fn::CustomMF_SI_SI_SI_SO<ColorGeometry4f, ColorGeometry4f, float, bool> fn{
-              "Equal", [](ColorGeometry4f a, ColorGeometry4f b, float epsilon) {
+              "Equal",
+              [](ColorGeometry4f a, ColorGeometry4f b, float epsilon) {
                 return abs(a.r - b.r) <= epsilon && abs(a.g - b.g) <= epsilon &&
                        abs(a.b - b.b) <= epsilon;
-              }};
+              },
+              exec_preset_first_two};
           return &fn;
         }
         case NODE_COMPARE_NOT_EQUAL: {
           static fn::CustomMF_SI_SI_SI_SO<ColorGeometry4f, ColorGeometry4f, float, bool> fn{
-              "Not Equal", [](ColorGeometry4f a, ColorGeometry4f b, float epsilon) {
+              "Not Equal",
+              [](ColorGeometry4f a, ColorGeometry4f b, float epsilon) {
                 return abs(a.r - b.r) > epsilon && abs(a.g - b.g) > epsilon &&
                        abs(a.b - b.b) > epsilon;
-              }};
+              },
+              exec_preset_first_two};
           return &fn;
         }
         case NODE_COMPARE_COLOR_BRIGHTER: {
           static fn::CustomMF_SI_SI_SO<ColorGeometry4f, ColorGeometry4f, bool> fn{
-              "Brighter", [](ColorGeometry4f a, ColorGeometry4f b) {
+              "Brighter",
+              [](ColorGeometry4f a, ColorGeometry4f b) {
                 return rgb_to_grayscale(a) > rgb_to_grayscale(b);
-              }};
+              },
+              exec_preset_all};
           return &fn;
         }
         case NODE_COMPARE_COLOR_DARKER: {
           static fn::CustomMF_SI_SI_SO<ColorGeometry4f, ColorGeometry4f, bool> fn{
-              "Darker", [](ColorGeometry4f a, ColorGeometry4f b) {
+              "Darker",
+              [](ColorGeometry4f a, ColorGeometry4f b) {
                 return rgb_to_grayscale(a) < rgb_to_grayscale(b);
-              }};
+              },
+              exec_preset_all};
           return &fn;
         }
       }

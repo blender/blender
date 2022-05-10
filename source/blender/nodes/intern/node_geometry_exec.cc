@@ -23,6 +23,16 @@ void GeoNodeExecParams::error_message_add(const NodeWarningType type, std::strin
   local_logger.log_node_warning(provider_->dnode, type, std::move(message));
 }
 
+void GeoNodeExecParams::used_named_attribute(std::string attribute_name,
+                                             const NamedAttributeUsage usage)
+{
+  if (provider_->logger == nullptr) {
+    return;
+  }
+  LocalGeoLogger &local_logger = provider_->logger->local();
+  local_logger.log_used_named_attribute(provider_->dnode, std::move(attribute_name), usage);
+}
+
 void GeoNodeExecParams::check_input_geometry_set(StringRef identifier,
                                                  const GeometrySet &geometry_set) const
 {

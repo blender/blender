@@ -535,7 +535,8 @@ enum {
 
 /** Matches #OB_TYPE_SUPPORT_EDITMODE. */
 #define OB_DATA_SUPPORT_EDITMODE(_type) \
-  (ELEM(_type, ID_ME, ID_CU_LEGACY, ID_MB, ID_LT, ID_AR, ID_CV))
+  (ELEM(_type, ID_ME, ID_CU_LEGACY, ID_MB, ID_LT, ID_AR) || \
+   (U.experimental.use_new_curves_tools && (_type) == ID_CV))
 
 /* is this ID type used as object data */
 #define OB_DATA_SUPPORT_ID(_id_type) \

@@ -36,11 +36,13 @@
  *  https://cg.ivd.kit.edu/english/HSLT.php
  */
 
-#  define MNEE_MAX_ITERATIONS 50
+#  define MNEE_MAX_ITERATIONS 32
 #  define MNEE_MAX_INTERSECTION_COUNT 10
 #  define MNEE_SOLVER_THRESHOLD 0.001f
+#  define MNEE_MINIMUM_STEP_SIZE 0.0001f
 #  define MNEE_MAX_CAUSTIC_CASTERS 6
 #  define MNEE_MIN_DISTANCE 0.001f
+#  define MNEE_MIN_PROGRESS_DISTANCE 0.0001f
 #  define MNEE_MIN_DETERMINANT 0.0001f
 #  define MNEE_PROJECTION_DISTANCE_MULTIPLIER 2.f
 
@@ -168,7 +170,8 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
                                                        const float2 n_offset,
                                                        ccl_private const Ray *ray,
                                                        ccl_private const Intersection *isect,
-                                                       ccl_private ShaderData *sd_vtx)
+                                                       ccl_private ShaderData *sd_vtx,
+                                                       bool seed)
 {
   sd_vtx->object = (isect->object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, isect->prim) :
                                                     isect->object;
@@ -177,7 +180,7 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
   sd_vtx->flag = 0;
   sd_vtx->object_flag = kernel_tex_fetch(__object_flag, sd_vtx->object);
 
-  /* matrices and time */
+  /* Matrices and time. */
   shader_setup_object_transforms(kg, sd_vtx, ray->time);
   sd_vtx->time = ray->time;
 
@@ -191,83 +194,29 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
 
   float3 verts[3];
   float3 normals[3];
-  uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, sd_vtx->prim);
-
   if (sd_vtx->type & PRIMITIVE_TRIANGLE) {
-    /* Static triangle. */
+    /* Load triangle vertices and normals. */
+    triangle_vertices_and_normals(kg, sd_vtx->prim, verts, normals);
 
-    /* Load triangle vertices. */
-    verts[0] = kernel_tex_fetch(__tri_verts, tri_vindex.w + 0);
-    verts[1] = kernel_tex_fetch(__tri_verts, tri_vindex.w + 1);
-    verts[2] = kernel_tex_fetch(__tri_verts, tri_vindex.w + 2);
-
-    /* Vectors. */
-    sd_vtx->P = triangle_point_from_uv(kg, sd_vtx, isect->object, isect->prim, isect->u, isect->v);
-
-    /* Smooth normal. */
-    if (sd_vtx->shader & SHADER_SMOOTH_NORMAL) {
-      /* Load triangle vertices. */
-      normals[0] = kernel_tex_fetch(__tri_vnormal, tri_vindex.x);
-      normals[1] = kernel_tex_fetch(__tri_vnormal, tri_vindex.y);
-      normals[2] = kernel_tex_fetch(__tri_vnormal, tri_vindex.z);
+    /* Compute refined position (same code as in triangle_point_from_uv). */
+    sd_vtx->P = isect->u * verts[0] + isect->v * verts[1] + (1.f - isect->u - isect->v) * verts[2];
+    if (!(sd_vtx->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
+      const Transform tfm = object_get_transform(kg, sd_vtx);
+      sd_vtx->P = transform_point(&tfm, sd_vtx->P);
     }
   }
   else { /* if (sd_vtx->type & PRIMITIVE_MOTION_TRIANGLE) */
-    /* Motion triangle. */
-
-    /* Get motion info. */
-    int numsteps, numverts;
-    object_motion_info(kg, sd_vtx->object, &numsteps, &numverts, NULL);
-
-    /* Figure out which steps we need to fetch and their interpolation factor. */
-    int maxstep = numsteps * 2;
-    int step = min((int)(sd_vtx->time * maxstep), maxstep - 1);
-    float t = sd_vtx->time * maxstep - step;
-
-    /* Find attribute. */
-    int offset = intersection_find_attribute(kg, sd_vtx->object, ATTR_STD_MOTION_VERTEX_POSITION);
-    kernel_assert(offset != ATTR_STD_NOT_FOUND);
-
-    /* Fetch vertex coordinates. */
-    float3 next_verts[3];
-    uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, sd_vtx->prim);
-    motion_triangle_verts_for_step(kg, tri_vindex, offset, numverts, numsteps, step, verts);
-    motion_triangle_verts_for_step(
-        kg, tri_vindex, offset, numverts, numsteps, step + 1, next_verts);
-
-    /* Interpolate between steps. */
-    verts[0] = (1.0f - t) * verts[0] + t * next_verts[0];
-    verts[1] = (1.0f - t) * verts[1] + t * next_verts[1];
-    verts[2] = (1.0f - t) * verts[2] + t * next_verts[2];
+    /* Load triangle vertices and normals. */
+    motion_triangle_vertices_and_normals(
+        kg, sd_vtx->object, sd_vtx->prim, sd_vtx->time, verts, normals);
 
     /* Compute refined position. */
     sd_vtx->P = motion_triangle_point_from_uv(
         kg, sd_vtx, isect->object, isect->prim, isect->u, isect->v, verts);
-
-    /* Compute smooth normal. */
-    if (sd_vtx->shader & SHADER_SMOOTH_NORMAL) {
-      /* Find attribute. */
-      int offset = intersection_find_attribute(kg, sd_vtx->object, ATTR_STD_MOTION_VERTEX_NORMAL);
-      kernel_assert(offset != ATTR_STD_NOT_FOUND);
-
-      /* Fetch vertex coordinates. */
-      float3 next_normals[3];
-      motion_triangle_normals_for_step(kg, tri_vindex, offset, numverts, numsteps, step, normals);
-      motion_triangle_normals_for_step(
-          kg, tri_vindex, offset, numverts, numsteps, step + 1, next_normals);
-
-      /* Interpolate between steps. */
-      normals[0] = (1.0f - t) * normals[0] + t * next_normals[0];
-      normals[1] = (1.0f - t) * normals[1] + t * next_normals[1];
-      normals[2] = (1.0f - t) * normals[2] + t * next_normals[2];
-    }
   }
 
-  /* manifold vertex position */
-  vtx->p = sd_vtx->P;
-
+  /* Instance transform. */
   if (!(sd_vtx->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-    /* Instance transform. */
     object_position_transform_auto(kg, sd_vtx, &verts[0]);
     object_position_transform_auto(kg, sd_vtx, &verts[1]);
     object_position_transform_auto(kg, sd_vtx, &verts[2]);
@@ -277,94 +226,70 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
   }
 
   /* Tangent space (position derivatives) WRT barycentric (u, v). */
-  vtx->dp_du = verts[0] - verts[2];
-  vtx->dp_dv = verts[1] - verts[2];
+  float3 dp_du = verts[0] - verts[2];
+  float3 dp_dv = verts[1] - verts[2];
 
   /* Geometric normal. */
-  vtx->ng = normalize(cross(vtx->dp_du, vtx->dp_dv));
+  vtx->ng = normalize(cross(dp_du, dp_dv));
   if (sd_vtx->object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED)
     vtx->ng = -vtx->ng;
 
-  /* Shading normal. */
-  if (!(sd_vtx->shader & SHADER_SMOOTH_NORMAL)) {
-    vtx->n = vtx->ng;
-    vtx->dn_du = vtx->dn_dv = zero_float3();
-  }
-  else {
-    /* Interpolate normals between vertices. */
-    float n_len;
-    vtx->n = normalize_len(normals[0] * sd_vtx->u + normals[1] * sd_vtx->v +
-                               normals[2] * (1.0f - sd_vtx->u - sd_vtx->v),
-                           &n_len);
+  /* Shading normals: Interpolate normals between vertices. */
+  float n_len;
+  vtx->n = normalize_len(normals[0] * sd_vtx->u + normals[1] * sd_vtx->v +
+                             normals[2] * (1.0f - sd_vtx->u - sd_vtx->v),
+                         &n_len);
 
-    /* Shading normal derivatives WRT barycentric (u, v)
-     * we calculate the derivative of n = |u*n0 + v*n1 + (1-u-v)*n2| using:
-     * d/du [f(u)/|f(u)|] = [d/du f(u)]/|f(u)| - f(u)/|f(u)|^3 <f(u), d/du f(u)>. */
-    const float inv_n_len = 1.f / n_len;
-    vtx->dn_du = inv_n_len * (normals[0] - normals[2]);
-    vtx->dn_dv = inv_n_len * (normals[1] - normals[2]);
-    vtx->dn_du -= vtx->n * dot(vtx->n, vtx->dn_du);
-    vtx->dn_dv -= vtx->n * dot(vtx->n, vtx->dn_dv);
-  }
-
-  /* dp_du and dp_dv need to be continuous across triangles for the h normal
-   * offset to yield a consistent halfvector while walking on the manifold.
-   * It's usually best to rely on the mesh uv layout, which is assumed to be
-   * continuous across the mesh. */
-  float2 duv0, duv1;
-  bool found_uv = false;
-  AttributeDescriptor uv_desc = find_attribute(kg, sd_vtx, ATTR_STD_GENERATED);
-  if (uv_desc.offset != ATTR_STD_NOT_FOUND) {
-    float3 uvs[3];
-    uvs[0] = kernel_tex_fetch(__attributes_float3, uv_desc.offset + tri_vindex.x);
-    uvs[1] = kernel_tex_fetch(__attributes_float3, uv_desc.offset + tri_vindex.y);
-    uvs[2] = kernel_tex_fetch(__attributes_float3, uv_desc.offset + tri_vindex.z);
-    duv0 = make_float2(uvs[0].x - uvs[2].x, uvs[0].y - uvs[2].y);
-    duv1 = make_float2(uvs[1].x - uvs[2].x, uvs[1].y - uvs[2].y);
-    found_uv = true;
-  }
-  else {
-    uv_desc = find_attribute(kg, sd_vtx, ATTR_STD_UV);
-    if (uv_desc.offset != ATTR_STD_NOT_FOUND) {
-      float2 uvs[3];
-      uvs[0] = kernel_tex_fetch(__attributes_float2, uv_desc.offset + tri_vindex.x);
-      uvs[1] = kernel_tex_fetch(__attributes_float2, uv_desc.offset + tri_vindex.y);
-      uvs[2] = kernel_tex_fetch(__attributes_float2, uv_desc.offset + tri_vindex.z);
-      duv0 = make_float2(uvs[0].x - uvs[2].x, uvs[0].y - uvs[2].y);
-      duv1 = make_float2(uvs[1].x - uvs[2].x, uvs[1].y - uvs[2].y);
-      found_uv = true;
-    }
-  }
-  if (found_uv) {
-    const float det = duv0.x * duv1.y - duv0.y * duv1.x;
-    if (det != 0.f) {
-      const float inv_det = 1.f / det;
-
-      /* Tangent space (position derivatives) WRT texture (u, v). */
-      const float3 dp_du = vtx->dp_du;
-      const float3 dp_dv = vtx->dp_dv;
-      vtx->dp_du = (duv1.y * dp_du - duv0.y * dp_dv) * inv_det;
-      vtx->dp_dv = (-duv1.x * dp_du + duv0.x * dp_dv) * inv_det;
-
-      /* Shading normal derivatives WRT texture (u, v). */
-      const float3 dn_du = vtx->dn_du;
-      const float3 dn_dv = vtx->dn_dv;
-      vtx->dn_du = (duv1.y * dn_du - duv0.y * dn_dv) * inv_det;
-      vtx->dn_dv = (-duv1.x * dn_du + duv0.x * dn_dv) * inv_det;
-    }
-  }
+  /* Shading normal derivatives WRT barycentric (u, v)
+   * we calculate the derivative of n = |u*n0 + v*n1 + (1-u-v)*n2| using:
+   * d/du [f(u)/|f(u)|] = [d/du f(u)]/|f(u)| - f(u)/|f(u)|^3 <f(u), d/du f(u)>. */
+  const float inv_n_len = 1.f / n_len;
+  float3 dn_du = inv_n_len * (normals[0] - normals[2]);
+  float3 dn_dv = inv_n_len * (normals[1] - normals[2]);
+  dn_du -= vtx->n * dot(vtx->n, dn_du);
+  dn_dv -= vtx->n * dot(vtx->n, dn_dv);
 
   /* Orthonormalize (dp_du,dp_dv) using a linear transformation, which
    * we use on (dn_du,dn_dv) as well so the new (u,v) are consistent. */
-  const float inv_len_dp_du = 1.f / len(vtx->dp_du);
-  vtx->dp_du *= inv_len_dp_du;
-  vtx->dn_du *= inv_len_dp_du;
-  const float dpdu_dot_dpdv = dot(vtx->dp_du, vtx->dp_dv);
-  const float3 dp_dv = vtx->dp_dv - dpdu_dot_dpdv * vtx->dp_du;
-  const float3 dn_dv = vtx->dn_dv - dpdu_dot_dpdv * vtx->dn_du;
+  const float inv_len_dp_du = 1.f / len(dp_du);
+  dp_du *= inv_len_dp_du;
+  dn_du *= inv_len_dp_du;
+
+  const float dpdu_dot_dpdv = dot(dp_du, dp_dv);
+  dp_dv -= dpdu_dot_dpdv * dp_du;
+  dn_dv -= dpdu_dot_dpdv * dn_du;
+
   const float inv_len_dp_dv = 1.f / len(dp_dv);
-  vtx->dp_dv = dp_dv * inv_len_dp_dv;
-  vtx->dn_dv = dn_dv * inv_len_dp_dv;
+  dp_dv *= inv_len_dp_dv;
+  dn_dv *= inv_len_dp_dv;
+
+  /* Final local differential geometry. */
+  if (seed) {
+    vtx->dp_du = dp_du;
+    vtx->dp_dv = dp_dv;
+    vtx->dn_du = dn_du;
+    vtx->dn_dv = dn_dv;
+  }
+  else {
+    /* Find angle subtended by reference direction (travel direction). */
+    const float3 reference_direction = normalize(sd_vtx->P - vtx->p);
+    const float reference_theta = atan2(dot(reference_direction, vtx->dp_dv),
+                                        dot(reference_direction, vtx->dp_du));
+    const float current_theta = atan2(dot(reference_direction, dp_dv),
+                                      dot(reference_direction, dp_du));
+    const float theta = reference_theta - current_theta;
+
+    /* Rotate (dp_du,dp_dv) to be consistent with previous tangent frame. */
+    float cos_theta, sin_theta;
+    fast_sincosf(theta, &sin_theta, &cos_theta);
+    vtx->dp_du = cos_theta * dp_du - sin_theta * dp_dv;
+    vtx->dp_dv = sin_theta * dp_du + cos_theta * dp_dv;
+    vtx->dn_du = cos_theta * dn_du - sin_theta * dn_dv;
+    vtx->dn_dv = sin_theta * dn_du + cos_theta * dn_dv;
+  }
+
+  /* Manifold vertex position. */
+  vtx->p = sd_vtx->P;
 
   /* Initialize constraint and its derivates. */
   vtx->a = vtx->c = zero_float4();
@@ -638,15 +563,28 @@ ccl_device_forceinline bool mnee_newton_solver(KernelGlobals kg,
         break;
       }
 
+      /* Initialize tangent frame, which will be used as reference. */
+      ccl_private ManifoldVertex &tv = tentative[vi];
+      tv.p = mv.p;
+      tv.dp_du = mv.dp_du;
+      tv.dp_dv = mv.dp_dv;
+
       /* Setup corrected manifold vertex. */
       mnee_setup_manifold_vertex(kg,
-                                 &tentative[vi],
+                                 &tv,
                                  mv.bsdf,
                                  mv.eta,
                                  mv.n_offset,
                                  &projection_ray,
                                  &projection_isect,
-                                 sd_vtx);
+                                 sd_vtx,
+                                 false);
+
+      /* Fail newton solve if we are not making progress, probably stuck trying to move off the
+       * edge of the mesh. */
+      const float distance = len(tv.p - mv.p);
+      if (distance < MNEE_MIN_PROGRESS_DISTANCE)
+        return false;
     }
 
     /* Check that tentative path is still transmissive. */
@@ -672,6 +610,11 @@ ccl_device_forceinline bool mnee_newton_solver(KernelGlobals kg,
       reduce_stepsize = false;
       resolve_constraint = false;
       beta *= .5f;
+
+      /* Fail newton solve if the stepsize is too small. */
+      if (beta < MNEE_MINIMUM_STEP_SIZE)
+        return false;
+
       continue;
     }
 
@@ -714,8 +657,7 @@ mnee_sample_bsdf_dh(ClosureType type, float alpha_x, float alpha_y, float sample
   if (type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID) {
     tan2_theta *= -logf(1.0f - sample_u);
   }
-  else { /* if (type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID || type ==
-            CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_FRESNEL_ID) */
+  else { /* type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID assumed */
     tan2_theta *= sample_u / (1.0f - sample_u);
   }
   float cos2_theta = 1.0f / (1.0f + tan2_theta);
@@ -749,8 +691,7 @@ ccl_device_forceinline float3 mnee_eval_bsdf_contribution(ccl_private ShaderClos
     /* Eq. 26, 27: now calculate G1(i,m) and G1(o,m). */
     G = bsdf_beckmann_G1(bsdf->alpha_x, cosNO) * bsdf_beckmann_G1(bsdf->alpha_x, cosNI);
   }
-  else { /* if (type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID || type ==
-             CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_FRESNEL_ID) */
+  else { /* bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID assumed */
     /* Eq. 34: now calculate G1(i,m) and G1(o,m). */
     G = (2.f / (1.f + safe_sqrtf(1.f + alpha2 * (1.f - cosNO * cosNO) / (cosNO * cosNO)))) *
         (2.f / (1.f + safe_sqrtf(1.f + alpha2 * (1.f - cosNI * cosNI) / (cosNI * cosNI))));
@@ -929,7 +870,8 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
   /* Receiver bsdf eval above already contains |n.wo|. */
   const float dw0_dx1 = fabsf(dot(wo, vertices[0].n)) / sqr(wo_len);
 
-  const float G = dw0_dx1 * dx1_dxlight;
+  /* Clamp since it has a tendency to be unstable. */
+  const float G = fminf(dw0_dx1 * dx1_dxlight, 2.f);
   bsdf_eval_mul(throughput, G);
 
   /* Specular reflectance. */
@@ -1006,13 +948,13 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
 }
 
 /* Manifold next event estimation path sampling. */
-ccl_device_forceinline bool kernel_path_mnee_sample(KernelGlobals kg,
-                                                    IntegratorState state,
-                                                    ccl_private ShaderData *sd,
-                                                    ccl_private ShaderData *sd_mnee,
-                                                    ccl_private const RNGState *rng_state,
-                                                    ccl_private LightSample *ls,
-                                                    ccl_private BsdfEval *throughput)
+ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
+                                                   IntegratorState state,
+                                                   ccl_private ShaderData *sd,
+                                                   ccl_private ShaderData *sd_mnee,
+                                                   ccl_private const RNGState *rng_state,
+                                                   ccl_private LightSample *ls,
+                                                   ccl_private BsdfEval *throughput)
 {
   /*
    * 1. send seed ray from shading point to light sample position (or along sampled light
@@ -1056,23 +998,38 @@ ccl_device_forceinline bool kernel_path_mnee_sample(KernelGlobals kg,
 
       /* Do we have enough slots. */
       if (vertex_count >= MNEE_MAX_CAUSTIC_CASTERS)
-        return false;
+        return 0;
+
+      /* Reject caster if it is not a triangles mesh. */
+      if (!(probe_isect.type & PRIMITIVE_TRIANGLE))
+        return 0;
 
       ccl_private ManifoldVertex &mv = vertices[vertex_count++];
 
       /* Setup shader data on caustic caster and evaluate context. */
       shader_setup_from_ray(kg, sd_mnee, &probe_ray, &probe_isect);
 
+      /* Reject caster if smooth normals are not available: Manifold exploration assumes local
+       * differential geometry can be created at any point on the surface which is not possible if
+       * normals are not smooth. */
+      if (!(sd_mnee->shader & SHADER_SMOOTH_NORMAL))
+        return 0;
+
       /* Last bool argument is the MNEE flag (for TINY_MAX_CLOSURE cap in kernel_shader.h). */
       shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
           kg, state, sd_mnee, NULL, PATH_RAY_DIFFUSE, true);
 
-      /* get and sample refraction bsdf. */
+      /* Get and sample refraction bsdf */
       bool found_transimissive_microfacet_bsdf = false;
       for (int ci = 0; ci < sd_mnee->num_closure; ci++) {
         ccl_private ShaderClosure *bsdf = &sd_mnee->closure[ci];
         if (bsdf->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID ||
-            bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) {
+            bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID ||
+            bsdf->type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID ||
+            bsdf->type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID) {
+          /* Note that CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID and
+           * CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID are treated as
+           * CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID further below. */
 
           found_transimissive_microfacet_bsdf = true;
           ccl_private MicrofacetBsdf *microfacet_bsdf = (ccl_private MicrofacetBsdf *)bsdf;
@@ -1088,12 +1045,13 @@ ccl_device_forceinline bool kernel_path_mnee_sample(KernelGlobals kg,
               bsdf->type, microfacet_bsdf->alpha_x, microfacet_bsdf->alpha_y, bsdf_u, bsdf_v);
 
           /* Setup differential geometry on vertex. */
-          mnee_setup_manifold_vertex(kg, &mv, bsdf, eta, h, &probe_ray, &probe_isect, sd_mnee);
+          mnee_setup_manifold_vertex(
+              kg, &mv, bsdf, eta, h, &probe_ray, &probe_isect, sd_mnee, true);
           break;
         }
       }
       if (!found_transimissive_microfacet_bsdf)
-        return false;
+        return 0;
     }
 
     probe_ray.self.object = probe_isect.object;
@@ -1107,23 +1065,22 @@ ccl_device_forceinline bool kernel_path_mnee_sample(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, mnee) &= ~PATH_MNEE_VALID;
 
   if (vertex_count == 0)
-    return false;
+    return 0;
 
   /* Check whether the transmission depth limit is reached before continuing. */
-  const int transmission_bounce = INTEGRATOR_STATE(state, path, transmission_bounce) +
-                                  vertex_count;
-  if (transmission_bounce >= kernel_data.integrator.max_transmission_bounce)
-    return false;
+  if (INTEGRATOR_STATE(state, path, transmission_bounce) + vertex_count >=
+      kernel_data.integrator.max_transmission_bounce)
+    return 0;
 
   /* Check whether the diffuse depth limit is reached before continuing. */
-  const int diffuse_bounce = INTEGRATOR_STATE(state, path, diffuse_bounce) + 1;
-  if (diffuse_bounce >= kernel_data.integrator.max_diffuse_bounce)
-    return false;
+  if (INTEGRATOR_STATE(state, path, diffuse_bounce) + 1 >=
+      kernel_data.integrator.max_diffuse_bounce)
+    return 0;
 
   /* Check whether the overall depth limit is reached before continuing. */
-  const int bounce = INTEGRATOR_STATE(state, path, bounce) + diffuse_bounce + transmission_bounce;
-  if (bounce >= kernel_data.integrator.max_bounce)
-    return false;
+  if (INTEGRATOR_STATE(state, path, bounce) + 1 + vertex_count >=
+      kernel_data.integrator.max_bounce)
+    return 0;
 
   /* Mark the manifold walk valid to turn off mollification regardless of how successful the walk
    * is: this is noticeable when another mnee is performed deeper in the path, for an internally
@@ -1137,12 +1094,12 @@ ccl_device_forceinline bool kernel_path_mnee_sample(KernelGlobals kg,
   if (mnee_newton_solver(kg, sd, sd_mnee, ls, vertex_count, vertices)) {
     /* 3. If a solution exists, calculate contribution of the corresponding path */
     if (!mnee_path_contribution(kg, state, sd, sd_mnee, ls, vertex_count, vertices, throughput))
-      return false;
+      return 0;
 
-    return true;
+    return vertex_count;
   }
 
-  return false;
+  return 0;
 }
 
 CCL_NAMESPACE_END

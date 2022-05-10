@@ -14,6 +14,8 @@ extern "C" {
 #endif
 
 typedef struct Simulation {
+  DNA_DEFINE_CXX_METHODS(Simulation)
+
   ID id;
   struct AnimData *adt; /* animation data (must be immediately after id) */
 

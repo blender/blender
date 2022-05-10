@@ -357,7 +357,7 @@ static void do_versions_mesh_mloopcol_swap_2_62_1(Mesh *me)
   for (a = 0; a < me->ldata.totlayer; a++) {
     layer = &me->ldata.layers[a];
 
-    if (layer->type == CD_MLOOPCOL) {
+    if (layer->type == CD_PROP_BYTE_COLOR) {
       mloopcol = (MLoopCol *)layer->data;
       for (i = 0; i < me->totloop; i++, mloopcol++) {
         SWAP(uchar, mloopcol->r, mloopcol->b);

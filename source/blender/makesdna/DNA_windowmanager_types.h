@@ -364,7 +364,7 @@ typedef struct wmKeyMapItem {
   short type;
   /** KM_ANY, KM_PRESS, KM_NOTHING etc. */
   int8_t val;
-  /** Use when `val == KM_CLICK_DRAG`,  */
+  /** Use when `val == KM_CLICK_DRAG`. */
   int8_t direction;
   /** `oskey` also known as apple, windows-key or super. */
   short shift, ctrl, alt, oskey;

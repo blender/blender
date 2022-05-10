@@ -226,7 +226,7 @@ enum {
   UI_BUT_HAS_SEP_CHAR = 1 << 27,
   /** Don't run updates while dragging (needed in rare cases). */
   UI_BUT_UPDATE_DELAY = 1 << 28,
-  /** When widget is in textedit mode, update value on each char stroke */
+  /** When widget is in text-edit mode, update value on each char stroke. */
   UI_BUT_TEXTEDIT_UPDATE = 1 << 29,
   /** Show 'x' icon to clear/unlink value of text or search button. */
   UI_BUT_VALUE_CLEAR = 1 << 30,
@@ -515,6 +515,10 @@ typedef void (*uiButHandleNFunc)(struct bContext *C, void *argN, void *arg2);
 typedef void (*uiButHandleHoldFunc)(struct bContext *C, struct ARegion *butregion, uiBut *but);
 typedef int (*uiButCompleteFunc)(struct bContext *C, char *str, void *arg);
 
+/** Function to compare the identity of two buttons over redraws, to check if they represent the
+ * same data, and thus should be considered the same button over redraws. */
+typedef bool (*uiButIdentityCompareFunc)(const uiBut *a, const uiBut *b);
+
 /* Search types. */
 typedef struct ARegion *(*uiButSearchCreateFn)(struct bContext *C,
                                                struct ARegion *butregion,
@@ -602,6 +606,7 @@ typedef void (*uiMenuHandleFunc)(struct bContext *C, void *arg, int event);
  */
 typedef bool (*uiMenuStepFunc)(struct bContext *C, int direction, void *arg1);
 
+typedef void *(*uiCopyArgFunc)(const void *arg);
 typedef void (*uiFreeArgFunc)(void *arg);
 
 /* interface_query.c */
@@ -1366,6 +1371,13 @@ uiBut *uiDefIconTextButO_ptr(uiBlock *block,
 /* for passing inputs to ButO buttons */
 struct PointerRNA *UI_but_operator_ptr_get(uiBut *but);
 
+void UI_but_context_ptr_set(uiBlock *block,
+                            uiBut *but,
+                            const char *name,
+                            const struct PointerRNA *ptr);
+const struct PointerRNA *UI_but_context_ptr_get(const uiBut *but,
+                                                const char *name,
+                                                const StructRNA *type CPP_ARG_DEFAULT(nullptr));
 struct bContextStore *UI_but_context_get(const uiBut *but);
 
 void UI_but_unit_type_set(uiBut *but, int unit_type);
@@ -1647,6 +1659,18 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
                                      struct PropertyRNA *prop_activate_init,
                                      eButLabelAlign label_align,
                                      bool compact);
+
+/**
+ * Callback to compare the identity of two buttons, used to identify buttons over redraws. If the
+ * callback returns true, the given buttons are considered to be matching and relevant state is
+ * preserved (copied from the old to the new button). If it returns false, it's considered
+ * non-matching and no further checks are done.
+ *
+ * If this is set, it is always executed instead of the default comparisons. However it is only
+ * executed for buttons that have the same type and the same callback. So callbacks can assume the
+ * button types match.
+ */
+void UI_but_func_identity_compare_set(uiBut *but, uiButIdentityCompareFunc cmp_fn);
 
 /**
  * Public function exported for functions that use #UI_BTYPE_SEARCH_MENU.
@@ -2080,6 +2104,24 @@ void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv);
 void uiLayoutSetContextPointer(uiLayout *layout, const char *name, struct PointerRNA *ptr);
 struct bContextStore *uiLayoutGetContextStore(uiLayout *layout);
 void uiLayoutContextCopy(uiLayout *layout, struct bContextStore *context);
+
+/**
+ * Set tooltip function for all buttons in the layout.
+ * func, arg and free_arg are passed on to UI_but_func_tooltip_set, so their meaning is the same.
+ *
+ * \param func: The callback function that gets called to get tooltip content
+ * \param arg: An optional opaque pointer that gets passed to func
+ * \param free_arg: An optional callback for freeing arg (can be set to e.g. MEM_freeN)
+ * \param copy_arg: An optional callback for duplicating arg in case UI_but_func_tooltip_set
+ * is being called on multiple buttons (can be set to e.g. MEM_dupallocN). If set to NULL, arg will
+ * be passed as-is to all buttons.
+ */
+void uiLayoutSetTooltipFunc(uiLayout *layout,
+                            uiButToolTipFunc func,
+                            void *arg,
+                            uiCopyArgFunc copy_arg,
+                            uiFreeArgFunc free_arg);
+
 /**
  * This is a bit of a hack but best keep it in one place at least.
  */
@@ -2727,7 +2769,8 @@ void uiItemPointerR_prop(uiLayout *layout,
                          struct PointerRNA *searchptr,
                          struct PropertyRNA *searchprop,
                          const char *name,
-                         int icon);
+                         int icon,
+                         bool results_are_suggestions);
 void uiItemPointerR(uiLayout *layout,
                     struct PointerRNA *ptr,
                     const char *propname,
@@ -2897,7 +2940,7 @@ void ED_keymap_ui(struct wmKeyConfig *keyconf);
 void ED_dropboxes_ui(void);
 void ED_uilisttypes_ui(void);
 
-void UI_drop_color_copy(struct wmDrag *drag, struct wmDropBox *drop);
+void UI_drop_color_copy(struct bContext *C, struct wmDrag *drag, struct wmDropBox *drop);
 bool UI_drop_color_poll(struct bContext *C, struct wmDrag *drag, const struct wmEvent *event);
 
 bool UI_context_copy_to_selected_list(struct bContext *C,

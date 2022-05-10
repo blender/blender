@@ -207,7 +207,7 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   int update_flags)
 {
   const MPropCol *vtcol = vcol_type == CD_PROP_COLOR ? vcol_data : NULL;
-  const MLoopCol *vcol = vcol_type == CD_MLOOPCOL ? vcol_data : NULL;
+  const MLoopCol *vcol = vcol_type == CD_PROP_BYTE_COLOR ? vcol_data : NULL;
   const float(*f3col)[3] = vcol_type == CD_PROP_FLOAT3 ? vcol_data : NULL;
 
   const bool color_loops = vcol_domain == ATTR_DOMAIN_CORNER;

@@ -92,7 +92,14 @@ static PyObject *py_imbuf_resize(Py_ImBuf *self, PyObject *args, PyObject *kw)
   struct PyC_StringEnum method = {method_items, FAST};
 
   static const char *_keywords[] = {"size", "method", NULL};
-  static _PyArg_Parser _parser = {"(ii)|$O&:resize", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "(ii)" /* `size` */
+      "|$"   /* Optional keyword only arguments. */
+      "O&"   /* `method` */
+      ":resize",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kw, &_parser, &size[0], &size[1], PyC_ParseStringEnum, &method)) {
     return NULL;
@@ -130,7 +137,13 @@ static PyObject *py_imbuf_crop(Py_ImBuf *self, PyObject *args, PyObject *kw)
   rcti crop;
 
   static const char *_keywords[] = {"min", "max", NULL};
-  static _PyArg_Parser _parser = {"(II)(II):crop", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "(II)" /* `min` */
+      "(II)" /* `max` */
+      ":crop",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kw, &_parser, &crop.xmin, &crop.ymin, &crop.xmax, &crop.ymax)) {
     return NULL;
@@ -420,7 +433,12 @@ static PyObject *M_imbuf_new(PyObject *UNUSED(self), PyObject *args, PyObject *k
 {
   int size[2];
   static const char *_keywords[] = {"size", NULL};
-  static _PyArg_Parser _parser = {"(ii):new", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "(ii)" /* `size` */
+      ":new",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &size[0], &size[1])) {
     return NULL;
   }
@@ -455,7 +473,12 @@ static PyObject *M_imbuf_load(PyObject *UNUSED(self), PyObject *args, PyObject *
   const char *filepath;
 
   static const char *_keywords[] = {"filepath", NULL};
-  static _PyArg_Parser _parser = {"s:load", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "s" /* `filepath` */
+      ":load",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &filepath)) {
     return NULL;
   }
@@ -497,7 +520,14 @@ static PyObject *M_imbuf_write(PyObject *UNUSED(self), PyObject *args, PyObject 
   const char *filepath = NULL;
 
   static const char *_keywords[] = {"image", "filepath", NULL};
-  static _PyArg_Parser _parser = {"O!|$s:write", _keywords, 0};
+  static _PyArg_Parser _parser = {
+      "O!" /* `image` */
+      "|$" /* Optional keyword only arguments. */
+      "s"  /* `filepath` */
+      ":write",
+      _keywords,
+      0,
+  };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &Py_ImBuf_Type, &py_imb, &filepath)) {
     return NULL;
   }
@@ -529,7 +559,11 @@ static PyMethodDef IMB_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-PyDoc_STRVAR(IMB_doc, "This module provides access to Blender's image manipulation API.");
+PyDoc_STRVAR(IMB_doc,
+             "This module provides access to Blender's image manipulation API.\n"
+             "\n"
+             "It provides access to image buffers outside of Blender's\n"
+             ":class:`bpy.types.Image` data-block context.\n");
 static struct PyModuleDef IMB_module_def = {
     PyModuleDef_HEAD_INIT,
     "imbuf",     /* m_name */
@@ -566,7 +600,13 @@ PyObject *BPyInit_imbuf(void)
  * for docs and the ability to use with built-ins such as `isinstance`, `issubclass`.
  * \{ */
 
-PyDoc_STRVAR(IMB_types_doc, "This module provides access to image buffer types.");
+PyDoc_STRVAR(IMB_types_doc,
+             "This module provides access to image buffer types.\n"
+             "\n"
+             ".. note::\n"
+             "\n"
+             "   Image buffer is also the structure used by :class:`bpy.types.Image`\n"
+             "   ID type to store and manipulate image data at runtime.\n");
 
 static struct PyModuleDef IMB_types_module_def = {
     PyModuleDef_HEAD_INIT,

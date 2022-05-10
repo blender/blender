@@ -135,7 +135,7 @@ static CustomDataType data_type_in_attribute_input_node(const CustomDataType typ
     case CD_PROP_COLOR:
     case CD_PROP_BOOL:
       return type;
-    case CD_MLOOPCOL:
+    case CD_PROP_BYTE_COLOR:
       return CD_PROP_COLOR;
     case CD_PROP_STRING:
       /* Unsupported currently. */

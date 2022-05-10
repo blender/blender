@@ -347,6 +347,8 @@ void channel_draw_context_init(const bContext *C,
 
 void draw_channels(const bContext *C, ARegion *region)
 {
+  draw_background();
+
   Editing *ed = SEQ_editing_get(CTX_data_scene(C));
   if (ed == NULL) {
     return;
@@ -357,7 +359,6 @@ void draw_channels(const bContext *C, ARegion *region)
 
   UI_view2d_view_ortho(context.v2d);
 
-  draw_background();
   draw_channel_headers(&context);
 
   UI_view2d_view_restore(C);

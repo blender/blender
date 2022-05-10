@@ -47,6 +47,11 @@ bool USDAbstractWriter::is_supported(const HierarchyContext * /*context*/) const
   return true;
 }
 
+std::string USDAbstractWriter::get_export_file_path() const
+{
+  return usd_export_context_.hierarchy_iterator->get_export_file_path();
+}
+
 pxr::UsdTimeCode USDAbstractWriter::get_export_time_code() const
 {
   if (is_animated_) {

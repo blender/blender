@@ -145,6 +145,7 @@ set(SRC_KERNEL_SVM_HEADERS
   svm/normal.h
   svm/ramp.h
   svm/ramp_util.h
+  svm/sepcomb_color.h
   svm/sepcomb_hsv.h
   svm/sepcomb_vector.h
   svm/sky.h
@@ -356,16 +357,13 @@ if(WITH_CYCLES_CUDA_BINARIES)
   set(CUDA_VERSION "${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}")
 
   # warn for other versions
-  if((CUDA_VERSION MATCHES "101") OR
-     (CUDA_VERSION MATCHES "102") OR
-     (CUDA_VERSION MATCHES "111") OR
-     (CUDA_VERSION MATCHES "112") OR
-     (CUDA_VERSION MATCHES "113") OR
-     (CUDA_VERSION MATCHES "114"))
+  if((CUDA_VERSION STREQUAL "101") OR
+     (CUDA_VERSION STREQUAL "102") OR
+     (CUDA_VERSION_MAJOR STREQUAL "11"))
   else()
     message(WARNING
       "CUDA version ${CUDA_VERSION_MAJOR}.${CUDA_VERSION_MINOR} detected, "
-      "build may succeed but only CUDA 10.1 to 11.4 are officially supported")
+      "build may succeed but only CUDA 11, 10.2 and 10.1 have been tested")
   endif()
 
   # build for each arch
@@ -406,6 +404,11 @@ if(WITH_CYCLES_CUDA_BINARIES)
       --use_fast_math
       -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_file}
       -Wno-deprecated-gpu-targets)
+
+    if(CUDA_HOST_COMPILER)
+      set(cuda_flags ${cuda_flags}
+        -ccbin="${CUDA_HOST_COMPILER}")
+    endif()
 
     if(WITH_NANOVDB)
       set(cuda_flags ${cuda_flags}
@@ -477,19 +480,19 @@ if(WITH_CYCLES_CUDA_BINARIES)
       if(DEFINED CUDA10_NVCC_EXECUTABLE)
         set(cuda_nvcc_executable ${CUDA10_NVCC_EXECUTABLE})
         set(cuda_toolkit_root_dir ${CUDA10_TOOLKIT_ROOT_DIR})
-      elseif(${CUDA_VERSION} LESS 110) # Support for sm_30 was removed in CUDA 11
+      elseif("${CUDA_VERSION}" LESS 110) # Support for sm_30 was removed in CUDA 11
         set(cuda_nvcc_executable ${CUDA_NVCC_EXECUTABLE})
         set(cuda_toolkit_root_dir ${CUDA_TOOLKIT_ROOT_DIR})
       else()
         message(STATUS "CUDA binaries for ${arch} require CUDA 10 or earlier, skipped.")
       endif()
-    elseif(${arch} MATCHES ".*_7." AND ${CUDA_VERSION} LESS 100)
+    elseif(${arch} MATCHES ".*_7." AND "${CUDA_VERSION}" LESS 100)
       message(STATUS "CUDA binaries for ${arch} require CUDA 10.0+, skipped.")
     elseif(${arch} MATCHES ".*_8.")
       if(DEFINED CUDA11_NVCC_EXECUTABLE)
         set(cuda_nvcc_executable ${CUDA11_NVCC_EXECUTABLE})
         set(cuda_toolkit_root_dir ${CUDA11_TOOLKIT_ROOT_DIR})
-      elseif(${CUDA_VERSION} GREATER_EQUAL 111) # Support for sm_86 was introduced in CUDA 11
+      elseif("${CUDA_VERSION}" GREATER_EQUAL 111) # Support for sm_86 was introduced in CUDA 11
         set(cuda_nvcc_executable ${CUDA_NVCC_EXECUTABLE})
         set(cuda_toolkit_root_dir ${CUDA_TOOLKIT_ROOT_DIR})
       else()
@@ -726,6 +729,14 @@ endif()
 
 if(CXX_HAS_AVX2)
   set_source_files_properties(device/cpu/kernel_avx2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
+endif()
+
+# Warnings to avoid using doubles in the kernel.
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+  ADD_CHECK_CXX_COMPILER_FLAG(CMAKE_CXX_FLAGS _has_cxxflag_float_conversion "-Werror=float-conversion")
+  ADD_CHECK_CXX_COMPILER_FLAG(CMAKE_CXX_FLAGS _has_cxxflag_double_promotion "-Werror=double-promotion")
+  unset(_has_cxxflag_float_conversion)
+  unset(_has_cxxflag_double_promotion)
 endif()
 
 cycles_add_library(cycles_kernel "${LIB}"

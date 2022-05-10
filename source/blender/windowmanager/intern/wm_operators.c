@@ -3261,6 +3261,14 @@ static void redraw_timer_step(bContext *C,
   }
 }
 
+static bool redraw_timer_poll(bContext *C)
+{
+  /* Check background mode as many of these actions use redrawing.
+   * NOTE(@campbellbarton): if it's useful to support undo or animation step this could
+   * be allowed at the moment this seems like a corner case that isn't needed. */
+  return !G.background && WM_operator_winactive(C);
+}
+
 static int redraw_timer_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
@@ -3322,7 +3330,7 @@ static void WM_OT_redraw_timer(wmOperatorType *ot)
 
   ot->invoke = WM_menu_invoke;
   ot->exec = redraw_timer_exec;
-  ot->poll = WM_operator_winactive;
+  ot->poll = redraw_timer_poll;
 
   ot->prop = RNA_def_enum(ot->srna, "type", redraw_timer_type_items, eRTDrawRegion, "Type", "");
   RNA_def_int(

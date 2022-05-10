@@ -1,13 +1,5 @@
-#ifdef FAKE_SHADING
-uniform vec3 light_dir;
-#endif
-
-in float weight;
-in vec3 pos;
-in vec3 nor;
-
-out vec2 weight_interp; /* (weight, alert) */
-out float color_fac;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {
@@ -29,7 +21,5 @@ void main()
   color_fac = 1.0;
 #endif
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(world_pos);
-#endif
+  view_clipping_distances(world_pos);
 }

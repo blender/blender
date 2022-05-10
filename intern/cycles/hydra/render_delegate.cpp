@@ -26,18 +26,12 @@
 
 HDCYCLES_NAMESPACE_OPEN_SCOPE
 
+TF_DEFINE_PUBLIC_TOKENS(HdCyclesRenderSettingsTokens, HD_CYCLES_RENDER_SETTINGS_TOKENS);
+
 // clang-format off
 TF_DEFINE_PRIVATE_TOKENS(_tokens,
     (cycles)
     (openvdbAsset)
-);
-
-TF_DEFINE_PRIVATE_TOKENS(HdCyclesRenderSettingsTokens,
-    ((device, "cycles:device"))
-    ((threads, "cycles:threads"))
-    ((time_limit, "cycles:time_limit"))
-    ((samples, "cycles:samples"))
-    ((sample_offset, "cycles:sample_offset"))
 );
 // clang-format on
 
@@ -118,23 +112,22 @@ SessionParams GetSessionParams(const HdRenderSettingsMap &settings)
 
 }  // namespace
 
-HdCyclesDelegate::HdCyclesDelegate(const HdRenderSettingsMap &settingsMap, Session *session_)
+HdCyclesDelegate::HdCyclesDelegate(const HdRenderSettingsMap &settingsMap,
+                                   Session *session_,
+                                   const bool keep_nodes)
     : HdRenderDelegate()
 {
-  _renderParam = session_ ? std::make_unique<HdCyclesSession>(session_) :
+  _renderParam = session_ ? std::make_unique<HdCyclesSession>(session_, keep_nodes) :
                             std::make_unique<HdCyclesSession>(GetSessionParams(settingsMap));
 
-  // If the delegate owns the session, pull any remaining settings
-  if (!session_) {
-    for (const auto &setting : settingsMap) {
-      // Skip over the settings known to be used for initialization only
-      if (setting.first == HdCyclesRenderSettingsTokens->device ||
-          setting.first == HdCyclesRenderSettingsTokens->threads) {
-        continue;
-      }
-
-      SetRenderSetting(setting.first, setting.second);
+  for (const auto &setting : settingsMap) {
+    // Skip over the settings known to be used for initialization only
+    if (setting.first == HdCyclesRenderSettingsTokens->device ||
+        setting.first == HdCyclesRenderSettingsTokens->threads) {
+      continue;
     }
+
+    SetRenderSetting(setting.first, setting.second);
   }
 }
 
@@ -154,7 +147,7 @@ void HdCyclesDelegate::SetDrivers(const HdDriverVector &drivers)
 
 bool HdCyclesDelegate::IsDisplaySupported() const
 {
-#ifdef _WIN32
+#if defined(_WIN32) && defined(WITH_HYDRA_DISPLAY_DRIVER)
   return _hgi && _hgi->GetAPIName() == HgiTokens->OpenGL;
 #else
   return false;
@@ -325,7 +318,7 @@ HdBprim *HdCyclesDelegate::CreateBprim(const TfToken &typeId, const SdfPath &bpr
   }
 #endif
 
-  TF_RUNTIME_ERROR("Unknown Bprim type %s", typeId.GetText());
+  TF_CODING_ERROR("Unknown Bprim type %s", typeId.GetText());
   return nullptr;
 }
 
@@ -424,7 +417,7 @@ HdRenderSettingDescriptorList HdCyclesDelegate::GetRenderSettingDescriptors() co
 
   descriptors.push_back({
       "Time Limit",
-      HdCyclesRenderSettingsTokens->time_limit,
+      HdCyclesRenderSettingsTokens->timeLimit,
       VtValue(0.0),
   });
   descriptors.push_back({
@@ -434,7 +427,7 @@ HdRenderSettingDescriptorList HdCyclesDelegate::GetRenderSettingDescriptors() co
   });
   descriptors.push_back({
       "Sample Offset",
-      HdCyclesRenderSettingsTokens->sample_offset,
+      HdCyclesRenderSettingsTokens->sampleOffset,
       VtValue(0),
   });
 
@@ -452,16 +445,21 @@ void HdCyclesDelegate::SetRenderSetting(const PXR_NS::TfToken &key, const PXR_NS
   Scene *const scene = _renderParam->session->scene;
   Session *const session = _renderParam->session;
 
-  if (key == HdCyclesRenderSettingsTokens->time_limit) {
+  if (key == HdCyclesRenderSettingsTokens->stageMetersPerUnit) {
+    _renderParam->SetStageMetersPerUnit(
+        VtValue::Cast<double>(value).GetWithDefault(_renderParam->GetStageMetersPerUnit()));
+  }
+  else if (key == HdCyclesRenderSettingsTokens->timeLimit) {
     session->set_time_limit(
         VtValue::Cast<double>(value).GetWithDefault(session->params.time_limit));
   }
   else if (key == HdCyclesRenderSettingsTokens->samples) {
+    static const int max_samples = Integrator::MAX_SAMPLES;
     int samples = VtValue::Cast<int>(value).GetWithDefault(session->params.samples);
-    samples = std::min(std::max(1, samples), Integrator::MAX_SAMPLES);
+    samples = std::min(std::max(1, samples), max_samples);
     session->set_samples(samples);
   }
-  else if (key == HdCyclesRenderSettingsTokens->sample_offset) {
+  else if (key == HdCyclesRenderSettingsTokens->sampleOffset) {
     session->params.sample_offset = VtValue::Cast<int>(value).GetWithDefault(
         session->params.sample_offset);
     ++_settingsVersion;
@@ -483,19 +481,22 @@ VtValue HdCyclesDelegate::GetRenderSetting(const TfToken &key) const
   Scene *const scene = _renderParam->session->scene;
   Session *const session = _renderParam->session;
 
-  if (key == HdCyclesRenderSettingsTokens->device) {
+  if (key == HdCyclesRenderSettingsTokens->stageMetersPerUnit) {
+    return VtValue(_renderParam->GetStageMetersPerUnit());
+  }
+  else if (key == HdCyclesRenderSettingsTokens->device) {
     return VtValue(TfToken(Device::string_from_type(session->params.device.type)));
   }
   else if (key == HdCyclesRenderSettingsTokens->threads) {
     return VtValue(session->params.threads);
   }
-  else if (key == HdCyclesRenderSettingsTokens->time_limit) {
+  else if (key == HdCyclesRenderSettingsTokens->timeLimit) {
     return VtValue(session->params.time_limit);
   }
   else if (key == HdCyclesRenderSettingsTokens->samples) {
     return VtValue(session->params.samples);
   }
-  else if (key == HdCyclesRenderSettingsTokens->sample_offset) {
+  else if (key == HdCyclesRenderSettingsTokens->sampleOffset) {
     return VtValue(session->params.sample_offset);
   }
   else {

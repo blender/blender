@@ -1658,7 +1658,10 @@ static void layer_collection_local_sync(ViewLayer *view_layer,
 
   if (visible) {
     LISTBASE_FOREACH (CollectionObject *, cob, &layer_collection->collection->gobject) {
-      BLI_assert(cob->ob);
+      if (cob->ob == NULL) {
+        continue;
+      }
+
       Base *base = BKE_view_layer_base_find(view_layer, cob->ob);
       base->local_collections_bits |= local_collections_uuid;
     }
@@ -2506,6 +2509,8 @@ ViewLayer *BKE_view_layer_find_with_aov(struct Scene *scene, struct ViewLayerAOV
   return NULL;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Light Groups
  * \{ */
@@ -2535,11 +2540,17 @@ static void viewlayer_lightgroup_active_set(ViewLayer *view_layer, ViewLayerLigh
   }
 }
 
-struct ViewLayerLightgroup *BKE_view_layer_add_lightgroup(struct ViewLayer *view_layer)
+struct ViewLayerLightgroup *BKE_view_layer_add_lightgroup(struct ViewLayer *view_layer,
+                                                          const char *name)
 {
   ViewLayerLightgroup *lightgroup;
   lightgroup = MEM_callocN(sizeof(ViewLayerLightgroup), __func__);
-  BLI_strncpy(lightgroup->name, DATA_("Lightgroup"), sizeof(lightgroup->name));
+  if (name && name[0]) {
+    BLI_strncpy(lightgroup->name, name, sizeof(lightgroup->name));
+  }
+  else {
+    BLI_strncpy(lightgroup->name, DATA_("Lightgroup"), sizeof(lightgroup->name));
+  }
   BLI_addtail(&view_layer->lightgroups, lightgroup);
   viewlayer_lightgroup_active_set(view_layer, lightgroup);
   viewlayer_lightgroup_make_name_unique(view_layer, lightgroup);

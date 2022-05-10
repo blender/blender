@@ -4,14 +4,19 @@
 
 #include "hydra/render_pass.h"
 #include "hydra/camera.h"
-#include "hydra/display_driver.h"
 #include "hydra/output_driver.h"
 #include "hydra/render_buffer.h"
 #include "hydra/render_delegate.h"
 #include "hydra/session.h"
+
+#ifdef WITH_HYDRA_DISPLAY_DRIVER
+#  include "hydra/display_driver.h"
+#endif
+
 #include "scene/camera.h"
 #include "scene/integrator.h"
 #include "scene/scene.h"
+
 #include "session/session.h"
 
 #include <pxr/imaging/hd/renderPassState.h>
@@ -32,8 +37,10 @@ HdCyclesRenderPass::HdCyclesRenderPass(HdRenderIndex *index,
   const auto renderDelegate = static_cast<const HdCyclesDelegate *>(
       GetRenderIndex()->GetRenderDelegate());
   if (renderDelegate->IsDisplaySupported()) {
+#ifdef WITH_HYDRA_DISPLAY_DRIVER
     session->set_display_driver(
         make_unique<HdCyclesDisplayDriver>(renderParam, renderDelegate->GetHgi()));
+#endif
   }
 }
 
@@ -117,10 +124,11 @@ void HdCyclesRenderPass::_Execute(const HdRenderPassStateSharedPtr &renderPassSt
 #endif
 
     if (const auto camera = static_cast<const HdCyclesCamera *>(renderPassState->GetCamera())) {
-      camera->ApplyCameraSettings(scene->camera);
+      camera->ApplyCameraSettings(_renderParam, scene->camera);
     }
     else {
-      HdCyclesCamera::ApplyCameraSettings(renderPassState->GetWorldToViewMatrix(),
+      HdCyclesCamera::ApplyCameraSettings(_renderParam,
+                                          renderPassState->GetWorldToViewMatrix(),
                                           renderPassState->GetProjectionMatrix(),
                                           renderPassState->GetClipPlanes(),
                                           scene->camera);

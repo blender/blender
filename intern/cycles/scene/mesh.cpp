@@ -690,12 +690,16 @@ void Mesh::pack_shaders(Scene *scene, uint *tri_shader)
   bool last_smooth = false;
 
   size_t triangles_size = num_triangles();
-  int *shader_ptr = shader.data();
+  const int *shader_ptr = shader.data();
+  const bool *smooth_ptr = smooth.data();
 
   for (size_t i = 0; i < triangles_size; i++) {
-    if (shader_ptr[i] != last_shader || last_smooth != smooth[i]) {
-      last_shader = shader_ptr[i];
-      last_smooth = smooth[i];
+    const int new_shader = shader_ptr ? shader_ptr[i] : INT_MAX;
+    const bool new_smooth = smooth_ptr ? smooth_ptr[i] : false;
+
+    if (new_shader != last_shader || last_smooth != new_smooth) {
+      last_shader = new_shader;
+      last_smooth = new_smooth;
       Shader *shader = (last_shader < used_shaders.size()) ?
                            static_cast<Shader *>(used_shaders[last_shader]) :
                            scene->default_surface;

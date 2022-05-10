@@ -64,7 +64,8 @@ node_tree_group_type = {
     'GeometryNodeTree': 'GeometryNodeGroup',
 }
 
-# Custom Menu for Geometry Node Curves
+
+# Custom Menu for Geometry Node Curves.
 def curve_node_items(context):
     if context is None:
         return
@@ -100,7 +101,8 @@ def curve_node_items(context):
     yield NodeItem("GeometryNodeSetSplineResolution")
     yield NodeItem("GeometryNodeCurveSplineType")
 
-# Custom Menu for Geometry Node Mesh
+
+# Custom Menu for Geometry Node Mesh.
 def mesh_node_items(context):
     if context is None:
         return
@@ -131,7 +133,8 @@ def mesh_node_items(context):
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
     yield NodeItem("GeometryNodeSetShadeSmooth")
 
-# Custom Menu for Geometry Nodes "Geometry" category
+
+# Custom Menu for Geometry Nodes "Geometry" category.
 def geometry_node_items(context):
     if context is None:
         return
@@ -154,7 +157,8 @@ def geometry_node_items(context):
     yield NodeItem("GeometryNodeSetID")
     yield NodeItem("GeometryNodeSetPosition")
 
-# Custom Menu for Geometry Node Input Nodes
+
+# Custom Menu for Geometry Node Input Nodes.
 def geometry_input_node_items(context):
     if context is None:
         return
@@ -172,16 +176,16 @@ def geometry_input_node_items(context):
     yield NodeItem("ShaderNodeValue")
     yield NodeItem("FunctionNodeInputVector")
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
-    if named_attribute_poll(context):
-        yield NodeItem("GeometryNodeInputNamedAttribute")
     yield NodeItem("GeometryNodeInputID")
     yield NodeItem("GeometryNodeInputIndex")
+    yield NodeItem("GeometryNodeInputNamedAttribute")
     yield NodeItem("GeometryNodeInputNormal")
     yield NodeItem("GeometryNodeInputPosition")
     yield NodeItem("GeometryNodeInputRadius")
     yield NodeItem("GeometryNodeInputSceneTime")
 
-# Custom Menu for Material Nodes
+
+# Custom Menu for Material Nodes.
 def geometry_material_node_items(context):
     if context is None:
         return
@@ -196,7 +200,8 @@ def geometry_material_node_items(context):
     yield NodeItem("GeometryNodeSetMaterial")
     yield NodeItem("GeometryNodeSetMaterialIndex")
 
-# Custom Menu for Geometry Node Points
+
+# Custom Menu for Geometry Node Points.
 def point_node_items(context):
     if context is None:
         return
@@ -210,7 +215,8 @@ def point_node_items(context):
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
     yield NodeItem("GeometryNodeSetPointRadius")
 
-# generic node group items generator for shader, compositor, geometry and texture node groups
+
+# Generic node group items generator for shader, compositor, geometry and texture node groups.
 def node_group_items(context):
     if context is None:
         return
@@ -308,10 +314,6 @@ def object_eevee_shader_nodes_poll(context):
 def object_eevee_cycles_shader_nodes_poll(context):
     return (object_shader_nodes_poll(context) and
             eevee_cycles_shader_nodes_poll(context))
-
-
-def named_attribute_poll(context):
-    return context.preferences.experimental.use_named_attribute_nodes
 
 
 # All standard node categories currently used in nodes.
@@ -417,12 +419,10 @@ shader_node_categories = [
         NodeItem("ShaderNodeRGBToBW"),
         NodeItem("ShaderNodeShaderToRGB", poll=object_eevee_shader_nodes_poll),
         NodeItem("ShaderNodeVectorMath"),
-        NodeItem("ShaderNodeSeparateRGB"),
-        NodeItem("ShaderNodeCombineRGB"),
+        NodeItem("ShaderNodeSeparateColor"),
+        NodeItem("ShaderNodeCombineColor"),
         NodeItem("ShaderNodeSeparateXYZ"),
         NodeItem("ShaderNodeCombineXYZ"),
-        NodeItem("ShaderNodeSeparateHSV"),
-        NodeItem("ShaderNodeCombineHSV"),
         NodeItem("ShaderNodeWavelength"),
         NodeItem("ShaderNodeBlackbody"),
     ]),
@@ -481,14 +481,8 @@ compositor_node_categories = [
         NodeItem("CompositorNodePremulKey"),
         NodeItem("CompositorNodeIDMask"),
         NodeItem("CompositorNodeRGBToBW"),
-        NodeItem("CompositorNodeSepRGBA"),
-        NodeItem("CompositorNodeCombRGBA"),
-        NodeItem("CompositorNodeSepHSVA"),
-        NodeItem("CompositorNodeCombHSVA"),
-        NodeItem("CompositorNodeSepYUVA"),
-        NodeItem("CompositorNodeCombYUVA"),
-        NodeItem("CompositorNodeSepYCCA"),
-        NodeItem("CompositorNodeCombYCCA"),
+        NodeItem("CompositorNodeSeparateColor"),
+        NodeItem("CompositorNodeCombineColor"),
         NodeItem("CompositorNodeSeparateXYZ"),
         NodeItem("CompositorNodeCombineXYZ"),
         NodeItem("CompositorNodeSwitchView"),
@@ -574,8 +568,8 @@ texture_node_categories = [
         NodeItem("TextureNodeCurveRGB"),
         NodeItem("TextureNodeInvert"),
         NodeItem("TextureNodeHueSaturation"),
-        NodeItem("TextureNodeCompose"),
-        NodeItem("TextureNodeDecompose"),
+        NodeItem("TextureNodeCombineColor"),
+        NodeItem("TextureNodeSeparateColor"),
     ]),
     TextureNodeCategory("TEX_PATTERN", "Pattern", items=[
         NodeItem("TextureNodeChecker"),
@@ -620,15 +614,15 @@ geometry_node_categories = [
         NodeItem("GeometryNodeAttributeDomainSize"),
         NodeItem("GeometryNodeAttributeStatistic"),
         NodeItem("GeometryNodeAttributeTransfer"),
-        NodeItem("GeometryNodeStoreNamedAttribute", poll=named_attribute_poll),
-        NodeItem("GeometryNodeRemoveAttribute", poll=named_attribute_poll),
+        NodeItem("GeometryNodeRemoveAttribute"),
+        NodeItem("GeometryNodeStoreNamedAttribute"),
     ]),
     GeometryNodeCategory("GEO_COLOR", "Color", items=[
         NodeItem("ShaderNodeMixRGB"),
         NodeItem("ShaderNodeRGBCurve"),
         NodeItem("ShaderNodeValToRGB"),
-        NodeItem("ShaderNodeSeparateRGB"),
-        NodeItem("ShaderNodeCombineRGB"),
+        NodeItem("FunctionNodeSeparateColor"),
+        NodeItem("FunctionNodeCombineColor"),
     ]),
     GeometryNodeCategory("GEO_CURVE", "Curve", items=curve_node_items),
     GeometryNodeCategory("GEO_PRIMITIVES_CURVE", "Curve Primitives", items=[

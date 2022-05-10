@@ -378,4 +378,34 @@ TEST(multi_function_procedure, BufferReuse)
   EXPECT_EQ(results[4], 53);
 }
 
+TEST(multi_function_procedure, OutputBufferReplaced)
+{
+  MFProcedure procedure;
+  MFProcedureBuilder builder{procedure};
+
+  const int output_value = 42;
+  CustomMF_GenericConstant constant_fn(CPPType::get<int>(), &output_value, false);
+  MFVariable &var_o = procedure.new_variable(MFDataType::ForSingle<int>());
+  builder.add_output_parameter(var_o);
+  builder.add_call_with_all_variables(constant_fn, {&var_o});
+  builder.add_destruct(var_o);
+  builder.add_call_with_all_variables(constant_fn, {&var_o});
+  builder.add_return();
+
+  EXPECT_TRUE(procedure.validate());
+
+  MFProcedureExecutor procedure_fn{procedure};
+
+  Array<int> output(3, 0);
+  fn::MFParamsBuilder params(procedure_fn, output.size());
+  params.add_uninitialized_single_output(output.as_mutable_span());
+
+  fn::MFContextBuilder context;
+  procedure_fn.call(IndexMask(output.size()), params, context);
+
+  EXPECT_EQ(output[0], output_value);
+  EXPECT_EQ(output[1], output_value);
+  EXPECT_EQ(output[2], output_value);
+}
+
 }  // namespace blender::fn::tests

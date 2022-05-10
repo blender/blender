@@ -9,6 +9,8 @@
 
 #include "DRW_render.h"
 
+#include "overlay_shader_shared.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -72,6 +74,7 @@ typedef struct OVERLAY_PassList {
   DRWPass *edit_mesh_edges_ps[2];
   DRWPass *edit_mesh_faces_ps[2];
   DRWPass *edit_mesh_faces_cage_ps[2];
+  DRWPass *edit_curves_points_ps[2];
   DRWPass *edit_mesh_analysis_ps;
   DRWPass *edit_mesh_normals_ps;
   DRWPass *edit_particle_ps;
@@ -119,18 +122,8 @@ typedef struct OVERLAY_PassList {
   DRWPass *xray_fade_ps;
 } OVERLAY_PassList;
 
-/* Data used by GLSL shader. To be used as UBO. */
+/* Data used by GLSL shader. */
 typedef struct OVERLAY_ShadingData {
-  /** Grid */
-  float grid_axes[3], grid_distance;
-  float zplane_axes[3], grid_size[3];
-  float grid_steps[SI_GRID_STEPS_LEN];
-  float inv_viewport_size[2];
-  float grid_line_size;
-  float zoom_factor; /* Only for UV editor */
-  int grid_flag;
-  int zpos_flag;
-  int zneg_flag;
   /** Wireframe */
   float wire_step_param;
   float wire_opacity;
@@ -266,6 +259,7 @@ typedef struct OVERLAY_PrivateData {
   DRWShadingGroup *edit_uv_faces_grp;
   DRWShadingGroup *edit_uv_face_dots_grp;
   DRWShadingGroup *edit_uv_stretching_grp;
+  DRWShadingGroup *edit_curves_points_grp[2];
   DRWShadingGroup *extra_grid_grp;
   DRWShadingGroup *facing_grp[2];
   DRWShadingGroup *fade_grp[2];
@@ -299,9 +293,9 @@ typedef struct OVERLAY_PrivateData {
   DRWView *view_edit_verts;
   DRWView *view_edit_text;
   DRWView *view_reference_images;
+  DRWView *view_edit_curves_points;
 
   /** TODO: get rid of this. */
-  ListBase smoke_domains;
   ListBase bg_movie_clips;
 
   /** Two instances for in_front option and without. */
@@ -324,7 +318,13 @@ typedef struct OVERLAY_PrivateData {
   int cfra;
   DRWState clipping_state;
   OVERLAY_ShadingData shdata;
+  OVERLAY_GridData grid_data;
 
+  struct {
+    float grid_axes[3];
+    float zplane_axes[3];
+    OVERLAY_GridBits zneg_flag, zpos_flag, grid_flag;
+  } grid;
   struct {
     bool enabled;
     bool do_depth_copy;
@@ -346,6 +346,9 @@ typedef struct OVERLAY_PrivateData {
     bool select_edge;
     int flag; /** Copy of #v3d->overlay.edit_flag. */
   } edit_mesh;
+  struct {
+    bool do_zbufclip;
+  } edit_curves;
   struct {
     bool use_weight;
     int select_mode;
@@ -413,12 +416,18 @@ typedef struct OVERLAY_StorageList {
   struct OVERLAY_PrivateData *pd;
 } OVERLAY_StorageList;
 
+typedef struct OVERLAY_Instance {
+  GPUUniformBuf *grid_ubo;
+} OVERLAY_Instance;
+
 typedef struct OVERLAY_Data {
   void *engine_type;
   OVERLAY_FramebufferList *fbl;
   OVERLAY_TextureList *txl;
   OVERLAY_PassList *psl;
   OVERLAY_StorageList *stl;
+
+  OVERLAY_Instance *instance;
 } OVERLAY_Data;
 
 typedef struct OVERLAY_DupliData {
@@ -669,7 +678,11 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
 void OVERLAY_wireframe_draw(OVERLAY_Data *vedata);
 void OVERLAY_wireframe_in_front_draw(OVERLAY_Data *vedata);
 
-void OVERLAY_shader_library_ensure(void);
+void OVERLAY_edit_curves_init(OVERLAY_Data *vedata);
+void OVERLAY_edit_curves_cache_init(OVERLAY_Data *vedata);
+void OVERLAY_edit_curves_cache_populate(OVERLAY_Data *vedata, Object *ob);
+void OVERLAY_edit_curves_draw(OVERLAY_Data *vedata);
+
 GPUShader *OVERLAY_shader_antialiasing(void);
 GPUShader *OVERLAY_shader_armature_degrees_of_freedom_wire(void);
 GPUShader *OVERLAY_shader_armature_degrees_of_freedom_solid(void);

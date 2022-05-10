@@ -670,7 +670,10 @@ typedef struct FluidDomainSettings {
   char interp_method;
   char gridlines_color_field; /* Simulation field used to color map onto gridlines. */
   char gridlines_cell_filter;
-  char _pad10[7]; /* Unused. */
+  char _pad10[3]; /* Unused. */
+
+  /* Velocity factor for motion blur rendering. */
+  float velocity_scale;
 
   /* OpenVDB cache options. */
   int openvdb_compression;

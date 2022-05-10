@@ -1,12 +1,4 @@
 
-#ifndef USE_GPU_SHADER_CREATE_INFO
-uniform mat4 ModelViewProjectionMatrix;
-uniform float size;
-
-in vec2 pos;
-out vec2 radii;
-#endif
-
 void main()
 {
   gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);

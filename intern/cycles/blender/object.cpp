@@ -16,6 +16,7 @@
 #include "scene/shader.h"
 #include "scene/shader_graph.h"
 #include "scene/shader_nodes.h"
+#include "scene/volume.h"
 
 #include "util/foreach.h"
 #include "util/hash.h"
@@ -715,13 +716,13 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
   float frame_center_delta = 0.0f;
 
   if (scene->need_motion() != Scene::MOTION_PASS &&
-      scene->camera->get_motion_position() != Camera::MOTION_POSITION_CENTER) {
+      scene->camera->get_motion_position() != MOTION_POSITION_CENTER) {
     float shuttertime = scene->camera->get_shuttertime();
-    if (scene->camera->get_motion_position() == Camera::MOTION_POSITION_END) {
+    if (scene->camera->get_motion_position() == MOTION_POSITION_END) {
       frame_center_delta = -shuttertime * 0.5f;
     }
     else {
-      assert(scene->camera->get_motion_position() == Camera::MOTION_POSITION_START);
+      assert(scene->camera->get_motion_position() == MOTION_POSITION_START);
       frame_center_delta = shuttertime * 0.5f;
     }
 

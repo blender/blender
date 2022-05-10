@@ -292,7 +292,7 @@ static ccd_Mesh *ccd_mesh_make(Object *ob)
   pccd_M->bbmax[0] = pccd_M->bbmax[1] = pccd_M->bbmax[2] = -1e30f;
   pccd_M->mprevvert = NULL;
 
-  /* blow it up with forcefield ranges */
+  /* Blow it up with force-field ranges. */
   hull = max_ff(ob->pd->pdef_sbift, ob->pd->pdef_sboft);
 
   /* Allocate and copy verts. */

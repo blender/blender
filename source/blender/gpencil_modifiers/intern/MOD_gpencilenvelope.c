@@ -152,8 +152,12 @@ static float calc_radius_limit(
   return radius_limit;
 }
 
-static void apply_stroke_envelope(
-    bGPDstroke *gps, int spread, const int def_nr, const bool invert_vg, const float thickness)
+static void apply_stroke_envelope(bGPDstroke *gps,
+                                  int spread,
+                                  const int def_nr,
+                                  const bool invert_vg,
+                                  const float thickness,
+                                  const float pixfactor)
 {
   const bool is_cyclic = (gps->flag & GP_STROKE_CYCLIC) != 0;
   if (is_cyclic) {
@@ -218,10 +222,12 @@ static void apply_stroke_envelope(
                                  max_ii(0, i + j - spread_left);
       const int i2 = is_cyclic ? (i + j + spread_right) % gps->totpoints :
                                  min_ii(gps->totpoints - 1, i + j + spread_right);
-      /*bool side = dot_v3v3(&old_points[i1].x, plane_no) < dot_v3v3(plane_no, &old_points[i2].x);
+#if 0
+      bool side = dot_v3v3(&old_points[i1].x, plane_no) < dot_v3v3(plane_no, &old_points[i2].x);
       if (side) {
         continue;
-      }*/
+      }
+#endif
       float lambda = line_plane_factor_v3(
           &point->x, plane_no, &old_points[i1].x, &old_points[i2].x);
       if (lambda <= 0.0f || lambda >= 1.0f) {
@@ -280,9 +286,7 @@ static void apply_stroke_envelope(
     }
 
     float fac = use_dist * weight;
-    /* The 50 is an internal constant for the default pixel size. The result can be messed up if
-     * #bGPdata.pixfactor is not default, but I think modifiers shouldn't access that. */
-    point->pressure += fac * 50.0f * GP_DEFAULT_PIX_FACTOR;
+    point->pressure += fac * pixfactor;
     interp_v3_v3v3(&point->x, &point->x, new_center, fac / len_v3v3(closest, closest2));
   }
 
@@ -324,25 +328,31 @@ static void deformStroke(GpencilModifierData *md,
     return;
   }
 
-  apply_stroke_envelope(
-      gps, mmd->spread, def_nr, (mmd->flag & GP_ENVELOPE_INVERT_VGROUP) != 0, mmd->thickness);
+  bGPdata *gpd = (bGPdata *)ob->data;
+  const float pixfactor = 1000.0f / ((gps->thickness + gpl->line_change) * gpd->pixfactor);
+  apply_stroke_envelope(gps,
+                        mmd->spread,
+                        def_nr,
+                        (mmd->flag & GP_ENVELOPE_INVERT_VGROUP) != 0,
+                        mmd->thickness,
+                        pixfactor);
 }
 
 static void add_stroke(Object *ob,
                        bGPDstroke *gps,
                        const int point_index,
                        const int connection_index,
-                       const int size,
+                       const int size2,
+                       const int size1,
                        const int mat_nr,
                        const float thickness,
                        const float strength,
                        ListBase *results)
 {
+  const int size = size1 + size2;
   bGPdata *gpd = ob->data;
   bGPDstroke *gps_dst = BKE_gpencil_stroke_new(mat_nr, size, gps->thickness);
-
-  const int size1 = size == 4 ? 2 : 1;
-  const int size2 = size - size1;
+  gps_dst->runtime.gps_orig = gps->runtime.gps_orig;
 
   memcpy(&gps_dst->points[0], &gps->points[connection_index], size1 * sizeof(bGPDspoint));
   memcpy(&gps_dst->points[size1], &gps->points[point_index], size2 * sizeof(bGPDspoint));
@@ -350,7 +360,6 @@ static void add_stroke(Object *ob,
   for (int i = 0; i < size; i++) {
     gps_dst->points[i].pressure *= thickness;
     gps_dst->points[i].strength *= strength;
-    memset(&gps_dst->points[i].runtime, 0, sizeof(bGPDspoint_Runtime));
   }
 
   if (gps->dvert != NULL) {
@@ -369,33 +378,45 @@ static void add_stroke_cyclic(Object *ob,
                               bGPDstroke *gps,
                               const int point_index,
                               const int connection_index,
+                              const int size,
                               const int mat_nr,
                               const float thickness,
                               const float strength,
                               ListBase *results)
 {
   bGPdata *gpd = ob->data;
-  bGPDstroke *gps_dst = BKE_gpencil_stroke_new(mat_nr, 4, gps->thickness);
+  bGPDstroke *gps_dst = BKE_gpencil_stroke_new(mat_nr, size * 2, gps->thickness);
+  gps_dst->runtime.gps_orig = gps->runtime.gps_orig;
 
-  int connection_index2 = (connection_index + 1) % gps->totpoints;
-  int point_index2 = (point_index + 1) % gps->totpoints;
+  if (gps->dvert != NULL) {
+    gps_dst->dvert = MEM_malloc_arrayN(size * 2, sizeof(MDeformVert), __func__);
+  }
 
-  gps_dst->points[0] = gps->points[connection_index];
-  gps_dst->points[1] = gps->points[connection_index2];
-  gps_dst->points[2] = gps->points[point_index];
-  gps_dst->points[3] = gps->points[point_index2];
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < size; i++) {
+    int a = (connection_index + i) % gps->totpoints;
+    int b = (point_index + i) % gps->totpoints;
+
+    gps_dst->points[i] = gps->points[a];
+    bGPDspoint *pt_dst = &gps_dst->points[i];
+    bGPDspoint *pt_orig = &gps->points[a];
+    pt_dst->runtime.pt_orig = pt_orig->runtime.pt_orig;
+    pt_dst->runtime.idx_orig = pt_orig->runtime.idx_orig;
+
+    gps_dst->points[size + i] = gps->points[b];
+    pt_dst = &gps_dst->points[size + i];
+    pt_orig = &gps->points[b];
+    pt_dst->runtime.pt_orig = pt_orig->runtime.pt_orig;
+    pt_dst->runtime.idx_orig = pt_orig->runtime.idx_orig;
+
+    if (gps->dvert != NULL) {
+      BKE_defvert_array_copy(&gps_dst->dvert[i], &gps->dvert[a], 1);
+      BKE_defvert_array_copy(&gps_dst->dvert[size + i], &gps->dvert[b], 1);
+    }
+  }
+  for (int i = 0; i < size * 2; i++) {
     gps_dst->points[i].pressure *= thickness;
     gps_dst->points[i].strength *= strength;
     memset(&gps_dst->points[i].runtime, 0, sizeof(bGPDspoint_Runtime));
-  }
-
-  if (gps->dvert != NULL) {
-    gps_dst->dvert = MEM_malloc_arrayN(4, sizeof(MDeformVert), __func__);
-    BKE_defvert_array_copy(&gps_dst->dvert[0], &gps->dvert[connection_index], 1);
-    BKE_defvert_array_copy(&gps_dst->dvert[1], &gps->dvert[connection_index2], 1);
-    BKE_defvert_array_copy(&gps_dst->dvert[2], &gps->dvert[point_index], 1);
-    BKE_defvert_array_copy(&gps_dst->dvert[3], &gps->dvert[point_index2], 1);
   }
 
   BLI_addtail(results, gps_dst);
@@ -415,15 +436,23 @@ static void add_stroke_simple(Object *ob,
 {
   bGPdata *gpd = ob->data;
   bGPDstroke *gps_dst = BKE_gpencil_stroke_new(mat_nr, 2, gps->thickness);
+  gps_dst->runtime.gps_orig = gps->runtime.gps_orig;
 
   gps_dst->points[0] = gps->points[connection_index];
   gps_dst->points[0].pressure *= thickness;
   gps_dst->points[0].strength *= strength;
-  memset(&gps_dst->points[0].runtime, 0, sizeof(bGPDspoint_Runtime));
+  bGPDspoint *pt_dst = &gps_dst->points[0];
+  bGPDspoint *pt_orig = &gps->points[connection_index];
+  pt_dst->runtime.pt_orig = pt_orig->runtime.pt_orig;
+  pt_dst->runtime.idx_orig = pt_orig->runtime.idx_orig;
+
   gps_dst->points[1] = gps->points[point_index];
   gps_dst->points[1].pressure *= thickness;
   gps_dst->points[1].strength *= strength;
-  memset(&gps_dst->points[1].runtime, 0, sizeof(bGPDspoint_Runtime));
+  pt_dst = &gps_dst->points[1];
+  pt_orig = &gps->points[point_index];
+  pt_dst->runtime.pt_orig = pt_orig->runtime.pt_orig;
+  pt_dst->runtime.idx_orig = pt_orig->runtime.idx_orig;
 
   if (gps->dvert != NULL) {
     gps_dst->dvert = MEM_malloc_arrayN(2, sizeof(MDeformVert), __func__);
@@ -459,31 +488,41 @@ static void generate_geometry(GpencilModifierData *md, Object *ob, bGPDlayer *gp
 
     const int mat_nr = mmd->mat_nr < 0 ? gps->mat_nr : min_ii(mmd->mat_nr, ob->totcol - 1);
     if (mmd->mode == GP_ENVELOPE_FILLS) {
+      const int skip = min_ii(mmd->skip, min_ii(mmd->spread / 2, gps->totpoints - 2));
       if (gps->flag & GP_STROKE_CYCLIC) {
         for (int i = 0; i < gps->totpoints; i++) {
-          const int connection_index = (i + mmd->spread) % gps->totpoints;
-          add_stroke_cyclic(
-              ob, gps, i, connection_index, mat_nr, mmd->thickness, mmd->strength, &duplicates);
+          const int connection_index = (i + mmd->spread - skip) % gps->totpoints;
+          add_stroke_cyclic(ob,
+                            gps,
+                            i,
+                            connection_index,
+                            2 + skip,
+                            mat_nr,
+                            mmd->thickness,
+                            mmd->strength,
+                            &duplicates);
+          i += mmd->skip;
         }
       }
       else {
-        for (int i = 1; i < gps->totpoints - 1 && i < mmd->spread + 1; i++) {
-          add_stroke(ob, gps, i, 0, 3, mat_nr, mmd->thickness, mmd->strength, &duplicates);
-        }
-        for (int i = 0; i < gps->totpoints - 1; i++) {
-          const int connection_index = min_ii(i + mmd->spread, gps->totpoints - 1);
-          const int size = i == gps->totpoints - 2               ? 2 :
-                           connection_index < gps->totpoints - 1 ? 4 :
-                                                                   3;
+        for (int i = -mmd->spread + skip; i < gps->totpoints - 1; i++) {
+          const int point_index = max_ii(0, i);
+          const int connection_index = min_ii(i + mmd->spread + 1, gps->totpoints - 1);
+          const int size1 = min_ii(2 + skip,
+                                   min_ii(point_index + 1, gps->totpoints - point_index));
+          const int size2 = min_ii(
+              2 + skip, min_ii(connection_index + 1, gps->totpoints - connection_index));
           add_stroke(ob,
                      gps,
-                     i,
-                     connection_index,
-                     size,
+                     point_index,
+                     connection_index + 1 - size2,
+                     size1,
+                     size2,
                      mat_nr,
                      mmd->thickness,
                      mmd->strength,
                      &duplicates);
+          i += mmd->skip;
         }
       }
       BLI_remlink(&gpf->strokes, gps);
@@ -496,6 +535,7 @@ static void generate_geometry(GpencilModifierData *md, Object *ob, bGPDlayer *gp
           const int connection_index = (i + 1 + mmd->spread) % gps->totpoints;
           add_stroke_simple(
               ob, gps, i, connection_index, mat_nr, mmd->thickness, mmd->strength, &duplicates);
+          i += mmd->skip;
         }
       }
       else {
@@ -509,6 +549,7 @@ static void generate_geometry(GpencilModifierData *md, Object *ob, bGPDlayer *gp
                             mmd->thickness,
                             mmd->strength,
                             &duplicates);
+          i += mmd->skip;
         }
       }
     }
@@ -585,6 +626,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   if (mode != GP_ENVELOPE_DEFORM) {
     uiItemR(layout, ptr, "strength", 0, NULL, ICON_NONE);
     uiItemR(layout, ptr, "mat_nr", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "skip", 0, NULL, ICON_NONE);
   }
 
   gpencil_modifier_panel_end(layout, ptr);

@@ -343,7 +343,7 @@ static bool sculpt_undo_restore_color(bContext *C, SculptUndoNode *unode)
   bool modified = false;
 
   /* NOTE: even with loop colors we still store derived
-   * vertex colors for original data lookup.*/
+   * vertex colors for original data lookup. */
   if (unode->col && !unode->loop_col) {
     BKE_pbvh_swap_colors(ss->pbvh, unode->index, unode->totvert, unode->col);
     modified = true;
@@ -854,7 +854,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 
     if (tag_update) {
       Mesh *mesh = ob->data;
-      BKE_mesh_calc_normals(mesh);
+      BKE_mesh_normals_tag_dirty(mesh);
 
       BKE_sculptsession_free_deformMats(ss);
     }

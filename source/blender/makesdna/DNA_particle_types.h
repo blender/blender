@@ -109,7 +109,12 @@ typedef struct ParticleData {
 
   /** Die-time is not necessarily time+lifetime as. */
   float time, lifetime;
-  /** Particles can die unnaturally (collision). */
+  /**
+   * Particles can die unnaturally (collision).
+   *
+   * \note Particles die on this frame, be sure to add 1 when clamping the lifetime of particles
+   * to inclusive ranges such as the scenes end frame. See: T68290.
+   */
   float dietime;
 
   /**

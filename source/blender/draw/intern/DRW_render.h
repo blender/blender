@@ -28,6 +28,7 @@
 #include "DNA_world_types.h"
 
 #include "GPU_framebuffer.h"
+#include "GPU_material.h"
 #include "GPU_primitive.h"
 #include "GPU_shader.h"
 #include "GPU_storage_buffer.h"
@@ -197,13 +198,6 @@ void DRW_texture_free(struct GPUTexture *tex);
 
 /* Shaders */
 
-typedef void (*GPUMaterialEvalCallbackFn)(struct GPUMaterial *mat,
-                                          int options,
-                                          const char **vert_code,
-                                          const char **geom_code,
-                                          const char **frag_lib,
-                                          const char **defines);
-
 struct GPUShader *DRW_shader_create_ex(
     const char *vert, const char *geom, const char *frag, const char *defines, const char *name);
 struct GPUShader *DRW_shader_create_with_lib_ex(const char *vert,
@@ -242,38 +236,20 @@ struct GPUShader *DRW_shader_create_fullscreen_with_shaderlib_ex(const char *fra
 #define DRW_shader_create_fullscreen_with_shaderlib(frag, lib, defines) \
   DRW_shader_create_fullscreen_with_shaderlib_ex(frag, lib, defines, __func__)
 
-struct GPUMaterial *DRW_shader_find_from_world(struct World *wo,
-                                               const void *engine_type,
-                                               int options,
-                                               bool deferred);
-struct GPUMaterial *DRW_shader_find_from_material(struct Material *ma,
-                                                  const void *engine_type,
-                                                  int options,
-                                                  bool deferred);
-struct GPUMaterial *DRW_shader_create_from_world(struct Scene *scene,
-                                                 struct World *wo,
-                                                 struct bNodeTree *ntree,
-                                                 const void *engine_type,
-                                                 int options,
-                                                 bool is_volume_shader,
-                                                 const char *vert,
-                                                 const char *geom,
-                                                 const char *frag_lib,
-                                                 const char *defines,
-                                                 bool deferred,
-                                                 GPUMaterialEvalCallbackFn callback);
-struct GPUMaterial *DRW_shader_create_from_material(struct Scene *scene,
-                                                    struct Material *ma,
-                                                    struct bNodeTree *ntree,
-                                                    const void *engine_type,
-                                                    int options,
-                                                    bool is_volume_shader,
-                                                    const char *vert,
-                                                    const char *geom,
-                                                    const char *frag_lib,
-                                                    const char *defines,
-                                                    bool deferred,
-                                                    GPUMaterialEvalCallbackFn callback);
+struct GPUMaterial *DRW_shader_from_world(struct World *wo,
+                                          struct bNodeTree *ntree,
+                                          const uint64_t shader_id,
+                                          const bool is_volume_shader,
+                                          bool deferred,
+                                          GPUCodegenCallbackFn callback,
+                                          void *thunk);
+struct GPUMaterial *DRW_shader_from_material(struct Material *ma,
+                                             struct bNodeTree *ntree,
+                                             const uint64_t shader_id,
+                                             const bool is_volume_shader,
+                                             bool deferred,
+                                             GPUCodegenCallbackFn callback,
+                                             void *thunk);
 void DRW_shader_free(struct GPUShader *shader);
 #define DRW_SHADER_FREE_SAFE(shader) \
   do { \
@@ -366,6 +342,8 @@ typedef enum {
   /** DO NOT USE. Assumed always enabled. Only used internally. */
   DRW_STATE_PROGRAM_POINT_SIZE = (1u << 31),
 } DRWState;
+
+ENUM_OPERATORS(DRWState, DRW_STATE_PROGRAM_POINT_SIZE);
 
 #define DRW_STATE_DEFAULT \
   (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL)

@@ -903,22 +903,6 @@ static void set_loop_uv(MLoopUV &uv, float2 co)
   copy_v2_v2(uv.uv, co);
 }
 
-static ColorGeometry4f get_loop_color(const MLoopCol &col)
-{
-  ColorGeometry4b encoded_color = ColorGeometry4b(col.r, col.g, col.b, col.a);
-  ColorGeometry4f linear_color = encoded_color.decode();
-  return linear_color;
-}
-
-static void set_loop_color(MLoopCol &col, ColorGeometry4f linear_color)
-{
-  ColorGeometry4b encoded_color = linear_color.encode();
-  col.r = encoded_color.r;
-  col.g = encoded_color.g;
-  col.b = encoded_color.b;
-  col.a = encoded_color.a;
-}
-
 static float get_crease(const MEdge &edge)
 {
   return edge.crease / 255.0f;
@@ -1293,14 +1277,6 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
       make_derived_read_attribute<MLoopUV, float2, get_loop_uv>,
       make_derived_write_attribute<MLoopUV, float2, get_loop_uv, set_loop_uv>);
 
-  static NamedLegacyCustomDataProvider vertex_colors(
-      ATTR_DOMAIN_CORNER,
-      CD_PROP_COLOR,
-      CD_MLOOPCOL,
-      corner_access,
-      make_derived_read_attribute<MLoopCol, ColorGeometry4f, get_loop_color>,
-      make_derived_write_attribute<MLoopCol, ColorGeometry4f, get_loop_color, set_loop_color>);
-
   static VertexGroupsAttributeProvider vertex_groups;
   static CustomDataAttributeProvider corner_custom_data(ATTR_DOMAIN_CORNER, corner_access);
   static CustomDataAttributeProvider point_custom_data(ATTR_DOMAIN_POINT, point_access);
@@ -1310,7 +1286,6 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
   return ComponentAttributeProviders(
       {&position, &id, &material_index, &shade_smooth, &normal, &crease},
       {&uvs,
-       &vertex_colors,
        &corner_custom_data,
        &vertex_groups,
        &point_custom_data,

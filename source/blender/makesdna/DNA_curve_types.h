@@ -127,6 +127,8 @@ typedef struct BPoint {
  * also, it should be NURBS (Nurb isn't the singular of Nurbs).
  */
 typedef struct Nurb {
+  DNA_DEFINE_CXX_METHODS(Nurb)
+
   /** Multiple nurbs per curve object are allowed. */
   struct Nurb *next, *prev;
   short type;
@@ -169,6 +171,8 @@ typedef struct TextBox {
 #
 #
 typedef struct EditNurb {
+  DNA_DEFINE_CXX_METHODS(EditNurb)
+
   /* base of nurbs' list (old Curve->editnurb) */
   ListBase nurbs;
 
@@ -187,6 +191,8 @@ typedef struct EditNurb {
 } EditNurb;
 
 typedef struct Curve {
+  DNA_DEFINE_CXX_METHODS(Curve)
+
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;
@@ -292,6 +298,13 @@ typedef struct Curve {
    * original object data.
    */
   const struct Curves *curve_eval;
+  /**
+   * If non-zero, the #editfont and #editnurb pointers are not owned by this #Curve. That means
+   * this curve is a container for the result of object geometry evaluation. This only works
+   * because evaluated object data never outlives original data.
+   */
+  char edit_data_from_original;
+  char _pad3[7];
 
   void *batch_cache;
 } Curve;

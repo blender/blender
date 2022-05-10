@@ -10,9 +10,9 @@
 
 GPU_SHADER_CREATE_INFO(gpu_shader_instance_varying_color_varying_size)
     .vertex_in(0, Type::VEC3, "pos")
-    .vertex_in(1, Type::MAT4, "InstanceModelMatrix")
-    .vertex_in(2, Type::VEC4, "color")
-    .vertex_in(3, Type::FLOAT, "size")
+    .vertex_in(1, Type::VEC4, "color")
+    .vertex_in(2, Type::FLOAT, "size")
+    .vertex_in(3, Type::MAT4, "InstanceModelMatrix")
     .vertex_out(flat_color_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
     .push_constant(Type::MAT4, "ViewProjectionMatrix")

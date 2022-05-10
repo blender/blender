@@ -51,6 +51,7 @@
 #include "BKE_curve.h"
 #include "BKE_gpencil.h"
 #include "BKE_key.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_nla.h"
 
@@ -2795,7 +2796,7 @@ static bAnimChannelType ACF_DSSPK = {
     acf_dsspk_setting_ptr,                /* pointer for setting */
 };
 
-/* Hair Expander  ------------------------------------------- */
+/* Curves Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
 static int acf_dscurves_icon(bAnimListElem *UNUSED(ale))
@@ -2858,7 +2859,7 @@ static void *acf_dscurves_setting_ptr(bAnimListElem *ale,
 }
 
 /** Curves expander type define. */
-static bAnimChannelType ACF_DSHAIR = {
+static bAnimChannelType ACF_DSCURVES = {
     "Curves Expander",      /* type name */
     ACHANNEL_ROLE_EXPANDER, /* role */
 
@@ -4019,6 +4020,8 @@ static bool acf_nlaaction_setting_valid(bAnimContext *UNUSED(ac),
       else {
         return false;
       }
+    case ACHANNEL_SETTING_SELECT: /* selected */
+      return true;
 
     /* unsupported */
     default:
@@ -4038,6 +4041,9 @@ static int acf_nlaaction_setting_flag(bAnimContext *UNUSED(ac),
     case ACHANNEL_SETTING_PINNED: /* pinned - map/unmap */
       *neg = true;                /* XXX */
       return ADT_NLA_EDIT_NOMAP;
+
+    case ACHANNEL_SETTING_SELECT: /* selected */
+      return ADT_UI_SELECTED;
 
     default: /* unsupported */
       return 0;
@@ -4128,7 +4134,7 @@ static void ANIM_init_channel_typeinfo_data(void)
     animchannelTypeInfo[type++] = &ACF_DSSPK;        /* Speaker Channel */
     animchannelTypeInfo[type++] = &ACF_DSGPENCIL;    /* GreasePencil Channel */
     animchannelTypeInfo[type++] = &ACF_DSMCLIP;      /* MovieClip Channel */
-    animchannelTypeInfo[type++] = &ACF_DSHAIR;       /* Hair Channel */
+    animchannelTypeInfo[type++] = &ACF_DSCURVES;     /* Curves Channel */
     animchannelTypeInfo[type++] = &ACF_DSPOINTCLOUD; /* PointCloud Channel */
     animchannelTypeInfo[type++] = &ACF_DSVOLUME;     /* Volume Channel */
     animchannelTypeInfo[type++] = &ACF_DSSIMULATION; /* Simulation Channel */
@@ -4936,7 +4942,7 @@ static void draw_setting_widget(bAnimContext *ac,
 
     case ACHANNEL_SETTING_ALWAYS_VISIBLE:
       icon = ICON_UNPINNED;
-      tooltip = TIP_("Channels are visible in Graph Editor for editing");
+      tooltip = TIP_("Display channel regardless of object selection");
       break;
 
     case ACHANNEL_SETTING_MOD_OFF: /* modifiers disabled */
@@ -5117,11 +5123,11 @@ static void draw_setting_widget(bAnimContext *ac,
           break;
       }
 
-      if ((ale->fcurve_owner_id != NULL &&
-           (ID_IS_LINKED(ale->fcurve_owner_id) || ID_IS_OVERRIDE_LIBRARY(ale->fcurve_owner_id))) ||
-          (ale->id != NULL && (ID_IS_LINKED(ale->id) || ID_IS_OVERRIDE_LIBRARY(ale->id)))) {
+      if ((ale->fcurve_owner_id != NULL && !BKE_id_is_editable(ac->bmain, ale->fcurve_owner_id)) ||
+          (ale->fcurve_owner_id == NULL && ale->id != NULL &&
+           !BKE_id_is_editable(ac->bmain, ale->id))) {
         if (setting != ACHANNEL_SETTING_EXPAND) {
-          UI_but_flag_enable(but, UI_BUT_DISABLED);
+          UI_but_disable(but, TIP_("Can't edit this property from a linked data-block"));
         }
       }
     }
@@ -5186,7 +5192,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
       }
       /* Visibility toggle. */
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE)) {
-        /* For F-curves, add the extra space for the color bands. */
+        /* For F-Curves, add the extra space for the color bands. */
         if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
           offset += GRAPH_ICON_VISIBILITY_OFFSET;
         }

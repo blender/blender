@@ -1,3 +1,5 @@
+#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
+
 /* White Noise */
 
 void node_white_noise_1d(vec3 vector, float w, out float value, out vec4 color)

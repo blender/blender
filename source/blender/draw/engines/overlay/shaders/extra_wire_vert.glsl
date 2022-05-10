@@ -1,11 +1,6 @@
 
-in vec3 pos;
-in vec4 color;
-in int colorid; /* if equal 0 (i.e: Not specified) use color attribute and stippling. */
-
-noperspective out vec2 stipple_coord;
-flat out vec2 stipple_start;
-flat out vec4 finalColor;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 vec2 screen_position(vec4 p)
 {
@@ -21,7 +16,8 @@ void main()
   /* HACK: to avoid losing sub-pixel object in selections, we add a bit of randomness to the
    * wire to at least create one fragment that will pass the occlusion query. */
   /* TODO(fclem): Limit this workaround to selection. It's not very noticeable but still... */
-  gl_Position.xy += sizeViewportInv.xy * gl_Position.w * ((gl_VertexID % 2 == 0) ? -1.0 : 1.0);
+  gl_Position.xy += drw_view.viewport_size_inverse * gl_Position.w *
+                    ((gl_VertexID % 2 == 0) ? -1.0 : 1.0);
 #endif
 
   stipple_coord = stipple_start = screen_position(gl_Position);
@@ -31,7 +27,9 @@ void main()
   finalColor = vec4(ModelMatrix[0][3], ModelMatrix[1][3], ModelMatrix[2][3], ModelMatrix[3][3]);
 #else
 
-  if (colorid == TH_CAMERA_PATH) {
+  if (colorid != 0) {
+    /* TH_CAMERA_PATH is the only color code at the moment.
+     * Checking `colorid != 0` to avoid having to sync its value with the GLSL code. */
     finalColor = colorCameraPath;
     finalColor.a = 0.0; /* No Stipple */
   }
@@ -45,7 +43,5 @@ void main()
   finalColor.a = 0.0; /* No Stipple */
 #endif
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(world_pos);
-#endif
+  view_clipping_distances(world_pos);
 }

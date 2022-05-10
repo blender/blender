@@ -90,7 +90,7 @@ static void init_vcol_format(GPUVertFormat *format,
     GPU_vertformat_safe_attr_name(ref.layer->name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
     /* VCol layer name. */
-    BLI_snprintf(attr_name, sizeof(attr_name), "c%s", attr_safe_name);
+    BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
     GPU_vertformat_attr_add(format, attr_name, GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
     /* Active layer name. */
@@ -101,16 +101,6 @@ static void init_vcol_format(GPUVertFormat *format,
     /* Active render layer name. */
     if (ref.layer == render) {
       GPU_vertformat_alias_add(format, "c");
-    }
-
-    /* Gather number of auto layers. */
-    /* We only do `vcols` that are not overridden by `uvs`. */
-    bool bad = ref.domain == ATTR_DOMAIN_CORNER;
-    bad = bad && CustomData_get_named_layer_index(cd_ldata, CD_MLOOPUV, ref.layer->name) != -1;
-
-    if (!bad) {
-      BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
-      GPU_vertformat_alias_add(format, attr_name);
     }
   }
 }
@@ -143,7 +133,7 @@ static void extract_vcol_init(const MeshRenderData *mr,
   CustomData *cd_vdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->vdata : &mr->me->vdata;
   CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->ldata;
 
-  Mesh me_query = {0};
+  Mesh me_query = blender::dna::shallow_zero_initialize();
 
   BKE_id_attribute_copy_domains_temp(
       ID_ME, cd_vdata, nullptr, cd_ldata, nullptr, nullptr, &me_query.id);
@@ -173,7 +163,7 @@ static void extract_vcol_init(const MeshRenderData *mr,
       }
 
       BMIter iter;
-      const bool is_byte = ref.layer->type == CD_MLOOPCOL;
+      const bool is_byte = ref.layer->type == CD_PROP_BYTE_COLOR;
       const bool is_point = ref.domain == ATTR_DOMAIN_POINT;
 
       BMFace *f;
@@ -256,7 +246,7 @@ static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
   const CustomData *cd_ldata = extract_bmesh ? &coarse_mesh->edit_mesh->bm->ldata :
                                                &coarse_mesh->ldata;
 
-  Mesh me_query = *coarse_mesh;
+  Mesh me_query = blender::dna::shallow_copy(*coarse_mesh);
   BKE_id_attribute_copy_domains_temp(
       ID_ME, cd_vdata, nullptr, cd_ldata, nullptr, nullptr, &me_query.id);
 
@@ -318,7 +308,7 @@ static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
       BMIter iter;
       BMFace *f;
       int cd_ofs = cdata->layers[layer_i].offset;
-      const bool is_byte = ref.layer->type == CD_MLOOPCOL;
+      const bool is_byte = ref.layer->type == CD_PROP_BYTE_COLOR;
 
       BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
         BMLoop *l_iter = f->l_first;

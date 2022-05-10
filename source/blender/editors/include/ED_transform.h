@@ -202,6 +202,21 @@ int ED_transform_calc_gizmo_stats(const struct bContext *C,
                                   const struct TransformCalcParams *params,
                                   struct TransformBounds *tbounds);
 
+/**
+ * Iterates over all the strips and finds the closest snapping candidate of either \a frame_1 or \a
+ * frame_2. The closest snapping candidate will be the closest start or end frame of an existing
+ * strip.
+ * \returns True if there was anything to snap to.
+ */
+bool ED_transform_snap_sequencer_to_closest_strip_calc(struct Scene *scene,
+                                                       struct ARegion *region,
+                                                       int frame_1,
+                                                       int frame_2,
+                                                       int *r_snap_distance,
+                                                       float *r_snap_frame);
+
+void ED_draw_sequencer_snap_point(struct bContext *C, float snap_point);
+
 #ifdef __cplusplus
 }
 #endif

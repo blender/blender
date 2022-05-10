@@ -53,9 +53,10 @@ bsdf_ashikhmin_shirley_eval_reflect(ccl_private const ShaderClosure *sc,
 
   float out = 0.0f;
 
-  if (fmaxf(bsdf->alpha_x, bsdf->alpha_y) <= 1e-4f)
+  if (fmaxf(bsdf->alpha_x, bsdf->alpha_y) <= 1e-4f) {
+    *pdf = 0.0f;
     return make_float3(0.0f, 0.0f, 0.0f);
-
+  }
   if (NdotI > 0.0f && NdotO > 0.0f) {
     NdotI = fmaxf(NdotI, 1e-6f);
     NdotO = fmaxf(NdotO, 1e-6f);
@@ -112,6 +113,7 @@ ccl_device float3 bsdf_ashikhmin_shirley_eval_transmit(ccl_private const ShaderC
                                                        const float3 omega_in,
                                                        ccl_private float *pdf)
 {
+  *pdf = 0.0f;
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 

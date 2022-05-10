@@ -324,10 +324,6 @@ typedef struct WORKBENCH_PrivateData {
   /** Index of current material inside the material chunk. Only for material coloring mode. */
   int material_index;
 
-  /* Volumes */
-  /** List of smoke domain textures to free after drawing. */
-  ListBase smoke_domains;
-
   /* Depth of Field */
   /** Depth of field temp buffers. */
   struct GPUTexture *dof_blur_tx;
@@ -533,7 +529,6 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata,
                                      struct ModifierData *md,
                                      eV3DShadingColorType color_type);
 void workbench_volume_draw_pass(WORKBENCH_Data *vedata);
-void workbench_volume_draw_finish(WORKBENCH_Data *vedata);
 
 /* workbench_engine.c */
 

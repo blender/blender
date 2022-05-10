@@ -86,6 +86,7 @@ ccl_device float3 bsdf_principled_sheen_eval_transmit(ccl_private const ShaderCl
                                                       const float3 omega_in,
                                                       ccl_private float *pdf)
 {
+  *pdf = 0.0f;
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
@@ -120,6 +121,7 @@ ccl_device int bsdf_principled_sheen_sample(ccl_private const ShaderClosure *sc,
 #endif
   }
   else {
+    *eval = make_float3(0.0f, 0.0f, 0.0f);
     *pdf = 0.0f;
   }
   return LABEL_REFLECT | LABEL_DIFFUSE;

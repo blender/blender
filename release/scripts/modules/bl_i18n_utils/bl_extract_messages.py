@@ -341,7 +341,8 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
         msgsrc = "bpy.types." + bl_rna.identifier
         msgctxt = bl_rna.translation_context or default_context
 
-        if bl_rna.name and (bl_rna.name != bl_rna.identifier or msgctxt != default_context):
+        if bl_rna.name and (bl_rna.name != bl_rna.identifier or
+                            (msgctxt != default_context and not hasattr(bl_rna, 'bl_label'))):
             process_msg(msgs, msgctxt, bl_rna.name, msgsrc, reports, check_ctxt_rna, settings)
 
         if bl_rna.description:
@@ -423,6 +424,13 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
                 walk_class(cls)
             # Recursively process subclasses.
             process_cls_list(cls.__subclasses__())
+
+    # FIXME Workaround weird new (blender 3.2) issue where some classes (like `bpy.types.Modifier`)
+    # are not listed by `bpy.types.ID.__base__.__subclasses__()` until they are accessed from
+    # `bpy.types` (eg just executing `bpy.types.Modifier`).
+    cls_dir = dir(bpy.types)
+    for cls_name in cls_dir:
+        getattr(bpy.types, cls_name)
 
     # Parse everything (recursively parsing from bpy_struct "class"...).
     process_cls_list(bpy.types.ID.__base__.__subclasses__())

@@ -164,7 +164,7 @@ static void drw_task_graph_deinit(void)
   BLI_task_graph_work_and_wait(DST.task_graph);
 
   BLI_gset_free(DST.delayed_extraction,
-                (void (*)(void *key))drw_batch_cache_generate_requested_evaluated_mesh);
+                (void (*)(void *key))drw_batch_cache_generate_requested_evaluated_mesh_or_curve);
   DST.delayed_extraction = NULL;
   BLI_task_graph_work_and_wait(DST.task_graph);
 
@@ -197,7 +197,7 @@ bool DRW_object_is_renderable(const Object *ob)
 bool DRW_object_is_in_edit_mode(const Object *ob)
 {
   if (BKE_object_is_in_editmode(ob)) {
-    if (ob->type == OB_MESH) {
+    if (ELEM(ob->type, OB_MESH, OB_CURVES)) {
       if ((ob->mode & OB_MODE_EDIT) == 0) {
         return false;
       }
@@ -478,6 +478,7 @@ void DRW_viewport_data_free(DRWData *drw_data)
     MEM_freeN(drw_data->matrices_ubo);
     MEM_freeN(drw_data->obinfos_ubo);
   }
+  DRW_volume_ubos_pool_free(drw_data->volume_grids_ubos);
   MEM_freeN(drw_data);
 }
 
@@ -1286,6 +1287,10 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
 
   const bool gpencil_engine_needed = drw_gpencil_engine_needed(depsgraph, v3d);
 
+  if (G.is_rendering && U.experimental.use_draw_manager_acquire_lock) {
+    return;
+  }
+
   /* XXX Really nasty locking. But else this could
    * be executed by the material previews thread
    * while rendering a viewport. */
@@ -1645,7 +1650,9 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
   DRW_globals_update();
 
   drw_debug_init();
-  DRW_hair_init();
+  DRW_curves_init();
+  DRW_volume_init(DST.vmempool);
+  DRW_smoke_init(DST.vmempool);
 
   /* No frame-buffer allowed before drawing. */
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
@@ -1700,7 +1707,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
   GPU_framebuffer_bind(DST.default_framebuffer);
   GPU_framebuffer_clear_depth_stencil(DST.default_framebuffer, 1.0f, 0xFF);
 
-  DRW_hair_update();
+  DRW_curves_update();
 
   DRW_draw_callbacks_pre_scene();
 
@@ -1710,6 +1717,8 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
   if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
     GPU_flush();
   }
+
+  DRW_smoke_exit(DST.vmempool);
 
   DRW_stats_reset();
 
@@ -1995,6 +2004,8 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 
   GPU_framebuffer_restore();
 
+  DRW_smoke_exit(DST.vmempool);
+
   drw_manager_exit(&DST);
 
   /* Reset state after drawing */
@@ -2011,7 +2022,9 @@ void DRW_render_object_iter(
     void (*callback)(void *vedata, Object *ob, RenderEngine *engine, struct Depsgraph *depsgraph))
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  DRW_hair_init();
+  DRW_curves_init();
+  DRW_volume_init(DST.vmempool);
+  DRW_smoke_init(DST.vmempool);
 
   drw_task_graph_init();
   const int object_type_exclude_viewport = draw_ctx->v3d ?
@@ -2066,7 +2079,9 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
 
   drw_manager_init(&DST, NULL, NULL);
 
-  DRW_hair_init();
+  DRW_curves_init();
+  DRW_volume_init(DST.vmempool);
+  DRW_smoke_init(DST.vmempool);
 
   ViewportEngineData *data = DRW_view_data_engine_data_get_ensure(DST.view_data_active,
                                                                   draw_engine_type);
@@ -2074,6 +2089,8 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
   /* Execute the callback */
   callback(data, user_data);
   DST.buffer_finish_called = false;
+
+  DRW_smoke_exit(DST.vmempool);
 
   GPU_framebuffer_restore();
 
@@ -2091,11 +2108,15 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
 
 void DRW_cache_restart(void)
 {
+  DRW_smoke_exit(DST.vmempool);
+
   drw_manager_init(&DST, DST.viewport, (int[2]){UNPACK2(DST.size)});
 
   DST.buffer_finish_called = false;
 
-  DRW_hair_init();
+  DRW_curves_init();
+  DRW_volume_init(DST.vmempool);
+  DRW_smoke_init(DST.vmempool);
 }
 
 void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
@@ -2412,7 +2433,9 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
 
   /* Init engines */
   drw_engines_init();
-  DRW_hair_init();
+  DRW_curves_init();
+  DRW_volume_init(DST.vmempool);
+  DRW_smoke_init(DST.vmempool);
 
   {
     drw_engines_cache_init();
@@ -2489,7 +2512,7 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
   DRW_state_reset();
   DRW_draw_callbacks_pre_scene();
 
-  DRW_hair_update();
+  DRW_curves_update();
 
   /* Only 1-2 passes. */
   while (true) {
@@ -2506,6 +2529,8 @@ void DRW_draw_select_loop(struct Depsgraph *depsgraph,
       break;
     }
   }
+
+  DRW_smoke_exit(DST.vmempool);
 
   DRW_state_reset();
   drw_engines_disable();
@@ -2582,7 +2607,9 @@ static void drw_draw_depth_loop_impl(struct Depsgraph *depsgraph,
 
   /* Init engines */
   drw_engines_init();
-  DRW_hair_init();
+  DRW_curves_init();
+  DRW_volume_init(DST.vmempool);
+  DRW_smoke_init(DST.vmempool);
 
   {
     drw_engines_cache_init();
@@ -2615,9 +2642,11 @@ static void drw_draw_depth_loop_impl(struct Depsgraph *depsgraph,
   /* Start Drawing */
   DRW_state_reset();
 
-  DRW_hair_update();
+  DRW_curves_update();
 
   drw_engines_draw_scene();
+
+  DRW_smoke_exit(DST.vmempool);
 
   DRW_state_reset();
 
@@ -3004,7 +3033,8 @@ void DRW_engines_free(void)
   GPU_FRAMEBUFFER_FREE_SAFE(g_select_buffer.framebuffer_depth_only);
 
   DRW_shaders_free();
-  DRW_hair_free();
+  DRW_curves_free();
+  DRW_volume_free();
   DRW_shape_cache_free();
   DRW_stats_free();
   DRW_globals_free();

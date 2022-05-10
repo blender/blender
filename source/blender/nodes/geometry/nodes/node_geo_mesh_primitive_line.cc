@@ -3,6 +3,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BLI_task.hh"
+
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 
@@ -169,15 +171,6 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 namespace blender::nodes {
 
-static void fill_edge_data(MutableSpan<MEdge> edges)
-{
-  for (const int i : edges.index_range()) {
-    edges[i].v1 = i;
-    edges[i].v2 = i + 1;
-    edges[i].flag |= ME_LOOSEEDGE;
-  }
-}
-
 Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
 {
   if (count < 1) {
@@ -189,11 +182,23 @@ Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
   MutableSpan<MVert> verts{mesh->mvert, mesh->totvert};
   MutableSpan<MEdge> edges{mesh->medge, mesh->totedge};
 
-  for (const int i : verts.index_range()) {
-    copy_v3_v3(verts[i].co, start + delta * i);
-  }
-
-  fill_edge_data(edges);
+  threading::parallel_invoke(
+      [&]() {
+        threading::parallel_for(verts.index_range(), 4096, [&](IndexRange range) {
+          for (const int i : range) {
+            copy_v3_v3(verts[i].co, start + delta * i);
+          }
+        });
+      },
+      [&]() {
+        threading::parallel_for(edges.index_range(), 4096, [&](IndexRange range) {
+          for (const int i : range) {
+            edges[i].v1 = i;
+            edges[i].v2 = i + 1;
+            edges[i].flag |= ME_LOOSEEDGE;
+          }
+        });
+      });
 
   return mesh;
 }

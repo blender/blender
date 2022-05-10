@@ -597,7 +597,7 @@ static bool apply_objects_internal_can_multiuser(bContext *C)
 {
   Object *obact = CTX_data_active_object(C);
 
-  if (ELEM(NULL, obact, obact->data)) {
+  if (ELEM(nullptr, obact, obact->data)) {
     return false;
   }
 
@@ -884,9 +884,6 @@ static int apply_objects_internal(bContext *C,
 
       /* adjust data */
       BKE_mesh_transform(me, mat, true);
-
-      /* If normal layers exist, they are now dirty. */
-      BKE_mesh_normals_tag_dirty(me);
     }
     else if (ob->type == OB_ARMATURE) {
       bArmature *arm = static_cast<bArmature *>(ob->data);
@@ -1171,6 +1168,44 @@ void OBJECT_OT_transform_apply(wmOperatorType *ot)
                                       "Create new object-data users if needed");
   RNA_def_property_flag(prop, PROP_HIDDEN);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Apply Parent Inverse Operator
+ * \{ */
+
+static int object_parent_inverse_apply_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
+    if (ob->parent == nullptr) {
+      continue;
+    }
+
+    DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+    BKE_object_apply_parent_inverse(ob);
+  }
+  CTX_DATA_END;
+
+  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_parent_inverse_apply(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Apply Parent Inverse";
+  ot->description = "Apply the object's parent inverse to its data";
+  ot->idname = "OBJECT_OT_parent_inverse_apply";
+
+  /* api callbacks */
+  ot->exec = object_parent_inverse_apply_exec;
+  ot->poll = ED_operator_objectmode;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /** \} */
